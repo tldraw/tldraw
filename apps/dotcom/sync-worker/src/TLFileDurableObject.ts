@@ -753,9 +753,11 @@ export class TLFileDurableObject extends DurableObject {
 				{
 					attempts: 20,
 					waitDuration: 100,
-					// Absence is retried (the row may still be committing); infra errors fail fast -
-					// the caller surfaces a retryable close and the client reconnects.
-					matchError: (error) => error instanceof FileRecordNotFoundError,
+					// Absence is retried (the row may still be committing), as are transient connection
+					// errors (one bad query shouldn't be terminal); other infra errors fail fast and
+					// surface the client's generic try-refreshing error copy instead of retrying for 2s.
+					matchError: (error) =>
+						error instanceof FileRecordNotFoundError || isTransientConnectionError(error),
 				}
 			)
 
@@ -792,93 +794,94 @@ export class TLFileDurableObject extends DurableObject {
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		}
 
-		if (this.documentInfo.deleted) {
-			return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
-		}
-
-		const authTimer = this.timer()
-		const auth = await getAuth(req, this.env)
-		authTimer.report('on_request_auth')
-
-		if (this.documentInfo.isApp) {
-			openMode = ROOM_OPEN_MODE.READ_WRITE
-			let file: TlaFile | null
-			try {
-				file = await this.getAppFileRecord()
-			} catch (e) {
-				// An infra failure here (not absence, which resolves to null) would otherwise escape
-				// as a 500 with the accepted server socket leaked in the hibernation set. Close it
-				// instead - UNKNOWN_ERROR (rather than NOT_FOUND) so the client shows its generic
-				// "something went wrong, try refreshing" copy instead of falsely claiming the file
-				// doesn't exist.
-				this.reportError(e)
-				return closeSocket(TLSyncErrorCloseEventReason.UNKNOWN_ERROR)
+		// Everything from here through the permission checks below can throw on an infra failure
+		// (Postgres, rate limiter, etc.) now that those failures bubble instead of being swallowed.
+		// An uncaught throw here would 500 with the accepted server socket leaked in the
+		// hibernation set, so catch broadly and close it instead - UNKNOWN_ERROR (rather than
+		// NOT_FOUND) so the client shows its generic "something went wrong, try refreshing" copy
+		// instead of falsely claiming the file doesn't exist.
+		let auth: Awaited<ReturnType<typeof getAuth>>
+		try {
+			if (this.documentInfo.deleted) {
+				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 			}
 
-			if (file) {
-				if (file.isDeleted) {
-					return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
-				}
+			const authTimer = this.timer()
+			auth = await getAuth(req, this.env)
+			authTimer.report('on_request_auth')
 
-				if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, auth))) {
-					return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
-				}
+			if (this.documentInfo.isApp) {
+				openMode = ROOM_OPEN_MODE.READ_WRITE
+				const file = await this.getAppFileRecord()
 
-				if (!auth && !file.shared) {
-					return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
-				}
-
-				const rateLimitTimer = this.timer()
-				if (auth?.userId) {
-					const rateLimited = await isRateLimited(this.env, auth.userId)
-					if (rateLimited) {
-						this.logEvent({
-							type: 'client',
-							userId: auth.userId,
-							name: 'rate_limited',
-						})
-						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
+				if (file) {
+					if (file.isDeleted) {
+						return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 					}
-				} else {
-					const rateLimited = await isRateLimited(this.env, sessionId)
-					if (rateLimited) {
-						this.logEvent({
-							type: 'client',
-							userId: auth?.userId,
-							name: 'rate_limited',
-						})
-						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
-					}
-				}
-				rateLimitTimer.report('on_request_rate_limit')
 
-				// Check if user has owner access (directly or via group membership)
-				let hasOwnerAccess = false
-				if (file.ownerId && file.ownerId === auth?.userId) {
-					hasOwnerAccess = true
-				} else if (file.owningGroupId && auth?.userId) {
-					// Check the user can access the owning group's files
-					const groupCheckTimer = this.timer()
-					const role = await getRole(this.db, auth.userId, file.owningGroupId)
-					if (can(role, 'accessFiles')) {
+					if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, auth))) {
+						return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
+					}
+
+					if (!auth && !file.shared) {
+						return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
+					}
+
+					const rateLimitTimer = this.timer()
+					if (auth?.userId) {
+						const rateLimited = await isRateLimited(this.env, auth.userId)
+						if (rateLimited) {
+							this.logEvent({
+								type: 'client',
+								userId: auth.userId,
+								name: 'rate_limited',
+							})
+							return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
+						}
+					} else {
+						const rateLimited = await isRateLimited(this.env, sessionId)
+						if (rateLimited) {
+							this.logEvent({
+								type: 'client',
+								userId: auth?.userId,
+								name: 'rate_limited',
+							})
+							return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
+						}
+					}
+					rateLimitTimer.report('on_request_rate_limit')
+
+					// Check if user has owner access (directly or via group membership)
+					let hasOwnerAccess = false
+					if (file.ownerId && file.ownerId === auth?.userId) {
 						hasOwnerAccess = true
+					} else if (file.owningGroupId && auth?.userId) {
+						// Check the user can access the owning group's files
+						const groupCheckTimer = this.timer()
+						const role = await getRole(this.db, auth.userId, file.owningGroupId)
+						if (can(role, 'accessFiles')) {
+							hasOwnerAccess = true
+						}
+						groupCheckTimer.report('on_request_group_check')
 					}
-					groupCheckTimer.report('on_request_group_check')
-				}
 
-				if (!hasOwnerAccess && !file.shared) {
-					return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
-				}
+					if (!hasOwnerAccess && !file.shared) {
+						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
+					}
 
-				// Guests only get canvas write on an `edit` link. `sharedLinkType` is a plain
-				// string column with legacy values in it, so anything else fails closed.
-				if (!hasOwnerAccess && file.sharedLinkType !== 'edit') {
-					openMode = ROOM_OPEN_MODE.READ_ONLY
+					// Guests only get canvas write on an `edit` link. `sharedLinkType` is a plain
+					// string column with legacy values in it, so anything else fails closed.
+					if (!hasOwnerAccess && file.sharedLinkType !== 'edit') {
+						openMode = ROOM_OPEN_MODE.READ_ONLY
+					}
 				}
+			} else {
+				// Legacy rooms are now read-only
+				openMode = ROOM_OPEN_MODE.READ_ONLY
 			}
-		} else {
-			// Legacy rooms are now read-only
-			openMode = ROOM_OPEN_MODE.READ_ONLY
+		} catch (e) {
+			this.reportError(e)
+			return closeSocket(TLSyncErrorCloseEventReason.UNKNOWN_ERROR)
 		}
 
 		try {
@@ -1697,7 +1700,16 @@ export class TLFileDurableObject extends DurableObject {
 								})
 						}
 					},
-					{ attempts: PERSIST_RETRIES_MAX, waitDuration: 2000 }
+					{
+						// throwOnFailure callers (publish) are awaited inside a 30s outbox effect
+						// timeout; the default 100 attempts (~200s) would blow past it, surfacing as a
+						// generic timeout with the real cause lost, and the zombie retry loop would
+						// keep running - and eventually persisting - long after the effect gave up.
+						// Cap those callers well under the timeout; best-effort persists keep the full
+						// budget since nothing downstream is racing them.
+						attempts: opts?.throwOnFailure ? PERSIST_RETRIES_MAX_THROWING : PERSIST_RETRIES_MAX,
+						waitDuration: 2000,
+					}
 				)
 			})
 			.catch((e) => {
@@ -2994,6 +3006,8 @@ async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promise<stri
 
 const PERSIST_RETRIES_NOTIFY_THRESHOLD = 10
 const PERSIST_RETRIES_MAX = 100
+// ~10 attempts * 2s = ~20s, kept under the 30s outbox effect timeout (see persistToDatabase).
+const PERSIST_RETRIES_MAX_THROWING = 10
 
 const PIERRE_AUTHOR = { email: 'huppy@tldraw.com', name: 'huppy [bot]' }
 

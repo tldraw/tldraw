@@ -3,7 +3,13 @@ import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { sql } from 'kysely'
 import { FileEffectDeps, processFileEffect } from './fileEffects'
-import { EFFECT_TIMEOUT_MS, MAX_ATTEMPTS, computeNextAlarm, drainOutbox } from './outboxDrain'
+import {
+	EFFECT_TIMEOUT_MS,
+	MAX_ATTEMPTS,
+	computeNextAlarm,
+	drainOutbox,
+	shouldReportEffectFailure,
+} from './outboxDrain'
 import { createPostgresConnectionPool } from './postgres'
 import { Analytics, Environment } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
@@ -137,7 +143,11 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 					// Exponential backoff from the row's current attempt count, capped at 5 minutes.
 					// The base IS the effect timeout, so the first retry can't land before a
 					// timed-out RPC's window closes (the RPC keeps running — it can't be cancelled),
-					// avoiding an overlapping retry.
+					// avoiding an overlapping retry. This relies on the RPC actually finishing within
+					// the window: a publish effect's awaitPersist used to retry for up to ~200s
+					// (PERSIST_RETRIES_MAX * 2s), well past this 30s timeout, so a zombie publish
+					// could still be running when a retried attempt started. awaitPersist now caps
+					// its throwing retries at ~20s (PERSIST_RETRIES_MAX_THROWING), so it can't.
 					const backoffSeconds = Math.min(2 ** row.attempts * (EFFECT_TIMEOUT_MS / 1000), 300)
 					const backoff = sql<Date>`now() + (${backoffSeconds} || ' seconds')::interval`
 					// (a) Back off the failed row itself and bump its attempt count.
@@ -193,10 +203,9 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 					// Report the first failure (immediate visibility) and the parking failure (data
 					// loss), but not every retry in between - under an outage, one row can burn through
 					// MAX_ATTEMPTS attempts, and reporting each would eat Sentry's rate limit and drop
-					// the parking events that matter most.
-					const isFirstAttempt = row.attempts === 0
+					// the parking events that matter most. See shouldReportEffectFailure's doc comment.
 					const isParking = row.attempts + 1 >= MAX_ATTEMPTS
-					if (isFirstAttempt || isParking) {
+					if (shouldReportEffectFailure(row.attempts)) {
 						this.captureException(error, {
 							tableName: row.tableName,
 							entityId: row.entityId,

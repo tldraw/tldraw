@@ -1,6 +1,12 @@
 import { TlaEffectOutbox } from '@tldraw/dotcom-shared'
 import { describe, expect, it, vi } from 'vitest'
-import { OutboxDeps, computeNextAlarm, drainOutbox } from './outboxDrain'
+import {
+	MAX_ATTEMPTS,
+	OutboxDeps,
+	computeNextAlarm,
+	drainOutbox,
+	shouldReportEffectFailure,
+} from './outboxDrain'
 
 function row(partial: Partial<TlaEffectOutbox>): TlaEffectOutbox {
 	return {
@@ -249,5 +255,16 @@ describe('computeNextAlarm', () => {
 
 	it('leaves a sooner future alarm (imminent poke) untouched', () => {
 		expect(computeNextAlarm(now + 1_000, now, SWEEP)).toBe(null)
+	})
+})
+
+describe('shouldReportEffectFailure', () => {
+	it.each([
+		[0, true],
+		[1, false],
+		[MAX_ATTEMPTS - 2, false],
+		[MAX_ATTEMPTS - 1, true],
+	])('attempts=%i -> %s', (attempts, expected) => {
+		expect(shouldReportEffectFailure(attempts)).toBe(expected)
 	})
 })
