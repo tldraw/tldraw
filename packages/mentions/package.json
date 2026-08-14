@@ -9,12 +9,12 @@
 	"homepage": "https://tldraw.dev",
 	"license": "SEE LICENSE IN LICENSE.md",
 	"tldraw_product": {
-		"stableId": "tldraw:mentions",
-		"name": "Mentions",
+		"stableId": "tldraw:commenting",
+		"name": "Commenting",
 		"type": "feature",
 		"parent": "tldraw:collaboration",
 		"premium": true,
-		"licenseFlag": "FEAT_MENTIONS"
+		"licenseFlag": "FEAT_COMMENTING"
 	},
 	"repository": {
 		"type": "git",

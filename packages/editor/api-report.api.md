@@ -2421,7 +2421,7 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[], opt
 export const LICENSE_TIMEOUT = 5000;
 
 // @internal
-export type LicenseFeatureName = 'collaboration' | 'commenting' | 'mentions';
+export type LicenseFeatureName = 'collaboration' | 'commenting';
 
 // @internal (undocumented)
 export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult;
@@ -5255,8 +5255,6 @@ export interface ValidLicenseKeyResult {
     isLicensedWithWatermark: boolean;
     // (undocumented)
     isLicenseParseable: true;
-    // (undocumented)
-    isMentionsEnabled: boolean;
     // (undocumented)
     isNativeLicense: boolean;
     // (undocumented)

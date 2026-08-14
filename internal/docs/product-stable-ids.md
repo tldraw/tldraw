@@ -7,19 +7,18 @@ Every published package in `packages/` declares which commercial component it be
 The taxonomy has exactly two levels, matching the order form's "Product in Scope" section:
 
 - **Products** are the top-level line items — the checkboxes a customer ticks. Today: SDK and the Collaboration module.
-- **Features** are parts of a product that can be licensed on their own, listed indented beneath their parent. Commenting and Mentions are features of the Collaboration module.
+- **Features** are parts of a product that can be licensed on their own, listed indented beneath their parent. Commenting is a feature of the Collaboration module.
 
 ```
 [ ] SDK
       [ ] Sync, Driver, Mermaid, Create tldraw CLI   (included, not separately licensed)
 [ ] Collaboration module
       [ ] Commenting
-      [ ] Mentions
 ```
 
 A feature that isn't premium is _included_ in its parent rather than separately licensable — it appears in the manifest so legal can see what a product contains, but it isn't its own checkbox.
 
-Individual npm packages are not part of this taxonomy. A package declares the component it implements and inherits that component's entitlement; several packages can (and do) share one stable id. `@tldraw/mentions` implements `tldraw:mentions`, and `@tldraw/commenting` plus `@tldraw/sync-collaboration` both implement `tldraw:commenting`. None of them are order form line items.
+Individual npm packages are not part of this taxonomy. A package declares the component it implements and inherits that component's entitlement; several packages can (and do) share one stable id. `@tldraw/commenting`, `@tldraw/mentions`, and `@tldraw/sync-collaboration` all implement `tldraw:commenting`, and none of them are order form line items.
 
 ## Why package.json
 
@@ -74,11 +73,11 @@ Run `yarn product-manifest` for the authoritative list. As of the introduction o
 | `tldraw:mermaid`       | Mermaid              | `tldraw:sdk-core`      | no                         | `@tldraw/mermaid`                                                                                                                                                                |
 | `tldraw:create-tldraw` | Create tldraw CLI    | `tldraw:sdk-core`      | no                         | `create-tldraw`                                                                                                                                                                  |
 | `tldraw:collaboration` | Collaboration module | —                      | yes (`FEAT_COLLABORATION`) | `@tldraw/collaboration`                                                                                                                                                          |
-| `tldraw:commenting`    | Commenting           | `tldraw:collaboration` | yes (`FEAT_COMMENTING`)    | `@tldraw/commenting`, `@tldraw/sync-collaboration`                                                                                                                               |
-| `tldraw:mentions`      | Mentions             | `tldraw:collaboration` | yes (`FEAT_MENTIONS`)      | `@tldraw/mentions`                                                                                                                                                               |
+| `tldraw:commenting`    | Commenting           | `tldraw:collaboration` | yes (`FEAT_COMMENTING`)    | `@tldraw/commenting`, `@tldraw/mentions`, `@tldraw/sync-collaboration`                                                                                                           |
 
-Entitlement flows down the tree, and commenting additionally implies mentions because it is built on them:
+Entitlement flows down the tree:
 
 - `FEAT_COLLABORATION` — the umbrella flag; grants the whole Collaboration module.
-- `FEAT_COMMENTING` — grants commenting, and mentions along with it.
-- `FEAT_MENTIONS` — grants mentions alone, for use outside of comments such as in shape rich text.
+- `FEAT_COMMENTING` — grants commenting.
+
+`@tldraw/mentions` implements commenting today because `@tldraw/commenting` depends on it, so every customer entitled to commenting is entitled to mentions. If mentions later becomes usable on its own — in shape rich text, say — it will need its own component and license flag at that point.

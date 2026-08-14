@@ -28,10 +28,6 @@ export const FLAGS = {
 	FEAT_COLLABORATION: 1 << 6,
 	// Commenting is the first sub-feature of collaboration.
 	FEAT_COMMENTING: 1 << 7,
-	// Mentions is a sub-feature of collaboration. Commenting depends on mentions, so a commenting
-	// entitlement also grants it; the flag exists so mentions can be licensed on its own for use
-	// outside of comments, such as in shape rich text.
-	FEAT_MENTIONS: 1 << 8,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
@@ -61,17 +57,15 @@ export interface LicenseInfo {
  *
  * @internal
  */
-export type LicenseFeatureName = 'collaboration' | 'commenting' | 'mentions'
+export type LicenseFeatureName = 'collaboration' | 'commenting'
 
 const NO_FEATURES: Readonly<Record<LicenseFeatureName, boolean>> = {
 	collaboration: false,
 	commenting: false,
-	mentions: false,
 }
 const ALL_FEATURES: Readonly<Record<LicenseFeatureName, boolean>> = {
 	collaboration: true,
 	commenting: true,
-	mentions: true,
 }
 
 /** @internal */
@@ -115,7 +109,6 @@ export interface ValidLicenseKeyResult {
 	isEvaluationLicenseExpired: boolean
 	isCollaborationEnabled: boolean
 	isCommentingEnabled: boolean
-	isMentionsEnabled: boolean
 	daysSinceExpiry: number
 }
 
@@ -347,9 +340,6 @@ export class LicenseManager {
 			const isCollaborationEnabled = this.isFlagEnabled(licenseInfo.flags, FLAGS.FEAT_COLLABORATION)
 			const isCommentingEnabled =
 				isCollaborationEnabled || this.isFlagEnabled(licenseInfo.flags, FLAGS.FEAT_COMMENTING)
-			// Commenting is built on mentions, so anything that grants commenting grants mentions too.
-			const isMentionsEnabled =
-				isCommentingEnabled || this.isFlagEnabled(licenseInfo.flags, FLAGS.FEAT_MENTIONS)
 
 			// For perpetual licenses, the calendar expiry date only gates access to future
 			// major/minor releases; it does not "expire" the license itself. While the user
@@ -376,7 +366,6 @@ export class LicenseManager {
 					isEvaluationLicense && this.isEvaluationLicenseExpired(expiryDate),
 				isCollaborationEnabled,
 				isCommentingEnabled,
-				isMentionsEnabled,
 				daysSinceExpiry,
 			}
 			this.outputLicenseInfoIfNeeded(result)
@@ -587,7 +576,6 @@ export function getEnabledFeatures(
 	return {
 		collaboration: result.isCollaborationEnabled,
 		commenting: result.isCommentingEnabled,
-		mentions: result.isMentionsEnabled,
 	}
 }
 

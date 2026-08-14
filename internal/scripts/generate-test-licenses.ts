@@ -146,7 +146,7 @@ async function main() {
 
 		// === FEATURE FLAGS ===
 		{
-			name: 'License with Commenting Feature (grants mentions)',
+			name: 'License with Commenting Feature',
 			info: createLicenseInfo(
 				'test-feat-commenting',
 				['localhost'],
@@ -155,16 +155,7 @@ async function main() {
 			),
 		},
 		{
-			name: 'License with Mentions Feature',
-			info: createLicenseInfo(
-				'test-feat-mentions',
-				['localhost'],
-				FLAGS.ANNUAL_LICENSE | FLAGS.FEAT_MENTIONS,
-				getDateOffset(60) // 2 months future
-			),
-		},
-		{
-			name: 'License with Collaboration Feature (grants commenting and mentions)',
+			name: 'License with Collaboration Feature (grants commenting)',
 			info: createLicenseInfo(
 				'test-feat-collaboration',
 				['localhost'],
