@@ -29,6 +29,7 @@ import {
 	getFileEffectProcessor,
 	getRoomDurableObject,
 	getRoomDurableObjectById,
+	getRoomDurableObjectId,
 	getUserDurableObject,
 } from './utils/durableObjects'
 import { FEATURE_FLAG_KEYS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
@@ -264,8 +265,15 @@ export const adminRoutes = createRouter<Environment>()
 		let objectId: string
 		if (/^[0-9a-f]{64}$/.test(param)) {
 			objectId = param
+		} else if (/^[0-9a-fA-F]{16,}$/.test(param)) {
+			// hex is a subset of the slug charset — without this, a truncated or uppercase id would
+			// hash as a slug and report a confident "never initialized"
+			throw new StatusError(
+				400,
+				'looks like a truncated or uppercase durable object id — paste the full 64-char lowercase hex'
+			)
 		} else if (/^[a-zA-Z0-9_-]+$/.test(param)) {
-			objectId = env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${param}`).toString()
+			objectId = getRoomDurableObjectId(env, param).toString()
 		} else {
 			throw new StatusError(400, 'pass a 64-char hex durable object id or a room slug')
 		}

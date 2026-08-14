@@ -135,6 +135,13 @@ function ResolveDoId() {
 
 	const onResolve = useCallback(async () => {
 		const idOrSlug = input.trim()
+		// hex is a subset of the slug charset — catch truncated/uppercase ids before they hash as slugs
+		if (/^[0-9a-fA-F]{16,}$/.test(idOrSlug) && !/^[0-9a-f]{64}$/.test(idOrSlug)) {
+			setError(
+				'Looks like a truncated or uppercase durable object id — paste the full 64-char lowercase hex'
+			)
+			return
+		}
 		if (!/^[0-9a-f]{64}$/.test(idOrSlug) && !/^[a-zA-Z0-9_-]+$/.test(idOrSlug)) {
 			setError('Paste a 64-character hex durable object id or a room slug')
 			return
@@ -187,11 +194,12 @@ function ResolveDoId() {
 	return (
 		<div>
 			<p>
-				Paste a durable object id (full 64-character hex, from the Cloudflare dash or analytics) or
-				a room slug — either resolves to the room&apos;s activity. <b>Sockets</b> are live tabs;
-				save stats come from the snapshot history bucket. Frequent recent saves = someone editing;
-				sockets with stale saves = parked background tabs; no sockets = idle. The slug is copyable
-				instead of linked — we do not open users&apos; files.
+				Paste a durable object id (full 64-character hex — dash lists truncate, grab the full id
+				from the search dropdown or GraphQL) or a room slug — either resolves to the room&apos;s
+				activity. <b>Sockets</b> are live tabs; save stats come from the snapshot history bucket.
+				Frequent recent saves = someone editing; sockets with stale saves = parked background tabs;
+				no sockets = idle. The slug is copyable instead of linked — we do not open users&apos;
+				files.
 			</p>
 			<div className={styles.searchContainer}>
 				<input
