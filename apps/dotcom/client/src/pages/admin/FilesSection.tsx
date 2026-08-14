@@ -96,9 +96,9 @@ const CF_ACCOUNT_TAG = 'c34edc4e76350954b63adebde86d5eb1'
 const CF_TLDR_DOC_NAMESPACE_ID = '5864db4344ac4c55bfd94e81dd25a043'
 
 /**
- * Maps a durable object id (from Cloudflare analytics or the dash) back to its room slug, with
- * liveness and persist-history signals. The object stores its own identity, so the resolver asks
- * it directly.
+ * Looks up a room by durable object id (from Cloudflare analytics or the dash) or by room slug,
+ * with liveness and persist-history signals. The server distinguishes the two forms and returns
+ * the canonical object id either way.
  */
 function ResolveDoId() {
 	const [input, setInput] = useState('')
@@ -113,29 +113,41 @@ function ResolveDoId() {
 		} | null
 	)
 
-	const onResolve = useCallback(async () => {
-		const objectId = input.trim()
-		if (!/^[0-9a-f]{64}$/.test(objectId)) {
-			setError('Paste a 64-character lowercase hex durable object id')
-			return
-		}
+	const resolve = useCallback(async (idOrSlug: string) => {
 		setError(null)
 		setResult(null)
 		setCopied(false)
 		setIsRunning(true)
 		try {
-			const res = await fetch(`/api/app/admin/resolve-do-id/${objectId}`)
+			// the server resolves either form and returns the canonical object id
+			const res = await fetch(`/api/app/admin/resolve-do-id/${encodeURIComponent(idOrSlug)}`)
 			if (!res.ok) {
 				setError(res.statusText + ': ' + (await res.text()))
 				return
 			}
-			setResult({ objectId, ...(await res.json()) })
+			setResult(await res.json())
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Resolve failed')
 		} finally {
 			setIsRunning(false)
 		}
-	}, [input])
+	}, [])
+
+	const onResolve = useCallback(async () => {
+		const idOrSlug = input.trim()
+		// hex is a subset of the slug charset — catch truncated/uppercase ids before they hash as slugs
+		if (/^[0-9a-fA-F]{16,}$/.test(idOrSlug) && !/^[0-9a-f]{64}$/.test(idOrSlug)) {
+			setError(
+				'Looks like a truncated or uppercase durable object id — paste the full 64-char lowercase hex'
+			)
+			return
+		}
+		if (!/^[0-9a-f]{64}$/.test(idOrSlug) && !/^[a-zA-Z0-9_-]+$/.test(idOrSlug)) {
+			setError('Paste a 64-character hex durable object id or a room slug')
+			return
+		}
+		await resolve(idOrSlug)
+	}, [input, resolve])
 
 	const onCopySlug = useCallback(async (slug: string) => {
 		await navigator.clipboard.writeText(slug)
@@ -146,26 +158,53 @@ function ResolveDoId() {
 	const match = result?.match
 	const history = result?.history
 
+	const [isClosing, setIsClosing] = useState(false)
+	const onForceClose = useCallback(async () => {
+		// target the id that was resolved, not the live input — the admin may have edited the
+		// input since, and the button describes the resolved room
+		if (!result || !match) return
+		if (
+			!window.confirm(
+				`Force-close ${match.connectedSockets} session(s) on ${match.slug}? ` +
+					'Every connected tab (including anyone actively editing) is disconnected and shown ' +
+					'a "please reload" screen.'
+			)
+		) {
+			return
+		}
+		setError(null)
+		setIsClosing(true)
+		try {
+			const res = await fetch(`/api/app/admin/close-do-sessions/${result.objectId}`, {
+				method: 'POST',
+			})
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			// re-resolve the same object so the socket count and verdict reflect the drain
+			await resolve(result.objectId)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Force-close failed')
+		} finally {
+			setIsClosing(false)
+		}
+	}, [result, match, resolve])
+
 	return (
 		<div>
 			<p>
-				Finds the room behind a durable object id. Cloudflare analytics (the durable objects dash,
-				GraphQL, our Analytics Engine events) rank hot objects by id, but the id is a one-way hash
-				of the room name — this asks the object itself for its stored identity. Paste the full
-				64-character id (dash lists often truncate; use the search dropdown or GraphQL for the full
-				one).
-			</p>
-			<p>
-				Reading the result: <b>sockets</b> are live browser tabs holding a connection, and the save
-				stats come from the snapshot history bucket (one snapshot per persist) — recent, frequent
-				saves mean someone is editing; a connected socket with stale saves is a parked background
-				tab; no sockets means the room is idle. The slug is copyable on purpose instead of linked —
-				we do not open users&apos; files.
+				Paste a durable object id (full 64-character hex — dash lists truncate, grab the full id
+				from the search dropdown or GraphQL) or a room slug — either resolves to the room&apos;s
+				activity. <b>Sockets</b> are live tabs; save stats come from the snapshot history bucket.
+				Frequent recent saves = someone editing; sockets with stale saves = parked background tabs;
+				no sockets = idle. The slug is copyable instead of linked — we do not open users&apos;
+				files.
 			</p>
 			<div className={styles.searchContainer}>
 				<input
 					className={styles.searchInput}
-					placeholder="Durable object id (64-char hex)"
+					placeholder="Durable object id (64-char hex) or room slug"
 					value={input}
 					onChange={(e) => setInput(e.target.value)}
 					onKeyDown={(e) => e.key === 'Enter' && onResolve()}
@@ -177,7 +216,7 @@ function ResolveDoId() {
 			</div>
 			{error && <div className={styles.errorMessage}>{error}</div>}
 			{result && !match && (
-				<div className={styles.subTitle}>No room for that id (never initialized)</div>
+				<div className={styles.subTitle}>No room for that id or slug (never initialized)</div>
 			)}
 			{match && result && (
 				<div className={styles.subTitle}>
@@ -214,6 +253,14 @@ function ResolveDoId() {
 										: '') +
 									`latest ${history.latestSizeBytes !== null ? formatBytes(history.latestSizeBytes) : '-'} · ` +
 									`total ${formatBytes(history.totalSizeBytes)}`}
+						</div>
+					)}
+					{match.connectedSockets > 0 && (
+						<div>
+							<AdminButton variant="danger" onClick={onForceClose} isLoading={isClosing}>
+								Force-close {match.connectedSockets} session
+								{match.connectedSockets === 1 ? '' : 's'}
+							</AdminButton>
 						</div>
 					)}
 				</div>
