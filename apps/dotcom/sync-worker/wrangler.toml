@@ -133,7 +133,7 @@ LOCAL_SCREENSHOT_SERVICE_URL = "http://localhost:3000/__screenshot"
 # staging is the same as a preview on main:
 [env.staging]
 name = "main-tldraw-multiplayer"
-workers_dev = true # todo: remove this once clients are updated
+workers_dev = false
 
 [env.staging.vars]
 HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "4"
@@ -145,7 +145,7 @@ MCP_SCREENSHOT_ENABLED = "true"
 # production gets the proper name
 [env.production]
 name = "tldraw-multiplayer"
-workers_dev = true # todo: remove this once clients are updated
+workers_dev = false
 
 [env.production.vars]
 HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "10"
