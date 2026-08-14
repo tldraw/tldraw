@@ -99,11 +99,11 @@ export interface Environment {
 	// rendering is subject to none of them. Separate bindings because a binding carries one `limit`
 	// applied per key, so budgets with different numbers cannot share one. The route falls back to an
 	// isolate-local guard when they are absent (local dev, tests).
-	/** Per-IP `get_shared_board_screenshot` calls. */
+	/** One per-account budget (`user:`) across every Browser Run-spending MCP tool. */
 	MCP_SCREENSHOT_RATE_LIMITER: RateLimit | undefined
-	/** Per-board Browser Run captures, applied only on cache misses. */
+	/** Per-board Browser Run captures, applied only on cache misses. Measures are not counted here. */
 	MCP_SERVER_BOARD_RATE_LIMITER: RateLimit | undefined
-	/** Total Browser Run invocations made by the tool, on one shared key. */
+	/** Total Browser Run sessions the tools spend, captures and measures alike, on one shared key. */
 	MCP_SERVER_BROWSER_RATE_LIMITER: RateLimit | undefined
 
 	QUEUE: Queue<QueueMessage>
@@ -141,6 +141,17 @@ export interface Environment {
 	MCP_SCREENSHOT_RENDER_ORIGIN: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
+	// The MCP server's public URL, and the resource identifier it advertises in RFC 9728 protected
+	// resource metadata and in the `WWW-Authenticate` challenge. Not compared against anything on an
+	// incoming token: Clerk stamps no `aud`, so there is no audience binding to check — see
+	// authenticateMcpRequest for what stands in for one. Set per environment in wrangler.toml;
+	// previews have no vars block there, so deploy-dotcom.ts injects it as a deploy var. Left unset,
+	// it is derived from the request's own origin, which is fine locally and wrong anywhere a Host
+	// header can be forged — see getMcpResourceUrl.
+	MCP_SERVER_URL: string | undefined
+	// Overrides the OAuth authorization server advertised to MCP clients. Normally unset: the value is
+	// derived from CLERK_PUBLISHABLE_KEY so it cannot drift from the instance whose tokens we verify.
+	MCP_OAUTH_AUTHORIZATION_SERVER: string | undefined
 	// Development only: a local HTTP screenshot service to use instead of the BROWSER binding, which
 	// cannot reach Browser Run in local dev. Set in [env.dev.vars] to the client dev server's
 	// screenshot endpoint; unset everywhere else, which is what keeps deployed environments on
@@ -150,6 +161,17 @@ export interface Environment {
 
 export function isDebugLogging(env: Environment) {
 	return env.TLDRAW_ENV === 'development' || env.TLDRAW_ENV === 'preview'
+}
+
+/**
+ * The word a boolean-ish env var holds: trimmed, lowercased, with unset and empty folded together.
+ * Used by MCP_SCREENSHOT_ENABLED. Kept as a shared helper rather than inlined so a second
+ * boolean-ish var cannot arrive parsing its value differently — each call site keeps its own
+ * fail-safe direction, this owns what a value *is*.
+ */
+export function envFlagWord(value: string | undefined): string | undefined {
+	const word = value?.trim().toLowerCase()
+	return word ? word : undefined
 }
 
 export function getUserDoSnapshotKey(env: Environment, userId: string) {
@@ -296,6 +318,16 @@ export interface ThumbnailBoardRef {
  * board was resolved under is the same one the snapshot route applies when it is read.
  */
 export type ThumbnailBoardAccess = 'public' | 'render'
+
+/**
+ * Which pipeline asked for a render. `og` covers the social-preview route and its queue consumer;
+ * `mcp` is the board screenshot MCP server.
+ *
+ * Unlike `OgImageRenderReason` this is not telemetry — it is signed into the render job and
+ * namespaces the minted-token record, so two surfaces rendering the same board at the same time do
+ * not overwrite each other's proof of mint. See `recordMintedRenderToken`.
+ */
+export type ThumbnailRenderSurface = 'og' | 'mcp'
 
 // What prompted a board thumbnail render. Purely telemetry — every trigger is treated identically by
 // the consumer — so renders can be attributed to the thing that asked for them. `publish` and `edit`

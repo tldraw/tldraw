@@ -609,7 +609,14 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			// MCP_SCREENSHOT_RENDER_ORIGIN in wrangler.toml; previews have no such entry, so inject
 			// it here (Browser Run can't reach an origin that isn't configured for the deployment).
 			...(previewId
-				? { MCP_SCREENSHOT_RENDER_ORIGIN: `https://${previewId}-preview-deploy.tldraw.com` }
+				? {
+						MCP_SCREENSHOT_RENDER_ORIGIN: `https://${previewId}-preview-deploy.tldraw.com`,
+						// Previews advertise and verify against their own public URL like every other
+						// deployed environment — the Host-derived fallback in getMcpResourceUrl is for
+						// local dev and tests only. Injected here because previews have no wrangler.toml
+						// vars block at all.
+						MCP_SERVER_URL: `https://${previewId}-preview-deploy.tldraw.com/api/app/mcp`,
+					}
 				: {}),
 		},
 		sentry: {
