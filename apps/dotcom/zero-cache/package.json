@@ -20,7 +20,7 @@
 	"type": "module",
 	"dependencies": {
 		"@rocicorp/zero": "1.8.0",
-		"kysely": "^0.28.12",
+		"kysely": "^0.29.5",
 		"pg": "^8.16.3"
 	},
 	"devDependencies": {
