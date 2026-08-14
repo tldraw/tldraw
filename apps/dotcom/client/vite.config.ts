@@ -98,6 +98,10 @@ export default defineConfig((env) => ({
 			8789
 		),
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.TLDRAW_ENV ?? 'development'),
+		// A monotonic build identifier (epoch ms at build time). Sent as `?v=` on sync websocket
+		// connections so the server can tell how old a client bundle is — parked background tabs
+		// keep running whatever bundle they loaded, potentially for weeks.
+		'process.env.CLIENT_BUILD_TIMESTAMP': JSON.stringify(Date.now().toString()),
 		'process.env.TLDRAW_LICENSE': JSON.stringify(process.env.TLDRAW_LICENSE ?? ''),
 		// Fall back to staging DSN for local develeopment, although you still need to
 		// modify the env check in 'sentry.client.config.ts' to get it reporting errors
