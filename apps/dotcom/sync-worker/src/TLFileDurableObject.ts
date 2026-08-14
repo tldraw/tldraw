@@ -386,7 +386,7 @@ export class TLFileDurableObject extends DurableObject {
 	storage: DurableObjectStorage
 
 	// For persistence
-	supabaseClient: SupabaseClient | void
+	private _supabaseClient: SupabaseClient | undefined
 	pierreClient: ReturnType<typeof createPierreClient>
 	pierreState: PierreState | null = null
 
@@ -409,6 +409,18 @@ export class TLFileDurableObject extends DurableObject {
 	private readonly log: Logger
 	/** Map sessionId → ws so onSessionSnapshot can serialize to the right socket. */
 	private readonly sessionIdToWs = new Map<string, WebSocket>()
+
+	/**
+	 * Only legacy (non-app) rooms ever read from supabase, so don't construct the client until one
+	 * asks for it — most DOs never will.
+	 */
+	// eslint-disable-next-line tldraw/no-setter-getter
+	get supabaseClient() {
+		if (!this._supabaseClient) {
+			this._supabaseClient = createSupabaseClient(this.env)
+		}
+		return this._supabaseClient
+	}
 
 	// eslint-disable-next-line tldraw/no-setter-getter
 	get db() {
@@ -435,7 +447,6 @@ export class TLFileDurableObject extends DurableObject {
 		this.measure = env.MEASURE
 		this.sentry = createSentry(this.state, this.env)
 		this.log = new Logger(env, 'TLDrawDurableObject', this.sentry)
-		this.supabaseClient = createSupabaseClient(env)
 		this.pierreClient = createPierreClient(env)
 
 		this.supabaseTable = env.TLDRAW_ENV === 'production' ? 'drawings' : 'drawings_staging'
@@ -1311,12 +1322,13 @@ export class TLFileDurableObject extends DurableObject {
 			}
 
 			// if we don't have a room in the bucket, try to load from supabase
-			if (!this.supabaseClient) {
+			const supabaseClient = this.supabaseClient
+			if (!supabaseClient) {
 				throw new RoomNotFoundError(slug)
 			}
 
 			const supabaseFetchTimer = this.timer()
-			const { data, error } = await this.supabaseClient
+			const { data, error } = await supabaseClient
 				.from(this.supabaseTable)
 				.select('*')
 				.eq('slug', slug)
