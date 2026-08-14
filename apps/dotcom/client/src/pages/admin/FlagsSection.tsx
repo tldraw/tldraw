@@ -265,7 +265,11 @@ function AllowlistFlag({
 	} catch (err) {
 		parseError = err instanceof Error ? err.message : String(err)
 	}
-	const isDirty = parsed.join('\n') !== currentEmails.join('\n')
+	// Both sides normalized before comparing. `parseAllowlistEmails` lowercases, while the stored list
+	// carries each address as the *database* has it — the save resolves emails to accounts and keeps
+	// the account's own casing — so comparing them raw leaves Save enabled forever on any list holding
+	// one mixed-case address, and confirms a replace-the-whole-list save that changes nothing.
+	const isDirty = parsed.join('\n') !== currentEmails.map((email) => email.toLowerCase()).join('\n')
 
 	return (
 		// The column modifier is what keeps the textarea usable: in the base row layout it is one
