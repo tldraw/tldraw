@@ -233,44 +233,46 @@ export class TldrawMCP extends McpAgent<Env> {
 	// The SDK ends destroy() by force-aborting the isolate; workerd attributes
 	// that abort to the surrounding invocation and logs an error-level
 	// "destroyed" event on every session teardown. Skipping the abort means we
-	// must take over its other jobs ourselves: sever live connections (or a
-	// client-held stream's keepalive pins the wiped DO awake, and a retained
-	// socket can wake it later and re-run init()), and fail closed while the
-	// condemned instance lingers until eviction (see the overrides below).
+	// must take over its other job ourselves: severing live connections —
+	// otherwise a client-held stream's keepalive pins the wiped DO awake, and
+	// a retained socket can wake it later and re-run init().
 	private selfDestroyed = false
+	private sessionEndSent = false
 
 	override async destroy() {
-		const firstEntry = !this.selfDestroyed
 		this.selfDestroyed = true
 		const abort = this.ctx.abort.bind(this.ctx)
 		this.ctx.abort = (reason?: string) => {
 			if (reason !== 'destroyed') abort(reason)
 		}
 		for (const conn of this.getConnections()) {
-			conn.close(1000, 'session destroyed')
+			// close() throws synchronously on an already-closing socket
+			// (partyserver guards its own closes the same way); a throw here
+			// would wedge teardown before the storage wipe.
+			try {
+				conn.close(1000, 'Session closed')
+			} catch {
+				// already closing/closed
+			}
 		}
 		await super.destroy()
-		if (firstEntry) {
+		if (!this.sessionEndSent) {
+			// After an interrupted-teardown resume this runs before init()
+			// hydrates sessionId, so fall back to the DO routing name.
+			this.sessionEndSent = true
 			this.env.MCP_ANALYTICS?.writeDataPoint({
-				blobs: ['session_end', this.sessionId],
+				blobs: ['session_end', this.sessionId || this.getMcpSessionId() || 'unknown'],
 				doubles: [Date.now()],
 			})
 		}
 		this.logger.info('destroy: teardown complete, isolate abort skipped')
 	}
 
-	// The router's initialize branch skips its session-exists gate, so a client
-	// retrying initialize with a cached session id can land on this condemned
-	// instance, whose one-time init() will not re-run against the dropped
-	// tables. Rejecting here makes the host fall back to a fresh sessionless
-	// initialize, which mints a working session on a new DO.
-	override async setInitializeRequest(
-		initializeRequest: Parameters<McpAgent['setInitializeRequest']>[0]
-	) {
-		if (this.selfDestroyed) throw new Error('session destroyed')
-		return super.setInitializeRequest(initializeRequest)
-	}
-
+	// Belt-and-braces for the eviction window: the router 404s dead sessions
+	// from storage before entering the DO, so this should be unreachable — if
+	// it is ever hit, the router surfaces it as a 500, which is still better
+	// than serving requests from a condemned instance whose one-time init()
+	// will not re-run against the dropped tables.
 	override async fetch(request: Request) {
 		if (this.selfDestroyed) return new Response('Session destroyed', { status: 404 })
 		return super.fetch(request)
