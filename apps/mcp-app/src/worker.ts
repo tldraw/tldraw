@@ -230,6 +230,16 @@ export class TldrawMCP extends McpAgent<Env> {
 		})
 	}
 
+	// The SDK ends destroy() by force-aborting the isolate; workerd attributes
+	// that abort to the surrounding invocation and logs an error-level
+	// "destroyed" event on every session teardown. The abort is redundant:
+	// storage is already wiped, so the idle instance evicts on its own.
+	override async destroy() {
+		this.ctx.abort = () => {}
+		this.logger.info('destroy: teardown with isolate abort skipped')
+		await super.destroy()
+	}
+
 	// --- Checkpoint helpers ---
 
 	saveCheckpoint(id: string, shapes: unknown[], assets: unknown[] = [], bindings: unknown[] = []) {
