@@ -130,7 +130,7 @@ The palette also includes thirteen UI colors ([TLThemeUiColorKeys](?)) that ever
 
 In the default theme, `background` and `negativeSpace` have the same value, but custom themes can set them independently.
 
-> The `background` property only affects SVG exports. The visible canvas background comes from the `--tl-color-background` CSS variable. If you customize `background` in your theme, set the CSS variable to match, otherwise exports use a different background than the canvas.
+> The `background` property is used for SVG exports and the fill of selection handles, not for the canvas itself. The visible canvas background comes from the `--tl-color-background` CSS variable. If you customize `background` in your theme, set the CSS variable to match, otherwise exports use a different background than the canvas.
 
 In addition to colors, each theme has a `fontSize` (default `16`), `lineHeight` (default `1.35`), and `strokeWidth` (default `2`). All default shape font sizes are derived by multiplying the base `fontSize` by a per-shape-type multiplier, and stroke widths work the same way with `strokeWidth`, so changing these base values scales text and strokes proportionally. Because these are shared across light and dark modes, you only set them once per theme definition.
 

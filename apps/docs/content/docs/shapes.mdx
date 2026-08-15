@@ -47,7 +47,7 @@ type CardShape = TLShape<typeof CARD_TYPE>
 
 ### Creating a ShapeUtil
 
-Implement the required methods: `getDefaultProps`, `getGeometry`, `component`, and `getIndicatorPath`. Set `static props` so the store validates your shape's props; without it, `props` accepts any JSON value and you can't add [migrations](/sdk-features/persistence#migrations) later.
+Implement the required methods: `getDefaultProps`, `getGeometry`, `component`, and `getIndicatorPath`. Set `static props` so the store validates your shape's props; without it, `props` accepts any JSON value and typos or stale data pass through unchecked.
 
 ```tsx
 import { HTMLContainer, Rectangle2d, ShapeUtil, T } from 'tldraw'

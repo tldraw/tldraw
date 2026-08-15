@@ -25,7 +25,7 @@ Snap lines appear when shapes come within the snap threshold.
 
 ## When snapping happens
 
-Snapping is off by default. Users hold Ctrl (Cmd on Mac) while translating, resizing, or dragging a handle to snap. Turning on snap mode inverts this: snapping is always on and holding Ctrl disables it. Snap mode is a [user preference](/sdk-features/user-preferences), toggled with Cmd+/ (Ctrl+/ on Windows) or from the Preferences submenu in the main menu:
+Snapping is off by default. Users hold Ctrl (Cmd on Mac) while translating, resizing, or dragging a handle to snap. Turning on snap mode inverts this: snapping is always on and holding Ctrl disables it. Snap mode is a [user preference](/sdk-features/user-preferences), toggled from the Preferences submenu in the main menu:
 
 ```typescript
 editor.user.updateUserPreferences({ isSnapMode: !editor.user.getIsSnapMode() })
@@ -175,7 +175,7 @@ Point snapping (`snapType: 'point'`) snaps to the single nearest location. The s
 
 Align snapping (`snapType: 'align'`) aligns the handle with nearby snap points on the x and y axes independently, with a snap line in each direction.
 
-> The older `canSnap` property on handles is deprecated. Use `snapType: 'point'` or `snapType: 'align'` instead, and don't set both: a handle with both set won't snap.
+> The older `canSnap` property on handles is deprecated. Use `snapType: 'point'` or `snapType: 'align'` instead. If both are set, `canSnap` wins and the handle uses point snapping.
 
 ### Snapping handles
 

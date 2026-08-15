@@ -48,10 +48,6 @@ tlenv.isTouchDevice // true if the device has a touch screen
 
 `isTouchDevice` reflects the hardware, so it stays true on a touchscreen laptop even while the user is using a mouse. For the pointer currently in use, read `isCoarsePointer` from `tlenvReactive` below.
 
-```typescript
-
-```
-
 ### Common patterns
 
 **Platform-specific keyboard shortcuts:**
@@ -125,7 +121,7 @@ Note: We force fine pointer mode on Firefox desktop regardless of the actual inp
 
 When the editor is mounted inside an iframe, an Electron pop-out window, or an Obsidian plugin, the global `document` and `window` aren't necessarily the ones the editor's DOM lives in. Reading `document.activeElement` or attaching a listener to the global `window` will silently fail or target the wrong frame.
 
-Use the editor's container helpers instead of bare globals. These are currently marked internal, but they are what the SDK itself uses:
+Use the editor's container helpers instead of bare globals. They are marked internal, so their signatures may change, but they are what the SDK itself uses:
 
 ```typescript
 const doc = editor.getContainerDocument() // the document the editor is mounted in

@@ -23,9 +23,7 @@ export default function App() {
 		<div style={{ position: 'fixed', inset: 0 }}>
 			<Tldraw
 				onMount={(editor) => {
-					// Check whether pen mode is active
 					if (editor.getInstanceState().isPenMode) {
-						// Turn pen mode off
 						editor.updateInstanceState({ isPenMode: false })
 					}
 				}}

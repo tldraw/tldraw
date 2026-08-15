@@ -260,7 +260,7 @@ The `uri` option accepts a function that returns a string or Promise. This runs 
 
 For production, you'll need to run a sync server. The `@tldraw/sync-core` package provides [TLSocketRoom](?) for server-side room management.
 
-Our [Cloudflare Workers template](https://github.com/tldraw/tldraw-sync-cloudflare) is the same setup that runs tldraw.com. It includes:
+Our [Cloudflare Workers template](https://github.com/tldraw/tldraw/tree/main/templates/sync-cloudflare) is the same setup that runs tldraw.com. It includes:
 
 - WebSocket sync via Durable Objects (one per room)
 - Asset storage with R2

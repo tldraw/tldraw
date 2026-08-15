@@ -22,7 +22,7 @@ notes: 'Brief intro that links to sdk-features articles.'
 
 The `tldraw` package includes a complete user interface with menus, toolbars, keyboard shortcuts, and style panels. You can hide it entirely, listen to events, or customize individual components.
 
-Each of those is a prop on `<Tldraw>`:
+Each of those is a prop on `<Tldraw>`: `hideUi` hides everything, `components` replaces or removes individual pieces, and `onUiEvent` reports every UI interaction:
 
 ```tsx
 import { Tldraw } from 'tldraw'
@@ -32,11 +32,8 @@ export default function App() {
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
 			<Tldraw
-				// hideUi hides the whole default interface
 				hideUi={false}
-				// components replaces or removes individual pieces
 				components={{ PageMenu: null }}
-				// onUiEvent fires for every UI interaction
 				onUiEvent={(name, data) => console.log(name, data)}
 			/>
 		</div>

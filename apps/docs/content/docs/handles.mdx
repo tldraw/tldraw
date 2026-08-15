@@ -90,7 +90,7 @@ For more control over handle interactions, implement these additional methods:
 
 ## Handle snapping
 
-Handles can snap to other shapes' geometry. Set `snapType` on the handle. Snapping engages while the user holds Ctrl (Cmd on Mac), or always if they've turned on snap mode in preferences. The older `canSnap: true` flag is deprecated; use `snapType: 'point'` instead.
+Handles can snap to other shapes' geometry. Set `snapType` on the handle. Snapping engages while the user holds Ctrl (Cmd on Mac); with snap mode turned on in preferences, it's the reverse: snapping is on and Ctrl disables it. The older `canSnap: true` flag is deprecated; use `snapType: 'point'` instead.
 
 ```tsx
 {
