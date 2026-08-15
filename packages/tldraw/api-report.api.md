@@ -1395,6 +1395,9 @@ export function DefaultMinimap(): JSX.Element;
 // @public (undocumented)
 export const DefaultNavigationPanel: MemoExoticComponent<() => JSX.Element | null>;
 
+// @public
+export function DefaultNoteShapeAttribution({ name, firstName, color, scale, variant }: TLNoteShapeAttributionProps): JSX.Element;
+
 // @public (undocumented)
 export const defaultOverlayUtils: readonly [typeof ArrowBindingHintOverlayUtil, typeof ArrowHintOverlayUtil, typeof BrushOverlayUtil, typeof CollaboratorBrushOverlayUtil, typeof CollaboratorHintOverlayUtil, typeof CollaboratorScribbleOverlayUtil, typeof CollaboratorShapeIndicatorOverlayUtil, typeof ScribbleOverlayUtil, typeof SelectionForegroundOverlayUtil, typeof ShapeHandleOverlayUtil, typeof ShapeIndicatorOverlayUtil, typeof SnapIndicatorOverlayUtil, typeof ZoomBrushOverlayUtil];
 
@@ -2827,6 +2830,7 @@ export interface NonePathBuilderOpts extends BasePathBuilderOpts {
 
 // @public (undocumented)
 export interface NoteShapeOptions extends ShapeOptionsWithDisplayValues<TLNoteShape, NoteShapeUtilDisplayValues> {
+    AttributionComponent: TLNoteShapeAttributionComponent;
     resizeMode: 'none' | 'scale';
 }
 
@@ -4479,6 +4483,19 @@ export interface TLExternalContentProps {
     acceptedVideoMimeTypes?: readonly string[];
     maxAssetSize?: number;
     maxImageDimension?: number;
+}
+
+// @public
+export type TLNoteShapeAttributionComponent = ComponentType<TLNoteShapeAttributionProps> | null;
+
+// @public
+export interface TLNoteShapeAttributionProps {
+    color: string;
+    firstName: string;
+    name: string;
+    scale: number;
+    shape: TLNoteShape;
+    variant: 'canvas' | 'export';
 }
 
 // @public (undocumented)
