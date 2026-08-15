@@ -1,7 +1,9 @@
+/* @import has to come first: the @tailwind directives below expand into thousands of rules, and
+   CSS requires @import to precede every rule in the file. Turbopack enforces this; webpack didn't. */
+@import url('./demo.css');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url('./demo.css');
 
 @layer base {
 	.prose h2,

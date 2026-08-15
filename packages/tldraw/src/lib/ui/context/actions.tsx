@@ -1031,7 +1031,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
-					editor.markHistoryStoppingPoint('cut')
 					helpers.cut(source)
 				},
 			},

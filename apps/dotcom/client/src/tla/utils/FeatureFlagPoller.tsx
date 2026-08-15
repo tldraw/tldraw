@@ -7,6 +7,10 @@ export type FeatureFlags = Record<FeatureFlagKey, EvaluatedFeatureFlag>
 export const DEFAULT_FLAGS: FeatureFlags = {
 	rum_enabled: { enabled: false },
 	commenting_enabled: { enabled: false },
+	// Nothing in the client reads this one — it gates the MCP server, which is enforced worker-side
+	// for callers that are not this app. It rides along because the flags endpoint returns every flag;
+	// a client-side check would not be a check at all, since the callers are Claude and ChatGPT.
+	mcp_server_access: { enabled: false },
 }
 
 let currentFlags: FeatureFlags = { ...DEFAULT_FLAGS }

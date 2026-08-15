@@ -62,6 +62,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 					const token = await auth.getToken()
 					return token || undefined
 				},
+				// `skipCache` is load-bearing, not belt and braces: Clerk hands back a cached token
+				// until it is nearly expired, and the refresh schedules itself from the *remaining*
+				// life of whatever it is given. Cached tokens would shorten that interval on every
+				// pass — 90s, then 45s, then 22s — until it bottomed out against its floor.
+				getZeroToken: async () => {
+					const token = await auth.getToken({ template: 'zero', skipCache: true })
+					return token || undefined
+				},
 				onClientTooOld: () => {
 					isClientTooOld$.set(true)
 				},

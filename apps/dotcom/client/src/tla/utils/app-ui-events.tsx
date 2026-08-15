@@ -75,6 +75,19 @@ export interface TLAppUiEventMap {
 	'room-size-limit-dialog-shown': null
 	'accept-workspace-invite': null
 	'set-color-theme': { theme: string }
+	'post-comment': { operation: 'new-thread' | 'reply' }
+	'edit-comment': null
+	'delete-comment': null
+	'delete-comment-thread': null
+	'resolve-comment-thread': { operation: 'resolve' | 'reopen' }
+	'react-to-comment': { operation: 'add' | 'remove' }
+	'open-comment-thread': null
+	'toggle-comments-sidebar': { open: boolean }
+	'toggle-comments-visibility': { hidden: boolean }
+	'set-comments-filter': {
+		filter: 'onlyCurrentPage' | 'onlyMine' | 'onlyUnread' | 'showResolved'
+		value: boolean
+	}
 }
 
 /** @public */

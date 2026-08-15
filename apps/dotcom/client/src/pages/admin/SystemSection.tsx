@@ -5,18 +5,18 @@ import { StructuredDataDisplay } from './shared'
 import styles from './admin.module.css'
 
 export function SystemSection() {
-	const [replicatorData, setReplicatorData] = useState(null)
+	const [outboxData, setOutboxData] = useState(null)
 	const [error, setError] = useState(null as string | null)
 
 	useEffect(() => {
-		fetch('/api/app/admin/replicator')
+		fetch('/api/app/admin/outbox')
 			.then(async (res) => {
 				if (!res.ok) {
 					setError(res.statusText + ': ' + (await res.text()))
 					return
 				}
 				setError(null)
-				setReplicatorData(await res.json())
+				setOutboxData(await res.json())
 			})
 			.catch((e) => {
 				setError(e.message)
@@ -37,7 +37,7 @@ export function SystemSection() {
 			<section className={styles.adminSection}>
 				<h3 className={styles.sectionTitle}>System health</h3>
 				{error && <div className={styles.errorMessage}>{error}</div>}
-				{replicatorData && <StructuredDataDisplay data={replicatorData} />}
+				{outboxData && <StructuredDataDisplay data={outboxData} />}
 			</section>
 		</>
 	)

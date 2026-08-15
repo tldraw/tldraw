@@ -2,6 +2,15 @@ import { T } from '@tldraw/validate'
 
 export const EXPORT_CONFIG_KEY = 'tldraw_template' as const
 
+export const TemplateDeployConfig = T.object({
+	// Where the live demo is hosted. The vercel-hosted demos deploy through vercel's own git
+	// integration, so only cloudflare templates carry a `deploy` config.
+	target: T.literalEnum('cloudflare'),
+	// The hostname the demo is served from. Must match the custom domain route in wrangler.toml.
+	host: T.string,
+})
+export type TemplateDeployConfig = T.TypeOf<typeof TemplateDeployConfig>
+
 export const TemplateConfig = T.object({
 	repo: T.string,
 	cli: T.object({
@@ -10,6 +19,7 @@ export const TemplateConfig = T.object({
 		shortDescription: T.string.optional(),
 		order: T.number.optional(),
 	}).optional(),
+	deploy: TemplateDeployConfig.optional(),
 	scripts: T.dict(T.string, T.nullable(T.string)).optional(),
 })
 export type TemplateConfig = T.TypeOf<typeof TemplateConfig>

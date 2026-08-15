@@ -240,19 +240,20 @@ export function useDocumentEvents() {
 
 		function handleTouchStart(e: TouchEvent) {
 			if (container.contains(e.target as Node)) {
-				// Center point of the touch area
-				const touchXPosition = e.touches[0].pageX
+				// Center point of the touch area, measured from the edge of the window the touch
+				// has to reach to trigger the navigation
+				const touchXPosition = e.touches[0].clientX
 				// Size of the touch area
 				const touchXRadius = e.touches[0].radiusX || 0
 
-				// We set a threshold (10px) on both sizes of the screen,
-				// if the touch area overlaps with the screen edges
-				// it's likely to trigger the navigation. We prevent the
-				// touchstart event in that case.
-				// todo: make this relative to the actual window, not the editor's screen bounds
+				// If the touch area overlaps with the screen edges it's likely to trigger the
+				// navigation. We prevent the touchstart event in that case. The gesture belongs to
+				// the window, so an editor inset from the window's edges — beside a sidebar, say —
+				// is not near an edge the system reacts to.
+				const windowWidth = editor.getContainerWindow().innerWidth
 				if (
 					touchXPosition - touchXRadius < 10 ||
-					touchXPosition + touchXRadius > editor.getViewportScreenBounds().width - 10
+					touchXPosition + touchXRadius > windowWidth - 10
 				) {
 					if ((e.target as HTMLElement)?.tagName === 'BUTTON') {
 						// Force a click before bailing

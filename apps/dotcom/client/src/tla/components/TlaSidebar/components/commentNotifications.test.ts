@@ -5,7 +5,6 @@ import {
 	categorizeCommentNotifications,
 	CommentNotificationInput,
 	mergeNotifications,
-	ReactionNotificationInput,
 	summarizeForeignReactors,
 } from './commentNotifications'
 
@@ -13,11 +12,7 @@ const ME = 'user_me'
 const OTHER = 'user_other'
 const THIRD = 'user_third'
 
-/**
- * Event times, in minutes from an arbitrary epoch. The join gate tolerates a minute of clock skew
- * between authors, so tests that turn on it space their events well past that — timestamps a few
- * milliseconds apart would all land inside the tolerance and say nothing about the gate.
- */
+/** Event times, in minutes from an arbitrary epoch. */
 const at = (minutes: number) => 1_700_000_000_000 + minutes * 60_000
 
 /** A comment body: paragraphs of plain text, with optional `@`-mentions (by member id) interleaved. */
@@ -140,31 +135,27 @@ describe('categorizeCommentNotifications', () => {
 		expect(result[0].primaryReason).toBe('reply')
 	})
 
-	it('keeps a comment from just before my join, absorbing clock skew between authors', () => {
-		// createdAt is stamped by each author's own clock, so a reply that really did follow my
-		// join can carry an earlier timestamp than it. Inside the tolerance it still counts.
-		const thread = { createdBy: OTHER, comments: [{ authorId: ME, createdAt: at(10) }] }
-		const tied = comment({
-			id: 'comment:tied',
-			createdAt: at(10),
-			thread,
-			file: { ownerId: THIRD },
-		})
-		const skewed = comment({
-			id: 'comment:skewed',
-			createdAt: at(10) - 30_000,
-			thread,
-			file: { ownerId: THIRD },
-		})
-		const result = categorizeCommentNotifications([tied, skewed], ME)
-		expect(result.map((n) => n.comment.id)).toEqual(['comment:tied', 'comment:skewed'])
-		expect(result.map((n) => n.primaryReason)).toEqual(['reply', 'reply'])
+	it("does not resurface a thread's opening comment when I reply to it seconds later", () => {
+		// A starts a thread, B replies right away: A's opening comment is context B already saw,
+		// not a reply to B, no matter how narrowly it predates B's join.
+		const thread = { createdBy: OTHER, comments: [{ authorId: ME, createdAt: at(0) + 5_000 }] }
+		const opener = comment({ createdAt: at(0), thread, file: { ownerId: THIRD } })
+		expect(categorizeCommentNotifications([opener], ME)).toEqual([])
 	})
 
-	it('drops a comment older than my join by more than the skew tolerance', () => {
+	it('drops a comment stamped at exactly my join time', () => {
+		// The gate is strict: same-instant means "not after me". Postgres stamps createdAt
+		// monotonically per thread (migration 046), so real replies can never tie with my join.
 		const thread = { createdBy: OTHER, comments: [{ authorId: ME, createdAt: at(10) }] }
-		const stale = comment({ createdAt: at(10) - 90_000, thread, file: { ownerId: THIRD } })
-		expect(categorizeCommentNotifications([stale], ME)).toEqual([])
+		const tied = comment({ createdAt: at(10), thread, file: { ownerId: THIRD } })
+		expect(categorizeCommentNotifications([tied], ME)).toEqual([])
+	})
+
+	it('keeps a reply stamped just after my join', () => {
+		const thread = { createdBy: OTHER, comments: [{ authorId: ME, createdAt: at(10) }] }
+		const reply = comment({ createdAt: at(10) + 1, thread, file: { ownerId: THIRD } })
+		const result = categorizeCommentNotifications([reply], ME)
+		expect(result.map((n) => n.primaryReason)).toEqual(['reply'])
 	})
 
 	it("ignores others' comments in the thread relation when deriving my join time", () => {
@@ -274,8 +265,8 @@ describe('categorizeCommentNotifications', () => {
 })
 
 describe('buildReactionNotifications', () => {
-	/** My own comment, as the related comment carried on a reaction row — full `reactions` set
-	 *  included, since that's what the entry now derives its timestamp and pills from. */
+	/** One row of the reactions feed: my own comment, carrying the full `reactions` set the entry
+	 *  derives its timestamp and pills from. */
 	function mine(overrides: Partial<CommentNotificationInput> = {}): CommentNotificationInput {
 		return comment({
 			authorId: ME,
@@ -286,25 +277,15 @@ describe('buildReactionNotifications', () => {
 		})
 	}
 
-	function reactionRow(
-		overrides: Partial<ReactionNotificationInput> = {}
-	): ReactionNotificationInput {
-		return {
-			commentId: 'comment:1',
-			userId: OTHER,
-			userName: 'Other',
-			emoji: '👍',
-			createdAt: at(10),
-			comment: mine(),
-			...overrides,
-		}
-	}
-
-	it('dedupes multiple rows on the same comment into one entry', () => {
+	it('makes one entry per comment, however many people reacted', () => {
 		const result = buildReactionNotifications(
 			[
-				reactionRow({ userId: OTHER, createdAt: at(10) }),
-				reactionRow({ userId: THIRD, createdAt: at(20) }),
+				mine({
+					reactions: [
+						{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(10) },
+						{ userId: THIRD, userName: 'Third', emoji: '🎉', createdAt: at(20) },
+					],
+				}),
 			],
 			ME
 		)
@@ -313,43 +294,35 @@ describe('buildReactionNotifications', () => {
 		expect(result[0].primaryReason).toBe('reaction')
 	})
 
-	it('groups rows on two different comments into two entries', () => {
+	it('makes two entries for two reacted-to comments', () => {
 		const result = buildReactionNotifications(
-			[
-				reactionRow({ commentId: 'comment:1', comment: mine({ id: 'comment:1' }) }),
-				reactionRow({ commentId: 'comment:2', comment: mine({ id: 'comment:2' }) }),
-			],
+			[mine({ id: 'comment:1' }), mine({ id: 'comment:2' })],
 			ME
 		)
 		expect(result.map((n) => n.comment.id).sort()).toEqual(['comment:1', 'comment:2'])
 	})
 
-	it("carries the related comment's full reactions set unmodified, not just the feed rows", () => {
-		// three foreign reactions on the comment, but only one made it into the top-N feed window
+	it("carries the comment's full reactions set unmodified, own reaction included", () => {
 		const fullReactions = [
 			{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(5) },
 			{ userId: THIRD, userName: 'Third', emoji: '🎉', createdAt: at(20) },
 			{ userId: ME, userName: 'Me', emoji: '🔥', createdAt: at(15) },
 		]
-		const result = buildReactionNotifications(
-			[reactionRow({ createdAt: at(5), comment: mine({ reactions: fullReactions }) })],
-			ME
-		)
+		const result = buildReactionNotifications([mine({ reactions: fullReactions })], ME)
 		expect(result).toHaveLength(1)
 		expect(result[0].comment.reactions).toBe(fullReactions)
 	})
 
-	it('timestamps the entry by the newest foreign reaction on the comment, not the feed row', () => {
+	it('timestamps the entry by the newest foreign reaction, ignoring my own and the comment date', () => {
 		const result = buildReactionNotifications(
 			[
-				reactionRow({
-					createdAt: at(10),
-					comment: mine({
-						reactions: [
-							{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(10) },
-							{ userId: THIRD, userName: 'Third', emoji: '🎉', createdAt: at(20) },
-						],
-					}),
+				mine({
+					createdAt: at(0),
+					reactions: [
+						{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(10) },
+						{ userId: THIRD, userName: 'Third', emoji: '🎉', createdAt: at(20) },
+						{ userId: ME, userName: 'Me', emoji: '🔥', createdAt: at(30) },
+					],
 				}),
 			],
 			ME
@@ -359,13 +332,7 @@ describe('buildReactionNotifications', () => {
 
 	it('drops the entry when the comment has no foreign reaction left', () => {
 		const result = buildReactionNotifications(
-			[
-				reactionRow({
-					comment: mine({
-						reactions: [{ userId: ME, userName: 'Me', emoji: '👍', createdAt: at(10) }],
-					}),
-				}),
-			],
+			[mine({ reactions: [{ userId: ME, userName: 'Me', emoji: '👍', createdAt: at(10) }] })],
 			ME
 		)
 		expect(result).toEqual([])
@@ -374,12 +341,7 @@ describe('buildReactionNotifications', () => {
 	it('is unread until my read receipt is newer than the newest foreign reaction', () => {
 		const withReadAt = (readAt: number | undefined) =>
 			buildReactionNotifications(
-				[
-					reactionRow({
-						createdAt: at(10),
-						comment: mine({ read: readAt === undefined ? undefined : { readAt } }),
-					}),
-				],
+				[mine({ read: readAt === undefined ? undefined : { readAt } })],
 				ME
 			)[0].unread
 		expect(withReadAt(undefined)).toBe(true)
@@ -390,27 +352,18 @@ describe('buildReactionNotifications', () => {
 		expect(withReadAt(at(15))).toBe(false)
 	})
 
-	it('drops rows whose comment outraced its sync', () => {
-		const result = buildReactionNotifications([reactionRow({ comment: null })], ME)
-		expect(result).toEqual([])
-	})
-
-	it('drops my own reaction rows as a belt against a self row slipping through', () => {
-		const result = buildReactionNotifications([reactionRow({ userId: ME, userName: 'Me' })], ME)
+	it("drops someone else's comment as a belt against a foreign row slipping through", () => {
+		const result = buildReactionNotifications([mine({ authorId: OTHER })], ME)
 		expect(result).toEqual([])
 	})
 
 	it('sorts reaction entries among comment entries by their reaction time', () => {
 		const reacted = buildReactionNotifications(
 			[
-				reactionRow({
-					commentId: 'comment:reacted',
-					createdAt: at(20),
-					comment: mine({
-						id: 'comment:reacted',
-						createdAt: at(0),
-						reactions: [{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(20) }],
-					}),
+				mine({
+					id: 'comment:reacted',
+					createdAt: at(0),
+					reactions: [{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(20) }],
 				}),
 			],
 			ME

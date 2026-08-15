@@ -16,7 +16,6 @@ import { BindingOnShapeIsolateOptions } from '@tldraw/editor';
 import { BindingUtil } from '@tldraw/editor';
 import { Box } from '@tldraw/editor';
 import { Circle2d } from '@tldraw/editor';
-import { ClipboardEvent as ClipboardEvent_2 } from 'react';
 import { ComponentType } from 'react';
 import { CSSProperties } from 'react';
 import { DebugFlag } from '@tldraw/editor';
@@ -36,10 +35,10 @@ import { IndexKey } from '@tldraw/utils';
 import { IndexKey as IndexKey_2 } from '@tldraw/editor';
 import { JsonObject } from '@tldraw/utils';
 import { JSX } from 'react/jsx-runtime';
-import { JSX as JSX_2 } from 'react';
 import { JSXElementConstructor } from 'react';
 import { LANGUAGES } from '@tldraw/editor';
 import { MatLike } from '@tldraw/editor';
+import { MemoExoticComponent } from 'react';
 import { MigrationFailureReason } from '@tldraw/editor';
 import { MigrationSequence } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
@@ -47,7 +46,6 @@ import { Node as Node_2 } from '@tiptap/pm/model';
 import { OverlayOptionsWithDisplayValues } from '@tldraw/editor';
 import { OverlayUtil } from '@tldraw/editor';
 import { PerfectDashTerminal } from '@tldraw/editor';
-import { PointerEvent as PointerEvent_2 } from 'react';
 import { Polygon2d } from '@tldraw/editor';
 import { Polyline2d } from '@tldraw/editor';
 import * as React_2 from 'react';
@@ -95,8 +93,14 @@ import { TLContent } from '@tldraw/editor';
 import { TLCropInfo } from '@tldraw/editor';
 import { TLCursorType } from '@tldraw/editor';
 import { TLDefaultColorStyle } from '@tldraw/tlschema';
+import { TLDefaultDashStyle } from '@tldraw/tlschema';
+import { TLDefaultFillStyle } from '@tldraw/tlschema';
 import { TLDefaultFontStyle } from '@tldraw/tlschema';
-import { TLDefaultSizeStyle } from '@tldraw/editor';
+import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
+import { TLDefaultSizeStyle } from '@tldraw/tlschema';
+import { TLDefaultSizeStyle as TLDefaultSizeStyle_2 } from '@tldraw/editor';
+import { TLDefaultTextAlignStyle } from '@tldraw/tlschema';
+import { TLDefaultVerticalAlignStyle } from '@tldraw/tlschema';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TldrawEditorStoreProps } from '@tldraw/editor';
 import { TldrawOptions } from '@tldraw/editor';
@@ -118,6 +122,7 @@ import { TLFrameShape } from '@tldraw/editor';
 import { TLFrameShapeProps } from '@tldraw/editor';
 import { TLGeometryOpts } from '@tldraw/editor';
 import { TLGeoShape } from '@tldraw/editor';
+import { TLGeoShapeGeoStyle } from '@tldraw/tlschema';
 import { TLGeoShapeProps } from '@tldraw/editor';
 import { TLHandle } from '@tldraw/editor';
 import { TLHandleDragInfo } from '@tldraw/editor';
@@ -130,15 +135,18 @@ import { TLImageShapeProps } from '@tldraw/editor';
 import { TLKeyboardEventInfo } from '@tldraw/editor';
 import { TLLineShape } from '@tldraw/editor';
 import { TLLineShapePoint } from '@tldraw/editor';
+import { TLLineShapeSplineStyle } from '@tldraw/tlschema';
 import { TLNoteShape } from '@tldraw/editor';
 import { TLNoteShapeProps } from '@tldraw/editor';
+import { TLOpacityType } from '@tldraw/tlschema';
 import { TLOverlay } from '@tldraw/editor';
 import { TLPageId } from '@tldraw/editor';
 import { TLParentId } from '@tldraw/tlschema';
 import { TLPointerEventInfo } from '@tldraw/editor';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLResizeInfo } from '@tldraw/editor';
-import { TLRichText } from '@tldraw/editor';
+import { TLRichText } from '@tldraw/tlschema';
+import { TLRichText as TLRichText_2 } from '@tldraw/editor';
 import { TLSchema } from '@tldraw/editor';
 import { TLScribble } from '@tldraw/editor';
 import { TLSelectionHandle } from '@tldraw/editor';
@@ -232,13 +240,13 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
     // (undocumented)
     onAfterChange({ bindingAfter }: BindingOnChangeOptions<TLArrowBinding>): void;
     // (undocumented)
-    onAfterChangeFromShape({ shapeBefore, shapeAfter, reason }: BindingOnShapeChangeOptions<TLArrowBinding>): void;
+    onAfterChangeFromShape({ shapeBefore, shapeAfter, reason, }: BindingOnShapeChangeOptions<TLArrowBinding>): void;
     // (undocumented)
-    onAfterChangeToShape({ binding, shapeBefore, shapeAfter, reason }: BindingOnShapeChangeOptions<TLArrowBinding>): void;
+    onAfterChangeToShape({ binding, shapeBefore, shapeAfter, reason, }: BindingOnShapeChangeOptions<TLArrowBinding>): void;
     // (undocumented)
     onAfterCreate({ binding }: BindingOnCreateOptions<TLArrowBinding>): void;
     // (undocumented)
-    onBeforeIsolateFromShape({ binding }: BindingOnShapeIsolateOptions<TLArrowBinding>): void;
+    onBeforeIsolateFromShape({ binding, }: BindingOnShapeIsolateOptions<TLArrowBinding>): void;
     // (undocumented)
     static props: RecordProps<TLArrowBinding>;
     // (undocumented)
@@ -283,11 +291,11 @@ export interface ArrowShapeOptions extends ShapeOptionsWithDisplayValues<TLArrow
     readonly elbowArrowPointSnapDistance: number;
     readonly elbowMidpointSnapDistance: number;
     readonly elbowMinSegmentLengthToShowMidpointHandle: number;
-    readonly expandElbowLegLength: Record<TLDefaultSizeStyle, number>;
+    readonly expandElbowLegLength: Record<TLDefaultSizeStyle_2, number>;
     readonly hoverPreciseTimeout: number;
     readonly labelCenterSnapDistance: number;
     readonly minElbowHandleDistance: number;
-    readonly minElbowLegLength: Record<TLDefaultSizeStyle, number>;
+    readonly minElbowLegLength: Record<TLDefaultSizeStyle_2, number>;
     readonly pointingPreciseTimeout: number;
     shouldBeExact(editor: Editor, isPrecise: boolean): boolean;
     shouldIgnoreTargets(editor: Editor): boolean;
@@ -397,7 +405,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     toSvg(shape: TLArrowShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
-    static type: "arrow";
+    static type: 'arrow';
 }
 
 // @public (undocumented)
@@ -519,7 +527,7 @@ export class BookmarkAssetUtil extends AssetUtil<TLBookmarkAsset> {
         title: Validator<string>;
     };
     // (undocumented)
-    static type: "bookmark";
+    static type: 'bookmark';
 }
 
 // @public (undocumented)
@@ -554,7 +562,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
-        opacity: number;
+        opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
             assetId: null | TLAssetId;
@@ -564,7 +572,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         };
         rotation: number;
         type: "bookmark";
-        typeName: "shape";
+        typeName: 'shape';
         x: number;
         y: number;
     };
@@ -574,7 +582,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
-        opacity: number;
+        opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
             assetId: null | TLAssetId;
@@ -584,7 +592,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         };
         rotation: number;
         type: "bookmark";
-        typeName: "shape";
+        typeName: 'shape';
         x: number;
         y: number;
     } | undefined;
@@ -593,7 +601,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     static props: RecordProps<TLBookmarkShape>;
     // (undocumented)
-    static type: "bookmark";
+    static type: 'bookmark';
 }
 
 // @public (undocumented)
@@ -654,7 +662,7 @@ export interface BrushOverlayUtilOptions extends OverlayOptionsWithDisplayValues
 export function buildFromV1Document(editor: Editor, _document: unknown): void;
 
 // @public (undocumented)
-export function CenteredTopPanelContainer({ maxWidth, ignoreRightWidth, stylePanelWidth, marginBetweenZones, squeezeAmount, children }: CenteredTopPanelContainerProps): JSX.Element;
+export function CenteredTopPanelContainer({ maxWidth, ignoreRightWidth, stylePanelWidth, marginBetweenZones, squeezeAmount, children, }: CenteredTopPanelContainerProps): JSX.Element;
 
 // @public (undocumented)
 export interface CenteredTopPanelContainerProps {
@@ -814,7 +822,7 @@ export interface CopyAsOptions extends Omit<TLImageExportOptions, 'format'> {
 export function CopyMenuItem(): JSX.Element;
 
 // @public
-export function createBookmarkFromUrl(editor: Editor, { url, center }: {
+export function createBookmarkFromUrl(editor: Editor, { url, center, }: {
     center?: {
         x: number;
         y: number;
@@ -903,9 +911,9 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly overridePermissions: {
         readonly 'allow-top-navigation': true;
     };
-    readonly title: "tldraw";
+    readonly title: 'tldraw';
     readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "tldraw";
+    readonly type: 'tldraw';
     readonly width: 720;
 }, {
     readonly doesResize: true;
@@ -913,9 +921,9 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["figma.com"];
-    readonly title: "Figma";
+    readonly title: 'Figma';
     readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "figma";
+    readonly type: 'figma';
     readonly width: 720;
 }, {
     readonly doesResize: true;
@@ -923,9 +931,9 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["canva.com"];
-    readonly title: "Canva";
+    readonly title: 'Canva';
     readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "canva";
+    readonly type: 'canva';
     readonly width: 720;
 }, {
     readonly doesResize: true;
@@ -936,9 +944,9 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly overridePermissions: {
         readonly 'allow-presentation': true;
     };
-    readonly title: "Google Maps";
-    readonly toEmbedUrl: (url: string, config?: GoogleMapsEmbedConfig | undefined) => string | undefined;
-    readonly type: "google_maps";
+    readonly title: 'Google Maps';
+    readonly toEmbedUrl: (url: string, config?: GoogleMapsEmbedConfig) => string | undefined;
+    readonly type: 'google_maps';
     readonly width: 720;
 }, {
     readonly doesResize: true;
@@ -948,9 +956,9 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly hostnames: readonly ["val.town"];
     readonly minHeight: 100;
     readonly minWidth: 260;
-    readonly title: "Val Town";
+    readonly title: 'Val Town';
     readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "val_town";
+    readonly type: 'val_town';
     readonly width: 720;
 }, {
     readonly doesResize: true;
@@ -960,9 +968,9 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly hostnames: readonly ["codesandbox.io"];
     readonly minHeight: 300;
     readonly minWidth: 300;
-    readonly title: "CodeSandbox";
+    readonly title: 'CodeSandbox';
     readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "codesandbox";
+    readonly type: 'codesandbox';
     readonly width: 720;
 }, {
     readonly doesResize: true;
@@ -972,9 +980,9 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly hostnames: readonly ["codepen.io"];
     readonly minHeight: 300;
     readonly minWidth: 300;
-    readonly title: "Codepen";
+    readonly title: 'Codepen';
     readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "codepen";
+    readonly type: 'codepen';
     readonly width: 520;
 }, {
     readonly doesResize: false;
@@ -982,9 +990,9 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 400;
     readonly hostnames: readonly ["scratch.mit.edu"];
-    readonly title: "Scratch";
+    readonly title: 'Scratch';
     readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "scratch";
+    readonly type: 'scratch';
     readonly width: 520;
 }, {
     readonly doesResize: true;
@@ -997,9 +1005,9 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
         readonly 'allow-popups-to-escape-sandbox': true;
         readonly 'allow-presentation': true;
     };
-    readonly title: "YouTube";
+    readonly title: 'YouTube';
     readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "youtube";
+    readonly type: 'youtube';
     readonly width: 800;
 }, {
     readonly doesResize: true;
@@ -1007,15 +1015,15 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["calendar.google.*"];
-    readonly instructionLink: "https://support.google.com/calendar/answer/41207?hl=en";
+    readonly instructionLink: 'https://support.google.com/calendar/answer/41207?hl=en';
     readonly minHeight: 360;
     readonly minWidth: 460;
     readonly overridePermissions: {
         readonly 'allow-popups-to-escape-sandbox': true;
     };
-    readonly title: "Google Calendar";
+    readonly title: 'Google Calendar';
     readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "google_calendar";
+    readonly type: 'google_calendar';
     readonly width: 720;
 }, {
     readonly doesResize: true;
@@ -1028,9 +1036,9 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly overridePermissions: {
         readonly 'allow-popups-to-escape-sandbox': true;
     };
-    readonly title: "Google Slides";
+    readonly title: 'Google Slides';
     readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "google_slides";
+    readonly type: 'google_slides';
     readonly width: 720;
 }, {
     readonly doesResize: true;
@@ -1038,9 +1046,9 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["gist.github.com"];
-    readonly title: "GitHub Gist";
+    readonly title: 'GitHub Gist';
     readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "github_gist";
+    readonly type: 'github_gist';
     readonly width: 720;
 }, {
     readonly doesResize: true;
@@ -1048,9 +1056,9 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["replit.com"];
-    readonly title: "Replit";
+    readonly title: 'Replit';
     readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "replit";
+    readonly type: 'replit';
     readonly width: 720;
 }, {
     readonly doesResize: true;
@@ -1058,9 +1066,9 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["felt.com"];
-    readonly title: "Felt";
+    readonly title: 'Felt';
     readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "felt";
+    readonly type: 'felt';
     readonly width: 720;
 }, {
     readonly doesResize: true;
@@ -1070,9 +1078,9 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly hostnames: readonly ["open.spotify.com"];
     readonly minHeight: 500;
     readonly overrideOutlineRadius: 12;
-    readonly title: "Spotify";
+    readonly title: 'Spotify';
     readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "spotify";
+    readonly type: 'spotify';
     readonly width: 720;
 }, {
     readonly doesResize: true;
@@ -1082,21 +1090,21 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly hostnames: readonly ["vimeo.com", "player.vimeo.com"];
     readonly isAspectRatioLocked: true;
     readonly sizeToContentAspectRatio: true;
-    readonly title: "Vimeo";
+    readonly title: 'Vimeo';
     readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "vimeo";
+    readonly type: 'vimeo';
     readonly width: 640;
 }, {
-    readonly backgroundColor: "#fff";
+    readonly backgroundColor: '#fff';
     readonly doesResize: true;
     readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["observablehq.com"];
     readonly isAspectRatioLocked: false;
-    readonly title: "Observable";
+    readonly title: 'Observable';
     readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "observable";
+    readonly type: 'observable';
     readonly width: 720;
 }, {
     readonly doesResize: true;
@@ -1104,9 +1112,9 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 450;
     readonly hostnames: readonly ["desmos.com"];
-    readonly title: "Desmos";
+    readonly title: 'Desmos';
     readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "desmos";
+    readonly type: 'desmos';
     readonly width: 700;
 }];
 
@@ -1117,10 +1125,10 @@ export const DEFAULT_MAX_ASSET_SIZE: number;
 export const DEFAULT_MAX_IMAGE_DIMENSION = 5000;
 
 // @public (undocumented)
-export const DefaultA11yAnnouncer: NamedExoticComponent<object>;
+export const DefaultA11yAnnouncer: MemoExoticComponent<() => "" | JSX.Element | undefined>;
 
 // @public (undocumented)
-export const DefaultActionsMenu: NamedExoticComponent<TLUiActionsMenuProps>;
+export const DefaultActionsMenu: MemoExoticComponent<({ children, }: TLUiActionsMenuProps) => JSX.Element | undefined>;
 
 // @public (undocumented)
 export function DefaultActionsMenuContent(): JSX.Element;
@@ -1135,7 +1143,7 @@ export const defaultAssetUtils: readonly [typeof ImageAssetUtil, typeof VideoAss
 export const defaultBindingUtils: readonly [typeof ArrowBindingUtil];
 
 // @public (undocumented)
-const DefaultContextMenu: NamedExoticComponent<TLUiContextMenuProps>;
+const DefaultContextMenu: MemoExoticComponent<({ children, disabled, }: TLUiContextMenuProps) => JSX.Element>;
 export { DefaultContextMenu as ContextMenu }
 export { DefaultContextMenu }
 
@@ -1146,10 +1154,10 @@ export function DefaultContextMenuContent(): JSX.Element;
 export function DefaultDebugMenu({ children }: TLUiDebugMenuProps): JSX.Element;
 
 // @public (undocumented)
-export function DefaultDebugMenuContent({ customDebugFlags, customFeatureFlags }: CustomDebugFlags): JSX.Element;
+export function DefaultDebugMenuContent({ customDebugFlags, customFeatureFlags, }: CustomDebugFlags): JSX.Element;
 
 // @public (undocumented)
-export const DefaultDialogs: NamedExoticComponent<object>;
+export const DefaultDialogs: MemoExoticComponent<() => JSX.Element[]>;
 
 // @public (undocumented)
 export let defaultEditorAssetUrls: TLEditorAssetUrls;
@@ -1173,38 +1181,38 @@ export const DefaultFontFaces: TLDefaultFonts;
 export const defaultGeoTypeDefinitions: {
     readonly 'arrow-down': {
         readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
-        readonly icon: "geo-arrow-down";
-        readonly snapType: "polygon";
+        readonly icon: 'geo-arrow-down';
+        readonly snapType: 'polygon';
     };
     readonly 'arrow-left': {
         readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
-        readonly icon: "geo-arrow-left";
-        readonly snapType: "polygon";
+        readonly icon: 'geo-arrow-left';
+        readonly snapType: 'polygon';
     };
     readonly 'arrow-right': {
         readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
-        readonly icon: "geo-arrow-right";
-        readonly snapType: "polygon";
+        readonly icon: 'geo-arrow-right';
+        readonly snapType: 'polygon';
     };
     readonly 'arrow-up': {
         readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
-        readonly icon: "geo-arrow-up";
-        readonly snapType: "polygon";
+        readonly icon: 'geo-arrow-up';
+        readonly snapType: 'polygon';
     };
     readonly 'check-box': {
         readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
-        readonly icon: "geo-check-box";
-        readonly snapType: "polygon";
+        readonly icon: 'geo-check-box';
+        readonly snapType: 'polygon';
     };
     readonly 'rhombus-2': {
         readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
-        readonly icon: "geo-rhombus-2";
-        readonly snapType: "polygon";
+        readonly icon: 'geo-rhombus-2';
+        readonly snapType: 'polygon';
     };
     readonly 'x-box': {
         readonly getPath: (w: number, h: number, shape: TLGeoShape, strokeWidth: number) => PathBuilder;
-        readonly icon: "geo-x-box";
-        readonly snapType: "polygon";
+        readonly icon: 'geo-x-box';
+        readonly snapType: 'polygon';
     };
     readonly cloud: {
         readonly defaultSize: {
@@ -1212,53 +1220,53 @@ export const defaultGeoTypeDefinitions: {
             readonly w: 300;
         };
         readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
-        readonly icon: "geo-cloud";
-        readonly snapType: "blobby";
+        readonly icon: 'geo-cloud';
+        readonly snapType: 'blobby';
     };
     readonly diamond: {
         readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
-        readonly icon: "geo-diamond";
-        readonly snapType: "polygon";
+        readonly icon: 'geo-diamond';
+        readonly snapType: 'polygon';
     };
     readonly ellipse: {
         readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
-        readonly icon: "geo-ellipse";
-        readonly snapType: "blobby";
+        readonly icon: 'geo-ellipse';
+        readonly snapType: 'blobby';
     };
     readonly heart: {
         readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
-        readonly icon: "geo-heart";
-        readonly snapType: "blobby";
+        readonly icon: 'geo-heart';
+        readonly snapType: 'blobby';
     };
     readonly hexagon: {
         readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
-        readonly icon: "geo-hexagon";
-        readonly snapType: "polygon";
+        readonly icon: 'geo-hexagon';
+        readonly snapType: 'polygon';
     };
     readonly octagon: {
         readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
-        readonly icon: "geo-octagon";
-        readonly snapType: "polygon";
+        readonly icon: 'geo-octagon';
+        readonly snapType: 'polygon';
     };
     readonly oval: {
         readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
-        readonly icon: "geo-oval";
-        readonly snapType: "blobby";
+        readonly icon: 'geo-oval';
+        readonly snapType: 'blobby';
     };
     readonly pentagon: {
         readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
-        readonly icon: "geo-pentagon";
-        readonly snapType: "polygon";
+        readonly icon: 'geo-pentagon';
+        readonly snapType: 'polygon';
     };
     readonly rectangle: {
         readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
-        readonly icon: "geo-rectangle";
-        readonly snapType: "polygon";
+        readonly icon: 'geo-rectangle';
+        readonly snapType: 'polygon';
     };
     readonly rhombus: {
         readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
-        readonly icon: "geo-rhombus";
-        readonly snapType: "polygon";
+        readonly icon: 'geo-rhombus';
+        readonly snapType: 'polygon';
     };
     readonly star: {
         readonly defaultSize: {
@@ -1266,18 +1274,18 @@ export const defaultGeoTypeDefinitions: {
             readonly w: 200;
         };
         readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
-        readonly icon: "geo-star";
-        readonly snapType: "polygon";
+        readonly icon: 'geo-star';
+        readonly snapType: 'polygon';
     };
     readonly trapezoid: {
         readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
-        readonly icon: "geo-trapezoid";
-        readonly snapType: "polygon";
+        readonly icon: 'geo-trapezoid';
+        readonly snapType: 'polygon';
     };
     readonly triangle: {
         readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
-        readonly icon: "geo-triangle";
-        readonly snapType: "polygon";
+        readonly icon: 'geo-triangle';
+        readonly snapType: 'polygon';
     };
 };
 
@@ -1341,7 +1349,7 @@ export function DefaultHelperButtons({ children }: TLUiHelperButtonsProps): JSX.
 export function DefaultHelperButtonsContent(): JSX.Element;
 
 // @public (undocumented)
-export const DefaultHelpMenu: NamedExoticComponent<TLUiHelpMenuProps>;
+export const DefaultHelpMenu: MemoExoticComponent<({ children }: TLUiHelpMenuProps) => JSX.Element | null>;
 
 // @public (undocumented)
 export function DefaultHelpMenuContent(): JSX.Element;
@@ -1367,31 +1375,31 @@ export interface DefaultImageToolbarContentProps {
 }
 
 // @public (undocumented)
-export const DefaultKeyboardShortcutsDialog: NamedExoticComponent<TLUiKeyboardShortcutsDialogProps>;
+export const DefaultKeyboardShortcutsDialog: MemoExoticComponent<({ children, }: TLUiKeyboardShortcutsDialogProps) => JSX.Element>;
 
 // @public (undocumented)
 export function DefaultKeyboardShortcutsDialogContent(): JSX.Element;
 
 // @public (undocumented)
-export const DefaultMainMenu: NamedExoticComponent<TLUiMainMenuProps>;
+export const DefaultMainMenu: MemoExoticComponent<({ children }: TLUiMainMenuProps) => JSX.Element>;
 
 // @public (undocumented)
 export function DefaultMainMenuContent(): JSX.Element;
 
 // @public (undocumented)
-export const DefaultMenuPanel: NamedExoticComponent<object>;
+export const DefaultMenuPanel: MemoExoticComponent<() => JSX.Element | null>;
 
 // @public (undocumented)
 export function DefaultMinimap(): JSX.Element;
 
 // @public (undocumented)
-export const DefaultNavigationPanel: NamedExoticComponent<object>;
+export const DefaultNavigationPanel: MemoExoticComponent<() => JSX.Element | null>;
 
 // @public (undocumented)
 export const defaultOverlayUtils: readonly [typeof ArrowBindingHintOverlayUtil, typeof ArrowHintOverlayUtil, typeof BrushOverlayUtil, typeof CollaboratorBrushOverlayUtil, typeof CollaboratorHintOverlayUtil, typeof CollaboratorScribbleOverlayUtil, typeof CollaboratorShapeIndicatorOverlayUtil, typeof ScribbleOverlayUtil, typeof SelectionForegroundOverlayUtil, typeof ShapeHandleOverlayUtil, typeof ShapeIndicatorOverlayUtil, typeof SnapIndicatorOverlayUtil, typeof ZoomBrushOverlayUtil];
 
 // @public (undocumented)
-export const DefaultPageMenu: NamedExoticComponent<object>;
+export const DefaultPageMenu: MemoExoticComponent<() => JSX.Element>;
 
 // @public (undocumented)
 function DefaultPeopleMenu({ children }: DefaultPeopleMenuProps): JSX.Element | null;
@@ -1411,7 +1419,7 @@ export interface DefaultPeopleMenuContentProps {
 }
 
 // @public (undocumented)
-export function DefaultPeopleMenuFacePile({ userIds, userName, userColor }: TLUiPeopleMenuFacePileProps): JSX.Element;
+export function DefaultPeopleMenuFacePile({ userIds, userName, userColor, }: TLUiPeopleMenuFacePileProps): JSX.Element;
 
 // @public (undocumented)
 export const DefaultPeopleMenuItem: NamedExoticComponent<TLUiPeopleMenuItemProps>;
@@ -1425,7 +1433,7 @@ export { DefaultPeopleMenuProps }
 export { DefaultPeopleMenuProps as PeopleMenuProps }
 
 // @public (undocumented)
-export const DefaultQuickActions: NamedExoticComponent<TLUiQuickActionsProps>;
+export const DefaultQuickActions: MemoExoticComponent<({ children, }: TLUiQuickActionsProps) => JSX.Element>;
 
 // @public (undocumented)
 export function DefaultQuickActionsContent(): JSX.Element | undefined;
@@ -1434,7 +1442,7 @@ export function DefaultQuickActionsContent(): JSX.Element | undefined;
 export const DefaultRichTextToolbar: React_3.NamedExoticComponent<TLUiRichTextToolbarProps>;
 
 // @public
-export function DefaultRichTextToolbarContent({ textEditor, onEditLinkStart }: DefaultRichTextToolbarContentProps): JSX.Element[];
+export function DefaultRichTextToolbarContent({ textEditor, onEditLinkStart, }: DefaultRichTextToolbarContentProps): JSX.Element[];
 
 // @public (undocumented)
 export interface DefaultRichTextToolbarContentProps {
@@ -1454,16 +1462,16 @@ export const defaultShapeUtils: readonly [typeof TextShapeUtil, typeof BookmarkS
 export function DefaultSharePanel(): JSX.Element | null;
 
 // @public (undocumented)
-export const DefaultStylePanel: NamedExoticComponent<TLUiStylePanelProps>;
+export const DefaultStylePanel: MemoExoticComponent<({ isMobile, styles, children, }: TLUiStylePanelProps) => JSX.Element | null>;
 
 // @public (undocumented)
 export function DefaultStylePanelContent(): JSX.Element;
 
 // @public (undocumented)
-export const DefaultToasts: NamedExoticComponent<object>;
+export const DefaultToasts: MemoExoticComponent<() => JSX.Element>;
 
 // @public
-export const DefaultToolbar: NamedExoticComponent<DefaultToolbarProps>;
+export const DefaultToolbar: MemoExoticComponent<({ children, orientation, minItems, minSizePx, maxItems, maxSizePx, }: DefaultToolbarProps) => JSX.Element>;
 
 // @public (undocumented)
 export function DefaultToolbarContent(): JSX.Element;
@@ -1505,7 +1513,7 @@ export interface DefaultVideoToolbarContentProps {
 }
 
 // @public (undocumented)
-export const DefaultZoomMenu: NamedExoticComponent<TLUiZoomMenuProps>;
+export const DefaultZoomMenu: MemoExoticComponent<({ children }: TLUiZoomMenuProps) => JSX.Element>;
 
 // @public (undocumented)
 export function DefaultZoomMenuContent(): JSX.Element;
@@ -1524,8 +1532,8 @@ export function downloadFile(file: File, doc?: Document): void;
 
 // @public
 export function downsizeImage(blob: Blob, width: number, height: number, opts?: {
-    quality?: number | undefined;
-    type?: string | undefined;
+    quality?: number;
+    type?: string;
 }): Promise<Blob>;
 
 // @public (undocumented)
@@ -1611,7 +1619,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     toSvg(shape: TLDrawShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
-    static type: "draw";
+    static type: 'draw';
 }
 
 // @public (undocumented)
@@ -1871,7 +1879,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // @deprecated (undocumented)
     static setEmbedDefinitions(embedDefinitions: readonly TLEmbedDefinition[]): void;
     // (undocumented)
-    static type: "embed";
+    static type: 'embed';
 }
 
 // @public (undocumented)
@@ -1888,7 +1896,7 @@ export class EraserTool extends StateNode {
     static id: string;
     // (undocumented)
     info: {
-        onInteractionEnd?: string | undefined;
+        onInteractionEnd?: string;
     };
     // (undocumented)
     static initial: string;
@@ -1916,7 +1924,7 @@ export interface EventsProviderProps {
 }
 
 // @public (undocumented)
-export function ExampleDialog({ title, body, cancel, confirm, displayDontShowAgain, maxWidth, onCancel, onContinue }: ExampleDialogProps): JSX.Element;
+export function ExampleDialog({ title, body, cancel, confirm, displayDontShowAgain, maxWidth, onCancel, onContinue, }: ExampleDialogProps): JSX.Element;
 
 // @public (undocumented)
 export interface ExampleDialogProps {
@@ -1988,7 +1996,7 @@ export class FrameShapeTool extends BaseBoxShapeTool {
     // (undocumented)
     onCreate(shape: null | TLShape): void;
     // (undocumented)
-    shapeType: "frame";
+    shapeType: 'frame';
 }
 
 // @public (undocumented)
@@ -2042,7 +2050,7 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
     // (undocumented)
     toSvg(shape: TLFrameShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
-    static type: "frame";
+    static type: 'frame';
 }
 
 // @public (undocumented)
@@ -2125,34 +2133,30 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
-        opacity: number;
+        opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
+            align: TLDefaultHorizontalAlignStyle;
             color: TLDefaultColorStyle;
-            dash: "dashed" | "dotted" | "draw" | "none" | "solid";
-            fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
+            dash: TLDefaultDashStyle;
+            fill: TLDefaultFillStyle;
             flipX: boolean;
             flipY: boolean;
             font: TLDefaultFontStyle;
-            geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
+            geo: TLGeoShapeGeoStyle;
             growY: number;
             h: number;
             labelColor: TLDefaultColorStyle;
-            richText: {
-                attrs?: any;
-                content: unknown[];
-                type: string;
-            };
+            richText: TLRichText;
             scale: number;
-            size: "l" | "m" | "s" | "xl";
+            size: TLDefaultSizeStyle;
             url: string;
-            verticalAlign: "end" | "middle" | "start";
+            verticalAlign: TLDefaultVerticalAlignStyle;
             w: number;
         };
         rotation: number;
         type: "geo";
-        typeName: "shape";
+        typeName: 'shape';
         x: number;
         y: number;
     } | undefined;
@@ -2162,34 +2166,30 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
-        opacity: number;
+        opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
+            align: TLDefaultHorizontalAlignStyle;
             color: TLDefaultColorStyle;
-            dash: "dashed" | "dotted" | "draw" | "none" | "solid";
-            fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
+            dash: TLDefaultDashStyle;
+            fill: TLDefaultFillStyle;
             flipX: boolean;
             flipY: boolean;
             font: TLDefaultFontStyle;
-            geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
+            geo: TLGeoShapeGeoStyle;
             growY: number;
             h: number;
             labelColor: TLDefaultColorStyle;
-            richText: {
-                attrs?: any;
-                content: unknown[];
-                type: string;
-            };
+            richText: TLRichText;
             scale: number;
-            size: "l" | "m" | "s" | "xl";
+            size: TLDefaultSizeStyle;
             url: string;
-            verticalAlign: "end" | "middle" | "start";
+            verticalAlign: TLDefaultVerticalAlignStyle;
             w: number;
         };
         rotation: number;
         type: "geo";
-        typeName: "shape";
+        typeName: 'shape';
         x: number;
         y: number;
     } | undefined;
@@ -2199,34 +2199,30 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
-        opacity: number;
+        opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
+            align: TLDefaultHorizontalAlignStyle;
             color: TLDefaultColorStyle;
-            dash: "dashed" | "dotted" | "draw" | "none" | "solid";
-            fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
+            dash: TLDefaultDashStyle;
+            fill: TLDefaultFillStyle;
             flipX: boolean;
             flipY: boolean;
             font: TLDefaultFontStyle;
-            geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
+            geo: TLGeoShapeGeoStyle;
             growY: number;
             h: number;
             labelColor: TLDefaultColorStyle;
-            richText: {
-                attrs?: any;
-                content: unknown[];
-                type: string;
-            };
+            richText: TLRichText;
             scale: number;
-            size: "l" | "m" | "s" | "xl";
+            size: TLDefaultSizeStyle;
             url: string;
-            verticalAlign: "end" | "middle" | "start";
+            verticalAlign: TLDefaultVerticalAlignStyle;
             w: number;
         };
         rotation: number;
         type: "geo";
-        typeName: "shape";
+        typeName: 'shape';
         x: number;
         y: number;
     } | {
@@ -2234,14 +2230,14 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
-        opacity: number;
+        opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
-            geo: "check-box";
+            geo: 'check-box';
         };
         rotation: number;
         type: "geo";
-        typeName: "shape";
+        typeName: 'shape';
         x: number;
         y: number;
     } | {
@@ -2249,14 +2245,14 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
-        opacity: number;
+        opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
-            geo: "rectangle";
+            geo: 'rectangle';
         };
         rotation: number;
         type: "geo";
-        typeName: "shape";
+        typeName: 'shape';
         x: number;
         y: number;
     } | undefined;
@@ -2279,7 +2275,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     toSvg(shape: TLGeoShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
-    static type: "geo";
+    static type: 'geo';
 }
 
 // @public (undocumented)
@@ -2524,7 +2520,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     toSvg(shape: TLHighlightShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
-    static type: "highlight";
+    static type: 'highlight';
 }
 
 // @public (undocumented)
@@ -2543,7 +2539,7 @@ export interface HighlightShapeUtilDisplayValues {
 export function HighlightToolbarItem(): JSX.Element;
 
 // @public (undocumented)
-export const iconTypes: readonly ["align-bottom", "align-center-horizontal", "align-center-vertical", "align-left", "align-right", "align-top", "alt", "arrow-arc", "arrow-cycle", "arrow-elbow", "arrow-left", "arrowhead-arrow", "arrowhead-bar", "arrowhead-diamond", "arrowhead-dot", "arrowhead-none", "arrowhead-square", "arrowhead-triangle-inverted", "arrowhead-triangle", "blob", "bold", "bookmark", "bring-forward", "bring-to-front", "broken", "bulletList", "check-circle", "check", "chevron-down", "chevron-left", "chevron-right", "chevron-up", "chevrons-ne", "chevrons-sw", "clipboard-copied", "clipboard-copy", "code", "color", "comment", "corners", "crop", "cross-2", "cross-circle", "dash-dashed", "dash-dotted", "dash-draw", "dash-solid", "disconnected", "discord", "distribute-horizontal", "distribute-vertical", "dot", "dots-horizontal", "dots-vertical", "download", "drag-handle-dots", "duplicate", "edit", "external-link", "fill-fill", "fill-lined-fill", "fill-none", "fill-pattern", "fill-semi", "fill-solid", "follow", "following", "font-draw", "font-mono", "font-sans", "font-serif", "geo-arrow-down", "geo-arrow-left", "geo-arrow-right", "geo-arrow-up", "geo-check-box", "geo-cloud", "geo-diamond", "geo-ellipse", "geo-heart", "geo-hexagon", "geo-octagon", "geo-oval", "geo-pentagon", "geo-rectangle", "geo-rhombus-2", "geo-rhombus", "geo-star", "geo-trapezoid", "geo-triangle", "geo-x-box", "github", "group", "heading", "help-circle", "highlight", "horizontal-align-end", "horizontal-align-middle", "horizontal-align-start", "info-circle", "italic", "leading", "link", "list", "lock", "manual", "menu", "minus", "mixed", "pack", "plus", "question-mark-circle", "question-mark", "redo", "reset-zoom", "rotate-ccw", "rotate-cw", "send-backward", "send-to-back", "share-1", "size-extra-large", "size-large", "size-medium", "size-small", "spline-cubic", "spline-line", "stack-horizontal", "stack-vertical", "status-offline", "stretch-horizontal", "stretch-vertical", "strike", "text-align-center", "text-align-left", "text-align-right", "toggle-off", "toggle-on", "tool-arrow", "tool-eraser", "tool-frame", "tool-hand", "tool-highlight", "tool-laser", "tool-line", "tool-media", "tool-note", "tool-pencil", "tool-pointer", "tool-screenshot", "tool-text", "trash", "twitter", "underline", "undo", "ungroup", "unlock", "vertical-align-end", "vertical-align-middle", "vertical-align-start", "warning-triangle", "zoom-in", "zoom-out"];
+export const iconTypes: readonly ['align-bottom', 'align-center-horizontal', 'align-center-vertical', 'align-left', 'align-right', 'align-top', 'alt', 'arrow-arc', 'arrow-cycle', 'arrow-elbow', 'arrow-left', 'arrowhead-arrow', 'arrowhead-bar', 'arrowhead-diamond', 'arrowhead-dot', 'arrowhead-none', 'arrowhead-square', 'arrowhead-triangle-inverted', 'arrowhead-triangle', 'blob', 'bold', 'bookmark', 'bring-forward', 'bring-to-front', 'broken', 'bulletList', 'check-circle', 'check', 'chevron-down', 'chevron-left', 'chevron-right', 'chevron-up', 'chevrons-ne', 'chevrons-sw', 'clipboard-copied', 'clipboard-copy', 'closed', 'code', 'color', 'comment', 'corners', 'crop', 'cross-2', 'cross-circle', 'dash-dashed', 'dash-dotted', 'dash-draw', 'dash-solid', 'disconnected', 'discord', 'distribute-horizontal', 'distribute-vertical', 'dot', 'dots-horizontal', 'dots-vertical', 'download', 'drag-handle-dots', 'duplicate', 'edit', 'external-link', 'fill-fill', 'fill-lined-fill', 'fill-none', 'fill-pattern', 'fill-semi', 'fill-solid', 'follow', 'following', 'font-draw', 'font-mono', 'font-sans', 'font-serif', 'geo-arrow-down', 'geo-arrow-left', 'geo-arrow-right', 'geo-arrow-up', 'geo-check-box', 'geo-cloud', 'geo-diamond', 'geo-ellipse', 'geo-heart', 'geo-hexagon', 'geo-octagon', 'geo-oval', 'geo-pentagon', 'geo-rectangle', 'geo-rhombus-2', 'geo-rhombus', 'geo-star', 'geo-trapezoid', 'geo-triangle', 'geo-x-box', 'github', 'group', 'heading', 'help-circle', 'highlight', 'horizontal-align-end', 'horizontal-align-middle', 'horizontal-align-start', 'info-circle', 'italic', 'leading', 'link', 'list', 'lock', 'manual', 'menu', 'minus', 'mixed', 'pack', 'plus', 'question-mark-circle', 'question-mark', 'redo', 'reset-zoom', 'rotate-ccw', 'rotate-cw', 'send-backward', 'send-to-back', 'share-1', 'size-extra-large', 'size-large', 'size-medium', 'size-small', 'spline-cubic', 'spline-line', 'stack-horizontal', 'stack-vertical', 'status-offline', 'stretch-horizontal', 'stretch-vertical', 'strike', 'text-align-center', 'text-align-left', 'text-align-right', 'toggle-off', 'toggle-on', 'tool-arrow', 'tool-eraser', 'tool-frame', 'tool-hand', 'tool-highlight', 'tool-laser', 'tool-line', 'tool-media', 'tool-note', 'tool-pencil', 'tool-pointer', 'tool-screenshot', 'tool-text', 'trash', 'twitter', 'underline', 'undo', 'ungroup', 'unlock', 'vertical-align-end', 'vertical-align-middle', 'vertical-align-start', 'warning-triangle', 'zoom-in', 'zoom-out'];
 
 // @public (undocumented)
 export class ImageAssetUtil extends AssetUtil<TLImageAsset> {
@@ -2572,7 +2568,7 @@ export class ImageAssetUtil extends AssetUtil<TLImageAsset> {
         w: Validator<number>;
     };
     // (undocumented)
-    static type: "image";
+    static type: 'image';
 }
 
 // @public (undocumented)
@@ -2598,7 +2594,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     getInterpolatedProps(startShape: TLImageShape, endShape: TLImageShape, t: number): TLImageShapeProps;
     // (undocumented)
-    static handledAssetTypes: readonly ["image"];
+    static handledAssetTypes: readonly ['image'];
     // (undocumented)
     isAspectRatioLocked(shape: TLImageShape): boolean;
     // (undocumented)
@@ -2616,7 +2612,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     toSvg(shape: TLImageShape, ctx: SvgExportContext): Promise<JSX.Element | null>;
     // (undocumented)
-    static type: "image";
+    static type: 'image';
 }
 
 // @public (undocumented)
@@ -2709,11 +2705,11 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
-        opacity: number;
+        opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
             color: TLDefaultColorStyle;
-            dash: "dashed" | "dotted" | "draw" | "none" | "solid";
+            dash: TLDefaultDashStyle;
             points: {
                 [x: string]: {
                     id: string;
@@ -2723,12 +2719,12 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
                 } | TLLineShapePoint;
             };
             scale: number;
-            size: "l" | "m" | "s" | "xl";
-            spline: "cubic" | "line";
+            size: TLDefaultSizeStyle;
+            spline: TLLineShapeSplineStyle;
         };
         rotation: number;
         type: "line";
-        typeName: "shape";
+        typeName: 'shape';
         x: number;
         y: number;
     };
@@ -2738,11 +2734,11 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
-        opacity: number;
+        opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
             color: TLDefaultColorStyle;
-            dash: "dashed" | "dotted" | "draw" | "none" | "solid";
+            dash: TLDefaultDashStyle;
             points: {
                 [x: string]: {
                     id: IndexKey;
@@ -2752,12 +2748,12 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
                 } | TLLineShapePoint;
             };
             scale: number;
-            size: "l" | "m" | "s" | "xl";
-            spline: "cubic" | "line";
+            size: TLDefaultSizeStyle;
+            spline: TLLineShapeSplineStyle;
         };
         rotation: number;
         type: "line";
-        typeName: "shape";
+        typeName: 'shape';
         x: number;
         y: number;
     } | undefined;
@@ -2781,7 +2777,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     toSvg(shape: TLLineShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
-    static type: "line";
+    static type: 'line';
 }
 
 // @public (undocumented)
@@ -2882,29 +2878,25 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         index: IndexKey_2;
         isLocked: boolean;
         meta: JsonObject;
-        opacity: number;
+        opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
+            align: TLDefaultHorizontalAlignStyle;
             color: TLDefaultColorStyle;
             font: TLDefaultFontStyle;
             fontSizeAdjustment: number;
             growY: number;
             labelColor: TLDefaultColorStyle;
-            richText: {
-                attrs?: any;
-                content: unknown[];
-                type: string;
-            };
+            richText: TLRichText;
             scale: number;
-            size: "l" | "m" | "s" | "xl";
+            size: TLDefaultSizeStyle;
             textLastEditedBy: null | string;
             url: string;
-            verticalAlign: "end" | "middle" | "start";
+            verticalAlign: TLDefaultVerticalAlignStyle;
         };
         rotation: number;
         type: "note";
-        typeName: "shape";
+        typeName: 'shape';
         x: number;
         y: number;
     } | undefined;
@@ -2927,7 +2919,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     toSvg(shape: TLNoteShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
-    static type: "note";
+    static type: 'note';
 }
 
 // @public (undocumented)
@@ -2987,7 +2979,7 @@ export interface OnDragFromToolbarToCreateShapesOpts {
 export function OvalToolbarItem(): JSX.Element;
 
 // @public (undocumented)
-export function OverflowingToolbar({ children, orientation, sizingParentClassName, minItems, minSizePx, maxItems, maxSizePx }: OverflowingToolbarProps): JSX.Element;
+export function OverflowingToolbar({ children, orientation, sizingParentClassName, minItems, minSizePx, maxItems, maxSizePx, }: OverflowingToolbarProps): JSX.Element;
 
 // @public (undocumented)
 export interface OverflowingToolbarProps {
@@ -3046,7 +3038,7 @@ export interface PageItemSubmenuProps {
 export function parseAndLoadDocument(editor: Editor, document: string, msg: (id: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey) => string, addToast: TLUiToastsContextType['addToast'], onV1FileLoad?: () => void, forceDarkMode?: boolean): Promise<void>;
 
 // @public (undocumented)
-export function parseTldrawJsonFile({ json, schema }: {
+export function parseTldrawJsonFile({ json, schema, }: {
     json: string;
     schema: TLSchema;
 }): Result<TLStore, TldrawFileParseError>;
@@ -3172,7 +3164,7 @@ export interface PathBuilderToDOpts {
 export const PlainTextArea: React_3.ForwardRefExoticComponent<TextAreaProps & React_3.RefAttributes<HTMLTextAreaElement>>;
 
 // @public
-export const PlainTextLabel: React_3.NamedExoticComponent<PlainTextLabelProps>;
+export const PlainTextLabel: React_3.MemoExoticComponent<({ shapeId, type, text: plaintext, labelColor, fontFamily, fontSize, lineHeight, textAlign, verticalAlign, wrap, isSelected, padding, onKeyDown: handleKeyDownCustom, classNamePrefix, style, textWidth, textHeight, showTextOutline, }: PlainTextLabelProps) => JSX.Element | null>;
 
 // @public (undocumented)
 export interface PlainTextLabelProps {
@@ -3281,19 +3273,19 @@ export function removeFrame(editor: Editor, ids: TLShapeId[]): void;
 export function RemoveFrameMenuItem(): JSX.Element | null;
 
 // @public
-export function renderHtmlFromRichText(editor: Editor, richText: TLRichText): string;
+export function renderHtmlFromRichText(editor: Editor, richText: TLRichText_2): string;
 
 // @public
-export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: TLRichText): string;
+export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: TLRichText_2): string;
 
 // @public
-export function renderHtmlFromRichTextWithExtensions(richText: TLRichText, extensions: Extensions): string;
+export function renderHtmlFromRichTextWithExtensions(richText: TLRichText_2, extensions: Extensions): string;
 
 // @public
-export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText): string;
+export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText_2): string;
 
 // @public
-export function renderRichTextFromHTML(editor: Editor, html: string): TLRichText;
+export function renderRichTextFromHTML(editor: Editor, html: string): TLRichText_2;
 
 // @public (undocumented)
 export function ReorderMenuItems(): JSX.Element;
@@ -3308,7 +3300,7 @@ export function RhombusToolbarItem(): JSX.Element;
 export const RichTextArea: React_3.ForwardRefExoticComponent<TextAreaProps & React_3.RefAttributes<HTMLDivElement>>;
 
 // @public
-export const RichTextLabel: React_3.NamedExoticComponent<RichTextLabelProps>;
+export const RichTextLabel: React_3.MemoExoticComponent<({ shapeId, type, richText, labelColor, fontFamily, fontSize, lineHeight, textAlign, verticalAlign, wrap, isSelected, padding, onKeyDown: handleKeyDownCustom, classNamePrefix, style, textWidth, textHeight, hasCustomTabBehavior, showTextOutline, }: RichTextLabelProps) => JSX.Element | null>;
 
 // @public (undocumented)
 export interface RichTextLabelProps {
@@ -3333,7 +3325,7 @@ export interface RichTextLabelProps {
     // (undocumented)
     padding?: number;
     // (undocumented)
-    richText?: TLRichText;
+    richText?: TLRichText_2;
     // (undocumented)
     shapeId: TLShapeId;
     // (undocumented)
@@ -3348,7 +3340,7 @@ export interface RichTextLabelProps {
     textWidth?: number;
     // (undocumented)
     type: ExtractShapeByProps<{
-        richText: TLRichText;
+        richText: TLRichText_2;
     }>['type'];
     // (undocumented)
     verticalAlign: 'end' | 'middle' | 'start';
@@ -3357,7 +3349,7 @@ export interface RichTextLabelProps {
 }
 
 // @public
-export function RichTextSVG({ bounds, richText, fontSize, fontFamily, lineHeight, textAlign, verticalAlign, wrap, labelColor, padding, showTextOutline }: RichTextSVGProps): JSX.Element;
+export function RichTextSVG({ bounds, richText, fontSize, fontFamily, lineHeight, textAlign, verticalAlign, wrap, labelColor, padding, showTextOutline, }: RichTextSVGProps): JSX.Element;
 
 // @public (undocumented)
 export interface RichTextSVGProps {
@@ -3374,7 +3366,7 @@ export interface RichTextSVGProps {
     // (undocumented)
     padding: number;
     // (undocumented)
-    richText: TLRichText;
+    richText: TLRichText_2;
     // (undocumented)
     showTextOutline?: boolean;
     // (undocumented)
@@ -3601,10 +3593,10 @@ export function StylePanelArrowheadPicker(): JSX.Element | null;
 export function StylePanelArrowKindPicker(): JSX.Element | null;
 
 // @public (undocumented)
-export const StylePanelButtonPicker: <T extends string>(props: StylePanelButtonPickerProps<T>) => JSX_2.Element;
+export const StylePanelButtonPicker: <T extends string>(props: StylePanelButtonPickerProps<T>) => React.JSX.Element;
 
 // @public (undocumented)
-export const StylePanelButtonPickerInline: <T extends string>(props: StylePanelButtonPickerProps<T>) => JSX_2.Element;
+export const StylePanelButtonPickerInline: <T extends string>(props: StylePanelButtonPickerProps<T>) => React.JSX.Element;
 
 // @public (undocumented)
 export interface StylePanelButtonPickerProps<T extends string> {
@@ -3775,7 +3767,7 @@ export interface TextAreaProps {
     // (undocumented)
     handleChange(changeInfo: {
         plaintext?: string;
-        richText?: TLRichText;
+        richText?: TLRichText_2;
     }): void;
     // (undocumented)
     handleDoubleClick(e: any): any;
@@ -3792,7 +3784,7 @@ export interface TextAreaProps {
     // (undocumented)
     isEditing: boolean;
     // (undocumented)
-    richText?: TLRichText;
+    richText?: TLRichText_2;
     // (undocumented)
     shapeId: TLShapeId;
     // (undocumented)
@@ -3848,25 +3840,21 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
-        opacity: number;
+        opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
             autoSize: boolean;
             color: TLDefaultColorStyle;
             font: TLDefaultFontStyle;
-            richText: {
-                attrs?: any;
-                content: unknown[];
-                type: string;
-            };
+            richText: TLRichText;
             scale: number;
-            size: "l" | "m" | "s" | "xl";
-            textAlign: "end" | "middle" | "start";
+            size: TLDefaultSizeStyle;
+            textAlign: TLDefaultTextAlignStyle;
             w: number;
         };
         rotation: number;
         type: "text";
-        typeName: "shape";
+        typeName: 'shape';
         x: number;
         y: number;
     } | undefined;
@@ -3898,7 +3886,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     toSvg(shape: TLTextShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
-    static type: "text";
+    static type: 'text';
 }
 
 // @public (undocumented)
@@ -4138,7 +4126,7 @@ export interface TLDefaultFonts {
 export function Tldraw(props: TldrawProps): JSX.Element;
 
 // @public (undocumented)
-export const TLDRAW_FILE_EXTENSION: ".tldr";
+export const TLDRAW_FILE_EXTENSION: '.tldr';
 
 // @public (undocumented)
 export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, TLExternalContentProps {
@@ -4180,7 +4168,7 @@ export type TldrawFileParseError = {
 };
 
 // @public
-export const TldrawImage: NamedExoticComponent<TldrawImageProps>;
+export const TldrawImage: MemoExoticComponent<(props: TldrawImageProps) => JSX.Element>;
 
 // @public (undocumented)
 export interface TldrawImageProps extends TLImageExportOptions {
@@ -4201,7 +4189,7 @@ export interface TldrawImageProps extends TLImageExportOptions {
 export type TldrawProps = TldrawBaseProps & TldrawEditorStoreProps;
 
 // @public (undocumented)
-export const TldrawUi: React_3.NamedExoticComponent<TldrawUiProps>;
+export const TldrawUi: React_3.MemoExoticComponent<({ renderDebugMenuItems, children, hideUi, components, ...rest }: TldrawUiProps) => JSX.Element>;
 
 // @public (undocumented)
 export function TldrawUiA11yProvider({ children }: A11yProviderProps): JSX.Element;
@@ -4222,13 +4210,13 @@ export function TldrawUiButtonLabel({ children }: TLUiButtonLabelProps): JSX.Ele
 export const TldrawUiColumn: ForwardRefExoticComponent<TLUiLayoutProps & RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
-export function TldrawUiComponentsProvider({ overrides, children }: TLUiComponentsProviderProps): JSX.Element;
+export function TldrawUiComponentsProvider({ overrides, children, }: TLUiComponentsProviderProps): JSX.Element;
 
 // @public (undocumented)
 export const TldrawUiContextProvider: NamedExoticComponent<TLUiContextProviderProps>;
 
 // @public
-export function TldrawUiContextualToolbar({ children, className, isMousingDown, getSelectionBounds, changeOnlyWhenYChanges, label }: TLUiContextualToolbarProps): JSX.Element;
+export function TldrawUiContextualToolbar({ children, className, isMousingDown, getSelectionBounds, changeOnlyWhenYChanges, label, }: TLUiContextualToolbarProps): JSX.Element;
 
 // @public (undocumented)
 export function TldrawUiDialogBody({ className, children, style }: TLUiDialogBodyProps): JSX.Element;
@@ -4252,7 +4240,7 @@ export function TldrawUiDialogTitle({ className, children, style }: TLUiDialogTi
 export function TldrawUiDropdownMenuCheckboxItem({ children, onSelect, ...rest }: TLUiDropdownMenuCheckboxItemProps): JSX.Element;
 
 // @public (undocumented)
-export function TldrawUiDropdownMenuContent({ className, side, align, sideOffset, alignOffset, collisionPadding, children }: TLUiDropdownMenuContentProps): JSX.Element;
+export function TldrawUiDropdownMenuContent({ className, side, align, sideOffset, alignOffset, collisionPadding, children, }: TLUiDropdownMenuContentProps): JSX.Element;
 
 // @public (undocumented)
 export function TldrawUiDropdownMenuGroup({ className, children }: TLUiDropdownMenuGroupProps): JSX.Element;
@@ -4264,16 +4252,16 @@ export function TldrawUiDropdownMenuIndicator(): JSX.Element;
 export function TldrawUiDropdownMenuItem({ noClose, children }: TLUiDropdownMenuItemProps): JSX.Element;
 
 // @public (undocumented)
-export function TldrawUiDropdownMenuRoot({ id, children, modal, debugOpen }: TLUiDropdownMenuRootProps): JSX.Element;
+export function TldrawUiDropdownMenuRoot({ id, children, modal, debugOpen, }: TLUiDropdownMenuRootProps): JSX.Element;
 
 // @public (undocumented)
 export function TldrawUiDropdownMenuSub({ id, children }: TLUiDropdownMenuSubProps): JSX.Element;
 
 // @public (undocumented)
-export function TldrawUiDropdownMenuSubContent({ id, alignOffset, sideOffset, size, children }: TLUiDropdownMenuSubContentProps): JSX.Element;
+export function TldrawUiDropdownMenuSubContent({ id, alignOffset, sideOffset, size, children, }: TLUiDropdownMenuSubContentProps): JSX.Element;
 
 // @public (undocumented)
-export function TldrawUiDropdownMenuSubTrigger({ id, label, title, disabled }: TLUiDropdownMenuSubTriggerProps): JSX.Element;
+export function TldrawUiDropdownMenuSubTrigger({ id, label, title, disabled, }: TLUiDropdownMenuSubTriggerProps): JSX.Element;
 
 // @public (undocumented)
 export function TldrawUiDropdownMenuTrigger({ children, ...rest }: TLUiDropdownMenuTriggerProps): JSX.Element;
@@ -4285,7 +4273,7 @@ export function TldrawUiEventsProvider({ onEvent, children }: EventsProviderProp
 export const TldrawUiGrid: ForwardRefExoticComponent<TLUiLayoutProps & RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
-export const TldrawUiIcon: NamedExoticComponent<TLUiIconProps>;
+export const TldrawUiIcon: MemoExoticComponent<({ label, small, invertIcon, icon, tiny, color, className, ...props }: TLUiIconProps) => JSX.Element>;
 
 // @public (undocumented)
 export function TldrawUiInFrontOfTheCanvas(): JSX.Element;
@@ -4303,19 +4291,19 @@ export function TldrawUiMenuActionCheckboxItem({ actionId, ...rest }: TLUiMenuAc
 export function TldrawUiMenuActionItem({ actionId, ...rest }: TLUiMenuActionItemProps): JSX.Element | null;
 
 // @public (undocumented)
-export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, label, lang, readonlyOk, onSelect, toggle, disabled, checked }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX.Element | null;
+export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, label, lang, readonlyOk, onSelect, toggle, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX.Element | null;
 
 // @public (undocumented)
-export function TldrawUiMenuContextProvider({ type, sourceId, children }: TLUiMenuContextProviderProps): JSX.Element;
+export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiMenuContextProviderProps): JSX.Element;
 
 // @public (undocumented)
 export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGroupProps): bigint | boolean | JSX.Element | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string | undefined;
 
 // @public (undocumented)
-export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, iconLeft, onSelect, noClose, isSelected, onDragStart }: TLUiMenuItemProps<TranslationKey, IconType>): JSX.Element | null;
+export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, iconLeft, onSelect, noClose, isSelected, onDragStart, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX.Element | null;
 
 // @public (undocumented)
-export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, children }: TLUiMenuSubmenuProps<Translation>): bigint | boolean | JSX.Element | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string | undefined;
+export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, children, }: TLUiMenuSubmenuProps<Translation>): bigint | boolean | JSX.Element | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string | undefined;
 
 // @public (undocumented)
 export function TldrawUiMenuToolItem({ toolId, ...rest }: TLUiMenuToolItemProps): JSX.Element | null;
@@ -4329,7 +4317,7 @@ export interface TldrawUiOrientationContext {
 }
 
 // @public (undocumented)
-export function TldrawUiOrientationProvider({ children, orientation, tooltipSide }: TldrawUiOrientationProviderProps): JSX.Element;
+export function TldrawUiOrientationProvider({ children, orientation, tooltipSide, }: TldrawUiOrientationProviderProps): JSX.Element;
 
 // @public (undocumented)
 export interface TldrawUiOrientationProviderProps {
@@ -4345,7 +4333,7 @@ export interface TldrawUiOrientationProviderProps {
 export function TldrawUiPopover({ id, children, onOpenChange, open, className }: TLUiPopoverProps): JSX.Element;
 
 // @public (undocumented)
-export function TldrawUiPopoverContent({ side, children, align, sideOffset, alignOffset, collisionPadding, disableEscapeKeyDown, autoFocusFirstButton }: TLUiPopoverContentProps): JSX.Element;
+export function TldrawUiPopoverContent({ side, children, align, sideOffset, alignOffset, collisionPadding, disableEscapeKeyDown, autoFocusFirstButton, }: TLUiPopoverContentProps): JSX.Element;
 
 // @public (undocumented)
 export function TldrawUiPopoverTrigger({ children }: TLUiPopoverTriggerProps): JSX.Element;
@@ -4363,13 +4351,13 @@ export interface TldrawUiProps extends TLUiContextProviderProps {
 export const TldrawUiRow: ForwardRefExoticComponent<TLUiLayoutProps & RefAttributes<HTMLDivElement>>;
 
 // @public
-export function TldrawUiSelect({ id, value, onValueChange, onOpenChange, disabled, className, children, 'data-testid': dataTestId, 'aria-label': ariaLabel }: TLUiSelectProps): JSX.Element;
+export function TldrawUiSelect({ id, value, onValueChange, onOpenChange, disabled, className, children, 'data-testid': dataTestId, 'aria-label': ariaLabel, }: TLUiSelectProps): JSX.Element;
 
 // @public
-export function TldrawUiSelectContent({ children, side, align, className }: TLUiSelectContentProps): JSX.Element;
+export function TldrawUiSelectContent({ children, side, align, className, }: TLUiSelectContentProps): JSX.Element;
 
 // @public
-export function TldrawUiSelectItem({ value, label, icon, disabled, className }: TLUiSelectItemProps): JSX.Element;
+export function TldrawUiSelectItem({ value, label, icon, disabled, className, }: TLUiSelectItemProps): JSX.Element;
 
 // @public
 export const TldrawUiSelectTrigger: React_2.ForwardRefExoticComponent<TLUiSelectTriggerProps & React_2.RefAttributes<HTMLButtonElement>>;
@@ -4426,7 +4414,7 @@ export interface TldrawUiTooltipProviderProps {
 }
 
 // @public
-export function TldrawUiTranslationProvider({ overrides, locale, children }: TLUiTranslationProviderProps): JSX.Element;
+export function TldrawUiTranslationProvider({ overrides, locale, children, }: TLUiTranslationProviderProps): JSX.Element;
 
 // @public (undocumented)
 export interface TLEditorAssetUrls {
@@ -5282,7 +5270,7 @@ export interface TLUiIconProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 // @public (undocumented)
-export type TLUiIconType = 'align-bottom' | 'align-center-horizontal' | 'align-center-vertical' | 'align-left' | 'align-right' | 'align-top' | 'alt' | 'arrow-arc' | 'arrow-cycle' | 'arrow-elbow' | 'arrow-left' | 'arrowhead-arrow' | 'arrowhead-bar' | 'arrowhead-diamond' | 'arrowhead-dot' | 'arrowhead-none' | 'arrowhead-square' | 'arrowhead-triangle-inverted' | 'arrowhead-triangle' | 'blob' | 'bold' | 'bookmark' | 'bring-forward' | 'bring-to-front' | 'broken' | 'bulletList' | 'check-circle' | 'check' | 'chevron-down' | 'chevron-left' | 'chevron-right' | 'chevron-up' | 'chevrons-ne' | 'chevrons-sw' | 'clipboard-copied' | 'clipboard-copy' | 'code' | 'color' | 'comment' | 'corners' | 'crop' | 'cross-2' | 'cross-circle' | 'dash-dashed' | 'dash-dotted' | 'dash-draw' | 'dash-solid' | 'disconnected' | 'discord' | 'distribute-horizontal' | 'distribute-vertical' | 'dot' | 'dots-horizontal' | 'dots-vertical' | 'download' | 'drag-handle-dots' | 'duplicate' | 'edit' | 'external-link' | 'fill-fill' | 'fill-lined-fill' | 'fill-none' | 'fill-pattern' | 'fill-semi' | 'fill-solid' | 'follow' | 'following' | 'font-draw' | 'font-mono' | 'font-sans' | 'font-serif' | 'geo-arrow-down' | 'geo-arrow-left' | 'geo-arrow-right' | 'geo-arrow-up' | 'geo-check-box' | 'geo-cloud' | 'geo-diamond' | 'geo-ellipse' | 'geo-heart' | 'geo-hexagon' | 'geo-octagon' | 'geo-oval' | 'geo-pentagon' | 'geo-rectangle' | 'geo-rhombus-2' | 'geo-rhombus' | 'geo-star' | 'geo-trapezoid' | 'geo-triangle' | 'geo-x-box' | 'github' | 'group' | 'heading' | 'help-circle' | 'highlight' | 'horizontal-align-end' | 'horizontal-align-middle' | 'horizontal-align-start' | 'info-circle' | 'italic' | 'leading' | 'link' | 'list' | 'lock' | 'manual' | 'menu' | 'minus' | 'mixed' | 'pack' | 'plus' | 'question-mark-circle' | 'question-mark' | 'redo' | 'reset-zoom' | 'rotate-ccw' | 'rotate-cw' | 'send-backward' | 'send-to-back' | 'share-1' | 'size-extra-large' | 'size-large' | 'size-medium' | 'size-small' | 'spline-cubic' | 'spline-line' | 'stack-horizontal' | 'stack-vertical' | 'status-offline' | 'stretch-horizontal' | 'stretch-vertical' | 'strike' | 'text-align-center' | 'text-align-left' | 'text-align-right' | 'toggle-off' | 'toggle-on' | 'tool-arrow' | 'tool-eraser' | 'tool-frame' | 'tool-hand' | 'tool-highlight' | 'tool-laser' | 'tool-line' | 'tool-media' | 'tool-note' | 'tool-pencil' | 'tool-pointer' | 'tool-screenshot' | 'tool-text' | 'trash' | 'twitter' | 'underline' | 'undo' | 'ungroup' | 'unlock' | 'vertical-align-end' | 'vertical-align-middle' | 'vertical-align-start' | 'warning-triangle' | 'zoom-in' | 'zoom-out';
+export type TLUiIconType = 'align-bottom' | 'align-center-horizontal' | 'align-center-vertical' | 'align-left' | 'align-right' | 'align-top' | 'alt' | 'arrow-arc' | 'arrow-cycle' | 'arrow-elbow' | 'arrow-left' | 'arrowhead-arrow' | 'arrowhead-bar' | 'arrowhead-diamond' | 'arrowhead-dot' | 'arrowhead-none' | 'arrowhead-square' | 'arrowhead-triangle-inverted' | 'arrowhead-triangle' | 'blob' | 'bold' | 'bookmark' | 'bring-forward' | 'bring-to-front' | 'broken' | 'bulletList' | 'check-circle' | 'check' | 'chevron-down' | 'chevron-left' | 'chevron-right' | 'chevron-up' | 'chevrons-ne' | 'chevrons-sw' | 'clipboard-copied' | 'clipboard-copy' | 'closed' | 'code' | 'color' | 'comment' | 'corners' | 'crop' | 'cross-2' | 'cross-circle' | 'dash-dashed' | 'dash-dotted' | 'dash-draw' | 'dash-solid' | 'disconnected' | 'discord' | 'distribute-horizontal' | 'distribute-vertical' | 'dot' | 'dots-horizontal' | 'dots-vertical' | 'download' | 'drag-handle-dots' | 'duplicate' | 'edit' | 'external-link' | 'fill-fill' | 'fill-lined-fill' | 'fill-none' | 'fill-pattern' | 'fill-semi' | 'fill-solid' | 'follow' | 'following' | 'font-draw' | 'font-mono' | 'font-sans' | 'font-serif' | 'geo-arrow-down' | 'geo-arrow-left' | 'geo-arrow-right' | 'geo-arrow-up' | 'geo-check-box' | 'geo-cloud' | 'geo-diamond' | 'geo-ellipse' | 'geo-heart' | 'geo-hexagon' | 'geo-octagon' | 'geo-oval' | 'geo-pentagon' | 'geo-rectangle' | 'geo-rhombus-2' | 'geo-rhombus' | 'geo-star' | 'geo-trapezoid' | 'geo-triangle' | 'geo-x-box' | 'github' | 'group' | 'heading' | 'help-circle' | 'highlight' | 'horizontal-align-end' | 'horizontal-align-middle' | 'horizontal-align-start' | 'info-circle' | 'italic' | 'leading' | 'link' | 'list' | 'lock' | 'manual' | 'menu' | 'minus' | 'mixed' | 'pack' | 'plus' | 'question-mark-circle' | 'question-mark' | 'redo' | 'reset-zoom' | 'rotate-ccw' | 'rotate-cw' | 'send-backward' | 'send-to-back' | 'share-1' | 'size-extra-large' | 'size-large' | 'size-medium' | 'size-small' | 'spline-cubic' | 'spline-line' | 'stack-horizontal' | 'stack-vertical' | 'status-offline' | 'stretch-horizontal' | 'stretch-vertical' | 'strike' | 'text-align-center' | 'text-align-left' | 'text-align-right' | 'toggle-off' | 'toggle-on' | 'tool-arrow' | 'tool-eraser' | 'tool-frame' | 'tool-hand' | 'tool-highlight' | 'tool-laser' | 'tool-line' | 'tool-media' | 'tool-note' | 'tool-pencil' | 'tool-pointer' | 'tool-screenshot' | 'tool-text' | 'trash' | 'twitter' | 'underline' | 'undo' | 'ungroup' | 'unlock' | 'vertical-align-end' | 'vertical-align-middle' | 'vertical-align-start' | 'warning-triangle' | 'zoom-in' | 'zoom-out';
 
 // @public (undocumented)
 export interface TLUiImageToolbarProps {
@@ -5846,10 +5834,10 @@ export interface TLUiZoomMenuProps {
 
 // @internal (undocumented)
 export const TLV1AlignStyle: {
-    readonly End: "end";
-    readonly Justify: "justify";
-    readonly Middle: "middle";
-    readonly Start: "start";
+    readonly End: 'end';
+    readonly Justify: 'justify';
+    readonly Middle: 'middle';
+    readonly Start: 'start';
 };
 
 // @internal (undocumented)
@@ -5894,8 +5882,8 @@ export type TLV1Asset = TLV1ImageAsset | TLV1VideoAsset;
 
 // @internal (undocumented)
 export const TLV1AssetType: {
-    readonly Image: "image";
-    readonly Video: "video";
+    readonly Image: 'image';
+    readonly Video: 'video';
 };
 
 // @internal (undocumented)
@@ -5980,18 +5968,18 @@ export interface TLV1Bounds {
 
 // @internal (undocumented)
 export const TLV1ColorStyle: {
-    readonly Black: "black";
-    readonly Blue: "blue";
-    readonly Cyan: "cyan";
-    readonly Gray: "gray";
-    readonly Green: "green";
-    readonly Indigo: "indigo";
-    readonly LightGray: "lightGray";
-    readonly Orange: "orange";
-    readonly Red: "red";
-    readonly Violet: "violet";
-    readonly White: "white";
-    readonly Yellow: "yellow";
+    readonly Black: 'black';
+    readonly Blue: 'blue';
+    readonly Cyan: 'cyan';
+    readonly Gray: 'gray';
+    readonly Green: 'green';
+    readonly Indigo: 'indigo';
+    readonly LightGray: 'lightGray';
+    readonly Orange: 'orange';
+    readonly Red: 'red';
+    readonly Violet: 'violet';
+    readonly White: 'white';
+    readonly Yellow: 'yellow';
 };
 
 // @internal (undocumented)
@@ -5999,10 +5987,10 @@ export type TLV1ColorStyle = (typeof TLV1ColorStyle)[keyof typeof TLV1ColorStyle
 
 // @internal (undocumented)
 export const TLV1DashStyle: {
-    readonly Dashed: "dashed";
-    readonly Dotted: "dotted";
-    readonly Draw: "draw";
-    readonly Solid: "solid";
+    readonly Dashed: 'dashed';
+    readonly Dotted: 'dotted';
+    readonly Draw: 'draw';
+    readonly Solid: 'solid';
 };
 
 // @internal (undocumented)
@@ -6010,7 +5998,7 @@ export type TLV1DashStyle = (typeof TLV1DashStyle)[keyof typeof TLV1DashStyle];
 
 // @internal (undocumented)
 export const TLV1Decoration: {
-    readonly Arrow: "arrow";
+    readonly Arrow: 'arrow';
 };
 
 // @internal (undocumented)
@@ -6056,10 +6044,10 @@ export interface TLV1EllipseShape extends TLV1BaseShape {
 
 // @internal (undocumented)
 export const TLV1FontStyle: {
-    readonly Mono: "mono";
-    readonly Sans: "sans";
-    readonly Script: "script";
-    readonly Serif: "serif";
+    readonly Mono: 'mono';
+    readonly Sans: 'sans';
+    readonly Script: 'script';
+    readonly Serif: 'serif';
 };
 
 // @internal (undocumented)
@@ -6183,16 +6171,16 @@ export interface TLV1ShapeStyles {
 
 // @internal (undocumented)
 export const TLV1ShapeType: {
-    readonly Arrow: "arrow";
-    readonly Draw: "draw";
-    readonly Ellipse: "ellipse";
-    readonly Group: "group";
-    readonly Image: "image";
-    readonly Rectangle: "rectangle";
-    readonly Sticky: "sticky";
-    readonly Text: "text";
-    readonly Triangle: "triangle";
-    readonly Video: "video";
+    readonly Arrow: 'arrow';
+    readonly Draw: 'draw';
+    readonly Ellipse: 'ellipse';
+    readonly Group: 'group';
+    readonly Image: 'image';
+    readonly Rectangle: 'rectangle';
+    readonly Sticky: 'sticky';
+    readonly Text: 'text';
+    readonly Triangle: 'triangle';
+    readonly Video: 'video';
 };
 
 // @internal (undocumented)
@@ -6200,9 +6188,9 @@ export type TLV1ShapeType = (typeof TLV1ShapeType)[keyof typeof TLV1ShapeType];
 
 // @internal (undocumented)
 export const TLV1SizeStyle: {
-    readonly Large: "large";
-    readonly Medium: "medium";
-    readonly Small: "small";
+    readonly Large: 'large';
+    readonly Medium: 'medium';
+    readonly Small: 'small';
 };
 
 // @internal (undocumented)
@@ -6366,7 +6354,7 @@ export function UnlockAllMenuItem(): JSX.Element;
 export function unwrapLabel(label?: TLUiActionItem['label'], menuType?: string): string | undefined;
 
 // @public
-export function updateArrowTargetState({ editor, pointInPageSpace, arrow, isPrecise, currentBinding, oppositeBinding }: UpdateArrowTargetStateOpts): ArrowTargetState | null;
+export function updateArrowTargetState({ editor, pointInPageSpace, arrow, isPrecise, currentBinding, oppositeBinding, }: UpdateArrowTargetStateOpts): ArrowTargetState | null;
 
 // @public
 export interface UpdateArrowTargetStateOpts {
@@ -6415,11 +6403,11 @@ export function useCurrentTranslation(): TLUiTranslation;
 
 // @public (undocumented)
 export function useDefaultHelpers(): {
-    addDialog: (dialog: Omit<TLUiDialog, "id"> & {
-        id?: string | undefined;
+    addDialog: (dialog: Omit<TLUiDialog, 'id'> & {
+        id?: string;
     }) => string;
-    addToast: (toast: Omit<TLUiToast, "id"> & {
-        id?: string | undefined;
+    addToast: (toast: Omit<TLUiToast, 'id'> & {
+        id?: string;
     }) => string;
     clearDialogs: () => void;
     clearToasts: () => void;
@@ -6427,18 +6415,18 @@ export function useDefaultHelpers(): {
     copyAs: (ids: TLShapeId_2[], format?: TLCopyType) => void;
     cut: (source: TLUiEventSource) => Promise<void>;
     exportAs: (ids: TLShapeId_2[], opts?: {
-        format?: TLExportType | undefined;
-        name?: string | undefined;
-        scale?: number | undefined;
+        format?: TLExportType;
+        name?: string;
+        scale?: number;
     }) => void;
     getEmbedDefinition: (url: string) => TLEmbedResult;
     insertMedia: () => Promise<void>;
     isMobile: boolean;
-    msg: (id?: string | undefined) => string;
-    paste: (data: ClipboardItem[] | DataTransfer, source: TLUiEventSource, point?: VecLike | undefined) => Promise<void>;
+    msg: (id?: Exclude<string, TLUiTranslationKey> | string) => string;
+    paste: (data: ClipboardItem[] | DataTransfer, source: TLUiEventSource, point?: VecLike) => Promise<void>;
     printSelectionOrPages: () => Promise<void>;
     removeDialog: (id: string) => string;
-    removeToast: (id: string) => string;
+    removeToast: (id: TLUiToast['id']) => string;
     replaceImage: () => Promise<void>;
     replaceVideo: () => Promise<void>;
 };
@@ -6461,7 +6449,7 @@ export function useEditablePlainText(shapeId: TLShapeId, type: ExtractShapeByPro
         nativeEvent: Event;
     } | Event) => void;
     handleFocus: () => void;
-    handleInputPointerDown: (e: React_3.PointerEvent<Element>) => void;
+    handleInputPointerDown: (e: React_3.PointerEvent) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
     handlePaste: (e: ClipboardEvent | React_3.ClipboardEvent<HTMLTextAreaElement>) => void;
     isEditing: boolean;
@@ -6472,23 +6460,19 @@ export function useEditablePlainText(shapeId: TLShapeId, type: ExtractShapeByPro
 
 // @public (undocumented)
 export function useEditableRichText(shapeId: TLShapeId, type: ExtractShapeByProps<{
-    richText: TLRichText;
-}>['type'], richText?: TLRichText): {
+    richText: TLRichText_2;
+}>['type'], richText?: TLRichText_2): {
     handleBlur: () => void;
     handleChange: ({ richText }: {
-        richText: {
-            attrs?: any;
-            content: unknown[];
-            type: string;
-        };
+        richText: TLRichText_2;
     }) => void;
     handleDoubleClick: (e: {
         nativeEvent: Event;
     } | Event) => void;
     handleFocus: () => void;
-    handleInputPointerDown: (e: PointerEvent_2<Element>) => void;
+    handleInputPointerDown: (e: React.PointerEvent) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
-    handlePaste: (e: ClipboardEvent | ClipboardEvent_2<HTMLTextAreaElement>) => void;
+    handlePaste: (e: ClipboardEvent | React.ClipboardEvent<HTMLTextAreaElement>) => void;
     isEditing: boolean;
     isEmpty: boolean | undefined;
     isReadyForEditing: boolean;
@@ -6497,14 +6481,14 @@ export function useEditableRichText(shapeId: TLShapeId, type: ExtractShapeByProp
 
 // @public (undocumented)
 export function useExportAs(): (ids: TLShapeId[], opts?: {
-    format?: TLExportType | undefined;
-    name?: string | undefined;
-    scale?: number | undefined;
+    format?: TLExportType;
+    name?: string;
+    scale?: number;
 }) => void;
 
 // @public
 export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVideoAssetOptions): {
-    asset: null | TLImageAsset | TLVideoAsset;
+    asset: (TLImageAsset | TLVideoAsset) | null;
     url: null | string;
 };
 
@@ -6531,7 +6515,7 @@ export function useMaybeCurrentTranslation(): null | TLUiTranslation;
 export function useMenuClipboardEvents(): {
     copy: (source: TLUiEventSource) => Promise<void>;
     cut: (source: TLUiEventSource) => Promise<void>;
-    paste: (data: ClipboardItem[] | DataTransfer, source: TLUiEventSource, point?: undefined | VecLike) => Promise<void>;
+    paste: (data: ClipboardItem[] | DataTransfer, source: TLUiEventSource, point?: VecLike) => Promise<void>;
 };
 
 // @public (undocumented)
@@ -6571,7 +6555,7 @@ export function useToasts(): TLUiToastsContextType;
 export function useTools(): TLUiToolsContextType;
 
 // @public
-export function useTranslation(): (id?: string | undefined) => string;
+export function useTranslation(): (id?: Exclude<string, TLUiTranslationKey> | string) => string;
 
 // @public (undocumented)
 export function useUiEvents(): TLUiEventContextType;
@@ -6604,7 +6588,7 @@ export class VideoAssetUtil extends AssetUtil<TLVideoAsset> {
         w: Validator<number>;
     };
     // (undocumented)
-    static type: "video";
+    static type: 'video';
 }
 
 // @public (undocumented)
@@ -6627,7 +6611,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     getIndicatorPath(shape: TLVideoShape): Path2D;
     // (undocumented)
-    static handledAssetTypes: readonly ["video"];
+    static handledAssetTypes: readonly ['video'];
     // (undocumented)
     isAspectRatioLocked(shape: TLVideoShape): boolean;
     // (undocumented)
@@ -6639,7 +6623,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     toSvg(shape: TLVideoShape, ctx: SvgExportContext): Promise<JSX.Element | null>;
     // (undocumented)
-    static type: "video";
+    static type: 'video';
 }
 
 // @public (undocumented)
@@ -6688,7 +6672,7 @@ export class ZoomTool extends StateNode {
     static id: string;
     // (undocumented)
     info: TLPointerEventInfo & {
-        onInteractionEnd?: string | undefined;
+        onInteractionEnd?: string;
     };
     // (undocumented)
     static initial: string;

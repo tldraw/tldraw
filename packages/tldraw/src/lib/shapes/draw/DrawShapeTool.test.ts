@@ -109,6 +109,25 @@ describe('Close threshold with zoom', () => {
 		expect(shape.props.isClosed).toBe(true)
 	})
 
+	it('Closes a small shape with densely sampled points', () => {
+		// Match the point density of the reported shape that exposed the length calculation bug.
+		const samples = 476
+		const radius = 20
+		const center = { x: 100, y: 100 }
+
+		editor.setCurrentTool('draw')
+		editor.pointerDown(center.x + radius, center.y)
+		for (let i = 1; i <= samples; i++) {
+			const angle = (i / samples) * Math.PI * 2
+			editor.pointerMove(center.x + Math.cos(angle) * radius, center.y + Math.sin(angle) * radius)
+		}
+		editor.pointerUp()
+
+		const shapes = editor.getCurrentPageShapes() as TLDrawShape[]
+		expect(shapes).toHaveLength(1)
+		expect(shapes[0].props.isClosed).toBe(true)
+	})
+
 	it('Does not close a shape when the endpoint is far from the start', () => {
 		const shape = drawNearlyClosedShape(50)
 		expect(shape.props.isClosed).toBe(false)

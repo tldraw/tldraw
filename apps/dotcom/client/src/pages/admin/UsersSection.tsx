@@ -1,4 +1,4 @@
-import { TlaFile, ZStoreData } from '@tldraw/dotcom-shared'
+import { TlaFile, TlaUser } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetch } from 'tldraw'
 import { AdminButton } from './AdminButton'
@@ -6,17 +6,17 @@ import { StructuredDataDisplay } from './shared'
 import styles from './admin.module.css'
 
 // Helper component for user data summary. deletedFileCount comes from the dedicated endpoint —
-// the replicated store excludes the user's own deleted files, so it can't be derived from `data`.
+// `data.files` excludes the user's own deleted files, so it can't be derived from `data`.
 function UserDataSummary({
 	data,
 	deletedFileCount,
 }: {
-	data: ZStoreData
+	data: { user: TlaUser; memberships: unknown[]; files: TlaFile[] }
 	deletedFileCount: number
 }) {
 	const getUserInfo = () => {
-		const user = data.user[0]
-		const files = data.file || []
+		const user = data.user
+		const files = data.files || []
 		const activeFiles = files.filter((f: TlaFile) => !f.isDeleted)
 
 		return {
@@ -146,7 +146,6 @@ export function UsersSection() {
 	const [data, setData] = useState<any>(null)
 	const [deletedFiles, setDeletedFiles] = useState<DeletedFileRow[]>([])
 	const [error, setError] = useState(null as string | null)
-	const [isRebooting, setIsRebooting] = useState(false)
 	const [successMessage, setSuccessMessage] = useState(null as string | null)
 	const inputRef = useRef<HTMLInputElement>(null)
 
@@ -184,31 +183,6 @@ export function UsersSection() {
 		await loadDeletedFiles()
 	}, [loadDeletedFiles])
 
-	const doReboot = useCallback(async () => {
-		const q = inputRef.current?.value?.trim() ?? ''
-		if (!q) {
-			setError('Please enter an email or ID')
-			return
-		}
-
-		setIsRebooting(true)
-		setError(null)
-		try {
-			const res = await fetch(`/api/app/admin/user/reboot?${new URLSearchParams({ q })}`, {
-				method: 'POST',
-			})
-			if (!res.ok) {
-				setError(res.statusText + ': ' + (await res.text()))
-				return
-			}
-			setError(null)
-			loadData()
-			setSuccessMessage('User rebooted successfully')
-		} finally {
-			setIsRebooting(false)
-		}
-	}, [loadData])
-
 	// Clear success message after 3 seconds
 	useEffect(() => {
 		if (successMessage) {
@@ -223,8 +197,8 @@ export function UsersSection() {
 			<section className={styles.adminSection}>
 				<h2 className={styles.sectionTitle}>User management</h2>
 				<p>
-					Look up a user by email or ID to inspect their data, force a reboot, restore deleted
-					files, or delete the account.
+					Look up a user by email or ID to inspect their data, restore deleted files, or delete the
+					account.
 				</p>
 				<div className={styles.searchContainer}>
 					<input
@@ -261,21 +235,8 @@ export function UsersSection() {
 						>
 							Copy data
 						</AdminButton>
-						<AdminButton
-							variant="secondary"
-							disabled={isRebooting}
-							onClick={doReboot}
-							isLoading={isRebooting}
-							className={styles.userActionButton}
-						>
-							Force reboot
-						</AdminButton>
 					</div>
-					<DeletedFilesTable
-						files={deletedFiles}
-						userId={data.user[0]?.id}
-						onUndeleted={loadData}
-					/>
+					<DeletedFilesTable files={deletedFiles} userId={data.user?.id} onUndeleted={loadData} />
 					<StructuredDataDisplay data={data} />
 				</section>
 			)}

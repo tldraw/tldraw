@@ -5,6 +5,7 @@ import { shouldEnableCommenting } from './TldrawApp'
 const FLAGS_OFF: FeatureFlags = {
 	rum_enabled: { enabled: false },
 	commenting_enabled: { enabled: false },
+	mcp_server_access: { enabled: false },
 }
 
 const FLAGS_COMMENTING_ON: FeatureFlags = {

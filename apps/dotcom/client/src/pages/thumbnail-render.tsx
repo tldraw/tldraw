@@ -4,18 +4,22 @@ import {
 	MIN_THUMBNAIL_DIMENSION,
 	THUMBNAIL_SETTLE_TIMEOUT_MS,
 	ThumbnailRenderParams,
+	ThumbnailShapeMeasurement,
 	ThumbnailSnapshotResponseBody,
 	getLicenseKey,
 } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
+	Box,
 	Editor,
 	FileHelpers,
 	Image,
 	SerializedSchema,
 	TLPageId,
 	TLRecord,
+	TLShapeId,
 	Tldraw,
+	compact,
 	fetch,
 	sleep,
 	useEditor,
@@ -26,6 +30,7 @@ import { defineLoader } from '../utils/defineLoader'
 import { embedShapeUtils } from '../utils/embedShapeUtil'
 
 const THUMBNAIL_SNAPSHOT_ENDPOINT = '/api/app/thumbnail-render/snapshot'
+const THUMBNAIL_RESULT_ENDPOINT = '/api/app/thumbnail-render/result'
 
 type LoaderData =
 	| {
@@ -74,6 +79,7 @@ export function Component() {
 	if (!data.ok) return <ThumbnailRenderError message={data.message} />
 	return (
 		<ThumbnailRenderPage
+			token={data.token}
 			records={data.records}
 			schema={data.schema}
 			renderParams={data.renderParams}
@@ -82,10 +88,12 @@ export function Component() {
 }
 
 function ThumbnailRenderPage({
+	token,
 	records,
 	schema,
 	renderParams,
 }: {
+	token: string
 	records: TLRecord[]
 	schema: SerializedSchema
 	renderParams: ThumbnailRenderParams
@@ -136,7 +144,13 @@ function ThumbnailRenderPage({
 					if (renderParams.pageId && editor.getPage(renderParams.pageId as TLPageId)) {
 						editor.setCurrentPage(renderParams.pageId as TLPageId)
 					}
-					if (renderParams.camera === 'content') {
+					// `content` is what every surface asks for today; an explicit viewport is still honoured
+					// (see ThumbnailRenderParams) so the worker can start sending one without waiting on a
+					// separate client deploy to teach this page how to handle it. A shape set overrides
+					// both, framing just those shapes.
+					if (renderParams.shapeIds?.length) {
+						fitShapesCamera(editor, renderParams.shapeIds, width, height)
+					} else if (renderParams.camera === 'content') {
 						fitContentCamera(editor, width, height)
 					} else {
 						editor.setCamera(
@@ -146,13 +160,18 @@ function ThumbnailRenderPage({
 					}
 				}}
 			>
-				<ThumbnailExportSignal
-					theme={theme}
-					width={width}
-					height={height}
-					camera={renderParams.camera}
-					onImage={handleImage}
-				/>
+				{renderParams.mode === 'measure' ? (
+					<ThumbnailMeasureSignal token={token} />
+				) : (
+					<ThumbnailExportSignal
+						theme={theme}
+						width={width}
+						height={height}
+						camera={renderParams.camera}
+						shapeIds={renderParams.shapeIds}
+						onImage={handleImage}
+					/>
+				)}
 			</Tldraw>
 		</div>
 	)
@@ -273,6 +292,32 @@ function fitContentCamera(editor: Editor, width: number, height: number) {
 	}
 }
 
+// The shapes the token asked for, filtered to those actually present on the current page. The
+// snapshot endpoint already rejects a job whose shapes have gone, but the ids are resolved against
+// a live snapshot for shared files, so this stays defensive rather than throwing mid-render.
+function getRequestedShapeIds(editor: Editor, shapeIds: string[]): TLShapeId[] {
+	return shapeIds.filter((id): id is TLShapeId => Boolean(editor.getShape(id as TLShapeId)))
+}
+
+// Like fitContentCamera, but framed on a subset of the page. Uses the same inset so a shapes
+// screenshot and a page screenshot of the same board have matching margins. Run again before export
+// for the same reason content fits are: autosized text re-measures once web fonts load.
+function fitShapesCamera(editor: Editor, shapeIds: string[], width: number, height: number) {
+	const ids = getRequestedShapeIds(editor, shapeIds)
+	const bounds = ids.length
+		? Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
+		: null
+	if (bounds) {
+		editor.zoomToBounds(bounds, {
+			immediate: true,
+			force: true,
+			inset: getRepresentativeContentInset(width, height),
+		})
+	} else {
+		editor.setCamera({ x: 0, y: 0, z: 1 }, { immediate: true })
+	}
+}
+
 // Produces a thumbnail of the editor's current page with editor.toImage once the scene has settled
 // — fonts loaded, image assets warm, and the editor's <img> elements stable — and hands the PNG blob
 // to `onImage`.
@@ -290,6 +335,7 @@ export function ThumbnailExportSignal({
 	width,
 	height,
 	camera,
+	shapeIds,
 	settleTimeoutMs = THUMBNAIL_SETTLE_TIMEOUT_MS,
 	onImage,
 }: {
@@ -297,6 +343,7 @@ export function ThumbnailExportSignal({
 	width: number
 	height: number
 	camera?: 'content'
+	shapeIds?: string[]
 	settleTimeoutMs?: number
 	onImage(blob: Blob): void | Promise<void>
 }) {
@@ -318,8 +365,12 @@ export function ThumbnailExportSignal({
 			if (cancelled) return
 			// Re-fit content now that fonts and assets have settled: autosized text re-measures after
 			// the web font loads, so the fit computed in onMount (before fonts) is stale and would clip.
-			if (camera === 'content') fitContentCamera(editor, width, height)
-			const blob = await exportThumbnailImage(editor, theme, width, height)
+			if (shapeIds?.length) {
+				fitShapesCamera(editor, shapeIds, width, height)
+			} else if (camera === 'content') {
+				fitContentCamera(editor, width, height)
+			}
+			const blob = await exportThumbnailImage(editor, theme, width, height, shapeIds)
 			if (cancelled) return
 			await onImage(blob)
 		})().catch((error) => {
@@ -336,7 +387,51 @@ export function ThumbnailExportSignal({
 		return () => {
 			cancelled = true
 		}
-	}, [editor, theme, width, height, camera, settleTimeoutMs, onImage])
+	}, [editor, theme, width, height, camera, shapeIds, settleTimeoutMs, onImage])
+
+	return null
+}
+
+// Measure mode. The page exists only to be a real editor: it settles, measures, posts, and marks
+// itself ready. The worker's screenshot of it is discarded — driving a Browser Run session is simply
+// how the measurement gets to happen, and the ready marker is how the worker knows it is done.
+function ThumbnailMeasureSignal({ token }: { token: string }) {
+	const editor = useEditor()
+
+	useEffect(() => {
+		let cancelled = false
+		;(async () => {
+			// Fonts first, for the same reason the export waits: autosizing text has no correct size
+			// until the real web font has loaded, and its measured bounds are the whole point here.
+			await Promise.race([waitForFonts(), sleep(THUMBNAIL_SETTLE_TIMEOUT_MS)])
+			if (cancelled) return
+
+			// Text comes from the shape's own util, which is the authoritative answer — a Worker
+			// reading the record can only approximate it, and gets nothing at all for shapes whose
+			// text is computed rather than stored.
+			const bounds: Record<string, ThumbnailShapeMeasurement> = {}
+			for (const id of editor.getCurrentPageShapeIds()) {
+				const shape = editor.getShape(id)
+				const box = editor.getShapePageBounds(id)
+				if (!shape || !box) continue
+				const text = editor.getShapeUtil(shape).getText(shape)
+				bounds[id] = { x: box.x, y: box.y, w: box.w, h: box.h, ...(text ? { text } : null) }
+			}
+			await fetch(THUMBNAIL_RESULT_ENDPOINT, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ token, bounds }),
+			})
+			if (cancelled) return
+			signalThumbnailReady()
+		})().catch((error) => {
+			if (cancelled) return
+			setThumbnailError(error instanceof Error ? error.message : String(error))
+		})
+		return () => {
+			cancelled = true
+		}
+	}, [editor, token])
 
 	return null
 }
@@ -349,12 +444,18 @@ async function exportThumbnailImage(
 	editor: Editor,
 	theme: 'light' | 'dark',
 	width: number,
-	height: number
+	height: number,
+	requestedShapeIds?: string[]
 ): Promise<Blob> {
 	const camera = editor.getCamera()
 	const bounds = editor.getViewportPageBounds().clone()
 	const culled = editor.getCulledShapes()
-	const shapeIds = [...editor.getCurrentPageShapeIds()].filter((id) => !culled.has(id))
+	// A shapes screenshot draws only what was asked for, so a neighbouring shape that happens to fall
+	// inside the fitted viewport never leaks into the frame. Culling still applies to the page export
+	// (it keeps big boards cheap), but not here: every requested shape is in view by construction.
+	const shapeIds = requestedShapeIds?.length
+		? getRequestedShapeIds(editor, requestedShapeIds)
+		: [...editor.getCurrentPageShapeIds()].filter((id) => !culled.has(id))
 
 	if (shapeIds.length === 0) {
 		return makeBlankThumbnail(width, height, editor.getCurrentTheme().colors[theme].background)

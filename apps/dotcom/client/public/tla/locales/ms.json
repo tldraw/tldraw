@@ -5,6 +5,9 @@
   "00b177e080": {
     "translation": "Terima jemputan"
   },
+  "029f235f01": {
+    "translation": "Kami sedang berusaha untuk menyokong fail daripada <a><strong>{appName}</strong></a>."
+  },
   "03b3e13197": {
     "translation": "Seret fail ke dalam bar sisi pada halaman ini. Atau pilih pilihan 'Import fail' daripada menu pengguna."
   },
@@ -13,6 +16,9 @@
   },
   "04a2dd56d6": {
     "translation": "Jemput rakan sepasukan"
+  },
+  "05b2656486": {
+    "translation": "<name>{author}</name> menyebut anda"
   },
   "05f43078e9": {
     "translation": "Anda telah mencapai bilangan maksimum ruang kerja. Anda perlu memadam ruang kerja lama sebelum mencipta ruang kerja baharu."
@@ -28,6 +34,9 @@
   },
   "08bd40c754": {
     "translation": "Akaun"
+  },
+  "093ac7483a": {
+    "translation": "Tidak dapat membuka fail {extension} lagi"
   },
   "0a91f7fa87": {
     "translation": "Fail ini telah mencapai had saiznya dan perubahan mungkin tidak lagi disimpan. Alih keluar beberapa kandungan atau mulakan fail baharu."
@@ -59,6 +68,9 @@
   "13ddd375ad": {
     "translation": "Eksport sebagai"
   },
+  "14b03eeeb5": {
+    "translation": "Pilihan pemberitahuan"
+  },
   "181b90f889": {
     "translation": "Buat fail"
   },
@@ -79,6 +91,9 @@
   },
   "250ddea65c": {
     "translation": "Mengenai tldraw"
+  },
+  "2755e3ab39": {
+    "translation": "<name>{author}</name> telah mengulas di papan anda"
   },
   "299cb00a7a": {
     "translation": "Muat naik gagal"
@@ -149,6 +164,9 @@
   "46137245cd": {
     "translation": "Terima kasih kerana membantu kami meningkatkan tldraw!"
   },
+  "46de2de6bb": {
+    "translation": "Terima syarat penggunaan"
+  },
   "477df802ca": {
     "translation": "Untuk meneruskan pengeditan sila salin fail ke fail anda."
   },
@@ -179,11 +197,17 @@
   "517bb809d9": {
     "translation": "Menu halaman"
   },
+  "53770fd374": {
+    "translation": "Belum dibaca"
+  },
   "542248f0ba": {
     "translation": "Fail ini kini dibaca sahaja"
   },
   "54286b1d01": {
     "translation": "Had kolaborator dicapai"
+  },
+  "545241e7dd": {
+    "translation": "{count} belum dibaca"
   },
   "554a05155c": {
     "translation": "Masih menghadapi masalah? <a>Laporkan masalah</a>"
@@ -209,6 +233,9 @@
   "5bff3c9c88": {
     "translation": "Ruang kerja saya"
   },
+  "5bffeebf03": {
+    "translation": "<name>{author}</name> telah memberi reaksi terhadap komen anda"
+  },
   "5d04a002ea": {
     "translation": "Tidak dapat menyambung"
   },
@@ -221,8 +248,17 @@
   "5fb63579fc": {
     "translation": "salin"
   },
+  "608e9d366e": {
+    "translation": "Anda sudah membaca semuanya."
+  },
+  "60a68c29d6": {
+    "translation": "Log masuk untuk mengulas"
+  },
   "61057a0c84": {
     "translation": "Nanti"
+  },
+  "61fb03fd7b": {
+    "translation": "{count, plural, other {# orang memberi reaksi kepada komen anda}}"
   },
   "625fd29749": {
     "translation": "Lebih tua"
@@ -274,6 +310,9 @@
   },
   "752b79f137": {
     "translation": "Anda telah mencapai bilangan maksimum fail. Anda perlu memadam fail lama sebelum membuat yang baharu."
+  },
+  "7542d62aac": {
+    "translation": "Tandakan semua sebagai telah dibaca"
   },
   "7573b8110a": {
     "translation": "Tiada akses"
@@ -331,6 +370,9 @@
   },
   "81666c6e4a": {
     "translation": "Adakah anda pasti mahu melupakan <strong>{fileName}</strong>?"
+  },
+  "8413c683b4": {
+    "translation": "Komen"
   },
   "858ba4765e": {
     "translation": "Ahli"
@@ -422,6 +464,9 @@
   "a239905023": {
     "translation": "Eksport imej"
   },
+  "a274f4d467": {
+    "translation": "Pemberitahuan"
+  },
   "a3debabee7": {
     "translation": "Dasar kuki"
   },
@@ -446,6 +491,9 @@
   "aac449eef6": {
     "translation": "Cipta ruang kerja"
   },
+  "aaec8f7cde": {
+    "translation": "Seseorang"
+  },
   "ab0df9ba36": {
     "translation": "Had fail dicapai"
   },
@@ -455,6 +503,12 @@
   },
   "b028909917": {
     "translation": "Pengguna tetamu"
+  },
+  "b03400e2db": {
+    "translation": "<name>{author}</name> membalas"
+  },
+  "b1c94ca2fb": {
+    "translation": "Semua"
   },
   "b2326c3a34": {
     "translation": "Menjana semula"
@@ -528,6 +582,9 @@
   "cea291e45e": {
     "translation": "Ketahui lebih lanjut tentang penerbitan."
   },
+  "d0e3556476": {
+    "translation": "<name>{author}</name> dan {count, plural, one {# other} other {# others}} memberi reaksi terhadap komen anda"
+  },
   "d3d2e61733": {
     "translation": "tutup"
   },
@@ -573,6 +630,9 @@
   "e404559826": {
     "translation": "Syarat perkhidmatan"
   },
+  "e65b2dcb6f": {
+    "translation": "<name>{a}</name> dan <name>{b}</name> telah memberi reaksi terhadap komen anda"
+  },
   "e81c4e4f2b": {
     "translation": "atau"
   },
@@ -600,6 +660,9 @@
   "ede55d955f": {
     "translation": "Baca <a>dasar kuki</a> kami untuk mengetahui lebih lanjut."
   },
+  "edec9387f9": {
+    "translation": "Komen ini telah dipadamkan."
+  },
   "ef53538ae4": {
     "translation": "Ahli"
   },
@@ -618,8 +681,14 @@
   "f2a6c498fb": {
     "translation": "Padam"
   },
+  "f476ba8646": {
+    "translation": "<name>{a}</name>, <name>{b}</name> dan {count, plural, one {# lagi} other {# lagi}} telah memberi reaksi terhadap komen anda"
+  },
   "f4f70727dc": {
     "translation": "tetapan"
+  },
+  "f5ddc8d9c1": {
+    "translation": "Buat masa ini, anda boleh <a>eksport sebagai fail {extension}</a> untuk menggunakannya di sini."
   },
   "fa2ead697d": {
     "translation": "Dasar Privasi"

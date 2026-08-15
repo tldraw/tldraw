@@ -146,6 +146,44 @@ describe('AtomMap', () => {
 		})
 	})
 
+	describe('getOrInsert and getOrInsertComputed', () => {
+		it('[AM9] returns the existing value for a present key', () => {
+			const map = new AtomMap('test', [['a', 1]])
+			expect(map.getOrInsert('a', 2)).toBe(1)
+			expect(map.getOrInsertComputed('a', () => 3)).toBe(1)
+			expect(map.get('a')).toBe(1)
+		})
+
+		it('[AM9] inserts and returns the new value for an absent key', () => {
+			const map = new AtomMap<string, number>('test')
+			expect(map.getOrInsert('a', 1)).toBe(1)
+			expect(map.get('a')).toBe(1)
+
+			expect(map.getOrInsertComputed('b', (key) => key.length)).toBe(1)
+			expect(map.get('b')).toBe(1)
+		})
+
+		it('[AM9] only runs the callback when the key is absent', () => {
+			const map = new AtomMap<string, number>('test')
+			const callback = vi.fn(() => 1)
+
+			map.getOrInsertComputed('a', callback)
+			expect(callback).toHaveBeenCalledTimes(1)
+
+			map.getOrInsertComputed('a', callback)
+			expect(callback).toHaveBeenCalledTimes(1)
+		})
+
+		it('[AM9] reacts to a later insert of a key that was absent', () => {
+			const map = new AtomMap<string, number>('test')
+			const cb = testReactor('getOrInsert', () => map.get('a'))
+			expect(cb).toHaveBeenCalledTimes(1)
+
+			map.getOrInsert('a', 1)
+			expect(cb).toHaveBeenCalledTimes(2)
+		})
+	})
+
 	describe('delete', () => {
 		it('[AM4] deletes values and returns whether the key existed', () => {
 			const map = new AtomMap('test')

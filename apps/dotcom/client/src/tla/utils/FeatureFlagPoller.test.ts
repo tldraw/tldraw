@@ -12,6 +12,7 @@ function makeFlags(overrides: Partial<FeatureFlags> = {}): FeatureFlags {
 	return {
 		rum_enabled: { enabled: false },
 		commenting_enabled: { enabled: false },
+		mcp_server_access: { enabled: false },
 		...overrides,
 	}
 }

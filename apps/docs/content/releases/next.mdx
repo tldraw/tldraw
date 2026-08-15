@@ -2,50 +2,43 @@
 title: Next release
 description: Changes coming in the next release
 author: tldraw
-date: 07/01/2026
+date: 08/05/2026
 order: 0
 status: published
-last_version: v5.2.0
+last_version: v5.3.0
 ---
 
-This release adds snapping and symmetric resizing while cropping images, a reactive `Editor.getIsMounted()` with a new `unmount` event, and faster viewport culling on large pages. It also fixes a batch of crashes and interaction bugs across arrows, groups, and text.
-
-## What's new
-
-### Snapping and symmetric resize while cropping ([#9424](https://github.com/tldraw/tldraw/pull/9424))
-
-When cropping an image, crop edges now snap to other shapes and the grid, with the usual snapping guidelines. Holding option resizes the crop region symmetrically from its center.
+This release adds a `center` operation to `Editor.alignShapes`, `iterateGraphemes` to `@tldraw/utils`, and two new reactive methods on `AtomMap`. It also deprecates `useViewportHeight`, speeds up the signals and store layers, and fixes a batch of crashes and interaction bugs across dialogs, sync reconnection, undo, and keyboard shortcut tooltips.
 
 ## API changes
 
-- Add an `unmount` event to `TLEventMap` and make `Editor.getIsMounted()` a reactive value that tracks whether the editor's component is currently mounted. ([#9472](https://github.com/tldraw/tldraw/pull/9472), [#9483](https://github.com/tldraw/tldraw/pull/9483))
-- Make the shape hit-test margin pointer-aware and add a `coarseHitTestMargin` option: fine pointers (mouse and trackpad) use a tighter 3px default, coarse pointers (touch and pen) use 4px. ([#9492](https://github.com/tldraw/tldraw/pull/9492))
-- Add a `ShapeUtil.onDuplicate(source, duplicate)` callback, invoked by `Editor.duplicateShapes` and `Editor.putContentOntoCurrentPage`, letting a shape adjust its props when it is copied. Sticky notes now use it to attribute duplicated or pasted text to the current user instead of carrying over the original author. ([#9566](https://github.com/tldraw/tldraw/pull/9566))
+- 🔜 **`useViewportHeight()`** is deprecated. Read `window.visualViewport` directly instead. The hook returns only the visible viewport's bottom edge, and keeping a panel clear of the software keyboard generally needs the whole visible rectangle. ([#9826](https://github.com/tldraw/tldraw/pull/9826))
+- Add `'center'` as an `Editor.alignShapes` operation. It applies the existing `'center-horizontal'` and `'center-vertical'` operations together, so shapes center on both axes in one command. ([#9074](https://github.com/tldraw/tldraw/pull/9074))
+- Add `getOrInsert(key, defaultValue)` and `getOrInsertComputed(key, callback)` to `AtomMap`, matching the `Map` methods added in newer JavaScript runtimes. Both are reactive, and the callback only runs when the key is absent. ([#9752](https://github.com/tldraw/tldraw/pull/9752))
+- Add `isPage(record)` to `@tldraw/tlschema`, a type guard that narrows an unknown record to `TLPage`. ([#9774](https://github.com/tldraw/tldraw/pull/9774))
+- Add `iterateGraphemes(str)` to `@tldraw/utils`. It iterates a string's grapheme clusters, using `Intl.Segmenter` when it's available and falling back to code-point iteration when it isn't. ([#9896](https://github.com/tldraw/tldraw/pull/9896))
+- Add `isPage(record)` to `@tldraw/tlschema`, a type guard for page records that matches the guards already exported for the other record types. ([#9774](https://github.com/tldraw/tldraw/pull/9774))
 
 ## Improvements
 
-- Improve viewport culling performance on large pages: the spatial index now rechecks only the shapes affected by a change instead of every shape on the page. Custom shapes whose geometry depends on unrelated shapes (outside parent/child and binding relationships) are no longer automatically rechecked for culling when those shapes change; built-in shapes and standard patterns are unaffected. ([#9093](https://github.com/tldraw/tldraw/pull/9093))
-- Improve performance when deleting many shapes at once by batching page state cleanup. ([#9456](https://github.com/tldraw/tldraw/pull/9456))
-- Make long toast and dialog content wrap instead of overflowing, so long strings like URLs stay within the toast or dialog. ([#9546](https://github.com/tldraw/tldraw/pull/9546))
-- Delay the appearance of the "back to content" button by about a second so it no longer flickers during normal panning and zooming. Hiding stays immediate. ([#9448](https://github.com/tldraw/tldraw/pull/9448))
-- Remove the unnecessary ellipsis from the "Keyboard shortcuts" menu item. ([#9570](https://github.com/tldraw/tldraw/pull/9570))
+- Reduce per-pointer-event allocations in `Group2d` and `Editor` hit-testing. ([#8600](https://github.com/tldraw/tldraw/pull/8600))
+- Speed up signal reads in `@tldraw/state`. Capturing a parent used to scan the capturing signal's parent set twice, once to check for the parent and again to add it. ([#9690](https://github.com/tldraw/tldraw/pull/9690))
+- Reduce the work and allocations in `@tldraw/store` history bookkeeping, so squashing record diffs and filtering query history no longer build intermediate copies on every tick. ([#9689](https://github.com/tldraw/tldraw/pull/9689), [#9869](https://github.com/tldraw/tldraw/pull/9869))
 
 ## Bug fixes
 
-- Fix rich text headings (H1–H6) rendering with their line-height too tight, causing overlapping lines. ([#9543](https://github.com/tldraw/tldraw/pull/9543))
-- Fix the style panel not highlighting the active fill correctly when the current fill lives in the overflow dropdown. ([#9509](https://github.com/tldraw/tldraw/pull/9509)) (contributed by [@meg-an31](https://github.com/meg-an31))
-- Fix the style panel Shape, Line, and spline dropdown popovers so they open with the same gap as the other dropdowns. ([#9491](https://github.com/tldraw/tldraw/pull/9491))
-- Fix double-clicking a shape inside an unfocused group immediately editing it; a double-click now drills one level into the group. ([#9488](https://github.com/tldraw/tldraw/pull/9488))
-- Fix selected clipped arrows so they can be dragged when their geometry extends outside a clipping parent. ([#9479](https://github.com/tldraw/tldraw/pull/9479))
-- Fix arrows bound to frames so they duplicate and delete with the frame without being clipped. ([#9470](https://github.com/tldraw/tldraw/pull/9470))
-- Fix a shape dragged from the toolbar to a frame beneath the toolbar not being parented to the frame. ([#9458](https://github.com/tldraw/tldraw/pull/9458))
-- Fix a missing `onChildrenChange` call when creating a shape directly within a parent shape. ([#9455](https://github.com/tldraw/tldraw/pull/9455))
-- Fix the reactive Meta (Cmd) key state not clearing on keyup until a pointer event on macOS, which affected `getMetaKey()` and `getAccelKey()`. ([#9404](https://github.com/tldraw/tldraw/pull/9404))
-- Fix a crash when dragging a handle on a line whose point keys differed from their indices. ([#9299](https://github.com/tldraw/tldraw/pull/9299))
-- Fix arrow bindings floating outside a geo shape after changing its geo type; precise bindings now re-snap to the nearest point on the new shape. ([#9281](https://github.com/tldraw/tldraw/pull/9281))
-- Fix an occasional crash in text measurement by iterating over grapheme clusters instead of individual characters, keeping emoji, flags, and accented characters intact. ([#9266](https://github.com/tldraw/tldraw/pull/9266))
-- Fix a crash ("Shape not found") when dragging a tool from the toolbar in a read-only room. ([#9225](https://github.com/tldraw/tldraw/pull/9225))
-- Fix sync clients not recovering from a malformed WebSocket message; they now restart the connection so a corrupt frame can no longer silently leave the client out of sync. ([#9380](https://github.com/tldraw/tldraw/pull/9380))
-- Fix uploaded asset handling for invalid R2 object names. ([#9495](https://github.com/tldraw/tldraw/pull/9495))
-- Fix a crash when a custom font failed to load after its editor had been disposed. ([#9494](https://github.com/tldraw/tldraw/pull/9494))
-- Fix license expiry being evaluated in local time, which could deactivate a license a calendar day early for users west of UTC; the expiry date is now treated as the last fully usable day in UTC. ([#9475](https://github.com/tldraw/tldraw/pull/9475))
+- Fix the editor failing to load on older browsers that lack `Intl.Segmenter`, such as Firefox before 125. ([#9896](https://github.com/tldraw/tldraw/pull/9896))
+- Fix a crash when computing a frame's geometry if its heading text couldn't be measured yet. ([#9496](https://github.com/tldraw/tldraw/pull/9496))
+- Fix undo after a cut also reverting the change made before it. ([#9920](https://github.com/tldraw/tldraw/pull/9920))
+- Fix modifier keys (Shift, Alt, Ctrl, Cmd) briefly being treated as held at the start of a new click or drag right after being released, which could momentarily affect snapping and other modifier-dependent behavior. ([#9523](https://github.com/tldraw/tldraw/pull/9523))
+- Fix **Flatten to image** producing different groupings depending on selection order, and not merging clusters that were only connected through a bridging shape. ([#8661](https://github.com/tldraw/tldraw/pull/8661))
+- Fix pasted links showing a broken preview image when the linked page has no Open Graph image. ([#9909](https://github.com/tldraw/tldraw/pull/9909))
+- Fix video shapes showing a floating spinner with no bounding box while their asset uploads or loads. They now show the same loading plate as image shapes. ([#9994](https://github.com/tldraw/tldraw/pull/9994))
+- Fix closing a stacked dialog by touch also closing the dialog beneath it. ([#10002](https://github.com/tldraw/tldraw/pull/10002))
+- Fix wheel event normalization passing through non-finite delta values. ([#9586](https://github.com/tldraw/tldraw/pull/9586))
+- Fix the counterclockwise rotation tooltip not showing its comma key. ([#9772](https://github.com/tldraw/tldraw/pull/9772))
+- Fix the spacing around the cursor chat item in the context menu. ([#9921](https://github.com/tldraw/tldraw/pull/9921))
+- Fix the people menu's collaborator rows not lining up with your own row above them: the follow icon sat too close to the right edge, and collaborator names sat slightly left of your own. ([#9900](https://github.com/tldraw/tldraw/pull/9900))
+- Fix the comment thread popover briefly rendering with a doubled shadow the first time a thread is opened. ([#9886](https://github.com/tldraw/tldraw/pull/9886))
+- Fix background tabs repeatedly dropping and re-establishing their sync connection when the browser throttles timers. ([#9964](https://github.com/tldraw/tldraw/pull/9964))
+- Fix video shapes showing a floating spinner with no bounding box while the video asset uploads or loads. They now show the same loading plate as image shapes. ([#9994](https://github.com/tldraw/tldraw/pull/9994))

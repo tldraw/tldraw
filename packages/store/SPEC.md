@@ -204,6 +204,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **AM6** `entries`, `keys`, `values`, `forEach`, `[Symbol.iterator]`, and `size` see exactly the live entries and are reactive. `forEach` honors `thisArg`.
 - **AM7** Changes made inside a rolled-back `@tldraw/state` transaction are restored: additions disappear, updates revert, deletions reappear.
 - **AM8** `Object.prototype.toString.call(map)` is `[object AtomMap]`.
+- **AM9** `getOrInsert(key, defaultValue)` and `getOrInsertComputed(key, callback)` return the existing value for a present key, and otherwise insert and return the new value. `callback` runs only when the key is absent.
 
 ## 23. AtomSet (AS)
 

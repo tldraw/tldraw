@@ -19,24 +19,9 @@ export type CommentNotificationReason = 'mention' | 'reply' | 'owned-board' | 'r
 const REASON_PRIORITY: CommentNotificationReason[] = ['mention', 'reply', 'owned-board', 'reaction']
 
 /**
- * How far a comment may predate the user's join time and still count as a reply.
- *
- * `createdAt` is stamped by the authoring client's clock (`createComment` in tlschema defaults to
- * `Date.now()`), so the join gate compares timestamps written by two different machines. A user
- * whose clock runs fast stamps their own join late, and a reply that genuinely followed it reads
- * as thread history — silently dropped, with nothing in the UI to hint at what's missing.
- *
- * The two failure directions aren't symmetric: too small a tolerance loses real notifications,
- * too large lets a few already-seen comments through. So this errs permissive, at a minute — well
- * past the drift of a roughly-synced clock, and short enough that it can't readmit a thread's
- * history, which is what the gate exists to keep out.
- */
-const JOIN_TIME_SKEW_TOLERANCE_MS = 60_000
-
-/**
  * The comment fields the notifications feed needs — a structural subset of the Zero row so this
- * is unit-testable without Zero types. A `T` is either a comments-feed row, or a reactions-feed
- * row's related comment.
+ * is unit-testable without Zero types. Both feeds yield comment rows: `comments` carries other
+ * people's comments that concern the caller, `reactions` the caller's own that were reacted to.
  */
 export interface CommentNotificationInput {
 	id: string
@@ -90,10 +75,15 @@ export interface CommentNotification<
  *
  * Stricter than the `comments` synced query, whose reply category has no timing condition (ZQL
  * can't compare `createdAt` across correlated rows): the reply reason only applies to comments
- * from after the user joined the thread (within {@link JOIN_TIME_SKEW_TOLERANCE_MS}) — earlier
- * ones are context they saw when joining, not notifications. A comment with no reason left is
- * dropped. Post-join replies stay in the feed once responded to; read receipts, not membership,
- * handle their unread state.
+ * from strictly after the user joined the thread — earlier ones are context they saw when
+ * joining, not notifications. The strict compare leans on Postgres stamping `createdAt`
+ * monotonically per thread on insert (migration 046): every new comment lands strictly after the
+ * thread's max, so it can never tie with or fall behind the reader's join and get dropped. Rows
+ * from before that migration keep their client stamps, so in an old thread a pre-migration reply
+ * whose author's clock ran behind the reader's can still read as history and drop — accepted:
+ * that regime only shrinks, and only ever covers comments that predate the migration. A comment
+ * with no reason left is dropped. Post-join replies stay in the feed once responded to; read
+ * receipts, not membership, handle their unread state.
  */
 export function categorizeCommentNotifications<T extends CommentNotificationInput>(
 	comments: readonly T[],
@@ -109,10 +99,7 @@ export function categorizeCommentNotifications<T extends CommentNotificationInpu
 
 		const reasons: CommentNotificationReason[] = []
 		if (extractMentionIds(comment.body).includes(userId)) reasons.push('mention')
-		// the two sides of this comparison come from different machines' clocks, hence the
-		// tolerance — see JOIN_TIME_SKEW_TOLERANCE_MS
-		const joinedAt = joinedThreadAt(comment.thread, userId)
-		if (comment.createdAt > joinedAt - JOIN_TIME_SKEW_TOLERANCE_MS) reasons.push('reply')
+		if (comment.createdAt > joinedThreadAt(comment.thread, userId)) reasons.push('reply')
 		if (comment.file?.ownerId === userId) reasons.push('owned-board')
 		if (reasons.length === 0) continue
 
@@ -169,19 +156,6 @@ export function summarizeForeignReactors(
 	return { names, others: ordered.length - names.length, total: ordered.length }
 }
 
-/** One row of the reactions feed: a foreign reaction joined to the reacted-to comment. Only
- *  `commentId`/`userId`/`emoji`/`createdAt` matter here (dedupe key and ordering); the byline and
- *  pills read the comment's own unbounded `reactions` set instead. */
-export interface ReactionNotificationInput {
-	commentId: string
-	userId: string
-	userName?: string
-	emoji: string
-	createdAt: number
-	/** Absent only if the row outraced its comment's sync; such rows are dropped. */
-	comment?: CommentNotificationInput | null
-}
-
 /** Newest `createdAt` among `reactions` from someone other than `userId`; `undefined` if none. */
 export function latestForeignReactionAt(
 	reactions: CommentNotificationInput['reactions'],
@@ -195,26 +169,24 @@ export function latestForeignReactionAt(
 }
 
 /**
- * Groups the reactions feed into one {@link CommentNotification} per reacted-to comment. Feed
- * rows only decide which comments appear (deduped by `commentId`); the entry's `comment` rides
- * along as-is, its unbounded `reactions` set feeding the byline and pills. Dated and marked
- * unread by the newest foreign reaction in that set (strict >: same-instant receipt = read).
+ * Turns the reactions feed — the caller's own comments that someone else has reacted to — into one
+ * {@link CommentNotification} per comment. Each entry is dated and marked unread by the newest
+ * foreign reaction in the comment's own unbounded `reactions` set, which also feeds the byline and
+ * pills (strict >: a receipt from the same instant counts as read).
+ *
+ * The feed rows are comments rather than reactions because the query is rooted at `comment`; see
+ * `queries.reactions` for why that rooting is load-bearing.
  */
 export function buildReactionNotifications(
-	reactions: readonly ReactionNotificationInput[],
+	comments: readonly CommentNotificationInput[],
 	userId: string | undefined | null
 ): CommentNotification<CommentNotificationInput>[] {
 	if (!userId) return []
 
-	const comments = new Map<string, CommentNotificationInput>()
-	for (const row of reactions) {
-		// server already filters both; cheap belt against a dangling or self row slipping through
-		if (!row.comment || row.userId === userId) continue
-		comments.set(row.commentId, row.comment)
-	}
-
 	const notifications: CommentNotification<CommentNotificationInput>[] = []
-	for (const comment of comments.values()) {
+	for (const comment of comments) {
+		// server already filters to the caller's own comments; cheap belt against a foreign row
+		if (comment.authorId !== userId) continue
 		const timestamp = latestForeignReactionAt(comment.reactions, userId)
 		if (timestamp === undefined) continue
 		notifications.push({

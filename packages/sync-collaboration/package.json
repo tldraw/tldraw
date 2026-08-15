@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/sync-collaboration",
 	"description": "tldraw sync collaboration: server-side write authorization for collaboration features.",
-	"version": "5.2.3",
+	"version": "5.3.1",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -28,6 +28,9 @@
 		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+	},
+	"devDependencies": {
+		"vitest": "^4.1.7"
 	},
 	"engines": {
 		"node": ">=22.12.0"

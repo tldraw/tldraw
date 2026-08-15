@@ -38,17 +38,17 @@ export function processSidebarContent(
 		) as SidebarContentCategoryLink
 		const syncDemoExample = collaborationCategory.children.find(
 			(v: any) => v?.articleId === 'sync-demo'
-		) as SidebarContentArticleLink
-		const editorApiExample = editorApiCategory.children.find(
-			(v: any) => v?.articleId === 'api'
-		) as SidebarContentArticleLink
+		) as SidebarContentArticleLink | undefined
+		const editorApiExample = editorApiCategory.children.find((v: any) => v?.articleId === 'api') as
+			| SidebarContentArticleLink
+			| undefined
 
-		if (!gettingStartedCategory.children.includes(syncDemoExample)) {
-			gettingStartedCategory.children.push(syncDemoExample)
-		}
-
-		if (!gettingStartedCategory.children.includes(editorApiExample)) {
-			gettingStartedCategory.children.push(editorApiExample)
+		// An example that's been renamed or moved won't be found. Pushing the `undefined` would
+		// crash the sidebar, which renders every entry.
+		for (const example of [syncDemoExample, editorApiExample]) {
+			if (example && !gettingStartedCategory.children.includes(example)) {
+				gettingStartedCategory.children.push(example)
+			}
 		}
 	}
 

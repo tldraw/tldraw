@@ -34,7 +34,7 @@ import { usePerformanceTracking } from '../../../hooks/usePerformanceTracking'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
-import { MULTIPLAYER_SERVER } from '../../../utils/config'
+import { CLIENT_BUILD_TIMESTAMP, MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
 import { isProductionEnv } from '../../../utils/env'
@@ -235,6 +235,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const store = useSync({
 		uri: useCallback(async () => {
 			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
+			url.searchParams.set('v', CLIENT_BUILD_TIMESTAMP)
 			if (hasUser) {
 				url.searchParams.set('accessToken', await getUserToken())
 			}
@@ -352,37 +353,36 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 function CustomDebugMenu() {
 	const app = useMaybeApp()
+	const user = useTldrawCurrentUser()
 	const openAndTrack = useOpenUrlAndTrack('unknown')
 	const editor = useEditor()
 	const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
 	return (
 		<DefaultDebugMenu>
 			<A11yAudit />
-			{!isReadOnly && app && (
-				<>
-					<TldrawUiMenuItem
-						id="user-manual"
-						label="File history"
-						readonlyOk
-						onSelect={() => {
-							const url = new URL(window.location.href)
-							url.pathname += '/history'
-							openAndTrack(url.toString())
-						}}
-					/>
-					{!isProductionEnv && (
-						<TldrawUiMenuItem
-							id="user-manual"
-							label="File history (pierre)"
-							readonlyOk
-							onSelect={() => {
-								const url = new URL(window.location.href)
-								url.pathname += '/pierre-history'
-								openAndTrack(url.toString())
-							}}
-						/>
-					)}
-				</>
+			{!isReadOnly && app && user?.isTldraw && (
+				<TldrawUiMenuItem
+					id="user-manual"
+					label="File history"
+					readonlyOk
+					onSelect={() => {
+						const url = new URL(window.location.href)
+						url.pathname += '/history'
+						openAndTrack(url.toString())
+					}}
+				/>
+			)}
+			{!isReadOnly && app && !isProductionEnv && (
+				<TldrawUiMenuItem
+					id="user-manual"
+					label="File history (pierre)"
+					readonlyOk
+					onSelect={() => {
+						const url = new URL(window.location.href)
+						url.pathname += '/pierre-history'
+						openAndTrack(url.toString())
+					}}
+				/>
 			)}
 			<DefaultDebugMenuContent />
 		</DefaultDebugMenu>

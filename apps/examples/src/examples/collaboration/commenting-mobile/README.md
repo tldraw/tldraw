@@ -21,7 +21,7 @@ Commenting on a mobile layout: the thread popover and composer place themselves 
 
 ---
 
-The same commenting toolkit as the [Commenting](/commenting) example, with `forceMobile` on the editor so the mobile layout shows on any screen size.
+The same commenting toolkit as the [Commenting](/examples/commenting) example, with `forceMobile` on the editor so the mobile layout shows on any screen size.
 
 In mobile mode the thread popover and the new-comment composer position themselves relative to the pin and the visual viewport, rather than sitting at a fixed offset. They pick a side of the pin that keeps the whole panel on-screen, and ride up when the software keyboard shrinks the viewport instead of hiding behind it. Place a comment near an edge to see the placement adapt.
 

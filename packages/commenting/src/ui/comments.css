@@ -84,6 +84,15 @@
 	overflow-wrap: anywhere;
 }
 
+/* A comment body is read-only but its text must stay selectable so it can be copied. tldraw's
+   container sets `user-select: none` on every descendant (`.tl-container *`) to keep canvas gestures
+   from selecting UI text, so the body and its rendered children have to opt back in. */
+.tlui-cmt-text,
+.tlui-cmt-text * {
+	-webkit-user-select: text;
+	user-select: text;
+}
+
 .tlui-cmt-edited {
 	font-style: italic;
 }
@@ -777,7 +786,7 @@ button.tlui-cmt-reaction--active:hover {
 	align-items: center;
 	justify-content: space-between;
 	gap: 8px;
-	padding: 6px 6px 6px 14px;
+	padding: 2px 2px 2px 14px;
 	border-bottom: 1px solid var(--tl-color-divider);
 }
 .tlui-cmt-list__header-title {
@@ -786,41 +795,28 @@ button.tlui-cmt-reaction--active:hover {
 	color: var(--tl-color-text-1);
 }
 
-/* A small square icon button in the sidebar header (filter funnel, overflow …). Also a
-   TldrawUiButton, but a bespoke 26px size — so it has to override .tlui-button's 40px box, and
-   `min-width` in particular would otherwise beat `width`. Selectors carry .tlui-button so
-   stylesheet order can't decide the winner. */
+/* An icon button in the sidebar header (filter funnel, overflow …). Sized like the thread actions:
+   a TldrawUiButton (type="icon") left at its native 40px box, with .tlui-button's 32px ::after
+   square carrying the hover wash. Only the bits that differ are set here, at .tlui-button's
+   specificity + 1 so stylesheet order can't decide the winner. */
 .tlui-button.tlui-cmt-header-btn {
-	width: 26px;
-	min-width: 26px;
-	height: 26px;
+	width: 40px;
 	padding: 0;
 	border-radius: 6px;
 	color: var(--tl-color-text-2);
 }
-/* Same hit-target expansion as the thread actions, tiled the same way — this row's gap is 2px too
-   (see `.tlui-cmt-list__header-actions`). Unlike the thread actions, the hover fill sits on the
-   button itself, so .tlui-button's ::after wash is cleared and the pseudo-element is left doing
-   nothing but widening the hit area. */
-.tlui-button.tlui-cmt-header-btn::after {
-	inset: -6px -1px;
-	background: none;
-}
-.tlui-button.tlui-cmt-header-btn:first-child::after {
-	left: -6px;
-}
-.tlui-button.tlui-cmt-header-btn:last-child::after {
-	right: -6px;
+/* Overlap each button 4px into the previous so the 32px visual squares sit 4px apart, not 8px —
+   the same tiling the thread actions use. */
+.tlui-cmt-header-btn + .tlui-cmt-header-btn {
+	margin-left: -4px;
 }
 .tlui-button.tlui-cmt-header-btn:hover,
 .tlui-button.tlui-cmt-header-btn[data-state='open'] {
-	background: var(--tl-color-muted-2);
 	color: var(--tl-color-text-1);
 }
 .tlui-cmt-list__header-actions {
 	display: flex;
 	align-items: center;
-	gap: 2px;
 }
 
 /* The commenting dropdowns' surface — a little air between the items and the menu edge. */
@@ -876,6 +872,7 @@ button.tlui-cmt-reaction--active:hover {
 	font-size: 12px;
 }
 .tlui-cmt-list__item {
+	position: relative;
 	display: flex;
 	gap: 10px;
 	width: 100%;
@@ -890,18 +887,27 @@ button.tlui-cmt-reaction--active:hover {
 	color: inherit;
 	text-decoration: none;
 }
-.tlui-cmt-list__item:hover {
+/* The highlight is an inset, rounded wash like tldraw's buttons and menu items — not an
+   edge-to-edge band — so a comment row lights up the same way every other interactive row does. */
+.tlui-cmt-list__item::after {
+	content: '';
+	position: absolute;
+	inset: 4px;
+	border-radius: var(--tl-radius-2);
+	pointer-events: none;
+}
+.tlui-cmt-list__item:hover::after {
 	background: var(--tl-color-muted-2);
 }
 /* Selected sits a step above hover so the open thread's row stays distinguishable while
    pointing at other rows — but only a step: the muted-1 token (10%) reads too heavy here.
    These rows sit on the opaque sidebar panel, so a translucent tint composes safely. */
-.tlui-cmt-list__item--selected,
-.tlui-cmt-list__item--selected:hover {
+.tlui-cmt-list__item--selected::after,
+.tlui-cmt-list__item--selected:hover::after {
 	background: hsl(0, 0%, 0%, 5%);
 }
-.tl-theme__dark .tlui-cmt-list__item--selected,
-.tl-theme__dark .tlui-cmt-list__item--selected:hover {
+.tl-theme__dark .tlui-cmt-list__item--selected::after,
+.tl-theme__dark .tlui-cmt-list__item--selected:hover::after {
 	background: hsl(0, 0%, 100%, 5%);
 }
 /* resolved rows mute their content but keep the "Resolved" marker legible */

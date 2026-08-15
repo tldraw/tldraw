@@ -70,6 +70,17 @@ processes:
       period_seconds: 2
       failure_threshold: 60
 
+  # one-shot wake of the outbox processor DO — local workerd doesn't fire persisted alarms for an
+  # uninstantiated DO, so without this a restarted stack wouldn't drain trigger-only writes until
+  # the first mutation. A one-shot (not the readiness probe) so it doesn't poke every 2s forever.
+  wake-outbox:
+    command: node -e "fetch('http://127.0.0.1:8787/app/outbox-status').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+    depends_on:
+      sync-worker:
+        condition: process_healthy
+    availability:
+      restart: 'no'
+
   asset-upload-worker:
     command: yarn workspace dotcom-asset-upload dev
 

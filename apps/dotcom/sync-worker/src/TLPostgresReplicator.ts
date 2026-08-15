@@ -27,6 +27,7 @@ import {
 	parseTopicSubscriptionTree,
 	serializeSubscriptions,
 } from './replicator/Subscription'
+import { deleteOgImage, enqueuePublishThumbnailRender } from './routes/tla/ogImageQueue'
 import {
 	Analytics,
 	Environment,
@@ -99,6 +100,16 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private lastPostgresMessageTime = Date.now()
 	private lastRpmLogTime = Date.now()
 	private lastUserPruneTime = Date.now()
+
+	// TEMP DEBUG (branch mitja/replicator-reboot-debug-logging): visible-in-prod tracing for the
+	// reboot loop. console.* surfaces in `wrangler tail`; this.log.debug is gated off in prod.
+	private bootCount = 0
+	private messagesSinceBoot = 0
+	private lastBootStartTime = Date.now()
+	private dbg(...args: unknown[]) {
+		// eslint-disable-next-line no-console
+		console.error('[REPL_DBG]', ...args)
+	}
 
 	// we need to guarantee in-order delivery of messages to users
 	// but DO RPC calls are not guaranteed to happen in order, so we need to
@@ -225,6 +236,14 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			// If we haven't heard anything from postgres for 5 seconds, trigger a heartbeat.
 			// Otherwise, if we haven't heard anything for 10 seconds, do a soft reboot.
 			if (Date.now() - this.lastPostgresMessageTime > 10000) {
+				this.dbg(
+					'INACTIVITY reboot decision: msSinceLastMsg=',
+					Date.now() - this.lastPostgresMessageTime,
+					'msgsSinceBoot=',
+					this.messagesSinceBoot,
+					'state=',
+					this.state.type
+				)
 				this.log.debug('rebooting due to inactivity')
 				this.reboot('inactivity')
 			} else if (Date.now() - this.lastPostgresMessageTime > 5000) {
@@ -323,16 +342,26 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				await sleep(2000)
 			}
 			const start = Date.now()
+			this.dbg(
+				'reboot begin: source=',
+				source,
+				'msgsSinceBoot=',
+				this.messagesSinceBoot,
+				'msSinceLastMsg=',
+				Date.now() - this.lastPostgresMessageTime
+			)
 			this.log.debug('rebooting', source)
 			const res = await Promise.race([
 				this.boot().then(() => 'ok'),
 				sleep(3000).then(() => 'timeout'),
 			]).catch((e) => {
 				this.logEvent({ type: 'reboot_error' })
+				this.dbg('reboot boot() threw:', (e as any)?.stack ?? e)
 				this.log.debug('reboot error', e.stack)
 				this.captureException(e)
 				return 'error'
 			})
+			this.dbg('reboot end: source=', source, 'result=', res, 'durationMs=', Date.now() - start)
 			this.log.debug('rebooted', res)
 			if (res === 'ok') {
 				this.logEvent({ type: 'reboot_duration', duration: Date.now() - start })
@@ -372,6 +401,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private async boot() {
 		this.log.debug('booting')
+		this.bootCount++
+		this.messagesSinceBoot = 0
+		this.lastBootStartTime = Date.now()
+		this.dbg('boot #', this.bootCount, 'start; slot=', this.slotName)
 		this.lastPostgresMessageTime = Date.now()
 		this.replicationService.removeAllListeners()
 
@@ -396,6 +429,17 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 
 		this.replicationService.on('heartbeat', (lsn: string) => {
+			this.messagesSinceBoot++
+			if (this.messagesSinceBoot === 1) {
+				this.dbg(
+					'boot #',
+					this.bootCount,
+					'FIRST message (heartbeat) after',
+					Date.now() - this.lastBootStartTime,
+					'ms; lsn=',
+					lsn
+				)
+			}
 			this.log.debug('heartbeat', lsn)
 			this.lastPostgresMessageTime = Date.now()
 			this.reportPostgresUpdate()
@@ -407,7 +451,23 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.replicationService.addListener('data', (lsn: string, log: Wal2Json.Output) => {
 			// ignore events received after disconnecting, if that can even happen
 			try {
-				if (this.state.type !== 'connected') return
+				this.messagesSinceBoot++
+				if (this.messagesSinceBoot === 1) {
+					this.dbg(
+						'boot #',
+						this.bootCount,
+						'FIRST message (data) after',
+						Date.now() - this.lastBootStartTime,
+						'ms; lsn=',
+						lsn,
+						'state=',
+						this.state.type
+					)
+				}
+				if (this.state.type !== 'connected') {
+					this.dbg('DROPPING data: state=', this.state.type, 'lsn=', lsn)
+					return
+				}
 				this.postgresUpdates++
 				this.lastPostgresMessageTime = Date.now()
 				this.reportPostgresUpdate()
@@ -501,6 +561,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		})
 
 		this.replicationService.addListener('start', () => {
+			this.dbg('boot #', this.bootCount, "replication 'start' event fired")
 			if (!this.getCurrentLsn()) {
 				// make a request to force an updateLsn()
 				sql`insert into replicator_boot_id ("replicatorId", "bootId") values (${this.ctx.id.toString()}, ${uniqueId()}) on conflict ("replicatorId") do update set "bootId" = excluded."bootId"`.execute(
@@ -510,12 +571,16 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		})
 
 		const handleError = (e: Error) => {
+			this.dbg('boot #', this.bootCount, 'replication ERROR:', (e as any)?.stack ?? e)
 			this.captureException(e)
 			this.reboot('retry')
 		}
 
 		this.replicationService.on('error', handleError)
-		this.replicationService.subscribe(this.wal2jsonPlugin, this.slotName).catch(handleError)
+		this.replicationService
+			.subscribe(this.wal2jsonPlugin, this.slotName)
+			.then(() => this.dbg('boot #', this.bootCount, 'subscribe() promise RESOLVED (stream ended)'))
+			.catch(handleError)
 
 		this.state = {
 			type: 'connected',
@@ -873,6 +938,20 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}|${currentTime}`, isApp: true }),
 				blob
 			)
+
+			// The published snapshot is now the content an unfurl would show, so render its OG image
+			// straight away rather than leaving the first crawler to find a cold cache. Publishing is an
+			// explicit, low-volume act, so this costs about one render per publish.
+			//
+			// Reported rather than swallowed, and the no-op results are reported too, because this is the
+			// *only* trigger a published board has. A published snapshot is frozen, so nothing edits it
+			// into needing another render: an ask lost here — thrown, or turned away as `already_pending`
+			// by a marker some earlier failure left behind — leaves that board's card generic until it is
+			// republished. `getOgImage` repairs it on the next fetch (see the `published` on-miss enqueue
+			// there); this line is how we find out it happened.
+			await enqueuePublishThumbnailRender(this.env, file.publishedSlug, (error) =>
+				this.captureException(error, { publishThumbnailEnqueue: true })
+			)
 		} catch (e) {
 			this.log.debug('Error publishing snapshot', e)
 		}
@@ -884,6 +963,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			await this.env.ROOM_SNAPSHOTS.delete(
 				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}`, isApp: true })
 			)
+			// The published thumbnail goes with the published snapshot it depicts. Scoped to
+			// `kind: 'published'`, so the board's own file-keyed image is untouched. See deleteOgImage.
+			await deleteOgImage(this.env, { kind: 'published', slug: file.publishedSlug })
 		} catch (e) {
 			this.log.debug('Error unpublishing snapshot', e)
 		}

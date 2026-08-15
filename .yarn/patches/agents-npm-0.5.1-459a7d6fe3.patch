@@ -1,0 +1,22 @@
+diff --git a/dist/mcp/index.js b/dist/mcp/index.js
+index 7eb0681a3840ede935a31c589fc8920e3918cfe5..f6bd52e648272f287b0de4ac6a5a4c0e5d65ac1c 100644
+--- a/dist/mcp/index.js
++++ b/dist/mcp/index.js
+@@ -859,7 +859,7 @@ var WorkerTransport = class {
+ 		if (this.sessionId !== void 0) headers.set("mcp-session-id", this.sessionId);
+ 		const keepAlive = setInterval(() => {
+ 			try {
+-				writer.write(encoder.encode("event: ping\ndata: \n\n"));
++				writer.write(encoder.encode("event: ping\ndata: \n\n")).catch(() => clearInterval(keepAlive));
+ 			} catch {
+ 				clearInterval(keepAlive);
+ 			}
+@@ -1042,7 +1042,7 @@ var WorkerTransport = class {
+ 		if (this.sessionId !== void 0) headers.set("mcp-session-id", this.sessionId);
+ 		const keepAlive = setInterval(() => {
+ 			try {
+-				writer.write(encoder.encode("event: ping\ndata: \n\n"));
++				writer.write(encoder.encode("event: ping\ndata: \n\n")).catch(() => clearInterval(keepAlive));
+ 			} catch {
+ 				clearInterval(keepAlive);
+ 			}

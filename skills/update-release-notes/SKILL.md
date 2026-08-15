@@ -176,14 +176,14 @@ Run this after every `next.mdx` update, including the release-week runs. On the 
 
 ### 10. Push changes
 
-After editing `next.mdx` (and any archive files), commit and push from the tldraw clone. Use a single commit whose message ends with `[skip ci]` so merging the change does not trigger a dotcom deploy or other push- and pull_request-triggered workflows (release-notes edits are docs-only):
+After editing `next.mdx` (and any archive files), commit and push from the tldraw clone. Do not add `[skip ci]` to the branch commit: required pull request checks will never start when the marker is present. The PR title below adds the marker to the eventual squash-merge commit instead.
 
 ```bash
 cd /tmp/tldraw
 BRANCH="update-release-notes-$(date -u +%Y%m%d-%H%M)"
 git checkout -b "$BRANCH"
 git add apps/docs/content/releases/
-git commit -m "docs(releases): update release notes [skip ci]"
+git commit -m "docs(releases): update release notes"
 git push -u origin "$BRANCH"
 ```
 
@@ -197,7 +197,7 @@ Then create the PR using the `../pr/SKILL.md` workflow and the standards in `../
 - **Description paragraph**: Start with "In order to..." and mention the source (`main` or `production`) and what was updated (new entries added, stale entries pruned, archival performed, draft GitHub release synced, etc.)
 - Include a **Code changes** table with a `Documentation` row
 
-**Why `[skip ci]`**: pushing to `production` (and the `hotfixes` → `production` promotion) triggers `deploy-dotcom.yml`. A merge commit containing `[skip ci]` is skipped by GitHub Actions entirely, so the release-notes change can land on `production` — ready to ride the next SDK release, which pushes the `production` ref to `docs-production` — without deploying tldraw.com.
+**Why `[skip ci]` is only in the PR title**: branch commits need to run the required pull request checks. GitHub's squash merge uses the PR title for the merge commit, so the marker skips push workflows when the notes-only change lands on `main`.
 
 `[skip ci]` does not interfere with the `docs-hotfix-please` label: `trigger-sdk-hotfix.yml` runs on `pull_request_target`, which GitHub's skip-ci markers do not affect, and the hotfix script strips skip-ci markers from the cherry-picked commit so the release-branch push still triggers the publish workflow. The trigger fires when a labeled PR is merged; to re-trigger it later, remove and re-add the label on the merged PR.
 
@@ -222,6 +222,6 @@ After the second run, the docs site reflects the published release and `next.mdx
 
 ## References
 
-- **Style guide**: See `shared/release-notes-guide.md` for guidance on what a release notes article should contain and how to format it.
-- **Writing guide**: See `shared/writing-guide.md` for voice and style conventions.
+- **Style guide**: See `../shared/release-notes-guide.md` for guidance on what a release notes article should contain and how to format it.
+- **Writing guide**: See `../../VOICE.md` for voice and style conventions.
 - **Scripts**: See `scripts/` for automation helpers, including `update-draft-release.sh` for syncing the draft GitHub release

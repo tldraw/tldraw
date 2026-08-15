@@ -41,6 +41,23 @@ import { ThreadStackPin } from './thread-stack'
 export type CanvasCommentsProps = CommentingContext
 
 /**
+ * Which thread's pin a fade node should draw: its own thread for a single pin, `stackOwner` (when
+ * still a member) for a coincident stack, null for neither. Never the open thread — the open-thread
+ * render slot draws that one, and drawing it here too (which the fade-out window would otherwise
+ * do) mounts its popover twice.
+ * @internal
+ */
+export function fadeNodeMarkerThreadId(
+	node: ClusterNode,
+	stackOwner: string | null,
+	openId: string | null
+): string | null {
+	const candidate =
+		node.count === 1 ? node.id : stackOwner && node.members.includes(stackOwner) ? stackOwner : null
+	return candidate === openId ? null : candidate
+}
+
+/**
  * A ready-to-use comments layer for a tldraw canvas: pins each thread at its anchor, opens a
  * thread popover (with a reply composer) on click, and shows a composer where the comment tool
  * placed a new thread. Reads/writes comment records straight from `editor.store`.
@@ -68,11 +85,16 @@ function CanvasCommentsLayer(props: CommentingContext) {
 	const pending = usePendingComment()
 	const canComment = useCanComment(props.currentUserId)
 	// Nothing renders a pending comment when composing is blocked and there's no fallback slot, and
-	// the dismiss handlers live inside PendingComposer — so clear the atom rather than strand it.
+	// the dismiss handlers live inside PendingComposer — so clear the atom rather than strand it,
+	// and leave the tool too: it holds while a composer is open, so staying would turn every click
+	// into a silently swallowed placement.
 	const canRenderComposer = canComment || options.components.ComposerFallback != null
 	const showPendingComposer = pending != null && canRenderComposer
 	useEffect(() => {
-		if (pending && !showPendingComposer) pendingComment.set(editor, null)
+		if (pending && !showPendingComposer) {
+			pendingComment.set(editor, null)
+			if (editor.isIn('comment')) editor.setCurrentTool('select')
+		}
 	}, [editor, pending, showPendingComposer])
 	const openId = useValue('open thread id', () => openThreadId.get(editor), [editor])
 	// Matches the sidebar's `showResolved` filter. The open thread stays in — resolving from its own
@@ -281,17 +303,16 @@ function CanvasCommentsLayer(props: CommentingContext) {
 							let content: ReactNode
 							const stackGroup = node.count > 1 ? stackGroupOf(node) : null
 							if (node.count === 1) {
-								const thread = threadsById.get(node.id)
+								const markerId = fadeNodeMarkerThreadId(node, null, openId)
+								const thread = markerId ? threadsById.get(markerId) : undefined
 								if (!thread) return null
 								content = renderThreadPin(thread)
 							} else if (stackGroup) {
 								// Routed through the stack's owner so the open/orphan/held slots stay deduped:
 								// when the owner is one of them, that slot draws the stack and this draws nothing.
-								const owner = stackGroup.find((id) => renderedThreadIds.has(id))
-								content =
-									owner && node.members.includes(owner)
-										? renderThreadPin(threadsById.get(owner)!)
-										: null
+								const owner = stackGroup.find((id) => renderedThreadIds.has(id)) ?? null
+								const markerId = fadeNodeMarkerThreadId(node, owner, openId)
+								content = markerId ? renderThreadPin(threadsById.get(markerId)!) : null
 							} else {
 								content = (
 									<ClusterBadge

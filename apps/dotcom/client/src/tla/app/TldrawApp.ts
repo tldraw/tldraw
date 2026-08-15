@@ -104,6 +104,49 @@ export function getFileRecencyDate(
 	return getFileVisitDate(state) ?? file?.createdAt ?? 0
 }
 
+/** Milliseconds until a JWT's `exp`, or null if it can't be read. */
+function msUntilExpiry(token: string | undefined, now = Date.now()): number | null {
+	if (!token) return null
+	try {
+		const [, payload] = token.split('.')
+		if (!payload) return null
+		// base64url, which atob doesn't accept
+		const claims = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')))
+		if (typeof claims?.exp !== 'number') return null
+		return claims.exp * 1000 - now
+	} catch {
+		// a token we can't parse is still a usable token; fall back to the fixed cadence
+		return null
+	}
+}
+
+/** Fallback cadence for a token whose expiry we can't read. Under Clerk's 60s default this is
+ *  already too slow for a hidden tab — see {@link msUntilTokenRefresh}. */
+const FALLBACK_TOKEN_REFRESH_MS = 50_000
+/** Never busy-loop on a token that is expired or nearly so. */
+const MIN_TOKEN_REFRESH_MS = 5_000
+
+/**
+ * When to refresh the auth token, derived from the token's own expiry rather than a fixed cadence.
+ *
+ * This matters more than a normal token refresh because Zero hands the token to zero-cache, which
+ * reuses it for the transform and push fetches behind the connection. An expired token there
+ * doesn't fail one request, it invalidates the whole connection — which is what produced a steady
+ * ~2k `TransformFailed` and ~600 connection invalidations per hour in production.
+ *
+ * Refreshing at half the remaining life means a tick that runs late still has a whole half-life of
+ * slack. Reading the deadline off the token also means raising the session-token lifetime in the
+ * Clerk dashboard takes effect here with no code change — which is the part that actually fixes
+ * this. Browsers throttle timers in hidden tabs to roughly once a minute, so against Clerk's 60s
+ * default the token expires under a backgrounded tab no matter what cadence we ask for; no
+ * client-side schedule can beat that, only a longer-lived token can.
+ */
+export function msUntilTokenRefresh(token: string | undefined, now = Date.now()): number {
+	const remaining = msUntilExpiry(token, now)
+	if (remaining === null) return FALLBACK_TOKEN_REFRESH_MS
+	return Math.max(MIN_TOKEN_REFRESH_MS, remaining / 2)
+}
+
 export class TldrawApp {
 	config = {
 		maxNumberOfFiles: MAX_NUMBER_OF_FILES,
@@ -187,8 +230,9 @@ export class TldrawApp {
 
 	private constructor(
 		public readonly userId: string,
-		initialToken: string | undefined,
+		initialZeroToken: string | undefined,
 		getToken: () => Promise<string | undefined>,
+		getZeroToken: () => Promise<string | undefined>,
 		onClientTooOld: () => void,
 		trackEvent: TLAppUiContextType,
 		navigate: ReturnType<typeof useNavigate>,
@@ -205,7 +249,7 @@ export class TldrawApp {
 			this.__test__triggerClientTooOld = () => onClientTooOld()
 		}
 		const z = new Zero<TlaSchema, TlaMutators, ZeroContext>({
-			auth: initialToken,
+			auth: initialZeroToken,
 			userID: userId,
 			schema: zeroSchema,
 			cacheURL: ZERO_SERVER,
@@ -218,23 +262,49 @@ export class TldrawApp {
 			kvStore: window.navigator.webdriver ? 'mem' : 'idb',
 		})
 		this.z = z
+		// Refresh the token ahead of its own expiry and reschedule from whatever we get back, so the
+		// cadence follows the token's lifetime rather than a hardcoded guess at it. In Zero 0.26+
+		// this sends an updateAuth message without reconnecting.
+		let refreshTimeout: ReturnType<typeof setTimeout> | undefined
+		const scheduleRefresh = (token: string | undefined) => {
+			clearTimeout(refreshTimeout)
+			refreshTimeout = setTimeout(() => {
+				refreshToken().catch((err) => {
+					console.error('Failed to proactively refresh auth token:', err)
+				})
+			}, msUntilTokenRefresh(token))
+		}
+		// Reschedule on every outcome — a rejected getZeroToken() or a throwing connect() must not
+		// kill the refresh chain, so scheduling happens before connect and in the reject path.
 		const refreshToken = () =>
-			getToken().then((token) => {
-				if (token) {
-					z.connection.connect({ auth: token })
-					return true
-				}
-				return false
-			})
-		// Proactively refresh auth token before Clerk's 60s expiry.
-		// In Zero 0.26+, this sends an updateAuth message without reconnecting.
-		const TOKEN_REFRESH_INTERVAL = 50_000
-		const refreshInterval = setInterval(() => {
+			getZeroToken()
+				.catch((err) => {
+					scheduleRefresh(undefined)
+					throw err
+				})
+				.then((token) => {
+					scheduleRefresh(token)
+					if (token) {
+						z.connection.connect({ auth: token })
+					}
+					return !!token
+				})
+		scheduleRefresh(initialZeroToken)
+		this.disposables.push(() => clearTimeout(refreshTimeout))
+		// Timers in a hidden tab are throttled to about once a minute, so the refresh has to sit well
+		// inside that budget — see the `zero` JWT template's lifetime. Refreshing on the way back
+		// covers the cases no schedule can (a frozen tab, a slept laptop), where the token goes stale
+		// while nothing is running at all.
+		const onVisibilityChange = () => {
+			if (document.visibilityState !== 'visible') return
 			refreshToken().catch((err) => {
-				console.error('Failed to proactively refresh auth token:', err)
+				console.error('Failed to refresh auth token on focus:', err)
 			})
-		}, TOKEN_REFRESH_INTERVAL)
-		this.disposables.push(() => clearInterval(refreshInterval))
+		}
+		document.addEventListener('visibilitychange', onVisibilityChange)
+		this.disposables.push(() =>
+			document.removeEventListener('visibilitychange', onVisibilityChange)
+		)
 		// Set up token refresh on auth errors with backoff
 		let authRetryCount = 0
 		const MAX_AUTH_RETRIES = 5
@@ -953,7 +1023,10 @@ export class TldrawApp {
 		userId: string
 		email?: string | null
 		flags: FeatureFlags
+		/** Clerk session token, for this app's own REST endpoints. */
 		getToken(): Promise<string | undefined>
+		/** Token for the Zero connection — see {@link getZeroAuth} on the worker for why it differs. */
+		getZeroToken(): Promise<string | undefined>
 		onClientTooOld(): void
 		trackEvent: TLAppUiContextType
 		navigate: ReturnType<typeof useNavigate>
@@ -964,11 +1037,12 @@ export class TldrawApp {
 
 		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
 		// Get initial token before creating Zero instance
-		const initialToken = await opts.getToken()
+		const initialZeroToken = await opts.getZeroToken()
 		const app = new TldrawApp(
 			opts.userId,
-			initialToken,
+			initialZeroToken,
 			opts.getToken,
+			opts.getZeroToken,
 			opts.onClientTooOld,
 			opts.trackEvent,
 			opts.navigate,

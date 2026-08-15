@@ -733,11 +733,11 @@ export class Drawing extends StateNode {
 		for (let j = 0; j < segments.length; j++) {
 			const points = b64Vecs.decodePoints(segments[j].path, segments[j].dim)
 			for (let i = 0; i < points.length - 1; i++) {
-				length += Vec.Dist2(points[i], points[i + 1])
+				length += Vec.Dist(points[i], points[i + 1])
 			}
 		}
 
-		return Math.sqrt(length)
+		return length
 	}
 
 	override onPointerUp() {
