@@ -416,6 +416,13 @@
 	gap: 8px;
 }
 
+/* For flag variants whose editor needs the full row width (the allowlist textarea): header row on
+   top, editor stretched underneath, instead of everything competing inside one row. */
+.featureFlagItemColumn {
+	flex-direction: column;
+	align-items: stretch;
+}
+
 .featureFlagLabel {
 	display: flex;
 	align-items: center;
@@ -480,6 +487,40 @@
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	font-family: monospace;
+}
+
+.clickableRow {
+	cursor: pointer;
+}
+
+.clickableRow:hover {
+	background: var(--admin-hover);
+}
+
+.attemptsWarn {
+	color: var(--admin-red);
+	font-weight: 600;
+}
+
+.attemptsParked {
+	color: var(--admin-surface);
+	background: var(--admin-red);
+	padding: 1px 6px;
+	border-radius: 4px;
+}
+
+.outboxDetails {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	padding: 8px;
+	background: var(--admin-bg);
+	border: 1px solid var(--admin-border-2);
+}
+
+.outboxDetailsColumn {
+	flex: 1 1 240px;
+	min-width: 0;
 }
 
 /* Responsive adjustments */

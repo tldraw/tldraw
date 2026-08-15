@@ -6,6 +6,7 @@ import {
 	OG_REPAIR_COOLDOWN_MS,
 	OG_RETRY_DELAY_SECONDS,
 } from '../../config'
+import { getR2KeyForRoom } from '../../r2'
 import {
 	Environment,
 	OgImageRenderQueueMessage,
@@ -13,20 +14,16 @@ import {
 	ThumbnailBoardRef,
 } from '../../types'
 import { deleteRenderTokenRecord } from '../../utils/renderTokens'
+import { enumerateBoardPages } from './boardTools'
 import {
 	ResolvedThumbnailBoard,
 	captureThumbnailScreenshot,
-	enumerateBoardPages,
 	loadBoardSnapshot,
 	putThumbnailPng,
 	resolveThumbnailBoard,
 	writeScreenshotTelemetry,
 } from './thumbnailRender'
-import {
-	browserRunDurationOf,
-	classifyScreenshotFailure,
-	reportThumbnailError,
-} from './thumbnailShared'
+import { classifyScreenshotFailure, reportThumbnailError } from './thumbnailShared'
 
 // Queue-backed async board thumbnail generation. Renders are asked for by the things that change a
 // board's content — publishing (TLPostgresReplicator) and editing (TLFileDurableObject) — and this
@@ -240,6 +237,9 @@ export async function handleOgImageRenderMessage(
 	const boardRef: ThumbnailBoardRef = { kind, slug }
 	// A message already in the queue may carry no reason; see OgImageRenderQueueMessage.
 	const reason = message.body.reason ?? 'crawler'
+	// Normalised once, for the same reason `reason` is: the flag is optional on the wire (only follow-up
+	// messages set it), and every delivery of one job must record the same value on every path.
+	const followUp = message.body.followUp ?? false
 	const cacheKey = getOgImageCacheKey(boardRef)
 	// The board was deleted, was unpublished, or has no persisted content. Terminal, not transient: ack
 	// rather than retry, since no number of retries brings the board back. Applies the same delete/keep
@@ -251,6 +251,7 @@ export async function handleOgImageRenderMessage(
 		writeScreenshotTelemetry(env, {
 			source: 'queue',
 			reason,
+			followUp,
 			cacheStatus: 'miss',
 			failureReason: 'board_not_viewable',
 		})
@@ -271,7 +272,7 @@ export async function handleOgImageRenderMessage(
 		const cached = await env.THUMBNAILS?.head(cacheKey)
 		if (cached?.customMetadata?.version === String(board.version)) {
 			await clearOgImagePendingMarker(env, boardRef)
-			writeScreenshotTelemetry(env, { source: 'queue', reason, cacheStatus: 'hit' })
+			writeScreenshotTelemetry(env, { source: 'queue', reason, followUp, cacheStatus: 'hit' })
 			message.ack()
 			return
 		}
@@ -286,35 +287,45 @@ export async function handleOgImageRenderMessage(
 
 		// Loaded to target the first page that has content, so a board whose first page is empty still
 		// gets a meaningful unfurl image.
-		const snapshot = await loadBoardSnapshot(env, board, { access: 'render' })
+		//
+		// `file` is the row the resolve above already gated on, handed back so this read re-applies the
+		// gate without asking Postgres the same question a second time. Safe precisely here: the two are
+		// microseconds apart in one function, where a re-read would return the row we already hold. The
+		// render page's own read (getThumbnailSnapshot) deliberately does not do this — it is a separate
+		// request, and its re-read is what makes an un-share land inside the token's window.
+		const snapshot = await loadBoardSnapshot(env, board, { access: 'render', file: board.file })
 		if (!snapshot) {
 			// No persisted content. The render page reads the snapshot through the same functions, so it
 			// would 404 and come back as a render failure — after spending a Browser Run slot to learn
 			// what we already know. Retry from here instead, in case content lands shortly after the
 			// enqueue. A read that *fails* throws rather than landing here, and the catch below retries it
 			// the same way, so neither path spends Browser Run.
-			await retryOrDrop(env, message, { reason, failureReason: 'board_empty', board: boardRef })
+			await retryOrDrop(env, message, {
+				reason,
+				followUp,
+				failureReason: 'board_empty',
+				board: boardRef,
+			})
 			return
 		}
 
 		// The render page exports the chosen page; the worker screenshots it through the BROWSER
 		// binding and writes the PNG to the cache key the OG route reads.
 		const render = await captureThumbnailScreenshot(env, board, {
+			surface: 'og',
 			pageId: pickOgImagePageId(snapshot),
 			theme: 'light',
 			width: DEFAULT_THUMBNAIL_WIDTH,
 			height: DEFAULT_THUMBNAIL_HEIGHT,
+			// `source` is the telemetry surface, not the render pipeline: these sessions belong to the
+			// queue's ledger even though the job is signed for the og pipeline.
+			telemetry: { source: 'queue', reason },
 		})
 		await putThumbnailPng(env.THUMBNAILS, cacheKey, render.base64, board.version)
 		await clearOgImagePendingMarker(env, boardRef)
 		await enqueueFollowUpIfBoardMoved(env, message, board, reason, ctx)
 
-		writeScreenshotTelemetry(env, {
-			source: 'queue',
-			reason,
-			cacheStatus: 'miss',
-			browserRunDurationMs: render.durationMs,
-		})
+		writeScreenshotTelemetry(env, { source: 'queue', reason, followUp, cacheStatus: 'miss' })
 		message.ack()
 	} catch (error) {
 		// Reported once per job, on the delivery that gives up, rather than once per delivery: a board
@@ -335,8 +346,8 @@ export async function handleOgImageRenderMessage(
 		// extra render: the retry re-resolves at the top and drops before spending any Browser Run.
 		await retryOrDrop(env, message, {
 			reason,
+			followUp,
 			failureReason: classifyScreenshotFailure(error),
-			browserRunDurationMs: browserRunDurationOf(error),
 			board: boardRef,
 		})
 	}
@@ -368,11 +379,9 @@ async function enqueueFollowUpIfBoardMoved(
 ) {
 	if (message.body.followUp) return
 	try {
-		const resolved = await resolveThumbnailBoard(env, rendered.kind, rendered.slug, {
-			access: 'render',
-		})
-		if (!resolved.ok) return
-		if (String(resolved.board.version) === String(rendered.version)) return
+		const current = await readCurrentBoardVersion(env, rendered)
+		if (current === null) return
+		if (String(current) === String(rendered.version)) return
 		await enqueueOgImageRender(env, rendered, { reason, followUp: true })
 	} catch (error) {
 		reportThumbnailError(error, {
@@ -384,13 +393,39 @@ async function enqueueFollowUpIfBoardMoved(
 	}
 }
 
+/**
+ * The board's current content version, for the "did it move while we were capturing?" check above and
+ * nothing else. `null` means there is nothing to compare against, which is treated as "don't follow
+ * up".
+ *
+ * A shared file's version *is* the persisted room's R2 etag, so this reads that object's head rather
+ * than going through `resolveThumbnailBoard`. The Postgres half of a resolve answers the gate, and no
+ * gate is needed here: this decides whether to **enqueue**, and the job it enqueues re-resolves in
+ * full before spending any Browser Run. So a board soft-deleted inside this window costs one queue
+ * message that the next delivery drops as `board_not_viewable` — not a render, and not a leak.
+ *
+ * A published board's version is `lastPublished`, a column rather than an etag, so it has no R2
+ * shortcut and keeps the full resolve. Publishing is not the trigger that made this path hot.
+ */
+async function readCurrentBoardVersion(
+	env: Environment,
+	board: ResolvedThumbnailBoard
+): Promise<string | number | null> {
+	if (board.kind === 'published') {
+		const resolved = await resolveThumbnailBoard(env, board.kind, board.slug, { access: 'render' })
+		return resolved.ok ? resolved.board.version : null
+	}
+	const persisted = await env.ROOMS.head(getR2KeyForRoom({ slug: board.slug, isApp: true }))
+	return persisted?.etag ?? null
+}
+
 async function retryOrDrop(
 	env: Environment,
 	message: Message<OgImageRenderQueueMessage>,
 	{
 		reason,
+		followUp,
 		failureReason,
-		browserRunDurationMs,
 		board,
 	}: {
 		/**
@@ -400,23 +435,21 @@ async function retryOrDrop(
 		 * others, splitting one job's deliveries across two values.
 		 */
 		reason: OgImageRenderReason
+		/** Resolved by the caller for the same reason as `reason` above. */
+		followUp: boolean
 		failureReason: string
-		browserRunDurationMs?: number
 		board: ThumbnailBoardRef
 	}
 ) {
-	// One datapoint per delivery, the opposite of the Sentry report above, because this dataset is the
-	// spend ledger for an uncapped render path: every delivery that reaches the capture creates a
-	// browser and can hold it for the full THUMBNAIL_RENDER_TIMEOUT_MS, last attempt or not. Telemetry
-	// counts spend, Sentry counts problems — three deliveries are three lots of spend, one problem.
+	// One datapoint per delivery, the opposite of the Sentry report above: three deliveries are three
+	// failures on this ledger, one problem on Sentry's. The Browser Run spend of a delivery that
+	// reached the capture is on the browser_run_session event, written inside the render itself.
 	writeScreenshotTelemetry(env, {
 		source: 'queue',
 		reason,
+		followUp,
 		cacheStatus: 'miss',
 		failureReason,
-		// Present only when the capture itself failed. A delivery that bailed earlier (an unreadable or
-		// empty snapshot) spent no Browser Run and correctly records none.
-		browserRunDurationMs,
 	})
 	// attempts counts this delivery, so attempts >= MAX means this was the final try.
 	if (message.attempts < OG_MAX_RENDER_ATTEMPTS) {

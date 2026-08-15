@@ -803,6 +803,7 @@ export function useMenuClipboardEvents() {
 
 			const didCopy = await handleNativeOrMenuCopy(editor, { operation: 'cut', source: 'menu' })
 			if (didCopy) {
+				editor.markHistoryStoppingPoint('cut')
 				editor.deleteShapes(editor.getSelectedShapeIds())
 				trackEvent('cut', { source })
 			}
@@ -900,6 +901,7 @@ export function useNativeClipboardEvents() {
 
 			const didCopy = await handleNativeOrMenuCopy(editor, { operation: 'cut', source: 'native' })
 			if (didCopy) {
+				editor.markHistoryStoppingPoint('cut')
 				editor.deleteShapes(editor.getSelectedShapeIds())
 				trackEvent('cut', { source: 'kbd' })
 			}

@@ -5865,6 +5865,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const margin = this.options.hitTestMargin / this.getZoomLevel()
 		const sortedShapes = this.getCurrentPageShapesSorted()
 
+		// iterate from the top (highest z-index) to find the top-most matching shape
 		for (let i = sortedShapes.length - 1; i >= 0; i--) {
 			const shape = sortedShapes[i]
 			if (shape.type === 'group') continue
@@ -5914,28 +5915,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const searchMargin = Math.max(innerMargin, outerMargin, this.getHitTestMargin())
 		const candidateIds = this._spatialIndex.getShapeIdsAtPoint(point, searchMargin)
 
-		const shapesToCheck = (
-			opts.renderingOnly
-				? this.getCurrentPageRenderingShapesSorted()
-				: this.getCurrentPageShapesSorted()
-		).filter((shape) => {
-			// Frame-like shapes have labels positioned above the shape (outside bounds), so always include them
-			if (!candidateIds.has(shape.id) && !this.isShapeFrameLike(shape)) return false
+		const shapesToCheck = opts.renderingOnly
+			? this.getCurrentPageRenderingShapesSorted()
+			: this.getCurrentPageShapesSorted()
 
+		for (let i = shapesToCheck.length - 1; i >= 0; i--) {
+			const shape = shapesToCheck[i]
+			// Frame-like shapes have labels positioned above the shape (outside bounds), so always include them
+			if (!candidateIds.has(shape.id) && !this.isShapeFrameLike(shape)) continue
 			if (
 				(shape.isLocked && !hitLocked) ||
 				this.isShapeHidden(shape) ||
 				this.isShapeOfType(shape, 'group')
-			)
-				return false
+			) {
+				continue
+			}
 			const pageMask = this.getShapeMask(shape)
-			if (pageMask && !pointInPolygon(point, pageMask)) return false
-			if (filter && !filter(shape)) return false
-			return true
-		})
+			if (pageMask && !pointInPolygon(point, pageMask)) continue
+			if (filter && !filter(shape)) continue
 
-		for (let i = shapesToCheck.length - 1; i >= 0; i--) {
-			const shape = shapesToCheck[i]
 			const geometry = this.getShapeGeometry(shape)
 			const isGroup = geometry instanceof Group2d
 
@@ -6117,15 +6115,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const margin = opts.margin ?? 0
 		const candidateIds = this._spatialIndex.getShapeIdsAtPoint(point, margin)
 
-		// Get all page shapes in z-index order and filter to candidates that pass isPointInShape
-		// Frame-like shapes are always checked because their labels can be outside their bounds
-		return this.getCurrentPageShapesSorted()
-			.filter((shape) => {
-				if (this.isShapeHidden(shape)) return false
-				if (!candidateIds.has(shape.id) && !this.isShapeFrameLike(shape)) return false
-				return this.isPointInShape(shape, point, opts)
-			})
-			.reverse()
+		// Get all page shapes in z-index order and filter to candidates that pass isPointInShape.
+		// Frame-like shapes are always checked because their labels can be outside their bounds.
+		// Iterate backwards so the result is pre-sorted in reverse z-index order (top-most first).
+		const sorted = this.getCurrentPageShapesSorted()
+		const result: TLShape[] = []
+		for (let i = sorted.length - 1; i >= 0; i--) {
+			const shape = sorted[i]
+			if (this.isShapeHidden(shape)) continue
+			if (!candidateIds.has(shape.id) && !this.isShapeFrameLike(shape)) continue
+			if (this.isPointInShape(shape, point, opts)) result.push(shape)
+		}
+		return result
 	}
 
 	/**

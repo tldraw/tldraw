@@ -1,4 +1,10 @@
-import { Environment, ThumbnailBoardAccess, ThumbnailBoardKind } from '../types'
+import {
+	Environment,
+	ThumbnailBoardAccess,
+	ThumbnailBoardKind,
+	ThumbnailBoardRef,
+	ThumbnailRenderSurface,
+} from '../types'
 import { base64UrlDecode, base64UrlEncode } from './base64'
 import { sha256 } from './hash'
 
@@ -31,6 +37,14 @@ export interface ThumbnailRenderJob {
 	 */
 	access?: ThumbnailBoardAccess
 	/**
+	 * Which pipeline minted this job. Namespaces the minted-token record so two surfaces rendering one
+	 * board cannot invalidate each other's tokens — see recordMintedRenderToken.
+	 *
+	 * Absent only on a token minted before this field existed, read as `og`: that was the only surface
+	 * writing records at the time, since the MCP tool minted `public` and `public` is never recorded.
+	 */
+	surface?: ThumbnailRenderSurface
+	/**
 	 * A version that rotates when the rendered content changes, so it can key the thumbnail cache.
 	 * Published boards use the file's `lastPublished` timestamp; shared files use the persisted
 	 * room snapshot's R2 etag.
@@ -50,6 +64,16 @@ export interface ThumbnailRenderJob {
 	 * the snapshot opens to (used by OG images). The worker takes one screenshot of the rendered page.
 	 */
 	pageId?: string
+	/**
+	 * Restricts the export to these shape ids (used by the cluster screenshot tool). The render page
+	 * fits the camera to their common bounds and draws only them. Omitted means the whole page.
+	 */
+	shapeIds?: string[]
+	/**
+	 * `measure` skips the export and POSTs the page's shape geometry back instead — the only way a
+	 * Worker can obtain bounds, since sizing a shape needs an editor and font metrics.
+	 */
+	mode?: 'screenshot' | 'measure'
 	/** The viewport the render page sets directly when `camera` is omitted. */
 	x: number
 	y: number
@@ -121,8 +145,14 @@ export async function verifyThumbnailRenderToken(
 		(job.kind !== 'published' && job.kind !== 'shared_file') ||
 		typeof job.slug !== 'string' ||
 		(job.access !== undefined && job.access !== 'public' && job.access !== 'render') ||
+		(job.surface !== undefined && job.surface !== 'og' && job.surface !== 'mcp') ||
 		(job.camera !== undefined && job.camera !== 'content') ||
 		(job.pageId !== undefined && typeof job.pageId !== 'string') ||
+		(job.mode !== undefined && job.mode !== 'screenshot' && job.mode !== 'measure') ||
+		(job.shapeIds !== undefined &&
+			(!Array.isArray(job.shapeIds) ||
+				job.shapeIds.length === 0 ||
+				!job.shapeIds.every((id) => typeof id === 'string'))) ||
 		typeof job.exp !== 'number'
 	) {
 		return null
@@ -138,6 +168,14 @@ export async function verifyThumbnailRenderToken(
  */
 export function renderJobAccess(job: Pick<ThumbnailRenderJob, 'access'>): ThumbnailBoardAccess {
 	return job.access ?? 'public'
+}
+
+/**
+ * The surface a job is read under. Absent means a token minted before the field existed, read as
+ * `og` — the only surface that was writing records then. See ThumbnailRenderJob.surface.
+ */
+function renderJobSurface(job: Pick<ThumbnailRenderJob, 'surface'>): ThumbnailRenderSurface {
+	return job.surface ?? 'og'
 }
 
 async function getHmacKey(secret: string) {
@@ -157,21 +195,65 @@ async function getHmacKey(secret: string) {
  * without write access to our bucket the forgeries have no record and are refused. The secret is one of
  * two required factors, not the sole authority over every private board's contents.
  *
- * Keyed per board rather than per token, so each render overwrites its board's record and the space is
- * bounded by board count. Nothing accumulates, so there is no lifecycle rule to add — and none must
- * ever be added to this bucket, where a rule with a missing or mistyped prefix would delete every
- * board's live thumbnail.
+ * Keyed per *capture* rather than per token, so records overwrite in place and the space stays bounded
+ * by content rather than by traffic. Nothing accumulates, so there is no lifecycle rule to add — and
+ * none must ever be added to this bucket, where a rule with a missing or mistyped prefix would delete
+ * every board's live thumbnail.
  *
- * Records are **not** deleted after a capture. Expiry lives in the signed `exp` and is checked before
- * this is consulted, so a leftover record cannot extend a token's life; deleting would only tighten the
- * window from `exp` to the render's duration, which buys nothing against an attacker who cannot get a
- * record written at all. A hash is stored rather than the token, in `customMetadata` so that checking
- * one is a `head` and the record costs no stored bytes.
+ * What counts as one capture differs by surface, because their concurrency does:
+ *
+ * - **`og`** is single-flighted per board by the `.pending` marker, so its renders never overlap and one
+ *   key per board is right — a newer mint superseding an older in-flight token is then the intended
+ *   behaviour rather than a collision between unrelated captures. That key overwrites in place, so the
+ *   space stays bounded by boards rather than by traffic and nothing has to be cleaned up.
+ * - **`mcp`** is not single-flighted, and nothing about a capture's *content* identifies it. Two agents
+ *   asking for the same cluster of the same board, or one agent issuing the same tool call twice in
+ *   parallel — which agents do — mint two tokens for byte-identical jobs. Keyed by content, the second
+ *   mint would overwrite the first's `tokenHash`, and the first's snapshot fetch would 403 and surface
+ *   as a bare `the render failed` after it had already spent a browser session and a slot of the
+ *   caller's budget. So every MCP record is keyed by the capture instead: the token, which is unique
+ *   per mint. The same applies to measures, which have even less content to key on — they export
+ *   nothing, and every measure of a page mints an identical job down to the hardcoded light theme.
+ *
+ * All of them live under `render-tokens/{kind}/{slug}/` so hard-delete cleanup can clear a board's
+ * records with one prefix listing rather than having to know every surface.
+ *
+ * A per-token key has no ceiling the way an overwrite-in-place one does, so MCP records *are* deleted
+ * once their capture completes — see deleteMintedRenderToken. Deleting is safe: expiry lives in the
+ * signed `exp` and is checked before this is consulted, so a leftover record could not extend a token's
+ * life anyway, and dropping it only tightens the window from `exp` to the render's own duration. A hash
+ * is stored rather than the token, in `customMetadata` so that checking one is a `head` and the record
+ * costs no stored bytes.
  */
 const RENDER_TOKEN_RECORD_PREFIX = 'render-tokens'
 
-function renderTokenRecordKey(job: Pick<ThumbnailRenderJob, 'kind' | 'slug'>) {
-	return `${RENDER_TOKEN_RECORD_PREFIX}/${job.kind}/${job.slug}`
+/** The prefix holding every surface's records for one board. Hard-delete cleanup lists this. */
+function renderTokenRecordPrefix(board: ThumbnailBoardRef) {
+	return `${RENDER_TOKEN_RECORD_PREFIX}/${board.kind}/${board.slug}/`
+}
+
+/**
+ * Whether a job's record key names this one capture rather than something that outlives it. Those keys
+ * are never reused, so nothing overwrites them and each has to be deleted once its capture is done —
+ * and equally, deleting one cannot pull a record out from under a concurrent capture. See
+ * `deleteMintedRenderToken`.
+ */
+function isPerCaptureRecordKey(job: Pick<ThumbnailRenderJob, 'surface'>) {
+	return renderJobSurface(job) === 'mcp'
+}
+
+async function renderTokenRecordKey(
+	job: Pick<ThumbnailRenderJob, 'kind' | 'slug' | 'surface' | 'mode'>,
+	token: string
+) {
+	const surface = renderJobSurface(job)
+	const base = `${renderTokenRecordPrefix(job)}${surface}`
+	if (!isPerCaptureRecordKey(job)) return base
+	// Keyed by the capture rather than by what it draws: two identical MCP captures are an ordinary
+	// concurrent case, not a race, and a content key would have them invalidate each other. Hashed
+	// rather than used raw because the token is a credential and this is an object name. The mode
+	// segment carries no meaning for the lookup — it is there so a listing reads.
+	return `${base}/${job.mode === 'measure' ? 'measure' : 'screenshot'}/${await sha256(token)}`
 }
 
 /**
@@ -180,17 +262,10 @@ function renderTokenRecordKey(job: Pick<ThumbnailRenderJob, 'kind' | 'slug'>) {
  * debug than the write error that caused it.
  *
  * **Only `render` jobs are recorded.** A `public` job renders a board anyone could already fetch, so a
- * forged token for one grants nothing and the record would buy no security — it would only put the MCP
- * tool into the same key space as the OG pipeline, where the two would clobber each other.
+ * forged token for one grants nothing and the record would buy no security.
  *
- * That exclusion is what keeps the key safely per board. The OG pipeline is single-flighted per board
- * by the `.pending` marker, so its renders do not overlap, and a newer mint superseding an older
- * in-flight token is then the intended behaviour rather than a collision between unrelated captures.
- *
- * **If the MCP tool ever mints `render` jobs** — which authenticating those endpoints would invite,
- * since it would let them screenshot private boards — this key must be namespaced by surface first.
- * Without that, two MCP captures of different pages of one board, or an edit-triggered render landing
- * during a capture, invalidate each other's tokens and fail with a 403.
+ * Both surfaces mint `render` now — the MCP tool does so for a board the authenticated caller may see,
+ * which is what the surface namespacing in `renderTokenRecordKey` exists for.
  */
 export async function recordMintedRenderToken(
 	env: Environment,
@@ -201,9 +276,38 @@ export async function recordMintedRenderToken(
 	// Unbound only in local dev and tests, where skipping leaves signature-only verification. Deployed
 	// environments all bind THUMBNAILS, so the two-factor check is never optional where it matters.
 	if (!env.THUMBNAILS) return
-	await env.THUMBNAILS.put(renderTokenRecordKey(job), new Uint8Array(), {
+	await env.THUMBNAILS.put(await renderTokenRecordKey(job, token), new Uint8Array(), {
 		customMetadata: { tokenHash: await sha256(token) },
 	})
+}
+
+/**
+ * Drops one capture's record, for the keys that do not overwrite in place — every MCP job, measure and
+ * screenshot alike, since their key carries the token and so nothing later reuses it. Each capture would
+ * otherwise leave an object behind forever; see recordMintedRenderToken. Call it once the render is done
+ * with the token, which is after the snapshot fetch this record guards has already happened.
+ *
+ * A no-op for the surfaces whose key outlives one capture. Deleting an OG record here would be worse
+ * than pointless: that key is per board, so a finishing render could drop the record a *newer* in-flight
+ * mint had just written, and 403 it.
+ *
+ * Best effort, unlike the write: a record that fails to write means the render is about to fail its token
+ * check, but one that fails to delete only leaves an orphan, and failing the caller's capture over it
+ * would turn a working answer into an error. Hard deletion sweeps the board's whole prefix later anyway.
+ */
+export async function deleteMintedRenderToken(
+	env: Environment,
+	job: ThumbnailRenderJob,
+	token: string
+): Promise<void> {
+	if (renderJobAccess(job) !== 'render') return
+	if (!isPerCaptureRecordKey(job)) return
+	if (!env.THUMBNAILS) return
+	try {
+		await env.THUMBNAILS.delete(await renderTokenRecordKey(job, token))
+	} catch {
+		// Ignored — see above.
+	}
 }
 
 /**
@@ -224,25 +328,57 @@ export async function isMintedRenderToken(
 	// the signature alone rather than refusing every render.
 	if (!env.THUMBNAILS) return true
 
-	const record = await env.THUMBNAILS.head(renderTokenRecordKey(job))
+	const record =
+		(await env.THUMBNAILS.head(await renderTokenRecordKey(job, token))) ??
+		// A token with no `surface` was minted before the key was namespaced, and its record is at the
+		// old un-namespaced key. Checked only for those tokens, so this costs nothing once the rolling
+		// deploy that introduced the field has finished — and without it every OG render already in
+		// flight across that deploy would 403 until its 60s token expired.
+		(job.surface === undefined ? await env.THUMBNAILS.head(legacyRenderTokenRecordKey(job)) : null)
 	if (!record) return false
 	return record.customMetadata?.tokenHash === (await sha256(token))
 }
 
+/** The pre-namespacing record key. Read-only, and only for tokens minted without a `surface`. */
+function legacyRenderTokenRecordKey(job: Pick<ThumbnailRenderJob, 'kind' | 'slug'>) {
+	return `${RENDER_TOKEN_RECORD_PREFIX}/${job.kind}/${job.slug}`
+}
+
 /**
- * Drops a board's record. Only hard deletion calls this, and not for security: expiry lives in the
- * signed `exp` and is checked before the record is ever consulted, so a leftover record cannot extend
- * a token's life. It is about orphans. These keys carry no version and `THUMBNAILS` has no lifecycle
- * rule, so a record left behind by a board that no longer exists is an object nothing will ever read
- * or overwrite again.
+ * Drops every surface's records for a board. Only hard deletion calls this, and not for security:
+ * expiry lives in the signed `exp` and is checked before a record is ever consulted, so a leftover
+ * record cannot extend a token's life. It is about orphans. These keys carry no version and
+ * `THUMBNAILS` has no lifecycle rule, so a record left behind by a board that no longer exists is an
+ * object nothing will ever read or overwrite again.
+ *
+ * Lists rather than deleting a known key, because the key space under a board is per surface and, for
+ * MCP, per page and theme or — for measures — per token, which no caller could enumerate at all. See
+ * `renderTokenRecordKey`. A caller that had to work those out itself would silently stop cleaning up the
+ * day a surface changed what it keys on.
  *
  * Best effort, like the image deletion it runs beside: a board is being torn down, and failing to
- * tidy up one small object must not abort that.
+ * tidy up a few small objects must not abort that.
  */
 export async function deleteRenderTokenRecord(
 	env: Environment,
-	job: Pick<ThumbnailRenderJob, 'kind' | 'slug'>
+	board: ThumbnailBoardRef
 ): Promise<void> {
 	if (!env.THUMBNAILS) return
-	await env.THUMBNAILS.delete(renderTokenRecordKey(job)).catch(() => {})
+	try {
+		const prefix = renderTokenRecordPrefix(board)
+		// A board's records number in the low tens at most — surfaces × pages × themes, plus any measure
+		// record whose own cleanup failed — so a single unpaginated listing covers it; `truncated` is not
+		// chased because leaving a few orphans behind is exactly the cost this function already accepts on
+		// failure.
+		const listed = await env.THUMBNAILS.list({ prefix })
+		await Promise.all([
+			...listed.objects.map((object) => env.THUMBNAILS!.delete(object.key)),
+			// The pre-namespacing record sits at that prefix *without* its trailing slash, so the listing
+			// cannot see it and it has to go by name. Every board rendered by a worker older than the
+			// namespacing has one, and this is the only thing that would ever collect them.
+			env.THUMBNAILS.delete(legacyRenderTokenRecordKey(board)),
+		])
+	} catch {
+		// Ignored — see above.
+	}
 }

@@ -63,15 +63,29 @@ export function isFileViewableFor(
 	return access === 'public' ? isFileAnonymouslyViewable(file) : isFileRenderable(file)
 }
 
-// Read the live room snapshot for an app file from R2. Re-checks the caller's gate rather than
-// trusting whatever check happened earlier: a `public` read of a board un-shared since a render
-// token was minted must stop resolving inside that token's window.
+/**
+ * Read the live room snapshot for an app file from R2.
+ *
+ * The gate always runs here — never trust that whatever resolved this board already applied it. What
+ * `file` decides is only whether the row it runs against is re-read or reused:
+ *
+ * - **Omitted (the default): re-read.** The row is fetched fresh, so a board un-shared since the
+ *   caller last looked stops resolving. This is what a read separated from its resolve by a network
+ *   hop needs — `getThumbnailSnapshot` serves a *private* board's document to the render page inside
+ *   a token's window, and the un-share must land inside that window.
+ * - **Supplied: reuse.** For a caller that resolved this board microseconds ago in the same function,
+ *   a second query returns the same row and buys nothing but a Postgres connection. The gate is still
+ *   applied to the row that was passed, so the check is not skipped — only the round trip is.
+ *
+ * Pass it only where the resolve is genuinely adjacent to the read. Anywhere else, the freshness is
+ * the point.
+ */
 export async function getSharedFileRoomSnapshot(
 	env: Environment,
 	slug: string,
-	{ access }: { access: ThumbnailBoardAccess }
+	{ access, file: resolvedFile }: { access: ThumbnailBoardAccess; file?: SharedFileInfo }
 ): Promise<RoomSnapshot | undefined> {
-	const file = await getSharedFileInfo(env, slug)
+	const file = resolvedFile ?? (await getSharedFileInfo(env, slug))
 	if (!isFileViewableFor(file, access)) {
 		throw Error(access === 'public' ? 'not shared' : 'not renderable')
 	}
