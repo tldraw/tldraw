@@ -4002,12 +4002,10 @@ export interface TLEditorRunOptions extends TLHistoryBatchOptions {
     ignoreShapeLock?: boolean;
 }
 
-// @public (undocumented)
+// @public
 export const tleditors: {
-    mounted: Atom<readonly Editor[], unknown>;
+    mounted: Signal<readonly Editor[]>;
     getMounted(): readonly Editor[];
-    add(editor: Editor): void;
-    remove(editor: Editor): void;
 };
 
 // @public (undocumented)

@@ -2,20 +2,26 @@ import { createTLStore } from '../..'
 import { Editor } from '../editor/Editor'
 import { tleditors } from './editors'
 
+const editors: Editor[] = []
+
 function createTestEditor() {
-	return new Editor({
+	const editor = new Editor({
 		shapeUtils: [],
 		bindingUtils: [],
 		tools: [],
 		store: createTLStore({ shapeUtils: [], bindingUtils: [] }),
 		getContainer: () => document.body,
 	})
+	editors.push(editor)
+	return editor
 }
 
 afterEach(() => {
-	for (const editor of [...tleditors.getMounted()]) {
-		editor.emit('unmount')
+	for (const editor of editors) {
+		editor.dispose()
 	}
+	editors.length = 0
+	expect(tleditors.getMounted()).toEqual([])
 })
 
 describe('tleditors', () => {
@@ -45,6 +51,15 @@ describe('tleditors', () => {
 		editor.dispose()
 		expect(tleditors.getMounted()).toEqual([])
 		expect(editor.getIsMounted()).toBe(false)
+	})
+
+	it('removes an editor on dispose even if the unmount listener was removed', () => {
+		const editor = createTestEditor()
+		editor.emit('mount')
+		editor.removeAllListeners('unmount')
+
+		editor.dispose()
+		expect(tleditors.getMounted()).toEqual([])
 	})
 
 	it('tracks multiple mounted editors', () => {

@@ -1,15 +1,32 @@
-import { atom } from '@tldraw/state'
+import { Signal, atom } from '@tldraw/state'
 import type { Editor } from '../editor/Editor'
 
-/** @public */
+const mounted = atom<readonly Editor[]>('mounted editors', [])
+
+/**
+ * A global registry of currently mounted editor instances. Use it to discover live editors from
+ * outside the React tree, for example from sidebar chrome, keyboard shortcuts, or multi-editor
+ * layouts.
+ *
+ * @example
+ * ```ts
+ * tleditors.getMounted() // readonly Editor[]
+ *
+ * const editors = useValue('mounted editors', () => tleditors.getMounted(), [])
+ * ```
+ *
+ * @public
+ */
 export const tleditors = {
 	/**
 	 * A reactive list of currently mounted editor instances.
 	 *
-	 * An editor is added when its component emits the `mount` event and removed when it emits
-	 * `unmount` (including when the editor is disposed while still mounted).
+	 * An editor is added when it emits the `mount` event and removed when it emits `unmount`
+	 * (including when the editor is disposed while still mounted).
+	 *
+	 * @public
 	 */
-	mounted: atom<readonly Editor[]>('mounted editors', []),
+	mounted: mounted as Signal<readonly Editor[]>,
 
 	/**
 	 * Get the currently mounted editor instances.
@@ -17,20 +34,20 @@ export const tleditors = {
 	 * @public
 	 */
 	getMounted(): readonly Editor[] {
-		return this.mounted.get()
+		return mounted.get()
 	},
+}
 
-	/** @internal */
-	add(editor: Editor) {
-		const current = this.mounted.get()
-		if (current.includes(editor)) return
-		this.mounted.set([...current, editor])
-	},
+/** @internal */
+export function registerMountedEditor(editor: Editor) {
+	const current = mounted.get()
+	if (current.includes(editor)) return
+	mounted.set([...current, editor])
+}
 
-	/** @internal */
-	remove(editor: Editor) {
-		const current = this.mounted.get()
-		if (!current.includes(editor)) return
-		this.mounted.set(current.filter((e) => e !== editor))
-	},
+/** @internal */
+export function unregisterMountedEditor(editor: Editor) {
+	const current = mounted.get()
+	if (!current.includes(editor)) return
+	mounted.set(current.filter((e) => e !== editor))
 }
