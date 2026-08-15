@@ -479,7 +479,12 @@ async function prepareDotcomApp() {
 	// pre-build the app:
 	await exec('yarn', ['build-app'], {
 		env: {
+			// the build script measures the finished bundle and sends the numbers to PostHog, so we
+			// can see the client's size over time. every deploy reports; the events carry
+			// TLDRAW_ENV so a trend can be filtered down to production.
+			BUNDLE_SIZE_ANALYTICS_ENABLED: 'true',
 			NEXT_PUBLIC_TLDRAW_RELEASE_INFO: `${env.RELEASE_COMMIT_HASH} ${new Date().toISOString()}`,
+			RELEASE_COMMIT_HASH: env.RELEASE_COMMIT_HASH,
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
 			USER_CONTENT_URL: env.USER_CONTENT_URL,
 			ZERO_SERVER: getZeroUrl(),
@@ -604,7 +609,14 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			// MCP_SCREENSHOT_RENDER_ORIGIN in wrangler.toml; previews have no such entry, so inject
 			// it here (Browser Run can't reach an origin that isn't configured for the deployment).
 			...(previewId
-				? { MCP_SCREENSHOT_RENDER_ORIGIN: `https://${previewId}-preview-deploy.tldraw.com` }
+				? {
+						MCP_SCREENSHOT_RENDER_ORIGIN: `https://${previewId}-preview-deploy.tldraw.com`,
+						// Previews advertise and verify against their own public URL like every other
+						// deployed environment — the Host-derived fallback in getMcpResourceUrl is for
+						// local dev and tests only. Injected here because previews have no wrangler.toml
+						// vars block at all.
+						MCP_SERVER_URL: `https://${previewId}-preview-deploy.tldraw.com/api/app/mcp`,
+					}
 				: {}),
 		},
 		sentry: {

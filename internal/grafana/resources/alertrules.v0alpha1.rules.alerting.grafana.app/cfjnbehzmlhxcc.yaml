@@ -1,0 +1,72 @@
+apiVersion: rules.alerting.grafana.app/v0alpha1
+kind: AlertRule
+metadata:
+  annotations:
+    grafana.app/folder: f6hsw6
+    grafana.com/provenance: ''
+    grafana.com/updateTimestamp: '2026-04-28T08:48:46Z'
+    grafana.com/updatedBy: ae5t47muqbegwf
+  labels:
+    grafana.app/folder: f6hsw6
+    grafana.com/group: zero-fly-alerts
+    grafana.com/group-index: '3'
+  name: cfjnbehzmlhxcc
+  namespace: stacks-890472
+spec:
+  annotations:
+    summary: Zero container CPU utilization exceeds 85%
+  execErrState: Error
+  expressions:
+    A:
+      datasourceUID: afj5re4yk9og0e
+      model:
+        datasource:
+          type: prometheus
+          uid: afj5re4yk9og0e
+        editorMode: code
+        expr:
+          sum by (instance, app)(rate(fly_instance_cpu{app=~"production-zero-rm|production-zero-vs",mode!="idle"}[5m]))
+          / sum by (instance, app)(rate(fly_instance_cpu{app=~"production-zero-rm|production-zero-vs"}[5m]))
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+      relativeTimeRange:
+        from: 10m0s
+        to: 0s
+    C:
+      model:
+        conditions:
+          - evaluator:
+              params:
+                - 0.85
+              type: gt
+            operator:
+              type: and
+            query:
+              params:
+                - C
+            reducer:
+              params: []
+              type: last
+            type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+      queryType: expression
+      source: true
+  for: 15m0s
+  labels:
+    service: zero
+    severity: warning
+  noDataState: NoData
+  title: Flyio zero container cpu high
+  trigger:
+    interval: 1m

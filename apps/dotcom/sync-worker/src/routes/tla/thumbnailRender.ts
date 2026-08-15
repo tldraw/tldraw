@@ -1,14 +1,11 @@
 import {
 	DEFAULT_THUMBNAIL_HEIGHT,
 	DEFAULT_THUMBNAIL_WIDTH,
-	MAX_THUMBNAIL_PAGES,
 	THUMBNAIL_RENDER_PATH,
 	THUMBNAIL_RENDER_TIMEOUT_MS,
 	getThumbnailScreenshotRequestBody,
 } from '@tldraw/dotcom-shared'
-import { ClusterBounds } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { TLShape, isPage, isShape } from '@tldraw/tlschema'
 import { THUMBNAIL_RENDER_TOKEN_TTL_MS } from '../../config'
 import { getR2KeyForRoom } from '../../r2'
 import {
@@ -17,14 +14,17 @@ import {
 	ThumbnailBoardAccess,
 	ThumbnailBoardKind,
 	ThumbnailBoardRef,
+	ThumbnailRenderSurface,
 } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { arrayBufferToBase64, base64ToArrayBuffer } from '../../utils/base64'
 import {
 	ThumbnailRenderJob,
+	deleteMintedRenderToken,
 	mintThumbnailRenderToken,
 	recordMintedRenderToken,
 } from '../../utils/renderTokens'
+import { ShapeMeasurement } from './boardTools'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import {
 	SharedFileInfo,
@@ -32,7 +32,11 @@ import {
 	getSharedFileRoomSnapshot,
 	isFileViewableFor,
 } from './getSharedFile'
-import { BoardSnapshotReadError, BrowserRenderError } from './thumbnailShared'
+import {
+	BoardSnapshotReadError,
+	BrowserRenderError,
+	classifyScreenshotFailure,
+} from './thumbnailShared'
 
 // The render-and-cache core shared by every Browser Run screenshot surface: the MCP screenshot
 // tool (sharedBoardScreenshotMcp.ts), the OG image route (getOgImage.ts), and the OG render queue
@@ -82,17 +86,31 @@ export async function resolveThumbnailBoard(
 	env: Environment,
 	kind: ThumbnailBoardKind,
 	slug: string,
-	{ access }: { access: ThumbnailBoardAccess }
+	{
+		access,
+		file: knownFile,
+	}: {
+		access: ThumbnailBoardAccess
+		/**
+		 * The row a caller has *just* read for this same file, to be gated again rather than fetched a
+		 * second time. The MCP path's access check reads `file` and this then selects a strict subset of
+		 * the same columns microseconds later, so without this every tool call opens two Postgres pools
+		 * for one row — three when the published fallback runs. Opt in per call site, like the same
+		 * option on `loadBoardSnapshot`: the gate below is applied either way, so what a caller takes on
+		 * is the staleness of the row, not a weaker check.
+		 */
+		file?: SharedFileInfo
+	}
 ): Promise<ResolveThumbnailBoardResult> {
 	if (kind === 'published') {
 		// A published board's whole identity is its published slug, so there is no weaker gate to
 		// apply: an unpublished board has no published snapshot to render in the first place.
-		const file = await getPublishedFileInfo(env, slug)
-		if (!file?.published) return { ok: false, reason: 'not_found' }
-		return { ok: true, board: { kind, slug, version: file.lastPublished, access } }
+		const publishedFile = await getPublishedFileInfo(env, slug)
+		if (!publishedFile?.published) return { ok: false, reason: 'not_found' }
+		return { ok: true, board: { kind, slug, version: publishedFile.lastPublished, access } }
 	}
 
-	const file = await getSharedFileInfo(env, slug)
+	const file = knownFile ?? (await getSharedFileInfo(env, slug))
 	if (!isFileViewableFor(file, access)) return { ok: false, reason: 'not_found' }
 
 	// The persisted room's R2 etag rotates when the board content changes, so it keys the
@@ -140,30 +158,23 @@ export async function loadBoardSnapshot(
 	}
 }
 
-// A board page in stable board order. `index` is the 0-based ordinal callers pass to the screenshot
-// tool; `id` is the internal TLPageId used to drive the render page.
-export interface EnumeratedPage {
-	index: number
-	id: string
-	name: string
-	hasContent: boolean
-}
-
-// Lists a board's pages in the same order the editor shows them. tldraw page indexes are fractional
-// indexes that sort lexicographically, so a plain string sort matches the editor's ordering. A page
-// "has content" when at least one shape sits directly on it (nested shapes always have a top-level
-// ancestor on their page, so checking direct children is sufficient).
-export function enumerateBoardPages(snapshot: RoomSnapshot): EnumeratedPage[] {
-	const records = snapshot.documents.map((d) => d.state)
-	const pageRecords = records.filter(isPage)
-	pageRecords.sort((a, b) => (a.index < b.index ? -1 : a.index > b.index ? 1 : 0))
-	const parentIdsWithShapes = new Set(records.filter(isShape).map((s) => s.parentId))
-	return pageRecords.slice(0, MAX_THUMBNAIL_PAGES).map((p, index) => ({
-		index,
-		id: String(p.id),
-		name: typeof p.name === 'string' && p.name.length > 0 ? p.name : `Page ${index + 1}`,
-		hasContent: parentIdsWithShapes.has(p.id),
-	}))
+/**
+ * Mints a render job's token and records it as ours, in one step because the two halves must not be
+ * separable.
+ *
+ * A token minted without a record fails its own check at the snapshot route and surfaces as a generic
+ * render failure — and the way that arrived the first time was exactly this: a second mint site that
+ * did the first half only, leaving every measure token unrecorded. Both mint sites go through here so
+ * a third cannot repeat it.
+ *
+ * Recorded before the browser can present the token, so the snapshot route can tell one we minted from
+ * one merely signed with our secret. Awaited, not fired off: the render is about to depend on it
+ * having landed. A no-op for `public` jobs — see recordMintedRenderToken.
+ */
+async function mintRecordedRenderToken(env: Environment, job: ThumbnailRenderJob) {
+	const token = await mintThumbnailRenderToken(env, job)
+	await recordMintedRenderToken(env, job, token)
+	return token
 }
 
 export function buildThumbnailRenderUrl(renderOrigin: string, token: string) {
@@ -190,12 +201,16 @@ export async function captureThumbnailScreenshot(
 	env: Environment,
 	board: ResolvedThumbnailBoard,
 	{
+		surface,
 		pageId,
 		shapeIds,
 		theme,
 		width,
 		height,
+		telemetry,
 	}: {
+		/** Which pipeline is asking. Signed into the job; namespaces the minted-token record. */
+		surface: ThumbnailRenderSurface
 		/**
 		 * The single page to render. When omitted, the render page exports whichever page the
 		 * snapshot opens to (used by OG images).
@@ -209,6 +224,12 @@ export async function captureThumbnailScreenshot(
 		theme: 'light' | 'dark'
 		width: number
 		height: number
+		/**
+		 * Who this session is for on the spend ledger. Required so a new caller cannot create
+		 * browser sessions that never appear on it; `mode` is stamped here, since this path is by
+		 * definition a screenshot render.
+		 */
+		telemetry: { source: BrowserRunSessionContext['source']; reason?: OgImageRenderReason }
 	}
 ): Promise<{ base64: string; durationMs: number }> {
 	const job: ThumbnailRenderJob = {
@@ -219,6 +240,7 @@ export async function captureThumbnailScreenshot(
 		// Taken from the resolution rather than the caller, so a surface cannot ask for a board under
 		// one gate and render it under another.
 		access: board.access,
+		surface,
 		camera: 'content',
 		...(pageId ? { pageId } : null),
 		...(shapeIds?.length ? { shapeIds } : null),
@@ -232,30 +254,65 @@ export async function captureThumbnailScreenshot(
 		theme,
 		exp: Date.now() + THUMBNAIL_RENDER_TOKEN_TTL_MS,
 	}
-	const token = await mintThumbnailRenderToken(env, job)
-	// Record it as ours before the browser can present it, so the snapshot route can tell a token we
-	// minted from one merely signed with our secret. Awaited, not fired off: the render is about to
-	// depend on this having landed. A no-op for `public` jobs — see recordMintedRenderToken.
-	await recordMintedRenderToken(env, job, token)
-	return renderThumbnailScreenshot(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
-		width,
-		height,
-	})
+	const token = await mintRecordedRenderToken(env, job)
+	try {
+		return await renderThumbnailScreenshot(
+			env,
+			buildThumbnailRenderUrl(getRenderOrigin(env), token),
+			{
+				width,
+				height,
+				session: { source: telemetry.source, mode: 'screenshot', reason: telemetry.reason },
+			}
+		)
+	} finally {
+		// The MCP surface keys its records by token, so nothing later overwrites this one and it has to
+		// be dropped here — the same cleanup a measure gets, for the same reason. In `finally` because a
+		// failed render leaves exactly the orphan a successful one would, and the snapshot fetch the
+		// record guards is over either way by the time the session ends. A no-op for OG, whose per-board
+		// key must outlive the capture; see deleteMintedRenderToken.
+		await deleteMintedRenderToken(env, job, token)
+	}
 }
 
-// The shapes belonging to one page, in snapshot order. Nested shapes carry their ancestor's id as
-// `parentId`, so membership is resolved by walking up to a top-level shape whose parent is the page.
-export function getShapesOnPage(snapshot: RoomSnapshot, pageId: string): TLShape[] {
-	const shapes = snapshot.documents.map((d) => d.state).filter(isShape)
-	const byId = new Map(shapes.map((s) => [s.id, s]))
-	return shapes.filter((shape) => {
-		let current: TLShape | undefined = shape
-		// Bounded by the ancestor chain, and guarded against a cyclic parentId in a corrupt snapshot.
-		for (let depth = 0; current && depth < 100; depth++) {
-			if (current.parentId === pageId) return true
-			current = byId.get(current.parentId as TLShape['id'])
-		}
-		return false
+/** What a browser session was created for, stamped on its `browser_run_session` datapoint. */
+export interface BrowserRunSessionContext {
+	source: 'mcp' | 'og' | 'queue'
+	mode: 'measure' | 'screenshot'
+	/** The queue trigger, on sessions the queue runs. Request-path sessions have none. */
+	reason?: OgImageRenderReason
+}
+
+// The Browser Run spend ledger: one datapoint per browser session actually created, written here at
+// the choke point every session flows through rather than by each surface's own bookkeeping. This is
+// deliberately a separate event from `mcp_shared_board_screenshot`, which stays request-level: that
+// event answers cache and refusal questions, this one answers spend. Analytics Engine cannot join,
+// so each event carries the dimensions its own questions need — `mode` is what separates a measure
+// render from a screenshot render, which the request event cannot express.
+function writeBrowserRunSessionTelemetry(
+	env: Environment,
+	session: BrowserRunSessionContext,
+	{
+		outcome,
+		durationMs,
+		width,
+		height,
+	}: {
+		/** `ok`, or the bounded browser failure code for a session that died. */
+		outcome: string
+		durationMs: number
+		width: number
+		height: number
+	}
+) {
+	writeDataPoint(undefined, env.MEASURE, env, 'browser_run_session', {
+		blobs: [
+			`source:${session.source}`,
+			`mode:${session.mode}`,
+			`outcome:${outcome}`,
+			`reason:${session.reason ?? 'none'}`,
+		],
+		doubles: [width, height, durationMs],
 	})
 }
 
@@ -266,7 +323,7 @@ export function getShapesOnPage(snapshot: RoomSnapshot, pageId: string): TLShape
 async function renderThumbnailScreenshot(
 	env: Environment,
 	renderUrl: string,
-	{ width, height }: { width: number; height: number }
+	{ width, height, session }: { width: number; height: number; session: BrowserRunSessionContext }
 ): Promise<{ base64: string; durationMs: number }> {
 	// Built once and handed to whichever transport runs, so the wait strategy, capture target and
 	// timeout cannot drift between Browser Run and its development stand-in.
@@ -280,15 +337,44 @@ async function renderThumbnailScreenshot(
 	// Local dev has no route to Browser Run, so it points this at a screenshot service instead (the
 	// client's dev server, which can drive Playwright). Selected on the var being set rather than on
 	// an environment name, so only an environment that configures one can take this path.
-	const { response, durationMs } = env.LOCAL_SCREENSHOT_SERVICE_URL
-		? await callLocalScreenshotService(env.LOCAL_SCREENSHOT_SERVICE_URL, requestBody)
-		: await callBrowserRun(env, requestBody)
+	let timed: TimedCapture
+	try {
+		timed = env.LOCAL_SCREENSHOT_SERVICE_URL
+			? await callLocalScreenshotService(env.LOCAL_SCREENSHOT_SERVICE_URL, requestBody)
+			: await callBrowserRun(env, requestBody)
+	} catch (error) {
+		// A BrowserRenderError is a session that existed and died, so it lands on the ledger with the
+		// time it held its browser. Anything else never created a session and records nothing.
+		if (error instanceof BrowserRenderError) {
+			writeBrowserRunSessionTelemetry(env, session, {
+				outcome: classifyScreenshotFailure(error),
+				durationMs: error.durationMs,
+				width,
+				height,
+			})
+		}
+		throw error
+	}
 
-	const buffer = await response.arrayBuffer()
+	const buffer = await timed.response.arrayBuffer()
 	if (buffer.byteLength === 0) {
+		// The session ran to completion — the spend is real — it just produced nothing usable.
+		writeBrowserRunSessionTelemetry(env, session, {
+			outcome: 'empty_render',
+			durationMs: timed.durationMs,
+			width,
+			height,
+		})
 		throw new Error('Render produced an empty screenshot')
 	}
-	return { base64: arrayBufferToBase64(buffer), durationMs }
+
+	writeBrowserRunSessionTelemetry(env, session, {
+		outcome: 'ok',
+		durationMs: timed.durationMs,
+		width,
+		height,
+	})
+	return { base64: arrayBufferToBase64(buffer), durationMs: timed.durationMs }
 }
 
 type ThumbnailScreenshotRequestBody = ReturnType<typeof getThumbnailScreenshotRequestBody>
@@ -411,11 +497,6 @@ async function callLocalScreenshotService(
 // result back. Stashed under the job's own token and read once, so it is a rendezvous for a single
 // in-flight render rather than a cache with a lifetime to manage.
 
-/** What one shape's measure render produced: its page bounds, plus the text its ShapeUtil reported. */
-export interface ShapeMeasurement extends ClusterBounds {
-	text?: string
-}
-
 function getRenderResultKey(token: string) {
 	return `render-result/${encodeURIComponent(token)}.json`
 }
@@ -435,18 +516,26 @@ export async function putRenderResult(
  * Measures every shape on a page through a real editor, returning `shapeId -> bounds and text`.
  *
  * Costs one Browser Rendering session, the same as a screenshot — there is no cheaper way to get
- * geometry the Worker cannot compute. Callers own the rate limiting that implies.
+ * geometry the Worker cannot compute. Callers own the rate limiting that implies; the session
+ * itself lands on the `browser_run_session` spend ledger with `mode:measure`, written at the render
+ * choke point rather than by callers.
  */
 export async function measurePageShapes(
 	env: Environment,
 	board: ResolvedThumbnailBoard,
-	pageId: string
+	pageId: string,
+	{ surface }: { surface: ThumbnailRenderSurface }
 ): Promise<Record<string, ShapeMeasurement>> {
-	const token = await mintThumbnailRenderToken(env, {
+	const job: ThumbnailRenderJob = {
 		v: 1,
 		kind: board.kind,
 		slug: board.slug,
 		version: board.version,
+		// Taken from the resolution rather than the caller, same as captureThumbnailScreenshot: a
+		// measure token for a private board reads the whole document through the snapshot route, so it
+		// carries the gate the board resolved under rather than defaulting to `public`.
+		access: board.access,
+		surface,
 		mode: 'measure',
 		pageId,
 		x: 0,
@@ -458,23 +547,47 @@ export async function measurePageShapes(
 		height: DEFAULT_THUMBNAIL_HEIGHT,
 		theme: 'light',
 		exp: Date.now() + THUMBNAIL_RENDER_TOKEN_TTL_MS,
-	})
-
-	// The screenshot is discarded — it is only how the browser session is driven, and how we know the
-	// page reached its terminal state. The answer arrives via the result endpoint.
-	await renderThumbnailScreenshot(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
-		width: DEFAULT_THUMBNAIL_WIDTH,
-		height: DEFAULT_THUMBNAIL_HEIGHT,
-	})
-
+	}
+	// Checked before the render rather than after it: the read below cannot work without the bucket, and
+	// discovering that once a full browser session has already been spent makes the failure cost a
+	// capture it was never going to use.
 	if (!env.THUMBNAILS) throw new Error('THUMBNAILS bucket is not configured')
+
+	const token = await mintRecordedRenderToken(env, job)
 	const key = getRenderResultKey(token)
-	const stored = await env.THUMBNAILS.get(key)
-	if (!stored) throw new Error('The render page did not report any measurements')
-	const bounds = JSON.parse(await stored.text())
-	// Read once: the token is single-use, so leaving the object behind would only accumulate.
-	await env.THUMBNAILS.delete(key)
-	return bounds
+
+	try {
+		// The screenshot is discarded — it is only how the browser session is driven, and how we know the
+		// page reached its terminal state. The answer arrives via the result endpoint.
+		await renderThumbnailScreenshot(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
+			width: DEFAULT_THUMBNAIL_WIDTH,
+			height: DEFAULT_THUMBNAIL_HEIGHT,
+			// The measure runs only on the MCP surface today; `surface` names the render pipeline for the
+			// signed job, not the telemetry source, so this is stated rather than derived.
+			session: { source: 'mcp', mode: 'measure' },
+		})
+
+		const stored = await env.THUMBNAILS.get(key)
+		if (!stored) throw new Error('The render page did not report any measurements')
+		return JSON.parse(await stored.text())
+	} finally {
+		// Both of this capture's leftovers, dropped on the failure path as well as the success one.
+		//
+		// The record is keyed by its own token, so concurrent measures of one page cannot invalidate each
+		// other — which also means nothing later overwrites it. The result object is keyed the same way,
+		// and the render page POSTs it *before* signalling ready: a Quick Action that then times out —
+		// chronically a few percent of renders — leaves an object nothing will ever read or overwrite, in
+		// a bucket that deliberately carries no lifecycle rule.
+		//
+		// Best effort on the result key, and not for the sake of a tidy bucket: throwing here would
+		// replace a measure's real answer, or its real error, with a cleanup failure.
+		await deleteMintedRenderToken(env, job, token)
+		try {
+			await env.THUMBNAILS.delete(key)
+		} catch {
+			// Ignored — see above.
+		}
+	}
 }
 
 export async function putThumbnailPng(
@@ -494,13 +607,18 @@ export async function putThumbnailPng(
 	})
 }
 
-// One datapoint writer for every screenshot surface, so they share a dataset and blob layout and one
-// dashboard covers them all; the source blob distinguishes mcp (the tool), og (the GET route) and
-// queue (the render consumer). The dataset name covers all three despite its mcp_ prefix, and must
-// keep doing so: renaming it would split the dashboard's history.
+// The request-level datapoint writer for every screenshot surface, so they share a dataset and blob
+// layout and one dashboard covers them all; the source blob distinguishes mcp (the tool), og (the
+// GET route) and queue (the render consumer). The dataset name covers all three despite its mcp_
+// prefix, and must keep doing so: renaming it would split the dashboard's history.
+//
+// This event answers cache and refusal questions — hit rates by source, who was refused and why,
+// what was rate-limited. What requests *spend* lives on the separate `browser_run_session` event
+// (see writeBrowserRunSessionTelemetry): one request can hold zero, one, or two browser sessions,
+// so durations on request rows could only ever be sums that answer neither ledger cleanly.
 //
 // Carries **no board identity**: no index, no slug, no hash, no derived id. Not an omission — these
-// datapoints answer aggregate spend and failure-rate questions, and the cost of that choice is a
+// datapoints answer aggregate cache and failure-rate questions, and the cost of that choice is a
 // dataset that cannot say which board is failing. See "No board identifier leaves this pipeline" in
 // browser-run-thumbnails.md.
 export function writeScreenshotTelemetry(
@@ -508,41 +626,68 @@ export function writeScreenshotTelemetry(
 	data: {
 		source: 'mcp' | 'og' | 'queue'
 		/**
-		 * Which trigger asked for this render — what attributes spend to publishing or editing. Only
-		 * meaningful on queue datapoints; the request paths have no trigger and record `none`.
+		 * Which trigger asked for this render — what attributes a render to publishing or editing.
+		 * Only meaningful on queue datapoints; the request paths have no trigger and record `none`.
 		 */
 		reason?: OgImageRenderReason
-		cacheStatus: 'hit' | 'stale' | 'miss'
-		/** Hashed client IP, for surfaces that have one. Recorded only on failures — see below. */
-		ipHash?: string
-		browserRunDurationMs?: number
+		/**
+		 * Whether this delivery is the follow-up a completed render enqueues when the board moved during
+		 * its capture (see `enqueueFollowUpIfBoardMoved`), rather than the ask a trigger made. Separates
+		 * the two halves of render spend, which `reason` cannot: a follow-up inherits the reason of the
+		 * job it follows, so both land in the same bucket. Only meaningful on queue datapoints; the
+		 * request paths have no follow-up and record `none`.
+		 */
+		followUp?: boolean
+		/**
+		 * What the PNG cache did for this request. `none` when the request never consulted it: the
+		 * info tools have no cache at all, and a screenshot request refused before the cache read
+		 * (bad input, rate-limited caller, unresolvable board) says nothing about cache health.
+		 * Excluding `none` is what keeps a hit-rate-by-source panel honest.
+		 */
+		cacheStatus: 'hit' | 'stale' | 'miss' | 'none'
+		/**
+		 * Hashed identity of whoever asked, for surfaces that have one. Recorded only on rate-limited
+		 * rows — see below.
+		 *
+		 * This is a hashed user id on the MCP surface, which now requires authentication; it replaced
+		 * a hashed client IP, and holds the same blob position so the dashboard panels reading it did
+		 * not have to move. The OG surfaces have no caller at all and leave it unset.
+		 */
+		callerHash?: string
 		failureReason?: string
 		rateLimitAllowed?: boolean
 	}
 ) {
 	const rateLimitAllowed = data.rateLimitAllowed ?? true
-	// Only on failed or rate-limited events, where it's useful for abuse analysis. On the common
-	// success path a per-IP blob is one distinct dimension value per client, per request — a large
-	// cardinality cost for no query benefit.
-	const isFailure = data.failureReason !== undefined || !rateLimitAllowed
+	// Only on rate-limited rows, which is the whole question a per-caller blob answers: who to look at
+	// when spend spikes or a limit keeps firing.
+	//
+	// Deliberately narrower than "any failure". Cardinality is about distinct *values*, not row count,
+	// and the failure set is mostly routine model mistakes — a wrong board id, a stale cluster id, a
+	// page that moved. Nearly every caller produces one of those eventually, so gating on failure
+	// would leave the number of distinct callers converging on the number of users, which is the cost
+	// the gate exists to avoid. Rate limits fire rarely and only for callers worth naming.
 	writeDataPoint(undefined, env.MEASURE, env, 'mcp_shared_board_screenshot', {
 		blobs: [
 			`source:${data.source}`,
 			`cache:${data.cacheStatus}`,
 			`failure:${data.failureReason ?? 'none'}`,
 			`rate_limit:${rateLimitAllowed ? 'allowed' : 'blocked'}`,
-			`ip:${isFailure && data.ipHash ? data.ipHash : 'none'}`,
+			`caller:${!rateLimitAllowed && data.callerHash ? data.callerHash : 'none'}`,
 			// Appended rather than slotted in beside `source`, so the existing blob positions (and the
 			// dashboard panels reading them) don't shift.
 			`reason:${data.reason ?? 'none'}`,
+			// Appended for the same reason. `none` rather than `false` for the surfaces that have no
+			// follow-up concept at all, so a query for triggered renders can say `followup:false` and mean
+			// it, instead of sweeping up every og and mcp datapoint too.
+			`followup:${data.followUp ?? 'none'}`,
 		],
 		doubles: [
 			DEFAULT_THUMBNAIL_WIDTH,
 			DEFAULT_THUMBNAIL_HEIGHT,
-			data.browserRunDurationMs ?? -1,
-			// Billed browser ms, which the BROWSER binding does not surface, so it is always the sentinel.
-			// The slot stays occupied to hold the doubles positions after it — and the dashboard panels
-			// reading them — in place; double3 above is the spend proxy.
+			// Durations moved to the browser_run_session event; the sentinel holds this position (and
+			// the ones after it) so historical rows and the panels reading them keep their meaning.
+			-1,
 			-1,
 			rateLimitAllowed ? 1 : 0,
 		],

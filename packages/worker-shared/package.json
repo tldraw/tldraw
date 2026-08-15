@@ -18,7 +18,7 @@
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20260302.0",
 		"lazyrepo": "0.0.0-alpha.27",
-		"typescript": "^5.8.3",
+		"typescript": "^7.0.2",
 		"vitest": "^4.1.7"
 	},
 	"scripts": {

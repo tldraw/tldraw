@@ -85,7 +85,7 @@ export interface CommentBodyProps {
 }
 
 // @public
-export function CommentCard({ author, body, date, you, edited, actions, footer }: CommentCardProps): JSX.Element;
+export function CommentCard({ author, body, date, you, edited, actions, footer, }: CommentCardProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentCardProps {
@@ -101,7 +101,7 @@ export interface CommentCardProps {
 }
 
 // @public
-export function CommentComposer({ author, placeholder, value, onChange, onSubmit, sendLabel, onArrowUpWhenEmpty, disabled, autoFocus, leading, getMentionSuggestions, renderMentionSuggestion }: CommentComposerProps): JSX.Element;
+export function CommentComposer({ author, placeholder, value, onChange, onSubmit, sendLabel, onArrowUpWhenEmpty, disabled, autoFocus, leading, getMentionSuggestions, renderMentionSuggestion, }: CommentComposerProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentComposerProps {
@@ -188,7 +188,7 @@ export interface CommentingOptions {
 }
 
 // @public
-export function CommentListItem({ id, author, preview, date, resolved, page, count, selected, reactions, href, resolvedLabel, onSelect }: CommentListItemRenderProps): JSX.Element;
+export function CommentListItem({ id, author, preview, date, resolved, page, count, selected, reactions, href, resolvedLabel, onSelect, }: CommentListItemRenderProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentListItemProps {
@@ -243,7 +243,7 @@ export interface CommentPinProps {
 }
 
 // @public
-export function CommentReactionPicker({ comment, currentUserId, emoji }: CommentReactionPickerProps): JSX.Element | null;
+export function CommentReactionPicker({ comment, currentUserId, emoji, }: CommentReactionPickerProps): JSX.Element | null;
 
 // @public (undocumented)
 export interface CommentReactionPickerProps {
@@ -265,7 +265,7 @@ export interface CommentReactionsProps {
 }
 
 // @public
-export function CommentsFilterMenu({ canFilterByAuthor, canFilterByUnread }: CommentsFilterMenuProps): JSX.Element;
+export function CommentsFilterMenu({ canFilterByAuthor, canFilterByUnread, }: CommentsFilterMenuProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentsFilterMenuProps {
@@ -277,7 +277,7 @@ export interface CommentsFilterMenuProps {
 export const commentsHidden: EditorAtom<boolean>;
 
 // @public
-export function CommentsList({ items, onSelect, header, headerAction, empty, resolvedLabel, renderItem }: CommentsListProps): JSX.Element;
+export function CommentsList({ items, onSelect, header, headerAction, empty, resolvedLabel, renderItem, }: CommentsListProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentsListProps {
@@ -304,7 +304,7 @@ export const commentsSidebarOpen: EditorAtom<boolean>;
 export function CommentsVisibilityToggle(): JSX.Element;
 
 // @public
-export function CommentThread({ comments, header, headerActions, resolvedBanner, composer, footer, renderComment }: CommentThreadProps): JSX.Element;
+export function CommentThread({ comments, header, headerActions, resolvedBanner, composer, footer, renderComment, }: CommentThreadProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentThreadProps {
@@ -341,7 +341,7 @@ export class CommentTool extends StateNode {
 export const commentToolOverrides: TLUiOverrides;
 
 // @public (undocumented)
-export const commentTools: typeof CommentTool[];
+export const commentTools: (typeof CommentTool)[];
 
 // @public (undocumented)
 export function CountBadge({ count, open }: CountBadgeProps): JSX.Element;
@@ -373,7 +373,7 @@ export const defaultCommentingOptions: {
     readonly dragHistory: undefined;
     readonly enableClustering: true;
     readonly enableRegions: false;
-    readonly history: "ignore";
+    readonly history: 'ignore';
     readonly impreciseShapeAnchor: {
         readonly x: 1;
         readonly y: 0;
@@ -403,7 +403,7 @@ export function deleteThread(editor: Editor, thread: TLCommentThread): void;
 export function editComment(editor: Editor, comment: TLComment, body: TLRichText): void;
 
 // @public
-export function EmojiPicker({ emoji, selected, onSelect, renderReaction }: EmojiPickerProps): JSX.Element;
+export function EmojiPicker({ emoji, selected, onSelect, renderReaction, }: EmojiPickerProps): JSX.Element;
 
 // @public (undocumented)
 export interface EmojiPickerProps {
@@ -488,10 +488,10 @@ export const openThreadId: EditorAtom<null | string>;
 export function putCommentRecords(editor: Editor, records: TLCommentRecord[]): void;
 
 // @public
-export function Reaction({ emoji, count, active, reactors, enableHoverList, renderReaction, ReactionTooltip, onClick }: ReactionProps): JSX.Element;
+export function Reaction({ emoji, count, active, reactors, enableHoverList, renderReaction, ReactionTooltip, onClick, }: ReactionProps): JSX.Element;
 
 // @public
-export function ReactionPicker({ emoji, selected, onSelect, renderReaction, palette: Palette, menuId, className }: ReactionPickerProps): JSX.Element;
+export function ReactionPicker({ emoji, selected, onSelect, renderReaction, palette: Palette, menuId, className, }: ReactionPickerProps): JSX.Element;
 
 // @public (undocumented)
 export interface ReactionPickerProps {
@@ -526,7 +526,7 @@ export interface ReactionReactor {
 }
 
 // @public
-export function Reactions({ reactions, onToggle, canReact, enableHoverList, renderReaction, ReactionTooltip }: ReactionsProps): JSX.Element | null;
+export function Reactions({ reactions, onToggle, canReact, enableHoverList, renderReaction, ReactionTooltip, }: ReactionsProps): JSX.Element | null;
 
 // @public (undocumented)
 export interface ReactionsProps {

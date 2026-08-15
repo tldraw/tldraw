@@ -29,7 +29,7 @@ import {
 	makeFakeThumbnailsBucket,
 	makeScreenshotTestEnv as makeEnv,
 	makeSnapshot,
-	renderDurationsOf,
+	sessionsOf,
 	screenshotOf,
 	tokenFromScreenshot,
 } from './screenshotTestHelpers'
@@ -324,20 +324,28 @@ describe('enqueuePublishThumbnailRender', () => {
 // version and THUMBNAILS has no lifecycle rule, whatever is left behind is an object nothing will
 // ever read, overwrite or sweep.
 describe('deleteBoardThumbnails', () => {
-	const renderTokenKey = (kind: string, slug: string) => `render-tokens/${kind}/${slug}`
+	// A board's token records are spread across one key per surface, and for MCP one per page and theme
+	// besides — which is why the cleanup lists the prefix rather than deleting a key it knows. Written
+	// out longhand here so the layout is pinned by the test rather than borrowed from the code under it.
+	const ogTokenKey = (kind: string, slug: string) => `render-tokens/${kind}/${slug}/og`
+	const mcpTokenKey = (kind: string, slug: string, pageId: string) =>
+		`render-tokens/${kind}/${slug}/mcp/light/${pageId}`
 
 	async function seedBoard(bucket: ReturnType<typeof makeFakeThumbnailsBucket>, env: any) {
 		const file = { kind: 'shared_file', slug: 'file-1' } as const
 		const published = { kind: 'published', slug: 'published-slug' } as const
 		for (const board of [file, published]) {
-			// An enqueue writes the pending marker, so the fixture covers image, marker and token record.
+			// An enqueue writes the pending marker, so the fixture covers image, marker and token records.
 			await enqueueOgImageRender(env, board, { reason: 'publish' })
 			await bucket.put(getOgImageCacheKey(board), new Uint8Array([1]).buffer)
-			await bucket.put(renderTokenKey(board.kind, board.slug), new Uint8Array().buffer)
+			await bucket.put(ogTokenKey(board.kind, board.slug), new Uint8Array().buffer)
+			// Two of them, as two concurrent MCP captures of different pages would leave.
+			await bucket.put(mcpTokenKey(board.kind, board.slug, 'page:a'), new Uint8Array().buffer)
+			await bucket.put(mcpTokenKey(board.kind, board.slug, 'page:b'), new Uint8Array().buffer)
 		}
 	}
 
-	it('removes both images, both markers and both render token records', async () => {
+	it('removes both images, both markers and every surface’s render token records', async () => {
 		const bucket = makeFakeThumbnailsBucket()
 		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: makeFakeQueue() })
 		await seedBoard(bucket, env)
@@ -353,12 +361,17 @@ describe('deleteBoardThumbnails', () => {
 		await seedBoard(bucket, env)
 		const other = { kind: 'shared_file', slug: 'file-2' } as const
 		await bucket.put(getOgImageCacheKey(other), new Uint8Array([2]).buffer)
-		await bucket.put(renderTokenKey(other.kind, other.slug), new Uint8Array().buffer)
+		await bucket.put(ogTokenKey(other.kind, other.slug), new Uint8Array().buffer)
+		await bucket.put(mcpTokenKey(other.kind, other.slug, 'page:a'), new Uint8Array().buffer)
 
 		await deleteBoardThumbnails(env, { fileId: 'file-1', publishedSlug: 'published-slug' })
 
 		expect([...bucket.store.keys()].sort()).toEqual(
-			[getOgImageCacheKey(other), renderTokenKey(other.kind, other.slug)].sort()
+			[
+				getOgImageCacheKey(other),
+				ogTokenKey(other.kind, other.slug),
+				mcpTokenKey(other.kind, other.slug, 'page:a'),
+			].sort()
 		)
 	})
 
@@ -378,7 +391,9 @@ describe('deleteBoardThumbnails', () => {
 					/\.png$/,
 					'.pending'
 				),
-				renderTokenKey('published', 'published-slug'),
+				ogTokenKey('published', 'published-slug'),
+				mcpTokenKey('published', 'published-slug', 'page:a'),
+				mcpTokenKey('published', 'published-slug', 'page:b'),
 			].sort()
 		)
 	})
@@ -771,9 +786,11 @@ describe('handleOgImageRenderMessage', () => {
 	// chaining follow-up would render it continuously — exactly the cost the debounce upstream exists to
 	// avoid. One extra render per triggered render, never two.
 	it('never chains: a follow-up does not enqueue another', async () => {
-		vi.mocked(getPublishedFileInfo)
-			.mockResolvedValueOnce({ id: 'file-1', published: true, lastPublished: 1 })
-			.mockResolvedValueOnce({ id: 'file-1', published: true, lastPublished: 2 })
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
 		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
 		const queue = makeFakeQueue()
 		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: queue })
@@ -784,6 +801,9 @@ describe('handleOgImageRenderMessage', () => {
 		)
 
 		expect(queue.send).not.toHaveBeenCalled()
+		// One resolve for the render itself and none for the moved-board check: the guard cuts the
+		// chain off before even looking, so no board state can re-enqueue.
+		expect(getPublishedFileInfo).toHaveBeenCalledTimes(1)
 	})
 
 	// Once a job gives up, nothing is in flight and the marker has nothing left to single-flight.
@@ -970,7 +990,7 @@ describe('handleOgImageRenderMessage', () => {
 	// A failed capture created a browser and held it, sometimes for the whole 45s timeout. Recording -1
 	// there would understate what an uncapped render path costs, which is the one number the "no global
 	// cap" design leans on watching.
-	it('records the Browser Run time a failed render spent, and none where it spent none', async () => {
+	it('puts a failed render on the session ledger, and nothing where no browser ran', async () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
@@ -984,9 +1004,19 @@ describe('handleOgImageRenderMessage', () => {
 		})
 
 		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }, 3))
-		expect(renderDurationsOf(env)[0]).toBeGreaterThanOrEqual(0)
+		// The session that failed still held a browser; its spend and outcome live on its own row,
+		// while the delivery's request row records only the failure reason.
+		expect(sessionsOf(env)).toEqual([
+			{
+				source: 'queue',
+				mode: 'screenshot',
+				outcome: 'browser_failed',
+				reason: 'crawler',
+				durationMs: expect.any(Number),
+			},
+		])
 
-		// An empty board never reaches the capture, so it keeps the "spent nothing" sentinel.
+		// An empty board never reaches the capture: no session existed, so none is on the ledger.
 		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(null as any)
 		const emptyBoardEnv = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
 		await handleOgImageRenderMessage(
@@ -994,7 +1024,7 @@ describe('handleOgImageRenderMessage', () => {
 			makeMessage({ kind: 'published', slug: 'board' }, 3)
 		)
 		expect(failureBlobsOf(emptyBoardEnv)).toEqual(['failure:board_empty'])
-		expect(renderDurationsOf(emptyBoardEnv)).toEqual([-1])
+		expect(sessionsOf(emptyBoardEnv)).toEqual([])
 	})
 
 	// Thumbnail rendering is uncapped: the MCP endpoint's limiters exist to bound what an outside
@@ -1042,6 +1072,32 @@ describe('handleOgImageRenderMessage', () => {
 		)
 
 		expect(blobsWithPrefix(env, 'reason:')).toEqual(['reason:publish'])
+	})
+
+	// Why the blob exists at all: a follow-up carries the reason of the job it follows, so `reason`
+	// alone cannot separate the render a trigger asked for from the extra one the follow-up causes.
+	// Asserted on both a capture and a cache hit, since a follow-up delivery reaches either.
+	it('separates a follow-up delivery from the trigger that caused it', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+
+		await handleOgImageRenderMessage(
+			env,
+			makeMessage({ kind: 'published', slug: 'board', reason: 'edit' })
+		)
+		await handleOgImageRenderMessage(
+			env,
+			makeMessage({ kind: 'published', slug: 'board', reason: 'edit', followUp: true })
+		)
+
+		expect(blobsWithPrefix(env, 'reason:')).toEqual(['reason:edit', 'reason:edit'])
+		expect(blobsWithPrefix(env, 'cache:')).toEqual(['cache:miss', 'cache:hit'])
+		expect(blobsWithPrefix(env, 'followup:')).toEqual(['followup:false', 'followup:true'])
 	})
 
 	// A burst of edits enqueues once and renders once: the marker collapses the enqueues, and for any

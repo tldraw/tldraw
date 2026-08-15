@@ -1,0 +1,375 @@
+apiVersion: dashboard.grafana.app/v0alpha1
+kind: Dashboard
+metadata:
+  annotations:
+    grafana.app/folder: dotcom
+  labels: {}
+  name: edrigjn435v5sf
+  namespace: stacks-890472
+spec:
+  annotations:
+    list:
+      - builtIn: 1
+        datasource:
+          type: grafana
+          uid: -- Grafana --
+        enable: true
+        hide: true
+        iconColor: rgba(0, 211, 255, 1)
+        name: Annotations & Alerts
+        type: dashboard
+  editable: true
+  fiscalYearStartMonth: 0
+  graphTooltip: 0
+  links: []
+  panels:
+    - datasource:
+        type: vertamedia-clickhouse-datasource
+        uid: bdgu7tk03irr4e
+      fieldConfig:
+        defaults:
+          color:
+            mode: thresholds
+          mappings: []
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: null
+              - color: red
+                value: 80
+        overrides: []
+      gridPos:
+        h: 8
+        w: 12
+        x: 0
+        y: 0
+      id: 3
+      options:
+        minVizHeight: 75
+        minVizWidth: 75
+        orientation: auto
+        reduceOptions:
+          calcs:
+            - sum
+          fields: ''
+          values: false
+        showThresholdLabels: false
+        showThresholdMarkers: true
+        sizing: auto
+      pluginVersion: 11.3.0-77222
+      targets:
+        - datasource:
+            type: vertamedia-clickhouse-datasource
+            uid: bdgu7tk03irr4e
+          dateTimeType: DATETIME
+          editorMode: builder
+          extrapolate: true
+          format: time_series
+          formatAs: time_series
+          formattedQuery: "SELECT count(*)\n\tFROM 'BEMO_ANALYICS'\n    WHERE blob1 =\
+            \ 'connect'\n\tAND timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)\n\
+            \tGROUP BY date\n\tORDER BY date ASC"
+          intervalFactor: 1
+          query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' MINUTE) as\
+            \ date, count() as numConnects\n\tFROM 'BEMO_ANALYTICS'\n    WHERE blob1 =\
+            \ 'connect'\n\tAND timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)\n\
+            \tGROUP BY date\n\tORDER BY date ASC"
+          rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '1800' MINUTE) as date,\
+            \ count() as numConnects\n\tFROM 'BEMO_ANALYTICS'\n    WHERE blob1 = 'connect'\n\
+            \tAND timestamp >= toDateTime(1722620600) AND timestamp <= toDateTime(1725212600)\n\
+            \tGROUP BY date\n\tORDER BY date ASC"
+          refId: A
+          round: 0s
+          showFormattedSQL: false
+          showHelp: false
+          skip_comments: true
+          step: ''
+      title: Num Connects
+      type: gauge
+    - datasource:
+        type: vertamedia-clickhouse-datasource
+        uid: bdgu7tk03irr4e
+      fieldConfig:
+        defaults:
+          color:
+            mode: palette-classic
+          custom:
+            axisBorderShow: false
+            axisCenteredZero: false
+            axisColorMode: text
+            axisLabel: ''
+            axisPlacement: auto
+            barAlignment: 0
+            barWidthFactor: 0.6
+            drawStyle: line
+            fillOpacity: 0
+            gradientMode: none
+            hideFrom:
+              legend: false
+              tooltip: false
+              viz: false
+            insertNulls: false
+            lineInterpolation: linear
+            lineWidth: 1
+            pointSize: 5
+            scaleDistribution:
+              type: linear
+            showPoints: auto
+            spanNulls: false
+            stacking:
+              group: A
+              mode: none
+            thresholdsStyle:
+              mode: 'off'
+          mappings: []
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: null
+              - color: red
+                value: 80
+        overrides: []
+      gridPos:
+        h: 8
+        w: 12
+        x: 12
+        y: 0
+      id: 1
+      options:
+        legend:
+          calcs: []
+          displayMode: list
+          placement: bottom
+          showLegend: true
+        tooltip:
+          mode: single
+          sort: none
+      pluginVersion: 11.3.0-77222
+      targets:
+        - datasource:
+            type: vertamedia-clickhouse-datasource
+            uid: bdgu7tk03irr4e
+          dateTimeType: DATETIME
+          editorMode: builder
+          extrapolate: true
+          format: time_series
+          formatAs: time_series
+          formattedQuery: "SELECT count(*)\n\tFROM 'BEMO_ANALYICS'\n    WHERE blob1 =\
+            \ 'connect'\n\tAND timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)\n\
+            \tGROUP BY date\n\tORDER BY date ASC"
+          intervalFactor: 1
+          query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' MINUTE) as\
+            \ date, count() as numConnects\n\tFROM 'BEMO_ANALYTICS'\n    WHERE blob1 =\
+            \ 'connect'\n\tAND timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)\n\
+            \tGROUP BY date\n\tORDER BY date ASC"
+          rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '3600' MINUTE) as date,\
+            \ count() as numConnects\n\tFROM 'BEMO_ANALYTICS'\n    WHERE blob1 = 'connect'\n\
+            \tAND timestamp >= toDateTime(1720773373) AND timestamp <= toDateTime(1726292377)\n\
+            \tGROUP BY date\n\tORDER BY date ASC"
+          refId: A
+          round: 0s
+          showFormattedSQL: false
+          showHelp: false
+          skip_comments: true
+          step: ''
+      title: Num Connects
+      type: timeseries
+    - datasource:
+        uid: bdgu7tk03irr4e
+      fieldConfig:
+        defaults:
+          color:
+            mode: palette-classic
+          custom:
+            axisBorderShow: false
+            axisCenteredZero: false
+            axisColorMode: text
+            axisLabel: ''
+            axisPlacement: auto
+            barAlignment: 0
+            barWidthFactor: 0.6
+            drawStyle: line
+            fillOpacity: 0
+            gradientMode: none
+            hideFrom:
+              legend: false
+              tooltip: false
+              viz: false
+            insertNulls: false
+            lineInterpolation: linear
+            lineWidth: 1
+            pointSize: 5
+            scaleDistribution:
+              type: linear
+            showPoints: auto
+            spanNulls: false
+            stacking:
+              group: A
+              mode: none
+            thresholdsStyle:
+              mode: 'off'
+          mappings: []
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: null
+              - color: red
+                value: 80
+        overrides: []
+      gridPos:
+        h: 8
+        w: 12
+        x: 0
+        y: 8
+      id: 5
+      options:
+        legend:
+          calcs: []
+          displayMode: list
+          placement: bottom
+          showLegend: true
+        tooltip:
+          mode: single
+          sort: none
+      pluginVersion: 11.3.0-77222
+      targets:
+        - dateTimeType: DATETIME
+          editorMode: builder
+          extrapolate: true
+          format: time_series
+          formattedQuery: SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter
+            GROUP BY t ORDER BY t
+          intervalFactor: 1
+          query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' MINUTE) as\
+            \ date, count() as numConnects,\n\tif(\n\t\tstartsWith(blob2, 'http://localhost')\
+            \ or startsWith(blob2, 'http://127.0.0.1'),\n\t\t'localhost',\n\t\tif(\n\t\
+            \t\tendsWith(blob2, '.csb.app'),\n\t\t\t'code sandbox',\n\t\t\tblob2\n\t\t\
+            )\n\t) as host\n\tFROM 'BEMO_ANALYTICS'\n    WHERE blob1 = 'connect'\n\tAND\
+            \ timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)\n\t-- AND\
+            \ NOT(startsWith(host, 'http://localhost')) AND NOT(startsWith(host, 'http://127.0.0.1'))\n\
+            \tGROUP BY date, host\n    ORDER BY date ASC"
+          rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '30' MINUTE) as date,\
+            \ count() as numConnects,\n\tif(\n\t\tstartsWith(blob2, 'http://localhost')\
+            \ or startsWith(blob2, 'http://127.0.0.1'),\n\t\t'localhost',\n\t\tif(\n\t\
+            \t\tendsWith(blob2, '.csb.app'),\n\t\t\t'code sandbox',\n\t\t\tblob2\n\t\t\
+            )\n\t) as host\n\tFROM 'BEMO_ANALYTICS'\n    WHERE blob1 = 'connect'\n\tAND\
+            \ timestamp >= toDateTime(1728620743) AND timestamp <= toDateTime(1728642343)\n\
+            \t\n\tGROUP BY date, host\n    ORDER BY date ASC"
+          refId: A
+          round: 0s
+          skip_comments: true
+      title: Num Connects
+      type: timeseries
+    - datasource:
+        type: vertamedia-clickhouse-datasource
+        uid: bdgu7tk03irr4e
+      fieldConfig:
+        defaults:
+          color:
+            mode: palette-classic
+          custom:
+            axisBorderShow: false
+            axisCenteredZero: false
+            axisColorMode: text
+            axisLabel: ''
+            axisPlacement: auto
+            barAlignment: 0
+            barWidthFactor: 0.6
+            drawStyle: line
+            fillOpacity: 0
+            gradientMode: none
+            hideFrom:
+              legend: false
+              tooltip: false
+              viz: false
+            insertNulls: false
+            lineInterpolation: smooth
+            lineWidth: 1
+            pointSize: 5
+            scaleDistribution:
+              type: linear
+            showPoints: auto
+            spanNulls: false
+            stacking:
+              group: A
+              mode: none
+            thresholdsStyle:
+              mode: 'off'
+          mappings: []
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: null
+              - color: red
+                value: 80
+        overrides: []
+      gridPos:
+        h: 19
+        w: 12
+        x: 12
+        y: 8
+      id: 4
+      options:
+        legend:
+          calcs: []
+          displayMode: table
+          placement: bottom
+          showLegend: true
+        tooltip:
+          mode: single
+          sort: none
+      pluginVersion: 11.3.0-77222
+      targets:
+        - datasource:
+            type: vertamedia-clickhouse-datasource
+            uid: bdgu7tk03irr4e
+          dateTimeType: DATETIME
+          editorMode: builder
+          extrapolate: true
+          format: time_series
+          formatAs: time_series
+          formattedQuery: "SELECT count() as numConnects, blob2\n\tFROM 'BEMO_ANALYTICS'\n\
+            \    WHERE blob1 = 'connect'\n\tAND timestamp >= toDateTime($from) AND timestamp\
+            \ <= toDateTime($to)\n\tGROUP BY blob2\n    ORDER BY numConnects ASC"
+          intervalFactor: 1
+          query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' MINUTE) as\
+            \ date, count() as numConnects,\n\tif(\n\t\tstartsWith(blob2, 'http://localhost')\
+            \ or startsWith(blob2, 'http://127.0.0.1'),\n\t\t'localhost',\n\t\tif(\n\t\
+            \t\tendsWith(blob2, '.csb.app'),\n\t\t\t'code sandbox',\n\t\t\tblob2\n\t\t\
+            )\n\t) as host\n\tFROM 'BEMO_ANALYTICS'\n    WHERE blob1 = 'connect'\n\tAND\
+            \ timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)\n\t-- AND\
+            \ NOT(startsWith(host, 'http://localhost')) AND NOT(startsWith(host, 'http://127.0.0.1'))\n\
+            \tGROUP BY date, host\n    ORDER BY date ASC"
+          rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '3600' MINUTE) as date,\
+            \ count() as numConnects,\n\tif(\n\t\tstartsWith(blob2, 'http://localhost')\
+            \ or startsWith(blob2, 'http://127.0.0.1'),\n\t\t'localhost',\n\t\tif(\n\t\
+            \t\tendsWith(blob2, '.csb.app'),\n\t\t\t'code sandbox',\n\t\t\tblob2\n\t\t\
+            )\n\t) as host\n\tFROM 'BEMO_ANALYTICS'\n    WHERE blob1 = 'connect'\n\tAND\
+            \ timestamp >= toDateTime(1720773373) AND timestamp <= toDateTime(1726292377)\n\
+            \t\n\tGROUP BY date, host\n    ORDER BY date ASC"
+          refId: A
+          round: 0s
+          showFormattedSQL: false
+          showHelp: false
+          skip_comments: true
+          step: ''
+      title: Panel Title
+      type: timeseries
+  preload: false
+  schemaVersion: 40
+  tags:
+    - provisioned
+    - repo:tldraw/tldraw
+  templating:
+    list: []
+  time:
+    from: now-6h
+    to: now
+  timepicker: {}
+  timezone: browser
+  title: Bemo analytics
+  weekStart: ''

@@ -49,6 +49,12 @@ import { getOgImage } from './routes/tla/getOgImage'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
 import { initUser } from './routes/tla/initUser'
+import {
+	MCP_PROTECTED_RESOURCE_METADATA_PATH,
+	getMcpProtectedResourceMetadata,
+	mcpCorsPreflight,
+	withMcpCors,
+} from './routes/tla/mcpAuth'
 import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
 import { putThumbnailRenderResult } from './routes/tla/putThumbnailRenderResult'
 import { sharedBoardScreenshotMcp } from './routes/tla/sharedBoardScreenshotMcp'
@@ -62,7 +68,7 @@ import {
 	getUserDurableObject,
 } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
-import { getAuth, requireAuth } from './utils/tla/getAuth'
+import { getAuth, getZeroAuth, requireAuth } from './utils/tla/getAuth'
 import { getRole } from './utils/tla/getRole'
 export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLFileEffectProcessor } from './TLFileEffectProcessor'
@@ -83,6 +89,25 @@ const { preflight, corsify } = cors({
 const QUEUE_BASE_DELAY = 2
 
 const router = createRouter<Environment>()
+	// The MCP endpoint and its RFC 9728 discovery metadata are registered ahead of both the shared
+	// preflight and the origin check, and answer their own CORS instead — see MCP_CORS_HEADERS for why
+	// an origin allowlist is the wrong gate for a bearer-authenticated endpoint, and what a browser
+	// MCP client got before this.
+	//
+	// `.options` before `.all` so the preflight is answered rather than dispatched into the handler.
+	.options('/app/mcp', mcpCorsPreflight)
+	.options(MCP_PROTECTED_RESOURCE_METADATA_PATH, mcpCorsPreflight)
+	// .all so MCP server can correctly respond to non-post requests with 405
+	.all('/app/mcp', async (req, env, ctx) =>
+		withMcpCors(await sharedBoardScreenshotMcp(req, env, ctx))
+	)
+	// Registered at the origin rather than under /app, because RFC 9728 puts protected resource
+	// metadata at a well-known path derived from the resource's own path — a client looks for exactly
+	// this URL and nowhere else. The /api/* route pattern does not cover it, so wrangler.toml carries
+	// a second route for this prefix; see MCP_PROTECTED_RESOURCE_METADATA_PATH.
+	.get(MCP_PROTECTED_RESOURCE_METADATA_PATH, (req, env) =>
+		withMcpCors(getMcpProtectedResourceMetadata(req, env))
+	)
 	.all('*', preflight)
 	.all('*', blockUnknownOrigins)
 	.post('/snapshots', createRoomSnapshot)
@@ -151,7 +176,7 @@ const router = createRouter<Environment>()
 	})
 	// Dev/preview only. Wakes the outbox processor: local workerd doesn't fire persisted alarms
 	// for an uninstantiated DO, so without this a restarted dev stack drains nothing until the
-	// first mutation. The dev stack's readiness probe hits this route.
+	// first mutation. The dev stack's one-shot wake-outbox process hits this route on startup.
 	.get('/app/outbox-status', async (_, env) => {
 		if (!isDebugLogging(env)) return notFound()
 		await getFileEffectProcessor(env).poke()
@@ -198,7 +223,8 @@ const router = createRouter<Environment>()
 	})
 	.post('/app/submit-feedback', submitFeedback)
 	.get('/app/feature-flags', getFeatureFlags)
-	.post('/app/mcp', sharedBoardScreenshotMcp)
+	// The MCP endpoint and its discovery metadata are registered at the top of this router, ahead of
+	// the origin check. See there.
 	// The board's rendered social preview image, referenced by the og:image tags getSocialPreview
 	// emits. Lives under the social-preview route family so the crawler HTML and its image share one
 	// path prefix. Registered with .all (like the sibling HTML route) so HEAD probes are handled;
@@ -219,7 +245,7 @@ const router = createRouter<Environment>()
 	.all('/health-check/*', healthCheckRoutes.fetch)
 	.all('/app/admin/*', adminRoutes.fetch)
 	.post('/app/zero/mutate', async (req, env, ctx) => {
-		const auth = await getAuth(req, env)
+		const auth = await getZeroAuth(req, env)
 		if (!auth) {
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		}
@@ -238,7 +264,7 @@ const router = createRouter<Environment>()
 		return json(result)
 	})
 	.post('/app/zero/query', async (req, env) => {
-		const auth = await getAuth(req, env)
+		const auth = await getZeroAuth(req, env)
 		if (!auth) {
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		}

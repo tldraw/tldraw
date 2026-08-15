@@ -6,6 +6,7 @@ import {
 	TlaCommentReaction,
 	TlaCommentRead,
 	TlaCommentThread,
+	TlaEffectOutbox,
 	TlaFile,
 	TlaFileState,
 	TlaFileVisitor,
@@ -334,14 +335,10 @@ export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persis
 
 /* ----------------------- Feature Flags ---------------------- */
 
-export const FEATURE_FLAG_KEYS = [
-	'rum_enabled',
-	'commenting_enabled',
-	'mcp_friends_and_family',
-] as const
+export const FEATURE_FLAG_KEYS = ['rum_enabled', 'commenting_enabled', 'mcp_server_access'] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 
-export type FeatureFlagValue = BooleanFeatureFlag | PercentageFeatureFlag
+export type FeatureFlagValue = BooleanFeatureFlag | PercentageFeatureFlag | AllowlistFeatureFlag
 
 export interface BooleanFeatureFlag {
 	type: 'boolean'
@@ -358,19 +355,83 @@ export interface PercentageFeatureFlag {
 	description: string
 }
 
-/** Returned by the user-facing endpoint — just the evaluated result, no server internals. */
-export interface EvaluatedFeatureFlag {
+/**
+ * Names the users a flag is on for, one person at a time.
+ *
+ * Distinct from a percentage rollout, which cannot express this: a percentage buckets users by
+ * `hash(userId + flagName)`, so it yields *a* subset of the requested size but never *the* subset
+ * someone picked. A hand-chosen group — a friends-and-family rollout, a set of design partners —
+ * needs the people themselves.
+ *
+ * Matching is on `userId`, never on email. `evaluateFlagForUser` already takes a userId and every
+ * caller has one, whereas matching on email would mean a user lookup per evaluation. Admins enter
+ * emails anyway — ids are opaque — so the admin save resolves each address to a user id up front,
+ * and the email rides along in the entry purely so the admin panel can show a readable list.
+ */
+export interface AllowlistFeatureFlag {
+	type: 'allowlist'
+	/** The users the flag is on for. Anyone not named here evaluates false. */
+	users: AllowlistEntry[]
+	/** Master toggle — when false, disabled for everyone regardless of the list. */
 	enabled: boolean
+	description: string
+}
+
+/** One person on an allowlist flag. Matched by id; the email is only a label. */
+export interface AllowlistEntry {
+	userId: string
+	email: string
+	/**
+	 * Set by the admin GET only, on an entry whose `userId` no longer resolves to an account — a
+	 * deleted user, or an id that was never one. Never stored: matching is by id and an unresolvable
+	 * id matches nobody, so this exists purely so the panel can show a dead grant as dead rather than
+	 * as an ordinary line the admin would then fail to re-save.
+	 */
+	missing?: boolean
 }
 
 /**
- * One person on the MCP friends and family list that `mcp_friends_and_family` gates on. Admins enter
- * an email, which is resolved to a user id on save; matching is on the id, and the email is kept only
- * so the admin panel can show a readable list.
+ * How many people one allowlist may name. A hand-maintained list of design partners is tens of
+ * people; a save an order of magnitude past that is a mistake — a pasted address book, a script gone
+ * wrong — and it would be stored in a single KV value that every evaluation reads.
  */
-export interface FriendsAndFamilyEntry {
-	userId: string
-	email: string
+export const MAX_ALLOWLIST_ENTRIES = 200
+
+/**
+ * Parses admin input into the emails an allowlist save should resolve: one per line or comma, blanks
+ * and duplicates dropped, lowercased so the lookup and the dedupe agree. Anything that isn't an email
+ * address is rejected rather than sent to the lookup, so the admin gets "that isn't an email" instead
+ * of the blanker "no account for that".
+ *
+ * Shared rather than implemented either side, because the admin panel counts what it is about to send
+ * and the worker decides what to store: two implementations disagreeing means a save that reports
+ * "1 user" and stores five. A comma-separated paste is exactly that case.
+ */
+export function parseAllowlistEmails(input: unknown): string[] {
+	const raw = Array.isArray(input)
+		? input.map((entry) => String(entry))
+		: String(input ?? '').split(/[\n,]/)
+
+	const emails: string[] = []
+	for (const value of raw) {
+		const email = value.trim().toLowerCase()
+		if (!email) continue
+		if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+			throw new Error(`"${value.trim()}" is not an email address`)
+		}
+		if (!emails.includes(email)) emails.push(email)
+	}
+	if (emails.length > MAX_ALLOWLIST_ENTRIES) {
+		throw new Error(
+			`An allowlist can name at most ${MAX_ALLOWLIST_ENTRIES} people; that is ${emails.length}`
+		)
+	}
+	return emails
+}
+
+/** Returned by the user-facing endpoint — just the evaluated result, no server internals. */
+export interface EvaluatedFeatureFlag {
+	enabled: boolean
 }
 
 /** One unassociated or unverifiable asset in an admin asset-diagnostics report. */
@@ -413,4 +474,110 @@ export interface AdminFileAssetsResponseBody {
 	}
 	dbRows: { forThisFile: number; orphaned: number }
 	warnings: string[]
+}
+
+/**
+ * Response of the admin board-stats endpoint: the shape of a board without its contents.
+ *
+ * Every field is a count, an enum tally, a size, or a timestamp. Nothing here is text a user typed,
+ * a URL they pasted, a shape id, or a person's id — so a report can be pasted into an issue, a
+ * Sentry thread, or a support reply without leaking what's on the board or who made it. Anything
+ * added here has to hold that line; use the asset diagnostics report when you need identifiers.
+ */
+export interface AdminFileStatsResponseBody {
+	/** null when no `file` row exists — legacy rooms have a snapshot but no row */
+	file: {
+		ownerType: 'user' | 'group' | 'none'
+		createdAt: number
+		updatedAt: number
+		isDeleted: boolean
+		isEmpty: boolean
+		published: boolean
+		shared: boolean
+		sharedLinkType: string
+		/** Only the prefix (`file`, `room`, `publish`, `local`, …); the id half would name a board */
+		createSourceKind: string | null
+	} | null
+	snapshot: {
+		/** Stored size of the snapshot object in R2; null when the head check failed */
+		sizeBytes: number | null
+		clock: number | null
+		documentClock: number | null
+		tombstones: number
+		records: number
+		recordsByTypeName: Record<string, number>
+		/** Serialized schema version, for spotting boards stuck behind a migration */
+		schemaVersion: number | null
+		/** Per-record-type sequence numbers from the serialized schema, when it has them */
+		sequences: Record<string, number> | null
+	}
+	pages: { total: number; maxShapesOnAPage: number; empty: number }
+	shapes: {
+		total: number
+		byType: Record<string, number>
+		/** Deepest parent chain; 1 means every shape sits directly on a page */
+		maxDepth: number
+		locked: number
+		rotated: number
+		/**
+		 * Shapes whose parent chain doesn't end at a page: a missing or unusable `parentId`, a chain
+		 * that stops on a record that isn't a page, or a chain long enough to be a cycle.
+		 */
+		orphaned: number
+		/**
+		 * Bounds covering the shapes parented directly to a page, from x/y plus w/h where the shape
+		 * has them. Nested shapes are left out — their x/y is relative to their frame or group, so
+		 * mixing the two would give a meaningless box. Rotation is ignored.
+		 */
+		extent: { width: number; height: number } | null
+	}
+	/** Lengths only — never the text itself */
+	text: { shapesWithText: number; totalCharacters: number; longestCharacters: number }
+	bindings: {
+		total: number
+		byType: Record<string, number>
+		/**
+		 * The first three partition every arrow shape by how many of its terminals have a binding
+		 * record. Whether the bound shape still exists is the separate `dangling` count, so an arrow
+		 * bound to a deleted shape shows up in both `boundOneEnd` and `dangling`.
+		 */
+		arrows: {
+			boundBothEnds: number
+			boundOneEnd: number
+			unbound: number
+			/** Bindings pointing at a shape that isn't in the snapshot */
+			dangling: number
+		}
+	}
+	/** Value tallies for the enum style props, keyed by prop name then value */
+	styles: Record<string, Record<string, number>>
+	assets: { total: number; byType: Record<string, number>; totalSizeBytes: number }
+	collaboration: { visitors: number; commentThreads: number; comments: number }
+	warnings: string[]
+}
+
+/** One row of the admin effect-outbox listing, with derived fields the UI needs. */
+export interface AdminOutboxRow extends Omit<TlaEffectOutbox, 'createdAt' | 'nextRetryAt'> {
+	/** ISO string: crosses the wire as JSON, not a kysely Date. */
+	createdAt: string
+	/** ISO string: crosses the wire as JSON, not a kysely Date. */
+	nextRetryAt: string | null
+	ageSeconds: number
+	parked: boolean
+	/** Current `file` row for tableName 'file' rows; null if hard-deleted or not a file row */
+	currentEntity: TlaFile | null
+}
+
+/** Response of the admin effect-outbox row listing endpoint. */
+export interface AdminOutboxRowsResponseBody {
+	rows: AdminOutboxRow[]
+}
+
+/** Response of the admin effect-outbox stats endpoint. */
+export interface AdminOutboxStatsResponseBody {
+	outbox: {
+		pending: number
+		parked: number
+		oldestPendingAgeSeconds: number | null
+	}
 }

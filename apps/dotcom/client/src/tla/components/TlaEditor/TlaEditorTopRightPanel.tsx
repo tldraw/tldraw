@@ -123,6 +123,7 @@ export function TlaEditorTopRightPanel({
  */
 function CommentsSidebarButton() {
 	const editor = useEditor()
+	const trackEvent = useTldrawAppUiEvents()
 	const commentingEnabled = useCommentingEnabled()
 	const commentingEnabledForUser = useIsCommentingEnabled()
 	const open = useCommentsSidebarOpen()
@@ -138,7 +139,10 @@ function CommentsSidebarButton() {
 			aria-pressed={open}
 			tooltip={label}
 			title={label}
-			onClick={() => toggleCommentsSidebar(editor)}
+			onClick={() => {
+				toggleCommentsSidebar(editor)
+				trackEvent('toggle-comments-sidebar', { source: 'comments', open: !open })
+			}}
 		>
 			<TlaIcon icon="comment" />
 		</TldrawUiButton>

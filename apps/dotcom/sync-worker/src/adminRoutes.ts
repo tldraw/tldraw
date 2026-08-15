@@ -1,8 +1,12 @@
 import {
 	AdminFileAssetsResponseBody,
+	AdminFileStatsResponseBody,
+	AdminOutboxRowsResponseBody,
+	AdminOutboxStatsResponseBody,
+	AllowlistEntry,
 	FILE_PREFIX,
 	FeatureFlagKey,
-	FriendsAndFamilyEntry,
+	FeatureFlagValue,
 	LOCAL_FILE_PREFIX,
 	PUBLISH_PREFIX,
 	ROOM_PREFIX,
@@ -15,6 +19,7 @@ import { StatusError, json } from 'itty-router'
 import { sql } from 'kysely'
 import PQueue from 'p-queue'
 import { getUploadObjectName } from './assetAssociation'
+import { summarizeSnapshotDocuments } from './fileStats'
 import { MAX_ATTEMPTS } from './outboxDrain'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
@@ -24,14 +29,18 @@ import { undeleteFile } from './undeleteFile'
 import {
 	getFileEffectProcessor,
 	getRoomDurableObject,
+	getRoomDurableObjectById,
+	getRoomDurableObjectId,
 	getUserDurableObject,
 } from './utils/durableObjects'
-import { FEATURE_FLAG_KEYS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
 import {
-	getFriendsAndFamilyList,
-	parseFriendsAndFamilyEmails,
-	setFriendsAndFamilyList,
-} from './utils/mcpFriendsAndFamily'
+	FEATURE_FLAG_KEYS,
+	FeatureFlagUpdate,
+	getAllFeatureFlagValues,
+	getFeatureFlagType,
+	parseAllowlistEmails,
+	setFeatureFlag,
+} from './utils/featureFlags'
 import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
 
 /**
@@ -40,13 +49,13 @@ import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/get
  * per address, and an email with no tldraw account fails the save instead of being stored as an
  * entry that can never match.
  */
-async function resolveFriendsAndFamilyUsers(
+async function resolveAllowlistUsers(
 	env: Environment,
 	emails: string[]
-): Promise<FriendsAndFamilyEntry[]> {
+): Promise<AllowlistEntry[]> {
 	if (!emails.length) return []
 
-	const db = createPostgresConnectionPool(env, '/app/admin/mcp-friends-and-family')
+	const db = createPostgresConnectionPool(env, '/app/admin/feature-flags')
 	try {
 		const rows = await db
 			.selectFrom('user')
@@ -69,6 +78,58 @@ async function resolveFriendsAndFamilyUsers(
 	} finally {
 		await db.destroy()
 	}
+}
+
+/**
+ * Refreshes the email labels an allowlist carries, and marks the entries whose user id no longer
+ * resolves to an account.
+ *
+ * The stored email is written once at save time and never updated, so it rots: an address change
+ * leaves an entry that still *works* — matching is by id — while displaying the old address, and
+ * re-saving the list as displayed then 400s on a line the admin cannot pick out from the rest. A
+ * deleted account leaves an entry that looks like a live grant and matches nobody. Resolved on read
+ * instead, which costs the admin panel one query per page load and the request path nothing.
+ */
+async function withResolvedAllowlistLabels(
+	env: Environment,
+	flags: Record<string, FeatureFlagValue>
+): Promise<Record<string, FeatureFlagValue>> {
+	const entriesOf = (flag: FeatureFlagValue) =>
+		flag.type === 'allowlist' && Array.isArray(flag.users) ? flag.users : []
+
+	const ids = [
+		...new Set(Object.values(flags).flatMap((flag) => entriesOf(flag).map((e) => e.userId))),
+	]
+	if (!ids.length) return flags
+
+	const db = createPostgresConnectionPool(env, '/app/admin/feature-flags')
+	let emailById: Map<string, string>
+	try {
+		const rows = await db
+			.selectFrom('user')
+			.select(['id', 'email'])
+			.where('id', 'in', ids)
+			.execute()
+		emailById = new Map(rows.map((row) => [row.id, row.email]))
+	} finally {
+		await db.destroy()
+	}
+
+	return Object.fromEntries(
+		Object.entries(flags).map(([key, flag]) => {
+			if (flag.type !== 'allowlist') return [key, flag]
+			return [
+				key,
+				{
+					...flag,
+					users: entriesOf(flag).map((entry) => {
+						const email = emailById.get(entry.userId)
+						return email ? { ...entry, email } : { ...entry, missing: true }
+					}),
+				},
+			]
+		})
+	)
 }
 
 async function requireUser(env: Environment, q: string) {
@@ -142,7 +203,7 @@ export const adminRoutes = createRouter<Environment>()
 					eb.fn.min('createdAt').filterWhere('attempts', '<', MAX_ATTEMPTS).as('oldestPending'),
 				])
 				.executeTakeFirstOrThrow()
-			return json({
+			const result: AdminOutboxStatsResponseBody = {
 				outbox: {
 					pending: Number(stats.pending),
 					parked: Number(stats.parked),
@@ -150,15 +211,209 @@ export const adminRoutes = createRouter<Environment>()
 						? Math.round((Date.now() - new Date(stats.oldestPending).getTime()) / 1000)
 						: null,
 				},
-			})
+			}
+			return json(result)
 		} finally {
 			await db.destroy()
 		}
 	})
-	.get('/app/admin/feature-flags', getFeatureFlagsAdmin)
+	// Up to 100 outbox rows for manual inspection. Batches the current 'file' row per file-table
+	// entity in one query (rather than N+1) so the operator can compare payload vs. live state
+	// without a separate lookup per row.
+	.get('/app/admin/outbox/rows', async (_res, env) => {
+		const db = createPostgresConnectionPool(env, '/app/admin/outbox/rows')
+		try {
+			// Pending rows first, then parked, so old parked rows can't crowd new pending rows out
+			// of the 100-row cap.
+			const rows = await db
+				.selectFrom('effect_outbox')
+				.selectAll()
+				.orderBy(sql`("attempts" >= ${sql.raw(String(MAX_ATTEMPTS))})`)
+				.orderBy('id')
+				.limit(100)
+				.execute()
+
+			const fileIds = [
+				...new Set(rows.filter((r) => r.tableName === 'file').map((r) => r.entityId)),
+			]
+			const currentFiles = fileIds.length
+				? await db.selectFrom('file').where('id', 'in', fileIds).selectAll().execute()
+				: []
+			const currentFileById = new Map(currentFiles.map((f) => [f.id, f]))
+
+			const now = Date.now()
+			const result: AdminOutboxRowsResponseBody = {
+				rows: rows.map((row) => ({
+					...row,
+					createdAt: row.createdAt.toISOString(),
+					nextRetryAt: row.nextRetryAt ? row.nextRetryAt.toISOString() : null,
+					ageSeconds: Math.round((now - row.createdAt.getTime()) / 1000),
+					parked: row.attempts >= MAX_ATTEMPTS,
+					currentEntity:
+						row.tableName === 'file' ? (currentFileById.get(row.entityId) ?? null) : null,
+				})),
+			}
+			return json(result)
+		} finally {
+			await db.destroy()
+		}
+	})
+	.post('/app/admin/outbox/:id/retry', async (res, env) => {
+		const id = Number(res.params.id)
+		if (Number.isNaN(id)) {
+			throw new StatusError(400, 'id must be numeric')
+		}
+
+		const db = createPostgresConnectionPool(env, '/app/admin/outbox/retry')
+		let numUpdatedRows: bigint
+		try {
+			const result = await db
+				.updateTable('effect_outbox')
+				.set({ attempts: 0, nextRetryAt: null })
+				.where('id', '=', id)
+				.executeTakeFirst()
+			numUpdatedRows = result.numUpdatedRows
+		} finally {
+			await db.destroy()
+		}
+		// The drain (or another operator) may have deleted the row concurrently.
+		if (numUpdatedRows === 0n) {
+			throw new StatusError(404, `Outbox row ${id} not found`)
+		}
+		// Best-effort nudge: the reset already committed, so a poke failure must not 500 this
+		// request; the sweep alarm picks the row up within 30s regardless.
+		try {
+			await getFileEffectProcessor(env).poke()
+		} catch (e) {
+			console.error(`Failed to poke effect processor after resetting outbox row ${id}`, e)
+		}
+		return json({ ok: true })
+	})
+	.post('/app/admin/outbox/:id/delete', async (res, env) => {
+		const id = Number(res.params.id)
+		if (Number.isNaN(id)) {
+			throw new StatusError(400, 'id must be numeric')
+		}
+
+		const db = createPostgresConnectionPool(env, '/app/admin/outbox/delete')
+		let numDeletedRows: bigint
+		try {
+			const result = await db.deleteFrom('effect_outbox').where('id', '=', id).executeTakeFirst()
+			numDeletedRows = result.numDeletedRows
+		} finally {
+			await db.destroy()
+		}
+		// The drain (or another operator) may have already deleted the row.
+		if (numDeletedRows === 0n) {
+			throw new StatusError(404, `Outbox row ${id} not found`)
+		}
+		return json({ ok: true })
+	})
+	// Maps a durable object id or room slug to the room's activity signals. The id is a one-way
+	// hash of the room name, but the room object stores its own identity, so it is asked directly —
+	// a never-initialized id resolves to null. A slug (anything that isn't 64-char hex) is hashed
+	// forward via idFromName. The brief wake is storage-read only; no room boot. Persist history
+	// comes from the version-cache bucket: one timestamped snapshot per persist, so save cadence
+	// separates an actively edited room from a parked tab holding a socket open.
+	.get('/app/admin/resolve-do-id/:objectIdOrSlug', async (res, env) => {
+		const param = res.params.objectIdOrSlug
+		let objectId: string
+		if (/^[0-9a-f]{64}$/.test(param)) {
+			objectId = param
+		} else if (/^[0-9a-fA-F]{16,}$/.test(param)) {
+			// hex is a subset of the slug charset — without this, a truncated or uppercase id would
+			// hash as a slug and report a confident "never initialized"
+			throw new StatusError(
+				400,
+				'looks like a truncated or uppercase durable object id — paste the full 64-char lowercase hex'
+			)
+		} else if (/^[a-zA-Z0-9_-]+$/.test(param)) {
+			objectId = getRoomDurableObjectId(env, param).toString()
+		} else {
+			throw new StatusError(400, 'pass a 64-char hex durable object id or a room slug')
+		}
+		let roomDo: ReturnType<typeof getRoomDurableObjectById>
+		try {
+			// idFromString rejects hex that fails the namespace checksum (garbage, or an id copied
+			// from another durable object class)
+			roomDo = getRoomDurableObjectById(env, objectId)
+		} catch {
+			throw new StatusError(400, 'not a valid durable object id for the file namespace')
+		}
+		const info = await roomDo.__admin__getDocumentInfo()
+		if (!info) return json({ objectId, match: null, history: null })
+
+		// Stream the stats instead of collecting objects, so any number of snapshots fits. Keys are
+		// ISO timestamps (oldest first); min/max tracking keeps the newest save correct either way.
+		const prefix = `${getR2KeyForRoom({ slug: info.slug, isApp: info.isApp })}/`
+		let saves = 0
+		let totalBytes = 0
+		let firstAt: number | null = null
+		let lastAt: number | null = null
+		let latestSize: number | null = null
+		let cursor: string | undefined
+		let pages = 0
+		let listTruncated = false
+		do {
+			const page = await env.ROOMS_HISTORY_EPHEMERAL.list({ prefix, cursor })
+			for (const obj of page.objects) {
+				saves++
+				totalBytes += obj.size
+				const t = obj.uploaded.getTime()
+				if (firstAt === null || t < firstAt) firstAt = t
+				if (lastAt === null || t > lastAt) {
+					lastAt = t
+					latestSize = obj.size
+				}
+			}
+			cursor = page.truncated ? page.cursor : undefined
+			// subrequest backstop: 500 pages = 500k snapshots, far beyond any real room
+			if (++pages >= 500 && cursor) {
+				listTruncated = true
+				break
+			}
+		} while (cursor)
+
+		return json({
+			objectId,
+			match: info,
+			history: {
+				saves,
+				firstSaveAt: firstAt !== null ? new Date(firstAt).toISOString() : null,
+				lastSaveAt: lastAt !== null ? new Date(lastAt).toISOString() : null,
+				avgSecondsBetweenSaves:
+					saves > 1 && firstAt !== null && lastAt !== null
+						? Math.round((lastAt - firstAt) / 1000 / (saves - 1))
+						: null,
+				latestSizeBytes: latestSize,
+				totalSizeBytes: totalBytes,
+				listTruncated,
+			},
+		})
+	})
+	// Force-closes every session on a file room with CLIENT_TOO_OLD. Shipped clients treat that
+	// as terminal — no reconnect, a "please reload" screen — so a room held awake around the
+	// clock by parked background tabs on stale bundles can finally hibernate. Resolve the id
+	// first and check the verdict: this closes actively edited sessions just the same.
+	.post('/app/admin/close-do-sessions/:objectId', async (res, env) => {
+		const objectId = res.params.objectId
+		if (!/^[0-9a-f]{64}$/.test(objectId)) {
+			throw new StatusError(400, 'objectId must be a 64-char lowercase hex string')
+		}
+		let roomDo: ReturnType<typeof getRoomDurableObjectById>
+		try {
+			roomDo = getRoomDurableObjectById(env, objectId)
+		} catch {
+			throw new StatusError(400, 'not a valid durable object id for the file namespace')
+		}
+		return json(await roomDo.__admin__closeAllSessions())
+	})
+	.get('/app/admin/feature-flags', async (_req, env) => {
+		return json(await withResolvedAllowlistLabels(env, await getAllFeatureFlagValues(env)))
+	})
 	.post('/app/admin/feature-flags', async (req, env) => {
 		const body: any = await req.json()
-		const { flag, enabled, percentage } = body
+		const { flag, enabled, percentage, emails } = body
 
 		if (typeof flag !== 'string') {
 			throw new StatusError(400, 'flag (string) is required')
@@ -176,32 +431,46 @@ export const adminRoutes = createRouter<Environment>()
 		if (!FEATURE_FLAG_KEYS.includes(flag as FeatureFlagKey)) {
 			throw new StatusError(400, `Invalid flag. Must be one of: ${FEATURE_FLAG_KEYS.join(', ')}`)
 		}
+		const flagKey = flag as FeatureFlagKey
 
-		const update: { enabled?: boolean; percentage?: number } = {}
-		if (enabled !== undefined) update.enabled = enabled
-		if (percentage !== undefined) update.percentage = percentage
-
-		await setFeatureFlag(env, flag as FeatureFlagKey, update)
-		return json({ success: true, flag, ...update })
-	})
-	.get('/app/admin/mcp-friends-and-family', async (_req, env) => {
-		return json({ entries: await getFriendsAndFamilyList(env) })
-	})
-	.post('/app/admin/mcp-friends-and-family', async (req, env) => {
-		const body: any = await req.json()
-
-		// Parsing before resolving means a typo is rejected at the point someone can still fix it,
-		// rather than sitting in the list looking like it grants access while matching nothing.
-		let emails: string[]
-		try {
-			emails = parseFriendsAndFamilyEmails(body?.entries)
-		} catch (e) {
-			throw new StatusError(400, e instanceof Error ? e.message : String(e))
+		// A field that means nothing for this flag's type is refused rather than dropped. It used to be
+		// dropped silently and still answered `{success: true, users: […]}`, so an admin could send an
+		// allowlist to a percentage flag, be told it saved, and have nothing stored anywhere.
+		const type = getFeatureFlagType(env, flagKey)
+		if (percentage !== undefined && type !== 'percentage') {
+			throw new StatusError(400, `"${flagKey}" is a ${type} flag; percentage does not apply to it`)
+		}
+		if (emails !== undefined && type !== 'allowlist') {
+			throw new StatusError(400, `"${flagKey}" is a ${type} flag; emails do not apply to it`)
 		}
 
-		const entries = await resolveFriendsAndFamilyUsers(env, emails)
-		await setFriendsAndFamilyList(env, entries)
-		return json({ success: true, entries })
+		let update: FeatureFlagUpdate
+		if (type === 'allowlist') {
+			let users: AllowlistEntry[] | undefined
+			if (emails !== undefined) {
+				// An allowlist is edited as emails and stored as user ids. Parsing before resolving means a
+				// typo is rejected at the point someone can still fix it, rather than sitting in the list
+				// looking like it grants access while matching nothing; resolving at save time means an email
+				// with no tldraw account fails the save instead of being stored as an entry that can never
+				// match.
+				let parsed: string[]
+				try {
+					parsed = parseAllowlistEmails(emails)
+				} catch (e) {
+					throw new StatusError(400, e instanceof Error ? e.message : String(e))
+				}
+				users = await resolveAllowlistUsers(env, parsed)
+			}
+			update = { type, enabled, users }
+		} else if (type === 'percentage') {
+			update = { type, enabled, percentage }
+		} else {
+			update = { type, enabled }
+		}
+
+		await setFeatureFlag(env, flagKey, update)
+		const { type: _type, ...stored } = update
+		return json({ success: true, flag, ...stored })
 	})
 	.post('/app/admin/create_legacy_file', async (_res, env) => {
 		const slug = uniqueId()
@@ -572,6 +841,128 @@ export const adminRoutes = createRouter<Environment>()
 			warnings,
 		}
 		return json(report)
+	})
+	// A board's shape without its contents. Answers "how big and how unusual is this board" for
+	// perf reports, migration bugs, and support threads without anyone having to open it — and
+	// without putting anything a user typed into the report. Read AdminFileStatsResponseBody
+	// before adding a field: staying content-free is the point of this endpoint.
+	.get('/app/admin/file-stats/:slug', async (res, env) => {
+		const slug = res.params.slug
+		assert(typeof slug === 'string', 'slug is required')
+
+		const warnings: string[] = []
+		const pg = createPostgresConnectionPool(env, '/app/admin/file-stats')
+		const [fileRow, snapshot, head] = await Promise.all([
+			pg
+				.selectFrom('file')
+				.where('id', '=', slug)
+				.select([
+					'ownerId',
+					'owningGroupId',
+					'createdAt',
+					'updatedAt',
+					'isDeleted',
+					'isEmpty',
+					'published',
+					'shared',
+					'sharedLinkType',
+					'createSource',
+				])
+				.executeTakeFirst(),
+			getFileSnapshot(env, slug, true),
+			env.ROOMS.head(getR2KeyForRoom({ slug, isApp: true })).catch((e) => {
+				// Label only: an R2 error stringifies to the object key, which names the board
+				console.error('file-stats snapshot head failed', e)
+				warnings.push('snapshot head failed')
+				return null
+			}),
+		])
+		if (!snapshot) {
+			throw new StatusError(404, `No persisted snapshot for ${slug}`)
+		}
+
+		const summary = summarizeSnapshotDocuments(snapshot.documents)
+
+		// file_visitor, comment_thread, and comment all have a fileId index. file_state is
+		// deliberately not counted here: its primary key is (userId, fileId), so counting by fileId
+		// would sequentially scan the whole table.
+		const countRows = async (
+			label: string,
+			query: Promise<{ count: number | string | bigint } | undefined>
+		) => {
+			try {
+				return Number((await query)?.count ?? 0)
+			} catch (e) {
+				// Label only: a query error can carry table, column, and parameter detail
+				console.error(`file-stats ${label} count failed`, e)
+				warnings.push(`${label} count failed`)
+				return 0
+			}
+		}
+		const [visitors, commentThreads, comments] = await Promise.all([
+			countRows(
+				'file_visitor',
+				pg
+					.selectFrom('file_visitor')
+					.where('fileId', '=', slug)
+					.select((eb) => eb.fn.countAll<number>().as('count'))
+					.executeTakeFirst()
+			),
+			countRows(
+				'comment_thread',
+				pg
+					.selectFrom('comment_thread')
+					.where('fileId', '=', slug)
+					.where('isDeleted', '=', false)
+					.select((eb) => eb.fn.countAll<number>().as('count'))
+					.executeTakeFirst()
+			),
+			countRows(
+				'comment',
+				pg
+					.selectFrom('comment')
+					.where('fileId', '=', slug)
+					.where('isDeleted', '=', false)
+					.select((eb) => eb.fn.countAll<number>().as('count'))
+					.executeTakeFirst()
+			),
+		])
+
+		const schema = snapshot.schema as
+			| { schemaVersion?: number; sequences?: Record<string, number> }
+			| undefined
+		const createSourceKind = fileRow?.createSource?.split('/')[0] ?? null
+
+		const { recordsByTypeName, ...snapshotStats } = summary
+		const stats: AdminFileStatsResponseBody = {
+			file: fileRow
+				? {
+						ownerType: fileRow.ownerId ? 'user' : fileRow.owningGroupId ? 'group' : 'none',
+						createdAt: fileRow.createdAt,
+						updatedAt: fileRow.updatedAt,
+						isDeleted: fileRow.isDeleted,
+						isEmpty: fileRow.isEmpty,
+						published: fileRow.published,
+						shared: fileRow.shared,
+						sharedLinkType: fileRow.sharedLinkType,
+						createSourceKind,
+					}
+				: null,
+			snapshot: {
+				sizeBytes: head?.size ?? null,
+				clock: snapshot.clock ?? null,
+				documentClock: snapshot.documentClock ?? null,
+				tombstones: Object.keys(snapshot.tombstones ?? {}).length,
+				records: snapshot.documents.length,
+				recordsByTypeName,
+				schemaVersion: schema?.schemaVersion ?? null,
+				sequences: schema?.sequences ?? null,
+			},
+			...snapshotStats,
+			collaboration: { visitors, commentThreads, comments },
+			warnings,
+		}
+		return json(stats)
 	})
 	.get('/app/admin/download-tldr/:fileSlug', async (res, env) => {
 		const fileSlug = res.params.fileSlug

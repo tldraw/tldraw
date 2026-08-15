@@ -118,6 +118,7 @@ import {
 import { getOwnerWindow } from '../exports/domUtils'
 import { exportToSvg } from '../exports/exportToSvg'
 import { getSvgAsImageWithOptions, trimSvgToContent } from '../exports/getSvgAsImage'
+import { registerMountedEditor, unregisterMountedEditor } from '../globals/editors'
 import { tlmenus } from '../globals/menus'
 import { tltime } from '../globals/time'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
@@ -918,10 +919,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.on('mount', () => {
 			this._isMounted.set(true)
+			registerMountedEditor(this)
 		})
 
 		this.on('unmount', () => {
 			this._isMounted.set(false)
+			unregisterMountedEditor(this)
 		})
 
 		this.timers.requestAnimationFrame(() => {
@@ -1209,6 +1212,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (this._isMounted.get()) {
 			this.emit('unmount')
 		}
+		// The unmount listener above normally handles this; unregister again in case a listener
+		// threw or was removed, so a disposed editor never lingers in `tleditors`.
+		unregisterMountedEditor(this)
 
 		// Stop any in-progress camera animations and following before
 		// running disposables, so their cleanup listeners fire first
