@@ -27,6 +27,7 @@ import {
 	TldrawUiButtonLabel,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
+	TldrawUiToolbar,
 	TLUiContextMenuProps,
 	TLUiKeyboardShortcutsDialogProps,
 	TLUiStylePanelProps,
@@ -172,7 +173,9 @@ function CustomNavigationPanel() {
 	return (
 		<div style={{ backgroundColor: 'thistle', padding: '14px' }}>
 			here you are
-			{ZoomMenu && <ZoomMenu />}
+			<TldrawUiToolbar orientation="horizontal" label="Navigation">
+				{ZoomMenu && <ZoomMenu />}
+			</TldrawUiToolbar>
 		</div>
 	)
 }
@@ -327,7 +330,8 @@ the hamburger icon in the top left corner of the tldraw component.
 [7]
 The navigation panel is in the bottom left of the tldraw component at larger breakpoints. It
 normally contains the zoom menu and a minimap. Replacing it drops the zoom menu too, so this one
-renders `ZoomMenu` from `useTldrawUiComponents` to keep [12] reachable.
+renders `ZoomMenu` from `useTldrawUiComponents` to keep [12] reachable. The zoom menu's trigger is a
+toolbar button, so it has to sit inside a `TldrawUiToolbar`.
 
 [8]
 The page menu contains options for creating and editing pages. To open it, click the page name in
