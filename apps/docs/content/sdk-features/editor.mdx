@@ -17,7 +17,7 @@ accuracy: 10
 notes: ''
 ---
 
-The [Editor](?) class is the main way of controlling tldraw's editor. It provides methods for creating, reading, updating, and deleting shapes; managing selection and history; controlling the camera; and responding to user input. By design, the editor's surface area is very large—almost everything is available through it.
+The [Editor](?) class is the main way of controlling tldraw's editor. It has methods for creating, reading, updating, and deleting shapes, for managing selection and history, for controlling the camera, and for responding to user input. By design, the editor's surface area is very large: almost everything is available through it.
 
 Need to create some shapes? Use [Editor#createShapes](?). Need to delete them? Use [Editor#deleteShapes](?). Want a sorted array of every shape on the current page? Use [Editor#getCurrentPageShapesSorted](?). The editor is your primary interface for interacting with the canvas.
 
@@ -65,7 +65,7 @@ function App() {
 
 ## Architecture overview
 
-The editor orchestrates several interconnected systems. Understanding how they fit together helps when building on top of tldraw.
+The editor coordinates several interconnected systems.
 
 ### Store
 
@@ -127,26 +127,18 @@ editor.isInAny('select.idle', 'hand.idle') // true if in either state
 
 #### State transitions
 
-Tools transition between child states as the user interacts. For example, the select tool has states like `idle`, `pointing`, `brushing`, and `translating`. When you click and drag on the canvas, the state might flow like this:
+Tools transition between child states as the user interacts. For example, the select tool has states like `idle`, `pointing_canvas`, `pointing_shape`, `brushing`, and `translating`. When you click and drag on empty canvas, the state flows like this:
 
 1. `select.idle` — waiting for input
-2. `select.pointing` — pointer down, waiting to see if this is a click or drag
+2. `select.pointing_canvas` — pointer down on the canvas, waiting to see if this is a click or drag
 3. `select.brushing` — dragging to create a selection box
 4. `select.idle` — pointer up, back to waiting
 
-Each state handles events differently. The `idle` state responds to `pointer_down` by transitioning to `pointing`. The `brushing` state responds to `pointer_move` by updating the brush bounds and `pointer_up` by completing the selection.
+Each state handles events differently. The `idle` state responds to `pointer_down` on the canvas by transitioning to `pointing_canvas`. The `brushing` state updates the brush bounds on `pointer_move` and completes the selection on `pointer_up`.
 
 #### Event flow
 
-Events flow from the root state down through active children. When you press a key or move the pointer, the editor dispatches an event that each active state can handle:
-
-```ts
-// Events bubble through: root → select → idle
-// Each state can:
-// - Handle the event and stop propagation
-// - Handle the event and let it continue
-// - Ignore the event entirely
-```
+Events flow from the root state down through active children: `root` → `select` → `idle`. Each state runs its own handler first, then passes the event to its active child. If a handler transitions to a different child, the new child does not receive the same event.
 
 States define handlers for events like `onPointerDown`, `onPointerMove`, `onKeyDown`, and `onEnter`/`onExit` for state transitions. The active state chain determines which handlers run.
 
@@ -156,28 +148,26 @@ See [Tools](/sdk-features/tools) for building custom tools.
 
 The editor delegates specialized functionality to manager classes:
 
-| Manager                     | Responsibility                                |
-| --------------------------- | --------------------------------------------- |
-| [HistoryManager](?)         | Undo/redo stack and history marks             |
-| [SnapManager](?)            | Shape snapping during transforms              |
-| FocusManager                | Focus state and keyboard event handling       |
-| [TextManager](?)            | Text measurement and layout                   |
-| [FontManager](?)            | Font loading and management                   |
-| TickManager                 | Animation frame scheduling                    |
-| [InputsManager](?)          | Pointer position and modifier key tracking    |
-| [ClickManager](?)           | Click, double-click, and long-press detection |
-| [ScribbleManager](?)        | Brush and scribble interactions               |
-| [EdgeScrollManager](?)      | Auto-scroll at viewport edges                 |
-| [UserPreferencesManager](?) | User settings persistence                     |
+| Manager                     | Responsibility                                   |
+| --------------------------- | ------------------------------------------------ |
+| [HistoryManager](?)         | Undo/redo stack and history marks                |
+| [SnapManager](?)            | Shape snapping during transforms                 |
+| [TextManager](?)            | Text measurement and layout                      |
+| [FontManager](?)            | Font loading and management                      |
+| [InputsManager](?)          | Pointer position and modifier key tracking       |
+| [ClickManager](?)           | Click, double-click, and long-press detection    |
+| [ScribbleManager](?)        | Scribble trails (eraser, laser, scribble select) |
+| [EdgeScrollManager](?)      | Auto-scroll at viewport edges                    |
+| [UserPreferencesManager](?) | User settings persistence                        |
 
-Access managers through the editor instance:
+Access managers through properties on the editor instance:
 
 ```ts
-// Mark history for undo
-editor.markHistoryStoppingPoint('my-action')
-
-// Check snap points
 editor.snaps.getIndicators()
+editor.inputs.getCurrentPagePoint()
+editor.user.getUserPreferences()
+editor.scribbles.addScribble({ color: 'accent' })
+editor.edgeScrollManager.updateEdgeScrolling(elapsed)
 ```
 
 ## Working with shapes
@@ -252,7 +242,7 @@ See [Shapes](/sdk-features/shapes) for the complete shape system.
 
 ## Selection
 
-The editor tracks which shapes are selected. Selection drives many operations—transform handles, copy/paste, delete, and more.
+The editor tracks which shapes are selected. Selection drives transform handles, copy/paste, and delete.
 
 ```ts
 // Select shapes
@@ -365,7 +355,7 @@ See [Camera](/sdk-features/camera) and [Coordinates](/sdk-features/coordinates) 
 
 ## Input state
 
-The [Editor#inputs](?) object tracks the user's current input state: cursor position, pressed keys, drag state, and more. All values on the inputs object are reactive signals—when you access them inside a tracked component or computed, your code automatically re-runs when those values change.
+The [Editor#inputs](?) object tracks the user's current input state: cursor position, pressed keys, and drag state. All values on the inputs object are reactive signals. When you read them inside a tracked component or computed, your code re-runs when they change.
 
 ```ts
 // Cursor position in page coordinates (reactive)
@@ -392,7 +382,7 @@ See [Input handling](/sdk-features/input-handling) for input details.
 
 ## Instance state
 
-The editor maintains per-instance state in a [TLInstance](?) record. This includes which page is current, whether the editor is in readonly mode, the current tool, tool lock state, and UI state.
+The editor maintains per-instance state in a [TLInstance](?) record. This includes which page is current, whether the editor is in readonly mode, tool lock state, and UI state. See [Instance state](/sdk-features/instance-state) and [Readonly mode](/sdk-features/readonly).
 
 ```ts
 // Get instance state
