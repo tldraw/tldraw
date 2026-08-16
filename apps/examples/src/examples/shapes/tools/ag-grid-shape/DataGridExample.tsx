@@ -18,6 +18,7 @@ type AgGridShape = TLShape<typeof AG_GRID_TYPE>
 class AgGridShapeUtil extends BaseBoxShapeUtil<AgGridShape> {
 	static override type = AG_GRID_TYPE
 
+	// [1]
 	override canScroll(): boolean {
 		return true
 	}
@@ -34,8 +35,11 @@ class AgGridShapeUtil extends BaseBoxShapeUtil<AgGridShape> {
 			columnDefs: [],
 		}
 	}
+
 	override component(shape: AgGridShape) {
+		// [2]
 		const isEditing = this.editor.getEditingShapeId() === shape.id
+		// [3]
 		const isReady = useDelaySvgExport()
 
 		return (
@@ -51,11 +55,11 @@ class AgGridShapeUtil extends BaseBoxShapeUtil<AgGridShape> {
 					onGridReady={isReady}
 					rowData={shape.props.rowData}
 					columnDefs={shape.props.columnDefs}
-					// autoSizeStrategy={{ type: 'f', width: shape.props.w }}
 				/>
 			</div>
 		)
 	}
+
 	override getIndicatorPath(shape: AgGridShape) {
 		const path = new Path2D()
 		path.rect(0, 0, shape.props.w, shape.props.h)
@@ -63,13 +67,16 @@ class AgGridShapeUtil extends BaseBoxShapeUtil<AgGridShape> {
 	}
 }
 
+const shapeUtils = [AgGridShapeUtil]
+
 export default function DataGridExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				persistenceKey="ag-grid-example"
-				shapeUtils={[AgGridShapeUtil]}
+				shapeUtils={shapeUtils}
 				onMount={(editor) => {
+					// [4]
 					const agGridShapeId = createShapeId('ag-grid')
 
 					if (!editor.getShape(agGridShapeId)) {
@@ -100,3 +107,23 @@ export default function DataGridExample() {
 		</div>
 	)
 }
+
+/*
+[1]
+`canScroll` lets wheel events reach the grid so it can scroll its own rows instead of
+panning the canvas. `canEdit` lets the shape enter the editing state on double-click,
+which is when we turn on pointer events so the grid's filters and sorting are usable.
+
+[2]
+Shape components render inside a reactive tracking context, so reading
+`getEditingShapeId()` here re-renders the shape when editing starts or stops.
+
+[3]
+AG Grid renders its rows asynchronously. `useDelaySvgExport` returns a callback that
+holds up SVG/image export until it's called, so we wire it to `onGridReady` and exports
+don't capture an empty grid.
+
+[4]
+The example uses a `persistenceKey`, so the shape survives reloads. Using a fixed id
+lets us skip creating a second grid when one already exists.
+*/

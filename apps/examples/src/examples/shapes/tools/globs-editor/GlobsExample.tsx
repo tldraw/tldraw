@@ -12,7 +12,6 @@ import {
 	TldrawUiPopoverTrigger,
 	TldrawUiToolbar,
 	TldrawUiToolbarButton,
-	TLKeyboardEventInfo,
 	tlmenus,
 	TLPointerEventInfo,
 	TLShape,
@@ -29,6 +28,8 @@ import { GlobShape, GlobShapeUtil } from './GlobShapeUtil'
 import { GlobTool } from './GlobTool/GlobTool'
 import { NodeShape, NodeShapeUtil } from './NodeShapeUtil'
 
+// There's a guide at the bottom of this file!
+
 const customAssetUrls: TLUiAssetUrlOverrides = {
 	icons: {
 		'glob-icon': '/glob-icon.svg',
@@ -37,6 +38,7 @@ const customAssetUrls: TLUiAssetUrlOverrides = {
 	},
 }
 
+// [1]
 const uiOverrides: TLUiOverrides = {
 	tools(editor, tools) {
 		tools['glob.node'] = {
@@ -57,7 +59,6 @@ const uiOverrides: TLUiOverrides = {
 			kbd: 'c',
 			meta: { variant: 'connect' },
 			onSelect: () => {
-				// Only allow connecting if nodes are selected
 				const selectedShapes = editor.getSelectedShapes()
 				const hasNodesSelected =
 					selectedShapes.length > 0 &&
@@ -72,7 +73,8 @@ const uiOverrides: TLUiOverrides = {
 	},
 }
 
-const GlobToolWithPopover = track(() => {
+// [2]
+const GlobToolWithPopover = track(function GlobToolWithPopover() {
 	const tools = useTools()
 
 	const editor = useEditor()
@@ -88,7 +90,6 @@ const GlobToolWithPopover = track(() => {
 		[editor]
 	)
 
-	// Check if any nodes are selected
 	const hasNodesSelected = useValue(
 		'has nodes selected',
 		() => {
@@ -171,21 +172,7 @@ export default function GlobsExample() {
 					spacebarPanning: false,
 				}}
 				onMount={(editor) => {
-					editor.updateInstanceState({ isDebugMode: true })
-
-					// Override dragging_handle state to prevent space from interrupting handle dragging
-					const draggingHandleState = editor.getStateDescendant<StateNode>('select.dragging_handle')
-
-					if (draggingHandleState) {
-						const originalOnKeyDown = draggingHandleState.onKeyDown?.bind(draggingHandleState)
-
-						draggingHandleState.onKeyDown = (info: TLKeyboardEventInfo) => {
-							originalOnKeyDown?.(info)
-						}
-					}
-
-					// Override pointing_handle state to allow handle dragging with modifier keys, otherwise
-					// it starts brushing instead
+					// [3]
 					const pointingHandleState =
 						editor.getStateDescendant<PointingHandleState>('select.pointing_handle')
 
@@ -193,13 +180,10 @@ export default function GlobsExample() {
 						throw new Error('SelectTool pointing_handle state not found')
 					}
 
-					// Store original handlers with proper binding
 					const originalOnPointerMove = pointingHandleState.onPointerMove?.bind(pointingHandleState)
 
-					// Begin dragging the glob handle as soon as the user starts dragging.
-					// The live move event has target 'canvas' (no shape/handle), so read the
-					// shape and handle from the state node's stored info from when the user
-					// pointed down on the handle.
+					// The live move event has target 'canvas' (no shape/handle), so read the shape and
+					// handle from the info the state stored when the user pointed down on the handle.
 					pointingHandleState.onPointerMove = (info: TLPointerEventInfo) => {
 						if (!editor.inputs.getIsDragging()) {
 							originalOnPointerMove?.(info)
@@ -223,16 +207,14 @@ export default function GlobsExample() {
 						originalOnPointerMove?.(info)
 					}
 
-					// if we have a just a glob selected, expand the selection to include the nodes it's connected to
+					// [4]
 					const originalGetContent = editor.getContentFromCurrentPage.bind(editor)
 					editor.getContentFromCurrentPage = (shapes) => {
-						// Extract shape IDs
 						const ids =
 							typeof shapes[0] === 'string'
 								? (shapes as TLShapeId[])
 								: (shapes as TLShape[]).map((s) => s.id)
 
-						// Expand selection to include bound nodes for any globs
 						const expandedIds = new Set(ids)
 
 						for (const id of ids) {
@@ -245,7 +227,6 @@ export default function GlobsExample() {
 							}
 						}
 
-						// Call original with expanded selection
 						return originalGetContent(Array.from(expandedIds))
 					}
 				}}
@@ -259,3 +240,33 @@ export default function GlobsExample() {
 		</div>
 	)
 }
+
+/*
+Introduction:
+
+A small vector editor built from globs, the shape primitive from the paper linked in the
+README. A `node` is a circle; a `glob` is a skin stretched between two nodes, attached to them
+with `glob` bindings so the glob follows when a node moves, and edited through handles on the
+glob shape. See NodeShapeUtil.tsx, GlobShapeUtil.tsx, GlobBindingUtil.tsx, and GlobTool/ for
+those pieces; this file wires the tool into the UI.
+
+[1]
+The glob tool has two child states, `glob.node` and `glob.connect`. Registering both in the
+`tools` override gives them labels, icons, and shortcuts (N and C). Connect only makes sense
+with nodes selected, so its `onSelect` checks the selection first.
+
+[2]
+A toolbar item that opens a popover with the two variants, built from `TldrawUiPopover` and
+`TldrawUiToolbar`. The main item shows whichever glob state is current so the toolbar
+highlights it while active.
+
+[3]
+Patching the select tool's `pointing_handle` state so dragging a glob handle starts the drag
+immediately, even with modifier keys held (which would otherwise start brushing). This is
+reaching into the SDK's internals and is fragile across versions; a custom select tool would be
+the sturdier approach, but this is far less code for an example.
+
+[4]
+When globs are copied or duplicated, include the nodes they're bound to. Otherwise a pasted
+glob has bindings to nodes that don't exist in the paste and gets cleaned up.
+*/

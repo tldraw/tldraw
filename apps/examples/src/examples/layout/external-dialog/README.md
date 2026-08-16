@@ -5,8 +5,10 @@ priority: 20
 keywords: [dialog, modal, css, styling, custom styles, embed, insert]
 ---
 
-Make dialogs open outside of the `Tldraw` component.
+Open dialogs over the whole page instead of inside the `Tldraw` container.
 
 ---
 
-You can make dialogs open outside of the `Tldraw` component by overriding our default styles. To see this in action, open the Insert embed dialog through the menu or by pressing 'Cmd + I'.
+The tldraw UI renders its dialogs (insert embed, edit link, keyboard shortcuts) inside the `Tldraw` component, positioned absolutely within it. When the editor is a small inset in a larger page, that can leave dialogs cramped or clipped.
+
+This example overrides the `.tlui-dialog__overlay` and `.tlui-dialog__positioner` styles to use `position: fixed`, so dialogs are positioned relative to the browser window instead. Try it: open the "Insert embed" dialog from the menu, or press `Cmd + I` / `Ctrl + I`, and the dialog will center over the whole page rather than the 600 × 400 editor.

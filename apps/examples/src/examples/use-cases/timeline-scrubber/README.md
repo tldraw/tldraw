@@ -19,8 +19,10 @@ keywords:
   ]
 ---
 
-A timeline scrubber that records document changes and allows time travel through editor history.
+Record every document change as a diff and scrub back and forth through the history with a slider.
 
 ---
 
-This example demonstrates how to create a timeline scrubber that records all document changes using `store.listen` and enables time travel through the editing history. Users can scrub backwards and forwards through time using a slider control at the bottom of the editor. If changes are made while scrubbed back in time, a new timeline branch is created from that point.
+`editor.store.listen` (scoped to `document` changes from the `user` source) captures a `RecordsDiff` for every edit. Dragging the slider collects the diffs between the current and target positions, squashes them with `squashRecordDiffs`, reverses them with `reverseRecordsDiff` when going backwards, and applies the result with `store.applyDiff` inside `store.mergeRemoteChanges` so the listener does not record the time travel itself.
+
+Try drawing a few shapes, then drag the slider back. Make a change while scrubbed back and the later entries are discarded, starting a new branch from that point.

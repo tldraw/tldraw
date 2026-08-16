@@ -1,14 +1,11 @@
-import { Tldraw, defaultOverlayUtils } from 'tldraw'
+import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { DashedBrushOverlayUtil } from './DashedBrushOverlayUtil'
 
 // There's a guide at the bottom of this file!
 
 // [1]
-const overlayUtils = [
-	...defaultOverlayUtils.filter((util) => util.type !== 'brush'),
-	DashedBrushOverlayUtil,
-]
+const overlayUtils = [DashedBrushOverlayUtil]
 
 export default function ReplaceBrushOverlayExample() {
 	return (
@@ -19,18 +16,16 @@ export default function ReplaceBrushOverlayExample() {
 }
 
 /*
-The canvas overlays — brush, scribble, snap indicators, selection handles, and so
-on — are all `OverlayUtil` subclasses. To replace one, subclass the built-in util
-and override the methods you want to change.
+The canvas overlays (brush, scribble, snap indicators, selection handles, and so on) are all
+`OverlayUtil` subclasses. To replace one, subclass the built-in util and override the methods you
+want to change.
 
-`DashedBrushOverlayUtil.ts` extends `BrushOverlayUtil` and overrides `render`
-to draw a dashed purple rectangle. `getOverlays` and `isActive` are inherited,
-so it still activates exactly when the built-in brush would. Try drag-selecting
-a region on the canvas.
+`DashedBrushOverlayUtil.ts` extends `BrushOverlayUtil` and overrides `render` to draw a dashed purple
+rectangle. `getOverlays`, `isActive`, and the static `type` are inherited, so it activates exactly when
+the built-in brush would. Try drag-selecting a region on the canvas.
 
 [1]
-Take `defaultOverlayUtils`, drop the built-in util whose `type` matches the one
-you're replacing (`'brush'` here), and append your subclass. Order doesn't
-matter for correctness — paint order is determined by `options.zIndex`, which
-the subclass inherits from the parent.
+`<Tldraw>` merges the overlay utils you pass with the defaults, and a custom util whose static `type`
+matches a default replaces it. Since our subclass inherits `type = 'brush'`, passing it alone is enough
+to swap out the built-in brush. The same rule applies to `shapeUtils`, `bindingUtils`, and `tools`.
 */

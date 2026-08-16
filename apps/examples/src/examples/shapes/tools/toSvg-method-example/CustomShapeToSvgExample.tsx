@@ -1,4 +1,3 @@
-import { ReactElement } from 'react'
 import {
 	Geometry2d,
 	HTMLContainer,
@@ -41,13 +40,7 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 		}
 	}
 
-	override canEdit(shape: ICustomShape) {
-		return false
-	}
 	override canResize(shape: ICustomShape) {
-		return false
-	}
-	override isAspectRatioLocked(shape: ICustomShape) {
 		return false
 	}
 
@@ -60,8 +53,8 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 	}
 
 	component(_shape: ICustomShape) {
-		const isDarkmode = this.editor.user.getIsDarkMode()
-		return <HTMLContainer style={{ backgroundColor: isDarkmode ? DARK_FILL : LIGHT_FILL }} />
+		const isDarkMode = this.editor.user.getIsDarkMode()
+		return <HTMLContainer style={{ backgroundColor: isDarkMode ? DARK_FILL : LIGHT_FILL }} />
 	}
 
 	getIndicatorPath(shape: ICustomShape) {
@@ -71,46 +64,17 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 	}
 
 	// [1]
-	override toSvg(
-		shape: ICustomShape,
-		ctx: SvgExportContext
-	): ReactElement | null | Promise<ReactElement | null> {
-		// ctx.addExportDef(getFontDef(shape))
-		const isDarkmode = ctx.isDarkMode
-		const fill = isDarkmode ? DARK_FILL : LIGHT_FILL
-		return this.getSvgRect(shape, { fill })
-	}
-
-	getSvgRect(shape: ICustomShape, props?: { fill: string }) {
-		return <rect width={shape.props.w} height={shape.props.h} {...props} />
+	override toSvg(shape: ICustomShape, ctx: SvgExportContext) {
+		const fill = ctx.isDarkMode ? DARK_FILL : LIGHT_FILL
+		return <rect width={shape.props.w} height={shape.props.h} fill={fill} />
 	}
 
 	// [2]
-
-	// override toBackgroundSvg(
-	// 	shape: ICustomShape,
-	// 	ctx: SvgExportContext
-	// ): ReactElement | null | Promise<ReactElement | null> {
-	// 	const isDarkmode = ctx.isDarkMode
-	// 	const fill = isDarkmode ? '#333' : '#efefef'
+	// override toBackgroundSvg(shape: ICustomShape, ctx: SvgExportContext) {
+	// 	const fill = ctx.isDarkMode ? '#333' : '#efefef'
 	// 	return <rect width={shape.props.w} height={shape.props.h} fill={fill} />
 	// }
 }
-
-// [3]
-
-// function getFontDef(shape: ICustomShape): SvgExportDef {
-// 	//
-// 	return {
-// 		some unique key,
-// 		key: 'my-custom-shape-font',
-// 		getElement: async () => {
-// 			return <style></style> element
-// 			check out the defaultStyleDefs.tsx file for an example of how
-// 			we do this for tldraw fonts
-// 		},
-// 	}
-// }
 
 const customShape = [MyShapeUtil]
 export default function CustomShapeToSvgExample() {
@@ -126,28 +90,25 @@ export default function CustomShapeToSvgExample() {
 	)
 }
 /*
- The "export as SVG/PNG" and "copy as SVG/PNG" actions use the `toSvg` or `toBackgroundSvg`
- methods of a shape util. If a shape does not have a `toSvg` or `toBackgroundSvg` method
- defined, it will default to an empty box.
+The "export as SVG/PNG" and "copy as SVG/PNG" actions call a shape util's `toSvg` (and
+`toBackgroundSvg`) methods. If a shape defines neither, its component is rendered inside a
+`<foreignObject>` in the exported SVG instead. That works, but foreignObject content depends
+on the viewer's browser and fonts, so a real SVG representation exports more reliably.
 
- For more information on creating a custom shape, check out the custom shape example.
+For more information on creating a custom shape, check out the custom shape example.
 
- [1]
-    This method should return a React element that represents the shape as an SVG element.
-    If your shape is HTML, then you will need to convert it to an SVG representation. In this
-    example we've used a `rect` element to represent the shape. Other shapes may require more
-    complex work to render them as SVGs, especially if they contain text. Check out [3] for more
-	info.
+[1]
+`toSvg` returns a React element to place in the export in the shape's own coordinate space
+(the editor wraps it in a `<g>` with the shape's page transform and opacity). Here a `rect`
+matches the HTML component. Read `ctx.isDarkMode` rather than the editor's user preference,
+because exports can be requested in either mode regardless of the current UI.
+
+If your shape needs shared resources such as fonts, patterns, or filters, add them once to
+the export's `<defs>` with `ctx.addExportDef({ key, getElement })`; defs with the same key
+are only added once. Fonts used via `getFontFaces` are embedded automatically.
 
 [2]
-    The `toBackgroundSvg` method is used to render a layer behind the shape when exporting as SVG.
-    We use this in the tldraw codebase to make the highlighter shape. It's commented out here as
-    we don't need it for this example.
-
-[3]
-	If your shape contains text, you may need to add a font definition to the SVG. This is done
-	using the `addExportDef` method of the `SvgExportContext`. Your font def must contain a unique
-	key and a function that returns a React element. Check out the `` function
-	in the `defaultStyleDefs.tsx` file for an example of how this is done for tldraw fonts.
-
- */
+`toBackgroundSvg` renders a second layer that sits behind all shapes' foreground layers.
+tldraw's highlighter shape uses it so highlights export underneath other shapes. It's
+commented out here because this shape doesn't need it.
+*/

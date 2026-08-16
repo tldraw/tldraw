@@ -6,13 +6,12 @@ export default function BeforeDeleteShapeExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				onMount={(editor) => {
-					// register a handler to run before any shape is deleted:
+					// Returning false from a before-delete handler cancels the deletion. Returning
+					// nothing lets it go ahead.
 					editor.sideEffects.registerBeforeDeleteHandler('shape', (shape) => {
-						// if the shape is red, prevent the deletion:
 						if ('color' in shape.props && shape.props.color === 'red') {
 							return false
 						}
-
 						return
 					})
 
@@ -23,7 +22,6 @@ export default function BeforeDeleteShapeExample() {
 	)
 }
 
-// create some shapes to demonstrate the side-effect we added
 function createDemoShapes(editor: Editor) {
 	editor
 		.createShapes([

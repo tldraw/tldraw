@@ -10,9 +10,10 @@ import {
 	ShapeUtil,
 	StateNode,
 	TLBinding,
+	TLComponents,
 	TLPointerEventInfo,
 	TLShape,
-	TLUiComponents,
+	TLUiAssetUrlOverrides,
 	TLUiOverrides,
 	Tldraw,
 	TldrawUiMenuItem,
@@ -33,8 +34,11 @@ declare module 'tldraw' {
 	}
 }
 
+// There's a guide at the bottom of this file!
+
 type StickerShape = TLShape<typeof STICKER_TYPE>
 
+// [1]
 const offsetX = -16
 const offsetY = -26
 class StickerShapeUtil extends ShapeUtil<StickerShape> {
@@ -45,12 +49,9 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 		return {}
 	}
 
+	// [2]
 	override canBind() {
-		// stickers can bind to anything
 		return true
-	}
-	override canEdit(shape: StickerShape) {
-		return false
 	}
 	override canResize(shape: StickerShape) {
 		return false
@@ -59,9 +60,6 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 		return false
 	}
 	override hideRotateHandle(shape: StickerShape) {
-		return true
-	}
-	override isAspectRatioLocked(shape: StickerShape) {
 		return true
 	}
 
@@ -98,6 +96,7 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 		return path
 	}
 
+	// [3]
 	override onTranslateStart(shape: StickerShape) {
 		const bindings = this.editor.getBindingsFromShape(shape, STICKER_TYPE)
 		this.editor.deleteBindings(bindings)
@@ -143,6 +142,7 @@ declare module 'tldraw' {
 
 type StickerBinding = TLBinding<typeof STICKER_TYPE>
 
+// [4]
 class StickerBindingUtil extends BindingUtil<StickerBinding> {
 	static override type = STICKER_TYPE
 
@@ -152,7 +152,7 @@ class StickerBindingUtil extends BindingUtil<StickerBinding> {
 		}
 	}
 
-	// when the shape we're stuck to changes, update the sticker's position
+	// [5]
 	override onAfterChangeToShape({
 		binding,
 		shapeAfter,
@@ -179,12 +179,13 @@ class StickerBindingUtil extends BindingUtil<StickerBinding> {
 		})
 	}
 
-	// when the thing we're stuck to is deleted, delete the sticker too
+	// [6]
 	override onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions<StickerBinding>): void {
 		this.editor.deleteShape(binding.fromId)
 	}
 }
 
+// [7]
 class StickerTool extends StateNode {
 	static override id = 'sticker'
 
@@ -216,9 +217,10 @@ class StickerTool extends StateNode {
 	}
 }
 
+// [8]
 const overrides: TLUiOverrides = {
-	tools(editor, schema) {
-		schema['sticker'] = {
+	tools(editor, tools) {
+		tools['sticker'] = {
 			id: 'sticker',
 			label: 'Sticker',
 			icon: 'heart-icon',
@@ -227,12 +229,18 @@ const overrides: TLUiOverrides = {
 				editor.setCurrentTool('sticker')
 			},
 		}
-		return schema
+		return tools
 	},
 }
 
-const components: TLUiComponents = {
-	Toolbar: (...props) => {
+const assetUrls: TLUiAssetUrlOverrides = {
+	icons: {
+		'heart-icon': '/heart-icon.svg',
+	},
+}
+
+const components: TLComponents = {
+	Toolbar: (props) => {
 		const sticker = useTools().sticker
 		const isStickerSelected = useIsToolSelected(sticker)
 		return (
@@ -244,19 +252,64 @@ const components: TLUiComponents = {
 	},
 }
 
+const shapeUtils = [StickerShapeUtil]
+const bindingUtils = [StickerBindingUtil]
+const tools = [StickerTool]
+
 export default function StickerExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				onMount={(editor) => {
-					;(window as any).editor = editor
-				}}
-				shapeUtils={[StickerShapeUtil]}
-				bindingUtils={[StickerBindingUtil]}
-				tools={[StickerTool]}
+				shapeUtils={shapeUtils}
+				bindingUtils={bindingUtils}
+				tools={tools}
 				overrides={overrides}
+				assetUrls={assetUrls}
 				components={components}
 			/>
 		</div>
 	)
 }
+
+/*
+A sticker is a small shape that, when dropped on another shape, creates a `sticker` binding
+to it. The binding keeps the sticker in place on the target as the target moves, resizes, or
+rotates, and deletes the sticker when the target is deleted.
+
+[1]
+The sticker shape has no props. Its geometry, component, and indicator are offset so the
+shape's origin (0,0) sits at the bottom of the heart, which is the point that gets bound to
+the target shape.
+
+[2]
+`canBind` returning true lets stickers bind to (and be bound by) anything. The other overrides
+make the sticker behave like a decal: no resizing, rotating, or snapping.
+
+[3]
+Dragging a sticker unsticks it: `onTranslateStart` deletes its bindings. On `onTranslateEnd`
+we look for a shape under the sticker's origin and, if there is one, create a binding to it.
+The sticker's position is stored as a normalized anchor within the target's bounds so it
+survives resizing.
+
+[4]
+The binding util owns the "follow the target" behavior. Shapes don't know about stickers; the
+binding reacts to changes on the shape it points at. This is the same pattern tldraw's arrows
+use.
+
+[5]
+When the target shape changes, convert the stored anchor back to a page point and move the
+sticker there (in the sticker's parent space, in case it lives in a frame or group).
+
+[6]
+When the target shape is deleted, delete the sticker too.
+
+[7]
+The sticker tool creates a sticker at the pointer and immediately hands off to the select
+tool's translating state, so the sticker follows the pointer until pointer up. `onInteractionEnd:
+'sticker'` returns to the sticker tool afterwards, and `onTranslateEnd` in the shape util does
+the binding.
+
+[8]
+Register the tool with the UI (with a custom icon served from the public folder) and add it to
+the toolbar.
+*/

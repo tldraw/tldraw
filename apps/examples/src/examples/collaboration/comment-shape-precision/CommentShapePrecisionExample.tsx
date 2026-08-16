@@ -19,13 +19,9 @@ import {
 } from 'tldraw'
 import '@tldraw/commenting/commenting.css'
 import 'tldraw/tldraw.css'
+import './comment-shape-precision.css'
 
-// One configured comment tool per mode, built once at module level so each array keeps a stable
-// identity. `shouldBePrecise` decides what commenting on a shape produces: a precise anchor
-// (pinned to the exact clicked spot within the shape — the default) or an imprecise one (pinned
-// to the shape as a whole, rendered at its top-right). It's called with the target shape, the
-// release point, and the Alt key's state — so it can be a constant, an Alt-gated choice, or a
-// decision from the shape itself, like "precise only on notes".
+// [1]
 const MODE_TOOLS = {
 	always: [CommentTool],
 	never: [CommentTool.configure({ shouldBePrecise: () => false })],
@@ -95,9 +91,7 @@ export default function CommentShapePrecisionExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				// Commenting options are fixed at tool registration (`CommentTool.configure`), so
-				// switching modes remounts the editor with the newly configured tool. The shared store
-				// carries the comments across.
+				// [2]
 				key={mode}
 				// Commenting is a licensed feature. Every feature is enabled in local development, but a
 				// deployed app needs a license key that includes commenting — swap in your own key here.
@@ -108,16 +102,7 @@ export default function CommentShapePrecisionExample() {
 				overrides={[commentToolOverrides]}
 				components={components}
 			>
-				<div
-					style={{
-						position: 'absolute',
-						top: 60,
-						left: 12,
-						display: 'flex',
-						gap: 4,
-						zIndex: 1000,
-					}}
-				>
+				<div className="tlui-menu comment-precision-panel">
 					{(Object.keys(MODE_LABELS) as PrecisionMode[]).map((id) => (
 						<TldrawUiButton
 							key={id}
@@ -132,3 +117,17 @@ export default function CommentShapePrecisionExample() {
 		</div>
 	)
 }
+
+/*
+[1]
+One configured comment tool per mode, built once at module level so each array keeps a stable
+identity. `shouldBePrecise` decides what commenting on a shape produces: a precise anchor, pinned to
+the exact clicked spot within the shape (the default), or an imprecise one, pinned to the shape as
+a whole and rendered at `impreciseShapeAnchor`. It's called with the target shape, the release
+point, and the Alt key's state, so it can be a constant, an Alt-gated choice, or a decision from
+the shape itself, like "precise only on notes".
+
+[2]
+Commenting options are fixed at tool registration (`CommentTool.configure`), so switching modes
+remounts the editor with the newly configured tool. The shared store carries the comments across.
+*/

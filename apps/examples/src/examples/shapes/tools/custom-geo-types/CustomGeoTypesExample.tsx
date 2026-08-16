@@ -17,9 +17,7 @@ const CustomGeoShapeUtil = GeoShapeUtil.configure({
 	customGeoTypes: {
 		'rounded-rect': {
 			getPath(w, h, shape) {
-				// `isFilled` is used by the path builder to determine whether the
-				// geometry should be treated as a filled region (so clicks inside
-				// the shape hit it) or only along its outline.
+				// [a]
 				const isFilled = shape.props.fill !== 'none'
 				const r = Math.min(w, h) * 0.2
 				return new PathBuilder()
@@ -101,7 +99,6 @@ const components: TLComponents = {
 export default function CustomGeoTypesExample() {
 	return (
 		<div className="tldraw__editor">
-			{/* [6] */}
 			<Tldraw
 				shapeUtils={shapeUtils}
 				components={components}
@@ -116,6 +113,7 @@ export default function CustomGeoTypesExample() {
 							props: {
 								w: 250,
 								h: 150,
+								// [6]
 								geo: 'rounded-rect' as any,
 								fill: 'solid',
 								color: 'blue',
@@ -158,34 +156,34 @@ export default function CustomGeoTypesExample() {
 
 /*
 [1]
-Use GeoShapeUtil.configure() with a customGeoTypes map. Each entry
-defines a new geo type with:
-- getPath: returns a PathBuilder describing the shape outline
-- snapType: 'polygon' (snap to vertices + center) or 'blobby' (center only)
-- icon: icon name for the style panel picker
-- defaultSize: optional creation size when clicking (not dragging)
+`GeoShapeUtil.configure()` takes a `customGeoTypes` map. Each entry becomes a new value for the
+geo style and gets the same treatment as the built-in types: labels, fill/dash/color styles,
+resizing, SVG export, snapping, and a slot in the style panel's geo picker.
+- getPath: returns a PathBuilder describing the outline, given the current width and height
+- snapType: 'polygon' (other handles snap to vertices + center) or 'blobby' (center only)
+- icon: icon name for the style panel picker and the toolbar
+- defaultSize: optional creation size when clicking (not dragging); defaults to 200x200
+
+	[a] `isFilled` on the first path segment tells the geometry whether the interior counts as
+	part of the shape for hit-testing. Without it, a solid-filled shape could only be clicked
+	on its outline.
 
 [2]
-Pass the configured shape util in an array. It replaces the default
-GeoShapeUtil but keeps all built-in geo types alongside your custom ones.
+Pass the configured util in place of the default. It's still `type: 'geo'`, so existing geo
+shapes keep working, and it must be defined outside the component so the array is stable.
 
 [3]
-Provide custom icon SVGs for your geo types via assetUrls. The icon key
-must be 'geo-' followed by the geo type name (e.g., 'geo-rounded-rect').
+The icon names used in [1] need URLs. Register them under `assetUrls.icons`; the key must be
+'geo-' followed by the geo type name.
 
 [4]
-Provide translations for the tool labels so that the tooltips in the
-toolbar show the right name. The translation keys are 'tool.' followed
-by the geo type name (e.g., 'tool.rounded-rect').
+Each custom geo type is registered as a tool automatically. Give it a label by translating
+'tool.' followed by the geo type name.
 
 [5]
-Override the Toolbar component to add ToolbarItems for your custom geo
-types. The tool ID matches the key in your customGeoTypes map. Custom
-geo types are automatically registered as tools, so you just need to
-reference them by name.
+Add the new tools to the toolbar with `ToolbarItem`, referencing them by geo type name.
 
 [6]
-Custom geo types appear in the geo style panel picker. They support all
-standard geo features: labels, fill/dash/color styles, resizing, SVG
-export, and snap points.
+The `geo` prop is typed as the built-in enum, so setting a custom value programmatically needs
+a cast. Shapes created through the toolbar or the style panel don't have this problem.
 */

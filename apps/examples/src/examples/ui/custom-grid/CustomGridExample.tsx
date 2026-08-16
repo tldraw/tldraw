@@ -2,9 +2,7 @@ import { useLayoutEffect, useRef } from 'react'
 import { TLComponents, Tldraw, approximately, useColorMode, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-/**
- * There's a guide at the bottom of this file!
- */
+// There's a guide at the bottom of this file!
 
 const components: TLComponents = {
 	// [1]
@@ -12,8 +10,10 @@ const components: TLComponents = {
 		const editor = useEditor()
 
 		// [2]
-		const screenBounds = useValue('screenBounds', () => editor.getViewportScreenBounds(), [])
-		const devicePixelRatio = useValue('dpr', () => editor.getInstanceState().devicePixelRatio, [])
+		const screenBounds = useValue('screenBounds', () => editor.getViewportScreenBounds(), [editor])
+		const devicePixelRatio = useValue('dpr', () => editor.getInstanceState().devicePixelRatio, [
+			editor,
+		])
 		const isDarkMode = useColorMode() === 'dark'
 
 		const canvas = useRef<HTMLCanvasElement>(null)
@@ -95,14 +95,33 @@ function drawLine(
 	ctx.stroke()
 }
 
-/**
- * This example demonstrates how to draw a custom grid component using a 2d canvas.
- *
- * 1. To add a custom grid you must override this Grid component. It is passed props for the camera position, along with the size of the grid in page space.
- * 2. In addition to updating when the camera moves, we want the grid to rerender if the screen bounds change, or if the devicePixelRatio changes, or if the theme changes.
- * 3. To avoid pixelation we want to render at the device's actual resolution, so we need to set the canvas size in terms of the devicePixelRatio.
- * 4. Start by clearing the canvas and making it transparent.
- * 5. Calculate the start and end offsets for the grid, in page space.
- * 6. Draw the grid lines. We draw major lines every 10 grid units.
- * 7. The 'tl-grid' class is important for correct rendering and interaction handling.
- */
+/*
+This example shows how to draw a custom grid using a 2d canvas.
+
+[1]
+To add a custom grid, override the `Grid` component. It receives the camera position and zoom
+along with the grid size in page space, and re-renders whenever the camera moves.
+
+[2]
+Besides the camera, the grid also needs to redraw when the screen bounds change, when the device
+pixel ratio changes, or when the color mode changes. `useValue` and `useColorMode` subscribe to
+those values so the component re-renders when they change.
+
+[3]
+To avoid pixelation we render at the device's actual resolution, so the canvas size is scaled by
+the device pixel ratio.
+
+[4]
+Clear the canvas so the previous frame's lines don't accumulate.
+
+[5]
+Calculate the first and last grid lines visible in the viewport, in page space, so we only draw
+the lines that are actually on screen.
+
+[6]
+Convert each page-space line position into canvas pixels using the camera and device pixel ratio.
+Major lines are drawn every 10 grid units.
+
+[7]
+The `tl-grid` class is important for correct positioning and pointer-event handling.
+*/

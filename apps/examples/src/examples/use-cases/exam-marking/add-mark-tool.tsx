@@ -1,8 +1,7 @@
 import { StateNode } from 'tldraw'
 import { EXAM_MARK_HEIGHT, EXAM_MARK_WIDTH } from './add-mark-util'
 
-// Check out the custom tool example for a more detailed explanation of the StateNode class.
-
+// See the custom-tool example for a fuller explanation of `StateNode`.
 export class MarkingTool extends StateNode {
 	static override id = 'mark'
 

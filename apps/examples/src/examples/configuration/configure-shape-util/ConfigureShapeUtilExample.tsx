@@ -2,17 +2,17 @@ import { FrameShapeUtil, NoteShapeUtil, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 const shapeUtils = [
-	// Enable colors for frame shapes
+	// Show colored fills and headings on frames
 	FrameShapeUtil.configure({ showColors: true }),
 
-	// Enable resizing for note shapes
+	// Let notes be resized by scaling
 	NoteShapeUtil.configure({ resizeMode: 'scale' }),
 ]
 
 export default function ConfigureShapeUtilExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw shapeUtils={shapeUtils}></Tldraw>
+			<Tldraw shapeUtils={shapeUtils} />
 		</div>
 	)
 }

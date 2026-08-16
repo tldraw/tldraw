@@ -18,7 +18,7 @@ export const uiOverrides: TLUiOverrides = {
 		tools.PlayingCard = {
 			id: 'PlayingCard',
 			icon: <span style={{ fontSize: '2em' }}>🃏</span>,
-			label: 'Playing Card',
+			label: 'Playing card',
 			kbd: 'c',
 			onSelect: () => {
 				editor.setCurrentTool('PlayingCard')
@@ -59,8 +59,6 @@ First we have to add our new tool to the tools object in the tools override. Thi
 all the basic information about our new tool - its icon, label, keyboard shortcut, what happens when
 we select it, etc.
 
-Then, we replace the UI components for the toolbar and keyboard shortcut dialog with our own, that
-add our new tool to the existing default content. Ideally, we'd interleave our new tool into the
-ideal place among the default tools, but for now we're just adding it at the start to keep things
-simple.
+Then, we replace the UI components for the toolbar and keyboard shortcut dialog with our own, which
+add our new tool in front of the existing default content.
 */

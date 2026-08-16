@@ -37,7 +37,7 @@ export class SlideShapeUtil extends ShapeUtil<SlideShape> {
 	override canBind() {
 		return false
 	}
-	override hideRotateHandle(shape: SlideShape) {
+	override hideRotateHandle() {
 		return true
 	}
 
@@ -56,6 +56,7 @@ export class SlideShapeUtil extends ShapeUtil<SlideShape> {
 		})
 	}
 
+	// [1]
 	override onRotate(initial: SlideShape) {
 		return initial
 	}
@@ -77,6 +78,7 @@ export class SlideShapeUtil extends ShapeUtil<SlideShape> {
 	component(shape: SlideShape) {
 		const bounds = this.editor.getShapeGeometry(shape).bounds
 
+		// [2]
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const zoomLevel = useValue('zoom level', () => this.editor.getZoomLevel(), [this.editor])
 
@@ -91,6 +93,7 @@ export class SlideShapeUtil extends ShapeUtil<SlideShape> {
 
 		return (
 			<>
+				{/* [3] */}
 				<div onPointerDown={handleLabelPointerDown} className="slide-shape-label">
 					{`Slide ${index + 1}`}
 				</div>
@@ -140,3 +143,18 @@ export class SlideShapeUtil extends ShapeUtil<SlideShape> {
 		return path
 	}
 }
+
+/*
+[1]
+Slides can't be rotated: the rotate handle is hidden and `onRotate` returns the initial
+shape so rotation via other paths (e.g. the style panel) is a no-op.
+
+[2]
+The dashed border is drawn with `getPerfectDashProps` at a length scaled to the zoom level,
+so the dashes stay the same size on screen at any zoom, and falls back to a solid line when
+zoomed far out.
+
+[3]
+The geometry is unfilled, so clicking inside a slide selects the shapes on it rather than
+the slide. The label in the corner is the one place a pointer-down selects the slide itself.
+*/

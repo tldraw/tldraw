@@ -1,7 +1,6 @@
 ---
 title: Frame layout modes
 component: ./FrameLayoutsExample.tsx
-category: shapes/tools
 priority: 3
 keywords:
   [

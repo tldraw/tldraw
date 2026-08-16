@@ -4,21 +4,23 @@ const versions = createShapePropsMigrationIds(
 	// this must match the shape type in the shape definition
 	'card',
 	{
-		AddSomeProperty: 1,
+		AddColor: 1,
 	}
 )
 
-// Migrations for the custom card shape (optional but very helpful)
+// Migrations for the custom card shape (optional but very helpful). Each entry
+// upgrades or downgrades a shape's props between versions, so documents saved
+// with an older version of the shape can still be loaded.
 export const cardShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{
-			id: versions.AddSomeProperty,
+			id: versions.AddColor,
 			up(props) {
 				// it is safe to mutate the props object here
-				props.someProperty = 'some value'
+				props.color = 'black'
 			},
 			down(props) {
-				delete props.someProperty
+				delete props.color
 			},
 		},
 	],

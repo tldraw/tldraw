@@ -11,13 +11,13 @@ import {
 	ShapeUtil,
 	StateNode,
 	TLBinding,
-	TLEditorComponents,
+	TLComponents,
 	TLPointerEventInfo,
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
 	TLShapeUtilCanBindOpts,
-	TLUiComponents,
+	TLUiAssetUrlOverrides,
 	TLUiOverrides,
 	Tldraw,
 	TldrawUiMenuItem,
@@ -31,6 +31,8 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
+// There's a guide at the bottom of this file!
+
 const PIN_TYPE = 'pin'
 
 declare module 'tldraw' {
@@ -43,6 +45,8 @@ type PinShape = TLShape<typeof PIN_TYPE>
 
 const offsetX = -16
 const offsetY = -26
+
+// [1]
 class PinShapeUtil extends ShapeUtil<PinShape> {
 	static override type = PIN_TYPE
 	static override props: RecordProps<PinShape> = {}
@@ -51,12 +55,11 @@ class PinShapeUtil extends ShapeUtil<PinShape> {
 		return {}
 	}
 
+	// [2]
 	override canBind({ toShape, bindingType }: TLShapeUtilCanBindOpts<PinShape>) {
 		if (bindingType === PIN_TYPE) {
-			// pins cannot bind to other pins!
 			return toShape.type !== PIN_TYPE
 		}
-		// Allow pins to participate in other bindings, e.g. arrows
 		return true
 	}
 	override canEdit(shape: PinShape) {
@@ -105,6 +108,7 @@ class PinShapeUtil extends ShapeUtil<PinShape> {
 		return path
 	}
 
+	// [3]
 	override onTranslateStart(shape: PinShape) {
 		const bindings = this.editor.getBindingsFromShape(shape, PIN_TYPE)
 		this.editor.deleteBindings(bindings)
@@ -153,6 +157,7 @@ declare module 'tldraw' {
 
 type PinBinding = TLBinding<typeof PIN_TYPE>
 
+// [4]
 class PinBindingUtil extends BindingUtil<PinBinding> {
 	static override type = PIN_TYPE
 
@@ -164,6 +169,7 @@ class PinBindingUtil extends BindingUtil<PinBinding> {
 
 	private changedToShapes = new Set<TLShapeId>()
 
+	// [5]
 	override onOperationComplete(): void {
 		if (this.changedToShapes.size === 0) return
 
@@ -227,6 +233,7 @@ class PinBindingUtil extends BindingUtil<PinBinding> {
 			}
 		}
 
+		// [6]
 		const currentPositions = new Map(initialPositions)
 
 		const iterations = 30
@@ -275,7 +282,7 @@ class PinBindingUtil extends BindingUtil<PinBinding> {
 		}
 	}
 
-	// when the shape we're stuck to changes, update the pin's position
+	// [7]
 	override onAfterChangeToShape({
 		binding,
 		shapeAfter,
@@ -284,18 +291,17 @@ class PinBindingUtil extends BindingUtil<PinBinding> {
 		const pin = this.editor.getShape(binding.fromId)
 		if (!pin) return
 
-		// If the bound shape changed parents, reparent the pin to follow
 		if (pin.parentId !== shapeAfter.parentId) {
 			this.editor.reparentShapes([pin.id], shapeAfter.parentId)
 		}
 	}
 
-	// when the thing we're stuck to is deleted, delete the pin too
 	override onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions<PinBinding>): void {
 		this.editor.deleteShape(binding.fromId)
 	}
 }
 
+// [8]
 class PinTool extends StateNode {
 	static override id = PIN_TYPE
 
@@ -342,7 +348,13 @@ const overrides: TLUiOverrides = {
 	},
 }
 
-const components: TLUiComponents & TLEditorComponents = {
+const assetUrls: TLUiAssetUrlOverrides = {
+	icons: {
+		'heart-icon': '/heart-icon.svg',
+	},
+}
+
+const components: TLComponents = {
 	Toolbar: (...props) => {
 		const pin = useTools().pin
 		const isPinSelected = useIsToolSelected(pin)
@@ -355,21 +367,75 @@ const components: TLUiComponents & TLEditorComponents = {
 	},
 }
 
+const shapeUtils = [PinShapeUtil]
+const bindingUtils = [PinBindingUtil]
+const tools = [PinTool]
+
 export default function PinExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				persistenceKey="pin-example"
 				onMount={(editor) => {
-					;(window as any).editor = editor
+					// Semi-transparent fills make it easier to see overlapping shapes
 					editor.setStyleForNextShapes(DefaultFillStyle, 'semi')
 				}}
-				shapeUtils={[PinShapeUtil]}
-				bindingUtils={[PinBindingUtil]}
-				tools={[PinTool]}
+				shapeUtils={shapeUtils}
+				bindingUtils={bindingUtils}
+				tools={tools}
 				overrides={overrides}
+				assetUrls={assetUrls}
 				components={components}
 			/>
 		</div>
 	)
 }
+
+/*
+Introduction:
+
+A pin is a small shape that, when dropped over other shapes, creates a `pin` binding from
+itself to each shape underneath. When any pinned shape moves, the binding util moves the rest
+of the network so every pin stays at the same relative spot on each shape it's stuck to.
+
+[1]
+The pin shape has no props. Its geometry and indicator are offset so the pin's origin (0,0)
+sits at the tip of the emoji, which is the point that gets bound to other shapes.
+
+[2]
+`canBind` is asked for every binding that would touch this shape. Pins can't be pinned to
+other pins, but they can still be the target of other binding types (e.g. arrows).
+
+[3]
+Dragging a pin unpins it: `onTranslateStart` removes its bindings. On `onTranslateEnd` we look
+at every shape under the pin's tip (excluding shapes above the pin in z-order and shapes in a
+different parent) and create a binding to each, storing the pin's position as a normalized
+anchor inside the target's bounds so it survives resizing.
+
+[4]
+The binding util owns the "keep the network together" behavior. It's the same pattern as
+tldraw's arrows: shapes don't know about pins, the binding reacts to shape changes.
+
+[5]
+`onAfterChangeToShape` fires once per changed shape, but a network may involve many shapes
+changing in one operation. We only record which target shapes changed and do the real work in
+`onOperationComplete`, which runs once after the whole operation, so the network is solved
+once rather than once per shape.
+
+[6]
+Solving the network: walk out from the changed shapes across pin bindings to gather every
+connected shape and the page-space delta each pin should have from each shape it's stuck to.
+Changed shapes are fixed; everything else is relaxed toward its target deltas over a few
+iterations (a simple constraint solver). Shapes that ended up moving get one `updateShapes`
+call, which itself triggers `onAfterChangeToShape` and another `onOperationComplete` pass; the
+`changedToShapes` set is cleared only when a pass produces no movement, so this settles.
+
+[7]
+When a pinned shape is reparented (e.g. dragged into a frame), the pin follows so it stays in
+the same coordinate space. When a pinned shape is deleted, the pin goes with it.
+
+[8]
+The pin tool creates a pin at the pointer and immediately hands off to the select tool's
+translating state, so the pin follows the pointer until pointer up. `onInteractionEnd: 'pin'`
+returns to the pin tool afterwards, and `onTranslateEnd` in the shape util does the binding.
+*/

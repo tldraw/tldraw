@@ -147,39 +147,38 @@ export default function EscapeShapeFocusTrapExample() {
 
 /*
 [1]
-The ShapeToolbar component renders a contextual toolbar above the selected shape.
-It uses `track()` so it re-renders when editor state changes (e.g. selection).
+A contextual toolbar that appears above the selected shape. `track()` re-renders it
+whenever the editor state it reads (the tool state and the selection) changes.
 
 [2]
-handleReturn moves focus back to the canvas container. Once focus leaves the toolbar
-buttons, tldraw's shape navigation takes over Tab again.
+Moving focus back to the container hands Tab back to tldraw's built-in shape navigation.
 
 [3]
-We position the toolbar above the selected shape using getSelectionBounds, the same
-pattern used in the contextual toolbar example.
+Position the toolbar on the top edge of the selection, the same pattern used in the
+contextual toolbar example.
 
 [4a]
-All keyboard interception is registered here in onMount via a capture-phase listener.
+The keyboard interception is registered in `onMount` so its cleanup runs when the editor
+unmounts.
 
 [4b]
-stopImmediatePropagation blocks FocusManager's handler (on document.body) from seeing
-the Tab key, so it never removes the tl-container__no-focus-ring class itself. We do
-it manually here so that focus-visible outlines appear on the toolbar buttons.
+Because we call `stopImmediatePropagation()` in [5] and [6], the editor's `FocusManager`
+(which listens on the document) never sees the Tab key and so never removes
+`tl-container__no-focus-ring`. Removing it ourselves keeps the focus outline visible on
+the toolbar buttons.
 
 [5]
-When Tab is pressed and focus is on the canvas (not in the toolbar), intercept it to
-focus the first toolbar button instead of cycling to the next shape.
+Tab with focus on the canvas and one shape selected: focus the first toolbar button
+instead of letting tldraw cycle to the next shape.
 
 [6]
-When Tab is pressed inside the toolbar, cycle between toolbar buttons. Shift+Tab on the
-first button or Tab on the last button returns focus to the canvas. This prevents Tab
-from escaping to the SkipToMainContent or other UI elements outside the toolbar.
+Tab inside the toolbar cycles between its buttons. Tab on the last button or Shift+Tab on
+the first returns focus to the canvas, so focus can't leak into unrelated UI.
 
 [7]
-Pressing Escape while focused in the toolbar returns focus to the canvas.
+Escape inside the toolbar returns focus to the canvas.
 
 [8]
-Using { capture: true } ensures our handler runs in the capture phase, before
-tldraw's bubble-phase handler in useDocumentEvents. This lets us call
-stopImmediatePropagation() to prevent tldraw from also handling the key.
+The listener is registered with `capture: true` so it runs before tldraw's own bubble-phase
+handler in `useDocumentEvents`, which is what makes `stopImmediatePropagation()` effective.
 */
