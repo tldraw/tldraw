@@ -21,7 +21,6 @@ export default function CustomConfigExample() {
 				tools={customTools}
 				// Pass in any overrides to the user interface
 				overrides={uiOverrides}
-				// Pass in the custom toolbar and keyboard shortcuts components
 				components={components}
 			/>
 		</div>

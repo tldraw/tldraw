@@ -13,4 +13,4 @@ List every thread in a sidebar beside the canvas, with filters and a host-suppli
 
 The example seeds a thread on each of two pages plus a resolved thread. By default the list shows every page's unresolved threads, labelling the ones on other pages; use the filter menu to show resolved threads or scope the list to the current page. Click a row to jump to its pin.
 
-Note that activating the comment tool closes the sidebar, so the toggle button is how it comes back.
+Activating the comment tool closes the sidebar, so the toggle button is how it comes back.

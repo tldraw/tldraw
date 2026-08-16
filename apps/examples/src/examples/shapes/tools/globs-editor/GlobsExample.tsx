@@ -55,7 +55,7 @@ const uiOverrides: TLUiOverrides = {
 		tools['glob.connect'] = {
 			id: 'glob.connect',
 			icon: 'connect-node-icon',
-			label: 'Connect Nodes',
+			label: 'Connect nodes',
 			kbd: 'c',
 			meta: { variant: 'connect' },
 			onSelect: () => {
@@ -123,14 +123,14 @@ const GlobToolWithPopover = track(function GlobToolWithPopover() {
 				<TldrawUiPopoverContent side="top" align="center">
 					<TldrawUiToolbar label="Glob">
 						<TldrawUiToolbarButton
-							title="Add Node"
+							title="Add node"
 							type="tool"
 							onClick={() => handleToolSelect('glob.node')}
 						>
 							<TldrawUiButtonIcon icon="node-icon" />
 						</TldrawUiToolbarButton>
 						<TldrawUiToolbarButton
-							title="Connect Nodes"
+							title="Connect nodes"
 							type="tool"
 							onClick={() => handleToolSelect('glob.connect')}
 							disabled={!hasNodesSelected}

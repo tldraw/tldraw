@@ -95,7 +95,6 @@ export function getTailIntersectionPoint(shape: SpeechBubbleShape) {
 	let segmentsIntersection: Vec | null = null
 	let intersectionSegment: Vec[] | null = null
 
-	// Is the point inside of the box's corners?
 	const insideShape = pointInPolygon(tailInShapeSpace, corners)
 
 	// We want to be sure we get an intersection, so if the point is
@@ -138,7 +137,6 @@ export function getTailIntersectionPoint(shape: SpeechBubbleShape) {
 	const squaredRelative = Math.abs(middleRelative) ** 2 * Math.sign(middleRelative) // square it and keep the sign
 	const squared = mapRange(-1, 1, 0, totalDistance, squaredRelative) // -1 to 1 -> absolute
 
-	// keep it away from the edges
 	const offset = (segments.indexOf(intersectionSegment) % 2 === 0 ? w / 10 : fullHeight / 10) * 3
 	const constrained = mapRange(0, totalDistance, offset, totalDistance - offset, distance)
 

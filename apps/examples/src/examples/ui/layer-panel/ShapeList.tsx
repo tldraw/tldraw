@@ -91,8 +91,6 @@ function ShapeItem({
 					onPointerDown={(ev) => {
 						// Don't let the click also select the row.
 						ev.stopPropagation()
-						// A double-click force-shows the shape even if its parent is hidden;
-						// see getShapeVisibility in LayerPanelExample.tsx.
 						const now = Date.now()
 						if (now - timeSinceLastVisibilityToggle.current < 200) {
 							editor.updateShape({

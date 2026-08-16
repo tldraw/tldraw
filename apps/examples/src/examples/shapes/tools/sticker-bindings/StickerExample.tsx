@@ -142,7 +142,6 @@ declare module 'tldraw' {
 
 type StickerBinding = TLBinding<typeof STICKER_TYPE>
 
-// [4]
 class StickerBindingUtil extends BindingUtil<StickerBinding> {
 	static override type = STICKER_TYPE
 
@@ -152,7 +151,7 @@ class StickerBindingUtil extends BindingUtil<StickerBinding> {
 		}
 	}
 
-	// [5]
+	// [4]
 	override onAfterChangeToShape({
 		binding,
 		shapeAfter,
@@ -179,13 +178,12 @@ class StickerBindingUtil extends BindingUtil<StickerBinding> {
 		})
 	}
 
-	// [6]
 	override onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions<StickerBinding>): void {
 		this.editor.deleteShape(binding.fromId)
 	}
 }
 
-// [7]
+// [5]
 class StickerTool extends StateNode {
 	static override id = 'sticker'
 
@@ -217,7 +215,6 @@ class StickerTool extends StateNode {
 	}
 }
 
-// [8]
 const overrides: TLUiOverrides = {
 	tools(editor, tools) {
 		tools['sticker'] = {
@@ -292,24 +289,12 @@ The sticker's position is stored as a normalized anchor within the target's boun
 survives resizing.
 
 [4]
-The binding util owns the "follow the target" behavior. Shapes don't know about stickers; the
-binding reacts to changes on the shape it points at. This is the same pattern tldraw's arrows
-use.
-
-[5]
 When the target shape changes, convert the stored anchor back to a page point and move the
 sticker there (in the sticker's parent space, in case it lives in a frame or group).
 
-[6]
-When the target shape is deleted, delete the sticker too.
-
-[7]
+[5]
 The sticker tool creates a sticker at the pointer and immediately hands off to the select
 tool's translating state, so the sticker follows the pointer until pointer up. `onInteractionEnd:
-'sticker'` returns to the sticker tool afterwards, and `onTranslateEnd` in the shape util does
-the binding.
-
-[8]
-Register the tool with the UI (with a custom icon served from the public folder) and add it to
-the toolbar.
+'sticker'` masks the current tool id as 'sticker' during the drag (and returns to the sticker
+tool afterwards when the tool is locked); `onTranslateEnd` in the shape util does the binding.
 */

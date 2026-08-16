@@ -23,5 +23,5 @@ Return `false` to cancel the deletion; return nothing to let it proceed. In this
 can't be deleted but everything else can.
 
 Try selecting each text shape and pressing delete. The red one stays put, whether you delete it
-directly, select all and delete, or cut it. Note that this only guards deletions: the user can still
+directly, select all and delete, or cut it. This only guards deletions: the user can still
 recolor the shape and then delete it.

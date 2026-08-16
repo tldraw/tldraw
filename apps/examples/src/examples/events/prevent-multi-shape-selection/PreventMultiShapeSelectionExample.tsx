@@ -6,10 +6,7 @@ export default function PreventMultiShapeSelectionExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				onMount={(editor) => {
-					// The current selection lives on the `instance_page_state` record. Rather than
-					// rejecting multi-selections outright, this handler rewrites them to keep only
-					// the last id, so shift-clicking, brushing, and select-all still leave one shape
-					// selected instead of doing nothing.
+					// Rewriting to the last id (rather than rejecting) keeps brushing and select-all usable.
 					editor.sideEffects.registerBeforeChangeHandler('instance_page_state', (prev, next) => {
 						if (
 							prev.selectedShapeIds !== next.selectedShapeIds &&

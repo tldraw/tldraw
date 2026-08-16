@@ -99,8 +99,6 @@ export default function CustomValidatorsExample() {
 }
 
 /*
-This example demonstrates custom validators using the `.check()` and `.refine()` methods.
-
 [1]
 Extend TLGlobalShapePropsMap to register your custom shape's props with the type system.
 

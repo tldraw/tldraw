@@ -32,6 +32,7 @@ import {
 	TLUiStylePanelProps,
 	useEditor,
 	useIsToolSelected,
+	useTldrawUiComponents,
 	useTools,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -167,7 +168,13 @@ function CustomMainMenu() {
 }
 // [7]
 function CustomNavigationPanel() {
-	return <div style={{ backgroundColor: 'thistle', padding: '14px' }}>here you are</div>
+	const { ZoomMenu } = useTldrawUiComponents()
+	return (
+		<div style={{ backgroundColor: 'thistle', padding: '14px' }}>
+			here you are
+			{ZoomMenu && <ZoomMenu />}
+		</div>
+	)
 }
 // [8]
 function CustomPageMenu() {
@@ -225,7 +232,11 @@ function CustomToolbar() {
 	const isRhombusSelected = useIsToolSelected(tools['rhombus-2'])
 	return (
 		<DefaultToolbar>
-			<TldrawUiMenuItem {...tools['rhombus-2']} isSelected={isRhombusSelected} />
+			<TldrawUiMenuItem
+				{...tools['rhombus-2']}
+				label="geo-style.rhombus-2"
+				isSelected={isRhombusSelected}
+			/>
 			<DefaultToolbarContent />
 			<TldrawUiButton
 				type="icon"
@@ -315,7 +326,8 @@ the hamburger icon in the top left corner of the tldraw component.
 
 [7]
 The navigation panel is in the bottom left of the tldraw component at larger breakpoints. It
-contains zoom controls and a minimap.
+normally contains the zoom menu and a minimap. Replacing it drops the zoom menu too, so this one
+renders `ZoomMenu` from `useTldrawUiComponents` to keep [12] reachable.
 
 [8]
 The page menu contains options for creating and editing pages. To open it, click the page name in
@@ -329,8 +341,9 @@ The style panel appears on the right side of the tldraw component. It contains o
 the style of shapes, such as color, stroke width, and opacity.
 
 [11]
-The toolbar contains the tools used to create and select shapes. Here we add the rhombus geo tool
-at the front and a "delete all" button at the end.
+The toolbar contains the tools used to create and select shapes. Here we add the left-leaning
+rhombus geo shape at the front and a "delete all" button at the end. There is no `tool.rhombus-2`
+translation key, so the item reuses the style panel's `geo-style.rhombus-2` label.
 
 [12]
 The zoom menu is in the bottom left of the tldraw component. The button that opens it is labeled

@@ -10,8 +10,6 @@ import {
 	useTools,
 } from 'tldraw'
 
-// There's a guide at the bottom of this file!
-
 export const uiOverrides: TLUiOverrides = {
 	tools(editor, tools) {
 		// Create a tool item in the ui's context.
@@ -51,7 +49,6 @@ export const components: TLComponents = {
 }
 
 /*
-
 This file contains overrides for the Tldraw UI. These overrides are used to add your custom tools to
 the toolbar and the keyboard shortcuts menu.
 

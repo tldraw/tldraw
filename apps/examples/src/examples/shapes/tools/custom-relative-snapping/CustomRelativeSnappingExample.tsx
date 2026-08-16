@@ -218,8 +218,7 @@ export default function CustomRelativeSnappingYShapeExample() {
 }
 
 /*
-This example demonstrates the `snapReferenceHandleId` property using a Y-shaped connector: three
-arms radiating from a center junction point.
+The shape is a Y-shaped connector: three arms radiating from a center junction point.
 
 When you hold shift while dragging a handle, the editor snaps the handle's angle to 15 degree
 increments, measured from a reference handle. By default the reference is the next vertex handle

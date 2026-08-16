@@ -188,9 +188,8 @@ export default function SizeFromDomExample() {
 }
 
 /*
-This example shows a shape whose size comes from its rendered DOM content rather than from
-shape props. Two pieces do the work and can be reused for other shapes: the ShapeSizes atom
-and the useDynamicShapeSize hook.
+Two pieces do the work and can be reused for other shapes: the ShapeSizes atom and the
+useDynamicShapeSize hook.
 
 [1]
 Extend TLGlobalShapePropsMap to add our shape's props to the global type system.
@@ -227,8 +226,8 @@ The shape util:
 
 	[b] Default props with some sample content.
 
-	[c] Keep the shape mounted when it's off screen. If it were culled, its DOM would unmount and
-	    the stored size would go stale until it scrolled back into view.
+	[c] Never cull the shape. Culled shapes are hidden with display: none, so its element would
+	    measure 0×0 and the stored size would go stale until it scrolled back into view.
 
 	[d] Resizing is disabled because the size is not something the user controls.
 

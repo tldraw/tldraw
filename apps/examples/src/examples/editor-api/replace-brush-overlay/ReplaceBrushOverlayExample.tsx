@@ -27,5 +27,6 @@ the built-in brush would. Try drag-selecting a region on the canvas.
 [1]
 `<Tldraw>` merges the overlay utils you pass with the defaults, and a custom util whose static `type`
 matches a default replaces it. Since our subclass inherits `type = 'brush'`, passing it alone is enough
-to swap out the built-in brush. The same rule applies to `shapeUtils`, `bindingUtils`, and `tools`.
+to swap out the built-in brush. `shapeUtils` and `bindingUtils` merge by static `type` the same
+way; `tools` merge by static `id`.
 */

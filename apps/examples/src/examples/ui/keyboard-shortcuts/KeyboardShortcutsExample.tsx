@@ -41,8 +41,8 @@ dialog reads the same `kbd` strings, so it stays in sync with your overrides.
 `overrides` is a `TLUiOverrides` object. Each function receives the defaults and returns
 the replacements. It's defined at module level so `<Tldraw>` doesn't see a new object on
 every render.
-	[a] `toggle-grid` moves from cmd+' to `x`. `copy-as-png` has no default shortcut, so
-	this adds one.
+	[a] `toggle-grid` moves from cmd+' to `x`, and `copy-as-png` moves from cmd+shift+c
+	to cmd+1. The override replaces the default shortcut rather than adding to it.
 	[b] The draw tool moves from `d` to `p`.
 
 [2]

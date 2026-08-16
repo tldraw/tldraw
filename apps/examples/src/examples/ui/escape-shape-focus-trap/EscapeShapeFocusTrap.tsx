@@ -70,11 +70,11 @@ export default function EscapeShapeFocusTrapExample() {
 				onMount={(editor) => {
 					editor.createShape({ type: 'geo', x: 400, y: 200 })
 
-					// [4a]
+					// [4]
 					const container = editor.getContainer()
 					const getToolbar = () => container.querySelector<HTMLElement>('.tlui-contextual-toolbar')
 
-					// [4b]
+					// [5]
 					function enableFocusRing() {
 						container.classList.remove('tl-container__no-focus-ring')
 					}
@@ -83,7 +83,7 @@ export default function EscapeShapeFocusTrapExample() {
 						const toolbarEl = getToolbar()
 						const isInToolbar = toolbarEl?.contains(document.activeElement)
 
-						// [5]
+						// [6]
 						if (e.key === 'Tab' && !isInToolbar) {
 							const hasSelected = editor.getOnlySelectedShapeId() !== null
 							const isOnCanvas =
@@ -102,7 +102,7 @@ export default function EscapeShapeFocusTrapExample() {
 							return
 						}
 
-						// [6]
+						// [7]
 						if (e.key === 'Tab' && isInToolbar && toolbarEl) {
 							const buttons = Array.from(toolbarEl.querySelectorAll<HTMLElement>('button'))
 							const currentIndex = buttons.indexOf(document.activeElement as HTMLElement)
@@ -128,7 +128,7 @@ export default function EscapeShapeFocusTrapExample() {
 							return
 						}
 
-						// [7]
+						// [8]
 						if (e.key === 'Escape' && isInToolbar) {
 							e.preventDefault()
 							e.stopImmediatePropagation()
@@ -136,7 +136,7 @@ export default function EscapeShapeFocusTrapExample() {
 						}
 					}
 
-					// [8]
+					// [9]
 					container.addEventListener('keydown', handleKeyDown, { capture: true })
 					return () => container.removeEventListener('keydown', handleKeyDown, { capture: true })
 				}}
@@ -157,28 +157,28 @@ Moving focus back to the container hands Tab back to tldraw's built-in shape nav
 Position the toolbar on the top edge of the selection, the same pattern used in the
 contextual toolbar example.
 
-[4a]
+[4]
 The keyboard interception is registered in `onMount` so its cleanup runs when the editor
 unmounts.
 
-[4b]
-Because we call `stopImmediatePropagation()` in [5] and [6], the editor's `FocusManager`
-(which listens on the document) never sees the Tab key and so never removes
+[5]
+Because we call `stopImmediatePropagation()` in [6] and [7], the editor's `FocusManager`
+(which listens on `document.body`) never sees the Tab key and so never removes
 `tl-container__no-focus-ring`. Removing it ourselves keeps the focus outline visible on
 the toolbar buttons.
 
-[5]
+[6]
 Tab with focus on the canvas and one shape selected: focus the first toolbar button
 instead of letting tldraw cycle to the next shape.
 
-[6]
+[7]
 Tab inside the toolbar cycles between its buttons. Tab on the last button or Shift+Tab on
 the first returns focus to the canvas, so focus can't leak into unrelated UI.
 
-[7]
+[8]
 Escape inside the toolbar returns focus to the canvas.
 
-[8]
+[9]
 The listener is registered with `capture: true` so it runs before tldraw's own bubble-phase
 handler in `useDocumentEvents`, which is what makes `stopImmediatePropagation()` effective.
 */

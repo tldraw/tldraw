@@ -110,13 +110,13 @@ export default function DataGridExample() {
 
 /*
 [1]
-`canScroll` lets wheel events reach the grid so it can scroll its own rows instead of
-panning the canvas. `canEdit` lets the shape enter the editing state on double-click,
-which is when we turn on pointer events so the grid's filters and sorting are usable.
+`canEdit` lets the shape enter the editing state on double-click, which is when we turn on
+pointer events so the grid's filters and sorting are usable. While the shape is being edited,
+`canScroll` lets wheel events reach the grid so it scrolls its own rows instead of panning
+the canvas.
 
 [2]
-Shape components render inside a reactive tracking context, so reading
-`getEditingShapeId()` here re-renders the shape when editing starts or stops.
+Reading `getEditingShapeId()` in the component re-renders the shape when editing starts or stops.
 
 [3]
 AG Grid renders its rows asynchronously. `useDelaySvgExport` returns a callback that

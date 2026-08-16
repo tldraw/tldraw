@@ -133,11 +133,11 @@ order to get it to the needed version.
 tldraw about the migrations so they can be used with your shapes.
 
 [4] To show the migration running, we load a snapshot that was saved before the `color` prop
-existed. Delete the shape and undo, or reload the page, and you'll see it come back light blue.
+existed. The migration runs as the snapshot loads, so the shape appears light blue.
 
 How it works:
 
-Each time the editor's store creates a snapshot (`editor.store.createSnapshot`), it serializes all
+Each time the editor creates a snapshot (`editor.getSnapshot()`), it serializes all
 of the records (the snapshot's `store`) as well as versions of each record that it contains (the
 snapshot's `schema`). When the editor loads a snapshot, it compares its current schema with the
 snapshot's schema to determine which migrations to apply to each record.
@@ -172,10 +172,8 @@ The snapshot looks something like this:
 }
 ```
 
-Note that the shape in the snapshot doesn't have a 'color' prop, and that the schema's version for
-this shape is 0. (This snapshot uses the older `recordVersions` schema format; snapshots created
-today have a `sequences` map with keys like "com.tldraw.shape.myshapewithmigrations" instead. Both
-load fine.)
+The shape in the snapshot doesn't have a 'color' prop, and the schema's version for this shape is
+0.
 
 When the editor loads the snapshot, it will compare the serialized schema's version with its current
 schema's version for the shape, which is 1 as defined in our shape's migrations. Since the

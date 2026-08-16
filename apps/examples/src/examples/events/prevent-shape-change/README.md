@@ -27,5 +27,5 @@ changes pass through untouched.
 
 Try dragging, rotating, or resizing the rectangle: nothing happens. Now change its color or edit its
 label: that works. This is a finer-grained alternative to `isLocked`, which would also stop the shape
-being selected. Note that a rejected change is silent, so consider giving the user some feedback if
+being selected. A rejected change is silent, so consider giving the user some feedback if
 this is a real permission rule.

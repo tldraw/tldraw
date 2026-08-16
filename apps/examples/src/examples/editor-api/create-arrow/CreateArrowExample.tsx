@@ -111,7 +111,7 @@ An arrow connects to other shapes through arrow bindings: one binding record per
 exist, the editor keeps the arrow's terminals attached as either shape moves.
 
 [1]
-Each binding has three props. `normalizedAnchor` is the point inside the bound shape that the
+Of the binding props, `normalizedAnchor` is the point inside the bound shape that the
 terminal targets, in the shape's own bounds: (0, 0) is the top left, (1, 1) the bottom right. It's
 only used when `isPrecise` is true; otherwise the arrow aims at the shape's center. By default the
 arrow stops at the outside of the shape's geometry; set `isExact` to true to make it end exactly on

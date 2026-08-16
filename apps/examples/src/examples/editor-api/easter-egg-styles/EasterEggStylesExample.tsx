@@ -93,8 +93,8 @@ They can still be set programmatically or, for some, with a keyboard shortcut.
 
 [1]
 `fill: 'fill'` (Alt+F) is a solid fill in the shape's full color rather than the tinted 'solid'
-fill; `fill: 'lined-fill'` (Alt+Shift+F) is a hatched variant. Both are tucked away in the fill
-picker's overflow dropdown.
+fill; `fill: 'lined-fill'` (Alt+Shift+F) is a slightly lighter solid variant. Both are tucked
+away in the fill picker's overflow dropdown.
 
 [2]
 `color: 'white'` (Alt+T) is a white color option not shown in the color picker.

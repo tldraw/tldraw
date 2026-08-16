@@ -102,7 +102,6 @@ const components: TLComponents = {
 						textEditor.chain().focus().toggleOutline().run()
 					}}
 					isActive={textEditor.isActive('outline')}
-					// [4]
 					onPointerDown={preventDefault}
 				>
 					⬜
@@ -113,7 +112,7 @@ const components: TLComponents = {
 	},
 }
 
-// [5]
+// [4]
 const options = {
 	text: {
 		tipTapConfig: {
@@ -143,15 +142,10 @@ the selection; inside it we add our toggle button and keep the default buttons v
 text being edited, or null when nothing is being edited.
 
 [3]
-The TipTap editor isn't a tldraw signal, so `isActive` wouldn't otherwise refresh as the
-selection moves in and out of marked text. Re-render on every TipTap transaction so the
-button's active state stays in sync.
+The transaction re-render and the pointer-down `preventDefault` are the same as in the
+rich text custom extension example; see its footnotes [3] and [4] for why.
 
 [4]
-Preventing the default on pointer down keeps the button from stealing focus from the text
-editor, which would collapse the selection before the command runs.
-
-[5]
 Pass extensions through `options.text.tipTapConfig`. Spread `tipTapDefaultExtensions` so
 tldraw's own StarterKit configuration and extras stay in place.
 */

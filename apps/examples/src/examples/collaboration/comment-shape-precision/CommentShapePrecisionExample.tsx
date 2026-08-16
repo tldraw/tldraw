@@ -123,9 +123,9 @@ export default function CommentShapePrecisionExample() {
 One configured comment tool per mode, built once at module level so each array keeps a stable
 identity. `shouldBePrecise` decides what commenting on a shape produces: a precise anchor, pinned to
 the exact clicked spot within the shape (the default), or an imprecise one, pinned to the shape as
-a whole and rendered at `impreciseShapeAnchor`. It's called with the target shape, the release
-point, and the Alt key's state, so it can be a constant, an Alt-gated choice, or a decision from
-the shape itself, like "precise only on notes".
+a whole and rendered at `impreciseShapeAnchor`. It's called with the target shape's id, the
+release point, and the Alt key's state, so it can be a constant, an Alt-gated choice, or a decision
+from the shape itself, like "precise only on notes".
 
 [2]
 Commenting options are fixed at tool registration (`CommentTool.configure`), so switching modes

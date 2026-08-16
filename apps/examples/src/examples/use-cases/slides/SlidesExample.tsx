@@ -120,7 +120,7 @@ export default function SlidesExample() {
 
 /*
 [1]
-The slide list lives in the `HelperButtons` slot (top left, under the toolbar). The toolbar
+The slide list lives in the `HelperButtons` slot (top left, under the menu panel). The toolbar
 and keyboard shortcuts dialog are replaced with versions that include the slide tool, since
 new tools are not added to them automatically.
 

@@ -2,7 +2,9 @@ import {
 	BaseFrameLikeShapeUtil,
 	Circle2d,
 	Geometry2d,
+	Group2d,
 	HTMLContainer,
+	Rectangle2d,
 	ShapeUtil,
 	TLShape,
 	Tldraw,
@@ -72,6 +74,13 @@ class MyGridShapeUtil extends BaseFrameLikeShapeUtil<MyGridShape> {
 			w: SLOT_SIZE * 5,
 			h: SLOT_SIZE * 2,
 		}
+	}
+
+	// Frame-like shapes must return a Group2d: the editor's hit testing walks its children.
+	override getGeometry(shape: MyGridShape): Geometry2d {
+		return new Group2d({
+			children: [new Rectangle2d({ width: shape.props.w, height: shape.props.h, isFilled: true })],
+		})
 	}
 
 	override canResize(_shape: MyGridShape) {
@@ -153,8 +162,7 @@ Circle2d, so hit-testing follows the circle rather than its bounding box.
 [4]
 The grid extends BaseFrameLikeShapeUtil, which provides everything a container needs: it reparents
 shapes dropped onto it in onDragShapesIn, reparents them back to the page in onDragShapesOut, clips
-its children to its geometry, and treats itself as a frame for selection and erasing. Rectangle
-geometry comes from BaseBoxShapeUtil underneath.
+its children to its geometry, and treats itself as a frame for selection and erasing.
 
 [5]
 canReceiveNewChildrenOfType gates which shape types can be dropped in. The editor only calls

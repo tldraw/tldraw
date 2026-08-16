@@ -65,7 +65,8 @@ the same info: the pointer event, the target shape, and `isCreating`, which tell
 the shape was just created so it won't Alt-clone it and will treat the drag as part of creation.
 
 [3]
-`onInteractionEnd` runs when the drag finishes. Passing a string such as 'quick-shape' just
-switches to that tool afterward; passing a function lets you do more first. Here we swap the fill
+`onInteractionEnd` runs when the drag finishes. Passing a string such as 'quick-shape' mainly
+masks the current tool id, so the UI keeps showing that tool during the drag; it only switches
+back to it on completion when tool lock is on. Passing a function lets you do more first. Here we swap the fill
 to a pattern and then return to this tool so the next click creates another shape.
 */

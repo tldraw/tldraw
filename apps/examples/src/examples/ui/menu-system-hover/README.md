@@ -26,4 +26,4 @@ tldraw keeps track of open menus in `editor.menus`, keyed by id. The UI's dropdo
 - `editor.menus.deleteOpenMenu(id)` closes it
 - `useMenuIsOpen(id)` subscribes to a menu's open state
 
-Try hovering the green zone to open the dropdown and the red zone to close it. Clicking the trigger button still works as usual. This is handy for hover-driven toolbars or for closing menus in response to events elsewhere in your app.
+Try hovering the green-labeled zone to open the dropdown and the red-labeled zone to close it. Clicking the trigger button still works as usual. This is handy for hover-driven toolbars or for closing menus in response to events elsewhere in your app.

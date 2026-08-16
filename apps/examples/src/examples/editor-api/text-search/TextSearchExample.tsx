@@ -38,7 +38,7 @@ export default function TextSearchExample() {
 /*
 [1]
 The search panel renders in the `HelperButtons` slot, which sits at the top left of the canvas under
-the toolbar. See TextSearchPanel.tsx for the search itself.
+the menu panel. See TextSearchPanel.tsx for the search itself.
 
 [2]
 Registering an action with `kbd: 'cmd+f,ctrl+f'` takes over the browser's find shortcut while the

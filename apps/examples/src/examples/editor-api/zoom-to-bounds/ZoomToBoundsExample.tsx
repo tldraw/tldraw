@@ -21,7 +21,6 @@ function ZoomControls() {
 			>
 				Zoom to blue box
 			</TldrawUiButton>
-			{/* [2] */}
 			<TldrawUiButton
 				type="normal"
 				onClick={() =>
@@ -76,8 +75,4 @@ export default function ZoomToBoundsExample() {
 ratio, so the visible area is usually larger than the box you pass on one axis. `inset` is screen-space
 padding around the box; when omitted the editor uses `options.zoomToFitPadding` (capped relative to the
 viewport width). Pass `animation` to animate the move; without it the camera jumps.
-
-[2]
-`Box.Common` returns the smallest box containing all the given boxes, which is a handy way to build a
-zoom target from several shapes.
 */

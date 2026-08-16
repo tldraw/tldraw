@@ -42,7 +42,5 @@ export default function DarkModeToggleExample() {
 when the preference changes from anywhere, e.g. the toggle in the main menu.
 
 [2]
-User preferences are the source of truth for the color scheme, so we write to them
-directly. `editor.setColorMode('dark')` is a shorthand for the same call. Preferences
-are persisted to local storage by default, so the choice survives a reload.
+`editor.setColorMode('dark')` is a shorthand for the same preference update.
 */

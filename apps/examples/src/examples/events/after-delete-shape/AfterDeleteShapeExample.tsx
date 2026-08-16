@@ -6,9 +6,6 @@ export default function AfterDeleteShapeExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				onMount={(editor) => {
-					// After-delete handlers run once the record is gone from the store, so this is
-					// the place to clean up records that depended on it. Here we delete a frame once
-					// its last child has been deleted.
 					editor.sideEffects.registerAfterDeleteHandler('shape', (shape) => {
 						const parentShape = editor.getShape(shape.parentId)
 						if (parentShape && parentShape.type === 'frame') {

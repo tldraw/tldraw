@@ -17,10 +17,7 @@ export default function PreventShapeChangeExample() {
 						},
 					})
 
-					// A before-change handler returns the record that will actually be written.
-					// For geo rectangles, any change to position, rotation, or size is rejected by
-					// returning `prev`; everything else (color, fill, text, etc.) passes through.
-					// Unlike locking the shape, this leaves it selectable and editable.
+					// Unlike locking the shape, rejecting transforms here leaves it selectable and editable.
 					editor.sideEffects.registerBeforeChangeHandler('shape', (prev, next) => {
 						if (
 							editor.isShapeOfType(prev, 'geo') &&

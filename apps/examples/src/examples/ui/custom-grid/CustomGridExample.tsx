@@ -29,10 +29,9 @@ const components: TLComponents = {
 			const ctx = canvas.current?.getContext('2d')
 			if (!ctx) return
 
-			// [4]
 			ctx.clearRect(0, 0, canvasW, canvasH)
 
-			// [5]
+			// [4]
 			const pageViewportBounds = editor.getViewportPageBounds()
 
 			const startPageX = Math.ceil(pageViewportBounds.minX / size) * size
@@ -44,7 +43,7 @@ const components: TLComponents = {
 
 			ctx.strokeStyle = isDarkMode ? '#555' : '#BBB'
 
-			// [6]
+			// [5]
 			for (let row = 0; row <= numRows; row++) {
 				const pageY = startPageY + row * size
 				// convert the page-space Y offset into our canvas' coordinate space
@@ -61,7 +60,7 @@ const components: TLComponents = {
 			}
 		}, [screenBounds, camera, size, devicePixelRatio, editor, isDarkMode])
 
-		// [7]
+		// [6]
 		return <canvas className="tl-grid" ref={canvas} />
 	},
 }
@@ -96,8 +95,6 @@ function drawLine(
 }
 
 /*
-This example shows how to draw a custom grid using a 2d canvas.
-
 [1]
 To add a custom grid, override the `Grid` component. It receives the camera position and zoom
 along with the grid size in page space, and re-renders whenever the camera moves.
@@ -112,16 +109,13 @@ To avoid pixelation we render at the device's actual resolution, so the canvas s
 the device pixel ratio.
 
 [4]
-Clear the canvas so the previous frame's lines don't accumulate.
-
-[5]
 Calculate the first and last grid lines visible in the viewport, in page space, so we only draw
 the lines that are actually on screen.
 
-[6]
+[5]
 Convert each page-space line position into canvas pixels using the camera and device pixel ratio.
 Major lines are drawn every 10 grid units.
 
-[7]
+[6]
 The `tl-grid` class is important for correct positioning and pointer-event handling.
 */

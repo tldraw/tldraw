@@ -68,12 +68,6 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 		const fill = ctx.isDarkMode ? DARK_FILL : LIGHT_FILL
 		return <rect width={shape.props.w} height={shape.props.h} fill={fill} />
 	}
-
-	// [2]
-	// override toBackgroundSvg(shape: ICustomShape, ctx: SvgExportContext) {
-	// 	const fill = ctx.isDarkMode ? '#333' : '#efefef'
-	// 	return <rect width={shape.props.w} height={shape.props.h} fill={fill} />
-	// }
 }
 
 const customShape = [MyShapeUtil]
@@ -105,10 +99,7 @@ because exports can be requested in either mode regardless of the current UI.
 
 If your shape needs shared resources such as fonts, patterns, or filters, add them once to
 the export's `<defs>` with `ctx.addExportDef({ key, getElement })`; defs with the same key
-are only added once. Fonts used via `getFontFaces` are embedded automatically.
-
-[2]
-`toBackgroundSvg` renders a second layer that sits behind all shapes' foreground layers.
-tldraw's highlighter shape uses it so highlights export underneath other shapes. It's
-commented out here because this shape doesn't need it.
+are only added once. Fonts used via `getFontFaces` are embedded automatically. A shape can
+also define `toBackgroundSvg` for a layer that exports behind every shape's foreground layer,
+as the highlighter shape does.
 */

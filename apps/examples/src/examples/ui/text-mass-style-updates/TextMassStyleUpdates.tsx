@@ -38,7 +38,6 @@ function isRichTextShape(shape: TLShape): shape is RichTextShape {
 	return 'richText' in shape.props
 }
 
-// [1]
 function isUniformlyMarked(doc: Node, markName: string): boolean {
 	let hasText = false
 	let allMarked = true
@@ -53,6 +52,7 @@ function isUniformlyMarked(doc: Node, markName: string): boolean {
 	return hasText && allMarked
 }
 
+// [1]
 function setMark(doc: Node, schema: Schema, markName: string, active: boolean): Node {
 	const markType = schema.marks[markName]
 
@@ -205,13 +205,14 @@ a ProseMirror `Node` and use its mark API. For a hand-rolled JSON version, see
 the "Format rich text on multiple shapes" example.
 
 [1]
-`Node.fromJSON` parses `shape.props.richText` into a ProseMirror document using
-the schema built from tldraw's default TipTap extensions. `mapTextNodes` then
-rebuilds the document with each text node's marks changed; ProseMirror nodes
-are immutable, so we return a new tree and call `toJSON()` on it to write back.
+`setMark` and `mapTextNodes` rebuild a ProseMirror document with each text
+node's marks changed. ProseMirror nodes are immutable, so we return a new tree
+rather than mutating in place.
 
 [2]
-`setMarkOnShape` handles both shapes with rich text (by rewriting the document)
+`setMarkOnShape` parses `shape.props.richText` with `Node.fromJSON`, using the
+schema built from tldraw's default TipTap extensions, and writes the result back
+with `toJSON()`. It handles both shapes with rich text (by rewriting the document)
 and container shapes like frames and groups (by recursing into their children
 via `getSortedChildIdsForParent`). The add/remove decision is made once per
 click: if every text node in every selected shape already has the mark, remove

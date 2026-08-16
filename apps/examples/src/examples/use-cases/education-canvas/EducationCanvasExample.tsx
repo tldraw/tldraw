@@ -126,6 +126,8 @@ export default function EducationCanvasExample() {
 	const rEditor = useRef<Editor | null>(null)
 	const handleMount = useCallback((editor: Editor) => {
 		rEditor.current = editor
+		// Camera options only set the constraints; a reset applies the initial zoom.
+		editor.setCamera(editor.getCamera(), { reset: true })
 	}, [])
 
 	const handleSubmit = useCallback(() => {

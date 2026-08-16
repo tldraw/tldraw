@@ -117,6 +117,6 @@ extensions include 'bold', 'italic', 'code', 'strike', 'underline', 'link', and
 
 [5]
 The font style is 'draw', 'sans', 'serif', or 'mono'; size is 's', 'm', 'l', or 'xl'.
-These are tldraw's default styles, so a text shape created with them also updates the
-"style for next shape" the user sees in the style panel.
+These are tldraw's default style props, so the style panel shows and edits them when the
+shape is selected.
 */

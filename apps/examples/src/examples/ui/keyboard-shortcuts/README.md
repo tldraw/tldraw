@@ -5,7 +5,7 @@ priority: 3
 keywords: [shortcuts, hotkeys, keybindings, kbd, overrides, actions, tools, customize]
 ---
 
-Change tldraw's default keyboard shortcuts or add one to an action that has none.
+Change tldraw's default keyboard shortcuts for tools and actions.
 
 ---
 

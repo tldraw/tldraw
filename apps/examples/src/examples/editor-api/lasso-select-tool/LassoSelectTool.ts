@@ -142,8 +142,8 @@ For a general guide on building tools with child states, see the `MiniSelectTool
     polygon and none of its edges cross the lasso outline.
 
     [d]
-    On pointer up (or when the tool is completed some other way, e.g. by pressing Enter), select the
-    enclosed shapes and hand back to the select tool.
+    On pointer up (or when the editor completes the interaction some other way, e.g. a menu opens or
+    the page changes), select the enclosed shapes and hand back to the select tool.
 
 If you wanted to take the lasso further, you could:
 - live update the selection as the user moves the mouse, similar to how the default select and brush select tools work

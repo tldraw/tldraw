@@ -179,7 +179,7 @@ the selected shapes (or the current tool), and each entry is either a shared
 value or 'mixed'. editor.setStyleForSelectedShapes writes the new value to
 every selected shape, and editor.setStyleForNextShapes remembers it for shapes
 created afterwards, which is what the default style panel does too. For more
-on customizing the style panel, see the custom style panel example.
+on customizing the style panel, see the stroke size picker example.
 
 [7]
 Define shapeUtils and components outside the React component so they aren't

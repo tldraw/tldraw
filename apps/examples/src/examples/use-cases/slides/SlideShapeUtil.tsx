@@ -147,7 +147,7 @@ export class SlideShapeUtil extends ShapeUtil<SlideShape> {
 /*
 [1]
 Slides can't be rotated: the rotate handle is hidden and `onRotate` returns the initial
-shape so rotation via other paths (e.g. the style panel) is a no-op.
+shape so rotation via other paths (e.g. the context menu's rotate actions) is a no-op.
 
 [2]
 The dashed border is drawn with `getPerfectDashProps` at a length scaled to the zoom level,

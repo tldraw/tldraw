@@ -87,8 +87,6 @@ const CustomUi = track(() => {
 })
 
 /*
-This example shows how to build your own UI for the editor from scratch.
-
 [1]
 We render the `Tldraw` component with the `hideUi` prop, which hides the default toolbar, style
 panel, menus, and so on. Our custom UI is rendered as a child of `Tldraw`, which gives it access to

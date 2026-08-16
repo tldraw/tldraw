@@ -17,5 +17,5 @@ removes ids for draw shapes that were created or deleted. If nothing relevant ch
 the previous set so nothing downstream re-runs.
 
 The counter at the top of the page reads the set's size with `useValue`. Try drawing a few strokes
-and deleting them; then move or restyle other shapes and notice the count doesn't need to recompute.
+and deleting them; moving or restyling shapes leaves the set untouched, so nothing downstream re-runs.
 The same pattern works for any expensive derived view of the document.

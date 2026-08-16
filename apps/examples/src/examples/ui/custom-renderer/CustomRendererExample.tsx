@@ -20,8 +20,8 @@ export default function CustomRendererExample() {
 }
 
 /*
-This example shows how you might use your own renderer with tldraw. The shapes are drawn to a
-2d canvas from the editor's shape data instead of being rendered by React.
+The shapes are drawn to a 2d canvas from the editor's shape data instead of being rendered by
+React.
 
 [1]
 We replace the `Background` component with our custom renderer (see `CustomRenderer.tsx`). It

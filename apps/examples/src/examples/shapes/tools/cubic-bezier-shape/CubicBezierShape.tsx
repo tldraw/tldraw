@@ -39,7 +39,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		end: vecModelValidator,
 	}
 
-	private isMetaKeyOnTranslateStart = false
+	private isCtrlKeyOnTranslateStart = false
 	private didHitCurveOnTranslateStart = false
 
 	override getDefaultProps(): MyBezierCurveShape['props'] {
@@ -173,7 +173,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		let newProps: Partial<MyBezierCurveShape['props']> = {}
 
 		// cmd/ctrl + drag on start or end moves that endpoint's control point instead
-		if (this.editor.inputs.getMetaKey()) {
+		if (this.editor.inputs.getCtrlKey()) {
 			switch (id) {
 				case 'start': {
 					return {
@@ -236,7 +236,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 	override onTranslateStart(shape: MyBezierCurveShape) {
 		// sample the meta key once here so the curve doesn't start bending if the user presses
 		// cmd/ctrl partway through a plain translation
-		this.isMetaKeyOnTranslateStart = this.editor.inputs.getMetaKey()
+		this.isCtrlKeyOnTranslateStart = this.editor.inputs.getCtrlKey()
 
 		// bend only when the drag started on the curve itself, not on the start or end handle
 		const handles = this.getHandles(shape)
@@ -264,7 +264,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 	}
 
 	override onTranslate(initial: MyBezierCurveShape, current: MyBezierCurveShape) {
-		if (this.isMetaKeyOnTranslateStart && this.didHitCurveOnTranslateStart) {
+		if (this.isCtrlKeyOnTranslateStart && this.didHitCurveOnTranslateStart) {
 			const delta = Vec.Sub(current, initial)
 			const offsetX = Math.round(delta.x)
 			const offsetY = Math.round(delta.y)
@@ -380,7 +380,7 @@ onHandleDrag returns the updated shape:
 [8]
 onTranslateStart and onTranslate implement "bending": cmd/ctrl + drag on the curve itself moves both
 control points together instead of moving the shape. Whether to bend is decided once in
-onTranslateStart, based on where the drag started and whether the meta key was down.
+onTranslateStart, based on where the drag started and whether cmd/ctrl was down.
 
 [9]
 The component draws the curve, plus dashed lines from start→cp1 and end→cp2 while the shape is

@@ -36,8 +36,8 @@ screen.
 
 [1]
 Register your overlay util alongside `defaultOverlayUtils` so the built-in
-overlays (selection, brush, scribble, snap, handles, collaborator cursors) stay
-intact. Passing an array without them removes those overlays. `options.zIndex`
+overlays (selection, brush, scribble, snap, handles, collaborator brushes and
+scribbles) stay intact. Passing an array without them removes those overlays. `options.zIndex`
 controls paint order; higher paints on top.
 
 [2]

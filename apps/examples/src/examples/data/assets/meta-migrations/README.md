@@ -23,4 +23,4 @@ Records carry a `meta` field for app-specific data, but tldraw can't migrate wha
 
 Open the page menu: the page that was purple is now blue and renamed "(was purple)". The dropdown in the top panel lets you change the current page's theme.
 
-For migrating the `props` of a custom shape, use the simpler shape-props migration API described in the [persistence docs](https://tldraw.dev/docs/persistence#Shape-props-migrations).
+For migrating the `props` of a custom shape, use the simpler shape-props migration API described in the [persistence docs](https://tldraw.dev/sdk-features/persistence#shape-props-migrations).

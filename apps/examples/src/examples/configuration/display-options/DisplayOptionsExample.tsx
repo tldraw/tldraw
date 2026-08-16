@@ -15,7 +15,6 @@ const shapeUtils = [
 
 			if (shape.props.geo === 'ellipse') {
 				values.labelFontFamily = 'monospace'
-				values.labelFontStyle = 'italic'
 			}
 
 			values.strokeWidth = 10
@@ -39,6 +38,7 @@ export default function DisplayOptionsExample() {
 								w: 200,
 								h: 100,
 								geo: 'rectangle',
+								fill: 'solid',
 								richText: toRichText('Rectangle'),
 							},
 						},
@@ -71,6 +71,6 @@ replaces the default GeoShapeUtil.
 
 [2]
 Display values can depend on anything about the shape, not just its props. Locked shapes get a
-red fill; ellipses get a monospace italic label; every geo shape gets a 10px stroke regardless
+red fill; ellipses get a monospace label; every geo shape gets a 10px stroke regardless
 of its size style.
 */

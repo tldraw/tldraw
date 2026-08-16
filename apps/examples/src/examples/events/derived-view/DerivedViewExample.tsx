@@ -107,8 +107,8 @@ The first time a `computed` runs, `prevValue` is a special uninitialized sentine
 nothing to diff against and we compute from scratch.
 
 [4]
-`store.history` is an atom whose value is the current epoch and whose diffs are the record
-changes between epochs. `getDiffSince(lastComputedEpoch)` returns every change since our last
+`store.history` is an atom whose value is a change counter and whose diffs are the record
+changes between updates. `getDiffSince(lastComputedEpoch)` returns every change since our last
 run, or `RESET_VALUE` if the history buffer no longer goes back that far (or the store was
 reset), in which case we start over.
 

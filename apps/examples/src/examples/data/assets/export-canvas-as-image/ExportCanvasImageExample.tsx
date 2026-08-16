@@ -50,5 +50,5 @@ The simplest way to download a blob in the browser is a temporary link with a
 `download` attribute. Revoke the object URL afterwards to free the memory.
 
 See the "Export canvas as image (with settings)" example for the other export options,
-and the "Local images" / "Hosted images" examples for handling assets.
+and the "Create an image shape" / "Hosted images" examples for handling assets.
 */

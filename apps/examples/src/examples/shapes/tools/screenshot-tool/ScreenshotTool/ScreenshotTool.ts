@@ -45,6 +45,6 @@ dragging. `initial` names the child state to enter when the tool is selected.
 Set a crosshair cursor while the tool is active and restore the default on exit.
 
 [3]
-Interrupt (e.g. the window loses focus) and cancel (escape) both bail out to the select tool.
+Interrupt (e.g. a pinch gesture starts) and cancel (escape) both bail out to the select tool.
 `this.parent` is the root state, whose children are the tools.
 */

@@ -18,9 +18,6 @@ import silkscreenRegularUrl from './custom-font/Silkscreen-Regular.ttf'
 import './custom-theme.css'
 
 // [1]
-// Extend the type system so TypeScript knows about our custom color and font.
-// Because we pass `themes` to `<Tldraw>`, the custom names are
-// registered automatically at store creation time.
 declare module '@tldraw/tlschema' {
 	interface TLThemeDefaultColors {
 		pink: TLDefaultColor
@@ -29,7 +26,7 @@ declare module '@tldraw/tlschema' {
 		pixel: TLThemeFont
 		cursive: TLThemeFont
 	}
-	// [2] Remove the "light-*" color variants from the palette.
+	// [2]
 	interface TLRemovedDefaultThemeColors {
 		'light-violet': true
 		'light-blue': true
@@ -62,8 +59,7 @@ function makeColor(solid: string, semi: string, pattern: string): TLDefaultColor
 const pinkLight = makeColor('#e91e8c', '#fce4f2', '#f06baf')
 const pinkDark = makeColor('#f06baf', '#3d1a2e', '#e91e8c')
 
-// [4] Custom font — use a local font loaded from a bundled TTF file.
-// The `icon` field provides a React element for the style panel button.
+// [4]
 const pixelFont: TLThemeFont = {
 	fontFamily: "'Silkscreen', sans-serif",
 	icon: <div style={{ fontFamily: 'Silkscreen, sans-serif', fontSize: 16, lineHeight: 1 }}>Aa</div>,
@@ -109,11 +105,11 @@ const cursiveFont: TLThemeFont = {
 	],
 }
 
-// [5] Build a reduced font palette: drop "serif", keep the rest, add custom fonts.
+// [5]
 const { serif: _serif, ...keptFonts } = DEFAULT_THEME.fonts
 const customFonts = { ...keptFonts, pixel: pixelFont, cursive: cursiveFont } as TLTheme['fonts']
 
-// [6] Build a reduced color palette: drop "light-*" variants, add "pink".
+// [6]
 function colorsWithoutLightVariants(base: Record<string, unknown>, pink: TLDefaultColor) {
 	const {
 		'light-violet': _lv,
@@ -125,8 +121,7 @@ function colorsWithoutLightVariants(base: Record<string, unknown>, pink: TLDefau
 	return { ...kept, pink } as TLTheme['colors']['light']
 }
 
-// [7] Translation overrides so the style panel shows human-readable names
-// for our custom colors and fonts instead of raw keys like "color-style.pink".
+// [7]
 const uiOverrides: TLUiOverrides = {
 	translations: {
 		en: {
@@ -137,18 +132,14 @@ const uiOverrides: TLUiOverrides = {
 	},
 }
 
-// [8] Defaults for the adjustable theme values
+// [8]
 const DEFAULTS = {
 	fontSize: 16,
 	lineHeight: 1.35,
 	strokeWidth: 2,
 }
 
-// [9] A stable `themes` object passed once to `<Tldraw>`. It registers the
-// custom "pink" color and custom fonts at store creation time and provides the
-// starting display values. Keeping this reference stable means the store is
-// never recreated — runtime adjustments are applied with `editor.updateTheme()`
-// instead (see below).
+// [9]
 const themes: Partial<TLThemes> = {
 	default: {
 		id: 'default',
@@ -209,7 +200,7 @@ export default function CustomThemeExample() {
 							richText: toRichText('Hello'),
 						},
 					})
-					// [10] Use the custom "pink" color declared in our themes
+					// [10]
 					editor.createShape({
 						type: 'geo',
 						x: 600,
@@ -222,7 +213,7 @@ export default function CustomThemeExample() {
 						y: 350,
 						props: { richText: toRichText('Theme text'), size: 'l' },
 					})
-					// [11] Use the custom fonts declared in our themes
+					// [11]
 					editor.createShape({
 						type: 'text',
 						x: 350,
@@ -259,7 +250,7 @@ export default function CustomThemeExample() {
 	)
 }
 
-// [12] A panel with sliders to adjust theme values in real time.
+// [12]
 function ThemeControls({
 	fontSize,
 	onFontSizeChange,

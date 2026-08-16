@@ -76,8 +76,9 @@ The smallest possible "select" tool: a single StateNode with no child states. It
 the example; MiniSelectTool.ts is the version that's wired up.
 
 [1]
-A tool is a StateNode with a static `id`. The editor starts in this tool because the example
-passes `initialState="select"`. With no children, event handlers go directly on the tool.
+A tool is a StateNode with a static `id`. If this tool were registered in place of MiniSelectTool,
+the example's `initialState="select"` would start the editor in it. With no children, event
+handlers go directly on the tool.
 
 [2]
 Pointer events arrive with a `target` of 'canvas' or 'shape'. Custom shapes rendered with

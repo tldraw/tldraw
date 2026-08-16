@@ -94,7 +94,7 @@ function InlineBlock({ persistenceKey }: { persistenceKey: string }) {
 [1]
 A context tracking which editor is focused. Only the focused editor handles keyboard
 shortcuts, so several editors on one page don't fight over them. See also the
-'Multiple editors' and 'Editor focus' examples.
+'Multiple editors' and 'Focus the editor' examples.
 
 [2]
 Called on any editor that loses focus. `blurContainer: false` stops the editor's

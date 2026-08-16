@@ -220,5 +220,6 @@ Try selecting each demo:
 1. The blue shape: a single rotated shape, where the two boxes differ.
 2. The green group: two shapes with a shared rotation, so the rotated box still follows their angle.
 3. The purple and red pair: two ungrouped shapes with different rotations, so the rotated box collapses
-   to the axis-aligned one. Select both and rotate them; once they share an angle, the boxes diverge again.
+   to the axis-aligned one. Rotate one of them on its own to see how the axis-aligned box changes while
+   the rotated box stays aligned to the page.
 */

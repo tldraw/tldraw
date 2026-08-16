@@ -85,7 +85,7 @@ function UserSwitcher() {
 	)
 }
 
-// [4]
+// [3]
 const AttributionTimeline = track(() => {
 	const editor = useEditor()
 	const activeUserId = currentUserIdAtom.get()
@@ -95,7 +95,7 @@ const AttributionTimeline = track(() => {
 		appliedCounts: {},
 	})
 
-	// [5]
+	// [4]
 	const recordChange = useCallback(
 		(diff: RecordsDiff<any>) => {
 			const user = editor.store.props.users.currentUser.get()
@@ -147,7 +147,7 @@ const AttributionTimeline = track(() => {
 		)
 	}, [editor, recordChange])
 
-	// [6]
+	// [5]
 	const userIndices = useMemo(() => {
 		const map: Record<string, number[]> = {}
 		timeline.entries.forEach((entry, i) => {
@@ -157,13 +157,13 @@ const AttributionTimeline = track(() => {
 		return map
 	}, [timeline.entries])
 
-	// [7]
+	// [6]
 	const totalApplied = useMemo(
 		() => Object.values(timeline.appliedCounts).reduce((sum, n) => sum + n, 0),
 		[timeline.appliedCounts]
 	)
 
-	// [8]
+	// [7]
 	const handleUserSliderChange = useCallback(
 		(userId: string, nextApplied: number) => {
 			const prevApplied = timeline.appliedCounts[userId] ?? 0
@@ -199,7 +199,7 @@ const AttributionTimeline = track(() => {
 		[editor, timeline, userIndices]
 	)
 
-	// [9]
+	// [8]
 	const handleReset = useCallback(() => {
 		editor.store.mergeRemoteChanges(() => {
 			const shapeIds = [...editor.getCurrentPageShapeIds()]
@@ -208,7 +208,7 @@ const AttributionTimeline = track(() => {
 		setTimeline({ entries: [], appliedCounts: {} })
 	}, [editor])
 
-	// [10]
+	// [9]
 	const handleAllSliderChange = useCallback(
 		(nextValue: number) => {
 			const { entries, appliedCounts } = timeline
@@ -335,7 +335,7 @@ const components = {
 	TopPanel: UserSwitcher,
 }
 
-// [3]
+// [10]
 export default function AttributionTimelineExample() {
 	return (
 		<div
@@ -361,39 +361,39 @@ when it was recorded. State also tracks, per user, how many of that user's chang
 currently applied.
 
 [3]
-The user store goes in via the `users` prop, the user switcher in the top panel, and the
-timeline controls are rendered as a child of `Tldraw` so they can use `useEditor`.
-
-[4]
 The timeline component records document changes and keeps a per-user applied count.
 The "All" scrubber and the per-user scrubbers are two views of the same state.
 
-[5]
+[4]
 On each document change from the user (`source: 'user'` excludes our own scrubbing,
 which goes through `mergeRemoteChanges`), capture the current user and append an entry.
 If that user had been scrubbed back, their un-applied entries are dropped, starting a
 new branch for them; other users' entries are untouched.
 
-[6]
+[5]
 A per-user list of global indices into `entries`, so each user's scrubber works on its
 own slice of history.
 
-[7]
+[6]
 The "All" slider's value is the sum of the per-user applied counts.
 
-[8]
+[7]
 Moving a user's slider applies or reverses just that user's diffs between the old and
 new applied count, squashed into one diff. Other users' shapes stay put.
-`mergeRemoteChanges` marks the change as remote so the listener in [5] ignores it.
+`mergeRemoteChanges` marks the change as remote so the listener in [4] ignores it.
 
-[9]
+[8]
 Reset clears the page and the timeline state, again as a remote change so it isn't
 recorded.
 
-[10]
+[9]
 Moving the "All" slider rebuilds the canvas as the chronological prefix
 `entries[0..N-1]`. Because per-user scrubbing can leave a non-contiguous applied set,
 we diff the current set against the target prefix, queue reverses in reverse
 chronological order followed by applies in forward order, and apply them as one
 squashed diff.
+
+[10]
+The user store goes in via the `users` prop, the user switcher in the top panel, and the
+timeline controls are rendered as a child of `Tldraw` so they can use `useEditor`.
 */

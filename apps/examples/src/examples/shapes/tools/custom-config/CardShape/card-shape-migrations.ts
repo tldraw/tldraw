@@ -8,9 +8,7 @@ const versions = createShapePropsMigrationIds(
 	}
 )
 
-// Migrations for the custom card shape (optional but very helpful). Each entry
-// upgrades or downgrades a shape's props between versions, so documents saved
-// with an older version of the shape can still be loaded.
+// Migrations for the custom card shape (optional but very helpful)
 export const cardShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{

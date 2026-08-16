@@ -73,8 +73,7 @@ export default function ContextualToolbar() {
 }
 
 /*
-This example shows how to use the `TldrawUiContextualToolbar` primitive to show a small toolbar
-above the selected shapes. It's rendered in the `InFrontOfTheCanvas` slot, so it sits on top of
+`TldrawUiContextualToolbar` is rendered in the `InFrontOfTheCanvas` slot, so it sits on top of
 the shapes but behind the rest of the UI.
 
 [1]

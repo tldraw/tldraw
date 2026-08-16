@@ -28,10 +28,9 @@ export default function CustomShapeWithHandles() {
 }
 
 /*
-This example shows how to create a custom shape with handles. Use handles when you want user
-interaction to alter the geometry of a shape. Here we create a speech bubble with a handle on the
-tail so the user can move it. Most of the interesting code is in SpeechBubbleUtil.tsx and
-helpers.tsx.
+Use handles when you want user interaction to alter the geometry of a shape. Here a speech bubble
+has a handle on the tail so the user can move it. Most of the interesting code is in
+SpeechBubbleUtil.tsx and helpers.tsx.
 
 [1]
 The custom shape util and tool arrays are defined outside of any React component so they don't get

@@ -112,7 +112,7 @@ move, and on key down/up so the modifiers apply immediately: shift locks the box
 alt centers it on the origin at double size.
 
 [3]
-On pointer up, export every shape whose (masked) page bounds fall inside the box as a PNG
+On pointer up, export every shape whose (masked) page bounds overlap the box as a PNG
 cropped to the box, or copy it to the clipboard when ctrl is held. `exportAs` and `copyAs` are
 the same helpers the export menu uses.
 

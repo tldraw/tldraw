@@ -27,4 +27,4 @@ Because a layout returns boxes rather than points, it sizes its children as well
 
 The board re-runs its layout from `onChildrenChange`, so it responds to cards being added, deleted, resized, or restored by undo. Select a board to switch its mode; drag cards between boards and they land wherever you drop them.
 
-For a container that hands layout to the browser instead, see the [flex layout shape](/examples/shapes/tools/flex-layout) example.
+For a container that hands layout to the browser instead, see the [flex layout shape](https://tldraw.dev/examples/flex-layout) example.

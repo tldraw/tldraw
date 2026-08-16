@@ -8,10 +8,7 @@ export default function PreventInstanceChangeExample() {
 				onMount={(editor) => {
 					editor.updateInstanceState({ isGridMode: true })
 
-					// A before-change handler returns the record that will actually be written.
-					// Returning `prev` rejects the change; returning `next` allows it. Any change
-					// that would turn grid mode off is rejected here, whether it comes from the
-					// menu, the keyboard shortcut, or your own code.
+					// Returning `prev` rejects the change no matter where it came from: menu, shortcut, or code.
 					editor.sideEffects.registerBeforeChangeHandler('instance', (prev, next) => {
 						if (!next.isGridMode) {
 							return prev

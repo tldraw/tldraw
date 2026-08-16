@@ -91,11 +91,6 @@ narrow `{ type: shape.type, props: { color } }` back to one member of that union
 the partial. Each shape's `type` still comes from the shape itself, so the update is well formed.
 
 [3]
-After-create and after-change handlers run once the record is already in the store, so
-they're the right place to react to a change by updating *other* records. Running the
-same check from both handlers means the rule holds whether a red shape is created (or
-pasted) or an existing shape is recolored, and the most recently reddened shape is the
-one that stays red. Because `updateShapes` here triggers the after-change handler again
-for the shapes it turns black, the check has to be a no-op for non-red shapes or it would
-loop forever.
+Because `updateShapes` here triggers the after-change handler again for the shapes it turns
+black, the check has to be a no-op for non-red shapes or it would loop forever.
 */

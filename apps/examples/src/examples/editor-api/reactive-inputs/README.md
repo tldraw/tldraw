@@ -24,4 +24,4 @@ Track pointer positions, velocity, and modifier keys reactively with `editor.inp
 
 `editor.inputs` exposes the current, previous, and origin pointer positions in both screen and page space, the pointer velocity, and the state of the modifier keys. Each getter (`getCurrentPagePoint()`, `getPointerVelocity()`, `getShiftKey()`, and so on) reads a reactive atom, so wrapping a call in `useValue` subscribes the component and re-renders it whenever the value changes.
 
-Move the pointer around the canvas and hold modifier keys to watch the panel update. Note that origin points only change on pointer down.
+Move the pointer around the canvas and hold modifier keys to watch the panel update. Origin points only change on pointer down.

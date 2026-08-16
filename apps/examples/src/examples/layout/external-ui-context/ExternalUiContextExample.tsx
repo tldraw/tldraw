@@ -92,5 +92,5 @@ the active button in sync with the current tool.
 
 [5]
 The geo tool creates whichever geo shape is set in `GeoShapeGeoStyle`, so set the
-style first, then switch tools. `editor.run` batches the two into one history entry.
+style first, then switch tools. `editor.run` batches the two updates together.
 */

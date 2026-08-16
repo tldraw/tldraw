@@ -48,7 +48,7 @@ export default function UiComponentsHiddenExample() {
 [1]
 Setting a slot to `null` removes that part of the UI. Set only the slots you
 want to hide; the `Required<>` type is here so this example lists every slot,
-which is handy as a reference. Note that hiding `Toasts`, `Dialogs`, or `A11y`
+which is handy as a reference. Hiding `Toasts`, `Dialogs`, or `A11y`
 also disables the features that render through them (toast notifications,
 dialogs like the keyboard shortcuts panel, and screen reader announcements). To
 hide everything at once, use the `hideUi` prop instead.

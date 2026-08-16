@@ -161,7 +161,7 @@ geo style and gets the same treatment as the built-in types: labels, fill/dash/c
 resizing, SVG export, snapping, and a slot in the style panel's geo picker.
 - getPath: returns a PathBuilder describing the outline, given the current width and height
 - snapType: 'polygon' (other handles snap to vertices + center) or 'blobby' (center only)
-- icon: icon name for the style panel picker and the toolbar
+- icon: icon name for the style panel's geo picker (the toolbar uses 'geo-' + the type name)
 - defaultSize: optional creation size when clicking (not dragging); defaults to 200x200
 
 	[a] `isFilled` on the first path segment tells the geometry whether the interior counts as
@@ -173,8 +173,9 @@ Pass the configured util in place of the default. It's still `type: 'geo'`, so e
 shapes keep working, and it must be defined outside the component so the array is stable.
 
 [3]
-The icon names used in [1] need URLs. Register them under `assetUrls.icons`; the key must be
-'geo-' followed by the geo type name.
+Icons need URLs. Register them under `assetUrls.icons`; the key must be 'geo-' followed by
+the geo type name so the toolbar finds it, and using the same name for `icon` in [1] keeps
+the style panel picker in sync.
 
 [4]
 Each custom geo type is registered as a tool automatically. Give it a label by translating

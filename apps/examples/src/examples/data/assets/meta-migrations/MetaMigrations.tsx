@@ -55,7 +55,7 @@ know what's in it, it can't migrate it for you. This example shows how to regist
 own migration sequence so old snapshots are upgraded when they load.
 
 If what you want to migrate is the `props` of a custom shape, there's a simpler dedicated
-API for that: see https://tldraw.dev/docs/persistence#Shape-props-migrations.
+API for that: see https://tldraw.dev/sdk-features/persistence#shape-props-migrations.
 
 [1]
 Suppose you store a background color in each page's meta. Version 1 allowed 'purple';

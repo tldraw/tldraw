@@ -6,8 +6,6 @@ export default function BeforeDeleteShapeExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				onMount={(editor) => {
-					// Returning false from a before-delete handler cancels the deletion. Returning
-					// nothing lets it go ahead.
 					editor.sideEffects.registerBeforeDeleteHandler('shape', (shape) => {
 						if ('color' in shape.props && shape.props.color === 'red') {
 							return false

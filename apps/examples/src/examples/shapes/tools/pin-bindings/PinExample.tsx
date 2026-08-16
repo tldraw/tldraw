@@ -157,7 +157,6 @@ declare module 'tldraw' {
 
 type PinBinding = TLBinding<typeof PIN_TYPE>
 
-// [4]
 class PinBindingUtil extends BindingUtil<PinBinding> {
 	static override type = PIN_TYPE
 
@@ -169,7 +168,7 @@ class PinBindingUtil extends BindingUtil<PinBinding> {
 
 	private changedToShapes = new Set<TLShapeId>()
 
-	// [5]
+	// [4]
 	override onOperationComplete(): void {
 		if (this.changedToShapes.size === 0) return
 
@@ -233,7 +232,7 @@ class PinBindingUtil extends BindingUtil<PinBinding> {
 			}
 		}
 
-		// [6]
+		// [5]
 		const currentPositions = new Map(initialPositions)
 
 		const iterations = 30
@@ -282,7 +281,7 @@ class PinBindingUtil extends BindingUtil<PinBinding> {
 		}
 	}
 
-	// [7]
+	// [6]
 	override onAfterChangeToShape({
 		binding,
 		shapeAfter,
@@ -301,7 +300,7 @@ class PinBindingUtil extends BindingUtil<PinBinding> {
 	}
 }
 
-// [8]
+// [7]
 class PinTool extends StateNode {
 	static override id = PIN_TYPE
 
@@ -377,7 +376,6 @@ export default function PinExample() {
 			<Tldraw
 				persistenceKey="pin-example"
 				onMount={(editor) => {
-					// Semi-transparent fills make it easier to see overlapping shapes
 					editor.setStyleForNextShapes(DefaultFillStyle, 'semi')
 				}}
 				shapeUtils={shapeUtils}
@@ -413,16 +411,12 @@ different parent) and create a binding to each, storing the pin's position as a 
 anchor inside the target's bounds so it survives resizing.
 
 [4]
-The binding util owns the "keep the network together" behavior. It's the same pattern as
-tldraw's arrows: shapes don't know about pins, the binding reacts to shape changes.
-
-[5]
 `onAfterChangeToShape` fires once per changed shape, but a network may involve many shapes
 changing in one operation. We only record which target shapes changed and do the real work in
 `onOperationComplete`, which runs once after the whole operation, so the network is solved
 once rather than once per shape.
 
-[6]
+[5]
 Solving the network: walk out from the changed shapes across pin bindings to gather every
 connected shape and the page-space delta each pin should have from each shape it's stuck to.
 Changed shapes are fixed; everything else is relaxed toward its target deltas over a few
@@ -430,12 +424,13 @@ iterations (a simple constraint solver). Shapes that ended up moving get one `up
 call, which itself triggers `onAfterChangeToShape` and another `onOperationComplete` pass; the
 `changedToShapes` set is cleared only when a pass produces no movement, so this settles.
 
-[7]
-When a pinned shape is reparented (e.g. dragged into a frame), the pin follows so it stays in
-the same coordinate space. When a pinned shape is deleted, the pin goes with it.
+[6]
+A reparented pinned shape takes its pin with it so both stay in one coordinate space; a deleted
+one takes its pin too.
 
-[8]
+[7]
 The pin tool creates a pin at the pointer and immediately hands off to the select tool's
 translating state, so the pin follows the pointer until pointer up. `onInteractionEnd: 'pin'`
-returns to the pin tool afterwards, and `onTranslateEnd` in the shape util does the binding.
+masks the current tool id as 'pin' during the drag (and returns to the pin tool afterwards when
+the tool is locked); `onTranslateEnd` in the shape util does the binding.
 */

@@ -23,7 +23,7 @@ Side effects aren't just for shapes: you can register handlers for any record ty
 This example registers a `registerBeforeChangeHandler` for the `instance` record and returns the
 previous record whenever the incoming change has `isGridMode: false`, which cancels the change.
 
-Try toggling the grid from the main menu or with the keyboard shortcut: it stays on. Note that
-rejecting a change this way is silent, so if the change came from a user action you may want to
+Try toggling the grid from the main menu or with the keyboard shortcut: it stays on. Rejecting a
+change this way is silent, so if the change came from a user action you may want to
 explain why nothing happened. To reject only some fields of a change while keeping the rest, return
 a merged record instead of `prev`.

@@ -89,5 +89,5 @@ Pass both the overrides and the components to the `Tldraw` component.
 
 The custom translations also show up in tldraw's own menus. Try creating a shape and right
 clicking it to see "Make a copy" and "Remove" in the context menu, or switch the language to
-Spanish in the main menu's preferences to see the `es` overrides.
+Spanish from the main menu's language submenu to see the `es` overrides.
 */

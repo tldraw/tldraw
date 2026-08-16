@@ -75,5 +75,5 @@ not being mounted yet.
 [4]
 The geo tool creates whichever geo shape is set in `GeoShapeGeoStyle` (oval,
 rectangle, etc), so set the style first, then switch tools. `editor.run` batches the
-two into one history entry.
+two updates together.
 */
