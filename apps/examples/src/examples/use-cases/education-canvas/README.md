@@ -17,16 +17,10 @@ keywords:
   ]
 ---
 
-An educational application template with a math question on the left and a drawing canvas on the right.
+A math worksheet with the question on the left and a constrained drawing canvas on the right.
 
 ---
 
-This example demonstrates how to create an educational application using tldraw. It features:
+The canvas is a `Tldraw` instance embedded in a page layout rather than filling the window. Camera constraints (`options.camera`) keep the view on a 600x600 coordinate grid, the `tools` UI override strips the toolbar down to select, hand, draw, eraser, line, and text, and `maxPages: 1` hides the page menu. The grid itself is an SVG rendered in the `OnTheCanvas` slot so it moves with the camera.
 
-- **Split Layout**: Question panel on the left, drawing canvas on the right
-- **Fixed Camera**: Canvas has constrained bounds to keep students focused on the drawing area
-- **GCSE Math Question**: A geometry problem suitable for GCSE-level mathematics
-- **Grid Background**: Coordinate grid to help with plotting points and shapes
-- **Educational Styling**: Clean, professional styling suitable for educational environments
-
-Perfect for creating interactive math worksheets, geometry exercises, or any educational content that requires visual problem-solving.
+Try drawing the triangle from the question on the grid, then type answers into the boxes and press "Submit answers". The editor is kept in a ref from `onMount`, which is where a real app would export the drawing (`editor.toImage`) alongside the typed answers.

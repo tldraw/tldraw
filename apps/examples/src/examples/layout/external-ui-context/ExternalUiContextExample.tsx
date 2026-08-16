@@ -8,7 +8,7 @@ import './external-ui.css'
 // [1]
 const editorContext = createContext({} as { editor: Editor })
 
-export default function ExternalUiExample2() {
+export default function ExternalUiContextExample() {
 	const [editor, setEditor] = useState<Editor | null>(null)
 
 	return (
@@ -34,7 +34,7 @@ export default function ExternalUiExample2() {
 const ExternalToolbar = () => {
 	const { editor } = useContext(editorContext)
 
-	const currentToolId = useValue('current tool id', () => editor?.getCurrentToolId(), [editor])
+	const currentToolId = useValue('current tool id', () => editor.getCurrentToolId(), [editor])
 
 	return (
 		<div>
@@ -56,9 +56,10 @@ const ExternalToolbar = () => {
 				<button
 					className="external-button"
 					data-isactive={
-						currentToolId === 'geo' && editor?.getStyleForNextShape(GeoShapeGeoStyle) === 'oval'
+						currentToolId === 'geo' && editor.getStyleForNextShape(GeoShapeGeoStyle) === 'oval'
 					}
 					onClick={() => {
+						// [5]
 						editor.run(() => {
 							editor.setStyleForNextShapes(GeoShapeGeoStyle, 'oval')
 							editor.setCurrentTool('geo')
@@ -74,15 +75,22 @@ const ExternalToolbar = () => {
 
 /*
 
-[1] 
-Use React context to store the editor at a higher place in the React component tree. 
+[1]
+A React context for the editor. Components outside `Tldraw` can't use `useEditor()`,
+so we provide our own.
 
-[2] 
+[2]
 Use the `onMount` prop to get the editor instance and store it in state.
 
 [3]
-When we have an editor in state, render the context provider and its descendants.
+Only render the provider (and its descendants) once the editor exists, so consumers
+never see a null editor.
 
 [4]
-You can access the editor from any of the provider's descendants.
+Any descendant of the provider can read the editor from context. `useValue` keeps
+the active button in sync with the current tool.
+
+[5]
+The geo tool creates whichever geo shape is set in `GeoShapeGeoStyle`, so set the
+style first, then switch tools. `editor.run` batches the two updates together.
 */
