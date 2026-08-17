@@ -45,8 +45,12 @@ describe('Aggregator', () => {
 		aggregator.add(input({ outcome: 'exception' }))
 		aggregator.add(input({ entrypoint: 'default' }))
 		aggregator.add(input({ scriptName: 'main-tldraw-multiplayer' }))
+		// The sixth case is the only one that pins scriptVersion: the five above already differ from
+		// each other in another field, so dropping scriptVersion from the key would still yield five
+		// buckets. This one collides with the default input unless scriptVersion is part of the key.
+		aggregator.add(input({ scriptVersion: 'v2' }))
 
-		expect(aggregator.drain(0)).toHaveLength(5)
+		expect(aggregator.drain(0)).toHaveLength(6)
 	})
 
 	it('is empty after draining', () => {
