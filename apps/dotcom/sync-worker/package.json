@@ -34,6 +34,7 @@
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/worker-shared": "workspace:*",
 		"itty-router": "^5.0.18",
+		"jose": "^5.9.6",
 		"kysely": "^0.28.12",
 		"p-queue": "^9.3.0",
 		"pg": "^8.16.3"
