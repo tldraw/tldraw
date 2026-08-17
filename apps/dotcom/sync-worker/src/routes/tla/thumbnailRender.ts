@@ -360,7 +360,7 @@ async function renderThumbnailScreenshot(
 		throw error
 	}
 
-	const buffer = await timed.response.arrayBuffer()
+	const buffer = timed.buffer
 	if (buffer.byteLength === 0) {
 		// The session ran to completion — the spend is real — it just produced nothing usable.
 		writeBrowserRunSessionTelemetry(env, session, {
@@ -383,12 +383,14 @@ async function renderThumbnailScreenshot(
 
 type ThumbnailScreenshotRequestBody = ReturnType<typeof getThumbnailScreenshotRequestBody>
 
-// A capture that came back OK, and how long it took. Each transport times its own call and throws
-// its own kind of failure — only Browser Run's carries the status, body detail and timeout budget
-// that BrowserRenderError exists to hold — so what reaches the shared decode above is always a
-// response worth reading.
+// A capture that came back OK, fully read, and how long the whole thing took. The transports read
+// the body themselves rather than handing back a Response: the read has to happen inside
+// abandonAtRenderTimeout's deadline, or a body stream that stalls after a 200's headers would hold
+// the delivery unbounded — past every bound the pipeline prices a capture at. Each transport throws
+// its own kind of failure; only Browser Run's carries the status, body detail and timeout budget
+// that BrowserRenderError exists to hold.
 interface TimedCapture {
-	response: Response
+	buffer: ArrayBuffer
 	durationMs: number
 }
 
@@ -416,7 +418,8 @@ async function callBrowserRun(
 			timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
 		})
 	}
-	return { response, durationMs }
+	const buffer = await response.arrayBuffer()
+	return { buffer, durationMs: Date.now() - startedAt }
 }
 
 // The request cannot cap its own total: `gotoOptions.timeout` and `waitForSelector.timeout` are
@@ -426,7 +429,7 @@ async function callBrowserRun(
 // against the retry chain, the edit debounce outlasting a capture, both pinned in
 // ogImageQueue.test.ts — needs the single budget to be a real ceiling, so it is enforced here on
 // the whole call. The abandoned browser session is Cloudflare's to reap and still spends its
-// remainder; the point is that the *delivery* stays inside the bound the pipeline is priced on.
+// remainder — this bounds the delivery, not the spend.
 async function abandonAtRenderTimeout(
 	capture: Promise<TimedCapture>,
 	startedAt: number
@@ -513,7 +516,6 @@ async function callLocalScreenshotService(
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(requestBody),
 	})
-	const durationMs = Date.now() - startedAt
 
 	if (!response.ok) {
 		throw new Error(
@@ -528,7 +530,8 @@ async function callLocalScreenshotService(
 			`Local screenshot service returned ${contentType || 'no content type'}, expected image/png. Is the client dev server running with the thumbnail screenshot plugin?`
 		)
 	}
-	return { response, durationMs }
+	const buffer = await response.arrayBuffer()
+	return { buffer, durationMs: Date.now() - startedAt }
 }
 
 // Writes one rendered PNG to a thumbnail cache, stamping the content version (so a stale version

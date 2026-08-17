@@ -162,9 +162,8 @@ describe('enqueueOgImageRender', () => {
 	// single-flights renders per board.
 	//
 	// Pricing a capture at one THUMBNAIL_RENDER_TIMEOUT_MS is sound only because the worker abandons
-	// the call at that budget ("abandons a capture at the render timeout" below): the quick action's
-	// own timers are per-phase and would otherwise allow roughly twice it, putting the real chain
-	// past this TTL.
+	// the call at that budget ("abandons a capture at the render timeout" below); without that
+	// ceiling the real chain runs past this TTL.
 	it('has a marker TTL longer than the worst-case retry chain', () => {
 		const backoffMs = Array.from(
 			{ length: OG_MAX_RENDER_ATTEMPTS - 1 },
@@ -1050,6 +1049,43 @@ describe('handleOgImageRenderMessage', () => {
 				durationMs: THUMBNAIL_RENDER_TIMEOUT_MS,
 			}),
 		])
+	})
+
+	// The ceiling has to cover the body read too: a 200 whose headers arrive in time but whose body
+	// stream then stalls would otherwise hold the delivery unbounded — past the marker TTL, which
+	// re-opens the overlapping-jobs case the TTL test above excludes.
+	it('abandons a capture whose response body stalls after the headers arrive', async () => {
+		vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const env = makeEnv({
+			// Headers come back OK immediately; the body never does.
+			BROWSER: {
+				quickAction: vi.fn(async () => ({
+					ok: true,
+					status: 200,
+					arrayBuffer: () => new Promise<never>(() => {}),
+				})),
+			},
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		const delivery = handleOgImageRenderMessage(
+			env,
+			makeMessage({ kind: 'published', slug: 'board' }, 3)
+		)
+		while (vi.getTimerCount() === 0) {
+			await new Promise((resolve) => setImmediate(resolve))
+		}
+		await vi.advanceTimersByTimeAsync(THUMBNAIL_RENDER_TIMEOUT_MS + 1)
+		await delivery
+
+		expect(failureBlobsOf(env)).toEqual(['failure:browser_timeout'])
 	})
 
 	// The same 422 with a different cause: the render page marked data-thumbnail-error, so the
