@@ -48,6 +48,18 @@ describe('buildLokiPush', () => {
 			'third',
 		])
 	})
+
+	it('sorts numerically, not lexicographically, across timestamp magnitudes', () => {
+		const push = buildLokiPush([
+			entry({ timestampMs: 1000, line: { message: 'second' } }),
+			entry({ timestampMs: 999, line: { message: 'first' } }),
+		])
+
+		expect(push.streams[0].values.map(([, line]) => JSON.parse(line).message)).toEqual([
+			'first',
+			'second',
+		])
+	})
 })
 
 describe('toLokiEntry', () => {

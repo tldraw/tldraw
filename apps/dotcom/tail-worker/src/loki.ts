@@ -88,8 +88,11 @@ function captureLogs(logs: TraceLog[]): { level: string; message: string }[] {
 function safeStringify(value: unknown): string {
 	if (typeof value === 'string') return value
 	try {
-		// `?? null` so the result is always a string: JSON.stringify(undefined) is undefined.
-		return JSON.stringify(value ?? null)
+		// `?? null` covers nullish input; the typeof check covers the rest. JSON.stringify returns
+		// undefined — not a string, and without throwing — for a bare function or symbol, and
+		// captureLogs slices whatever comes back.
+		const json = JSON.stringify(value ?? null)
+		return typeof json === 'string' ? json : ''
 	} catch (_e) {
 		return ''
 	}
@@ -98,7 +101,12 @@ function safeStringify(value: unknown): string {
 export function buildLokiPush(entries: LokiEntry[]) {
 	const streams = new Map<string, { stream: Record<string, string>; values: [string, string][] }>()
 
-	for (const entry of entries) {
+	// Sorted numerically on the millisecond source, before the nanosecond strings exist. Loki wants
+	// entries ordered within a stream, and the ns values exceed Number.MAX_SAFE_INTEGER — so comparing
+	// the rendered strings would be lexicographic and would mis-order any two of different digit
+	// length ("999000000" > "1000000000"). Grouping preserves insertion order, so each stream inherits
+	// this sort.
+	for (const entry of [...entries].sort((a, b) => a.timestampMs - b.timestampMs)) {
 		const key = JSON.stringify(Object.entries(entry.labels).sort())
 		let stream = streams.get(key)
 		if (!stream) {
@@ -109,15 +117,15 @@ export function buildLokiPush(entries: LokiEntry[]) {
 		stream.values.push([`${Math.trunc(entry.timestampMs)}000000`, JSON.stringify(entry.line)])
 	}
 
-	for (const stream of streams.values()) {
-		stream.values.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
-	}
-
 	return { streams: [...streams.values()] }
 }
 
 export async function pushToLoki(env: Environment, entries: LokiEntry[]): Promise<void> {
 	if (entries.length === 0) return
+
+	// Built outside the try on purpose. The catch below is for transport failures; a bug in the
+	// grouping or serialisation should crash loudly rather than disappear into it.
+	const body = JSON.stringify(buildLokiPush(entries))
 
 	try {
 		await fetch(env.GRAFANA_LOKI_ENDPOINT, {
@@ -126,7 +134,7 @@ export async function pushToLoki(env: Environment, entries: LokiEntry[]): Promis
 				'Content-Type': 'application/json',
 				Authorization: `Basic ${btoa(`${env.GRAFANA_LOKI_USER}:${env.GRAFANA_LOKI_TOKEN}`)}`,
 			},
-			body: JSON.stringify(buildLokiPush(entries)),
+			body,
 		})
 	} catch (_e) {
 		// A failed push must not fail the tail invocation: the tallies for this batch have already
