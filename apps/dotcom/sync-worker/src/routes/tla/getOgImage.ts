@@ -19,7 +19,7 @@ import { reportThumbnailError } from './thumbnailShared'
 // the site-wide default. No rendering inline, no rate limiting, no waiting.
 //
 // Making the thumbnail exist before the board is ever shared is the job of the publish and edit
-// triggers (TLPostgresReplicator, TLFileDurableObject), not of the request that finds it missing:
+// triggers (the outbox publish effect, TLFileDurableObject), not of the request that finds it missing:
 // unfurl platforms cache a URL's card on first resolve, so a render triggered from here lands after
 // the crawler has already taken the default away. Rendering inline is worse still — captures run
 // 4-17s, past any crawler's patience. See browser-run-thumbnails.md.
@@ -129,7 +129,7 @@ function parseSlug(value: unknown) {
  * The two kinds are not symmetric in how many triggers they have. A shared file re-asks on every
  * persist that advances its document clock, so an ask lost to a queue failure or a stale pending
  * marker is made good by the next edit. A published board has exactly one trigger — the publish
- * effect in `TLPostgresReplicator` — and its snapshot is frozen, so nothing ever edits it into
+ * effect in `publishSnapshots.ts` — and its snapshot is frozen, so nothing ever edits it into
  * asking again. One lost ask there means a generic card until somebody republishes.
  *
  * So this fires only for `published`, and only on a total miss: no image at all, not a stale one.

@@ -1,22 +1,6 @@
 import { stringEnum } from '@tldraw/utils'
 import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
-import {
-	TlaComment,
-	TlaCommentMention,
-	TlaCommentReaction,
-	TlaCommentRead,
-	TlaCommentThread,
-	TlaEffectOutbox,
-	TlaFile,
-	TlaFileState,
-	TlaFileVisitor,
-	TlaGroup,
-	TlaGroupFile,
-	TlaGroupUser,
-	TlaRow,
-	TlaRowPartial,
-	TlaUser,
-} from './tlaSchema'
+import { TlaEffectOutbox, TlaFile, TlaUser } from './tlaSchema'
 
 export interface Snapshot {
 	schema: SerializedSchema
@@ -200,65 +184,6 @@ export type ThumbnailSnapshotResponseBody =
 			message: string
 	  }
 
-export interface ZStoreData {
-	file: TlaFile[]
-	file_state: TlaFileState[]
-	user: TlaUser[]
-	group: TlaGroup[]
-	group_user: TlaGroupUser[]
-	group_file: TlaGroupFile[]
-	// Optional: comments are served via the proper-Zero synced query, not the legacy polyfill store,
-	// so the polyfill never populates this. Present only so the CRUD types (generic over all schema
-	// tables) compile.
-	comment?: TlaComment[]
-	// Same as comment: never populated by the legacy polyfill store, present only for the
-	// generic CRUD types.
-	comment_thread?: TlaCommentThread[]
-	// Same as comment: never populated by the legacy polyfill store, present only for the
-	// generic CRUD types.
-	comment_read?: TlaCommentRead[]
-	// Same as comment: never populated by the legacy polyfill store, present only for the
-	// generic CRUD types.
-	comment_mention?: TlaCommentMention[]
-	// Same as comment: never populated by the legacy polyfill store, present only for the
-	// generic CRUD types.
-	comment_reaction?: TlaCommentReaction[]
-	// Same as comment: the viewer roster is served via the proper-Zero synced query (fileVisitors),
-	// never populated by the legacy polyfill store; present only for the generic CRUD types.
-	file_visitor?: TlaFileVisitor[]
-	lsn: string
-}
-
-export type ZRowUpdate = ZRowInsert | ZRowDeleteOrUpdate
-
-export interface ZRowInsert {
-	row: TlaRow
-	table: ZTable
-	event: 'insert'
-}
-
-export interface ZRowDeleteOrUpdate {
-	row: TlaRowPartial
-	table: ZTable
-	event: 'update' | 'delete'
-}
-
-export type ZTable =
-	| 'file'
-	| 'file_state'
-	| 'file_visitor'
-	| 'user'
-	| 'group'
-	| 'group_user'
-	| 'group_file'
-	| 'comment'
-	| 'comment_thread'
-	| 'comment_read'
-	| 'comment_mention'
-	| 'comment_reaction'
-
-export type ZEvent = 'insert' | 'update' | 'delete'
-
 export const ZErrorCode = stringEnum(
 	'publish_failed',
 	'unpublish_failed',
@@ -272,39 +197,6 @@ export const ZErrorCode = stringEnum(
 	'max_files_reached'
 )
 export type ZErrorCode = keyof typeof ZErrorCode
-
-// increment this to force clients to reload
-// e.g. if we make backwards-incompatible changes to the schema
-export const Z_PROTOCOL_VERSION = 3
-export const MIN_Z_PROTOCOL_VERSION = 3
-
-export type ZServerSentPacket =
-	| {
-			type: 'initial_data'
-			initialData: ZStoreData
-	  }
-	| {
-			type: 'update'
-			update: ZRowUpdate
-	  }
-	| {
-			type: 'commit'
-			mutationIds: string[]
-	  }
-	| {
-			type: 'reject'
-			mutationId: string
-			errorCode: ZErrorCode
-	  }
-
-export type ZServerSentMessage = ZServerSentPacket[]
-
-export interface ZClientSentMessage {
-	type: 'mutator'
-	mutationId: string
-	name: string
-	props: object
-}
 
 export const UserPreferencesKeys = [
 	'locale',

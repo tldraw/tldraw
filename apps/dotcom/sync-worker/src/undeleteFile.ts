@@ -8,8 +8,9 @@ export type UndeleteFileResult =
 	| { result: 'restored'; file: TlaFile; rebootUserIds: string[] }
 
 // Restores a soft-deleted file: clears isDeleted, re-creates the owner's file_state (if the
-// file has an ownerId) and the owning group's group_file link (if owningGroupId). The caller
-// must hard-reboot every user in rebootUserIds afterwards so the restored rows replicate.
+// file has an ownerId) and the owning group's group_file link (if owningGroupId). rebootUserIds
+// is a holdover from the legacy sync engine's hard-reboot contract; the current caller
+// (adminRoutes.ts) instead pokes the file effect processor's outbox after a successful restore.
 export async function undeleteFile(db: Kysely<DB>, fileId: string): Promise<UndeleteFileResult> {
 	return db.transaction().execute(async (tx) => {
 		const file = await tx.selectFrom('file').where('id', '=', fileId).selectAll().executeTakeFirst()

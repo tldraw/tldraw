@@ -26,7 +26,7 @@ import {
 import { classifyScreenshotFailure, reportThumbnailError } from './thumbnailShared'
 
 // Queue-backed async board thumbnail generation. Renders are asked for by the things that change a
-// board's content — publishing (TLPostgresReplicator) and editing (TLFileDurableObject) — and this
+// board's content — publishing (the outbox publish effect) and editing (TLFileDurableObject) — and this
 // consumer performs the capture out of band, refreshing the R2 cache the GET og-image route reads.
 // That route only ever reads; the MCP tool must return its image in-band, so it captures inline into
 // its own bucket. Neither goes through here.

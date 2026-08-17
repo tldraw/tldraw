@@ -40,7 +40,7 @@ export function getThumbnailScreenshotRequestBody({
 			deviceScaleFactor: 1,
 		},
 		// Waiting for a terminal selector is the real completion signal; waiting on network activity is
-		// fragile because background app requests (e.g. replicator-status polling) can keep the network
+		// fragile because background app requests (e.g. feature-flag polling) can keep the network
 		// busy indefinitely. `load` is a milder form of that same trap, so it stops here at
 		// domcontentloaded: `load` does not fire until every subresource settles, and one stalled image
 		// request is enough to hold it open until this timeout — at which point the capture fails
