@@ -356,19 +356,32 @@ export class TLFileDurableObject extends DurableObject {
 						authorizeRecord: authorizeFileRecord,
 					})
 
-					this.logEvent({ type: 'room', name: 'room_start' })
-					// Resume any sessions that survived hibernation
+					// Sessions that survived hibernation. Collected before the event so room_start can
+					// carry the count, and resumed after it so a resume that throws still leaves the
+					// boot counted — those are the boots the count exists to find.
+					const resumes: {
+						sessionId: string
+						socket: WebSocket
+						snapshot: SessionStateSnapshot
+						meta: SessionMeta
+					}[] = []
 					for (const ws of this.state.getWebSockets()) {
 						const attachment = ws.deserializeAttachment() as SocketAttachment | null
 						if (!attachment?.sessionId) continue
 						if (attachment.snapshot) {
-							room.handleSocketResume({
+							resumes.push({
 								sessionId: attachment.sessionId,
 								socket: ws,
 								snapshot: attachment.snapshot,
 								meta: attachment.meta,
 							})
 						}
+					}
+
+					this.logEvent({ type: 'room', name: 'room_start', resumedSockets: resumes.length })
+
+					for (const resume of resumes) {
+						room.handleSocketResume(resume)
 					}
 					// Also associate file assets after we load the room
 					setTimeout(this.maybeAssociateFileAssets.bind(this), PERSIST_INTERVAL_MS)
@@ -463,12 +476,21 @@ export class TLFileDurableObject extends DurableObject {
 			new WebSocketRequestResponsePair('{"type":"ping"}', '{"type":"pong"}')
 		)
 
+		// Nothing awaits this, so a storage failure here rejects into the void and takes the object
+		// down with it — the one path that only runs on a cold start, and so never ran at all while
+		// the file DO couldn't hibernate. Rethrown after reporting: the object genuinely cannot
+		// continue without documentInfo, and resetting it is the runtime's correct response.
 		state.blockConcurrencyWhile(async () => {
-			const existingDocumentInfo = (await this.storage.get('documentInfo')) as DocumentInfo | null
-			if (existingDocumentInfo?.version !== CURRENT_DOCUMENT_INFO_VERSION) {
-				this._documentInfo = null
-			} else {
-				this._documentInfo = existingDocumentInfo
+			try {
+				const existingDocumentInfo = (await this.storage.get('documentInfo')) as DocumentInfo | null
+				if (existingDocumentInfo?.version !== CURRENT_DOCUMENT_INFO_VERSION) {
+					this._documentInfo = null
+				} else {
+					this._documentInfo = existingDocumentInfo
+				}
+			} catch (e) {
+				this.reportError(e, { source: 'blockConcurrencyWhile' })
+				throw e
 			}
 		})
 	}
@@ -1108,13 +1130,21 @@ export class TLFileDurableObject extends DurableObject {
 			.catch((e) => this.reportError(e))
 	}
 
-	override async alarm() {
-		const result = this.ogRenderDebouncer.onAlarm(Date.now())
-		if (!result.render) {
-			await this.ctx.storage.setAlarm(result.reArmAt)
-			return
+	// Rethrown rather than swallowed, unlike the socket handlers: the runtime retries an alarm that
+	// rejects, and dropping the error here would silently cancel the OG render this alarm exists to
+	// perform. Reporting only adds the Sentry record it was missing.
+	override async alarm(alarmInfo?: AlarmInvocationInfo) {
+		try {
+			const result = this.ogRenderDebouncer.onAlarm(Date.now())
+			if (!result.render) {
+				await this.ctx.storage.setAlarm(result.reArmAt)
+				return
+			}
+			await this.requestOgRenderForEdit()
+		} catch (e) {
+			this.reportError(e, { source: 'alarm', retryCount: alarmInfo?.retryCount ?? 0 })
+			throw e
 		}
-		await this.requestOgRenderForEdit()
 	}
 
 	/**
@@ -1152,7 +1182,11 @@ export class TLFileDurableObject extends DurableObject {
 				break
 			}
 			case 'room': {
-				this.writeEvent(event.name, {})
+				if (event.name === 'room_start') {
+					this.writeEvent(event.name, { doubles: [event.resumedSockets] })
+				} else {
+					this.writeEvent(event.name, {})
+				}
 				break
 			}
 			case 'client': {
