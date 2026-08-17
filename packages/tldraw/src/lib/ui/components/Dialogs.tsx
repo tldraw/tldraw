@@ -1,6 +1,6 @@
 import { useContainer, useValue } from '@tldraw/editor'
 import { Dialog as _Dialog } from 'radix-ui'
-import { memo, useCallback } from 'react'
+import { memo, useCallback, useRef } from 'react'
 import { TLUiDialog, useDialogs } from '../context/dialogs'
 import { useDirection } from '../hooks/useTranslation/useTranslation'
 
@@ -10,6 +10,7 @@ const TldrawUiDialog = ({ id, component: ModalContent, preventBackgroundClose }:
 
 	const container = useContainer()
 	const dir = useDirection()
+	const contentRef = useRef<HTMLDivElement>(null)
 
 	const handleOpenChange = useCallback(
 		(isOpen: boolean) => {
@@ -29,6 +30,7 @@ const TldrawUiDialog = ({ id, component: ModalContent, preventBackgroundClose }:
 				<_Dialog.Overlay dir={dir} className="tlui-dialog__overlay" />
 				<div dir={dir} className="tlui-dialog__positioner">
 					<_Dialog.Content
+						ref={contentRef}
 						dir={dir}
 						className="tlui-dialog__content"
 						aria-describedby={undefined}
@@ -39,6 +41,20 @@ const TldrawUiDialog = ({ id, component: ModalContent, preventBackgroundClose }:
 							// both a pointer press and a focus shift outside the dialog; opt out of both
 							// when the dialog asks to stay open on background interactions (escape still
 							// closes it).
+
+							// A touch press is checked against the layers at the following click rather
+							// than at the press itself, so a press that closes a dialog stacked on top of
+							// this one arrives here once this one is topmost, and reads as a press
+							// outside it. A press inside another dialog is never outside this one, and
+							// stays so after that dialog unmounts and takes the press's target with it.
+							const target = e.detail.originalEvent.target
+							const pressedDialog =
+								target instanceof Element ? target.closest('.tlui-dialog__content') : null
+							if (pressedDialog && pressedDialog !== contentRef.current) {
+								e.preventDefault()
+								return
+							}
+
 							if (preventBackgroundClose) {
 								e.preventDefault()
 							}

@@ -31,7 +31,7 @@ Open this app in two tabs and draw in one of them. The other tab shows the shape
 
 ## How it works
 
-Each tab opens a [BroadcastChannel](https://developer.mozilla.org/en-US/docs/Web/API/Broadcast_Channel_API) named after the persistence key. When the user changes the document, the editor posts the change as a diff to the channel. Other tabs merge incoming diffs into their stores as remote changes, so they don't echo the same changes back.
+Each tab opens a [BroadcastChannel](https://developer.mozilla.org/en-US/docs/Web/API/Broadcast_Channel_API) named after the persistence key. When the user changes the document, the editor posts the change as a diff to the channel. Other tabs merge incoming diffs into their stores with [Store#mergeRemoteChanges](?), so they don't echo the same changes back. The internal `useLocalStore` hook sets all of this up when you pass a `persistenceKey`.
 
 The channel only carries live updates. The document itself persists to IndexedDB on a throttle (about 350ms), so a tab opened later loads the latest saved state from the database, then stays current through the channel.
 
@@ -43,7 +43,7 @@ The channel only carries live updates. The document itself persists to IndexedDB
 | Session state (camera, selection, current page)    | Per tab                |
 | User preferences (name, color, color scheme)       | Synced across all tabs |
 
-Only document-scoped records sync between tabs. Each tab keeps its own camera position, selection, and other [instance state](/sdk-features/instance-state), so users can look at different parts of the same document in different tabs.
+Only document-scoped records sync between tabs. Each tab keeps its own camera position, selection, and other [instance state](/sdk-features/instance-state), so users can look at different parts of the same document in different tabs. That per-tab session state is still saved to IndexedDB, keyed by the `sessionId` prop (which defaults to [TAB_ID](?)), so it survives a reload.
 
 tldraw's default user preferences sync across tabs on a separate channel, independent of the persistence key. If you manage preferences yourself through the `user` prop, syncing them is up to you — see [User preferences](/sdk-features/user-preferences).
 
@@ -60,7 +60,7 @@ If a tab is still out of date right after reloading — for example, when a cach
 
 Cross-tab sync works within one browser on one origin. It doesn't sync between devices or users. For multiplayer collaboration, use [tldraw sync](/docs/sync) — see the [Collaboration](/sdk-features/collaboration) page.
 
-It also requires the `persistenceKey` prop. If you create your own store and pass it through the `store` prop, you won't get cross-tab sync or local persistence — you'll need to handle both yourself.
+It also requires the `persistenceKey` prop. If you create your own store and pass it through the `store` prop, you won't get cross-tab sync or local persistence. See [custom persistence with store](/sdk-features/persistence#custom-persistence-with-store) for handling that yourself.
 
 There's no separate toggle: tabs that share a persistence key always sync. To keep tabs independent, give them different persistence keys.
 

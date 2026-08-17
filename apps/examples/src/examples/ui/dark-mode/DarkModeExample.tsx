@@ -1,20 +1,18 @@
-import { atom, TLUserPreferences, Tldraw } from 'tldraw'
+import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
-
-const userPreferences = atom<TLUserPreferences>('dark-mode-example-prefs', {
-	id: 'dark-mode-example',
-	colorScheme: 'dark',
-})
-
-const user = {
-	userPreferences,
-	setUserPreferences: (prefs: TLUserPreferences) => userPreferences.set(prefs),
-}
 
 export default function DarkModeExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw user={user} />
+			<Tldraw colorScheme="dark" />
 		</div>
 	)
 }
+
+/*
+The `colorScheme` prop sets the editor's default color scheme: 'light' (the default),
+'dark', or 'system' to follow the OS preference. A user preference set via
+`editor.user.updateUserPreferences({ colorScheme })` takes priority over this prop,
+so a persisted user preference from another example may override it. See the
+dark-mode-toggle example for switching at runtime.
+*/

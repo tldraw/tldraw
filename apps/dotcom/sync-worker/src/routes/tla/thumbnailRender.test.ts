@@ -1,7 +1,8 @@
 import { getShapeClusters } from '@tldraw/dotcom-shared'
 import { describe, expect, it } from 'vitest'
+import { enumerateBoardPages } from './boardTools'
 import { makeSnapshot } from './screenshotTestHelpers'
-import { buildThumbnailRenderUrl, enumerateBoardPages } from './thumbnailRender'
+import { buildThumbnailRenderUrl } from './thumbnailRender'
 
 describe('enumerateBoardPages', () => {
 	it('lists pages in fractional-index order with names and content flags', () => {

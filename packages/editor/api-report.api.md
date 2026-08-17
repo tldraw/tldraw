@@ -4002,6 +4002,12 @@ export interface TLEditorRunOptions extends TLHistoryBatchOptions {
     ignoreShapeLock?: boolean;
 }
 
+// @public
+export const tleditors: {
+    mounted: Signal<readonly Editor[]>;
+    getMounted(): readonly Editor[];
+};
+
 // @public (undocumented)
 export interface TLEditorSnapshot {
     // (undocumented)

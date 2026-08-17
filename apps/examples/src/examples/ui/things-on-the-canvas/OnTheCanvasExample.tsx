@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Tldraw, TLEditorComponents, track, useEditor } from 'tldraw'
+import { Tldraw, TLEditorComponents, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
+import './things-on-the-canvas.css'
 
 // There's a guide at the bottom of this file!
 
@@ -12,18 +13,8 @@ function MyComponent() {
 	return (
 		<>
 			<div
-				style={{
-					position: 'absolute',
-					top: 50,
-					left: 50,
-					width: 200,
-					padding: 12,
-					borderRadius: 8,
-					backgroundColor: 'goldenrod',
-					zIndex: 0,
-					userSelect: 'unset',
-					boxShadow: '0 0 0 1px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.1)',
-				}}
+				className="on-the-canvas-card"
+				style={{ top: 50, left: 50, backgroundColor: 'goldenrod' }}
 				onPointerDown={editor.markEventAsHandled}
 			>
 				<p>The count is {state}! </p>
@@ -31,18 +22,8 @@ function MyComponent() {
 				<p>These components are on the canvas. They will scale with camera zoom like shapes.</p>
 			</div>
 			<div
-				style={{
-					position: 'absolute',
-					top: 210,
-					left: 150,
-					width: 200,
-					padding: 12,
-					borderRadius: 8,
-					backgroundColor: 'pink',
-					zIndex: 99999999,
-					userSelect: 'unset',
-					boxShadow: '0 0 0 1px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.1)',
-				}}
+				className="on-the-canvas-card"
+				style={{ top: 210, left: 150, backgroundColor: 'pink' }}
 				onPointerDown={editor.markEventAsHandled}
 			>
 				<p>The count is {state}! </p>
@@ -53,31 +34,29 @@ function MyComponent() {
 	)
 }
 
-//[2]
-const MyComponentInFront = track(() => {
+// [2]
+function MyComponentInFront() {
 	const editor = useEditor()
-	const selectionRotatedPageBounds = editor.getSelectionRotatedPageBounds()
-	if (!selectionRotatedPageBounds) return null
-
-	const pageCoordinates = editor.pageToViewport(selectionRotatedPageBounds.point)
+	const position = useValue(
+		'selection position',
+		() => {
+			const bounds = editor.getSelectionRotatedPageBounds()
+			if (!bounds) return null
+			return editor.pageToViewport(bounds.point)
+		},
+		[editor]
+	)
+	if (!position) return null
 
 	return (
 		<div
-			style={{
-				position: 'absolute',
-				top: Math.max(64, pageCoordinates.y - 64),
-				left: Math.max(64, pageCoordinates.x),
-				borderRadius: 8,
-				paddingLeft: 10,
-				paddingRight: 10,
-				background: '#efefef',
-				boxShadow: '0 0 0 1px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.1)',
-			}}
+			className="in-front-of-the-canvas-card"
+			style={{ top: Math.max(64, position.y - 64), left: Math.max(64, position.x) }}
 		>
 			<p>This won’t scale with zoom.</p>
 		</div>
 	)
-})
+}
 
 // [3]
 const components: TLEditorComponents = {
@@ -85,7 +64,6 @@ const components: TLEditorComponents = {
 	InFrontOfTheCanvas: MyComponentInFront,
 }
 
-// [4]
 export default function OnTheCanvasExample() {
 	return (
 		<div className="tldraw__editor">
@@ -95,37 +73,27 @@ export default function OnTheCanvasExample() {
 }
 
 /*
-This example shows how you can use the onTheCanvas and inFrontOfTheCanvas components.
-onTheCanvas components will behave similarly to shapes, they will scale with the zoom
-and move when the page is panned. inFrontOfTheCanvas components don't scale with the
-zoom, but still move when the page is panned. 
+This example shows the two component slots that live inside the canvas:
+`OnTheCanvas` and `InFrontOfTheCanvas`. `OnTheCanvas` components behave like
+shapes: they scale with the zoom and move when the page is panned.
+`InFrontOfTheCanvas` components render in screen space, so they move with the
+page but don't scale.
 
-For another example that shows how to customize components, check out the custom
-components example.
-
-To have a component that ignores the camera entirely, you should check out the custom 
-UI example.
-
+For a component that ignores the camera entirely, put it in a UI slot such as
+`TopPanel` or `SharePanel` instead (see the "UI zones" example).
 
 [1]
-This is our onTheCanvas component. We also stop event propagation on the pointer events 
-so that we don't accidentally select shapes when interacting with the component.
+Our `OnTheCanvas` component. Its `top`/`left` are page coordinates. We call
+`editor.markEventAsHandled` on pointer down so clicks on the card don't also
+reach the canvas and start a selection or brush.
 
 [2]
-This is our inFrontOfTheCanvas component. We want to render this next to a selected shape,
-so we need to make sure it's reactive to changes in the editor. We use the track function
-to make sure the component is re-rendered whenever the selection changes. Check out the
-signals example for more info: https://tldraw.dev/examples/signals
-
-Using the editor instance we can get the bounds of the selection box and convert them to
-screen coordinates. We then render the component at those coordinates.
-
+Our `InFrontOfTheCanvas` component. We want it to sit next to the selection,
+so we read the selection bounds inside `useValue`; the component re-renders
+whenever the selection or the camera changes. `editor.pageToViewport` converts
+the page-space point into viewport (screen) coordinates.
 
 [3]
-This is where we define the object that will be passed to the Tldraw component prop. 
-
-[4]
-This is where we render the Tldraw component. Let's pass the components object to the 
-components prop.
-
+Define the components object once at module level, so `<Tldraw>` doesn't see a
+new object on every render.
 */

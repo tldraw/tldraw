@@ -17,8 +17,10 @@ keywords:
   ]
 ---
 
-Extend the TipTap text editor by adding a custom extension and toolbar.
+Add a custom TipTap mark and a toolbar button that toggles it.
 
 ---
 
-This example shows how to add a custom extension and toolbar to the TipTap text editor by setting the `textOptions` prop.
+tldraw's rich text is built on TipTap, so you can extend it with any TipTap extension. This example adds a `wavy` mark that renders a wavy underline, passes it in through `options.text.tipTapConfig.extensions` (spread `tipTapDefaultExtensions` first so tldraw's defaults stay in place), and overrides the `RichTextToolbar` component to add a button that runs the mark's `toggleWavy` command.
+
+Try creating a text shape, selecting some text, and clicking the 〰️ button in the toolbar.

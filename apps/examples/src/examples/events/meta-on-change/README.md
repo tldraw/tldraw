@@ -16,8 +16,15 @@ keywords:
   ]
 ---
 
-Add custom metadata to shapes when they're changed.
+Stamp `updatedBy` and `updatedAt` metadata on shapes every time they change.
 
 ---
 
-We can update a shape's metadata whenever it changes. A UI displays the current selected shape's metadata. Create a shape, select it, and move it around. The metadata will updated any time the shape changes.
+Every shape has a `meta` property for your own JSON data. This example keeps it up to date with a
+`registerBeforeChangeHandler` side effect that rewrites `meta` on every user-initiated shape change,
+and replaces `editor.getInitialMetaForShape` so new shapes start with the same fields. A panel at the
+top shows the selected shape's meta.
+
+Create a shape, select it, and move or restyle it: the timestamp updates with each change. The
+handler ignores changes with `source: 'remote'`, so in a multiplayer document a peer's edits keep
+their own author. For setting meta only at creation time, see the shape meta (on create) example.

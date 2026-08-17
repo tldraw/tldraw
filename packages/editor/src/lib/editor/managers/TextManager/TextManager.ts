@@ -1,5 +1,5 @@
 import { BoxModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
-import { objectMapKeys } from '@tldraw/utils'
+import { iterateGraphemes, objectMapKeys } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
 import { EditorManager } from '../EditorManager'
 
@@ -93,10 +93,6 @@ export interface TLMeasureTextSpanOpts {
 }
 
 const spaceCharacterRegex = /\s/
-
-// Iterate by grapheme cluster (e.g. emoji sequences, flags, accented letters)
-// rather than by code point, so a single glyph is measured as one unit.
-const graphemeSegmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' })
 
 const initialDefaultStyles = Object.freeze({
 	'overflow-wrap': 'break-word',
@@ -309,7 +305,7 @@ export class TextManager extends EditorManager {
 		for (const childNode of element.childNodes) {
 			if (childNode.nodeType !== Node.TEXT_NODE) continue
 
-			for (const { segment } of graphemeSegmenter.segment(childNode.textContent ?? '')) {
+			for (const segment of iterateGraphemes(childNode.textContent ?? '')) {
 				// place the range around the grapheme we're interested in
 				range.setStart(textNode, idx)
 				range.setEnd(textNode, idx + segment.length)

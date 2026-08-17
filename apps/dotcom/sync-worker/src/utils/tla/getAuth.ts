@@ -182,6 +182,61 @@ export async function requireWriteAccessToFile(
 	}
 }
 
+/**
+ * Whether a user may *view* a file: they own it, they can reach it through the group that owns it, or
+ * it is shared via link — in which case `sharedLinkType` is irrelevant, since a link shared for
+ * editing is also one that can be viewed.
+ *
+ * The read-side counterpart of `requireWriteAccessToFile`, which is the same three checks plus a
+ * `sharedLinkType === 'edit'` requirement. Kept as a separate function rather than a parameter on
+ * that one, because the two differ in how they answer as well as what they ask: this returns a
+ * boolean where that throws a `StatusError` naming the reason. A caller that must not reveal whether
+ * a file exists — the MCP server, where the caller supplies the id — cannot use a helper that
+ * distinguishes 404 from 403 for it.
+ *
+ * Says nothing about whether the file exists, is deleted, or is a test file: a missing file is simply
+ * not accessible, and callers that need to tell those apart do so through their own resolution step.
+ *
+ * Hands back the row it read on success, structurally the `SharedFileInfo` the thumbnail resolution
+ * wants, so the caller does not immediately dial Postgres again for a strict subset of the same
+ * columns. Deliberately not a licence to cache it: it is safe only for a caller re-applying the gate
+ * microseconds later inside one function, which is exactly where `loadBoardSnapshot` already accepts
+ * one and where the render page's own read deliberately does not.
+ */
+export type ReadAccessToFile =
+	| { ok: true; file: { id: string; shared: boolean; isDeleted: boolean } }
+	| { ok: false }
+
+export async function hasReadAccessToFile(
+	env: Environment,
+	userId: string,
+	fileId: string
+): Promise<ReadAccessToFile> {
+	const db = createPostgresConnectionPool(env, 'sync-worker/hasReadAccessToFile')
+
+	try {
+		const file = await db
+			.selectFrom('file')
+			.select(['id', 'ownerId', 'owningGroupId', 'shared', 'isDeleted'])
+			.where('id', '=', fileId)
+			.executeTakeFirst()
+
+		if (!file || file.isDeleted) return { ok: false }
+		const granted = {
+			ok: true,
+			file: { id: file.id, shared: file.shared, isDeleted: false },
+		} as const
+		if (file.ownerId === userId) return granted
+		if (file.owningGroupId) {
+			const role = await getRole(db, userId, file.owningGroupId)
+			if (can(role, 'accessFiles')) return granted
+		}
+		return file.shared === true ? granted : { ok: false }
+	} finally {
+		await db.destroy()
+	}
+}
+
 export async function requireAdminAccess(env: Environment, auth: { userId: string } | null) {
 	if (!auth?.userId) {
 		throw new StatusError(403, 'Unauthorized')

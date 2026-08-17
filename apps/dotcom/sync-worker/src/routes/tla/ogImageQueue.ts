@@ -13,20 +13,16 @@ import {
 	ThumbnailBoardRef,
 } from '../../types'
 import { deleteRenderTokenRecord } from '../../utils/renderTokens'
+import { enumerateBoardPages } from './boardTools'
 import {
 	ResolvedThumbnailBoard,
 	captureThumbnailScreenshot,
-	enumerateBoardPages,
 	loadBoardSnapshot,
 	putThumbnailPng,
 	resolveThumbnailBoard,
 	writeScreenshotTelemetry,
 } from './thumbnailRender'
-import {
-	browserRunDurationOf,
-	classifyScreenshotFailure,
-	reportThumbnailError,
-} from './thumbnailShared'
+import { classifyScreenshotFailure, reportThumbnailError } from './thumbnailShared'
 
 // Queue-backed async board thumbnail generation. Renders are asked for by the things that change a
 // board's content — publishing (TLPostgresReplicator) and editing (TLFileDurableObject) — and this
@@ -315,22 +311,20 @@ export async function handleOgImageRenderMessage(
 		// The render page exports the chosen page; the worker screenshots it through the BROWSER
 		// binding and writes the PNG to the cache key the OG route reads.
 		const render = await captureThumbnailScreenshot(env, board, {
+			surface: 'og',
 			pageId: pickOgImagePageId(snapshot),
 			theme: 'light',
 			width: DEFAULT_THUMBNAIL_WIDTH,
 			height: DEFAULT_THUMBNAIL_HEIGHT,
+			// `source` is the telemetry surface, not the render pipeline: these sessions belong to the
+			// queue's ledger even though the job is signed for the og pipeline.
+			telemetry: { source: 'queue', reason },
 		})
 		await putThumbnailPng(env.THUMBNAILS, cacheKey, render.base64, board.version)
 		await clearOgImagePendingMarker(env, boardRef)
 		await enqueueFollowUpIfBoardMoved(env, message, board, reason, ctx)
 
-		writeScreenshotTelemetry(env, {
-			source: 'queue',
-			reason,
-			followUp,
-			cacheStatus: 'miss',
-			browserRunDurationMs: render.durationMs,
-		})
+		writeScreenshotTelemetry(env, { source: 'queue', reason, followUp, cacheStatus: 'miss' })
 		message.ack()
 	} catch (error) {
 		// Reported once per job, on the delivery that gives up, rather than once per delivery: a board
@@ -353,7 +347,6 @@ export async function handleOgImageRenderMessage(
 			reason,
 			followUp,
 			failureReason: classifyScreenshotFailure(error),
-			browserRunDurationMs: browserRunDurationOf(error),
 			board: boardRef,
 		})
 	}
@@ -432,7 +425,6 @@ async function retryOrDrop(
 		reason,
 		followUp,
 		failureReason,
-		browserRunDurationMs,
 		board,
 	}: {
 		/**
@@ -445,23 +437,18 @@ async function retryOrDrop(
 		/** Resolved by the caller for the same reason as `reason` above. */
 		followUp: boolean
 		failureReason: string
-		browserRunDurationMs?: number
 		board: ThumbnailBoardRef
 	}
 ) {
-	// One datapoint per delivery, the opposite of the Sentry report above, because this dataset is the
-	// spend ledger for an uncapped render path: every delivery that reaches the capture creates a
-	// browser and can hold it for the full THUMBNAIL_RENDER_TIMEOUT_MS, last attempt or not. Telemetry
-	// counts spend, Sentry counts problems — three deliveries are three lots of spend, one problem.
+	// One datapoint per delivery, the opposite of the Sentry report above: three deliveries are three
+	// failures on this ledger, one problem on Sentry's. The Browser Run spend of a delivery that
+	// reached the capture is on the browser_run_session event, written inside the render itself.
 	writeScreenshotTelemetry(env, {
 		source: 'queue',
 		reason,
 		followUp,
 		cacheStatus: 'miss',
 		failureReason,
-		// Present only when the capture itself failed. A delivery that bailed earlier (an unreadable or
-		// empty snapshot) spent no Browser Run and correctly records none.
-		browserRunDurationMs,
 	})
 	// attempts counts this delivery, so attempts >= MAX means this was the final try.
 	if (message.attempts < OG_MAX_RENDER_ATTEMPTS) {
