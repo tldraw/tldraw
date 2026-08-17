@@ -7989,17 +7989,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pierre/storage@npm:^1.1.0":
-  version: 1.2.0
-  resolution: "@pierre/storage@npm:1.2.0"
-  dependencies:
-    jose: "npm:^5.10.0"
-    snakecase-keys: "npm:^9.0.2"
-    zod: "npm:^3.23.8"
-  checksum: 10/60b3221095aa7309c0be1f3f27af3a670d2613e0a990d333d0e4d8e2ef07258d44e1e35275242ef444fbc026df19d4f719ddfed83a1acd901d40cee41e503343
-  languageName: node
-  linkType: hard
-
 "@pinojs/redact@npm:^0.4.0":
   version: 0.4.0
   resolution: "@pinojs/redact@npm:0.4.0"
@@ -12080,7 +12069,6 @@ __metadata:
   dependencies:
     "@clerk/backend": "npm:^1.23.7"
     "@cloudflare/workers-types": "npm:^4.20260302.0"
-    "@pierre/storage": "npm:^1.1.0"
     "@rocicorp/zero": "npm:1.9.0"
     "@supabase/supabase-js": "npm:^2.48.1"
     "@tldraw/dotcom-shared": "workspace:*"
@@ -17077,7 +17065,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"change-case@npm:^5.4.3, change-case@npm:^5.4.4":
+"change-case@npm:^5.4.3":
   version: 5.4.4
   resolution: "change-case@npm:5.4.4"
   checksum: 10/446e5573f3c854290a91292afef92b957d2e43a928260c91989b482aa860caaa29711b6725fc40c200af68061cbab357b033446d16a17bc5c553636994074e92
@@ -23303,7 +23291,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jose@npm:^5.10.0, jose@npm:^5.9.3, jose@npm:^5.9.6":
+"jose@npm:^5.9.3, jose@npm:^5.9.6":
   version: 5.10.0
   resolution: "jose@npm:5.10.0"
   checksum: 10/03881d1dfb390dcf50926402edcfe233bf557b5a77321fcb1bdb53453bc1cdd26d2d0a9ab28c7445cbb826881f84fdf5074179700f10c2711ccb9880f51065d7
@@ -24560,13 +24548,6 @@ __metadata:
   version: 4.3.0
   resolution: "map-obj@npm:4.3.0"
   checksum: 10/fbc554934d1a27a1910e842bc87b177b1a556609dd803747c85ece420692380827c6ae94a95cce4407c054fa0964be3bf8226f7f2cb2e9eeee432c7c1985684e
-  languageName: node
-  linkType: hard
-
-"map-obj@npm:^5.0.2":
-  version: 5.0.2
-  resolution: "map-obj@npm:5.0.2"
-  checksum: 10/ebe5484eaf03938f447b26eaaa807b01dcc6052281972308b8818fc416c7c66503bd5482fc4eeb5374c0d25271a178d4f5e1929e6bd3dc8c1357decf4a7f0d25
   languageName: node
   linkType: hard
 
@@ -30745,17 +30726,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"snakecase-keys@npm:^9.0.2":
-  version: 9.0.2
-  resolution: "snakecase-keys@npm:9.0.2"
-  dependencies:
-    change-case: "npm:^5.4.4"
-    map-obj: "npm:^5.0.2"
-    type-fest: "npm:^4.15.0"
-  checksum: 10/90421da34bdd58d91c059b028839b1da06fb4fd15abb6cfc8f9a9b3e768d867410161de86e8c5d37de56ac9052ec34052159e46a2f21240d1416f2f900190577
-  languageName: node
-  linkType: hard
-
 "socket.io-adapter@npm:~2.5.2":
   version: 2.5.5
   resolution: "socket.io-adapter@npm:2.5.5"
@@ -34775,7 +34745,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.21.4, zod@npm:^3.23.8, zod@npm:^3.25.36":
+"zod@npm:^3.21.4, zod@npm:^3.25.36":
   version: 3.25.76
   resolution: "zod@npm:3.25.76"
   checksum: 10/f0c963ec40cd96858451d1690404d603d36507c1fc9682f2dae59ab38b578687d542708a7fdbf645f77926f78c9ed558f57c3d3aa226c285f798df0c4da16995
