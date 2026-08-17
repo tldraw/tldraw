@@ -1,0 +1,34 @@
+main = "src/worker.ts"
+# Matches the sync worker's top-level date so both sit on the same runtime. This worker is never run
+# through `wrangler dev` — a tail consumer has no local story — so the pinned-workerd caveat that
+# forces the sync worker's dev env back to an older date does not apply here.
+compatibility_date = "2026-03-24"
+workers_dev = false
+
+[[analytics_engine_datasets]]
+binding = "TAIL"
+
+#################### Environment names ####################
+# dev should never actually get deployed anywhere
+[env.dev]
+name = "dev-tldraw-tail"
+
+# staging is the same as a preview on main:
+[env.staging]
+name = "main-tldraw-tail"
+
+# production gets the proper name
+[env.production]
+name = "tldraw-tail"
+
+#################### Analytics engine ####################
+# A dataset of its own, not MEASURE. Analytics Engine samples per dataset, so folding ~38M invocation
+# rows a day into MEASURE would inflate `_sample_interval` across every dashboard already built on it.
+[[env.dev.analytics_engine_datasets]]
+binding = "TAIL"
+
+[[env.staging.analytics_engine_datasets]]
+binding = "TAIL"
+
+[[env.production.analytics_engine_datasets]]
+binding = "TAIL"
