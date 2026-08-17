@@ -61,26 +61,26 @@ import { sharedBoardScreenshotMcp } from './routes/tla/sharedBoardScreenshotMcp'
 import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
 import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
-import {
-	getFileEffectProcessor,
-	getLogger,
-	getReplicator,
-	getUserDurableObject,
-} from './utils/durableObjects'
+import { getFileEffectProcessor, getLogger } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, getZeroAuth, requireAuth } from './utils/tla/getAuth'
 import { getRole } from './utils/tla/getRole'
 export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLFileEffectProcessor } from './TLFileEffectProcessor'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
-export { TLPostgresReplicator } from './TLPostgresReplicator'
-export { TLStatsDurableObject } from './TLStatsDurableObject'
-export { TLUserDurableObject } from './TLUserDurableObject'
 // no-op stub. wrangler.toml v1 created TLDrawDurableObject and v10 deletes it.
 // staging/prod still have it in their applied-migration history, so removing
 // this export breaks their deploys (see #8124). preview skips both v1 and v10,
 // so this export is just an unbound class on preview - harmless.
 export class TLDrawDurableObject {}
+
+// no-op stubs, same reasoning as TLDrawDurableObject above: staging/prod migration
+// history references these classes (v5 created TLPostgresReplicator + TLUserDurableObject,
+// v7 created TLStatsDurableObject), so the exports must stay or their deploys break
+// (see #8124). Bindings are already gone; preview never created these classes.
+export class TLPostgresReplicator {}
+export class TLUserDurableObject {}
+export class TLStatsDurableObject {}
 
 const { preflight, corsify } = cors({
 	origin: isAllowedOrigin,
@@ -146,23 +146,6 @@ const router = createRouter<Environment>()
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
 	.post(`/app/file/:roomId/restore`, forwardRoomRequest)
 	.post(`/app/file/:roomId/pierre-restore`, forwardRoomRequest)
-	.get('/app/:userId/connect', async (req, env) => {
-		// forward req to the user durable object
-		const auth = await getAuth(req, env)
-		if (!auth) {
-			// eslint-disable-next-line no-console
-			console.log('auth not found')
-			return notFound()
-		}
-
-		if (req.headers.get('upgrade')?.toLowerCase() !== 'websocket') {
-			return notFound()
-		}
-
-		if (req.params.userId !== auth.userId) return notFound()
-		const stub = getUserDurableObject(env, auth.userId)
-		return stub.fetch(req)
-	})
 	.post('/app/:userId/init', async (req, env) => {
 		// Ensure user exists in DB before Zero can query
 		const auth = await requireAuth(req, env)
@@ -170,10 +153,6 @@ const router = createRouter<Environment>()
 		return initUser(req, env)
 	})
 	.post('/app/tldr', createFiles)
-	.get('/app/replicator-status', async (_, env) => {
-		await getReplicator(env).ping()
-		return new Response('ok')
-	})
 	// Dev/preview only. Wakes the outbox processor: local workerd doesn't fire persisted alarms
 	// for an uninstantiated DO, so without this a restarted dev stack drains nothing until the
 	// first mutation. The dev stack's one-shot wake-outbox process hits this route on startup.

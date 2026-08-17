@@ -1,10 +1,15 @@
 import { TlaFile } from '@tldraw/dotcom-shared'
 import { getR2KeyForRoom } from '../r2'
+import { deleteOgImage, enqueuePublishThumbnailRender } from '../routes/tla/ogImageQueue'
 import { Environment } from '../types'
 import { getRoomDurableObject } from './durableObjects'
 
 // Errors propagate so the outbox consumer can retry.
-export async function publishSnapshot(env: Environment, file: TlaFile) {
+export async function publishSnapshot(
+	env: Environment,
+	file: TlaFile,
+	reportProblem: (error: unknown) => void
+) {
 	// Nothing can be published without a slug.
 	if (!file.publishedSlug) return
 	// make sure the room's snapshot is up to date
@@ -30,6 +35,11 @@ export async function publishSnapshot(env: Environment, file: TlaFile) {
 		getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}|${currentTime}`, isApp: true }),
 		blob
 	)
+	// The published snapshot is now the content an unfurl would show, so render its OG image
+	// straight away rather than leaving the first crawler to find a cold cache. Reports failures
+	// through `reportProblem` instead of throwing: the publish itself succeeded, and getOgImage
+	// repairs a missing image on the next fetch.
+	await enqueuePublishThumbnailRender(env, file.publishedSlug, reportProblem)
 }
 
 export async function unpublishSnapshot(env: Environment, file: TlaFile) {
@@ -39,4 +49,7 @@ export async function unpublishSnapshot(env: Environment, file: TlaFile) {
 	await env.ROOM_SNAPSHOTS.delete(
 		getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}`, isApp: true })
 	)
+	// The published thumbnail goes with the published snapshot it depicts. Scoped to
+	// `kind: 'published'`, so the board's own file-keyed image is untouched. See deleteOgImage.
+	await deleteOgImage(env, { kind: 'published', slug: file.publishedSlug })
 }
