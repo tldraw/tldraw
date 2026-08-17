@@ -39,7 +39,16 @@ function file(partial: Partial<TlaFile>): TlaFile {
 function makeEnv() {
 	return {
 		ROOMS: { get: vi.fn() },
-		ROOM_SNAPSHOTS: { put: vi.fn(), delete: vi.fn() },
+		ROOM_SNAPSHOTS: {
+			put: vi.fn(),
+			delete: vi.fn(),
+			list: vi.fn(
+				async (): Promise<{ objects: { key: string }[]; truncated: boolean; cursor?: string }> => ({
+					objects: [],
+					truncated: false,
+				})
+			),
+		},
 		SNAPSHOT_SLUG_TO_PARENT_SLUG: { put: vi.fn(), delete: vi.fn() },
 		TLDR_DOC: {
 			idFromName: vi.fn(() => 'id'),
@@ -139,11 +148,34 @@ describe('unpublishSnapshot', () => {
 		expect(deleteOgImage).not.toHaveBeenCalled()
 	})
 
-	it('deletes the mapping and snapshot when publishedSlug is set', async () => {
+	it('deletes the mapping, the snapshot, and its history when publishedSlug is set', async () => {
 		const env = makeEnv()
+		env.ROOM_SNAPSHOTS.list
+			.mockResolvedValueOnce({
+				objects: [{ key: 'app_rooms/f1/slug-1' }, { key: 'app_rooms/f1/slug-1|t1' }],
+				truncated: true,
+				cursor: 'c1',
+			})
+			.mockResolvedValueOnce({
+				objects: [{ key: 'app_rooms/f1/slug-1|t2' }],
+				truncated: false,
+			})
 		await unpublishSnapshot(env as any as Environment, file({ id: 'f1', publishedSlug: 'slug-1' }))
 		expect(env.SNAPSHOT_SLUG_TO_PARENT_SLUG.delete).toHaveBeenCalledWith('slug-1')
+		expect(env.ROOM_SNAPSHOTS.list).toHaveBeenCalledWith({
+			prefix: 'app_rooms/f1/slug-1',
+			cursor: undefined,
+		})
+		expect(env.ROOM_SNAPSHOTS.list).toHaveBeenCalledWith({
+			prefix: 'app_rooms/f1/slug-1',
+			cursor: 'c1',
+		})
 		expect(env.ROOM_SNAPSHOTS.delete).toHaveBeenCalledTimes(1)
+		expect(env.ROOM_SNAPSHOTS.delete).toHaveBeenCalledWith([
+			'app_rooms/f1/slug-1',
+			'app_rooms/f1/slug-1|t1',
+			'app_rooms/f1/slug-1|t2',
+		])
 		// the published thumbnail depicts the snapshot being removed, so it goes with it
 		expect(deleteOgImage).toHaveBeenCalledWith(env, { kind: 'published', slug: 'slug-1' })
 	})

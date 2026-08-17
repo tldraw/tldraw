@@ -75,7 +75,7 @@ import {
 import { PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
-import { getR2KeyForRoom } from './r2'
+import { getR2KeyForRoom, listAllObjectKeys } from './r2'
 import { RoomNotFoundError, shouldSkipMissingRoomEffect } from './roomEffectHelpers'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
@@ -2977,19 +2977,6 @@ export class TLFileDurableObject extends DurableObject {
 		await this.r2.rooms.put(key, JSON.stringify(DEFAULT_INITIAL_SNAPSHOT))
 		await this.getRoom()
 	}
-}
-
-async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promise<string[]> {
-	const keys: string[] = []
-	let cursor: string | undefined
-
-	do {
-		const result = await bucket.list({ prefix, cursor })
-		keys.push(...result.objects.map((o) => o.key))
-		cursor = result.truncated ? result.cursor : undefined
-	} while (cursor)
-
-	return keys
 }
 
 const PERSIST_RETRIES_NOTIFY_THRESHOLD = 10
