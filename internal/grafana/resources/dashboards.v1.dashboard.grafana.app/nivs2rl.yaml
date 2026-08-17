@@ -1316,7 +1316,7 @@ spec:
         dominated by 164dab144e614bb9ac54367e0ffaf56c, which throws ~21k/day on its
         own and is chronic, so anything else is invisible in the aggregate above —
         including file rooms, at ~3k/day. TLDR_DOC / TLFileDurableObject (file rooms)
-        is 5864db4344ac4c55bfd94e81dd25a043; its rate stepped up roughly 30x on
+        is 5864db4344ac4c55bfd94e81dd25a043; it went from ~67/day to 7.2k on
         2026-08-13, the day #9978 stopped the Supabase client blocking hibernation
         and so let the file DO evict for the first time. Cold-start paths that had
         never run while every object stayed resident now do.'
