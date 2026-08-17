@@ -1341,6 +1341,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): IndexKey;
     getHintingShape(): NonNullable<TLShape | undefined>[];
     getHintingShapeIds(): TLShapeId[];
+    getHistorySnapshot(): TLHistorySnapshot;
     getHitTestMargin(): number;
     getHoveredShape(): TLShape | undefined;
     getHoveredShapeId(): null | TLShapeId;
@@ -1497,6 +1498,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     isShapeOfType<T extends TLShape = TLShape>(shapeId: TLShapeId, type: T['type']): boolean;
     isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean;
+    loadHistorySnapshot(snapshot: TLHistorySnapshot): this;
     loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot, opts?: TLLoadSnapshotOptions): this;
     markEventAsHandled(e: {
         nativeEvent: Event;
@@ -2201,10 +2203,12 @@ export class HistoryManager<R extends UnknownRecord> {
     getNumRedos(): number;
     // (undocumented)
     getNumUndos(): number;
+    getSnapshot(): TLHistorySnapshot<R>;
     // @internal (undocumented)
     _isInBatch: boolean;
     // @internal (undocumented)
     isReplaying(): boolean;
+    loadSnapshot(snapshot: TLHistorySnapshot<R>): void;
     // @internal (undocumented)
     _mark(id: string): void;
     // (undocumented)
@@ -4314,6 +4318,14 @@ export interface TLHistoryMark {
     id: string;
     // (undocumented)
     type: 'stop';
+}
+
+// @public
+export interface TLHistorySnapshot<R extends UnknownRecord = TLRecord> {
+    redos: TLHistoryEntry<R>[];
+    schema: SerializedSchema;
+    undos: TLHistoryEntry<R>[];
+    version: number;
 }
 
 // @public (undocumented)
