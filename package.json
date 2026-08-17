@@ -113,7 +113,7 @@
 		"@types/semver": "^7.5.8",
 		"@vitest/coverage-v8": "^4.1.7",
 		"@vitest/ui": "^4.1.7",
-		"adm-zip": "^0.5.16",
+		"adm-zip": "^0.6.0",
 		"docx": "^9.5.1",
 		"fs-extra": "^11.3.0",
 		"husky": "^8.0.3",
