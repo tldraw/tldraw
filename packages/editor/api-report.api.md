@@ -1497,6 +1497,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     isShapeOfType<T extends TLShape = TLShape>(shapeId: TLShapeId, type: T['type']): boolean;
     isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean;
+    // @internal
+    licenseManager?: LicenseManager;
     loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot, opts?: TLLoadSnapshotOptions): this;
     markEventAsHandled(e: {
         nativeEvent: Event;
@@ -5103,7 +5105,7 @@ export function useIsEditing(shapeId: TLShapeId): boolean;
 export function useLicenseContext(): LicenseManager;
 
 // @internal
-export function useLicenseFeatureFlag(licenseManager: LicenseManager, feature: LicenseFeatureName): boolean;
+export function useLicenseFeatureFlag(licenseManager: LicenseManager | null, feature: LicenseFeatureName): boolean;
 
 // @internal (undocumented)
 export function useLocalStore(options: {
@@ -5114,6 +5116,9 @@ export function useLocalStore(options: {
 
 // @public (undocumented)
 export function useMaybeEditor(): Editor | null;
+
+// @internal
+export function useMaybeLicenseManager(): LicenseManager | null;
 
 // @internal (undocumented)
 export function useOnMount(onMount?: TLOnMountHandler): void;
