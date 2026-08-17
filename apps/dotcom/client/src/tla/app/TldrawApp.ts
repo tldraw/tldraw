@@ -19,7 +19,6 @@ import {
 	TlaUser,
 	UserPreferencesKeys,
 	ZErrorCode,
-	Z_PROTOCOL_VERSION,
 	ZeroContext,
 	can,
 	createMutators,
@@ -31,10 +30,8 @@ import {
 	Result,
 	assert,
 	fetch,
-	getFromLocalStorage,
 	isEqual,
 	promiseWithResolve,
-	setInLocalStorage,
 	sleep,
 	sortByIndex,
 	sortByMaybeIndex,
@@ -64,7 +61,7 @@ import {
 } from 'tldraw'
 import { routes } from '../../routeDefs'
 import { trackEvent } from '../../utils/analytics'
-import { MULTIPLAYER_SERVER, ZERO_SERVER } from '../../utils/config'
+import { ZERO_SERVER } from '../../utils/config'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TLAppUiContextType } from '../utils/app-ui-events'
@@ -72,39 +69,26 @@ import { getDateFormat } from '../utils/dates'
 import { FeatureFlags } from '../utils/FeatureFlagPoller'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
-import { Zero as ZeroPolyfill } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
 
 let appId = 0
 
-export function shouldUseProperZero(
+/**
+ * Whether commenting is available to this user. While commenting is being built out it's staff-only:
+ * anyone with a @tldraw.com email gets it, everyone else waits on the `commenting_enabled` flag
+ * (off by default, with a percentage rollout knob on the admin page). Signed-out viewers have no
+ * email and no flags, so they don't see comments at all.
+ */
+export function shouldEnableCommenting(
 	flags: FeatureFlags,
 	email?: string | null
 ): { value: boolean; reason: string } {
-	if (flags.zero_kill_switch?.enabled) {
-		return { value: false, reason: 'kill switch active' }
-	}
-	if (typeof navigator !== 'undefined' && navigator.webdriver) {
-		return { value: false, reason: 'automated testing' }
-	}
-	const localOverride = getFromLocalStorage('useProperZero')
-	if (localOverride !== null) {
-		return { value: localOverride === 'true', reason: 'localStorage override' }
-	}
 	if (email?.endsWith('@tldraw.com')) {
 		return { value: true, reason: '@tldraw.com email' }
 	}
-	const flagEnabled = flags.zero_enabled?.enabled ?? false
-	return { value: flagEnabled, reason: 'server feature flag' }
-}
-
-// @ts-expect-error — dev escape hatch, call window.zero() in console to toggle
-window.zero = () => {
-	const current = getFromLocalStorage('useProperZero') === 'true'
-	setInLocalStorage('useProperZero', String(!current))
-	location.reload()
+	return { value: flags.commenting_enabled?.enabled ?? false, reason: 'server feature flag' }
 }
 
 /** When the user last opened the file (visit, else edit, else first visit), or undefined if never. */
@@ -118,6 +102,49 @@ export function getFileRecencyDate(
 	file: TlaFile | undefined
 ): number {
 	return getFileVisitDate(state) ?? file?.createdAt ?? 0
+}
+
+/** Milliseconds until a JWT's `exp`, or null if it can't be read. */
+function msUntilExpiry(token: string | undefined, now = Date.now()): number | null {
+	if (!token) return null
+	try {
+		const [, payload] = token.split('.')
+		if (!payload) return null
+		// base64url, which atob doesn't accept
+		const claims = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')))
+		if (typeof claims?.exp !== 'number') return null
+		return claims.exp * 1000 - now
+	} catch {
+		// a token we can't parse is still a usable token; fall back to the fixed cadence
+		return null
+	}
+}
+
+/** Fallback cadence for a token whose expiry we can't read. Under Clerk's 60s default this is
+ *  already too slow for a hidden tab — see {@link msUntilTokenRefresh}. */
+const FALLBACK_TOKEN_REFRESH_MS = 50_000
+/** Never busy-loop on a token that is expired or nearly so. */
+const MIN_TOKEN_REFRESH_MS = 5_000
+
+/**
+ * When to refresh the auth token, derived from the token's own expiry rather than a fixed cadence.
+ *
+ * This matters more than a normal token refresh because Zero hands the token to zero-cache, which
+ * reuses it for the transform and push fetches behind the connection. An expired token there
+ * doesn't fail one request, it invalidates the whole connection — which is what produced a steady
+ * ~2k `TransformFailed` and ~600 connection invalidations per hour in production.
+ *
+ * Refreshing at half the remaining life means a tick that runs late still has a whole half-life of
+ * slack. Reading the deadline off the token also means raising the session-token lifetime in the
+ * Clerk dashboard takes effect here with no code change — which is the part that actually fixes
+ * this. Browsers throttle timers in hidden tabs to roughly once a minute, so against Clerk's 60s
+ * default the token expires under a backgrounded tab no matter what cadence we ask for; no
+ * client-side schedule can beat that, only a longer-lived token can.
+ */
+export function msUntilTokenRefresh(token: string | undefined, now = Date.now()): number {
+	const remaining = msUntilExpiry(token, now)
+	if (remaining === null) return FALLBACK_TOKEN_REFRESH_MS
+	return Math.max(MIN_TOKEN_REFRESH_MS, remaining / 2)
 }
 
 export class TldrawApp {
@@ -138,8 +165,18 @@ export class TldrawApp {
 	private readonly workspaceMemberships$: Signal<
 		QueryResultType<typeof queries.workspaceMemberships>
 	>
+	/**
+	 * Null when commenting is disabled for this user: the notifications feed is the most expensive
+	 * query in the schema (nested EXISTS over comment/thread/file/group), so a closed flag has to
+	 * keep it off the wire entirely, not just hide the UI that reads it.
+	 */
+	private readonly comments$: Signal<QueryResultType<typeof queries.comments>> | null
+	/** Null when commenting is disabled for this user, like {@link comments$}. */
+	private readonly reactions$: Signal<QueryResultType<typeof queries.reactions>> | null
 
-	private readonly useProperZero: boolean
+	/** Whether this user gets the commenting UI — see {@link shouldEnableCommenting}. */
+	readonly isCommentingEnabled: boolean
+
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
 	private getToken: () => Promise<string | undefined>
@@ -184,10 +221,18 @@ export class TldrawApp {
 	trackEvent: TLAppUiContextType
 	navigate: ReturnType<typeof useNavigate>
 
+	/**
+	 * Test-only hook (only set under Playwright, see the constructor) that fires the same
+	 * "client too old" callback Zero's `onUpdateNeeded` would call, so e2e can exercise the
+	 * reload-recovery UI without forcing a real schema/protocol mismatch against zero-cache.
+	 */
+	__test__triggerClientTooOld?: () => void
+
 	private constructor(
 		public readonly userId: string,
-		initialToken: string | undefined,
+		initialZeroToken: string | undefined,
 		getToken: () => Promise<string | undefined>,
+		getZeroToken: () => Promise<string | undefined>,
 		onClientTooOld: () => void,
 		trackEvent: TLAppUiContextType,
 		navigate: ReturnType<typeof useNavigate>,
@@ -197,85 +242,94 @@ export class TldrawApp {
 		this.navigate = navigate
 		this.trackEvent = trackEvent
 		this.getToken = getToken
-		const sessionId = uniqueId()
-		const { value: properZero, reason } = shouldUseProperZero(flags, email)
-		this.useProperZero = properZero
-		// eslint-disable-next-line no-console
-		console.log(`[Zero] Using ${properZero ? 'proper Zero' : 'ZeroPolyfill'} (${reason})`)
-		if (properZero) {
-			const z = new Zero<TlaSchema, TlaMutators, ZeroContext>({
-				auth: initialToken,
-				userID: userId,
-				schema: zeroSchema,
-				cacheURL: ZERO_SERVER,
-				mutators: createMutators(userId),
-				context: { userId } satisfies ZeroContext,
-				onUpdateNeeded(reason) {
-					console.error('update needed', reason)
-					onClientTooOld()
-				},
-				kvStore: window.navigator.webdriver ? 'mem' : 'idb',
-			})
-			this.z = z
-			const refreshToken = () =>
-				getToken().then((token) => {
-					if (token) {
-						z.connection.connect({ auth: token })
-						return true
-					}
-					return false
-				})
-			// Proactively refresh auth token before Clerk's 60s expiry.
-			// In Zero 0.26+, this sends an updateAuth message without reconnecting.
-			const TOKEN_REFRESH_INTERVAL = 50_000
-			const refreshInterval = setInterval(() => {
+		this.isCommentingEnabled = shouldEnableCommenting(flags, email).value
+		// Exposed as __test__triggerClientTooOld below so e2e can exercise the real recovery UI
+		// without a live schema/protocol mismatch against zero-cache.
+		if (window.navigator.webdriver) {
+			this.__test__triggerClientTooOld = () => onClientTooOld()
+		}
+		const z = new Zero<TlaSchema, TlaMutators, ZeroContext>({
+			auth: initialZeroToken,
+			userID: userId,
+			schema: zeroSchema,
+			cacheURL: ZERO_SERVER,
+			mutators: createMutators(userId),
+			context: { userId } satisfies ZeroContext,
+			onUpdateNeeded(reason) {
+				console.error('update needed', reason)
+				onClientTooOld()
+			},
+			kvStore: window.navigator.webdriver ? 'mem' : 'idb',
+		})
+		this.z = z
+		// Refresh the token ahead of its own expiry and reschedule from whatever we get back, so the
+		// cadence follows the token's lifetime rather than a hardcoded guess at it. In Zero 0.26+
+		// this sends an updateAuth message without reconnecting.
+		let refreshTimeout: ReturnType<typeof setTimeout> | undefined
+		const scheduleRefresh = (token: string | undefined) => {
+			clearTimeout(refreshTimeout)
+			refreshTimeout = setTimeout(() => {
 				refreshToken().catch((err) => {
 					console.error('Failed to proactively refresh auth token:', err)
 				})
-			}, TOKEN_REFRESH_INTERVAL)
-			this.disposables.push(() => clearInterval(refreshInterval))
-			// Set up token refresh on auth errors with backoff
-			let authRetryCount = 0
-			const MAX_AUTH_RETRIES = 5
-			const unsubscribe = z.connection.state.subscribe((state) => {
-				if (state.name === 'needs-auth') {
-					if (authRetryCount >= MAX_AUTH_RETRIES) {
-						console.error(`Auth retry limit reached (${MAX_AUTH_RETRIES}), giving up`)
-						captureException(new Error('Auth retry limit reached'))
-						return
-					}
-					const delay = Math.min(1000 * Math.pow(2, authRetryCount), 30_000)
-					authRetryCount++
-					setTimeout(() => {
-						refreshToken()
-							.then((didRefresh) => {
-								if (didRefresh) authRetryCount = 0
-							})
-							.catch((err) => {
-								console.error('Failed to refresh auth token:', err)
-								captureException(err)
-							})
-					}, delay)
-				}
-			})
-			this.disposables.push(unsubscribe)
-		} else {
-			this.z = new ZeroPolyfill({
-				userId,
-				getUri: async () => {
-					const params = new URLSearchParams({
-						sessionId,
-						protocolVersion: String(Z_PROTOCOL_VERSION),
-					})
-					const token = await getToken()
-					params.set('accessToken', token || 'no-token-found')
-					return `${MULTIPLAYER_SERVER}/app/${userId}/connect?${params}`
-				},
-				onMutationRejected: this.showMutationRejectionToast,
-				onClientTooOld: () => onClientTooOld(),
-				trackEvent,
-			}) as unknown as Zero<TlaSchema, TlaMutators, ZeroContext>
+			}, msUntilTokenRefresh(token))
 		}
+		// Reschedule on every outcome — a rejected getZeroToken() or a throwing connect() must not
+		// kill the refresh chain, so scheduling happens before connect and in the reject path.
+		const refreshToken = () =>
+			getZeroToken()
+				.catch((err) => {
+					scheduleRefresh(undefined)
+					throw err
+				})
+				.then((token) => {
+					scheduleRefresh(token)
+					if (token) {
+						z.connection.connect({ auth: token })
+					}
+					return !!token
+				})
+		scheduleRefresh(initialZeroToken)
+		this.disposables.push(() => clearTimeout(refreshTimeout))
+		// Timers in a hidden tab are throttled to about once a minute, so the refresh has to sit well
+		// inside that budget — see the `zero` JWT template's lifetime. Refreshing on the way back
+		// covers the cases no schedule can (a frozen tab, a slept laptop), where the token goes stale
+		// while nothing is running at all.
+		const onVisibilityChange = () => {
+			if (document.visibilityState !== 'visible') return
+			refreshToken().catch((err) => {
+				console.error('Failed to refresh auth token on focus:', err)
+			})
+		}
+		document.addEventListener('visibilitychange', onVisibilityChange)
+		this.disposables.push(() =>
+			document.removeEventListener('visibilitychange', onVisibilityChange)
+		)
+		// Set up token refresh on auth errors with backoff
+		let authRetryCount = 0
+		const MAX_AUTH_RETRIES = 5
+		const unsubscribe = z.connection.state.subscribe((state) => {
+			if (state.name === 'needs-auth') {
+				if (authRetryCount >= MAX_AUTH_RETRIES) {
+					console.error(`Auth retry limit reached (${MAX_AUTH_RETRIES}), giving up`)
+					captureException(new Error('Auth retry limit reached'))
+					return
+				}
+				const delay = Math.min(1000 * Math.pow(2, authRetryCount), 30_000)
+				authRetryCount++
+				setTimeout(() => {
+					refreshToken()
+						.then((didRefresh) => {
+							if (didRefresh) authRetryCount = 0
+						})
+						.catch((err) => {
+							console.error('Failed to refresh auth token:', err)
+							captureException(err)
+						})
+				}, delay)
+			}
+		})
+		this.disposables.push(unsubscribe)
 
 		this.user$ = this.signalizeQuery('user signal', this.userQuery())
 		this.fileStates$ = this.signalizeQuery('file states signal', this.fileStateQuery())
@@ -283,6 +337,12 @@ export class TldrawApp {
 			'workspace memberships signal',
 			this.workspaceMembershipsQuery()
 		)
+		this.comments$ = this.isCommentingEnabled
+			? this.signalizeQuery('comments signal', this.commentsQuery())
+			: null
+		this.reactions$ = this.isCommentingEnabled
+			? this.signalizeQuery('reactions signal', this.reactionsQuery())
+			: null
 	}
 
 	private userQuery() {
@@ -297,19 +357,55 @@ export class TldrawApp {
 		return queries.workspaceMemberships()
 	}
 
+	private commentsQuery() {
+		return queries.comments()
+	}
+
+	private reactionsQuery() {
+		return queries.reactions()
+	}
+
+	/**
+	 * Recent comments across the user's files, for the notifications feed (bounded, cross-file).
+	 * Empty when commenting is disabled for this user — the query isn't subscribed at all.
+	 */
+	getComments(): QueryResultType<typeof queries.comments> {
+		return this.comments$?.get() ?? []
+	}
+
+	/**
+	 * Recent reactions to the user's comments across their files, for the notifications feed
+	 * (bounded, cross-file). Empty when commenting is disabled for this user — the query isn't
+	 * subscribed at all.
+	 */
+	getReactions(): QueryResultType<typeof queries.reactions> {
+		return this.reactions$?.get() ?? []
+	}
+
+	/**
+	 * Materialize an ad-hoc Zero query into a live view the caller owns and must `destroy()`. For
+	 * parameterized, component-scoped queries (e.g. one file's comments) that shouldn't be
+	 * app-lifetime signals like {@link comments$}.
+	 */
+	materializeQuery<TReturn>(query: unknown) {
+		return this.z.materialize(query as any) as unknown as {
+			readonly data: TReturn
+			addListener(cb: (data: TReturn) => void): () => void
+			destroy(): void
+		}
+	}
+
 	async preload() {
-		if (this.useProperZero) {
-			// Ensure user exists in DB before Zero can query
-			const token = await this.getToken()
-			if (!token) {
-				throw new Error('No auth token available for init')
-			} else {
-				const res = await fetch(`/api/app/${this.userId}/init`, {
-					method: 'POST',
-					headers: { Authorization: `Bearer ${token}` },
-				})
-				if (!res.ok) console.error(`Init failed: ${res.status}`)
-			}
+		// Ensure user exists in DB before Zero can query
+		const token = await this.getToken()
+		if (!token) {
+			throw new Error('No auth token available for init')
+		} else {
+			const res = await fetch(`/api/app/${this.userId}/init`, {
+				method: 'POST',
+				headers: { Authorization: `Bearer ${token}` },
+			})
+			if (!res.ok) console.error(`Init failed: ${res.status}`)
 		}
 		await this.z.preload(this.userQuery()).complete
 		await this.changesFlushed
@@ -666,11 +762,18 @@ export class TldrawApp {
 		}
 
 		this.storeNewRoomCreationTracking(fileId, createSource, Date.now())
-		try {
-			await this.z.mutate.createFile({ fileId, workspaceId, name, createSource, time: Date.now() })
-				.client
-		} catch (e) {
-			this.showMutationRejectionToast((e as Error).message as ZErrorCode)
+		// Zero mutator promises never reject — failures resolve with {type: 'error'} — so a
+		// try/catch here would be dead code and a failed create would navigate to a file that
+		// rolls back.
+		const res = await this.z.mutate.createFile({
+			fileId,
+			workspaceId,
+			name,
+			createSource,
+			time: Date.now(),
+		}).client
+		if (res.type === 'error') {
+			this.showMutationRejectionToast(res.error.message as ZErrorCode)
 			return Result.err('mutation rejected')
 		}
 
@@ -880,6 +983,19 @@ export class TldrawApp {
 		this.z.mutate.file_state.update({ ...partial, fileId, userId: this.userId })
 	}
 
+	markCommentRead(commentId: string) {
+		this.z.mutate.comment.markRead({ commentId, readAt: Date.now() })
+	}
+
+	markCommentsRead(commentIds: string[]) {
+		if (commentIds.length === 0) return
+		this.z.mutate.comment.markManyRead({ commentIds, readAt: Date.now() })
+	}
+
+	markCommentUnread(commentId: string) {
+		this.z.mutate.comment.markUnread({ commentId })
+	}
+
 	updateFile(fileId: string, partial: Partial<TlaFile>) {
 		this.z.mutate.file.update({ id: fileId, ...partial })
 	}
@@ -907,7 +1023,10 @@ export class TldrawApp {
 		userId: string
 		email?: string | null
 		flags: FeatureFlags
+		/** Clerk session token, for this app's own REST endpoints. */
 		getToken(): Promise<string | undefined>
+		/** Token for the Zero connection — see {@link getZeroAuth} on the worker for why it differs. */
+		getZeroToken(): Promise<string | undefined>
 		onClientTooOld(): void
 		trackEvent: TLAppUiContextType
 		navigate: ReturnType<typeof useNavigate>
@@ -918,11 +1037,12 @@ export class TldrawApp {
 
 		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
 		// Get initial token before creating Zero instance
-		const initialToken = await opts.getToken()
+		const initialZeroToken = await opts.getZeroToken()
 		const app = new TldrawApp(
 			opts.userId,
-			initialToken,
+			initialZeroToken,
 			opts.getToken,
+			opts.getZeroToken,
 			opts.onClientTooOld,
 			opts.trackEvent,
 			opts.navigate,

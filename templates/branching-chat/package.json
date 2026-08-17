@@ -17,6 +17,10 @@
 			"shortDescription": "A branching chat interface.",
 			"order": 7
 		},
+		"deploy": {
+			"target": "cloudflare",
+			"host": "branching-chat.templates.tldraw.dev"
+		},
 		"scripts": {
 			"lint": null
 		}

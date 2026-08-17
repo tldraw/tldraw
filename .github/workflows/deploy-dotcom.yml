@@ -63,7 +63,9 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          # Pinned: v2.112.0 rejects the Management API's own timestamps, which
+          # breaks `branches get` and `branches delete`. See supabase/cli#6115.
+          version: 2.111.0
 
       - name: Delete Supabase branch
         if: contains(github.event.pull_request.labels.*.name, 'reset-preview-db')

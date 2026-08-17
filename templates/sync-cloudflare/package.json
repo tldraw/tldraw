@@ -17,6 +17,10 @@
 			"shortDescription": "Real-time multiplayer.",
 			"order": 2
 		},
+		"deploy": {
+			"target": "cloudflare",
+			"host": "multiplayer.templates.tldraw.dev"
+		},
 		"scripts": {
 			"lint": null
 		}

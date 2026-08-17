@@ -19,7 +19,7 @@ import {
 	useValue,
 } from 'tldraw'
 
-// [1] Pre-declare slot names for custom colors and fonts. The runtime only
+// Pre-declare slot names for custom colors and fonts. The runtime only
 // fills the slots the user has actually added, but TypeScript needs concrete
 // keys to compute `TLDefaultColorStyle` / `TLDefaultFontStyle`.
 const MAX_CUSTOM_COLORS = 20
@@ -117,7 +117,7 @@ const GOOGLE_FONTS: GoogleFont[] = [
 	{ name: 'Bebas Neue', family: "'Bebas Neue', sans-serif" },
 ]
 
-// [2] Fan a single hex onto every role in TLDefaultColor. The theme renderer
+// Fan a single hex onto every role in TLDefaultColor. The theme renderer
 // reads different roles for different contexts (outline vs fill vs note
 // background); we use the picked hex for all of them plus a translucent
 // variant for the semi fills.
@@ -162,7 +162,7 @@ const uiOverrides: TLUiOverrides = {
 	},
 }
 
-// [3] Inject one <link> loading every curated Google Font family, so dropdown
+// Inject one <link> loading every curated Google Font family, so dropdown
 // previews render in the right typeface and canvas text picks up the family
 // once it's registered in the theme.
 let googleFontsLoaded = false
@@ -176,7 +176,7 @@ function ensureGoogleFontsLoaded() {
 	document.head.appendChild(link)
 }
 
-// [8] The palette (which hex/family each `custom-*` / `gf-*` slot maps to) lives
+// The palette (which hex/family each `custom-*` / `gf-*` slot maps to) lives
 // on the tldraw document's `meta`. Shapes only persist the slot *key* (`custom-2`,
 // `gf-1`); this is where the slot's actual value is kept. Storing it in the
 // document — instead of a separate React/localStorage copy — means the editor
@@ -233,7 +233,7 @@ const isCustomFont = (v: unknown): v is string => typeof v === 'string' && /^gf-
 const DEFAULT_COLOR = DefaultColorStyle.defaultValue
 const DEFAULT_FONT = DefaultFontStyle.defaultValue
 
-// [10] When the palette is cleared, the slots leave the *live* theme, so every
+// When the palette is cleared, the slots leave the *live* theme, so every
 // shape and the per-tab "next shape" style that still names a `custom-*` / `gf-*`
 // slot is remapped back to a built-in value (`black` / `draw`). The enum keeps
 // every slot registered (see `buildCompleteTheme`), so this isn't needed to keep
@@ -272,14 +272,14 @@ function repairShapesUsingCustomStyles(editor: Editor) {
 
 export default function ColorPickerExample() {
 	const [editor, setEditor] = useState<Editor | null>(null)
-	// [9] Register *every* possible slot up front (with placeholder values). Passed
+	// Register *every* possible slot up front (with placeholder values). Passed
 	// as the stable `themes` prop, this makes `createTLStore` register the full
 	// style enum before the persisted document is validated on load, so shapes
 	// referencing any slot pass validation even before the palette is read. The
 	// visible colors/fonts are pushed separately via `editor.updateTheme` below.
 	const [initialThemes] = useState<Partial<TLThemes>>(() => ({ default: buildCompleteTheme() }))
 
-	// [8b] Read the palette straight from the document `meta`, reactively. Because
+	// Read the palette straight from the document `meta`, reactively. Because
 	// the store drives local edits, undo/redo, and cross-tab sync alike, this one
 	// read covers all three with no extra plumbing. `useValue` returns the stored
 	// reference (stable until the document record changes, so unrelated edits like
@@ -289,7 +289,7 @@ export default function ColorPickerExample() {
 	])
 	const palette = useMemo(() => parsePalette(rawPalette), [rawPalette])
 
-	// [4] Push the palette's actual colors/fonts into the live theme. The style
+	// Push the palette's actual colors/fonts into the live theme. The style
 	// panel and canvas read this, so only slots the palette contains are shown; the
 	// complete prop's placeholder slots stay hidden. Runs on load, on every palette
 	// change, and on undo/redo (all surface through `palette` above).
@@ -304,7 +304,7 @@ export default function ColorPickerExample() {
 		const hexes = [...palette.hexes, hex]
 		editor.run(() => {
 			writePalette(editor, { hexes, fonts: palette.fonts })
-			// [5] Put the new color into the live theme before applying it, so a
+			// Put the new color into the live theme before applying it, so a
 			// selected shape repaints with it immediately. The enum already knows the
 			// slot (complete `themes` prop), so the style set never trips validation.
 			editor.updateTheme(buildTheme(hexes, palette.fonts))
@@ -332,7 +332,7 @@ export default function ColorPickerExample() {
 		})
 	}
 
-	// [11] Remove every custom color and font. We clear the palette and remap every
+	// Remove every custom color and font. We clear the palette and remap every
 	// shape / next-shape style off the custom slots in a single `editor.run`, so
 	// it's one undo step and the palette can never drift from the shapes that
 	// reference it — undo restores both together, redo clears both together.
@@ -420,7 +420,7 @@ function buildCompleteTheme(): TLTheme {
 	return buildTheme(hexes, fonts)
 }
 
-// [6] Color add flow — the native picker opens immediately on "+ Add color".
+// Color add flow — the native picker opens immediately on "+ Add color".
 // The picker fires onChange continuously while dragging, so we stage a preview
 // and only commit on the explicit Add button.
 function AddColorButton({ addColor, isFull }: { addColor(hex: string): void; isFull: boolean }) {
@@ -486,7 +486,7 @@ function AddColorButton({ addColor, isFull }: { addColor(hex: string): void; isF
 	)
 }
 
-// [7] Font add flow — dropdown of curated Google Fonts. Selection is atomic
+// Font add flow — dropdown of curated Google Fonts. Selection is atomic
 // (one click = one commit), so no staging needed. Already-added fonts are
 // shown but disabled.
 function AddFontButton({
@@ -566,35 +566,3 @@ function hslToHex(h: number, s: number, l: number): string {
 	const toHex = (v: number) => v.toString(16).padStart(2, '0')
 	return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`
 }
-
-/*
-
-[1]
-Module augmentation needs concrete property names, so we pre-declare every
-possible slot up front. Only the ones the user actually adds land in the
-theme at runtime.
-
-[8]
-The palette lives on the document's `meta`, not in a separate React/localStorage
-copy. That single decision removes the cross-tab listener, the load-time
-recovery pass, and the save-failure handling that a side store would need: the
-editor already persists `meta` (via `persistenceKey`), syncs it to other tabs,
-and records it in undo/redo — always atomically with the shapes that reference
-the slots, so the two can never disagree.
-
-[4]
-The style enum is registered once, from a *complete* theme passed via the
-`themes` prop (`buildCompleteTheme`), not from the palette. `createTLStore`
-registers the prop before the persisted document is validated on load, and the
-editor re-registers it on every render — so a shape can never reference a slot
-the enum doesn't know. The palette's actual colors/fonts are pushed into the
-live theme with `editor.updateTheme`; the style panel reads that live theme, so
-only slots the palette actually contains are shown.
-
-[11]
-"Clear custom styles" clears the palette and remaps every shape and the
-next-shape style off the custom slots back to the built-in defaults, both in one
-`editor.run`. Because the palette and the shapes are now both in the document,
-that single batch keeps them consistent through undo and redo.
-
-*/

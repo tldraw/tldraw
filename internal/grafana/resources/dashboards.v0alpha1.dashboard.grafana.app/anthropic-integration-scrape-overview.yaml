@@ -1,0 +1,195 @@
+apiVersion: dashboard.grafana.app/v0alpha1
+kind: Dashboard
+metadata:
+  annotations:
+    grafana.app/folder: anthropic
+    grafana.app/message: creating dashboard from the Cloud Connections plugin
+  labels: {}
+  name: anthropic-integration-scrape-overview
+  namespace: stacks-890472
+spec:
+  editable: false
+  fiscalYearStartMonth: 0
+  graphTooltip: 0
+  id: null
+  links:
+    - asDropdown: false
+      icon: external link
+      includeVars: true
+      keepTime: true
+      tags:
+        - anthropic-integration
+      targetBlank: true
+      title: Dashboards
+      type: dashboards
+  liveNow: false
+  panels:
+    - gridPos:
+        h: 12
+        w: 7
+        x: 0
+        y: 0
+      id: 1
+      options:
+        code:
+          language: plaintext
+          showLineNumbers: false
+          showMiniMap: false
+        content: <center><img style="width:auto;max-height:320px;" src="https://storage.googleapis.com/grafanalabs-integration-logos/anthropic-logo-dark.svg"></center>
+        mode: markdown
+      pluginVersion: 9.4.3
+      title: Logo
+      type: text
+    - datasource:
+        type: prometheus
+        uid: $datasource
+      description: Shows the number of samples received by metric name received for
+        this integration.
+      fieldConfig:
+        defaults:
+          color:
+            mode: palette-classic
+          custom:
+            axisCenteredZero: false
+            axisColorMode: text
+            axisLabel: ''
+            axisPlacement: auto
+            barAlignment: 0
+            drawStyle: line
+            fillOpacity: 0
+            gradientMode: none
+            hideFrom:
+              legend: false
+              tooltip: false
+              viz: false
+            lineInterpolation: linear
+            lineStyle:
+              fill: solid
+            lineWidth: 1
+            pointSize: 5
+            scaleDistribution:
+              type: linear
+            showPoints: auto
+            spanNulls: false
+            stacking:
+              group: A
+              mode: none
+            thresholdsStyle:
+              mode: 'off'
+          mappings: []
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: null
+              - color: red
+                value: 80
+          unit: pps
+        overrides: []
+      gridPos:
+        h: 12
+        w: 17
+        x: 7
+        y: 0
+      id: 7
+      options:
+        legend:
+          calcs: []
+          displayMode: list
+          placement: bottom
+          showLegend: true
+        tooltip:
+          mode: single
+          sort: none
+      targets:
+        - datasource:
+            type: prometheus
+            uid: $datasource
+          editorMode: code
+          expr: count by (__name__) ({__name__=~".+", job=~"integrations/anthropic/.+",
+            scrape_job=~"$scrape_job"})
+          legendFormat: __auto
+          range: true
+          refId: A
+      title: Samples Received
+      type: timeseries
+  refresh: 30s
+  revision: 1
+  schemaVersion: 38
+  style: dark
+  tags:
+    - anthropic-integration
+    - provisioned
+    - repo:tldraw/tldraw
+  templating:
+    list:
+      - current:
+          selected: false
+          text: default
+          value: default
+        hide: 0
+        includeAll: false
+        label: Data source
+        multi: false
+        name: datasource
+        options: []
+        query: prometheus
+        queryValue: ''
+        refresh: 1
+        regex: (?!grafanacloud-usage|grafanacloud-ml-metrics).+
+        skipUrlSync: false
+        type: datasource
+      - allValue: .+
+        current:
+          text: All
+          value:
+            - $__all
+        datasource: $datasource
+        definition: label_values({__name__=~".+", job=~"integrations/anthropic/.+"},
+          scrape_job)
+        hide: 0
+        includeAll: true
+        label: scrape_job
+        multi: true
+        name: scrape_job
+        options: []
+        query: label_values({__name__=~".+", job=~"integrations/anthropic/.+"}, scrape_job)
+        refresh: 2
+        regex: ''
+        skipUrlSync: false
+        sort: 0
+        tagValuesQuery: ''
+        tags: []
+        tagsQuery: ''
+        type: query
+        useTags: false
+      - allValue: integrations/anthropic/.+
+        current:
+          text: All
+          value:
+            - $__all
+        datasource: $datasource
+        definition: label_values({job=~"integrations/anthropic/.+"}, job)
+        hide: 0
+        includeAll: true
+        label: job
+        multi: true
+        name: job
+        options: []
+        query: label_values({job=~"integrations/anthropic/.+"}, job)
+        refresh: 2
+        regex: ''
+        skipUrlSync: false
+        sort: 0
+        tagValuesQuery: ''
+        tags: []
+        tagsQuery: ''
+        type: query
+        useTags: false
+  time:
+    from: now-30m
+    to: now
+  timepicker: {}
+  timezone: ''
+  title: Anthropic scrape overview
+  weekStart: ''

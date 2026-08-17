@@ -18,11 +18,10 @@ keywords:
   ]
 ---
 
-This example shows how to control the tldraw editor from an external UI, using React context.
+Control the editor from a toolbar rendered outside the `Tldraw` component, sharing the editor through React context.
 
 ---
 
-This example shows how to control the tldraw editor from an external UI, outside
-of the `Tldraw` component. There are a few ways of doing this—for example, by putting the editor on the window object, passing it around via props, or using React context.
+UI that lives outside the `Tldraw` component can't use `useEditor()`. This example captures the editor in `onMount`, stores it in state, and then provides it through a React context so any descendant component (here, an `ExternalToolbar` rendered below the canvas) can read it with `useContext`.
 
-In this example, we use React context to distribute a reference to the editor to child components.
+The provider only renders once the editor exists, so consumers never have to handle a `null` editor. Compare with the [External UI (using state)](https://tldraw.dev/examples/external-ui) example, which keeps the editor in local state and uses it in the same component.

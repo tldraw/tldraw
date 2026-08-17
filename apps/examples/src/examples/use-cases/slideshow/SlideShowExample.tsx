@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Editor, TLFrameShape, Tldraw, createShapeId, transact, useEditor, useValue } from 'tldraw'
+import { Editor, TLFrameShape, Tldraw, createShapeId, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { SLIDE_MARGIN, SLIDE_SIZE, SlidesProvider, useSlides } from './SlidesManager'
 
@@ -19,6 +19,7 @@ function InsideSlidesContext() {
 
 	const currentSlide = useValue('currentSlide', () => slides.getCurrentSlide(), [slides])
 
+	// [1]
 	useEffect(() => {
 		if (!editor) return
 
@@ -45,12 +46,13 @@ function InsideSlidesContext() {
 
 	const currentSlides = useValue('slides', () => slides.getCurrentSlides(), [slides])
 
+	// [2]
 	useEffect(() => {
 		if (!editor) return
 
 		const ids = currentSlides.map((slide) => createShapeId(slide.id))
 
-		transact(() => {
+		editor.run(() => {
 			for (let i = 0; i < currentSlides.length; i++) {
 				const shapeId = ids[i]
 				const slide = currentSlides[i]
@@ -58,11 +60,9 @@ function InsideSlidesContext() {
 				if (shape) {
 					if (shape.x === slide.index * (SLIDE_SIZE.w + SLIDE_MARGIN)) continue
 
-					// if name is still Slide and number, e.g Slide 1, update it. Use regex to test
-
-					const regex = /Slide \d+/
+					// Renumber the frame unless the user has renamed it
 					let name = (shape as TLFrameShape).props.name
-					if (regex.test((shape as TLFrameShape).props.name)) {
+					if (/Slide \d+/.test(name)) {
 						name = `Slide ${slide.index + 1}`
 					}
 
@@ -91,6 +91,7 @@ function InsideSlidesContext() {
 			}
 		})
 
+		// [3]
 		const unsubs: (() => void)[] = []
 
 		unsubs.push(
@@ -131,29 +132,9 @@ function Slides() {
 	const lowestIndex = currentSlides[0].index
 	const highestIndex = currentSlides[currentSlides.length - 1].index
 
+	// [4]
 	return (
 		<>
-			{/* {currentSlides.map((slide) => (
-				<div
-					key={slide.id}
-					style={{
-						position: 'absolute',
-						top: 0,
-						left: (SLIDE_SIZE.w + SLIDE_MARGIN) * slide.index,
-						width: SLIDE_SIZE.w,
-						height: SLIDE_SIZE.h,
-						backgroundColor: 'white',
-						border: '1px solid black',
-						pointerEvents: 'all',
-					}}
-					onPointerDown={(e) => {
-						if (slide.id !== slides.getCurrentSlideId()) {
-							markEventAsHandled(e)
-							slides.setCurrentSlide(slide.id)
-						}
-					}}
-				/>
-			))} */}
 			{currentSlides.slice(0, -1).map((slide) => (
 				<button
 					key={slide.id + 'between'}
@@ -254,3 +235,26 @@ const components = {
 	OnTheCanvas: Slides,
 	InFrontOfTheCanvas: SlideControls,
 }
+
+/*
+[1]
+Whenever the current slide changes, the camera constraints are re-pointed at that slide's
+bounds with `contain` behavior and `fit-max` zoom, so the user can't pan or zoom away from
+it, then the camera is animated there. `force: true` is needed because the constraints
+would otherwise block the move.
+
+[2]
+The slide list is app state (see SlidesManager.tsx); each slide is mirrored on the canvas as
+a frame shape whose id is derived from the slide id with `createShapeId(slide.id)`. When
+slides are inserted, existing frames are shifted and renumbered.
+
+[3]
+Two before-change side effects keep the frames in place: any change to a slide frame other
+than renaming it is rejected, and slide frames are removed from the selection and hover
+state so they can't be picked up by the select tool.
+
+[4]
+The buttons for inserting slides are rendered in `OnTheCanvas`, so they are positioned in
+page space between the frames. `markEventAsHandled` on pointer down stops the canvas from
+treating the press as the start of a drag.
+*/

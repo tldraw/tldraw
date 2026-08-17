@@ -131,6 +131,16 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		})
 		if (!corrected) return
 
+		// `onResize` enforces a per-axis minimum (inflated by the aspect ratio when locked), so a very
+		// tall/narrow target could have one axis clamped while the other isn't — that would break the
+		// ratio and re-letterboxes the very content we're correcting. Scale the whole target up so it
+		// clears both floors, which preserves the ratio at the cost of a slightly larger box only in
+		// the extreme (still far smaller than leaving one axis un-corrected).
+		const { minWidth, minHeight } = this.getResizeMinBounds(latest)
+		const clearFloor = Math.max(1, minWidth / corrected.w, minHeight / corrected.h)
+		const targetW = corrected.w * clearFloor
+		const targetH = corrected.h * clearFloor
+
 		// Let the editor resize the shape: by default it scales around the shape's page-space center
 		// and along its own rotation axis, so the center stays fixed even if the embed was rotated
 		// before the ratio resolved. No need to compute x/y by hand.
@@ -143,8 +153,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 				this.editor.resizeShape(
 					latest.id,
 					{
-						x: corrected.w / latest.props.w,
-						y: corrected.h / latest.props.h,
+						x: targetW / latest.props.w,
+						y: targetH / latest.props.h,
 					},
 					{ isAspectRatioLocked: false }
 				)
@@ -212,14 +222,17 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		return embedInfo?.definition.isAspectRatioLocked ?? false
 	}
 
-	override onResize(shape: TLEmbedShape, info: TLResizeInfo<TLEmbedShape>) {
-		const isAspectRatioLocked = this.isAspectRatioLocked(shape)
+	/**
+	 * The minimum width/height a resize of `shape` is allowed to reach. When the embed's aspect ratio
+	 * is locked, the longer axis's minimum is inflated by the current aspect ratio so that shrinking
+	 * to the floor keeps the shorter axis at or above the base minimum.
+	 */
+	private getResizeMinBounds(shape: TLEmbedShape) {
 		const embedInfo = this.getEmbedDefinition(shape.props.url)
 		let minWidth = embedInfo?.definition.minWidth ?? 200
 		let minHeight = embedInfo?.definition.minHeight ?? 200
-		if (isAspectRatioLocked) {
-			// Enforce aspect ratio
-			// Neither the width or height can be less than 200
+		if (this.isAspectRatioLocked(shape)) {
+			// Neither the width nor the height can be less than the base minimum.
 			const aspectRatio = shape.props.w / shape.props.h
 			if (aspectRatio > 1) {
 				// Landscape
@@ -229,8 +242,11 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 				minHeight /= aspectRatio
 			}
 		}
+		return { minWidth, minHeight }
+	}
 
-		return resizeBox(shape, info, { minWidth, minHeight })
+	override onResize(shape: TLEmbedShape, info: TLResizeInfo<TLEmbedShape>) {
+		return resizeBox(shape, info, this.getResizeMinBounds(shape))
 	}
 
 	override component(shape: TLEmbedShape) {
