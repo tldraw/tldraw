@@ -573,7 +573,7 @@ export class TLFileDurableObject extends DurableObject {
 
 	// The runtime discards whatever these handlers reject with, so anything that escapes them is
 	// invisible: getRoom() in particular can fail while loading the room from storage, which breaks
-	// the main sync path. Catch and report instead, the way TLUserDurableObject does.
+	// the main sync path. Catch and report instead.
 	override async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
 		try {
 			const attachment = this.getSocketAttachment(ws)
