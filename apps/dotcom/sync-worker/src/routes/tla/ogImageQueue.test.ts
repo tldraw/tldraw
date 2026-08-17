@@ -131,12 +131,40 @@ describe('enqueueOgImageRender', () => {
 		expect(await enqueueOgImageRender(env, board, { reason: 'edit' })).toBe('enqueued')
 	})
 
+	// Where the marker's clock starts, and why it is not "when the write lands". The alarm that fires
+	// an ask nulls the debouncer's window *before* the enqueue's R2 round trip runs, so a persist can
+	// land in between and start a new max-wait window earlier than the marker's write. Stamping the
+	// expiry from the fire's own clock reading means that window still ends at or past the marker —
+	// the exact-equality safety the max-wait test below leans on.
+	it('stamps the marker TTL from the fire time, not from when the write lands', async () => {
+		vi.useFakeTimers()
+		vi.setSystemTime(new Date('2026-01-01T00:00:10Z'))
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket })
+		// The write is landing 10s after the alarm fired — a pathologically slow R2 round trip.
+		const firedAt = Date.now() - 10_000
+
+		await enqueueOgImageRender(
+			env,
+			{ kind: 'shared_file', slug: 'board' },
+			{ reason: 'edit', firedAt }
+		)
+
+		const marker = [...bucket.store.entries()].find(([key]) => key.endsWith('.pending'))!
+		expect(Number(marker[1].customMetadata!.expiresAt)).toBe(firedAt + OG_PENDING_MARKER_TTL_MS)
+	})
+
 	// The marker must outlive a job's worst-case retry chain: every capture running to its full
 	// timeout, plus every backoff delay between deliveries. If it lapsed while a job was still alive,
 	// a fresh ask would enqueue a second job for the same board, the two captures could overlap, and
 	// each would clobber the other's per-board render token record (renderTokens.ts) — 403ing the
 	// loser's snapshot read mid-capture. The record's per-board key is safe only because this marker
 	// single-flights renders per board.
+	//
+	// Pricing a capture at one THUMBNAIL_RENDER_TIMEOUT_MS is sound only because the worker abandons
+	// the call at that budget ("abandons a capture at the render timeout" below): the quick action's
+	// own timers are per-phase and would otherwise allow roughly twice it, putting the real chain
+	// past this TTL.
 	it('has a marker TTL longer than the worst-case retry chain', () => {
 		const backoffMs = Array.from(
 			{ length: OG_MAX_RENDER_ATTEMPTS - 1 },
@@ -161,9 +189,10 @@ describe('enqueueOgImageRender', () => {
 
 	// Half two: max-wait fires, the one ask the debounce does not bound. The fire that enqueued a job
 	// reset the debouncer's window, so the next max-wait-clamped fire comes at least
-	// OG_RENDER_MAX_WAIT_MS after that fire — at or past the TTL of the marker its enqueue set
-	// (modulo the instants between the fire and its enqueue) — meaning a clamped ask can be delayed
-	// by a live job but not turned away by its marker. This holds by exact equality today: lowering
+	// OG_RENDER_MAX_WAIT_MS after that fire — and the marker's expiry counts from the same fire
+	// ("stamps the marker TTL from the fire time" above), so the clamped fire lands at or past it
+	// with no gap for the enqueue's R2 round trip to hide in. A clamped ask can be delayed by a live
+	// job but not turned away by its marker. This holds by exact equality today: lowering
 	// OG_RENDER_MAX_WAIT_MS below the marker TTL would re-open "dropped, not deferred" for the boards
 	// that edit without pause, with nothing left to re-ask.
 	it('lets the pending marker expire before a max-wait fire can be turned away by it', () => {
@@ -975,6 +1004,52 @@ describe('handleOgImageRenderMessage', () => {
 			browser_render_status: 422,
 			browser_render_detail: 'Navigation timeout of 45000 ms exceeded',
 		})
+	})
+
+	// The quick action's own timers cannot cap a capture: navigation and the settle wait are
+	// sequential phases that each get the full THUMBNAIL_RENDER_TIMEOUT_MS, so a page stalling
+	// through both would hold a delivery for roughly twice the budget — quietly breaking every
+	// inequality pinned above, all of which price a capture at one budget. The worker abandons the
+	// call at the budget instead, so the ceiling the marker TTL and the debounce are sized against
+	// is enforced rather than assumed.
+	it('abandons a capture at the render timeout instead of waiting out both quick action timers', async () => {
+		// Only the pieces the deadline uses; setImmediate stays real so the test can yield the event
+		// loop below while fake time stands still.
+		vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const env = makeEnv({
+			// A capture that never returns — the shape of a page stalling through both phases.
+			BROWSER: makeBrowserBinding(() => new Promise<never>(() => {})),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		const delivery = handleOgImageRenderMessage(
+			env,
+			makeMessage({ kind: 'published', slug: 'board' }, 3)
+		)
+		// The deadline is armed a few event-loop turns into the delivery (token minting rides
+		// webcrypto), so yield until it exists before advancing past it.
+		while (vi.getTimerCount() === 0) {
+			await new Promise((resolve) => setImmediate(resolve))
+		}
+		await vi.advanceTimersByTimeAsync(THUMBNAIL_RENDER_TIMEOUT_MS + 1)
+		await delivery
+
+		expect(failureBlobsOf(env)).toEqual(['failure:browser_timeout'])
+		// The abandoned session spent its whole budget holding a browser; the ledger records that
+		// rather than losing the session that cost the most.
+		expect(sessionsOf(env)).toEqual([
+			expect.objectContaining({
+				outcome: 'browser_timeout',
+				durationMs: THUMBNAIL_RENDER_TIMEOUT_MS,
+			}),
+		])
 	})
 
 	// The same 422 with a different cause: the render page marked data-thumbnail-error, so the

@@ -16,9 +16,14 @@ export const THUMBNAIL_SETTLED_SELECTOR = '[data-thumbnail-ready="true"], [data-
 // <body> so it resolves to a single element (both <html> and <body> carry the ready marker).
 const THUMBNAIL_CAPTURE_SELECTOR = 'body[data-thumbnail-ready="true"]'
 
-// Builds the `/screenshot` request body. `timeoutMs` bounds both navigation and the settle+export
-// wait; the render page sizes its own settle budget under it (THUMBNAIL_SETTLE_TIMEOUT_MS), so pass
-// THUMBNAIL_RENDER_TIMEOUT_MS to keep the two deadlines from drifting.
+// Builds the `/screenshot` request body. `timeoutMs` is granted to navigation and to the
+// settle+export wait *individually* — the phases run in sequence, so these timers alone cap the
+// call at roughly twice the budget. The worker enforces the single-budget total itself
+// (abandonAtRenderTimeout in the sync-worker's thumbnailRender.ts); these per-phase timers exist so
+// Browser Run gives up on a dead page early rather than holding a browser until the worker
+// abandons it. The render page sizes its own settle budget under the same value
+// (THUMBNAIL_SETTLE_TIMEOUT_MS), so pass THUMBNAIL_RENDER_TIMEOUT_MS to keep the deadlines from
+// drifting.
 export function getThumbnailScreenshotRequestBody({
 	renderUrl,
 	width,

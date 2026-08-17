@@ -338,10 +338,14 @@ async function renderThumbnailScreenshot(
 	// client's dev server, which can drive Playwright). Selected on the var being set rather than on
 	// an environment name, so only an environment that configures one can take this path.
 	let timed: TimedCapture
+	const startedAt = Date.now()
 	try {
-		timed = env.LOCAL_SCREENSHOT_SERVICE_URL
-			? await callLocalScreenshotService(env.LOCAL_SCREENSHOT_SERVICE_URL, requestBody)
-			: await callBrowserRun(env, requestBody)
+		timed = await abandonAtRenderTimeout(
+			env.LOCAL_SCREENSHOT_SERVICE_URL
+				? callLocalScreenshotService(env.LOCAL_SCREENSHOT_SERVICE_URL, requestBody)
+				: callBrowserRun(env, requestBody),
+			startedAt
+		)
 	} catch (error) {
 		// A BrowserRenderError is a session that existed and died, so it lands on the ledger with the
 		// time it held its browser. Anything else never created a session and records nothing.
@@ -413,6 +417,46 @@ async function callBrowserRun(
 		})
 	}
 	return { response, durationMs }
+}
+
+// The request cannot cap its own total: `gotoOptions.timeout` and `waitForSelector.timeout` are
+// sequential phases that each get the full render budget (see getThumbnailScreenshotRequestBody),
+// so a page that stalls through both holds the call for roughly twice THUMBNAIL_RENDER_TIMEOUT_MS.
+// Everything sized against "a capture takes at most the render timeout" — the pending-marker TTL
+// against the retry chain, the edit debounce outlasting a capture, both pinned in
+// ogImageQueue.test.ts — needs the single budget to be a real ceiling, so it is enforced here on
+// the whole call. The abandoned browser session is Cloudflare's to reap and still spends its
+// remainder; the point is that the *delivery* stays inside the bound the pipeline is priced on.
+async function abandonAtRenderTimeout(
+	capture: Promise<TimedCapture>,
+	startedAt: number
+): Promise<TimedCapture> {
+	let timer: ReturnType<typeof setTimeout> | undefined
+	try {
+		return await Promise.race([
+			capture,
+			new Promise<never>((_, reject) => {
+				timer = setTimeout(() => {
+					reject(
+						new BrowserRenderError({
+							// No response was received, so there is no status; the detail is what classifies
+							// this as a browser_timeout (see classifyBrowserRenderFailure).
+							status: 0,
+							detail: `Capture abandoned by the worker at the ${THUMBNAIL_RENDER_TIMEOUT_MS} ms render timeout`,
+							durationMs: Date.now() - startedAt,
+							timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
+						})
+					)
+				}, THUMBNAIL_RENDER_TIMEOUT_MS)
+			}),
+		])
+	} finally {
+		clearTimeout(timer)
+		// When the deadline wins, the capture promise is left behind; its eventual settlement (likely
+		// Browser Run's own per-phase timer failing the call) must not surface as an unhandled
+		// rejection.
+		capture.catch(() => {})
+	}
 }
 
 // How much of Cloudflare's error body to keep. It is a short JSON object in practice; the cap is

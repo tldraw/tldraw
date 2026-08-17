@@ -99,11 +99,22 @@ export async function enqueueOgImageRender(
 	{
 		reason,
 		followUp,
+		firedAt,
 	}: {
 		// Required rather than defaulted: every trigger knows why it is asking, and a default would put
 		// whichever one forgot to say into some other trigger's telemetry bucket.
 		reason: OgImageRenderReason
 		followUp?: boolean
+		/**
+		 * When the ask fired, for asks made by the file DO's debounce alarm. The marker's expiry is
+		 * stamped from it rather than from the moment the R2 write below lands: the alarm resets the
+		 * debouncer's window *before* this function's R2 round trip runs, so a persist can land in
+		 * between and start a new max-wait window earlier than the marker's write. Counting the TTL
+		 * from the fire keeps that window ending at or past the marker's expiry, which is what lets
+		 * OG_RENDER_MAX_WAIT_MS >= OG_PENDING_MARKER_TTL_MS hold by exact equality (both pinned in
+		 * ogImageQueue.test.ts). Callers that are not debounced fires omit it.
+		 */
+		firedAt?: number
 	}
 ): Promise<EnqueueOgImageResult> {
 	if (!env.THUMBNAILS || !env.QUEUE) return 'unavailable'
@@ -119,7 +130,7 @@ export async function enqueueOgImageRender(
 
 	await env.THUMBNAILS.put(pendingKey, new Uint8Array(), {
 		customMetadata: {
-			expiresAt: String(Date.now() + OG_PENDING_MARKER_TTL_MS),
+			expiresAt: String((firedAt ?? Date.now()) + OG_PENDING_MARKER_TTL_MS),
 		},
 	})
 
@@ -372,6 +383,12 @@ export async function handleOgImageRenderMessage(
  * queue captures in production (measured 2026-08-11 via the `followup` telemetry blob): on a board
  * that settled, the follow-up merely relocated the render the debounced ask was about to do; on a
  * board still moving, it rendered a mid-edit state the next debounced render superseded.
+ *
+ * Both halves price the job ending in an image write. A job that burns its whole retry budget
+ * wrote no image — retryOrDrop clears the marker with nothing behind it — so the asks its marker
+ * turned away while it failed deferred into nothing: a shared file whose editing stopped during
+ * that window keeps its stale thumbnail until the next edit. A residue, not a regression: the
+ * follow-up only ever ran after a successful capture, so it never covered the give-up path either.
  *
  * Deliberately never chained. A published board republished without pause would otherwise find
  * itself stale on every follow-up and render continuously. One extra render per triggered render is

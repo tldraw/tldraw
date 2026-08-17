@@ -1100,12 +1100,15 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	override async alarm() {
-		const result = this.ogRenderDebouncer.onAlarm(Date.now())
+		// One clock reading for the whole fire: the debounce decision and the pending marker's expiry
+		// both count from it (see `firedAt` on enqueueOgImageRender).
+		const firedAt = Date.now()
+		const result = this.ogRenderDebouncer.onAlarm(firedAt)
 		if (!result.render) {
 			await this.ctx.storage.setAlarm(result.reArmAt)
 			return
 		}
-		await this.requestOgRenderForEdit()
+		await this.requestOgRenderForEdit(firedAt)
 	}
 
 	/**
@@ -1718,7 +1721,7 @@ export class TLFileDurableObject extends DurableObject {
 	 * shows. Downstream, the pending marker single-flights the ask and the consumer re-checks
 	 * `(board, version)` before spending a Browser Run slot — neither is a rate control either.
 	 */
-	private async requestOgRenderForEdit() {
+	private async requestOgRenderForEdit(firedAt: number) {
 		try {
 			// Two states skip, and neither is about privacy: a legacy room is not an app file and has no
 			// board identity to render, and a deleted one has nothing worth depicting. `shared`, `private`
@@ -1731,7 +1734,7 @@ export class TLFileDurableObject extends DurableObject {
 			const result = await enqueueOgImageRender(
 				this.env,
 				{ kind: 'shared_file', slug },
-				{ reason: 'edit' }
+				{ reason: 'edit', firedAt }
 			)
 			// No board identifier: for a shared file the slug is a capability, and a derived id is still a
 			// board identity in a log sink. The result alone is what this line is for.
