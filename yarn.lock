@@ -9609,22 +9609,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rocicorp/zero-sqlite3@npm:^1.1.2":
-  version: 1.1.2
-  resolution: "@rocicorp/zero-sqlite3@npm:1.1.2"
+"@rocicorp/zero-sqlite3@npm:^1.1.4":
+  version: 1.1.4
+  resolution: "@rocicorp/zero-sqlite3@npm:1.1.4"
   dependencies:
-    bindings: "npm:^1.5.0"
     node-gyp: "npm:latest"
-    prebuild-install: "npm:^7.1.1"
+    node-gyp-build: "npm:^4.8.4"
   bin:
     zero-sqlite3: shell.js
-  checksum: 10/a926e1945639c7d4a1678cc55323953bcd92052b49a434943b518a8a8ee983ff6284dd0e2f3dfe2f2c2ef20e97a13247787c94085df281457fb61f129ddeef5d
+  checksum: 10/c10300aaf591ee48f0fdf5a11409eced32707087675a8998b55c6e6a6ee213069be8f92a30375a7a4d81d9a0f0a1ec95e67979612342ffe604a585775dee8933
   languageName: node
   linkType: hard
 
-"@rocicorp/zero@npm:1.8.0":
-  version: 1.8.0
-  resolution: "@rocicorp/zero@npm:1.8.0"
+"@rocicorp/zero@npm:1.9.0":
+  version: 1.9.0
+  resolution: "@rocicorp/zero@npm:1.9.0"
   dependencies:
     "@badrap/valita": "npm:0.3.11"
     "@databases/escape-identifier": "npm:^1.0.3"
@@ -9647,7 +9646,7 @@ __metadata:
     "@rocicorp/lock": "npm:^1.0.4"
     "@rocicorp/logger": "npm:^6.1.0"
     "@rocicorp/resolver": "npm:^1.0.2"
-    "@rocicorp/zero-sqlite3": "npm:^1.1.2"
+    "@rocicorp/zero-sqlite3": "npm:^1.1.4"
     "@standard-schema/spec": "npm:^1.0.0"
     "@types/basic-auth": "npm:^1.1.8"
     "@types/ws": "npm:^8.5.12"
@@ -9675,29 +9674,6 @@ __metadata:
     url-pattern: "npm:^1.0.3"
     urlpattern-polyfill: "npm:^10.1.0"
     ws: "npm:^8.18.1"
-  peerDependencies:
-    "@op-engineering/op-sqlite": ">=15"
-    drizzle-orm: ^0.45.2
-    expo-sqlite: ">=15"
-    kysely: ^0.28.17
-    pg: ^8.16.3
-    react: ^19.2.6
-    solid-js: ^1.9.4
-  peerDependenciesMeta:
-    "@op-engineering/op-sqlite":
-      optional: true
-    drizzle-orm:
-      optional: true
-    expo-sqlite:
-      optional: true
-    kysely:
-      optional: true
-    pg:
-      optional: true
-    react:
-      optional: true
-    solid-js:
-      optional: true
   bin:
     analyze-query: ./out/zero/src/analyze-query.js
     ast-to-zql: ./out/zero/src/ast-to-zql.js
@@ -9707,7 +9683,7 @@ __metadata:
     zero-cache-dev: ./out/zero/src/zero-cache-dev.js
     zero-deploy-permissions: ./out/zero/src/deploy-permissions.js
     zero-out: ./out/zero/src/zero-out.js
-  checksum: 10/5134965f0e6efeb0ac3b4c29ed2940484a1764d06ca0788ca2babd25a4d8ddcce5c8ed6d0ce7559b9d0e27a96007dfd5da5143872a7863afd2bb204f1d3cdb78
+  checksum: 10/649c04996a832785467074e3fce5fa9591ca267ab76bd2048fef5d8c4732f0006ad3ddd9aa5e369548d742256a1126ec76daa0170aea4ca5d2de6f906eebcaa4
   languageName: node
   linkType: hard
 
@@ -12080,7 +12056,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/dotcom-shared@workspace:packages/dotcom-shared"
   dependencies:
-    "@rocicorp/zero": "npm:1.8.0"
+    "@rocicorp/zero": "npm:1.9.0"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
@@ -12105,7 +12081,7 @@ __metadata:
     "@clerk/backend": "npm:^1.23.7"
     "@cloudflare/workers-types": "npm:^4.20260302.0"
     "@pierre/storage": "npm:^1.1.0"
-    "@rocicorp/zero": "npm:1.8.0"
+    "@rocicorp/zero": "npm:1.9.0"
     "@supabase/supabase-js": "npm:^2.48.1"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/store": "workspace:*"
@@ -12601,7 +12577,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/zero-cache@workspace:apps/dotcom/zero-cache"
   dependencies:
-    "@rocicorp/zero": "npm:1.8.0"
+    "@rocicorp/zero": "npm:1.9.0"
     concurrently: "npm:^9.1.2"
     dotenv: "npm:^16.4.7"
     kysely: "npm:^0.28.12"
@@ -19030,7 +19006,7 @@ __metadata:
     "@formatjs/cli": "npm:^6.5.1"
     "@formatjs/unplugin": "npm:^1.1.0"
     "@playwright/test": "npm:^1.61.0"
-    "@rocicorp/zero": "npm:1.8.0"
+    "@rocicorp/zero": "npm:1.9.0"
     "@sentry/cli": "npm:^2.41.1"
     "@sentry/integrations": "npm:^7.120.3"
     "@sentry/react": "npm:^7.120.3"
@@ -26307,14 +26283,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-gyp-build@npm:^4.2.2":
-  version: 4.8.0
-  resolution: "node-gyp-build@npm:4.8.0"
+"node-gyp-build@npm:^4.2.2, node-gyp-build@npm:^4.8.4":
+  version: 4.8.4
+  resolution: "node-gyp-build@npm:4.8.4"
   bin:
     node-gyp-build: bin.js
     node-gyp-build-optional: optional.js
     node-gyp-build-test: build-test.js
-  checksum: 10/80f410ab412df38e84171d3634a5716b6c6f14ecfa4eb971424d289381fb76f8bcbe1b666419ceb2c81060e558fd7c6d70cc0f60832bcca6a1559098925d9657
+  checksum: 10/6a7d62289d1afc419fc8fc9bd00aa4e554369e50ca0acbc215cb91446148b75ff7e2a3b53c2c5b2c09a39d416d69f3d3237937860373104b5fe429bf30ad9ac5
   languageName: node
   linkType: hard
 
