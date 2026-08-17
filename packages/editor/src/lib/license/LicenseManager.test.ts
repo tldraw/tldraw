@@ -316,6 +316,42 @@ describe('LicenseManager', () => {
 			expect(result.isDomainValid).toBe(true)
 		})
 
+		it('Fails if the wildcard domain is a prefix of the current hostname', async () => {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('https://sub.example.com.other.io')
+
+			const permissiveHostsInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			permissiveHostsInfo[PROPERTIES.HOSTS] = ['*.example.com']
+			const permissiveLicenseKey = await generateLicenseKey(
+				JSON.stringify(permissiveHostsInfo),
+				keyPair
+			)
+			const result = (await licenseManager.getLicenseFromKey(
+				permissiveLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isDomainValid).toBe(false)
+		})
+
+		it('Fails if the current hostname only ends with the wildcard domain', async () => {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('https://notexample.com')
+
+			const permissiveHostsInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			permissiveHostsInfo[PROPERTIES.HOSTS] = ['*.example.com']
+			const permissiveLicenseKey = await generateLicenseKey(
+				JSON.stringify(permissiveHostsInfo),
+				keyPair
+			)
+			const result = (await licenseManager.getLicenseFromKey(
+				permissiveLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isDomainValid).toBe(false)
+		})
+
 		it('Fails if has a subdomain wildcard isnt for the same base domain', async () => {
 			// @ts-ignore
 			delete window.location
