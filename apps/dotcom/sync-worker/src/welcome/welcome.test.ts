@@ -3,11 +3,13 @@ import { fileURLToPath } from 'node:url'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { createTLSchema } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
-import { defaultWelcomeSnapshotJson } from './defaultWelcomeSnapshot'
 
-const SNAPSHOT_FILE = fileURLToPath(new URL('./defaultWelcomeSnapshot.ts', import.meta.url))
+// The committed default welcome snapshot, stored as a Workers Static Asset that the worker reads
+// through the ASSETS binding (see defaultWelcomeSnapshot.ts). The tests read it from disk.
+const SNAPSHOT_FILE = fileURLToPath(new URL('../../assets/welcome-snapshot.json', import.meta.url))
+const defaultWelcomeSnapshotJson = readFileSync(SNAPSHOT_FILE, 'utf8')
 
-describe('defaultWelcomeSnapshotJson', () => {
+describe('defaultWelcomeSnapshot', () => {
 	const snapshot = JSON.parse(defaultWelcomeSnapshotJson) as RoomSnapshot
 
 	it('parses into a room snapshot', () => {
@@ -20,14 +22,14 @@ describe('defaultWelcomeSnapshotJson', () => {
 		}
 	})
 
-	// The default is baked at the schema version current when it was exported, and is loaded
-	// into a room verbatim. Rather than just check that it still migrates, keep the baked file
-	// itself migrated up to head: this test migrates and revalidates every record, re-anchors
-	// the stored schema, re-embeds the JSON into the literal, and asserts it matches the file
-	// on disk. A schema change that touches these records fails this test; run `yarn test -u`
-	// to re-bake defaultWelcomeSnapshot.ts (it rewrites only the literal, not the header).
-	// Changing the default canvas content is a separate manual re-export — see the file header.
-	it('defaultWelcomeSnapshot.ts is baked at the current schema (run `yarn test -u` to re-bake)', async () => {
+	// The default is baked at the schema version current when it was exported, and is loaded into
+	// a room verbatim. Rather than just check that it still migrates, keep the baked file itself
+	// migrated up to head: this test migrates and revalidates every record, re-anchors the stored
+	// schema, and asserts the pretty-printed JSON matches the file on disk. A schema change that
+	// touches these records fails this test; run `yarn test -u` to re-bake
+	// assets/welcome-snapshot.json. Changing the default canvas content is a separate manual
+	// re-export — see the header in defaultWelcomeSnapshot.ts.
+	it('assets/welcome-snapshot.json is baked at the current schema (run `yarn test -u` to re-bake)', async () => {
 		const schema = createTLSchema()
 		expect(snapshot.documents.length).toBeGreaterThan(0)
 		const documents = snapshot.documents.map(({ state, lastChangedClock }) => {
@@ -37,16 +39,7 @@ describe('defaultWelcomeSnapshotJson', () => {
 			return { state: migrated.value, lastChangedClock }
 		})
 		const rebaked = { ...snapshot, schema: schema.serialize(), documents }
-
-		// embed the pretty-printed JSON back into the literal, escaped for ` and ${ }
-		const json = JSON.stringify(rebaked, null, '\t')
-			.replace(/\\/g, '\\\\')
-			.replace(/`/g, '\\`')
-			.replace(/\$\{/g, '\\${')
-		const regenerated = readFileSync(SNAPSHOT_FILE, 'utf8').replace(
-			/export const defaultWelcomeSnapshotJson = `[\s\S]*`\n?$/,
-			'export const defaultWelcomeSnapshotJson = `' + json + '`\n'
-		)
+		const regenerated = JSON.stringify(rebaked, null, '\t') + '\n'
 		await expect(regenerated).toMatchFileSnapshot(SNAPSHOT_FILE)
 	})
 
@@ -75,9 +68,9 @@ describe('defaultWelcomeSnapshotJson', () => {
 	})
 
 	// New files open at the default camera (there is no zoom-to-fit on first visit), so the
-	// canvas content must sit near the origin and fit a typical editor viewport. Record x/y
-	// is a coarse proxy for shape bounds, but it catches a re-export from the wrong part of
-	// a canvas, which would present new users with an apparently empty file.
+	// canvas content must sit near the origin and fit a typical editor viewport. Record x/y is a
+	// coarse proxy for shape bounds, but it catches a re-export from the wrong part of a canvas,
+	// which would present new users with an apparently empty file.
 	it('keeps content near the origin so the default camera shows it', () => {
 		const records = snapshot.documents.map((d) => d.state)
 		const pageId = records.find((r) => r.typeName === 'page')!.id
@@ -93,8 +86,8 @@ describe('defaultWelcomeSnapshotJson', () => {
 		}
 	})
 
-	// The default is stamped into every user's new workspace, so it must not carry the
-	// authoring user's identity (see the regeneration notes in defaultWelcomeSnapshot.ts).
+	// The default is stamped into every user's new workspace, so it must not carry the authoring
+	// user's identity (see the regeneration notes in defaultWelcomeSnapshot.ts).
 	it('contains no authoring user identity', () => {
 		const records = snapshot.documents.map((d) => d.state)
 		expect(records.filter((r) => r.typeName === 'user')).toHaveLength(0)

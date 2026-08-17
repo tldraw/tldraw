@@ -1,15 +1,14 @@
 ---
 title: Custom records
 component: ./CustomRecordsExample.tsx
-category: data/assets
 priority: 1
-keywords: [record, store, custom, data]
+keywords: [record, store, custom, data, migrations, validator, tlglobalrecordpropsmap]
 ---
 
-Add custom record types to the store.
+Store your own record types in the tldraw store so they persist, sync, and migrate alongside shapes.
 
 ---
 
-You can add custom record types to the tldraw store to persist and synchronize
-domain-specific data alongside shapes, bindings, and other built-in records.
-This example adds a "marker" record type for pinning locations on the canvas.
+Not all app data is a shape, binding, or asset. This example registers a "marker" record type, a pin at a page position with a label and icon, using the `records` option of `createTLStore`. A `CustomRecordInfo` supplies the scope, a validator, migrations (built with `createCustomRecordMigrationIds` and `createCustomRecordMigrationSequence`), and default properties. Augmenting `TLGlobalRecordPropsMap` makes the new type part of `TLRecord`, so store reads and writes are fully typed.
+
+The markers are rendered in the `InFrontOfTheCanvas` slot from a reactive `store.query.records('marker')` query. Press "Add marker" to drop one at the center of the viewport, pan around to see it stay put on the page, and right-click or ctrl-click a marker to remove it.

@@ -17,13 +17,12 @@ keywords:
   ]
 ---
 
-Disable text outlines on text and arrow labels.
+Disable the text outline on text, arrow, and geo shape labels.
 
 ---
 
-This example shows how to configure the `ArrowShapeUtil` and `TextShapeUtil` to disable text outlines. By default, tldraw adds a text outline (using the canvas background color) to help text stand out when overlapping with other shapes. You can disable this feature by configuring the shape utilities.
+By default tldraw draws a halo in the canvas background color around text labels so they stay legible when they overlap other shapes. Each shape util that renders text (`TextShapeUtil`, `ArrowShapeUtil`, `GeoShapeUtil`) has a `showTextOutline` option; this example sets it to `false` on all three with `ShapeUtil.configure`.
 
-This is particularly useful for:
+The canvas starts with three overlapping text shapes and a labeled arrow so you can see the difference. Try changing `showTextOutline` back to `true` for one of the utils and compare.
 
-- Performance optimization on certain browsers (we already skip on Safari)
-- Different visual styling preferences
+You might turn outlines off for a different visual style, or for performance: the outline is drawn with a text shadow, which can be expensive on some browsers (tldraw already skips it on Safari).

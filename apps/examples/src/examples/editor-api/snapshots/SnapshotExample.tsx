@@ -1,99 +1,85 @@
-import { useCallback, useEffect, useState } from 'react'
-import { TLEditorSnapshot, Tldraw, getSnapshot, loadSnapshot, useEditor } from 'tldraw'
+import { useEffect, useState } from 'react'
+import {
+	getSnapshot,
+	loadSnapshot,
+	TLComponents,
+	Tldraw,
+	TldrawUiButton,
+	TLEditorSnapshot,
+	useEditor,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 import _jsonSnapshot from './snapshot.json'
+import './snapshots.css'
 
 // There's a guide at the bottom of this file!
 
 const jsonSnapshot = _jsonSnapshot as any as TLEditorSnapshot
 
-// [1]
 function SnapshotToolbar() {
 	const editor = useEditor()
+	const [showCheckMark, setShowCheckMark] = useState(false)
 
-	const save = useCallback(() => {
-		// [2]
+	const save = () => {
+		// [1]
 		const { document, session } = getSnapshot(editor.store)
-		// [3]
 		localStorage.setItem('snapshot', JSON.stringify({ document, session }))
-	}, [editor])
+		setShowCheckMark(true)
+	}
 
-	const load = useCallback(() => {
+	const load = () => {
 		const snapshot = localStorage.getItem('snapshot')
 		if (!snapshot) return
-
-		// [4]
+		// [2]
 		loadSnapshot(editor.store, JSON.parse(snapshot))
-	}, [editor])
+	}
 
-	const [showCheckMark, setShowCheckMark] = useState(false)
 	useEffect(() => {
-		if (showCheckMark) {
-			const timeout = setTimeout(() => {
-				setShowCheckMark(false)
-			}, 1000)
-			return () => clearTimeout(timeout)
-		}
-		return
-	})
+		if (!showCheckMark) return
+		const timeout = setTimeout(() => setShowCheckMark(false), 1000)
+		return () => clearTimeout(timeout)
+	}, [showCheckMark])
 
 	return (
-		<div style={{ padding: 20, pointerEvents: 'all', display: 'flex', gap: '10px' }}>
-			<span
-				style={{
-					display: 'inline-block',
-					transition: 'transform 0.2s ease, opacity 0.2s ease',
-					transform: showCheckMark ? `scale(1)` : `scale(0.5)`,
-					opacity: showCheckMark ? 1 : 0,
-				}}
-			>
-				Saved ✅
+		<div className="tlui-menu snapshot-toolbar">
+			<span className="snapshot-saved" data-visible={showCheckMark}>
+				Saved
 			</span>
-			<button
-				onClick={() => {
-					save()
-					setShowCheckMark(true)
-				}}
-			>
-				Save Snapshot
-			</button>
-			<button onClick={load}>Load Snapshot</button>
+			<TldrawUiButton type="normal" onClick={save}>
+				Save snapshot
+			</TldrawUiButton>
+			<TldrawUiButton type="normal" onClick={load}>
+				Load snapshot
+			</TldrawUiButton>
 		</div>
 	)
+}
+
+const components: TLComponents = {
+	SharePanel: SnapshotToolbar,
 }
 
 export default function SnapshotExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw
-				// [5]
-				snapshot={jsonSnapshot}
-				components={{
-					SharePanel: SnapshotToolbar,
-				}}
-			/>
+			{/* [3] */}
+			<Tldraw snapshot={jsonSnapshot} components={components} />
 		</div>
 	)
 }
 
 /*
+[1]
+`getSnapshot(editor.store)` returns `{ document, session }`. `document` is the content: pages, shapes,
+assets, and so on. `session` is per-user editor state such as the current page, camera, and selection.
+In a multi-user app you'd usually store these separately so each user keeps their own session. Here we
+store both together in localStorage.
 
-[1] We'll add a toolbar to the top-right of the editor viewport that allows the user to save and load snapshots.
+[2]
+`loadSnapshot(editor.store, snapshot)` restores it. You can pass just `{ document }` and load
+`{ session }` later on its own, or skip the session entirely.
 
-[2] Call `getSnapshot(editor.store)` to get the current state of the editor
-
-[3] The 'document' state is the set of shapes and pages and images etc.
-The 'session' state is the state of the editor like the current page, camera positions, zoom level, etc.
-You probably need to store these separately if you're building a multi-user app, so that you can store per-user session state.
-For this example we'll just store them together in localStorage.
-
-[4] Call `loadSnapshot()` to load a snapshot into the editor
-You can omit the `session` state, or load it later on its own.
-e.g.
-	loadSnapshot(editor.store, { document })
-then optionally later
-	loadSnapshot(editor.store, { session })
-
-[5] You can load an initial snapshot into the editor by passing it to the `snapshot` prop.
-
+[3]
+Passing a snapshot to the `snapshot` prop loads it into the store when the editor is created, so the
+editor starts with content.
 */

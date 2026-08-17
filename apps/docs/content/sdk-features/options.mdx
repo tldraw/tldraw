@@ -17,13 +17,13 @@ accuracy: 10
 notes: ''
 ---
 
-The tldraw editor accepts two kinds of configuration: **editor options** for core behavior (timing, limits, performance) and **component props** for features like persistence and custom shapes. Editor options are immutable after initialization; component props configure how the editor sets up.
+The tldraw editor accepts two kinds of configuration: **editor options** for core behavior (timing, limits, performance) and **component props** for UI, persistence, and content handling. Editor options are fixed after initialization; component props configure how the editor sets up.
 
 ## Editor options
 
-The `options` prop accepts a `Partial<TldrawOptions>` object that configures core editor behavior: limits like maximum pages and shapes, timing for interactions and animations, sizing for handles and hit testing, and feature toggles.
+The `options` prop accepts a `Partial<`[TldrawOptions](?)`>` object that configures core editor behavior: limits like maximum pages and shapes, timing for interactions and animations, sizing for handles and hit testing, and feature toggles.
 
-Options are set once when the editor initializes and cannot change afterward. Pass a partial options object to override specific values; everything else uses sensible defaults.
+Options are set once when the editor initializes and cannot change afterward. Pass a partial options object to override specific values; everything else uses the defaults.
 
 ```tsx
 import { Tldraw, TldrawOptions } from 'tldraw'
@@ -37,8 +37,6 @@ function App() {
 	return <Tldraw options={options} />
 }
 ```
-
-The `TldrawOptions` type defines all available options. Since you typically only need to customize a few values, pass `Partial<TldrawOptions>` to override specific options while accepting defaults for the rest.
 
 ## Reading options at runtime
 
@@ -55,7 +53,7 @@ The options object is readonly. Attempting to modify it has no effect and TypeSc
 
 ### Limits
 
-Control maximum quantities to prevent performance issues or enforce business rules:
+Cap shape, page, and file counts:
 
 | Option             | Default | Description                         |
 | ------------------ | ------- | ----------------------------------- |
@@ -72,7 +70,7 @@ Configure how the editor interprets user input timing:
 | Option                  | Default | Description                                       |
 | ----------------------- | ------- | ------------------------------------------------- |
 | `doubleClickDurationMs` | 450     | Maximum interval for double-click detection       |
-| `multiClickDurationMs`  | 200     | Double-click settle delay and overflow window     |
+| `multiClickDurationMs`  | 200     | Window for triple- and quadruple-click detection  |
 | `longPressDurationMs`   | 500     | Duration to trigger long press                    |
 | `animationMediumMs`     | 320     | Duration for camera animations (zoom, pan to fit) |
 
@@ -87,29 +85,30 @@ Control when pointer movement becomes a drag operation:
 | `uiDragDistanceSquared`       | 16      | Distance² for UI element drag (4px)      |
 | `uiCoarseDragDistanceSquared` | 625     | Distance² for touch UI drag (25px)       |
 
-Values are squared to avoid computing square roots during hit testing. The larger touch thresholds prevent accidental drags on mobile devices.
+Values are squared to avoid computing square roots during drag detection. The larger touch thresholds prevent accidental drags on mobile devices.
 
 ### Handle and hit testing
 
 Configure selection handles and click target areas:
 
-| Option               | Default | Description                                   |
-| -------------------- | ------- | --------------------------------------------- |
-| `handleRadius`       | 12      | Radius of selection handles                   |
-| `coarseHandleRadius` | 20      | Handle radius for touch input                 |
-| `coarsePointerWidth` | 12      | Expanded pointer size for touch               |
-| `hitTestMargin`      | 8       | Additional margin around shapes for hit tests |
+| Option                | Default | Description                                   |
+| --------------------- | ------- | --------------------------------------------- |
+| `handleRadius`        | 12      | Radius of selection handles                   |
+| `coarseHandleRadius`  | 20      | Handle radius for touch input                 |
+| `hitTestMargin`       | 3       | Additional margin around shapes for hit tests |
+| `coarseHitTestMargin` | 4       | Hit test margin when using a coarse pointer   |
 
 ### Edge scrolling
 
 Configure auto-scroll behavior when dragging near viewport edges:
 
-| Option                   | Default | Description                              |
-| ------------------------ | ------- | ---------------------------------------- |
-| `edgeScrollDelay`        | 200     | Milliseconds before scroll starts        |
-| `edgeScrollEaseDuration` | 200     | Milliseconds to accelerate to full speed |
-| `edgeScrollSpeed`        | 25      | Base scroll speed in pixels per tick     |
-| `edgeScrollDistance`     | 8       | Width of the edge scroll trigger zone    |
+| Option                   | Default | Description                                                              |
+| ------------------------ | ------- | ------------------------------------------------------------------------ |
+| `edgeScrollDelay`        | 200     | Milliseconds before scroll starts                                        |
+| `edgeScrollEaseDuration` | 200     | Milliseconds to accelerate to full speed                                 |
+| `edgeScrollSpeed`        | 25      | Base scroll speed, multiplied by the user's edge scroll speed preference |
+| `edgeScrollDistance`     | 8       | Width of the edge scroll trigger zone                                    |
+| `coarsePointerWidth`     | 12      | Pointer width used to widen the trigger zone for touch                   |
 
 See [Edge scrolling](/sdk-features/edge-scrolling) for details on how these options affect behavior.
 
@@ -117,20 +116,25 @@ See [Edge scrolling](/sdk-features/edge-scrolling) for details on how these opti
 
 Control camera movement and viewport behavior:
 
-| Option                    | Default | Description                                       |
-| ------------------------- | ------- | ------------------------------------------------- |
-| `cameraSlideFriction`     | 0.09    | Friction applied to camera momentum               |
-| `cameraMovingTimeoutMs`   | 64      | Time before camera is considered stopped          |
-| `followChaseViewportSnap` | 2       | Snap threshold when following collaborators       |
-| `spacebarPanning`         | true    | Enable spacebar to activate pan mode              |
-| `rightClickPanning`       | true    | Enable right-click and drag to pan the camera     |
-| `zoomToFitPadding`        | 128     | Padding around content when zooming to fit bounds |
+| Option                    | Default                  | Description                                                                       |
+| ------------------------- | ------------------------ | --------------------------------------------------------------------------------- |
+| `cameraSlideFriction`     | 0.09                     | Friction applied to camera momentum                                               |
+| `cameraMovingTimeoutMs`   | 64                       | Time before camera is considered stopped                                          |
+| `followChaseViewportSnap` | 2                        | Snap threshold when following collaborators                                       |
+| `spacebarPanning`         | true                     | Enable spacebar to activate pan mode                                              |
+| `rightClickPanning`       | true                     | Enable right-click and drag to pan the camera                                     |
+| `zoomToFitPadding`        | 128                      | Padding around content when zooming to fit bounds                                 |
+| `camera`                  | `DEFAULT_CAMERA_OPTIONS` | Initial [TLCameraOptions](?); change at runtime with [Editor#setCameraOptions](?) |
+| `deepLinks`               | undefined                | Sync camera state with the URL: `true` or a [TLDeepLinkOptions](?) object         |
+
+The `camera` and `deepLinks` options replace the deprecated `cameraOptions` and `deepLinks` props on the component. See [Camera](/sdk-features/camera) for the camera options.
 
 ### Snapping
 
-| Option          | Default | Description                                  |
-| --------------- | ------- | -------------------------------------------- |
-| `snapThreshold` | 8       | Distance in pixels at which snapping engages |
+| Option               | Default | Description                                                                                    |
+| -------------------- | ------- | ---------------------------------------------------------------------------------------------- |
+| `snapThreshold`      | 8       | Distance in pixels at which snapping engages                                                   |
+| `selectLockedShapes` | false   | Allow left-clicking and brushing to select locked shapes (they still can't be moved or edited) |
 
 ### Collaboration
 
@@ -175,7 +179,7 @@ gridSteps: [
 ]
 ```
 
-Each entry defines a grid step size based on zoom level. The `min` and `mid` values define the zoom range where the `step` applies. At lower zoom levels, larger grid steps are used; at higher zoom levels, finer grid steps appear.
+Each entry defines a grid step size based on zoom level. The `min` and `mid` values define the zoom range where the `step` applies. Zoomed out, the grid uses larger steps; zoomed in, finer ones.
 
 ### Performance
 
@@ -192,30 +196,31 @@ When `debouncedZoom` is enabled and the page has more shapes than `debouncedZoom
 
 ### UI and features
 
-| Option                           | Default   | Description                                    |
-| -------------------------------- | --------- | ---------------------------------------------- |
-| `createTextOnCanvasDoubleClick`  | true      | Create text shape on empty canvas double-click |
-| `enableToolbarKeyboardShortcuts` | true      | Enable number keys (1-9) for toolbar items     |
-| `actionShortcutsLocation`        | 'swap'    | Where to show keyboard shortcuts in menus      |
-| `tooltipDelayMs`                 | 700       | Delay before showing tooltips                  |
-| `laserDelayMs`                   | 1200      | Duration laser pointer remains visible         |
-| `laserFadeoutMs`                 | 500       | Duration for laser pointer fadeout animation   |
-| `quickZoomPreservesScreenBounds` | true      | Whether quick zoom brush keeps viewport scale  |
-| `branding`                       | undefined | App name for accessibility labels              |
-| `nonce`                          | undefined | CSP nonce for inline styles                    |
+| Option                           | Default   | Description                                                                                             |
+| -------------------------------- | --------- | ------------------------------------------------------------------------------------------------------- |
+| `createTextOnCanvasDoubleClick`  | true      | Create text shape on empty canvas double-click                                                          |
+| `enableToolbarKeyboardShortcuts` | true      | Enable number keys (1-9, 0) for toolbar items                                                           |
+| `actionShortcutsLocation`        | 'swap'    | Where the quick actions (undo, redo, delete, duplicate) render                                          |
+| `tooltipDelayMs`                 | 700       | Delay before showing tooltips                                                                           |
+| `laserDelayMs`                   | 1200      | Duration laser pointer remains visible                                                                  |
+| `laserFadeoutMs`                 | 500       | Duration for laser pointer fadeout animation                                                            |
+| `quickZoomPreservesScreenBounds` | true      | Whether quick zoom brush keeps viewport scale                                                           |
+| `branding`                       | undefined | App name for accessibility labels                                                                       |
+| `nonce`                          | undefined | CSP nonce for inline styles                                                                             |
+| `adjacentShapeMargin`            | 10        | Gap used when placing adjacent notes, duplicating, stacking, and packing shapes                         |
+| `text`                           | `{}`      | [TLTextOptions](?): TipTap configuration and font handling (replaces the deprecated `textOptions` prop) |
 
-The `actionShortcutsLocation` option controls where keyboard shortcuts appear:
+The `actionShortcutsLocation` option controls where the quick actions render:
 
-- `'menu'` - Show shortcuts in menu items only
-- `'toolbar'` - Show shortcuts in toolbar tooltips only
-- `'swap'` - Show in menus when toolbar is collapsed, toolbar when expanded
+- `'menu'` - Always in the menu panel
+- `'toolbar'` - Always in the toolbar
+- `'swap'` - In the menu panel on tablet-sized screens and up, in the toolbar below that
 
 ### Asset handling
 
 | Option                            | Default | Description                                       |
 | --------------------------------- | ------- | ------------------------------------------------- |
 | `temporaryAssetPreviewLifetimeMs` | 180000  | How long temporary asset previews persist (3 min) |
-| `adjacentShapeMargin`             | 10      | Margin between auto-positioned shapes             |
 
 ### Clipboard hooks
 
@@ -237,7 +242,7 @@ See [Clipboard](/sdk-features/clipboard) for more details on clipboard operation
 
 ## Default values
 
-The `defaultTldrawOptions` export provides all default values:
+The [defaultTldrawOptions](?) export provides all default values:
 
 ```typescript
 import { defaultTldrawOptions } from 'tldraw'
@@ -343,9 +348,9 @@ These props configure how the editor initializes:
 | Prop                 | Type                                                    | Description                                             |
 | -------------------- | ------------------------------------------------------- | ------------------------------------------------------- |
 | `autoFocus`          | `boolean`                                               | Automatically focus the editor on mount                 |
-| `initialState`       | `string`                                                | Initial tool state (defaults to `'select'`)             |
-| `shapeUtils`         | `TLShapeUtilConstructor[]`                              | Custom shape utilities                                  |
-| `bindingUtils`       | `TLBindingUtilConstructor[]`                            | Custom binding utilities                                |
+| `initialState`       | `string`                                                | Initial tool state (`<Tldraw>` defaults to `'select'`)  |
+| `shapeUtils`         | `TLAnyShapeUtilConstructor[]`                           | Custom shape utilities                                  |
+| `bindingUtils`       | `TLAnyBindingUtilConstructor[]`                         | Custom binding utilities                                |
 | `overlayUtils`       | `TLAnyOverlayUtilConstructor[]`                         | Custom [overlay utilities](/sdk-features/overlay-utils) |
 | `tools`              | `TLStateNodeConstructor[]`                              | Custom tools                                            |
 | `onMount`            | `TLOnMountHandler`                                      | Callback when editor mounts                             |
@@ -353,6 +358,11 @@ These props configure how the editor initializes:
 | `user`               | `TLCurrentUser`                                         | Current user information                                |
 | `colorScheme`        | `'light' \| 'dark' \| 'system'`                         | Color scheme (defaults to `'light'`)                    |
 | `licenseKey`         | `string`                                                | License key to remove watermark                         |
+| `themes`             | `Partial<TLThemes>`                                     | Named themes for the editor                             |
+| `initialTheme`       | `TLThemeId`                                             | Initially active theme (defaults to `'default'`)        |
+| `locale`             | `string`                                                | UI locale; overrides browser and user preferences       |
+
+The `cameraOptions`, `deepLinks`, `textOptions`, and `embeds` props are deprecated. Use `options.camera`, `options.deepLinks`, `options.text`, and `EmbedShapeUtil.configure` instead.
 
 The `getShapeVisibility` callback lets you conditionally hide shapes based on their properties:
 

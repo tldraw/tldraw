@@ -30,12 +30,12 @@ export const MCP_PROTOCOL_VERSION = '2025-11-25'
 
 export const MCP_SERVER_INFO = {
 	name: 'tldraw-shared-board-screenshot',
-	title: 'tldraw shared board screenshots',
-	version: '2.0.0',
+	title: 'tldraw board screenshots',
+	version: '3.0.0',
 }
 
 export const MCP_SERVER_INSTRUCTIONS =
-	'MCP server for public tldraw.com boards. Drill down in order: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. Accepts published tldraw.com/p/:slug boards and anonymously-shared tldraw.com/f/:slug files, rendered through a signed, tldraw-owned render job.'
+	'MCP server for tldraw.com boards you have access to. Drill down in order: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job.'
 
 export const BOARD_INFO_TOOL_NAME = 'get_board_info'
 export const PAGE_INFO_TOOL_NAME = 'get_page_info'
@@ -52,8 +52,13 @@ export const TOOL_NAMES = [
 // What a model is told when the board id it was given leads nowhere. The route decides *whether* a
 // board is missing or empty — that needs Postgres and R2 — but the wording lives here with the rest
 // of the model-facing surface, so a harness serving fixtures refuses an unknown id identically.
+//
+// One message for every way a board can fail to resolve, deliberately silent on which: a board id is
+// something the caller types, so an error that told "this exists but is not yours" apart from "this
+// does not exist" would let anyone test file ids for existence. It also cannot name what would fix
+// it, since the caller may simply be signed in as the wrong account.
 export const BOARD_NOT_FOUND_MESSAGE =
-	'No public board was found with this id. Only published boards and files shared via link are supported.'
+	'No board was found with this id, or this account does not have access to it. Boards you own, boards shared with you via link, and published boards are supported.'
 export const BOARD_EMPTY_MESSAGE = 'This board has no saved content yet.'
 
 // --- Reading a snapshot -------------------------------------------------------------------------
@@ -428,7 +433,7 @@ export function getToolDefinitions() {
 const BOARD_ID_PROPERTY = {
 	type: 'string',
 	description:
-		'The id of a public tldraw.com board: the :slug of a published board URL (https://www.tldraw.com/p/:slug) or of an anonymously-shared file URL (https://www.tldraw.com/f/:slug).',
+		'The id of a tldraw.com board: the :slug of a file URL (https://www.tldraw.com/f/:slug) you own or that was shared with you, or of a published board URL (https://www.tldraw.com/p/:slug).',
 }
 
 const READ_ONLY_ANNOTATIONS = {
@@ -443,7 +448,7 @@ function getBoardInfoToolDefinition() {
 		name: BOARD_INFO_TOOL_NAME,
 		title: 'Get tldraw board info',
 		description:
-			'Return metadata for a public tldraw.com board: its name, page count, and the id, name, 0-based index, and hasContent flag for each page. Call this first, then pass a page id or index to get_page_info.',
+			'Return metadata for a tldraw.com board you have access to: its name, page count, and the id, name, 0-based index, and hasContent flag for each page. Call this first, then pass a page id or index to get_page_info.',
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
@@ -461,7 +466,7 @@ function getPageInfoToolDefinition() {
 		name: PAGE_INFO_TOOL_NAME,
 		title: 'Get tldraw page info',
 		description:
-			'List the shape clusters on one page of a public tldraw.com board. Each top-level shape is a cluster together with its descendants, so frames and groups stay together while ungrouped shapes remain individually addressable. Pass a cluster id to get_cluster_info or get_cluster_screenshot.',
+			'List the shape clusters on one page of a tldraw.com board you have access to. Each top-level shape is a cluster together with its descendants, so frames and groups stay together while ungrouped shapes remain individually addressable. Pass a cluster id to get_cluster_info or get_cluster_screenshot.',
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,

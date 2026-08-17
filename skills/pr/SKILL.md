@@ -29,6 +29,7 @@ Use `../write-pr/SKILL.md` as the standards reference for PR titles, description
    - Does the change actually solve the stated problem, end to end, rather than papering over a symptom?
    - Does it leave the codebase better than we found it — clearer names, no dead or duplicated code, no drive-by regressions?
    - Any weird abstractions, premature generality, or unnecessary code that a reviewer would flag? Prefer the smaller, more direct version.
+   - Sweep the diff's added comments for slop, following `../write-pr/SKILL.md` § The comment sweep. On an update, this catches whatever the branch grew since the PR was opened, which on a long-lived branch is most of it.
    - Fix what's clearly worth fixing so the human review starts from a strong diff. If a finding needs a product or design call, raise it with the user instead of guessing.
    - Commit and push any fixes from this pass so the remote branch matches before the PR is created, updated, or shared. Never force push.
 5. If no PR exists, create one with `gh pr create`.

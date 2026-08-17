@@ -5,8 +5,10 @@ priority: 10
 keywords: [maxpages, single page, options, page selector, configuration]
 ---
 
-Disabling page-related UI for single-page use cases.
+Hide the page menu and page management UI with `maxPages: 1`.
 
 ---
 
-You can set the `maxPages` option to `1` to disable the page selector and other UI related to managing pages.
+Set the `maxPages` editor option to `1` to remove the page menu from the top-left panel and the "move to page" item from the context menu. This is what most single-canvas apps want.
+
+The document itself still contains one page record, so shapes and the store work exactly as before.

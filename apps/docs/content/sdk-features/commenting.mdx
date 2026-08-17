@@ -19,7 +19,7 @@ date: 7/27/2026
 
 In tldraw, a comment is a message pinned to a place on the canvas. Comments group into threads, one conversation per pin. Every comment records who wrote it and comments can mention other people.
 
-The `@tldraw/commenting` package works at two levels. `CanvasComments` is a comments layer you render in front of the canvas: it draws the pins, opens the threads, and reads and writes the records itself. Everything it's built from is exported too, so you can replace any part of it or assemble your own layer from the pieces.
+The `@tldraw/commenting` package works at two levels. `CanvasComments` is a comments layer you render in front of the canvas: it draws the pins, opens the threads, and reads and writes the records itself. The parts it's built from are exported too, so you can replace any of them or assemble your own layer from the pieces.
 
 Commenting is a licensed feature. It runs in development without a key. In production it needs a tldraw license that includes commenting.
 
@@ -39,7 +39,10 @@ import { commentSchemaRecords, createTLSchema, createTLStore, TLComponents, Tldr
 import '@tldraw/commenting/commenting.css'
 import 'tldraw/tldraw.css'
 
-// Your app's user directory. Any id you can't resolve falls back to a generic byline.
+// In production, a tldraw license key that includes commenting. Not needed in development.
+const YOUR_LICENSE_KEY = undefined
+
+// Your app's user directory. Any id you can't resolve renders as an anonymous user.
 const AUTHORS: Record<string, CommentAuthor> = {
 	me: { name: 'You', color: '#EC5E41' },
 	ada: { name: 'Ada Lovelace', color: '#0E9F6E' },
@@ -70,9 +73,11 @@ export default function App() {
 }
 ```
 
-Comments are records in the editor's store, exactly like shapes. `commentSchemaRecords` registers the `comment-thread` and `comment` types, which aren't in the default schema. Once they're registered, comments persist and sync however your document already does: add a `persistenceKey` or a sync backend and they come along with it.
+Comments are records in the editor's store, exactly like shapes. [commentSchemaRecords](?) registers the `comment-thread`, `comment`, and `comment-reaction` types, which aren't in the default schema. Once they're registered, comments persist and sync however your document already does: add a `persistenceKey` or a sync backend and they come along with it.
 
-`CanvasComments` needs two things, and both are about identity. `currentUserId` is the id of the person commenting, or `null` for a viewer who can read comments but not post them. `resolveAuthor` maps an author id to a `CommentAuthor`: a `name`, an optional `color` for their avatar and pin, and an optional `image`. Return `undefined` for an id you can't resolve and the layer falls back to an anonymous user. Together with the read-status and mention callbacks below they make up the `CommentingContext`, which the sidebar takes too — so a host mounting both surfaces builds one object and spreads it into each.
+`CanvasComments` needs two things, and both are about identity. `currentUserId` is the id of the person commenting, or `null` for a viewer who can read comments but not post them. `resolveAuthor` maps an author id to a `CommentAuthor`: a `name`, an optional `color` for their avatar and pin, and an optional `image`. Return `undefined` for an id you can't resolve and the layer falls back to an anonymous user.
+
+These two props, plus the read-status and mention callbacks below, make up the `CommentingContext`. The sidebar takes the same context, so a host mounting both surfaces builds one object and spreads it into each.
 
 Mount the layer through the `InFrontOfTheCanvas` component slot so it sits above the canvas but below the UI, and import `commenting.css` alongside `tldraw.css`.
 
@@ -169,9 +174,9 @@ Return `() => false` for shape-level anchoring throughout, or `(editor, { altKey
 
 Comment writes are not undoable by default. The `history` option governs all of them, including posting, replying, editing and resolving, and it defaults to `'ignore'`. It covers your own writes too: a record you write with `putCommentRecords` lands on the undo stack, or doesn't, exactly like one the built-in UI writes.
 
-In a shared document an undoable delete resurrects a thread a collaborator already removed, and an undoable resolve reverts their newer state. `'record'` is safe single-player, or against a comment store that isn't synced.
+In a shared document an undoable delete resurrects a thread a collaborator already removed, and an undoable resolve reverts their newer state. `'record'` is safe in a single-player app, or when the comment store isn't synced.
 
-Deleting is the one write `history` doesn't reach. It's never undoable, for a reason particular to how deletes work — see [Deleting is a soft delete](#deleting-is-a-soft-delete).
+Deleting is the one write `history` doesn't reach. It's never undoable, because of how deletes work: see [Deleting is a soft delete](#deleting-is-a-soft-delete).
 
 Pin drags are the exception worth configuring separately. Re-anchoring a comment is a spatial edit that may reasonably undo alongside the shape move that prompted it, so `dragHistory` overrides `history` for drags alone:
 
@@ -200,9 +205,9 @@ When `canComment` returns false, composers give way to the `ComposerFallback` sl
 
 ## Who can edit and delete
 
-`canComment` is about the viewer; `canModifyComment` is about the viewer and one particular record. It's asked for the three writes that belong to someone in particular — editing a comment, deleting a comment, deleting a thread — and where it returns false, that affordance isn't rendered.
+`canComment` is about the viewer; `canModifyComment` is about the viewer and one particular record. It's asked for three writes: editing a comment, deleting a comment, and deleting a thread. Where it returns false, that affordance isn't rendered.
 
-Left unset, each is its record's owner's to make: you edit and delete your own comments, and delete threads you started. Pass a callback to widen that, composing with `defaultCanModifyComment` so the owner keeps what they already had:
+By default, only a comment's author can edit or delete it, and only a thread's creator can delete the thread. Pass a callback to widen that, composing with `defaultCanModifyComment` so the owner keeps what they already had:
 
 ```tsx
 import { CommentTool, defaultCanModifyComment } from '@tldraw/commenting'
@@ -219,7 +224,7 @@ The `ctx` carries the editor, the viewer's `currentUserId`, and the write itself
 
 Resolving, reopening, reacting, and moving a pin aren't asked about: none of them is anyone's in particular, so `canComment` is the only gate on them. `canModifyComment` is checked after `canComment`, so a viewer who may not participate gets no action affordances whatever it returns. Like `canComment`, it's read during render (through `useCanModifyComment`), so a callback that reads signals re-evaluates when they change.
 
-Whatever you decide here, decide it again on the server: `createCommentAuthorizers` takes a `canModifyComment` of its own, and it's the one that counts. See [enforcing the same rules on the server](#syncing-comments).
+Enforce the same rule on the server: `createCommentAuthorizers` takes a `canModifyComment` of its own, and that one is authoritative. See [Syncing comments](#syncing-comments).
 
 <Callout type="warning">
 	`canComment` and `canModifyComment` hide UI. They don't enforce anything. Comment records carry a
@@ -334,19 +339,19 @@ The sidebar's filters cover resolved threads, only comments you made, only unrea
 
 ## Unread state
 
-The layer doesn't track who has read what. That data lives in your app. Supply it as two callbacks. `isCommentUnread` reports whether a comment is unread, and `onCommentRead` fires for each unread comment the user actually sees in an open thread.
+The layer doesn't track who has read what. That data lives in your app. Supply it as two callbacks. `isCommentUnread` reports whether a comment is unread, and `onCommentsRead` fires once per report with every unread comment the user actually sees in an open thread, so you can record read receipts in one write.
 
 ```tsx
 <CanvasComments
 	currentUserId="me"
 	resolveAuthor={resolveAuthor}
 	isCommentUnread={(commentId) => !readReceipts.has(commentId)}
-	onCommentRead={(commentId) => markCommentRead(commentId)}
+	onCommentsRead={(commentIds) => markCommentsRead(commentIds)}
 	onPostComment={(comment) => notifyMentionedUsers(comment)}
 />
 ```
 
-Unread state drives the pin badges and the sidebar's unread filter. Without `isCommentUnread`, both are hidden. `onPostComment` fires when this user posts a comment through one of the built-in composers — a new thread or a reply — which is where notifications and mention emails belong. It does not fire for comments arriving over sync, so the sender is the one who notifies.
+Unread state drives the sidebar's unread filter and the receipts reported through `onCommentsRead`. Without `isCommentUnread`, the filter is hidden and nothing is reported. `onPostComment` fires when this user posts a comment through one of the built-in composers, whether a new thread or a reply. This is where notifications and mention emails belong. It does not fire for comments arriving over sync, so the sender is the one who notifies. See the [comment notifications example](/examples/collaboration/comment-notifications).
 
 ## Custom components
 
@@ -378,14 +383,15 @@ function PriorityBody({ comment }: { comment: TLComment }) {
 const tools = [CommentTool.configure({ components: { CommentBody: PriorityBody } })]
 ```
 
-Both record types carry a `meta` field the layer never reads. Use it for priorities, categories, external ticket ids, or anything else your app tracks alongside a comment.
+Every comment record type carries a `meta` field the layer never reads. Use it for priorities, categories, external ticket ids, or anything else your app tracks alongside a comment.
 
 `ThreadRow` and `ThreadActions` are the two slots that add to a surface rather than replace a piece of it, so they get the records behind what's on screen.
 
-`ThreadRow` receives the summarized row along with the thread record, and the default row is exported — so a row that only adds something can spread the props into `CommentListItem` rather than start over:
+`ThreadRow` receives the summarized row along with the thread record, and the default row is exported. A row that only adds something can spread the props into `CommentListItem` rather than start over:
 
 ```tsx
-import { CommentListItem, CommentTool } from '@tldraw/commenting'
+import { CommentListItem, CommentListItemRenderProps, CommentTool } from '@tldraw/commenting'
+import { TLCommentThread } from 'tldraw'
 
 function StatusRow({ thread, ...row }: CommentListItemRenderProps & { thread: TLCommentThread }) {
 	return (
@@ -399,9 +405,12 @@ function StatusRow({ thread, ...row }: CommentListItemRenderProps & { thread: TL
 const tools = [CommentTool.configure({ components: { ThreadRow: StatusRow } })]
 ```
 
-`ThreadActions` adds controls to an open thread's header, ahead of the built-in resolve and dismiss buttons. This is where host verbs go — assign a thread, link it to a ticket, mark it as a to-do. It adds alongside the built-in actions rather than replacing them, so a thread never loses the ability to be resolved.
+`ThreadActions` adds controls to an open thread's header, ahead of the built-in resolve and dismiss buttons. This is where host verbs go: assign a thread, link it to a ticket, mark it as a to-do. It adds alongside the built-in actions rather than replacing them, so a thread never loses the ability to be resolved.
 
 ```tsx
+import { CommentTool } from '@tldraw/commenting'
+import { TLCommentThread } from 'tldraw'
+
 function AssignAction({ thread }: { thread: TLCommentThread }) {
 	return (
 		<button type="button" className="tlui-cmt-thread__action" onClick={() => assign(thread.id)}>
@@ -429,7 +438,7 @@ Comment records aren't part of the `TLRecord` union, so `editor.store` doesn't k
 | `putCommentRecords`     | Write threads and comments.                                                          |
 | `removeCommentRecords`  | Remove them by id. Rarely what you want — see [Writing comments](#writing-comments). |
 
-Prefer the live reads. Deleting a comment doesn't remove its record — it flags it and lets the server prune it, as [Writing comments](#writing-comments) explains — so the unfiltered reads include records that nothing renders. `getLiveCommentThreads` also drops threads whose comments have all gone, which have no surface left.
+Prefer the live reads. Deleting a comment doesn't remove its record: it flags it and lets the server prune it, as [Writing comments](#writing-comments) explains. So the unfiltered reads include records that nothing renders. `getLiveCommentThreads` also drops threads whose comments have all gone, which have no surface left.
 
 Those reads are non-reactive. In React use the hooks instead, which read the live set: `useCommentThreads`, `useComments`, and `useThreadComments` for one thread's replies, oldest first.
 
@@ -469,7 +478,7 @@ const comment = createComment({
 putCommentRecords(editor, [thread, comment])
 ```
 
-The other writes each have a rule attached — a timestamp to stamp, or the delete protocol below — so they come as functions. The built-in thread view calls exactly these, so a UI of your own behaves like the one in the box.
+The other writes each have a rule attached (a timestamp to stamp, or the delete protocol below), so they come as functions. The built-in thread view calls exactly these, so a UI of your own behaves like the one in the box.
 
 | Helper                          | Description                                            |
 | ------------------------------- | ------------------------------------------------------ |
@@ -485,13 +494,13 @@ resolveThread(editor, thread, currentUserId)
 deleteComment(editor, comment)
 ```
 
-The record you pass says which comment or thread to act on; the change itself lands on the version currently in the store. So a record you took a copy of earlier is safe to pass: it won't put back a field that has moved since — a thread's anchor changes on its own as pinned shapes move, and a comment's body changes when its author edits it elsewhere — and it won't re-create a record that has already been deleted, which a plain `putCommentRecords` of a stale copy would. If the record is gone, the call does nothing.
+The record you pass says which comment or thread to act on; the change itself lands on the version currently in the store. So a record you took a copy of earlier is safe to pass. It won't put back a field that has moved since, such as a thread's anchor after its pinned shape moved, or a comment's body after its author edited it elsewhere. And it won't re-create a record that has already been deleted, which a plain `putCommentRecords` of a stale copy would. If the record is gone, the call does nothing.
 
 ### Deleting is a soft delete
 
 `deleteComment` and `deleteThread` don't remove records. They set an `isDeleted` flag and leave the pruning to the server, which then removes the thread, its comments, and their reactions.
 
-That indirection is what makes deleting safe in a shared document. A reaction belongs to whoever left it, not to whoever is deleting the comment underneath it, so no client should be removing it — and a server enforcing per-record permissions gets a write it can check against the session's identity rather than a deletion it can only refuse. `removeCommentRecords` is a hard delete, and against such a server it will simply be rejected. Reach for it on a local, unsynced comment store.
+That indirection is what makes deleting safe in a shared document. A reaction belongs to whoever left it, not to whoever is deleting the comment underneath it, so no client should be removing it. And a server enforcing per-record permissions gets a write it can check against the session's identity rather than a deletion it can only refuse. `removeCommentRecords` is a hard delete, and such a server rejects it. Reach for it on a local, unsynced comment store.
 
 The flag is write-once server-side, so deletes are never undoable, whatever `history` says: an undo clearing the flag would be vetoed and rebased rather than bring the comment back.
 
@@ -508,7 +517,7 @@ import { revealThread } from '@tldraw/commenting'
 revealThread(editor, commentId)
 ```
 
-An unserved request is inert, so it's safe to call before the records have synced in. `useRevealThreadPending` returns the id of a request that hasn't been served yet, which is how you notice a deep link to a comment that no longer exists — give it a grace period first, since a request also sits there while its records are still arriving, and re-check with `getRevealThreadPending(editor)` when the grace period elapses so you don't act on a request that cleared inside it.
+An unserved request is inert, so it's safe to call before the records have synced in. `useRevealThreadPending` returns the id of a request that hasn't been served yet, which is how you notice a deep link to a comment that no longer exists. Give it a grace period first, since a request also sits there while its records are still arriving. When the grace period elapses, re-check with `getRevealThreadPending(editor)` so you don't act on a request that cleared inside it.
 
 For a thread you already hold, `focusThread(editor, thread)` centers and opens it directly.
 
@@ -526,7 +535,7 @@ The other half of a deep link is producing one. Give the commenting context a `g
 
 Sidebar rows become anchors, so ctrl/cmd-click and middle-click open a thread in a new tab, and an open thread's header menu offers **Copy link**. A relative href is resolved against the current document before it reaches the clipboard, so what gets pasted is a whole URL.
 
-Without `getThreadHref` neither appears — a link the host can't construct isn't one the layer can invent.
+Without `getThreadHref`, neither appears.
 
 ## Pin clustering
 
@@ -550,7 +559,7 @@ const store = useSync({
 })
 ```
 
-On the server, pass the same map to [`createTLSchema`](?):
+On the server, pass the same map to [createTLSchema](?):
 
 ```ts
 import { TLSocketRoom } from '@tldraw/sync-core'
@@ -576,7 +585,7 @@ room.handleSocketConnect({
 })
 ```
 
-`objectAccess` is `'read'` or `'write'` and defaults to `'write'`. To persist the lane separately, read it with [`TLSocketRoom`](?)'s `getCurrentObjectsSnapshot()`. To mirror comments into your own database as they commit, use the room's `onCommittedChanges` callback:
+`objectAccess` is `'read'` or `'write'` and defaults to `'write'`. To persist the lane separately, read it with [TLSocketRoom#getCurrentObjectsSnapshot](?). To mirror comments into your own database as they commit, use the room's `onCommittedChanges` callback:
 
 ```ts
 const room = new TLSocketRoom({
@@ -611,9 +620,11 @@ const room = new TLSocketRoom({
 })
 ```
 
-It stamps authorship from the session so nothing can be posted or resolved in someone else's name, keeps `isDeleted` write-once, and — through `canModifyComment` — decides who may edit a comment, delete a comment, or delete a thread. That last one is the same question the client's [`canModifyComment`](#who-can-edit-and-delete) answers, and this is the answer that counts: the client's only decides which affordances the UI offers. Widen the two together. A moderator offered a delete the server then rejects sees the comment disappear and come back, with nothing to explain it.
+It stamps authorship from the session so nothing can be posted or resolved in someone else's name, keeps `isDeleted` write-once, and, through `canModifyComment`, decides who may edit a comment, delete a comment, or delete a thread. Left unset, `canModifyComment` defaults to the record's owner, matching the client. It's asked after the structural rules, so widening it grants those three writes and nothing else: attribution stays immutable, a soft delete stays write-once, and clients still can't hard-delete a record.
 
-Left unset it defaults to the record's owner, matching the client. The callback is asked after the structural rules, so widening it grants those three writes and nothing else: attribution stays immutable, a soft delete stays write-once, and clients still can't hard-delete a record.
+This is the same question the client's [`canModifyComment`](#who-can-edit-and-delete) answers, and the server's answer is the one that counts: the client's only decides which affordances the UI offers. Widen the two together. A moderator offered a delete the server then rejects sees the comment disappear and come back, with nothing to explain it.
+
+`createCommentAuthorizers` also takes a `canComment` callback, checked before every comment write. It defaults to `({ isReadonly }) => !isReadonly`, so a read-only session can't post even with `objectAccess: 'write'`. To let read-only viewers comment, as in the `handleSocketConnect` example above, pass `canComment: () => true` (or a rule based on the session's `meta`).
 
 ## Building your own comments UI
 

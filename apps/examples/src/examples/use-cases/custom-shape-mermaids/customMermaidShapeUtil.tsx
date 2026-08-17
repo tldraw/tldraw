@@ -5,21 +5,24 @@ import {
 	RichTextLabel,
 	T,
 	TLDefaultSizeStyle,
+	TLRichText,
 	TLShape,
 	getColorValue,
+	richTextValidator,
 	toRichText,
-	useValue,
 	useEditor,
+	useValue,
 } from 'tldraw'
+import './customMermaidShapeUtil.css'
+import { type StepStatus, pipelineStateAtom, retryPipelineFromNode } from './mermaidPipelineState'
 
+// Same multipliers the default note and geo shapes use for their labels.
 const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 	s: 1.125,
 	m: 1.375,
 	l: 1.625,
 	xl: 2,
 }
-import './customMermaidShapeUtil.css'
-import { type StepStatus, pipelineStateAtom, retryPipelineFromNode } from './mermaidPipelineState'
 
 export const CUSTOM_SHAPE_TYPE = 'flowchart-util'
 
@@ -33,7 +36,7 @@ declare module 'tldraw' {
 			dash: string
 			size: string
 			font: string
-			richText: any
+			richText: TLRichText
 			align: string
 			verticalAlign: string
 			mermaidNodeId: string
@@ -54,7 +57,7 @@ export class FlowchartShapeUtil extends BaseBoxShapeUtil<ICustomShape> {
 		dash: T.string,
 		size: T.string,
 		font: T.string,
-		richText: T.unknownObject,
+		richText: richTextValidator,
 		align: T.string,
 		verticalAlign: T.string,
 		mermaidNodeId: T.string,
@@ -78,7 +81,7 @@ export class FlowchartShapeUtil extends BaseBoxShapeUtil<ICustomShape> {
 		}
 	}
 
-	override canEdit(shape: ICustomShape) {
+	override canEdit() {
 		return false
 	}
 

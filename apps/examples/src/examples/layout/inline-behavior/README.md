@@ -18,16 +18,16 @@ keywords:
   ]
 ---
 
-Common practices for using the `Tldraw` component as a block within a larger page.
+Embed several `Tldraw` blocks in a page so that only one is focused at a time, with a stripped-down UI.
 
 ---
 
-This example demonstrates some common best practices for using tldraw as a block within a larger page. It includes:
+When tldraw is one block among many in a larger document, the defaults for a full-page editor get in the way: every editor grabs keyboard shortcuts, the select tool makes it easy to accidentally move things while scrolling past, and the full UI is too much for a small space. This example shows the adjustments we recommend:
 
-- Making sure that only one editor has focus at a time.
-- Always defaulting to the hand tool when you click into an editor.
-- Deselecting everything when an editor loses focus.
-- Hiding the UI when an editor is not focused.
-- Disabling edge scrolling by default.
-- Using a stripped down UI to make the most of the available space.
-- Removing actions from the context menu to match the stripped down UI.
+- Track the focused editor in a React context, and call `editor.focus()` / `editor.blur()` (with `focusContainer` / `blurContainer` off) so only one editor handles keyboard input at a time.
+- Default to the hand tool on mount and whenever focus is lost, and clear the selection on blur.
+- Hide the UI of unfocused editors with `hideUi`.
+- Set `edgeScrollSpeed: 0` so the canvas doesn't scroll when the pointer nears the edge of a small block, and `maxPages: 0` to remove the pages menu.
+- Remove the help menu, navigation panel, and main menu via `components`.
+
+Try clicking into one block, then another, then somewhere on the page outside all of them.

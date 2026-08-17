@@ -10,10 +10,10 @@ import {
 	Rectangle2d,
 	T,
 	TLDragShapesOutInfo,
-	TLDropShapesOverInfo,
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
+	TLComponents,
 	Tldraw,
 	TldrawUiButtonIcon,
 	TldrawUiContextualToolbar,
@@ -64,7 +64,7 @@ declare module 'tldraw' {
 // [2]
 type FlexLayoutShape = TLShape<typeof FLEX_LAYOUT_SHAPE_TYPE>
 
-// [4]
+// [3]
 const FRAME_HEADING_EXTRA_WIDTH = 12
 const FRAME_HEADING_MIN_WIDTH = 32
 const FRAME_HEADING_NOCOLORS_OFFSET_X = -7
@@ -101,10 +101,6 @@ function getContainerHeadingSize(
 	opts: ReturnType<typeof getContainerHeadingOpts>,
 	label: string
 ) {
-	if (process.env.NODE_ENV === 'test') {
-		return new Box(0, -opts.height, shape.props.w, opts.height)
-	}
-
 	const spans = editor.textMeasure.measureTextSpans(label, opts)
 	const firstSpan = spans[0]
 	const lastSpan = last(spans)!
@@ -236,7 +232,7 @@ const FlexContainerHeading = memo(function FlexContainerHeading({
 	)
 })
 
-// [3]
+// [4]
 class FlexLayoutShapeUtil extends BaseFrameLikeShapeUtil<FlexLayoutShape> {
 	static override type = FLEX_LAYOUT_SHAPE_TYPE
 	static override props: RecordProps<FlexLayoutShape> = {
@@ -295,7 +291,7 @@ class FlexLayoutShapeUtil extends BaseFrameLikeShapeUtil<FlexLayoutShape> {
 		)
 	}
 
-	// [3a]
+	// [4a]
 	override onResize(shape: FlexLayoutShape, info: TLResizeInfo<FlexLayoutShape>) {
 		const children = getFlexLayoutChildren(this.editor, shape.id)
 		const minimum = getMinimumContentSize(this.editor, shape, children)
@@ -309,7 +305,7 @@ class FlexLayoutShapeUtil extends BaseFrameLikeShapeUtil<FlexLayoutShape> {
 		relayoutFlexLayoutChildren(this.editor, currentShape.id)
 	}
 
-	// [3b]
+	// [4b]
 	override onDragShapesOut(shape: FlexLayoutShape, shapes: TLShape[], info: TLDragShapesOutInfo) {
 		if (info.nextDraggingOverShapeId) return
 
@@ -320,17 +316,13 @@ class FlexLayoutShapeUtil extends BaseFrameLikeShapeUtil<FlexLayoutShape> {
 		resizeFlexLayoutToChildren(this.editor, shape.id)
 	}
 
-	// [3c]
-	override onDropShapesOver(
-		shape: FlexLayoutShape,
-		shapes: TLShape[],
-		_info: TLDropShapesOverInfo
-	) {
+	// [4c]
+	override onDropShapesOver(shape: FlexLayoutShape, shapes: TLShape[]) {
 		const dropIndex = getDropIndex(this.editor, shape, shapes)
 		dropShapesIntoLayout(this.editor, shape, shapes, dropIndex)
 	}
 
-	// [3d]
+	// [4d]
 	override onTranslateEnd(_initialShape: FlexLayoutShape, currentShape: FlexLayoutShape) {
 		resizeFlexLayoutToChildren(this.editor, currentShape.id)
 	}
@@ -495,8 +487,7 @@ const FlexLayoutToolbar = track(function FlexLayoutToolbar() {
 			<TldrawUiToolbarButton
 				type="icon"
 				title="Horizontal"
-				data-testid="flex-layout.horizontal"
-				data-isactive={shape.props.direction === 'horizontal'}
+				isActive={shape.props.direction === 'horizontal'}
 				onClick={() => updateLayoutProps({ direction: 'horizontal' })}
 			>
 				<TldrawUiButtonIcon small icon="stack-horizontal" />
@@ -504,8 +495,7 @@ const FlexLayoutToolbar = track(function FlexLayoutToolbar() {
 			<TldrawUiToolbarButton
 				type="icon"
 				title="Vertical"
-				data-testid="flex-layout.vertical"
-				data-isactive={shape.props.direction === 'vertical'}
+				isActive={shape.props.direction === 'vertical'}
 				onClick={() => updateLayoutProps({ direction: 'vertical' })}
 			>
 				<TldrawUiButtonIcon small icon="stack-vertical" />
@@ -513,8 +503,7 @@ const FlexLayoutToolbar = track(function FlexLayoutToolbar() {
 			<TldrawUiToolbarButton
 				type="icon"
 				title={isHorizontal ? 'Align left' : 'Align top'}
-				data-testid="flex-layout.justify-start"
-				data-isactive={shape.props.justify === 'start'}
+				isActive={shape.props.justify === 'start'}
 				onClick={() => updateLayoutProps({ justify: 'start' })}
 			>
 				<TldrawUiButtonIcon
@@ -525,8 +514,7 @@ const FlexLayoutToolbar = track(function FlexLayoutToolbar() {
 			<TldrawUiToolbarButton
 				type="icon"
 				title={isHorizontal ? 'Align center' : 'Align middle'}
-				data-testid="flex-layout.justify-center"
-				data-isactive={shape.props.justify === 'center'}
+				isActive={shape.props.justify === 'center'}
 				onClick={() => updateLayoutProps({ justify: 'center' })}
 			>
 				<TldrawUiButtonIcon
@@ -537,8 +525,7 @@ const FlexLayoutToolbar = track(function FlexLayoutToolbar() {
 			<TldrawUiToolbarButton
 				type="icon"
 				title={isHorizontal ? 'Align right' : 'Align bottom'}
-				data-testid="flex-layout.justify-end"
-				data-isactive={shape.props.justify === 'end'}
+				isActive={shape.props.justify === 'end'}
 				onClick={() => updateLayoutProps({ justify: 'end' })}
 			>
 				<TldrawUiButtonIcon
@@ -549,8 +536,7 @@ const FlexLayoutToolbar = track(function FlexLayoutToolbar() {
 			<TldrawUiToolbarButton
 				type="icon"
 				title={isHorizontal ? 'Distribute horizontally' : 'Distribute vertically'}
-				data-testid="flex-layout.justify-space-between"
-				data-isactive={shape.props.justify === 'space-between'}
+				isActive={shape.props.justify === 'space-between'}
 				onClick={() => updateLayoutProps({ justify: 'space-between' })}
 			>
 				<TldrawUiButtonIcon
@@ -561,8 +547,7 @@ const FlexLayoutToolbar = track(function FlexLayoutToolbar() {
 			<TldrawUiToolbarButton
 				type="icon"
 				title={isHorizontal ? 'Align top' : 'Align left'}
-				data-testid="flex-layout.align-start"
-				data-isactive={shape.props.align === 'start'}
+				isActive={shape.props.align === 'start'}
 				onClick={() => updateLayoutProps({ align: 'start' })}
 			>
 				<TldrawUiButtonIcon
@@ -573,8 +558,7 @@ const FlexLayoutToolbar = track(function FlexLayoutToolbar() {
 			<TldrawUiToolbarButton
 				type="icon"
 				title={isHorizontal ? 'Align middle' : 'Align center'}
-				data-testid="flex-layout.align-center"
-				data-isactive={shape.props.align === 'center'}
+				isActive={shape.props.align === 'center'}
 				onClick={() => updateLayoutProps({ align: 'center' })}
 			>
 				<TldrawUiButtonIcon
@@ -585,8 +569,7 @@ const FlexLayoutToolbar = track(function FlexLayoutToolbar() {
 			<TldrawUiToolbarButton
 				type="icon"
 				title={isHorizontal ? 'Align bottom' : 'Align right'}
-				data-testid="flex-layout.align-end"
-				data-isactive={shape.props.align === 'end'}
+				isActive={shape.props.align === 'end'}
 				onClick={() => updateLayoutProps({ align: 'end' })}
 			>
 				<TldrawUiButtonIcon
@@ -597,6 +580,8 @@ const FlexLayoutToolbar = track(function FlexLayoutToolbar() {
 		</TldrawUiContextualToolbar>
 	)
 })
+
+const components: TLComponents = { InFrontOfTheCanvas: FlexLayoutToolbar }
 
 // [7]
 function getFlexLayoutChildren(editor: Editor, shapeId: TLShapeId) {
@@ -754,9 +739,8 @@ export default function FlexLayoutExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				shapeUtils={shapeUtils}
-				components={{ InFrontOfTheCanvas: FlexLayoutToolbar }}
+				components={components}
 				onMount={(editor) => {
-					;(window as any).editor = editor
 					const childA = createShapeId('flex-child-a')
 					const childB = createShapeId('flex-child-b')
 					const orphanC = createShapeId('flex-orphan-c')
@@ -812,45 +796,51 @@ width and height.
 Define the shape type using TLShape with the shape's type as a type argument.
 
 [3]
-Create the shape util. BaseFrameLikeShapeUtil gives us frame-like behavior, such as clipping
-children and drag-and-drop reparenting.
+Frame-style label geometry and heading component, following the same rotation-aware side logic
+as the built-in FrameShapeUtil. `getFlexContainerLabelGeometry` returns a `Rectangle2d` marked
+`isLabel` and `excludeFromShapeBounds`, positioned just outside the shape, so clicking the label
+selects the layout without the label growing the shape's bounds.
 
-	[3a]
+[4]
+The shape util. BaseFrameLikeShapeUtil gives us frame-like behavior: clipping children,
+reparenting shapes in while they're dragged over the layout, and releasing them when dragged
+out. The geometry is an unfilled body plus the label hit area, so clicks on interior padding
+pass through to the canvas like a frame.
+
+	[4a]
 	Allow resizing, but clamp width and height to the minimum needed to fit all children, padding,
 	and gaps. Relayout children when a resize finishes.
 
-	[3b]
-	Override drag-out so the layout updates after a child leaves.
+	[4b]
+	When a child is dragged out to empty page space, reparent it back to the page (as the base
+	class would) and shrink the layout around the remaining children.
 
-	[3c]
-	Finalize dropped child order and positions on pointer-up. Frame-like hover behavior handles
-	temporary reparenting during the drag.
+	[4c]
+	On drop, finalize the child order (from the pointer position) and positions. The base class
+	has already reparented the dropped shapes during the drag; this override just arranges them.
 
-	[3d]
-	Keep container size in sync after the layout itself is translated.
-
-The util composes its geometry from an unfilled body plus a frame-style label hit area, and
-renders `FlexContainerHeading` for an uneditable title (select the layout by clicking the label;
-clicks on interior padding pass through, like a frame).
-
-[4]
-Frame-style label geometry and heading component. The label hit area follows the same rotation-
-aware side logic as the built-in FrameShapeUtil. `getFlexContainerLabelGeometry` returns a
-Rectangle2d positioned outside the shape bounds so clicking the label selects the layout.
+	[4d]
+	Keep the container's size in sync after the layout itself is moved.
 
 [5]
-Render the layout shape. A hidden measurement layer runs real CSS flexbox, then writes measured
-child positions back to the store via a ResizeObserver.
+Render the layout shape. A hidden measurement layer runs real CSS flexbox with a placeholder
+div per child at the child's size, then a ResizeObserver reads each placeholder's offset and
+writes it back to the child shape's x/y. That's what lets the browser do the layout math while
+the store stays the source of truth. The effect is skipped while a child is being dragged so
+it doesn't fight the pointer.
 
 [6]
-A contextual toolbar shown when the layout shape is selected. Uses TldrawUiContextualToolbar and
-TldrawUiToolbarButton to provide direction, justify, and align controls.
+A contextual toolbar shown when a single layout shape is selected, built from
+`TldrawUiContextualToolbar` and `TldrawUiToolbarButton`, with direction, justify, and align
+controls. Each change re-runs the layout math from `FlexContainerHelpers.tsx` so the children
+snap immediately rather than waiting for the ResizeObserver.
 
 [7]
-Helpers for reparenting, relayout, and drop indicators.
+Helpers for computing the drop index from the pointer, reparenting dropped shapes with new
+fractional indices, relayout, and the drop-in / drop-out indicator lines.
 
 [8]
-Mount the editor with demo shapes and register the toolbar component.
+Mount the editor with a layout containing two children plus a loose shape to drag in.
 
 Visual styles for the shape live in `flex-layout.css`. Size math, axis positioning, and drop
 indicator geometry are in `FlexContainerHelpers.tsx`.

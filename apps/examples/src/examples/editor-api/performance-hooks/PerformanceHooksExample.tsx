@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
 	Editor,
 	PerformanceApiAdapter,
 	TLCameraEndPerfEvent,
+	TLComponents,
 	TLInteractionEndPerfEvent,
 	TLPerfFrameTimeStats,
 	Tldraw,
@@ -10,6 +11,8 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './performance-hooks.css'
+
+// There's a guide at the bottom of this file!
 
 function FrameTimeStats({ event }: { event: TLPerfFrameTimeStats }) {
 	return (
@@ -122,43 +125,40 @@ function PerfPanel() {
 	)
 }
 
-// [4]
-export default function PerformanceHooksExample() {
-	const handleMount = useCallback((editor: Editor) => {
-		editor.createShapes([
-			{ type: 'geo', x: 100, y: 100, props: { w: 200, h: 200, fill: 'solid' } },
-			{ type: 'geo', x: 400, y: 100, props: { w: 150, h: 150, geo: 'ellipse', fill: 'solid' } },
-			{ type: 'geo', x: 200, y: 350, props: { w: 250, h: 100, geo: 'diamond', fill: 'solid' } },
-		])
-	}, [])
+const components: TLComponents = {
+	InFrontOfTheCanvas: PerfPanel,
+}
 
+function handleMount(editor: Editor) {
+	editor.createShapes([
+		{ type: 'geo', x: 100, y: 100, props: { w: 200, h: 200, fill: 'solid' } },
+		{ type: 'geo', x: 400, y: 100, props: { w: 150, h: 150, geo: 'ellipse', fill: 'solid' } },
+		{ type: 'geo', x: 200, y: 350, props: { w: 250, h: 100, geo: 'diamond', fill: 'solid' } },
+	])
+}
+
+export default function PerformanceHooksExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw onMount={handleMount} components={{ InFrontOfTheCanvas: PerfPanel }} />
+			<Tldraw onMount={handleMount} components={components} />
 		</div>
 	)
 }
 
 /*
 [1]
-The PerfPanel subscribes to both `interaction-end` and `camera-end`
-events. Only the most recent event is shown — each new event replaces
-the previous one. Placed in the InFrontOfTheCanvas slot.
+The panel lives in the `InFrontOfTheCanvas` slot so it can use `useEditor`. It shows only the most
+recent event; each new one replaces the last.
 
 [2]
-`editor.performance.on('interaction-end', fn)` fires when any interaction
-completes (translate, resize, rotate, draw, etc.). `camera-end` fires
-after panning or zooming stops (debounced). Both include frame time
-stats (avg, p95, fps) plus contextual data.
+`editor.performance.on('interaction-end', fn)` fires when any interaction completes (translate,
+resize, rotate, draw, and so on). `camera-end` fires once panning or zooming has settled. Both carry
+frame time stats (avg, p95, p99, fps) plus context such as shape counts and zoom level. `on` returns
+an unsubscribe function, which the effect cleanup calls.
 
 [3]
-The PerformanceApiAdapter pipes perf events into the browser's
-Performance API (`performance.mark()` / `performance.measure()`).
-Open DevTools → Performance tab → record → interact → stop, and you'll
-see named measures like `tldraw:interaction:translating` in the Timings
-lane. It's optional and tree-shakeable.
-
-[4]
-We create some shapes on mount so there's something to interact with.
-Drag a shape or pan the canvas to see the performance panel update.
+`PerformanceApiAdapter` mirrors the same events into the browser's Performance API with
+`performance.mark()` and `performance.measure()`. Record in the DevTools performance tab while
+interacting and you'll see measures like `tldraw:interaction:translating` in the timings lane. It's
+optional; dispose it when you're done.
 */
