@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { classifyHandler, entrypointOf, scriptNameOf, scriptVersionOf } from './classify'
+import {
+	bucketFlags,
+	classifyHandler,
+	entrypointOf,
+	isErrorOutcome,
+	scriptNameOf,
+	scriptVersionOf,
+	WALL_TIME_BUCKETS_MS,
+} from './classify'
 
 function item(partial: Partial<TraceItem>): TraceItem {
 	return partial as TraceItem
@@ -84,5 +92,52 @@ describe('field normalisers', () => {
 			entrypoint: 'TLFileDurableObject',
 			scriptVersion: 'abc-123',
 		})
+	})
+})
+
+describe('isErrorOutcome', () => {
+	it('partitions the outcome enum exactly as the design specifies', () => {
+		const outcomes = [
+			'ok',
+			'canceled',
+			'responseStreamDisconnected',
+			'exception',
+			'exceededCpu',
+			'exceededMemory',
+			'scriptNotFound',
+			'unknown',
+		]
+		expect(Object.fromEntries(outcomes.map((o) => [o, isErrorOutcome(o)]))).toEqual({
+			ok: false,
+			canceled: false,
+			responseStreamDisconnected: false,
+			exception: true,
+			exceededCpu: true,
+			exceededMemory: true,
+			scriptNotFound: true,
+			unknown: true,
+		})
+	})
+
+	it('treats an outcome it has never seen as an error', () => {
+		expect(isErrorOutcome('somethingNewCloudflareAdded')).toBe(true)
+	})
+})
+
+describe('bucketFlags', () => {
+	it('has one flag per bound', () => {
+		expect(bucketFlags(0)).toHaveLength(WALL_TIME_BUCKETS_MS.length)
+	})
+
+	it('sets every bound at or above the measurement', () => {
+		expect(bucketFlags(7)).toEqual([0, 0, 1, 1, 1, 1, 1, 1])
+	})
+
+	it('includes the boundary itself', () => {
+		expect(bucketFlags(5)).toEqual([0, 1, 1, 1, 1, 1, 1, 1])
+	})
+
+	it('sets nothing when the measurement is above the top bound', () => {
+		expect(bucketFlags(5000)).toEqual([0, 0, 0, 0, 0, 0, 0, 0])
 	})
 })

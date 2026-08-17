@@ -45,3 +45,22 @@ export function entrypointOf(item: TraceItem): string {
 export function scriptVersionOf(item: TraceItem): string {
 	return item.scriptVersion?.id ?? 'unknown'
 }
+
+// Not errors, and not close calls: `canceled` (the client hung up — routine for websockets) runs at
+// ~206k/day and `responseStreamDisconnected` at ~27k/day across the worker and its durable objects.
+// Pushing them to Loki would be ~233k lines/day against ~4,650 real errors and would bury the signal.
+// They still land in the tallies, where a *change* in their rate is the meaningful thing.
+const NON_ERROR_OUTCOMES = new Set(['ok', 'canceled', 'responseStreamDisconnected'])
+
+export function isErrorOutcome(outcome: string): boolean {
+	return !NON_ERROR_OUTCOMES.has(outcome)
+}
+
+export const WALL_TIME_BUCKETS_MS = [1, 5, 10, 25, 50, 100, 500, 1000] as const
+
+// Fixed cumulative buckets rather than raw durations: Analytics Engine samples rows, which makes
+// quantile() over them untrustworthy, while bucket counts stay correct under sampling — scale by
+// `_sample_interval` and the quantiles come out right.
+export function bucketFlags(wallTimeMs: number): number[] {
+	return WALL_TIME_BUCKETS_MS.map((bound) => (wallTimeMs <= bound ? 1 : 0))
+}
