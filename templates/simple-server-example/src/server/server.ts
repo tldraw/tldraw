@@ -49,8 +49,8 @@ app.register(async (app) => {
 		}
 	})
 
-	// To enable blob storage for assets, we add a simple endpoint supporting PUT and GET requests
-	// But first we need to allow all content types with no parsing, so we can handle raw data
+	// Asset blob storage: PUT and GET endpoints. Allow all content types with no parsing so
+	// we get the raw request body.
 	app.addContentTypeParser('*', (_, __, done) => done(null))
 	app.put('/uploads/:id', {}, async (req, res) => {
 		const id = (req.params as any).id as string
