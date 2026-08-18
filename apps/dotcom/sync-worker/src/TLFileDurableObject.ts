@@ -1,7 +1,6 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
 
-import { ApiError, RefUpdateError, type Repo } from '@pierre/storage'
 import { SupabaseClient } from '@supabase/supabase-js'
 import {
 	DB,
@@ -75,18 +74,16 @@ import {
 import { PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
-import { getR2KeyForRoom } from './r2'
+import { getR2KeyForRoom, listAllObjectKeys } from './r2'
 import { RoomNotFoundError, shouldSkipMissingRoomEffect } from './roomEffectHelpers'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import { generateSnapshotChunks } from './snapshotUtils'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
-import { createPierreClient, isSlugInPierreRollout } from './utils/createPierreClient'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
 import { OgRenderDebouncer } from './utils/ogRenderDebounce'
-import { reconstructSnapshotFromPierre } from './utils/pierreSnapshot'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
@@ -103,7 +100,7 @@ const MAX_CONNECTIONS = 50
 // persistence — through a single queue so they can never collectively exceed that budget. An
 // asset copy holds two connections (the R2 get body streaming into the put); a snapshot upload
 // holds ~one at a time (multipart parts are uploaded sequentially). With two operations in flight
-// the worst case is two copies = four connections, leaving two free for Pierre pushes and Postgres
+// the worst case is two copies = four connections, leaving two free for Postgres
 // queries. Without a shared budget the upload and a concurrent association pass contend for the
 // same connections, which surfaces as "Network connection lost" during multipart uploads.
 // https://developers.cloudflare.com/workers/platform/limits/#simultaneous-open-connections
@@ -390,8 +387,6 @@ export class TLFileDurableObject extends DurableObject {
 
 	// For persistence
 	private _supabaseClient: SupabaseClient | undefined
-	pierreClient: ReturnType<typeof createPierreClient>
-	pierreState: PierreState | null = null
 
 	// For analytics
 	measure: Analytics | undefined
@@ -450,7 +445,6 @@ export class TLFileDurableObject extends DurableObject {
 		this.measure = env.MEASURE
 		this.sentry = createSentry(this.state, this.env)
 		this.log = new Logger(env, 'TLDrawDurableObject', this.sentry)
-		this.pierreClient = createPierreClient(env)
 
 		this.supabaseTable = env.TLDRAW_ENV === 'production' ? 'drawings' : 'drawings_staging'
 		this.r2 = {
@@ -508,11 +502,6 @@ export class TLFileDurableObject extends DurableObject {
 			`/app/file/:roomId/restore`,
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
 			(req) => this.onRestore(req)
-		)
-		.post(
-			`/app/file/:roomId/pierre-restore`,
-			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
-			(req) => this.onRestore(req, true)
 		)
 		.all('*', () => new Response('Not found', { status: 404 }))
 
@@ -634,39 +623,21 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	_isRestoring = false
-	async onRestore(req: IRequest, isPierre: boolean = false) {
+	async onRestore(req: IRequest) {
 		this._isRestoring = true
 		try {
-			if (isPierre && !this.documentInfo.isApp) {
-				return new Response('Pierre restore must be for an app file', { status: 400 })
-			}
 			await requireAdminAccessToRequest(req, this.env)
-			let dataText = ''
 			const roomId = this.documentInfo.slug
 			const roomKey = getR2KeyForRoom({ slug: roomId, isApp: this.documentInfo.isApp })
-			if (isPierre) {
-				const commitHash = ((await req.json()) as any).commitHash
-				if (!commitHash) {
-					return new Response('Missing commit hash', { status: 400 })
-				}
-				const repo = await this.getPierreRepo()
-				if (!repo) {
-					return new Response('Pierre not available', { status: 503 })
-				}
-				const snapshot = await reconstructSnapshotFromPierre(repo, commitHash)
-				dataText = JSON.stringify(snapshot)
-				this.pierreState = null
-			} else {
-				const timestamp = ((await req.json()) as any).timestamp
-				if (!timestamp) {
-					return new Response('Missing timestamp', { status: 400 })
-				}
-				const data = await this.r2.versionCache.get(`${roomKey}/${timestamp}`)
-				if (!data) {
-					return new Response('Version not found', { status: 400 })
-				}
-				dataText = await data.text()
+			const timestamp = ((await req.json()) as any).timestamp
+			if (!timestamp) {
+				return new Response('Missing timestamp', { status: 400 })
 			}
+			const data = await this.r2.versionCache.get(`${roomKey}/${timestamp}`)
+			if (!data) {
+				return new Response('Version not found', { status: 400 })
+			}
+			const dataText = await data.text()
 
 			await this.r2.rooms.put(roomKey, dataText)
 
@@ -1659,8 +1630,6 @@ export class TLFileDurableObject extends DurableObject {
 						const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
 						await this._uploadSnapshotToR2(snapshot, key)
 
-						await this.persistToPierre(storage, snapshot)
-
 						this.logEvent({
 							type: 'persist_success',
 							attempts: attempt,
@@ -1860,54 +1829,6 @@ export class TLFileDurableObject extends DurableObject {
 		}
 
 		return null
-	}
-
-	private async getPierreRepo() {
-		if (
-			!this.pierreClient ||
-			!this.documentInfo.isApp ||
-			!this.env.TLDRAW_ENV ||
-			!isSlugInPierreRollout(this.env, this.documentInfo.slug)
-		) {
-			return null
-		}
-		const repoId = `${this.env.TLDRAW_ENV}/files/${this.documentInfo.slug}`
-		return (
-			(await this.pierreClient.findOne({ id: repoId })) ??
-			(await this.pierreClient.createRepo({ id: repoId }))
-		)
-	}
-
-	/**
-	 * Sync local Pierre tracking state from the remote repo. Fetches HEAD sha
-	 * and meta.json (for documentClock). For empty repos, sets documentClock
-	 * to -1 so getChangesSince returns all records.
-	 */
-	private async syncPierreState(repo: Repo) {
-		let headCommit: { sha: string } | undefined
-		try {
-			const { commits } = await repo.listCommits({ limit: 1 })
-			headCommit = commits[0]
-		} catch (error) {
-			if (error instanceof ApiError && error.status === 404) {
-				this.pierreState = { headSha: undefined, documentClock: -1 }
-				return
-			}
-			throw error
-		}
-
-		if (!headCommit) {
-			this.pierreState = { headSha: undefined, documentClock: -1 }
-			return
-		}
-
-		const metaResp = await repo.getFileStream({ path: 'meta.json', ref: headCommit.sha })
-		const meta = (await metaResp.json()) as PierreMeta
-
-		this.pierreState = {
-			headSha: headCommit.sha,
-			documentClock: meta.documentClock ?? 0,
-		}
 	}
 
 	/**
@@ -2558,115 +2479,6 @@ export class TLFileDurableObject extends DurableObject {
 			})
 	}
 
-	private async persistToPierre(storage: TLSyncStorage<TLRecord>, snapshot: RoomSnapshot) {
-		try {
-			const repo = await this.getPierreRepo()
-			if (!repo) return
-
-			const MAX_CAS_RETRIES = 3
-			for (let attempt = 0; attempt < MAX_CAS_RETRIES; attempt++) {
-				if (!this.pierreState) {
-					await this.syncPierreState(repo)
-				}
-
-				const { headSha, documentClock: pierreDocClock } = this.pierreState!
-
-				const { result: changes, documentClock } = storage.transaction((txn) =>
-					txn.getChangesSince(pierreDocClock)
-				)
-
-				if (!changes) return
-
-				const { diff } = changes
-				const hasPuts = Object.keys(diff.puts).length > 0
-				const hasDeletes = diff.deletes.length > 0
-
-				if (!hasPuts && !hasDeletes && pierreDocClock === documentClock) {
-					return
-				}
-
-				const timestamp = new Date().toISOString()
-				const commitBuilder = repo.createCommit({
-					targetBranch: 'main',
-					commitMessage: `Snapshot at ${timestamp}`,
-					author: PIERRE_AUTHOR,
-					expectedHeadSha: headSha,
-				})
-
-				const meta: PierreMeta = {
-					documentClock,
-					schema: snapshot.schema,
-				}
-				const metaJson = JSON.stringify(meta)
-				let incrementalCommitPayloadLength = metaJson.length
-				commitBuilder.addFileFromString('meta.json', metaJson)
-
-				for (const [id, put] of Object.entries(diff.puts)) {
-					const state = Array.isArray(put) ? put[1] : put
-					const recordJson = JSON.stringify(state)
-					incrementalCommitPayloadLength += recordJson.length
-					commitBuilder.addFileFromString(`records/${id}.json`, recordJson)
-				}
-
-				// Only apply diff.deletes when we have a parent commit and we're not in wipeAll.
-				// - Empty repo (no headSha): those paths don't exist in Pierre; deletePath would fail.
-				// - wipeAll with existing repo: the cleanup loop below already deletes any file not in
-				//   putIds, so applying diff.deletes here would duplicate deletePath for the same file.
-				if (headSha && !changes.wipeAll) {
-					for (const id of diff.deletes) {
-						commitBuilder.deletePath(`records/${id}.json`)
-					}
-				}
-
-				// On wipeAll with an existing repo, pruned tombstones may not appear in diff.deletes,
-				// so scan Pierre for stale record files and remove them.
-				if (changes.wipeAll && headSha) {
-					const putIds = new Set(Object.keys(diff.puts))
-					const { paths } = await repo.listFiles({ ref: headSha })
-					for (const path of paths) {
-						if (!path.startsWith('records/')) continue
-						const id = path.slice('records/'.length, -'.json'.length)
-						if (!putIds.has(id)) {
-							commitBuilder.deletePath(path)
-						}
-					}
-				}
-
-				try {
-					const result = await commitBuilder.send().catch((e) => {
-						if (e instanceof RefUpdateError && e.message.match('no changes to commit')) {
-							return null
-						}
-						throw e
-					})
-
-					this.pierreState = {
-						headSha: result ? result.refUpdate.newSha : headSha,
-						documentClock,
-					}
-					// Incremental commits only (not the first commit to an empty repo); combined JSON string lengths (meta + record payloads).
-					if (headSha && result) {
-						this.writeEvent('pierre_incremental_write_chars', {
-							doubles: [incrementalCommitPayloadLength],
-						})
-					}
-					return
-				} catch (error) {
-					if (error instanceof RefUpdateError) {
-						console.warn('Pierre CAS conflict, retrying:', error.message)
-						this.pierreState = null
-						continue
-					}
-					throw error
-				}
-			}
-			console.error('Pierre: exhausted CAS retries')
-		} catch (error) {
-			console.error('Failed to persist to Pierre:', error)
-			this.reportError(error)
-		}
-	}
-
 	protected reportError(e: unknown) {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.withScope((scope) => {
@@ -2979,31 +2791,5 @@ export class TLFileDurableObject extends DurableObject {
 	}
 }
 
-async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promise<string[]> {
-	const keys: string[] = []
-	let cursor: string | undefined
-
-	do {
-		const result = await bucket.list({ prefix, cursor })
-		keys.push(...result.objects.map((o) => o.key))
-		cursor = result.truncated ? result.cursor : undefined
-	} while (cursor)
-
-	return keys
-}
-
 const PERSIST_RETRIES_NOTIFY_THRESHOLD = 10
 const PERSIST_RETRIES_MAX = 100
-
-const PIERRE_AUTHOR = { email: 'huppy@tldraw.com', name: 'huppy [bot]' }
-
-interface PierreState {
-	headSha: string | undefined
-	documentClock: number
-}
-
-/** Shape of meta.json stored in Pierre archives. */
-export interface PierreMeta {
-	documentClock: number
-	schema: RoomSnapshot['schema']
-}

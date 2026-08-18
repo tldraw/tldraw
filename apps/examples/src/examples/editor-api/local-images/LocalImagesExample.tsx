@@ -1,46 +1,45 @@
-import { useCallback } from 'react'
 import { AssetRecordType, Editor, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 // There's a guide at the bottom of this file!
 
-export default function LocalImagesExample() {
+const imageWidth = 1200
+const imageHeight = 675
+
+function handleMount(editor: Editor) {
 	// [1]
-	const handleMount = useCallback((editor: Editor) => {
-		//[2]
-		const assetId = AssetRecordType.createId()
-		const imageWidth = 1200
-		const imageHeight = 675
-		//[2]
-		editor.createAssets([
-			{
-				id: assetId,
-				type: 'image',
-				typeName: 'asset',
-				props: {
-					name: 'tldraw.png',
-					src: '/tldraw.png', // You could also use a base64 encoded string here
-					w: imageWidth,
-					h: imageHeight,
-					mimeType: 'image/png',
-					isAnimated: false,
-				},
-				meta: {},
-			},
-		])
-		//[3]
-		editor.createShape({
+	const assetId = AssetRecordType.createId()
+	editor.createAssets([
+		{
+			id: assetId,
 			type: 'image',
-			// Let's center the image in the editor
-			x: (window.innerWidth - imageWidth) / 2,
-			y: (window.innerHeight - imageHeight) / 2,
+			typeName: 'asset',
 			props: {
-				assetId,
+				name: 'tldraw.png',
+				src: '/tldraw.png', // You could also use a data URL here
 				w: imageWidth,
 				h: imageHeight,
+				mimeType: 'image/png',
+				isAnimated: false,
 			},
-		})
-	}, [])
+			meta: {},
+		},
+	])
 
+	// [2]
+	const { x, y } = editor.getViewportPageBounds().center
+	editor.createShape({
+		type: 'image',
+		x: x - imageWidth / 2,
+		y: y - imageHeight / 2,
+		props: {
+			assetId,
+			w: imageWidth,
+			h: imageHeight,
+		},
+	})
+}
+
+export default function LocalImagesExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw onMount={handleMount} />
@@ -49,30 +48,19 @@ export default function LocalImagesExample() {
 }
 
 /*
-This is an example of how you can add a locally hosted image to the editor.
-We need to first create an asset that holds the source image [2], and then 
-create the Image shape itself [3].
+An image shape doesn't hold its own pixels. It points at an asset record via `assetId`, and the asset
+holds the source URL and the image's natural size. So to show an image you create the asset first [1]
+and then the shape [2].
 
-Because this is a Next.js app, we can use the `public` folder to store the 
-image locally, your framework may have a different way of serving static
-assets. 
+Here the image is served from this app's `public` folder. Your framework may serve static files
+differently, or you might use a data URL. To let users upload their own images, see the hosted-images
+example.
 
-If you want to allow users to upload the images please take a look at the 
-hosted images example.
-
-[1] 
-We'll access the editor instance via the `onMount` callback. Check out the API 
-example for another way to do this.
+[1]
+Create the asset record. `AssetRecordType.createId()` gives us an id we can reference from the shape.
 
 [2]
-Assets are records that store data about shared assets like images, videos, etc. 
-Each image has an associated asset record, so we'll create that first. We need an 
-`assetId` so that we can later associate it with the image.
-
-[3]
-We create the image shape and pass in the `assetId` that we created earlier. This
-will link our image shape to the asset record. Notice that we create the shape with
-the same dimensions as the image, later on the user may resize the image, but we 
-don't want to resize our asset, this is one of the reasons why it's important to 
-keep assets and shapes separate.
+Create the image shape, linked to the asset by `assetId`, and center it in the current viewport. The
+shape starts at the image's natural size, but the user can resize it later without touching the asset.
+That separation is one reason assets and shapes are different records: many shapes can share one asset.
 */

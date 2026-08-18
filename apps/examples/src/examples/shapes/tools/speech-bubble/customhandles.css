@@ -1,4 +1,4 @@
-/* Resize handles are normally on top, but We're going to give shape handles priority */
+/* Resize handles are normally on top, but we want the tail handle to win when they overlap */
 .tl-user-handles {
 	z-index: 101;
 }

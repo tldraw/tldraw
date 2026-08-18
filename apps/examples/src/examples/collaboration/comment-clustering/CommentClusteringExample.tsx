@@ -86,15 +86,13 @@ export default function CommentClusteringExample() {
 }
 
 /*
-This example seeds two loose groups of comment threads so you can watch them cluster.
-
 [1]
 Two clusters of pins, far enough apart that they stay separate while the ones within each group
 merge. Zoom out and each group folds into a single count badge; zoom back in and they split apart.
-Splits happen at a wider spacing than merges, so pins don't flicker at the threshold. Clicking a
+Splits happen at a wider spacing than merges, so pins don't flicker at the threshold, and clicking a
 badge zooms to just past the point where it splits.
 
-Clustering is on by default and needs no configuration — `CanvasComments` does it for you. Turn it
-off with `CommentTool.configure({ enableClustering: false })` and every pin renders individually at
-every zoom.
+Clustering is on by default and needs no configuration. Turn it off with
+`CommentTool.configure({ enableClustering: false })` and every pin renders individually at every
+zoom.
 */
