@@ -2,31 +2,15 @@ import React, { forwardRef, FunctionComponent, memo } from 'react'
 import { useStateTracking } from './useStateTracking'
 
 /**
- * Proxy handlers object used to intercept function calls to React components.
- * This enables automatic signal tracking by wrapping component execution
- * in reactive tracking context.
- *
- * The proxy intercepts the function call (apply trap) and wraps it with
- * useStateTracking to enable automatic dependency tracking for signals
- * accessed during render.
- *
- * @example
- * ```ts
- * // Used internally by track() function
- * const ProxiedComponent = new Proxy(MyComponent, ProxyHandlers)
- * ```
+ * Proxy handlers that wrap a function component's render call in `useStateTracking`.
  *
  * @internal
  */
 export const ProxyHandlers = {
 	/**
-	 * This is a function call trap for functional components. When this is called, we know it means
-	 * React did run 'Component()', that means we can use any hooks here to setup our effect and
-	 * store.
-	 *
-	 * With the native Proxy, all other calls such as access/setting to/of properties will be
-	 * forwarded to the target Component, so we don't need to copy the Component's own or inherited
-	 * properties.
+	 * The apply trap fires exactly when React runs `Component()`, so hooks are safe here. All other
+	 * property access is forwarded to the target, so we don't need to copy the component's own or
+	 * inherited properties (displayName, defaultProps, etc.).
 	 *
 	 * @see https://github.com/facebook/react/blob/2d80a0cd690bb5650b6c8a6c079a87b5dc42bd15/packages/react-reconciler/src/ReactFiberHooks.old.js#L460
 	 */
@@ -38,30 +22,10 @@ export const ProxyHandlers = {
 	},
 }
 
-/**
- * React internal symbol for identifying memoized components.
- * Used to detect if a component is already wrapped with React.memo().
- *
- * @example
- * ```ts
- * const isMemoComponent = component['$$typeof'] === ReactMemoSymbol
- * ```
- *
- * @internal
- */
+/** @internal */
 export const ReactMemoSymbol = Symbol.for('react.memo')
 
-/**
- * React internal symbol for identifying forward ref components.
- * Used to detect if a component is wrapped with React.forwardRef().
- *
- * @example
- * ```ts
- * const isForwardRefComponent = component['$$typeof'] === ReactForwardRefSymbol
- * ```
- *
- * @internal
- */
+/** @internal */
 export const ReactForwardRefSymbol = Symbol.for('react.forward_ref')
 
 /**

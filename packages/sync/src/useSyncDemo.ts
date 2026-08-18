@@ -43,21 +43,8 @@ export interface UseSyncDemoOptions {
 	getUserPresence?(store: TLStore, user: TLUser): TLPresenceStateInfo | null
 }
 
-/**
- * Safely accesses environment variables across different bundling environments.
- *
- * Depending on the environment this package is used in, process.env may not be available. This function
- * wraps `process.env` accesses in a try/catch to prevent runtime errors in environments where process
- * is not defined.
- *
- * The reason that this is just a try/catch and not a dynamic check e.g. `process &&
- * process.env[key]` is that many bundlers implement `process.env.WHATEVER` using compile-time
- * string replacement, rather than actually creating a runtime implementation of a `process` object.
- *
- * @param cb - Callback function that accesses an environment variable
- * @returns The environment variable value if available, otherwise undefined
- * @internal
- */
+// Bundlers often inline `process.env.X` by string replacement rather than providing a
+// runtime `process`, so a `typeof process` guard would defeat them; a try/catch does not.
 function getEnv(cb: () => string | undefined): string | undefined {
 	try {
 		return cb()
@@ -121,9 +108,9 @@ export function useSyncDemo(
 		assets,
 		onMount: useCallback(
 			(editor: Editor) => {
-				editor.registerExternalAssetHandler('url', async ({ url }) => {
-					return await createAssetFromUrlUsingDemoServer(host, url)
-				})
+				editor.registerExternalAssetHandler('url', ({ url }) =>
+					createAssetFromUrlUsingDemoServer(host, url)
+				)
 			},
 			[host]
 		),
@@ -131,16 +118,7 @@ export function useSyncDemo(
 	})
 }
 
-/**
- * Determines whether file uploads should be disabled for a given host.
- *
- * Uploads are disabled for production tldraw domains to prevent abuse of the demo server
- * infrastructure. This includes tldraw.com and tldraw.xyz domains and their subdomains.
- *
- * @param host - The host URL to check for upload restrictions
- * @returns True if uploads should be disabled, false otherwise
- * @internal
- */
+// Uploads from production tldraw domains would let the demo server be abused.
 function shouldDisallowUploads(host: string) {
 	const disallowedHosts = ['tldraw.com', 'tldraw.xyz']
 	return disallowedHosts.some(
@@ -148,33 +126,6 @@ function shouldDisallowUploads(host: string) {
 	)
 }
 
-/**
- * Creates an asset store implementation optimized for the tldraw demo server.
- *
- * This asset store handles file uploads to the demo server and provides intelligent
- * asset resolution with automatic image optimization based on network conditions,
- * screen density, and display size. It includes safeguards to prevent uploads to
- * production domains and optimizes images through the tldraw image processing service.
- *
- * @param host - The demo server host URL for file uploads and asset resolution
- * @returns A TLAssetStore implementation with upload and resolve capabilities
- * @example
- * ```ts
- * const assetStore = createDemoAssetStore('https://demo.tldraw.xyz')
- *
- * // Upload a file
- * const result = await assetStore.upload(asset, file)
- * console.log('Uploaded to:', result.src)
- *
- * // Resolve optimized asset URL
- * const optimizedUrl = assetStore.resolve(imageAsset, {
- *   steppedScreenScale: 1.5,
- *   dpr: 2,
- *   networkEffectiveType: '4g'
- * })
- * ```
- * @internal
- */
 function createDemoAssetStore(host: string): TLAssetStore {
 	return {
 		upload: async (_asset, file) => {
@@ -182,48 +133,35 @@ function createDemoAssetStore(host: string): TLAssetStore {
 				alert('Uploading images is disabled in this demo.')
 				throw new Error('Uploading images is disabled in this demo.')
 			}
-			const id = uniqueId()
-
-			const objectName = `${id}-${file.name}`.replace(/\W/g, '-')
+			const objectName = `${uniqueId()}-${file.name}`.replace(/\W/g, '-')
 			const url = `${host}/uploads/${objectName}`
-
-			await fetch(url, {
-				method: 'POST',
-				body: file,
-			})
-
+			await fetch(url, { method: 'POST', body: file })
 			return { src: url }
 		},
 
 		resolve(asset, context) {
-			if (!asset.props.src) return null
+			const { src } = asset.props
+			if (!src) return null
 
 			// We don't deal with videos at the moment.
-			if (asset.type === 'video') return asset.props.src
-
-			// Assert it's an image to make TS happy.
+			if (asset.type === 'video') return src
 			if (asset.type !== 'image') return null
 
 			// Don't try to transform data: URLs, yikes.
-			if (!asset.props.src.startsWith('http:') && !asset.props.src.startsWith('https:'))
-				return asset.props.src
+			if (!src.startsWith('http:') && !src.startsWith('https:')) return src
+			if (context.shouldResolveToOriginal) return src
 
-			if (context.shouldResolveToOriginal) return asset.props.src
+			// Don't try to transform animated or vector images.
+			if (MediaHelpers.isAnimatedImageType(asset.props.mimeType) || asset.props.isAnimated)
+				return src
+			if (MediaHelpers.isVectorImageType(asset.props.mimeType)) return src
 
-			// Don't try to transform animated images.
-			if (MediaHelpers.isAnimatedImageType(asset?.props.mimeType) || asset.props.isAnimated)
-				return asset.props.src
-
-			// Don't try to transform vector images.
-			if (MediaHelpers.isVectorImageType(asset?.props.mimeType)) return asset.props.src
-
-			const url = new URL(asset.props.src)
+			const url = new URL(src)
 
 			// we only transform images that are hosted on domains we control
 			const isTldrawImage =
 				url.origin === host || /\.tldraw\.(?:com|xyz|dev|workers\.dev)$/.test(url.host)
-
-			if (!isTldrawImage) return asset.props.src
+			if (!isTldrawImage) return src
 
 			// Assets that are under a certain file size aren't worth transforming (and incurring cost).
 			// We still send them through the image worker to get them optimized though.
@@ -251,76 +189,33 @@ function createDemoAssetStore(host: string): TLAssetStore {
 				url.searchParams.set('w', width.toString())
 			}
 
-			const newUrl = `${IMAGE_WORKER}/${url.host}/${url.toString().slice(url.origin.length + 1)}`
-			return newUrl
+			return `${IMAGE_WORKER}/${url.host}/${url.toString().slice(url.origin.length + 1)}`
 		},
 	}
 }
 
-/**
- * Creates a bookmark asset by fetching metadata from a URL using the demo server.
- *
- * This function uses the demo server's bookmark unfurling service to extract metadata
- * like title, description, favicon, and preview image from a given URL. If the metadata
- * fetch fails, it returns a blank bookmark asset with just the URL.
- *
- * @param host - The demo server host URL to use for bookmark unfurling
- * @param url - The URL to create a bookmark asset from
- * @returns A promise that resolves to a TLAsset of type 'bookmark' with extracted metadata
- * @example
- * ```ts
- * const asset = await createAssetFromUrlUsingDemoServer(
- *   'https://demo.tldraw.xyz',
- *   'https://example.com'
- * )
- *
- * console.log(asset.props.title) // "Example Domain"
- * console.log(asset.props.description) // "This domain is for use in illustrative examples..."
- * ```
- * @internal
- */
 async function createAssetFromUrlUsingDemoServer(host: string, url: string): Promise<TLAsset> {
-	const urlHash = getHashForString(url)
+	let meta: { description?: string; image?: string; favicon?: string; title?: string } | null = null
 	try {
-		// First, try to get the meta data from our endpoint
 		const fetchUrl = new URL(`${host}/bookmarks/unfurl`)
 		fetchUrl.searchParams.set('url', url)
-
-		const meta = (await (await fetch(fetchUrl, { method: 'POST' })).json()) as {
-			description?: string
-			image?: string
-			favicon?: string
-			title?: string
-		} | null
-
-		return {
-			id: AssetRecordType.createId(urlHash),
-			typeName: 'asset',
-			type: 'bookmark',
-			props: {
-				src: url,
-				description: meta?.description ?? '',
-				image: meta?.image ?? '',
-				favicon: meta?.favicon ?? '',
-				title: meta?.title ?? '',
-			},
-			meta: {},
-		}
+		meta = await (await fetch(fetchUrl, { method: 'POST' })).json()
 	} catch (error) {
-		// Otherwise, fallback to a blank bookmark
+		// Fall back to a blank bookmark
 		console.error(error)
-		return {
-			id: AssetRecordType.createId(urlHash),
-			typeName: 'asset',
-			type: 'bookmark',
-			props: {
-				src: url,
-				description: '',
-				image: '',
-				favicon: '',
-				title: '',
-			},
-			meta: {},
-		}
+	}
+
+	return {
+		id: AssetRecordType.createId(getHashForString(url)),
+		typeName: 'asset',
+		type: 'bookmark',
+		props: {
+			src: url,
+			description: meta?.description ?? '',
+			image: meta?.image ?? '',
+			favicon: meta?.favicon ?? '',
+			title: meta?.title ?? '',
+		},
+		meta: {},
 	}
 }

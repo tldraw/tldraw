@@ -76,27 +76,17 @@ class __Atom__<Value, Diff = unknown> implements Atom<Value, Diff> {
 		private current: Value,
 		options?: AtomOptions<Value, Diff>
 	) {
-		this.isEqual = options?.isEqual ?? null
-
-		if (!options) return
-
-		if (options.historyLength) {
+		this.isEqual = options?.isEqual ?? equals
+		if (options?.historyLength) {
 			this.historyBuffer = new HistoryBuffer(options.historyLength)
 		}
-
-		this.computeDiff = options.computeDiff
+		this.computeDiff = options?.computeDiff
 	}
 
-	/**
-	 * Custom equality function for comparing values, or null to use default equality.
-	 * @internal
-	 */
-	readonly isEqual: null | ((a: any, b: any) => boolean)
+	/** @internal */
+	readonly isEqual: (a: any, b: any) => boolean
 
-	/**
-	 * Optional function to compute diffs between old and new values.
-	 * @internal
-	 */
+	/** @internal */
 	computeDiff?: ComputeDiff<Value, Diff>
 
 	/**
@@ -111,18 +101,13 @@ class __Atom__<Value, Diff = unknown> implements Atom<Value, Diff> {
 	 */
 	children = new ArraySet<Child>()
 
-	/**
-	 * Optional history buffer for tracking changes over time.
-	 * @internal
-	 */
+	/** @internal */
 	historyBuffer?: HistoryBuffer<Diff>
 
 	/**
 	 * Gets the current value without capturing it as a dependency in the current reactive context.
-	 * This is unsafe because it breaks the reactivity chain - use with caution.
 	 *
-	 * @param _ignoreErrors - Unused parameter for API compatibility
-	 * @returns The current value
+	 * @param _ignoreErrors - Unused; atoms cannot throw. Kept for {@link Signal} compatibility.
 	 * @internal
 	 */
 	__unsafe__getWithoutCapture(_ignoreErrors?: boolean): Value {
@@ -158,8 +143,7 @@ class __Atom__<Value, Diff = unknown> implements Atom<Value, Diff> {
 	 * ```
 	 */
 	set(value: Value, diff?: Diff): Value {
-		// If the value has not changed, do nothing.
-		if (this.isEqual?.(this.current, value) ?? equals(this.current, value)) {
+		if (this.isEqual(this.current, value)) {
 			return this.current
 		}
 
@@ -169,7 +153,6 @@ class __Atom__<Value, Diff = unknown> implements Atom<Value, Diff> {
 		advanceGlobalEpoch()
 		const epoch = getGlobalEpoch()
 
-		// Add the diff to the history buffer.
 		if (this.historyBuffer) {
 			this.historyBuffer.pushEntry(
 				this.lastChangedEpoch,
@@ -178,13 +161,11 @@ class __Atom__<Value, Diff = unknown> implements Atom<Value, Diff> {
 			)
 		}
 
-		// Update the atom's record of the epoch when last changed.
 		this.lastChangedEpoch = epoch
 
 		const oldValue = this.current
 		this.current = value
 
-		// Notify all children that this atom has changed.
 		atomDidChange(this as any, oldValue)
 
 		return value
@@ -216,7 +197,6 @@ class __Atom__<Value, Diff = unknown> implements Atom<Value, Diff> {
 	getDiffSince(epoch: number): RESET_VALUE | Diff[] {
 		maybeCaptureParent(this)
 
-		// If no changes have occurred since the given epoch, return an empty array.
 		if (epoch >= this.lastChangedEpoch) {
 			return EMPTY_ARRAY
 		}

@@ -14,6 +14,9 @@ export const ARRAY_SIZE_THRESHOLD = 8
 /**
  * An ArraySet operates as an array until it reaches a certain size, after which a Set is used
  * instead. In either case, the same methods are used to get, set, remove, and visit the items.
+ *
+ * Exactly one of `array` or `set` is non-null at any time; once promoted to a Set it never
+ * goes back.
  * @internal
  */
 export class ArraySet<T> {
@@ -30,15 +33,7 @@ export class ArraySet<T> {
 	 */
 	// eslint-disable-next-line tldraw/no-setter-getter
 	get isEmpty() {
-		if (this.array) {
-			return this.arraySize === 0
-		}
-
-		if (this.set) {
-			return this.set.size === 0
-		}
-
-		throw new Error('no set or array')
+		return this.array ? this.arraySize === 0 : this.set!.size === 0
 	}
 
 	/**
@@ -56,42 +51,28 @@ export class ArraySet<T> {
 	 */
 	add(elem: T) {
 		if (this.array) {
-			const idx = this.array.indexOf(elem)
-
-			// Return false if the element is already in the array.
-			if (idx !== -1) {
+			if (this.array.indexOf(elem) !== -1) {
 				return false
 			}
 
 			if (this.arraySize < ARRAY_SIZE_THRESHOLD) {
-				// If the array is below the size threshold, push items into the array.
-
-				// Insert the element into the array's next available slot.
 				this.array[this.arraySize] = elem
 				this.arraySize++
-
-				return true
 			} else {
-				// If the array is full, convert it to a set and remove the array.
 				this.set = new Set(this.array as any)
 				this.array = null
 				this.set.add(elem)
-
-				return true
-			}
-		}
-
-		if (this.set) {
-			// Return false if the element is already in the set.
-			if (this.set.has(elem)) {
-				return false
 			}
 
-			this.set.add(elem)
 			return true
 		}
 
-		throw new Error('no set or array')
+		if (this.set!.has(elem)) {
+			return false
+		}
+
+		this.set!.add(elem)
+		return true
 	}
 
 	/**
@@ -112,36 +93,19 @@ export class ArraySet<T> {
 		if (this.array) {
 			const idx = this.array.indexOf(elem)
 
-			// If the item is not in the array, return false.
 			if (idx === -1) {
 				return false
 			}
 
-			this.array[idx] = undefined
+			// Keep the array packed by moving the last item into the removed slot.
 			this.arraySize--
-
-			if (idx !== this.arraySize) {
-				// If the item is not the last item in the array, move the last item into the
-				// removed item's slot.
-				this.array[idx] = this.array[this.arraySize]
-				this.array[this.arraySize] = undefined
-			}
+			this.array[idx] = this.array[this.arraySize]
+			this.array[this.arraySize] = undefined
 
 			return true
 		}
 
-		if (this.set) {
-			// If the item is not in the set, return false.
-			if (!this.set.has(elem)) {
-				return false
-			}
-
-			this.set.delete(elem)
-
-			return true
-		}
-
-		throw new Error('no set or array')
+		return this.set!.delete(elem)
 	}
 
 	/**
@@ -172,13 +136,7 @@ export class ArraySet<T> {
 			return
 		}
 
-		if (this.set) {
-			this.set.forEach(visitor)
-
-			return
-		}
-
-		throw new Error('no set or array')
+		this.set!.forEach(visitor)
 	}
 
 	/**
@@ -207,10 +165,8 @@ export class ArraySet<T> {
 					yield elem
 				}
 			}
-		} else if (this.set) {
-			yield* this.set
 		} else {
-			throw new Error('no set or array')
+			yield* this.set!
 		}
 	}
 
@@ -229,11 +185,7 @@ export class ArraySet<T> {
 	 * ```
 	 */
 	has(elem: T) {
-		if (this.array) {
-			return this.array.indexOf(elem) !== -1
-		} else {
-			return this.set!.has(elem)
-		}
+		return this.array ? this.array.indexOf(elem) !== -1 : this.set!.has(elem)
 	}
 
 	/**
@@ -250,11 +202,11 @@ export class ArraySet<T> {
 	 * ```
 	 */
 	clear() {
-		if (this.set) {
-			this.set.clear()
-		} else {
+		if (this.array) {
 			this.arraySize = 0
 			this.array = []
+		} else {
+			this.set!.clear()
 		}
 	}
 
@@ -272,10 +224,6 @@ export class ArraySet<T> {
 	 * ```
 	 */
 	size() {
-		if (this.set) {
-			return this.set.size
-		} else {
-			return this.arraySize
-		}
+		return this.array ? this.arraySize : this.set!.size
 	}
 }

@@ -49,6 +49,23 @@ const MULTIPLAYER_EVENT_NAME = 'multiplayer.client'
 
 const defaultCustomMessageHandler: TLCustomMessageHandler = () => {}
 
+const SYNC_ERROR_EVENT_NAMES: Record<string, string> = {
+	[TLSyncErrorCloseEventReason.NOT_FOUND]: 'room-not-found',
+	[TLSyncErrorCloseEventReason.FORBIDDEN]: 'forbidden',
+	[TLSyncErrorCloseEventReason.NOT_AUTHENTICATED]: 'not-authenticated',
+	[TLSyncErrorCloseEventReason.RATE_LIMITED]: 'rate-limited',
+}
+
+type SyncSocket = TLPersistentClientSocket<
+	TLSocketClientSentEvent<TLRecord>,
+	TLSocketServerSentEvent<TLRecord>
+>
+
+// The socket reports 'error' but the collaboration status only knows 'offline'.
+function toCollaborationStatus(status: SyncSocket['connectionStatus']) {
+	return status === 'error' ? 'offline' : status
+}
+
 /**
  * A store wrapper specifically for remote collaboration that excludes local-only states.
  * This type represents a tldraw store that is synchronized with a remote multiplayer server.
@@ -196,9 +213,8 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		...schemaOpts
 	} = opts
 
-	// This line will throw a type error if we add any new options to the useSync hook but we don't destructure them
-	// This is required because otherwise the useTLSchemaFromUtils might return a new schema on every render if the newly-added option
-	// is allowed to be unstable
+	// Type error if a new option is added but not destructured above: an unstable option
+	// leaking into schemaOpts would make useTLSchemaFromUtils return a new schema every render.
 	const __never__: never = 0 as any as keyof Omit<typeof schemaOpts, keyof TLStoreSchemaOptions>
 
 	const resolvedThemes = resolveThemes(themes)
@@ -214,33 +230,26 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	useEffect(() => {
 		const storeId = uniqueId()
 
-		const users: Required<TLUserStore> = _users
-			? {
-					currentUser: _users.currentUser,
-					resolve:
-						_users.resolve ??
-						createCachedUserResolve((userId) => {
-							const current = _users.currentUser.get()
-							return current && current.id === createUserId(userId) ? current : null
-						}),
-				}
-			: {
-					currentUser: defaultUserStore.currentUser,
-					resolve: createCachedUserResolve((userId) => {
-						const current = defaultUserStore.currentUser.get()
-						if (current && current.id === createUserId(userId)) return current
-						const presences = store.query.records('instance_presence').get()
-						const match = presences.find((p) => p.userId === createUserId(userId))
-						if (match) {
-							return UserRecordType.create({
-								id: createUserId(userId),
-								name: match.userName,
-								color: match.color,
-							})
-						}
-						return null
-					}),
-				}
+		const currentUserSignal = _users?.currentUser ?? defaultUserStore.currentUser
+		const users: Required<TLUserStore> = {
+			currentUser: currentUserSignal,
+			resolve:
+				_users?.resolve ??
+				createCachedUserResolve((userId) => {
+					const id = createUserId(userId)
+					const current = currentUserSignal.get()
+					if (current && current.id === id) return current
+					// Only the default user store falls back to presence records for other users.
+					if (_users) return null
+					const match = store.query
+						.records('instance_presence')
+						.get()
+						.find((p) => p.userId === id)
+					return match
+						? UserRecordType.create({ id, name: match.userName, color: match.color })
+						: null
+				}),
+		}
 
 		// This always returns a non-null user for presence display, falling back
 		// to anonymous user preferences. The store receives the raw `users` object
@@ -257,43 +266,23 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			})
 		})
 
-		let socket: TLPersistentClientSocket<
-			TLSocketClientSentEvent<TLRecord>,
-			TLSocketServerSentEvent<TLRecord>
-		>
+		let socket: SyncSocket
 		if (connect) {
 			if (uri) {
 				throw new Error('uri and connect cannot be used together')
 			}
 
-			socket = connect({
-				sessionId: TAB_ID,
-				storeId,
-			}) as TLPersistentClientSocket<
-				TLSocketClientSentEvent<TLRecord>,
-				TLSocketServerSentEvent<TLRecord>
-			>
+			socket = connect({ sessionId: TAB_ID, storeId }) as SyncSocket
 		} else if (uri) {
-			if (connect) {
-				throw new Error('uri and connect cannot be used together')
-			}
-
 			socket = new ClientWebSocketAdapter(async () => {
-				const uriString = typeof uri === 'string' ? uri : await uri()
-
-				// set sessionId as a query param on the uri
-				const withParams = new URL(uriString)
-				if (withParams.searchParams.has('sessionId')) {
-					throw new Error(
-						'useSync. "sessionId" is a reserved query param name. Please use a different name'
-					)
+				const withParams = new URL(typeof uri === 'string' ? uri : await uri())
+				for (const param of ['sessionId', 'storeId']) {
+					if (withParams.searchParams.has(param)) {
+						throw new Error(
+							`useSync. "${param}" is a reserved query param name. Please use a different name`
+						)
+					}
 				}
-				if (withParams.searchParams.has('storeId')) {
-					throw new Error(
-						'useSync. "storeId" is a reserved query param name. Please use a different name'
-					)
-				}
-
 				withParams.searchParams.set('sessionId', TAB_ID)
 				withParams.searchParams.set('storeId', storeId)
 				return withParams.toString()
@@ -304,12 +293,12 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 
 		let didCancel = false
 
-		function getConnectionStatus() {
-			return socket.connectionStatus === 'error' ? 'offline' : socket.connectionStatus
-		}
-		const collaborationStatusSignal = atom('collaboration status', getConnectionStatus())
+		const collaborationStatusSignal = atom(
+			'collaboration status',
+			toCollaborationStatus(socket.connectionStatus)
+		)
 		const unsubscribeFromConnectionStatus = socket.onStatusChange(() => {
-			collaborationStatusSignal.set(getConnectionStatus())
+			collaborationStatusSignal.set(toCollaborationStatus(socket.connectionStatus))
 		})
 
 		const syncMode = atom('sync mode', 'readwrite' as 'readonly' | 'readwrite')
@@ -330,13 +319,9 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			getUserPresence,
 		})(store)
 
-		// Every connected session — each tab, window, or device — pushes its
-		// presence on connect, so the store holds one instance_presence record per
-		// *other* session in the room, including the user's own other tabs. (The
-		// server never echoes a session its own record.) So an empty set means
-		// we're genuinely the only session and can throttle to solo; any other
-		// session — another user, or just another tab of our own — keeps us at the
-		// full sync rate so edits propagate without the solo-mode lag.
+		// The server never echoes a session its own presence record, so the store holds
+		// one instance_presence per *other* session (including our own other tabs). Any
+		// other session keeps us at the full sync rate; solo mode would lag their edits.
 		const otherSessions = store.query.ids('instance_presence')
 
 		const presenceMode = computed<TLPresenceMode>('presenceMode', () => {
@@ -354,25 +339,10 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			},
 			onSyncError(reason) {
 				console.error('sync error', reason)
-
-				switch (reason) {
-					case TLSyncErrorCloseEventReason.NOT_FOUND:
-						track?.(MULTIPLAYER_EVENT_NAME, { name: 'room-not-found', roomId })
-						break
-					case TLSyncErrorCloseEventReason.FORBIDDEN:
-						track?.(MULTIPLAYER_EVENT_NAME, { name: 'forbidden', roomId })
-						break
-					case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED:
-						track?.(MULTIPLAYER_EVENT_NAME, { name: 'not-authenticated', roomId })
-						break
-					case TLSyncErrorCloseEventReason.RATE_LIMITED:
-						track?.(MULTIPLAYER_EVENT_NAME, { name: 'rate-limited', roomId })
-						break
-					default:
-						track?.(MULTIPLAYER_EVENT_NAME, { name: 'sync-error:' + reason, roomId })
-						break
-				}
-
+				track?.(MULTIPLAYER_EVENT_NAME, {
+					name: SYNC_ERROR_EVENT_NAMES[reason] ?? 'sync-error:' + reason,
+					roomId,
+				})
 				setState({ error: new TLRemoteSyncError(reason) })
 				socket.close()
 			},
@@ -384,12 +354,8 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				setState((prev) => ({ ...prev, objectAccess }))
 				transact(() => {
 					syncMode.set(isReadonly ? 'readonly' : 'readwrite')
-					// if the server crashes and loses all data it can return an empty document
-					// when it comes back up. This is a safety check to make sure that if something like
-					// that happens, it won't render the app broken and require a restart. The user will
-					// most likely lose all their changes though since they'll have been working with pages
-					// that won't exist. There's certainly something we can do to make this better.
-					// but the likelihood of this happening is very low and maybe not worth caring about beyond this.
+					// A server that lost its data can come back with an empty document; without
+					// this the app renders broken and needs a restart (edits are still lost).
 					store.ensureStoreIsUsable()
 				})
 			},
@@ -424,10 +390,9 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			if (!state) return { status: 'loading' }
 			if (state.error) return { status: 'error', error: state.error }
 			if (!state.readyClient) return { status: 'loading' }
-			const connectionStatus = state.readyClient.socket.connectionStatus
 			return {
 				status: 'synced-remote',
-				connectionStatus: connectionStatus === 'error' ? 'offline' : connectionStatus,
+				connectionStatus: toCollaborationStatus(state.readyClient.socket.connectionStatus),
 				store: state.readyClient.store,
 				objectAccess: state.objectAccess ?? 'write',
 			}

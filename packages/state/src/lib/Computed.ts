@@ -278,15 +278,11 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 				!haveParentsChanged(this))
 		) {
 			this.lastCheckedEpoch = globalEpoch
-			if (this.error) {
-				if (!ignoreErrors) {
-					throw this.error.thrownValue
-				} else {
-					return this.state // will be UNINITIALIZED
-				}
-			} else {
-				return this.state
+			if (this.error && !ignoreErrors) {
+				throw this.error.thrownValue
 			}
+			// state is UNINITIALIZED if there was an error
+			return this.state
 		}
 
 		try {
@@ -374,20 +370,29 @@ export const _Computed = singleton('Computed', () => __UNSAFE__Computed)
  */
 export type _Computed = InstanceType<typeof __UNSAFE__Computed>
 
-function computedMethodLegacyDecorator(
-	options: ComputedOptions<any, any> = {},
-	_target: any,
-	key: string,
-	descriptor: PropertyDescriptor
-) {
-	const originalMethod = descriptor.value
-	const derivationKey = Symbol.for('__@tldraw/state__computed__' + key)
+const isComputedMethodKey = '@@__isComputedMethod__@@'
 
-	descriptor.value = function (this: any) {
+function derivationKeyFor(name: string) {
+	return Symbol.for('__@tldraw/state__computed__' + name)
+}
+
+/**
+ * Builds the accessor installed by the `@computed` decorators: lazily creates one `_Computed`
+ * per instance (stored under a per-property symbol so {@link getComputedInstance} can find it)
+ * and returns its value.
+ */
+function makeComputedAccessor(
+	name: string,
+	compute: (...args: any[]) => any,
+	options: ComputedOptions<any, any> | undefined
+) {
+	const derivationKey = derivationKeyFor(name)
+
+	const accessor = function (this: any) {
 		let d = this[derivationKey] as Computed<any> | undefined
 
 		if (!d) {
-			d = new _Computed(key, originalMethod!.bind(this) as any, options)
+			d = new _Computed(name, compute.bind(this) as any, options)
 			Object.defineProperty(this, derivationKey, {
 				enumerable: false,
 				configurable: false,
@@ -397,66 +402,45 @@ function computedMethodLegacyDecorator(
 		}
 		return d.get()
 	}
+	return accessor as typeof accessor & { [isComputedMethodKey]?: true }
+}
+
+function computedMethodLegacyDecorator(
+	options: ComputedOptions<any, any> | undefined,
+	_target: any,
+	key: string,
+	descriptor: PropertyDescriptor
+) {
+	descriptor.value = makeComputedAccessor(key, descriptor.value, options)
 	descriptor.value[isComputedMethodKey] = true
 
 	return descriptor
 }
 
 function computedGetterLegacyDecorator(
-	options: ComputedOptions<any, any> = {},
+	options: ComputedOptions<any, any> | undefined,
 	_target: any,
 	key: string,
 	descriptor: PropertyDescriptor
 ) {
-	const originalMethod = descriptor.get
-	const derivationKey = Symbol.for('__@tldraw/state__computed__' + key)
-
-	descriptor.get = function (this: any) {
-		let d = this[derivationKey] as Computed<any> | undefined
-
-		if (!d) {
-			d = new _Computed(key, originalMethod!.bind(this) as any, options)
-			Object.defineProperty(this, derivationKey, {
-				enumerable: false,
-				configurable: false,
-				writable: false,
-				value: d,
-			})
-		}
-		return d.get()
-	}
+	descriptor.get = makeComputedAccessor(key, descriptor.get!, options)
 
 	return descriptor
 }
 
 function computedMethodTc39Decorator<This extends object, Value>(
-	options: ComputedOptions<Value, any>,
+	options: ComputedOptions<Value, any> | undefined,
 	compute: () => Value,
 	context: ClassMethodDecoratorContext<This, () => Value>
 ) {
 	assert(context.kind === 'method', '@computed can only be used on methods')
-	const derivationKey = Symbol.for('__@tldraw/state__computed__' + String(context.name))
-
-	const fn = function (this: any) {
-		let d = this[derivationKey] as Computed<any> | undefined
-
-		if (!d) {
-			d = new _Computed(String(context.name), compute.bind(this) as any, options)
-			Object.defineProperty(this, derivationKey, {
-				enumerable: false,
-				configurable: false,
-				writable: false,
-				value: d,
-			})
-		}
-		return d.get()
-	}
+	const fn = makeComputedAccessor(String(context.name), compute, options)
 	fn[isComputedMethodKey] = true
 	return fn
 }
 
 function computedDecorator(
-	options: ComputedOptions<any, any> = {},
+	options: ComputedOptions<any, any> | undefined,
 	args:
 		| [target: any, key: string, descriptor: PropertyDescriptor]
 		| [originalMethod: () => any, context: ClassMethodDecoratorContext]
@@ -474,8 +458,6 @@ function computedDecorator(
 		}
 	}
 }
-
-const isComputedMethodKey = '@@__isComputedMethod__@@'
 
 /**
  * Retrieves the underlying computed instance for a given property created with the `computed`
@@ -507,7 +489,7 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
 	obj: Obj,
 	propertyName: Prop
 ): Computed<Obj[Prop]> {
-	const key = Symbol.for('__@tldraw/state__computed__' + propertyName.toString())
+	const key = derivationKeyFor(propertyName.toString())
 	let inst = obj[key as keyof typeof obj] as Computed<Obj[Prop]> | undefined
 	if (!inst) {
 		// deref to make sure it exists first
@@ -653,17 +635,6 @@ export function computed<Value, Diff = unknown>(
 		context: ClassMethodDecoratorContext<This, () => Value>
 	) => () => Value)
 
-/**
- * Implementation function that handles all computed signal creation and decoration scenarios.
- * This function is overloaded to support multiple usage patterns:
- * - Creating computed signals directly
- * - Using as a TC39 decorator
- * - Using as a legacy decorator
- * - Using as a decorator factory with options
- *
- * @returns Either a computed signal instance or a decorator function depending on usage
- * @public
- */
 export function computed() {
 	if (arguments.length === 1) {
 		const options = arguments[0]

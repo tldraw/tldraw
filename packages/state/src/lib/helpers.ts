@@ -1,42 +1,23 @@
 import { Child, Signal } from './types'
 
-/**
- * Get whether the given value is a child.
- *
- * @param x The value to check.
- * @returns True if the value is a child, false otherwise.
- * @internal
- */
 function isChild(x: any): x is Child {
 	return x && typeof x === 'object' && 'parents' in x
 }
 
 /**
- * Checks if any of a child's parent signals have changed by comparing their current epochs
- * with the child's cached view of those epochs.
+ * Checks whether any of a child's parents have changed since the child last observed them,
+ * i.e. whether a computed or effect needs to re-run.
  *
- * This function is used internally to determine if a computed signal or effect needs to
- * be re-evaluated because one of its dependencies has changed.
- *
- * @param child - The child (computed signal or effect) to check for parent changes
- * @returns `true` if any parent signal has changed since the child last observed it, `false` otherwise
- * @example
- * ```ts
- * const childSignal = computed('child', () => parentAtom.get())
- * // Check if the child needs to recompute
- * if (haveParentsChanged(childSignal)) {
- *   // Recompute the child's value
- * }
- * ```
  * @internal
  */
 export function haveParentsChanged(child: Child): boolean {
-	for (let i = 0, n = child.parents.length; i < n; i++) {
-		// Get the parent's value without capturing it.
-		child.parents[i].__unsafe__getWithoutCapture(true)
+	const { parents, parentEpochs } = child
+	for (let i = 0, n = parents.length; i < n; i++) {
+		const parent = parents[i]
+		// Bring the parent up to date first; a stale computed parent's epoch would be stale too.
+		parent.__unsafe__getWithoutCapture(true)
 
-		// If the parent's epoch does not match the child's view of the parent's epoch, then the parent has changed.
-		if (child.parents[i].lastChangedEpoch !== child.parentEpochs[i]) {
+		if (parent.lastChangedEpoch !== parentEpochs[i]) {
 			return true
 		}
 	}
@@ -45,32 +26,16 @@ export function haveParentsChanged(child: Child): boolean {
 }
 
 /**
- * Detaches a child signal from its parent signal, removing the parent-child relationship
- * in the reactive dependency graph. If the parent has no remaining children and is itself
- * a child, it will recursively detach from its own parents.
+ * Removes the parent-child edge. If that leaves the parent with no children and the parent is
+ * itself a child, it detaches from its own parents so unobserved computeds don't stay attached.
  *
- * This function is used internally to clean up the dependency graph when signals are no
- * longer needed or when dependencies change.
- *
- * @param parent - The parent signal to detach from
- * @param child - The child signal to detach
- * @example
- * ```ts
- * // When a computed signal's dependencies change
- * const oldParent = atom('old', 1)
- * const child = computed('child', () => oldParent.get())
- * // Later, detach the child from the old parent
- * detach(oldParent, child)
- * ```
  * @internal
  */
 export function detach(parent: Signal<any>, child: Child) {
-	// If the child is not attached to the parent, do nothing.
 	if (!parent.children.remove(child)) {
 		return
 	}
 
-	// If the parent has no more children, then detach the parent from its parents.
 	if (parent.children.isEmpty && isChild(parent)) {
 		for (let i = 0, n = parent.parents.length; i < n; i++) {
 			detach(parent.parents[i], parent)
@@ -79,32 +44,16 @@ export function detach(parent: Signal<any>, child: Child) {
 }
 
 /**
- * Attaches a child signal to its parent signal, establishing a parent-child relationship
- * in the reactive dependency graph. If the parent is itself a child, it will recursively
- * attach to its own parents to maintain the dependency chain.
+ * Adds the parent-child edge. If the parent is itself a child, it attaches to its own parents
+ * too so the whole chain becomes actively listening.
  *
- * This function is used internally when dependencies are captured during computed signal
- * evaluation or effect execution.
- *
- * @param parent - The parent signal to attach to
- * @param child - The child signal to attach
- * @example
- * ```ts
- * // When a computed signal captures a new dependency
- * const parentAtom = atom('parent', 1)
- * const child = computed('child', () => parentAtom.get())
- * // Internally, attach is called to establish the dependency
- * attach(parentAtom, child)
- * ```
  * @internal
  */
 export function attach(parent: Signal<any>, child: Child) {
-	// If the child is already attached to the parent, do nothing.
 	if (!parent.children.add(child)) {
 		return
 	}
 
-	// If the parent itself is a child, add the parent to the parent's parents.
 	if (isChild(parent)) {
 		for (let i = 0, n = parent.parents.length; i < n; i++) {
 			attach(parent.parents[i], parent)
@@ -135,9 +84,9 @@ export function attach(parent: Signal<any>, child: Child) {
  * @internal
  */
 export function equals(a: any, b: any): boolean {
-	const shallowEquals =
+	return (
 		a === b || Object.is(a, b) || Boolean(a && b && typeof a.equals === 'function' && a.equals(b))
-	return shallowEquals
+	)
 }
 
 /**
@@ -167,25 +116,9 @@ export function equals(a: any, b: any): boolean {
 export declare function assertNever(x: never): never
 
 /**
- * Creates or retrieves a singleton instance using a global symbol registry.
- * This ensures that the same instance is shared across all code that uses
- * the same key, even across different module boundaries.
+ * Creates or retrieves a value stored on `globalThis` under a `Symbol.for` key, so that two
+ * copies of this module (e.g. duplicated bundles) still share the same instance.
  *
- * The singleton is stored on `globalThis` using a symbol created with
- * `Symbol.for()`, which ensures global uniqueness across realms.
- *
- * @param key - A unique string identifier for the singleton
- * @param init - A function that creates the initial value if it doesn't exist
- * @returns The singleton instance
- * @example
- * ```ts
- * // Create a singleton logger
- * const logger = singleton('logger', () => new Logger())
- *
- * // Elsewhere in the codebase, get the same logger instance
- * const sameLogger = singleton('logger', () => new Logger())
- * // logger === sameLogger
- * ```
  * @internal
  */
 export function singleton<T>(key: string, init: () => T): T {
