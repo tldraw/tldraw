@@ -22,7 +22,6 @@ export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 		try {
 			if (!user) return
 
-			// Store acceptance in user metadata
 			await user.update({
 				unsafeMetadata: {
 					...user.unsafeMetadata,
@@ -32,8 +31,7 @@ export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 			await user.reload()
 
 			onClose()
-		} catch (_e: any) {
-			const e = _e as any
+		} catch (e: any) {
 			setError(
 				e?.errors?.[0]?.longMessage ||
 					e?.errors?.[0]?.message ||

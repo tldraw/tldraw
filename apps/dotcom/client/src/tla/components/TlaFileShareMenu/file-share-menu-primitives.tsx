@@ -1,7 +1,6 @@
 import { ReactNode, useCallback, useState } from 'react'
 import { TlaButton } from '../TlaButton/TlaButton'
 
-// A button that copies something to the clipboard
 export function TlaShareMenuCopyButton({
 	children,
 	type = 'primary',
@@ -20,11 +19,7 @@ export function TlaShareMenuCopyButton({
 		await onClick()
 		setCopied(true)
 		setIsLoading(false)
-		const timeout = setTimeout(() => setCopied(false), 1000)
-		return () => {
-			setCopied(false)
-			clearTimeout(timeout)
-		}
+		setTimeout(() => setCopied(false), 1000)
 	}, [copied, onClick])
 
 	return (

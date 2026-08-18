@@ -74,7 +74,7 @@ import {
 import { PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
-import { getR2KeyForRoom, listAllObjectKeys } from './r2'
+import { deleteAllObjectsWithPrefix, getR2KeyForRoom } from './r2'
 import { RoomNotFoundError, shouldSkipMissingRoomEffect } from './roomEffectHelpers'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
@@ -382,18 +382,9 @@ export class TLFileDurableObject extends DurableObject {
 		return this._room
 	}
 
-	// For storage
 	storage: DurableObjectStorage
-
-	// For persistence
 	private _supabaseClient: SupabaseClient | undefined
-
-	// For analytics
 	measure: Analytics | undefined
-
-	// For error tracking
-	sentryDSN: string | undefined
-
 	readonly supabaseTable: string
 	readonly r2: {
 		readonly rooms: R2Bucket
@@ -432,8 +423,6 @@ export class TLFileDurableObject extends DurableObject {
 		return this._db
 	}
 
-	private readonly changeSource = 'TLFileDurableObject'
-
 	constructor(
 		private state: DurableObjectState,
 		override env: Environment
@@ -441,7 +430,6 @@ export class TLFileDurableObject extends DurableObject {
 		super(state, env)
 		this.id = state.id
 		this.storage = state.storage
-		this.sentryDSN = env.SENTRY_DSN
 		this.measure = env.MEASURE
 		this.sentry = createSentry(this.state, this.env)
 		this.log = new Logger(env, 'TLDrawDurableObject', this.sentry)
@@ -509,9 +497,9 @@ export class TLFileDurableObject extends DurableObject {
 	get documentInfo() {
 		return assertExists(this._documentInfo, 'documentInfo must be present')
 	}
-	setDocumentInfo(info: DocumentInfo) {
-		this._documentInfo = info
-		this.storage.put('documentInfo', info)
+	setDocumentInfo(info: Omit<DocumentInfo, 'version'>) {
+		this._documentInfo = { version: CURRENT_DOCUMENT_INFO_VERSION, ...info }
+		this.storage.put('documentInfo', this._documentInfo)
 	}
 	async extractDocumentInfoFromRequest(req: IRequest, roomOpenMode: RoomOpenMode) {
 		const slug = assertExists(
@@ -523,16 +511,10 @@ export class TLFileDurableObject extends DurableObject {
 		if (this._documentInfo) {
 			assert(this._documentInfo.slug === slug, 'slug must match')
 		} else {
-			this.setDocumentInfo({
-				version: CURRENT_DOCUMENT_INFO_VERSION,
-				slug,
-				isApp,
-				deleted: false,
-			})
+			this.setDocumentInfo({ slug, isApp, deleted: false })
 		}
 	}
 
-	// Handle a request to the Durable Object.
 	override async fetch(req: IRequest) {
 		const sentry = createSentry(this.state, this.env, req)
 
@@ -553,8 +535,6 @@ export class TLFileDurableObject extends DurableObject {
 			})
 		}
 	}
-
-	// --- WebSocket hibernation API handlers ---
 
 	private getSocketAttachment(ws: WebSocket): SocketAttachment | null {
 		return ws.deserializeAttachment() as SocketAttachment | null
@@ -741,6 +721,22 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
+	// Owner-level access: the file's direct owner, or a member of its owning group who can access
+	// files. Guests (share links) are handled by the callers.
+	private async hasOwnerAccess(
+		file: TlaFile,
+		userId: string | undefined,
+		groupCheckTimerName?: string
+	): Promise<boolean> {
+		if (!userId) return false
+		if (file.ownerId && file.ownerId === userId) return true
+		if (!file.owningGroupId) return false
+		const groupCheckTimer = groupCheckTimerName ? this.timer() : null
+		const role = await getRole(this.db, userId, file.owningGroupId)
+		groupCheckTimer?.report(groupCheckTimerName!)
+		return can(role, 'accessFiles')
+	}
+
 	async onRequest(req: IRequest, openMode: RoomOpenMode) {
 		const requestTimer = this.timer()
 
@@ -816,19 +812,11 @@ export class TLFileDurableObject extends DurableObject {
 				}
 				rateLimitTimer.report('on_request_rate_limit')
 
-				// Check if user has owner access (directly or via group membership)
-				let hasOwnerAccess = false
-				if (file.ownerId && file.ownerId === auth?.userId) {
-					hasOwnerAccess = true
-				} else if (file.owningGroupId && auth?.userId) {
-					// Check the user can access the owning group's files
-					const groupCheckTimer = this.timer()
-					const role = await getRole(this.db, auth.userId, file.owningGroupId)
-					if (can(role, 'accessFiles')) {
-						hasOwnerAccess = true
-					}
-					groupCheckTimer.report('on_request_group_check')
-				}
+				const hasOwnerAccess = await this.hasOwnerAccess(
+					file,
+					auth?.userId,
+					'on_request_group_check'
+				)
 
 				if (!hasOwnerAccess && !file.shared) {
 					return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
@@ -938,16 +926,7 @@ export class TLFileDurableObject extends DurableObject {
 			return new Response('Rate limited', { status: 429 })
 		}
 
-		let hasOwnerAccess = false
-		if (file.ownerId && file.ownerId === auth?.userId) {
-			hasOwnerAccess = true
-		} else if (file.owningGroupId && auth?.userId) {
-			const role = await getRole(this.db, auth.userId, file.owningGroupId)
-			if (can(role, 'accessFiles')) {
-				hasOwnerAccess = true
-			}
-		}
-		if (!hasOwnerAccess && !file.shared) {
+		if (!(await this.hasOwnerAccess(file, auth?.userId)) && !file.shared) {
 			return new Response('Forbidden', { status: 403 })
 		}
 
@@ -1642,7 +1621,6 @@ export class TLFileDurableObject extends DurableObject {
 						// alarm write per persist, not awaited here (see scheduleOgRender), so a slow or
 						// failed write cannot hold up a persist.
 						this.scheduleOgRender()
-						// Store the clock in DO storage so we can compare against SQLite on next load.
 						if (this.persistenceBad) {
 							this.broadcastPersistenceEvent({ type: 'persistence_good' })
 							this.persistenceBad = false
@@ -1712,14 +1690,11 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	private async _uploadSnapshotToR2(snapshot: RoomSnapshot, key: string) {
-		// Upload to rooms bucket first
 		const roomSizeMB = await this._uploadSnapshotToBucket(this.r2.rooms, snapshot, key)
-		// Update storage percentage
 		if (roomSizeMB !== null) {
 			await this.setRoomStorageUsedPercentage(roomSizeMB)
 		}
 
-		// Then upload to version cache
 		const versionKey = `${key}/${new Date().toISOString()}`
 		await this._uploadSnapshotToBucket(this.r2.versionCache, snapshot, versionKey)
 	}
@@ -1859,11 +1834,7 @@ export class TLFileDurableObject extends DurableObject {
 		const ids: string[] = []
 		for (const put of Object.values(diff.puts)) {
 			const record = (Array.isArray(put) ? put[1] : put) as { typeName: string; id: string }
-			if (
-				record.typeName === 'comment' ||
-				record.typeName === 'comment-thread' ||
-				record.typeName === 'comment-reaction'
-			) {
+			if ((OBJECT_TYPES as readonly string[]).includes(record.typeName)) {
 				ids.push(record.id)
 			}
 		}
@@ -2497,12 +2468,7 @@ export class TLFileDurableObject extends DurableObject {
 		if (!this._fileRecordCache) this._fileRecordCache = file
 
 		if (!this._documentInfo) {
-			this.setDocumentInfo({
-				version: CURRENT_DOCUMENT_INFO_VERSION,
-				slug: file.id,
-				isApp: true,
-				deleted: false,
-			})
+			this.setDocumentInfo({ slug: file.id, isApp: true, deleted: false })
 		}
 		try {
 			await this.getRoom()
@@ -2522,12 +2488,7 @@ export class TLFileDurableObject extends DurableObject {
 		}
 		this._fileRecordCache = file
 		if (!this._documentInfo) {
-			this.setDocumentInfo({
-				version: CURRENT_DOCUMENT_INFO_VERSION,
-				slug: file.id,
-				isApp: true,
-				deleted: false,
-			})
+			this.setDocumentInfo({ slug: file.id, isApp: true, deleted: false })
 		}
 
 		try {
@@ -2566,8 +2527,7 @@ export class TLFileDurableObject extends DurableObject {
 				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
 				continue
 			}
-			// allow the owner to stay connected
-			// Check if user owns the file directly
+			// the owner always stays connected
 			if (file.ownerId && session.meta.userId === file.ownerId) continue
 
 			const canAccessFiles = async () => {
@@ -2599,12 +2559,7 @@ export class TLFileDurableObject extends DurableObject {
 		// prevent new connections while we clean everything up. Fall back to the argument for the
 		// slug (an app file's slug is its id): a never-initialized room has no documentInfo, and
 		// delete must stay terminal for any DO state instead of tripping the asserting getter.
-		this.setDocumentInfo({
-			version: CURRENT_DOCUMENT_INFO_VERSION,
-			slug: this._documentInfo?.slug ?? id,
-			isApp: true,
-			deleted: true,
-		})
+		this.setDocumentInfo({ slug: this._documentInfo?.slug ?? id, isApp: true, deleted: true })
 
 		await this.executionQueue.push(async () => {
 			if (this._room) {
@@ -2630,23 +2585,11 @@ export class TLFileDurableObject extends DurableObject {
 					isApp: true,
 				})
 
-				const publishedHistory = await listAllObjectKeys(
-					this.env.ROOM_SNAPSHOTS,
-					publishedPrefixKey
-				)
-				if (publishedHistory.length > 0) {
-					await this.env.ROOM_SNAPSHOTS.delete(publishedHistory)
-				}
+				await deleteAllObjectsWithPrefix(this.env.ROOM_SNAPSHOTS, publishedPrefixKey)
 			}
 
-			// remove edit history
 			const r2Key = getR2KeyForRoom({ slug: id, isApp: true })
-			const editHistory = await listAllObjectKeys(this.env.ROOMS_HISTORY_EPHEMERAL, r2Key)
-			if (editHistory.length > 0) {
-				await this.env.ROOMS_HISTORY_EPHEMERAL.delete(editHistory)
-			}
-
-			// remove main file
+			await deleteAllObjectsWithPrefix(this.env.ROOMS_HISTORY_EPHEMERAL, r2Key)
 			await this.env.ROOMS.delete(r2Key)
 
 			// The board's thumbnails go with it. Both keys, because they are kept for different reasons
@@ -2753,12 +2696,7 @@ export class TLFileDurableObject extends DurableObject {
 
 	async __admin__hardDeleteIfLegacy() {
 		if (!this._documentInfo || this.documentInfo.deleted || this.documentInfo.isApp) return false
-		this.setDocumentInfo({
-			version: CURRENT_DOCUMENT_INFO_VERSION,
-			slug: this.documentInfo.slug,
-			isApp: false,
-			deleted: true,
-		})
+		this.setDocumentInfo({ slug: this.documentInfo.slug, isApp: false, deleted: true })
 		if (this._room) {
 			const room = await this.getRoom()
 			room.close()
@@ -2766,25 +2704,14 @@ export class TLFileDurableObject extends DurableObject {
 		const slug = this.documentInfo.slug
 		const roomKey = getR2KeyForRoom({ slug, isApp: false })
 
-		// remove edit history
-		const editHistory = await listAllObjectKeys(this.env.ROOMS_HISTORY_EPHEMERAL, roomKey)
-		if (editHistory.length > 0) {
-			await this.env.ROOMS_HISTORY_EPHEMERAL.delete(editHistory)
-		}
-
-		// remove main file
+		await deleteAllObjectsWithPrefix(this.env.ROOMS_HISTORY_EPHEMERAL, roomKey)
 		await this.env.ROOMS.delete(roomKey)
 
 		return true
 	}
 
 	async __admin__createLegacyRoom(id: string) {
-		this.setDocumentInfo({
-			version: CURRENT_DOCUMENT_INFO_VERSION,
-			slug: id,
-			isApp: false,
-			deleted: false,
-		})
+		this.setDocumentInfo({ slug: id, isApp: false, deleted: false })
 		const key = getR2KeyForRoom({ slug: id, isApp: false })
 		await this.r2.rooms.put(key, JSON.stringify(DEFAULT_INITIAL_SNAPSHOT))
 		await this.getRoom()

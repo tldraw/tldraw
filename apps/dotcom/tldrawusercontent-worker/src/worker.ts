@@ -41,7 +41,6 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			const objectName = request.params.objectName
 			const fileId = new URL(request.url).searchParams.get('fileId')
 
-			// For app file uploads, validate auth + file access before writing to R2.
 			let userId: string | null = null
 			if (fileId) {
 				const authHeader = request.headers.get('Authorization')
@@ -63,10 +62,8 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				objectName,
 			})
 
-			// Queue the DB association after successful upload.
-			// Wrapped in try/catch so a transient sync-worker failure doesn't
-			// turn a successful R2 upload into a 500. maybeAssociateFileAssets
-			// will pick up the association later if this fails.
+			// A transient sync-worker failure here must not turn a successful R2 upload
+			// into a 500; maybeAssociateFileAssets picks up the association later.
 			if (res.status === 200 && fileId) {
 				try {
 					await retry(

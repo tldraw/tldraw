@@ -175,5 +175,5 @@ export function updateLocalSessionState(
 }
 
 export function useLocalSessionState() {
-	return useValue('session', () => getLocalSessionState(), [])
+	return useValue('session', getLocalSessionState, [])
 }

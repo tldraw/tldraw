@@ -20,32 +20,41 @@ import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
-/** @internal */
-export const components: TLComponents = {
+const legacyComponents: TLComponents = {
 	ErrorFallback: TlaEditorErrorFallback,
 	MenuPanel: TlaEditorMenuPanel,
 	SharePanel: TlaEditorLegacySharePanel,
 	TopPanel: TlaEditorTopPanel,
 }
 
+/** A read-only editor over a static snapshot. Legacy snapshot pages use the default legacy
+ *  panels; history snapshot pages pass their own `components`. */
 export function TlaLegacySnapshotEditor({
 	snapshot,
 	fileSlug,
+	components = legacyComponents,
 }: {
 	fileSlug: string
 	snapshot: TLStoreSnapshot
+	components?: TLComponents
 }) {
 	return (
 		<>
 			<SneakySetDocumentTitle />
 			<ReadyWrapper key={fileSlug}>
-				<TlaEditorInner snapshot={snapshot} />
+				<TlaEditorInner snapshot={snapshot} components={components} />
 			</ReadyWrapper>
 		</>
 	)
 }
 
-function TlaEditorInner({ snapshot }: { snapshot: TLStoreSnapshot }) {
+function TlaEditorInner({
+	snapshot,
+	components,
+}: {
+	snapshot: TLStoreSnapshot
+	components: TLComponents
+}) {
 	const app = useMaybeApp()
 
 	const setIsReady = useSetIsReady()
@@ -61,7 +70,6 @@ function TlaEditorInner({ snapshot }: { snapshot: TLStoreSnapshot }) {
 		(editor: Editor) => {
 			;(window as any).app = editor
 			;(window as any).editor = editor
-			// Register the editor globally
 			globalEditor.set(editor)
 			editor.updateInstanceState({ isReadonly: true })
 			setIsReady()

@@ -61,8 +61,6 @@ export const BOARD_NOT_FOUND_MESSAGE =
 	'No board was found with this id, or this account does not have access to it. Boards you own, boards shared with you via link, and published boards are supported.'
 export const BOARD_EMPTY_MESSAGE = 'This board has no saved content yet.'
 
-// --- Reading a snapshot -------------------------------------------------------------------------
-
 /** What one shape's measure render produced: its page bounds, plus the text its ShapeUtil reported. */
 export interface ShapeMeasurement extends ClusterBounds {
 	text?: string
@@ -109,8 +107,6 @@ export function getShapesOnPage(snapshot: RoomSnapshot, pageId: string): TLShape
 		return false
 	})
 }
-
-// --- Input parsing ------------------------------------------------------------------------------
 
 export function parseBoardInfoInput(input: unknown): { boardId: string } {
 	const value = requireArgumentsObject(input)
@@ -221,8 +217,6 @@ export function describePageSelector(selector: PageSelector) {
 	return selector.kind === 'id' ? `"${selector.id}"` : String(selector.ordinal)
 }
 
-// --- Tool results -------------------------------------------------------------------------------
-
 export interface ToolResult {
 	content: Array<{ type: 'text'; text: string } | { type: 'image'; data: string; mimeType: string }>
 	isError?: boolean
@@ -249,8 +243,6 @@ export function toolJsonResult(value: unknown): ToolResult {
 		content: [{ type: 'text', text: JSON.stringify(value) }],
 	}
 }
-
-// --- The tools ----------------------------------------------------------------------------------
 
 export function getBoardInfo(snapshot: RoomSnapshot): ToolResult {
 	const pages = enumerateBoardPages(snapshot)
@@ -419,8 +411,6 @@ function toReadableShape(shape: TLShapeWithPlainText) {
 	return { ...rest, props }
 }
 
-// --- Tool definitions ---------------------------------------------------------------------------
-
 export function getToolDefinitions() {
 	return [
 		getBoardInfoToolDefinition(),
@@ -434,6 +424,12 @@ const BOARD_ID_PROPERTY = {
 	type: 'string',
 	description:
 		'The id of a tldraw.com board: the :slug of a file URL (https://www.tldraw.com/f/:slug) you own or that was shared with you, or of a published board URL (https://www.tldraw.com/p/:slug).',
+}
+
+const PAGE_PROPERTY = {
+	type: ['number', 'string'],
+	description: 'The page id or 0-based index from get_board_info. Defaults to 0, the first page.',
+	default: 0,
 }
 
 const READ_ONLY_ANNOTATIONS = {
@@ -472,12 +468,7 @@ function getPageInfoToolDefinition() {
 			additionalProperties: false,
 			properties: {
 				boardId: BOARD_ID_PROPERTY,
-				page: {
-					type: ['number', 'string'],
-					description:
-						'The page id or 0-based index from get_board_info. Defaults to 0, the first page.',
-					default: 0,
-				},
+				page: PAGE_PROPERTY,
 			},
 			required: ['boardId'],
 		},
@@ -496,12 +487,7 @@ function getClusterInfoToolDefinition() {
 			additionalProperties: false,
 			properties: {
 				boardId: BOARD_ID_PROPERTY,
-				page: {
-					type: ['number', 'string'],
-					description:
-						'The page id or 0-based index from get_board_info. Defaults to 0, the first page.',
-					default: 0,
-				},
+				page: PAGE_PROPERTY,
 				clusterId: {
 					type: 'string',
 					description: 'The id of the cluster to get info for.',
@@ -547,9 +533,7 @@ function getClusterScreenshotToolDefinition() {
 	}
 }
 
-// --- JSON-RPC -----------------------------------------------------------------------------------
-//
-// The protocol envelope, shared so that a local harness and the deployed Worker present the same
+// The JSON-RPC envelope, shared so that a local harness and the deployed Worker present the same
 // handshake — including `instructions`, which a model reads before it calls anything.
 
 export type JsonRpcId = string | number | null

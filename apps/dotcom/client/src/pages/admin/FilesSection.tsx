@@ -3,7 +3,13 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetch } from 'tldraw'
 import { AdminButton } from './AdminButton'
 import { FileStats } from './FileStats'
-import { formatBytes, StructuredDataDisplay } from './shared'
+import {
+	formatBytes,
+	formatTally,
+	getResponseError,
+	StructuredDataDisplay,
+	useTransientMessage,
+} from './shared'
 import styles from './admin.module.css'
 
 export function FilesSection() {
@@ -122,7 +128,7 @@ function ResolveDoId() {
 			// the server resolves either form and returns the canonical object id
 			const res = await fetch(`/api/app/admin/resolve-do-id/${encodeURIComponent(idOrSlug)}`)
 			if (!res.ok) {
-				setError(res.statusText + ': ' + (await res.text()))
+				setError(await getResponseError(res))
 				return
 			}
 			setResult(await res.json())
@@ -179,7 +185,7 @@ function ResolveDoId() {
 				method: 'POST',
 			})
 			if (!res.ok) {
-				setError(res.statusText + ': ' + (await res.text()))
+				setError(await getResponseError(res))
 				return
 			}
 			// re-resolve the same object so the socket count and verdict reflect the drain
@@ -276,7 +282,7 @@ function WelcomeTemplate() {
 	)
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState(null as string | null)
-	const [successMessage, setSuccessMessage] = useState(null as string | null)
+	const [successMessage, setSuccessMessage] = useTransientMessage()
 
 	const load = useCallback(async () => {
 		setIsLoading(true)
@@ -284,7 +290,7 @@ function WelcomeTemplate() {
 		try {
 			const res = await fetch('/api/app/admin/welcome-template')
 			if (!res.ok) {
-				setError(res.statusText + ': ' + (await res.text()))
+				setError(await getResponseError(res))
 				return
 			}
 			setCurrent(await res.json())
@@ -314,7 +320,7 @@ function WelcomeTemplate() {
 				body: JSON.stringify({ fileId }),
 			})
 			if (!res.ok) {
-				setError(res.statusText + ': ' + (await res.text()))
+				setError(await getResponseError(res))
 				return
 			}
 			setCurrent(await res.json())
@@ -323,7 +329,7 @@ function WelcomeTemplate() {
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to set welcome template')
 		}
-	}, [])
+	}, [setSuccessMessage])
 
 	const onClear = useCallback(async () => {
 		if (
@@ -335,7 +341,7 @@ function WelcomeTemplate() {
 		try {
 			const res = await fetch('/api/app/admin/welcome-template/clear', { method: 'POST' })
 			if (!res.ok) {
-				setError(res.statusText + ': ' + (await res.text()))
+				setError(await getResponseError(res))
 				return
 			}
 			setCurrent(null)
@@ -343,14 +349,7 @@ function WelcomeTemplate() {
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to clear welcome template')
 		}
-	}, [])
-
-	useEffect(() => {
-		if (successMessage) {
-			const timer = setTimeout(() => setSuccessMessage(null), 3000)
-			return () => clearTimeout(timer)
-		}
-	}, [successMessage])
+	}, [setSuccessMessage])
 
 	return (
 		<div className={styles.fileOperation}>
@@ -393,7 +392,7 @@ function WelcomeTemplate() {
 function HardDeleteFile() {
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [error, setError] = useState(null as string | null)
-	const [successMessage, setSuccessMessage] = useState(null as string | null)
+	const [successMessage, setSuccessMessage] = useTransientMessage()
 
 	const onDelete = useCallback(async () => {
 		const fileId = inputRef.current?.value
@@ -416,21 +415,12 @@ function HardDeleteFile() {
 			method: 'POST',
 		})
 		if (!res.ok) {
-			setError(res.statusText + ': ' + (await res.text()))
+			setError(await getResponseError(res))
 			return
-		} else {
-			setSuccessMessage('File deleted successfully! 🧹')
-			inputRef.current!.value = ''
 		}
-	}, [])
-
-	// Clear success message after 3 seconds
-	useEffect(() => {
-		if (successMessage) {
-			const timer = setTimeout(() => setSuccessMessage(null), 3000)
-			return () => clearTimeout(timer)
-		}
-	}, [successMessage])
+		setSuccessMessage('File deleted successfully! 🧹')
+		inputRef.current!.value = ''
+	}, [setSuccessMessage])
 
 	return (
 		<div className={styles.dangerZone}>
@@ -448,11 +438,9 @@ function HardDeleteFile() {
 
 function CreateLegacyFile() {
 	const [isCreating, setIsCreating] = useState(false)
-	const [successMessage, setSuccessMessage] = useState(null as string | null)
 
 	const handleCreate = useCallback(async () => {
 		setIsCreating(true)
-		setSuccessMessage(null)
 		try {
 			const res = await fetch(`/api/app/admin/create_legacy_file`, { method: 'POST' })
 			const { slug } = await res.json()
@@ -464,17 +452,8 @@ function CreateLegacyFile() {
 		}
 	}, [])
 
-	// Clear success message after 3 seconds
-	useEffect(() => {
-		if (successMessage) {
-			const timer = setTimeout(() => setSuccessMessage(null), 3000)
-			return () => clearTimeout(timer)
-		}
-	}, [successMessage])
-
 	return (
 		<div className={styles.fileOperation}>
-			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
 			<p>Creates an empty legacy multiplayer room and opens it.</p>
 			<AdminButton onClick={handleCreate} variant="primary" isLoading={isCreating}>
 				Create legacy file
@@ -487,11 +466,9 @@ function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [error, setError] = useState(null as string | null)
 	const [isDownloading, setIsDownloading] = useState(false)
-	const [successMessage, setSuccessMessage] = useState(null as string | null)
 
 	const onDownload = useCallback(async () => {
 		setError(null)
-		setSuccessMessage(null)
 		const fileSlug = inputRef.current?.value
 		if (!fileSlug) {
 			setError('Please enter a file slug')
@@ -503,11 +480,10 @@ function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 		try {
 			const res = await fetch(`/api/app/admin/${path}/${fileSlug}`)
 			if (!res.ok) {
-				setError(res.statusText + ': ' + (await res.text()))
+				setError(await getResponseError(res))
 				return
 			}
 
-			// Create a blob from the response and trigger download
 			const blob = await res.blob()
 			const url = window.URL.createObjectURL(blob)
 			const a = document.createElement('a')
@@ -522,21 +498,12 @@ function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 		}
 	}, [legacy])
 
-	// Clear success message after 3 seconds
-	useEffect(() => {
-		if (successMessage) {
-			const timer = setTimeout(() => setSuccessMessage(null), 3000)
-			return () => clearTimeout(timer)
-		}
-	}, [successMessage])
-
 	return (
 		<div className={styles.fileOperation}>
 			<h4 className={styles.subTitle}>
 				{legacy ? 'Download legacy .tldr file' : 'Download .tldr file'}
 			</h4>
 			{error && <div className={styles.errorMessage}>{error}</div>}
-			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
 			<div className={styles.downloadContainer}>
 				<input type="text" placeholder="File ID" ref={inputRef} className={styles.searchInput} />
 				<AdminButton onClick={onDownload} variant="primary" isLoading={isDownloading}>
@@ -550,7 +517,7 @@ function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 function UndeleteFileById() {
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [error, setError] = useState(null as string | null)
-	const [successMessage, setSuccessMessage] = useState(null as string | null)
+	const [successMessage, setSuccessMessage] = useTransientMessage()
 	const [isLoading, setIsLoading] = useState(false)
 
 	const onUndelete = useCallback(async () => {
@@ -568,7 +535,7 @@ function UndeleteFileById() {
 				method: 'POST',
 			})
 			if (!res.ok) {
-				setError(res.statusText + ': ' + (await res.text()))
+				setError(await getResponseError(res))
 				return
 			}
 			setSuccessMessage('File undeleted')
@@ -576,14 +543,7 @@ function UndeleteFileById() {
 		} finally {
 			setIsLoading(false)
 		}
-	}, [])
-
-	useEffect(() => {
-		if (successMessage) {
-			const timer = setTimeout(() => setSuccessMessage(null), 3000)
-			return () => clearTimeout(timer)
-		}
-	}, [successMessage])
+	}, [setSuccessMessage])
 
 	return (
 		<div className={styles.fileOperation}>
@@ -618,7 +578,7 @@ function AssetDiagnostics() {
 		try {
 			const res = await fetch(`/api/app/admin/file-assets/${encodeURIComponent(slug)}`)
 			if (!res.ok) {
-				setError(res.statusText + ': ' + (await res.text()))
+				setError(await getResponseError(res))
 				return
 			}
 			setReport((await res.json()) as AdminFileAssetsResponseBody)
@@ -664,12 +624,7 @@ function AssetDiagnostics() {
 								[
 									'Shapes',
 									`${report.shapes.total}${
-										report.shapes.total > 0
-											? ` (${Object.entries(report.shapes.byType)
-													.sort((a, b) => b[1] - a[1])
-													.map(([type, count]) => `${count} ${type}`)
-													.join(', ')})`
-											: ''
+										report.shapes.total > 0 ? ` (${formatTally(report.shapes.byType)})` : ''
 									}`,
 								],
 								['Total assets', report.assets.total],

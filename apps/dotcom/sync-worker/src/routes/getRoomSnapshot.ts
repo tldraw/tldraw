@@ -7,6 +7,32 @@ import { createSupabaseClient, noSupabaseSorry } from '../utils/createSupabaseCl
 import { getSnapshotsTable } from '../utils/getSnapshotsTable'
 import { R2Snapshot } from './createRoomSnapshot'
 
+export async function getSnapshotFromR2(
+	env: Environment,
+	roomId: string
+): Promise<RoomSnapshot | undefined> {
+	const parentSlug = await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.get(roomId)
+	const object = await env.ROOM_SNAPSHOTS.get(
+		getR2KeyForSnapshot({ parentSlug, snapshotSlug: roomId, isApp: false })
+	)
+	if (!object) return undefined
+	return ((await object.json()) as R2Snapshot)?.drawing
+}
+
+// Snapshots created before the R2 store live in Supabase.
+export async function getSnapshotFromSupabase(
+	supabase: NonNullable<ReturnType<typeof createSupabaseClient>>,
+	env: Environment,
+	roomId: string
+): Promise<RoomSnapshot | undefined> {
+	const result = await supabase
+		.from(getSnapshotsTable(env))
+		.select('drawing')
+		.eq('slug', roomId)
+		.maybeSingle()
+	return result.data?.drawing as RoomSnapshot | undefined
+}
+
 function generateReponse(roomId: string, data: RoomSnapshot) {
 	return new Response(
 		JSON.stringify({
@@ -21,42 +47,18 @@ function generateReponse(roomId: string, data: RoomSnapshot) {
 	)
 }
 
-// Returns a snapshot of the room at a given point in time
 export async function getRoomSnapshot(request: IRequest, env: Environment): Promise<Response> {
 	const roomId = request.params.roomId
 	if (!roomId) return notFound()
 
-	// Get the parent slug if it exists
-	const parentSlug = await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.get(roomId)
+	const r2Data = await getSnapshotFromR2(env, roomId)
+	if (r2Data) return generateReponse(roomId, r2Data)
 
-	// Get the room snapshot from R2
-	const snapshot = await env.ROOM_SNAPSHOTS.get(
-		getR2KeyForSnapshot({ parentSlug, snapshotSlug: roomId, isApp: false })
-	)
-
-	if (snapshot) {
-		const data = ((await snapshot.json()) as R2Snapshot)?.drawing as RoomSnapshot
-		if (data) {
-			return generateReponse(roomId, data)
-		}
-	}
-
-	// If we can't find the snapshot in R2 then fallback to Supabase
-	// Create a supabase client
 	const supabase = createSupabaseClient(env)
 	if (!supabase) return noSupabaseSorry()
 
-	// Get the snapshot from the table
-	const supabaseTable = getSnapshotsTable(env)
-	const result = await supabase
-		.from(supabaseTable)
-		.select('drawing')
-		.eq('slug', roomId)
-		.maybeSingle()
-	const data = result.data?.drawing as RoomSnapshot
-
+	const data = await getSnapshotFromSupabase(supabase, env, roomId)
 	if (!data) return notFound()
 
-	// Send back the snapshot!
 	return generateReponse(roomId, data)
 }

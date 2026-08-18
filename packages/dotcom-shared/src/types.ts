@@ -38,8 +38,6 @@ export interface HistoryResponseBody {
 	hasMore: boolean
 }
 
-/* ----------------------- App ---------------------- */
-
 export interface CreateFilesRequestBody {
 	origin: string
 	snapshots: Snapshot[]
@@ -224,8 +222,6 @@ export interface SubmitFeedbackRequestBody {
 export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000
 
 export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persistence_bad' }
-
-/* ----------------------- Feature Flags ---------------------- */
 
 export const FEATURE_FLAG_KEYS = ['rum_enabled', 'commenting_enabled', 'mcp_server_access'] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]

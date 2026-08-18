@@ -43,11 +43,6 @@ export const DEFAULT_WELCOME_SNAPSHOT_ASSET_PATH = '/welcome-snapshot.json'
 // Callers JSON.parse a fresh object per seed, so no mutable snapshot is shared between rooms.
 let cachedWelcomeSnapshotJson: string | undefined
 
-/**
- * Load the committed default welcome `RoomSnapshot` from the ASSETS binding. The JSON text is
- * fetched once per isolate and cached; each call JSON.parses it afresh so every seeded room
- * gets its own mutable copy.
- */
 export async function loadDefaultWelcomeSnapshot(env: Environment): Promise<RoomSnapshot> {
 	if (cachedWelcomeSnapshotJson === undefined) {
 		// The host is ignored by the ASSETS binding, which matches on path only.

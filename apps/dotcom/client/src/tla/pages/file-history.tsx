@@ -1,5 +1,4 @@
 import { captureException } from '@sentry/react'
-import { type HistoryResponseBody } from '@tldraw/dotcom-shared'
 import { useEffect, useState } from 'react'
 import { useRouteError } from 'react-router-dom'
 import { BoardHistoryLog } from '../../components/BoardHistoryLog/BoardHistoryLog'
@@ -18,7 +17,7 @@ const { loader, useData } = defineLoader(async (args) => {
 	const data = await fetchHistory(fileSlug)
 	if (!data) return null
 
-	return { data, fileSlug } as { data: HistoryResponseBody; fileSlug: string }
+	return { data, fileSlug }
 })
 
 export { loader }
@@ -43,12 +42,10 @@ export function Component({ error: _error }: { error?: unknown }) {
 
 	useEffect(() => {
 		if (error && userId) {
-			// force sidebar open
 			toggleSidebar(true)
 		}
 	}, [error, userId])
 
-	// Initialize with first batch of data
 	useEffect(() => {
 		if (data?.data) {
 			setAllTimestamps(data.data.timestamps)
@@ -61,16 +58,11 @@ export function Component({ error: _error }: { error?: unknown }) {
 
 		setIsLoading(true)
 		try {
-			// Get the earliest timestamp from the current list
 			const earliestTimestamp = allTimestamps[allTimestamps.length - 1]
-
 			const newData = await fetchHistory(data.fileSlug, earliestTimestamp)
-
 			if (newData) {
-				// Filter out any timestamps that already exist to prevent duplicates
-				const uniqueNewTimestamps = newData.timestamps.filter(
-					(timestamp) => !allTimestamps.includes(timestamp)
-				)
+				const seen = new Set(allTimestamps)
+				const uniqueNewTimestamps = newData.timestamps.filter((timestamp) => !seen.has(timestamp))
 				setAllTimestamps((prev) => [...prev, ...uniqueNewTimestamps])
 				setHasMore(newData.hasMore)
 			}

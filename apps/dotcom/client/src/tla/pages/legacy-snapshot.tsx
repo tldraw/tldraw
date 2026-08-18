@@ -11,18 +11,7 @@ import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { TlaSidebarLayout } from '../layouts/TlaSidebarLayout/TlaSidebarLayout'
 import { toggleSidebar } from '../utils/local-session-state'
 
-/*
-When a signed in user visits a legacy snapshot, the room should still work as normal.
-The user should be able to interact with the snapshot in the same way as they used
-to be able to interact with the snapshot prior to botcom. In the application UI,
-the user should see the room as if it were owned by some other user. The share
-menu should be replaced with a "Slurp file" button.
-
-Slurping a file (or whatever) should create a new file in the user's account 
-with all of the data from the legacy shared room. The new copy should have no 
-relationship to the previous room, and the user should be able to edit it just
-like any other file.
-*/
+// Legacy snapshots behave like legacy rooms for signed-in users; see legacy-room.tsx.
 
 const { loader, useData } = defineLoader(async (args) => {
 	const roomId = args.params.roomId
@@ -71,32 +60,19 @@ export function Component({ error: _error }: { error?: unknown }) {
 
 	useEffect(() => {
 		if (error && userId) {
-			// force sidebar open
 			toggleSidebar(true)
 		}
 	}, [error, userId])
 
+	const content = error ? (
+		<TlaFileError error={error} />
+	) : (
+		<TlaLegacySnapshotEditor fileSlug={roomId} snapshot={snapshot} />
+	)
+
 	if (!userId) {
-		return (
-			<ReadyWrapper>
-				{error ? (
-					<TlaFileError error={error} />
-				) : (
-					<TlaAnonLayout>
-						<TlaLegacySnapshotEditor fileSlug={roomId} snapshot={snapshot} />
-					</TlaAnonLayout>
-				)}
-			</ReadyWrapper>
-		)
+		return <ReadyWrapper>{error ? content : <TlaAnonLayout>{content}</TlaAnonLayout>}</ReadyWrapper>
 	}
 
-	return (
-		<TlaSidebarLayout collapsible>
-			{error ? (
-				<TlaFileError error={error} />
-			) : (
-				<TlaLegacySnapshotEditor fileSlug={roomId} snapshot={snapshot} />
-			)}
-		</TlaSidebarLayout>
-	)
+	return <TlaSidebarLayout collapsible>{content}</TlaSidebarLayout>
 }

@@ -88,9 +88,21 @@ export async function isOgImageRepairOnCooldown(
 	// Fail open on a read error: the enqueue this gates needs the same bucket for its pending marker,
 	// so if R2 is genuinely down the ask fails and reports there rather than being silently skipped.
 	const existing = await env.THUMBNAILS.head(getOgImageRepairCooldownKey(board)).catch(() => null)
-	if (!existing) return false
-	const expiresAt = Number(existing.customMetadata?.expiresAt)
+	return isMarkerAlive(existing)
+}
+
+// The pending and repair-cooldown markers are empty objects whose lifetime lives in `expiresAt`
+// metadata, since the bucket has no expiration rule of its own.
+function isMarkerAlive(marker: R2Object | null): boolean {
+	if (!marker) return false
+	const expiresAt = Number(marker.customMetadata?.expiresAt)
 	return Number.isFinite(expiresAt) && expiresAt > Date.now()
+}
+
+function putMarker(bucket: R2Bucket, key: string, ttlMs: number) {
+	return bucket.put(key, new Uint8Array(), {
+		customMetadata: { expiresAt: String(Date.now() + ttlMs) },
+	})
 }
 
 export async function enqueueOgImageRender(
@@ -109,19 +121,11 @@ export async function enqueueOgImageRender(
 	if (!env.THUMBNAILS || !env.QUEUE) return 'unavailable'
 
 	const pendingKey = getOgImagePendingKey(board)
-	const existing = await env.THUMBNAILS.head(pendingKey)
-	if (existing) {
-		const expiresAt = Number(existing.customMetadata?.expiresAt)
-		if (Number.isFinite(expiresAt) && expiresAt > Date.now()) {
-			return 'already_pending'
-		}
+	if (isMarkerAlive(await env.THUMBNAILS.head(pendingKey))) {
+		return 'already_pending'
 	}
 
-	await env.THUMBNAILS.put(pendingKey, new Uint8Array(), {
-		customMetadata: {
-			expiresAt: String(Date.now() + OG_PENDING_MARKER_TTL_MS),
-		},
-	})
+	await putMarker(env.THUMBNAILS, pendingKey, OG_PENDING_MARKER_TTL_MS)
 
 	const message: OgImageRenderQueueMessage = {
 		type: 'og-image-render',
@@ -467,10 +471,12 @@ async function retryOrDrop(
 	// on a board that just proved it cannot render. Arm the repair cooldown instead — publish- and
 	// edit-triggered asks don't consult it, so a genuine republish still renders straight away. Best
 	// effort: a cooldown that fails to write costs extra renders, not the ack.
-	if (board.kind === 'published' && reason === 'crawler') {
-		await env.THUMBNAILS?.put(getOgImageRepairCooldownKey(board), new Uint8Array(), {
-			customMetadata: { expiresAt: String(Date.now() + OG_REPAIR_COOLDOWN_MS) },
-		}).catch(() => {})
+	if (board.kind === 'published' && reason === 'crawler' && env.THUMBNAILS) {
+		await putMarker(
+			env.THUMBNAILS,
+			getOgImageRepairCooldownKey(board),
+			OG_REPAIR_COOLDOWN_MS
+		).catch(() => {})
 	}
 	message.ack()
 }

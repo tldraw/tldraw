@@ -31,13 +31,9 @@ export async function resolveWelcomeSnapshot(
 		if (row?.publishedSlug) {
 			const published = await getPublishedRoomSnapshot(env, row.publishedSlug)
 			if (published) return published
-			// A template is configured but its published snapshot is gone — flag it, don't
-			// silently serve the default as if nothing were set.
 			reportError?.(new Error(`welcome template ${row.publishedSlug} has no published snapshot`))
 		}
 	} catch (e) {
-		// A configured template that fails to load, or a DB error reading the pointer — report
-		// it; only a genuinely-absent template should fall back silently.
 		reportError?.(e)
 	} finally {
 		await pg.destroy()
@@ -45,9 +41,6 @@ export async function resolveWelcomeSnapshot(
 	try {
 		return await loadDefaultWelcomeSnapshot(env)
 	} catch (e) {
-		// The default is a static-asset read that can fail (missing asset, transient fetch
-		// error). Report it — that's a broken deploy — but don't fail the seed: degrade to
-		// the empty-room seed, which the caller already knows may be the shared constant.
 		reportError?.(e)
 		return DEFAULT_INITIAL_SNAPSHOT
 	}

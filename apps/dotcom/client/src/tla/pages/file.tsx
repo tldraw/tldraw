@@ -27,7 +27,6 @@ export function Component({ error }: { error?: unknown }) {
 
 	useEffect(() => {
 		if (error && userId) {
-			// force sidebar open
 			toggleSidebar(true)
 		}
 	}, [error, userId])

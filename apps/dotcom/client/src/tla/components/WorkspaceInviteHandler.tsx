@@ -54,9 +54,7 @@ export function WorkspaceInviteHandler() {
 		const storedToken = getFromSessionStorage(SESSION_STORAGE_KEYS.WORKSPACE_INVITE_TOKEN)
 		if (!storedToken) return
 
-		// Only show when arriving from an invite link. The token can't gate this on
-		// its own: it outlives the dialog so a later sign-in still completes the
-		// join, whereas the marker is the ephemeral "show it now" signal.
+		// Only show when arriving from an invite link (see WORKSPACE_INVITE_QUERY_PARAM).
 		if (!searchParams.has(WORKSPACE_INVITE_QUERY_PARAM)) return
 
 		const controller = new AbortController()
@@ -126,7 +124,6 @@ export function WorkspaceInviteHandler() {
 				keepOpen: true,
 			})
 
-		// Fetch invite info from API
 		fetch(`/api/app/invite/${storedToken}`)
 			.then(async (res) => {
 				// 404 means the invite no longer resolves (link regenerated or workspace
@@ -150,7 +147,6 @@ export function WorkspaceInviteHandler() {
 					return
 				}
 
-				// Check if already a member
 				if (app.getWorkspaceMembership(data.workspaceId)) {
 					addToast({
 						id: 'workspace-invite-already-member',

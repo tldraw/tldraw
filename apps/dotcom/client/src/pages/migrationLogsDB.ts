@@ -9,7 +9,7 @@ let dbPromise: Promise<IDBPDatabase> | null = null
 function getDB(): Promise<IDBPDatabase> {
 	if (!dbPromise) {
 		dbPromise = openDB(DB_NAME, DB_VERSION, {
-			upgrade(db, _oldVersion, _newVersion, _transaction) {
+			upgrade(db) {
 				db.createObjectStore(STORE_NAME, {
 					keyPath: 'id',
 					autoIncrement: true,

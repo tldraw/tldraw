@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import {
 	Editor,
 	TLDRAW_FILE_EXTENSION,
-	TLStore,
 	TLUiOverrides,
 	downloadFile,
 	serializeTldrawJsonBlob,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useHandleUiEvents } from '../../../utils/analytics'
+import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useIntl, useMsg } from '../../utils/i18n'
 import { editorMessages as messages } from './editor-messages'
@@ -30,6 +30,20 @@ export async function downloadFileFromEditor(editor: Editor, name: string) {
 	downloadFile(file)
 }
 
+/** The app file record's name when there is one, else the document's, else the untitled fallback
+ *  (rather than the date the sidebar would show). */
+export function getEditorFileName(
+	app: TldrawApp | null,
+	fileSlug: string | undefined,
+	editor: Editor | null,
+	untitled: string
+) {
+	return (
+		((fileSlug ? app?.getFileName(fileSlug, false) : null) ?? editor?.getDocumentSettings().name) ||
+		untitled
+	)
+}
+
 export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 	const app = useMaybeApp()
 	const untitledProject = useMsg(messages.untitledProject)
@@ -38,16 +52,7 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 	const trackEvent = useHandleUiEvents()
 
 	const getFileName = useCallback(
-		(editor: Editor) => {
-			const documentName =
-				((fileSlug ? app?.getFileName(fileSlug, false) : null) ??
-					editor?.getDocumentSettings().name) ||
-				// rather than displaying the date for the project here, display Untitled project
-				untitledProject
-			const defaultName = saveFileNames.get(editor.store) || documentName
-
-			return defaultName
-		},
+		(editor: Editor) => getEditorFileName(app, fileSlug, editor, untitledProject),
 		[app, fileSlug, untitledProject]
 	)
 
@@ -109,6 +114,3 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 
 	return overrides
 }
-
-// A map of previously saved tldr file names, so we can suggest the same name next time
-const saveFileNames = new WeakMap<TLStore, string>()

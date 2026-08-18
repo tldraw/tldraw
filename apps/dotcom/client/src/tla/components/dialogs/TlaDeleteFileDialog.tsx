@@ -65,19 +65,17 @@ export function TlaDeleteFileDialog({
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
-				<>
-					{isOwner ? (
-						<F
-							defaultMessage="Are you sure you want to delete <strong>{fileName}</strong>?"
-							values={{ fileName, strong: (chunks) => <strong>{chunks}</strong> }}
-						/>
-					) : (
-						<F
-							defaultMessage="Are you sure you want to forget <strong>{fileName}</strong>?"
-							values={{ fileName, strong: (chunks) => <strong>{chunks}</strong> }}
-						/>
-					)}
-				</>
+				{isOwner ? (
+					<F
+						defaultMessage="Are you sure you want to delete <strong>{fileName}</strong>?"
+						values={{ fileName, strong: (chunks) => <strong>{chunks}</strong> }}
+					/>
+				) : (
+					<F
+						defaultMessage="Are you sure you want to forget <strong>{fileName}</strong>?"
+						values={{ fileName, strong: (chunks) => <strong>{chunks}</strong> }}
+					/>
+				)}
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				<TldrawUiButton type="normal" onClick={onClose}>

@@ -6,10 +6,7 @@
 // OG_PENDING_MARKER_TTL_MS against the retry chain (OG_MAX_RENDER_ATTEMPTS, OG_RETRY_DELAY_SECONDS
 // and the capture timeout), and a test in ogImageQueue.test.ts pins that inequality.
 
-/**
- * How often we the document to R2?
- * 8 seconds.
- */
+/** How often the document is persisted to R2. */
 export const PERSIST_INTERVAL_MS = 8_000
 
 /**
@@ -165,7 +162,4 @@ export const MCP_PER_BOARD_RATE_LIMIT = 2
 export const MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT = 20
 export const MCP_RATE_LIMIT_WINDOW_MS = 60_000
 
-/**
- * The URL of the PostHog instance to use.
- */
 export const POSTHOG_URL = 'https://eu.i.posthog.com'

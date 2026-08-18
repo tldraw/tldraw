@@ -10,29 +10,27 @@ import { IRequest } from 'itty-router'
 import { Environment } from '../types'
 import { getAuth } from './tla/getAuth'
 
-function getFlagDefaults(_env: Environment): Record<FeatureFlagKey, FeatureFlagValue> {
-	return {
-		rum_enabled: {
-			type: 'percentage',
-			percentage: 0,
-			enabled: false,
-			description: 'Real User Monitoring for editor performance metrics',
-		},
-		commenting_enabled: {
-			type: 'percentage',
-			percentage: 0,
-			enabled: false,
-			description:
-				'Commenting on files (tool, pins, threads, sidebar, notifications). Users with a @tldraw.com email always have it, regardless of this flag',
-		},
-		mcp_server_access: {
-			type: 'allowlist',
-			users: [],
-			enabled: false,
-			description:
-				'Access to the board screenshot MCP server at /api/app/mcp. Off by default: the endpoint requires auth, so an unset flag denies everyone rather than leaving it open',
-		},
-	}
+const FLAG_DEFAULTS: Record<FeatureFlagKey, FeatureFlagValue> = {
+	rum_enabled: {
+		type: 'percentage',
+		percentage: 0,
+		enabled: false,
+		description: 'Real User Monitoring for editor performance metrics',
+	},
+	commenting_enabled: {
+		type: 'percentage',
+		percentage: 0,
+		enabled: false,
+		description:
+			'Commenting on files (tool, pins, threads, sidebar, notifications). Users with a @tldraw.com email always have it, regardless of this flag',
+	},
+	mcp_server_access: {
+		type: 'allowlist',
+		users: [],
+		enabled: false,
+		description:
+			'Access to the board screenshot MCP server at /api/app/mcp. Off by default: the endpoint requires auth, so an unset flag denies everyone rather than leaving it open',
+	},
 }
 
 export { FEATURE_FLAG_KEYS } from '@tldraw/dotcom-shared'
@@ -52,14 +50,11 @@ export function hashToPercentage(userId: string, flagName: string): number {
 	return (hash >>> 0) % 100
 }
 
-/**
- * Get feature flag value from KV store
- */
 export async function getFeatureFlagValue(
 	env: Environment,
 	flag: FeatureFlagKey
 ): Promise<FeatureFlagValue> {
-	const defaults = getFlagDefaults(env)[flag]
+	const defaults = FLAG_DEFAULTS[flag]
 	try {
 		const value = await env.FEATURE_FLAGS.get(flag)
 		if (!value) {
@@ -82,10 +77,10 @@ export async function getFeatureFlagValue(
  * stored value getting a say in the answer.
  */
 export function getFeatureFlagType(
-	env: Environment,
+	_env: Environment,
 	flag: FeatureFlagKey
 ): FeatureFlagValue['type'] {
-	return getFlagDefaults(env)[flag].type
+	return FLAG_DEFAULTS[flag].type
 }
 
 /**
@@ -104,7 +99,6 @@ export function evaluateFlagForUser(
 	// be one the defaults table names — see getFeatureFlagValue.
 	switch (flag.type) {
 		case 'boolean':
-			// `enabled` is the whole evaluation, and it was checked above.
 			return true
 		case 'percentage':
 			if (!userId) return false
@@ -166,9 +160,7 @@ function expectFlagType<T extends FeatureFlagValue['type']>(
 	return current as Extract<FeatureFlagValue, { type: T }>
 }
 
-/**
- * Set feature flag value in KV store. Admin only.
- */
+/** Admin only. */
 export async function setFeatureFlag(
 	env: Environment,
 	flag: FeatureFlagKey,

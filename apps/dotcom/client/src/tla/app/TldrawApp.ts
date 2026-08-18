@@ -28,7 +28,6 @@ import {
 } from '@tldraw/dotcom-shared'
 import {
 	Result,
-	assert,
 	fetch,
 	isEqual,
 	promiseWithResolve,
@@ -43,7 +42,6 @@ import { useNavigate } from 'react-router-dom'
 import {
 	Atom,
 	Signal,
-	TLDocument,
 	TLSessionStateSnapshot,
 	TLUiToastsContextType,
 	TLUserPreferences,
@@ -184,7 +182,6 @@ export class TldrawApp {
 	changes: Map<Atom<any, unknown>, any> = new Map()
 	changesFlushed = null as null | ReturnType<typeof promiseWithResolve>
 
-	// Track new room creation timestamps and sources
 	private newRoomCreationStartTimes: Map<string, { startTime: number; source: string }> = new Map()
 
 	private signalizeQuery<TReturn>(name: string, query: any): Signal<TReturn> {
@@ -243,8 +240,6 @@ export class TldrawApp {
 		this.trackEvent = trackEvent
 		this.getToken = getToken
 		this.isCommentingEnabled = shouldEnableCommenting(flags, email).value
-		// Exposed as __test__triggerClientTooOld below so e2e can exercise the real recovery UI
-		// without a live schema/protocol mismatch against zero-cache.
 		if (window.navigator.webdriver) {
 			this.__test__triggerClientTooOld = () => onClientTooOld()
 		}
@@ -331,38 +326,18 @@ export class TldrawApp {
 		})
 		this.disposables.push(unsubscribe)
 
-		this.user$ = this.signalizeQuery('user signal', this.userQuery())
-		this.fileStates$ = this.signalizeQuery('file states signal', this.fileStateQuery())
+		this.user$ = this.signalizeQuery('user signal', queries.user())
+		this.fileStates$ = this.signalizeQuery('file states signal', queries.fileStates())
 		this.workspaceMemberships$ = this.signalizeQuery(
 			'workspace memberships signal',
-			this.workspaceMembershipsQuery()
+			queries.workspaceMemberships()
 		)
 		this.comments$ = this.isCommentingEnabled
-			? this.signalizeQuery('comments signal', this.commentsQuery())
+			? this.signalizeQuery('comments signal', queries.comments())
 			: null
 		this.reactions$ = this.isCommentingEnabled
-			? this.signalizeQuery('reactions signal', this.reactionsQuery())
+			? this.signalizeQuery('reactions signal', queries.reactions())
 			: null
-	}
-
-	private userQuery() {
-		return queries.user()
-	}
-
-	private fileStateQuery() {
-		return queries.fileStates()
-	}
-
-	private workspaceMembershipsQuery() {
-		return queries.workspaceMemberships()
-	}
-
-	private commentsQuery() {
-		return queries.comments()
-	}
-
-	private reactionsQuery() {
-		return queries.reactions()
 	}
 
 	/**
@@ -398,24 +373,21 @@ export class TldrawApp {
 	async preload() {
 		// Ensure user exists in DB before Zero can query
 		const token = await this.getToken()
-		if (!token) {
-			throw new Error('No auth token available for init')
-		} else {
-			const res = await fetch(`/api/app/${this.userId}/init`, {
-				method: 'POST',
-				headers: { Authorization: `Bearer ${token}` },
-			})
-			if (!res.ok) console.error(`Init failed: ${res.status}`)
-		}
-		await this.z.preload(this.userQuery()).complete
+		if (!token) throw new Error('No auth token available for init')
+		const res = await fetch(`/api/app/${this.userId}/init`, {
+			method: 'POST',
+			headers: { Authorization: `Bearer ${token}` },
+		})
+		if (!res.ok) console.error(`Init failed: ${res.status}`)
+		await this.z.preload(queries.user()).complete
 		await this.changesFlushed
 		await new Promise((resolve) => {
 			let unlisten = () => {}
 			unlisten = react('wait for user', () => this.user$.get() && resolve(unlisten()))
 		})
 		await Promise.all([
-			this.z.preload(this.fileStateQuery()).complete,
-			this.z.preload(this.workspaceMembershipsQuery()).complete,
+			this.z.preload(queries.fileStates()).complete,
+			this.z.preload(queries.workspaceMemberships()).complete,
 		])
 	}
 
@@ -490,7 +462,6 @@ export class TldrawApp {
 
 	dispose() {
 		this.disposables.forEach((d) => d())
-		// this.store.dispose()
 	}
 
 	getUser() {
@@ -562,10 +533,8 @@ export class TldrawApp {
 		pinned.sort(sortByMaybeIndex)
 
 		for (const file of unpinned) {
-			const existing = retainedOrdering?.find((f) => f.fileId === file.fileId)
-			if (existing) continue
+			if (retainedOrdering.some((f) => f.fileId === file.fileId)) continue
 
-			// For new files, use current updatedAt
 			const state = this.getFileState(file.fileId)
 			newOrdering.push({
 				fileId: file.fileId,
@@ -573,22 +542,14 @@ export class TldrawApp {
 			})
 		}
 
-		// Sort by date (most recent first) but only for new ordering
 		newOrdering.sort((a, b) => b.date - a.date)
 
 		const nextOrdering = [...newOrdering, ...retainedOrdering]
-		// Store the ordering for next time
 		this.lastWorkspaceFileOrderings.set(workspaceId, nextOrdering)
 
-		// Return the actual file objects in the stable order
 		return pinned
 			.map((f) => ({ fileId: f.fileId, isPinned: f.index !== null, date: f.file.updatedAt }))
 			.concat(nextOrdering.map((f) => ({ fileId: f.fileId, isPinned: false, date: f.date })))
-	}
-
-	// Clear workspace file ordering to refresh on expand (like recent files on page reload)
-	clearWorkspaceFileOrdering(workspaceId: string) {
-		this.lastWorkspaceFileOrderings.delete(workspaceId)
 	}
 
 	tlUser = createTLCurrentUser({
@@ -616,12 +577,7 @@ export class TldrawApp {
 	})
 
 	getUserOwnFiles() {
-		const fileStates = this.getUserFileStates()
-		const files: TlaFile[] = []
-		fileStates.forEach((f) => {
-			if (f.file) files.push(f.file)
-		})
-		return files
+		return this.getUserFileStates().flatMap((f) => (f.file ? [f.file] : []))
 	}
 
 	getUserFileStates() {
@@ -780,9 +736,6 @@ export class TldrawApp {
 		return Result.ok({ fileId })
 	}
 
-	/**
-	 * Get and remove the creation start time and source for a file (used for tracking new room creation duration)
-	 */
 	getAndClearNewRoomCreationStartTime(
 		fileId: string
 	): { startTime: number; source: string } | null {
@@ -793,9 +746,6 @@ export class TldrawApp {
 		return creationData
 	}
 
-	/**
-	 * Store new room creation timing data with analytics-friendly source mapping
-	 */
 	private storeNewRoomCreationTracking(
 		fileId: string,
 		createSource: string | null,
@@ -817,7 +767,6 @@ export class TldrawApp {
 			analyticsSource = 'other'
 		}
 
-		// Store the creation start time and source for tracking
 		this.newRoomCreationStartTimes.set(fileId, {
 			startTime,
 			source: analyticsSource,
@@ -840,7 +789,6 @@ export class TldrawApp {
 			// possibly a published file
 			return ''
 		}
-		assert(typeof file !== 'string', 'ok')
 
 		if (typeof file.name === 'undefined') {
 			captureException(new Error('file name is undefined somehow: ' + JSON.stringify(file)))
@@ -858,8 +806,8 @@ export class TldrawApp {
 		return
 	}
 
-	async slurpFile() {
-		return await this.createFile({
+	slurpFile() {
+		return this.createFile({
 			createSource: `${LOCAL_FILE_PREFIX}/${getScratchPersistenceKey()}`,
 		})
 	}
@@ -884,10 +832,9 @@ export class TldrawApp {
 		const file = this.getFile(fileId)
 		if (!file) throw Error(`No file with that id`)
 
-		// We're going to bake the name of the file, if it's undefined
+		// Bake in the fallback name so the published copy has one
 		const name = this.getFileName(file)
 
-		// Optimistic update
 		this.z.mutate.file.update({
 			id: fileId,
 			name,
@@ -898,11 +845,11 @@ export class TldrawApp {
 
 	getFile(fileId?: string): TlaFile | null {
 		if (!fileId) return null
-		return (
-			this.getWorkspaceMemberships()
-				.find((g) => g.groupFiles.some((gf) => gf.fileId === fileId))
-				?.groupFiles.find((gf) => gf.fileId === fileId)?.file ?? null
-		)
+		for (const membership of this.getWorkspaceMemberships()) {
+			const groupFile = membership.groupFiles.find((gf) => gf.fileId === fileId)
+			if (groupFile) return groupFile.file ?? null
+		}
+		return null
 	}
 
 	canUpdateFile(fileId: string): boolean {
@@ -932,7 +879,6 @@ export class TldrawApp {
 
 		if (!file.published) return
 
-		// Optimistic update
 		this.z.mutate.file.update({
 			id: fileId,
 			published: false,
@@ -943,7 +889,6 @@ export class TldrawApp {
 	 * Remove a user's file states for a file and delete the file if the user is the owner of the file.
 	 */
 	async deleteOrForgetFile(fileId: string, workspaceId: string = this.getHomeWorkspaceId()) {
-		// Optimistic update, remove file and file states
 		await this.z.mutate.removeFileFromWorkspace({ fileId, workspaceId }).client
 	}
 
@@ -1036,7 +981,6 @@ export class TldrawApp {
 		// of the store... but we should probably identify that better.
 
 		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
-		// Get initial token before creating Zero instance
 		const initialZeroToken = await opts.getZeroToken()
 		const app = new TldrawApp(
 			opts.userId,
@@ -1259,10 +1203,7 @@ export class TldrawApp {
 			throw Error(response.message)
 		}
 		const fileId = response.slugs[0]
-		const name =
-			file.name?.replace(/\.tldr$/, '') ??
-			Object.values(snapshot.store).find((d): d is TLDocument => d.typeName === 'document')?.name ??
-			''
+		const name = file.name.replace(/\.tldr$/, '')
 
 		return this.createFile({ fileId, name, workspaceId })
 	}
@@ -1331,7 +1272,6 @@ export class TldrawApp {
 			await sleep(100)
 		}
 
-		// Clear any existing ordering for this new workspace to get fresh ordering
 		this.lastWorkspaceFileOrderings.delete(payload.workspaceId)
 
 		if (!this.navigateToWorkspaceFiles(payload.workspaceId)) {

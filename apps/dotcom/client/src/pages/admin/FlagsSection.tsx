@@ -7,6 +7,7 @@ import {
 import { useCallback, useEffect, useState } from 'react'
 import { fetch } from 'tldraw'
 import { AdminButton } from './AdminButton'
+import { getResponseError, useTransientMessage } from './shared'
 import styles from './admin.module.css'
 
 const FLAG_TYPE_ORDER: FeatureFlagValue['type'][] = ['boolean', 'percentage', 'allowlist']
@@ -25,7 +26,7 @@ function FeatureFlags() {
 	const [isLoading, setIsLoading] = useState(true)
 	const [isSaving, setIsSaving] = useState(false)
 	const [error, setError] = useState(null as string | null)
-	const [successMessage, setSuccessMessage] = useState(null as string | null)
+	const [successMessage, setSuccessMessage] = useTransientMessage()
 
 	const loadFlags = useCallback(async () => {
 		setIsLoading(true)
@@ -33,7 +34,7 @@ function FeatureFlags() {
 		try {
 			const res = await fetch('/api/app/admin/feature-flags')
 			if (!res.ok) {
-				setError(res.statusText + ': ' + (await res.text()))
+				setError(await getResponseError(res))
 				return
 			}
 			const data = await res.json()
@@ -61,7 +62,7 @@ function FeatureFlags() {
 					body: JSON.stringify({ flag, ...update }),
 				})
 				if (!res.ok) {
-					setError(res.statusText + ': ' + (await res.text()))
+					setError(await getResponseError(res))
 					return
 				}
 				// Merge what the server stored, not what was sent: an allowlist save sends emails but
@@ -89,15 +90,8 @@ function FeatureFlags() {
 				setIsSaving(false)
 			}
 		},
-		[]
+		[setSuccessMessage]
 	)
-
-	useEffect(() => {
-		if (successMessage) {
-			const timer = setTimeout(() => setSuccessMessage(null), 3000)
-			return () => clearTimeout(timer)
-		}
-	}, [successMessage])
 
 	return (
 		<div className={styles.fileOperation}>

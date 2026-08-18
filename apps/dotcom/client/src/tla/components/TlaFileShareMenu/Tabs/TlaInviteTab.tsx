@@ -41,22 +41,18 @@ export function TlaInviteTab({ fileId }: { fileId: string }) {
 	const url = useEditorDeepLink()
 
 	return (
-		<>
-			<TlaMenuSection>
-				{hasAdminRights && (
-					<TlaMenuControlGroup>
-						<TlaSharedToggle isShared={isShared} fileId={fileId} />
-						{isShared && <TlaSelectSharedLinkType fileId={fileId} />}
-					</TlaMenuControlGroup>
-				)}
-				{isShared && <TlaCopyLinkButton isShared={isShared} fileId={fileId} />}
-				{isShared && <QrCode url={url ?? ''} />}
-			</TlaMenuSection>
-		</>
+		<TlaMenuSection>
+			{hasAdminRights && (
+				<TlaMenuControlGroup>
+					<TlaSharedToggle isShared={isShared} fileId={fileId} />
+					{isShared && <TlaSelectSharedLinkType fileId={fileId} />}
+				</TlaMenuControlGroup>
+			)}
+			{isShared && <TlaCopyLinkButton fileId={fileId} />}
+			{isShared && <QrCode url={url ?? ''} />}
+		</TlaMenuSection>
 	)
 }
-
-/* ---------------------- Share --------------------- */
 
 function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: string }) {
 	const app = useApp()
@@ -86,7 +82,7 @@ function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: stri
 			<TlaMenuSwitch
 				id="tla-shared-link-shared-switch"
 				data-testid="shared-link-shared-switch"
-				checked={!!isShared}
+				checked={isShared}
 				onChange={handleToggleShared}
 			/>
 		</TlaMenuControl>
@@ -137,7 +133,7 @@ function TlaSelectSharedLinkType({ fileId }: { fileId: string }) {
 	)
 }
 
-function TlaCopyLinkButton({ fileId }: { isShared: boolean; fileId: string }) {
+function TlaCopyLinkButton({ fileId }: { fileId: string }) {
 	const editor = useEditor()
 	const trackEvent = useTldrawAppUiEvents()
 

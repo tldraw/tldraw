@@ -21,13 +21,6 @@ import {
 import { TlaButton } from '../../TlaButton/TlaButton'
 import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
 
-// add errors to zero-polyfill toasts
-// const messages = defineMessages({
-// 	publishChangesError: { defaultMessage: 'Could not publish changes' },
-// 	publishFileError: { defaultMessage: 'Could not publish file' },
-// 	deleteError: { defaultMessage: 'Could not delete' },
-// })
-
 export function TlaPublishTab({ file }: { file: TlaFile }) {
 	const { fileSlug } = useParams()
 	const editor = useEditor()
@@ -36,7 +29,7 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 	const isOwner = app.canUpdateFile(file.id)
 	const auth = useAuth()
 	const trackEvent = useTldrawAppUiEvents()
-	const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'success'>('idle')
+	const [hasPublishedChanges, setHasPublishedChanges] = useState(false)
 
 	const publish = useCallback(
 		async (isPublishingChanges: boolean) => {
@@ -47,7 +40,7 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 			if (!token) throw Error('no token')
 
 			if (isPublishingChanges) {
-				setUploadState('success')
+				setHasPublishedChanges(true)
 			}
 
 			app.publishFile(file.id)
@@ -104,8 +97,7 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 						{publishShareUrl && <TlaCopyPublishLinkButton url={publishShareUrl} />}
 						{isOwner && (
 							<TlaButton
-								iconRight={uploadState === 'success' ? 'check' : 'update'}
-								isLoading={uploadState === 'uploading'}
+								iconRight={hasPublishedChanges ? 'check' : 'update'}
 								variant="secondary"
 								onClick={() => publish(true)}
 							>
@@ -130,7 +122,6 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 						</TlaMenuDetail>
 					</>
 				)}
-				{/* {published && publishShareUrl && <QrCode url={publishShareUrl} />} */}
 			</TlaMenuSection>
 		</TlaMenuTabsPage>
 	)

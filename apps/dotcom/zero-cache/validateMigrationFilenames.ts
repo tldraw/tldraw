@@ -37,7 +37,6 @@ export function validateMigrationFilenames(
 
 	const numbers = [...filesByNumber.keys()].sort((a, b) => a - b)
 
-	// Numbers must be unique.
 	for (const number of numbers) {
 		const files = filesByNumber.get(number)!
 		if (files.length > 1 && !allowedDuplicates.has(number)) {
@@ -48,7 +47,6 @@ export function validateMigrationFilenames(
 		}
 	}
 
-	// Numbers must be contiguous starting at 000.
 	if (numbers[0] !== 0) {
 		throw new Error(`Migrations must start at 000, but the lowest number is ${pad(numbers[0])}.`)
 	}
