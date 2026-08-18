@@ -15,4 +15,8 @@ Registered via `tail_consumers` in `apps/dotcom/sync-worker/wrangler.toml`, stag
 only. Deployed by `internal/scripts/deploy-dotcom.ts`, which deploys it _before_ the sync worker
 because `tail_consumers` names a service that has to already exist.
 
-Design: `docs/superpowers/specs/2026-08-17-sync-worker-tail-worker-design.md`.
+This exists because `tldraw-multiplayer` has no `[observability]` block, and most of its handlers
+rethrow uncaught, so without a tail consumer those errors reach no telemetry channel at all. Errors go
+through this worker rather than Cloudflare's native OTLP log export because that export is
+head-sampled — blind to outcome — while an errored invocation is exactly the thing this needs to see
+every time.

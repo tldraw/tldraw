@@ -6,9 +6,6 @@ import baseConfig from '../../../internal/config/vitest/node-preset'
 export default mergeConfig(baseConfig, {
 	test: {
 		environment: 'node',
-		alias: {
-			'^~(.*)$': './src/$1',
-		},
 		passWithNoTests: true,
 	},
 })
