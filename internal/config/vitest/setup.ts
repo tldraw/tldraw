@@ -95,6 +95,22 @@ if (typeof Element !== 'undefined') {
 	}
 }
 
+// Captured before any test file installs fake timers.
+const realSetTimeout = globalThis.setTimeout
+const realSetImmediate = globalThis.setImmediate
+
+// Drain deferred React work before vitest tears down jsdom: exportToSvg unmounts its root in a
+// setTimeout(0) and every react-dom commit schedules a setImmediate that reads `window.event`.
+// Landing after teardown, those throw "window is not defined" as an unhandled error (flaky CI).
+if (typeof window !== 'undefined') {
+	afterAll(async () => {
+		for (let i = 0; i < 2; i++) {
+			await new Promise((resolve) => realSetTimeout(resolve, 0))
+			await new Promise((resolve) => realSetImmediate(resolve))
+		}
+	})
+}
+
 function convertNumbersInObject(obj: any, roundToNearest: number): any {
 	if (!obj) return obj
 	if (Array.isArray(obj)) {
