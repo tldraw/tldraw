@@ -103,4 +103,41 @@ describe('redactConsoleArgsSlug', () => {
 
 		expect(result[1]).toBe('<slug>')
 	})
+
+	// workerd flattens an Error passed to console.error to the plain string "<name>: <message>", so a
+	// RoomNotFoundError can show up as a string in any position, not just args[1] behind the two known
+	// prefixes. These three shapes are TLFileDurableObject.ts's real call sites (:1380, :629/:2699/:2725,
+	// :558/:2677).
+	it('redacts a flattened error string at args[2], alongside the args[1] conversion', () => {
+		const args = [
+			'failed to fetch doc',
+			'my-secret-slug',
+			'RoomNotFoundError: Room not found: my-secret-slug',
+		]
+
+		const result = redactConsoleArgsSlug(args, fakeNamespace())
+
+		expect(result[1]).toBe('do(/r/my-secret-slug)')
+		expect(result[2]).toBe('RoomNotFoundError: Room not found: do(/r/my-secret-slug)')
+	})
+
+	it('redacts a flattened error string behind an unrecognised prefix', () => {
+		const args = [
+			'handleWebSocketEnd: room not found, skipping',
+			'RoomNotFoundError: Room not found: my-secret-slug',
+		]
+
+		const result = redactConsoleArgsSlug(args, fakeNamespace())
+
+		expect(result[0]).toBe('handleWebSocketEnd: room not found, skipping')
+		expect(result[1]).toBe('RoomNotFoundError: Room not found: do(/r/my-secret-slug)')
+	})
+
+	it('redacts a bare console.error(err) one-element array', () => {
+		const args = ['RoomNotFoundError: Room not found: my-secret-slug']
+
+		const result = redactConsoleArgsSlug(args, fakeNamespace())
+
+		expect(result[0]).toBe('RoomNotFoundError: Room not found: do(/r/my-secret-slug)')
+	})
 })

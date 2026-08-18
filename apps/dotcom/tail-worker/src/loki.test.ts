@@ -191,6 +191,44 @@ describe('toLokiEntry', () => {
 		])
 	})
 
+	// workerd flattens an Error passed to console.error to the plain string "<name>: <message>", so a
+	// slug can arrive in any element of the captured args array, not just at index 1 behind a known
+	// prefix. A per-field assertion would miss a variant; this checks the whole rendered line, the way
+	// the top-of-file "keeps slugs out of the payload" test does. The namespace stub deliberately does
+	// NOT echo its input into the id it returns — echoing it (as the `do(${name})` stub elsewhere does
+	// for legibility) would make this assertion pass even if the redaction below were a no-op.
+	it('redacts a flattened-error slug from every captured console-log shape', () => {
+		const opaqueNamespace = {
+			idFromName: () => ({ toString: () => 'deadbeefcafefeed0123456789abcdef' }),
+		} as any
+		const flattened = 'RoomNotFoundError: Room not found: my-secret-slug'
+		const item = {
+			outcome: 'exception',
+			exceptions: [],
+			logs: [
+				// TLFileDurableObject.ts:1380 — console.error('failed to fetch doc', slug, error)
+				{
+					timestamp: 1,
+					level: 'error',
+					message: ['failed to fetch doc', 'my-secret-slug', flattened],
+				},
+				// TLFileDurableObject.ts:629/:2699/:2725 — console.error('<message>', e), unrecognised prefix
+				{
+					timestamp: 2,
+					level: 'error',
+					message: ['handleWebSocketEnd: room not found, skipping', flattened],
+				},
+				// TLFileDurableObject.ts:558/:2677 — bare console.error(err)
+				{ timestamp: 3, level: 'error', message: [flattened] },
+			],
+			event: null,
+		} as unknown as TraceItem
+
+		const result = toLokiEntry(item, 'fetch', 'none', 'production', opaqueNamespace)
+
+		expect(JSON.stringify(result.line)).not.toContain('my-secret-slug')
+	})
+
 	it('caps stack length and the number of exceptions carried', () => {
 		const item = {
 			outcome: 'exception',

@@ -46,25 +46,30 @@ const SLUG_BEARING_CONSOLE_PREFIXES = new Set([
 ])
 
 /**
- * Converts the slug argument of a captured `console.error('failed to retrieve document' | 'failed to
- * fetch doc', slug, error)` call — TLFileDurableObject.ts's only two slug-bearing console shapes — to
- * its durable object id. Any other args array passes through unchanged. Must run before the args are
- * stringified: matching against JSON-escaped text is not this function's job.
+ * Converts every slug-bearing string in a captured console.error(...) args array. workerd flattens an
+ * Error argument to the plain string `"<name>: <message>"`, so a RoomNotFoundError thrown anywhere —
+ * not just behind the two literal prefixes below — can show up in any element, including a bare
+ * `console.error(err)`'s only element. Every string element is run through redactRoomNotFoundSlug
+ * first; then, for the two known `console.error('failed to retrieve document' | 'failed to fetch doc',
+ * slug, error)` shapes, args[1] — which is the bare slug with no surrounding text — is additionally
+ * converted to a joinable object id rather than left as the generic redaction marker. Must run before
+ * the args are stringified: matching against JSON-escaped text is not this function's job.
  */
 export function redactConsoleArgsSlug(
 	args: unknown[],
 	tldrDoc: DurableObjectNamespace | undefined
 ): unknown[] {
-	if (
-		args.length < 2 ||
-		typeof args[0] !== 'string' ||
-		!SLUG_BEARING_CONSOLE_PREFIXES.has(args[0])
-	) {
-		return args
-	}
-	if (typeof args[1] !== 'string') return args
+	const redacted = args.map((arg) =>
+		typeof arg === 'string' ? redactRoomNotFoundSlug(arg, tldrDoc) : arg
+	)
 
-	const redacted = [...args]
-	redacted[1] = toRoomObjectId(args[1], tldrDoc)
+	if (
+		typeof args[0] === 'string' &&
+		SLUG_BEARING_CONSOLE_PREFIXES.has(args[0]) &&
+		typeof args[1] === 'string'
+	) {
+		redacted[1] = toRoomObjectId(args[1], tldrDoc)
+	}
+
 	return redacted
 }
