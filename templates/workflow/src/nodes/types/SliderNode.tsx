@@ -1,8 +1,7 @@
-import { T, TldrawUiSlider, useEditor } from 'tldraw'
+import { sleep, T, TldrawUiSlider, useEditor } from 'tldraw'
 import { SliderIcon } from '../../components/icons/SliderIcon'
-import { NODE_HEADER_HEIGHT_PX, NODE_ROW_HEIGHT_PX, NODE_WIDTH_PX } from '../../constants'
+import { NODE_ROW_HEIGHT_PX } from '../../constants'
 import { ShapePort } from '../../ports/Port'
-import { sleep } from '../../utils/sleep'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	ExecutionResult,
@@ -10,6 +9,7 @@ import {
 	NodeComponentProps,
 	NodeDefinition,
 	NodeRow,
+	outputPort,
 	updateNode,
 } from './shared'
 
@@ -38,14 +38,7 @@ export class SliderNodeDefinition extends NodeDefinition<SliderNode> {
 		return NODE_ROW_HEIGHT_PX
 	}
 	getPorts(_shape: NodeShape, _node: SliderNode): Record<string, ShapePort> {
-		return {
-			output: {
-				id: 'output',
-				x: NODE_WIDTH_PX,
-				y: NODE_HEADER_HEIGHT_PX / 2,
-				terminal: 'start',
-			},
-		}
+		return { output: outputPort }
 	}
 	async execute(_shape: NodeShape, node: SliderNode): Promise<ExecutionResult> {
 		await sleep(1000)

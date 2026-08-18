@@ -23,59 +23,43 @@ import {
 	TextToolbarItem,
 	TldrawUiMenuGroup,
 	tlmenus,
-	TLShapeId,
 	TLUiOverrides,
 	ToolbarItem,
 	TriangleToolbarItem,
 	Vec,
 	XBoxToolbarItem,
 } from 'tldraw'
-import { NodeShape } from '../nodes/NodeShapeUtil'
 import { getNodeDefinitions, NodeType } from '../nodes/nodeTypes'
 import { MATH_MENU_ID, MathematicalToolbarItem } from './MathematicalToolbarItem'
 
-function createNodeShape(editor: Editor, shapeId: TLShapeId, center: Vec, node: NodeType) {
-	// Mark a history stopping point for undo/redo
-	const markId = editor.markHistoryStoppingPoint('create node')
+/** Create a node centered on `center` and select it. */
+function createNodeShape(editor: Editor, center: Vec, node: NodeType) {
+	editor.markHistoryStoppingPoint('create node')
 
 	editor.run(() => {
-		// Create the shape with the node definition
-		editor.createShape({
+		const shapeId = createShapeId()
+		editor.createShape({ id: shapeId, type: 'node', props: { node } })
+
+		const shapeBounds = editor.getShapePageBounds(shapeId)!
+		editor.updateShape({
 			id: shapeId,
 			type: 'node',
-			props: { node },
+			x: center.x - shapeBounds.width / 2,
+			y: center.y - shapeBounds.height / 2,
 		})
-
-		// Get the created shape and its bounds
-		const shape = editor.getShape<NodeShape>(shapeId)!
-		const shapeBounds = editor.getShapePageBounds(shapeId)!
-
-		// Position the shape so its center aligns with the drop point
-		const x = center.x - shapeBounds.width / 2
-		const y = center.y - shapeBounds.height / 2
-		editor.updateShape({ ...shape, x, y })
-
-		// Select the newly created shape
 		editor.select(shapeId)
 	})
-
-	return markId
 }
 
 export const overrides: TLUiOverrides = {
-	tools: (editor, tools, _) => {
+	tools: (editor, tools) => {
 		for (const nodeDef of Object.values(getNodeDefinitions(editor))) {
 			tools[`node-${nodeDef.type}`] = {
 				id: `node-${nodeDef.type}`,
 				label: nodeDef.title,
 				icon: nodeDef.icon,
 				onSelect: () => {
-					createNodeShape(
-						editor,
-						createShapeId(),
-						editor.getViewportPageBounds().center,
-						nodeDef.getDefault()
-					)
+					createNodeShape(editor, editor.getViewportPageBounds().center, nodeDef.getDefault())
 					tlmenus.deleteOpenMenu(MATH_MENU_ID, editor.contextId)
 				},
 				onDragStart: (_, info) => {

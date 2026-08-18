@@ -1,9 +1,6 @@
 import { atom, Atom, Editor, WeakCache } from 'tldraw'
 
-/**
- * EditorAtom is an atom (tldraw's reactive signal) that is scoped to a specific editor. It's useful
- * for storing and reacting to state that's shared between several components.
- */
+/** An atom scoped to a specific editor, for state shared between several components. */
 export class EditorAtom<T> {
 	private states = new WeakCache<Editor, Atom<T>>()
 	constructor(

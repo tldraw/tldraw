@@ -1,5 +1,4 @@
-import classNames from 'classnames'
-import { T, useEditor, useValue } from 'tldraw'
+import { T, useEditor } from 'tldraw'
 import { apiGenerate } from '../../api/pipelineApi'
 import { GenerateIcon } from '../../components/icons/GenerateIcon'
 import {
@@ -9,22 +8,22 @@ import {
 	NODE_ROW_HEIGHT_PX,
 	NODE_WIDTH_PX,
 } from '../../constants'
-import { Port, ShapePort } from '../../ports/Port'
-import { getNodeInputPortValues } from '../nodePorts'
+import { ShapePort } from '../../ports/Port'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	areAnyInputsOutOfDate,
 	ExecutionResult,
+	getInputMulti,
 	InfoValues,
 	InputValues,
 	isMultiInfoValue,
 	NodeComponentProps,
 	NodeDefinition,
-	NodeImage,
-	NodePlaceholder,
-	NodePortLabel,
+	NodeImagePreview,
+	NodePortRow,
 	NodeRow,
-	STOP_EXECUTION,
+	NodeSliderRow,
+	NodeTruncatedText,
 	updateNode,
 } from './shared'
 
@@ -58,7 +57,7 @@ export class GenerateNodeDefinition extends NodeDefinition<GenerateNode> {
 		// 4 port rows + image preview + 3 parameter rows
 		return NODE_ROW_HEIGHT_PX * 7 + NODE_IMAGE_PREVIEW_HEIGHT_PX
 	}
-	getPorts(_shape: NodeShape, _node: GenerateNode): Record<string, ShapePort> {
+	getPorts(): Record<string, ShapePort> {
 		const baseY = NODE_HEADER_HEIGHT_PX + NODE_ROW_HEADER_GAP_PX
 		return {
 			model: {
@@ -105,20 +104,18 @@ export class GenerateNodeDefinition extends NodeDefinition<GenerateNode> {
 		inputs: InputValues
 	): Promise<ExecutionResult> {
 		const model = (inputs.model as string) ?? 'flux:flux-dev'
-		const rawPrompt = inputs.prompt
-		const promptValues = Array.isArray(rawPrompt) ? rawPrompt : [rawPrompt ?? 'default']
 		const prompt =
-			promptValues
+			getInputMulti(inputs, 'prompt')
 				.filter((v) => v != null)
 				.map(String)
 				.join(', ') || 'default'
-		const negativePrompt = inputs.negative as string | undefined
+		const negativePrompt = (inputs.negative as string | null) ?? undefined
 		const referenceImageUrl = (inputs.image as string) ?? undefined
 
 		const result = await apiGenerate({
 			model,
 			prompt,
-			negativePrompt: negativePrompt ?? undefined,
+			negativePrompt,
 			steps: node.steps,
 			cfgScale: node.cfgScale,
 			seed: node.seed,
@@ -147,149 +144,70 @@ export class GenerateNodeDefinition extends NodeDefinition<GenerateNode> {
 function GenerateNodeComponent({ shape, node }: NodeComponentProps<GenerateNode>) {
 	const editor = useEditor()
 
-	const modelInput = useValue('model input', () => getNodeInputPortValues(editor, shape.id).model, [
-		editor,
-		shape.id,
-	])
-	const promptInput = useValue(
-		'prompt input',
-		() => getNodeInputPortValues(editor, shape.id).prompt,
-		[editor, shape.id]
-	)
-	const negativeInput = useValue(
-		'negative input',
-		() => getNodeInputPortValues(editor, shape.id).negative,
-		[editor, shape.id]
-	)
-	const imageInput = useValue('image input', () => getNodeInputPortValues(editor, shape.id).image, [
-		editor,
-		shape.id,
-	])
-
 	return (
 		<>
-			<NodeRow>
-				<Port shapeId={shape.id} portId="model" />
-				<NodePortLabel dataType="model">Model</NodePortLabel>
-				{modelInput ? (
-					<span className="NodeRow-connected-value">
-						{modelInput.isOutOfDate ? <NodePlaceholder /> : String(modelInput.value)}
-					</span>
-				) : (
-					<span className="NodeRow-disconnected">not connected</span>
+			<NodePortRow
+				shapeId={shape.id}
+				portId="model"
+				dataType="model"
+				label="Model"
+				renderValue={(input) => String(input.value)}
+			/>
+			<NodePortRow
+				shapeId={shape.id}
+				portId="prompt"
+				dataType="text"
+				label="Prompt"
+				renderValue={(input) => (
+					<NodeTruncatedText
+						text={
+							isMultiInfoValue(input)
+								? input.value.filter((v): v is string => typeof v === 'string').join(', ')
+								: String(input.value ?? '')
+						}
+					/>
 				)}
-			</NodeRow>
-			<NodeRow>
-				<Port shapeId={shape.id} portId="prompt" />
-				<NodePortLabel dataType="text">Prompt</NodePortLabel>
-				{promptInput ? (
-					<span className="NodeRow-connected-value">
-						{promptInput.isOutOfDate ? (
-							<NodePlaceholder />
-						) : (
-							(() => {
-								const display = isMultiInfoValue(promptInput)
-									? promptInput.value.filter((v): v is string => typeof v === 'string').join(', ')
-									: String(promptInput.value ?? '')
-								return (
-									<span title={display}>
-										{display.slice(0, 20)}
-										{display.length > 20 ? '...' : ''}
-									</span>
-								)
-							})()
-						)}
-					</span>
-				) : (
-					<span className="NodeRow-disconnected">not connected</span>
-				)}
-			</NodeRow>
-			<NodeRow>
-				<Port shapeId={shape.id} portId="negative" />
-				<NodePortLabel dataType="text">Negative</NodePortLabel>
-				{negativeInput ? (
-					<span className="NodeRow-connected-value">
-						{negativeInput.isOutOfDate || negativeInput.value === STOP_EXECUTION ? (
-							<NodePlaceholder />
-						) : (
-							<span title={String(negativeInput.value)}>
-								{String(negativeInput.value ?? '').slice(0, 20)}
-							</span>
-						)}
-					</span>
-				) : (
-					<span className="NodeRow-disconnected">optional</span>
-				)}
-			</NodeRow>
-			<NodeRow>
-				<Port shapeId={shape.id} portId="image" />
-				<NodePortLabel dataType="image">Ref image</NodePortLabel>
-				{imageInput ? (
-					<span className="NodeRow-connected-value">
-						{imageInput.isOutOfDate ? <NodePlaceholder /> : 'connected'}
-					</span>
-				) : (
-					<span className="NodeRow-disconnected">optional</span>
-				)}
-			</NodeRow>
-			<div
-				className={classNames('NodeImagePreview', {
-					NodeImagePreview_loading: shape.props.isOutOfDate,
-				})}
-			>
-				{node.lastResultUrl ? (
-					<NodeImage src={node.lastResultUrl} alt="Generated" />
-				) : (
-					<div className="NodeImagePreview-empty">
-						<span>Run pipeline to generate</span>
-					</div>
-				)}
-			</div>
-			<NodeRow className="NodeInputRow">
-				<span className="NodeInputRow-label">Steps</span>
-				<input
-					type="range"
-					min="1"
-					max="100"
-					value={node.steps}
-					onChange={(e) =>
-						updateNode<GenerateNode>(
-							editor,
-							shape,
-							(n) => ({
-								...n,
-								steps: Number(e.target.value),
-							}),
-							false
-						)
-					}
-					onPointerDown={(e) => e.stopPropagation()}
-				/>
-				<span className="NodeRow-value">{node.steps}</span>
-			</NodeRow>
-			<NodeRow className="NodeInputRow">
-				<span className="NodeInputRow-label">CFG</span>
-				<input
-					type="range"
-					min="1"
-					max="30"
-					step="0.5"
-					value={node.cfgScale}
-					onChange={(e) =>
-						updateNode<GenerateNode>(
-							editor,
-							shape,
-							(n) => ({
-								...n,
-								cfgScale: Number(e.target.value),
-							}),
-							false
-						)
-					}
-					onPointerDown={(e) => e.stopPropagation()}
-				/>
-				<span className="NodeRow-value">{node.cfgScale}</span>
-			</NodeRow>
+			/>
+			<NodePortRow
+				shapeId={shape.id}
+				portId="negative"
+				dataType="text"
+				label="Negative"
+				disconnectedLabel="optional"
+				renderValue={(input) => <NodeTruncatedText text={String(input.value ?? '')} />}
+			/>
+			<NodePortRow
+				shapeId={shape.id}
+				portId="image"
+				dataType="image"
+				label="Ref image"
+				disconnectedLabel="optional"
+			/>
+			<NodeImagePreview
+				src={node.lastResultUrl}
+				alt="Generated"
+				emptyText="Run pipeline to generate"
+				isLoading={shape.props.isOutOfDate}
+			/>
+			<NodeSliderRow
+				label="Steps"
+				min={1}
+				max={100}
+				value={node.steps}
+				onChange={(steps) =>
+					updateNode<GenerateNode>(editor, shape, (n) => ({ ...n, steps }), false)
+				}
+			/>
+			<NodeSliderRow
+				label="CFG"
+				min={1}
+				max={30}
+				step={0.5}
+				value={node.cfgScale}
+				onChange={(cfgScale) =>
+					updateNode<GenerateNode>(editor, shape, (n) => ({ ...n, cfgScale }), false)
+				}
+			/>
 			<NodeRow className="NodeInputRow">
 				<span className="NodeInputRow-label">Seed</span>
 				<input

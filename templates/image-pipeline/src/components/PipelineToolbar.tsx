@@ -1,11 +1,9 @@
 import {
 	AssetToolbarItem,
-	createShapeId,
 	DefaultActionsMenu,
 	DefaultQuickActions,
 	DefaultToolbar,
 	DrawToolbarItem,
-	Editor,
 	HandToolbarItem,
 	NoteToolbarItem,
 	onDragFromToolbarToCreateShape,
@@ -13,38 +11,13 @@ import {
 	SelectToolbarItem,
 	TextToolbarItem,
 	TldrawUiMenuGroup,
-	TLShapeId,
 	TLUiOverrides,
 	ToolbarItem,
 	useEditor,
-	Vec,
 } from 'tldraw'
-import { NodeShape } from '../nodes/NodeShapeUtil'
-import { getNodeDefinitions, NodeType } from '../nodes/nodeTypes'
+import { getNodeDefinitions } from '../nodes/nodeTypes'
+import { createNodeAtCenter } from './ImagePipelineSidebar'
 import { TemplatePicker } from './TemplatePicker'
-
-function createNodeShape(editor: Editor, shapeId: TLShapeId, center: Vec, node: NodeType) {
-	const markId = editor.markHistoryStoppingPoint('create node')
-
-	editor.run(() => {
-		editor.createShape({
-			id: shapeId,
-			type: 'node',
-			props: { node },
-		})
-
-		const shape = editor.getShape<NodeShape>(shapeId)!
-		const shapeBounds = editor.getShapePageBounds(shapeId)!
-
-		const x = center.x - shapeBounds.width / 2
-		const y = center.y - shapeBounds.height / 2
-		editor.updateShape({ ...shape, x, y })
-
-		editor.select(shapeId)
-	})
-
-	return markId
-}
 
 export const overrides: TLUiOverrides = {
 	tools: (editor, tools, _) => {
@@ -54,14 +27,7 @@ export const overrides: TLUiOverrides = {
 				id: `node-${nodeDef.type}`,
 				label: nodeDef.title,
 				icon: nodeDef.icon,
-				onSelect: () => {
-					createNodeShape(
-						editor,
-						createShapeId(),
-						editor.getViewportPageBounds().center,
-						nodeDef.getDefault()
-					)
-				},
+				onSelect: () => createNodeAtCenter(editor, nodeDef.getDefault()),
 				onDragStart: (_, info) => {
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) => {

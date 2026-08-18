@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { PointerEvent, SyntheticEvent, useCallback, useRef, useState } from 'react'
+import { PointerEvent, ReactNode, SyntheticEvent, useCallback, useRef, useState } from 'react'
 import {
 	Editor,
 	T,
@@ -106,9 +106,6 @@ export interface NodeDefinitionConstructor<Node extends { type: string }> {
 	readonly validator: T.Validator<Node>
 }
 
-/**
- * Update the `node` prop within a node shape.
- */
 export function updateNode<T extends NodeType>(
 	editor: Editor,
 	shape: NodeShape,
@@ -122,9 +119,6 @@ export function updateNode<T extends NodeType>(
 	})
 }
 
-/**
- * A row in a node. This component just applies some styling.
- */
 export function NodeRow({
 	children,
 	className,
@@ -140,9 +134,6 @@ export function NodeRow({
 	)
 }
 
-/**
- * A label for a port row, displayed next to the port.
- */
 export function NodePortLabel({
 	children,
 	dataType,
@@ -154,6 +145,156 @@ export function NodePortLabel({
 		<span className="NodePortLabel" style={{ color: PORT_TYPE_COLORS[dataType] }}>
 			{children}
 		</span>
+	)
+}
+
+export function useNodeInput(shapeId: TLShapeId, portId: PortId) {
+	const editor = useEditor()
+	return useValue('node input', () => getNodeInputPortValues(editor, shapeId)[portId], [
+		editor,
+		shapeId,
+		portId,
+	])
+}
+
+/**
+ * A row for an input port: shows the port, its label, and either the connected value (a
+ * placeholder while it's being computed) or a "not connected" hint.
+ */
+export function NodePortRow({
+	shapeId,
+	portId,
+	dataType,
+	label,
+	disconnectedLabel = 'not connected',
+	renderValue,
+}: {
+	shapeId: TLShapeId
+	portId: PortId
+	dataType: PortDataType
+	label: ReactNode
+	disconnectedLabel?: string
+	renderValue?: (input: InfoValue) => ReactNode
+}) {
+	const input = useNodeInput(shapeId, portId)
+	return (
+		<NodeRow>
+			<Port shapeId={shapeId} portId={portId} />
+			<NodePortLabel dataType={dataType}>{label}</NodePortLabel>
+			{input ? (
+				<span className="NodeRow-connected-value">
+					{input.isOutOfDate || input.value === STOP_EXECUTION ? (
+						<NodePlaceholder />
+					) : renderValue ? (
+						renderValue(input)
+					) : (
+						'connected'
+					)}
+				</span>
+			) : (
+				<span className="NodeRow-disconnected">{disconnectedLabel}</span>
+			)}
+		</NodeRow>
+	)
+}
+
+export function NodeTruncatedText({ text, max = 20 }: { text: string; max?: number }) {
+	return (
+		<span title={text}>
+			{text.slice(0, max)}
+			{text.length > max ? '...' : ''}
+		</span>
+	)
+}
+
+export function NodeSelectRow<Id extends string>({
+	label,
+	value,
+	options,
+	onChange,
+}: {
+	label?: string
+	value: string
+	options: readonly { id: Id; label: string }[]
+	onChange: (value: Id) => void
+}) {
+	return (
+		<NodeRow>
+			{label && <span className="NodeInputRow-label">{label}</span>}
+			<select value={value} onChange={(e) => onChange(e.target.value as Id)}>
+				{options.map((option) => (
+					<option key={option.id} value={option.id}>
+						{option.label}
+					</option>
+				))}
+			</select>
+		</NodeRow>
+	)
+}
+
+export function NodeSliderRow({
+	label,
+	value,
+	min,
+	max,
+	step,
+	suffix = '',
+	onChange,
+}: {
+	label: string
+	value: number
+	min: number
+	max: number
+	step?: number
+	suffix?: string
+	onChange: (value: number) => void
+}) {
+	return (
+		<NodeRow className="NodeInputRow">
+			<span className="NodeInputRow-label">{label}</span>
+			<input
+				type="range"
+				min={min}
+				max={max}
+				step={step}
+				value={value}
+				onChange={(e) => onChange(Number(e.target.value))}
+				onPointerDown={(e) => e.stopPropagation()}
+			/>
+			<span className="NodeRow-value">
+				{value}
+				{suffix}
+			</span>
+		</NodeRow>
+	)
+}
+
+export function NodeImagePreview({
+	src,
+	alt,
+	emptyText,
+	isLoading,
+	className,
+	...divProps
+}: {
+	src: string | null
+	alt: string
+	emptyText: string
+	isLoading?: boolean
+} & React.HTMLAttributes<HTMLDivElement>) {
+	return (
+		<div
+			{...divProps}
+			className={classNames('NodeImagePreview', className, { NodeImagePreview_loading: isLoading })}
+		>
+			{src ? (
+				<NodeImage src={src} alt={alt} />
+			) : (
+				<div className="NodeImagePreview-empty">
+					<span>{emptyText}</span>
+				</div>
+			)}
+		</div>
 	)
 }
 
@@ -179,11 +320,7 @@ export function NodeInputRow({
 }) {
 	const editor = useEditor()
 	const inputRef = useRef<HTMLInputElement>(null)
-	const portInfo = useValue('from port', () => getNodeInputPortValues(editor, shapeId)[portId], [
-		editor,
-		shapeId,
-		portId,
-	])
+	const portInfo = useNodeInput(shapeId, portId)
 	const valueFromPort = portInfo?.value
 	const isOutOfDate = portInfo?.isOutOfDate
 
@@ -259,16 +396,11 @@ export function NodeInputRow({
 	)
 }
 
-/**
- * A placeholder for a value that is not yet computed.
- */
 export function NodePlaceholder() {
 	return <div className="NodeValue_placeholder" />
 }
 
-/**
- * An image element that hides itself if the source fails to load.
- */
+/** An image that hides itself if the source fails to load. */
 export function NodeImage({ src, alt }: { src: string; alt: string }) {
 	const onError = useCallback((e: SyntheticEvent<HTMLImageElement>) => {
 		e.currentTarget.style.display = 'none'
@@ -276,9 +408,6 @@ export function NodeImage({ src, alt }: { src: string; alt: string }) {
 	return <img src={src} alt={alt} onError={onError} />
 }
 
-/**
- * Format a pipeline value for display.
- */
 export function NodeValue({ value }: { value: PipelineValue | STOP_EXECUTION }) {
 	if (value === STOP_EXECUTION || value === null) {
 		return <NodePlaceholder />
@@ -288,7 +417,6 @@ export function NodeValue({ value }: { value: PipelineValue | STOP_EXECUTION }) 
 		return <>{formatNumber(value)}</>
 	}
 
-	// For strings, truncate long values
 	const str = String(value)
 	if (str.length > 20) {
 		return <span title={str}>{str.slice(0, 18)}...</span>
@@ -323,22 +451,16 @@ export function areAnyInputsOutOfDate(inputs: InfoValues): boolean {
 	return Object.values(inputs).some((input) => input.isOutOfDate)
 }
 
-/**
- * Load a URL (data URL or http URL) into an HTMLImageElement.
- */
 export function loadImage(url: string): Promise<HTMLImageElement> {
 	return new Promise((resolve, reject) => {
 		const img = new Image()
 		img.onload = () => resolve(img)
-		img.onerror = (_e) => reject(new Error('Failed to load image'))
+		img.onerror = () => reject(new Error('Failed to load image'))
 		img.crossOrigin = 'anonymous'
 		img.src = url
 	})
 }
 
-/**
- * Convert a Blob to a data URL via FileReader.
- */
 export function blobToDataUrl(blob: Blob): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader()
@@ -348,18 +470,12 @@ export function blobToDataUrl(blob: Blob): Promise<string> {
 	})
 }
 
-// ---------------------------------------------------------------------------
-// Input coercion helpers
-// ---------------------------------------------------------------------------
-
-/** Coerce any pipeline value to a string. */
 export function coerceToText(value: PipelineValue, fallback = ''): string {
 	if (value == null) return fallback
 	if (typeof value === 'number') return String(value)
 	return value
 }
 
-/** Coerce any pipeline value to a number. */
 export function coerceToNumber(value: PipelineValue, fallback = 0): number {
 	if (value == null) return fallback
 	if (typeof value === 'number') return value
@@ -367,14 +483,13 @@ export function coerceToNumber(value: PipelineValue, fallback = 0): number {
 	return Number.isNaN(n) ? fallback : n
 }
 
-/** Extract a single value from an InputValues entry (takes first element if array). */
+/** First element if the input is a multi-port array. */
 export function getInput(inputs: InputValues, key: string): PipelineValue {
 	const v = inputs[key]
 	if (Array.isArray(v)) return v[0] ?? null
 	return v ?? null
 }
 
-/** Always return an array from an InputValues entry. */
 export function getInputMulti(inputs: InputValues, key: string): PipelineValue[] {
 	const v = inputs[key]
 	if (v == null) return []
@@ -382,12 +497,10 @@ export function getInputMulti(inputs: InputValues, key: string): PipelineValue[]
 	return [v]
 }
 
-/** Extract a single value and coerce to string. */
 export function getInputText(inputs: InputValues, key: string, fallback = ''): string {
 	return coerceToText(getInput(inputs, key), fallback)
 }
 
-/** Extract a single value and coerce to number. */
 export function getInputNumber(inputs: InputValues, key: string, fallback = 0): number {
 	return coerceToNumber(getInput(inputs, key), fallback)
 }

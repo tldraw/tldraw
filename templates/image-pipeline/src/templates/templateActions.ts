@@ -23,17 +23,12 @@ export function saveSelectionAsTemplate(
 
 	if (nodeShapes.length < 2) return null
 
-	// Compute bounding box for relative positioning.
-	let minX = Infinity
-	let minY = Infinity
-	for (const s of nodeShapes) {
-		minX = Math.min(minX, s.x)
-		minY = Math.min(minY, s.y)
-	}
+	// Positions are stored relative to the selection's top-left corner
+	const minX = Math.min(...nodeShapes.map((s) => s.x))
+	const minY = Math.min(...nodeShapes.map((s) => s.y))
 
 	const selectedIds = new Set<TLShapeId>(nodeShapes.map((s) => s.id))
 
-	// Map shape IDs to local IDs.
 	const idMap = new Map<TLShapeId, string>()
 	const nodes: SerializedTemplateNode[] = nodeShapes.map((s, i) => {
 		const localId = `n${i}`
@@ -46,7 +41,7 @@ export function saveSelectionAsTemplate(
 		}
 	})
 
-	// Collect connections that are entirely within the selection.
+	// Only connections entirely within the selection are saved
 	const connections: SerializedTemplateConnection[] = []
 	const seenConnections = new Set<string>()
 
@@ -54,7 +49,7 @@ export function saveSelectionAsTemplate(
 		const portConns = getNodePortConnections(editor, shape)
 		for (const conn of portConns) {
 			if (!selectedIds.has(conn.connectedShapeId)) continue
-			// Only record from the 'start' terminal to avoid duplication.
+			// Each connection is seen from both ends; record it once from its start
 			if (conn.terminal !== 'start') continue
 			const key = conn.connectionId
 			if (seenConnections.has(key)) continue
@@ -92,7 +87,6 @@ export function saveSelectionAsTemplate(
 export function stampTemplate(editor: Editor, template: PipelineTemplate, position: VecModel) {
 	editor.markHistoryStoppingPoint('stamp template')
 
-	// Create shapes.
 	const localIdToShapeId = new Map<string, TLShapeId>()
 
 	editor.run(() => {
@@ -109,7 +103,6 @@ export function stampTemplate(editor: Editor, template: PipelineTemplate, positi
 			})
 		}
 
-		// Create connections.
 		for (const conn of template.connections) {
 			const fromId = localIdToShapeId.get(conn.fromLocalId)
 			const toId = localIdToShapeId.get(conn.toLocalId)
@@ -148,7 +141,6 @@ export function stampTemplate(editor: Editor, template: PipelineTemplate, positi
 			})
 		}
 
-		// Select all the new shapes.
 		editor.select(...Array.from(localIdToShapeId.values()))
 	})
 }

@@ -59,22 +59,23 @@ export class ConnectionBindingUtil extends BindingUtil<ConnectionBinding> {
 
 	onAfterChange({ bindingBefore, bindingAfter }: BindingOnChangeOptions<ConnectionBinding>): void {
 		if (
-			bindingBefore.props.portId !== bindingAfter.props.portId ||
-			bindingBefore.toId !== bindingAfter.toId
+			bindingBefore.props.portId === bindingAfter.props.portId &&
+			bindingBefore.toId === bindingAfter.toId
 		) {
-			const nodeBefore = this.editor.getShape(bindingBefore.toId)
-			const nodeAfter = this.editor.getShape(bindingAfter.toId)
-			if (
-				!nodeBefore ||
-				!nodeAfter ||
-				!this.editor.isShapeOfType(nodeBefore, 'node') ||
-				!this.editor.isShapeOfType(nodeAfter, 'node')
-			) {
-				return
-			}
-			onNodePortDisconnect(this.editor, nodeBefore, bindingBefore.props.portId)
-			onNodePortConnect(this.editor, nodeAfter, bindingAfter.props.portId)
+			return
 		}
+		const nodeBefore = this.editor.getShape(bindingBefore.toId)
+		const nodeAfter = this.editor.getShape(bindingAfter.toId)
+		if (
+			!nodeBefore ||
+			!nodeAfter ||
+			!this.editor.isShapeOfType(nodeBefore, 'node') ||
+			!this.editor.isShapeOfType(nodeAfter, 'node')
+		) {
+			return
+		}
+		onNodePortDisconnect(this.editor, nodeBefore, bindingBefore.props.portId)
+		onNodePortConnect(this.editor, nodeAfter, bindingAfter.props.portId)
 	}
 
 	onAfterDelete({ binding }: BindingOnDeleteOptions<ConnectionBinding>): void {
@@ -146,7 +147,7 @@ export function createOrUpdateConnectionBinding(
 		editor.deleteBindings(existingMany.slice(1))
 	}
 
-	// Auto-assign order for end-terminal (input port) bindings when not explicitly provided
+	// Input (end) bindings get an order so multi-ports keep a stable input sequence
 	let order = props.order
 	if (props.terminal === 'end' && order == null) {
 		const existingBindingsToTarget = editor
@@ -154,7 +155,7 @@ export function createOrUpdateConnectionBinding(
 			.filter((b) => b.props.terminal === 'end' && b.props.portId === props.portId)
 		order = existingBindingsToTarget.reduce((max, b) => Math.max(max, b.props.order ?? 0), 0) + 1
 	}
-	const propsWithOrder = { ...props, order: order ?? props.order ?? 0 }
+	const propsWithOrder = { ...props, order: order ?? 0 }
 
 	const existing = existingMany[0]
 	if (existing) {
