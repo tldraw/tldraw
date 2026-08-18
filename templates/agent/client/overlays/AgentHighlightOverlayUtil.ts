@@ -3,6 +3,7 @@ import {
 	Box,
 	BoxModel,
 	Editor,
+	exhaustiveSwitchError,
 	OverlayUtil,
 	PI2,
 	TLOverlay,
@@ -177,70 +178,49 @@ export class AgentHighlightOverlayUtil extends OverlayUtil<AgentHighlightOverlay
 			const item = contextItems[i]
 			const id = `agent-highlight:${agentId}:${group}:${i}`
 
-			switch (item.type) {
-				case 'area': {
-					areaHighlights.push({
-						id,
-						type: 'agent-highlight',
-						props: {
-							kind: 'area',
-							bounds: toBoxModel(item.bounds),
-							color: 'selected',
-							generating,
-							label: generating && item.source === 'agent' ? 'Reviewing' : undefined,
-						},
-					})
-					break
-				}
-				case 'shapes': {
-					const bounds = this.editor.getShapesPageBounds(
-						item.shapes.map((shape) => `shape:${shape.shapeId}` as TLShapeId)
-					)
-					if (!bounds) break
-					areaHighlights.push({
-						id,
-						type: 'agent-highlight',
-						props: {
-							kind: 'area',
-							bounds: toBoxModel(bounds),
-							color: 'selected',
-							generating,
-						},
-					})
-					break
-				}
-				case 'shape': {
-					const bounds = this.editor.getShapePageBounds(`shape:${item.shape.shapeId}` as TLShapeId)
-					if (!bounds) break
-					areaHighlights.push({
-						id,
-						type: 'agent-highlight',
-						props: {
-							kind: 'area',
-							bounds: toBoxModel(bounds),
-							color: 'selected',
-							generating,
-						},
-					})
-					break
-				}
-				case 'point': {
-					pointHighlights.push({
-						id,
-						type: 'agent-highlight',
-						props: {
-							kind: 'point',
-							point: item.point,
-							color: 'selected',
-							generating,
-						},
-					})
-					break
-				}
+			if (item.type === 'point') {
+				pointHighlights.push({
+					id,
+					type: 'agent-highlight',
+					props: { kind: 'point', point: item.point, color: 'selected', generating },
+				})
+				continue
 			}
+
+			const bounds = this.getContextItemBounds(item)
+			if (!bounds) continue
+			areaHighlights.push({
+				id,
+				type: 'agent-highlight',
+				props: {
+					kind: 'area',
+					bounds: toBoxModel(bounds),
+					color: 'selected',
+					generating,
+					label:
+						generating && item.type === 'area' && item.source === 'agent' ? 'Reviewing' : undefined,
+				},
+			})
 		}
 
 		overlays.push(...areaHighlights, ...pointHighlights)
+	}
+
+	private getContextItemBounds(
+		item: Exclude<ContextItem, { type: 'point' }>
+	): BoxModel | null | undefined {
+		switch (item.type) {
+			case 'area':
+				return item.bounds
+			case 'shapes':
+				return this.editor.getShapesPageBounds(
+					item.shapes.map((shape) => `shape:${shape.shapeId}` as TLShapeId)
+				)
+			case 'shape':
+				return this.editor.getShapePageBounds(`shape:${item.shape.shapeId}` as TLShapeId)
+			default:
+				throw exhaustiveSwitchError(item)
+		}
 	}
 
 	private isEquivalentToPendingContextArea(

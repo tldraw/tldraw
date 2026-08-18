@@ -1,13 +1,10 @@
-import classNames from 'classnames'
 import {
 	Circle2d,
 	Group2d,
 	HTMLContainer,
 	RecordProps,
 	Rectangle2d,
-	resizeBox,
 	ShapeUtil,
-	TLResizeInfo,
 	TLShape,
 	useEditor,
 	useValue,
@@ -31,10 +28,8 @@ declare module 'tldraw' {
 	}
 }
 
-// Define our custom node shape type that extends tldraw's base shape system
 export type NodeShape = TLShape<typeof NODE_TYPE>
 
-// This class extends tldraw's ShapeUtil to define how our custom node shapes behave
 export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 	static override type = NODE_TYPE
 	static override props: RecordProps<NodeShape> = {
@@ -74,7 +69,6 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 		}
 	}
 
-	// Define the geometry of our node shape including ports
 	getGeometry(shape: NodeShape) {
 		const ports = getNodePorts(this.editor, shape)
 
@@ -101,10 +95,6 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 		})
 	}
 
-	override onResize(shape: any, info: TLResizeInfo<any>) {
-		return resizeBox(shape, info)
-	}
-
 	component(shape: NodeShape) {
 		return <NodeShape shape={shape} />
 	}
@@ -122,13 +112,12 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 	}
 }
 
-// Main node component that renders the HTML content
 function NodeShape({ shape }: { shape: NodeShape }) {
 	const editor = useEditor()
 
 	return (
 		<HTMLContainer
-			className={classNames('NodeShape')}
+			className="NodeShape"
 			style={{
 				width: getNodeWidthPx(editor, shape),
 				height: getNodeHeightPx(editor, shape),

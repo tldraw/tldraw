@@ -12,25 +12,13 @@ const router = AutoRouter<IRequest, [env: Env, ctx: ExecutionContext]>({
 		return error(e)
 	},
 })
-	// Image generation endpoint — accepts prompt, model, and parameters
 	.post('/api/generate', handleGenerate)
-
-	// Upscale endpoint — accepts an image URL and scale factor
 	.post('/api/upscale', handleUpscale)
-
-	// IP-Adapter endpoint — reference image + prompt guided generation
 	.post('/api/ip-adapter', handleIPAdapter)
-
-	// Style transfer endpoint — transfers style between images
 	.post('/api/style-transfer', handleStyleTransfer)
-
-	// Text generation endpoint — multimodal AI text generation
 	.post('/api/generate-text', handleGenerateText)
-
-	// Upload/download generated images to/from R2 bucket
 	.post('/api/images/:imageId', handleImageUpload)
 	.get('/api/images/:imageId', handleImageDownload)
-
 	.all('*', () => new Response('Not found', { status: 404 }))
 
 export default {

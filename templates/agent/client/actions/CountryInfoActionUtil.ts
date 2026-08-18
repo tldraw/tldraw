@@ -18,7 +18,6 @@ export const CountryInfoActionUtil = registerActionUtil(
 		}
 
 		override async applyAction(action: Streaming<CountryInfoAction>) {
-			// Wait until the action has finished streaming
 			if (!action.complete) return
 			const data = await fetchCountryInfo(action.code)
 			this.agent.schedule({ data: [data] })
@@ -34,8 +33,5 @@ export async function fetchCountryInfo(code: string) {
 	}
 
 	const json = await response.json()
-	if (Array.isArray(json)) {
-		return json[0] as JsonValue
-	}
-	return json as JsonValue
+	return (Array.isArray(json) ? json[0] : json) as JsonValue
 }

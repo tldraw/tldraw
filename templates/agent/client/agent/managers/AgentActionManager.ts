@@ -8,84 +8,39 @@ import type { TldrawAgent } from '../TldrawAgent'
 import { BaseAgentManager } from './BaseAgentManager'
 
 /**
- * Manages action-related functionality for the agent.
- * Handles action utils, action execution, and chat history updates for actions.
+ * Owns the agent's action utils and applies actions to the editor and chat history.
  */
 export class AgentActionManager extends BaseAgentManager {
-	/**
-	 * A record of the agent's action util instances.
-	 * Used by the `getAgentActionUtil` method.
-	 */
 	private agentActionUtils: Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
-
-	/**
-	 * The agent action util instance for the "unknown" action type.
-	 *
-	 * This is returned by the `getAgentActionUtil` method when the action type
-	 * isn't properly specified. This can happen if the model isn't finished
-	 * streaming yet or makes a mistake.
-	 */
-	unknownActionUtil: AgentActionUtil<AgentAction>
 
 	constructor(agent: TldrawAgent) {
 		super(agent)
-		this.agentActionUtils = getAgentActionUtilsRecordForMode(
-			this.agent,
-			agent.mode.getCurrentModeType()
-		)
-		this.unknownActionUtil = this.agentActionUtils.unknown
+		this.agentActionUtils = getAgentActionUtilsRecordForMode(agent, agent.mode.getCurrentModeType())
 	}
 
-	/**
-	 * Reset the action manager to its initial state.
-	 * Currently no state to reset as action utils are stateless.
-	 */
 	reset(): void {
-		// Reset state if needed - currently no state to reset
+		// action utils are stateless
 	}
 
-	/**
-	 * Rebuild action utils for a specific mode.
-	 * Called when the agent's mode changes to ensure mode-specific
-	 * action utils are used.
-	 *
-	 * @param mode - The mode to rebuild utils for.
-	 */
 	rebuildUtilsForMode(mode: string): void {
 		this.agentActionUtils = getAgentActionUtilsRecordForMode(this.agent, mode)
-		this.unknownActionUtil = this.agentActionUtils.unknown
 	}
 
-	/**
-	 * Get an agent action util for a specific action type.
-	 *
-	 * @param type - The type of action to get the util for.
-	 * @returns The action util.
-	 */
 	getAgentActionUtil(type?: string) {
-		const utilType = this.getAgentActionUtilType(type)
-		return this.agentActionUtils[utilType]
+		return this.agentActionUtils[this.getAgentActionUtilType(type)]
 	}
 
 	/**
-	 * Get the util type for a provided action type.
-	 * If no util type is found, returns 'unknown'.
-	 * @param type - The action type to get the util type for.
-	 * @returns The action util type, or 'unknown' if not found.
+	 * Resolve an action type to a known util type. Falls back to 'unknown' when
+	 * the model hasn't finished streaming the type yet or made one up.
 	 */
 	getAgentActionUtilType(type?: string): AgentAction['_type'] {
-		if (!type) return 'unknown'
-		const util = this.agentActionUtils[type as AgentAction['_type']]
-		if (!util) return 'unknown'
-		return type as AgentAction['_type']
+		if (type && type in this.agentActionUtils) return type as AgentAction['_type']
+		return 'unknown'
 	}
 
 	/**
-	 * Make the agent perform an action.
-	 * Applies the action to the editor and tracks it in chat history.
-	 * @param action - The action to make the agent do.
-	 * @param helpers - The helpers to use for action execution.
-	 * @returns An object containing the diff of changes made and a promise that resolves when the action completes.
+	 * Apply an action to the editor and record it in chat history.
 	 */
 	act(
 		action: Streaming<AgentAction>,
@@ -105,15 +60,12 @@ export class AgentActionManager extends BaseAgentManager {
 				promise = util.applyAction(structuredClone(action), helpers) ?? null
 			})
 		} catch (error) {
-			// always toast the error
 			this.agent.onError(error)
-			promise = null
-			throw error // you may not want to throw in productions
+			throw error // you may not want to throw in production
 		} finally {
 			this.agent.setIsActingOnEditor(false)
 		}
 
-		// Add the action to chat history
 		if (util.savesToHistory()) {
 			const historyItem: ChatHistoryItem = {
 				type: 'action',
@@ -123,34 +75,24 @@ export class AgentActionManager extends BaseAgentManager {
 			}
 
 			this.agent.chat.update((historyItems) => {
-				// If there are no items, start off the chat history with the first item
-				if (historyItems.length === 0) return [historyItem]
-
-				// Find the last EXTERNAL prompt index (ignore prompts from 'self' which are internal state transitions)
+				// A streaming action arrives as a series of increasingly complete versions.
+				// Replace the previous version if it is still incomplete and belongs to this
+				// turn (i.e. comes after the last external prompt; 'self' prompts are internal).
 				const lastPromptIndex = historyItems.findLastIndex(
 					(item) => item.type === 'prompt' && item.promptSource !== 'self'
 				)
-
-				// If the last action is still in progress AND it's after the last external prompt, replace it
-				const lastActionHistoryItemIndex = historyItems.findLastIndex(
-					(item) => item.type === 'action'
-				)
-				const lastActionHistoryItem =
-					lastActionHistoryItemIndex !== -1 ? historyItems[lastActionHistoryItemIndex] : null
+				const lastActionIndex = historyItems.findLastIndex((item) => item.type === 'action')
+				const lastAction = lastActionIndex !== -1 ? historyItems[lastActionIndex] : null
 				if (
-					lastActionHistoryItem &&
-					lastActionHistoryItem.type === 'action' &&
-					!lastActionHistoryItem.action.complete &&
-					(lastPromptIndex === -1 || lastActionHistoryItemIndex > lastPromptIndex)
+					lastAction?.type === 'action' &&
+					!lastAction.action.complete &&
+					lastActionIndex > lastPromptIndex
 				) {
 					const newHistoryItems = [...historyItems]
-					// Replace the incomplete action with the complete one (timestamp already set above)
-					newHistoryItems[lastActionHistoryItemIndex] = historyItem
+					newHistoryItems[lastActionIndex] = historyItem
 					return newHistoryItems
-				} else {
-					// Otherwise, just add the new item to the end of the list
-					return [...historyItems, historyItem]
 				}
+				return [...historyItems, historyItem]
 			})
 		}
 

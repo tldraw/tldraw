@@ -1,4 +1,4 @@
-import { T, useEditor, useValue } from 'tldraw'
+import { T, useEditor } from 'tldraw'
 import { PromptConcatIcon } from '../../components/icons/PromptConcatIcon'
 import {
 	NODE_HEADER_HEIGHT_PX,
@@ -6,20 +6,22 @@ import {
 	NODE_ROW_HEIGHT_PX,
 	NODE_WIDTH_PX,
 } from '../../constants'
-import { Port, ShapePort } from '../../ports/Port'
+import { ShapePort } from '../../ports/Port'
 import { sleep } from '../../utils/sleep'
-import { getNodeInputPortValues } from '../nodePorts'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	areAnyInputsOutOfDate,
 	ExecutionResult,
+	InfoValue,
 	InfoValues,
 	InputValues,
 	NodeComponentProps,
 	NodeDefinition,
-	NodePortLabel,
+	NodePortRow,
 	NodeRow,
+	NodeSelectRow,
 	updateNode,
+	useNodeInput,
 } from './shared'
 
 const SEPARATORS = [
@@ -28,6 +30,12 @@ const SEPARATORS = [
 	{ id: 'comma', label: 'Comma', value: ', ' },
 	{ id: 'none', label: 'None', value: '' },
 ] as const
+
+/** Join the non-empty string parts with the separator named by `separatorId`. */
+function joinParts(parts: unknown[], separatorId: string) {
+	const sep = SEPARATORS.find((s) => s.id === separatorId)?.value ?? ' '
+	return parts.filter((v): v is string => typeof v === 'string' && v.length > 0).join(sep)
+}
 
 export type PromptConcatNode = T.TypeOf<typeof PromptConcatNode>
 export const PromptConcatNode = T.object({
@@ -91,24 +99,16 @@ export class PromptConcatNodeDefinition extends NodeDefinition<PromptConcatNode>
 		inputs: InputValues
 	): Promise<ExecutionResult> {
 		await sleep(100)
-		const sep = SEPARATORS.find((s) => s.id === node.separator)?.value ?? ' '
-		const parts = [inputs.prefix, inputs.main, inputs.suffix].filter(
-			(v): v is string => typeof v === 'string' && v.length > 0
-		)
-		return { output: parts.join(sep) }
+		return { output: joinParts([inputs.prefix, inputs.main, inputs.suffix], node.separator) }
 	}
 	getOutputInfo(shape: NodeShape, node: PromptConcatNode, inputs: InfoValues): InfoValues {
-		const sep = SEPARATORS.find((s) => s.id === node.separator)?.value ?? ' '
-		const parts: string[] = []
-		for (const key of ['prefix', 'main', 'suffix'] as const) {
-			const info = inputs[key]
-			if (info && typeof info.value === 'string' && info.value.length > 0) {
-				parts.push(info.value)
-			}
-		}
+		const joined = joinParts(
+			[inputs.prefix?.value, inputs.main?.value, inputs.suffix?.value],
+			node.separator
+		)
 		return {
 			output: {
-				value: parts.length > 0 ? parts.join(sep) : null,
+				value: joined || null,
 				isOutOfDate: areAnyInputsOutOfDate(inputs) || shape.props.isOutOfDate,
 				dataType: 'text',
 			},
@@ -120,78 +120,49 @@ export class PromptConcatNodeDefinition extends NodeDefinition<PromptConcatNode>
 function PromptConcatNodeComponent({ shape, node }: NodeComponentProps<PromptConcatNode>) {
 	const editor = useEditor()
 
-	const prefixInput = useValue('prefix', () => getNodeInputPortValues(editor, shape.id).prefix, [
-		editor,
-		shape.id,
-	])
-	const mainInput = useValue('main', () => getNodeInputPortValues(editor, shape.id).main, [
-		editor,
-		shape.id,
-	])
-	const suffixInput = useValue('suffix', () => getNodeInputPortValues(editor, shape.id).suffix, [
-		editor,
-		shape.id,
-	])
+	const prefixInput = useNodeInput(shape.id, 'prefix')
+	const mainInput = useNodeInput(shape.id, 'main')
+	const suffixInput = useNodeInput(shape.id, 'suffix')
 
-	const sep = SEPARATORS.find((s) => s.id === node.separator)?.value ?? ' '
-	const parts = [prefixInput?.value, mainInput?.value, suffixInput?.value].filter(
-		(v): v is string => typeof v === 'string' && v.length > 0
+	const preview = joinParts(
+		[prefixInput?.value, mainInput?.value, suffixInput?.value],
+		node.separator
 	)
-	const preview = parts.join(sep)
+
+	const renderText = (input: InfoValue) =>
+		typeof input.value === 'string' ? input.value.slice(0, 20) : 'connected'
 
 	return (
 		<>
-			<NodeRow>
-				<Port shapeId={shape.id} portId="prefix" />
-				<NodePortLabel dataType="text">Prefix</NodePortLabel>
-				{prefixInput ? (
-					<span className="NodeRow-connected-value">
-						{typeof prefixInput.value === 'string' ? prefixInput.value.slice(0, 20) : 'connected'}
-					</span>
-				) : (
-					<span className="NodeRow-disconnected">not connected</span>
-				)}
-			</NodeRow>
-			<NodeRow>
-				<Port shapeId={shape.id} portId="main" />
-				<NodePortLabel dataType="text">Main</NodePortLabel>
-				{mainInput ? (
-					<span className="NodeRow-connected-value">
-						{typeof mainInput.value === 'string' ? mainInput.value.slice(0, 20) : 'connected'}
-					</span>
-				) : (
-					<span className="NodeRow-disconnected">not connected</span>
-				)}
-			</NodeRow>
-			<NodeRow>
-				<Port shapeId={shape.id} portId="suffix" />
-				<NodePortLabel dataType="text">Suffix</NodePortLabel>
-				{suffixInput ? (
-					<span className="NodeRow-connected-value">
-						{typeof suffixInput.value === 'string' ? suffixInput.value.slice(0, 20) : 'connected'}
-					</span>
-				) : (
-					<span className="NodeRow-disconnected">not connected</span>
-				)}
-			</NodeRow>
-			<NodeRow>
-				<span className="NodeInputRow-label">Sep</span>
-				<select
-					value={node.separator}
-					onChange={(e) =>
-						updateNode<PromptConcatNode>(editor, shape, (n) => ({
-							...n,
-							separator: e.target.value,
-						}))
-					}
-				>
-					{SEPARATORS.map((s) => (
-						<option key={s.id} value={s.id}>
-							{s.label}
-						</option>
-					))}
-				</select>
-			</NodeRow>
+			<NodePortRow
+				shapeId={shape.id}
+				portId="prefix"
+				dataType="text"
+				label="Prefix"
+				renderValue={renderText}
+			/>
+			<NodePortRow
+				shapeId={shape.id}
+				portId="main"
+				dataType="text"
+				label="Main"
+				renderValue={renderText}
+			/>
+			<NodePortRow
+				shapeId={shape.id}
+				portId="suffix"
+				dataType="text"
+				label="Suffix"
+				renderValue={renderText}
+			/>
+			<NodeSelectRow
+				label="Sep"
+				value={node.separator}
+				options={SEPARATORS}
+				onChange={(separator) =>
+					updateNode<PromptConcatNode>(editor, shape, (n) => ({ ...n, separator }))
+				}
+			/>
 			<NodeRow>
 				<span className="NodeRow-connected-value" style={{ fontSize: 10, opacity: 0.7 }}>
 					{preview ? (preview.length > 40 ? preview.slice(0, 38) + '...' : preview) : 'no inputs'}

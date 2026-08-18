@@ -1,13 +1,9 @@
-import { Editor } from 'tldraw'
+import { Box, BoxModel, Editor } from 'tldraw'
 import { AgentRequest } from '../../shared/types/AgentRequest'
 import { BasePromptPart } from '../../shared/types/BasePromptPart'
 import { PromptPart } from '../../shared/types/PromptPart'
 import { TldrawAgent } from '../agent/TldrawAgent'
 import { AgentHelpers } from '../AgentHelpers'
-
-// ============================================================================
-// Registry
-// ============================================================================
 
 const registry = new Map<string, PromptPartUtilConstructor<BasePromptPart>>()
 
@@ -25,13 +21,6 @@ export function registerPromptPartUtil<T extends PromptPartUtilConstructor<BaseP
 }
 
 /**
- * Get all registered prompt part util classes.
- */
-export function getAllPromptPartUtils(): PromptPartUtilConstructor<PromptPart>[] {
-	return Array.from(registry.values()) as PromptPartUtilConstructor<PromptPart>[]
-}
-
-/**
  * Get an object containing instantiated prompt part utils for an agent.
  */
 export function getPromptPartUtilsRecord(agent: TldrawAgent) {
@@ -42,10 +31,6 @@ export function getPromptPartUtilsRecord(agent: TldrawAgent) {
 	return object
 }
 
-// ============================================================================
-// Base Class
-// ============================================================================
-
 export abstract class PromptPartUtil<T extends BasePromptPart = BasePromptPart> {
 	static type: string
 
@@ -54,14 +39,24 @@ export abstract class PromptPartUtil<T extends BasePromptPart = BasePromptPart> 
 
 	constructor(agent: TldrawAgent) {
 		this.agent = agent
-		this.editor = agent?.editor
+		this.editor = agent.editor
 	}
 
 	/**
 	 * Get some data to add to the prompt.
-	 * @returns The prompt part.
 	 */
 	abstract getPart(request: AgentRequest, helpers: AgentHelpers): Promise<T> | T
+
+	/**
+	 * Current page shapes (in z-order) whose masked page bounds fall inside `bounds`.
+	 */
+	getShapesInBounds(bounds: BoxModel) {
+		const box = Box.From(bounds)
+		return this.editor.getCurrentPageShapesSorted().filter((shape) => {
+			const shapeBounds = this.editor.getShapeMaskedPageBounds(shape)
+			return shapeBounds ? box.includes(shapeBounds) : false
+		})
+	}
 }
 
 export interface PromptPartUtilConstructor<T extends BasePromptPart = BasePromptPart> {

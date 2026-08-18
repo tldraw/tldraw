@@ -24,8 +24,7 @@ interface TLConnectionCenterHandleOverlay extends TLOverlay {
 
 /**
  * Renders a clickable "+" handle at the midpoint of each fully-bound connection
- * so users can insert a new node into the middle of a connection. Replaces the
- * old SVG indicator-based handle.
+ * so users can insert a new node into the middle of a connection.
  */
 export class ConnectionCenterHandleOverlayUtil extends OverlayUtil<TLConnectionCenterHandleOverlay> {
 	static override type = 'connection_center_handle'
@@ -66,7 +65,7 @@ export class ConnectionCenterHandleOverlayUtil extends OverlayUtil<TLConnectionC
 	}
 
 	override getCursor(): TLCursorType {
-		return 'pointer' as TLCursorType
+		return 'pointer'
 	}
 
 	override onPointerDown(overlay: TLConnectionCenterHandleOverlay, _info: TLPointerEventInfo) {

@@ -29,11 +29,13 @@ export const SetMyViewActionUtil = registerActionUtil(
 				h: action.h,
 			})
 
+			// The message quotes the action rather than the offset bounds because it goes into
+			// chat history, so it must be consistent with what the agent thinks the chat origin is
 			this.agent.interrupt({
 				input: {
 					bounds,
 					agentMessages: [
-						`Just navigated to new area with the intent: ${action.intent}. Can now see the new area at (${roundedAction.x}, ${roundedAction.y}) and is ${roundedAction.w}x${roundedAction.h} in size.`, // this uses the action instead of the bounds because this will go in the chat history and so must be consistent with what the agent thinks the chat origin is
+						`Just navigated to new area with the intent: ${action.intent}. Can now see the new area at (${roundedAction.x}, ${roundedAction.y}) and is ${roundedAction.w}x${roundedAction.h} in size.`,
 					],
 				},
 			})

@@ -1,6 +1,3 @@
-/**
- * This file contains functions for working with ports and connections on nodes.
- */
 import { createComputedCache, Editor, TLShapeId } from 'tldraw'
 import { getConnectionBindings } from '../connection/ConnectionBindingUtil'
 import { PortDataType } from '../constants'
@@ -15,10 +12,6 @@ import {
 	STOP_EXECUTION,
 } from './types/shared'
 
-/**
- * Get the ports for a node. This is cached, because we only want to re-evaluate it when the
- * underlying records change.
- */
 export function getNodePorts(editor: Editor, shape: NodeShape | TLShapeId) {
 	return nodePortsCache.get(editor, typeof shape === 'string' ? shape : shape.id) ?? {}
 }
@@ -26,9 +19,6 @@ const nodePortsCache = createComputedCache('ports', (editor: Editor, node: NodeS
 	getNodeTypePorts(editor, node)
 )
 
-/**
- * A connection from one node to another.
- */
 export interface NodePortConnection {
 	connectedShapeId: TLShapeId
 	connectionId: TLShapeId
@@ -38,9 +28,6 @@ export interface NodePortConnection {
 	order: number
 }
 
-/**
- * Get the connections for a node. This is cached.
- */
 export function getNodePortConnections(
 	editor: Editor,
 	shape: NodeShape | TLShapeId
@@ -75,9 +62,6 @@ const nodePortConnectionsCache = createComputedCache(
 	}
 )
 
-/**
- * Get the values of the input ports for a node. This is cached.
- */
 export function getNodeInputPortValues(editor: Editor, shape: NodeShape | TLShapeId): InfoValues {
 	return nodeInputPortValuesCache.get(editor, typeof shape === 'string' ? shape : shape.id) ?? {}
 }
@@ -90,14 +74,11 @@ const nodeInputPortValuesCache = createComputedCache(
 
 		const values: InfoValues = {}
 		for (const connection of sorted) {
-			if (!connection || connection.terminal !== 'end') continue
+			if (connection.terminal !== 'end') continue
 
-			const connectedShapeOutputs = getNodeOutputPortInfo(editor, connection.connectedShapeId)
-			if (!connectedShapeOutputs) {
-				continue
-			}
-
-			const output = connectedShapeOutputs[connection.connectedPortId]
+			const output = getNodeOutputPortInfo(editor, connection.connectedShapeId)[
+				connection.connectedPortId
+			]
 			if (!output) continue
 			const port = ports[connection.ownPortId]
 
@@ -128,9 +109,6 @@ const nodeInputPortValuesCache = createComputedCache(
 	}
 )
 
-/**
- * Get the values of the output ports for a node. This is cached.
- */
 export function getNodeOutputPortInfo(editor: Editor, shape: NodeShape | TLShapeId): InfoValues {
 	return nodeOutputPortInfoCache.get(editor, typeof shape === 'string' ? shape : shape.id) ?? {}
 }
@@ -161,7 +139,7 @@ const nodeOutputPortInfoCache = createComputedCache(
 			)
 		}
 
-		return getNodeOutputInfo(editor, node, inputs as InfoValues)
+		return getNodeOutputInfo(editor, node, inputs)
 	},
 	{
 		areRecordsEqual: (a, b) => a.props === b.props,
@@ -199,9 +177,6 @@ export function getAllConnectedNodes(
 	return found
 }
 
-/**
- * Get the data type of a port on a node. Returns the port's dataType.
- */
 export function getPortDataType(
 	editor: Editor,
 	shapeId: TLShapeId,

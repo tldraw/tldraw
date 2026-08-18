@@ -12,7 +12,12 @@ import {
 } from 'tldraw'
 import { AddIcon } from '../../components/icons/AddIcon'
 import { SubtractIcon } from '../../components/icons/SubtractIcon'
-import { NODE_HEADER_HEIGHT_PX, NODE_WIDTH_PX } from '../../constants'
+import {
+	NODE_HEADER_HEIGHT_PX,
+	NODE_ROW_HEADER_GAP_PX,
+	NODE_ROW_HEIGHT_PX,
+	NODE_WIDTH_PX,
+} from '../../constants'
 import { Port, PortId, ShapePort } from '../../ports/Port'
 import { getNodeInputPortValues } from '../nodePorts'
 import { NodeShape } from '../NodeShapeUtil'
@@ -80,6 +85,19 @@ export const outputPort: ShapePort = {
 	x: NODE_WIDTH_PX,
 	y: NODE_HEADER_HEIGHT_PX / 2,
 	terminal: 'start',
+}
+
+/**
+ * A port vertically centered on the given body row (0-based). Inputs sit on the left edge, outputs
+ * on the right.
+ */
+export function rowPort(id: PortId, row: number, terminal: 'start' | 'end' = 'end'): ShapePort {
+	return {
+		id,
+		x: terminal === 'start' ? NODE_WIDTH_PX : 0,
+		y: NODE_HEADER_HEIGHT_PX + NODE_ROW_HEADER_GAP_PX + NODE_ROW_HEIGHT_PX * (row + 0.5),
+		terminal,
+	}
 }
 
 /**
@@ -211,35 +229,18 @@ export function NodeInputRow({
  * Format a number to display with up to 5 significant figures, using suffixes for large numbers.
  */
 function formatNumber(value: number): string {
-	// Handle special cases
 	if (value === 0) return '0'
 	if (!isFinite(value)) return value.toString()
 
 	const absValue = Math.abs(value)
 	const sign = value < 0 ? '-' : ''
 
-	// For very large numbers, use suffixes
-	if (absValue >= 1_000_000_000) {
-		return sign + (absValue / 1_000_000_000).toPrecision(3) + 'B'
-	}
-	if (absValue >= 1_000_000) {
-		return sign + (absValue / 1_000_000).toPrecision(3) + 'M'
-	}
-	if (absValue >= 1_000) {
-		return sign + (absValue / 1_000).toPrecision(3) + 'k'
-	}
-
-	// For smaller numbers, use up to 5 significant figures
-	if (absValue >= 1) {
-		// For numbers >= 1, limit to 5 significant figures
-		return sign + absValue.toPrecision(5).replace(/\.?0+$/, '')
-	} else if (absValue >= 0.001) {
-		// For numbers between 0.001 and 1, show up to 5 significant figures
-		return sign + absValue.toPrecision(3)
-	} else {
-		// For very small numbers, use scientific notation
-		return value.toExponential(2)
-	}
+	if (absValue >= 1_000_000_000) return sign + (absValue / 1_000_000_000).toPrecision(3) + 'B'
+	if (absValue >= 1_000_000) return sign + (absValue / 1_000_000).toPrecision(3) + 'M'
+	if (absValue >= 1_000) return sign + (absValue / 1_000).toPrecision(3) + 'k'
+	if (absValue >= 1) return sign + absValue.toPrecision(5).replace(/\.?0+$/, '')
+	if (absValue >= 0.001) return sign + absValue.toPrecision(3)
+	return value.toExponential(2)
 }
 
 /**

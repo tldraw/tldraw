@@ -20,19 +20,15 @@ export const PenActionUtil = registerActionUtil(
 		override sanitizeAction(action: Streaming<PenAction>, helpers: AgentHelpers) {
 			if (!action.points) return action
 
-			// Ensure the shape has a unique ID
 			action.shapeId = helpers.ensureShapeIdIsUnique(action.shapeId)
 
 			// Don't include the final point if we're still streaming.
 			// Its numbers might be incomplete.
 			const points = action.complete ? action.points : action.points.slice(0, -1)
 
-			// This is a complex action for the model, so validate the data it gives us
-			const validPoints = points
+			action.points = points
 				.map((point) => helpers.ensureValueIsVec(point))
 				.filter((v) => v !== null)
-
-			action.points = validPoints
 			action.closed = helpers.ensureValueIsBoolean(action.closed) ?? false
 			action.fill = helpers.ensureValueIsFocusedFill(action.fill) ?? 'none'
 
@@ -40,17 +36,14 @@ export const PenActionUtil = registerActionUtil(
 		}
 
 		override applyAction(action: Streaming<PenAction>, helpers: AgentHelpers) {
-			if (!action.points) return
-			if (action.points.length === 0) return
-
+			if (!action.points || action.points.length === 0) return
 			if (!action.shapeId) return
 			const shapeId = `shape:${action.shapeId}` as TLShapeId
 
 			action.points = action.points.map((point) => helpers.removeOffsetFromVec(point))
 
 			if (action.closed) {
-				const firstPoint = action.points[0]
-				action.points.push(firstPoint)
+				action.points.push(action.points[0])
 			}
 
 			const minX = Math.min(...action.points.map((p) => p.x))
@@ -60,37 +53,25 @@ export const PenActionUtil = registerActionUtil(
 			const maxDistanceBetweenPoints = action.style === 'smooth' ? 10 : 2
 			for (let i = 0; i < action.points.length - 1; i++) {
 				const point = action.points[i]
+				const nextPoint = action.points[i + 1]
 				points.push(point)
 
-				const nextPoint = action.points[i + 1]
-				if (!nextPoint) continue
-
-				const distance = Vec.Dist(point, nextPoint)
-				const numPointsToAdd = Math.floor(distance / maxDistanceBetweenPoints)
-				const pointsToAdd = Array.from({ length: numPointsToAdd }, (_, j) => {
-					const t = (j + 1) / (numPointsToAdd + 1)
-					return Vec.Lrp(point, nextPoint, t)
-				})
-				points.push(...pointsToAdd)
+				const numPointsToAdd = Math.floor(Vec.Dist(point, nextPoint) / maxDistanceBetweenPoints)
+				for (let j = 0; j < numPointsToAdd; j++) {
+					points.push(Vec.Lrp(point, nextPoint, (j + 1) / (numPointsToAdd + 1)))
+				}
 			}
 
 			// Require at least 2 points to draw a line
-			if (points.length <= 1) {
-				return
-			}
+			if (points.length <= 1) return
 
 			const segmentPoints = points.map((point) => ({
 				x: point.x - minX,
 				y: point.y - minY,
 				z: 0.75,
 			}))
-			const base64Points = b64Vecs.encodePoints(segmentPoints)
-
 			const segments: TLDrawShapeSegment[] = [
-				{
-					type: 'free',
-					path: base64Points,
-				},
+				{ type: 'free', path: b64Vecs.encodePoints(segmentPoints) },
 			]
 
 			this.editor.createShape({

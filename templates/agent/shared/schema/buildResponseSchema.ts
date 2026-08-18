@@ -1,18 +1,11 @@
 import z from 'zod'
 import { ActionMeta, AgentAction, getActionSchemaForMode } from '../types/AgentAction'
 
-/**
- * Internal meta keys that should be stripped from the JSON schema.
- * These are added via .meta() in action schemas but shouldn't be sent to the model.
- */
+// Set via .meta() on action schemas for our own use; never sent to the model
 const INTERNAL_META_KEYS: Set<string> = new Set([
 	'_systemPromptCategory',
 ] satisfies (keyof ActionMeta)[])
 
-/**
- * Recursively strips internal meta fields from a JSON schema.
- * Only removes explicitly listed internal keys, preserving all other fields.
- */
 export function stripInternalMeta(obj: object): object {
 	if (Array.isArray(obj)) {
 		return obj.map(stripInternalMeta)

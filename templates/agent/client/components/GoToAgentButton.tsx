@@ -11,9 +11,6 @@ import {
 import { TldrawAgent } from '../agent/TldrawAgent'
 import { useAgents } from '../agent/TldrawAgentAppProvider'
 
-/**
- * Renders GoToAgentButton for all agents.
- */
 export function GoToAgentButtons() {
 	const agents = useAgents()
 
@@ -34,7 +31,6 @@ export function GoToAgentButton({ agent }: { agent: TldrawAgent }) {
 	const currentRequest = useValue('activeRequest', () => agent.requests.getActiveRequest(), [agent])
 	const agentViewport = currentRequest?.bounds
 
-	// We only show the button if the agent is offscreen
 	const agentIsOffscreen = useValue(
 		'agentIsOffscreen',
 		() => {
@@ -56,11 +52,9 @@ export function GoToAgentButton({ agent }: { agent: TldrawAgent }) {
 			if (!agentViewport) return
 			if (agentIsOffscreen) return
 
-			const agentCenter = Box.From(agentViewport).center
-			const agentScreenCenter = editor.pageToViewport(agentCenter)
-			const screenBounds = editor.getViewportScreenBounds()
-			const screenCenter = Box.From(screenBounds).center
-			const displacement = Vec.From(agentScreenCenter).sub(screenCenter)
+			const agentScreenCenter = editor.pageToViewport(Box.From(agentViewport).center)
+			const screenCenter = editor.getViewportScreenBounds().center
+			const displacement = Vec.Sub(agentScreenCenter, screenCenter)
 			return Math.atan2(displacement.y, displacement.x) * (180 / Math.PI)
 		},
 		[agentViewport]

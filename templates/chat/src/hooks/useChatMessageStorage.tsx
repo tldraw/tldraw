@@ -46,10 +46,9 @@ export function useChatMessageStorage(): [UIMessage[] | null, (messages: UIMessa
 		const root = await navigator.storage.getDirectory()
 		const file = await root.getFileHandle(STORAGE_FILE_NAME, { create: true })
 		const writable = await file.createWritable({ keepExistingData: false })
-		const text = JSON.stringify(messages)
-		await writable.write(text)
+		await writable.write(JSON.stringify(messages))
 		await writable.close()
 	}, [])
 
-	return [initialMessages, saveMessages] as const
+	return [initialMessages, saveMessages]
 }

@@ -1,5 +1,4 @@
-import classNames from 'classnames'
-import { T, useEditor, useValue } from 'tldraw'
+import { T, useEditor } from 'tldraw'
 import { apiUpscale } from '../../api/pipelineApi'
 import { UpscaleIcon } from '../../components/icons/UpscaleIcon'
 import {
@@ -9,8 +8,7 @@ import {
 	NODE_ROW_HEIGHT_PX,
 	NODE_WIDTH_PX,
 } from '../../constants'
-import { Port, ShapePort } from '../../ports/Port'
-import { getNodeInputPortValues } from '../nodePorts'
+import { ShapePort } from '../../ports/Port'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	areAnyInputsOutOfDate,
@@ -19,11 +17,9 @@ import {
 	InputValues,
 	NodeComponentProps,
 	NodeDefinition,
-	NodeImage,
-	NodePlaceholder,
-	NodePortLabel,
-	NodeRow,
-	STOP_EXECUTION,
+	NodeImagePreview,
+	NodePortRow,
+	NodeSelectRow,
 	updateNode,
 } from './shared'
 
@@ -118,77 +114,28 @@ export class UpscaleNodeDefinition extends NodeDefinition<UpscaleNode> {
 
 function UpscaleNodeComponent({ shape, node }: NodeComponentProps<UpscaleNode>) {
 	const editor = useEditor()
-	const imageInput = useValue('image input', () => getNodeInputPortValues(editor, shape.id).image, [
-		editor,
-		shape.id,
-	])
 
 	return (
 		<>
-			<NodeRow>
-				<Port shapeId={shape.id} portId="image" />
-				<NodePortLabel dataType="image">Image</NodePortLabel>
-				{imageInput ? (
-					<span className="NodeRow-connected-value">
-						{imageInput.isOutOfDate || imageInput.value === STOP_EXECUTION ? (
-							<NodePlaceholder />
-						) : (
-							'connected'
-						)}
-					</span>
-				) : (
-					<span className="NodeRow-disconnected">not connected</span>
-				)}
-			</NodeRow>
-			<NodeRow>
-				<span className="NodeInputRow-label">Scale</span>
-				<select
-					value={node.scale}
-					onChange={(e) =>
-						updateNode<UpscaleNode>(editor, shape, (n) => ({
-							...n,
-							scale: e.target.value,
-						}))
-					}
-				>
-					{SCALE_FACTORS.map((s) => (
-						<option key={s.id} value={s.id}>
-							{s.label}
-						</option>
-					))}
-				</select>
-			</NodeRow>
-			<NodeRow>
-				<span className="NodeInputRow-label">Method</span>
-				<select
-					value={node.method}
-					onChange={(e) =>
-						updateNode<UpscaleNode>(editor, shape, (n) => ({
-							...n,
-							method: e.target.value,
-						}))
-					}
-				>
-					{METHODS.map((m) => (
-						<option key={m.id} value={m.id}>
-							{m.label}
-						</option>
-					))}
-				</select>
-			</NodeRow>
-			<div
-				className={classNames('NodeImagePreview', {
-					NodeImagePreview_loading: shape.props.isOutOfDate,
-				})}
-			>
-				{node.lastResultUrl ? (
-					<NodeImage src={node.lastResultUrl} alt="Upscaled" />
-				) : (
-					<div className="NodeImagePreview-empty">
-						<span>Connect an image to upscale</span>
-					</div>
-				)}
-			</div>
+			<NodePortRow shapeId={shape.id} portId="image" dataType="image" label="Image" />
+			<NodeSelectRow
+				label="Scale"
+				value={node.scale}
+				options={SCALE_FACTORS}
+				onChange={(scale) => updateNode<UpscaleNode>(editor, shape, (n) => ({ ...n, scale }))}
+			/>
+			<NodeSelectRow
+				label="Method"
+				value={node.method}
+				options={METHODS}
+				onChange={(method) => updateNode<UpscaleNode>(editor, shape, (n) => ({ ...n, method }))}
+			/>
+			<NodeImagePreview
+				src={node.lastResultUrl}
+				alt="Upscaled"
+				emptyText="Connect an image to upscale"
+				isLoading={shape.props.isOutOfDate}
+			/>
 		</>
 	)
 }

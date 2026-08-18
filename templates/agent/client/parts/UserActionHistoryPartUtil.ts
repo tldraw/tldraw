@@ -28,10 +28,8 @@ export const UserActionHistoryPartUtil = registerPromptPartUtil(
 				updated: [],
 			}
 
-			const squashedDiff = squashRecordDiffs(diffs)
-			const { added, updated, removed } = squashedDiff
+			const { added, updated, removed } = squashRecordDiffs(diffs)
 
-			// Collect user-added shapes
 			for (const shape of Object.values(added)) {
 				if (shape.typeName !== 'shape') continue
 				part.added.push({
@@ -40,7 +38,6 @@ export const UserActionHistoryPartUtil = registerPromptPartUtil(
 				})
 			}
 
-			// Collect user-removed shapes
 			for (const shape of Object.values(removed)) {
 				if (shape.typeName !== 'shape') continue
 				const focusedShape = convertTldrawShapeToFocusedShape(editor, shape)
@@ -50,7 +47,6 @@ export const UserActionHistoryPartUtil = registerPromptPartUtil(
 				})
 			}
 
-			// Collect user-updated shapes
 			for (const [from, to] of Object.values(updated)) {
 				if (from.typeName !== 'shape' || to.typeName !== 'shape') continue
 				const fromFocusedShape = convertTldrawShapeToFocusedShape(editor, from)
@@ -77,34 +73,15 @@ export const UserActionHistoryPartUtil = registerPromptPartUtil(
 
 /**
  * Get any changed properties between two focused shapes.
- * @param from - The original shape.
- * @param to - The new shape.
- * @returns The changed properties.
  */
-function getFocusedShapeChange<T extends FocusedShape['_type']>(
-	from: FocusedShape & { _type: T },
-	to: FocusedShape & { _type: T }
-) {
-	if (from._type !== to._type) {
-		return null
-	}
+function getFocusedShapeChange(from: FocusedShape, to: FocusedShape) {
+	if (from._type !== to._type) return null
 
-	const change: {
-		from: Partial<FocusedShape>
-		to: Partial<FocusedShape>
-	} = {
-		from: {},
-		to: {},
+	const change = { from: {} as Record<string, unknown>, to: {} as Record<string, unknown> }
+	for (const key of Object.keys(to) as (keyof FocusedShape)[]) {
+		if (from[key] === to[key]) continue
+		change.from[key] = from[key]
+		change.to[key] = to[key]
 	}
-
-	for (const key in to) {
-		const fromValue = from[key]
-		const toValue = to[key]
-		if (fromValue === toValue) {
-			continue
-		}
-		;(change.from as any)[key] = fromValue
-		;(change.to as any)[key] = toValue
-	}
-	return change
+	return change as { from: Partial<FocusedShape>; to: Partial<FocusedShape> }
 }

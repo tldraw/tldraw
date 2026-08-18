@@ -5,14 +5,6 @@ import { ConfigPanelBooleanControl } from '../config-panel/ConfigPanelBooleanCon
 import { ConfigPanelSlider } from '../config-panel/ConfigPanelSlider'
 import { fluidConfig, resetFluidConfig } from './config'
 
-/**
- * Configuration panel for the fluid simulation.
- * Provides UI controls for adjusting all fluid simulation parameters including:
- * - General settings (quality, velocity)
- * - Simulation parameters (resolution, dissipation, pressure)
- * - Splat settings (radius, force, colors)
- * - Post-processing effects (bloom, sunrays)
- */
 export function FluidConfigPanel() {
 	const config = useValue('config', () => fluidConfig.get(), [])
 

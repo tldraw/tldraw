@@ -13,10 +13,6 @@ import { SimpleShapeId } from '../types/ids-schema'
 import type { PromptPart, PromptPartDefinition } from '../types/PromptPart'
 import { TodoItem } from '../types/TodoItem'
 
-// ============================================================================
-// Prompt Part Type Interfaces
-// ============================================================================
-
 export interface BlurryShapesPart {
 	type: 'blurryShapes'
 	shapes: BlurryShape[]
@@ -120,11 +116,6 @@ export interface DebugPart {
 	logMessages: boolean
 }
 
-// ============================================================================
-// Prompt Part Definitions
-// ============================================================================
-
-// BlurryShapes
 export const BlurryShapesPartDefinition: PromptPartDefinition<BlurryShapesPart> = {
 	type: 'blurryShapes',
 	priority: -70,
@@ -134,7 +125,6 @@ export const BlurryShapesPartDefinition: PromptPartDefinition<BlurryShapesPart> 
 	},
 }
 
-// CanvasLints
 export const CanvasLintsPartDefinition: PromptPartDefinition<CanvasLintsPart> = {
 	type: 'canvasLints',
 	priority: -50,
@@ -145,7 +135,6 @@ export const CanvasLintsPartDefinition: PromptPartDefinition<CanvasLintsPart> = 
 
 		const messages: string[] = []
 
-		// Group lints by type
 		const growYLints = lints.filter((l) => l.type === 'growY-on-shape')
 		const overlappingTextLints = lints.filter((l) => l.type === 'overlapping-text')
 		const friendlessArrowLints = lints.filter((l) => l.type === 'friendless-arrow')
@@ -184,7 +173,6 @@ export const CanvasLintsPartDefinition: PromptPartDefinition<CanvasLintsPart> = 
 	},
 }
 
-// ChatHistory
 const CHAT_HISTORY_PRIORITY = -Infinity // history should appear first in the prompt (low priority)
 
 export const ChatHistoryPartDefinition: PromptPartDefinition<ChatHistoryPart> = {
@@ -193,21 +181,14 @@ export const ChatHistoryPartDefinition: PromptPartDefinition<ChatHistoryPart> = 
 	buildMessages: ({ history }) => {
 		if (history.length === 0) return []
 
+		// A trailing prompt is the current request, not history
+		const end = history[history.length - 1].type === 'prompt' ? history.length - 1 : history.length
+
 		const messages: AgentMessage[] = []
-
-		// If the last message is from the user, skip it
-		const lastIndex = history.length - 1
-		let end = history.length
-		if (end > 0 && history[lastIndex].type === 'prompt') {
-			end = lastIndex
-		}
-
 		for (let i = 0; i < end; i++) {
-			const item = history[i]
-			const message = buildHistoryItemMessage(item, CHAT_HISTORY_PRIORITY)
+			const message = buildHistoryItemMessage(history[i], CHAT_HISTORY_PRIORITY)
 			if (message) messages.push(message)
 		}
-
 		return messages
 	},
 }
@@ -224,34 +205,14 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 				})
 			}
 
-			if (item.contextItems.length > 0) {
-				for (const contextItem of item.contextItems) {
-					switch (contextItem.type) {
-						case 'shape': {
-							const focusedShape = contextItem.shape
-							content.push({
-								type: 'text',
-								text: `[CONTEXT]: ${JSON.stringify(focusedShape)}`,
-							})
-							break
-						}
-						case 'shapes': {
-							const focusedShapes = contextItem.shapes
-							content.push({
-								type: 'text',
-								text: `[CONTEXT]: ${JSON.stringify(focusedShapes)}`,
-							})
-							break
-						}
-						default: {
-							content.push({
-								type: 'text',
-								text: `[CONTEXT]: ${JSON.stringify(contextItem)}`,
-							})
-							break
-						}
-					}
-				}
+			for (const contextItem of item.contextItems) {
+				const value =
+					contextItem.type === 'shape'
+						? contextItem.shape
+						: contextItem.type === 'shapes'
+							? contextItem.shapes
+							: contextItem
+				content.push({ type: 'text', text: `[CONTEXT]: ${JSON.stringify(value)}` })
 			}
 
 			if (content.length === 0) {
@@ -304,7 +265,6 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 	}
 }
 
-// ContextItems
 export const ContextItemsPartDefinition: PromptPartDefinition<ContextItemsPart> = {
 	type: 'contextItems',
 	priority: -55, // context items in middle
@@ -316,7 +276,6 @@ export const ContextItemsPartDefinition: PromptPartDefinition<ContextItemsPart> 
 		const areaItems = items.filter((item) => item.type === 'area')
 		const pointItems = items.filter((item) => item.type === 'point')
 
-		// Handle area context items
 		if (areaItems.length > 0) {
 			const isSelf = requestSource === 'self'
 			const areas = areaItems.map((item) => item.bounds)
@@ -330,7 +289,6 @@ export const ContextItemsPartDefinition: PromptPartDefinition<ContextItemsPart> 
 			}
 		}
 
-		// Handle point context items
 		if (pointItems.length > 0) {
 			const points = pointItems.map((item) => item.point)
 			messages.push(
@@ -341,7 +299,6 @@ export const ContextItemsPartDefinition: PromptPartDefinition<ContextItemsPart> 
 			}
 		}
 
-		// Handle individual shape context items
 		if (shapeItems.length > 0) {
 			const shapes = shapeItems.map((item) => item.shape)
 			messages.push(
@@ -352,7 +309,6 @@ export const ContextItemsPartDefinition: PromptPartDefinition<ContextItemsPart> 
 			}
 		}
 
-		// Handle groups of shapes context items
 		for (const contextItem of shapesItems) {
 			const shapes = contextItem.shapes
 			if (shapes.length > 0) {
@@ -367,22 +323,16 @@ export const ContextItemsPartDefinition: PromptPartDefinition<ContextItemsPart> 
 	},
 }
 
-// Data
 export const DataPartDefinition: PromptPartDefinition<DataPart> = {
 	type: 'data',
 	priority: 200, // API data should come right before the user message but after most other parts
 	buildContent: ({ data }) => {
 		if (data.length === 0) return []
 
-		const formattedData = data.map((item) => {
-			return `${JSON.stringify(item)}`
-		})
-
-		return ["Here's the data you requested:", ...formattedData]
+		return ["Here's the data you requested:", ...data.map((item) => JSON.stringify(item))]
 	},
 }
 
-// Messages
 export const MessagesPartDefinition: PromptPartDefinition<MessagesPart> = {
 	type: 'messages',
 	priority: Infinity, // user message should be last (highest priority)
@@ -397,15 +347,11 @@ export const MessagesPartDefinition: PromptPartDefinition<MessagesPart> = {
 	},
 }
 
-// ModelName
 export const ModelNamePartDefinition: PromptPartDefinition<ModelNamePart> = {
 	type: 'modelName',
-	getModelName: (part) => {
-		return part.modelName
-	},
+	getModelName: (part) => part.modelName,
 }
 
-// PeripheralShapes
 export const PeripheralShapesPartDefinition: PromptPartDefinition<PeripheralShapesPart> = {
 	type: 'peripheralShapes',
 	priority: -65, // peripheral content after viewport shapes
@@ -421,7 +367,6 @@ export const PeripheralShapesPartDefinition: PromptPartDefinition<PeripheralShap
 	},
 }
 
-// Screenshot
 export const ScreenshotPartDefinition: PromptPartDefinition<ScreenshotPart> = {
 	type: 'screenshot',
 	priority: -40, // screenshot after text content
@@ -451,7 +396,6 @@ export const SelectedShapesPartDefinition: PromptPartDefinition<SelectedShapesPa
 	},
 }
 
-// Time
 export const TimePartDefinition: PromptPartDefinition<TimePart> = {
 	type: 'time',
 	priority: -100,
@@ -460,7 +404,6 @@ export const TimePartDefinition: PromptPartDefinition<TimePart> = {
 	},
 }
 
-// TodoList
 export const TodoListPartDefinition: PromptPartDefinition<TodoListPart> = {
 	type: 'todoList',
 	priority: 10,
@@ -470,7 +413,6 @@ export const TodoListPartDefinition: PromptPartDefinition<TodoListPart> = {
 	},
 }
 
-// UserActionHistory
 export const UserActionHistoryPartDefinition: PromptPartDefinition<UserActionHistoryPart> = {
 	type: 'userActionHistory',
 	priority: -40,
@@ -487,7 +429,6 @@ export const UserActionHistoryPartDefinition: PromptPartDefinition<UserActionHis
 	},
 }
 
-// UserViewportBounds
 export const UserViewportBoundsPartDefinition: PromptPartDefinition<UserViewportBoundsPart> = {
 	type: 'userViewportBounds',
 	priority: -80,
@@ -501,7 +442,6 @@ export const UserViewportBoundsPartDefinition: PromptPartDefinition<UserViewport
 	},
 }
 
-// AgentViewportBounds
 export const AgentViewportBoundsPartDefinition: PromptPartDefinition<AgentViewportBoundsPart> = {
 	type: 'agentViewportBounds',
 	priority: -80,
@@ -515,14 +455,11 @@ export const AgentViewportBoundsPartDefinition: PromptPartDefinition<AgentViewpo
 	},
 }
 
-// Mode - sends mode metadata to worker for prompt construction
+// Mode and debug parts are metadata for the worker, not prompt content, so they have no buildContent
 export const ModePartDefinition: PromptPartDefinition<ModePart> = {
 	type: 'mode',
-	// No buildContent - this is metadata for the worker, not prompt content for the model
 }
 
-// Debug - sends debug flags to worker for logging
 export const DebugPartDefinition: PromptPartDefinition<DebugPart> = {
 	type: 'debug',
-	// No buildContent - this is metadata for the worker, not prompt content for the model
 }

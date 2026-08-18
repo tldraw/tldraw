@@ -1,14 +1,8 @@
 import { BoxModel, JsonValue } from 'tldraw'
 import { ContextItem } from './ContextItem'
 
-/**
- * A request that we send to the agent.
- */
 export interface AgentRequest {
-	/**
-	 * Messages associated with the request.
-	 * These are the agent-facing messages that will be sent to the model.
-	 */
+	/** Agent-facing messages that will be sent to the model. */
 	agentMessages: string[]
 
 	/**
@@ -20,9 +14,6 @@ export interface AgentRequest {
 	 */
 	userMessages: string[]
 
-	/**
-	 * The bounds of the request.
-	 */
 	bounds: BoxModel
 
 	/**

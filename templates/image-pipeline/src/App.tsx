@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { createShapeId, Editor, TLComponents, Tldraw, TldrawOptions } from 'tldraw'
+import { Editor, TLComponents, Tldraw, TldrawOptions } from 'tldraw'
 import { ImagePipelineSidebar } from './components/ImagePipelineSidebar.tsx'
 import { OnCanvasNodePicker } from './components/OnCanvasNodePicker.tsx'
 import { PipelineRegions } from './components/PipelineRegions.tsx'
@@ -72,39 +72,22 @@ function App() {
 	)
 }
 
-/**
- * Create a default text-to-image pipeline to get users started.
- */
+/** A default text-to-image pipeline to get users started. */
 function createDefaultPipeline(editor: Editor) {
-	const modelId = createShapeId()
-	const promptId = createShapeId()
-	const generateId = createShapeId()
-	const previewId = createShapeId()
-
 	editor.createShapes([
 		{
-			id: modelId,
 			type: 'node',
 			x: 100,
 			y: 200,
-			props: {
-				node: { type: 'model', provider: 'flux', modelId: 'flux-dev' },
-			},
+			props: { node: { type: 'model', provider: 'flux', modelId: 'flux-dev' } },
 		},
 		{
-			id: promptId,
 			type: 'node',
 			x: 100,
 			y: 450,
-			props: {
-				node: {
-					type: 'prompt',
-					text: 'a photo of a cat sitting on a windowsill',
-				},
-			},
+			props: { node: { type: 'prompt', text: 'a photo of a cat sitting on a windowsill' } },
 		},
 		{
-			id: generateId,
 			type: 'node',
 			x: 450,
 			y: 200,
@@ -119,16 +102,10 @@ function createDefaultPipeline(editor: Editor) {
 			},
 		},
 		{
-			id: previewId,
 			type: 'node',
 			x: 800,
 			y: 200,
-			props: {
-				node: {
-					type: 'preview',
-					lastImageUrl: null,
-				},
-			},
+			props: { node: { type: 'preview', lastImageUrl: null } },
 		},
 	])
 }

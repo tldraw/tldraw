@@ -1,18 +1,17 @@
 import { type UIMessage } from '@ai-sdk/react'
 import { memo } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { FileHelpers, TLEditorSnapshot } from 'tldraw'
+import { FileHelpers } from 'tldraw'
 import { TldrawProviderMetadata } from './WhiteboardModal'
+
+export type ImageClickTarget = TldrawProviderMetadata | { uploadedFile: File }
 
 interface ChatMessageProps {
 	message: UIMessage
-	onImageClick: (
-		opts: { snapshot: TLEditorSnapshot; imageName: string } | { uploadedFile: File }
-	) => void
+	onImageClick: (opts: ImageClickTarget) => void
 }
 
 export const ChatMessage = memo(function ChatMessage({ message, onImageClick }: ChatMessageProps) {
-	// For AI messages with no content, show thinking state
 	if (
 		message.role === 'assistant' &&
 		!message.parts.some((part) => part.type === 'file' || part.type === 'text')
@@ -30,10 +29,9 @@ export const ChatMessage = memo(function ChatMessage({ message, onImageClick }: 
 		>
 			{message.parts.map((part, index) => {
 				if (part.type === 'file') {
-					// we stash a snapshot of the tldraw document in the provider metadata:
+					// whiteboard images carry a tldraw snapshot in the provider metadata so they can be re-edited
 					const tldrawMetadata = part.providerMetadata?.tldraw as TldrawProviderMetadata | undefined
 					const handleImageClick = async () => {
-						// if we have a tldraw snapshot, we open the tldraw modal when it's clicked:
 						if (tldrawMetadata) {
 							onImageClick(tldrawMetadata)
 						} else {

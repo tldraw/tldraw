@@ -30,9 +30,10 @@ import {
 } from '../nodes/nodePorts'
 import { STOP_EXECUTION } from '../nodes/types/shared'
 import { getPortAtPoint } from '../ports/getPortAtPoint'
-import { findFirstCompatiblePort } from '../ports/portCompatibility'
+import { arePortDataTypesCompatible, findFirstCompatiblePort } from '../ports/portCompatibility'
 import { updatePortState } from '../ports/portState'
 import {
+	ConnectionBinding,
 	createOrUpdateConnectionBinding,
 	getConnectionBindingPositionInPageSpace,
 	getConnectionBindings,
@@ -148,16 +149,10 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 			? getAllConnectedNodes(this.editor, oppositeTerminalShapeId, draggingTerminal)
 			: null
 
-		// Determine the data type of the opposite end for type-checking
 		const oppositeBinding = existingBindings[oppositeTerminal]
-		let dragDataType: PortDataType | null = null
-		if (oppositeBinding) {
-			dragDataType = getPortDataType(
-				this.editor,
-				oppositeBinding.toId,
-				oppositeBinding.props.portId
-			)
-		}
+		const dragDataType: PortDataType | null = oppositeBinding
+			? getPortDataType(this.editor, oppositeBinding.toId, oppositeBinding.props.portId)
+			: null
 
 		updatePortState(this.editor, {
 			eligiblePorts: {
@@ -167,13 +162,8 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 			},
 		})
 
-		// Check type compatibility
 		const isTypeIncompatible =
-			target &&
-			dragDataType &&
-			dragDataType !== 'any' &&
-			target.port.dataType !== 'any' &&
-			target.port.dataType !== dragDataType
+			target && dragDataType && !arePortDataTypesCompatible(dragDataType, target.port.dataType)
 
 		const wouldCreateACycle = (target && nodesWhichWouldCreateACycle?.has(target.shape.id)) ?? false
 		if (!target || wouldCreateACycle || isTypeIncompatible) {
@@ -309,7 +299,6 @@ function ConnectionShapeComponent({ connection }: { connection: ConnectionShape 
 		connection,
 	])
 
-	// Get the data type color for this connection from its start binding
 	const connectionColor = useValue(
 		'connectionColor',
 		() => {
@@ -326,11 +315,8 @@ function ConnectionShapeComponent({ connection }: { connection: ConnectionShape 
 		() => {
 			const bindings = getConnectionBindings(editor, connection.id)
 			if (!bindings.start) return false
-			const originShapeId = bindings.start?.toId
-			if (!originShapeId) return false
-			const outputs = getNodeOutputPortInfo(editor, originShapeId)
-			const output = outputs[bindings.start.props.portId]
-			return output?.value === STOP_EXECUTION
+			const outputs = getNodeOutputPortInfo(editor, bindings.start.toId)
+			return outputs[bindings.start.props.portId]?.value === STOP_EXECUTION
 		},
 		[connection.id, editor]
 	)
@@ -379,26 +365,18 @@ function getConnectionPath(start: VecLike, end: VecLike) {
 	return `M ${start.x} ${start.y} C ${cp1.x} ${cp1.y} ${cp2.x} ${cp2.y} ${end.x} ${end.y}`
 }
 
+/** Terminal positions in connection space: the bound port if bound, otherwise the stored point. */
 export function getConnectionTerminals(editor: Editor, connection: ConnectionShape) {
-	let start, end
-
 	const bindings = getConnectionBindings(editor, connection)
-	const shapeTransform = Mat.Inverse(editor.getShapePageTransform(connection))
-	if (bindings.start) {
-		const inPageSpace = getConnectionBindingPositionInPageSpace(editor, bindings.start)
-		if (inPageSpace) {
-			start = Mat.applyToPoint(shapeTransform, inPageSpace)
-		}
-	}
-	if (bindings.end) {
-		const inPageSpace = getConnectionBindingPositionInPageSpace(editor, bindings.end)
-		if (inPageSpace) {
-			end = Mat.applyToPoint(shapeTransform, inPageSpace)
-		}
+	const pageToShape = Mat.Inverse(editor.getShapePageTransform(connection))
+
+	const terminal = (binding: ConnectionBinding | undefined, fallback: VecModel): VecLike => {
+		const inPageSpace = binding && getConnectionBindingPositionInPageSpace(editor, binding)
+		return inPageSpace ? Mat.applyToPoint(pageToShape, inPageSpace) : fallback
 	}
 
-	if (!start) start = connection.props.start
-	if (!end) end = connection.props.end
-
-	return { start, end }
+	return {
+		start: terminal(bindings.start, connection.props.start),
+		end: terminal(bindings.end, connection.props.end),
+	}
 }
