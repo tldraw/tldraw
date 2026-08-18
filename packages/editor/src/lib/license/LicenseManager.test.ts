@@ -530,20 +530,30 @@ describe('LicenseManager', () => {
 			}
 		})
 
-		it('Is development mode on a loopback host regardless of protocol', async () => {
+		it.each([
+			['http://localhost:5173/', true],
+			['http://127.0.0.1:3000/', true],
+			['https://localhost:8443/', true],
+			['https://[::1]:8443/', true],
+			['http://192.168.1.5:3000/', true],
+			['http://staging-box/', true],
+			['https://www.example.com/', false],
+			['tauri://localhost/index.html', false],
+			['http://tauri.localhost/index.html', false],
+			['app://tauri.localhost/com.example.app', false],
+			['app-bundle://localhost/index.html', false],
+		])('Development mode at %s is %s', async (href, expected) => {
 			process.env.NODE_ENV = 'production'
 			try {
 				// @ts-ignore
 				delete window.location
 				// @ts-ignore
-				window.location = new URL('app-bundle://localhost/index.html')
+				window.location = new URL(href)
 
 				const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
-				const loopbackLicenseManager = new LicenseManager('', keyPair.publicKey)
-				const result = (await loopbackLicenseManager.getLicenseFromKey(
-					licenseKey
-				)) as ValidLicenseKeyResult
-				expect(result.isDevelopment).toBe(true)
+				const manager = new LicenseManager('', keyPair.publicKey)
+				const result = (await manager.getLicenseFromKey(licenseKey)) as ValidLicenseKeyResult
+				expect(result.isDevelopment).toBe(expected)
 			} finally {
 				process.env.NODE_ENV = 'test'
 			}
@@ -564,6 +574,29 @@ describe('LicenseManager', () => {
 			)) as ValidLicenseKeyResult
 			expect(result.isDomainValid).toBe(false)
 		})
+
+		it.each(['tauri://localhost/index.html', 'http://tauri.localhost/index.html'])(
+			'Does not license an unrelated key at %s',
+			async (href) => {
+				process.env.NODE_ENV = 'production'
+				try {
+					// @ts-ignore
+					delete window.location
+					// @ts-ignore
+					window.location = new URL(href)
+
+					const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+					const manager = new LicenseManager('', keyPair.publicKey)
+					const result = (await manager.getLicenseFromKey(licenseKey)) as ValidLicenseKeyResult
+					expect(result).toMatchObject({ isDevelopment: false, isDomainValid: false })
+					expect(getLicenseState(result, () => {}, result.isDevelopment)).toBe(
+						'unlicensed-production'
+					)
+				} finally {
+					process.env.NODE_ENV = 'test'
+				}
+			}
+		)
 	})
 
 	describe('License types and flags', () => {

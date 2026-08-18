@@ -174,9 +174,17 @@ export class LicenseManager {
 	}
 
 	private getIsDevelopment() {
+		const protocol = window.location.protocol
+		const hostname = window.location.hostname
+
+		// Tauri uses `tauri://localhost` on macOS and Linux and `http://tauri.localhost` on Windows.
+		if (hostname.toLowerCase().endsWith('.localhost')) {
+			return process.env.NODE_ENV !== 'production'
+		}
+
 		return (
-			window.location.protocol === 'http:' ||
-			this.isLoopbackHost(window.location.hostname) ||
+			protocol === 'http:' ||
+			(protocol === 'https:' && this.isLoopbackHost(hostname)) ||
 			process.env.NODE_ENV !== 'production'
 		)
 	}
