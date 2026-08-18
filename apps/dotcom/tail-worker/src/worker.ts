@@ -1,7 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import { Aggregator } from './aggregate'
-import { toErrRow, writeAggRow, writeErrRow } from './analytics'
+import { toErrRow, writeAggRow, writeErrRow, writeSkipRow } from './analytics'
 import {
 	classifyHandler,
 	entrypointOf,
@@ -41,9 +41,12 @@ export default {
 				const row = toErrRow(item, handler, env.TLDR_DOC)
 				writeErrRow(env.TAIL, row)
 				errorEntries.push(toLokiEntry(item, handler, row.errorName, env.TLDRAW_ENV, env.TLDR_DOC))
-			} catch (_e) {
+			} catch (e) {
 				// One malformed TraceItem must not take out the whole batch — without this, a single bad
-				// item loses every AE row and the whole Loki push for every other item alongside it.
+				// item loses every AE row and the whole Loki push for every other item alongside it. A skip
+				// row means a systematic failure still leaves a signal, rather than vanishing the way an
+				// unchecked Loki push used to (see writePushRow).
+				writeSkipRow(env.TAIL, e instanceof Error ? e.message : String(e), env.TLDR_DOC)
 			}
 		}
 

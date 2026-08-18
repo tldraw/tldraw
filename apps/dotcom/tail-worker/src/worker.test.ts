@@ -41,7 +41,10 @@ function traceItem(partial: Partial<TraceItem> = {}): TraceItem {
 	} as unknown as TraceItem
 }
 
-function rowsOfType(writeDataPoint: ReturnType<typeof vi.fn>, type: 'agg' | 'err') {
+function rowsOfType(
+	writeDataPoint: ReturnType<typeof vi.fn>,
+	type: 'agg' | 'err' | 'skip' | 'push'
+) {
 	return writeDataPoint.mock.calls
 		.map(([point]) => point)
 		.filter((point) => point.blobs[0] === type)
@@ -164,7 +167,7 @@ describe('tail handler', () => {
 		).resolves.toBeUndefined()
 	})
 
-	it('skips a malformed item without losing the rest of the batch', async () => {
+	it('skips a malformed item without losing the rest of the batch, and records why', async () => {
 		const { env, writeDataPoint } = makeEnv()
 		const ctx = makeCtx()
 		const poison = traceItem()
@@ -177,5 +180,8 @@ describe('tail handler', () => {
 		await worker.tail([poison, traceItem()], env, ctx)
 
 		expect(rowsOfType(writeDataPoint, 'agg')).toHaveLength(1)
+		const skip = rowsOfType(writeDataPoint, 'skip')
+		expect(skip).toHaveLength(1)
+		expect(skip[0]).toEqual({ blobs: ['skip', 'boom'], doubles: [1] })
 	})
 })

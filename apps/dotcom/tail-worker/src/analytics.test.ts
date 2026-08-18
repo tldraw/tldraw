@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { AggBucket } from './aggregate'
-import { ErrRow, toErrRow, writeAggRow, writeErrRow, writePushRow } from './analytics'
+import { ErrRow, toErrRow, writeAggRow, writeErrRow, writePushRow, writeSkipRow } from './analytics'
 
 function dataset() {
 	return { writeDataPoint: vi.fn() }
@@ -188,5 +188,35 @@ describe('writePushRow', () => {
 
 	it('does nothing when the binding is missing', () => {
 		expect(() => writePushRow(undefined, '204', 1)).not.toThrow()
+	})
+})
+
+describe('writeSkipRow', () => {
+	it('writes the skip row layout', () => {
+		const ds = dataset()
+		writeSkipRow(ds as any, 'Cannot read properties of undefined', undefined)
+
+		expect(ds.writeDataPoint).toHaveBeenCalledWith({
+			blobs: ['skip', 'Cannot read properties of undefined'],
+			doubles: [1],
+		})
+	})
+
+	it('redacts a room-not-found slug in the reason the same way toErrRow does', () => {
+		const ds = dataset()
+		const tldrDoc = {
+			idFromName: (name: string) => ({ toString: () => `do(${name})` }),
+		} as any
+
+		writeSkipRow(ds as any, 'Room not found: my-secret-slug', tldrDoc)
+
+		expect(ds.writeDataPoint).toHaveBeenCalledWith({
+			blobs: ['skip', 'Room not found: do(/r/my-secret-slug)'],
+			doubles: [1],
+		})
+	})
+
+	it('does nothing when the binding is missing', () => {
+		expect(() => writeSkipRow(undefined, 'boom', undefined)).not.toThrow()
 	})
 })

@@ -108,6 +108,21 @@ export function writePushRow(
 	})
 }
 
+// Mirrors writePushRow: worker.ts's per-item try/catch swallows a malformed TraceItem so it can't take
+// out the rest of the batch, but a systematic failure must still leave a signal somewhere rather than
+// vanishing the way an unchecked Loki push used to. One row per skipped item. `reason` goes through the
+// same slug redaction as everything else here on the off chance a thrown error's message embeds one.
+export function writeSkipRow(
+	dataset: AnalyticsEngineDataset | undefined,
+	reason: string,
+	tldrDoc: DurableObjectNamespace | undefined
+): void {
+	write(dataset, {
+		blobs: ['skip', clip(redactRoomNotFoundSlug(reason, tldrDoc), MAX_BLOB_CHARS)],
+		doubles: [1],
+	})
+}
+
 // A telemetry write must never be the thing that fails a tail invocation — a thrown error here would
 // lose the Loki push for the same batch.
 function write(dataset: AnalyticsEngineDataset | undefined, point: AnalyticsEngineDataPoint): void {
