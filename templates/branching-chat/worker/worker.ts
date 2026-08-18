@@ -31,7 +31,7 @@ export default class extends WorkerEntrypoint<Environment> {
 		try {
 			const prompt = (await request.json()) as Array<ModelMessage>
 			const { text } = await generateText({
-				model: this.getModel(env)('gemini-3-flash-preview'),
+				model: this.getModel(env)('gemini-3.7-flash'),
 				messages: prompt,
 			})
 
@@ -53,7 +53,7 @@ export default class extends WorkerEntrypoint<Environment> {
 			const prompt = (await request.json()) as Array<ModelMessage>
 
 			const result = streamText({
-				model: this.getModel(env)('gemini-3-flash-preview'),
+				model: this.getModel(env)('gemini-3.7-flash'),
 				messages: prompt,
 				experimental_transform: smoothStream(),
 			})
