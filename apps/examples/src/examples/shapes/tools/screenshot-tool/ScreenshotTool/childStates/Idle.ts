@@ -13,5 +13,5 @@ export class ScreenshotIdle extends StateNode {
 
 /*
 [1]
-When we the user makes a pointer down event, we transition to the pointing state.
+On pointer down, hand off to the sibling pointing state. `this.parent` is the screenshot tool.
 */

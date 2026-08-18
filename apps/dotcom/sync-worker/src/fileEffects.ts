@@ -6,7 +6,8 @@ export interface FileEffectRow extends TlaEffectOutbox {
 	prevPayload: TlaFile | null
 }
 
-// Port of the publish/unpublish transition logic from replicator/ChangeCollator.ts getEffects().
+// A file's `update` row is a publish when it becomes published (or republishes with a new
+// lastPublished timestamp) and an unpublish when it stops being published.
 export function getPublishTransition(
 	row: Pick<FileEffectRow, 'command' | 'payload' | 'prevPayload'>
 ): 'publish' | 'unpublish' | null {

@@ -440,11 +440,6 @@ export type TlaRowPartial =
 	| TlaCommentThreadPartial
 	| TlaCommentReadPartial
 	| TlaCommentMentionPartial
-export interface TlaUserMutationNumber {
-	userId: string
-	mutationNumber: number
-}
-
 export const immutableColumns = {
 	user: new Set<keyof TlaUser>(['email', 'createdAt', 'updatedAt', 'avatar']),
 	file: new Set<keyof TlaFile>([
@@ -525,7 +520,6 @@ export interface DB {
 	group: TlaGroup
 	group_user: TlaGroupUser
 	group_file: TlaGroupFile
-	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
 	welcome_template: TlaWelcomeTemplate
 	comment: TlaComment & CommentPersistenceColumns

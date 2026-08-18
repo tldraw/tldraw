@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
 	OG_MAX_RENDER_ATTEMPTS,
 	OG_PENDING_MARKER_TTL_MS,
+	OG_RENDER_DEBOUNCE_MS,
+	OG_RENDER_MAX_WAIT_MS,
 	OG_REPAIR_COOLDOWN_MS,
 	OG_RETRY_DELAY_SECONDS,
 } from '../../config'
@@ -29,7 +31,7 @@ import {
 	makeFakeThumbnailsBucket,
 	makeScreenshotTestEnv as makeEnv,
 	makeSnapshot,
-	renderDurationsOf,
+	sessionsOf,
 	screenshotOf,
 	tokenFromScreenshot,
 } from './screenshotTestHelpers'
@@ -143,6 +145,29 @@ describe('enqueueOgImageRender', () => {
 		const worstCaseChainMs = OG_MAX_RENDER_ATTEMPTS * THUMBNAIL_RENDER_TIMEOUT_MS + backoffMs
 
 		expect(OG_PENDING_MARKER_TTL_MS).toBeGreaterThan(worstCaseChainMs)
+	})
+
+	// What lets shared files skip the follow-up render entirely, half one: debounced fires. An ask is
+	// only ever turned away while a job's marker is alive, and the debounce places that ask's persist
+	// a full OG_RENDER_DEBOUNCE_MS before the marker's clear. The image whose write performs that
+	// clear read its snapshot at most THUMBNAIL_RENDER_TIMEOUT_MS (plus the response and R2 write)
+	// before the same clear — retries included, since only a job's final delivery clears. With the
+	// debounce the longer of the two, the persist predates the snapshot: the content a dropped ask
+	// wanted is already in the image. The 15s margin has to absorb that post-capture tail; if this
+	// inequality ever flips, shared files need the follow-up back — see enqueueFollowUpIfBoardMoved.
+	it('debounces edits for longer than a capture can possibly run', () => {
+		expect(OG_RENDER_DEBOUNCE_MS).toBeGreaterThan(THUMBNAIL_RENDER_TIMEOUT_MS)
+	})
+
+	// Half two: max-wait fires, the one ask the debounce does not bound. The fire that enqueued a job
+	// reset the debouncer's window, so the next max-wait-clamped fire comes at least
+	// OG_RENDER_MAX_WAIT_MS after that fire — at or past the TTL of the marker its enqueue set
+	// (modulo the instants between the fire and its enqueue) — meaning a clamped ask can be delayed
+	// by a live job but not turned away by its marker. This holds by exact equality today: lowering
+	// OG_RENDER_MAX_WAIT_MS below the marker TTL would re-open "dropped, not deferred" for the boards
+	// that edit without pause, with nothing left to re-ask.
+	it('lets the pending marker expire before a max-wait fire can be turned away by it', () => {
+		expect(OG_RENDER_MAX_WAIT_MS).toBeGreaterThanOrEqual(OG_PENDING_MARKER_TTL_MS)
 	})
 })
 
@@ -324,20 +349,28 @@ describe('enqueuePublishThumbnailRender', () => {
 // version and THUMBNAILS has no lifecycle rule, whatever is left behind is an object nothing will
 // ever read, overwrite or sweep.
 describe('deleteBoardThumbnails', () => {
-	const renderTokenKey = (kind: string, slug: string) => `render-tokens/${kind}/${slug}`
+	// A board's token records are spread across one key per surface, and for MCP one per page and theme
+	// besides — which is why the cleanup lists the prefix rather than deleting a key it knows. Written
+	// out longhand here so the layout is pinned by the test rather than borrowed from the code under it.
+	const ogTokenKey = (kind: string, slug: string) => `render-tokens/${kind}/${slug}/og`
+	const mcpTokenKey = (kind: string, slug: string, pageId: string) =>
+		`render-tokens/${kind}/${slug}/mcp/light/${pageId}`
 
 	async function seedBoard(bucket: ReturnType<typeof makeFakeThumbnailsBucket>, env: any) {
 		const file = { kind: 'shared_file', slug: 'file-1' } as const
 		const published = { kind: 'published', slug: 'published-slug' } as const
 		for (const board of [file, published]) {
-			// An enqueue writes the pending marker, so the fixture covers image, marker and token record.
+			// An enqueue writes the pending marker, so the fixture covers image, marker and token records.
 			await enqueueOgImageRender(env, board, { reason: 'publish' })
 			await bucket.put(getOgImageCacheKey(board), new Uint8Array([1]).buffer)
-			await bucket.put(renderTokenKey(board.kind, board.slug), new Uint8Array().buffer)
+			await bucket.put(ogTokenKey(board.kind, board.slug), new Uint8Array().buffer)
+			// Two of them, as two concurrent MCP captures of different pages would leave.
+			await bucket.put(mcpTokenKey(board.kind, board.slug, 'page:a'), new Uint8Array().buffer)
+			await bucket.put(mcpTokenKey(board.kind, board.slug, 'page:b'), new Uint8Array().buffer)
 		}
 	}
 
-	it('removes both images, both markers and both render token records', async () => {
+	it('removes both images, both markers and every surface’s render token records', async () => {
 		const bucket = makeFakeThumbnailsBucket()
 		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: makeFakeQueue() })
 		await seedBoard(bucket, env)
@@ -353,12 +386,17 @@ describe('deleteBoardThumbnails', () => {
 		await seedBoard(bucket, env)
 		const other = { kind: 'shared_file', slug: 'file-2' } as const
 		await bucket.put(getOgImageCacheKey(other), new Uint8Array([2]).buffer)
-		await bucket.put(renderTokenKey(other.kind, other.slug), new Uint8Array().buffer)
+		await bucket.put(ogTokenKey(other.kind, other.slug), new Uint8Array().buffer)
+		await bucket.put(mcpTokenKey(other.kind, other.slug, 'page:a'), new Uint8Array().buffer)
 
 		await deleteBoardThumbnails(env, { fileId: 'file-1', publishedSlug: 'published-slug' })
 
 		expect([...bucket.store.keys()].sort()).toEqual(
-			[getOgImageCacheKey(other), renderTokenKey(other.kind, other.slug)].sort()
+			[
+				getOgImageCacheKey(other),
+				ogTokenKey(other.kind, other.slug),
+				mcpTokenKey(other.kind, other.slug, 'page:a'),
+			].sort()
 		)
 	})
 
@@ -378,7 +416,9 @@ describe('deleteBoardThumbnails', () => {
 					/\.png$/,
 					'.pending'
 				),
-				renderTokenKey('published', 'published-slug'),
+				ogTokenKey('published', 'published-slug'),
+				mcpTokenKey('published', 'published-slug', 'page:a'),
+				mcpTokenKey('published', 'published-slug', 'page:b'),
 			].sort()
 		)
 	})
@@ -602,22 +642,25 @@ describe('handleOgImageRenderMessage', () => {
 			access: 'render',
 			file,
 		})
-		// One read for the whole job: the resolve. The snapshot read reuses its row, and the follow-up
-		// check compares R2 etags without a gate. Two of the four this path used to cost.
+		// One read for the whole job: the resolve. The snapshot read reuses its row, and shared files
+		// have no follow-up check at all — the DO's debounce covers a board that moves mid-capture.
 		expect(getSharedFileInfo).toHaveBeenCalledTimes(1)
 	})
 
-	// The follow-up check only asks "has the content moved since we captured?", and a shared file's
-	// version is its room etag — so it reads R2 and never Postgres. The gate it used to do redundantly
-	// belongs to the job it enqueues, which re-resolves in full before spending anything.
-	it('checks for a moved board without reading Postgres, and follows up when the etag changed', async () => {
+	// A shared file that moves during its own capture needs no follow-up: the persist that moved it
+	// re-armed the file DO's debounce alarm, and that alarm's enqueue always finds the pending marker
+	// gone, because the debounce outlasts a capture's worst case (pinned above, "debounces edits for
+	// longer than a capture can possibly run"). A follow-up here rendered the same content the
+	// debounced ask was about to render — roughly a fifth of shared-file queue captures in
+	// production, measured 2026-08-11 via the `followup` telemetry blob.
+	it('does not follow up a shared file even when the board moved during capture', async () => {
 		vi.mocked(getSharedFileInfo).mockResolvedValue({
 			id: 'shared-file',
 			shared: true,
 			isDeleted: false,
 		})
-		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
-		// The board is captured at one etag and has moved on by the time the follow-up check runs.
+		// The board is captured at one etag and has moved on by the time the capture completes — the
+		// exact situation the follow-up used to fire on.
 		let etag = 'etag-1'
 		const env = makeEnv({
 			ROOMS: { head: async () => ({ etag }) },
@@ -630,27 +673,12 @@ describe('handleOgImageRenderMessage', () => {
 
 		await handleOgImageRenderMessage(env, makeMessage({ kind: 'shared_file', slug: 'shared-file' }))
 
+		// The render genuinely happened — this is the success path, not an early bail dressed up as one.
+		expect(screenshotOf(env)).toHaveBeenCalledTimes(1)
+		// Not merely "no follow-up": nothing is enqueued at all, and the moved-board check costs no
+		// reads — resolve remains this path's single Postgres question.
+		expect(env.QUEUE.send).not.toHaveBeenCalled()
 		expect(getSharedFileInfo).toHaveBeenCalledTimes(1)
-		expect(env.QUEUE.send).toHaveBeenCalledWith(
-			expect.objectContaining({ kind: 'shared_file', slug: 'shared-file', followUp: true })
-		)
-	})
-
-	it('does not follow up when the board has not moved', async () => {
-		vi.mocked(getSharedFileInfo).mockResolvedValue({
-			id: 'shared-file',
-			shared: true,
-			isDeleted: false,
-		})
-		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
-		const env = makeEnv({
-			ROOMS: makeFakeRoomsBucket('etag-1'),
-			THUMBNAILS: makeFakeThumbnailsBucket(),
-		})
-
-		await handleOgImageRenderMessage(env, makeMessage({ kind: 'shared_file', slug: 'shared-file' }))
-
-		expect(env.QUEUE.send).not.toHaveBeenCalledWith(expect.objectContaining({ followUp: true }))
 	})
 
 	it('skips rendering when the cached image already matches the current version', async () => {
@@ -731,10 +759,10 @@ describe('handleOgImageRenderMessage', () => {
 		expect(finalAttempt.ack).toHaveBeenCalledTimes(1)
 	})
 
-	// A capture takes seconds. An edit landing during one asks for a render, is turned away by this
-	// job's pending marker, and that ask is *dropped* — the debouncer has already reset and neither
-	// caller reads the result. Without this check the board would sit on a thumbnail of its
-	// before-the-last-edits state until something happened to ask again.
+	// A capture takes seconds. A publish landing during one asks for a render, is turned away by this
+	// job's pending marker, and that ask is *dropped* — and nothing ever re-asks for a published
+	// board. Without this check the board would sit on a thumbnail of the previous publication until
+	// somebody happened to republish.
 	it('re-asks when the board changed while it was capturing', async () => {
 		vi.mocked(getPublishedFileInfo)
 			// resolved at the top of the delivery, and rendered
@@ -767,7 +795,7 @@ describe('handleOgImageRenderMessage', () => {
 		expect(queue.send).not.toHaveBeenCalled()
 	})
 
-	// The ceiling on the above. A board edited without pause is stale at the end of every capture, so a
+	// The ceiling on the above. A board republished without pause is stale at the end of every capture, so a
 	// chaining follow-up would render it continuously — exactly the cost the debounce upstream exists to
 	// avoid. One extra render per triggered render, never two.
 	it('never chains: a follow-up does not enqueue another', async () => {
@@ -975,7 +1003,7 @@ describe('handleOgImageRenderMessage', () => {
 	// A failed capture created a browser and held it, sometimes for the whole 45s timeout. Recording -1
 	// there would understate what an uncapped render path costs, which is the one number the "no global
 	// cap" design leans on watching.
-	it('records the Browser Run time a failed render spent, and none where it spent none', async () => {
+	it('puts a failed render on the session ledger, and nothing where no browser ran', async () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
@@ -989,9 +1017,19 @@ describe('handleOgImageRenderMessage', () => {
 		})
 
 		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }, 3))
-		expect(renderDurationsOf(env)[0]).toBeGreaterThanOrEqual(0)
+		// The session that failed still held a browser; its spend and outcome live on its own row,
+		// while the delivery's request row records only the failure reason.
+		expect(sessionsOf(env)).toEqual([
+			{
+				source: 'queue',
+				mode: 'screenshot',
+				outcome: 'browser_failed',
+				reason: 'crawler',
+				durationMs: expect.any(Number),
+			},
+		])
 
-		// An empty board never reaches the capture, so it keeps the "spent nothing" sentinel.
+		// An empty board never reaches the capture: no session existed, so none is on the ledger.
 		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(null as any)
 		const emptyBoardEnv = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
 		await handleOgImageRenderMessage(
@@ -999,7 +1037,7 @@ describe('handleOgImageRenderMessage', () => {
 			makeMessage({ kind: 'published', slug: 'board' }, 3)
 		)
 		expect(failureBlobsOf(emptyBoardEnv)).toEqual(['failure:board_empty'])
-		expect(renderDurationsOf(emptyBoardEnv)).toEqual([-1])
+		expect(sessionsOf(emptyBoardEnv)).toEqual([])
 	})
 
 	// Thumbnail rendering is uncapped: the MCP endpoint's limiters exist to bound what an outside

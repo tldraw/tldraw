@@ -1,6 +1,6 @@
 ---
 name: write-pr
-description: Reference standards for writing pull request titles and descriptions in the tldraw repository. Use as supporting guidance when another skill or workflow needs PR content standards, not as the user-facing create/update PR workflow.
+description: Reference standards for writing pull request titles and descriptions in the tldraw repository, plus the pre-flight comment sweep over the diff. Use as supporting guidance when another skill or workflow needs PR content standards, not as the user-facing create/update PR workflow.
 ---
 
 # Writing pull requests
@@ -174,6 +174,26 @@ Create a table that includes net LOC changes for each of the following sections.
 ## Related issues
 
 Search for and link relevant issues that this PR addresses.
+
+## The comment sweep
+
+A pre-flight check on the diff, not the description: read the diff's added comments as carefully as its added code, and cut before opening the PR.
+
+```bash
+git diff origin/main...HEAD -U0 | grep -nE '^\+\s*(//|/\*|\*)'
+```
+
+Judge what that prints against **Comments** in the root `AGENTS.md`. That section is the rule and this one does not restate it — one test is worth carrying in your head as you read:
+
+> **A good comment names a failure mode, not a mechanism.**
+
+The mechanism is on screen already. What isn't is what goes wrong without it. A block that only describes what the code does is cuttable in full; a block that says "otherwise X" keeps that sentence and loses the paragraph explaining it twice.
+
+**Expect length, not category, to be the defect.** Most substantial comment blocks that need editing already name a real force — they are the right kind of comment at two or three times the necessary length. So the usual edit is a trim to the load-bearing lines, not a delete.
+
+Leave alone, or trim at most: diagrams, enumerated case lists where the list is the specification, provenance (an issue number, "we tried X and it did Y"), and anything carrying an invariant. In `packages/*`, doc comments on the `@public` surface are the API reference — hold them to the same "says something the code doesn't" bar, but they are a deliverable, not overhead.
+
+Pre-flight rather than post-review because it is cheap now and expensive later. A comment restating its own code reads as padding, costs a review round-trip to remove, and once merged nobody goes back for it. Explaining the change is the PR body's job — the diff is not where that belongs.
 
 ## Human notes (preserve exactly)
 

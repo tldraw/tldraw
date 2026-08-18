@@ -1,7 +1,5 @@
-import { EditorEvents as TextEditorEvents } from '@tiptap/core'
 import { FontFamily } from '@tiptap/extension-font-family'
 import { TextStyleKit } from '@tiptap/extension-text-style'
-import { EditorState as TextEditorState } from '@tiptap/pm/state'
 import { useEffect, useState } from 'react'
 import {
 	DefaultRichTextToolbar,
@@ -19,6 +17,8 @@ import 'tldraw/tldraw.css'
 import { extensionFontFamilies } from './fonts'
 import './RichTextFontExtension.css'
 import { FontSize } from './FontSizeExtension'
+
+// There's a guide at the bottom of this file!
 
 const fontOptions = [
 	{ label: 'Default', value: 'DEFAULT' },
@@ -39,43 +39,37 @@ const fontSizeOptions = [
 	{ label: 'Huge', value: '32px' },
 ]
 
+// [1]
 const components: TLComponents = {
 	RichTextToolbar: () => {
 		const editor = useEditor()
 		const textEditor = useValue('textEditor', () => editor.getRichTextEditor(), [editor])
-		const [_, setTextEditorState] = useState<TextEditorState | null>(textEditor?.state ?? null)
 
-		// Set up text editor transaction listener.
+		// [2]
+		const [, forceUpdate] = useState(0)
 		useEffect(() => {
-			if (!textEditor) {
-				setTextEditorState(null)
-				return
-			}
-
-			const handleTransaction = ({ editor: textEditor }: TextEditorEvents['transaction']) => {
-				setTextEditorState(textEditor.state)
-			}
-
+			if (!textEditor) return
+			const handleTransaction = () => forceUpdate((n) => n + 1)
 			textEditor.on('transaction', handleTransaction)
 			return () => {
 				textEditor.off('transaction', handleTransaction)
-				setTextEditorState(null)
 			}
 		}, [textEditor])
 
 		if (!textEditor) return null
 
-		const currentFontFamily = textEditor?.getAttributes('textStyle').fontFamily ?? 'DEFAULT'
-		const currentFontSize = textEditor?.getAttributes('textStyle').fontSize
+		const currentFontFamily = textEditor.getAttributes('textStyle').fontFamily ?? 'DEFAULT'
+		const currentFontSize = textEditor.getAttributes('textStyle').fontSize ?? '16px'
 
 		return (
 			<DefaultRichTextToolbar>
 				<select
 					className="rich-text-font-extension-select"
 					value={currentFontFamily}
+					// [3]
 					onPointerDown={editor.markEventAsHandled}
 					onChange={(e) => {
-						textEditor?.chain().focus().setFontFamily(e.target.value).run()
+						textEditor.chain().focus().setFontFamily(e.target.value).run()
 					}}
 				>
 					{fontOptions.map((option) => (
@@ -89,7 +83,7 @@ const components: TLComponents = {
 					value={currentFontSize}
 					onPointerDown={editor.markEventAsHandled}
 					onChange={(e) => {
-						textEditor?.chain().focus().setFontSize(e.target.value).run()
+						textEditor.chain().focus().setFontSize(e.target.value).run()
 					}}
 				>
 					{fontSizeOptions.map((option) => (
@@ -98,21 +92,21 @@ const components: TLComponents = {
 						</option>
 					))}
 				</select>
-				{/* Add the DefaultRichTextToolbarContent if you want to add more items. */}
 				<DefaultRichTextToolbarContent textEditor={textEditor} />
 			</DefaultRichTextToolbar>
 		)
 	},
 }
 
+// [4]
 const textOptions: Partial<TLTextOptions> = {
 	tipTapConfig: {
 		extensions: [...tipTapDefaultExtensions, FontFamily, FontSize, TextStyleKit],
 	},
+	// [5]
 	addFontsFromNode(node, state, addFont) {
 		state = defaultAddFontsFromNode(node, state, addFont)
 
-		// if we have a font-family attribute, keep track of that in the state so it applies to children
 		for (const mark of node.marks) {
 			if (
 				mark.type.name === 'textStyle' &&
@@ -124,7 +118,6 @@ const textOptions: Partial<TLTextOptions> = {
 			}
 		}
 
-		// if one of our extension font families matches the current state, add that font to the document.
 		const font = extensionFontFamilies[state.family]?.[state.style]?.[state.weight]
 		if (font) addFont(font)
 
@@ -134,35 +127,30 @@ const textOptions: Partial<TLTextOptions> = {
 
 const options = { text: textOptions }
 
+// [6]
+const fontFaces = Object.values(extensionFontFamilies)
+	.flatMap((fontFamily) => Object.values(fontFamily))
+	.flatMap((fontStyle) => Object.values(fontStyle))
+
+function onMount(editor: Editor) {
+	editor.fonts.requestFonts(fontFaces)
+}
+
+// [7]
+const assetUrls = {
+	fonts: {
+		tldraw_mono: extensionFontFamilies["'Exo 2'"].normal.normal.src.url,
+	},
+}
+
 export default function RichTextFontExtensionExample() {
-	const fontFaces = Object.values(extensionFontFamilies)
-		.map((fontFamily) => Object.values(fontFamily))
-		.flat()
-		.map((fontStyle) => Object.values(fontStyle))
-		.flat()
-
-	// We need to preload the fonts so that they are available when
-	// making font changes. This is to avoid any FOUC as you change the
-	// font families.
-	const onMount = (editor: Editor) => {
-		editor.fonts.requestFonts(fontFaces)
-	}
-
-	const exoFont = extensionFontFamilies["'Exo 2'"].normal.normal.src.url
-
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				persistenceKey="rich-text-font-extension"
 				components={components}
 				options={options}
-				// If you want to override one of the custom fonts,
-				// you can do so by providing an assetUrls prop.
-				assetUrls={{
-					fonts: {
-						tldraw_mono: exoFont,
-					},
-				}}
+				assetUrls={assetUrls}
 				onMount={onMount}
 			/>
 		</div>
@@ -170,5 +158,37 @@ export default function RichTextFontExtensionExample() {
 }
 
 /*
-This example shows how to set font family and font size properties on the TipTap editor.
+[1]
+Replace the rich text toolbar. `DefaultRichTextToolbar` positions the toolbar over the text
+selection; inside it we add two `<select>`s and keep the default buttons with
+`DefaultRichTextToolbarContent`. `editor.getRichTextEditor()` is the TipTap editor for the text
+being edited, or null when nothing is being edited.
+
+[2]
+The TipTap editor isn't a tldraw signal, so the selects wouldn't otherwise update as the caret
+moves between differently styled text. Re-render on every TipTap transaction so
+`getAttributes('textStyle')` reflects the current selection.
+
+[3]
+Marking the pointer down as handled keeps the canvas from treating a click on the select as a
+click on the shape behind it, which would end text editing.
+
+[4]
+The font extensions are TipTap's stock `FontFamily` and `TextStyleKit` plus a small `FontSize`
+extension (see FontSizeExtension.ts). Spread `tipTapDefaultExtensions` first so tldraw's own
+StarterKit configuration and extras stay in place.
+
+[5]
+`addFontsFromNode` is how tldraw finds out which fonts a piece of rich text uses, so it can
+load them before rendering and embed them in SVG exports. The default handles tldraw's own
+fonts; we extend it to walk the `textStyle` mark for a `fontFamily` attribute and, when it
+matches one of our font families, add the matching `TLFontFace` to the document.
+
+[6]
+Preload every custom font on mount so switching families in the toolbar doesn't flash
+unstyled text while the font downloads.
+
+[7]
+`assetUrls.fonts` overrides tldraw's built-in fonts. Here we point the mono font at Exo 2 to
+show that the same font files can also replace a default font.
 */

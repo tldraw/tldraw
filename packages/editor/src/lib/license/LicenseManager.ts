@@ -174,9 +174,8 @@ export class LicenseManager {
 	}
 
 	private getIsDevelopment() {
-		// If we are using https on a non-loopback domain we assume it's a production env and a development one otherwise
 		return (
-			!['https:', 'vscode-webview:'].includes(window.location.protocol) ||
+			window.location.protocol === 'http:' ||
 			this.isLoopbackHost(window.location.hostname) ||
 			process.env.NODE_ENV !== 'production'
 		)
@@ -407,7 +406,9 @@ export class LicenseManager {
 
 			// Glob testing, we only support '*.somedomain.com' right now.
 			if (host.includes('*')) {
-				const globToRegex = new RegExp(host.replace(/\*/g, '.*?'))
+				const globToRegex = new RegExp(
+					normalizedHostOrUrlRegex.replace(/\./g, '\\.').replace(/\*/g, '.*?') + '$'
+				)
 				return globToRegex.test(currentHostname) || globToRegex.test(`www.${currentHostname}`)
 			}
 

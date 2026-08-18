@@ -316,6 +316,42 @@ describe('LicenseManager', () => {
 			expect(result.isDomainValid).toBe(true)
 		})
 
+		it('Fails if the wildcard domain is a prefix of the current hostname', async () => {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('https://sub.example.com.other.io')
+
+			const permissiveHostsInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			permissiveHostsInfo[PROPERTIES.HOSTS] = ['*.example.com']
+			const permissiveLicenseKey = await generateLicenseKey(
+				JSON.stringify(permissiveHostsInfo),
+				keyPair
+			)
+			const result = (await licenseManager.getLicenseFromKey(
+				permissiveLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isDomainValid).toBe(false)
+		})
+
+		it('Fails if the current hostname only ends with the wildcard domain', async () => {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('https://notexample.com')
+
+			const permissiveHostsInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			permissiveHostsInfo[PROPERTIES.HOSTS] = ['*.example.com']
+			const permissiveLicenseKey = await generateLicenseKey(
+				JSON.stringify(permissiveHostsInfo),
+				keyPair
+			)
+			const result = (await licenseManager.getLicenseFromKey(
+				permissiveLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isDomainValid).toBe(false)
+		})
+
 		it('Fails if has a subdomain wildcard isnt for the same base domain', async () => {
 			// @ts-ignore
 			delete window.location
@@ -420,6 +456,97 @@ describe('LicenseManager', () => {
 				nativeLicenseKey
 			)) as ValidLicenseKeyResult
 			expect(result.isDomainValid).toBe(true)
+		})
+
+		it('Is not development mode on a custom protocol', async () => {
+			process.env.NODE_ENV = 'production'
+			try {
+				// @ts-ignore
+				delete window.location
+				// @ts-ignore
+				window.location = new URL('app-bundle://app/index.html')
+
+				const nativeLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+				nativeLicenseInfo[PROPERTIES.FLAGS] = FLAGS.NATIVE_LICENSE
+				nativeLicenseInfo[PROPERTIES.HOSTS] = ['app-bundle:']
+				const nativeLicenseKey = await generateLicenseKey(
+					JSON.stringify(nativeLicenseInfo),
+					keyPair
+				)
+				const nativeLicenseManager = new LicenseManager('', keyPair.publicKey)
+				const result = (await nativeLicenseManager.getLicenseFromKey(
+					nativeLicenseKey
+				)) as ValidLicenseKeyResult
+				expect(result).toMatchObject({
+					isLicenseParseable: true,
+					isNativeLicense: true,
+					isDomainValid: true,
+					isDevelopment: false,
+				})
+				expect(getLicenseState(result, () => {}, result.isDevelopment)).toBe('licensed')
+			} finally {
+				process.env.NODE_ENV = 'test'
+			}
+		})
+
+		it('Validates the domain on a custom protocol', async () => {
+			process.env.NODE_ENV = 'production'
+			try {
+				// @ts-ignore
+				delete window.location
+				// @ts-ignore
+				window.location = new URL('app-bundle://app/index.html')
+
+				const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+				const customProtocolLicenseManager = new LicenseManager('', keyPair.publicKey)
+				const result = (await customProtocolLicenseManager.getLicenseFromKey(
+					licenseKey
+				)) as ValidLicenseKeyResult
+				expect(result).toMatchObject({ isDomainValid: false, isDevelopment: false })
+				expect(getLicenseState(result, () => {}, result.isDevelopment)).toBe(
+					'unlicensed-production'
+				)
+			} finally {
+				process.env.NODE_ENV = 'test'
+			}
+		})
+
+		it('Is development mode over http on a non-loopback host', async () => {
+			process.env.NODE_ENV = 'production'
+			try {
+				// @ts-ignore
+				delete window.location
+				// @ts-ignore
+				window.location = new URL('http://www.example.com')
+
+				const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+				const httpLicenseManager = new LicenseManager('', keyPair.publicKey)
+				const result = (await httpLicenseManager.getLicenseFromKey(
+					licenseKey
+				)) as ValidLicenseKeyResult
+				expect(result.isDevelopment).toBe(true)
+			} finally {
+				process.env.NODE_ENV = 'test'
+			}
+		})
+
+		it('Is development mode on a loopback host regardless of protocol', async () => {
+			process.env.NODE_ENV = 'production'
+			try {
+				// @ts-ignore
+				delete window.location
+				// @ts-ignore
+				window.location = new URL('app-bundle://localhost/index.html')
+
+				const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+				const loopbackLicenseManager = new LicenseManager('', keyPair.publicKey)
+				const result = (await loopbackLicenseManager.getLicenseFromKey(
+					licenseKey
+				)) as ValidLicenseKeyResult
+				expect(result.isDevelopment).toBe(true)
+			} finally {
+				process.env.NODE_ENV = 'test'
+			}
 		})
 
 		it('Fails if it is a native app with the wrong protocol', async () => {

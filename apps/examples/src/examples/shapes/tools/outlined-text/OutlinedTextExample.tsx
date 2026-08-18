@@ -1,16 +1,20 @@
 import { Mark, mergeAttributes } from '@tiptap/core'
-import { StarterKit } from '@tiptap/starter-kit'
+import { useEffect, useState } from 'react'
 import {
 	DefaultRichTextToolbar,
+	DefaultRichTextToolbarContent,
 	TLComponents,
 	Tldraw,
 	TldrawUiButton,
 	preventDefault,
+	tipTapDefaultExtensions,
 	useEditor,
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './OutlinedTextExample.css'
+
+// There's a guide at the bottom of this file!
 
 interface OutlineExtensionOptions {
 	HTMLAttributes: object
@@ -26,6 +30,7 @@ declare module '@tiptap/core' {
 	}
 }
 
+// [1]
 const Outline = Mark.create<OutlineExtensionOptions>({
 	name: 'outline',
 
@@ -59,7 +64,7 @@ const Outline = Mark.create<OutlineExtensionOptions>({
 					commands.setMark(this.name),
 			toggleOutline:
 				() =>
-				({ commands }: any) =>
+				({ commands }) =>
 					commands.toggleMark(this.name),
 			unsetOutline:
 				() =>
@@ -67,39 +72,51 @@ const Outline = Mark.create<OutlineExtensionOptions>({
 					commands.unsetMark(this.name),
 		}
 	},
-
-	onCreate() {
-		this.editor.commands.toggleMark('outline')
-	},
 })
 
+// [2]
 const components: TLComponents = {
 	RichTextToolbar: () => {
 		const editor = useEditor()
 		const textEditor = useValue('textEditor', () => editor.getRichTextEditor(), [editor])
 
+		// [3]
+		const [, forceUpdate] = useState(0)
+		useEffect(() => {
+			if (!textEditor) return
+			const handleUpdate = () => forceUpdate((n) => n + 1)
+			textEditor.on('transaction', handleUpdate)
+			return () => {
+				textEditor.off('transaction', handleUpdate)
+			}
+		}, [textEditor])
+
+		if (!textEditor) return null
+
 		return (
 			<DefaultRichTextToolbar>
 				<TldrawUiButton
 					type="icon"
-					onClick={() => {
-						textEditor?.chain().focus().toggleOutline().run()
-					}}
-					isActive={textEditor?.isActive('outline')}
-					onPointerDown={preventDefault}
 					title="Toggle text outline"
+					onClick={() => {
+						textEditor.chain().focus().toggleOutline().run()
+					}}
+					isActive={textEditor.isActive('outline')}
+					onPointerDown={preventDefault}
 				>
 					⬜
 				</TldrawUiButton>
+				<DefaultRichTextToolbarContent textEditor={textEditor} />
 			</DefaultRichTextToolbar>
 		)
 	},
 }
 
+// [4]
 const options = {
 	text: {
 		tipTapConfig: {
-			extensions: [StarterKit, Outline],
+			extensions: [...tipTapDefaultExtensions, Outline],
 		},
 	},
 }
@@ -113,6 +130,22 @@ export default function OutlinedTextExample() {
 }
 
 /*
-This example shows how to add outlined text styling using a custom TipTap extension.
-The outline effect is created using CSS text-stroke properties.
+[1]
+A TipTap mark extension. It renders as `<span class="outlined filled">`, and the outline effect
+itself is plain CSS (`-webkit-text-stroke`) in OutlinedTextExample.css. The `declare module`
+block above registers the mark's commands with TypeScript.
+
+[2]
+Override the `RichTextToolbar` component. `DefaultRichTextToolbar` positions the toolbar over
+the selection; inside it we add our toggle button and keep the default buttons via
+`DefaultRichTextToolbarContent`. `editor.getRichTextEditor()` is the TipTap editor for the
+text being edited, or null when nothing is being edited.
+
+[3]
+The transaction re-render and the pointer-down `preventDefault` are the same as in the
+rich text custom extension example; see its footnotes [3] and [4] for why.
+
+[4]
+Pass extensions through `options.text.tipTapConfig`. Spread `tipTapDefaultExtensions` so
+tldraw's own StarterKit configuration and extras stay in place.
 */

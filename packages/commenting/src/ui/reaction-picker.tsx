@@ -1,4 +1,4 @@
-import { useCallback, useId, type ComponentType } from 'react'
+import { useCallback, useId, type ComponentType, type KeyboardEvent, type MouseEvent } from 'react'
 import {
 	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
@@ -41,13 +41,22 @@ export interface ReactionPickerProps {
 }
 
 /**
+ * Whether a palette pick asked to keep the palette open (shift held) for multi-select.
+ * @internal
+ */
+export function isMultiSelectPick(event?: MouseEvent | KeyboardEvent): boolean {
+	return !!event?.shiftKey
+}
+
+/**
  * The add-reaction affordance: a smiley button that opens an emoji grid.
  *
  * Anchored to its own button rather than to the reactions row, so the menu keeps its position as
  * reactions are added and the row reflows.
  *
  * Picking an emoji dismisses the grid — adding and removing alike, since either way the picker has
- * done its job — and hands focus back to the trigger.
+ * done its job — and hands focus back to the trigger. Shift-picking keeps the grid open, for
+ * choosing several reactions in a row.
  * @public @react
  */
 export function ReactionPicker({
@@ -69,9 +78,11 @@ export function ReactionPicker({
 	// what closes it. The palette's tokens are plain buttons — a swappable component, not radix
 	// menu items — so nothing dismisses the menu on its own.
 	const handleSelect = useCallback(
-		(value: string) => {
+		(value: string, event?: MouseEvent | KeyboardEvent) => {
 			onSelect?.(value)
-			tlmenus.deleteOpenMenu(id, editor?.contextId)
+			if (!isMultiSelectPick(event)) {
+				tlmenus.deleteOpenMenu(id, editor?.contextId)
+			}
 		},
 		[onSelect, id, editor]
 	)

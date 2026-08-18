@@ -1,5 +1,5 @@
 import { RenderReaction } from '@tldraw/commenting'
-import { ReactNode, useCallback, useInsertionEffect, useState } from 'react'
+import { ReactNode, useCallback, useState } from 'react'
 import {
 	BaseRecord,
 	createCustomRecordId,
@@ -16,32 +16,12 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
+import './comment-drawing-reactions.css'
 
-/**
- * Draw-your-own reactions.
- *
- * A reaction's `emoji` field is a free-form string that the commenting layer only ever stores,
- * syncs, and hands back to a renderer — it never assumes the string is an emoji glyph. It is
- * bounded, though: the schema caps a token at 64 characters, because the token is embedded
- * verbatim in the reaction's record id. So a custom reaction can be *anything*, as long as the
- * token names it rather than contains it. That makes a custom reaction system three pieces:
- *
- * 1. A **store** for the reaction's actual content. {@link reactionDrawingRecords} below adds a
- *    `reaction-drawing` record type to the document: one record per distinct drawing, holding the
- *    image as a `data:` URL, content-addressed so the record id is a short hash of the image.
- *    Document records sync and persist exactly like comments do, so every client that can see a
- *    reaction can also resolve its drawing.
- * 2. A **palette** — the thing that produces a token. {@link DrawingReactionPalette} is a drop-in
- *    for the built-in `EmojiPicker`: same props (`emoji`, `selected`, `onSelect`,
- *    `renderReaction`), but instead of a grid of glyphs it offers a small locked-down tldraw
- *    canvas you draw in. On submit it saves the drawing as a record and emits the record id as
- *    the token.
- * 3. A **renderer** — the thing that draws a token. {@link DrawingReactionContent} resolves a
- *    drawing token back to its record and renders the image; anything else falls through to the
- *    default rendering, so drawn reactions and plain emoji coexist on the same comment.
- *
- * See `CommentDrawingReactionsExample.tsx` for the wiring.
- */
+// Draw-your-own reactions, in three pieces: a `reaction-drawing` record type that holds each
+// drawing's image (content-addressed, so the record id is the reaction token), a palette that saves
+// a drawing and emits its id, and a renderer that resolves a token back to its image. See the README
+// and `CommentDrawingReactionsExample.tsx` for the wiring.
 
 /** The image format a drawn reaction is exported as. */
 export type DrawingReactionFormat = 'svg' | 'png'
@@ -345,8 +325,6 @@ export function DrawingReactionPalette({
 	licenseKey,
 	submitLabel = 'React',
 }: DrawingReactionPaletteProps) {
-	useDrawingReactionStyles()
-
 	// A thicker brush than the draw tool's default: the drawing is displayed at pill size, where
 	// a default-weight stroke thins out to nothing. Scoped to the palette's own editor.
 	const handleMount = useCallback((editor: Editor) => {
@@ -569,145 +547,4 @@ function EraserIcon() {
 			<path d="M5.9 5.8 10.9 10.8M6.4 13.1h6.7" />
 		</svg>
 	)
-}
-
-const STYLE_ELEMENT_ID = 'tlui-cmt-drawing-palette-styles'
-
-/**
- * The palette carries its own stylesheet rather than living in `comments.css`, so it stays a single
- * self-contained file while it's a prototype. Move these rules into `comments.css` if it graduates.
- */
-const STYLES = `
-.tlui-cmt-drawing-palette {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-	padding: 6px;
-	color: var(--tl-color-text-1);
-	font-size: 12px;
-}
-.tlui-cmt-drawing-palette__reuse {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 2px;
-	padding-bottom: 2px;
-	border-bottom: 1px solid var(--tl-color-divider);
-}
-.tlui-cmt-drawing-palette__reuse-item {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 34px;
-	height: 34px;
-	border: none;
-	border-radius: var(--tl-radius-2);
-	background: none;
-	color: inherit;
-	font: inherit;
-	font-size: 21px;
-	line-height: 1;
-	cursor: pointer;
-}
-.tlui-cmt-drawing-palette__reuse-item:hover {
-	background: var(--tl-color-muted-2);
-}
-.tlui-cmt-drawing-palette__reuse-item--active {
-	background: color-mix(in srgb, var(--tl-color-selected) 28%, var(--tl-color-panel));
-}
-.tlui-cmt-drawing-palette__canvas {
-	position: relative;
-	overflow: hidden;
-	border: 1px solid var(--tl-color-divider);
-	border-radius: var(--tl-radius-3);
-}
-/* Sits over the bottom of the drawing box. The z-index is what keeps it above the canvas — it's a
-   sibling of the canvas inside the editor's container, not a panel the editor knows about. */
-.tlui-cmt-drawing-palette__toolbar {
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	right: 0;
-	z-index: var(--tl-layer-panels, 300);
-	display: flex;
-	align-items: center;
-	gap: 2px;
-	padding: 3px;
-	border-top: 1px solid var(--tl-color-divider);
-	background: var(--tl-color-panel);
-}
-.tlui-cmt-drawing-palette__spacer {
-	flex: 1;
-}
-.tlui-cmt-drawing-palette__tool {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 28px;
-	height: 28px;
-	border: none;
-	border-radius: var(--tl-radius-2);
-	background: none;
-	color: var(--tl-color-text-1);
-	cursor: pointer;
-}
-.tlui-cmt-drawing-palette__tool:hover {
-	background: var(--tl-color-muted-2);
-}
-.tlui-cmt-drawing-palette__tool--active {
-	background: color-mix(in srgb, var(--tl-color-selected) 28%, var(--tl-color-panel));
-}
-.tlui-cmt-drawing-palette__text-button,
-.tlui-cmt-drawing-palette__submit {
-	height: 28px;
-	padding: 0 10px;
-	border: none;
-	border-radius: var(--tl-radius-2);
-	background: none;
-	color: var(--tl-color-text-1);
-	font: inherit;
-	cursor: pointer;
-}
-.tlui-cmt-drawing-palette__text-button:hover:not(:disabled) {
-	background: var(--tl-color-muted-2);
-}
-.tlui-cmt-drawing-palette__submit {
-	background: var(--tl-color-selected);
-	color: var(--tl-color-selected-contrast, #fff);
-	font-weight: 500;
-}
-.tlui-cmt-drawing-palette__submit:hover:not(:disabled) {
-	filter: brightness(1.08);
-}
-.tlui-cmt-drawing-palette__text-button:disabled,
-.tlui-cmt-drawing-palette__submit:disabled {
-	opacity: 0.4;
-	cursor: default;
-}
-.tlui-cmt-drawing-palette__error {
-	position: absolute;
-	bottom: 34px;
-	left: 0;
-	right: 0;
-	z-index: var(--tl-layer-panels, 300);
-	padding: 4px 6px;
-	background: var(--tl-color-panel);
-	color: var(--tl-color-danger);
-	text-align: center;
-}
-`
-
-/**
- * Injects the palette's stylesheet once per document, keyed by id. Never removed — a second palette
- * mounting later would otherwise have to reinject it, and the rules are inert without the markup.
- */
-function useDrawingReactionStyles() {
-	// Insertion effect so the rules land before the palette paints, rather than a frame after it.
-	useInsertionEffect(() => {
-		if (typeof document === 'undefined') return
-		if (document.getElementById(STYLE_ELEMENT_ID)) return
-		const style = document.createElement('style')
-		style.id = STYLE_ELEMENT_ID
-		style.textContent = STYLES
-		document.head.appendChild(style)
-	}, [])
 }

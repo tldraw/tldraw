@@ -33,15 +33,11 @@ export default function ExamMarkingExample() {
 }
 
 /*
-Introduction:
+This example is built on top of the pdf-editor example; a copy of those files lives in the
+`pdf-editor` folder here. On top of that it adds:
 
-This example of an exam marking tool is built on top of the `pdf-editor` example. The files specific to the pdf-editor live in the `pdf-editor` folder in this directory.
-What this adds on top of the pdf editor is a custom shape that allows you mark individual questions and have their score tallied, and a custom tool that allows you create that shape.
-
-File structure:
-`add-mark-util.tsx` is a shape utility that defines the exam mark shape.
-`add-mark-tool.tsx` is a custom tool that allows you to add the exam mark shape to the page.
-`ExamScoreLabel.tsx` is a widget that shows the total exam score.
-`ui-overrides.tsx` is a file that overrides the default toolbar and keyboard shortcuts menu to add the exam mark tool.
-
+- `add-mark-util.tsx`: the `exam-mark` shape, a numeric score input.
+- `add-mark-tool.tsx`: a tool that places an exam mark where you click.
+- `ExamScoreLabel.tsx`: a widget that sums every exam mark on the page.
+- `ui-overrides.tsx`: adds the tool to the toolbar and keyboard shortcuts dialog.
 */

@@ -4,6 +4,16 @@ compatibility_date = "2026-03-24"
 workers_dev = true
 compatibility_flags = ["nodejs_compat"]
 
+# Static Assets: the default welcome snapshot (assets/welcome-snapshot.json) is read at seed
+# time via the ASSETS binding, so it is not bundled into the worker script. run_worker_first
+# keeps the worker in front of every request — the directory is never served publicly; the
+# worker only reads the asset through the binding. `assets` is a non-inheritable key and this
+# file overrides bindings per environment, so it is repeated in each [env.*] block below.
+[assets]
+directory = "assets"
+binding = "ASSETS"
+run_worker_first = true
+
 [dev]
 port = 8787
 ip = "0.0.0.0"
@@ -60,6 +70,11 @@ new_sqlite_classes = ["TLFileEffectProcessor"]
 # preview workers are fresh deploys, so CF rejects v10's delete-class for
 # TLDrawDurableObject (code 10074). skip v1 and v10 here; env-level migrations
 # fully replace the top-level list.
+# v5 (TLPostgresReplicator + TLUserDurableObject) and v7 (TLStatsDurableObject) are also
+# skipped. Their delete-class migration can only ever go in the top-level list, because a
+# fresh preview worker replaying create+delete for one class hits the same 10074 as v1/v10
+# above. Skipping the creates here keeps preview consistent with that: the classes are
+# never created, so preview needs neither the delete nor the classes.
 [[env.preview.migrations]]
 tag = "v2"
 new_classes = ["TLProWorkspaceDurableObject"]
@@ -73,17 +88,8 @@ tag = "v4"
 new_classes = ["TLAppDurableObject"]
 
 [[env.preview.migrations]]
-tag = "v5"
-new_sqlite_classes = ["TLPostgresReplicator"]
-new_classes = ["TLUserDurableObject"]
-
-[[env.preview.migrations]]
 tag = "v6"
 new_sqlite_classes = ["TLLoggerDurableObject"]
-
-[[env.preview.migrations]]
-tag = "v7"
-new_sqlite_classes = ["TLStatsDurableObject"]
 
 [[env.preview.migrations]]
 tag = "v8"
@@ -117,6 +123,11 @@ BOTCOM_POSTGRES_POOLED_CONNECTION_STRING = "postgresql://user:password@127.0.0.1
 TLDRAW_ENV = "development"
 MULTIPLAYER_SERVER = "http://localhost:3000"
 MCP_SCREENSHOT_RENDER_ORIGIN = "http://localhost:3000"
+# The MCP server's public URL, and the resource identifier it advertises in protected resource
+# metadata and in the WWW-Authenticate challenge. Not compared against an incoming token: Clerk stamps
+# no `aud`, so there is no audience binding to check. Points at the client dev server because that is
+# what proxies /api and /.well-known through to this worker.
+MCP_SERVER_URL = "http://localhost:3000/api/app/mcp"
 # Kill switch for the MCP screenshot server (POST /app/mcp). Read per request, so setting it to
 # anything but "true" — here or straight in the Cloudflare dashboard — takes the endpoint down
 # without a rebuild. A dashboard edit lasts until the next deploy overwrites it from this file.
@@ -133,25 +144,27 @@ LOCAL_SCREENSHOT_SERVICE_URL = "http://localhost:3000/__screenshot"
 # staging is the same as a preview on main:
 [env.staging]
 name = "main-tldraw-multiplayer"
-workers_dev = true # todo: remove this once clients are updated
+workers_dev = false
 
 [env.staging.vars]
 HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "4"
 HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "1024"
 MCP_SCREENSHOT_RENDER_ORIGIN = "https://staging.tldraw.com"
+MCP_SERVER_URL = "https://staging.tldraw.com/api/app/mcp"
 MCP_SCREENSHOT_ENABLED = "true"
 
 # production gets the proper name
 [env.production]
 name = "tldraw-multiplayer"
-workers_dev = true # todo: remove this once clients are updated
+workers_dev = false
 
 [env.production.vars]
 HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "10"
 HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "2048"
 MCP_SCREENSHOT_RENDER_ORIGIN = "https://www.tldraw.com"
+MCP_SERVER_URL = "https://www.tldraw.com/api/app/mcp"
 MCP_SCREENSHOT_ENABLED = "true"
 
 #################### Routing ####################
@@ -161,6 +174,14 @@ MCP_SCREENSHOT_ENABLED = "true"
 zone_name = "tldraw.com"
 pattern = "staging.tldraw.com/api/*"
 
+# OAuth protected resource metadata for the MCP server. RFC 9728 puts it at the resource's *origin*,
+# under /.well-known/oauth-protected-resource + the resource path, so it falls outside the /api/*
+# pattern above and needs its own route. Without it a client fetches the metadata URL, gets the SPA's
+# index.html, and never discovers where to authenticate — a failure that logs nothing on our side.
+[[env.staging.routes]]
+zone_name = "tldraw.com"
+pattern = "staging.tldraw.com/.well-known/oauth-protected-resource/*"
+
 [[env.staging.routes]]
 custom_domain = true
 pattern = "staging-sync.tldraw.xyz"
@@ -168,6 +189,11 @@ pattern = "staging-sync.tldraw.xyz"
 [[env.production.routes]]
 zone_name = "tldraw.com"
 pattern = "www.tldraw.com/api/*"
+
+# See the staging comment above.
+[[env.production.routes]]
+zone_name = "tldraw.com"
+pattern = "www.tldraw.com/.well-known/oauth-protected-resource/*"
 
 [[env.production.routes]]
 custom_domain = true
@@ -178,51 +204,36 @@ pattern = "sync.tldraw.xyz"
 [env.dev.durable_objects]
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLFileDurableObject" },
-	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
-	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
-	{ name = "TL_STATS", class_name = "TLStatsDurableObject" },
 ]
 
 [durable_objects]
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLFileDurableObject" },
-	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
-	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
-	{ name = "TL_STATS", class_name = "TLStatsDurableObject" },
 ]
 
 [env.preview.durable_objects]
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLFileDurableObject" },
-	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
-	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
-	{ name = "TL_STATS", class_name = "TLStatsDurableObject" },
 ]
 
 [env.staging.durable_objects]
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLFileDurableObject" },
-	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
-	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
-	{ name = "TL_STATS", class_name = "TLStatsDurableObject" },
 ]
 
 [env.production.durable_objects]
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLFileDurableObject" },
-	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
-	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
-	{ name = "TL_STATS", class_name = "TLStatsDurableObject" },
 ]
 
 #################### Analytics engine ####################
@@ -322,26 +333,6 @@ bucket_name = 'uploads-preview'
 [[env.production.r2_buckets]]
 binding = "UPLOADS"
 bucket_name = "uploads"
-
-#################### User DO Snapshot R2 bucket ####################
-# in dev, we write to the preview bucket and need a `preview_bucket_name`
-[[env.dev.r2_buckets]]
-binding = 'USER_DO_SNAPSHOTS'
-bucket_name = 'user-do-snapshots-preview'
-preview_bucket_name = 'user-do-snapshots-preview'
-
-[[env.preview.r2_buckets]]
-binding = 'USER_DO_SNAPSHOTS'
-bucket_name = 'user-do-snapshots-preview'
-
-[[env.staging.r2_buckets]]
-binding = 'USER_DO_SNAPSHOTS'
-bucket_name = 'user-do-snapshots-staging'
-
-# in production, we write to the main bucket
-[[env.production.r2_buckets]]
-binding = "USER_DO_SNAPSHOTS"
-bucket_name = "user-do-snapshots"
 
 #################### Thumbnails R2 bucket ####################
 # cache for board thumbnails / OG images (`og/…` keys) plus their pending-render markers and render
@@ -460,7 +451,10 @@ binding = "READONLY_SLUG_TO_SLUG"
 id = "96be6637b281412ab35b2544539d78e8"
 
 #################### Feature flags KV store ####################
-# Dev has its own namespace
+# Dev and preview SHARE a namespace; staging and production each have their own.
+# Newly load-bearing: mcp_server_access is what decides who may drive the MCP server, so enabling the
+# flag locally enables it on every preview deploy at once. Give preview its own namespace before
+# anything here gates something that matters on a preview URL.
 [[env.dev.kv_namespaces]]
 binding = "FEATURE_FLAGS"
 id = "81a6f84741754ac4a9171f575f2aeece"
@@ -519,13 +513,16 @@ type = "ratelimit"
 namespace_id = "1004"
 simple = { limit = 600, period = 60 }
 
-# MCP server per-IP request guard.
-# A binding carries one `limit` applied per key, so per-IP and per-board need separate bindings to hold
-# different numbers. `period` must be 10 or 60. Keep these in step with the fallback constants in
+# MCP server per-account request guard: one budget per signed-in caller, across every tool that can
+# spend Browser Run. It counts *calls*, not captures, and the clustering tools each run a measure
+# render, so ten a minute is nearer three finished screenshots a minute — see MCP_PER_USER_RATE_LIMIT
+# in config.ts before changing this number.
+# A binding carries one `limit` applied per key, so per-account and per-board need separate bindings to
+# hold different numbers. `period` must be 10 or 60. Keep these in step with the fallback constants in
 # sharedBoardScreenshotMcp.ts, which are all that unit tests can see.
 # The name is the odd one out in this family: it keeps MCP_SCREENSHOT_ because it is deployed and
-# counting. Authentication on the MCP server deletes this budget along with the per-board one and
-# limits by logged-in user instead, so renaming live state on its way out buys nothing.
+# counting. It keyed on client IP until the endpoint required authentication; renaming live state buys
+# nothing, and the key it counts is now the user id.
 [[env.dev.unsafe.bindings]]
 name = "MCP_SCREENSHOT_RATE_LIMITER"
 type = "ratelimit"
@@ -550,8 +547,9 @@ type = "ratelimit"
 namespace_id = "1008"
 simple = { limit = 10, period = 60 }
 
-# MCP server per-board capture guard, kept tighter than the per-IP one so no single board can absorb
-# a caller's whole allowance.
+# MCP server per-board capture guard, kept tighter than the per-account one so no single board can
+# absorb a caller's whole allowance. Captures only: measure renders are counted against the global
+# budget instead, because three of them land on one board in the ordinary cluster-screenshot flow.
 [[env.dev.unsafe.bindings]]
 name = "MCP_SERVER_BOARD_RATE_LIMITER"
 type = "ratelimit"
@@ -626,3 +624,24 @@ binding = "QUEUE"
 queue = "tldraw-multiplayer-queue"
 max_retries = 10
 dead_letter_queue = 'tldraw-multiplayer-dlq'
+
+# Static Assets per environment (see the top-level [assets] note — non-inheritable, so repeated).
+[env.dev.assets]
+directory = "assets"
+binding = "ASSETS"
+run_worker_first = true
+
+[env.preview.assets]
+directory = "assets"
+binding = "ASSETS"
+run_worker_first = true
+
+[env.staging.assets]
+directory = "assets"
+binding = "ASSETS"
+run_worker_first = true
+
+[env.production.assets]
+directory = "assets"
+binding = "ASSETS"
+run_worker_first = true

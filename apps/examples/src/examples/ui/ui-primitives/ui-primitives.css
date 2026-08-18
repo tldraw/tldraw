@@ -3,11 +3,11 @@
 	top: 32px;
 	left: 32px;
 	pointer-events: all;
-	background: var(--color-panel);
-	border-radius: var(--radius-3);
+	background: var(--tl-color-panel);
+	border-radius: var(--tl-radius-3);
 	padding: 16px;
 	width: 380px;
-	box-shadow: var(--shadow-2);
+	box-shadow: var(--tl-shadow-2);
 	user-select: none;
 }
 
@@ -21,7 +21,7 @@
 	margin: 0 0 8px 0;
 	font-size: 12px;
 	font-weight: 500;
-	color: var(--color-text-1);
+	color: var(--tl-color-text-1);
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
 }
@@ -47,7 +47,7 @@
 
 .ui-value {
 	font-size: 12px;
-	color: var(--color-text-1);
+	color: var(--tl-color-text-1);
 	min-width: 40px;
 }
 
@@ -80,5 +80,5 @@
 }
 
 .ui-icon-cell:hover {
-	background: var(--color-muted-2);
+	background: var(--tl-color-muted-2);
 }

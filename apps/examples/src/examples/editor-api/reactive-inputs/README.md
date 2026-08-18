@@ -14,14 +14,14 @@ keywords:
     page point,
     origin point,
     pointer events,
-    atom,
+    modifier keys,
   ]
 ---
 
-Reactively track mouse positions and velocities using the editor's inputs manager.
+Track pointer positions, velocity, and modifier keys reactively with `editor.inputs` and `useValue`.
 
 ---
 
-The editor's inputs manager provides reactive access to pointer state including current, previous, and origin positions (in both screen and page space), as well as pointer velocity. All properties are backed by reactive atoms that automatically trigger updates when they change.
+`editor.inputs` exposes the current, previous, and origin pointer positions in both screen and page space, the pointer velocity, and the state of the modifier keys. Each getter (`getCurrentPagePoint()`, `getPointerVelocity()`, `getShiftKey()`, and so on) reads a reactive atom, so wrapping a call in `useValue` subscribes the component and re-renders it whenever the value changes.
 
-This example demonstrates how to use `useValue` to subscribe to these reactive inputs and display them in real-time as the user moves their mouse.
+Move the pointer around the canvas and hold modifier keys to watch the panel update. Origin points only change on pointer down.

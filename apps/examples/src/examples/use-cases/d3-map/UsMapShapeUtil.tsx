@@ -11,8 +11,7 @@ import {
 	createShapeId,
 	resizeBox,
 } from 'tldraw'
-import { STATE_COLORS } from './D3MapExample'
-import { MAP_HEIGHT, MAP_WIDTH, getUsStatesData } from './us-map-data'
+import { MAP_HEIGHT, MAP_WIDTH, STATE_COLORS, getUsStatesData } from './us-map-data'
 
 const US_MAP_TYPE = 'us-map' as const
 
@@ -26,6 +25,7 @@ export type UsMapShape = TLShape<typeof US_MAP_TYPE>
 
 const statesData = getUsStatesData()
 
+// [1]
 export function explodeMap(editor: Editor, shape: UsMapShape) {
 	const bounds = editor.getShapePageBounds(shape)
 	if (!bounds) return
@@ -71,10 +71,10 @@ export class UsMapShapeUtil extends ShapeUtil<UsMapShape> {
 		return { w: MAP_WIDTH, h: MAP_HEIGHT }
 	}
 
-	override canResize(shape: UsMapShape) {
+	override canResize() {
 		return true
 	}
-	override isAspectRatioLocked(shape: UsMapShape) {
+	override isAspectRatioLocked() {
 		return true
 	}
 
@@ -114,6 +114,7 @@ export class UsMapShapeUtil extends ShapeUtil<UsMapShape> {
 						))}
 					</g>
 				</SVGContainer>
+				{/* [2] */}
 				<button
 					className="d3-map-explode-button"
 					onPointerDown={(e) => e.stopPropagation()}
@@ -132,3 +133,15 @@ export class UsMapShapeUtil extends ShapeUtil<UsMapShape> {
 		return path
 	}
 }
+
+/*
+[1]
+Exploding deletes the map and creates all the state shapes inside one `editor.run` call,
+so the whole operation is a single undo step. The state shapes are positioned from the
+map's current page bounds so a resized map explodes at the same scale.
+
+[2]
+Stopping pointer-down propagation keeps the select tool from starting a drag on the map
+shape when the button is pressed, so the click reaches the button. Shape contents don't
+receive pointer events by default, hence `pointerEvents: 'all'`.
+*/

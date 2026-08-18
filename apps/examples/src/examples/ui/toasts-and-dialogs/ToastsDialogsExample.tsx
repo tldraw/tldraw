@@ -10,6 +10,7 @@ import {
 	TldrawUiDialogFooter,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
+	TLUiDialogProps,
 	useContainer,
 	useDialogs,
 	useToasts,
@@ -19,7 +20,7 @@ import 'tldraw/tldraw.css'
 // There's a guide at the bottom of this file
 
 // [1]
-function MyDialog({ onClose }: { onClose(): void }) {
+function MyDialog({ onClose }: TLUiDialogProps) {
 	return (
 		<>
 			<TldrawUiDialogHeader>
@@ -50,7 +51,7 @@ function MyDialog({ onClose }: { onClose(): void }) {
 }
 
 // [2]
-function MySimpleDialog({ onClose }: { onClose(): void }) {
+function MySimpleDialog({ onClose }: TLUiDialogProps) {
 	return (
 		<div style={{ padding: 16 }}>
 			<h2>Title</h2>
@@ -61,7 +62,7 @@ function MySimpleDialog({ onClose }: { onClose(): void }) {
 }
 
 // [3]
-function MyDialogWithSelect({ onClose }: { onClose(): void }) {
+function MyDialogWithSelect({ onClose }: TLUiDialogProps) {
 	const container = useContainer()
 	const [value, setValue] = useState('a')
 	return (
@@ -118,9 +119,8 @@ function MyDialogWithSelect({ onClose }: { onClose(): void }) {
 	)
 }
 
-// [4] A dialog that opens a second dialog, so the two stack. Stacked dialogs stay modal,
-// so each one — including the topmost — keeps its own controls interactive (taps included).
-function MyNestedDialog({ onClose }: { onClose(): void }) {
+// [4]
+function MyNestedDialog({ onClose }: TLUiDialogProps) {
 	const { addDialog } = useDialogs()
 	return (
 		<div data-testid="dialog-parent" style={{ padding: 16 }}>
@@ -137,7 +137,7 @@ function MyNestedDialog({ onClose }: { onClose(): void }) {
 	)
 }
 
-function MyConfirmDialog({ onClose }: { onClose(): void }) {
+function MyConfirmDialog({ onClose }: TLUiDialogProps) {
 	return (
 		<div data-testid="dialog-nested" style={{ padding: 16 }}>
 			<h2>Nested dialog</h2>
@@ -148,7 +148,8 @@ function MyConfirmDialog({ onClose }: { onClose(): void }) {
 	)
 }
 
-const CustomSharePanel = () => {
+// [5]
+function CustomSharePanel() {
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
 
@@ -178,10 +179,7 @@ const CustomSharePanel = () => {
 				onClick={() => {
 					addDialog({
 						component: MyDialog,
-						onClose() {
-							// You can do something after the dialog is closed
-							void null
-						},
+						onClose: () => addToast({ title: 'Dialog closed', severity: 'info' }),
 					})
 				}}
 			>
@@ -189,13 +187,7 @@ const CustomSharePanel = () => {
 			</button>
 			<button
 				onClick={() => {
-					addDialog({
-						component: MySimpleDialog,
-						onClose() {
-							// You can do something after the dialog is closed
-							void null
-						},
-					})
+					addDialog({ component: MySimpleDialog })
 				}}
 			>
 				Show simple dialog
@@ -203,13 +195,7 @@ const CustomSharePanel = () => {
 			<button
 				data-testid="show-dialog-with-select"
 				onClick={() => {
-					addDialog({
-						component: MyDialogWithSelect,
-						onClose() {
-							// You can do something after the dialog is closed
-							void null
-						},
-					})
+					addDialog({ component: MyDialogWithSelect })
 				}}
 			>
 				Show dialog with select
@@ -218,8 +204,7 @@ const CustomSharePanel = () => {
 	)
 }
 
-// Rendered in front of the canvas rather than in the SharePanel, which overflows
-// off-screen on mobile — so the stacked-dialog demo stays reachable on a touchscreen.
+// [6]
 function StackedDialogLauncher() {
 	const { addDialog } = useDialogs()
 	return (
@@ -247,31 +232,42 @@ const components: TLComponents = {
 export default function ToastsDialogsExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw components={components} persistenceKey="example" />
+			<Tldraw components={components} persistenceKey="toasts-and-dialogs-example" />
 		</div>
 	)
 }
 
 /*
-
-To control toasts and dialogs your app, you can use the `useToasts` and `useDialogs` hooks.
-These hooks give you access to functions which allow you to add, remove and clear toasts
-and dialogs.
-
-Dialogs are especially customisable, allowing you to pass in a custom component to render
-as the dialog content. Alternatively, you can use the `ExampleDialog` component which is
-provided by the library.
+The `useToasts` and `useDialogs` hooks return functions to add, remove, and
+clear toasts and dialogs from anywhere inside `<Tldraw />`.
 
 [1]
-The tldraw library provides a set of components that you can use to build your dialogs.
-The `onClose` function passed to the dialog component runs when the dialog closes or
-is dismissed, but you can also call it from buttons to close the dialog.
+A dialog built from tldraw's dialog primitives (`TldrawUiDialogHeader`,
+`TldrawUiDialogBody`, `TldrawUiDialogFooter`, and so on), so it matches the rest
+of the UI. `onClose` is passed to your component by the dialog system; call it
+from your own buttons to close the dialog. The `onClose` you pass to `addDialog`
+is separate: it runs after the dialog closes, however it was dismissed (here we
+show a toast from it).
 
 [2]
-...or you can build your own dialog component!
+...or render anything you like. The dialog system only supplies the modal
+wrapper and the `onClose` callback.
 
 [3]
-Dialogs can contain their own popups, like a select menu. Because tldraw's dialog uses
-Radix's dismissable layers, clicking outside an open select closes just the select and
-leaves the dialog open — a second outside click then closes the dialog.
+Dialogs can contain their own popups, like this Radix select. Because tldraw's
+dialog is a Radix dismissable layer, clicking outside an open select closes just
+the select and leaves the dialog open; a second outside click closes the dialog.
+Portal the select into `useContainer()` so it inherits tldraw's CSS variables.
+
+[4]
+Dialogs stack. A dialog can call `addDialog` to open another on top of itself,
+and each one, including the topmost, keeps its own controls interactive.
+
+[5]
+The launcher buttons live in the `SharePanel` slot, top right of the UI.
+
+[6]
+The stacked-dialog launcher is rendered in `InFrontOfTheCanvas` instead, because
+the share panel overflows off-screen on narrow mobile layouts and the e2e test
+for stacked dialogs needs to reach it with a tap.
 */
