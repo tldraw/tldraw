@@ -13,7 +13,6 @@ import { MathematicalIcon } from './icons/MathematicalIcon'
 
 export const MATH_MENU_ID = 'toolbar mathematical'
 
-// Custom toolbar item that provides mathematical operation nodeslity
 export function MathematicalToolbarItem() {
 	const id = 'mathematical'
 	const labelStr = 'Math'

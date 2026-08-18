@@ -20,14 +20,10 @@ import { disableTransparency } from './disableTransparency.tsx'
 import { NodeShapeUtil } from './nodes/NodeShapeUtil'
 import { PointingPort } from './ports/PointingPort'
 
-// Define custom shape utilities that extend tldraw's shape system
 const shapeUtils = [NodeShapeUtil, ConnectionShapeUtil]
-// Define binding utilities that handle relationships between shapes
 const bindingUtils = [ConnectionBindingUtil]
-// Canvas overlays — adds the "+" insert handle at the midpoint of each connection
 const overlayUtils = [ConnectionCenterHandleOverlayUtil]
 
-// Customize tldraw's UI components to add workflow-specific functionality
 const components: TLComponents = {
 	InFrontOfTheCanvas: () => (
 		<>
@@ -52,15 +48,12 @@ const components: TLComponents = {
 		const editor = useEditor()
 		const shouldShowStylePanel = useValue(
 			'shouldShowStylePanel',
-			() => {
-				return (
-					!editor.isIn('select') ||
-					editor.getSelectedShapes().some((s) => s.type !== 'node' && s.type !== 'connection')
-				)
-			},
+			() =>
+				!editor.isIn('select') ||
+				editor.getSelectedShapes().some((s) => s.type !== 'node' && s.type !== 'connection'),
 			[editor]
 		)
-		if (!shouldShowStylePanel) return
+		if (!shouldShowStylePanel) return null
 		return <DefaultStylePanel />
 	},
 }
@@ -89,15 +82,9 @@ function App() {
 
 					editor.user.updateUserPreferences({ isSnapMode: true })
 
-					// Add our custom pointing port tool to the select tool's state machine
-					// This allows users to create connections by pointing at ports
+					// Extend the select tool so pointing at a port starts a connection
 					editor.getStateDescendant('select')!.addChild(PointingPort)
-
-					// Ensure connections always stay at the bottom of the shape stack
-					// This prevents them from covering other shapes
 					keepConnectionsAtBottom(editor)
-
-					// Disable transparency for workflow shapes
 					disableTransparency(editor, ['node', 'connection'])
 				}}
 			/>

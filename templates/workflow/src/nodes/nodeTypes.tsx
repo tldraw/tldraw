@@ -20,7 +20,6 @@ import {
 import { SliderNodeDefinition } from './types/SliderNode'
 import { SubtractNodeDefinition } from './types/SubtractNode'
 
-/** All our node types */
 export const NodeDefinitions = {
 	add: AddNodeDefinition,
 	subtract: SubtractNodeDefinition,
@@ -31,9 +30,6 @@ export const NodeDefinitions = {
 	earthquake: EarthquakeNodeDefinition,
 } satisfies Record<string, NodeDefinitionConstructor<any>>
 
-/**
- * A union type of all our node types.
- */
 export type NodeType = T.TypeOf<typeof NodeType>
 export const NodeType = T.union(
 	'type',
@@ -54,8 +50,7 @@ export function getNodeDefinitions(editor: Editor) {
 	})
 }
 
-// the other functions in this file are wrappers around the node definitions, dispatching to the
-// correct definition for a given node.
+// The rest of this file dispatches to the definition for a given node.
 
 export function getNodeDefinition(
 	editor: Editor,

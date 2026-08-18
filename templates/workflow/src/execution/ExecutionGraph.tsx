@@ -22,12 +22,12 @@ interface ExecutedExecutionGraphNode {
 
 type ExecutionGraphNode = PendingExecutionGraphNode | ExecutedExecutionGraphNode
 
-// This class manages the execution of a workflow by traversing connected nodes
+/**
+ * Executes a workflow: starting nodes run in parallel, and each node runs once all of its inputs
+ * have produced a value.
+ */
 export class ExecutionGraph {
-	/**
-	 * A map of node objects by their ID. We use this instead of looking them up from the editor so
-	 * they're frozen in time once you start executing.
-	 */
+	// Snapshotted at construction so the graph is frozen in time once execution starts.
 	private readonly nodesById = new AtomMap<TLShapeId, ExecutionGraphNode>('node by id')
 
 	constructor(
@@ -35,8 +35,6 @@ export class ExecutionGraph {
 		private readonly startingNodeIds: Set<TLShapeId>
 	) {
 		const toVisit = Array.from(startingNodeIds)
-
-		// Build the execution graph by traversing all connected nodes
 		while (toVisit.length > 0) {
 			const nodeId = toVisit.pop()!
 			if (this.nodesById.has(nodeId)) continue
@@ -45,18 +43,10 @@ export class ExecutionGraph {
 			if (!node || !this.editor.isShapeOfType(node, 'node')) continue
 
 			const connections = getNodePortConnections(this.editor, node)
+			this.nodesById.set(nodeId, { state: 'waiting', shape: node, connections })
 
-			// Add the node to the execution graph
-			this.nodesById.set(nodeId, {
-				state: 'waiting',
-				shape: node,
-				connections,
-			})
-
-			// Add all upstream nodes (connected to start ports) to the visit list
-			for (const connection of Object.values(connections)) {
-				if (!connection || connection.terminal !== 'start') continue
-
+			for (const connection of connections) {
+				if (connection.terminal !== 'start') continue
 				toVisit.push(connection.connectedShapeId)
 			}
 		}
@@ -64,7 +54,6 @@ export class ExecutionGraph {
 
 	private state: 'waiting' | 'executing' | 'stopped' = 'waiting'
 
-	// Execute the workflow starting from the specified nodes
 	async execute() {
 		if (this.state !== 'waiting') {
 			throw new Error('ExecutionGraph can only be executed once')
@@ -72,12 +61,9 @@ export class ExecutionGraph {
 
 		this.state = 'executing'
 		try {
-			// Start execution from all starting nodes in parallel
-			const promises = []
-			for (const nodeId of this.startingNodeIds) {
-				promises.push(this.executeNodeIfReady(nodeId))
-			}
-			await Promise.all(promises)
+			await Promise.all(
+				Array.from(this.startingNodeIds, (nodeId) => this.executeNodeIfReady(nodeId))
+			)
 		} finally {
 			this.state = 'stopped'
 		}
@@ -87,54 +73,33 @@ export class ExecutionGraph {
 		this.state = 'stopped'
 	}
 
-	// Execute a node if all its dependencies are ready
 	private async executeNodeIfReady(nodeId: TLShapeId) {
 		if (this.state !== 'executing') return
 
 		const node = this.nodesById.get(nodeId)
 		if (!node || node.state !== 'waiting') return
 
+		// Bail if any input dependency hasn't run yet, or produced STOP_EXECUTION (a disabled
+		// conditional branch). Dependencies outside this graph use their cached value from last run.
 		const inputs: Record<string, number> = {}
-
-		// Check all input connections (end ports) to see if dependencies are ready
 		for (const connection of node.connections) {
-			if (!connection || connection.terminal !== 'end') continue
+			if (connection.terminal !== 'end') continue
 
 			const dependency = this.nodesById.get(connection.connectedShapeId)
 			if (dependency) {
-				// If the dependency hasn't executed yet, we can't execute this node
-				if (dependency.state !== 'executed') {
-					return
-				}
-
+				if (dependency.state !== 'executed') return
 				const output = dependency.outputs[connection.connectedPortId]
-				if (output === STOP_EXECUTION) {
-					// STOP_EXECUTION is used for conditional execution
-					// It means this branch should not continue
-					return
-				}
-
+				if (output === STOP_EXECUTION) return
 				inputs[connection.ownPortId] = output
 			} else {
-				// If the dependency isn't in nodesById, it's not involved in this execution
-				// We should retrieve its cached value from last time
 				const outputs = getNodeOutputPortInfo(this.editor, connection.connectedShapeId)
 				const output = outputs[connection.connectedPortId]
-
-				if (output.value === STOP_EXECUTION) {
-					// It still might be conditional though, and this branch may be disabled
-					return
-				}
-
+				if (output.value === STOP_EXECUTION) return
 				inputs[connection.ownPortId] = output.value
 			}
 		}
 
-		// All dependencies are ready and we have their outputs! Start executing this node.
-		this.nodesById.set(nodeId, {
-			...node,
-			state: 'executing',
-		})
+		this.nodesById.set(nodeId, { ...node, state: 'executing' })
 
 		this.editor.updateShape({
 			id: nodeId,
@@ -148,22 +113,13 @@ export class ExecutionGraph {
 			props: { isOutOfDate: false },
 		})
 
-		// Mark the node as executed with its outputs
-		this.nodesById.set(nodeId, {
-			...node,
-			state: 'executed',
-			outputs,
-		})
+		this.nodesById.set(nodeId, { ...node, state: 'executed', outputs })
 
-		// Now that we've executed this node, we can see if any of its dependents are ready
-		const executingDependentPromises = []
-		for (const connection of Object.values(node.connections)) {
-			if (!connection || connection.terminal !== 'start') continue
-
-			executingDependentPromises.push(this.executeNodeIfReady(connection.connectedShapeId))
-		}
-
-		await Promise.all(executingDependentPromises)
+		await Promise.all(
+			node.connections
+				.filter((connection) => connection.terminal === 'start')
+				.map((connection) => this.executeNodeIfReady(connection.connectedShapeId))
+		)
 	}
 
 	getNodeStatus(nodeId: TLShapeId) {

@@ -27,19 +27,13 @@ interface WorkflowRegion {
 	startingNodes: Set<TLShapeId>
 }
 
-// Find all workflow regions by traversing connected nodes in the canvas
 function findWorkflowRegions(editor: Editor): WorkflowRegion[] {
 	const workflowSetsByShape = new Map<TLShapeId, Set<TLShapeId>>()
 	const visitedNodes = new Set<TLShapeId>()
 
-	// Recursively visit connected nodes to build workflow regions
-	function visit(node: NodeShape, currentWorkflow?: Set<TLShapeId>) {
+	function visit(node: NodeShape, currentWorkflow: Set<TLShapeId> = new Set()) {
 		if (visitedNodes.has(node.id)) return
 		visitedNodes.add(node.id)
-
-		if (!currentWorkflow) {
-			currentWorkflow = new Set()
-		}
 
 		workflowSetsByShape.set(node.id, currentWorkflow)
 		currentWorkflow.add(node.id)
@@ -49,31 +43,26 @@ function findWorkflowRegions(editor: Editor): WorkflowRegion[] {
 		}
 	}
 
-	// Start visiting from all nodes in the current page
 	for (const node of editor.getCurrentPageShapes()) {
 		if (editor.isShapeOfType(node, 'node')) {
 			visit(node)
 		}
 	}
 
-	// Convert workflow sets to Workflow objects with bounds and starting nodes
 	return Array.from(new Set(workflowSetsByShape.values()), (nodeIds): WorkflowRegion => {
 		let bounds: Box | null = null
 		const startingNodes = new Set<TLShapeId>()
 
 		for (const nodeId of nodeIds) {
-			// Check if this node has input connections (end ports)
-			// If not, it's a starting node
+			// nodes with no inputs are where execution starts
 			const hasInputs = getNodePortConnections(editor, nodeId).some((c) => c.terminal === 'end')
 			if (!hasInputs) {
 				startingNodes.add(nodeId)
 			}
 
-			// Get the node's bounds in page space
 			const nodeBounds = editor.getShapePageBounds(nodeId)
 			if (!nodeBounds) continue
 
-			// Union all node bounds to create workflow bounds
 			if (bounds) {
 				bounds.union(nodeBounds)
 			} else {
@@ -82,65 +71,51 @@ function findWorkflowRegions(editor: Editor): WorkflowRegion[] {
 		}
 
 		return {
-			bounds: bounds!.expandBy(30), // Add padding around the workflow
+			bounds: bounds!.expandBy(30),
 			nodes: nodeIds,
 			startingNodes,
 		}
-	}).filter((w) => w.nodes.size > 1) // Only show workflows with multiple nodes
+	}).filter((w) => w.nodes.size > 1) // a lone node isn't a workflow
 }
 
-// Component that renders workflow regions as overlays on the canvas
 export function WorkflowRegions() {
 	const editor = useEditor()
-	// Reactively compute workflows when the canvas changes
 	const workflows = useValue('workflows', () => findWorkflowRegions(editor), [editor])
 
 	return workflows.map((workflow, i) => <WorkflowRegion key={i} workflow={workflow} />)
 }
 
-// Individual workflow region component with execution controls
 function WorkflowRegion({ workflow }: { workflow: WorkflowRegion }) {
 	const editor = useEditor()
 	const ref = useRef<HTMLDivElement>(null)
 
-	// Check if this workflow is currently executing
 	const isExecuting = useValue(
 		'isExecuting',
 		() => {
 			const execution = executionState.get(editor).runningGraph
 			if (!execution) return false
-
-			// Check if any node in this workflow is executing
-			for (const nodeId of workflow.nodes) {
-				if (execution.getNodeStatus(nodeId) === 'executing') {
-					return true
-				}
-			}
-
-			return false
+			return Array.from(workflow.nodes).some(
+				(nodeId) => execution.getNodeStatus(nodeId) === 'executing'
+			)
 		},
 		[editor, workflow]
 	)
 
-	// Reactively position the workflow region based on camera and workflow bounds
+	// position the region over its bounds in viewport space, hiding it when zoomed far out
 	useQuickReactor(
 		'WorkflowRegion positioning',
 		() => {
 			if (!ref.current) return
 			const camera = editor.getCamera()
 
-			// Hide regions when zoomed out too far
 			if (camera.z < 0.25) {
 				ref.current.style.display = 'none'
 				return
-			} else {
-				ref.current.style.display = 'block'
 			}
+			ref.current.style.display = 'block'
 
-			// Transform workflow bounds from page space to viewport space
 			const position = editor.pageToViewport(workflow.bounds)
 			ref.current.style.transform = `translate(${position.x}px, ${position.y}px)`
-			// Scale the region based on camera zoom
 			ref.current.style.width = `${workflow.bounds.w * camera.z}px`
 			ref.current.style.height = `${workflow.bounds.h * camera.z}px`
 		},
@@ -159,10 +134,8 @@ function WorkflowRegion({ workflow }: { workflow: WorkflowRegion }) {
 				onPointerDown={editor.markEventAsHandled}
 				onClick={() => {
 					if (isExecuting) {
-						// Stop execution if currently running
 						stopExecution(editor)
 					} else {
-						// Start execution from the workflow's starting nodes
 						startExecution(editor, workflow.startingNodes)
 					}
 				}}

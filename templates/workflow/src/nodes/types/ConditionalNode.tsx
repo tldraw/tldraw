@@ -1,14 +1,7 @@
-import { T, useEditor } from 'tldraw'
+import { sleep, T, useEditor } from 'tldraw'
 import { ConditionalIcon } from '../../components/icons/ConditionalIcon'
-import {
-	NODE_HEADER_HEIGHT_PX,
-	NODE_ROW_BOTTOM_PADDING_PX,
-	NODE_ROW_HEADER_GAP_PX,
-	NODE_ROW_HEIGHT_PX,
-	NODE_WIDTH_PX,
-} from '../../constants'
+import { NODE_ROW_BOTTOM_PADDING_PX, NODE_ROW_HEIGHT_PX } from '../../constants'
 import { Port, ShapePort } from '../../ports/Port'
-import { sleep } from '../../utils/sleep'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	areAnyInputsOutOfDate,
@@ -19,6 +12,7 @@ import {
 	NodeDefinition,
 	NodeInputRow,
 	NodeRow,
+	rowPort,
 	STOP_EXECUTION,
 	updateNode,
 } from './shared'
@@ -91,41 +85,18 @@ export class ConditionalNodeDefinition extends NodeDefinition<ConditionalNode> {
 			previousResult: null,
 		}
 	}
-	// There are 5 rows in the conditional, but we have less padding at the bottom than usual.
+	// Five rows, but with less padding at the bottom than usual.
 	getBodyHeightPx() {
 		return NODE_ROW_HEIGHT_PX * 5 - NODE_ROW_BOTTOM_PADDING_PX
 	}
-	// We need a port for each input and output.
 	getPorts(): Record<string, ShapePort> {
 		return {
-			lhs: {
-				id: 'lhs',
-				x: 0,
-				y: NODE_HEADER_HEIGHT_PX + NODE_ROW_HEADER_GAP_PX + NODE_ROW_HEIGHT_PX * 0.5,
-				terminal: 'end',
-			},
-			rhs: {
-				id: 'rhs',
-				x: 0,
-				y: NODE_HEADER_HEIGHT_PX + NODE_ROW_HEADER_GAP_PX + NODE_ROW_HEIGHT_PX * 2.5,
-				terminal: 'end',
-			},
-			outputTrue: {
-				id: 'outputTrue',
-				x: NODE_WIDTH_PX,
-				y: NODE_HEADER_HEIGHT_PX + NODE_ROW_HEADER_GAP_PX + NODE_ROW_HEIGHT_PX * 3.5,
-				terminal: 'start',
-			},
-			outputFalse: {
-				id: 'outputFalse',
-				x: NODE_WIDTH_PX,
-				y: NODE_HEADER_HEIGHT_PX + NODE_ROW_HEADER_GAP_PX + NODE_ROW_HEIGHT_PX * 4.5,
-				terminal: 'start',
-			},
+			lhs: rowPort('lhs', 0),
+			rhs: rowPort('rhs', 2),
+			outputTrue: rowPort('outputTrue', 3, 'start'),
+			outputFalse: rowPort('outputFalse', 4, 'start'),
 		}
 	}
-	// The output of the conditional node is the value of the first output port, or STOP_EXECUTION
-	// if the condition is false.
 	async execute(
 		shape: NodeShape,
 		node: ConditionalNode,
@@ -135,20 +106,15 @@ export class ConditionalNodeDefinition extends NodeDefinition<ConditionalNode> {
 
 		const lhs = inputs.lhs ?? node.lhs
 		const rhs = inputs.rhs ?? node.rhs
+		const isTrue = operators[node.operator].evaluate(lhs, rhs)
 
-		if (operators[node.operator].evaluate(lhs, rhs)) {
-			updateNode<ConditionalNode>(this.editor, shape, (node) => ({
-				...node,
-				previousResult: 'lhs',
-			}))
-			return { outputTrue: lhs, outputFalse: STOP_EXECUTION }
-		} else {
-			updateNode<ConditionalNode>(this.editor, shape, (node) => ({
-				...node,
-				previousResult: 'rhs',
-			}))
-			return { outputTrue: STOP_EXECUTION, outputFalse: lhs }
-		}
+		updateNode<ConditionalNode>(this.editor, shape, (node) => ({
+			...node,
+			previousResult: isTrue ? 'lhs' : 'rhs',
+		}))
+		return isTrue
+			? { outputTrue: lhs, outputFalse: STOP_EXECUTION }
+			: { outputTrue: STOP_EXECUTION, outputFalse: lhs }
 	}
 	getOutputInfo(shape: NodeShape, node: ConditionalNode, inputs: InfoValues): InfoValues {
 		const isOutOfDate = areAnyInputsOutOfDate(inputs) || shape.props.isOutOfDate
