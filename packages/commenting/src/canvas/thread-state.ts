@@ -134,6 +134,22 @@ export function anchorPagePoint(
 }
 
 /**
+ * Where a thread's marker is drawn, in viewport space: {@link anchorPagePoint} projected through
+ * the camera, plus the imprecise-shape inset. Null when the anchor resolves to no point.
+ * @internal
+ */
+export function anchorViewportPoint(
+	editor: Editor,
+	anchor: TLCommentAnchor
+): { x: number; y: number } | null {
+	const pagePoint = anchorPagePoint(editor, anchor)
+	if (!pagePoint) return null
+	const viewportPoint = editor.pageToViewport(pagePoint)
+	const inset = impreciseShapePinInset(editor, anchor)
+	return inset ? { x: viewportPoint.x + inset.x, y: viewportPoint.y + inset.y } : viewportPoint
+}
+
+/**
  * The shape a comment placed at a page point should anchor to, or undefined for empty canvas.
  *
  * Uses the editor's hit-test margin, the same slack select and hover use — without it, open-path

@@ -111,7 +111,8 @@ function zForRoots(
 		// members would suggest — matching what the user actually sees.
 		// (Coincident CENTROIDS with non-coincident members leave the gap term
 		// Infinity and the fit term finite — the min stays finite, no special case.)
-		const gap = opts.Tc / clusters.centroidDistance(aRoot, bRoot)
+		const dc = clusters.centroidDelta(aRoot, bRoot)
+		const gap = opts.Tc / Math.hypot(dc.x, dc.y)
 		const fit = opts.Dmax / clusters.unionBboxDiag(aRoot, bRoot)
 		return Math.min(gap, fit)
 	}
@@ -166,8 +167,6 @@ class ClusterState {
 	private readonly centroidY: Float64Array
 	private readonly counts: Int32Array
 	private readonly nodes: ClusterNode[]
-	private readonly memberLists: string[][]
-	private readonly minMemberIds: string[]
 	// Per-cluster sums of member render offsets (screen px), maintained like the centroid sums.
 	// Null when no offsets were passed — offsetDelta() then answers null unconditionally, which
 	// routes every pricing call down the offset-unaware path.
@@ -185,8 +184,6 @@ class ClusterState {
 		this.centroidY = new Float64Array(n)
 		this.counts = new Int32Array(n)
 		this.nodes = new Array(n)
-		this.memberLists = new Array(n)
-		this.minMemberIds = new Array(n)
 
 		if (screenOffsets !== undefined && screenOffsets.size > 0) {
 			this.offsetX = new Float64Array(n)
@@ -213,8 +210,6 @@ class ClusterState {
 			this.centroidX[i] = leaf.point.x
 			this.centroidY[i] = leaf.point.y
 			this.counts[i] = 1
-			this.memberLists[i] = [leaf.id]
-			this.minMemberIds[i] = leaf.id
 			this.nodes[i] = {
 				id: leaf.id,
 				centroid: { x: leaf.point.x, y: leaf.point.y },
@@ -235,13 +230,6 @@ class ClusterState {
 			index = next
 		}
 		return root
-	}
-
-	centroidDistance(aRoot: number, bRoot: number): number {
-		return Math.hypot(
-			this.centroidX[aRoot] - this.centroidX[bRoot],
-			this.centroidY[aRoot] - this.centroidY[bRoot]
-		)
 	}
 
 	centroidDelta(aRoot: number, bRoot: number): { x: number; y: number } {
@@ -271,12 +259,12 @@ class ClusterState {
 	}
 
 	merge(aRoot: number, bRoot: number, z: number): RawMergeEvent {
-		const leftRoot = this.minMemberIds[aRoot] < this.minMemberIds[bRoot] ? aRoot : bRoot
+		const leftRoot = this.nodes[aRoot].members[0] < this.nodes[bRoot].members[0] ? aRoot : bRoot
 		const rightRoot = leftRoot === aRoot ? bRoot : aRoot
 		const left = this.nodes[leftRoot]
 		const right = this.nodes[rightRoot]
 		const count = this.counts[leftRoot] + this.counts[rightRoot]
-		const members = mergeSortedMembers(this.memberLists[leftRoot], this.memberLists[rightRoot])
+		const members = mergeSortedMembers(left.members, right.members)
 
 		const minX = Math.min(this.minX[leftRoot], this.minX[rightRoot])
 		const minY = Math.min(this.minY[leftRoot], this.minY[rightRoot])
@@ -291,7 +279,7 @@ class ClusterState {
 				this.counts[rightRoot] * this.centroidY[rightRoot]) /
 			count
 
-		// Leaf ids are assumed not to start with `cluster:`; see the step 2 contract.
+		// Leaf ids must not start with `cluster:`, or a merged id could collide with a leaf id.
 		const result: ClusterNode = {
 			id: `cluster:${count}:${members[0]}`,
 			centroid: { x: centroidX, y: centroidY },
@@ -308,8 +296,6 @@ class ClusterState {
 		this.centroidY[leftRoot] = centroidY
 		this.counts[leftRoot] = count
 		this.nodes[leftRoot] = result
-		this.memberLists[leftRoot] = members
-		this.minMemberIds[leftRoot] = members[0]
 		if (this.offsetX !== null && this.offsetY !== null) {
 			this.offsetX[leftRoot] += this.offsetX[rightRoot]
 			this.offsetY[leftRoot] += this.offsetY[rightRoot]
@@ -343,10 +329,10 @@ interface HeapEntry {
 
 class EdgeMaxHeap {
 	private readonly items: HeapEntry[] = []
-	// Per-edge normalized (lo, hi) id pair for the z tie-break, precomputed once so comparisons
-	// allocate nothing. With coincident anchors every edge prices to the same z (+Infinity), so
-	// the tie-break runs on nearly every comparison of a rebuild — allocating the pair there
-	// churned millions of short-lived tuples.
+	// Per-edge (lo, hi) id pair for the z tie-break (MST edges are normalized: leaves[a].id <
+	// leaves[b].id), precomputed once so comparisons allocate nothing. With coincident anchors
+	// every edge prices to the same z (+Infinity), so the tie-break runs on nearly every
+	// comparison of a rebuild — allocating the pair there churned millions of short-lived tuples.
 	private readonly loIds: string[]
 	private readonly hiIds: string[]
 
@@ -355,15 +341,8 @@ class EdgeMaxHeap {
 		this.loIds = new Array(n)
 		this.hiIds = new Array(n)
 		for (let i = 0; i < n; i++) {
-			const aId = leaves[edges[i].a].id
-			const bId = leaves[edges[i].b].id
-			if (aId < bId) {
-				this.loIds[i] = aId
-				this.hiIds[i] = bId
-			} else {
-				this.loIds[i] = bId
-				this.hiIds[i] = aId
-			}
+			this.loIds[i] = leaves[edges[i].a].id
+			this.hiIds[i] = leaves[edges[i].b].id
 		}
 	}
 
