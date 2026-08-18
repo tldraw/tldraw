@@ -236,6 +236,33 @@ When `uploadImage` is provided, the handler:
 
 ## 6. Integration Patterns
 
+### Environment Configuration
+
+Use the `requiredEnv` utility to validate required environment variables:
+
+```ts
+import { requiredEnv } from '@tldraw/worker-shared'
+
+export interface Env {
+	readonly DATABASE_URL?: string
+	readonly API_KEY?: string
+	readonly ASSETS_BUCKET: R2Bucket
+}
+
+export default {
+	async fetch(request: Request, env: Env, ctx: ExecutionContext) {
+		// Throws clear error if variables are missing
+		const config = requiredEnv(env, {
+			DATABASE_URL: true,
+			API_KEY: true,
+		})
+
+		// config.DATABASE_URL and config.API_KEY are guaranteed non-null
+		console.log(`Connecting to ${config.DATABASE_URL}`)
+	},
+}
+```
+
 ### Complete Worker Example
 
 Here's a complete worker using all the shared utilities:

@@ -115,9 +115,9 @@ export type ThumbnailErrorSurface =
 // callers, but it leaves a bounded telemetry reason code as the only trace, which says a board stopped
 // rendering and nothing about why. Reporting here is what keeps these paths diagnosable.
 //
-// `ctx` supplies the waitUntil that lets the report outlive the response — route handlers get one
-// from the router, the queue consumer from the worker entrypoint. Without one (unit tests) we log
-// instead.
+// `ctx` supplies the waitUntil that lets the report outlive the response — route handlers get one from
+// the router, the queue consumer from the worker entrypoint. Without one (unit tests) we log instead,
+// since createSentry throws when SENTRY_DSN and friends are unset.
 export function reportThumbnailError(
 	error: unknown,
 	{
@@ -159,7 +159,8 @@ export function reportThumbnailError(
 		})
 	} catch (_e) {
 		// Reporting runs inside handlers whose whole point is to swallow failure, so it must never be
-		// the thing that throws and turn a degraded-but-fine response into a 500.
+		// the thing that throws: a missing Sentry env var would otherwise turn a degraded-but-fine
+		// response into a 500.
 	}
 }
 
