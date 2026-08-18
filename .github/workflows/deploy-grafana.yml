@@ -56,9 +56,33 @@ jobs:
           GRAFANA_SERVER: ${{ secrets.GRAFANA_SERVER }}
           GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN }}
 
+      # Everything except alert rules. Split from the step below so a rejected rule
+      # cannot take the dashboards down with it — see that step for why that happens.
       - name: Push resources
         if: github.event_name == 'push'
-        run: gcx resources push -p internal/grafana/resources --on-error abort
+        run: |
+          shopt -s nullglob
+          for dir in internal/grafana/resources/*/; do
+            case "$dir" in *alertrules*) continue ;; esac
+            gcx resources push -p "$dir" --on-error abort
+          done
+        env:
+          GRAFANA_SERVER: ${{ secrets.GRAFANA_SERVER }}
+          GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN }}
+
+      # Alert rules are the one resource type that can fail here having passed the PR
+      # dry run, because alerting has no server-side dry-run — the PR reports them as
+      # "skipped". A newly created rule carrying group labels is rejected outright
+      # ("cannot set group when creating a new rule"), so the first time any new rule
+      # lands, this step is where it surfaces. Kept last and separate so that failure
+      # costs the rule, not every dashboard in the tree. Still fails the job.
+      - name: Push alert rules
+        if: github.event_name == 'push'
+        run: |
+          shopt -s nullglob
+          for dir in internal/grafana/resources/*alertrules*/; do
+            gcx resources push -p "$dir" --on-error abort
+          done
         env:
           GRAFANA_SERVER: ${{ secrets.GRAFANA_SERVER }}
           GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN }}
