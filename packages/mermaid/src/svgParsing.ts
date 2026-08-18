@@ -45,7 +45,8 @@ export function stripDiagramIdPrefix(domId: string): string {
 
 /** Extract the first capture group of `pattern` from a dom id, tolerating the diagram-id prefix. */
 export function parseDomId(domId: string, pattern: RegExp): string {
-	return stripDiagramIdPrefix(domId).match(pattern)?.[1] ?? domId
+	const bareId = stripDiagramIdPrefix(domId)
+	return bareId.match(pattern)?.[1] ?? bareId
 }
 
 function parseTranslate(attr: string | null): Vec2 {

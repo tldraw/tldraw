@@ -105,7 +105,7 @@ export function renderBlueprint(
 	}
 
 	const groupedIds = new Set<TLShapeId>()
-	const subGroupIds: TLShapeId[] = []
+	const topLevelIds: TLShapeId[] = []
 	for (const group of blueprint.groups ?? []) {
 		const members: TLShapeId[] = []
 		for (const blueprintId of group) {
@@ -115,10 +115,9 @@ export function renderBlueprint(
 				groupedIds.add(memberShapeId)
 			}
 		}
-		if (members.length > 0) subGroupIds.push(groupShapes(editor, members) ?? members[0])
+		if (members.length > 0) topLevelIds.push(groupShapes(editor, members) ?? members[0])
 	}
 
-	const topLevelIds: TLShapeId[] = [...subGroupIds]
 	for (const item of [...nodes.filter((node) => !node.parentId), ...(lines ?? [])]) {
 		const itemShapeId = shapeIds.get(item.id)
 		if (itemShapeId && !groupedIds.has(itemShapeId)) topLevelIds.push(itemShapeId)
@@ -153,10 +152,9 @@ export function renderBlueprint(
 function groupShapes(editor: Editor, ids: TLShapeId[]): TLShapeId | undefined {
 	if (ids.length === 0) return undefined
 	if (ids.length === 1) return ids[0]
-	editor.groupShapes(ids)
-	const first = editor.getShape(ids[0])
-	if (first && first.parentId !== editor.getCurrentPageId()) return first.parentId as TLShapeId
-	return undefined
+	const groupId = createShapeId()
+	editor.groupShapes(ids, { groupId })
+	return editor.getShape(groupId) ? groupId : undefined
 }
 
 interface ArrowTerminal {

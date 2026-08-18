@@ -133,27 +133,25 @@ const FIXED_NODE_SIZES: Record<string, [number, number]> = {
 }
 
 interface Rect {
-	absX: number
-	absY: number
+	x: number
+	y: number
 	w: number
 	h: number
 }
 
 function stateToNodes(
 	state: FlatState,
-	x: number,
-	y: number,
-	w: number,
-	h: number,
+	rect: Rect,
 	parentId: string | undefined,
 	colors: ParsedNodeColors | undefined
 ): MermaidBlueprintNode[] {
+	const { x, y, w, h } = rect
 	const label = state.label || undefined
 	const node = (
 		id: string,
 		kind: string,
 		overrides: Partial<Omit<MermaidBlueprintNode, 'id' | 'kind'>>
-	): MermaidBlueprintNode => ({ id, kind, x, y, w, h, parentId, color: 'black', ...overrides })
+	): MermaidBlueprintNode => ({ id, kind, ...rect, parentId, color: 'black', ...overrides })
 
 	switch (state.type) {
 		case 'note':
@@ -266,7 +264,7 @@ export function stateToBlueprint(
 		if (!svgNode) continue
 
 		const [w, h] = FIXED_NODE_SIZES[state.type] ?? [svgNode.width + 20, svgNode.height + 8]
-		nodeLayout.set(id, { absX: svgNode.center.x - w / 2, absY: svgNode.center.y - h / 2, w, h })
+		nodeLayout.set(id, { x: svgNode.center.x - w / 2, y: svgNode.center.y - h / 2, w, h })
 	}
 
 	const compoundIds = [...compoundLabels.keys()]
@@ -285,8 +283,8 @@ export function stateToBlueprint(
 		const cluster = svgClusters.get(compoundId)
 		if (cluster) {
 			frameBounds.set(compoundId, {
-				absX: cluster.topLeft.x,
-				absY: cluster.topLeft.y,
+				x: cluster.topLeft.x,
+				y: cluster.topLeft.y,
 				w: cluster.width,
 				h: cluster.height,
 			})
@@ -299,16 +297,16 @@ export function stateToBlueprint(
 		let maxY = -Infinity
 		for (const [id, rect] of [...nodeLayout, ...frameBounds]) {
 			if (parentOf.get(id) !== compoundId) continue
-			minX = Math.min(minX, rect.absX)
-			minY = Math.min(minY, rect.absY)
-			maxX = Math.max(maxX, rect.absX + rect.w)
-			maxY = Math.max(maxY, rect.absY + rect.h)
+			minX = Math.min(minX, rect.x)
+			minY = Math.min(minY, rect.y)
+			maxX = Math.max(maxX, rect.x + rect.w)
+			maxY = Math.max(maxY, rect.y + rect.h)
 		}
 		if (!isFinite(minX)) continue
 
 		frameBounds.set(compoundId, {
-			absX: minX - FRAME_PAD,
-			absY: minY - FRAME_TOP,
+			x: minX - FRAME_PAD,
+			y: minY - FRAME_TOP,
 			w: maxX - minX + FRAME_PAD * 2,
 			h: maxY - minY + FRAME_PAD + FRAME_TOP,
 		})
@@ -322,14 +320,9 @@ export function stateToBlueprint(
 		const frame = pid ? frameBounds.get(pid) : undefined
 		if (!frame) continue
 
-		const cx = rect.absX + rect.w / 2
-		const cy = rect.absY + rect.h / 2
-		if (
-			cx < frame.absX ||
-			cx > frame.absX + frame.w ||
-			cy < frame.absY ||
-			cy > frame.absY + frame.h
-		) {
+		const cx = rect.x + rect.w / 2
+		const cy = rect.y + rect.h / 2
+		if (cx < frame.x || cx > frame.x + frame.w || cy < frame.y || cy > frame.y + frame.h) {
 			parentOf.delete(id)
 		}
 	}
@@ -344,10 +337,7 @@ export function stateToBlueprint(
 		nodes.push({
 			id: compoundId,
 			kind: 'compound',
-			x: bounds.absX,
-			y: bounds.absY,
-			w: bounds.w,
-			h: bounds.h,
+			...bounds,
 			parentId: parentOf.get(compoundId),
 			label: compoundLabels.get(compoundId) || compoundId,
 			fill: 'semi',
@@ -363,17 +353,7 @@ export function stateToBlueprint(
 		const rect = nodeLayout.get(id)
 		if (!rect) continue
 
-		nodes.push(
-			...stateToNodes(
-				state,
-				rect.absX,
-				rect.absY,
-				rect.w,
-				rect.h,
-				parentOf.get(id),
-				stateColorMap.get(id)
-			)
-		)
+		nodes.push(...stateToNodes(state, rect, parentOf.get(id), stateColorMap.get(id)))
 	}
 
 	const claimed = new Set<number>()

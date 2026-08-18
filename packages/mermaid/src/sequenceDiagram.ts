@@ -422,6 +422,8 @@ export function sequenceToBlueprint(
 	destroyedActors: Map<string, number> = new Map()
 ): DiagramMermaidBlueprint {
 	const actorCount = actorKeys.length
+	if (actorCount === 0)
+		return { diagramKind: 'sequence', nodes: [], edges: [], lines: [], groups: [] }
 	const keyIndex = new Map(actorKeys.map((key, i) => [key, i]))
 
 	const fragments: FragmentSpan[] = []
@@ -430,16 +432,21 @@ export function sequenceToBlueprint(
 	const activationStack = new Map<string, number[]>()
 	const activationSpans: ActivationSpan[] = []
 
-	let autonumberStart = 0
-	let autonumberStep = 0
+	let autonumberStart = 1
+	let autonumberStep = 1
 	let autonumberVisible = false
 
 	for (const msg of messages) {
 		const type = msg.type ?? -1
 		if (type === LINETYPE.AUTONUMBER) {
-			autonumberStart = 1
-			autonumberStep = 1
-			autonumberVisible = true
+			// `autonumber [start [step]]` / `autonumber off`; mermaid stores the options on `message`
+			if (typeof msg.message === 'object') {
+				autonumberStart = msg.message.start || autonumberStart
+				autonumberStep = msg.message.step || autonumberStep
+				autonumberVisible = msg.message.visible
+			} else {
+				autonumberVisible = true
+			}
 			continue
 		}
 
