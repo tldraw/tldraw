@@ -62,12 +62,8 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 							placeholder="https://example.com"
 							autoFocus
 							onValueChange={(value) => {
-								// Set the url that the user has typed into the input
 								setUrl(value)
 
-								// Set the embed info to either the embed info for the URL (if
-								// that embed info can be found and of a type that matches the
-								// user's selected definition type)
 								const embedInfo = getEmbedDefinition(value)
 								setEmbedInfoForUrl(
 									embedInfo && embedInfo.definition.type === embedDefinition.type ? embedInfo : null
@@ -144,28 +140,26 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 					</TldrawUiDialogFooter>
 				</>
 			) : (
-				<>
-					<TldrawUiDialogBody className="tlui-embed-dialog__list">
-						{definitions.map((def) => {
-							const url = isDefaultEmbedDefinitionType(def.type)
-								? assetUrls.embedIcons[def.type]
-								: isCustomEmbedDefinition(def)
-									? def.icon
-									: undefined
-							return (
-								<TldrawUiButton type="menu" key={def.type} onClick={() => setEmbedDefinition(def)}>
-									<TldrawUiButtonLabel>{untranslated(def.title)}</TldrawUiButtonLabel>
-									{url && (
-										<div
-											className="tlui-embed-dialog__item__image"
-											style={{ backgroundImage: `url(${url})` }}
-										/>
-									)}
-								</TldrawUiButton>
-							)
-						})}
-					</TldrawUiDialogBody>
-				</>
+				<TldrawUiDialogBody className="tlui-embed-dialog__list">
+					{definitions.map((def) => {
+						const icon = isDefaultEmbedDefinitionType(def.type)
+							? assetUrls.embedIcons[def.type]
+							: isCustomEmbedDefinition(def)
+								? def.icon
+								: undefined
+						return (
+							<TldrawUiButton type="menu" key={def.type} onClick={() => setEmbedDefinition(def)}>
+								<TldrawUiButtonLabel>{untranslated(def.title)}</TldrawUiButtonLabel>
+								{icon && (
+									<div
+										className="tlui-embed-dialog__item__image"
+										style={{ backgroundImage: `url(${icon})` }}
+									/>
+								)}
+							</TldrawUiButton>
+						)
+					})}
+				</TldrawUiDialogBody>
 			)}
 		</>
 	)

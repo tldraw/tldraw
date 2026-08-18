@@ -19,14 +19,7 @@ export function InputModeMenu() {
 		editor,
 	])
 
-	const isModeChecked = (mode: string) => {
-		if (mode === 'auto') {
-			return inputMode === null
-		}
-		return inputMode === mode
-	}
-
-	const getLabel = (mode: string, wheelBehavior: 'zoom' | 'pan' | 'none') => {
+	const getLabel = (mode: (typeof MODES)[number]) => {
 		if (mode === 'auto') {
 			return `action.toggle-auto-${wheelBehavior}`
 		}
@@ -41,22 +34,12 @@ export function InputModeMenu() {
 					<TldrawUiMenuCheckboxItem
 						id={`peripheral-mode-${mode}`}
 						key={mode}
-						label={getLabel(mode, wheelBehavior)}
-						checked={isModeChecked(mode)}
+						label={getLabel(mode)}
+						checked={inputMode === (mode === 'auto' ? null : mode)}
 						readonlyOk
 						onSelect={() => {
 							trackEvent('input-mode', { source: 'menu', value: mode })
-							switch (mode) {
-								case 'auto':
-									editor.user.updateUserPreferences({ inputMode: null })
-									break
-								case 'trackpad':
-									editor.user.updateUserPreferences({ inputMode: 'trackpad' })
-									break
-								case 'mouse':
-									editor.user.updateUserPreferences({ inputMode: 'mouse' })
-									break
-							}
+							editor.user.updateUserPreferences({ inputMode: mode === 'auto' ? null : mode })
 						}}
 					/>
 				))}

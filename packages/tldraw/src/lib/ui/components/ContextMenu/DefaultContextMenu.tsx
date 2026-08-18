@@ -73,6 +73,9 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	// short grace window after open so the menu stays put until the user actually
 	// interacts again.
 	const suppressDismissUntilRef = useRef(0)
+	const suppressDismissDuringGrace = useCallback((e: Event) => {
+		if (Date.now() < suppressDismissUntilRef.current) e.preventDefault()
+	}, [])
 
 	const cb = useCallback(
 		(isOpen: boolean) => {
@@ -99,22 +102,12 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 
 					// Weird route: selecting locked shapes on long press
 					const selectedShapes = editor.getSelectedShapes()
-					const currentPagePoint = editor.inputs.getCurrentPagePoint()
+					const shapesAtPoint = editor.getShapesAtPoint(editor.inputs.getCurrentPagePoint())
 
-					// get all of the shapes under the current pointer
-					const shapesAtPoint = editor.getShapesAtPoint(currentPagePoint)
-
-					if (
-						// if there are no selected shapes
-						!editor.getSelectedShapes().length ||
-						// OR if none of the shapes at the point include the selected shape
-						!shapesAtPoint.some((s) => selectedShapes.includes(s))
-					) {
-						// then are there any locked shapes under the current pointer?
+					if (!selectedShapes.length || !shapesAtPoint.some((s) => selectedShapes.includes(s))) {
 						const lockedShapes = shapesAtPoint.filter((s) => editor.isShapeOrAncestorLocked(s))
 
 						if (lockedShapes.length) {
-							// nice, let's select them
 							editor.select(...lockedShapes.map((s) => s.id))
 						}
 					}
@@ -128,9 +121,6 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	const dir = useDirection()
 	const [isOpen, handleOpenChange] = useMenuIsOpen('context menu', cb)
 
-	// Get the context menu content, either the default component or the user's
-	// override. If there's no menu content, then the user has set it to null,
-	// so skip rendering the menu.
 	const content = children ?? <DefaultContextMenuContent />
 
 	return (
@@ -154,15 +144,9 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 						alignOffset={-4}
 						collisionPadding={4}
 						onContextMenu={preventDefault}
-						onPointerDownOutside={(e) => {
-							if (Date.now() < suppressDismissUntilRef.current) e.preventDefault()
-						}}
-						onInteractOutside={(e) => {
-							if (Date.now() < suppressDismissUntilRef.current) e.preventDefault()
-						}}
-						onFocusOutside={(e) => {
-							if (Date.now() < suppressDismissUntilRef.current) e.preventDefault()
-						}}
+						onPointerDownOutside={suppressDismissDuringGrace}
+						onInteractOutside={suppressDismissDuringGrace}
+						onFocusOutside={suppressDismissDuringGrace}
 					>
 						<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
 							{content}

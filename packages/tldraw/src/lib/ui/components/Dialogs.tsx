@@ -35,12 +35,8 @@ const TldrawUiDialog = ({ id, component: ModalContent, preventBackgroundClose }:
 						className="tlui-dialog__content"
 						aria-describedby={undefined}
 						onInteractOutside={(e) => {
-							// Radix's dismissable layers are layer-aware: an interaction outside the
-							// topmost layer dismisses only that layer — an open select, or a dialog
-							// stacked on top — leaving lower layers open. onInteractOutside fires for
-							// both a pointer press and a focus shift outside the dialog; opt out of both
-							// when the dialog asks to stay open on background interactions (escape still
-							// closes it).
+							// onInteractOutside fires for both a pointer press and a focus shift outside
+							// the dialog; preventBackgroundClose opts out of both (escape still closes).
 
 							// A touch press is checked against the layers at the following click rather
 							// than at the press itself, so a press that closes a dialog stacked on top of
@@ -50,12 +46,10 @@ const TldrawUiDialog = ({ id, component: ModalContent, preventBackgroundClose }:
 							const target = e.detail.originalEvent.target
 							const pressedDialog =
 								target instanceof Element ? target.closest('.tlui-dialog__content') : null
-							if (pressedDialog && pressedDialog !== contentRef.current) {
-								e.preventDefault()
-								return
-							}
-
-							if (preventBackgroundClose) {
+							if (
+								preventBackgroundClose ||
+								(pressedDialog && pressedDialog !== contentRef.current)
+							) {
 								e.preventDefault()
 							}
 						}}

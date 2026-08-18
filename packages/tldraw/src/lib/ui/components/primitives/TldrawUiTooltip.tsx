@@ -44,14 +44,12 @@ interface TooltipData {
 	delayDuration: number
 }
 
-// State machine states
 type TooltipState =
 	| { name: 'idle' }
 	| { name: 'pointer_down' }
 	| { name: 'showing'; tooltip: TooltipData }
 	| { name: 'waiting_to_hide'; tooltip: TooltipData; timeoutId: number }
 
-// State machine events
 type TooltipEvent =
 	| { type: 'pointer_down' }
 	| { type: 'pointer_up' }
@@ -59,17 +57,8 @@ type TooltipEvent =
 	| { type: 'hide'; tooltipId: string; editor: Editor | null; instant: boolean }
 	| { type: 'hide_all' }
 
-// Singleton tooltip manager using explicit state machine
 class TooltipManager {
-	private static instance: TooltipManager | null = null
 	private state = atom<TooltipState>('tooltip state', { name: 'idle' })
-
-	static getInstance(): TooltipManager {
-		if (!TooltipManager.instance) {
-			TooltipManager.instance = new TooltipManager()
-		}
-		return TooltipManager.instance
-	}
 
 	hideAllTooltips() {
 		this.handleEvent({ type: 'hide_all' })
@@ -80,7 +69,6 @@ class TooltipManager {
 
 		switch (event.type) {
 			case 'pointer_down': {
-				// Transition to pointer_down from any state
 				if (currentState.name === 'waiting_to_hide') {
 					clearTimeout(currentState.timeoutId)
 				}
@@ -89,7 +77,6 @@ class TooltipManager {
 			}
 
 			case 'pointer_up': {
-				// Only transition from pointer_down to idle
 				if (currentState.name === 'pointer_down') {
 					this.state.set({ name: 'idle' })
 				}
@@ -101,13 +88,9 @@ class TooltipManager {
 				if (currentState.name === 'pointer_down') {
 					return
 				}
-
-				// Clear any existing timeout if transitioning from waiting_to_hide
 				if (currentState.name === 'waiting_to_hide') {
 					clearTimeout(currentState.timeoutId)
 				}
-
-				// Transition to showing state
 				this.state.set({ name: 'showing', tooltip: event.tooltip })
 				break
 			}
@@ -118,7 +101,6 @@ class TooltipManager {
 				// Only hide if the tooltip matches
 				if (currentState.name === 'showing' && currentState.tooltip.id === tooltipId) {
 					if (editor && !instant) {
-						// Transition to waiting_to_hide state
 						const timeoutId = editor.timers.setTimeout(() => {
 							const state = this.state.get()
 							if (state.name === 'waiting_to_hide' && state.tooltip.id === tooltipId) {
@@ -162,28 +144,20 @@ class TooltipManager {
 
 	getCurrentTooltipData(): TooltipData | null {
 		const currentState = this.state.get()
-		let tooltip: TooltipData | null = null
-
-		if (currentState.name === 'showing') {
-			tooltip = currentState.tooltip
-		} else if (currentState.name === 'waiting_to_hide') {
-			tooltip = currentState.tooltip
-		}
-
-		if (!tooltip) return null
+		if (currentState.name !== 'showing' && currentState.name !== 'waiting_to_hide') return null
+		const { tooltip } = currentState
 		if (tlenvReactive.get().isCoarsePointer && !tooltip.showOnMobile) return null
 		return tooltip
 	}
 }
 
-const tooltipManager = TooltipManager.getInstance()
+const tooltipManager = new TooltipManager()
 
 /** @public */
 export function hideAllTooltips() {
 	tooltipManager.hideAllTooltips()
 }
 
-// Context for the tooltip singleton
 const TooltipSingletonContext = createContext<boolean>(false)
 
 /** @public */
@@ -203,7 +177,6 @@ export function TldrawUiTooltipProvider({ children }: TldrawUiTooltipProviderPro
 	)
 }
 
-// The singleton tooltip component that renders once
 function TooltipSingleton() {
 	const [isOpen, setIsOpen] = useState(false)
 	const triggerRef = useRef<HTMLDivElement>(null)
@@ -269,7 +242,6 @@ function TooltipSingleton() {
 		}
 	}, [editor])
 
-	// Update open state and trigger position
 	useEffect(() => {
 		// eslint-disable-next-line no-restricted-globals
 		let timer: ReturnType<typeof setTimeout> | null = null
@@ -291,7 +263,6 @@ function TooltipSingleton() {
 			trigger.style.pointerEvents = 'none'
 			trigger.style.zIndex = '9999'
 
-			// Handle delay for first show
 			if (isFirstShowRef.current) {
 				// eslint-disable-next-line no-restricted-globals
 				timer = setTimeout(() => {
@@ -299,13 +270,10 @@ function TooltipSingleton() {
 					isFirstShowRef.current = false
 				}, currentTooltip.delayDuration)
 			} else {
-				// Subsequent tooltips show immediately
 				setIsOpen(true)
 			}
 		} else {
-			// Hide tooltip immediately
 			setIsOpen(false)
-			// Reset first show state after tooltip is hidden
 			isFirstShowRef.current = true
 		}
 
@@ -381,18 +349,13 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 			}
 		}, [editor, hasProvider])
 
-		// Don't show tooltip if disabled, no content, or enhanced accessibility mode is disabled
 		if (disabled || !content) {
 			return <>{children}</>
 		}
 
-		let delayDurationToUse
-		if (enhancedA11yMode) {
-			delayDurationToUse = 0
-		} else {
-			delayDurationToUse =
-				delayDuration ?? (editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS)
-		}
+		const delayDurationToUse = enhancedA11yMode
+			? 0
+			: (delayDuration ?? (editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS))
 
 		// Fallback to old behavior if no provider
 		if (!hasProvider || enhancedA11yMode) {
@@ -429,14 +392,13 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 			onBlur?(event: React.FocusEvent<HTMLElement>): void
 		}>
 
-		const handleMouseEnter = (event: React.MouseEvent<HTMLElement>) => {
-			childElement.props.onMouseEnter?.(event)
+		const show = (targetElement: HTMLElement) => {
 			tooltipManager.handleEvent({
 				type: 'show',
 				tooltip: {
 					id: tooltipId.current,
 					content,
-					targetElement: event.currentTarget as HTMLElement,
+					targetElement,
 					side: sideToUse,
 					sideOffset,
 					showOnMobile,
@@ -445,8 +407,7 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 			})
 		}
 
-		const handleMouseLeave = (event: React.MouseEvent<HTMLElement>) => {
-			childElement.props.onMouseLeave?.(event)
+		const hide = () => {
 			tooltipManager.handleEvent({
 				type: 'hide',
 				tooltipId: tooltipId.current,
@@ -455,39 +416,23 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 			})
 		}
 
-		const handleFocus = (event: React.FocusEvent<HTMLElement>) => {
-			childElement.props.onFocus?.(event)
-			tooltipManager.handleEvent({
-				type: 'show',
-				tooltip: {
-					id: tooltipId.current,
-					content,
-					targetElement: event.currentTarget as HTMLElement,
-					side: sideToUse,
-					sideOffset,
-					showOnMobile,
-					delayDuration: delayDurationToUse,
-				},
-			})
-		}
-
-		const handleBlur = (event: React.FocusEvent<HTMLElement>) => {
-			childElement.props.onBlur?.(event)
-			tooltipManager.handleEvent({
-				type: 'hide',
-				tooltipId: tooltipId.current,
-				editor,
-				instant: false,
-			})
-		}
-
-		const childrenWithHandlers = React.cloneElement(childElement, {
-			onMouseEnter: handleMouseEnter,
-			onMouseLeave: handleMouseLeave,
-			onFocus: handleFocus,
-			onBlur: handleBlur,
+		return React.cloneElement(childElement, {
+			onMouseEnter: (event: React.MouseEvent<HTMLElement>) => {
+				childElement.props.onMouseEnter?.(event)
+				show(event.currentTarget)
+			},
+			onMouseLeave: (event: React.MouseEvent<HTMLElement>) => {
+				childElement.props.onMouseLeave?.(event)
+				hide()
+			},
+			onFocus: (event: React.FocusEvent<HTMLElement>) => {
+				childElement.props.onFocus?.(event)
+				show(event.currentTarget)
+			},
+			onBlur: (event: React.FocusEvent<HTMLElement>) => {
+				childElement.props.onBlur?.(event)
+				hide()
+			},
 		})
-
-		return childrenWithHandlers
 	}
 )

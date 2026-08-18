@@ -23,9 +23,7 @@ export async function flattenShapesToImages(
 		shapeIds.map((id) => {
 			const shape = editor.getShape(id)
 			if (!shape) return
-			const util = editor.getShapeUtil(shape.type)
-			// skip shapes that don't have a toSvg method
-			if (util.toSvg === undefined) return
+			if (editor.getShapeUtil(shape.type).toSvg === undefined) return
 			return shape
 		})
 	)
@@ -33,11 +31,7 @@ export async function flattenShapesToImages(
 	if (shapes.length === 0) return
 
 	// Don't flatten if it's just one image
-	if (shapes.length === 1) {
-		const shape = shapes[0]
-		if (!shape) return
-		if (editor.isShapeOfType(shape, 'image')) return
-	}
+	if (shapes.length === 1 && editor.isShapeOfType(shapes[0], 'image')) return
 
 	const groups: { shapes: TLShape[]; bounds: Box; asset?: TLImageAsset }[] = []
 
@@ -129,21 +123,18 @@ export async function flattenShapesToImages(
 			group.bounds.expandBy(-flattenImageBoundsExpand)
 		}
 
-		// get an image for the shapes
 		const svgResult = await editor.getSvgString(group.shapes, {
 			padding,
 			background: false,
 		})
 		if (!svgResult?.svg) continue
 
-		// get an image asset for the image
 		const asset = (await editor.getAssetForExternalContent({
 			type: 'file',
 			file: new File([svgResult.svg], 'asset.svg', { type: 'image/svg+xml' }),
 		})) as TLImageAsset
 		if (!asset) continue
 
-		// add it to the group
 		group.asset = asset
 	}
 
@@ -155,7 +146,6 @@ export async function flattenShapesToImages(
 			if (!asset) continue
 
 			const commonAncestorId = editor.findCommonAncestor(shapes) ?? editor.getCurrentPageId()
-			if (!commonAncestorId) continue
 
 			let index: IndexKey = 'a1' as IndexKey
 			for (const shape of shapes) {
@@ -171,12 +161,10 @@ export async function flattenShapesToImages(
 			if (isShapeId(commonAncestorId)) {
 				const commonAncestor = editor.getShape(commonAncestorId)
 				if (!commonAncestor) continue
-				// put the point in the parent's space
 				const point = editor.getPointInShapeSpace(commonAncestor, {
 					x: bounds.x,
 					y: bounds.y,
 				})
-				// get the parent's rotation
 				rotation = editor.getShapePageTransform(commonAncestorId).rotation()
 				// rotate the point against the parent's rotation
 				point.sub(new Vec(padding, padding).rot(-rotation))
@@ -189,11 +177,8 @@ export async function flattenShapesToImages(
 				rotation = 0
 			}
 
-			// delete the shapes
 			editor.deleteShapes(shapes)
-
-			// create the asset
-			editor.createAssets([{ ...asset, id: asset.id }])
+			editor.createAssets([asset])
 
 			const shapeId = createShapeId()
 
