@@ -1688,10 +1688,11 @@ export class TLFileDurableObject extends DurableObject {
 					{
 						// throwOnFailure callers (publish) are awaited inside a 30s outbox effect
 						// timeout; the default 100 attempts (~200s) would blow past it, surfacing as a
-						// generic timeout with the real cause lost, and the zombie retry loop would
-						// keep running - and eventually persisting - long after the effect gave up.
-						// Cap those callers well under the timeout; best-effort persists keep the full
-						// budget since nothing downstream is racing them.
+						// generic timeout with the real cause lost. Cap those callers' own retries well
+						// under it. Not a hard bound: a best-effort persist already queued ahead on the
+						// serial executionQueue can still push the wait past the timeout - the effect
+						// timeout covers that, and since the retried effect queues behind the same
+						// task and the clock check makes it a no-op, an overlap is harmless.
 						attempts: opts?.throwOnFailure ? PERSIST_RETRIES_MAX_THROWING : PERSIST_RETRIES_MAX,
 						waitDuration: 2000,
 					}
@@ -2821,5 +2822,6 @@ export class TLFileDurableObject extends DurableObject {
 
 const PERSIST_RETRIES_NOTIFY_THRESHOLD = 10
 const PERSIST_RETRIES_MAX = 100
-// ~10 attempts * 2s = ~20s, kept under the 30s outbox effect timeout (see persistToDatabase).
+// ~10 attempts * 2s = ~20s of own retries, sized for the 30s outbox effect timeout (see
+// persistToDatabase for why this is not a hard bound).
 const PERSIST_RETRIES_MAX_THROWING = 10
