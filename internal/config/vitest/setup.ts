@@ -104,6 +104,8 @@ const realSetImmediate = globalThis.setImmediate
 // Landing after teardown, those throw "window is not defined" as an unhandled error (flaky CI).
 if (typeof window !== 'undefined') {
 	afterAll(async () => {
+		// two passes: pass 1 fires pending timeouts and the setImmediate they enqueue; pass 2 covers
+		// the scheduler re-arming itself when it yields mid-work
 		for (let i = 0; i < 2; i++) {
 			await new Promise((resolve) => realSetTimeout(resolve, 0))
 			await new Promise((resolve) => realSetImmediate(resolve))
