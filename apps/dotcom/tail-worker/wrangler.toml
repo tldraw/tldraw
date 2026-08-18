@@ -32,3 +32,20 @@ binding = "TAIL"
 
 [[env.production.analytics_engine_datasets]]
 binding = "TAIL"
+
+#################### Durable objects ####################
+# Cross-script binding onto the sync worker's own TLDR_DOC namespace — this worker never creates or
+# deletes instances of the class, so it needs no migrations block, only the other script's name. Used
+# solely so idFromName can convert a slug embedded in an error message into its durable object id
+# before the message reaches Loki or Analytics Engine: idFromName is a local, I/O-free computation, and
+# the id it produces equals the durableObjectId every err row already indexes on. Staging and
+# production only — script_name must match the `name` in apps/dotcom/sync-worker/wrangler.toml.
+[[env.staging.durable_objects.bindings]]
+name = "TLDR_DOC"
+class_name = "TLFileDurableObject"
+script_name = "main-tldraw-multiplayer"
+
+[[env.production.durable_objects.bindings]]
+name = "TLDR_DOC"
+class_name = "TLFileDurableObject"
+script_name = "tldraw-multiplayer"

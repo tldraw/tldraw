@@ -5,6 +5,11 @@ export interface Environment {
 	// site tolerates it being undefined.
 	TAIL: AnalyticsEngineDataset | undefined
 
+	// Cross-script binding onto the sync worker's own TLDR_DOC namespace (staging and production
+	// only — see wrangler.toml). Used only to convert a slug to its durable object id via
+	// idFromName, never to open a room, so every call site must tolerate this being undefined.
+	TLDR_DOC: DurableObjectNamespace | undefined
+
 	TLDRAW_ENV: string
 
 	GRAFANA_LOKI_ENDPOINT: string
