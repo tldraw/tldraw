@@ -1,4 +1,5 @@
 import { DEFAULT_THEME, TLDefaultColorStyle, TLDefaultDashStyle, TLDefaultSizeStyle } from 'tldraw'
+import type { MermaidBlueprintNode } from './blueprint'
 
 type Color = [number, number, number, number]
 
@@ -8,11 +9,8 @@ export interface ParsedNodeColors {
 }
 
 /**
- * Build a map of node id → parsed fill/stroke colors from Mermaid's classDef definitions.
- *
- * Uses the structured data from `db.getClasses()` and each node's `classes`
- * array. For each node, looks up its applied classDef styles and maps fill and
- * stroke independently to the nearest tldraw palette color.
+ * Map node id to fill/stroke colors from Mermaid's classDef definitions, using
+ * each node's `classes` array. The first class with a fill or stroke wins.
  */
 export function buildClassDefColorMap(
 	classDefs: Map<string, { styles: string[] }>,
@@ -22,27 +20,27 @@ export function buildClassDefColorMap(
 	if (classDefs.size === 0) return result
 
 	for (const [nodeId, item] of items) {
-		if (!item.classes || item.classes.length === 0) continue
-
-		for (const className of item.classes) {
-			const classDef = classDefs.get(className)
-			if (!classDef || classDef.styles.length === 0) continue
-
-			const props = parseCssProps(classDef.styles)
-			const fill = toColor(props.get('fill'))
-			const stroke = toColor(props.get('stroke'))
-
-			if (!fill && !stroke) continue
-
-			const colors: ParsedNodeColors = {}
-			if (fill) colors.fillColor = nearestTldrawColor(fill)
-			if (stroke) colors.strokeColor = nearestTldrawColor(stroke)
-			result.set(nodeId, colors)
-			break
+		for (const className of item.classes ?? []) {
+			const colors = parseNodeInlineColor(classDefs.get(className)?.styles)
+			if (colors) {
+				result.set(nodeId, colors)
+				break
+			}
 		}
 	}
 
 	return result
+}
+
+/** Blueprint node style props for parsed fill/stroke colors: solid fill when a fill was set, stroke color preferred. */
+export function toNodeColorProps(
+	colors: ParsedNodeColors | undefined
+): Pick<MermaidBlueprintNode, 'fill' | 'color'> {
+	if (!colors) return {}
+	return {
+		...(colors.fillColor && { fill: 'solid' as const }),
+		color: colors.strokeColor ?? colors.fillColor,
+	}
 }
 
 export function parseRgbToTldrawColor(
@@ -106,8 +104,8 @@ export function parseCssStyles(styles: string[] | undefined): ParsedCssOverrides
 }
 
 /**
- * Parse inline `style nodeId fill:…,stroke:…` directives from a FlowVertex.styles
- * array and return fill and stroke as independent tldraw colors.
+ * Parse `fill:…` / `stroke:…` from a Mermaid style array (inline `style` directives
+ * or classDef styles) into independent tldraw colors.
  */
 export function parseNodeInlineColor(styles: string[] | undefined): ParsedNodeColors | undefined {
 	if (!styles || styles.length === 0) return undefined
@@ -167,7 +165,6 @@ const TLDRAW_PALETTE: [TLDefaultColorStyle, number, number, number][] = defaultC
 	}
 )
 
-/** Map an arbitrary Color tuple to the nearest tldraw named color (best-effort). */
 function nearestTldrawColor(rgb: Color): TLDefaultColorStyle {
 	let [r, g, b] = rgb
 

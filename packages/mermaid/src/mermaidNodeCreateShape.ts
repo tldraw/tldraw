@@ -1,4 +1,4 @@
-import type { Editor, TLGeoShape, TLShape, TLShapeId } from 'tldraw'
+import type { Editor, TLShape, TLShapeId } from 'tldraw'
 import { toRichText } from 'tldraw'
 import type {
 	MermaidBlueprintNode,
@@ -44,30 +44,17 @@ export function defaultCreateMermaidNodeFromBlueprint(
 		...(node.verticalAlign && { verticalAlign: node.verticalAlign }),
 	}
 
-	if (render.variant === 'geo') {
-		editor.createShape<TLGeoShape>({
-			id: shapeId,
-			type: 'geo',
-			x,
-			y,
-			parentId: parentShapeId,
-			props: {
-				...baseProps,
-				geo: render.geo,
-			},
-		})
-	} else {
-		editor.createShape({
-			id: shapeId,
-			type: render.type as any,
-			x,
-			y,
-			parentId: parentShapeId,
-			props: {
-				...baseProps,
-				...render.props,
-			},
-		})
-	}
+	const { type, props } =
+		render.variant === 'geo'
+			? { type: 'geo', props: { geo: render.geo } }
+			: { type: render.type, props: render.props }
+	editor.createShape({
+		id: shapeId,
+		type: type as any,
+		x,
+		y,
+		parentId: parentShapeId,
+		props: { ...baseProps, ...props },
+	})
 	return editor.getShape(shapeId)!
 }
