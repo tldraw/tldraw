@@ -29,10 +29,6 @@ export interface FileEffectDeps {
 	notifyDelete(fileRow: TlaFile): Promise<void> // room DO appFileRecordDidDelete (outbox payload)
 	publish(file: TlaFile): Promise<void>
 	unpublish(file: TlaFile): Promise<void>
-	// Called when a publish transition is skipped because the file is trashed - the file stays
-	// `published: true` with no snapshot ever uploaded, so the published URL goes dead silently
-	// unless something reports it.
-	reportSkippedPublish?(file: TlaFile): void
 }
 
 export async function processFileEffect(deps: FileEffectDeps, genericRow: TlaEffectOutbox) {
@@ -52,20 +48,15 @@ export async function processFileEffect(deps: FileEffectDeps, genericRow: TlaEff
 	}
 	await deps.notifyUpdate(current)
 	const transition = getPublishTransition(row)
-	if (transition === 'publish') {
-		// Staleness guard: only act (publish, or report the skip) when the row still matches
-		// current state - a publish superseded by a later change, or already unpublished, was
-		// never actually going to run and reporting it would be a false positive.
-		if (current.published && current.lastPublished === row.payload.lastPublished) {
-			if (current.isDeleted) {
-				// Publishing a trashed file is a race artifact; never publish it. Report the skip -
-				// restoring from trash produces no publish transition of its own, so this is the
-				// only signal that the file's published snapshot is now stale.
-				deps.reportSkippedPublish?.(current)
-			} else {
-				await deps.publish(current)
-			}
-		}
+	if (
+		transition === 'publish' &&
+		// Publishing a trashed file is a race artifact; never publish it. Skipping is safe:
+		// undeleteFile bumps lastPublished on restore, so a fresh publish runs then.
+		!current.isDeleted &&
+		current.published &&
+		current.lastPublished === row.payload.lastPublished
+	) {
+		await deps.publish(current)
 	} else if (transition === 'unpublish' && !current.published) {
 		await deps.unpublish(current)
 	}

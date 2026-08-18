@@ -131,9 +131,6 @@ function makeFileDeps(current: Record<string, TlaFile | undefined>): FileEffectD
 		unpublish: async (f) => {
 			calls.push(`unpublish:${f.id}`)
 		},
-		reportSkippedPublish: (f) => {
-			calls.push(`reportSkippedPublish:${f.id}`)
-		},
 	}
 }
 
@@ -221,10 +218,10 @@ describe('processFileEffect on trashed files', () => {
 				prevPayload: file({ id: 'f1', published: false, lastPublished: 0 }),
 			})
 		)
-		expect(deps.calls).toEqual(['update:f1', 'reportSkippedPublish:f1'])
+		expect(deps.calls).toEqual(['update:f1'])
 	})
 
-	it('still unpublishes when current file is soft-deleted, and does not report a skipped publish', async () => {
+	it('still unpublishes when current file is soft-deleted', async () => {
 		const current = file({ id: 'f1', published: false, isDeleted: true })
 		const deps = makeFileDeps({ f1: current })
 		await processFileEffect(
@@ -237,23 +234,5 @@ describe('processFileEffect on trashed files', () => {
 			})
 		)
 		expect(deps.calls).toEqual(['update:f1', 'unpublish:f1'])
-	})
-
-	it('does not report a skipped publish for a stale publish row on a trashed, unpublished file', async () => {
-		// The file was published, then trashed, then unpublished - all before this stale publish
-		// row's drain ran. current.published is false, so the publish was never actually blocked
-		// by the trash; reporting it would be a false positive.
-		const current = file({ id: 'f1', published: false, lastPublished: 100, isDeleted: true })
-		const deps = makeFileDeps({ f1: current })
-		await processFileEffect(
-			deps,
-			effectRow({
-				id: 3,
-				command: 'update',
-				payload: file({ id: 'f1', published: true, lastPublished: 100, isDeleted: true }),
-				prevPayload: file({ id: 'f1', published: false, lastPublished: 0 }),
-			})
-		)
-		expect(deps.calls).toEqual(['update:f1'])
 	})
 })
