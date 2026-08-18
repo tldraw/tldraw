@@ -8,18 +8,14 @@ import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
 import { QrCode } from '../QrCode'
 
 export function TlaAnonCopyLinkTab() {
-	const url = useEditorDeepLink()
+	const url = useEditorDeepLink() ?? ''
 	return (
-		<>
-			<TlaMenuSection>
-				<TlaAnonCopyLinkButton url={url ?? ''} />
-				<QrCode url={url ?? ''} />
-			</TlaMenuSection>
-		</>
+		<TlaMenuSection>
+			<TlaAnonCopyLinkButton url={url} />
+			<QrCode url={url} />
+		</TlaMenuSection>
 	)
 }
-
-/* ---------------------- Share --------------------- */
 
 function TlaAnonCopyLinkButton({ url }: { url: string }) {
 	const editor = useEditor()

@@ -10,9 +10,8 @@ import {
 	useTranslation,
 } from 'tldraw'
 
-/** @public */
-export async function shouldOverrideDocument(addDialog: TLUiDialogsContextType['addDialog']) {
-	const shouldContinue = await new Promise<boolean>((resolve) => {
+export function shouldOverrideDocument(addDialog: TLUiDialogsContextType['addDialog']) {
+	return new Promise<boolean>((resolve) => {
 		addDialog({
 			component: ({ onClose }) => (
 				<ConfirmOpenDialog
@@ -31,8 +30,6 @@ export async function shouldOverrideDocument(addDialog: TLUiDialogsContextType['
 			},
 		})
 	})
-
-	return shouldContinue
 }
 
 function ConfirmOpenDialog({ onCancel, onContinue }: { onCancel(): void; onContinue(): void }) {
@@ -50,7 +47,7 @@ function ConfirmOpenDialog({ onCancel, onContinue }: { onCancel(): void; onConti
 				<TldrawUiButton type="normal" onClick={onCancel}>
 					<TldrawUiButtonLabel>{msg('file-system.confirm-open.cancel')}</TldrawUiButtonLabel>
 				</TldrawUiButton>
-				<TldrawUiButton type="primary" onClick={async () => onContinue()}>
+				<TldrawUiButton type="primary" onClick={onContinue}>
 					<TldrawUiButtonLabel>{msg('file-system.confirm-open.open')}</TldrawUiButtonLabel>
 				</TldrawUiButton>
 			</TldrawUiDialogFooter>

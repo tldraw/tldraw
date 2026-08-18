@@ -16,8 +16,6 @@ export function useHandleSidebarCreateFile() {
 	const app = useApp()
 	const navigate = useNavigate()
 	const trackEvent = useTldrawAppUiEvents()
-	// Create the file in whichever workspace is currently active (the home
-	// workspace when in Home, otherwise the selected workspace).
 	const activeWorkspaceId = useActiveWorkspaceId()
 
 	const rCanCreate = useRef(true)
@@ -26,14 +24,14 @@ export function useHandleSidebarCreateFile() {
 		if (!rCanCreate.current) return
 		const res = await app.createFile({ workspaceId: activeWorkspaceId })
 		if (res.ok) {
+			const { fileId } = res.value
 			const isMobile = getIsCoarsePointer()
 			if (!isMobile) {
 				app.sidebarState.update((prev) => ({
 					...prev,
-					renameState: { fileId: res.value.fileId, workspaceId: activeWorkspaceId },
+					renameState: { fileId, workspaceId: activeWorkspaceId },
 				}))
 			}
-			const { fileId } = res.value
 			navigate(routes.tlaFile(fileId))
 			trackEvent('create-file', { source: 'sidebar' })
 			rCanCreate.current = false

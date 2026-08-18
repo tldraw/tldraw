@@ -487,15 +487,12 @@ async function callLocalScreenshotService(
 	return { response, durationMs }
 }
 
-// Writes one rendered PNG to a thumbnail cache, stamping the content version (so a stale version
-// can be detected) alongside any surface-specific metadata.
-// --- Measuring a page in a real editor ----------------------------------------------------------
-//
-// A Worker cannot size a shape: autosizing text needs font metrics, and several shapes store no size
-// at all. So when clustering needs geometry, the render page is driven in `measure` mode — it loads
-// the same snapshot, waits for fonts, reads editor.getShapePageBounds for every shape, and POSTs the
-// result back. Stashed under the job's own token and read once, so it is a rendezvous for a single
-// in-flight render rather than a cache with a lifetime to manage.
+// Measuring a page in a real editor. A Worker cannot size a shape: autosizing text needs font
+// metrics, and several shapes store no size at all. So when clustering needs geometry, the render
+// page is driven in `measure` mode — it loads the same snapshot, waits for fonts, reads
+// editor.getShapePageBounds for every shape, and POSTs the result back. Stashed under the job's own
+// token and read once, so it is a rendezvous for a single in-flight render rather than a cache with
+// a lifetime to manage.
 
 function getRenderResultKey(token: string) {
 	return `render-result/${encodeURIComponent(token)}.json`
@@ -590,6 +587,8 @@ export async function measurePageShapes(
 	}
 }
 
+// Writes one rendered PNG to a thumbnail cache, stamping the content version (so a stale version
+// can be detected) alongside any surface-specific metadata.
 export async function putThumbnailPng(
 	bucket: R2Bucket,
 	key: string,

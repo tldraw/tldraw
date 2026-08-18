@@ -10,11 +10,9 @@ export async function publishSnapshot(
 	file: TlaFile,
 	reportProblem: (error: unknown) => void
 ) {
-	// Nothing can be published without a slug.
 	if (!file.publishedSlug) return
-	// make sure the room's snapshot is up to date
+	// Flush the room's in-memory state to R2 first so the published copy is current.
 	await getRoomDurableObject(env, file.id).awaitPersist()
-	// and that it exists
 	const snapshot = await env.ROOMS.get(getR2KeyForRoom({ slug: file.id, isApp: true }))
 
 	if (!snapshot) {
@@ -22,10 +20,8 @@ export async function publishSnapshot(
 	}
 	const blob = await snapshot.blob()
 
-	// Create a new slug for the published room
 	await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.put(file.publishedSlug, file.id)
 
-	// Bang the snapshot into the database
 	await env.ROOM_SNAPSHOTS.put(
 		getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}`, isApp: true }),
 		blob

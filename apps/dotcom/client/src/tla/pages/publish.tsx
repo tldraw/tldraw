@@ -3,10 +3,10 @@ import { IFrameProtector, ROOM_CONTEXT } from '../../components/IFrameProtector'
 import { defineLoader } from '../../utils/defineLoader'
 import { PUBLISH_ENDPOINT } from '../app/TldrawApp'
 import { TlaPublishEditor } from '../components/TlaEditor/TlaPublishEditor'
+import { TlaNotFoundError } from '../utils/notFoundError'
 
 const { loader, useData } = defineLoader(async (args) => {
 	const fileSlug = args.params.fileSlug
-	const { TlaNotFoundError } = await import('../utils/notFoundError')
 	const result = await fetch(`${PUBLISH_ENDPOINT}/${fileSlug}`)
 	if (!result.ok) throw new TlaNotFoundError()
 
@@ -22,8 +22,7 @@ const { loader, useData } = defineLoader(async (args) => {
 export { loader }
 
 export function Component() {
-	const result = useData()
-	const { roomId, records, schema } = result
+	const { roomId, records, schema } = useData()
 
 	return (
 		<IFrameProtector slug={roomId} context={ROOM_CONTEXT.PUBLIC_SNAPSHOT}>

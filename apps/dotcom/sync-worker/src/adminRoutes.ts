@@ -133,17 +133,22 @@ async function withResolvedAllowlistLabels(
 
 async function requireUser(env: Environment, q: string) {
 	const db = createPostgresConnectionPool(env, '/app/admin/user')
-	const userRow = await db
-		.selectFrom('user')
-		.where((eb) => eb.or([eb('email', '=', q), eb('id', '=', q)]))
-		.selectAll()
-		.executeTakeFirst()
-
-	if (!userRow) {
-		throw new StatusError(404, 'User not found ' + q)
+	try {
+		const userRow = await db
+			.selectFrom('user')
+			.where((eb) => eb.or([eb('email', '=', q), eb('id', '=', q)]))
+			.selectAll()
+			.executeTakeFirst()
+		if (!userRow) {
+			throw new StatusError(404, 'User not found ' + q)
+		}
+		return userRow
+	} finally {
+		await db.destroy()
 	}
-	return userRow
 }
+
+type SendProgress = (step: string, message: string, details?: any) => void
 
 export const adminRoutes = createRouter<Environment>()
 	.all('/app/admin/*', async (req, env) => {
@@ -586,44 +591,28 @@ export const adminRoutes = createRouter<Environment>()
 		return new Response(
 			new ReadableStream({
 				async start(controller) {
+					const encoder = new TextEncoder()
+					const send = (type: string, step: string, message: string, details?: any) => {
+						const event = { type, step, message, timestamp: Date.now(), details }
+						controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`))
+					}
 					try {
-						// Helper function to send progress events
-						const sendProgress = (step: string, message: string, details?: any) => {
-							const event = {
-								type: 'progress',
-								step,
-								message,
-								timestamp: Date.now(),
-								details,
-							}
-							controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(event)}\n\n`))
-						}
-
-						sendProgress('starting', 'Beginning user deletion process...', { userId: userRow.id })
-
-						await performUserDeletion(userRow, env, sendProgress)
-
-						// Send completion event
-						const completionEvent = {
-							type: 'complete',
-							step: 'finished',
-							message: 'User deletion completed successfully',
-							timestamp: Date.now(),
-							details: { userId: userRow.id },
-						}
-						controller.enqueue(
-							new TextEncoder().encode(`data: ${JSON.stringify(completionEvent)}\n\n`)
+						send('progress', 'starting', 'Beginning user deletion process...', {
+							userId: userRow.id,
+						})
+						await performUserDeletion(userRow, env, (step, message, details) =>
+							send('progress', step, message, details)
 						)
+						send('complete', 'finished', 'User deletion completed successfully', {
+							userId: userRow.id,
+						})
 					} catch (error) {
-						// Send error event
-						const errorEvent = {
-							type: 'error',
-							step: 'error',
-							message: error instanceof Error ? error.message : 'Unknown error occurred',
-							timestamp: Date.now(),
-							details: { error: error instanceof Error ? error.stack : String(error) },
-						}
-						controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(errorEvent)}\n\n`))
+						send(
+							'error',
+							'error',
+							error instanceof Error ? error.message : 'Unknown error occurred',
+							{ error: error instanceof Error ? error.stack : String(error) }
+						)
 					} finally {
 						controller.close()
 					}
@@ -648,13 +637,14 @@ export const adminRoutes = createRouter<Environment>()
 		assert(typeof slug === 'string', 'slug is required')
 
 		const pg = createPostgresConnectionPool(env, '/app/admin/file-assets')
-		const file = await pg
-			.selectFrom('file')
-			.where('id', '=', slug)
-			.select(['id', 'name', 'ownerId', 'owningGroupId', 'isDeleted', 'createSource'])
-			.executeTakeFirst()
-
-		const snapshot = await getFileSnapshot(env, slug, true)
+		const [file, snapshot] = await Promise.all([
+			pg
+				.selectFrom('file')
+				.where('id', '=', slug)
+				.select(['id', 'name', 'ownerId', 'owningGroupId', 'isDeleted', 'createSource'])
+				.executeTakeFirst(),
+			getFileSnapshot(env, slug, true),
+		])
 		if (!snapshot) {
 			throw new StatusError(404, `No persisted snapshot for ${slug}`)
 		}
@@ -1036,30 +1026,15 @@ async function hardDeleteAppFile({
 	// DELETE FROM file below, delivered via the post-delete poke() (sweep backstop ~30s); the
 	// soft-delete row's effect is staleness-guarded, so it skips harmlessly if it runs after
 	// the row is gone.
-	// clean up assets eagerly
 	const assets = await pg.selectFrom('asset').where('fileId', '=', file.id).selectAll().execute()
 	for (const asset of assets) {
 		await env.UPLOADS.delete(asset.objectName)
-		// TODO: bust caches
-		// it's tricky though. calling caches.default.delete() will only delete the cache entry
-		// in the local datacenter so we'd need to do a global cache bust with the REST API
-		// either that or maintain a KV store of deleted assets and check that before serving
-		// could maybe use a bloom filter if that hurts perf too much.
-		// although how would the bloom filter sync across workers 🤔
-		// since cache entries last a year we could store a timestamp in the KV and clean it periodically
-		// or just let it grow forever, it's not that big.
-
-		// const cacheUrl = new URL(`${appOrigin}/app/uploads/${asset.objectName}`)
-		// console.log('Busting our cache entry', asset.objectName)
-		// await caches.default.delete(cacheUrl)
-		// console.log('Busting resize worker cache entry')
-		// await env.IMAGE_RESIZE_WORKER.bustCache(cacheUrl.toString())
+		// TODO: bust the edge caches for the deleted asset. caches.default.delete() only clears
+		// the local datacenter, so this needs the REST API or a KV denylist consulted on serve.
 	}
-	// hard delete file (this will trigger a cascade delete of all remaining related records & R2 objects)
 	await pg.deleteFrom('file').where('id', '=', file.id).execute()
-	// Nudge the outbox so the delete's effects land promptly instead of waiting for the 30s
-	// alarm sweep. poke() is cheap: it just schedules an alarm. Best-effort nudge: the sweep
-	// backstops it, so a poke failure must not fail the request after the delete committed.
+	// Best-effort nudge so the delete's effects land promptly; the sweep backstops it, so a poke
+	// failure must not fail the request after the delete committed.
 	await getFileEffectProcessor(env)
 		.poke()
 		.catch(() => {})
@@ -1069,7 +1044,7 @@ async function hardDeleteAppFile({
 async function deleteUserFromAnalytics(
 	userId: string,
 	env: Environment,
-	sendProgress?: (step: string, message: string, details?: any) => void
+	sendProgress?: SendProgress
 ) {
 	if (!env.ANALYTICS_API_URL || !env.ANALYTICS_API_TOKEN) {
 		sendProgress?.(
@@ -1109,106 +1084,85 @@ async function deleteUserFromAnalytics(
 }
 
 async function performUserDeletion(
-	userRow: any,
-	env: any,
-	sendProgress?: (step: string, message: string, details?: any) => void
+	userRow: { id: string },
+	env: Environment,
+	sendProgress?: SendProgress
 ) {
 	const pg = createPostgresConnectionPool(env, '/app/admin/delete_user')
 
-	// Step 1: Find all groups the user is the only owner of
-	// This includes their home group (group.id = user.id) and any other groups they solely own
+	// Groups the user is the sole owner of go with them: their home group (group.id = user.id)
+	// and any other group with no second owner. Co-owned groups only lose the membership.
 	sendProgress?.('groups', 'Finding groups to delete...')
-
-	// Get all groups where this user is an owner
 	const userOwnedGroupMemberships = await pg
 		.selectFrom('group_user')
 		.where('userId', '=', userRow.id)
 		.where('role', '=', 'owner')
 		.select('groupId')
 		.execute()
-
-	const groupsToDelete: string[] = []
-
-	for (const membership of userOwnedGroupMemberships) {
-		// Check if this user is the only owner of this group
-		const ownerCount = await pg
-			.selectFrom('group_user')
-			.where('groupId', '=', membership.groupId)
-			.where('role', '=', 'owner')
-			.select((eb) => eb.fn.countAll().as('count'))
-			.executeTakeFirst()
-
-		if (ownerCount && Number(ownerCount.count) === 1) {
-			groupsToDelete.push(membership.groupId)
-		}
-	}
+	const ownerCounts = userOwnedGroupMemberships.length
+		? await pg
+				.selectFrom('group_user')
+				.where(
+					'groupId',
+					'in',
+					userOwnedGroupMemberships.map((m) => m.groupId)
+				)
+				.where('role', '=', 'owner')
+				.groupBy('groupId')
+				.select((eb) => ['groupId', eb.fn.countAll().as('count')])
+				.execute()
+		: []
+	const groupsToDelete = ownerCounts
+		.filter((row) => Number(row.count) === 1)
+		.map((row) => row.groupId)
 
 	sendProgress?.('groups', `Found ${groupsToDelete.length} groups to delete`, {
 		groupCount: groupsToDelete.length,
 		groupIds: groupsToDelete,
 	})
 
-	// Step 2: Soft delete groups (the cleanup_deleted_group_trigger will soft delete their files)
+	// Soft-deleting the groups lets cleanup_deleted_group_trigger soft-delete their files first.
+	const filesToDelete: TlaFile[] = []
 	if (groupsToDelete.length > 0) {
 		sendProgress?.('groups', 'Soft deleting groups...')
 		await pg.updateTable('group').set('isDeleted', true).where('id', 'in', groupsToDelete).execute()
+		filesToDelete.push(
+			...(await pg
+				.selectFrom('file')
+				.where('owningGroupId', 'in', groupsToDelete)
+				.selectAll()
+				.execute())
+		)
 	}
 
-	// Step 3: Get all files to hard delete
-	const filesToDelete = new Map<string, TlaFile>()
-
-	if (groupsToDelete.length > 0) {
-		const groupFiles = await pg
-			.selectFrom('file')
-			.where('owningGroupId', 'in', groupsToDelete)
-			.selectAll()
-			.execute()
-		for (const file of groupFiles) {
-			filesToDelete.set(file.id, file)
-		}
-	}
-
-	sendProgress?.('files', `Found ${filesToDelete.size} files to delete`, {
-		fileCount: filesToDelete.size,
+	sendProgress?.('files', `Found ${filesToDelete.length} files to delete`, {
+		fileCount: filesToDelete.length,
 	})
 
 	// Allow time for soft deletes to propagate
-	if (groupsToDelete.length > 0 || filesToDelete.size > 0) {
+	if (groupsToDelete.length > 0) {
 		await sleep(3000)
 	}
 
-	// Now hard delete all files
-	for (const file of filesToDelete.values()) {
+	for (const file of filesToDelete) {
 		sendProgress?.('files', `Hard deleting file '${file.name}' (${file.id})`)
 		await hardDeleteAppFile({ pg, file, env })
 	}
 
 	sendProgress?.('database', 'Cleaning up database records...')
-
-	// Step 5: Hard delete groups and user in a transaction
 	await pg.transaction().execute(async (tx) => {
-		// Clean up assets that reference this user (nullable foreign key)
+		// asset.userId is a nullable FK, so it doesn't cascade with the user row
 		await tx.deleteFrom('asset').where('userId', '=', userRow.id).execute()
-
-		// Remove user from all groups they're a member of (including ones they don't solely own)
 		await tx.deleteFrom('group_user').where('userId', '=', userRow.id).execute()
-
-		// Hard delete the groups (this will cascade delete group_user and group_file entries)
 		if (groupsToDelete.length > 0) {
 			await tx.deleteFrom('group').where('id', 'in', groupsToDelete).execute()
 		}
-
-		// Delete the user row (this will cascade delete any remaining related records)
 		await tx.deleteFrom('user').where('id', '=', userRow.id).execute()
 	})
 
 	sendProgress?.('clerk', 'Deleting user from Clerk...')
+	await getClerkClient(env).users.deleteUser(userRow.id)
 
-	// Delete user from Clerk
-	const clerk = getClerkClient(env)
-	await clerk.users.deleteUser(userRow.id)
-
-	// Delete user from analytics service
 	sendProgress?.('analytics', 'Deleting user from analytics...')
 	await deleteUserFromAnalytics(userRow.id, env, sendProgress)
 }

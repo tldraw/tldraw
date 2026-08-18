@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { CSSProperties, useCallback } from 'react'
+import { ReactNode, useCallback } from 'react'
 import { useDialogs } from 'tldraw'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { defineMessages, useMsg } from '../../../utils/i18n'
@@ -55,16 +55,14 @@ export function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: strin
 	)
 }
 
-function TlaSidebarActionButton({
+export function TlaSidebarActionButton({
 	icon,
-	iconStyle,
 	label,
 	onClick,
 	testId,
 }: {
-	icon: string
-	iconStyle?: CSSProperties
-	label: string
+	icon?: string
+	label: ReactNode
 	onClick(): void
 	testId: string
 }) {
@@ -74,7 +72,7 @@ function TlaSidebarActionButton({
 			onClick={onClick}
 			data-testid={testId}
 		>
-			<TlaIcon icon={icon} style={iconStyle} />
+			{icon && <TlaIcon icon={icon} />}
 			<span className={styles.sidebarActionButtonLabel}>{label}</span>
 		</button>
 	)

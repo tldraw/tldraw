@@ -17,45 +17,25 @@ function getPreviousMonth(date: Date): Date {
 	return prev
 }
 
-async function fetchTimestampsFromBatch(
-	bucket: R2Bucket,
-	roomKey: string,
-	prefix: string,
-	limit: number,
-	cursor?: string
-): Promise<{ timestamps: string[]; batch: any }> {
-	const fullPrefix = `${roomKey}/${prefix}`
-	const batch = await bucket.list({
-		prefix: fullPrefix,
-		limit,
-		cursor,
-	})
-
-	const timestamps = batch.objects
-		.map((o) => o.key.replace(roomKey + '/', ''))
-		.filter((timestamp) => timestamp && timestamp !== roomKey)
-
-	return { timestamps, batch }
-}
-
 async function fetchTimestampsForPrefix(
 	bucket: R2Bucket,
 	roomKey: string,
 	prefix: string,
 	limit?: number
 ): Promise<string[]> {
-	const batchLimit = limit || 1000
-	// eslint-disable-next-line prefer-const
-	let { timestamps, batch } = await fetchTimestampsFromBatch(bucket, roomKey, prefix, batchLimit)
+	const fullPrefix = `${roomKey}/${prefix}`
+	const timestamps: string[] = []
+	let cursor: string | undefined
+	do {
+		const batch = await bucket.list({ prefix: fullPrefix, limit: limit || 1000, cursor })
+		timestamps.push(
+			...batch.objects
+				.map((o) => o.key.replace(roomKey + '/', ''))
+				.filter((timestamp) => timestamp && timestamp !== roomKey)
+		)
+		cursor = batch.truncated ? batch.cursor : undefined
+	} while (cursor && timestamps.length < (limit || Infinity))
 
-	// Continue listing if there are more objects
-	while (batch.truncated && timestamps.length < (limit || Infinity)) {
-		const next = await fetchTimestampsFromBatch(bucket, roomKey, prefix, batchLimit, batch.cursor)
-		timestamps.push(...next.timestamps)
-		batch = next.batch
-	}
-
-	// Sort
 	return timestamps.sort((a, b) => b.localeCompare(a))
 }
 
@@ -97,11 +77,7 @@ export async function getRoomHistory(
 	const targetEntryCount = 1000
 
 	if (offset) {
-		try {
-			currentMonth = new Date(offset)
-		} catch (_e) {
-			currentMonth = new Date()
-		}
+		currentMonth = new Date(offset)
 	} else {
 		// If we don't have an offset we can check if the room doesn't have too many entries
 		const allTimestampsForRoom = await fetchTimestampsForPrefix(

@@ -15,7 +15,6 @@ import { extractMentionIds } from '@tldraw/dotcom-shared'
  */
 export type CommentNotificationReason = 'mention' | 'reply' | 'owned-board' | 'reaction'
 
-/** Priority order for {@link CommentNotification.primaryReason}: most specific first. */
 const REASON_PRIORITY: CommentNotificationReason[] = ['mention', 'reply', 'owned-board', 'reaction']
 
 /**

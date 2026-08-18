@@ -11,7 +11,6 @@ export async function forwardRoomRequest(request: IRequest, env: Environment): P
 	if (!roomId) return notFound()
 	if (isRoomIdTooLong(roomId)) return roomIdIsTooLong()
 
-	// Set up the durable object for this room
 	const id = getRoomDurableObjectId(env, roomId)
 	return env.TLDR_DOC.get(id).fetch(request)
 }

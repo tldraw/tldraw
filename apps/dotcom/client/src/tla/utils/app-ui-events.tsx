@@ -109,6 +109,5 @@ export const EventsContext = createContext<TLAppUiContextType>(defaultEventHandl
 
 /** @public */
 export function useTldrawAppUiEvents(): TLAppUiContextType {
-	const eventHandler = useContext(EventsContext)
-	return eventHandler
+	return useContext(EventsContext)
 }

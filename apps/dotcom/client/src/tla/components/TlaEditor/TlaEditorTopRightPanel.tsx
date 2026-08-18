@@ -42,12 +42,14 @@ const commentsMessages = defineMessages({
 	comments: { defaultMessage: 'Comments' },
 })
 
+type TopRightPanelContext = 'file' | 'published-file' | 'scratch' | 'legacy'
+
 export function TlaEditorTopRightPanel({
 	isAnonUser,
 	context,
 }: {
 	isAnonUser: boolean
-	context: 'file' | 'published-file' | 'scratch' | 'legacy'
+	context: TopRightPanelContext
 }) {
 	const ctaString = useMsg(ctaMessages.signInToShare)
 	const ref = useRef<HTMLDivElement>(null)
@@ -191,13 +193,12 @@ export function useRoomInfo() {
 function LegacyImportButton() {
 	const trackEvent = useTldrawAppUiEvents()
 	const app = useMaybeApp()
-	const editor = useEditor()
 	const navigate = useNavigate()
 	const name = useGetFileName()
 	const roomInfo = useRoomInfo()
 
 	const handleClick = useCallback(async () => {
-		if (!app || !editor || !roomInfo) return
+		if (!app || !roomInfo) return
 
 		const { prefix, id } = roomInfo
 		const res = await app.createFile({ name, createSource: `${prefix}/${id}` })
@@ -206,7 +207,7 @@ function LegacyImportButton() {
 			navigate(routes.tlaFile(fileId))
 			trackEvent('create-file', { source: 'legacy-import-button' })
 		}
-	}, [app, editor, name, navigate, roomInfo, trackEvent])
+	}, [app, name, navigate, roomInfo, trackEvent])
 
 	return (
 		<TlaCtaButton canvas data-testid="tla-import-button" onClick={handleClick}>
@@ -215,16 +216,16 @@ function LegacyImportButton() {
 	)
 }
 
-export const signedOutShareMessages = defineMessages({
+const signedOutShareMessages = defineMessages({
 	share: { defaultMessage: 'Share' },
 })
 
-export function SignedOutShareButton({
+function SignedOutShareButton({
 	fileId,
 	context,
 }: {
 	fileId?: string
-	context: 'file' | 'published-file' | 'scratch' | 'legacy'
+	context: TopRightPanelContext
 }) {
 	const trackEvent = useTldrawAppUiEvents()
 	const shareLbl = useMsg(signedOutShareMessages.share)

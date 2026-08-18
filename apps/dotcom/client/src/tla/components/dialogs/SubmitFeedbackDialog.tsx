@@ -1,7 +1,7 @@
 import { useAuth } from '@clerk/clerk-react'
 import { addBreadcrumb, withScope } from '@sentry/react'
 import { SubmitFeedbackRequestBody } from '@tldraw/dotcom-shared'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import {
 	TldrawUiButton,
 	TldrawUiButtonCheck,
@@ -28,6 +28,28 @@ const messages = defineMessages({
 
 const descriptionKey = 'tldraw-feedback-description'
 
+function DiscordLink({ children }: { children: ReactNode }) {
+	return (
+		<ExternalLink
+			eventName="menu-feedback-discord-link-clicked"
+			to="https://discord.tldraw.com/?utm_source=dotcom&utm_medium=organic&utm_campaign=dotcom-feedback"
+		>
+			{children}
+		</ExternalLink>
+	)
+}
+
+function GithubIssuesLink({ children }: { children: ReactNode }) {
+	return (
+		<ExternalLink
+			eventName="menu-feedback-github-link-clicked"
+			to="https://github.com/tldraw/tldraw/issues"
+		>
+			{children}
+		</ExternalLink>
+	)
+}
+
 export function SubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 	const isSignedIn = useAuth().isSignedIn
 	if (isSignedIn) {
@@ -51,20 +73,14 @@ function SignedOutSubmitFeedbackDialog() {
 				</p>
 				<ul>
 					<li>
-						<ExternalLink
-							eventName="menu-feedback-discord-link-clicked"
-							to="https://discord.tldraw.com/?utm_source=dotcom&utm_medium=organic&utm_campaign=dotcom-feedback"
-						>
+						<DiscordLink>
 							<F defaultMessage="Chat with us on Discord" />
-						</ExternalLink>
+						</DiscordLink>
 					</li>
 					<li>
-						<ExternalLink
-							eventName="menu-feedback-github-link-clicked"
-							to="https://github.com/tldraw/tldraw/issues"
-						>
+						<GithubIssuesLink>
 							<F defaultMessage="Submit an issue on GitHub" />
-						</ExternalLink>
+						</GithubIssuesLink>
 					</li>
 				</ul>
 			</TldrawUiDialogBody>
@@ -111,7 +127,6 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 		})
 	}, [includeFileLink, intl, onClose, toasts])
 
-	// Focus the input when the dialog opens, select all text
 	useEffect(() => {
 		const input = rInput.current
 		if (input) {
@@ -133,26 +148,8 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 					<F
 						defaultMessage="Have a bug, issue, or idea for tldraw? Let us know! Fill out this form and we will follow up over email if needed. You can also <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>."
 						values={{
-							discord: (chunks) => {
-								return (
-									<ExternalLink
-										eventName="menu-feedback-discord-link-clicked"
-										to="https://discord.tldraw.com/?utm_source=dotcom&utm_medium=organic&utm_campaign=dotcom-feedback"
-									>
-										{chunks}
-									</ExternalLink>
-								)
-							},
-							github: (chunks) => {
-								return (
-									<ExternalLink
-										eventName="menu-feedback-github-link-clicked"
-										to="https://github.com/tldraw/tldraw/issues"
-									>
-										{chunks}
-									</ExternalLink>
-								)
-							},
+							discord: (chunks) => <DiscordLink>{chunks}</DiscordLink>,
+							github: (chunks) => <GithubIssuesLink>{chunks}</GithubIssuesLink>,
 						}}
 					/>
 				</p>

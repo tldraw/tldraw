@@ -32,20 +32,17 @@ const ACTIVE_FILE_LINK_ID = 'tla-active-file-link'
 let preventScrollOnNavigation = false
 
 function scrollActiveFileLinkIntoView() {
-	const el = document.getElementById(ACTIVE_FILE_LINK_ID)
-	if (el) {
-		// Check if we should prevent scrolling due to sidebar click
-		if (preventScrollOnNavigation) {
-			return
-		}
-		el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-	}
+	if (preventScrollOnNavigation) return
+	document
+		.getElementById(ACTIVE_FILE_LINK_ID)
+		?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
 }
 
-export function setPreventScrollOnNavigation(value: boolean) {
+// Suppresses the scroll-into-view for the navigation a sidebar click itself triggers; the flag
+// self-clears so a later external navigation (e.g. create/delete) still scrolls.
+function setPreventScrollOnNavigation(value: boolean) {
 	preventScrollOnNavigation = value
 	if (value) {
-		// Clear the flag after a short delay to allow for immediate navigation
 		setTimeout(() => {
 			preventScrollOnNavigation = false
 		}, 100)
@@ -200,10 +197,7 @@ export function TlaSidebarFileLinkInner({
 	const hasAdminRights = useHasFileAdminRights(fileId)
 
 	// disable dragging on mobile
-	const isCoarsePointer = getIsCoarsePointer()
-
-	const wrapperRef = useRef<HTMLDivElement>(null)
-	const isDragEnabled = !isCoarsePointer
+	const isDragEnabled = !getIsCoarsePointer()
 
 	if (!file) return null
 
@@ -222,7 +216,6 @@ export function TlaSidebarFileLinkInner({
 		<div
 			className={classNames(styles.sidebarFileListItem, styles.hoverable, className)}
 			data-enhanced-a11y-mode={enhancedA11yMode}
-			ref={wrapperRef}
 			data-active={isActive}
 			data-element="file-link"
 			data-testid={testId}
@@ -260,7 +253,6 @@ export function TlaSidebarFileLinkInner({
 					if (isActive && !(event.ctrlKey || event.metaKey)) {
 						preventDefault(event)
 					} else {
-						// Set flag to prevent scrolling when navigation occurs due to sidebar click
 						setPreventScrollOnNavigation(true)
 					}
 					if (isSidebarOpenMobile) {

@@ -32,8 +32,7 @@ import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
-/** @internal */
-export const components: TLComponents = {
+const components: TLComponents = {
 	ErrorFallback: TlaEditorErrorFallback,
 	MenuPanel: TlaEditorMenuPanel,
 	SharePanel: TlaEditorLegacySharePanel,
@@ -100,7 +99,6 @@ function TlaEditorInner({
 				;(window as any).app = editor
 				;(window as any).editor = editor
 			}
-			// Register the editor globally
 			globalEditor.set(editor)
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
 			setIsReady()

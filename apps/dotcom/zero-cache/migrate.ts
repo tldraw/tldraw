@@ -4,13 +4,9 @@ import { createServer } from 'http'
 import { Kysely, PostgresDialect, sql } from 'kysely'
 import pg from 'pg'
 
-const postgresConnectionString: string =
+const postgresConnectionString =
 	process.env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING ||
 	'postgresql://user:password@127.0.0.1:6543/postgres'
-
-if (!postgresConnectionString) {
-	throw new Error('Missing BOTCOM_POSTGRES_POOLED_CONNECTION_STRING env var')
-}
 console.log('Using connection string:', postgresConnectionString)
 
 const migrationsPath = `./migrations`
@@ -26,19 +22,6 @@ CREATE TABLE IF NOT EXISTS migrations.applied_migrations (
   applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 `
-
-/**
-INSERT INTO migrations.applied_migrations (filename) VALUES 
-('000_seed.sql'),
-('001_replicator_boot.sql'),
-('002_add_user_id.sql'),
-('003_make_published_slug_unique.sql'),
-('004_guest_column_on_file_state.sql'),
-('005_update_file_trigger.sql'),
-('006_add_file_soft_delete.sql'),
-('007_update_file_owner_details.sql')
-ON CONFLICT DO NOTHING;
- */
 
 // Tell Zero about schema changes so it updates its replica in place instead of a
 // full reset (Supabase doesn't fire event triggers for ALTER PUBLICATION). Guarded
@@ -90,12 +73,12 @@ async function waitForPostgres() {
 	await sql.raw(init).execute(db)
 }
 
-async function migrate(summary: string[], dryRun: boolean) {
+async function migrate(summary: string[]) {
 	await db.transaction().execute(async (tx) => {
 		const appliedMigrations = await sql<{
 			filename: string
 		}>`SELECT filename FROM migrations.applied_migrations`.execute(tx)
-		const migrations = readdirSync(`./migrations`).sort()
+		const migrations = readdirSync(migrationsPath).sort()
 		if (migrations.length === 0) {
 			throw new Error('No migrations found')
 		}
@@ -125,13 +108,13 @@ async function migrate(summary: string[], dryRun: boolean) {
 
 		let appliedNewMigration = false
 		for (const migration of migrations) {
-			if (appliedMigrations.rows.some((m: any) => m.filename === migration)) {
+			if (appliedMigrations.rows.some((m) => m.filename === migration)) {
 				summary.push(`🏃 ${migration} already applied`)
 				continue
 			}
 
 			try {
-				const migrationSql = readFileSync(`${migrationsPath}/${migration}`, 'utf8').toString()
+				const migrationSql = readFileSync(`${migrationsPath}/${migration}`, 'utf8')
 				if (migrationSql.match(/(BEGIN|COMMIT);/)) {
 					throw new Error(
 						`Migration ${migration} contains a transaction block. Migrations run in transactions, so you don't need to include them in the migration file.`
@@ -170,9 +153,8 @@ async function run() {
 
 	const summary: string[] = []
 	try {
-		await migrate(summary, dryRun)
+		await migrate(summary)
 		console.log(summary.join('\n'))
-		// need to do this to close the db connection
 		if (shouldSignalSuccess) {
 			const s = createServer((_, res) => {
 				res.end('ok')

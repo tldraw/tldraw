@@ -146,10 +146,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			const cleanupPerf = trackPerformance(editor)
 			;(window as any).app = app
 			;(window as any).editor = editor
-			// Register the editor globally
 			globalEditor.set(editor)
-
-			// Register the external asset handler
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
 
 			if (!app) {
@@ -157,23 +154,19 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				return
 			}
 
-			const fileState = app.getFileState(fileId)
+			const lastSessionState = app.getFileState(fileId)?.lastSessionState
+			const sessionState = lastSessionState ? JSON.parse(lastSessionState.trim() || 'null') : null
 			const deepLink = new URLSearchParams(window.location.search).get('d')
-			if (fileState?.lastSessionState) {
-				const sessionState = JSON.parse(fileState.lastSessionState.trim() || 'null')
-				if (sessionState && deepLink) {
-					// When using a deep link, only load preferences (not camera/page states)
-					// since the deep link will control navigation
-					const { pageStates: _, currentPageId: _cpid, ...preferencesOnly } = sessionState
-					editor.loadSnapshot({ session: preferencesOnly }, { forceOverwriteSessionState: true })
-					editor.navigateToDeepLink(parseDeepLinkString(deepLink))
-				} else if (sessionState) {
-					// No deep link - load the full session state including camera position
-					editor.loadSnapshot({ session: sessionState }, { forceOverwriteSessionState: true })
-				} else if (deepLink) {
-					editor.navigateToDeepLink(parseDeepLinkString(deepLink))
-				}
-			} else if (deepLink) {
+			if (sessionState) {
+				// A deep link controls navigation, so only the preferences (not camera/page state)
+				// are restored alongside it.
+				const { pageStates: _, currentPageId: _cpid, ...preferencesOnly } = sessionState
+				editor.loadSnapshot(
+					{ session: deepLink ? preferencesOnly : sessionState },
+					{ forceOverwriteSessionState: true }
+				)
+			}
+			if (deepLink) {
 				editor.navigateToDeepLink(parseDeepLinkString(deepLink))
 			}
 			const fileStateUpdater = new FileStateUpdater(app, fileId, editor)

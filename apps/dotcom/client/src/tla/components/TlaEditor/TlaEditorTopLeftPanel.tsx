@@ -61,6 +61,7 @@ import { FileItems, TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
+import { editorMessages } from './editor-messages'
 import { useRoomInfo } from './TlaEditorTopRightPanel'
 import styles from './top.module.css'
 
@@ -89,13 +90,10 @@ function TlaViewSubmenu() {
 
 const messages = defineMessages({
 	signIn: { defaultMessage: 'Sign in' },
-	file: { defaultMessage: 'File' },
 	pageMenu: { defaultMessage: 'Page menu' },
-	brand: { defaultMessage: 'tldraw' },
-	untitledProject: { defaultMessage: 'Untitled file' },
 })
 
-// There are some styles in tla.css that adjust the regular tlui top panels
+const SEPARATOR = '/'
 
 export function TlaEditorTopLeftPanel({ isAnonUser }: { isAnonUser: boolean }) {
 	const ref = useRef<HTMLDivElement>(null)
@@ -110,8 +108,7 @@ export function TlaEditorTopLeftPanel({ isAnonUser }: { isAnonUser: boolean }) {
 	)
 }
 
-export function TlaEditorTopLeftPanelAnonymous() {
-	const separator = '/'
+function TlaEditorTopLeftPanelAnonymous() {
 	const pageMenuLbl = useMsg(messages.pageMenu)
 	// GOTCHA: 'anonymous' doesn't always mean logged out
 	// we show this version of the panel for published files as well.
@@ -127,11 +124,6 @@ export function TlaEditorTopLeftPanelAnonymous() {
 	])
 
 	const hasPages = useValue('hasPages', () => editor.getPages().length > 1, [editor])
-
-	// This is used in three places
-	// - root, ie tldraw.com
-	// - being an anonymous guest on someone else's file
-	// - being a logged out viewer of a published file
 
 	return (
 		<>
@@ -150,7 +142,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 						// undo nth-last-of-type rule in top.module.css
 						style={{ marginRight: 0 }}
 					>
-						{separator}
+						{SEPARATOR}
 					</span>
 					<div className={classNames(styles.topLeftInputWrapper)}>
 						<button className={styles.topLeftInputNameWidthSetter} data-testid="tla-file-name">
@@ -161,7 +153,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 			)}
 			{hasPages && (
 				<>
-					<span className={styles.topLeftPanelSeparator}>{separator}</span>
+					<span className={styles.topLeftPanelSeparator}>{SEPARATOR}</span>
 					<DefaultPageMenu />
 				</>
 			)}
@@ -206,12 +198,12 @@ export function TlaEditorTopLeftPanelAnonymous() {
 	)
 }
 
-export function TlaEditorTopLeftPanelSignedIn() {
+function TlaEditorTopLeftPanelSignedIn() {
 	const editor = useEditor()
 	const intl = useIntl()
 	const [isRenaming, setIsRenaming] = useState(false)
 	const pageMenuLbl = useMsg(messages.pageMenu)
-	const fileSubmenuMsg = useMsg(messages.file)
+	const fileSubmenuMsg = useMsg(editorMessages.file)
 
 	const isEmbed = !!new URLSearchParams(window.location.search).get('embed')
 
@@ -226,27 +218,20 @@ export function TlaEditorTopLeftPanelSignedIn() {
 		// We update the name in the document record on it's DO when the file record changes.
 		// We should figure out a way to have a single source of truth for the file name.
 		// And to allow guests to 'subscribe' to file metadata updates somehow.
-		() => {
-			// we need that backup file name for empty file names (the initial value for the name is empty)
-			return (
-				app.getFileName(fileId, false)?.trim() ||
-				editor.getDocumentSettings().name ||
-				// rather than displaying the date for the project here, display Untitled project
-				intl.formatMessage(messages.untitledProject)
-			)
-		},
+		() =>
+			app.getFileName(fileId, false)?.trim() ||
+			editor.getDocumentSettings().name ||
+			intl.formatMessage(editorMessages.untitledProject),
 		[app, editor, fileId, intl]
 	)
 	const handleFileNameChange = useCallback(
 		(name: string) => {
-			if (isOwner) {
-				setIsRenaming(false)
-				// only actually update the name if name is a value, otherwise keep the previous name
-				if (name) {
-					// don't allow guests to update the file name
-					app.updateFile(fileId, { name })
-					editor.updateDocumentSettings({ name })
-				}
+			if (!isOwner) return
+			setIsRenaming(false)
+			// an empty name keeps the previous one
+			if (name) {
+				app.updateFile(fileId, { name })
+				editor.updateDocumentSettings({ name })
 			}
 		},
 		[app, editor, fileId, isOwner]
@@ -264,7 +249,6 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	}
 	const handleRenameEnd = () => setIsRenaming(false)
 
-	const separator = '/'
 	return (
 		<>
 			{/* spacer for the sidebar toggle button */}
@@ -276,7 +260,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 				onChange={isOwner ? handleFileNameChange : undefined}
 				onEnd={handleRenameEnd}
 			/>
-			<span className={styles.topLeftPanelSeparator}>{separator}</span>
+			<span className={styles.topLeftPanelSeparator}>{SEPARATOR}</span>
 			<DefaultPageMenu />
 			<TlaFileMenu
 				fileId={fileId}
@@ -406,18 +390,18 @@ function TlaFileNameEditorInput({
 	onComplete(name: string): void
 	onBlur(): void
 }) {
+	// Mirrors the state so blur reads the latest value: TldrawUiInput passes '' on blur after Escape,
+	// which would otherwise commit an empty rename.
 	const rTemporaryName = useRef<string>(fileName)
 	const [temporaryFileName, setTemporaryFileName] = useState(fileName)
 
 	const handleCancel = useCallback(() => {
-		// restore original filename from file
 		setTemporaryFileName(fileName)
 		rTemporaryName.current = fileName
 		onBlur()
 	}, [onBlur, fileName])
 
 	const handleBlur = useCallback(() => {
-		// dispatch the new filename via onComplete
 		const newFileName = rTemporaryName.current.replace(/\s+/g, ' ').trim()
 		if (newFileName === fileName) return handleCancel()
 		setTemporaryFileName(newFileName)

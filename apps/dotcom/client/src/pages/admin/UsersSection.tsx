@@ -1,12 +1,12 @@
 import { TlaFile, TlaUser } from '@tldraw/dotcom-shared'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { fetch } from 'tldraw'
 import { AdminButton } from './AdminButton'
-import { StructuredDataDisplay } from './shared'
+import { getResponseError, StructuredDataDisplay, useTransientMessage } from './shared'
 import styles from './admin.module.css'
 
-// Helper component for user data summary. deletedFileCount comes from the dedicated endpoint —
-// `data.files` excludes the user's own deleted files, so it can't be derived from `data`.
+// deletedFileCount comes from the dedicated endpoint — `data.files` excludes the user's own
+// deleted files, so it can't be derived from `data`.
 function UserDataSummary({
 	data,
 	deletedFileCount,
@@ -14,40 +14,24 @@ function UserDataSummary({
 	data: { user: TlaUser; memberships: unknown[]; files: TlaFile[] }
 	deletedFileCount: number
 }) {
-	const getUserInfo = () => {
-		const user = data.user
-		const files = data.files || []
-		const activeFiles = files.filter((f: TlaFile) => !f.isDeleted)
-
-		return {
-			name: user?.name || 'Unknown',
-			email: user?.email || 'No email',
-			activeFiles: activeFiles.length,
-			deletedFiles: deletedFileCount,
-		}
-	}
-
-	const info = getUserInfo()
+	const { user } = data
+	const files = data.files || []
+	const rows = [
+		['Name', user?.name || 'Unknown'],
+		['Email', user?.email || 'No email'],
+		['Active Files', files.filter((f) => !f.isDeleted).length],
+		['Deleted Files', deletedFileCount],
+	]
 
 	return (
 		<div className={styles.userSummary}>
 			<div className={styles.summaryGrid}>
-				<div className={styles.summaryItem}>
-					<span className={styles.fieldLabel}>Name:</span>
-					<span className={styles.fieldValue}>{info.name}</span>
-				</div>
-				<div className={styles.summaryItem}>
-					<span className={styles.fieldLabel}>Email:</span>
-					<span className={styles.fieldValue}>{info.email}</span>
-				</div>
-				<div className={styles.summaryItem}>
-					<span className={styles.fieldLabel}>Active Files:</span>
-					<span className={styles.fieldValue}>{info.activeFiles}</span>
-				</div>
-				<div className={styles.summaryItem}>
-					<span className={styles.fieldLabel}>Deleted Files:</span>
-					<span className={styles.fieldValue}>{info.deletedFiles}</span>
-				</div>
+				{rows.map(([label, value]) => (
+					<div key={label} className={styles.summaryItem}>
+						<span className={styles.fieldLabel}>{label}:</span>
+						<span className={styles.fieldValue}>{value}</span>
+					</div>
+				))}
 			</div>
 		</div>
 	)
@@ -83,7 +67,7 @@ function DeletedFilesTable({
 					method: 'POST',
 				})
 				if (!res.ok) {
-					setError(res.statusText + ': ' + (await res.text()))
+					setError(await getResponseError(res))
 					return
 				}
 				onUndeleted()
@@ -146,7 +130,7 @@ export function UsersSection() {
 	const [data, setData] = useState<any>(null)
 	const [deletedFiles, setDeletedFiles] = useState<DeletedFileRow[]>([])
 	const [error, setError] = useState(null as string | null)
-	const [successMessage, setSuccessMessage] = useState(null as string | null)
+	const [successMessage, setSuccessMessage] = useTransientMessage()
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	// The user's replicated store filters out their own deleted files, so the deleted-files
@@ -156,7 +140,7 @@ export function UsersSection() {
 		if (!q) return
 		const res = await fetch(`/api/app/admin/user/deleted_files?${new URLSearchParams({ q })}`)
 		if (!res.ok) {
-			setError(res.statusText + ': ' + (await res.text()))
+			setError(await getResponseError(res))
 			return
 		}
 		setDeletedFiles((await res.json()) as DeletedFileRow[])
@@ -175,25 +159,15 @@ export function UsersSection() {
 
 		const res = await fetch(`/api/app/admin/user?${new URLSearchParams({ q })}`)
 		if (!res.ok) {
-			setError(res.statusText + ': ' + (await res.text()))
+			setError(await getResponseError(res))
 			return
 		}
-		setError(null)
 		setData(await res.json())
 		await loadDeletedFiles()
-	}, [loadDeletedFiles])
-
-	// Clear success message after 3 seconds
-	useEffect(() => {
-		if (successMessage) {
-			const timer = setTimeout(() => setSuccessMessage(null), 3000)
-			return () => clearTimeout(timer)
-		}
-	}, [successMessage])
+	}, [loadDeletedFiles, setSuccessMessage])
 
 	return (
 		<>
-			{/* User Search Section */}
 			<section className={styles.adminSection}>
 				<h2 className={styles.sectionTitle}>User management</h2>
 				<p>
@@ -220,7 +194,6 @@ export function UsersSection() {
 				{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
 			</section>
 
-			{/* User Data Section */}
 			{data && (
 				<section className={styles.adminSection}>
 					<h3 className={styles.sectionTitle}>User data</h3>
@@ -241,7 +214,6 @@ export function UsersSection() {
 				</section>
 			)}
 
-			{/* Danger Zone Section */}
 			<section className={styles.adminSection}>
 				<h3 className={styles.sectionTitle}>Danger zone</h3>
 				<DeleteUser />
@@ -274,7 +246,7 @@ function DeleteUser() {
 
 		setIsDeleting(true)
 		setError(null)
-		setProgressLog([]) // Only clear log when starting a new deletion
+		setProgressLog([])
 		setIsComplete(false)
 
 		try {
@@ -337,7 +309,6 @@ function DeleteUser() {
 				</AdminButton>
 			</div>
 
-			{/* Progress Log */}
 			{progressLog.length > 0 && (
 				<div className={styles.progressLog}>
 					<h5>Deletion progress</h5>

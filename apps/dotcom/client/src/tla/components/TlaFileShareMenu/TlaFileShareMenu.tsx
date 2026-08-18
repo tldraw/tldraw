@@ -43,7 +43,7 @@ export function TlaFileShareMenu({
 
 	const hasAdminRights = useHasFileAdminRights(fileId)
 
-	const file = useValue('file', () => app?.getFile(fileId), [app])
+	const file = useValue('file', () => app?.getFile(fileId), [app, fileId])
 
 	const handleTabChange = useCallback(
 		(value: 'share' | 'export' | 'publish') => {
@@ -92,7 +92,6 @@ export function TlaFileShareMenu({
 				<div className={styles.fileShareMenu}>
 					<TlaMenuTabsRoot activeTab={tabToShowAsActive} onTabChange={handleTabChange}>
 						<TlaMenuTabsTabs>
-							{/* Disable share when on a scratchpad file */}
 							{okTabs.share && (
 								<TlaMenuTabsTab id="share" data-testid="tla-share-tab-button-share">
 									<F defaultMessage="Invite" />
@@ -103,11 +102,9 @@ export function TlaFileShareMenu({
 									<F defaultMessage="Share" />
 								</TlaMenuTabsTab>
 							)}
-							{/* Always show export */}
 							<TlaMenuTabsTab id="export" data-testid="tla-share-tab-button-export">
 								<F defaultMessage="Export" />
 							</TlaMenuTabsTab>
-							{/* Show publish tab when there's a file and either the context is a published file or the user owns the file */}
 							{okTabs.publish && (
 								<TlaMenuTabsTab id="publish" data-testid="tla-share-tab-button-publish">
 									<F defaultMessage="Publish" />
@@ -115,7 +112,6 @@ export function TlaFileShareMenu({
 							)}
 						</TlaMenuTabsTabs>
 						{okTabs.share && fileId && (
-							// We have a file and we're authenticated
 							<TlaMenuTabsPage id="share" data-testid="tla-share-tab-page-share">
 								<TlaInviteTab fileId={fileId} />
 							</TlaMenuTabsPage>
@@ -128,7 +124,6 @@ export function TlaFileShareMenu({
 						<TlaMenuTabsPage id="export" data-testid="tla-share-tab-page-export">
 							<TlaExportTab />
 						</TlaMenuTabsPage>
-						{/* Only show the publish tab if the file is owned by the user */}
 						{okTabs.publish && file && (
 							<TlaMenuTabsPage id="publish" data-testid="tla-share-tab-page-publish">
 								<TlaPublishTab file={file} />
