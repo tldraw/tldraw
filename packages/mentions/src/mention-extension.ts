@@ -1,12 +1,8 @@
 import { mergeAttributes } from '@tiptap/core'
 import { Mention, type MentionNodeAttrs, type MentionOptions } from '@tiptap/extension-mention'
 
-/**
- * A mention node's display name: the member's current name, resolved live from its id when a
- * resolver is given (so a rename shows through), falling back to the label captured at insert time
- * when no source can name the id — e.g. a deleted account. The stored id is always the source of
- * truth; live resolution only freshens the displayed name over that captured label.
- */
+// The stored id is the source of truth; the live name (so a rename shows through) wins over the label
+// captured at insert time, which is only the fallback when nothing can name the id — e.g. a deleted account.
 function mentionName(
 	attrs: MentionNodeAttrs,
 	resolveName?: (id: string) => string | undefined
@@ -30,11 +26,9 @@ export interface MentionExtensionOptions {
 /**
  * The \@-mention node — TipTap's `Mention` configured to render as a `.tlui-cmt-mention` pill.
  *
- * A factory rather than a shared constant because it's configured differently per context: the
- * read-only render paths pass `resolveName` (so the stored `{ id }` node always shows the member's
- * current name, not a copy frozen at insert time), while an editor passes a `suggestion` (the `@`
- * picker). Shape rich text passes both — the same extension both edits and renders. The node schema
- * is identical either way — only these two levers differ.
+ * A factory rather than a shared constant because each context configures it differently: read-only
+ * render paths pass `resolveName`, an editor passes a `suggestion`, shape rich text passes both. The
+ * node schema is identical either way.
  * @public
  */
 export function createMentionExtension({ resolveName, suggestion }: MentionExtensionOptions = {}) {

@@ -15,7 +15,7 @@ import { useCommentingOptions } from './options'
 import { pinStackKey } from './pin-stacking'
 import { openStackId, openThreadId } from './state'
 import { ThreadPreview, useMarkerPreview } from './thread-preview'
-import { anchorPagePoint, impreciseShapePinInset } from './thread-state'
+import { anchorPagePoint, anchorViewportPoint } from './thread-state'
 import {
 	POPOVER_OFFSET,
 	ThreadPopover,
@@ -70,14 +70,9 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 		() => {
 			const first = threads[0]
 			if (first.pageId !== editor.getCurrentPageId()) return null
-			// The badge hangs off its anchor point bottom-left like a pin, and applies the same imprecise-shape
-			// inset the pins it stands in for would (see ThreadPin) — otherwise the marker would snap from tucked
-			// inside the shape to the raw corner the moment a second comment turns a pin into a stack.
-			const pagePoint = anchorPagePoint(editor, first.anchor)
-			if (!pagePoint) return null
-			const viewportPoint = editor.pageToViewport(pagePoint)
-			const inset = impreciseShapePinInset(editor, first.anchor)
-			return inset ? { x: viewportPoint.x + inset.x, y: viewportPoint.y + inset.y } : viewportPoint
+			// Same imprecise-shape inset as the pins it stands in for — otherwise the marker would snap
+			// from tucked inside the shape to the raw corner the moment a second comment makes a stack.
+			return anchorViewportPoint(editor, first.anchor)
 		},
 		[editor, threads]
 	)
@@ -132,7 +127,7 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 	// The expanded thread gains a header that pushes its first comment down from where the hover preview
 	// showed it. When that thread is the list's first, lift the whole list so its "You" holds position
 	// across hover -> open. Only the first entry — lifting can't also hold a lower thread's neighbours.
-	const liftForHeader = threads[0]?.id === openId ? 42 : 0
+	const liftForHeader = threads[0].id === openId ? 42 : 0
 
 	return (
 		<>

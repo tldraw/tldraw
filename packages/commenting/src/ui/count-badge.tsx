@@ -7,8 +7,7 @@ export interface CountBadgeProps {
 
 /** @public @react */
 export function CountBadge({ count, open }: CountBadgeProps) {
-	// `tlui-cmt-marker` carries the resting shadow, the hover lift, and the open ring — the same
-	// treatment a comment pin wears, so the two markers behave alike.
+	// `tlui-cmt-marker` is shared with CommentPin — see comments.css
 	const className = ['tlui-cmt-marker', 'tlui-cmt-count-badge', open && 'tlui-cmt-marker--open']
 		.filter(Boolean)
 		.join(' ')

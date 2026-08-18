@@ -108,28 +108,23 @@ export function DefaultReactionTooltipContent({ reactors }: { reactors: Reaction
 	const names = reactors.map((reactor) =>
 		reactor.you ? msg('comments.mention-you') : reactor.name
 	)
+	if (names.length === 0) return null
 	const [a, b, c] = names
-	switch (names.length) {
-		case 0:
-			return null
-		case 1:
-			return <>{msg('comments.reacted-1').replace('{a}', a)}</>
-		case 2:
-			return <>{msg('comments.reacted-2').replace('{a}', a).replace('{b}', b)}</>
-		case 3:
-			return <>{msg('comments.reacted-3').replace('{a}', a).replace('{b}', b).replace('{c}', c)}</>
-		default: {
-			const others = names.length - 3
-			const template = others === 1 ? 'comments.reacted-more-one' : 'comments.reacted-more'
-			return (
-				<>
-					{msg(template)
-						.replace('{a}', a)
-						.replace('{b}', b)
-						.replace('{c}', c)
-						.replace('{count}', String(others))}
-				</>
-			)
-		}
-	}
+	const others = names.length - 3
+	const key =
+		names.length <= 3
+			? `comments.reacted-${names.length}`
+			: others === 1
+				? 'comments.reacted-more-one'
+				: 'comments.reacted-more'
+	// Each template only contains the placeholders for the names it has, so the extra replaces are no-ops.
+	return (
+		<>
+			{msg(key)
+				.replace('{a}', a)
+				.replace('{b}', b)
+				.replace('{c}', c)
+				.replace('{count}', String(others))}
+		</>
+	)
 }

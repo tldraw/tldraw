@@ -1,3 +1,5 @@
+import { getArrowBend } from './utils'
+
 export interface Vec2 {
 	x: number
 	y: number
@@ -17,52 +19,71 @@ export interface ParsedCluster {
 	height: number
 }
 
+export interface ParsedEdge {
+	start: string
+	end: string
+	points: Vec2[]
+}
+
+/** Already-scaled node, cluster, and edge layout for flowchart and state diagram converters. */
+export interface ParsedDiagramLayout {
+	nodes: Map<string, ParsedNode>
+	clusters: Map<string, ParsedCluster>
+	edges: ParsedEdge[]
+}
+
 type NodeIdParser = (domId: string) => string
 type EdgeIdParser = (dataId: string) => { start: string; end: string } | null
 
+// Mermaid >= 11.15 prefixes every rendered element id with the diagram id
+// (`mermaid-0-flowchart-A-0` instead of `flowchart-A-0`); older versions do not.
+const DIAGRAM_ID_PREFIX = /^mermaid-\d+-/
+
+export function stripDiagramIdPrefix(domId: string): string {
+	return domId.replace(DIAGRAM_ID_PREFIX, '')
+}
+
+/** Extract the first capture group of `pattern` from a dom id, tolerating the diagram-id prefix. */
+export function parseDomId(domId: string, pattern: RegExp): string {
+	return stripDiagramIdPrefix(domId).match(pattern)?.[1] ?? domId
+}
+
 function parseTranslate(attr: string | null): Vec2 {
-	if (!attr) return { x: 0, y: 0 }
-	// Matches SVG translate transforms, e.g. transform="translate(123.45, 67.8)".
-	// Handles scientific notation (1.2e+3). Group 1 = x offset, group 2 = y offset.
-	const translateMatch = attr.match(/translate\(\s*([\d.e+-]+)[,\s]+([\d.e+-]+)\s*\)/)
-	if (!translateMatch) return { x: 0, y: 0 }
-	return { x: parseFloat(translateMatch[1]), y: parseFloat(translateMatch[2]) }
+	// e.g. transform="translate(123.45, 67.8)", including scientific notation (1.2e+3).
+	const match = attr?.match(/translate\(\s*([\d.e+-]+)[,\s]+([\d.e+-]+)\s*\)/)
+	if (!match) return { x: 0, y: 0 }
+	return { x: parseFloat(match[1]), y: parseFloat(match[2]) }
 }
 
 export function getAccumulatedTranslate(el: Element): Vec2 {
 	let x = 0
 	let y = 0
-	let cur: Element | null = el.parentElement
-	while (cur) {
-		const parentTranslate = parseTranslate(cur.getAttribute('transform'))
-		x += parentTranslate.x
-		y += parentTranslate.y
-		cur = cur.parentElement
+	for (let cur = el.parentElement; cur; cur = cur.parentElement) {
+		const t = parseTranslate(cur.getAttribute('transform'))
+		x += t.x
+		y += t.y
 	}
 	return { x, y }
 }
 
-/**
- * Extract element dimensions from a live SVG element using getBBox(),
- * falling back to attribute parsing for non-browser environments (jsdom).
- */
-function getNodeDimensions(groupEl: Element): { w: number; h: number } {
-	const shapeEl = groupEl.querySelector('.label-container')
-	if (shapeEl) {
-		try {
-			const bbox = (shapeEl as SVGGraphicsElement).getBBox()
-			if (bbox.width > 0 && bbox.height > 0) return { w: bbox.width, h: bbox.height }
-		} catch {
-			/* fall through */
-		}
-	}
-
+function getBBoxSize(el: Element | null): { w: number; h: number } | undefined {
+	if (!el) return undefined
 	try {
-		const bbox = (groupEl as SVGGraphicsElement).getBBox()
+		const bbox = (el as SVGGraphicsElement).getBBox()
 		if (bbox.width > 0 && bbox.height > 0) return { w: bbox.width, h: bbox.height }
 	} catch {
-		/* fall through */
+		// not a live SVG element (e.g. jsdom)
 	}
+	return undefined
+}
+
+/**
+ * Element dimensions via getBBox(), falling back to attribute parsing for
+ * non-browser environments (jsdom).
+ */
+function getNodeDimensions(groupEl: Element): { w: number; h: number } {
+	const bbox = getBBoxSize(groupEl.querySelector('.label-container')) ?? getBBoxSize(groupEl)
+	if (bbox) return bbox
 
 	const rect = groupEl.querySelector('rect')
 	if (rect) {
@@ -109,8 +130,7 @@ export function parseNodesFromSvg(
 ): Map<string, ParsedNode> {
 	const out = new Map<string, ParsedNode>()
 	for (const groupEl of root.querySelectorAll(selector)) {
-		const rawId = groupEl.getAttribute('id') || ''
-		const id = idParser(rawId)
+		const id = idParser(groupEl.getAttribute('id') || '')
 		const self = parseTranslate(groupEl.getAttribute('transform'))
 		const ancestor = getAccumulatedTranslate(groupEl)
 		const { w, h } = getNodeDimensions(groupEl)
@@ -127,7 +147,7 @@ export function parseNodesFromSvg(
 export function parseClustersFromSvg(
 	root: Element,
 	selector: string,
-	idParser: NodeIdParser = (id) => id
+	idParser: NodeIdParser
 ): Map<string, ParsedCluster> {
 	const out = new Map<string, ParsedCluster>()
 	for (const groupEl of root.querySelectorAll(selector)) {
@@ -150,25 +170,9 @@ export function parseClustersFromSvg(
 	return out
 }
 
-export interface ParsedEdge {
-	start: string
-	end: string
-	points: Vec2[]
-}
-
 /**
- * Pre-parsed SVG layout for flowchart and state diagram converters.
- * Contains already-scaled node, cluster, and edge data.
- */
-export interface ParsedDiagramLayout {
-	nodes: Map<string, ParsedNode>
-	clusters: Map<string, ParsedCluster>
-	edges: ParsedEdge[]
-}
-
-/**
- * Parse every SVG edge path in DOM order (matching mermaid's edge list order).
- * Unlike the old per-pair map, this preserves all parallel edges individually.
+ * Parse every SVG edge path in DOM order (matching mermaid's edge list order),
+ * keeping parallel edges between the same pair as separate entries.
  */
 export function parseAllEdgePointsFromSvg(root: Element, parser: EdgeIdParser): ParsedEdge[] {
 	const out: ParsedEdge[] = []
@@ -187,15 +191,13 @@ export function parseAllEdgePointsFromSvg(root: Element, parser: EdgeIdParser): 
 			}
 			out.push({ start: parsed.start, end: parsed.end, points })
 		} catch {
-			/* ignore malformed data */
+			// ignore malformed data
 		}
 	}
 	return out
 }
 
-/**
- * Build a map of node/cluster id → center (for flowchart and state diagram edge matching).
- */
+/** Map of node/cluster id to center point, for matching DB edges to SVG edge paths. */
 export function buildNodeCentersFromSvg(
 	nodes: Map<string, ParsedNode>,
 	clusters: Map<string, ParsedCluster>
@@ -213,9 +215,39 @@ export function buildNodeCentersFromSvg(
 	return out
 }
 
-// ---------------------------------------------------------------------------
-// Layout scaling and bounds
-// ---------------------------------------------------------------------------
+/**
+ * Claim the unclaimed SVG edge whose endpoints lie closest to the given node
+ * centers and return its bend, or 0 when nothing matches. Each SVG edge is
+ * claimed at most once so parallel edges get distinct paths.
+ */
+export function claimNearestEdgeBend(
+	svgEdges: ParsedEdge[],
+	claimed: Set<number>,
+	startCenter: Vec2 | undefined,
+	endCenter: Vec2 | undefined
+): number {
+	if (!startCenter || !endCenter) return 0
+
+	let bestIndex = -1
+	let bestDistance = Infinity
+	for (let i = 0; i < svgEdges.length; i++) {
+		if (claimed.has(i) || svgEdges[i].points.length < 2) continue
+
+		const points = svgEdges[i].points
+		const last = points[points.length - 1]
+		const distance =
+			Math.hypot(points[0].x - startCenter.x, points[0].y - startCenter.y) +
+			Math.hypot(last.x - endCenter.x, last.y - endCenter.y)
+		if (distance < bestDistance) {
+			bestDistance = distance
+			bestIndex = i
+		}
+	}
+	if (bestIndex < 0) return 0
+
+	claimed.add(bestIndex)
+	return getArrowBend(svgEdges[bestIndex])
+}
 
 export function scaleLayout(
 	nodes: Map<string, ParsedNode>,
@@ -223,13 +255,13 @@ export function scaleLayout(
 	edges: ParsedEdge[],
 	scale: number
 ): void {
-	for (const [, node] of nodes) {
+	for (const node of nodes.values()) {
 		node.center.x *= scale
 		node.center.y *= scale
 		node.width *= scale
 		node.height *= scale
 	}
-	for (const [, cluster] of clusters) {
+	for (const cluster of clusters.values()) {
 		cluster.topLeft.x *= scale
 		cluster.topLeft.y *= scale
 		cluster.width *= scale
