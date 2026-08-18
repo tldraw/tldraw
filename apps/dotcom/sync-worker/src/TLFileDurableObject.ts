@@ -600,7 +600,12 @@ export class TLFileDurableObject extends DurableObject {
 				ws.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.NOT_FOUND)
 				return
 			}
+			// Report before closing, so a throw from close() can't cost us the Sentry event.
 			this.reportError(e, { source: 'webSocketMessage' })
+			// The message is lost either way, and leaving the socket up would let the client carry on
+			// believing it is synced while its local state silently diverges. Closing puts it into the
+			// error state and the reconnect manager resyncs it from scratch.
+			ws.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.UNKNOWN_ERROR)
 		}
 	}
 
