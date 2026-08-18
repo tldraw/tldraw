@@ -68,17 +68,9 @@ export function useValue<Value>(value: Signal<Value>): Value
  */
 export function useValue<Value>(name: string, fn: () => Value, deps: unknown[]): Value
 
-/**
- * Implementation function for useValue hook overloads.
- *
- * Handles both single signal subscription and computed value creation with dependency tracking.
- * Uses React's useSyncExternalStore for efficient subscription management and automatic cleanup.
- *
- * @internal
- */
+/** @internal */
 export function useValue() {
 	const args = arguments
-	// deps will be either the computed or the deps array
 	const deps = args.length === 3 ? args[2] : [args[0]]
 	const name = args.length === 3 ? args[0] : `useValue(${args[0].name})`
 

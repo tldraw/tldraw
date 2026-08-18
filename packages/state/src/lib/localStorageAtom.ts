@@ -34,7 +34,6 @@ export function localStorageAtom<Value, Diff = unknown>(
 	initialValue: Value,
 	options?: AtomOptions<Value, Diff>
 ): [Atom<Value, Diff>, () => void] {
-	// Try to restore the initial value from localStorage
 	let _initialValue = initialValue
 
 	try {
@@ -43,45 +42,39 @@ export function localStorageAtom<Value, Diff = unknown>(
 			_initialValue = JSON.parse(value) as Value
 		}
 	} catch {
-		// If parsing fails, the stored value is corrupted - delete it and use the provided initial value
+		// Corrupted stored value: drop it and fall back to the provided initial value.
 		deleteFromLocalStorage(name)
 	}
 
-	// Create the atom with the restored or initial value
 	const outAtom = atom(name, _initialValue, options)
 
-	// Set up automatic syncing: whenever the atom changes, save it to localStorage
 	const reactCleanup = react(`save ${name} to localStorage`, () => {
 		setInLocalStorage(name, JSON.stringify(outAtom.get()))
 	})
 
-	// Set up cross-tab sync: listen for storage events from other tabs
+	// Cross-tab sync: storage events only fire in other tabs than the one that wrote.
 	const handleStorageEvent = (event: StorageEvent) => {
-		// Only handle events for this specific key
 		if (event.key !== name) return
 
-		// If the value was deleted in another tab
 		if (event.newValue === null) {
 			outAtom.set(initialValue)
 			return
 		}
 
-		// If the value was changed in another tab, update the atom
 		try {
-			const newValue = JSON.parse(event.newValue) as Value
-			outAtom.set(newValue)
+			outAtom.set(JSON.parse(event.newValue) as Value)
 		} catch {
-			// If parsing fails, the stored value is corrupted; preserve the existing value
+			// Corrupted value from another tab: keep the current value.
 		}
 	}
 
 	window.addEventListener('storage', handleStorageEvent)
 
-	// Combined cleanup function
-	const cleanup = () => {
-		reactCleanup()
-		window.removeEventListener('storage', handleStorageEvent)
-	}
-
-	return [outAtom, cleanup]
+	return [
+		outAtom,
+		() => {
+			reactCleanup()
+			window.removeEventListener('storage', handleStorageEvent)
+		},
+	]
 }
