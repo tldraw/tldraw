@@ -724,15 +724,10 @@ export class TLFileDurableObject extends DurableObject {
 					this._fileRecordCache = result
 					return this._fileRecordCache
 				},
-				{
-					attempts: 20,
-					waitDuration: 100,
-					// Absence is retried (the row may still be committing), as are transient connection
-					// errors (one bad query shouldn't be terminal); other infra errors fail fast and
-					// surface the client's generic try-refreshing error copy instead of retrying for 2s.
-					matchError: (error) =>
-						error instanceof FileRecordNotFoundError || isTransientConnectionError(error),
-				}
+				// Absence is retried because the row may still be committing. Query errors are retried
+				// too: isTransientConnectionError is R2-shaped and misses Postgres errors like "too many
+				// clients already" or ECONNREFUSED, and failing those fast only saves the 2s budget.
+				{ attempts: 20, waitDuration: 100 }
 			)
 
 			timer.report('get_file_record')
