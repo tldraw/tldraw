@@ -56,14 +56,20 @@ jobs:
           GRAFANA_SERVER: ${{ secrets.GRAFANA_SERVER }}
           GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN }}
 
-      # Everything except alert rules. Split from the step below so a rejected rule
-      # cannot take the dashboards down with it — see that step for why that happens.
+      # Everything except alert rules, folders first. Two orderings matter and neither is
+      # the alphabetical one this glob would otherwise give: folders have to exist before
+      # anything annotated into them, and alert rules go last (see the step below for why).
+      # A commit adding a folder and a dashboard inside it lands both in one push, so the
+      # folder cannot be assumed to already be there.
       - name: Push resources
         if: github.event_name == 'push'
         run: |
           shopt -s nullglob
+          for dir in internal/grafana/resources/*folders*/; do
+            gcx resources push -p "$dir" --on-error abort
+          done
           for dir in internal/grafana/resources/*/; do
-            case "$dir" in *alertrules*) continue ;; esac
+            case "$dir" in *folders*|*alertrules*) continue ;; esac
             gcx resources push -p "$dir" --on-error abort
           done
         env:
