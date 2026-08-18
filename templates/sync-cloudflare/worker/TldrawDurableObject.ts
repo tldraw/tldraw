@@ -24,6 +24,11 @@ interface SocketAttachment {
 	snapshot: SessionStateSnapshot | null
 }
 
+function getAttachment(ws: WebSocket): SocketAttachment | null {
+	const attachment = ws.deserializeAttachment() as SocketAttachment | null
+	return attachment?.sessionId ? attachment : null
+}
+
 // Each whiteboard room is hosted in a Durable Object with WebSocket Hibernation.
 // https://developers.cloudflare.com/durable-objects/
 //
@@ -66,16 +71,13 @@ export class TldrawDurableObject extends DurableObject {
 
 			// Resume any sessions that survived hibernation
 			for (const ws of this.ctx.getWebSockets()) {
-				const attachment = ws.deserializeAttachment() as SocketAttachment | null
-				if (!attachment?.sessionId) continue
-
-				if (attachment.snapshot) {
-					this.room.handleSocketResume({
-						sessionId: attachment.sessionId,
-						socket: ws,
-						snapshot: attachment.snapshot,
-					})
-				}
+				const attachment = getAttachment(ws)
+				if (!attachment?.snapshot) continue
+				this.room.handleSocketResume({
+					sessionId: attachment.sessionId,
+					socket: ws,
+					snapshot: attachment.snapshot,
+				})
 			}
 		}
 		return this.room
@@ -86,17 +88,14 @@ export class TldrawDurableObject extends DurableObject {
 		(request) => this.handleConnect(request)
 	)
 
-	// Entry point for all requests to the Durable Object
 	fetch(request: Request): Response | Promise<Response> {
 		return this.router.fetch(request)
 	}
 
-	// Handle new WebSocket connection requests
 	async handleConnect(request: IRequest) {
 		const sessionId = request.query.sessionId as string
 		if (!sessionId) return error(400, 'Missing sessionId')
 
-		// Create the websocket pair for the client
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 		// Use hibernation API instead of serverWebSocket.accept()
 		this.ctx.acceptWebSocket(serverWebSocket)
@@ -113,19 +112,12 @@ export class TldrawDurableObject extends DurableObject {
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}
 
-	// --- WebSocket Hibernation API handlers ---
-
-	private getSessionId(ws: WebSocket): string | null {
-		const attachment = ws.deserializeAttachment() as SocketAttachment | null
-		return attachment?.sessionId ?? null
-	}
-
 	override async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
-		const sessionId = this.getSessionId(ws)
-		if (!sessionId) return
+		const attachment = getAttachment(ws)
+		if (!attachment) return
 
-		this.sessionIdToWs.set(sessionId, ws)
-		this.getOrCreateRoom().handleSocketMessage(sessionId, message)
+		this.sessionIdToWs.set(attachment.sessionId, ws)
+		this.getOrCreateRoom().handleSocketMessage(attachment.sessionId, message)
 	}
 
 	override async webSocketClose(ws: WebSocket) {
@@ -137,8 +129,8 @@ export class TldrawDurableObject extends DurableObject {
 	}
 
 	private handleWebSocketEnd(ws: WebSocket, method: 'handleSocketClose' | 'handleSocketError') {
-		const attachment = ws.deserializeAttachment() as SocketAttachment | null
-		if (!attachment?.sessionId) return
+		const attachment = getAttachment(ws)
+		if (!attachment) return
 
 		this.sessionIdToWs.delete(attachment.sessionId)
 
