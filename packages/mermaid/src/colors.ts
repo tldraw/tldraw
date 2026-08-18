@@ -165,7 +165,6 @@ const TLDRAW_PALETTE: [TLDefaultColorStyle, number, number, number][] = defaultC
 	}
 )
 
-/** Nearest tldraw named color (best-effort). */
 function nearestTldrawColor(rgb: Color): TLDefaultColorStyle {
 	let [r, g, b] = rgb
 

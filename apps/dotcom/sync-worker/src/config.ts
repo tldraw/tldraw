@@ -6,7 +6,7 @@
 // OG_PENDING_MARKER_TTL_MS against the retry chain (OG_MAX_RENDER_ATTEMPTS, OG_RETRY_DELAY_SECONDS
 // and the capture timeout), and a test in ogImageQueue.test.ts pins that inequality.
 
-/** How often the document is persisted to R2. 8 seconds. */
+/** How often the document is persisted to R2. */
 export const PERSIST_INTERVAL_MS = 8_000
 
 /**

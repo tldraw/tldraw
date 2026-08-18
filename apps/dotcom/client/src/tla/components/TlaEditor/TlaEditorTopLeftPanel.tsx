@@ -228,7 +228,6 @@ function TlaEditorTopLeftPanelSignedIn() {
 		(name: string) => {
 			if (!isOwner) return
 			setIsRenaming(false)
-			// an empty name keeps the previous one
 			if (name) {
 				app.updateFile(fileId, { name })
 				editor.updateDocumentSettings({ name })

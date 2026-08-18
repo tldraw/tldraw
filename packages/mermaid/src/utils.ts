@@ -44,7 +44,6 @@ export function sanitizeDiagramText(text: string): string {
 /** Scale factor applied to parsed SVG layout (nodes, clusters, edges). */
 export const LAYOUT_SCALE = 1.25
 
-/** Drop edges whose endpoints are not both present in `nodes`. */
 export function dropDanglingEdges(
 	nodes: MermaidBlueprintNode[],
 	edges: MermaidBlueprintEdge[]
@@ -53,7 +52,6 @@ export function dropDanglingEdges(
 	return edges.filter((e) => nodeIds.has(e.startNodeId) && nodeIds.has(e.endNodeId))
 }
 
-/** Order items so parents are visited before children. */
 export function orderTopDown<T>(
 	items: T[],
 	getId: (item: T) => string,

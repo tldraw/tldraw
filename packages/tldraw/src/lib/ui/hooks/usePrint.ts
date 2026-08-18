@@ -184,10 +184,11 @@ export function usePrint() {
 			}
 
 			if (selectedShapeIds.length > 0) {
+				const pageName = editor.getCurrentPage().name
 				const svgExport = await editor.getSvgString(selectedShapeIds, svgOpts)
 
 				if (svgExport) {
-					addPageToPrint(`tldraw — ${editor.getCurrentPage().name}`, null, svgExport.svg)
+					addPageToPrint(`tldraw — ${pageName}`, null, svgExport.svg)
 					triggerPrint()
 				}
 			} else {

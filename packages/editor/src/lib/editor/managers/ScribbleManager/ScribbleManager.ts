@@ -355,7 +355,7 @@ export class ScribbleManager {
 		item.scribble.state = 'stopping'
 	}
 
-	/** Push the pending `next` point onto the scribble. Returns whether a point was added. */
+	/** Push the pending `next` point onto the scribble, if there is a new one. */
 	private consumeNextPoint(item: ScribbleItem): boolean {
 		const { next, prev } = item
 		if (!next || next === prev) return false

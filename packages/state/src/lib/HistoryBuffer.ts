@@ -49,7 +49,6 @@ export class HistoryBuffer<Diff> {
 	getChangesSince(sinceEpoch: number): RESET_VALUE | Diff[] {
 		const { index, capacity, buffer } = this
 
-		// Walk backwards from the most recent entry.
 		for (let i = 0; i < capacity; i++) {
 			const offset = (index - 1 + capacity - i) % capacity
 

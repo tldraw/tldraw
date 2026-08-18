@@ -63,7 +63,6 @@ export function getReorderingShapesChanges(
 	return changes
 }
 
-/** Reorders the moving shapes to the back of the parent's children. */
 function reorderToBack(moving: Set<TLShape>, children: TLShape[], changes: TLShapePartial[]) {
 	const len = children.length
 
@@ -110,7 +109,6 @@ function pushMovedBetween(
 	)
 }
 
-/** Reorders the moving shapes to the front of the parent's children. */
 function reorderToFront(moving: Set<TLShape>, children: TLShape[], changes: TLShapePartial[]) {
 	const len = children.length
 
@@ -161,7 +159,6 @@ function getOverlapChecker(editor: Editor, moving: Set<TLShape>) {
 	return isContaining
 }
 
-/** Reorders the moving shapes forward in the parent's children. */
 function reorderForward(
 	editor: Editor,
 	moving: Set<TLShape>,
@@ -212,7 +209,6 @@ function reorderForward(
 	}
 }
 
-/** Reorders the moving shapes backward in the parent's children. */
 function reorderBackward(
 	editor: Editor,
 	moving: Set<TLShape>,

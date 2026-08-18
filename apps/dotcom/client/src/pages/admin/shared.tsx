@@ -25,7 +25,6 @@ export function StructuredDataDisplay({ data }: { data: object }) {
 	)
 }
 
-/** A message that clears itself a few seconds after being set. */
 export function useTransientMessage(durationMs = 3000) {
 	const [message, setMessage] = useState(null as string | null)
 	useEffect(() => {

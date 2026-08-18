@@ -21,7 +21,6 @@ export function useAnalyticsConsent() {
 
 	const updateConsent = useCallback(
 		(newConsent: boolean) => {
-			// localStorage and the atom stay in sync with the user record
 			setStoredAnalyticsConsent(newConsent)
 			if (isSignedIn && user && app) {
 				app.updateUser({ id: user.id, allowAnalyticsCookie: newConsent })
