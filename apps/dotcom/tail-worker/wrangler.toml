@@ -11,15 +11,15 @@ binding = "TAIL"
 #################### Environment names ####################
 # dev should never actually get deployed anywhere
 [env.dev]
-name = "dev-tldraw-tail"
+name = "dev-tldraw-multiplayer-tail"
 
 # staging is the same as a preview on main:
 [env.staging]
-name = "main-tldraw-tail"
+name = "main-tldraw-multiplayer-tail"
 
 # production gets the proper name
 [env.production]
-name = "tldraw-tail"
+name = "tldraw-multiplayer-tail"
 
 #################### Analytics engine ####################
 # A dataset of its own, not MEASURE. Analytics Engine samples per dataset, so folding ~38M invocation

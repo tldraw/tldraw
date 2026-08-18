@@ -152,7 +152,7 @@ type WorkerId =
 	| 'multiplayer'
 	| 'tldrawusercontent'
 	| 'image-resize'
-	| 'tail'
+	| 'multiplayer-tail'
 
 interface WorkerDeployment {
 	id: WorkerId
@@ -203,13 +203,13 @@ const workerDeployments: WorkerDeployment[] = [
 		timingLabel: 'worker deploy: multiplayer',
 		// `tail_consumers` in the sync worker's wrangler.toml names a service that must already exist,
 		// so the tail worker has to be deployed first.
-		dependsOn: ['tail'],
+		dependsOn: ['multiplayer-tail'],
 		run: deployTlsyncWorker,
 	},
 	{
-		id: 'tail',
+		id: 'multiplayer-tail',
 		stepLabel: 'deploying tail worker to cloudflare',
-		timingLabel: 'worker deploy: tail',
+		timingLabel: 'worker deploy: multiplayer-tail',
 		dependsOn: [],
 		run: deployTailWorker,
 	},
