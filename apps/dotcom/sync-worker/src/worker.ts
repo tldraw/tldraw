@@ -358,19 +358,25 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 
 	// Both branches of the queue loop swallow their errors so one bad message cannot abort the
 	// batch, which left their failures with no record anywhere.
+	// Both callers report immediately before settling the message, so a throw in here would skip
+	// the retry() that follows and silently drop the message instead of redelivering it.
 	private reportQueueFailure(message: Message<QueueMessage>, error: unknown) {
-		const sentry = createSentry(this.ctx, this.env)
-		if (!sentry) {
-			console.error(`[queue] ${message.body.type} message failed`, error)
-			return
-		}
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		sentry.withScope((scope) => {
-			scope.setTag('queue_message_type', message.body.type)
-			scope.setExtras({ messageId: message.id, attempts: message.attempts })
+		try {
+			const sentry = createSentry(this.ctx, this.env)
+			if (!sentry) {
+				console.error(`[queue] ${message.body.type} message failed`, error)
+				return
+			}
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
-			sentry.captureException(error)
-		})
+			sentry.withScope((scope) => {
+				scope.setTag('queue_message_type', message.body.type)
+				scope.setExtras({ messageId: message.id, attempts: message.attempts })
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				sentry.captureException(error)
+			})
+		} catch (_e) {
+			console.error(`[queue] ${message.body.type} message failed`, error)
+		}
 	}
 
 	// asset-upload retries the same failing insert on every delivery, so reporting each one would
