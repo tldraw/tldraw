@@ -1,11 +1,21 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import { writePushRow } from './analytics'
 import { entrypointOf, scriptNameOf, scriptVersionOf } from './classify'
+import { redactConsoleArgsSlug, redactRoomNotFoundSlug } from './slugs'
 import { Environment } from './types'
 
 const MAX_LOG_ENTRIES = 20
 const MAX_LOG_CHARS = 2000
 const MAX_LABEL_CHARS = 64
+// The design budgets ~3 KB per Loki line; an unbounded stack or exception list can blow past that by
+// an order of magnitude on its own.
+const MAX_STACK_CHARS = 8000
+const MAX_EXCEPTIONS = 3
+
+function clip(value: string, max: number): string {
+	return value.length <= max ? value : value.slice(0, max)
+}
 
 export interface LokiEntry {
 	labels: Record<string, string>
@@ -25,8 +35,10 @@ export function toLokiEntry(
 	item: TraceItem,
 	handler: string,
 	errorName: string,
-	tldrawEnv: string
+	tldrawEnv: string,
+	tldrDoc: DurableObjectNamespace | undefined
 ): LokiEntry {
+	const clippedHandler = clip(handler, MAX_LABEL_CHARS)
 	return {
 		// Labels are the cardinality budget: anything per-room, per-user or per-request belongs in the
 		// line below, not here.
@@ -34,26 +46,31 @@ export function toLokiEntry(
 			service_name: scriptNameOf(item),
 			env: tldrawEnv,
 			entrypoint: entrypointOf(item),
-			handler,
+			handler: clippedHandler,
 			outcome: item.outcome,
 			error_name: errorName.slice(0, MAX_LABEL_CHARS),
 		},
-		timestampMs: item.eventTimestamp ?? 0,
+		timestampMs: item.eventTimestamp ?? Date.now(),
 		line: {
 			...eventDetails(item.event as AnyEventInfo | null),
 			durableObjectId: item.durableObjectId ?? '',
 			scriptVersion: scriptVersionOf(item),
 			outcome: item.outcome,
-			handler,
+			handler: clippedHandler,
 			error_name: errorName,
-			message: item.exceptions[0]?.message ?? '',
-			stack: item.exceptions[0]?.stack ?? '',
-			exceptions: item.exceptions.map((e) => ({
+			// RoomNotFoundError's message (and the stack built from it) embed a file slug — the whole
+			// authority of a board — which must never reach this third-party log sink as free text.
+			message: redactRoomNotFoundSlug(item.exceptions[0]?.message ?? '', tldrDoc),
+			stack: clip(
+				redactRoomNotFoundSlug(item.exceptions[0]?.stack ?? '', tldrDoc),
+				MAX_STACK_CHARS
+			),
+			exceptions: item.exceptions.slice(0, MAX_EXCEPTIONS).map((e) => ({
 				name: e.name,
-				message: e.message,
-				stack: e.stack ?? '',
+				message: redactRoomNotFoundSlug(e.message, tldrDoc),
+				stack: clip(redactRoomNotFoundSlug(e.stack ?? '', tldrDoc), MAX_STACK_CHARS),
 			})),
-			logs: captureLogs(item.logs),
+			logs: captureLogs(item.logs, tldrDoc),
 			wallTime: item.wallTime,
 			cpuTime: item.cpuTime,
 			truncated: item.truncated,
@@ -78,11 +95,22 @@ function eventDetails(ev: AnyEventInfo | null): Record<string, unknown> {
 	return {}
 }
 
-function captureLogs(logs: TraceLog[]): { level: string; message: string }[] {
-	return logs.slice(0, MAX_LOG_ENTRIES).map((log) => ({
-		level: log.level,
-		message: safeStringify(log.message).slice(0, MAX_LOG_CHARS),
-	}))
+function captureLogs(
+	logs: TraceLog[],
+	tldrDoc: DurableObjectNamespace | undefined
+): { level: string; message: string }[] {
+	return logs.slice(0, MAX_LOG_ENTRIES).map((log) => {
+		// TLFileDurableObject.ts's db-load failure paths log `console.error('failed to retrieve
+		// document' | 'failed to fetch doc', slug, error)` — redact before stringifying, not after:
+		// matching against JSON-escaped text is a different, harder problem.
+		const message = Array.isArray(log.message)
+			? redactConsoleArgsSlug(log.message, tldrDoc)
+			: log.message
+		return {
+			level: log.level,
+			message: safeStringify(message).slice(0, MAX_LOG_CHARS),
+		}
+	})
 }
 
 function safeStringify(value: unknown): string {
@@ -101,11 +129,8 @@ function safeStringify(value: unknown): string {
 export function buildLokiPush(entries: LokiEntry[]) {
 	const streams = new Map<string, { stream: Record<string, string>; values: [string, string][] }>()
 
-	// Sorted numerically on the millisecond source, before the nanosecond strings exist. Loki wants
-	// entries ordered within a stream, and the ns values exceed Number.MAX_SAFE_INTEGER — so comparing
-	// the rendered strings would be lexicographic and would mis-order any two of different digit
-	// length ("999000000" > "1000000000"). Grouping preserves insertion order, so each stream inherits
-	// this sort.
+	// Sorted on the millisecond source, before the ns strings exist: those exceed
+	// Number.MAX_SAFE_INTEGER, so comparing them as strings would sort lexicographically instead.
 	for (const entry of [...entries].sort((a, b) => a.timestampMs - b.timestampMs)) {
 		const key = JSON.stringify(Object.entries(entry.labels).sort())
 		let stream = streams.get(key)
@@ -128,7 +153,7 @@ export async function pushToLoki(env: Environment, entries: LokiEntry[]): Promis
 	const body = JSON.stringify(buildLokiPush(entries))
 
 	try {
-		await fetch(env.GRAFANA_LOKI_ENDPOINT, {
+		const res = await fetch(env.GRAFANA_LOKI_ENDPOINT, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -136,8 +161,13 @@ export async function pushToLoki(env: Environment, entries: LokiEntry[]): Promis
 			},
 			body,
 		})
+		// Neither res.ok nor a thrown error was checked before this row existed, so a rotated token,
+		// a bad entry, a rate limit or a 5xx were all indistinguishable from success — in the one
+		// worker whose job is seeing failures the platform otherwise hides.
+		writePushRow(env.TAIL, String(res.status), entries.length)
 	} catch (_e) {
 		// A failed push must not fail the tail invocation: the tallies for this batch have already
 		// been written, and there is nowhere useful to report this from inside a tail consumer.
+		writePushRow(env.TAIL, 'transport_error', entries.length)
 	}
 }

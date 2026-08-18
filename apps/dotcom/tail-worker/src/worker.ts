@@ -21,25 +21,30 @@ export default {
 		const errorEntries: LokiEntry[] = []
 
 		for (const item of events) {
-			const handler = classifyHandler(item)
+			try {
+				const handler = classifyHandler(item)
 
-			aggregator.add({
-				scriptName: scriptNameOf(item),
-				entrypoint: entrypointOf(item),
-				handler,
-				outcome: item.outcome,
-				scriptVersion: scriptVersionOf(item),
-				wallTime: item.wallTime,
-				cpuTime: item.cpuTime,
-			})
+				aggregator.add({
+					scriptName: scriptNameOf(item),
+					entrypoint: entrypointOf(item),
+					handler,
+					outcome: item.outcome,
+					scriptVersion: scriptVersionOf(item),
+					wallTime: item.wallTime,
+					cpuTime: item.cpuTime,
+				})
 
-			if (!isErrorOutcome(item.outcome)) continue
+				if (!isErrorOutcome(item.outcome)) continue
 
-			// Error rows bypass the accumulator entirely: an isolate eviction losing an aggregate tally
-			// is fine, losing the exception we built this worker to see is not.
-			const row = toErrRow(item, handler)
-			writeErrRow(env.TAIL, row)
-			errorEntries.push(toLokiEntry(item, handler, row.errorName, env.TLDRAW_ENV))
+				// Error rows bypass the accumulator entirely: an isolate eviction losing an aggregate
+				// tally is fine, losing the exception we built this worker to see is not.
+				const row = toErrRow(item, handler, env.TLDR_DOC)
+				writeErrRow(env.TAIL, row)
+				errorEntries.push(toLokiEntry(item, handler, row.errorName, env.TLDRAW_ENV, env.TLDR_DOC))
+			} catch (_e) {
+				// One malformed TraceItem must not take out the whole batch — without this, a single bad
+				// item loses every AE row and the whole Loki push for every other item alongside it.
+			}
 		}
 
 		const now = Date.now()

@@ -2,6 +2,7 @@
 
 import { AggBucket } from './aggregate'
 import { entrypointOf, scriptNameOf, scriptVersionOf } from './classify'
+import { redactRoomNotFoundSlug } from './slugs'
 
 // Analytics Engine allows 16 KB across all blobs on a data point and 96 bytes for the index. Only the
 // message is unbounded in practice, but clipping every blob means no future field can silently push a
@@ -27,7 +28,11 @@ export interface ErrRow {
 	exceptionCount: number
 }
 
-export function toErrRow(item: TraceItem, handler: string): ErrRow {
+export function toErrRow(
+	item: TraceItem,
+	handler: string,
+	tldrDoc: DurableObjectNamespace | undefined
+): ErrRow {
 	const first = item.exceptions[0]
 	return {
 		scriptName: scriptNameOf(item),
@@ -37,7 +42,8 @@ export function toErrRow(item: TraceItem, handler: string): ErrRow {
 		// `exceededCpu` and `exceededMemory` arrive with no exception attached, and `error_name` is a
 		// Loki label, so it needs a value rather than an empty string.
 		errorName: first?.name ?? 'none',
-		message: first?.message ?? '',
+		// RoomNotFoundError's message embeds a file slug; redact before it becomes an AE blob.
+		message: redactRoomNotFoundSlug(first?.message ?? '', tldrDoc),
 		scriptVersion: scriptVersionOf(item),
 		durableObjectId: item.durableObjectId ?? '',
 		wallTime: item.wallTime,
@@ -84,6 +90,21 @@ export function writeErrRow(dataset: AnalyticsEngineDataset | undefined, row: Er
 			row.scriptVersion,
 		].map((blob) => clip(blob, MAX_BLOB_CHARS)),
 		doubles: [row.wallTime, row.cpuTime, row.exceptionCount],
+	})
+}
+
+// The Loki push itself has no other failure signal: pushToLoki swallows both a non-ok response and a
+// transport error so a telemetry outage can never fail the tail invocation, which otherwise makes a
+// rotated token, a bad entry, or a rate limit indistinguishable from success. One row per push, not
+// per event, so volume is bounded by batch count.
+export function writePushRow(
+	dataset: AnalyticsEngineDataset | undefined,
+	status: string,
+	entryCount: number
+): void {
+	write(dataset, {
+		blobs: ['push', clip(status, MAX_BLOB_CHARS)],
+		doubles: [entryCount],
 	})
 }
 

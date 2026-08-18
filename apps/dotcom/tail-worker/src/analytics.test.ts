@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { AggBucket } from './aggregate'
-import { ErrRow, toErrRow, writeAggRow, writeErrRow } from './analytics'
+import { ErrRow, toErrRow, writeAggRow, writeErrRow, writePushRow } from './analytics'
 
 function dataset() {
 	return { writeDataPoint: vi.fn() }
@@ -118,7 +118,7 @@ describe('toErrRow', () => {
 			],
 		} as unknown as TraceItem
 
-		expect(toErrRow(item, 'alarm')).toEqual({
+		expect(toErrRow(item, 'alarm', undefined)).toEqual({
 			scriptName: 'tldraw-multiplayer',
 			entrypoint: 'TLFileDurableObject',
 			handler: 'alarm',
@@ -142,7 +142,7 @@ describe('toErrRow', () => {
 			exceptions: [],
 		} as unknown as TraceItem
 
-		expect(toErrRow(item, 'fetch')).toEqual({
+		expect(toErrRow(item, 'fetch', undefined)).toEqual({
 			scriptName: 'tldraw-multiplayer',
 			entrypoint: 'default',
 			handler: 'fetch',
@@ -155,5 +155,38 @@ describe('toErrRow', () => {
 			cpuTime: 30000,
 			exceptionCount: 0,
 		})
+	})
+
+	it('converts a room-not-found slug in the message to its durable object id', () => {
+		const item = {
+			scriptName: 'tldraw-multiplayer',
+			outcome: 'exception',
+			wallTime: 1,
+			cpuTime: 1,
+			exceptions: [
+				{ name: 'RoomNotFoundError', message: 'Room not found: my-secret-slug', timestamp: 0 },
+			],
+		} as unknown as TraceItem
+		const tldrDoc = {
+			idFromName: (name: string) => ({ toString: () => `do(${name})` }),
+		} as any
+
+		expect(toErrRow(item, 'fetch', tldrDoc).message).toBe('Room not found: do(/r/my-secret-slug)')
+	})
+})
+
+describe('writePushRow', () => {
+	it('writes the push row layout', () => {
+		const ds = dataset()
+		writePushRow(ds as any, '429', 42)
+
+		expect(ds.writeDataPoint).toHaveBeenCalledWith({
+			blobs: ['push', '429'],
+			doubles: [42],
+		})
+	})
+
+	it('does nothing when the binding is missing', () => {
+		expect(() => writePushRow(undefined, '204', 1)).not.toThrow()
 	})
 })

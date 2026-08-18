@@ -6,6 +6,9 @@ function makeEnv() {
 	const writeDataPoint = vi.fn()
 	const env = {
 		TAIL: { writeDataPoint },
+		// Same fake as screenshotTestHelpers.ts in the sync worker: a legible `do(<name>)` shows up in
+		// an assertion rather than an opaque hash.
+		TLDR_DOC: { idFromName: (name: string) => ({ toString: () => `do(${name})` }) },
 		TLDRAW_ENV: 'production',
 		GRAFANA_LOKI_ENDPOINT: 'https://loki.test/loki/api/v1/push',
 		GRAFANA_LOKI_USER: '848253',
@@ -152,12 +155,27 @@ describe('tail handler', () => {
 		expect(fetch).toHaveBeenCalledTimes(1)
 	})
 
-	it('still tallies when the analytics binding is missing', async () => {
+	it('does not throw when the analytics binding is missing', async () => {
 		const { env } = makeEnv()
 		const ctx = makeCtx()
 
 		await expect(
 			worker.tail([traceItem()], { ...env, TAIL: undefined }, ctx)
 		).resolves.toBeUndefined()
+	})
+
+	it('skips a malformed item without losing the rest of the batch', async () => {
+		const { env, writeDataPoint } = makeEnv()
+		const ctx = makeCtx()
+		const poison = traceItem()
+		Object.defineProperty(poison, 'event', {
+			get() {
+				throw new Error('boom')
+			},
+		})
+
+		await worker.tail([poison, traceItem()], env, ctx)
+
+		expect(rowsOfType(writeDataPoint, 'agg')).toHaveLength(1)
 	})
 })

@@ -81,7 +81,7 @@ describe('toLokiEntry', () => {
 			event: { request: { method: 'POST', url: 'https://tldraw.com/api/connect/secret-slug' } },
 		} as unknown as TraceItem
 
-		const result = toLokiEntry(item, 'fetch', 'TypeError', 'production')
+		const result = toLokiEntry(item, 'fetch', 'TypeError', 'production', undefined)
 
 		expect(result.labels).toEqual({
 			service_name: 'tldraw-multiplayer',
@@ -115,12 +115,114 @@ describe('toLokiEntry', () => {
 			event: { rpcMethod: 'handleFileEffect' },
 		} as unknown as TraceItem
 
-		expect(toLokiEntry(ws, 'ws_close', 'none', 'production').line).toMatchObject({
+		expect(toLokiEntry(ws, 'ws_close', 'none', 'production', undefined).line).toMatchObject({
 			webSocketEventType: 'close',
 		})
-		expect(toLokiEntry(rpc, 'rpc_handleFileEffect', 'none', 'production').line).toMatchObject({
+		expect(
+			toLokiEntry(rpc, 'rpc_handleFileEffect', 'none', 'production', undefined).line
+		).toMatchObject({
 			rpcMethod: 'handleFileEffect',
 		})
+	})
+
+	it('falls back to Date.now() rather than the 1970 epoch when eventTimestamp is null', () => {
+		const now = 1_800_000_000_000
+		vi.useFakeTimers()
+		vi.setSystemTime(now)
+		try {
+			const item = {
+				outcome: 'ok',
+				eventTimestamp: null,
+				exceptions: [],
+				logs: [],
+				event: null,
+			} as unknown as TraceItem
+
+			expect(toLokiEntry(item, 'fetch', 'none', 'production', undefined).timestampMs).toBe(now)
+		} finally {
+			vi.useRealTimers()
+		}
+	})
+
+	it('converts a room-not-found slug in the message, stack and exceptions to its durable object id', () => {
+		const tldrDoc = {
+			idFromName: (name: string) => ({ toString: () => `do(${name})` }),
+		} as any
+		const item = {
+			outcome: 'exception',
+			exceptions: [
+				{
+					name: 'RoomNotFoundError',
+					message: 'Room not found: my-secret-slug',
+					stack: 'RoomNotFoundError: Room not found: my-secret-slug\n    at foo',
+					timestamp: 1,
+				},
+			],
+			logs: [],
+			event: null,
+		} as unknown as TraceItem
+
+		const result = toLokiEntry(item, 'fetch', 'RoomNotFoundError', 'production', tldrDoc)
+
+		expect(result.line).toMatchObject({
+			message: 'Room not found: do(/r/my-secret-slug)',
+		})
+		expect(result.line.stack).toContain('do(/r/my-secret-slug)')
+		expect((result.line.exceptions as any[])[0].message).toBe(
+			'Room not found: do(/r/my-secret-slug)'
+		)
+	})
+
+	it('redacts a slug-bearing console log before it is stringified', () => {
+		const tldrDoc = {
+			idFromName: (name: string) => ({ toString: () => `do(${name})` }),
+		} as any
+		const item = {
+			outcome: 'exception',
+			exceptions: [],
+			logs: [{ timestamp: 1, level: 'error', message: ['failed to fetch doc', 'my-secret-slug'] }],
+			event: null,
+		} as unknown as TraceItem
+
+		const result = toLokiEntry(item, 'fetch', 'none', 'production', tldrDoc)
+
+		expect(result.line.logs).toEqual([
+			{ level: 'error', message: JSON.stringify(['failed to fetch doc', 'do(/r/my-secret-slug)']) },
+		])
+	})
+
+	it('caps stack length and the number of exceptions carried', () => {
+		const item = {
+			outcome: 'exception',
+			exceptions: Array.from({ length: 10 }, (_, i) => ({
+				name: 'Error',
+				message: `err ${i}`,
+				stack: 'x'.repeat(20_000),
+				timestamp: i,
+			})),
+			logs: [],
+			event: null,
+		} as unknown as TraceItem
+
+		const result = toLokiEntry(item, 'fetch', 'Error', 'production', undefined)
+
+		expect((result.line.exceptions as any[]).length).toBe(3)
+		expect((result.line.stack as string).length).toBeLessThanOrEqual(8000)
+		expect((result.line.exceptions as any[])[0].stack.length).toBeLessThanOrEqual(8000)
+	})
+
+	it('clips the handler label the same way error_name already is', () => {
+		const item = {
+			outcome: 'exception',
+			exceptions: [],
+			logs: [],
+			event: null,
+		} as unknown as TraceItem
+		const longHandler = `rpc_${'x'.repeat(200)}`
+
+		const result = toLokiEntry(item, longHandler, 'none', 'production', undefined)
+
+		expect(result.labels.handler.length).toBeLessThanOrEqual(64)
 	})
 })
 
@@ -130,6 +232,7 @@ describe('pushToLoki', () => {
 	})
 
 	const env = {
+		TAIL: undefined,
 		TLDRAW_ENV: 'production',
 		GRAFANA_LOKI_ENDPOINT: 'https://loki.test/loki/api/v1/push',
 		GRAFANA_LOKI_USER: '848253',
@@ -168,5 +271,34 @@ describe('pushToLoki', () => {
 		)
 
 		await expect(pushToLoki(env, [entry()])).resolves.toBeUndefined()
+	})
+
+	it('records a push row with the response status for a non-ok response', async () => {
+		const writeDataPoint = vi.fn()
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async () => new Response('', { status: 400 }))
+		)
+
+		await pushToLoki({ ...env, TAIL: { writeDataPoint } as any }, [entry(), entry()])
+
+		expect(writeDataPoint).toHaveBeenCalledWith({ blobs: ['push', '400'], doubles: [2] })
+	})
+
+	it('records a transport_error push row when the fetch throws', async () => {
+		const writeDataPoint = vi.fn()
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async () => {
+				throw new Error('network down')
+			})
+		)
+
+		await pushToLoki({ ...env, TAIL: { writeDataPoint } as any }, [entry()])
+
+		expect(writeDataPoint).toHaveBeenCalledWith({
+			blobs: ['push', 'transport_error'],
+			doubles: [1],
+		})
 	})
 })
