@@ -20,8 +20,8 @@
 	},
 	"dependencies": {
 		"@modelcontextprotocol/ext-apps": "^1.0.0",
-		"@modelcontextprotocol/sdk": "1.26.0",
-		"agents": "patch:agents@npm%3A0.5.1#~/.yarn/patches/agents-npm-0.5.1-459a7d6fe3.patch",
+		"@modelcontextprotocol/sdk": "1.29.0",
+		"agents": "^0.19.0",
 		"zod": "^4.1.8"
 	},
 	"devDependencies": {
