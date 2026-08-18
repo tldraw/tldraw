@@ -1,5 +1,3 @@
-let nextMermaidId = 0
-
 import type { FlowDB } from 'mermaid/dist/diagrams/flowchart/flowDb.d.ts'
 import type { FlowEdge, FlowSubGraph, FlowVertex } from 'mermaid/dist/diagrams/flowchart/types.js'
 import type { MindmapDB } from 'mermaid/dist/diagrams/mindmap/mindmapDb.d.ts'
@@ -11,6 +9,8 @@ import { mindmapToBlueprint, parseMindmapLayout } from './mindmapDiagram'
 import { BlueprintRenderingOptions, renderBlueprint } from './renderBlueprint'
 import { countSequenceEvents, parseSequenceLayout, sequenceToBlueprint } from './sequenceDiagram'
 import { parseStateDiagramLayout, stateToBlueprint } from './stateDiagram'
+
+let nextMermaidId = 0
 
 /** @public */
 export class MermaidDiagramError extends Error {
@@ -55,11 +55,9 @@ export async function createMermaidDiagram(
 	text: string,
 	options: MermaidDiagramOptions = {}
 ): Promise<void> {
-	// load mermaid lazily: it's a large, ESM-only dependency only needed when a
-	// diagram is actually created. a dynamic import() works from CommonJS (unlike
-	// a static import, which compiles to require(<esm>) and throws
-	// ERR_REQUIRE_ESM on Node <20.19, Jest, and ts-node) and avoids pulling
-	// mermaid in when @tldraw/mermaid is merely imported.
+	// Lazy dynamic import: mermaid is large and ESM-only. A static import would
+	// compile to require(<esm>) in CommonJS and throw ERR_REQUIRE_ESM on
+	// Node <20.19, Jest, and ts-node.
 	const mermaid = (await import('mermaid')).default
 
 	mermaid.initialize({
@@ -79,19 +77,20 @@ export async function createMermaidDiagram(
 	}
 
 	const offscreen = document.createElement('div')
-	offscreen.style.position = 'absolute'
-	offscreen.style.left = '-9999px'
-	offscreen.style.top = '-9999px'
-	offscreen.style.overflow = 'hidden'
+	Object.assign(offscreen.style, {
+		position: 'absolute',
+		left: '-9999px',
+		top: '-9999px',
+		overflow: 'hidden',
+	})
 	document.body.appendChild(offscreen)
 
 	try {
 		const parsedSvg = (await mermaid.render(`mermaid-${nextMermaidId++}`, text, offscreen)).svg
 
-		// Reuse the live SVG that mermaid.render() already mounted into the
-		// offscreen container.  This avoids a second DOM mount and ensures
-		// getBBox() works for every diagram type (state diagrams in particular
-		// lack explicit dimension attributes and rely on live layout).
+		// Reuse the SVG mermaid.render() mounted into the offscreen container so
+		// getBBox() works: state diagrams lack explicit dimension attributes and
+		// rely on live layout.
 		let liveSvg = offscreen.querySelector('svg')
 
 		if (!liveSvg) {

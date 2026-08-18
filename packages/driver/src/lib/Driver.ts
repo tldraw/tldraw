@@ -28,6 +28,19 @@ export type PointerEventInit = Partial<TLPointerEventInfo> | TLShapeId
 /** Modifier keys for events. @public */
 export type EventModifiers = Partial<Pick<TLPointerEventInfo, 'shiftKey' | 'ctrlKey' | 'altKey'>>
 
+const KEY_CODES: Record<string, string> = {
+	Shift: 'ShiftLeft',
+	Alt: 'AltLeft',
+	Control: 'CtrlLeft',
+	Meta: 'MetaLeft',
+	' ': 'Space',
+	Enter: 'Enter',
+	ArrowRight: 'ArrowRight',
+	ArrowLeft: 'ArrowLeft',
+	ArrowUp: 'ArrowUp',
+	ArrowDown: 'ArrowDown',
+}
+
 /**
  * Driver wraps an Editor instance and provides an imperative API for driving it
  * programmatically. Useful for scripting, automation, REPL usage, and testing.
@@ -37,8 +50,8 @@ export type EventModifiers = Partial<Pick<TLPointerEventInfo, 'shiftKey' | 'ctrl
  * @public
  */
 export class Driver {
-	/** The underlying Editor instance. */
-	private _cleanup: (() => void) | null = null
+	private _cleanup: (() => void) | null
+	private _lastCreatedShapes: TLShape[] = []
 
 	constructor(public readonly editor: Editor) {
 		this._cleanup = this.editor.sideEffects.registerAfterCreateHandler('shape', (record) => {
@@ -58,8 +71,6 @@ export class Driver {
 	/** Local clipboard content. Used by copy, cut, and paste. */
 	clipboard: TLContent | null = null
 
-	private _lastCreatedShapes: TLShape[] = []
-
 	/**
 	 * Get the last created shapes.
 	 * @param count - The number of shapes to get.
@@ -76,11 +87,8 @@ export class Driver {
 		return this.editor.getShape<T>(lastShape)!
 	}
 
-	/* ---------------------- IDs ---------------------- */
-
 	/**
 	 * Creates a shape ID from a string.
-	 * @param id - The string to convert to a shape ID.
 	 */
 	createShapeID(id: string) {
 		return createShapeId(id)
@@ -88,13 +96,10 @@ export class Driver {
 
 	/**
 	 * Creates a page ID from a string.
-	 * @param id - The string to convert to a page ID.
 	 */
 	createPageID(id: string) {
 		return PageRecordType.createId(id)
 	}
-
-	/* ------------------- Clipboard ------------------- */
 
 	/**
 	 * Copies the given shapes to the controller clipboard. Defaults to the current selection.
@@ -116,10 +121,7 @@ export class Driver {
 	 */
 	cut(ids = this.editor.getSelectedShapeIds()) {
 		if (ids.length > 0) {
-			const content = this.editor.getContentFromCurrentPage(ids)
-			if (content) {
-				this.clipboard = content
-			}
+			this.copy(ids)
 			this.editor.deleteShapes(ids)
 		}
 		return this
@@ -142,8 +144,6 @@ export class Driver {
 		return this
 	}
 
-	/* ------------------- Queries ------------------- */
-
 	/** Returns the center of the viewport in page coordinates. */
 	getViewportPageCenter() {
 		return this.editor.getViewportPageBounds().center
@@ -159,7 +159,6 @@ export class Driver {
 
 	/**
 	 * Returns the center of a shape in page coordinates, or null if the shape has no page transform.
-	 * @param shape - The shape to get the center of.
 	 */
 	getPageCenter(shape: TLShape) {
 		const pageTransform = this.editor.getShapePageTransform(shape.id)
@@ -170,19 +169,14 @@ export class Driver {
 
 	/**
 	 * Returns the rotation of a shape in page space by ID, in radians.
-	 * @param id - The shape ID.
 	 */
 	getPageRotationById(id: TLShapeId): number {
 		const pageTransform = this.editor.getShapePageTransform(id)
-		if (pageTransform) {
-			return Mat.Decompose(pageTransform).rotation
-		}
-		return 0
+		return pageTransform ? pageTransform.rotation() : 0
 	}
 
 	/**
 	 * Returns the rotation of a shape in page space, in radians.
-	 * @param shape - The shape to get the rotation of.
 	 */
 	getPageRotation(shape: TLShape) {
 		return this.getPageRotationById(shape.id)
@@ -190,14 +184,22 @@ export class Driver {
 
 	/**
 	 * Returns all arrow shapes bound to the given shape.
-	 * @param shapeId - The shape ID to find arrows bound to.
 	 */
 	getArrowsBoundTo(shapeId: TLShapeId) {
 		const ids = new Set(this.editor.getBindingsToShape(shapeId, 'arrow').map((b) => b.fromId))
 		return compact(Array.from(ids, (id) => this.editor.getShape<TLArrowShape>(id)))
 	}
 
-	/* --------------- Event building --------------- */
+	private getModifierKeys() {
+		const { inputs } = this.editor
+		return {
+			shiftKey: inputs.getShiftKey(),
+			ctrlKey: inputs.getCtrlKey(),
+			altKey: inputs.getAltKey(),
+			metaKey: inputs.getMetaKey(),
+			accelKey: isAccelKey(inputs),
+		}
+	}
 
 	/**
 	 * Builds a TLPointerEventInfo object for input simulation.
@@ -221,10 +223,7 @@ export class Driver {
 			name: 'pointer_down',
 			type: 'pointer',
 			pointerId: 1,
-			shiftKey: this.editor.inputs.getShiftKey(),
-			ctrlKey: this.editor.inputs.getCtrlKey(),
-			altKey: this.editor.inputs.getAltKey(),
-			metaKey: this.editor.inputs.getMetaKey(),
+			...this.getModifierKeys(),
 			accelKey: isAccelKey({ ...this.editor.inputs.toJson(), ...modifiers }),
 			point: { x, y, z: null },
 			button: 0,
@@ -244,21 +243,13 @@ export class Driver {
 		return info
 	}
 
-	/**
-	 * Builds a TLKeyboardEventInfo object for input simulation.
-	 * @param key - The key being pressed.
-	 * @param name - The event name (key_down, key_up, key_repeat).
-	 * @param options - Partial event info overrides.
-	 */
 	private getKeyboardEventInfo(
 		key: string,
 		name: TLKeyboardEventInfo['name'],
 		options = {} as Partial<Omit<TLKeyboardEventInfo, 'point'>>
 	): TLKeyboardEventInfo {
-		// Like a real DOM keyboard event, the flags reflect every modifier currently held — not
-		// just the key being pressed. We OR in the editor's current modifier state so that, e.g.,
-		// pressing Shift while Control is held still reports ctrlKey: true. (keyUp passes explicit
-		// flag overrides for its release semantics, so those win over these defaults.)
+		// Like a real DOM keyboard event, the flags reflect every modifier currently held, not just
+		// the key being pressed. keyUp passes explicit overrides for its release semantics.
 		const flags = {
 			shiftKey: key === 'Shift' || this.editor.inputs.getShiftKey(),
 			ctrlKey: key === 'Control' || key === 'Meta' || this.editor.inputs.getCtrlKey(),
@@ -268,32 +259,13 @@ export class Driver {
 		}
 		return {
 			...flags,
-			accelKey: flags.accelKey ?? (tlenv.isDarwin ? flags.metaKey : flags.ctrlKey || flags.metaKey),
+			accelKey: flags.accelKey ?? isAccelKey(flags),
 			name,
-			code:
-				key === 'Shift'
-					? 'ShiftLeft'
-					: key === 'Alt'
-						? 'AltLeft'
-						: key === 'Control'
-							? 'CtrlLeft'
-							: key === 'Meta'
-								? 'MetaLeft'
-								: key === ' '
-									? 'Space'
-									: key === 'Enter' ||
-										  key === 'ArrowRight' ||
-										  key === 'ArrowLeft' ||
-										  key === 'ArrowUp' ||
-										  key === 'ArrowDown'
-										? key
-										: 'Key' + key[0].toUpperCase() + key.slice(1),
+			code: KEY_CODES[key] ?? 'Key' + key[0].toUpperCase() + key.slice(1),
 			type: 'keyboard',
 			key,
 		}
 	}
-
-	/* --------------- Input events --------------- */
 
 	/**
 	 * Emits tick events to advance the editor by the given number of frames (default 1).
@@ -428,8 +400,7 @@ export class Driver {
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
 	) {
-		this.pointerDown(x, y, options, modifiers)
-		this.pointerUp(x, y, options, modifiers)
+		this.click(x, y, options, modifiers)
 		this.editor.dispatch({
 			...this.getPointerEventInfo(x, y, options, modifiers),
 			type: 'click',
@@ -463,7 +434,7 @@ export class Driver {
 	 * @param options - Partial keyboard event overrides.
 	 */
 	keyDown(key: string, options = {} as Partial<Omit<TLKeyboardEventInfo, 'key'>>) {
-		this.editor.dispatch({ ...this.getKeyboardEventInfo(key, 'key_down', options) })
+		this.editor.dispatch(this.getKeyboardEventInfo(key, 'key_down', options))
 		this.forceTick()
 		return this
 	}
@@ -474,7 +445,7 @@ export class Driver {
 	 * @param options - Partial keyboard event overrides.
 	 */
 	keyRepeat(key: string, options = {} as Partial<Omit<TLKeyboardEventInfo, 'key'>>) {
-		this.editor.dispatch({ ...this.getKeyboardEventInfo(key, 'key_repeat', options) })
+		this.editor.dispatch(this.getKeyboardEventInfo(key, 'key_repeat', options))
 		this.forceTick()
 		return this
 	}
@@ -485,15 +456,15 @@ export class Driver {
 	 * @param options - Partial keyboard event overrides.
 	 */
 	keyUp(key: string, options = {} as Partial<Omit<TLKeyboardEventInfo, 'key'>>) {
-		this.editor.dispatch({
-			...this.getKeyboardEventInfo(key, 'key_up', {
+		this.editor.dispatch(
+			this.getKeyboardEventInfo(key, 'key_up', {
 				shiftKey: this.editor.inputs.getShiftKey() && key !== 'Shift',
 				ctrlKey: this.editor.inputs.getCtrlKey() && !(key === 'Control' || key === 'Meta'),
 				altKey: this.editor.inputs.getAltKey() && key !== 'Alt',
 				metaKey: this.editor.inputs.getMetaKey() && key !== 'Meta',
 				...options,
-			}),
-		})
+			})
+		)
 		this.forceTick()
 		return this
 	}
@@ -510,11 +481,7 @@ export class Driver {
 			type: 'wheel',
 			name: 'wheel',
 			point: new Vec(currentScreenPoint.x, currentScreenPoint.y),
-			shiftKey: this.editor.inputs.getShiftKey(),
-			ctrlKey: this.editor.inputs.getCtrlKey(),
-			altKey: this.editor.inputs.getAltKey(),
-			metaKey: this.editor.inputs.getMetaKey(),
-			accelKey: isAccelKey(this.editor.inputs),
+			...this.getModifierKeys(),
 			...options,
 			delta: { x: dx, y: dy },
 		})
@@ -537,6 +504,26 @@ export class Driver {
 		return this
 	}
 
+	private pinch(
+		name: TLPinchEventInfo['name'],
+		x: number,
+		y: number,
+		z: number,
+		dx: number,
+		dy: number,
+		dz: number,
+		options: Partial<Omit<TLPinchEventInfo, 'point' | 'delta' | 'offset'>>
+	) {
+		this.editor.dispatch({
+			type: 'pinch',
+			name,
+			...this.getModifierKeys(),
+			...options,
+			point: { x, y, z },
+			delta: { x: dx, y: dy, z: dz },
+		})
+	}
+
 	/**
 	 * Dispatches a pinch start event.
 	 * @param x - Screen x coordinate. Defaults to current pointer.
@@ -556,18 +543,7 @@ export class Driver {
 		dz: number,
 		options = {} as Partial<Omit<TLPinchEventInfo, 'point' | 'delta' | 'offset'>>
 	) {
-		this.editor.dispatch({
-			type: 'pinch',
-			name: 'pinch_start',
-			shiftKey: this.editor.inputs.getShiftKey(),
-			ctrlKey: this.editor.inputs.getCtrlKey(),
-			altKey: this.editor.inputs.getAltKey(),
-			metaKey: this.editor.inputs.getMetaKey(),
-			accelKey: isAccelKey(this.editor.inputs),
-			...options,
-			point: { x, y, z },
-			delta: { x: dx, y: dy, z: dz },
-		})
+		this.pinch('pinch_start', x, y, z, dx, dy, dz, options)
 		this.forceTick()
 		return this
 	}
@@ -591,18 +567,7 @@ export class Driver {
 		dz: number,
 		options = {} as Partial<Omit<TLPinchEventInfo, 'point' | 'delta' | 'offset'>>
 	) {
-		this.editor.dispatch({
-			type: 'pinch',
-			name: 'pinch',
-			shiftKey: this.editor.inputs.getShiftKey(),
-			ctrlKey: this.editor.inputs.getCtrlKey(),
-			altKey: this.editor.inputs.getAltKey(),
-			metaKey: this.editor.inputs.getMetaKey(),
-			accelKey: isAccelKey(this.editor.inputs),
-			...options,
-			point: { x, y, z },
-			delta: { x: dx, y: dy, z: dz },
-		})
+		this.pinch('pinch', x, y, z, dx, dy, dz, options)
 		return this
 	}
 
@@ -625,31 +590,9 @@ export class Driver {
 		dz: number,
 		options = {} as Partial<Omit<TLPinchEventInfo, 'point' | 'delta' | 'offset'>>
 	) {
-		this.editor.dispatch({
-			type: 'pinch',
-			name: 'pinch_end',
-			shiftKey: this.editor.inputs.getShiftKey(),
-			ctrlKey: this.editor.inputs.getCtrlKey(),
-			altKey: this.editor.inputs.getAltKey(),
-			metaKey: this.editor.inputs.getMetaKey(),
-			accelKey: isAccelKey(this.editor.inputs),
-			...options,
-			point: { x, y, z },
-			delta: { x: dx, y: dy, z: dz },
-		})
+		this.pinch('pinch_end', x, y, z, dx, dy, dz, options)
 		this.forceTick()
 		return this
-	}
-
-	/* --------------- Interaction helpers --------------- */
-
-	/**
-	 * Converts a point from page coordinates to screen coordinates.
-	 * Pointer events operate in screen space, so page-space points must be
-	 * converted before being passed to pointerDown/Move/Up.
-	 */
-	private pageToScreen(point: VecLike) {
-		return this.editor.pageToScreen(point)
 	}
 
 	/**
@@ -668,19 +611,16 @@ export class Driver {
 
 		this.editor.setCurrentTool('select')
 
-		const handlePoint = this.editor
-			.getSelectionRotatedPageBounds()!
+		const bounds = this.editor.getSelectionRotatedPageBounds()!
+		const handlePoint = bounds
 			.getHandlePoint(ROTATE_CORNER_TO_SELECTION_CORNER[handle])
 			.clone()
-			.rotWith(
-				this.editor.getSelectionRotatedPageBounds()!.point,
-				this.editor.getSelectionRotation()
-			)
+			.rotWith(bounds.point, this.editor.getSelectionRotation())
 
 		const targetHandlePoint = Vec.RotWith(handlePoint, this.getSelectionPageCenter()!, angleRadians)
 
-		const screenHandle = this.pageToScreen(handlePoint)
-		const screenTarget = this.pageToScreen(targetHandlePoint)
+		const screenHandle = this.editor.pageToScreen(handlePoint)
+		const screenTarget = this.editor.pageToScreen(targetHandlePoint)
 
 		this.pointerDown(screenHandle.x, screenHandle.y, { target: 'selection', handle })
 		this.pointerMove(screenTarget.x, screenTarget.y, { shiftKey })
@@ -701,18 +641,18 @@ export class Driver {
 		this.editor.setCurrentTool('select')
 
 		const center = this.getSelectionPageCenter()!
-		const screenCenter = this.pageToScreen(center)
+		const screenCenter = this.editor.pageToScreen(center)
 
 		this.pointerDown(screenCenter.x, screenCenter.y, this.editor.getSelectedShapeIds()[0])
 		const numSteps = 10
 		for (let i = 1; i < numSteps; i++) {
-			const p = this.pageToScreen({
+			const p = this.editor.pageToScreen({
 				x: center.x + (i * dx) / numSteps,
 				y: center.y + (i * dy) / numSteps,
 			})
 			this.pointerMove(p.x, p.y, options)
 		}
-		const endScreen = this.pageToScreen({ x: center.x + dx, y: center.y + dy })
+		const endScreen = this.editor.pageToScreen({ x: center.x + dx, y: center.y + dy })
 		this.pointerUp(endScreen.x, endScreen.y, options)
 		return this
 	}
@@ -734,6 +674,7 @@ export class Driver {
 		}
 		this.editor.setCurrentTool('select')
 		const bounds = this.editor.getSelectionRotatedPageBounds()!
+		const rotation = this.editor.getSelectionRotation()
 		const preRotationHandlePoint = bounds.getHandlePoint(handle)
 
 		const preRotationScaleOriginPoint = options?.altKey
@@ -748,19 +689,11 @@ export class Driver {
 			preRotationScaleOriginPoint
 		)
 
-		const handlePoint = Vec.RotWith(
-			preRotationHandlePoint,
-			bounds.point,
-			this.editor.getSelectionRotation()
-		)
-		const targetHandlePoint = Vec.RotWith(
-			preRotationTargetHandlePoint,
-			bounds.point,
-			this.editor.getSelectionRotation()
-		)
+		const handlePoint = Vec.RotWith(preRotationHandlePoint, bounds.point, rotation)
+		const targetHandlePoint = Vec.RotWith(preRotationTargetHandlePoint, bounds.point, rotation)
 
-		const screenHandle = this.pageToScreen(handlePoint)
-		const screenTarget = this.pageToScreen(targetHandlePoint)
+		const screenHandle = this.editor.pageToScreen(handlePoint)
+		const screenTarget = this.editor.pageToScreen(targetHandlePoint)
 
 		this.pointerDown(screenHandle.x, screenHandle.y, { target: 'selection', handle }, options)
 		this.pointerMove(screenTarget.x, screenTarget.y, options)

@@ -1,18 +1,30 @@
-import { createBuilder, defineQueriesWithType, defineQueryWithType } from '@rocicorp/zero'
+import { createBuilder, defineQueriesWithType, defineQueryWithType, Query } from '@rocicorp/zero'
 import { schema, TlaSchema } from './tlaSchema'
 
 const zql = createBuilder(schema)
 
-/** Context provided by server - contains authenticated user ID */
+/** Set server-side from the authenticated session; queries trust `userId`. */
 export interface ZeroContext {
 	userId: string
 }
 
-/** Typed defineQuery with schema and context */
 const defineQuery = defineQueryWithType<TlaSchema, ZeroContext>()
-
-/** Typed defineQueries with schema */
 const defineQueries = defineQueriesWithType<TlaSchema>()
+
+/**
+ * The file-access gate: the user has opened the file (has a file_state) or belongs to a workspace
+ * it's in. Ownership is checked separately by callers. Always applied directly under `exists('file')`
+ * from the query root — see the depth note on the `reactions` query.
+ */
+const canAccessFile = (userId: string) => (file: Query<'file', TlaSchema>) =>
+	file.where(({ or, exists }) =>
+		or(
+			exists('states', (s) => s.where('userId', '=', userId)),
+			exists('groupFiles', (gf) =>
+				gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', userId))
+			)
+		)
+	)
 
 /** Upper bound on the comments notifications feed, so the synced set stays finite as files accrue. */
 const RECENT_COMMENTS_LIMIT = 50
@@ -29,21 +41,14 @@ export const REACTED_COMMENTS_LIMIT = 200
  */
 const MENTIONABLE_VISITORS_LIMIT = 100
 
-/**
- * Synced Queries with permission logic.
- * These replace the old definePermissions API.
- * Permissions are enforced via ctx.userId which is set server-side.
- */
+/** Synced queries; permissions are enforced here through `ctx.userId` (replacing definePermissions). */
 export const queries = defineQueries({
-	/** Current user's own record (single) */
 	user: defineQuery(({ ctx }) => zql.user.where('id', '=', ctx.userId).one()),
 
-	/** User's file states with related file data */
 	fileStates: defineQuery(({ ctx }) =>
 		zql.file_state.where('userId', '=', ctx.userId).related('file', (file) => file.one())
 	),
 
-	/** User's workspace memberships with related group, files, and members */
 	workspaceMemberships: defineQuery(({ ctx }) =>
 		zql.group_user
 			.where('userId', '=', ctx.userId)
@@ -107,30 +112,12 @@ export const queries = defineQueries({
 								)
 							)
 						),
-						exists('file', (f) =>
-							f.where(({ or, exists }) =>
-								or(
-									exists('states', (s) => s.where('userId', '=', ctx.userId)),
-									exists('groupFiles', (gf) =>
-										gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', ctx.userId))
-									)
-								)
-							)
-						)
+						exists('file', canAccessFile(ctx.userId))
 					),
 					// @-mentions the user, on a file they can access (opened it, or workspace member)
 					and(
 						exists('mentions', (m) => m.where('userId', '=', ctx.userId)),
-						exists('file', (f) =>
-							f.where(({ or, exists }) =>
-								or(
-									exists('states', (s) => s.where('userId', '=', ctx.userId)),
-									exists('groupFiles', (gf) =>
-										gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', ctx.userId))
-									)
-								)
-							)
-						)
+						exists('file', canAccessFile(ctx.userId))
 					)
 				)
 			)
@@ -162,15 +149,13 @@ export const queries = defineQueries({
 	 * `buildReactionNotifications` stamps each entry with its newest foreign reaction and
 	 * `mergeNotifications` sorts on it.
 	 *
-	 * Rooted at `comment`, *not* at `comment_reaction`, so the file-access gate sits one level from
-	 * the root exactly as it does in {@link comments}. Rooting at the reaction put that gate behind
-	 * a second correlated subquery, and the fileId correlation then stopped being pushed down into
-	 * `file`'s `states`/`groupFiles` relations: the query traversed those tables — hundreds of
-	 * thousands of rows — rather than the handful of files it actually concerned. It materialized in
-	 * ~150s against production data while `comment_reaction` held ~50 rows, which outran the sync
-	 * connection's 60s auth token and left every client unable to finish a first sync. The cost of
-	 * one of these queries is set by how deep the file gate sits, not by how much comment data
-	 * exists, so keep it at depth 1.
+	 * Rooted at `comment`, *not* at `comment_reaction`, so the file-access gate sits one hop from
+	 * the root exactly as it does in {@link comments}. Rooting at the reaction put the gate a hop
+	 * deeper, the fileId correlation stopped being pushed into `file`'s `states`/`groupFiles`
+	 * relations, and the query traversed those tables wholesale: ~150s to materialize in production
+	 * with ~50 reaction rows, outrunning the 60s auth token so no client could finish a first sync.
+	 * The cost is set by how deep the gate sits, not by how much comment data exists; the shape is
+	 * pinned by `accessGateDepth` in queries.test.ts.
 	 *
 	 * Bounded to {@link REACTED_COMMENTS_LIMIT} by comment recency rather than reaction recency, so
 	 * a reaction on a comment older than the window doesn't surface. The window counts only the
@@ -192,16 +177,7 @@ export const queries = defineQueries({
 			.where(({ or, exists }) =>
 				or(
 					exists('file', (f) => f.where('ownerId', '=', ctx.userId)),
-					exists('file', (f) =>
-						f.where(({ or, exists }) =>
-							or(
-								exists('states', (s) => s.where('userId', '=', ctx.userId)),
-								exists('groupFiles', (gf) =>
-									gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', ctx.userId))
-								)
-							)
-						)
-					)
+					exists('file', canAccessFile(ctx.userId))
 				)
 			)
 			.related('file', (file) => file.one())
