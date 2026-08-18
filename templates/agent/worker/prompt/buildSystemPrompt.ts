@@ -5,41 +5,21 @@ import { getSystemPromptFlags } from './getSystemPromptFlags'
 import { buildIntroPromptSection } from './sections/intro-section'
 import { buildRulesPromptSection } from './sections/rules-section'
 
-/**
- * Build the system prompt for the agent.
- *
- * This is the main instruction set that tells the AI how to behave.
- * The prompt is constructed from modular sections that adapt based on
- * what actions and parts are available.
- *
- * @param prompt - The prompt containing all parts including the mode part.
- * @param opts - Options for building the system prompt.
- * @param opts.withSchema - Whether to include the JSON schema in the system prompt. Defaults to true.
- * @returns The system prompt string.
- */
-export function buildSystemPrompt(
-	prompt: AgentPrompt,
-	opts: { withSchema: boolean } = { withSchema: true }
-): string {
-	const { withSchema = true } = opts
-
+// The system prompt is built from sections that adapt to the mode's available actions and parts.
+export function buildSystemPrompt(prompt: AgentPrompt, { withSchema = true } = {}): string {
 	const modePart = prompt.mode
 	if (!modePart) {
 		throw new Error('A mode part is always required.')
 	}
 
-	const { actionTypes, partTypes } = modePart
-	const flags = getSystemPromptFlags(actionTypes, partTypes)
-
+	const flags = getSystemPromptFlags(modePart.actionTypes, modePart.partTypes)
 	const lines = [buildIntroPromptSection(flags), buildRulesPromptSection(flags)]
 
 	if (withSchema) {
 		lines.push(buildSchemaPromptSection(modePart))
 	}
 
-	const result = normalizeNewlines(lines.join('\n'))
-
-	return result
+	return normalizeNewlines(lines.join('\n'))
 }
 
 function buildSchemaPromptSection(modePart: ModePart) {

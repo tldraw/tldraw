@@ -5,205 +5,80 @@ import { ContextItem } from '../shared/types/ContextItem'
 import { SimpleShapeId } from '../shared/types/ids-schema'
 import { TldrawAgent } from './agent/TldrawAgent'
 
+const SHAPE_POSITION_PROPS = ['x', 'y', 'x1', 'y1', 'x2', 'y2'] as const
+const SHAPE_NUMBER_PROPS = [...SHAPE_POSITION_PROPS, 'w', 'h'] as const
+
 /**
- * This class contains handles the transformations that happen throughout a
- * request. It contains helpers that can be used to change prompt parts
- * before they get sent to the model, as well as helpers that can be used to
- * change incoming actions as they get streamed back from the model.
+ * Per-request transformations applied to prompt parts on the way to the model
+ * and to actions on the way back.
  *
- * For example, `applyOffsetToShape` adjusts the position of a shape to make it
- * relative to the current chat origin. The `removeOffsetFromShape` method
- * reverses it. This is helpful because it helps to keep numbers low, which is
- * easier for the model to deal with.
- *
- * Many transformation methods save some state. For example, the
- * `ensureShapeIdIsUnique` method changes a shape's ID if it's not unique, and
- * it saves a record of this change so that further actions can continue to
- * refer to the shape by its untransformed ID.
+ * Positions are sent relative to the chat origin (`applyOffsetTo*` /
+ * `removeOffsetFrom*`) and rounded (`round*` / `unround*`) to keep numbers
+ * small for the model. Both are reversible: rounding diffs and remapped shape
+ * ids are remembered so later actions can still refer to the untransformed
+ * values.
  */
 export class AgentHelpers {
-	/**
-	 * The agent that the this intance of AgentHelpers is for.
-	 */
 	agent: TldrawAgent
-
-	/**
-	 * The editor that the this intance of AgentHelpers is for.
-	 */
 	editor: Editor
 
 	constructor(agent: TldrawAgent) {
 		this.agent = agent
 		this.editor = agent.editor
 		const origin = agent.chatOrigin.getOrigin()
-		this.offset = {
-			x: -origin.x,
-			y: -origin.y,
-		}
+		this.offset = { x: -origin.x, y: -origin.y }
 	}
 
-	/**
-	 * The offset of the current request from the chat origin.
-	 */
+	/** The offset of the current request from the chat origin. */
 	offset: VecModel = { x: 0, y: 0 }
 
-	/**
-	 * A map of shape ids that have been transformed as part of this request.
-	 * The key is the original id, and the value is the transformed id.
-	 */
+	/** Original shape id -> the unique id it was remapped to. */
 	shapeIdMap = new Map<string, string>()
 
-	/**
-	 * A map of rounding diffs, stored by key.
-	 * These are used to restore the original values of rounded numbers.
-	 */
+	/** Rounding diffs by `${shapeId}_${property}`, used to restore original values. */
 	roundingDiffMap = new Map<string, number>()
 
-	/**
-	 * Apply the offset of this request to a position.
-	 */
 	applyOffsetToVec(position: VecModel): VecModel {
-		return {
-			x: position.x + this.offset.x,
-			y: position.y + this.offset.y,
-		}
+		return { x: position.x + this.offset.x, y: position.y + this.offset.y }
 	}
 
-	/**
-	 * Remove the offset of this request from a position.
-	 */
 	removeOffsetFromVec(position: VecModel): VecModel {
-		return {
-			x: position.x - this.offset.x,
-			y: position.y - this.offset.y,
-		}
+		return { x: position.x - this.offset.x, y: position.y - this.offset.y }
 	}
 
-	/**
-	 * Apply the offset of this request to a box.
-	 */
 	applyOffsetToBox(box: BoxModel): BoxModel {
-		return {
-			x: box.x + this.offset.x,
-			y: box.y + this.offset.y,
-			w: box.w,
-			h: box.h,
-		}
+		return { ...box, x: box.x + this.offset.x, y: box.y + this.offset.y }
 	}
 
-	/**
-	 * Remove the offset of this request from a box.
-	 */
 	removeOffsetFromBox(box: BoxModel): BoxModel {
-		return {
-			x: box.x - this.offset.x,
-			y: box.y - this.offset.y,
-			w: box.w,
-			h: box.h,
-		}
+		return { ...box, x: box.x - this.offset.x, y: box.y - this.offset.y }
 	}
 
-	/**
-	 * Apply the offset of this request to a shape.
-	 */
 	applyOffsetToShape(shape: FocusedShape): FocusedShape {
-		if ('x1' in shape) {
-			return {
-				...shape,
-				x1: shape.x1 + this.offset.x,
-				y1: shape.y1 + this.offset.y,
-				x2: shape.x2 + this.offset.x,
-				y2: shape.y2 + this.offset.y,
-			}
-		}
-		if ('x' in shape) {
-			return {
-				...shape,
-				x: shape.x + this.offset.x,
-				y: shape.y + this.offset.y,
-			}
-		}
-		return shape
+		return this.offsetShapePartial(shape, 1) as FocusedShape
 	}
 
-	/**
-	 * Apply the offset of this request to a shape partial.
-	 */
-	applyOffsetToShapePartial(shape: Partial<FocusedShape>): Partial<FocusedShape> {
-		const result = { ...shape }
-		if ('x' in result && result.x !== undefined) {
-			;(result as any).x = result.x + this.offset.x
-		}
-		if ('y' in result && result.y !== undefined) {
-			;(result as any).y = result.y + this.offset.y
-		}
-		if ('x1' in result && result.x1 !== undefined) {
-			;(result as any).x1 = result.x1 + this.offset.x
-		}
-		if ('y1' in result && result.y1 !== undefined) {
-			;(result as any).y1 = result.y1 + this.offset.y
-		}
-		if ('x2' in result && result.x2 !== undefined) {
-			;(result as any).x2 = result.x2 + this.offset.x
-		}
-		if ('y2' in result && result.y2 !== undefined) {
-			;(result as any).y2 = result.y2 + this.offset.y
-		}
-		return result
-	}
-
-	/**
-	 * Remove the offset of this request from a shape partial.
-	 */
-	removeOffsetFromShapePartial(shape: Partial<FocusedShape>): Partial<FocusedShape> {
-		const result = { ...shape }
-		if ('x' in result && result.x !== undefined) {
-			;(result as any).x = result.x - this.offset.x
-		}
-		if ('y' in result && result.y !== undefined) {
-			;(result as any).y = result.y - this.offset.y
-		}
-		if ('x1' in result && result.x1 !== undefined) {
-			;(result as any).x1 = result.x1 - this.offset.x
-		}
-		if ('y1' in result && result.y1 !== undefined) {
-			;(result as any).y1 = result.y1 - this.offset.y
-		}
-		if ('x2' in result && result.x2 !== undefined) {
-			;(result as any).x2 = result.x2 - this.offset.x
-		}
-		if ('y2' in result && result.y2 !== undefined) {
-			;(result as any).y2 = result.y2 - this.offset.y
-		}
-		return result
-	}
-
-	/**
-	 * Remove the offset of this request from a shape.
-	 */
 	removeOffsetFromShape(shape: FocusedShape): FocusedShape {
-		if ('x1' in shape) {
-			return {
-				...shape,
-				x1: shape.x1 - this.offset.x,
-				y1: shape.y1 - this.offset.y,
-				x2: shape.x2 - this.offset.x,
-				y2: shape.y2 - this.offset.y,
-			}
-		}
-		if ('x' in shape) {
-			return {
-				...shape,
-				x: shape.x - this.offset.x,
-				y: shape.y - this.offset.y,
-			}
-		}
-		return shape
+		return this.offsetShapePartial(shape, -1) as FocusedShape
 	}
 
-	/**
-	 * Apply the offset of this request to a context item.
-	 */
+	applyOffsetToShapePartial(shape: Partial<FocusedShape>): Partial<FocusedShape> {
+		return this.offsetShapePartial(shape, 1)
+	}
+
+	removeOffsetFromShapePartial(shape: Partial<FocusedShape>): Partial<FocusedShape> {
+		return this.offsetShapePartial(shape, -1)
+	}
+
+	private offsetShapePartial(shape: Partial<FocusedShape>, sign: 1 | -1): Partial<FocusedShape> {
+		const result: Record<string, any> = { ...shape }
+		for (const prop of SHAPE_POSITION_PROPS) {
+			if (typeof result[prop] !== 'number') continue
+			result[prop] += sign * (prop.startsWith('x') ? this.offset.x : this.offset.y)
+		}
+		return result as Partial<FocusedShape>
+	}
+
 	applyOffsetToContextItem(contextItem: ContextItem) {
 		switch (contextItem.type) {
 			case 'shape': {
@@ -211,9 +86,7 @@ export class AgentHelpers {
 				return contextItem
 			}
 			case 'shapes': {
-				contextItem.shapes = contextItem.shapes.map((shape) => {
-					return this.applyOffsetToShape(shape)
-				})
+				contextItem.shapes = contextItem.shapes.map((shape) => this.applyOffsetToShape(shape))
 				return contextItem
 			}
 			case 'area': {
@@ -227,9 +100,6 @@ export class AgentHelpers {
 		}
 	}
 
-	/**
-	 * Round the numbers of a context item.
-	 */
 	roundContextItem(contextItem: ContextItem) {
 		switch (contextItem.type) {
 			case 'shape': {
@@ -237,9 +107,7 @@ export class AgentHelpers {
 				return contextItem
 			}
 			case 'shapes': {
-				contextItem.shapes = contextItem.shapes.map((shape) => {
-					return this.roundShape(shape)
-				})
+				contextItem.shapes = contextItem.shapes.map((shape) => this.roundShape(shape))
 				return contextItem
 			}
 			case 'area': {
@@ -254,102 +122,55 @@ export class AgentHelpers {
 	}
 
 	/**
-	 * Ensure that a shape ID is unique.
-	 * @param id - The id to check (should be a SimpleShapeId from the model, not a TLShapeId).
-	 * @returns The unique id (always without the "shape:" prefix).
+	 * Make a model-provided shape id unique by incrementing a trailing number,
+	 * remembering the remap so later actions can still use the original id.
+	 * @param id - A SimpleShapeId from the model (no "shape:" prefix).
 	 */
 	ensureShapeIdIsUnique(id = 'shape' as SimpleShapeId): SimpleShapeId {
 		// todo: remove default and have a better handling of cases where id is undefined
-
 		const { editor } = this.agent
-		// Defensively strip the prefix in case the model incorrectly includes it
 
-		// Ensure the id is unique by incrementing a number at the end
 		let newId = id
-		let existingShape = editor.getShape(`shape:${newId}` as TLShapeId)
-		while (existingShape) {
-			newId = /^.*(\d+)$/.exec(newId)?.[1]
-				? (newId.replace(/(\d+)$/, (m) => {
-						return (+m + 1).toString()
-					}) as SimpleShapeId)
+		while (editor.getShape(`shape:${newId}` as TLShapeId)) {
+			newId = /\d+$/.test(newId)
+				? (newId.replace(/(\d+)$/, (m) => (+m + 1).toString()) as SimpleShapeId)
 				: (`${newId}-1` as SimpleShapeId)
-			existingShape = editor.getShape(`shape:${newId}` as TLShapeId)
 		}
 
-		// If the id was transformed, track it so that future events can refer to it by its original id.
 		if (id !== newId) {
 			this.shapeIdMap.set(id, newId)
 		}
 
-		return newId as SimpleShapeId
+		return newId
 	}
 
 	/**
-	 * Ensure that a shape ID refers to a real shape.
-	 * @param id - The id to check.
+	 * Resolve a model-provided shape id to a real shape, following any remap
+	 * made by `ensureShapeIdIsUnique`.
 	 * @returns The real id, or null if the shape doesn't exist.
 	 */
 	ensureShapeIdExists(id: SimpleShapeId): SimpleShapeId | null {
-		const { editor } = this.agent
-
-		// If there's already a transformed ID, use that
 		const existingId = this.shapeIdMap.get(id)
-		if (existingId) {
-			return existingId as SimpleShapeId
-		}
-
-		// If there's an existing shape with this ID, use that
-		const existingShape = editor.getShape(createShapeId(id))
-		if (existingShape) {
-			return id
-		}
-
-		// Otherwise, give up
+		if (existingId) return existingId as SimpleShapeId
+		if (this.agent.editor.getShape(createShapeId(id))) return id
 		return null
 	}
 
-	/**
-	 * Ensure that all shape IDs refer to real shapes.
-	 * @param ids - An array of ids to check.
-	 * @returns The array of ids, with imaginary ids removed.
-	 */
+	/** Drop ids that don't refer to real shapes. */
 	ensureShapeIdsExist(ids: SimpleShapeId[]): SimpleShapeId[] {
 		return ids.map((id) => this.ensureShapeIdExists(id)).filter((v) => v !== null)
 	}
 
 	/**
-	 * Round the coordinates, width, and height of a focused shape.
-	 * Save the diffs so that they can be restored later.
-	 * @param shape - The shape to round.
-	 * @returns The rounded shape.
+	 * Round a shape's position and size, saving the diffs so they can be
+	 * restored by `unroundShape`.
 	 */
 	roundShape(shape: FocusedShape): FocusedShape {
-		if ('x1' in shape) {
-			shape = this.roundProperty(shape, 'x1')
-			shape = this.roundProperty(shape, 'y1')
-			shape = this.roundProperty(shape, 'x2')
-			shape = this.roundProperty(shape, 'y2')
-		} else if ('x' in shape) {
-			shape = this.roundProperty(shape, 'x')
-			shape = this.roundProperty(shape, 'y')
-		}
-
-		if ('w' in shape) {
-			shape = this.roundProperty(shape, 'w')
-			shape = this.roundProperty(shape, 'h')
-		}
-
-		return shape
+		return this.roundShapePartial(shape) as FocusedShape
 	}
 
-	/**
-	 * Round the coordinates, width, and height of a focused shape partial.
-	 * Save the diffs so that they can be restored later.
-	 * @param shape - The shape partial to round.
-	 * @returns The rounded shape partial.
-	 */
 	roundShapePartial(shape: Partial<FocusedShape>): Partial<FocusedShape> {
-		for (const prop of ['x1', 'y1', 'x2', 'y2', 'x', 'y', 'w', 'h'] as const) {
+		for (const prop of SHAPE_NUMBER_PROPS) {
 			if (prop in shape) {
 				shape = this.roundProperty(shape, prop as keyof Partial<FocusedShape>)
 			}
@@ -358,116 +179,54 @@ export class AgentHelpers {
 	}
 
 	/**
-	 * Reverse the rounding of a shape that we did earlier.
-	 * This ensures that shape's don't do a tiny jitter when they are updated.
-	 * @param shape - The shape to unround.
-	 * @returns The unrounded shape.
+	 * Reverse an earlier `roundShape` so shapes don't jitter when updated.
 	 */
 	unroundShape(shape: FocusedShape): FocusedShape {
-		if ('x1' in shape) {
-			shape = this.unroundProperty(shape, 'x1')
-			shape = this.unroundProperty(shape, 'y1')
-			shape = this.unroundProperty(shape, 'x2')
-			shape = this.unroundProperty(shape, 'y2')
-		} else if ('x' in shape) {
-			shape = this.unroundProperty(shape, 'x')
-			shape = this.unroundProperty(shape, 'y')
-		}
-
-		if ('w' in shape) {
-			shape = this.unroundProperty(shape, 'w')
-			shape = this.unroundProperty(shape, 'h')
+		for (const prop of SHAPE_NUMBER_PROPS) {
+			if (prop in shape) {
+				shape = this.unroundProperty(shape, prop as keyof FocusedShape)
+			}
 		}
 		return shape
 	}
 
-	/**
-	 * Round a number and save its diff so that it can be restored later.
-	 * @param number - The number to round.
-	 * @param key - The key to save the diff under.
-	 * @returns The rounded number.
-	 */
 	roundAndSaveNumber(number: number, key: string): number {
 		const roundedNumber = Math.round(number)
-		const diff = roundedNumber - number
-		this.roundingDiffMap.set(key, diff)
+		this.roundingDiffMap.set(key, roundedNumber - number)
 		return roundedNumber
 	}
 
-	/**
-	 * Reverse the rounding of a number and restore the original value.
-	 * @param number - The number to unround.
-	 * @param key - The key to restore the diff from.
-	 * @returns The unrounded number.
-	 */
-	unroundAndRestoreNumber(number: number, key: string): number {
-		const diff = this.roundingDiffMap.get(key)
-		if (diff === undefined) return number
-		return number + diff
-	}
-
-	/**
-	 * Round a number property of a shape, and save the diff so that it can be restored later.
-	 * @param shape - The shape to round.
-	 * @param property - The property to round.
-	 * @returns The rounded shape.
-	 */
 	roundProperty<T extends Partial<FocusedShape>>(shape: T, property: keyof T): T {
-		if (typeof shape[property] !== 'number') return shape
-
 		const value = shape[property]
-		const key = `${shape.shapeId}_${property as string}`
-		const roundedValue = this.roundAndSaveNumber(value, key)
-
-		;(shape[property] as number) = roundedValue
+		if (typeof value !== 'number') return shape
+		;(shape[property] as number) = this.roundAndSaveNumber(
+			value,
+			`${shape.shapeId}_${property as string}`
+		)
 		return shape
 	}
 
-	/**
-	 * Reverse the rounding of a number property of a shape, and restore the original value.
-	 * @param shape - The shape to unround.
-	 * @param property - The property to unround.
-	 * @returns The unrounded shape.
-	 */
 	unroundProperty<T extends FocusedShape>(shape: T, property: keyof T): T {
 		if (typeof shape[property] !== 'number') return shape
-
-		const key = `${shape.shapeId}_${property as string}`
-		const diff = this.roundingDiffMap.get(key)
+		const diff = this.roundingDiffMap.get(`${shape.shapeId}_${property as string}`)
 		if (diff === undefined) return shape
 		;(shape[property] as number) += diff
 		return shape
 	}
 
-	/**
-	 * Ensure that a value is a number.
-	 * Used for checking incoming data from the model.
-	 * @returns The number, or null if the value is not a number.
-	 */
-	ensureValueIsNumber(value: any): number | null {
-		if (typeof value === 'number') {
-			return value
-		}
+	// The ensureValueIs* helpers validate loosely-typed data coming from the model.
 
+	ensureValueIsNumber(value: any): number | null {
+		if (typeof value === 'number') return value
 		if (typeof value === 'string') {
 			const parsedValue = parseFloat(value)
-			if (isNaN(parsedValue)) {
-				return null
-			}
-			return parsedValue
+			return isNaN(parsedValue) ? null : parsedValue
 		}
-
 		return null
 	}
 
-	/**
-	 * Ensure that a value is a vector.
-	 * Used for checking incoming data from the model.
-	 * @returns The vector, or null if the value is not a vector.
-	 */
 	ensureValueIsVec(value: any): VecModel | null {
-		if (!value) return null
-		if (typeof value !== 'object') return null
+		if (!value || typeof value !== 'object') return null
 		if (!('x' in value) || !('y' in value)) return null
 
 		const x = this.ensureValueIsNumber(value.x)
@@ -476,43 +235,18 @@ export class AgentHelpers {
 		return { x, y }
 	}
 
-	/**
-	 * Ensure that a value is a boolean.
-	 * Used for checking incoming data from the model.
-	 * @returns The boolean, or null if the value is not a boolean.
-	 */
 	ensureValueIsBoolean(value: any): boolean | null {
-		if (typeof value === 'boolean') {
-			return value
-		}
-
-		if (typeof value === 'number') {
-			return value > 0
-		}
-
-		if (typeof value === 'string') {
-			return value !== 'false'
-		}
-
+		if (typeof value === 'boolean') return value
+		if (typeof value === 'number') return value > 0
+		if (typeof value === 'string') return value !== 'false'
 		return null
 	}
 
-	/**
-	 * Ensure that a value is a focused fill.
-	 * Used for checking incoming data from the model.
-	 * @returns The focused fill, or null if the value is not a focused fill.
-	 */
 	ensureValueIsFocusedFill(value: any): FocusedFill | null {
 		const focusedFill = FocusedFillSchema.safeParse(value)
-		if (focusedFill.success) {
-			return focusedFill.data
-		}
-		return null
+		return focusedFill.success ? focusedFill.data : null
 	}
 
-	/**
-	 * Round the corners of a box.
-	 */
 	roundBox(boxModel: BoxModel): BoxModel {
 		boxModel.x = Math.round(boxModel.x)
 		boxModel.y = Math.round(boxModel.y)
@@ -521,9 +255,6 @@ export class AgentHelpers {
 		return boxModel
 	}
 
-	/**
-	 * Round the numbers of a vector.
-	 */
 	roundVec(vecModel: VecModel): VecModel {
 		vecModel.x = Math.round(vecModel.x)
 		vecModel.y = Math.round(vecModel.y)

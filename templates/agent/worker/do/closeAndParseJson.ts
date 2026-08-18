@@ -1,25 +1,15 @@
-/**
- * JSON helper. Given a potentially incomplete JSON string, return the parsed object.
- * The string might be missing closing braces, brackets, or other characters like quotation marks.
- * @param string - The string to parse.
- * @returns The parsed object.
- */
-export function closeAndParseJson(string: string) {
-	const stackOfOpenings = []
+const CLOSERS = { '{': '}', '[': ']', '"': '"' } as const
 
-	// Track openings and closings
-	let i = 0
-	while (i < string.length) {
+// Parse a potentially incomplete JSON string by closing any unclosed braces, brackets, and quotes.
+export function closeAndParseJson(string: string) {
+	const stackOfOpenings: (keyof typeof CLOSERS)[] = []
+
+	for (let i = 0; i < string.length; i++) {
 		const char = string[i]
 		const lastOpening = stackOfOpenings.at(-1)
 
 		if (char === '"') {
-			// Check if this quote is escaped
-			if (i > 0 && string[i - 1] === '\\') {
-				// This is an escaped quote, skip it
-				i++
-				continue
-			}
+			if (i > 0 && string[i - 1] === '\\') continue // escaped quote
 
 			if (lastOpening === '"') {
 				stackOfOpenings.pop()
@@ -28,40 +18,17 @@ export function closeAndParseJson(string: string) {
 			}
 		}
 
-		if (lastOpening === '"') {
-			i++
-			continue
-		}
+		if (lastOpening === '"') continue
 
 		if (char === '{' || char === '[') {
 			stackOfOpenings.push(char)
-		}
-
-		if (char === '}' && lastOpening === '{') {
+		} else if ((char === '}' && lastOpening === '{') || (char === ']' && lastOpening === '[')) {
 			stackOfOpenings.pop()
 		}
-
-		if (char === ']' && lastOpening === '[') {
-			stackOfOpenings.pop()
-		}
-
-		i++
 	}
 
-	// Now close all unclosed openings
 	for (let i = stackOfOpenings.length - 1; i >= 0; i--) {
-		const opening = stackOfOpenings[i]
-		if (opening === '{') {
-			string += '}'
-		}
-
-		if (opening === '[') {
-			string += ']'
-		}
-
-		if (opening === '"') {
-			string += '"'
-		}
+		string += CLOSERS[stackOfOpenings[i]]
 	}
 
 	try {

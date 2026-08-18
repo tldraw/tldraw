@@ -8,18 +8,7 @@ export const ScreenshotPartUtil = registerPromptPartUtil(
 		static override type = 'screenshot' as const
 
 		override async getPart(request: AgentRequest): Promise<ScreenshotPart> {
-			const { editor } = this
-
-			const contextBounds = request.bounds
-
-			const contextBoundsBox = Box.From(contextBounds)
-
-			const shapes = editor.getCurrentPageShapesSorted().filter((shape) => {
-				const bounds = editor.getShapeMaskedPageBounds(shape)
-				if (!bounds) return false
-				return contextBoundsBox.includes(bounds)
-			})
-
+			const shapes = this.getShapesInBounds(request.bounds)
 			if (shapes.length === 0) {
 				return { type: 'screenshot', screenshot: '' }
 			}
@@ -27,7 +16,7 @@ export const ScreenshotPartUtil = registerPromptPartUtil(
 			const largestDimension = Math.max(request.bounds.w, request.bounds.h)
 			const scale = largestDimension > 8000 ? 8000 / largestDimension : 1
 
-			const result = await editor.toImage(shapes, {
+			const result = await this.editor.toImage(shapes, {
 				format: 'jpeg',
 				background: true,
 				bounds: Box.From(request.bounds),

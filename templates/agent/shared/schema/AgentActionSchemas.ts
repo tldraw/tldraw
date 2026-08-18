@@ -11,7 +11,6 @@ import { SimpleShapeIdSchema, TodoIdSchema } from '../types/ids-schema'
  * See `SystemPromptCategory.ts` for available values.
  */
 
-// Add Detail Action
 export const AddDetailAction = z
 	.object({
 		_type: z.literal('add-detail'),
@@ -24,7 +23,6 @@ export const AddDetailAction = z
 
 export type AddDetailAction = z.infer<typeof AddDetailAction>
 
-// Align Action
 export const AlignAction = z
 	.object({
 		_type: z.literal('align'),
@@ -41,7 +39,6 @@ export const AlignAction = z
 
 export type AlignAction = z.infer<typeof AlignAction>
 
-// Bring to Front Action
 export const BringToFrontAction = z
 	.object({
 		_type: z.literal('bringToFront'),
@@ -57,7 +54,6 @@ export const BringToFrontAction = z
 
 export type BringToFrontAction = z.infer<typeof BringToFrontAction>
 
-// Clear Action
 export const ClearAction = z
 	.object({
 		_type: z.literal('clear'),
@@ -69,7 +65,6 @@ export const ClearAction = z
 
 export type ClearAction = z.infer<typeof ClearAction>
 
-// Count Shapes Action
 export const CountShapesAction = z
 	.object({
 		_type: z.literal('count'),
@@ -83,7 +78,6 @@ export const CountShapesAction = z
 
 export type CountShapesAction = z.infer<typeof CountShapesAction>
 
-// Country Info Action
 export const CountryInfoAction = z
 	.object({
 		_type: z.literal('countryInfo'),
@@ -97,7 +91,6 @@ export const CountryInfoAction = z
 
 export type CountryInfoAction = z.infer<typeof CountryInfoAction>
 
-// Create Action
 export const CreateAction = z
 	.object({
 		_type: z.literal('create'),
@@ -108,7 +101,6 @@ export const CreateAction = z
 
 export type CreateAction = z.infer<typeof CreateAction>
 
-// Delete Action
 export const DeleteAction = z
 	.object({
 		_type: z.literal('delete'),
@@ -119,7 +111,6 @@ export const DeleteAction = z
 
 export type DeleteAction = z.infer<typeof DeleteAction>
 
-// Distribute Action
 export const DistributeAction = z
 	.object({
 		_type: z.literal('distribute'),
@@ -135,7 +126,6 @@ export const DistributeAction = z
 
 export type DistributeAction = z.infer<typeof DistributeAction>
 
-// Label Action
 export const LabelAction = z
 	.object({
 		_type: z.literal('label'),
@@ -151,7 +141,6 @@ export const LabelAction = z
 
 export type LabelAction = z.infer<typeof LabelAction>
 
-// Message Action
 export const MessageAction = z
 	.object({
 		_type: z.literal('message'),
@@ -161,7 +150,6 @@ export const MessageAction = z
 
 export type MessageAction = z.infer<typeof MessageAction>
 
-// Move Action
 export const MoveAction = z
 	.object({
 		_type: z.literal('move'),
@@ -179,7 +167,6 @@ export const MoveAction = z
 
 export type MoveAction = z.infer<typeof MoveAction>
 
-// Pen Action
 export const PenAction = z
 	.object({
 		_type: z.literal('pen'),
@@ -204,7 +191,6 @@ export const PenAction = z
 
 export type PenAction = z.infer<typeof PenAction>
 
-// Place Action
 export const PlaceAction = z
 	.object({
 		_type: z.literal('place'),
@@ -224,7 +210,6 @@ export const PlaceAction = z
 
 export type PlaceAction = z.infer<typeof PlaceAction>
 
-// Resize Action
 export const ResizeAction = z
 	.object({
 		_type: z.literal('resize'),
@@ -244,7 +229,6 @@ export const ResizeAction = z
 
 export type ResizeAction = z.infer<typeof ResizeAction>
 
-// Review Action
 export const ReviewAction = z
 	.object({
 		_type: z.literal('review'),
@@ -262,7 +246,6 @@ export const ReviewAction = z
 
 export type ReviewAction = z.infer<typeof ReviewAction>
 
-// Rotate Action
 export const RotateAction = z
 	.object({
 		_type: z.literal('rotate'),
@@ -281,7 +264,6 @@ export const RotateAction = z
 
 export type RotateAction = z.infer<typeof RotateAction>
 
-// Send to Back Action
 export const SendToBackAction = z
 	.object({
 		_type: z.literal('sendToBack'),
@@ -297,7 +279,6 @@ export const SendToBackAction = z
 
 export type SendToBackAction = z.infer<typeof SendToBackAction>
 
-// Set My View Action
 export const SetMyViewAction = z
 	.object({
 		_type: z.literal('setMyView'),
@@ -315,7 +296,6 @@ export const SetMyViewAction = z
 
 export type SetMyViewAction = z.infer<typeof SetMyViewAction>
 
-// Stack Action
 export const StackAction = z
 	.object({
 		_type: z.literal('stack'),
@@ -333,7 +313,6 @@ export const StackAction = z
 
 export type StackAction = z.infer<typeof StackAction>
 
-// Think Action
 export const ThinkAction = z
 	.object({
 		_type: z.literal('think'),
@@ -343,7 +322,6 @@ export const ThinkAction = z
 
 export type ThinkAction = z.infer<typeof ThinkAction>
 
-// Todo List Action
 export const UpsertPersonalTodoItemAction = z
 	.object({
 		_type: z.literal('update-todo-list'),
@@ -358,7 +336,6 @@ export const UpsertPersonalTodoItemAction = z
 
 export type UpsertPersonalTodoItemAction = z.infer<typeof UpsertPersonalTodoItemAction>
 
-// Update Action
 export const UpdateAction = z
 	.object({
 		_type: z.literal('update'),
@@ -372,7 +349,7 @@ export const UpdateAction = z
 	})
 
 export type UpdateAction = z.infer<typeof UpdateAction>
-// Unknown Action (catch-all for unrecognized actions)
+
 export const UnknownAction = z
 	.object({
 		_type: z.literal('unknown'),

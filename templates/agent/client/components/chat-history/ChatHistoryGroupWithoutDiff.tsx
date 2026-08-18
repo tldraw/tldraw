@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import Markdown from 'react-markdown'
 import { AgentIcon } from '../../../shared/icons/AgentIcon'
 import { ChevronDownIcon } from '../../../shared/icons/ChevronDownIcon'
@@ -11,39 +11,19 @@ import { ChatHistoryGroup } from './ChatHistoryGroup'
 import { getActionInfo } from './getActionInfo'
 
 export function ChatHistoryGroupWithoutDiff({ group }: { group: ChatHistoryGroup }) {
-	const agent = useAgent()
+	// Items without a description were already dropped when the group was built
 	const { items } = group
-
-	const nonEmptyItems = useMemo(() => {
-		return items.filter((item) => {
-			const { description } = getActionInfo(item.action, agent)
-			return description !== null
-		})
-	}, [items, agent])
-
 	const [collapsed, setCollapsed] = useState(true)
 
-	const complete = useMemo(() => {
-		return items.every((item) => item.action.complete)
-	}, [items])
+	const complete = items.every((item) => item.action.complete)
+	const summary = getThinkingSummary(items)
 
-	const summary = useMemo(() => {
-		const time = Math.floor(items.reduce((acc, item) => acc + item.action.time, 0) / 1000)
-		if (time === 0) return 'Thought for less than a second'
-		if (time === 1) return 'Thought for 1 second'
-		return `Thought for ${time} seconds`
-	}, [items])
+	if (items.length === 0) return null
 
-	if (nonEmptyItems.length === 0) {
-		return null
-	}
-
-	if (nonEmptyItems.length < 2) {
+	if (items.length === 1) {
 		return (
 			<div className="chat-history-group">
-				{nonEmptyItems.map((item, i) => {
-					return <ChatHistoryItem item={item} key={'action-' + i} />
-				})}
+				<ChatHistoryItem item={items[0]} />
 			</div>
 		)
 	}
@@ -60,13 +40,20 @@ export function ChatHistoryGroupWithoutDiff({ group }: { group: ChatHistoryGroup
 			)}
 			{showContent && (
 				<div className="agent-actions-container">
-					{nonEmptyItems.map((item, i) => {
-						return <ChatHistoryItemExpanded action={item.action} key={'action-' + i} />
-					})}
+					{items.map((item, i) => (
+						<ChatHistoryItemExpanded action={item.action} key={'action-' + i} />
+					))}
 				</div>
 			)}
 		</div>
 	)
+}
+
+function getThinkingSummary(items: ChatHistoryActionItem[]) {
+	const time = Math.floor(items.reduce((acc, item) => acc + item.action.time, 0) / 1000)
+	if (time === 0) return 'Thought for less than a second'
+	if (time === 1) return 'Thought for 1 second'
+	return `Thought for ${time} seconds`
 }
 
 function ChatHistoryItem({ item }: { item: ChatHistoryActionItem }) {

@@ -8,10 +8,9 @@ export const ContextItemsPartUtil = registerPromptPartUtil(
 		static override type = 'contextItems' as const
 
 		override getPart(request: AgentRequest, helpers: AgentHelpers): ContextItemsPart {
-			const items = request.contextItems.map((contextItem) => {
-				const offsetContextItem = helpers.applyOffsetToContextItem(contextItem)
-				return helpers.roundContextItem(offsetContextItem)
-			})
+			const items = request.contextItems.map((contextItem) =>
+				helpers.roundContextItem(helpers.applyOffsetToContextItem(contextItem))
+			)
 
 			return {
 				type: 'contextItems',

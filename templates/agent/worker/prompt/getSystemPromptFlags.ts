@@ -1,7 +1,6 @@
 import { getActionMeta } from '../../shared/types/AgentAction'
 import type { AgentAction } from '../../shared/types/AgentAction'
 import type { PromptPart } from '../../shared/types/PromptPart'
-import type { SystemPromptCategory } from '../../shared/types/SystemPromptCategory'
 
 export function getSystemPromptFlags(actions: AgentAction['_type'][], parts: PromptPart['type'][]) {
 	return {
@@ -62,20 +61,8 @@ export function getSystemPromptFlags(actions: AgentAction['_type'][], parts: Pro
 		// Metadata
 		hasTimePart: parts.includes('time'),
 
-		// Derived flags for convenience
-		canEdit: actions.some(isEditAction),
+		canEdit: actions.some((type) => getActionMeta(type)?._systemPromptCategory === 'edit'),
 	}
 }
 
 export type SystemPromptFlags = ReturnType<typeof getSystemPromptFlags>
-
-function isEditAction(type: AgentAction['_type']): boolean {
-	return isActionCategory(type, 'edit')
-}
-
-function isActionCategory(type: AgentAction['_type'], category: SystemPromptCategory): boolean {
-	const meta = getActionMeta(type)
-	if (!meta) return false
-	if (!meta._systemPromptCategory) return false
-	return meta._systemPromptCategory === category
-}

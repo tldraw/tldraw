@@ -29,11 +29,9 @@ export function getActionHistoryGroups(
 
 	for (const item of items) {
 		const { description } = getActionInfo(item.action, agent)
-		if (description === null) {
-			continue
-		}
+		if (description === null) continue
 
-		const group = groups[groups.length - 1]
+		const group = groups.at(-1)
 		if (group && canActionBeGrouped({ item, group, agent })) {
 			group.items.push(item)
 		} else {
@@ -47,10 +45,7 @@ export function getActionHistoryGroups(
 	return groups
 }
 
-/**
- * Check if an action can be merged with a group.
- */
-export function canActionBeGrouped({
+function canActionBeGrouped({
 	item,
 	group,
 	agent,
@@ -60,7 +55,6 @@ export function canActionBeGrouped({
 	agent: TldrawAgent
 }) {
 	if (!item.action.complete) return false
-	if (!group) return false
 
 	const showDiff = !isRecordsDiffEmpty(item.diff)
 	if (showDiff !== group.withDiff) return false
@@ -74,9 +68,5 @@ export function canActionBeGrouped({
 	const actionInfo = getActionInfo(item.action, agent)
 	const prevActionInfo = getActionInfo(prevAction, agent)
 
-	if (actionInfo.canGroup(prevAction) && prevActionInfo.canGroup(item.action)) {
-		return true
-	}
-
-	return false
+	return actionInfo.canGroup(prevAction) && prevActionInfo.canGroup(item.action)
 }

@@ -3,13 +3,8 @@ import { AgentAppAgentsManager } from './managers/AgentAppAgentsManager'
 import { AgentAppPersistenceManager } from './managers/AgentAppPersistenceManager'
 
 /**
- * The TldrawAgentApp class manages the agent system for a given editor instance.
- *
- * This is a coordinator class that handles app-level concerns shared across agents,
- * such as agent lifecycle management, persistence, and global settings.
- *
- * Individual agents (TldrawAgent) handle their own concerns like chat, context, and requests.
- * The app manages the agents and coordinates shared state.
+ * App-level coordinator for a given editor: agent lifecycle and persistence.
+ * Individual agents (TldrawAgent) handle their own chat, context, and requests.
  *
  * @example
  * ```tsx
@@ -19,28 +14,14 @@ import { AgentAppPersistenceManager } from './managers/AgentAppPersistenceManage
  * ```
  */
 export class TldrawAgentApp {
-	/**
-	 * Manager for agent lifecycle - creation, disposal, and tracking.
-	 */
 	agents: AgentAppAgentsManager
-
-	/**
-	 * Manager for state persistence - loading, saving, and auto-save.
-	 */
 	persistence: AgentAppPersistenceManager
 
-	/**
-	 * Handle crash and dispose events.
-	 */
-	private handleCrash = () => this.dispose()
-	private handleDispose = () => this.dispose()
+	private handleEditorGone = () => this.dispose()
 
 	private _editor: Editor | null
 
-	/**
-	 * The editor associated with this app.
-	 * @throws Error if the app has been disposed.
-	 */
+	/** @throws if the app has been disposed. */
 	get editor(): Editor {
 		if (!this._editor) {
 			throw new Error('TldrawAgentApp has been disposed')
@@ -57,25 +38,19 @@ export class TldrawAgentApp {
 		this._editor = editor
 		this.agents = new AgentAppAgentsManager(this)
 		this.persistence = new AgentAppPersistenceManager(this)
-		editor.on('crash', this.handleCrash)
-		editor.on('dispose', this.handleDispose)
+		editor.on('crash', this.handleEditorGone)
+		editor.on('dispose', this.handleEditorGone)
 	}
 
-	/**
-	 * Dispose of all resources. Call this during cleanup.
-	 */
 	dispose() {
 		if (!this._editor) return
-		this._editor.off('crash', this.handleCrash)
-		this._editor.off('dispose', this.handleDispose)
+		this._editor.off('crash', this.handleEditorGone)
+		this._editor.off('dispose', this.handleEditorGone)
 		this.persistence.dispose()
 		this.agents.dispose()
 		this._editor = null
 	}
 
-	/**
-	 * Reset everything to initial state.
-	 */
 	reset() {
 		this.agents.reset()
 		this.persistence.reset()
