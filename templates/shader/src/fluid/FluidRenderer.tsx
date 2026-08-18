@@ -3,28 +3,15 @@ import { useColorMode, useEditor, useValue } from 'tldraw'
 import { fluidConfig } from './config'
 import { FluidManager } from './FluidManager'
 
-/**
- * React component that renders the fluid simulation canvas.
- * Initializes and manages the FluidManager lifecycle, including:
- * - WebGL context setup
- * - Pointer event handling
- * - Cleanup on unmount
- */
 export const FluidRenderer = memo(() => {
 	const editor = useEditor()
 	const rCanvas = useRef<HTMLCanvasElement>(null)
-	const rFluidManager = useRef<FluidManager | null>(null)
 	const darkMode = useColorMode() === 'dark'
 
 	const config = useValue('config', () => fluidConfig.get(), [])
 
-	// Initialize FluidManager
 	useLayoutEffect(() => {
-		const canvas = rCanvas.current!
-		const manager = new FluidManager(canvas, editor, config)
-		rFluidManager.current = manager
-
-		// Initialize the WebGL context and start the animation loop
+		const manager = new FluidManager(rCanvas.current!, editor, config)
 		manager.initialize(darkMode)
 
 		function handlePointerDown(e: PointerEvent) {
@@ -54,12 +41,10 @@ export const FluidRenderer = memo(() => {
 
 			manager.handlePointerUp()
 			manager.dispose()
-			rFluidManager.current = null
 		}
 	}, [darkMode, editor, config])
 
-	const pixelate = config.pixelate ?? false
-	const canvasClassName = `shader-app__canvas${pixelate ? ' shader-app__canvas--pixelated' : ''}`
+	const canvasClassName = `shader-app__canvas${config.pixelate ? ' shader-app__canvas--pixelated' : ''}`
 
 	return <canvas ref={rCanvas} className={canvasClassName} />
 })

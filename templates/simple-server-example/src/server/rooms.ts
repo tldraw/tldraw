@@ -12,7 +12,6 @@ function sanitizeRoomId(roomId: string): string {
 	return roomId.replace(/[^a-zA-Z0-9_-]/g, '_')
 }
 
-// We'll keep an in-memory map of active rooms
 const rooms = new Map<string, TLSocketRoom<any, void>>()
 
 export function makeOrLoadRoom(roomId: string): TLSocketRoom<any, void> {
@@ -24,7 +23,6 @@ export function makeOrLoadRoom(roomId: string): TLSocketRoom<any, void> {
 	}
 
 	console.log('loading room', roomId)
-	// Open the database - file is created if it doesn't exist
 	const db = new Database(join(DIR, `${roomId}.db`))
 	const sql = new NodeSqliteWrapper(db)
 	const storage = new SQLiteSyncStorage({ sql })

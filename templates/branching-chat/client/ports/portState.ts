@@ -1,13 +1,11 @@
 import { Editor, EditorAtom, TLShapeId } from 'tldraw'
 import { PortIdentifier } from './Port'
 
-/**
- * The UI state for ports. These mostly highlight ports relevant to the user's current action.
- */
+/** UI state highlighting the ports relevant to the user's current drag. */
 export interface PortState {
-	// hintingPort is the port that the user is currently dragging a connection to.
+	// the port a connection is currently being dragged over
 	hintingPort: PortIdentifier | null
-	// eligiblePorts is the set of ports that the user can connect a new connection to.
+	// which ports the dragged connection could be dropped on
 	eligiblePorts: {
 		terminal: 'start' | 'end'
 		excludeNodes: Set<TLShapeId> | null
@@ -20,8 +18,5 @@ export const portState = new EditorAtom<PortState>('port state', () => ({
 }))
 
 export function updatePortState(editor: Editor, update: Partial<PortState>) {
-	portState.update(editor, (state) => {
-		const newState = { ...state, ...update }
-		return newState
-	})
+	portState.update(editor, (state) => ({ ...state, ...update }))
 }
