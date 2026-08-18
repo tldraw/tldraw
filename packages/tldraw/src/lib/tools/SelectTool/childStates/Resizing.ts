@@ -2,8 +2,6 @@ import {
 	Box,
 	HALF_PI,
 	Mat,
-	PI,
-	PI2,
 	SelectionCorner,
 	SelectionEdge,
 	StateNode,
@@ -19,6 +17,7 @@ import {
 	isAccelKey,
 	isShapeId,
 	kickoutOccludedShapes,
+	rotateSelectionHandle,
 } from '@tldraw/editor'
 import { getEnclosedShapeIds } from '../../../shapes/frame/FrameShapeTool'
 import { batchMeasureGeoLabels, setBatchLabelSizeCache } from '../../../shapes/geo/GeoShapeUtil'
@@ -41,7 +40,6 @@ export class Resizing extends StateNode {
 
 	markId = ''
 
-	// A switch to detect when the user is holding ctrl
 	private didHoldCommand = false
 
 	// we transition into the resizing state from the geo pointing state, which starts with a shape of size w: 1, h: 1,
@@ -85,12 +83,9 @@ export class Resizing extends StateNode {
 					this.markId = markId
 				}
 			}
+			this.editor.setCursor({ type: 'cross', rotation: 0 })
 		} else {
 			this.markId = this.editor.markHistoryStoppingPoint('starting resizing')
-		}
-
-		if (isCreating) {
-			this.editor.setCursor({ type: 'cross', rotation: 0 })
 		}
 
 		this.handleResizeStart()
@@ -158,7 +153,7 @@ export class Resizing extends StateNode {
 		this.handleResizeEnd()
 
 		if (this.info.isCreating && this.info.onCreate) {
-			this.info.onCreate?.(this.editor.getOnlySelectedShape())
+			this.info.onCreate(this.editor.getOnlySelectedShape())
 			return
 		}
 
@@ -320,9 +315,6 @@ export class Resizing extends StateNode {
 
 		// calculate the scale by measuring the current distance between the drag handle and the scale origin
 		// and dividing by the original distance between the drag handle and the scale origin
-
-		// bug: for edges, the page point doesn't matter, the
-
 		const distanceFromScaleOriginNow = Vec.Sub(currentPagePoint, scaleOriginPage).rot(
 			-selectionRotation
 		)
@@ -496,8 +488,6 @@ export class Resizing extends StateNode {
 		this.editor.setHintingShapes(hintingShapeIds)
 	}
 
-	// ---
-
 	private updateCursor({
 		dragHandle,
 		isFlippedX,
@@ -670,23 +660,3 @@ export class Resizing extends StateNode {
 }
 
 type Snapshot = ReturnType<Resizing['_createSnapshot']>
-
-const ORDERED_SELECTION_HANDLES: (SelectionEdge | SelectionCorner)[] = [
-	'top',
-	'top_right',
-	'right',
-	'bottom_right',
-	'bottom',
-	'bottom_left',
-	'left',
-	'top_left',
-]
-
-export function rotateSelectionHandle(handle: SelectionEdge | SelectionCorner, rotation: number) {
-	// first find out how many tau we need to rotate by
-	rotation = rotation % PI2
-	const numSteps = Math.round(rotation / (PI / 4))
-
-	const currentIndex = ORDERED_SELECTION_HANDLES.indexOf(handle)
-	return ORDERED_SELECTION_HANDLES[(currentIndex + numSteps) % ORDERED_SELECTION_HANDLES.length]
-}

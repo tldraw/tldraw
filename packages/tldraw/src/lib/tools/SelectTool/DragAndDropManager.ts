@@ -21,9 +21,7 @@ export class DragAndDropManager {
 	}
 
 	shapesToActuallyMove: TLShape[] = []
-	draggedOverShapeIds = new Set<TLShapeId>()
 
-	initialGroupIds = new Map<TLShapeId, TLShapeId>()
 	initialParentIds = new Map<TLShapeId, TLParentId>()
 	initialIndices = new Map<TLShapeId, IndexKey>()
 
@@ -36,7 +34,6 @@ export class DragAndDropManager {
 	startDraggingShapes(movingShapes: TLShape[], point: Vec, cb: () => void) {
 		const { editor } = this
 
-		// Only start dragging if we're not already dragging
 		if (this.intervalTimerId !== -1) return
 
 		const shapesToActuallyMove = new Set(movingShapes)
@@ -45,9 +42,7 @@ export class DragAndDropManager {
 		for (const shape of shapesToActuallyMove) {
 			const parent = editor.getShapeParent(shape)
 			if (parent && editor.isShapeOfType(parent, 'group')) {
-				if (!movingGroups.has(parent)) {
-					movingGroups.add(parent)
-				}
+				movingGroups.add(parent)
 			}
 		}
 
@@ -69,11 +64,6 @@ export class DragAndDropManager {
 				this.initialParentIds.set(shape.id, parent.id)
 			}
 			this.initialIndices.set(shape.id, shape.index)
-
-			const group = editor.findShapeAncestor(shape, (s) => editor.isShapeOfType(s, 'group'))
-			if (group) {
-				this.initialGroupIds.set(shape.id, group.id)
-			}
 		}
 
 		const allShapes = editor.getCurrentPageShapesSorted()
@@ -155,7 +145,6 @@ export class DragAndDropManager {
 
 		if (!draggingShapes.length) return
 
-		// This is the shape under the pointer that can handle at least one of the dragging shapes
 		const nextDraggingOverShape = editor.getDraggingOverShape(point, this.shapesToActuallyMove)
 
 		const currentPagePoint = editor.inputs.getCurrentPagePoint()
@@ -170,7 +159,6 @@ export class DragAndDropManager {
 					isShapeId(nextDraggingOverShape.id) &&
 					!editor.inputs.getPreviousPagePoint().equals(currentPagePoint)
 				) {
-					// If the cursor moved, call onDragShapesOver for the previous dragging over shape
 					const util = editor.getShapeUtil(nextDraggingOverShape)
 					util.onDragShapesOver?.(nextDraggingOverShape, draggingShapes, {
 						initialDraggingOverShapeId: this.initialDraggingOverShape?.id ?? null,
@@ -223,7 +211,6 @@ export class DragAndDropManager {
 				editor.setHintingShapes([])
 			}
 
-			// This is the reparenting logic
 			cb?.()
 		})
 

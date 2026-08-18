@@ -29,18 +29,14 @@ export async function exportAs(
 	ids: TLShapeId[],
 	opts: ExportAsOptions
 ): Promise<void> {
-	// If we don't get name then use a predefined one
 	let name = opts.name
 	if (!name) {
-		name = `shapes at ${getTimestamp()}`
-		if (ids.length === 1) {
-			const first = editor.getShape(ids[0])!
-			// Uses isShapeOfType (not isFrameLike) because it accesses frame-specific props (name)
-			if (editor.isShapeOfType(first, 'frame')) {
-				name = first.props.name || 'frame'
-			} else {
-				name = `${sanitizeId(first.id)} at ${getTimestamp()}`
-			}
+		const first = ids.length === 1 ? editor.getShape(ids[0])! : undefined
+		// Uses isShapeOfType (not isFrameLike) because it accesses frame-specific props (name)
+		if (first && editor.isShapeOfType(first, 'frame')) {
+			name = first.props.name || 'frame'
+		} else {
+			name = `${first ? sanitizeId(first.id) : 'shapes'} at ${getTimestamp()}`
 		}
 	}
 	name += `.${opts.format}`

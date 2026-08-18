@@ -10,19 +10,15 @@ export class PointingRotateHandle extends StateNode {
 
 	private info = {} as PointingRotateHandleInfo
 
-	private updateCursor() {
-		this.editor.setCursor({
-			type: CursorTypeMap[this.info.handle as RotateCorner],
-			rotation: this.editor.getSelectionRotation(),
-		})
-	}
-
 	override onEnter(info: PointingRotateHandleInfo) {
 		this.info = info
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		}
-		this.updateCursor()
+		this.editor.setCursor({
+			type: CursorTypeMap[info.handle as RotateCorner],
+			rotation: this.editor.getSelectionRotation(),
+		})
 	}
 
 	override onExit() {
@@ -46,7 +42,7 @@ export class PointingRotateHandle extends StateNode {
 	}
 
 	override onPointerUp() {
-		this.complete()
+		this.exitToPreviousTool()
 	}
 
 	override onDoubleClick(info: TLClickEventInfo) {
@@ -64,35 +60,22 @@ export class PointingRotateHandle extends StateNode {
 	}
 
 	override onCancel() {
-		this.cancel()
+		this.exitToPreviousTool()
 	}
 
 	override onComplete() {
-		this.cancel()
+		this.exitToPreviousTool()
 	}
 
 	override onInterrupt() {
-		this.cancel()
+		this.exitToPreviousTool()
 	}
 
-	private complete() {
+	private exitToPreviousTool() {
 		const { onInteractionEnd } = this.info
 		if (onInteractionEnd) {
 			if (typeof onInteractionEnd === 'string') {
 				// Return to the tool that was active before this one, whether tool lock is turned on or not!
-				this.editor.setCurrentTool(onInteractionEnd, {})
-			} else {
-				onInteractionEnd?.()
-			}
-			return
-		}
-		this.parent.transition('idle')
-	}
-
-	private cancel() {
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
 				this.editor.setCurrentTool(onInteractionEnd, {})
 			} else {
 				onInteractionEnd()

@@ -13,6 +13,12 @@ import {
 import { ArrowShapeUtil } from '../../../shapes/arrow/ArrowShapeUtil'
 import { startEditingShapeWithRichText } from '../selectHelpers'
 
+type PointingArrowLabelInfo = TLPointerEventInfo & {
+	shape: TLArrowShape
+	onInteractionEnd?: string | (() => void)
+	isCreating: boolean
+}
+
 export class PointingArrowLabel extends StateNode {
 	static override id = 'pointing_arrow_label'
 
@@ -22,23 +28,10 @@ export class PointingArrowLabel extends StateNode {
 	didDrag = false
 	didCtrlOnEnter = false
 
-	private info = {} as TLPointerEventInfo & {
-		shape: TLArrowShape
-		onInteractionEnd?: string | (() => void)
-		isCreating: boolean
-	}
+	private info = {} as PointingArrowLabelInfo
+	private _labelDragOffset = new Vec(0, 0)
 
-	private updateCursor() {
-		this.editor.setCursor({ type: 'grabbing', rotation: 0 })
-	}
-
-	override onEnter(
-		info: TLPointerEventInfo & {
-			shape: TLArrowShape
-			onInteractionEnd?: string | (() => void)
-			isCreating: boolean
-		}
-	) {
+	override onEnter(info: PointingArrowLabelInfo) {
 		const { shape } = info
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
@@ -48,7 +41,7 @@ export class PointingArrowLabel extends StateNode {
 		this.didDrag = false
 		this.didCtrlOnEnter = info.accelKey
 		this.wasAlreadySelected = this.editor.getOnlySelectedShapeId() === shape.id
-		this.updateCursor()
+		this.editor.setCursor({ type: 'grabbing', rotation: 0 })
 
 		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
 		const labelGeometry = geometry.children[1]
@@ -63,14 +56,9 @@ export class PointingArrowLabel extends StateNode {
 		this.markId = this.editor.markHistoryStoppingPoint('label-drag start')
 
 		const additiveSelectionKey = info.shiftKey || info.accelKey
-		if (additiveSelectionKey) {
-			const selectedShapeIds = this.editor.getSelectedShapeIds()
-			this.editor.setSelectedShapes([...selectedShapeIds, this.shapeId])
-
-			return
-		}
-
-		this.editor.setSelectedShapes([this.shapeId])
+		this.editor.setSelectedShapes(
+			additiveSelectionKey ? [...this.editor.getSelectedShapeIds(), this.shapeId] : [this.shapeId]
+		)
 	}
 
 	override onExit() {
@@ -78,8 +66,6 @@ export class PointingArrowLabel extends StateNode {
 
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
-
-	private _labelDragOffset = new Vec(0, 0)
 
 	override onPointerMove() {
 		const isDragging = this.editor.inputs.getIsDragging()
@@ -170,16 +156,6 @@ export class PointingArrowLabel extends StateNode {
 
 	private cancel() {
 		this.editor.bailToMark(this.markId)
-
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				this.editor.setCurrentTool(onInteractionEnd, {})
-			} else {
-				onInteractionEnd()
-			}
-			return
-		}
-		this.parent.transition('idle')
+		this.complete()
 	}
 }

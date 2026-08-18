@@ -29,6 +29,67 @@ interface ScribbleCacheEntry {
 	path: Path2D
 }
 
+/** @internal */
+export type ScribblePathCache = Map<string, ScribbleCacheEntry>
+
+/** @internal */
+export function getScribblePath(
+	cache: ScribblePathCache,
+	cacheKey: string,
+	scribble: TLScribble,
+	zoom: number,
+	options: { streamline: number; cacheSize: number }
+): Path2D | null {
+	const ptsLen = scribble.points.length
+	if (!ptsLen) return null
+
+	const last = scribble.points[ptsLen - 1]
+	const cached = cache.get(cacheKey)
+	if (
+		cached &&
+		cached.len === ptsLen &&
+		cached.lastX === last.x &&
+		cached.lastY === last.y &&
+		cached.zoom === zoom &&
+		cached.size === scribble.size &&
+		cached.taper === scribble.taper &&
+		cached.state === scribble.state
+	) {
+		return cached.path
+	}
+
+	const stroke = getStroke(scribble.points, {
+		size: scribble.size / zoom,
+		start: { taper: scribble.taper, easing: EASINGS.linear },
+		last: scribble.state === 'complete' || scribble.state === 'stopping',
+		simulatePressure: false,
+		streamline: options.streamline,
+	})
+
+	let d: string
+	if (stroke.length < 4) {
+		const r = scribble.size / zoom / 2
+		const { x, y } = last
+		d = `M ${x - r},${y} a ${r},${r} 0 1,0 ${r * 2},0 a ${r},${r} 0 1,0 ${-r * 2},0`
+	} else {
+		d = getSvgPathFromPoints(stroke)
+	}
+
+	const path = new Path2D(d)
+	cache.set(cacheKey, {
+		len: ptsLen,
+		lastX: last.x,
+		lastY: last.y,
+		zoom,
+		size: scribble.size,
+		taper: scribble.taper,
+		state: scribble.state,
+		path,
+	})
+	if (cache.size > options.cacheSize) cache.clear()
+	return path
+}
+
 /**
  * Overlay util for scribble strokes (eraser, lasso selection, etc.).
  *
@@ -43,8 +104,8 @@ export class ScribbleOverlayUtil extends OverlayUtil<TLScribbleOverlay> {
 	// cache key is a logical identity — `scribble.id` — not the scribble
 	// object. Tldraw's store replaces record objects on every update, so a
 	// WeakMap keyed on the `TLScribble` instance would cache-miss every frame.
-	// Lifetime is bounded by the Util instance plus the `cacheSize` cap below.
-	private _scribblePathCache = new Map<string, ScribbleCacheEntry>()
+	// Lifetime is bounded by the Util instance plus the `cacheSize` cap in `getScribblePath`.
+	private _scribblePathCache: ScribblePathCache = new Map()
 
 	override isActive(): boolean {
 		return this.editor.getInstanceState().scribbles.length > 0
@@ -64,54 +125,14 @@ export class ScribbleOverlayUtil extends OverlayUtil<TLScribbleOverlay> {
 
 		for (const overlay of overlays) {
 			const { scribble } = overlay.props
-			const ptsLen = scribble.points.length
-			if (!ptsLen) continue
-
-			const last = scribble.points[ptsLen - 1]
-			const cached = this._scribblePathCache.get(scribble.id)
-			let path: Path2D
-			if (
-				cached &&
-				cached.len === ptsLen &&
-				cached.lastX === last.x &&
-				cached.lastY === last.y &&
-				cached.zoom === zoom &&
-				cached.size === scribble.size &&
-				cached.taper === scribble.taper &&
-				cached.state === scribble.state
-			) {
-				path = cached.path
-			} else {
-				const stroke = getStroke(scribble.points, {
-					size: scribble.size / zoom,
-					start: { taper: scribble.taper, easing: EASINGS.linear },
-					last: scribble.state === 'complete' || scribble.state === 'stopping',
-					simulatePressure: false,
-					streamline: this.options.streamline,
-				})
-
-				let d: string
-				if (stroke.length < 4) {
-					const r = scribble.size / zoom / 2
-					const { x, y } = last
-					d = `M ${x - r},${y} a ${r},${r} 0 1,0 ${r * 2},0 a ${r},${r} 0 1,0 ${-r * 2},0`
-				} else {
-					d = getSvgPathFromPoints(stroke)
-				}
-
-				path = new Path2D(d)
-				this._scribblePathCache.set(scribble.id, {
-					len: ptsLen,
-					lastX: last.x,
-					lastY: last.y,
-					zoom,
-					size: scribble.size,
-					taper: scribble.taper,
-					state: scribble.state,
-					path,
-				})
-				if (this._scribblePathCache.size > this.options.cacheSize) this._scribblePathCache.clear()
-			}
+			const path = getScribblePath(
+				this._scribblePathCache,
+				scribble.id,
+				scribble,
+				zoom,
+				this.options
+			)
+			if (!path) continue
 
 			ctx.fillStyle = resolveCanvasUiColor(colors, scribble.color)
 			ctx.globalAlpha = scribble.opacity

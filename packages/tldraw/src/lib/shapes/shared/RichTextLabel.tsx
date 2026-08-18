@@ -76,12 +76,10 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	const { rInput, isEmpty, isEditing, isReadyForEditing, ...editableTextRest } =
 		useEditableRichText(shapeId, type, richText)
 
-	const html = useMemo(() => {
-		if (richText) {
-			return renderHtmlFromRichText(editor, richText)
-		}
-		return undefined
-	}, [editor, richText])
+	const html = useMemo(
+		() => (richText ? renderHtmlFromRichText(editor, richText) : undefined),
+		[editor, richText]
+	)
 
 	const selectToolActive = useValue(
 		'isSelectToolActive',
@@ -100,34 +98,33 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 
 	const handlePointerDown = (e: React.MouseEvent<HTMLDivElement>) => {
 		const HTMLElementCtor = editor.getContainerWindow().HTMLElement
-		if (
-			e.target instanceof HTMLElementCtor &&
-			(e.target.tagName === 'A' || e.target.closest('a'))
-		) {
-			// This mousedown prevent default is to let dragging when over a link work.
-			preventDefault(e)
+		if (!(e.target instanceof HTMLElementCtor)) return
+		const anchor = e.target.closest('a')
+		if (!anchor) return
 
-			if (!selectToolActive) return
-			const link = e.target.closest('a')?.getAttribute('href') ?? ''
-			// We don't get the mouseup event later because we preventDefault
-			// so we have to do it manually.
-			const handlePointerUp = (e: TLEventInfo) => {
-				if (e.name !== 'pointer_up' || !link) return
+		// Prevent default so that dragging works when the pointer is over a link.
+		preventDefault(e)
 
-				if (!isDragging.current) {
-					openWindow(link, '_blank', false)
-				}
-				editor.off('event', handlePointerUp)
+		if (!selectToolActive) return
+		const link = anchor.getAttribute('href') ?? ''
+		// We don't get the mouseup event later because we preventDefault
+		// so we have to do it manually.
+		const handlePointerUp = (e: TLEventInfo) => {
+			if (e.name !== 'pointer_up' || !link) return
+
+			if (!isDragging.current) {
+				openWindow(link, '_blank', false)
 			}
-			editor.on('event', handlePointerUp)
+			editor.off('event', handlePointerUp)
 		}
+		editor.on('event', handlePointerUp)
 	}
 
-	// Should be guarded higher up so that this doesn't render... but repeated here. This should never be true.
 	if (!isEditing && isEmpty) return null
 
 	// TODO: probably combine tl-text and tl-arrow eventually
 	const cssPrefix = classNamePrefix || 'tl-text'
+	const lineHeightPx = `${resolveLineHeightPx(fontSize, lineHeight)}px`
 	return (
 		<div
 			className={classNames(
@@ -163,8 +160,8 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 				style={
 					{
 						fontSize,
-						lineHeight: `${resolveLineHeightPx(fontSize, lineHeight)}px`,
-						minHeight: `${resolveLineHeightPx(fontSize, lineHeight)}px`,
+						lineHeight: lineHeightPx,
+						minHeight: lineHeightPx,
 						// Unitless multiplier consumed by the .tl-rich-text h1–h6 rule (see editor.css).
 						'--tl-rich-text-heading-line-height': lineHeight,
 						minWidth: Math.ceil(textWidth || 0),
@@ -179,7 +176,6 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 						<div
 							className="tl-rich-text"
 							data-is-select-tool-active={selectToolActive}
-							// todo: see if I can abuse this
 							dangerouslySetInnerHTML={{ __html: html || '' }}
 							onPointerDown={handlePointerDown}
 							data-is-ready-for-editing={isReadyForEditing}

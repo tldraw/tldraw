@@ -17,17 +17,15 @@ export const BOOKMARK_HEIGHT = 320
 export const BOOKMARK_JUST_URL_HEIGHT = 46
 const SHORT_BOOKMARK_HEIGHT = 101
 
+function getBookmarkAssetIdForUrl(url: string): TLAssetId {
+	return AssetRecordType.createId(getHashForString(url))
+}
+
 export function getBookmarkHeight(editor: Editor, assetId?: TLAssetId | null) {
 	const asset = (assetId ? editor.getAsset(assetId) : null) as TLBookmarkAsset | null
 
-	if (asset) {
-		if (!asset.props.image) {
-			if (!asset.props.title) {
-				return BOOKMARK_JUST_URL_HEIGHT
-			} else {
-				return SHORT_BOOKMARK_HEIGHT
-			}
-		}
+	if (asset && !asset.props.image) {
+		return asset.props.title ? SHORT_BOOKMARK_HEIGHT : BOOKMARK_JUST_URL_HEIGHT
 	}
 
 	return BOOKMARK_HEIGHT
@@ -52,13 +50,9 @@ export function getHumanReadableAddress(url: string) {
 }
 
 export function updateBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmarkShape) {
-	const { url } = shape.props
-
-	// Derive the asset id from the URL
-	const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
+	const assetId = getBookmarkAssetIdForUrl(shape.props.url)
 
 	if (editor.getAsset(assetId)) {
-		// Existing asset for this URL?
 		if (shape.props.assetId !== assetId) {
 			editor.updateShapes([
 				{
@@ -69,9 +63,7 @@ export function updateBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmark
 			])
 		}
 	} else {
-		// No asset for this URL?
-
-		// First, clear out the existing asset reference
+		// Clear the stale asset reference, then create a new one asynchronously
 		editor.updateShapes([
 			{
 				id: shape.id,
@@ -79,8 +71,6 @@ export function updateBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmark
 				props: { assetId: null },
 			},
 		])
-
-		// Then try to asyncronously create a new one
 		createBookmarkAssetOnUrlChange(editor, shape)
 	}
 }
@@ -103,7 +93,7 @@ export function getResolvedBookmarkAssetId(
 	if (assetId) return assetId
 	if (!url) return null
 
-	const derivedId: TLAssetId = AssetRecordType.createId(getHashForString(url))
+	const derivedId = getBookmarkAssetIdForUrl(url)
 	return editor.getAsset(derivedId) ? derivedId : null
 }
 
@@ -138,10 +128,7 @@ async function _createBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmark
 	}
 
 	editor.run(() => {
-		// Create the new asset
 		editor.createAssets([asset])
-
-		// And update the shape
 		editor.updateShapes([
 			{
 				id: shape.id,
@@ -192,8 +179,7 @@ export async function createBookmarkFromUrl(
 		// If we already have a bookmark asset for this URL (e.g. another bookmark
 		// shape was created from the same URL earlier), use it immediately rather
 		// than re-fetching.
-		const expectedAssetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
-		const existingAsset = editor.getAsset(expectedAssetId) as TLBookmarkAsset | null
+		const existingAsset = editor.getAsset(getBookmarkAssetIdForUrl(url)) as TLBookmarkAsset | null
 
 		const shapeId = createShapeId()
 		const shapePartial: TLShapePartial<TLBookmarkShape> = {
@@ -211,9 +197,7 @@ export async function createBookmarkFromUrl(
 			},
 		}
 
-		editor.run(() => {
-			editor.createShapes([shapePartial])
-		})
+		editor.createShapes([shapePartial])
 
 		const createdShape = editor.getShape<TLBookmarkShape>(shapeId)
 		if (!createdShape) {

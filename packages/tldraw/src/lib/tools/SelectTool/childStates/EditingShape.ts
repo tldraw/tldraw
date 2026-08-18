@@ -62,8 +62,7 @@ export class EditingShape extends StateNode {
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		// In the case where on pointer down we hit a shape's label, we need to check if the user is dragging.
-		// and if they are, we need to transition to translating instead.
+		// A pointer down on another shape's label starts translating it if the user drags
 		if (this.hitLabelOnShapeForPointerUp && this.editor.inputs.getIsDragging()) {
 			if (this.editor.getIsReadonly()) return
 			if (this.hitLabelOnShapeForPointerUp.isLocked) return
@@ -74,7 +73,6 @@ export class EditingShape extends StateNode {
 			return
 		}
 
-		// Check if dragging from editing shape with blurred input
 		if (this.didPointerDownOnEditingShape && this.editor.inputs.isDragging) {
 			if (this.editor.getIsReadonly()) return
 
@@ -148,9 +146,7 @@ export class EditingShape extends StateNode {
 						textLabel.bounds.containsPoint(pointInShapeSpace, 0) &&
 						textLabel.hitTestPoint(pointInShapeSpace)
 					) {
-						// it's a hit to the label!
 						if (selectingShape.id === editingShape.id) {
-							// Track click on editing shape for drag detection
 							this.didPointerDownOnEditingShape = true
 							return
 						} else {
@@ -180,9 +176,8 @@ export class EditingShape extends StateNode {
 			}
 		}
 
-		// still here? Cancel editing and transition back to select idle
+		// Cancel editing and replay the pointer down in select idle
 		this.parent.transition('idle', info)
-		// then feed the pointer down event back into the state chart as if it happened in that state
 		this.editor.root.handleEvent(info)
 	}
 
@@ -220,10 +215,10 @@ export class EditingShape extends StateNode {
 		this.editor.setEditingShape(hitShape.id)
 
 		const isMobile = tlenv.isIos || tlenv.isAndroid
-		if (!isMobile || !isEditToEditAction) {
-			this.editor.emit('place-caret', { shapeId: hitShape.id, point: info.point })
-		} else if (isMobile && isEditToEditAction) {
+		if (isMobile && isEditToEditAction) {
 			this.editor.emit('select-all-text', { shapeId: hitShape.id })
+		} else {
+			this.editor.emit('place-caret', { shapeId: hitShape.id, point: info.point })
 		}
 		updateHoveredShapeId(this.editor)
 	}

@@ -13,9 +13,7 @@ export class ZoomQuick extends StateNode {
 	/** The camera zoom right after the overview zoom-out in onEnter. */
 	overviewZoom = 1
 
-	cleanupZoomReactor() {
-		void null
-	}
+	private cleanupZoomReactor: (() => void) | null = null
 
 	nextVpb = new Box()
 
@@ -82,20 +80,24 @@ export class ZoomQuick extends StateNode {
 	}
 
 	override onExit() {
-		this.cleanupZoomReactor()
+		this.cleanupZoomReactor?.()
+		this.cleanupZoomReactor = null
 		this.zoomToNewViewport()
 		this.editor.updateInstanceState({ zoomBrush: null })
 	}
 
 	override onPointerUp() {
-		// Exit the zoom tool entirely, returning to the original tool
-		const toolId = this.info.onInteractionEnd?.split('.')[0] ?? 'select'
-		this.editor.setCurrentTool(toolId)
+		this.exitToOriginatingTool()
 	}
 
 	override onCancel() {
+		// Back to idle so onExit restores the original viewport instead of zooming to the brush
 		this.qzState = 'idle'
-		// Exit the zoom tool entirely, returning to the original tool
+		this.exitToOriginatingTool()
+	}
+
+	private exitToOriginatingTool() {
+		// onInteractionEnd is a path like 'select.idle'; the tool id is the first segment
 		const toolId = this.info.onInteractionEnd?.split('.')[0] ?? 'select'
 		this.editor.setCurrentTool(toolId)
 	}
@@ -115,16 +117,7 @@ export class ZoomQuick extends StateNode {
 
 	private zoomToNewViewport() {
 		const { editor } = this
-		switch (this.qzState) {
-			case 'idle':
-				// return to original viewport
-				editor.zoomToBounds(this.initialVpb, { inset: 0 })
-				break
-			case 'moving':
-				// zoom to the new viewport
-				editor.zoomToBounds(this.nextVpb, { inset: 0 })
-				break
-		}
+		editor.zoomToBounds(this.qzState === 'moving' ? this.nextVpb : this.initialVpb, { inset: 0 })
 	}
 
 	override onPointerMove() {
@@ -133,23 +126,15 @@ export class ZoomQuick extends StateNode {
 	}
 
 	override onTick() {
+		if (this.qzState !== 'idle') return
 		const { editor } = this
-
-		// If the user is idle but has moved their camera, transition to the moving state
-		switch (this.qzState) {
-			case 'idle': {
-				const zoomLevel = editor.getZoomLevel()
-				if (
-					Vec.Dist2(editor.inputs.getCurrentPagePoint(), this.initialPp) * zoomLevel >
-					editor.options.dragDistanceSquared / zoomLevel
-				) {
-					this.qzState = 'moving'
-					this.updateBrush()
-				}
-				break
-			}
-			case 'moving':
-				break
+		const zoomLevel = editor.getZoomLevel()
+		if (
+			Vec.Dist2(editor.inputs.getCurrentPagePoint(), this.initialPp) * zoomLevel >
+			editor.options.dragDistanceSquared / zoomLevel
+		) {
+			this.qzState = 'moving'
+			this.updateBrush()
 		}
 	}
 
@@ -170,10 +155,11 @@ export class ZoomQuick extends StateNode {
 		}
 		const { x, y } = editor.inputs.getCurrentPagePoint()
 
-		// Normalize the offset on the current screen point within the current viewport screen bounds
+		// Keep the brush anchored under the cursor at the same normalized screen offset
 		const vsb = editor.getViewportScreenBounds()
 		const vsp = editor.inputs.getCurrentScreenPoint()
-		const { x: nx, y: ny } = new Vec(vsp.x / vsb.w, vsp.y / vsb.h)
+		const nx = vsp.x / vsb.w
+		const ny = vsp.y / vsb.h
 
 		return new Box(x - nx * w, y - ny * h, w, h)
 	}

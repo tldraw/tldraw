@@ -5,7 +5,6 @@ export class Idle extends StateNode {
 	static override id = 'idle'
 
 	override onPointerDown() {
-		// Get or create the shared laser session from the parent tool
 		const sessionId = (this.parent as LaserTool).getSessionId()
 		const scribble = this.editor.scribbles.addScribbleToSession(sessionId, {
 			color: 'laser',

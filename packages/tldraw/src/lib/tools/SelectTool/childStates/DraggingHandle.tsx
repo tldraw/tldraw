@@ -81,41 +81,18 @@ export class DraggingHandle extends StateNode {
 		const handles = this.editor.getShapeHandles(shape)!.sort(sortByIndex)
 		const index = handles.findIndex((h) => h.id === info.handle.id)
 
-		// Find the adjacent handle
-		this.initialAdjacentHandle = null
+		// The adjacent handle is the custom reference handle if one is specified; otherwise the
+		// next vertex after this one, wrapping around to the last vertex before it.
+		const isAdjacentCandidate = (h: TLHandle) =>
+			h.type === 'vertex' && h.id !== 'middle' && h.id !== info.handle.id
+		this.initialAdjacentHandle =
+			(info.handle.snapReferenceHandleId
+				? handles.find((h) => h.id === info.handle.snapReferenceHandleId)
+				: undefined) ??
+			handles.slice(index + 1).find(isAdjacentCandidate) ??
+			handles.slice().reverse().find(isAdjacentCandidate) ??
+			null
 
-		// First, check if the handle specifies a custom reference handle
-		if (info.handle.snapReferenceHandleId) {
-			const customHandle = handles.find((h) => h.id === info.handle.snapReferenceHandleId)
-			if (customHandle) {
-				this.initialAdjacentHandle = customHandle
-			}
-		}
-
-		// If no custom reference handle, use default behavior
-		if (!this.initialAdjacentHandle) {
-			// Start from the handle and work forward
-			for (let i = index + 1; i < handles.length; i++) {
-				const handle = handles[i]
-				if (handle.type === 'vertex' && handle.id !== 'middle' && handle.id !== info.handle.id) {
-					this.initialAdjacentHandle = handle
-					break
-				}
-			}
-
-			// If still no handle, start from the end and work backward
-			if (!this.initialAdjacentHandle) {
-				for (let i = handles.length - 1; i >= 0; i--) {
-					const handle = handles[i]
-					if (handle.type === 'vertex' && handle.id !== 'middle' && handle.id !== info.handle.id) {
-						this.initialAdjacentHandle = handle
-						break
-					}
-				}
-			}
-		}
-
-		// <!-- Only relevant to arrows
 		if (this.editor.isShapeOfType(shape, 'arrow')) {
 			const initialBinding = getArrowBindings(this.editor, shape)[info.handle.id as 'start' | 'end']
 
@@ -130,9 +107,7 @@ export class DraggingHandle extends StateNode {
 				}
 			}
 		}
-		// -->
 
-		// Call onHandleDragStart callback
 		const handleDragInfo = {
 			handle: this.initialHandle,
 			isPrecise: this.isPrecise,
@@ -153,14 +128,11 @@ export class DraggingHandle extends StateNode {
 	// Only relevant to arrows
 	private exactTimeout = -1
 
-	// Only relevant to arrows
 	private resetExactTimeout() {
 		const arrowUtil = this.editor.getShapeUtil<ArrowShapeUtil>('arrow')
 		const timeoutValue = arrowUtil.options.pointingPreciseTimeout
 
-		if (this.exactTimeout !== -1) {
-			this.clearExactTimeout()
-		}
+		this.clearExactTimeout()
 
 		this.exactTimeout = this.editor.timers.setTimeout(() => {
 			if (this.getIsActive() && !this.isPrecise) {
@@ -172,7 +144,6 @@ export class DraggingHandle extends StateNode {
 		}, timeoutValue)
 	}
 
-	// Only relevant to arrows
 	private clearExactTimeout() {
 		if (this.exactTimeout !== -1) {
 			clearTimeout(this.exactTimeout)
@@ -217,7 +188,6 @@ export class DraggingHandle extends StateNode {
 		this.editor.snaps.clearIndicators()
 		kickoutOccludedShapes(this.editor, [this.shapeId])
 
-		// Call onHandleDragEnd callback before state transitions
 		const shape = this.editor.getShape(this.shapeId)
 		if (shape) {
 			const util = this.editor.getShapeUtil(shape)
@@ -236,13 +206,13 @@ export class DraggingHandle extends StateNode {
 		const { onInteractionEnd } = this.info
 		if (onInteractionEnd) {
 			if (typeof onInteractionEnd === 'string') {
-				if (this.editor.getInstanceState().isToolLocked && onInteractionEnd) {
+				if (this.editor.getInstanceState().isToolLocked) {
 					// Return to the tool that was active before this one but only if tool lock is turned on!
 					this.editor.setCurrentTool(onInteractionEnd, { shapeId: this.shapeId })
 					return
 				}
 			} else {
-				onInteractionEnd?.()
+				onInteractionEnd()
 				return
 			}
 		}
@@ -251,7 +221,6 @@ export class DraggingHandle extends StateNode {
 	}
 
 	private cancel() {
-		// Call onHandleDragCancel callback before bailing to mark
 		const shape = this.editor.getShape(this.shapeId)
 		if (shape) {
 			const util = this.editor.getShapeUtil(shape)
@@ -273,7 +242,7 @@ export class DraggingHandle extends StateNode {
 				// Return to the tool that was active before this one, whether tool lock is turned on or not!
 				this.editor.setCurrentTool(onInteractionEnd, { shapeId: this.shapeId })
 			} else {
-				onInteractionEnd?.()
+				onInteractionEnd()
 			}
 			return
 		}
@@ -315,7 +284,6 @@ export class DraggingHandle extends StateNode {
 			point = Vec.RotWith(point, initialAdjacentHandle, angleDifference)
 		}
 
-		// Clear any existing snaps
 		editor.snaps.clearIndicators()
 
 		let nextHandle = { ...initialHandle, x: point.x, y: point.y }
@@ -332,7 +300,6 @@ export class DraggingHandle extends StateNode {
 		}
 
 		if (canSnap && (isSnapMode ? !ctrlKey : ctrlKey)) {
-			// We're snapping
 			const pageTransform = editor.getShapePageTransform(shape.id)
 			if (!pageTransform) throw Error('Expected a page transform')
 

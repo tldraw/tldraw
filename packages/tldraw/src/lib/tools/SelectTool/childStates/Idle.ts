@@ -15,7 +15,6 @@ import {
 	toRichText,
 	unsafe__withoutCapture,
 } from '@tldraw/editor'
-import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { updateHoveredOverlayId } from '../../selection-logic/updateHoveredOverlayId'
 import {
@@ -95,21 +94,12 @@ export class Idle extends StateNode {
 					return
 				}
 
-				const selectedShapeIds = this.editor.getSelectedShapeIds()
-				const onlySelectedShape = this.editor.getOnlySelectedShape()
-
-				if (
-					selectedShapeIds.length > 1 ||
-					(onlySelectedShape &&
-						!this.editor.getShapeUtil(onlySelectedShape).hideSelectionBoundsBg(onlySelectedShape))
-				) {
-					if (isPointInRotatedSelectionBounds(this.editor, currentPagePoint)) {
-						this.onPointerDown({
-							...info,
-							target: 'selection',
-						})
-						return
-					}
+				if (isPointInSelectionBoundsBg(this.editor, currentPagePoint)) {
+					this.onPointerDown({
+						...info,
+						target: 'selection',
+					})
+					return
 				}
 
 				this.parent.transition('pointing_canvas', info)
@@ -146,22 +136,8 @@ export class Idle extends StateNode {
 					}
 				} else {
 					switch (overlayType) {
-						case 'rotate_handle': {
-							this.onPointerDown({
-								...info,
-								target: 'selection',
-								handle: overlay.props.handle as any,
-							})
-							break
-						}
-						case 'mobile_rotate': {
-							this.onPointerDown({
-								...info,
-								target: 'selection',
-								handle: overlay.props.handle as any,
-							})
-							break
-						}
+						case 'rotate_handle':
+						case 'mobile_rotate':
 						case 'resize_handle': {
 							this.onPointerDown({
 								...info,
@@ -335,10 +311,7 @@ export class Idle extends StateNode {
 					return
 				}
 
-				// No hit shape, so double click on the canvas instead
-				if (!this.editor.inputs.getShiftKey()) {
-					this.handleDoubleClickOnCanvas(info)
-				}
+				this.handleDoubleClickOnCanvas(info)
 				break
 			}
 			case 'selection': {
@@ -436,19 +409,16 @@ export class Idle extends StateNode {
 				// Allow playing videos and embeds
 				if (shape.type !== 'video' && shape.type !== 'embed' && this.editor.getIsReadonly()) break
 
-				if (util.onDoubleClick) {
-					// Call the shape's double click handler
-					const change = util.onDoubleClick?.(shape)
-					if (change) {
-						this.editor.updateShapes([change])
-						return
-					}
+				const change = util.onDoubleClick?.(shape)
+				if (change) {
+					this.editor.updateShapes([change])
+					return
 				}
 
 				if (util.canCrop(shape) && !this.editor.isShapeOrAncestorLocked(shape)) {
 					// crop image etc on double click
 					this.editor.markHistoryStoppingPoint('select and crop')
-					this.editor.select(info.shape?.id)
+					this.editor.select(shape.id)
 					this.parent.transition('crop', info)
 					return
 				}
@@ -473,12 +443,8 @@ export class Idle extends StateNode {
 
 				if (changes) {
 					this.editor.updateShapes([changes])
-				} else {
-					// If the shape's double click handler has not created a change,
-					// and if the shape can edit, then begin editing the shape.
-					if (this.editor.canEditShape(shape)) {
-						this.startEditingShape(shape, info, true /* select all */)
-					}
+				} else if (this.editor.canEditShape(shape)) {
+					this.startEditingShape(shape, info, true /* select all */)
 				}
 			}
 		}
@@ -487,24 +453,16 @@ export class Idle extends StateNode {
 	override onRightClick(info: TLPointerEventInfo) {
 		switch (info.target) {
 			case 'canvas': {
-				const selectedShapeIds = this.editor.getSelectedShapeIds()
-				const onlySelectedShape = this.editor.getOnlySelectedShape()
 				const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 
 				// Check selection bounds first so that right-clicking inside the
 				// selection preserves it, even when a filled shape sits behind it.
-				if (
-					selectedShapeIds.length > 1 ||
-					(onlySelectedShape &&
-						!this.editor.getShapeUtil(onlySelectedShape).hideSelectionBoundsBg(onlySelectedShape))
-				) {
-					if (isPointInRotatedSelectionBounds(this.editor, currentPagePoint)) {
-						this.onRightClick({
-							...info,
-							target: 'selection',
-						})
-						return
-					}
+				if (isPointInSelectionBoundsBg(this.editor, currentPagePoint)) {
+					this.onRightClick({
+						...info,
+						target: 'selection',
+					})
+					return
 				}
 
 				const hoveredShape = this.editor.getHoveredShape()
@@ -704,20 +662,13 @@ export class Idle extends StateNode {
 		info: TLClickEventInfo | (TLKeyboardEventInfo & { target: 'shape'; shape: TLShape }),
 		shouldSelectAll?: boolean
 	) {
-		const { editor } = this
 		this.editor.markHistoryStoppingPoint('editing shape')
 		if (hasRichText(shape)) {
-			startEditingShapeWithRichText(editor, shape, { selectAll: shouldSelectAll })
+			startEditingShapeWithRichText(this.editor, shape, { selectAll: shouldSelectAll })
 		} else {
-			editor.setEditingShape(shape)
+			this.editor.setEditingShape(shape)
 		}
 		this.parent.transition('editing_shape', info)
-	}
-
-	isOverArrowLabelTest(shape: TLShape | undefined) {
-		if (!shape) return false
-
-		return isOverArrowLabel(this.editor, shape)
 	}
 
 	handleDoubleClickOnCanvas(info: TLClickEventInfo) {
@@ -773,7 +724,7 @@ export class Idle extends StateNode {
 		if (keys.has('ArrowUp')) delta.y -= 1
 		if (keys.has('ArrowDown')) delta.y += 1
 
-		if (delta.equals(new Vec(0, 0))) return
+		if (delta.x === 0 && delta.y === 0) return
 
 		if (!ephemeral) this.editor.markHistoryStoppingPoint('nudge shapes')
 
@@ -800,7 +751,15 @@ export const MAJOR_NUDGE_FACTOR = 10
 export const MINOR_NUDGE_FACTOR = 1
 export const GRID_INCREMENT = 5
 
-function isPointInRotatedSelectionBounds(editor: Editor, point: VecLike) {
+function isPointInSelectionBoundsBg(editor: Editor, point: VecLike) {
+	const onlySelectedShape = editor.getOnlySelectedShape()
+	if (onlySelectedShape) {
+		if (editor.getShapeUtil(onlySelectedShape).hideSelectionBoundsBg(onlySelectedShape))
+			return false
+	} else if (editor.getSelectedShapeIds().length <= 1) {
+		return false
+	}
+
 	const selectionBounds = editor.getSelectionRotatedPageBounds()
 	if (!selectionBounds) return false
 

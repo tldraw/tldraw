@@ -1,4 +1,4 @@
-import { Image, LruCache, VecLike } from '@tldraw/editor'
+import { Image, LruCache, VecLike, clamp } from '@tldraw/editor'
 
 /** Mime types of image formats that support transparency / alpha channel. */
 export const TRANSPARENT_IMAGE_MIMETYPES: readonly string[] = [
@@ -34,8 +34,8 @@ function mapToImageCoords(
 	bounds: { minX: number; minY: number; w: number; h: number }
 ): { nx: number; ny: number } {
 	// Normalize point to [0,1] within the shape bounds, clamped for edge-margin hits
-	let nx = Math.max(0, Math.min(1, (point.x - bounds.minX) / bounds.w))
-	let ny = Math.max(0, Math.min(1, (point.y - bounds.minY) / bounds.h))
+	let nx = clamp((point.x - bounds.minX) / bounds.w, 0, 1)
+	let ny = clamp((point.y - bounds.minY) / bounds.h, 0, 1)
 
 	// Map from cropped shape space to full image space
 	if (config.crop) {

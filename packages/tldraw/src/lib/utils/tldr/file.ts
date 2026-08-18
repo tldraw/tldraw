@@ -79,10 +79,7 @@ const tldrawFileValidator: T.Validator<TldrawFile> = T.object({
 /** @public */
 export function isV1File(data: any) {
 	try {
-		if (data.document?.version) {
-			return true
-		}
-		return false
+		return !!data.document?.version
 	} catch {
 		return false
 	}
@@ -182,41 +179,28 @@ function pruneUnusedAssets(records: TLRecord[]) {
 export async function serializeTldrawJson(editor: Editor): Promise<string> {
 	const records: TLRecord[] = []
 	for (const record of editor.store.allRecords()) {
-		switch (record.typeName) {
-			case 'asset':
-				if (
-					record.type !== 'bookmark' &&
-					record.props.src &&
-					!record.props.src.startsWith('data:')
-				) {
-					let assetSrcToSave
-					try {
-						let src = record.props.src
-						if (!src.startsWith('http')) {
-							src =
-								(await editor.resolveAssetUrl(record.id, { shouldResolveToOriginal: true })) || ''
-						}
-						// try to save the asset as a base64 string
-						assetSrcToSave = await FileHelpers.blobToDataUrl(await (await fetch(src)).blob())
-					} catch {
-						// if that fails, just save the original src
-						assetSrcToSave = record.props.src
-					}
-
-					records.push({
-						...record,
-						props: {
-							...record.props,
-							src: assetSrcToSave,
-						},
-					})
-				} else {
-					records.push(record)
+		if (
+			record.typeName === 'asset' &&
+			record.type !== 'bookmark' &&
+			record.props.src &&
+			!record.props.src.startsWith('data:')
+		) {
+			let assetSrcToSave
+			try {
+				let src = record.props.src
+				if (!src.startsWith('http')) {
+					src = (await editor.resolveAssetUrl(record.id, { shouldResolveToOriginal: true })) || ''
 				}
-				break
-			default:
-				records.push(record)
-				break
+				// try to save the asset as a base64 string
+				assetSrcToSave = await FileHelpers.blobToDataUrl(await (await fetch(src)).blob())
+			} catch {
+				// if that fails, just save the original src
+				assetSrcToSave = record.props.src
+			}
+
+			records.push({ ...record, props: { ...record.props, src: assetSrcToSave } })
+		} else {
+			records.push(record)
 		}
 	}
 
@@ -358,7 +342,6 @@ async function extractAssets(
 					severity: 'error',
 				})
 				console.error(error)
-				return
 			}
 		})
 	)
