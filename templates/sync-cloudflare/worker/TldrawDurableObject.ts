@@ -140,7 +140,11 @@ export class TldrawDurableObject extends DurableObject {
 		const attachment = ws.deserializeAttachment() as SocketAttachment | null
 		if (!attachment?.sessionId) return
 
-		this.sessionIdToWs.delete(attachment.sessionId)
+		// only forget the mapping if it still points at this socket: a reconnect under the same
+		// session id may already have replaced it
+		if (this.sessionIdToWs.get(attachment.sessionId) === ws) {
+			this.sessionIdToWs.delete(attachment.sessionId)
+		}
 
 		const room = this.getOrCreateRoom()
 
@@ -155,6 +159,7 @@ export class TldrawDurableObject extends DurableObject {
 			})
 		}
 
-		room[method](attachment.sessionId)
+		// pass the socket so a close from a superseded socket can't cancel a reconnected session
+		room[method](attachment.sessionId, ws)
 	}
 }

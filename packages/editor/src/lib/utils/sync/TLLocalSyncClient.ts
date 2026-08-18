@@ -68,6 +68,7 @@ export class TLLocalSyncClient {
 	private disposables = new Set<() => void>()
 	private diffQueue: Array<RecordsDiff<UnknownRecord> | typeof UPDATE_INSTANCE_STATE> = []
 	private didDispose = false
+	private didLoad = false
 	private shouldDoFullDBWrite = true
 	private isReloading = false
 	readonly persistenceKey: string
@@ -107,7 +108,6 @@ export class TLLocalSyncClient {
 		this.persistenceKey = persistenceKey
 		this.sessionId = sessionId
 		this.db = new LocalIndexedDb(persistenceKey)
-		this.disposables.add(() => this.db.close())
 
 		this.serializedSchema = this.store.schema.serialize()
 		this.$sessionStateSnapshot = createSessionStateSnapshotSignal(this.store)
@@ -156,6 +156,18 @@ export class TLLocalSyncClient {
 		this.debug('connecting')
 		let data: UnpackPromise<ReturnType<LocalIndexedDb['load']>> | undefined
 
+		// Listen from the start and hold messages until we have loaded. A diff another tab
+		// broadcasts while our load is in flight may not be in what we read (that tab persists on
+		// a throttle), and our first persist is a full snapshot write — so if we missed it here it
+		// would be erased from IndexedDB for good. Re-applying one we did read is a no-op.
+		const messagesReceivedWhileLoading: MessageEvent[] = []
+		this.channel.onmessage = (event) => {
+			messagesReceivedWhileLoading.push(event)
+		}
+		this.disposables.add(() => {
+			this.channel.close()
+		})
+
 		try {
 			data = await this.db.load({ sessionId: this.sessionId })
 		} catch (error: any) {
@@ -201,8 +213,11 @@ export class TLLocalSyncClient {
 					})
 				}
 			}
+			this.didLoad = true
+			// anything queued while loading was held back by persistIfNeeded; write it now
+			if (this.diffQueue.length > 0) this.schedulePersist()
 
-			this.channel.onmessage = ({ data }) => {
+			const handleMessage = ({ data }: MessageEvent) => {
 				this.debug('got message', data)
 				const msg = data as Message
 				// if their schema is earlier than ours, we need to tell them so they can refresh
@@ -219,6 +234,10 @@ export class TLLocalSyncClient {
 						// the schema version (which we should never do)
 						// Or maybe during development if you have multiple local tabs open running the app on prod mode and you
 						// check out an older commit. Dev server should be fine.
+						//
+						// Either way this tab must stop writing: persisting its older schema over the
+						// newer tab's records would corrupt the next load.
+						this.isReloading = true
 						onLoadError(new Error('Schema mismatch, please close other tabs and reload the page'))
 						return
 					}
@@ -245,10 +264,14 @@ export class TLLocalSyncClient {
 					})
 				}
 			}
+			this.channel.onmessage = handleMessage
+			for (const event of messagesReceivedWhileLoading) {
+				handleMessage(event)
+			}
+			// a held-back message may have found us out of date (onLoadError already reported it, or
+			// the page is reloading); don't report a successful load on top of that
+			if (this.isReloading) return
 			this.channel.postMessage({ type: 'announce', schema: this.serializedSchema })
-			this.disposables.add(() => {
-				this.channel.close()
-			})
 			onLoad(this)
 		} catch (e: any) {
 			this.debug('error loading data from store', e)
@@ -260,14 +283,39 @@ export class TLLocalSyncClient {
 
 	close() {
 		this.debug('closing')
+		if (this.scheduledPersistTimeout) {
+			clearTimeout(this.scheduledPersistTimeout)
+			this.scheduledPersistTimeout = null
+		}
 		this.didDispose = true
 		this.disposables.forEach((d) => d())
 		if (typeof window !== 'undefined' && (window as any).tlsync === this) {
 			delete (window as any).tlsync
 		}
+		void this.flushAndCloseDb()
+	}
+
+	/**
+	 * Write out whatever is still queued instead of throwing it away — the persist throttle means
+	 * the last few hundred milliseconds of edits before an unmount are usually still pending — and
+	 * only then close the database.
+	 */
+	private async flushAndCloseDb() {
+		// let a write that is already in flight finish first; edits made during it are queued
+		if (this.currentPersist) await this.currentPersist
+		if (
+			this.didLoad &&
+			!this.isReloading &&
+			!this.store.isPossiblyCorrupted() &&
+			(this.shouldDoFullDBWrite || this.diffQueue.length > 0)
+		) {
+			await this.doPersist()
+		}
+		await this.db.close()
 	}
 
 	private isPersisting = false
+	private currentPersist: Promise<void> | null = null
 	private didLastWriteError = false
 	// eslint-disable-next-line no-restricted-globals
 	private scheduledPersistTimeout: ReturnType<typeof setTimeout> | null = null
@@ -280,7 +328,7 @@ export class TLLocalSyncClient {
 	 */
 	private schedulePersist() {
 		this.debug('schedulePersist', this.scheduledPersistTimeout)
-		if (this.scheduledPersistTimeout) return
+		if (this.didDispose || this.scheduledPersistTimeout) return
 		// eslint-disable-next-line no-restricted-globals
 		this.scheduledPersistTimeout = setTimeout(
 			() => {
@@ -315,6 +363,10 @@ export class TLLocalSyncClient {
 			this.scheduledPersistTimeout = null
 		}
 
+		// until the initial load has merged what IndexedDB holds, the store is not the source of
+		// truth: writing it out now (the first write is a full snapshot) would wipe the saved document
+		if (!this.didLoad) return
+
 		// if a persist is already in progress, we don't need to do anything -
 		// if there are still outstanding changes once it's finished, it'll
 		// schedule another persist
@@ -329,7 +381,7 @@ export class TLLocalSyncClient {
 
 		// if we're scheduled for a full write or if we have changes outstanding, let's persist them!
 		if (this.shouldDoFullDBWrite || this.diffQueue.length > 0) {
-			this.doPersist()
+			void this.doPersist()
 		}
 	}
 
@@ -337,11 +389,20 @@ export class TLLocalSyncClient {
 	 * Actually persist to IndexedDB. If the write fails, then we'll retry with a full db write after
 	 * a short delay.
 	 */
-	private async doPersist() {
+	private doPersist(): Promise<void> {
 		assert(!this.isPersisting, 'persist already in progress')
-		if (this.didDispose) return
 		this.isPersisting = true
+		this.currentPersist = this.doPersistInner().finally(() => {
+			this.isPersisting = false
+			this.currentPersist = null
+			// changes might have come in between when we started the persist and
+			// now. we request another persist so any new changes can get written
+			this.schedulePersist()
+		})
+		return this.currentPersist
+	}
 
+	private async doPersistInner() {
 		this.debug('doPersist start')
 
 		// instantly empty the diff queue, but keep our own copy of it. this way
@@ -384,11 +445,6 @@ export class TLLocalSyncClient {
 			}
 		}
 
-		this.isPersisting = false
 		this.debug('doPersist end')
-
-		// changes might have come in between when we started the persist and
-		// now. we request another persist so any new changes can get written
-		this.schedulePersist()
 	}
 }

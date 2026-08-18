@@ -518,7 +518,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	public _flushHistory() {
 		// If we have accumulated history, flush it and update listeners
 		if (this.historyAccumulator.hasChanges()) {
-			const entries = this.historyAccumulator.flush()
+			const entries = this.historyAccumulator.flush(this.history.get())
 			for (const { changes, source } of entries) {
 				// Filtered diffs are computed at most once per scope per entry, and shared by every
 				// listener watching that scope.
@@ -570,14 +570,18 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param changes - The changes to add to the history.
 	 */
 	private updateHistory(changes: RecordsDiff<R>): void {
-		this.historyAccumulator.add({
-			changes,
-			source: this.isMergingRemoteChanges ? 'remote' : 'user',
-		})
+		const historyCounter = this.history.get() + 1
+		this.historyAccumulator.add(
+			{
+				changes,
+				source: this.isMergingRemoteChanges ? 'remote' : 'user',
+			},
+			historyCounter
+		)
 		if (this.listeners.size === 0) {
 			this.historyAccumulator.clear()
 		}
-		this.history.set(this.history.get() + 1, changes)
+		this.history.set(historyCounter, changes)
 	}
 
 	validate(phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests') {
@@ -1318,15 +1322,30 @@ function squashHistoryEntries<T extends UnknownRecord>(
 }
 
 /**
- * Internal class that accumulates history entries before they are flushed to listeners.
- * Handles batching and squashing of adjacent entries from the same source.
+ * Buffers change-sets between listener flushes, squashing adjacent entries from the same source.
+ * Each entry is tagged with the store's `history` counter at the time it was recorded: a
+ * transaction that rolls back resets that counter, so entries tagged at or beyond a value the
+ * counter later reaches again (or that a flush finds ahead of it) belong to changes the store no
+ * longer holds and must not reach listeners — otherwise a sync client would push, and local
+ * persistence would save, records the store never kept.
  *
  * @internal
  */
 class HistoryAccumulator<T extends UnknownRecord> {
 	private _history: HistoryEntry<T>[] = []
+	private _historyCounters: number[] = []
 
 	private _interceptors: Set<(entry: HistoryEntry<T>) => void> = new Set()
+
+	/** Drop every entry recorded at or after `historyCounter` (they were rolled back). */
+	private dropFrom(historyCounter: number) {
+		let end = this._historyCounters.length
+		while (end > 0 && this._historyCounters[end - 1] >= historyCounter) end--
+		if (end < this._historyCounters.length) {
+			this._history.length = end
+			this._historyCounters.length = end
+		}
+	}
 
 	/**
 	 * Add an interceptor that will be called for each history entry.
@@ -1343,8 +1362,10 @@ class HistoryAccumulator<T extends UnknownRecord> {
 	 * Add a history entry to the accumulator.
 	 * Calls all registered interceptors with the entry.
 	 */
-	add(entry: HistoryEntry<T>) {
+	add(entry: HistoryEntry<T>, historyCounter: number) {
+		this.dropFrom(historyCounter)
 		this._history.push(entry)
+		this._historyCounters.push(historyCounter)
 		for (const interceptor of this._interceptors) {
 			interceptor(entry)
 		}
@@ -1353,10 +1374,15 @@ class HistoryAccumulator<T extends UnknownRecord> {
 	/**
 	 * Flush all accumulated history entries, squashing adjacent entries from the same source.
 	 * Clears the internal history buffer.
+	 *
+	 * @param historyCounter - The store's current history counter; entries recorded beyond it
+	 * were rolled back and are discarded.
 	 */
-	flush() {
+	flush(historyCounter: number) {
+		this.dropFrom(historyCounter + 1)
 		const history = squashHistoryEntries(this._history)
 		this._history = []
+		this._historyCounters = []
 		return history
 	}
 
@@ -1365,6 +1391,7 @@ class HistoryAccumulator<T extends UnknownRecord> {
 	 */
 	clear() {
 		this._history = []
+		this._historyCounters = []
 	}
 
 	/**

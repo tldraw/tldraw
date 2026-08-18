@@ -1949,6 +1949,67 @@ describe('25. Messaging and broadcast (RB)', () => {
 		expect(socketB.sendMessage).not.toHaveBeenCalled()
 	})
 
+	it('[RB3] a debounced flush into a socket that closed meanwhile cancels the session instead of sending', () => {
+		vi.useFakeTimers()
+		const { room, socketB } = setupTwoSessions()
+		const newPage = makePage('page_3', 'v1')
+
+		room.handleMessage('a', {
+			type: 'push',
+			clientClock: 1,
+			diff: { [newPage.id]: ['put', newPage] },
+		} as TLPushRequest<TLRecord>)
+		room.handleMessage('a', {
+			type: 'push',
+			clientClock: 2,
+			diff: { [newPage.id]: ['patch', { name: ['put', 'v2'] }] },
+		} as TLPushRequest<TLRecord>)
+		expect(socketB.sendMessage).toHaveBeenCalledTimes(1)
+
+		// the socket closes while the second message sits in the debounce buffer
+		socketB.isOpen = false
+		vi.advanceTimersByTime(DATA_MESSAGE_DEBOUNCE_INTERVAL + 1)
+
+		expect(socketB.sendMessage).toHaveBeenCalledTimes(1)
+		expect(room.sessions.get('b')?.state).toBe(RoomSessionState.AwaitingRemoval)
+	})
+
+	it('[RC7] close() drops pending debounced flushes so nothing is sent into closed sockets afterwards', () => {
+		vi.useFakeTimers()
+		const { room, socketB } = setupTwoSessions()
+		const newPage = makePage('page_3', 'v1')
+
+		room.handleMessage('a', {
+			type: 'push',
+			clientClock: 1,
+			diff: { [newPage.id]: ['put', newPage] },
+		} as TLPushRequest<TLRecord>)
+		room.handleMessage('a', {
+			type: 'push',
+			clientClock: 2,
+			diff: { [newPage.id]: ['patch', { name: ['put', 'v2'] }] },
+		} as TLPushRequest<TLRecord>)
+		expect(socketB.sendMessage).toHaveBeenCalledTimes(1)
+
+		room.close()
+		expect(room.isClosed()).toBe(true)
+		vi.advanceTimersByTime(DATA_MESSAGE_DEBOUNCE_INTERVAL + 1)
+
+		expect(socketB.sendMessage).toHaveBeenCalledTimes(1)
+		expect(socketB.close).toHaveBeenCalled()
+	})
+
+	it('[RC7] close() closes every socket even when one of them throws on close', () => {
+		const { room, socketA, socketB } = setupTwoSessions()
+		socketA.close.mockImplementationOnce(() => {
+			throw new Error('already closing')
+		})
+
+		expect(() => room.close()).not.toThrow()
+		expect(room.isClosed()).toBe(true)
+		expect(socketB.close).toHaveBeenCalled()
+	})
+
 	it('[RB4] a per-session migration failure during broadcast rejects only the affected session', () => {
 		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 		try {
@@ -2304,6 +2365,84 @@ describe('26. Session lifecycle (SES)', () => {
 		// the resumed session handles messages like any connected session
 		room.handleMessage('resumed', { type: 'ping' })
 		expect(socket.__lastMessage).toEqual({ type: 'pong' })
+	})
+
+	it('[SES5] no session receives string-append ops while a client without append support is connected', () => {
+		vi.useFakeTimers()
+		const { room } = makeRoom()
+		const v8 = connectSession(room, 'v8', { protocolVersion: getTlsyncProtocolVersion() })
+		const v7 = connectSession(room, 'v7', { protocolVersion: 7 })
+		expect(room.getCanEmitStringAppend()).toBe(false)
+
+		const hasAppend = (msg: any) => JSON.stringify(msg).includes('"append"')
+
+		// a full put over an existing record whose only change is a string append
+		room.handleMessage('v8', {
+			type: 'push',
+			clientClock: 1,
+			diff: { [pageRecord.id]: ['put', { ...pageRecord, name: pageRecord.name + ' more' }] },
+		} as TLPushRequest<TLRecord>)
+		vi.advanceTimersByTime(DATA_MESSAGE_DEBOUNCE_INTERVAL + 1)
+		expect(sentDataMessages(v7)).toEqual([
+			{
+				type: 'patch',
+				diff: { [pageRecord.id]: ['patch', { name: ['put', pageRecord.name + ' more'] }] },
+				serverClock: 1,
+			},
+		])
+		expect(sentDataMessages(v8).some(hasAppend)).toBe(false)
+		clearSocket(v7)
+		clearSocket(v8)
+
+		// a patch whose recomputed broadcast would otherwise be an append
+		room.handleMessage('v8', {
+			type: 'push',
+			clientClock: 2,
+			diff: { [pageRecord.id]: ['patch', { name: ['put', pageRecord.name + ' more and more'] }] },
+		} as TLPushRequest<TLRecord>)
+		vi.advanceTimersByTime(DATA_MESSAGE_DEBOUNCE_INTERVAL + 1)
+		expect(sentDataMessages(v7)).toEqual([
+			{
+				type: 'patch',
+				diff: {
+					[pageRecord.id]: ['patch', { name: ['put', pageRecord.name + ' more and more'] }],
+				},
+				serverClock: 2,
+			},
+		])
+		expect(sentDataMessages(v8)).toEqual([
+			{ type: 'push_result', clientClock: 2, serverClock: 2, action: 'commit' },
+		])
+	})
+
+	it('[SES6] handleResumedSession rejects a session whose schema the server can no longer reconcile', () => {
+		const { room } = makeRoom()
+		const socket = makeSocket()
+		const newerSchema: SerializedSchemaV2 = {
+			schemaVersion: 2,
+			sequences: {
+				...(room.serializedSchema as SerializedSchemaV2).sequences,
+				'com.tldraw.store': 999,
+			},
+		}
+
+		room.handleResumedSession({
+			sessionId: 'resumed',
+			socket,
+			meta: undefined,
+			isReadonly: false,
+			serializedSchema: newerSchema,
+			presenceId: null,
+			presenceRecord: null,
+			requiresLegacyRejection: false,
+			supportsStringAppend: true,
+		})
+
+		expect(room.sessions.has('resumed')).toBe(false)
+		expect(socket.close).toHaveBeenCalledWith(
+			TLSyncErrorCloseEventCode,
+			TLSyncErrorCloseEventReason.SERVER_TOO_OLD
+		)
 	})
 
 	it('[SES7] a message from an unknown session id logs a warning and is ignored', () => {

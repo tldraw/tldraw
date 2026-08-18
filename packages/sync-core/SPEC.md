@@ -25,11 +25,11 @@ Sections marked **internal** describe supporting machinery that has its own cont
 ## 3. Computing diffs: `diffRecord` (D)
 
 - **D1** `diffRecord(prev, next)` returns an `ObjectDiff` describing how to turn `prev` into `next`, or `null` when there is nothing to change (including when `prev === next`).
-- **D2** A key present in `prev` but missing from `next` produces `['delete']`. A key present in `next` but missing from `prev` produces `['put', value]`.
+- **D2** A key present in `prev` but missing from `next` produces `['delete']`. A key present in `next` but missing from `prev` produces `['put', value]`. Only own keys count (inherited `Object.prototype` members are never consulted), and a key whose value is `undefined` is treated as absent on both sides — `undefined` does not survive JSON, so it is never put.
 - **D3** `props` and `meta` are the only nested keys at the top level: changes inside them are expressed as `['patch', ...]` ops. Any other top-level key whose values are not both arrays or both strings is compared with deep equality and produces a whole-value `['put', next]` on change — even when both values are plain objects.
 - **D4** Inside a nested diff (within `props`/`meta` or deeper), object values are recursively patched; `null` and primitive values are put.
 - **D5** When both values are strings (at any level, including top-level keys) and `next` starts with `prev`, the diff is `['append', addedSuffix, prev.length]`. Other string changes are puts. With `legacyAppendMode` enabled, string appends become puts instead; array appends (D7) are unaffected by `legacyAppendMode`.
-- **D6** Same-length arrays: if no items changed, no op. If at most `max(length/5, 1)` items changed, the op is `['patch', { [index]: op }]` where each changed index gets a recursive diff when both old and new items are truthy objects, and a put otherwise. If more items changed, the whole array is put.
+- **D6** Same-length arrays: if no items changed, no op. If at most `max(length/5, 1)` items changed, the op is `['patch', { [index]: op }]` where each changed index gets a recursive diff when both old and new items are truthy objects of the same kind (both arrays or both plain objects), and a put otherwise. If more items changed, the whole array is put.
 - **D7** Different-length arrays: when the shared prefix is unchanged and the array grew, the op is `['append', addedItems, prev.length]`. Any change in the shared prefix (including truncation) puts the whole array.
 
 ## 4. Applying diffs: `applyObjectDiff` (AD)
@@ -38,9 +38,10 @@ Sections marked **internal** describe supporting machinery that has its own cont
 - **AD2** A `put` is applied only when the new value is not deep-equal to the current value.
 - **AD3** An `append` is applied only when the current value is an array/string of the matching type whose length equals the op's offset. On any mismatch the op is silently ignored.
 - **AD4** A `patch` is applied only when the current value is a truthy object; it recurses with AD1 semantics. Patching a missing or primitive value is silently ignored.
-- **AD5** A `delete` removes the key when present.
+- **AD5** A `delete` removes the key when it is an own key of the object.
 - **AD6** Patching a non-object (`null`, primitives) returns the input unchanged.
 - **AD7** Arrays are cloned as arrays; ops keyed by numeric strings index into them.
+- **AD8** Ops keyed `__proto__` are ignored: diffs arrive from untrusted peers and assigning that key would change the target's prototype.
 
 ## 5. Converting diffs (ND)
 
@@ -58,7 +59,8 @@ Sections marked **internal** describe supporting machinery that has its own cont
 
 - **CH1** `chunk(msg, maxSize)` returns `[msg]` when `msg.length < maxSize` (strictly less — a message exactly at `maxSize` is chunked).
 - **CH2** Chunks are prefixed `<n>_` where `n` counts down the chunks remaining after this one; the first chunk carries the highest number and the start of the message, and concatenating the chunk bodies in order reconstructs the message.
-- **CH3** Each chunk's total length is at most `maxSize`, except that every chunk carries at least one character of content even when the prefix alone exceeds `maxSize`.
+- **CH3** Each chunk's total length is at most `maxSize`, except that every chunk carries at least one character of content even when the prefix alone exceeds `maxSize`, and except for CH9.
+- **CH9** A UTF-16 surrogate pair is never split across two chunks (`WebSocket.send` would turn each lone half into U+FFFD): the boundary moves by one character, shrinking the chunk when it has more than one character of content and otherwise growing it by one.
 - **CH4** `JsonChunkAssembler.handleMessage`: input starting with `{` while idle is parsed immediately and returned as `{ data, stringified }`. Invalid JSON in this case throws synchronously (callers treat a throw as a fatal session error).
 - **CH5** Input starting with `{` mid-sequence returns `{ error: 'Unexpected non-chunk message' }`; the partial sequence and the JSON message are both discarded and the assembler resets to idle.
 - **CH6** Chunk inputs accumulate, returning `null` until the final (`0_`) chunk arrives, then the joined body is JSON-parsed and returned; a parse failure is returned as `{ error }`. Either way the assembler resets to idle.
@@ -172,7 +174,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **CL5** On a `connect` response with `hydrationType: 'wipe_presence'`, the client reverts its speculative changes, removes all presence records, applies the server's diff, then re-applies the speculative changes on top and pushes them as a new push request.
 - **CL6** With `hydrationType: 'wipe_all'`, all document records are additionally wiped before the server's diff is applied; speculative changes still re-apply on top afterwards.
 - **CL7** After connecting, `onAfterConnect` is called with `{ isReadonly }` from the connect message, and the current presence state (if any) is pushed.
-- **CL8** When the socket goes `'offline'`, the client resets: presence records are removed from the store, pending and unsent pushes are dropped, and the client waits to reconnect. When the socket reports `'error'`, `onSyncError(reason)` fires and the client closes permanently.
+- **CL8** When the socket goes `'offline'`, the client resets: presence records are removed from the store, pending and unsent pushes are dropped, and the client waits to reconnect. When the socket reports `'error'`, `onSyncError(reason)` fires and the client closes permanently. A connect response that throws while being applied is rolled back, keeps the local speculative changes tracked, holds back `onLoad`, and restarts the socket; after three consecutive such failures the client fires `onSyncError('UNKNOWN_ERROR')` and closes instead of re-hydrating forever.
 - **CL9** While connected, a ping is sent every 5 seconds; the client warns and restarts the socket only when nothing has been heard from the server for 10 seconds AND a ping has been outstanding and unanswered for at least 10 seconds (`PONG_TIMEOUT`). Staleness without an unanswered ping (e.g. a throttled hidden tab whose own ping loop stopped) never resets. In a throttled hidden tab a genuinely dead socket is therefore detected within about two 1-minute wakes rather than one.
 - **CL10** A `pong` (or any server message) refreshes the server-interaction timestamp.
 - **CL11** When `didCancel` is provided and returns true, the next event causes the client to close instead of processing.
@@ -208,7 +210,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **RC4** Storage `onChange` notifications carrying a foreign transaction id make the room broadcast the new changes to all connected clients. The room's own transactions (id `'TLSyncRoom.txn'`) do not re-broadcast this way.
 - **RC5** If an external change leaves the storage unable to produce an incremental diff (`wipeAll`), the room closes every session so clients reconnect and re-hydrate.
 - **RC6** The idle timeout defaults to `SESSION_IDLE_TIMEOUT` (20s) and is configurable via `clientTimeout`. A finite positive timeout starts a periodic prune interval of `min(2000, timeout/4)` ms; `Infinity` or 0 disables the interval (pruning then only happens on message activity or via the follow-up prune scheduled when a socket close/error cancels a session, per SES2).
-- **RC7** `close()` closes every session's socket and stops background work; `isClosed()` reports it.
+- **RC7** `close()` marks the room closed, stops background work and pending per-session flush timers, closes every session's socket (a socket that throws on close does not stop the others) and forgets the sessions without emitting `session_removed`; no prune timers are scheduled afterwards, so late socket events cannot emit lifecycle events on a closed room. `isClosed()` reports it.
 
 ## 23. `TLSyncRoom` — connect handshake (HS)
 
@@ -217,7 +219,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **HS3** A connect message without a schema, with a schema the server cannot migrate from, or whose migrations include any non-record-scope or down-less migration, is rejected `CLIENT_TOO_OLD`.
 - **HS4** The connect response echoes `connectRequestId` and `isReadonly`, carries the server's schema and current clock, and `hydrationType: 'wipe_all'` when storage cannot produce an incremental diff since the client's `lastServerClock` (including when that clock is in the future), else `'wipe_presence'`.
 - **HS5** The connect response diff contains every _other_ session's presence record — the connecting session's own presence is excluded — plus the document changes since the client's `lastServerClock` (the full document set in the `wipe_all` case), all down-migrated when the client's schema is older.
-- **HS6** A successful handshake moves the session to `Connected`.
+- **HS6** A successful handshake moves the session to `Connected` — unless the session was removed while the handshake's transaction ran (RC5 force-reconnect), in which case it stays removed rather than being resurrected.
 
 ## 24. `TLSyncRoom` — push handling (RP)
 
@@ -239,7 +241,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 
 - **RB1** Data messages (`patch`, `push_result`) to a session are debounced: the first is sent immediately wrapped as `{ type: 'data', data: [msg] }`; messages within the following `DATA_MESSAGE_DEBOUNCE_INTERVAL` (1000/60 ms) are buffered and flushed together as one `data` message. The array handed to the socket is not mutated afterwards, so sockets may serialize lazily.
 - **RB2** Non-data messages flush any buffered data messages first, preserving order — except `pong`, which skips the flush.
-- **RB3** Sending to a session whose socket is closed cancels that session.
+- **RB3** Sending to a session whose socket is closed cancels that session — on the debounced flush path as well as the immediate one.
 - **RB4** Broadcasts are migrated per session (MG1); a migration failure rejects only the affected session, and the broadcast proceeds for the others.
 - **RB5** `sendCustomMessage` delivers `{ type: 'custom', data }` to a connected session; sending to an unknown or not-yet-connected session logs a warning and does nothing.
 
@@ -249,8 +251,8 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **SES2** Cancelling (also via `handleClose`) moves the session to `AwaitingRemoval` — keeping its presence id and meta for a quick reconnect — closes the socket, and schedules a follow-up prune.
 - **SES3** Removal deletes the session, closes the socket (with code 4099 and the reason when fatal), deletes the session's presence record and broadcasts that deletion to everyone, emits `session_removed`, and emits `room_became_empty` when it was the last session.
 - **SES4** `rejectSession` with a reason: legacy sessions (protocol ≤ 6) receive a deprecated `incompatibility_error` message (reason mapped: `CLIENT_TOO_OLD` → `clientTooOld`, `SERVER_TOO_OLD` → `serverTooOld`, `INVALID_RECORD` → `invalidRecord`, anything else → `invalidOperation`) and are then removed without a close code; modern sessions are closed with code 4099 and the reason string. Without a reason it is a plain removal.
-- **SES5** `getCanEmitStringAppend()` is false when any connected session has `supportsStringAppend: false`; pushes handled in that state use legacy append mode (D5) so broadcast diffs avoid string-append ops.
-- **SES6** `handleResumedSession` registers a session directly in `Connected` state (no handshake): `requiresDownMigrations` is recomputed from the supplied schema, and a supplied presence record is restored into the presence store.
+- **SES5** `getCanEmitStringAppend()` is false when any connected session has `supportsStringAppend: false`; pushes handled in that state use legacy append mode (D5) on every diff the room emits — the pusher's push result, the broadcast to other sessions (including the down-migrated variant, MG1), and puts over existing records — so no session receives a string-append op.
+- **SES6** `handleResumedSession` registers a session directly in `Connected` state (no handshake): `requiresDownMigrations` is recomputed from the supplied schema, and a supplied presence record is restored into the presence store. The handshake's schema checks (HS3) are re-applied — a schema the server can no longer reconcile rejects the resumed session instead of being served unmigrated diffs.
 - **SES7** A message from an unknown session id logs a warning and is ignored.
 
 ## 27. Migrations over the wire (MG)
@@ -263,10 +265,10 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 
 - **SR1** Providing both `storage` and `initialSnapshot` throws. With neither, an `InMemorySyncStorage` seeded from `DEFAULT_INITIAL_SNAPSHOT` is created; `initialSnapshot` (deprecated) accepts both room and store snapshots.
 - **SR2** The deprecated `onDataChange` callback is wired to `storage.onChange` (fires on a microtask after document changes, including programmatic ones).
-- **SR3** `log` defaults to `{ error: console.error }` only when the `log` key is absent from the options object; an explicitly passed `log: undefined` leaves the room without a logger.
-- **SR4** `handleSocketConnect` registers the session (readonly defaults to false), attaches `message`/`close`/`error` listeners when the socket supports `addEventListener`, and creates a chunk assembler for the session.
+- **SR3** `log` defaults to `{ error: console.error }` only when the `log` key is absent from the options object; an explicitly passed `log: undefined` leaves the room without a logger. The same logger is handed to the inner `TLSyncRoom`, so authorizer failures and vetoes are logged under the default too.
+- **SR4** `handleSocketConnect` registers the session (readonly defaults to false), attaches `message`/`close`/`error` listeners when the socket supports `addEventListener`, and creates a chunk assembler for the session. Connecting again under an existing session id (a reconnect) detaches the previous socket's listeners first.
 - **SR5** `handleSocketMessage` assembles chunks (CH rules), then for each complete message: invokes `onAfterReceiveMessage`, forwards to the room, and runs a prune pass (after handling, so a session is never evicted by its own message). Assembly errors close the socket via the error path; a thrown exception rejects the session with `UNKNOWN_ERROR`.
-- **SR6** `handleSocketError` and `handleSocketClose` cancel the session (grace period applies per SES2) and clear any pending session-snapshot timer.
+- **SR6** `handleSocketError` and `handleSocketClose` cancel the session (grace period applies per SES2) and clear any pending session-snapshot timer. Both accept the socket the event came from; when it is given and is not the session's current socket, the event belongs to a superseded socket for the same session id and is ignored. The listeners SR4 attaches pass their own socket.
 - **SR7** `getNumActiveSessions()` counts all sessions including those awaiting connect/removal; `getSessions()` reports `{ sessionId, isConnected, isReadonly, meta }`.
 - **SR8** `getRecord(id)` returns a deep clone of the stored record (safe to mutate), or `undefined`.
 - **SR9** `getCurrentDocumentClock()` returns the storage clock; `getCurrentSnapshot()` delegates to `storage.getSnapshot` and throws when the storage doesn't support it.
@@ -274,7 +276,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **SR11** `close()` closes the room, clears session-snapshot timers, and disposes subscriptions; `closeSession(sessionId, fatalReason?)` behaves as SES4.
 - **SR12** With `onSessionSnapshot` configured, a session snapshot is delivered 5 seconds after that session's last message; further messages reset the timer; socket close/error cancels it.
 - **SR13** `getSessionSnapshot` returns null unless the session is `Connected`; the snapshot carries the serialized schema, readonly flag, legacy/append flags, presence id, and the presence record with large fields stripped (`scribbles: []`, `chatMessage: ''`, `selectedShapeIds: []`, `brush: null`).
-- **SR14** `handleSocketResume` restores a session from a snapshot directly into `Connected` state without attaching socket listeners (hibernation environments deliver events via methods); the resumed session handles pings and pushes normally.
+- **SR14** `handleSocketResume` restores a session from a snapshot directly into `Connected` state without attaching socket listeners (hibernation environments deliver events via methods); the resumed session handles pings and pushes normally. Resuming a socket that is no longer open while a different, open socket owns the session id is ignored (the resumed socket is stale); otherwise the last resume wins.
 - **SR15** `getPresenceRecords()` returns a map of presence id to presence record for every presence currently in the room.
 
 ## 29. `updateStore` (US) — deprecated

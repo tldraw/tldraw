@@ -134,6 +134,33 @@ describe('chunk (CH1–CH3)', () => {
 		`)
 		})
 	})
+
+	describe('surrogate pairs (CH9)', () => {
+		it('[CH9] never splits a surrogate pair across two chunks', () => {
+			// WebSocket.send converts each chunk to a USVString, so a lone surrogate would arrive
+			// as U+FFFD and the reassembled message would carry corrupted text
+			const emoji = '\u{1F600}'
+			const isHigh = (code: number) => code >= 0xd800 && code <= 0xdbff
+			const isLow = (code: number) => code >= 0xdc00 && code <= 0xdfff
+			for (let padding = 0; padding < 8; padding++) {
+				const msg = 'x'.repeat(padding) + emoji + 'y'.repeat(6) + emoji
+				for (const maxSize of [3, 4, 5, 6, 7, 8]) {
+					const chunks = chunk(msg, maxSize)
+					const bodies = chunks.map((c) => c.slice(c.indexOf('_') + 1))
+					expect(bodies.join('')).toBe(msg)
+					for (const [i, body] of bodies.entries()) {
+						expect(body.length).toBeGreaterThan(0)
+						expect(isHigh(body.charCodeAt(body.length - 1))).toBe(false)
+						expect(isLow(body.charCodeAt(0))).toBe(false)
+						// keeping a pair whole may cost one character over maxSize, never more
+						expect(chunks[i].length).toBeLessThanOrEqual(
+							Math.max(maxSize, chunks[i].indexOf('_') + 2) + 1
+						)
+					}
+				}
+			}
+		})
+	})
 })
 
 const testObject = {} as any

@@ -22,7 +22,6 @@ import { TLDocument } from 'tldraw';
 import { TLPage } from 'tldraw';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
-import { TLStoreSnapshot as TLStoreSnapshot_2 } from 'tldraw';
 import { UnknownRecord } from '@tldraw/store';
 
 // @internal
@@ -161,7 +160,7 @@ export class JsonChunkAssembler {
 }
 
 // @public
-export function loadSnapshotIntoStorage<R extends UnknownRecord>(txn: TLSyncStorageTransaction<R>, schema: StoreSchema<R, any>, snapshot: RoomSnapshot | TLStoreSnapshot_2): void;
+export function loadSnapshotIntoStorage<R extends UnknownRecord>(txn: TLSyncStorageTransaction<R>, schema: StoreSchema<R, any>, snapshot: RoomSnapshot | TLStoreSnapshot): void;
 
 // @internal (undocumented)
 export interface MinimalDocStore<R extends UnknownRecord> {
@@ -515,7 +514,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         sessionId: string;
     }>;
     getSessionSnapshot(sessionId: string): null | SessionStateSnapshot;
-    handleSocketClose(sessionId: string): void;
+    handleSocketClose(sessionId: string, socket?: WebSocketMinimal): void;
     handleSocketConnect(opts: {
         isReadonly?: boolean;
         objectAccess?: TLObjectStoreAccess;
@@ -524,7 +523,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     } & (SessionMeta extends void ? object : {
         meta: SessionMeta;
     })): void;
-    handleSocketError(sessionId: string): void;
+    handleSocketError(sessionId: string, socket?: WebSocketMinimal): void;
     handleSocketMessage(sessionId: string, message: AllowSharedBufferSource | string): void;
     handleSocketResume(opts: {
         sessionId: string;

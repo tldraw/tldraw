@@ -4,6 +4,7 @@ import {
 	RecordsDiff,
 	Store,
 	UnknownRecord,
+	createEmptyRecordsDiff,
 	reverseRecordsDiff,
 	squashRecordDiffsMutable,
 } from '@tldraw/store'
@@ -284,6 +285,19 @@ export interface TLPersistentClientSocket<
 	close(): void
 }
 
+/**
+ * `lastServerClock` before any server contact. Sent as-is on connect, it lands below any
+ * tombstone-history start, so storage answers with a full `wipe_all` hydration.
+ */
+const NO_SERVER_CLOCK = -1
+
+/**
+ * How many consecutive connect responses may fail to apply before the client gives up and
+ * reports a sync error. Each failure restarts the socket, so without a cap a record that never
+ * applies (schema skew, a corrupt record) would re-hydrate the whole room every few hundred ms.
+ */
+const MAX_CONSECUTIVE_HYDRATION_FAILURES = 3
+
 const PING_INTERVAL = 5000
 const MAX_TIME_TO_WAIT_FOR_SERVER_INTERACTION_BEFORE_RESETTING_CONNECTION = PING_INTERVAL * 2
 /**
@@ -371,7 +385,7 @@ function getPresenceOp<R extends UnknownRecord>(
  */
 export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
 	/** The last clock time from the most recent server update */
-	private lastServerClock = -1
+	private lastServerClock = NO_SERVER_CLOCK
 	private lastServerInteractionTimestamp = Date.now()
 	/**
 	 * Send time of the oldest outstanding ping; answered iff `lastServerInteractionTimestamp >= it`
@@ -391,11 +405,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 * take this diff, reverse it, and apply that to the store, our store will match exactly the most
 	 * recent state of the server that we know about
 	 */
-	private speculativeChanges: RecordsDiff<R> = {
-		added: {} as any,
-		updated: {} as any,
-		removed: {} as any,
-	}
+	private speculativeChanges: RecordsDiff<R> = createEmptyRecordsDiff<R>()
 
 	private disposables: Array<() => void> = []
 
@@ -458,6 +468,12 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	) => void
 
 	private readonly onCustomMessageReceived?: TLCustomMessageHandler
+	private readonly onSyncError: (reason: string) => void
+
+	/** Consecutive connect responses that threw while being applied; reset on success. */
+	private hydrationFailures = 0
+	/** Set while the connect response just handled failed to apply, so onLoad is held back. */
+	private didHydrationFail = false
 
 	private isDebugging = false
 	private debug(...args: any[]) {
@@ -560,6 +576,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.socket = config.socket
 		this.onAfterConnect = config.onAfterConnect
 		this.onCustomMessageReceived = config.onCustomMessageReceived
+		this.onSyncError = config.onSyncError
 
 		let didLoad = false
 
@@ -582,13 +599,14 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				if (this.didCancel?.()) return this.close()
 				this.debug('received message from server', msg)
 				this.handleServerEvent(msg)
-				// the first time we receive a message from the server, we should trigger
-
-				// one of the load callbacks
-				if (!didLoad) {
+				// the first time we receive a message from the server, we should trigger one of the
+				// load callbacks — unless that message was a connect response we failed to apply, in
+				// which case the store is not hydrated and the app must not mount on it yet
+				if (!didLoad && !this.didHydrationFail) {
 					didLoad = true
 					config.onLoad(this)
 				}
+				this.didHydrationFail = false
 			}),
 			// handle switching between online and offline
 			this.socket.onStatusChange((ev) => {
@@ -708,7 +726,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	private resetConnection(hard = false) {
 		this.debug('resetting connection')
 		if (hard) {
-			this.lastServerClock = 0
+			// forget everything we know about the server so the next connect re-hydrates from scratch
+			this.lastServerClock = NO_SERVER_CLOCK
 		}
 		// kill all presence state
 		const keys = Object.keys(this.store.serialize('presence')) as any
@@ -752,66 +771,89 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			this.resetConnection(true)
 			return
 		}
+		// Local changes reach `push` (and so `speculativeChanges`) on the store's frame-throttled
+		// history flush. Anything still queued there would be neither reverted below nor
+		// re-applied on top of the server state, so bring speculativeChanges up to date first.
+		this.store._flushHistory()
+
 		// at the end of this process we want to have at most one pending push request
 		// based on anything inside this.speculativeChanges
-		transact(() => {
-			// Now our goal is to rebase on the server's state.
-			// This means wiping away any peer presence data, which the server will replace in full on every connect.
-			// If the server does not have enough history to give us a partial document state hydration we will
-			// also need to wipe away all of our document state before hydrating with the server's state from scratch.
-			const stashedChanges = this.speculativeChanges
-			this.speculativeChanges = { added: {} as any, updated: {} as any, removed: {} as any }
-
-			this.store.mergeRemoteChanges(() => {
-				// gather records to delete in a NetworkDiff
-				const wipeDiff: NetworkDiff<R> = {}
-				const wipeAll = event.hydrationType === 'wipe_all'
-				if (!wipeAll) {
-					// if we're only wiping presence data, undo the speculative changes first
-					this.store.applyDiff(reverseRecordsDiff(stashedChanges), { runCallbacks: false })
-				}
-
-				// now wipe all presence data and, if needed, all document data
-				for (const [id, record] of objectMapEntries(this.store.serialize('all'))) {
-					if (
-						(wipeAll && this.store.scopedTypes.document.has(record.typeName)) ||
-						record.typeName === this.presenceType
-					) {
-						wipeDiff[id] = [RecordOpType.Remove]
+		//
+		// Now our goal is to rebase on the server's state.
+		// This means wiping away any peer presence data, which the server will replace in full on every connect.
+		// If the server does not have enough history to give us a partial document state hydration we will
+		// also need to wipe away all of our document state before hydrating with the server's state from scratch.
+		const stashedChanges = this.speculativeChanges
+		this.speculativeChanges = createEmptyRecordsDiff<R>()
+		try {
+			transact(() => {
+				this.store.mergeRemoteChanges(() => {
+					// gather records to delete in a NetworkDiff
+					const wipeDiff: NetworkDiff<R> = {}
+					const wipeAll = event.hydrationType === 'wipe_all'
+					if (!wipeAll) {
+						// if we're only wiping presence data, undo the speculative changes first
+						this.store.applyDiff(reverseRecordsDiff(stashedChanges), { runCallbacks: false })
 					}
+
+					// now wipe all presence data and, if needed, all document data
+					for (const [id, record] of objectMapEntries(this.store.serialize('all'))) {
+						if (
+							(wipeAll && this.store.scopedTypes.document.has(record.typeName)) ||
+							record.typeName === this.presenceType
+						) {
+							wipeDiff[id] = [RecordOpType.Remove]
+						}
+					}
+
+					// then apply the upstream changes
+					this.applyNetworkDiff({ ...wipeDiff, ...event.diff }, true)
+
+					this.isConnectedToRoom = true
+
+					// now re-apply the speculative changes creating a new push request with the
+					// appropriate diff
+					const networkDiff = getNetworkDiff(stashedChanges)
+					if (!networkDiff) return
+					const speculativeChanges = this.store.filterChangesByScope(
+						this.store.extractingChanges(() => {
+							this.applyNetworkDiff(networkDiff, true)
+						}),
+						'document'
+					)
+					if (speculativeChanges) this.push(speculativeChanges)
+				})
+
+				this.onAfterConnect?.(this, {
+					isReadonly: event.isReadonly,
+					objectAccess: event.objectAccess ?? 'write',
+				})
+				const presence = this.presenceState?.get()
+				if (presence) {
+					this.pushPresence(presence)
 				}
-
-				// then apply the upstream changes
-				this.applyNetworkDiff({ ...wipeDiff, ...event.diff }, true)
-
-				this.isConnectedToRoom = true
-
-				// now re-apply the speculative changes creating a new push request with the
-				// appropriate diff
-				const networkDiff = getNetworkDiff(stashedChanges)
-				if (!networkDiff) return
-				const speculativeChanges = this.store.filterChangesByScope(
-					this.store.extractingChanges(() => {
-						this.applyNetworkDiff(networkDiff, true)
-					}),
-					'document'
-				)
-				if (speculativeChanges) this.push(speculativeChanges)
 			})
-
-			// this.isConnectedToRoom = true
-			// this.store.applyDiff(stashedChanges, false)
-
-			this.onAfterConnect?.(this, {
-				isReadonly: event.isReadonly,
-				objectAccess: event.objectAccess ?? 'write',
-			})
-			const presence = this.presenceState?.get()
-			if (presence) {
-				this.pushPresence(presence)
+		} catch (e) {
+			// The transaction rolled the store back to its pre-connect state, which still holds the
+			// stashed local changes; put them back under tracking so they are neither orphaned nor
+			// lost. (No ensureStoreIsUsable here: on a first connect the store is empty, and the
+			// default records it would create would be pushed over the server's on the next try.)
+			console.error(e)
+			this.speculativeChanges = stashedChanges
+			this.didHydrationFail = true
+			if (++this.hydrationFailures >= MAX_CONSECUTIVE_HYDRATION_FAILURES) {
+				// the same response keeps failing: give up rather than re-hydrating the room forever
+				this.onSyncError(TLSyncErrorCloseEventReason.UNKNOWN_ERROR)
+				this.close()
+				return
 			}
-		})
+			// start over rather than sitting half-connected forever (no ping loop runs until we're
+			// connected, so nothing else would recover the socket)
+			this.resetConnection()
+			return
+		}
 
+		this.hydrationFailures = 0
 		this.lastServerClock = event.serverClock
 	}
 
@@ -900,7 +942,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		// in offline mode, we only accumulate in speculativeChanges
 		if (!this.isConnectedToRoom) return
 		if (!this.unsentChanges.nextDiff) {
-			this.unsentChanges.nextDiff = { added: {} as any, updated: {} as any, removed: {} as any }
+			this.unsentChanges.nextDiff = createEmptyRecordsDiff<R>()
 		}
 		// records are immutable, so sharing their references with `change` is fine — the
 		// squash gives nextDiff its own containers and tuples without deep-cloning records
@@ -920,7 +962,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 */
 	private applyNetworkDiff(diff: NetworkDiff<R>, runCallbacks: boolean) {
 		this.debug('applyNetworkDiff', diff)
-		const changes: RecordsDiff<R> = { added: {} as any, updated: {} as any, removed: {} as any }
+		const changes: RecordsDiff<R> = createEmptyRecordsDiff<R>()
 		type k = keyof typeof changes.updated
 		let hasChanges = false
 		for (const [id, op] of objectMapEntries(diff)) {
@@ -1011,7 +1053,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				} catch (e) {
 					console.error(e)
 					// throw away the speculative changes and start over
-					this.speculativeChanges = { added: {} as any, updated: {} as any, removed: {} as any }
+					this.speculativeChanges = createEmptyRecordsDiff<R>()
 					this.resetConnection()
 				}
 			})
