@@ -8,29 +8,62 @@ status: published
 last_version: v5.3.0
 ---
 
-This release adds a `center` operation to `Editor.alignShapes`, `iterateGraphemes` to `@tldraw/utils`, and two new reactive methods on `AtomMap`. It also deprecates `useViewportHeight`, speeds up the signals and store layers, and fixes a batch of crashes and interaction bugs across dialogs, sync reconnection, undo, and keyboard shortcut tooltips.
+This release makes licensing recognize native apps as the production deployments they are, adds a `tleditors` registry of mounted editors, a `center` operation to `Editor.alignShapes`, `iterateGraphemes` to `@tldraw/utils`, and two new reactive methods on `AtomMap`. It also deprecates `useViewportHeight`, speeds up the signals and store layers, and fixes a batch of crashes and interaction bugs across dialogs, sync reconnection, undo, and the frame loop.
+
+## What's new
+
+### Licensing for native apps ([#10021](https://github.com/tldraw/tldraw/pull/10021), [#10060](https://github.com/tldraw/tldraw/pull/10060))
+
+Apps shipped with a native framework such as Electron or Tauri are now licensed the same way as any other production deployment. `LicenseManager` used to infer development from the URL protocol — anything that wasn't `https:` counted as a developer's machine — so a native app serving its bundle from `app-bundle://app/index.html`, `tauri://localhost`, or `http://tauri.localhost` was never treated as production, and the host patterns in its license had no effect.
+
+Development is now named directly rather than inferred: `http:`, a loopback host over `https:`, a `.localhost` subdomain in a non-production build, or any build where `NODE_ENV` isn't `production`. Local development is unaffected.
+
+Two things to know if you ship a native app:
+
+- The app is now a production deployment, so it needs a license whose hosts match its origin.
+- Signature verification needs `crypto.subtle`, which is only available in a secure context. In Electron, register your scheme as one:
+
+  ```ts
+  protocol.registerSchemesAsPrivileged([
+  	{ scheme: 'app-bundle', privileges: { standard: true, secure: true } },
+  ])
+  ```
 
 ## API changes
 
 - 🔜 **`useViewportHeight()`** is deprecated. Read `window.visualViewport` directly instead. The hook returns only the visible viewport's bottom edge, and keeping a panel clear of the software keyboard generally needs the whole visible rectangle. ([#9826](https://github.com/tldraw/tldraw/pull/9826))
+- Add `tleditors`, a reactive global registry of the editors that are currently mounted, for reaching a live editor from outside the React tree. ([#9904](https://github.com/tldraw/tldraw/pull/9904))
+
+  ```ts
+  import { tleditors, useValue } from 'tldraw'
+
+  tleditors.getMounted() // readonly Editor[]
+
+  const mounted = useValue('mounted editors', () => tleditors.getMounted(), [])
+  ```
+
 - Add `'center'` as an `Editor.alignShapes` operation. It applies the existing `'center-horizontal'` and `'center-vertical'` operations together, so shapes center on both axes in one command. ([#9074](https://github.com/tldraw/tldraw/pull/9074))
 - Add `getOrInsert(key, defaultValue)` and `getOrInsertComputed(key, callback)` to `AtomMap`, matching the `Map` methods added in newer JavaScript runtimes. Both are reactive, and the callback only runs when the key is absent. ([#9752](https://github.com/tldraw/tldraw/pull/9752))
-- Add `isPage(record)` to `@tldraw/tlschema`, a type guard that narrows an unknown record to `TLPage`. ([#9774](https://github.com/tldraw/tldraw/pull/9774))
 - Add `iterateGraphemes(str)` to `@tldraw/utils`. It iterates a string's grapheme clusters, using `Intl.Segmenter` when it's available and falling back to code-point iteration when it isn't. ([#9896](https://github.com/tldraw/tldraw/pull/9896))
 - Add `isPage(record)` to `@tldraw/tlschema`, a type guard for page records that matches the guards already exported for the other record types. ([#9774](https://github.com/tldraw/tldraw/pull/9774))
 
 ## Improvements
 
+- Shift-click an emoji in the comment reaction palette to add several reactions without the palette closing. ([#9999](https://github.com/tldraw/tldraw/pull/9999))
 - Reduce per-pointer-event allocations in `Group2d` and `Editor` hit-testing. ([#8600](https://github.com/tldraw/tldraw/pull/8600))
 - Speed up signal reads in `@tldraw/state`. Capturing a parent used to scan the capturing signal's parent set twice, once to check for the parent and again to add it. ([#9690](https://github.com/tldraw/tldraw/pull/9690))
 - Reduce the work and allocations in `@tldraw/store` history bookkeeping, so squashing record diffs and filtering query history no longer build intermediate copies on every tick. ([#9689](https://github.com/tldraw/tldraw/pull/9689), [#9869](https://github.com/tldraw/tldraw/pull/9869))
 
 ## Bug fixes
 
+- Fix wildcard license hosts matching more than the domain they name: `*.example.com` now matches only that domain's subdomains. ([#10053](https://github.com/tldraw/tldraw/pull/10053))
+- Fix default UI components such as `DefaultToolbar` and `DefaultQuickActionsContent` crashing when mounted beside `Tldraw` rather than inside it. They now resolve the nearest editor's license, so they show the same license-gated items as an in-editor toolbar. ([#10007](https://github.com/tldraw/tldraw/pull/10007))
 - Fix the editor failing to load on older browsers that lack `Intl.Segmenter`, such as Firefox before 125. ([#9896](https://github.com/tldraw/tldraw/pull/9896))
+- Fix the frame loop stopping permanently when a `tick` or `frame` listener threw, which silently disabled camera animations, edge scrolling, and other frame-driven behavior. ([#9946](https://github.com/tldraw/tldraw/pull/9946))
 - Fix a crash when computing a frame's geometry if its heading text couldn't be measured yet. ([#9496](https://github.com/tldraw/tldraw/pull/9496))
 - Fix undo after a cut also reverting the change made before it. ([#9920](https://github.com/tldraw/tldraw/pull/9920))
 - Fix modifier keys (Shift, Alt, Ctrl, Cmd) briefly being treated as held at the start of a new click or drag right after being released, which could momentarily affect snapping and other modifier-dependent behavior. ([#9523](https://github.com/tldraw/tldraw/pull/9523))
+- Fix small, slowly drawn loops sometimes failing to close. ([#9930](https://github.com/tldraw/tldraw/pull/9930))
 - Fix **Flatten to image** producing different groupings depending on selection order, and not merging clusters that were only connected through a bridging shape. ([#8661](https://github.com/tldraw/tldraw/pull/8661))
 - Fix pasted links showing a broken preview image when the linked page has no Open Graph image. ([#9909](https://github.com/tldraw/tldraw/pull/9909))
 - Fix video shapes showing a floating spinner with no bounding box while their asset uploads or loads. They now show the same loading plate as image shapes. ([#9994](https://github.com/tldraw/tldraw/pull/9994))
@@ -41,4 +74,3 @@ This release adds a `center` operation to `Editor.alignShapes`, `iterateGrapheme
 - Fix the people menu's collaborator rows not lining up with your own row above them: the follow icon sat too close to the right edge, and collaborator names sat slightly left of your own. ([#9900](https://github.com/tldraw/tldraw/pull/9900))
 - Fix the comment thread popover briefly rendering with a doubled shadow the first time a thread is opened. ([#9886](https://github.com/tldraw/tldraw/pull/9886))
 - Fix background tabs repeatedly dropping and re-establishing their sync connection when the browser throttles timers. ([#9964](https://github.com/tldraw/tldraw/pull/9964))
-- Fix video shapes showing a floating spinner with no bounding box while the video asset uploads or loads. They now show the same loading plate as image shapes. ([#9994](https://github.com/tldraw/tldraw/pull/9994))
