@@ -67,4 +67,39 @@ describe('Aggregator', () => {
 
 		expect(aggregator.shouldFlush(0)).toBe(true)
 	})
+
+	// The 0/0 shipped knobs mean no test above ever exercises real buffering. These construct an
+	// Aggregator with real thresholds directly, which is the mode Task 10 plans to turn on for real.
+	it('does not flush before the event threshold with real thresholds', () => {
+		const aggregator = new Aggregator(3, 100_000)
+		aggregator.add(input())
+
+		expect(aggregator.shouldFlush(Date.now())).toBe(false)
+	})
+
+	it('flushes once the event threshold is crossed', () => {
+		const aggregator = new Aggregator(3, 100_000)
+		aggregator.add(input())
+		aggregator.add(input())
+		aggregator.add(input())
+
+		expect(aggregator.shouldFlush(Date.now())).toBe(true)
+	})
+
+	it('keeps accumulating across a check that does not flush', () => {
+		const aggregator = new Aggregator(10, 100_000)
+		aggregator.add(input({ wallTime: 7, cpuTime: 2 }))
+		aggregator.add(input({ wallTime: 7, cpuTime: 2 }))
+
+		expect(aggregator.shouldFlush(Date.now())).toBe(false)
+
+		aggregator.add(input({ wallTime: 7, cpuTime: 2 }))
+		aggregator.add(input({ wallTime: 7, cpuTime: 2 }))
+		aggregator.add(input({ wallTime: 7, cpuTime: 2 }))
+
+		const drained = aggregator.drain(Date.now())
+		expect(drained).toHaveLength(1)
+		expect(drained[0].count).toBe(5)
+		expect(drained[0].sumWall).toBe(35)
+	})
 })

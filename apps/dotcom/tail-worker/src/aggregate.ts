@@ -37,7 +37,19 @@ export interface AggBucket {
 export class Aggregator {
 	private buckets = new Map<string, AggBucket>()
 	private eventsSinceFlush = 0
-	private lastFlushAtMs = 0
+	private lastFlushAtMs: number
+
+	// Defaults to the shipped 0/0 knobs, so worker.ts's `new Aggregator()` is unchanged. Tests can
+	// pass real thresholds to exercise buffering, which the shipped 0/0 never does.
+	constructor(
+		private readonly flushAfterEvents = FLUSH_AFTER_EVENTS,
+		private readonly flushAfterMs = FLUSH_AFTER_MS
+	) {
+		// Stamped at construction rather than left at 0: with a real (non-zero) flushAfterMs, a cold
+		// lastFlushAtMs of 0 would make `nowMs - lastFlushAtMs >= flushAfterMs` true against any real
+		// epoch `now`, firing the wall-clock branch on the very first check.
+		this.lastFlushAtMs = Date.now()
+	}
 
 	add(input: AggInput): void {
 		// NUL-joined because it cannot appear in any component: `handler` embeds a runtime-supplied
@@ -81,7 +93,8 @@ export class Aggregator {
 
 	shouldFlush(nowMs: number): boolean {
 		return (
-			this.eventsSinceFlush >= FLUSH_AFTER_EVENTS || nowMs - this.lastFlushAtMs >= FLUSH_AFTER_MS
+			this.eventsSinceFlush >= this.flushAfterEvents ||
+			nowMs - this.lastFlushAtMs >= this.flushAfterMs
 		)
 	}
 
