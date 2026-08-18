@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Editor, react, TLCommentThread, useValue } from 'tldraw'
+import { clamp, Editor, react, TLCommentThread, useValue } from 'tldraw'
 import { computeClusterTable } from '../clustering/computeClusterTable'
 import { type ClusterRuntime, createClusterRuntime } from '../clustering/runtime'
 import type { ClusterNode, ClusterTable, MergeEvent } from '../clustering/types'
@@ -169,11 +169,14 @@ export function useClusterModel(
 		for (const id of newlyMovedIds) next.add(id)
 		setHeldThreadIds(next)
 	}
+	const latestLeafIds = useMemo(
+		() => new Set(latestModel.table.leaves.map((leaf) => leaf.id)),
+		[latestModel]
+	)
 	// Local partition maintenance — the only non-zoom visual change. Any displayed leaf that has left the
 	// cluster input is detached from its badge in place; the corrected rebuild already sits in latestModel
 	// awaiting the next zoom-out. When the two models match, the leaf sets are identical, so skip the scan.
 	if (clusterModel !== latestModel) {
-		const latestLeafIds = new Set(latestModel.table.leaves.map((leaf) => leaf.id))
 		const removedLeafIds: string[] = []
 		for (const leaf of clusterModel.table.leaves) {
 			if (!latestLeafIds.has(leaf.id)) {
@@ -188,12 +191,7 @@ export function useClusterModel(
 	// never folds pins into clusters — merging is a zoom-out-only move, matching the runtime.
 	useEffect(() => {
 		if (heldThreadIds.size === 0) return
-		let lastZoom = editor.getZoomLevel()
-		return react('rejoin moved comment pins on zoom out', () => {
-			const zoom = editor.getZoomLevel()
-			const prevZoom = lastZoom
-			lastZoom = zoom
-			if (zoom >= prevZoom) return
+		return reactOnZoomOut(editor, 'rejoin moved comment pins on zoom out', () => {
 			adoptOnRebuild.current = true
 			setHeldThreadIds(EMPTY_SET)
 		})
@@ -203,12 +201,7 @@ export function useClusterModel(
 	// splits correctly on its own (split thresholds are direction-safe by the hysteresis invariant).
 	useEffect(() => {
 		if (clusterModel === latestModel) return
-		let lastZoom = editor.getZoomLevel()
-		return react('adopt pending cluster model on zoom out', () => {
-			const zoom = editor.getZoomLevel()
-			const prevZoom = lastZoom
-			lastZoom = zoom
-			if (zoom >= prevZoom) return
+		return reactOnZoomOut(editor, 'adopt pending cluster model on zoom out', (zoom) => {
 			latestModel.runtime.seedFrom(zoom, clusterModel.runtime.getVisible())
 			setRenderedModel(latestModel)
 		})
@@ -223,11 +216,10 @@ export function useClusterModel(
 		for (const node of clusterModel.runtime.getVisible().values()) {
 			for (const member of node.members) displayed.add(member)
 		}
-		const latestIds = new Set(latestModel.table.leaves.map((leaf) => leaf.id))
-		return threads.filter((thread) => latestIds.has(thread.id) && !displayed.has(thread.id))
+		return threads.filter((thread) => latestLeafIds.has(thread.id) && !displayed.has(thread.id))
 		// The runtime mutates its partition in place; partitionVersion is its change stamp.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [clusterModel, latestModel, threads, partitionVersion])
+	}, [clusterModel, latestModel, latestLeafIds, threads, partitionVersion])
 	const heldThreads = useMemo(
 		() => threads.filter((thread) => heldThreadIds.has(thread.id) && thread.id !== openId),
 		[threads, heldThreadIds, openId]
@@ -257,6 +249,17 @@ export function useClusterModel(
 		orphanThreads,
 		heldThreads,
 	}
+}
+
+/** Run `onZoomOut` on each zoom change that decreased the zoom, starting from the current level. */
+function reactOnZoomOut(editor: Editor, name: string, onZoomOut: (zoom: number) => void) {
+	let lastZoom = editor.getZoomLevel()
+	return react(name, () => {
+		const zoom = editor.getZoomLevel()
+		const prevZoom = lastZoom
+		lastZoom = zoom
+		if (zoom < prevZoom) onZoomOut(zoom)
+	})
 }
 
 /**
@@ -357,12 +360,7 @@ export function revealThreadPin(
 			Number.isFinite(parentEvent.zSplit) &&
 			parentEvent.zSplit <= zoomBounds.maxZoom
 		) {
-			const zoom = clamp(
-				parentEvent.zSplit * CLUSTER_SPLIT_ZOOM_FACTOR,
-				zoomBounds.minZoom,
-				zoomBounds.maxZoom
-			)
-			centerOnPointAtZoom(editor, point, zoom, duration)
+			centerOnPointAtZoom(editor, point, splitZoom(parentEvent, zoomBounds), duration)
 			return
 		}
 	}
@@ -385,12 +383,12 @@ export function zoomToClusterSplit(
 ) {
 	const event = table.events.find((e) => e.result.id === node.id)
 	if (!event || !Number.isFinite(event.zSplit)) return
-	const zoom = clamp(
-		event.zSplit * CLUSTER_SPLIT_ZOOM_FACTOR,
-		zoomBounds.minZoom,
-		zoomBounds.maxZoom
-	)
-	centerOnPointAtZoom(editor, node.centroid, zoom, CLUSTER_EXPAND_ZOOM_MS)
+	centerOnPointAtZoom(editor, node.centroid, splitZoom(event, zoomBounds), CLUSTER_EXPAND_ZOOM_MS)
+}
+
+/** The zoom to land on to see a merge event's cluster just after it splits. */
+function splitZoom(event: MergeEvent, zoomBounds: ClusterZoomBounds): number {
+	return clamp(event.zSplit * CLUSTER_SPLIT_ZOOM_FACTOR, zoomBounds.minZoom, zoomBounds.maxZoom)
 }
 
 function findDirectParentEvent(table: ClusterTable, threadId: string): MergeEvent | undefined {
@@ -414,8 +412,4 @@ function centerOnPointAtZoom(
 		},
 		{ animation: { duration } }
 	)
-}
-
-function clamp(value: number, min: number, max: number): number {
-	return Math.max(min, Math.min(max, value))
 }

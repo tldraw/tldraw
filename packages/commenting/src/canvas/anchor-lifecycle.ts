@@ -16,6 +16,11 @@ const convertedByShapeCache = new WeakCache<
 	Map<TLShapeId, { threadId: string; anchor: ShapeAnchor; point: VecLike }[]>
 >()
 
+function getThread(editor: Editor, threadId: string): TLCommentThread | undefined {
+	const record = getCommentRecord(editor, threadId)
+	return record?.typeName === 'comment-thread' ? record : undefined
+}
+
 function isAnchoredToShape(
 	thread: TLCommentThread,
 	shapeId: TLShapeId
@@ -108,9 +113,8 @@ export function registerCommentAnchorLifecycle(editor: Editor): () => void {
 			if (editor.getShape(shapeId)) continue
 			for (const [threadId, point] of threadPoints) {
 				if (!point) continue
-				const thread = getCommentRecord(editor, threadId)
-				if (!thread || thread.typeName !== 'comment-thread') continue
-				if (!isAnchoredToShape(thread, shapeId)) continue
+				const thread = getThread(editor, threadId)
+				if (!thread || !isAnchoredToShape(thread, shapeId)) continue
 				let converted = convertedByShape.get(shapeId)
 				if (!converted) {
 					converted = []
@@ -130,8 +134,8 @@ export function registerCommentAnchorLifecycle(editor: Editor): () => void {
 
 			const pageId = editor.getAncestorPageId(shape)
 			for (const { threadId, anchor, point } of converted) {
-				const thread = getCommentRecord(editor, threadId)
-				if (!thread || thread.typeName !== 'comment-thread') continue
+				const thread = getThread(editor, threadId)
+				if (!thread) continue
 				// Re-attach only threads still sitting exactly where the conversion left them — a
 				// pin moved since then was placed deliberately, and that placement wins.
 				const current = thread.anchor

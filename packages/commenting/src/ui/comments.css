@@ -383,35 +383,6 @@
 	user-select: none;
 }
 
-/* thread */
-.tlui-cmt-thread {
-	display: flex;
-	flex-direction: column;
-	width: 300px;
-}
-
-.tlui-cmt-thread__head {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	font-size: 12px;
-	font-weight: 600;
-	color: var(--tl-color-text-3);
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
-}
-
-.tlui-cmt-badge {
-	font-size: 10px;
-	font-weight: 600;
-	text-transform: none;
-	letter-spacing: 0;
-	color: #fff;
-	background: var(--tl-color-muted-1);
-	padding: 1px 6px;
-	border-radius: 999px;
-}
-
 /* reactions */
 .tlui-cmt-reactions {
 	display: flex;
@@ -647,9 +618,6 @@ button.tlui-cmt-reaction--active:hover {
 }
 .tlui-button.tlui-cmt-thread__action:hover {
 	color: var(--tl-color-text-1);
-}
-.tlui-button.tlui-cmt-thread__action--danger:hover {
-	color: var(--tl-color-danger);
 }
 .tlui-cmt-thread__resolved {
 	margin: 4px 12px;

@@ -178,31 +178,30 @@ function CanvasCommentsLayer(props: CommentingContext) {
 		[editor]
 	)
 
-	// Serve a pending reveal request, zooming to the first cluster split that reveals the pin if it's
-	// folded into a badge. Also unhides pins: the popover opens on the layer that hiding withholds.
+	// Bring a thread's pin into view (zooming to the first cluster split that unfolds it if it's
+	// folded into a badge) and open it.
+	const revealAndOpenThread = useCallback(
+		(thread: TLCommentThread, duration?: number) => {
+			revealThreadPin(editor, thread, clusterModel.table, clusterZoomBounds, options, duration)
+			openThreadId.set(editor, thread.id)
+		},
+		[clusterModel.table, clusterZoomBounds, editor, options]
+	)
+
+	// Serve a pending reveal request. Also unhides pins: the popover opens on the layer that hiding
+	// withholds.
 	useEffect(() => {
 		if (!requestedRevealThread) return
 		revealThreadRequest.set(editor, null)
 		commentsHidden.set(editor, false)
-		revealThreadPin(editor, requestedRevealThread, clusterModel.table, clusterZoomBounds, options)
-		openThreadId.set(editor, requestedRevealThread.id)
-	}, [requestedRevealThread, clusterModel.table, clusterZoomBounds, editor, options])
+		revealAndOpenThread(requestedRevealThread)
+	}, [requestedRevealThread, revealAndOpenThread, editor])
 
 	// Picking a thread out of a cluster's hover preview. `openThreadId` alone would work, but would
 	// cut straight there from the badge — zoom in first, the same move the badge's own click makes.
 	const revealClusteredThread = useCallback(
-		(thread: TLCommentThread) => {
-			revealThreadPin(
-				editor,
-				thread,
-				clusterModel.table,
-				clusterZoomBounds,
-				options,
-				CLUSTER_EXPAND_ZOOM_MS
-			)
-			openThreadId.set(editor, thread.id)
-		},
-		[clusterModel.table, clusterZoomBounds, editor, options]
+		(thread: TLCommentThread) => revealAndOpenThread(thread, CLUSTER_EXPAND_ZOOM_MS),
+		[revealAndOpenThread]
 	)
 
 	const expandCluster = useCallback(
