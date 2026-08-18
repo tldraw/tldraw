@@ -1,12 +1,4 @@
-import {
-	Circle2d,
-	Geometry2d,
-	OverlayUtil,
-	TLCursorType,
-	TLOverlay,
-	TLPointerEventInfo,
-	TLShapeId,
-} from 'tldraw'
+import { Circle2d, Geometry2d, OverlayUtil, TLCursorType, TLOverlay, TLShapeId } from 'tldraw'
 import {
 	CONNECTION_CENTER_HANDLE_HOVER_SIZE_PX,
 	CONNECTION_CENTER_HANDLE_SIZE_PX,
@@ -23,9 +15,8 @@ interface TLConnectionCenterHandleOverlay extends TLOverlay {
 }
 
 /**
- * Renders a clickable "+" handle at the midpoint of each fully-bound connection
- * so users can insert a new node into the middle of a connection. Replaces the
- * old SVG indicator-based handle.
+ * A clickable "+" handle at the midpoint of each fully-bound connection, for inserting a node
+ * into the middle of it.
  */
 export class ConnectionCenterHandleOverlayUtil extends OverlayUtil<TLConnectionCenterHandleOverlay> {
 	static override type = 'connection_center_handle'
@@ -66,10 +57,10 @@ export class ConnectionCenterHandleOverlayUtil extends OverlayUtil<TLConnectionC
 	}
 
 	override getCursor(): TLCursorType {
-		return 'pointer' as TLCursorType
+		return 'pointer'
 	}
 
-	override onPointerDown(overlay: TLConnectionCenterHandleOverlay, _info: TLPointerEventInfo) {
+	override onPointerDown(overlay: TLConnectionCenterHandleOverlay) {
 		const connection = this.editor.getShape<ConnectionShape>(overlay.props.shapeId)
 		if (!connection) return false
 		insertNodeWithinConnection(this.editor, connection)

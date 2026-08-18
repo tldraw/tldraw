@@ -1,6 +1,7 @@
 import { Dialog, VisuallyHidden } from 'radix-ui'
 import { useCallback, useMemo, useState } from 'react'
 import {
+	Editor,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
 	TldrawUiButtonLabel,
@@ -31,6 +32,20 @@ export const onCanvasNodePickerState = new EditorAtom<OnCanvasNodePickerState | 
 	'on canvas node picker',
 	() => null
 )
+
+/** Page-space point the picker is anchored to, or null if the connection is gone. */
+function getPickerAnchorInPageSpace(editor: Editor, state: OnCanvasNodePickerState) {
+	const connection = editor.getShape(state.connectionShapeId)
+	if (!connection || !editor.isShapeOfType(connection, 'connection')) return null
+
+	const terminals = getConnectionTerminals(editor, connection)
+	const anchorInConnectionSpace =
+		state.location === 'middle'
+			? Vec.Lrp(terminals.start, terminals.end, 0.5)
+			: terminals[state.location]
+
+	return editor.getShapePageTransform(connection).applyToPoint(anchorInConnectionSpace)
+}
 
 export function OnCanvasNodePicker() {
 	const editor = useEditor()
@@ -82,28 +97,16 @@ function OnCanvasNodePickerDialog({
 		'OnCanvasNodePicker',
 		() => {
 			const state = onCanvasNodePickerState.get(editor)
-			if (!state) return
+			if (!state || !container) return
 
-			if (!container) return
-
-			const connection = editor.getShape(state.connectionShapeId)
-			if (!connection || !editor.isShapeOfType(connection, 'connection')) {
+			const anchorInPageSpace = getPickerAnchorInPageSpace(editor, state)
+			if (!anchorInPageSpace) {
 				onClose()
 				return
 			}
 
-			const terminals = getConnectionTerminals(editor, connection)
-			const terminalInConnectionSpace =
-				state.location === 'middle'
-					? Vec.Lrp(terminals.start, terminals.end, 0.5)
-					: terminals[state.location]
-
-			const terminalInPageSpace = editor
-				.getShapePageTransform(connection)
-				.applyToPoint(terminalInConnectionSpace)
-
-			const terminalInViewportSpace = editor.pageToViewport(terminalInPageSpace)
-			container.style.transform = `translate(${terminalInViewportSpace.x}px, ${terminalInViewportSpace.y}px) scale(${editor.getZoomLevel()}) `
+			const anchorInViewportSpace = editor.pageToViewport(anchorInPageSpace)
+			container.style.transform = `translate(${anchorInViewportSpace.x}px, ${anchorInViewportSpace.y}px) scale(${editor.getZoomLevel()}) `
 		},
 		[editor, container]
 	)
@@ -145,7 +148,6 @@ function OnCanvasNodePickerItem<T extends NodeType>({
 
 	return (
 		<TldrawUiButton
-			key={definition.type}
 			type="menu"
 			className="OnCanvasNodePicker-button"
 			onPointerDown={editor.markEventAsHandled}
@@ -153,24 +155,10 @@ function OnCanvasNodePickerItem<T extends NodeType>({
 				const state = onCanvasNodePickerState.get(editor)
 				if (!state) return
 
-				const connection = editor.getShape(state.connectionShapeId)
-				if (!connection || !editor.isShapeOfType(connection, 'connection')) {
-					onClose()
-					return
+				const anchorInPageSpace = getPickerAnchorInPageSpace(editor, state)
+				if (anchorInPageSpace) {
+					state.onPick(definition.getDefault(), anchorInPageSpace)
 				}
-
-				const terminals = getConnectionTerminals(editor, connection)
-				const terminalInConnectionSpace =
-					state.location === 'middle'
-						? Vec.Lrp(terminals.start, terminals.end, 0.5)
-						: terminals[state.location]
-
-				const terminalInPageSpace = editor
-					.getShapePageTransform(connection)
-					.applyToPoint(terminalInConnectionSpace)
-
-				state.onPick(definition.getDefault(), terminalInPageSpace)
-
 				onClose()
 			}}
 		>

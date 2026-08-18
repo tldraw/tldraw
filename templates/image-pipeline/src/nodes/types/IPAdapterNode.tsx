@@ -1,5 +1,4 @@
-import classNames from 'classnames'
-import { T, useEditor, useValue } from 'tldraw'
+import { T, useEditor } from 'tldraw'
 import { apiIPAdapter } from '../../api/pipelineApi'
 import { IPAdapterIcon } from '../../components/icons/IPAdapterIcon'
 import {
@@ -9,8 +8,7 @@ import {
 	NODE_ROW_HEIGHT_PX,
 	NODE_WIDTH_PX,
 } from '../../constants'
-import { Port, ShapePort } from '../../ports/Port'
-import { getNodeInputPortValues } from '../nodePorts'
+import { ShapePort } from '../../ports/Port'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	areAnyInputsOutOfDate,
@@ -19,11 +17,10 @@ import {
 	InputValues,
 	NodeComponentProps,
 	NodeDefinition,
-	NodeImage,
-	NodePlaceholder,
-	NodePortLabel,
-	NodeRow,
-	STOP_EXECUTION,
+	NodeImagePreview,
+	NodePortRow,
+	NodeSliderRow,
+	NodeTruncatedText,
 	updateNode,
 } from './shared'
 
@@ -118,101 +115,43 @@ export class IPAdapterNodeDefinition extends NodeDefinition<IPAdapterNode> {
 function IPAdapterNodeComponent({ shape, node }: NodeComponentProps<IPAdapterNode>) {
 	const editor = useEditor()
 
-	const imageInput = useValue('image input', () => getNodeInputPortValues(editor, shape.id).image, [
-		editor,
-		shape.id,
-	])
-	const promptInput = useValue(
-		'prompt input',
-		() => getNodeInputPortValues(editor, shape.id).prompt,
-		[editor, shape.id]
-	)
-
 	return (
 		<>
-			<NodeRow>
-				<Port shapeId={shape.id} portId="image" />
-				<NodePortLabel dataType="image">Reference</NodePortLabel>
-				{imageInput ? (
-					<span className="NodeRow-connected-value">
-						{imageInput.isOutOfDate || imageInput.value === STOP_EXECUTION ? (
-							<NodePlaceholder />
-						) : (
-							'connected'
-						)}
-					</span>
-				) : (
-					<span className="NodeRow-disconnected">not connected</span>
-				)}
-			</NodeRow>
-			<NodeRow>
-				<Port shapeId={shape.id} portId="prompt" />
-				<NodePortLabel dataType="text">Prompt</NodePortLabel>
-				{promptInput ? (
-					<span className="NodeRow-connected-value">
-						{promptInput.isOutOfDate || promptInput.value === STOP_EXECUTION ? (
-							<NodePlaceholder />
-						) : typeof promptInput.value === 'string' ? (
-							promptInput.value.slice(0, 15) + (promptInput.value.length > 15 ? '...' : '')
-						) : (
-							'connected'
-						)}
-					</span>
-				) : (
-					<span className="NodeRow-disconnected">not connected</span>
-				)}
-			</NodeRow>
-			<NodeRow className="NodeInputRow">
-				<span className="NodeInputRow-label">Scale</span>
-				<input
-					type="range"
-					min="0"
-					max="100"
-					value={node.scale}
-					onChange={(e) =>
-						updateNode<IPAdapterNode>(
-							editor,
-							shape,
-							(n) => ({ ...n, scale: Number(e.target.value) }),
-							false
-						)
-					}
-					onPointerDown={(e) => e.stopPropagation()}
-				/>
-				<span className="NodeRow-value">{node.scale}%</span>
-			</NodeRow>
-			<NodeRow className="NodeInputRow">
-				<span className="NodeInputRow-label">Steps</span>
-				<input
-					type="range"
-					min="1"
-					max="50"
-					value={node.steps}
-					onChange={(e) =>
-						updateNode<IPAdapterNode>(
-							editor,
-							shape,
-							(n) => ({ ...n, steps: Number(e.target.value) }),
-							false
-						)
-					}
-					onPointerDown={(e) => e.stopPropagation()}
-				/>
-				<span className="NodeRow-value">{node.steps}</span>
-			</NodeRow>
-			<div
-				className={classNames('NodeImagePreview', {
-					NodeImagePreview_loading: shape.props.isOutOfDate,
-				})}
-			>
-				{node.lastResultUrl ? (
-					<NodeImage src={node.lastResultUrl} alt="IP-Adapter result" />
-				) : (
-					<div className="NodeImagePreview-empty">
-						<span>Connect a reference image</span>
-					</div>
-				)}
-			</div>
+			<NodePortRow shapeId={shape.id} portId="image" dataType="image" label="Reference" />
+			<NodePortRow
+				shapeId={shape.id}
+				portId="prompt"
+				dataType="text"
+				label="Prompt"
+				renderValue={(input) =>
+					typeof input.value === 'string' ? <NodeTruncatedText text={input.value} /> : 'connected'
+				}
+			/>
+			<NodeSliderRow
+				label="Scale"
+				min={0}
+				max={100}
+				suffix="%"
+				value={node.scale}
+				onChange={(scale) =>
+					updateNode<IPAdapterNode>(editor, shape, (n) => ({ ...n, scale }), false)
+				}
+			/>
+			<NodeSliderRow
+				label="Steps"
+				min={1}
+				max={50}
+				value={node.steps}
+				onChange={(steps) =>
+					updateNode<IPAdapterNode>(editor, shape, (n) => ({ ...n, steps }), false)
+				}
+			/>
+			<NodeImagePreview
+				src={node.lastResultUrl}
+				alt="IP-Adapter result"
+				emptyText="Connect a reference image"
+				isLoading={shape.props.isOutOfDate}
+			/>
 		</>
 	)
 }

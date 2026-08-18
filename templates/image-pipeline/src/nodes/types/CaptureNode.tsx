@@ -1,4 +1,4 @@
-import { Box, T, useEditor, useValue } from 'tldraw'
+import { T, useEditor, useValue } from 'tldraw'
 import { CaptureIcon } from '../../components/icons/CaptureIcon'
 import {
 	NODE_FOOTER_HEIGHT_PX,
@@ -16,6 +16,13 @@ import {
 	blobToDataUrl,
 	updateNode,
 } from './shared'
+
+/** Everything in a node's height that isn't the body. */
+const NODE_CHROME_HEIGHT_PX =
+	NODE_HEADER_HEIGHT_PX +
+	NODE_ROW_HEADER_GAP_PX +
+	NODE_ROW_BOTTOM_PADDING_PX +
+	NODE_FOOTER_HEIGHT_PX
 
 export type CaptureNode = T.TypeOf<typeof CaptureNode>
 export const CaptureNode = T.object({
@@ -49,13 +56,7 @@ export class CaptureNodeDefinition extends NodeDefinition<CaptureNode> {
 	}
 
 	getBodyHeightPx(_shape: NodeShape, node: CaptureNode): number {
-		return (
-			node.h -
-			NODE_HEADER_HEIGHT_PX -
-			NODE_ROW_HEADER_GAP_PX -
-			NODE_ROW_BOTTOM_PADDING_PX -
-			NODE_FOOTER_HEIGHT_PX
-		)
+		return node.h - NODE_CHROME_HEIGHT_PX
 	}
 
 	getPorts(_shape: NodeShape, node: CaptureNode): Record<string, ShapePort> {
@@ -74,39 +75,26 @@ export class CaptureNodeDefinition extends NodeDefinition<CaptureNode> {
 		const bounds = this.editor.getShapePageBounds(shape.id)
 		if (!bounds) return { output: null }
 
-		const allIds = this.editor.getShapeIdsInsideBounds(bounds)
-
-		// Filter out the capture node itself, all node shapes, and connection shapes
-		const filtered = [...allIds].filter((id) => {
-			if (id === shape.id) return false
+		// Capture everything under the node except pipeline nodes and connections
+		const idsToCapture = [...this.editor.getShapeIdsInsideBounds(bounds)].filter((id) => {
 			const s = this.editor.getShape(id)
-			if (!s) return false
-			return s.type !== 'node' && s.type !== 'connection'
+			return s && s.type !== 'node' && s.type !== 'connection'
 		})
 
-		if (filtered.length === 0) {
-			updateNode<CaptureNode>(this.editor, shape, (n) => ({
-				...n,
-				lastCaptureUrl: null,
-			}))
+		if (idsToCapture.length === 0) {
+			updateNode<CaptureNode>(this.editor, shape, (n) => ({ ...n, lastCaptureUrl: null }))
 			return { output: null }
 		}
 
-		const captureBox = new Box(bounds.x, bounds.y, bounds.w, bounds.h)
-		const result = await this.editor.toImage(filtered, {
-			bounds: captureBox,
+		const result = await this.editor.toImage(idsToCapture, {
+			bounds: bounds.clone(),
 			padding: 0,
 			background: true,
 			format: 'png',
 		})
-
 		const url = await blobToDataUrl(result.blob)
 
-		updateNode<CaptureNode>(this.editor, shape, (n) => ({
-			...n,
-			lastCaptureUrl: url,
-		}))
-
+		updateNode<CaptureNode>(this.editor, shape, (n) => ({ ...n, lastCaptureUrl: url }))
 		return { output: url }
 	}
 
@@ -123,22 +111,13 @@ export class CaptureNodeDefinition extends NodeDefinition<CaptureNode> {
 	Component = CaptureNodeComponent
 }
 
-function CaptureNodeComponent(props: NodeComponentProps<CaptureNode>) {
+function CaptureNodeComponent({ shape }: NodeComponentProps<CaptureNode>) {
 	const editor = useEditor()
-	const { shape } = props
 	const geometry = useValue('geometry', () => editor.getShapeGeometry(shape.id), [editor, shape.id])
 	return (
 		<div
 			className="CaptureNode-body"
-			style={{
-				width: geometry.bounds.w,
-				height:
-					geometry.bounds.h -
-					NODE_HEADER_HEIGHT_PX -
-					NODE_ROW_HEADER_GAP_PX -
-					NODE_ROW_BOTTOM_PADDING_PX -
-					NODE_FOOTER_HEIGHT_PX,
-			}}
+			style={{ width: geometry.bounds.w, height: geometry.bounds.h - NODE_CHROME_HEIGHT_PX }}
 		/>
 	)
 }
