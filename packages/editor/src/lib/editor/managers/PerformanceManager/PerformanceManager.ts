@@ -1,7 +1,8 @@
-import type { TLRecord, TLShapeId } from '@tldraw/tlschema'
+import type { TLRecord, TLShape, TLShapeId } from '@tldraw/tlschema'
 import { bind } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
 import type { Editor } from '../../Editor'
+import type { TLEventMap, TLEventMapHandler } from '../../types/emit-types'
 import type {
 	TLCameraEndPerfEvent,
 	TLCameraStartPerfEvent,
@@ -9,28 +10,50 @@ import type {
 	TLInteractionEndPerfEvent,
 	TLInteractionStartPerfEvent,
 	TLPerfEventMap,
+	TLPerfFrameTimeStats,
 	TLPerfLongAnimationFrame,
 	TLShapeOperationPerfEvent,
 	TLUndoRedoPerfEvent,
 } from './perf-types'
+
+interface PerfSession {
+	startTime: number
+	frameTimes: number[]
+	loafEntries: TLPerfLongAnimationFrame[]
+}
 
 function percentile(sorted: number[], p: number): number {
 	const idx = Math.ceil(p * sorted.length) - 1
 	return sorted[Math.max(0, idx)]
 }
 
-function computeFrameTimeStats(frameTimes: number[]) {
-	if (frameTimes.length === 0) return { avg: 0, median: 0, p95: 0, p99: 0, min: 0, max: 0 }
+function computeFrameTimeStats(session: PerfSession): TLPerfFrameTimeStats {
+	const { frameTimes, loafEntries } = session
+	const duration = performance.now() - session.startTime
 	const sorted = [...frameTimes].sort((a, b) => a - b)
+	const n = sorted.length
 	const sum = sorted.reduce((a, b) => a + b, 0)
 	return {
-		avg: sum / sorted.length,
-		median: percentile(sorted, 0.5),
-		p95: percentile(sorted, 0.95),
-		p99: percentile(sorted, 0.99),
-		min: sorted[0],
-		max: sorted[sorted.length - 1],
+		duration,
+		fps: n > 0 ? (n / duration) * 1000 : 0,
+		frameCount: n,
+		avgFrameTime: n > 0 ? sum / n : 0,
+		medianFrameTime: n > 0 ? percentile(sorted, 0.5) : 0,
+		p95FrameTime: n > 0 ? percentile(sorted, 0.95) : 0,
+		p99FrameTime: n > 0 ? percentile(sorted, 0.99) : 0,
+		minFrameTime: n > 0 ? sorted[0] : 0,
+		maxFrameTime: n > 0 ? sorted[n - 1] : 0,
+		frameTimes,
+		longAnimationFrames: loafEntries.length > 0 ? loafEntries : undefined,
 	}
+}
+
+function countShapeTypes(shapes: Iterable<TLShape>): Record<string, number> {
+	const counts: Record<string, number> = {}
+	for (const shape of shapes) {
+		counts[shape.type] = (counts[shape.type] || 0) + 1
+	}
+	return counts
 }
 
 function toLoafEntry(entry: PerformanceEntry): TLPerfLongAnimationFrame | null {
@@ -56,6 +79,14 @@ function toLoafEntry(entry: PerformanceEntry): TLPerfLongAnimationFrame | null {
 	}
 }
 
+const SHAPE_PERF_EVENTS = ['shapes-created', 'shapes-updated', 'shapes-deleted'] as const
+
+type ShapePerfEvent = (typeof SHAPE_PERF_EVENTS)[number]
+
+function isShapePerfEvent(event: keyof TLPerfEventMap): event is ShapePerfEvent {
+	return (SHAPE_PERF_EVENTS as readonly string[]).includes(event)
+}
+
 /**
  * Manages performance event subscriptions for the editor. Available as `editor.performance`.
  *
@@ -77,32 +108,23 @@ export class PerformanceManager {
 
 	private editor: Editor
 
-	// Active interaction tracking
-	private activeInteraction: {
-		name: string
-		path: string
-		startTime: number
-		frameTimes: number[]
-		selectedShapeTypes: Record<string, number>
-		loafEntries: TLPerfLongAnimationFrame[]
-	} | null = null
+	private activeInteraction:
+		| (PerfSession & {
+				name: string
+				path: string
+				selectedShapeTypes: Record<string, number>
+		  })
+		| null = null
 
-	// Active camera tracking
-	private activeCamera: {
-		type: 'panning' | 'zooming'
-		startTime: number
-		frameTimes: number[]
-		timeout: number | null
-		loafEntries: TLPerfLongAnimationFrame[]
-	} | null = null
+	private activeCamera:
+		| (PerfSession & {
+				type: 'panning' | 'zooming'
+				timeout: number | null
+		  })
+		| null = null
 
-	// Lazy listener cleanup functions
 	private frameCleanup: (() => void) | null = null
-	private shapeCreatedCleanup: (() => void) | null = null
-	private shapeEditedCleanup: (() => void) | null = null
-	private shapeDeletedCleanup: (() => void) | null = null
-
-	// LoAF observer
+	private shapeEventCleanups: { [K in ShapePerfEvent]?: () => void } = {}
 	private loafObserver: PerformanceObserver | null = null
 
 	constructor(editor: Editor) {
@@ -163,17 +185,13 @@ export class PerformanceManager {
 		this.activeCamera = null
 		this.frameCleanup?.()
 		this.frameCleanup = null
-		this.shapeCreatedCleanup?.()
-		this.shapeCreatedCleanup = null
-		this.shapeEditedCleanup?.()
-		this.shapeEditedCleanup = null
-		this.shapeDeletedCleanup?.()
-		this.shapeDeletedCleanup = null
+		for (const event of SHAPE_PERF_EVENTS) {
+			this.shapeEventCleanups[event]?.()
+			delete this.shapeEventCleanups[event]
+		}
 		this._stopLoafObserver()
 		this.emitter.removeAllListeners()
 	}
-
-	// --- Internal notification methods ---
 
 	/** @internal */
 	_notifyInteractionStart(name: string, path: string) {
@@ -190,18 +208,12 @@ export class PerformanceManager {
 			)
 		}
 
-		// Capture selected shape types at start
-		const selectedShapeTypes: Record<string, number> = {}
-		for (const shape of this.editor.getSelectedShapes()) {
-			selectedShapeTypes[shape.type] = (selectedShapeTypes[shape.type] || 0) + 1
-		}
-
 		this.activeInteraction = {
 			name,
 			path,
 			startTime: performance.now(),
 			frameTimes: [],
-			selectedShapeTypes,
+			selectedShapeTypes: countShapeTypes(this.editor.getSelectedShapes()),
 			loafEntries: [],
 		}
 
@@ -221,26 +233,12 @@ export class PerformanceManager {
 
 		if (this.emitter.listenerCount('interaction-end') === 0) return
 
-		const duration = performance.now() - interaction.startTime
-		const stats = computeFrameTimeStats(interaction.frameTimes)
-
 		const event: TLInteractionEndPerfEvent = {
 			name: interaction.name,
 			path: interaction.path,
-			duration,
-			fps:
-				interaction.frameTimes.length > 0 ? (interaction.frameTimes.length / duration) * 1000 : 0,
-			frameCount: interaction.frameTimes.length,
-			avgFrameTime: stats.avg,
-			medianFrameTime: stats.median,
-			p95FrameTime: stats.p95,
-			p99FrameTime: stats.p99,
-			minFrameTime: stats.min,
-			maxFrameTime: stats.max,
-			frameTimes: interaction.frameTimes,
+			...computeFrameTimeStats(interaction),
 			shapeCount: this.editor.getCurrentPageShapeIds().size,
 			selectedShapeTypes: interaction.selectedShapeTypes,
-			longAnimationFrames: interaction.loafEntries.length > 0 ? interaction.loafEntries : undefined,
 			zoomLevel: this.editor.getCamera().z,
 			timestamp: performance.now(),
 		}
@@ -256,24 +254,17 @@ export class PerformanceManager {
 			return
 		}
 
-		if (this.activeCamera) {
-			// Extend existing camera session
-			if (this.activeCamera.timeout) {
-				clearTimeout(this.activeCamera.timeout)
-			}
-			// If type changed, end old and start new
-			if (this.activeCamera.type !== type) {
-				this._endCameraSession()
-				this._startCameraSession(type)
-			} else {
-				// Reset timeout
-				this.activeCamera.timeout = this.editor.timers.setTimeout(
-					() => this._endCameraSession(),
-					50
-				)
-			}
-		} else {
+		if (!this.activeCamera) {
 			this._startCameraSession(type)
+			return
+		}
+
+		if (this.activeCamera.timeout) clearTimeout(this.activeCamera.timeout)
+		if (this.activeCamera.type !== type) {
+			this._endCameraSession()
+			this._startCameraSession(type)
+		} else {
+			this.activeCamera.timeout = this._scheduleCameraSessionEnd()
 		}
 	}
 
@@ -289,14 +280,16 @@ export class PerformanceManager {
 		this.emitter.emit(type, event)
 	}
 
-	// --- Private helpers ---
+	private _scheduleCameraSessionEnd() {
+		return this.editor.timers.setTimeout(() => this._endCameraSession(), 50)
+	}
 
 	private _startCameraSession(type: 'panning' | 'zooming') {
 		this.activeCamera = {
 			type,
 			startTime: performance.now(),
 			frameTimes: [],
-			timeout: this.editor.timers.setTimeout(() => this._endCameraSession(), 50),
+			timeout: this._scheduleCameraSessionEnd(),
 			loafEntries: [],
 		}
 
@@ -317,28 +310,16 @@ export class PerformanceManager {
 
 		if (this.emitter.listenerCount('camera-end') === 0) return
 
-		const duration = performance.now() - camera.startTime
-		const stats = computeFrameTimeStats(camera.frameTimes)
 		const viewportBounds = this.editor.getViewportScreenBounds()
 		const totalShapes = this.editor.getCurrentPageShapeIds().size
 		const culledShapeCount = this.editor.getCulledShapes().size
 
 		const event: TLCameraEndPerfEvent = {
 			type: camera.type,
-			duration,
-			fps: camera.frameTimes.length > 0 ? (camera.frameTimes.length / duration) * 1000 : 0,
-			frameCount: camera.frameTimes.length,
-			avgFrameTime: stats.avg,
-			medianFrameTime: stats.median,
-			p95FrameTime: stats.p95,
-			p99FrameTime: stats.p99,
-			minFrameTime: stats.min,
-			maxFrameTime: stats.max,
-			frameTimes: camera.frameTimes,
+			...computeFrameTimeStats(camera),
 			shapeCount: totalShapes,
 			viewportWidth: viewportBounds.w,
 			viewportHeight: viewportBounds.h,
-			longAnimationFrames: camera.loafEntries.length > 0 ? camera.loafEntries : undefined,
 			visibleShapeCount: totalShapes - culledShapeCount,
 			culledShapeCount,
 			zoomLevel: this.editor.getCamera().z,
@@ -349,19 +330,12 @@ export class PerformanceManager {
 
 	@bind
 	private _onFrame(elapsed: number) {
-		// Record frame time for active interaction/camera
-		if (this.activeInteraction) {
-			this.activeInteraction.frameTimes.push(elapsed)
-		}
-		if (this.activeCamera) {
-			this.activeCamera.frameTimes.push(elapsed)
-		}
+		this.activeInteraction?.frameTimes.push(elapsed)
+		this.activeCamera?.frameTimes.push(elapsed)
 
-		// Emit standalone frame event if listeners exist
 		if (this.emitter.listenerCount('frame') > 0) {
 			const totalShapes = this.editor.getCurrentPageShapeIds().size
-			const culledShapes = this.editor.getCulledShapes()
-			const culledCount = culledShapes.size
+			const culledCount = this.editor.getCulledShapes().size
 			const event: TLFramePerfEvent = {
 				elapsed,
 				shapeCount: totalShapes,
@@ -372,67 +346,46 @@ export class PerformanceManager {
 		}
 	}
 
-	@bind
-	private _onShapesCreated(records: TLRecord[]) {
-		if (this.emitter.listenerCount('shapes-created') === 0) return
-		const shapeTypes: Record<string, number> = {}
-		for (const record of records) {
-			if (record.typeName === 'shape') {
-				shapeTypes[record.type] = (shapeTypes[record.type] || 0) + 1
-			}
-		}
-		const count = Object.values(shapeTypes).reduce((a, b) => a + b, 0)
-		if (count === 0) return
-		const event: TLShapeOperationPerfEvent = {
-			operation: 'create',
-			count,
-			shapeTypes,
+	private _emitShapeRecordsEvent(
+		event: 'shapes-created' | 'shapes-updated',
+		operation: 'create' | 'update',
+		records: TLRecord[]
+	) {
+		if (this.emitter.listenerCount(event) === 0) return
+		const shapes = records.filter((r): r is TLShape => r.typeName === 'shape')
+		if (shapes.length === 0) return
+		const perfEvent: TLShapeOperationPerfEvent = {
+			operation,
+			count: shapes.length,
+			shapeTypes: countShapeTypes(shapes),
 			timestamp: performance.now(),
 		}
-		this.emitter.emit('shapes-created', event)
+		this.emitter.emit(event, perfEvent)
+	}
+
+	@bind
+	private _onShapesCreated(records: TLRecord[]) {
+		this._emitShapeRecordsEvent('shapes-created', 'create', records)
 	}
 
 	@bind
 	private _onShapesEdited(records: TLRecord[]) {
-		if (this.emitter.listenerCount('shapes-updated') === 0) return
-		const shapeTypes: Record<string, number> = {}
-		for (const record of records) {
-			if (record.typeName === 'shape') {
-				shapeTypes[record.type] = (shapeTypes[record.type] || 0) + 1
-			}
-		}
-		const count = Object.values(shapeTypes).reduce((a, b) => a + b, 0)
-		if (count === 0) return
-		const event: TLShapeOperationPerfEvent = {
-			operation: 'update',
-			count,
-			shapeTypes,
-			timestamp: performance.now(),
-		}
-		this.emitter.emit('shapes-updated', event)
+		this._emitShapeRecordsEvent('shapes-updated', 'update', records)
 	}
 
 	@bind
 	private _onShapesDeleted(ids: TLShapeId[]) {
 		if (this.emitter.listenerCount('shapes-deleted') === 0) return
-		const shapeTypes: Record<string, number> = {}
-		for (const id of ids) {
-			// Works because 'deleted-shapes' fires before store.remove() in Editor.deleteShapes
-			const shape = this.editor.getShape(id)
-			if (shape) {
-				shapeTypes[shape.type] = (shapeTypes[shape.type] || 0) + 1
-			}
-		}
+		// Works because 'deleted-shapes' fires before store.remove() in Editor.deleteShapes
+		const shapes = ids.map((id) => this.editor.getShape(id)).filter((s): s is TLShape => !!s)
 		const event: TLShapeOperationPerfEvent = {
 			operation: 'delete',
 			count: ids.length,
-			shapeTypes,
+			shapeTypes: countShapeTypes(shapes),
 			timestamp: performance.now(),
 		}
 		this.emitter.emit('shapes-deleted', event)
 	}
-
-	// --- LoAF observer ---
 
 	private _startLoafObserver() {
 		if (typeof PerformanceObserver === 'undefined') return
@@ -445,21 +398,14 @@ export class PerformanceManager {
 		}
 
 		this.loafObserver = new PerformanceObserver((list) => {
-			const isInteractionActive = this.activeInteraction !== null
-			const isCameraActive = this.activeCamera !== null
-
-			if (!isInteractionActive && !isCameraActive) return
+			const { activeInteraction, activeCamera } = this
+			if (!activeInteraction && !activeCamera) return
 
 			for (const entry of list.getEntries()) {
 				const loaf = toLoafEntry(entry)
 				if (!loaf) continue
-
-				if (isInteractionActive) {
-					this.activeInteraction!.loafEntries.push(loaf)
-				}
-				if (isCameraActive) {
-					this.activeCamera!.loafEntries.push(loaf)
-				}
+				activeInteraction?.loafEntries.push(loaf)
+				activeCamera?.loafEntries.push(loaf)
 			}
 		})
 
@@ -473,8 +419,7 @@ export class PerformanceManager {
 		}
 	}
 
-	// --- Lazy listener management ---
-
+	// The frame listener also feeds interaction/camera frame-time tracking, not just 'frame'.
 	private _needsFrameListener(): boolean {
 		return (
 			this.emitter.listenerCount('frame') > 0 ||
@@ -492,92 +437,53 @@ export class PerformanceManager {
 		)
 	}
 
+	private _listen<K extends keyof TLEventMap>(event: K, fn: TLEventMapHandler<K>) {
+		this.editor.on(event, fn)
+		return () => this.editor.off(event, fn)
+	}
+
+	private _attachShapeListener(event: ShapePerfEvent) {
+		switch (event) {
+			case 'shapes-created':
+				return this._listen('created-shapes', this._onShapesCreated)
+			case 'shapes-updated':
+				return this._listen('edited-shapes', this._onShapesEdited)
+			case 'shapes-deleted':
+				return this._listen('deleted-shapes', this._onShapesDeleted)
+		}
+	}
+
 	private _maybeAttachLazyListeners(event: keyof TLPerfEventMap) {
-		// Frame listener needed for frame event + interaction/camera frame time tracking
-		if (
-			!this.frameCleanup &&
-			(event === 'frame' ||
-				event === 'interaction-start' ||
-				event === 'interaction-end' ||
-				event === 'camera-start' ||
-				event === 'camera-end')
-		) {
-			if (this._needsFrameListener()) {
-				this.editor.on('frame', this._onFrame)
-				this.frameCleanup = () => this.editor.off('frame', this._onFrame)
-			}
+		if (!this.frameCleanup && this._needsFrameListener()) {
+			this.frameCleanup = this._listen('frame', this._onFrame)
 		}
 
-		// LoAF observer needed when interaction-end or camera-end listeners exist
-		if (!this.loafObserver && (event === 'interaction-end' || event === 'camera-end')) {
-			if (this._needsLoafObserver()) {
-				this._startLoafObserver()
-			}
+		if (!this.loafObserver && this._needsLoafObserver()) {
+			this._startLoafObserver()
 		}
 
-		if (!this.shapeCreatedCleanup && event === 'shapes-created') {
-			this.editor.on('created-shapes', this._onShapesCreated)
-			this.shapeCreatedCleanup = () => this.editor.off('created-shapes', this._onShapesCreated)
-		}
-
-		if (!this.shapeEditedCleanup && event === 'shapes-updated') {
-			this.editor.on('edited-shapes', this._onShapesEdited)
-			this.shapeEditedCleanup = () => this.editor.off('edited-shapes', this._onShapesEdited)
-		}
-
-		if (!this.shapeDeletedCleanup && event === 'shapes-deleted') {
-			this.editor.on('deleted-shapes', this._onShapesDeleted)
-			this.shapeDeletedCleanup = () => this.editor.off('deleted-shapes', this._onShapesDeleted)
+		if (isShapePerfEvent(event) && !this.shapeEventCleanups[event]) {
+			this.shapeEventCleanups[event] = this._attachShapeListener(event)
 		}
 	}
 
 	private _maybeDetachLazyListeners(event: keyof TLPerfEventMap) {
-		if (
-			this.frameCleanup &&
-			(event === 'frame' ||
-				event === 'interaction-start' ||
-				event === 'interaction-end' ||
-				event === 'camera-start' ||
-				event === 'camera-end')
-		) {
-			if (!this._needsFrameListener()) {
-				this.frameCleanup()
-				this.frameCleanup = null
-			}
+		if (this.frameCleanup && !this._needsFrameListener()) {
+			this.frameCleanup()
+			this.frameCleanup = null
 		}
 
-		// Stop LoAF observer when no longer needed
-		if (this.loafObserver && (event === 'interaction-end' || event === 'camera-end')) {
-			if (!this._needsLoafObserver()) {
-				this._stopLoafObserver()
-			}
+		if (this.loafObserver && !this._needsLoafObserver()) {
+			this._stopLoafObserver()
 		}
 
 		if (
-			this.shapeCreatedCleanup &&
-			event === 'shapes-created' &&
-			this.emitter.listenerCount('shapes-created') === 0
+			isShapePerfEvent(event) &&
+			this.shapeEventCleanups[event] &&
+			this.emitter.listenerCount(event) === 0
 		) {
-			this.shapeCreatedCleanup()
-			this.shapeCreatedCleanup = null
-		}
-
-		if (
-			this.shapeEditedCleanup &&
-			event === 'shapes-updated' &&
-			this.emitter.listenerCount('shapes-updated') === 0
-		) {
-			this.shapeEditedCleanup()
-			this.shapeEditedCleanup = null
-		}
-
-		if (
-			this.shapeDeletedCleanup &&
-			event === 'shapes-deleted' &&
-			this.emitter.listenerCount('shapes-deleted') === 0
-		) {
-			this.shapeDeletedCleanup()
-			this.shapeDeletedCleanup = null
+			this.shapeEventCleanups[event]!()
+			delete this.shapeEventCleanups[event]
 		}
 	}
 }

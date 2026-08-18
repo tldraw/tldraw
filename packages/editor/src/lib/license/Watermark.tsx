@@ -20,18 +20,26 @@ export const Watermark = memo(function Watermark() {
 	const isMobile = useValue('is mobile', () => editor.getViewportScreenBounds().width < 700, [
 		editor,
 	])
+	const isDebugMode = useValue('debug mode', () => editor.getInstanceState().isDebugMode, [editor])
 
 	const licenseManagerState = useLicenseManagerState(licenseManager)
 
-	if (!['licensed-with-watermark', 'unlicensed'].includes(licenseManagerState)) return null
+	if (licenseManagerState !== 'licensed-with-watermark' && licenseManagerState !== 'unlicensed') {
+		return null
+	}
 
 	return (
 		<>
 			<LicenseStyles />
-			<WatermarkInner
-				src={isMobile ? WATERMARK_MOBILE_LOCAL_SRC : WATERMARK_DESKTOP_LOCAL_SRC}
-				isUnlicensed={licenseManagerState === 'unlicensed'}
-			/>
+			{licenseManagerState === 'unlicensed' ? (
+				<UnlicensedWatermark isDebugMode={isDebugMode} isMobile={isMobile} />
+			) : (
+				<WatermarkInner
+					src={isMobile ? WATERMARK_MOBILE_LOCAL_SRC : WATERMARK_DESKTOP_LOCAL_SRC}
+					isDebugMode={isDebugMode}
+					isMobile={isMobile}
+				/>
+			)}
 		</>
 	)
 })
@@ -81,16 +89,14 @@ const UnlicensedWatermark = memo(function UnlicensedWatermark({
 
 const WatermarkInner = memo(function WatermarkInner({
 	src,
-	isUnlicensed,
+	isDebugMode,
+	isMobile,
 }: {
 	src: string
-	isUnlicensed: boolean
+	isDebugMode: boolean
+	isMobile: boolean
 }) {
 	const editor = useEditor()
-	const isDebugMode = useValue('debug mode', () => editor.getInstanceState().isDebugMode, [editor])
-	const isMobile = useValue('is mobile', () => editor.getViewportScreenBounds().width < 700, [
-		editor,
-	])
 	const events = useCanvasEvents()
 
 	const ref = useRef<HTMLDivElement>(null)
@@ -98,10 +104,6 @@ const WatermarkInner = memo(function WatermarkInner({
 
 	const maskCss = `url('${src}') center 100% / 100% no-repeat`
 	const url = 'https://tldraw.dev/?utm_source=sdk&utm_medium=organic&utm_campaign=watermark'
-
-	if (isUnlicensed) {
-		return <UnlicensedWatermark isDebugMode={isDebugMode} isMobile={isMobile} />
-	}
 
 	return (
 		<div

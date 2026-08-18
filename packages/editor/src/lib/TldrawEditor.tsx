@@ -11,7 +11,7 @@ import {
 } from '@tldraw/tlschema'
 import { annotateError, Required } from '@tldraw/utils'
 import classNames from 'classnames'
-import React, {
+import {
 	memo,
 	ReactNode,
 	useCallback,
@@ -37,8 +37,7 @@ import { resolveThemes } from './editor/managers/ThemeManager/ThemeManager'
 import { TLAnyOverlayUtilConstructor } from './editor/overlays/OverlayUtil'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { TLCameraOptions } from './editor/types/misc-types'
-import { useEditorComponents } from './hooks/EditorComponentsContext'
-import type { TLEditorComponents } from './hooks/EditorComponentsContext'
+import { useEditorComponents, type TLEditorComponents } from './hooks/EditorComponentsContext'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
@@ -553,7 +552,6 @@ function TldrawEditorWithReadyStore({
 				getContainer: () => container,
 				user,
 				initialState,
-				// we should check for some kind of query parameter that turns off autofocus
 				autoFocus,
 				cameraOptions,
 				options,
@@ -561,8 +559,8 @@ function TldrawEditorWithReadyStore({
 				getShapeVisibility,
 				colorScheme: initColorScheme,
 				fontAssetUrls: assetUrls?.fonts,
-				themes: themes,
-				initialTheme: initialTheme,
+				themes,
+				initialTheme,
 			})
 			editor.licenseManager = licenseManager
 
@@ -571,7 +569,7 @@ function TldrawEditorWithReadyStore({
 			// Use the ref here because we only want to do this once when the editor is created.
 			// We don't want changes to the urlStateSync prop to trigger creating new editors.
 			if (deepLinks) {
-				if (!deepLinks?.getUrl) {
+				if (!deepLinks.getUrl) {
 					// load the state from window.location
 					editor.navigateToDeepLink(deepLinks)
 				} else {
@@ -824,7 +822,7 @@ export function useOnMount(onMount?: TLOnMountHandler) {
 		}
 	})
 
-	React.useLayoutEffect(() => {
-		if (editor) return onMountEvent?.(editor)
+	useLayoutEffect(() => {
+		if (editor) return onMountEvent(editor)
 	}, [editor, onMountEvent])
 }

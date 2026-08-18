@@ -91,18 +91,19 @@ export function useCanvasEvents() {
 				isSecondaryClickPointerDown = false
 			}
 
-			function onPointerEnter(e: React.PointerEvent) {
+			function setIsHoveringCanvas(e: React.PointerEvent, isHovering: boolean) {
 				if (editor.wasEventAlreadyHandled(e)) return
 				if (editor.getInstanceState().isPenMode && e.pointerType !== 'pen') return
 				const canHover = e.pointerType === 'mouse' || e.pointerType === 'pen'
-				editor.updateInstanceState({ isHoveringCanvas: canHover ? true : null })
+				editor.updateInstanceState({ isHoveringCanvas: canHover ? isHovering : null })
+			}
+
+			function onPointerEnter(e: React.PointerEvent) {
+				setIsHoveringCanvas(e, true)
 			}
 
 			function onPointerLeave(e: React.PointerEvent) {
-				if (editor.wasEventAlreadyHandled(e)) return
-				if (editor.getInstanceState().isPenMode && e.pointerType !== 'pen') return
-				const canHover = e.pointerType === 'mouse' || e.pointerType === 'pen'
-				editor.updateInstanceState({ isHoveringCanvas: canHover ? false : null })
+				setIsHoveringCanvas(e, false)
 			}
 
 			function onTouchStart(e: React.TouchEvent) {

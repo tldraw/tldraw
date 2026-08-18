@@ -179,13 +179,13 @@ export class HandleSnaps {
 	private getHandleSnapData({
 		handle,
 		currentShapeId,
+		handleInPageSpace,
 	}: {
 		handle: TLHandle
 		currentShapeId: TLShapeId
+		handleInPageSpace: Vec
 	}): AlignPointsSnap | null {
 		const snapThreshold = this.manager.getSnapThreshold()
-		const currentShapeTransform = assertExists(this.editor.getShapePageTransform(currentShapeId))
-		const handleInPageSpace = currentShapeTransform.applyToPoint(handle)
 
 		let nearestXSnap: Vec | null = null
 		let nearestYSnap: Vec | null = null
@@ -268,10 +268,7 @@ export class HandleSnaps {
 		}
 
 		if (snapType === 'align') {
-			const snapData = this.getHandleSnapData({
-				handle,
-				currentShapeId,
-			})
+			const snapData = this.getHandleSnapData({ handle, currentShapeId, handleInPageSpace })
 
 			if (!snapData) {
 				return null

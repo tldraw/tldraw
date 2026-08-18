@@ -4,6 +4,7 @@ import { LegacyMigrations, MigrationSequence } from '@tldraw/store'
 import {
 	RecordProps,
 	TLAsset,
+	TLFontFace,
 	TLHandle,
 	TLParentId,
 	TLPropsMigrations,
@@ -14,7 +15,6 @@ import {
 	TLUnknownShape,
 	VecModel,
 } from '@tldraw/tlschema'
-import { TLFontFace } from '@tldraw/tlschema'
 import { IndexKey } from '@tldraw/utils'
 import { ReactElement } from 'react'
 import { Box, SelectionHandle } from '../../primitives/Box'
@@ -649,8 +649,6 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 		return undefined
 	}
 
-	//  Events
-
 	/**
 	 * A callback called just before a shape is created. This method provides a last chance to modify
 	 * the created shape.
@@ -1130,8 +1128,6 @@ export interface TLResizeInfo<T extends TLShape> {
 	initialShape: T
 }
 
-/* -------------------- Dragging -------------------- */
-
 /** @public */
 export interface TLHandleDragInfo<T extends TLShape> {
 	handle: TLHandle
@@ -1139,8 +1135,6 @@ export interface TLHandleDragInfo<T extends TLShape> {
 	isCreatingShape: boolean
 	initial?: T | undefined
 }
-
-/* --------------------------------- Editing -------------------------------- */
 
 /** @public */
 export interface TLEditStartInfo {

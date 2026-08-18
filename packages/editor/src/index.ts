@@ -140,7 +140,7 @@ export {
 	type TLMeasureTextOpts,
 	type TLMeasureTextSpanOpts,
 } from './lib/editor/managers/TextManager/TextManager'
-export { DEFAULT_THEME } from './lib/editor/managers/ThemeManager/defaultThemes'
+export { DEFAULT_THEME, getColorValue } from './lib/editor/managers/ThemeManager/defaultThemes'
 export { ThemeManager, resolveThemes } from './lib/editor/managers/ThemeManager/ThemeManager'
 export { TickManager } from './lib/editor/managers/TickManager/TickManager'
 export { CollaboratorsManager } from './lib/editor/managers/CollaboratorsManager/CollaboratorsManager'
@@ -308,8 +308,7 @@ export {
 	useMaybeEditor,
 	type EditorProviderProps,
 } from './lib/hooks/useEditor'
-export { useEditorComponents } from './lib/hooks/useEditorComponents'
-export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
+export { useEditorComponents, type TLEditorComponents } from './lib/hooks/useEditorComponents'
 export { useEvent, useReactiveEvent } from './lib/hooks/useEvent'
 export { useGlobalMenuIsOpen } from './lib/hooks/useGlobalMenuIsOpen'
 export { useShallowArrayIdentity, useShallowObjectIdentity } from './lib/hooks/useIdentity'
@@ -518,5 +517,3 @@ registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_VERSION,
 	(globalThis as any).TLDRAW_LIBRARY_MODULES
 )
-
-export { getColorValue } from './lib/editor/managers/ThemeManager/defaultThemes'

@@ -100,11 +100,9 @@ export abstract class Geometry2d {
 	abstract nearestPoint(point: VecLike, _filters?: Geometry2dFilters): Vec
 
 	hitTestPoint(point: VecLike, margin = 0, hitInside = false, _filters?: Geometry2dFilters) {
-		// First check whether the point is inside
 		if (this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)) {
 			return true
 		}
-		// Then check whether the distance is within the margin
 		return Vec.Dist2(point, this.nearestPoint(point)) <= margin * margin
 	}
 
@@ -124,23 +122,22 @@ export abstract class Geometry2d {
 		if (vertices.length === 1) return Vec.Dist(A, vertices[0])
 		let nearest: Vec | undefined
 		let dist = Infinity
-		let d: number, p: Vec, q: Vec
 		const nextLimit = this.isClosed ? vertices.length : vertices.length - 1
 		for (let i = 0; i < vertices.length; i++) {
-			p = vertices[i]
+			const p = vertices[i]
 			if (i < nextLimit) {
 				const next = vertices[(i + 1) % vertices.length]
 				if (linesIntersect(A, B, p, next)) return 0
 			}
-			q = Vec.NearestPointOnLineSegment(A, B, p, true)
-			d = Vec.Dist2(p, q)
+			const q = Vec.NearestPointOnLineSegment(A, B, p, true)
+			const d = Vec.Dist2(p, q)
 			if (d < dist) {
 				dist = d
 				nearest = q
 			}
 		}
 		if (!nearest) throw Error('nearest point not found')
-		dist = Math.sqrt(dist) // return the actual distance, not the squared distance
+		dist = Math.sqrt(dist)
 		return this.isClosed && this.isFilled && pointInPolygon(nearest, this.vertices) ? -dist : dist
 	}
 
@@ -185,19 +182,15 @@ export abstract class Geometry2d {
 		const distanceToTravel = t * this.length
 		let distanceTraveled = 0
 
-		for (let i = 0; i < (this.isClosed ? vertices.length : vertices.length - 1); i++) {
+		const n = this.isClosed ? vertices.length : vertices.length - 1
+		for (let i = 0; i < n; i++) {
 			const curr = vertices[i]
 			const next = vertices[(i + 1) % vertices.length]
 			const dist = Vec.Dist(curr, next)
 			const newDistanceTraveled = distanceTraveled + dist
 			if (newDistanceTraveled >= distanceToTravel) {
 				if (dist === 0) return curr
-				const p = Vec.Lrp(
-					curr,
-					next,
-					invLerp(distanceTraveled, newDistanceTraveled, distanceToTravel)
-				)
-				return p
+				return Vec.Lrp(curr, next, invLerp(distanceTraveled, newDistanceTraveled, distanceToTravel))
 			}
 			distanceTraveled = newDistanceTraveled
 		}
@@ -211,38 +204,29 @@ export abstract class Geometry2d {
 	 */
 	uninterpolateAlongEdge(point: VecLike, _filters?: Geometry2dFilters): number {
 		const { vertices, length } = this
-		let closestSegment = null
-		let closestDistance = Infinity
+		if (vertices.length < 2 || length === 0) return 0
+
+		let closestDist2 = Infinity
+		let distanceAlongRoute = 0
 		let distanceTraveled = 0
 
-		if (vertices.length === 0 || vertices.length === 1) return 0
-
-		for (let i = 0; i < (this.isClosed ? vertices.length : vertices.length - 1); i++) {
+		const n = this.isClosed ? vertices.length : vertices.length - 1
+		for (let i = 0; i < n; i++) {
 			const curr = vertices[i]
 			const next = vertices[(i + 1) % vertices.length]
 
 			const nearestPoint = Vec.NearestPointOnLineSegment(curr, next, point, true)
-			const distance = Vec.Dist(nearestPoint, point)
+			const dist2 = Vec.Dist2(nearestPoint, point)
 
-			if (distance < closestDistance) {
-				closestDistance = distance
-				closestSegment = {
-					start: curr,
-					end: next,
-					nearestPoint,
-					distanceToStart: distanceTraveled,
-				}
+			if (dist2 < closestDist2) {
+				closestDist2 = dist2
+				distanceAlongRoute = distanceTraveled + Vec.Dist(curr, nearestPoint)
 			}
 
 			distanceTraveled += Vec.Dist(curr, next)
 		}
 
-		assert(closestSegment)
-
-		const distanceAlongRoute =
-			closestSegment.distanceToStart + Vec.Dist(closestSegment.start, closestSegment.nearestPoint)
-
-		return length === 0 ? 0 : distanceAlongRoute / length
+		return distanceAlongRoute / length
 	}
 
 	isPointInBounds(point: VecLike, margin = 0) {
@@ -255,51 +239,32 @@ export abstract class Geometry2d {
 		)
 	}
 
-	overlapsPolygon(_polygon: VecLike[]): boolean {
-		const polygon = _polygon.map((v) => Vec.From(v))
+	overlapsPolygon(polygon: VecLike[]): boolean {
+		if (this.isEmptyLabel) return false
 
-		// Otherwise, check if the geometry itself overlaps the polygon
-		const { vertices, center, isFilled, isEmptyLabel, isClosed } = this
+		// Checks are ordered cheapest to most expensive
+		const { vertices, isFilled, isClosed } = this
 
-		// We'll do things in order of cheapest to most expensive checks
-
-		// Skip empty labels
-		if (isEmptyLabel) return false
-
-		// If any of the geometry's vertices are inside the polygon, it's inside
 		if (vertices.some((v) => pointInPolygon(v, polygon))) {
 			return true
 		}
 
-		// If the geometry is filled and closed and its center is inside the polygon, it's inside
 		if (isClosed) {
 			if (isFilled) {
-				// If closed and filled, check if the center is inside the polygon
-				if (pointInPolygon(center, polygon)) {
+				if (pointInPolygon(this.center, polygon)) {
 					return true
 				}
-
-				// ..then, slightly more expensive check, see the geometry covers the entire polygon but not its center
+				// The geometry may cover the entire polygon without containing its center
 				if (polygon.every((v) => pointInPolygon(v, vertices))) {
 					return true
 				}
 			}
-
-			// If any the geometry's vertices intersect the edge of the polygon, it's inside.
-			// for example when a rotated rectangle is moved over the corner of a parent rectangle
-			// If the geometry is closed, intersect as a polygon
-			if (polygonsIntersect(polygon, vertices)) {
-				return true
-			}
-		} else {
-			// If the geometry is not closed, intersect as a polyline
-			if (polygonIntersectsPolyline(polygon, vertices)) {
-				return true
-			}
+			// Edges can cross without any vertex being inside, e.g. a rotated rectangle
+			// moved over the corner of a parent rectangle
+			return polygonsIntersect(polygon, vertices)
 		}
 
-		// If none of the above checks passed, the geometry is outside the polygon
-		return false
+		return polygonIntersectsPolyline(polygon, vertices)
 	}
 
 	transform(transform: MatModel, opts?: TransformedGeometry2dOptions): Geometry2d {
@@ -355,7 +320,7 @@ export abstract class Geometry2d {
 
 	// eslint-disable-next-line tldraw/no-setter-getter
 	get area() {
-		if (!this._area) {
+		if (this._area === undefined) {
 			this._area = this.getArea()
 		}
 		return this._area
@@ -400,8 +365,9 @@ export abstract class Geometry2d {
 
 	// eslint-disable-next-line tldraw/no-setter-getter
 	get length() {
-		if (this._length) return this._length
-		this._length = this.getLength(Geometry2dFilters.EXCLUDE_LABELS)
+		if (this._length === undefined) {
+			this._length = this.getLength(Geometry2dFilters.EXCLUDE_LABELS)
+		}
 		return this._length
 	}
 
@@ -432,10 +398,8 @@ export abstract class Geometry2d {
 	abstract getSvgPathData(first: boolean): string
 }
 
-// =================================================================================================
-// Because Geometry2d.transform depends on TransformedGeometry2d, we need to define it here instead
-// of in its own files. This prevents a circular import error.
-// =================================================================================================
+// Defined here rather than in its own file because Geometry2d.transform depends on it; a
+// separate file would create a circular import.
 
 /** @public */
 export class TransformedGeometry2d extends Geometry2d {

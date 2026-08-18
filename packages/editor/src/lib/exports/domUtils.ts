@@ -42,16 +42,12 @@ function isDocument(node: Node | Document): node is Document {
 	return node.nodeType === Node.DOCUMENT_NODE
 }
 
-function getWindow(node: Node) {
-	return node.ownerDocument?.defaultView ?? globalThis
-}
-
 export function isElement(node: Node): node is Element {
-	return node instanceof getWindow(node).Element
+	return node instanceof getOwnerWindow(node).Element
 }
 
 function isShadowRoot(node: Node): node is ShadowRoot {
-	return node instanceof getWindow(node).ShadowRoot
+	return node instanceof getOwnerWindow(node).ShadowRoot
 }
 
 function isInShadowRoot(node: Node) {
@@ -59,7 +55,7 @@ function isInShadowRoot(node: Node) {
 }
 
 function isShadowSlotElement(node: Node): node is HTMLSlotElement {
-	return isInShadowRoot(node) && node instanceof getWindow(node).HTMLSlotElement
+	return isInShadowRoot(node) && node instanceof getOwnerWindow(node).HTMLSlotElement
 }
 
 export function elementStyle(element: Element) {
@@ -67,5 +63,5 @@ export function elementStyle(element: Element) {
 }
 
 export function getComputedStyle(element: Element, pseudoElement?: string) {
-	return getWindow(element).getComputedStyle(element, pseudoElement)
+	return getOwnerWindow(element).getComputedStyle(element, pseudoElement)
 }

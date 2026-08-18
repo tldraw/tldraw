@@ -22,11 +22,7 @@ export class UserPreferencesManager {
 			this.systemColorScheme.set('dark')
 		}
 		const handleChange = (e: MediaQueryListEvent) => {
-			if (e.matches) {
-				this.systemColorScheme.set('dark')
-			} else {
-				this.systemColorScheme.set('light')
-			}
+			this.systemColorScheme.set(e.matches ? 'dark' : 'light')
 		}
 		darkModeMediaQuery?.addEventListener('change', handleChange)
 		this.disposables.add(() => darkModeMediaQuery?.removeEventListener('change', handleChange))

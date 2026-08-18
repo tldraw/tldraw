@@ -1,5 +1,5 @@
 import { Box } from '../Box'
-import { PI, PI2, clamp, perimeterOfEllipse, pointInPolygon } from '../utils'
+import { PI2, clamp, perimeterOfEllipse, pointInPolygon } from '../utils'
 import { Vec, VecLike } from '../Vec'
 import { Edge2d } from './Edge2d'
 import { getVerticesCountForArcLength } from './geometry-constants'
@@ -39,34 +39,25 @@ export class Ellipse2d extends Geometry2d {
 	}
 
 	getVertices() {
-		// Perimeter of the ellipse
 		const w = Math.max(1, this._w)
 		const h = Math.max(1, this._h)
 		const cx = w / 2
 		const cy = h / 2
-		const q = Math.pow(cx - cy, 2) / Math.pow(cx + cy, 2)
-		const p = PI * (cx + cy) * (1 + (3 * q) / (10 + Math.sqrt(4 - 3 * q)))
-		// Number of points
-		const len = getVerticesCountForArcLength(p)
-		// Size of step
+		const len = getVerticesCountForArcLength(perimeterOfEllipse(cx, cy))
 		const step = PI2 / len
 
+		// Rotate a unit vector by `step` each iteration instead of calling sin/cos per vertex
 		const a = Math.cos(step)
 		const b = Math.sin(step)
-
 		let sin = 0
 		let cos = 1
-		let ts = 0
-		let tc = 1
 
 		const vertices = Array(len)
-
 		for (let i = 0; i < len; i++) {
 			vertices[i] = new Vec(clamp(cx + cx * cos, 0, w), clamp(cy + cy * sin, 0, h))
-			ts = b * cos + a * sin
-			tc = a * cos - b * sin
+			const ts = b * cos + a * sin
+			cos = a * cos - b * sin
 			sin = ts
-			cos = tc
 		}
 
 		return vertices
@@ -75,11 +66,9 @@ export class Ellipse2d extends Geometry2d {
 	nearestPoint(A: VecLike): Vec {
 		let nearest: Vec | undefined
 		let dist = Infinity
-		let d: number
-		let p: Vec
 		for (const edge of this.edges) {
-			p = edge.nearestPoint(A)
-			d = Vec.Dist2(p, A)
+			const p = edge.nearestPoint(A)
+			const d = Vec.Dist2(p, A)
 			if (d < dist) {
 				nearest = p
 				dist = d

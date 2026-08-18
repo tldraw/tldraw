@@ -1,8 +1,10 @@
 import { EffectScheduler, computed } from '@tldraw/state'
+import { areObjectsShallowEqual } from '@tldraw/utils'
 import { memo, useEffect, useRef } from 'react'
 import { useEditor } from '../../hooks/useEditor'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import { Group2d } from '../../primitives/geometry/Group2d'
+import { VecLike } from '../../primitives/Vec'
 import { debugFlags } from '../../utils/debug-flags'
 
 interface RenderInputs {
@@ -39,15 +41,7 @@ export const CanvasOverlays = memo(function CanvasOverlays() {
 					zoom: camera.z,
 				}
 			},
-			{
-				isEqual: (a, b) =>
-					a.dpr === b.dpr &&
-					a.w === b.w &&
-					a.h === b.h &&
-					a.cx === b.cx &&
-					a.cy === b.cy &&
-					a.zoom === b.zoom,
-			}
+			{ isEqual: areObjectsShallowEqual }
 		)
 
 		const scheduler = new EffectScheduler('canvas overlays render', () => {
@@ -88,8 +82,7 @@ export const CanvasOverlays = memo(function CanvasOverlays() {
 				const currentPagePoint = editor.inputs.getCurrentPagePoint()
 
 				// Shape geometries
-				const renderingShapes = editor.getRenderingShapes()
-				for (const result of renderingShapes) {
+				for (const result of editor.getRenderingShapes()) {
 					const shape = editor.getShape(result.id)
 					if (!shape || shape.type === 'group') continue
 
@@ -123,11 +116,11 @@ export const CanvasOverlays = memo(function CanvasOverlays() {
 
 					// Nearest point line
 					const pointInShapeSpace = editor.getPointInShapeSpace(shape, currentPagePoint)
-					const dist = Math.abs(geometry.distanceToPoint(pointInShapeSpace, true)) * zoom
+					const signedDist = geometry.distanceToPoint(pointInShapeSpace, true)
+					const dist = Math.abs(signedDist) * zoom
 					if (dist < 150) {
 						const nearestPoint = geometry.nearestPoint(pointInShapeSpace)
-						const hitInside = geometry.distanceToPoint(pointInShapeSpace, true) < 0
-						ctx.strokeStyle = hitInside ? 'goldenrod' : 'dodgerblue'
+						ctx.strokeStyle = signedDist < 0 ? 'goldenrod' : 'dodgerblue'
 						ctx.lineWidth = 2 / zoom
 						ctx.globalAlpha = 1 - dist / 150
 						ctx.beginPath()
@@ -150,16 +143,8 @@ export const CanvasOverlays = memo(function CanvasOverlays() {
 						const geometry = editor.overlays.getOverlayGeometry(overlay)
 						if (!geometry) continue
 						const vertices = geometry.vertices
-						if (vertices.length < 2) continue
-						ctx.beginPath()
-						ctx.moveTo(vertices[0].x, vertices[0].y)
-						for (let i = 1; i < vertices.length; i++) {
-							ctx.lineTo(vertices[i].x, vertices[i].y)
-						}
-						if (geometry.isClosed) {
-							ctx.closePath()
-							ctx.fill()
-						}
+						if (!tracePolyline(ctx, vertices, geometry.isClosed)) continue
+						if (geometry.isClosed) ctx.fill()
 						ctx.stroke()
 						for (const v of vertices) {
 							ctx.beginPath()
@@ -196,13 +181,17 @@ function drawGeometryStroke(ctx: CanvasRenderingContext2D, geometry: Geometry2d)
 		return
 	}
 
-	const vertices = geometry.vertices
-	if (vertices.length < 2) return
+	if (tracePolyline(ctx, geometry.vertices, geometry.isClosed)) ctx.stroke()
+}
+
+/** Begins a path through `vertices`; returns false (leaving no path) when there are fewer than two. */
+function tracePolyline(ctx: CanvasRenderingContext2D, vertices: VecLike[], isClosed: boolean) {
+	if (vertices.length < 2) return false
 	ctx.beginPath()
 	ctx.moveTo(vertices[0].x, vertices[0].y)
 	for (let i = 1; i < vertices.length; i++) {
 		ctx.lineTo(vertices[i].x, vertices[i].y)
 	}
-	if (geometry.isClosed) ctx.closePath()
-	ctx.stroke()
+	if (isClosed) ctx.closePath()
+	return true
 }
