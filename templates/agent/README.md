@@ -577,7 +577,7 @@ The schema showing the actions the agent can output is also automatically added 
 Set an agent's model using the `setModelName` method on the `modelName` manager.
 
 ```ts
-agent.modelName.setModelName('gemini-3-flash-preview')
+agent.modelName.setModelName('gemini-3.7-flash')
 ```
 
 To change the logic for deciding which model to use for a request, you can edit `ModelNamePartUtil`.
@@ -587,9 +587,9 @@ To change the logic for deciding which model to use for a request, you can edit 
 Add the model's definition to `AGENT_MODEL_DEFINITIONS` in `shared/models.ts`.
 
 ```ts
-'claude-sonnet-4-5': {
-	name: 'claude-sonnet-4-5',
-	id: 'claude-sonnet-4-5',
+'claude-sonnet-4-6': {
+	name: 'claude-sonnet-4-6',
+	id: 'claude-sonnet-4-6',
 	provider: 'anthropic',
 }
 ```
