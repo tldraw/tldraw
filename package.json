@@ -195,7 +195,7 @@
 		"@types/node": "^22.15.31",
 		"ws": "8.21.0",
 		"js-cookie": "3.0.7",
-		"postcss": "8.5.10",
+		"postcss": "8.5.23",
 		"react-router": "6.30.4",
 		"@remix-run/router": "1.23.2",
 		"@octokit/plugin-paginate-rest@11.3.1": "11.4.1",
