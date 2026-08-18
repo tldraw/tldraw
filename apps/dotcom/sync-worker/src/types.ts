@@ -5,9 +5,6 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 import type { TLFileDurableObject } from './TLFileDurableObject'
 import type { TLFileEffectProcessor } from './TLFileEffectProcessor'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
-import type { TLPostgresReplicator } from './TLPostgresReplicator'
-import { TLStatsDurableObject } from './TLStatsDurableObject'
-import type { TLUserDurableObject } from './TLUserDurableObject'
 
 // The Browser Rendering binding's Quick Actions method. Cloudflare exposes `env.BROWSER.quickAction`
 // so a Worker can call the Quick Actions endpoints (`screenshot`, `pdf`, …) straight through the
@@ -30,11 +27,8 @@ export interface Analytics {
 export interface Environment {
 	// bindings
 	TLDR_DOC: DurableObjectNamespace<TLFileDurableObject>
-	TL_PG_REPLICATOR: DurableObjectNamespace<TLPostgresReplicator>
-	TL_USER: DurableObjectNamespace<TLUserDurableObject>
 	TL_FILE_EFFECTS: DurableObjectNamespace<TLFileEffectProcessor>
 	TL_LOGGER: DurableObjectNamespace<TLLoggerDurableObject>
-	TL_STATS: DurableObjectNamespace<TLStatsDurableObject>
 
 	BOTCOM_POSTGRES_CONNECTION_STRING: string
 	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string
@@ -58,7 +52,6 @@ export interface Environment {
 	SNAPSHOT_SLUG_TO_PARENT_SLUG: KVNamespace
 
 	UPLOADS: R2Bucket
-	USER_DO_SNAPSHOTS: R2Bucket
 
 	SLUG_TO_READONLY_SLUG: KVNamespace
 	READONLY_SLUG_TO_SLUG: KVNamespace
@@ -90,8 +83,6 @@ export interface Environment {
 
 	ANALYTICS_API_URL: string | undefined
 	ANALYTICS_API_TOKEN: string | undefined
-
-	PIERRE_KEY: string | undefined
 
 	RATE_LIMITER: RateLimit
 	// Rate limit bindings for the Browser Run-backed MCP screenshot tool, declared in wrangler.toml.
@@ -174,11 +165,6 @@ export function envFlagWord(value: string | undefined): string | undefined {
 	return word ? word : undefined
 }
 
-export function getUserDoSnapshotKey(env: Environment, userId: string) {
-	const snapshotPrefix = env.TLDRAW_ENV === 'preview' ? env.WORKER_NAME + '/' : ''
-	return `${snapshotPrefix}${userId}`
-}
-
 export interface DBLoadResult {
 	snapshot: RoomSnapshot
 	roomSizeMB: number
@@ -239,51 +225,6 @@ export type TLServerEvent =
 			sharedState: 'shared' | 'private' | 'unknown' | 'legacy' | 'deleted'
 	  }
 
-export type TLPostgresReplicatorRebootSource =
-	| 'constructor'
-	| 'inactivity'
-	| 'retry'
-	| 'subscription_closed'
-	| 'test'
-
-export type TLPostgresReplicatorEvent =
-	| { type: 'reboot'; source: TLPostgresReplicatorRebootSource }
-	| { type: 'request_lsn_update' }
-	| {
-			type:
-				| 'reboot_error'
-				| 'register_user'
-				| 'unregister_user'
-				| 'get_file_record'
-				| 'prune'
-				| 'resume_sequence'
-	  }
-	| { type: 'reboot_duration'; duration: number }
-	| { type: 'rpm'; rpm: number }
-	| { type: 'active_users'; count: number }
-
-export type TLUserDurableObjectEvent =
-	| {
-			type:
-				| 'reboot'
-				| 'full_data_fetch'
-				| 'full_data_fetch_hard'
-				| 'found_snapshot'
-				| 'reboot_error'
-				| 'rate_limited'
-				| 'broadcast_message'
-				| 'mutation'
-				| 'reject_mutation'
-				| 'replication_event'
-				| 'connect_retry'
-				| 'user_do_abort'
-				| 'not_enough_history_for_fast_reboot'
-				| 'woken_up_by_replication_event'
-			id: string
-	  }
-	| { type: 'reboot_duration'; id: string; duration: number }
-	| { type: 'cold_start_time'; id: string; duration: number }
-
 export interface AssetUploadQueueMessage {
 	type: 'asset-upload'
 	objectName: string
@@ -329,10 +270,13 @@ export type ThumbnailBoardAccess = 'public' | 'render'
  */
 export type ThumbnailRenderSurface = 'og' | 'mcp'
 
-// What prompted a board thumbnail render. Purely telemetry — every trigger is treated identically by
-// the consumer — so renders can be attributed to the thing that asked for them. `publish` and `edit`
-// are the two producers; `crawler` is reachable only as the fallback for a queued message that
-// carries no reason of its own.
+// What prompted a board thumbnail render, so renders can be attributed to the thing that asked for
+// them. `publish` and `edit` are the trigger producers; `crawler` is the OG route's published-board
+// repair (`repairMissingPublishedImage`) and doubles as the fallback for a queued message that
+// carries no reason of its own. Telemetry with one exception: when a job burns its whole retry
+// budget, the consumer arms the repair cooldown only if a crawler asked (see `retryOrDrop`), so
+// traffic an outside caller controls cannot re-arm the retry chain on a board that just proved it
+// cannot render.
 export type OgImageRenderReason = 'crawler' | 'publish' | 'edit'
 
 // Asks the queue consumer to render a board's OG image through Browser Run and refresh the R2
@@ -345,9 +289,10 @@ export interface OgImageRenderQueueMessage {
 	// Optional only because a message may already be in the queue without one; every producer sets it.
 	reason?: OgImageRenderReason
 	/**
-	 * Set on a job the consumer enqueued for itself, having found the board changed while it was
-	 * capturing. A follow-up never spawns another: a board edited without pause would otherwise render
-	 * continuously instead of at the debounce's cadence.
+	 * Set on a job the consumer enqueued for itself, having found a `published` board changed while it
+	 * was capturing — the one kind whose dropped ask nothing re-asks for. Shared files never get one:
+	 * the DO's debounce alarm re-asks by construction (see enqueueFollowUpIfBoardMoved). A follow-up
+	 * never spawns another: a board republished without pause would otherwise render continuously.
 	 */
 	followUp?: boolean
 }

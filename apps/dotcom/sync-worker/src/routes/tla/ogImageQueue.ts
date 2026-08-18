@@ -6,7 +6,6 @@ import {
 	OG_REPAIR_COOLDOWN_MS,
 	OG_RETRY_DELAY_SECONDS,
 } from '../../config'
-import { getR2KeyForRoom } from '../../r2'
 import {
 	Environment,
 	OgImageRenderQueueMessage,
@@ -26,7 +25,7 @@ import {
 import { classifyScreenshotFailure, reportThumbnailError } from './thumbnailShared'
 
 // Queue-backed async board thumbnail generation. Renders are asked for by the things that change a
-// board's content — publishing (TLPostgresReplicator) and editing (TLFileDurableObject) — and this
+// board's content — publishing (the outbox publish effect) and editing (TLFileDurableObject) — and this
 // consumer performs the capture out of band, refreshing the R2 cache the GET og-image route reads.
 // That route only ever reads; the MCP tool must return its image in-band, so it captures inline into
 // its own bucket. Neither goes through here.
@@ -354,18 +353,29 @@ export async function handleOgImageRenderMessage(
 }
 
 /**
- * A capture takes seconds, and the board can change during one. An edit or publish landing in that
- * window asks for a render, finds the pending marker this job set, and is turned away — the ask is
- * *dropped*, not deferred, and nothing upstream retries it: the debouncer has already reset and
- * neither caller reads the result. So the render we just wrote would be the last word, showing a
- * board as it was before its final edits, until something happened to ask again.
+ * A capture takes seconds, and the board can change during one. A *publish* landing in that window
+ * asks for a render, finds the pending marker this job set, and is turned away — the ask is
+ * *dropped*, not deferred, and nothing ever re-asks for a published board: its snapshot is frozen,
+ * so the render we just wrote would be the last word, showing the previous publication. This check
+ * is what closes that, and it is `published`-only because published boards are the only kind whose
+ * dropped ask stays dropped.
  *
- * Re-resolving here is what closes that. A retry needs no such check, since every delivery re-resolves
- * before capturing and so picks up the newest content by itself.
+ * A shared file's dropped ask is deferred by construction, in two halves pinned in
+ * ogImageQueue.test.ts. A *debounced* fire's ask is only turned away while this job's marker is
+ * alive, which places its persist a full OG_RENDER_DEBOUNCE_MS before the marker's clear — while
+ * the image whose write performs that clear read its snapshot at most THUMBNAIL_RENDER_TIMEOUT_MS
+ * plus the post-capture tail before it, retries included. The debounce being the longer of the two
+ * means the dropped ask's content is already in the image. A *max-wait* fire escapes that bound but
+ * cannot be turned away at all: the fire that enqueued this job reset the debouncer's window, so a
+ * clamped fire lands at or past the marker's TTL. Following up here as well bought nothing worth
+ * its cost — follow-ups were roughly a fifth of shared-file
+ * queue captures in production (measured 2026-08-11 via the `followup` telemetry blob): on a board
+ * that settled, the follow-up merely relocated the render the debounced ask was about to do; on a
+ * board still moving, it rendered a mid-edit state the next debounced render superseded.
  *
- * Deliberately never chained. A board edited without pause would otherwise find itself stale on every
- * follow-up and render continuously, which is the exact cost the debounce upstream exists to avoid.
- * One extra render per triggered render is the ceiling.
+ * Deliberately never chained. A published board republished without pause would otherwise find
+ * itself stale on every follow-up and render continuously. One extra render per triggered render is
+ * the ceiling.
  *
  * Best effort: the image is already written and the marker already cleared, so a failure here loses a
  * refresh, not the render. It must not turn a completed job into a retry.
@@ -377,9 +387,10 @@ async function enqueueFollowUpIfBoardMoved(
 	reason: OgImageRenderReason,
 	ctx?: ExecutionContext
 ) {
+	if (rendered.kind !== 'published') return
 	if (message.body.followUp) return
 	try {
-		const current = await readCurrentBoardVersion(env, rendered)
+		const current = await readCurrentPublishedVersion(env, rendered)
 		if (current === null) return
 		if (String(current) === String(rendered.version)) return
 		await enqueueOgImageRender(env, rendered, { reason, followUp: true })
@@ -394,29 +405,17 @@ async function enqueueFollowUpIfBoardMoved(
 }
 
 /**
- * The board's current content version, for the "did it move while we were capturing?" check above and
- * nothing else. `null` means there is nothing to compare against, which is treated as "don't follow
- * up".
- *
- * A shared file's version *is* the persisted room's R2 etag, so this reads that object's head rather
- * than going through `resolveThumbnailBoard`. The Postgres half of a resolve answers the gate, and no
- * gate is needed here: this decides whether to **enqueue**, and the job it enqueues re-resolves in
- * full before spending any Browser Run. So a board soft-deleted inside this window costs one queue
- * message that the next delivery drops as `board_not_viewable` — not a render, and not a leak.
- *
- * A published board's version is `lastPublished`, a column rather than an etag, so it has no R2
- * shortcut and keeps the full resolve. Publishing is not the trigger that made this path hot.
+ * The published board's current `lastPublished`, for the "did it move while we were capturing?"
+ * check above and nothing else. `null` means there is nothing to compare against, which is treated
+ * as "don't follow up". A full resolve rather than something lighter, because a published version is
+ * a Postgres column with no R2 shortcut — and publishing is not a hot path.
  */
-async function readCurrentBoardVersion(
+async function readCurrentPublishedVersion(
 	env: Environment,
 	board: ResolvedThumbnailBoard
 ): Promise<string | number | null> {
-	if (board.kind === 'published') {
-		const resolved = await resolveThumbnailBoard(env, board.kind, board.slug, { access: 'render' })
-		return resolved.ok ? resolved.board.version : null
-	}
-	const persisted = await env.ROOMS.head(getR2KeyForRoom({ slug: board.slug, isApp: true }))
-	return persisted?.etag ?? null
+	const resolved = await resolveThumbnailBoard(env, board.kind, board.slug, { access: 'render' })
+	return resolved.ok ? resolved.board.version : null
 }
 
 async function retryOrDrop(

@@ -8,6 +8,12 @@
 	},
 	"homepage": "https://tldraw.dev",
 	"license": "MIT",
+	"tldraw_product": {
+		"stableId": "tldraw:sdk-core",
+		"name": "SDK",
+		"type": "product",
+		"premium": false
+	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tldraw/tldraw"

@@ -121,9 +121,6 @@ const flyioAppName =
 			: undefined
 const flyioReplAppName = deployZero === 'flyio-multinode' ? `${env.TLDRAW_ENV}-zero-rm` : undefined
 
-// pierre is not in production yet, so get the key directly from process.env
-const pierreKey = process.env.PIERRE_KEY ?? ''
-
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
 	shouldNotify: env.TLDRAW_ENV === 'production',
@@ -588,7 +585,6 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			SUPABASE_KEY: env.SUPABASE_LITE_ANON_KEY,
 			SENTRY_DSN: env.WORKER_SENTRY_DSN,
 			TLDRAW_ENV: env.TLDRAW_ENV,
-			PIERRE_KEY: pierreKey,
 			ASSET_UPLOAD_ORIGIN: env.ASSET_UPLOAD,
 			USER_CONTENT_URL: env.USER_CONTENT_URL,
 			WORKER_NAME: workerId,

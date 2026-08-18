@@ -631,8 +631,9 @@ export function writeScreenshotTelemetry(
 		 */
 		reason?: OgImageRenderReason
 		/**
-		 * Whether this delivery is the follow-up a completed render enqueues when the board moved during
-		 * its capture (see `enqueueFollowUpIfBoardMoved`), rather than the ask a trigger made. Separates
+		 * Whether this delivery is the follow-up a completed render enqueues when a `published` board —
+		 * the only kind that follows up — moved during its capture (see `enqueueFollowUpIfBoardMoved`),
+		 * rather than the ask a trigger made. Separates
 		 * the two halves of render spend, which `reason` cannot: a follow-up inherits the reason of the
 		 * job it follows, so both land in the same bucket. Only meaningful on queue datapoints; the
 		 * request paths have no follow-up and record `none`.
