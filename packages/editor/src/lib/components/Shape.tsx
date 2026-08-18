@@ -58,8 +58,6 @@ export const Shape = memo(function Shape({
 		clipPath: 'none',
 		width: 0,
 		height: 0,
-		x: 0,
-		y: 0,
 	})
 
 	useQuickReactor(
@@ -70,7 +68,6 @@ export const Shape = memo(function Shape({
 
 			const prev = memoizedStuffRef.current
 
-			// Clip path
 			const clipPath = editor.getShapeClipPath(id) ?? 'none'
 			if (clipPath !== prev.clipPath) {
 				setStyleProperty(containerRef.current, 'clip-path', clipPath)
@@ -78,19 +75,14 @@ export const Shape = memo(function Shape({
 				prev.clipPath = clipPath
 			}
 
-			// Page transform
-			const pageTransform = editor.getShapePageTransform(id)
-			const transform = Mat.toCssString(pageTransform)
-			const bounds = editor.getShapeGeometry(shape).bounds
-
-			// Update if the tranform has changed
+			const transform = Mat.toCssString(editor.getShapePageTransform(id))
 			if (transform !== prev.transform) {
 				setStyleProperty(containerRef.current, 'transform', transform)
 				setStyleProperty(bgContainerRef.current, 'transform', transform)
 				prev.transform = transform
 			}
 
-			// Width / Height
+			const bounds = editor.getShapeGeometry(shape).bounds
 			const width = Math.max(bounds.width, 1)
 			const height = Math.max(bounds.height, 1)
 
@@ -110,12 +102,8 @@ export const Shape = memo(function Shape({
 	useLayoutEffect(() => {
 		const container = containerRef.current
 		const bgContainer = bgContainerRef.current
-
-		// Opacity
 		setStyleProperty(container, 'opacity', opacity)
 		setStyleProperty(bgContainer, 'opacity', opacity)
-
-		// Z-Index
 		setStyleProperty(container, 'z-index', index)
 		setStyleProperty(bgContainer, 'z-index', backgroundIndex)
 	}, [opacity, index, backgroundIndex])
@@ -127,7 +115,6 @@ export const Shape = memo(function Shape({
 		const container = containerRef.current
 		if (!container) return
 
-		// Check initial culling state and register with the context
 		const isCulled = editor.getCulledShapes().has(id)
 		register(id, container, bgContainerRef.current, isCulled)
 
@@ -152,7 +139,7 @@ export const Shape = memo(function Shape({
 				</ShapeWrapper>
 			)}
 			<ShapeWrapper ref={containerRef} shape={shape} isBackground={false}>
-				<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
+				<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
 					<InnerShape shape={shape} util={util} />
 				</OptionalErrorBoundary>
 				{util.getAppOwnedElement && <ContentElementSlot id={id} util={util} />}
@@ -276,8 +263,5 @@ export const InnerShapeBackground = memo(
 			[util, shape.id]
 		)
 	},
-	(prev, next) =>
-		prev.shape.props === next.shape.props &&
-		prev.shape.meta === next.shape.meta &&
-		prev.util === next.util
+	(prev, next) => areShapesContentEqual(prev.shape, next.shape) && prev.util === next.util
 )

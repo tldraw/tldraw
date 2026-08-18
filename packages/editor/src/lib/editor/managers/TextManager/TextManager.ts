@@ -123,8 +123,7 @@ export class TextManager extends EditorManager {
 
 	private createMeasurementEl(): HTMLDivElement {
 		const elm = this.editor.getContainerDocument().createElement('div')
-		elm.classList.add('tl-text')
-		elm.classList.add('tl-text-measure')
+		elm.classList.add('tl-text', 'tl-text-measure')
 		elm.setAttribute('dir', 'auto')
 		elm.tabIndex = -1
 		for (const key of objectMapKeys(initialDefaultStyles)) {
@@ -190,6 +189,15 @@ export class TextManager extends EditorManager {
 		}
 	}
 
+	private measureElement(
+		el: HTMLElement,
+		measureScrollWidth: boolean | undefined
+	): TLMeasuredTextSize {
+		const scrollWidth = measureScrollWidth ? el.scrollWidth : 0
+		const rect = el.getBoundingClientRect()
+		return { x: 0, y: 0, w: rect.width, h: rect.height, scrollWidth }
+	}
+
 	private ensurePoolSize(size: number) {
 		if (this.poolElms.length >= size) return
 
@@ -231,21 +239,9 @@ export class TextManager extends EditorManager {
 			}
 		}
 
-		const results: TLMeasuredTextSize[] = []
-		for (let i = 0; i < requests.length; i++) {
-			const el = this.getPoolItem(i).el
-			const scrollWidth = requests[i].opts.measureScrollWidth ? el.scrollWidth : 0
-			const rect = el.getBoundingClientRect()
-			results.push({
-				x: 0,
-				y: 0,
-				w: rect.width,
-				h: rect.height,
-				scrollWidth,
-			})
-		}
-
-		return results
+		return requests.map((request, i) =>
+			this.measureElement(this.poolElms[i].el, request.opts.measureScrollWidth)
+		)
 	}
 
 	measureText(textToMeasure: string, opts: TLMeasureTextOpts): TLMeasuredTextSize {
@@ -261,17 +257,7 @@ export class TextManager extends EditorManager {
 
 		try {
 			elm.innerHTML = html
-
-			const scrollWidth = opts.measureScrollWidth ? elm.scrollWidth : 0
-			const rect = elm.getBoundingClientRect()
-
-			return {
-				x: 0,
-				y: 0,
-				w: rect.width,
-				h: rect.height,
-				scrollWidth,
-			}
+			return this.measureElement(elm, opts.measureScrollWidth)
 		} finally {
 			restoreStyles()
 		}

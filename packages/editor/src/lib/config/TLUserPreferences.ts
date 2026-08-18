@@ -86,9 +86,6 @@ function migrateSnapshot(data: { version: number; user: any }) {
 	if (data.version < Versions.AddIsSnapMode) {
 		data.user.isSnapMode = false
 	}
-	if (data.version < Versions.MakeFieldsNullable) {
-		// noop
-	}
 	if (data.version < Versions.AddEdgeScrollSpeed) {
 		data.user.edgeScrollSpeed = 1
 	}
@@ -155,11 +152,8 @@ function getRandomColor() {
 
 /** @internal */
 export function userPrefersReducedMotion() {
-	if (typeof window !== 'undefined' && getGlobalWindow().matchMedia) {
-		return getGlobalWindow().matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false
-	}
-
-	return false
+	if (typeof window === 'undefined') return false
+	return getGlobalWindow().matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false
 }
 
 /** @public */
@@ -211,10 +205,7 @@ function migrateUserPreferences(userData: unknown): TLUserPreferences {
 }
 
 function loadUserPreferences(): TLUserPreferences {
-	const userData = (JSON.parse(getFromLocalStorage(USER_DATA_KEY) || 'null') ??
-		null) as null | UserDataSnapshot
-
-	return migrateUserPreferences(userData)
+	return migrateUserPreferences(JSON.parse(getFromLocalStorage(USER_DATA_KEY) || 'null'))
 }
 
 const globalUserPreferences = atom<TLUserPreferences | null>('globalUserData', null)
@@ -237,6 +228,9 @@ export function setUserPreferences(user: TLUserPreferences) {
 	broadcastUserPreferencesChange()
 }
 
+const broadcastOrigin = uniqueId()
+const broadcastEventKey = 'tldraw-user-preferences-change' as const
+
 const isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
 
 const channel =
@@ -246,24 +240,15 @@ const channel =
 
 channel?.addEventListener('message', (e) => {
 	const data = e.data as undefined | UserChangeBroadcastMessage
-	if (data?.type === broadcastEventKey && data?.origin !== getBroadcastOrigin()) {
+	if (data?.type === broadcastEventKey && data?.origin !== broadcastOrigin) {
 		globalUserPreferences.set(migrateUserPreferences(data.data))
 	}
 })
 
-let _broadcastOrigin = null as null | string
-function getBroadcastOrigin() {
-	if (_broadcastOrigin === null) {
-		_broadcastOrigin = uniqueId()
-	}
-	return _broadcastOrigin
-}
-const broadcastEventKey = 'tldraw-user-preferences-change' as const
-
 function broadcastUserPreferencesChange() {
 	channel?.postMessage({
 		type: broadcastEventKey,
-		origin: getBroadcastOrigin(),
+		origin: broadcastOrigin,
 		data: {
 			user: getUserPreferences(),
 			version: CURRENT_VERSION,

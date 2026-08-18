@@ -75,12 +75,10 @@ export class OverlayManager {
 	 * @public
 	 */
 	@computed getOverlayUtilsInZOrder(): OverlayUtil[] {
-		const utils = Array.from(this._overlayUtils.values())
-		// Stable sort by zIndex (registration order breaks ties).
-		return utils
-			.map((util, i) => ({ util, i, z: util.options.zIndex ?? 0 }))
-			.sort((a, b) => a.z - b.z || a.i - b.i)
-			.map((entry) => entry.util)
+		// Array.prototype.sort is stable, so registration order breaks zIndex ties.
+		return Array.from(this._overlayUtils.values()).sort(
+			(a, b) => (a.options.zIndex ?? 0) - (b.options.zIndex ?? 0)
+		)
 	}
 
 	/**

@@ -30,25 +30,18 @@ export function getPerfectDashProps(
 		forceSolid = false,
 	} = opts
 
+	if (forceSolid || style === 'none') {
+		return {
+			strokeDasharray: 'none',
+			strokeDashoffset: 'none',
+		}
+	}
+
 	let dashLength = 0
 	let dashCount = 0
 	let ratio = 1
 	let gapLength = 0
 	let strokeDashoffset = 0
-
-	if (forceSolid) {
-		return {
-			strokeDasharray: 'none',
-			strokeDashoffset: 'none',
-		}
-	}
-
-	if (style === 'none') {
-		return {
-			strokeDasharray: 'none',
-			strokeDashoffset: 'none',
-		}
-	}
 
 	switch (style) {
 		case 'dashed': {

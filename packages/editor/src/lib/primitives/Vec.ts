@@ -82,8 +82,6 @@ export class Vec {
 	subScalar(n: number) {
 		this.x -= n
 		this.y -= n
-		// this.z -= n
-
 		return this
 	}
 
@@ -102,8 +100,6 @@ export class Vec {
 	addScalar(n: number) {
 		this.x += n
 		this.y += n
-		// this.z += n
-
 		return this
 	}
 
@@ -120,28 +116,24 @@ export class Vec {
 	div(t: number) {
 		this.x /= t
 		this.y /= t
-		// this.z /= t
 		return this
 	}
 
 	divV(V: VecLike) {
 		this.x /= V.x
 		this.y /= V.y
-		// this.z /= V.z
 		return this
 	}
 
 	mul(t: number) {
 		this.x *= t
 		this.y *= t
-		// this.z *= t
 		return this
 	}
 
 	mulV(V: VecLike) {
 		this.x *= V.x
 		this.y *= V.y
-		// this.z *= V.z
 		return this
 	}
 
@@ -152,21 +144,24 @@ export class Vec {
 	}
 
 	nudge(B: VecLike, distance: number) {
-		const tan = Vec.Tan(B, this)
-		return this.add(tan.mul(distance))
+		const dx = B.x - this.x
+		const dy = B.y - this.y
+		const l = (dx * dx + dy * dy) ** 0.5
+		if (l === 0) return this
+		this.x += (dx / l) * distance
+		this.y += (dy / l) * distance
+		return this
 	}
 
 	neg() {
 		this.x *= -1
 		this.y *= -1
-		// this.z *= -1
 		return this
 	}
 
 	cross(V: VecLike) {
 		this.x = this.y * V.z! - this.z * V.y
 		this.y = this.z * V.x - this.x * V.z!
-		// this.z = this.x * V.y - this.y * V.x
 		return this
 	}
 
@@ -350,11 +345,7 @@ export class Vec {
 	}
 
 	static Cross(A: VecLike, V: VecLike) {
-		return new Vec(
-			A.y * V.z! - A.z! * V.y,
-			A.z! * V.x - A.x * V.z!
-			// A.z = A.x * V.y - A.y * V.x
-		)
+		return new Vec(A.y * V.z! - A.z! * V.y, A.z! * V.x - A.x * V.z!)
 	}
 
 	/**
@@ -582,7 +573,11 @@ export class Vec {
 	}
 
 	static Nudge(A: VecLike, B: VecLike, distance: number) {
-		return Vec.Add(A, Vec.Tan(B, A).mul(distance))
+		const dx = B.x - A.x
+		const dy = B.y - A.y
+		const l = (dx * dx + dy * dy) ** 0.5
+		if (l === 0) return new Vec(A.x, A.y)
+		return new Vec(A.x + (dx / l) * distance, A.y + (dy / l) * distance)
 	}
 
 	static ToString(A: VecLike) {
@@ -623,7 +618,7 @@ export class Vec {
 
 	static Clamp(A: Vec, min: number, max?: number) {
 		if (max === undefined) {
-			return new Vec(Math.min(Math.max(A.x, min)), Math.min(Math.max(A.y, min)))
+			return new Vec(Math.max(A.x, min), Math.max(A.y, min))
 		}
 
 		return new Vec(Math.min(Math.max(A.x, min), max), Math.min(Math.max(A.y, min), max))

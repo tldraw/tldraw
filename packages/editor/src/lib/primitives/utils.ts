@@ -221,7 +221,7 @@ export function radiansToDegrees(r: number): number {
  * @public
  */
 export function getPointOnCircle(center: VecLike, r: number, a: number) {
-	return new Vec(center.x, center.y).add(Vec.FromAngle(a, r))
+	return new Vec(center.x + Math.cos(a) * r, center.y + Math.sin(a) * r)
 }
 
 /** @public */
@@ -234,8 +234,8 @@ export function getPolygonVertices(width: number, height: number, sides: number)
 	let maxX = -Infinity
 	let minY = Infinity
 	let maxY = -Infinity
+	const step = PI2 / sides
 	for (let i = 0; i < sides; i++) {
-		const step = PI2 / sides
 		const t = -HALF_PI + i * step
 		const x = cx + cx * Math.cos(t)
 		const y = cy + cy * Math.sin(t)
@@ -376,11 +376,9 @@ export function isSafeFloat(n: number) {
  * @public
  */
 export function angleDistance(fromAngle: number, toAngle: number, direction: number) {
-	const dist =
-		direction < 0
-			? clockwiseAngleDist(fromAngle, toAngle)
-			: counterClockwiseAngleDist(fromAngle, toAngle)
-	return dist
+	return direction < 0
+		? clockwiseAngleDist(fromAngle, toAngle)
+		: counterClockwiseAngleDist(fromAngle, toAngle)
 }
 
 /**
@@ -396,28 +394,22 @@ export function angleDistance(fromAngle: number, toAngle: number, direction: num
  * @public
  */
 export function getPointInArcT(mAB: number, A: number, B: number, P: number): number {
-	let mAP: number
+	const mAP = shortAngleDist(A, P)
 	if (Math.abs(mAB) > PI) {
-		mAP = shortAngleDist(A, P)
 		const mPB = shortAngleDist(P, B)
-		if (Math.abs(mAP) < Math.abs(mPB)) {
-			return mAP / mAB
-		} else {
-			return (mAB - mPB) / mAB
-		}
-	} else {
-		mAP = shortAngleDist(A, P)
-		const t = mAP / mAB
-
-		// If the arc is something like -2.8 to 2.2, then we'll get a weird bug
-		// where the measurement to the center is negative but measure to points
-		// near the end are positive
-		if (Math.sign(mAP) !== Math.sign(mAB)) {
-			return Math.abs(t) > 0.5 ? 1 : 0
-		}
-
-		return t
+		return Math.abs(mAP) < Math.abs(mPB) ? mAP / mAB : (mAB - mPB) / mAB
 	}
+
+	const t = mAP / mAB
+
+	// If the arc is something like -2.8 to 2.2, then we'll get a weird bug
+	// where the measurement to the center is negative but measure to points
+	// near the end are positive
+	if (Math.sign(mAP) !== Math.sign(mAB)) {
+		return Math.abs(t) > 0.5 ? 1 : 0
+	}
+
+	return t
 }
 
 /**

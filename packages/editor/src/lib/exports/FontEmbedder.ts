@@ -103,7 +103,7 @@ async function getDocumentFontFaces(doc: Document) {
 		}
 
 		if (cssRules) {
-			for (const rule of styleSheet.cssRules) {
+			for (const rule of cssRules) {
 				if (rule instanceof win.CSSFontFaceRule) {
 					fontFaces.push(parseCssFontFaces(rule.cssText, styleSheet.href ?? doc.baseURI))
 				} else if (rule instanceof win.CSSImportRule) {

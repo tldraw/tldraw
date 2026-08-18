@@ -1,5 +1,4 @@
-import { EffectScheduler } from '@tldraw/state'
-import { debounce } from '@tldraw/utils'
+import { react } from '@tldraw/state'
 import * as React from 'react'
 import { useContainer } from './useContainer'
 import { useEditor } from './useEditor'
@@ -9,19 +8,8 @@ export function useZoomCss() {
 	const container = useContainer()
 
 	React.useEffect(() => {
-		const setScale = (s: number) => container.style.setProperty('--tl-zoom', s.toString())
-		const setScaleDebounced = debounce(setScale, 100)
-
-		const scheduler = new EffectScheduler('useZoomCss', () =>
-			setScale(editor.getEfficientZoomLevel())
-		)
-
-		scheduler.attach()
-		scheduler.execute()
-
-		return () => {
-			scheduler.detach()
-			setScaleDebounced.cancel()
-		}
+		return react('useZoomCss', () => {
+			container.style.setProperty('--tl-zoom', editor.getEfficientZoomLevel().toString())
+		})
 	}, [editor, container])
 }

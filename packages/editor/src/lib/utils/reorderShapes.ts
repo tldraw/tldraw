@@ -63,13 +63,6 @@ export function getReorderingShapesChanges(
 	return changes
 }
 
-/**
- * Reorders the moving shapes to the back of the parent's children.
- *
- * @param moving The set of shapes that are moving
- * @param children The parent's children
- * @param changes The changes array to push changes to
- */
 function reorderToBack(moving: Set<TLShape>, children: TLShape[], changes: TLShapePartial[]) {
 	const len = children.length
 
@@ -97,28 +90,25 @@ function reorderToBack(moving: Set<TLShape>, children: TLShape[], changes: TLSha
 		}
 	}
 
-	if (moving.size === 0) {
-		// If our moving set is empty, there's nothing to do; all of our shapes were
-		// already at the back of the parent's children.
-		return
-	} else {
-		// Sort the moving shapes by their current index, then apply the new indices
-		const indices = getIndicesBetween(below, above, moving.size)
-		changes.push(
-			...Array.from(moving.values())
-				.sort(sortByIndex)
-				.map((shape, i) => ({ ...shape, index: indices[i] }))
-		)
-	}
+	// If our moving set is empty, all of our shapes were already at the back
+	if (moving.size > 0) pushMovedBetween(moving, below, above, changes)
 }
 
-/**
- * Reorders the moving shapes to the front of the parent's children.
- *
- * @param moving The set of shapes that are moving
- * @param children The parent's children
- * @param changes The changes array to push changes to
- */
+/** Sort the moving shapes by their current index, then re-index them between `below` and `above`. */
+function pushMovedBetween(
+	moving: Set<TLShape>,
+	below: IndexKey | undefined,
+	above: IndexKey | undefined,
+	changes: TLShapePartial[]
+) {
+	const indices = getIndicesBetween(below, above, moving.size)
+	changes.push(
+		...Array.from(moving.values())
+			.sort(sortByIndex)
+			.map((shape, i) => ({ ...shape, index: indices[i] }))
+	)
+}
+
 function reorderToFront(moving: Set<TLShape>, children: TLShape[], changes: TLShapePartial[]) {
 	const len = children.length
 
@@ -146,19 +136,8 @@ function reorderToFront(moving: Set<TLShape>, children: TLShape[], changes: TLSh
 		}
 	}
 
-	if (moving.size === 0) {
-		// If our moving set is empty, there's nothing to do; all of our shapes were
-		// already at the front of the parent's children.
-		return
-	} else {
-		// Sort the moving shapes by their current index, then apply the new indices
-		const indices = getIndicesBetween(below, above, moving.size)
-		changes.push(
-			...Array.from(moving.values())
-				.sort(sortByIndex)
-				.map((shape, i) => ({ ...shape, index: indices[i] }))
-		)
-	}
+	// If our moving set is empty, all of our shapes were already at the front
+	if (moving.size > 0) pushMovedBetween(moving, below, above, changes)
 }
 
 function getOverlapChecker(editor: Editor, moving: Set<TLShape>) {
@@ -180,15 +159,6 @@ function getOverlapChecker(editor: Editor, moving: Set<TLShape>) {
 	return isContaining
 }
 
-/**
- * Reorders the moving shapes forward in the parent's children.
- *
- * @param editor The editor
- * @param moving The set of shapes that are moving
- * @param children The parent's children
- * @param changes The changes array to push changes to
- * @param opts The options
- */
 function reorderForward(
 	editor: Editor,
 	moving: Set<TLShape>,
@@ -196,12 +166,12 @@ function reorderForward(
 	changes: TLShapePartial[],
 	opts?: { considerAllShapes?: boolean }
 ) {
-	const isContaining = getOverlapChecker(editor, moving)
-
 	const len = children.length
 
 	// If all of the children are moving, there's nothing to do
 	if (moving.size === len) return
+
+	const isContaining = opts?.considerAllShapes ? null : getOverlapChecker(editor, moving)
 
 	let state = { name: 'skipping' } as
 		| { name: 'skipping' }
@@ -220,7 +190,7 @@ function reorderForward(
 			}
 			case 'selecting': {
 				if (isMoving) continue
-				if (!opts?.considerAllShapes && !isContaining(children[i])) continue
+				if (isContaining && !isContaining(children[i])) continue
 				// if we find a non-moving and overlapping shape while selecting, move all selected
 				// shapes in front of the not moving shape; and start skipping
 				const { selectIndex } = state
@@ -239,15 +209,6 @@ function reorderForward(
 	}
 }
 
-/**
- * Reorders the moving shapes backward in the parent's children.
- *
- * @param editor The editor
- * @param moving The set of shapes that are moving
- * @param children The parent's children
- * @param changes The changes array to push changes to
- * @param opts The options
- */
 function reorderBackward(
 	editor: Editor,
 	moving: Set<TLShape>,
@@ -255,11 +216,12 @@ function reorderBackward(
 	changes: TLShapePartial[],
 	opts?: { considerAllShapes?: boolean }
 ) {
-	const isContaining = getOverlapChecker(editor, moving)
-
 	const len = children.length
 
+	// If all of the children are moving, there's nothing to do
 	if (moving.size === len) return
+
+	const isContaining = opts?.considerAllShapes ? null : getOverlapChecker(editor, moving)
 
 	let state = { name: 'skipping' } as
 		| { name: 'skipping' }
@@ -278,7 +240,7 @@ function reorderBackward(
 			}
 			case 'selecting': {
 				if (isMoving) continue
-				if (!opts?.considerAllShapes && !isContaining(children[i])) continue
+				if (isContaining && !isContaining(children[i])) continue
 				// if we find a non-moving and overlapping shape while selecting, move all selected
 				// shapes behind the non-moving shape; and start skipping
 				getIndicesBetween(children[i - 1]?.index, children[i].index, state.selectIndex - i).forEach(

@@ -65,7 +65,7 @@ export class SnapManager {
 	@computed getSnappableShapes(): Set<TLShapeId> {
 		const { editor } = this
 		const renderingBounds = editor.getViewportPageBounds()
-		const selectedShapeIds = editor.getSelectedShapeIds()
+		const selectedShapeIds = new Set(editor.getSelectedShapeIds())
 
 		const snappableShapes: Set<TLShapeId> = new Set()
 
@@ -79,7 +79,7 @@ export class SnapManager {
 			const sortedChildIds = editor.getSortedChildIdsForParent(parentId)
 			for (const childId of sortedChildIds) {
 				// Skip any selected ids
-				if (selectedShapeIds.includes(childId)) continue
+				if (selectedShapeIds.has(childId)) continue
 				const childShape = editor.getShape(childId)
 				if (!childShape) continue
 				const util = editor.getShapeUtil(childShape)

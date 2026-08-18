@@ -68,10 +68,7 @@ if (window) {
 	} else {
 		deleteFromSessionStorage(tabIdKey)
 	}
-}
-
-if (typeof window !== 'undefined') {
-	getGlobalWindow().addEventListener('beforeunload', () => {
+	window.addEventListener('beforeunload', () => {
 		setInSessionStorage(tabIdKey, TAB_ID)
 	})
 }

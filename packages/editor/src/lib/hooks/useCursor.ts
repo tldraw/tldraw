@@ -20,8 +20,8 @@ function getCursorCss(
 	const a = (-tr - r) * (PI / 180)
 	const s = Math.sin(a)
 	const c = Math.cos(a)
-	const dx = 1 * c - 1 * s
-	const dy = 1 * s + 1 * c
+	const dx = c - s
+	const dy = s + c
 
 	return (
 		`url("data:image/svg+xml,<svg height='32' width='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg' style='color: ${color};'><defs><filter id='shadow' y='-40%' x='-40%' width='180px' height='180%' color-interpolation-filters='sRGB'><feDropShadow dx='${dx}' dy='${dy}' stdDeviation='1.2' flood-opacity='.5'/></filter></defs><g fill='none' transform='rotate(${

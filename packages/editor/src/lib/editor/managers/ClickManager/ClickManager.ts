@@ -29,19 +29,13 @@ export class ClickManager {
 		this._clickTimeout = this.editor.timers.setTimeout(
 			() => {
 				if (this._clickState === state && this._clickId === id) {
-					switch (this._clickState) {
-						case 'pendingOverflow': {
-							this.editor.dispatch({
-								...this.lastPointerInfo,
-								type: 'click',
-								name: 'double_click',
-								phase: this._isPressingWhilePending ? 'settle-down' : 'settle-up',
-							})
-							break
-						}
-						default: {
-							// noop
-						}
+					if (this._clickState === 'pendingOverflow') {
+						this.editor.dispatch({
+							...this.lastPointerInfo,
+							type: 'click',
+							name: 'double_click',
+							phase: this._isPressingWhilePending ? 'settle-down' : 'settle-up',
+						})
 					}
 
 					this._clickState = 'idle'
@@ -94,7 +88,7 @@ export class ClickManager {
 				switch (this._clickState) {
 					case 'pendingDouble': {
 						this._clickState = 'pendingOverflow'
-						this._clickTimeout = this._getClickTimeout(this._clickState)
+						this._getClickTimeout(this._clickState)
 						return {
 							...info,
 							type: 'click',
@@ -114,7 +108,7 @@ export class ClickManager {
 						// overflow
 					}
 				}
-				this._clickTimeout = this._getClickTimeout(this._clickState)
+				this._getClickTimeout(this._clickState)
 				return info
 			}
 			case 'pointer_up': {
@@ -124,17 +118,12 @@ export class ClickManager {
 
 				this._isPressingWhilePending = false
 
-				switch (this._clickState) {
-					case 'pendingOverflow': {
-						return {
-							...this.lastPointerInfo,
-							type: 'click',
-							name: 'double_click',
-							phase: 'up',
-						}
-					}
-					default: {
-						// idle, pendingDouble, overflow
+				if (this._clickState === 'pendingOverflow') {
+					return {
+						...this.lastPointerInfo,
+						type: 'click',
+						name: 'double_click',
+						phase: 'up',
 					}
 				}
 
@@ -164,7 +153,7 @@ export class ClickManager {
 	 */
 	@bind
 	cancelDoubleClickTimeout() {
-		this._clickTimeout = clearTimeout(this._clickTimeout)
+		clearTimeout(this._clickTimeout)
 		this._clickState = 'idle'
 		// when a double click is cancelled, we are no longer pending any further
 		// clicks, so we set this to false even if the user is still pressing

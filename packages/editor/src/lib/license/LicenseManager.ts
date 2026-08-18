@@ -304,10 +304,6 @@ export class LicenseManager {
 
 	async getLicenseFromKey(licenseKey?: string): Promise<LicenseFromKeyResult> {
 		if (!licenseKey) {
-			if (!this.isDevelopment) {
-				this.outputNoLicenseKeyProvided()
-			}
-
 			return { isLicenseParseable: false, reason: 'no-key-provided' }
 		}
 
@@ -438,42 +434,35 @@ export class LicenseManager {
 	}
 
 	private getExpirationDateWithoutGracePeriod(expiryDate: Date) {
-		// The named expiry date is the last day the license is fully usable, so the license
-		// expires at the end of that day, i.e. the start of the following day. We work in UTC
-		// (the expiry date is minted and parsed as a UTC date-only string) so the cutoff is a
-		// single predictable instant for every user regardless of their local timezone.
-		return new Date(
-			Date.UTC(
-				expiryDate.getUTCFullYear(),
-				expiryDate.getUTCMonth(),
-				expiryDate.getUTCDate() + 1 // Add 1 day so the named date is fully usable
-			)
-		)
+		return this.getExpirationDate(expiryDate, 0)
 	}
 
 	private getExpirationDateWithGracePeriod(expiryDate: Date) {
+		return this.getExpirationDate(expiryDate, GRACE_PERIOD_DAYS)
+	}
+
+	// The named expiry date is the last day the license is fully usable, so the license expires at
+	// the end of that day, i.e. the start of the following day (plus any grace period). We work in
+	// UTC (the expiry date is minted and parsed as a UTC date-only string) so the cutoff is a single
+	// predictable instant for every user regardless of their local timezone.
+	private getExpirationDate(expiryDate: Date, graceDays: number) {
 		return new Date(
 			Date.UTC(
 				expiryDate.getUTCFullYear(),
 				expiryDate.getUTCMonth(),
-				expiryDate.getUTCDate() + GRACE_PERIOD_DAYS + 1 // Add 1 day to include the expiration day
+				expiryDate.getUTCDate() + graceDays + 1
 			)
 		)
 	}
 
 	private isAnnualLicenseExpired(expiryDate: Date) {
-		const expiration = this.getExpirationDateWithGracePeriod(expiryDate)
-		return new Date() >= expiration
+		return new Date() >= this.getExpirationDateWithGracePeriod(expiryDate)
 	}
 
 	private isPerpetualLicenseExpired(expiryDate: Date) {
 		const expiration = this.getExpirationDateWithGracePeriod(expiryDate)
-		const dates = {
-			major: new Date(publishDates.major),
-			minor: new Date(publishDates.minor),
-		}
 		// We allow patch releases, but the major and minor releases should be within the expiration date
-		return dates.major >= expiration || dates.minor >= expiration
+		return new Date(publishDates.major) >= expiration || new Date(publishDates.minor) >= expiration
 	}
 
 	private getDaysSinceExpiry(expiryDate: Date): number {
@@ -486,21 +475,11 @@ export class LicenseManager {
 
 	private isEvaluationLicenseExpired(expiryDate: Date): boolean {
 		// Evaluation licenses have no grace period - they expire immediately
-		const now = new Date()
-		const expiration = this.getExpirationDateWithoutGracePeriod(expiryDate)
-		return now >= expiration
+		return new Date() >= this.getExpirationDateWithoutGracePeriod(expiryDate)
 	}
 
 	private isFlagEnabled(flags: number, flag: number) {
 		return (flags & flag) === flag
-	}
-
-	private outputNoLicenseKeyProvided() {
-		// Noop, we don't need to show this message.
-		// this.outputMessages([
-		// 	'No tldraw license key provided!',
-		// 	`Please reach out to ${LICENSE_EMAIL} if you would like to license tldraw or if you'd like a trial.`,
-		// ])
 	}
 
 	private outputInvalidLicenseKey(msg: string) {
@@ -522,28 +501,14 @@ export class LicenseManager {
 	}
 
 	private outputMessages(messages: string[], type: 'warning' | 'error' = 'error') {
-		if (this.isTest) return
-		if (this.verbose) {
-			this.outputDelimiter(type)
-			for (const message of messages) {
-				const bgColor = type === 'warning' ? 'orange' : 'crimson'
-				// eslint-disable-next-line no-console
-				console.log(
-					`%c${message}`,
-					`color: white; background: ${bgColor}; padding: 2px; border-radius: 3px;`
-				)
-			}
-			this.outputDelimiter(type)
-		}
-	}
-
-	private outputDelimiter(type: 'warning' | 'error' = 'error') {
+		if (this.isTest || !this.verbose) return
 		const bgColor = type === 'warning' ? 'orange' : 'crimson'
-		// eslint-disable-next-line no-console
-		console.log(
-			'%c-------------------------------------------------------------------',
-			`color: white; background: ${bgColor}; padding: 2px; border-radius: 3px;`
-		)
+		const style = `color: white; background: ${bgColor}; padding: 2px; border-radius: 3px;`
+		const delimiter = '-------------------------------------------------------------------'
+		for (const message of [delimiter, ...messages, delimiter]) {
+			// eslint-disable-next-line no-console
+			console.log(`%c${message}`, style)
+		}
 	}
 
 	static className = 'tl-watermark_SEE-LICENSE'
@@ -648,7 +613,7 @@ export function getLicenseState(
 
 	// Check if license is past expiry date but within grace period
 	const daysSinceExpiry = result.daysSinceExpiry
-	if (daysSinceExpiry > 0 && !result.isEvaluationLicense) {
+	if (daysSinceExpiry > 0) {
 		outputMessages([
 			'Your tldraw license has expired.',
 			`License expired ${daysSinceExpiry} days ago.`,
