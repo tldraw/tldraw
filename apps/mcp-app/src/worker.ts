@@ -87,6 +87,16 @@ export class TldrawMCP extends McpAgent<Env> {
 	// making this the single noisiest thing the worker prints. Every call site
 	// uses `this.observability?.emit(...)`, so clearing it disables them all.
 	override observability = undefined
+	// The SDK's default DurableObjectEventStore persists every outgoing message to DO storage
+	// (for Last-Event-ID replay) before writing it to the wire. SQLite-backed DO storage caps a
+	// value at 2MB, and our widget resource is ~2.4MB — the put throws, the rejection is
+	// swallowed, and the response silently never sends (the mcp-app hang of Aug 2026). The
+	// transport optional-chains the store, so disabling it sends messages straight to the
+	// stream. Costs stream resumability, which the MCP spec makes optional and which 0.5.x
+	// never had either. See the large-payload smoke test before re-enabling.
+	override getEventStore() {
+		return undefined
+	}
 	isDev = this.env.MCP_IS_DEV === 'true'
 	logsEnabled = this.isDev
 	activeCheckpointId: string | null = null
