@@ -37,7 +37,6 @@ import { assetUrls } from '../../../utils/assetUrls'
 import { CLIENT_BUILD_TIMESTAMP, MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
-import { isProductionEnv } from '../../../utils/env'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { TldrawApp } from '../../app/TldrawApp'
@@ -368,18 +367,6 @@ function CustomDebugMenu() {
 					onSelect={() => {
 						const url = new URL(window.location.href)
 						url.pathname += '/history'
-						openAndTrack(url.toString())
-					}}
-				/>
-			)}
-			{!isReadOnly && app && !isProductionEnv && (
-				<TldrawUiMenuItem
-					id="user-manual"
-					label="File history (pierre)"
-					readonlyOk
-					onSelect={() => {
-						const url = new URL(window.location.href)
-						url.pathname += '/pierre-history'
 						openAndTrack(url.toString())
 					}}
 				/>
