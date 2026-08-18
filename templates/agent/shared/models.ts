@@ -132,7 +132,7 @@ export const AGENT_MODEL_DEFINITIONS = {
 		id: 'gpt-5.6-luna',
 		provider: 'openai',
 		supportsPrefill: true,
-		supportsTemperature: true,
+		supportsTemperature: false,
 		reasoningEffort: 'none',
 	},
 } as const
