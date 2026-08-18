@@ -49,17 +49,25 @@ describe('agents SDK assumptions behind the getEventStore() override', () => {
 describe('large resource reads through the real transport', () => {
 	const port = 8100 + (process.pid % 500)
 	const base = `http://127.0.0.1:${port}`
-	const widgetPath = join(appDir, 'dist', 'mcp-app.html')
-	let wroteFixture = false
+	const distDir = join(appDir, 'dist')
+	// The worker serves dist/ through its assets binding, and a canvas read needs both
+	// files: the widget itself, and the method map it injects as bootstrap data. In CI
+	// nothing is built, so stand in fixtures — the html sized to reproduce the failing
+	// payload exactly.
+	const fixtures = {
+		'mcp-app.html': '<!doctype html><html><body>' + 'x'.repeat(2_600_000),
+		'method-map.json': JSON.stringify({ select: { args: ['spread-ids'], ret: 'this' } }),
+	}
+	const writtenFixtures: string[] = []
 	let server: ChildProcess | null = null
 
 	beforeAll(async () => {
-		// The worker serves whatever dist/mcp-app.html contains; in CI the widget is
-		// not built, so a >2MB fixture reproduces the failing payload size exactly.
-		if (!existsSync(widgetPath)) {
-			mkdirSync(join(appDir, 'dist'), { recursive: true })
-			writeFileSync(widgetPath, '<!doctype html><html><body>' + 'x'.repeat(2_600_000))
-			wroteFixture = true
+		mkdirSync(distDir, { recursive: true })
+		for (const [name, contents] of Object.entries(fixtures)) {
+			const path = join(distDir, name)
+			if (existsSync(path)) continue
+			writeFileSync(path, contents)
+			writtenFixtures.push(path)
 		}
 
 		// wrangler is hoisted to the repo root; resolve its entry through node instead
@@ -98,8 +106,8 @@ describe('large resource reads through the real transport', () => {
 				server.kill('SIGTERM')
 			}
 		}
-		if (wroteFixture) {
-			rmSync(widgetPath, { force: true })
+		for (const path of writtenFixtures) {
+			rmSync(path, { force: true })
 		}
 	})
 
