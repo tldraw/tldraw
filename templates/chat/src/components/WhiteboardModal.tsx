@@ -39,11 +39,10 @@ interface WhiteboardModalProps {
 }
 
 const options: Partial<TldrawOptions> = {
-	// disable the ability to create new pages:
 	maxPages: 1,
-	// make sure the action shortcuts are always in the top-right menu area, not on the toolbar:
+	// keep the action shortcuts in the top-right menu area, not on the toolbar
 	actionShortcutsLocation: 'menu',
-	// disable font pre-loading to avoid the ui popping in after the modal appears:
+	// skip font pre-loading so the ui doesn't pop in after the modal appears
 	maxFontsToLoadBeforeRender: 0,
 }
 
@@ -60,57 +59,43 @@ export function WhiteboardModal({
 	const handleSave = useCallback(async () => {
 		if (!editor) return
 
-		// if there are no shapes, we don't want to save the image:
 		const shapes = editor.getCurrentPageShapes()
 		if (shapes.length === 0) {
 			onCancel()
 			return
 		}
 
-		// when the user clicks save, we convert the current whiteboard to an image:
-		const image = await editor.toImageDataUrl(shapes, {
-			format: 'png',
-		})
+		const image = await editor.toImageDataUrl(shapes, { format: 'png' })
 
-		// we also take a snapshot of the editor state, so we can still edit
-		// it if we open it up again later:
-		const snapshot = editor.getSnapshot()
-
-		// we pass the image data and the snapshot to the parent component, so it
-		// can add it to the chat input:
+		// the snapshot lets the image be re-opened and edited later
 		onAccept({
 			id: imageId ?? crypto.randomUUID(),
 			name: imageName ?? 'tldraw whiteboard.png',
-			snapshot,
+			snapshot: editor.getSnapshot(),
 			type: 'image/png',
 			...image,
 		})
 	}, [onCancel, onAccept, imageId, imageName, editor])
 
-	// components are used to override parts of the tldraw ui. they shouldn't change often, so it's
-	// important that we memoize them or define them outside the tldraw component.
+	// components must be memoized (or defined outside the component) or tldraw remounts them every render
 	const components = useMemo(
 		(): TLComponents => ({
-			// The "SharePanel" is in the top-right of the editor. Here we want it to show our save
-			// and cancel buttons:
-			SharePanel: () => {
-				return (
-					<TldrawUiRow className="whiteboard-actions">
-						<TldrawUiButton type="normal" onClick={onCancel}>
-							Cancel
-						</TldrawUiButton>
-						<TldrawUiButton type="primary" onClick={handleSave}>
-							{imageId ? 'Save' : 'Add'}
-						</TldrawUiButton>
-					</TldrawUiRow>
-				)
-			},
+			// the share panel is in the top-right of the editor; we use it for our save and cancel buttons
+			SharePanel: () => (
+				<TldrawUiRow className="whiteboard-actions">
+					<TldrawUiButton type="normal" onClick={onCancel}>
+						Cancel
+					</TldrawUiButton>
+					<TldrawUiButton type="primary" onClick={handleSave}>
+						{imageId ? 'Save' : 'Add'}
+					</TldrawUiButton>
+				</TldrawUiRow>
+			),
 		}),
 		[onCancel, handleSave, imageId]
 	)
 
-	// when the user clicks outside the modal, we close it. we add their image to the chat input in
-	// case they wanted it - they can easily delete it if not.
+	// clicking outside the modal saves rather than discards - the image is easy to delete if unwanted
 	const handleOverlayClick = (e: React.MouseEvent) => {
 		if (e.target === e.currentTarget) {
 			handleSave()
@@ -132,9 +117,7 @@ export function WhiteboardModal({
 					editor.zoomToSelection()
 				}}
 			>
-				{/* if the user uploaded a file, we insert it in a special component. this means we
-				can use hooks that depend on tldraw's ui to do things like show a toast if
-				something goes wrong. */}
+				{/* rendered inside Tldraw so it can use the editor and ui hooks (e.g. toasts) */}
 				<InsideOfTldrawContext uploadedFile={uploadedFile} />
 			</Tldraw>
 		</div>
@@ -149,34 +132,25 @@ function InsideOfTldrawContext({ uploadedFile }: { uploadedFile?: File }) {
 	useEffect(() => {
 		if (!uploadedFile) return
 
-		// this effect can run multiple times, but we only want the file to be uploaded once:
+		// this effect can run multiple times, but the file must only be inserted once
 		if ((uploadedFile as any).didUpload) return
 		;(uploadedFile as any).didUpload = true
 		;(async () => {
-			// we check if the file is allowed to be uploaded:
-			const isOk = notifyIfFileNotAllowed(editor, uploadedFile, {
-				toasts,
-				msg,
-			})
-			if (!isOk) return
+			if (!notifyIfFileNotAllowed(editor, uploadedFile, { toasts, msg })) return
 
-			// we get the asset for the uploaded file:
 			const asset = await editor.getAssetForExternalContent({
 				type: 'file',
 				file: uploadedFile,
 			})
 			if (!asset || asset.type !== 'image') return
 
-			// scale so the max dimension is 1000px:
+			// scale down so the max dimension is 1000px
 			const scale = Math.min(1000 / Math.max(asset.props.w, asset.props.h), 1)
 			const center = editor.getViewportPageBounds().center
 			const width = asset.props.w * scale
 			const height = asset.props.h * scale
-
-			// create an ID for the new shape so we can select it later:
 			const shapeId = createShapeId()
 
-			// create the shape, select it, make it fill the screen, and start cropping it:
 			editor
 				.createAssets([asset])
 				.createShape({
