@@ -771,13 +771,20 @@ export class TLFileDurableObject extends DurableObject {
 			serverWebSocket.close(TLSyncErrorCloseEventCode, reason)
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		}
+		// For infra failures (Postgres, rate limiter, etc.): a TLSyncErrorCloseEventCode close is
+		// terminal on the client (error screen, no reconnect), which would strand every connecting
+		// user for the length of a transient blip. Any other code puts the client in 'offline' and
+		// ReconnectManager retries with backoff, matching what the pre-accept 500 → 1006 used to
+		// do. Workers only allow 1000 or 3000-4999 here.
+		const closeSocketRetryable = () => {
+			serverWebSocket.close(1000, 'transient_error')
+			return new Response(null, { status: 101, webSocket: clientWebSocket })
+		}
 
 		// Everything from here through the permission checks below can throw on an infra failure
-		// (Postgres, rate limiter, etc.) now that those failures bubble instead of being swallowed.
-		// An uncaught throw here would 500 with the accepted server socket leaked in the
-		// hibernation set, so catch broadly and close it instead - UNKNOWN_ERROR (rather than
-		// NOT_FOUND) so the client shows its generic "something went wrong, try refreshing" copy
-		// instead of falsely claiming the file doesn't exist.
+		// now that those failures bubble instead of being swallowed. An uncaught throw here would
+		// 500 with the accepted server socket leaked in the hibernation set, so catch broadly and
+		// close it instead.
 		let auth: Awaited<ReturnType<typeof getAuth>>
 		try {
 			if (this.documentInfo.deleted) {
@@ -859,7 +866,7 @@ export class TLFileDurableObject extends DurableObject {
 			}
 		} catch (e) {
 			this.reportError(e)
-			return closeSocket(TLSyncErrorCloseEventReason.UNKNOWN_ERROR)
+			return closeSocketRetryable()
 		}
 
 		try {
@@ -921,7 +928,8 @@ export class TLFileDurableObject extends DurableObject {
 			if (e instanceof RoomNotFoundError) {
 				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 			}
-			throw e
+			this.reportError(e)
+			return closeSocketRetryable()
 		}
 	}
 
