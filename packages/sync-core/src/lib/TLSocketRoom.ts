@@ -988,6 +988,11 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 */
 	close() {
 		this.room.close()
+		// the room forgets its sessions on close and emits no session_removed for them, so drop
+		// our entries (and their socket listeners) here rather than leaving them for the lifetime
+		// of the closed room
+		this.sessions.forEach((session) => session.unlisten())
+		this.sessions.clear()
 		for (const sessionId of this.snapshotTimers.keys()) {
 			this.clearSnapshotTimer(sessionId)
 		}

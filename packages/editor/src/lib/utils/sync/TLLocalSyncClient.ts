@@ -438,6 +438,9 @@ export class TLLocalSyncClient {
 			this.didLastWriteError = true
 			console.error('failed to store changes in indexed db', e)
 
+			// the final flush after close() must not alert or reload: the component is unmounting,
+			// and its user is no longer looking at this document
+			if (this.didDispose) return
 			showCantWriteToIndexDbAlert()
 			if (typeof window !== 'undefined') {
 				// adios
