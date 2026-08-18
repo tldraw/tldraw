@@ -28,15 +28,15 @@ export function removeFrame(editor: Editor, ids: TLShapeId[]) {
 
 	const allChildren: TLShapeId[] = []
 	editor.run(() => {
-		frames.map((frame) => {
+		for (const frame of frames) {
 			const children = editor.getSortedChildIdsForParent(frame.id)
 			if (children.length) {
 				kickoutOccludedShapes(editor, children, {
-					filter: (s) => !frames.find((f) => f.id === s.id),
+					filter: (s) => !frames.some((f) => f.id === s.id),
 				})
 				allChildren.push(...children)
 			}
-		})
+		}
 		editor.setSelectedShapes(allChildren)
 		editor.deleteShapes(ids)
 	})

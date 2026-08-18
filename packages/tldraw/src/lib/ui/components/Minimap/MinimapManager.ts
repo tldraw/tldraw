@@ -140,17 +140,12 @@ export class MinimapManager {
 		const canvasPageBounds = this.getCanvasPageBounds()
 		const canvasScreenBounds = this.getCanvasScreenBounds()
 
-		// first offset the canvas position
-		let x = clientX - canvasScreenBounds.x
-		let y = clientY - canvasScreenBounds.y
-
-		// then multiply by the ratio between the page and screen bounds
-		x *= canvasPageBounds.width / canvasScreenBounds.width
-		y *= canvasPageBounds.height / canvasScreenBounds.height
-
-		// then add the canvas page bounds' offset
-		x += canvasPageBounds.minX
-		y += canvasPageBounds.minY
+		const x =
+			(clientX - canvasScreenBounds.x) * (canvasPageBounds.width / canvasScreenBounds.width) +
+			canvasPageBounds.minX
+		const y =
+			(clientY - canvasScreenBounds.y) * (canvasPageBounds.height / canvasScreenBounds.height) +
+			canvasPageBounds.minY
 
 		return new Vec(x, y, 1)
 	}
@@ -234,7 +229,6 @@ export class MinimapManager {
 		}
 
 		ctx.resetTransform()
-		// Background fill (opaque — matches the WebGL clear color).
 		ctx.fillStyle = this.colors.background
 		ctx.fillRect(0, 0, canvasSize.x, canvasSize.y)
 
@@ -243,8 +237,6 @@ export class MinimapManager {
 		ctx.scale(dpr * zoom, dpr * zoom)
 		ctx.translate(-canvasPageBounds.minX, -canvasPageBounds.minY)
 
-		// Shapes — page-space paths from a computed, so a pan/zoom that only moves
-		// the transform above reuses them instead of rebuilding per shape.
 		const { shapes: shapesPath, selected: selectedPath } = this.getShapePaths()
 
 		ctx.fillStyle = this.colors.shapeFill

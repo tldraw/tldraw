@@ -3,6 +3,7 @@ import {
 	Geometry2d,
 	Mat,
 	OverlayUtil,
+	PI2,
 	SIDES,
 	TLCursorType,
 	TLHandle,
@@ -61,10 +62,7 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 
 		if (editor.isShapeHidden(onlySelectedShape)) return []
 
-		const zoom = editor.getZoomLevel()
-		const isCoarse = editor.getInstanceState().isCoarsePointer
-		const minDist =
-			((isCoarse ? editor.options.coarseHandleRadius : editor.options.handleRadius) / zoom) * 2
+		const minDist = this._getHitRadius() * 2
 
 		const vertexHandles = handles.filter((handle) => handle.type === 'vertex')
 		const vertexHandlesForHitTest: TLHandle[] = []
@@ -107,12 +105,8 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 		const transform = editor.getShapePageTransform(shapeId)
 		if (!transform) return null
 
-		const zoom = editor.getZoomLevel()
-		const isCoarse = editor.getInstanceState().isCoarsePointer
-		const radius =
-			(isCoarse ? editor.options.coarseHandleRadius : editor.options.handleRadius) / zoom
+		const radius = this._getHitRadius()
 
-		// Transform handle position to page space
 		const pagePoint = Mat.applyToPoint(transform, { x: handle.x, y: handle.y })
 
 		return new Circle2d({
@@ -123,8 +117,17 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 		})
 	}
 
+	private _getHitRadius(): number {
+		const editor = this.editor
+		const isCoarse = editor.getInstanceState().isCoarsePointer
+		return (
+			(isCoarse ? editor.options.coarseHandleRadius : editor.options.handleRadius) /
+			editor.getZoomLevel()
+		)
+	}
+
 	override getCursor(_overlay: TLShapeHandleOverlay): TLCursorType | undefined {
-		return 'grab' as TLCursorType
+		return 'grab'
 	}
 
 	override render(ctx: CanvasRenderingContext2D, overlays: TLShapeHandleOverlay[]): void {
@@ -142,8 +145,7 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 		const strokeColor = themeColors.selectionStroke
 		const bgFill = themeColors.selectionFill
 		const hoveredOverlayId = editor.overlays.getHoveredOverlayId()
-		const bgRadius =
-			(isCoarse ? editor.options.coarseHandleRadius : editor.options.handleRadius) / zoom
+		const bgRadius = this._getHitRadius()
 
 		ctx.save()
 		ctx.transform(transform.a, transform.b, transform.c, transform.d, transform.e, transform.f)
@@ -167,7 +169,7 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 			if (isHovered) {
 				ctx.fillStyle = bgFill
 				ctx.beginPath()
-				ctx.arc(handle.x, handle.y, bgRadius, 0, Math.PI * 2)
+				ctx.arc(handle.x, handle.y, bgRadius, 0, PI2)
 				ctx.fill()
 			}
 
@@ -201,7 +203,7 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 
 			ctx.fillStyle = fgColor
 			ctx.beginPath()
-			ctx.arc(handle.x, handle.y, fr, 0, Math.PI * 2)
+			ctx.arc(handle.x, handle.y, fr, 0, PI2)
 			ctx.fill()
 			ctx.stroke()
 		}

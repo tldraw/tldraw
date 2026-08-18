@@ -1,4 +1,5 @@
 import {
+	clamp,
 	Editor,
 	Geometry2d,
 	intersectLineSegmentPolygon,
@@ -10,18 +11,21 @@ import {
 	TLArrowShape,
 	TLShape,
 	TLShapeId,
+	TLTheme,
 	Vec,
 } from '@tldraw/editor'
 import { createComputedCache } from '@tldraw/store'
+import { STROKE_SIZES } from '../shared/default-shape-constants'
 
 const MIN_ARROW_BEND = 8
 // Keep anchors off exact edges/corners to avoid degenerate arrow intersections.
 const NORMALIZED_ANCHOR_EPSILON = 1e-3
 
 function clampNormalizedAnchor(anchor: { x: number; y: number }) {
-	const clamp = (v: number) =>
-		Math.max(NORMALIZED_ANCHOR_EPSILON, Math.min(1 - NORMALIZED_ANCHOR_EPSILON, v))
-	return { x: clamp(anchor.x), y: clamp(anchor.y) }
+	return {
+		x: clamp(anchor.x, NORMALIZED_ANCHOR_EPSILON, 1 - NORMALIZED_ANCHOR_EPSILON),
+		y: clamp(anchor.y, NORMALIZED_ANCHOR_EPSILON, 1 - NORMALIZED_ANCHOR_EPSILON),
+	}
 }
 
 export function getIsArrowStraight(shape: TLArrowShape) {
@@ -43,12 +47,10 @@ export function getBoundShapeInfoForTerminal(
 	arrow: TLArrowShape,
 	terminalName: 'start' | 'end'
 ): BoundShapeInfo | undefined {
-	const binding = editor
-		.getBindingsFromShape(arrow, 'arrow')
-		.find((b) => b.props.terminal === terminalName)
+	const binding = getArrowBindings(editor, arrow)[terminalName]
 	if (!binding) return
 
-	const boundShape = editor.getShape(binding.toId)!
+	const boundShape = editor.getShape(binding.toId)
 	if (!boundShape) return
 	const transform = editor.getShapePageTransform(boundShape)!
 	const hasArrowhead =
@@ -68,6 +70,21 @@ export function getBoundShapeInfoForTerminal(
 		didIntersect: false,
 		geometry,
 	}
+}
+
+/**
+ * Half the arrow's stroke plus half the bound shape's stroke, so an arrowhead offset from the
+ * shape's geometry clears both strokes.
+ */
+export function getBoundShapeStrokeOffset(
+	theme: TLTheme,
+	arrowStrokeWidth: number,
+	info: BoundShapeInfo
+) {
+	return (
+		arrowStrokeWidth / 2 +
+		('size' in info.shape.props ? (theme.strokeWidth * STROKE_SIZES[info.shape.props.size]) / 2 : 0)
+	)
 }
 
 export function getArrowTerminalInArrowSpace(
@@ -282,7 +299,7 @@ export function clampArrowTerminalToMask(
 	// on the mask boundary.
 	const pageAnchor = Mat.applyToPoint(arrowPageTransform, terminalHandle)
 	const direction = Vec.Sub(pageAnchor, pagePoint).uni()
-	const extendedAnchor = Vec.Add(pageAnchor, Vec.Mul(direction, 1))
+	const extendedAnchor = Vec.Add(pageAnchor, direction)
 	const intersections = intersectLineSegmentPolygon(extendedAnchor, pagePoint, mask)
 	if (!intersections || intersections.length === 0) return
 

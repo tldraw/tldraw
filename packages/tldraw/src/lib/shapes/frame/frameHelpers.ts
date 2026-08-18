@@ -9,10 +9,11 @@ import {
 import { TLCreateTextJsxFromSpansOpts } from '../shared/createTextJsxFromSpans'
 
 export function defaultEmptyAs(str: string, dflt: string) {
-	if (str.match(/^\s*$/)) {
-		return dflt
-	}
-	return str
+	return /^\s*$/.test(str) ? dflt : str
+}
+
+export function getFrameTitle(name: string) {
+	return defaultEmptyAs(name, 'Frame') + String.fromCharCode(8203)
 }
 
 export function getFrameHeadingSide(editor: Editor, shape: TLFrameShape): 0 | 1 | 2 | 3 {
@@ -30,15 +31,6 @@ export function getFrameHeadingSide(editor: Editor, shape: TLFrameShape): 0 | 1 
  */
 const measurementWeakmap = new WeakMap()
 
-/**
- * Get the frame heading info (size and text) for a frame shape.
- *
- * @param editor The editor instance.
- * @param shape The frame shape.
- * @param opts The text measurement options.
- *
- * @returns The frame heading's size (as a Box) and JSX text spans.
- */
 export function getFrameHeadingSize(
 	editor: Editor,
 	shape: TLFrameShape,
@@ -51,8 +43,7 @@ export function getFrameHeadingSize(
 
 	let width = measurementWeakmap.get(shape.props)
 	if (!width) {
-		const frameTitle = defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203)
-		const spans = editor.textMeasure.measureTextSpans(frameTitle, opts)
+		const spans = editor.textMeasure.measureTextSpans(getFrameTitle(shape.props.name), opts)
 		const firstSpan = spans[0]
 		const lastSpan = last(spans)
 
@@ -97,25 +88,18 @@ export function getFrameHeadingTranslation(
 ) {
 	const u = isSvg ? '' : 'px'
 	const r = isSvg ? '' : 'deg'
-	let labelTranslate: string
+	const w = toDomPrecision(shape.props.w)
+	const h = toDomPrecision(shape.props.h)
 	switch (side) {
 		case 0: // top
-			labelTranslate = ``
-			break
+			return ``
 		case 3: // right
-			labelTranslate = `translate(${toDomPrecision(shape.props.w)}${u}, 0${u}) rotate(90${r})`
-			break
+			return `translate(${w}${u}, 0${u}) rotate(90${r})`
 		case 2: // bottom
-			labelTranslate = `translate(${toDomPrecision(shape.props.w)}${u}, ${toDomPrecision(
-				shape.props.h
-			)}${u}) rotate(180${r})`
-			break
+			return `translate(${w}${u}, ${h}${u}) rotate(180${r})`
 		case 1: // left
-			labelTranslate = `translate(0${u}, ${toDomPrecision(shape.props.h)}${u}) rotate(270${r})`
-			break
+			return `translate(0${u}, ${h}${u}) rotate(270${r})`
 		default:
 			throw Error('labelSide out of bounds')
 	}
-
-	return labelTranslate
 }

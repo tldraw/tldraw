@@ -28,13 +28,8 @@ export class Pointing extends StateNode {
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		// Create a fixed width shape if the user wants to do that.
-
-		// Don't create a fixed width shape unless the the drag is a little larger,
-		// otherwise you get a vertical column of single characters if you accidentally
-		// drag a bit unintentionally.
-
-		// If the user hasn't been pointing for more than 150ms, don't create a fixed width shape
+		// Don't create a fixed width shape unless the drag is a little larger and longer than 150ms,
+		// otherwise you get a vertical column of single characters if you accidentally drag a bit.
 		if (Date.now() - this.enterTime < 150) return
 
 		const { editor } = this
@@ -53,7 +48,6 @@ export class Pointing extends StateNode {
 				: editor.options.dragDistanceSquared
 		)
 
-		// Ten times the base drag distance for fixed width
 		const minSquaredDragDist = (baseMinDragDistForFixedWidth * 6) / editor.getZoomLevel()
 
 		if (currentDragDist > minSquaredDragDist) {
@@ -150,14 +144,10 @@ export class Pointing extends StateNode {
 
 		const bounds = this.editor.getShapePageBounds(shape)!
 
-		const delta = new Vec()
+		const delta = new Vec(0, -bounds.height / 2)
 
 		if (autoSize) {
 			switch (shape.props.textAlign) {
-				case 'start': {
-					delta.x = 0
-					break
-				}
 				case 'middle': {
 					delta.x = -bounds.width / 2
 					break
@@ -167,11 +157,7 @@ export class Pointing extends StateNode {
 					break
 				}
 			}
-		} else {
-			delta.x = 0
 		}
-
-		delta.y = -bounds.height / 2
 
 		if (isShapeId(shape.parentId)) {
 			const transform = this.editor.getShapeParentTransform(shape)

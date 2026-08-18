@@ -1,6 +1,7 @@
 import { useContainer } from '@tldraw/editor'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { ReactNode } from 'react'
+import { unwrapLabel } from '../../../context/actions'
 import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useDirection, useTranslation } from '../../../hooks/useTranslation/useTranslation'
@@ -35,11 +36,7 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 	const container = useContainer()
 	const msg = useTranslation()
 	const dir = useDirection()
-	const labelToUse = label
-		? typeof label === 'string'
-			? label
-			: (label[menuType] ?? label['default'])
-		: undefined
+	const labelToUse = unwrapLabel(label, menuType)
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 
 	switch (menuType) {

@@ -31,7 +31,7 @@ const SIMPLIFY_WINDOW = 8
 const MIN_ROUNDED_CORNER_STEPS = 8
 const MAX_ROUNDED_CORNER_STEPS = 13
 
-// How many steps to take when rounding a corner
+// How many steps to take when drawing a cap
 const MIN_CAP_STEPS = 8
 const MAX_CAP_STEPS = 29
 

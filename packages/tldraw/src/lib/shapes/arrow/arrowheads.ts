@@ -140,7 +140,6 @@ export function getArrowheadPathForType(
 	if (type === 'none') return
 
 	const points = getArrowPoints(info, side, strokeWidth)
-	if (!points) return
 
 	switch (type) {
 		case 'bar':

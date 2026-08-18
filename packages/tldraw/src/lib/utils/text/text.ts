@@ -20,10 +20,9 @@ function replaceTabsWithSpaces(text: string) {
  * @internal
  */
 function stripCommonMinimumIndentation(text: string): string {
-	// Split the text into individual lines
 	const lines = text.split('\n')
 
-	// remove any leading lines that are only whitespace or newlines
+	// remove any leading lines that are only whitespace
 	while (lines[0] && lines[0].trim().length === 0) {
 		lines.shift()
 	}

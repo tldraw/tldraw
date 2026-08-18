@@ -71,33 +71,20 @@ export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay
 			if (point.y > maxY) maxY = point.y
 		}
 
-		let useNWtoSEdirection = false
-		for (const point of points) {
-			if (point.x === minX && point.y === minY) {
-				useNWtoSEdirection = true
-				break
-			}
-		}
-		let firstX: number, firstY: number, secondX: number, secondY: number
-		if (useNWtoSEdirection) {
-			firstX = minX
-			firstY = minY
-			secondX = maxX
-			secondY = maxY
-		} else {
-			firstX = minX
-			firstY = maxY
-			secondX = maxX
-			secondY = minY
-		}
+		const useNWtoSEdirection = points.some((point) => point.x === minX && point.y === minY)
 
 		ctx.strokeStyle = color
 		ctx.lineWidth = this.options.lineWidth / zoom
 
 		// Main snap line
 		ctx.beginPath()
-		ctx.moveTo(firstX, firstY)
-		ctx.lineTo(secondX, secondY)
+		if (useNWtoSEdirection) {
+			ctx.moveTo(minX, minY)
+			ctx.lineTo(maxX, maxY)
+		} else {
+			ctx.moveTo(minX, maxY)
+			ctx.lineTo(maxX, minY)
+		}
 		ctx.stroke()
 
 		// Batch-draw crosses for all points in a single stroke
@@ -125,30 +112,17 @@ export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay
 		const horizontal = direction === 'horizontal'
 
 		let edgeIntersection: number[] = [-Infinity, +Infinity]
-		let nextEdgeIntersection: number[] | null = null
 
 		for (const gap of gaps) {
-			nextEdgeIntersection = rangeIntersection(
-				edgeIntersection[0],
-				edgeIntersection[1],
-				horizontal ? gap.startEdge[0].y : gap.startEdge[0].x,
-				horizontal ? gap.startEdge[1].y : gap.startEdge[1].x
-			)
-			if (nextEdgeIntersection) {
+			for (const edge of [gap.startEdge, gap.endEdge]) {
+				const nextEdgeIntersection = rangeIntersection(
+					edgeIntersection[0],
+					edgeIntersection[1],
+					horizontal ? edge[0].y : edge[0].x,
+					horizontal ? edge[1].y : edge[1].x
+				)
+				if (!nextEdgeIntersection) break
 				edgeIntersection = nextEdgeIntersection
-			} else {
-				continue
-			}
-			nextEdgeIntersection = rangeIntersection(
-				edgeIntersection[0],
-				edgeIntersection[1],
-				horizontal ? gap.endEdge[0].y : gap.endEdge[0].x,
-				horizontal ? gap.endEdge[1].y : gap.endEdge[1].x
-			)
-			if (nextEdgeIntersection) {
-				edgeIntersection = nextEdgeIntersection
-			} else {
-				continue
 			}
 		}
 

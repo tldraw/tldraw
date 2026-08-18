@@ -333,29 +333,22 @@ function DrawShapeSvg({
 	const options = getFreehandOptions(shape.props, sw, showAsComplete, forceSolid)
 
 	if (!forceSolid && shape.props.dash === 'draw') {
+		const fillPath =
+			shape.props.isClosed && shape.props.fill !== 'none' && allPointsFromSegments.length > 1
+				? getSvgPathFromStrokePoints(getStrokePoints(allPointsFromSegments, options), true)
+				: null
 		return (
 			<>
-				{shape.props.isClosed &&
-					shape.props.fill !== 'none' &&
-					allPointsFromSegments.length > 1 &&
+				{fillPath &&
 					(shape.props.fill === 'pattern' ? (
 						<PatternFill
-							d={getSvgPathFromStrokePoints(
-								getStrokePoints(allPointsFromSegments, options),
-								shape.props.isClosed
-							)}
+							d={fillPath}
 							fillColor={fillColor}
 							patternFillFallbackColor={patternFillFallbackColor}
 							scale={shape.props.scale}
 						/>
 					) : (
-						<path
-							fill={fillColor}
-							d={getSvgPathFromStrokePoints(
-								getStrokePoints(allPointsFromSegments, options),
-								shape.props.isClosed
-							)}
-						/>
+						<path fill={fillColor} d={fillPath} />
 					))}
 				<path d={svgInk(allPointsFromSegments, options)} strokeLinecap="round" fill={strokeColor} />
 			</>

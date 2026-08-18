@@ -14,41 +14,20 @@ export const CLONE_HANDLE_MARGIN = 0
 /** @internal */
 export const NOTE_ADJACENT_POSITION_SNAP_RADIUS = 10
 
-const BASE_NOTE_POSITIONS = (editor: Editor, noteWidth: number, noteHeight: number) =>
-	[
-		[
-			['a1' as IndexKey],
-			new Vec(noteWidth * 0.5, noteHeight * -0.5 - editor.options.adjacentShapeMargin),
-		], // t
-		[
-			['a2' as IndexKey],
-			new Vec(noteWidth * 1.5 + editor.options.adjacentShapeMargin, noteHeight * 0.5),
-		], // r
-		[
-			['a3' as IndexKey],
-			new Vec(noteWidth * 0.5, noteHeight * 1.5 + editor.options.adjacentShapeMargin),
-		], // b
-		[
-			['a4' as IndexKey],
-			new Vec(noteWidth * -0.5 - editor.options.adjacentShapeMargin, noteHeight * 0.5),
-		], // l
-	] as const
-
 function getBaseAdjacentNotePositions(
 	editor: Editor,
 	scale: number,
 	noteWidth: number,
 	noteHeight: number
 ) {
-	if (scale === 1) return BASE_NOTE_POSITIONS(editor, noteWidth, noteHeight)
 	const w = noteWidth * scale
 	const h = noteHeight * scale
 	const m = editor.options.adjacentShapeMargin * scale
 	return [
-		[['a1' as IndexKey], new Vec(w * 0.5, h * -0.5 - m)], // t
-		[['a2' as IndexKey], new Vec(w * 1.5 + m, h * 0.5)], // r
-		[['a3' as IndexKey], new Vec(w * 0.5, h * 1.5 + m)], // b
-		[['a4' as IndexKey], new Vec(w * -0.5 - m, h * 0.5)], // l
+		['a1' as IndexKey, new Vec(w * 0.5, h * -0.5 - m)], // t
+		['a2' as IndexKey, new Vec(w * 1.5 + m, h * 0.5)], // r
+		['a3' as IndexKey, new Vec(w * 0.5, h * 1.5 + m)], // b
+		['a4' as IndexKey, new Vec(w * -0.5 - m, h * 0.5)], // l
 	] as const
 }
 
@@ -73,12 +52,11 @@ export function getNoteAdjacentPositions(
 ): Record<IndexKey, Vec> {
 	const { pagePoint, pageRotation, growY, extraHeight, scale, noteWidth, noteHeight } = opts
 	return Object.fromEntries(
-		getBaseAdjacentNotePositions(editor, scale, noteWidth, noteHeight).map(([id, v], i) => {
-			const point = v.clone()
-			if (i === 0 && extraHeight) {
+		getBaseAdjacentNotePositions(editor, scale, noteWidth, noteHeight).map(([id, point], i) => {
+			if (i === 0) {
 				// apply top margin (the growY of the moving note shape)
 				point.y -= extraHeight
-			} else if (i === 2 && growY) {
+			} else if (i === 2) {
 				// apply bottom margin (the growY of this note shape)
 				point.y += growY
 			}

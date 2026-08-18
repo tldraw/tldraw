@@ -1,25 +1,15 @@
-import { Editor, TLShape, TLShapeId, throttle } from '@tldraw/editor'
+import { Editor, TLShapeId, throttle } from '@tldraw/editor'
 
 /*
-Perf optimization: Skip hover updates while panning.
-
-Hit-testing shapes is expensive in large documents. When panning, we don't need
-continuous hover updates - we just need to resume when the camera stops.
-
-The logic:
+Hit-testing is expensive in large documents, so hover updates pause while the
+camera moves:
 1. Camera idle → update hover normally, unlock
 2. Camera moving + locked → skip entirely (no hit-testing)
 3. Camera moving + no current hover → lock immediately
-4. Camera moving + same shape → keep current hover (no change needed)
+4. Camera moving + same shape → keep current hover
 5. Camera moving + different shape → clear hover and lock
-
-This means: when you start panning over a shape, it stays hovered until
-your cursor moves off it, then hover clears and we stop hit-testing until
-the camera stops.
 */
-
-// Track per-editor state for hover updates during camera movement
-const hoverLockedEditors = new WeakMap<Editor, boolean>()
+const hoverLockedEditors = new WeakSet<Editor>()
 
 function getShapeToHover(editor: Editor): TLShapeId | null {
 	const hitShape = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint(), {
@@ -32,56 +22,38 @@ function getShapeToHover(editor: Editor): TLShapeId | null {
 
 	if (!hitShape) return null
 
-	let shapeToHover: TLShape | undefined = undefined
-
 	const outermostShape = editor.getOutermostSelectableShape(hitShape)
-
-	if (outermostShape === hitShape) {
-		shapeToHover = hitShape
-	} else {
-		if (
-			outermostShape.id === editor.getFocusedGroupId() ||
-			editor.getSelectedShapeIds().includes(outermostShape.id)
-		) {
-			shapeToHover = hitShape
-		} else {
-			shapeToHover = outermostShape
-		}
+	if (
+		outermostShape === hitShape ||
+		outermostShape.id === editor.getFocusedGroupId() ||
+		editor.getSelectedShapeIds().includes(outermostShape.id)
+	) {
+		return hitShape.id
 	}
-
-	return shapeToHover.id
+	return outermostShape.id
 }
 
 function _updateHoveredShapeId(editor: Editor) {
 	if (editor.isDisposed) return
 
-	const cameraMoving = editor.getCameraState() === 'moving'
-
-	if (!cameraMoving) {
-		hoverLockedEditors.set(editor, false)
-		const nextHoveredId = getShapeToHover(editor)
-		return editor.setHoveredShape(nextHoveredId)
+	if (editor.getCameraState() !== 'moving') {
+		hoverLockedEditors.delete(editor)
+		editor.setHoveredShape(getShapeToHover(editor))
+		return
 	}
 
-	if (hoverLockedEditors.get(editor)) {
-		return undefined
-	}
+	if (hoverLockedEditors.has(editor)) return
 
 	const currentHoveredId = editor.getHoveredShapeId()
-
 	if (!currentHoveredId) {
-		hoverLockedEditors.set(editor, true)
-		return undefined
+		hoverLockedEditors.add(editor)
+		return
 	}
 
-	const nextHoveredId = getShapeToHover(editor)
-	if (nextHoveredId === currentHoveredId) {
-		return undefined
-	}
+	if (getShapeToHover(editor) === currentHoveredId) return
 
 	editor.setHoveredShape(null)
-	hoverLockedEditors.set(editor, true)
-	return undefined
+	hoverLockedEditors.add(editor)
 }
 
 const THROTTLE_MS = process.env.NODE_ENV === 'test' ? 0 : 32

@@ -10,8 +10,6 @@ export class Pointing extends StateNode {
 
 		const erasing = new Set<TLShapeId>()
 
-		const initialSize = erasing.size
-
 		for (let n = currentPageShapesSorted.length, i = n - 1; i >= 0; i--) {
 			const shape = currentPageShapesSorted[i]
 			if (this.editor.isShapeOrAncestorLocked(shape) || this.editor.isShapeOfType(shape, 'group')) {
@@ -25,8 +23,7 @@ export class Pointing extends StateNode {
 				})
 			) {
 				const hitShape = this.editor.getOutermostSelectableShape(shape)
-				// If we've hit a frame-like shape after hitting any other shape, stop here
-				if (this.editor.isShapeFrameLike(hitShape) && erasing.size > initialSize) {
+				if (this.editor.isShapeFrameLike(hitShape) && erasing.size > 0) {
 					break
 				}
 

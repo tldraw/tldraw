@@ -7,8 +7,6 @@ import { useDirection } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
 import { TldrawUiIcon } from './TldrawUiIcon'
 
-/* --------------------- Root --------------------- */
-
 /** @public */
 export interface TLUiSelectProps {
 	id: string
@@ -76,8 +74,6 @@ export function TldrawUiSelect({
 	)
 }
 
-/* --------------------- Trigger --------------------- */
-
 /** @public */
 export interface TLUiSelectTriggerProps {
 	children: React.ReactNode
@@ -106,8 +102,6 @@ export const TldrawUiSelectTrigger = React.forwardRef<HTMLButtonElement, TLUiSel
 	}
 )
 
-/* --------------------- Value --------------------- */
-
 /** @public */
 export interface TLUiSelectValueProps {
 	placeholder?: string
@@ -131,8 +125,6 @@ export function TldrawUiSelectValue({ placeholder, icon, children }: TLUiSelectV
 		</_Select.Value>
 	)
 }
-
-/* --------------------- Content --------------------- */
 
 /** @public */
 export interface TLUiSelectContentProps {
@@ -171,8 +163,6 @@ export function TldrawUiSelectContent({
 		</_Select.Portal>
 	)
 }
-
-/* --------------------- Item --------------------- */
 
 /** @public */
 export interface TLUiSelectItemProps {

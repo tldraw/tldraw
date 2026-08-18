@@ -106,13 +106,14 @@ export class Pointing extends StateNode {
 				},
 			])
 
-			if (!this.editor.getShape(id)) {
+			const shape = this.editor.getShape<TLLineShape>(id)
+			if (!shape) {
 				this.cancel()
 				return
 			}
 
 			this.editor.select(id)
-			this.shape = this.editor.getShape(id)!
+			this.shape = shape
 		}
 	}
 

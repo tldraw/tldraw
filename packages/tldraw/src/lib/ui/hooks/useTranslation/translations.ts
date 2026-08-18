@@ -8,8 +8,6 @@ import { TLUiTranslationKey } from './TLUiTranslationKey'
 // a missing message for the current language, it will use the english
 // translation instead.
 
-/* ----------------- (do not change) ---------------- */
-
 /** @public */
 export const RTL_LANGUAGES = new Set(['ar', 'fa', 'he', 'ur', 'ku'])
 
@@ -59,13 +57,9 @@ export async function fetchTranslation(
 		return EN_TRANSLATION
 	}
 
-	const missing: string[] = []
-
-	for (const key in EN_TRANSLATION.messages) {
-		if (!messages[key as TLUiTranslationKey]) {
-			missing.push(key)
-		}
-	}
+	const missing = Object.keys(EN_TRANSLATION.messages).filter(
+		(key) => !messages[key as TLUiTranslationKey]
+	)
 
 	if (missing.length > 0 && process.env.NODE_ENV === 'development') {
 		console.warn(`Language ${locale}: missing messages for keys:\n${missing.join('\n')}`)

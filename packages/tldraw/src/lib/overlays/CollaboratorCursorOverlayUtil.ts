@@ -143,67 +143,31 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 			ctx.translate(x, y)
 			ctx.scale(scale, scale)
 
-			// Draw cursor arrow
 			paths ??= getCursorPaths()
 
-			// Shadow
 			ctx.fillStyle = 'rgba(0,0,0,0.2)'
 			ctx.fill(paths.shadowHead)
 			ctx.fill(paths.shadowTail)
 
-			// White outline
 			ctx.fillStyle = '#ffffff'
 			ctx.fill(paths.whiteHead)
 			ctx.fill(paths.whiteTail)
 
-			// Colored fill
 			ctx.fillStyle = color
 			ctx.fill(paths.fillHead)
 			ctx.fill(paths.fillTail)
 
-			// Draw name tag / chat
 			if (chatMessage) {
 				if (name) {
 					this._drawNameTitle(ctx, name, color, labelFontFamily)
 				}
-				this._drawChatBubble(ctx, chatMessage, color, labelFontFamily)
+				this._drawLabelBubble(ctx, chatMessage, color, labelFontFamily, this.options.chatMaxWidth)
 			} else if (name) {
-				this._drawNameTag(ctx, name, color, labelFontFamily)
+				this._drawLabelBubble(ctx, name, color, labelFontFamily, this.options.nameMaxWidth)
 			}
 
 			ctx.restore()
 		}
-	}
-
-	/** Name tag (no chat) - colored background with white text */
-	private _drawNameTag(
-		ctx: CanvasRenderingContext2D,
-		name: string,
-		color: string,
-		fontFamily: string
-	) {
-		const { fontSize, nameMaxWidth } = this.options
-		ctx.font = `${fontSize}px ${fontFamily}`
-		const text = this._truncateText(ctx, name, nameMaxWidth)
-		const metrics = ctx.measureText(text)
-		const textWidth = Math.min(metrics.width, nameMaxWidth)
-		const px = 6
-		const py = 3
-		const x = 13
-		const y = 16
-		const h = fontSize + py * 2
-		const w = textWidth + px * 2
-
-		// Background
-		ctx.fillStyle = color
-		ctx.beginPath()
-		ctx.roundRect(x, y, w, h, 4)
-		ctx.fill()
-
-		// Text
-		ctx.fillStyle = '#ffffff'
-		ctx.textBaseline = 'top'
-		ctx.fillText(text, x + px, y + py)
 	}
 
 	/** Name title (when chat is present) - text with shadow, no background */
@@ -226,23 +190,22 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 		ctx.textBaseline = 'top'
 		ctx.strokeText(text, x, y)
 
-		// Text fill
 		ctx.fillStyle = color
 		ctx.fillText(text, x, y)
 	}
 
-	/** Chat bubble - colored background with white text */
-	private _drawChatBubble(
+	/** Name tag (no chat) and chat bubble - colored background with white text */
+	private _drawLabelBubble(
 		ctx: CanvasRenderingContext2D,
-		chatMessage: string,
+		label: string,
 		color: string,
-		fontFamily: string
+		fontFamily: string,
+		maxWidth: number
 	) {
-		const { fontSize, chatMaxWidth } = this.options
+		const { fontSize } = this.options
 		ctx.font = `${fontSize}px ${fontFamily}`
-		const text = this._truncateText(ctx, chatMessage, chatMaxWidth)
-		const metrics = ctx.measureText(text)
-		const textWidth = Math.min(metrics.width, chatMaxWidth)
+		const text = this._truncateText(ctx, label, maxWidth)
+		const textWidth = Math.min(ctx.measureText(text).width, maxWidth)
 		const px = 6
 		const py = 3
 		const x = 13
@@ -250,13 +213,11 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 		const h = fontSize + py * 2
 		const w = textWidth + px * 2
 
-		// Background
 		ctx.fillStyle = color
 		ctx.beginPath()
 		ctx.roundRect(x, y, w, h, 4)
 		ctx.fill()
 
-		// Text
 		ctx.fillStyle = '#ffffff'
 		ctx.textBaseline = 'top'
 		ctx.fillText(text, x + px, y + py)

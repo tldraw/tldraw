@@ -10,7 +10,6 @@ import {
 	TLEditStartInfo,
 	TLFrameShape,
 	TLFrameShapeProps,
-	TLShapePartial,
 	TLShapeUtilConstructor,
 	clamp,
 	compact,
@@ -30,11 +29,11 @@ import {
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { FrameHeading } from './components/FrameHeading'
 import {
-	defaultEmptyAs,
 	getFrameHeadingOpts,
 	getFrameHeadingSide,
 	getFrameHeadingSize,
 	getFrameHeadingTranslation,
+	getFrameTitle,
 } from './frameHelpers'
 
 // Some of these values are repeated in CSS and need to match
@@ -156,12 +155,11 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
 		const opts = getFrameHeadingOpts(rotatedTopEdgeWidth, false)
 		const headingSize = getFrameHeadingSize(editor, shape, opts)
 
-		// If NOT showing frame colors, we need to offset the label
-		// to the left so that the title is in line with the shape edge
-		// and add that extra width to the right side of the label
+		// If NOT showing frame colors, we offset the label to the left so that the title is in line
+		// with the shape edge and add that extra width to the right side of the label
 		const isShowingFrameColors = this.options.showColors
 
-		// Scale everything into **screen space**
+		// Scale everything into screen space
 		const extraWidth = FRAME_HEADING_EXTRA_WIDTH / z
 		const minWidth = FRAME_HEADING_MIN_WIDTH / z
 		const maxWidth = rotatedTopEdgeWidth + (isShowingFrameColors ? 1 : extraWidth)
@@ -178,11 +176,7 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
 		const width = isVertical ? labelHeight : clampedLabelWidth
 		const height = isVertical ? clampedLabelWidth : labelHeight
 
-		// Calculate label position based on side. The position needs to always appear
-		// at the top left of the shape, regardless of rotation. The label must be
-		// between a minimum and maximum. The minimum is arbitrary; the maximum is the
-		// width of the edge of the frame where the label will be shown.
-
+		// The label always appears at the top left of the shape, regardless of rotation.
 		let x: number, y: number
 
 		switch (labelSide) {
@@ -281,8 +275,8 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
 						color={showFrameColors ? dv.showColorsHeadingTextColor : dv.headingTextColor}
 						width={shape.props.w}
 						height={shape.props.h}
-						offsetX={showFrameColors ? -1 : -7}
-						showColors={this.options.showColors}
+						offsetX={showFrameColors ? -1 : FRAME_HEADING_NOCOLORS_OFFSET_X}
+						showColors={showFrameColors}
 					/>
 				)}
 			</>
@@ -292,7 +286,6 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
 	override toSvg(shape: TLFrameShape, ctx: SvgExportContext) {
 		const dv = getDisplayValues(this, shape, ctx.colorMode)
 
-		// rotate right 45 deg
 		const labelSide = getFrameHeadingSide(this.editor, shape)
 		const isVertical = labelSide % 2 === 1
 		const rotatedTopEdgeWidth = isVertical ? shape.props.h : shape.props.w
@@ -301,9 +294,8 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
 		// Truncate with ellipsis
 		const opts: TLCreateTextJsxFromSpansOpts = getFrameHeadingOpts(rotatedTopEdgeWidth - 12, true)
 
-		const frameTitle = defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203)
 		const labelBounds = getFrameHeadingSize(this.editor, shape, opts)
-		const spans = this.editor.textMeasure.measureTextSpans(frameTitle, opts)
+		const spans = this.editor.textMeasure.measureTextSpans(getFrameTitle(shape.props.name), opts)
 		const text = createTextJsxFromSpans(this.editor, spans, opts)
 
 		const showFrameColors = this.options.showColors
@@ -370,25 +362,21 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
 		const isHorizontalEdge = handle === 'left' || handle === 'right'
 		const isVerticalEdge = handle === 'top' || handle === 'bottom'
 
-		const childIds = this.editor.getSortedChildIdsForParent(shape.id)
-		const children = compact(childIds.map((id) => this.editor.getShape(id)))
+		const children = compact(
+			this.editor.getSortedChildIdsForParent(shape.id).map((id) => this.editor.getShape(id))
+		)
 		if (!children.length) return
 
 		const { dx, dy, w, h } = getFrameChildrenBounds(children, this.editor, { padding: 10 })
 
-		this.editor.run(() => {
-			const changes: TLShapePartial[] = childIds.map((childId) => {
-				const childShape = this.editor.getShape(childId)!
-				return {
-					id: childShape.id,
-					type: childShape.type,
-					x: isHorizontalEdge ? childShape.x + dx : childShape.x,
-					y: isVerticalEdge ? childShape.y + dy : childShape.y,
-				}
-			})
-
-			this.editor.updateShapes(changes)
-		})
+		this.editor.updateShapes(
+			children.map((childShape) => ({
+				id: childShape.id,
+				type: childShape.type,
+				x: isHorizontalEdge ? childShape.x + dx : childShape.x,
+				y: isVerticalEdge ? childShape.y + dy : childShape.y,
+			}))
+		)
 
 		return {
 			id: shape.id,

@@ -3,6 +3,22 @@ import { safeParseUrl } from '@tldraw/editor'
 // Only allow multiplayer embeds. If we add additional routes later for example '/help' this won't match
 const TLDRAW_APP_RE = /(^\/[f|p|r|ro|s|v]\/[^/]+\/?$)/
 
+function clearSearchParams(urlObj: URL) {
+	for (const key of Array.from(urlObj.searchParams.keys())) {
+		urlObj.searchParams.delete(key)
+	}
+}
+
+function youtubeEmbedSearch(searchParams: URLSearchParams) {
+	const timeStart = searchParams.get('t')
+	if (timeStart) {
+		searchParams.set('start', timeStart)
+		searchParams.delete('t')
+	}
+	const search = searchParams.toString()
+	return search ? '?' + search : ''
+}
+
 /** @public */
 export const DEFAULT_EMBED_DEFINITIONS = [
 	{
@@ -20,7 +36,6 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(TLDRAW_APP_RE)) {
-				// Add the "clean=true" search param to the URL to hide the sidebar
 				urlObj.searchParams.append('embed', 'true')
 				return url
 			}
@@ -29,7 +44,6 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		fromEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(TLDRAW_APP_RE)) {
-				// Add the "clean=true" search param to the URL to hide the sidebar
 				urlObj.searchParams.delete('embed')
 				return url
 			}
@@ -175,7 +189,6 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		},
 		fromEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
-			// e.g. extract "steveruizok/mathFact" from https://www.val.town/v/steveruizok/mathFact
 			const matches = urlObj && urlObj.pathname.match(/\/embed\/(.+)\/?/)
 			if (matches) {
 				return `https://www.val.town/v/${matches[1]}`
@@ -291,13 +304,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			if (hostname === 'youtu.be') {
 				const videoId = urlObj.pathname.split('/').filter(Boolean)[0]
 				const searchParams = new URLSearchParams(urlObj.search)
-				const timeStart = searchParams.get('t')
-				if (timeStart) {
-					searchParams.set('start', timeStart)
-					searchParams.delete('t')
-				}
-				const search = searchParams.toString() ? '?' + searchParams.toString() : ''
-				return `https://www.youtube.com/embed/${videoId}${search}`
+				return `https://www.youtube.com/embed/${videoId}${youtubeEmbedSearch(searchParams)}`
 			} else if (
 				(hostname === 'youtube.com' || hostname === 'm.youtube.com') &&
 				urlObj.pathname.match(/^\/watch/)
@@ -305,13 +312,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 				const videoId = urlObj.searchParams.get('v')
 				const searchParams = new URLSearchParams(urlObj.search)
 				searchParams.delete('v')
-				const timeStart = searchParams.get('t')
-				if (timeStart) {
-					searchParams.set('start', timeStart)
-					searchParams.delete('t')
-				}
-				const search = searchParams.toString() ? '?' + searchParams.toString() : ''
-				return `https://www.youtube.com/embed/${videoId}${search}`
+				return `https://www.youtube.com/embed/${videoId}${youtubeEmbedSearch(searchParams)}`
 			}
 			return
 		},
@@ -357,10 +358,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 			if (urlObj?.pathname.match(/\/calendar\/u\/0/) && cidQs) {
 				urlObj.pathname = '/calendar/embed'
 
-				const keys = Array.from(urlObj.searchParams.keys())
-				for (const key of keys) {
-					urlObj.searchParams.delete(key)
-				}
+				clearSearchParams(urlObj)
 				urlObj.searchParams.set('src', cidQs)
 				return urlObj.href
 			}
@@ -372,10 +370,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 
 			if (urlObj?.pathname.match(/\/calendar\/embed/) && srcQs) {
 				urlObj.pathname = '/calendar/u/0'
-				const keys = Array.from(urlObj.searchParams.keys())
-				for (const key of keys) {
-					urlObj.searchParams.delete(key)
-				}
+				clearSearchParams(urlObj)
 				urlObj.searchParams.set('cid', srcQs)
 				return urlObj.href
 			}
@@ -400,10 +395,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 
 			if (urlObj?.pathname.match(/^\/presentation/) && urlObj?.pathname.match(/\/pub\/?$/)) {
 				urlObj.pathname = urlObj.pathname.replace(/\/pub$/, '/embed')
-				const keys = Array.from(urlObj.searchParams.keys())
-				for (const key of keys) {
-					urlObj.searchParams.delete(key)
-				}
+				clearSearchParams(urlObj)
 				return urlObj.href
 			}
 			return
@@ -413,10 +405,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 
 			if (urlObj?.pathname.match(/^\/presentation/) && urlObj?.pathname.match(/\/embed\/?$/)) {
 				urlObj.pathname = urlObj.pathname.replace(/\/embed$/, '/pub')
-				const keys = Array.from(urlObj.searchParams.keys())
-				for (const key of keys) {
-					urlObj.searchParams.delete(key)
-				}
+				clearSearchParams(urlObj)
 				return urlObj.href
 			}
 			return
@@ -643,9 +632,6 @@ export const DEFAULT_EMBED_DEFINITIONS = [
  * @public
  */
 export const embedShapePermissionDefaults = {
-	// ========================================================================================
-	// Disabled permissions
-	// ========================================================================================
 	// [MDN] Experimental: Allows for downloads to occur without a gesture from the user.
 	// [REASON] Disabled because otherwise the <iframe/> can trick the user on behalf of us to perform an action.
 	'allow-downloads-without-user-activation': false,
@@ -679,9 +665,6 @@ export const embedShapePermissionDefaults = {
 	// [MDN] Lets the resource navigate the top-level browsing context, but only if initiated by a user gesture.
 	// [REASON] Prevents embed from navigating away from tldraw and pretending to be us.
 	'allow-top-navigation-by-user-activation': false,
-	// ========================================================================================
-	// Enabled permissions
-	// ========================================================================================
 	// [MDN] Lets the resource run scripts (but not create popup windows).
 	'allow-scripts': true,
 	// [MDN] If this token is not used, the resource is treated as being from a special origin that always fails the same-origin policy (potentially preventing access to data storage/cookies and some JavaScript APIs).

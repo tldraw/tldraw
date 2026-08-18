@@ -149,11 +149,10 @@ export interface TLUiOverridesWithoutDefaults {
 	translations?: TLUiTranslationProviderProps['overrides']
 }
 
-export function mergeOverrides(
-	overrides: TLUiOverrides[],
-	defaultHelpers: TLUiOverrideHelpers
-): TLUiOverridesWithoutDefaults {
-	const mergedTranslations: TLUiTranslationProviderProps['overrides'] = {}
+function mergeTranslationOverrides(
+	overrides: TLUiOverrides[]
+): NonNullable<TLUiTranslationProviderProps['overrides']> {
+	const mergedTranslations: NonNullable<TLUiTranslationProviderProps['overrides']> = {}
 	for (const override of overrides) {
 		if (override.translations) {
 			for (const [key, value] of objectMapEntries(override.translations)) {
@@ -165,6 +164,17 @@ export function mergeOverrides(
 			}
 		}
 	}
+	return mergedTranslations
+}
+
+function toOverridesArray(overrides?: TLUiOverrides[] | TLUiOverrides): TLUiOverrides[] {
+	return overrides == null ? [] : Array.isArray(overrides) ? overrides : [overrides]
+}
+
+export function mergeOverrides(
+	overrides: TLUiOverrides[],
+	defaultHelpers: TLUiOverrideHelpers
+): TLUiOverridesWithoutDefaults {
 	return {
 		actions: (editor, schema, helpers) => {
 			for (const override of overrides) {
@@ -182,46 +192,23 @@ export function mergeOverrides(
 			}
 			return schema
 		},
-		translations: mergedTranslations,
+		translations: mergeTranslationOverrides(overrides),
 	}
-}
-
-function useShallowArrayEquality<T extends unknown[]>(array: T): T {
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	return useMemo(() => array, array)
 }
 
 /** @internal */
 export function useMergedTranslationOverrides(
 	overrides?: TLUiOverrides[] | TLUiOverrides
 ): NonNullable<TLUiTranslationProviderProps['overrides']> {
-	const overridesArray = useShallowArrayEquality(
-		overrides == null ? [] : Array.isArray(overrides) ? overrides : [overrides]
-	)
-	return useMemo(() => {
-		const mergedTranslations: TLUiTranslationProviderProps['overrides'] = {}
-		for (const override of overridesArray) {
-			if (override.translations) {
-				for (const [key, value] of objectMapEntries(override.translations)) {
-					let strings = mergedTranslations[key]
-					if (!strings) {
-						strings = mergedTranslations[key] = {}
-					}
-					Object.assign(strings, value)
-				}
-			}
-		}
-		return mergedTranslations
-	}, [overridesArray])
+	const overridesArray = useShallowArrayIdentity(toOverridesArray(overrides))
+	return useMemo(() => mergeTranslationOverrides(overridesArray), [overridesArray])
 }
 
 export function useMergedOverrides(
 	overrides?: TLUiOverrides[] | TLUiOverrides
 ): TLUiOverridesWithoutDefaults {
 	const defaultHelpers = useDefaultHelpers()
-	const overridesArray = useShallowArrayEquality(
-		overrides == null ? [] : Array.isArray(overrides) ? overrides : [overrides]
-	)
+	const overridesArray = useShallowArrayIdentity(toOverridesArray(overrides))
 	return useMemo(
 		() => mergeOverrides(overridesArray, defaultHelpers),
 		[overridesArray, defaultHelpers]

@@ -1,4 +1,4 @@
-import { StateNode, TLPointerEventInfo, Vec, clamp, last } from '@tldraw/editor'
+import { StateNode, Vec, clamp, last } from '@tldraw/editor'
 
 export class OneFingerZooming extends StateNode {
 	static override id = 'one_finger_zooming'
@@ -8,7 +8,7 @@ export class OneFingerZooming extends StateNode {
 	private initialZoom = 1
 	private originScreenY = 0
 
-	override onEnter(_info: TLPointerEventInfo) {
+	override onEnter() {
 		const camera = this.editor.getCamera()
 		this.initialCamera = Vec.From(camera)
 		this.initialZoom = camera.z
@@ -17,15 +17,14 @@ export class OneFingerZooming extends StateNode {
 		this.editor.setCursor({ type: 'grab', rotation: 0 })
 	}
 
-	override onPointerMove(_info: TLPointerEventInfo) {
+	override onPointerMove() {
 		this.editor.menus.clearOpenMenus()
 
 		const currentScreenY = this.editor.inputs.getCurrentScreenPoint().y
 
-		// Dragging up = zoom out, dragging down = zoom in (same as google maps default)
-		// we won't respect the user's zoom direction preference because it only applies
-		// to mouse input
-		const dy = (this.originScreenY - currentScreenY) * -1
+		// Dragging down zooms in, up zooms out (google maps default). The user's zoom
+		// direction preference is ignored because it only applies to mouse input.
+		const dy = currentScreenY - this.originScreenY
 
 		// ~200px of drag ≈ 2x zoom change.
 		const zoomFactor = Math.pow(2, dy / 200)
@@ -43,7 +42,7 @@ export class OneFingerZooming extends StateNode {
 		)
 	}
 
-	override onPointerUp(_info: TLPointerEventInfo) {
+	override onPointerUp() {
 		this.complete()
 	}
 

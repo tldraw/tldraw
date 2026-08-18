@@ -25,8 +25,7 @@ export const CursorChatBubble = track(function CursorChatBubble() {
 	const [value, setValue] = useState('')
 
 	useEffect(() => {
-		const closingUp = !isChatting && chatMessage
-		if (closingUp || isChatting) {
+		if (isChatting || chatMessage) {
 			const duration = isChatting ? CHAT_MESSAGE_TIMEOUT_CHATTING : CHAT_MESSAGE_TIMEOUT_CLOSING
 			rTimeout.current = editor.timers.setTimeout(() => {
 				editor.updateInstanceState({ chatMessage: '', isChatting: false })
@@ -54,9 +53,8 @@ function usePositionBubble(ref: RefObject<HTMLInputElement | null>) {
 		if (!elm) return
 
 		const { x, y } = editor.inputs.getCurrentScreenPoint()
-		ref.current?.style.setProperty('transform', `translate(${x}px, ${y}px)`)
+		elm.style.setProperty('transform', `translate(${x}px, ${y}px)`)
 
-		// Positioning the chat bubble
 		function positionChatBubble(e: PointerEvent) {
 			const { minX, minY } = editor.getViewportScreenBounds()
 			ref.current?.style.setProperty(
@@ -126,7 +124,6 @@ const CursorChatInput = track(function CursorChatInput({
 	}, [editor, value, placeholder])
 
 	useLayoutEffect(() => {
-		// Focus the input
 		const raf = editor.timers.requestAnimationFrame(() => {
 			ref.current?.focus()
 		})
@@ -141,7 +138,6 @@ const CursorChatInput = track(function CursorChatInput({
 		editor.focus()
 	}, [editor])
 
-	// Update the chat message as the user types
 	const handleChange = useCallback(
 		(e: ChangeEvent<HTMLInputElement>) => {
 			const { value } = e.target
@@ -151,7 +147,6 @@ const CursorChatInput = track(function CursorChatInput({
 		[editor, setValue]
 	)
 
-	// Handle some keyboard shortcuts
 	const handleKeyDown = useCallback(
 		(e: KeyboardEvent) => {
 			const elm = ref.current
@@ -193,7 +188,7 @@ const CursorChatInput = track(function CursorChatInput({
 	return (
 		<input
 			ref={ref}
-			className={`tl-cursor-chat`}
+			className="tl-cursor-chat"
 			style={{ backgroundColor: editor.user.getColor() }}
 			onBlur={stopChatting}
 			onChange={handleChange}

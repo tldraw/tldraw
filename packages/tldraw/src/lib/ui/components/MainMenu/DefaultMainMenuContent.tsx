@@ -153,8 +153,6 @@ export function ExtrasGroup() {
 	)
 }
 
-/* ------------------- Preferences ------------------ */
-
 /** @public @react */
 export function PreferencesGroup() {
 	return (

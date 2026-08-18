@@ -14,22 +14,21 @@ import { CursorTypeMap } from './PointingResizeHandle'
 
 const ONE_DEGREE = Math.PI / 180
 
+type RotatingInfo = Extract<TLPointerEventInfo, { target: 'selection' }> & {
+	onInteractionEnd?: string | (() => void)
+}
+
 export class Rotating extends StateNode {
 	static override id = 'rotating'
 	static override trackPerformance = true
 
 	snapshot = {} as TLRotationSnapshot
 
-	info = {} as Extract<TLPointerEventInfo, { target: 'selection' }> & {
-		onInteractionEnd?: string | (() => void)
-	}
+	info = {} as RotatingInfo
 
 	markId = ''
 
-	override onEnter(
-		info: TLPointerEventInfo & { target: 'selection'; onInteractionEnd?: string | (() => void) }
-	) {
-		// Store the event information
+	override onEnter(info: RotatingInfo) {
 		this.info = info
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
@@ -47,23 +46,7 @@ export class Rotating extends StateNode {
 		}
 		this.snapshot = snapshot
 
-		// Trigger a pointer move
-		const newSelectionRotation = this._getRotationFromPointerPosition({
-			snapToNearestDegree: false,
-		})
-
-		applyRotationToSnapshotShapes({
-			editor: this.editor,
-			delta: this._getRotationFromPointerPosition({ snapToNearestDegree: false }),
-			snapshot: this.snapshot,
-			stage: 'start',
-		})
-
-		// Update cursor
-		this.editor.setCursor({
-			type: CursorTypeMap[this.info.handle as RotateCorner],
-			rotation: newSelectionRotation + this.snapshot.initialShapesRotation,
-		})
+		this.applyRotation('start')
 	}
 
 	override onExit() {
@@ -74,15 +57,15 @@ export class Rotating extends StateNode {
 	}
 
 	override onPointerMove() {
-		this.update()
+		this.applyRotation('update')
 	}
 
 	override onKeyDown() {
-		this.update()
+		this.applyRotation('update')
 	}
 
 	override onKeyUp() {
-		this.update()
+		this.applyRotation('update')
 	}
 
 	override onPointerUp() {
@@ -97,9 +80,7 @@ export class Rotating extends StateNode {
 		this.cancel()
 	}
 
-	// ---
-
-	private update() {
+	private applyRotation(stage: 'start' | 'update') {
 		const newSelectionRotation = this._getRotationFromPointerPosition({
 			snapToNearestDegree: false,
 		})
@@ -108,10 +89,9 @@ export class Rotating extends StateNode {
 			editor: this.editor,
 			delta: newSelectionRotation,
 			snapshot: this.snapshot,
-			stage: 'update',
+			stage,
 		})
 
-		// Update cursor
 		this.editor.setCursor({
 			type: CursorTypeMap[this.info.handle as RotateCorner],
 			rotation: newSelectionRotation + this.snapshot.initialShapesRotation,

@@ -38,26 +38,16 @@ function FPS() {
 		let raf = -1
 
 		let start = performance.now()
-		let currentTickLength = 0
 		let framesInCurrentTick = 0
-		let isSlow = false
 
-		// A "tick" is the amount of time between renders. Even though
-		// we'll loop on every frame, we will only paint when the time
-		// since the last paint is greater than the tick length.
-
-		// When we paint, we'll calculate the FPS based on the number
-		// of frames that we've seen since the last time we rendered,
-		// and the actual time since the last render.
+		// We loop on every frame but only paint once per tick, computing FPS from
+		// the frames seen since the last paint and the actual elapsed time.
 		function loop() {
-			// Count the frame
 			framesInCurrentTick++
 
-			// Check if we should render
-			currentTickLength = performance.now() - start
+			const currentTickLength = performance.now() - start
 
 			if (currentTickLength > TICK_LENGTH) {
-				// Calculate the FPS and paint it
 				const fps = Math.round(
 					framesInCurrentTick * (TICK_LENGTH / currentTickLength) * (1000 / TICK_LENGTH)
 				)
@@ -66,17 +56,12 @@ function FPS() {
 					maxKnownFps = fps
 				}
 
-				const slowFps = maxKnownFps * 0.75
-				if ((fps < slowFps && !isSlow) || (fps >= slowFps && isSlow)) {
-					isSlow = !isSlow
-				}
+				const isSlow = fps < maxKnownFps * 0.75
 
 				fpsRef.current!.innerHTML = `FPS ${fps.toString()} (max: ${maxKnownFps})`
 				fpsRef.current!.className =
 					`tlui-debug-panel__fps` + (isSlow ? ` tlui-debug-panel__fps__slow` : ``)
 
-				// Reset the values
-				currentTickLength -= TICK_LENGTH
 				framesInCurrentTick = 0
 				start = performance.now()
 			}

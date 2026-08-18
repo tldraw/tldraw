@@ -39,7 +39,6 @@ export function useKeyboardShortcuts() {
 	const isReadonlyMode = useReadonly()
 	const actions = useActions()
 	const tools = useTools()
-	// The comment tool's shortcut is gated by the same license as its toolbar button.
 	const commentingEnabled = useCommentingEnabled()
 	const isFocused = useValue('is focused', () => editor.getInstanceState().isFocused, [editor])
 	useEffect(() => {
@@ -53,8 +52,6 @@ export function useKeyboardShortcuts() {
 			registry.push({ parsed, onKeyDown, onKeyUp })
 		}
 
-		// Add hotkeys for actions and tools.
-		// Except those that in SKIP_KBDS!
 		for (const action of Object.values(actions)) {
 			if (!action.kbd) continue
 			if (isReadonlyMode && !action.readonlyOk) continue
@@ -87,61 +84,21 @@ export function useKeyboardShortcuts() {
 		register(
 			',',
 			(e) => {
-				// Skip if shortcuts are disabled
 				if (areShortcutsDisabled(editor)) return
-
-				// Don't press again if already pressed
 				if (editor.inputs.keys.has('Comma')) return
 
-				preventDefault(e) // prevent whatever would normally happen
-				editor.focus() // Focus if not already focused
+				preventDefault(e)
+				editor.focus()
 
 				editor.inputs.keys.add('Comma')
-
-				const { x, y, z } = editor.inputs.getCurrentPagePoint()
-				const screenpoints = editor.pageToScreen({ x, y })
-
-				const info: TLPointerEventInfo = {
-					type: 'pointer',
-					name: 'pointer_down',
-					point: { x: screenpoints.x, y: screenpoints.y, z },
-					shiftKey: e.shiftKey,
-					altKey: e.altKey,
-					ctrlKey: e.metaKey || e.ctrlKey,
-					metaKey: e.metaKey,
-					accelKey: isAccelKey(e),
-					pointerId: 0,
-					button: 0,
-					isPen: editor.getInstanceState().isPenMode,
-					target: 'canvas',
-				}
-
-				editor.dispatch(info)
+				dispatchCommaPointerEvent(editor, e, 'pointer_down')
 			},
 			(e) => {
 				if (areShortcutsDisabled(editor)) return
 				if (!editor.inputs.keys.has('Comma')) return
 
 				editor.inputs.keys.delete('Comma')
-
-				const { x, y, z } = editor.inputs.getCurrentPagePoint()
-				const screenPoint = editor.pageToScreen({ x, y })
-				const info: TLPointerEventInfo = {
-					type: 'pointer',
-					name: 'pointer_up',
-					point: { x: screenPoint.x, y: screenPoint.y, z },
-					shiftKey: e.shiftKey,
-					altKey: e.altKey,
-					ctrlKey: e.metaKey || e.ctrlKey,
-					metaKey: e.metaKey,
-					accelKey: isAccelKey(e),
-					pointerId: 0,
-					button: 0,
-					isPen: editor.getInstanceState().isPenMode,
-					target: 'canvas',
-				}
-
-				editor.dispatch(info)
+				dispatchCommaPointerEvent(editor, e, 'pointer_up')
 			}
 		)
 
@@ -210,6 +167,29 @@ export function useKeyboardShortcuts() {
 	}, [actions, tools, isReadonlyMode, editor, isFocused, commentingEnabled])
 }
 
+function dispatchCommaPointerEvent(
+	editor: Editor,
+	e: KeyboardEvent,
+	name: 'pointer_down' | 'pointer_up'
+) {
+	const { x, y, z } = editor.inputs.getCurrentPagePoint()
+	const screenPoint = editor.pageToScreen({ x, y })
+	editor.dispatch({
+		type: 'pointer',
+		name,
+		point: { x: screenPoint.x, y: screenPoint.y, z },
+		shiftKey: e.shiftKey,
+		altKey: e.altKey,
+		ctrlKey: e.metaKey || e.ctrlKey,
+		metaKey: e.metaKey,
+		accelKey: isAccelKey(e),
+		pointerId: 0,
+		button: 0,
+		isPen: editor.getInstanceState().isPenMode,
+		target: 'canvas',
+	} satisfies TLPointerEventInfo)
+}
+
 export function areShortcutsDisabled(editor: Editor) {
 	return (
 		editor.menus.hasAnyOpenMenus() ||
@@ -219,8 +199,6 @@ export function areShortcutsDisabled(editor: Editor) {
 	)
 }
 
-// kbd parsing & native event matching
-// -----------------------------------
 // We deliberately do NOT use `event.code` (physical key position) for primary matching.
 // Doing so breaks alternative Latin keyboard layouts (Dvorak, Colemak, AZERTY) because
 // `event.code` always reflects the US-QWERTY position regardless of what the user typed.
@@ -369,6 +347,9 @@ export function parseKbd(kbd: string): ParsedKbd[] {
 
 function parseShortcut(shortcut: string): ParsedKbd | null {
 	const parts = shortcut.split('+')
+	const keyPart = parts.pop()
+	if (!keyPart) return null
+
 	const result: ParsedKbd = {
 		key: '',
 		shift: false,
@@ -376,25 +357,14 @@ function parseShortcut(shortcut: string): ParsedKbd | null {
 		ctrl: false,
 		meta: false,
 	}
-
-	let keyPart = ''
-	for (let i = 0; i < parts.length; i++) {
-		const part = parts[i]
-		const isLast = i === parts.length - 1
-		if (!isLast) {
-			const modAlias = MODIFIER_ALIASES[part.toLowerCase()]
-			if (modAlias) result[modAlias] = true
-			// silently drop unknown leading parts
-		} else {
-			keyPart = part
-		}
+	for (const part of parts) {
+		const modAlias = MODIFIER_ALIASES[part.toLowerCase()]
+		if (modAlias) result[modAlias] = true
+		// silently drop unknown leading parts
 	}
 
-	if (!keyPart) return null
-
-	let key = keyPart.toLowerCase()
-	if (KEY_ALIASES[key]) key = KEY_ALIASES[key]
-	result.key = key
+	const key = keyPart.toLowerCase()
+	result.key = KEY_ALIASES[key] || key
 	return result
 }
 
@@ -474,8 +444,6 @@ function shouldSkipEvent(e: KeyboardEvent): boolean {
 export function getHotkeysStringFromKbd(kbd: string) {
 	return splitKbd(kbd.replace(/\s/g, ''))
 		.map((kbd) => {
-			let str = ''
-
 			const shift = kbd.includes('!')
 			const alt = kbd.includes('?')
 			const cmd = kbd.includes('$')
@@ -483,25 +451,9 @@ export function getHotkeysStringFromKbd(kbd: string) {
 			// remove the modifiers; the remaining string are the actual key
 			const k = kbd.replace(/[!?$]/g, '')
 
-			if (shift && alt && cmd) {
-				str = `cmd+shift+alt+${k},ctrl+shift+alt+${k}`
-			} else if (shift && cmd) {
-				str = `cmd+shift+${k},ctrl+shift+${k}`
-			} else if (alt && cmd) {
-				str = `cmd+alt+${k},ctrl+alt+${k}`
-			} else if (alt && shift) {
-				str = `shift+alt+${k}`
-			} else if (shift) {
-				str = `shift+${k}`
-			} else if (alt) {
-				str = `alt+${k}`
-			} else if (cmd) {
-				str = `cmd+${k},ctrl+${k}`
-			} else {
-				str = k
-			}
-
-			return str
+			const mods = [shift && 'shift', alt && 'alt'].filter(Boolean)
+			const rest = [...mods, k].join('+')
+			return cmd ? `cmd+${rest},ctrl+${rest}` : rest
 		})
 		.join(',')
 }
