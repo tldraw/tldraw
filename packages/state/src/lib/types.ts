@@ -193,7 +193,7 @@ export interface Child {
  *
  * @param previousValue - The previous value of the signal
  * @param currentValue - The current value of the signal
- * @param lastComputedEpoch - The epoch when the previous value was set
+ * @param lastComputedEpoch - For an atom, the epoch when the previous value was set. For a computed, the epoch at which it was last checked (the same value its compute function receives), so that `other.getDiffSince(lastComputedEpoch)` yields exactly the changes not yet accounted for.
  * @param currentEpoch - The epoch when the current value was set
  * @returns A diff object representing the change, or the unique symbol RESET_VALUE if no diff can be computed
  *
