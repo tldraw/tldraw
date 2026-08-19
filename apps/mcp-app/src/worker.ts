@@ -409,6 +409,9 @@ export default {
 				} catch {
 					return new Response('Bad request: invalid JSON', { status: 400 })
 				}
+				if (typeof body !== 'object' || body === null) {
+					return new Response('Bad request: JSON object required', { status: 400 })
+				}
 				const ids = Array.isArray(body.ids) ? body.ids : null
 				const maxIdleMs = typeof body.maxIdleMs === 'number' ? body.maxIdleMs : null
 				const dryRun = body.dryRun === true
