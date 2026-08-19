@@ -53,9 +53,9 @@ class Transaction {
 	}
 
 	/**
-	 * Abort the transaction.
-	 *
-	 * @public
+	 * Restores every atom changed in this transaction to its initial value, then commits. Must be
+	 * called while this is still `inst.currentTransaction`, so that the restoring sets are
+	 * recorded against it instead of each flushing effects on their own.
 	 */
 	abort() {
 		inst.globalEpoch++
@@ -420,32 +420,35 @@ export async function deferAsyncEffects<T>(fn: () => Promise<T>) {
 
 	let result = undefined as T | undefined
 
+	// `undefined` means "did not throw"; a thrown `undefined` is stored as `null` so it still counts.
 	let error = undefined as any
 	try {
-		// Run the function.
 		result = await fn()
 	} catch (e) {
-		// Abort the transaction if the function throws.
 		error = e ?? null
 	}
 
 	if (--txn.asyncProcessCount > 0) {
+		// Other processes still share this transaction; it settles when the last one finishes.
 		if (typeof error !== 'undefined') {
-			// If the rollback was triggered, abort the transaction.
 			throw error
 		} else {
 			return result
 		}
 	}
 
-	inst.currentTransaction = null
-
-	if (typeof error !== 'undefined') {
-		// If the rollback was triggered, abort the transaction.
-		txn.abort()
-		throw error
-	} else {
-		txn.commit()
-		return result
+	// Settle while this is still the current transaction (see `Transaction.abort`): clearing it
+	// first made every restoring set inside `abort()` flush effects on its own, so effects
+	// observed half-restored state.
+	try {
+		if (typeof error !== 'undefined') {
+			txn.abort()
+			throw error
+		} else {
+			txn.commit()
+			return result
+		}
+	} finally {
+		inst.currentTransaction = null
 	}
 }
