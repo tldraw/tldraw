@@ -1079,6 +1079,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 						if (!changed) changed = { ...existing } as R
 						;(changed as any)[key] = value
 					}
+					// a key the update removed (present before, absent in `to`) is a change too
+					for (const key of Object.keys(existing)) {
+						if (type.ephemeralKeySet.has(key) || Object.hasOwn(to, key)) continue
+						if (!changed) changed = { ...existing } as R
+						delete (changed as any)[key]
+					}
 					if (changed) toPut.push(changed)
 				} else {
 					toPut.push(to)
