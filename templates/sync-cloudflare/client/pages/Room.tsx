@@ -8,18 +8,23 @@ import { multiplayerAssetStore } from '../multiplayerAssetStore'
 export function Room() {
 	const { roomId } = useParams<{ roomId: string }>()
 
+	// Create a store connected to multiplayer.
 	const store = useSync({
+		// We need to know the websockets URI...
 		uri: `${window.location.origin}/api/connect/${roomId}`,
+		// ...and how to handle static assets like images & videos
 		assets: multiplayerAssetStore,
 	})
 
 	return (
 		<RoomWrapper roomId={roomId}>
 			<Tldraw
-				// the synced store handles loading states & enables multiplayer UX like cursors & presence
+				// we can pass the connected store into the Tldraw component which will handle
+				// loading states & enable multiplayer UX like cursors & a presence menu
 				store={store}
 				options={{ deepLinks: true }}
 				onMount={(editor) => {
+					// when the editor is ready, we need to register our bookmark unfurling service
 					editor.registerExternalAssetHandler('url', getBookmarkPreview)
 				}}
 			/>

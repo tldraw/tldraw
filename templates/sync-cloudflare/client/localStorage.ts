@@ -1,4 +1,8 @@
-// localStorage throws when storage is unavailable or access is restricted by the browser
+/**
+ * Safe localStorage helpers that handle cases where localStorage is not available
+ * or access is restricted by the browser.
+ */
+
 export function getLocalStorageItem(key: string): string | null {
 	try {
 		return localStorage.getItem(key)

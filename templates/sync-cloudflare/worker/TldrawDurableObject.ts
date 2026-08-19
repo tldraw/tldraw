@@ -88,14 +88,17 @@ export class TldrawDurableObject extends DurableObject {
 		(request) => this.handleConnect(request)
 	)
 
+	// Entry point for all requests to the Durable Object
 	fetch(request: Request): Response | Promise<Response> {
 		return this.router.fetch(request)
 	}
 
+	// Handle new WebSocket connection requests
 	async handleConnect(request: IRequest) {
 		const sessionId = request.query.sessionId as string
 		if (!sessionId) return error(400, 'Missing sessionId')
 
+		// Create the websocket pair for the client
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 		// Use hibernation API instead of serverWebSocket.accept()
 		this.ctx.acceptWebSocket(serverWebSocket)
@@ -111,6 +114,8 @@ export class TldrawDurableObject extends DurableObject {
 
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}
+
+	// --- WebSocket Hibernation API handlers ---
 
 	override async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
 		const attachment = getAttachment(ws)

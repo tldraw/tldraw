@@ -1,7 +1,8 @@
 import { AssetRecordType, TLAsset, TLBookmarkAsset, getHashForString } from 'tldraw'
 
-// Bookmark unfurling: ask the worker for the URL's metadata and fill in an asset record.
+// How does our server handle bookmark unfurling?
 export async function getBookmarkPreview({ url }: { url: string }): Promise<TLAsset> {
+	// we start with an empty asset record
 	const asset: TLBookmarkAsset = {
 		id: AssetRecordType.createId(getHashForString(url)),
 		typeName: 'asset',
@@ -17,9 +18,11 @@ export async function getBookmarkPreview({ url }: { url: string }): Promise<TLAs
 	}
 
 	try {
+		// try to fetch the preview data from the server
 		const response = await fetch(`/api/unfurl?url=${encodeURIComponent(url)}`)
 		const data: any = await response.json()
 
+		// fill in our asset with whatever info we found
 		asset.props.description = data?.description ?? ''
 		asset.props.image = data?.image ?? ''
 		asset.props.favicon = data?.favicon ?? ''
