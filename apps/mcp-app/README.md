@@ -135,3 +135,18 @@ Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw).
 ## Community
 
 Have questions, comments or feedback? [Join our discord](https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).
+
+## Session storage lifecycle
+
+Each MCP session is a `TldrawMCP` Durable Object. It keeps up to `MAX_CHECKPOINTS` (50) canvas snapshots and destroys itself after `IDLE_TTL_MS` (7 days) without a checkpoint save — a schedule armed in `init()` and re-armed on every check. Sessions created before this shipped never wake on their own; prune them with the admin endpoint.
+
+### Pruning legacy sessions
+
+1. Set the secret once: `npx wrangler secret put ADMIN_TOKEN`.
+2. List every DO with stored data (needs `CLOUDFLARE_API_TOKEN` with Workers read, `CLOUDFLARE_ACCOUNT_ID`):
+   `yarn prune:list` → `prune-ids.txt`.
+3. Dry run for the idle histogram (needs `MCP_ADMIN_TOKEN`; `MCP_WORKER_ORIGIN` defaults to production):
+   `yarn prune:run --dry-run`.
+4. Prune, staged: `yarn prune:run --max-idle 30d`, watch the storage graph, then `--max-idle 7d`. Below 7d needs `--force`. Results append to `prune-results.jsonl`; re-running re-evaluates kept ids and skips only the ones already condemned.
+
+Expect the `destroyed` error fingerprint in Workers observability to spike during a prune (one event per wiped DO — the SDK's teardown abort) and `session_start` to stay flat; a `session_start` spike proportional to destroys would mean condemned DOs are being resurrected and should stop the run.
