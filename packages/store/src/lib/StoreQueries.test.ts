@@ -801,3 +801,33 @@ describe('integration with reactive state (QI, QQ)', () => {
 		expect(tolkeinBookCount.get()).toBe(2)
 	})
 })
+
+describe('queries across rolled-back transactions (QH, QQ)', () => {
+	it('[QH4] a query read during a transaction that rolls back is correct afterwards', () => {
+		const bookIds = store.query.ids('book')
+		const booksByAuthor = store.query.index('book', 'authorId')
+		expect(bookIds.get().size).toBe(4)
+
+		const phantom = Book.create({ title: 'Phantom', authorId: authors.tolkein.id })
+		expect(() =>
+			store.atomic(() => {
+				store.put([phantom])
+				// a side effect reads the queries mid-operation, so they incorporate the change
+				expect(bookIds.get().has(phantom.id)).toBe(true)
+				expect(booksByAuthor.get().get(authors.tolkein.id)!.has(phantom.id)).toBe(true)
+				throw new Error('abort')
+			})
+		).toThrow('abort')
+		expect(store.get(phantom.id)).toBeUndefined()
+
+		// the same number of changes again, so the history counter comes back round to where the
+		// queries last saw it
+		const real = Book.create({ title: 'Real', authorId: authors.bradbury.id })
+		store.put([real])
+
+		expect(bookIds.get().has(phantom.id)).toBe(false)
+		expect(bookIds.get().has(real.id)).toBe(true)
+		expect(booksByAuthor.get().get(authors.tolkein.id)!.has(phantom.id)).toBe(false)
+		expect(booksByAuthor.get().get(authors.bradbury.id)!.has(real.id)).toBe(true)
+	})
+})
