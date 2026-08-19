@@ -460,3 +460,22 @@ describe('applying diffs (H)', () => {
 		})
 	})
 })
+
+describe('listeners: dispose (H)', () => {
+	it('[H12] dispose delivers pending change-sets to listeners before cancelling the flush', () => {
+		try {
+			// @ts-expect-error - test-only escape hatch
+			globalThis.__FORCE_RAF_IN_TESTS__ = true
+			const listener = vi.fn()
+			store.listen(listener)
+			store.put([tolkein()])
+			expect(listener).not.toHaveBeenCalled()
+
+			store.dispose()
+			expect(listener).toHaveBeenCalledTimes(1)
+		} finally {
+			// @ts-expect-error - test-only escape hatch
+			globalThis.__FORCE_RAF_IN_TESTS__ = false
+		}
+	})
+})

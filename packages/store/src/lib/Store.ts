@@ -405,13 +405,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	private historyReactor: Reactor
 
 	/**
-	 * Function to dispose of any in-flight timeouts.
+	 * Cancels the history flush scheduled for the next frame, if any.
 	 *
 	 * @internal
 	 */
-	private cancelHistoryReactor(): void {
-		/* noop */
-	}
+	private cancelHistoryReactor: null | (() => void) = null
 
 	/**
 	 * The schema that defines the structure and validation rules for records in this store.
@@ -543,7 +541,13 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	dispose() {
-		this.cancelHistoryReactor()
+		// Deliver what is still pending first: a change-set made in the same frame as the dispose
+		// would otherwise never reach the listeners (e.g. a sync client) still attached to the store.
+		try {
+			this._flushHistory()
+		} finally {
+			this.cancelHistoryReactor?.()
+		}
 	}
 
 	/**
