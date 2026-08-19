@@ -47,6 +47,14 @@ export class DraggingHandle extends StateNode {
 
 	override onEnter(info: DraggingHandleInfo) {
 		const { shape, isCreating, creatingMarkId, handle } = info
+
+		// The shape can be deleted (remotely, by undo) between pointer down and the drag
+		const handles = this.editor.getShapeHandles(shape)
+		if (!handles) {
+			this.parent.transition('idle')
+			return
+		}
+
 		this.info = info
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
@@ -78,15 +86,15 @@ export class DraggingHandle extends StateNode {
 
 		this.editor.setCursor({ type: isCreating ? 'cross' : 'grabbing', rotation: 0 })
 
-		const handles = this.editor.getShapeHandles(shape)!.sort(sortByIndex)
-		const index = handles.findIndex((h) => h.id === info.handle.id)
+		const sortedHandles = handles.slice().sort(sortByIndex)
+		const index = sortedHandles.findIndex((h) => h.id === info.handle.id)
 
 		// Find the adjacent handle
 		this.initialAdjacentHandle = null
 
 		// First, check if the handle specifies a custom reference handle
 		if (info.handle.snapReferenceHandleId) {
-			const customHandle = handles.find((h) => h.id === info.handle.snapReferenceHandleId)
+			const customHandle = sortedHandles.find((h) => h.id === info.handle.snapReferenceHandleId)
 			if (customHandle) {
 				this.initialAdjacentHandle = customHandle
 			}
@@ -95,8 +103,8 @@ export class DraggingHandle extends StateNode {
 		// If no custom reference handle, use default behavior
 		if (!this.initialAdjacentHandle) {
 			// Start from the handle and work forward
-			for (let i = index + 1; i < handles.length; i++) {
-				const handle = handles[i]
+			for (let i = index + 1; i < sortedHandles.length; i++) {
+				const handle = sortedHandles[i]
 				if (handle.type === 'vertex' && handle.id !== 'middle' && handle.id !== info.handle.id) {
 					this.initialAdjacentHandle = handle
 					break
@@ -105,8 +113,8 @@ export class DraggingHandle extends StateNode {
 
 			// If still no handle, start from the end and work backward
 			if (!this.initialAdjacentHandle) {
-				for (let i = handles.length - 1; i >= 0; i--) {
-					const handle = handles[i]
+				for (let i = sortedHandles.length - 1; i >= 0; i--) {
+					const handle = sortedHandles[i]
 					if (handle.type === 'vertex' && handle.id !== 'middle' && handle.id !== info.handle.id) {
 						this.initialAdjacentHandle = handle
 						break

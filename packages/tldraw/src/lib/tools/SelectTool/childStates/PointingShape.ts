@@ -227,6 +227,12 @@ export class PointingShape extends StateNode {
 
 	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.getIsDragging()) {
+			// The pointed shape may have been deleted since pointer down (remote user, undo)
+			if (!this.editor.getShape(this.hitShape.id)) {
+				this.parent.transition('idle', info)
+				return
+			}
+
 			if (isOverArrowLabel(this.editor, this.hitShape)) {
 				// We're moving the label on a shape.
 				this.parent.transition('pointing_arrow_label', { ...info, shape: this.hitShape })
@@ -251,8 +257,13 @@ export class PointingShape extends StateNode {
 		// If we didn't select the shape on enter (e.g. because it has an onClick handler),
 		// and there's no current selection, select it now before transitioning to translating.
 		if (!this.didSelectOnEnter && !this.editor.getSelectedShapeIds().length) {
+			const shapeToSelect = this.editor.getShape(this.hitShapeForPointerUp.id)
+			if (!shapeToSelect) {
+				this.parent.transition('idle', info)
+				return
+			}
 			this.editor.markHistoryStoppingPoint('selecting shape')
-			this.editor.setSelectedShapes([this.hitShapeForPointerUp.id])
+			this.editor.setSelectedShapes([shapeToSelect.id])
 		}
 
 		// Re-focus the editor, just in case the text label of the shape has stolen focus
