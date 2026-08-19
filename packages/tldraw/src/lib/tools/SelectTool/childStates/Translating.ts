@@ -46,14 +46,12 @@ export class Translating extends StateNode {
 
 	isCloning = false
 	isCreating = false
-	onCreate(_shape: TLShape | null): void {
-		return
-	}
+	onCreate?: (shape: TLShape | null) => void
 
 	dragAndDropManager = new DragAndDropManager(this.editor)
 
 	override onEnter(info: TranslatingInfo) {
-		const { isCreating = false, creatingMarkId, onCreate = () => void null } = info
+		const { isCreating = false, creatingMarkId, onCreate } = info
 
 		if (!this.editor.getSelectedShapeIds()?.length) {
 			this.parent.transition('idle')
@@ -208,11 +206,13 @@ export class Translating extends StateNode {
 			}
 		}
 
-		if (this.isCreating) {
-			this.onCreate?.(this.editor.getOnlySelectedShape())
-		} else {
-			this.parent.transition('idle')
+		// A creating tool that passes no onCreate still needs the interaction to end
+		if (this.isCreating && this.onCreate) {
+			this.onCreate(this.editor.getOnlySelectedShape())
+			return
 		}
+
+		this.parent.transition('idle')
 	}
 
 	private cancel() {
