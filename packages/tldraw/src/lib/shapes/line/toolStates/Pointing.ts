@@ -1,5 +1,4 @@
 import {
-	Mat,
 	StateNode,
 	TLLineShape,
 	TLShapeId,
@@ -28,10 +27,11 @@ export class Pointing extends StateNode {
 
 		this.markId = undefined
 
-		// Previously created line shape that we might be extending
+		// Previously created line shape that we might be extending (it may have been left
+		// on another page if the page was switched with the tool still active)
 		const shape = info.shapeId && this.editor.getShape<TLLineShape>(info.shapeId)
 
-		if (shape && inputs.getShiftKey()) {
+		if (shape && inputs.getShiftKey() && this.editor.getCurrentPageShapeIds().has(shape.id)) {
 			// Extending a previous shape
 			this.markId = this.editor.markHistoryStoppingPoint(`creating_line:${shape.id}`)
 			this.shape = shape
@@ -43,12 +43,10 @@ export class Pointing extends StateNode {
 			const endHandle = vertexHandles[vertexHandles.length - 1]
 			const prevEndHandle = vertexHandles[vertexHandles.length - 2]
 
-			const shapePagePoint = Mat.applyToPoint(
-				this.editor.getShapeParentTransform(this.shape)!,
-				new Vec(this.shape.x, this.shape.y)
-			)
 			// nudge the point slightly to avoid zero-length lines
-			const nudgedPoint = Vec.Sub(currentPagePoint, shapePagePoint).addXY(0.1, 0.1)
+			const nudgedPoint = this.editor
+				.getPointInShapeSpace(this.shape, currentPagePoint)
+				.addXY(0.1, 0.1)
 			const nextPoint = maybeSnapToGrid(nudgedPoint, this.editor)
 			const points = structuredClone(this.shape.props.points)
 

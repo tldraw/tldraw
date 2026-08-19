@@ -55,7 +55,6 @@ export function useEditablePlainText(
 		}
 	}, [editor, isEditing])
 
-	// When the user presses ctrl / meta enter, complete the editing state.
 	const handleKeyDown = useCallback(
 		(e: KeyboardEvent) => {
 			if (editor.getEditingShapeId() !== shapeId) return
@@ -72,7 +71,6 @@ export function useEditablePlainText(
 		[editor, shapeId]
 	)
 
-	// When the text changes, update the text value.
 	const handleChange = useCallback(
 		({ plaintext }: { plaintext: string }) => {
 			if (editor.getEditingShapeId() !== shapeId) return

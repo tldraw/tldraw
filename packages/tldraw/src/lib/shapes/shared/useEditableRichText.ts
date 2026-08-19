@@ -29,7 +29,6 @@ export function useEditableRichText(
 		}
 	}, [editor, isEditing])
 
-	// When the user presses ctrl / meta enter, complete the editing state.
 	const handleKeyDown = useCallback(
 		(e: KeyboardEvent) => {
 			if (editor.getEditingShapeId() !== shapeId) return
@@ -38,7 +37,6 @@ export function useEditableRichText(
 		[editor, shapeId]
 	)
 
-	// When the text changes, update the text value.
 	const handleChange = useCallback(
 		({ richText }: { richText: TLRichText }) => {
 			if (editor.getEditingShapeId() !== shapeId) return

@@ -71,7 +71,6 @@ export function getUncroppedSize(
 	return { w, h }
 }
 
-// Utility function to get crop dimensions
 function getCropDimensions(crop: TLShapeCrop) {
 	return {
 		width: crop.bottomRight.x - crop.topLeft.x,
@@ -79,7 +78,6 @@ function getCropDimensions(crop: TLShapeCrop) {
 	}
 }
 
-// Utility function to get crop center
 function getCropCenter(crop: TLShapeCrop) {
 	const { width, height } = getCropDimensions(crop)
 	return {
@@ -88,7 +86,6 @@ function getCropCenter(crop: TLShapeCrop) {
 	}
 }
 
-// Utility function to create crop with specified dimensions centered on given point
 function createCropAroundCenter(
 	centerX: number,
 	centerY: number,
@@ -442,7 +439,18 @@ interface CropChange {
 	y: number
 }
 
-// Base function for calculating crop changes
+/**
+ * Top-left position that keeps the image's visual centre where it is after its display size
+ * changes. The half-size delta is in the shape's own space, so it has to be rotated by the
+ * shape's rotation; a plain `center - newSize / 2` only holds for unrotated images.
+ */
+function getPositionKeepingCenter(imageShape: TLImageShape, newW: number, newH: number) {
+	const delta = new Vec((imageShape.props.w - newW) / 2, (imageShape.props.h - newH) / 2).rot(
+		imageShape.rotation
+	)
+	return { x: imageShape.x + delta.x, y: imageShape.y + delta.y }
+}
+
 function calculateCropChange(
 	imageShape: TLImageShape,
 	newCropWidth: number,
@@ -452,10 +460,6 @@ function calculateCropChange(
 ): CropChange {
 	const { w, h } = getUncroppedSize(imageShape.props, imageShape.props.crop ?? getDefaultCrop())
 	const currentCrop = imageShape.props.crop || getDefaultCrop()
-
-	// Calculate image and crop centers
-	const imageCenterX = imageShape.x + imageShape.props.w / 2
-	const imageCenterY = imageShape.y + imageShape.props.h / 2
 
 	let cropCenterX, cropCenterY
 	if (centerOnCurrentCrop) {
@@ -467,7 +471,6 @@ function calculateCropChange(
 		cropCenterY = 0.5
 	}
 
-	// Create new crop
 	const newCrop = createCropAroundCenter(
 		cropCenterX,
 		cropCenterY,
@@ -484,8 +487,7 @@ function calculateCropChange(
 		crop: newCrop,
 		w: croppedW,
 		h: croppedH,
-		x: imageCenterX - croppedW / 2,
-		y: imageCenterY - croppedH / 2,
+		...getPositionKeepingCenter(imageShape, croppedW, croppedH),
 	}
 }
 
@@ -526,10 +528,9 @@ export function getCroppedImageDataWhenZooming(
 	result.h *= scaleFactor
 
 	// Recenter
-	const imageCenterX = imageShape.x + imageShape.props.w / 2
-	const imageCenterY = imageShape.y + imageShape.props.h / 2
-	result.x = imageCenterX - result.w / 2
-	result.y = imageCenterY - result.h / 2
+	const { x, y } = getPositionKeepingCenter(imageShape, result.w, result.h)
+	result.x = x
+	result.y = y
 
 	return result
 }
@@ -551,7 +552,13 @@ export function getCroppedImageDataForReplacedImage(
 	let crop = defaultCrop
 	let newDisplayW = origDisplayW
 	let newDisplayH = origDisplayH
-	const isOriginalCrop = isEqual(imageShape.props.crop, defaultCrop)
+	// Compare the bounds, not the whole object: an explicit `isCircle: false` must still count
+	// as the original crop.
+	const isOriginalCrop =
+		!!imageShape.props.crop &&
+		isEqual(imageShape.props.crop.topLeft, defaultCrop.topLeft) &&
+		isEqual(imageShape.props.crop.bottomRight, defaultCrop.bottomRight) &&
+		!imageShape.props.crop.isCircle
 
 	if (isOriginalCrop) {
 		newDisplayW = origDisplayW
@@ -603,19 +610,11 @@ export function getCroppedImageDataForReplacedImage(
 		)
 	}
 
-	// Position so visual center stays put
-	const pageCenterX = imageShape.x + origDisplayW / 2
-	const pageCenterY = imageShape.y + origDisplayH / 2
-
-	const newX = pageCenterX - newDisplayW / 2
-	const newY = pageCenterY - newDisplayH / 2
-
 	return {
 		crop,
 		w: newDisplayW,
 		h: newDisplayH,
-		x: newX,
-		y: newY,
+		...getPositionKeepingCenter(imageShape, newDisplayW, newDisplayH),
 	}
 }
 
@@ -629,15 +628,12 @@ export function getCroppedImageDataForAspectRatio(
 	// If original aspect ratio is requested, use default crop
 	if (aspectRatioOption === 'original') {
 		const { w, h } = getUncroppedSize(imageShape.props, imageShape.props.crop ?? getDefaultCrop())
-		const imageCenterX = imageShape.x + imageShape.props.w / 2
-		const imageCenterY = imageShape.y + imageShape.props.h / 2
 
 		return {
 			crop: getDefaultCrop(),
 			w,
 			h,
-			x: imageCenterX - w / 2,
-			y: imageCenterY - h / 2,
+			...getPositionKeepingCenter(imageShape, w, h),
 		}
 	}
 
@@ -753,18 +749,10 @@ export function getCroppedImageDataForAspectRatio(
 	const newW = baseW * currentScale
 	const newH = baseH * currentScale
 
-	// Calculate the new top-left position (x, y) for the shape
-	// to keep the visual center of the cropped area fixed on the page.
-	const currentCenterXPage = imageShape.x + imageShape.props.w / 2
-	const currentCenterYPage = imageShape.y + imageShape.props.h / 2
-	const newX = currentCenterXPage - newW / 2
-	const newY = currentCenterYPage - newH / 2
-
 	return {
 		crop: newCrop,
 		w: newW,
 		h: newH,
-		x: newX,
-		y: newY,
+		...getPositionKeepingCenter(imageShape, newW, newH),
 	}
 }

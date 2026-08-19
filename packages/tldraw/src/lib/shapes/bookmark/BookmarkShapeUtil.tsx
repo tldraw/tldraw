@@ -117,19 +117,19 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	}
 
 	override onBeforeUpdate(prev: TLBookmarkShape, shape: TLBookmarkShape) {
+		let next = shape
 		if (prev.props.url !== shape.props.url) {
 			if (!T.linkUrl.isValid(shape.props.url)) {
 				return { ...shape, props: { ...shape.props, url: prev.props.url } }
-			} else {
-				updateBookmarkAssetOnUrlChange(this.editor, shape)
 			}
+			next = updateBookmarkAssetOnUrlChange(this.editor, shape)
 		}
 
-		if (prev.props.assetId !== shape.props.assetId) {
-			return setBookmarkHeight(this.editor, shape)
+		if (prev.props.assetId !== next.props.assetId) {
+			return setBookmarkHeight(this.editor, next)
 		}
 
-		return undefined
+		return next === shape ? undefined : next
 	}
 	override getInterpolatedProps(
 		startShape: TLBookmarkShape,

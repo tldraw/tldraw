@@ -108,9 +108,11 @@ export function getStraightArrowInfo(
 	) {
 		if (endShapeInfo.didIntersect && !startShapeInfo.didIntersect) {
 			// ...and if only the end shape intersected, then make it
-			// a short arrow ending at the end shape intersection.
+			// a short arrow ending at the end shape intersection. The start
+			// sits MIN_ARROW_LENGTH before it along the arrow's direction;
+			// adding would put it past the intersection, inside the end shape.
 			if (startShapeInfo.isClosed) {
-				a.setTo(b.clone().add(uAB.clone().mul(MIN_ARROW_LENGTH * shape.props.scale)))
+				a.setTo(b.clone().sub(uAB.clone().mul(MIN_ARROW_LENGTH * shape.props.scale)))
 			}
 		} else if (!endShapeInfo.didIntersect) {
 			// ...and if only the end shape intersected, or if neither
@@ -139,7 +141,7 @@ export function getStraightArrowInfo(
 			strokeOffsetA =
 				arrowSW / 2 +
 				('size' in startShapeInfo.shape.props
-					? (theme.strokeWidth * STROKE_SIZES[startShapeInfo.shape.props.size]) / 2
+					? (theme.strokeWidth * (STROKE_SIZES[startShapeInfo.shape.props.size] ?? 0)) / 2
 					: 0)
 			offsetA = (BOUND_ARROW_OFFSET + strokeOffsetA) * shape.props.scale
 			minLength += strokeOffsetA * shape.props.scale
@@ -156,7 +158,7 @@ export function getStraightArrowInfo(
 			strokeOffsetB =
 				arrowSW / 2 +
 				('size' in endShapeInfo.shape.props
-					? (theme.strokeWidth * STROKE_SIZES[endShapeInfo.shape.props.size]) / 2
+					? (theme.strokeWidth * (STROKE_SIZES[endShapeInfo.shape.props.size] ?? 0)) / 2
 					: 0)
 			offsetB = (BOUND_ARROW_OFFSET + strokeOffsetB) * shape.props.scale
 			minLength += strokeOffsetB * shape.props.scale

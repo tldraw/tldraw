@@ -51,38 +51,31 @@ export function getHumanReadableAddress(url: string) {
 	}
 }
 
-export function updateBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmarkShape) {
+/**
+ * Resolve the asset for a bookmark whose url just changed: the existing asset for the new url
+ * if there is one, otherwise `null` while a new one is fetched in the background.
+ *
+ * Returns the shape to store rather than writing it. This runs inside `onBeforeUpdate`, where
+ * a nested `updateShapes` is overwritten by the outer put and the old asset would stick.
+ */
+export function updateBookmarkAssetOnUrlChange(
+	editor: Editor,
+	shape: TLBookmarkShape
+): TLBookmarkShape {
 	const { url } = shape.props
 
 	// Derive the asset id from the URL
 	const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
 
 	if (editor.getAsset(assetId)) {
-		// Existing asset for this URL?
-		if (shape.props.assetId !== assetId) {
-			editor.updateShapes([
-				{
-					id: shape.id,
-					type: shape.type,
-					props: { assetId },
-				},
-			])
-		}
-	} else {
-		// No asset for this URL?
-
-		// First, clear out the existing asset reference
-		editor.updateShapes([
-			{
-				id: shape.id,
-				type: shape.type,
-				props: { assetId: null },
-			},
-		])
-
-		// Then try to asyncronously create a new one
-		createBookmarkAssetOnUrlChange(editor, shape)
+		if (shape.props.assetId === assetId) return shape
+		return { ...shape, props: { ...shape.props, assetId } }
 	}
+
+	// No asset for this URL yet: drop the stale reference and fetch one asynchronously
+	createBookmarkAssetOnUrlChange(editor, shape)
+	if (shape.props.assetId === null) return shape
+	return { ...shape, props: { ...shape.props, assetId: null } }
 }
 
 /**
@@ -138,10 +131,7 @@ async function _createBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmark
 	}
 
 	editor.run(() => {
-		// Create the new asset
 		editor.createAssets([asset])
-
-		// And update the shape
 		editor.updateShapes([
 			{
 				id: shape.id,

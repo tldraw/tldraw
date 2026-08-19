@@ -577,25 +577,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         y: number;
     };
     // (undocumented)
-    onBeforeUpdate(prev: TLBookmarkShape, shape: TLBookmarkShape): {
-        id: TLShapeId_2;
-        index: IndexKey;
-        isLocked: boolean;
-        meta: JsonObject;
-        opacity: TLOpacityType;
-        parentId: TLParentId;
-        props: {
-            assetId: null | TLAssetId;
-            h: number;
-            url: string;
-            w: number;
-        };
-        rotation: number;
-        type: "bookmark";
-        typeName: 'shape';
-        x: number;
-        y: number;
-    } | undefined;
+    onBeforeUpdate(prev: TLBookmarkShape, shape: TLBookmarkShape): TLBookmarkShape | undefined;
     // (undocumented)
     options: BookmarkShapeOptions;
     // (undocumented)
@@ -2042,6 +2024,8 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
             w: number;
         };
         type: "frame";
+        x: number;
+        y: number;
     } | undefined;
     // (undocumented)
     options: FrameShapeOptions;

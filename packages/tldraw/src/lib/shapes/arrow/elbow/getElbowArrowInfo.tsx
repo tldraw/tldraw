@@ -142,12 +142,14 @@ export function getElbowArrowInfo(
 	}
 
 	// We expand the bounds of the terminals so we can route arrows around them without the arrows
-	// being too close to the shapes.
+	// being too close to the shapes. Always a separate Box from `bounds`: ElbowArrowWorkingInfo
+	// transforms `original` and `expanded` in place, so sharing one object would transform a point
+	// terminal twice (a no-op for flips, a 180° turn for rotations) and corrupt the route.
 	const expandedA = aTerminal.isPoint
-		? aTerminal.bounds
+		? aTerminal.bounds.clone()
 		: aTerminal.bounds.clone().expandBy(options.expandElbowLegLength)
 	const expandedB = bTerminal.isPoint
-		? bTerminal.bounds
+		? bTerminal.bounds.clone()
 		: bTerminal.bounds.clone().expandBy(options.expandElbowLegLength)
 
 	const common: ElbowArrowBox = {
@@ -304,7 +306,6 @@ export function getElbowArrowInfo(
  * Take the route from `getElbowArrowInfo` (which represents the visible body of the arrow) and
  * convert it into a path we can use to show that paths to the handles, which may extend further
  * into the target shape geometries.
- * @returns
  */
 export function getRouteHandlePath(info: ElbowArrowInfo, route: ElbowArrowRoute): ElbowArrowRoute {
 	const startTarget = info.swapOrder ? info.B.target : info.A.target

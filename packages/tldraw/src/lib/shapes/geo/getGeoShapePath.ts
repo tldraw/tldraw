@@ -447,7 +447,9 @@ function getXBoxPath(
 			geometry: { isInternal: true, isFilled: false },
 		})
 		.lineTo(clamp(w - sw * inset, 0, w), clamp(h - sw * inset, 0, h))
-		.moveTo(clamp(w - sw * inset, 0, w), clamp(sw * inset, 0, h))
+		.moveTo(clamp(w - sw * inset, 0, w), clamp(sw * inset, 0, h), {
+			geometry: { isInternal: true, isFilled: false },
+		})
 		.lineTo(clamp(sw * inset, 0, w), clamp(h - sw * inset, 0, h))
 
 	return path
@@ -514,8 +516,6 @@ function getStarPath(w: number, h: number, isFilled: boolean) {
 		{ geometry: { isFilled } }
 	).close()
 }
-
-/* ---------------------- Cloud --------------------- */
 
 function getOvalPerimeter(h: number, w: number) {
 	if (h > w) return (PI * (w / 2) + (h - w)) * 2

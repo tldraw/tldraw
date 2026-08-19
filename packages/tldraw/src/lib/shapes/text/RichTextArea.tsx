@@ -271,7 +271,6 @@ function handleTab(editor: Editor, view: EditorView, event: KeyboardEvent) {
 	const { $from, $to } = state.selection
 	const isShift = event.shiftKey
 
-	// Create a new transaction
 	let tr = state.tr
 
 	// Iterate over each line in the selection in reverse so that the positions
@@ -285,7 +284,6 @@ function handleTab(editor: Editor, view: EditorView, event: KeyboardEvent) {
 		const lineEnd = line.end
 		const lineText = state.doc.textBetween(lineStart, lineEnd, '\n')
 
-		// Check if the current line or any of its parent nodes are part of a list
 		let isInList = false
 		state.doc.nodesBetween(lineStart, lineEnd, (node) => {
 			if (node.type.name === 'bulletList' || node.type.name === 'orderedList') {
@@ -299,10 +297,8 @@ function handleTab(editor: Editor, view: EditorView, event: KeyboardEvent) {
 		// sinkListItem and liftListItem from @tiptap/pm/schema-list
 		if (!isInList) {
 			if (!isShift) {
-				// Insert a tab character at the start of the line
 				tr = tr.insertText('\t', lineStart + 1)
 			} else {
-				// Remove a tab character from the start of the line
 				if (lineText.startsWith('\t')) {
 					tr = tr.delete(lineStart + 1, lineStart + 2)
 				}
