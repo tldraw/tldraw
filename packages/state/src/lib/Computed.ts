@@ -316,14 +316,17 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 
 			return this.state
 		} catch (e) {
-			// if a derived value throws an error, we reset the state to UNINITIALIZED
 			const epoch = getGlobalEpoch()
-			if (this.state !== UNINITIALIZED) {
+			// Entering the error state (from a value, or from never having computed) is a change;
+			// throwing again while already in it is not. Checking `error` rather than `state` matters
+			// for a first run that throws: `state` is already UNINITIALIZED then, and leaving
+			// `lastChangedEpoch` at GLOBAL_START_EPOCH would keep `isNew` true and re-run `derive` on
+			// every read instead of rethrowing the cached error.
+			if (this.error === null) {
 				this.state = UNINITIALIZED as unknown as Value
 				this.lastChangedEpoch = epoch
 			}
 			this.lastCheckedEpoch = epoch
-			// we also clear the history buffer if an error was thrown
 			if (this.historyBuffer) {
 				this.historyBuffer.clear()
 			}
