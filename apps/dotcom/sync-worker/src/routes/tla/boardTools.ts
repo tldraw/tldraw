@@ -392,10 +392,9 @@ export function buildClusterIndex(
 /**
  * Reads an index back out of storage, or null if it is anything other than one this build wrote.
  *
- * Everything about it is checked rather than trusted. It is our own data, but it crosses a version
- * boundary — a Durable Object holds rows written by whichever build was deployed when the board was
- * last measured — and the cost of being wrong is a tool answering from a shape that no longer means
- * what it did. A null here is a cache miss, which costs one render and is always safe.
+ * Checked rather than trusted, because it crosses a version boundary: a Durable Object holds rows
+ * written by whichever build was deployed when the board was last measured. A null is a cache miss,
+ * which costs one render and is always safe.
  */
 export function parseClusterIndex(json: string): PageClusterIndex | null {
 	let value: unknown
@@ -435,12 +434,10 @@ function isStringArray(value: unknown): value is string[] {
 }
 
 /**
- * Rebuilds full clusters from a stored index and the page it was built for.
- *
- * Returns null when the two disagree — a shape the index names is not on the page. In principle that
- * cannot happen, since an index is only ever read back for the exact content version it was built
- * from; in practice it is the one check that keeps a mismatch from being served as fact, and a null
- * costs nothing worse than the render the cache was avoiding.
+ * Rebuilds full clusters from a stored index and the page it was built for, or null when the two
+ * disagree: a shape the index names is not on the page. That should be impossible — an index is only
+ * read back for the content version it was built from — but a null costs one render, and serving a
+ * cluster that is quietly a shape short costs a wrong answer.
  */
 function clustersFromIndex(page: ResolvedPageOk, index: PageClusterIndex): ShapeCluster[] | null {
 	const byId = new Map(page.shapes.map((shape) => [String(shape.id), shape]))
@@ -467,11 +464,9 @@ function clustersFromIndex(page: ResolvedPageOk, index: PageClusterIndex): Shape
 }
 
 /**
- * Whether a stored index can answer for this page at all, asked before a caller commits to using it.
- *
- * Separate from the tools below so the cache read is the one place that decides hit or miss: a tool
- * handed an index has already been told it fits, and never has to carry a second "or measure after
- * all" path through its own error handling.
+ * Whether a stored index can answer for this page at all. Asked by the cache read, so that hit or
+ * miss is decided in one place and a tool handed an index never carries an "or measure after all"
+ * path through its own error handling.
  */
 export function isClusterIndexUsable(page: ResolvedPageOk, index: PageClusterIndex): boolean {
 	return clustersFromIndex(page, index) !== null

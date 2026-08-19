@@ -1,12 +1,8 @@
 import { McpClusterIndexKey } from './types'
 
-// The SQL behind the MCP cluster index cache, kept apart from TLFileDurableObject so it can be run
-// against a real SQLite database in a test. Nothing else in this file's neighbourhood can be: the
-// object's other storage is reached through a live room, and a statement that only ever executes in
-// production is a statement nothing has checked.
-//
-// See TLFileDurableObject.getMcpClusterIndex for what this cache is and why it lives on the file's
-// own durable object.
+// The SQL behind the MCP cluster index cache (see mcpClusterIndex.ts for what it is for), kept apart
+// from TLFileDurableObject so it can be run against a real SQLite database in a test — otherwise
+// these statements would only ever execute in production.
 
 /** The subset of Cloudflare's `SqlStorage` these statements need. */
 export interface McpClusterIndexSql {
@@ -14,11 +10,10 @@ export interface McpClusterIndexSql {
 }
 
 /**
- * The table.
- *
- * The primary key deliberately excludes `version`: a page holds one row, and new content replaces
- * the row for the old content rather than adding to it. That is what keeps a file's cache bounded by
- * its page count instead of by its edit history, with no expiry policy to run.
+ * The primary key deliberately excludes `version`: a page holds one row, and new content replaces the
+ * row for the old content. That is what bounds a file's cache by its page count rather than by its
+ * edit history, with no expiry policy to run. `kind` is in the key because one file is two boards —
+ * the live shared file and the frozen published snapshot — which cluster differently once they drift.
  */
 export function ensureMcpClusterIndexTable(sql: McpClusterIndexSql) {
 	sql.exec(
@@ -36,8 +31,8 @@ export function ensureMcpClusterIndexTable(sql: McpClusterIndexSql) {
 
 /**
  * One page's stored index, or null when the row is missing *or* is for content that has since moved
- * on. The version is matched here rather than returned for the caller to check, so a stale payload
- * cannot leave this object at all.
+ * on. The version is matched in the statement rather than handed back for the caller to check, so a
+ * stale payload cannot leave the object at all.
  */
 export function readMcpClusterIndexRow(
 	sql: McpClusterIndexSql,

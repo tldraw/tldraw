@@ -10,29 +10,21 @@ import {
 import { ResolvedThumbnailBoard } from './thumbnailRender'
 import { reportThumbnailError } from './thumbnailShared'
 
-// The cache that keeps get_cluster_info off Browser Run.
+// The cache that keeps the clustering tools off Browser Run. What it holds and why is documented
+// where it is built, in boardTools.ts; this is where it is stored and read.
 //
-// Three of the four MCP tools have to cluster a page before they can answer anything, and clustering
-// needs a measure render: a full browser session, the same cost as a screenshot, spent to learn where
-// each shape sits and what text it holds. That answer only changes when the board's content changes,
-// so the first tool call to measure a page stores the result here and every later call for the same
-// content reads it instead.
+// A cache in the strict sense: every path through here falls back to measuring, nothing depends on a
+// read succeeding, and a tool never fails because a write did not.
 //
-// It is a cache in the strict sense: a miss is always safe, and every path through here falls back to
-// measuring. Nothing depends on a read succeeding, and a tool never fails because a write did not.
-//
-// The store is the file's own Durable Object, addressed by file id (`ResolvedThumbnailBoard.fileId`)
-// — see the table comment on TLFileDurableObject.ensureMcpClusterIndex for why it lives there. This
-// is the only Durable Object hop in the MCP request path; the tools otherwise read the room's
+// The store is the file's own Durable Object, addressed by `ResolvedThumbnailBoard.fileId`. That is
+// the only Durable Object hop in the MCP request path — the tools otherwise read the room's
 // persisted snapshot straight out of R2 and never talk to the object that wrote it.
 
 /**
- * The ceiling on a stored index, above which a page is simply never cached.
+ * The ceiling on a stored index, above which a page is never cached and keeps measuring.
  *
- * A page of a few thousand shapes serializes to tens of kilobytes; the cap is there for the outlier
- * that would otherwise park hundreds of kilobytes of shape ids in a file's Durable Object storage
- * permanently — the row is replaced on edit, never expired, so what is written is paid for as long
- * as the file lives. A page over the cap keeps measuring, which is what it did before this existed.
+ * A page of a few thousand shapes serializes to tens of kilobytes. The cap is for the outlier: rows
+ * are replaced on edit but never expired, so whatever is written is paid for as long as the file lives.
  */
 export const MAX_CLUSTER_INDEX_BYTES = 256 * 1024
 
@@ -49,9 +41,9 @@ function keyFor(board: ResolvedThumbnailBoard, pageId: string): McpClusterIndexK
 /**
  * The stored index for a page, or null if there isn't a usable one.
  *
- * "Usable" is decided here in full — the row exists, it is for this content version (the object
- * checks that), it parses as this build's format, and the shapes it names are the shapes on the page
- * — so a caller gets an index it can serve from or nothing at all, and never a third case to handle.
+ * "Usable" is decided here in full — the row exists, it is for this content version, it parses as
+ * this build's format, and it names the shapes that are on the page — so a caller gets an index it
+ * can serve from or nothing at all, and never a third case to handle.
  */
 export async function readPageClusterIndex(
 	{ env, request, ctx }: CacheContext,
@@ -86,10 +78,8 @@ export async function readPageClusterIndex(
 /**
  * Stores a page's index for the content it was measured from.
  *
- * Awaited by its caller rather than fired off in the background: the write is a single small row, and
- * the tool that just spent a render is the one call in the sequence that can afford the few
- * milliseconds. Doing it after the response went out would leave the very next tool call — usually
- * get_cluster_info on the clusters that were just listed — racing the write it depends on.
+ * Awaited rather than fired off in the background: a background write would leave the very next tool
+ * call — usually get_cluster_info on the clusters just listed — racing the write it depends on.
  */
 export async function writePageClusterIndex(
 	{ env, request, ctx }: CacheContext,

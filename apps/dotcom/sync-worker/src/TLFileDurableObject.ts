@@ -2680,32 +2680,17 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	/**
-	 * The MCP server's cluster index cache, one row per page of one board.
+	 * The MCP server's cluster index cache (mcpClusterIndexStorage.ts), which lives here because it is
+	 * content derived from the room this object owns: it dies with the file, and needs no expiry.
 	 *
-	 * Why it lives here rather than in R2 with the screenshot PNGs: this is content *derived from the
-	 * room*, and the room is what this object owns. Keeping it beside the document means it is
-	 * strongly consistent, it dies with the file when the file is deleted, and it needs no expiry
-	 * policy — the primary key holds no version, so writing a page's index for new content replaces
-	 * the row for the old one rather than adding to it. At most one row per page per board kind, so a
-	 * file's cache is bounded by its page count (and enumeration stops at MAX_THUMBNAIL_PAGES).
-	 *
-	 * `kind` and `slug` are in the key because one file can be read as two boards: the live shared
-	 * file, and the frozen published snapshot its published slug points at. They cluster differently
-	 * whenever the two have drifted apart, so they must not share a row.
-	 *
-	 * Nothing here boots the room. These are storage-only reads and writes on a Worker's critical
-	 * path, and the point of the cache is to be cheaper than what it replaces.
+	 * Storage-only — none of these boot the room. They run on a Worker's critical path, and the point
+	 * of the cache is to be cheaper than the browser render it replaces.
 	 */
 	private ensureMcpClusterIndex() {
 		ensureMcpClusterIndexTable(this.ctx.storage.sql)
 	}
 
-	/**
-	 * One page's stored cluster index, or null when nothing was stored for this exact content version.
-	 *
-	 * The statements live in mcpClusterIndexStorage.ts so they can be run against a real database in a
-	 * test; everything they do is documented there.
-	 */
+	/** One page's stored cluster index, or null when nothing was stored for this content version. */
 	async getMcpClusterIndex(key: McpClusterIndexKey): Promise<string | null> {
 		this.ensureMcpClusterIndex()
 		return readMcpClusterIndexRow(this.ctx.storage.sql, key)
