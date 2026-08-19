@@ -160,6 +160,47 @@ describe('TLSelectTool.PointingShape when the shape is deleted mid-click', () =>
 	})
 })
 
+describe('TLSelectTool.PointingShape with selectLockedShapes', () => {
+	it('keeps a selected locked shape selected when clicking it over another shape', () => {
+		editor.dispose()
+		editor = new TestEditor({ options: { selectLockedShapes: true } })
+		const behind = createShapeId('behind')
+		const locked = createShapeId('locked')
+		editor.createShapes([
+			{ id: behind, type: 'geo', x: 0, y: 0, props: { w: 300, h: 300, fill: 'solid' } },
+			{
+				id: locked,
+				type: 'geo',
+				x: 100,
+				y: 100,
+				props: { w: 100, h: 100, fill: 'solid' },
+				isLocked: true,
+			},
+		])
+		editor.select(locked)
+		editor.pointerDown(150, 150).pointerUp(150, 150)
+		expect(editor.getSelectedShapeIds()).toEqual([locked])
+	})
+})
+
+describe('TLSelectTool.PointingShape with a rotated multi-selection', () => {
+	it('defers selection when pointing inside the rotated selection bounds', () => {
+		const a = createShapeId('a')
+		const b = createShapeId('b')
+		const c = createShapeId('c')
+		editor.deleteShapes([ids.box1]).createShapes([
+			{ id: a, type: 'geo', x: 0, y: 0, rotation: Math.PI / 2, props: { w: 100, h: 100 } },
+			{ id: b, type: 'geo', x: 300, y: 0, rotation: Math.PI / 2, props: { w: 100, h: 100 } },
+			// between a and b, inside the selection's rotated bounds (page x -100..300, y 0..100)
+			{ id: c, type: 'geo', x: 120, y: 20, props: { w: 50, h: 50, fill: 'solid' } },
+		])
+		editor.select(a, b)
+		editor.pointerDown(145, 45, { target: 'shape', shape: editor.getShape(c)! })
+		expect(editor.getSelectedShapeIds()).toEqual([a, b])
+		editor.pointerUp(145, 45)
+	})
+})
+
 describe('TLSelectTool.Translating', () => {
 	it('Enters from pointing and exits to idle', () => {
 		const shape = editor.getShape(ids.box1)
