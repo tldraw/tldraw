@@ -17,24 +17,29 @@ const WORKER_URL = `http://localhost:5858`
 const roomId = 'test-room'
 
 function App() {
+	// Create a store connected to multiplayer.
 	const store = useSync({
+		// We need a connection to the server:
 		connect: useCallback((query) => {
 			const socket = io(WORKER_URL, {
 				query: { ...query, roomId },
 			})
 			return socketIoToTldrawSocket(socket)
 		}, []),
+		// ...and how to handle static assets like images & videos
 		assets: multiplayerAssets,
 	})
 
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
 			<Tldraw
-				// the synced store handles loading states & enables multiplayer UX like cursors & presence
+				// we can pass the connected store into the Tldraw component which will handle
+				// loading states & enable multiplayer UX like cursors & a presence menu
 				store={store}
 				onMount={(editor) => {
 					// @ts-expect-error
 					window.editor = editor
+					// when the editor is ready, we need to register out bookmark unfurling service
 					editor.registerExternalAssetHandler('url', unfurlBookmarkUrl)
 				}}
 			/>
@@ -42,7 +47,7 @@ function App() {
 	)
 }
 
-// Adapt a Socket.IO socket to the TLPersistentClientSocket interface that useSync expects
+// Helper function to convert Socket.IO to TLPersistentClientSocket
 function socketIoToTldrawSocket(ioSocket: Socket): TLPersistentClientSocket<TLRecord> {
 	const statusChangeListeners = new Set<(event: TLSocketStatusChangeEvent) => void>()
 	const tldrawSocket: TLPersistentClientSocket<TLRecord> = {
@@ -54,11 +59,14 @@ function socketIoToTldrawSocket(ioSocket: Socket): TLPersistentClientSocket<TLRe
 		},
 
 		onReceiveMessage: (callback) => {
+			// Listen for tldraw sync protocol messages
 			const handler = (message: any) => {
 				console.log('📥 Received:', message)
 				callback(message)
 			}
 			ioSocket.on('tldraw-message', handler)
+
+			// Return cleanup function
 			return () => {
 				ioSocket.off('tldraw-message', handler)
 			}
@@ -86,6 +94,7 @@ function socketIoToTldrawSocket(ioSocket: Socket): TLPersistentClientSocket<TLRe
 		},
 	}
 
+	// Map Socket.IO events to TLPersistentClientSocket status
 	const setStatus = (event: TLSocketStatusChangeEvent) => {
 		tldrawSocket.connectionStatus = event.status
 		statusChangeListeners.forEach((cb) => cb(event))
@@ -108,8 +117,9 @@ function socketIoToTldrawSocket(ioSocket: Socket): TLPersistentClientSocket<TLRe
 	return tldrawSocket
 }
 
-// Assets like images and videos are PUT to the server under a unique name.
+// How does our server handle assets like images and videos?
 const multiplayerAssets: TLAssetStore = {
+	// to upload an asset, we prefix it with a unique id, POST it to our worker, and return the URL
 	async upload(_asset, file) {
 		const objectName = `${uniqueId()}-${file.name}`
 		const url = `${WORKER_URL}/uploads/${encodeURIComponent(objectName)}`
@@ -125,14 +135,14 @@ const multiplayerAssets: TLAssetStore = {
 
 		return { src: url }
 	},
-	// the same URL serves the asset. you could customize this to add extra auth, or to serve
-	// optimized versions / sizes of the asset.
+	// to retrieve an asset, we can just use the same URL. you could customize this to add extra
+	// auth, or to serve optimized versions / sizes of the asset.
 	resolve(asset) {
 		return asset.props.src
 	},
 }
 
-// Bookmark unfurling: ask the server for the URL's metadata and fill in an asset record.
+// How does our server handle bookmark unfurling?
 async function unfurlBookmarkUrl({ url }: { url: string }): Promise<TLBookmarkAsset> {
 	const asset: TLBookmarkAsset = {
 		id: AssetRecordType.createId(getHashForString(url)),
