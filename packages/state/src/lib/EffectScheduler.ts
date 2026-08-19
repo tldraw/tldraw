@@ -29,12 +29,9 @@ export interface EffectSchedulerOptions {
 	 * 	}
 	 * }
 	 * const stop = react('set page title', () => {
-	 * 	document.title = doc.title,
-	 * }, scheduleEffect)
+	 * 	document.title = doc.title
+	 * }, { scheduleEffect })
 	 * ```
-	 *
-	 * @param execute - A function that will execute the effect.
-	 * @returns void
 	 */
 	// eslint-disable-next-line tldraw/method-signature-style
 	scheduleEffect?: (execute: () => void) => void

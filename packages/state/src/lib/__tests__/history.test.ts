@@ -1,8 +1,9 @@
+import { exhaustiveSwitchError } from '@tldraw/utils'
 import { vi } from 'vitest'
 import { atom } from '../Atom'
 import { Computed, UNINITIALIZED, computed, isUninitialized, withDiff } from '../Computed'
 import { react } from '../EffectScheduler'
-import { EMPTY_ARRAY, assertNever } from '../helpers'
+import { EMPTY_ARRAY } from '../helpers'
 import { getGlobalEpoch, transact, transaction } from '../transactions'
 import { RESET_VALUE, Signal } from '../types'
 
@@ -383,7 +384,7 @@ function getIncrementalRecordMapper<In, Out>(
 					}
 					break
 				default:
-					assertNever(change)
+					exhaustiveSwitchError(change)
 			}
 		}
 
