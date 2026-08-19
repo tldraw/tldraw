@@ -47,14 +47,13 @@ export class Rotating extends StateNode {
 		}
 		this.snapshot = snapshot
 
-		// Trigger a pointer move
 		const newSelectionRotation = this._getRotationFromPointerPosition({
 			snapToNearestDegree: false,
 		})
 
 		applyRotationToSnapshotShapes({
 			editor: this.editor,
-			delta: this._getRotationFromPointerPosition({ snapToNearestDegree: false }),
+			delta: newSelectionRotation,
 			snapshot: this.snapshot,
 			stage: 'start',
 		})
@@ -96,8 +95,6 @@ export class Rotating extends StateNode {
 	override onCancel() {
 		this.cancel()
 	}
-
-	// ---
 
 	private update() {
 		const newSelectionRotation = this._getRotationFromPointerPosition({
