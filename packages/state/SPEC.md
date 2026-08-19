@@ -76,8 +76,8 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 ## 8. History and diffs (H)
 
 - **H1** A signal has a history buffer only if `historyLength` was passed at creation. `computeDiff` without `historyLength` does nothing.
-- **H2** When an atom with history changes, the recorded diff is chosen in priority order: the explicit `diff` argument to `set(value, diff)`, else `computeDiff(prev, next, lastChangedEpoch, currentEpoch)`, else `RESET_VALUE`.
-- **H3** When a computed with history changes, the recorded diff is chosen in priority order: the diff from a `withDiff(value, diff)` return value, else `computeDiff(...)`, else `RESET_VALUE`. No entry is recorded for the first computation.
+- **H2** When an atom with history changes, the recorded diff is chosen in priority order: the explicit `diff` argument to `set(value, diff)`, else `computeDiff(prev, next, lastChangedEpoch, currentEpoch)`, else `RESET_VALUE`. Only `undefined` means "not supplied"; an explicit `null` diff is recorded as a diff.
+- **H3** When a computed with history changes, the recorded diff is chosen in priority order: the diff from a `withDiff(value, diff)` return value, else `computeDiff(prev, next, lastCheckedEpoch, currentEpoch)`, else `RESET_VALUE`. No entry is recorded for the first computation. As for H2, only `undefined` means "not supplied".
 - **H4** Recording `RESET_VALUE` as a diff clears the entire history buffer. In particular, failing to supply a diff on a signal that has history but no `computeDiff` wipes its history.
 - **H5** `getDiffSince(epoch)` returns:
   - the shared frozen `EMPTY_ARRAY` if `epoch >= lastChangedEpoch` (nothing changed since);
@@ -163,6 +163,6 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 
 `HistoryBuffer` is the circular diff store behind H1–H5.
 
-- **HB1** `pushEntry(fromEpoch, toEpoch, diff)` stores a diff covering the epoch range; pushing `undefined` is ignored; pushing `RESET_VALUE` clears the buffer.
-- **HB2** `getChangesSince(epoch)` returns `[]` when the epoch is at or past the newest entry's `toEpoch`; the ordered diffs back to (and including) the entry whose range contains `epoch`, when the buffer reaches back that far; and `RESET_VALUE` otherwise (epoch too old, buffer empty, capacity exceeded, or cleared).
+- **HB1** `pushEntry(fromEpoch, toEpoch, diff)` stores a diff covering the epoch range. Pushing `RESET_VALUE` clears the buffer, and so does pushing `undefined` ("no diff available"): skipping the entry instead would leave a gap, and a later query from before the gap would return an incomplete diff list.
+- **HB2** `getChangesSince(epoch)` returns the shared frozen `EMPTY_ARRAY` when the epoch is at or past the newest entry's `toEpoch`; the ordered diffs back to (and including) the entry whose range contains `epoch`, when the buffer reaches back that far; and `RESET_VALUE` otherwise (epoch too old, buffer empty, capacity exceeded, or cleared).
 - **HB3** The buffer holds at most `capacity` entries; the oldest entries are overwritten, after which queries reaching past them return `RESET_VALUE`.

@@ -150,7 +150,7 @@ export interface ComputedOptions<Value, Diff> {
 	/**
 	 * The maximum number of diffs to keep in the history buffer.
 	 *
-	 * If you don't need to compute diffs, or if you will supply diffs manually via {@link Atom.set}, you can leave this as `undefined` and no history buffer will be created.
+	 * If you don't need diffs, leave this as `undefined` and no history buffer will be created. Diffs supplied via {@link withDiff} or {@link ComputedOptions.computeDiff} are only recorded when this is set.
 	 *
 	 * If you expect the value to be part of an active effect subscription all the time, and to not change multiple times inside of a single transaction, you can set this to a relatively low number (e.g. 10).
 	 *
@@ -299,13 +299,16 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 			const epoch = getGlobalEpoch()
 			if (isUninitialized || !this.isEqual(this.state, newState)) {
 				if (this.historyBuffer && !isUninitialized) {
+					// Only `undefined` means "no diff supplied"; `null` can be a legitimate diff.
 					const diff = result instanceof WithDiff ? result.diff : undefined
 					this.historyBuffer.pushEntry(
 						this.lastChangedEpoch,
 						epoch,
-						diff ??
-							this.computeDiff?.(this.state, newState, this.lastCheckedEpoch, epoch) ??
-							RESET_VALUE
+						diff !== undefined
+							? diff
+							: this.computeDiff
+								? this.computeDiff(this.state, newState, this.lastCheckedEpoch, epoch)
+								: RESET_VALUE
 					)
 				}
 				this.lastChangedEpoch = epoch
