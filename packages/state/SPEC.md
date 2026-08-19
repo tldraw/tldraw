@@ -60,13 +60,13 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 - **C5** If recomputation produces a value equal (EQ) to the previous one, the computed keeps the previous value object and its `lastChangedEpoch`; downstream children observe no change. The signal's `isEqual` is never invoked for the first computation.
 - **C6** A chain of computeds re-runs minimally: each computed in the chain recomputes at most once per relevant change, and value-level deduplication (C5) stops propagation early.
 - **C7** `computed.isActivelyListening` is true exactly when the computed has at least one attached child (effect or actively-listening computed downstream).
-- **C8** The `@computed` decorator on a class method makes that method behave as `Computed.get()` for a per-instance computed signal: cached, reactive, with options (`isEqual`, `historyLength`, etc.) honored. Both legacy and TC39 decorator protocols are supported.
-- **C9** `getComputedInstance(obj, propertyName)` returns the underlying `Computed` instance for a decorated method, creating it on demand if the method has not been called yet.
+- **C8** The `@computed` decorator on a class method makes that method behave as `Computed.get()` for a per-instance computed signal: cached, reactive, with options (`isEqual`, `historyLength`, etc.) honored. `@computed()` with no options is equivalent to `@computed`. Both legacy and TC39 decorator protocols are supported. A subclass may override a `@computed` method with another `@computed` method and call `super.method()`: each decoration has its own per-instance computed.
+- **C9** `getComputedInstance(obj, propertyName)` returns the underlying `Computed` instance for the nearest decorated method on `obj`'s prototype chain, creating it on demand if the method has not been called yet. Its value type is the method's return type.
 - **C10** Using `@computed` on a _getter_ (legacy decorators only) still works but logs a one-time deprecation warning per process.
 
 ## 7. Errors in computed signals (CE)
 
-- **CE1** If the compute function throws, the thrown value is cached: subsequent `get()` calls rethrow the same value without re-running the compute function, until a parent changes.
+- **CE1** If the compute function throws, the thrown value is cached: subsequent `get()` calls rethrow the same value without re-running the compute function, until a parent changes. This includes a throw from the very first computation.
 - **CE2** Entering the error state counts as a change: downstream effects re-run (and observe the throw). Throwing again on a subsequent recomputation, while already in the error state, does _not_ count as a change — consecutive errors do not re-trigger effects.
 - **CE3** Entering the error state discards the previous value: when the computed later recovers, the compute function receives `UNINITIALIZED` as `previousValue`, and the error state clears.
 - **CE4** Entering the error state clears the computed's history buffer; `getDiffSince` spanning the error returns `RESET_VALUE`.
@@ -76,8 +76,8 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 ## 8. History and diffs (H)
 
 - **H1** A signal has a history buffer only if `historyLength` was passed at creation. `computeDiff` without `historyLength` does nothing.
-- **H2** When an atom with history changes, the recorded diff is chosen in priority order: the explicit `diff` argument to `set(value, diff)`, else `computeDiff(prev, next, lastChangedEpoch, currentEpoch)`, else `RESET_VALUE`.
-- **H3** When a computed with history changes, the recorded diff is chosen in priority order: the diff from a `withDiff(value, diff)` return value, else `computeDiff(...)`, else `RESET_VALUE`. No entry is recorded for the first computation.
+- **H2** When an atom with history changes, the recorded diff is chosen in priority order: the explicit `diff` argument to `set(value, diff)`, else `computeDiff(prev, next, lastChangedEpoch, currentEpoch)`, else `RESET_VALUE`. Only `undefined` means "not supplied"; an explicit `null` diff is recorded as a diff.
+- **H3** When a computed with history changes, the recorded diff is chosen in priority order: the diff from a `withDiff(value, diff)` return value, else `computeDiff(prev, next, lastCheckedEpoch, currentEpoch)`, else `RESET_VALUE`. No entry is recorded for the first computation. As for H2, only `undefined` means "not supplied".
 - **H4** Recording `RESET_VALUE` as a diff clears the entire history buffer. In particular, failing to supply a diff on a signal that has history but no `computeDiff` wipes its history.
 - **H5** `getDiffSince(epoch)` returns:
   - the shared frozen `EMPTY_ARRAY` if `epoch >= lastChangedEpoch` (nothing changed since);
@@ -91,7 +91,7 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 ## 9. Effects: EffectScheduler, react, reactor (E)
 
 - **E1** `react(name, fn)` runs `fn` immediately and unconditionally, then re-runs it whenever any signal captured during its previous run changes. It returns a stop function; after stopping, changes no longer re-run `fn`.
-- **E2** `reactor(name, fn)` does not run `fn` until `.start()`. `.start()` runs the effect if it has never run or if any parent changed while stopped; otherwise it does not run. `.start({ force: true })` always runs it. `.stop()` detaches. Start/stop may be repeated, and `.start()` behaves the same when called from inside an effect during the reaction phase.
+- **E2** `reactor(name, fn)` does not run `fn` until `.start()`. `.start()` runs the effect if it has never run or if any parent changed while stopped; otherwise — including for an effect that captured no parents — it does not run. `.start({ force: true })` always runs it. `.stop()` detaches. Start/stop may be repeated, and `.start()` behaves the same when called from inside an effect during the reaction phase.
 - **E3** One state change produces at most one run of a given effect, even if the change affected several of its parents (e.g. several atoms set in one transaction, or a diamond dependency graph).
 - **E4** An effect re-runs only when a parent's value actually changed (per EQ and C5). Equal-value sets and unrelated epoch advances do not re-run it.
 - **E5** The effect function receives the epoch at which the effect last ran. This enables the incremental pattern `signal.getDiffSince(lastReactedEpoch)` inside effects. The epoch passed is the one captured _before_ the run, so an effect that updates atoms during its own run remains eligible to be scheduled again.
@@ -158,11 +158,12 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 - **AS1** `add` returns true and inserts when the element is absent; returns false and does nothing when present. `remove` returns true and deletes when present; returns false otherwise.
 - **AS2** `visit` and `[Symbol.iterator]` yield each element exactly once; `has`, `size`, and `isEmpty` are consistent with the elements yielded.
 - **AS3** The implementation stores up to `ARRAY_SIZE_THRESHOLD` (8) elements in an array, promoting to a `Set` on overflow. Behavior is identical in both modes and across the promotion boundary, including after interleaved adds, removes, and clears.
+- **AS4** A fresh ArraySet allocates no backing storage until the first `add`. Every query on it (`has`, `size`, `isEmpty`, `visit`, iteration) answers as empty, and `remove` and `clear` are no-ops that leave it usable.
 
 ## 17. HistoryBuffer — internal (HB)
 
 `HistoryBuffer` is the circular diff store behind H1–H5.
 
-- **HB1** `pushEntry(fromEpoch, toEpoch, diff)` stores a diff covering the epoch range; pushing `undefined` is ignored; pushing `RESET_VALUE` clears the buffer.
-- **HB2** `getChangesSince(epoch)` returns `[]` when the epoch is at or past the newest entry's `toEpoch`; the ordered diffs back to (and including) the entry whose range contains `epoch`, when the buffer reaches back that far; and `RESET_VALUE` otherwise (epoch too old, buffer empty, capacity exceeded, or cleared).
+- **HB1** `pushEntry(fromEpoch, toEpoch, diff)` stores a diff covering the epoch range. Pushing `RESET_VALUE` clears the buffer, and so does pushing `undefined` ("no diff available"): skipping the entry instead would leave a gap, and a later query from before the gap would return an incomplete diff list.
+- **HB2** `getChangesSince(epoch)` returns the shared frozen `EMPTY_ARRAY` when the epoch is at or past the newest entry's `toEpoch`; the ordered diffs back to (and including) the entry whose range contains `epoch`, when the buffer reaches back that far; and `RESET_VALUE` otherwise (epoch too old, buffer empty, capacity exceeded, or cleared).
 - **HB3** The buffer holds at most `capacity` entries; the oldest entries are overwritten, after which queries reaching past them return `RESET_VALUE`.

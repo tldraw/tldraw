@@ -17,21 +17,11 @@ class Transaction {
 
 	initialAtomValues = new Map<_Atom, any>()
 
-	/**
-	 * Get whether this transaction is a root (no parents).
-	 *
-	 * @public
-	 */
 	// eslint-disable-next-line tldraw/no-setter-getter
 	get isRoot() {
 		return this.parent === null
 	}
 
-	/**
-	 * Commit the transaction's changes.
-	 *
-	 * @public
-	 */
 	commit() {
 		if (inst.globalIsReacting) {
 			// if we're committing during a reaction we actually need to
@@ -44,9 +34,17 @@ class Transaction {
 			flushChanges(this.initialAtomValues.keys())
 		} else {
 			// For transactions with parents, add the transaction's initial values to the parent's.
+			// A parent that has recorded nothing yet adopts the map outright: this transaction is
+			// finished with it, and the common nested case is a single inner transaction doing all
+			// the writes.
+			const parentValues = this.parent!.initialAtomValues
+			if (parentValues.size === 0) {
+				this.parent!.initialAtomValues = this.initialAtomValues
+				return
+			}
 			this.initialAtomValues.forEach((value, atom) => {
-				if (!this.parent!.initialAtomValues.has(atom)) {
-					this.parent!.initialAtomValues.set(atom, value)
+				if (!parentValues.has(atom)) {
+					parentValues.set(atom, value)
 				}
 			})
 		}
@@ -60,13 +58,11 @@ class Transaction {
 	abort() {
 		inst.globalEpoch++
 
-		// Reset each of the transaction's atoms to its initial value.
 		this.initialAtomValues.forEach((value, atom) => {
 			atom.set(value)
 			atom.historyBuffer?.clear()
 		})
 
-		// Commit the changes.
 		this.commit()
 	}
 }
@@ -102,7 +98,9 @@ export function getIsInTransaction() {
 	return inst.currentTransaction !== null
 }
 
-// Reusable state for traverse to avoid closure allocation
+// The set `traverseChild` collects reactors into. Module-level rather than a closure so that a
+// flush over thousands of atoms doesn't allocate a visitor per atom; traversal never runs user
+// code, so nothing can re-enter and swap it mid-walk.
 let traverseReactors: Set<Reactor>
 
 function traverseChild(child: Child) {
@@ -117,11 +115,6 @@ function traverseChild(child: Child) {
 	} else {
 		;(child as any as Signal<any>).children.visit(traverseChild)
 	}
-}
-
-function traverse(reactors: Set<Reactor>, child: Child) {
-	traverseReactors = reactors
-	traverseChild(child)
 }
 
 /**
@@ -140,11 +133,10 @@ function flushChanges(atoms: Iterable<_Atom>) {
 		inst.currentTransaction = null
 		inst.globalIsReacting = true
 
-		// Collect all of the visited reactors.
 		const reactors = new Set<Reactor>()
-
+		traverseReactors = reactors
 		for (const atom of atoms) {
-			atom.children.visit((child) => traverse(reactors, child))
+			atom.children.visit(traverseChild)
 		}
 
 		// Run each reactor.
@@ -171,14 +163,7 @@ function flushChanges(atoms: Iterable<_Atom>) {
 	}
 }
 
-/**
- * Handle a change to an atom.
- *
- * @param atom The atom that changed.
- * @param previousValue The atom's previous value.
- *
- * @internal
- */
+/** @internal */
 export function atomDidChange(atom: _Atom, previousValue: any) {
 	if (inst.currentTransaction) {
 		// If we are in a transaction, then all we have to do is preserve
@@ -202,16 +187,11 @@ export function atomDidChange(atom: _Atom, previousValue: any) {
 }
 
 function traverseAtomForCleanup(atom: _Atom) {
-	const rs = (inst.cleanupReactors ??= new Set())
-	atom.children.visit((child) => traverse(rs, child))
+	traverseReactors = inst.cleanupReactors ??= new Set()
+	atom.children.visit(traverseChild)
 }
 
-/**
- * Advances the global epoch counter by one.
- * This is used internally to track when changes occur across the reactive system.
- *
- * @internal
- */
+/** @internal */
 export function advanceGlobalEpoch() {
 	inst.globalEpoch++
 }
@@ -239,7 +219,7 @@ export function advanceGlobalEpoch() {
  * // Logs "Hello, Jane Smith!"
  * ```
  *
- * If the function throws, the transaction is aborted and any signals that were updated during the transaction revert to their state before the transaction began.
+ * If the function throws, the transaction is aborted and any signals that were updated during the transaction revert to their state before the transaction began. An aborted transaction still flushes effects: effects whose parents went through a change-and-restore round trip are checked again and, if a parent's value differs from what they last saw (an atom they read directly always will), run once more with the restored values.
  *
  * @example
  * ```ts
@@ -257,8 +237,9 @@ export function advanceGlobalEpoch() {
  *  throw new Error('oops')
  * })
  *
- * // Does not log
  * // firstName.get() === 'John'
+ * // Logs "Hello, John Doe!" again: effects whose parents were changed and restored still run,
+ * // and observe the restored values.
  * ```
  *
  * A `rollback` callback is passed into the function.
@@ -281,9 +262,9 @@ export function advanceGlobalEpoch() {
  *  rollback()
  * })
  *
- * // Does not log
  * // firstName.get() === 'John'
  * // lastName.get() === 'Doe'
+ * // Logs "Hello, John Doe!" again, as above.
  * ```
  *
  * @param fn - The function to run in a transaction, called with a function to roll back the change.
@@ -293,7 +274,6 @@ export function advanceGlobalEpoch() {
 export function transaction<T>(fn: (rollback: () => void) => T) {
 	const txn = new Transaction(inst.currentTransaction, true)
 
-	// Set the current transaction to the transaction
 	inst.currentTransaction = txn
 
 	try {
@@ -301,10 +281,8 @@ export function transaction<T>(fn: (rollback: () => void) => T) {
 		let rollback = false
 
 		try {
-			// Run the function.
 			result = fn(() => (rollback = true))
 		} catch (e) {
-			// Abort the transaction if the function throws.
 			txn.abort()
 			throw e
 		}
@@ -314,7 +292,6 @@ export function transaction<T>(fn: (rollback: () => void) => T) {
 		}
 
 		if (rollback) {
-			// If the rollback was triggered, abort the transaction.
 			txn.abort()
 		} else {
 			txn.commit()
@@ -322,7 +299,6 @@ export function transaction<T>(fn: (rollback: () => void) => T) {
 
 		return result
 	} finally {
-		// Set the current transaction to the transaction's parent.
 		inst.currentTransaction = txn.parent
 	}
 }

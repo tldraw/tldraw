@@ -259,6 +259,24 @@ describe('reactor (E)', () => {
 		expect(seen).toEqual([2, 10])
 		expect(c.get()).toBe(10)
 	})
+
+	it('[E2][E9] an effect that captured no parents does not re-run on start() after unrelated changes', () => {
+		const unrelated = atom('', 0)
+		const rfn = vi.fn()
+		const r = reactor('', rfn)
+
+		r.start()
+		expect(rfn).toHaveBeenCalledTimes(1)
+
+		r.stop()
+		unrelated.set(1)
+		r.start()
+		// no parent changed (there are none), so there is nothing to react to
+		expect(rfn).toHaveBeenCalledTimes(1)
+
+		r.start({ force: true })
+		expect(rfn).toHaveBeenCalledTimes(2)
+	})
 })
 
 describe('custom scheduling (E6, E7)', () => {
