@@ -95,12 +95,16 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 		// bail out if no atoms have changed since the last time we ran this effect
 		if (this.lastReactedEpoch === getGlobalEpoch()) return
 
-		// bail out if we have parents and they have not changed since last time
-		if (this.parents.length && !haveParentsChanged(this)) {
+		// An effect that has run before (or captured parents before throwing) only needs to run
+		// again if one of those parents changed; that includes an effect that captured no parents at
+		// all. An effect that has never run always runs.
+		if (
+			(this.lastReactedEpoch !== GLOBAL_START_EPOCH || this.parents.length > 0) &&
+			!haveParentsChanged(this)
+		) {
 			this.lastReactedEpoch = getGlobalEpoch()
 			return
 		}
-		// if we don't have parents it's probably the first time this is running.
 		this.scheduleEffect()
 	}
 
