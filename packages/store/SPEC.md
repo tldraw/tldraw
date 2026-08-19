@@ -81,10 +81,11 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **H4** `filters.source` (`'user' | 'remote' | 'all'`) drops entries from other sources. `filters.scope` (`'document' | 'session' | 'presence' | 'all'`) filters each entry's diff down to records of that scope; if nothing remains, the listener is not called for that entry.
 - **H5** `listen` flushes pending history first, so a new listener never sees changes made before it subscribed.
 - **H6** While no listeners are attached, accumulated history is discarded rather than retained.
-- **H7** `extractingChanges(fn)` returns the squashed diff of exactly the changes made during `fn` (listeners still see those changes normally).
+- **H7** `extractingChanges(fn)` returns the squashed diff of exactly the changes made during `fn` (listeners still see those changes normally); changes from a nested transaction that rolled back inside `fn` are excluded.
 - **H8** `addHistoryInterceptor(fn)` calls `fn(entry, source)` synchronously for every change-set as it happens and returns a remover.
 - **H9** `applyDiff(diff)` puts the `added` and `updated` records and removes the `removed` ids. `runCallbacks: false` disables side effects for the application (AO3). Applying a diff and then its `reverseRecordsDiff` (D2) restores the prior state.
 - **H10** `applyDiff` with `ignoreEphemeralKeys: true` ignores changes to keys in the type's `ephemeralKeySet` when applying updates to existing records: non-ephemeral changed keys are merged onto the stored record, and an update touching only ephemeral keys is dropped. Updates for records that don't exist are applied in full, as are records in `added`.
+- **H11** Change-sets recorded inside a transaction that later rolls back (a throw, or an explicit rollback) are discarded: listeners never receive them, and a rolled-back nested transaction discards only its own. (History interceptors, being synchronous, have already seen them.)
 
 ## 9. Validation (V)
 

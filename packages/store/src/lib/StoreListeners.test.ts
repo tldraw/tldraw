@@ -1,4 +1,4 @@
-import { react, RESET_VALUE, transact } from '@tldraw/state'
+import { react, RESET_VALUE, transact, transaction } from '@tldraw/state'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BaseRecord, RecordId } from './BaseRecord'
 import { RecordsDiff, reverseRecordsDiff } from './RecordsDiff'
@@ -458,5 +458,92 @@ describe('applying diffs (H)', () => {
 			expect(result.visitorName).toBe('Janet')
 			expect(result.lastActive).toBe(999)
 		})
+	})
+})
+
+describe('listeners: rollback (H)', () => {
+	it('[H11] listeners never see change-sets from a transaction that rolled back', async () => {
+		const listener = vi.fn()
+		store.listen(listener)
+		const author = tolkein()
+
+		expect(() =>
+			store.atomic(() => {
+				store.put([author])
+				throw new Error('abort')
+			})
+		).toThrow('abort')
+		expect(store.get(author.id)).toBeUndefined()
+
+		// a later, committed change flushes whatever the accumulator still holds
+		store.put([Author.create({ name: 'Ursula K. Le Guin' })])
+		await new Promise((resolve) => requestAnimationFrame(resolve))
+
+		const addedIds = listener.mock.calls.flatMap(([entry]) => Object.keys(entry.changes.added))
+		expect(addedIds).not.toContain(author.id)
+		expect(addedIds).toHaveLength(1)
+	})
+
+	it('[H11] a rolled-back nested transaction only discards its own change-sets', async () => {
+		const listener = vi.fn()
+		store.listen(listener)
+		const kept = tolkein()
+		const dropped = Author.create({ name: 'Dropped' })
+
+		transact(() => {
+			store.put([kept])
+			try {
+				transaction(() => {
+					store.put([dropped])
+					throw new Error('inner')
+				})
+			} catch {
+				// the outer transaction commits
+			}
+		})
+		await new Promise((resolve) => requestAnimationFrame(resolve))
+
+		expect(store.get(kept.id)).toBeDefined()
+		expect(store.get(dropped.id)).toBeUndefined()
+		const addedIds = listener.mock.calls.flatMap(([entry]) => Object.keys(entry.changes.added))
+		expect(addedIds).toEqual([kept.id])
+	})
+})
+
+describe('extracting changes across rolled-back nested transactions (H)', () => {
+	it('[H7] extractingChanges excludes changes from a nested transaction that rolled back', () => {
+		const kept = tolkein()
+		const dropped = Author.create({ name: 'Dropped' })
+		const changes = store.extractingChanges(() => {
+			store.put([kept])
+			try {
+				transaction(() => {
+					store.put([dropped])
+					throw new Error('inner')
+				})
+			} catch {
+				// swallowed: the outer work continues
+			}
+		})
+		expect(Object.keys(changes.added)).toEqual([kept.id])
+		expect(store.get(dropped.id)).toBeUndefined()
+	})
+})
+
+describe('listeners added from an interceptor (H)', () => {
+	it('[H8] a flush triggered from inside an interceptor still delivers the entry being recorded', () => {
+		const first = vi.fn()
+		store.listen(first)
+		let added = false
+		store.addHistoryInterceptor(() => {
+			if (added) return
+			added = true
+			// listen() flushes synchronously while the entry is still being recorded
+			store.listen(() => {})
+		})
+
+		store.put([tolkein()])
+		store._flushHistory()
+		expect(first).toHaveBeenCalledTimes(1)
 	})
 })

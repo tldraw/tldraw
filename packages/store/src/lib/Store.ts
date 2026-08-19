@@ -517,8 +517,9 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 	public _flushHistory() {
 		// If we have accumulated history, flush it and update listeners
-		if (this.historyAccumulator.hasChanges()) {
-			const entries = this.historyAccumulator.flush()
+		const version = this.history.__unsafe__getWithoutCapture()
+		const entries = this.historyAccumulator.flush(version)
+		if (entries.length > 0) {
 			for (const { changes, source } of entries) {
 				// Filtered diffs are computed at most once per scope per entry, and shared by every
 				// listener watching that scope.
@@ -570,14 +571,22 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param changes - The changes to add to the history.
 	 */
 	private updateHistory(changes: RecordsDiff<R>): void {
-		this.historyAccumulator.add({
-			changes,
-			source: this.isMergingRemoteChanges ? 'remote' : 'user',
-		})
+		// Don't capture: a reaction that writes to the store must not become a dependent of the
+		// history atom, or every other store change would re-run it (and it could loop forever).
+		const version = this.history.__unsafe__getWithoutCapture() + 1
+		// Set the atom before recording the entry: interceptors run inside `add`, and a flush they
+		// trigger (e.g. via `listen`) would otherwise discard the entry as not yet committed.
+		this.history.set(version, changes)
+		this.historyAccumulator.add(
+			{
+				changes,
+				source: this.isMergingRemoteChanges ? 'remote' : 'user',
+			},
+			version
+		)
 		if (this.listeners.size === 0) {
 			this.historyAccumulator.clear()
 		}
-		this.history.set(this.history.get() + 1, changes)
 	}
 
 	validate(phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests') {
@@ -1042,11 +1051,22 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * Run `fn` and return a {@link RecordsDiff} of the changes that occurred as a result.
 	 */
 	extractingChanges(fn: () => void): RecordsDiff<R> {
-		const changes: Array<RecordsDiff<R>> = []
-		const dispose = this.historyAccumulator.addInterceptor((entry) => changes.push(entry.changes))
+		const collected: Array<{ version: number; changes: RecordsDiff<R> }> = []
+		const dispose = this.historyAccumulator.addInterceptor((entry, version) => {
+			// a nested transaction that rolled back inside `fn` leaves entries stamped at or past the
+			// next committed version — see HistoryAccumulator
+			while (collected.length && collected[collected.length - 1].version >= version) {
+				collected.pop()
+			}
+			collected.push({ version, changes: entry.changes })
+		})
 		try {
 			transact(fn)
-			return squashRecordDiffs(changes)
+			const current = this.history.__unsafe__getWithoutCapture()
+			while (collected.length && collected[collected.length - 1].version > current) {
+				collected.pop()
+			}
+			return squashRecordDiffs(collected.map((c) => c.changes))
 		} finally {
 			dispose()
 		}
@@ -1326,13 +1346,18 @@ function squashHistoryEntries<T extends UnknownRecord>(
 class HistoryAccumulator<T extends UnknownRecord> {
 	private _history: HistoryEntry<T>[] = []
 
-	private _interceptors: Set<(entry: HistoryEntry<T>) => void> = new Set()
+	// The `history` atom value each entry was recorded at. A transaction that aborts rolls that atom
+	// back but cannot unwind this array, so an entry stamped at or past the atom's current value
+	// belongs to a rolled-back change-set and must not reach listeners.
+	private _versions: number[] = []
+
+	private _interceptors: Set<(entry: HistoryEntry<T>, version: number) => void> = new Set()
 
 	/**
-	 * Add an interceptor that will be called for each history entry.
-	 * Returns a function to remove the interceptor.
+	 * Add an interceptor that will be called for each history entry, with the version it was
+	 * recorded at (see `add`). Returns a function to remove the interceptor.
 	 */
-	addInterceptor(fn: (entry: HistoryEntry<T>) => void) {
+	addInterceptor(fn: (entry: HistoryEntry<T>, version: number) => void) {
 		this._interceptors.add(fn)
 		return () => {
 			this._interceptors.delete(fn)
@@ -1340,13 +1365,15 @@ class HistoryAccumulator<T extends UnknownRecord> {
 	}
 
 	/**
-	 * Add a history entry to the accumulator.
+	 * Add a history entry recorded at `version` (the `history` atom value it sets).
 	 * Calls all registered interceptors with the entry.
 	 */
-	add(entry: HistoryEntry<T>) {
+	add(entry: HistoryEntry<T>, version: number) {
+		this.discardFrom(version)
 		this._history.push(entry)
+		this._versions.push(version)
 		for (const interceptor of this._interceptors) {
-			interceptor(entry)
+			interceptor(entry, version)
 		}
 	}
 
@@ -1354,9 +1381,10 @@ class HistoryAccumulator<T extends UnknownRecord> {
 	 * Flush all accumulated history entries, squashing adjacent entries from the same source.
 	 * Clears the internal history buffer.
 	 */
-	flush() {
+	flush(currentVersion: number) {
+		this.discardFrom(currentVersion + 1)
 		const history = squashHistoryEntries(this._history)
-		this._history = []
+		this.clear()
 		return history
 	}
 
@@ -1365,13 +1393,16 @@ class HistoryAccumulator<T extends UnknownRecord> {
 	 */
 	clear() {
 		this._history = []
+		this._versions = []
 	}
 
-	/**
-	 * Check if there are any accumulated history entries.
-	 */
-	hasChanges() {
-		return this._history.length > 0
+	// Drops the entries recorded at or after `version`. Entries are in ascending version order: the
+	// atom increments by one per entry, and a rollback is followed by exactly this discard.
+	private discardFrom(version: number) {
+		while (this._versions.length && this._versions[this._versions.length - 1] >= version) {
+			this._versions.pop()
+			this._history.pop()
+		}
 	}
 }
 
