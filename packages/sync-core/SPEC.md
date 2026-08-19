@@ -250,7 +250,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **SES3** Removal deletes the session, closes the socket (with code 4099 and the reason when fatal), deletes the session's presence record and broadcasts that deletion to everyone, emits `session_removed`, and emits `room_became_empty` when it was the last session.
 - **SES4** `rejectSession` with a reason: legacy sessions (protocol ≤ 6) receive a deprecated `incompatibility_error` message (reason mapped: `CLIENT_TOO_OLD` → `clientTooOld`, `SERVER_TOO_OLD` → `serverTooOld`, `INVALID_RECORD` → `invalidRecord`, anything else → `invalidOperation`) and are then removed without a close code; modern sessions are closed with code 4099 and the reason string. Without a reason it is a plain removal.
 - **SES5** `getCanEmitStringAppend()` is false when any connected session has `supportsStringAppend: false`; pushes handled in that state use legacy append mode (D5) so broadcast diffs avoid string-append ops.
-- **SES6** `handleResumedSession` registers a session directly in `Connected` state (no handshake): `requiresDownMigrations` is recomputed from the supplied schema, and a supplied presence record is restored into the presence store.
+- **SES6** `handleResumedSession` registers a session directly in `Connected` state (no handshake): `requiresDownMigrations` is recomputed from the supplied schema, and a supplied presence record is restored into the presence store. The handshake's schema checks (HS3) are re-applied — a schema the server can no longer reconcile rejects the resumed session instead of being served unmigrated diffs.
 - **SES7** A message from an unknown session id logs a warning and is ignored.
 
 ## 27. Migrations over the wire (MG)
