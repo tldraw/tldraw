@@ -134,7 +134,10 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	attach() {
 		this._isActivelyListening = true
 		for (let i = 0, n = this.parents.length; i < n; i++) {
-			attach(this.parents[i], this)
+			const parent = this.parents[i]
+			// a computed parent may have gone stale while nothing listened; see `attach` in helpers.ts
+			parent.__unsafe__getWithoutCapture(true)
+			attach(parent, this)
 		}
 	}
 

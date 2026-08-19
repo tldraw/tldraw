@@ -49,12 +49,14 @@ const MULTIPLAYER_EVENT_NAME = 'multiplayer.client'
 
 const defaultCustomMessageHandler: TLCustomMessageHandler = () => {}
 
-const SYNC_ERROR_EVENT_NAMES: Record<string, string> = {
-	[TLSyncErrorCloseEventReason.NOT_FOUND]: 'room-not-found',
-	[TLSyncErrorCloseEventReason.FORBIDDEN]: 'forbidden',
-	[TLSyncErrorCloseEventReason.NOT_AUTHENTICATED]: 'not-authenticated',
-	[TLSyncErrorCloseEventReason.RATE_LIMITED]: 'rate-limited',
-}
+// A Map rather than an object: `reason` is an arbitrary string from the server's close event,
+// so an object lookup would hit prototype keys like 'constructor'.
+const SYNC_ERROR_EVENT_NAMES = new Map<string, string>([
+	[TLSyncErrorCloseEventReason.NOT_FOUND, 'room-not-found'],
+	[TLSyncErrorCloseEventReason.FORBIDDEN, 'forbidden'],
+	[TLSyncErrorCloseEventReason.NOT_AUTHENTICATED, 'not-authenticated'],
+	[TLSyncErrorCloseEventReason.RATE_LIMITED, 'rate-limited'],
+])
 
 type SyncSocket = TLPersistentClientSocket<
 	TLSocketClientSentEvent<TLRecord>,
@@ -346,7 +348,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			onSyncError(reason) {
 				console.error('sync error', reason)
 				track?.(MULTIPLAYER_EVENT_NAME, {
-					name: SYNC_ERROR_EVENT_NAMES[reason] ?? 'sync-error:' + reason,
+					name: SYNC_ERROR_EVENT_NAMES.get(reason) ?? 'sync-error:' + reason,
 					roomId,
 				})
 				setState({ error: new TLRemoteSyncError(reason) })

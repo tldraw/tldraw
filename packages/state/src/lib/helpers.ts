@@ -88,6 +88,11 @@ export function detach(parent: Signal<any>, child: Child) {
  * This function is used internally when dependencies are captured during computed signal
  * evaluation or effect execution.
  *
+ * `parent` must be up to date when it is attached: `Computed` assumes an actively-listening
+ * computed has been traversed for every ancestor change since it was last checked, which only
+ * holds from the moment it started listening. Capture attaches a parent right after reading it;
+ * `EffectScheduler.attach` refreshes its parents first.
+ *
  * @param parent - The parent signal to attach to
  * @param child - The child signal to attach
  * @example
