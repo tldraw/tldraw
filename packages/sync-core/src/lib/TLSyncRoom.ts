@@ -258,7 +258,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}, 1000)
 
 	private scheduleFollowUpPrune() {
-		if (this.pruneTimer) return
+		// no new timers once closed: a late socket close would otherwise resurrect pruning and emit
+		// session_removed / room_became_empty against a room the host has already torn down
+		if (this._isClosed || this.pruneTimer) return
 		this.pruneTimer = setTimeout(this.pruneSessions, SESSION_REMOVAL_WAIT_TIME + 100)
 	}
 
@@ -273,11 +275,27 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * and stops background processes.
 	 */
 	close() {
+		this._isClosed = true
 		this.disposables.forEach((d) => d())
 		this.sessions.forEach((session) => {
-			session.socket.close()
+			// a debounced flush firing after the sockets are closed would call send() on a closed
+			// socket, which throws on some runtimes (Cloudflare) from inside a timer
+			this.clearDebounceTimer(session)
+			try {
+				session.socket.close()
+			} catch {
+				// noop, one bad socket must not leave the rest open
+			}
 		})
-		this._isClosed = true
+		this.sessions.clear()
+	}
+
+	private clearDebounceTimer(session: RoomSession<R, SessionMeta>) {
+		if (session.state === RoomSessionState.Connected && session.debounceTimer !== null) {
+			clearTimeout(session.debounceTimer)
+			session.debounceTimer = null
+			session.outstandingDataMessages = []
+		}
 	}
 
 	/**
@@ -519,6 +537,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			// place, so sockets that defer serialization don't see an emptied array
 			const data = session.outstandingDataMessages
 			session.outstandingDataMessages = []
+			if (!session.socket.isOpen) {
+				// same as the immediate-send path: a closed socket cancels the session rather
+				// than making us send into it (which throws on some runtimes)
+				this.cancelSession(sessionId)
+				return
+			}
 			session.socket.sendMessage({ type: 'data', data })
 		}
 	}
@@ -532,6 +556,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 
 		this.sessions.delete(sessionId)
+		this.clearDebounceTimer(session)
 
 		try {
 			if (fatalReason) {
@@ -570,6 +595,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			return
 		}
 
+		this.clearDebounceTimer(session)
 		this.sessions.set(sessionId, {
 			state: RoomSessionState.AwaitingRemoval,
 			sessionId,
@@ -693,6 +719,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}) {
 		const { sessionId, socket, meta, isReadonly, objectAccess } = opts
 		const existing = this.sessions.get(sessionId)
+		if (existing) this.clearDebounceTimer(existing)
 		this.sessions.set(sessionId, {
 			state: RoomSessionState.AwaitingConnectMessage,
 			sessionId,
@@ -760,6 +787,17 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			requiresLegacyRejection,
 			supportsStringAppend,
 		})
+
+		// The server may have changed builds while the socket slept, so re-run the handshake's
+		// schema checks (HS3): a schema we can no longer reconcile must not be served raw diffs.
+		if (!migrations.ok) {
+			this.rejectSession(sessionId, this.getVersionMismatchReason(serializedSchema))
+			return
+		}
+		if (migrations.value.some((m) => m.scope !== 'record' || !m.down)) {
+			this.rejectSession(sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+			return
+		}
 
 		if (presenceRecord && presenceId) {
 			this.presenceStore.set(presenceId, presenceRecord as R)
@@ -1055,7 +1093,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		const requiresDownMigrations = migrations.value.length > 0
 
-		const connect = async (msg: Extract<TLSocketServerSentEvent<R>, { type: 'connect' }>) => {
+		const connect = (msg: Extract<TLSocketServerSentEvent<R>, { type: 'connect' }>) => {
+			// broadcastChanges may have force-reconnected everyone (wipeAll) while we were in the
+			// transaction, removing this very session; re-adding it would resurrect a session whose
+			// socket is already closed and emit a second `session_removed` for it later
+			if (this.sessions.get(session.sessionId) !== session) return
 			this.sessions.set(session.sessionId, {
 				state: RoomSessionState.Connected,
 				sessionId: session.sessionId,
@@ -1139,7 +1181,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (session && session.state !== RoomSessionState.Connected) {
 			return
 		}
-		// update the last interaction time
 		if (session) {
 			session.lastInteractionTime = Date.now()
 		}

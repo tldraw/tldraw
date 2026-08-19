@@ -208,7 +208,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **RC4** Storage `onChange` notifications carrying a foreign transaction id make the room broadcast the new changes to all connected clients. The room's own transactions (id `'TLSyncRoom.txn'`) do not re-broadcast this way.
 - **RC5** If an external change leaves the storage unable to produce an incremental diff (`wipeAll`), the room closes every session so clients reconnect and re-hydrate.
 - **RC6** The idle timeout defaults to `SESSION_IDLE_TIMEOUT` (20s) and is configurable via `clientTimeout`. A finite positive timeout starts a periodic prune interval of `min(2000, timeout/4)` ms; `Infinity` or 0 disables the interval (pruning then only happens on message activity or via the follow-up prune scheduled when a socket close/error cancels a session, per SES2).
-- **RC7** `close()` closes every session's socket and stops background work; `isClosed()` reports it.
+- **RC7** `close()` marks the room closed, stops background work and pending per-session flush timers, closes every session's socket (a socket that throws on close does not stop the others) and forgets the sessions without emitting `session_removed`; no prune timers are scheduled afterwards, so late socket events cannot emit lifecycle events on a closed room. `isClosed()` reports it.
 
 ## 23. `TLSyncRoom` — connect handshake (HS)
 
@@ -217,7 +217,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **HS3** A connect message without a schema, with a schema the server cannot migrate from, or whose migrations include any non-record-scope or down-less migration, is rejected `CLIENT_TOO_OLD`.
 - **HS4** The connect response echoes `connectRequestId` and `isReadonly`, carries the server's schema and current clock, and `hydrationType: 'wipe_all'` when storage cannot produce an incremental diff since the client's `lastServerClock` (including when that clock is in the future), else `'wipe_presence'`.
 - **HS5** The connect response diff contains every _other_ session's presence record — the connecting session's own presence is excluded — plus the document changes since the client's `lastServerClock` (the full document set in the `wipe_all` case), all down-migrated when the client's schema is older.
-- **HS6** A successful handshake moves the session to `Connected`.
+- **HS6** A successful handshake moves the session to `Connected` — unless the session was removed while the handshake's transaction ran (RC5 force-reconnect), in which case it stays removed rather than being resurrected.
 
 ## 24. `TLSyncRoom` — push handling (RP)
 
@@ -239,7 +239,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 
 - **RB1** Data messages (`patch`, `push_result`) to a session are debounced: the first is sent immediately wrapped as `{ type: 'data', data: [msg] }`; messages within the following `DATA_MESSAGE_DEBOUNCE_INTERVAL` (1000/60 ms) are buffered and flushed together as one `data` message. The array handed to the socket is not mutated afterwards, so sockets may serialize lazily.
 - **RB2** Non-data messages flush any buffered data messages first, preserving order — except `pong`, which skips the flush.
-- **RB3** Sending to a session whose socket is closed cancels that session.
+- **RB3** Sending to a session whose socket is closed cancels that session — on the debounced flush path as well as the immediate one.
 - **RB4** Broadcasts are migrated per session (MG1); a migration failure rejects only the affected session, and the broadcast proceeds for the others.
 - **RB5** `sendCustomMessage` delivers `{ type: 'custom', data }` to a connected session; sending to an unknown or not-yet-connected session logs a warning and does nothing.
 
@@ -250,7 +250,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **SES3** Removal deletes the session, closes the socket (with code 4099 and the reason when fatal), deletes the session's presence record and broadcasts that deletion to everyone, emits `session_removed`, and emits `room_became_empty` when it was the last session.
 - **SES4** `rejectSession` with a reason: legacy sessions (protocol ≤ 6) receive a deprecated `incompatibility_error` message (reason mapped: `CLIENT_TOO_OLD` → `clientTooOld`, `SERVER_TOO_OLD` → `serverTooOld`, `INVALID_RECORD` → `invalidRecord`, anything else → `invalidOperation`) and are then removed without a close code; modern sessions are closed with code 4099 and the reason string. Without a reason it is a plain removal.
 - **SES5** `getCanEmitStringAppend()` is false when any connected session has `supportsStringAppend: false`; pushes handled in that state use legacy append mode (D5) so broadcast diffs avoid string-append ops.
-- **SES6** `handleResumedSession` registers a session directly in `Connected` state (no handshake): `requiresDownMigrations` is recomputed from the supplied schema, and a supplied presence record is restored into the presence store.
+- **SES6** `handleResumedSession` registers a session directly in `Connected` state (no handshake): `requiresDownMigrations` is recomputed from the supplied schema, and a supplied presence record is restored into the presence store. The handshake's schema checks (HS3) are re-applied — a schema the server can no longer reconcile rejects the resumed session instead of being served unmigrated diffs.
 - **SES7** A message from an unknown session id logs a warning and is ignored.
 
 ## 27. Migrations over the wire (MG)
