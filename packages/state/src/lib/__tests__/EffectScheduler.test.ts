@@ -233,6 +233,50 @@ describe('reactor (E)', () => {
 		r.scheduler.maybeScheduleEffect()
 		expect(rfn).toHaveBeenCalledTimes(1)
 	})
+
+	it('[E2][E9] an effect that captured no parents does not re-run on start() after unrelated changes', () => {
+		const unrelated = atom('', 0)
+		const rfn = vi.fn()
+		const r = reactor('', rfn)
+
+		r.start()
+		expect(rfn).toHaveBeenCalledTimes(1)
+
+		r.stop()
+		unrelated.set(1)
+		r.start()
+		// no parent changed (there are none), so there is nothing to react to
+		expect(rfn).toHaveBeenCalledTimes(1)
+
+		r.start({ force: true })
+		expect(rfn).toHaveBeenCalledTimes(2)
+	})
+
+	it('[E2] start() inside a reaction phase runs the effect if a parent changed while stopped', () => {
+		// Regression: re-attaching during a reaction used to make a stale computed parent "actively
+		// listening" without refreshing it, and Computed's cache then served the stale value, so the
+		// restarted reactor never ran and the computed stayed wrong until its ancestor changed again.
+		const a = atom('a', 1)
+		const c = computed('c', () => a.get() * 2)
+		const seen: number[] = []
+		const r = reactor('r', () => {
+			seen.push(c.get())
+		})
+		r.start()
+		expect(seen).toEqual([2])
+		r.stop()
+
+		a.set(5) // nothing is listening to c now, so it goes stale
+
+		const trigger = atom('trigger', 0)
+		react('outer', () => {
+			if (trigger.get() === 1) r.start()
+		})
+		trigger.set(1) // r.start() runs inside this reaction phase
+
+		expect(seen).toEqual([2, 10])
+		expect(c.get()).toBe(10)
+	})
 })
 
 describe('custom scheduling (E6, E7)', () => {
@@ -399,5 +443,58 @@ describe('EffectScheduler attach/detach (E8)', () => {
 		expect(numReactions).toBe(3)
 		a.set(4)
 		expect(numReactions).toBe(4)
+	})
+
+	it('[E8] attach() brings stale computed parents up to date before listening to them', () => {
+		const a = atom('a', 1)
+		const c = computed('c', () => a.get() * 2)
+		const seen: number[] = []
+		const scheduler = new EffectScheduler('test', () => {
+			seen.push(c.get())
+		})
+		scheduler.attach()
+		scheduler.execute()
+		scheduler.detach()
+		a.set(5) // c is stale now
+
+		// the useStateTracking pattern: re-attach, then ask whether a run is needed, inside a reaction
+		const trigger = atom('trigger', 0)
+		react('outer', () => {
+			if (trigger.get() === 1) {
+				scheduler.attach()
+				scheduler.maybeScheduleEffect()
+			}
+		})
+		trigger.set(1)
+
+		expect(seen).toEqual([2, 10])
+	})
+})
+
+describe('effects that set atoms outside the reaction phase (P4)', () => {
+	it('[P4] an effect that sets one of its own parents during its first run re-runs afterwards instead of re-entering itself', () => {
+		// Regression: the initial run of react() happens outside a reaction phase, so a set inside
+		// it flushed synchronously and re-entered execute() for the same scheduler. The nested
+		// capture frame then truncated the parents captured by the outer run (b was dropped while
+		// b.children still held the effect).
+		const initialized = atom('initialized', false)
+		const b = atom('b', 0)
+		const seen: number[] = []
+		let depth = 0
+		let maxDepth = 0
+		react('r', () => {
+			depth++
+			maxDepth = Math.max(maxDepth, depth)
+			if (!initialized.get()) initialized.set(true)
+			seen.push(b.get())
+			depth--
+		})
+
+		expect(maxDepth).toBe(1)
+		// the set changed a parent read before it, so the effect runs once more, sequentially
+		expect(seen).toEqual([0, 0])
+
+		b.set(1)
+		expect(seen).toEqual([0, 0, 1])
 	})
 })

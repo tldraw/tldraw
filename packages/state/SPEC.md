@@ -54,19 +54,19 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 ## 6. Computed signals (C)
 
 - **C1** Computeds are lazy. The compute function does not run at creation time; it first runs on the first `get()`.
-- **C2** Computeds are cached. Repeated `get()` calls re-run the compute function only if at least one parent's `lastChangedEpoch` differs from the epoch recorded when that parent was last dereferenced. Epoch advances unrelated to the computed's parents never cause recomputation.
+- **C2** Computeds are cached. Repeated `get()` calls re-run the compute function only if at least one parent's `lastChangedEpoch` differs from the epoch recorded when that parent was last dereferenced. Epoch advances unrelated to the computed's parents never cause recomputation. A read is never stale: this holds for reads inside a transaction during the reaction phase, for a computed whose listening effect was scheduled but has not executed yet, and for a computed that regains a listener after its ancestors changed.
 - **C3** A computed whose first execution captured no parents never recomputes.
 - **C4** The compute function receives `(previousValue, lastComputedEpoch)`. On the first computation `previousValue` is the `UNINITIALIZED` symbol (test with `isUninitialized`); afterwards it is the previous value. `lastComputedEpoch` is the epoch at which the computed last finished computing.
 - **C5** If recomputation produces a value equal (EQ) to the previous one, the computed keeps the previous value object and its `lastChangedEpoch`; downstream children observe no change. The signal's `isEqual` is never invoked for the first computation.
 - **C6** A chain of computeds re-runs minimally: each computed in the chain recomputes at most once per relevant change, and value-level deduplication (C5) stops propagation early.
 - **C7** `computed.isActivelyListening` is true exactly when the computed has at least one attached child (effect or actively-listening computed downstream).
-- **C8** The `@computed` decorator on a class method makes that method behave as `Computed.get()` for a per-instance computed signal: cached, reactive, with options (`isEqual`, `historyLength`, etc.) honored. Both legacy and TC39 decorator protocols are supported.
-- **C9** `getComputedInstance(obj, propertyName)` returns the underlying `Computed` instance for a decorated method, creating it on demand if the method has not been called yet.
+- **C8** The `@computed` decorator on a class method makes that method behave as `Computed.get()` for a per-instance computed signal: cached, reactive, with options (`isEqual`, `historyLength`, etc.) honored. `@computed()` with no options is equivalent to `@computed`. Both legacy and TC39 decorator protocols are supported. A subclass may override a `@computed` method with another `@computed` method and call `super.method()`: each decoration has its own per-instance computed.
+- **C9** `getComputedInstance(obj, propertyName)` returns the underlying `Computed` instance for the nearest decorated method on `obj`'s prototype chain, creating it on demand if the method has not been called yet. Its value type is the method's return type.
 - **C10** Using `@computed` on a _getter_ (legacy decorators only) still works but logs a one-time deprecation warning per process.
 
 ## 7. Errors in computed signals (CE)
 
-- **CE1** If the compute function throws, the thrown value is cached: subsequent `get()` calls rethrow the same value without re-running the compute function, until a parent changes.
+- **CE1** If the compute function throws, the thrown value is cached: subsequent `get()` calls rethrow the same value without re-running the compute function, until a parent changes. This includes a throw from the very first computation.
 - **CE2** Entering the error state counts as a change: downstream effects re-run (and observe the throw). Throwing again on a subsequent recomputation, while already in the error state, does _not_ count as a change — consecutive errors do not re-trigger effects.
 - **CE3** Entering the error state discards the previous value: when the computed later recovers, the compute function receives `UNINITIALIZED` as `previousValue`, and the error state clears.
 - **CE4** Entering the error state clears the computed's history buffer; `getDiffSince` spanning the error returns `RESET_VALUE`.
@@ -76,8 +76,8 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 ## 8. History and diffs (H)
 
 - **H1** A signal has a history buffer only if `historyLength` was passed at creation. `computeDiff` without `historyLength` does nothing.
-- **H2** When an atom with history changes, the recorded diff is chosen in priority order: the explicit `diff` argument to `set(value, diff)`, else `computeDiff(prev, next, lastChangedEpoch, currentEpoch)`, else `RESET_VALUE`.
-- **H3** When a computed with history changes, the recorded diff is chosen in priority order: the diff from a `withDiff(value, diff)` return value, else `computeDiff(...)`, else `RESET_VALUE`. No entry is recorded for the first computation.
+- **H2** When an atom with history changes, the recorded diff is chosen in priority order: the explicit `diff` argument to `set(value, diff)`, else `computeDiff(prev, next, lastChangedEpoch, currentEpoch)`, else `RESET_VALUE`. Only `undefined` means "not supplied"; an explicit `null` diff is recorded as a diff.
+- **H3** When a computed with history changes, the recorded diff is chosen in priority order: the diff from a `withDiff(value, diff)` return value, else `computeDiff(prev, next, lastCheckedEpoch, currentEpoch)`, else `RESET_VALUE`. No entry is recorded for the first computation. As for H2, only `undefined` means "not supplied".
 - **H4** Recording `RESET_VALUE` as a diff clears the entire history buffer. In particular, failing to supply a diff on a signal that has history but no `computeDiff` wipes its history.
 - **H5** `getDiffSince(epoch)` returns:
   - the shared frozen `EMPTY_ARRAY` if `epoch >= lastChangedEpoch` (nothing changed since);
@@ -91,13 +91,13 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 ## 9. Effects: EffectScheduler, react, reactor (E)
 
 - **E1** `react(name, fn)` runs `fn` immediately and unconditionally, then re-runs it whenever any signal captured during its previous run changes. It returns a stop function; after stopping, changes no longer re-run `fn`.
-- **E2** `reactor(name, fn)` does not run `fn` until `.start()`. `.start()` runs the effect if it has never run or if any parent changed while stopped; otherwise it does not run. `.start({ force: true })` always runs it. `.stop()` detaches. Start/stop may be repeated.
+- **E2** `reactor(name, fn)` does not run `fn` until `.start()`. `.start()` runs the effect if it has never run or if any parent changed while stopped; otherwise — including for an effect that captured no parents — it does not run. `.start({ force: true })` always runs it. `.stop()` detaches. Start/stop may be repeated, and `.start()` behaves the same when called from inside an effect during the reaction phase.
 - **E3** One state change produces at most one run of a given effect, even if the change affected several of its parents (e.g. several atoms set in one transaction, or a diamond dependency graph).
 - **E4** An effect re-runs only when a parent's value actually changed (per EQ and C5). Equal-value sets and unrelated epoch advances do not re-run it.
 - **E5** The effect function receives the epoch at which the effect last ran. This enables the incremental pattern `signal.getDiffSince(lastReactedEpoch)` inside effects. The epoch passed is the one captured _before_ the run, so an effect that updates atoms during its own run remains eligible to be scheduled again.
 - **E6** With a custom `scheduleEffect` option, scheduling and execution are decoupled: when the effect would run, `scheduleEffect(execute)` is called instead and nothing executes until the callback invokes `execute`. The initial run of `react()` is also routed through `scheduleEffect`. `scheduleCount` counts scheduling events, whether or not the effect later executes.
 - **E7** If an effect is detached after being scheduled but before the deferred `execute` callback runs, executing the callback is a no-op.
-- **E8** `EffectScheduler.attach()` does not by itself run the effect (`execute()` must be called the first time; afterwards changes schedule it per E3/E4). `detach()`/`attach()` cycles retain the captured parents: re-attaching does not re-run the effect unless a parent changed while detached (matching E2 since `reactor` is a thin wrapper).
+- **E8** `EffectScheduler.attach()` does not by itself run the effect (`execute()` must be called the first time; afterwards changes schedule it per E3/E4). `detach()`/`attach()` cycles retain the captured parents: re-attaching does not re-run the effect unless a parent changed while detached (matching E2 since `reactor` is a thin wrapper). `attach()` brings computed parents that went stale while nothing was listening up to date before listening to them again.
 - **E9** `maybeScheduleEffect` on a detached scheduler is a no-op. On an attached scheduler whose parents are unchanged it is a no-op (but marks the scheduler as up to date with the current epoch).
 
 ## 10. Change propagation and the reaction phase (P)
@@ -108,7 +108,8 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 - **P4** Effects may set atoms. Changes made during the reaction phase do not interrupt the current pass: affected effects are collected and run after the current pass completes, repeatedly, until the system quiesces.
 - **P5** If that loop fails to quiesce after 1000 passes, the flush throws `Reaction update depth limit exceeded`. An effect that unconditionally writes to one of its own parents hits this limit.
 - **P6** An effect that sets atoms inside a transaction (or `transact`/`transaction` call) during the reaction phase gets the same deferral: the inner transaction's effects are folded into the current reaction phase rather than flushed reentrantly.
-- **P7** Computeds read during the reaction phase are correct: an effect that sets an atom and then reads a computed depending on it sees the updated value (within the same pass).
+- **P7** Computeds read during the reaction phase are correct: an effect that sets an atom and then reads a computed depending on it sees the updated value (within the same pass), including when both happen inside a transaction the effect opened (T2).
+- **P8** An effect's run is never re-entered. A set during a run that happens outside the reaction phase (the first run of `react()`, `reactor.start()`, or a direct `execute()`) still flushes synchronously per P1, but if that flush reaches the running effect itself, the effect runs again after the current run finishes (repeatedly while its parents keep changing, subject to the P5 limit) instead of nesting a second run inside the first.
 
 ## 11. Transactions (T)
 
@@ -118,7 +119,7 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 - **T4** `fn` receives a `rollback` callback. Calling it (and then returning normally) aborts the transaction: every atom changed during the transaction is restored to the value it had when the transaction began.
 - **T5** If `fn` throws, the transaction aborts as in T4 and the exception propagates.
 - **T6** An aborted transaction still flushes effects: effects whose parents went through a change-and-restore round trip are scheduled, observe the restored values, and per E4 may run. Effects never observe intermediate in-transaction values.
-- **T7** Nested `transaction` calls roll back independently: an inner rollback restores to the _inner_ transaction's start. A committed inner transaction is still undone by an outer rollback (the inner transaction's initial values fold into the parent on commit).
+- **T7** Nested `transaction` calls roll back independently: an inner rollback restores to the _inner_ transaction's start. A committed inner transaction is still undone by an outer rollback (the inner transaction's initial values fold into the parent on commit), including when the transactions run inside an effect during the reaction phase.
 - **T8** Because `transact` joins rather than nests, a throw inside an inner `transact` does not restore anything by itself; if it propagates out of the outermost transaction, T5 applies there.
 - **T9** Abort clears the history buffers of every atom changed in the transaction (H7).
 - **T10** Mismatched transaction boundaries (committing a transaction that is not the innermost) throw `Transaction boundaries overlap`.
@@ -127,7 +128,7 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 
 - **AT1** `deferAsyncEffects(fn)` runs the async `fn` in a transaction context: atom changes are visible immediately to reads (T2 applies), but effects are deferred until the async transaction completes.
 - **AT2** It throws (rejects) if called while a synchronous transaction is in progress. Synchronous `transaction`/`transact` calls _inside_ the async body are fine and nest normally.
-- **AT3** If `fn` rejects or throws, all changes made during the async transaction are rolled back and the error propagates.
+- **AT3** If `fn` rejects or throws, all changes made during the async transaction are rolled back and the error propagates. The rollback is atomic from the point of view of effects (T6): they run once, after every atom has been restored.
 - **AT4** Calling `deferAsyncEffects` while another async transaction is in flight joins it: changes from both are batched together, and effects run only after the last participating process finishes. Async transaction state leaks across `await` boundaries between concurrent processes (no AsyncContext); the grouping of effects is the guarantee, not isolation.
 - **AT5** A `deferAsyncEffects` call kicked off during the reaction phase waits for the reaction phase to finish before starting.
 - **AT6** The returned promise resolves to `fn`'s return value.
@@ -150,6 +151,7 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 - **LS3** The atom's value is written to localStorage as JSON on creation and after every change.
 - **LS4** A `storage` event for the same key updates the atom with the parsed new value; a `storage` event with `newValue: null` resets the atom to `initialValue`; an unparseable `newValue` and events for other keys are ignored.
 - **LS5** `cleanup()` stops localStorage writes and storage-event handling. The atom itself keeps working as a plain atom. Atom `options` (equality, history) pass through per A/H rules.
+- **LS6** Without a `window` (Node, SSR) `localStorageAtom` does not throw: it behaves as a plain atom with `initialValue` and `cleanup()` is a no-op.
 
 ## 16. ArraySet — internal (AS)
 
@@ -163,6 +165,6 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 
 `HistoryBuffer` is the circular diff store behind H1–H5.
 
-- **HB1** `pushEntry(fromEpoch, toEpoch, diff)` stores a diff covering the epoch range; pushing `undefined` is ignored; pushing `RESET_VALUE` clears the buffer.
-- **HB2** `getChangesSince(epoch)` returns `[]` when the epoch is at or past the newest entry's `toEpoch`; the ordered diffs back to (and including) the entry whose range contains `epoch`, when the buffer reaches back that far; and `RESET_VALUE` otherwise (epoch too old, buffer empty, capacity exceeded, or cleared).
+- **HB1** `pushEntry(fromEpoch, toEpoch, diff)` stores a diff covering the epoch range. Pushing `RESET_VALUE` clears the buffer, and so does pushing `undefined` ("no diff available"): skipping the entry instead would leave a gap, and a later query from before the gap would return an incomplete diff list.
+- **HB2** `getChangesSince(epoch)` returns the shared frozen `EMPTY_ARRAY` when the epoch is at or past the newest entry's `toEpoch`; the ordered diffs back to (and including) the entry whose range contains `epoch`, when the buffer reaches back that far; and `RESET_VALUE` otherwise (epoch too old, buffer empty, capacity exceeded, or cleared).
 - **HB3** The buffer holds at most `capacity` entries; the oldest entries are overwritten, after which queries reaching past them return `RESET_VALUE`.

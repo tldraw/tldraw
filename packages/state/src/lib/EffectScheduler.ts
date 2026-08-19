@@ -29,12 +29,9 @@ export interface EffectSchedulerOptions {
 	 * 	}
 	 * }
 	 * const stop = react('set page title', () => {
-	 * 	document.title = doc.title,
-	 * }, scheduleEffect)
+	 * 	document.title = doc.title
+	 * }, { scheduleEffect })
 	 * ```
-	 *
-	 * @param execute - A function that will execute the effect.
-	 * @returns void
 	 */
 	// eslint-disable-next-line tldraw/method-signature-style
 	scheduleEffect?: (execute: () => void) => void
@@ -60,6 +57,10 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 
 	/** @internal */
 	private _scheduleCount = 0
+	/** @internal */
+	private _executeDepth = 0
+	/** @internal */
+	private _wasScheduledWhileExecuting = false
 	/** @internal */
 	__debug_ancestor_epochs__: Map<Signal<any, any>, number> | null = null
 
@@ -95,12 +96,16 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 		// bail out if no atoms have changed since the last time we ran this effect
 		if (this.lastReactedEpoch === getGlobalEpoch()) return
 
-		// bail out if we have parents and they have not changed since last time
-		if (this.parents.length && !haveParentsChanged(this)) {
+		// An effect that has run before (or captured parents before throwing) only needs to run
+		// again if one of those parents changed; that includes an effect that captured no parents at
+		// all. An effect that has never run always runs.
+		if (
+			(this.lastReactedEpoch !== GLOBAL_START_EPOCH || this.parents.length > 0) &&
+			!haveParentsChanged(this)
+		) {
 			this.lastReactedEpoch = getGlobalEpoch()
 			return
 		}
-		// if we don't have parents it's probably the first time this is running.
 		this.scheduleEffect()
 	}
 
@@ -110,6 +115,13 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 		if (this._scheduleEffect) {
 			// if the effect should be deferred (e.g. until a react render), do so
 			this._scheduleEffect(this.maybeExecute)
+		} else if (this._executeDepth > 0) {
+			// A set inside the running effect flushed synchronously and reached this scheduler again
+			// (only possible outside the reaction phase, e.g. during the initial run of `react()`).
+			// Executing now would open a second capture frame for a child whose frame is still open,
+			// and the two runs would corrupt each other's `parents` bookkeeping, so re-check once the
+			// current run has finished instead.
+			this._wasScheduledWhileExecuting = true
 		} else {
 			// otherwise execute right now!
 			this.execute()
@@ -121,6 +133,11 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	readonly maybeExecute = () => {
 		// bail out if we have been detached before this runs
 		if (!this._isActivelyListening) return
+		// a synchronous custom scheduler can land here mid-run; see `scheduleEffect`
+		if (this._executeDepth > 0) {
+			this._wasScheduledWhileExecuting = true
+			return
+		}
 		this.execute()
 	}
 
@@ -133,7 +150,13 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	attach() {
 		this._isActivelyListening = true
 		for (let i = 0, n = this.parents.length; i < n; i++) {
-			attach(this.parents[i], this)
+			const parent = this.parents[i]
+			// A computed parent may have gone stale while nothing was listening to it. Bring it up to
+			// date before it becomes actively listening again: `Computed` trusts that an
+			// actively-listening computed was traversed whenever an ancestor changed, which is only
+			// true from the moment it was attached while up to date.
+			parent.__unsafe__getWithoutCapture(true)
+			attach(parent, this)
 		}
 	}
 
@@ -155,6 +178,33 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	 * @public
 	 */
 	execute(): Result {
+		// A direct re-entrant call (an effect calling its own scheduler's `execute()`) is unsupported:
+		// both runs share one set of `parents`, so the outer run's bookkeeping ends up wrong. It is
+		// left to run so that the outer run can at least finish normally.
+		if (this._executeDepth > 0) return this.executeOnce()
+		// a run that threw may have left this set
+		this._wasScheduledWhileExecuting = false
+		let result = this.executeOnce()
+		// If a set inside the run reached this scheduler (see `scheduleEffect`), settle it now, the
+		// way the reaction phase's cleanup pass would: run again while the parents keep changing.
+		for (let depth = 0; this._wasScheduledWhileExecuting; depth++) {
+			this._wasScheduledWhileExecuting = false
+			if (depth >= 1000) {
+				throw new Error('Reaction update depth limit exceeded')
+			}
+			if (!this._isActivelyListening) break
+			if (!haveParentsChanged(this)) {
+				this.lastReactedEpoch = getGlobalEpoch()
+				break
+			}
+			result = this.executeOnce()
+		}
+		return result
+	}
+
+	private executeOnce(): Result {
+		// A counter rather than a flag: a nested `execute()` must not mark the outer run as finished.
+		this._executeDepth++
 		try {
 			startCapturingParents(this)
 			// Important! We have to make a note of the current epoch before running the effect.
@@ -166,6 +216,7 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 			return result
 		} finally {
 			stopCapturingParents()
+			this._executeDepth--
 		}
 	}
 }

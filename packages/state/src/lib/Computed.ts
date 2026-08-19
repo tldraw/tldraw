@@ -5,7 +5,7 @@ import { maybeCaptureParent, startCapturingParents, stopCapturingParents } from 
 import { GLOBAL_START_EPOCH } from './constants'
 import { EMPTY_ARRAY, equals, haveParentsChanged, singleton } from './helpers'
 import { HistoryBuffer } from './HistoryBuffer'
-import { getGlobalEpoch, getIsReacting, getReactionEpoch } from './transactions'
+import { getGlobalEpoch, getIsInTransaction } from './transactions'
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
 import { logComputedGetterWarning } from './warnings'
 
@@ -150,7 +150,7 @@ export interface ComputedOptions<Value, Diff> {
 	/**
 	 * The maximum number of diffs to keep in the history buffer.
 	 *
-	 * If you don't need to compute diffs, or if you will supply diffs manually via {@link Atom.set}, you can leave this as `undefined` and no history buffer will be created.
+	 * If you don't need diffs, leave this as `undefined` and no history buffer will be created. Diffs supplied via {@link withDiff} or {@link ComputedOptions.computeDiff} are only recorded when this is set.
 	 *
 	 * If you expect the value to be part of an active effect subscription all the time, and to not change multiple times inside of a single transaction, you can set this to a relatively low number (e.g. 10).
 	 *
@@ -216,9 +216,7 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 
 	__debug_ancestor_epochs__: Map<Signal<any, any>, number> | null = null
 
-	/**
-	 * The epoch when the reactor was last checked.
-	 */
+	// Advances on every check, including ones that find no change, unlike `lastChangedEpoch`.
 	private lastCheckedEpoch = GLOBAL_START_EPOCH
 
 	parentSet = new ArraySet<Signal<any, any>>()
@@ -272,9 +270,16 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 		if (
 			!isNew &&
 			(this.lastCheckedEpoch === globalEpoch ||
+				// Every change to an ancestor of an actively-listening computed traverses it (see
+				// `flushChanges`), so if it hasn't been traversed since it was last checked, no parent
+				// can have changed and the O(parents) scan below can be skipped. This holds only while
+				// no transaction is open (in-transaction changes are traversed at commit) and only if
+				// the computed was up to date when it became actively listening, which
+				// `EffectScheduler.attach` guarantees. Note `<=`, not "not traversed this reaction":
+				// a computed can be traversed in one flush and not re-checked before the next.
 				(this.isActivelyListening &&
-					getIsReacting() &&
-					this.lastTraversedEpoch < getReactionEpoch()) ||
+					!getIsInTransaction() &&
+					this.lastTraversedEpoch <= this.lastCheckedEpoch) ||
 				!haveParentsChanged(this))
 		) {
 			this.lastCheckedEpoch = globalEpoch
@@ -299,13 +304,16 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 			const epoch = getGlobalEpoch()
 			if (isUninitialized || !this.isEqual(this.state, newState)) {
 				if (this.historyBuffer && !isUninitialized) {
+					// Only `undefined` means "no diff supplied"; `null` can be a legitimate diff.
 					const diff = result instanceof WithDiff ? result.diff : undefined
 					this.historyBuffer.pushEntry(
 						this.lastChangedEpoch,
 						epoch,
-						diff ??
-							this.computeDiff?.(this.state, newState, this.lastCheckedEpoch, epoch) ??
-							RESET_VALUE
+						diff !== undefined
+							? diff
+							: this.computeDiff
+								? this.computeDiff(this.state, newState, this.lastCheckedEpoch, epoch)
+								: RESET_VALUE
 					)
 				}
 				this.lastChangedEpoch = epoch
@@ -316,14 +324,17 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 
 			return this.state
 		} catch (e) {
-			// if a derived value throws an error, we reset the state to UNINITIALIZED
 			const epoch = getGlobalEpoch()
-			if (this.state !== UNINITIALIZED) {
+			// Entering the error state (from a value, or from never having computed) is a change;
+			// throwing again while already in it is not. Checking `error` rather than `state` matters
+			// for a first run that throws: `state` is already UNINITIALIZED then, and leaving
+			// `lastChangedEpoch` at GLOBAL_START_EPOCH would keep `isNew` true and re-run `derive` on
+			// every read instead of rethrowing the cached error.
+			if (this.error === null) {
 				this.state = UNINITIALIZED as unknown as Value
 				this.lastChangedEpoch = epoch
 			}
 			this.lastCheckedEpoch = epoch
-			// we also clear the history buffer if an error was thrown
 			if (this.historyBuffer) {
 				this.historyBuffer.clear()
 			}
@@ -374,20 +385,23 @@ export const _Computed = singleton('Computed', () => __UNSAFE__Computed)
  */
 export type _Computed = InstanceType<typeof __UNSAFE__Computed>
 
-function computedMethodLegacyDecorator(
-	options: ComputedOptions<any, any> = {},
-	_target: any,
-	key: string,
-	descriptor: PropertyDescriptor
-) {
-	const originalMethod = descriptor.value
-	const derivationKey = Symbol.for('__@tldraw/state__computed__' + key)
+// Set on every decorated wrapper: the symbol its per-instance computed is stored under.
+const derivationKeyKey = '@@__computedDerivationKey__@@'
 
-	descriptor.value = function (this: any) {
+/**
+ * Builds the method (or getter) body that `@computed` installs: a per-instance, lazily-created
+ * computed over the original method. The storage symbol is unique per decoration rather than
+ * `Symbol.for(name)` so that a subclass which overrides a `@computed` method and calls
+ * `super.method()` reaches the superclass's computed instead of re-entering its own.
+ */
+function makeComputedWrapper(name: string, compute: () => any, options: ComputedOptions<any, any>) {
+	const derivationKey = Symbol('__@tldraw/state__computed__' + name)
+
+	const wrapper = function (this: any) {
 		let d = this[derivationKey] as Computed<any> | undefined
 
 		if (!d) {
-			d = new _Computed(key, originalMethod!.bind(this) as any, options)
+			d = new _Computed(name, compute.bind(this) as any, options)
 			Object.defineProperty(this, derivationKey, {
 				enumerable: false,
 				configurable: false,
@@ -396,63 +410,9 @@ function computedMethodLegacyDecorator(
 			})
 		}
 		return d.get()
-	}
-	descriptor.value[isComputedMethodKey] = true
-
-	return descriptor
-}
-
-function computedGetterLegacyDecorator(
-	options: ComputedOptions<any, any> = {},
-	_target: any,
-	key: string,
-	descriptor: PropertyDescriptor
-) {
-	const originalMethod = descriptor.get
-	const derivationKey = Symbol.for('__@tldraw/state__computed__' + key)
-
-	descriptor.get = function (this: any) {
-		let d = this[derivationKey] as Computed<any> | undefined
-
-		if (!d) {
-			d = new _Computed(key, originalMethod!.bind(this) as any, options)
-			Object.defineProperty(this, derivationKey, {
-				enumerable: false,
-				configurable: false,
-				writable: false,
-				value: d,
-			})
-		}
-		return d.get()
-	}
-
-	return descriptor
-}
-
-function computedMethodTc39Decorator<This extends object, Value>(
-	options: ComputedOptions<Value, any>,
-	compute: () => Value,
-	context: ClassMethodDecoratorContext<This, () => Value>
-) {
-	assert(context.kind === 'method', '@computed can only be used on methods')
-	const derivationKey = Symbol.for('__@tldraw/state__computed__' + String(context.name))
-
-	const fn = function (this: any) {
-		let d = this[derivationKey] as Computed<any> | undefined
-
-		if (!d) {
-			d = new _Computed(String(context.name), compute.bind(this) as any, options)
-			Object.defineProperty(this, derivationKey, {
-				enumerable: false,
-				configurable: false,
-				writable: false,
-				value: d,
-			})
-		}
-		return d.get()
-	}
-	fn[isComputedMethodKey] = true
-	return fn
+	} as any
+	wrapper[derivationKeyKey] = derivationKey
+	return wrapper
 }
 
 function computedDecorator(
@@ -463,19 +423,19 @@ function computedDecorator(
 ) {
 	if (args.length === 2) {
 		const [originalMethod, context] = args
-		return computedMethodTc39Decorator(options, originalMethod, context)
+		assert(context.kind === 'method', '@computed can only be used on methods')
+		return makeComputedWrapper(String(context.name), originalMethod, options)
 	} else {
 		const [_target, key, descriptor] = args
 		if (descriptor.get) {
 			logComputedGetterWarning()
-			return computedGetterLegacyDecorator(options, _target, key, descriptor)
+			descriptor.get = makeComputedWrapper(key, descriptor.get, options)
 		} else {
-			return computedMethodLegacyDecorator(options, _target, key, descriptor)
+			descriptor.value = makeComputedWrapper(key, descriptor.value, options)
 		}
+		return descriptor
 	}
 }
-
-const isComputedMethodKey = '@@__isComputedMethod__@@'
 
 /**
  * Retrieves the underlying computed instance for a given property created with the `computed`
@@ -485,7 +445,7 @@ const isComputedMethodKey = '@@__isComputedMethod__@@'
  * ```ts
  * class Counter {
  *   max = 100
- *   count = atom(0)
+ *   count = atom('count', 0)
  *
  *   @computed getRemaining() {
  *     return this.max - this.count.get()
@@ -506,19 +466,29 @@ const isComputedMethodKey = '@@__isComputedMethod__@@'
 export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
 	obj: Obj,
 	propertyName: Prop
-): Computed<Obj[Prop]> {
-	const key = Symbol.for('__@tldraw/state__computed__' + propertyName.toString())
-	let inst = obj[key as keyof typeof obj] as Computed<Obj[Prop]> | undefined
-	if (!inst) {
-		// deref to make sure it exists first
-		const val = obj[propertyName]
-		if (typeof val === 'function' && (val as any)[isComputedMethodKey]) {
-			val.call(obj)
-		}
+): Computed<Obj[Prop] extends () => infer Value ? Value : Obj[Prop]> {
+	// The nearest decorated wrapper (a method, or a legacy getter) on the prototype chain knows
+	// which symbol the instance's computed is stored under.
+	for (let proto: any = obj; proto; proto = Object.getPrototypeOf(proto)) {
+		const descriptor = Object.getOwnPropertyDescriptor(proto, propertyName)
+		const wrapper = descriptor?.get ?? descriptor?.value
+		const key = wrapper?.[derivationKeyKey]
+		if (!key) continue
 
-		inst = obj[key as keyof typeof obj] as Computed<Obj[Prop]> | undefined
+		let inst = (obj as any)[key]
+		if (!inst) {
+			// calling the wrapper creates the computed (before it first derives, so a throwing derive
+			// still leaves the instance behind)
+			try {
+				wrapper.call(obj)
+			} catch {
+				// the caller asked for the instance, not its value
+			}
+			inst = (obj as any)[key]
+		}
+		return inst
 	}
-	return inst as any
+	return undefined as any
 }
 
 /**
@@ -539,7 +509,7 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
  * ```ts
  * class Counter {
  *   max = 100
- *   count = atom<number>(0)
+ *   count = atom('count', 0)
  *
  *   @computed getRemaining() {
  *     return this.max - this.count.get()
@@ -553,7 +523,7 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
  * ```ts
  * class Counter {
  *   max = 100
- *   count = atom<number>(0)
+ *   count = atom('count', 0)
  *
  *   @computed({isEqual: (a, b) => a === b})
  *   getRemaining() {
@@ -665,7 +635,8 @@ export function computed<Value, Diff = unknown>(
  * @public
  */
 export function computed() {
-	if (arguments.length === 1) {
+	if (arguments.length <= 1) {
+		// decorator factory: `@computed(options)` or `@computed()`
 		const options = arguments[0]
 		return (...args: any) => computedDecorator(options, args)
 	} else if (typeof arguments[0] === 'string') {
