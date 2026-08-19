@@ -106,13 +106,11 @@ spec:
           query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as\
             \ date, blob1 as event, count() as total\n\tFROM 'MEASURE'\n\tWHERE timestamp\
             \ >= toDateTime($from) AND timestamp <= toDateTime($to)\n\tAND blob2 = '${environment}-tldraw-multiplayer'\n\
-            \tAND event != 'replicator'\n\tAND event != 'user_durable_object'\n\tGROUP\
-            \ BY date, event\n\tORDER BY date ASC"
+            \tGROUP BY date, event\n\tORDER BY date ASC"
           rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '120' SECOND) as date,\
             \ blob1 as event, count() as total\n\tFROM 'MEASURE'\n\tWHERE timestamp >=\
             \ toDateTime(1733213050) AND timestamp <= toDateTime(1733385850)\n\tAND blob2\
-            \ = 'pr-5028-tldraw-multiplayer'\n\tAND event != 'replicator'\n\tAND event\
-            \ != 'user_durable_object'\n\tGROUP BY date, event\n\tORDER BY date ASC"
+            \ = 'pr-5028-tldraw-multiplayer'\n\tGROUP BY date, event\n\tORDER BY date ASC"
           refId: A
           round: 0s
           showFormattedSQL: true
@@ -198,10 +196,9 @@ spec:
           format: time_series
           formatAs: time_series
           formattedQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND)\
-            \ as date, blob1 as event, blob2 as type, blob3 as rpm\n\tFROM 'MEASURE'\n\
-            \    WHERE NOT endsWith(event, 'tldraw-multiplayer')\n\tAND timestamp >= toDateTime($from)\
-            \ AND timestamp <= toDateTime($to)\n    AND event = 'replicator'\n\tGROUP\
-            \ BY date, event, type, blob3\n\tORDER BY date ASC"
+            \ as date, blob1 as name, max(double1) as avg_attempts\n\tFROM 'MEASURE'\n\
+            \tWHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)\n  \
+            \  AND name = 'persist_success'\n\tGROUP BY date, name\n\tORDER BY date ASC"
           intervalFactor: 1
           query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as\
             \ date, blob1 as name, max(double1) as avg_attempts\n\tFROM 'MEASURE'\n\t\

@@ -3626,7 +3626,7 @@ spec:
               kind: ElementReference
               name: panel-2
             height: 4
-            width: 4
+            width: 12
             x: 0
             y: 0
         - kind: GridLayoutItem
@@ -3635,8 +3635,8 @@ spec:
               kind: ElementReference
               name: panel-5
             height: 4
-            width: 4
-            x: 4
+            width: 12
+            x: 12
             y: 0
         - kind: GridLayoutItem
           spec:
