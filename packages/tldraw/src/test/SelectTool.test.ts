@@ -56,6 +56,24 @@ describe('TLSelectTool.Idle', () => {
 		expect(nudgedShape).toBeDefined()
 		expect(nudgedShape?.x).toBe(101)
 	})
+
+	it('Major-nudges with either shift key held', () => {
+		editor.select(ids.box1)
+		const keyboard = {
+			type: 'keyboard' as const,
+			shiftKey: true,
+			ctrlKey: false,
+			altKey: false,
+			metaKey: false,
+			accelKey: false,
+		}
+		// Browsers send key 'Shift' for both shifts; only the code differs.
+		editor.dispatch({ ...keyboard, name: 'key_down', key: 'Shift', code: 'ShiftRight' })
+		editor.dispatch({ ...keyboard, name: 'key_down', key: 'ArrowRight', code: 'ArrowRight' })
+		editor.dispatch({ ...keyboard, name: 'key_up', key: 'ArrowRight', code: 'ArrowRight' })
+		editor.dispatch({ ...keyboard, name: 'key_up', key: 'Shift', code: 'ShiftRight' })
+		expect(editor.getShape(ids.box1)!.x).toBe(110)
+	})
 })
 
 // todo: turn on feature flag for these tests or remove them
