@@ -24,11 +24,12 @@ class Transaction {
 
 	commit() {
 		if (this.isRoot) {
+			// For root transactions, flush changed atoms
 			flushChanges(this.initialAtomValues.keys())
 			return
 		}
-		// Fold this transaction's initial values into the parent so an outer rollback can still
-		// undo them (T7). This must come before any "are we reacting?" special case: a nested
+		// For transactions with parents, add the transaction's initial values to the parent's, so
+		// an outer rollback can still undo them (T7). This must come before any "are we reacting?" special case: a nested
 		// transaction committed by an effect during the reaction phase used to skip this fold and
 		// its changes survived the outer rollback.
 		// A parent that has recorded nothing yet adopts the map outright: this transaction is
@@ -129,9 +130,11 @@ function traverseChild(child: Child) {
 }
 
 /**
- * Runs the effects that depend on the given changed atoms. During the reaction phase the
- * affected effects are instead queued for the cleanup pass, so a change made by an effect never
- * interrupts the pass that is running (P4).
+ * Collect all of the reactors that need to run for an atom and run them. During the reaction
+ * phase the affected effects are instead queued for the cleanup pass, so a change made by an
+ * effect never interrupts the pass that is running (P4).
+ *
+ * @param atoms - The atoms to flush changes for.
  */
 function flushChanges(atoms: Iterable<_Atom>) {
 	if (inst.globalIsReacting) {
@@ -143,8 +146,8 @@ function flushChanges(atoms: Iterable<_Atom>) {
 
 	const outerTxn = inst.currentTransaction
 	try {
-		// Transactions started by effects must be roots: the committing transaction (if any) has
-		// already handed its changes to this flush.
+		// clear the transaction stack. Transactions started by effects must be roots: the committing
+		// transaction (if any) has already handed its changes to this flush.
 		inst.currentTransaction = null
 		inst.globalIsReacting = true
 		inst.reactionEpoch = inst.globalEpoch
@@ -189,6 +192,7 @@ export function atomDidChange(atom: _Atom, previousValue: any) {
 			inst.currentTransaction.initialAtomValues.set(atom, previousValue)
 		}
 	} else {
+		// If there is no transaction, flush the changes immediately.
 		flushChanges([atom])
 	}
 }
