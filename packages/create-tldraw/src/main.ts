@@ -102,16 +102,19 @@ const TELEMETRY_URLS = [
 	'https://teamldraw.com/api/starter-kit-choice',
 ]
 
-// Fire and forget: never block or fail setup on telemetry.
 function trackStarterKitChoice(templateId: string, noTelemetry?: boolean) {
+	// Skip tracking if --no-telemetry flag is set
 	if (noTelemetry) return
 
 	for (const url of TELEMETRY_URLS) {
+		// Fire and forget - don't block on this request
 		fetch(url, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ id: templateId }),
-		}).catch(() => {})
+		}).catch(() => {
+			// Silently ignore errors
+		})
 	}
 }
 
