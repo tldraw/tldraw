@@ -163,9 +163,25 @@ export class ServerSocketAdapter<R extends UnknownRecord> implements TLRoomSocke
 	 * Closes the WebSocket connection with an optional close code and reason.
 	 *
 	 * @param code - Optional close code (default: 1000 for normal closure)
-	 * @param reason - Optional human-readable reason for closing
+	 * @param reason - Optional human-readable reason for closing. WebSocket close reasons are
+	 * capped at 123 UTF-8 bytes; a longer reason is truncated to fit rather than letting the
+	 * socket's own `close()` throw, which would leave the socket open with its session gone.
 	 */
 	close(code?: number, reason?: string) {
-		this.opts.ws.close(code, reason)
+		this.opts.ws.close(code, reason === undefined ? undefined : truncateCloseReason(reason))
 	}
+}
+
+const MAX_CLOSE_REASON_BYTES = 123
+const closeReasonEncoder = new TextEncoder()
+
+function truncateCloseReason(reason: string) {
+	if (closeReasonEncoder.encode(reason).length <= MAX_CLOSE_REASON_BYTES) return reason
+	// step back by code point so a multi-byte character is never cut in half
+	let out = ''
+	for (const char of reason) {
+		if (closeReasonEncoder.encode(out + char).length > MAX_CLOSE_REASON_BYTES) break
+		out += char
+	}
+	return out
 }
