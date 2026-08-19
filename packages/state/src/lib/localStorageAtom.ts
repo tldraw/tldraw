@@ -82,6 +82,7 @@ export function localStorageAtom<Value, Diff = unknown>(
 		window.addEventListener('storage', handleStorageEvent)
 	}
 
+	// Combined cleanup function
 	const cleanup = () => {
 		reactCleanup()
 		if (canListen) {
