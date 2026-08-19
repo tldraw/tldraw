@@ -66,7 +66,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 
 ## 7. Side effect handlers (SE)
 
-- **SE1** Handlers are registered per type name and called in registration order; each `register*Handler` call returns a remover. `register({ type: { beforeCreate, ... } })` registers many at once and returns one cleanup that removes them all.
+- **SE1** Handlers are registered per type name and called in registration order; each `register*Handler` call returns a remover. `register({ type: { beforeCreate, ... } })` registers many at once and returns one cleanup that removes them all. Removing or registering a handler while handlers are being dispatched takes effect from the next dispatch: every handler registered when an event started is still called for it.
 - **SE2** `beforeCreate` runs before validation on create; its return value is what gets validated and stored. Multiple handlers chain, each receiving the previous one's output.
 - **SE3** `beforeChange` runs before validation on update, receiving `(prev, next, source)`; its return value is stored. Returning `prev` blocks the update (with a reference-preserving validator this makes the put a complete no-op per S3).
 - **SE4** `beforeDelete` may return `false` to prevent that record's deletion; other records in the same `remove` call are still deleted.
