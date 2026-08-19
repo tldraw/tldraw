@@ -119,7 +119,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 ## 13. Queries: ids, records, record, exec (QQ)
 
 - **QQ1** `store.query.ids(typeName, queryCreator?)` returns a computed `Set` of the ids of matching records; with no query it contains all ids of that type. Its history diffs are `CollectionDiff`s.
-- **QQ2** The query expression is itself reactive: `queryCreator` may read signals, and when the expression it returns changes (by deep equality), the query rebuilds and emits a correct diff. An expression that is deep-equal to the previous one causes no rebuild.
+- **QQ2** The query expression is itself reactive: `queryCreator` is called with no arguments and may read signals, and when the expression it returns changes (by deep equality), the query rebuilds and emits a correct diff. An expression that is deep-equal to the previous one causes no rebuild.
 - **QQ3** Changes that do not affect the result (unrelated types, updates that keep a record matching, irrelevant property changes) leave the same `Set` object in place.
 - **QQ4** `records(typeName, queryCreator?)` returns the matching records as an array, with shallow-array equality (same members → no change). `record(typeName, queryCreator?)` returns one matching record or `undefined`.
 - **QQ5** `exec(typeName, query)` runs one non-reactive query and returns matching records; with no matches it returns the shared empty array.
