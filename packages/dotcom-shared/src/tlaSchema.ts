@@ -417,29 +417,6 @@ export type TlaCommentMentionPartial = Partial<TlaCommentMention> & {
 	userId: TlaCommentMention['userId']
 }
 
-export type TlaRow =
-	| TlaFile
-	| TlaFileState
-	| TlaFileVisitor
-	| TlaUser
-	| TlaGroup
-	| TlaGroupUser
-	| TlaGroupFile
-	| TlaComment
-	| TlaCommentThread
-	| TlaCommentRead
-	| TlaCommentMention
-export type TlaRowPartial =
-	| TlaFilePartial
-	| TlaFileStatePartial
-	| TlaUserPartial
-	| TlaGroupPartial
-	| TlaGroupUserPartial
-	| TlaGroupFilePartial
-	| TlaCommentPartial
-	| TlaCommentThreadPartial
-	| TlaCommentReadPartial
-	| TlaCommentMentionPartial
 export const immutableColumns = {
 	user: new Set<keyof TlaUser>(['email', 'createdAt', 'updatedAt', 'avatar']),
 	file: new Set<keyof TlaFile>([
