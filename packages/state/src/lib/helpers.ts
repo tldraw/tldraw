@@ -48,6 +48,11 @@ export function detach(parent: Signal<any>, child: Child) {
  * Adds `child` to `parent.children`. A computed parent that gains its first child starts
  * listening itself, recursively, so that changes to any ancestor are traversed down to the child.
  *
+ * `parent` must be up to date when it is attached: `Computed` assumes an actively-listening
+ * computed has been traversed for every ancestor change since it was last checked, which only
+ * holds from the moment it started listening. Capture attaches a parent right after reading it;
+ * `EffectScheduler.attach` refreshes its parents first.
+ *
  * @internal
  */
 export function attach(parent: Signal<any>, child: Child) {

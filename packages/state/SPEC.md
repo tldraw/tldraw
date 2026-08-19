@@ -54,7 +54,7 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 ## 6. Computed signals (C)
 
 - **C1** Computeds are lazy. The compute function does not run at creation time; it first runs on the first `get()`.
-- **C2** Computeds are cached. Repeated `get()` calls re-run the compute function only if at least one parent's `lastChangedEpoch` differs from the epoch recorded when that parent was last dereferenced. Epoch advances unrelated to the computed's parents never cause recomputation.
+- **C2** Computeds are cached. Repeated `get()` calls re-run the compute function only if at least one parent's `lastChangedEpoch` differs from the epoch recorded when that parent was last dereferenced. Epoch advances unrelated to the computed's parents never cause recomputation. A read is never stale: this holds for reads inside a transaction during the reaction phase, for a computed whose listening effect was scheduled but has not executed yet, and for a computed that regains a listener after its ancestors changed.
 - **C3** A computed whose first execution captured no parents never recomputes.
 - **C4** The compute function receives `(previousValue, lastComputedEpoch)`. On the first computation `previousValue` is the `UNINITIALIZED` symbol (test with `isUninitialized`); afterwards it is the previous value. `lastComputedEpoch` is the epoch at which the computed last finished computing.
 - **C5** If recomputation produces a value equal (EQ) to the previous one, the computed keeps the previous value object and its `lastChangedEpoch`; downstream children observe no change. The signal's `isEqual` is never invoked for the first computation.
@@ -91,13 +91,13 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 ## 9. Effects: EffectScheduler, react, reactor (E)
 
 - **E1** `react(name, fn)` runs `fn` immediately and unconditionally, then re-runs it whenever any signal captured during its previous run changes. It returns a stop function; after stopping, changes no longer re-run `fn`.
-- **E2** `reactor(name, fn)` does not run `fn` until `.start()`. `.start()` runs the effect if it has never run or if any parent changed while stopped; otherwise — including for an effect that captured no parents — it does not run. `.start({ force: true })` always runs it. `.stop()` detaches. Start/stop may be repeated.
+- **E2** `reactor(name, fn)` does not run `fn` until `.start()`. `.start()` runs the effect if it has never run or if any parent changed while stopped; otherwise — including for an effect that captured no parents — it does not run. `.start({ force: true })` always runs it. `.stop()` detaches. Start/stop may be repeated, and `.start()` behaves the same when called from inside an effect during the reaction phase.
 - **E3** One state change produces at most one run of a given effect, even if the change affected several of its parents (e.g. several atoms set in one transaction, or a diamond dependency graph).
 - **E4** An effect re-runs only when a parent's value actually changed (per EQ and C5). Equal-value sets and unrelated epoch advances do not re-run it.
 - **E5** The effect function receives the epoch at which the effect last ran. This enables the incremental pattern `signal.getDiffSince(lastReactedEpoch)` inside effects. The epoch passed is the one captured _before_ the run, so an effect that updates atoms during its own run remains eligible to be scheduled again.
 - **E6** With a custom `scheduleEffect` option, scheduling and execution are decoupled: when the effect would run, `scheduleEffect(execute)` is called instead and nothing executes until the callback invokes `execute`. The initial run of `react()` is also routed through `scheduleEffect`. `scheduleCount` counts scheduling events, whether or not the effect later executes.
 - **E7** If an effect is detached after being scheduled but before the deferred `execute` callback runs, executing the callback is a no-op.
-- **E8** `EffectScheduler.attach()` does not by itself run the effect (`execute()` must be called the first time; afterwards changes schedule it per E3/E4). `detach()`/`attach()` cycles retain the captured parents: re-attaching does not re-run the effect unless a parent changed while detached (matching E2 since `reactor` is a thin wrapper).
+- **E8** `EffectScheduler.attach()` does not by itself run the effect (`execute()` must be called the first time; afterwards changes schedule it per E3/E4). `detach()`/`attach()` cycles retain the captured parents: re-attaching does not re-run the effect unless a parent changed while detached (matching E2 since `reactor` is a thin wrapper). `attach()` brings computed parents that went stale while nothing was listening up to date before listening to them again.
 - **E9** `maybeScheduleEffect` on a detached scheduler is a no-op. On an attached scheduler whose parents are unchanged it is a no-op (but marks the scheduler as up to date with the current epoch).
 
 ## 10. Change propagation and the reaction phase (P)
@@ -108,7 +108,7 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 - **P4** Effects may set atoms. Changes made during the reaction phase do not interrupt the current pass: affected effects are collected and run after the current pass completes, repeatedly, until the system quiesces.
 - **P5** If that loop fails to quiesce after 1000 passes, the flush throws `Reaction update depth limit exceeded`. An effect that unconditionally writes to one of its own parents hits this limit.
 - **P6** An effect that sets atoms inside a transaction (or `transact`/`transaction` call) during the reaction phase gets the same deferral: the inner transaction's effects are folded into the current reaction phase rather than flushed reentrantly.
-- **P7** Computeds read during the reaction phase are correct: an effect that sets an atom and then reads a computed depending on it sees the updated value (within the same pass).
+- **P7** Computeds read during the reaction phase are correct: an effect that sets an atom and then reads a computed depending on it sees the updated value (within the same pass), including when both happen inside a transaction the effect opened (T2).
 
 ## 11. Transactions (T)
 

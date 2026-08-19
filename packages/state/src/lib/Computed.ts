@@ -5,7 +5,7 @@ import { maybeCaptureParent, startCapturingParents, stopCapturingParents } from 
 import { GLOBAL_START_EPOCH } from './constants'
 import { EMPTY_ARRAY, equals, haveParentsChanged, singleton } from './helpers'
 import { HistoryBuffer } from './HistoryBuffer'
-import { getGlobalEpoch, getIsReacting, getReactionEpoch } from './transactions'
+import { getGlobalEpoch, getIsInTransaction } from './transactions'
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
 import { logComputedGetterWarning } from './warnings'
 
@@ -217,7 +217,8 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 	__debug_ancestor_epochs__: Map<Signal<any, any>, number> | null = null
 
 	/**
-	 * The epoch when the reactor was last checked.
+	 * The epoch when the reactor was last checked. Advances on every check, including ones that
+	 * find no change, unlike `lastChangedEpoch`.
 	 */
 	private lastCheckedEpoch = GLOBAL_START_EPOCH
 
@@ -272,9 +273,13 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 		if (
 			!isNew &&
 			(this.lastCheckedEpoch === globalEpoch ||
+				// Every ancestor change to an actively-listening computed traverses it (`flushChanges`),
+				// so if it hasn't been traversed since it was last checked the O(parents) scan can be
+				// skipped. Not valid while a transaction is open (changes traverse at commit), and only
+				// if it was up to date when attached (see `attach` in helpers.ts).
 				(this.isActivelyListening &&
-					getIsReacting() &&
-					this.lastTraversedEpoch < getReactionEpoch()) ||
+					!getIsInTransaction() &&
+					this.lastTraversedEpoch <= this.lastCheckedEpoch) ||
 				!haveParentsChanged(this))
 		) {
 			this.lastCheckedEpoch = globalEpoch
