@@ -196,6 +196,12 @@ export class AgentHelpers {
 		return roundedNumber
 	}
 
+	/** Reverse `roundAndSaveNumber` for the same key, restoring the original value. */
+	unroundAndRestoreNumber(number: number, key: string): number {
+		const diff = this.roundingDiffMap.get(key)
+		return diff === undefined ? number : number + diff
+	}
+
 	roundProperty<T extends Partial<FocusedShape>>(shape: T, property: keyof T): T {
 		const value = shape[property]
 		if (typeof value !== 'number') return shape
@@ -207,10 +213,12 @@ export class AgentHelpers {
 	}
 
 	unroundProperty<T extends FocusedShape>(shape: T, property: keyof T): T {
-		if (typeof shape[property] !== 'number') return shape
-		const diff = this.roundingDiffMap.get(`${shape.shapeId}_${property as string}`)
-		if (diff === undefined) return shape
-		;(shape[property] as number) += diff
+		const value = shape[property]
+		if (typeof value !== 'number') return shape
+		;(shape[property] as number) = this.unroundAndRestoreNumber(
+			value,
+			`${shape.shapeId}_${property as string}`
+		)
 		return shape
 	}
 
