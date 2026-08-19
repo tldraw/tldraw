@@ -70,8 +70,9 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 		() => {
 			const first = threads[0]
 			if (first.pageId !== editor.getCurrentPageId()) return null
-			// Same imprecise-shape inset as the pins it stands in for — otherwise the marker would snap
-			// from tucked inside the shape to the raw corner the moment a second comment makes a stack.
+			// The badge hangs off its anchor point bottom-left like a pin, and applies the same imprecise-shape
+			// inset the pins it stands in for would (see ThreadPin) — otherwise the marker would snap from tucked
+			// inside the shape to the raw corner the moment a second comment turns a pin into a stack.
 			return anchorViewportPoint(editor, first.anchor)
 		},
 		[editor, threads]

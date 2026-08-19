@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { mstEdges } from './mst'
 import { cappedReplay } from './replay'
+// These imports are red until step 3 is implemented — that is intentional.
+// Implement `schedule.ts` (and the step 3 additions to `types.ts`) per
+// CLUSTERING-STEPS.md until this suite passes, without modifying this file.
 import { contract, finalize } from './schedule'
 import { ClusterNode, ContractedEvent, LeafInput, MergeEvent, RawMergeEvent } from './types'
 

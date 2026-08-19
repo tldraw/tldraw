@@ -19,7 +19,8 @@ const resolvedCheck = <PinCheckIcon />
  * @public @react */
 export function CommentPin({ children, resolved, open }: CommentPinProps) {
 	const className = [
-		// shared with CountBadge — see `.tlui-cmt-marker` in comments.css
+		// `tlui-cmt-marker` carries the resting shadow and the hover lift — the same treatment a
+		// count badge wears, so the two markers behave alike.
 		'tlui-cmt-marker',
 		'tlui-cmt-pin',
 		resolved && 'tlui-cmt-pin--resolved',

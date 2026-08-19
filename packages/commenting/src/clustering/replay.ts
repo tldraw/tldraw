@@ -286,7 +286,7 @@ class ClusterState {
 				this.counts[rightRoot] * this.centroidY[rightRoot]) /
 			count
 
-		// Leaf ids must not start with `cluster:`, or a merged id could collide with a leaf id.
+		// Leaf ids are assumed not to start with `cluster:`; see the step 2 contract.
 		const result: ClusterNode = {
 			id: `cluster:${count}:${members[0]}`,
 			centroid: { x: centroidX, y: centroidY },
@@ -336,10 +336,10 @@ interface HeapEntry {
 
 class EdgeMaxHeap {
 	private readonly items: HeapEntry[] = []
-	// Per-edge (lo, hi) id pair for the z tie-break (MST edges are normalized: leaves[a].id <
-	// leaves[b].id), precomputed once so comparisons allocate nothing. With coincident anchors
-	// every edge prices to the same z (+Infinity), so the tie-break runs on nearly every
-	// comparison of a rebuild — allocating the pair there churned millions of short-lived tuples.
+	// Per-edge normalized (lo, hi) id pair for the z tie-break, precomputed once so comparisons
+	// allocate nothing. With coincident anchors every edge prices to the same z (+Infinity), so
+	// the tie-break runs on nearly every comparison of a rebuild — allocating the pair there
+	// churned millions of short-lived tuples.
 	private readonly loIds: string[]
 	private readonly hiIds: string[]
 

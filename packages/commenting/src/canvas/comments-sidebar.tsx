@@ -80,9 +80,9 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 				(byThread.get(thread.id) ?? []).some((c) => isCommentUnread(c.id))
 		)
 		.map((thread) => {
-			// Oldest first, so [0] is the thread's opening comment and the last is its latest activity.
 			const threadComments = byThread.get(thread.id) ?? []
 			const first = threadComments[0]
+			// Comments arrive oldest-first, so the last one is the thread's most recent activity.
 			const last = threadComments[threadComments.length - 1]
 			let preview: ReactNode = ''
 			// The `ThreadPreview` component slot overrides the built-in plaintext default.

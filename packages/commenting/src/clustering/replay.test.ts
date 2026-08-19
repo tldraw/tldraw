@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { mstEdges } from './mst'
+// These imports are red until step 2 is implemented — that is intentional.
+// Implement `replay.ts` (and the step 2 additions to `types.ts`) per
+// CLUSTERING-STEPS.md until this suite passes, without modifying this file.
 import { cappedReplay, D_FLOOR } from './replay'
 import { ClusterNode, LeafInput, MstEdge, RawMergeEvent } from './types'
 
