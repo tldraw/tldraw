@@ -47,6 +47,13 @@ describe('TLSelectTool.Idle', () => {
 		editor.expectToBeIn('select.pointing_canvas')
 	})
 
+	it('Returns to idle when a canvas press is cancelled', () => {
+		editor.pointerDown(10, 10, { target: 'canvas' })
+		editor.expectToBeIn('select.pointing_canvas')
+		editor.cancel()
+		editor.expectToBeIn('select.idle')
+	})
+
 	it('Nudges selected shapes on arrow key down', () => {
 		const shape = editor.getShape(ids.box1)!
 		editor.select(shape.id)
