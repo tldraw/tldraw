@@ -29,8 +29,17 @@ export class Idle extends StateNode {
 
 	override onExit() {
 		clearArrowTargetState(this.editor)
+		this.resetPrecise()
+	}
+
+	// Precise mode is earned by hovering one target; it must not carry over to the next
+	// target or to the next arrow.
+	private resetPrecise() {
+		this.isPrecise = false
+		this.preciseTargetId = null
 		if (this.isPreciseTimerId !== null) {
 			clearTimeout(this.isPreciseTimerId)
+			this.isPreciseTimerId = null
 		}
 	}
 
@@ -61,21 +70,14 @@ export class Idle extends StateNode {
 		})
 
 		if (targetState && targetState.target.id !== this.preciseTargetId) {
-			if (this.isPreciseTimerId !== null) {
-				clearTimeout(this.isPreciseTimerId)
-			}
-
+			this.resetPrecise()
 			this.preciseTargetId = targetState.target.id
 			this.isPreciseTimerId = this.editor.timers.setTimeout(() => {
 				this.isPrecise = true
 				this.update()
 			}, arrowUtil.options.hoverPreciseTimeout)
 		} else if (!targetState && this.preciseTargetId) {
-			this.isPrecise = false
-			this.preciseTargetId = null
-			if (this.isPreciseTimerId !== null) {
-				clearTimeout(this.isPreciseTimerId)
-			}
+			this.resetPrecise()
 		}
 	}
 }
