@@ -47,6 +47,21 @@ describe('TLSelectTool.Idle', () => {
 		editor.expectToBeIn('select.pointing_canvas')
 	})
 
+	it('Does not select a locked group by clicking one of its children', () => {
+		const a = createShapeId('a')
+		const b = createShapeId('b')
+		const groupId = createShapeId('group')
+		editor.createShapes([
+			{ id: a, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100, fill: 'solid' } },
+			{ id: b, type: 'geo', x: 500, y: 300, props: { w: 100, h: 100, fill: 'solid' } },
+		])
+		editor.groupShapes([a, b], { groupId })
+		editor.updateShape({ id: groupId, type: 'group', isLocked: true })
+		editor.selectNone()
+		editor.pointerDown(350, 350).pointerUp(350, 350)
+		expect(editor.getSelectedShapeIds()).toEqual([])
+	})
+
 	it('Nudges selected shapes on arrow key down', () => {
 		const shape = editor.getShape(ids.box1)!
 		editor.select(shape.id)
