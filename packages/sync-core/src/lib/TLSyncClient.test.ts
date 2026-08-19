@@ -375,6 +375,99 @@ describe('TLSyncClient', () => {
 			expect(pushWithPage!.diff![localPage.id][0]).toBe(RecordOpType.Put)
 		})
 
+		it('[CL5] a reconnect flushes pending store history first, so a change queued behind the frame throttle is neither lost nor resurrected', () => {
+			connectClient()
+
+			socket.mockConnectionStatus('offline')
+			const localPage = makePage('Offline Page')
+			store.put([localPage]) // reaches speculativeChanges
+
+			// In the browser the store delivers history on the next animation frame, so the client's
+			// view of speculative changes can lag the store. Hold the next flush back the same way.
+			const flushHistory = store._flushHistory
+			store._flushHistory = () => {}
+			store.remove([localPage.id]) // ...so this delete is still queued when we reconnect
+			store._flushHistory = flushHistory
+
+			socket.mockConnectionStatus('online')
+			socket.mockServerMessage(
+				createConnectMessage({ hydrationType: 'wipe_presence', serverClock: 2, diff: {} })
+			)
+			vi.advanceTimersByTime(100)
+
+			// the user deleted the page: it must not come back, and must not be pushed as a put
+			expect(store.get(localPage.id)).toBeUndefined()
+			expect(
+				getSentPushes().some((msg) => msg.diff?.[localPage.id]?.[0] === RecordOpType.Put)
+			).toBe(false)
+		})
+
+		it('[CL5][CL8] a connect diff that fails to apply resets the connection and keeps local changes tracked', () => {
+			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			try {
+				client = createClient()
+				// a local change made before the handshake completes
+				const localPage = makePage('Local Page')
+				store.put([localPage])
+
+				const badPage = { ...makePage('Bad Page', 'a3'), index: 123 } as any
+				socket.mockServerMessage(
+					createConnectMessage({ diff: { ...documentScopeDiff(), [badPage.id]: ['put', badPage] } })
+				)
+
+				// not stuck half-connected: the client resets and the socket restarts
+				expect(client.isConnectedToRoom).toBe(false)
+				expect(consoleSpy).toHaveBeenCalled()
+				expect(store.get(localPage.id)).toEqual(localPage)
+				vi.advanceTimersByTime(1)
+				socket.clearSentMessages()
+				expect(client.latestConnectRequestId).not.toBeNull()
+
+				// once a good connect arrives, the local change is still speculative and gets pushed
+				const serverDiff = documentScopeDiff()
+				delete serverDiff[localPage.id] // the server never saw it
+				socket.mockServerMessage(createConnectMessage({ diff: serverDiff }))
+				vi.advanceTimersByTime(100)
+				expect(client.isConnectedToRoom).toBe(true)
+				expect(store.get(localPage.id)).toEqual(localPage)
+				expect(
+					getSentPushes().some((msg) => msg.diff?.[localPage.id]?.[0] === RecordOpType.Put)
+				).toBe(true)
+			} finally {
+				consoleSpy.mockRestore()
+			}
+		})
+
+		it('[CL3][CL8] onLoad is held back while the connect response cannot be applied, and the client gives up after repeated failures', () => {
+			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			try {
+				client = createClient()
+				const badPage = { ...makePage('Bad Page', 'a3'), index: 123 } as any
+				const badConnect = () =>
+					createConnectMessage({ diff: { ...documentScopeDiff(), [badPage.id]: ['put', badPage] } })
+
+				socket.mockServerMessage(badConnect())
+				expect(onLoad).not.toHaveBeenCalled()
+				expect(onSyncError).not.toHaveBeenCalled()
+
+				// each failure restarts the socket and sends a fresh connect request
+				vi.advanceTimersByTime(1)
+				socket.mockServerMessage(badConnect())
+				vi.advanceTimersByTime(1)
+				expect(onSyncError).not.toHaveBeenCalled()
+
+				// the third consecutive failure surfaces a sync error instead of looping forever
+				socket.clearSentMessages()
+				socket.mockServerMessage(badConnect())
+				expect(onSyncError).toHaveBeenCalledWith('UNKNOWN_ERROR')
+				expect(onLoad).not.toHaveBeenCalled()
+				vi.advanceTimersByTime(1000)
+				expect(socket.getSentMessages().filter((m) => m.type === 'connect')).toHaveLength(0)
+			} finally {
+				consoleSpy.mockRestore()
+			}
+		})
+
 		it('[CL6] wipe_all reconnect wipes document records before applying the server diff', () => {
 			client = createClient()
 
