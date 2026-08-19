@@ -52,6 +52,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **S8** `getStoreSnapshot(scope?)` is `{ store: serialize(scope), schema: schema.serialize() }`.
 - **S9** `loadStoreSnapshot(snapshot)` migrates the snapshot, replaces all current records with the result, and runs the integrity checker — all with side effects disabled (restoring the previous enabled state afterwards). It throws if migration fails, leaving the store unchanged.
 - **S10** `migrateSnapshot(snapshot)` returns the migrated snapshot stamped with the current serialized schema, and throws if migration fails.
+- **S11** Writes do not capture: a reaction or computed that calls `put`/`remove` does not thereby subscribe to the store (neither to `store.history` nor to the record map), so it is not re-run by unrelated store changes.
 
 ## 6. Atomic operations and the side-effect flush (AO)
 
@@ -199,7 +200,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **AM1** `get`/`has` are reactive per key: an effect reading a present key re-runs when that key's value changes or the key is deleted, but not when other keys are set, updated, or deleted.
 - **AM2** Reading an absent key subscribes to the map's key set, so the reader re-runs when that key is later added (a reader of an absent key may also re-run when the key set otherwise changes — per-key isolation applies to present keys).
 - **AM3** `set` adds or updates and returns the map. `update(key, fn)` replaces an existing value and throws for a missing key.
-- **AM4** `delete` returns whether the key existed. `deleteMany(keys)` deletes in one transaction (one reaction for the whole batch), returns the `[key, value]` pairs actually deleted, and ignores missing keys.
+- **AM4** `delete` returns whether the key existed. `deleteMany(keys)` deletes in one transaction (one reaction for the whole batch), returns the `[key, value]` pairs actually deleted, and ignores missing keys. Like the other mutators, it does not capture the map as a dependency of the calling reaction.
 - **AM5** `clear()` empties the map.
 - **AM6** `entries`, `keys`, `values`, `forEach`, `[Symbol.iterator]`, and `size` see exactly the live entries and are reactive. `forEach` honors `thisArg`.
 - **AM7** Changes made inside a rolled-back `@tldraw/state` transaction are restored: additions disappear, updates revert, deletions reappear.
