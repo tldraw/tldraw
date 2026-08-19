@@ -225,7 +225,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 ## 26. IncrementalSetConstructor — internal (ISC)
 
 - **ISC1** `get()` returns `undefined` when there are no net changes: nothing done, adding already-present items, removing absent items, or add/remove round trips that cancel out.
-- **ISC2** Otherwise `get()` returns `{ value, diff }`, where `value` is the new set and `diff` is the `CollectionDiff` relative to the original set; the original set is not mutated.
+- **ISC2** Otherwise `get()` returns `{ value, diff }`, where `value` is the new set and `diff` is the `CollectionDiff` relative to the original set, with `added`/`removed` present only when non-empty; the original set is not mutated.
 - **ISC3** Re-adding an item removed earlier in the construction restores it (and removes it from `diff.removed`); removing an item added earlier cancels the add.
 
 ## 27. ImmutableMap — internal (IM)
