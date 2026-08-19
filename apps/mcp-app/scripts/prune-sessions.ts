@@ -6,6 +6,8 @@
  *   yarn prune:run --max-idle 30d                 # condemn DOs idle >= 30d
  *   yarn prune:run --max-idle 3d --force          # below 7d needs --force
  *
+ * Re-runs re-evaluate kept ids; only condemned ids are skipped.
+ *
  * Env: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID (list);
  *      MCP_WORKER_ORIGIN (default https://tldraw-mcp-app.tldraw.workers.dev), MCP_ADMIN_TOKEN (prune).
  */
@@ -96,14 +98,16 @@ async function prune(args: string[]): Promise<void> {
 		for (const line of readFileSync(RESULTS_FILE, 'utf8').split('\n')) {
 			if (!line) continue
 			const r = JSON.parse(line)
-			if (!r.error) done.add(r.id)
+			// Only destroy-scheduled is terminal (storage is gone after it); kept ids
+			// may cross the threshold on a later, longer --max-idle pass and must be re-evaluated.
+			if (r.action === 'destroy-scheduled') done.add(r.id)
 		}
 	}
 	const ids = readFileSync(IDS_FILE, 'utf8')
 		.split('\n')
 		.filter((l) => l && !done.has(l))
 	console.log(
-		`${ids.length} ids to process (${done.size} already done), dryRun=${dryRun}, maxIdle=${maxIdleMs}ms`
+		`${ids.length} ids to process (${done.size} already condemned), dryRun=${dryRun}, maxIdle=${maxIdleMs}ms`
 	)
 
 	const hist: Record<string, { count: number; bytes: number }> = {}
