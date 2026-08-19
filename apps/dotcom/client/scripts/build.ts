@@ -15,6 +15,7 @@ import regexgen from 'regexgen'
 import { exec } from '../../../../internal/scripts/lib/exec'
 import { nicelog } from '../../../../internal/scripts/lib/nicelog'
 import { csp } from '../src/utils/csp'
+import { reportBundleSize } from './measure-bundle-size'
 import { getMultiplayerServerURL } from './multiplayer-server-url'
 import { Config } from './vercel-output-config'
 
@@ -189,6 +190,17 @@ async function build() {
 						dest: `${multiplayerServerUrl}$1`,
 						check: true,
 					},
+					// MCP OAuth discovery (RFC 9728) lives at the origin, outside /api, so the
+					// rewrite above misses it. staging and production reach the worker through
+					// Cloudflare zone routes for this prefix (see the sync worker's wrangler.toml);
+					// previews have no zone routes, so this rewrite is their only path to it. the
+					// path is passed through unstripped — the worker registers the full well-known
+					// path, /api included.
+					{
+						src: '^/\\.well-known/oauth-protected-resource(/(.*))?$',
+						dest: `${multiplayerServerUrl}/.well-known/oauth-protected-resource$1`,
+						check: true,
+					},
 					// route social/link-unfurling crawlers to the worker so board link previews
 					// include the board name. must come before the SPA routes below. set
 					// SOCIAL_PREVIEW_DISABLED=true to turn this off without a code change.
@@ -242,6 +254,8 @@ async function build() {
 			2
 		)
 	)
+
+	await reportBundleSize('.vercel/output/static')
 }
 
 build()

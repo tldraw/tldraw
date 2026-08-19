@@ -24,9 +24,10 @@ spec:
           version: v0
   cursorSync: Crosshair
   description:
-    The public MCP server on the sync worker at POST /app/mcp, which serves get_board_info,
-    get_page_info, get_cluster_info and get_cluster_screenshot for published and link-shared
-    tldraw.com boards. Protocol traffic comes from the mcp_server_tool_call and mcp_server_initialize
+    The authenticated MCP server on the sync worker at POST /app/mcp, which serves get_board_info,
+    get_page_info, get_cluster_info and get_cluster_screenshot for any tldraw.com board the signed-in
+    caller can see. Every request needs an OAuth access token from the tldraw Clerk instance and a
+    user the mcp_server_access flag names; refusals are on the mcp_server_auth_refusal event. Protocol traffic comes from the mcp_server_tool_call and mcp_server_initialize
     events; the render panels are the source:mcp slice of mcp_shared_board_screenshot, whose
     cross-surface view (og and queue too) stays on Dotcom events. This server only — the separate
     tldraw MCP app worker (apps/mcp-app) and its own MCP_ANALYTICS dataset are on MCP app
@@ -411,24 +412,22 @@ spec:
                       formatAs: time_series
                       intervalFactor: 1
                       query: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileWeighted(0.5, double3, _sample_interval) as p50, quantileWeighted(0.95, double3, _sample_interval) as p95, quantileWeighted(0.99, double3, _sample_interval) as p99
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob4, 6) as mode, quantileWeighted(0.5, double3, _sample_interval) as p50, quantileWeighted(0.95, double3, _sample_interval) as p95, quantileWeighted(0.99, double3, _sample_interval) as p99
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-                        AND blob1 = 'mcp_shared_board_screenshot'
+                        AND blob1 = 'browser_run_session'
                         AND blob3 = 'source:mcp'
-                        AND double3 > 0
                         AND blob2 = '${environment}-tldraw-multiplayer'
-                        GROUP BY date
+                        GROUP BY date, mode
                         ORDER BY date ASC
                       rawQuery: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileWeighted(0.5, double3, _sample_interval) as p50, quantileWeighted(0.95, double3, _sample_interval) as p95, quantileWeighted(0.99, double3, _sample_interval) as p99
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob4, 6) as mode, quantileWeighted(0.5, double3, _sample_interval) as p50, quantileWeighted(0.95, double3, _sample_interval) as p95, quantileWeighted(0.99, double3, _sample_interval) as p99
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-                        AND blob1 = 'mcp_shared_board_screenshot'
+                        AND blob1 = 'browser_run_session'
                         AND blob3 = 'source:mcp'
-                        AND double3 > 0
                         AND blob2 = '${environment}-tldraw-multiplayer'
-                        GROUP BY date
+                        GROUP BY date, mode
                         ORDER BY date ASC
                       round: 0s
                       showFormattedSQL: false
@@ -439,9 +438,11 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: Time spent in Browser Run per screenshot for this server only (source:mcp).
-          The cross-surface view, including the og route and the background queue, is on the
-          Dotcom events dashboard.
+        description: 'Wall-clock per browser session for this server only (source:mcp), from the
+          browser_run_session ledger, split by what the session was for: measure (the clustering
+          tools sizing a page) vs screenshot. Weighted by _sample_interval to account for Analytics
+          Engine sampling. Failed sessions are included — they held a browser too. The cross-surface
+          view, including the og route and the background queue, is on Dotcom events.'
         id: 13
         links: []
         title: Browser Run render duration percentiles
@@ -530,6 +531,7 @@ spec:
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_shared_board_screenshot'
                         AND blob3 = 'source:mcp'
+                        AND blob4 != 'cache:none'
                         AND blob2 = '${environment}-tldraw-multiplayer'
                         GROUP BY date, cache_status
                         ORDER BY date ASC
@@ -539,6 +541,7 @@ spec:
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_shared_board_screenshot'
                         AND blob3 = 'source:mcp'
+                        AND blob4 != 'cache:none'
                         AND blob2 = '${environment}-tldraw-multiplayer'
                         GROUP BY date, cache_status
                         ORDER BY date ASC
@@ -553,7 +556,8 @@ spec:
             transformations: []
         description: 'Cache outcome per screenshot attempt: hit (served a cached PNG), miss
           (had to render). Only misses spend Browser Run, so a falling hit rate is what makes
-          render spend climb.'
+          render spend climb. cache:none is excluded — the info tools consult no cache at all
+          and would otherwise swamp both real values.'
         id: 14
         links: []
         title: Screenshot cache status
@@ -778,10 +782,11 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: 'Which limiter turned a screenshot away: rate_limited_ip is one caller
-          over its per-IP budget, rate_limited_board is one board being screenshotted too
+        description: 'Which limiter turned a screenshot away: rate_limited_user is one account
+          over its per-user budget, rate_limited_board is one board being screenshotted too
           often, and rate_limited_global means the shared Browser Run cap is saturated — that
-          last one is shared with the og and queue surfaces.'
+          last one is shared with the og and queue surfaces. Rows written before the MCP server
+          required authentication carry rate_limited_ip instead, when the budget was per IP.'
         id: 16
         links: []
         title: Rate-limited screenshot events
@@ -1017,17 +1022,19 @@ spec:
                         SELECT count() as renders
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-                        AND blob1 = 'mcp_shared_board_screenshot'
+                        AND blob1 = 'browser_run_session'
                         AND blob3 = 'source:mcp'
-                        AND double3 > 0
+                        AND blob4 = 'mode:screenshot'
+                        AND blob5 = 'outcome:ok'
                         AND blob2 = '${environment}-tldraw-multiplayer'
                       rawQuery: |-
                         SELECT count() as renders
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-                        AND blob1 = 'mcp_shared_board_screenshot'
+                        AND blob1 = 'browser_run_session'
                         AND blob3 = 'source:mcp'
-                        AND double3 > 0
+                        AND blob4 = 'mode:screenshot'
+                        AND blob5 = 'outcome:ok'
                         AND blob2 = '${environment}-tldraw-multiplayer'
                       round: 0s
                       showFormattedSQL: false
@@ -1038,8 +1045,9 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: Tool calls that actually spent Browser Run capacity (double3 carries
-          a render duration; -1 means no render happened). Cache hits and failures are excluded.
+        description: Browser sessions on this server that produced a PNG (browser_run_session rows
+          with mode:screenshot and outcome:ok). Measure renders, cache hits and failed sessions are
+          excluded — for measure spend see the duration panel, which splits by mode.
         id: 4
         links: []
         title: Screenshots rendered

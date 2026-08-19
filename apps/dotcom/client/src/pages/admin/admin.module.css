@@ -416,6 +416,13 @@
 	gap: 8px;
 }
 
+/* For flag variants whose editor needs the full row width (the allowlist textarea): header row on
+   top, editor stretched underneath, instead of everything competing inside one row. */
+.featureFlagItemColumn {
+	flex-direction: column;
+	align-items: stretch;
+}
+
 .featureFlagLabel {
 	display: flex;
 	align-items: center;

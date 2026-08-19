@@ -85,24 +85,13 @@ export default function CommentDrawingReactionsExample() {
 }
 
 /*
-This example replaces the emoji reaction picker with one you draw in.
-
-A reaction's `emoji` field is a free-form string. The commenting layer stores it, syncs it, and
-hands it back to a renderer — it never assumes the string is an emoji glyph. It is bounded,
-though: the schema caps a token at 64 characters, because the token is embedded verbatim in the
-reaction's record id. So a custom reaction can be anything, as long as the token *names* the
-content rather than contains it. That's the replicable recipe `drawing-reactions.tsx` implements,
-in three pieces:
-
-- a custom `reaction-drawing` record type holds each distinct drawing's image, content-addressed
-  so its id is a short hash of the image — the id is the token
-- the palette (a small locked-down tldraw canvas) saves what you drew as a record and emits its id
-- the renderer resolves a token back through the store and draws the record's image
-
-The same shape works for stickers, sounds, or anything else: swap what the record holds and how
-the renderer draws it. For heavyweight content (photos, video), keep the token-names-content
-pattern but have the record hold an uploaded asset's URL instead of inline bytes — a document
-record's contents are replicated to every client on the file, forever.
+A reaction token is a free-form string, capped at 64 characters because it is embedded in the
+reaction's record id. So a custom reaction can be anything, as long as the token *names* the content
+rather than contains it. `drawing-reactions.tsx` implements that recipe: a `reaction-drawing` record
+holds the image, the palette saves one and emits its id, and the renderer resolves the id back to
+the image. The same shape works for stickers or sounds — for heavyweight content, have the record
+hold an uploaded asset's URL instead of inline bytes, since document records replicate to every
+client on the file.
 
 [1]
 `DrawingReactionPalette` renders a nested `<Tldraw>`, which is a second editor and wants its own
@@ -113,7 +102,7 @@ document rather than the palette's scratch canvas.
 [2]
 The pieces are configured together on the comment tool, and they have to agree: the palette emits
 record-id tokens, `ReactionContent` resolves and draws them, and `isAllowedReaction` lets them
-through. Emoji stay allowed alongside drawings, so both kinds coexist on the same comment. Note
+through. Emoji stay allowed alongside drawings, so both kinds coexist on the same comment.
 `isAllowedReaction` can only check a token's shape — a token is a claim, not proof the record
 exists — so the renderer treats a missing record as "render nothing".
 

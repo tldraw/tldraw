@@ -6,8 +6,10 @@ keywords:
   [error handling, shapeerrorfallback, error boundary, components, crash recovery, fallback ui]
 ---
 
-Customize the error fallback that appears when a shape throws an error.
+Customize the fallback shown when a shape throws while rendering.
 
 ---
 
-When something goes wrong in a shape, it won't crash the whole editor. An error fallback gets shown instead, which you can customize by overriding the `ShapeErrorFallback` component in the `components` prop.
+Every shape renders inside its own error boundary, so a shape that throws doesn't crash the editor. Instead tldraw renders the `ShapeErrorFallback` component in its place. Override it through the `components` prop to show your own message; it receives the thrown `error` as a prop.
+
+This example registers a shape whose `component()` always throws and creates one on mount so you can see the custom fallback immediately.

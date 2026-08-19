@@ -3,6 +3,7 @@ import {
 	computed,
 	createCachedUserResolve,
 	createUserId,
+	Editor,
 	Tldraw,
 	TldrawUiButton,
 	TLNoteShape,
@@ -99,9 +100,7 @@ function AttributionPanel() {
 		[editor]
 	)
 
-	const currentUser = useValue('current-user', () => editor.store.props.users.currentUser.get(), [
-		editor,
-	])
+	const currentUser = useValue(editor.store.props.users.currentUser)
 
 	return (
 		<div className="attribution-panel">
@@ -144,7 +143,7 @@ function AttributionPanel() {
 }
 
 // [5]
-function attributionSummary(editor: { store: { props: { users: TLUserStore } } }, shape: TLShape) {
+function attributionSummary(editor: Editor, shape: TLShape) {
 	const createdBy = typeof shape.meta.createdBy === 'string' ? shape.meta.createdBy : null
 	const createdByUser = createdBy
 		? (editor.store.props.users.resolve?.(createdBy).get() ?? null)
@@ -165,35 +164,41 @@ function attributionSummary(editor: { store: { props: { users: TLUserStore } } }
 	}
 }
 
+const components = {
+	TopPanel: UserSwitcher,
+	SharePanel: AttributionPanel,
+}
+
 // [6]
+function handleMount(editor: Editor) {
+	const stampWithCurrentUser = (shape: TLShape) => {
+		if (typeof shape.meta.createdBy === 'string') return shape
+		const userId = editor.getAttributionUserId()
+		if (!userId) return shape
+		return { ...shape, meta: { ...shape.meta, createdBy: userId } }
+	}
+
+	// Shapes persisted before this example started stamping get attributed to whoever is
+	// current on load, without polluting the undo stack
+	const toBackfill = editor
+		.getCurrentPageShapes()
+		.filter((s) => typeof s.meta.createdBy !== 'string')
+		.map(stampWithCurrentUser)
+	if (toBackfill.length) {
+		editor.run(() => editor.updateShapes(toBackfill), { history: 'ignore' })
+	}
+
+	editor.sideEffects.registerBeforeCreateHandler('shape', stampWithCurrentUser)
+}
+
 export default function AttributionExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				persistenceKey="attribution-example"
 				users={users}
-				onMount={(editor) => {
-					const stampWithCurrentUser = (shape: TLShape) => {
-						if (typeof shape.meta.createdBy === 'string') return shape
-						const userId = editor.getAttributionUserId()
-						if (!userId) return shape
-						return { ...shape, meta: { ...shape.meta, createdBy: userId } }
-					}
-
-					const toBackfill = editor
-						.getCurrentPageShapes()
-						.filter((s) => typeof s.meta.createdBy !== 'string')
-						.map(stampWithCurrentUser)
-					if (toBackfill.length) {
-						editor.run(() => editor.updateShapes(toBackfill), { history: 'ignore' })
-					}
-
-					editor.sideEffects.registerBeforeCreateHandler('shape', stampWithCurrentUser)
-				}}
-				components={{
-					TopPanel: UserSwitcher,
-					SharePanel: AttributionPanel,
-				}}
+				onMount={handleMount}
+				components={components}
 			/>
 		</div>
 	)
@@ -201,37 +206,31 @@ export default function AttributionExample() {
 
 /*
 [1]
-A fake user directory stored in a reactive atom. In a real app this would be
-backed by your auth system or user service. Each user has an id, display name,
-and color. Because it's an atom, changes (like renaming a user) automatically
-propagate to anything reading from the TLUserStore.
+A fake user directory in a reactive atom. In a real app this would be backed by your
+auth system. Because it's an atom, changes (like renaming a user) propagate to anything
+reading through the `TLUserStore`.
 
 [2]
-The custom TLUserStore. `currentUser` and `resolve` return reactive Signals
-derived from the atoms — any computed or useValue that reads `.get()` on these
-signals will re-evaluate when the underlying data changes.
+The `TLUserStore`. `currentUser` and `resolve` are signals, so `useValue` and computeds
+that read them re-evaluate when the underlying data changes. `createCachedUserResolve`
+returns the same signal for repeated lookups of the same id, which the editor relies on
+to avoid recomputation.
 
 [3]
-The top panel lets you switch which user is "logged in" and edit the active
-user's name. Try drawing a shape as Alice, then renaming her — the attribution
-panel updates live. Switch to Bob, create a note with text, and you'll also
-see the built-in "Text last edited by" appear.
+Switch which user is "logged in" and edit the active user's name. Draw a shape as Alice,
+rename her, and the attribution panel updates live. Switch to Bob and edit a note's text
+to see the built-in "Text last edited by" appear.
 
 [4]
-The panel reads `editor.store.props.users.currentUser.get()` to show who is
-active, and resolves both `meta.createdBy` (set by our own side effect) and
-`textLastEditedBy` (built-in on notes) for the selected shape. Each attribution
-field is a user id string — we call `resolve(userId).get()` to get live display
-data, so renames flow through automatically.
+The panel shows the current user and, for the selected shape, resolves `meta.createdBy`
+(set by our side effect) and `textLastEditedBy` (built into note shapes). Both are user
+id strings; `resolve(userId).get()` turns them into live display data.
 
 [5]
-Extracts attribution info from a shape. We read `meta.createdBy` for any
-shape, and additionally read the built-in `textLastEditedBy` prop for note
-shapes.
+Read `meta.createdBy` for any shape, plus the built-in `textLastEditedBy` prop on notes.
 
 [6]
-We pass the custom user store as the `users` prop on the Tldraw component,
-and use a `beforeCreate` side effect to stamp the current user's id onto
-every new shape's `meta.createdBy`. Storing attribution in `meta` keeps the
-data with the shape and lets you attribute any shape type, not just notes.
+`editor.getAttributionUserId()` returns the current user's id (and makes sure a `user:`
+record exists for them). A `beforeCreate` side effect stamps it onto every new shape's
+`meta.createdBy`, which lets you attribute any shape type, not just notes.
 */

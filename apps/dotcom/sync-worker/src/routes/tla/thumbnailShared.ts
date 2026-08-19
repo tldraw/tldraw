@@ -79,14 +79,6 @@ function classifyBrowserRenderFailure(error: BrowserRenderError): string {
 	return 'browser_failed'
 }
 
-// The Browser Run time a failed capture still spent: a render that throws has already created a
-// browser and held it, often for the whole timeout, and that is real spend on a path whose only
-// safeguard is watching what it costs. Undefined for failures that never reached the capture (an
-// unreadable snapshot, an empty board), which spent nothing.
-export function browserRunDurationOf(error: unknown): number | undefined {
-	return error instanceof BrowserRenderError ? error.durationMs : undefined
-}
-
 // Caller-facing explanation for a classified failure, as a clause to follow a tool's own prefix.
 // Derived from the bounded reason code and never from `error.message`: these tools answer anonymous,
 // unauthenticated callers, and Postgres and R2 errors carry internal hostnames, ports, and database

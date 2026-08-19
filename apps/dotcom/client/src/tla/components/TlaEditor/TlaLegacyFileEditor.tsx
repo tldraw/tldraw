@@ -13,7 +13,7 @@ import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
-import { MULTIPLAYER_SERVER } from '../../../utils/config'
+import { CLIENT_BUILD_TIMESTAMP, MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
 import { globalEditor } from '../../../utils/globalEditor'
@@ -76,7 +76,7 @@ function TlaEditorInner({
 	const assets = useMemo(() => multiplayerAssetStore(), [])
 
 	const storeWithStatus = useSync({
-		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${fileSlug}`,
+		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${fileSlug}?v=${CLIENT_BUILD_TIMESTAMP}`,
 		roomId: fileSlug,
 		assets,
 		trackAnalyticsEvent: trackEvent,

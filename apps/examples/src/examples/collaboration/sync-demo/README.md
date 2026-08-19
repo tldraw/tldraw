@@ -6,8 +6,10 @@ keywords: [multiplayer, sync, useSyncDemo, collaboration, real-time, websocket, 
 multiplayer: true
 ---
 
-Use tldraw sync for multiplayer collaboration.
+Connect to a shared room with `useSyncDemo` for instant multiplayer.
 
 ---
 
-The `useSyncDemo` hook can be used to quickly prototype multiplayer experiences in tldraw using a demo backend that we host. Data is wiped after one day.
+`useSyncDemo` returns a store connected to a demo sync backend that tldraw hosts, so you can prototype multiplayer without running a server. Pass the store to `<Tldraw>` and every client with the same `roomId` edits the same document. Data on the demo server is wiped after one day.
+
+Open the example in two tabs to see cursors and edits sync. For a self-hosted backend, see the `useSync` hook in `@tldraw/sync` and the sync template.

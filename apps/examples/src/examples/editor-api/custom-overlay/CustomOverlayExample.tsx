@@ -28,15 +28,19 @@ To add your own, subclass `OverlayUtil` and implement three methods:
 - `render(ctx, overlays)` — draw into a page-space canvas context.
 
 See `PointerRingOverlayUtil.ts` for a minimal implementation that draws a ring
-following the cursor. It reads the reactive `editor.inputs.getCurrentPagePoint()`
-atom, so the ring redraws automatically as the pointer moves.
+following the cursor. `getOverlays()` reads the reactive
+`editor.inputs.getCurrentPagePoint()`, so the ring redraws automatically as the
+pointer moves. Because the context is in page space, `render()` divides the
+ring's radius and line width by the zoom level to keep them a constant size on
+screen.
 
 [1]
 Register your overlay util alongside `defaultOverlayUtils` so the built-in
-overlays (selection, brush, scribble, snap, handles, collaborator cursors) stay
-intact. `zIndex` on `options` controls paint order — higher paints on top.
+overlays (selection, brush, scribble, snap, handles, collaborator brushes and
+scribbles) stay intact. Passing an array without them removes those overlays. `options.zIndex`
+controls paint order; higher paints on top.
 
 [2]
 Pass the array to the `overlayUtils` prop on `<Tldraw>`. Each util is
-constructed once when the editor mounts.
+constructed once when the editor mounts, so define the array at module level.
 */

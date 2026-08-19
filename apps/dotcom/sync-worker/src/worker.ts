@@ -32,8 +32,6 @@ import { healthCheckRoutes } from './healthCheckRoutes'
 import { createPostgresConnectionPool } from './postgres'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
-import { getPierreHistory } from './routes/getPierreHistory'
-import { getPierreHistorySnapshot } from './routes/getPierreHistorySnapshot'
 import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
 import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
@@ -49,32 +47,38 @@ import { getOgImage } from './routes/tla/getOgImage'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
 import { initUser } from './routes/tla/initUser'
+import {
+	MCP_PROTECTED_RESOURCE_METADATA_PATH,
+	getMcpProtectedResourceMetadata,
+	mcpCorsPreflight,
+	withMcpCors,
+} from './routes/tla/mcpAuth'
 import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
 import { putThumbnailRenderResult } from './routes/tla/putThumbnailRenderResult'
 import { sharedBoardScreenshotMcp } from './routes/tla/sharedBoardScreenshotMcp'
 import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
 import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
-import {
-	getFileEffectProcessor,
-	getLogger,
-	getReplicator,
-	getUserDurableObject,
-} from './utils/durableObjects'
+import { getFileEffectProcessor, getLogger } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, getZeroAuth, requireAuth } from './utils/tla/getAuth'
 import { getRole } from './utils/tla/getRole'
 export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLFileEffectProcessor } from './TLFileEffectProcessor'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
-export { TLPostgresReplicator } from './TLPostgresReplicator'
-export { TLStatsDurableObject } from './TLStatsDurableObject'
-export { TLUserDurableObject } from './TLUserDurableObject'
 // no-op stub. wrangler.toml v1 created TLDrawDurableObject and v10 deletes it.
 // staging/prod still have it in their applied-migration history, so removing
 // this export breaks their deploys (see #8124). preview skips both v1 and v10,
 // so this export is just an unbound class on preview - harmless.
 export class TLDrawDurableObject {}
+
+// no-op stubs, same reasoning as TLDrawDurableObject above: staging/prod migration
+// history references these classes (v5 created TLPostgresReplicator + TLUserDurableObject,
+// v7 created TLStatsDurableObject), so the exports must stay or their deploys break
+// (see #8124). Bindings are already gone; preview never created these classes.
+export class TLPostgresReplicator {}
+export class TLUserDurableObject {}
+export class TLStatsDurableObject {}
 
 const { preflight, corsify } = cors({
 	origin: isAllowedOrigin,
@@ -83,6 +87,25 @@ const { preflight, corsify } = cors({
 const QUEUE_BASE_DELAY = 2
 
 const router = createRouter<Environment>()
+	// The MCP endpoint and its RFC 9728 discovery metadata are registered ahead of both the shared
+	// preflight and the origin check, and answer their own CORS instead — see MCP_CORS_HEADERS for why
+	// an origin allowlist is the wrong gate for a bearer-authenticated endpoint, and what a browser
+	// MCP client got before this.
+	//
+	// `.options` before `.all` so the preflight is answered rather than dispatched into the handler.
+	.options('/app/mcp', mcpCorsPreflight)
+	.options(MCP_PROTECTED_RESOURCE_METADATA_PATH, mcpCorsPreflight)
+	// .all so MCP server can correctly respond to non-post requests with 405
+	.all('/app/mcp', async (req, env, ctx) =>
+		withMcpCors(await sharedBoardScreenshotMcp(req, env, ctx))
+	)
+	// Registered at the origin rather than under /app, because RFC 9728 puts protected resource
+	// metadata at a well-known path derived from the resource's own path — a client looks for exactly
+	// this URL and nowhere else. The /api/* route pattern does not cover it, so wrangler.toml carries
+	// a second route for this prefix; see MCP_PROTECTED_RESOURCE_METADATA_PATH.
+	.get(MCP_PROTECTED_RESOURCE_METADATA_PATH, (req, env) =>
+		withMcpCors(getMcpProtectedResourceMetadata(req, env))
+	)
 	.all('*', preflight)
 	.all('*', blockUnknownOrigins)
 	.post('/snapshots', createRoomSnapshot)
@@ -110,34 +133,11 @@ const router = createRouter<Environment>()
 		getRoomHistorySnapshot(req, env, true)
 	)
 
-	.get(`/${FILE_PREFIX}/:roomId/pierre-history`, (req, env) => getPierreHistory(req, env, true))
-	.get(`/${FILE_PREFIX}/:roomId/pierre-history/:timestamp`, (req, env) =>
-		getPierreHistorySnapshot(req, env, true)
-	)
-
 	.get('/readonly-slug/:roomId', getReadonlySlug)
 	.get('/unfurl', extractBookmarkMetadata)
 	.post('/unfurl', extractBookmarkMetadata)
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
 	.post(`/app/file/:roomId/restore`, forwardRoomRequest)
-	.post(`/app/file/:roomId/pierre-restore`, forwardRoomRequest)
-	.get('/app/:userId/connect', async (req, env) => {
-		// forward req to the user durable object
-		const auth = await getAuth(req, env)
-		if (!auth) {
-			// eslint-disable-next-line no-console
-			console.log('auth not found')
-			return notFound()
-		}
-
-		if (req.headers.get('upgrade')?.toLowerCase() !== 'websocket') {
-			return notFound()
-		}
-
-		if (req.params.userId !== auth.userId) return notFound()
-		const stub = getUserDurableObject(env, auth.userId)
-		return stub.fetch(req)
-	})
 	.post('/app/:userId/init', async (req, env) => {
 		// Ensure user exists in DB before Zero can query
 		const auth = await requireAuth(req, env)
@@ -145,10 +145,6 @@ const router = createRouter<Environment>()
 		return initUser(req, env)
 	})
 	.post('/app/tldr', createFiles)
-	.get('/app/replicator-status', async (_, env) => {
-		await getReplicator(env).ping()
-		return new Response('ok')
-	})
 	// Dev/preview only. Wakes the outbox processor: local workerd doesn't fire persisted alarms
 	// for an uninstantiated DO, so without this a restarted dev stack drains nothing until the
 	// first mutation. The dev stack's one-shot wake-outbox process hits this route on startup.
@@ -198,7 +194,8 @@ const router = createRouter<Environment>()
 	})
 	.post('/app/submit-feedback', submitFeedback)
 	.get('/app/feature-flags', getFeatureFlags)
-	.post('/app/mcp', sharedBoardScreenshotMcp)
+	// The MCP endpoint and its discovery metadata are registered at the top of this router, ahead of
+	// the origin check. See there.
 	// The board's rendered social preview image, referenced by the og:image tags getSocialPreview
 	// emits. Lives under the social-preview route family so the crawler HTML and its image share one
 	// path prefix. Registered with .all (like the sibling HTML route) so HEAD probes are handled;
