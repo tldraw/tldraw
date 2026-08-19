@@ -158,6 +158,7 @@ class __Atom__<Value, Diff = unknown> implements Atom<Value, Diff> {
 	 * ```
 	 */
 	set(value: Value, diff?: Diff): Value {
+		// If the value has not changed, do nothing.
 		if (this.isEqual?.(this.current, value) ?? equals(this.current, value)) {
 			return this.current
 		}
@@ -183,15 +184,18 @@ class __Atom__<Value, Diff = unknown> implements Atom<Value, Diff> {
 		advanceGlobalEpoch()
 		const epoch = getGlobalEpoch()
 
+		// Add the diff to the history buffer.
 		if (this.historyBuffer) {
 			this.historyBuffer.pushEntry(this.lastChangedEpoch, epoch, historyDiff)
 		}
 
+		// Update the atom's record of the epoch when last changed.
 		this.lastChangedEpoch = epoch
 
 		const oldValue = this.current
 		this.current = value
 
+		// Notify all children that this atom has changed.
 		atomDidChange(this as any, oldValue)
 
 		return value
