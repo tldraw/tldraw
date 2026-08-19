@@ -79,6 +79,14 @@ function corsResponse(response: Response): Response {
 	return new Response(response.body, { status: response.status, headers })
 }
 
+/** 401 unless the request carries the admin bearer token; null when it does. */
+function requireAdminToken(request: Request, env: Env): Response | null {
+	if (!env.ADMIN_TOKEN || request.headers.get('Authorization') !== `Bearer ${env.ADMIN_TOKEN}`) {
+		return new Response('Unauthorized', { status: 401 })
+	}
+	return null
+}
+
 // --- McpAgent Durable Object ---
 
 export class TldrawMCP extends McpAgent<Env> {
@@ -449,9 +457,8 @@ export default {
 			if (url.pathname === '/admin/prune') {
 				if (!env.ADMIN_TOKEN) return new Response('Not found', { status: 404 })
 				if (request.method !== 'POST') return new Response('Method not allowed', { status: 405 })
-				if (request.headers.get('Authorization') !== `Bearer ${env.ADMIN_TOKEN}`) {
-					return new Response('Unauthorized', { status: 401 })
-				}
+				const denied = requireAdminToken(request, env)
+				if (denied) return denied
 				let body: { ids?: unknown; maxIdleMs?: unknown; dryRun?: unknown }
 				try {
 					body = await request.json()
@@ -488,24 +495,16 @@ export default {
 
 			// Dev helper for scripts/verify-prune.sh: map a session id to its DO id.
 			if (url.pathname === '/admin/do-id' && env.MCP_IS_DEV === 'true') {
-				if (
-					!env.ADMIN_TOKEN ||
-					request.headers.get('Authorization') !== `Bearer ${env.ADMIN_TOKEN}`
-				) {
-					return new Response('Unauthorized', { status: 401 })
-				}
+				const denied = requireAdminToken(request, env)
+				if (denied) return denied
 				const session = url.searchParams.get('session') ?? ''
 				return new Response(env.MCP_OBJECT.idFromName(`streamable-http:${session}`).toString())
 			}
 
 			// Dev helper for scripts/verify-prune.sh: inspect a session's armed expiry schedule.
 			if (url.pathname === '/admin/schedules' && env.MCP_IS_DEV === 'true') {
-				if (
-					!env.ADMIN_TOKEN ||
-					request.headers.get('Authorization') !== `Bearer ${env.ADMIN_TOKEN}`
-				) {
-					return new Response('Unauthorized', { status: 401 })
-				}
+				const denied = requireAdminToken(request, env)
+				if (denied) return denied
 				const session = url.searchParams.get('session') ?? ''
 				const stub = env.MCP_OBJECT.get(env.MCP_OBJECT.idFromName(`streamable-http:${session}`))
 				return Response.json(await stub.listExpirySchedules())
