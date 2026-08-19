@@ -602,10 +602,13 @@ export class TLFileDurableObject extends DurableObject {
 			}
 			// Report before closing, so a throw from close() can't cost us the Sentry event.
 			this.reportError(e, { source: 'webSocketMessage' })
-			// The message is lost either way, and leaving the socket up would let the client carry on
-			// believing it is synced while its local state silently diverges. Closing puts it into the
-			// error state and the reconnect manager resyncs it from scratch.
-			ws.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.UNKNOWN_ERROR)
+			// The message is lost either way, so the socket has to go: leaving it up would let the
+			// client carry on believing it is synced while its local state silently diverges. Closed
+			// without a code, though — TLSyncErrorCloseEventCode is fatal on the client, which tears
+			// the sync client down into an error state only a reload clears. What lands here is
+			// transient (a getRoom() that failed resuming from hibernation), so a codeless close
+			// reads as 'offline' and the reconnect manager reconnects and resyncs from scratch.
+			ws.close()
 		}
 	}
 
