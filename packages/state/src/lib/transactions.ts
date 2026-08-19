@@ -181,9 +181,9 @@ function flushChanges(atoms: Iterable<_Atom>) {
  */
 export function atomDidChange(atom: _Atom, previousValue: any) {
 	if (inst.currentTransaction) {
-		// If we are in a transaction, then all we have to do is preserve
-		// the value of the atom at the start of the transaction in case
-		// we need to roll back.
+		// Only the value at the start of the transaction matters, for rollback. Children are not
+		// traversed until the transaction commits, which is why `Computed` must not trust its
+		// traversal-based cache shortcut while a transaction is open.
 		if (!inst.currentTransaction.initialAtomValues.has(atom)) {
 			inst.currentTransaction.initialAtomValues.set(atom, previousValue)
 		}
