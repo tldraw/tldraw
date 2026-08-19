@@ -17,9 +17,18 @@ function between(src: string, startMarker: string, endMarker: string): string {
 }
 
 describe('agents SDK assumptions behind session pruning and expiry', () => {
-	it('schedule() supports the idempotent option with a callback+payload dedup query', () => {
-		expect(agentsDist).toMatch(/payload IS \$\{/)
-		expect(agentsDist).toContain('idempotent')
+	it('schedule() gates its callback+payload dedup query behind the idempotent option', () => {
+		// schedule() itself delegates to _insertScheduleForOwner, which is where the
+		// idempotent check and its dedup query actually live.
+		const body = between(
+			agentsDist,
+			'async _insertScheduleForOwner(ownerPath, when, callback, payload, options) {',
+			'async _cf_scheduleForFacet('
+		)
+		const idempotentAt = body.indexOf('options?.idempotent')
+		const dedupAt = body.indexOf('payload IS ${')
+		expect(idempotentAt).toBeGreaterThan(-1)
+		expect(dedupAt).toBeGreaterThan(idempotentAt)
 	})
 
 	it('the alarm body runs a schedule callback BEFORE deleting its row (so expireIfIdle must not dedup its re-arm)', () => {
