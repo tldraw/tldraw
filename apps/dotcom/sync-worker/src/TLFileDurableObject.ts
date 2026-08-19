@@ -73,13 +73,18 @@ import {
 } from './commentRows'
 import { PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
+import {
+	ensureMcpClusterIndexTable,
+	readMcpClusterIndexRow,
+	writeMcpClusterIndexRow,
+} from './mcpClusterIndexStorage'
 import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom, listAllObjectKeys } from './r2'
 import { RoomNotFoundError, shouldSkipMissingRoomEffect } from './roomEffectHelpers'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import { generateSnapshotChunks } from './snapshotUtils'
-import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
+import { Analytics, DBLoadResult, Environment, McpClusterIndexKey, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
@@ -2672,6 +2677,44 @@ export class TLFileDurableObject extends DurableObject {
 		// publishSnapshot reads the R2 blob straight after this resolves; a swallowed persist
 		// failure here would let it publish a stale snapshot, so surface it instead.
 		await this.persistToDatabase({ throwOnFailure: true })
+	}
+
+	/**
+	 * The MCP server's cluster index cache, one row per page of one board.
+	 *
+	 * Why it lives here rather than in R2 with the screenshot PNGs: this is content *derived from the
+	 * room*, and the room is what this object owns. Keeping it beside the document means it is
+	 * strongly consistent, it dies with the file when the file is deleted, and it needs no expiry
+	 * policy — the primary key holds no version, so writing a page's index for new content replaces
+	 * the row for the old one rather than adding to it. At most one row per page per board kind, so a
+	 * file's cache is bounded by its page count (and enumeration stops at MAX_THUMBNAIL_PAGES).
+	 *
+	 * `kind` and `slug` are in the key because one file can be read as two boards: the live shared
+	 * file, and the frozen published snapshot its published slug points at. They cluster differently
+	 * whenever the two have drifted apart, so they must not share a row.
+	 *
+	 * Nothing here boots the room. These are storage-only reads and writes on a Worker's critical
+	 * path, and the point of the cache is to be cheaper than what it replaces.
+	 */
+	private ensureMcpClusterIndex() {
+		ensureMcpClusterIndexTable(this.ctx.storage.sql)
+	}
+
+	/**
+	 * One page's stored cluster index, or null when nothing was stored for this exact content version.
+	 *
+	 * The statements live in mcpClusterIndexStorage.ts so they can be run against a real database in a
+	 * test; everything they do is documented there.
+	 */
+	async getMcpClusterIndex(key: McpClusterIndexKey): Promise<string | null> {
+		this.ensureMcpClusterIndex()
+		return readMcpClusterIndexRow(this.ctx.storage.sql, key)
+	}
+
+	/** Stores one page's cluster index, replacing whatever that page last had. */
+	async putMcpClusterIndex(key: McpClusterIndexKey, payload: string): Promise<void> {
+		this.ensureMcpClusterIndex()
+		writeMcpClusterIndexRow(this.ctx.storage.sql, key, payload, Date.now())
 	}
 
 	/**

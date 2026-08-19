@@ -152,6 +152,42 @@ export function makeMeasuringBrowserBinding(
 	})
 }
 
+// In-memory stand-in for the TLDR_DOC namespace, with the file object's MCP cluster index storage.
+//
+// One store shared by every object id, keyed the way the real table is (kind, slug, pageId) with the
+// version held as a value rather than part of the key — so a write for new content replaces the old
+// row exactly as `INSERT OR REPLACE` does, and a read for a stale version misses.
+//
+// `store` is exposed so a test can seed a row, corrupt one, or assert that a tool wrote one; `calls`
+// counts reads and writes, which is how a test tells "served from cache" from "measured again"
+// without inspecting the browser binding.
+export function makeFakeFileDurableObjectNamespace() {
+	const store = new Map<string, { version: string; payload: string }>()
+	const calls = { get: 0, put: 0 }
+	const keyOf = (key: { kind: string; slug: string; pageId: string }) =>
+		`${key.kind}/${key.slug}/${key.pageId}`
+
+	const stub = {
+		async getMcpClusterIndex(key: any) {
+			calls.get++
+			const row = store.get(keyOf(key))
+			return row && row.version === key.version ? row.payload : null
+		},
+		async putMcpClusterIndex(key: any, payload: string) {
+			calls.put++
+			store.set(keyOf(key), { version: key.version, payload })
+		},
+	}
+
+	return {
+		store,
+		calls,
+		// A legible id rather than an opaque hash, so an assertion that reaches one reads as `do(<name>)`.
+		idFromName: (name: string) => ({ toString: () => `do(${name})` }),
+		get: () => stub,
+	}
+}
+
 export function makeScreenshotTestEnv(overrides: Partial<Record<string, unknown>> = {}) {
 	return {
 		BROWSER: makeBrowserBinding(),
@@ -159,11 +195,17 @@ export function makeScreenshotTestEnv(overrides: Partial<Record<string, unknown>
 		MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret',
 		MEASURE: { writeDataPoint: vi.fn() },
 		QUEUE: makeFakeQueue(),
-		// Nothing in the thumbnail pipeline derives a board id, and this exists to keep it that way: if
-		// something starts, a legible `do(<name>)` shows up in an assertion rather than an opaque hash.
-		TLDR_DOC: { idFromName: (name: string) => ({ toString: () => `do(${name})` }) },
+		// The MCP cluster index cache lives on the file's durable object, so the default env has a
+		// working one: a test that measures twice for the same board and page is asserting that the
+		// cache did not hold, which is worth failing on rather than passing by accident.
+		TLDR_DOC: makeFakeFileDurableObjectNamespace(),
 		...overrides,
 	} as unknown as Environment
+}
+
+/** The fake TLDR_DOC namespace an env was built with, for tests that assert on cache traffic. */
+export function clusterIndexStoreOf(env: Environment) {
+	return env.TLDR_DOC as unknown as ReturnType<typeof makeFakeFileDurableObjectNamespace>
 }
 
 export function screenshotOf(env: Environment) {

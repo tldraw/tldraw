@@ -16,6 +16,7 @@ import {
 	blobValuesOf,
 	blobsWithPrefix,
 	callerBlobsOf,
+	clusterIndexStoreOf,
 	datapointsNamed,
 	failureBlobsOf,
 	makeBrowserBinding,
@@ -745,6 +746,135 @@ describe('page and cluster info', () => {
 	})
 })
 
+// What the cluster index buys: a page is measured once per content version, not once per call.
+//
+// Every test here is about the *browser sessions* a sequence of calls costs, since that is the whole
+// point — the answers themselves are covered above, and are asserted here only where a cached path
+// could quietly change one.
+describe('cluster index cache', () => {
+	it('answers get_cluster_info from the index get_page_info stored, spending nothing', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		const clusterId = await firstClusterId(env, 'user_ix', 'abc')
+
+		const cached = await callTool('get_cluster_info', { boardId: 'abc', clusterId }, env, 'user_ix')
+
+		// One session for the whole sequence: get_page_info's measure. get_cluster_info added none.
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
+		expect(blobsWithPrefix(env, 'clusters:')).toEqual(['clusters:miss', 'clusters:hit'])
+
+		// And it is the same answer the measuring path gives, down to the shape records: a cached call
+		// that returned a different cluster would be worse than one that cost a render.
+		const fresh = await callTool(
+			'get_cluster_info',
+			{ boardId: 'abc', clusterId },
+			makeEnv(),
+			'user_ix'
+		)
+		expect(cached.content).toEqual(fresh.content)
+	})
+
+	it('keeps the plain text only an editor can report', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		;(env as any).BROWSER = makeMeasuringBrowserBinding(() => env, {
+			'shape:page:a-0': { minX: 0, minY: 0, maxX: 10, maxY: 10, text: 'Checkout total' },
+			'shape:page:a-1': { minX: 5000, minY: 0, maxX: 5010, maxY: 10 },
+		})
+		const clusterId = await firstClusterId(env, 'user_ix_text', 'abc')
+
+		const result = await callTool(
+			'get_cluster_info',
+			{ boardId: 'abc', clusterId },
+			env,
+			'user_ix_text'
+		)
+
+		// Served from the index, so this text came out of storage rather than out of a render — the one
+		// thing in a cluster that cannot be re-derived from the stored record.
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
+		expect(JSON.parse(result.content[0].text).shapes[0].props.text).toBe('Checkout total')
+	})
+
+	it('indexes each page separately', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+
+		await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix2')
+		await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix2')
+		await callTool('get_page_info', { boardId: 'abc', page: 1 }, env, 'user_ix2')
+
+		// Page 0 measured once and was then served from the index; page 1 has an index of its own to
+		// build, so it measures too.
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure', 'measure'])
+		expect(blobsWithPrefix(env, 'clusters:')).toEqual([
+			'clusters:miss',
+			'clusters:hit',
+			'clusters:miss',
+		])
+	})
+
+	it('measures again when the board content moves on', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix3')
+
+		// A republish rotates the version this board's index is keyed by, so the stored row is no
+		// longer for the content being asked about and the page is measured again.
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1751234567891,
+		})
+		await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix3')
+
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure', 'measure'])
+		expect(clusterIndexStoreOf(env).store.size).toBe(1)
+	})
+
+	it('treats a row it cannot parse as a miss', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix4')
+
+		// Whatever is in there — a half-written row, or one from a build whose index format has since
+		// changed — the tool answers, and it answers by measuring.
+		for (const [key, row] of clusterIndexStoreOf(env).store) {
+			clusterIndexStoreOf(env).store.set(key, { ...row, payload: '{"v":999,"clusters":[]}' })
+		}
+		const result = await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix4')
+
+		expect(result.isError).toBeUndefined()
+		expect(JSON.parse(result.content[0].text).clusterCount).toBe(2)
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure', 'measure'])
+	})
+
+	it('still answers when the durable object is unreachable', async () => {
+		mockPublishedBoard()
+		const broken = {
+			idFromName: (name: string) => ({ toString: () => `do(${name})` }),
+			get: () => ({
+				async getMcpClusterIndex() {
+					throw new Error('durable object unavailable')
+				},
+				async putMcpClusterIndex() {
+					throw new Error('durable object unavailable')
+				},
+			}),
+		}
+		const env = makeEnv({ TLDR_DOC: broken })
+
+		const first = await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix5')
+		const second = await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix5')
+
+		// Neither call fails, and both measure: an unreachable cache is the pipeline as it was before
+		// there was one.
+		expect(first.isError).toBeUndefined()
+		expect(second.isError).toBeUndefined()
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure', 'measure'])
+	})
+})
+
 // Only the tools that spend Browser Run are limited — get_board_info is not, since it renders
 // nothing. The budgets themselves live in config.ts, and they are per account: the auth layer is
 // what made that identity trustworthy, where the per-IP keys this replaced were evaded by a proxy
@@ -864,9 +994,15 @@ describe('rate limits', () => {
 		// fired.
 		expect(failureBlobsOf(env)).not.toContain('failure:rate_limited_user')
 		expect(failureBlobsOf(env)).not.toContain('failure:rate_limited_global')
-		// The board guard fires after the measure the cache key required — that session is on the
-		// spend ledger even though the request was blocked.
-		expect(sessionsOf(env).at(-1)).toMatchObject({ mode: 'measure', outcome: 'ok' })
+		// The board guard now fires before anything is spent: both pages were measured once by the
+		// helper, so all three calls resolved their cluster ids from the stored cluster index and the
+		// blocked one ran no browser session at all.
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual([
+			'measure',
+			'measure',
+			'screenshot',
+			'screenshot',
+		])
 	})
 })
 
@@ -940,8 +1076,9 @@ describe('shape screenshots', () => {
 		expect(missing.isError).toBe(true)
 	})
 
-	// A cache hit skips the capture but not the measure: the shape-set cache key cannot be built
-	// before the cluster ids are resolved against the page, and that resolution is the measure.
+	// A PNG cache hit skips the capture, and the cluster index skips the measure that used to be
+	// unavoidable — the shape-set cache key cannot be built before the cluster ids are resolved
+	// against the page, but that resolution now reads an index instead of running a render.
 	it('serves a cached shape set without capturing again', async () => {
 		mockPublishedBoard()
 		const env = makeEnv()
@@ -964,16 +1101,15 @@ describe('shape screenshots', () => {
 			{ type: 'text', text: 'Cover' },
 			{ type: 'image', data: 'AQID', mimeType: 'image/png' },
 		])
-		// helper measure (1) + first call's measure and capture (2) + second call's measure only (1).
-		expect(screenshotOf(env)).toHaveBeenCalledTimes(4)
-		// The hit's request row records only the cache outcome; the measure it unavoidably ran is a
-		// session on its own ledger, so the spend is neither lost nor smuggled into a cache row.
+		// helper measure (1) + first call's capture (1). The second call spends nothing: both caches hit.
+		expect(screenshotOf(env)).toHaveBeenCalledTimes(2)
+		// Two hits on two different caches, on two dimensions, so a panel can tell a saved capture
+		// from a saved measure.
 		expect(blobsWithPrefix(env, 'cache:').at(-1)).toBe('cache:hit')
+		expect(blobsWithPrefix(env, 'clusters:').at(-1)).toBe('clusters:hit')
 		expect(sessionsOf(env).map((s) => `${s.mode}:${s.outcome}`)).toEqual([
 			'measure:ok',
-			'measure:ok',
 			'screenshot:ok',
-			'measure:ok',
 		])
 	})
 
@@ -1005,8 +1141,10 @@ describe('shape screenshots', () => {
 
 	it('records the measure session of get_cluster_info on the spend ledger', async () => {
 		mockPublishedBoard()
+		// The cluster id is looked up in a different env, so this one reaches get_cluster_info with
+		// nothing cached — the case where it does have to measure.
+		const clusterId = await firstClusterId(makeEnv(), 'user_helper', 'abc')
 		const env = makeEnv()
-		const clusterId = await firstClusterId(env, 'user_ci_spend', 'abc')
 
 		const result = await callTool(
 			'get_cluster_info',
@@ -1016,8 +1154,8 @@ describe('shape screenshots', () => {
 		)
 
 		expect(result.isError).toBeUndefined()
-		// One session from the firstClusterId helper's get_page_info, one from this call.
-		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure', 'measure'])
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
+		expect(blobsWithPrefix(env, 'clusters:')).toEqual(['clusters:miss'])
 	})
 
 	it('writes a telemetry row when get_page_info cannot resolve the board', async () => {

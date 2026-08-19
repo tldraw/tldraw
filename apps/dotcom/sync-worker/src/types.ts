@@ -250,6 +250,20 @@ export interface ThumbnailBoardRef {
 }
 
 /**
+ * Which page of which board a stored MCP cluster index belongs to.
+ *
+ * `version` is the board's content version — the same one that keys the screenshot PNG cache — so an
+ * index is only ever read back for the content it was built from. It is part of the lookup rather
+ * than part of the primary key: a page keeps one row, and new content replaces it.
+ */
+export interface McpClusterIndexKey {
+	kind: ThumbnailBoardKind
+	slug: string
+	pageId: string
+	version: string
+}
+
+/**
  * How much of a board a caller is entitled to. `public` is the anonymous gate: the board must be
  * shared via link. `render` is for generating a thumbnail we will store but not necessarily serve
  * publicly, so it only requires that the board exists and has content.

@@ -3,6 +3,7 @@ import {
 	DEFAULT_THUMBNAIL_HEIGHT,
 	DEFAULT_THUMBNAIL_WIDTH,
 	MAX_THUMBNAIL_PAGES,
+	ShapeCluster,
 	getShapeClusters,
 	getShapeText,
 	type TLShapeWithPlainText,
@@ -318,14 +319,181 @@ function clusterPage(page: ResolvedPageOk, measurements: Record<string, ShapeMea
 	return getShapeClusters(shapes, page.pageId, measurements)
 }
 
+// --- The cluster index --------------------------------------------------------------------------
+//
+// What a measure render is worth keeping for. Clustering a page needs two things only an editor can
+// answer — where each shape sits, and what its ShapeUtil.getText reports — and both cost a full
+// Browser Run session to obtain. The *answer*, though, is small and stays true for as long as the
+// board's content does: the same shapes group the same way and carry the same text.
+//
+// So the render's output is reduced to this once, and the three tools that cluster read it instead of
+// measuring again (sharedBoardScreenshotMcp.ts caches it in the file's Durable Object, keyed by the
+// board's content version). Bounds are deliberately *not* kept: they exist to decide which atoms
+// merge, and that decision is already baked into `clusters`.
+//
+// `text` is kept, because it is not derivable. `getShapeText` can approximate it from the stored
+// record, but only the editor knows what a shape actually renders, so dropping it here would quietly
+// change what get_cluster_info reports for exactly the shapes a fallback handles worst.
+
+/** One cluster as stored: identity, labelling, and the shapes that make it up. */
+export interface StoredCluster {
+	id: string
+	label: string
+	keywords: string[]
+	/** In `getShapeClusters` order, which is snapshot order, so a rehydrated cluster reads the same. */
+	shapeIds: string[]
+}
+
+/**
+ * A page's clustering, reduced to what survives a round trip through storage.
+ *
+ * Bump `CLUSTER_INDEX_FORMAT_VERSION` whenever this shape changes, or whenever clustering or
+ * labelling changes in a way that would make a stored index disagree with a fresh measure — the
+ * content version in the cache key rotates on edits, not on deploys, so nothing else invalidates a
+ * stored index when the code that produced it moves.
+ */
+export interface PageClusterIndex {
+	v: number
+	clusters: StoredCluster[]
+	/** The text the measure render's editor reported, by shape id. Absent for shapes with none. */
+	text: Record<string, string>
+}
+
+export const CLUSTER_INDEX_FORMAT_VERSION = 1
+
+/** Reduces a measure render's output for the page it measured. */
+export function buildClusterIndex(
+	page: ResolvedPageOk,
+	measurements: Record<string, ShapeMeasurement>
+): PageClusterIndex {
+	const onPage = new Set(page.shapes.map((shape) => String(shape.id)))
+	const text: Record<string, string> = {}
+	for (const [shapeId, measurement] of Object.entries(measurements)) {
+		// Scoped to the page it belongs to: the index is keyed per page, and a measurement for anything
+		// else would be dead weight in every read of it.
+		if (!onPage.has(shapeId)) continue
+		if (typeof measurement.text === 'string' && measurement.text.length > 0) {
+			text[shapeId] = measurement.text
+		}
+	}
+
+	return {
+		v: CLUSTER_INDEX_FORMAT_VERSION,
+		clusters: clusterPage(page, measurements).map((cluster) => ({
+			id: cluster.id,
+			label: cluster.label,
+			keywords: cluster.keywords,
+			shapeIds: cluster.shapes.map((shape) => String(shape.id)),
+		})),
+		text,
+	}
+}
+
+/**
+ * Reads an index back out of storage, or null if it is anything other than one this build wrote.
+ *
+ * Everything about it is checked rather than trusted. It is our own data, but it crosses a version
+ * boundary — a Durable Object holds rows written by whichever build was deployed when the board was
+ * last measured — and the cost of being wrong is a tool answering from a shape that no longer means
+ * what it did. A null here is a cache miss, which costs one render and is always safe.
+ */
+export function parseClusterIndex(json: string): PageClusterIndex | null {
+	let value: unknown
+	try {
+		value = JSON.parse(json)
+	} catch {
+		return null
+	}
+	if (!value || typeof value !== 'object') return null
+	const candidate = value as Partial<PageClusterIndex>
+	if (candidate.v !== CLUSTER_INDEX_FORMAT_VERSION) return null
+	if (!Array.isArray(candidate.clusters)) return null
+	if (!candidate.text || typeof candidate.text !== 'object' || Array.isArray(candidate.text)) {
+		return null
+	}
+
+	const clusters: StoredCluster[] = []
+	for (const cluster of candidate.clusters) {
+		if (!cluster || typeof cluster !== 'object') return null
+		const { id, label, keywords, shapeIds } = cluster as Partial<StoredCluster>
+		if (typeof id !== 'string' || typeof label !== 'string') return null
+		if (!isStringArray(keywords) || !isStringArray(shapeIds)) return null
+		clusters.push({ id, label, keywords, shapeIds })
+	}
+
+	const text: Record<string, string> = {}
+	for (const [shapeId, shapeText] of Object.entries(candidate.text)) {
+		if (typeof shapeText !== 'string') return null
+		text[shapeId] = shapeText
+	}
+
+	return { v: CLUSTER_INDEX_FORMAT_VERSION, clusters, text }
+}
+
+function isStringArray(value: unknown): value is string[] {
+	return Array.isArray(value) && value.every((entry) => typeof entry === 'string')
+}
+
+/**
+ * Rebuilds full clusters from a stored index and the page it was built for.
+ *
+ * Returns null when the two disagree — a shape the index names is not on the page. In principle that
+ * cannot happen, since an index is only ever read back for the exact content version it was built
+ * from; in practice it is the one check that keeps a mismatch from being served as fact, and a null
+ * costs nothing worse than the render the cache was avoiding.
+ */
+function clustersFromIndex(page: ResolvedPageOk, index: PageClusterIndex): ShapeCluster[] | null {
+	const byId = new Map(page.shapes.map((shape) => [String(shape.id), shape]))
+	const clusters: ShapeCluster[] = []
+
+	for (const cluster of index.clusters) {
+		const shapes: TLShapeWithPlainText[] = []
+		for (const shapeId of cluster.shapeIds) {
+			const shape = byId.get(shapeId)
+			if (!shape) return null
+			const text = index.text[shapeId]
+			shapes.push(text ? { ...shape, plainText: text } : shape)
+		}
+		clusters.push({
+			id: cluster.id,
+			label: cluster.label,
+			keywords: cluster.keywords,
+			numberOfShapes: shapes.length,
+			shapes,
+		})
+	}
+
+	return clusters
+}
+
+/**
+ * Whether a stored index can answer for this page at all, asked before a caller commits to using it.
+ *
+ * Separate from the tools below so the cache read is the one place that decides hit or miss: a tool
+ * handed an index has already been told it fits, and never has to carry a second "or measure after
+ * all" path through its own error handling.
+ */
+export function isClusterIndexUsable(page: ResolvedPageOk, index: PageClusterIndex): boolean {
+	return clustersFromIndex(page, index) !== null
+}
+
+// The three clustering tools below take an index rather than measurements, so that a call served from
+// a cached index and a call served from a fresh render run the exact same code from here on. The
+// measurement-taking overloads are what the eval harness and the tests call: they measure, reduce,
+// and then go through the same door.
+
 export function getPageInfo(
 	page: ResolvedPageOk,
 	measurements: Record<string, ShapeMeasurement>
 ): ToolResult {
+	return getPageInfoFromIndex(page, buildClusterIndex(page, measurements))
+}
+
+export function getPageInfoFromIndex(page: ResolvedPageOk, index: PageClusterIndex): ToolResult {
 	// Scoped to the requested page: get_cluster_info and get_cluster_screenshot both resolve cluster
 	// ids against a single page, so listing every shape on the board here would hand out ids that
 	// neither of them can look up.
-	const clusters = clusterPage(page, measurements)
+	const clusters = clustersFromIndex(page, index) ?? []
 	return toolJsonResult({
 		name: page.pageName,
 		clusterCount: clusters.length,
@@ -344,7 +512,16 @@ export function getClusterInfo(
 	clusterId: string,
 	selector: PageSelector
 ): ToolResult {
-	const cluster = clusterPage(page, measurements).find((c) => c.id === clusterId)
+	return getClusterInfoFromIndex(page, buildClusterIndex(page, measurements), clusterId, selector)
+}
+
+export function getClusterInfoFromIndex(
+	page: ResolvedPageOk,
+	index: PageClusterIndex,
+	clusterId: string,
+	selector: PageSelector
+): ToolResult {
+	const cluster = (clustersFromIndex(page, index) ?? []).find((c) => c.id === clusterId)
 	if (!cluster) {
 		return toolError(
 			`No cluster with id "${clusterId}" on page ${describePageSelector(selector)}. Call get_page_info to list this page's clusters.`
@@ -373,7 +550,21 @@ export function pickClusterShapes(
 	clusterIds: string[],
 	selector: PageSelector
 ): PickedShapes {
-	const clusters = clusterPage(page, measurements)
+	return pickClusterShapesFromIndex(
+		page,
+		buildClusterIndex(page, measurements),
+		clusterIds,
+		selector
+	)
+}
+
+export function pickClusterShapesFromIndex(
+	page: ResolvedPageOk,
+	index: PageClusterIndex,
+	clusterIds: string[],
+	selector: PageSelector
+): PickedShapes {
+	const clusters = clustersFromIndex(page, index) ?? []
 	const byId = new Map(clusters.map((cluster) => [cluster.id, cluster]))
 
 	// Reject unknown ids rather than quietly rendering the subset that resolved — a caller asking for
