@@ -216,7 +216,10 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 
 	__debug_ancestor_epochs__: Map<Signal<any, any>, number> | null = null
 
-	// Advances on every check, including ones that find no change, unlike `lastChangedEpoch`.
+	/**
+	 * The epoch when the reactor was last checked. Advances on every check, including ones that
+	 * find no change, unlike `lastChangedEpoch`.
+	 */
 	private lastCheckedEpoch = GLOBAL_START_EPOCH
 
 	parentSet = new ArraySet<Signal<any, any>>()
