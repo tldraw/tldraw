@@ -17,14 +17,23 @@ interface ChatInputState {
 }
 
 type ChatInputAction =
+	/** Updates the text input value */
 	| { type: 'setInput'; input: string }
+	/** Adds or updates an image in the chat input */
 	| { type: 'setImage'; image: WhiteboardImage }
+	/** Removes an image from the chat input by its ID */
 	| { type: 'removeImage'; imageId: string }
+	/** Clears all input data (text, images, modals) */
 	| { type: 'clear' }
+	/** Opens the whiteboard modal for drawing/editing */
 	| ({ type: 'openWhiteboard' } & OpenWhiteboard)
+	/** Closes the whiteboard modal */
 	| { type: 'closeWhiteboard' }
+	/** Indicates a file is being dragged over the input area */
 	| { type: 'dragEnter' }
+	/** Indicates drag operation has left the input area */
 	| { type: 'dragLeave' }
+	/** Handles dropping an image file to open in whiteboard */
 	| { type: 'drop'; file: File }
 
 const initialState: ChatInputState = {
@@ -76,7 +85,17 @@ function chatInputReducer(state: ChatInputState, action: ChatInputAction): ChatI
 	}
 }
 
-/** Text input, attached whiteboard images, whiteboard modal state, and drag/drop state for the chat input. */
+/**
+ * Hook for managing chat input state including text, images, whiteboard modal, and drag/drop interactions.
+ *
+ * Handles:
+ * - Text input value
+ * - Whiteboard images attached to the message
+ * - Whiteboard modal state for drawing/editing
+ * - Drag and drop file upload interactions
+ *
+ * @returns A tuple containing the current state and dispatch function for actions
+ */
 export function useChatInputState(): [ChatInputState, React.Dispatch<ChatInputAction>] {
 	return useReducer(chatInputReducer, initialState)
 }

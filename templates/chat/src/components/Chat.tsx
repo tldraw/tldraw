@@ -14,6 +14,7 @@ import { MessageList } from './MessageList'
 import { TldrawProviderMetadata, WhiteboardImage } from './WhiteboardModal'
 
 export function Chat() {
+	// store chat messages locally in the browser
 	const [initialMessages, saveMessages] = useChatMessageStorage()
 
 	if (!initialMessages) return null
@@ -28,10 +29,11 @@ function ChatInner({
 	initialMessages: UIMessage[]
 	saveMessages: (messages: UIMessage[]) => void
 }) {
+	// All state relating to the chat input and the tldraw modal is managed in this hook
 	const [chatInputState, chatInputDispatch] = useChatInputState()
 
-	// The Vercel AI SDK's useChat hook sends messages to the server and manages the chat history.
-	// You could replace this with your own chat implementation.
+	// We use the Vercel AI SDK's useChat hook to send messages to the server and manage the chat
+	// history. You could replace this with your own chat implementation.
 	const chat = useChat({
 		transport: new DefaultChatTransport({
 			api: '/api/chat',
@@ -54,12 +56,14 @@ function ChatInner({
 
 	const { sendMessage, status, error, clearError, setMessages } = chat
 
+	// save the chat messages to local storage when the chat finishes
 	useEffect(() => {
 		if (chat.status === 'ready') {
 			saveMessages(chat.messages)
 		}
 	}, [chat.status, chat.messages, saveMessages])
 
+	// If the chat encounters an error, we alert the user and clear the error.
 	useEffect(() => {
 		if (error) {
 			alert(error.message)
@@ -67,6 +71,8 @@ function ChatInner({
 		}
 	}, [error, clearError])
 
+	// when the user send a message, we take the text they've written and any images / sketches
+	// they've attached and send them to the model.
 	const handleSendMessage = useCallback(
 		(text: string, images: WhiteboardImage[]) => {
 			chatInputDispatch({ type: 'clear' })
@@ -94,13 +100,14 @@ function ChatInner({
 		[sendMessage, chatInputDispatch]
 	)
 
+	// keep the chat scrolled to the bottom as messages are added or changed
 	const scrollToBottom = useScrollToBottom()
 	useEffect(() => {
 		scrollToBottom()
 	}, [chat.messages, scrollToBottom])
 
-	// Clicking an image in the chat history opens it in the whiteboard modal, where the user can
-	// annotate it and re-add it to the chat.
+	// when the user clicks on an image from chat history, we open the tldraw modal. here they can
+	// see a larger version of the image, but also annotate it and re-add it to the chat.
 	const handleImageClick = useCallback(
 		(opts: ImageClickTarget) => chatInputDispatch({ type: 'openWhiteboard', ...opts }),
 		[chatInputDispatch]
@@ -111,6 +118,8 @@ function ChatInner({
 		saveMessages([])
 	}, [setMessages, saveMessages])
 
+	// users can drag and drop images to the chat input area to add them to their message. when
+	// they're dragging we keep track of a special isDragging state.
 	const handleDragOver = (e: React.DragEvent) => {
 		e.preventDefault()
 		if (
@@ -139,7 +148,7 @@ function ChatInner({
 		}
 	}
 
-	// An empty chat puts the input right in the middle of the page.
+	// if the chat is empty, we put the input area right in the middle of the page
 	if (chat.messages.length === 0) {
 		return (
 			<div
@@ -164,6 +173,7 @@ function ChatInner({
 		)
 	}
 
+	// otherwise, we show the chat history and the input area at the bottom.
 	return (
 		<div
 			className="chat-container"

@@ -12,6 +12,7 @@ interface ChatMessageProps {
 }
 
 export const ChatMessage = memo(function ChatMessage({ message, onImageClick }: ChatMessageProps) {
+	// For AI messages with no content, show thinking state
 	if (
 		message.role === 'assistant' &&
 		!message.parts.some((part) => part.type === 'file' || part.type === 'text')
@@ -29,9 +30,10 @@ export const ChatMessage = memo(function ChatMessage({ message, onImageClick }: 
 		>
 			{message.parts.map((part, index) => {
 				if (part.type === 'file') {
-					// whiteboard images carry a tldraw snapshot in the provider metadata so they can be re-edited
+					// we stash a snapshot of the tldraw document in the provider metadata:
 					const tldrawMetadata = part.providerMetadata?.tldraw as TldrawProviderMetadata | undefined
 					const handleImageClick = async () => {
+						// if we have a tldraw snapshot, we open the tldraw modal when it's clicked:
 						if (tldrawMetadata) {
 							onImageClick(tldrawMetadata)
 						} else {
