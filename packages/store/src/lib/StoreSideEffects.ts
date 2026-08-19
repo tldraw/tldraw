@@ -217,6 +217,16 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	private _operationCompleteHandlers: StoreOperationCompleteHandler[] = []
 
 	private _isEnabled = true
+
+	// Handler arrays are replaced, never mutated in place: dispatch iterates the array it looked up,
+	// so a handler that removes itself (or registers another) while running must not shift the
+	// entries out from under that iteration.
+	private addHandler<H>(handlers: { [K in string]?: H[] }, typeName: string, handler: H) {
+		handlers[typeName] = [...(handlers[typeName] ?? []), handler]
+		return () => {
+			handlers[typeName] = withoutFirst(handlers[typeName] ?? [], handler)
+		}
+	}
 	/**
 	 * Checks whether side effects are currently enabled.
 	 * When disabled, all side effect handlers are bypassed.
@@ -478,10 +488,7 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		typeName: T,
 		handler: StoreBeforeCreateHandler<R & { typeName: T }>
 	) {
-		const handlers = this._beforeCreateHandlers[typeName] as StoreBeforeCreateHandler<any>[]
-		if (!handlers) this._beforeCreateHandlers[typeName] = []
-		this._beforeCreateHandlers[typeName]!.push(handler)
-		return () => remove(this._beforeCreateHandlers[typeName]!, handler)
+		return this.addHandler(this._beforeCreateHandlers, typeName, handler)
 	}
 
 	/**
@@ -510,10 +517,7 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		typeName: T,
 		handler: StoreAfterCreateHandler<R & { typeName: T }>
 	) {
-		const handlers = this._afterCreateHandlers[typeName] as StoreAfterCreateHandler<any>[]
-		if (!handlers) this._afterCreateHandlers[typeName] = []
-		this._afterCreateHandlers[typeName]!.push(handler)
-		return () => remove(this._afterCreateHandlers[typeName]!, handler)
+		return this.addHandler(this._afterCreateHandlers, typeName, handler)
 	}
 
 	/**
@@ -546,10 +550,7 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		typeName: T,
 		handler: StoreBeforeChangeHandler<R & { typeName: T }>
 	) {
-		const handlers = this._beforeChangeHandlers[typeName] as StoreBeforeChangeHandler<any>[]
-		if (!handlers) this._beforeChangeHandlers[typeName] = []
-		this._beforeChangeHandlers[typeName]!.push(handler)
-		return () => remove(this._beforeChangeHandlers[typeName]!, handler)
+		return this.addHandler(this._beforeChangeHandlers, typeName, handler)
 	}
 
 	/**
@@ -577,10 +578,7 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		typeName: T,
 		handler: StoreAfterChangeHandler<R & { typeName: T }>
 	) {
-		const handlers = this._afterChangeHandlers[typeName] as StoreAfterChangeHandler<any>[]
-		if (!handlers) this._afterChangeHandlers[typeName] = []
-		this._afterChangeHandlers[typeName]!.push(handler as StoreAfterChangeHandler<any>)
-		return () => remove(this._afterChangeHandlers[typeName]!, handler)
+		return this.addHandler(this._afterChangeHandlers, typeName, handler)
 	}
 
 	/**
@@ -610,10 +608,7 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		typeName: T,
 		handler: StoreBeforeDeleteHandler<R & { typeName: T }>
 	) {
-		const handlers = this._beforeDeleteHandlers[typeName] as StoreBeforeDeleteHandler<any>[]
-		if (!handlers) this._beforeDeleteHandlers[typeName] = []
-		this._beforeDeleteHandlers[typeName]!.push(handler as StoreBeforeDeleteHandler<any>)
-		return () => remove(this._beforeDeleteHandlers[typeName]!, handler)
+		return this.addHandler(this._beforeDeleteHandlers, typeName, handler)
 	}
 
 	/**
@@ -644,10 +639,7 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		typeName: T,
 		handler: StoreAfterDeleteHandler<R & { typeName: T }>
 	) {
-		const handlers = this._afterDeleteHandlers[typeName] as StoreAfterDeleteHandler<any>[]
-		if (!handlers) this._afterDeleteHandlers[typeName] = []
-		this._afterDeleteHandlers[typeName]!.push(handler as StoreAfterDeleteHandler<any>)
-		return () => remove(this._afterDeleteHandlers[typeName]!, handler)
+		return this.addHandler(this._afterDeleteHandlers, typeName, handler)
 	}
 
 	/**
@@ -677,14 +669,17 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	 * @public
 	 */
 	registerOperationCompleteHandler(handler: StoreOperationCompleteHandler) {
-		this._operationCompleteHandlers.push(handler)
-		return () => remove(this._operationCompleteHandlers, handler)
+		// copy on write, see addHandler
+		this._operationCompleteHandlers = [...this._operationCompleteHandlers, handler]
+		return () => {
+			this._operationCompleteHandlers = withoutFirst(this._operationCompleteHandlers, handler)
+		}
 	}
 }
 
-function remove(array: any[], item: any) {
+// A copy of `array` without the first occurrence of `item` (the array itself if it has none).
+function withoutFirst<T>(array: T[], item: T): T[] {
 	const index = array.indexOf(item)
-	if (index >= 0) {
-		array.splice(index, 1)
-	}
+	if (index < 0) return array
+	return [...array.slice(0, index), ...array.slice(index + 1)]
 }

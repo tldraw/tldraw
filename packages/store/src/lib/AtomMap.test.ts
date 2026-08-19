@@ -630,3 +630,59 @@ describe('AtomMap', () => {
 		expect(Object.prototype.toString.call(map)).toBe('[object AtomMap]')
 	})
 })
+
+describe('AtomMap: Map parity (AM)', () => {
+	it('[AM6] an entry deleted before iteration reaches it is skipped, like Map', () => {
+		const map = new AtomMap('test', [
+			['a', 1],
+			['b', 2],
+			['c', 3],
+		])
+		const visited: string[] = []
+		for (const [key] of map) {
+			visited.push(key)
+			if (key === visited[0]) {
+				// delete the two keys we have not reached yet
+				for (const other of ['a', 'b', 'c']) if (other !== key) map.delete(other)
+			}
+		}
+		expect(visited).toHaveLength(1)
+		expect(Array.from(map.keys())).toEqual(visited)
+
+		const cleared = new AtomMap('test2', [
+			['a', 1],
+			['b', 2],
+		])
+		const seen: string[] = []
+		for (const key of cleared.keys()) {
+			seen.push(key)
+			cleared.clear()
+		}
+		expect(seen).toHaveLength(1)
+	})
+
+	it('[AM4] deleteMany does not subscribe the calling reaction to the map', () => {
+		const map = new AtomMap('test', [
+			['a', 1],
+			['b', 2],
+		])
+		let runs = 0
+		react('remover', () => {
+			runs++
+			map.deleteMany(['a'])
+		})
+		expect(runs).toBe(1)
+		map.set('zzz', 9)
+		expect(runs).toBe(1)
+	})
+
+	it('[AM3] symbol and null-prototype keys work', () => {
+		const map = new AtomMap<unknown, number>('test')
+		const sym = Symbol('k')
+		const nullProto = Object.create(null)
+		map.set(sym, 1).set(nullProto, 2)
+		expect(map.get(sym)).toBe(1)
+		expect(map.get(nullProto)).toBe(2)
+		expect(() => map.update(Symbol('missing'), (v) => v)).toThrow('not found')
+	})
+})

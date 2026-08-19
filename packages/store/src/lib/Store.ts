@@ -1,4 +1,13 @@
-import { Atom, Reactor, Signal, atom, computed, reactor, transact } from '@tldraw/state'
+import {
+	Atom,
+	Reactor,
+	Signal,
+	atom,
+	computed,
+	isUninitialized,
+	reactor,
+	transact,
+} from '@tldraw/state'
 import {
 	WeakCache,
 	assert,
@@ -14,11 +23,15 @@ import {
 import { AtomMap } from './AtomMap'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
 import { devFreeze } from './devFreeze'
-import { isRecordsDiffEmpty, RecordsDiff, squashRecordDiffs } from './RecordsDiff'
+import { hasAnyKey, isRecordsDiffEmpty, RecordsDiff, squashRecordDiffs } from './RecordsDiff'
 import { RecordScope } from './RecordType'
 import { StoreQueries } from './StoreQueries'
 import { SerializedSchema, StoreSchema } from './StoreSchema'
 import { StoreSideEffects } from './StoreSideEffects'
+
+// The value of a cached computed whose record has been deleted (see `createComputedCache`). It never
+// reaches callers: `get` resolves the record's atom first, and there is none for a deleted id.
+const DELETED_RECORD = Symbol('deleted record')
 
 /**
  * Extracts the record type from a record ID type.
@@ -405,13 +418,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	private historyReactor: Reactor
 
 	/**
-	 * Function to dispose of any in-flight timeouts.
+	 * Cancels the history flush scheduled for the next frame, if any.
 	 *
 	 * @internal
 	 */
-	private cancelHistoryReactor(): void {
-		/* noop */
-	}
+	private cancelHistoryReactor: null | (() => void) = null
 
 	/**
 	 * The schema that defines the structure and validation rules for records in this store.
@@ -517,18 +528,37 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 	public _flushHistory() {
 		// If we have accumulated history, flush it and update listeners
-		if (this.historyAccumulator.hasChanges()) {
-			const entries = this.historyAccumulator.flush()
+		const version = this.history.__unsafe__getWithoutCapture()
+		if (this.historyAccumulator.hasChanges(version)) {
+			const entries = this.historyAccumulator.flush(version)
+			// Iterate a snapshot: a listener that another listener's callback adds must not receive
+			// the entries that triggered it (H5), and one removed mid-flush stops receiving them.
+			const listeners = Array.from(this.listeners)
+			// The entries are already dequeued, so a listener that throws must not stop the others
+			// (e.g. a sync client) from receiving them: deliver to all, then rethrow the first error.
+			const failure = { didThrow: false, error: undefined as unknown }
+			const deliver = (onHistory: StoreListener<R>, entry: HistoryEntry<R>) => {
+				try {
+					onHistory(entry)
+				} catch (error) {
+					if (!failure.didThrow) {
+						failure.didThrow = true
+						failure.error = error
+					}
+				}
+			}
 			for (const { changes, source } of entries) {
 				// Filtered diffs are computed at most once per scope per entry, and shared by every
 				// listener watching that scope.
 				const scopedChanges = new Map<RecordScope, RecordsDiff<R> | null>()
-				for (const { onHistory, filters } of this.listeners) {
+				for (const listener of listeners) {
+					if (!this.listeners.has(listener)) continue
+					const { onHistory, filters } = listener
 					if (filters.source !== 'all' && filters.source !== source) {
 						continue
 					}
 					if (filters.scope === 'all') {
-						onHistory({ changes, source })
+						deliver(onHistory, { changes, source })
 						continue
 					}
 					if (!scopedChanges.has(filters.scope)) {
@@ -536,14 +566,18 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					}
 					const filtered = scopedChanges.get(filters.scope)
 					if (!filtered) continue
-					onHistory({ changes: filtered, source })
+					deliver(onHistory, { changes: filtered, source })
 				}
 			}
+			if (failure.didThrow) throw failure.error
 		}
 	}
 
 	dispose() {
-		this.cancelHistoryReactor()
+		// Deliver what is still pending first: a change-set made in the same frame as the dispose
+		// would otherwise never reach the listeners (e.g. a sync client) still attached to the store.
+		this._flushHistory()
+		this.cancelHistoryReactor?.()
 	}
 
 	/**
@@ -570,14 +604,22 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param changes - The changes to add to the history.
 	 */
 	private updateHistory(changes: RecordsDiff<R>): void {
-		this.historyAccumulator.add({
-			changes,
-			source: this.isMergingRemoteChanges ? 'remote' : 'user',
-		})
+		// Don't capture: a reaction that writes to the store must not become a dependent of the
+		// history atom, or every other store change would re-run it (and it could loop forever).
+		const version = this.history.__unsafe__getWithoutCapture() + 1
+		// Set the atom before recording the entry: interceptors run inside `add`, and a flush they
+		// trigger (e.g. via `listen`) would otherwise discard the entry as not yet committed.
+		this.history.set(version, changes)
+		this.historyAccumulator.add(
+			{
+				changes,
+				source: this.isMergingRemoteChanges ? 'remote' : 'user',
+			},
+			version
+		)
 		if (this.listeners.size === 0) {
 			this.historyAccumulator.clear()
 		}
-		this.history.set(this.history.get() + 1, changes)
 	}
 
 	validate(phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests') {
@@ -641,7 +683,19 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					this.records.set(record.id, record)
 
 					didChange = true
-					updates[record.id] = [initialValue, record]
+					if (additions[record.id]) {
+						// the same record was created earlier in this call: fold the update into it
+						additions[record.id] = record
+					} else {
+						// an earlier update to the same record in this call owns the `from`
+						const from = updates[record.id]?.[0] ?? initialValue
+						if (from === record) {
+							// back to where it started within this call: nothing to record
+							delete updates[record.id]
+						} else {
+							updates[record.id] = [from, record]
+						}
+					}
 					this.addDiffForAfterEvent(initialValue, record)
 				} else {
 					record = this.sideEffects.handleBeforeCreate(record, source)
@@ -670,7 +724,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			}
 
 			// If we did change, update the history
-			if (!didChange) return
+			if (!didChange || (!hasAnyKey(additions) && !hasAnyKey(updates))) return
 			this.updateHistory({
 				added: additions,
 				updated: updates,
@@ -1042,11 +1096,22 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * Run `fn` and return a {@link RecordsDiff} of the changes that occurred as a result.
 	 */
 	extractingChanges(fn: () => void): RecordsDiff<R> {
-		const changes: Array<RecordsDiff<R>> = []
-		const dispose = this.historyAccumulator.addInterceptor((entry) => changes.push(entry.changes))
+		const collected: Array<{ version: number; changes: RecordsDiff<R> }> = []
+		const dispose = this.historyAccumulator.addInterceptor((entry, version) => {
+			// a nested transaction that rolled back inside `fn` leaves entries stamped at or past the
+			// next committed version — see HistoryAccumulator
+			while (collected.length && collected[collected.length - 1].version >= version) {
+				collected.pop()
+			}
+			collected.push({ version, changes: entry.changes })
+		})
 		try {
 			transact(fn)
-			return squashRecordDiffs(changes)
+			const current = this.history.__unsafe__getWithoutCapture()
+			while (collected.length && collected[collected.length - 1].version > current) {
+				collected.pop()
+			}
+			return squashRecordDiffs(collected.map((c) => c.changes))
 		} finally {
 			dispose()
 		}
@@ -1065,7 +1130,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			for (const [_from, to] of objectMapValues(diff.updated)) {
 				const type = this.schema.getType(to.typeName)
 				if (ignoreEphemeralKeys && type.ephemeralKeySet.size) {
-					const existing = this.get(to.id)
+					const existing = this.unsafeGetWithoutCapture(to.id)
 					if (!existing) {
 						toPut.push(to)
 						continue
@@ -1078,6 +1143,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 						if (!changed) changed = { ...existing } as R
 						;(changed as any)[key] = value
+					}
+					// a key the update removed (present before, absent in `to`) is a change too
+					for (const key of Object.keys(existing)) {
+						if (type.ephemeralKeySet.has(key) || Object.hasOwn(to, key)) continue
+						if (!changed) changed = { ...existing } as R
+						delete (changed as any)[key]
 					}
 					if (changed) toPut.push(changed)
 				} else {
@@ -1100,6 +1171,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * signal for the underlying record. Return a signal (usually a computed) for the cached value.
 	 * For simple derivations, use {@link Store.createComputedCache}. This function is useful if you
 	 * need more precise control over intermediate values.
+	 *
+	 * After the record is deleted the record signal holds `UNINITIALIZED` rather than a record, and
+	 * a signal that a reader still depends on can be re-derived once more in that state; guard with
+	 * `isUninitialized` when your derivation cannot tolerate it. {@link Store.createComputedCache}
+	 * handles this for you.
 	 */
 	createCache<Result, Record extends R = R>(
 		create: (id: IdOf<Record>, recordSignal: Signal<R>) => Signal<Result>
@@ -1127,18 +1203,35 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		derive: (record: Record) => Result | undefined,
 		opts?: CreateComputedCacheOpts<Result, Record>
 	): ComputedCache<Result, Record> {
+		const areRecordsEqual = opts?.areRecordsEqual
+		const areResultsEqual = opts?.areResultsEqual
 		return this.createCache((id, record) => {
-			const recordSignal = opts?.areRecordsEqual
-				? computed(`${name}:${id}:isEqual`, () => record.get(), { isEqual: opts.areRecordsEqual })
+			const recordSignal = areRecordsEqual
+				? computed(`${name}:${id}:isEqual`, () => record.get(), {
+						// a deleted record's atom holds UNINITIALIZED, which user code must not see
+						isEqual: (a, b) =>
+							isUninitialized(a) || isUninitialized(b) ? a === b : areRecordsEqual(a, b),
+					})
 				: record
 
 			return computed<Result | undefined>(
 				name + ':' + id,
 				() => {
-					return derive(recordSignal.get() as Record)
+					// The computed can be re-derived after its record is deleted, e.g. by a reaction
+					// that read it checking whether its parents changed; the atom then holds
+					// UNINITIALIZED rather than a record. Return DELETED_RECORD rather than calling
+					// `derive` with the sentinel or returning undefined: it never equals a real result,
+					// so a reader holding the computed re-runs, looks the id up again (finding nothing
+					// and subscribing to the key set), and so sees the record if it comes back.
+					const value = recordSignal.get()
+					if (isUninitialized(value)) return DELETED_RECORD as any
+					return derive(value as Record)
 				},
 				{
-					isEqual: opts?.areResultsEqual,
+					isEqual: areResultsEqual
+						? (a, b) =>
+								a === DELETED_RECORD || b === DELETED_RECORD ? a === b : areResultsEqual(a, b)
+						: undefined,
 				}
 			)
 		})
@@ -1204,11 +1297,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 			if (!this.pendingAfterEvents) {
 				this.sideEffects.handleOperationComplete(source)
-			} else {
-				// if the side effects triggered by a remote operation resulted in more effects,
-				// those extra effects should not be marked as originating remotely.
-				source = 'user'
 			}
+			// Whatever the after-handlers or the operation-complete handlers changed in response to
+			// a remote operation is not itself remote: later rounds are attributed to 'user'.
+			source = 'user'
 		}
 	}
 	private _isInAtomicOp = false
@@ -1326,13 +1418,18 @@ function squashHistoryEntries<T extends UnknownRecord>(
 class HistoryAccumulator<T extends UnknownRecord> {
 	private _history: HistoryEntry<T>[] = []
 
-	private _interceptors: Set<(entry: HistoryEntry<T>) => void> = new Set()
+	// The `history` atom value each entry was recorded at. A transaction that aborts rolls that atom
+	// back but cannot unwind this array, so an entry stamped at or past the atom's current value
+	// belongs to a rolled-back change-set and must not reach listeners.
+	private _versions: number[] = []
+
+	private _interceptors: Set<(entry: HistoryEntry<T>, version: number) => void> = new Set()
 
 	/**
-	 * Add an interceptor that will be called for each history entry.
-	 * Returns a function to remove the interceptor.
+	 * Add an interceptor that will be called for each history entry, with the version it was
+	 * recorded at (see `add`). Returns a function to remove the interceptor.
 	 */
-	addInterceptor(fn: (entry: HistoryEntry<T>) => void) {
+	addInterceptor(fn: (entry: HistoryEntry<T>, version: number) => void) {
 		this._interceptors.add(fn)
 		return () => {
 			this._interceptors.delete(fn)
@@ -1340,13 +1437,15 @@ class HistoryAccumulator<T extends UnknownRecord> {
 	}
 
 	/**
-	 * Add a history entry to the accumulator.
+	 * Add a history entry recorded at `version` (the `history` atom value it sets).
 	 * Calls all registered interceptors with the entry.
 	 */
-	add(entry: HistoryEntry<T>) {
+	add(entry: HistoryEntry<T>, version: number) {
+		this.discardFrom(version)
 		this._history.push(entry)
+		this._versions.push(version)
 		for (const interceptor of this._interceptors) {
-			interceptor(entry)
+			interceptor(entry, version)
 		}
 	}
 
@@ -1354,9 +1453,10 @@ class HistoryAccumulator<T extends UnknownRecord> {
 	 * Flush all accumulated history entries, squashing adjacent entries from the same source.
 	 * Clears the internal history buffer.
 	 */
-	flush() {
+	flush(currentVersion: number) {
+		this.discardFrom(currentVersion + 1)
 		const history = squashHistoryEntries(this._history)
-		this._history = []
+		this.clear()
 		return history
 	}
 
@@ -1365,13 +1465,24 @@ class HistoryAccumulator<T extends UnknownRecord> {
 	 */
 	clear() {
 		this._history = []
+		this._versions = []
 	}
 
 	/**
 	 * Check if there are any accumulated history entries.
 	 */
-	hasChanges() {
+	hasChanges(currentVersion: number) {
+		this.discardFrom(currentVersion + 1)
 		return this._history.length > 0
+	}
+
+	// Drops the entries recorded at or after `version`. Entries are in ascending version order: the
+	// atom increments by one per entry, and a rollback is followed by exactly this discard.
+	private discardFrom(version: number) {
+		while (this._versions.length && this._versions[this._versions.length - 1] >= version) {
+			this._versions.pop()
+			this._history.pop()
+		}
 	}
 }
 

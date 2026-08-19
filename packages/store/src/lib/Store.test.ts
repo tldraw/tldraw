@@ -2,6 +2,7 @@ import { react } from '@tldraw/state'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { BaseRecord, RecordId } from './BaseRecord'
 import { createMigrationSequence } from './migrate'
+import { RecordsDiff } from './RecordsDiff'
 import { createRecordType } from './RecordType'
 import { createComputedCache, Store } from './Store'
 import { StoreSchema } from './StoreSchema'
@@ -762,6 +763,164 @@ describe('integrity (IC)', () => {
 		expect(store.isPossiblyCorrupted()).toBe(false)
 		store.markAsPossiblyCorrupted()
 		expect(store.isPossiblyCorrupted()).toBe(true)
+		store.dispose()
+	})
+})
+
+describe('Store: writes from reactions and repeated ids (S)', () => {
+	let store: Store<LibraryType>
+	beforeEach(() => {
+		store = new Store({ props: {}, schema: schema() })
+	})
+	afterEach(() => {
+		store.dispose()
+	})
+
+	it('[S11] a reaction that writes to the store does not re-run for unrelated store changes', () => {
+		const a = Author.create({ name: 'A' })
+		const b = Author.create({ name: 'B' })
+		store.put([a, b])
+		let runs = 0
+		react('writer', () => {
+			runs++
+			if (runs > 20) throw new Error('looping')
+			// a fresh object each run: the validator is not reference-preserving
+			store.put([{ ...a, name: 'A' + runs }])
+		})
+		expect(runs).toBe(1)
+
+		store.put([{ ...b, name: 'B2' }])
+		expect(runs).toBe(1)
+	})
+
+	it('[S11] a reaction that removes records does not re-run for unrelated store changes', () => {
+		const a = Author.create({ name: 'A' })
+		const b = Author.create({ name: 'B' })
+		store.put([a, b])
+		let runs = 0
+		react('remover', () => {
+			runs++
+			store.remove([Author.createId('missing')])
+		})
+		expect(runs).toBe(1)
+
+		store.put([{ ...b, name: 'B2' }])
+		expect(runs).toBe(1)
+	})
+
+	it('[S12] repeated ids in one put record one update whose from is the pre-put record', () => {
+		const author = Author.create({ name: 'Start' })
+		store.put([author])
+		const entries: RecordsDiff<LibraryType>[] = []
+		store.addHistoryInterceptor((entry) => entries.push(entry.changes))
+
+		store.put([
+			{ ...author, name: 'Middle' },
+			{ ...author, name: 'End' },
+		])
+
+		expect(entries).toHaveLength(1)
+		expect(entries[0].updated).toEqual({
+			[author.id]: [author, { ...author, name: 'End' }],
+		})
+	})
+
+	it('[S12] a record created then updated in one put is recorded as a single addition', () => {
+		const author = Author.create({ name: 'Start' })
+		const entries: RecordsDiff<LibraryType>[] = []
+		store.addHistoryInterceptor((entry) => entries.push(entry.changes))
+
+		store.put([author, { ...author, name: 'End' }])
+
+		expect(entries).toHaveLength(1)
+		expect(entries[0]).toEqual({
+			added: { [author.id]: { ...author, name: 'End' } },
+			updated: {},
+			removed: {},
+		})
+	})
+})
+
+describe('computed caches after deletion (CC)', () => {
+	let store: Store<LibraryType>
+	beforeEach(() => {
+		store = new Store({ props: {}, schema: schema() })
+	})
+	afterEach(() => {
+		store.dispose()
+	})
+
+	it('[CC6] derive and areRecordsEqual are never called with a deleted record', () => {
+		const author = Author.create({ name: 'A' })
+		store.put([author])
+		const deriveArgs: unknown[] = []
+		const equalArgs: unknown[] = []
+		const cache = store.createComputedCache(
+			'names',
+			(record: Author) => {
+				deriveArgs.push(record)
+				return record.name
+			},
+			{
+				areRecordsEqual: (a, b) => {
+					equalArgs.push(a, b)
+					return a.name === b.name
+				},
+			}
+		)
+		const seen: (string | undefined)[] = []
+		react('reader', () => seen.push(cache.get(author.id)))
+		expect(seen).toEqual(['A'])
+
+		store.remove([author.id])
+		expect(seen).toEqual(['A', undefined])
+
+		// and the record can come back with the same id
+		store.put([{ ...author, name: 'B' }])
+		expect(seen).toEqual(['A', undefined, 'B'])
+
+		for (const arg of [...deriveArgs, ...equalArgs]) {
+			expect(typeof arg).toBe('object')
+		}
+	})
+})
+
+describe('computed caches after deletion, same-valued derive (CC)', () => {
+	it('[CC6] a reader sees a re-created record even when derive gave the same value before deletion', () => {
+		const store = new Store<LibraryType>({ props: {}, schema: schema() })
+		const author = Author.create({ name: 'Short' })
+		store.put([author])
+		// returns undefined for the live record, which is also what a deleted record yields
+		const cache = store.createComputedCache('long-names', (record: Author) =>
+			record.name.length > 10 ? record.name : undefined
+		)
+		const seen: (string | undefined)[] = []
+		react('reader', () => seen.push(cache.get(author.id)))
+		expect(seen).toEqual([undefined])
+
+		store.remove([author.id])
+		store.put([{ ...author, name: 'A much longer name' }])
+		expect(seen.at(-1)).toBe('A much longer name')
+		store.dispose()
+	})
+})
+
+describe('Store: net no-op puts (S)', () => {
+	it('[S12] a record changed and changed back within one put records nothing', () => {
+		const store = new Store<LibraryType>({ props: {}, schema: schema() })
+		const author = Author.create({ name: 'Start' })
+		store.put([author])
+		const stored = store.get(author.id)!
+		const entries: RecordsDiff<LibraryType>[] = []
+		store.addHistoryInterceptor((entry) => entries.push(entry.changes))
+		const afterChange = vi.fn()
+		store.sideEffects.registerAfterChangeHandler('author', afterChange)
+
+		store.put([{ ...stored, name: 'Middle' }, stored])
+
+		expect(entries).toEqual([])
+		expect(afterChange).not.toHaveBeenCalled()
+		expect(store.get(author.id)).toBe(stored)
 		store.dispose()
 	})
 })

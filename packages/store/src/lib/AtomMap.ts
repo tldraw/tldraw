@@ -2,6 +2,12 @@ import { atom, Atom, transact, UNINITIALIZED } from '@tldraw/state'
 import { assert } from '@tldraw/utils'
 import { emptyMap, ImmutableMap } from './ImmutableMap'
 
+// Atom names are debugging aids; `String()` throws for null-prototype objects and template literals
+// throw for symbols, and a Map must accept both as keys.
+function keyToName(key: unknown) {
+	return typeof key === 'object' && key !== null ? '[object]' : String(key)
+}
+
 /**
  * A drop-in replacement for Map that stores values in atoms and can be used in reactive contexts.
  * @public
@@ -32,7 +38,7 @@ export class AtomMap<K, V> implements Map<K, V> {
 		if (entries) {
 			atoms = atoms.withMutations((atoms) => {
 				for (const [k, v] of entries) {
-					atoms.set(k, atom(`${name}:${String(k)}`, v))
+					atoms.set(k, atom(`${name}:${keyToName(k)}`, v))
 				}
 			})
 		}
@@ -158,7 +164,7 @@ export class AtomMap<K, V> implements Map<K, V> {
 			existingAtom.set(value)
 		} else {
 			this.atoms.update((atoms) => {
-				return atoms.set(key, atom(`${this.name}:${String(key)}`, value))
+				return atoms.set(key, atom(`${this.name}:${keyToName(key)}`, value))
 			})
 		}
 		return this
@@ -224,7 +230,7 @@ export class AtomMap<K, V> implements Map<K, V> {
 	update(key: K, updater: (value: V) => V) {
 		const valueAtom = this.atoms.__unsafe__getWithoutCapture().get(key)
 		if (!valueAtom) {
-			throw new Error(`AtomMap: key ${key} not found`)
+			throw new Error(`AtomMap: key ${keyToName(key)} not found`)
 		}
 		const value = valueAtom.__unsafe__getWithoutCapture()
 		assert(value !== UNINITIALIZED)
@@ -275,11 +281,13 @@ export class AtomMap<K, V> implements Map<K, V> {
 	deleteMany(keys: Iterable<K>): [K, V][] {
 		return transact(() => {
 			const deleted: [K, V][] = []
-			const newAtoms = this.atoms.get().withMutations((atoms) => {
+			// Reads here must not capture: a reactor that deletes keys would otherwise subscribe to
+			// the whole key set and to every deleted value atom, as `delete` and `clear` avoid.
+			const newAtoms = this.atoms.__unsafe__getWithoutCapture().withMutations((atoms) => {
 				for (const key of keys) {
 					const valueAtom = atoms.get(key)
 					if (!valueAtom) continue
-					const oldValue = valueAtom.get()
+					const oldValue = valueAtom.__unsafe__getWithoutCapture()
 					assert(oldValue !== UNINITIALIZED)
 
 					deleted.push([key, oldValue])
@@ -334,7 +342,9 @@ export class AtomMap<K, V> implements Map<K, V> {
 	*entries(): Generator<[K, V], undefined, unknown> {
 		for (const [key, valueAtom] of this.atoms.get()) {
 			const value = valueAtom.get()
-			assert(value !== UNINITIALIZED)
+			// The key set is a snapshot taken when iteration started, so a key deleted mid-iteration
+			// still appears in it; skip it, as `Map` skips entries deleted before they are visited.
+			if (value === UNINITIALIZED) continue
 			yield [key, value]
 		}
 	}
@@ -354,7 +364,9 @@ export class AtomMap<K, V> implements Map<K, V> {
 	 * ```
 	 */
 	*keys(): Generator<K, undefined, unknown> {
-		for (const key of this.atoms.get().keys()) {
+		for (const [key, valueAtom] of this.atoms.get()) {
+			// see entries(): skip keys deleted mid-iteration
+			if (valueAtom.__unsafe__getWithoutCapture() === UNINITIALIZED) continue
 			yield key
 		}
 	}
@@ -376,7 +388,8 @@ export class AtomMap<K, V> implements Map<K, V> {
 	*values(): Generator<V, undefined, unknown> {
 		for (const valueAtom of this.atoms.get().values()) {
 			const value = valueAtom.get()
-			assert(value !== UNINITIALIZED)
+			// see entries(): skip keys deleted mid-iteration
+			if (value === UNINITIALIZED) continue
 			yield value
 		}
 	}

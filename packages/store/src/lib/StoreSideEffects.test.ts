@@ -626,3 +626,61 @@ describe('atomic operations (AO)', () => {
 		])
 	})
 })
+
+describe('handler removal during dispatch and remote attribution (SE, AO)', () => {
+	it('[SE1] a handler that removes itself while running does not stop later handlers from running', () => {
+		const calls: string[] = []
+		const removeA = store.sideEffects.registerAfterCreateHandler('book', () => {
+			calls.push('A')
+			removeA()
+		})
+		store.sideEffects.registerAfterCreateHandler('book', () => calls.push('B'))
+
+		store.put([book1])
+		expect(calls).toEqual(['A', 'B'])
+
+		store.put([book2])
+		expect(calls).toEqual(['A', 'B', 'B'])
+	})
+
+	it('[SE1] an operationComplete handler that removes itself does not skip the next one', () => {
+		const calls: string[] = []
+		const removeA = store.sideEffects.registerOperationCompleteHandler(() => {
+			calls.push('A')
+			removeA()
+		})
+		store.sideEffects.registerOperationCompleteHandler(() => calls.push('B'))
+
+		store.put([book1])
+		expect(calls).toEqual(['A', 'B'])
+	})
+
+	it('[AO8] changes made by operationComplete handlers after a remote operation are attributed to user', () => {
+		store.put([book1, book2])
+		const log: string[] = []
+		store.addHistoryInterceptor((_entry, source) => log.push('history:' + source))
+		store.sideEffects.registerAfterChangeHandler('book', (_prev, _next, source) =>
+			log.push('afterChange:' + source)
+		)
+		let once = true
+		store.sideEffects.registerOperationCompleteHandler((source) => {
+			log.push('operationComplete:' + source)
+			if (once) {
+				once = false
+				store.put([{ ...book2, title: 'renamed' }])
+			}
+		})
+
+		store.mergeRemoteChanges(() => store.remove([book1Id]))
+
+		expect(log).toEqual([
+			'history:remote',
+			'operationComplete:remote',
+			'history:user',
+			'afterChange:user',
+			'operationComplete:user',
+			// the integrity check after the merge is its own (empty) user operation
+			'operationComplete:user',
+		])
+	})
+})
