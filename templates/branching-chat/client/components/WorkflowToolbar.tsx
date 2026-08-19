@@ -33,23 +33,29 @@ import { NodeShape } from '../nodes/NodeShapeUtil'
 import { getNodeDefinitions, NodeType } from '../nodes/nodeTypes'
 
 function createNodeShape(editor: Editor, shapeId: TLShapeId, center: Vec, node: NodeType) {
+	// Mark a history stopping point for undo/redo
 	editor.markHistoryStoppingPoint('create node')
 
 	editor.run(() => {
+		// Create the shape with the node definition
 		editor.createShape({
 			id: shapeId,
 			type: 'node',
 			props: { node },
 		})
 
-		// Center the shape on the drop point; its size isn't known until it exists
+		// Get the created shape and its bounds
 		const shape = editor.getShape<NodeShape>(shapeId)!
 		const shapeBounds = editor.getShapePageBounds(shapeId)!
+
+		// Position the shape so its center aligns with the drop point
 		editor.updateShape({
 			...shape,
 			x: center.x - shapeBounds.width / 2,
 			y: center.y - shapeBounds.height / 2,
 		})
+
+		// Select the newly created shape
 		editor.select(shapeId)
 	})
 }

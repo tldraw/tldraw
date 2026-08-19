@@ -7,6 +7,7 @@ import { Environment } from './types'
 
 const MODEL_ID = 'gemini-3-flash-preview'
 
+// Worker (handles AI requests directly)
 export default class extends WorkerEntrypoint<Environment> {
 	private readonly router = AutoRouter<IRequest, [env: Environment, ctx: ExecutionContext]>({
 		catch: (e) => {
@@ -25,6 +26,7 @@ export default class extends WorkerEntrypoint<Environment> {
 		return createGoogleGenerativeAI({ apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY })(MODEL_ID)
 	}
 
+	// Generate a new response from the model
 	private async generate(request: IRequest, env: Environment) {
 		try {
 			const prompt = (await request.json()) as Array<ModelMessage>
@@ -33,6 +35,7 @@ export default class extends WorkerEntrypoint<Environment> {
 				messages: prompt,
 			})
 
+			// Send back the response as a JSON object
 			return new Response(text, {
 				headers: { 'Content-Type': 'application/json' },
 			})
@@ -44,6 +47,7 @@ export default class extends WorkerEntrypoint<Environment> {
 		}
 	}
 
+	// Stream a new response from the model
 	private async stream(request: IRequest, env: Environment): Promise<Response> {
 		try {
 			const prompt = (await request.json()) as Array<ModelMessage>

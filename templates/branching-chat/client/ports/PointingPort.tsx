@@ -6,14 +6,15 @@ import { DEFAULT_NODE_SPACING_PX } from '../constants.tsx'
 import { getNodePortConnections } from '../nodes/nodePorts.tsx'
 import { PortId } from './Port.tsx'
 
+// Information about which port is being pointed at
 interface PointingPortInfo {
 	shapeId: TLShapeId
 	portId: PortId
 	terminal: 'start' | 'end'
 }
 
-// Child state of the select tool: entered on pointer down over a port. A drag creates (or moves) a
-// connection; a click on an output port spawns a connected node below.
+// State node that handles pointing at ports to create connections
+// This will be added to tldraw's state machine to customize the built-in select tool
 export class PointingPort extends StateNode {
 	static override id = 'pointing_port'
 
@@ -29,12 +30,15 @@ export class PointingPort extends StateNode {
 	}
 
 	override onPointerMove(info: TLPointerEventInfo): void {
+		// isDragging is true if the user has moved the pointer sufficiently. below this threshold,
+		// we treat the pointer as a click.
 		if (!this.editor.inputs.getIsDragging()) return
 		const { shapeId, portId, terminal: connectingTerminal } = this.info!
 
-		// Only 'start' ports (outputs) can have multiple connections; dragging from an already
-		// connected input moves the existing connection instead of creating a new one.
 		const existingConnection = this.getExistingConnection()
+
+		// If we can't have multiple connections and one already exists, move the existing
+		// connection by transitioning to dragging the existing connection's handle.
 		if (connectingTerminal !== 'start' && existingConnection) {
 			this.parent.transition('dragging_handle', {
 				...info,
@@ -47,6 +51,7 @@ export class PointingPort extends StateNode {
 			return
 		}
 
+		// Otherwise, create a new connection, and start dragging that connection's handle instead.
 		const creatingMarkId = this.editor.markHistoryStoppingPoint()
 		const connectionShapeId = createShapeId()
 		const draggingTerminal = connectingTerminal === 'start' ? 'end' : 'start'
@@ -63,11 +68,14 @@ export class PointingPort extends StateNode {
 				end: { x: 0, y: 0 },
 			},
 		})
+
+		// bind one end of the connection to the port the user pointer-down'd on.
 		createOrUpdateConnectionBinding(this.editor, connectionShapeId, shapeId, {
 			portId,
 			terminal: connectingTerminal,
 		})
 
+		// transition to dragging the other end of the connection:
 		const handle = this.editor
 			.getShapeHandles(connectionShapeId)
 			?.find((h) => h.id === draggingTerminal)
@@ -83,24 +91,33 @@ export class PointingPort extends StateNode {
 	}
 
 	override onPointerUp(info: TLPointerEventInfo): void {
-		// still here on pointer up means we never started dragging, so treat it as a click
+		// if we get a pointer up while we're still in this state, it means we haven't transitioned
+		// into a dragging state so we'll treat this as a click:
 		this.onClick()
+		// switch back to the idle state when we're done:
 		this.parent.transition('idle', info)
 	}
 
+	// Handle clicks on ports (without dragging)
 	private onClick() {
+		// Only handle clicks on start ports (output ports)
 		if (this.info?.terminal !== 'start') return
+
+		// Don't create new connections if one already exists
 		if (this.getExistingConnection()) return
 		const { shapeId, portId } = this.info
 
+		// Get the bounds of the source node
 		const bounds = this.editor.getShapePageBounds(shapeId)
 		if (!bounds) return
 
+		// Calculate position for new node to the right of the source node
 		const targetPositionInPageSpace = {
 			x: bounds.midX,
 			y: bounds.bottom + DEFAULT_NODE_SPACING_PX,
 		}
 
+		// Create a connection shape
 		const connectionShapeId = createShapeId()
 		this.editor.createShape({
 			type: 'connection',
@@ -109,11 +126,14 @@ export class PointingPort extends StateNode {
 			y: bounds.top,
 			index: getNextConnectionIndex(this.editor),
 		})
+
+		// Bind the connection to the source port
 		createOrUpdateConnectionBinding(this.editor, connectionShapeId, shapeId, {
 			portId,
 			terminal: 'start',
 		})
 
+		// Position the connection end point where the new node will be
 		const targetPositionInConnectionSpace = this.editor
 			.getPointInShapeSpace(connectionShapeId, targetPositionInPageSpace)
 			.addXY(0, 200)

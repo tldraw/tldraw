@@ -14,6 +14,9 @@ import {
 	updateNode,
 } from './shared'
 
+/**
+ * This node is a message from the user.
+ */
 export type MessageNode = T.TypeOf<typeof MessageNode>
 export const MessageNode = T.object({
 	type: T.literal('message'),
@@ -68,7 +71,11 @@ function MessageNodeComponent({ node, shape }: NodeComponentProps<MessageNode>) 
 	const editor = useEditor()
 
 	const handleSend = useCallback(() => {
-		// Walk upstream through the ancestors to build the message history, oldest first
+		// 1. gather up parents and create message history
+		// 2. create prompt
+		// 3. send prompt to ai
+		// 4. update node with assistant message
+
 		const messages: ModelMessage[] = []
 		for (const connectedShape of getAllConnectedNodes(editor, shape, 'end')) {
 			const node = editor.getShape(connectedShape)
@@ -82,11 +89,13 @@ function MessageNodeComponent({ node, shape }: NodeComponentProps<MessageNode>) 
 		}
 		messages.reverse()
 
+		// clear any previous assistant message before starting
 		updateNode<MessageNode>(editor, shape, (node) => ({
 			...node,
 			assistantMessage: '...',
 		}))
 
+		// stream the response and append as chunks arrive
 		;(async () => {
 			try {
 				const response = await fetch('/stream', {

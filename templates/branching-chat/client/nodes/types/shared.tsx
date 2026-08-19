@@ -37,6 +37,9 @@ export interface NodeDefinitionConstructor<Node extends { type: string }> {
 	readonly validator: T.Validator<Node>
 }
 
+/**
+ * The standard input port for a node.
+ */
 export const shapeInputPort: ShapePort = {
 	id: 'input',
 	terminal: 'end',
@@ -44,6 +47,9 @@ export const shapeInputPort: ShapePort = {
 	y: 0,
 }
 
+/**
+ * The standard output port for a node.
+ */
 export const shapeOutputPort: ShapePort = {
 	id: 'output',
 	terminal: 'start',
@@ -51,6 +57,9 @@ export const shapeOutputPort: ShapePort = {
 	y: NODE_HEIGHT_PX,
 }
 
+/**
+ * Update the `node` prop within a node shape.
+ */
 export function updateNode<T extends NodeType>(
 	editor: Editor,
 	shape: NodeShape,

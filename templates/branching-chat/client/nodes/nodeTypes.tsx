@@ -4,6 +4,7 @@ import { NodeShape } from './NodeShapeUtil'
 import { MessageNodeDefinition } from './types/MessageNode'
 import { NodeDefinition, NodeDefinitionConstructor } from './types/shared'
 
+/** All our node types */
 export const NodeDefinitions = {
 	message: MessageNodeDefinition,
 } satisfies Record<string, NodeDefinitionConstructor<any>>
@@ -31,6 +32,9 @@ export function getNodeDefinition(
 	] as NodeDefinition<NodeType>
 }
 
+/**
+ * A union type of all our node types.
+ */
 export type NodeType = T.TypeOf<typeof NodeType>
 export const NodeType = T.union(
 	'type',

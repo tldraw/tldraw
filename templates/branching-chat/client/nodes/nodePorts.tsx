@@ -1,9 +1,16 @@
+/**
+ * This file contains functions for working with ports and connections on nodes.
+ */
 import { createComputedCache, Editor, TLShapeId } from 'tldraw'
 import { getConnectionBindings } from '../connection/ConnectionBindingUtil'
 import { PortId } from '../ports/Port'
 import { NodeShape } from './NodeShapeUtil'
 import { getNodeTypePorts, NodeTypePorts } from './nodeTypes'
 
+/**
+ * Get the ports for a node. This is cached, because we only want to re-evaluate it when the
+ * underlying records change.
+ */
 export function getNodePorts(editor: Editor, shape: NodeShape | TLShapeId): NodeTypePorts {
 	return nodePortsCache.get(editor, typeof shape === 'string' ? shape : shape.id) ?? {}
 }
@@ -12,6 +19,9 @@ const nodePortsCache = createComputedCache(
 	(editor: Editor, node: NodeShape): NodeTypePorts => getNodeTypePorts(editor, node)
 )
 
+/**
+ * A connection from one node to another.
+ */
 export interface NodePortConnection {
 	connectedShapeId: TLShapeId
 	connectionId: TLShapeId
@@ -20,6 +30,9 @@ export interface NodePortConnection {
 	connectedPortId: PortId
 }
 
+/**
+ * Get the connections for a node. This is cached.
+ */
 export function getNodePortConnections(
 	editor: Editor,
 	shape: NodeShape | TLShapeId

@@ -18,10 +18,14 @@ import { disableTransparency } from './disableTransparency.tsx'
 import { NodeShapeUtil } from './nodes/NodeShapeUtil.tsx'
 import { PointingPort } from './ports/PointingPort.tsx'
 
+// Define custom shape utilities that extend tldraw's shape system
 const shapeUtils = [NodeShapeUtil, ConnectionShapeUtil]
+// Define binding utilities that handle relationships between shapes
 const bindingUtils = [ConnectionBindingUtil]
+// Canvas overlays — adds the "+" insert handle at the midpoint of each connection
 const overlayUtils = [ConnectionCenterHandleOverlayUtil]
 
+// Customize tldraw's UI components to add workflow-specific functionality
 const components: TLComponents = {
 	Toolbar: () => (
 		<>
@@ -74,11 +78,17 @@ function App() {
 
 					editor.user.updateUserPreferences({ isSnapMode: true })
 
-					// Lets users create connections by dragging from ports
+					// Add our custom pointing port tool to the select tool's state machine
+					// This allows users to create connections by pointing at ports
 					editor.getStateDescendant('select')!.addChild(PointingPort)
 
 					// todo: move connections to on the canvas layer
+
+					// Ensure connections always stay at the bottom of the shape stack
+					// This prevents them from covering other shapes
 					keepConnectionsAtBottom(editor)
+
+					// Disable transparency for workflow shapes
 					disableTransparency(editor, ['node', 'connection'])
 				}}
 			/>
