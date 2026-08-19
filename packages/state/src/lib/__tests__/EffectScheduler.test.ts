@@ -401,3 +401,31 @@ describe('EffectScheduler attach/detach (E8)', () => {
 		expect(numReactions).toBe(4)
 	})
 })
+
+describe('effects that set atoms outside the reaction phase (P4)', () => {
+	it('[P4] an effect that sets one of its own parents during its first run re-runs afterwards instead of re-entering itself', () => {
+		// Regression: the initial run of react() happens outside a reaction phase, so a set inside
+		// it flushed synchronously and re-entered execute() for the same scheduler. The nested
+		// capture frame then truncated the parents captured by the outer run (b was dropped while
+		// b.children still held the effect).
+		const initialized = atom('initialized', false)
+		const b = atom('b', 0)
+		const seen: number[] = []
+		let depth = 0
+		let maxDepth = 0
+		react('r', () => {
+			depth++
+			maxDepth = Math.max(maxDepth, depth)
+			if (!initialized.get()) initialized.set(true)
+			seen.push(b.get())
+			depth--
+		})
+
+		expect(maxDepth).toBe(1)
+		// the set changed a parent read before it, so the effect runs once more, sequentially
+		expect(seen).toEqual([0, 0])
+
+		b.set(1)
+		expect(seen).toEqual([0, 0, 1])
+	})
+})

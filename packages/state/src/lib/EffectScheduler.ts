@@ -61,6 +61,10 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	/** @internal */
 	private _scheduleCount = 0
 	/** @internal */
+	private _executeDepth = 0
+	/** @internal */
+	private _wasScheduledWhileExecuting = false
+	/** @internal */
 	__debug_ancestor_epochs__: Map<Signal<any, any>, number> | null = null
 
 	/**
@@ -111,8 +115,7 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 			// if the effect should be deferred (e.g. until a react render), do so
 			this._scheduleEffect(this.maybeExecute)
 		} else {
-			// otherwise execute right now!
-			this.execute()
+			this.maybeExecute()
 		}
 	}
 
@@ -121,6 +124,13 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	readonly maybeExecute = () => {
 		// bail out if we have been detached before this runs
 		if (!this._isActivelyListening) return
+		// A set inside the running effect flushed synchronously back to this scheduler (only possible
+		// outside the reaction phase, e.g. the first run of `react()`). Running now would open a second
+		// capture frame inside the open one and corrupt `parents`, so re-check after the run instead.
+		if (this._executeDepth > 0) {
+			this._wasScheduledWhileExecuting = true
+			return
+		}
 		this.execute()
 	}
 
@@ -155,6 +165,32 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	 * @public
 	 */
 	execute(): Result {
+		// A direct re-entrant `execute()` from inside the effect is unsupported (both runs share one
+		// `parents`); it is left to run so the outer run can at least finish normally.
+		if (this._executeDepth > 0) return this.executeOnce()
+		// a run that threw may have left this set
+		this._wasScheduledWhileExecuting = false
+		let result = this.executeOnce()
+		// If a set inside the run reached this scheduler (see `maybeExecute`), settle it now the way
+		// the reaction phase's cleanup pass would: run again while the parents keep changing.
+		for (let depth = 0; this._wasScheduledWhileExecuting; depth++) {
+			this._wasScheduledWhileExecuting = false
+			if (depth >= 1000) {
+				throw new Error('Reaction update depth limit exceeded')
+			}
+			if (!this._isActivelyListening) break
+			if (!haveParentsChanged(this)) {
+				this.lastReactedEpoch = getGlobalEpoch()
+				break
+			}
+			result = this.executeOnce()
+		}
+		return result
+	}
+
+	private executeOnce(): Result {
+		// A counter rather than a flag: a nested `execute()` must not mark the outer run as finished.
+		this._executeDepth++
 		try {
 			startCapturingParents(this)
 			// Important! We have to make a note of the current epoch before running the effect.
@@ -166,6 +202,7 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 			return result
 		} finally {
 			stopCapturingParents()
+			this._executeDepth--
 		}
 	}
 }
