@@ -36,9 +36,9 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 ## 4. RecordsDiff (D)
 
 - **D1** `createEmptyRecordsDiff()` returns `{ added: {}, updated: {}, removed: {} }`; `isRecordsDiffEmpty` is true exactly when all three collections are empty.
-- **D2** `reverseRecordsDiff` swaps added and removed and reverses each `[from, to]` pair.
+- **D2** `reverseRecordsDiff` swaps added and removed and reverses each `[from, to]` pair. The result shares no collections or pairs with the input, so squashing into it leaves the input untouched.
 - **D3** `squashRecordDiffs(diffs)` combines sequential diffs into one. Per record id: add then update → add with the final value; add then remove → nothing; update then update → one update from the original `from` to the final `to`; update then remove → remove of the original `from`; remove then add → update from the removed value to the added value, unless the added value is reference-identical to the removed one, in which case nothing.
-- **D4** `squashRecordDiffs` does not mutate its inputs unless `mutateFirstDiff: true`, in which case the first diff is the (mutated) result. `squashRecordDiffsMutable(target, diffs)` applies diffs onto `target` in place with the same semantics.
+- **D4** `squashRecordDiffs` does not mutate its inputs unless `mutateFirstDiff: true`, in which case the first diff is the (mutated) result (an empty diff when there are no diffs); its `[from, to]` pairs are replaced rather than mutated in place. `squashRecordDiffsMutable(target, diffs)` applies diffs onto `target` in place with the same semantics; the target must own its pairs (start from `createEmptyRecordsDiff()`).
 
 ## 5. Store: reading and writing (S)
 
