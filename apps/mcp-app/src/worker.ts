@@ -11,6 +11,8 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { McpAgent } from 'agents/mcp'
 import { CanvasStore } from './canvas-store'
 import { Logger } from './logger'
+import { decidePrune } from './prune'
+import type { PruneResult, PruneStats } from './prune'
 import { registerTools } from './register-tools'
 import { loadEditorApiSpecFromAssets, loadMethodMapFromAssets } from './shared/generated-data'
 import { PendingRequests } from './shared/pending-requests'
@@ -31,7 +33,7 @@ import { resolveMcpAppHostNameFromServerInfo } from './shared/utils'
 export { CanvasStore }
 
 interface Env {
-	MCP_OBJECT: DurableObjectNamespace
+	MCP_OBJECT: DurableObjectNamespace<TldrawMCP>
 	CANVAS_STORE: DurableObjectNamespace<CanvasStore>
 	ASSETS: Fetcher
 	LOADER: WorkerLoader
@@ -246,6 +248,8 @@ export class TldrawMCP extends McpAgent<Env> {
 		const data = JSON.stringify({ shapes, assets, bindings })
 		void this
 			.sql`INSERT OR REPLACE INTO checkpoints (id, data, created_at) VALUES (${id}, ${data}, ${Date.now()})`
+		void this
+			.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('lastActivity', ${String(Date.now())})`
 		this.activeCheckpointId = id
 		void this.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('activeCheckpointId', ${id})`
 
@@ -267,6 +271,62 @@ export class TldrawMCP extends McpAgent<Env> {
 			assets: parsed.assets ?? [],
 			bindings: parsed.bindings ?? [],
 		}
+	}
+
+	// --- Idle pruning ---
+
+	/**
+	 * Reads the activity signals without assuming init() ran: on a cold legacy
+	 * DO woken by a raw RPC, our tables may not exist, so every read tolerates
+	 * `no such table` and reports "never active".
+	 */
+	readPruneStats(): PruneStats {
+		const sql = this.ctx.storage.sql
+		let lastActivity: number | null = null
+		let checkpointCount = 0
+		try {
+			const meta = sql.exec(`SELECT value FROM meta WHERE key = 'lastActivity'`).toArray()
+			if (meta.length > 0) lastActivity = Number(meta[0].value)
+		} catch {
+			// no meta table
+		}
+		try {
+			const cp = sql
+				.exec(`SELECT COUNT(*) AS n, MAX(created_at) AS last FROM checkpoints`)
+				.toArray()
+			if (cp.length > 0) {
+				checkpointCount = Number(cp[0].n ?? 0)
+				// Legacy DOs predate the lastActivity key; the newest snapshot is the next best signal.
+				if (lastActivity === null && cp[0].last != null) lastActivity = Number(cp[0].last)
+			}
+		} catch {
+			// no checkpoints table
+		}
+		return { lastActivity, checkpointCount }
+	}
+
+	/**
+	 * Condemns this DO if it has been idle for `maxIdleMs`. Never calls destroy()
+	 * inline: it writes the SDK's own durable destroy marker and arms an immediate
+	 * alarm, and Agent.alarm() runs destroy() in a fresh invocation before any
+	 * onStart/init(). That keeps the prune path off `this.name`, which throws on
+	 * idFromString stubs. The marker doubles as the idempotency guard across
+	 * script retries and evictions.
+	 */
+	async pruneIfIdle(maxIdleMs: number, dryRun: boolean): Promise<PruneResult> {
+		const id = this.ctx.id.toString()
+		const bytes = this.ctx.storage.sql.databaseSize
+		if (await this.ctx.storage.get('cf_agents_destroy_pending')) {
+			return { id, idleMs: 0, checkpointCount: 0, bytes, action: 'kept', note: 'already condemned' }
+		}
+		const stats = this.readPruneStats()
+		const { idleMs, action } = decidePrune(stats, Date.now(), maxIdleMs, dryRun)
+		if (action === 'destroy-scheduled') {
+			this.env.MCP_ANALYTICS?.writeDataPoint({ blobs: ['session_end', id], doubles: [Date.now()] })
+			await this.ctx.storage.put('cf_agents_destroy_pending', true)
+			await this.ctx.storage.setAlarm(Date.now())
+		}
+		return { id, idleMs, checkpointCount: stats.checkpointCount, bytes, action }
 	}
 }
 
