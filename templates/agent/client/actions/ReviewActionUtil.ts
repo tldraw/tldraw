@@ -36,12 +36,13 @@ export const ReviewActionUtil = registerActionUtil(
 				source: 'agent',
 			}
 
-			// Expand any already-scheduled bounds to include the review area
+			// If the review area is outside the already-scheduled bounds, expand the bounds to include it
 			const scheduledRequest = this.agent.requests.getScheduledRequest()
 			const bounds = scheduledRequest
 				? Box.From(scheduledRequest.bounds).union(reviewBounds)
 				: reviewBounds
 
+			// Schedule the review
 			this.agent.schedule({
 				bounds,
 				message: getReviewMessage(action.intent),

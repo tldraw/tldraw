@@ -14,6 +14,7 @@ export const ChatHistoryPartUtil = registerPromptPartUtil(
 			for (const historyItem of history) {
 				if (historyItem.type !== 'prompt') continue
 
+				// Offset and round the context items of each history item
 				historyItem.contextItems = historyItem.contextItems.map((contextItem) =>
 					helpers.roundContextItem(helpers.applyOffsetToContextItem(contextItem))
 				)

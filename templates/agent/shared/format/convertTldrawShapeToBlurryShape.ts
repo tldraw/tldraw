@@ -4,6 +4,10 @@ import {
 	convertTldrawIdToSimpleId,
 	convertTldrawShapeToFocusedType,
 } from './convertTldrawShapeToFocusedShape'
+
+/**
+ * Convert a tldraw shape to the blurry shape format
+ */
 export function convertTldrawShapeToBlurryShape(
 	editor: Editor,
 	shape: TLShape

@@ -8,17 +8,24 @@ const TldrawAgentAppContext = createContext<TldrawAgentApp | null>(null)
 export interface TldrawAgentAppProviderProps {
 	children?: ReactNode
 	/**
-	 * Use this to pass the app to components outside the Tldraw component via
-	 * TldrawAgentAppContextProvider.
+	 * Callback fired when the app is created. Use this to pass the app
+	 * to components outside the Tldraw component via TldrawAgentAppContextProvider.
 	 */
 	onMount?: (app: TldrawAgentApp) => void
+	/**
+	 * Callback fired when the app is disposed.
+	 */
 	onUnmount?: () => void
 }
 
 /**
- * Creates a TldrawAgentApp for the current editor and provides it via context.
- * Must be rendered inside `<Tldraw>`. Children are not rendered until the app
- * exists, so `useAgent()` always returns a valid agent.
+ * Provider component that creates and manages a TldrawAgentApp instance for the current editor.
+ *
+ * This component should be rendered inside a `<Tldraw>` component to have access to the editor context.
+ * It creates a TldrawAgentApp instance, provides it via context, and cleans up on unmount.
+ *
+ * The provider waits until the app and agent exist before rendering children,
+ * ensuring useAgent() always returns a valid agent.
  *
  * For components defined in Tldraw's `components` prop, use `onMount` to get the app instance
  * and wrap them with `TldrawAgentAppContextProvider`.
@@ -53,6 +60,7 @@ export const TldrawAgentAppProvider = memo(function TldrawAgentAppProvider({
 	const toasts = useToasts()
 	const [app, setApp] = useState<TldrawAgentApp | null>(null)
 
+	// Error handler for agent errors
 	const handleError = useCallback(
 		(e: any) => {
 			const message = typeof e === 'string' ? e : e instanceof Error && e.message
@@ -66,16 +74,22 @@ export const TldrawAgentAppProvider = memo(function TldrawAgentAppProvider({
 		[toasts]
 	)
 
+	// Create the TldrawAgentApp instance
 	useEffect(() => {
 		const instance = new TldrawAgentApp(editor, { onError: handleError })
 
-		// loadState creates agents from persisted data; auto-save must start after it
-		// so the load itself doesn't get saved back
+		// Load persisted state first (this will create agents from persisted data)
 		instance.persistence.loadState()
+
+		// Ensure at least one agent exists (creates one if none were loaded)
 		const defaultAgent = instance.agents.ensureAtLeastOneAgent()
+
+		// Start auto-saving (must be after loadState to avoid saving during load)
 		instance.persistence.startAutoSave()
 
 		setApp(instance)
+
+		// Notify parent
 		onMount?.(instance)
 
 		// Expose to window for debugging
@@ -93,13 +107,26 @@ export const TldrawAgentAppProvider = memo(function TldrawAgentAppProvider({
 		}
 	}, [editor, handleError, onMount, onUnmount])
 
+	// Don't render children until app exists
 	if (!app) return null
 
 	return <TldrawAgentAppContext.Provider value={app}>{children}</TldrawAgentAppContext.Provider>
 })
 
 /**
- * Provides an existing app to components defined in Tldraw's `components` prop.
+ * Context provider that wraps children with the TldrawAgentApp context.
+ * Use this to provide the app context to components defined in Tldraw's `components` prop.
+ *
+ * @example
+ * ```tsx
+ * const components = useMemo(() => ({
+ *   InFrontOfTheCanvas: () => app && (
+ *     <TldrawAgentAppContextProvider app={app}>
+ *       <AgentHighlights />
+ *     </TldrawAgentAppContextProvider>
+ *   ),
+ * }), [app])
+ * ```
  */
 export function TldrawAgentAppContextProvider({
 	app,
@@ -111,7 +138,20 @@ export function TldrawAgentAppContextProvider({
 	return <TldrawAgentAppContext.Provider value={app}>{children}</TldrawAgentAppContext.Provider>
 }
 
-/** @throws if called outside a TldrawAgentAppProvider or TldrawAgentAppContextProvider. */
+/**
+ * Hook to get the TldrawAgentApp instance from context.
+ * Must be used inside a TldrawAgentAppProvider or TldrawAgentAppContextProvider.
+ *
+ * @throws Error if called outside of a provider
+ * @returns The TldrawAgentApp instance (guaranteed non-null)
+ *
+ * @example
+ * ```tsx
+ * const app = useTldrawAgentApp()
+ * // app is guaranteed to exist here
+ * const agent = app.agents.getAgent()
+ * ```
+ */
 export function useTldrawAgentApp(): TldrawAgentApp {
 	const app = useContext(TldrawAgentAppContext)
 	if (!app) {
@@ -120,7 +160,22 @@ export function useTldrawAgentApp(): TldrawAgentApp {
 	return app
 }
 
-/** The default (first) agent. @throws if called outside a provider or no agent exists. */
+/**
+ * Hook to get the default TldrawAgent instance from the app context.
+ * Must be used inside a TldrawAgentAppProvider or TldrawAgentAppContextProvider.
+ *
+ * @throws Error if called outside of a provider or if agent doesn't exist
+ * @returns The default TldrawAgent instance (guaranteed non-null)
+ *
+ * @example
+ * ```tsx
+ * function ChatPanel() {
+ *   const agent = useAgent()
+ *   // agent is guaranteed to exist here
+ *   agent.prompt('Draw a cat')
+ * }
+ * ```
+ */
 export function useAgent(): TldrawAgent {
 	const app = useTldrawAgentApp()
 	const agent = useValue('agent', () => app.agents.getAgent(), [app])
@@ -130,6 +185,26 @@ export function useAgent(): TldrawAgent {
 	return agent
 }
 
+/**
+ * Hook to get all TldrawAgent instances from the app context.
+ * Returns a reactive array that updates when agents are added or removed.
+ * Must be used inside a TldrawAgentAppProvider or TldrawAgentAppContextProvider.
+ *
+ * @throws Error if called outside of a provider
+ * @returns Array of all TldrawAgent instances
+ *
+ * @example
+ * ```tsx
+ * function AgentList() {
+ *   const agents = useAgents()
+ *   return (
+ *     <ul>
+ *       {agents.map(agent => <li key={agent.id}>{agent.id}</li>)}
+ *     </ul>
+ *   )
+ * }
+ * ```
+ */
 export function useAgents(): TldrawAgent[] {
 	const app = useTldrawAgentApp()
 	return useValue('agents', () => app.agents.getAgents(), [app])

@@ -9,6 +9,8 @@ export const BlurryShapesPartUtil = registerPromptPartUtil(
 		static override type = 'blurryShapes' as const
 
 		override getPart(request: AgentRequest, helpers: AgentHelpers): BlurryShapesPart {
+			// Get all shapes within the agent's viewport
+			// Convert the shapes to the blurry shape format
 			const blurryShapes = this.getShapesInBounds(request.bounds)
 				.map((shape) => convertTldrawShapeToBlurryShape(this.editor, shape))
 				.filter((s) => s !== null)

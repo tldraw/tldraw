@@ -154,6 +154,9 @@ export type FocusedShape = z.infer<typeof FocusedShapeSchema>
 
 export type FocusedShapePartial = Partial<FocusedShape>
 
+/**
+ * Extract all shape type names from the schema
+ */
 export function getFocusedShapeSchemaNames(): FocusedShape['_type'][] {
 	return FOCUSED_SHAPES.flatMap((shapeSchema) => {
 		const typeField = shapeSchema.shape._type

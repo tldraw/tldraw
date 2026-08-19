@@ -4,52 +4,94 @@ import type { TldrawAgent } from '../TldrawAgent'
 import { BaseAgentManager } from './BaseAgentManager'
 
 /**
- * Context items the user has picked to send along with the next request.
+ * Manages context items for an agent.
+ * Context items are pieces of information that can be sent to the model
+ * to provide additional context for the conversation.
  */
 export class AgentContextManager extends BaseAgentManager {
+	/**
+	 * An atom containing currently selected context items.
+	 *
+	 * To send context items to the model, include them in the `contextItems`
+	 * field of a request.
+	 */
 	private $contextItems: Atom<ContextItem[]>
 
+	/**
+	 * Creates a new context manager for the given agent.
+	 * Initializes with an empty context items array.
+	 */
 	constructor(agent: TldrawAgent) {
 		super(agent)
 		this.$contextItems = atom('contextItems', [])
 	}
 
+	/**
+	 * Reset the context manager to its initial state.
+	 * Clears all context items.
+	 */
 	reset(): void {
 		this.$contextItems.set([])
 	}
 
+	/**
+	 * Get the current context items.
+	 * @returns An array of context items.
+	 */
 	getItems() {
 		return this.$contextItems.get()
 	}
 
+	/**
+	 * Set the context items directly.
+	 * Primarily used for loading persisted state.
+	 * @param items - The context items to set.
+	 */
 	setItems(items: ContextItem[]) {
 		this.$contextItems.set(items)
 	}
 
 	/**
-	 * Add a context item, skipping anything already in context.
+	 * Add a context item to the agent's context, ensuring that duplicates are
+	 * not included.
+	 *
+	 * @param item The context item to add.
 	 */
 	add(item: ContextItem) {
 		this.$contextItems.update((items) => {
+			// Don't add shapes that are already within context
 			if (item.type === 'shapes') {
 				return [...items, ...dedupeShapesContextItem(item, items)]
 			}
+
+			// Don't add items that are already in context
 			if (this.has(item)) return items
+
 			return [...items, structuredClone(item)]
 		})
 	}
 
+	/**
+	 * Remove a context item from the agent's context.
+	 * @param item The context item to remove.
+	 */
 	remove(item: ContextItem) {
 		this.$contextItems.update((items) => items.filter((v) => item !== v))
 	}
 
+	/**
+	 * Clear all context items.
+	 */
 	clear() {
 		this.$contextItems.set([])
 	}
 
 	/**
-	 * Whether the item is in context, either on its own or (for a shape) as
-	 * part of a shapes group.
+	 * Check if the agent's context contains a specific context item. This could
+	 * mean as an individual item, or as part of a group of items.
+	 *
+	 * @param item The context item to check for.
+	 * @returns True if the agent's context contains the item, false otherwise.
 	 */
 	has(item: ContextItem) {
 		const items = this.$contextItems.get()
@@ -67,6 +109,11 @@ export class AgentContextManager extends BaseAgentManager {
 	}
 }
 
+/**
+ * Check if two context items are equal.
+ *
+ * This is a helper function that is used internally by the manager.
+ */
 function areContextItemsEqual(a: ContextItem, b: ContextItem): boolean {
 	if (a.type !== b.type) return false
 
@@ -92,14 +139,19 @@ function areContextItemsEqual(a: ContextItem, b: ContextItem): boolean {
 }
 
 /**
- * Drop shapes that are already in context. If only one shape is left, return
- * it as a single shape item instead of a group.
+ * Remove duplicate shapes from a shapes context item.
+ * If there's only one shape left, return it as a shape item instead.
+ *
+ * This is a helper function that is used internally by the manager.
  */
 function dedupeShapesContextItem(
 	item: ShapesContextItem,
 	existingItems: ContextItem[]
 ): ContextItem[] {
+	// Get all shape IDs that are already in the context
 	const existingShapeIds = new Set<string>()
+
+	// Check individual shapes
 	for (const contextItem of existingItems) {
 		if (contextItem.type === 'shape') {
 			existingShapeIds.add(contextItem.shape.shapeId)
@@ -108,9 +160,15 @@ function dedupeShapesContextItem(
 		}
 	}
 
+	// Filter out shapes that are already in the context
 	const newShapes = item.shapes.filter((shape) => !existingShapeIds.has(shape.shapeId))
+
+	// Only add if there are remaining shapes
+	// No new shapes to add
 	if (newShapes.length === 0) return []
 
+	// If only one shape remains, add it as a single shape item
+	// Otherwise add as a shapes group
 	const newItem: ContextItem =
 		newShapes.length === 1
 			? { type: 'shape', shape: newShapes[0], source: item.source }

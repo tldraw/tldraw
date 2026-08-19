@@ -8,9 +8,14 @@ import type { TldrawAgent } from '../TldrawAgent'
 import { BaseAgentManager } from './BaseAgentManager'
 
 /**
- * Owns the agent's action utils and applies actions to the editor and chat history.
+ * Manages action-related functionality for the agent.
+ * Handles action utils, action execution, and chat history updates for actions.
  */
 export class AgentActionManager extends BaseAgentManager {
+	/**
+	 * A record of the agent's action util instances.
+	 * Used by the `getAgentActionUtil` method.
+	 */
 	private agentActionUtils: Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
 
 	constructor(agent: TldrawAgent) {
@@ -18,21 +23,40 @@ export class AgentActionManager extends BaseAgentManager {
 		this.agentActionUtils = getAgentActionUtilsRecordForMode(agent, agent.mode.getCurrentModeType())
 	}
 
+	/**
+	 * Reset the action manager to its initial state.
+	 * Currently no state to reset as action utils are stateless.
+	 */
 	reset(): void {
-		// action utils are stateless
+		// Reset state if needed - currently no state to reset
 	}
 
+	/**
+	 * Rebuild action utils for a specific mode.
+	 * Called when the agent's mode changes to ensure mode-specific
+	 * action utils are used.
+	 *
+	 * @param mode - The mode to rebuild utils for.
+	 */
 	rebuildUtilsForMode(mode: string): void {
 		this.agentActionUtils = getAgentActionUtilsRecordForMode(this.agent, mode)
 	}
 
+	/**
+	 * Get an agent action util for a specific action type.
+	 *
+	 * @param type - The type of action to get the util for.
+	 * @returns The action util.
+	 */
 	getAgentActionUtil(type?: string) {
 		return this.agentActionUtils[this.getAgentActionUtilType(type)]
 	}
 
 	/**
-	 * Resolve an action type to a known util type. Falls back to 'unknown' when
-	 * the model hasn't finished streaming the type yet or made one up.
+	 * Get the util type for a provided action type.
+	 * If no util type is found, returns 'unknown'.
+	 * @param type - The action type to get the util type for.
+	 * @returns The action util type, or 'unknown' if not found.
 	 */
 	getAgentActionUtilType(type?: string): AgentAction['_type'] {
 		if (type && type in this.agentActionUtils) return type as AgentAction['_type']
@@ -40,7 +64,11 @@ export class AgentActionManager extends BaseAgentManager {
 	}
 
 	/**
-	 * Apply an action to the editor and record it in chat history.
+	 * Make the agent perform an action.
+	 * Applies the action to the editor and tracks it in chat history.
+	 * @param action - The action to make the agent do.
+	 * @param helpers - The helpers to use for action execution.
+	 * @returns An object containing the diff of changes made and a promise that resolves when the action completes.
 	 */
 	act(
 		action: Streaming<AgentAction>,
@@ -60,12 +88,14 @@ export class AgentActionManager extends BaseAgentManager {
 				promise = util.applyAction(structuredClone(action), helpers) ?? null
 			})
 		} catch (error) {
+			// always toast the error
 			this.agent.onError(error)
-			throw error // you may not want to throw in production
+			throw error // you may not want to throw in productions
 		} finally {
 			this.agent.setIsActingOnEditor(false)
 		}
 
+		// Add the action to chat history
 		if (util.savesToHistory()) {
 			const historyItem: ChatHistoryItem = {
 				type: 'action',
@@ -75,12 +105,12 @@ export class AgentActionManager extends BaseAgentManager {
 			}
 
 			this.agent.chat.update((historyItems) => {
-				// A streaming action arrives as a series of increasingly complete versions.
-				// Replace the previous version if it is still incomplete and belongs to this
-				// turn (i.e. comes after the last external prompt; 'self' prompts are internal).
+				// Find the last EXTERNAL prompt index (ignore prompts from 'self' which are internal state transitions)
 				const lastPromptIndex = historyItems.findLastIndex(
 					(item) => item.type === 'prompt' && item.promptSource !== 'self'
 				)
+
+				// If the last action is still in progress AND it's after the last external prompt, replace it
 				const lastActionIndex = historyItems.findLastIndex((item) => item.type === 'action')
 				const lastAction = lastActionIndex !== -1 ? historyItems[lastActionIndex] : null
 				if (
@@ -89,9 +119,11 @@ export class AgentActionManager extends BaseAgentManager {
 					lastActionIndex > lastPromptIndex
 				) {
 					const newHistoryItems = [...historyItems]
+					// Replace the incomplete action with the complete one (timestamp already set above)
 					newHistoryItems[lastActionIndex] = historyItem
 					return newHistoryItems
 				}
+				// Otherwise, just add the new item to the end of the list
 				return [...historyItems, historyItem]
 			})
 		}

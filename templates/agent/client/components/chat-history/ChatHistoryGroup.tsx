@@ -45,6 +45,9 @@ export function getActionHistoryGroups(
 	return groups
 }
 
+/**
+ * Check if an action can be merged with a group.
+ */
 function canActionBeGrouped({
 	item,
 	group,

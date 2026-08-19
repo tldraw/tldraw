@@ -35,21 +35,25 @@ export class AgentService {
 		const { provider } = modelDefinition
 		const model = this[provider](modelDefinition.id)
 
+		// Build messages with provider-specific options
+		// Add system prompt with Anthropic caching if applicable
 		const messages: ModelMessage[] = [
 			{
 				role: 'system',
 				content: buildSystemPrompt(prompt),
-				// Anthropic requires explicit cache breakpoints. One at the end of the system
-				// prompt caches all system content (which generally changes together).
+				// Anthropic requires explicit cache breakpoints. We set one at the end of the
+				// system prompt to cache all system content (which generally changes together).
 				...(provider === 'anthropic' && {
 					providerOptions: { anthropic: { cacheControl: { type: 'ephemeral' } } },
 				}),
 			},
 		]
 
+		// Add prompt messages
 		const promptMessages = buildMessages(prompt)
 		messages.push(...promptMessages)
 
+		// Check for debug flags and log if enabled
 		const debugPart = prompt.debug as DebugPart | undefined
 		if (debugPart?.logSystemPrompt) {
 			const promptWithoutSchema = buildSystemPrompt(prompt, { withSchema: false })
@@ -93,7 +97,8 @@ export class AgentService {
 			const actions = closeAndParseJson(buffer)?.actions
 			if (!Array.isArray(actions) || actions.length === 0) continue
 
-			// The list is ahead of the cursor, so the current action is complete
+			// If the events list is ahead of the cursor, we know we've completed the current event
+			// We can complete the event and move the cursor forward
 			if (actions.length > cursor) {
 				const action = actions[cursor - 1] as AgentAction
 				if (action) {
@@ -103,17 +108,23 @@ export class AgentService {
 				cursor++
 			}
 
-			// Yield the (potentially new) current action in its incomplete state
+			// Now let's check the (potentially new) current event
+			// And let's yield it in its (potentially incomplete) state
 			const action = actions[cursor - 1] as AgentAction
 			if (action) {
+				// If we don't have an incomplete event yet, this is the start of a new one
 				if (!maybeIncompleteAction) {
 					startTime = Date.now()
 				}
+
 				maybeIncompleteAction = action
+
+				// Yield the potentially incomplete event
 				yield { ...action, complete: false, time: Date.now() - startTime }
 			}
 		}
 
+		// If we've finished receiving events, but there's still an incomplete event, we need to complete it
 		if (maybeIncompleteAction) {
 			yield { ...maybeIncompleteAction, complete: true, time: Date.now() - startTime }
 		}
@@ -122,7 +133,10 @@ export class AgentService {
 
 type StreamTextProviderOptions = NonNullable<Parameters<typeof streamText>[0]['providerOptions']>
 
-// Only the matching provider's options are set; the SDK ignores the rest.
+/**
+ * Map a model definition's reasoning preferences to AI SDK provider options.
+ * Only the matching provider's options are set; the SDK ignores the rest.
+ */
 function getProviderOptions(definition: AgentModelDefinition): StreamTextProviderOptions {
 	switch (definition.provider) {
 		case 'anthropic':

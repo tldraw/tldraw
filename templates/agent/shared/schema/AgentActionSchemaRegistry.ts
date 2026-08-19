@@ -1,15 +1,30 @@
 import z from 'zod'
 
+/**
+ * Options for registering an action schema.
+ */
 export interface RegisterActionSchemaOptions {
-	/** Only use this schema in these modes; otherwise it's the default for the action type. */
+	/**
+	 * If specified, this schema will only be used when the agent is in one of these modes.
+	 * Otherwise, it will be the default schema for this action type.
+	 */
 	forModes?: string[]
 }
 
+// Default registry: actionType -> schema (used when no mode-specific schema is registered)
 const defaultSchemaRegistry = new Map<string, z.ZodType>()
-// actionType -> (mode -> schema)
+
+// Mode registry: actionType -> (mode -> schema) (mode-specific overrides)
 const modeSchemaRegistry = new Map<string, Map<string, z.ZodType>>()
 
-/** Register an action schema (keyed by its `_type` literal). Returns the schema for chaining. */
+/**
+ * Register an action schema. Call this for each action type.
+ *
+ * @param type - The action type (the `_type` literal value).
+ * @param schema - The Zod schema for this action.
+ * @param options - Optional configuration for mode-specific registration.
+ * @returns The schema (for chaining).
+ */
 export function registerActionSchema<T extends z.ZodType>(
 	type: string,
 	schema: T,
@@ -18,6 +33,7 @@ export function registerActionSchema<T extends z.ZodType>(
 	const { forModes } = options ?? {}
 
 	if (forModes && forModes.length > 0) {
+		// Mode-specific registration
 		let modeMap = modeSchemaRegistry.get(type)
 		if (!modeMap) {
 			modeMap = new Map()
@@ -30,6 +46,7 @@ export function registerActionSchema<T extends z.ZodType>(
 			modeMap.set(mode, schema)
 		}
 	} else {
+		// Default registration
 		if (defaultSchemaRegistry.has(type)) {
 			throw new Error(`Action schema already registered: ${type}`)
 		}
@@ -39,16 +56,33 @@ export function registerActionSchema<T extends z.ZodType>(
 	return schema
 }
 
-/** The mode-specific schema if one exists, otherwise the default. */
+/**
+ * Get an action schema for a specific type and mode.
+ * Returns the mode-specific schema if one exists, otherwise the default.
+ *
+ * @param type - The action type to look up.
+ * @param mode - The mode to resolve the schema for.
+ * @returns The schema, or undefined if not found.
+ */
 export function getActionSchemaForMode(type: string, mode: string): z.ZodType | undefined {
+	// Check for mode-specific schema first
+	// Fall back to default schema
 	return modeSchemaRegistry.get(type)?.get(mode) ?? defaultSchemaRegistry.get(type)
 }
 
-/** The default schema for an action type, ignoring mode. */
+/**
+ * Get the default schema for an action type (ignoring mode).
+ *
+ * @param type - The action type to look up.
+ * @returns The default schema, or undefined if not found.
+ */
 export function getDefaultActionSchema(type: string): z.ZodType | undefined {
 	return defaultSchemaRegistry.get(type)
 }
 
+/**
+ * Check if a default schema is already registered for a type.
+ */
 export function hasDefaultActionSchema(type: string): boolean {
 	return defaultSchemaRegistry.has(type)
 }

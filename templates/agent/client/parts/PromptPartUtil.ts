@@ -5,6 +5,10 @@ import { PromptPart } from '../../shared/types/PromptPart'
 import { TldrawAgent } from '../agent/TldrawAgent'
 import { AgentHelpers } from '../AgentHelpers'
 
+// ============================================================================
+// Registry
+// ============================================================================
+
 const registry = new Map<string, PromptPartUtilConstructor<BasePromptPart>>()
 
 /**
@@ -31,6 +35,10 @@ export function getPromptPartUtilsRecord(agent: TldrawAgent) {
 	return object
 }
 
+// ============================================================================
+// Base Class
+// ============================================================================
+
 export abstract class PromptPartUtil<T extends BasePromptPart = BasePromptPart> {
 	static type: string
 
@@ -44,6 +52,7 @@ export abstract class PromptPartUtil<T extends BasePromptPart = BasePromptPart> 
 
 	/**
 	 * Get some data to add to the prompt.
+	 * @returns The prompt part.
 	 */
 	abstract getPart(request: AgentRequest, helpers: AgentHelpers): Promise<T> | T
 

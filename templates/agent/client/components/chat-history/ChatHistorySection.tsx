@@ -46,7 +46,7 @@ export function getAgentHistorySections(items: ChatHistoryItem[]): ChatHistorySe
 			continue
 		}
 
-		// Items before the first prompt have no section to live in
+		// Only add to the last section if one exists
 		sections.at(-1)?.items.push(item)
 	}
 

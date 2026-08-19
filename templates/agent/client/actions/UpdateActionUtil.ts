@@ -24,10 +24,12 @@ export const UpdateActionUtil = registerActionUtil(
 
 			const { update } = action
 
+			// Ensure the shape ID refers to a real shape
 			const shapeId = helpers.ensureShapeIdExists(toSimpleShapeId(update.shapeId))
 			if (!shapeId) return null
 			update.shapeId = shapeId
 
+			// If it's an arrow, ensure the from and to IDs refer to real shapes
 			if (update._type === 'arrow') {
 				if (update.fromId) {
 					update.fromId = helpers.ensureShapeIdExists(update.fromId)
@@ -40,6 +42,7 @@ export const UpdateActionUtil = registerActionUtil(
 				}
 			}
 
+			// Unround the shape to restore the original values
 			action.update = helpers.unroundShape(action.update)
 
 			return action
@@ -65,10 +68,14 @@ export const UpdateActionUtil = registerActionUtil(
 
 			editor.updateShape(result.shape)
 
+			// Handle arrow bindings if they exist
 			if (result.bindings) {
+				// First, clean up existing bindings
 				for (const binding of editor.getBindingsFromShape(shapeId, 'arrow')) {
 					editor.deleteBinding(binding.id)
 				}
+
+				// Create new bindings
 				for (const binding of result.bindings) {
 					editor.createBinding(binding)
 				}

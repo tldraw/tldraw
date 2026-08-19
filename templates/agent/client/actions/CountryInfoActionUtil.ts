@@ -18,6 +18,7 @@ export const CountryInfoActionUtil = registerActionUtil(
 		}
 
 		override async applyAction(action: Streaming<CountryInfoAction>) {
+			// Wait until the action has finished streaming
 			if (!action.complete) return
 			const data = await fetchCountryInfo(action.code)
 			this.agent.schedule({ data: [data] })

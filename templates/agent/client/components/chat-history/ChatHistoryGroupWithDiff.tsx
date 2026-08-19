@@ -38,7 +38,10 @@ export function ChatHistoryGroupWithDiff({ group }: { group: ChatHistoryGroup })
 		[items, editor, agent.chat]
 	)
 
-	// The group is accepted or rejected only if every item agrees; otherwise it's pending
+	// Get the acceptance status of the group
+	// If all items are accepted, the group is accepted
+	// If all items are rejected, the group is rejected
+	// Otherwise, the group is pending
 	const acceptance = useMemo<ChatHistoryActionItem['acceptance']>(() => {
 		const first = items[0]?.acceptance
 		if (!first) return 'pending'

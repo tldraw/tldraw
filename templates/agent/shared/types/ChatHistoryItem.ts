@@ -10,7 +10,9 @@ export type ChatHistoryItem =
 	| ChatHistoryPromptItem
 	| ChatHistoryContinuationItem
 
-/** A prompt from a user, another agent, or the agent itself. */
+/**
+ * A prompt from a user, another agent, or the agent itself.
+ */
 export interface ChatHistoryPromptItem {
 	type: 'prompt'
 	promptSource: AgentRequestSource
@@ -20,6 +22,9 @@ export interface ChatHistoryPromptItem {
 	selectedShapes: FocusedShape[]
 }
 
+/**
+ * An action done by the agent.
+ */
 export interface ChatHistoryActionItem {
 	type: 'action'
 	action: Streaming<AgentAction>
@@ -27,7 +32,9 @@ export interface ChatHistoryActionItem {
 	acceptance: 'pending' | 'accepted' | 'rejected'
 }
 
-/** A follow-up request from the agent, with data retrieved from the previous request. */
+/**
+ * A follow-up request from the agent, with data retrieved from the previous request.
+ */
 export interface ChatHistoryContinuationItem {
 	type: 'continuation'
 	data: JsonValue[]

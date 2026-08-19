@@ -19,6 +19,7 @@ export const CountShapesActionUtil = registerActionUtil(
 			if (!action.complete) return
 			const { agent, editor } = helpers
 
+			// Add the shape count to the next request
 			agent.schedule({
 				data: [`Number of shapes on the canvas: ${editor.getCurrentPageShapes().length}`],
 			})

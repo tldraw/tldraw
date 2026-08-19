@@ -61,6 +61,7 @@ export function getSystemPromptFlags(actions: AgentAction['_type'][], parts: Pro
 		// Metadata
 		hasTimePart: parts.includes('time'),
 
+		// Derived flags for convenience
 		canEdit: actions.some((type) => getActionMeta(type)?._systemPromptCategory === 'edit'),
 	}
 }

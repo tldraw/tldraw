@@ -22,12 +22,16 @@ export const CreateActionUtil = registerActionUtil(
 
 		override sanitizeAction(action: Streaming<CreateAction>, helpers: AgentHelpers) {
 			const { shape } = action
+
+			// If there's no shape yet, return action (will be filtered in applyAction)
 			if (!shape) return action
 
+			// Ensure the created shape has a unique ID (only if shapeId is present)
 			if (shape.shapeId) {
 				shape.shapeId = helpers.ensureShapeIdIsUnique(shape.shapeId)
 			}
 
+			// If the shape is an arrow and complete, ensure the from and to IDs are real shapes
 			if (action.complete && shape._type === 'arrow') {
 				if (shape.fromId) {
 					shape.fromId = helpers.ensureShapeIdExists(shape.fromId)
@@ -46,6 +50,8 @@ export const CreateActionUtil = registerActionUtil(
 		override applyAction(action: Streaming<CreateAction>, helpers: AgentHelpers) {
 			const { editor } = this
 			const { shape } = action
+
+			// If there's no shape yet, return early
 			if (!shape || !shape._type) return
 
 			// Translate the shape back to the chat's position
@@ -60,6 +66,7 @@ export const CreateActionUtil = registerActionUtil(
 
 			editor.createShape(result.shape)
 
+			// Handle arrow bindings if they exist
 			for (const binding of result.bindings ?? []) {
 				editor.createBinding(binding)
 			}

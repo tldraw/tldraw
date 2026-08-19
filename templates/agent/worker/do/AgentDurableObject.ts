@@ -19,10 +19,17 @@ export class AgentDurableObject extends DurableObject<Environment> {
 		},
 	}).post('/stream', (request) => this.stream(request))
 
+	// `fetch` is the entry point for all requests to the Durable Object
 	override fetch(request: Request): Response | Promise<Response> {
 		return this.router.fetch(request)
 	}
 
+	/**
+	 * Stream changes from the model.
+	 *
+	 * @param request - The request object containing the prompt.
+	 * @returns A Promise that resolves to a Response object containing the streamed changes.
+	 */
 	private async stream(request: Request): Promise<Response> {
 		const encoder = new TextEncoder()
 		const { readable, writable } = new TransformStream()
@@ -40,6 +47,7 @@ export class AgentDurableObject extends DurableObject<Environment> {
 			} catch (error: any) {
 				console.error('Stream error:', error)
 
+				// Send error through the stream
 				const errorData = `data: ${JSON.stringify({ error: error.message })}\n\n`
 				try {
 					await writer.write(encoder.encode(errorData))

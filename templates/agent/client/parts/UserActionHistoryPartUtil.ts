@@ -30,6 +30,7 @@ export const UserActionHistoryPartUtil = registerPromptPartUtil(
 
 			const { added, updated, removed } = squashRecordDiffs(diffs)
 
+			// Collect user-added shapes
 			for (const shape of Object.values(added)) {
 				if (shape.typeName !== 'shape') continue
 				part.added.push({
@@ -38,6 +39,7 @@ export const UserActionHistoryPartUtil = registerPromptPartUtil(
 				})
 			}
 
+			// Collect user-removed shapes
 			for (const shape of Object.values(removed)) {
 				if (shape.typeName !== 'shape') continue
 				const focusedShape = convertTldrawShapeToFocusedShape(editor, shape)
@@ -47,6 +49,7 @@ export const UserActionHistoryPartUtil = registerPromptPartUtil(
 				})
 			}
 
+			// Collect user-updated shapes
 			for (const [from, to] of Object.values(updated)) {
 				if (from.typeName !== 'shape' || to.typeName !== 'shape') continue
 				const fromFocusedShape = convertTldrawShapeToFocusedShape(editor, from)
@@ -73,6 +76,9 @@ export const UserActionHistoryPartUtil = registerPromptPartUtil(
 
 /**
  * Get any changed properties between two focused shapes.
+ * @param from - The original shape.
+ * @param to - The new shape.
+ * @returns The changed properties.
  */
 function getFocusedShapeChange(from: FocusedShape, to: FocusedShape) {
 	if (from._type !== to._type) return null

@@ -6,6 +6,13 @@ import { Streaming } from '../../shared/types/Streaming'
 import { TldrawAgent } from '../agent/TldrawAgent'
 import { AgentHelpers } from '../AgentHelpers'
 
+// ============================================================================
+// Registry
+// ============================================================================
+
+/**
+ * Options for registering an action util.
+ */
 export interface RegisterActionUtilOptions {
 	/**
 	 * If specified, this util will only be used when the agent is in one of these modes.
@@ -14,13 +21,18 @@ export interface RegisterActionUtilOptions {
 	forModes?: string[]
 }
 
-// actionType -> util
+// Default registry: actionType -> util (used when no mode-specific util is registered)
 const defaultRegistry = new Map<string, AgentActionUtilConstructor<BaseAgentAction>>()
-// actionType -> (mode -> util), overriding the default for that mode
+
+// Mode registry: actionType -> (mode -> util) (mode-specific overrides)
 const modeRegistry = new Map<string, Map<string, AgentActionUtilConstructor<BaseAgentAction>>>()
 
 /**
  * Register an agent action util class. Call this after defining each util class.
+ *
+ * @param util - The action util class to register.
+ * @param options - Optional configuration for mode-specific registration.
+ * @returns The registered util class.
  */
 export function registerActionUtil<T extends AgentActionUtilConstructor<BaseAgentAction>>(
 	util: T,
@@ -29,6 +41,7 @@ export function registerActionUtil<T extends AgentActionUtilConstructor<BaseAgen
 	const { forModes } = options ?? {}
 
 	if (forModes && forModes.length > 0) {
+		// Mode-specific registration
 		let modeMap = modeRegistry.get(util.type)
 		if (!modeMap) {
 			modeMap = new Map()
@@ -41,6 +54,7 @@ export function registerActionUtil<T extends AgentActionUtilConstructor<BaseAgen
 			modeMap.set(mode, util)
 		}
 	} else {
+		// Default registration (existing behavior)
 		if (defaultRegistry.has(util.type)) {
 			throw new Error(`Agent action util already registered: ${util.type}`)
 		}
@@ -51,16 +65,22 @@ export function registerActionUtil<T extends AgentActionUtilConstructor<BaseAgen
 }
 
 /**
- * Instantiate the action utils for an agent, resolved for a specific mode.
- * Mode-specific utils override defaults.
+ * Get an object containing instantiated agent action utils for an agent,
+ * resolved for a specific mode. Mode-specific utils override defaults.
+ *
+ * @param agent - The agent to create utils for.
+ * @param mode - The mode to resolve utils for.
+ * @returns A record of action utils keyed by action type.
  */
 export function getAgentActionUtilsRecordForMode(agent: TldrawAgent, mode: string) {
 	const object = {} as Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
 
+	// Start with defaults
 	for (const [type, util] of defaultRegistry.entries()) {
 		object[type as AgentAction['_type']] = new util(agent) as AgentActionUtil<AgentAction>
 	}
 
+	// Override with mode-specific utils
 	for (const [type, modeMap] of modeRegistry.entries()) {
 		const modeUtil = modeMap.get(mode)
 		if (modeUtil) {
@@ -70,6 +90,10 @@ export function getAgentActionUtilsRecordForMode(agent: TldrawAgent, mode: strin
 
 	return object
 }
+
+// ============================================================================
+// Base Class
+// ============================================================================
 
 export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentAction> {
 	static type: string
@@ -85,6 +109,7 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	/**
 	 * Get information about the action to display within the chat history UI.
 	 * Return null to not show anything.
+	 * Defaults to the stringified action if not set.
 	 */
 	getInfo(_action: Streaming<T>): Partial<ChatHistoryInfo> | null {
 		return {}
@@ -92,6 +117,7 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 
 	/**
 	 * Transforms the action before saving it to chat history.
+	 * Useful for sanitizing or correcting actions.
 	 * @returns The transformed action, or null to reject the action
 	 */
 	sanitizeAction(action: Streaming<T>, _helpers: AgentHelpers): Streaming<T> | null {
@@ -102,7 +128,9 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	 * Apply the action to the editor.
 	 * Any changes that happen during this function will be displayed as a diff.
 	 */
-	applyAction(_action: Streaming<T>, _helpers: AgentHelpers): Promise<void> | void {}
+	applyAction(_action: Streaming<T>, _helpers: AgentHelpers): Promise<void> | void {
+		// Do nothing by default
+	}
 
 	/**
 	 * Whether the action gets saved to history.

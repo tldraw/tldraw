@@ -40,7 +40,11 @@ import {
 } from './FocusedShape'
 
 /**
- * Convert a FocusedShape to a tldraw shape, using defaultShape for fallback values.
+ * Convert a FocusedShape to a shape object to a tldraw shape using defaultShape for fallback values
+ * @param editor - The tldraw editor instance
+ * @param focusedShape - The focused shape to convert
+ * @param defaultShape - The default shape to use for fallback values
+ * @returns The converted shape and bindings
  */
 export function convertFocusedShapeToTldrawShape(
 	editor: Editor,
@@ -164,6 +168,7 @@ function convertTextShapeToTldrawShape(
 ): { shape: TLTextShape } {
 	const defaultTextShape = defaultShape as TLTextShape
 
+	// Determine the base font size and scale - focusedShape takes priority
 	let textSize: TLDefaultSizeStyle = 's'
 	let scale = 1
 	const font = defaultTextShape.props?.font ?? 'draw'
@@ -184,7 +189,9 @@ function convertTextShapeToTldrawShape(
 		scale = defaultTextShape.props.scale ?? 1
 	}
 
-	// A numeric maxWidth enables wrapping; undefined or null preserves the default autoSize
+	// If maxWidth is provided as a number, enable wrapping (autoSize = false)
+	// Otherwise (undefined or null), preserve existing autoSize behavior
+	// Check for undefined first to distinguish "not provided" from "explicitly null"
 	const autoSize =
 		focusedShape.maxWidth != null ? false : (defaultTextShape.props?.autoSize ?? true)
 
@@ -303,6 +310,7 @@ function convertArrowShapeToTldrawShape(
 		},
 	}
 
+	// Handle arrow bindings if fromId or toId are provided
 	const bindings = [
 		createArrowBinding(editor, shape.id, focusedShape.fromId, 'start', { x: x1, y: y1 }),
 		createArrowBinding(editor, shape.id, focusedShape.toId, 'end', { x: x2, y: y2 }),
@@ -445,8 +453,11 @@ function convertUnknownShapeToTldrawShape(
 }
 
 /**
- * Find the normalized anchor (0-1 within the shape's bounds) closest to targetPoint that still
- * lands on the shape's geometry.
+ * Helper function to calculate the best normalized anchor point for arrow binding
+ * @param editor - The tldraw editor instance
+ * @param targetShape - The shape to bind to
+ * @param targetPoint - The desired point in page space
+ * @returns The normalized anchor point (0-1 range within shape bounds)
  */
 function calculateArrowBindingAnchor(
 	editor: Editor,
@@ -458,17 +469,21 @@ function calculateArrowBindingAnchor(
 	const targetShapeGeometry = editor.getShapeGeometry(targetShape)
 
 	if (!targetShapePageBounds || !targetShapeGeometry) {
-		return center
+		return center // Fall back to center
 	}
 
+	// transforms the target shape's geometry to page space for calculations
 	const pageTransform = editor.getShapePageTransform(targetShape)
 	const targetShapeGeometryInPageSpace = targetShapeGeometry.transform(pageTransform)
 
+	// Step 1: Find the best anchor point on the shape
 	// If the target point is inside the shape, use it; otherwise use the nearest point on the shape
 	const anchorPoint = targetShapeGeometryInPageSpace.hitTestPoint(targetPoint, 0, true)
 		? targetPoint
 		: targetShapeGeometryInPageSpace.nearestPoint(targetPoint)
 
+	// Step 2: Convert anchor point to normalized coordinates (0-1 range within shape bounds)
+	// Step 3: Clamp normalized coordinates to valid range [0, 1]
 	const clampedNormalizedAnchor = {
 		x: Math.max(
 			0.1,
@@ -480,7 +495,7 @@ function calculateArrowBindingAnchor(
 		),
 	}
 
-	// Clamping can push the anchor off the geometry (e.g. concave shapes); fall back to the center if so
+	// Step 4: Validate that the clamped anchor point is still within the shape geometry. This is necessary because the above logic sometimes fails for some reason?
 	const clampedAnchorInPageSpace = {
 		x: targetShapePageBounds.x + clampedNormalizedAnchor.x * targetShapePageBounds.w,
 		y: targetShapePageBounds.y + clampedNormalizedAnchor.y * targetShapePageBounds.h,
@@ -488,18 +503,23 @@ function calculateArrowBindingAnchor(
 
 	return targetShapeGeometryInPageSpace.hitTestPoint(clampedAnchorInPageSpace, 0, true)
 		? clampedNormalizedAnchor
-		: center
+		: center // Fall back to center
 }
 
+/**
+ * Get the bounds of a shape by temporarily creating it in the editor.
+ * This is useful when we need to know the bounds before the shape is actually created.
+ */
 function getDummyBounds(editor: Editor, shape: TLShape): Box {
 	return editor.getShapePageBounds(shape) ?? measureUncreatedShapeBounds(editor, shape)
 }
 
 /**
- * Get the page bounds of a shape that isn't in the store yet by creating a throwaway copy of it,
- * measuring it, then reverting the creation.
+ * Get the bounds of a shape by temporarily creating it in the editor.
+ * This is useful when we need to know the bounds before the shape is actually created.
  */
 export function measureUncreatedShapeBounds(editor: Editor, shape: TLShape): Box {
+	// Create a dummy shape and get the bounds, then reverse the creation of the dummy shape
 	let bounds: Box | undefined
 	const diff = editor.store.extractingChanges(() => {
 		editor.run(
@@ -520,9 +540,14 @@ export function measureUncreatedShapeBounds(editor: Editor, shape: TLShape): Box
 }
 
 /**
- * Convert a partial FocusedShape (still streaming) to a tldraw shape. Text and geo shapes render as
- * soon as their position/size fields arrive; everything else waits until the shape is complete.
- * Returns null fields when the shape can't be rendered yet.
+ * Convert a partial FocusedShape to a tldraw shape.
+ * This is used for streaming shapes that are still being generated.
+ *
+ * @param editor - The tldraw editor instance
+ * @param focusedShape - The partial focused shape to convert
+ * @param defaultShape - The default shape to use for fallback values
+ * @param complete - Whether the shape is complete
+ * @returns The converted shape (or null if essential fields are missing), bindings, and position
  */
 export function convertPartialFocusedShapeToTldrawShape(
 	editor: Editor,
@@ -531,11 +556,13 @@ export function convertPartialFocusedShapeToTldrawShape(
 ): { shape: TLShape | null; bindings: TLBindingCreate[] | null; position: VecLike | null } {
 	const notReady = { shape: null, bindings: null, position: null }
 
+	// For text shapes, require: x, y, text
 	if (focusedShape._type === 'text') {
 		const partial = focusedShape as FocusedTextShapePartial
 		if (partial.x === undefined || partial.y === undefined || partial.text === undefined) {
 			return notReady
 		}
+		// Fill in minimal required fields, let converter handle the rest with defaults
 		const fullShape: FocusedTextShape = {
 			...partial,
 			_type: 'text',
@@ -549,6 +576,7 @@ export function convertPartialFocusedShapeToTldrawShape(
 		return { shape: result.shape, bindings: null, position: { x: partial.x, y: partial.y } }
 	}
 
+	// For geo shapes, require: _type, x, y, w, h
 	if (focusedShape._type && focusedShape._type in FOCUSED_TO_GEO_TYPES) {
 		const partial = focusedShape as FocusedGeoShapePartial
 		if (
@@ -559,6 +587,7 @@ export function convertPartialFocusedShapeToTldrawShape(
 		) {
 			return notReady
 		}
+		// Fill in minimal required fields, let converter handle the rest with defaults
 		const fullShape: FocusedGeoShape = {
 			...partial,
 			_type: focusedShape._type as FocusedGeoShape['_type'],
@@ -571,10 +600,12 @@ export function convertPartialFocusedShapeToTldrawShape(
 		return { shape: result.shape, bindings: null, position: { x: partial.x, y: partial.y } }
 	}
 
+	// For all other shapes, require complete: true
 	if (!complete) {
 		return notReady
 	}
 
+	// If complete, use the full converter
 	const result = convertFocusedShapeToTldrawShape(editor, focusedShape as FocusedShape, {
 		defaultShape,
 	})

@@ -4,6 +4,9 @@ import type { Streaming } from '../../../shared/types/Streaming'
 import type { TldrawAgent } from '../TldrawAgent'
 import { BaseAgentManager } from './BaseAgentManager'
 
+/**
+ * Debug flags for controlling logging behavior.
+ */
 export interface AgentDebugFlags {
 	/** Log the system prompt to the console (worker-side). */
 	logSystemPrompt: boolean
@@ -19,7 +22,14 @@ const DEFAULT_DEBUG_FLAGS: AgentDebugFlags = {
 	logCompletedActions: false,
 }
 
+/**
+ * Manages debug functionality for an agent.
+ * Provides flags for controlling logging of system prompts, messages, and actions.
+ */
 export class AgentDebugManager extends BaseAgentManager {
+	/**
+	 * Debug flags for controlling logging behavior.
+	 */
 	private $debugFlags: Atom<AgentDebugFlags>
 
 	constructor(agent: TldrawAgent) {
@@ -27,20 +37,32 @@ export class AgentDebugManager extends BaseAgentManager {
 		this.$debugFlags = atom<AgentDebugFlags>('debugFlags', DEFAULT_DEBUG_FLAGS)
 	}
 
+	/**
+	 * Get the current debug flags.
+	 */
 	getDebugFlags(): AgentDebugFlags {
 		return this.$debugFlags.get()
 	}
 
-	/** Merges with existing flags. */
+	/**
+	 * Set debug flags. Merges with existing flags.
+	 */
 	setDebugFlags(flags: Partial<AgentDebugFlags>): void {
 		this.$debugFlags.update((current) => ({ ...current, ...flags }))
 	}
 
+	/**
+	 * Toggle a specific debug flag.
+	 * @returns The updated debug flags.
+	 */
 	toggleFlag(flag: keyof AgentDebugFlags): AgentDebugFlags {
 		this.$debugFlags.update((current) => ({ ...current, [flag]: !current[flag] }))
 		return this.$debugFlags.get()
 	}
 
+	/**
+	 * Log a completed action if logging is enabled.
+	 */
 	logCompletedAction(action: Streaming<AgentAction>): void {
 		if (this.$debugFlags.get().logCompletedActions && action.complete) {
 			console.log('[DEBUG] Completed Action:', action)

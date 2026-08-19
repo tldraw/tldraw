@@ -11,6 +11,9 @@ import {
 import { TldrawAgent } from '../agent/TldrawAgent'
 import { useAgents } from '../agent/TldrawAgentAppProvider'
 
+/**
+ * Renders GoToAgentButton for all agents.
+ */
 export function GoToAgentButtons() {
 	const agents = useAgents()
 
@@ -31,6 +34,7 @@ export function GoToAgentButton({ agent }: { agent: TldrawAgent }) {
 	const currentRequest = useValue('activeRequest', () => agent.requests.getActiveRequest(), [agent])
 	const agentViewport = currentRequest?.bounds
 
+	// We only show the button if the agent is offscreen
 	const agentIsOffscreen = useValue(
 		'agentIsOffscreen',
 		() => {

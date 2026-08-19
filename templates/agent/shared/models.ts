@@ -139,10 +139,18 @@ export const AGENT_MODEL_DEFINITIONS = {
 
 export const DEFAULT_MODEL_NAME: AgentModelName = 'claude-sonnet-4-6'
 
+/**
+ * Check if a string is a valid AgentModelName.
+ */
 export function isValidModelName(value: string | undefined): value is AgentModelName {
 	return !!value && value in AGENT_MODEL_DEFINITIONS
 }
 
+/**
+ * Get the full information about a model from its name.
+ * @param modelName - The name of the model.
+ * @returns The full definition of the model.
+ */
 export function getAgentModelDefinition(modelName: AgentModelName): AgentModelDefinition {
 	const definition = AGENT_MODEL_DEFINITIONS[modelName]
 	if (!definition) {

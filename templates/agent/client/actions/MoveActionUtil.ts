@@ -18,10 +18,12 @@ export const MoveActionUtil = registerActionUtil(
 		override sanitizeAction(action: Streaming<MoveAction>, helpers: AgentHelpers) {
 			if (!action.complete) return action
 
+			// Make sure the shape ID refers to a real shape
 			const shapeId = helpers.ensureShapeIdExists(action.shapeId)
 			if (!shapeId) return null
 			action.shapeId = shapeId
 
+			// Make sure the x and y values are numbers
 			const floatX = helpers.ensureValueIsNumber(action.x)
 			const floatY = helpers.ensureValueIsNumber(action.y)
 			if (floatX === null || floatY === null) return null
