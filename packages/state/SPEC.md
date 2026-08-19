@@ -91,7 +91,7 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 ## 9. Effects: EffectScheduler, react, reactor (E)
 
 - **E1** `react(name, fn)` runs `fn` immediately and unconditionally, then re-runs it whenever any signal captured during its previous run changes. It returns a stop function; after stopping, changes no longer re-run `fn`.
-- **E2** `reactor(name, fn)` does not run `fn` until `.start()`. `.start()` runs the effect if it has never run or if any parent changed while stopped; otherwise it does not run. `.start({ force: true })` always runs it. `.stop()` detaches. Start/stop may be repeated.
+- **E2** `reactor(name, fn)` does not run `fn` until `.start()`. `.start()` runs the effect if it has never run or if any parent changed while stopped; otherwise — including for an effect that captured no parents — it does not run. `.start({ force: true })` always runs it. `.stop()` detaches. Start/stop may be repeated.
 - **E3** One state change produces at most one run of a given effect, even if the change affected several of its parents (e.g. several atoms set in one transaction, or a diamond dependency graph).
 - **E4** An effect re-runs only when a parent's value actually changed (per EQ and C5). Equal-value sets and unrelated epoch advances do not re-run it.
 - **E5** The effect function receives the epoch at which the effect last ran. This enables the incremental pattern `signal.getDiffSince(lastReactedEpoch)` inside effects. The epoch passed is the one captured _before_ the run, so an effect that updates atoms during its own run remains eligible to be scheduled again.
