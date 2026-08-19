@@ -1,12 +1,12 @@
 import type { MentionNodeAttrs } from '@tiptap/extension-mention'
 import { ReactRenderer } from '@tiptap/react'
-import type { SuggestionKeyDownProps, SuggestionOptions } from '@tiptap/suggestion'
+import type { SuggestionKeyDownProps, SuggestionOptions, SuggestionProps } from '@tiptap/suggestion'
 import { type ReactNode, forwardRef, useImperativeHandle, useRef, useState } from 'react'
 import { type Editor as TldrawEditor, atom, react, usePassThroughWheelEvents } from 'tldraw'
 import { MentionList, MentionMember } from './mention-list'
 
 /** The handle the suggestion plugin drives — it forwards navigation keys into the popup. */
-export interface MentionPopupHandle {
+interface MentionPopupHandle {
 	onKeyDown(props: SuggestionKeyDownProps): boolean
 }
 
@@ -185,14 +185,18 @@ export function createMentionSuggestion(
 				mentionPickerOpen.set(false)
 			}
 
+			const popupProps = (
+				props: SuggestionProps<MentionMember, MentionNodeAttrs>
+			): MentionPopupProps => ({
+				items: props.items,
+				command: props.command,
+				renderMember: options.renderMember,
+			})
+
 			return {
 				onStart: (props) => {
 					renderer = new ReactRenderer(MentionPopup, {
-						props: {
-							items: props.items,
-							command: props.command,
-							renderMember: options.renderMember,
-						},
+						props: popupProps(props),
 						editor: props.editor,
 					})
 					editorEl = props.editor.view.dom as HTMLElement
@@ -211,12 +215,7 @@ export function createMentionSuggestion(
 					mentionPickerOpen.set(true)
 				},
 				onUpdate: (props) => {
-					if (renderer)
-						renderer.updateProps({
-							items: props.items,
-							command: props.command,
-							renderMember: options.renderMember,
-						})
+					renderer?.updateProps(popupProps(props))
 					// Typing after an Escape re-shows the roster.
 					if (container) container.style.display = ''
 					mentionPickerOpen.set(true)
@@ -244,14 +243,13 @@ export function createMentionSuggestion(
 						}
 						return true
 					}
-					if (renderer && renderer.ref) return renderer.ref.onKeyDown(props)
-					return false
+					return renderer?.ref?.onKeyDown(props) ?? false
 				},
 				onExit: () => {
 					stopFollowing()
-					if (editorEl) editorEl.removeEventListener('blur', hide)
-					if (container) container.remove()
-					if (renderer) renderer.destroy()
+					editorEl?.removeEventListener('blur', hide)
+					container?.remove()
+					renderer?.destroy()
 					renderer = null
 					container = null
 					mentionPickerOpen.set(false)
