@@ -50,6 +50,7 @@ const KEY_CODES: Record<string, string> = {
  * @public
  */
 export class Driver {
+	/** The underlying Editor instance. */
 	private _cleanup: (() => void) | null
 	private _lastCreatedShapes: TLShape[] = []
 
@@ -87,8 +88,11 @@ export class Driver {
 		return this.editor.getShape<T>(lastShape)!
 	}
 
+	/* ---------------------- IDs ---------------------- */
+
 	/**
 	 * Creates a shape ID from a string.
+	 * @param id - The string to convert to a shape ID.
 	 */
 	createShapeID(id: string) {
 		return createShapeId(id)
@@ -96,10 +100,13 @@ export class Driver {
 
 	/**
 	 * Creates a page ID from a string.
+	 * @param id - The string to convert to a page ID.
 	 */
 	createPageID(id: string) {
 		return PageRecordType.createId(id)
 	}
+
+	/* ------------------- Clipboard ------------------- */
 
 	/**
 	 * Copies the given shapes to the controller clipboard. Defaults to the current selection.
@@ -144,6 +151,8 @@ export class Driver {
 		return this
 	}
 
+	/* ------------------- Queries ------------------- */
+
 	/** Returns the center of the viewport in page coordinates. */
 	getViewportPageCenter() {
 		return this.editor.getViewportPageBounds().center
@@ -159,6 +168,7 @@ export class Driver {
 
 	/**
 	 * Returns the center of a shape in page coordinates, or null if the shape has no page transform.
+	 * @param shape - The shape to get the center of.
 	 */
 	getPageCenter(shape: TLShape) {
 		const pageTransform = this.editor.getShapePageTransform(shape.id)
@@ -169,6 +179,7 @@ export class Driver {
 
 	/**
 	 * Returns the rotation of a shape in page space by ID, in radians.
+	 * @param id - The shape ID.
 	 */
 	getPageRotationById(id: TLShapeId): number {
 		const pageTransform = this.editor.getShapePageTransform(id)
@@ -177,6 +188,7 @@ export class Driver {
 
 	/**
 	 * Returns the rotation of a shape in page space, in radians.
+	 * @param shape - The shape to get the rotation of.
 	 */
 	getPageRotation(shape: TLShape) {
 		return this.getPageRotationById(shape.id)
@@ -184,11 +196,14 @@ export class Driver {
 
 	/**
 	 * Returns all arrow shapes bound to the given shape.
+	 * @param shapeId - The shape ID to find arrows bound to.
 	 */
 	getArrowsBoundTo(shapeId: TLShapeId) {
 		const ids = new Set(this.editor.getBindingsToShape(shapeId, 'arrow').map((b) => b.fromId))
 		return compact(Array.from(ids, (id) => this.editor.getShape<TLArrowShape>(id)))
 	}
+
+	/* --------------- Event building --------------- */
 
 	private getModifierKeys() {
 		const { inputs } = this.editor
@@ -243,13 +258,21 @@ export class Driver {
 		return info
 	}
 
+	/**
+	 * Builds a TLKeyboardEventInfo object for input simulation.
+	 * @param key - The key being pressed.
+	 * @param name - The event name (key_down, key_up, key_repeat).
+	 * @param options - Partial event info overrides.
+	 */
 	private getKeyboardEventInfo(
 		key: string,
 		name: TLKeyboardEventInfo['name'],
 		options = {} as Partial<Omit<TLKeyboardEventInfo, 'point'>>
 	): TLKeyboardEventInfo {
-		// Like a real DOM keyboard event, the flags reflect every modifier currently held, not just
-		// the key being pressed. keyUp passes explicit overrides for its release semantics.
+		// Like a real DOM keyboard event, the flags reflect every modifier currently held — not
+		// just the key being pressed. We OR in the editor's current modifier state so that, e.g.,
+		// pressing Shift while Control is held still reports ctrlKey: true. (keyUp passes explicit
+		// flag overrides for its release semantics, so those win over these defaults.)
 		const flags = {
 			shiftKey: key === 'Shift' || this.editor.inputs.getShiftKey(),
 			ctrlKey: key === 'Control' || key === 'Meta' || this.editor.inputs.getCtrlKey(),
@@ -266,6 +289,8 @@ export class Driver {
 			key,
 		}
 	}
+
+	/* --------------- Input events --------------- */
 
 	/**
 	 * Emits tick events to advance the editor by the given number of frames (default 1).
@@ -594,6 +619,8 @@ export class Driver {
 		this.forceTick()
 		return this
 	}
+
+	/* --------------- Interaction helpers --------------- */
 
 	/**
 	 * Simulates rotating the current selection by the given angle in radians via the rotation handle.
