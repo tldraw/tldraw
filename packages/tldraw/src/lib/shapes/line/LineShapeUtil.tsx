@@ -359,6 +359,12 @@ function getPathForLineShape(shape: TLLineShape): PathBuilder {
 	return pathCache.get(shape, () => {
 		const points = linePointsToArray(shape).map(Vec.From)
 
+		// A line needs two points to have a path. onBeforeCreate lets 0/1-point lines through
+		// (they can also arrive via updateShape or a file), and without this every geometry
+		// lookup on the page would throw — getShapeAtPoint included.
+		if (points.length === 0) points.push(new Vec(0, 0))
+		if (points.length === 1) points.push(points[0].clone().addXY(0.1, 0.1))
+
 		switch (shape.props.spline) {
 			case 'cubic': {
 				return PathBuilder.cubicSplineThroughPoints(points, { endOffsets: 0 })
