@@ -63,6 +63,13 @@ export function getReorderingShapesChanges(
 	return changes
 }
 
+/**
+ * Reorders the moving shapes to the back of the parent's children.
+ *
+ * @param moving The set of shapes that are moving
+ * @param children The parent's children
+ * @param changes The changes array to push changes to
+ */
 function reorderToBack(moving: Set<TLShape>, children: TLShape[], changes: TLShapePartial[]) {
 	const len = children.length
 
@@ -90,7 +97,8 @@ function reorderToBack(moving: Set<TLShape>, children: TLShape[], changes: TLSha
 		}
 	}
 
-	// If our moving set is empty, all of our shapes were already at the back
+	// If our moving set is empty, there's nothing to do; all of our shapes were
+	// already at the back of the parent's children.
 	if (moving.size > 0) pushMovedBetween(moving, below, above, changes)
 }
 
@@ -109,6 +117,13 @@ function pushMovedBetween(
 	)
 }
 
+/**
+ * Reorders the moving shapes to the front of the parent's children.
+ *
+ * @param moving The set of shapes that are moving
+ * @param children The parent's children
+ * @param changes The changes array to push changes to
+ */
 function reorderToFront(moving: Set<TLShape>, children: TLShape[], changes: TLShapePartial[]) {
 	const len = children.length
 
@@ -136,7 +151,8 @@ function reorderToFront(moving: Set<TLShape>, children: TLShape[], changes: TLSh
 		}
 	}
 
-	// If our moving set is empty, all of our shapes were already at the front
+	// If our moving set is empty, there's nothing to do; all of our shapes were
+	// already at the front of the parent's children.
 	if (moving.size > 0) pushMovedBetween(moving, below, above, changes)
 }
 
@@ -159,6 +175,15 @@ function getOverlapChecker(editor: Editor, moving: Set<TLShape>) {
 	return isContaining
 }
 
+/**
+ * Reorders the moving shapes forward in the parent's children.
+ *
+ * @param editor The editor
+ * @param moving The set of shapes that are moving
+ * @param children The parent's children
+ * @param changes The changes array to push changes to
+ * @param opts The options
+ */
 function reorderForward(
 	editor: Editor,
 	moving: Set<TLShape>,
@@ -209,6 +234,15 @@ function reorderForward(
 	}
 }
 
+/**
+ * Reorders the moving shapes backward in the parent's children.
+ *
+ * @param editor The editor
+ * @param moving The set of shapes that are moving
+ * @param children The parent's children
+ * @param changes The changes array to push changes to
+ * @param opts The options
+ */
 function reorderBackward(
 	editor: Editor,
 	moving: Set<TLShape>,

@@ -82,10 +82,10 @@ export abstract class BaseFrameLikeShapeUtil<
 		const { editor } = this
 
 		if (draggingShapes.every((s) => s.parentId === shape.id)) return
+		// If any of the children are the ancestor of the frame, quit here
 		if (draggingShapes.some((s) => editor.hasAncestor(shape, s.id))) return
 
-		// Shapes that started out as children of this frame get their original index back, but only
-		// if none of those indices are now taken by a current child
+		// Check to see whether any of the shapes can have their old index restored
 		const previousChildren = draggingShapes.filter((s) => initialParentIds.get(s.id) === shape.id)
 		let canRestoreOriginalIndices = false
 		if (previousChildren.length > 0) {

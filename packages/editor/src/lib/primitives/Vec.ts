@@ -82,6 +82,8 @@ export class Vec {
 	subScalar(n: number) {
 		this.x -= n
 		this.y -= n
+		// this.z -= n
+
 		return this
 	}
 
@@ -100,6 +102,8 @@ export class Vec {
 	addScalar(n: number) {
 		this.x += n
 		this.y += n
+		// this.z += n
+
 		return this
 	}
 
@@ -116,24 +120,28 @@ export class Vec {
 	div(t: number) {
 		this.x /= t
 		this.y /= t
+		// this.z /= t
 		return this
 	}
 
 	divV(V: VecLike) {
 		this.x /= V.x
 		this.y /= V.y
+		// this.z /= V.z
 		return this
 	}
 
 	mul(t: number) {
 		this.x *= t
 		this.y *= t
+		// this.z *= t
 		return this
 	}
 
 	mulV(V: VecLike) {
 		this.x *= V.x
 		this.y *= V.y
+		// this.z *= V.z
 		return this
 	}
 
@@ -156,12 +164,14 @@ export class Vec {
 	neg() {
 		this.x *= -1
 		this.y *= -1
+		// this.z *= -1
 		return this
 	}
 
 	cross(V: VecLike) {
 		this.x = this.y * V.z! - this.z * V.y
 		this.y = this.z * V.x - this.x * V.z!
+		// this.z = this.x * V.y - this.y * V.x
 		return this
 	}
 
@@ -345,7 +355,11 @@ export class Vec {
 	}
 
 	static Cross(A: VecLike, V: VecLike) {
-		return new Vec(A.y * V.z! - A.z! * V.y, A.z! * V.x - A.x * V.z!)
+		return new Vec(
+			A.y * V.z! - A.z! * V.y,
+			A.z! * V.x - A.x * V.z!
+			// A.z = A.x * V.y - A.y * V.x
+		)
 	}
 
 	/**

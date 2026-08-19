@@ -39,11 +39,14 @@ export class Ellipse2d extends Geometry2d {
 	}
 
 	getVertices() {
+		// Perimeter of the ellipse
 		const w = Math.max(1, this._w)
 		const h = Math.max(1, this._h)
 		const cx = w / 2
 		const cy = h / 2
+		// Number of points
 		const len = getVerticesCountForArcLength(perimeterOfEllipse(cx, cy))
+		// Size of step
 		const step = PI2 / len
 
 		// Rotate a unit vector by `step` each iteration instead of calling sin/cos per vertex

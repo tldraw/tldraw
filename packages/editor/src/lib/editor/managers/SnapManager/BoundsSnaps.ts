@@ -175,6 +175,8 @@ function edgesEqual(a: [VecModel, VecModel], b: [VecModel, VecModel]) {
 function acceptNudge(nearestSnaps: NearestSnap[], minOffset: Vec, axis: 'x' | 'y', nudge: number) {
 	const offset = Math.abs(nudge)
 	if (round(offset) > round(minOffset[axis])) return false
+	// we found a point that is significantly closer than all previous points
+	// so wipe the slate clean and start over
 	if (round(offset) < round(minOffset[axis])) nearestSnaps.length = 0
 	minOffset[axis] = offset
 	return true
@@ -780,7 +782,46 @@ export class BoundsSnaps {
 					nudge: centerNudge,
 				}
 
-				// see the horizontal case above for why overlapping center snaps are collapsed
+				// we need to avoid creating visual noise with too many center snaps in situations
+				// where there are lots of adjacent items with even spacing
+				// so let's only show other center snaps where the gap's breadth does not overlap with this one
+				// i.e.
+				//                ┌───────────────┐
+				//                │               │
+				//                └──────┬────┬───┘
+				//                       ┼    │
+				//                 ┌─────┴┐   │
+				//                 │      │   ┼
+				//                 └─────┬┘   │
+				//                       ┼    │
+				//                   ┌───┴────┴───────┐
+				//                   │                │  ◄────  i'm dragging this one
+				//                   └───┬────┬───────┘
+				//            ─────►     ┼    │
+				//                 ┌─────┴┐   │                don't show these
+				// show these      │      │   ┼                larger gaps since
+				// smaller         └─────┬┘   │ ◄───────────── the smaller ones
+				// gaps                  ┼    │                cover the same
+				//              ─────►  ┌┴────┴─────┐          information
+				//                      │           │
+				//                      └───────────┘
+				//
+				// but we want to show all of these ones since the gap breadths don't overlap
+				//            ┌─────────────┐
+				//            │             │
+				// ┌────┐     └───┬─────────┘
+				// │    │         │
+				// └──┬─┘         ┼
+				//    ┼           │
+				// ┌──┴───────────┴─┐
+				// │                │ ◄───── i'm dragging this one
+				// └──┬───────────┬─┘
+				//    ┼           │
+				// ┌──┴────┐      ┼
+				// │       │      │
+				// └───────┘    ┌─┴───────┐
+				//              │         │
+				//              └─────────┘
 
 				const otherCenterSnap = nearestSnapsY.find(({ type }) => type === 'gap_center') as
 					| Extract<NearestSnap, { type: 'gap_center' }>

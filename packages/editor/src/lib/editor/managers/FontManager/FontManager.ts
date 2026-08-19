@@ -162,7 +162,12 @@ export class FontManager {
 	private findOrCreateFontFace(font: TLFontFace) {
 		const containerDocument = this.editor.getContainerDocument()
 
-		// See `fontFaceCacheByDocument` for why this is cached across FontManager instances.
+		// `findOrCreateFontFace` runs for every font on every editor mount, and a fresh
+		// editor (e.g. switching documents) gets a fresh FontManager with no memory of the
+		// previous one. The dedup below is an O(n) scan of the document's whole FontFaceSet,
+		// so without a cache that scan re-ran on every mount (measurably expensive on mobile
+		// Safari). Cache the resolved FontFace per document so repeated lookups - and
+		// remounts - are O(1). Keyed per document for cross-window embedding.
 		let cache = fontFaceCacheByDocument.get(containerDocument)
 		if (!cache) {
 			cache = new Map()
@@ -236,11 +241,10 @@ const defaultFontFaceDescriptors = {
 }
 
 // A FontFace is fully determined by its family and descriptors, so resolved faces can be
-// cached per document and reused across FontManager instances (e.g. editor remounts,
-// switching documents), turning the per-lookup O(n) FontFaceSet scan — measurably expensive
-// on mobile Safari — into an O(1) map lookup. Faces are never removed from `document.fonts`
-// (FontManager.dispose leaves them), so the cache stays valid for the document's lifetime.
-// Keyed per document for cross-window embedding.
+// cached per document and reused across FontManager instances (e.g. editor remounts),
+// turning the per-lookup FontFaceSet scan into an O(1) map lookup. Faces are never removed
+// from `document.fonts` (FontManager.dispose leaves them), so the cache stays valid for the
+// document's lifetime. Keyed per document for cross-window embedding.
 let fontFaceCacheByDocument = new WeakMap<Document, Map<string, FontFace>>()
 
 function getFontFaceCacheKey(font: TLFontFace): string {

@@ -13,6 +13,7 @@ function fromScratch(
 	const shapeIds = shapeIdsQuery.get()
 	const sortedShapes = Array.from(shapeIds, (id) => store.get(id)!).sort(sortByIndex)
 
+	// Populate the result object with an array for each parent.
 	for (const shape of sortedShapes) {
 		result[shape.parentId] ??= []
 		result[shape.parentId].push(shape.id)
@@ -56,6 +57,7 @@ export function parentsToChildren(store: TLStore) {
 			const toSort = new Set<TLShapeId[]>()
 
 			for (const changes of diff) {
+				// Iterate through the added shapes, add them to the new value and mark them for sorting
 				for (const record of Object.values(changes.added)) {
 					if (!isShape(record)) continue
 					ensureNewArray(record.parentId)
@@ -63,23 +65,26 @@ export function parentsToChildren(store: TLStore) {
 					toSort.add(newValue![record.parentId])
 				}
 
+				// Iterate through the updated shapes, add them to their parents in the new value and mark them for sorting
 				for (const [from, to] of Object.values(changes.updated)) {
 					if (!isShape(to)) continue
 					if (!isShape(from)) continue
 
 					if (from.parentId !== to.parentId) {
+						// If the parents have changed, remove the new value from the old parent and add it to the new parent
 						ensureNewArray(from.parentId)
 						ensureNewArray(to.parentId)
 						newValue![from.parentId].splice(newValue![from.parentId].indexOf(to.id), 1)
 						newValue![to.parentId].push(to.id)
 						toSort.add(newValue![to.parentId])
 					} else if (from.index !== to.index) {
-						// Same parent, reordered: the array is already a fresh copy so just re-sort it.
+						// If the parent is the same but the index has changed (e.g. if they've been reordered), update the parent's array at the new index
 						ensureNewArray(to.parentId)
 						toSort.add(newValue![to.parentId])
 					}
 				}
 
+				// Iterate through the removed shapes, remove them from their parents in new value
 				for (const record of Object.values(changes.removed)) {
 					if (!isShape(record)) continue
 					ensureNewArray(record.parentId)

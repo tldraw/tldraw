@@ -68,6 +68,7 @@ export const Shape = memo(function Shape({
 
 			const prev = memoizedStuffRef.current
 
+			// Clip path
 			const clipPath = editor.getShapeClipPath(id) ?? 'none'
 			if (clipPath !== prev.clipPath) {
 				setStyleProperty(containerRef.current, 'clip-path', clipPath)
@@ -75,13 +76,17 @@ export const Shape = memo(function Shape({
 				prev.clipPath = clipPath
 			}
 
+			// Page transform
 			const transform = Mat.toCssString(editor.getShapePageTransform(id))
+
+			// Update if the tranform has changed
 			if (transform !== prev.transform) {
 				setStyleProperty(containerRef.current, 'transform', transform)
 				setStyleProperty(bgContainerRef.current, 'transform', transform)
 				prev.transform = transform
 			}
 
+			// Width / Height
 			const bounds = editor.getShapeGeometry(shape).bounds
 			const width = Math.max(bounds.width, 1)
 			const height = Math.max(bounds.height, 1)
@@ -102,8 +107,12 @@ export const Shape = memo(function Shape({
 	useLayoutEffect(() => {
 		const container = containerRef.current
 		const bgContainer = bgContainerRef.current
+
+		// Opacity
 		setStyleProperty(container, 'opacity', opacity)
 		setStyleProperty(bgContainer, 'opacity', opacity)
+
+		// Z-Index
 		setStyleProperty(container, 'z-index', index)
 		setStyleProperty(bgContainer, 'z-index', backgroundIndex)
 	}, [opacity, index, backgroundIndex])
@@ -115,6 +124,7 @@ export const Shape = memo(function Shape({
 		const container = containerRef.current
 		if (!container) return
 
+		// Check initial culling state and register with the context
 		const isCulled = editor.getCulledShapes().has(id)
 		register(id, container, bgContainerRef.current, isCulled)
 

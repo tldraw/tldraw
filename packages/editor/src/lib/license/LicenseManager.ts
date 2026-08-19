@@ -442,7 +442,7 @@ export class LicenseManager {
 			Date.UTC(
 				expiryDate.getUTCFullYear(),
 				expiryDate.getUTCMonth(),
-				expiryDate.getUTCDate() + graceDays + 1
+				expiryDate.getUTCDate() + graceDays + 1 // Add 1 day to include the expiration day
 			)
 		)
 	}

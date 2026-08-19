@@ -100,9 +100,11 @@ export abstract class Geometry2d {
 	abstract nearestPoint(point: VecLike, _filters?: Geometry2dFilters): Vec
 
 	hitTestPoint(point: VecLike, margin = 0, hitInside = false, _filters?: Geometry2dFilters) {
+		// First check whether the point is inside
 		if (this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)) {
 			return true
 		}
+		// Then check whether the distance is within the margin
 		return Vec.Dist2(point, this.nearestPoint(point)) <= margin * margin
 	}
 
@@ -137,7 +139,7 @@ export abstract class Geometry2d {
 			}
 		}
 		if (!nearest) throw Error('nearest point not found')
-		dist = Math.sqrt(dist)
+		dist = Math.sqrt(dist) // return the actual distance, not the squared distance
 		return this.isClosed && this.isFilled && pointInPolygon(nearest, this.vertices) ? -dist : dist
 	}
 
@@ -240,30 +242,38 @@ export abstract class Geometry2d {
 	}
 
 	overlapsPolygon(polygon: VecLike[]): boolean {
+		// Skip empty labels
 		if (this.isEmptyLabel) return false
 
-		// Checks are ordered cheapest to most expensive
+		// We'll do things in order of cheapest to most expensive checks
 		const { vertices, isFilled, isClosed } = this
 
+		// If any of the geometry's vertices are inside the polygon, it's inside
 		if (vertices.some((v) => pointInPolygon(v, polygon))) {
 			return true
 		}
 
+		// If the geometry is filled and closed and its center is inside the polygon, it's inside
 		if (isClosed) {
 			if (isFilled) {
+				// If closed and filled, check if the center is inside the polygon
 				if (pointInPolygon(this.center, polygon)) {
 					return true
 				}
-				// The geometry may cover the entire polygon without containing its center
+
+				// ..then, slightly more expensive check, see the geometry covers the entire polygon but not its center
 				if (polygon.every((v) => pointInPolygon(v, vertices))) {
 					return true
 				}
 			}
-			// Edges can cross without any vertex being inside, e.g. a rotated rectangle
-			// moved over the corner of a parent rectangle
+
+			// If any the geometry's vertices intersect the edge of the polygon, it's inside.
+			// for example when a rotated rectangle is moved over the corner of a parent rectangle
+			// If the geometry is closed, intersect as a polygon
 			return polygonsIntersect(polygon, vertices)
 		}
 
+		// If the geometry is not closed, intersect as a polyline
 		return polygonIntersectsPolyline(polygon, vertices)
 	}
 
@@ -398,8 +408,10 @@ export abstract class Geometry2d {
 	abstract getSvgPathData(first: boolean): string
 }
 
-// Defined here rather than in its own file because Geometry2d.transform depends on it; a
-// separate file would create a circular import.
+// =================================================================================================
+// Because Geometry2d.transform depends on TransformedGeometry2d, we need to define it here instead
+// of in its own files. This prevents a circular import error.
+// =================================================================================================
 
 /** @public */
 export class TransformedGeometry2d extends Geometry2d {

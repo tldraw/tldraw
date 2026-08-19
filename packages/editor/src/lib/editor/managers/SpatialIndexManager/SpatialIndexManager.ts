@@ -117,6 +117,7 @@ export class SpatialIndexManager {
 			}
 		}
 
+		// Bulk load for efficiency
 		this.rbush.bulkLoad(elements)
 	}
 

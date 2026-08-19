@@ -63,6 +63,8 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 
 		let pinchState = 'not sure' as 'not sure' | 'zooming' | 'panning'
 
+		// --- Wheel handling ---
+
 		function onWheel(event: WheelEvent) {
 			if (!editor.getInstanceState().isFocused) {
 				return
@@ -105,6 +107,8 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 
 			editor.dispatch(info)
 		}
+
+		// --- Touch pinch handling ---
 
 		let initDistanceBetweenFingers = 1 // the distance between the two fingers when the pinch starts
 		let initZoom = 1 // the zoom level when the pinch starts
@@ -279,6 +283,8 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 			}
 		}
 
+		// --- Safari trackpad pinch (GestureEvent) ---
+
 		let safariGestureInitialScale = 1
 
 		function onGestureStart(event: Event) {
@@ -357,6 +363,8 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 				)
 			})
 		}
+
+		// --- Attach event listeners ---
 
 		elm.addEventListener('wheel', onWheel, { passive: false })
 

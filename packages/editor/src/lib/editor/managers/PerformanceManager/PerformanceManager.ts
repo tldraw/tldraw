@@ -114,6 +114,7 @@ export class PerformanceManager {
 
 	private editor: Editor
 
+	// Active interaction tracking
 	private activeInteraction:
 		| (PerfSession & {
 				name: string
@@ -122,6 +123,7 @@ export class PerformanceManager {
 		  })
 		| null = null
 
+	// Active camera tracking
 	private activeCamera:
 		| (PerfSession & {
 				type: 'panning' | 'zooming'
@@ -129,8 +131,11 @@ export class PerformanceManager {
 		  })
 		| null = null
 
+	// Lazy listener cleanup functions
 	private frameCleanup: (() => void) | null = null
 	private shapeEventCleanups: { [K in ShapePerfEvent]?: () => void } = {}
+
+	// LoAF observer
 	private loafObserver: PerformanceObserver | null = null
 
 	constructor(editor: Editor) {
@@ -199,6 +204,8 @@ export class PerformanceManager {
 		this.emitter.removeAllListeners()
 	}
 
+	// --- Internal notification methods ---
+
 	/** @internal */
 	_notifyInteractionStart(name: string, path: string) {
 		if (
@@ -265,11 +272,14 @@ export class PerformanceManager {
 			return
 		}
 
+		// Extend existing camera session
 		if (this.activeCamera.timeout) clearTimeout(this.activeCamera.timeout)
+		// If type changed, end old and start new
 		if (this.activeCamera.type !== type) {
 			this._endCameraSession()
 			this._startCameraSession(type)
 		} else {
+			// Reset timeout
 			this.activeCamera.timeout = this._scheduleCameraSessionEnd()
 		}
 	}
@@ -285,6 +295,8 @@ export class PerformanceManager {
 		}
 		this.emitter.emit(type, event)
 	}
+
+	// --- Private helpers ---
 
 	private _scheduleCameraSessionEnd() {
 		return this.editor.timers.setTimeout(() => this._endCameraSession(), 50)
@@ -336,9 +348,11 @@ export class PerformanceManager {
 
 	@bind
 	private _onFrame(elapsed: number) {
+		// Record frame time for active interaction/camera
 		this.activeInteraction?.frameTimes.push(elapsed)
 		this.activeCamera?.frameTimes.push(elapsed)
 
+		// Emit standalone frame event if listeners exist
 		if (this.emitter.listenerCount('frame') > 0) {
 			const totalShapes = this.editor.getCurrentPageShapeIds().size
 			const culledCount = this.editor.getCulledShapes().size
@@ -399,6 +413,8 @@ export class PerformanceManager {
 		this._emitShapeOperationEvent('shapes-deleted', 'delete', shapes, ids.length)
 	}
 
+	// --- LoAF observer ---
+
 	private _startLoafObserver() {
 		if (typeof PerformanceObserver === 'undefined') return
 
@@ -431,7 +447,8 @@ export class PerformanceManager {
 		}
 	}
 
-	// The frame listener also feeds interaction/camera frame-time tracking, not just 'frame'.
+	// --- Lazy listener management ---
+
 	private _needsFrameListener(): boolean {
 		return (
 			this.emitter.listenerCount('frame') > 0 ||
@@ -466,10 +483,12 @@ export class PerformanceManager {
 	}
 
 	private _maybeAttachLazyListeners(event: keyof TLPerfEventMap) {
+		// Frame listener needed for frame event + interaction/camera frame time tracking
 		if (!this.frameCleanup && this._needsFrameListener()) {
 			this.frameCleanup = this._listen('frame', this._onFrame)
 		}
 
+		// LoAF observer needed when interaction-end or camera-end listeners exist
 		if (!this.loafObserver && this._needsLoafObserver()) {
 			this._startLoafObserver()
 		}
@@ -485,6 +504,7 @@ export class PerformanceManager {
 			this.frameCleanup = null
 		}
 
+		// Stop LoAF observer when no longer needed
 		if (this.loafObserver && !this._needsLoafObserver()) {
 			this._stopLoafObserver()
 		}

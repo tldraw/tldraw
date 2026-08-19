@@ -31,6 +31,7 @@ export class CubicBezier2d extends Polyline2d {
 
 	override getVertices() {
 		const vertices: Vec[] = []
+		// we'll always use ten vertices for each bezier curve
 		for (let i = 0, n = this._resolution; i <= n; i++) {
 			vertices.push(CubicBezier2d.GetAtT(this, i / n))
 		}

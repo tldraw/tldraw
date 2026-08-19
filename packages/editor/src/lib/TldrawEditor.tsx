@@ -552,6 +552,7 @@ function TldrawEditorWithReadyStore({
 				getContainer: () => container,
 				user,
 				initialState,
+				// we should check for some kind of query parameter that turns off autofocus
 				autoFocus,
 				cameraOptions,
 				options,

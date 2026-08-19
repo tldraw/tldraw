@@ -44,6 +44,7 @@ export interface ScribbleSessionOptions {
 	fadeDurationMs?: number
 }
 
+// Internal session state (not exported)
 interface Session {
 	id: string
 	items: ScribbleItem[]
@@ -59,6 +60,8 @@ export class ScribbleManager {
 	private sessions = new Map<string, Session>()
 
 	constructor(private editor: Editor) {}
+
+	// ==================== SESSION API ====================
 
 	/**
 	 * Start a new session for grouping scribbles.
@@ -86,6 +89,8 @@ export class ScribbleManager {
 		}
 
 		this.sessions.set(id, session)
+
+		// Set up idle timeout if configured
 		this.resetIdleTimeout(session)
 
 		return id
@@ -128,6 +133,8 @@ export class ScribbleManager {
 		}
 
 		session.items.push(item)
+
+		// Reset idle timeout on activity
 		this.resetIdleTimeout(session)
 
 		return item
@@ -227,6 +234,8 @@ export class ScribbleManager {
 		return session?.state === 'active'
 	}
 
+	// ==================== SIMPLE API (for eraser, select, etc.) ====================
+
 	/**
 	 * Add a scribble using the default self-consuming behavior.
 	 * Creates an implicit session for the scribble.
@@ -310,10 +319,12 @@ export class ScribbleManager {
 		if (this.sessions.size === 0 && currentScribbles.length === 0) return
 
 		this.editor.run(() => {
+			// Tick all sessions
 			for (const session of this.sessions.values()) {
 				this.tickSession(session, elapsed)
 			}
 
+			// Remove completed sessions
 			for (const [id, session] of this.sessions) {
 				if (session.state === 'complete') {
 					this.clearIdleTimeout(session)
@@ -321,6 +332,7 @@ export class ScribbleManager {
 				}
 			}
 
+			// Collect scribbles from all sessions
 			const scribbles: TLScribble[] = []
 			for (const session of this.sessions.values()) {
 				for (const item of session.items) {
@@ -337,6 +349,8 @@ export class ScribbleManager {
 		})
 	}
 
+	// ==================== PRIVATE HELPERS ====================
+
 	private findItem(id: string): ScribbleItem {
 		for (const session of this.sessions.values()) {
 			const item = session.items.find((i) => i.id === id)
@@ -350,7 +364,10 @@ export class ScribbleManager {
 		if (!item.prev || Vec.Dist(item.prev, point) >= 1) {
 			item.next = point
 		}
+
+		// Reset idle timeout on activity
 		this.resetIdleTimeout(session)
+
 		return item
 	}
 
@@ -420,6 +437,7 @@ export class ScribbleManager {
 			}
 		}
 
+		// Remove completed items in individual fade mode
 		if (session.options.fadeMode === 'individual') {
 			for (let i = session.items.length - 1; i >= 0; i--) {
 				if (session.items[i].scribble.points.length === 0) {
