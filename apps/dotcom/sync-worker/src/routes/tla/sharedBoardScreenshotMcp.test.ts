@@ -82,6 +82,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+	vi.useRealTimers()
 	vi.clearAllMocks()
 	resetRateLimitFallbackForTests()
 })
