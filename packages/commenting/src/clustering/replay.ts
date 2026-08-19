@@ -111,8 +111,7 @@ function zForRoots(
 		// members would suggest — matching what the user actually sees.
 		// (Coincident CENTROIDS with non-coincident members leave the gap term
 		// Infinity and the fit term finite — the min stays finite, no special case.)
-		const dc = clusters.centroidDelta(aRoot, bRoot)
-		const gap = opts.Tc / Math.hypot(dc.x, dc.y)
+		const gap = opts.Tc / clusters.centroidDistance(aRoot, bRoot)
 		const fit = opts.Dmax / clusters.unionBboxDiag(aRoot, bRoot)
 		return Math.min(gap, fit)
 	}
@@ -230,6 +229,14 @@ class ClusterState {
 			index = next
 		}
 		return root
+	}
+
+	/** Allocation-free: this is the hot path when no offsets are passed. */
+	centroidDistance(aRoot: number, bRoot: number): number {
+		return Math.hypot(
+			this.centroidX[aRoot] - this.centroidX[bRoot],
+			this.centroidY[aRoot] - this.centroidY[bRoot]
+		)
 	}
 
 	centroidDelta(aRoot: number, bRoot: number): { x: number; y: number } {

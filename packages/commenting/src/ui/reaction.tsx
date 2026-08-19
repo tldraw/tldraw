@@ -117,14 +117,7 @@ export function DefaultReactionTooltipContent({ reactors }: { reactors: Reaction
 			: others === 1
 				? 'comments.reacted-more-one'
 				: 'comments.reacted-more'
-	// Each template only contains the placeholders for the names it has, so the extra replaces are no-ops.
-	return (
-		<>
-			{msg(key)
-				.replace('{a}', a)
-				.replace('{b}', b)
-				.replace('{c}', c)
-				.replace('{count}', String(others))}
-		</>
-	)
+	// Single pass, so a substituted name containing a placeholder can't be re-substituted.
+	const vars: Record<string, string | undefined> = { a, b, c, count: String(others) }
+	return <>{msg(key).replace(/\{(a|b|c|count)\}/g, (_, k) => vars[k] ?? '')}</>
 }

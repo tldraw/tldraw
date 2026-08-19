@@ -33,6 +33,12 @@ export function getCommentRecord(editor: Editor, id: string): TLCommentRecord | 
 	return undefined
 }
 
+/** Read one comment thread by id, or `undefined` if the id isn't a present thread. @internal */
+export function getCommentThread(editor: Editor, id: string): TLCommentThread | undefined {
+	const record = getCommentRecord(editor, id)
+	return record?.typeName === 'comment-thread' ? record : undefined
+}
+
 /**
  * Every comment thread in the store, **including soft-deleted and emptied ones** awaiting the
  * server's prune, which nothing renders. For the set the UI shows, use {@link getLiveCommentThreads}.

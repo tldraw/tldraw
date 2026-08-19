@@ -41,6 +41,7 @@ import {
 	REGION_PIN_CORNER,
 	regionAnchorPinCorner,
 	regionPinPoint,
+	regionWithPinAt,
 	shapeAnchorAt,
 } from './thread-state'
 import { POPOVER_OFFSET, ThreadPopover, ThreadView } from './thread-view'
@@ -49,15 +50,6 @@ import { POPOVER_OFFSET, ThreadPopover, ThreadView } from './thread-view'
  *  first comment then lands where the preview's sat. Re-measure if the header height or the preview
  *  panel padding changes. */
 const THREAD_HEADER_BLOCK = 36
-
-/** A region translated so its pin corner lands on `pinPage`; size unchanged. */
-function regionWithPinAt(
-	region: Extract<TLCommentThread['anchor'], { type: 'region' }>,
-	pinCorner: { x: number; y: number },
-	pinPage: { x: number; y: number }
-) {
-	return { ...region, x: pinPage.x - pinCorner.x * region.w, y: pinPage.y - pinCorner.y * region.h }
-}
 
 /**
  * A single thread's pin: the marker at its anchor, the thread popover when it's open, the hover

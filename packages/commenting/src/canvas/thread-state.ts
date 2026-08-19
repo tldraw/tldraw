@@ -101,6 +101,16 @@ export function regionPinPoint(region: BoxModel, corner: VecLike = REGION_PIN_CO
 	}
 }
 
+/** The inverse of {@link regionPinPoint}: a region translated so its pin corner lands on `pinPage`;
+ *  size unchanged. */
+export function regionWithPinAt(
+	region: Extract<TLCommentAnchor, { type: 'region' }>,
+	pinCorner: VecLike,
+	pinPage: VecLike
+): Extract<TLCommentAnchor, { type: 'region' }> {
+	return { ...region, x: pinPage.x - pinCorner.x * region.w, y: pinPage.y - pinCorner.y * region.h }
+}
+
 /**
  * Where a thread's pin sits on the page, for each anchor kind. Null hides the pin. Imprecise shape
  * anchors use {@link CommentingOptions.impreciseShapeAnchor} rather than the stored `x`/`y`.

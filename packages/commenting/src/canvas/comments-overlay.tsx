@@ -11,7 +11,7 @@ import {
 	useClusterModel,
 	zoomToClusterSplit,
 } from './cluster-model'
-import { getCommentRecord } from './comment-store'
+import { getCommentRecord, getCommentThread } from './comment-store'
 import { type CommentingContext } from './context'
 import { useCommentThreads } from './hooks'
 import { useCommentingEnabled } from './license'
@@ -172,7 +172,7 @@ function CanvasCommentsLayer(props: CommentingContext) {
 			const record = getCommentRecord(editor, id)
 			if (!record) return null
 			const thread =
-				record.typeName === 'comment' ? getCommentRecord(editor, record.threadId) : record
+				record.typeName === 'comment' ? getCommentThread(editor, record.threadId) : record
 			return thread?.typeName === 'comment-thread' ? thread : null
 		},
 		[editor]
