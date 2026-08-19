@@ -342,7 +342,13 @@ export class TldrawMCP extends McpAgent<Env> {
 			await this.ctx.storage.put('cf_agents_destroy_pending', true)
 			await this.ctx.storage.setAlarm(Date.now())
 		}
-		return { id, idleMs, checkpointCount: stats.checkpointCount, bytes, action }
+		return {
+			id,
+			idleMs: Number.isFinite(idleMs) ? idleMs : null,
+			checkpointCount: stats.checkpointCount,
+			bytes,
+			action,
+		}
 	}
 
 	/**

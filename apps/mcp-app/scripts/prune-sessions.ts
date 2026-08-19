@@ -69,7 +69,9 @@ async function list(): Promise<void> {
 	console.log(`\nwrote ${withData} ids to ${IDS_FILE}`)
 }
 
-function bucket(idleMs: number): string {
+function bucket(idleMs: number | null): string {
+	// null (never-active DO) and any other non-finite value bucket as maximally idle.
+	if (idleMs === null || !Number.isFinite(idleMs)) return '>90d'
 	if (idleMs < 7 * DAY) return '<7d'
 	if (idleMs < 30 * DAY) return '7-30d'
 	if (idleMs < 90 * DAY) return '30-90d'

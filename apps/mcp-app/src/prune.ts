@@ -2,7 +2,8 @@ export type PruneAction = 'destroy-scheduled' | 'kept' | 'would-destroy'
 
 export interface PruneResult {
 	id: string
-	idleMs: number
+	/** ms idle; null when the DO never recorded activity (treated as maximally idle). */
+	idleMs: number | null
 	checkpointCount: number
 	bytes: number
 	action: PruneAction
