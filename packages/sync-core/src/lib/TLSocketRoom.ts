@@ -854,12 +854,11 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		if (this.isClosed()) {
 			throw new Error('Cannot update store on a closed room')
 		}
+		// read through the transaction rather than getSnapshot(): the document snapshot excludes the
+		// object-store lane, which would make object-lane records invisible (and undeletable) here
+		const records = this.storage.transaction((txn) => Object.fromEntries(txn.entries())).result
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		const ctx = new StoreUpdateContext<R>(
-			// eslint-disable-next-line @typescript-eslint/no-deprecated
-			Object.fromEntries(this.getCurrentSnapshot().documents.map((d) => [d.state.id, d.state])),
-			this.room.schema
-		)
+		const ctx = new StoreUpdateContext<R>(records, this.room.schema)
 		try {
 			await updater(ctx)
 		} finally {
