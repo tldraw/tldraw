@@ -11,7 +11,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { McpAgent } from 'agents/mcp'
 import { CanvasStore } from './canvas-store'
 import { Logger } from './logger'
-import { decidePrune } from './prune'
+import { ADMIN_PRUNE_MAX_IDS, decidePrune } from './prune'
 import type { PruneResult, PruneStats } from './prune'
 import { registerTools } from './register-tools'
 import { loadEditorApiSpecFromAssets, loadMethodMapFromAssets } from './shared/generated-data'
@@ -40,6 +40,8 @@ interface Env {
 	LOADER: WorkerLoader
 	RATE_LIMITER: RateLimit
 	MCP_AUTH_TOKEN: string
+	/** Gates /admin/prune. Unset = endpoint is off (404). Set with `wrangler secret put ADMIN_TOKEN`. */
+	ADMIN_TOKEN?: string
 	MCP_IS_DEV: string
 	WORKER_ORIGIN: string
 	MCP_ANALYTICS?: AnalyticsEngineDataset
@@ -391,6 +393,45 @@ export default {
 				return new Response('SG4iyi_lKvsvOJA-QN3UOJZeISqeAf4tnnxqgRMTU0k', {
 					headers: { 'Content-Type': 'text/plain' },
 				})
+			}
+
+			// Ops-only: prune idle session DOs by id. Sits above the MCP bearer gate
+			// and uses its own secret so the prune script needs exactly one token.
+			if (url.pathname === '/admin/prune') {
+				if (!env.ADMIN_TOKEN) return new Response('Not found', { status: 404 })
+				if (request.method !== 'POST') return new Response('Method not allowed', { status: 405 })
+				if (request.headers.get('Authorization') !== `Bearer ${env.ADMIN_TOKEN}`) {
+					return new Response('Unauthorized', { status: 401 })
+				}
+				let body: { ids?: unknown; maxIdleMs?: unknown; dryRun?: unknown }
+				try {
+					body = await request.json()
+				} catch {
+					return new Response('Bad request: invalid JSON', { status: 400 })
+				}
+				const ids = Array.isArray(body.ids) ? body.ids : null
+				const maxIdleMs = typeof body.maxIdleMs === 'number' ? body.maxIdleMs : null
+				const dryRun = body.dryRun === true
+				if (!ids || maxIdleMs === null || ids.length > ADMIN_PRUNE_MAX_IDS) {
+					return new Response(
+						`Bad request: ids[] (max ${ADMIN_PRUNE_MAX_IDS}) and numeric maxIdleMs required`,
+						{
+							status: 400,
+						}
+					)
+				}
+				const results = await Promise.all(
+					ids.map(async (id) => {
+						// idFromString throws on malformed hex — keep it inside the per-id guard.
+						try {
+							const stub = env.MCP_OBJECT.get(env.MCP_OBJECT.idFromString(String(id)))
+							return await stub.pruneIfIdle(maxIdleMs, dryRun)
+						} catch (err) {
+							return { id: String(id), error: err instanceof Error ? err.message : String(err) }
+						}
+					})
+				)
+				return Response.json(results)
 			}
 
 			// Require bearer auth only when an auth token is configured.
