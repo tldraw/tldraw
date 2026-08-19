@@ -66,7 +66,7 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 
 ## 7. Errors in computed signals (CE)
 
-- **CE1** If the compute function throws, the thrown value is cached: subsequent `get()` calls rethrow the same value without re-running the compute function, until a parent changes.
+- **CE1** If the compute function throws, the thrown value is cached: subsequent `get()` calls rethrow the same value without re-running the compute function, until a parent changes. This includes a throw from the very first computation.
 - **CE2** Entering the error state counts as a change: downstream effects re-run (and observe the throw). Throwing again on a subsequent recomputation, while already in the error state, does _not_ count as a change — consecutive errors do not re-trigger effects.
 - **CE3** Entering the error state discards the previous value: when the computed later recovers, the compute function receives `UNINITIALIZED` as `previousValue`, and the error state clears.
 - **CE4** Entering the error state clears the computed's history buffer; `getDiffSince` spanning the error returns `RESET_VALUE`.
