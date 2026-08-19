@@ -29,6 +29,7 @@ export interface MentionListProps {
 	renderMember?(member: MentionMember): ReactNode
 }
 
+/** The default row content: avatar, name (with a "(You)" marker), and an optional secondary line. */
 function DefaultMemberRow({ member }: { member: MentionMember }) {
 	const msg = useTranslation()
 	return (
@@ -82,8 +83,9 @@ export const MentionList = forwardRef<HTMLDivElement, MentionListProps>(function
 								? 'tlui-cmt-mention-list__item tlui-cmt-mention-list__item--active'
 								: 'tlui-cmt-mention-list__item'
 						}
-						// The list is portaled outside the editor, so a bare mousedown would blur the composer
-						// (dismissing the picker) before the click could select.
+						// Keep the composer focused on a row press: it's portaled outside the editor, so a
+						// bare mousedown would blur the composer — which now dismisses the picker — before
+						// the click could select. Selection runs on click; focus stays put.
 						onMouseDown={(e) => e.preventDefault()}
 						onClick={() => onSelect?.(member)}
 					>
