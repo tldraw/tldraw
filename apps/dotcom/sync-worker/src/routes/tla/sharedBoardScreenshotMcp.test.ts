@@ -1,3 +1,4 @@
+import { THUMBNAIL_RENDER_TIMEOUT_MS } from '@tldraw/dotcom-shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { MCP_PER_USER_RATE_LIMIT } from '../../config'
 import { Environment } from '../../types'
@@ -81,6 +82,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+	vi.useRealTimers()
 	vi.clearAllMocks()
 	resetRateLimitFallbackForTests()
 })
@@ -222,6 +224,38 @@ async function firstClusterId(env: Environment, userId: string, boardId: string,
 	const pageResult = await callTool('get_page_info', { boardId, page }, env, userId)
 	return JSON.parse(pageResult.content[0].text).clusters[0].id as string
 }
+
+// Measures are exempt from the worker-side capture deadline (abandonAtRenderTimeout): the render
+// page POSTs its result before signalling ready and the result route accepts any unexpired signed
+// token, so a measure abandoned mid-flight would let that POST land after the cleanup that deletes
+// the result key — stranding an object in a bucket with no lifecycle rule. The deadline exists for
+// the OG pipeline's invariants, which never price a measure; a measure stays bounded by the quick
+// action's own per-phase timers.
+describe('measure deadline exemption', () => {
+	it('does not abandon a measure at the render timeout', async () => {
+		vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+		mockPublishedBoard()
+		const env = makeEnv()
+		const measuring = makeMeasuringBrowserBinding(() => env)
+		// The quick action outlives the worker deadline — only its own per-phase timers bound it.
+		;(env as any).BROWSER = {
+			quickAction: vi.fn(async (action: string, body: any) => {
+				await new Promise((resolve) => setTimeout(resolve, THUMBNAIL_RENDER_TIMEOUT_MS + 5000))
+				return measuring.quickAction(action, body)
+			}),
+		}
+
+		const call = callTool('get_page_info', { boardId: 'abc' }, env, 'user_slow_measure')
+		while (vi.getTimerCount() === 0) {
+			await new Promise((resolve) => setImmediate(resolve))
+		}
+		await vi.advanceTimersByTimeAsync(THUMBNAIL_RENDER_TIMEOUT_MS + 5001)
+		const result = await call
+
+		expect(result.isError).not.toBe(true)
+		expect(JSON.parse(result.content[0].text).clusters.length).toBeGreaterThan(0)
+	})
+})
 
 describe('tool inputs', () => {
 	it('parses board and page selectors', () => {

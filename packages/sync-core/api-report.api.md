@@ -22,7 +22,6 @@ import { TLDocument } from 'tldraw';
 import { TLPage } from 'tldraw';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
-import { TLStoreSnapshot as TLStoreSnapshot_2 } from 'tldraw';
 import { UnknownRecord } from '@tldraw/store';
 
 // @internal
@@ -161,7 +160,7 @@ export class JsonChunkAssembler {
 }
 
 // @public
-export function loadSnapshotIntoStorage<R extends UnknownRecord>(txn: TLSyncStorageTransaction<R>, schema: StoreSchema<R, any>, snapshot: RoomSnapshot | TLStoreSnapshot_2): void;
+export function loadSnapshotIntoStorage<R extends UnknownRecord>(txn: TLSyncStorageTransaction<R>, schema: StoreSchema<R, any>, snapshot: RoomSnapshot | TLStoreSnapshot): void;
 
 // @internal (undocumented)
 export interface MinimalDocStore<R extends UnknownRecord> {

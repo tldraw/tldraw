@@ -338,10 +338,21 @@ async function renderThumbnailScreenshot(
 	// client's dev server, which can drive Playwright). Selected on the var being set rather than on
 	// an environment name, so only an environment that configures one can take this path.
 	let timed: TimedCapture
+	const startedAt = Date.now()
 	try {
-		timed = env.LOCAL_SCREENSHOT_SERVICE_URL
-			? await callLocalScreenshotService(env.LOCAL_SCREENSHOT_SERVICE_URL, requestBody)
-			: await callBrowserRun(env, requestBody)
+		const capture = env.LOCAL_SCREENSHOT_SERVICE_URL
+			? callLocalScreenshotService(env.LOCAL_SCREENSHOT_SERVICE_URL, requestBody)
+			: callBrowserRun(env, requestBody)
+		// Measures are exempt from the worker-side deadline, and it is the *result* that makes them
+		// so: the render page POSTs its measurements before signalling ready, and the result route
+		// accepts any unexpired signed token, so abandoning the wait early would let that POST land
+		// after measurePageShapes' cleanup has already deleted the result key — stranding an object
+		// in a bucket that must never get a lifecycle rule. The deadline exists for the OG pipeline's
+		// invariants, which never price a measure; a measure stays bounded by the quick action's own
+		// per-phase timers.
+		timed = await (session.mode === 'measure'
+			? capture
+			: abandonAtRenderTimeout(capture, startedAt))
 	} catch (error) {
 		// A BrowserRenderError is a session that existed and died, so it lands on the ledger with the
 		// time it held its browser. Anything else never created a session and records nothing.
@@ -356,7 +367,7 @@ async function renderThumbnailScreenshot(
 		throw error
 	}
 
-	const buffer = await timed.response.arrayBuffer()
+	const buffer = timed.buffer
 	if (buffer.byteLength === 0) {
 		// The session ran to completion — the spend is real — it just produced nothing usable.
 		writeBrowserRunSessionTelemetry(env, session, {
@@ -379,12 +390,14 @@ async function renderThumbnailScreenshot(
 
 type ThumbnailScreenshotRequestBody = ReturnType<typeof getThumbnailScreenshotRequestBody>
 
-// A capture that came back OK, and how long it took. Each transport times its own call and throws
-// its own kind of failure — only Browser Run's carries the status, body detail and timeout budget
-// that BrowserRenderError exists to hold — so what reaches the shared decode above is always a
-// response worth reading.
+// A capture that came back OK, fully read, and how long the whole thing took. The transports read
+// the body themselves rather than handing back a Response: the read has to happen inside
+// abandonAtRenderTimeout's deadline, or a body stream that stalls after a 200's headers would hold
+// the delivery unbounded — past every bound the pipeline prices a capture at. Each transport throws
+// its own kind of failure; only Browser Run's carries the status, body detail and timeout budget
+// that BrowserRenderError exists to hold.
 interface TimedCapture {
-	response: Response
+	buffer: ArrayBuffer
 	durationMs: number
 }
 
@@ -412,7 +425,56 @@ async function callBrowserRun(
 			timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
 		})
 	}
-	return { response, durationMs }
+	// A body stream that fails is still a session that existed and spent, so it is wrapped into the
+	// error type the ledger recognises rather than escaping as a raw stream error and vanishing from
+	// the spend record.
+	const buffer = await response.arrayBuffer().catch((error) => {
+		throw new BrowserRenderError({
+			status: response.status,
+			detail: `Reading the capture body failed: ${error instanceof Error ? error.message : String(error)}`,
+			durationMs: Date.now() - startedAt,
+			timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
+		})
+	})
+	return { buffer, durationMs: Date.now() - startedAt }
+}
+
+// The request cannot cap its own total: `gotoOptions.timeout` and `waitForSelector.timeout` are
+// sequential phases that each get the full render budget (see getThumbnailScreenshotRequestBody),
+// so a page that stalls through both holds the call for roughly twice THUMBNAIL_RENDER_TIMEOUT_MS.
+// Everything sized against "a capture takes at most the render timeout" — the pending-marker TTL
+// against the retry chain, the edit debounce outlasting a capture, both pinned in
+// ogImageQueue.test.ts — needs the single budget to be a real ceiling, so it is enforced here on
+// the whole call. The abandoned browser session is Cloudflare's to reap and still spends its
+// remainder — this bounds the delivery, not the spend.
+async function abandonAtRenderTimeout(
+	capture: Promise<TimedCapture>,
+	startedAt: number
+): Promise<TimedCapture> {
+	let timer: ReturnType<typeof setTimeout> | undefined
+	try {
+		return await Promise.race([
+			capture,
+			new Promise<never>((_, reject) => {
+				timer = setTimeout(() => {
+					reject(
+						new BrowserRenderError({
+							// No response was received, so there is no status; the detail is what classifies
+							// this as a browser_timeout (see classifyBrowserRenderFailure).
+							status: 0,
+							detail: `Capture abandoned by the worker at the ${THUMBNAIL_RENDER_TIMEOUT_MS} ms render timeout`,
+							durationMs: Date.now() - startedAt,
+							timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
+						})
+					)
+				}, THUMBNAIL_RENDER_TIMEOUT_MS)
+			}),
+		])
+	} finally {
+		// Only the timer needs cleanup: an abandoned capture's eventual rejection is already handled,
+		// since Promise.race subscribes to every input.
+		clearTimeout(timer)
+	}
 }
 
 // How much of Cloudflare's error body to keep. It is a short JSON object in practice; the cap is
@@ -469,7 +531,6 @@ async function callLocalScreenshotService(
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(requestBody),
 	})
-	const durationMs = Date.now() - startedAt
 
 	if (!response.ok) {
 		throw new Error(
@@ -484,7 +545,8 @@ async function callLocalScreenshotService(
 			`Local screenshot service returned ${contentType || 'no content type'}, expected image/png. Is the client dev server running with the thumbnail screenshot plugin?`
 		)
 	}
-	return { response, durationMs }
+	const buffer = await response.arrayBuffer()
+	return { buffer, durationMs: Date.now() - startedAt }
 }
 
 // Writes one rendered PNG to a thumbnail cache, stamping the content version (so a stale version
