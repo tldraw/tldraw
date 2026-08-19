@@ -303,8 +303,6 @@ export class TldrawMCP extends McpAgent<Env> {
 		}
 	}
 
-	// --- Idle pruning ---
-
 	/**
 	 * Reads the activity signals without assuming init() ran: on a cold legacy
 	 * DO woken by a raw RPC, our tables may not exist, so every read tolerates
@@ -394,9 +392,7 @@ export class TldrawMCP extends McpAgent<Env> {
 			const result = await this.pruneIfIdle(idleTtlMs(this.env), false)
 			kept = result.action === 'kept'
 		} catch (err) {
-			// A throw here must still fall through to the re-arm: the SDK swallows
-			// callback errors and then deletes the executing schedule row, so without
-			// a re-arm this DO would never be checked again.
+			// Must fall through to the re-arm; see the doc comment above.
 			console.error('[TldrawMCP] expireIfIdle check failed', String(err))
 		}
 		if (!kept) return
