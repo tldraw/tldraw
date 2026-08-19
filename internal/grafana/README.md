@@ -10,6 +10,8 @@ This directory currently provisions:
 
 There are two MCP dashboards, for two different servers. `MCP server (shared boards)` covers the public server on the sync worker at `POST /app/mcp` (`apps/dotcom/sync-worker`), which reads its protocol metrics from the `MEASURE` dataset. `MCP app sessions` covers the separate tldraw MCP app worker (`apps/mcp-app`) and its own `MCP_ANALYTICS` dataset. Neither one's panels belong on `Dotcom events` — that dashboard covers the sync worker's own events.
 
+The sync worker no longer emits `replicator` or `user_durable_object` events (the legacy custom sync engine went in #9894), so neither dashboard has panels on them. `Dotcom events V1` is down to the catch-all `Room events` panel and `max attempts before persistence success`; don't add panels there, it's kept for those two only.
+
 Contact points, notification policies, and data sources are hand-managed in Grafana on purpose.
 
 ## Conventions
