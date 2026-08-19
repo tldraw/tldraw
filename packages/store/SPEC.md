@@ -75,7 +75,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 
 ## 8. History and listeners (H)
 
-- **H1** `store.history` is an atom that increments by exactly one for each committed change-set, carrying the `RecordsDiff` as its history diff (`historyLength` 1000).
+- **H1** `store.history` is an atom that increments by exactly one for each committed change-set, carrying the `RecordsDiff` as its history diff (`historyLength` 1000). Change-sets made inside a transaction that rolls back are never delivered to listeners: the rollback resets the counter, and accumulated entries recorded past it are discarded (interceptors, H8, still saw them synchronously).
 - **H2** `listen(fn, filters?)` registers a listener and returns a remover. Listener notification is asynchronous: accumulated entries are flushed on the next frame, not synchronously with the change.
 - **H3** A flush squashes adjacent same-source entries: a listener called after changes `[user, user, remote, user]` receives three entries (`user`, `remote`, `user`), each with the squashed (D3) diff and its source.
 - **H4** `filters.source` (`'user' | 'remote' | 'all'`) drops entries from other sources. `filters.scope` (`'document' | 'session' | 'presence' | 'all'`) filters each entry's diff down to records of that scope; if nothing remains, the listener is not called for that entry.

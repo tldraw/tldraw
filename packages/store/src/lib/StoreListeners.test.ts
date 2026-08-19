@@ -99,6 +99,31 @@ describe('the history atom (H)', () => {
 })
 
 describe('listeners (H)', () => {
+	it('[H1] change-sets from a rolled-back transaction never reach listeners', async () => {
+		const listener = vi.fn()
+		store.listen(listener, { source: 'user', scope: 'document' })
+		const phantom = Book.create({ title: 'never committed', author: Author.createId('a') })
+
+		expect(() =>
+			transact(() => {
+				store.put([phantom])
+				throw new Error('boom')
+			})
+		).toThrow('boom')
+		expect(store.has(phantom.id)).toBe(false)
+
+		// flushing right after the rollback delivers nothing
+		store._flushHistory()
+		expect(listener).not.toHaveBeenCalled()
+
+		// and a later legitimate change does not drag the phantom along with it
+		const real = Book.create({ title: 'committed', author: Author.createId('a') })
+		store.put([real])
+		store._flushHistory()
+		expect(listener).toHaveBeenCalledTimes(1)
+		expect(Object.keys(listener.mock.calls[0][0].changes.added)).toEqual([real.id])
+	})
+
 	it('[H2] listen returns a remover and notification is deferred to the next frame', async () => {
 		try {
 			// @ts-expect-error - test-only escape hatch
