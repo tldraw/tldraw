@@ -2042,6 +2042,8 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
             w: number;
         };
         type: "frame";
+        x: number;
+        y: number;
     } | undefined;
     // (undocumented)
     options: FrameShapeOptions;
