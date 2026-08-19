@@ -60,8 +60,8 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 - **C5** If recomputation produces a value equal (EQ) to the previous one, the computed keeps the previous value object and its `lastChangedEpoch`; downstream children observe no change. The signal's `isEqual` is never invoked for the first computation.
 - **C6** A chain of computeds re-runs minimally: each computed in the chain recomputes at most once per relevant change, and value-level deduplication (C5) stops propagation early.
 - **C7** `computed.isActivelyListening` is true exactly when the computed has at least one attached child (effect or actively-listening computed downstream).
-- **C8** The `@computed` decorator on a class method makes that method behave as `Computed.get()` for a per-instance computed signal: cached, reactive, with options (`isEqual`, `historyLength`, etc.) honored. Both legacy and TC39 decorator protocols are supported.
-- **C9** `getComputedInstance(obj, propertyName)` returns the underlying `Computed` instance for a decorated method, creating it on demand if the method has not been called yet.
+- **C8** The `@computed` decorator on a class method makes that method behave as `Computed.get()` for a per-instance computed signal: cached, reactive, with options (`isEqual`, `historyLength`, etc.) honored. `@computed()` with no options is equivalent to `@computed`. Both legacy and TC39 decorator protocols are supported. A subclass may override a `@computed` method with another `@computed` method and call `super.method()`: each decoration has its own per-instance computed.
+- **C9** `getComputedInstance(obj, propertyName)` returns the underlying `Computed` instance for the nearest decorated method on `obj`'s prototype chain, creating it on demand if the method has not been called yet. Its value type is the method's return type.
 - **C10** Using `@computed` on a _getter_ (legacy decorators only) still works but logs a one-time deprecation warning per process.
 
 ## 7. Errors in computed signals (CE)
