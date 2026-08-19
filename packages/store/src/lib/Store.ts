@@ -518,11 +518,16 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		if (this.historyAccumulator.hasChanges()) {
 			const entries = this.historyAccumulator.flush()
 			const errors: unknown[] = []
+			// Iterate a snapshot: a listener that another listener's callback adds must not receive
+			// the entries that triggered it (H5), and one removed mid-flush stops receiving them.
+			const listeners = Array.from(this.listeners)
 			for (const { changes, source } of entries) {
 				// Filtered diffs are computed at most once per scope per entry, and shared by every
 				// listener watching that scope.
 				const scopedChanges = new Map<RecordScope, RecordsDiff<R> | null>()
-				for (const { onHistory, filters } of this.listeners) {
+				for (const listener of listeners) {
+					if (!this.listeners.has(listener)) continue
+					const { onHistory, filters } = listener
 					if (filters.source !== 'all' && filters.source !== source) {
 						continue
 					}
