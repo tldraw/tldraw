@@ -267,7 +267,7 @@ export function parseMigrationId(id: MigrationId): {
     version: number;
 };
 
-// @public (undocumented)
+// @public
 export type QueryExpression<R extends object> = {
     [k in keyof R & string]?: R[k] extends boolean | null | number | string | undefined ? QueryValueMatcher<R[k]> : R[k] extends object ? QueryExpression<R[k]> : QueryValueMatcher<R[k]>;
 };
