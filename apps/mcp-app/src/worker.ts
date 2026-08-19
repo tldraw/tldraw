@@ -45,6 +45,14 @@ interface Env {
 	MCP_IS_DEV: string
 	WORKER_ORIGIN: string
 	MCP_ANALYTICS?: AnalyticsEngineDataset
+	/** Dev-only: shortens IDLE_TTL_MS (ms) for scripts/verify-prune.sh. Ignored unless MCP_IS_DEV. */
+	IDLE_TTL_MS_OVERRIDE?: string
+}
+
+// Dev-only override so scripts/verify-prune.sh can exercise expiry in seconds.
+function idleTtlMs(env: Env): number {
+	const override = env.MCP_IS_DEV === 'true' ? Number(env.IDLE_TTL_MS_OVERRIDE) : NaN
+	return Number.isFinite(override) && override > 0 ? override : IDLE_TTL_MS
 }
 
 // --- Widget HTML loader ---
@@ -91,6 +99,9 @@ export class TldrawMCP extends McpAgent<Env> {
 	// JSON object. The streamable-HTTP transport opens a connection per request,
 	// making this the single noisiest thing the worker prints. Every call site
 	// uses `this.observability?.emit(...)`, so clearing it disables them all.
+	// Also load-bearing for teardown: destroy() calls _emit(), whose `name: this.name`
+	// argument is only skipped because the optional chain short-circuits; on the
+	// condemn alarm #_name is never hydrated.
 	override observability = undefined
 	// The SDK's default DurableObjectEventStore persists every outgoing message to DO storage
 	// (for Last-Event-ID replay) before writing it to the wire. SQLite-backed DO storage caps a
@@ -250,11 +261,13 @@ export class TldrawMCP extends McpAgent<Env> {
 		// on every wake and stacks rows. Failure here must not fail init — the
 		// admin prune endpoint is the backstop.
 		try {
-			await this.schedule(new Date(Date.now() + IDLE_TTL_MS), 'expireIfIdle', null, {
+			await this.schedule(new Date(Date.now() + idleTtlMs(this.env)), 'expireIfIdle', null, {
 				idempotent: true,
 			})
 		} catch (err) {
-			this.logger.info('Failed to arm idle expiry', { err: String(err) })
+			// console.error, not this.logger: the logger is dev-only and a silently
+			// unarmed expiry is the failure this branch exists to prevent.
+			console.error('[TldrawMCP] failed to arm idle expiry', String(err))
 		}
 	}
 
@@ -269,9 +282,10 @@ export class TldrawMCP extends McpAgent<Env> {
 		this.activeCheckpointId = id
 		void this.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('activeCheckpointId', ${id})`
 
-		// Evict old checkpoints beyond MAX_CHECKPOINTS (LRU)
+		// Keep the LRU window, but never evict a checkpoint a canvas still points at: a
+		// multi-canvas session would otherwise silently reopen an older canvas empty.
 		void this
-			.sql`DELETE FROM checkpoints WHERE id NOT IN (SELECT id FROM checkpoints ORDER BY created_at DESC LIMIT ${MAX_CHECKPOINTS})`
+			.sql`DELETE FROM checkpoints WHERE id NOT IN (SELECT id FROM checkpoints ORDER BY created_at DESC LIMIT ${MAX_CHECKPOINTS}) AND id NOT IN (SELECT checkpoint_id FROM canvas_checkpoints)`
 
 		this.logger.debug('Checkpoint saved', { checkpointId: id, shapes: shapes.length })
 	}
@@ -302,7 +316,11 @@ export class TldrawMCP extends McpAgent<Env> {
 		let checkpointCount = 0
 		try {
 			const meta = sql.exec(`SELECT value FROM meta WHERE key = 'lastActivity'`).toArray()
-			if (meta.length > 0) lastActivity = Number(meta[0].value)
+			if (meta.length > 0) {
+				const n = Number(meta[0].value)
+				// A corrupt value must fail toward keep, not toward condemn.
+				lastActivity = Number.isFinite(n) ? n : null
+			}
 		} catch {
 			// no meta table
 		}
@@ -313,7 +331,10 @@ export class TldrawMCP extends McpAgent<Env> {
 			if (cp.length > 0) {
 				checkpointCount = Number(cp[0].n ?? 0)
 				// Legacy DOs predate the lastActivity key; the newest snapshot is the next best signal.
-				if (lastActivity === null && cp[0].last != null) lastActivity = Number(cp[0].last)
+				if (lastActivity === null && cp[0].last != null) {
+					const n = Number(cp[0].last)
+					if (Number.isFinite(n)) lastActivity = n
+				}
 			}
 		} catch {
 			// no checkpoints table
@@ -333,7 +354,14 @@ export class TldrawMCP extends McpAgent<Env> {
 		const id = this.ctx.id.toString()
 		const bytes = this.ctx.storage.sql.databaseSize
 		if (await this.ctx.storage.get('cf_agents_destroy_pending')) {
-			return { id, idleMs: 0, checkpointCount: 0, bytes, action: 'kept', note: 'already condemned' }
+			return {
+				id,
+				idleMs: null,
+				checkpointCount: 0,
+				bytes,
+				action: 'kept',
+				note: 'already condemned',
+			}
 		}
 		const stats = this.readPruneStats()
 		const { idleMs, action } = decidePrune(stats, Date.now(), maxIdleMs, dryRun)
@@ -356,18 +384,37 @@ export class TldrawMCP extends McpAgent<Env> {
 	 * executing schedule row only after this returns, so a deduped re-arm would
 	 * match that row, skip, and then lose it — leaving the DO without any future
 	 * expiry. On the condemned branch we return without re-arming; the marker
-	 * already owns the next alarm.
+	 * already owns the next alarm. A throw from the check must still fall through
+	 * to the re-arm, for the same reason: no re-arm after a throw means no future
+	 * check either.
 	 */
 	async expireIfIdle(): Promise<void> {
-		const result = await this.pruneIfIdle(IDLE_TTL_MS, false)
-		if (result.action !== 'kept') return
+		let kept = true
+		try {
+			const result = await this.pruneIfIdle(idleTtlMs(this.env), false)
+			kept = result.action === 'kept'
+		} catch (err) {
+			// A throw here must still fall through to the re-arm: the SDK swallows
+			// callback errors and then deletes the executing schedule row, so without
+			// a re-arm this DO would never be checked again.
+			console.error('[TldrawMCP] expireIfIdle check failed', String(err))
+		}
+		if (!kept) return
 		const { lastActivity } = this.readPruneStats()
-		const next = (lastActivity ?? Date.now()) + IDLE_TTL_MS
+		const next = (lastActivity ?? Date.now()) + idleTtlMs(this.env)
 		try {
 			await this.schedule(new Date(Math.max(next, Date.now() + 60_000)), 'expireIfIdle', null)
 		} catch (err) {
-			this.logger.info('Failed to re-arm idle expiry', { err: String(err) })
+			console.error('[TldrawMCP] failed to re-arm idle expiry', String(err))
 		}
+	}
+
+	/** Dev helper for scripts/verify-prune.sh: inspect the armed expiry schedule row(s). */
+	async listExpirySchedules(): Promise<Array<{ id: string; time: number }>> {
+		const schedules = await this.listSchedules()
+		return schedules
+			.filter((s) => s.callback === 'expireIfIdle')
+			.map((s) => ({ id: s.id, time: s.time }))
 	}
 }
 
@@ -453,6 +500,19 @@ export default {
 				}
 				const session = url.searchParams.get('session') ?? ''
 				return new Response(env.MCP_OBJECT.idFromName(`streamable-http:${session}`).toString())
+			}
+
+			// Dev helper for scripts/verify-prune.sh: inspect a session's armed expiry schedule.
+			if (url.pathname === '/admin/schedules' && env.MCP_IS_DEV === 'true') {
+				if (
+					!env.ADMIN_TOKEN ||
+					request.headers.get('Authorization') !== `Bearer ${env.ADMIN_TOKEN}`
+				) {
+					return new Response('Unauthorized', { status: 401 })
+				}
+				const session = url.searchParams.get('session') ?? ''
+				const stub = env.MCP_OBJECT.get(env.MCP_OBJECT.idFromName(`streamable-http:${session}`))
+				return Response.json(await stub.listExpirySchedules())
 			}
 
 			// Require bearer auth only when an auth token is configured.
