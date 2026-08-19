@@ -151,7 +151,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 ## 17. Migrations: sorting (MS)
 
 - **MS1** `sortMigrations` orders migrations within a sequence by version (`foo/1` before `foo/2`), regardless of input order.
-- **MS2** A migration with `dependsOn` sorts after all of its dependencies, across sequences.
+- **MS2** A migration with `dependsOn` sorts after all of its dependencies, across sequences. A dependency that is also the implicit predecessor in the sequence, or that is listed more than once, is redundant rather than circular.
 - **MS3** Among valid orderings, a migration that others explicitly depend on is scheduled close to (immediately before) its dependents.
 - **MS4** Circular dependencies (direct or via the implicit sequence order) throw.
 
