@@ -68,8 +68,7 @@ export function localStorageAtom<Value, Diff = unknown>(
 
 		// If the value was changed in another tab, update the atom
 		try {
-			const newValue = JSON.parse(event.newValue) as Value
-			outAtom.set(newValue)
+			outAtom.set(JSON.parse(event.newValue) as Value)
 		} catch {
 			// If parsing fails, the stored value is corrupted; preserve the existing value
 		}
@@ -77,11 +76,12 @@ export function localStorageAtom<Value, Diff = unknown>(
 
 	window.addEventListener('storage', handleStorageEvent)
 
-	// Combined cleanup function
-	const cleanup = () => {
-		reactCleanup()
-		window.removeEventListener('storage', handleStorageEvent)
-	}
-
-	return [outAtom, cleanup]
+	return [
+		outAtom,
+		// Combined cleanup function
+		() => {
+			reactCleanup()
+			window.removeEventListener('storage', handleStorageEvent)
+		},
+	]
 }

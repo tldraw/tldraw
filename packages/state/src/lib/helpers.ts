@@ -31,12 +31,14 @@ function isChild(x: any): x is Child {
  * @internal
  */
 export function haveParentsChanged(child: Child): boolean {
-	for (let i = 0, n = child.parents.length; i < n; i++) {
+	const { parents, parentEpochs } = child
+	for (let i = 0, n = parents.length; i < n; i++) {
+		const parent = parents[i]
 		// Get the parent's value without capturing it.
-		child.parents[i].__unsafe__getWithoutCapture(true)
+		parent.__unsafe__getWithoutCapture(true)
 
 		// If the parent's epoch does not match the child's view of the parent's epoch, then the parent has changed.
-		if (child.parents[i].lastChangedEpoch !== child.parentEpochs[i]) {
+		if (parent.lastChangedEpoch !== parentEpochs[i]) {
 			return true
 		}
 	}
@@ -85,6 +87,11 @@ export function detach(parent: Signal<any>, child: Child) {
  *
  * This function is used internally when dependencies are captured during computed signal
  * evaluation or effect execution.
+ *
+ * `parent` must be up to date when it is attached: `Computed` assumes an actively-listening
+ * computed has been traversed for every ancestor change since it was last checked, which only
+ * holds from the moment it started listening. Capture attaches a parent right after reading it;
+ * `EffectScheduler.attach` refreshes its parents first.
  *
  * @param parent - The parent signal to attach to
  * @param child - The child signal to attach
@@ -135,9 +142,9 @@ export function attach(parent: Signal<any>, child: Child) {
  * @internal
  */
 export function equals(a: any, b: any): boolean {
-	const shallowEquals =
+	return (
 		a === b || Object.is(a, b) || Boolean(a && b && typeof a.equals === 'function' && a.equals(b))
-	return shallowEquals
+	)
 }
 
 /**

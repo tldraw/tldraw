@@ -93,11 +93,12 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 		// bail out if we have been cancelled by another effect
 		if (!this._isActivelyListening) return
 		// bail out if no atoms have changed since the last time we ran this effect
-		if (this.lastReactedEpoch === getGlobalEpoch()) return
+		const globalEpoch = getGlobalEpoch()
+		if (this.lastReactedEpoch === globalEpoch) return
 
 		// bail out if we have parents and they have not changed since last time
 		if (this.parents.length && !haveParentsChanged(this)) {
-			this.lastReactedEpoch = getGlobalEpoch()
+			this.lastReactedEpoch = globalEpoch
 			return
 		}
 		// if we don't have parents it's probably the first time this is running.
@@ -133,7 +134,10 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	attach() {
 		this._isActivelyListening = true
 		for (let i = 0, n = this.parents.length; i < n; i++) {
-			attach(this.parents[i], this)
+			const parent = this.parents[i]
+			// a computed parent may have gone stale while nothing listened; see `attach` in helpers.ts
+			parent.__unsafe__getWithoutCapture(true)
+			attach(parent, this)
 		}
 	}
 
@@ -350,9 +354,8 @@ export function reactor<Result>(
 	return {
 		scheduler,
 		start: (options?: { force?: boolean }) => {
-			const force = options?.force ?? false
 			scheduler.attach()
-			if (force) {
+			if (options?.force) {
 				scheduler.scheduleEffect()
 			} else {
 				scheduler.maybeScheduleEffect()

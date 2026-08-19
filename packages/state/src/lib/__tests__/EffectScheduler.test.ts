@@ -233,6 +233,32 @@ describe('reactor (E)', () => {
 		r.scheduler.maybeScheduleEffect()
 		expect(rfn).toHaveBeenCalledTimes(1)
 	})
+
+	it('[E2] start() inside a reaction phase runs the effect if a parent changed while stopped', () => {
+		// Regression: re-attaching during a reaction used to make a stale computed parent "actively
+		// listening" without refreshing it, and Computed's cache then served the stale value, so the
+		// restarted reactor never ran and the computed stayed wrong until its ancestor changed again.
+		const a = atom('a', 1)
+		const c = computed('c', () => a.get() * 2)
+		const seen: number[] = []
+		const r = reactor('r', () => {
+			seen.push(c.get())
+		})
+		r.start()
+		expect(seen).toEqual([2])
+		r.stop()
+
+		a.set(5) // nothing is listening to c now, so it goes stale
+
+		const trigger = atom('trigger', 0)
+		react('outer', () => {
+			if (trigger.get() === 1) r.start()
+		})
+		trigger.set(1) // r.start() runs inside this reaction phase
+
+		expect(seen).toEqual([2, 10])
+		expect(c.get()).toBe(10)
+	})
 })
 
 describe('custom scheduling (E6, E7)', () => {
@@ -399,5 +425,30 @@ describe('EffectScheduler attach/detach (E8)', () => {
 		expect(numReactions).toBe(3)
 		a.set(4)
 		expect(numReactions).toBe(4)
+	})
+
+	it('[E8] attach() brings stale computed parents up to date before listening to them', () => {
+		const a = atom('a', 1)
+		const c = computed('c', () => a.get() * 2)
+		const seen: number[] = []
+		const scheduler = new EffectScheduler('test', () => {
+			seen.push(c.get())
+		})
+		scheduler.attach()
+		scheduler.execute()
+		scheduler.detach()
+		a.set(5) // c is stale now
+
+		// the useStateTracking pattern: re-attach, then ask whether a run is needed, inside a reaction
+		const trigger = atom('trigger', 0)
+		react('outer', () => {
+			if (trigger.get() === 1) {
+				scheduler.attach()
+				scheduler.maybeScheduleEffect()
+			}
+		})
+		trigger.set(1)
+
+		expect(seen).toEqual([2, 10])
 	})
 })

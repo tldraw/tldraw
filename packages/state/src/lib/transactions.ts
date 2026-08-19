@@ -18,16 +18,6 @@ class Transaction {
 	initialAtomValues = new Map<_Atom, any>()
 
 	/**
-	 * Get whether this transaction is a root (no parents).
-	 *
-	 * @public
-	 */
-	// eslint-disable-next-line tldraw/no-setter-getter
-	get isRoot() {
-		return this.parent === null
-	}
-
-	/**
 	 * Commit the transaction's changes.
 	 *
 	 * @public
@@ -39,14 +29,15 @@ class Transaction {
 			for (const atom of this.initialAtomValues.keys()) {
 				traverseAtomForCleanup(atom)
 			}
-		} else if (this.isRoot) {
+		} else if (this.parent === null) {
 			// For root transactions, flush changed atoms
 			flushChanges(this.initialAtomValues.keys())
 		} else {
 			// For transactions with parents, add the transaction's initial values to the parent's.
+			const parentValues = this.parent.initialAtomValues
 			this.initialAtomValues.forEach((value, atom) => {
-				if (!this.parent!.initialAtomValues.has(atom)) {
-					this.parent!.initialAtomValues.set(atom, value)
+				if (!parentValues.has(atom)) {
+					parentValues.set(atom, value)
 				}
 			})
 		}
@@ -79,19 +70,7 @@ const inst = singleton('transactions', () => ({
 	currentTransaction: null as Transaction | null,
 
 	cleanupReactors: null as null | Set<Reactor>,
-	reactionEpoch: GLOBAL_START_EPOCH + 1,
 }))
-
-/**
- * Gets the current reaction epoch, which is used to track when reactions are running.
- * The reaction epoch is updated at the start of each reaction cycle.
- *
- * @returns The current reaction epoch number
- * @public
- */
-export function getReactionEpoch() {
-	return inst.reactionEpoch
-}
 
 /**
  * Gets the current global epoch, which is incremented every time any atom changes.
@@ -105,14 +84,13 @@ export function getGlobalEpoch() {
 }
 
 /**
- * Checks whether any reactions are currently executing.
- * When true, the system is in the middle of processing effects and side effects.
+ * Whether a transaction (sync or async) is currently open. While one is, atom changes are
+ * recorded but their children are not traversed until it commits.
  *
- * @returns True if reactions are currently running, false otherwise
- * @public
+ * @internal
  */
-export function getIsReacting() {
-	return inst.globalIsReacting
+export function getIsInTransaction() {
+	return inst.currentTransaction !== null
 }
 
 // Reusable state for traverse to avoid closure allocation
@@ -132,9 +110,9 @@ function traverseChild(child: Child) {
 	}
 }
 
-function traverse(reactors: Set<Reactor>, child: Child) {
+function collectReactors(reactors: Set<Reactor>, atom: _Atom) {
 	traverseReactors = reactors
-	traverseChild(child)
+	atom.children.visit(traverseChild)
 }
 
 /**
@@ -152,13 +130,11 @@ function flushChanges(atoms: Iterable<_Atom>) {
 		// clear the transaction stack
 		inst.currentTransaction = null
 		inst.globalIsReacting = true
-		inst.reactionEpoch = inst.globalEpoch
 
 		// Collect all of the visited reactors.
 		const reactors = new Set<Reactor>()
-
 		for (const atom of atoms) {
-			atom.children.visit((child) => traverse(reactors, child))
+			collectReactors(reactors, atom)
 		}
 
 		// Run each reactor.
@@ -214,8 +190,7 @@ export function atomDidChange(atom: _Atom, previousValue: any) {
 }
 
 function traverseAtomForCleanup(atom: _Atom) {
-	const rs = (inst.cleanupReactors ??= new Set())
-	atom.children.visit((child) => traverse(rs, child))
+	collectReactors((inst.cleanupReactors ??= new Set()), atom)
 }
 
 /**
@@ -430,22 +405,18 @@ export async function deferAsyncEffects<T>(fn: () => Promise<T>) {
 	}
 
 	if (--txn.asyncProcessCount > 0) {
-		if (typeof error !== 'undefined') {
-			// If the rollback was triggered, abort the transaction.
-			throw error
-		} else {
-			return result
-		}
+		// If the rollback was triggered, abort the transaction.
+		if (error !== undefined) throw error
+		return result
 	}
 
 	inst.currentTransaction = null
 
-	if (typeof error !== 'undefined') {
+	if (error !== undefined) {
 		// If the rollback was triggered, abort the transaction.
 		txn.abort()
 		throw error
-	} else {
-		txn.commit()
-		return result
 	}
+	txn.commit()
+	return result
 }
