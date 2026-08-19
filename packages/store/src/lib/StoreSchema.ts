@@ -626,10 +626,15 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		}
 		// Clean up by filtering out any non-document records.
 		// This is mainly legacy support for extremely early days tldraw.
+		// Collect first, then delete, for the same live-iterator reason as the record loop above.
+		const nonDocumentIds: string[] = []
 		for (const [id, state] of storage.entries()) {
 			if (this.getType(state.typeName).scope !== 'document') {
-				storage.delete(id)
+				nonDocumentIds.push(id)
 			}
+		}
+		for (const id of nonDocumentIds) {
+			storage.delete(id)
 		}
 	}
 

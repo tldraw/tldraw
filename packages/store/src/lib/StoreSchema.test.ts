@@ -982,6 +982,63 @@ describe('migrateStorage (MA)', () => {
 		expect((changing as any).changed).toBeUndefined()
 	})
 
+	it('[MA5] removes every non-document record even when the storage iterator is live', () => {
+		interface SessionThing extends BaseRecord<'sessionThing', RecordId<SessionThing>> {
+			label: string
+		}
+		const SessionThing = createRecordType<SessionThing>('sessionThing', {
+			scope: 'session',
+		}).withDefaultProperties(() => ({ label: '' }))
+		const migrations = [
+			createMigrationSequence({
+				sequenceId: 'foo',
+				sequence: [{ id: 'foo/1', scope: 'record', up: () => {} }],
+			}),
+		]
+		const schema = StoreSchema.create(
+			{ test: TestRecordType, sessionThing: SessionThing },
+			{ migrations }
+		)
+
+		// Cursor-style storage: entries() walks the backing array by index, so deleting the
+		// current entry mid-iteration shifts the next one into its place and it is skipped.
+		const rows: [string, any][] = [
+			['sessionThing:a', SessionThing.create({ id: SessionThing.createId('a') })],
+			['sessionThing:b', SessionThing.create({ id: SessionThing.createId('b') })],
+			['sessionThing:c', SessionThing.create({ id: SessionThing.createId('c') })],
+		]
+		const doc = makeTestRecord({ schemaVersion: 2, sequences: {} })
+		rows.push([doc.id, doc])
+		const persisted = schema.serializeEarliestVersion()
+		const storage: SynchronousStorage<any> = {
+			get: (id) => rows.find(([rowId]) => rowId === id)?.[1],
+			set: (id, record) => {
+				const row = rows.find(([rowId]) => rowId === id)
+				if (row) row[1] = record
+				else rows.push([id, record])
+			},
+			delete: (id) => {
+				const index = rows.findIndex(([rowId]) => rowId === id)
+				if (index !== -1) rows.splice(index, 1)
+			},
+			*keys() {
+				for (let i = 0; i < rows.length; i++) yield rows[i][0]
+			},
+			*values() {
+				for (let i = 0; i < rows.length; i++) yield rows[i][1]
+			},
+			*entries() {
+				for (let i = 0; i < rows.length; i++) yield rows[i]
+			},
+			getSchema: () => persisted,
+			setSchema: () => {},
+		}
+
+		schema.migrateStorage(storage)
+
+		expect(rows.map(([id]) => id)).toEqual([doc.id])
+	})
+
 	it('[MA7] does nothing when no migrations are needed', () => {
 		const schema = StoreSchema.create({ test: TestRecordType }, { migrations: [] })
 		const record = makeTestRecord({ schemaVersion: 2, sequences: {} })
