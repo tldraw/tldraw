@@ -9,3 +9,4 @@ mcp-deployed-server-plan.md
 # Prune script run artifacts
 prune-ids.txt
 prune-results.jsonl
+prune-dry-run.jsonl

@@ -2,11 +2,14 @@
  * Legacy session-DO prune driver. Run from apps/mcp-app with tsx.
  *
  *   yarn prune:list                               # -> prune-ids.txt
- *   yarn prune:run --dry-run                      # histogram, no writes
+ *   yarn prune:run --dry-run                      # histogram, no writes; logs to prune-dry-run.jsonl
  *   yarn prune:run --max-idle 30d                 # condemn DOs idle >= 30d
  *   yarn prune:run --max-idle 3d --force          # below 7d needs --force
  *
- * Re-runs re-evaluate kept ids; only condemned ids are skipped.
+ * Real runs write every result to prune-results.jsonl; re-runs re-evaluate kept ids
+ * and skip only condemned ones. Dry runs write to the separate prune-dry-run.jsonl and
+ * resume from it the same way (nothing is terminal for a dry run, so any prior row —
+ * not just destroy-scheduled — means "already evaluated" and is skipped on re-run).
  *
  * Env: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID (list);
  *      MCP_WORKER_ORIGIN (default https://tldraw-mcp-app.tldraw.workers.dev), MCP_ADMIN_TOKEN (prune).
@@ -16,6 +19,7 @@ import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'fs'
 
 const IDS_FILE = 'prune-ids.txt'
 const RESULTS_FILE = 'prune-results.jsonl'
+const DRY_RUN_RESULTS_FILE = 'prune-dry-run.jsonl'
 const BATCH = 100
 const CONCURRENCY = 4
 const MIN_SAFE_IDLE_MS = 7 * 24 * 60 * 60 * 1000
@@ -93,21 +97,29 @@ async function prune(args: string[]): Promise<void> {
 	const origin = env('MCP_WORKER_ORIGIN', 'https://tldraw-mcp-app.tldraw.workers.dev')
 	const token = env('MCP_ADMIN_TOKEN')
 
+	const resultsFile = dryRun ? DRY_RUN_RESULTS_FILE : RESULTS_FILE
 	const done = new Set<string>()
-	if (!dryRun && existsSync(RESULTS_FILE)) {
-		for (const line of readFileSync(RESULTS_FILE, 'utf8').split('\n')) {
+	if (existsSync(resultsFile)) {
+		for (const line of readFileSync(resultsFile, 'utf8').split('\n')) {
 			if (!line) continue
 			const r = JSON.parse(line)
-			// Only destroy-scheduled is terminal (storage is gone after it); kept ids
-			// may cross the threshold on a later, longer --max-idle pass and must be re-evaluated.
-			if (r.action === 'destroy-scheduled') done.add(r.id)
+			if (dryRun) {
+				// A dry run never mutates a DO, so nothing is terminal in the destroy-scheduled
+				// sense; any prior non-error row already answered "what would happen" and is
+				// skipped so a re-run resumes instead of re-evaluating from scratch.
+				if (!r.error) done.add(r.id)
+			} else if (r.action === 'destroy-scheduled') {
+				// Only destroy-scheduled is terminal (storage is gone after it); kept ids
+				// may cross the threshold on a later, longer --max-idle pass and must be re-evaluated.
+				done.add(r.id)
+			}
 		}
 	}
 	const ids = readFileSync(IDS_FILE, 'utf8')
 		.split('\n')
 		.filter((l) => l && !done.has(l))
 	console.log(
-		`${ids.length} ids to process (${done.size} already condemned), dryRun=${dryRun}, maxIdle=${maxIdleMs}ms`
+		`${ids.length} ids to process (${done.size} already ${dryRun ? 'evaluated' : 'condemned'}), dryRun=${dryRun}, maxIdle=${maxIdleMs}ms`
 	)
 
 	const hist: Record<string, { count: number; bytes: number }> = {}
@@ -126,7 +138,7 @@ async function prune(args: string[]): Promise<void> {
 		if (!res.ok) throw new Error(`/admin/prune ${res.status}: ${await res.text()}`)
 		const results: any[] = await res.json()
 		for (const r of results) {
-			if (!dryRun) appendFileSync(RESULTS_FILE, JSON.stringify(r) + '\n')
+			appendFileSync(resultsFile, JSON.stringify(r) + '\n')
 			if (r.error) {
 				errors++
 				continue
