@@ -87,34 +87,19 @@ class __Atom__<Value, Diff = unknown> implements Atom<Value, Diff> {
 		this.computeDiff = options.computeDiff
 	}
 
-	/**
-	 * Custom equality function for comparing values, or null to use default equality.
-	 * @internal
-	 */
+	/** @internal */
 	readonly isEqual: null | ((a: any, b: any) => boolean)
 
-	/**
-	 * Optional function to compute diffs between old and new values.
-	 * @internal
-	 */
+	/** @internal */
 	computeDiff?: ComputeDiff<Value, Diff>
 
-	/**
-	 * The global epoch when this atom was last changed.
-	 * @internal
-	 */
+	/** @internal */
 	lastChangedEpoch = getGlobalEpoch()
 
-	/**
-	 * Set of child signals that depend on this atom.
-	 * @internal
-	 */
+	/** @internal */
 	children = new ArraySet<Child>()
 
-	/**
-	 * Optional history buffer for tracking changes over time.
-	 * @internal
-	 */
+	/** @internal */
 	historyBuffer?: HistoryBuffer<Diff>
 
 	/**
@@ -216,7 +201,6 @@ class __Atom__<Value, Diff = unknown> implements Atom<Value, Diff> {
 	getDiffSince(epoch: number): RESET_VALUE | Diff[] {
 		maybeCaptureParent(this)
 
-		// If no changes have occurred since the given epoch, return an empty array.
 		if (epoch >= this.lastChangedEpoch) {
 			return EMPTY_ARRAY
 		}

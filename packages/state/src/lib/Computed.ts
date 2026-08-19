@@ -485,7 +485,7 @@ const isComputedMethodKey = '@@__isComputedMethod__@@'
  * ```ts
  * class Counter {
  *   max = 100
- *   count = atom(0)
+ *   count = atom('count', 0)
  *
  *   @computed getRemaining() {
  *     return this.max - this.count.get()
@@ -539,7 +539,7 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
  * ```ts
  * class Counter {
  *   max = 100
- *   count = atom<number>(0)
+ *   count = atom('count', 0)
  *
  *   @computed getRemaining() {
  *     return this.max - this.count.get()
@@ -553,7 +553,7 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
  * ```ts
  * class Counter {
  *   max = 100
- *   count = atom<number>(0)
+ *   count = atom('count', 0)
  *
  *   @computed({isEqual: (a, b) => a === b})
  *   getRemaining() {
