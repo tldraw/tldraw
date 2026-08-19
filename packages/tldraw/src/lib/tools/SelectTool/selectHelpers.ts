@@ -1,11 +1,13 @@
 import {
 	Editor,
 	ExtractShapeByProps,
+	HALF_PI,
 	richTextValidator,
 	TLEventInfo,
 	TLRichText,
 	TLShape,
 	TLShapeId,
+	approximately,
 } from '@tldraw/editor'
 
 /** @internal */
@@ -47,4 +49,16 @@ export function startEditingShapeWithRichText(
 	if (options.selectAll) {
 		editor.emit('select-all-text', { shapeId: shape.id })
 	}
+}
+
+/**
+ * Whether a rotation is a multiple of 90 degrees. An exact `rotation % HALF_PI === 0` misses
+ * page rotations accumulated through rotated parents, which land a few ulps off and silently
+ * disable right-angle-only behavior such as bounds snapping.
+ *
+ * @internal
+ */
+export function isRightAngleRotation(rotation: number) {
+	const turns = rotation / HALF_PI
+	return approximately(turns, Math.round(turns))
 }
