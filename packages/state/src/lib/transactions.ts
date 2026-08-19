@@ -34,9 +34,17 @@ class Transaction {
 			flushChanges(this.initialAtomValues.keys())
 		} else {
 			// For transactions with parents, add the transaction's initial values to the parent's.
+			// A parent that has recorded nothing yet adopts the map outright: this transaction is
+			// finished with it, and the common nested case is a single inner transaction doing all
+			// the writes.
+			const parentValues = this.parent!.initialAtomValues
+			if (parentValues.size === 0) {
+				this.parent!.initialAtomValues = this.initialAtomValues
+				return
+			}
 			this.initialAtomValues.forEach((value, atom) => {
-				if (!this.parent!.initialAtomValues.has(atom)) {
-					this.parent!.initialAtomValues.set(atom, value)
+				if (!parentValues.has(atom)) {
+					parentValues.set(atom, value)
 				}
 			})
 		}
@@ -103,7 +111,9 @@ export function getIsReacting() {
 	return inst.globalIsReacting
 }
 
-// Reusable state for traverse to avoid closure allocation
+// The set `traverseChild` collects reactors into. Module-level rather than a closure so that a
+// flush over thousands of atoms doesn't allocate a visitor per atom; traversal never runs user
+// code, so nothing can re-enter and swap it mid-walk.
 let traverseReactors: Set<Reactor>
 
 function traverseChild(child: Child) {
@@ -118,11 +128,6 @@ function traverseChild(child: Child) {
 	} else {
 		;(child as any as Signal<any>).children.visit(traverseChild)
 	}
-}
-
-function traverse(reactors: Set<Reactor>, child: Child) {
-	traverseReactors = reactors
-	traverseChild(child)
 }
 
 /**
@@ -142,11 +147,10 @@ function flushChanges(atoms: Iterable<_Atom>) {
 		inst.globalIsReacting = true
 		inst.reactionEpoch = inst.globalEpoch
 
-		// Collect all of the visited reactors.
 		const reactors = new Set<Reactor>()
-
+		traverseReactors = reactors
 		for (const atom of atoms) {
-			atom.children.visit((child) => traverse(reactors, child))
+			atom.children.visit(traverseChild)
 		}
 
 		// Run each reactor.
@@ -195,8 +199,8 @@ export function atomDidChange(atom: _Atom, previousValue: any) {
 }
 
 function traverseAtomForCleanup(atom: _Atom) {
-	const rs = (inst.cleanupReactors ??= new Set())
-	atom.children.visit((child) => traverse(rs, child))
+	traverseReactors = inst.cleanupReactors ??= new Set()
+	atom.children.visit(traverseChild)
 }
 
 /** @internal */
