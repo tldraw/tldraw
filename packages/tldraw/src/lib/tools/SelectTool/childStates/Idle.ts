@@ -373,21 +373,22 @@ export class Idle extends StateNode {
 						break
 					}
 
-					// Test edges for an onDoubleClickEdge handler
-					if (isEdge) {
-						const change = util.onDoubleClickEdge?.(onlySelectedShape, info)
+					// Mark before calling the handler: it may write to the store itself (e.g. a frame
+					// reflowing its children), and those writes belong to this undo group
+					if (isEdge && util.onDoubleClickEdge) {
+						this.editor.markHistoryStoppingPoint('double click edge')
+						const change = util.onDoubleClickEdge(onlySelectedShape, info)
 						if (change) {
-							this.editor.markHistoryStoppingPoint('double click edge')
 							this.editor.updateShapes([change])
 							kickoutOccludedShapes(this.editor, [onlySelectedShape.id])
 							return
 						}
 					}
 
-					if (isCorner) {
-						const change = util.onDoubleClickCorner?.(onlySelectedShape, info)
+					if (isCorner && util.onDoubleClickCorner) {
+						this.editor.markHistoryStoppingPoint('double click corner')
+						const change = util.onDoubleClickCorner(onlySelectedShape, info)
 						if (change) {
-							this.editor.markHistoryStoppingPoint('double click corner')
 							this.editor.updateShapes([change])
 							kickoutOccludedShapes(this.editor, [onlySelectedShape.id])
 							return
@@ -437,8 +438,8 @@ export class Idle extends StateNode {
 				if (shape.type !== 'video' && shape.type !== 'embed' && this.editor.getIsReadonly()) break
 
 				if (util.onDoubleClick) {
-					// Call the shape's double click handler
-					const change = util.onDoubleClick?.(shape)
+					this.editor.markHistoryStoppingPoint('double click shape')
+					const change = util.onDoubleClick(shape)
 					if (change) {
 						this.editor.updateShapes([change])
 						return
@@ -469,6 +470,7 @@ export class Idle extends StateNode {
 				const { shape, handle } = info
 
 				const util = this.editor.getShapeUtil(shape)
+				this.editor.markHistoryStoppingPoint('double click handle')
 				const changes = util.onDoubleClickHandle?.(shape, handle)
 
 				if (changes) {

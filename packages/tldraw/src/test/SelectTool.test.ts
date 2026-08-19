@@ -600,6 +600,29 @@ describe('When undo/redo restores an invalid editing shape', () => {
 //     .expectToBeIn('select.editing_shape')
 // })
 
+describe('When double clicking a frame edge', () => {
+	it('keeps the reflow the handler did and the resize in one undo group', () => {
+		const frameId = createShapeId('frame')
+		const childId = createShapeId('child')
+		editor.createShapes<TLFrameShape>([
+			{ id: frameId, type: 'frame', x: 0, y: 0, props: { w: 400, h: 400 } },
+		])
+		editor.createShapes([
+			{ id: childId, type: 'geo', parentId: frameId, x: 100, y: 100, props: { w: 50, h: 50 } },
+		])
+		editor.select(frameId)
+		editor.doubleClick(400, 200, { target: 'selection', handle: 'right' })
+		const frameAfter = editor.getShape<TLFrameShape>(frameId)!
+		const childAfter = editor.getShape(childId)!
+		expect(frameAfter.props.w).not.toBe(400)
+		expect(childAfter.x).not.toBe(100)
+
+		editor.undo()
+		expect(editor.getShape<TLFrameShape>(frameId)!.props.w).toBe(400)
+		expect(editor.getShape(childId)!.x).toBe(100)
+	})
+})
+
 describe('When double clicking the selection edge', () => {
 	it('Begins editing the text if handler returns no change', () => {
 		const id = createShapeId()
