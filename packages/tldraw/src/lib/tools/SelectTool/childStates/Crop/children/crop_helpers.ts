@@ -24,7 +24,8 @@ export function getTranslateCroppedImageChange(editor: Editor, shape: ShapeWithC
 		delta.y = 0
 	}
 
-	delta.rot(-shape.rotation)
+	// The crop lives in the shape's own space; use the page rotation, which includes rotated parents
+	delta.rot(-editor.getShapePageTransform(shape.id).rotation())
 
 	const { w, h } = getUncroppedSize(shape.props, oldCrop)
 	const xCropSize = oldCrop.bottomRight.x - oldCrop.topLeft.x

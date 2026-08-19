@@ -13,22 +13,15 @@ export class ScribbleBrushing extends StateNode {
 	static override id = 'scribble_brushing'
 	static override trackPerformance = true
 
-	hits = new Set<TLShapeId>()
-
-	size = 0
-
 	scribbleId = 'id'
 
 	initialSelectedShapeIds = new Set<TLShapeId>()
 	newlySelectedShapeIds = new Set<TLShapeId>()
 
 	override onEnter() {
-		this.initialSelectedShapeIds = new Set<TLShapeId>(
-			this.editor.inputs.getShiftKey() ? this.editor.getSelectedShapeIds() : []
-		)
+		// Kept for cancel; whether shift adds it to the result is decided on each update
+		this.initialSelectedShapeIds = new Set<TLShapeId>(this.editor.getSelectedShapeIds())
 		this.newlySelectedShapeIds = new Set<TLShapeId>()
-		this.size = 0
-		this.hits.clear()
 
 		const scribbleItem = this.editor.scribbles.addScribble({
 			color: 'selection-stroke',

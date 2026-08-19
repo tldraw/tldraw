@@ -15,22 +15,21 @@ export class Crop extends StateNode {
 	markId = ''
 
 	override onEnter() {
-		this.didExit = false
 		this.markId = this.editor.markHistoryStoppingPoint('crop')
 	}
-	didExit = false
+
 	override onExit() {
-		if (!this.didExit) {
-			this.didExit = true
-			if (this.editor.getMarkIdMatching(this.markId) === this.markId) {
-				this.editor.squashToMark(this.markId)
-			}
+		// Bailing pops the mark, so there is nothing to squash after a cancel
+		if (this.editor.getMarkIdMatching(this.markId) === this.markId) {
+			this.editor.squashToMark(this.markId)
 		}
 	}
+
 	override onCancel() {
-		if (!this.didExit) {
-			this.didExit = true
-			this.editor.bailToMark(this.markId)
-		}
+		// Parents see events before children. A cancel during a child interaction belongs to that
+		// child, which bails its own mark and stays in crop mode; only a cancel from idle ends the
+		// session and reverts it.
+		if (this.getCurrent()?.id !== 'idle') return
+		this.editor.bailToMark(this.markId)
 	}
 }

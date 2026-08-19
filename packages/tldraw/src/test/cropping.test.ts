@@ -1240,3 +1240,142 @@ describe('When cropping with modifiers and snapping...', () => {
 		expect(editor.snaps.getIndicators().length).toBe(0)
 	})
 })
+
+describe('Cropping an image inside a rotated parent', () => {
+	it('moves the crop along the dragged edge even when the page rotation comes from a frame', () => {
+		const frameId = createShapeId('frame')
+		const imageId = createShapeId('image')
+		editor.createShapes([
+			{
+				id: frameId,
+				type: 'frame',
+				x: 500,
+				y: 100,
+				rotation: Math.PI / 2,
+				props: { w: 400, h: 400 },
+			},
+			{
+				id: imageId,
+				type: 'image',
+				parentId: frameId,
+				x: 50,
+				y: 50,
+				props: { ...imageProps, w: 200, h: 100 },
+			},
+		])
+		editor.select(imageId)
+		editor.setCurrentTool('select.crop.idle')
+		editor.expectToBeIn('select.crop.idle')
+
+		// The image's right edge is vertical in its own space but horizontal on screen; drag it
+		// inward along its on-screen normal.
+		const handle = editor.getSelectionHandlePagePoint('right')
+		editor.pointerDown(handle.x, handle.y, { target: 'selection', handle: 'right' })
+		editor.pointerMove(handle.x, handle.y - 50)
+		editor.expectToBeIn('select.crop.cropping')
+		editor.pointerUp()
+
+		const image = editor.getShape<TLImageShape>(imageId)!
+		expect(image.props.w).toBe(150)
+		expect(image.props.crop).toMatchObject({
+			topLeft: { x: 0, y: 0 },
+			bottomRight: { x: 0.75, y: 1 },
+		})
+	})
+})
+
+describe('Cancelling while cropping', () => {
+	it('escape during a crop drag only reverts that drag and keeps the session cancellable', () => {
+		editor.doubleClick(550, 550, ids.imageB).expectToBeIn('select.crop.idle')
+		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+
+		// First drag commits
+		editor.pointerDown(500, 600, { target: 'selection', handle: 'bottom' })
+		editor.pointerMove(510, 590)
+		editor.pointerUp()
+		editor.expectToBeIn('select.crop.idle')
+		const afterFirst = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+		expect(afterFirst).not.toMatchObject(before)
+
+		// Escape mid-drag reverts only the second drag
+		editor.pointerDown(500, 600, { target: 'selection', handle: 'bottom' })
+		editor.pointerMove(510, 580)
+		editor.expectToBeIn('select.crop.cropping')
+		editor.cancel()
+		editor.expectToBeIn('select.crop.idle')
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(afterFirst)
+
+		// Escape from idle still reverts the whole session
+		editor.cancel()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
+	})
+
+	it('squashes the session into one undo even after a cancelled drag', () => {
+		editor.doubleClick(550, 550, ids.imageB).expectToBeIn('select.crop.idle')
+		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+
+		editor.pointerDown(500, 600, { target: 'selection', handle: 'bottom' })
+		editor.pointerMove(510, 580)
+		editor.cancel()
+		editor.expectToBeIn('select.crop.idle')
+
+		editor.pointerDown(500, 600, { target: 'selection', handle: 'bottom' })
+		editor.pointerMove(510, 590)
+		editor.pointerUp()
+		editor.pointerDown(500, 600, { target: 'selection', handle: 'bottom' })
+		editor.pointerMove(510, 580)
+		editor.pointerUp()
+		editor.keyDown('Enter').keyUp('Enter')
+		editor.expectToBeIn('select.idle')
+
+		editor.undo()
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
+	})
+})
+
+describe('Leaving crop mode by switching tools', () => {
+	it('clears the cropping shape', () => {
+		editor.doubleClick(550, 550, ids.imageB).expectToBeIn('select.crop.idle')
+		expect(editor.getCroppingShapeId()).toBe(ids.imageB)
+		editor.setCurrentTool('hand')
+		expect(editor.getCroppingShapeId()).toBe(null)
+		editor.setCurrentTool('select')
+		editor.expectToBeIn('select.idle')
+		expect(editor.getCroppingShapeId()).toBe(null)
+	})
+})
+
+describe('When a second press on a crop handle arrives as a double click', () => {
+	it('still crops when the press becomes a drag instead of resetting the crop', () => {
+		editor.doubleClick(550, 550, ids.imageB).expectToBeIn('select.crop.idle')
+		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+
+		editor.pointerDown(500, 600, { target: 'selection', handle: 'bottom' }).pointerUp()
+		editor.expectToBeIn('select.crop.idle')
+		editor.pointerDown(500, 600, { target: 'selection', handle: 'bottom' })
+		editor.dispatch({
+			type: 'click',
+			name: 'double_click',
+			phase: 'down',
+			point: { x: 500, y: 600 },
+			pointerId: 1,
+			button: 0,
+			shiftKey: false,
+			altKey: false,
+			ctrlKey: false,
+			metaKey: false,
+			accelKey: false,
+			target: 'selection',
+			handle: 'bottom',
+		})
+		editor.expectToBeIn('select.crop.pointing_crop_handle')
+		editor.pointerMove(510, 590)
+		editor.expectToBeIn('select.crop.cropping')
+		editor.pointerUp()
+
+		const after = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+		expect(after).not.toMatchObject(before)
+		expect(after.bottomRight.y).toBeLessThan(before.bottomRight.y)
+	})
+})

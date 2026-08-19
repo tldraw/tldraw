@@ -1,9 +1,6 @@
 import {
 	Box,
-	HALF_PI,
 	Mat,
-	PI,
-	PI2,
 	SelectionCorner,
 	SelectionEdge,
 	StateNode,
@@ -19,9 +16,11 @@ import {
 	isAccelKey,
 	isShapeId,
 	kickoutOccludedShapes,
+	rotateSelectionHandle,
 } from '@tldraw/editor'
 import { getEnclosedShapeIds } from '../../../shapes/frame/FrameShapeTool'
 import { batchMeasureGeoLabels, setBatchLabelSizeCache } from '../../../shapes/geo/GeoShapeUtil'
+import { isRightAngleRotation } from '../selectHelpers'
 
 export type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'
@@ -56,22 +55,21 @@ export class Resizing extends StateNode {
 
 		this.info = info
 		this.didHoldCommand = false
+		this.markId = ''
 
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		}
 		this.creationCursorOffset = creationCursorOffset
 
-		try {
-			// On rare and mysterious occasions, the user can enter the resizing state with no shapes selected
-			this.snapshot = this._createSnapshot()
-		} catch (e) {
-			console.error(e)
-			this.cancel()
+		// The selection can be empty here, e.g. when the pointed shape was deleted remotely between
+		// pointer down and the drag. Nothing has been marked or changed yet, so just leave.
+		const snapshot = this._createSnapshot()
+		if (!snapshot) {
+			this.parent.transition('idle')
 			return
 		}
-
-		this.markId = ''
+		this.snapshot = snapshot
 
 		if (isCreating) {
 			if (creatingMarkId) {
@@ -202,7 +200,8 @@ export class Resizing extends StateNode {
 		const changes: TLShapePartial[] = []
 
 		shapeSnapshots.forEach(({ shape }) => {
-			const current = this.editor.getShape(shape.id)!
+			const current = this.editor.getShape(shape.id)
+			if (!current) return
 			const util = this.editor.getShapeUtil(shape)
 			const change = util.onResizeEnd?.(shape, current)
 			if (change) {
@@ -298,7 +297,7 @@ export class Resizing extends StateNode {
 
 		const shouldSnap = editor.user.getIsSnapMode() ? !isHoldingAccel : isHoldingAccel
 
-		if (shouldSnap && selectionRotation % HALF_PI === 0) {
+		if (shouldSnap && isRightAngleRotation(selectionRotation)) {
 			const { nudge } = editor.snaps.shapeBounds.snapResizeShapes({
 				dragDelta: Vec.Sub(currentPagePoint, originPagePoint),
 				initialSelectionPageBounds: initialSelectionPageBounds,
@@ -320,8 +319,6 @@ export class Resizing extends StateNode {
 
 		// calculate the scale by measuring the current distance between the drag handle and the scale origin
 		// and dividing by the original distance between the drag handle and the scale origin
-
-		// bug: for edges, the page point doesn't matter, the
 
 		const distanceFromScaleOriginNow = Vec.Sub(currentPagePoint, scaleOriginPage).rot(
 			-selectionRotation
@@ -428,8 +425,9 @@ export class Resizing extends StateNode {
 
 			for (const { id, children } of frames) {
 				if (!children.length) continue
-				const initial = shapeSnapshots.get(id)!.shape
-				const current = this.editor.getShape(id)!
+				// A frame-like shape that can't resize is never snapshotted
+				const initial = shapeSnapshots.get(id)?.shape
+				const current = this.editor.getShape(id)
 				if (!(initial && current)) continue
 
 				const dx = current.x - initial.x
@@ -496,8 +494,6 @@ export class Resizing extends StateNode {
 		this.editor.setHintingShapes(hintingShapeIds)
 	}
 
-	// ---
-
 	private updateCursor({
 		dragHandle,
 		isFlippedX,
@@ -545,6 +541,9 @@ export class Resizing extends StateNode {
 		if (this.info.isCreating && this.editor.getHintingShapeIds().length > 0) {
 			this.editor.setHintingShapes([])
 		}
+		// Don't keep the last resize's shapes, transforms and callbacks alive until the next one
+		this.snapshot = {} as any as Snapshot
+		this.info = {} as ResizingInfo
 	}
 
 	private _createSnapshot() {
@@ -554,7 +553,7 @@ export class Resizing extends StateNode {
 		const originPagePoint = editor.inputs.getOriginPagePoint()
 
 		const selectionBounds = editor.getSelectionRotatedPageBounds()
-		if (!selectionBounds) throw Error('Resizing but nothing is selected')
+		if (!selectionBounds) return null
 
 		const dragHandlePoint = Vec.RotWith(
 			selectionBounds.getHandlePoint(this.info.handle!),
@@ -669,24 +668,4 @@ export class Resizing extends StateNode {
 	}
 }
 
-type Snapshot = ReturnType<Resizing['_createSnapshot']>
-
-const ORDERED_SELECTION_HANDLES: (SelectionEdge | SelectionCorner)[] = [
-	'top',
-	'top_right',
-	'right',
-	'bottom_right',
-	'bottom',
-	'bottom_left',
-	'left',
-	'top_left',
-]
-
-export function rotateSelectionHandle(handle: SelectionEdge | SelectionCorner, rotation: number) {
-	// first find out how many tau we need to rotate by
-	rotation = rotation % PI2
-	const numSteps = Math.round(rotation / (PI / 4))
-
-	const currentIndex = ORDERED_SELECTION_HANDLES.indexOf(handle)
-	return ORDERED_SELECTION_HANDLES[(currentIndex + numSteps) % ORDERED_SELECTION_HANDLES.length]
-}
+type Snapshot = NonNullable<ReturnType<Resizing['_createSnapshot']>>

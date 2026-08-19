@@ -47,6 +47,16 @@ export class OneFingerZooming extends StateNode {
 		this.complete()
 	}
 
+	override onPointerDown() {
+		// A second touch resets the input origin to the new pointer, so continuing
+		// the zoom would jump the camera. Yield before the pinch begins.
+		this.parent.transition('idle')
+	}
+
+	override onComplete() {
+		this.parent.transition('idle')
+	}
+
 	override onCancel() {
 		this.parent.transition('idle')
 	}

@@ -9,6 +9,7 @@ export class PointingRotateHandle extends StateNode {
 	static override id = 'pointing_rotate_handle'
 
 	private info = {} as PointingRotateHandleInfo
+	private pendingDoubleClick: TLClickEventInfo | null = null
 
 	private updateCursor() {
 		this.editor.setCursor({
@@ -19,6 +20,7 @@ export class PointingRotateHandle extends StateNode {
 
 	override onEnter(info: PointingRotateHandleInfo) {
 		this.info = info
+		this.pendingDoubleClick = null
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		}
@@ -46,9 +48,15 @@ export class PointingRotateHandle extends StateNode {
 	}
 
 	override onPointerUp() {
+		if (this.pendingDoubleClick) {
+			this.parent.transition('idle')
+			this.parent.getCurrent()?.handleEvent(this.pendingDoubleClick)
+			return
+		}
 		this.complete()
 	}
 
+	// See PointingResizeHandle.onDoubleClick
 	override onDoubleClick(info: TLClickEventInfo) {
 		if (
 			this.editor.inputs.getShiftKey() ||
@@ -59,8 +67,7 @@ export class PointingRotateHandle extends StateNode {
 			return
 		}
 
-		this.parent.transition('idle')
-		this.parent.getCurrent()?.handleEvent(info)
+		this.pendingDoubleClick = info
 	}
 
 	override onCancel() {

@@ -21,9 +21,7 @@ export class DragAndDropManager {
 	}
 
 	shapesToActuallyMove: TLShape[] = []
-	draggedOverShapeIds = new Set<TLShapeId>()
 
-	initialGroupIds = new Map<TLShapeId, TLShapeId>()
 	initialParentIds = new Map<TLShapeId, TLParentId>()
 	initialIndices = new Map<TLShapeId, IndexKey>()
 
@@ -69,17 +67,12 @@ export class DragAndDropManager {
 				this.initialParentIds.set(shape.id, parent.id)
 			}
 			this.initialIndices.set(shape.id, shape.index)
-
-			const group = editor.findShapeAncestor(shape, (s) => editor.isShapeOfType(s, 'group'))
-			if (group) {
-				this.initialGroupIds.set(shape.id, group.id)
-			}
 		}
 
-		const allShapes = editor.getCurrentPageShapesSorted()
+		const zIndexById = new Map(editor.getCurrentPageShapesSorted().map((s, i) => [s.id, i]))
 		this.shapesToActuallyMove = Array.from(shapesToActuallyMove)
 			.filter((s) => !s.isLocked)
-			.sort((a, b) => allShapes.indexOf(a) - allShapes.indexOf(b))
+			.sort((a, b) => zIndexById.get(a.id)! - zIndexById.get(b.id)!)
 
 		this.initialDraggingOverShape = editor.getDraggingOverShape(point, this.shapesToActuallyMove)
 
@@ -181,9 +174,12 @@ export class DragAndDropManager {
 				return
 			}
 
-			if (this.prevDraggingOverShape) {
-				const util = editor.getShapeUtil(this.prevDraggingOverShape)
-				const prevDraggingOverShape = this.editor.getShape(this.prevDraggingOverShape)!
+			// The previous target may have been deleted mid-drag, in which case there is nothing to drag out of
+			const prevDraggingOverShape = this.prevDraggingOverShape
+				? this.editor.getShape(this.prevDraggingOverShape.id)
+				: undefined
+			if (prevDraggingOverShape) {
+				const util = editor.getShapeUtil(prevDraggingOverShape)
 				const removableShapes = getRemovableShapesForTarget(
 					editor,
 					prevDraggingOverShape,

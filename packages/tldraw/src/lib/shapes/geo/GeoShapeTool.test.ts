@@ -138,6 +138,17 @@ describe('When in the idle state', () => {
 		editor.expectToBeIn('select.editing_shape')
 	})
 
+	it('Starts editing an editable shape without rich text on "Enter" instead of throwing', () => {
+		editor.createShape({ type: 'frame', x: 0, y: 0, props: { w: 100, h: 100 } })
+		const frame = editor.getLastCreatedShape()
+		editor.select(frame)
+		editor.setCurrentTool('geo')
+
+		expect(() => editor.keyPress('Enter')).not.toThrow()
+		editor.expectToBeIn('select.editing_shape')
+		expect(editor.getEditingShapeId()).toBe(frame.id)
+	})
+
 	it('Does not enter edit shape state on "Enter" key up when multiple geo shapes are selected', () => {
 		editor.setCurrentTool('geo')
 		editor.pointerDown(50, 50)

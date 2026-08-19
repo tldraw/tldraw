@@ -7,7 +7,10 @@ import {
 	TLPointerEventInfo,
 	Vec,
 } from '@tldraw/editor'
-import { updateArrowTargetState } from '../../../shapes/arrow/arrowTargetState'
+import {
+	clearArrowTargetState,
+	updateArrowTargetState,
+} from '../../../shapes/arrow/arrowTargetState'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 import {
 	getNoteAdjacentPositions,
@@ -55,6 +58,8 @@ export class PointingHandle extends StateNode {
 
 	override onExit() {
 		this.editor.setHintingShapes([])
+		// onEnter shows the arrow's binding target; a click without a drag would leave it showing
+		clearArrowTargetState(this.editor)
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
@@ -121,6 +126,8 @@ export class PointingHandle extends StateNode {
 			const noteUtil = editor.getShapeUtil(shape) as NoteShapeUtil
 			const dv = getDisplayValues(noteUtil, shape)
 
+			// Cancelling the drag bails to this mark, which removes the note created below
+			const creatingMarkId = editor.markHistoryStoppingPoint('creating note from handle')
 			const nextNote = getNoteForAdjacentPosition(editor, shape, handle, true)
 			if (nextNote) {
 				// Center the shape on the current pointer
@@ -142,8 +149,8 @@ export class PointingHandle extends StateNode {
 						...this.info,
 						target: 'shape',
 						shape: editor.getShape(nextNote),
-						onInteractionEnd: 'note',
 						isCreating: true,
+						creatingMarkId,
 						onCreate: () => {
 							// When we're done, start editing it
 							startEditingShapeWithRichText(editor, nextNote, { selectAll: true })

@@ -1,6 +1,7 @@
 import { StateNode, TLClickEventInfo, TLPointerEventInfo, TLShape } from '@tldraw/editor'
 import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getTextLabels } from '../../../utils/shapes/shapes'
+import { isPointInRotatedSelectionBounds } from '../selectHelpers'
 
 export class PointingShape extends StateNode {
 	static override id = 'pointing_shape'
@@ -14,7 +15,6 @@ export class PointingShape extends StateNode {
 
 	override onEnter(info: TLPointerEventInfo & { target: 'shape' }) {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
-		const selectionBounds = this.editor.getSelectionRotatedPageBounds()
 		const focusedGroupId = this.editor.getFocusedGroupId()
 		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 		const { shiftKey, altKey, accelKey } = info
@@ -23,9 +23,6 @@ export class PointingShape extends StateNode {
 		this.isDoubleClick = false
 		this.didCtrlOnEnter = accelKey
 		const outermostSelectingShape = this.editor.getOutermostSelectableShape(info.shape)
-		const selectedAncestor = this.editor.findShapeAncestor(outermostSelectingShape, (parent) =>
-			selectedShapeIds.includes(parent.id)
-		)
 
 		if (
 			this.didCtrlOnEnter ||
@@ -36,9 +33,10 @@ export class PointingShape extends StateNode {
 			// ...or if the shape is within the selection
 			selectedShapeIds.includes(outermostSelectingShape.id) ||
 			// ...or if an ancestor of the shape is selected
-			selectedAncestor ||
-			// ...or if the current point is NOT within the selection bounds
-			(selectedShapeIds.length > 1 && selectionBounds?.containsPoint(currentPagePoint))
+			this.editor.isAncestorSelected(outermostSelectingShape) ||
+			// ...or if the point is inside a multi-shape selection, so a drag moves the whole selection
+			(selectedShapeIds.length > 1 &&
+				isPointInRotatedSelectionBounds(this.editor, currentPagePoint))
 		) {
 			// We won't select the shape on enter, though we might select it on pointer up!
 			this.didSelectOnEnter = false
@@ -71,6 +69,7 @@ export class PointingShape extends StateNode {
 			this.editor.getShapeAtPoint(currentPagePoint, {
 				margin: this.editor.getHitTestMargin(),
 				hitInside: true,
+				hitLocked: this.editor.options.selectLockedShapes,
 				renderingOnly: true,
 			}) ?? this.hitShape
 
@@ -82,33 +81,29 @@ export class PointingShape extends StateNode {
 			return
 		}
 
-		const selectingShape = hitShape
-			? this.editor.getOutermostSelectableShape(hitShape)
-			: this.hitShapeForPointerUp
+		const selectingShape = this.editor.getOutermostSelectableShape(hitShape)
 
-		if (selectingShape) {
-			// If the selecting shape has a click handler, call it instead of selecting the shape
-			const util = this.editor.getShapeUtil(selectingShape)
-			if (util.onClick) {
-				const change = util.onClick?.(selectingShape)
-				if (change) {
-					this.editor.markHistoryStoppingPoint('shape on click')
-					this.editor.updateShapes([change])
-					this.parent.transition('idle', info)
-					return
-				}
-			}
-
-			if (selectingShape.id === focusedGroupId) {
-				if (selectedShapeIds.length > 0) {
-					this.editor.markHistoryStoppingPoint('clearing shape ids')
-					this.editor.setSelectedShapes([])
-				} else {
-					this.editor.popFocusedGroupId()
-				}
+		// If the selecting shape has a click handler, call it instead of selecting the shape
+		const util = this.editor.getShapeUtil(selectingShape)
+		if (util.onClick) {
+			const change = util.onClick?.(selectingShape)
+			if (change) {
+				this.editor.markHistoryStoppingPoint('shape on click')
+				this.editor.updateShapes([change])
 				this.parent.transition('idle', info)
 				return
 			}
+		}
+
+		if (selectingShape.id === focusedGroupId) {
+			if (selectedShapeIds.length > 0) {
+				this.editor.markHistoryStoppingPoint('clearing shape ids')
+				this.editor.setSelectedShapes([])
+			} else {
+				this.editor.popFocusedGroupId()
+			}
+			this.parent.transition('idle', info)
+			return
 		}
 
 		if (!this.didSelectOnEnter) {
@@ -137,7 +132,7 @@ export class PointingShape extends StateNode {
 
 						// if the shape has a text label, and we're inside of the label, then we want to begin editing the label.
 						if (selectedShapeIds.length === 1) {
-							const geometry = this.editor.getShapeUtil(selectingShape).getGeometry(selectingShape)
+							const geometry = this.editor.getShapeGeometry(selectingShape)
 							const textLabels = getTextLabels(geometry)
 							const textLabel = textLabels.length === 1 ? textLabels[0] : undefined
 							// N.B. we're only interested if there is exactly one text label. We don't handle the
@@ -224,6 +219,12 @@ export class PointingShape extends StateNode {
 
 	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.getIsDragging()) {
+			// The pointed shape may have been deleted since pointer down (remote user, undo)
+			if (!this.editor.getShape(this.hitShape.id)) {
+				this.parent.transition('idle', info)
+				return
+			}
+
 			if (isOverArrowLabel(this.editor, this.hitShape)) {
 				// We're moving the label on a shape.
 				this.parent.transition('pointing_arrow_label', { ...info, shape: this.hitShape })
@@ -248,8 +249,13 @@ export class PointingShape extends StateNode {
 		// If we didn't select the shape on enter (e.g. because it has an onClick handler),
 		// and there's no current selection, select it now before transitioning to translating.
 		if (!this.didSelectOnEnter && !this.editor.getSelectedShapeIds().length) {
+			const shapeToSelect = this.editor.getShape(this.hitShapeForPointerUp.id)
+			if (!shapeToSelect) {
+				this.parent.transition('idle', info)
+				return
+			}
 			this.editor.markHistoryStoppingPoint('selecting shape')
-			this.editor.setSelectedShapes([this.hitShapeForPointerUp.id])
+			this.editor.setSelectedShapes([shapeToSelect.id])
 		}
 
 		// Re-focus the editor, just in case the text label of the shape has stolen focus

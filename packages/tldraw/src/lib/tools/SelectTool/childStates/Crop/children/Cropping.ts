@@ -1,6 +1,5 @@
 import {
 	Box,
-	HALF_PI,
 	SelectionHandle,
 	ShapeWithCrop,
 	StateNode,
@@ -11,9 +10,10 @@ import {
 	rotateSelectionHandle,
 } from '@tldraw/editor'
 import { getCropBox, getDefaultCrop, getUncroppedSize } from '../../../../../shapes/shared/crop'
+import { isRightAngleRotation } from '../../../selectHelpers'
 import { CursorTypeMap } from '../../PointingResizeHandle'
 
-type Snapshot = ReturnType<Cropping['createSnapshot']>
+type Snapshot = NonNullable<ReturnType<Cropping['createSnapshot']>>
 
 export class Cropping extends StateNode {
 	static override id = 'cropping'
@@ -40,8 +40,15 @@ export class Cropping extends StateNode {
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		}
+		// The shape can be deleted (remotely, by undo) between pointer down and the drag
+		const snapshot = this.createSnapshot()
+		if (!snapshot) {
+			this.editor.setCroppingShape(null)
+			this.editor.setCurrentTool('select.idle')
+			return
+		}
 		this.markId = this.editor.markHistoryStoppingPoint('cropping')
-		this.snapshot = this.createSnapshot()
+		this.snapshot = snapshot
 		this.updateShapes()
 	}
 
@@ -110,7 +117,7 @@ export class Cropping extends StateNode {
 		editor.snaps.clearIndicators()
 		const shouldSnap = editor.user.getIsSnapMode() ? !isHoldingAccel : isHoldingAccel
 		let didSnap = false
-		if (shouldSnap && initialSelectionPageBounds && selectionRotation % HALF_PI === 0) {
+		if (shouldSnap && initialSelectionPageBounds && isRightAngleRotation(selectionRotation)) {
 			const { nudge } = editor.snaps.shapeBounds.snapResizeShapes({
 				dragDelta: Vec.Sub(currentPagePoint, originPagePoint),
 				initialSelectionPageBounds,
@@ -122,7 +129,9 @@ export class Cropping extends StateNode {
 			didSnap = true
 		}
 
-		const change = currentPagePoint.clone().sub(originPagePoint).rot(-shape.rotation)
+		// The crop lives in the shape's own space, so the page-space drag comes off by the shape's
+		// page rotation; its local rotation alone is wrong inside a rotated frame or group
+		const change = currentPagePoint.clone().sub(originPagePoint).rot(-selectionRotation)
 
 		const crop = shape.props.crop ?? getDefaultCrop()
 		const uncroppedSize = getUncroppedSize(shape.props, crop)
@@ -232,7 +241,8 @@ export class Cropping extends StateNode {
 
 		const shape = this.editor.getOnlySelectedShape() as ShapeWithCrop
 
-		const selectionBounds = this.editor.getSelectionRotatedPageBounds()!
+		const selectionBounds = this.editor.getSelectionRotatedPageBounds()
+		if (!shape || !selectionBounds) return null
 
 		const dragHandlePoint = Vec.RotWith(
 			selectionBounds.getHandlePoint(this.info.handle!),
