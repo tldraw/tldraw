@@ -1,6 +1,6 @@
 /**
  * The number of items an ArraySet holds in array mode before switching to a Set.
- *
+ * Exported only for tests.
  * @internal
  */
 export const ARRAY_SIZE_THRESHOLD = 8
@@ -9,18 +9,21 @@ export const ARRAY_SIZE_THRESHOLD = 8
  * An ArraySet operates as an array until it reaches a certain size, after which a Set is used
  * instead. In either case, the same methods are used to get, set, remove, and visit the items.
  *
- * The backing array is allocated on the first `add`: most signals never get a child, and an
- * empty ArraySet is created for every atom and effect, and two for every computed.
+ * `set` and `array` are never both non-null. `set` being null means array mode, but the array
+ * itself is only allocated on the first `add` (most signals never get a child, and an empty
+ * ArraySet is created for every atom and effect, and two for every computed), so array-mode code
+ * must handle `array === null`; `arraySize` is 0 in that state. Once promoted to a set, an
+ * ArraySet never goes back.
  * @internal
  */
 export class ArraySet<T> {
-	private arraySize = 0
+	private set: Set<T> | null = null
 
 	// Slots [0, arraySize) hold the items; slots beyond are undefined. `add`/`has` scan the whole
 	// array with indexOf, which is why `clear` and `remove` must blank vacated slots.
 	private array: (T | undefined)[] | null = null
 
-	private set: Set<T> | null = null
+	private arraySize = 0
 
 	/**
 	 * Get whether this ArraySet has any elements.
@@ -64,8 +67,9 @@ export class ArraySet<T> {
 
 		// The array is full: promote to a set.
 		this.set = new Set(this.array as T[])
-		this.array = null
 		this.set.add(elem)
+		this.array = null
+		this.arraySize = 0
 
 		return true
 	}
