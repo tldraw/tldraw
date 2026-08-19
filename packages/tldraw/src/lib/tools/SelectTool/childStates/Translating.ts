@@ -289,7 +289,8 @@ export class Translating extends StateNode {
 		const changes: TLShapePartial[] = []
 
 		movingShapes.forEach((shape) => {
-			const current = this.editor.getShape(shape.id)!
+			const current = this.editor.getShape(shape.id)
+			if (!current) return
 			const util = this.editor.getShapeUtil(shape)
 			const change = util.onTranslateEnd?.(shape, current)
 			if (change) {
@@ -322,7 +323,9 @@ export class Translating extends StateNode {
 		const changes: TLShapePartial[] = []
 
 		movingShapes.forEach((shape) => {
-			const current = this.editor.getShape(shape.id)!
+			// Shapes can be deleted mid-drag (remote user, undo)
+			const current = this.editor.getShape(shape.id)
+			if (!current) return
 			const util = this.editor.getShapeUtil(shape)
 			const change = util.onTranslate?.(shape, current)
 			if (change) {
