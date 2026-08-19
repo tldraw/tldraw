@@ -1,6 +1,5 @@
 import {
 	Box,
-	HALF_PI,
 	Mat,
 	PI,
 	PI2,
@@ -22,6 +21,7 @@ import {
 } from '@tldraw/editor'
 import { getEnclosedShapeIds } from '../../../shapes/frame/FrameShapeTool'
 import { batchMeasureGeoLabels, setBatchLabelSizeCache } from '../../../shapes/geo/GeoShapeUtil'
+import { isRightAngleRotation } from '../selectHelpers'
 
 export type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'
@@ -298,7 +298,7 @@ export class Resizing extends StateNode {
 
 		const shouldSnap = editor.user.getIsSnapMode() ? !isHoldingAccel : isHoldingAccel
 
-		if (shouldSnap && selectionRotation % HALF_PI === 0) {
+		if (shouldSnap && isRightAngleRotation(selectionRotation)) {
 			const { nudge } = editor.snaps.shapeBounds.snapResizeShapes({
 				dragDelta: Vec.Sub(currentPagePoint, originPagePoint),
 				initialSelectionPageBounds: initialSelectionPageBounds,
