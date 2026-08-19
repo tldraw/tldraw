@@ -1,4 +1,4 @@
-import { Atom, Box, Editor, react, Vec } from 'tldraw'
+import { Atom, Editor, react, Vec } from 'tldraw'
 import { WebGLManager } from '../WebGLManager'
 import { ShaderManagerConfig } from './config'
 import FRAGMENT_SHADER from './fragment.glsl?raw'
@@ -166,15 +166,5 @@ export class MinimalShaderManager extends WebGLManager<ShaderManagerConfig> {
 		this.pointer.x = (x - vsb.x) / vsb.width
 		this.pointer.y = 1.0 - (y - vsb.y) / vsb.height
 		this.tick()
-	}
-
-	pageToCanvas = (
-		point: Vec,
-		camera: { x: number; y: number; z: number },
-		viewportScreenBounds: Box
-	): Vec => {
-		const canvasX = ((point.x + camera.x) * camera.z) / viewportScreenBounds.width
-		const canvasY = 1.0 - ((point.y + camera.y) * camera.z) / viewportScreenBounds.height
-		return new Vec(canvasX, canvasY)
 	}
 }
