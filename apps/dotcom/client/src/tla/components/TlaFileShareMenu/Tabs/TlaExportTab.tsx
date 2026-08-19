@@ -288,6 +288,7 @@ function ExportPreviewImage() {
 				if (cancelled) return
 				const elm = ref.current
 				if (!elm) return
+				// We want to use an image element here so that a user can right click and copy / save / drag the qr code
 				elm.setAttribute('src', src)
 				const sizeElm = rImagePreviewSize.current
 				if (sizeElm) sizeElm.textContent = `${width.toFixed()}×${height.toFixed()}`

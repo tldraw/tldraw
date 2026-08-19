@@ -10,6 +10,8 @@ import { validateSnapshot } from '../../utils/validateSnapshot'
 
 // Create new files based on snapshots. This is used when dropping .tldr files onto the app.
 export async function createFiles(request: IRequest, env: Environment): Promise<Response> {
+	// The data sent from the client will include the data for the new room
+
 	const userId = await getUserIdFromRequest(request, env)
 	if (!userId) {
 		return Response.json({ error: true, message: 'No user' }, { status: 401 })
@@ -19,11 +21,14 @@ export async function createFiles(request: IRequest, env: Environment): Promise<
 	const data = (await request.json()) as CreateFilesRequestBody
 
 	for (const _snapshot of data.snapshots) {
+		// There's a chance the data will be invalid, so we check it first
+		// need to maybe migrate the snapshot
 		const snapshotResult = validateSnapshot(_snapshot)
 		if (!snapshotResult.ok) {
 			return Response.json({ error: true, message: snapshotResult.error }, { status: 400 })
 		}
 
+		// Create the new snapshot
 		const snapshot: RoomSnapshot = {
 			schema: createTLSchema().serialize(),
 			clock: 0,
@@ -34,7 +39,10 @@ export async function createFiles(request: IRequest, env: Environment): Promise<
 			tombstones: {},
 		}
 
+		// Create a new slug for the room
 		const newSlug = uniqueId()
+
+		// Bang the snapshot into the database
 		await env.ROOMS.put(getR2KeyForRoom({ slug: newSlug, isApp: true }), JSON.stringify(snapshot))
 
 		slugs.push(newSlug)

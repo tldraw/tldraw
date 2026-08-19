@@ -21,6 +21,7 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 
 	try {
 		return await db.transaction().execute(async (tx) => {
+			// First, validate the invite token and get workspace info
 			const workspace = await getJoinableWorkspaceFromInvite(tx, token)
 
 			if (!workspace) {
@@ -33,6 +34,7 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 				)
 			}
 
+			// Check if user is already a member of this group (with row lock to prevent race conditions)
 			const existingMember = await tx
 				.selectFrom('group_user')
 				.select('userId')
@@ -50,6 +52,7 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 				} satisfies AcceptInviteResponseBody)
 			}
 
+			// Get the user's information for the group_user record
 			const user = await tx
 				.selectFrom('user')
 				.select(['name', 'color', 'flags'])
@@ -65,7 +68,7 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 					{ status: 404 }
 				)
 			}
-			// New groups go at the top, so find the current lowest index and generate one below it.
+			// Get the lowest index to place new group at the top
 			const lowestIndexGroup = await sql<{
 				index: string
 				// kysely doesn't support 'collate' in the query builder, so we have to use raw sql
@@ -74,9 +77,12 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 				tx
 			)
 
+			// Use tldraw's fractional indexing to place new group at the top
 			const lowestIndex = lowestIndexGroup.rows[0]?.index as IndexKey | undefined
+			// Generate a new index below the current lowest (to place at top); first group gets 'a1'
 			const index = lowestIndex ? getIndexBelow(lowestIndex) : ('a1' as IndexKey)
 
+			// Add user to the group
 			await tx
 				.insertInto('group_user')
 				.values({

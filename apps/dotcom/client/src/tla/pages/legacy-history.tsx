@@ -10,6 +10,12 @@ import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { toggleSidebar } from '../utils/local-session-state'
 
+/*
+History here should work in an identical way to its previous implementation.
+*/
+
+// todo: Add top bar for anon users (branding, sign in, etc)
+
 const { loader, useData } = defineLoader(async (args) => {
 	const boardId = args.params.boardId
 
@@ -41,6 +47,7 @@ export function Component({ error: _error }: { error?: unknown }) {
 
 	useEffect(() => {
 		if (error && userId) {
+			// force sidebar open
 			toggleSidebar(true)
 		}
 	}, [error, userId])

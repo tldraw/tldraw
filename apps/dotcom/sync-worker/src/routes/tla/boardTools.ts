@@ -61,6 +61,8 @@ export const BOARD_NOT_FOUND_MESSAGE =
 	'No board was found with this id, or this account does not have access to it. Boards you own, boards shared with you via link, and published boards are supported.'
 export const BOARD_EMPTY_MESSAGE = 'This board has no saved content yet.'
 
+// --- Reading a snapshot -------------------------------------------------------------------------
+
 /** What one shape's measure render produced: its page bounds, plus the text its ShapeUtil reported. */
 export interface ShapeMeasurement extends ClusterBounds {
 	text?: string
@@ -107,6 +109,8 @@ export function getShapesOnPage(snapshot: RoomSnapshot, pageId: string): TLShape
 		return false
 	})
 }
+
+// --- Input parsing ------------------------------------------------------------------------------
 
 export function parseBoardInfoInput(input: unknown): { boardId: string } {
 	const value = requireArgumentsObject(input)
@@ -217,6 +221,8 @@ export function describePageSelector(selector: PageSelector) {
 	return selector.kind === 'id' ? `"${selector.id}"` : String(selector.ordinal)
 }
 
+// --- Tool results -------------------------------------------------------------------------------
+
 export interface ToolResult {
 	content: Array<{ type: 'text'; text: string } | { type: 'image'; data: string; mimeType: string }>
 	isError?: boolean
@@ -243,6 +249,8 @@ export function toolJsonResult(value: unknown): ToolResult {
 		content: [{ type: 'text', text: JSON.stringify(value) }],
 	}
 }
+
+// --- The tools ----------------------------------------------------------------------------------
 
 export function getBoardInfo(snapshot: RoomSnapshot): ToolResult {
 	const pages = enumerateBoardPages(snapshot)
@@ -411,6 +419,8 @@ function toReadableShape(shape: TLShapeWithPlainText) {
 	return { ...rest, props }
 }
 
+// --- Tool definitions ---------------------------------------------------------------------------
+
 export function getToolDefinitions() {
 	return [
 		getBoardInfoToolDefinition(),
@@ -533,7 +543,9 @@ function getClusterScreenshotToolDefinition() {
 	}
 }
 
-// The JSON-RPC envelope, shared so that a local harness and the deployed Worker present the same
+// --- JSON-RPC -----------------------------------------------------------------------------------
+//
+// The protocol envelope, shared so that a local harness and the deployed Worker present the same
 // handshake — including `instructions`, which a model reads before it calls anything.
 
 export type JsonRpcId = string | number | null

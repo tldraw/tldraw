@@ -16,6 +16,8 @@ import {
 } from './tlaSchema'
 import { ZErrorCode } from './types'
 
+// ---- helpers ----
+
 function makeUser(overrides: Partial<TlaUser> & { id: string }): TlaUser {
 	return {
 		name: 'Test',
@@ -135,6 +137,7 @@ function makeFileState(
 	}
 }
 
+// Table storage keyed by table name
 interface TableStore {
 	user: TlaUser[]
 	file: TlaFile[]
@@ -172,20 +175,28 @@ function makeStore(tables: Partial<TableStore>): TableStore {
 }
 
 /**
- * A mock Transaction that resolves zql builder queries against in-memory data. It walks the
- * query AST and handles only what the mutators use: `where` with `=`, `!=` and `IN`, `and`/`or`,
- * and `.one()`.
+ * Build a mock Transaction that resolves zql builder queries against in-memory data.
+ *
+ * The `tx.run(query)` API passes an AST, but the builder stores filter info.
+ * We intercept via Proxy so `.where()` chains build up predicates, and
+ * `.one()` / the final run resolves them.
+ *
+ * This is a simplified mock — it handles the subset of queries used by mutators:
+ *   zql.<table>.where(col, '=', val)...one()
+ *   zql.<table>.where(col, '=', val)
  */
 function createMockTx(
 	store: TableStore,
 	opts: { location: 'server' | 'client' } = { location: 'server' }
 ) {
+	// Track mutations for assertions
 	const mutations: Array<{ op: string; table: string; data: any }> = []
 
 	function matchPk(table: keyof TableStore, row: any, data: any) {
 		return TABLE_PKS[table].every((pk) => row[pk] === data[pk])
 	}
 
+	// The mutate object provides insert/update/upsert/delete for each table
 	function makeTableMutator(tableName: keyof TableStore) {
 		return {
 			insert: async (data: any) => {
@@ -254,9 +265,17 @@ function createMockTx(
 	const tx = {
 		location: opts.location,
 		mutate,
+		// tx.run(query) — the query is a builder that carries an AST.
+		// We need to resolve it against our store.
+		// The builder from createBuilder(schema) returns objects with .ast property.
+		// We parse the AST to figure out which table + where clauses + one().
 		run: async (query: any) => {
+			// query is a Query object from createBuilder
+			// It has a `.ast` property
 			const ast = query.ast ?? query
+			// Apply where conditions
 			const rows = applyCondition([...store[ast.table as keyof TableStore]], ast.where)
+			// If the query was `.one()`, return first or null
 			return ast.limit === 1 ? (rows[0] ?? null) : rows
 		},
 	} as unknown as Transaction<TlaSchema>
@@ -275,6 +294,8 @@ function expectForbidden(fn: () => Promise<any>) {
 function expectBadRequest(fn: () => Promise<any>) {
 	return expect(fn()).rejects.toThrow(ZErrorCode.bad_request)
 }
+
+// ---- tests ----
 
 describe('parseFlags / userHasFlag', () => {
 	it('parses comma-separated', () => {

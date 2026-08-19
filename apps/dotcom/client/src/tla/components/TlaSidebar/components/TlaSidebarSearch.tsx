@@ -48,7 +48,9 @@ export function TlaSidebarSearch() {
 		const input = inputRef.current
 		if (input) {
 			input.value = ''
-			// Clicking the X should never leave focus in the search input.
+			// Clear without focusing the field: blur it if it currently has focus,
+			// and leave it blurred if it doesn't. Clicking the X should never pull
+			// focus into the search input.
 			input.blur()
 		}
 		setQuery('')

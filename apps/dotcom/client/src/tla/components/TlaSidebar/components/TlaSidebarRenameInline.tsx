@@ -19,6 +19,7 @@ export function TlaSidebarRenameInline({
 
 	const handleComplete = useCallback(
 		(name: string) => {
+			// Only update the name if there is a name there to update
 			app.updateFile(fileId, { name })
 			trackEvent('rename-file', { name, source })
 			onClose()

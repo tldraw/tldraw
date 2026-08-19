@@ -1,3 +1,5 @@
+/* ---------------------- Menu ---------------------- */
+
 import { FILE_PREFIX, TlaFile, ZErrorCode } from '@tldraw/dotcom-shared'
 import { Fragment, ReactNode, useCallback, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -123,6 +125,7 @@ export function FileItems({
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
 	const homeWorkspaceId = app.getHomeWorkspaceId()
 
+	// Get all workspace memberships (including the home workspace, filtered out below)
 	const workspaceMemberships = useValue(
 		'workspaceMemberships',
 		() => app.getWorkspaceMemberships(),
@@ -179,6 +182,7 @@ export function FileItems({
 			name: getDuplicateName(file, app),
 			createSource: `${FILE_PREFIX}/${fileId}`,
 		})
+		// copy the state too
 		const prevState = app.getFileState(fileId)
 		app.updateFileState(newFileId, {
 			lastSessionState: prevState?.lastSessionState,

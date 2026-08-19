@@ -329,6 +329,7 @@ function LegalTermsAcceptance() {
 	const { addDialog } = useDialogs()
 	const userRef = useRef(user)
 
+	// Keep the ref updated with the latest user
 	useEffect(() => {
 		userRef.current = user
 	}, [user])
@@ -339,7 +340,7 @@ function LegalTermsAcceptance() {
 			if (hasNotAcceptedLegal(currentUser)) {
 				addDialog({
 					component: TlaLegalAcceptance,
-					// Closing without accepting shows it again
+					// If the user closes the dialog and it's not accepted, show it again
 					onClose: maybeShowDialog,
 				})
 			}

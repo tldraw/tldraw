@@ -23,12 +23,13 @@ function getImageDimensionsMeta(meta: ResponseBody | null): {
 }
 
 export async function createAssetFromUrl({ url }: { type: 'url'; url: string }): Promise<TLAsset> {
-	// Fall back to a blank bookmark if the unfurl endpoint fails.
 	let meta: ResponseBody | null = null
 	try {
+		// First, try to get the meta data from our endpoint
 		const fetchUrl = `${BOOKMARK_ENDPOINT}?${new URLSearchParams({ url })}`
 		meta = (await (await fetch(fetchUrl, { method: 'POST' })).json()) as ResponseBody | null
 	} catch (error) {
+		// Otherwise, fallback to a blank bookmark
 		console.error(error)
 	}
 

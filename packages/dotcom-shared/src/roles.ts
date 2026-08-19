@@ -1,9 +1,22 @@
 import { Capability } from './capabilities'
 
 /**
- * Workspace authorization asks `can(role, capability)` — never `role === 'owner'` — so what a role
- * means lives only in this table. The role is stored as a plain string (`group_user.role`);
- * capabilities are never persisted. Today owners differ from members only by `manageWorkspace`.
+ * Workspace authorization, expressed as capabilities rather than role names.
+ *
+ * Authorization asks `can(role, capability)` — never `role === 'owner'` — so the
+ * meaning of a role lives in exactly one place: the `roles` table below. Read a
+ * role's list to see what it can do; edit the list, or add a role, to change it.
+ *
+ * The role is stored in the DB as a plain string (`group_user.role`);
+ * capabilities are never persisted — they're derived from that string here.
+ */
+
+/**
+ * What each role can do — the single source of truth. The role name is the key,
+ * and {@link Role} is derived from these keys. Today the only difference between
+ * `member` and `owner` is the `manageWorkspace` capability: owners administer the
+ * workspace (invite link, members' roles, name, deletion); members only work with
+ * its files.
  */
 const roles = {
 	member: ['accessFiles', 'addFiles', 'removeFiles'],

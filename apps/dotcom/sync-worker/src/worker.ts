@@ -174,6 +174,7 @@ const router = createRouter<Environment>()
 	.post('/app/invite/:token/accept', acceptInvite)
 	.all('/app/__test__/*', testRoutes.fetch)
 	.get('/app/__debug-tail', (req, env) => {
+		// upgrade to websocket
 		if (isDebugLogging(env) && req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
 			return getLogger(env).fetch(req)
 		}
@@ -195,6 +196,7 @@ const router = createRouter<Environment>()
 	.all('/app/social-preview/:prefix/:slug/image', getOgImage)
 	.get('/app/thumbnail-render/snapshot', getThumbnailSnapshot)
 	.post('/app/thumbnail-render/result', putThumbnailRenderResult)
+	// end app
 	.all('/ph/*', (req) => {
 		const url = new URL(req.url)
 		const proxied = new Request(

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { AdminButton } from './AdminButton'
 import styles from './admin.module.css'
 
+// Helper component for structured data display.
 export function StructuredDataDisplay({ data }: { data: object }) {
 	const [copied, setCopied] = useState(false)
 

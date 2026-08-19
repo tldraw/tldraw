@@ -10,6 +10,7 @@ import {
 	useTranslation,
 } from 'tldraw'
 
+/** @public */
 export function shouldOverrideDocument(addDialog: TLUiDialogsContextType['addDialog']) {
 	return new Promise<boolean>((resolve) => {
 		addDialog({

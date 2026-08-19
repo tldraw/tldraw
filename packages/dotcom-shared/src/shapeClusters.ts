@@ -98,7 +98,9 @@ export function getShapeClusters(
 	}))
 }
 
-// Keyword labelling is c-TF-IDF: cheap, embedding-free cluster naming — no model call, just counting.
+// --- Keyword labelling (c-TF-IDF) ----------------------------------------------------------------
+//
+// Cheap, embedding-free cluster naming: no model call, no network, just counting.
 //
 // Each cluster is pooled into one bag of terms and scored by term frequency inside the cluster,
 // discounted by how many clusters contain the term. The discount is the whole point: a word in every

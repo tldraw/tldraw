@@ -45,10 +45,13 @@ export const TlaSidebar = memo(function TlaSidebar() {
 	}, [trackEvent])
 
 	const handleOverlayClick = useCallback(() => {
-		// The sidebar only hides (CSS transform), it doesn't unmount, so its portaled menus would
-		// otherwise stay open over the canvas. Close them scoped to this editor plus the global
-		// switcher id: an arg-less clearOpenMenus() would also evict still-mounted SDK dialogs from
-		// the registry, leaving the editor's menu-gated behavior thinking nothing is open.
+		// The sidebar only hides (CSS transform), it doesn't unmount, so its portaled menus
+		// (workspace switcher, file/user menus) would otherwise stay open over the canvas once the
+		// sidebar is closed. Close them — scoped to this editor's menus plus the global switcher id.
+		// The scope matters: open SDK dialogs register in the same tlmenus registry under the 'tla'
+		// context, and an arg-less clearOpenMenus() would evict them while they stay mounted, leaving
+		// the editor's menu-gated behavior (canvas click-capture, shortcuts, clipboard guards)
+		// thinking nothing is open.
 		if (editor) tlmenus.clearOpenMenus(editor.contextId)
 		tlmenus.deleteOpenMenu('sidebar-workspace-switcher')
 		toggleMobileSidebar(false)

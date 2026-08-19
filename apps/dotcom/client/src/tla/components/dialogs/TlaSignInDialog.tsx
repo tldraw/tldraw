@@ -330,6 +330,7 @@ function TlaVerificationCodeStep({
 
 			setState((s) => ({ ...s, error: '', code: next }))
 
+			// If the length is 6, we need to submit the code
 			if (next.length < 6) return
 
 			setState((s) => ({ ...s, isSubmitting: true, error: null }))

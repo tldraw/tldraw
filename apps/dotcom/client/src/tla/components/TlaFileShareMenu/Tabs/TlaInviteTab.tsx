@@ -54,6 +54,8 @@ export function TlaInviteTab({ fileId }: { fileId: string }) {
 	)
 }
 
+/* ---------------------- Share --------------------- */
+
 function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: string }) {
 	const app = useApp()
 	const user = useTldrawCurrentUser()

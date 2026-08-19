@@ -17,6 +17,8 @@ export function TlaAnonCopyLinkTab() {
 	)
 }
 
+/* ---------------------- Share --------------------- */
+
 function TlaAnonCopyLinkButton({ url }: { url: string }) {
 	const editor = useEditor()
 	const trackEvent = useTldrawAppUiEvents()

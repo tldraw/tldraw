@@ -36,6 +36,7 @@ async function fetchTimestampsForPrefix(
 		cursor = batch.truncated ? batch.cursor : undefined
 	} while (cursor && timestamps.length < (limit || Infinity))
 
+	// Sort
 	return timestamps.sort((a, b) => b.localeCompare(a))
 }
 

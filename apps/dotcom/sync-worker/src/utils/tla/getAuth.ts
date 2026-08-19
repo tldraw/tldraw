@@ -23,9 +23,11 @@ export function getClerkClient(env: Environment) {
 
 function getAuthorizedParties(env: Environment): string[] {
 	const parties = ['https://tldraw.com', 'https://www.tldraw.com', 'https://staging.tldraw.com']
+	// Only include localhost in non-production environments
 	if (env.TLDRAW_ENV !== 'production') {
 		parties.push('http://localhost:3000')
 	}
+	// For preview envs, add the preview domain
 	// WORKER_NAME is like "pr-7731-tldraw-multiplayer"
 	if (env.TLDRAW_ENV === 'preview' && env.WORKER_NAME) {
 		const previewId = env.WORKER_NAME.replace(/-tldraw-multiplayer$/, '')
@@ -145,18 +147,27 @@ export async function requireWriteAccessToFile(
 		if (!file) {
 			throw new StatusError(404, 'File not found')
 		}
+
+		// If the user is the owner of the file, they have write access
 		if (file.ownerId === auth.userId) return
+
+		// If the file is owned by a group, check the user can access its files
 		if (file.owningGroupId) {
 			const role = await getRole(db, auth.userId, file.owningGroupId)
 			if (can(role, 'accessFiles')) return
 		}
+
+		// If the file is not shared, the user does not have write access
 		if (!file.shared) {
 			throw new StatusError(403, 'File is not shared')
 		}
+
+		// If the file is shared but not for editing, deny access
 		if (file.sharedLinkType !== 'edit') {
 			throw new StatusError(403, 'File is shared but not for editing')
 		}
 	} finally {
+		// Ensure database connection is properly closed
 		await db.destroy()
 	}
 }

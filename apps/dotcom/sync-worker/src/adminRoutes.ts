@@ -591,6 +591,7 @@ export const adminRoutes = createRouter<Environment>()
 		return new Response(
 			new ReadableStream({
 				async start(controller) {
+					// Helper function to send progress events
 					const encoder = new TextEncoder()
 					const send = (type: string, step: string, message: string, details?: any) => {
 						const event = { type, step, message, timestamp: Date.now(), details }
@@ -603,10 +604,12 @@ export const adminRoutes = createRouter<Environment>()
 						await performUserDeletion(userRow, env, (step, message, details) =>
 							send('progress', step, message, details)
 						)
+						// Send completion event
 						send('complete', 'finished', 'User deletion completed successfully', {
 							userId: userRow.id,
 						})
 					} catch (error) {
+						// Send error event
 						send(
 							'error',
 							'error',
@@ -1026,15 +1029,30 @@ async function hardDeleteAppFile({
 	// DELETE FROM file below, delivered via the post-delete poke() (sweep backstop ~30s); the
 	// soft-delete row's effect is staleness-guarded, so it skips harmlessly if it runs after
 	// the row is gone.
+	// clean up assets eagerly
 	const assets = await pg.selectFrom('asset').where('fileId', '=', file.id).selectAll().execute()
 	for (const asset of assets) {
 		await env.UPLOADS.delete(asset.objectName)
-		// TODO: bust the edge caches for the deleted asset. caches.default.delete() only clears
-		// the local datacenter, so this needs the REST API or a KV denylist consulted on serve.
+		// TODO: bust caches
+		// it's tricky though. calling caches.default.delete() will only delete the cache entry
+		// in the local datacenter so we'd need to do a global cache bust with the REST API
+		// either that or maintain a KV store of deleted assets and check that before serving
+		// could maybe use a bloom filter if that hurts perf too much.
+		// although how would the bloom filter sync across workers 🤔
+		// since cache entries last a year we could store a timestamp in the KV and clean it periodically
+		// or just let it grow forever, it's not that big.
+
+		// const cacheUrl = new URL(`${appOrigin}/app/uploads/${asset.objectName}`)
+		// console.log('Busting our cache entry', asset.objectName)
+		// await caches.default.delete(cacheUrl)
+		// console.log('Busting resize worker cache entry')
+		// await env.IMAGE_RESIZE_WORKER.bustCache(cacheUrl.toString())
 	}
+	// hard delete file (this will trigger a cascade delete of all remaining related records & R2 objects)
 	await pg.deleteFrom('file').where('id', '=', file.id).execute()
-	// Best-effort nudge so the delete's effects land promptly; the sweep backstops it, so a poke
-	// failure must not fail the request after the delete committed.
+	// Nudge the outbox so the delete's effects land promptly instead of waiting for the 30s
+	// alarm sweep. poke() is cheap: it just schedules an alarm. Best-effort nudge: the sweep
+	// backstops it, so a poke failure must not fail the request after the delete committed.
 	await getFileEffectProcessor(env)
 		.poke()
 		.catch(() => {})
@@ -1090,15 +1108,19 @@ async function performUserDeletion(
 ) {
 	const pg = createPostgresConnectionPool(env, '/app/admin/delete_user')
 
-	// Groups the user is the sole owner of go with them: their home group (group.id = user.id)
-	// and any other group with no second owner. Co-owned groups only lose the membership.
+	// Step 1: Find all groups the user is the only owner of
+	// This includes their home group (group.id = user.id) and any other groups they solely own
 	sendProgress?.('groups', 'Finding groups to delete...')
+
+	// Get all groups where this user is an owner
 	const userOwnedGroupMemberships = await pg
 		.selectFrom('group_user')
 		.where('userId', '=', userRow.id)
 		.where('role', '=', 'owner')
 		.select('groupId')
 		.execute()
+
+	// Check if this user is the only owner of this group
 	const ownerCounts = userOwnedGroupMemberships.length
 		? await pg
 				.selectFrom('group_user')
@@ -1121,7 +1143,7 @@ async function performUserDeletion(
 		groupIds: groupsToDelete,
 	})
 
-	// Soft-deleting the groups lets cleanup_deleted_group_trigger soft-delete their files first.
+	// Step 2: Soft delete groups (the cleanup_deleted_group_trigger will soft delete their files)
 	const filesToDelete: TlaFile[] = []
 	if (groupsToDelete.length > 0) {
 		sendProgress?.('groups', 'Soft deleting groups...')
@@ -1144,25 +1166,37 @@ async function performUserDeletion(
 		await sleep(3000)
 	}
 
+	// Now hard delete all files
 	for (const file of filesToDelete) {
 		sendProgress?.('files', `Hard deleting file '${file.name}' (${file.id})`)
 		await hardDeleteAppFile({ pg, file, env })
 	}
 
 	sendProgress?.('database', 'Cleaning up database records...')
+
+	// Step 5: Hard delete groups and user in a transaction
 	await pg.transaction().execute(async (tx) => {
-		// asset.userId is a nullable FK, so it doesn't cascade with the user row
+		// Clean up assets that reference this user (nullable foreign key)
 		await tx.deleteFrom('asset').where('userId', '=', userRow.id).execute()
+
+		// Remove user from all groups they're a member of (including ones they don't solely own)
 		await tx.deleteFrom('group_user').where('userId', '=', userRow.id).execute()
+
+		// Hard delete the groups (this will cascade delete group_user and group_file entries)
 		if (groupsToDelete.length > 0) {
 			await tx.deleteFrom('group').where('id', 'in', groupsToDelete).execute()
 		}
+
+		// Delete the user row (this will cascade delete any remaining related records)
 		await tx.deleteFrom('user').where('id', '=', userRow.id).execute()
 	})
 
 	sendProgress?.('clerk', 'Deleting user from Clerk...')
+
+	// Delete user from Clerk
 	await getClerkClient(env).users.deleteUser(userRow.id)
 
+	// Delete user from analytics service
 	sendProgress?.('analytics', 'Deleting user from analytics...')
 	await deleteUserFromAnalytics(userRow.id, env, sendProgress)
 }

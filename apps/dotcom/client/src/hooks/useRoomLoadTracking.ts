@@ -20,11 +20,13 @@ export function useRoomLoadTracking() {
 			const meta = editor.getDocumentSettings().meta
 			const storagePercentage =
 				typeof meta.storageUsedPercentage === 'number' ? meta.storageUsedPercentage : 0
+			// Calculate estimated file size based on storage percentage
 			estimatedFileSizeMB = (storagePercentage / 100) * ROOM_SIZE_LIMIT_MB
 		} catch (error) {
 			console.warn('Failed to get storage percentage for analytics:', error)
 		}
 
+		// Send analytics data to PostHog
 		trackEvent('room_load_duration', {
 			load_time_ms: loadTime,
 			file_size_bucket: getFileSizeBucket(estimatedFileSizeMB),

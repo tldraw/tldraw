@@ -388,8 +388,13 @@ export class TLFileDurableObject extends DurableObject {
 		return this._room
 	}
 
+	// For storage
 	storage: DurableObjectStorage
+
+	// For persistence
 	private _supabaseClient: SupabaseClient | undefined
+
+	// For analytics
 	measure: Analytics | undefined
 	readonly supabaseTable: string
 	readonly r2: {
@@ -521,6 +526,7 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
+	// Handle a request to the Durable Object.
 	override async fetch(req: IRequest) {
 		const sentry = createSentry(this.state, this.env, req)
 
@@ -541,6 +547,8 @@ export class TLFileDurableObject extends DurableObject {
 			})
 		}
 	}
+
+	// --- WebSocket hibernation API handlers ---
 
 	private getSocketAttachment(ws: WebSocket): SocketAttachment | null {
 		return ws.deserializeAttachment() as SocketAttachment | null
@@ -812,6 +820,7 @@ export class TLFileDurableObject extends DurableObject {
 				}
 				rateLimitTimer.report('on_request_rate_limit')
 
+				// Check if user has owner access (directly or via group membership)
 				const groupCheckTimer = this.timer()
 				const hasOwnerAccess = await this.hasOwnerAccess(file, auth?.userId)
 				groupCheckTimer.report('on_request_group_check')
@@ -1619,6 +1628,7 @@ export class TLFileDurableObject extends DurableObject {
 						// alarm write per persist, not awaited here (see scheduleOgRender), so a slow or
 						// failed write cannot hold up a persist.
 						this.scheduleOgRender()
+						// Store the clock in DO storage so we can compare against SQLite on next load.
 						if (this.persistenceBad) {
 							this.broadcastPersistenceEvent({ type: 'persistence_good' })
 							this.persistenceBad = false
@@ -1688,11 +1698,14 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	private async _uploadSnapshotToR2(snapshot: RoomSnapshot, key: string) {
+		// Upload to rooms bucket first
 		const roomSizeMB = await this._uploadSnapshotToBucket(this.r2.rooms, snapshot, key)
+		// Update storage percentage
 		if (roomSizeMB !== null) {
 			await this.setRoomStorageUsedPercentage(roomSizeMB)
 		}
 
+		// Then upload to version cache
 		const versionKey = `${key}/${new Date().toISOString()}`
 		await this._uploadSnapshotToBucket(this.r2.versionCache, snapshot, versionKey)
 	}
@@ -2521,7 +2534,8 @@ export class TLFileDurableObject extends DurableObject {
 				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
 				continue
 			}
-			// the owner is never kicked, even when the file stops being shared
+			// allow the owner to stay connected
+			// Check if user owns the file directly
 			if (file.ownerId && session.meta.userId === file.ownerId) continue
 
 			const canAccessFiles = async () => {
@@ -2582,8 +2596,11 @@ export class TLFileDurableObject extends DurableObject {
 				await deleteAllObjectsWithPrefix(this.env.ROOM_SNAPSHOTS, publishedPrefixKey)
 			}
 
+			// remove edit history
 			const r2Key = getR2KeyForRoom({ slug: id, isApp: true })
 			await deleteAllObjectsWithPrefix(this.env.ROOMS_HISTORY_EPHEMERAL, r2Key)
+
+			// remove main file
 			await this.env.ROOMS.delete(r2Key)
 
 			// The board's thumbnails go with it. Both keys, because they are kept for different reasons
@@ -2698,7 +2715,10 @@ export class TLFileDurableObject extends DurableObject {
 		const slug = this.documentInfo.slug
 		const roomKey = getR2KeyForRoom({ slug, isApp: false })
 
+		// remove edit history
 		await deleteAllObjectsWithPrefix(this.env.ROOMS_HISTORY_EPHEMERAL, roomKey)
+
+		// remove main file
 		await this.env.ROOMS.delete(roomKey)
 
 		return true

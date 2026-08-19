@@ -48,7 +48,7 @@ export function useExtraDragIconOverrides() {
 function toPoints(raw: number[]): VecModel[] {
 	const points: VecModel[] = []
 	for (let i = 0; i < raw.length; i += 2) {
-		points.push({ x: raw[i], y: raw[i + 1], z: 0.5 })
+		points.push({ x: raw[i] /* flipped horizontally */, y: raw[i + 1], z: 0.5 })
 	}
 	return points
 }

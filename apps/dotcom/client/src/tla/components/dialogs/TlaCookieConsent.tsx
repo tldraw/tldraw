@@ -22,8 +22,11 @@ async function shouldRequireConsent(): Promise<boolean> {
 			}
 		}
 	} catch (error) {
+		// Fetch failed or timed out - will default to requiring consent
 		console.warn('Consent check failed, defaulting to requiring consent:', error)
 	}
+
+	// Conservative default: require consent
 	return true
 }
 
@@ -38,11 +41,14 @@ export const TlaCookieConsent = memo(function TlaCookieConsent() {
 	const [requiresConsent, setRequiresConsent] = useState<boolean | null>(null)
 	const [animationComplete, setAnimationComplete] = useState(false)
 
+	// Check if consent is required based on user's location
 	useEffect(() => {
 		if (consent !== null) return
 
 		shouldRequireConsent().then((value) => {
 			setRequiresConsent(value)
+
+			// Only update consent if it's not required
 			if (!value) {
 				updateConsent(true /* opted-in b/c region doesn't require explicit consent */)
 			}
@@ -67,6 +73,10 @@ export const TlaCookieConsent = memo(function TlaCookieConsent() {
 		})
 	}, [addDialog])
 
+	// Don't show banner if:
+	// - User has already made a consent choice
+	// - We haven't determined if consent is required yet
+	// - Consent is not required in user's region
 	if (consent !== null || !requiresConsent) return null
 
 	return (

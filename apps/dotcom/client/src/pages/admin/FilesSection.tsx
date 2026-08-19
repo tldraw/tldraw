@@ -484,6 +484,7 @@ function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 				return
 			}
 
+			// Create a blob from the response and trigger download
 			const blob = await res.blob()
 			const url = window.URL.createObjectURL(blob)
 			const a = document.createElement('a')

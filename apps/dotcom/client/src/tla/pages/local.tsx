@@ -37,13 +37,14 @@ export function Component() {
 			// Run pending import from URL (set by /import?url=... redirect)
 			const pendingImportUrl = location.state?.importUrl
 			if (pendingImportUrl) {
-				// drop importUrl from location state so the import doesn't rerun after navigation
+				// need to remove importUrl from location state so it doesn't persist after the import
 				const state = omit(location.state, ['importUrl'])
 				const result = await importFromUrl(app, pendingImportUrl)
 				if (result.ok) {
 					navigate(routes.tlaFile(result.fileId), { replace: true, state })
 					return
 				}
+				// just update the state without navigating anywhere
 				navigate('.', { replace: true, state })
 				if (!result.toastAlreadyShown) {
 					app.toasts?.addToast({
@@ -71,8 +72,10 @@ export function Component() {
 			const mostRecentFileId = app.getMostRecentFileId()
 			if (!mostRecentFileId) {
 				const result = await app.createFile()
-				// createFile only fails at the file limit, which can't happen for a user with no files
+
 				assert(result.ok, 'Failed to create file')
+				// result is only false if the user reached their file limit so
+				// we don't need to handle that case here since they have no files
 				navigate(routes.tlaFile(result.value.fileId), { replace: true, state: location.state })
 				return
 			}

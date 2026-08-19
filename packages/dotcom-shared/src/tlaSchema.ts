@@ -322,7 +322,8 @@ const groupFileRelationships = relationships(group_file, ({ one, many }) => ({
 	}),
 }))
 
-// No author relationship: author info is denormalized onto the comment row (see the table).
+// No author relationship — author info comes from the denormalized authorName/authorColor/
+// authorAvatar columns (see the comment table definition).
 const commentRelationships = relationships(comment, ({ one, many }) => ({
 	file: one({
 		sourceField: ['fileId'],
@@ -569,6 +570,8 @@ export type TlaCommentThread = Row<typeof schema.tables.comment_thread>
 export type TlaCommentRead = Row<typeof schema.tables.comment_read>
 export type TlaCommentMention = Row<typeof schema.tables.comment_mention>
 export type TlaCommentReaction = Row<typeof schema.tables.comment_reaction>
+
+// Permissions are now handled via Synced Queries in queries.ts
 
 // No feature flags are currently defined. The user's `flags` column is kept as a
 // free-form, comma/space-separated string (see parseFlags/userHasFlag); to add a flag,

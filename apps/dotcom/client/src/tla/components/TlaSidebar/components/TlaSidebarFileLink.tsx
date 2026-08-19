@@ -32,6 +32,7 @@ const ACTIVE_FILE_LINK_ID = 'tla-active-file-link'
 let preventScrollOnNavigation = false
 
 function scrollActiveFileLinkIntoView() {
+	// Check if we should prevent scrolling due to sidebar click
 	if (preventScrollOnNavigation) return
 	document
 		.getElementById(ACTIVE_FILE_LINK_ID)
@@ -43,6 +44,7 @@ function scrollActiveFileLinkIntoView() {
 function setPreventScrollOnNavigation(value: boolean) {
 	preventScrollOnNavigation = value
 	if (value) {
+		// Clear the flag after a short delay to allow for immediate navigation
 		setTimeout(() => {
 			preventScrollOnNavigation = false
 		}, 100)
@@ -253,6 +255,7 @@ export function TlaSidebarFileLinkInner({
 					if (isActive && !(event.ctrlKey || event.metaKey)) {
 						preventDefault(event)
 					} else {
+						// Set flag to prevent scrolling when navigation occurs due to sidebar click
 						setPreventScrollOnNavigation(true)
 					}
 					if (isSidebarOpenMobile) {

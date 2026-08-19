@@ -79,6 +79,7 @@ export const healthCheckRoutes = createRouter<Environment>()
 		const failures: string[] = []
 		const okDetails: string[] = []
 		try {
+			// db-size
 			try {
 				const thresholdGb = parseFloat(env.HEALTH_CHECK_DB_SIZE_THRESHOLD_GB ?? '4')
 				const result = await sql<{ size_bytes: string }>`
@@ -94,6 +95,7 @@ export const healthCheckRoutes = createRouter<Environment>()
 				failures.push('db-size: query failed')
 			}
 
+			// changelog-size
 			try {
 				const thresholdMb = parseFloat(env.HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB ?? '1024')
 				const result = await sql<{ size_bytes: string }>`
@@ -109,6 +111,7 @@ export const healthCheckRoutes = createRouter<Environment>()
 				failures.push('changelog-size: query failed')
 			}
 
+			// wal-size
 			try {
 				const thresholdMb = parseFloat(env.HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB ?? '1024')
 				const result = await sql<{
@@ -140,6 +143,7 @@ export const healthCheckRoutes = createRouter<Environment>()
 				failures.push('wal-size: query failed')
 			}
 
+			// replication-slots
 			try {
 				const result = await sql<{
 					slot_name: string
@@ -183,6 +187,7 @@ export const healthCheckRoutes = createRouter<Environment>()
 		const failures: string[] = []
 		const okDetails: string[] = []
 		try {
+			// outbox-parked
 			try {
 				const result = await sql<{ parked: string }>`
 					SELECT count(*) FILTER (WHERE attempts >= ${sql.raw(String(MAX_ATTEMPTS))}) AS parked

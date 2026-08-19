@@ -146,7 +146,10 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			const cleanupPerf = trackPerformance(editor)
 			;(window as any).app = app
 			;(window as any).editor = editor
+			// Register the editor globally
 			globalEditor.set(editor)
+
+			// Register the external asset handler
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
 
 			if (!app) {

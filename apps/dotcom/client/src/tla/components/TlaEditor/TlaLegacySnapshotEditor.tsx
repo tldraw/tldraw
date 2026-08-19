@@ -70,6 +70,7 @@ function TlaEditorInner({
 		(editor: Editor) => {
 			;(window as any).app = editor
 			;(window as any).editor = editor
+			// Register the editor globally
 			globalEditor.set(editor)
 			editor.updateInstanceState({ isReadonly: true })
 			setIsReady()

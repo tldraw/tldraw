@@ -183,6 +183,7 @@ export class TldrawApp {
 	changes: Map<Atom<any, unknown>, any> = new Map()
 	changesFlushed = null as null | ReturnType<typeof promiseWithResolve>
 
+	// Track new room creation timestamps and sources
 	private newRoomCreationStartTimes: Map<string, { startTime: number; source: string }> = new Map()
 
 	private signalizeQuery<TReturn>(name: string, query: any): Signal<TReturn> {
@@ -241,6 +242,8 @@ export class TldrawApp {
 		this.trackEvent = trackEvent
 		this.getToken = getToken
 		this.isCommentingEnabled = shouldEnableCommenting(flags, email).value
+		// Exposed as __test__triggerClientTooOld below so e2e can exercise the real recovery UI
+		// without a live schema/protocol mismatch against zero-cache.
 		if (window.navigator.webdriver) {
 			this.__test__triggerClientTooOld = () => onClientTooOld()
 		}
@@ -463,6 +466,7 @@ export class TldrawApp {
 
 	dispose() {
 		this.disposables.forEach((d) => d())
+		// this.store.dispose()
 	}
 
 	getUser() {
@@ -536,6 +540,7 @@ export class TldrawApp {
 		for (const file of unpinned) {
 			if (retainedOrdering.some((f) => f.fileId === file.fileId)) continue
 
+			// For new files, use current updatedAt
 			const state = this.getFileState(file.fileId)
 			newOrdering.push({
 				fileId: file.fileId,
@@ -543,11 +548,14 @@ export class TldrawApp {
 			})
 		}
 
+		// Sort by date (most recent first) but only for new ordering
 		newOrdering.sort((a, b) => b.date - a.date)
 
 		const nextOrdering = [...newOrdering, ...retainedOrdering]
+		// Store the ordering for next time
 		this.lastWorkspaceFileOrderings.set(workspaceId, nextOrdering)
 
+		// Return the actual file objects in the stable order
 		return pinned
 			.map((f) => ({ fileId: f.fileId, isPinned: f.index !== null, date: f.file.updatedAt }))
 			.concat(nextOrdering.map((f) => ({ fileId: f.fileId, isPinned: false, date: f.date })))
@@ -737,6 +745,9 @@ export class TldrawApp {
 		return Result.ok({ fileId })
 	}
 
+	/**
+	 * Get and remove the creation start time and source for a file (used for tracking new room creation duration)
+	 */
 	getAndClearNewRoomCreationStartTime(
 		fileId: string
 	): { startTime: number; source: string } | null {
@@ -747,6 +758,9 @@ export class TldrawApp {
 		return creationData
 	}
 
+	/**
+	 * Store new room creation timing data with analytics-friendly source mapping
+	 */
 	private storeNewRoomCreationTracking(
 		fileId: string,
 		createSource: string | null,
@@ -768,6 +782,7 @@ export class TldrawApp {
 			analyticsSource = 'other'
 		}
 
+		// Store the creation start time and source for tracking
 		this.newRoomCreationStartTimes.set(fileId, {
 			startTime,
 			source: analyticsSource,
@@ -833,9 +848,10 @@ export class TldrawApp {
 		const file = this.getFile(fileId)
 		if (!file) throw Error(`No file with that id`)
 
-		// Bake in the fallback name so the published copy has one
+		// We're going to bake the name of the file, if it's undefined
 		const name = this.getFileName(file)
 
+		// Optimistic update
 		this.z.mutate.file.update({
 			id: fileId,
 			name,
@@ -880,6 +896,7 @@ export class TldrawApp {
 
 		if (!file.published) return
 
+		// Optimistic update
 		this.z.mutate.file.update({
 			id: fileId,
 			published: false,
@@ -890,6 +907,7 @@ export class TldrawApp {
 	 * Remove a user's file states for a file and delete the file if the user is the owner of the file.
 	 */
 	async deleteOrForgetFile(fileId: string, workspaceId: string = this.getHomeWorkspaceId()) {
+		// Optimistic update, remove file and file states
 		await this.z.mutate.removeFileFromWorkspace({ fileId, workspaceId }).client
 	}
 
@@ -982,6 +1000,7 @@ export class TldrawApp {
 		// of the store... but we should probably identify that better.
 
 		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
+		// Get initial token before creating Zero instance
 		const initialZeroToken = await opts.getZeroToken()
 		const app = new TldrawApp(
 			opts.userId,
@@ -1273,6 +1292,7 @@ export class TldrawApp {
 			await sleep(100)
 		}
 
+		// Clear any existing ordering for this new workspace to get fresh ordering
 		this.lastWorkspaceFileOrderings.delete(payload.workspaceId)
 
 		if (!this.navigateToWorkspaceFiles(payload.workspaceId)) {

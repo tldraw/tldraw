@@ -99,6 +99,7 @@ function TlaEditorInner({
 				;(window as any).app = editor
 				;(window as any).editor = editor
 			}
+			// Register the editor globally
 			globalEditor.set(editor)
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
 			setIsReady()

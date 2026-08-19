@@ -9,14 +9,21 @@ import { useApp } from '../tla/hooks/useAppState'
 import { useSignUpTracking } from '../tla/hooks/useSignUpTracking'
 import { getCurrentFlags, hasResolvedFlagsOnce } from '../tla/utils/FeatureFlagPoller'
 
+// Local storage key for cookie consent
 export const COOKIE_CONSENT_KEY = 'tldraw_cookie_consent'
 
+// Cookie consent structure
 interface CookieConsent {
 	analytics: boolean
+	// Future consent types can be added here
+	// marketing?: boolean
+	// functional?: boolean
 }
 
+// Cookie consent atom - stores the full consent object
 export const cookieConsent = atom<CookieConsent | null>('cookie consent', getStoredCookieConsent())
 
+// React to changes in the atom and sync with localStorage
 react('sync cookie consent to localStorage', () => {
 	const consent = cookieConsent.get()
 	if (consent !== null) {
@@ -28,6 +35,7 @@ react('sync cookie consent to localStorage', () => {
 	}
 })
 
+// Helper function to get analytics consent from the atom
 export function useAnalyticsConsentValue(): boolean | null {
 	return useValue('analytics consent', () => cookieConsent.get()?.analytics ?? null, [
 		cookieConsent,
@@ -64,6 +72,7 @@ const shouldUseGA4 = GA4_MEASUREMENT_ID !== undefined
 
 const PROPERTIES_TO_REDACT = ['url', 'href', 'pathname']
 
+// Match property names against the defined list
 function filterProperties(value: { [key: string]: any }) {
 	return Object.entries(value).reduce<{ [key: string]: any }>((acc, [key, value]) => {
 		// N.B. This isn't super obvious but Posthog has keys that can be like
@@ -93,6 +102,7 @@ function getAppFeatureFlagEventProperties(): Record<string, boolean> | null {
 	}, {})
 }
 
+// Helper functions for localStorage consent management
 export function getStoredCookieConsent(): CookieConsent | null {
 	try {
 		const stored = getFromLocalStorage(COOKIE_CONSENT_KEY)
@@ -116,6 +126,7 @@ export function setStoredAnalyticsConsent(consent: boolean): void {
 	setStoredCookieConsent({ analytics: consent })
 }
 
+// Function to configure analytics when consent changes
 export function configureAnalytics(
 	consent: boolean,
 	user: { id: string; name: string; email: string } | undefined
@@ -164,7 +175,11 @@ function configurePosthog(options: AnalyticsOptions) {
 			}
 
 			payload.properties = filterProperties(props)
+
+			// $set
 			payload.$set = filterProperties(payload.$set || {})
+
+			// $set_once
 			payload.$set_once = filterProperties(payload.$set_once || {})
 
 			return payload

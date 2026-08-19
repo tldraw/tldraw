@@ -156,6 +156,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	// mean "enabled", so treat a missing value as true.
 	const inviteLinkEnabled = workspace.inviteLinkEnabled ?? true
 	const roleLabels: Record<Role, string> = { owner: ownerMsg, member: memberMsg }
+	// Owners sort above members; within a role the current user is pinned to the top.
 	const roleOrder: Record<Role, number> = { owner: 0, member: 1 }
 	const roleOptions = (Object.keys(roleLabels) as Role[]).map((value) => ({
 		value,

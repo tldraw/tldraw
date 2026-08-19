@@ -9,6 +9,7 @@ export function useNewRoomCreationTracking() {
 
 		if (creationData === null) return
 
+		// Send analytics data to PostHog
 		trackEvent('room_creation_duration', {
 			creation_time_ms: Date.now() - creationData.startTime,
 			source: creationData.source,

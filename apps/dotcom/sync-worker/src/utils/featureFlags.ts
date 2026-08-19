@@ -50,6 +50,9 @@ export function hashToPercentage(userId: string, flagName: string): number {
 	return (hash >>> 0) % 100
 }
 
+/**
+ * Get feature flag value from KV store
+ */
 export async function getFeatureFlagValue(
 	env: Environment,
 	flag: FeatureFlagKey
@@ -96,6 +99,7 @@ export function evaluateFlagForUser(
 	// be one the defaults table names — see getFeatureFlagValue.
 	switch (flag.type) {
 		case 'boolean':
+			// `enabled` is the whole evaluation, and it was checked above.
 			return true
 		case 'percentage':
 			if (!userId) return false
@@ -157,7 +161,9 @@ function expectFlagType<T extends FeatureFlagValue['type']>(
 	return current as Extract<FeatureFlagValue, { type: T }>
 }
 
-/** Admin only. */
+/**
+ * Set feature flag value in KV store. Admin only.
+ */
 export async function setFeatureFlag(
 	env: Environment,
 	flag: FeatureFlagKey,

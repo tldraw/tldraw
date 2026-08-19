@@ -23,6 +23,12 @@ export function writeDataPoint(
 			indexes,
 		})
 	} catch {
-		// Analytics must never take a request down with them.
+		// // eslint-disable-next-line @typescript-eslint/no-deprecated
+		// sentry?.withScope((scope) => {
+		// 	scope.setExtra('name', name)
+		// 	// eslint-disable-next-line @typescript-eslint/no-deprecated
+		// 	sentry.captureException(e)
+		// })
+		// console.error('Failed to write data point', e)
 	}
 }

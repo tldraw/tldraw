@@ -127,6 +127,7 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 		})
 	}, [includeFileLink, intl, onClose, toasts])
 
+	// Focus the input when the dialog opens, select all text
 	useEffect(() => {
 		const input = rInput.current
 		if (input) {

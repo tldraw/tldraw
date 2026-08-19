@@ -55,8 +55,10 @@ export function TlaSidebarLayout({
 	>({ name: 'idle' })
 
 	const handlePointerDown = useCallback((event: React.PointerEvent) => {
+		// start pointing
 		event.currentTarget.setPointerCapture(event.pointerId)
 
+		// Get the current sidebar width as its start width
 		const startWidth = rLayoutContainer.current
 			? parseInt(
 					getComputedStyle(rLayoutContainer.current).getPropertyValue('--tla-sidebar-width'),
@@ -73,6 +75,7 @@ export function TlaSidebarLayout({
 		if (rResizeState.current.name === 'pointing') {
 			if (Math.abs(moveEvent.clientX - rResizeState.current.startX) < 5) return // not resizing yet...
 
+			// start resizing
 			rResizeState.current = { ...rResizeState.current, name: 'resizing' }
 			rLayoutContainer.current?.setAttribute('data-resizing', 'true')
 		}
@@ -90,6 +93,7 @@ export function TlaSidebarLayout({
 			)
 
 			if (newWidth !== getLocalSessionStateUnsafe().sidebarWidth) {
+				// Update local sidebar width
 				updateLocalSessionState(() => ({ sidebarWidth: newWidth }))
 			}
 		}
@@ -104,6 +108,7 @@ export function TlaSidebarLayout({
 		if (rResizeState.current.name === 'idle') return
 
 		if (rResizeState.current.name === 'resizing') {
+			// we're done, go to idle
 			rResizeState.current = { name: 'idle' }
 			rLayoutContainer.current?.removeAttribute('data-resizing')
 		}
@@ -138,7 +143,9 @@ export function TlaSidebarLayout({
 	}, [])
 
 	const handleDoubleClick = useCallback(() => {
-		// a double click resets the width, so cancel the pending single-click close
+		// reset the sidebar width to its default width on double click
+
+		// cancel the "close sidebar on click if not a double click" timeout since its a double click
 		clearTimeout(rTimeout.current)
 
 		// prevent animation by adding resizing and then removing it after a moment
@@ -149,6 +156,7 @@ export function TlaSidebarLayout({
 			200
 		)
 
+		// resize and return to idle
 		updateLocalSessionState(() => ({ sidebarWidth: DEF_SIDEBAR_WIDTH }))
 		rResizeState.current = { name: 'idle' }
 	}, [])

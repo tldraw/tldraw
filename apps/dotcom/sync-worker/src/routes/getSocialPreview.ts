@@ -129,7 +129,8 @@ async function getTlaFileName(env: Environment, slug: string): Promise<string | 
 	if (name) return name
 
 	// The file has no name set, so fall back to the editor document name — this matches the in-app
-	// title, which uses the file name and then the document name.
+	// title, which uses the file name and then the document name. It lives on the document record in
+	// the file's persisted room snapshot.
 	return getDocumentNameFromSnapshot(await getFileSnapshot(env, slug, true))
 }
 
@@ -142,7 +143,8 @@ async function getPublishedFileName(env: Environment, slug: string): Promise<str
 	return getDocumentNameFromSnapshot(snapshot)
 }
 
-// Snapshot links (`/s/:slug`). Mirrors getRoomSnapshot: R2 first, then Supabase for older snapshots.
+// Snapshot links (`/s/:slug`). The name lives in the snapshot's document record. Mirrors
+// getRoomSnapshot: read from R2 first, then fall back to Supabase for older snapshots.
 async function getSnapshotName(env: Environment, slug: string): Promise<string | null> {
 	const data = await getSnapshotFromR2(env, slug)
 	if (data) return getDocumentNameFromSnapshot(data)
@@ -152,7 +154,8 @@ async function getSnapshotName(env: Environment, slug: string): Promise<string |
 	return getDocumentNameFromSnapshot(await getSnapshotFromSupabase(supabase, env, slug))
 }
 
-// Legacy multiplayer rooms (`/r/`, `/ro/`, `/v/`).
+// Legacy multiplayer rooms (`/r/`, `/ro/`, `/v/`). The persisted room snapshot lives in R2 and the
+// name is stored on its document record.
 async function getLegacyRoomName(
 	env: Environment,
 	slug: string,

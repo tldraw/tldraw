@@ -5,8 +5,8 @@ import { AdminButton } from './AdminButton'
 import { getResponseError, StructuredDataDisplay, useTransientMessage } from './shared'
 import styles from './admin.module.css'
 
-// deletedFileCount comes from the dedicated endpoint — `data.files` excludes the user's own
-// deleted files, so it can't be derived from `data`.
+// Helper component for user data summary. deletedFileCount comes from the dedicated endpoint —
+// `data.files` excludes the user's own deleted files, so it can't be derived from `data`.
 function UserDataSummary({
 	data,
 	deletedFileCount,
@@ -168,6 +168,7 @@ export function UsersSection() {
 
 	return (
 		<>
+			{/* User Search Section */}
 			<section className={styles.adminSection}>
 				<h2 className={styles.sectionTitle}>User management</h2>
 				<p>
@@ -194,6 +195,7 @@ export function UsersSection() {
 				{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
 			</section>
 
+			{/* User Data Section */}
 			{data && (
 				<section className={styles.adminSection}>
 					<h3 className={styles.sectionTitle}>User data</h3>
@@ -214,6 +216,7 @@ export function UsersSection() {
 				</section>
 			)}
 
+			{/* Danger Zone Section */}
 			<section className={styles.adminSection}>
 				<h3 className={styles.sectionTitle}>Danger zone</h3>
 				<DeleteUser />
@@ -246,7 +249,7 @@ function DeleteUser() {
 
 		setIsDeleting(true)
 		setError(null)
-		setProgressLog([])
+		setProgressLog([]) // Only clear log when starting a new deletion
 		setIsComplete(false)
 
 		try {
@@ -309,6 +312,7 @@ function DeleteUser() {
 				</AdminButton>
 			</div>
 
+			{/* Progress Log */}
 			{progressLog.length > 0 && (
 				<div className={styles.progressLog}>
 					<h5>Deletion progress</h5>

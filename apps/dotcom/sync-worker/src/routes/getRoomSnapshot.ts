@@ -47,6 +47,7 @@ function generateReponse(roomId: string, data: RoomSnapshot) {
 	)
 }
 
+// Returns a snapshot of the room at a given point in time
 export async function getRoomSnapshot(request: IRequest, env: Environment): Promise<Response> {
 	const roomId = request.params.roomId
 	if (!roomId) return notFound()
@@ -54,11 +55,14 @@ export async function getRoomSnapshot(request: IRequest, env: Environment): Prom
 	const r2Data = await getSnapshotFromR2(env, roomId)
 	if (r2Data) return generateReponse(roomId, r2Data)
 
+	// If we can't find the snapshot in R2 then fallback to Supabase
+	// Create a supabase client
 	const supabase = createSupabaseClient(env)
 	if (!supabase) return noSupabaseSorry()
 
 	const data = await getSnapshotFromSupabase(supabase, env, roomId)
 	if (!data) return notFound()
 
+	// Send back the snapshot!
 	return generateReponse(roomId, data)
 }

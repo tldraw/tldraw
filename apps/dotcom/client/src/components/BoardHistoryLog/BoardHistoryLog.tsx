@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
 
+// todo: remove tailwind
+
 interface HistoryEntry {
 	timestamp: string
 	href?: string

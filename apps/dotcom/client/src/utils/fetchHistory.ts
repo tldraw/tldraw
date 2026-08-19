@@ -1,6 +1,7 @@
 import { FILE_PREFIX, type HistoryResponseBody } from '@tldraw/dotcom-shared'
 import { fetch } from 'tldraw'
 
+// Helper function to fetch history data
 export async function fetchHistory(
 	fileSlug: string,
 	offset?: string

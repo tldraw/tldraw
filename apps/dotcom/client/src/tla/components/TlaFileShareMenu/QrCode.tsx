@@ -6,6 +6,7 @@ import { createQRCodeImageDataString } from '../../utils/qrcode'
 import styles from './file-share-menu.module.css'
 
 export function QrCode({ url }: { url: string }) {
+	// Save the QR codes in local storage
 	const [qrCode, setQrCode] = useLocalStorageState<string | null>(url, null)
 
 	const theme = useValue('is dark mode', () => getLocalSessionState().theme, [])
@@ -22,7 +23,7 @@ export function QrCode({ url }: { url: string }) {
 
 	// todo: click qr code to... copy? big modal?
 
-	// An image element so the user can right click to copy / save / drag the qr code
+	// We want to use an image element here so that a user can right click and copy / save / drag the qr code
 	return (
 		<div className={styles.fileShareMenuQrCode}>
 			<img
