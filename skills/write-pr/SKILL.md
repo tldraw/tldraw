@@ -61,7 +61,7 @@ A noun describing the affected area: `fix(editor):`, `feat(sync):`, `docs(exampl
 
 ## PR body
 
-Bug fix PRs (`fix` type, `bugfix` change type) use the bug fix template below. Everything else uses this one:
+Bug fix and improvement PRs (`bugfix` and `improvement` change types) use the before/after template below. Everything else uses this one:
 
 ```md
 <description paragraph>
@@ -94,9 +94,9 @@ Start with: "In order to X, this PR does Y." Follow the reviewer-first rules at 
 - Link related issues in the first paragraph
 - Don't expect readers to also read the linked issue
 
-### Bug fix PRs
+### Bug fix and improvement PRs
 
-Bug fix PRs use a fixed shape instead of the description paragraph. The same reviewer-first rules apply; the structure exists so a reviewer can see the symptom, the cause, and the fix without reading the diff.
+Bug fix and improvement PRs use a fixed shape instead of the description paragraph. The same reviewer-first rules apply; the structure exists so a reviewer can see what was wrong (or lacking), what it does now, and why, without reading the diff.
 
 ```md
 This PR fixes a bug where <symptom a user or developer would hit>.
@@ -115,7 +115,7 @@ This PR fixes a bug where <symptom a user or developer would hit>.
 
 ### Change type
 
-- [x] `bugfix`
+- [x] `bugfix` | `improvement`
 
 ### Test plan
 
@@ -123,7 +123,7 @@ This PR fixes a bug where <symptom a user or developer would hit>.
 
 ### Release notes
 
-- Fix <symptom>
+- Fix <symptom> | Improve <behavior>
 
 ### Code changes
 
@@ -133,13 +133,13 @@ This PR fixes a bug where <symptom a user or developer would hit>.
 | Tests     | +5 / -0    |
 ```
 
-- **Intro** — one sentence, "This PR fixes a bug where X." X is the observable symptom, not the cause or the fix. Link the issue here if there is one. If the PR fixes more than one thing, add a second sentence ("It also ...") rather than a list.
-- **Before** — the behavior before, and the mechanism that produced it. Name the function or path at fault; this is the one place a short description of *how* the old code went wrong belongs, because it is the cause the reviewer is checking the fix against.
+- **Intro** — one sentence. For a bug: "This PR fixes a bug where X," where X is the observable symptom, not the cause or the fix. For an improvement: "This PR improves X so that Y," where Y is what a user or developer can now do. Link the issue here if there is one. If the PR does more than one thing, add a second sentence ("It also ...") rather than a list.
+- **Before** — the behavior before, and the mechanism that produced it. For a bug, name the function or path at fault; this is the one place a short description of *how* the old code went wrong belongs, because it is the cause the reviewer is checking the fix against. For an improvement, describe what the user or developer had to do (or couldn't do) and what in the code made it that way.
 - **After** — the behavior after. State what the code now does, at the same level of detail as Before. Note any spec or doc that was updated alongside.
 - **Implementation notes** — optional. Include only when there is something the Before/After pair doesn't carry: an approach you chose over another, a subtlety in the change, a follow-up you deliberately left out. Skip the heading entirely when there is nothing to say; most small fixes have nothing.
-- The `### Change type` / `### Test plan` / `### Release notes` / `### API changes` / `### Code changes` blocks follow as usual. In the test plan, say whether the new tests fail on `main`.
+- The `### Change type` / `### Test plan` / `### Release notes` / `### API changes` / `### Code changes` blocks follow as usual. For bug fixes, say in the test plan whether the new tests fail on `main`.
 
-tldraw/tldraw#10117, #10118, and #10119 are worked examples.
+tldraw/tldraw#10117, #10118, and #10119 are worked examples of bug fixes in this shape.
 
 ### Change type
 
