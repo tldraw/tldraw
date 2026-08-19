@@ -25,11 +25,11 @@ Sections marked **internal** describe supporting machinery that has its own cont
 ## 3. Computing diffs: `diffRecord` (D)
 
 - **D1** `diffRecord(prev, next)` returns an `ObjectDiff` describing how to turn `prev` into `next`, or `null` when there is nothing to change (including when `prev === next`).
-- **D2** A key present in `prev` but missing from `next` produces `['delete']`. A key present in `next` but missing from `prev` produces `['put', value]`.
+- **D2** A key present in `prev` but missing from `next` produces `['delete']`. A key present in `next` but missing from `prev` produces `['put', value]`. Only own keys count (inherited `Object.prototype` members are never consulted), and a key whose value is `undefined` is treated as absent on both sides — `undefined` does not survive JSON, so it is never put.
 - **D3** `props` and `meta` are the only nested keys at the top level: changes inside them are expressed as `['patch', ...]` ops. Any other top-level key whose values are not both arrays or both strings is compared with deep equality and produces a whole-value `['put', next]` on change — even when both values are plain objects.
 - **D4** Inside a nested diff (within `props`/`meta` or deeper), object values are recursively patched; `null` and primitive values are put.
 - **D5** When both values are strings (at any level, including top-level keys) and `next` starts with `prev`, the diff is `['append', addedSuffix, prev.length]`. Other string changes are puts. With `legacyAppendMode` enabled, string appends become puts instead; array appends (D7) are unaffected by `legacyAppendMode`.
-- **D6** Same-length arrays: if no items changed, no op. If at most `max(length/5, 1)` items changed, the op is `['patch', { [index]: op }]` where each changed index gets a recursive diff when both old and new items are truthy objects, and a put otherwise. If more items changed, the whole array is put.
+- **D6** Same-length arrays: if no items changed, no op. If at most `max(length/5, 1)` items changed, the op is `['patch', { [index]: op }]` where each changed index gets a recursive diff when both old and new items are truthy objects of the same kind (both arrays or both plain objects), and a put otherwise. If more items changed, the whole array is put.
 - **D7** Different-length arrays: when the shared prefix is unchanged and the array grew, the op is `['append', addedItems, prev.length]`. Any change in the shared prefix (including truncation) puts the whole array.
 
 ## 4. Applying diffs: `applyObjectDiff` (AD)
@@ -38,9 +38,10 @@ Sections marked **internal** describe supporting machinery that has its own cont
 - **AD2** A `put` is applied only when the new value is not deep-equal to the current value.
 - **AD3** An `append` is applied only when the current value is an array/string of the matching type whose length equals the op's offset. On any mismatch the op is silently ignored.
 - **AD4** A `patch` is applied only when the current value is a truthy object; it recurses with AD1 semantics. Patching a missing or primitive value is silently ignored.
-- **AD5** A `delete` removes the key when present.
+- **AD5** A `delete` removes the key when it is an own key of the object.
 - **AD6** Patching a non-object (`null`, primitives) returns the input unchanged.
 - **AD7** Arrays are cloned as arrays; ops keyed by numeric strings index into them.
+- **AD8** Ops keyed `__proto__` are ignored: diffs arrive from untrusted peers and assigning that key would change the target's prototype.
 
 ## 5. Converting diffs (ND)
 
@@ -58,7 +59,8 @@ Sections marked **internal** describe supporting machinery that has its own cont
 
 - **CH1** `chunk(msg, maxSize)` returns `[msg]` when `msg.length < maxSize` (strictly less — a message exactly at `maxSize` is chunked).
 - **CH2** Chunks are prefixed `<n>_` where `n` counts down the chunks remaining after this one; the first chunk carries the highest number and the start of the message, and concatenating the chunk bodies in order reconstructs the message.
-- **CH3** Each chunk's total length is at most `maxSize`, except that every chunk carries at least one character of content even when the prefix alone exceeds `maxSize`.
+- **CH3** Each chunk's total length is at most `maxSize`, except that every chunk carries at least one character of content even when the prefix alone exceeds `maxSize`, and except for CH9.
+- **CH9** A UTF-16 surrogate pair is never split across two chunks (`WebSocket.send` would turn each lone half into U+FFFD): the boundary moves by one character, shrinking the chunk when it has more than one character of content and otherwise growing it by one.
 - **CH4** `JsonChunkAssembler.handleMessage`: input starting with `{` while idle is parsed immediately and returned as `{ data, stringified }`. Invalid JSON in this case throws synchronously (callers treat a throw as a fatal session error).
 - **CH5** Input starting with `{` mid-sequence returns `{ error: 'Unexpected non-chunk message' }`; the partial sequence and the JSON message are both discarded and the assembler resets to idle.
 - **CH6** Chunk inputs accumulate, returning `null` until the final (`0_`) chunk arrives, then the joined body is JSON-parsed and returned; a parse failure is returned as `{ error }`. Either way the assembler resets to idle.

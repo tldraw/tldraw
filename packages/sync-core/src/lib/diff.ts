@@ -1,5 +1,5 @@
 import { RecordsDiff, UnknownRecord } from '@tldraw/store'
-import { isEqual, objectMapEntries, objectMapValues } from '@tldraw/utils'
+import { hasOwnProperty, isEqual, objectMapEntries, objectMapValues } from '@tldraw/utils'
 
 /**
  * Constants representing the types of operations that can be applied to records in network diffs.
@@ -200,15 +200,19 @@ function diffObject(
 		return null
 	}
 	let result: ObjectDiff | null = null
+	// Own-property checks throughout: `in` would see Object.prototype members, so a user key named
+	// e.g. 'constructor' would never diff as an add or delete. And a key whose value is `undefined`
+	// is treated as absent: `undefined` doesn't survive JSON, so `['put', undefined]` would arrive
+	// as `['put', null]` and fail validators that accept only the missing key.
 	for (const key of Object.keys(prev)) {
-		// if key is not in next then it was deleted
-		if (!(key in next)) {
+		const prevValue = (prev as any)[key]
+		if (prevValue === undefined) continue
+		const nextValue = hasOwnProperty(next, key) ? (next as any)[key] : undefined
+		if (nextValue === undefined) {
 			if (!result) result = {}
 			result[key] = [ValueOpType.Delete]
 			continue
 		}
-		const prevValue = (prev as any)[key]
-		const nextValue = (next as any)[key]
 		if (
 			nestedKeys?.has(key) ||
 			(Array.isArray(prevValue) && Array.isArray(nextValue)) ||
@@ -226,10 +230,12 @@ function diffObject(
 		}
 	}
 	for (const key of Object.keys(next)) {
+		const nextValue = (next as any)[key]
+		if (nextValue === undefined) continue
 		// if key is in next but not in prev then it was added
-		if (!(key in prev)) {
+		if (!hasOwnProperty(prev, key) || (prev as any)[key] === undefined) {
 			if (!result) result = {}
-			result[key] = [ValueOpType.Put, (next as any)[key]]
+			result[key] = [ValueOpType.Put, nextValue]
 		}
 	}
 	return result
@@ -245,7 +251,15 @@ function diffValue(valueA: unknown, valueB: unknown, legacyAppendMode: boolean):
 			return [ValueOpType.Append, appendedText, valueA.length]
 		}
 		return [ValueOpType.Put, valueB]
-	} else if (!valueA || !valueB || typeof valueA !== 'object' || typeof valueB !== 'object') {
+	} else if (
+		!valueA ||
+		!valueB ||
+		typeof valueA !== 'object' ||
+		typeof valueB !== 'object' ||
+		// an array on one side and a plain object on the other can't be expressed as a patch:
+		// index deletes and named puts don't apply cleanly to either shape
+		Array.isArray(valueA) !== Array.isArray(valueB)
+	) {
 		return isEqual(valueA, valueB) ? null : [ValueOpType.Put, valueB]
 	} else {
 		const diff = diffObject(valueA, valueB, undefined, legacyAppendMode)
@@ -348,6 +362,10 @@ export function applyObjectDiff<T extends object>(object: T, objectDiff: ObjectD
 		}
 	}
 	for (const [key, op] of Object.entries(objectDiff)) {
+		// Diffs come off the wire from untrusted peers. `newObject['__proto__'] = v` would set the
+		// record's prototype (JSON.parse creates '__proto__' as an own key), so a client could give
+		// server-held records attacker-controlled inherited fields; skip such keys outright.
+		if (key === '__proto__') continue
 		switch (op[0]) {
 			case ValueOpType.Put: {
 				const value = op[1]
@@ -383,7 +401,7 @@ export function applyObjectDiff<T extends object>(object: T, objectDiff: ObjectD
 				break
 			}
 			case ValueOpType.Delete: {
-				if (key in object) {
+				if (hasOwnProperty(object, key)) {
 					if (!newObject) {
 						if (isArray) {
 							console.error("Can't delete array item yet (this should never happen)")
