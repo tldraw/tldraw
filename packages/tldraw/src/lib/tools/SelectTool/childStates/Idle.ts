@@ -570,29 +570,7 @@ export class Idle extends StateNode {
 	override onKeyDown(info: TLKeyboardEventInfo) {
 		this.selectedShapesOnKeyDown = this.editor.getSelectedShapes()
 
-		switch (info.code) {
-			case 'ArrowLeft':
-			case 'ArrowRight':
-			case 'ArrowUp':
-			case 'ArrowDown': {
-				if (info.accelKey) {
-					if (info.shiftKey) {
-						if (info.code === 'ArrowDown') {
-							this.editor.selectFirstChildShape()
-						} else if (info.code === 'ArrowUp') {
-							this.editor.selectParentShape()
-						}
-					} else {
-						this.editor.selectAdjacentShape(
-							info.code.replace('Arrow', '').toLowerCase() as TLAdjacentDirection
-						)
-					}
-					return
-				}
-				this.nudgeSelectedShapes(false)
-				return
-			}
-		}
+		if (this.handleArrowKey(info, false)) return
 
 		if (debugFlags['editOnType'].get()) {
 			// This feature flag lets us start editing a note shape's label when a key is pressed.
@@ -624,28 +602,42 @@ export class Idle extends StateNode {
 	}
 
 	override onKeyRepeat(info: TLKeyboardEventInfo) {
+		if (this.handleArrowKey(info, true)) return
+
+		if (info.code === 'Tab') {
+			const selectedShapes = this.editor.getSelectedShapes()
+			if (selectedShapes.length && !info.altKey) {
+				this.editor.selectAdjacentShape(info.shiftKey ? 'prev' : 'next')
+			}
+		}
+	}
+
+	// Shared by key down and key repeat so a held combination keeps doing what the first press did
+	private handleArrowKey(info: TLKeyboardEventInfo, ephemeral: boolean): boolean {
 		switch (info.code) {
 			case 'ArrowLeft':
 			case 'ArrowRight':
 			case 'ArrowUp':
 			case 'ArrowDown': {
 				if (info.accelKey) {
-					this.editor.selectAdjacentShape(
-						info.code.replace('Arrow', '').toLowerCase() as TLAdjacentDirection
-					)
-					return
+					if (info.shiftKey) {
+						if (info.code === 'ArrowDown') {
+							this.editor.selectFirstChildShape()
+						} else if (info.code === 'ArrowUp') {
+							this.editor.selectParentShape()
+						}
+					} else {
+						this.editor.selectAdjacentShape(
+							info.code.replace('Arrow', '').toLowerCase() as TLAdjacentDirection
+						)
+					}
+					return true
 				}
-				this.nudgeSelectedShapes(true)
-				break
-			}
-			case 'Tab': {
-				const selectedShapes = this.editor.getSelectedShapes()
-				if (selectedShapes.length && !info.altKey) {
-					this.editor.selectAdjacentShape(info.shiftKey ? 'prev' : 'next')
-				}
-				break
+				this.nudgeSelectedShapes(ephemeral)
+				return true
 			}
 		}
+		return false
 	}
 
 	override onKeyUp(info: TLKeyboardEventInfo) {
