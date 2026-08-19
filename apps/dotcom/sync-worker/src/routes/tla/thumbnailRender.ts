@@ -340,12 +340,19 @@ async function renderThumbnailScreenshot(
 	let timed: TimedCapture
 	const startedAt = Date.now()
 	try {
-		timed = await abandonAtRenderTimeout(
-			env.LOCAL_SCREENSHOT_SERVICE_URL
-				? callLocalScreenshotService(env.LOCAL_SCREENSHOT_SERVICE_URL, requestBody)
-				: callBrowserRun(env, requestBody),
-			startedAt
-		)
+		const capture = env.LOCAL_SCREENSHOT_SERVICE_URL
+			? callLocalScreenshotService(env.LOCAL_SCREENSHOT_SERVICE_URL, requestBody)
+			: callBrowserRun(env, requestBody)
+		// Measures are exempt from the worker-side deadline, and it is the *result* that makes them
+		// so: the render page POSTs its measurements before signalling ready, and the result route
+		// accepts any unexpired signed token, so abandoning the wait early would let that POST land
+		// after measurePageShapes' cleanup has already deleted the result key — stranding an object
+		// in a bucket that must never get a lifecycle rule. The deadline exists for the OG pipeline's
+		// invariants, which never price a measure; a measure stays bounded by the quick action's own
+		// per-phase timers.
+		timed = await (session.mode === 'measure'
+			? capture
+			: abandonAtRenderTimeout(capture, startedAt))
 	} catch (error) {
 		// A BrowserRenderError is a session that existed and died, so it lands on the ledger with the
 		// time it held its browser. Anything else never created a session and records nothing.
@@ -418,7 +425,17 @@ async function callBrowserRun(
 			timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
 		})
 	}
-	const buffer = await response.arrayBuffer()
+	// A body stream that fails is still a session that existed and spent, so it is wrapped into the
+	// error type the ledger recognises rather than escaping as a raw stream error and vanishing from
+	// the spend record.
+	const buffer = await response.arrayBuffer().catch((error) => {
+		throw new BrowserRenderError({
+			status: response.status,
+			detail: `Reading the capture body failed: ${error instanceof Error ? error.message : String(error)}`,
+			durationMs: Date.now() - startedAt,
+			timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
+		})
+	})
 	return { buffer, durationMs: Date.now() - startedAt }
 }
 
@@ -454,11 +471,9 @@ async function abandonAtRenderTimeout(
 			}),
 		])
 	} finally {
+		// Only the timer needs cleanup: an abandoned capture's eventual rejection is already handled,
+		// since Promise.race subscribes to every input.
 		clearTimeout(timer)
-		// When the deadline wins, the capture promise is left behind; its eventual settlement (likely
-		// Browser Run's own per-phase timer failing the call) must not surface as an unhandled
-		// rejection.
-		capture.catch(() => {})
 	}
 }
 

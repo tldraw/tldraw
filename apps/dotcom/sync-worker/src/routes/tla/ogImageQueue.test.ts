@@ -1005,12 +1005,9 @@ describe('handleOgImageRenderMessage', () => {
 		})
 	})
 
-	// The quick action's own timers cannot cap a capture: navigation and the settle wait are
-	// sequential phases that each get the full THUMBNAIL_RENDER_TIMEOUT_MS, so a page stalling
-	// through both would hold a delivery for roughly twice the budget — quietly breaking every
-	// inequality pinned above, all of which price a capture at one budget. The worker abandons the
-	// call at the budget instead, so the ceiling the marker TTL and the debounce are sized against
-	// is enforced rather than assumed.
+	// Pins the worker-side deadline the inequalities above lean on: they price a capture at one
+	// THUMBNAIL_RENDER_TIMEOUT_MS, and only abandonAtRenderTimeout (thumbnailRender.ts) makes that
+	// a real ceiling — the quick action's own timers are per-phase and allow roughly twice it.
 	it('abandons a capture at the render timeout instead of waiting out both quick action timers', async () => {
 		// Only the pieces the deadline uses; setImmediate stays real so the test can yield the event
 		// loop below while fake time stands still.
@@ -1049,6 +1046,34 @@ describe('handleOgImageRenderMessage', () => {
 				durationMs: THUMBNAIL_RENDER_TIMEOUT_MS,
 			}),
 		])
+	})
+
+	// A body stream that fails outright is still a session that existed and spent: it must land on
+	// the ledger like any other died session, not vanish because the error left the transport as a
+	// raw stream error instead of a Browser Run refusal.
+	it('puts a failed body read on the session ledger', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const env = makeEnv({
+			BROWSER: {
+				quickAction: vi.fn(async () => ({
+					ok: true,
+					status: 200,
+					arrayBuffer: () => Promise.reject(new TypeError('network connection lost')),
+				})),
+			},
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }, 3))
+
+		expect(failureBlobsOf(env)).toEqual(['failure:browser_failed'])
+		expect(sessionsOf(env)).toEqual([expect.objectContaining({ outcome: 'browser_failed' })])
 	})
 
 	// The ceiling has to cover the body read too: a 200 whose headers arrive in time but whose body

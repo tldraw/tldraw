@@ -384,11 +384,9 @@ export async function handleOgImageRenderMessage(
  * that settled, the follow-up merely relocated the render the debounced ask was about to do; on a
  * board still moving, it rendered a mid-edit state the next debounced render superseded.
  *
- * Both halves price the job ending in an image write. A job that burns its whole retry budget
- * wrote no image — retryOrDrop clears the marker with nothing behind it — so the asks its marker
- * turned away while it failed deferred into nothing: a shared file whose editing stopped during
- * that window keeps its stale thumbnail until the next edit. A residue, not a regression: the
- * follow-up only ever ran after a successful capture, so it never covered the give-up path either.
+ * Both halves price the job ending in an image write, which a give-up never does — the asks its
+ * marker turned away deferred into nothing. A known residue, not a regression; see "the deferral
+ * stops at that give-up" in browser-run-thumbnails.md.
  *
  * Deliberately never chained. A published board republished without pause would otherwise find
  * itself stale on every follow-up and render continuously. One extra render per triggered render is
