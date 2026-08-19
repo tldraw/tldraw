@@ -25,11 +25,11 @@ Sections marked **internal** describe supporting machinery that has its own cont
 ## 3. Computing diffs: `diffRecord` (D)
 
 - **D1** `diffRecord(prev, next)` returns an `ObjectDiff` describing how to turn `prev` into `next`, or `null` when there is nothing to change (including when `prev === next`).
-- **D2** A key present in `prev` but missing from `next` produces `['delete']`. A key present in `next` but missing from `prev` produces `['put', value]`.
+- **D2** A key present in `prev` but missing from `next` produces `['delete']`. A key present in `next` but missing from `prev` produces `['put', value]`. Only own keys count (inherited `Object.prototype` members are never consulted), and a key whose value is `undefined` is treated as absent on both sides — `undefined` does not survive JSON, so it is never put.
 - **D3** `props` and `meta` are the only nested keys at the top level: changes inside them are expressed as `['patch', ...]` ops. Any other top-level key whose values are not both arrays or both strings is compared with deep equality and produces a whole-value `['put', next]` on change — even when both values are plain objects.
 - **D4** Inside a nested diff (within `props`/`meta` or deeper), object values are recursively patched; `null` and primitive values are put.
 - **D5** When both values are strings (at any level, including top-level keys) and `next` starts with `prev`, the diff is `['append', addedSuffix, prev.length]`. Other string changes are puts. With `legacyAppendMode` enabled, string appends become puts instead; array appends (D7) are unaffected by `legacyAppendMode`.
-- **D6** Same-length arrays: if no items changed, no op. If at most `max(length/5, 1)` items changed, the op is `['patch', { [index]: op }]` where each changed index gets a recursive diff when both old and new items are truthy objects, and a put otherwise. If more items changed, the whole array is put.
+- **D6** Same-length arrays: if no items changed, no op. If at most `max(length/5, 1)` items changed, the op is `['patch', { [index]: op }]` where each changed index gets a recursive diff when both old and new items are truthy objects of the same kind (both arrays or both plain objects), and a put otherwise. If more items changed, the whole array is put.
 - **D7** Different-length arrays: when the shared prefix is unchanged and the array grew, the op is `['append', addedItems, prev.length]`. Any change in the shared prefix (including truncation) puts the whole array.
 
 ## 4. Applying diffs: `applyObjectDiff` (AD)
@@ -38,9 +38,10 @@ Sections marked **internal** describe supporting machinery that has its own cont
 - **AD2** A `put` is applied only when the new value is not deep-equal to the current value.
 - **AD3** An `append` is applied only when the current value is an array/string of the matching type whose length equals the op's offset. On any mismatch the op is silently ignored.
 - **AD4** A `patch` is applied only when the current value is a truthy object; it recurses with AD1 semantics. Patching a missing or primitive value is silently ignored.
-- **AD5** A `delete` removes the key when present.
+- **AD5** A `delete` removes the key when it is an own key of the object.
 - **AD6** Patching a non-object (`null`, primitives) returns the input unchanged.
 - **AD7** Arrays are cloned as arrays; ops keyed by numeric strings index into them.
+- **AD8** Ops keyed `__proto__` are ignored: diffs arrive from untrusted peers and assigning that key would change the target's prototype.
 
 ## 5. Converting diffs (ND)
 
