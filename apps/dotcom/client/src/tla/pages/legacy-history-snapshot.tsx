@@ -25,9 +25,7 @@ const { loader, useData } = defineLoader(async (args) => {
 
 	if (!roomId) return null
 
-	const result = await fetch(`/api/${ROOM_PREFIX}/${roomId}/history/${timestamp}`, {
-		headers: {},
-	})
+	const result = await fetch(`/api/${ROOM_PREFIX}/${roomId}/history/${timestamp}`)
 	if (!result.ok) return null
 	const data = (await result.json()) as RoomSnapshot
 
@@ -64,30 +62,26 @@ export function Component({ error: _error }: { error?: unknown }) {
 		}
 	}, [error, userId])
 
-	return (
-		<>
-			{error ? (
-				<TlaFileError error={error} />
-			) : (
-				<TlaAnonLayout>
-					<TlaHistorySnapshotEditor
-						fileSlug={result.roomId}
-						snapshot={snapshot}
-						onRestore={async () => {
-							const res = await fetch(`/api/r/${result.roomId}/restore`, {
-								method: 'POST',
-								headers: {
-									'Content-Type': 'application/json',
-								},
-								body: JSON.stringify({ timestamp: ts }),
-							})
-							if (!res.ok) {
-								throw new Error('Failed to restore version: ' + (await res.text()))
-							}
-						}}
-					/>
-				</TlaAnonLayout>
-			)}
-		</>
+	return error ? (
+		<TlaFileError error={error} />
+	) : (
+		<TlaAnonLayout>
+			<TlaHistorySnapshotEditor
+				fileSlug={result.roomId}
+				snapshot={snapshot}
+				onRestore={async () => {
+					const res = await fetch(`/api/r/${result.roomId}/restore`, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({ timestamp: ts }),
+					})
+					if (!res.ok) {
+						throw new Error('Failed to restore version: ' + (await res.text()))
+					}
+				}}
+			/>
+		</TlaAnonLayout>
 	)
 }

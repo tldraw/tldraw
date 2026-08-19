@@ -1,15 +1,15 @@
-import { useCallback, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	Editor,
 	TLDRAW_FILE_EXTENSION,
-	TLStore,
 	TLUiOverrides,
 	downloadFile,
 	serializeTldrawJsonBlob,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useHandleUiEvents } from '../../../utils/analytics'
+import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useIntl, useMsg } from '../../utils/i18n'
 import { editorMessages as messages } from './editor-messages'
@@ -30,26 +30,26 @@ export async function downloadFileFromEditor(editor: Editor, name: string) {
 	downloadFile(file)
 }
 
+/** The app file record's name when there is one, else the document's, else the untitled fallback
+ *  (rather than the date the sidebar would show). */
+export function getEditorFileName(
+	app: TldrawApp | null,
+	fileSlug: string | undefined,
+	editor: Editor | null,
+	untitled: string
+) {
+	return (
+		((fileSlug ? app?.getFileName(fileSlug, false) : null) ?? editor?.getDocumentSettings().name) ||
+		untitled
+	)
+}
+
 export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 	const app = useMaybeApp()
 	const untitledProject = useMsg(messages.untitledProject)
 	const intl = useIntl()
 	const navigate = useNavigate()
 	const trackEvent = useHandleUiEvents()
-
-	const getFileName = useCallback(
-		(editor: Editor) => {
-			const documentName =
-				((fileSlug ? app?.getFileName(fileSlug, false) : null) ??
-					editor?.getDocumentSettings().name) ||
-				// rather than displaying the date for the project here, display Untitled project
-				untitledProject
-			const defaultName = saveFileNames.get(editor.store) || documentName
-
-			return defaultName
-		},
-		[app, fileSlug, untitledProject]
-	)
 
 	const overrides = useMemo<TLUiOverrides>(() => {
 		return {
@@ -78,7 +78,8 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 						if (app && fileSlug) {
 							downloadAppFile(fileSlug)
 						} else {
-							const defaultName = getFileName(editor) + TLDRAW_FILE_EXTENSION
+							const defaultName =
+								getEditorFileName(app, fileSlug, editor, untitledProject) + TLDRAW_FILE_EXTENSION
 							await downloadFileFromEditor(editor, defaultName)
 						}
 					},
@@ -89,7 +90,7 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 					label: intl.formatMessage(messages.copyToMyfiles),
 					readonlyOk: true,
 					async onSelect() {
-						const defaultName = getFileName(editor)
+						const defaultName = getEditorFileName(app, fileSlug, editor, untitledProject)
 						const res = await app?.createFile({
 							name: defaultName,
 							createSource: window.location.pathname.slice(1),
@@ -105,10 +106,7 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 				return actions
 			},
 		}
-	}, [app, fileSlug, getFileName, intl, navigate, trackEvent])
+	}, [app, fileSlug, untitledProject, intl, navigate, trackEvent])
 
 	return overrides
 }
-
-// A map of previously saved tldr file names, so we can suggest the same name next time
-const saveFileNames = new WeakMap<TLStore, string>()

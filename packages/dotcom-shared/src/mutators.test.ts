@@ -1,3 +1,4 @@
+import type { Transaction } from '@rocicorp/zero'
 import { IndexKey, uniqueId } from '@tldraw/utils'
 import { describe, expect, it } from 'vitest'
 import { createMutators, parseFlags, userHasFlag } from './mutators'
@@ -159,6 +160,20 @@ const TABLE_PKS: Record<keyof TableStore, string[]> = {
 	comment_read: ['userId', 'commentId'],
 }
 
+function makeStore(tables: Partial<TableStore>): TableStore {
+	return {
+		user: [],
+		file: [],
+		file_state: [],
+		group: [],
+		group_user: [],
+		group_file: [],
+		comment: [],
+		comment_read: [],
+		...tables,
+	}
+}
+
 /**
  * Build a mock Transaction that resolves zql builder queries against in-memory data.
  *
@@ -176,10 +191,6 @@ function createMockTx(
 ) {
 	// Track mutations for assertions
 	const mutations: Array<{ op: string; table: string; data: any }> = []
-
-	function getRows(table: keyof TableStore) {
-		return store[table] ?? []
-	}
 
 	function matchPk(table: keyof TableStore, row: any, data: any) {
 		return TABLE_PKS[table].every((pk) => row[pk] === data[pk])
@@ -222,22 +233,6 @@ function createMockTx(
 		mutate[t] = makeTableMutator(t)
 	}
 
-	// tx.run(query) — the query is a builder that carries an AST.
-	// We need to resolve it against our store.
-	// The builder from createBuilder(schema) returns objects with .ast property.
-	// We parse the AST to figure out which table + where clauses + one().
-	function resolveAst(ast: any): any[] {
-		const table = ast.table as keyof TableStore
-		let rows = [...getRows(table)]
-
-		// Apply where conditions
-		if (ast.where) {
-			rows = applyCondition(rows, ast.where)
-		}
-
-		return rows
-	}
-
 	function applyCondition(rows: any[], cond: any): any[] {
 		if (!cond) return rows
 		if (cond.type === 'simple') {
@@ -269,36 +264,21 @@ function createMockTx(
 
 	const tx = {
 		location: opts.location,
-		clientID: '',
-		mutationID: 0,
-		reason: opts.location === 'server' ? 'authoritative' : 'optimistic',
 		mutate,
-		query: undefined as any,
+		// tx.run(query) — the query is a builder that carries an AST.
+		// We need to resolve it against our store.
+		// The builder from createBuilder(schema) returns objects with .ast property.
+		// We parse the AST to figure out which table + where clauses + one().
 		run: async (query: any) => {
 			// query is a Query object from createBuilder
 			// It has a `.ast` property
 			const ast = query.ast ?? query
-			const rows = resolveAst(ast)
+			// Apply where conditions
+			const rows = applyCondition([...store[ast.table as keyof TableStore]], ast.where)
 			// If the query was `.one()`, return first or null
-			if (ast.limit === 1) {
-				return rows[0] ?? null
-			}
-			return rows
+			return ast.limit === 1 ? (rows[0] ?? null) : rows
 		},
-		dbTransaction: {
-			query: async (sql: string, params: unknown[]) => {
-				// Handle the specific SQL for assertNotMaxFiles
-				if (sql.includes('count(*)') && sql.includes('"file"')) {
-					const userId = params[0]
-					const count = store.file.filter(
-						(f) => !f.isDeleted && (f.ownerId === userId || f.owningGroupId === userId)
-					).length
-					return [{ count: String(count) }]
-				}
-				return []
-			},
-		},
-	} as unknown as import('@rocicorp/zero').Transaction<TlaSchema>
+	} as unknown as Transaction<TlaSchema>
 
 	return { tx, mutations, store }
 }
@@ -338,62 +318,42 @@ describe('user mutations', () => {
 	const userId = 'user_aaaa11112222bbbb'
 
 	it('user can update own profile', async () => {
-		const { tx } = createMockTx({
-			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
-			group: [],
-			group_user: [],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		})
+		const { tx } = createMockTx(
+			makeStore({
+				user: [makeUser({ id: userId })],
+			})
+		)
 		const m = createMutators(userId)
 		await expectValid(() => m.user.update(tx, { id: userId, name: 'New Name' }))
 	})
 
 	it('user cannot update another user', async () => {
 		const otherId = 'user_other1234567890'
-		const { tx } = createMockTx({
-			user: [makeUser({ id: userId }), makeUser({ id: otherId })],
-			file: [],
-			file_state: [],
-			group: [],
-			group_user: [],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		})
+		const { tx } = createMockTx(
+			makeStore({
+				user: [makeUser({ id: userId }), makeUser({ id: otherId })],
+			})
+		)
 		const m = createMutators(userId)
 		await expectForbidden(() => m.user.update(tx, { id: otherId, name: 'Hacked' }))
 	})
 
 	it('cannot change immutable field (email)', async () => {
-		const { tx } = createMockTx({
-			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
-			group: [],
-			group_user: [],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		})
+		const { tx } = createMockTx(
+			makeStore({
+				user: [makeUser({ id: userId })],
+			})
+		)
 		const m = createMutators(userId)
 		await expectForbidden(() => m.user.update(tx, { id: userId, email: 'evil@evil.com' }))
 	})
 
 	it('user can change own flags field', async () => {
-		const { tx } = createMockTx({
-			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
-			group: [],
-			group_user: [],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		})
+		const { tx } = createMockTx(
+			makeStore({
+				user: [makeUser({ id: userId })],
+			})
+		)
 		const m = createMutators(userId)
 		// flags is NOT in immutableColumns.user, so this should succeed
 		await expectValid(() => m.user.update(tx, { id: userId, flags: 'example_flag' }))
@@ -405,16 +365,11 @@ describe('file mutations', () => {
 	const groupId = 'group_aaa11112222bbb'
 
 	function baseStore() {
-		return {
+		return makeStore({
 			user: [makeUser({ id: userId })],
-			file: [] as TlaFile[],
-			file_state: [] as TlaFileState[],
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId, role: 'member' })],
-			group_file: [] as TlaGroupFile[],
-			comment: [],
-			comment_read: [],
-		}
+		})
 	}
 
 	it('workspace member can update file', async () => {
@@ -486,16 +441,11 @@ describe('file creation', () => {
 	const groupId = 'group_aaa11112222bbb'
 
 	it('migrated user can create file in own workspace', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectValid(() =>
@@ -511,16 +461,11 @@ describe('file creation', () => {
 
 	it('migrated user cannot create file in another workspace', async () => {
 		const otherGroup = 'group_other123456789'
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
 			group: [makeGroup({ id: groupId }), makeGroup({ id: otherGroup })],
 			group_user: [makeGroupUser({ userId, groupId })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectForbidden(() =>
@@ -539,16 +484,11 @@ describe('file creation', () => {
 		// group_user row. createFile must still allow it — otherwise an empty home is
 		// un-switchable, since selecting it creates-then-opens a file. Regression test:
 		// authorize via getRole (home => owner), not a raw group_user lookup.
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
 			group: [makeGroup({ id: userId })],
 			group_user: [], // no explicit home membership row
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectValid(() =>
@@ -569,16 +509,13 @@ describe('file_state mutations', () => {
 	const fileId = 'file_aaaa11112222bbbb'
 
 	it('user can update own file_state', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupId, shared: true })],
 			file_state: [makeFileState({ userId, fileId })],
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectValid(() => m.file_state.update(tx, { userId, fileId, lastVisitAt: Date.now() }))
@@ -586,16 +523,11 @@ describe('file_state mutations', () => {
 
 	it("user cannot update another user's file_state", async () => {
 		const otherId = 'user_other1234567890'
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupId })],
 			file_state: [makeFileState({ userId: otherId, fileId })],
-			group: [],
-			group_user: [],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectForbidden(() =>
@@ -609,16 +541,13 @@ describe('file_state mutations', () => {
 			owningGroupId: groupId,
 			shared: false,
 		})
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [inaccessibleFile],
 			file_state: [makeFileState({ userId, fileId: inaccessibleFile.id })],
 			group: [makeGroup({ id: groupId })],
 			group_user: [], // userId NOT a member
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
 		await expectForbidden(() =>
@@ -633,16 +562,13 @@ describe('onEnterFile', () => {
 	const fileId = 'file_aaaa11112222bbbb'
 
 	it('user with access can enter file', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupId })],
-			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId })],
 			group_file: [makeGroupFile({ fileId, groupId })],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
 		await m.onEnterFile(tx, { fileId, time: Date.now() })
@@ -651,32 +577,25 @@ describe('onEnterFile', () => {
 	})
 
 	it('user without access cannot enter file', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupId, shared: false })],
-			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			group_user: [], // not a member
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
 		await expectForbidden(() => m.onEnterFile(tx, { fileId, time: Date.now() }))
 	})
 
 	it('entering file already in workspace does not create duplicate group_file', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupId, shared: true })],
-			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId })],
 			group_file: [makeGroupFile({ fileId, groupId })],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
 		await m.onEnterFile(tx, { fileId, time: Date.now() })
@@ -688,41 +607,35 @@ describe('onEnterFile', () => {
 		// Opening a shared file owned by a group the user is NOT a member of links it into
 		// their home group, which is what surfaces it as a "guest file" in the sidebar.
 		const otherGroup = 'group_other123456789'
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: otherGroup, shared: true })],
-			file_state: [],
 			group: [makeGroup({ id: userId }), makeGroup({ id: otherGroup })],
 			group_user: [makeGroupUser({ userId, groupId: userId, role: 'owner' })], // home only
 			group_file: [makeGroupFile({ fileId, groupId: otherGroup })],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
 		await m.onEnterFile(tx, { fileId, time: Date.now() })
-		expect((s.group_file as TlaGroupFile[]).some((gf) => gf.groupId === userId)).toBe(true)
+		expect(s.group_file.some((gf) => gf.groupId === userId)).toBe(true)
 	})
 
 	it('does not mirror a file the user already has via a group they belong to', async () => {
 		const workspaceId = 'group_workspace1234ab'
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: workspaceId, shared: true })],
-			file_state: [],
 			group: [makeGroup({ id: userId }), makeGroup({ id: workspaceId })],
 			group_user: [
 				makeGroupUser({ userId, groupId: userId, role: 'owner' }),
 				makeGroupUser({ userId, groupId: workspaceId, role: 'member' }),
 			],
 			group_file: [makeGroupFile({ fileId, groupId: workspaceId })],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
 		await m.onEnterFile(tx, { fileId, time: Date.now() })
-		expect((s.group_file as TlaGroupFile[]).some((gf) => gf.groupId === userId)).toBe(false)
+		expect(s.group_file.some((gf) => gf.groupId === userId)).toBe(false)
 	})
 
 	it('mirrors a shared file into home even when a mislinked group_file row points at one of my workspaces', async () => {
@@ -732,10 +645,9 @@ describe('onEnterFile', () => {
 		// the file nowhere. Entering the file must still create the home link so it's visible.
 		const ownerHome = 'user_fileowner1234567'
 		const workspaceB = 'group_workspaceB12345'
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: ownerHome, shared: true })],
-			file_state: [],
 			group: [
 				makeGroup({ id: userId }),
 				makeGroup({ id: workspaceB }),
@@ -747,30 +659,24 @@ describe('onEnterFile', () => {
 			],
 			// mislinked row: workspaceB does not own the file (owningGroupId is ownerHome)
 			group_file: [makeGroupFile({ fileId, groupId: workspaceB })],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
 		await m.onEnterFile(tx, { fileId, time: Date.now() })
-		expect((s.group_file as TlaGroupFile[]).some((gf) => gf.groupId === userId)).toBe(true)
+		expect(s.group_file.some((gf) => gf.groupId === userId)).toBe(true)
 	})
 
 	it('mirrors a group-less (legacy) file into home so it stays findable', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: null, ownerId: userId, shared: true })],
-			file_state: [],
 			group: [makeGroup({ id: userId })],
 			group_user: [makeGroupUser({ userId, groupId: userId, role: 'owner' })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
 		await m.onEnterFile(tx, { fileId, time: Date.now() })
-		expect((s.group_file as TlaGroupFile[]).some((gf) => gf.groupId === userId)).toBe(true)
+		expect(s.group_file.some((gf) => gf.groupId === userId)).toBe(true)
 	})
 })
 
@@ -778,36 +684,22 @@ describe('workspace mutations', () => {
 	const userId = 'user_aaaa11112222bbbb'
 
 	it('migrated user can create workspace', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
-			group: [],
-			group_user: [],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		const groupId = 'group_new123456789ab'
 		await m.createWorkspace(tx, { id: groupId, name: 'My Group' })
 		expect(s.group.length).toBe(1)
 		expect(s.group_user.length).toBe(1)
-		expect((s.group_user as TlaGroupUser[])[0]?.role).toBe('owner')
+		expect(s.group_user[0]?.role).toBe('owner')
 	})
 
 	it('cannot create workspace with an empty name', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
-			group: [],
-			group_user: [],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		const groupId = 'group_new123456789ab'
@@ -817,16 +709,11 @@ describe('workspace mutations', () => {
 
 	it('owner can update workspace name', async () => {
 		const groupId = 'group_aaa11112222bbb'
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId, role: 'owner' })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectValid(() => m.updateWorkspace(tx, { id: groupId, name: 'Renamed' }))
@@ -834,16 +721,11 @@ describe('workspace mutations', () => {
 
 	it('member cannot update workspace name', async () => {
 		const groupId = 'group_aaa11112222bbb'
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId, role: 'member' })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectForbidden(() => m.updateWorkspace(tx, { id: groupId, name: 'Renamed' }))
@@ -852,16 +734,13 @@ describe('workspace mutations', () => {
 	it('owner can delete workspace', async () => {
 		const groupId = 'group_aaa11112222bbb'
 		const fileId = 'file_aaaa11112222bbbb'
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupId })],
-			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId, role: 'owner' })],
 			group_file: [makeGroupFile({ fileId, groupId })],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await m.deleteWorkspace(tx, { id: groupId })
@@ -872,16 +751,11 @@ describe('workspace mutations', () => {
 
 	it('non-owner cannot delete workspace', async () => {
 		const groupId = 'group_aaa11112222bbb'
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId, role: 'member' })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectForbidden(() => m.deleteWorkspace(tx, { id: groupId }))
@@ -894,19 +768,14 @@ describe('membership', () => {
 	const memberId = 'user_member12345678ab'
 
 	it('owner can set member roles', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			group_user: [
 				makeGroupUser({ userId, groupId, role: 'owner' }),
 				makeGroupUser({ userId: memberId, groupId, role: 'member' }),
 			],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await m.setWorkspaceMemberRole(tx, {
@@ -918,19 +787,14 @@ describe('membership', () => {
 	})
 
 	it('member cannot set member roles', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			group_user: [
 				makeGroupUser({ userId, groupId, role: 'member' }),
 				makeGroupUser({ userId: memberId, groupId, role: 'member' }),
 			],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectForbidden(() =>
@@ -939,19 +803,14 @@ describe('membership', () => {
 	})
 
 	it('cannot demote last owner to member', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			group_user: [
 				makeGroupUser({ userId, groupId, role: 'owner' }),
 				makeGroupUser({ userId: memberId, groupId, role: 'member' }),
 			],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectForbidden(() =>
@@ -960,35 +819,25 @@ describe('membership', () => {
 	})
 
 	it('last owner cannot leave workspace', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId, role: 'owner' })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectForbidden(() => m.leaveWorkspace(tx, { workspaceId: groupId }))
 	})
 
 	it('non-owner member can leave workspace', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			group_user: [
 				makeGroupUser({ userId: 'user_owner12345678ab', groupId, role: 'owner' }),
 				makeGroupUser({ userId, groupId, role: 'member' }),
 			],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await m.leaveWorkspace(tx, { workspaceId: groupId })
@@ -996,19 +845,14 @@ describe('membership', () => {
 	})
 
 	it('owner can remove a member', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			group_user: [
 				makeGroupUser({ userId, groupId, role: 'owner' }),
 				makeGroupUser({ userId: memberId, groupId, role: 'member' }),
 			],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await m.removeWorkspaceMember(tx, { workspaceId: groupId, targetUserId: memberId })
@@ -1016,19 +860,14 @@ describe('membership', () => {
 	})
 
 	it('member cannot remove members', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			group_user: [
 				makeGroupUser({ userId, groupId, role: 'member' }),
 				makeGroupUser({ userId: memberId, groupId, role: 'member' }),
 			],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectForbidden(() =>
@@ -1037,19 +876,14 @@ describe('membership', () => {
 	})
 
 	it('cannot remove the last owner', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			group_user: [
 				makeGroupUser({ userId, groupId, role: 'owner' }),
 				makeGroupUser({ userId: memberId, groupId, role: 'member' }),
 			],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectForbidden(() =>
@@ -1065,19 +899,16 @@ describe('file operations across workspaces', () => {
 	const fileId = 'file_aaaa11112222bbbb'
 
 	it('member of both workspaces can move file between them', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
-			file_state: [],
 			group: [makeGroup({ id: groupA }), makeGroup({ id: groupB })],
 			group_user: [
 				makeGroupUser({ userId, groupId: groupA }),
 				makeGroupUser({ userId, groupId: groupB }),
 			],
 			group_file: [makeGroupFile({ fileId, groupId: groupA })],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await m.moveFileToWorkspace(tx, { fileId, workspaceId: groupB })
@@ -1085,48 +916,40 @@ describe('file operations across workspaces', () => {
 	})
 
 	it('member of source workspace only cannot move file to other workspace', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
-			file_state: [],
 			group: [makeGroup({ id: groupA }), makeGroup({ id: groupB })],
 			group_user: [makeGroupUser({ userId, groupId: groupA })],
 			group_file: [makeGroupFile({ fileId, groupId: groupA })],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectForbidden(() => m.moveFileToWorkspace(tx, { fileId, workspaceId: groupB }))
 	})
 
 	it('member of target workspace only cannot move file from other workspace', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
-			file_state: [],
 			group: [makeGroup({ id: groupA }), makeGroup({ id: groupB })],
 			group_user: [makeGroupUser({ userId, groupId: groupB })],
 			group_file: [makeGroupFile({ fileId, groupId: groupA })],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectForbidden(() => m.moveFileToWorkspace(tx, { fileId, workspaceId: groupB }))
 	})
 
 	it('member can remove file from workspace', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
 			file_state: [makeFileState({ userId, fileId })],
 			group: [makeGroup({ id: groupA })],
 			group_user: [makeGroupUser({ userId, groupId: groupA, role: 'member' })],
 			group_file: [makeGroupFile({ fileId, groupId: groupA })],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await m.removeFileFromWorkspace(tx, { fileId, workspaceId: groupA })
@@ -1134,16 +957,13 @@ describe('file operations across workspaces', () => {
 	})
 
 	it('non-member cannot remove file from workspace', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
 			file_state: [makeFileState({ userId, fileId })],
 			group: [makeGroup({ id: groupA })],
-			group_user: [],
 			group_file: [makeGroupFile({ fileId, groupId: groupA })],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectForbidden(() => m.removeFileFromWorkspace(tx, { fileId, workspaceId: groupA }))
@@ -1152,7 +972,7 @@ describe('file operations across workspaces', () => {
 
 	it('removing a linked file deletes only the link, not the file', async () => {
 		// the file is owned by workspace B but linked into workspace A
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupB })],
 			file_state: [makeFileState({ userId, fileId })],
@@ -1162,9 +982,7 @@ describe('file operations across workspaces', () => {
 				makeGroupFile({ fileId, groupId: groupA }),
 				makeGroupFile({ fileId, groupId: groupB }),
 			],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await m.removeFileFromWorkspace(tx, { fileId, workspaceId: groupA })
@@ -1176,14 +994,13 @@ describe('file operations across workspaces', () => {
 	it('pinning in a workspace computes the index against that workspace, not home', async () => {
 		const otherFileId = 'file_bbbb11112222cccc'
 		const homePinnedId = 'file_cccc11112222dddd'
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [
 				makeFile({ id: fileId, owningGroupId: groupA }),
 				makeFile({ id: otherFileId, owningGroupId: groupA }),
 				makeFile({ id: homePinnedId, owningGroupId: userId }),
 			],
-			file_state: [],
 			group: [makeGroup({ id: groupA }), makeGroup({ id: userId })],
 			group_user: [
 				makeGroupUser({ userId, groupId: groupA }),
@@ -1197,9 +1014,7 @@ describe('file operations across workspaces', () => {
 				// influence (or collide with) the new pin's index
 				makeGroupFile({ fileId: homePinnedId, groupId: userId, index: 'a1' as IndexKey }),
 			],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await m.pinFile(tx, { fileId, workspaceId: groupA })
@@ -1218,16 +1033,11 @@ describe('home workspace special case', () => {
 	it('home workspace shortcut passes membership check', async () => {
 		// createFile with groupId === userId should pass the membership check
 		// even without a group_user row, because of the userId === groupId shortcut
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
 			group: [makeGroup({ id: userId })],
 			group_user: [makeGroupUser({ userId, groupId: userId, role: 'owner' })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		// This exercises the userId === groupId shortcut in assertUserIsGroupMember
@@ -1253,16 +1063,11 @@ describe('home workspace special case', () => {
 			)
 			user.push(makeUser({ id: extra.secondOwnerId }))
 		}
-		return {
+		return makeStore({
 			user,
-			file: [],
-			file_state: [],
 			group: [makeGroup({ id: userId })],
 			group_user,
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		} satisfies TableStore
+		})
 	}
 
 	it('can rename home workspace', async () => {
@@ -1308,16 +1113,11 @@ describe('regenerateWorkspaceInviteSecret', () => {
 	const groupId = 'group_aaa11112222bbb'
 
 	it('owner can regenerate invite secret', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
 			group: [makeGroup({ id: groupId, inviteSecret: 'old_secret_1234567' })],
 			group_user: [makeGroupUser({ userId, groupId, role: 'owner' })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
 		await m.regenerateWorkspaceInviteSecret(tx, { id: groupId })
@@ -1326,16 +1126,11 @@ describe('regenerateWorkspaceInviteSecret', () => {
 	})
 
 	it('member cannot regenerate invite secret', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
 			group: [makeGroup({ id: groupId, inviteSecret: 'old_secret_1234567' })],
 			group_user: [makeGroupUser({ userId, groupId, role: 'member' })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
 		await expectForbidden(() => m.regenerateWorkspaceInviteSecret(tx, { id: groupId }))
@@ -1343,17 +1138,11 @@ describe('regenerateWorkspaceInviteSecret', () => {
 
 	it('non-member cannot regenerate invite secret', async () => {
 		const nonMemberId = 'user_nonmember123456'
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: nonMemberId })],
-			file: [],
-			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			// No group_user for nonMemberId — not a member at all
-			group_user: [],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(nonMemberId)
 		await expectForbidden(() => m.regenerateWorkspaceInviteSecret(tx, { id: groupId }))
@@ -1365,16 +1154,11 @@ describe('setWorkspaceInviteLinkEnabled', () => {
 	const groupId = 'group_aaa11112222bbb'
 
 	it('owner can toggle the invite link', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
 			group: [makeGroup({ id: groupId, inviteLinkEnabled: true })],
 			group_user: [makeGroupUser({ userId, groupId, role: 'owner' })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
 		await m.setWorkspaceInviteLinkEnabled(tx, { id: groupId, enabled: false })
@@ -1384,16 +1168,11 @@ describe('setWorkspaceInviteLinkEnabled', () => {
 	})
 
 	it('member cannot toggle the invite link', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
-			file: [],
-			file_state: [],
 			group: [makeGroup({ id: groupId, inviteLinkEnabled: true })],
 			group_user: [makeGroupUser({ userId, groupId, role: 'member' })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
 		await expectForbidden(() =>
@@ -1407,32 +1186,24 @@ describe('immutable column bypass attempts', () => {
 	const groupId = 'group_aaa11112222bbb'
 
 	it('cannot change file.ownerId to self', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: 'file_aaaa11112222bbbb', owningGroupId: groupId })],
-			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectForbidden(() => m.file.update(tx, { id: 'file_aaaa11112222bbbb', ownerId: userId }))
 	})
 
 	it('cannot change file.owningGroupId', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: 'file_aaaa11112222bbbb', owningGroupId: groupId })],
-			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectForbidden(() =>
@@ -1441,32 +1212,24 @@ describe('immutable column bypass attempts', () => {
 	})
 
 	it('cannot set isDeleted:true', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: 'file_aaaa11112222bbbb', owningGroupId: groupId })],
-			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectForbidden(() => m.file.update(tx, { id: 'file_aaaa11112222bbbb', isDeleted: true }))
 	})
 
 	it('cannot set isDeleted:false (falsy value still blocked)', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: 'file_aaaa11112222bbbb', owningGroupId: groupId, isDeleted: false })],
-			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectForbidden(() =>
@@ -1475,16 +1238,13 @@ describe('immutable column bypass attempts', () => {
 	})
 
 	it('cannot update file_state for inaccessible file on server', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: 'file_secret12345678', owningGroupId: groupId, shared: false })],
 			file_state: [makeFileState({ userId, fileId: 'file_secret12345678' })],
 			group: [makeGroup({ id: groupId })],
 			group_user: [], // not a member
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
 		await expectForbidden(() =>
@@ -1493,16 +1253,13 @@ describe('immutable column bypass attempts', () => {
 	})
 
 	it('cannot change immutable file_state field (firstVisitAt)', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: 'file_aaaa11112222bbbb', owningGroupId: groupId })],
 			file_state: [makeFileState({ userId, fileId: 'file_aaaa11112222bbbb', firstVisitAt: 1 })],
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectForbidden(() =>
@@ -1521,16 +1278,12 @@ describe('file access control logic', () => {
 
 	it('non-member can enter shared file (read access)', async () => {
 		const otherId = 'user_other1234567890'
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: 'file_shared123456789', owningGroupId: groupId, shared: true })],
-			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId: otherId, groupId })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
 		// onEnterFile uses assertUserCanAccessFile (allowGuestAccess=true)
@@ -1538,16 +1291,12 @@ describe('file access control logic', () => {
 	})
 
 	it('cannot enter deleted file', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: 'file_deleted1234567a', owningGroupId: groupId, isDeleted: true })],
-			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
 		await expectBadRequest(() =>
@@ -1556,7 +1305,7 @@ describe('file access control logic', () => {
 	})
 
 	it('cannot enter file with neither ownerId nor owningGroupId', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [
 				makeFile({
@@ -1566,13 +1315,7 @@ describe('file access control logic', () => {
 					shared: false,
 				}),
 			],
-			file_state: [],
-			group: [],
-			group_user: [],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
 		await expectBadRequest(() =>
@@ -1587,16 +1330,12 @@ describe('cross-user isolation', () => {
 	const groupA = 'group_aaa11112222bbb'
 
 	it('user A files never accessible to unrelated user B', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userA }), makeUser({ id: userB })],
 			file: [makeFile({ id: 'file_userA123456789a', owningGroupId: groupA, shared: false })],
-			file_state: [],
 			group: [makeGroup({ id: groupA })],
 			group_user: [makeGroupUser({ userId: userA, groupId: groupA })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s, { location: 'server' })
 		const mB = createMutators(userB)
 		// User B cannot update A's file
@@ -1616,16 +1355,12 @@ describe('createFile from source (duplicate) access control', () => {
 
 	// migrated user whose target group is their home group (groupId === userId)
 	function baseStore(sourceFile: TlaFile) {
-		return {
+		return makeStore({
 			user: [makeUser({ id: userId })],
 			file: [sourceFile],
-			file_state: [],
 			group: [makeGroup({ id: userId }), makeGroup({ id: otherGroup })],
 			group_user: [makeGroupUser({ userId, groupId: userId, role: 'owner' })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 	}
 
 	function duplicate(m: ReturnType<typeof createMutators>, tx: any, createSource: string | null) {
@@ -1665,32 +1400,21 @@ describe('createFile from source (duplicate) access control', () => {
 	})
 
 	it('cannot duplicate a file you only know the id of (source not present)', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
-			file: [] as TlaFile[],
-			file_state: [],
 			group: [makeGroup({ id: userId })],
 			group_user: [makeGroupUser({ userId, groupId: userId, role: 'owner' })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
 		await expectBadRequest(() => duplicate(m, tx, `${FILE_PREFIX}/${sourceId}`))
 	})
 
 	it('cannot duplicate an inaccessible legacy (ownerId-owned) file', async () => {
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: sourceId, ownerId: 'user_someoneElse1234', shared: false })],
-			file_state: [],
-			group: [],
-			group_user: [],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
 		await expectForbidden(() => duplicate(m, tx, `${FILE_PREFIX}/${sourceId}`))
@@ -1699,16 +1423,11 @@ describe('createFile from source (duplicate) access control', () => {
 	it('does not gate non-file createSource prefixes (e.g. published)', async () => {
 		// a published-doc copy uses a different prefix and must still work even
 		// when there is no readable `file` row for the source id
-		const s = {
+		const s = makeStore({
 			user: [makeUser({ id: userId })],
-			file: [] as TlaFile[],
-			file_state: [],
 			group: [makeGroup({ id: userId })],
 			group_user: [makeGroupUser({ userId, groupId: userId, role: 'owner' })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
+		})
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
 		await expectValid(() => duplicate(m, tx, `${PUBLISH_PREFIX}/${sourceId}`))
@@ -1729,16 +1448,11 @@ describe('file creation security', () => {
 describe('comment.markRead / comment.markUnread', () => {
 	// owner1 owns file1; comment c1 by author-1 lives on file1
 	function commentState(): TableStore {
-		return {
+		return makeStore({
 			user: [makeUser({ id: 'owner1' }), makeUser({ id: 'other1' })],
 			file: [makeFile({ id: 'file1', ownerId: 'owner1' })],
-			file_state: [],
-			group: [],
-			group_user: [],
-			group_file: [],
 			comment: [makeComment({ id: 'c1', fileId: 'file1' })],
-			comment_read: [],
-		}
+		})
 	}
 
 	it('markRead upserts a read row scoped to the calling user', async () => {
@@ -1816,23 +1530,18 @@ describe('comment.markRead / comment.markUnread', () => {
 describe('comment.markManyRead', () => {
 	// owner1 owns file1 (comments c1, c2) and file2 (comment c3); other1 owns nothing
 	function manyCommentState(): TableStore {
-		return {
+		return makeStore({
 			user: [makeUser({ id: 'owner1' }), makeUser({ id: 'other1' })],
 			file: [
 				makeFile({ id: 'file1', ownerId: 'owner1' }),
 				makeFile({ id: 'file2', ownerId: 'owner1' }),
 			],
-			file_state: [],
-			group: [],
-			group_user: [],
-			group_file: [],
 			comment: [
 				makeComment({ id: 'c1', fileId: 'file1' }),
 				makeComment({ id: 'c2', fileId: 'file1' }),
 				makeComment({ id: 'c3', fileId: 'file2' }),
 			],
-			comment_read: [],
-		}
+		})
 	}
 
 	it('upserts one read row per comment, scoped to the calling user, across files', async () => {

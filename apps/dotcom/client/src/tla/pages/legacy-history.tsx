@@ -21,9 +21,7 @@ const { loader, useData } = defineLoader(async (args) => {
 
 	if (!boardId) return null
 
-	const result = await fetch(`/api/${ROOM_PREFIX}/${boardId}/history`, {
-		headers: {},
-	})
+	const result = await fetch(`/api/${ROOM_PREFIX}/${boardId}/history`)
 	if (!result.ok) return null
 	const data = await result.json()
 
@@ -54,22 +52,13 @@ export function Component({ error: _error }: { error?: unknown }) {
 		}
 	}, [error, userId])
 
-	return (
-		// Override TlaEditor's internal ReadyWrapper. This prevents the anon layout chrome from rendering
-		// before the editor is ready.
-		<>
-			{error ? (
-				<TlaFileError error={error} />
-			) : (
-				<TlaAnonLayout>
-					<BoardHistoryLog
-						data={data.data.timestamps.map((timestamp) => ({
-							timestamp,
-							href: `./${timestamp}`,
-						}))}
-					/>
-				</TlaAnonLayout>
-			)}
-		</>
+	return error ? (
+		<TlaFileError error={error} />
+	) : (
+		<TlaAnonLayout>
+			<BoardHistoryLog
+				data={data.data.timestamps.map((timestamp) => ({ timestamp, href: `./${timestamp}` }))}
+			/>
+		</TlaAnonLayout>
 	)
 }

@@ -14,6 +14,8 @@ config({
 	path: './.env.local',
 })
 
+const multiplayerServerProxyTarget = getMultiplayerServerURL() || 'http://127.0.0.1:8787'
+
 /**
  * Plugin to enable SPA fallback for vite preview.
  * In dev mode, Vite handles SPA routing automatically.
@@ -123,10 +125,10 @@ export default defineConfig((env) => ({
 			// under its path — the deployed equivalent is the extra route in the worker's wrangler.toml.
 			// Not rewritten: the worker matches this path as-is.
 			'/.well-known/oauth-protected-resource': {
-				target: getMultiplayerServerURL() || 'http://127.0.0.1:8787',
+				target: multiplayerServerProxyTarget,
 			},
 			'/api': {
-				target: getMultiplayerServerURL() || 'http://127.0.0.1:8787',
+				target: multiplayerServerProxyTarget,
 				rewrite: (path) => path.replace(/^\/api/, ''),
 				ws: false, // we talk to the websocket directly via workers.dev
 				// Useful for debugging proxy issues
@@ -155,10 +157,10 @@ export default defineConfig((env) => ({
 		proxy: {
 			// See the dev server proxy above.
 			'/.well-known/oauth-protected-resource': {
-				target: getMultiplayerServerURL() || 'http://127.0.0.1:8787',
+				target: multiplayerServerProxyTarget,
 			},
 			'/api': {
-				target: getMultiplayerServerURL() || 'http://127.0.0.1:8787',
+				target: multiplayerServerProxyTarget,
 				rewrite: (path) => path.replace(/^\/api/, ''),
 			},
 		},

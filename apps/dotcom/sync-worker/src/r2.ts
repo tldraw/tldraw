@@ -28,3 +28,10 @@ export async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promi
 
 	return keys
 }
+
+export async function deleteAllObjectsWithPrefix(bucket: R2Bucket, prefix: string): Promise<void> {
+	const keys = await listAllObjectKeys(bucket, prefix)
+	if (keys.length > 0) {
+		await bucket.delete(keys)
+	}
+}

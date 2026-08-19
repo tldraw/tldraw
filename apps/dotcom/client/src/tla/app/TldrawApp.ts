@@ -28,7 +28,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import {
 	Result,
-	assert,
+	compact,
 	fetch,
 	isEqual,
 	promiseWithResolve,
@@ -43,7 +43,6 @@ import { useNavigate } from 'react-router-dom'
 import {
 	Atom,
 	Signal,
-	TLDocument,
 	TLSessionStateSnapshot,
 	TLUiToastsContextType,
 	TLUserPreferences,
@@ -331,38 +330,18 @@ export class TldrawApp {
 		})
 		this.disposables.push(unsubscribe)
 
-		this.user$ = this.signalizeQuery('user signal', this.userQuery())
-		this.fileStates$ = this.signalizeQuery('file states signal', this.fileStateQuery())
+		this.user$ = this.signalizeQuery('user signal', queries.user())
+		this.fileStates$ = this.signalizeQuery('file states signal', queries.fileStates())
 		this.workspaceMemberships$ = this.signalizeQuery(
 			'workspace memberships signal',
-			this.workspaceMembershipsQuery()
+			queries.workspaceMemberships()
 		)
 		this.comments$ = this.isCommentingEnabled
-			? this.signalizeQuery('comments signal', this.commentsQuery())
+			? this.signalizeQuery('comments signal', queries.comments())
 			: null
 		this.reactions$ = this.isCommentingEnabled
-			? this.signalizeQuery('reactions signal', this.reactionsQuery())
+			? this.signalizeQuery('reactions signal', queries.reactions())
 			: null
-	}
-
-	private userQuery() {
-		return queries.user()
-	}
-
-	private fileStateQuery() {
-		return queries.fileStates()
-	}
-
-	private workspaceMembershipsQuery() {
-		return queries.workspaceMemberships()
-	}
-
-	private commentsQuery() {
-		return queries.comments()
-	}
-
-	private reactionsQuery() {
-		return queries.reactions()
 	}
 
 	/**
@@ -398,24 +377,21 @@ export class TldrawApp {
 	async preload() {
 		// Ensure user exists in DB before Zero can query
 		const token = await this.getToken()
-		if (!token) {
-			throw new Error('No auth token available for init')
-		} else {
-			const res = await fetch(`/api/app/${this.userId}/init`, {
-				method: 'POST',
-				headers: { Authorization: `Bearer ${token}` },
-			})
-			if (!res.ok) console.error(`Init failed: ${res.status}`)
-		}
-		await this.z.preload(this.userQuery()).complete
+		if (!token) throw new Error('No auth token available for init')
+		const res = await fetch(`/api/app/${this.userId}/init`, {
+			method: 'POST',
+			headers: { Authorization: `Bearer ${token}` },
+		})
+		if (!res.ok) console.error(`Init failed: ${res.status}`)
+		await this.z.preload(queries.user()).complete
 		await this.changesFlushed
 		await new Promise((resolve) => {
 			let unlisten = () => {}
 			unlisten = react('wait for user', () => this.user$.get() && resolve(unlisten()))
 		})
 		await Promise.all([
-			this.z.preload(this.fileStateQuery()).complete,
-			this.z.preload(this.workspaceMembershipsQuery()).complete,
+			this.z.preload(queries.fileStates()).complete,
+			this.z.preload(queries.workspaceMemberships()).complete,
 		])
 	}
 
@@ -562,8 +538,7 @@ export class TldrawApp {
 		pinned.sort(sortByMaybeIndex)
 
 		for (const file of unpinned) {
-			const existing = retainedOrdering?.find((f) => f.fileId === file.fileId)
-			if (existing) continue
+			if (retainedOrdering.some((f) => f.fileId === file.fileId)) continue
 
 			// For new files, use current updatedAt
 			const state = this.getFileState(file.fileId)
@@ -584,11 +559,6 @@ export class TldrawApp {
 		return pinned
 			.map((f) => ({ fileId: f.fileId, isPinned: f.index !== null, date: f.file.updatedAt }))
 			.concat(nextOrdering.map((f) => ({ fileId: f.fileId, isPinned: false, date: f.date })))
-	}
-
-	// Clear workspace file ordering to refresh on expand (like recent files on page reload)
-	clearWorkspaceFileOrdering(workspaceId: string) {
-		this.lastWorkspaceFileOrderings.delete(workspaceId)
 	}
 
 	tlUser = createTLCurrentUser({
@@ -616,12 +586,7 @@ export class TldrawApp {
 	})
 
 	getUserOwnFiles() {
-		const fileStates = this.getUserFileStates()
-		const files: TlaFile[] = []
-		fileStates.forEach((f) => {
-			if (f.file) files.push(f.file)
-		})
-		return files
+		return compact(this.getUserFileStates().map((f) => f.file))
 	}
 
 	getUserFileStates() {
@@ -840,7 +805,6 @@ export class TldrawApp {
 			// possibly a published file
 			return ''
 		}
-		assert(typeof file !== 'string', 'ok')
 
 		if (typeof file.name === 'undefined') {
 			captureException(new Error('file name is undefined somehow: ' + JSON.stringify(file)))
@@ -858,8 +822,8 @@ export class TldrawApp {
 		return
 	}
 
-	async slurpFile() {
-		return await this.createFile({
+	slurpFile() {
+		return this.createFile({
 			createSource: `${LOCAL_FILE_PREFIX}/${getScratchPersistenceKey()}`,
 		})
 	}
@@ -898,11 +862,11 @@ export class TldrawApp {
 
 	getFile(fileId?: string): TlaFile | null {
 		if (!fileId) return null
-		return (
-			this.getWorkspaceMemberships()
-				.find((g) => g.groupFiles.some((gf) => gf.fileId === fileId))
-				?.groupFiles.find((gf) => gf.fileId === fileId)?.file ?? null
-		)
+		for (const membership of this.getWorkspaceMemberships()) {
+			const groupFile = membership.groupFiles.find((gf) => gf.fileId === fileId)
+			if (groupFile) return groupFile.file ?? null
+		}
+		return null
 	}
 
 	canUpdateFile(fileId: string): boolean {
@@ -1259,10 +1223,7 @@ export class TldrawApp {
 			throw Error(response.message)
 		}
 		const fileId = response.slugs[0]
-		const name =
-			file.name?.replace(/\.tldr$/, '') ??
-			Object.values(snapshot.store).find((d): d is TLDocument => d.typeName === 'document')?.name ??
-			''
+		const name = file.name.replace(/\.tldr$/, '')
 
 		return this.createFile({ fileId, name, workspaceId })
 	}

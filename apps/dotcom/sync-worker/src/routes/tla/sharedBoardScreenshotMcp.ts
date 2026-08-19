@@ -1,4 +1,5 @@
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
+import { RoomSnapshot } from '@tldraw/sync-core'
 import { IRequest } from 'itty-router'
 import {
 	MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT,
@@ -17,6 +18,8 @@ import {
 	BOARD_NOT_FOUND_MESSAGE,
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
+	JsonRpcId,
+	MCP_PROTOCOL_VERSION,
 	MCP_SERVER_INFO,
 	MCP_SERVER_INSTRUCTIONS,
 	PAGE_INFO_TOOL_NAME,
@@ -77,7 +80,7 @@ import {
 // 2025-11-25 is the oldest version this server implements. a client asking for older versions
 // will be met with this version.
 const MCP_PROTOCOL_VERSION_MODERN = '2026-07-28'
-const MCP_PROTOCOL_VERSION_LEGACY = '2025-11-25'
+const MCP_PROTOCOL_VERSION_LEGACY = MCP_PROTOCOL_VERSION
 const SUPPORTED_PROTOCOL_VERSIONS = [MCP_PROTOCOL_VERSION_MODERN, MCP_PROTOCOL_VERSION_LEGACY]
 
 type ProtocolEra = 'modern' | 'legacy'
@@ -159,8 +162,6 @@ async function isRateLimited(
 export function resetRateLimitFallbackForTests() {
 	RATE_LIMIT_FALLBACK.clear()
 }
-
-type JsonRpcId = string | number | null
 
 interface JsonRpcRequest {
 	jsonrpc?: string
@@ -678,7 +679,7 @@ async function callPageInfoTool(
 type BoardToolFailureReason = 'not_found' | 'board_empty' | 'page_not_found'
 
 type LoadedBoard =
-	| { ok: true; board: ResolvedThumbnailBoard; snapshot: import('@tldraw/sync-core').RoomSnapshot }
+	| { ok: true; board: ResolvedThumbnailBoard; snapshot: RoomSnapshot }
 	| { ok: false; reason: BoardToolFailureReason; result: ToolCallResult }
 
 async function loadBoardForTool(
@@ -688,12 +689,13 @@ async function loadBoardForTool(
 ): Promise<LoadedBoard> {
 	const resolved = await resolveSharedBoardForUser(env, boardId, userId)
 	if (!resolved.ok) {
+		const reason = resolved.reason === 'board_empty' ? 'board_empty' : 'not_found'
 		return {
 			ok: false,
-			reason: resolved.reason === 'board_empty' ? 'board_empty' : 'not_found',
+			reason,
 			result: toolError(
-				resolved.reason === 'board_empty' ? BOARD_EMPTY_MESSAGE : BOARD_NOT_FOUND_MESSAGE,
-				resolved.reason === 'board_empty' ? 'board_empty' : 'not_found'
+				reason === 'board_empty' ? BOARD_EMPTY_MESSAGE : BOARD_NOT_FOUND_MESSAGE,
+				reason
 			),
 		}
 	}
@@ -793,16 +795,32 @@ async function checkPerUserRateLimit(
 	) {
 		return undefined
 	}
+	return rateLimitRefusal(telemetry, userId, 'none', {
+		reason: 'rate_limited_user',
+		message: `Rate limited. Requests are limited to about ${MCP_PER_USER_RATE_LIMIT} per minute per account.`,
+	})
+}
+
+const GLOBAL_RATE_LIMIT_REFUSAL = {
+	reason: 'rate_limited_global',
+	message: 'Rate limited. Screenshot capacity is busy, try again in a minute.',
+}
+
+// The refusal every limiter hands back: filed on the request ledger with the caller's hash (the one
+// place that blob is recorded — see writeScreenshotTelemetry) and answered with the bounded reason.
+async function rateLimitRefusal(
+	telemetry: McpTelemetryWriter,
+	userId: string,
+	cacheStatus: 'miss' | 'none',
+	{ reason, message }: { reason: string; message: string }
+): Promise<ToolCallResult> {
 	telemetry({
-		cacheStatus: 'none',
+		cacheStatus,
 		rateLimitAllowed: false,
-		failureReason: 'rate_limited_user',
+		failureReason: reason,
 		callerHash: await sha256(userId),
 	})
-	return toolError(
-		`Rate limited. Requests are limited to about ${MCP_PER_USER_RATE_LIMIT} per minute per account.`,
-		'rate_limited_user'
-	)
+	return toolError(message, reason)
 }
 
 type MeasureResult =
@@ -830,18 +848,9 @@ async function measureFor(
 	telemetry: McpTelemetryWriter
 ): Promise<MeasureResult> {
 	if (await isGlobalBrowserRunRateLimited(env)) {
-		telemetry({
-			cacheStatus: 'none',
-			rateLimitAllowed: false,
-			failureReason: 'rate_limited_global',
-			callerHash: await sha256(userId),
-		})
 		return {
 			ok: false,
-			result: toolError(
-				'Rate limited. Screenshot capacity is busy, try again in a minute.',
-				'rate_limited_global'
-			),
+			result: await rateLimitRefusal(telemetry, userId, 'none', GLOBAL_RATE_LIMIT_REFUSAL),
 		}
 	}
 	return {
@@ -932,9 +941,7 @@ async function renderShapeSetScreenshot(
 		pickShapes(
 			resolved: Extract<ResolvedBoardPage, { ok: true }>,
 			telemetry: McpTelemetryWriter
-		): Promise<
-			{ ok: true; shapeIds: string[] } | { ok: false; result: ReturnType<typeof toolError> }
-		>
+		): Promise<{ ok: true; shapeIds: string[] } | { ok: false; result: ToolCallResult }>
 	}
 ) {
 	const telemetry = mcpTelemetryWriter(env)
@@ -989,28 +996,13 @@ async function renderShapeSetScreenshot(
 				fallbackLimit: MCP_PER_BOARD_RATE_LIMIT,
 			})
 		) {
-			telemetry({
-				cacheStatus: 'miss',
-				rateLimitAllowed: false,
-				failureReason: 'rate_limited_board',
-				callerHash: await sha256(userId),
+			return rateLimitRefusal(telemetry, userId, 'miss', {
+				reason: 'rate_limited_board',
+				message: 'Rate limited. This board is being screenshotted too frequently.',
 			})
-			return toolError(
-				'Rate limited. This board is being screenshotted too frequently.',
-				'rate_limited_board'
-			)
 		}
 		if (await isGlobalBrowserRunRateLimited(env)) {
-			telemetry({
-				cacheStatus: 'miss',
-				rateLimitAllowed: false,
-				failureReason: 'rate_limited_global',
-				callerHash: await sha256(userId),
-			})
-			return toolError(
-				'Rate limited. Screenshot capacity is busy, try again in a minute.',
-				'rate_limited_global'
-			)
+			return rateLimitRefusal(telemetry, userId, 'miss', GLOBAL_RATE_LIMIT_REFUSAL)
 		}
 
 		const render = await captureThumbnailScreenshot(env, resolved.board, {

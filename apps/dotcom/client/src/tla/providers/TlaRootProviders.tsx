@@ -109,12 +109,11 @@ export function Component() {
 		() => getLocalSessionState().theme
 	)
 	const dir = getTextDirection(locale)
-	const handleThemeChange = (theme: 'light' | 'dark' | 'system') => setTheme(theme)
-	const handleLocaleChange = (locale: string) => {
+	const handleLocaleChange = useCallback((locale: string) => {
 		setLocale(locale)
 		document.documentElement.lang = locale
 		document.documentElement.dir = getTextDirection(locale)
-	}
+	}, [])
 	const isFocusMode = useValue(
 		'isFocusMode',
 		() => !!globalEditor.get()?.getInstanceState().isFocusMode,
@@ -144,7 +143,7 @@ export function Component() {
 			<RefreshErrorBoundary messages={CLERK_ERROR_MESSAGES}>
 				<IntlWrapper locale={locale}>
 					<MaybeForceUserRefresh>
-						<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
+						<SignedInProvider onThemeChange={setTheme} onLocaleChange={handleLocaleChange}>
 							{container && (
 								<ContainerProvider container={container}>
 									<InsideOfContainerContext>
@@ -239,19 +238,14 @@ function SignedInProvider({
 	const auth = useAuth()
 	const intl = useIntl()
 	const { user, isLoaded: isUserLoaded } = useClerkUser()
-	const [currentLocale, setCurrentLocale] = useState<string>(
-		globalEditor.get()?.user.getUserPreferences().locale ?? 'en'
-	)
 	const locale = useValue(
 		'locale',
 		() => globalEditor.get()?.user.getUserPreferences().locale ?? 'en',
 		[]
 	)
 	useEffect(() => {
-		if (locale === currentLocale) return
 		onLocaleChange(locale)
-		setCurrentLocale(locale)
-	}, [currentLocale, locale, onLocaleChange])
+	}, [locale, onLocaleChange])
 
 	useEffect(() => {
 		if (auth.isSignedIn && auth.userId) {
@@ -346,10 +340,8 @@ function LegalTermsAcceptance() {
 			if (hasNotAcceptedLegal(currentUser)) {
 				addDialog({
 					component: TlaLegalAcceptance,
-					onClose: () => {
-						// If the user closes the dialog and it's not accepted, show it again
-						maybeShowDialog()
-					},
+					// If the user closes the dialog and it's not accepted, show it again
+					onClose: maybeShowDialog,
 				})
 			}
 		}

@@ -138,37 +138,30 @@ export class Slurper {
 		})
 	}
 
-	private onSlurpFail() {
-		if (this.opts.abortSignal.aborted) return
-		// hide failed assets
+	// Assets still pointing at the local db are the ones whose upload didn't finish. Image shapes
+	// need a remount for the failure state to show.
+	private setUnuploadedAssetsHidden(hidden: boolean) {
 		this.opts.editor.updateAssets(
 			this.opts.editor
 				.getAssets()
 				.map((asset) =>
 					asset.props.src?.startsWith('asset:')
-						? { ...asset, meta: { ...asset.meta, hidden: true } }
+						? { ...asset, meta: { ...asset.meta, hidden } }
 						: asset
 				)
 		)
-
-		// need to remount all shapes to get the failure state to show for images
 		this.opts.remountImageShapes()
+	}
+
+	private onSlurpFail() {
+		if (this.opts.abortSignal.aborted) return
+		this.setUnuploadedAssetsHidden(true)
 		this.showFailureDialog()
 	}
 
 	private onTryAgain() {
 		if (this.opts.abortSignal.aborted) return
-		// show failed assets
-		this.opts.editor.updateAssets(
-			this.opts.editor
-				.getAssets()
-				.map((asset) =>
-					asset.props.src?.startsWith('asset:')
-						? { ...asset, meta: { ...asset.meta, hidden: false } }
-						: asset
-				)
-		)
-		this.opts.remountImageShapes()
+		this.setUnuploadedAssetsHidden(false)
 		this.slurp()
 	}
 
@@ -190,7 +183,7 @@ export class Slurper {
 					const res = await loadLocalFile(asset)
 					if (!res) throw new Error(`Failed to load local file for asset ${asset.id}`)
 					const { src } = await retry(
-						() => this.opts.editor.uploadAsset(asset!, res.file, this.opts.abortSignal),
+						() => this.opts.editor.uploadAsset(asset, res.file, this.opts.abortSignal),
 						{
 							attempts: 3,
 							waitDuration: 1000,

@@ -170,37 +170,27 @@ export function screenshotOf(env: Environment) {
 	return (env.BROWSER as any).quickAction as ReturnType<typeof vi.fn>
 }
 
-// Datapoints of one event, told apart by blob1: `mcp_shared_board_screenshot` rows are
-// request-level (cache and refusals), `browser_run_session` rows are one per browser session (the
-// spend ledger).
-function datapointsOfEvent(
+// The datapoints for one event name (blob1). The MCP route writes two events per screenshot tool
+// call — the render ledger (`mcp_shared_board_screenshot`, request-level) and the spend ledger
+// (`browser_run_session`, one per browser session) — and they share prefixes (`reason:`), so a test
+// asserting on one has to say which.
+export function datapointsNamed(
 	env: Environment,
-	eventName: string
+	name: string
 ): Array<{ blobs: string[]; doubles: number[] }> {
-	return (env.MEASURE as any).writeDataPoint.mock.calls
-		.map((call: any[]) => call[0] as { blobs: string[]; doubles: number[] })
-		.filter((point: { blobs: string[] }) => point.blobs[0] === eventName)
+	const points: Array<{ blobs: string[]; doubles: number[] }> = (
+		env.MEASURE as any
+	).writeDataPoint.mock.calls.map((call: any[]) => call[0])
+	return points.filter((point) => point.blobs[0] === name)
 }
 
 // Pulls the `<prefix>:…` telemetry blob out of every request-level datapoint, so tests can assert on
 // the low-cardinality dimensions (failure reason codes, and the caller recorded only on failures)
 // without depending on the order of the blobs array.
 export function blobsWithPrefix(env: Environment, prefix: string): string[] {
-	return datapointsOfEvent(env, 'mcp_shared_board_screenshot')
+	return datapointsNamed(env, 'mcp_shared_board_screenshot')
 		.map((point) => point.blobs.find((blob) => blob.startsWith(prefix)))
 		.filter(Boolean) as string[]
-}
-
-// The datapoints for one event name (blob1). The MCP route writes two events per screenshot tool
-// call — the render ledger and the protocol-level tool call — and they share prefixes (`reason:`), so
-// a test asserting on one has to say which.
-export function datapointsNamed(
-	env: Environment,
-	name: string
-): { blobs: string[]; doubles?: number[] }[] {
-	return (env.MEASURE as any).writeDataPoint.mock.calls
-		.map((call: any[]) => call[0])
-		.filter((point: any) => (point.blobs as string[])[0] === name)
 }
 
 // The `<prefix>:…` blobs of one event's datapoints, with the prefix stripped, in write order.
@@ -225,7 +215,7 @@ export function callerBlobsOf(env: Environment) {
 export function sessionsOf(
 	env: Environment
 ): Array<{ source: string; mode: string; outcome: string; reason: string; durationMs: number }> {
-	return datapointsOfEvent(env, 'browser_run_session').map((point) => {
+	return datapointsNamed(env, 'browser_run_session').map((point) => {
 		const value = (prefix: string) =>
 			point.blobs.find((blob) => blob.startsWith(prefix))!.slice(prefix.length)
 		return {

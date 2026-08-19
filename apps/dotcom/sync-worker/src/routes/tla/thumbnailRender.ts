@@ -590,6 +590,8 @@ export async function measurePageShapes(
 	}
 }
 
+// Writes one rendered PNG to a thumbnail cache, stamping the content version (so a stale version
+// can be detected) alongside any surface-specific metadata.
 export async function putThumbnailPng(
 	bucket: R2Bucket,
 	key: string,

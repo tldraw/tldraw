@@ -174,23 +174,16 @@ const router = createRouter<Environment>()
 	.post('/app/invite/:token/accept', acceptInvite)
 	.all('/app/__test__/*', testRoutes.fetch)
 	.get('/app/__debug-tail', (req, env) => {
-		if (isDebugLogging(env)) {
-			// upgrade to websocket
-			if (req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
-				return getLogger(env).fetch(req)
-			}
+		// upgrade to websocket
+		if (isDebugLogging(env) && req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
+			return getLogger(env).fetch(req)
 		}
-
-		return new Response('Not Found', { status: 404 })
+		return notFound()
 	})
-	.post('/app/__debug-tail/clear', async (req, env) => {
-		if (isDebugLogging(env)) {
-			// upgrade to websocket
-			await getLogger(env).clear()
-			return new Response('ok')
-		}
-
-		return new Response('Not Found', { status: 404 })
+	.post('/app/__debug-tail/clear', async (_req, env) => {
+		if (!isDebugLogging(env)) return notFound()
+		await getLogger(env).clear()
+		return new Response('ok')
 	})
 	.post('/app/submit-feedback', submitFeedback)
 	.get('/app/feature-flags', getFeatureFlags)
@@ -326,18 +319,12 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				userId = auth?.userId ?? null
 			}
 
+			const isOwner = !!userId && file.ownerId === userId
 			const isSharedEdit = file.shared && file.sharedLinkType === 'edit'
-			if (userId && file.ownerId === userId) {
-				// owner
-			} else if (isSharedEdit) {
-				// shared for editing
-			} else if (userId && file.owningGroupId) {
+			if (!isOwner && !isSharedEdit) {
+				if (!userId || !file.owningGroupId) return { ok: false, error: 'Forbidden' }
 				const role = await getRole(db, userId, file.owningGroupId)
-				if (!can(role, 'accessFiles')) {
-					return { ok: false, error: 'Forbidden' }
-				}
-			} else {
-				return { ok: false, error: 'Forbidden' }
+				if (!can(role, 'accessFiles')) return { ok: false, error: 'Forbidden' }
 			}
 
 			return { ok: true, userId }

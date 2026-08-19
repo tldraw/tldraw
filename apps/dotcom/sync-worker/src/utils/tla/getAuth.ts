@@ -140,10 +140,7 @@ export async function requireWriteAccessToFile(
 	try {
 		const file = await db
 			.selectFrom('file')
-			.select('ownerId')
-			.select('owningGroupId')
-			.select('shared')
-			.select('sharedLinkType')
+			.select(['ownerId', 'owningGroupId', 'shared', 'sharedLinkType'])
 			.where('id', '=', roomId)
 			.executeTakeFirst()
 
@@ -152,16 +149,12 @@ export async function requireWriteAccessToFile(
 		}
 
 		// If the user is the owner of the file, they have write access
-		if (file.ownerId === auth.userId) {
-			return
-		}
+		if (file.ownerId === auth.userId) return
 
 		// If the file is owned by a group, check the user can access its files
 		if (file.owningGroupId) {
 			const role = await getRole(db, auth.userId, file.owningGroupId)
-			if (can(role, 'accessFiles')) {
-				return
-			}
+			if (can(role, 'accessFiles')) return
 		}
 
 		// If the file is not shared, the user does not have write access
@@ -173,9 +166,6 @@ export async function requireWriteAccessToFile(
 		if (file.sharedLinkType !== 'edit') {
 			throw new StatusError(403, 'File is shared but not for editing')
 		}
-
-		// file is shared and for editing, allow access
-		return
 	} finally {
 		// Ensure database connection is properly closed
 		await db.destroy()

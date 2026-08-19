@@ -10,29 +10,27 @@ import { IRequest } from 'itty-router'
 import { Environment } from '../types'
 import { getAuth } from './tla/getAuth'
 
-function getFlagDefaults(_env: Environment): Record<FeatureFlagKey, FeatureFlagValue> {
-	return {
-		rum_enabled: {
-			type: 'percentage',
-			percentage: 0,
-			enabled: false,
-			description: 'Real User Monitoring for editor performance metrics',
-		},
-		commenting_enabled: {
-			type: 'percentage',
-			percentage: 0,
-			enabled: false,
-			description:
-				'Commenting on files (tool, pins, threads, sidebar, notifications). Users with a @tldraw.com email always have it, regardless of this flag',
-		},
-		mcp_server_access: {
-			type: 'allowlist',
-			users: [],
-			enabled: false,
-			description:
-				'Access to the board screenshot MCP server at /api/app/mcp. Off by default: the endpoint requires auth, so an unset flag denies everyone rather than leaving it open',
-		},
-	}
+const FLAG_DEFAULTS: Record<FeatureFlagKey, FeatureFlagValue> = {
+	rum_enabled: {
+		type: 'percentage',
+		percentage: 0,
+		enabled: false,
+		description: 'Real User Monitoring for editor performance metrics',
+	},
+	commenting_enabled: {
+		type: 'percentage',
+		percentage: 0,
+		enabled: false,
+		description:
+			'Commenting on files (tool, pins, threads, sidebar, notifications). Users with a @tldraw.com email always have it, regardless of this flag',
+	},
+	mcp_server_access: {
+		type: 'allowlist',
+		users: [],
+		enabled: false,
+		description:
+			'Access to the board screenshot MCP server at /api/app/mcp. Off by default: the endpoint requires auth, so an unset flag denies everyone rather than leaving it open',
+	},
 }
 
 export { FEATURE_FLAG_KEYS } from '@tldraw/dotcom-shared'
@@ -59,7 +57,7 @@ export async function getFeatureFlagValue(
 	env: Environment,
 	flag: FeatureFlagKey
 ): Promise<FeatureFlagValue> {
-	const defaults = getFlagDefaults(env)[flag]
+	const defaults = FLAG_DEFAULTS[flag]
 	try {
 		const value = await env.FEATURE_FLAGS.get(flag)
 		if (!value) {
@@ -81,11 +79,8 @@ export async function getFeatureFlagValue(
  * schema: a caller can tell which fields apply to a flag without a KV round trip, and without a
  * stored value getting a say in the answer.
  */
-export function getFeatureFlagType(
-	env: Environment,
-	flag: FeatureFlagKey
-): FeatureFlagValue['type'] {
-	return getFlagDefaults(env)[flag].type
+export function getFeatureFlagType(flag: FeatureFlagKey): FeatureFlagValue['type'] {
+	return FLAG_DEFAULTS[flag].type
 }
 
 /**

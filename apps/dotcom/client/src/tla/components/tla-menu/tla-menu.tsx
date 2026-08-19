@@ -274,7 +274,7 @@ export function TlaMenuSwitch({ id, checked, onChange, disabled, ...rest }: TlaM
 /* ---------------------- Tabs ---------------------- */
 
 /*
-This is a set of primitives for creating tabs in the UI. Structure is:
+Primitives for tabs. Structure is:
 
 <Root>
 	<Tabs>

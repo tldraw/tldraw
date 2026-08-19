@@ -1,7 +1,7 @@
 import { useAuth } from '@clerk/clerk-react'
 import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import {
 	TldrawUiButton,
 	TldrawUiButtonLabel,
@@ -78,13 +78,10 @@ export function SneakyLegacyModal() {
 	const { addDialog, removeDialog } = useDialogs()
 	const location = useLocation()
 	const { isSignedIn } = useAuth()
-	const [searchParams, setSearchParams] = useSearchParams()
-	const app = useMaybeApp()
 
+	// isSignedIn stays a dep so signing in re-shows the dialog with its copy button.
 	useEffect(() => {
-		if (!location.pathname.startsWith(`/${ROOM_PREFIX}/`)) {
-			return
-		}
+		if (!location.pathname.startsWith(`/${ROOM_PREFIX}/`)) return
 
 		const id = addDialog({
 			component: ({ onClose }) => <LegacyChangesModal onClose={onClose} />,
@@ -93,6 +90,6 @@ export function SneakyLegacyModal() {
 		return () => {
 			removeDialog(id)
 		}
-	}, [addDialog, removeDialog, location.pathname, searchParams, isSignedIn, setSearchParams, app])
+	}, [addDialog, removeDialog, location.pathname, isSignedIn])
 	return null
 }

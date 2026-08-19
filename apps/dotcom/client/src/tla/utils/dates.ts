@@ -1,4 +1,4 @@
-import { FormatDateOptions } from '../utils/i18n'
+import { FormatDateOptions } from './i18n'
 
 export function getRelevantDates() {
 	const now = new Date()
@@ -13,7 +13,7 @@ export function getRelevantDates() {
 }
 
 export function getDateFormat(date: Date): FormatDateOptions {
-	const { yesterday, thisMonth, thisYear } = getRelevantDates()
+	const { yesterday, thisYear } = getRelevantDates()
 	const d = date.getTime()
 
 	if (d >= yesterday) {
@@ -21,13 +21,6 @@ export function getDateFormat(date: Date): FormatDateOptions {
 			weekday: 'short',
 			hour: 'numeric',
 			minute: 'numeric',
-		}
-	} else if (d >= thisMonth) {
-		return {
-			month: 'short',
-			weekday: 'short',
-			day: 'numeric',
-			hour: 'numeric',
 		}
 	} else if (d >= thisYear) {
 		return {

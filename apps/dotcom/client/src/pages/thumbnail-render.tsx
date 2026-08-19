@@ -276,11 +276,12 @@ function getRepresentativeContentInset(width: number, height: number) {
 	return Math.max(48, Math.min(160, width * 0.12, height * 0.18))
 }
 
-// Fits the current page's content into the viewport with representative margins. Run both on mount
-// and again right before export (see ThumbnailExportSignal), because autosized text re-measures once
-// web fonts load and shifts the page bounds — a fit computed before fonts settle would clip content.
-function fitContentCamera(editor: Editor, width: number, height: number) {
-	const bounds = editor.getCurrentPageBounds()
+function fitBoundsCamera(
+	editor: Editor,
+	bounds: Box | null | undefined,
+	width: number,
+	height: number
+) {
 	if (bounds) {
 		editor.zoomToBounds(bounds, {
 			immediate: true,
@@ -290,6 +291,13 @@ function fitContentCamera(editor: Editor, width: number, height: number) {
 	} else {
 		editor.setCamera({ x: 0, y: 0, z: 1 }, { immediate: true })
 	}
+}
+
+// Fits the current page's content into the viewport with representative margins. Run both on mount
+// and again right before export (see ThumbnailExportSignal), because autosized text re-measures once
+// web fonts load and shifts the page bounds — a fit computed before fonts settle would clip content.
+function fitContentCamera(editor: Editor, width: number, height: number) {
+	fitBoundsCamera(editor, editor.getCurrentPageBounds(), width, height)
 }
 
 // The shapes the token asked for, filtered to those actually present on the current page. The
@@ -307,15 +315,7 @@ function fitShapesCamera(editor: Editor, shapeIds: string[], width: number, heig
 	const bounds = ids.length
 		? Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
 		: null
-	if (bounds) {
-		editor.zoomToBounds(bounds, {
-			immediate: true,
-			force: true,
-			inset: getRepresentativeContentInset(width, height),
-		})
-	} else {
-		editor.setCamera({ x: 0, y: 0, z: 1 }, { immediate: true })
-	}
+	fitBoundsCamera(editor, bounds, width, height)
 }
 
 // Produces a thumbnail of the editor's current page with editor.toImage once the scene has settled

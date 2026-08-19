@@ -1,4 +1,4 @@
-import { createBuilder, defineQueriesWithType, defineQueryWithType } from '@rocicorp/zero'
+import { createBuilder, defineQueriesWithType, defineQueryWithType, Query } from '@rocicorp/zero'
 import { schema, TlaSchema } from './tlaSchema'
 
 const zql = createBuilder(schema)
@@ -13,6 +13,21 @@ const defineQuery = defineQueryWithType<TlaSchema, ZeroContext>()
 
 /** Typed defineQueries with schema */
 const defineQueries = defineQueriesWithType<TlaSchema>()
+
+/**
+ * The file-access gate: the user has opened the file (has a file_state) or belongs to a workspace
+ * it's in. Ownership is checked separately by callers. Always applied directly under `exists('file')`
+ * from the query root — see the depth note on the `reactions` query.
+ */
+const canAccessFile = (userId: string) => (file: Query<'file', TlaSchema>) =>
+	file.where(({ or, exists }) =>
+		or(
+			exists('states', (s) => s.where('userId', '=', userId)),
+			exists('groupFiles', (gf) =>
+				gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', userId))
+			)
+		)
+	)
 
 /** Upper bound on the comments notifications feed, so the synced set stays finite as files accrue. */
 const RECENT_COMMENTS_LIMIT = 50
@@ -107,30 +122,12 @@ export const queries = defineQueries({
 								)
 							)
 						),
-						exists('file', (f) =>
-							f.where(({ or, exists }) =>
-								or(
-									exists('states', (s) => s.where('userId', '=', ctx.userId)),
-									exists('groupFiles', (gf) =>
-										gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', ctx.userId))
-									)
-								)
-							)
-						)
+						exists('file', canAccessFile(ctx.userId))
 					),
 					// @-mentions the user, on a file they can access (opened it, or workspace member)
 					and(
 						exists('mentions', (m) => m.where('userId', '=', ctx.userId)),
-						exists('file', (f) =>
-							f.where(({ or, exists }) =>
-								or(
-									exists('states', (s) => s.where('userId', '=', ctx.userId)),
-									exists('groupFiles', (gf) =>
-										gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', ctx.userId))
-									)
-								)
-							)
-						)
+						exists('file', canAccessFile(ctx.userId))
 					)
 				)
 			)
@@ -192,16 +189,7 @@ export const queries = defineQueries({
 			.where(({ or, exists }) =>
 				or(
 					exists('file', (f) => f.where('ownerId', '=', ctx.userId)),
-					exists('file', (f) =>
-						f.where(({ or, exists }) =>
-							or(
-								exists('states', (s) => s.where('userId', '=', ctx.userId)),
-								exists('groupFiles', (gf) =>
-									gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', ctx.userId))
-								)
-							)
-						)
-					)
+					exists('file', canAccessFile(ctx.userId))
 				)
 			)
 			.related('file', (file) => file.one())
