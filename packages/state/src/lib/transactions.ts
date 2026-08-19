@@ -17,18 +17,23 @@ class Transaction {
 
 	initialAtomValues = new Map<_Atom, any>()
 
+	/**
+	 * Commit the transaction's changes.
+	 *
+	 * @public
+	 */
 	commit() {
 		if (inst.globalIsReacting) {
-			// Committing during a reaction: route through the cleanup reactors set so effects
-			// that depend on these atoms re-run in the current reaction pass.
+			// if we're committing during a reaction we actually need to
+			// use the 'cleanup' reactors set to ensure we re-run effects if necessary
 			for (const atom of this.initialAtomValues.keys()) {
 				traverseAtomForCleanup(atom)
 			}
 		} else if (this.parent === null) {
+			// For root transactions, flush changed atoms
 			flushChanges(this.initialAtomValues.keys())
 		} else {
-			// Fold this transaction's initial values into the parent so a parent abort can still
-			// roll them back.
+			// For transactions with parents, add the transaction's initial values to the parent's.
 			const parentValues = this.parent.initialAtomValues
 			this.initialAtomValues.forEach((value, atom) => {
 				if (!parentValues.has(atom)) {
@@ -38,14 +43,21 @@ class Transaction {
 		}
 	}
 
+	/**
+	 * Abort the transaction.
+	 *
+	 * @public
+	 */
 	abort() {
 		inst.globalEpoch++
 
+		// Reset each of the transaction's atoms to its initial value.
 		this.initialAtomValues.forEach((value, atom) => {
 			atom.set(value)
 			atom.historyBuffer?.clear()
 		})
 
+		// Commit the changes.
 		this.commit()
 	}
 }
@@ -94,8 +106,7 @@ export function getIsReacting() {
 	return inst.globalIsReacting
 }
 
-// Module-level target for traverseChild so the recursive walk doesn't allocate a closure per
-// atom. Traversals never nest, so a single slot is enough.
+// Reusable state for traverse to avoid closure allocation
 let traverseReactors: Set<Reactor>
 
 function traverseChild(child: Child) {
@@ -118,7 +129,9 @@ function collectReactors(reactors: Set<Reactor>, atom: _Atom) {
 }
 
 /**
- * Collect all of the reactors that need to run for the given atoms and run them.
+ * Collect all of the reactors that need to run for an atom and run them.
+ *
+ * @param atoms - The atoms to flush changes for.
  */
 function flushChanges(atoms: Iterable<_Atom>) {
 	if (inst.globalIsReacting) {
@@ -132,11 +145,13 @@ function flushChanges(atoms: Iterable<_Atom>) {
 		inst.globalIsReacting = true
 		inst.reactionEpoch = inst.globalEpoch
 
+		// Collect all of the visited reactors.
 		const reactors = new Set<Reactor>()
 		for (const atom of atoms) {
 			collectReactors(reactors, atom)
 		}
 
+		// Run each reactor.
 		for (const r of reactors) {
 			r.maybeScheduleEffect()
 		}
@@ -278,6 +293,8 @@ export function advanceGlobalEpoch() {
  */
 export function transaction<T>(fn: (rollback: () => void) => T) {
 	const txn = new Transaction(inst.currentTransaction, true)
+
+	// Set the current transaction to the transaction
 	inst.currentTransaction = txn
 
 	try {
@@ -285,8 +302,10 @@ export function transaction<T>(fn: (rollback: () => void) => T) {
 		let rollback = false
 
 		try {
+			// Run the function.
 			result = fn(() => (rollback = true))
 		} catch (e) {
+			// Abort the transaction if the function throws.
 			txn.abort()
 			throw e
 		}
@@ -296,6 +315,7 @@ export function transaction<T>(fn: (rollback: () => void) => T) {
 		}
 
 		if (rollback) {
+			// If the rollback was triggered, abort the transaction.
 			txn.abort()
 		} else {
 			txn.commit()
@@ -303,6 +323,7 @@ export function transaction<T>(fn: (rollback: () => void) => T) {
 
 		return result
 	} finally {
+		// Set the current transaction to the transaction's parent.
 		inst.currentTransaction = txn.parent
 	}
 }
@@ -387,15 +408,18 @@ export async function deferAsyncEffects<T>(fn: () => Promise<T>) {
 	txn.asyncProcessCount++
 
 	let result = undefined as T | undefined
-	// Thrown `undefined`/`null` is normalized to `null` so `undefined` reliably means "no error".
+
 	let error = undefined as any
 	try {
+		// Run the function.
 		result = await fn()
 	} catch (e) {
+		// Abort the transaction if the function throws.
 		error = e ?? null
 	}
 
 	if (--txn.asyncProcessCount > 0) {
+		// If the rollback was triggered, abort the transaction.
 		if (error !== undefined) throw error
 		return result
 	}
@@ -403,6 +427,7 @@ export async function deferAsyncEffects<T>(fn: () => Promise<T>) {
 	inst.currentTransaction = null
 
 	if (error !== undefined) {
+		// If the rollback was triggered, abort the transaction.
 		txn.abort()
 		throw error
 	}

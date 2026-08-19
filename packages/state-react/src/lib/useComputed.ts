@@ -71,7 +71,16 @@ export function useComputed<Value, Diff = unknown>(
 	opts: ComputedOptions<Value, Diff>,
 	deps: any[]
 ): Computed<Value>
-/** @public */
+/**
+ * Implementation function that handles both overloaded signatures of useComputed.
+ * Uses the arguments object to dynamically determine which signature was called.
+ *
+ * This function creates a memoized computed signal that automatically tracks dependencies
+ * and only recreates when the dependency array changes, providing optimal performance
+ * in React components.
+ *
+ * @public
+ */
 export function useComputed() {
 	const name = arguments[0]
 	const compute = arguments[1]

@@ -51,14 +51,19 @@ export class ArraySet<T> {
 	 */
 	add(elem: T) {
 		if (this.array) {
+			// Return false if the element is already in the array.
 			if (this.array.indexOf(elem) !== -1) {
 				return false
 			}
 
 			if (this.arraySize < ARRAY_SIZE_THRESHOLD) {
+				// If the array is below the size threshold, push items into the array.
+
+				// Insert the element into the array's next available slot.
 				this.array[this.arraySize] = elem
 				this.arraySize++
 			} else {
+				// If the array is full, convert it to a set and remove the array.
 				this.set = new Set(this.array as any)
 				this.array = null
 				this.set.add(elem)
@@ -67,6 +72,7 @@ export class ArraySet<T> {
 			return true
 		}
 
+		// Return false if the element is already in the set.
 		if (this.set!.has(elem)) {
 			return false
 		}
@@ -93,6 +99,7 @@ export class ArraySet<T> {
 		if (this.array) {
 			const idx = this.array.indexOf(elem)
 
+			// If the item is not in the array, return false.
 			if (idx === -1) {
 				return false
 			}

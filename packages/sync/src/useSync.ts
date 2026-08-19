@@ -213,8 +213,9 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		...schemaOpts
 	} = opts
 
-	// Type error if a new option is added but not destructured above: an unstable option
-	// leaking into schemaOpts would make useTLSchemaFromUtils return a new schema every render.
+	// This line will throw a type error if we add any new options to the useSync hook but we don't destructure them
+	// This is required because otherwise the useTLSchemaFromUtils might return a new schema on every render if the newly-added option
+	// is allowed to be unstable
 	const __never__: never = 0 as any as keyof Omit<typeof schemaOpts, keyof TLStoreSchemaOptions>
 
 	const resolvedThemes = resolveThemes(themes)
@@ -275,6 +276,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			socket = connect({ sessionId: TAB_ID, storeId }) as SyncSocket
 		} else if (uri) {
 			socket = new ClientWebSocketAdapter(async () => {
+				// set sessionId as a query param on the uri
 				const withParams = new URL(typeof uri === 'string' ? uri : await uri())
 				for (const param of ['sessionId', 'storeId']) {
 					if (withParams.searchParams.has(param)) {
@@ -319,9 +321,13 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			getUserPresence,
 		})(store)
 
-		// The server never echoes a session its own presence record, so the store holds
-		// one instance_presence per *other* session (including our own other tabs). Any
-		// other session keeps us at the full sync rate; solo mode would lag their edits.
+		// Every connected session — each tab, window, or device — pushes its
+		// presence on connect, so the store holds one instance_presence record per
+		// *other* session in the room, including the user's own other tabs. (The
+		// server never echoes a session its own record.) So an empty set means
+		// we're genuinely the only session and can throttle to solo; any other
+		// session — another user, or just another tab of our own — keeps us at the
+		// full sync rate so edits propagate without the solo-mode lag.
 		const otherSessions = store.query.ids('instance_presence')
 
 		const presenceMode = computed<TLPresenceMode>('presenceMode', () => {
@@ -354,8 +360,12 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				setState((prev) => ({ ...prev, objectAccess }))
 				transact(() => {
 					syncMode.set(isReadonly ? 'readonly' : 'readwrite')
-					// A server that lost its data can come back with an empty document; without
-					// this the app renders broken and needs a restart (edits are still lost).
+					// if the server crashes and loses all data it can return an empty document
+					// when it comes back up. This is a safety check to make sure that if something like
+					// that happens, it won't render the app broken and require a restart. The user will
+					// most likely lose all their changes though since they'll have been working with pages
+					// that won't exist. There's certainly something we can do to make this better.
+					// but the likelihood of this happening is very low and maybe not worth caring about beyond this.
 					store.ensureStoreIsUsable()
 				})
 			},

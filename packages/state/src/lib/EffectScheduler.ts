@@ -90,16 +90,18 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 
 	/** @internal */
 	maybeScheduleEffect() {
-		// we may have been detached by another effect
+		// bail out if we have been cancelled by another effect
 		if (!this._isActivelyListening) return
+		// bail out if no atoms have changed since the last time we ran this effect
 		const globalEpoch = getGlobalEpoch()
 		if (this.lastReactedEpoch === globalEpoch) return
 
-		// no parents means this has never run; otherwise only run when a parent changed
+		// bail out if we have parents and they have not changed since last time
 		if (this.parents.length && !haveParentsChanged(this)) {
 			this.lastReactedEpoch = globalEpoch
 			return
 		}
+		// if we don't have parents it's probably the first time this is running.
 		this.scheduleEffect()
 	}
 
@@ -107,8 +109,10 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	scheduleEffect() {
 		this._scheduleCount++
 		if (this._scheduleEffect) {
+			// if the effect should be deferred (e.g. until a react render), do so
 			this._scheduleEffect(this.maybeExecute)
 		} else {
+			// otherwise execute right now!
 			this.execute()
 		}
 	}
@@ -116,7 +120,7 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	/** @internal */
 	// eslint-disable-next-line tldraw/prefer-class-methods
 	readonly maybeExecute = () => {
-		// we may have been detached between scheduling and this running
+		// bail out if we have been detached before this runs
 		if (!this._isActivelyListening) return
 		this.execute()
 	}
@@ -154,8 +158,9 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	execute(): Result {
 		try {
 			startCapturingParents(this)
-			// Read the epoch before running: effects may set atoms, which advances the global epoch,
-			// and reading it afterwards would let lastReactedEpoch get ahead of itself.
+			// Important! We have to make a note of the current epoch before running the effect.
+			// We allow atoms to be updated during effects, which increments the global epoch,
+			// so if we were to wait until after the effect runs, the this.lastReactedEpoch value might get ahead of itself.
 			const currentEpoch = getGlobalEpoch()
 			const result = this.runEffect(this.lastReactedEpoch)
 			this.lastReactedEpoch = currentEpoch

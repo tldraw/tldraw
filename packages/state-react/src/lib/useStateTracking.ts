@@ -27,13 +27,18 @@ import React from 'react'
  * @public
  */
 export function useStateTracking<T>(name: string, render: () => T, deps: unknown[] = []): T {
-	// The scheduler is memoized across renders, so it reads the latest render fn through a ref
-	// rather than being recreated whenever `render` changes identity.
+	// This hook creates an effect scheduler that will trigger re-renders when its reactive dependencies change, but it
+	// defers the actual execution of the effect to the consumer of this hook.
+
+	// We need the exec fn to always be up-to-date when calling scheduler.execute() but it'd be wasteful to
+	// instantiate a new EffectScheduler on every render, so we use an immediately-updated ref
+	// to wrap it
 	const renderRef = React.useRef(render)
 	renderRef.current = render
 
 	const [scheduler, subscribe, getSnapshot] = React.useMemo(() => {
 		let scheduleUpdate = null as null | (() => void)
+		// useSyncExternalStore requires a subscribe function that returns an unsubscribe function
 		const subscribe = (cb: () => void) => {
 			scheduleUpdate = cb
 			return () => {
@@ -41,15 +46,19 @@ export function useStateTracking<T>(name: string, render: () => T, deps: unknown
 			}
 		}
 
-		// The scheduler only reruns the render fn when we call `execute()` during render; an
-		// upstream change just asks useSyncExternalStore for a re-render.
-		const scheduler = new EffectScheduler(`useStateTracking(${name})`, () => renderRef.current(), {
-			scheduleEffect() {
-				scheduleUpdate?.()
-			},
-		})
+		const scheduler = new EffectScheduler(
+			`useStateTracking(${name})`,
+			// this is what `scheduler.execute()` will call
+			() => renderRef.current(),
+			// this is what will be invoked when @tldraw/state detects a change in an upstream reactive value
+			{
+				scheduleEffect() {
+					scheduleUpdate?.()
+				},
+			}
+		)
 
-		// scheduleCount bumps on every upstream change, so it doubles as the store snapshot
+		// we use an incrementing number based on when this
 		const getSnapshot = () => scheduler.scheduleCount
 
 		return [scheduler, subscribe, getSnapshot]
@@ -58,13 +67,14 @@ export function useStateTracking<T>(name: string, render: () => T, deps: unknown
 
 	React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 
-	// Dependencies are captured by `execute()` during render, but we only attach in an effect.
-	// Attaching during render would let 'zombie' components re-render against deleted data
-	// before React has a chance to unmount them.
+	// reactive dependencies are captured when `scheduler.execute()` is called
+	// and then to make it reactive we wait for a `useEffect` to 'attach'
+	// this allows us to avoid rendering outside of React's render phase
+	// and avoid 'zombie' components that try to render with bad/deleted data before
+	// react has a chance to umount them.
 	React.useEffect(() => {
 		scheduler.attach()
-		// don't execute here; render already did. Just catch up on changes missed between render
-		// and attach.
+		// do not execute, we only do that in render
 		scheduler.maybeScheduleEffect()
 		return () => {
 			scheduler.detach()

@@ -635,6 +635,17 @@ export function computed<Value, Diff = unknown>(
 		context: ClassMethodDecoratorContext<This, () => Value>
 	) => () => Value)
 
+/**
+ * Implementation function that handles all computed signal creation and decoration scenarios.
+ * This function is overloaded to support multiple usage patterns:
+ * - Creating computed signals directly
+ * - Using as a TC39 decorator
+ * - Using as a legacy decorator
+ * - Using as a decorator factory with options
+ *
+ * @returns Either a computed signal instance or a decorator function depending on usage
+ * @public
+ */
 export function computed() {
 	if (arguments.length === 1) {
 		const options = arguments[0]
