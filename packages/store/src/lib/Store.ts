@@ -529,8 +529,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	public _flushHistory() {
 		// If we have accumulated history, flush it and update listeners
 		const version = this.history.__unsafe__getWithoutCapture()
-		if (this.historyAccumulator.hasChanges(version)) {
-			const entries = this.historyAccumulator.flush(version)
+		const entries = this.historyAccumulator.flush(version)
+		if (entries.length > 0) {
 			// Iterate a snapshot: a listener that another listener's callback adds must not receive
 			// the entries that triggered it (H5), and one removed mid-flush stops receiving them.
 			const listeners = Array.from(this.listeners)
@@ -576,8 +576,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	dispose() {
 		// Deliver what is still pending first: a change-set made in the same frame as the dispose
 		// would otherwise never reach the listeners (e.g. a sync client) still attached to the store.
-		this._flushHistory()
-		this.cancelHistoryReactor?.()
+		try {
+			this._flushHistory()
+		} finally {
+			this.cancelHistoryReactor?.()
+		}
 	}
 
 	/**
@@ -652,12 +655,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			// Iterate through all records, creating, updating or removing as needed
 			let record: R
 
-			// There's a chance that, despite having records, all of the values are
-			// identical to what they were before; and so we'd end up with an "empty"
-			// history entry. Let's keep track of whether we've actually made any
-			// changes (e.g. additions, deletions, or updates that produce a new value).
-			let didChange = false
-
 			const source = this.isMergingRemoteChanges ? 'remote' : 'user'
 
 			for (let i = 0, n = records.length; i < n; i++) {
@@ -682,7 +679,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					record = devFreeze(validated)
 					this.records.set(record.id, record)
 
-					didChange = true
 					if (additions[record.id]) {
 						// the same record was created earlier in this call: fold the update into it
 						additions[record.id] = record
@@ -699,8 +695,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					this.addDiffForAfterEvent(initialValue, record)
 				} else {
 					record = this.sideEffects.handleBeforeCreate(record, source)
-
-					didChange = true
 
 					// If we don't have an atom, create one.
 
@@ -723,8 +717,9 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				}
 			}
 
-			// If we did change, update the history
-			if (!didChange || (!hasAnyKey(additions) && !hasAnyKey(updates))) return
+			// Validation may have left every record identical to before, in which case there is no
+			// change-set to record.
+			if (!hasAnyKey(additions) && !hasAnyKey(updates)) return
 			this.updateHistory({
 				added: additions,
 				updated: updates,
@@ -1217,12 +1212,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			return computed<Result | undefined>(
 				name + ':' + id,
 				() => {
-					// The computed can be re-derived after its record is deleted, e.g. by a reaction
-					// that read it checking whether its parents changed; the atom then holds
-					// UNINITIALIZED rather than a record. Return DELETED_RECORD rather than calling
-					// `derive` with the sentinel or returning undefined: it never equals a real result,
-					// so a reader holding the computed re-runs, looks the id up again (finding nothing
-					// and subscribing to the key set), and so sees the record if it comes back.
+					// The computed can be re-derived after its record is deleted (e.g. by a reaction
+					// checking whether its parents changed), when the atom holds UNINITIALIZED. Return
+					// DELETED_RECORD rather than undefined: it never equals a real result, so a reader
+					// re-runs, looks the id up again, and so sees the record if it comes back.
 					const value = recordSignal.get()
 					if (isUninitialized(value)) return DELETED_RECORD as any
 					return derive(value as Record)
@@ -1466,14 +1459,6 @@ class HistoryAccumulator<T extends UnknownRecord> {
 	clear() {
 		this._history = []
 		this._versions = []
-	}
-
-	/**
-	 * Check if there are any accumulated history entries.
-	 */
-	hasChanges(currentVersion: number) {
-		this.discardFrom(currentVersion + 1)
-		return this._history.length > 0
 	}
 
 	// Drops the entries recorded at or after `version`. Entries are in ascending version order: the

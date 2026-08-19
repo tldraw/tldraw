@@ -440,8 +440,8 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 	public getMigrationsSince(persistedSchema: SerializedSchema): Result<Migration[], string> {
 		// Every result — success, empty, or error — is cached, so cache once around the whole
 		// computation rather than at each of its exit points.
-		// A persisted schema is untrusted input and may not be an object at all, which a WeakMap
-		// key must be; such a schema is an error result that is cheap enough not to cache.
+		// A non-object schema (see upgradeSchema) cannot be a WeakMap key; its error result is cheap
+		// to recompute.
 		if (!isPlainRecord(persistedSchema)) return this.computeMigrationsSince(persistedSchema)
 
 		const cached = this.migrationCache.get(persistedSchema)

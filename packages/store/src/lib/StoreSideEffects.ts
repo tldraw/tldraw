@@ -677,7 +677,6 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	}
 }
 
-// A copy of `array` without the first occurrence of `item` (the array itself if it has none).
 function withoutFirst<T>(array: T[], item: T): T[] {
 	const index = array.indexOf(item)
 	if (index < 0) return array
