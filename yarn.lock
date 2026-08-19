@@ -24562,6 +24562,7 @@ __metadata:
     typescript: "npm:^5.8.3"
     vite: "npm:^8.0.16"
     vite-plugin-singlefile: "npm:^2.3.2"
+    vitest: "npm:^4.1.7"
     wrangler: "npm:^4.75.0"
     zod: "npm:^4.1.8"
   languageName: unknown

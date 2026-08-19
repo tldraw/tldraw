@@ -101,6 +101,9 @@ export const CANVAS_RESOURCE_URI = 'ui://show-canvas/mcp-app.html'
 /** Must match `compatibility_date` in wrangler.toml. */
 export const WORKER_COMPATIBILITY_DATE = '2025-03-10'
 
-export const MAX_CHECKPOINTS = 200
+export const MAX_CHECKPOINTS = 50
+
+/** A session DO destroys itself after this long without a checkpoint save. */
+export const IDLE_TTL_MS = 7 * 24 * 60 * 60 * 1000
 
 export type MCP_APP_HOST_NAMES = 'cursor' | 'vscode' | 'claude' | 'chatgpt'
