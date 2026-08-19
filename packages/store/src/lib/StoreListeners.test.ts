@@ -460,3 +460,16 @@ describe('applying diffs (H)', () => {
 		})
 	})
 })
+
+describe('listeners: a throwing listener (H)', () => {
+	it('[H13] a listener that throws does not stop the others from receiving the flush', () => {
+		const received = vi.fn()
+		store.listen(() => {
+			throw new Error('listener failed')
+		})
+		store.listen(received)
+
+		expect(() => store.put([tolkein()])).toThrow('listener failed')
+		expect(received).toHaveBeenCalledTimes(1)
+	})
+})
