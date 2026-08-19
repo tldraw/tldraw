@@ -115,6 +115,7 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 			// if the effect should be deferred (e.g. until a react render), do so
 			this._scheduleEffect(this.maybeExecute)
 		} else {
+			// otherwise execute right now!
 			this.maybeExecute()
 		}
 	}
