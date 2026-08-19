@@ -131,7 +131,10 @@ export const DEFAULT_CONFIG: FluidManagerConfig = {
 	pixelate: false,
 }
 
-/** Drives the fluid simulation from tldraw shape, camera, and pointer changes. */
+/**
+ * Manages fluid simulation interactions with tldraw shapes.
+ * Handles shape tracking, geometry extraction, and fluid simulation lifecycle.
+ */
 export class FluidManager {
 	private fluidSim: FluidSimulation | null = null
 	private config: FluidManagerConfig
@@ -191,10 +194,14 @@ export class FluidManager {
 		)
 	}
 
-	/** Must be called before using other methods. */
+	/**
+	 * Initialize the fluid simulation with the canvas.
+	 * Must be called before using other methods.
+	 */
 	initialize(darkMode: boolean = false): void {
 		this.darkMode = darkMode
 
+		// Set canvas internal resolution based on display size
 		const rect = this.canvas.getBoundingClientRect()
 		this.canvas.width = rect.width
 		this.canvas.height = rect.height
@@ -232,6 +239,10 @@ export class FluidManager {
 		this.handleViewportChange(this.editor.getViewportScreenBounds(), new Vec(0, -0.2))
 	}
 
+	/**
+	 * Clean up resources and dispose of the fluid simulation.
+	 * Destroys the fluid simulation instance and clears all registered disposables.
+	 */
 	dispose = (): void => {
 		if (this.fluidSim) {
 			this.fluidSim.destroy()
@@ -241,24 +252,39 @@ export class FluidManager {
 		this.disposables.clear()
 	}
 
+	/**
+	 * Handle pointer down event.
+	 * Initiates drag interaction with the fluid simulation when the eraser tool is active.
+	 */
 	handlePointerDown = (): void => {
 		if (!this.isPointerEffectActive) return
 		const { x, y } = this.getNormalizedPosition()
 		this.fluidSim?.startDrag(x, y)
 	}
 
+	/**
+	 * Handle pointer move event.
+	 * Updates drag position in the fluid simulation during active dragging.
+	 */
 	handlePointerMove = (): void => {
 		if (!this.isPointerEffectActive || !this.editor.inputs.getIsDragging()) return
 		const { x, y } = this.getNormalizedPosition()
 		this.fluidSim?.updateDrag(x, y)
 	}
 
+	/**
+	 * Handle pointer up event.
+	 * Ends drag interaction with the fluid simulation.
+	 */
 	handlePointerUp = (): void => {
 		if (!this.isPointerEffectActive || !this.editor.inputs.getIsDragging()) return
 		this.fluidSim?.endDrag()
 	}
 
-	/** Pointer position in [0, 1] with y inverted for WebGL. */
+	/**
+	 * Get the current pointer position normalized to fluid simulation coordinates.
+	 * @returns Normalized coordinates where x and y are in the range [0, 1], with y inverted for WebGL.
+	 */
 	private getNormalizedPosition() {
 		const position = this.editor.inputs.getCurrentScreenPoint()
 		const vsb = this.editor.getViewportScreenBounds()
@@ -268,6 +294,13 @@ export class FluidManager {
 		}
 	}
 
+	/**
+	 * Process shape changes and update fluid simulation accordingly.
+	 * Handles both newly created shapes and updated shapes, including group shapes.
+	 * Throttled to run at most once every 32ms for performance.
+	 * @param created - Array of newly created shapes
+	 * @param updated - Array of tuples containing [previousShape, currentShape] for updated shapes
+	 */
 	updateShapes = throttle((created: TLShape[], updated: [TLShape, TLShape][]): void => {
 		if (!this.fluidSim) return
 		const vsb = this.editor.getViewportScreenBounds()
@@ -303,20 +336,34 @@ export class FluidManager {
 		this.fluidSim!.createSplatsFromGeometry(points, velocity, isClosed, this.getShapeColor(shape))
 	}
 
+	/**
+	 * Handle viewport/camera changes by creating splats for all visible shapes.
+	 * Throttled to prevent excessive updates during camera movements.
+	 * @param vsb - The viewport screen bounds
+	 * @param cameraVelocity - The velocity of the camera movement
+	 */
 	private handleViewportChange = throttle((vsb: Box, cameraVelocity: Vec): void => {
 		for (const { shape } of this.editor.getRenderingShapes()) {
 			this.splatShape(shape, vsb, cameraVelocity)
 		}
 	}, 32)
 
-	/** RGB in [0, 1] from the shape's tldraw color name, using the color map for the current theme. */
+	/**
+	 * Extract the color from a shape and convert it to RGB values.
+	 * Uses the appropriate color map based on dark mode setting.
+	 * @param shape - The shape to extract color from
+	 * @returns RGB color values in the range [0, 1]
+	 */
 	private getShapeColor(shape: TLShape): [number, number, number] {
 		const colorMap = this.darkMode ? this.config.darkModeColorMap : this.config.lightModeColorMap
 		const color = (shape.props as { color?: unknown }).color
 		return colorMap[typeof color === 'string' ? color : 'black'] || colorMap.blue
 	}
 
-	/** Shape outline points in normalized screen coordinates (0-1, y up). */
+	/**
+	 * Extract geometry points from a shape using tldraw's geometry helpers.
+	 * Points are returned in normalized screen coordinates (0-1 range).
+	 */
 	private extractShapeGeometry = (
 		shape: TLShape,
 		vsb: Box
@@ -324,6 +371,7 @@ export class FluidManager {
 		points: Array<{ x: number; y: number }>
 		isClosed: boolean
 	} => {
+		// Convert page coordinates to normalized coordinates
 		const toNormalized = (pagePoint: { x: number; y: number }) => {
 			const screenPoint = this.editor.pageToScreen(pagePoint)
 			return {
@@ -335,19 +383,26 @@ export class FluidManager {
 		const isOpenShapeType = shape.type === 'arrow' || shape.type === 'line'
 
 		try {
+			// Get the shape's geometry using tldraw's built-in helpers
 			const geometry = this.editor.getShapeGeometry(shape)
+
+			// Get the shape's transform
 			const transform = this.editor.getShapePageTransform(shape)
 			if (!transform) return { points: [], isClosed: false }
 
 			const points: Array<{ x: number; y: number }> = []
+
+			// Check if geometry has isClosed property
 			let isClosed = isOpenShapeType ? false : geometry.isClosed
 
+			// Sample points along the geometry
+			// Use the vertices property directly
 			if (geometry.vertices.length > 0) {
 				for (const vertex of geometry.vertices) {
 					points.push(toNormalized(transform.applyToPoint(vertex)))
 				}
 			} else {
-				// Sample points around the bounds perimeter
+				// Sample points around the perimeter using bounds
 				const corners = geometry.bounds.corners
 				const pointsPerEdge = Math.ceil(this.config.boundsSampleCount / 4)
 				for (let j = 0; j < 4; j++) {
@@ -359,6 +414,8 @@ export class FluidManager {
 						)
 					}
 				}
+
+				// Bounds-based shapes are typically closed
 				isClosed = true
 			}
 
@@ -366,6 +423,7 @@ export class FluidManager {
 		} catch (error) {
 			console.warn('Failed to extract geometry for shape:', shape.type, error)
 
+			// Fallback to bounds-based approach
 			const bounds = this.editor.getShapePageBounds(shape)
 			if (!bounds) return { points: [], isClosed: false }
 

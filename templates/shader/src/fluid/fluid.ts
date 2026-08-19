@@ -1696,6 +1696,8 @@ export class FluidSimulation {
 	updateDrag(x: number, y: number) {
 		if (!this.isDragging || !this.dragPointer) return
 
+		// console.log('dragPointer', this.dragPointer)
+
 		this.dragPointer.prevTexcoordX = this.dragPointer.texcoordX
 		this.dragPointer.prevTexcoordY = this.dragPointer.texcoordY
 		this.dragPointer.texcoordX = x
@@ -1965,6 +1967,12 @@ class Material {
 	private activeProgram: WebGLProgram | null = null
 	public uniforms: { [key: string]: WebGLUniformLocation } = {}
 
+	/**
+	 * Creates a new Material instance.
+	 * @param gl - WebGL rendering context
+	 * @param vertexShader - Compiled vertex shader
+	 * @param fragmentShaderSource - Fragment shader source code
+	 */
 	constructor(
 		private gl: GL,
 		private vertexShader: WebGLShader,
@@ -1997,6 +2005,9 @@ class Material {
 		this.activeProgram = program
 	}
 
+	/**
+	 * Binds this material's active program for rendering.
+	 */
 	bind() {
 		this.gl.useProgram(this.activeProgram)
 	}

@@ -23,6 +23,7 @@ export function ConfigPanel({
 				e.stopPropagation()
 			}}
 		>
+			{/* Header with collapse/expand button */}
 			<div className="shader-config-panel__header">
 				{isExpanded && (
 					<TldrawUiButton

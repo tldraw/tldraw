@@ -20,7 +20,7 @@ export function ConfigPanelSlider({
 	type: 'float' | 'int'
 	onChange: (prop: string, value: number) => void
 }) {
-	// Map actual value (min to max) to slider value (1 to STEPS)
+	// Map actual value (min to max) to slider value (1 to 10)
 	const sliderValue = value != null ? 1 + ((value - min) / (max - min)) * (STEPS - 1) : 1
 
 	return (
@@ -33,6 +33,7 @@ export function ConfigPanelSlider({
 				label={sliderValue.toFixed(0) + '%'}
 				title={label}
 				onValueChange={(sliderValue) => {
+					// Map slider value (1 to 10) back to actual value (min to max)
 					const actualValue = min + ((sliderValue - 1) / (STEPS - 1)) * (max - min)
 					onChange(prop, type === 'float' ? actualValue : Math.round(actualValue))
 				}}
