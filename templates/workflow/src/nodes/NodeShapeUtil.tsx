@@ -22,12 +22,14 @@ const NODE_TYPE = 'node'
 
 declare module 'tldraw' {
 	export interface TLGlobalShapePropsMap {
+		// Define our custom node shape type that extends tldraw's base shape system
 		[NODE_TYPE]: { node: NodeType; isOutOfDate: boolean }
 	}
 }
 
 export type NodeShape = TLShape<typeof NODE_TYPE>
 
+// This class extends tldraw's ShapeUtil to define how our custom node shapes behave
 export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 	static override type = NODE_TYPE
 	static override props: RecordProps<NodeShape> = {
@@ -69,6 +71,7 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 		}
 	}
 
+	// Define the geometry of our node shape including ports
 	getGeometry(shape: NodeShape) {
 		const ports = getNodePorts(this.editor, shape)
 
@@ -113,15 +116,18 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 	}
 }
 
+// Main node component that renders the HTML content
 function NodeShape({ shape }: { shape: NodeShape }) {
 	const editor = useEditor()
 
+	// Get the node's output value
 	const output = useValue(
 		'output',
 		() => getNodeOutputPortInfo(editor, shape.id)?.output ?? undefined,
 		[editor, shape.id]
 	)
 
+	// Check if this node is currently executing using our execution state
 	const isExecuting = useValue(
 		'is executing',
 		() => executionState.get(editor).runningGraph?.getNodeStatus(shape.id) === 'executing',

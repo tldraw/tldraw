@@ -34,19 +34,25 @@ import { MATH_MENU_ID, MathematicalToolbarItem } from './MathematicalToolbarItem
 
 /** Create a node centered on `center` and select it. */
 function createNodeShape(editor: Editor, center: Vec, node: NodeType) {
+	// Mark a history stopping point for undo/redo
 	editor.markHistoryStoppingPoint('create node')
 
 	editor.run(() => {
+		// Create the shape with the node definition
 		const shapeId = createShapeId()
 		editor.createShape({ id: shapeId, type: 'node', props: { node } })
 
 		const shapeBounds = editor.getShapePageBounds(shapeId)!
+
+		// Position the shape so its center aligns with the drop point
 		editor.updateShape({
 			id: shapeId,
 			type: 'node',
 			x: center.x - shapeBounds.width / 2,
 			y: center.y - shapeBounds.height / 2,
 		})
+
+		// Select the newly created shape
 		editor.select(shapeId)
 	})
 }

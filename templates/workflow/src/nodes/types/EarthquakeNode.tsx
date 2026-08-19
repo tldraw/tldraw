@@ -25,7 +25,7 @@ export const EarthquakeNode = T.object({
 			magnitude: T.number,
 			location: T.string,
 			datetime: T.string,
-			id: T.string,
+			id: T.string, // Add unique ID to avoid duplicate selections
 		})
 	),
 })
@@ -58,7 +58,7 @@ export class EarthquakeNodeDefinition extends NodeDefinition<EarthquakeNode> {
 	}
 
 	getBodyHeightPx(_shape: NodeShape, _node: EarthquakeNode) {
-		return NODE_ROW_HEIGHT_PX * 3
+		return NODE_ROW_HEIGHT_PX * 3 // Three rows for magnitude, location, datetime
 	}
 
 	getPorts(_shape: NodeShape, _node: EarthquakeNode): Record<string, ShapePort> {
@@ -70,6 +70,7 @@ export class EarthquakeNodeDefinition extends NodeDefinition<EarthquakeNode> {
 			updateNode<EarthquakeNode>(this.editor, shape, (node) => ({ ...node, earthquakeData }), false)
 
 		try {
+			// Simulate loading delay
 			await sleep(500)
 
 			const response = await fetch(
@@ -81,10 +82,12 @@ export class EarthquakeNodeDefinition extends NodeDefinition<EarthquakeNode> {
 
 			const data: EarthquakeApiResponse = await response.json()
 			if (data.features.length === 0) {
+				// Update node with no data state
 				setData(null)
 				return { output: STOP_EXECUTION }
 			}
 
+			// Pick a random earthquake
 			const earthquake = data.features[Math.floor(Math.random() * data.features.length)]
 			const earthquakeData = {
 				magnitude: earthquake.properties.mag,
@@ -92,11 +95,17 @@ export class EarthquakeNodeDefinition extends NodeDefinition<EarthquakeNode> {
 				datetime: new Date(earthquake.properties.time).toLocaleString(),
 				id: earthquake.id,
 			}
+
+			// Update node with fetched data
 			setData(earthquakeData)
+
 			return { output: earthquakeData.magnitude }
 		} catch (error) {
 			console.error('Failed to fetch earthquake data:', error)
+
+			// Update node with error state
 			setData(null)
+
 			return { output: STOP_EXECUTION }
 		}
 	}
@@ -118,6 +127,7 @@ export function EarthquakeNodeComponent({ shape, node }: NodeComponentProps<Eart
 	const { earthquakeData } = node
 	const isLoading = shape.props.isOutOfDate
 
+	// Show helpful message when no data has been loaded yet (not loading and no data)
 	if (!isLoading && !earthquakeData) {
 		return (
 			<div className="EarthquakeNode">

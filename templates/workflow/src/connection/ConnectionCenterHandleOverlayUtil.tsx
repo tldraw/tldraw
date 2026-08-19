@@ -23,8 +23,9 @@ interface TLConnectionCenterHandleOverlay extends TLOverlay {
 }
 
 /**
- * Renders a clickable "+" handle at the midpoint of each fully-bound connection so users can
- * insert a new node into the middle of a connection.
+ * Renders a clickable "+" handle at the midpoint of each fully-bound connection
+ * so users can insert a new node into the middle of a connection. Replaces the
+ * old SVG indicator-based handle.
  */
 export class ConnectionCenterHandleOverlayUtil extends OverlayUtil<TLConnectionCenterHandleOverlay> {
 	static override type = 'connection_center_handle'

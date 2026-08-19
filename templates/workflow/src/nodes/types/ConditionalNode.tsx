@@ -85,10 +85,11 @@ export class ConditionalNodeDefinition extends NodeDefinition<ConditionalNode> {
 			previousResult: null,
 		}
 	}
-	// Five rows, but with less padding at the bottom than usual.
+	// There are 5 rows in the conditional, but we have less padding at the bottom than usual.
 	getBodyHeightPx() {
 		return NODE_ROW_HEIGHT_PX * 5 - NODE_ROW_BOTTOM_PADDING_PX
 	}
+	// We need a port for each input and output.
 	getPorts(): Record<string, ShapePort> {
 		return {
 			lhs: rowPort('lhs', 0),
@@ -97,6 +98,8 @@ export class ConditionalNodeDefinition extends NodeDefinition<ConditionalNode> {
 			outputFalse: rowPort('outputFalse', 4, 'start'),
 		}
 	}
+	// The output of the conditional node is the value of the first output port, or STOP_EXECUTION
+	// if the condition is false.
 	async execute(
 		shape: NodeShape,
 		node: ConditionalNode,

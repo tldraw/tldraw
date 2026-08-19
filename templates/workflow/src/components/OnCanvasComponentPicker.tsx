@@ -41,16 +41,18 @@ function getPickerAnchorInPageSpace(editor: Editor, state: OnCanvasComponentPick
 	const connection = editor.getShape(state.connectionShapeId)
 	if (!connection || !editor.isShapeOfType(connection, 'connection')) return null
 
+	// Get the connection terminals in connection space
 	const terminals = getConnectionTerminals(editor, connection)
 	const anchorInConnectionSpace =
 		state.location === 'middle'
 			? Vec.Lrp(terminals.start, terminals.end, 0.5)
 			: terminals[state.location]
+
+	// Transform the position from connection space to page space
 	return editor.getShapePageTransform(connection).applyToPoint(anchorInConnectionSpace)
 }
 
-// Appears when the user drags a connection handle into empty space, or clicks a connection's
-// center handle.
+// Component picker that appears when users drag connection handles without connecting to existing ports
 export function OnCanvasComponentPicker() {
 	const editor = useEditor()
 	const onClose = useCallback(() => {
@@ -76,6 +78,7 @@ export function OnCanvasComponentPicker() {
 	)
 }
 
+// Dialog component that positions itself at the connection terminal
 function OnCanvasComponentPickerDialog({
 	children,
 	onClose,
@@ -88,9 +91,10 @@ function OnCanvasComponentPickerDialog({
 		editor,
 	])
 	const [container, setContainer] = useState<HTMLDivElement | null>(null)
+	// Allow wheel events to pass through to the canvas
 	usePassThroughWheelEvents(useMemo(() => ({ current: container }), [container]))
 
-	// keep the dialog anchored to the connection as it or the camera moves
+	// Reactively update the dialog position when the connection or viewport changes
 	useQuickReactor(
 		'OnCanvasComponentPicker',
 		() => {
@@ -103,6 +107,7 @@ function OnCanvasComponentPickerDialog({
 				return
 			}
 
+			// Transform from page space to viewport space for positioning the dialog
 			const anchorInViewportSpace = editor.pageToViewport(anchorInPageSpace)
 			container.style.transform = `translate(${anchorInViewportSpace.x}px, ${anchorInViewportSpace.y}px) scale(${editor.getZoomLevel()}) `
 		},
@@ -135,6 +140,7 @@ function OnCanvasComponentPickerDialog({
 	)
 }
 
+// Individual menu item for selecting a node type
 function OnCanvasComponentPickerItem<T extends NodeType>({
 	definition,
 	onClose,
@@ -153,8 +159,10 @@ function OnCanvasComponentPickerItem<T extends NodeType>({
 				const state = onCanvasComponentPickerState.get(editor)
 				if (!state) return
 
+				// Calculate the position where the new node should be created
 				const anchorInPageSpace = getPickerAnchorInPageSpace(editor, state)
 				if (anchorInPageSpace) {
+					// Call the pick handler with the node type and position
 					state.onPick(definition.getDefault(), anchorInPageSpace)
 				}
 				onClose()

@@ -45,18 +45,21 @@ export class AddNodeDefinition extends NodeDefinition<AddNode> {
 			lastResult: null,
 		}
 	}
+	// The height of the node is the number of items times the height of a row.
 	getBodyHeightPx(_shape: NodeShape, node: AddNode) {
 		return NODE_ROW_HEIGHT_PX * indexListLength(node.items)
 	}
-	// One output port, plus one input port per item.
 	getPorts(_shape: NodeShape, node: AddNode): Record<string, ShapePort> {
 		return {
+			// The add node has a single output port...
 			output: outputPort,
+			// ...and one input port for each item.
 			...Object.fromEntries(
 				indexListEntries(node.items).map(([idx], i) => [`item_${idx}`, rowPort(`item_${idx}`, i)])
 			),
 		}
 	}
+	// The output of the add node is the sum of all of its inputs.
 	async execute(shape: NodeShape, node: AddNode, inputs: InputValues): Promise<ExecutionResult> {
 		await sleep(1000)
 

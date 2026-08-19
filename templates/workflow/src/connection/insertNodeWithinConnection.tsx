@@ -6,19 +6,26 @@ import { createOrUpdateConnectionBinding, getConnectionBindings } from './Connec
 import { ConnectionShape } from './ConnectionShapeUtil'
 
 /**
- * Insert a node in the middle of a connection, when the user clicks the connection's center handle.
+ * Insert a node in the middle of a connection.
+ *
+ * This is used when the user clicks the center handle of a connection shape.
  */
 export function insertNodeWithinConnection(editor: Editor, connection: ConnectionShape) {
+	// open the component picker to let the user choose a node to create.
 	onCanvasComponentPickerState.set(editor, {
 		connectionShapeId: connection.id,
 		location: 'middle',
 		onPick: (nodeType) => {
+			// mark the history so we can undo this operation
 			const mark = editor.markHistoryStoppingPoint()
 
+			// get the original bindings of the connection
 			const originalBindings = getConnectionBindings(editor, connection)
+
+			// if the connection doesn't have bindings, we can't insert a node in the middle of it
 			if (!originalBindings.start || !originalBindings.end) return
 
-			// centered between the two nodes, but never overlapping the start node
+			// find the ideal position for the new node:
 			const startBounds = editor.getShapePageBounds(originalBindings.start.toId)!
 			const endBounds = editor.getShapePageBounds(originalBindings.end.toId)!
 			const newNodeY = (startBounds.top + endBounds.top) / 2
@@ -26,6 +33,7 @@ export function insertNodeWithinConnection(editor: Editor, connection: Connectio
 			const newNodeMin = startBounds.right + DEFAULT_NODE_SPACING_PX
 			const newNodeX = Math.max(newNodeIdealX, newNodeMin)
 
+			// create the new node
 			const newNodeId = createShapeId()
 			editor.createShape({
 				type: 'node',
@@ -35,6 +43,8 @@ export function insertNodeWithinConnection(editor: Editor, connection: Connectio
 				props: { node: nodeType },
 			})
 
+			// now, we need to connect up the new node.
+			// first, lets find the first input and output port on the new node.
 			const ports = getNodePorts(editor, newNodeId)
 			const firstInputPort = Object.values(ports).find((p) => p.terminal === 'end')
 			const firstOutputPort = Object.values(ports).find((p) => p.terminal === 'start')
@@ -43,12 +53,13 @@ export function insertNodeWithinConnection(editor: Editor, connection: Connectio
 				return
 			}
 
-			// re-route the existing connection into the new node, and add a new connection from the
-			// new node to the original end
+			// update the existing connection to connect to the input of our new node
 			createOrUpdateConnectionBinding(editor, connection, newNodeId, {
 				portId: firstInputPort.id,
 				terminal: 'end',
 			})
+
+			// create a new connection between the new node and the end of the original connection
 			const newConnectionId = createShapeId()
 			editor.createShape({
 				type: 'connection',
@@ -63,10 +74,13 @@ export function insertNodeWithinConnection(editor: Editor, connection: Connectio
 				terminal: 'end',
 			})
 
+			// move around any connected nodes to make room for the new one
 			moveNodesIfNeeded(editor, newNodeId, originalBindings.end.toId)
+
+			// select the new node
 			editor.select(newNodeId)
 
-			// so the editor's hovered shape id reflects the new node under the pointer
+			// update the pointer so that e.g. the editor's internal hovered shape id is correct
 			editor.updatePointer()
 		},
 		onClose: () => {},
@@ -74,7 +88,9 @@ export function insertNodeWithinConnection(editor: Editor, connection: Connectio
 }
 
 /**
- * Nudge downstream nodes to the right until nothing overlaps the newly inserted node.
+ * Move around any connected nodes to make room for the new node.
+ *
+ * This is used when the user inserts a node in the middle of a connection.
  */
 function moveNodesIfNeeded(editor: Editor, newNodeId: TLShapeId, rootNodeId: TLShapeId) {
 	const rootNode = editor.getShape(rootNodeId)
@@ -88,8 +104,11 @@ function moveNodesIfNeeded(editor: Editor, newNodeId: TLShapeId, rootNodeId: TLS
 		return
 	}
 
+	// first, we need to nudge all the downstream nodes over to the right to make room for the new
+	// node. toNudge tracks all the nodes we need to nudge.
 	const toNudgeRight = new Map<TLShapeId, { initialX: number; amount: number }>()
 
+	// we start with the expanded bounds of the newly added node:
 	const newNodeBounds = editor.getShapePageBounds(newNodeId)!.clone()
 	visit(rootNodeId, newNodeBounds.expandBy(DEFAULT_NODE_SPACING_PX))
 
@@ -97,21 +116,26 @@ function moveNodesIfNeeded(editor: Editor, newNodeId: TLShapeId, rootNodeId: TLS
 		const node = editor.getShape(nodeId)
 		if (!node || !editor.isShapeOfType(node, 'node')) return
 
-		// a node reachable by several paths continues from the nudge it already has
+		// if this node has already been visited, we need to continue on from the nudge we
+		// calculated last time:
 		const currentNudge = toNudgeRight.get(nodeId) ?? { initialX: node.x, amount: 0 }
 		const nodeBounds = editor
 			.getShapePageBounds(nodeId)!
 			.clone()
 			.translate({ x: currentNudge.amount, y: 0 })
 
+		// if this node isn't colliding with the expanded parent node, it's already far enough away
+		// and we don't need to do anything!
 		if (!nodeBounds.collides(parentExpandedBounds)) return
 
+		// we need to nudge this node to the right to make room for the new node.
 		const newNudgeAmount = parentExpandedBounds.right - nodeBounds.left
 		toNudgeRight.set(nodeId, {
 			initialX: currentNudge.initialX,
 			amount: currentNudge.amount + newNudgeAmount,
 		})
 
+		// now, we traverse the downstream connections from this node and nudge them all if needed.
 		nodeBounds.translate({ x: newNudgeAmount, y: 0 }).expandBy(DEFAULT_NODE_SPACING_PX)
 		for (const connection of getNodePortConnections(editor, node)) {
 			if (connection.terminal !== 'start') continue
@@ -119,20 +143,23 @@ function moveNodesIfNeeded(editor: Editor, newNodeId: TLShapeId, rootNodeId: TLS
 		}
 	}
 
-	// fade the new node in while the others slide to their new positions
-	editor.updateShape({ id: newNodeId, type: 'node', opacity: 0 }).animateShapes(
-		[
-			{
-				id: newNodeId,
-				type: 'node',
-				opacity: 1,
-			},
-			...Array.from(toNudgeRight.entries()).map(([id, nudge]) => ({
-				id,
-				type: 'node' as const,
-				x: nudge.initialX + nudge.amount,
-			})),
-		],
-		{ animation: { duration: 100 } }
-	)
+	editor
+		// hide the new node for the purposes of the animation
+		.updateShape({ id: newNodeId, type: 'node', opacity: 0 })
+		// animate the new node fading in, and all the other nodes to their new positions
+		.animateShapes(
+			[
+				{
+					id: newNodeId,
+					type: 'node',
+					opacity: 1,
+				},
+				...Array.from(toNudgeRight.entries()).map(([id, nudge]) => ({
+					id,
+					type: 'node' as const,
+					x: nudge.initialX + nudge.amount,
+				})),
+			],
+			{ animation: { duration: 100 } }
+		)
 }
