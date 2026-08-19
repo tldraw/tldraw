@@ -38,7 +38,7 @@ async function createImage(
 		copyAttrs(cloneAttributesFrom, image)
 	}
 
-	return await setImageSrc(image, dataUrl)
+	return setImageSrc(image, dataUrl)
 }
 
 async function getCanvasReplacement(canvas: HTMLCanvasElement) {
@@ -75,7 +75,7 @@ export async function embedMedia(node: HTMLElement) {
 	} else if (node instanceof win.HTMLVideoElement) {
 		return replace(node, await getVideoReplacement(node))
 	} else if (node instanceof win.HTMLImageElement) {
-		return await setImageSrc(node, await resourceToDataUrl(node.currentSrc || node.src))
+		return setImageSrc(node, await resourceToDataUrl(node.currentSrc || node.src))
 	} else if (node instanceof win.HTMLInputElement) {
 		node.setAttribute('value', node.value)
 	} else if (node instanceof win.HTMLTextAreaElement) {

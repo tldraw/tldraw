@@ -251,8 +251,12 @@ export class ScribbleManager {
 	 * @public
 	 */
 	addPoint(id: string, x: number, y: number, z = 0.5): ScribbleItem {
-		const { session, item } = this.findItem(id)
-		return this.setNextPoint(session, item, x, y, z)
+		// Runs on every pointer move, so search inline rather than allocating a {session, item} pair.
+		for (const session of this.sessions.values()) {
+			const item = session.items.find((i) => i.id === id)
+			if (item) return this.setNextPoint(session, item, x, y, z)
+		}
+		throw Error(`Scribble with id ${id} not found`)
 	}
 
 	/**
@@ -263,7 +267,7 @@ export class ScribbleManager {
 	 * @public
 	 */
 	complete(id: string): ScribbleItem {
-		const { item } = this.findItem(id)
+		const item = this.findItem(id)
 		if (item.scribble.state === 'starting' || item.scribble.state === 'active') {
 			item.scribble.state = 'complete'
 		}
@@ -277,7 +281,7 @@ export class ScribbleManager {
 	 * @public
 	 */
 	stop(id: string): ScribbleItem {
-		const { item } = this.findItem(id)
+		const item = this.findItem(id)
 		this.stopItem(item)
 		return item
 	}
@@ -333,10 +337,10 @@ export class ScribbleManager {
 		})
 	}
 
-	private findItem(id: string): { session: Session; item: ScribbleItem } {
+	private findItem(id: string): ScribbleItem {
 		for (const session of this.sessions.values()) {
 			const item = session.items.find((i) => i.id === id)
-			if (item) return { session, item }
+			if (item) return item
 		}
 		throw Error(`Scribble with id ${id} not found`)
 	}

@@ -1,4 +1,4 @@
-import type { TLRecord, TLShape, TLShapeId } from '@tldraw/tlschema'
+import { isShape, type TLRecord, type TLShape, type TLShapeId } from '@tldraw/tlschema'
 import { bind } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
 import type { Editor } from '../../Editor'
@@ -45,6 +45,12 @@ function computeFrameTimeStats(session: PerfSession): TLPerfFrameTimeStats {
 		maxFrameTime: n > 0 ? sorted[n - 1] : 0,
 		frameTimes,
 		longAnimationFrames: loafEntries.length > 0 ? loafEntries : undefined,
+	}
+}
+
+function* shapeRecords(records: TLRecord[]): Generator<TLShape> {
+	for (const record of records) {
+		if (isShape(record)) yield record
 	}
 }
 
@@ -346,18 +352,30 @@ export class PerformanceManager {
 		}
 	}
 
-	private _emitShapeRecordsEvent(
-		event: 'shapes-created' | 'shapes-updated',
-		operation: 'create' | 'update',
-		records: TLRecord[]
+	/**
+	 * Counts shape records in a single pass. `count` overrides the emitted count (deletes report
+	 * the number of ids requested, even if some shapes are already gone); without it, an event
+	 * with no shapes is skipped.
+	 */
+	private _emitShapeOperationEvent(
+		event: ShapePerfEvent,
+		operation: TLShapeOperationPerfEvent['operation'],
+		shapes: Iterable<TLShape | undefined>,
+		count?: number
 	) {
 		if (this.emitter.listenerCount(event) === 0) return
-		const shapes = records.filter((r): r is TLShape => r.typeName === 'shape')
-		if (shapes.length === 0) return
+		const shapeTypes: Record<string, number> = {}
+		let shapeCount = 0
+		for (const shape of shapes) {
+			if (!shape) continue
+			shapeTypes[shape.type] = (shapeTypes[shape.type] || 0) + 1
+			shapeCount++
+		}
+		if (count === undefined && shapeCount === 0) return
 		const perfEvent: TLShapeOperationPerfEvent = {
 			operation,
-			count: shapes.length,
-			shapeTypes: countShapeTypes(shapes),
+			count: count ?? shapeCount,
+			shapeTypes,
 			timestamp: performance.now(),
 		}
 		this.emitter.emit(event, perfEvent)
@@ -365,26 +383,20 @@ export class PerformanceManager {
 
 	@bind
 	private _onShapesCreated(records: TLRecord[]) {
-		this._emitShapeRecordsEvent('shapes-created', 'create', records)
+		this._emitShapeOperationEvent('shapes-created', 'create', shapeRecords(records))
 	}
 
 	@bind
 	private _onShapesEdited(records: TLRecord[]) {
-		this._emitShapeRecordsEvent('shapes-updated', 'update', records)
+		this._emitShapeOperationEvent('shapes-updated', 'update', shapeRecords(records))
 	}
 
 	@bind
 	private _onShapesDeleted(ids: TLShapeId[]) {
 		if (this.emitter.listenerCount('shapes-deleted') === 0) return
 		// Works because 'deleted-shapes' fires before store.remove() in Editor.deleteShapes
-		const shapes = ids.map((id) => this.editor.getShape(id)).filter((s): s is TLShape => !!s)
-		const event: TLShapeOperationPerfEvent = {
-			operation: 'delete',
-			count: ids.length,
-			shapeTypes: countShapeTypes(shapes),
-			timestamp: performance.now(),
-		}
-		this.emitter.emit('shapes-deleted', event)
+		const shapes = ids.map((id) => this.editor.getShape(id))
+		this._emitShapeOperationEvent('shapes-deleted', 'delete', shapes, ids.length)
 	}
 
 	private _startLoafObserver() {

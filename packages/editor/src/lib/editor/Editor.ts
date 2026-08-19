@@ -4164,7 +4164,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// When centering, capture the page center before the change so it can be restored after
 		const centerBefore =
-			!_willSetInitialBounds && center && !this.getInstanceState().followingUserId
+			center && !this.getInstanceState().followingUserId
 				? this.getViewportPageBounds().center
 				: null
 
@@ -6311,13 +6311,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	isShapeInPage(shape: TLShape | TLShapeId, pageId = this.getCurrentPageId()): boolean {
-		const id = typeof shape === 'string' ? shape : shape.id
-		let current = this.getShape(id)
-		while (current) {
-			if (current.parentId === pageId) return true
-			current = this.getShape(current.parentId)
-		}
-		return false
+		return this.getAncestorPageId(shape) === pageId
 	}
 
 	/**
@@ -9093,42 +9087,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* --------------------- Styles --------------------- */
 
 	/**
-	 * Get all the current styles among the users selected shapes
-	 *
-	 * @internal
-	 */
-	private _extractSharedStyles(shape: TLShape, sharedStyleMap: SharedStyleMap) {
-		if (this.isShapeOfType(shape, 'group')) {
-			// For groups, ignore the styles of the group shape and instead include the styles of the
-			// group's children. These are the shapes that would have their styles changed if the
-			// user called `setStyle` on the current selection.
-			const childIds = this._parentIdsToChildIds.get()[shape.id]
-			if (!childIds) return
-
-			for (let i = 0, n = childIds.length; i < n; i++) {
-				this._extractSharedStyles(this.getShape(childIds[i])!, sharedStyleMap)
-			}
-		} else {
-			for (const [style, propKey] of this.styleProps[shape.type]) {
-				sharedStyleMap.applyValue(style, getOwnProperty(shape.props, propKey))
-			}
-		}
-	}
-
-	/**
 	 * A derived map containing all current styles among the user's selected shapes.
 	 *
 	 * @internal
 	 */
 	@computed
 	private _getSelectionSharedStyles(): ReadonlySharedStyleMap {
-		const selectedShapes = this.getSelectedShapes()
-
+		// Groups contribute their children's styles, since those are the shapes that would change
+		// if the user called `setStyle` on the current selection.
 		const sharedStyles = new SharedStyleMap()
-		for (const selectedShape of selectedShapes) {
-			this._extractSharedStyles(selectedShape, sharedStyles)
+		for (const shape of this._getSelectedShapesExpandingGroups()) {
+			for (const [style, propKey] of this.styleProps[shape.type]) {
+				sharedStyles.applyValue(style, getOwnProperty(shape.props, propKey))
+			}
 		}
-
 		return sharedStyles
 	}
 

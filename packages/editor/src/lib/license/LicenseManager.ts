@@ -433,14 +433,6 @@ export class LicenseManager {
 		return this.isFlagEnabled(licenseInfo.flags, FLAGS.NATIVE_LICENSE)
 	}
 
-	private getExpirationDateWithoutGracePeriod(expiryDate: Date) {
-		return this.getExpirationDate(expiryDate, 0)
-	}
-
-	private getExpirationDateWithGracePeriod(expiryDate: Date) {
-		return this.getExpirationDate(expiryDate, GRACE_PERIOD_DAYS)
-	}
-
 	// The named expiry date is the last day the license is fully usable, so the license expires at
 	// the end of that day, i.e. the start of the following day (plus any grace period). We work in
 	// UTC (the expiry date is minted and parsed as a UTC date-only string) so the cutoff is a single
@@ -456,18 +448,18 @@ export class LicenseManager {
 	}
 
 	private isAnnualLicenseExpired(expiryDate: Date) {
-		return new Date() >= this.getExpirationDateWithGracePeriod(expiryDate)
+		return new Date() >= this.getExpirationDate(expiryDate, GRACE_PERIOD_DAYS)
 	}
 
 	private isPerpetualLicenseExpired(expiryDate: Date) {
-		const expiration = this.getExpirationDateWithGracePeriod(expiryDate)
+		const expiration = this.getExpirationDate(expiryDate, GRACE_PERIOD_DAYS)
 		// We allow patch releases, but the major and minor releases should be within the expiration date
 		return new Date(publishDates.major) >= expiration || new Date(publishDates.minor) >= expiration
 	}
 
 	private getDaysSinceExpiry(expiryDate: Date): number {
 		const now = new Date()
-		const expiration = this.getExpirationDateWithoutGracePeriod(expiryDate)
+		const expiration = this.getExpirationDate(expiryDate, 0)
 		const diffTime = now.getTime() - expiration.getTime()
 		const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
 		return Math.max(0, diffDays)
@@ -475,7 +467,7 @@ export class LicenseManager {
 
 	private isEvaluationLicenseExpired(expiryDate: Date): boolean {
 		// Evaluation licenses have no grace period - they expire immediately
-		return new Date() >= this.getExpirationDateWithoutGracePeriod(expiryDate)
+		return new Date() >= this.getExpirationDate(expiryDate, 0)
 	}
 
 	private isFlagEnabled(flags: number, flag: number) {
