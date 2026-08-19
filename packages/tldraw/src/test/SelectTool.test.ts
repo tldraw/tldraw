@@ -158,6 +158,38 @@ describe('TLSelectTool.PointingShape when the shape is deleted mid-click', () =>
 		expect(() => editor.pointerUp(shape.x + 10, shape.y + 10)).not.toThrow()
 		editor.expectToBeIn('select.idle')
 	})
+
+	it('does not crash when dragging after a labelled arrow is deleted', () => {
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: { richText: toRichText('label'), start: { x: 0, y: 0 }, end: { x: 200, y: 0 } },
+			},
+		])
+		const shape = editor.getShape(ids.arrow1)!
+		editor.pointerDown(200, 100, { target: 'shape', shape })
+		editor.expectToBeIn('select.pointing_shape')
+
+		editor.deleteShapes([ids.arrow1])
+
+		expect(() => editor.pointerMove(220, 120)).not.toThrow()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('does not select a deleted shape when the drag starts', () => {
+		editor.select(ids.box1)
+		const shape = editor.getShape(ids.box1)!
+		editor.pointerDown(150, 150, { target: 'shape', shape })
+
+		editor.deleteShapes([ids.box1])
+
+		editor.pointerMove(200, 200)
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		editor.expectToBeIn('select.idle')
+	})
 })
 
 describe('TLSelectTool.Translating', () => {
