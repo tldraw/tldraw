@@ -138,7 +138,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **SC2** `serialize()` returns `{ schemaVersion: 2, sequences }` mapping each sequence id to the version of its last migration (0 for an empty sequence).
 - **SC3** `serializeEarliestVersion()` maps every sequence to version 0.
 - **SC4** `getType(typeName)` returns the RecordType and throws for unknown type names.
-- **SC5** `upgradeSchema` converts a v1 serialized schema to v2: `storeVersion` becomes `com.tldraw.store`, each record version becomes `com.tldraw.<typeName>`, and each subtype version becomes `com.tldraw.<typeName>.<subType>`. v2 schemas pass through unchanged; schema versions other than 1 or 2 produce an error result.
+- **SC5** `upgradeSchema` converts a v1 serialized schema to v2: `storeVersion` becomes `com.tldraw.store`, each record version becomes `com.tldraw.<typeName>`, and each subtype version becomes `com.tldraw.<typeName>.<subType>`. v2 schemas pass through unchanged; schema versions other than 1 or 2, and schemas missing their `sequences` (v2) or `recordVersions` (v1) object, produce an error result rather than throwing.
 
 ## 16. Migrations: authoring (M)
 
@@ -184,7 +184,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **MA3** Store-scope migrations receive the whole record map and may add, change, and delete records.
 - **MA4** Storage-scope migrations receive a `SynchronousStorage` (get/set/delete/keys/values/entries) and may use it to read and write records directly.
 - **MA5** When migrations are applied, records whose type's scope is not `'document'` are removed from the result (legacy cleanup). A snapshot needing no migrations keeps such records.
-- **MA6** An unknown record type encountered during migration, or a migrator that throws, produces a `migration-error` result.
+- **MA6** An unknown record type encountered during migration, a migrator that throws, or a malformed persisted schema produces a `migration-error` result.
 - **MA7** `migrateStorage(storage)` applies the same process to external storage, writing the current serialized schema via `setSchema` and updating only records that actually changed (deep equality).
 
 ## 21. Integrity (IC)
