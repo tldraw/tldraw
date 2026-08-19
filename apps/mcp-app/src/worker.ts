@@ -437,6 +437,18 @@ export default {
 				return Response.json(results)
 			}
 
+			// Dev helper for scripts/verify-prune.sh: map a session id to its DO id.
+			if (url.pathname === '/admin/do-id' && env.MCP_IS_DEV === 'true') {
+				if (
+					!env.ADMIN_TOKEN ||
+					request.headers.get('Authorization') !== `Bearer ${env.ADMIN_TOKEN}`
+				) {
+					return new Response('Unauthorized', { status: 401 })
+				}
+				const session = url.searchParams.get('session') ?? ''
+				return new Response(env.MCP_OBJECT.idFromName(`streamable-http:${session}`).toString())
+			}
+
 			// Require bearer auth only when an auth token is configured.
 			if (requireAuth) {
 				const auth = request.headers.get('Authorization')
