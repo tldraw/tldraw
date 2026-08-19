@@ -1240,3 +1240,46 @@ describe('When cropping with modifiers and snapping...', () => {
 		expect(editor.snaps.getIndicators().length).toBe(0)
 	})
 })
+
+describe('Cropping an image inside a rotated parent', () => {
+	it('moves the crop along the dragged edge even when the page rotation comes from a frame', () => {
+		const frameId = createShapeId('frame')
+		const imageId = createShapeId('image')
+		editor.createShapes([
+			{
+				id: frameId,
+				type: 'frame',
+				x: 500,
+				y: 100,
+				rotation: Math.PI / 2,
+				props: { w: 400, h: 400 },
+			},
+			{
+				id: imageId,
+				type: 'image',
+				parentId: frameId,
+				x: 50,
+				y: 50,
+				props: { ...imageProps, w: 200, h: 100 },
+			},
+		])
+		editor.select(imageId)
+		editor.setCurrentTool('select.crop.idle')
+		editor.expectToBeIn('select.crop.idle')
+
+		// The image's right edge is vertical in its own space but horizontal on screen; drag it
+		// inward along its on-screen normal.
+		const handle = editor.getSelectionHandlePagePoint('right')
+		editor.pointerDown(handle.x, handle.y, { target: 'selection', handle: 'right' })
+		editor.pointerMove(handle.x, handle.y - 50)
+		editor.expectToBeIn('select.crop.cropping')
+		editor.pointerUp()
+
+		const image = editor.getShape<TLImageShape>(imageId)!
+		expect(image.props.w).toBe(150)
+		expect(image.props.crop).toMatchObject({
+			topLeft: { x: 0, y: 0 },
+			bottomRight: { x: 0.75, y: 1 },
+		})
+	})
+})
