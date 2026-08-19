@@ -1240,3 +1240,53 @@ describe('When cropping with modifiers and snapping...', () => {
 		expect(editor.snaps.getIndicators().length).toBe(0)
 	})
 })
+
+describe('Cancelling while cropping', () => {
+	it('escape during a crop drag only reverts that drag and keeps the session cancellable', () => {
+		editor.doubleClick(550, 550, ids.imageB).expectToBeIn('select.crop.idle')
+		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+
+		// First drag commits
+		editor.pointerDown(500, 600, { target: 'selection', handle: 'bottom' })
+		editor.pointerMove(510, 590)
+		editor.pointerUp()
+		editor.expectToBeIn('select.crop.idle')
+		const afterFirst = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+		expect(afterFirst).not.toMatchObject(before)
+
+		// Escape mid-drag reverts only the second drag
+		editor.pointerDown(500, 600, { target: 'selection', handle: 'bottom' })
+		editor.pointerMove(510, 580)
+		editor.expectToBeIn('select.crop.cropping')
+		editor.cancel()
+		editor.expectToBeIn('select.crop.idle')
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(afterFirst)
+
+		// Escape from idle still reverts the whole session
+		editor.cancel()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
+	})
+
+	it('squashes the session into one undo even after a cancelled drag', () => {
+		editor.doubleClick(550, 550, ids.imageB).expectToBeIn('select.crop.idle')
+		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+
+		editor.pointerDown(500, 600, { target: 'selection', handle: 'bottom' })
+		editor.pointerMove(510, 580)
+		editor.cancel()
+		editor.expectToBeIn('select.crop.idle')
+
+		editor.pointerDown(500, 600, { target: 'selection', handle: 'bottom' })
+		editor.pointerMove(510, 590)
+		editor.pointerUp()
+		editor.pointerDown(500, 600, { target: 'selection', handle: 'bottom' })
+		editor.pointerMove(510, 580)
+		editor.pointerUp()
+		editor.keyDown('Enter').keyUp('Enter')
+		editor.expectToBeIn('select.idle')
+
+		editor.undo()
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
+	})
+})
