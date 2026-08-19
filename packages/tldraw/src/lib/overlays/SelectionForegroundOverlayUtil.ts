@@ -180,6 +180,8 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		}
 	}
 
+	// --- Overlay collection ---
+
 	private _collectResizeCornerOverlays(
 		state: SelectionState,
 		overlays: TLSelectionForegroundOverlay[]
@@ -241,6 +243,8 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		}
 	}
 
+	// --- Geometry builders ---
+
 	private _getResizeHandleGeometry(
 		handle: TLSelectionHandle,
 		state: SelectionState,
@@ -294,6 +298,8 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 			transform
 		)
 	}
+
+	// --- Rendering (all helpers assume ctx is in local selection space) ---
 
 	private _renderSelectionBox(
 		ctx: CanvasRenderingContext2D,
@@ -441,6 +447,8 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		ctx.roundRect(width - hw / 2, height / 2 - textHandleHeight / 2, hw, textHandleHeight, r)
 		ctx.fill()
 	}
+
+	// --- Shared helpers ---
 
 	/**
 	 * Single source of truth for the derived state the selection foreground needs.

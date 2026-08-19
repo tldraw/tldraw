@@ -22,8 +22,9 @@ export class OneFingerZooming extends StateNode {
 
 		const currentScreenY = this.editor.inputs.getCurrentScreenPoint().y
 
-		// Dragging down zooms in, up zooms out (google maps default). The user's zoom
-		// direction preference is ignored because it only applies to mouse input.
+		// Dragging up = zoom out, dragging down = zoom in (same as google maps default)
+		// we won't respect the user's zoom direction preference because it only applies
+		// to mouse input
 		const dy = currentScreenY - this.originScreenY
 
 		// ~200px of drag ≈ 2x zoom change.

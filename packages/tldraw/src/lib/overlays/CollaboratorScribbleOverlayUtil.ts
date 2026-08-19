@@ -18,7 +18,12 @@ export class CollaboratorScribbleOverlayUtil extends OverlayUtil<TLCollaboratorS
 	static override type = 'collaborator_scribble'
 	override options = { zIndex: 800, streamline: 0.32, cacheSize: 500 }
 
-	// Keyed by overlay id, not the scribble object — see ScribbleOverlayUtil for why.
+	// String-keyed (not a WeakMap) because the cache key is a logical identity
+	// — `${overlay.id}` derived from `scribble.id` — not the scribble object.
+	// Tldraw's store replaces record objects on every update, so a WeakMap
+	// keyed on the `TLScribble` instance would cache-miss every frame. Lifetime
+	// is bounded by the Util instance (so, by the editor) plus the `cacheSize`
+	// cap in `getScribblePath`.
 	private _collabScribblePathCache: ScribblePathCache = new Map()
 
 	override isActive(): boolean {

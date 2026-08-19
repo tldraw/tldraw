@@ -48,6 +48,7 @@ export class SelectTool extends StateNode {
 		]
 	}
 
+	// We want to clean up the duplicate props when the selection changes
 	cleanUpDuplicateProps() {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
 		const instance = this.editor.getInstanceState()

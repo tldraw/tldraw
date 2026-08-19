@@ -33,11 +33,13 @@ export function getEnclosedShapeIds(editor: Editor, shape: TLShape): TLShapeId[]
 
 	const enclosedShapeIds: TLShapeId[] = []
 	for (const siblingShapeId of editor.getSortedChildIdsForParent(shape.parentId)) {
+		// We don't want to frame the frame itself
 		if (siblingShapeId === shape.id || ancestorIds.has(siblingShapeId)) continue
 		const siblingShape = editor.getShape(siblingShapeId)
 		if (!siblingShape || siblingShape.isLocked) continue
 
 		const pageShapeBounds = editor.getShapePageBounds(siblingShape)
+		// Frame shape encloses page shape
 		if (pageShapeBounds && bounds.contains(pageShapeBounds)) {
 			enclosedShapeIds.push(siblingShape.id)
 		}

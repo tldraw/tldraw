@@ -138,8 +138,10 @@ export class Pointing extends StateNode {
 		const handles = this.editor.getShapeHandles(shape)
 		if (!handles) throw Error(`expected handles for arrow`)
 
+		// start update
 		this.dragHandle(shape, handles, 'start', { x: 0, y: 0 }, this.isPrecise)
 
+		// end update
 		const point = this.editor.getPointInShapeSpace(shape, this.editor.inputs.getCurrentPagePoint())
 		this.dragHandle(this.editor.getShape(shape)!, handles, 'end', point, this.isPrecise)
 

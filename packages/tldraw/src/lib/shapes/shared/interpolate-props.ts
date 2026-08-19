@@ -6,6 +6,7 @@ export function interpolateSegments(
 	endSegments: TLDrawShapeSegment[],
 	progress: number
 ): TLDrawShapeSegment[] {
+	// Extract all points from startSegments and endSegments
 	const startPoints = startSegments.flatMap((segment) =>
 		b64Vecs.decodePoints(segment.path, segment.dim)
 	)
@@ -26,6 +27,7 @@ export function interpolateSegments(
 		})
 	}
 
+	// Return all interpolated points in a single segment
 	return [
 		{
 			type: 'free',

@@ -515,6 +515,8 @@ function getStarPath(w: number, h: number, isFilled: boolean) {
 	).close()
 }
 
+/* ---------------------- Cloud --------------------- */
+
 function getOvalPerimeter(h: number, w: number) {
 	if (h > w) return (PI * (w / 2) + (h - w)) * 2
 	else return (PI * (h / 2) + (w - h)) * 2

@@ -22,6 +22,7 @@ export class ZoomTool extends StateNode {
 
 	override onEnter(info: TLPointerEventInfo & { onInteractionEnd: string }) {
 		this.info = info
+		// onInteractionEnd is a path like 'select.idle', extract just the tool ID for the mask
 		this.parent.setCurrentToolIdMask(this.getOriginatingToolId())
 		this.updateCursor()
 	}
@@ -49,6 +50,7 @@ export class ZoomTool extends StateNode {
 	}
 
 	private complete() {
+		// onInteractionEnd is a path like 'select.idle', extract just the tool ID
 		this.editor.setCurrentTool(this.getOriginatingToolId() ?? 'select')
 	}
 

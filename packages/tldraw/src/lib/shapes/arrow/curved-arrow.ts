@@ -318,6 +318,7 @@ function getArcTerminalPointInBoundShape(
 	handleArc: TLArcInfo,
 	distFn: (a: number, b: number) => number
 ): Vec | undefined {
+	// get points in shape's coordinates?
 	const inverseTransform = Mat.Inverse(shapeInfo.transform)
 	const startInLocalSpace = Mat.applyToPoint(
 		inverseTransform,
@@ -385,6 +386,7 @@ function getArcTerminalPointInBoundShape(
 	}
 
 	if (!point) return
+	// target local point -> page point -> shape local point
 	return editor.getPointInShapeSpace(shape, Mat.applyToPoint(shapeInfo.transform, point))
 }
 

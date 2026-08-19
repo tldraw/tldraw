@@ -289,6 +289,7 @@ export class Idle extends StateNode {
 					return
 				}
 
+				// No hit shape, so double click on the canvas instead
 				this.handleDoubleClickOnCanvas(info)
 				break
 			}
@@ -387,6 +388,7 @@ export class Idle extends StateNode {
 				// Allow playing videos and embeds
 				if (shape.type !== 'video' && shape.type !== 'embed' && this.editor.getIsReadonly()) break
 
+				// Call the shape's double click handler
 				const change = util.onDoubleClick?.(shape)
 				if (change) {
 					this.editor.updateShapes([change])
@@ -422,6 +424,8 @@ export class Idle extends StateNode {
 				if (changes) {
 					this.editor.updateShapes([changes])
 				} else if (this.editor.canEditShape(shape)) {
+					// If the shape's double click handler has not created a change,
+					// and if the shape can edit, then begin editing the shape.
 					this.startEditingShape(shape, info, true /* select all */)
 				}
 			}

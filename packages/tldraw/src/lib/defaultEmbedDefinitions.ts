@@ -36,6 +36,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(TLDRAW_APP_RE)) {
+				// Add the "clean=true" search param to the URL to hide the sidebar
 				urlObj.searchParams.append('embed', 'true')
 				return url
 			}
@@ -44,6 +45,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		fromEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(TLDRAW_APP_RE)) {
+				// Add the "clean=true" search param to the URL to hide the sidebar
 				urlObj.searchParams.delete('embed')
 				return url
 			}
@@ -189,6 +191,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		},
 		fromEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
+			// e.g. extract "steveruizok/mathFact" from https://www.val.town/v/steveruizok/mathFact
 			const matches = urlObj && urlObj.pathname.match(/\/embed\/(.+)\/?/)
 			if (matches) {
 				return `https://www.val.town/v/${matches[1]}`
@@ -632,6 +635,9 @@ export const DEFAULT_EMBED_DEFINITIONS = [
  * @public
  */
 export const embedShapePermissionDefaults = {
+	// ========================================================================================
+	// Disabled permissions
+	// ========================================================================================
 	// [MDN] Experimental: Allows for downloads to occur without a gesture from the user.
 	// [REASON] Disabled because otherwise the <iframe/> can trick the user on behalf of us to perform an action.
 	'allow-downloads-without-user-activation': false,
@@ -665,6 +671,9 @@ export const embedShapePermissionDefaults = {
 	// [MDN] Lets the resource navigate the top-level browsing context, but only if initiated by a user gesture.
 	// [REASON] Prevents embed from navigating away from tldraw and pretending to be us.
 	'allow-top-navigation-by-user-activation': false,
+	// ========================================================================================
+	// Enabled permissions
+	// ========================================================================================
 	// [MDN] Lets the resource run scripts (but not create popup windows).
 	'allow-scripts': true,
 	// [MDN] If this token is not used, the resource is treated as being from a special origin that always fails the same-origin policy (potentially preventing access to data storage/cookies and some JavaScript APIs).

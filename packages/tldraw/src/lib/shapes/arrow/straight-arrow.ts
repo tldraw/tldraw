@@ -49,19 +49,24 @@ export function getStraightArrowInfo(
 
 	const uAB = Vec.Sub(b, a).uni()
 
+	// Update the arrowhead points using intersections with the bound shapes, if any.
+
 	const startShapeInfo = getBoundShapeInfoForTerminal(editor, shape, 'start')
 	const endShapeInfo = getBoundShapeInfoForTerminal(editor, shape, 'end')
 
 	const arrowPageTransform = editor.getShapePageTransform(shape)!
 
+	// Update the position of the arrowhead's end point
 	updateArrowheadPointWithBoundShape(
-		b,
+		b, // <-- will be mutated
 		terminalsInArrowSpace.start,
 		arrowPageTransform,
 		endShapeInfo
 	)
+
+	// Then update the position of the arrowhead's end point
 	updateArrowheadPointWithBoundShape(
-		a,
+		a, // <-- will be mutated
 		terminalsInArrowSpace.end,
 		arrowPageTransform,
 		startShapeInfo
@@ -218,9 +223,11 @@ function updateArrowheadPointWithBoundShape(
 	// no binding, or an exact one: the arrowhead point stays at the arrow terminal
 	if (targetShapeInfo === undefined || targetShapeInfo.isExact) return
 
+	// From and To in page space
 	const pageFrom = Mat.applyToPoint(arrowPageTransform, opposite)
 	const pageTo = Mat.applyToPoint(arrowPageTransform, point)
 
+	// From and To in local space of the target shape
 	const targetTransformInverse = Mat.Inverse(targetShapeInfo.transform)
 	const targetFrom = Mat.applyToPoint(targetTransformInverse, pageFrom)
 	const targetTo = Mat.applyToPoint(targetTransformInverse, pageTo)

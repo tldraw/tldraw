@@ -91,42 +91,52 @@ export function registerDefaultExternalContentHandlers(
 	editor: Editor,
 	options: TLDefaultExternalContentHandlerOpts
 ) {
+	// files -> asset
 	editor.registerExternalAssetHandler('file', async (externalAsset) => {
 		return defaultHandleExternalFileAsset(editor, externalAsset, options)
 	})
 
+	// urls -> bookmark asset
 	editor.registerExternalAssetHandler('url', async (externalAsset) => {
 		return defaultHandleExternalUrlAsset(editor, externalAsset, options)
 	})
 
+	// svg text
 	editor.registerExternalContentHandler('svg-text', async (externalContent) => {
 		return defaultHandleExternalSvgTextContent(editor, externalContent)
 	})
 
+	// embeds
 	editor.registerExternalContentHandler<'embed', EmbedDefinition>('embed', (externalContent) => {
 		return defaultHandleExternalEmbedContent(editor, externalContent)
 	})
 
+	// files
 	editor.registerExternalContentHandler('files', async (externalContent) => {
 		return defaultHandleExternalFileContent(editor, externalContent, options)
 	})
 
+	// file-replace -> asset
 	editor.registerExternalContentHandler('file-replace', async (externalContent) => {
 		return defaultHandleExternalFileReplaceContent(editor, externalContent, options)
 	})
 
+	// text
 	editor.registerExternalContentHandler('text', async (externalContent) => {
 		return defaultHandleExternalTextContent(editor, externalContent)
 	})
 
+	// url
 	editor.registerExternalContentHandler('url', async (externalContent) => {
 		return defaultHandleExternalUrlContent(editor, externalContent, options)
 	})
 
+	// tldraw
 	editor.registerExternalContentHandler('tldraw', async (externalContent) => {
 		return defaultHandleExternalTldrawContent(editor, externalContent)
 	})
 
+	// excalidraw
 	editor.registerExternalContentHandler('excalidraw', async (externalContent) => {
 		return defaultHandleExternalExcalidrawContent(editor, externalContent)
 	})
@@ -176,6 +186,7 @@ export async function defaultHandleExternalFileReplaceContent(
 	if (!assetInfoPartial) return
 	editor.createAssets([assetInfoPartial])
 
+	// And update the shape
 	if (shape.type === 'image') {
 		const imageShape = shape as TLImageShape
 		const { w, h } = assetInfoPartial.props
@@ -254,6 +265,7 @@ export async function defaultHandleExternalUrlAsset(
 		meta = { image: '', favicon: '', title: '', description: '' }
 	}
 
+	// Create the bookmark asset from the meta
 	return {
 		id: getBookmarkAssetIdForUrl(url),
 		typeName: 'asset',
@@ -423,6 +435,24 @@ export async function defaultHandleExternalTextContent(
 		? renderRichTextFromHTML(editor, html)
 		: toRichText(cleanedUpPlaintext)
 
+	// todo: discuss
+	// If we have one shape with rich text selected, update the shape's text.
+	// const onlySelectedShape = editor.getOnlySelectedShape()
+	// if (onlySelectedShape && 'richText' in onlySelectedShape.props) {
+	// 	editor.updateShapes([
+	// 		{
+	// 			id: onlySelectedShape.id,
+	// 			type: onlySelectedShape.type,
+	// 			props: {
+	// 				richText: richTextToPaste,
+	// 			},
+	// 		},
+	// 	])
+
+	// 	return
+	// }
+
+	// Measure the text with default values
 	let w: number
 	let h: number
 	let autoSize: boolean
@@ -463,6 +493,7 @@ export async function defaultHandleExternalTextContent(
 		autoSize = false
 		align = isRtl ? 'end' : 'start'
 	} else {
+		// autosize is fine
 		w = Math.max(rawSize.w, 10)
 		h = Math.max(rawSize.h, 10)
 		autoSize = true
@@ -484,6 +515,7 @@ export async function defaultHandleExternalTextContent(
 			y: newPoint.y,
 			props: {
 				richText: richTextToPaste,
+				// if the text has more than one line, align it to the left
 				textAlign: align,
 				autoSize,
 				w,
@@ -529,6 +561,7 @@ export async function defaultHandleExternalUrlContent(
 
 	const position = getExternalContentPoint(editor, point)
 
+	// Use the new function to create the bookmark
 	const result = await createBookmarkFromUrl(editor, { url, center: position })
 
 	if (!result.ok) {
@@ -638,6 +671,7 @@ export async function createShapesForAssets(
 	}
 
 	editor.run(() => {
+		// Create any assets
 		const assetsToCreate = assets.filter((asset) => !editor.getAsset(asset.id))
 
 		editor.store.atomic(() => {
@@ -646,8 +680,10 @@ export async function createShapesForAssets(
 					editor.createAssets(assetsToCreate)
 				}
 
+				// Create the shapes
 				editor.createShapes(partials).select(...partials.map((p) => p.id))
 
+				// Re-position shapes so that the center of the group is at the provided point
 				centerSelectionAroundPoint(editor, position)
 			}
 		})
@@ -667,6 +703,7 @@ export async function createShapesForAssets(
  * @public
  */
 export function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
+	// Re-position shapes so that the center of the group is at the provided point
 	const viewportPageBounds = editor.getViewportPageBounds()
 	let selectionPageBounds = editor.getSelectionPageBounds()
 

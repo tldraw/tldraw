@@ -47,7 +47,7 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 	const exportInfo = useSvgExportContext()
 	const exportIsReady = useDelaySvgExport()
 
-	// Avoid updating this state whenever we can: every update re-renders the shape.
+	// We use a state to store the result of the asset resolution, and we're going to avoid updating this whenever we can
 	const [result, setResult] = useState<{
 		asset: (TLImageAsset | TLVideoAsset) | null
 		url: string | null
@@ -56,14 +56,21 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 		url: null,
 	}))
 
-	// After the first resolution we can debounce subsequent ones
+	// A flag for whether we've resolved the asset URL at least once, after which we can debounce
 	const didAlreadyResolve = useRef(false)
+
+	// Track the previous assetId to detect when the asset itself changes
 	const previousAssetId = useRef<TLAssetId | null>(null)
-	// Skip debouncing for the next resolution (set when the asset itself changes)
+
+	// Track whether we should run immediately (skip debouncing) for the next resolution
 	const shouldRunImmediately = useRef(false)
+
+	// The last URL that we've seen for the shape
 	const previousUrl = useRef<string | null>(null)
 
 	useEffect(() => {
+		// Check if the assetId changed (not just resolution/scale updates)
+		// Set flag to run immediately (skip debouncing) for the next resolution
 		if (previousAssetId.current !== assetId) {
 			shouldRunImmediately.current = true
 		}
@@ -77,34 +84,37 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 		const cleanupEffectScheduler = react('update state', () => {
 			if (!exportInfo && shapeId && editor.getCulledShapes().has(shapeId)) return
 
+			// Get the fresh asset
 			const asset = editor.getAsset<TLImageAsset | TLVideoAsset>(assetId)
 			if (!asset) {
-				// The asset was deleted, such as when an upload fails
+				// If the asset is deleted, such as when an upload fails, set the URL to null
 				setResult((prev) => ({ ...prev, asset: null, url: null }))
 				return
 			}
 
-			// Use the temporary preview while the asset has no source yet (e.g. still uploading)
+			// Set initial preview for the shape if it has no source (if it was pasted into a local project as base64)
 			if (!asset.props.src) {
 				const preview = editor.getTemporaryAssetPreview(asset.id)
 				if (preview) {
 					if (previousUrl.current !== preview) {
-						previousUrl.current = preview
-						setResult((prev) => ({ ...prev, isPlaceholder: true, url: preview }))
-						exportIsReady()
+						previousUrl.current = preview // just for kicks, let's save the url as the previous URL
+						setResult((prev) => ({ ...prev, isPlaceholder: true, url: preview })) // set the preview as the URL
+						exportIsReady() // let the SVG export know we're ready for export
 					}
 					return
 				}
 			}
 
+			// aside ...we could bail here if the only thing that has changed is the shape has changed from culled to not culled
+
 			const screenScale =
 				(exportInfo ? exportInfo.scale : editor.getEfficientZoomLevel()) * (width / asset.props.w)
 
 			function resolve(asset: TLImageAsset | TLVideoAsset, url: string | null) {
-				if (isCancelled) return // the hook has remounted
-				if (previousUrl.current === url) return
-				didAlreadyResolve.current = true
-				previousUrl.current = url
+				if (isCancelled) return // don't update if the hook has remounted
+				if (previousUrl.current === url) return // don't update the state if the url is the same
+				didAlreadyResolve.current = true // mark that we've resolved our first image
+				previousUrl.current = url // keep the url around to compare with the next one
 				setResult({ asset, url })
 				exportIsReady() // let the SVG export know we're ready for export
 			}

@@ -59,8 +59,11 @@ export function registerDefaultSideEffects(editor: Editor) {
 				if (prev.editingShapeId !== next.editingShapeId) {
 					if (!prev.editingShapeId && next.editingShapeId) {
 						if (!editor.isIn('select.editing_shape')) {
-							// With tool lock on, a text shape created from the text tool tells the editing
-							// state to return to the text tool once the edit is complete.
+							// Here's where we handle the special tool locking case for text
+							// If tool lock is enabled, and we just finished editing a text
+							// shape and are setting that shape as the new editing shape,
+							// then create the shape with a flag that will let it know to
+							// go back to the text tool once the edit is complete.
 							const shape = editor.getEditingShape()
 							const isCreatingTextWhileToolLocked =
 								shape?.type === 'text' &&

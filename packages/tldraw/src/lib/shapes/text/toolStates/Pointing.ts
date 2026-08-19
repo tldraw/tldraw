@@ -28,8 +28,13 @@ export class Pointing extends StateNode {
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		// Don't create a fixed width shape unless the drag is a little larger and longer than 150ms,
-		// otherwise you get a vertical column of single characters if you accidentally drag a bit.
+		// Create a fixed width shape if the user wants to do that.
+
+		// Don't create a fixed width shape unless the the drag is a little larger,
+		// otherwise you get a vertical column of single characters if you accidentally
+		// drag a bit unintentionally.
+
+		// If the user hasn't been pointing for more than 150ms, don't create a fixed width shape
 		if (Date.now() - this.enterTime < 150) return
 
 		const { editor } = this
@@ -48,6 +53,7 @@ export class Pointing extends StateNode {
 				: editor.options.dragDistanceSquared
 		)
 
+		// Ten times the base drag distance for fixed width
 		const minSquaredDragDist = (baseMinDragDistForFixedWidth * 6) / editor.getZoomLevel()
 
 		if (currentDragDist > minSquaredDragDist) {

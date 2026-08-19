@@ -107,6 +107,7 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 
 		const radius = this._getHitRadius()
 
+		// Transform handle position to page space
 		const pagePoint = Mat.applyToPoint(transform, { x: handle.x, y: handle.y })
 
 		return new Circle2d({

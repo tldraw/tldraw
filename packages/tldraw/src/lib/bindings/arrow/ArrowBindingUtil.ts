@@ -326,6 +326,7 @@ export function updateArrowTerminal({
 		},
 	} satisfies TLShapePartial<TLArrowShape>
 
+	// fix up the bend:
 	if (info.type === 'arc') {
 		const bend = getArcBendAfterTerminalMove(info, arrow, terminal, startPoint, endPoint)
 		// use `approximately` to avoid endless update loops
@@ -347,6 +348,7 @@ function getArcBendAfterTerminalMove(
 	startPoint: Vec,
 	endPoint: Vec
 ): number | undefined {
+	// find the new start/end points of the resulting arrow
 	const newStart =
 		terminal === 'start' ? startPoint : getValidTerminalPoint(info.start.handle, arrow.props.start)
 	const newEnd =
@@ -370,6 +372,7 @@ function getArcBendAfterTerminalMove(
 		return
 	}
 
+	// find the intersections with the old arrow arc:
 	const intersections = intersectLineSegmentCircle(
 		info.handleArc.center,
 		targetPoint,

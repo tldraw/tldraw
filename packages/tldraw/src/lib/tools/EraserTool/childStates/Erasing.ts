@@ -20,8 +20,9 @@ export class Erasing extends StateNode {
 			this.editor
 				.getCurrentPageShapes()
 				.filter((shape) => {
+					//If the shape is locked, we shouldn't erase it
 					if (this.editor.isShapeOrAncestorLocked(shape)) return true
-					// Groups and frames the pointer started inside are containers, not targets
+					//If the shape is a group or frame-like, check we're inside it when we start erasing
 					if (this.editor.isShapeOfType(shape, 'group') || this.editor.isShapeFrameLike(shape)) {
 						const pointInShapeShape = this.editor.getPointInShapeSpace(shape, originPagePoint)
 						const geometry = this.editor.getShapeGeometry(shape)
@@ -85,13 +86,15 @@ export class Erasing extends StateNode {
 
 		this.pushPointToScribble()
 
+		// Otherwise, erasing shapes are all the shapes that were hit before plus any new shapes that are hit
 		const erasing = new Set<TLShapeId>(erasingShapeIds)
 		const minDist = editor.getHitTestMargin()
 
+		// Create bounds around line segment with margin
 		const lineBounds = Box.FromPoints([previousPagePoint, currentPagePoint]).expandBy(minDist)
 		const candidateIds = editor.getShapeIdsInsideBounds(lineBounds)
 
-		// Skip the expensive getCurrentPageRenderingShapesSorted() when nothing is nearby
+		// Early return if no candidates - avoid expensive getCurrentPageRenderingShapesSorted()
 		if (candidateIds.size === 0) {
 			editor.setErasingShapes(Array.from(erasing))
 			return
@@ -109,6 +112,7 @@ export class Erasing extends StateNode {
 				continue
 			}
 
+			// Hit test the shape using a line segment
 			const geometry = editor.getShapeGeometry(shape)
 			const pageTransform = editor.getShapePageTransform(shape)
 			if (!geometry || !pageTransform) continue
@@ -116,7 +120,7 @@ export class Erasing extends StateNode {
 			const A = pt.applyToPoint(previousPagePoint)
 			const B = pt.applyToPoint(currentPagePoint)
 
-			// Cheap bounds rejection before the segment hit test
+			// If the line segment is entirely above / below / left / right of the shape's bounding box, skip the hit test
 			const { bounds } = geometry
 			if (
 				bounds.minX - minDist > Math.max(A.x, B.x) ||
@@ -127,7 +131,8 @@ export class Erasing extends StateNode {
 				continue
 			}
 
-			// Erase the outermost selectable shape, unless erasing started inside it (then erase its children)
+			// If a shape is hit and is part of a group, erase the group
+			// If we started erasing inside a group's bounds, erase child shapes (or nested groups) inside it
 			if (geometry.hitTestLineSegment(A, B, minDist)) {
 				const outermost = editor.getOutermostSelectableShape(shape)
 				if (excludedShapeIds.has(outermost.id)) {
@@ -141,6 +146,9 @@ export class Erasing extends StateNode {
 		}
 
 		this._erasingShapeIds = [...erasing]
+		// Remove the hit shapes, except if they're in the list of excluded shapes
+		// (these excluded shapes will be any frames or groups the pointer was inside of
+		// when the user started erasing)
 		editor.setErasingShapes(this._erasingShapeIds.filter((id) => !excludedShapeIds.has(id)))
 	}
 

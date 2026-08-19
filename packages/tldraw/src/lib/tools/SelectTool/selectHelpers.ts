@@ -39,6 +39,7 @@ export function startEditingShapeWithRichText(
 	if (!hasRichText(shape)) {
 		throw new Error('Shape does not have rich text')
 	}
+	// Finish this shape and start editing the next one
 	editor.setEditingShape(shape)
 	editor.setCurrentTool('select.editing_shape', {
 		...options.info,

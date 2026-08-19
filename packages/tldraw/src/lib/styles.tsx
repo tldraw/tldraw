@@ -32,8 +32,9 @@ export function getColorStyleItems(colors: TLThemeColors): StyleValuesForUi<stri
 	const result: StyleValuesForUi<string>[number][] = []
 	const seen = new Set<string>()
 
+	// First, add colors in the preferred order from DefaultColorStyle
 	for (const name of DefaultColorStyle.values) {
-		// white is an easter egg color that the panel does not yet account for
+		// we remove white here temporarily, it's an easter egg color that the panel does not yet account for
 		if (name === 'white') continue
 		if (isPaletteColor(colors[name as keyof typeof colors])) {
 			result.push({ value: name, icon: 'color' })
@@ -41,6 +42,7 @@ export function getColorStyleItems(colors: TLThemeColors): StyleValuesForUi<stri
 		}
 	}
 
+	// Then, append any remaining palette colors from the theme
 	for (const [key, value] of Object.entries(colors)) {
 		if (!seen.has(key) && key !== 'white' && isPaletteColor(value)) {
 			result.push({ value: key, icon: 'color' })

@@ -282,6 +282,7 @@ export class Drawing extends StateNode {
 					{ x, y, z: +pressure.toFixed(2) },
 				])
 
+				// Convert prevPoint to page space
 				this.pagePointWhereCurrentSegmentChanged = Mat.applyToPoint(
 					this.editor.getShapePageTransform(shape.id)!,
 					prevPoint
@@ -296,9 +297,12 @@ export class Drawing extends StateNode {
 			}
 		}
 
+		// Create a new shape
+
 		this.pagePointWhereCurrentSegmentChanged = originPagePoint.clone()
 		const id = createShapeId()
 
+		// Initialize the segment points cache
 		const initialPoint = new Vec(0, 0, +pressure.toFixed(2))
 		this.currentSegmentPoints = [initialPoint]
 
@@ -357,11 +361,15 @@ export class Drawing extends StateNode {
 					Vec.Dist2(pagePointWhereNextSegmentChanged, currentPagePoint) >
 					this.editor.options.dragDistanceSquared
 
-				// Only switch modes once the pointer has moved far enough from where shift
-				// was pressed, so a tap of shift doesn't start a new segment.
+				// Find the distance from where the pointer was when shift was released and
+				// where it is now; if it's far enough away, then update the page point where
+				// the current segment changed (to match the pagepoint where next segment changed)
+				// and set the pagepoint where next segment changed to null.
 				if (hasMovedFarEnough) {
 					this.pagePointWhereCurrentSegmentChanged = pagePointWhereNextSegmentChanged.clone()
 					this.pagePointWhereNextSegmentChanged = null
+
+					// Set the new mode
 					this.segmentMode = 'straight'
 
 					const prevSegment = last(segments)
@@ -404,9 +412,15 @@ export class Drawing extends StateNode {
 					Vec.Dist2(pagePointWhereNextSegmentChanged, currentPagePoint) >
 					this.editor.options.dragDistanceSquared
 
+				// Find the distance from where the pointer was when shift was released and
+				// where it is now; if it's far enough away, then update the page point where
+				// the current segment changed (to match the pagepoint where next segment changed)
+				// and set the pagepoint where next segment changed to null.
 				if (hasMovedFarEnough) {
 					this.pagePointWhereCurrentSegmentChanged = pagePointWhereNextSegmentChanged.clone()
 					this.pagePointWhereNextSegmentChanged = null
+
+					// Set the new mode
 					this.segmentMode = 'free'
 
 					const prevStraightSegment = segments[segments.length - 1]
@@ -419,10 +433,12 @@ export class Drawing extends StateNode {
 						throw Error('No previous point!')
 					}
 
-					// Interpolate the points between where the last line ended and where the pointer is now
+					// Create the new free segment and interpolate the points between where the last line
+					// ended and where the pointer is now
 					const interpolatedPoints = Vec.PointsBetween(prevPoint, newPoint, 6).map(
 						(p) => new Vec(toFixed(p.x), toFixed(p.y), toFixed(p.z))
 					)
+					// Initialize cache for the new free segment
 					this.currentSegmentPoints = interpolatedPoints
 
 					const finalSegments = [...segments, this.makeSegment('free', interpolatedPoints)]
@@ -540,6 +556,10 @@ export class Drawing extends StateNode {
 					newPoint = this.editor.getPointInShapeSpace(shape, pagePoint).toFixed().toJson()
 				}
 
+				// If the previous segment is a one point free shape and is the first segment of the line,
+				// then the user just did a click-and-immediately-press-shift to create a new straight line
+				// without continuing the previous line. In this case, we want to remove the previous segment.
+
 				const segmentFirstPoint = b64Vecs.decodeFirstPoint(newSegment.path, newSegment.dim)
 				this.currentLineLength += segmentFirstPoint ? Vec.Dist(segmentFirstPoint, newPoint) : 0
 
@@ -592,6 +612,7 @@ export class Drawing extends StateNode {
 					if (!this.editor.canCreateShapes([newShapeId])) return this.cancel()
 					const currentPagePoint = inputs.getCurrentPagePoint()
 
+					// Reset cache for the new shape's segment
 					const initialPoint = new Vec(0, 0, this.isPenOrStylus ? +(z! * 1.25).toFixed() : 0.5)
 					this.currentSegmentPoints = [initialPoint]
 

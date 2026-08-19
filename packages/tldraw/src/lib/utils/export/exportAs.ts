@@ -29,6 +29,7 @@ export async function exportAs(
 	ids: TLShapeId[],
 	opts: ExportAsOptions
 ): Promise<void> {
+	// If we don't get name then use a predefined one
 	let name = opts.name
 	if (!name) {
 		const first = ids.length === 1 ? editor.getShape(ids[0])! : undefined

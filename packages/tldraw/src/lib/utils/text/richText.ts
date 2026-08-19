@@ -140,6 +140,7 @@ export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: T
 	return `<div class="tl-rich-text">${html}</div>`
 }
 
+// A weak cache used to store plaintext that's been extracted from rich text.
 const plainTextFromRichTextCache = new WeakCache<TLRichText, string>()
 
 export function isEmptyRichText(richText: TLRichText) {

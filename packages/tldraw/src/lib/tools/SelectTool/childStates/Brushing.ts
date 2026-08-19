@@ -25,7 +25,7 @@ export class Brushing extends StateNode {
 	isWrapMode = false
 
 	viewportDidChange = false
-	cleanupViewportChangeReactor?: () => void
+	cleanupViewportChangeReactor?: () => void // cleanup function for the viewport reactor
 
 	override onEnter(info: TLPointerEventInfo & { target: 'canvas' }) {
 		const { editor } = this
@@ -121,21 +121,32 @@ export class Brushing extends StateNode {
 		const shiftKey = editor.inputs.getShiftKey()
 		const ctrlKey = editor.inputs.getCtrlKey()
 
+		// We'll be collecting shape ids of selected shapes; if we're holding shift key, we start from our initial shapes
 		const results = new Set(shiftKey ? this.initialSelectedShapeIds : [])
 
 		// In wrap mode, we need to completely enclose a shape to select it
 		const isWrapping = isWrapMode ? !ctrlKey : ctrlKey
 
+		// Set the brush to contain the current and origin points
 		const brush = Box.FromPoints([originPagePoint, currentPagePoint])
+
+		// We'll be testing the corners of the brush against the shapes
 		const { corners } = brush
 
-		// We could cache all of the shape positions at the start of the interaction and do very
-		// fast checks against them, but then changes introduced by other collaborators wouldn't
-		// be reflected: a user could select a shape by selecting where it _used_ to be.
-		//
-		// We still avoid hit tests as much as possible by testing only on-screen shapes UNLESS
-		// the user has scrolled their viewport or is dragging outside of the screen (e.g. in a
-		// window). On a page with ~5000 shapes, on-screen hit tests are about 2x faster.
+		// Some notes on optimization. We could easily cache all of the shape positions at
+		// the start of the interaction and then do very fast checks against them, but that
+		// would mean changes introduced by other collaborators wouldn't be reflected—a user
+		// could select a shape by selecting where it _used_ to be.
+
+		// We still want to avoid hit tests as much as possible, however, so we test only the
+		// shapes that are on screen UNLESS: the user has scrolled their viewpor; or the user
+		// is dragging outside of the screen (e.g. in a window). In those cases, we need to
+		// test all shapes.
+
+		// On a page with ~5000 shapes, on-screen hit tests are about 2x faster than
+		// testing all shapes.
+
+		// Use spatial index to filter candidates
 		const candidateIds = editor.getShapeIdsInsideBounds(brush)
 
 		if (candidateIds.size > 0) {
@@ -160,16 +171,19 @@ export class Brushing extends StateNode {
 					continue
 				}
 
-				// In wrap mode a partial overlap is a miss. Frame-like shapes are only selected
-				// when fully enclosed.
+				// If we're in wrap mode and the brush did not fully encloses the shape, it's a miss
+				// We also skip frame-like shapes unless we've completely selected them.
 				if (isWrapping || editor.isShapeFrameLike(shape)) continue
 
+				// If the brush collides the page bounds, then do hit tests against
+				// each of the brush's four sides.
 				if (brush.collides(pageBounds)) {
 					// Shapes expect to hit test line segments in their own coordinate system,
 					// so we first need to get the brush corners in the shape's local space.
 					const pageTransform = editor.getShapePageTransform(shape)
 					if (!pageTransform) continue
 					const localCorners = pageTransform.clone().invert().applyToPoints(corners)
+					// See if any of the edges intersect the shape's geometry
 					const geometry = editor.getShapeGeometry(shape)
 					for (let i = 0; i < 4; i++) {
 						if (geometry.hitTestLineSegment(localCorners[i], localCorners[(i + 1) % 4], 0)) {

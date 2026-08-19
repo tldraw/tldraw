@@ -94,6 +94,7 @@ export class DraggingHandle extends StateNode {
 			handles.slice().reverse().find(isAdjacentCandidate) ??
 			null
 
+		// <!-- Only relevant to arrows
 		if (this.editor.isShapeOfType(shape, 'arrow')) {
 			const initialBinding = getArrowBindings(this.editor, shape)[info.handle.id as 'start' | 'end']
 
@@ -108,7 +109,9 @@ export class DraggingHandle extends StateNode {
 				}
 			}
 		}
+		// -->
 
+		// Call onHandleDragStart callback
 		const handleDragInfo = {
 			handle: this.initialHandle,
 			isPrecise: this.isPrecise,
@@ -129,6 +132,7 @@ export class DraggingHandle extends StateNode {
 	// Only relevant to arrows
 	private exactTimeout = -1
 
+	// Only relevant to arrows
 	private resetExactTimeout() {
 		const arrowUtil = this.editor.getShapeUtil<ArrowShapeUtil>('arrow')
 		const timeoutValue = arrowUtil.options.pointingPreciseTimeout
@@ -145,6 +149,7 @@ export class DraggingHandle extends StateNode {
 		}, timeoutValue)
 	}
 
+	// Only relevant to arrows
 	private clearExactTimeout() {
 		if (this.exactTimeout !== -1) {
 			clearTimeout(this.exactTimeout)
@@ -189,6 +194,7 @@ export class DraggingHandle extends StateNode {
 		this.editor.snaps.clearIndicators()
 		kickoutOccludedShapes(this.editor, [this.shapeId])
 
+		// Call onHandleDragEnd callback before state transitions
 		const shape = this.editor.getShape(this.shapeId)
 		if (shape) {
 			const util = this.editor.getShapeUtil(shape)
@@ -204,6 +210,7 @@ export class DraggingHandle extends StateNode {
 			}
 		}
 
+		// Return to the tool that was active before this one but only if tool lock is turned on!
 		if (
 			returnToInteractionEnd(
 				this.editor,
@@ -218,6 +225,7 @@ export class DraggingHandle extends StateNode {
 	}
 
 	private cancel() {
+		// Call onHandleDragCancel callback before bailing to mark
 		const shape = this.editor.getShape(this.shapeId)
 		if (shape) {
 			const util = this.editor.getShapeUtil(shape)
@@ -233,6 +241,7 @@ export class DraggingHandle extends StateNode {
 		this.editor.bailToMark(this.markId)
 		this.editor.snaps.clearIndicators()
 
+		// Return to the tool that was active before this one, whether tool lock is turned on or not!
 		if (returnToInteractionEnd(this.editor, this.info.onInteractionEnd, { shapeId: this.shapeId }))
 			return
 
@@ -273,6 +282,7 @@ export class DraggingHandle extends StateNode {
 			point = Vec.RotWith(point, initialAdjacentHandle, angleDifference)
 		}
 
+		// Clear any existing snaps
 		editor.snaps.clearIndicators()
 
 		let nextHandle = { ...initialHandle, x: point.x, y: point.y }
@@ -289,6 +299,7 @@ export class DraggingHandle extends StateNode {
 		}
 
 		if (canSnap && (isSnapMode ? !ctrlKey : ctrlKey)) {
+			// We're snapping
 			const pageTransform = editor.getShapePageTransform(shape.id)
 			if (!pageTransform) throw Error('Expected a page transform')
 

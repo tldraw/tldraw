@@ -31,6 +31,15 @@ export function getFrameHeadingSide(editor: Editor, shape: TLFrameShape): 0 | 1 
  */
 const measurementWeakmap = new WeakMap()
 
+/**
+ * Get the frame heading info (size and text) for a frame shape.
+ *
+ * @param editor The editor instance.
+ * @param shape The frame shape.
+ * @param opts The text measurement options.
+ *
+ * @returns The frame heading's size (as a Box) and JSX text spans.
+ */
 export function getFrameHeadingSize(
 	editor: Editor,
 	shape: TLFrameShape,

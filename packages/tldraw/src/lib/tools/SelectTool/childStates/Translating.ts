@@ -399,6 +399,7 @@ function getTranslatingSnapshot(editor: Editor) {
 	) as (MovingShapeSnapshot & { shape: TLNoteShape })[]
 
 	if (allHoveredNotes.length === 1) {
+		// just one, easy
 		noteSnapshot = allHoveredNotes[0]
 	} else if (allHoveredNotes.length > 1) {
 		// More than one under the cursor, so we need to find the highest shape in z-order

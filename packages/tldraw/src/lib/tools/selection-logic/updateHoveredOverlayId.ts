@@ -18,8 +18,10 @@ export function updateHoveredOverlayId(editor: Editor): boolean {
 
 	if (overlay) {
 		editor.overlays.setHoveredOverlay(overlay.id)
+		// Clear shape hover when over an overlay
 		editor.setHoveredShape(null)
 
+		// Update cursor based on the hovered overlay
 		const util = editor.overlays.getOverlayUtil(overlay)
 		const cursor = util.getCursor(overlay)
 		if (cursor) {

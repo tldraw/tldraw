@@ -73,6 +73,7 @@ export class PointingRotateHandle extends StateNode {
 	}
 
 	private exitToPreviousTool() {
+		// Return to the tool that was active before this one, whether tool lock is turned on or not!
 		if (returnToInteractionEnd(this.editor, this.info.onInteractionEnd)) return
 		this.parent.transition('idle')
 	}

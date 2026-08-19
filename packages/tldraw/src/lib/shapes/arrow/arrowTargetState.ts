@@ -217,6 +217,7 @@ export function updateArrowTargetState({
 	if (isExact) precise = true
 
 	const shouldSnapCenter = !isExact && precise && targetGeometryInTargetSpace.isClosed
+	// const shouldSnapEdges = !isExact && (precise || !targetGeometryInTargetSpace.isClosed)
 	const shouldSnapEdges =
 		!isExact && ((precise && arrowKind === 'elbow') || !targetGeometryInTargetSpace.isClosed)
 	const shouldSnapEdgePoints =

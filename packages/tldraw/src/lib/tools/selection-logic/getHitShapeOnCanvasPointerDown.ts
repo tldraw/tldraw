@@ -8,12 +8,15 @@ export function getHitShapeOnCanvasPointerDown(
 	const currentPagePoint = editor.inputs.getCurrentPagePoint()
 
 	return (
+		// hovered shape at point
 		editor.getShapeAtPoint(currentPagePoint, {
 			hitInside: false,
 			hitLabels,
 			hitLocked: editor.options.selectLockedShapes,
 			margin: editor.getHitTestMargin(),
 			renderingOnly: true,
-		}) ?? editor.getSelectedShapeAtPoint(currentPagePoint)
+		}) ??
+		// selected shape at point
+		editor.getSelectedShapeAtPoint(currentPagePoint)
 	)
 }

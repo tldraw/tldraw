@@ -236,7 +236,8 @@ export function Tldraw(props: TldrawProps) {
 		acceptedVideoMimeTypes ?? DEFAULT_SUPPORT_VIDEO_TYPES
 	)
 
-	// options.text takes precedence over the deprecated textOptions prop
+	// Merge deprecated textOptions prop with options.textOptions
+	// options.textOptions takes precedence over the deprecated textOptions prop
 	const _mergedTextOptions = options?.text ?? _textOptions
 	const textOptionsWithDefaults = useMemo((): TLTextOptions => {
 		return {

@@ -102,7 +102,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 		const anchor = e.target.closest('a')
 		if (!anchor) return
 
-		// Prevent default so that dragging works when the pointer is over a link.
+		// This mousedown prevent default is to let dragging when over a link work.
 		preventDefault(e)
 
 		if (!selectToolActive) return
@@ -120,6 +120,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 		editor.on('event', handlePointerUp)
 	}
 
+	// Should be guarded higher up so that this doesn't render... but repeated here. This should never be true.
 	if (!isEditing && isEmpty) return null
 
 	// TODO: probably combine tl-text and tl-arrow eventually
@@ -176,6 +177,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 						<div
 							className="tl-rich-text"
 							data-is-select-tool-active={selectToolActive}
+							// todo: see if I can abuse this
 							dangerouslySetInnerHTML={{ __html: html || '' }}
 							onPointerDown={handlePointerDown}
 							data-is-ready-for-editing={isReadyForEditing}

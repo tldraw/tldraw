@@ -50,9 +50,11 @@ export function getHumanReadableAddress(url: string) {
 }
 
 export function updateBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmarkShape) {
+	// Derive the asset id from the URL
 	const assetId = getBookmarkAssetIdForUrl(shape.props.url)
 
 	if (editor.getAsset(assetId)) {
+		// Existing asset for this URL?
 		if (shape.props.assetId !== assetId) {
 			editor.updateShapes([
 				{
@@ -63,7 +65,9 @@ export function updateBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmark
 			])
 		}
 	} else {
-		// Clear the stale asset reference, then create a new one asynchronously
+		// No asset for this URL?
+
+		// First, clear out the existing asset reference
 		editor.updateShapes([
 			{
 				id: shape.id,
@@ -71,6 +75,8 @@ export function updateBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmark
 				props: { assetId: null },
 			},
 		])
+
+		// Then try to asyncronously create a new one
 		createBookmarkAssetOnUrlChange(editor, shape)
 	}
 }
@@ -128,7 +134,10 @@ async function _createBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmark
 	}
 
 	editor.run(() => {
+		// Create the new asset
 		editor.createAssets([asset])
+
+		// And update the shape
 		editor.updateShapes([
 			{
 				id: shape.id,

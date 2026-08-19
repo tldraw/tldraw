@@ -30,6 +30,7 @@ export class Rotating extends StateNode {
 	markId = ''
 
 	override onEnter(info: RotatingInfo) {
+		// Store the event information
 		this.info = info
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
@@ -47,6 +48,7 @@ export class Rotating extends StateNode {
 		}
 		this.snapshot = snapshot
 
+		// Trigger a pointer move
 		this.applyRotation('start')
 	}
 
@@ -81,6 +83,8 @@ export class Rotating extends StateNode {
 		this.cancel()
 	}
 
+	// ---
+
 	private applyRotation(stage: 'start' | 'update') {
 		const newSelectionRotation = this._getRotationFromPointerPosition({
 			snapToNearestDegree: false,
@@ -93,6 +97,7 @@ export class Rotating extends StateNode {
 			stage,
 		})
 
+		// Update cursor
 		this.editor.setCursor({
 			type: CursorTypeMap[this.info.handle as RotateCorner],
 			rotation: newSelectionRotation + this.snapshot.initialShapesRotation,

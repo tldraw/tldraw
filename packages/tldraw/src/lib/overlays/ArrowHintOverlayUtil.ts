@@ -135,6 +135,7 @@ export class ArrowHintOverlayUtil extends OverlayUtil<TLArrowHintOverlay> {
 		const colors = editor.getCurrentTheme().colors[editor.getColorMode()]
 		const { targetId, handles, anchorX, anchorY, snap, showEdgeHints } = overlay.props
 
+		// Draw the target shape indicator
 		const shape = editor.getShape(targetId)
 		if (shape) {
 			const pageTransform = editor.getShapePageTransform(shape)
@@ -160,6 +161,7 @@ export class ArrowHintOverlayUtil extends OverlayUtil<TLArrowHintOverlay> {
 
 		if (!showEdgeHints) return
 
+		// Draw the anchor snap circle
 		if (snap === 'edge' || snap === 'edge-point') {
 			const snapRadius =
 				(snap === 'edge-point' ? this.options.edgePointRadius : this.options.edgeRadius) / zoom
@@ -169,6 +171,7 @@ export class ArrowHintOverlayUtil extends OverlayUtil<TLArrowHintOverlay> {
 			ctx.fill()
 		}
 
+		// Draw edge handle circles using a single fill+stroke for all handles
 		const handleRadius = this.options.handleRadius / zoom
 		ctx.fillStyle = colors.selectedContrast
 		ctx.strokeStyle = colors.selectionStroke
@@ -176,6 +179,7 @@ export class ArrowHintOverlayUtil extends OverlayUtil<TLArrowHintOverlay> {
 		ctx.beginPath()
 		for (const handle of Object.values(handles)) {
 			if (!handle.isEnabled) continue
+			// Separate subpath for each circle
 			ctx.moveTo(handle.x + handleRadius, handle.y)
 			ctx.arc(handle.x, handle.y, handleRadius, 0, PI2)
 		}
@@ -183,6 +187,7 @@ export class ArrowHintOverlayUtil extends OverlayUtil<TLArrowHintOverlay> {
 		ctx.stroke()
 	}
 
+	/** @internal */
 	private _renderIndicatorPath(ctx: CanvasRenderingContext2D, indicatorPath: TLIndicatorPath) {
 		if (indicatorPath instanceof Path2D) {
 			ctx.stroke(indicatorPath)

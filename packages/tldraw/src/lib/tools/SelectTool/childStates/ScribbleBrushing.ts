@@ -86,6 +86,7 @@ export class ScribbleBrushing extends StateNode {
 
 		const minDist = 0 // this.editor.options.hitTestMargin / zoomLevel
 
+		// Create bounds around line segment with margin
 		const lineBounds = Box.FromPoints([previousPagePoint, currentPagePoint]).expandBy(minDist)
 		const candidateIds = editor.getShapeIdsInsideBounds(lineBounds)
 
@@ -113,6 +114,7 @@ export class ScribbleBrushing extends StateNode {
 					continue
 				}
 
+				// Hit test the shape using a line segment
 				const pageTransform = editor.getShapePageTransform(shape)
 				if (!geometry || !pageTransform) continue
 				const pt = pageTransform.clone().invert()

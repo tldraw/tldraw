@@ -367,6 +367,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	private onArcMidpointHandleDrag(shape: TLArrowShape, { handle }: TLHandleDragInfo<TLArrowShape>) {
 		const bindings = getArrowBindings(this.editor, shape)
+
+		// Bending the arrow...
 		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape, bindings)
 
 		const delta = Vec.Sub(end, start)
@@ -682,10 +684,13 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const { start, end } = structuredClone<TLArrowShape['props']>(shape.props)
 		let { bend } = shape.props
 
+		// Rescale start handle if it's not bound to a shape
 		if (!bindings.start) {
 			start.x = terminals.start.x * scaleX
 			start.y = terminals.start.y * scaleY
 		}
+
+		// Rescale end handle if it's not bound to a shape
 		if (!bindings.end) {
 			end.x = terminals.end.x * scaleX
 			end.y = terminals.end.y * scaleY
@@ -822,6 +827,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const strokeWidth = dv.strokeWidth * shape.props.scale
 
+		// If editing and has label, just return the label rect
 		if (isEditing && labelGeometry) {
 			const labelBounds = labelGeometry.getBounds()
 			const path = new Path2D()
@@ -829,6 +835,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			return path
 		}
 
+		// Get arrow body path
 		const isForceSolid = this.editor.getEfficientZoomLevel() < 0.25 / shape.props.scale
 		const bodyPathBuilder = getArrowBodyPathBuilder(info)
 		const bodyPath2D = bodyPathBuilder.toPath2D(
@@ -844,14 +851,17 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				: { style: 'solid', strokeWidth: 1 }
 		)
 
+		// Get arrowhead paths
 		const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
 
+		// Check if we need clipping (label or complex arrowheads)
 		const clipStartArrowhead = !!(as && info.start.arrowhead !== 'arrow')
 		const clipEndArrowhead = !!(ae && info.end.arrowhead !== 'arrow')
 		const needsClipping = labelGeometry || clipStartArrowhead || clipEndArrowhead
 
 		if (needsClipping) {
+			// Create clip path using evenodd rule
 			const bounds = geometry.bounds
 			const clipPath = new Path2D()
 
@@ -864,6 +874,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				addRoundedRectPath(clipPath, labelBounds, dv.labelBorderRadius * shape.props.scale, true)
 			}
 
+			// Add arrowhead paths to clip path if needed
 			if (clipStartArrowhead && as) {
 				clipPath.addPath(new Path2D(as))
 			}
@@ -871,6 +882,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				clipPath.addPath(new Path2D(ae))
 			}
 
+			// Additional paths (arrowheads, label rect) to draw after clipped body
 			const additionalPaths: Path2D[] = []
 			if (as) additionalPaths.push(new Path2D(as))
 			if (ae) additionalPaths.push(new Path2D(ae))
@@ -888,6 +900,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			}
 		}
 
+		// No clipping needed - combine all paths into one
 		const combinedPath = new Path2D()
 		combinedPath.addPath(bodyPath2D)
 
@@ -1024,6 +1037,7 @@ const ArrowSvg = track(function ArrowSvg({
 
 	return (
 		<>
+			{/* Yep */}
 			<defs>
 				<clipPath id={clipPathId}>
 					<ArrowClipPath

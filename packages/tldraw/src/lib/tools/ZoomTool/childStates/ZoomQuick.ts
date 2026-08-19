@@ -87,12 +87,14 @@ export class ZoomQuick extends StateNode {
 	}
 
 	override onPointerUp() {
+		// Exit the zoom tool entirely, returning to the original tool
 		this.exitToOriginatingTool()
 	}
 
 	override onCancel() {
 		// Back to idle so onExit restores the original viewport instead of zooming to the brush
 		this.qzState = 'idle'
+		// Exit the zoom tool entirely, returning to the original tool
 		this.exitToOriginatingTool()
 	}
 
@@ -117,6 +119,7 @@ export class ZoomQuick extends StateNode {
 
 	private zoomToNewViewport() {
 		const { editor } = this
+		// return to original viewport if idle, or zoom to the new viewport if moving
 		editor.zoomToBounds(this.qzState === 'moving' ? this.nextVpb : this.initialVpb, { inset: 0 })
 	}
 
@@ -126,6 +129,7 @@ export class ZoomQuick extends StateNode {
 	}
 
 	override onTick() {
+		// If the user is idle but has moved their camera, transition to the moving state
 		if (this.qzState !== 'idle') return
 		const { editor } = this
 		const zoomLevel = editor.getZoomLevel()
@@ -155,7 +159,7 @@ export class ZoomQuick extends StateNode {
 		}
 		const { x, y } = editor.inputs.getCurrentPagePoint()
 
-		// Keep the brush anchored under the cursor at the same normalized screen offset
+		// Normalize the offset on the current screen point within the current viewport screen bounds
 		const vsb = editor.getViewportScreenBounds()
 		const vsp = editor.inputs.getCurrentScreenPoint()
 		const nx = vsp.x / vsb.w

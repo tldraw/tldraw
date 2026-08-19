@@ -2,14 +2,24 @@ import { Editor, TLShapeId, throttle } from '@tldraw/editor'
 import { getShapeToSelectForHit } from './selectOnCanvasPointerUp'
 
 /*
-Hit-testing is expensive in large documents, so hover updates pause while the
-camera moves:
+Perf optimization: Skip hover updates while panning.
+
+Hit-testing shapes is expensive in large documents. When panning, we don't need
+continuous hover updates - we just need to resume when the camera stops.
+
+The logic:
 1. Camera idle → update hover normally, unlock
 2. Camera moving + locked → skip entirely (no hit-testing)
 3. Camera moving + no current hover → lock immediately
-4. Camera moving + same shape → keep current hover
+4. Camera moving + same shape → keep current hover (no change needed)
 5. Camera moving + different shape → clear hover and lock
+
+This means: when you start panning over a shape, it stays hovered until
+your cursor moves off it, then hover clears and we stop hit-testing until
+the camera stops.
 */
+
+// Track per-editor state for hover updates during camera movement
 const hoverLockedEditors = new WeakSet<Editor>()
 
 function getShapeToHover(editor: Editor): TLShapeId | null {

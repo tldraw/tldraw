@@ -36,6 +36,7 @@ export class Pointing extends StateNode {
 		this.shapeId = createShapeId()
 		this.markId = editor.markHistoryStoppingPoint(`creating_note:${this.shapeId}`)
 
+		// Resolve note dimensions from the util's defaults
 		const noteUtil = editor.getShapeUtil('note') as NoteShapeUtil
 		const dv = getDisplayValues(noteUtil, { props: noteUtil.getDefaultProps() } as TLNoteShape)
 
@@ -63,7 +64,9 @@ export class Pointing extends StateNode {
 		}
 	}
 
-	// A max-shapes failure cancels the gesture.
+	// Create the note now if it hasn't been created yet (idempotent). The deferred
+	// drag and release paths route through here; a max-shapes failure cancels the
+	// gesture, matching the original onEnter behaviour.
 	private ensureShapeCreated() {
 		if (this.hasCreatedShape) return
 
@@ -170,7 +173,8 @@ export function createNoteShape(editor: Editor, id: TLShapeId, center: Vec) {
 	})
 
 	const shape = editor.getShape<TLNoteShape>(id)
-	if (!shape) return // may have hit max shapes
+	// Should never happen since we just checked, but just in case
+	if (!shape) return
 
 	editor.select(id)
 	const bounds = editor.getShapeGeometry(shape).bounds

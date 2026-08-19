@@ -155,11 +155,12 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
 		const opts = getFrameHeadingOpts(rotatedTopEdgeWidth, false)
 		const headingSize = getFrameHeadingSize(editor, shape, opts)
 
-		// If NOT showing frame colors, we offset the label to the left so that the title is in line
-		// with the shape edge and add that extra width to the right side of the label
+		// If NOT showing frame colors, we need to offset the label
+		// to the left so that the title is in line with the shape edge
+		// and add that extra width to the right side of the label
 		const isShowingFrameColors = this.options.showColors
 
-		// Scale everything into screen space
+		// Scale everything into **screen space**
 		const extraWidth = FRAME_HEADING_EXTRA_WIDTH / z
 		const minWidth = FRAME_HEADING_MIN_WIDTH / z
 		const maxWidth = rotatedTopEdgeWidth + (isShowingFrameColors ? 1 : extraWidth)
@@ -176,7 +177,11 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
 		const width = isVertical ? labelHeight : clampedLabelWidth
 		const height = isVertical ? clampedLabelWidth : labelHeight
 
-		// The label always appears at the top left of the shape, regardless of rotation.
+		// Calculate label position based on side. The position needs to always appear
+		// at the top left of the shape, regardless of rotation. The label must be
+		// between a minimum and maximum. The minimum is arbitrary; the maximum is the
+		// width of the edge of the frame where the label will be shown.
+
 		let x: number, y: number
 
 		switch (labelSide) {
@@ -286,6 +291,7 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
 	override toSvg(shape: TLFrameShape, ctx: SvgExportContext) {
 		const dv = getDisplayValues(this, shape, ctx.colorMode)
 
+		// rotate right 45 deg
 		const labelSide = getFrameHeadingSide(this.editor, shape)
 		const isVertical = labelSide % 2 === 1
 		const rotatedTopEdgeWidth = isVertical ? shape.props.h : shape.props.w

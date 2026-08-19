@@ -139,8 +139,9 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 		(e: ClipboardEvent | React.ClipboardEvent<HTMLTextAreaElement>) => {
 			if (editor.getEditingShapeId() !== shapeId) return
 			if (!e.clipboardData) return
-			// Paste tldraw's own clipboard html as plain text instead of shape data
+			// find html in the clipboard and look for the tldraw data
 			if (!e.clipboardData.getData('text/html').includes('<div data-tldraw')) return
+			// Paste the plain text data instead of the tldraw data
 			const plainText = e.clipboardData.getData('text/plain')
 			preventDefault(e)
 			if (plainText) {

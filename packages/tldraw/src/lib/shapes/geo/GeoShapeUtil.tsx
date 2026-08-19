@@ -72,6 +72,9 @@ const GEO_SHAPE_MIN_WIDTHS = Object.freeze({
 	xl: 20,
 })
 
+// Extra padding for geo shape labels matches the stroke width
+// Computed dynamically in getDisplayValues via theme.strokeWidth * STROKE_SIZES[size]
+
 const GEO_SHAPE_HORIZONTAL_ALIGNS = Object.freeze({
 	start: 'start',
 	middle: 'center',
@@ -934,6 +937,7 @@ export function batchMeasureGeoLabels(
 	const requests: Array<{ id: TLShapeId; html: string; opts: TLMeasureTextOpts }> = []
 
 	for (const [id, snapshot] of shapeSnapshots) {
+		// Only process geo shapes with non-empty text labels
 		if (!editor.isShapeOfType<TLGeoShape>(snapshot.shape, 'geo')) continue
 		const geoShape = snapshot.shape
 		if (isEmptyRichText(geoShape.props.richText)) continue
@@ -955,8 +959,10 @@ export function batchMeasureGeoLabels(
 				? Math.max(Math.abs(scale.x), Math.abs(scale.y))
 				: Math.abs(areWidthAndHeightAlignedWithCorrectAxis ? scale.x : scale.y)
 
+		// Compute the target width for measurement (same logic as onResize)
 		const targetW = getGeoResizeTargetWidth(geoShape.props, effectiveScaleX)
 
+		// Build a temporary shape with the target width for measurement
 		const { html, opts } = getGeoLabelMeasurementRequest(editor, {
 			...geoShape,
 			props: { ...geoShape.props, w: targetW * geoShape.props.scale },
@@ -966,8 +972,10 @@ export function batchMeasureGeoLabels(
 
 	if (requests.length === 0) return
 
+	// Batch measure all labels in one DOM pass
 	const results = editor.textMeasure.measureHtmlBatch(requests)
 
+	// Build the cache map with label sizes (adding padding)
 	const cache = new Map<TLShapeId, { w: number; h: number }>()
 	for (let i = 0; i < requests.length; i++) {
 		cache.set(requests[i].id, {

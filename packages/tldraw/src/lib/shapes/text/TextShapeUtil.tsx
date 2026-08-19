@@ -148,7 +148,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 	override isAspectRatioLocked(shape: TLTextShape) {
 		return true
-	}
+	} // WAIT NO THIS IS HARD CODED IN THE RESIZE HANDLER
 
 	component(shape: TLTextShape) {
 		const {
@@ -317,8 +317,31 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return { ...next, x: next.x - delta.x, y: next.y - delta.y, props }
 	}
 
-	// onDoubleClickEdge (toggle autoSize / reset scale) was removed June 16 2024: it felt like a
-	// mistake more often than not, especially on multiline text.
+	// 	todo: The edge doubleclicking feels like a mistake more often than
+	//  not, especially on multiline text. Removed June 16 2024
+
+	// override onDoubleClickEdge = (shape: TLTextShape) => {
+	// 	// If the shape has a fixed width, set it to autoSize.
+	// 	if (!shape.props.autoSize) {
+	// 		return {
+	// 			id: shape.id,
+	// 			type: shape.type,
+	// 			props: {
+	// 				autoSize: true,
+	// 			},
+	// 		}
+	// 	}
+	// 	// If the shape is scaled, reset the scale to 1.
+	// 	if (shape.props.scale !== 1) {
+	// 		return {
+	// 			id: shape.id,
+	// 			type: shape.type,
+	// 			props: {
+	// 				scale: 1,
+	// 			},
+	// 		}
+	// 	}
+	// }
 }
 
 function getTextSize(editor: Editor, props: TLTextShape['props'], dv: TextShapeUtilDisplayValues) {

@@ -345,6 +345,8 @@ export async function putExcalidrawContent(
 	editor.setSelectedShapes(rootShapeIds)
 }
 
+/* --------------- Translating Helpers --------_------ */
+
 function getBoundLabelElement(elements: any[], element: any): any {
 	let labelElement: any
 	if (element.boundElements !== null) {

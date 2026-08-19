@@ -70,6 +70,7 @@ export function getUncroppedSize(
 	return { w: shapeSize.w / width, h: shapeSize.h / height }
 }
 
+// Utility function to get crop dimensions
 function getCropDimensions(crop: TLShapeCrop) {
 	return {
 		width: crop.bottomRight.x - crop.topLeft.x,
@@ -77,6 +78,7 @@ function getCropDimensions(crop: TLShapeCrop) {
 	}
 }
 
+// Utility function to get crop center
 function getCropCenter(crop: TLShapeCrop) {
 	const { width, height } = getCropDimensions(crop)
 	return {
@@ -89,7 +91,7 @@ function getShapeCenter(shape: TLImageShape) {
 	return { x: shape.x + shape.props.w / 2, y: shape.y + shape.props.h / 2 }
 }
 
-/** Create a crop of the given size centered on the given point, kept within the image bounds. */
+// Utility function to create crop with specified dimensions centered on given point
 function createCropAroundCenter(
 	centerX: number,
 	centerY: number,
@@ -129,7 +131,8 @@ export function getCropBox<T extends ShapeWithCrop>(
 		return
 	}
 
-	// Do all the math in pixel space, then convert to normalized space at the end.
+	// Lets get a box here in pixel space. For simplicity, we'll do all the math in
+	// pixel space, then convert to normalized space at the end.
 	const prevCropBox = new Box(
 		crop.topLeft.x * w,
 		crop.topLeft.y * h,
@@ -198,6 +201,8 @@ export function getCropBox<T extends ShapeWithCrop>(
 		tempBox.w = halfW * 2
 		tempBox.h = halfH * 2
 	} else {
+		// Basic resizing logic based on the handles
+
 		if (movesLeft) {
 			tempBox.x = clamp(tempBox.x + change.x, 0, prevCropBox.maxX - minWidth)
 			tempBox.w = prevCropBox.maxX - tempBox.x
@@ -214,6 +219,8 @@ export function getCropBox<T extends ShapeWithCrop>(
 			tempBox.h = tempBottom - tempBox.y
 		}
 	}
+
+	// Aspect ratio locked resizing logic
 
 	if (aspectRatioLocked && !isResizingFromCenter) {
 		const isXLimiting = tempBox.aspectRatio > targetRatio
@@ -397,6 +404,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 		newCrop.isCircle = crop.isCircle
 	}
 
+	// If the crop hasn't changed, we can return early
 	if (
 		newCrop.topLeft.x === crop.topLeft.x &&
 		newCrop.topLeft.y === crop.topLeft.y &&
@@ -437,6 +445,7 @@ interface CropChange {
 	y: number
 }
 
+// Base function for calculating crop changes
 function calculateCropChange(
 	imageShape: TLImageShape,
 	newCropWidth: number,
@@ -445,9 +454,11 @@ function calculateCropChange(
 ): CropChange {
 	const currentCrop = imageShape.props.crop ?? getDefaultCrop()
 	const { w, h } = getUncroppedSize(imageShape.props, currentCrop)
+	// Calculate image and crop centers
 	const imageCenter = getShapeCenter(imageShape)
 	const cropCenter = getCropCenter(currentCrop)
 
+	// Create new crop
 	const newCrop = createCropAroundCenter(
 		cropCenter.x,
 		cropCenter.y,
@@ -456,6 +467,7 @@ function calculateCropChange(
 		isCircle
 	)
 
+	// Calculate new dimensions
 	const croppedW = newCropWidth * w
 	const croppedH = newCropHeight * h
 
@@ -483,6 +495,7 @@ export function getCroppedImageDataWhenZooming(
 	const { width: oldWidth, height: oldHeight } = getCropDimensions(oldCrop)
 	const aspectRatio = oldWidth / oldHeight
 
+	// Calculate new crop size with zoom scale
 	const derivedMaxZoom = maxZoom ? 1 / (1 - maxZoom) : MAX_ZOOM
 	const zoomScale = 1 + zoom * (derivedMaxZoom - 1)
 	let newWidth, newHeight
@@ -495,12 +508,14 @@ export function getCroppedImageDataWhenZooming(
 		newWidth = newHeight * aspectRatio
 	}
 
+	// Calculate result with base function
 	const result = calculateCropChange(imageShape, newWidth, newHeight, oldCrop.isCircle)
 
-	// Apply zoom factor to display dimensions, keeping the image centered
+	// Apply zoom factor to display dimensions
 	const scaleFactor = Math.min(MAX_ZOOM, oldWidth / newWidth)
 	result.w *= scaleFactor
 	result.h *= scaleFactor
+	// Recenter
 	const imageCenter = getShapeCenter(imageShape)
 	result.x = imageCenter.x - result.w / 2
 	result.y = imageCenter.y - result.h / 2
@@ -552,6 +567,7 @@ export function getCroppedImageDataForReplacedImage(
 			newRelativeWidth = newRelativeWidth / scale
 		}
 
+		// Create the new crop object, centered around the CURRENT crop's center
 		crop = createCropAroundCenter(
 			currentCropCenter.x,
 			currentCropCenter.y,
@@ -584,6 +600,7 @@ export function getCroppedImageDataForAspectRatio(
 	const { w: uncroppedW, h: uncroppedH } = getUncroppedSize(imageShape.props, currentCrop)
 	const imageCenter = getShapeCenter(imageShape)
 
+	// If original aspect ratio is requested, use default crop
 	if (aspectRatioOption === 'original') {
 		return {
 			crop: getDefaultCrop(),
@@ -594,16 +611,21 @@ export function getCroppedImageDataForAspectRatio(
 		}
 	}
 
-	const targetRatio = ASPECT_RATIO_TO_VALUE[aspectRatioOption]
+	// Get target ratio and uncropped image properties
+	const targetRatio = ASPECT_RATIO_TO_VALUE[aspectRatioOption] // Assume valid option
 	const isCircle = aspectRatioOption === 'circle'
+	// Calculate the original image aspect ratio
 	const imageAspectRatio = uncroppedW / uncroppedH
 
+	// Get the current crop and its relative dimensions
 	const { width: cropW, height: cropH } = getCropDimensions(currentCrop)
 	const currentCropCenter = getCropCenter(currentCrop)
+
+	// Calculate the current crop zoom level
 	const currentCropZoom = Math.min(1 / cropW, 1 / cropH)
 
-	// The relative (0-1) size of the new crop rectangle. Preserve the longest dimension of the
-	// current crop when changing aspect ratios.
+	// Calculate the relative width and height of the crop rectangle (0-1 scale)
+	// Try to preserve the longest dimension of the current crop when changing aspect ratios
 	let newRelativeWidth: number
 	let newRelativeHeight: number
 
@@ -612,33 +634,42 @@ export function getCroppedImageDataForAspectRatio(
 		newRelativeWidth = 1
 		newRelativeHeight = 1
 	} else {
+		// Get current crop dimensions in absolute units
 		const currentAbsoluteWidth = cropW * uncroppedW
 		const currentAbsoluteHeight = cropH * uncroppedH
+		// Find the longest current dimension to preserve
 		const longestCurrentDimension = Math.max(currentAbsoluteWidth, currentAbsoluteHeight)
 
+		// Calculate new dimensions preserving the longest dimension
 		let newAbsoluteWidth: number
 		let newAbsoluteHeight: number
 		if (currentAbsoluteWidth >= currentAbsoluteHeight) {
+			// Preserve width, calculate height based on target ratio
 			newAbsoluteWidth = longestCurrentDimension
 			newAbsoluteHeight = newAbsoluteWidth / targetRatio
 		} else {
+			// Preserve height, calculate width based on target ratio
 			newAbsoluteHeight = longestCurrentDimension
 			newAbsoluteWidth = newAbsoluteHeight * targetRatio
 		}
 
+		// Convert back to relative coordinates
 		newRelativeWidth = newAbsoluteWidth / uncroppedW
 		newRelativeHeight = newAbsoluteHeight / uncroppedH
 
-		// Clamp to image bounds, recalculating the other dimension to keep the ratio
+		// Clamp to image bounds and adjust if necessary
 		if (newRelativeWidth > 1) {
+			// Width exceeds bounds, clamp and recalculate height
 			newRelativeWidth = 1
 			newRelativeHeight = imageAspectRatio / targetRatio
 		}
 		if (newRelativeHeight > 1) {
+			// Height exceeds bounds, clamp and recalculate width
 			newRelativeHeight = 1
 			newRelativeWidth = targetRatio / imageAspectRatio
 		}
 
+		// Final clamp to ensure we stay within bounds
 		newRelativeWidth = clamp(newRelativeWidth, 0, 1)
 		newRelativeHeight = clamp(newRelativeHeight, 0, 1)
 	}
@@ -648,6 +679,7 @@ export function getCroppedImageDataForAspectRatio(
 	newRelativeWidth = clamp(newRelativeWidth * (newCropZoom / currentCropZoom), 0, 1)
 	newRelativeHeight = clamp(newRelativeHeight * (newCropZoom / currentCropZoom), 0, 1)
 
+	// Create the new crop object, centered around the CURRENT crop's center
 	const newCrop = createCropAroundCenter(
 		currentCropCenter.x,
 		currentCropCenter.y,
@@ -656,22 +688,29 @@ export function getCroppedImageDataForAspectRatio(
 		isCircle
 	)
 
-	// The base dimensions, as if applying the new crop to the uncropped image at scale 1
+	// Get the actual relative dimensions from the new crop (after potential clamping)
 	const { width: finalRelativeWidth, height: finalRelativeHeight } = getCropDimensions(newCrop)
+
+	// Calculate the base dimensions (as if applying the new crop to the uncropped image at scale 1)
 	const baseW = finalRelativeWidth * uncroppedW
 	const baseH = finalRelativeHeight * uncroppedH
 
-	// Apply the shape's current effective scale so its visual size is preserved
+	// Determine the current effective scale of the shape
+	// This preserves the visual size when the crop changes
 	let currentScale = 1.0
 	if (cropW > 0) {
 		currentScale = imageShape.props.w / (cropW * uncroppedW)
 	} else if (cropH > 0) {
+		// Fallback to height if width relative dimension is zero
 		currentScale = imageShape.props.h / (cropH * uncroppedH)
 	}
+
+	// Apply the current scale to the base dimensions to get the final dimensions
 	const newW = baseW * currentScale
 	const newH = baseH * currentScale
 
-	// Keep the visual center of the cropped area fixed on the page
+	// Calculate the new top-left position (x, y) for the shape
+	// to keep the visual center of the cropped area fixed on the page.
 	return {
 		crop: newCrop,
 		w: newW,

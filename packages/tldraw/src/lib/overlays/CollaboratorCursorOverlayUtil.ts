@@ -143,20 +143,25 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 			ctx.translate(x, y)
 			ctx.scale(scale, scale)
 
+			// Draw cursor arrow
 			paths ??= getCursorPaths()
 
+			// Shadow
 			ctx.fillStyle = 'rgba(0,0,0,0.2)'
 			ctx.fill(paths.shadowHead)
 			ctx.fill(paths.shadowTail)
 
+			// White outline
 			ctx.fillStyle = '#ffffff'
 			ctx.fill(paths.whiteHead)
 			ctx.fill(paths.whiteTail)
 
+			// Colored fill
 			ctx.fillStyle = color
 			ctx.fill(paths.fillHead)
 			ctx.fill(paths.fillTail)
 
+			// Draw name tag / chat
 			if (chatMessage) {
 				if (name) {
 					this._drawNameTitle(ctx, name, color, labelFontFamily)
@@ -190,6 +195,7 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 		ctx.textBaseline = 'top'
 		ctx.strokeText(text, x, y)
 
+		// Text fill
 		ctx.fillStyle = color
 		ctx.fillText(text, x, y)
 	}
@@ -213,11 +219,13 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 		const h = fontSize + py * 2
 		const w = textWidth + px * 2
 
+		// Background
 		ctx.fillStyle = color
 		ctx.beginPath()
 		ctx.roundRect(x, y, w, h, 4)
 		ctx.fill()
 
+		// Text
 		ctx.fillStyle = '#ffffff'
 		ctx.textBaseline = 'top'
 		ctx.fillText(text, x + px, y + py)
