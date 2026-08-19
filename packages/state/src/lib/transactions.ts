@@ -82,17 +82,6 @@ export function getGlobalEpoch() {
 }
 
 /**
- * Checks whether any reactions are currently executing.
- * When true, the system is in the middle of processing effects and side effects.
- *
- * @returns True if reactions are currently running, false otherwise
- * @public
- */
-export function getIsReacting() {
-	return inst.globalIsReacting
-}
-
-/**
  * Whether a transaction (sync or async) is currently open. While one is, atom changes are
  * recorded but their children are not traversed until it commits.
  *

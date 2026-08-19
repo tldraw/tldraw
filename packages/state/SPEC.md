@@ -109,7 +109,7 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 - **P5** If that loop fails to quiesce after 1000 passes, the flush throws `Reaction update depth limit exceeded`. An effect that unconditionally writes to one of its own parents hits this limit.
 - **P6** An effect that sets atoms inside a transaction (or `transact`/`transaction` call) during the reaction phase gets the same deferral: the inner transaction's effects are folded into the current reaction phase rather than flushed reentrantly.
 - **P7** Computeds read during the reaction phase are correct: an effect that sets an atom and then reads a computed depending on it sees the updated value (within the same pass), including when both happen inside a transaction the effect opened (T2).
-- **P8** An effect's run is never re-entered. A set during a run that happens outside the reaction phase (the first run of `react()`, `reactor.start()`, or a direct `execute()`) still flushes synchronously per P1, but if that flush reaches the running effect itself, the effect runs again after the current run finishes (repeatedly while its parents keep changing, subject to the P5 limit) instead of nesting a second run inside the first.
+- **P8** An effect's run is never re-entered by a flush. A set during a run that happens outside the reaction phase (the first run of `react()`, `reactor.start()`, or a direct `execute()`) still flushes synchronously per P1, but if that flush reaches the running effect itself, the effect runs again after the current run finishes (repeatedly while its parents keep changing, subject to the P5 limit) instead of nesting a second run inside the first.
 
 ## 11. Transactions (T)
 

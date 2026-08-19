@@ -115,16 +115,8 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 		if (this._scheduleEffect) {
 			// if the effect should be deferred (e.g. until a react render), do so
 			this._scheduleEffect(this.maybeExecute)
-		} else if (this._executeDepth > 0) {
-			// A set inside the running effect flushed synchronously and reached this scheduler again
-			// (only possible outside the reaction phase, e.g. during the initial run of `react()`).
-			// Executing now would open a second capture frame for a child whose frame is still open,
-			// and the two runs would corrupt each other's `parents` bookkeeping, so re-check once the
-			// current run has finished instead.
-			this._wasScheduledWhileExecuting = true
 		} else {
-			// otherwise execute right now!
-			this.execute()
+			this.maybeExecute()
 		}
 	}
 
@@ -133,7 +125,9 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	readonly maybeExecute = () => {
 		// bail out if we have been detached before this runs
 		if (!this._isActivelyListening) return
-		// a synchronous custom scheduler can land here mid-run; see `scheduleEffect`
+		// A set inside the running effect flushed synchronously back to this scheduler (only possible
+		// outside the reaction phase, e.g. the first run of `react()`). Running now would open a second
+		// capture frame inside the open one and corrupt `parents`, so re-check after the run instead.
 		if (this._executeDepth > 0) {
 			this._wasScheduledWhileExecuting = true
 			return
@@ -151,10 +145,7 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 		this._isActivelyListening = true
 		for (let i = 0, n = this.parents.length; i < n; i++) {
 			const parent = this.parents[i]
-			// A computed parent may have gone stale while nothing was listening to it. Bring it up to
-			// date before it becomes actively listening again: `Computed` trusts that an
-			// actively-listening computed was traversed whenever an ancestor changed, which is only
-			// true from the moment it was attached while up to date.
+			// a computed parent may have gone stale while nothing listened; see `attach` in helpers.ts
 			parent.__unsafe__getWithoutCapture(true)
 			attach(parent, this)
 		}
@@ -178,15 +169,14 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	 * @public
 	 */
 	execute(): Result {
-		// A direct re-entrant call (an effect calling its own scheduler's `execute()`) is unsupported:
-		// both runs share one set of `parents`, so the outer run's bookkeeping ends up wrong. It is
-		// left to run so that the outer run can at least finish normally.
+		// A direct re-entrant `execute()` from inside the effect is unsupported (both runs share one
+		// `parents`); it is left to run so the outer run can at least finish normally.
 		if (this._executeDepth > 0) return this.executeOnce()
 		// a run that threw may have left this set
 		this._wasScheduledWhileExecuting = false
 		let result = this.executeOnce()
-		// If a set inside the run reached this scheduler (see `scheduleEffect`), settle it now, the
-		// way the reaction phase's cleanup pass would: run again while the parents keep changing.
+		// If a set inside the run reached this scheduler (see `maybeExecute`), settle it now the way
+		// the reaction phase's cleanup pass would: run again while the parents keep changing.
 		for (let depth = 0; this._wasScheduledWhileExecuting; depth++) {
 			this._wasScheduledWhileExecuting = false
 			if (depth >= 1000) {

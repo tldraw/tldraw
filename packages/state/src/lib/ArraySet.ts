@@ -10,7 +10,7 @@ export const ARRAY_SIZE_THRESHOLD = 8
  * instead. In either case, the same methods are used to get, set, remove, and visit the items.
  *
  * The backing array is allocated on the first `add`: most signals never get a child, and an
- * empty ArraySet is created for every atom and twice for every computed and effect.
+ * empty ArraySet is created for every atom and effect, and two for every computed.
  * @internal
  */
 export class ArraySet<T> {

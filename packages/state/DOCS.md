@@ -112,7 +112,7 @@ const activeUser = atom('activeUser', { id: 1, name: 'Bob' }, { isEqual: (a, b) 
 activeUser.set({ id: 1, name: 'Robert' })
 ```
 
-- `historyLength` & `computeDiff`: These options are used for tracking changes over time. See the "History and Diffs" section for more details.
+- `historyLength` & `computeDiff`: These options are used for tracking changes over time. See the "History and diffs" section for more details.
 
 ### Computeds: the derived values
 
@@ -163,7 +163,7 @@ Computed signals are evaluated **lazily**. The calculation function only runs wh
 
 #### Using `@computed` as a decorator
 
-For classes, you can use the `@computed` decorator to create a computed property from a getter method. This is a clean way to co-locate derived data with its related state.
+For classes, you can use the `@computed` decorator to create a computed property from a method. This is a clean way to co-locate derived data with its related state.
 
 ```ts
 class User {
@@ -345,7 +345,7 @@ console.log(lastName.get()) // "Doe" // The change was rolled back
 
 ### History and diffs
 
-@tldraw/state can automatically track the history of changes to a signal, which is invaluable for features like undo/redo or creating sync engines.
+@tldraw/state can automatically track the history of changes to a signal, which lets dependents update incrementally instead of recomputing from scratch.
 
 To enable history, you must provide the `historyLength` option when creating an atom or computed.
 

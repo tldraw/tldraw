@@ -270,13 +270,10 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 		if (
 			!isNew &&
 			(this.lastCheckedEpoch === globalEpoch ||
-				// Every change to an ancestor of an actively-listening computed traverses it (see
-				// `flushChanges`), so if it hasn't been traversed since it was last checked, no parent
-				// can have changed and the O(parents) scan below can be skipped. This holds only while
-				// no transaction is open (in-transaction changes are traversed at commit) and only if
-				// the computed was up to date when it became actively listening, which
-				// `EffectScheduler.attach` guarantees. Note `<=`, not "not traversed this reaction":
-				// a computed can be traversed in one flush and not re-checked before the next.
+				// Every ancestor change to an actively-listening computed traverses it (`flushChanges`),
+				// so if it hasn't been traversed since it was last checked the O(parents) scan can be
+				// skipped. Not valid while a transaction is open (changes traverse at commit), and only
+				// if it was up to date when attached (see `attach` in helpers.ts).
 				(this.isActivelyListening &&
 					!getIsInTransaction() &&
 					this.lastTraversedEpoch <= this.lastCheckedEpoch) ||
