@@ -161,7 +161,7 @@ export class StoreQueries<R extends UnknownRecord> {
 	 * have been added, updated, or removed.
 	 *
 	 * @param typeName - The type name to filter the history by
-	 * @returns A computed value containing the current epoch and diffs of changes for the specified type
+	 * @returns A computed value containing a change counter and diffs of changes for the specified type
 	 *
 	 * @example
 	 * ```ts
@@ -193,14 +193,20 @@ export class StoreQueries<R extends UnknownRecord> {
 					return this.history.get()
 				}
 
+				// The value tracks the store's history counter, but it must strictly increase on every
+				// reset or relevant change: after a rolled-back transaction the counter can come back
+				// round to `lastValue`, and an unchanged value would hide the reset from downstream
+				// indexes and queries, leaving them stale for good.
+				const next = Math.max(this.history.get(), lastValue + 1)
+
 				const diff = this.history.getDiffSince(lastComputedEpoch)
-				if (diff === RESET_VALUE) return this.history.get()
+				if (diff === RESET_VALUE) return next
 
 				const res = { added: {}, removed: {}, updated: {} } as RecordsDiff<S>
 				const size = squashRecordDiffsMutableByType(res, diff, typeName)
 
 				if (size) {
-					return withDiff(this.history.get(), res)
+					return withDiff(next, res)
 				} else {
 					return lastValue
 				}
