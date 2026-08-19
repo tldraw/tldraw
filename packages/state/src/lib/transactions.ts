@@ -23,31 +23,27 @@ class Transaction {
 	}
 
 	commit() {
-		if (inst.globalIsReacting) {
-			// if we're committing during a reaction we actually need to
-			// use the 'cleanup' reactors set to ensure we re-run effects if necessary
-			for (const atom of this.initialAtomValues.keys()) {
-				traverseAtomForCleanup(atom)
-			}
-		} else if (this.isRoot) {
-			// For root transactions, flush changed atoms
+		if (this.isRoot) {
 			flushChanges(this.initialAtomValues.keys())
-		} else {
-			// For transactions with parents, add the transaction's initial values to the parent's.
-			// A parent that has recorded nothing yet adopts the map outright: this transaction is
-			// finished with it, and the common nested case is a single inner transaction doing all
-			// the writes.
-			const parentValues = this.parent!.initialAtomValues
-			if (parentValues.size === 0) {
-				this.parent!.initialAtomValues = this.initialAtomValues
-				return
-			}
-			this.initialAtomValues.forEach((value, atom) => {
-				if (!parentValues.has(atom)) {
-					parentValues.set(atom, value)
-				}
-			})
+			return
 		}
+		// Fold this transaction's initial values into the parent so an outer rollback can still
+		// undo them (T7). This must come before any "are we reacting?" special case: a nested
+		// transaction committed by an effect during the reaction phase used to skip this fold and
+		// its changes survived the outer rollback.
+		// A parent that has recorded nothing yet adopts the map outright: this transaction is
+		// finished with it, and the common nested case is a single inner transaction doing all
+		// the writes.
+		const parentValues = this.parent!.initialAtomValues
+		if (parentValues.size === 0) {
+			this.parent!.initialAtomValues = this.initialAtomValues
+			return
+		}
+		this.initialAtomValues.forEach((value, atom) => {
+			if (!parentValues.has(atom)) {
+				parentValues.set(atom, value)
+			}
+		})
 	}
 
 	/**
@@ -133,18 +129,22 @@ function traverseChild(child: Child) {
 }
 
 /**
- * Collect all of the reactors that need to run for an atom and run them.
- *
- * @param atoms - The atoms to flush changes for.
+ * Runs the effects that depend on the given changed atoms. During the reaction phase the
+ * affected effects are instead queued for the cleanup pass, so a change made by an effect never
+ * interrupts the pass that is running (P4).
  */
 function flushChanges(atoms: Iterable<_Atom>) {
 	if (inst.globalIsReacting) {
-		throw new Error('flushChanges cannot be called during a reaction')
+		for (const atom of atoms) {
+			traverseAtomForCleanup(atom)
+		}
+		return
 	}
 
 	const outerTxn = inst.currentTransaction
 	try {
-		// clear the transaction stack
+		// Transactions started by effects must be roots: the committing transaction (if any) has
+		// already handed its changes to this flush.
 		inst.currentTransaction = null
 		inst.globalIsReacting = true
 		inst.reactionEpoch = inst.globalEpoch
@@ -188,14 +188,7 @@ export function atomDidChange(atom: _Atom, previousValue: any) {
 		if (!inst.currentTransaction.initialAtomValues.has(atom)) {
 			inst.currentTransaction.initialAtomValues.set(atom, previousValue)
 		}
-	} else if (inst.globalIsReacting) {
-		// If the atom changed during the reaction phase of flushChanges
-		// (and there are no transactions started inside the reaction phase)
-		// then we are past the point where a transaction can be aborted
-		// so we don't need to note down the previousValue.
-		traverseAtomForCleanup(atom)
 	} else {
-		// If there is no transaction, flush the changes immediately.
 		flushChanges([atom])
 	}
 }

@@ -118,7 +118,7 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 - **T4** `fn` receives a `rollback` callback. Calling it (and then returning normally) aborts the transaction: every atom changed during the transaction is restored to the value it had when the transaction began.
 - **T5** If `fn` throws, the transaction aborts as in T4 and the exception propagates.
 - **T6** An aborted transaction still flushes effects: effects whose parents went through a change-and-restore round trip are scheduled, observe the restored values, and per E4 may run. Effects never observe intermediate in-transaction values.
-- **T7** Nested `transaction` calls roll back independently: an inner rollback restores to the _inner_ transaction's start. A committed inner transaction is still undone by an outer rollback (the inner transaction's initial values fold into the parent on commit).
+- **T7** Nested `transaction` calls roll back independently: an inner rollback restores to the _inner_ transaction's start. A committed inner transaction is still undone by an outer rollback (the inner transaction's initial values fold into the parent on commit), including when the transactions run inside an effect during the reaction phase.
 - **T8** Because `transact` joins rather than nests, a throw inside an inner `transact` does not restore anything by itself; if it propagates out of the outermost transaction, T5 applies there.
 - **T9** Abort clears the history buffers of every atom changed in the transaction (H7).
 - **T10** Mismatched transaction boundaries (committing a transaction that is not the innermost) throw `Transaction boundaries overlap`.
