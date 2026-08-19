@@ -61,7 +61,7 @@ A noun describing the affected area: `fix(editor):`, `feat(sync):`, `docs(exampl
 
 ## PR body
 
-Use this template:
+Bug fix PRs (`fix` type, `bugfix` change type) use the bug fix template below. Everything else uses this one:
 
 ```md
 <description paragraph>
@@ -93,6 +93,53 @@ Start with: "In order to X, this PR does Y." Follow the reviewer-first rules at 
 - Keep it specific - avoid vague phrases like "improve user experience"
 - Link related issues in the first paragraph
 - Don't expect readers to also read the linked issue
+
+### Bug fix PRs
+
+Bug fix PRs use a fixed shape instead of the description paragraph. The same reviewer-first rules apply; the structure exists so a reviewer can see the symptom, the cause, and the fix without reading the diff.
+
+```md
+This PR fixes a bug where <symptom a user or developer would hit>.
+
+### Before
+
+<what the code did and why that produced the symptom>
+
+### After
+
+<what the code does now>
+
+### Implementation notes
+
+<optional: what exactly changed and how — decisions, trade-offs, anything non-obvious>
+
+### Change type
+
+- [x] `bugfix`
+
+### Test plan
+
+- [x] Unit tests — the new test fails on `main` and passes with this change
+
+### Release notes
+
+- Fix <symptom>
+
+### Code changes
+
+| Section   | LOC change |
+| --------- | ---------- |
+| Core code | +10 / -2   |
+| Tests     | +5 / -0    |
+```
+
+- **Intro** — one sentence, "This PR fixes a bug where X." X is the observable symptom, not the cause or the fix. Link the issue here if there is one. If the PR fixes more than one thing, add a second sentence ("It also ...") rather than a list.
+- **Before** — the behavior before, and the mechanism that produced it. Name the function or path at fault; this is the one place a short description of *how* the old code went wrong belongs, because it is the cause the reviewer is checking the fix against.
+- **After** — the behavior after. State what the code now does, at the same level of detail as Before. Note any spec or doc that was updated alongside.
+- **Implementation notes** — optional. Include only when there is something the Before/After pair doesn't carry: an approach you chose over another, a subtlety in the change, a follow-up you deliberately left out. Skip the heading entirely when there is nothing to say; most small fixes have nothing.
+- The `### Change type` / `### Test plan` / `### Release notes` / `### API changes` / `### Code changes` blocks follow as usual. In the test plan, say whether the new tests fail on `main`.
+
+tldraw/tldraw#10117, #10118, and #10119 are worked examples.
 
 ### Change type
 
