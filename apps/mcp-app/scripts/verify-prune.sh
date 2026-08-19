@@ -1,8 +1,14 @@
 #!/bin/bash
 # Integration checks for idle pruning against a local wrangler dev.
+# `yarn build` (from apps/mcp-app) must have run first so dist/mcp-app.html exists.
 # Usage (from apps/mcp-app):
-#   npx wrangler dev --port 8802 --var ADMIN_TOKEN:test-admin-token   # in another shell
+#   npx wrangler dev --port 8802 --var ADMIN_TOKEN:test-admin-token --var MCP_IS_DEV:true --var IDLE_TTL_MS_OVERRIDE:3000   # in another shell
 #   bash scripts/verify-prune.sh
+#
+# The expiry-schedule section needs IDLE_TTL_MS_OVERRIDE:3000 to fire the alarm inside
+# the test's sleep; the re-arm's Math.max(..., now + 60s) floor still pushes the next
+# alarm ~60s out, so we only assert the schedule row survived the SDK's row delete, not
+# a specific re-armed time.
 set -u
 BASE=${BASE:-http://localhost:8802}
 ADMIN=${ADMIN_TOKEN:-test-admin-token}
@@ -33,7 +39,7 @@ echo "== session lifecycle =="
 SID=$(new_session); [ -n "$SID" ] && ok "session minted ${SID:0:12}..." || bad "session minted"
 curl -s -o /dev/null -X POST "$BASE/mcp" "${HDR[@]}" -H "mcp-session-id: $SID" -d "$SAVE"
 DOID=$(curl -s "$BASE/admin/do-id?session=$SID" -H "Authorization: Bearer $ADMIN")
-if [ -z "$DOID" ]; then echo "  (no /admin/do-id helper; skipping id-based checks — see Task 7 step 2)"; else
+if [[ ! $DOID =~ ^[0-9a-f]{64}$ ]]; then echo "  (could not resolve DO id: '$DOID' — start wrangler dev with --var MCP_IS_DEV:true; skipping id-based checks)"; else
 	R=$(prune "{\"ids\":[\"$DOID\"],\"maxIdleMs\":604800000,\"dryRun\":true}")
 	echo "$R" | grep -q '"action":"kept"' && ok "dry-run at 7d -> kept" || bad "dry-run at 7d -> kept: $R"
 	R=$(prune "{\"ids\":[\"$DOID\"],\"maxIdleMs\":0,\"dryRun\":true}")
@@ -47,4 +53,26 @@ if [ -z "$DOID" ]; then echo "  (no /admin/do-id helper; skipping id-based check
 	CODE=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$BASE/mcp" "${HDR[@]}" -H "mcp-session-id: $SID" -d '{"jsonrpc":"2.0","id":3,"method":"tools/list","params":{}}')
 	[ "$CODE" = "404" ] && ok "session gone after condemn (404)" || bad "session after condemn: $CODE"
 fi
+
+echo "== expiry schedule =="
+schedule_id_count() { curl -s "$BASE/admin/schedules?session=$1" -H "Authorization: Bearer $ADMIN" | grep -o '"id"' | wc -l | tr -d ' '; }
+schedule_id() { curl -s "$BASE/admin/schedules?session=$1" -H "Authorization: Bearer $ADMIN" | grep -o '"id":"[^"]*"' | head -1; }
+
+SID2=$(new_session); [ -n "$SID2" ] && ok "session minted ${SID2:0:12}..." || bad "session minted"
+[ "$(schedule_id_count "$SID2")" = "1" ] && ok "exactly one expiry schedule after init" || bad "expiry schedule count after init"
+curl -s -o /dev/null -X POST "$BASE/mcp" "${HDR[@]}" -H "mcp-session-id: $SID2" -d "$SAVE"
+curl -s -o /dev/null -X POST "$BASE/mcp" "${HDR[@]}" -H "mcp-session-id: $SID2" -d "$SAVE"
+[ "$(schedule_id_count "$SID2")" = "1" ] && ok "still exactly one expiry schedule after two saves" || bad "expiry schedule count after saves"
+
+# Needs the dev server started with --var IDLE_TTL_MS_OVERRIDE:3000: the 3s TTL alarm
+# fires inside this sleep, and the row surviving with a different id is what proves
+# expireIfIdle's re-arm ran (the SDK deletes the executing row on every fire).
+SID3=$(new_session); [ -n "$SID3" ] && ok "session minted ${SID3:0:12}..." || bad "session minted"
+curl -s -o /dev/null -X POST "$BASE/mcp" "${HDR[@]}" -H "mcp-session-id: $SID3" -d "$SAVE"
+FIRST_SCHEDULE=$(schedule_id "$SID3")
+sleep 5
+[ "$(schedule_id_count "$SID3")" = "1" ] && ok "still exactly one expiry schedule after alarm fire" || bad "expiry schedule count after alarm fire"
+SECOND_SCHEDULE=$(schedule_id "$SID3")
+[ -n "$SECOND_SCHEDULE" ] && [ "$SECOND_SCHEDULE" != "$FIRST_SCHEDULE" ] && ok "expiry re-armed with a new schedule row" || bad "expiry re-arm: first=$FIRST_SCHEDULE second=$SECOND_SCHEDULE"
+
 exit $fail

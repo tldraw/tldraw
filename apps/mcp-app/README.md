@@ -146,7 +146,8 @@ Each MCP session is a `TldrawMCP` Durable Object. It keeps up to `MAX_CHECKPOINT
 2. List every DO with stored data (needs `CLOUDFLARE_API_TOKEN` with Workers read, `CLOUDFLARE_ACCOUNT_ID`):
    `yarn prune:list` → `prune-ids.txt`.
 3. Dry run for the idle histogram (needs `MCP_ADMIN_TOKEN`; `MCP_WORKER_ORIGIN` defaults to production):
-   `yarn prune:run --dry-run`.
+   `yarn prune:run --dry-run`. Results append to `prune-dry-run.jsonl`; re-running a dry run resumes from it instead of re-evaluating ids already logged.
 4. Prune, staged: `yarn prune:run --max-idle 30d`, watch the storage graph, then `--max-idle 7d`. Below 7d needs `--force`. Results append to `prune-results.jsonl`; re-running re-evaluates kept ids and skips only the ones already condemned.
+5. Rotate `ADMIN_TOKEN` (`npx wrangler secret put ADMIN_TOKEN` with a new value, or delete it) after the prune; the route stays but it should not keep a live token between runs.
 
-Expect the `destroyed` error fingerprint in Workers observability to spike during a prune (one event per wiped DO — the SDK's teardown abort) and `session_start` to stay flat; a `session_start` spike proportional to destroys would mean condemned DOs are being resurrected and should stop the run.
+Expect the `destroyed` error fingerprint in Workers observability to spike during a prune (one event per wiped DO — the SDK's teardown abort) and `session_start` to stay flat; if `session_start` during the run exceeds roughly 1% of condemns, stop the run: condemned DOs are being resurrected.
