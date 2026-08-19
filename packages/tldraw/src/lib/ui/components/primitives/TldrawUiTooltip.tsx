@@ -44,12 +44,14 @@ interface TooltipData {
 	delayDuration: number
 }
 
+// State machine states
 type TooltipState =
 	| { name: 'idle' }
 	| { name: 'pointer_down' }
 	| { name: 'showing'; tooltip: TooltipData }
 	| { name: 'waiting_to_hide'; tooltip: TooltipData; timeoutId: number }
 
+// State machine events
 type TooltipEvent =
 	| { type: 'pointer_down' }
 	| { type: 'pointer_up' }
@@ -57,6 +59,7 @@ type TooltipEvent =
 	| { type: 'hide'; tooltipId: string; editor: Editor | null; instant: boolean }
 	| { type: 'hide_all' }
 
+// Singleton tooltip manager using explicit state machine
 class TooltipManager {
 	private state = atom<TooltipState>('tooltip state', { name: 'idle' })
 
@@ -69,6 +72,7 @@ class TooltipManager {
 
 		switch (event.type) {
 			case 'pointer_down': {
+				// Transition to pointer_down from any state
 				if (currentState.name === 'waiting_to_hide') {
 					clearTimeout(currentState.timeoutId)
 				}
@@ -77,6 +81,7 @@ class TooltipManager {
 			}
 
 			case 'pointer_up': {
+				// Only transition from pointer_down to idle
 				if (currentState.name === 'pointer_down') {
 					this.state.set({ name: 'idle' })
 				}
@@ -88,9 +93,13 @@ class TooltipManager {
 				if (currentState.name === 'pointer_down') {
 					return
 				}
+
+				// Clear any existing timeout if transitioning from waiting_to_hide
 				if (currentState.name === 'waiting_to_hide') {
 					clearTimeout(currentState.timeoutId)
 				}
+
+				// Transition to showing state
 				this.state.set({ name: 'showing', tooltip: event.tooltip })
 				break
 			}
@@ -101,6 +110,7 @@ class TooltipManager {
 				// Only hide if the tooltip matches
 				if (currentState.name === 'showing' && currentState.tooltip.id === tooltipId) {
 					if (editor && !instant) {
+						// Transition to waiting_to_hide state
 						const timeoutId = editor.timers.setTimeout(() => {
 							const state = this.state.get()
 							if (state.name === 'waiting_to_hide' && state.tooltip.id === tooltipId) {
@@ -158,6 +168,7 @@ export function hideAllTooltips() {
 	tooltipManager.hideAllTooltips()
 }
 
+// Context for the tooltip singleton
 const TooltipSingletonContext = createContext<boolean>(false)
 
 /** @public */
@@ -177,6 +188,7 @@ export function TldrawUiTooltipProvider({ children }: TldrawUiTooltipProviderPro
 	)
 }
 
+// The singleton tooltip component that renders once
 function TooltipSingleton() {
 	const [isOpen, setIsOpen] = useState(false)
 	const triggerRef = useRef<HTMLDivElement>(null)
@@ -242,6 +254,7 @@ function TooltipSingleton() {
 		}
 	}, [editor])
 
+	// Update open state and trigger position
 	useEffect(() => {
 		// eslint-disable-next-line no-restricted-globals
 		let timer: ReturnType<typeof setTimeout> | null = null
@@ -263,6 +276,7 @@ function TooltipSingleton() {
 			trigger.style.pointerEvents = 'none'
 			trigger.style.zIndex = '9999'
 
+			// Handle delay for first show
 			if (isFirstShowRef.current) {
 				// eslint-disable-next-line no-restricted-globals
 				timer = setTimeout(() => {
@@ -270,10 +284,13 @@ function TooltipSingleton() {
 					isFirstShowRef.current = false
 				}, currentTooltip.delayDuration)
 			} else {
+				// Subsequent tooltips show immediately
 				setIsOpen(true)
 			}
 		} else {
+			// Hide tooltip immediately
 			setIsOpen(false)
+			// Reset first show state after tooltip is hidden
 			isFirstShowRef.current = true
 		}
 
@@ -349,6 +366,7 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 			}
 		}, [editor, hasProvider])
 
+		// Don't show tooltip if disabled, no content, or enhanced accessibility mode is disabled
 		if (disabled || !content) {
 			return <>{children}</>
 		}

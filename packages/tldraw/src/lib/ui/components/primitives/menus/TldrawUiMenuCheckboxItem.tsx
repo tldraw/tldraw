@@ -47,6 +47,7 @@ export function TldrawUiMenuCheckboxItem<
 	const msg = useTranslation()
 	const dir = useDirection()
 
+	// If the editor is in readonly mode and the item is not marked as readonlyok, return null
 	if (isReadonlyMode && !readonlyOk) return null
 
 	const labelToUse = unwrapLabel(label, menuType)

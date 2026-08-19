@@ -62,8 +62,12 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 							placeholder="https://example.com"
 							autoFocus
 							onValueChange={(value) => {
+								// Set the url that the user has typed into the input
 								setUrl(value)
 
+								// Set the embed info to either the embed info for the URL (if
+								// that embed info can be found and of a type that matches the
+								// user's selected definition type)
 								const embedInfo = getEmbedDefinition(value)
 								setEmbedInfoForUrl(
 									embedInfo && embedInfo.definition.type === embedDefinition.type ? embedInfo : null

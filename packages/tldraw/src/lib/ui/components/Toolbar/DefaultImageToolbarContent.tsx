@@ -47,6 +47,7 @@ const MAX_RATIO_CONVERSION = MAX_ZOOM / (MAX_ZOOM - 1)
 // Apply an easing function to smooth out the zoom curve,
 // otherwise the zoom slider has a cubic drag feel to it which feels off.
 function easeZoom(value: number, maxValue: number): number {
+	// Use an easing function for a more natural zoom feel
 	return Math.pow(value / maxValue, MAX_RATIO_CONVERSION) * maxValue
 }
 
@@ -72,9 +73,11 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	const zoom = crop
 		? Math.min(1 - (crop.bottomRight.x - crop.topLeft.x), 1 - (crop.bottomRight.y - crop.topLeft.y))
 		: 0
-	// Typically you can zoom 3x into the image size (MAX_ZOOM's value). If a manual
-	// crop goes deeper than that, it becomes the new 100% on the zoom slider,
-	// otherwise you could zoom into infinity.
+	// So, we set a maxZoom here in case there's been a manual crop applied.
+	// Typically, you can zoom 3x into the image size (MAX_ZOOM's value).
+	// If you go deeper than that zoom level, we need to set that as the new 100%
+	// value on the zoom slider (otherwise you could zoom into infinity).
+	// This balances usage of the zoom slider with manual cropping.
 	const maxZoom = crop ? Math.max(zoom, 1 - 1 / MAX_ZOOM) : MAX_ZOOM
 	const actions = useActions()
 
@@ -87,11 +90,12 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	const handleZoomChange = useCallback(
 		(value: number) => {
 			editor.setCurrentTool('select.crop.idle')
+			// Convert the eased slider value back to the actual zoom value
 			const sliderPercent = value / 100
 
 			// Convert the slider position back into the "zoom" value expected by
 			// getCroppedImageDataWhenZooming.
-			// 1. Undo the easing: z_out = sliderPercent^(1/MAX_RATIO_CONVERSION) * maxZoom
+			// 1. Undo the easing: z_out = sliderPercent^(1/maxRatioConversion) * maxZoom
 			// 2. Translate z_out into the function's input domain. The helper computes
 			//    the *resulting* zoom (z_out) using:
 			//        z_out = 2 * z_in / (1 + 2 * z_in)

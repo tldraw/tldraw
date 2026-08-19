@@ -74,6 +74,10 @@ const TldrawUiInner = React.memo(function TldrawUiInner({
 	children,
 	hideUi,
 }: TldrawUiContentProps & { children: ReactNode }) {
+	// The hideUi prop should prevent the UI from mounting.
+	// If we ever need want the UI to mount and preserve state, then
+	// we should change this behavior and hide the UI via CSS instead.
+
 	// Keyboard shortcuts and clipboard events should always be mounted,
 	// even when the UI is hidden.
 	useKeyboardShortcuts()
@@ -137,10 +141,12 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 					rIsEditingAnything.current = false
 					clearTimeout(rHidingTimeout.current)
 					if (tlenv.isAndroid) {
+						// On Android, hide it after 150ms
 						rHidingTimeout.current = editor.timers.setTimeout(() => {
 							setHideToolbarWhileEditing(false)
 						}, 150)
 					} else {
+						// On iOS, just hide it immediately
 						setHideToolbarWhileEditing(false)
 					}
 				}

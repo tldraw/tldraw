@@ -13,8 +13,8 @@ import {
 } from './primitives/TldrawUiDialog'
 import { TldrawUiInput } from './primitives/TldrawUiInput'
 
-// A url can either be invalid, or valid with a protocol, or valid without a protocol
-// (e.g. "aol.com", which becomes valid once "https://" is prepended).
+// A url can either be invalid, or valid with a protocol, or valid without a protocol.
+// For example, "aol.com" would be valid with a protocol ()
 function validateUrl(url: string) {
 	if (T.linkUrl.isValid(url)) {
 		return { isValid: true, hasProtocol: true }
@@ -97,6 +97,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 		if (!onlySelectedShape) return
 		assertShapeWithUrl(onlySelectedShape)
 
+		// Here would be a good place to validate the next shape—would setting the empty
 		if (onlySelectedShape.props.url !== urlInputState.safe) {
 			editor.updateShapes([
 				{

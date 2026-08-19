@@ -115,6 +115,7 @@ export function isValidHttpURL(url: string) {
 	}
 }
 
+/** @public */
 const getValidHttpURLList = (url: string) => {
 	const urls = url.split(/[\n\s]/)
 	for (const url of urls) {
@@ -130,6 +131,7 @@ const getValidHttpURLList = (url: string) => {
 	return uniq(urls)
 }
 
+/** @public */
 const isSvgText = (text: string) => {
 	return /^<svg/.test(text)
 }
@@ -148,6 +150,9 @@ function areShortcutsDisabled(editor: Editor) {
 
 /**
  * Handle text pasted into the editor.
+ * @param editor - The editor instance.
+ * @param data - The text to paste.
+ * @param point - The point at which to paste the text.
  * @internal
  */
 const handleText = (
@@ -256,6 +261,7 @@ export async function handlePasteFromEventClipboardData(
 				break
 			}
 			case 'string': {
+				// strings can be text or html
 				const type =
 					item.type === 'text/html' ? 'html' : item.type === 'text/plain' ? 'text' : item.type
 				things.push({ type, source: new Promise<string>((r) => item.getAsString(r)) })
@@ -579,6 +585,8 @@ async function handleClipboardThings(
 			// Check for iframe embeds in HTML before stripping content
 			if (pasteIframeEmbed(editor, result.data, point)) return
 
+			// try to find a link
+
 			// Edge on Windows 11 home appears to paste a link as a single <a/> in
 			// the HTML document. If we're pasting a single like tag we'll just
 			// assume the user meant to paste the URL.
@@ -594,8 +602,7 @@ async function handleClipboardThings(
 
 			const text = stripHtml(result.data)
 			if (text) {
-				// With no other texty content on the clipboard, paste the html as plain text;
-				// otherwise paste it as a text shape that keeps the html.
+				// If the html is NOT a link, and we have other texty content, then paste the html as a text shape
 				if (results.some((r) => r.type === 'text' && r.subtype !== 'html')) {
 					editor.markHistoryStoppingPoint('paste')
 					putPastedExternalContent(
@@ -610,6 +617,7 @@ async function handleClipboardThings(
 						{ source: clipboardPasteSource, point }
 					)
 				} else {
+					// If the html is NOT a link, and we have NO OTHER texty content, then paste the html as text
 					handleText(editor, text, point, results, clipboardPasteSource)
 				}
 				return
@@ -617,6 +625,7 @@ async function handleClipboardThings(
 		}
 
 		// Allow pasting any <iframe> embed code onto the canvas.
+		// Extracts the iframe src and dimensions, then creates an embed shape.
 		if (result.type === 'text' && result.subtype === 'text') {
 			if (pasteIframeEmbed(editor, result.data, point)) return
 		}

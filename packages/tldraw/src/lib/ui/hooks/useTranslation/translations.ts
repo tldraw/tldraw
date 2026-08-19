@@ -8,6 +8,8 @@ import { TLUiTranslationKey } from './TLUiTranslationKey'
 // a missing message for the current language, it will use the english
 // translation instead.
 
+/* ----------------- (do not change) ---------------- */
+
 /** @public */
 export const RTL_LANGUAGES = new Set(['ar', 'fa', 'he', 'ur', 'ku'])
 

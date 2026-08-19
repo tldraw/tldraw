@@ -90,6 +90,7 @@ function makeActions(actions: TLUiActionItem[]) {
 }
 
 function getExportName(editor: Editor, defaultName: string) {
+	// When we don't have any shapes selected, we want to use the document name
 	if (editor.getSelectedShapeIds().length === 0) {
 		return editor.getDocumentSettings().name || defaultName
 	}
@@ -113,6 +114,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 	const defaultDocumentName = helpers.msg('document.default-name')
 
+	// should this be a useMemo? looks like it doesn't actually deref any reactive values
 	const actions = React.useMemo<TLUiActionsContextType>(() => {
 		const editor = _editor as Editor
 		if (!editor) return {}
@@ -139,6 +141,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 			editor.run(() => {
 				const scaleOrigin = editor.getSelectionPageBounds()?.center
+				// Update each shape
 				for (const id of editor.getSelectedShapeIds()) {
 					editor.resizeShape(id, new Vec(scaleFactor, scaleFactor), { scaleOrigin })
 				}
@@ -1591,6 +1594,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'alt+left,alt+up',
 				readonlyOk: true,
 				onSelect: async (source) => {
+					// will select whatever the most recent geo tool was
 					const pages = editor.getPages()
 					const currentPageIndex = pages.findIndex((page) => page.id === editor.getCurrentPageId())
 					if (currentPageIndex < 1) return
@@ -1603,14 +1607,17 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'alt+right,alt+down',
 				readonlyOk: true,
 				onSelect: async (source) => {
+					// will select whatever the most recent geo tool was
 					const pages = editor.getPages()
 					const currentPageIndex = pages.findIndex((page) => page.id === editor.getCurrentPageId())
 
-					// On the last page, move to a new page instead unless the current page is blank
+					// If we're on the last page...
 					if (currentPageIndex === -1 || currentPageIndex >= pages.length - 1) {
+						// if the current page is blank or if we're in readonly mode, do nothing
 						if (editor.getCurrentPageShapes().length <= 0 || editor.getIsReadonly()) {
 							return
 						}
+						// Otherwise, create a new page
 						trackEvent('new-page', { source })
 						editor.run(() => {
 							editor.markHistoryStoppingPoint('creating page')
@@ -1664,11 +1671,14 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect: async (source) => {
 					if (!canApplySelectionAction()) return
 
+					// For multiple shapes or a single shape, get the selection bounds
 					const selectionBounds = editor.getSelectionPageBounds()
 					if (!selectionBounds) return
 
+					// Convert page coordinates to screen coordinates
 					const screenPoint = editor.pageToScreen(selectionBounds.center)
 
+					// Dispatch a contextmenu event directly at the center of the selection
 					editor
 						.getContainer()
 						.querySelector('.tl-canvas')

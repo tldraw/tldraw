@@ -39,6 +39,7 @@ export function useKeyboardShortcuts() {
 	const isReadonlyMode = useReadonly()
 	const actions = useActions()
 	const tools = useTools()
+	// The comment tool's shortcut is gated by the same license as its toolbar button.
 	const commentingEnabled = useCommentingEnabled()
 	const isFocused = useValue('is focused', () => editor.getInstanceState().isFocused, [editor])
 	useEffect(() => {
@@ -52,6 +53,8 @@ export function useKeyboardShortcuts() {
 			registry.push({ parsed, onKeyDown, onKeyUp })
 		}
 
+		// Add hotkeys for actions and tools.
+		// Except those that in SKIP_KBDS!
 		for (const action of Object.values(actions)) {
 			if (!action.kbd) continue
 			if (isReadonlyMode && !action.readonlyOk) continue
@@ -84,11 +87,14 @@ export function useKeyboardShortcuts() {
 		register(
 			',',
 			(e) => {
+				// Skip if shortcuts are disabled
 				if (areShortcutsDisabled(editor)) return
+
+				// Don't press again if already pressed
 				if (editor.inputs.keys.has('Comma')) return
 
-				preventDefault(e)
-				editor.focus()
+				preventDefault(e) // prevent whatever would normally happen
+				editor.focus() // Focus if not already focused
 
 				editor.inputs.keys.add('Comma')
 				dispatchCommaPointerEvent(editor, e, 'pointer_down')
@@ -199,6 +205,8 @@ export function areShortcutsDisabled(editor: Editor) {
 	)
 }
 
+// kbd parsing & native event matching
+// -----------------------------------
 // We deliberately do NOT use `event.code` (physical key position) for primary matching.
 // Doing so breaks alternative Latin keyboard layouts (Dvorak, Colemak, AZERTY) because
 // `event.code` always reflects the US-QWERTY position regardless of what the user typed.

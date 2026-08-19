@@ -15,6 +15,7 @@ export function usePrint() {
 			const el = doc.createElement('div')
 			const style = doc.createElement('style')
 
+			// todo: why are these using a ref? this seems like it could be a function rather than a hook
 			const clearElements = (printEl: HTMLDivElement | null, styleEl: HTMLStyleElement | null) => {
 				if (printEl) printEl.innerHTML = ''
 				if (styleEl && doc.head.contains(styleEl)) doc.head.removeChild(styleEl)
@@ -32,8 +33,9 @@ export function usePrint() {
 			const className = `tl-print-surface-${uniqueId()}`
 
 			el.className = className
-			// Page margins work in most envs except Safari; printing all pages is still buggy.
+			// NOTE: Works in most envs except safari, needs further review
 			const enableMargins = false
+			// NOTE: Currently buggy needs further investigation
 			const allowAllPages = false
 			style.innerHTML = `
 			.${className} {
@@ -184,6 +186,7 @@ export function usePrint() {
 			}
 
 			if (selectedShapeIds.length > 0) {
+				// Print the selected ids from the current page
 				const pageName = editor.getCurrentPage().name
 				const svgExport = await editor.getSvgString(selectedShapeIds, svgOpts)
 
@@ -193,6 +196,7 @@ export function usePrint() {
 				}
 			} else {
 				if (allowAllPages) {
+					// Print all pages
 					const pages = editor.getPages()
 					for (let i = 0; i < pages.length; i++) {
 						const page = pages[i]

@@ -23,6 +23,8 @@ import { TldrawUiMenuGroup } from './primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from './primitives/menus/TldrawUiMenuItem'
 import { TldrawUiMenuSubmenu } from './primitives/menus/TldrawUiMenuSubmenu'
 
+/* -------------------- Selection ------------------- */
+
 /** @public @react */
 export function ToggleAutoSizeMenuItem() {
 	const shouldDisplay = useShowAutoSizeToggle()
@@ -171,6 +173,8 @@ export function UnlockAllMenuItem() {
 	return <TldrawUiMenuActionItem actionId="unlock-all" disabled={!hasShapes} />
 }
 
+/* ---------------------- Zoom ---------------------- */
+
 /** @public @react */
 export function ZoomTo100MenuItem() {
 	const editor = useEditor()
@@ -208,6 +212,8 @@ export function ZoomToSelectionMenuItem() {
 		/>
 	)
 }
+
+/* -------------------- Clipboard ------------------- */
 
 /** @public @react */
 export function ClipboardMenuGroup() {
@@ -298,6 +304,8 @@ export function PasteMenuItem() {
 	return <TldrawUiMenuActionItem actionId="paste" disabled={!showMenuPaste} />
 }
 
+/* ------------------- Conversions ------------------ */
+
 /** @public @react */
 export function ConversionsMenuGroup() {
 	const atLeastOneShapeOnPage = useHasShapesOnPage()
@@ -313,12 +321,15 @@ export function ConversionsMenuGroup() {
 	)
 }
 
+/* ------------------ Set Selection ----------------- */
 /** @public @react */
 export function SelectAllMenuItem() {
 	const atLeastOneShapeOnPage = useHasShapesOnPage()
 
 	return <TldrawUiMenuActionItem actionId="select-all" disabled={!atLeastOneShapeOnPage} />
 }
+
+/* ------------------ Delete Group ------------------ */
 
 /** @public @react */
 export function DeleteMenuItem() {
@@ -332,6 +343,8 @@ export function DeleteMenuItem() {
 		/>
 	)
 }
+
+/* --------------------- Modify --------------------- */
 
 /** @public @react */
 export function EditMenuSubmenu() {
@@ -544,6 +557,8 @@ export function ConvertToEmbedMenuItem() {
 	return <TldrawUiMenuActionItem actionId="convert-to-embed" />
 }
 
+/* ------------------- Preferences ------------------ */
+
 /** @public @react */
 export function ToggleSnapModeItem() {
 	const editor = useEditor()
@@ -708,12 +723,16 @@ export function TogglePasteAtCursorItem() {
 	)
 }
 
+/* ---------------------- Print --------------------- */
+
 /** @public @react */
 export function PrintItem() {
 	const hasShapes = useHasShapesOnPage()
 
 	return <TldrawUiMenuActionItem actionId="print" disabled={!hasShapes} />
 }
+
+/* ---------------------- Multiplayer --------------------- */
 
 /** @public @react */
 export function CursorChatItem() {

@@ -324,9 +324,10 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		const fromTop = mut.lastClientY - rect.top
 		const fromBottom = rect.bottom - mut.lastClientY
 		const maxScroll = container.scrollHeight - container.clientHeight
-		// Scroll speed ramps up as the pointer approaches and passes the edge of the
-		// scroll container. `overshoot` is 0 at the inner edge of PAGE_MENU_AUTO_SCROLL_ZONE
-		// and grows as the cursor approaches and passes the edge of the container.
+		// During a drag, scroll speed ramps up as the pointer approaches and
+		// passes the edge of the scroll container.
+		// `overshoot` is 0 at the inner edge of PAGE_MENU_AUTO_SCROLL_ZONE and grows
+		// as the cursor approaches and passes the edge of the container.
 		const overshootTop = PAGE_MENU_AUTO_SCROLL_ZONE - fromTop
 		const overshootBottom = PAGE_MENU_AUTO_SCROLL_ZONE - fromBottom
 		let overshoot = 0

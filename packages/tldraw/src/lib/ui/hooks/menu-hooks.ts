@@ -28,6 +28,7 @@ export function useAllowGroup() {
 		'allow group',
 		() => {
 			// We can't group arrows that are bound to shapes that aren't selected
+			// if more than one shape has an arrow bound to it, allow group
 			const selectedShapes = editor.getSelectedShapes()
 
 			if (selectedShapes.length < 2) return false
@@ -35,7 +36,9 @@ export function useAllowGroup() {
 			for (const shape of selectedShapes) {
 				if (!editor.isShapeOfType(shape, 'arrow')) continue
 				const { start, end } = getArrowBindings(editor, shape)
+				// if the other shape is not among the selected shapes...
 				if (start && !selectedShapes.some((s) => s.id === start.toId)) return false
+				// if the other shape is not among the selected shapes...
 				if (end && !selectedShapes.some((s) => s.id === end.toId)) return false
 			}
 			return true

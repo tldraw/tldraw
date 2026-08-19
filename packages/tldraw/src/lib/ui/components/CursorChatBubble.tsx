@@ -55,6 +55,7 @@ function usePositionBubble(ref: RefObject<HTMLInputElement | null>) {
 		const { x, y } = editor.inputs.getCurrentScreenPoint()
 		elm.style.setProperty('transform', `translate(${x}px, ${y}px)`)
 
+		// Positioning the chat bubble
 		function positionChatBubble(e: PointerEvent) {
 			const { minX, minY } = editor.getViewportScreenBounds()
 			ref.current?.style.setProperty(
@@ -124,6 +125,7 @@ const CursorChatInput = track(function CursorChatInput({
 	}, [editor, value, placeholder])
 
 	useLayoutEffect(() => {
+		// Focus the input
 		const raf = editor.timers.requestAnimationFrame(() => {
 			ref.current?.focus()
 		})
@@ -138,6 +140,7 @@ const CursorChatInput = track(function CursorChatInput({
 		editor.focus()
 	}, [editor])
 
+	// Update the chat message as the user types
 	const handleChange = useCallback(
 		(e: ChangeEvent<HTMLInputElement>) => {
 			const { value } = e.target
@@ -147,6 +150,7 @@ const CursorChatInput = track(function CursorChatInput({
 		[editor, setValue]
 	)
 
+	// Handle some keyboard shortcuts
 	const handleKeyDown = useCallback(
 		(e: KeyboardEvent) => {
 			const elm = ref.current

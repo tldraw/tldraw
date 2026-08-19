@@ -77,9 +77,9 @@ export function TldrawUiContextualToolbar({
 			const toolbarElm = toolbarRef.current
 			if (!toolbarElm) return
 
-			// read these so the reaction re-runs when the camera or the toolbar size changes
-			editor.getCamera()
-			const nextContentSizeUpdateCounter = contentSizeUpdateCounter.get()
+			// capture / force this to update when...
+			editor.getCamera() // the camera moves
+			const nextContentSizeUpdateCounter = contentSizeUpdateCounter.get() // the toolbar size changes
 
 			// undefined here means that we can't show the toolbar due to an incompatible position
 			const position = getToolbarScreenPosition(editor, toolbarElm, getSelectionBounds)
@@ -89,19 +89,25 @@ export function TldrawUiContextualToolbar({
 			// a change in the user's selection.
 			if (!position) {
 				if (rCouldShowToolbar.current) {
+					// If we don't have a position, then we're not showing the toolbar
 					rCouldShowToolbar.current = false
 					setHasValidToolbarPosition(false)
 				}
 			} else {
-				// While the camera is moving, update the position immediately rather than through the state machine.
+				// If the camera state is moving, we want to immediately update the position
 				// todo: consider hiding the toolbar while the camera is moving
 				if (editor.getCameraState() === 'moving') {
+					// ...if we wanted this to avoid prematurely updating any positions, we'd need
+					// to have the last updated position in page space, so that we could convert
+					// it to screen space and update it here
 					toolbarElm.style.setProperty('transform', `translate(${position.x}px, ${position.y}px)`)
 				} else {
 					const moveImmediately = lastContentSizeUpdateCounter !== nextContentSizeUpdateCounter
+					// Schedule a move to its next location
 					move(position.x, position.y, moveImmediately)
 				}
 
+				// Finally, if the toolbar was previously hidden, show it again
 				if (!rCouldShowToolbar.current) {
 					rCouldShowToolbar.current = true
 					setHasValidToolbarPosition(true)
@@ -114,6 +120,8 @@ export function TldrawUiContextualToolbar({
 
 	const cameraState = useValue('camera state', () => editor.getCameraState(), [editor])
 
+	// Send the hide or show events based on whether the user is clicking
+	// and whether the toolbar's position is valid
 	useEffect(() => {
 		if (cameraState === 'moving' && HIDE_TOOLBAR_WHEN_CAMERA_IS_MOVING) {
 			hide(true)
@@ -128,18 +136,21 @@ export function TldrawUiContextualToolbar({
 		show()
 	}, [hasValidToolbarPosition, cameraState, isMousingDown, show, hide])
 
+	// When the visibility changes, update the toolbar's visibility
 	useLayoutEffect(() => {
 		const elm = toolbarRef.current
 		if (!elm) return
 		elm.dataset.visible = `${isVisible}`
 	}, [isVisible, position])
 
+	// When the position changes, update the toolbar's position on screen
 	useLayoutEffect(() => {
 		const elm = toolbarRef.current
 		if (!elm) return
 		elm.style.setProperty('transform', `translate(${position.x}px, ${position.y}px)`)
 	}, [position])
 
+	// When the interactivity changes, update the toolbar's interactivity
 	useLayoutEffect(() => {
 		const elm = toolbarRef.current
 		if (!elm) return
@@ -167,6 +178,7 @@ export function TldrawUiContextualToolbar({
 	)
 }
 
+// For convenience, let's work just with boxes here
 /** @internal */
 export function rectToBox(rect: DOMRect): Box {
 	return new Box(rect.x, rect.y, rect.width, rect.height)
@@ -195,22 +207,31 @@ export function getToolbarScreenPosition(
 		return
 	}
 
-	// Do this after we verify that there is at least one selection: layout reads are thrashy.
+	// Get the toolbar's screen rect as a box. Do this after we verify that there is at least one selection.
 	const toolbarBounds = rectToBox(toolbarElm.getBoundingClientRect())
 
 	// Chance these are NaN? Rare case.
 	if (!toolbarBounds.width || !toolbarBounds.height) return
 
+	// Thrashy, only do this if we're showing the toolbar
 	// ! this might not be needed, the container never scrolls
 	const { scrollLeft, scrollTop } = editor.getContainer()
 
-	// Center the toolbar above the selection, clamped so it stays on screen.
+	// We want to position the toolbar so that it is centered over the selection
+	// except in the cases where it would extend off the edge of the screen.
+
+	// Start by placing the top left corner of the toolbar so that the
+	// toolbar would be centered above the section bounds, bumped up by the
+
 	let x = LEFT_ALIGN_TOOLBAR ? selectionBounds.x : selectionBounds.midX - toolbarBounds.w / 2
 	let y = selectionBounds.y - toolbarBounds.h - TOOLBAR_GAP
 
+	// Clamp the position on screen.
 	x = clamp(x, SCREEN_MARGIN, vsb.w - toolbarBounds.w - SCREEN_MARGIN)
 	y = clamp(y, SCREEN_MARGIN, vsb.h - toolbarBounds.h - SCREEN_MARGIN)
 
+	// Offset the position by the container's scroll position
+	// Round the position to the nearest pixel
 	return { x: Math.round(x + scrollLeft), y: Math.round(y + scrollTop) }
 }
 
@@ -226,29 +247,44 @@ export function useToolbarVisibilityStateMachine(changeOnlyWhenYChanges: boolean
 		{ name: 'hidden' } | { name: 'showing' } | { name: 'shown' } | { name: 'hiding' }
 	>({ name: 'hidden' })
 
-	// interactive only in 'shown'; visible in 'shown' and 'hiding'
+	// The toolbar should only be interactive when in the 'shown' state
 	const [isInteractive, setIsInteractive] = useState(false)
+
+	// The toolbar is visible in the 'shown' and 'hiding' states
 	const [isVisible, setIsVisible] = useState(false)
+
+	// The position is updated when entering the 'shown' state or when moving while in the 'shown' state
 	const [position, setPosition] = useState({ x: -1000, y: -1000 })
 
+	// The toolbar's current position
 	const rCurrPosition = useRef(new Vec(-1000, -1000))
+
+	// The toolbar's proposed next position
 	const rNextPosition = useRef(new Vec(-1000, -1000))
+
+	// A timeout needs to be completed before the toolbar is shown or hidden
 	const rStableVisibilityTimeout = useRef<any>(-1)
+
+	// A timeout needs to be completed before the toolbar's position changes moved
 	const rStablePositionTimeout = useRef<any>(-1)
 
 	/**
 	 * Send the 'move' event whenever something happens that would cause the toolbar's position to change.
+	 * Any update here will cause
 	 * If the state is 'shown', it will start a new timeout that will update the toolbar's position after it completes.
 	 */
 	const move = useCallback(
 		(x: number, y: number, immediate = false) => {
+			// Update the next proposed position
 			rNextPosition.current.x = x
 			rNextPosition.current.y = y
 
+			// If the toolbar is not yet visible, don't do anything
 			if (rState.current.name === 'hidden' || rState.current.name === 'showing') return
 
-			// When the timeout ends, only reposition if still 'shown' and the position has moved
-			// sufficiently far from the last visible position.
+			// If showing or hiding, cancel the position timeout and start a new one.
+			// When the timeout ends, if we're in the 'shown' state and the position has changed sufficiently
+			// from the last visible position, update the position.
 			clearTimeout(rStablePositionTimeout.current)
 
 			const flushMove = () => {
@@ -290,7 +326,7 @@ export function useToolbarVisibilityStateMachine(changeOnlyWhenYChanges: boolean
 				}
 				case 'shown': {
 					rState.current = { name: 'hiding' }
-					setIsInteractive(false)
+					setIsInteractive(false) // when leaving shown, turn back on interactions
 
 					if (immediate) {
 						rState.current = { name: 'hidden' }
@@ -321,6 +357,7 @@ export function useToolbarVisibilityStateMachine(changeOnlyWhenYChanges: boolean
 			case 'hidden': {
 				rState.current = { name: 'showing' }
 				rStableVisibilityTimeout.current = editor.timers.setTimeout(() => {
+					// position
 					const { x, y } = rNextPosition.current
 					rCurrPosition.current = new Vec(x, y)
 					setPosition({ x, y })
@@ -332,9 +369,10 @@ export function useToolbarVisibilityStateMachine(changeOnlyWhenYChanges: boolean
 				break
 			}
 			case 'hiding': {
+				// Go back to shown immediately
 				clearTimeout(rStableVisibilityTimeout.current)
 				rState.current = { name: 'shown' }
-				setIsInteractive(true)
+				setIsInteractive(true) // when entering shown, turn back on interactions
 				move(rNextPosition.current.x, rNextPosition.current.y)
 				break
 			}

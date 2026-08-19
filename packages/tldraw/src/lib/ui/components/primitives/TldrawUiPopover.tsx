@@ -95,6 +95,7 @@ export function TldrawUiPopoverContent({
 				onEscapeKeyDown={(e) => disableEscapeKeyDown && e.preventDefault()}
 			>
 				{children}
+				{/* <StyledArrow /> */}
 			</_Popover.Content>
 		</_Popover.Portal>
 	)

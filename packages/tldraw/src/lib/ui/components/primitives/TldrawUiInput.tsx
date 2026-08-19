@@ -79,6 +79,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 		const editor = useMaybeEditor()
 		const rInputRef = React.useRef<HTMLInputElement>(null)
 
+		// combine rInputRef and ref
 		React.useImperativeHandle(ref, () => rInputRef.current as HTMLInputElement)
 
 		const msg = useTranslation()

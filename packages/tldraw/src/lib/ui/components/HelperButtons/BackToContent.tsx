@@ -65,8 +65,9 @@ export function BackToContent() {
 			}
 
 			if (showBackToContentNow === rIsShowing.current) {
-				// Already in the desired state; drop any pending appearance timer
-				// (e.g. content came back into view before the delay elapsed).
+				// Already in the desired state. Cancel any pending appearance timer
+				// that's no longer needed (e.g. content came back into view before
+				// the delay elapsed).
 				clearAppearTimeout()
 				return
 			}
