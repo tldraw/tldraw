@@ -127,7 +127,7 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 
 - **AT1** `deferAsyncEffects(fn)` runs the async `fn` in a transaction context: atom changes are visible immediately to reads (T2 applies), but effects are deferred until the async transaction completes.
 - **AT2** It throws (rejects) if called while a synchronous transaction is in progress. Synchronous `transaction`/`transact` calls _inside_ the async body are fine and nest normally.
-- **AT3** If `fn` rejects or throws, all changes made during the async transaction are rolled back and the error propagates.
+- **AT3** If `fn` rejects or throws, all changes made during the async transaction are rolled back and the error propagates. The rollback is atomic from the point of view of effects (T6): they run once, after every atom has been restored.
 - **AT4** Calling `deferAsyncEffects` while another async transaction is in flight joins it: changes from both are batched together, and effects run only after the last participating process finishes. Async transaction state leaks across `await` boundaries between concurrent processes (no AsyncContext); the grouping of effects is the guarantee, not isolation.
 - **AT5** A `deferAsyncEffects` call kicked off during the reaction phase waits for the reaction phase to finish before starting.
 - **AT6** The returned promise resolves to `fn`'s return value.
@@ -150,6 +150,7 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 - **LS3** The atom's value is written to localStorage as JSON on creation and after every change.
 - **LS4** A `storage` event for the same key updates the atom with the parsed new value; a `storage` event with `newValue: null` resets the atom to `initialValue`; an unparseable `newValue` and events for other keys are ignored.
 - **LS5** `cleanup()` stops localStorage writes and storage-event handling. The atom itself keeps working as a plain atom. Atom `options` (equality, history) pass through per A/H rules.
+- **LS6** Without a `window` (Node, SSR) `localStorageAtom` does not throw: it behaves as a plain atom with `initialValue` and `cleanup()` is a no-op.
 
 ## 16. ArraySet — internal (AS)
 
