@@ -316,6 +316,7 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 
 			return this.state
 		} catch (e) {
+			// if a derived value throws an error, we reset the state to UNINITIALIZED
 			const epoch = getGlobalEpoch()
 			// Entering the error state (from a value, or from never having computed) is a change;
 			// throwing again while already in it is not. Checking `error` rather than `state` matters
@@ -327,6 +328,7 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 				this.lastChangedEpoch = epoch
 			}
 			this.lastCheckedEpoch = epoch
+			// we also clear the history buffer if an error was thrown
 			if (this.historyBuffer) {
 				this.historyBuffer.clear()
 			}
