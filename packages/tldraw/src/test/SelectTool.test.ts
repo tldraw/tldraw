@@ -672,6 +672,66 @@ describe('When double clicking the selection edge', () => {
 	})
 })
 
+describe('When a second press on a resize handle arrives as a double click', () => {
+	// The click manager reports a second press inside the double-click window as a pointer down
+	// followed by a double_click 'down'. The double click must not steal a press that becomes a
+	// drag (#9499 fixed the same thing for shape handles).
+	function pressAgain(handle: 'bottom_right' | 'bottom_right_rotate') {
+		editor.pointerDown(200, 200, { target: 'selection', handle })
+		editor.dispatch({
+			type: 'click',
+			name: 'double_click',
+			phase: 'down',
+			point: { x: 200, y: 200 },
+			pointerId: 1,
+			button: 0,
+			shiftKey: false,
+			altKey: false,
+			ctrlKey: false,
+			metaKey: false,
+			accelKey: false,
+			target: 'selection',
+			handle,
+		})
+	}
+
+	it('still resizes when the second press becomes a drag', () => {
+		editor.select(ids.box1)
+		editor
+			.pointerDown(200, 200, { target: 'selection', handle: 'bottom_right' })
+			.pointerUp(200, 200)
+		pressAgain('bottom_right')
+		editor.expectToBeIn('select.pointing_resize_handle')
+		editor.pointerMove(250, 250)
+		editor.expectToBeIn('select.resizing')
+		editor.pointerUp(250, 250)
+		expect(editor.getShape(ids.box1)!.props).toMatchObject({ w: 150, h: 150 })
+	})
+
+	it('still rotates when the second press on a rotate handle becomes a drag', () => {
+		editor.select(ids.box1)
+		editor
+			.pointerDown(200, 200, { target: 'selection', handle: 'bottom_right_rotate' })
+			.pointerUp(200, 200)
+		pressAgain('bottom_right_rotate')
+		editor.expectToBeIn('select.pointing_rotate_handle')
+		editor.pointerMove(250, 100)
+		editor.expectToBeIn('select.rotating')
+	})
+
+	it('acts on the double click on pointer up when the second press is released in place', () => {
+		editor.select(ids.box1)
+		editor
+			.pointerDown(200, 200, { target: 'selection', handle: 'bottom_right' })
+			.pointerUp(200, 200)
+		pressAgain('bottom_right')
+		editor.expectToBeIn('select.pointing_resize_handle')
+		editor.pointerUp(200, 200)
+		editor.expectToBeIn('select.editing_shape')
+		expect(editor.getEditingShapeId()).toBe(ids.box1)
+	})
+})
+
 describe('When double clicking a selection handle that registers as a canvas event', () => {
 	let overlayEditor: TestEditor
 	beforeEach(() => {
