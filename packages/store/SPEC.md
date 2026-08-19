@@ -62,7 +62,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **AO5** `afterChange` fires only when the before and after records differ by deep equality. (Putting a structurally-equal copy still records a history entry per S3/H1 — only the callback is suppressed.)
 - **AO6** After-handlers run when the outermost atomic's function completes, still inside the transaction. Changes they make trigger another round of after-events, repeating until quiescent. More than 100 rounds throws `Maximum store update depth exceeded`.
 - **AO7** `operationComplete` handlers fire after the after-events of an operation settle; if an `operationComplete` handler makes further changes, the flush (including `operationComplete`) runs again until quiescent.
-- **AO8** `mergeRemoteChanges(fn)` runs `fn` atomically with source `'remote'`; nested calls inside another `mergeRemoteChanges` just run `fn`. After the merge the integrity checker runs. Changes that side-effect handlers make in response to remote changes are attributed to `'user'`.
+- **AO8** `mergeRemoteChanges(fn)` runs `fn` atomically with source `'remote'`; nested calls inside another `mergeRemoteChanges` just run `fn`. After the merge the integrity checker runs. Changes that side-effect handlers — `after*` and `operationComplete` alike — make in response to remote changes are attributed to `'user'`, as are the callback rounds they trigger.
 
 ## 7. Side effect handlers (SE)
 
