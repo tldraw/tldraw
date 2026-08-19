@@ -204,6 +204,12 @@ const OBJECT_TYPES = [
 	'comment-reaction',
 ] as const satisfies readonly (keyof typeof authorizeFileRecord)[]
 
+// The comment outbox (see drainCommentOutbox) only understands comment record ids; keep this
+// separate from OBJECT_TYPES so a future object-lane type doesn't get enqueued there.
+function isCommentRecordId(id: string) {
+	return isCommentId(id) || isCommentThreadId(id) || isCommentReactionId(id)
+}
+
 export class TLFileDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
 	id: DurableObjectId
@@ -723,17 +729,11 @@ export class TLFileDurableObject extends DurableObject {
 
 	// Owner-level access: the file's direct owner, or a member of its owning group who can access
 	// files. Guests (share links) are handled by the callers.
-	private async hasOwnerAccess(
-		file: TlaFile,
-		userId: string | undefined,
-		groupCheckTimerName?: string
-	): Promise<boolean> {
+	private async hasOwnerAccess(file: TlaFile, userId: string | undefined): Promise<boolean> {
 		if (!userId) return false
 		if (file.ownerId && file.ownerId === userId) return true
 		if (!file.owningGroupId) return false
-		const groupCheckTimer = groupCheckTimerName ? this.timer() : null
 		const role = await getRole(this.db, userId, file.owningGroupId)
-		groupCheckTimer?.report(groupCheckTimerName!)
 		return can(role, 'accessFiles')
 	}
 
@@ -812,11 +812,9 @@ export class TLFileDurableObject extends DurableObject {
 				}
 				rateLimitTimer.report('on_request_rate_limit')
 
-				const hasOwnerAccess = await this.hasOwnerAccess(
-					file,
-					auth?.userId,
-					'on_request_group_check'
-				)
+				const groupCheckTimer = this.timer()
+				const hasOwnerAccess = await this.hasOwnerAccess(file, auth?.userId)
+				groupCheckTimer.report('on_request_group_check')
 
 				if (!hasOwnerAccess && !file.shared) {
 					return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
@@ -1833,15 +1831,11 @@ export class TLFileDurableObject extends DurableObject {
 	private enqueueCommentChanges(diff: TLSyncForwardDiff<TLRecord>) {
 		const ids: string[] = []
 		for (const put of Object.values(diff.puts)) {
-			const record = (Array.isArray(put) ? put[1] : put) as { typeName: string; id: string }
-			if ((OBJECT_TYPES as readonly string[]).includes(record.typeName)) {
-				ids.push(record.id)
-			}
+			const record = (Array.isArray(put) ? put[1] : put) as { id: string }
+			if (isCommentRecordId(record.id)) ids.push(record.id)
 		}
 		for (const id of diff.deletes) {
-			if (isCommentId(id) || isCommentThreadId(id) || isCommentReactionId(id)) {
-				ids.push(id)
-			}
+			if (isCommentRecordId(id)) ids.push(id)
 		}
 		if (ids.length === 0) return
 		this.ensureCommentOutbox()
@@ -2527,7 +2521,7 @@ export class TLFileDurableObject extends DurableObject {
 				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
 				continue
 			}
-			// the owner always stays connected
+			// the owner is never kicked, even when the file stops being shared
 			if (file.ownerId && session.meta.userId === file.ownerId) continue
 
 			const canAccessFiles = async () => {

@@ -28,6 +28,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import {
 	Result,
+	compact,
 	fetch,
 	isEqual,
 	promiseWithResolve,
@@ -577,7 +578,7 @@ export class TldrawApp {
 	})
 
 	getUserOwnFiles() {
-		return this.getUserFileStates().flatMap((f) => (f.file ? [f.file] : []))
+		return compact(this.getUserFileStates().map((f) => f.file))
 	}
 
 	getUserFileStates() {

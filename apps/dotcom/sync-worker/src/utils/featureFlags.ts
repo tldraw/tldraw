@@ -76,10 +76,7 @@ export async function getFeatureFlagValue(
  * schema: a caller can tell which fields apply to a flag without a KV round trip, and without a
  * stored value getting a say in the answer.
  */
-export function getFeatureFlagType(
-	_env: Environment,
-	flag: FeatureFlagKey
-): FeatureFlagValue['type'] {
+export function getFeatureFlagType(flag: FeatureFlagKey): FeatureFlagValue['type'] {
 	return FLAG_DEFAULTS[flag].type
 }
 

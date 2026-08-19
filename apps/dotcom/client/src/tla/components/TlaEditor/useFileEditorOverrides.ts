@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	Editor,
@@ -51,11 +51,6 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 	const navigate = useNavigate()
 	const trackEvent = useHandleUiEvents()
 
-	const getFileName = useCallback(
-		(editor: Editor) => getEditorFileName(app, fileSlug, editor, untitledProject),
-		[app, fileSlug, untitledProject]
-	)
-
 	const overrides = useMemo<TLUiOverrides>(() => {
 		return {
 			translations: {
@@ -83,7 +78,8 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 						if (app && fileSlug) {
 							downloadAppFile(fileSlug)
 						} else {
-							const defaultName = getFileName(editor) + TLDRAW_FILE_EXTENSION
+							const defaultName =
+								getEditorFileName(app, fileSlug, editor, untitledProject) + TLDRAW_FILE_EXTENSION
 							await downloadFileFromEditor(editor, defaultName)
 						}
 					},
@@ -94,7 +90,7 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 					label: intl.formatMessage(messages.copyToMyfiles),
 					readonlyOk: true,
 					async onSelect() {
-						const defaultName = getFileName(editor)
+						const defaultName = getEditorFileName(app, fileSlug, editor, untitledProject)
 						const res = await app?.createFile({
 							name: defaultName,
 							createSource: window.location.pathname.slice(1),
@@ -110,7 +106,7 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 				return actions
 			},
 		}
-	}, [app, fileSlug, getFileName, intl, navigate, trackEvent])
+	}, [app, fileSlug, untitledProject, intl, navigate, trackEvent])
 
 	return overrides
 }

@@ -14,6 +14,8 @@ interface FileGroup {
 	key: string
 	title: ReactElement
 	files: RecentFile[]
+	iconLeft?: string
+	onePixelOfPaddingAtTheTop?: boolean
 }
 
 /**
@@ -60,7 +62,13 @@ export function TlaSidebarRecentFiles() {
 			olderFiles.sort((a, b) => b.date - a.date)
 
 			const groups: FileGroup[] = [
-				{ key: 'pinned', title: <F defaultMessage="Pinned" />, files: pinnedFiles },
+				{
+					key: 'pinned',
+					title: <F defaultMessage="Pinned" />,
+					files: pinnedFiles,
+					iconLeft: 'pin',
+					onePixelOfPaddingAtTheTop: true,
+				},
 				{ key: 'today', title: <F defaultMessage="Today" />, files: todayFiles },
 				{ key: 'yesterday', title: <F defaultMessage="Yesterday" />, files: yesterdayFiles },
 				{ key: 'this-week', title: <F defaultMessage="This week" />, files: thisWeekFiles },
@@ -85,8 +93,8 @@ export function TlaSidebarRecentFiles() {
 				<TlaSidebarFileSection
 					key={group.key}
 					title={group.title}
-					iconLeft={group.key === 'pinned' ? 'pin' : undefined}
-					onePixelOfPaddingAtTheTop={group.key === 'pinned'}
+					iconLeft={group.iconLeft}
+					onePixelOfPaddingAtTheTop={group.onePixelOfPaddingAtTheTop}
 				>
 					{group.files.map((item, i) => (
 						<TlaSidebarFileLink

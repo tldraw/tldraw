@@ -440,7 +440,7 @@ export const adminRoutes = createRouter<Environment>()
 		// A field that means nothing for this flag's type is refused rather than dropped. It used to be
 		// dropped silently and still answered `{success: true, users: […]}`, so an admin could send an
 		// allowlist to a percentage flag, be told it saved, and have nothing stored anywhere.
-		const type = getFeatureFlagType(env, flagKey)
+		const type = getFeatureFlagType(flagKey)
 		if (percentage !== undefined && type !== 'percentage') {
 			throw new StatusError(400, `"${flagKey}" is a ${type} flag; percentage does not apply to it`)
 		}
