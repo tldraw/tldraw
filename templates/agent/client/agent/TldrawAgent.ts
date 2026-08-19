@@ -422,14 +422,7 @@ export class TldrawAgent {
 	 * })
 	 * ```
 	 *
-	 * @example
-	 * ```tsx
-	 * // Cancel the scheduled request
-	 * agent.setScheduledRequest(null)
-	 * ```
-	 *
-	 * @param input - What to set the scheduled request to, or null to cancel
-	 * the scheduled request.
+	 * @param input - What to set the scheduled request to.
 	 */
 	private _schedule(input: AgentInput) {
 		const partialRequest = this.requests.getPartialRequestFromInput(input)
