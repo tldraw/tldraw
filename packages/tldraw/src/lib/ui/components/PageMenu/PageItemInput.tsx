@@ -59,7 +59,7 @@ export const PageItemInput = function PageItemInput({
 			onFocus={handleFocus}
 			// Blur commits the rename (the value has been live-saved via onValueChange)
 			// and exits editing, so clicking elsewhere closes the input.
-			onBlur={onComplete}
+			onBlur={() => onComplete?.()}
 			shouldManuallyMaintainScrollPositionWhenFocused
 			autoFocus
 			autoSelect

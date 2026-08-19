@@ -30,19 +30,22 @@ export function InputModeMenu() {
 	return (
 		<TldrawUiMenuSubmenu id="help menu input-mode" label="menu.input-device">
 			<TldrawUiMenuGroup id="peripheral-mode">
-				{MODES.map((mode) => (
-					<TldrawUiMenuCheckboxItem
-						id={`peripheral-mode-${mode}`}
-						key={mode}
-						label={getLabel(mode)}
-						checked={inputMode === (mode === 'auto' ? null : mode)}
-						readonlyOk
-						onSelect={() => {
-							trackEvent('input-mode', { source: 'menu', value: mode })
-							editor.user.updateUserPreferences({ inputMode: mode === 'auto' ? null : mode })
-						}}
-					/>
-				))}
+				{MODES.map((mode) => {
+					const preference = mode === 'auto' ? null : mode
+					return (
+						<TldrawUiMenuCheckboxItem
+							id={`peripheral-mode-${mode}`}
+							key={mode}
+							label={getLabel(mode)}
+							checked={inputMode === preference}
+							readonlyOk
+							onSelect={() => {
+								trackEvent('input-mode', { source: 'menu', value: mode })
+								editor.user.updateUserPreferences({ inputMode: preference })
+							}}
+						/>
+					)
+				})}
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="invert-zoom-group">
 				<ToggleInvertZoomItem />

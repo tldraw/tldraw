@@ -91,7 +91,7 @@ export function useUnlockedSelectedShapesCount(min?: number, max?: number) {
 				.filter((s) => !editor.isShapeOrAncestorLocked(s)).length
 			return countWithinBounds(len, min, max)
 		},
-		[editor]
+		[editor, min, max]
 	)
 }
 

@@ -58,8 +58,12 @@ export interface TLUiLayoutProps extends HTMLAttributes<HTMLDivElement> {
 	asChild?: boolean
 }
 
-function createLayout(orientation: 'horizontal' | 'vertical', layoutClassName: string) {
-	return forwardRef<HTMLDivElement, TLUiLayoutProps>(
+function createLayout(
+	displayName: string,
+	orientation: 'horizontal' | 'vertical',
+	layoutClassName: string
+) {
+	const Layout = forwardRef<HTMLDivElement, TLUiLayoutProps>(
 		({ asChild, className, tooltipSide, ...props }, ref) => {
 			const Component = asChild ? Slot.Root : 'div'
 			return (
@@ -69,6 +73,8 @@ function createLayout(orientation: 'horizontal' | 'vertical', layoutClassName: s
 			)
 		}
 	)
+	Layout.displayName = displayName
+	return Layout
 }
 
 /**
@@ -76,18 +82,18 @@ function createLayout(orientation: 'horizontal' | 'vertical', layoutClassName: s
  *
  * @public @react
  */
-export const TldrawUiRow = createLayout('horizontal', 'tlui-row')
+export const TldrawUiRow = createLayout('TldrawUiRow', 'horizontal', 'tlui-row')
 
 /**
  * A column, usually of UI controls like buttons, select dropdown, checkboxes, etc.
  *
  * @public @react
  */
-export const TldrawUiColumn = createLayout('vertical', 'tlui-column')
+export const TldrawUiColumn = createLayout('TldrawUiColumn', 'vertical', 'tlui-column')
 
 /**
  * A tight grid 4 elements wide, usually of UI controls like buttons, select dropdown, checkboxes,
  * etc.
  *
  * @public @react */
-export const TldrawUiGrid = createLayout('horizontal', 'tlui-grid')
+export const TldrawUiGrid = createLayout('TldrawUiGrid', 'horizontal', 'tlui-grid')

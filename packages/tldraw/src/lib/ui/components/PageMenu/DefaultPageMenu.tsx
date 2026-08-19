@@ -458,7 +458,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	const shouldUseWindowPrompt = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && isCoarsePointer
 	const shouldUseDragHandle = !isReadonlyMode && isCoarsePointer
 	const rowDragHandlers =
-		isReadonlyMode || shouldUseDragHandle
+		isReadonlyMode || isCoarsePointer
 			? undefined
 			: {
 					onPointerDown: handlePointerDown,

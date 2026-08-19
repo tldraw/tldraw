@@ -267,6 +267,12 @@ export async function handlePasteFromEventClipboardData(
 	return await handleClipboardThings(editor, things, point, 'native-event')
 }
 
+const clipboardApiTextTypes = [
+	['text/html', 'html'],
+	['text/uri-list', 'url'],
+	['text/plain', 'text'],
+] as const
+
 /**
  * Handle a paste using items retrieved from the Clipboard API.
  * https://developer.mozilla.org/en-US/docs/Web/API/ClipboardItem
@@ -365,12 +371,6 @@ function pasteIframeEmbed(editor: Editor, html: string, point: VecLike | undefin
 	})
 	return true
 }
-
-const clipboardApiTextTypes = [
-	['text/html', 'html'],
-	['text/uri-list', 'url'],
-	['text/plain', 'text'],
-] as const
 
 async function handleClipboardThings(
 	editor: Editor,
