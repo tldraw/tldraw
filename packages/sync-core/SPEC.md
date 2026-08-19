@@ -264,9 +264,9 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **SR1** Providing both `storage` and `initialSnapshot` throws. With neither, an `InMemorySyncStorage` seeded from `DEFAULT_INITIAL_SNAPSHOT` is created; `initialSnapshot` (deprecated) accepts both room and store snapshots.
 - **SR2** The deprecated `onDataChange` callback is wired to `storage.onChange` (fires on a microtask after document changes, including programmatic ones).
 - **SR3** `log` defaults to `{ error: console.error }` only when the `log` key is absent from the options object; an explicitly passed `log: undefined` leaves the room without a logger.
-- **SR4** `handleSocketConnect` registers the session (readonly defaults to false), attaches `message`/`close`/`error` listeners when the socket supports `addEventListener`, and creates a chunk assembler for the session.
+- **SR4** `handleSocketConnect` registers the session (readonly defaults to false), attaches `message`/`close`/`error` listeners when the socket supports `addEventListener`, and creates a chunk assembler for the session. Connecting again under an existing session id (a reconnect) detaches the previous socket's listeners first.
 - **SR5** `handleSocketMessage` assembles chunks (CH rules), then for each complete message: invokes `onAfterReceiveMessage`, forwards to the room, and runs a prune pass (after handling, so a session is never evicted by its own message). Assembly errors close the socket via the error path; a thrown exception rejects the session with `UNKNOWN_ERROR`.
-- **SR6** `handleSocketError` and `handleSocketClose` cancel the session (grace period applies per SES2) and clear any pending session-snapshot timer.
+- **SR6** `handleSocketError` and `handleSocketClose` cancel the session (grace period applies per SES2) and clear any pending session-snapshot timer. Both accept the socket the event came from; when it is given and is not the session's current socket, the event belongs to a superseded socket for the same session id and is ignored. The listeners SR4 attaches pass their own socket.
 - **SR7** `getNumActiveSessions()` counts all sessions including those awaiting connect/removal; `getSessions()` reports `{ sessionId, isConnected, isReadonly, meta }`.
 - **SR8** `getRecord(id)` returns a deep clone of the stored record (safe to mutate), or `undefined`.
 - **SR9** `getCurrentDocumentClock()` returns the storage clock; `getCurrentSnapshot()` delegates to `storage.getSnapshot` and throws when the storage doesn't support it.
@@ -274,7 +274,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **SR11** `close()` closes the room, clears session-snapshot timers, and disposes subscriptions; `closeSession(sessionId, fatalReason?)` behaves as SES4.
 - **SR12** With `onSessionSnapshot` configured, a session snapshot is delivered 5 seconds after that session's last message; further messages reset the timer; socket close/error cancels it.
 - **SR13** `getSessionSnapshot` returns null unless the session is `Connected`; the snapshot carries the serialized schema, readonly flag, legacy/append flags, presence id, and the presence record with large fields stripped (`scribbles: []`, `chatMessage: ''`, `selectedShapeIds: []`, `brush: null`).
-- **SR14** `handleSocketResume` restores a session from a snapshot directly into `Connected` state without attaching socket listeners (hibernation environments deliver events via methods); the resumed session handles pings and pushes normally.
+- **SR14** `handleSocketResume` restores a session from a snapshot directly into `Connected` state without attaching socket listeners (hibernation environments deliver events via methods); the resumed session handles pings and pushes normally. Resuming a socket that is no longer open while a different, open socket owns the session id is ignored (the resumed socket is stale); otherwise the last resume wins.
 - **SR15** `getPresenceRecords()` returns a map of presence id to presence record for every presence currently in the room.
 
 ## 29. `updateStore` (US) — deprecated

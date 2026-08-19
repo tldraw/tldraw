@@ -515,7 +515,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         sessionId: string;
     }>;
     getSessionSnapshot(sessionId: string): null | SessionStateSnapshot;
-    handleSocketClose(sessionId: string): void;
+    handleSocketClose(sessionId: string, socket?: WebSocketMinimal): void;
     handleSocketConnect(opts: {
         isReadonly?: boolean;
         objectAccess?: TLObjectStoreAccess;
@@ -524,7 +524,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     } & (SessionMeta extends void ? object : {
         meta: SessionMeta;
     })): void;
-    handleSocketError(sessionId: string): void;
+    handleSocketError(sessionId: string, socket?: WebSocketMinimal): void;
     handleSocketMessage(sessionId: string, message: AllowSharedBufferSource | string): void;
     handleSocketResume(opts: {
         sessionId: string;
