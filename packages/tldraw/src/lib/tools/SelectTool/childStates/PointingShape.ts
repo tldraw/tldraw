@@ -1,6 +1,7 @@
 import { StateNode, TLClickEventInfo, TLPointerEventInfo, TLShape } from '@tldraw/editor'
 import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getTextLabels } from '../../../utils/shapes/shapes'
+import { isPointInRotatedSelectionBounds } from '../selectHelpers'
 
 export class PointingShape extends StateNode {
 	static override id = 'pointing_shape'
@@ -14,7 +15,6 @@ export class PointingShape extends StateNode {
 
 	override onEnter(info: TLPointerEventInfo & { target: 'shape' }) {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
-		const selectionBounds = this.editor.getSelectionRotatedPageBounds()
 		const focusedGroupId = this.editor.getFocusedGroupId()
 		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 		const { shiftKey, altKey, accelKey } = info
@@ -23,9 +23,6 @@ export class PointingShape extends StateNode {
 		this.isDoubleClick = false
 		this.didCtrlOnEnter = accelKey
 		const outermostSelectingShape = this.editor.getOutermostSelectableShape(info.shape)
-		const selectedAncestor = this.editor.findShapeAncestor(outermostSelectingShape, (parent) =>
-			selectedShapeIds.includes(parent.id)
-		)
 
 		if (
 			this.didCtrlOnEnter ||
@@ -36,9 +33,10 @@ export class PointingShape extends StateNode {
 			// ...or if the shape is within the selection
 			selectedShapeIds.includes(outermostSelectingShape.id) ||
 			// ...or if an ancestor of the shape is selected
-			selectedAncestor ||
-			// ...or if the current point is NOT within the selection bounds
-			(selectedShapeIds.length > 1 && selectionBounds?.containsPoint(currentPagePoint))
+			this.editor.isAncestorSelected(outermostSelectingShape) ||
+			// ...or if the point is inside a multi-shape selection, so a drag moves the whole selection
+			(selectedShapeIds.length > 1 &&
+				isPointInRotatedSelectionBounds(this.editor, currentPagePoint))
 		) {
 			// We won't select the shape on enter, though we might select it on pointer up!
 			this.didSelectOnEnter = false
@@ -71,6 +69,7 @@ export class PointingShape extends StateNode {
 			this.editor.getShapeAtPoint(currentPagePoint, {
 				margin: this.editor.getHitTestMargin(),
 				hitInside: true,
+				hitLocked: this.editor.options.selectLockedShapes,
 				renderingOnly: true,
 			}) ?? this.hitShape
 

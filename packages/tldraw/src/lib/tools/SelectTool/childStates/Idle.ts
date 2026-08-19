@@ -1,5 +1,4 @@
 import {
-	Editor,
 	StateNode,
 	TLAdjacentDirection,
 	TLClickEventInfo,
@@ -7,11 +6,9 @@ import {
 	TLPointerEventInfo,
 	TLShape,
 	Vec,
-	VecLike,
 	createShapeId,
 	debugFlags,
 	kickoutOccludedShapes,
-	pointInPolygon,
 	toRichText,
 	unsafe__withoutCapture,
 } from '@tldraw/editor'
@@ -22,7 +19,11 @@ import {
 	cancelUpdateHoveredShapeId,
 	updateHoveredShapeId,
 } from '../../selection-logic/updateHoveredShapeId'
-import { hasRichText, startEditingShapeWithRichText } from '../selectHelpers'
+import {
+	hasRichText,
+	isPointInRotatedSelectionBounds,
+	startEditingShapeWithRichText,
+} from '../selectHelpers'
 
 const SKIPPED_KEYS_FOR_AUTO_EDITING = [
 	'Delete',
@@ -321,6 +322,8 @@ export class Idle extends StateNode {
 							this.editor.getShapeAtPoint(currentPagePoint, {
 								margin: this.editor.getHitTestMargin(),
 								hitInside: false,
+								hitLocked: this.editor.options.selectLockedShapes,
+								renderingOnly: true,
 							}))
 
 				if (hitShape) {
@@ -799,16 +802,3 @@ export class Idle extends StateNode {
 export const MAJOR_NUDGE_FACTOR = 10
 export const MINOR_NUDGE_FACTOR = 1
 export const GRID_INCREMENT = 5
-
-function isPointInRotatedSelectionBounds(editor: Editor, point: VecLike) {
-	const selectionBounds = editor.getSelectionRotatedPageBounds()
-	if (!selectionBounds) return false
-
-	const selectionRotation = editor.getSelectionRotation()
-	if (!selectionRotation) return selectionBounds.containsPoint(point)
-
-	return pointInPolygon(
-		point,
-		selectionBounds.corners.map((c) => Vec.RotWith(c, selectionBounds.point, selectionRotation))
-	)
-}
