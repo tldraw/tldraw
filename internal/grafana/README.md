@@ -4,9 +4,9 @@
 
 This directory currently provisions:
 
-- Eleven dashboards: `Zero on Fly.io — service health` (`zero-fly-health`), `Zero slow queries` (`slow-queries`), and `Zero-cache HTTP edge (Fly.io)` (`ni7hhgd`) in the `Zero` folder; `Anthropic scrape overview` in the `Anthropic` folder; `Dotcom events` (`ni5k8zc`), `Dotcom events V1` (`adgumkhou3chsd`), `File effect outbox`, `MCP server (shared boards)` (`mcp-server`), `MCP app sessions` (`kotx6wj`), and `Bemo analytics` in the `Dotcom` folder; and `Cloudflare platform metrics` (`nivs2rl`), which sits at the root rather than in a folder. The events pipeline currently reports from **staging** — set the environment variable accordingly when a dashboard looks empty.
+- Ten dashboards: `Zero on Fly.io — service health` (`zero-fly-health`), `Zero slow queries` (`slow-queries`), and `Zero-cache HTTP edge (Fly.io)` (`ni7hhgd`) in the `Zero` folder; `Anthropic scrape overview` in the `Anthropic` folder; `Dotcom events` (`ni5k8zc`), `File effect outbox`, `MCP server (shared boards)` (`mcp-server`), `MCP app sessions` (`kotx6wj`), and `Bemo analytics` in the `Dotcom` folder; and `Cloudflare platform metrics` (`nivs2rl`), which sits at the root rather than in a folder. The events pipeline currently reports from **staging** — set the environment variable accordingly when a dashboard looks empty.
 - All 13 Grafana-managed alert rules (Zero replication/errors/backups, Fly.io container health, Anthropic cost/usage, file room DO exceptions)
-- The folders `Zero` (dashboards + 9 rules), `Dotcom` (6 dashboards + 1 rule), and `Anthropic` (1 dashboard + 3 cost rules)
+- The folders `Zero` (dashboards + 9 rules), `Dotcom` (5 dashboards + 1 rule), and `Anthropic` (1 dashboard + 3 cost rules)
 
 There are two MCP dashboards, for two different servers. `MCP server (shared boards)` covers the public server on the sync worker at `POST /app/mcp` (`apps/dotcom/sync-worker`), which reads its protocol metrics from the `MEASURE` dataset. `MCP app sessions` covers the separate tldraw MCP app worker (`apps/mcp-app`) and its own `MCP_ANALYTICS` dataset. Neither one's panels belong on `Dotcom events` — that dashboard covers the sync worker's own events.
 

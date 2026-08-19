@@ -836,8 +836,8 @@ spec:
     - datasource:
         type: yesoreyeram-infinity-datasource
         uid: ffuyblsuemj28b
-      description: Total DO CPU time per interval across the account (rooms, user DOs,
-        replicator, bemo, MCP sessions combined).
+      description: Total DO CPU time per interval across the account (rooms, bemo, MCP
+        sessions combined).
       fieldConfig:
         defaults:
           color:

@@ -27,100 +27,6 @@ spec:
   cursorSync: Crosshair
   editable: true
   elements:
-    panel-1:
-      kind: Panel
-      spec:
-        data:
-          kind: QueryGroup
-          spec:
-            queries:
-              - kind: PanelQuery
-                spec:
-                  hidden: false
-                  query:
-                    datasource:
-                      name: bdgu7tk03irr4e
-                    group: vertamedia-clickhouse-datasource
-                    kind: DataQuery
-                    spec:
-                      dateTimeType: DATETIME
-                      editorMode: code
-                      extrapolate: true
-                      format: time_series
-                      formatAs: time_series
-                      intervalFactor: 1
-                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, max(double1) as active_users
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'replicator' AND blob3 = 'active_users'
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'
-
-                        GROUP BY date
-
-                        ORDER BY date ASC"
-                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, max(double1) as active_users
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'replicator' AND blob3 = 'active_users'
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'
-
-                        GROUP BY date
-
-                        ORDER BY date ASC"
-                      round: 0s
-                      showFormattedSQL: false
-                      showHelp: false
-                      skip_comments: true
-                      step: ''
-                    version: v0
-                  refId: A
-            queryOptions: {}
-            transformations: []
-        description: Latest active_users gauge reported by the replicator (registered
-          user DOs).
-        id: 1
-        links: []
-        title: Active users
-        vizConfig:
-          group: stat
-          kind: VizConfig
-          spec:
-            fieldConfig:
-              defaults:
-                color:
-                  mode: thresholds
-                thresholds:
-                  mode: absolute
-                  steps:
-                    - color: green
-                      value: 0
-                unit: short
-              overrides: []
-            options:
-              colorMode: value
-              graphMode: area
-              justifyMode: auto
-              orientation: auto
-              percentChangeColorMode: standard
-              reduceOptions:
-                calcs:
-                  - lastNotNull
-                fields: ''
-                values: false
-              showPercentChange: false
-              textMode: auto
-              wideLayout: true
-          version: 13.2.0-29854286369
     panel-2:
       kind: Panel
       spec:
@@ -187,176 +93,6 @@ spec:
                   steps:
                     - color: green
                       value: 0
-                unit: short
-              overrides: []
-            options:
-              colorMode: value
-              graphMode: none
-              justifyMode: auto
-              orientation: auto
-              percentChangeColorMode: standard
-              reduceOptions:
-                calcs:
-                  - lastNotNull
-                fields: ''
-                values: false
-              showPercentChange: false
-              textMode: auto
-              wideLayout: true
-          version: 13.2.0-29854286369
-    panel-3:
-      kind: Panel
-      spec:
-        data:
-          kind: QueryGroup
-          spec:
-            queries:
-              - kind: PanelQuery
-                spec:
-                  hidden: false
-                  query:
-                    datasource:
-                      name: bdgu7tk03irr4e
-                    group: vertamedia-clickhouse-datasource
-                    kind: DataQuery
-                    spec:
-                      dateTimeType: DATETIME
-                      editorMode: code
-                      extrapolate: true
-                      format: table
-                      formatAs: table
-                      intervalFactor: 1
-                      query: "SELECT count() as mutations
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'user_durable_object' AND blob3 = 'mutation'
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'"
-                      rawQuery: "SELECT count() as mutations
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'user_durable_object' AND blob3 = 'mutation'
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'"
-                      round: 0s
-                      showFormattedSQL: false
-                      showHelp: false
-                      skip_comments: true
-                      step: ''
-                    version: v0
-                  refId: A
-            queryOptions: {}
-            transformations: []
-        description: user_durable_object mutation events in the selected time range.
-        id: 3
-        links: []
-        title: Mutations accepted
-        vizConfig:
-          group: stat
-          kind: VizConfig
-          spec:
-            fieldConfig:
-              defaults:
-                color:
-                  mode: thresholds
-                thresholds:
-                  mode: absolute
-                  steps:
-                    - color: green
-                      value: 0
-                unit: short
-              overrides: []
-            options:
-              colorMode: value
-              graphMode: none
-              justifyMode: auto
-              orientation: auto
-              percentChangeColorMode: standard
-              reduceOptions:
-                calcs:
-                  - lastNotNull
-                fields: ''
-                values: false
-              showPercentChange: false
-              textMode: auto
-              wideLayout: true
-          version: 13.2.0-29854286369
-    panel-4:
-      kind: Panel
-      spec:
-        data:
-          kind: QueryGroup
-          spec:
-            queries:
-              - kind: PanelQuery
-                spec:
-                  hidden: false
-                  query:
-                    datasource:
-                      name: bdgu7tk03irr4e
-                    group: vertamedia-clickhouse-datasource
-                    kind: DataQuery
-                    spec:
-                      dateTimeType: DATETIME
-                      editorMode: code
-                      extrapolate: true
-                      format: table
-                      formatAs: table
-                      intervalFactor: 1
-                      query: "SELECT count() as rejected
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'user_durable_object' AND blob3 = 'reject_mutation'
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'"
-                      rawQuery: "SELECT count() as rejected
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'user_durable_object' AND blob3 = 'reject_mutation'
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'"
-                      round: 0s
-                      showFormattedSQL: false
-                      showHelp: false
-                      skip_comments: true
-                      step: ''
-                    version: v0
-                  refId: A
-            queryOptions: {}
-            transformations: []
-        description: user_durable_object reject_mutation events. Should be near zero.
-        id: 4
-        links: []
-        title: Mutations rejected
-        vizConfig:
-          group: stat
-          kind: VizConfig
-          spec:
-            fieldConfig:
-              defaults:
-                color:
-                  mode: thresholds
-                thresholds:
-                  mode: absolute
-                  steps:
-                    - color: green
-                      value: 0
-                    - color: orange
-                      value: 1
-                    - color: red
-                      value: 50
                 unit: short
               overrides: []
             options:
@@ -443,93 +179,6 @@ spec:
                       value: 0
                     - color: red
                       value: 1
-                unit: short
-              overrides: []
-            options:
-              colorMode: value
-              graphMode: none
-              justifyMode: auto
-              orientation: auto
-              percentChangeColorMode: standard
-              reduceOptions:
-                calcs:
-                  - lastNotNull
-                fields: ''
-                values: false
-              showPercentChange: false
-              textMode: auto
-              wideLayout: true
-          version: 13.2.0-29854286369
-    panel-6:
-      kind: Panel
-      spec:
-        data:
-          kind: QueryGroup
-          spec:
-            queries:
-              - kind: PanelQuery
-                spec:
-                  hidden: false
-                  query:
-                    datasource:
-                      name: bdgu7tk03irr4e
-                    group: vertamedia-clickhouse-datasource
-                    kind: DataQuery
-                    spec:
-                      dateTimeType: DATETIME
-                      editorMode: code
-                      extrapolate: true
-                      format: table
-                      formatAs: table
-                      intervalFactor: 1
-                      query: "SELECT count() as reboots
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'replicator' AND blob3 = 'reboot'
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'"
-                      rawQuery: "SELECT count() as reboots
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'replicator' AND blob3 = 'reboot'
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'"
-                      round: 0s
-                      showFormattedSQL: false
-                      showHelp: false
-                      skip_comments: true
-                      step: ''
-                    version: v0
-                  refId: A
-            queryOptions: {}
-            transformations: []
-        description: Replicator reboot events in the selected time range.
-        id: 6
-        links: []
-        title: Replicator reboots
-        vizConfig:
-          group: stat
-          kind: VizConfig
-          spec:
-            fieldConfig:
-              defaults:
-                color:
-                  mode: thresholds
-                thresholds:
-                  mode: absolute
-                  steps:
-                    - color: green
-                      value: 0
-                    - color: yellow
-                      value: 3
-                    - color: red
-                      value: 10
                 unit: short
               overrides: []
             options:
@@ -1642,1126 +1291,6 @@ spec:
               showUnfilled: true
               sizing: auto
               valueMode: color
-          version: 13.2.0-29854286369
-    panel-16:
-      kind: Panel
-      spec:
-        data:
-          kind: QueryGroup
-          spec:
-            queries:
-              - kind: PanelQuery
-                spec:
-                  hidden: false
-                  query:
-                    datasource:
-                      name: bdgu7tk03irr4e
-                    group: vertamedia-clickhouse-datasource
-                    kind: DataQuery
-                    spec:
-                      dateTimeType: DATETIME
-                      editorMode: code
-                      extrapolate: true
-                      format: time_series
-                      formatAs: time_series
-                      intervalFactor: 1
-                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, max(double1) as active_users
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'replicator' AND blob3 = 'active_users'
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'
-
-                        GROUP BY date
-
-                        ORDER BY date ASC"
-                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, max(double1) as active_users
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'replicator' AND blob3 = 'active_users'
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'
-
-                        GROUP BY date
-
-                        ORDER BY date ASC"
-                      round: 0s
-                      showFormattedSQL: false
-                      showHelp: false
-                      skip_comments: true
-                      step: ''
-                    version: v0
-                  refId: A
-            queryOptions: {}
-            transformations: []
-        description: active_users gauge from the postgres replicator.
-        id: 16
-        links: []
-        title: Replicator active users
-        vizConfig:
-          group: timeseries
-          kind: VizConfig
-          spec:
-            fieldConfig:
-              defaults:
-                color:
-                  mode: palette-classic
-                custom:
-                  axisBorderShow: false
-                  axisCenteredZero: false
-                  axisColorMode: text
-                  axisLabel: ''
-                  axisPlacement: auto
-                  barAlignment: 0
-                  barWidthFactor: 0.8
-                  drawStyle: line
-                  fillOpacity: 25
-                  gradientMode: opacity
-                  hideFrom:
-                    legend: false
-                    tooltip: false
-                    viz: false
-                  insertNulls: false
-                  lineInterpolation: linear
-                  lineWidth: 1.5
-                  pointSize: 5
-                  scaleDistribution:
-                    type: linear
-                  showPoints: never
-                  showValues: false
-                  spanNulls: false
-                  stacking:
-                    group: A
-                    mode: none
-                  thresholdsStyle:
-                    mode: 'off'
-                min: 0
-                thresholds:
-                  mode: absolute
-                  steps:
-                    - color: green
-                      value: 0
-              overrides: []
-            options:
-              annotations:
-                clustering: -1
-                multiLane: false
-              legend:
-                calcs: []
-                displayMode: list
-                enableFacetedFilter: false
-                overflow: ellipsis
-                placement: bottom
-                showLegend: false
-              tooltip:
-                hideZeros: false
-                maxHeight: 600
-                mode: multi
-                sort: desc
-          version: 13.2.0-29854286369
-    panel-17:
-      kind: Panel
-      spec:
-        data:
-          kind: QueryGroup
-          spec:
-            queries:
-              - kind: PanelQuery
-                spec:
-                  hidden: false
-                  query:
-                    datasource:
-                      name: bdgu7tk03irr4e
-                    group: vertamedia-clickhouse-datasource
-                    kind: DataQuery
-                    spec:
-                      dateTimeType: DATETIME
-                      editorMode: code
-                      extrapolate: true
-                      format: time_series
-                      formatAs: time_series
-                      intervalFactor: 1
-                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, max(double1) as rpm
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'replicator' AND blob3 = 'rpm'
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'
-
-                        GROUP BY date
-
-                        ORDER BY date ASC"
-                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, max(double1) as rpm
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'replicator' AND blob3 = 'rpm'
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'
-
-                        GROUP BY date
-
-                        ORDER BY date ASC"
-                      round: 0s
-                      showFormattedSQL: false
-                      showHelp: false
-                      skip_comments: true
-                      step: ''
-                    version: v0
-                  refId: A
-            queryOptions: {}
-            transformations: []
-        description: rpm gauge — postgres updates processed per minute (logged at
-          most once per minute).
-        id: 17
-        links: []
-        title: Replicator postgres updates per minute
-        vizConfig:
-          group: timeseries
-          kind: VizConfig
-          spec:
-            fieldConfig:
-              defaults:
-                color:
-                  mode: palette-classic
-                custom:
-                  axisBorderShow: false
-                  axisCenteredZero: false
-                  axisColorMode: text
-                  axisLabel: ''
-                  axisPlacement: auto
-                  barAlignment: 0
-                  barWidthFactor: 0.8
-                  drawStyle: line
-                  fillOpacity: 25
-                  gradientMode: opacity
-                  hideFrom:
-                    legend: false
-                    tooltip: false
-                    viz: false
-                  insertNulls: false
-                  lineInterpolation: linear
-                  lineWidth: 1.5
-                  pointSize: 5
-                  scaleDistribution:
-                    type: linear
-                  showPoints: never
-                  showValues: false
-                  spanNulls: false
-                  stacking:
-                    group: A
-                    mode: none
-                  thresholdsStyle:
-                    mode: 'off'
-                min: 0
-                thresholds:
-                  mode: absolute
-                  steps:
-                    - color: green
-                      value: 0
-              overrides: []
-            options:
-              annotations:
-                clustering: -1
-                multiLane: false
-              legend:
-                calcs: []
-                displayMode: list
-                enableFacetedFilter: false
-                overflow: ellipsis
-                placement: bottom
-                showLegend: false
-              tooltip:
-                hideZeros: false
-                maxHeight: 600
-                mode: multi
-                sort: desc
-          version: 13.2.0-29854286369
-    panel-18:
-      kind: Panel
-      spec:
-        data:
-          kind: QueryGroup
-          spec:
-            queries:
-              - kind: PanelQuery
-                spec:
-                  hidden: false
-                  query:
-                    datasource:
-                      name: bdgu7tk03irr4e
-                    group: vertamedia-clickhouse-datasource
-                    kind: DataQuery
-                    spec:
-                      dateTimeType: DATETIME
-                      editorMode: code
-                      extrapolate: true
-                      format: time_series
-                      formatAs: time_series
-                      intervalFactor: 1
-                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, blob4 as source, count() as total
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'replicator' AND blob3 = 'reboot'
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'
-
-                        GROUP BY date, source
-
-                        ORDER BY date ASC"
-                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, blob4 as source, count() as total
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'replicator' AND blob3 = 'reboot'
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'
-
-                        GROUP BY date, source
-
-                        ORDER BY date ASC"
-                      round: 0s
-                      showFormattedSQL: false
-                      showHelp: false
-                      skip_comments: true
-                      step: ''
-                    version: v0
-                  refId: A
-            queryOptions: {}
-            transformations: []
-        description: 'Reboot events split by trigger: constructor, inactivity, retry,
-          subscription_closed, test.'
-        id: 18
-        links: []
-        title: Replicator reboots by source
-        vizConfig:
-          group: timeseries
-          kind: VizConfig
-          spec:
-            fieldConfig:
-              defaults:
-                color:
-                  mode: palette-classic
-                custom:
-                  axisBorderShow: false
-                  axisCenteredZero: false
-                  axisColorMode: text
-                  axisLabel: ''
-                  axisPlacement: auto
-                  barAlignment: 0
-                  barWidthFactor: 0.8
-                  drawStyle: bars
-                  fillOpacity: 80
-                  gradientMode: none
-                  hideFrom:
-                    legend: false
-                    tooltip: false
-                    viz: false
-                  insertNulls: false
-                  lineInterpolation: linear
-                  lineWidth: 0
-                  pointSize: 5
-                  scaleDistribution:
-                    type: linear
-                  showPoints: never
-                  showValues: false
-                  spanNulls: false
-                  stacking:
-                    group: A
-                    mode: normal
-                  thresholdsStyle:
-                    mode: 'off'
-                thresholds:
-                  mode: absolute
-                  steps:
-                    - color: green
-                      value: 0
-              overrides: []
-            options:
-              annotations:
-                clustering: -1
-                multiLane: false
-              legend:
-                calcs: []
-                displayMode: list
-                enableFacetedFilter: false
-                overflow: ellipsis
-                placement: bottom
-                showLegend: true
-              tooltip:
-                hideZeros: false
-                maxHeight: 600
-                mode: multi
-                sort: desc
-          version: 13.2.0-29854286369
-    panel-19:
-      kind: Panel
-      spec:
-        data:
-          kind: QueryGroup
-          spec:
-            queries:
-              - kind: PanelQuery
-                spec:
-                  hidden: false
-                  query:
-                    datasource:
-                      name: bdgu7tk03irr4e
-                    group: vertamedia-clickhouse-datasource
-                    kind: DataQuery
-                    spec:
-                      dateTimeType: DATETIME
-                      editorMode: code
-                      extrapolate: true
-                      format: time_series
-                      formatAs: time_series
-                      intervalFactor: 1
-                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, blob3 as event, count() as total
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'replicator'
-
-                        AND blob3 NOT IN ('rpm', 'active_users', 'reboot_duration')
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'
-
-                        GROUP BY date, event
-
-                        ORDER BY date ASC"
-                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, blob3 as event, count() as total
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'replicator'
-
-                        AND blob3 NOT IN ('rpm', 'active_users', 'reboot_duration')
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'
-
-                        GROUP BY date, event
-
-                        ORDER BY date ASC"
-                      round: 0s
-                      showFormattedSQL: false
-                      showHelp: false
-                      skip_comments: true
-                      step: ''
-                    version: v0
-                  refId: A
-            queryOptions: {}
-            transformations: []
-        description: Counter events from TLPostgresReplicator (gauges and durations
-          excluded).
-        id: 19
-        links: []
-        title: Replicator event stream
-        vizConfig:
-          group: timeseries
-          kind: VizConfig
-          spec:
-            fieldConfig:
-              defaults:
-                color:
-                  mode: palette-classic
-                custom:
-                  axisBorderShow: false
-                  axisCenteredZero: false
-                  axisColorMode: text
-                  axisLabel: ''
-                  axisPlacement: auto
-                  barAlignment: 0
-                  barWidthFactor: 0.8
-                  drawStyle: line
-                  fillOpacity: 12
-                  gradientMode: opacity
-                  hideFrom:
-                    legend: false
-                    tooltip: false
-                    viz: false
-                  insertNulls: false
-                  lineInterpolation: linear
-                  lineWidth: 1.5
-                  pointSize: 5
-                  scaleDistribution:
-                    type: linear
-                  showPoints: never
-                  showValues: false
-                  spanNulls: false
-                  stacking:
-                    group: A
-                    mode: none
-                  thresholdsStyle:
-                    mode: 'off'
-                thresholds:
-                  mode: absolute
-                  steps:
-                    - color: green
-                      value: 0
-              overrides: []
-            options:
-              annotations:
-                clustering: -1
-                multiLane: false
-              legend:
-                calcs: []
-                displayMode: list
-                enableFacetedFilter: false
-                overflow: ellipsis
-                placement: bottom
-                showLegend: true
-              tooltip:
-                hideZeros: false
-                maxHeight: 600
-                mode: multi
-                sort: desc
-          version: 13.2.0-29854286369
-    panel-20:
-      kind: Panel
-      spec:
-        data:
-          kind: QueryGroup
-          spec:
-            queries:
-              - kind: PanelQuery
-                spec:
-                  hidden: false
-                  query:
-                    datasource:
-                      name: bdgu7tk03irr4e
-                    group: vertamedia-clickhouse-datasource
-                    kind: DataQuery
-                    spec:
-                      dateTimeType: DATETIME
-                      editorMode: code
-                      extrapolate: true
-                      format: time_series
-                      formatAs: time_series
-                      intervalFactor: 1
-                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, avg(double1) as avg_ms, max(double1) as max_ms
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'replicator' AND blob3 = 'reboot_duration'
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'
-
-                        GROUP BY date
-
-                        ORDER BY date ASC"
-                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, avg(double1) as avg_ms, max(double1) as max_ms
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'replicator' AND blob3 = 'reboot_duration'
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'
-
-                        GROUP BY date
-
-                        ORDER BY date ASC"
-                      round: 0s
-                      showFormattedSQL: false
-                      showHelp: false
-                      skip_comments: true
-                      step: ''
-                    version: v0
-                  refId: A
-            queryOptions: {}
-            transformations: []
-        description: How long replicator reboots take (avg and worst case per interval).
-        id: 20
-        links: []
-        title: Replicator reboot duration
-        vizConfig:
-          group: timeseries
-          kind: VizConfig
-          spec:
-            fieldConfig:
-              defaults:
-                color:
-                  mode: palette-classic
-                custom:
-                  axisBorderShow: false
-                  axisCenteredZero: false
-                  axisColorMode: text
-                  axisLabel: ''
-                  axisPlacement: auto
-                  barAlignment: 0
-                  barWidthFactor: 0.8
-                  drawStyle: line
-                  fillOpacity: 12
-                  gradientMode: opacity
-                  hideFrom:
-                    legend: false
-                    tooltip: false
-                    viz: false
-                  insertNulls: false
-                  lineInterpolation: linear
-                  lineWidth: 1.5
-                  pointSize: 5
-                  scaleDistribution:
-                    type: linear
-                  showPoints: never
-                  showValues: false
-                  spanNulls: false
-                  stacking:
-                    group: A
-                    mode: none
-                  thresholdsStyle:
-                    mode: 'off'
-                min: 0
-                thresholds:
-                  mode: absolute
-                  steps:
-                    - color: green
-                      value: 0
-                unit: ms
-              overrides: []
-            options:
-              annotations:
-                clustering: -1
-                multiLane: false
-              legend:
-                calcs: []
-                displayMode: list
-                enableFacetedFilter: false
-                overflow: ellipsis
-                placement: bottom
-                showLegend: true
-              tooltip:
-                hideZeros: false
-                maxHeight: 600
-                mode: multi
-                sort: desc
-          version: 13.2.0-29854286369
-    panel-21:
-      kind: Panel
-      spec:
-        data:
-          kind: QueryGroup
-          spec:
-            queries:
-              - kind: PanelQuery
-                spec:
-                  hidden: false
-                  query:
-                    datasource:
-                      name: bdgu7tk03irr4e
-                    group: vertamedia-clickhouse-datasource
-                    kind: DataQuery
-                    spec:
-                      dateTimeType: DATETIME
-                      editorMode: code
-                      extrapolate: true
-                      format: time_series
-                      formatAs: time_series
-                      intervalFactor: 1
-                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, blob3 as event, count() as total
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'user_durable_object'
-
-                        AND blob3 IN ('mutation', 'broadcast_message', 'replication_event',
-                        'woken_up_by_replication_event', 'reboot', 'found_snapshot',
-                        'full_data_fetch', 'full_data_fetch_hard')
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'
-
-                        GROUP BY date, event
-
-                        ORDER BY date ASC"
-                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, blob3 as event, count() as total
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'user_durable_object'
-
-                        AND blob3 IN ('mutation', 'broadcast_message', 'replication_event',
-                        'woken_up_by_replication_event', 'reboot', 'found_snapshot',
-                        'full_data_fetch', 'full_data_fetch_hard')
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'
-
-                        GROUP BY date, event
-
-                        ORDER BY date ASC"
-                      round: 0s
-                      showFormattedSQL: false
-                      showHelp: false
-                      skip_comments: true
-                      step: ''
-                    version: v0
-                  refId: A
-            queryOptions: {}
-            transformations: []
-        description: Healthy-path events from TLUserDurableObject / UserDataSyncer.
-        id: 21
-        links: []
-        title: User DO activity
-        vizConfig:
-          group: timeseries
-          kind: VizConfig
-          spec:
-            fieldConfig:
-              defaults:
-                color:
-                  mode: palette-classic
-                custom:
-                  axisBorderShow: false
-                  axisCenteredZero: false
-                  axisColorMode: text
-                  axisLabel: ''
-                  axisPlacement: auto
-                  barAlignment: 0
-                  barWidthFactor: 0.8
-                  drawStyle: line
-                  fillOpacity: 12
-                  gradientMode: opacity
-                  hideFrom:
-                    legend: false
-                    tooltip: false
-                    viz: false
-                  insertNulls: false
-                  lineInterpolation: linear
-                  lineWidth: 1.5
-                  pointSize: 5
-                  scaleDistribution:
-                    type: linear
-                  showPoints: never
-                  showValues: false
-                  spanNulls: false
-                  stacking:
-                    group: A
-                    mode: none
-                  thresholdsStyle:
-                    mode: 'off'
-                thresholds:
-                  mode: absolute
-                  steps:
-                    - color: green
-                      value: 0
-              overrides: []
-            options:
-              annotations:
-                clustering: -1
-                multiLane: false
-              legend:
-                calcs: []
-                displayMode: list
-                enableFacetedFilter: false
-                overflow: ellipsis
-                placement: bottom
-                showLegend: true
-              tooltip:
-                hideZeros: false
-                maxHeight: 600
-                mode: multi
-                sort: desc
-          version: 13.2.0-29854286369
-    panel-22:
-      kind: Panel
-      spec:
-        data:
-          kind: QueryGroup
-          spec:
-            queries:
-              - kind: PanelQuery
-                spec:
-                  hidden: false
-                  query:
-                    datasource:
-                      name: bdgu7tk03irr4e
-                    group: vertamedia-clickhouse-datasource
-                    kind: DataQuery
-                    spec:
-                      dateTimeType: DATETIME
-                      editorMode: code
-                      extrapolate: true
-                      format: time_series
-                      formatAs: time_series
-                      intervalFactor: 1
-                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, blob3 as event, count() as total
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'user_durable_object'
-
-                        AND blob3 IN ('reject_mutation', 'rate_limited', 'connect_retry',
-                        'user_do_abort', 'reboot_error', 'not_enough_history_for_fast_reboot')
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'
-
-                        GROUP BY date, event
-
-                        ORDER BY date ASC"
-                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, blob3 as event, count() as total
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'user_durable_object'
-
-                        AND blob3 IN ('reject_mutation', 'rate_limited', 'connect_retry',
-                        'user_do_abort', 'reboot_error', 'not_enough_history_for_fast_reboot')
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'
-
-                        GROUP BY date, event
-
-                        ORDER BY date ASC"
-                      round: 0s
-                      showFormattedSQL: false
-                      showHelp: false
-                      skip_comments: true
-                      step: ''
-                    version: v0
-                  refId: A
-            queryOptions: {}
-            transformations: []
-        description: 'Failure-path events: rejects, rate limits, retries, aborts,
-          reboot errors, slow-boot fallbacks. Quiet is good.'
-        id: 22
-        links: []
-        title: User DO warning signs
-        vizConfig:
-          group: timeseries
-          kind: VizConfig
-          spec:
-            fieldConfig:
-              defaults:
-                color:
-                  mode: palette-classic
-                custom:
-                  axisBorderShow: false
-                  axisCenteredZero: false
-                  axisColorMode: text
-                  axisLabel: ''
-                  axisPlacement: auto
-                  barAlignment: 0
-                  barWidthFactor: 0.8
-                  drawStyle: bars
-                  fillOpacity: 80
-                  gradientMode: none
-                  hideFrom:
-                    legend: false
-                    tooltip: false
-                    viz: false
-                  insertNulls: false
-                  lineInterpolation: linear
-                  lineWidth: 0
-                  pointSize: 5
-                  scaleDistribution:
-                    type: linear
-                  showPoints: never
-                  showValues: false
-                  spanNulls: false
-                  stacking:
-                    group: A
-                    mode: normal
-                  thresholdsStyle:
-                    mode: 'off'
-                thresholds:
-                  mode: absolute
-                  steps:
-                    - color: green
-                      value: 0
-              overrides: []
-            options:
-              annotations:
-                clustering: -1
-                multiLane: false
-              legend:
-                calcs: []
-                displayMode: list
-                enableFacetedFilter: false
-                overflow: ellipsis
-                placement: bottom
-                showLegend: true
-              tooltip:
-                hideZeros: false
-                maxHeight: 600
-                mode: multi
-                sort: desc
-          version: 13.2.0-29854286369
-    panel-23:
-      kind: Panel
-      spec:
-        data:
-          kind: QueryGroup
-          spec:
-            queries:
-              - kind: PanelQuery
-                spec:
-                  hidden: false
-                  query:
-                    datasource:
-                      name: bdgu7tk03irr4e
-                    group: vertamedia-clickhouse-datasource
-                    kind: DataQuery
-                    spec:
-                      dateTimeType: DATETIME
-                      editorMode: code
-                      extrapolate: true
-                      format: time_series
-                      formatAs: time_series
-                      intervalFactor: 1
-                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, quantileWeighted(0.5, double1, _sample_interval)
-                        as p50, quantileWeighted(0.95, double1, _sample_interval) as
-                        p95, quantileWeighted(0.99, double1, _sample_interval) as p99
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'user_durable_object' AND blob3 = 'cold_start_time'
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'
-
-                        GROUP BY date
-
-                        ORDER BY date ASC"
-                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, quantileWeighted(0.5, double1, _sample_interval)
-                        as p50, quantileWeighted(0.95, double1, _sample_interval) as
-                        p95, quantileWeighted(0.99, double1, _sample_interval) as p99
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'user_durable_object' AND blob3 = 'cold_start_time'
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'
-
-                        GROUP BY date
-
-                        ORDER BY date ASC"
-                      round: 0s
-                      showFormattedSQL: false
-                      showHelp: false
-                      skip_comments: true
-                      step: ''
-                    version: v0
-                  refId: A
-            queryOptions: {}
-            transformations: []
-        description: cold_start_time from first request to ready, weighted by _sample_interval
-          to account for Analytics Engine sampling.
-        id: 23
-        links: []
-        title: User DO cold start percentiles
-        vizConfig:
-          group: timeseries
-          kind: VizConfig
-          spec:
-            fieldConfig:
-              defaults:
-                color:
-                  mode: palette-classic
-                custom:
-                  axisBorderShow: false
-                  axisCenteredZero: false
-                  axisColorMode: text
-                  axisLabel: ''
-                  axisPlacement: auto
-                  barAlignment: 0
-                  barWidthFactor: 0.8
-                  drawStyle: line
-                  fillOpacity: 12
-                  gradientMode: opacity
-                  hideFrom:
-                    legend: false
-                    tooltip: false
-                    viz: false
-                  insertNulls: false
-                  lineInterpolation: linear
-                  lineWidth: 1.5
-                  pointSize: 5
-                  scaleDistribution:
-                    type: linear
-                  showPoints: never
-                  showValues: false
-                  spanNulls: false
-                  stacking:
-                    group: A
-                    mode: none
-                  thresholdsStyle:
-                    mode: 'off'
-                min: 0
-                thresholds:
-                  mode: absolute
-                  steps:
-                    - color: green
-                      value: 0
-                unit: ms
-              overrides: []
-            options:
-              annotations:
-                clustering: -1
-                multiLane: false
-              legend:
-                calcs: []
-                displayMode: list
-                enableFacetedFilter: false
-                overflow: ellipsis
-                placement: bottom
-                showLegend: true
-              tooltip:
-                hideZeros: false
-                maxHeight: 600
-                mode: multi
-                sort: desc
-          version: 13.2.0-29854286369
-    panel-24:
-      kind: Panel
-      spec:
-        data:
-          kind: QueryGroup
-          spec:
-            queries:
-              - kind: PanelQuery
-                spec:
-                  hidden: false
-                  query:
-                    datasource:
-                      name: bdgu7tk03irr4e
-                    group: vertamedia-clickhouse-datasource
-                    kind: DataQuery
-                    spec:
-                      dateTimeType: DATETIME
-                      editorMode: code
-                      extrapolate: true
-                      format: table
-                      formatAs: table
-                      intervalFactor: 1
-                      query: "SELECT blob3 as event, count() as total
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'user_durable_object'
-
-                        AND blob3 NOT IN ('reboot_duration', 'cold_start_time')
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'
-
-                        GROUP BY event
-
-                        ORDER BY total DESC"
-                      rawQuery: "SELECT blob3 as event, count() as total
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'user_durable_object'
-
-                        AND blob3 NOT IN ('reboot_duration', 'cold_start_time')
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'
-
-                        GROUP BY event
-
-                        ORDER BY total DESC"
-                      round: 0s
-                      showFormattedSQL: false
-                      showHelp: false
-                      skip_comments: true
-                      step: ''
-                    version: v0
-                  refId: A
-            queryOptions: {}
-            transformations: []
-        description: Distribution of user durable object events over the selected
-          range (durations excluded).
-        id: 24
-        links: []
-        title: User DO event mix
-        vizConfig:
-          group: piechart
-          kind: VizConfig
-          spec:
-            fieldConfig:
-              defaults:
-                color:
-                  fixedColor: '#73BF69'
-                  mode: palette-classic
-                custom:
-                  hideFrom:
-                    legend: false
-                    tooltip: false
-                    viz: false
-                unit: short
-              overrides: []
-            options:
-              displayLabels:
-                - percent
-              legend:
-                displayMode: list
-                overflow: ellipsis
-                placement: right
-                showLegend: true
-                values: []
-              pieType: donut
-              reduceOptions:
-                calcs:
-                  - lastNotNull
-                fields: ''
-                values: true
-              sort: desc
-              tooltip:
-                hideZeros: false
-                mode: single
-                sort: none
           version: 13.2.0-29854286369
     panel-25:
       kind: Panel
@@ -5095,7 +3624,7 @@ spec:
           spec:
             element:
               kind: ElementReference
-              name: panel-1
+              name: panel-2
             height: 4
             width: 4
             x: 0
@@ -5104,46 +3633,10 @@ spec:
           spec:
             element:
               kind: ElementReference
-              name: panel-2
-            height: 4
-            width: 4
-            x: 4
-            y: 0
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-3
-            height: 4
-            width: 4
-            x: 8
-            y: 0
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-4
-            height: 4
-            width: 4
-            x: 12
-            y: 0
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
               name: panel-5
             height: 4
             width: 4
-            x: 16
-            y: 0
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-6
-            height: 4
-            width: 4
-            x: 20
+            x: 4
             y: 0
         - kind: GridLayoutItem
           spec:
@@ -5230,92 +3723,11 @@ spec:
           spec:
             element:
               kind: ElementReference
-              name: panel-16
-            height: 8
-            width: 8
-            x: 0
-            y: 38
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-17
-            height: 8
-            width: 8
-            x: 8
-            y: 38
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-18
-            height: 8
-            width: 8
-            x: 16
-            y: 38
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-19
-            height: 8
-            width: 12
-            x: 0
-            y: 46
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-20
-            height: 8
-            width: 12
-            x: 12
-            y: 46
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-21
-            height: 9
-            width: 12
-            x: 0
-            y: 54
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-22
-            height: 9
-            width: 12
-            x: 12
-            y: 54
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-23
-            height: 8
-            width: 12
-            x: 0
-            y: 63
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-24
-            height: 8
-            width: 12
-            x: 12
-            y: 63
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
               name: panel-25
             height: 8
             width: 12
             x: 0
-            y: 71
+            y: 38
         - kind: GridLayoutItem
           spec:
             element:
@@ -5324,7 +3736,7 @@ spec:
             height: 8
             width: 12
             x: 12
-            y: 71
+            y: 38
         - kind: GridLayoutItem
           spec:
             element:
@@ -5333,7 +3745,7 @@ spec:
             height: 8
             width: 12
             x: 0
-            y: 79
+            y: 46
         - kind: GridLayoutItem
           spec:
             element:
@@ -5342,7 +3754,7 @@ spec:
             height: 8
             width: 6
             x: 12
-            y: 79
+            y: 46
         - kind: GridLayoutItem
           spec:
             element:
@@ -5351,7 +3763,7 @@ spec:
             height: 8
             width: 6
             x: 18
-            y: 79
+            y: 46
         - kind: GridLayoutItem
           spec:
             element:
@@ -5360,7 +3772,7 @@ spec:
             height: 4
             width: 6
             x: 0
-            y: 87
+            y: 54
         - kind: GridLayoutItem
           spec:
             element:
@@ -5369,7 +3781,7 @@ spec:
             height: 4
             width: 6
             x: 6
-            y: 87
+            y: 54
         - kind: GridLayoutItem
           spec:
             element:
@@ -5378,7 +3790,7 @@ spec:
             height: 4
             width: 6
             x: 12
-            y: 87
+            y: 54
         - kind: GridLayoutItem
           spec:
             element:
@@ -5387,7 +3799,7 @@ spec:
             height: 4
             width: 6
             x: 18
-            y: 87
+            y: 54
         - kind: GridLayoutItem
           spec:
             element:
@@ -5396,7 +3808,7 @@ spec:
             height: 8
             width: 8
             x: 0
-            y: 91
+            y: 58
         - kind: GridLayoutItem
           spec:
             element:
@@ -5405,7 +3817,7 @@ spec:
             height: 8
             width: 8
             x: 8
-            y: 91
+            y: 58
         - kind: GridLayoutItem
           spec:
             element:
@@ -5414,7 +3826,7 @@ spec:
             height: 8
             width: 8
             x: 16
-            y: 91
+            y: 58
         - kind: GridLayoutItem
           spec:
             element:
@@ -5423,7 +3835,7 @@ spec:
             height: 8
             width: 12
             x: 0
-            y: 99
+            y: 66
         - kind: GridLayoutItem
           spec:
             element:
@@ -5432,7 +3844,7 @@ spec:
             height: 8
             width: 12
             x: 12
-            y: 99
+            y: 66
         - kind: GridLayoutItem
           spec:
             element:
@@ -5441,7 +3853,7 @@ spec:
             height: 8
             width: 12
             x: 0
-            y: 107
+            y: 74
         - kind: GridLayoutItem
           spec:
             element:
@@ -5450,7 +3862,7 @@ spec:
             height: 8
             width: 12
             x: 0
-            y: 123
+            y: 90
         - kind: GridLayoutItem
           spec:
             element:
@@ -5459,7 +3871,7 @@ spec:
             height: 8
             width: 12
             x: 0
-            y: 115
+            y: 82
         - kind: GridLayoutItem
           spec:
             element:
@@ -5468,7 +3880,7 @@ spec:
             height: 8
             width: 12
             x: 12
-            y: 123
+            y: 90
         - kind: GridLayoutItem
           spec:
             element:
@@ -5477,7 +3889,7 @@ spec:
             height: 8
             width: 12
             x: 12
-            y: 107
+            y: 74
         - kind: GridLayoutItem
           spec:
             element:
@@ -5486,7 +3898,7 @@ spec:
             height: 8
             width: 12
             x: 12
-            y: 115
+            y: 82
         - kind: GridLayoutItem
           spec:
             element:
@@ -5495,7 +3907,7 @@ spec:
             height: 8
             width: 12
             x: 0
-            y: 131
+            y: 98
   links: []
   liveNow: false
   preload: false
