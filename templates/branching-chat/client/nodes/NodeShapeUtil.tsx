@@ -1,13 +1,10 @@
-import classNames from 'classnames'
 import {
 	Circle2d,
 	Group2d,
 	HTMLContainer,
 	RecordProps,
 	Rectangle2d,
-	resizeBox,
 	ShapeUtil,
-	TLResizeInfo,
 	TLShape,
 	useEditor,
 	useValue,
@@ -101,10 +98,6 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 		})
 	}
 
-	override onResize(shape: any, info: TLResizeInfo<any>) {
-		return resizeBox(shape, info)
-	}
-
 	component(shape: NodeShape) {
 		return <NodeShape shape={shape} />
 	}
@@ -128,7 +121,7 @@ function NodeShape({ shape }: { shape: NodeShape }) {
 
 	return (
 		<HTMLContainer
-			className={classNames('NodeShape')}
+			className="NodeShape"
 			style={{
 				width: getNodeWidthPx(editor, shape),
 				height: getNodeHeightPx(editor, shape),
