@@ -527,6 +527,33 @@ describe('ClientWebSocketAdapter', () => {
 			adapter.close()
 			expect(() => adapter.close()).not.toThrow()
 		})
+
+		it('[CW9][RM5] nothing runs after close: no status change, no reconnect, no further getUri call', async () => {
+			let uriCallCount = 0
+			const testAdapter = new ClientWebSocketAdapter(() => {
+				uriCallCount++
+				return 'ws://localhost:2233'
+			})
+			const onStatusChange = vi.fn()
+			testAdapter.onStatusChange(onStatusChange)
+			await waitFor(() => testAdapter._ws?.readyState === WebSocket.OPEN)
+			const callsBeforeClose = uriCallCount
+			onStatusChange.mockClear()
+
+			testAdapter.close()
+			// let the socket's own close event land, then run out any (leaked) reconnect timer
+			vi.useRealTimers()
+			await sleep(50)
+			vi.useFakeTimers()
+			vi.advanceTimersByTime(INACTIVE_MAX_DELAY)
+			vi.useRealTimers()
+			await sleep(20)
+			vi.useFakeTimers()
+
+			expect(onStatusChange).not.toHaveBeenCalled()
+			expect(uriCallCount).toBe(callsBeforeClose)
+			expect(testAdapter._ws).toBeNull()
+		})
 	})
 
 	describe('orphaned sockets (CW10)', () => {
@@ -774,6 +801,26 @@ describe('ReconnectManager', () => {
 
 		expect(fake.close).toHaveBeenCalled()
 		expect(adapter._ws).toBeNull()
+	})
+
+	it('[RM1][CW1] a rejecting getUri is retried on the backoff instead of stranding the connection', async () => {
+		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		let attempts = 0
+		const testAdapter = new ClientWebSocketAdapter(async () => {
+			attempts++
+			if (attempts < 3) throw new Error('token endpoint unavailable')
+			return 'ws://localhost:2234'
+		})
+		try {
+			// each failure logs and schedules another attempt; the third succeeds
+			await waitFor(() => testAdapter._ws?.readyState === WebSocket.OPEN)
+			expect(attempts).toBe(3)
+			expect(consoleErrorSpy).toHaveBeenCalledTimes(2)
+			expect(testAdapter.connectionStatus).toBe('online')
+		} finally {
+			testAdapter.close()
+			consoleErrorSpy.mockRestore()
+		}
 	})
 
 	it('[RM5] close cancels timers and removes the reconnect event listeners', () => {
