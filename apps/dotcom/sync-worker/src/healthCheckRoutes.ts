@@ -71,7 +71,7 @@ export const healthCheckRoutes = createRouter<Environment>()
 			await db.destroy()
 		}
 	})
-	// Combined postgres health check: db size, changelog size, WAL retention, and replication slots.
+	// Combined postgres health check: db size, changelog size, and replication slots.
 	// Grouped into a single endpoint because updown.io charges per check invocation.
 	// Failures include the sub-check name so alerts remain distinguishable.
 	.get('/health-check/postgres', async (_, env) => {
@@ -109,38 +109,6 @@ export const healthCheckRoutes = createRouter<Environment>()
 				}
 			} catch (_e) {
 				failures.push('changelog-size: query failed')
-			}
-
-			// wal-size
-			try {
-				const thresholdMb = parseFloat(env.HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB ?? '1024')
-				const result = await sql<{
-					slot_name: string
-					retained_bytes: string
-				}>`
-					SELECT slot_name, pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn) AS retained_bytes
-					FROM pg_replication_slots
-				`.execute(db)
-				const overThreshold = result.rows.filter(
-					(row) => parseInt(row.retained_bytes, 10) / (1024 * 1024) > thresholdMb
-				)
-				if (overThreshold.length > 0) {
-					const details = overThreshold
-						.map((r) => {
-							const mb = (parseInt(r.retained_bytes, 10) / (1024 * 1024)).toFixed(0)
-							return `${r.slot_name}: ${mb} MB`
-						})
-						.join(', ')
-					failures.push(`wal-size: ${details} > ${thresholdMb} MB threshold`)
-				} else {
-					const maxMb = result.rows.reduce(
-						(max, r) => Math.max(max, parseInt(r.retained_bytes, 10) / (1024 * 1024)),
-						0
-					)
-					okDetails.push(`wal: ${maxMb.toFixed(0)} MB`)
-				}
-			} catch (_e) {
-				failures.push('wal-size: query failed')
 			}
 
 			// replication-slots

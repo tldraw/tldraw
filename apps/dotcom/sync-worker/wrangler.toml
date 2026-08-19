@@ -149,7 +149,6 @@ workers_dev = false
 [env.staging.vars]
 HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "4"
 HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
-HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "1024"
 MCP_SCREENSHOT_RENDER_ORIGIN = "https://staging.tldraw.com"
 MCP_SERVER_URL = "https://staging.tldraw.com/api/app/mcp"
 MCP_SCREENSHOT_ENABLED = "true"
@@ -162,7 +161,6 @@ workers_dev = false
 [env.production.vars]
 HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "10"
 HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
-HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "2048"
 MCP_SCREENSHOT_RENDER_ORIGIN = "https://www.tldraw.com"
 MCP_SERVER_URL = "https://www.tldraw.com/api/app/mcp"
 MCP_SCREENSHOT_ENABLED = "true"
