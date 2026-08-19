@@ -9,8 +9,11 @@ export interface ParsedNodeColors {
 }
 
 /**
- * Map node id to fill/stroke colors from Mermaid's classDef definitions, using
- * each node's `classes` array. The first class with a fill or stroke wins.
+ * Build a map of node id → parsed fill/stroke colors from Mermaid's classDef definitions.
+ *
+ * Uses the structured data from `db.getClasses()` and each node's `classes`
+ * array. For each node, looks up its applied classDef styles and maps fill and
+ * stroke independently to the nearest tldraw palette color.
  */
 export function buildClassDefColorMap(
 	classDefs: Map<string, { styles: string[] }>,
@@ -104,8 +107,8 @@ export function parseCssStyles(styles: string[] | undefined): ParsedCssOverrides
 }
 
 /**
- * Parse `fill:…` / `stroke:…` from a Mermaid style array (inline `style` directives
- * or classDef styles) into independent tldraw colors.
+ * Parse inline `style nodeId fill:…,stroke:…` directives from a FlowVertex.styles
+ * array and return fill and stroke as independent tldraw colors.
  */
 export function parseNodeInlineColor(styles: string[] | undefined): ParsedNodeColors | undefined {
 	if (!styles || styles.length === 0) return undefined
@@ -165,6 +168,7 @@ const TLDRAW_PALETTE: [TLDefaultColorStyle, number, number, number][] = defaultC
 	}
 )
 
+/** Map an arbitrary Color tuple to the nearest tldraw named color (best-effort). */
 function nearestTldrawColor(rgb: Color): TLDefaultColorStyle {
 	let [r, g, b] = rgb
 

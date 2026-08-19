@@ -152,6 +152,7 @@ function isRenderableEvent(msg: Message): boolean {
 	)
 }
 
+/** Map a Mermaid LINETYPE value to tldraw arrow props. */
 function mapLineTypeToArrowProps(type: number): {
 	dash: TLDefaultDashStyle
 	arrowheadEnd: TLArrowShapeArrowheadStyle
@@ -175,8 +176,8 @@ const FALLBACK_EVENT_SPACING = 80
 const FALLBACK_NOTE_WIDTH = 120
 const FALLBACK_NOTE_HEIGHT = 50
 const NOTE_PADDING = 5
-// tldraw's hand-drawn font is wider than Mermaid's default; estimate a
-// minimum note width from the label so it doesn't wrap.
+// tldraw's hand-drawn font is wider than Mermaid's default, so we estimate
+// the minimum note width from the label text to prevent wrapping.
 const NOTE_CHAR_WIDTH = 11
 const NOTE_TEXT_PADDING = 40
 const FRAGMENT_PADDING_X = 30
@@ -515,8 +516,9 @@ export function sequenceToBlueprint(
 
 	const layouts = layout.actorLayouts
 
-	// A created actor appears at the first signal targeting it; a destroyed
-	// actor disappears at the first signal it sends.
+	// Pre-compute lifecycle event indices for created/destroyed actors.
+	// We scan events for the first signal targeting each created actor
+	// and the first signal from each destroyed actor.
 	const creationEventIndex = new Map<string, number>()
 	const destructionEventIndex = new Map<string, number>()
 	for (let i = 0; i < events.length; i++) {
@@ -531,6 +533,7 @@ export function sequenceToBlueprint(
 		}
 	}
 
+	// Build blueprint
 	const svgNoteRects = layout.noteRects
 	let svgNoteIndex = 0
 	const nodes: MermaidBlueprintNode[] = []
@@ -542,8 +545,9 @@ export function sequenceToBlueprint(
 	const eventStep = (firstBottomY - lifelineTop) / (events.length + 1)
 	const eventY = (eventIndex: number) => lifelineTop + eventStep * (eventIndex + 1)
 
-	// Creation order is z-order: lifelines, activations, fragments, actor boxes, notes/arrows.
+	// --- Z-order: lifelines -> activations -> fragments -> actor boxes -> notes/arrows ---
 
+	// 1. Lifelines (behind everything)
 	for (let i = 0; i < actorCount; i++) {
 		const key = actorKeys[i]
 		const { x, y, w, h, bottomY } = layouts[i]
@@ -559,6 +563,7 @@ export function sequenceToBlueprint(
 		}
 	}
 
+	// 2. Activation boxes (just after lifelines)
 	const activationPad = eventStep * ACTIVATION_PAD_RATIO
 	const sortedSpans = activationSpans
 		.map((span, origIdx) => ({ ...span, origIdx }))
@@ -602,6 +607,7 @@ export function sequenceToBlueprint(
 		})
 	}
 
+	// 3. Fragments
 	for (let fragmentIndex = 0; fragmentIndex < fragments.length; fragmentIndex++) {
 		const fragment = fragments[fragmentIndex]
 		if (fragment.lastEventIndex < fragment.firstEventIndex) continue
@@ -680,6 +686,7 @@ export function sequenceToBlueprint(
 		}
 	}
 
+	// 4. Actor boxes (top and bottom)
 	for (let i = 0; i < actorCount; i++) {
 		const key = actorKeys[i]
 		const actor = actors.get(key)
@@ -708,6 +715,7 @@ export function sequenceToBlueprint(
 		}
 	}
 
+	// 5. Events: signals and notes
 	const pendingCreations = new Set(createdActors.keys())
 	let sequenceNumber = autonumberStart
 

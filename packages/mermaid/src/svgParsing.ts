@@ -25,7 +25,10 @@ export interface ParsedEdge {
 	points: Vec2[]
 }
 
-/** Already-scaled node, cluster, and edge layout for flowchart and state diagram converters. */
+/**
+ * Pre-parsed SVG layout for flowchart and state diagram converters.
+ * Contains already-scaled node, cluster, and edge data.
+ */
 export interface ParsedDiagramLayout {
 	nodes: Map<string, ParsedNode>
 	clusters: Map<string, ParsedCluster>
@@ -50,7 +53,8 @@ export function parseDomId(domId: string, pattern: RegExp): string {
 }
 
 function parseTranslate(attr: string | null): Vec2 {
-	// e.g. transform="translate(123.45, 67.8)", including scientific notation (1.2e+3).
+	// Matches SVG translate transforms, e.g. transform="translate(123.45, 67.8)".
+	// Handles scientific notation (1.2e+3). Group 1 = x offset, group 2 = y offset.
 	const match = attr?.match(/translate\(\s*([\d.e+-]+)[,\s]+([\d.e+-]+)\s*\)/)
 	if (!match) return { x: 0, y: 0 }
 	return { x: parseFloat(match[1]), y: parseFloat(match[2]) }
@@ -79,8 +83,8 @@ function getBBoxSize(el: Element | null): { w: number; h: number } | undefined {
 }
 
 /**
- * Element dimensions via getBBox(), falling back to attribute parsing for
- * non-browser environments (jsdom).
+ * Extract element dimensions from a live SVG element using getBBox(),
+ * falling back to attribute parsing for non-browser environments (jsdom).
  */
 function getNodeDimensions(groupEl: Element): { w: number; h: number } {
 	const bbox = getBBoxSize(groupEl.querySelector('.label-container')) ?? getBBoxSize(groupEl)
@@ -172,8 +176,8 @@ export function parseClustersFromSvg(
 }
 
 /**
- * Parse every SVG edge path in DOM order (matching mermaid's edge list order),
- * keeping parallel edges between the same pair as separate entries.
+ * Parse every SVG edge path in DOM order (matching mermaid's edge list order).
+ * Unlike the old per-pair map, this preserves all parallel edges individually.
  */
 export function parseAllEdgePointsFromSvg(root: Element, parser: EdgeIdParser): ParsedEdge[] {
 	const out: ParsedEdge[] = []
@@ -192,13 +196,15 @@ export function parseAllEdgePointsFromSvg(root: Element, parser: EdgeIdParser): 
 			}
 			out.push({ start: parsed.start, end: parsed.end, points })
 		} catch {
-			// ignore malformed data
+			/* ignore malformed data */
 		}
 	}
 	return out
 }
 
-/** Map of node/cluster id to center point, for matching DB edges to SVG edge paths. */
+/**
+ * Build a map of node/cluster id → center (for flowchart and state diagram edge matching).
+ */
 export function buildNodeCentersFromSvg(
 	nodes: Map<string, ParsedNode>,
 	clusters: Map<string, ParsedCluster>
@@ -249,6 +255,10 @@ export function claimNearestEdgeBend(
 	claimed.add(bestIndex)
 	return getArrowBend(svgEdges[bestIndex])
 }
+
+// ---------------------------------------------------------------------------
+// Layout scaling and bounds
+// ---------------------------------------------------------------------------
 
 export function scaleLayout(
 	nodes: Map<string, ParsedNode>,

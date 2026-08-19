@@ -52,6 +52,10 @@ export function dropDanglingEdges(
 	return edges.filter((e) => nodeIds.has(e.startNodeId) && nodeIds.has(e.endNodeId))
 }
 
+/**
+ * Order items top-down by parent relationship so parents are visited before children.
+ * Works for subgraphs (FlowSubGraph[]) and compound state IDs (string[]).
+ */
 export function orderTopDown<T>(
 	items: T[],
 	getId: (item: T) => string,

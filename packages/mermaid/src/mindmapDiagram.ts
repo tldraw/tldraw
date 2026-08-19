@@ -27,7 +27,10 @@ function getEdgeSizeForLevel(parentLevel: number): TLDefaultSizeStyle {
 	return 's'
 }
 
-/** Already-scaled node positions for the mindmap converter. */
+/**
+ * Pre-parsed SVG layout for mindmap diagram converters.
+ * Contains already-scaled node positions extracted from the SVG.
+ */
 export interface ParsedMindmapLayout {
 	nodes: Map<string, ParsedNode>
 }
@@ -88,6 +91,7 @@ export function mindmapToBlueprint(
 				verticalAlign: 'middle',
 			})
 
+			// Edge from parent to this node
 			if (parent) {
 				edges.push({
 					startNodeId: String(parent.id),

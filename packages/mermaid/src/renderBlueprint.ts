@@ -104,6 +104,7 @@ export function renderBlueprint(
 		if (arrowId) arrowIds.push(arrowId)
 	}
 
+	// Create sub-groups and track which shape IDs are consumed by a group
 	const groupedIds = new Set<TLShapeId>()
 	const topLevelIds: TLShapeId[] = []
 	for (const group of blueprint.groups ?? []) {
@@ -118,6 +119,7 @@ export function renderBlueprint(
 		if (members.length > 0) topLevelIds.push(groupShapes(editor, members) ?? members[0])
 	}
 
+	// Collect ungrouped top-level IDs
 	for (const item of [...nodes.filter((node) => !node.parentId), ...(lines ?? [])]) {
 		const itemShapeId = shapeIds.get(item.id)
 		if (itemShapeId && !groupedIds.has(itemShapeId)) topLevelIds.push(itemShapeId)

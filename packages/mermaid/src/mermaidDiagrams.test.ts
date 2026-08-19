@@ -23,6 +23,10 @@ import {
 import { stateToBlueprint } from './stateDiagram'
 import type { ParsedCluster, ParsedDiagramLayout, ParsedEdge, ParsedNode } from './svgParsing'
 
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
 function node(id: string, cx: number, cy: number, w: number, h: number): ParsedNode {
 	return { id, center: { x: cx, y: cy }, width: w, height: h }
 }
@@ -120,6 +124,10 @@ function expectResolvedRender(
 ) {
 	expect(resolveMermaidNodeRender(diagramKind, node, mapper)).toEqual(expected)
 }
+
+// ---------------------------------------------------------------------------
+// Flowchart tests
+// ---------------------------------------------------------------------------
 
 describe('flowchartToBlueprint', () => {
 	it('maps nodes with correct id, label, default geo render spec, and positions', () => {
@@ -371,6 +379,10 @@ describe('flowchartToBlueprint', () => {
 	})
 })
 
+// ---------------------------------------------------------------------------
+// State diagram tests
+// ---------------------------------------------------------------------------
+
 describe('stateToBlueprint', () => {
 	function stateStmt(id: string, opts: Partial<StateStmt> = {}): [string, StateStmt] {
 		return [
@@ -553,6 +565,10 @@ describe('stateToBlueprint', () => {
 		expectNodeGeo(findNode(bp, 'root_end2')!, 'ellipse', 'state')
 	})
 })
+
+// ---------------------------------------------------------------------------
+// Sequence diagram tests
+// ---------------------------------------------------------------------------
 
 describe('sequenceToBlueprint', () => {
 	function actor(key: string, opts: Partial<Actor> = {}): [string, Actor] {
@@ -826,6 +842,10 @@ describe('sequenceToBlueprint', () => {
 	})
 })
 
+// ---------------------------------------------------------------------------
+// countSequenceEvents tests
+// ---------------------------------------------------------------------------
+
 describe('countSequenceEvents', () => {
 	it('counts only signal and note messages', () => {
 		const messages = [
@@ -853,6 +873,10 @@ describe('countSequenceEvents', () => {
 		expect(countSequenceEvents(messages)).toBe(1)
 	})
 })
+
+// ---------------------------------------------------------------------------
+// Mindmap tests
+// ---------------------------------------------------------------------------
 
 function mindmapNode(
 	id: number,

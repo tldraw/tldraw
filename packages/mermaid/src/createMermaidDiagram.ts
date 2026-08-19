@@ -55,9 +55,11 @@ export async function createMermaidDiagram(
 	text: string,
 	options: MermaidDiagramOptions = {}
 ): Promise<void> {
-	// Lazy dynamic import: mermaid is large and ESM-only. A static import would
-	// compile to require(<esm>) in CommonJS and throw ERR_REQUIRE_ESM on
-	// Node <20.19, Jest, and ts-node.
+	// load mermaid lazily: it's a large, ESM-only dependency only needed when a
+	// diagram is actually created. a dynamic import() works from CommonJS (unlike
+	// a static import, which compiles to require(<esm>) and throws
+	// ERR_REQUIRE_ESM on Node <20.19, Jest, and ts-node) and avoids pulling
+	// mermaid in when @tldraw/mermaid is merely imported.
 	const mermaid = (await import('mermaid')).default
 
 	mermaid.initialize({
@@ -88,9 +90,10 @@ export async function createMermaidDiagram(
 	try {
 		const parsedSvg = (await mermaid.render(`mermaid-${nextMermaidId++}`, text, offscreen)).svg
 
-		// Reuse the SVG mermaid.render() mounted into the offscreen container so
-		// getBBox() works: state diagrams lack explicit dimension attributes and
-		// rely on live layout.
+		// Reuse the live SVG that mermaid.render() already mounted into the
+		// offscreen container.  This avoids a second DOM mount and ensures
+		// getBBox() works for every diagram type (state diagrams in particular
+		// lack explicit dimension attributes and rely on live layout).
 		let liveSvg = offscreen.querySelector('svg')
 
 		if (!liveSvg) {

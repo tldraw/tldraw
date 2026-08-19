@@ -85,6 +85,7 @@ export function flowchartToBlueprint(
 	const nodes: MermaidBlueprintNode[] = []
 	const blueprintEdges: MermaidBlueprintEdge[] = []
 
+	// Frames for subgraphs
 	for (const subGraph of orderTopDown(
 		allSubGraphs,
 		(subGraph) => subGraph.id,
@@ -111,6 +112,7 @@ export function flowchartToBlueprint(
 		})
 	}
 
+	// Node shapes
 	for (const [id, vertex] of vertices) {
 		const svgNode = svgNodes.get(id)
 		if (!svgNode) continue
@@ -136,6 +138,7 @@ export function flowchartToBlueprint(
 		})
 	}
 
+	// Edges: match DB edges to SVG edges by proximity, compute bends
 	const claimed = new Set<number>()
 	for (const edge of edges) {
 		const bend = claimNearestEdgeBend(

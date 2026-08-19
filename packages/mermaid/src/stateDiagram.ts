@@ -91,8 +91,10 @@ function flattenStateHierarchy(
 
 			for (const stmt of state.doc) {
 				if (typeof stmt === 'string') {
-					// Mermaid emits raw strings for stereotyped declarations like
-					// `state H <<history>>`; look the id up top-level so it gets parentage.
+					// Mermaid emits raw strings for stereotyped state declarations
+					// like `state H <<history>>` — the ID and stereotype are stored
+					// as separate plain string entries.  Look up the state in the
+					// top-level map so it gets proper parentage.
 					const topState = topLevelStates.get(stmt)
 					if (topState && !childStates.has(stmt)) childStates.set(stmt, topState)
 				} else if (stmt.stmt === 'state' || stmt.stmt === 'default') {
@@ -104,8 +106,9 @@ function flattenStateHierarchy(
 						state2: StateStmt
 						description?: string
 					}
-					// Relation state refs are shallow objects without `doc`; don't let
-					// them overwrite a compound-state entry that carries its nested doc.
+					// Relation state refs are shallow objects without `doc`. Only add
+					// them when the state hasn't been registered yet so we don't
+					// overwrite a compound-state entry that carries its nested doc.
 					for (const ref of [relation.state1, relation.state2]) {
 						if (!childStates.has(ref.id)) childStates.set(ref.id, ref)
 					}
@@ -248,7 +251,7 @@ export function stateToBlueprint(
 		relations
 	)
 
-	// Notes attached to states become synthetic leaf nodes joined by a dotted edge.
+	// Collect notes attached to states and add them as synthetic leaf nodes + edges.
 	for (const [id, state] of states) {
 		const note = (state as StateStmt & { note?: { position?: string; text: string } }).note
 		if (!note) continue
@@ -275,10 +278,11 @@ export function stateToBlueprint(
 	)
 	const frameBounds = new Map<string, Rect>()
 
-	// SVG cluster bounds are authoritative: Mermaid's layout already accounts
-	// for label width, padding, and nodes like <<history>> rendered outside the
-	// visual cluster. Fall back to child bounds only when no cluster exists;
-	// children are visited first (bottom-up) so nested frames are already sized.
+	// Use SVG cluster bounds as the authoritative frame size. Mermaid's
+	// layout already accounts for label width, padding, and special nodes
+	// like <<history>> that are rendered outside the visual cluster.
+	// Fall back to child-based computation only when no SVG cluster exists.
+	// Children are visited first (bottom-up) so nested frames are already sized.
 	for (const compoundId of [...compoundsTopDown].reverse()) {
 		const cluster = svgClusters.get(compoundId)
 		if (cluster) {
