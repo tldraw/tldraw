@@ -273,13 +273,16 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				})
 			)
 		}
+		// The default logger belongs to both layers: TLSyncRoom is where authorizer throws and
+		// vetoes are logged, and a host that passes no `log` would otherwise never see them.
+		this.log = 'log' in opts ? opts.log : { error: console.error }
 		this.room = new TLSyncRoom<R, SessionMeta>({
 			onPresenceChange: opts.onPresenceChange,
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
 			authorizeRecord: opts.authorizeRecord,
 			schema: opts.schema ?? (createTLSchema() as any),
-			log: opts.log,
+			log: this.log,
 			storage,
 			clientTimeout: opts.clientTimeout,
 		})
@@ -295,7 +298,6 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				})
 			}
 		})
-		this.log = 'log' in opts ? opts.log : { error: console.error }
 	}
 
 	/**
