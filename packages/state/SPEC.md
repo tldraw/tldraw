@@ -158,6 +158,7 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 - **AS1** `add` returns true and inserts when the element is absent; returns false and does nothing when present. `remove` returns true and deletes when present; returns false otherwise.
 - **AS2** `visit` and `[Symbol.iterator]` yield each element exactly once; `has`, `size`, and `isEmpty` are consistent with the elements yielded.
 - **AS3** The implementation stores up to `ARRAY_SIZE_THRESHOLD` (8) elements in an array, promoting to a `Set` on overflow. Behavior is identical in both modes and across the promotion boundary, including after interleaved adds, removes, and clears.
+- **AS4** A fresh ArraySet allocates no backing storage until the first `add`. Every query on it (`has`, `size`, `isEmpty`, `visit`, iteration) answers as empty, and `remove` and `clear` are no-ops that leave it usable.
 
 ## 17. HistoryBuffer — internal (HB)
 
