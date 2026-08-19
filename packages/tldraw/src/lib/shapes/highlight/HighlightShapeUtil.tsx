@@ -9,7 +9,6 @@ import {
 	TLHighlightShape,
 	TLHighlightShapeProps,
 	TLResizeInfo,
-	VecLike,
 	b64Vecs,
 	debugFlags,
 	getColorValue,
@@ -26,7 +25,7 @@ import { getHighlightFreehandSettings, getPointsFromDrawSegments } from '../draw
 import { FONT_SIZES } from '../shared/default-shape-constants'
 import { getStroke } from '../shared/freehand/getStroke'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
-import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
+import { getSvgDotPath, getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { getDisplayValues } from '../shared/getDisplayValues'
 import { interpolateSegments } from '../shared/interpolate-props'
@@ -177,7 +176,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 
 		const strokePath =
 			strokePoints.length < 2
-				? getDot(allPointsFromSegments[0], sw / 2)
+				? getSvgDotPath(allPointsFromSegments[0], sw / 2)
 				: getSvgPathFromStrokePoints(strokePoints, false)
 
 		return new Path2D(strokePath)
@@ -245,12 +244,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 }
 
-function getDot(point: VecLike, r: number) {
-	return `M ${point.x} ${point.y} m -${r}, 0 a ${r},${r} 0 1,0 ${r * 2},0 a ${r},${r} 0 1,0 -${
-		r * 2
-	},0`
-}
-
 function getHighlightStrokePoints(
 	shape: TLHighlightShape,
 	strokeWidth: number,
@@ -307,7 +300,7 @@ function HighlightRenderer({
 	const solidStrokePath =
 		strokePoints.length > 1
 			? getSvgPathFromStrokePoints(strokePoints, false)
-			: getDot(allPointsFromSegments[0], 0.1)
+			: getSvgDotPath(allPointsFromSegments[0], 0.1)
 
 	return (
 		<path

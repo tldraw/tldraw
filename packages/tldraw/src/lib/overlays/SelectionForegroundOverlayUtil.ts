@@ -682,9 +682,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 
 	private _localRectToPolygon(x: number, y: number, w: number, h: number, transform: Mat) {
 		return new Polygon2d({
-			points: [new Vec(x, y), new Vec(x + w, y), new Vec(x + w, y + h), new Vec(x, y + h)].map(
-				(p) => Mat.applyToPoint(transform, p)
-			),
+			points: Mat.applyToPoints(transform, new Box(x, y, w, h).corners),
 			isFilled: true,
 		})
 	}

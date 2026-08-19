@@ -10,6 +10,7 @@ import {
 	shortAngleDist,
 	snapAngle,
 } from '@tldraw/editor'
+import { returnToInteractionEnd } from '../selectHelpers'
 import { CursorTypeMap } from './PointingResizeHandle'
 
 const ONE_DEGREE = Math.PI / 180
@@ -111,15 +112,7 @@ export class Rotating extends StateNode {
 		})
 
 		this.editor.bailToMark(this.markId)
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				this.editor.setCurrentTool(onInteractionEnd, this.info)
-			} else {
-				onInteractionEnd()
-			}
-			return
-		}
+		if (returnToInteractionEnd(this.editor, this.info.onInteractionEnd, this.info)) return
 		this.parent.transition('idle', this.info)
 	}
 
@@ -134,15 +127,7 @@ export class Rotating extends StateNode {
 			this.editor,
 			this.snapshot.shapeSnapshots.map((s) => s.shape.id)
 		)
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				this.editor.setCurrentTool(onInteractionEnd, this.info)
-			} else {
-				onInteractionEnd()
-			}
-			return
-		}
+		if (returnToInteractionEnd(this.editor, this.info.onInteractionEnd, this.info)) return
 		this.parent.transition('idle', this.info)
 	}
 

@@ -22,6 +22,7 @@ import {
 import type { NoteShapeUtil } from '../../../shapes/note/NoteShapeUtil'
 import { getDisplayValues } from '../../../shapes/shared/getDisplayValues'
 import { DragAndDropManager } from '../DragAndDropManager'
+import { returnToInteractionEnd } from '../selectHelpers'
 
 export type TranslatingInfo = TLPointerEventInfo & {
 	target: 'shape'
@@ -193,18 +194,15 @@ export class Translating extends StateNode {
 			this.snapshot.movingShapes.map((s) => s.id)
 		)
 
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				if (this.editor.getInstanceState().isToolLocked) {
-					this.editor.setCurrentTool(onInteractionEnd)
-					return
-				}
-			} else {
-				onInteractionEnd()
-				return
-			}
-		}
+		if (
+			returnToInteractionEnd(
+				this.editor,
+				this.info.onInteractionEnd,
+				{},
+				{ onlyIfToolLocked: true }
+			)
+		)
+			return
 
 		if (this.isCreating) {
 			this.onCreate(this.editor.getOnlySelectedShape())
@@ -226,15 +224,7 @@ export class Translating extends StateNode {
 		})
 
 		this.reset()
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				this.editor.setCurrentTool(onInteractionEnd)
-			} else {
-				onInteractionEnd()
-			}
-			return
-		}
+		if (returnToInteractionEnd(this.editor, this.info.onInteractionEnd)) return
 		this.parent.transition('idle', this.info)
 	}
 

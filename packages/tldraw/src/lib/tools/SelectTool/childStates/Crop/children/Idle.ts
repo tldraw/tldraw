@@ -1,5 +1,4 @@
 import {
-	Editor,
 	ShapeWithCrop,
 	StateNode,
 	TLClickEventInfo,
@@ -9,6 +8,7 @@ import {
 } from '@tldraw/editor'
 import { getHitShapeOnCanvasPointerDown } from '../../../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { updateHoveredOverlayId } from '../../../../selection-logic/updateHoveredOverlayId'
+import { getHitSelectionHandleOverlay } from '../../../selectHelpers'
 import { getTranslateCroppedImageChange } from './crop_helpers'
 
 export class Idle extends StateNode {
@@ -54,7 +54,7 @@ export class Idle extends StateNode {
 					this.onPointerDown({
 						...info,
 						target: 'selection',
-						handle: hitOverlay.props.handle as any,
+						handle: hitOverlay.props.handle,
 					})
 					return
 				}
@@ -148,7 +148,7 @@ export class Idle extends StateNode {
 				this.onDoubleClick({
 					...info,
 					target: 'selection',
-					handle: hitOverlay.props.handle as any,
+					handle: hitOverlay.props.handle,
 				})
 				return
 			}
@@ -224,21 +224,4 @@ export class Idle extends StateNode {
 			this.editor.updateShapes([partial])
 		}
 	}
-}
-
-function getHitSelectionHandleOverlay(editor: Editor) {
-	const hitOverlay = editor.overlays.getOverlayAtPoint(
-		editor.inputs.getCurrentPagePoint(),
-		editor.getHitTestMargin()
-	)
-	if (!hitOverlay) return undefined
-	const overlayType = hitOverlay.props.overlayType as string | undefined
-	if (
-		overlayType === 'resize_handle' ||
-		overlayType === 'rotate_handle' ||
-		overlayType === 'mobile_rotate'
-	) {
-		return hitOverlay
-	}
-	return undefined
 }

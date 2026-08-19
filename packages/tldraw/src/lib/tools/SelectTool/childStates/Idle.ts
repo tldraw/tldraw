@@ -21,7 +21,11 @@ import {
 	cancelUpdateHoveredShapeId,
 	updateHoveredShapeId,
 } from '../../selection-logic/updateHoveredShapeId'
-import { hasRichText, startEditingShapeWithRichText } from '../selectHelpers'
+import {
+	hasRichText,
+	isSelectionHandleOverlay,
+	startEditingShapeWithRichText,
+} from '../selectHelpers'
 
 const SKIPPED_KEYS_FOR_AUTO_EDITING = [
 	'Delete',
@@ -120,8 +124,6 @@ export class Idle extends StateNode {
 					if (result !== false) return
 				}
 
-				const overlayType = overlay.props.overlayType as string | undefined
-
 				// Check overlay type to determine how to route the event
 				if (overlay.type === 'shape_handle') {
 					// Re-dispatch as a handle event
@@ -134,25 +136,10 @@ export class Idle extends StateNode {
 							handle: overlay.props.handle as any,
 						})
 					}
+				} else if (isSelectionHandleOverlay(overlay)) {
+					this.onPointerDown({ ...info, target: 'selection', handle: overlay.props.handle })
 				} else {
-					switch (overlayType) {
-						case 'rotate_handle':
-						case 'mobile_rotate':
-						case 'resize_handle': {
-							this.onPointerDown({
-								...info,
-								target: 'selection',
-								handle: overlay.props.handle as any,
-							})
-							break
-						}
-						default: {
-							this.onPointerDown({
-								...info,
-								target: 'selection',
-							})
-						}
-					}
+					this.onPointerDown({ ...info, target: 'selection' })
 				}
 				break
 			}
@@ -266,17 +253,8 @@ export class Idle extends StateNode {
 							return
 						}
 					}
-					const overlayType = hitOverlay.props.overlayType as string | undefined
-					if (
-						overlayType === 'resize_handle' ||
-						overlayType === 'rotate_handle' ||
-						overlayType === 'mobile_rotate'
-					) {
-						this.onDoubleClick({
-							...info,
-							target: 'selection',
-							handle: hitOverlay.props.handle as any,
-						})
+					if (isSelectionHandleOverlay(hitOverlay)) {
+						this.onDoubleClick({ ...info, target: 'selection', handle: hitOverlay.props.handle })
 						return
 					}
 				}

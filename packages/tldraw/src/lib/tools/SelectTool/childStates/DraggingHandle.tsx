@@ -17,6 +17,7 @@ import {
 import { ArrowShapeUtil } from '../../../shapes/arrow/ArrowShapeUtil'
 import { clearArrowTargetState } from '../../../shapes/arrow/arrowTargetState'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
+import { returnToInteractionEnd } from '../selectHelpers'
 
 export type DraggingHandleInfo = TLPointerEventInfo & {
 	shape: TLArrowShape | TLLineShape
@@ -203,19 +204,15 @@ export class DraggingHandle extends StateNode {
 			}
 		}
 
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				if (this.editor.getInstanceState().isToolLocked) {
-					// Return to the tool that was active before this one but only if tool lock is turned on!
-					this.editor.setCurrentTool(onInteractionEnd, { shapeId: this.shapeId })
-					return
-				}
-			} else {
-				onInteractionEnd()
-				return
-			}
-		}
+		if (
+			returnToInteractionEnd(
+				this.editor,
+				this.info.onInteractionEnd,
+				{ shapeId: this.shapeId },
+				{ onlyIfToolLocked: true }
+			)
+		)
+			return
 
 		this.parent.transition('idle')
 	}
@@ -236,16 +233,8 @@ export class DraggingHandle extends StateNode {
 		this.editor.bailToMark(this.markId)
 		this.editor.snaps.clearIndicators()
 
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				// Return to the tool that was active before this one, whether tool lock is turned on or not!
-				this.editor.setCurrentTool(onInteractionEnd, { shapeId: this.shapeId })
-			} else {
-				onInteractionEnd()
-			}
+		if (returnToInteractionEnd(this.editor, this.info.onInteractionEnd, { shapeId: this.shapeId }))
 			return
-		}
 
 		this.parent.transition('idle')
 	}

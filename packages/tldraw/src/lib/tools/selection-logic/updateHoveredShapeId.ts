@@ -1,4 +1,5 @@
 import { Editor, TLShapeId, throttle } from '@tldraw/editor'
+import { getShapeToSelectForHit } from './selectOnCanvasPointerUp'
 
 /*
 Hit-testing is expensive in large documents, so hover updates pause while the
@@ -22,15 +23,7 @@ function getShapeToHover(editor: Editor): TLShapeId | null {
 
 	if (!hitShape) return null
 
-	const outermostShape = editor.getOutermostSelectableShape(hitShape)
-	if (
-		outermostShape === hitShape ||
-		outermostShape.id === editor.getFocusedGroupId() ||
-		editor.getSelectedShapeIds().includes(outermostShape.id)
-	) {
-		return hitShape.id
-	}
-	return outermostShape.id
+	return getShapeToSelectForHit(editor, hitShape).id
 }
 
 function _updateHoveredShapeId(editor: Editor) {

@@ -11,7 +11,7 @@ import {
 	getArrowLabelDefaultPosition,
 } from '../../../shapes/arrow/arrowLabel'
 import { ArrowShapeUtil } from '../../../shapes/arrow/ArrowShapeUtil'
-import { startEditingShapeWithRichText } from '../selectHelpers'
+import { returnToInteractionEnd, startEditingShapeWithRichText } from '../selectHelpers'
 
 type PointingArrowLabelInfo = TLPointerEventInfo & {
 	shape: TLArrowShape
@@ -142,15 +142,7 @@ export class PointingArrowLabel extends StateNode {
 	}
 
 	private complete() {
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				this.editor.setCurrentTool(onInteractionEnd, {})
-			} else {
-				onInteractionEnd()
-			}
-			return
-		}
+		if (returnToInteractionEnd(this.editor, this.info.onInteractionEnd)) return
 		this.parent.transition('idle')
 	}
 

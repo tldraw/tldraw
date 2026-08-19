@@ -5,6 +5,7 @@ import {
 	TLPointerEventInfo,
 	TLSelectionHandle,
 } from '@tldraw/editor'
+import { returnToInteractionEnd } from '../selectHelpers'
 
 export const CursorTypeMap: Record<TLSelectionHandle, TLCursorType> = {
 	bottom: 'ns-resize',
@@ -92,15 +93,7 @@ export class PointingResizeHandle extends StateNode {
 	}
 
 	private exitToPreviousTool() {
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				this.editor.setCurrentTool(onInteractionEnd, {})
-			} else {
-				onInteractionEnd()
-			}
-			return
-		}
+		if (returnToInteractionEnd(this.editor, this.info.onInteractionEnd)) return
 		this.parent.transition('idle')
 	}
 }

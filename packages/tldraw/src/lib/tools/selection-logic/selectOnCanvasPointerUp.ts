@@ -1,4 +1,20 @@
-import { Editor, TLClickEventInfo, TLPointerEventInfo, isShapeId } from '@tldraw/editor'
+import { Editor, TLClickEventInfo, TLPointerEventInfo, TLShape, isShapeId } from '@tldraw/editor'
+
+/**
+ * A shape inside a group is only selectable (and hoverable) directly when its group is the
+ * focused group or already selected; otherwise the interaction targets the group.
+ */
+export function getShapeToSelectForHit(editor: Editor, hitShape: TLShape): TLShape {
+	const outermostSelectableShape = editor.getOutermostSelectableShape(hitShape)
+	if (
+		outermostSelectableShape === hitShape ||
+		outermostSelectableShape.id === editor.getFocusedGroupId() ||
+		editor.getSelectedShapeIds().includes(outermostSelectableShape.id)
+	) {
+		return hitShape
+	}
+	return outermostSelectableShape
+}
 
 export function selectOnCanvasPointerUp(
 	editor: Editor,
@@ -54,14 +70,7 @@ export function selectOnCanvasPointerUp(
 		return
 	}
 
-	// A shape inside a group is only selectable directly when its group is the
-	// focused group or already selected; otherwise the click selects the group.
-	const shapeToSelect =
-		outermostSelectableShape === hitShape ||
-		outermostSelectableShape.id === editor.getFocusedGroupId() ||
-		selectedShapeIds.includes(outermostSelectableShape.id)
-			? hitShape
-			: outermostSelectableShape
+	const shapeToSelect = getShapeToSelectForHit(editor, hitShape)
 
 	if (!selectedShapeIds.includes(shapeToSelect.id)) {
 		editor.markHistoryStoppingPoint('selecting shape')

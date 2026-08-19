@@ -1,4 +1,5 @@
 import { RotateCorner, StateNode, TLClickEventInfo, TLPointerEventInfo } from '@tldraw/editor'
+import { returnToInteractionEnd } from '../selectHelpers'
 import { CursorTypeMap } from './PointingResizeHandle'
 
 type PointingRotateHandleInfo = Extract<TLPointerEventInfo, { target: 'selection' }> & {
@@ -72,16 +73,7 @@ export class PointingRotateHandle extends StateNode {
 	}
 
 	private exitToPreviousTool() {
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				// Return to the tool that was active before this one, whether tool lock is turned on or not!
-				this.editor.setCurrentTool(onInteractionEnd, {})
-			} else {
-				onInteractionEnd()
-			}
-			return
-		}
+		if (returnToInteractionEnd(this.editor, this.info.onInteractionEnd)) return
 		this.parent.transition('idle')
 	}
 }

@@ -17,7 +17,7 @@ export const BOOKMARK_HEIGHT = 320
 export const BOOKMARK_JUST_URL_HEIGHT = 46
 const SHORT_BOOKMARK_HEIGHT = 101
 
-function getBookmarkAssetIdForUrl(url: string): TLAssetId {
+export function getBookmarkAssetIdForUrl(url: string): TLAssetId {
 	return AssetRecordType.createId(getHashForString(url))
 }
 

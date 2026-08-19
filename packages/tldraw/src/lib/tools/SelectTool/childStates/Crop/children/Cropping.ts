@@ -11,6 +11,7 @@ import {
 	rotateSelectionHandle,
 } from '@tldraw/editor'
 import { getCropBox, getDefaultCrop, getUncroppedSize } from '../../../../../shapes/shared/crop'
+import { returnToInteractionEnd } from '../../../selectHelpers'
 import { CursorTypeMap } from '../../PointingResizeHandle'
 
 type Snapshot = ReturnType<Cropping['createSnapshot']>
@@ -203,17 +204,9 @@ export class Cropping extends StateNode {
 	}
 
 	private exitToPreviousTool() {
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				this.editor.setCurrentTool(onInteractionEnd, this.info)
-			} else {
-				onInteractionEnd()
-			}
-		} else {
-			this.editor.setCroppingShape(null)
-			this.editor.setCurrentTool('select.idle')
-		}
+		if (returnToInteractionEnd(this.editor, this.info.onInteractionEnd, this.info)) return
+		this.editor.setCroppingShape(null)
+		this.editor.setCurrentTool('select.idle')
 	}
 
 	private createSnapshot() {

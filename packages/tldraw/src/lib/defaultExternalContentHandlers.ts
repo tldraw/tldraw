@@ -23,12 +23,11 @@ import {
 	createShapeId,
 	fetch,
 	getHashForBuffer,
-	getHashForString,
 	maybeSnapToGrid,
 	toRichText,
 } from '@tldraw/editor'
 import { EmbedDefinition } from './defaultEmbedDefinitions'
-import { createBookmarkFromUrl } from './shapes/bookmark/bookmarks'
+import { createBookmarkFromUrl, getBookmarkAssetIdForUrl } from './shapes/bookmark/bookmarks'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { getCroppedImageDataForReplacedImage } from './shapes/shared/crop'
 import { FONT_SIZES, TEXT_PROPS, getFontFamily } from './shapes/shared/default-shape-constants'
@@ -256,7 +255,7 @@ export async function defaultHandleExternalUrlAsset(
 	}
 
 	return {
-		id: AssetRecordType.createId(getHashForString(url)),
+		id: getBookmarkAssetIdForUrl(url),
 		typeName: 'asset',
 		type: 'bookmark',
 		props: {

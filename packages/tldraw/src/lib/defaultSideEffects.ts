@@ -69,7 +69,7 @@ export function registerDefaultSideEffects(editor: Editor) {
 							editor.setCurrentTool('select.editing_shape', {
 								target: 'shape',
 								shape,
-								...(isCreatingTextWhileToolLocked && { isCreatingTextWhileToolLocked: true }),
+								isCreatingTextWhileToolLocked,
 							})
 						}
 					} else if (prev.editingShapeId && !next.editingShapeId) {

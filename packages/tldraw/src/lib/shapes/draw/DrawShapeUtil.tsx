@@ -25,7 +25,7 @@ import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
-import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
+import { getSvgDotPath, getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { svgInk } from '../shared/freehand/svgInk'
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { interpolateSegments } from '../shared/interpolate-props'
@@ -260,10 +260,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 }
 
 function getDot(point: VecLike, sw: number) {
-	const r = (sw + 1) * 0.5
-	return `M ${point.x} ${point.y} m -${r}, 0 a ${r},${r} 0 1,0 ${r * 2},0 a ${r},${r} 0 1,0 -${
-		r * 2
-	},0`
+	return getSvgDotPath(point, (sw + 1) * 0.5)
 }
 
 function getIsDot(shape: TLDrawShape) {

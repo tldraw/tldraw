@@ -21,6 +21,7 @@ import {
 } from '@tldraw/editor'
 import { getEnclosedShapeIds } from '../../../shapes/frame/FrameShapeTool'
 import { batchMeasureGeoLabels, setBatchLabelSizeCache } from '../../../shapes/geo/GeoShapeUtil'
+import { returnToInteractionEnd } from '../selectHelpers'
 
 export type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'
@@ -135,15 +136,7 @@ export class Resizing extends StateNode {
 
 		this.editor.bailToMark(this.markId)
 
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				this.editor.setCurrentTool(onInteractionEnd, {})
-			} else {
-				onInteractionEnd()
-			}
-			return
-		}
+		if (returnToInteractionEnd(this.editor, this.info.onInteractionEnd)) return
 		this.parent.transition('idle')
 	}
 
@@ -157,18 +150,15 @@ export class Resizing extends StateNode {
 			return
 		}
 
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				if (this.editor.getInstanceState().isToolLocked) {
-					this.editor.setCurrentTool(onInteractionEnd, {})
-					return
-				}
-			} else {
-				onInteractionEnd()
-				return
-			}
-		}
+		if (
+			returnToInteractionEnd(
+				this.editor,
+				this.info.onInteractionEnd,
+				{},
+				{ onlyIfToolLocked: true }
+			)
+		)
+			return
 
 		this.parent.transition('idle')
 	}

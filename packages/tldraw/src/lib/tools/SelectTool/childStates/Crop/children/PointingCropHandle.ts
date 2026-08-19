@@ -1,4 +1,5 @@
 import { StateNode, TLClickEventInfo, TLPointerEventInfo } from '@tldraw/editor'
+import { returnToInteractionEnd } from '../../../selectHelpers'
 import { CursorTypeMap } from '../../PointingResizeHandle'
 
 type TLPointingCropHandleInfo = TLPointerEventInfo & {
@@ -75,15 +76,7 @@ export class PointingCropHandle extends StateNode {
 	}
 
 	private exitToPreviousTool() {
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				this.editor.setCurrentTool(onInteractionEnd, this.info)
-			} else {
-				onInteractionEnd()
-			}
-			return
-		}
+		if (returnToInteractionEnd(this.editor, this.info.onInteractionEnd, this.info)) return
 		this.editor.setCroppingShape(null)
 		this.editor.setCurrentTool('select.idle')
 	}
