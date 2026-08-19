@@ -17,6 +17,7 @@ import { registerTools } from './register-tools'
 import { loadEditorApiSpecFromAssets, loadMethodMapFromAssets } from './shared/generated-data'
 import { PendingRequests } from './shared/pending-requests'
 import {
+	IDLE_TTL_MS,
 	MAX_CHECKPOINTS,
 	MCP_SERVER_DESCRIPTION,
 	MCP_SERVER_INSTRUCTIONS,
@@ -240,6 +241,19 @@ export class TldrawMCP extends McpAgent<Env> {
 			getClientHostName: () => this.clientHostName,
 			pendingRequests: this.pendingRequests,
 		})
+
+		// Every DO that initializes gets its own expiry, including sessions that
+		// never save and junk DOs minted by stale-session probes. `idempotent`
+		// dedups on callback+payload across cold starts; without it the SDK warns
+		// on every wake and stacks rows. Failure here must not fail init — the
+		// admin prune endpoint is the backstop.
+		try {
+			await this.schedule(new Date(Date.now() + IDLE_TTL_MS), 'expireIfIdle', null, {
+				idempotent: true,
+			})
+		} catch (err) {
+			this.logger.info('Failed to arm idle expiry', { err: String(err) })
+		}
 	}
 
 	// --- Checkpoint helpers ---
@@ -327,6 +341,25 @@ export class TldrawMCP extends McpAgent<Env> {
 			await this.ctx.storage.setAlarm(Date.now())
 		}
 		return { id, idleMs, checkpointCount: stats.checkpointCount, bytes, action }
+	}
+
+	/**
+	 * Scheduler callback. Re-arms WITHOUT `idempotent`: the SDK deletes the
+	 * executing schedule row only after this returns, so a deduped re-arm would
+	 * match that row, skip, and then lose it — leaving the DO without any future
+	 * expiry. On the condemned branch we return without re-arming; the marker
+	 * already owns the next alarm.
+	 */
+	async expireIfIdle(): Promise<void> {
+		const result = await this.pruneIfIdle(IDLE_TTL_MS, false)
+		if (result.action !== 'kept') return
+		const { lastActivity } = this.readPruneStats()
+		const next = (lastActivity ?? Date.now()) + IDLE_TTL_MS
+		try {
+			await this.schedule(new Date(Math.max(next, Date.now() + 60_000)), 'expireIfIdle', null)
+		} catch (err) {
+			this.logger.info('Failed to re-arm idle expiry', { err: String(err) })
+		}
 	}
 }
 
