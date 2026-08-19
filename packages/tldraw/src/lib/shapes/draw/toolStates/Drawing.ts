@@ -233,7 +233,13 @@ export class Drawing extends StateNode {
 		if (this.initialShape) {
 			const shape = this.editor.getShape<DrawableShape>(this.initialShape.id)
 
-			if (shape && this.segmentMode === 'straight') {
+			// The previous shape may be on another page now (page switched with the tool
+			// still active); don't extend a shape the user can't see.
+			if (
+				shape &&
+				this.segmentMode === 'straight' &&
+				this.editor.getCurrentPageShapeIds().has(shape.id)
+			) {
 				// Connect dots
 
 				this.didJustShiftClickToExtendPreviousShapeLine = true
