@@ -239,4 +239,40 @@ describe('LocalIndexedDb', () => {
 			(await window.indexedDB.databases()).find((db) => db.name === 'TLDRAW_ASSET_STORE_v1test-0')
 		).toBeUndefined()
 	})
+
+	describe('#close', () => {
+		it('lets a write that is in flight finish instead of rolling it back', async () => {
+			const db = new LocalIndexedDb('test-0')
+			// start the write and close before it settles (as unmounting right after an edit does)
+			const write = db.storeChanges({
+				schema,
+				changes: {
+					added: { 'shape:1': { id: 'shape:1', type: 'rectangle' } },
+					updated: {},
+					removed: {},
+				},
+			})
+			const closed = db.close()
+			await write
+			await closed
+
+			const reopened = new LocalIndexedDb('test-0')
+			expect((await reopened.load()).records).toEqual([{ id: 'shape:1', type: 'rectangle' }])
+			await reopened.close()
+		})
+
+		it('resolves and releases the instance even when the database never opened', async () => {
+			const openSpy = vi.spyOn(window.indexedDB, 'open').mockImplementation(() => {
+				throw new Error('backing store unavailable')
+			})
+			try {
+				const db = new LocalIndexedDb('test-broken')
+				await expect(db.load()).rejects.toThrow('backing store unavailable')
+				await expect(db.close()).resolves.toBeUndefined()
+				expect(LocalIndexedDb.connectedInstances.has(db)).toBe(false)
+			} finally {
+				openSpy.mockRestore()
+			}
+		})
+	})
 })
