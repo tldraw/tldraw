@@ -79,19 +79,7 @@ const inst = singleton('transactions', () => ({
 	currentTransaction: null as Transaction | null,
 
 	cleanupReactors: null as null | Set<Reactor>,
-	reactionEpoch: GLOBAL_START_EPOCH + 1,
 }))
-
-/**
- * Gets the current reaction epoch, which is used to track when reactions are running.
- * The reaction epoch is updated at the start of each reaction cycle.
- *
- * @returns The current reaction epoch number
- * @public
- */
-export function getReactionEpoch() {
-	return inst.reactionEpoch
-}
 
 /**
  * Gets the current global epoch, which is incremented every time any atom changes.
@@ -105,14 +93,13 @@ export function getGlobalEpoch() {
 }
 
 /**
- * Checks whether any reactions are currently executing.
- * When true, the system is in the middle of processing effects and side effects.
+ * Whether a transaction (sync or async) is currently open. While one is, atom changes are
+ * recorded but their children are not traversed until it commits.
  *
- * @returns True if reactions are currently running, false otherwise
- * @public
+ * @internal
  */
-export function getIsReacting() {
-	return inst.globalIsReacting
+export function getIsInTransaction() {
+	return inst.currentTransaction !== null
 }
 
 // Reusable state for traverse to avoid closure allocation
@@ -152,7 +139,6 @@ function flushChanges(atoms: Iterable<_Atom>) {
 		// clear the transaction stack
 		inst.currentTransaction = null
 		inst.globalIsReacting = true
-		inst.reactionEpoch = inst.globalEpoch
 
 		// Collect all of the visited reactors.
 		const reactors = new Set<Reactor>()
