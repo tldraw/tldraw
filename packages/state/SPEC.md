@@ -150,6 +150,7 @@ Sections marked **internal** describe supporting machinery (`ArraySet`, `History
 - **LS3** The atom's value is written to localStorage as JSON on creation and after every change.
 - **LS4** A `storage` event for the same key updates the atom with the parsed new value; a `storage` event with `newValue: null` resets the atom to `initialValue`; an unparseable `newValue` and events for other keys are ignored.
 - **LS5** `cleanup()` stops localStorage writes and storage-event handling. The atom itself keeps working as a plain atom. Atom `options` (equality, history) pass through per A/H rules.
+- **LS6** Without a `window` (Node, SSR) `localStorageAtom` does not throw: it behaves as a plain atom with `initialValue` and `cleanup()` is a no-op.
 
 ## 16. ArraySet — internal (AS)
 
