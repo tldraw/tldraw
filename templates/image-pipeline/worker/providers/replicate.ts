@@ -82,7 +82,7 @@ export const replicate: ImageProvider = {
 		if (params.controlNetMode && params.referenceImageUrl) {
 			return generateWithControlNet(params, apiToken, env)
 		}
-		if (params.modelId in GOOGLE_MODELS) {
+		if (Object.hasOwn(GOOGLE_MODELS, params.modelId)) {
 			return generateWithGoogle(params, apiToken)
 		}
 		return generateWithFlux(params, apiToken)
