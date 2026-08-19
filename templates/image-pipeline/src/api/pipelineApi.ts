@@ -1,6 +1,6 @@
 /**
- * Frontend API client for the Cloudflare Worker backend. Each function corresponds to a worker
- * endpoint.
+ * Frontend API client for calling the Cloudflare Worker backend.
+ * Each function corresponds to a worker endpoint.
  */
 
 async function postJson<Result>(path: string, body: unknown, failureMessage: string) {
@@ -39,6 +39,10 @@ export interface GenerateResult {
 	seed: number
 }
 
+/**
+ * Call the /api/generate endpoint to create an AI-generated image.
+ * Falls back to a local placeholder if the worker is not available.
+ */
 export function apiGenerate(params: GenerateParams) {
 	return postJson<GenerateResult>('/api/generate', params, 'Generation failed')
 }
@@ -53,6 +57,9 @@ export interface UpscaleResult {
 	imageUrl: string
 }
 
+/**
+ * Call the /api/upscale endpoint to upscale an image.
+ */
 export function apiUpscale(params: UpscaleParams) {
 	return postJson<UpscaleResult>('/api/upscale', params, 'Upscale failed')
 }
@@ -68,6 +75,9 @@ export interface IPAdapterResult {
 	imageUrl: string
 }
 
+/**
+ * Call the /api/ip-adapter endpoint to generate an image guided by a reference.
+ */
 export function apiIPAdapter(params: IPAdapterParams) {
 	return postJson<IPAdapterResult>('/api/ip-adapter', params, 'IP-Adapter failed')
 }
@@ -84,6 +94,9 @@ export interface StyleTransferResult {
 	imageUrl: string
 }
 
+/**
+ * Call the /api/style-transfer endpoint to transfer style between images.
+ */
 export function apiStyleTransfer(params: StyleTransferParams) {
 	return postJson<StyleTransferResult>('/api/style-transfer', params, 'Style transfer failed')
 }
@@ -97,6 +110,10 @@ export interface GenerateTextResult {
 	text: string
 }
 
+/**
+ * Call the /api/generate-text endpoint to generate text from a multimodal AI model.
+ * Falls back to a local placeholder if the worker is not available.
+ */
 export function apiGenerateText(params: GenerateTextParams) {
 	// Coerce input to string so the worker always receives a string
 	const body = { ...params, input: params.input != null ? String(params.input) : undefined }

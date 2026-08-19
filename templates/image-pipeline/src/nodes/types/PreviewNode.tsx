@@ -55,6 +55,7 @@ export class PreviewNodeDefinition extends NodeDefinition<PreviewNode> {
 				terminal: 'end',
 				dataType: 'image',
 			},
+			// No output port — this is a terminal/sink node
 		}
 	}
 	async execute(

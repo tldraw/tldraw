@@ -48,6 +48,7 @@ export async function resolveImage(
 		return toResolved(new TextEncoder().encode(decodeURIComponent(data)), mime)
 	}
 
+	// R2 path — read directly from the bucket
 	if (url.startsWith('/api/images/') && env.IMAGE_BUCKET) {
 		const imageId = url.slice('/api/images/'.length)
 		const object = await env.IMAGE_BUCKET.get(imageId)
@@ -55,6 +56,7 @@ export async function resolveImage(
 		return toResolved(await object.arrayBuffer(), object.httpMetadata?.contentType ?? 'image/png')
 	}
 
+	// External URL
 	const res = await fetch(url)
 	if (!res.ok) throw new Error(`Failed to fetch image: ${res.status}`)
 	return toResolved(await res.arrayBuffer(), res.headers.get('content-type') ?? 'image/png')

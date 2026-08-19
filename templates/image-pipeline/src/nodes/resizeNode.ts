@@ -1,6 +1,7 @@
 import { Box, TLResizeHandle, TLResizeMode, Vec, VecModel } from 'tldraw'
 import { NodeShape } from './NodeShapeUtil'
 
+/** @public */
 export interface ResizeBoxOptions {
 	minWidth?: number
 	maxWidth?: number
@@ -8,7 +9,7 @@ export interface ResizeBoxOptions {
 	maxHeight?: number
 }
 
-/** Like tldraw's `resizeBox`, but reads the size from `props.node.w/h`. */
+/** @public */
 export function resizeNode<T extends NodeShape & { props: { node: { w: number; h: number } } }>(
 	shape: T,
 	info: {

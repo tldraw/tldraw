@@ -1,5 +1,10 @@
 import { error, IRequest, json } from 'itty-router'
 
+/**
+ * POST /api/images/:imageId
+ *
+ * Upload a generated image to R2 for persistence.
+ */
 export async function handleImageUpload(request: IRequest, env: Env) {
 	const { imageId } = request.params
 	const contentType = request.headers.get('content-type') ?? 'image/png'
@@ -14,9 +19,15 @@ export async function handleImageUpload(request: IRequest, env: Env) {
 	return json({ ok: true })
 }
 
+/**
+ * GET /api/images/:imageId
+ *
+ * Download a generated image from R2 with caching.
+ */
 export async function handleImageDownload(request: IRequest, env: Env, ctx: ExecutionContext) {
 	const { imageId } = request.params
 
+	// Check edge cache first.
 	// Use caches.open() to avoid DOM/Workers CacheStorage type conflict.
 	const cache = await caches.open('images')
 	const cacheKey = new Request(request.url, { headers: request.headers })
@@ -33,6 +44,8 @@ export async function handleImageDownload(request: IRequest, env: Env, ctx: Exec
 			'cache-control': 'public, max-age=31536000, immutable',
 		},
 	})
+
+	// Cache in the edge for future requests.
 	ctx.waitUntil(cache.put(cacheKey, response.clone()))
 	return response
 }

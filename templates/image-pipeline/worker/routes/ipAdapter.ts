@@ -9,7 +9,12 @@ interface IPAdapterRequest {
 	steps: number
 }
 
-/** IP-Adapter SDXL on Replicate. Falls back to a placeholder if no API key. */
+/**
+ * POST /api/ip-adapter
+ *
+ * Generates an image guided by a reference image and text prompt using
+ * IP-Adapter SDXL on Replicate. Falls back to a placeholder if no API key.
+ */
 export async function handleIPAdapter(request: IRequest, env: Env) {
 	const body = (await request.json()) as IPAdapterRequest
 
@@ -37,6 +42,7 @@ export async function handleIPAdapter(request: IRequest, env: Env) {
 	const outputUrl = firstOutput(result)
 	if (!outputUrl) throw new Error('No output from IP-Adapter')
 
+	// Persist to R2 if available
 	const imageUrl = env.IMAGE_BUCKET ? await persistImage(outputUrl, env) : outputUrl
 	return json({ imageUrl })
 }

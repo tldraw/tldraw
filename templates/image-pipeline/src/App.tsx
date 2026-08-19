@@ -72,7 +72,9 @@ function App() {
 	)
 }
 
-/** A default text-to-image pipeline to get users started. */
+/**
+ * Create a default text-to-image pipeline to get users started.
+ */
 function createDefaultPipeline(editor: Editor) {
 	editor.createShapes([
 		{

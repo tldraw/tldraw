@@ -21,8 +21,11 @@ function truncate(text: string, max: number) {
 }
 
 /**
+ * POST /api/generate-text
+ *
  * Takes an optional input (image or text) and a prompt, then calls
- * google/gemini-3-flash on Replicate. Falls back to a placeholder if no API token.
+ * google/gemini-3-flash on Replicate to generate text.
+ * Falls back to a placeholder if no API token is configured.
  */
 export async function handleGenerateText(request: IRequest, env: Env) {
 	const body = (await request.json()) as GenerateTextRequest
@@ -31,6 +34,8 @@ export async function handleGenerateText(request: IRequest, env: Env) {
 
 	// Coerce input to string so downstream .startsWith() never crashes
 	const inputStr = body.input != null ? String(body.input) : null
+
+	// Detect whether the input is an image or text
 	const isImage = inputStr != null && isImageInput(inputStr)
 
 	const apiToken = env.REPLICATE_API_TOKEN
@@ -45,10 +50,12 @@ export async function handleGenerateText(request: IRequest, env: Env) {
 		})
 	}
 
+	// Build the prompt — if input is text, prepend it to the prompt
 	const input: Record<string, unknown> = {
 		prompt: inputStr && !isImage ? `Context:\n${inputStr}\n\n${body.prompt}` : body.prompt,
 		max_output_tokens: 1024,
 	}
+	// Build the images array if we have an image input
 	if (inputStr && isImage) {
 		input.images = [(await resolveImage(inputStr, env)).dataUrl]
 	}

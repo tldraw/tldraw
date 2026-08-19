@@ -106,6 +106,9 @@ export interface NodeDefinitionConstructor<Node extends { type: string }> {
 	readonly validator: T.Validator<Node>
 }
 
+/**
+ * Update the `node` prop within a node shape.
+ */
 export function updateNode<T extends NodeType>(
 	editor: Editor,
 	shape: NodeShape,
@@ -119,6 +122,9 @@ export function updateNode<T extends NodeType>(
 	})
 }
 
+/**
+ * A row in a node. This component just applies some styling.
+ */
 export function NodeRow({
 	children,
 	className,
@@ -134,6 +140,9 @@ export function NodeRow({
 	)
 }
 
+/**
+ * A label for a port row, displayed next to the port.
+ */
 export function NodePortLabel({
 	children,
 	dataType,
@@ -396,11 +405,16 @@ export function NodeInputRow({
 	)
 }
 
+/**
+ * A placeholder for a value that is not yet computed.
+ */
 export function NodePlaceholder() {
 	return <div className="NodeValue_placeholder" />
 }
 
-/** An image that hides itself if the source fails to load. */
+/**
+ * An image element that hides itself if the source fails to load.
+ */
 export function NodeImage({ src, alt }: { src: string; alt: string }) {
 	const onError = useCallback((e: SyntheticEvent<HTMLImageElement>) => {
 		e.currentTarget.style.display = 'none'
@@ -408,6 +422,9 @@ export function NodeImage({ src, alt }: { src: string; alt: string }) {
 	return <img src={src} alt={alt} onError={onError} />
 }
 
+/**
+ * Format a pipeline value for display.
+ */
 export function NodeValue({ value }: { value: PipelineValue | STOP_EXECUTION }) {
 	if (value === STOP_EXECUTION || value === null) {
 		return <NodePlaceholder />
@@ -417,6 +434,7 @@ export function NodeValue({ value }: { value: PipelineValue | STOP_EXECUTION }) 
 		return <>{formatNumber(value)}</>
 	}
 
+	// For strings, truncate long values
 	const str = String(value)
 	if (str.length > 20) {
 		return <span title={str}>{str.slice(0, 18)}...</span>
@@ -451,6 +469,9 @@ export function areAnyInputsOutOfDate(inputs: InfoValues): boolean {
 	return Object.values(inputs).some((input) => input.isOutOfDate)
 }
 
+/**
+ * Load a URL (data URL or http URL) into an HTMLImageElement.
+ */
 export function loadImage(url: string): Promise<HTMLImageElement> {
 	return new Promise((resolve, reject) => {
 		const img = new Image()
@@ -461,6 +482,9 @@ export function loadImage(url: string): Promise<HTMLImageElement> {
 	})
 }
 
+/**
+ * Convert a Blob to a data URL via FileReader.
+ */
 export function blobToDataUrl(blob: Blob): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader()
@@ -470,12 +494,18 @@ export function blobToDataUrl(blob: Blob): Promise<string> {
 	})
 }
 
+// ---------------------------------------------------------------------------
+// Input coercion helpers
+// ---------------------------------------------------------------------------
+
+/** Coerce any pipeline value to a string. */
 export function coerceToText(value: PipelineValue, fallback = ''): string {
 	if (value == null) return fallback
 	if (typeof value === 'number') return String(value)
 	return value
 }
 
+/** Coerce any pipeline value to a number. */
 export function coerceToNumber(value: PipelineValue, fallback = 0): number {
 	if (value == null) return fallback
 	if (typeof value === 'number') return value
@@ -483,13 +513,14 @@ export function coerceToNumber(value: PipelineValue, fallback = 0): number {
 	return Number.isNaN(n) ? fallback : n
 }
 
-/** First element if the input is a multi-port array. */
+/** Extract a single value from an InputValues entry (takes first element if array). */
 export function getInput(inputs: InputValues, key: string): PipelineValue {
 	const v = inputs[key]
 	if (Array.isArray(v)) return v[0] ?? null
 	return v ?? null
 }
 
+/** Always return an array from an InputValues entry. */
 export function getInputMulti(inputs: InputValues, key: string): PipelineValue[] {
 	const v = inputs[key]
 	if (v == null) return []
@@ -497,10 +528,12 @@ export function getInputMulti(inputs: InputValues, key: string): PipelineValue[]
 	return [v]
 }
 
+/** Extract a single value and coerce to string. */
 export function getInputText(inputs: InputValues, key: string, fallback = ''): string {
 	return coerceToText(getInput(inputs, key), fallback)
 }
 
+/** Extract a single value and coerce to number. */
 export function getInputNumber(inputs: InputValues, key: string, fallback = 0): number {
 	return coerceToNumber(getInput(inputs, key), fallback)
 }

@@ -6,6 +6,9 @@ import { findFirstCompatiblePort } from '../ports/portCompatibility'
 import { createOrUpdateConnectionBinding, getConnectionBindings } from './ConnectionBindingUtil'
 import { ConnectionShape } from './ConnectionShapeUtil'
 
+/**
+ * Insert a node in the middle of a connection.
+ */
 export function insertNodeWithinConnection(editor: Editor, connection: ConnectionShape) {
 	onCanvasNodePickerState.set(editor, {
 		connectionShapeId: connection.id,

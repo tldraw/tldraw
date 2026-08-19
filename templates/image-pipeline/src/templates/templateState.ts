@@ -33,6 +33,7 @@ export interface SerializedTemplateConnection {
 
 const STORAGE_KEY = 'image-pipeline-templates'
 
+/** Load all saved templates from localStorage. */
 export function loadTemplates(): PipelineTemplate[] {
 	try {
 		const raw = localStorage.getItem(STORAGE_KEY)
@@ -42,12 +43,14 @@ export function loadTemplates(): PipelineTemplate[] {
 	}
 }
 
+/** Save a template to localStorage. */
 export function saveTemplate(template: PipelineTemplate) {
 	const templates = loadTemplates()
 	templates.push(template)
 	localStorage.setItem(STORAGE_KEY, JSON.stringify(templates))
 }
 
+/** Delete a template by id. */
 export function deleteTemplate(id: string) {
 	const templates = loadTemplates().filter((t) => t.id !== id)
 	localStorage.setItem(STORAGE_KEY, JSON.stringify(templates))

@@ -147,7 +147,7 @@ export function createOrUpdateConnectionBinding(
 		editor.deleteBindings(existingMany.slice(1))
 	}
 
-	// Input (end) bindings get an order so multi-ports keep a stable input sequence
+	// Auto-assign order for end-terminal (input port) bindings when not explicitly provided
 	let order = props.order
 	if (props.terminal === 'end' && order == null) {
 		const existingBindingsToTarget = editor

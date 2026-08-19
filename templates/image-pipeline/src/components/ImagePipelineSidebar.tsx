@@ -138,6 +138,7 @@ function SidebarItem({
 export function ImagePipelineSidebar({ editor }: { editor: Editor }) {
 	const defs = getNodeDefinitions(editor)
 
+	// Group definitions by category
 	const grouped: Record<string, (typeof defs)[keyof typeof defs][]> = {}
 	for (const def of Object.values(defs)) {
 		if (def.hidden) continue

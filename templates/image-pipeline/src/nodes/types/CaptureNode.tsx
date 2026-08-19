@@ -75,7 +75,7 @@ export class CaptureNodeDefinition extends NodeDefinition<CaptureNode> {
 		const bounds = this.editor.getShapePageBounds(shape.id)
 		if (!bounds) return { output: null }
 
-		// Capture everything under the node except pipeline nodes and connections
+		// Filter out the capture node itself, all node shapes, and connection shapes
 		const idsToCapture = [...this.editor.getShapeIdsInsideBounds(bounds)].filter((id) => {
 			const s = this.editor.getShape(id)
 			return s && s.type !== 'node' && s.type !== 'connection'

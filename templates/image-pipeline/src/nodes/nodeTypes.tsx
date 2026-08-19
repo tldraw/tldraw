@@ -31,6 +31,7 @@ import {
 import { StyleTransferNodeDefinition } from './types/StyleTransferNode'
 import { UpscaleNodeDefinition } from './types/UpscaleNode'
 
+/** All our node types */
 export const NodeDefinitions = {
 	model: ModelNodeDefinition,
 	prompt: PromptNodeDefinition,
@@ -51,6 +52,9 @@ export const NodeDefinitions = {
 	capture: CaptureNodeDefinition,
 } satisfies Record<string, NodeDefinitionConstructor<any>>
 
+/**
+ * A union type of all our node types.
+ */
 export type NodeType = T.TypeOf<typeof NodeType>
 export const NodeType = T.union(
 	'type',

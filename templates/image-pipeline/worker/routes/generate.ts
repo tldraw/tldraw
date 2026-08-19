@@ -3,20 +3,38 @@ import { getProvider } from '../providers'
 import type { GenerateParams } from '../providers'
 import { resolveImage } from '../providers/types'
 
+/**
+ * Request body for the /api/generate endpoint.
+ */
 interface GenerateRequest {
-	/** "provider:model", e.g. "flux:flux-dev" */
+	/** The provider:model string, e.g. "stable-diffusion:sdxl" */
 	model: string
+	/** The text prompt describing the desired image */
 	prompt: string
+	/** Optional negative prompt */
 	negativePrompt?: string
+	/** Number of inference steps (default: 20) */
 	steps?: number
+	/** Classifier-free guidance scale (default: 7) */
 	cfgScale?: number
+	/** Seed for reproducibility (default: random) */
 	seed?: number
+	/** ControlNet mode if applicable */
 	controlNetMode?: string
-	/** 0-100 */
+	/** ControlNet strength (0-100) */
 	controlNetStrength?: number
+	/** Reference image URL for ControlNet */
 	referenceImageUrl?: string
 }
 
+/**
+ * POST /api/generate
+ *
+ * Calls an AI image generation provider and returns the generated image.
+ * Supports multiple providers via the model string format "provider:model".
+ *
+ * Returns: { imageUrl: string, seed: number }
+ */
 export async function handleGenerate(request: IRequest, env: Env) {
 	const body = (await request.json()) as GenerateRequest
 
@@ -37,6 +55,7 @@ export async function handleGenerate(request: IRequest, env: Env) {
 
 	let result = await getProvider(providerName).generate(params, env)
 
+	// Optionally persist the image to R2.
 	if (env.IMAGE_BUCKET && result.imageUrl?.startsWith('data:')) {
 		const imageId = `gen_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
 		const { blob } = await resolveImage(result.imageUrl, env)

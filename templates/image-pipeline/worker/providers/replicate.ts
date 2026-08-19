@@ -19,10 +19,11 @@ const GOOGLE_MODELS: Record<string, string> = {
 	'imagen-4-fast': 'google/imagen-4-fast',
 }
 
+/** Maps ControlNet mode IDs to Flux ControlNet model identifiers. */
 const CONTROLNET_MODELS: Record<string, string> = {
 	canny: 'black-forest-labs/flux-canny-dev',
 	depth: 'black-forest-labs/flux-depth-dev',
-	// No Flux-native pose/segmentation models — fall back to canny/depth
+	// No Flux-native pose/segmentation models — fall back to canny
 	pose: 'black-forest-labs/flux-canny-dev',
 	segmentation: 'black-forest-labs/flux-depth-dev',
 }
@@ -79,9 +80,12 @@ export const replicate: ImageProvider = {
 	async generate(params: GenerateParams, env: Env): Promise<GenerateResult> {
 		const apiToken = requireApiToken(env)
 
+		// Use a ControlNet model when ControlNet params are present
 		if (params.controlNetMode && params.referenceImageUrl) {
 			return generateWithControlNet(params, apiToken, env)
 		}
+
+		// Google models (Nano Banana, Imagen)
 		if (Object.hasOwn(GOOGLE_MODELS, params.modelId)) {
 			return generateWithGoogle(params, apiToken)
 		}
@@ -123,6 +127,9 @@ async function generateWithFlux(params: GenerateParams, apiToken: string): Promi
 	return toGenerateResult(data, params)
 }
 
+/**
+ * Use a Google model on Replicate (Nano Banana, Imagen).
+ */
 async function generateWithGoogle(
 	params: GenerateParams,
 	apiToken: string
@@ -140,6 +147,11 @@ async function generateWithGoogle(
 	return toGenerateResult(data, params)
 }
 
+/**
+ * Use a Flux ControlNet model on Replicate.
+ * The reference image is passed as the control image, and the mode
+ * selects the appropriate variant (canny or depth).
+ */
 async function generateWithControlNet(
 	params: GenerateParams,
 	apiToken: string,
@@ -147,7 +159,8 @@ async function generateWithControlNet(
 ): Promise<GenerateResult> {
 	const model = CONTROLNET_MODELS[params.controlNetMode!] ?? CONTROLNET_MODELS.canny
 
-	// Replicate accepts https URLs and data URIs directly; only R2 paths need resolving.
+	// Replicate accepts https URLs and data URIs directly.
+	// Only resolve R2 paths that Replicate can't access.
 	let controlImage = params.referenceImageUrl!
 	if (controlImage.startsWith('/api/images/')) {
 		controlImage = (await resolveImage(controlImage, env)).dataUrl

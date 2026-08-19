@@ -149,6 +149,7 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 			? getAllConnectedNodes(this.editor, oppositeTerminalShapeId, draggingTerminal)
 			: null
 
+		// Determine the data type of the opposite end for type-checking
 		const oppositeBinding = existingBindings[oppositeTerminal]
 		const dragDataType: PortDataType | null = oppositeBinding
 			? getPortDataType(this.editor, oppositeBinding.toId, oppositeBinding.props.portId)
@@ -162,6 +163,7 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 			},
 		})
 
+		// Check type compatibility
 		const isTypeIncompatible =
 			target && dragDataType && !arePortDataTypesCompatible(dragDataType, target.port.dataType)
 
@@ -299,6 +301,7 @@ function ConnectionShapeComponent({ connection }: { connection: ConnectionShape 
 		connection,
 	])
 
+	// Get the data type color for this connection from its start binding
 	const connectionColor = useValue(
 		'connectionColor',
 		() => {

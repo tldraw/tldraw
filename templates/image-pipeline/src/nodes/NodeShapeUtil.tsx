@@ -253,6 +253,7 @@ function NodeFooterMenu({ shape }: { shape: NodeShape }) {
 			(info) => info.dataType === dataType && typeof info.value === 'string' && info.value !== ''
 		)?.value as string | undefined
 
+	// Find any image output that has a valid URL
 	const imageUrl = findStringOutput('image')
 
 	const node = shape.props.node as Record<string, unknown>

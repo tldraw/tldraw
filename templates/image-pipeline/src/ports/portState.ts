@@ -3,7 +3,9 @@ import { PortDataType } from '../constants'
 import { EditorAtom } from '../utils'
 import { PortIdentifier } from './Port'
 
-/** UI state highlighting the ports relevant to the user's current action. */
+/**
+ * The UI state for ports. These mostly highlight ports relevant to the user's current action.
+ */
 export interface PortState {
 	hintingPort: PortIdentifier | null
 	eligiblePorts: {

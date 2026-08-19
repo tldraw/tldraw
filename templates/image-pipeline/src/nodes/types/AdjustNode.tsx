@@ -44,10 +44,10 @@ async function adjustImage(
 	const h = img.naturalHeight
 	const canvas = new OffscreenCanvas(w, h)
 	const ctx = canvas.getContext('2d')!
-	// Slider ranges (-50..50) map to CSS filter multipliers 0.0–2.0
-	const b = 1 + brightness / 50
-	const c = 1 + contrast / 50
-	const s = 1 + saturation / 50
+	// Map slider ranges (-50..50) to CSS filter multipliers
+	const b = 1 + brightness / 50 // 0.0 – 2.0, default 1.0
+	const c = 1 + contrast / 50 // 0.0 – 2.0, default 1.0
+	const s = 1 + saturation / 50 // 0.0 – 2.0, default 1.0
 	ctx.filter = `brightness(${b}) contrast(${c}) saturate(${s})`
 	ctx.drawImage(img, 0, 0, w, h)
 	const blob = await canvas.convertToBlob({ type: 'image/png' })

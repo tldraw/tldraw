@@ -12,7 +12,13 @@ interface StyleTransferRequest {
 
 const STYLE_MODELS = ['fast', 'high-quality', 'realistic', 'cinematic', 'animated']
 
-/** fofr/style-transfer on Replicate. Falls back to a placeholder if no API key. */
+/**
+ * POST /api/style-transfer
+ *
+ * Transfers the style of one image onto another (or generates a new image
+ * in that style) using fofr/style-transfer on Replicate.
+ * Falls back to a placeholder if no API key.
+ */
 export async function handleStyleTransfer(request: IRequest, env: Env) {
 	const body = (await request.json()) as StyleTransferRequest
 
@@ -33,6 +39,7 @@ export async function handleStyleTransfer(request: IRequest, env: Env) {
 		style_image: (await resolveImage(body.styleImageUrl, env)).dataUrl,
 		prompt: body.prompt || '',
 		style_strength: body.strength ?? 0.5,
+		// Map model variant to the Replicate model parameter
 		model: STYLE_MODELS.includes(body.model) ? body.model : 'fast',
 	}
 	if (body.contentImageUrl) {
@@ -47,6 +54,7 @@ export async function handleStyleTransfer(request: IRequest, env: Env) {
 	const outputUrl = firstOutput(result)
 	if (!outputUrl) throw new Error('No output from style transfer')
 
+	// Persist to R2 if available
 	const imageUrl = env.IMAGE_BUCKET ? await persistImage(outputUrl, env) : outputUrl
 	return json({ imageUrl })
 }
