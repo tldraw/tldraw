@@ -15,11 +15,12 @@ export function hasRichText(
 	return 'richText' in shape.props && richTextValidator.isValid(shape.props.richText)
 }
 /**
- * Start editing a shape that has rich text, such as text, note, geo, or arrow shapes.
- * This will enter the editing state for the shape and optionally select all the text.
+ * Start editing a shape. Shapes with rich text, such as text, note, geo, or arrow shapes, can
+ * optionally have all of their text selected; other editable shapes (such as frames) simply enter
+ * the editing state.
  *
  * @param editor - The editor instance.
- * @param shapeOrId - The shape to start editing. This shape must have a richText property with a TLRichText value.
+ * @param shapeOrId - The shape to start editing.
  * @param options - Options: selectAll or info (TLEventInfo)
  *
  * @public
@@ -34,9 +35,6 @@ export function startEditingShapeWithRichText(
 
 	if (!editor.canEditShape(shape)) return
 
-	if (!hasRichText(shape)) {
-		throw new Error('Shape does not have rich text')
-	}
 	// Finish this shape and start editing the next one
 	editor.setEditingShape(shape)
 	editor.setCurrentTool('select.editing_shape', {
@@ -44,7 +42,7 @@ export function startEditingShapeWithRichText(
 		target: 'shape',
 		shape: shape,
 	})
-	if (options.selectAll) {
+	if (options.selectAll && hasRichText(shape)) {
 		editor.emit('select-all-text', { shapeId: shape.id })
 	}
 }
