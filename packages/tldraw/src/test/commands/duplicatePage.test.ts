@@ -53,3 +53,22 @@ it("Doesn't duplicate the page if max pages is reached", () => {
 	}
 	expect(editor.getPages().length).toBe(editor.options.maxPages)
 })
+
+it('Keeps the duplicated shapes at their original coordinates, even when offscreen', () => {
+	editor.createShapes([{ id: createShapeId('offscreen'), type: 'geo', x: 5000, y: 5000 }])
+	// look at an empty part of the page so that no shape overlaps the viewport
+	editor.setCamera({ x: -20000, y: -20000, z: 1 })
+	const positions = editor
+		.getCurrentPageShapes()
+		.map((s) => ({ x: s.x, y: s.y }))
+		.sort((a, b) => a.x - b.x)
+
+	editor.duplicatePage(editor.getCurrentPageId())
+
+	expect(
+		editor
+			.getCurrentPageShapes()
+			.map((s) => ({ x: s.x, y: s.y }))
+			.sort((a, b) => a.x - b.x)
+	).toEqual(positions)
+})

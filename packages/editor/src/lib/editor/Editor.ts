@@ -5150,8 +5150,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.setCamera(prevCamera)
 
 			if (content) {
-				// If we had content on the previous page, put it on the new page
-				return this.putContentOntoCurrentPage(content)
+				// If we had content on the previous page, put it on the new page at the same coordinates
+				// (otherwise offscreen content gets re-centred on the viewport)
+				return this.putContentOntoCurrentPage(content, { preservePosition: true })
 			}
 		})
 
@@ -5265,7 +5266,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.run(
 			() => {
-				this.store.props.assets.remove?.(ids)
+				// the asset store's remove is async; surface failures instead of leaving an unhandled rejection
+				Promise.resolve(this.store.props.assets.remove?.(ids)).catch((err) =>
+					console.error('Error while removing assets from the asset store:', err)
+				)
 				this.store.remove(ids)
 			},
 			{ history: 'ignore' }
@@ -9857,21 +9861,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 					!asset.props.src?.startsWith('data:video') &&
 					!asset.props.src?.startsWith('http')
 				) {
-					const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
-					const objectUrl = await this.store.props.assets.resolve(asset, {
-						screenScale: 1,
-						steppedScreenScale: 1,
-						dpr: 1,
-						networkEffectiveType: null,
-						shouldResolveToOriginal: true,
-					})
-					assetWithDataUrl.props.src = await FileHelpers.blobToDataUrl(
-						await fetch(objectUrl!).then((r) => r.blob())
-					)
-					assets.push(assetWithDataUrl)
-				} else {
-					assets.push(asset)
+					// If the asset can't be inlined (unresolvable src, fetch failure), fall through and
+					// keep the original record; dropping it leaves the pasted shapes pointing at an
+					// asset that doesn't exist
+					try {
+						const objectUrl = await this.store.props.assets.resolve(asset, {
+							screenScale: 1,
+							steppedScreenScale: 1,
+							dpr: 1,
+							networkEffectiveType: null,
+							shouldResolveToOriginal: true,
+						})
+						if (objectUrl) {
+							const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
+							assetWithDataUrl.props.src = await FileHelpers.blobToDataUrl(
+								await fetch(objectUrl).then((r) => r.blob())
+							)
+							assets.push(assetWithDataUrl)
+							return
+						}
+					} catch {
+						// keep the original asset
+					}
 				}
+				assets.push(asset)
 			})
 		)
 		content.assets = assets
@@ -10092,7 +10105,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (shapeIdMap.has(newShape.parentId)) {
 				newShape.parentId = shapeIdMap.get(oldShape.parentId)!
 			} else {
-				rootShapeIds.push(newShape.id)
 				// newShape.parentId = pasteParentId
 				newShape.index = index
 				index = getIndexAbove(index)
@@ -10135,10 +10147,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 				(asset.type === 'video' && asset.props.src?.startsWith('data:video'))
 			) {
 				// it's src is a base64 image or video; we need to create a new asset without the src,
-				// then create a new asset from the original src. So we save a copy of the original asset,
-				// then delete the src from the original asset.
-				assetsToUpdate.push(structuredClone(asset as TLImageAsset | TLVideoAsset))
-				asset.props.src = null
+				// then create a new asset from the original src. So we keep the original asset for the
+				// upload and create a copy with its src removed. Copy rather than mutate: when no
+				// migration applies, migrateStoreSnapshot hands back the caller's own record objects.
+				assetsToUpdate.push(asset as TLImageAsset | TLVideoAsset)
+				const assetWithoutSrc = structuredClone(asset as TLImageAsset | TLVideoAsset)
+				assetWithoutSrc.props.src = null
+				assetsToCreate.push(assetWithoutSrc)
+				continue
 			}
 
 			// Add the asset to the list of assets to create
