@@ -27,6 +27,7 @@ export async function getLegacyRoomData(
 
 	const slug = await getSlug(env, id, type)
 	if (!slug) return null
-	await getRoomDurableObject(env, id).awaitPersist()
+	// The room lives under the resolved slug; a readonly id would address a different, empty object.
+	await getRoomDurableObject(env, slug).awaitPersist()
 	return await env.ROOMS.get(getR2KeyForRoom({ slug, isApp: false })).then((r) => r?.text())
 }
