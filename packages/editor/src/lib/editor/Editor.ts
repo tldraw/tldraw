@@ -2654,9 +2654,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getSelectionRotatedScreenBounds(): Box | undefined {
 		const bounds = this.getSelectionRotatedPageBounds()
 		if (!bounds) return undefined
-		const { x, y } = this.pageToScreen(bounds.point)
-		const zoom = this.getZoomLevel()
-		return new Box(x, y, bounds.width * zoom, bounds.height * zoom)
+		// Don't use pageToScreen here: it reads the screen bounds without capturing them, so this
+		// computed would never invalidate when the container moves
+		const screenBounds = this.getViewportScreenBounds()
+		const { x: cx, y: cy, z: zoom } = this.getCamera()
+		return new Box(
+			(bounds.x + cx) * zoom + screenBounds.x,
+			(bounds.y + cy) * zoom + screenBounds.y,
+			bounds.width * zoom,
+			bounds.height * zoom
+		)
 	}
 
 	// Focus Group
@@ -3146,11 +3153,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const collaborators = this.getCollaborators()
 		let leaderPresence = null as null | TLInstancePresence
 		while (targetUserId && !visited.includes(targetUserId)) {
-			leaderPresence = collaborators.find((c) => c.userId === targetUserId) ?? null
-			targetUserId = leaderPresence?.followingUserId ?? null
-			if (leaderPresence) {
-				visited.push(leaderPresence.userId)
-			}
+			const nextPresence = collaborators.find((c) => c.userId === targetUserId)
+			// Stop at the last resolvable presence, otherwise a leader whose own leader has left
+			// (or whose presence hasn't arrived yet) can't be followed at all
+			if (!nextPresence) break
+			leaderPresence = nextPresence
+			targetUserId = nextPresence.followingUserId ?? null
+			visited.push(nextPresence.userId)
 		}
 		return leaderPresence
 	}
@@ -3390,7 +3399,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			...this._cameraOptions.__unsafe__getWithoutCapture(),
 			...opts,
 		})
-		if (next.zoomSteps?.length < 1) next.zoomSteps = [1]
+		// `undefined < 1` is false, so an explicit `zoomSteps: undefined` would otherwise get through
+		// and make every later camera move throw
+		if (!next.zoomSteps || next.zoomSteps.length < 1) next.zoomSteps = [1]
 		this._cameraOptions.set(next)
 		this.setCamera(this.getCamera())
 		return this
@@ -3638,11 +3649,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.stopFollowingUser()
 		}
 
-		const _point = Vec.Cast(point)
-
-		if (!Number.isFinite(_point.x)) _point.x = 0
-		if (!Number.isFinite(_point.y)) _point.y = 0
-		if (_point.z === undefined || !Number.isFinite(_point.z)) point.z = this.getZoomLevel()
+		// Resolve the zoom before building the Vec: Vec.Cast would default a missing z to 1,
+		// and a missing or non-finite z should keep the current zoom level instead
+		const _point = new Vec(
+			Number.isFinite(point.x) ? point.x : 0,
+			Number.isFinite(point.y) ? point.y : 0,
+			Number.isFinite(point.z) ? point.z! : this.getZoomLevel()
+		)
 
 		const camera = this.getConstrainedCamera(_point, opts)
 
@@ -3978,6 +3991,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		easing(t: number): number
 		start: Box
 		end: Box
+		opts: TLCameraMoveOptions
 	}
 
 	/** @internal */
@@ -3986,12 +4000,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this._viewportAnimation.elapsed += ms
 
-		const { elapsed, easing, duration, start, end } = this._viewportAnimation
+		const { elapsed, easing, duration, start, end, opts } = this._viewportAnimation
 
 		if (elapsed > duration) {
 			this.off('tick', this._animateViewport)
 			this._viewportAnimation = null
-			this._setCamera(new Vec(-end.x, -end.y, this.getViewportScreenBounds().width / end.width))
+			// Forward the caller's options, otherwise a forced move to a position outside the
+			// constraints animates there and then snaps back on this last frame
+			this._setCamera(
+				new Vec(-end.x, -end.y, this.getViewportScreenBounds().width / end.width),
+				opts
+			)
 			return
 		}
 
@@ -4045,6 +4064,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			easing,
 			start: viewportPageBounds.clone(),
 			end: targetViewportPage.clone(),
+			opts: rest,
 		}
 
 		// If we ever get a "stop-camera-animation" event, we stop
@@ -4115,9 +4135,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			let newCy = cy + dy
 			let newCz = cz
 
-			// animate zoom if z direction is passed in
+			// animate zoom if z direction is passed in. Use an exponential factor so that a single
+			// long frame can't drive the zoom to zero or negative (which would give NaN coordinates)
 			if (dirZ !== 0) {
-				newCz = cz * (1 + dirZ * currentSpeed * elapsed)
+				newCz = cz * Math.exp(dirZ * currentSpeed * elapsed)
 				// Adjust x/y to keep the viewport center fixed while zooming
 				const center = this.getViewportScreenCenter()
 				newCx += center.x / newCz - center.x / cz
