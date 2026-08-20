@@ -1482,6 +1482,19 @@ describe('index and predicate agreement (QE)', () => {
 		expect(agree('book', { rating: { neq: NaN } }).has(odd.id)).toBe(false)
 	})
 
+	it('[QE1] gt never matches NaN, as a value or as the bound', () => {
+		const odd = Book.create({
+			title: 'NaN',
+			authorId: authors.asimov.id,
+			publishedYear: 2000,
+			inStock: true,
+			rating: NaN,
+		})
+		store.put([odd])
+		expect(agree('book', { rating: { gt: 0 } }).has(odd.id)).toBe(false)
+		expect(agree('book', { rating: { gt: NaN } }).size).toBe(0)
+	})
+
 	it('[QE1] a matcher with several operators applies all of them', () => {
 		const result = agree('author', { age: { gt: 70, neq: 75 } })
 		expect(result.size).toBeGreaterThan(0)
