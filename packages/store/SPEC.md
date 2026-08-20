@@ -135,7 +135,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 
 - **QE1** `{ eq: v }` matches by SameValueZero (so `NaN` matches `NaN`); `{ neq: v }` matches values that differ from `v` by SameValueZero; `{ gt: n }` matches only numbers strictly greater than `n` (non-numeric values never match `gt`). A record whose value is `undefined` matches no matcher at all, mirroring the indexes, which only track defined values — so `{ eq: undefined }` matches nothing. A matcher with several operators applies all of them.
 - **QE2** Multiple properties in one expression are ANDed; the result is the intersection of the per-property matches.
-- **QE3** A nested object in the expression matches into the corresponding nested record object, to any depth. If the record's value at that level is missing or not an object, the record does not match. An empty nested object (or an entry that is neither a matcher nor an object) imposes no constraint.
+- **QE3** A nested object in the expression matches into the corresponding nested record object, to any depth. If the record's value at that level is missing or not an object, the record does not match. A nested object that contains no matchers at any depth (or an entry that is neither a matcher nor an object) imposes no constraint, even when the record lacks that nested object.
 - **QE4** The empty expression `{}` matches every record of the type: `objectMatchesQuery({}, r)` is true, `executeQuery(store, type, {})` returns every id of the type, and `ids(type)` contains all ids.
 - **QE5** `executeQuery` (index-based) and `objectMatchesQuery` (predicate) agree: the set of ids returned equals the set of records matching the predicate, including for nested paths and across record types.
 

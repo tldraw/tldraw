@@ -1496,6 +1496,14 @@ describe('index and predicate agreement (QE)', () => {
 		expect(agree('book', { metadata: {} }).size).toBe(Object.keys(books).length)
 	})
 
+	it('[QE3] a nested sub-expression with no matchers matches records missing that nested object', () => {
+		// authors have no `metadata`, so the predicate must not require it to exist
+		expect(agree('author', { metadata: { copies: {} } }).size).toBe(Object.keys(authors).length)
+		expect(agree('author', { metadata: { extras: { region: {} } } }).size).toBe(
+			Object.keys(authors).length
+		)
+	})
+
 	it('[QE4] the empty expression matches every record in both strategies', () => {
 		expect(agree('author', {}).size).toBe(Object.keys(authors).length)
 	})

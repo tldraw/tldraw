@@ -1,6 +1,5 @@
 import { objectMapFromEntries, objectMapValues } from '@tldraw/utils'
 import { IdOf, UnknownRecord } from './BaseRecord'
-import { hasAnyKey } from './RecordsDiff'
 import { intersectSets } from './setUtils'
 import { StoreQueries } from './StoreQueries'
 
@@ -82,6 +81,17 @@ function extractMatcherPaths(
 	return paths
 }
 
+// Whether a sub-expression constrains anything at all. `extractMatcherPaths` only ever yields leaf
+// matchers, so a nested object with none (e.g. `{ metadata: { copies: {} } }`) must not make the
+// predicate demand that the record's nested object exists, or the two strategies diverge.
+function hasAnyMatcher(query: object): boolean {
+	for (const value of Object.values(query)) {
+		if (isQueryValueMatcher(value)) return true
+		if (typeof value === 'object' && value !== null && hasAnyMatcher(value)) return true
+	}
+	return false
+}
+
 // SameValueZero, the key equality of the `Map`s backing the indexes: `NaN` matches `NaN`.
 function sameValueZero(a: unknown, b: unknown) {
 	return a === b || (a !== a && b !== b)
@@ -108,8 +118,8 @@ export function objectMatchesQuery<T extends object>(query: QueryExpression<T>, 
 		}
 
 		// A nested query. Mirror `extractMatcherPaths`, for which only matchers constrain anything:
-		// a non-object entry or an empty sub-expression matches every record.
-		if (typeof matcher !== 'object' || matcher === null || !hasAnyKey(matcher)) continue
+		// a non-object entry or a sub-expression with no matchers matches every record.
+		if (typeof matcher !== 'object' || matcher === null || !hasAnyMatcher(matcher)) continue
 		if (typeof value !== 'object' || value === null) return false
 		if (!objectMatchesQuery(matcher as QueryExpression<any>, value as any)) {
 			return false
