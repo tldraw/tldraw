@@ -55,6 +55,24 @@ describe(TextShapeTool, () => {
 			props: { richText: toRichText('Hello') },
 		})
 	})
+
+	it('Records the deletion of an empty text shape so redo cannot resurrect it', () => {
+		editor.setCurrentTool('text')
+		editor.pointerDown(0, 0)
+		editor.pointerUp()
+		editor.expectToBeIn('select.editing_shape')
+		expect(editor.getCurrentPageShapes().length).toBe(1)
+
+		// Exiting without typing deletes the empty shape (TextShapeUtil.onEditEnd)
+		editor.cancel()
+		expect(editor.getCurrentPageShapes().length).toBe(0)
+
+		// The creation and the deletion squash to nothing, so neither undo nor redo brings it back
+		editor.undo()
+		expect(editor.getCurrentPageShapes().length).toBe(0)
+		editor.redo()
+		expect(editor.getCurrentPageShapes().length).toBe(0)
+	})
 })
 
 describe('When selecting the tool', () => {
