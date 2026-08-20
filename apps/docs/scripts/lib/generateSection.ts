@@ -211,7 +211,7 @@ function getArticleData({
 }): Article {
 	const {
 		group = null,
-		priority = -1,
+		priority = null,
 		hero = null,
 		thumbnail = null,
 		socialImage = null,
@@ -240,7 +240,8 @@ function getArticleData({
 		sectionIndex: 0,
 		groupIndex: -1,
 		groupId: group,
-		categoryIndex: order ?? priority,
+		// Like the examples app, an article without a priority sorts after the prioritized ones
+		categoryIndex: order ?? priority ?? 999999,
 		priority,
 		sectionId: sectionId,
 		author: [author],
