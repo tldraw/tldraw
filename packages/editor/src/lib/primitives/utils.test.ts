@@ -50,7 +50,6 @@ describe('getPointInArcT', () => {
 	})
 
 	it('should clamp a point in the gap to the angularly nearer endpoint', () => {
-		// Replaces a zero-measure case that encoded the old fixed 0.5 threshold.
 		// Quarter arc from 0 to PI/2: a point at -PI/2 is PI/2 behind the start but
 		// PI past the end, so it belongs to the start...
 		expect(getPointInArcT(Math.PI / 2, 0, Math.PI / 2, -Math.PI / 2)).toBe(0)

@@ -282,8 +282,10 @@ export class TLLocalSyncClient {
 	close() {
 		this.debug('closing')
 		// flush queued changes so edits made in the last PERSIST_THROTTLE_MS before unmount aren't
-		// lost. never before load: a full write then would wipe the db with an empty store
-		if (this.didLoad) this.persistIfNeeded()
+		// lost. never before load (a full write then would wipe the db with an empty store), and
+		// only when something is queued: shouldDoFullDBWrite stays true until the first persist,
+		// so an unconditional flush would rewrite the whole document on every no-op close
+		if (this.didLoad && this.diffQueue.length > 0) this.persistIfNeeded()
 		this.didDispose = true
 		this.disposables.forEach((d) => d())
 		if (typeof window !== 'undefined' && (window as any).tlsync === this) {

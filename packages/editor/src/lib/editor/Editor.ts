@@ -2828,7 +2828,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					if (!id) return
 
-					// Set the new editing shape
 					this.select(id)
 					this._updateCurrentPageState({ editingShapeId: id })
 
@@ -3268,7 +3267,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	private _getFitZoom(fit: TLCameraConstraints['initialZoom']): number {
 		const cameraOptions = this.getCameraOptions()
-		// If no camera constraints are provided, or the fit is default, the zoom is 100%
 		if (!cameraOptions.constraints || fit === 'default') return 1
 
 		const { zx, zy } = getCameraFitXFitY(this, cameraOptions)
@@ -3954,9 +3952,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const remaining = duration - elapsed
 		const t = easing(1 - remaining / duration)
 
-		const left = start.minX + (end.minX - start.minX) * t
-		const top = start.minY + (end.minY - start.minY) * t
-		const right = start.maxX + (end.maxX - start.maxX) * t
+		const left = lerp(start.minX, end.minX, t)
+		const top = lerp(start.minY, end.minY, t)
+		const right = lerp(start.maxX, end.maxX, t)
 
 		this._setCamera(new Vec(-left, -top, this.getViewportScreenBounds().width / (right - left)), {
 			force: true,
@@ -6854,7 +6852,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes = false } = {}) {
 		if (this.getIsReadonly()) return this
+		return this._deleteBindings(bindings, { isolateShapes })
+	}
 
+	// Unguarded so that withIsolatedShapes can transiently isolate shapes (copy, duplicate)
+	// in readonly mode; the public deleteBindings is what readonly blocks.
+	/** @internal */
+	_deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes = false } = {}) {
 		const ids = bindings.map((binding) => (typeof binding === 'string' ? binding : binding.id))
 		if (isolateShapes) {
 			this.store.atomic(() => {
@@ -8933,7 +8937,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const parentId = this.findCommonAncestor(shapesToGroup) ?? this.getCurrentPageId()
 
-		// If the select tool is mid-interaction, cancel it (get back to idle) before regrouping
+		// If the select tool is mid-interaction, cancel it (get back to idle) before grouping
 		if (this.isIn('select') && !this.isIn('select.idle')) {
 			this.cancel()
 		}
@@ -9008,7 +9012,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (shapesToUngroup.length === 0) return this
 
-		// If the select tool is mid-interaction, cancel it (get back to idle) before regrouping
+		// If the select tool is mid-interaction, cancel it (get back to idle) before ungrouping
 		if (this.isIn('select') && !this.isIn('select.idle')) {
 			this.cancel()
 		}
@@ -11766,7 +11770,7 @@ function withIsolatedShapes<T>(
 					}
 				}
 
-				editor.deleteBindings([...bindingsToRemove], { isolateShapes: true })
+				editor._deleteBindings([...bindingsToRemove], { isolateShapes: true })
 
 				try {
 					result = Result.ok(callback(bindingsWithBoth))

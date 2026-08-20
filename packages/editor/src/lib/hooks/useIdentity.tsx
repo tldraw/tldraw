@@ -1,4 +1,4 @@
-import { areArraysShallowEqual, areObjectsShallowEqual } from '@tldraw/utils'
+import { areArraysShallowEqual, areObjectsShallowEqual, isEqual } from '@tldraw/utils'
 import { useRef } from 'react'
 
 function useIdentity<T>(value: T, isEqual: (a: T, b: T) => boolean): T {
@@ -48,4 +48,14 @@ const areNullableObjectsShallowEqual = (
 /** @internal */
 export function useShallowObjectIdentity<T extends object | null | undefined>(obj: T): T {
 	return useIdentity(obj, areNullableObjectsShallowEqual)
+}
+
+/**
+ * For small plain-data option objects that may nest (e.g. camera constraints), where a
+ * shallow comparison would still see a fresh identity on every render.
+ *
+ * @internal
+ */
+export function useDeepObjectIdentity<T extends object | null | undefined>(obj: T): T {
+	return useIdentity(obj, isEqual)
 }

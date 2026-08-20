@@ -167,7 +167,6 @@ export class Vec {
 		const { x, y, z } = this
 		this.x = y * V.z! - z * V.y
 		this.y = z * V.x - x * V.z!
-		// this.z = x * V.y - y * V.x
 		return this
 	}
 

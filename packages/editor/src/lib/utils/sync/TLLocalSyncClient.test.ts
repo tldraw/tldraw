@@ -207,6 +207,14 @@ test('closing the client persists changes that are still queued', async () => {
 	expect(client.db.storeSnapshot).toHaveBeenCalledTimes(1)
 })
 
+test('closing the client with nothing queued does not write to the db', async () => {
+	const { client, tick } = testClient()
+	await tick()
+	client.close()
+	expect(client.db.storeSnapshot).not.toHaveBeenCalled()
+	expect(client.db.storeChanges).not.toHaveBeenCalled()
+})
+
 test('closing the client before it has loaded does not write to the db', async () => {
 	const { client, tick } = testClient()
 	client.close()

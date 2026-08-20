@@ -46,7 +46,7 @@ import { EditorProvider, useEditor } from './hooks/useEditor'
 import { EditorComponentsProvider } from './hooks/useEditorComponents'
 import { useEvent } from './hooks/useEvent'
 import { useForceUpdate } from './hooks/useForceUpdate'
-import { useShallowObjectIdentity } from './hooks/useIdentity'
+import { useDeepObjectIdentity, useShallowObjectIdentity } from './hooks/useIdentity'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useRefState } from './hooks/useRefState'
 import { useStateAttribute } from './hooks/useStateAttribute'
@@ -314,13 +314,13 @@ export const TldrawEditor = memo(function TldrawEditor({
 	// Merge deprecated props with options (options win). Nested option objects are
 	// identity-stabilised too: `options` is a dependency of the editor-creating effect, so an
 	// inline `options={{ camera: { ... } }}` would otherwise recreate the editor on every render.
-	const camera = useShallowObjectIdentity(_options?.camera)
+	const camera = useDeepObjectIdentity(_options?.camera)
 	const text = useShallowObjectIdentity(_options?.text ?? _textOptions)
-	const _mergedDeepLinks = _options?.deepLinks ?? _deepLinks
-	const _deepLinkOptions = useShallowObjectIdentity(
-		_mergedDeepLinks === true ? undefined : _mergedDeepLinks
+	const mergedDeepLinks = _options?.deepLinks ?? _deepLinks
+	const deepLinkOptions = useDeepObjectIdentity(
+		mergedDeepLinks === true ? undefined : mergedDeepLinks
 	)
-	const deepLinks = _mergedDeepLinks === true ? true : _deepLinkOptions
+	const deepLinks = mergedDeepLinks === true ? true : deepLinkOptions
 	const mergedOptions = useMemo(() => {
 		let result = _options
 		if (camera !== undefined) result = { ...result, camera }

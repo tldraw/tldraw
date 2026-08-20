@@ -158,6 +158,7 @@ export class LocalIndexedDb {
 			}
 		})()
 		this.pendingTransactionSet.add(txPromise)
+		// not `.finally()`: the promise it returns would re-reject with nobody observing it
 		const cleanup = () => this.pendingTransactionSet.delete(txPromise)
 		txPromise.then(cleanup, cleanup)
 		return txPromise

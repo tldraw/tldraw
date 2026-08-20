@@ -252,8 +252,7 @@ describe('shapes bigger than the viewport', () => {
 	})
 })
 
-// Not registered in TLGlobalShapePropsMap: the tldraw test project already sits at TypeScript's
-// discriminated-union limit for TLShapePartial, so one more augmentation breaks typecheck.
+// Not registered in TLGlobalShapePropsMap; see getSvgString.test.ts.
 const PLAIN_FRAME_TYPE = 'plain-frame'
 type PlainFrameShape = TLBaseShape<typeof PLAIN_FRAME_TYPE, { w: number; h: number }>
 

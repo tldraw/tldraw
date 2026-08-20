@@ -211,6 +211,44 @@ describe('<TldrawEditor />', () => {
 		)
 		expect(initialEditor.dispose).not.toHaveBeenCalled()
 		expect(onMount).toHaveBeenCalledTimes(1)
+		// deeper nesting (camera constraints, zoomSteps) is compared by value too:
+		const withConstraints = () => ({
+			camera: {
+				isLocked: true,
+				zoomSteps: [0.5, 1, 2],
+				constraints: {
+					bounds: { x: 0, y: 0, w: 100, h: 100 },
+					padding: { x: 0, y: 0 },
+					origin: { x: 0.5, y: 0.5 },
+					initialZoom: 'default' as const,
+					baseZoom: 'default' as const,
+					behavior: 'contain' as const,
+				},
+			},
+			deepLinks: { param: 'd' },
+		})
+		rendered.rerender(
+			<TldrawEditor
+				tools={defaultTools}
+				initialState="select"
+				onMount={onMount}
+				options={withConstraints()}
+			/>
+		)
+		await rendered.findAllByTestId('canvas')
+		expect(onMount).toHaveBeenCalledTimes(2)
+		const secondEditor = onMount.mock.lastCall![0]
+		vi.spyOn(secondEditor, 'dispose')
+		rendered.rerender(
+			<TldrawEditor
+				tools={defaultTools}
+				initialState="select"
+				onMount={onMount}
+				options={withConstraints()}
+			/>
+		)
+		expect(secondEditor.dispose).not.toHaveBeenCalled()
+		expect(onMount).toHaveBeenCalledTimes(2)
 		// a real change still recreates the editor:
 		rendered.rerender(
 			<TldrawEditor
@@ -221,8 +259,8 @@ describe('<TldrawEditor />', () => {
 			/>
 		)
 		await rendered.findAllByTestId('canvas')
-		expect(initialEditor.dispose).toHaveBeenCalledTimes(1)
-		expect(onMount).toHaveBeenCalledTimes(2)
+		expect(secondEditor.dispose).toHaveBeenCalledTimes(1)
+		expect(onMount).toHaveBeenCalledTimes(3)
 		expect(onMount.mock.lastCall![0].getCameraOptions().isLocked).toBe(false)
 	})
 

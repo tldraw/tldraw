@@ -62,8 +62,6 @@ export class ScribbleManager {
 
 	constructor(private editor: Editor) {}
 
-	// ==================== SESSION API ====================
-
 	/**
 	 * Start a new session for grouping scribbles.
 	 * Returns a session ID that can be used with other session methods.
@@ -255,8 +253,6 @@ export class ScribbleManager {
 		return session?.state === 'active'
 	}
 
-	// ==================== SIMPLE API (for eraser, select, etc.) ====================
-
 	/**
 	 * Add a scribble using the default self-consuming behavior.
 	 * Creates an implicit session for the scribble.
@@ -388,8 +384,6 @@ export class ScribbleManager {
 			this.editor.updateInstanceState({ scribbles })
 		})
 	}
-
-	// ==================== PRIVATE HELPERS ====================
 
 	// Called on every pointer move and laser tick, so keep one pending timer per
 	// session and re-arm it only when it fires early. Otherwise every call leaves a

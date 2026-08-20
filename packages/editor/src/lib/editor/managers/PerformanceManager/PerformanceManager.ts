@@ -173,8 +173,6 @@ export class PerformanceManager {
 		this.emitter.removeAllListeners()
 	}
 
-	// --- Internal notification methods ---
-
 	/** @internal */
 	_notifyInteractionStart(name: string, path: string) {
 		if (
@@ -288,8 +286,6 @@ export class PerformanceManager {
 		}
 		this.emitter.emit(type, event)
 	}
-
-	// --- Private helpers ---
 
 	private _startCameraSession(type: 'panning' | 'zooming') {
 		this.activeCamera = {
@@ -432,8 +428,6 @@ export class PerformanceManager {
 		this.emitter.emit('shapes-deleted', event)
 	}
 
-	// --- LoAF observer ---
-
 	private _startLoafObserver() {
 		if (typeof PerformanceObserver === 'undefined') return
 
@@ -472,8 +466,6 @@ export class PerformanceManager {
 			this.loafObserver = null
 		}
 	}
-
-	// --- Lazy listener management ---
 
 	private _needsFrameListener(): boolean {
 		return (
