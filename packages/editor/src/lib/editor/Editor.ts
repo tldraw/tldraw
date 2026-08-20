@@ -72,6 +72,7 @@ import {
 	Result,
 	ZERO_INDEX_KEY,
 	annotateError,
+	areArraysShallowEqual,
 	assert,
 	assertExists,
 	bind,
@@ -545,6 +546,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 				nextPageState.editingShapeId = null
 			}
 
+			if (
+				prevPageState.croppingShapeId &&
+				shapesNoLongerInPage.has(prevPageState.croppingShapeId)
+			) {
+				if (!nextPageState) nextPageState = { ...prevPageState }
+				nextPageState.croppingShapeId = null
+			}
+
 			const hintingShapeIds = prevPageState.hintingShapeIds.filter(
 				(id) => !shapesNoLongerInPage.has(id)
 			)
@@ -938,7 +947,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const mode = this.store.props.collaboration.mode
 			this.disposables.add(
 				react('update collaboration mode', () => {
-					this.store.put([{ ...this.getInstanceState(), isReadonly: mode.get() === 'readonly' }])
+					const isReadonly = mode.get() === 'readonly'
+					// only track `mode`, and keep the sync out of the user's undo history
+					unsafe__withoutCapture(() =>
+						this._updateInstanceState({ isReadonly }, { history: 'ignore' })
+					)
 				})
 			)
 		}
@@ -2796,57 +2809,38 @@ export class Editor extends EventEmitter<TLEventMap> {
 	setEditingShape(shape: TLShapeId | TLShape | null): this {
 		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 
-		if (!id) {
-			// setting the editing shape to null
+		// id was provided but the next editing shape was not editable or didn't exist, so do nothing
+		if (id && !this.canEditShape(id)) return this
+
+		this.run(() => {
+			// Clean up the previous editing shape. This runs outside the history-ignored batch below,
+			// otherwise document changes made by onEditEnd (e.g. deleting an empty text shape) are
+			// never recorded and leave a phantom undo entry whose redo resurrects the shape.
+			const prevEditingShapeId = this.getEditingShapeId()
+			if (prevEditingShapeId) {
+				const prevEditingShape = this.getShape(prevEditingShapeId)
+				if (prevEditingShape) {
+					this.getShapeUtil(prevEditingShape).onEditEnd?.(prevEditingShape)
+				}
+			}
+
 			this.run(
 				() => {
-					// Clean up the previous editing shape
-					const prevEditingShapeId = this.getEditingShapeId()
-					if (prevEditingShapeId) {
-						const prevEditingShape = this.getShape(prevEditingShapeId)
-						if (prevEditingShape) {
-							this.getShapeUtil(prevEditingShape).onEditEnd?.(prevEditingShape)
-						}
-					}
-
 					// Clean up the editing shape state and rich text editor
 					this._updateCurrentPageState({ editingShapeId: null })
 					this._currentRichTextEditor.set(null)
+
+					if (!id) return
+
+					this.select(id)
+					this._updateCurrentPageState({ editingShapeId: id })
+
+					const nextEditingShape = this.getShape(id)! // shape should be there because canEditShape checked it. Possible small chance that onEditEnd deleted it?
+					this.getShapeUtil(nextEditingShape).onEditStart?.(nextEditingShape)
 				},
 				{ history: 'ignore' }
 			)
-
-			return this
-		}
-
-		// id was provided but the next editing shape was not editable or didn't exist, so do nothing
-		if (!this.canEditShape(id)) return this
-
-		// id was provided and the next editing shape is editable, so set the rich text editor to null
-		this.run(
-			() => {
-				// Clean up the previous editing shape
-				const prevEditingShapeId = this.getEditingShapeId()
-				if (prevEditingShapeId) {
-					const prevEditingShape = this.getShape(prevEditingShapeId)
-					if (prevEditingShape) {
-						this.getShapeUtil(prevEditingShape).onEditEnd?.(prevEditingShape)
-					}
-				}
-
-				// Clean up the editing shape state and rich text editor
-				this._updateCurrentPageState({ editingShapeId: null })
-				this._currentRichTextEditor.set(null)
-
-				// Set the new editing shape
-				this.select(id)
-				this._updateCurrentPageState({ editingShapeId: id })
-
-				const nextEditingShape = this.getShape(id)! // shape should be there because canEditShape checked it. Possible small chance that onEditEnd deleted it?
-				this.getShapeUtil(nextEditingShape).onEditStart?.(nextEditingShape)
-			},
-			{ history: 'ignore' }
-		)
+		})
 
 		return this
 	}
@@ -3011,26 +3005,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setErasingShapes(shapes: TLShapeId[] | TLShape[]): this {
+		// copy before sorting: the caller may pass a store-owned (frozen) array
 		const ids =
 			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
+				? (shapes as TLShapeId[]).slice()
 				: (shapes as TLShape[]).map((shape) => shape.id)
 		ids.sort() // sort the incoming ids
 		const erasingShapeIds = this.getErasingShapeIds()
 		this.run(
 			() => {
-				if (ids.length === erasingShapeIds.length) {
-					// if the new ids are the same length as the current ids, they might be the same.
-					// presuming the current ids are also sorted, check each item to see if it's the same;
-					// if we find any unequal, then we know the new ids are different.
-					for (let i = 0; i < ids.length; i++) {
-						if (ids[i] !== erasingShapeIds[i]) {
-							this._updateCurrentPageState({ erasingShapeIds: ids })
-							break
-						}
-					}
-				} else {
-					// if the ids are a different length, then we know they're different.
+				// the current ids are also sorted, so a shallow comparison tells us whether they changed
+				if (!areArraysShallowEqual(ids, erasingShapeIds)) {
 					this._updateCurrentPageState({ erasingShapeIds: ids })
 				}
 			},
