@@ -47,6 +47,14 @@ describe('When resizing', () => {
 			h: 1,
 		})
 	})
+
+	it('updates the selection screen bounds when the container moves', () => {
+		editor.createShape({ type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } })
+		editor.selectAll()
+		expect(editor.getSelectionRotatedScreenBounds()).toMatchObject({ x: 100, y: 100 })
+		editor.setScreenBounds({ x: 300, y: 200, w: 1080, h: 720 })
+		expect(editor.getSelectionRotatedScreenBounds()).toMatchObject({ x: 400, y: 300 })
+	})
 })
 
 describe('When center is false', () => {
