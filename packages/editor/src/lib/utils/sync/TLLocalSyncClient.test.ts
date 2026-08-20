@@ -3,6 +3,7 @@ import { IndexKey, promiseWithResolve } from '@tldraw/utils'
 import { Mock, vi } from 'vitest'
 import { createTLStore } from '../../config/createTLStore'
 import { hardReset } from './hardReset'
+import { LocalIndexedDb } from './LocalIndexedDb'
 import { TLLocalSyncClient } from './TLLocalSyncClient'
 
 class BroadcastChannelMock {
@@ -272,4 +273,34 @@ test('close() before the initial load has finished never writes', async () => {
 	// a full-snapshot write of a not-yet-loaded store would wipe the saved document
 	expect(client.db.storeSnapshot).not.toHaveBeenCalled()
 	expect(client.db.storeChanges).not.toHaveBeenCalled()
+})
+
+test('a client created on the same key while a closed client is still flushing does not load until that flush has landed', async () => {
+	const inFlightWrite = promiseWithResolve<void>()
+	const { client, tick } = testClient()
+	client.db.storeSnapshot.mockImplementationOnce(() => inFlightWrite)
+	await tick()
+	client.store.put([PageRecordType.create({ name: 'first', index: 'a0' as IndexKey })])
+	await tick()
+	expect(client.db.storeSnapshot).toHaveBeenCalledTimes(1) // in flight
+	client.store.put([PageRecordType.create({ name: 'during write', index: 'a1' as IndexKey })])
+	client.close()
+
+	// remount on the same key while the old client is still waiting to flush its queue
+	const loadSpy = vi.spyOn(LocalIndexedDb.prototype, 'load')
+	const next = testClient()
+	await tick()
+	// reading now would miss the queued edit, and the new client's first (full snapshot) write
+	// would then erase it
+	expect(loadSpy).not.toHaveBeenCalled()
+	expect(next.onLoad).not.toHaveBeenCalled()
+
+	inFlightWrite.resolve()
+	await tick()
+	expect(client.db.storeChanges).toHaveBeenCalledTimes(1)
+	for (let i = 0; i < 20; i++) await Promise.resolve()
+	await next.tick()
+	expect(loadSpy).toHaveBeenCalledTimes(1)
+	expect(next.onLoad).toHaveBeenCalledTimes(1)
+	loadSpy.mockRestore()
 })

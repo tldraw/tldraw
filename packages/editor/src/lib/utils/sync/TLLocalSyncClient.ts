@@ -63,6 +63,11 @@ export class BroadcastChannelMock {
 
 const BC = typeof BroadcastChannel === 'undefined' ? BroadcastChannelMock : BroadcastChannel
 
+// Flushes still running for a closed client, by persistence key. A client that mounts on the
+// same key right after (remount, StrictMode) must not read IndexedDB before that flush has landed:
+// its first persist is a full-snapshot write, so anything it did not read would be erased.
+const pendingFlushes = new Map<string, Promise<void>>()
+
 /** @internal */
 export class TLLocalSyncClient {
 	private disposables = new Set<() => void>()
@@ -167,6 +172,9 @@ export class TLLocalSyncClient {
 		this.disposables.add(() => {
 			this.channel.close()
 		})
+
+		await pendingFlushes.get(this.persistenceKey)
+		if (this.didDispose) return
 
 		try {
 			data = await this.db.load({ sessionId: this.sessionId })
@@ -292,7 +300,15 @@ export class TLLocalSyncClient {
 		if (typeof window !== 'undefined' && (window as any).tlsync === this) {
 			delete (window as any).tlsync
 		}
-		void this.flushAndCloseDb()
+		const flush = Promise.allSettled([
+			pendingFlushes.get(this.persistenceKey),
+			this.flushAndCloseDb(),
+		]).then(() => {
+			if (pendingFlushes.get(this.persistenceKey) === flush) {
+				pendingFlushes.delete(this.persistenceKey)
+			}
+		})
+		pendingFlushes.set(this.persistenceKey, flush)
 	}
 
 	/**
