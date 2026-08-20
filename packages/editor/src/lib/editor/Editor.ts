@@ -5624,7 +5624,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (pageMask) {
 				if (pageMask.length === 0) return undefined
 				const { corners } = pageBounds
-				if (corners.every((p, i) => p && Vec.Equals(p, pageMask[i]))) return pageBounds.clone()
+				// the mask may have fewer than four points (e.g. a triangular clip path)
+				if (
+					pageMask.length === corners.length &&
+					corners.every((p, i) => Vec.Equals(p, pageMask[i]))
+				) {
+					return pageBounds.clone()
+				}
 				const intersection = intersectPolygonPolygon(pageMask, corners)
 				if (!intersection) return
 				return Box.FromPoints(intersection)
@@ -5952,17 +5958,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			const pointInShapeSpace = this.getPointInShapeSpace(shape, point)
 
-			// Check labels first
+			// Check labels first. Only group geometries can carry a label child; a frame-like
+			// shape util may still return a plain geometry.
 			const shapeUtil = this.getShapeUtil(shape)
 			const isShapeFrameLike = this.isShapeFrameLike(shape)
 			if (
-				isShapeFrameLike ||
-				((this.isShapeOfType(shape, 'note') ||
-					this.isShapeOfType(shape, 'arrow') ||
-					(this.isShapeOfType(shape, 'geo') && shape.props.fill === 'none')) &&
-					shapeUtil.getText(shape)?.trim())
+				isGroup &&
+				(isShapeFrameLike ||
+					((this.isShapeOfType(shape, 'note') ||
+						this.isShapeOfType(shape, 'arrow') ||
+						(this.isShapeOfType(shape, 'geo') && shape.props.fill === 'none')) &&
+						shapeUtil.getText(shape)?.trim()))
 			) {
-				for (const childGeometry of (geometry as Group2d).children) {
+				for (const childGeometry of geometry.children) {
 					if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
 						return shape
 					}
