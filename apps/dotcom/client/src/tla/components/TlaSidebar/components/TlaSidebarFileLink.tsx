@@ -16,7 +16,6 @@ import {
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useHasFileAdminRights } from '../../../hooks/useIsFileOwner'
-import { useIsFilePinned } from '../../../hooks/useIsFilePinned'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F, defineMessages, useIntl } from '../../../utils/i18n'
@@ -79,10 +78,12 @@ export function TlaSidebarFileLink({
 	const isRenaming = useValue(
 		'shouldRename',
 		() => isEqual(app.sidebarState.get().renameState, { fileId, workspaceId }),
-		[fileId, app]
+		[fileId, workspaceId, app]
 	)
 
-	const isPinned = useIsFilePinned(fileId, workspaceId)
+	// The parent's single getWorkspaceFilesSorted pass already decided this; recomputing it per
+	// link (useIsFilePinned) repeats that whole sort for every row on each membership change.
+	const isPinned = item.isPinned
 
 	const handleRenameAction = () => {
 		if (isMobile) {
