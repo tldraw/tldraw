@@ -129,7 +129,13 @@ import { Geometry2d } from '../primitives/geometry/Geometry2d'
 import { Group2d } from '../primitives/geometry/Group2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
 import { Mat, MatLike } from '../primitives/Mat'
-import { PI, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
+import {
+	HALF_PI,
+	approximately,
+	areAnglesCompatible,
+	clamp,
+	pointInPolygon,
+} from '../primitives/utils'
 import { Vec, VecLike } from '../primitives/Vec'
 import { areShapesContentEqual } from '../utils/areShapesContentEqual'
 import { dataUrlToFile } from '../utils/assets'
@@ -7393,9 +7399,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// optionally filter to axis-aligned shapes (rotation is a multiple of 90 degrees)
 		if (opts?.filterAxisAligned) {
-			freshShapes = freshShapes.filter(
-				(s) => this.getShapePageTransform(s)?.rotation() % (PI / 2) === 0
-			)
+			freshShapes = freshShapes.filter((s) => {
+				// Page rotations come back through atan2 on a composed matrix, so a 270° shape can land
+				// a hair either side of the multiple; an exact === 0 check drops it
+				const remainder = Math.abs(this.getShapePageTransform(s).rotation() % HALF_PI)
+				return Math.min(remainder, HALF_PI - remainder) < 1e-9
+			})
 		}
 
 		const clusters: { shapes: TLShape[]; pageBounds: Box }[] = []
