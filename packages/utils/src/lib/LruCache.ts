@@ -25,6 +25,10 @@ export class LruCache<K, V> {
 		return this.map.has(key)
 	}
 
+	delete(key: K): boolean {
+		return this.map.delete(key)
+	}
+
 	// eslint-disable-next-line tldraw/no-setter-getter
 	get size(): number {
 		return this.map.size

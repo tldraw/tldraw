@@ -18,7 +18,7 @@ export interface ParsedFontFace {
 // Parse @import declarations:
 // https://developer.mozilla.org/en-US/docs/Web/CSS/@import#formal_syntax
 const importsRegex =
-	/@import\s+(?:"([^"]+)"|'([^']+)'|url\s*\(\s*(?:"([^"]+)"|'([^']+)'|([^'")]+))\s*\))([^;]+);/gi
+	/@import\s+(?:"([^"]+)"|'([^']+)'|url\s*\(\s*(?:"([^"]+)"|'([^']+)'|([^'")]+))\s*\))([^;]*);/gi
 
 // Locate @font-face declarations:
 const fontFaceRegex = /@font-face\s*{([^}]+)}/gi

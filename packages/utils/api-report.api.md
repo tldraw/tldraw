@@ -274,6 +274,8 @@ export function lns(str: string): string;
 export class LruCache<K, V> {
     constructor(maxSize: number);
     // (undocumented)
+    delete(key: K): boolean;
+    // (undocumented)
     get(key: K): undefined | V;
     // (undocumented)
     has(key: K): boolean;
