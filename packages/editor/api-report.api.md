@@ -138,7 +138,7 @@ export class Arc2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: VecLike, B: VecLike): boolean;
+    hitTestLineSegment(A: VecLike, B: VecLike, distance?: number): boolean;
     // (undocumented)
     nearestPoint(point: VecLike): Vec;
 }
@@ -627,7 +627,7 @@ export class CubicSpline2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: VecLike, B: VecLike): boolean;
+    hitTestLineSegment(A: VecLike, B: VecLike, distance?: number): boolean;
     // (undocumented)
     nearestPoint(A: VecLike): Vec;
     // (undocumented)
@@ -1777,7 +1777,7 @@ export class Ellipse2d extends Geometry2d {
     // (undocumented)
     getVertices(): any[];
     // (undocumented)
-    hitTestLineSegment(A: VecLike, B: VecLike): boolean;
+    hitTestLineSegment(A: VecLike, B: VecLike, distance?: number): boolean;
     // (undocumented)
     nearestPoint(A: VecLike): Vec;
 }
@@ -1821,6 +1821,8 @@ export class FontManager {
     dispose(): void;
     // (undocumented)
     ensureFontIsLoaded(font: TLFontFace): Promise<void>;
+    // @internal (undocumented)
+    getFontLoadEpoch(): number;
     // (undocumented)
     getShapeFontFaces(shape: TLShape | TLShapeId): TLFontFace[];
     // (undocumented)
@@ -3244,7 +3246,7 @@ export class Stadium2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: VecLike, B: VecLike): boolean;
+    hitTestLineSegment(A: VecLike, B: VecLike, distance?: number): boolean;
     // (undocumented)
     nearestPoint(A: VecLike): Vec;
 }

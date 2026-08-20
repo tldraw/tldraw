@@ -263,6 +263,24 @@ it('Cancels when click moves', () => {
 	expect(event.name).toBe('pointer_up')
 })
 
+it('Does not cancel a double click on a small move when the container is offset', () => {
+	// click points are client coordinates; comparing them against the container-relative
+	// screen point used to cancel on any movement at all in an offset container
+	editor.setScreenBounds({ x: 300, y: 100, w: 1080, h: 720 })
+	const events: any[] = []
+	editor.addListener('event', (info) => events.push(info))
+
+	editor.pointerDown(500, 400).pointerMove(501, 400).pointerUp(501, 400).pointerDown(501, 400)
+
+	expect(events).toMatchObject([
+		{ name: 'pointer_down' },
+		{ name: 'pointer_move' },
+		{ name: 'pointer_up' },
+		{ name: 'pointer_down' },
+		{ name: 'double_click', type: 'click', phase: 'down' },
+	])
+})
+
 it('Resets when the focus layer changes', () => {
 	const boxId = editor.testShapeID('box')
 	const otherBoxId = editor.testShapeID('otherBox')
@@ -292,4 +310,21 @@ it('Resets when the focus layer changes', () => {
 
 	expect(events).toMatchObject([{ name: 'pointer_down' }])
 	expect(events).toHaveLength(1)
+})
+
+it('Emits double click events for an indirect pen outside pen mode', () => {
+	const events: any[] = []
+	editor.addListener('event', (info) => events.push(info))
+
+	// An indirect desktop tablet stylus reports as a pen but never enables pen mode, so
+	// its clicks still have to reach the click manager to produce double-click events.
+	const pen = { isPen: true, isPenDirect: false }
+	editor.pointerDown(0, 0, pen).pointerUp(0, 0, pen).pointerDown(0, 0, pen)
+	expect(editor.getInstanceState().isPenMode).toBe(false)
+	expect(events).toMatchObject([
+		{ name: 'pointer_down' },
+		{ name: 'pointer_up' },
+		{ name: 'pointer_down' },
+		{ name: 'double_click', type: 'click', phase: 'down' },
+	])
 })

@@ -4,11 +4,6 @@ import type { Editor } from '../editor/Editor'
 
 /**
  * Gets the changes for reordering shapes.
- * @param editor - The editor.
- * @param operation - The operation to perform.
- * @param ids - The ids of the shapes to reorder.
- * @param opts - The options.
- * @returns The changes.
  * @public
  */
 export function getReorderingShapesChanges(

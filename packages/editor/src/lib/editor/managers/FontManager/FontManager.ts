@@ -1,4 +1,4 @@
-import { computed, EMPTY_ARRAY, transact } from '@tldraw/state'
+import { atom, computed, EMPTY_ARRAY, transact } from '@tldraw/state'
 import { AtomMap } from '@tldraw/store'
 import { TLFontFace, TLShape, TLShapeId } from '@tldraw/tlschema'
 import {
@@ -8,6 +8,7 @@ import {
 	mapObjectMapValues,
 	objectMapEntries,
 } from '@tldraw/utils'
+import { areShapesContentEqual } from '../../../utils/areShapesContentEqual'
 import type { Editor } from '../../Editor'
 
 interface FontState {
@@ -41,7 +42,7 @@ export class FontManager {
 			},
 			{
 				areResultsEqual: areArraysShallowEqual,
-				areRecordsEqual: (a, b) => a.props === b.props && a.meta === b.meta,
+				areRecordsEqual: areShapesContentEqual,
 			}
 		)
 
@@ -101,6 +102,22 @@ export class FontManager {
 		return this.fontStates.get(font) ?? null
 	}
 
+	// One signal for consumers that deliberately avoid per-shape font tracking (the
+	// spatial index); otherwise their cached text bounds stay at the fallback-font size.
+	private readonly fontLoadEpoch = atom('font load epoch', 0)
+
+	/** @internal */
+	getFontLoadEpoch(): number {
+		return this.fontLoadEpoch.get()
+	}
+
+	private setFontState(font: TLFontFace, state: FontState['state']) {
+		transact(() => {
+			this.fontStates.update(font, (s) => ({ ...s, state }))
+			this.fontLoadEpoch.update((n) => n + 1)
+		})
+	}
+
 	ensureFontIsLoaded(font: TLFontFace): Promise<void> {
 		const existingState = this.getFontState(font)
 		if (existingState) return existingState.loadingPromise
@@ -122,7 +139,7 @@ export class FontManager {
 						return
 					}
 					this.editor.getContainerDocument().fonts.add(instance)
-					this.fontStates.update(font, (s) => ({ ...s, state: 'ready' }))
+					this.setFontState(font, 'ready')
 				})
 				.catch((err) => {
 					if (isStale()) {
@@ -131,7 +148,7 @@ export class FontManager {
 						return
 					}
 					console.error(err)
-					this.fontStates.update(font, (s) => ({ ...s, state: 'error' }))
+					this.setFontState(font, 'error')
 				}),
 		}
 

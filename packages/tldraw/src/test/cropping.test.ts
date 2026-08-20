@@ -286,6 +286,17 @@ describe('When in the crop.idle state', () => {
 			.expectToBeIn('select.idle')
 	})
 
+	it('deleting the cropping shape clears the cropping shape id and leaves crop mode', () => {
+		editor
+			.expectToBeIn('select.idle')
+			.doubleClick(550, 550, ids.imageB)
+			.expectToBeIn('select.crop.idle')
+		expect(editor.getCroppingShapeId()).toBe(ids.imageB)
+		editor.deleteShapes([ids.imageB])
+		expect(editor.getCroppingShapeId()).toBe(null)
+		editor.expectToBeIn('select.idle')
+	})
+
 	it('pointing the canvas should point canvas', () => {
 		editor
 			.expectToBeIn('select.idle')

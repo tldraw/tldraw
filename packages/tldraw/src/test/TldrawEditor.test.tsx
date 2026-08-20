@@ -96,6 +96,21 @@ describe('<TldrawEditor />', () => {
 		)
 	})
 
+	it('runs the teardown returned by the store onMount option when unmounted', async () => {
+		const teardown = vi.fn()
+		const storeOnMount = vi.fn(() => teardown)
+		const store = createTLStore({ shapeUtils: [], bindingUtils: [], onMount: storeOnMount })
+		const rendered = await renderTldrawComponent(
+			<TldrawEditor store={store} tools={defaultTools} initialState="select" />,
+			{ waitForPatterns: false }
+		)
+		expect(storeOnMount).toHaveBeenCalledTimes(1)
+		expect(teardown).not.toHaveBeenCalled()
+
+		act(() => rendered.unmount())
+		expect(teardown).toHaveBeenCalledTimes(1)
+	})
+
 	it('throws if the store has different shapes to the ones passed in', async () => {
 		const spy = vi.spyOn(console, 'error').mockImplementation(noop)
 		// expect(() =>
@@ -170,6 +185,45 @@ describe('<TldrawEditor />', () => {
 		expect(initialEditor.dispose).toHaveBeenCalledTimes(1)
 		expect(onMount).toHaveBeenCalledTimes(2)
 		expect(onMount.mock.lastCall![0].store).toBe(newStore)
+	})
+
+	it('keeps the editor when re-rendered with equal inline nested options', async () => {
+		const onMount = vi.fn()
+		const rendered = await renderTldrawComponent(
+			<TldrawEditor
+				tools={defaultTools}
+				initialState="select"
+				onMount={onMount}
+				options={{ camera: { isLocked: true }, deepLinks: { param: 'd' } }}
+			/>,
+			{ waitForPatterns: false }
+		)
+		const initialEditor = onMount.mock.lastCall![0]
+		vi.spyOn(initialEditor, 'dispose')
+		// a fresh options object with fresh (but equal) nested objects, as an inline literal gives:
+		rendered.rerender(
+			<TldrawEditor
+				tools={defaultTools}
+				initialState="select"
+				onMount={onMount}
+				options={{ camera: { isLocked: true }, deepLinks: { param: 'd' } }}
+			/>
+		)
+		expect(initialEditor.dispose).not.toHaveBeenCalled()
+		expect(onMount).toHaveBeenCalledTimes(1)
+		// a real change still recreates the editor:
+		rendered.rerender(
+			<TldrawEditor
+				tools={defaultTools}
+				initialState="select"
+				onMount={onMount}
+				options={{ camera: { isLocked: false }, deepLinks: { param: 'd' } }}
+			/>
+		)
+		await rendered.findAllByTestId('canvas')
+		expect(initialEditor.dispose).toHaveBeenCalledTimes(1)
+		expect(onMount).toHaveBeenCalledTimes(2)
+		expect(onMount.mock.lastCall![0].getCameraOptions().isLocked).toBe(false)
 	})
 
 	it('reflects mount state via getIsMounted and the mount/unmount events', async () => {

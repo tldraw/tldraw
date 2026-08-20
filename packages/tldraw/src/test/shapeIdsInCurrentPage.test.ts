@@ -72,4 +72,25 @@ describe('shapeIdsInCurrentPage', () => {
 			new Set([ids.box1, ids.box2, ids.box3])
 		)
 	})
+
+	it('updates the descendants of a shape that is reparented to another page', () => {
+		const frameId = createShapeId('frame')
+		editor.createShapes([
+			{ type: 'frame', id: frameId },
+			{ type: 'geo', id: ids.box1, parentId: frameId },
+		])
+		expect(new Set(editor.getCurrentPageShapeIds())).toEqual(new Set([frameId, ids.box1]))
+
+		const page2Id = PageRecordType.createId('page2')
+		editor.createPage({ name: 'New Page 2', id: page2Id })
+		editor.reparentShapes([frameId], page2Id)
+
+		expect(new Set(editor.getCurrentPageShapeIds())).toEqual(new Set([]))
+
+		editor.setCurrentPage(page2Id)
+		expect(new Set(editor.getCurrentPageShapeIds())).toEqual(new Set([frameId, ids.box1]))
+
+		editor.reparentShapes([frameId], editor.getPages()[0].id)
+		expect(new Set(editor.getCurrentPageShapeIds())).toEqual(new Set([]))
+	})
 })

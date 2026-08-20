@@ -1101,6 +1101,51 @@ describe('dispatch event emission', () => {
 
 		expect(eventHandler).toHaveBeenCalledWith(pinchEndEvent)
 	})
+
+	it('still ends a pinch when the camera is locked mid-gesture', () => {
+		const pinchStartEvent = {
+			type: 'pinch' as const,
+			name: 'pinch_start' as const,
+			point: { x: 100, y: 100, z: 1 },
+			delta: { x: 0, y: 0, z: 0 },
+			shiftKey: false,
+			altKey: false,
+			ctrlKey: false,
+			metaKey: false,
+			accelKey: false,
+		}
+		testEditor.dispatch(pinchStartEvent)
+		testEditor.emit('tick', 16)
+		expect(testEditor.inputs.getIsPinching()).toBe(true)
+
+		// Locking only stops the camera: pinch_end must still clear isPinching, otherwise
+		// every pointer event is ignored from here on.
+		testEditor.setCameraOptions({ isLocked: true })
+		testEditor.dispatch({ ...pinchStartEvent, name: 'pinch_end' })
+		testEditor.emit('tick', 16)
+		expect(testEditor.inputs.getIsPinching()).toBe(false)
+	})
+
+	it('ignores the stylus eraser button when no eraser tool is registered', () => {
+		const pointerDown = {
+			type: 'pointer' as const,
+			name: 'pointer_down' as const,
+			target: 'canvas' as const,
+			point: { x: 100, y: 100, z: 0.5 },
+			pointerId: 1,
+			button: 5,
+			isPen: true,
+			shiftKey: false,
+			altKey: false,
+			ctrlKey: false,
+			metaKey: false,
+			accelKey: false,
+		}
+
+		expect(() => testEditor.dispatch(pointerDown)).not.toThrow()
+		expect(() => testEditor.dispatch({ ...pointerDown, name: 'pointer_up' })).not.toThrow()
+		expect(testEditor.getCrashingError()).toBeNull()
+	})
 })
 
 describe('setTool', () => {

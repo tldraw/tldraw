@@ -152,15 +152,14 @@ export class LocalIndexedDb {
 			try {
 				return await cb(tx)
 			} finally {
-				if (!this.isClosed) {
-					await done
-				} else {
-					tx.abort()
-				}
+				// let the transaction commit even if close() was called meanwhile, otherwise a
+				// persist racing an unmount is silently rolled back
+				await done
 			}
 		})()
 		this.pendingTransactionSet.add(txPromise)
-		txPromise.finally(() => this.pendingTransactionSet.delete(txPromise))
+		const cleanup = () => this.pendingTransactionSet.delete(txPromise)
+		txPromise.then(cleanup, cleanup)
 		return txPromise
 	}
 
@@ -208,17 +207,19 @@ export class LocalIndexedDb {
 			const schemaStore = tx.objectStore(Table.Schema)
 			const sessionStateStore = tx.objectStore(Table.SessionState)
 
+			const requests: Promise<unknown>[] = []
 			for (const [id, record] of Object.entries(changes.added)) {
-				await recordsStore.put(record, id)
+				requests.push(recordsStore.put(record, id))
 			}
 
 			for (const [_prev, updated] of Object.values(changes.updated)) {
-				await recordsStore.put(updated, updated.id)
+				requests.push(recordsStore.put(updated, updated.id))
 			}
 
 			for (const id of Object.keys(changes.removed)) {
-				await recordsStore.delete(id)
+				requests.push(recordsStore.delete(id))
 			}
+			await Promise.all(requests)
 
 			schemaStore.put(schema.serialize(), Table.Schema)
 			if (sessionStateSnapshot && sessionId) {
@@ -254,9 +255,9 @@ export class LocalIndexedDb {
 
 			await recordsStore.clear()
 
-			for (const [id, record] of Object.entries(snapshot)) {
-				await recordsStore.put(record, id)
-			}
+			await Promise.all(
+				Object.entries(snapshot).map(([id, record]) => recordsStore.put(record, id))
+			)
 
 			schemaStore.put(schema.serialize(), Table.Schema)
 

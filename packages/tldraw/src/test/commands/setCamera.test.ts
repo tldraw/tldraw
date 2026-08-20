@@ -315,6 +315,18 @@ describe('CameraOptions.wheelBehavior', () => {
 			.forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 5, z: 1 })
 	})
+
+	it('When wheelBehavior is none, the input mode preference does not re-enable the wheel', () => {
+		editor.user.updateUserPreferences({ inputMode: 'trackpad' })
+		editor
+			.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, wheelBehavior: 'none' })
+			.dispatch({
+				...wheelEvent,
+				delta: new Vec(5, 10, 0.01),
+			})
+			.forceTick()
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+	})
 })
 
 describe('Zoom direction inversion', () => {
@@ -1255,4 +1267,94 @@ test('calling setCameraOptions will apply the new constraints', () => {
 		  "z": 1,
 		}
 	`)
+})
+
+describe('Constraint bounds away from the page origin', () => {
+	it('keeps the bounds inside the padded viewport with the inside behavior', () => {
+		editor.setCameraOptions({
+			...DEFAULT_CAMERA_OPTIONS,
+			constraints: {
+				...DEFAULT_CONSTRAINTS,
+				bounds: { x: 1000, y: 0, w: 800, h: 600 },
+				padding: { x: 100, y: 100 },
+				behavior: { x: 'inside', y: 'free' },
+			},
+		})
+		// the bounds' right edge stops at the right padding edge
+		editor.setCamera({ x: 100000, y: 0, z: 1 })
+		expect(editor.getCamera()).toMatchObject({ x: -300, y: 0, z: 1 })
+		expect(editor.pageToScreen({ x: 1800, y: 0 }).x).toBe(1500)
+		// the bounds' left edge stops at the left padding edge
+		editor.setCamera({ x: -100000, y: 0, z: 1 })
+		expect(editor.getCamera()).toMatchObject({ x: -900, y: 0, z: 1 })
+		expect(editor.pageToScreen({ x: 1000, y: 0 }).x).toBe(100)
+	})
+
+	it('keeps the bounds adjacent to the padded viewport with the outside behavior', () => {
+		editor.setCameraOptions({
+			...DEFAULT_CAMERA_OPTIONS,
+			constraints: {
+				...DEFAULT_CONSTRAINTS,
+				bounds: { x: 1000, y: 0, w: 800, h: 600 },
+				padding: { x: 100, y: 100 },
+				behavior: { x: 'outside', y: 'free' },
+			},
+		})
+		// the bounds' left edge stops at the right padding edge
+		editor.setCamera({ x: 100000, y: 0, z: 1 })
+		expect(editor.getCamera()).toMatchObject({ x: 500, y: 0, z: 1 })
+		expect(editor.pageToScreen({ x: 1000, y: 0 }).x).toBe(1500)
+		// the bounds' right edge stops at the left padding edge
+		editor.setCamera({ x: -100000, y: 0, z: 1 })
+		expect(editor.getCamera()).toMatchObject({ x: -1700, y: 0, z: 1 })
+		expect(editor.pageToScreen({ x: 1800, y: 0 }).x).toBe(100)
+	})
+})
+
+test('clamps horizontal padding against the viewport width, not its height', () => {
+	editor.setCameraOptions({
+		...DEFAULT_CAMERA_OPTIONS,
+		constraints: {
+			...DEFAULT_CONSTRAINTS,
+			bounds: { x: 0, y: 0, w: 200, h: 100 },
+			padding: { x: 600, y: 0 },
+			behavior: { x: 'inside', y: 'free' },
+		},
+	})
+	// 600 is below half of the 1600px viewport width, so the padding is honoured as is
+	editor.setCamera({ x: -100000, y: 0, z: 1 })
+	expect(editor.getCamera()).toMatchObject({ x: 600, y: 0, z: 1 })
+})
+
+test('a forced animated camera move ends at the forced position', () => {
+	editor.user.updateUserPreferences({ animationSpeed: 1 })
+	editor.setCameraOptions({
+		...DEFAULT_CAMERA_OPTIONS,
+		constraints: { ...DEFAULT_CONSTRAINTS, behavior: 'contain' },
+	})
+	editor.setCamera({ x: -5000, y: -5000, z: 1 }, { force: true, animation: { duration: 100 } })
+	editor.emit('tick', 50)
+	editor.emit('tick', 100)
+	// the final frame must not re-apply the constraints that `force` bypassed
+	expect(editor.getCamera()).toMatchObject({ x: -5000, y: -5000, z: 1 })
+})
+
+test('keeps the current zoom when setCamera is called without a finite zoom', () => {
+	editor.setCamera({ x: 0, y: 0, z: 0.5 })
+	editor.setCamera({ x: 100, y: 100 })
+	expect(editor.getCamera()).toMatchObject({ x: 100, y: 100, z: 0.5 })
+	editor.setCamera({ x: 0, y: 0, z: NaN })
+	expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 0.5 })
+})
+
+test('slideCamera zoom momentum survives a long frame', () => {
+	editor.user.updateUserPreferences({ animationSpeed: 1 })
+	editor.setCamera({ x: 0, y: 0, z: 1 })
+	editor.slideCamera({ speed: 1, direction: { x: 0, y: 0, z: -0.01 } })
+	// a 100ms frame would have driven a linear zoom factor to zero (and the camera to NaN)
+	editor.emit('tick', 100)
+	const { x, y, z } = editor.getCamera()
+	expect(z).toBeGreaterThan(0)
+	expect(z).toBeLessThan(1)
+	expect(Number.isFinite(x) && Number.isFinite(y)).toBe(true)
 })

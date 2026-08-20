@@ -275,6 +275,31 @@ describe('Shape navigation', () => {
 			expect(editor.getSelectedShapeIds()).toEqual([ids.nearRight])
 		})
 
+		it('prefers an aligned shape over a nearer diagonal one', () => {
+			editor.createShapes([
+				{ id: ids.center, type: 'geo', x: 0, y: 0 },
+				{ id: ids.farRight, type: 'geo', x: 300, y: 0 },
+				{ id: ids.offAxisRight, type: 'geo', x: 200, y: 150 },
+			])
+
+			vi.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
+				if (shape?.id === ids.center) return { center: { x: 0, y: 0 } } as any
+				if (shape?.id === ids.farRight) return { center: { x: 300, y: 0 } } as any
+				if (shape?.id === ids.offAxisRight) return { center: { x: 200, y: 150 } } as any
+				return { center: { x: 0, y: 0 } } as any
+			})
+
+			editor.select(ids.center)
+			editor.selectAdjacentShape('right')
+			// the off-axis penalty must not be swamped by the (formerly squared) distance
+			expect(editor.getSelectedShapeIds()).toEqual([ids.farRight])
+
+			// and 'up' must not be biased towards up-left shapes
+			editor.select(ids.offAxisRight)
+			editor.selectAdjacentShape('up')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.farRight])
+		})
+
 		// Add this test for the 'prev' direction in directional navigation
 		it('navigates in previous/reverse directions correctly', () => {
 			// Create shapes in a pattern that tests directional navigation
@@ -994,6 +1019,36 @@ describe('Shape navigation', () => {
 
 			// Should have selected a shape rather than erroring
 			expect(editor.getSelectedShapeIds().length).toBeGreaterThan(0)
+		})
+
+		it('does nothing when there are no tabbable shapes', () => {
+			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0 }])
+			vi.spyOn(editor.getShapeUtil('geo'), 'canTabTo').mockReturnValue(false)
+			editor.select(ids.box1)
+
+			expect(() => editor.selectAdjacentShape('next')).not.toThrow()
+			expect(() => editor.selectAdjacentShape('prev')).not.toThrow()
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		})
+
+		it('wraps to the last shape on prev when the selected shape is not in the reading order', () => {
+			editor.createShapes([
+				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+				{ id: ids.box2, type: 'geo', x: 100, y: 0 },
+				{ id: ids.box3, type: 'geo', x: 200, y: 0 },
+				{ id: ids.box4, type: 'geo', x: 300, y: 0 },
+			])
+			vi.spyOn(editor.getShapeUtil('geo'), 'canTabTo').mockImplementation(
+				(shape) => shape.id !== ids.box1
+			)
+			editor.select(ids.box1)
+
+			editor.selectAdjacentShape('prev')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box4])
+
+			editor.select(ids.box1)
+			editor.selectAdjacentShape('next')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
 		})
 
 		it('navigates in row-wise reading order with complex layouts', () => {

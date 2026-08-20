@@ -294,6 +294,24 @@ describe('creating groups', () => {
 		editor.groupShapes(editor.getSelectedShapeIds())
 		expect(editor.getSelectedShapeIds().length).toBe(3)
 	})
+	it('works while a tool other than select is active', () => {
+		// e.g. importing content while drawing; the select tool gate belongs to the UI action
+		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 0)])
+		editor.setCurrentTool('draw')
+		editor.groupShapes([ids.boxA, ids.boxB])
+		const group = editor.getShape(ids.boxA)!.parentId
+		expect(editor.getShape(group)!.type).toBe('group')
+		expect(editor.getShape(ids.boxB)!.parentId).toBe(group)
+		expect(editor.getCurrentToolId()).toBe('draw')
+	})
+	it('does nothing when every shape is locked', () => {
+		editor.createShapes([
+			{ ...box(ids.boxA, 0, 0), isLocked: true },
+			{ ...box(ids.boxB, 20, 0), isLocked: true },
+		])
+		expect(() => editor.groupShapes([ids.boxA, ids.boxB])).not.toThrow()
+		expect(editor.getCurrentPageShapes().length).toBe(2)
+	})
 	it('keeps order correct simple', () => {
 		// 0   10  20  30  40  50  60  70
 		// ┌───┐   ┌───┐   ┌───┐   ┌───┐
@@ -490,6 +508,24 @@ describe('ungrouping shapes', () => {
 		expect(editor.getSelectedShapeIds().length).toBe(2)
 		expect(editor.getShape(groupAId)).not.toBe(undefined)
 		expect(editor.getShape(groupBId)).not.toBe(undefined)
+	})
+	it('ungroups an outer group and its inner group in one call without losing the inner children', () => {
+		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 0), box(ids.boxC, 40, 0)])
+		editor.groupShapes([ids.boxA, ids.boxB])
+		const innerId = onlySelectedId()
+		editor.groupShapes([innerId, ids.boxC])
+		const outerId = onlySelectedId()
+
+		// outer first: its ungrouping reparents inner, so inner's children must follow the live
+		// record rather than inner's stale parentId (the about-to-be-deleted outer)
+		editor.ungroupShapes([outerId, innerId])
+
+		const pageId = editor.getCurrentPageId()
+		expect(editor.getShape(ids.boxA)?.parentId).toBe(pageId)
+		expect(editor.getShape(ids.boxB)?.parentId).toBe(pageId)
+		expect(editor.getShape(ids.boxC)?.parentId).toBe(pageId)
+		expect(editor.getShape(innerId)).toBeUndefined()
+		expect(editor.getShape(outerId)).toBeUndefined()
 	})
 	it('does not work if the scene is in readonly mode', () => {
 		// 0   10  20  30  40  50

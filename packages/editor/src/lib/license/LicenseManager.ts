@@ -1,4 +1,5 @@
 import { atom, transact } from '@tldraw/state'
+import { noop } from '@tldraw/utils'
 import { publishDates, version } from '../../version'
 import { getDefaultCdnBaseUrl } from '../utils/assets'
 import { importPublicKey, str2ab } from '../utils/licensing'
@@ -247,8 +248,9 @@ export class LicenseManager {
 			url.searchParams.set('environment', process.env.NODE_ENV)
 		}
 
+		// best-effort: a blocked or offline request must not surface as an unhandled rejection
 		// eslint-disable-next-line no-restricted-globals
-		fetch(url.toString())
+		fetch(url.toString()).catch(noop)
 	}
 
 	private async extractLicenseKey(licenseKey: string): Promise<LicenseInfo> {

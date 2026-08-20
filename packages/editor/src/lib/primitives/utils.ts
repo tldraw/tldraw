@@ -189,7 +189,10 @@ export function snapAngle(r: number, segments: number): number {
  * @public
  */
 export function areAnglesCompatible(a: number, b: number) {
-	return a === b || approximately((a % (Math.PI / 2)) - (b % (Math.PI / 2)), 0)
+	// Reduce the difference, not each angle: a sign-preserving % on each made
+	// -PI/4 and PI/4 incompatible. A remainder just under PI/2 is a multiple too.
+	const d = Math.abs(a - b) % (Math.PI / 2)
+	return approximately(d, 0) || approximately(d, Math.PI / 2)
 }
 
 /**
@@ -409,11 +412,11 @@ export function getPointInArcT(mAB: number, A: number, B: number, P: number): nu
 		mAP = shortAngleDist(A, P)
 		const t = mAP / mAB
 
-		// If the arc is something like -2.8 to 2.2, then we'll get a weird bug
-		// where the measurement to the center is negative but measure to points
-		// near the end are positive
+		// A sign mismatch (e.g. an arc from -2.8 to 2.2) means P is in the arc's
+		// gap, |mAP| behind A. Clamp to the angularly nearer endpoint: B is the
+		// rest of the gap away, not a fixed half of the arc.
 		if (Math.sign(mAP) !== Math.sign(mAB)) {
-			return Math.abs(t) > 0.5 ? 1 : 0
+			return Math.abs(mAP) > (PI2 - Math.abs(mAB)) / 2 ? 1 : 0
 		}
 
 		return t

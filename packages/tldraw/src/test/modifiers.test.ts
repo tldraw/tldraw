@@ -155,3 +155,16 @@ it('keyboard events carry currently-held modifiers', () => {
 	expect(shiftDown.shiftKey).toBe(true)
 	expect(shiftDown.ctrlKey).toBe(true)
 })
+
+it('records the right-hand Shift and Alt keys under the left codes', () => {
+	// Consumers check `keys.has('ShiftLeft')`, so the right-hand keys fold into the left codes.
+	editor.keyDown('Shift', { code: 'ShiftRight' })
+	expect(editor.inputs.keys.has('ShiftLeft')).toBe(true)
+	editor.keyUp('Shift', { code: 'ShiftRight' })
+	expect(editor.inputs.keys.has('ShiftLeft')).toBe(false)
+
+	editor.keyDown('Alt', { code: 'AltRight' })
+	expect(editor.inputs.keys.has('AltLeft')).toBe(true)
+	editor.keyUp('Alt', { code: 'AltRight' })
+	expect(editor.inputs.keys.has('AltLeft')).toBe(false)
+})
