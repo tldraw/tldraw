@@ -2361,6 +2361,9 @@ describe('when shapes disappear mid-drag', () => {
 			editor.pointerUp(610, 110)
 		}).not.toThrow()
 		editor.expectToBeIn('select.idle')
+		// The dragged shape shouldn't be left orphaned under the deleted frame
+		expect(editor.getShape(ids.box1)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getCurrentPageShapeIds().has(ids.box1)).toBe(true)
 	})
 })
 
