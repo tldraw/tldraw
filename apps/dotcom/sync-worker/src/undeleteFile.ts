@@ -29,7 +29,15 @@ export async function undeleteFile(db: Kysely<DB>, fileId: string): Promise<Unde
 		const now = Date.now()
 		await tx
 			.updateTable('file')
-			.set({ isDeleted: false, updatedAt: now })
+			.set({
+				isDeleted: false,
+				updatedAt: now,
+				// Bumping lastPublished on a published file produces a publish transition, so the
+				// effect re-uploads current content - otherwise the published URL stays dead until
+				// the user manually republishes (restoring from trash produces no publish transition
+				// of its own).
+				...(file.published ? { lastPublished: now } : {}),
+			})
 			.where('id', '=', fileId)
 			.execute()
 

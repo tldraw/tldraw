@@ -2,8 +2,6 @@ import {
 	Box,
 	HALF_PI,
 	Mat,
-	PI,
-	PI2,
 	SelectionCorner,
 	SelectionEdge,
 	StateNode,
@@ -19,6 +17,7 @@ import {
 	isAccelKey,
 	isShapeId,
 	kickoutOccludedShapes,
+	rotateSelectionHandle,
 } from '@tldraw/editor'
 import { getEnclosedShapeIds } from '../../../shapes/frame/FrameShapeTool'
 import { batchMeasureGeoLabels, setBatchLabelSizeCache } from '../../../shapes/geo/GeoShapeUtil'
@@ -670,23 +669,3 @@ export class Resizing extends StateNode {
 }
 
 type Snapshot = ReturnType<Resizing['_createSnapshot']>
-
-const ORDERED_SELECTION_HANDLES: (SelectionEdge | SelectionCorner)[] = [
-	'top',
-	'top_right',
-	'right',
-	'bottom_right',
-	'bottom',
-	'bottom_left',
-	'left',
-	'top_left',
-]
-
-export function rotateSelectionHandle(handle: SelectionEdge | SelectionCorner, rotation: number) {
-	// first find out how many tau we need to rotate by
-	rotation = rotation % PI2
-	const numSteps = Math.round(rotation / (PI / 4))
-
-	const currentIndex = ORDERED_SELECTION_HANDLES.indexOf(handle)
-	return ORDERED_SELECTION_HANDLES[(currentIndex + numSteps) % ORDERED_SELECTION_HANDLES.length]
-}
