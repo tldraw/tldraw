@@ -6669,6 +6669,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const draggingShapes = compact(droppingShapes.map((s) => this.getShape(s))).filter(
 			(s) => !s.isLocked && !this.isShapeHidden(s)
 		)
+		// Descendants of the dragged shapes can't be the target, otherwise dragging a frame out of
+		// its parent reports a nested child as the target and the parent never sees the drag leave
+		const excludedIds = this.getShapeAndDescendantIds(draggingShapes.map((s) => s.id))
 
 		const maybeDraggingOverShapes = this.getShapesAtPoint(point, {
 			hitInside: true,
@@ -6678,7 +6681,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				!droppingShapes.includes(s) &&
 				!s.isLocked &&
 				!this.isShapeHidden(s) &&
-				!draggingShapes.includes(s)
+				!excludedIds.has(s.id)
 		)
 
 		for (const maybeDraggingOverShape of maybeDraggingOverShapes) {
