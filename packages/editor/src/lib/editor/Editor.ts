@@ -4079,9 +4079,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			let newCy = cy + dy
 			let newCz = cz
 
-			// animate zoom if z direction is passed in
+			// animate zoom if z direction is passed in. Use an exponential factor so that a single
+			// long frame can't drive the zoom to zero or negative (which would give NaN coordinates)
 			if (dirZ !== 0) {
-				newCz = cz * (1 + dirZ * currentSpeed * elapsed)
+				newCz = cz * Math.exp(dirZ * currentSpeed * elapsed)
 				// Adjust x/y to keep the viewport center fixed while zooming
 				const center = this.getViewportScreenCenter()
 				newCx += center.x / newCz - center.x / cz

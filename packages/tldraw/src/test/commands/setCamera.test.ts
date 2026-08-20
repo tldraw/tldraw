@@ -1256,3 +1256,15 @@ test('calling setCameraOptions will apply the new constraints', () => {
 		}
 	`)
 })
+
+test('slideCamera zoom momentum survives a long frame', () => {
+	editor.user.updateUserPreferences({ animationSpeed: 1 })
+	editor.setCamera({ x: 0, y: 0, z: 1 })
+	editor.slideCamera({ speed: 1, direction: { x: 0, y: 0, z: -0.01 } })
+	// a 100ms frame would have driven a linear zoom factor to zero (and the camera to NaN)
+	editor.emit('tick', 100)
+	const { x, y, z } = editor.getCamera()
+	expect(z).toBeGreaterThan(0)
+	expect(z).toBeLessThan(1)
+	expect(Number.isFinite(x) && Number.isFinite(y)).toBe(true)
+})
