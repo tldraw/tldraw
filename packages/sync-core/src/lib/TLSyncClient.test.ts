@@ -468,6 +468,52 @@ describe('TLSyncClient', () => {
 			}
 		})
 
+		it('[CL8] default records created while a connect diff fails to apply are not pushed on the next connect', () => {
+			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			try {
+				// a fresh store with no document or page yet, as on the first connect to a room
+				store = new Store<TestRecord, any>({ schema, props: { defaultName: 'test' } as any })
+				client = createClient()
+				const serverDocument = DocumentRecordType.create({ id: TLDOCUMENT_ID, name: 'Server Doc' })
+				const serverPage = makePage('Server Page', 'a2')
+				const badPage = { ...makePage('Bad Page', 'a3'), index: 123 } as any
+
+				// the bad record throws while the store is still empty, so the schema's integrity checker
+				// creates a default document and page before the transaction rolls back
+				const badConnect = createConnectMessage({ diff: { [badPage.id]: ['put', badPage] } })
+				// In the browser the store delivers history on the next animation frame, so nothing
+				// flushes between the rolled-back transaction and the next connect attempt.
+				const flushHistory = store._flushHistory
+				store._flushHistory = () => {}
+				socket.mockServerMessage(badConnect)
+				store._flushHistory = flushHistory
+				expect(client.isConnectedToRoom).toBe(false)
+				expect(store.get(TLDOCUMENT_ID)).toBeUndefined()
+				vi.advanceTimersByTime(1)
+				socket.clearSentMessages()
+
+				socket.mockServerMessage(
+					createConnectMessage({
+						diff: {
+							[TLDOCUMENT_ID]: ['put', serverDocument],
+							[serverPage.id]: ['put', serverPage],
+						},
+					})
+				)
+				vi.advanceTimersByTime(100)
+				expect(client.isConnectedToRoom).toBe(true)
+
+				// the store holds exactly the server's document, and nothing was pushed back
+				expect(store.get(TLDOCUMENT_ID)).toEqual(serverDocument)
+				expect(Object.keys(store.serialize('document')).sort()).toEqual(
+					[TLDOCUMENT_ID, serverPage.id].sort()
+				)
+				expect(getSentPushes()).toHaveLength(0)
+			} finally {
+				consoleSpy.mockRestore()
+			}
+		})
+
 		it('[CL6] wipe_all reconnect wipes document records before applying the server diff', () => {
 			client = createClient()
 
