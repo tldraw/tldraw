@@ -1298,6 +1298,20 @@ export class TLFileDurableObject extends DurableObject {
 					throw new RoomNotFoundError(slug)
 				}
 
+				// The cache can still have been empty at the check above when the row only became
+				// visible on this second lookup (a connect that raced the createFile mutation).
+				// Seeding a from-source file with the empty default would persist an empty room,
+				// and the R2 blob then means `createSource` is never consulted again.
+				if (file.createSource) {
+					const res = await this.handleFileCreateFromSource()
+					if (commentsPromise) {
+						const snapshot: RoomSnapshot = { ...res.snapshot }
+						mergeCommentDocumentsIntoSnapshot(snapshot, await commentsPromise)
+						res.snapshot = snapshot
+					}
+					return res
+				}
+
 				// Comments can exist in Postgres before the first throttled R2 persist ever runs
 				// (e.g. DO SQLite lost right after commenting on a fresh file), so rehydrate them
 				// here too. Clone the shared DEFAULT_INITIAL_SNAPSHOT constant — the merge reassigns
