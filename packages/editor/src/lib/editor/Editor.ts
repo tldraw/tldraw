@@ -3348,7 +3348,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			...this._cameraOptions.__unsafe__getWithoutCapture(),
 			...opts,
 		})
-		if (next.zoomSteps?.length < 1) next.zoomSteps = [1]
+		// `undefined < 1` is false, so an explicit `zoomSteps: undefined` would otherwise get through
+		// and make every later camera move throw
+		if (!next.zoomSteps || next.zoomSteps.length < 1) next.zoomSteps = [1]
 		this._cameraOptions.set(next)
 		this.setCamera(this.getCamera())
 		return this
