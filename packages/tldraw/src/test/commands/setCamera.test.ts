@@ -1256,3 +1256,60 @@ test('calling setCameraOptions will apply the new constraints', () => {
 		}
 	`)
 })
+
+describe('Constraint bounds away from the page origin', () => {
+	it('keeps the bounds inside the padded viewport with the inside behavior', () => {
+		editor.setCameraOptions({
+			...DEFAULT_CAMERA_OPTIONS,
+			constraints: {
+				...DEFAULT_CONSTRAINTS,
+				bounds: { x: 1000, y: 0, w: 800, h: 600 },
+				padding: { x: 100, y: 100 },
+				behavior: { x: 'inside', y: 'free' },
+			},
+		})
+		// the bounds' right edge stops at the right padding edge
+		editor.setCamera({ x: 100000, y: 0, z: 1 })
+		expect(editor.getCamera()).toMatchObject({ x: -300, y: 0, z: 1 })
+		expect(editor.pageToScreen({ x: 1800, y: 0 }).x).toBe(1500)
+		// the bounds' left edge stops at the left padding edge
+		editor.setCamera({ x: -100000, y: 0, z: 1 })
+		expect(editor.getCamera()).toMatchObject({ x: -900, y: 0, z: 1 })
+		expect(editor.pageToScreen({ x: 1000, y: 0 }).x).toBe(100)
+	})
+
+	it('keeps the bounds adjacent to the padded viewport with the outside behavior', () => {
+		editor.setCameraOptions({
+			...DEFAULT_CAMERA_OPTIONS,
+			constraints: {
+				...DEFAULT_CONSTRAINTS,
+				bounds: { x: 1000, y: 0, w: 800, h: 600 },
+				padding: { x: 100, y: 100 },
+				behavior: { x: 'outside', y: 'free' },
+			},
+		})
+		// the bounds' left edge stops at the right padding edge
+		editor.setCamera({ x: 100000, y: 0, z: 1 })
+		expect(editor.getCamera()).toMatchObject({ x: 500, y: 0, z: 1 })
+		expect(editor.pageToScreen({ x: 1000, y: 0 }).x).toBe(1500)
+		// the bounds' right edge stops at the left padding edge
+		editor.setCamera({ x: -100000, y: 0, z: 1 })
+		expect(editor.getCamera()).toMatchObject({ x: -1700, y: 0, z: 1 })
+		expect(editor.pageToScreen({ x: 1800, y: 0 }).x).toBe(100)
+	})
+})
+
+test('clamps horizontal padding against the viewport width, not its height', () => {
+	editor.setCameraOptions({
+		...DEFAULT_CAMERA_OPTIONS,
+		constraints: {
+			...DEFAULT_CONSTRAINTS,
+			bounds: { x: 0, y: 0, w: 200, h: 100 },
+			padding: { x: 600, y: 0 },
+			behavior: { x: 'inside', y: 'free' },
+		},
+	})
+	// 600 is below half of the 1600px viewport width, so the padding is honoured as is
+	editor.setCamera({ x: -100000, y: 0, z: 1 })
+	expect(editor.getCamera()).toMatchObject({ x: 600, y: 0, z: 1 })
+})
