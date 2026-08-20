@@ -41,6 +41,7 @@ export class SpatialIndexManager {
 	private rbush: RBushIndex
 	private spatialIndexComputed: Computed<number>
 	private lastPageId: TLPageId | null = null
+	private lastFontLoadEpoch = -1
 
 	// Bumps only when the rbush content may have changed. Consumers subscribe
 	// via the computed; a stable epoch lets prop-only diffs skip downstream
@@ -66,21 +67,27 @@ export class SpatialIndexManager {
 		const bindingHistory = this.editor.store.query.filterHistory('binding')
 
 		return computed<number>('spatialIndex', (_prevValue, lastComputedEpoch) => {
-			// These three reads are the computed's only tracked dependencies.
-			// Every input to a shape's page bounds is a shape or binding record,
-			// so the two histories cover all invalidation; the rebuild/update
-			// paths below run without capture to avoid registering a dependency
-			// per checked shape on every update (and ~page-size dependencies on
-			// every rebuild).
+			// These four reads are the computed's only tracked dependencies. A
+			// shape's page bounds derive from shape and binding records plus, for
+			// text, the font load state (measured text resizes when its font swaps
+			// in), so the histories and the font load epoch cover all invalidation.
+			// The rebuild/update paths below run without capture to avoid
+			// registering a dependency per checked shape on every update (and
+			// ~page-size dependencies on every rebuild).
 			const shapeDiff = shapeHistory.getDiffSince(lastComputedEpoch)
 			const bindingDiff = bindingHistory.getDiffSince(lastComputedEpoch)
 			const currentPageId = this.editor.getCurrentPageId()
+			const fontLoadEpoch = this.editor.fonts.getFontLoadEpoch()
 
 			if (
 				isUninitialized(_prevValue) ||
 				shapeDiff === RESET_VALUE ||
 				bindingDiff === RESET_VALUE ||
-				this.lastPageId !== currentPageId
+				this.lastPageId !== currentPageId ||
+				// Which shapes a font load resizes isn't known without visiting
+				// every shape, so rebuild; loads are rare and bounded by the
+				// number of distinct fonts.
+				this.lastFontLoadEpoch !== fontLoadEpoch
 			) {
 				return unsafe__withoutCapture(() => this.rebuildAndBumpEpoch())
 			}
@@ -97,6 +104,7 @@ export class SpatialIndexManager {
 	private buildFromScratch(): void {
 		this.rbush.clear()
 		this.lastPageId = this.editor.getCurrentPageId()
+		this.lastFontLoadEpoch = this.editor.fonts.getFontLoadEpoch()
 
 		const elements: SpatialElement[] = []
 		for (const shape of this.editor.getCurrentPageShapes()) {

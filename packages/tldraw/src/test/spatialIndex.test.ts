@@ -1,5 +1,6 @@
 import { Box, PageRecordType, createShapeId, react } from '@tldraw/editor'
 import { vi } from 'vitest'
+import { DefaultFontFaces } from '../lib/shapes/shared/defaultFonts'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -143,6 +144,20 @@ describe('SpatialIndexManager - bounds epoch', () => {
 		const page2 = PageRecordType.createId('page2-switch')
 		editor.createPage({ name: 'page2-switch', id: page2 })
 		editor.setCurrentPage(page2)
+
+		expect(tracker.delta).toBe(1)
+		tracker.stop()
+	})
+
+	it('ticks when a font finishes loading (text bounds depend on font metrics)', async () => {
+		// The index reads bounds without capture, so a font swap that resizes measured
+		// text would otherwise leave the stale fallback-font bounds in the tree.
+		editor.createShapes([{ id: createShapeId('text'), type: 'text', x: 100, y: 100 }])
+		editor.getShapeIdsInsideBounds(editor.getViewportPageBounds())
+
+		const tracker = trackSpatialIndexInvalidations(editor, editor.getViewportPageBounds())
+
+		await editor.fonts.ensureFontIsLoaded(DefaultFontFaces.tldraw_draw.normal.normal)
 
 		expect(tracker.delta).toBe(1)
 		tracker.stop()

@@ -75,9 +75,15 @@ export function deriveShapeIdsInCurrentPage(store: TLStore, getCurrentPageId: ()
 				}
 			}
 
-			for (const [_from, to] of Object.values(changes.updated)) {
+			for (const [from, to] of Object.values(changes.updated)) {
 				if (isShape(to)) {
-					if (isShapeInPage(store, currentPageId, to)) {
+					const inPage = isShapeInPage(store, currentPageId, to)
+					// A reparent that moves a shape onto or off this page takes its descendants
+					// with it, but they are not in the diff; rebuild so they don't keep stale membership
+					if (isShape(from) && from.parentId !== to.parentId && inPage !== prevValue.has(to.id)) {
+						return fromScratch()
+					}
+					if (inPage) {
 						builder.add(to.id)
 					} else {
 						builder.remove(to.id)
