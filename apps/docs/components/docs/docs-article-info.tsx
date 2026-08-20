@@ -8,9 +8,8 @@ const githubContentRoot = 'https://github.com/tldraw/tldraw/blob/main/apps/docs/
 
 export function DocsArticleInfo({ article }: { article: Article }) {
 	if (article.sectionId === 'reference') {
-		// This article is actually source code and we link to it already in 'See source code'.
-		// (Not keyed on `authorId === 'api'`: that's also the default for any article without an
-		// `author:` frontmatter key.)
+		// Reference pages are source code and already link to it via 'See source code'. Keyed on
+		// section, not `authorId === 'api'`: that's also the default for articles with no `author:`.
 		return null
 	}
 

@@ -130,10 +130,9 @@ export class ContentDatabase {
 
 	/**
 	 * The section the prev/next footer links cross into from the edge of `sectionId`, or null.
-	 * Sections only neighbour each other at consecutive idx values, so sections with a far-away
-	 * idx (reference, examples) stay self-contained. Hidden sections (release notes) are
-	 * stepped over, and never link out themselves: they are reachable only from their index
-	 * page, so the first docs page shouldn't link back to the oldest release.
+	 * Sections only neighbor each other at consecutive idx values, so far-away idx (reference,
+	 * examples) stay self-contained. Hidden sections (release notes) are stepped over and never
+	 * link out themselves.
 	 */
 	private async getAdjacentSectionId(sectionId: string, direction: -1 | 1) {
 		const db = await this.getDb()
@@ -144,12 +143,12 @@ export class ContentDatabase {
 		if (!section || section.sidebar_behavior === 'hidden') return null
 
 		for (let idx = section.idx + direction; ; idx += direction) {
-			const neighbour = await db.get<Pick<Section, 'id' | 'sidebar_behavior'>>(
+			const neighbor = await db.get<Pick<Section, 'id' | 'sidebar_behavior'>>(
 				`SELECT id, sidebar_behavior FROM sections WHERE idx = ?`,
 				idx
 			)
-			if (!neighbour) return null
-			if (neighbour.sidebar_behavior !== 'hidden') return neighbour.id
+			if (!neighbor) return null
+			if (neighbor.sidebar_behavior !== 'hidden') return neighbor.id
 		}
 	}
 

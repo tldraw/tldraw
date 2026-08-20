@@ -53,7 +53,7 @@ export async function getApiMarkdown(
 	categoryName: string,
 	item: ApiItem,
 	order: number
-): Promise<{ frontmatter: string; markdown: string }> {
+) {
 	const result: Result = { markdown: '' }
 	const toc: Result = { markdown: '' }
 	const membersResult: Result = { markdown: '' }

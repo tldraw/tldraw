@@ -10,9 +10,8 @@ const categoryLinks = [
 		caption: 'Quick start',
 		icon: RocketLaunchIcon,
 		href: '/quick-start',
-		// The getting-started pages are prerendered at /getting-started/* and served at the
-		// rewritten /quick-start etc., so usePathname() is the former on the server and the
-		// latter in the browser; match both so hydration agrees.
+		// usePathname() is /getting-started/* on the server (prerendered path) and /quick-start
+		// etc. in the browser (rewrite); match both or hydration mismatches.
 		active: (pathname: string) =>
 			['/quick-start', '/installation', '/releases', '/getting-started'].some((e) =>
 				pathname.startsWith(e)

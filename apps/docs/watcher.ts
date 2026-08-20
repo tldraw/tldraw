@@ -10,8 +10,7 @@ process.env.NODE_ENV = 'development'
 
 // Refreshes are chained so they never overlap: each one drops and rebuilds every table in
 // content.db, and two running at once fail with "no such table" / UNIQUE violations and can
-// leave the db half-filled. A rejection here would otherwise be unhandled and take down the
-// `yarn dev` process (concurrently --kill-others), so log it instead.
+// leave the db half-filled.
 let refreshQueue: Promise<void> = Promise.resolve()
 function queueRefresh(reason: string) {
 	refreshQueue = refreshQueue.then(async () => {
@@ -20,10 +19,10 @@ function queueRefresh(reason: string) {
 			await refreshContent({ silent: true })
 			clients.forEach((ws) => ws.send('refresh'))
 		} catch (e: any) {
+			// an unhandled rejection would take down `yarn dev` (concurrently --kill-others)
 			nicelog(`x Could not refresh content: ${e.message}`)
 		}
 	})
-	return refreshQueue
 }
 
 queueRefresh('startup')

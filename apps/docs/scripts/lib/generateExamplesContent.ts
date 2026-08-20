@@ -29,9 +29,8 @@ const section: InputSection = {
 	sidebar_behavior: 'show-links',
 }
 
-// Sections from sections.json are numbered 0..n in order; the prev/next footer links walk to
-// the section at idx ± 1. Examples have their own sidebar and must not neighbour any of them
-// (reference uses 999999 for the same reason), so give them an index far away from both.
+// Prev/next footer links walk to the section at idx ± 1. Examples have their own sidebar and
+// must not neighbor the regular sections (0..n) or reference (999999).
 const EXAMPLES_SECTION_INDEX = 888888
 
 export async function generateExamplesContent(): Promise<GeneratedContent> {

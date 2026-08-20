@@ -102,7 +102,7 @@ export function Content({
 									// Without `langs` the plugin loads all ~300 bundled grammars (seconds and
 									// >100MB per build worker / dev server). Anything not listed is still
 									// loaded on demand thanks to `lazy`.
-									langs: ['ts', 'tsx', 'typescript', 'bash', 'sh', 'css', 'toml', 'html'],
+									langs: ['ts', 'tsx', 'bash', 'css', 'toml', 'html'],
 									lazy: true,
 								},
 							],

@@ -13,9 +13,8 @@ function hasChildren(
 	return 'children' in link
 }
 
-// Examples that also appear in the examples sidebar's "Getting started" category, in addition
-// to their own category. Matched by url rather than article id: ids are composite keys
-// (`examples/collaboration/sync-demo`) that change when an example moves category, urls don't.
+// Examples duplicated into the examples sidebar's "Getting started" category. Matched by url,
+// not article id: ids (`examples/collaboration/sync-demo`) change when an example moves category.
 const EXAMPLES_ALSO_IN_GETTING_STARTED = ['/examples/sync-demo', '/examples/api']
 
 /**
