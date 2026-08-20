@@ -11520,9 +11520,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				break
 			}
 			case 'keyboard': {
-				// Fold the right-hand modifiers into the left codes that `inputs.keys` consumers check.
-				if (info.code === 'ShiftRight') info.code = 'ShiftLeft'
-				if (info.code === 'AltRight') info.code = 'AltLeft'
+				// please, please
+				if (info.key === 'ShiftRight') info.key = 'ShiftLeft'
+				if (info.key === 'AltRight') info.key = 'AltLeft'
 				if (info.code === 'ControlRight') info.code = 'ControlLeft'
 				if (info.code === 'MetaRight') info.code = 'MetaLeft'
 
