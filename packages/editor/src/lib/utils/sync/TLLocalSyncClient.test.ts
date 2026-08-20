@@ -214,6 +214,48 @@ test('pagehide does not write before the initial load has completed', async () =
 	expect(client.db.storeChanges).not.toHaveBeenCalled()
 })
 
+test('diffs received while the client is still loading are applied once it has loaded', async () => {
+	const { client, channel, tick } = testClient()
+	const remotePage = PageRecordType.create({ name: 'remote', index: 'a0' as IndexKey })
+	channel.onmessage?.({
+		data: {
+			type: 'diff',
+			storeId: 'other-tab',
+			schema: client.serializedSchema,
+			changes: { added: { [remotePage.id]: remotePage }, updated: {}, removed: {} },
+		},
+	} as any)
+	expect(client.store.get(remotePage.id)).toBeUndefined()
+
+	await tick()
+	expect(client.store.get(remotePage.id)).toEqual(remotePage)
+
+	// and the first (full) db write includes them rather than overwriting them
+	client.store.put([PageRecordType.create({ name: 'local', index: 'a1' as IndexKey })])
+	await tick()
+	expect(client.db.storeSnapshot).toHaveBeenCalledTimes(1)
+	expect(client.db.storeSnapshot.mock.calls[0][0].snapshot[remotePage.id]).toEqual(remotePage)
+})
+
+test('closing the client persists changes that are still queued', async () => {
+	const { client, tick } = testClient()
+	await tick()
+	client.store.put([PageRecordType.create({ name: 'test', index: 'a0' as IndexKey })])
+	expect(client.db.storeSnapshot).not.toHaveBeenCalled()
+
+	// close before the throttled persist fires
+	client.close()
+	expect(client.db.storeSnapshot).toHaveBeenCalledTimes(1)
+})
+
+test('closing the client with nothing queued does not write to the db', async () => {
+	const { client, tick } = testClient()
+	await tick()
+	client.close()
+	expect(client.db.storeSnapshot).not.toHaveBeenCalled()
+	expect(client.db.storeChanges).not.toHaveBeenCalled()
+})
+
 test('pagehide and visibilitychange listeners are removed when the client closes', async () => {
 	const removeWindowListener = vi.spyOn(window, 'removeEventListener')
 	const removeDocumentListener = vi.spyOn(document, 'removeEventListener')
@@ -227,4 +269,12 @@ test('pagehide and visibilitychange listeners are removed when the client closes
 		removeWindowListener.mockRestore()
 		removeDocumentListener.mockRestore()
 	}
+})
+
+test('closing the client before it has loaded does not write to the db', async () => {
+	const { client, tick } = testClient()
+	client.close()
+	await tick()
+	expect(client.db.storeSnapshot).not.toHaveBeenCalled()
+	expect(client.db.storeChanges).not.toHaveBeenCalled()
 })
