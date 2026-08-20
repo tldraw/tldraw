@@ -2649,9 +2649,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getSelectionRotatedScreenBounds(): Box | undefined {
 		const bounds = this.getSelectionRotatedPageBounds()
 		if (!bounds) return undefined
-		const { x, y } = this.pageToScreen(bounds.point)
-		const zoom = this.getZoomLevel()
-		return new Box(x, y, bounds.width * zoom, bounds.height * zoom)
+		// Don't use pageToScreen here: it reads the screen bounds without capturing them, so this
+		// computed would never invalidate when the container moves
+		const screenBounds = this.getViewportScreenBounds()
+		const { x: cx, y: cy, z: zoom } = this.getCamera()
+		return new Box(
+			(bounds.x + cx) * zoom + screenBounds.x,
+			(bounds.y + cy) * zoom + screenBounds.y,
+			bounds.width * zoom,
+			bounds.height * zoom
+		)
 	}
 
 	// Focus Group
