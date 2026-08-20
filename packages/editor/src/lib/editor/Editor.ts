@@ -8856,6 +8856,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const shape = this.getShape(partial.id)!
 			if (!shape) continue
 
+			// Apply the same lock rule as updateShapes up front: the intermediate frames go through
+			// _updateShapes, which doesn't check locks, so a locked shape would otherwise be moved by
+			// every frame but the last and end up stranded at the penultimate one
+			const unlocks = shape.isLocked && Object.hasOwn(partial, 'isLocked') && !partial.isLocked
+			if (!this._shouldIgnoreShapeLock && !unlocks && this.isShapeOrAncestorLocked(shape)) {
+				continue
+			}
+
 			result = {
 				start: structuredClone(shape),
 				end: applyPartialToRecordWithProps(structuredClone(shape), partial),
@@ -9193,7 +9201,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	private _getUnlockedShapeIds(ids: TLShapeId[]): TLShapeId[] {
-		return ids.filter((id) => !this.getShape(id)?.isLocked)
+		// Match updateShapes, which also refuses shapes under a locked ancestor; otherwise a child
+		// of a locked frame can't be moved but can still be deleted or duplicated
+		return ids.filter((id) => !this.isShapeOrAncestorLocked(id))
 	}
 
 	/**
