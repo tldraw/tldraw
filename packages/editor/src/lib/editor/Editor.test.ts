@@ -1101,6 +1101,27 @@ describe('dispatch event emission', () => {
 
 		expect(eventHandler).toHaveBeenCalledWith(pinchEndEvent)
 	})
+
+	it('ignores the stylus eraser button when no eraser tool is registered', () => {
+		const pointerDown = {
+			type: 'pointer' as const,
+			name: 'pointer_down' as const,
+			target: 'canvas' as const,
+			point: { x: 100, y: 100, z: 0.5 },
+			pointerId: 1,
+			button: 5,
+			isPen: true,
+			shiftKey: false,
+			altKey: false,
+			ctrlKey: false,
+			metaKey: false,
+			accelKey: false,
+		}
+
+		expect(() => testEditor.dispatch(pointerDown)).not.toThrow()
+		expect(() => testEditor.dispatch({ ...pointerDown, name: 'pointer_up' })).not.toThrow()
+		expect(testEditor.getCrashingError()).toBeNull()
+	})
 })
 
 describe('setTool', () => {
