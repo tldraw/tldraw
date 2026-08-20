@@ -103,7 +103,6 @@
 		"concurrently": "^9.1.2",
 		"dotenv": "^16.4.7",
 		"mdast-util-mdx": "^3.0.0",
-		"octokit": "^3.2.1",
 		"oxfmt": "^0.41.0",
 		"patch-package": "^8.0.0",
 		"postcss": "^8.5.1",
@@ -112,6 +111,7 @@
 		"tailwindcss": "^3.4.17",
 		"tsx": "^4.19.2",
 		"typescript": "^7.0.2",
+		"vitest": "^4.1.7",
 		"ws": "^8.18.0"
 	}
 }
