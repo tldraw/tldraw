@@ -124,23 +124,16 @@ async function assertUserCanAccessFileInternal(
 		return
 	}
 
-	if (file.ownerId) {
-		// Legacy model: user must own the file
-		assert(file.ownerId === userId, ZErrorCode.forbidden)
-	} else if (file.owningGroupId) {
-		// New model: user must be a member of the owning workspace
-		const role = await getRole(tx, userId, file.owningGroupId)
-		assert(can(role, 'accessFiles'), ZErrorCode.forbidden)
-	} else {
-		// File has neither ownerId nor owningGroupId - invalid state
-		assert(false, ZErrorCode.bad_request)
+	if (!file.owningGroupId) {
+		assert(file.owningGroupId, ZErrorCode.bad_request)
 	}
+	const role = await getRole(tx, userId, file.owningGroupId)
+	assert(can(role, 'accessFiles'), ZErrorCode.forbidden)
 }
 
 /**
  * Check if a user can access (read) a file.
  * A user can access a file if:
- * - They own it (legacy model: file.ownerId matches userId)
  * - They are a member of the owning workspace (new model: user is in file.owningGroupId)
  * - The file is shared (regardless of ownership model)
  */
@@ -151,7 +144,6 @@ async function assertUserCanAccessFile(tx: Transaction<TlaSchema>, userId: strin
 /**
  * Check if a user can update (write to) a file.
  * A user can update a file if:
- * - They own it (legacy model: file.ownerId matches userId)
  * - They are a member of the owning workspace (new model: user is in file.owningGroupId)
  * Note: Sharing only grants read access, not write access
  */
@@ -174,20 +166,6 @@ export function createMutators(userId: string) {
 			},
 		},
 		file: {
-			/** @deprecated */
-			deleteOrForget: async (tx: Tx, { id }: { id: string }) => {
-				const file = await tx.run(zql.file.where('id', '=', id).one())
-				if (!file) return
-				await tx.mutate.file_state.delete({ fileId: id, userId })
-				if (file.ownerId && file.ownerId === userId) {
-					await tx.mutate.file.update({
-						id: file.id,
-						ownerId: file.ownerId,
-						publishedSlug: file.publishedSlug,
-						isDeleted: true,
-					})
-				}
-			},
 			update: async (tx: Tx, _file: TlaFilePartial) => {
 				disallowImmutableMutations(_file, immutableColumns.file)
 				const file = await tx.run(zql.file.where('id', '=', _file.id).one())
@@ -285,32 +263,6 @@ export function createMutators(userId: string) {
 			},
 		},
 
-		/** @deprecated */
-		init: async (tx: Tx, { user, time }: { user: TlaUser; time: number }) => {
-			assert(user.id === userId, ZErrorCode.forbidden)
-			time = ensureSensibleTimestamp(time)
-			await tx.mutate.user.insert({ ...user, flags: '' })
-			await tx.mutate.group.insert({
-				id: userId,
-				name: user.name,
-				createdAt: time,
-				updatedAt: time,
-				isDeleted: false,
-				inviteSecret: null,
-				inviteLinkEnabled: true,
-			})
-			await tx.mutate.group_user.insert({
-				userId,
-				groupId: userId,
-				createdAt: time,
-				updatedAt: time,
-				role: 'owner',
-				index: 'a1' as IndexKey,
-				userColor: user.color,
-				userName: user.name,
-			})
-		},
-
 		createFile: async (
 			tx: Tx,
 			{
@@ -366,10 +318,8 @@ export function createMutators(userId: string) {
 			await tx.mutate.file.insert({
 				id: fileId,
 				name,
-				ownerId: null,
 				owningGroupId: workspaceId,
 				ownerName: '',
-				ownerAvatar: '',
 				thumbnail: '',
 				shared: true,
 				sharedLinkType: 'edit',
@@ -397,8 +347,6 @@ export function createMutators(userId: string) {
 				lastVisitAt: null,
 				firstVisitAt: null,
 				lastSessionState: null,
-				// isFileOwner is no longer used in new model.
-				isFileOwner: false,
 			})
 		},
 

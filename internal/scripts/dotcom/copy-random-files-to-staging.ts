@@ -100,9 +100,9 @@ async function copyFilesToStaging(fileIds: string[]) {
 				const testFile: TlaFile = {
 					id: newId,
 					name: 'Test File',
-					ownerId: env.STAGING_OWNER_ID,
+					ownerId: null,
 					ownerName: 'Test User',
-					ownerAvatar: '',
+					ownerAvatar: null,
 					thumbnail: '',
 					shared: false,
 					sharedLinkType: 'link',
@@ -118,15 +118,13 @@ async function copyFilesToStaging(fileIds: string[]) {
 				}
 
 				const insertQuery = `
-					INSERT INTO file (id, name, "ownerId", "ownerName", "ownerAvatar", thumbnail, shared, "sharedLinkType", published, "lastPublished", "publishedSlug", "createdAt", "updatedAt", "isEmpty", "isDeleted", "owningGroupId")
-					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+					INSERT INTO file (id, name, "ownerName", thumbnail, shared, "sharedLinkType", published, "lastPublished", "publishedSlug", "createdAt", "updatedAt", "isEmpty", "isDeleted", "owningGroupId")
+					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
 				`
 				await stagingClient.query(insertQuery, [
 					testFile.id,
 					testFile.name,
-					testFile.ownerId,
 					testFile.ownerName,
-					testFile.ownerAvatar,
 					testFile.thumbnail,
 					testFile.shared,
 					testFile.sharedLinkType,

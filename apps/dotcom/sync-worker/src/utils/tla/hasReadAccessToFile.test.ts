@@ -75,12 +75,7 @@ describe('hasReadAccessToFile', () => {
 		expect(lastQuery.table).toBe('file')
 		expect(lastQuery.where).toEqual(['id', '=', 'file-1'])
 		// Every column the decision below reads, plus the id handed back to the caller.
-		expect(lastQuery.columns).toEqual(['id', 'ownerId', 'owningGroupId', 'shared', 'isDeleted'])
-	})
-
-	it('admits the owner', async () => {
-		mockFileRow({ ownerId: 'user-1' })
-		expect(await hasReadAccessToFile(env, 'user-1', 'file-1')).toEqual(granted())
+		expect(lastQuery.columns).toEqual(['id', 'owningGroupId', 'shared', 'isDeleted'])
 	})
 
 	// Unlike the write check, `sharedLinkType` is irrelevant: a link shared for editing is also one

@@ -908,7 +908,6 @@ export class TldrawApp {
 	canUpdateFile(fileId: string): boolean {
 		const file = this.getFile(fileId)
 		if (!file) return false
-		if (file.ownerId) return file.ownerId === this.userId
 		if (file.owningGroupId) {
 			const role = this.getWorkspaceMembership(file.owningGroupId)?.role
 			return can(role, 'accessFiles')

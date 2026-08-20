@@ -120,7 +120,6 @@ function DeletedFilesTable({
 									{file.id}
 								</td>
 								<td>{file.owningGroupId === userId ? 'Home' : (file.workspaceName ?? '—')}</td>
-								<td>{file.workspaceRole ?? (file.ownerId === userId ? 'owner' : '—')}</td>
 								<td>{new Date(file.updatedAt).toLocaleString()}</td>
 								<td>
 									<AdminButton
