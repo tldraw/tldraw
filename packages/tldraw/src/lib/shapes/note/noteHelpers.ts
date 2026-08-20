@@ -191,8 +191,11 @@ export function getNoteShapeForAdjacentPosition(
 	// Start from the top of the stack, and work our way down
 	const allShapesOnPage = editor.getCurrentPageShapesSorted()
 
+	// Squared, in page units, to compare against Dist2 below. A neighbour that has grown
+	// (growY) sits further from the ideal slot centre, so the radius is a full note plus margin.
 	const minDistance =
-		(Math.max(noteWidth, noteHeight) + editor.options.adjacentShapeMargin ** 2) ** shape.props.scale
+		((Math.max(noteWidth, noteHeight) + editor.options.adjacentShapeMargin) * shape.props.scale) **
+		2
 
 	for (let i = allShapesOnPage.length - 1; i >= 0; i--) {
 		const otherNote = allShapesOnPage[i]

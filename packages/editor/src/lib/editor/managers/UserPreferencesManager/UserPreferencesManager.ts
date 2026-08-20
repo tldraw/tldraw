@@ -10,6 +10,7 @@ export class UserPreferencesManager {
 	disposables = new Set<() => void>()
 	dispose() {
 		this.disposables.forEach((d) => d())
+		this.disposables.clear()
 	}
 	constructor(
 		private readonly user: TLCurrentUser,
