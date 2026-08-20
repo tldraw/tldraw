@@ -497,7 +497,7 @@ export class Vec {
 	}
 
 	static Slope(A: VecLike, B: VecLike): number {
-		if (A.x === B.y) return NaN
+		if (A.x === B.x) return NaN
 		return (A.y - B.y) / (A.x - B.x)
 	}
 
