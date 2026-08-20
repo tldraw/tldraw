@@ -6645,7 +6645,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId> {
 		const shapeIds = new Set<TLShapeId>()
-		for (const shape of ids.map((id) => this.getShape(id)!).sort(sortByIndex)) {
+		for (const shape of compact(ids.map((id) => this.getShape(id))).sort(sortByIndex)) {
 			shapeIds.add(shape.id)
 			this.visitDescendants(shape, (descendantId) => {
 				shapeIds.add(descendantId)
@@ -7123,7 +7123,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 						let ox = 0
 						let oy = 0
 
-						if (offset && initialIds.has(originalId)) {
+						// Only offset the roots of the duplicated tree: a descendant that was also passed in
+						// follows its duplicated parent, so offsetting it too would move it twice
+						if (
+							offset &&
+							initialIds.has(originalId) &&
+							!shapeIdSet.has(originalShape.parentId as TLShapeId)
+						) {
 							const parentTransform = this.getShapeParentTransform(originalShape)
 							const vec = new Vec(offset.x, offset.y).rot(-parentTransform!.rotation())
 							ox = vec.x
