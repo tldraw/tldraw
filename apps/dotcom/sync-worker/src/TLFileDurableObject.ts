@@ -81,6 +81,7 @@ import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImag
 import { generateSnapshotChunks } from './snapshotUtils'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
+import { arrayBufferToBase64 } from './utils/base64'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
 import { OgRenderDebouncer } from './utils/ogRenderDebounce'
@@ -178,11 +179,6 @@ function pruneUnusedAssetsForTldr(records: TLRecord[]): TLRecord[] {
 		}
 	}
 	return records.filter((r) => r.typeName !== 'asset' || usedAssets.has(r.id as TLAssetId))
-}
-
-function arrayBufferToBase64(ab: ArrayBuffer): string {
-	const bytes = new Uint8Array(ab)
-	return bytes.toBase64!()
 }
 
 const MB = 1024 * 1024
