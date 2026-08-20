@@ -8446,6 +8446,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			initialShape: TLShape
 			isAspectRatioLocked: boolean
 			initialPageTransform: MatLike
+			dragHandle?: TLResizeHandle
+			mode?: TLResizeMode
+			skipStartAndEndCallbacks?: boolean
 		}
 	) {
 		const { type } = options.initialShape
@@ -8470,19 +8473,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 			initialBounds: options.initialBounds,
 			isAspectRatioLocked: options.isAspectRatioLocked,
 			initialPageTransform: options.initialPageTransform,
+			dragHandle: options.dragHandle,
+			mode: options.mode,
+			// this is one frame of the same resize, not a new one, so don't fire start/end again
+			skipStartAndEndCallbacks: options.skipStartAndEndCallbacks,
 		})
 
 		// then if the shape is flipped in one axis only, we need to apply an extra rotation
 		// to make sure the shape is mirrored correctly
 		if (Math.sign(scale.x) * Math.sign(scale.y) < 0) {
-			// We need to compute the new local rotation that will result in the negated page rotation.
-			// For a shape with local rotation `localRot` and parent page rotation `parentRot`:
+			// Mirroring across an axis at angle `axisRot` maps a page rotation `pageRot` to
+			// `2 * axisRot - pageRot`. For a shape with local rotation `localRot` and parent page
+			// rotation `parentRot`:
 			// - pageRot = parentRot + localRot
-			// - newPageRot = -pageRot (we want to negate the page rotation)
+			// - newPageRot = 2 * axisRot - pageRot
 			// - newPageRot = parentRot + newLocalRot (parent hasn't changed)
-			// - Therefore: newLocalRot = -pageRot - parentRot = -(parentRot + localRot) - parentRot = -localRot - 2*parentRot
+			// - Therefore: newLocalRot = 2 * axisRot - localRot - 2 * parentRot
 			const parentRotation = this.getShapeParentTransform(id).rotation()
-			const rotation = -options.initialShape.rotation - 2 * parentRotation
+			const rotation =
+				2 * options.scaleAxisRotation - options.initialShape.rotation - 2 * parentRotation
 			this.updateShapes([{ id, type, rotation }])
 		}
 
