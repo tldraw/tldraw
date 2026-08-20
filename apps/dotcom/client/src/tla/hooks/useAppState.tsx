@@ -1,7 +1,9 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
+import { captureException } from '@sentry/react'
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { assertExists, atom } from 'tldraw'
+import { ErrorPage } from '../../components/ErrorPage/ErrorPage'
 import { TldrawApp } from '../app/TldrawApp'
 import { useTldrawAppUiEvents } from '../utils/app-ui-events'
 import {
@@ -15,8 +17,15 @@ const appContext = createContext<TldrawApp | null>(null)
 
 export const isClientTooOld$ = atom('isClientTooOld', false)
 
+const APP_LOAD_ERROR_MESSAGES = {
+	header: 'Something went wrong',
+	para1: 'Please try refreshing the page. Still having trouble? Let us know at hello@tldraw.com.',
+	cta: 'Refresh',
+}
+
 export function AppStateProvider({ children }: { children: ReactNode }) {
 	const [app, setApp] = useState(null as TldrawApp | null)
+	const [error, setError] = useState<unknown>(null)
 	const auth = useAuth()
 	const { user, isLoaded } = useClerkUser()
 
@@ -35,6 +44,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	useEffect(() => {
 		let _app: TldrawApp
 		let didCancel = false
+		setError(null)
 
 		const FETCH_TIMEOUT = 5000
 		function fetchFlagsWithTimeout(): Promise<FeatureFlags> {
@@ -83,7 +93,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			_app = app
 			setApp(app)
 		})().catch((err) => {
+			if (didCancel) return
 			console.error('[AppState] Failed to initialize:', err)
+			captureException(err)
+			setError(err)
 		})
 
 		return () => {
@@ -94,6 +107,21 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [auth.userId, user])
+
+	if (error) {
+		// A swallowed bootstrap failure would leave the blank loading state below up for the
+		// whole session.
+		return (
+			<ErrorPage
+				messages={APP_LOAD_ERROR_MESSAGES}
+				cta={
+					<button type="button" onClick={() => window.location.reload()}>
+						{APP_LOAD_ERROR_MESSAGES.cta}
+					</button>
+				}
+			/>
+		)
+	}
 
 	if (!app) {
 		// We used to show a Loading... here but it was causing too much flickering.
