@@ -72,6 +72,7 @@ import {
 	Result,
 	ZERO_INDEX_KEY,
 	annotateError,
+	areArraysShallowEqual,
 	assert,
 	assertExists,
 	bind,
@@ -3023,26 +3024,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setErasingShapes(shapes: TLShapeId[] | TLShape[]): this {
+		// copy before sorting: the caller may pass a store-owned (frozen) array
 		const ids =
 			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
+				? (shapes as TLShapeId[]).slice()
 				: (shapes as TLShape[]).map((shape) => shape.id)
 		ids.sort() // sort the incoming ids
 		const erasingShapeIds = this.getErasingShapeIds()
 		this.run(
 			() => {
-				if (ids.length === erasingShapeIds.length) {
-					// if the new ids are the same length as the current ids, they might be the same.
-					// presuming the current ids are also sorted, check each item to see if it's the same;
-					// if we find any unequal, then we know the new ids are different.
-					for (let i = 0; i < ids.length; i++) {
-						if (ids[i] !== erasingShapeIds[i]) {
-							this._updateCurrentPageState({ erasingShapeIds: ids })
-							break
-						}
-					}
-				} else {
-					// if the ids are a different length, then we know they're different.
+				// the current ids are also sorted, so a shallow comparison tells us whether they changed
+				if (!areArraysShallowEqual(ids, erasingShapeIds)) {
 					this._updateCurrentPageState({ erasingShapeIds: ids })
 				}
 			},
