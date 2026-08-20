@@ -946,7 +946,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const mode = this.store.props.collaboration.mode
 			this.disposables.add(
 				react('update collaboration mode', () => {
-					this.store.put([{ ...this.getInstanceState(), isReadonly: mode.get() === 'readonly' }])
+					const isReadonly = mode.get() === 'readonly'
+					// only track `mode`, and keep the sync out of the user's undo history
+					unsafe__withoutCapture(() =>
+						this._updateInstanceState({ isReadonly }, { history: 'ignore' })
+					)
 				})
 			)
 		}
