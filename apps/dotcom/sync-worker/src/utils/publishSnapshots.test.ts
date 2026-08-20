@@ -80,6 +80,7 @@ describe('publishSnapshot', () => {
 		)
 
 		expect(awaitPersist).toHaveBeenCalledTimes(1)
+		expect(awaitPersist).toHaveBeenCalledWith({ throwOnFailure: true })
 		expect(env.ROOMS.get).toHaveBeenCalledWith('app_rooms/f1')
 		expect(env.SNAPSHOT_SLUG_TO_PARENT_SLUG.put).toHaveBeenCalledWith('slug-1', 'f1')
 		expect(env.ROOM_SNAPSHOTS.put).toHaveBeenCalledTimes(2)
@@ -132,6 +133,7 @@ describe('publishSnapshot', () => {
 			)
 		).rejects.toThrow(persistError)
 
+		expect(awaitPersist).toHaveBeenCalledWith({ throwOnFailure: true })
 		expect(env.ROOMS.get).not.toHaveBeenCalled()
 		expect(env.SNAPSHOT_SLUG_TO_PARENT_SLUG.put).not.toHaveBeenCalled()
 		expect(env.ROOM_SNAPSHOTS.put).not.toHaveBeenCalled()
