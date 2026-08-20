@@ -9,7 +9,6 @@ import {
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
-	can,
 	createMutators,
 	queries,
 	schema,
@@ -62,7 +61,7 @@ import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } 
 import { getFileEffectProcessor, getLogger } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, getZeroAuth, requireAuth } from './utils/tla/getAuth'
-import { getRole } from './utils/tla/getRole'
+import { hasWriteAccessToFile } from './utils/tla/hasWriteAccessToFile'
 export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLFileEffectProcessor } from './TLFileEffectProcessor'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
@@ -220,8 +219,7 @@ const router = createRouter<Environment>()
 		if (!auth) {
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		}
-		// The second argument is the mutator context (unused: the mutators close over userId);
-		// the log level is the third.
+		// 2nd arg is the mutator context (mutators close over userId instead); 3rd is the log level.
 		const processor = new PushProcessor(
 			zeroPostgresJS(schema, env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING),
 			undefined,
@@ -313,13 +311,6 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 	): Promise<{ ok: true; userId: string | null } | { ok: false; error: string }> {
 		const db = createPostgresConnectionPool(this.env, 'sync-worker')
 		try {
-			const file = await db
-				.selectFrom('file')
-				.where('id', '=', fileId)
-				.select(['ownerId', 'owningGroupId', 'shared', 'sharedLinkType'])
-				.executeTakeFirst()
-			if (!file) return { ok: false, error: 'File not found' }
-
 			let userId: string | null = null
 			if (authorizationHeader) {
 				const fakeReq = new Request('https://internal', {
@@ -328,21 +319,9 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				const auth = await getAuth(fakeReq, this.env)
 				userId = auth?.userId ?? null
 			}
-
-			const isSharedEdit = file.shared && file.sharedLinkType === 'edit'
-			if (userId && file.ownerId === userId) {
-				// owner
-			} else if (isSharedEdit) {
-				// shared for editing
-			} else if (userId && file.owningGroupId) {
-				const role = await getRole(db, userId, file.owningGroupId)
-				if (!can(role, 'accessFiles')) {
-					return { ok: false, error: 'Forbidden' }
-				}
-			} else {
+			if (!(await hasWriteAccessToFile(db, fileId, userId))) {
 				return { ok: false, error: 'Forbidden' }
 			}
-
 			return { ok: true, userId }
 		} finally {
 			await db.destroy()
@@ -359,59 +338,50 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		// batches should not open database connections they never use.
 		let db: ReturnType<typeof createPostgresConnectionPool> | undefined
 		try {
-			await this.processQueueBatch(
-				batch,
-				() => (db ??= createPostgresConnectionPool(this.env, 'sync-worker-queue'))
-			)
+			for (const message of batch.messages) {
+				switch (message.body.type) {
+					case 'og-image-render':
+						try {
+							await handleOgImageRenderMessage(
+								this.env,
+								message as Message<OgImageRenderQueueMessage>,
+								this.ctx
+							)
+						} catch (_e) {
+							// handleOgImageRenderMessage settles the message itself; this guards the batch loop
+							// against an unexpected throw escaping it, so one bad message can't abort processing
+							// of the rest of the batch. Retry is a no-op if the handler already settled.
+							message.retry()
+						}
+						break
+					case 'asset-upload': {
+						const { objectName, fileId, userId } = message.body
+						try {
+							db ??= createPostgresConnectionPool(this.env, 'sync-worker-queue')
+							await db
+								.insertInto('asset')
+								.values({ objectName, fileId, userId })
+								.onConflict((oc) => oc.column('objectName').doNothing())
+								.execute()
+							message.ack()
+						} catch (_e) {
+							message.retry({
+								delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
+							})
+						}
+						break
+					}
+					default:
+						// One shared queue carries every message type, so a newly added type that nobody
+						// handles here would otherwise fall through to whichever branch happens to be last
+						// and be mis-parsed as that type. This makes it a compile error instead. At runtime
+						// it only fires on deploy skew (a producer ahead of this consumer), where throwing
+						// is what we want: the batch is redelivered once the new consumer is live.
+						exhaustiveSwitchError(message.body, 'type')
+				}
+			}
 		} finally {
 			await db?.destroy()
-		}
-	}
-
-	private async processQueueBatch(
-		batch: MessageBatch<QueueMessage>,
-		getDb: () => ReturnType<typeof createPostgresConnectionPool>
-	): Promise<void> {
-		for (const message of batch.messages) {
-			switch (message.body.type) {
-				case 'og-image-render':
-					try {
-						await handleOgImageRenderMessage(
-							this.env,
-							message as Message<OgImageRenderQueueMessage>,
-							this.ctx
-						)
-					} catch (_e) {
-						// handleOgImageRenderMessage settles the message itself; this guards the batch loop
-						// against an unexpected throw escaping it, so one bad message can't abort processing
-						// of the rest of the batch. Retry is a no-op if the handler already settled.
-						message.retry()
-					}
-					break
-				case 'asset-upload': {
-					const { objectName, fileId, userId } = message.body
-					try {
-						await getDb()
-							.insertInto('asset')
-							.values({ objectName, fileId, userId })
-							.onConflict((oc) => oc.column('objectName').doNothing())
-							.execute()
-						message.ack()
-					} catch (_e) {
-						message.retry({
-							delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
-						})
-					}
-					break
-				}
-				default:
-					// One shared queue carries every message type, so a newly added type that nobody
-					// handles here would otherwise fall through to whichever branch happens to be last
-					// and be mis-parsed as that type. This makes it a compile error instead. At runtime
-					// it only fires on deploy skew (a producer ahead of this consumer), where throwing
-					// is what we want: the batch is redelivered once the new consumer is live.
-					exhaustiveSwitchError(message.body, 'type')
-			}
 		}
 	}
 }

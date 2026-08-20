@@ -1,5 +1,6 @@
 import { CreateSnapshotRequestBody } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
+import { createTLSchema } from '@tldraw/tlschema'
 import { uniqueId } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { getR2KeyForSnapshot } from '../r2'
@@ -24,10 +25,11 @@ export async function createRoomSnapshot(request: IRequest, env: Environment): P
 	const persistedRoomSnapshot = {
 		parent_slug: data.parent_slug,
 		drawing: {
-			schema: data.schema,
+			// The validated store and the schema it was migrated to, not the raw body: when the
+			// client's schema needed migrating, session-scoped records were only stripped from the
+			// migrated copy, and storing it under the old schema would re-run migrations on load.
+			schema: createTLSchema().serialize(),
 			clock: 0,
-			// The validated store, not the raw body: when the client's schema needed migrating the
-			// session-scoped records were only stripped from the migrated copy.
 			documents: Object.values(snapshotResult.value).map((r) => ({
 				state: r,
 				lastChangedClock: 0,

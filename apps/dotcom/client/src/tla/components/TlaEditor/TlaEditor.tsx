@@ -179,7 +179,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			if (deepLink) {
 				// Let the SDK parse the link: a malformed `?d=` then zooms to fit instead of
 				// throwing out of onMount and replacing the board with an error page.
-				editor.navigateToDeepLink({ url: window.location.href })
+				editor.navigateToDeepLink()
 			}
 			const fileStateUpdater = new FileStateUpdater(app, fileId, editor)
 

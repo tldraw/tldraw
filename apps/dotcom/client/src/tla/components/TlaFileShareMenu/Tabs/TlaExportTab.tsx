@@ -260,9 +260,8 @@ function ExportPreviewImage() {
 	const ref = useRef<HTMLImageElement>(null)
 
 	const rImagePreviewSize = useRef<HTMLDivElement>(null)
-	// Which export is current. useReactor discards the effect's return value, so a cleanup closure
-	// can't cancel the previous run; without this a slow earlier export lands after a quick later
-	// one and overwrites its preview.
+	// useReactor discards the effect's return value, so there is no cleanup closure: without a
+	// sequence a slow earlier export lands after a quick later one.
 	const rRenderSeq = useRef(0)
 
 	useReactor(

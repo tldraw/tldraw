@@ -71,7 +71,6 @@ import { updateLocalSessionState } from '../utils/local-session-state'
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
 
-/** How long `preload()` waits for the user row to arrive after `/init` before giving up. */
 const USER_PRELOAD_TIMEOUT_MS = 10_000
 
 let appId = 0
@@ -399,6 +398,7 @@ export class TldrawApp {
 	async preload() {
 		// Ensure user exists in DB before Zero can query
 		const token = await this.getToken()
+		let initError: Error | undefined
 		if (!token) {
 			throw new Error('No auth token available for init')
 		} else {
@@ -406,7 +406,9 @@ export class TldrawApp {
 				method: 'POST',
 				headers: { Authorization: `Bearer ${token}` },
 			})
-			if (!res.ok) throw new Error(`Init failed: ${res.status}`)
+			// A failed init only matters if the user row never shows up: returning users whose row
+			// already exists should still load through a transient worker error.
+			if (!res.ok) initError = new Error(`Init failed: ${res.status}`)
 		}
 		await this.z.preload(this.userQuery()).complete
 		await this.changesFlushed
@@ -417,7 +419,10 @@ export class TldrawApp {
 			if (this.user$.get()) userLoaded.resolve()
 		})
 		const timeout = setTimeout(
-			() => userLoaded.reject(new Error('Timed out waiting for the user record after init')),
+			() =>
+				userLoaded.reject(
+					initError ?? new Error('Timed out waiting for the user record after init')
+				),
 			USER_PRELOAD_TIMEOUT_MS
 		)
 		try {
@@ -872,7 +877,6 @@ export class TldrawApp {
 		})
 	}
 
-	/** Publish a file or re-publish changes. */
 	publishFile(fileId: string) {
 		const file = this.getFile(fileId)
 		if (!file) throw Error(`No file with that id`)
@@ -913,7 +917,6 @@ export class TldrawApp {
 		return assertExists(this.getFile(fileId), 'no file with id ' + fileId)
 	}
 
-	/** Unpublish a file. */
 	unpublishFile(fileId: string) {
 		const file = this.requireFile(fileId)
 		if (!this.canUpdateFile(fileId)) throw Error('user cannot edit that file')

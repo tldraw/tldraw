@@ -4,7 +4,7 @@ import { IRequest } from 'itty-router'
 import { sql } from 'kysely'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
-import { requireAuth } from '../../utils/tla/getAuth'
+import { getAuth } from '../../utils/tla/getAuth'
 import { getJoinableWorkspaceFromInvite } from '../../utils/tla/getJoinableWorkspaceFromInvite'
 
 export async function acceptInvite(request: IRequest, env: Environment): Promise<Response> {
@@ -18,10 +18,8 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 
 	// Inside the handler's own error shape: the generic 401 body from the router has no `message`,
 	// which the client shows as the toast description.
-	let auth
-	try {
-		auth = await requireAuth(request, env)
-	} catch {
+	const auth = await getAuth(request, env)
+	if (!auth) {
 		return Response.json(
 			{ error: true, message: 'Sign in to accept this invite' } satisfies AcceptInviteResponseBody,
 			{ status: 401 }
@@ -44,7 +42,6 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 				)
 			}
 
-			// Check if user is already a member of this group
 			const existingMember = await tx
 				.selectFrom('group_user')
 				.select('userId')

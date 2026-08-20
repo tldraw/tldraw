@@ -21,19 +21,21 @@ export function defineLoader<T>(_loader: (args: LoaderFunctionArgs) => Promise<T
 		} as any
 	}
 
+	function unwrap(raw: unknown) {
+		if (typeof raw === 'object' && raw && specialSymbol in raw) return (raw as any)[specialSymbol]
+		throw new Error('Loader data not found')
+	}
+
 	return {
 		loader,
 		useData() {
-			const raw = useLoaderData()
-			if (typeof raw === 'object' && raw && specialSymbol in raw) return raw[specialSymbol] as any
-			throw new Error('Loader data not found')
+			return unwrap(useLoaderData())
 		},
 		useMaybeData() {
 			const routeError = useRouteError()
 			const raw = useLoaderData()
 			if (routeError !== undefined) return undefined
-			if (typeof raw === 'object' && raw && specialSymbol in raw) return raw[specialSymbol] as any
-			throw new Error('Loader data not found')
+			return unwrap(raw)
 		},
 	}
 }

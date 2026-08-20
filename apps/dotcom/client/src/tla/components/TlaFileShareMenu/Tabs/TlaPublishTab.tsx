@@ -112,7 +112,6 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 								<F defaultMessage="Publish changes" />
 							</TlaButton>
 						)}
-						{/* todo: make this data actually true based on file.lastPublished */}
 						<TlaMenuDetail>
 							<F
 								defaultMessage="Last published <date></date>"

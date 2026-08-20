@@ -8,7 +8,6 @@ import { writeDataPoint } from './utils/analytics'
 
 const int8TypeId = 20
 
-// How long a dial may take before it fails the caller instead of hanging.
 const CONNECT_TIMEOUT_MS = 10_000
 pg.types.setTypeParser(int8TypeId, (val) => {
 	return parseInt(val, 10)

@@ -10,21 +10,20 @@ image = "registry.hub.docker.com/rocicorp/zero:__ZERO_VERSION"
 # only be reachable over Fly's private network from view-syncers.
 
 [checks]
-  [checks.keepalive]
-  type = "http"
-  port = 4849
-  grace_period = "30s"
-  interval = "5s"
-  timeout = "5s"
-  path = "/keepalive"
+[checks.keepalive]
+type = "http"
+port = 4849
+grace_period = "30s"
+interval = "5s"
+timeout = "5s"
+path = "/keepalive"
 
 [[restart]]
 policy = "always"
 
 [[vm]]
-memory = "__VM_MEMORY"
+cpus = __VM_CPUSmemory = "__VM_MEMORY"
 cpu_kind = "__CPU_KIND"
-cpus = __VM_CPUS
 
 [mounts]
 source = "sqlite_repl"
