@@ -6,9 +6,10 @@ kill_timeout = "__KILL_TIMEOUT"
 dockerfile = "Dockerfile"
 
 [http_service]
-min_machines_running = __VS_MIN_MACHINESinternal_port = 4848
+internal_port = 4848
 force_https = true
 auto_stop_machines = "off"
+min_machines_running = __VS_MIN_MACHINES
 
 [[http_service.http_options.replay_cache]]
 path_prefix = "/"
@@ -24,8 +25,9 @@ timeout = "5s"
 path = "/"
 
 [[vm]]
-cpus = __VM_CPUSmemory = "__VM_MEMORY"
+memory = "__VM_MEMORY"
 cpu_kind = "__CPU_KIND"
+cpus = __VM_CPUS
 
 [mounts]
 source = "sqlite_db"
