@@ -129,7 +129,13 @@ import { Geometry2d } from '../primitives/geometry/Geometry2d'
 import { Group2d } from '../primitives/geometry/Group2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
 import { Mat, MatLike } from '../primitives/Mat'
-import { PI, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
+import {
+	HALF_PI,
+	approximately,
+	areAnglesCompatible,
+	clamp,
+	pointInPolygon,
+} from '../primitives/utils'
 import { Vec, VecLike } from '../primitives/Vec'
 import { areShapesContentEqual } from '../utils/areShapesContentEqual'
 import { dataUrlToFile } from '../utils/assets'
@@ -7456,9 +7462,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// optionally filter to axis-aligned shapes (rotation is a multiple of 90 degrees)
 		if (opts?.filterAxisAligned) {
-			freshShapes = freshShapes.filter(
-				(s) => this.getShapePageTransform(s)?.rotation() % (PI / 2) === 0
-			)
+			freshShapes = freshShapes.filter((s) => {
+				// Page rotations come back through atan2 on a composed matrix, so a 270° shape can land
+				// a hair either side of the multiple; an exact === 0 check drops it
+				const remainder = Math.abs(this.getShapePageTransform(s).rotation() % HALF_PI)
+				return Math.min(remainder, HALF_PI - remainder) < 1e-9
+			})
 		}
 
 		const clusters: { shapes: TLShape[]; pageBounds: Box }[] = []
@@ -7484,8 +7493,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const shapesMovingTogether = [shape]
 			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
 
+			// Seed with bindings in both directions, otherwise an arrow visited before the shapes it
+			// binds ends up in a cluster of its own and the result depends on input order
 			this.collectShapesViaArrowBindings({
-				bindings: this.getBindingsToShape(shape.id, 'arrow'),
+				bindings: this.getBindingsInvolvingShape(shape.id, 'arrow'),
 				initialShapes: freshShapes,
 				resultShapes: shapesMovingTogether,
 				resultBounds: boundsOfShapesMovingTogether,
@@ -7679,12 +7690,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		let shapeGap: number = 0
 
+		// Stack in spatial order rather than input (z) order, otherwise shapes swap places
+		shapeClustersToStack.sort((a, b) => a.pageBounds[min] - b.pageBounds[min])
+
 		if (_gap === 0) {
 			// note: this is not used in the current tldraw.com; there we use a specified stack
 
 			const gaps: Record<number, number> = {}
-
-			shapeClustersToStack.sort((a, b) => a.pageBounds[min] - b.pageBounds[min])
 
 			// Collect all of the gaps between shapes. We want to find
 			// patterns (equal gaps between shapes) and use the most common
@@ -7789,10 +7801,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const maxWidth = commonBounds.width
 
-		// sort the shape clusters by width and then height, descending
+		// sort the shape clusters by width and then height, descending: potpack fills each row's
+		// right-hand space with the shapes that follow, so they must be no taller than the row
 		shapeClustersToPack
-			.sort((a, b) => a.pageBounds.width - b.pageBounds.width)
-			.sort((a, b) => a.pageBounds.height - b.pageBounds.height)
+			.sort((a, b) => b.pageBounds.width - a.pageBounds.width)
+			.sort((a, b) => b.pageBounds.height - a.pageBounds.height)
 
 		// Start with is (sort of) the square of the area
 		const startWidth = Math.max(Math.ceil(Math.sqrt(area / 0.95)), maxWidth)
