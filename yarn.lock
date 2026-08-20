@@ -12014,7 +12014,6 @@ __metadata:
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
     react-instantsearch: "npm:^7.15.1"
-    rehype-autolink-headings: "npm:^7.1.0"
     rehype-slug: "npm:^6.0.0"
     rehype-slug-custom-id: "npm:^2.0.0"
     remark: "npm:^15.0.1"
@@ -21869,15 +21868,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hast-util-is-element@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "hast-util-is-element@npm:3.0.0"
-  dependencies:
-    "@types/hast": "npm:^3.0.0"
-  checksum: 10/b4e6d84c763ffdc44198ba0c4a5a7430794a7b2c1eec699d37776ea9832eef79f129726c175982103eb3b21f531a6bfd2fa43ce26e1ed6d8f6a87c102ba212c8
-  languageName: node
-  linkType: hard
-
 "hast-util-sanitize@npm:^5.0.0":
   version: 5.0.1
   resolution: "hast-util-sanitize@npm:5.0.1"
@@ -29210,20 +29200,6 @@ __metadata:
   bin:
     regexgen: bin/cli.js
   checksum: 10/b23d4b743e8f7312db4622e3384b86dc0fac3a2dcc1f4a4daa70b678b4ee817e9a5cf22d2634576aca213306525b44ef23678d0b1d44cc42f95acdacc44b3c5e
-  languageName: node
-  linkType: hard
-
-"rehype-autolink-headings@npm:^7.1.0":
-  version: 7.1.0
-  resolution: "rehype-autolink-headings@npm:7.1.0"
-  dependencies:
-    "@types/hast": "npm:^3.0.0"
-    "@ungap/structured-clone": "npm:^1.0.0"
-    hast-util-heading-rank: "npm:^3.0.0"
-    hast-util-is-element: "npm:^3.0.0"
-    unified: "npm:^11.0.0"
-    unist-util-visit: "npm:^5.0.0"
-  checksum: 10/231ee09e770f2deb6372d110e6c62fbc6645a4df18f4b2f6bb5e5f13d4a868681dacd6a08f05f362f66c4a81cc34bf5af078a0d0a164111671d7dc855290eb0b
   languageName: node
   linkType: hard
 
