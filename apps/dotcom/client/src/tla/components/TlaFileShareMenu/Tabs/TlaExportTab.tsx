@@ -260,11 +260,15 @@ function ExportPreviewImage() {
 	const ref = useRef<HTMLImageElement>(null)
 
 	const rImagePreviewSize = useRef<HTMLDivElement>(null)
+	// Which export is current. useReactor discards the effect's return value, so a cleanup closure
+	// can't cancel the previous run; without this a slow earlier export lands after a quick later
+	// one and overwrites its preview.
+	const rRenderSeq = useRef(0)
 
 	useReactor(
 		'update preview',
 		() => {
-			let cancelled = false
+			const seq = ++rRenderSeq.current
 
 			const editor = globalEditor.get()
 			if (!editor) return
@@ -294,7 +298,7 @@ function ExportPreviewImage() {
 			const fn = shapes.length > 20 ? getEditorImageSlowly : getEditorImage
 
 			fn(editor, shapes, preferences, ({ src, width, height }) => {
-				if (cancelled) return
+				if (seq !== rRenderSeq.current) return
 				const elm = ref.current
 				if (!elm) return
 				// We want to use an image element here so that a user can right click and copy / save / drag the qr code
@@ -302,10 +306,6 @@ function ExportPreviewImage() {
 				const sizeElm = rImagePreviewSize.current
 				if (sizeElm) sizeElm.textContent = `${width.toFixed()}×${height.toFixed()}`
 			})
-
-			return () => {
-				cancelled = true
-			}
 		},
 		[]
 	)

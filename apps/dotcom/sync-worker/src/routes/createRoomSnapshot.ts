@@ -26,7 +26,9 @@ export async function createRoomSnapshot(request: IRequest, env: Environment): P
 		drawing: {
 			schema: data.schema,
 			clock: 0,
-			documents: Object.values(data.snapshot).map((r) => ({
+			// The validated store, not the raw body: when the client's schema needed migrating the
+			// session-scoped records were only stripped from the migrated copy.
+			documents: Object.values(snapshotResult.value).map((r) => ({
 				state: r,
 				lastChangedClock: 0,
 			})),

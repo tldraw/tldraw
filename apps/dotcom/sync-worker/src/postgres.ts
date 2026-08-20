@@ -7,6 +7,9 @@ import { Environment } from './types'
 import { writeDataPoint } from './utils/analytics'
 
 const int8TypeId = 20
+
+// How long a dial may take before it fails the caller instead of hanging.
+const CONNECT_TIMEOUT_MS = 10_000
 pg.types.setTypeParser(int8TypeId, (val) => {
 	return parseInt(val, 10)
 })
@@ -121,6 +124,10 @@ export class TLPostgresPool implements PostgresPool {
 			connectionString: this.env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 			application_name: 'user-do',
 			keepAlive: false,
+			// pg waits forever by default. Checkouts here are serialized behind one lock, so a
+			// single stalled dial would wedge every later query in this durable object — and its
+			// teardown with them.
+			connectionTimeoutMillis: CONNECT_TIMEOUT_MS,
 		})
 		// Mirror LoggingClient's end/error accounting: the connection-events panel balances
 		// connects against ends to spot leaks, so a client that records a connect but never an

@@ -1,3 +1,4 @@
+import { captureException } from '@sentry/react'
 import { CommentTool, commentToolOverrides } from '@tldraw/commenting'
 import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
@@ -17,7 +18,6 @@ import {
 	computed,
 	createSessionStateSnapshotSignal,
 	createUserId,
-	parseDeepLinkString,
 	react,
 	throttle,
 	tltime,
@@ -159,22 +159,27 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 			const fileState = app.getFileState(fileId)
 			const deepLink = new URLSearchParams(window.location.search).get('d')
+			let sessionState: TLSessionStateSnapshot | null = null
 			if (fileState?.lastSessionState) {
-				const sessionState = JSON.parse(fileState.lastSessionState.trim() || 'null')
-				if (sessionState && deepLink) {
-					// When using a deep link, only load preferences (not camera/page states)
-					// since the deep link will control navigation
-					const { pageStates: _, currentPageId: _cpid, ...preferencesOnly } = sessionState
-					editor.loadSnapshot({ session: preferencesOnly }, { forceOverwriteSessionState: true })
-					editor.navigateToDeepLink(parseDeepLinkString(deepLink))
-				} else if (sessionState) {
-					// No deep link - load the full session state including camera position
-					editor.loadSnapshot({ session: sessionState }, { forceOverwriteSessionState: true })
-				} else if (deepLink) {
-					editor.navigateToDeepLink(parseDeepLinkString(deepLink))
+				try {
+					sessionState = JSON.parse(fileState.lastSessionState.trim() || 'null')
+				} catch {
+					// A corrupt stored session state must not take the whole board down with it.
 				}
-			} else if (deepLink) {
-				editor.navigateToDeepLink(parseDeepLinkString(deepLink))
+			}
+			if (sessionState && deepLink) {
+				// When using a deep link, only load preferences (not camera/page states)
+				// since the deep link will control navigation
+				const { pageStates: _, currentPageId: _cpid, ...preferencesOnly } = sessionState
+				editor.loadSnapshot({ session: preferencesOnly }, { forceOverwriteSessionState: true })
+			} else if (sessionState) {
+				// No deep link - load the full session state including camera position
+				editor.loadSnapshot({ session: sessionState }, { forceOverwriteSessionState: true })
+			}
+			if (deepLink) {
+				// Let the SDK parse the link: a malformed `?d=` then zooms to fit instead of
+				// throwing out of onMount and replacing the board with an error page.
+				editor.navigateToDeepLink({ url: window.location.href })
 			}
 			const fileStateUpdater = new FileStateUpdater(app, fileId, editor)
 
@@ -186,7 +191,14 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				abortSignal: abortController.signal,
 				addDialog,
 				remountImageShapes,
-			}).then(setIsReady)
+			})
+				.catch((err) => {
+					// ReadyWrapper keeps the editor invisible and inert until setIsReady runs, so a
+					// failed slurp must not stop it from running.
+					console.error('Failed to slurp local file', err)
+					captureException(err)
+				})
+				.then(setIsReady)
 
 			return () => {
 				cleanupPerf()
@@ -250,7 +262,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}, []),
 	})
 
-	// we need to prevent calling onFileExit if the store is in an error state
+	// we need to prevent recording the file exit if the store is in an error state
 	const storeError = useRef(false)
 	if (store.status === 'error') {
 		storeError.current = true

@@ -220,8 +220,11 @@ const router = createRouter<Environment>()
 		if (!auth) {
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		}
+		// The second argument is the mutator context (unused: the mutators close over userId);
+		// the log level is the third.
 		const processor = new PushProcessor(
 			zeroPostgresJS(schema, env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING),
+			undefined,
 			'debug'
 		)
 		const result = await processor.process(createMutators(auth.userId), req)
@@ -355,6 +358,20 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		// The pool is only needed for asset-upload messages, so create it lazily: OG image render
 		// batches should not open database connections they never use.
 		let db: ReturnType<typeof createPostgresConnectionPool> | undefined
+		try {
+			await this.processQueueBatch(
+				batch,
+				() => (db ??= createPostgresConnectionPool(this.env, 'sync-worker-queue'))
+			)
+		} finally {
+			await db?.destroy()
+		}
+	}
+
+	private async processQueueBatch(
+		batch: MessageBatch<QueueMessage>,
+		getDb: () => ReturnType<typeof createPostgresConnectionPool>
+	): Promise<void> {
 		for (const message of batch.messages) {
 			switch (message.body.type) {
 				case 'og-image-render':
@@ -374,8 +391,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				case 'asset-upload': {
 					const { objectName, fileId, userId } = message.body
 					try {
-						db ??= createPostgresConnectionPool(this.env, 'sync-worker-queue')
-						await db
+						await getDb()
 							.insertInto('asset')
 							.values({ objectName, fileId, userId })
 							.onConflict((oc) => oc.column('objectName').doNothing())

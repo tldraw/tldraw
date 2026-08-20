@@ -19,7 +19,7 @@ export function ErrorBoundary() {
 	return <Component error={error} />
 }
 
-const { loader, useData } = defineLoader(async (args) => {
+const { loader, useMaybeData } = defineLoader(async (args) => {
 	const roomId = args.params.boardId
 	const timestamp = args.params.timestamp
 
@@ -39,7 +39,7 @@ export { loader }
 export function Component({ error: _error }: { error?: unknown }) {
 	const userId = useMaybeApp()?.userId
 
-	const result = useData()
+	const result = useMaybeData()
 
 	const snapshot = useMemo(() => {
 		if (!result) {

@@ -213,9 +213,19 @@ function configurePosthog(options: AnalyticsOptions) {
 			})
 		}
 		posthog.opt_in_capturing()
-	} else if (currentOptionsPosthog?.optedIn) {
-		posthog.setPersonProperties({ analytics_consent: false })
-		posthog.opt_out_capturing()
+	} else if (cookieConsent.get()?.analytics === false) {
+		// Keyed on the stored consent rather than the previous in-page options: a PostHog opt-in
+		// persisted by an earlier accept otherwise survives init when consent is already off, and
+		// a first reject never engages `cookieless_mode: 'on_reject'`. Pending consent (also
+		// `optedIn: false`) is left alone so PostHog keeps capturing nothing until the user chooses.
+		if (currentOptionsPosthog?.optedIn) {
+			posthog.setPersonProperties({ analytics_consent: false })
+		}
+		// PostHog persists an explicit opt-out and already starts cookieless from it, and
+		// `opt_out_capturing` captures a `$pageview` of its own, so don't repeat it on every load.
+		if (posthog.get_explicit_consent_status() !== 'denied') {
+			posthog.opt_out_capturing()
+		}
 	}
 
 	currentOptionsPosthog = options

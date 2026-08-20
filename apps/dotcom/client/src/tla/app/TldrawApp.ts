@@ -12,7 +12,6 @@ import {
 	WELCOME_CREATE_SOURCE,
 	TlaFileState,
 	TlaFileStatePartial,
-	TlaFlags,
 	TlaGroupFile,
 	TlaMutators,
 	TlaSchema,
@@ -22,7 +21,6 @@ import {
 	ZeroContext,
 	can,
 	createMutators,
-	parseFlags,
 	queries,
 	schema as zeroSchema,
 } from '@tldraw/dotcom-shared'
@@ -44,7 +42,6 @@ import {
 	Atom,
 	Signal,
 	TLDocument,
-	TLSessionStateSnapshot,
 	TLUiToastsContextType,
 	TLUserPreferences,
 	assertExists,
@@ -65,6 +62,7 @@ import { ZERO_SERVER } from '../../utils/config'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TLAppUiContextType } from '../utils/app-ui-events'
+import { copyTextToClipboard } from '../utils/copy'
 import { getDateFormat } from '../utils/dates'
 import { FeatureFlags } from '../utils/FeatureFlagPoller'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
@@ -72,6 +70,9 @@ import { updateLocalSessionState } from '../utils/local-session-state'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
+
+/** How long `preload()` waits for the user row to arrive after `/init` before giving up. */
+const USER_PRELOAD_TIMEOUT_MS = 10_000
 
 let appId = 0
 
@@ -405,14 +406,26 @@ export class TldrawApp {
 				method: 'POST',
 				headers: { Authorization: `Bearer ${token}` },
 			})
-			if (!res.ok) console.error(`Init failed: ${res.status}`)
+			if (!res.ok) throw new Error(`Init failed: ${res.status}`)
 		}
 		await this.z.preload(this.userQuery()).complete
 		await this.changesFlushed
-		await new Promise((resolve) => {
-			let unlisten = () => {}
-			unlisten = react('wait for user', () => this.user$.get() && resolve(unlisten()))
+		// Without a deadline, a user row that never arrives (failed init, stalled replication)
+		// hangs `create()` forever and the page stays blank for the whole session.
+		const userLoaded = promiseWithResolve<void>()
+		const stopWaiting = react('wait for user', () => {
+			if (this.user$.get()) userLoaded.resolve()
 		})
+		const timeout = setTimeout(
+			() => userLoaded.reject(new Error('Timed out waiting for the user record after init')),
+			USER_PRELOAD_TIMEOUT_MS
+		)
+		try {
+			await userLoaded
+		} finally {
+			clearTimeout(timeout)
+			stopWaiting()
+		}
 		await Promise.all([
 			this.z.preload(this.fileStateQuery()).complete,
 			this.z.preload(this.workspaceMembershipsQuery()).complete,
@@ -497,16 +510,6 @@ export class TldrawApp {
 		return assertExists(this.user$.get(), 'no user')
 	}
 
-	@computed({ isEqual })
-	getUserFlags(): Set<TlaFlags> {
-		const user = this.getUser()
-		return new Set(parseFlags(user.flags)) as Set<TlaFlags>
-	}
-
-	hasFlag(flag: TlaFlags) {
-		return this.getUserFlags().has(flag)
-	}
-
 	/**
 	 * Get the user's home workspace ID.
 	 * Used to store shared files and pinned files.
@@ -584,11 +587,6 @@ export class TldrawApp {
 		return pinned
 			.map((f) => ({ fileId: f.fileId, isPinned: f.index !== null, date: f.file.updatedAt }))
 			.concat(nextOrdering.map((f) => ({ fileId: f.fileId, isPinned: false, date: f.date })))
-	}
-
-	// Clear workspace file ordering to refresh on expand (like recent files on page reload)
-	clearWorkspaceFileOrdering(workspaceId: string) {
-		this.lastWorkspaceFileOrderings.delete(workspaceId)
 	}
 
 	tlUser = createTLCurrentUser({
@@ -874,12 +872,7 @@ export class TldrawApp {
 		})
 	}
 
-	/**
-	 * Publish a file or re-publish changes.
-	 *
-	 * @param fileId - The file id to unpublish.
-	 * @returns A result indicating success or failure.
-	 */
+	/** Publish a file or re-publish changes. */
 	publishFile(fileId: string) {
 		const file = this.getFile(fileId)
 		if (!file) throw Error(`No file with that id`)
@@ -920,12 +913,7 @@ export class TldrawApp {
 		return assertExists(this.getFile(fileId), 'no file with id ' + fileId)
 	}
 
-	/**
-	 * Unpublish a file.
-	 *
-	 * @param fileId - The file id to unpublish.
-	 * @returns A result indicating success or failure.
-	 */
+	/** Unpublish a file. */
 	unpublishFile(fileId: string) {
 		const file = this.requireFile(fileId)
 		if (!this.canUpdateFile(fileId)) throw Error('user cannot edit that file')
@@ -942,9 +930,18 @@ export class TldrawApp {
 	/**
 	 * Remove a user's file states for a file and delete the file if the user is the owner of the file.
 	 */
-	async deleteOrForgetFile(fileId: string, workspaceId: string = this.getHomeWorkspaceId()) {
-		// Optimistic update, remove file and file states
-		await this.z.mutate.removeFileFromWorkspace({ fileId, workspaceId }).client
+	async deleteOrForgetFile(
+		fileId: string,
+		workspaceId: string = this.getHomeWorkspaceId()
+	): Promise<boolean> {
+		// Optimistic update, remove file and file states. Zero mutator promises never reject —
+		// failures resolve with {type: 'error'} — so the result has to be checked, not caught.
+		const res = await this.z.mutate.removeFileFromWorkspace({ fileId, workspaceId }).client
+		if (res.type === 'error') {
+			this.showMutationRejectionToast(res.error.message as ZErrorCode)
+			return false
+		}
+		return true
 	}
 
 	setFileSharedLinkType(fileId: string, sharedLinkType: TlaFile['sharedLinkType'] | 'no-access') {
@@ -992,31 +989,12 @@ export class TldrawApp {
 		this.z.mutate.comment.markManyRead({ commentIds, readAt: Date.now() })
 	}
 
-	markCommentUnread(commentId: string) {
-		this.z.mutate.comment.markUnread({ commentId })
-	}
-
 	updateFile(fileId: string, partial: Partial<TlaFile>) {
 		this.z.mutate.file.update({ id: fileId, ...partial })
 	}
 
 	async onFileEnter(fileId: string) {
 		this.z.mutate.onEnterFile({ fileId, time: Date.now() })
-	}
-
-	onFileEdit(fileId: string) {
-		this.updateFileState(fileId, { lastEditAt: Date.now() })
-	}
-
-	onFileSessionStateUpdate(fileId: string, sessionState: TLSessionStateSnapshot) {
-		this.updateFileState(fileId, {
-			lastSessionState: JSON.stringify(sessionState),
-			lastVisitAt: Date.now(),
-		})
-	}
-
-	onFileExit(fileId: string) {
-		this.updateFileState(fileId, { lastVisitAt: Date.now() })
 	}
 
 	static async create(opts: {
@@ -1051,7 +1029,14 @@ export class TldrawApp {
 		)
 		// @ts-expect-error
 		window.app = app
-		await app.preload()
+		try {
+			await app.preload()
+		} catch (e) {
+			// Don't leave the half-built app's Zero connection and timers running behind the
+			// error page the caller shows for this.
+			app.dispose()
+			throw e
+		}
 		const user = app.getUser()
 		if (user.color === '___INIT___') {
 			app.updateUser({
@@ -1098,6 +1083,13 @@ export class TldrawApp {
 		const totalFiles = files.length
 		let uploadedFiles = 0
 		if (totalFiles === 0) return
+		// createFile runs this check too, but only after the snapshot and its assets are already
+		// uploaded — which would orphan a room in R2 and stack a generic error on the limit toast.
+		if (!this.canCreateNewFile(workspaceId ?? this.getHomeWorkspaceId())) {
+			this.showMaxFilesToast()
+			onUploadError?.()
+			return
+		}
 
 		// this is only approx since we upload the files in pieces and they are base64 encoded
 		// in the json blob, so this will usually be a big overestimate. But that's fine because
@@ -1259,10 +1251,14 @@ export class TldrawApp {
 			throw Error(response.message)
 		}
 		const fileId = response.slugs[0]
+		// `||` not `??`: File.name is never nullish, so the document-name fallback was unreachable
+		// and a file called `.tldr` would reach createFile with an empty name (bad_request).
 		const name =
-			file.name?.replace(/\.tldr$/, '') ??
-			Object.values(snapshot.store).find((d): d is TLDocument => d.typeName === 'document')?.name ??
-			''
+			file.name.replace(/\.tldr$/, '').trim() ||
+			Object.values(snapshot.store)
+				.find((d): d is TLDocument => d.typeName === 'document')
+				?.name?.trim() ||
+			undefined
 
 		return this.createFile({ fileId, name, workspaceId })
 	}
@@ -1283,8 +1279,7 @@ export class TldrawApp {
 		const group = this.getWorkspaceMembership(workspaceId)?.group
 		if (!group?.inviteSecret) return false
 
-		const inviteText = `${location.origin}/invite/${group.inviteSecret}`
-		navigator.clipboard.writeText(inviteText)
+		copyTextToClipboard(routes.tlaInvite(group.inviteSecret, { asUrl: true }))
 
 		if (showToast) {
 			this.toasts?.addToast({
@@ -1302,13 +1297,15 @@ export class TldrawApp {
 			method: 'POST',
 		})
 
-		const payload = (await response.json()) as AcceptInviteResponseBody
+		// A gateway error page or the router's own 401 body isn't an AcceptInviteResponseBody;
+		// parsing it first would throw past the toast below.
+		const payload = (await response.json().catch(() => null)) as AcceptInviteResponseBody | null
 
-		if (payload.error || !response.ok) {
+		if (!payload || payload.error || !response.ok) {
 			this.toasts?.addToast({
 				severity: 'error',
 				title: 'Error accepting invite',
-				description: payload.message,
+				description: payload?.message ?? 'Please try again.',
 			})
 			this.navigate(routes.tlaRoot())
 			return

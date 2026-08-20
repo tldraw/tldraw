@@ -104,6 +104,15 @@ export class Slurper {
 		try {
 			const data = await db.load({ sessionId: TAB_ID })
 			if (abortSignal.aborted) return
+			if (!data.schema || data.records.length === 0) {
+				// Nothing local to restore: the file's createSource names a db this device doesn't
+				// have (opened elsewhere, storage cleared). Loading a snapshot with no schema throws,
+				// and an unfinished slurp is retried on every mount, so finish it here instead.
+				editor.updateDocumentSettings({
+					meta: { ...editor.getDocumentSettings().meta, slurpFinished: true },
+				})
+				return
+			}
 			// Assets will be served from the local indexedDb while they are being uploaded
 			editor.loadSnapshot({
 				document: {

@@ -12,9 +12,9 @@ function getMonthPrefix(date: Date): string {
 }
 
 function getPreviousMonth(date: Date): Date {
-	const prev = new Date(date)
-	prev.setMonth(prev.getMonth() - 1)
-	return prev
+	// Step by calendar month from the 1st: `setMonth(m - 1)` on the 29th–31st lands in the same
+	// month again (Mar 31 → "Feb 31" → Mar 3), so the month scan would fetch it twice.
+	return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() - 1, 1))
 }
 
 async function fetchTimestampsFromBatch(
@@ -97,11 +97,10 @@ export async function getRoomHistory(
 	const targetEntryCount = 1000
 
 	if (offset) {
-		try {
-			currentMonth = new Date(offset)
-		} catch (_e) {
-			currentMonth = new Date()
-		}
+		// `new Date` never throws; an unparseable offset is an Invalid Date that would blow up in
+		// toISOString further down.
+		const parsed = new Date(offset)
+		currentMonth = Number.isNaN(parsed.getTime()) ? new Date() : parsed
 	} else {
 		// If we don't have an offset we can check if the room doesn't have too many entries
 		const allTimestampsForRoom = await fetchTimestampsForPrefix(
