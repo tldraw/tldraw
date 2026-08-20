@@ -85,8 +85,8 @@ export class CubicSpline2d extends Geometry2d {
 		return minDist
 	}
 
-	hitTestLineSegment(A: VecLike, B: VecLike): boolean {
-		return this.segments.some((segment) => segment.hitTestLineSegment(A, B))
+	hitTestLineSegment(A: VecLike, B: VecLike, distance = 0): boolean {
+		return this.segments.some((segment) => segment.hitTestLineSegment(A, B, distance))
 	}
 
 	getSvgPathData() {

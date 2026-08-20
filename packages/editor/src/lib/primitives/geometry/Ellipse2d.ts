@@ -102,8 +102,8 @@ export class Ellipse2d extends Geometry2d {
 		return minDist
 	}
 
-	hitTestLineSegment(A: VecLike, B: VecLike): boolean {
-		return this.edges.some((edge) => edge.hitTestLineSegment(A, B))
+	hitTestLineSegment(A: VecLike, B: VecLike, distance = 0): boolean {
+		return this.edges.some((edge) => edge.hitTestLineSegment(A, B, distance))
 	}
 
 	getBounds() {
