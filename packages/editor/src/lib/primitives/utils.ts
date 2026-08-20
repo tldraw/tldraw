@@ -409,11 +409,11 @@ export function getPointInArcT(mAB: number, A: number, B: number, P: number): nu
 		mAP = shortAngleDist(A, P)
 		const t = mAP / mAB
 
-		// If the arc is something like -2.8 to 2.2, then we'll get a weird bug
-		// where the measurement to the center is negative but measure to points
-		// near the end are positive
+		// A sign mismatch (e.g. an arc from -2.8 to 2.2) means P is in the arc's
+		// gap, |mAP| behind A. Clamp to the angularly nearer endpoint: B is the
+		// rest of the gap away, not a fixed half of the arc.
 		if (Math.sign(mAP) !== Math.sign(mAB)) {
-			return Math.abs(t) > 0.5 ? 1 : 0
+			return Math.abs(mAP) > (PI2 - Math.abs(mAB)) / 2 ? 1 : 0
 		}
 
 		return t

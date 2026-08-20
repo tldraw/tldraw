@@ -122,7 +122,7 @@ export abstract class Geometry2d {
 		const { vertices } = this
 		if (vertices.length === 0) throw Error('nearest point not found')
 		if (vertices.length === 1) return Vec.Dist(A, vertices[0])
-		let nearest: Vec | undefined
+		let nearest: VecLike | undefined
 		let dist = Infinity
 		let d: number, p: Vec, q: Vec
 		const nextLimit = this.isClosed ? vertices.length : vertices.length - 1
@@ -131,6 +131,18 @@ export abstract class Geometry2d {
 			if (i < nextLimit) {
 				const next = vertices[(i + 1) % vertices.length]
 				if (linesIntersect(A, B, p, next)) return 0
+				// Vertex-to-segment distances alone overestimate when AB runs alongside
+				// a long edge, so also measure A and B against the edge.
+				d = Vec.DistanceToLineSegment(p, next, A) ** 2
+				if (d < dist) {
+					dist = d
+					nearest = A
+				}
+				d = Vec.DistanceToLineSegment(p, next, B) ** 2
+				if (d < dist) {
+					dist = d
+					nearest = B
+				}
 			}
 			q = Vec.NearestPointOnLineSegment(A, B, p, true)
 			d = Vec.Dist2(p, q)
