@@ -12564,6 +12564,7 @@ __metadata:
     lazyrepo: "npm:0.0.0-alpha.27"
     pg: "npm:^8.16.3"
     tsx: "npm:^4.19.2"
+    vitest: "npm:^4.1.7"
   languageName: unknown
   linkType: soft
 
@@ -18936,8 +18937,10 @@ __metadata:
     "@clerk/clerk-react": "npm:^5.53.3"
     "@clerk/elements": "npm:^0.23.74"
     "@clerk/testing": "npm:^1.4.15"
+    "@clerk/types": "npm:^4.95.1"
     "@formatjs/cli": "npm:^6.5.1"
     "@formatjs/unplugin": "npm:^1.1.0"
+    "@peculiar/webcrypto": "npm:^1.5.0"
     "@playwright/test": "npm:^1.61.0"
     "@rocicorp/zero": "npm:1.9.0"
     "@sentry/cli": "npm:^2.41.1"
