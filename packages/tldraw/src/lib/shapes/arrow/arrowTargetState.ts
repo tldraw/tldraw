@@ -10,7 +10,7 @@ import {
 	invLerp,
 	mapObjectMapValues,
 	objectMapEntries,
-	objectMapKeys,
+	objectMapValues,
 	TLArrowBinding,
 	TLArrowShape,
 	TLArrowShapeKind,
@@ -186,8 +186,7 @@ export function updateArrowTargetState({
 	const minDistScaled = util.options.minElbowHandleDistance / zoomLevel
 
 	const targetCenterInPageSpace = targetTransform.applyToPoint(targetCenterInTargetSpace)
-	for (const side of objectMapKeys(handlesInPageSpace)) {
-		const handle = handlesInPageSpace[side]
+	for (const handle of objectMapValues(handlesInPageSpace)) {
 		if (Vec.DistMin(handle.point, targetCenterInPageSpace, minDistScaled)) {
 			handle.isEnabled = false
 		}
@@ -197,7 +196,7 @@ export function updateArrowTargetState({
 
 	if (!precise) {
 		// If we're switching to a new bound shape, then precise only if moving slowly
-		if (!currentBinding || (currentBinding && target.id !== currentBinding.toId)) {
+		if (!currentBinding || target.id !== currentBinding.toId) {
 			precise = editor.inputs.getPointerVelocity().len() < 0.5
 		}
 	}

@@ -1,10 +1,5 @@
 import { EditorView } from '@tiptap/pm/view'
-import {
-	EditorEvents,
-	JSONContent,
-	Editor as TextEditor,
-	type Editor as TTEditor,
-} from '@tiptap/react'
+import { EditorEvents, JSONContent, Editor as TextEditor } from '@tiptap/react'
 import {
 	Editor,
 	TLRichText,
@@ -67,7 +62,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 	const tipTapConfig = editor.getTextOptions().tipTapConfig
 
 	const rInitialRichText = useRef(richText)
-	const rTextEditor = useRef<TTEditor | null>(null)
+	const rTextEditor = useRef<TextEditor | null>(null)
 	const rTextEditorEl = useRef<HTMLDivElement>(null)
 
 	useLayoutEffect(() => {
@@ -175,8 +170,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 				},
 				handlePaste: (view: EditorView, event: ClipboardEvent) => {
 					onPaste(event)
-					if (event.defaultPrevented) return true
-					return false
+					return event.defaultPrevented
 				},
 				handleDoubleClick: (_view, _pos, event) => onDoubleClick(event),
 				...editorProps,
@@ -240,7 +234,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 			tabIndex={-1}
 			data-testid="rich-text-area"
 			className="tl-rich-text tl-text tl-text-input"
-			onContextMenu={isEditing ? (e) => e.stopPropagation() : undefined}
+			onContextMenu={(e) => e.stopPropagation()}
 			// N.B. When PointerStateExtension was introduced, this was moved there.
 			// However, that caused selecting over list items to break.
 			// The handleDOMEvents in TipTap don't seem to support the pointerDownCapture event.
@@ -301,11 +295,9 @@ function handleTab(editor: Editor, view: EditorView, event: KeyboardEvent) {
 			if (!isShift) {
 				// Insert a tab character at the start of the line
 				tr = tr.insertText('\t', lineStart + 1)
-			} else {
+			} else if (lineText.startsWith('\t')) {
 				// Remove a tab character from the start of the line
-				if (lineText.startsWith('\t')) {
-					tr = tr.delete(lineStart + 1, lineStart + 2)
-				}
+				tr = tr.delete(lineStart + 1, lineStart + 2)
 			}
 		}
 

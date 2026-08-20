@@ -1,15 +1,12 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
-	Arc2d,
 	Box,
 	EMPTY_ARRAY,
-	Edge2d,
 	Editor,
 	Geometry2d,
 	Group2d,
 	IndexKey,
 	PI2,
-	Polyline2d,
 	Rectangle2d,
 	SVGContainer,
 	ShapeUtil,
@@ -66,7 +63,11 @@ import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
 import { ArrowShapeOptions, type ArrowShapeUtilDisplayValues } from './arrow-types'
 import { getArrowheadPathForType } from './arrowheads'
-import { getArrowLabelDefaultPosition, getArrowLabelPosition } from './arrowLabel'
+import {
+	getArrowBodyGeometry,
+	getArrowLabelDefaultPosition,
+	getArrowLabelPosition,
+} from './arrowLabel'
 import { getArrowBodyPath, getArrowBodyPathBuilder } from './ArrowPath'
 import { updateArrowTargetState } from './arrowTargetState'
 import { ElbowArrowAxes } from './elbow/definitions'
@@ -266,21 +267,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const debugGeom: Geometry2d[] = []
 
-		const bodyGeom =
-			info.type === 'straight'
-				? new Edge2d({
-						start: Vec.From(info.start.point),
-						end: Vec.From(info.end.point),
-					})
-				: info.type === 'arc'
-					? new Arc2d({
-							center: Vec.Cast(info.handleArc.center),
-							start: Vec.Cast(info.start.point),
-							end: Vec.Cast(info.end.point),
-							sweepFlag: info.bodyArc.sweepFlag,
-							largeArcFlag: info.bodyArc.largeArcFlag,
-						})
-					: new Polyline2d({ points: info.route.points })
+		const bodyGeom = getArrowBodyGeometry(this.editor, shape)
 
 		let labelGeom
 		if (info.isValid && (isEditing || !isEmptyRichText(shape.props.richText))) {
@@ -709,85 +696,28 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			end.y = terminals.end.y * scaleY
 		}
 
+		const flipX = scaleX < 0
+		const flipY = scaleY < 0
+
+		if (bend !== 0) {
+			if (flipX !== flipY) bend *= -1
+			bend *= Math.max(Math.abs(scaleX), Math.abs(scaleY))
+		}
+
 		// todo: we should only change the normalized anchor positions
 		// of the shape's handles if the bound shape is also being resized
-
-		const mx = Math.abs(scaleX)
-		const my = Math.abs(scaleY)
-
-		const startNormalizedAnchor = bindings?.start
-			? Vec.From(bindings.start.props.normalizedAnchor)
-			: null
-		const endNormalizedAnchor = bindings?.end ? Vec.From(bindings.end.props.normalizedAnchor) : null
-
-		if (scaleX < 0 && scaleY >= 0) {
-			if (bend !== 0) {
-				bend *= -1
-				bend *= Math.max(mx, my)
-			}
-
-			if (startNormalizedAnchor) {
-				startNormalizedAnchor.x = 1 - startNormalizedAnchor.x
-			}
-
-			if (endNormalizedAnchor) {
-				endNormalizedAnchor.x = 1 - endNormalizedAnchor.x
-			}
-		} else if (scaleX >= 0 && scaleY < 0) {
-			if (bend !== 0) {
-				bend *= -1
-				bend *= Math.max(mx, my)
-			}
-
-			if (startNormalizedAnchor) {
-				startNormalizedAnchor.y = 1 - startNormalizedAnchor.y
-			}
-
-			if (endNormalizedAnchor) {
-				endNormalizedAnchor.y = 1 - endNormalizedAnchor.y
-			}
-		} else if (scaleX >= 0 && scaleY >= 0) {
-			if (bend !== 0) {
-				bend *= Math.max(mx, my)
-			}
-		} else if (scaleX < 0 && scaleY < 0) {
-			if (bend !== 0) {
-				bend *= Math.max(mx, my)
-			}
-
-			if (startNormalizedAnchor) {
-				startNormalizedAnchor.x = 1 - startNormalizedAnchor.x
-				startNormalizedAnchor.y = 1 - startNormalizedAnchor.y
-			}
-
-			if (endNormalizedAnchor) {
-				endNormalizedAnchor.x = 1 - endNormalizedAnchor.x
-				endNormalizedAnchor.y = 1 - endNormalizedAnchor.y
-			}
-		}
-
-		if (bindings.start && startNormalizedAnchor) {
-			createOrUpdateArrowBinding(this.editor, shape, bindings.start.toId, {
-				...bindings.start.props,
-				normalizedAnchor: startNormalizedAnchor.toJson(),
-			})
-		}
-		if (bindings.end && endNormalizedAnchor) {
-			createOrUpdateArrowBinding(this.editor, shape, bindings.end.toId, {
-				...bindings.end.props,
-				normalizedAnchor: endNormalizedAnchor.toJson(),
+		for (const binding of [bindings.start, bindings.end]) {
+			if (!binding) continue
+			const normalizedAnchor = Vec.From(binding.props.normalizedAnchor)
+			if (flipX) normalizedAnchor.x = 1 - normalizedAnchor.x
+			if (flipY) normalizedAnchor.y = 1 - normalizedAnchor.y
+			createOrUpdateArrowBinding(this.editor, shape, binding.toId, {
+				...binding.props,
+				normalizedAnchor: normalizedAnchor.toJson(),
 			})
 		}
 
-		const next = {
-			props: {
-				start,
-				end,
-				bend,
-			},
-		}
-
-		return next
+		return { props: { start, end, bend } }
 	}
 
 	override onDoubleClickHandle(
@@ -887,7 +817,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const dv = getDisplayValues(this, shape)
 
 		const isEditing = this.editor.getEditingShapeId() === shape.id
-		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape, info?.bindings)
+		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape, info.bindings)
 		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
 		const isEmpty = isEmptyRichText(shape.props.richText)
 
@@ -1141,7 +1071,7 @@ const ArrowSvg = track(function ArrowSvg({
 						height={toDomPrecision(bounds.height + 200)}
 						opacity={0}
 					/>
-					{getArrowBodyPath(shape, info, {
+					{getArrowBodyPath(info, {
 						style: shape.props.dash,
 						strokeWidth,
 						forceSolid: isForceSolid,

@@ -23,12 +23,11 @@ import {
 	createShapeId,
 	fetch,
 	getHashForBuffer,
-	getHashForString,
 	maybeSnapToGrid,
 	toRichText,
 } from '@tldraw/editor'
 import { EmbedDefinition } from './defaultEmbedDefinitions'
-import { createBookmarkFromUrl } from './shapes/bookmark/bookmarks'
+import { createBookmarkFromUrl, getBookmarkAssetIdForUrl } from './shapes/bookmark/bookmarks'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { getCroppedImageDataForReplacedImage } from './shapes/shared/crop'
 import { FONT_SIZES, TEXT_PROPS, getFontFamily } from './shapes/shared/default-shape-constants'
@@ -190,42 +189,19 @@ export async function defaultHandleExternalFileReplaceContent(
 	// And update the shape
 	if (shape.type === 'image') {
 		const imageShape = shape as TLImageShape
-		const currentCrop = imageShape.props.crop
-
-		// Calculate new dimensions that preserve the current visual size of the cropped area
-		let newWidth = assetInfoPartial.props.w
-		let newHeight = assetInfoPartial.props.h
-		let newX = imageShape.x
-		let newY = imageShape.y
-		let finalCrop = currentCrop
-
-		if (currentCrop) {
-			// Use the dedicated function to calculate the new crop and dimensions
-			const result = getCroppedImageDataForReplacedImage(
-				imageShape,
-				assetInfoPartial.props.w,
-				assetInfoPartial.props.h
-			)
-
-			finalCrop = result.crop
-			newWidth = result.w
-			newHeight = result.h
-			newX = result.x
-			newY = result.y
-		}
+		const { w, h } = assetInfoPartial.props
+		// Preserve the visual size of the cropped area when the new image has different dimensions
+		const next = imageShape.props.crop
+			? getCroppedImageDataForReplacedImage(imageShape, w, h)
+			: { crop: imageShape.props.crop, w, h, x: imageShape.x, y: imageShape.y }
 
 		editor.updateShapes([
 			{
 				id: imageShape.id,
 				type: imageShape.type,
-				props: {
-					assetId: assetId,
-					crop: finalCrop,
-					w: newWidth,
-					h: newHeight,
-				},
-				x: newX,
-				y: newY,
+				props: { assetId, crop: next.crop, w: next.w, h: next.h },
+				x: next.x,
+				y: next.y,
 			},
 		])
 	} else if (shape.type === 'video') {
@@ -233,11 +209,7 @@ export async function defaultHandleExternalFileReplaceContent(
 			{
 				id: shape.id,
 				type: shape.type,
-				props: {
-					assetId: assetId,
-					w: assetInfoPartial.props.w,
-					h: assetInfoPartial.props.h,
-				},
+				props: { assetId, w: assetInfoPartial.props.w, h: assetInfoPartial.props.h },
 			},
 		])
 	}
@@ -295,7 +267,7 @@ export async function defaultHandleExternalUrlAsset(
 
 	// Create the bookmark asset from the meta
 	return {
-		id: AssetRecordType.createId(getHashForString(url)),
+		id: getBookmarkAssetIdForUrl(url),
 		typeName: 'asset',
 		type: 'bookmark',
 		props: {
@@ -318,11 +290,7 @@ export async function defaultHandleExternalSvgTextContent(
 	text = sanitizeSvg(text)
 	if (!text) return
 
-	const position =
-		point ??
-		(editor.inputs.getShiftKey()
-			? editor.inputs.getCurrentPagePoint()
-			: editor.getViewportPageBounds().center)
+	const position = getExternalContentPoint(editor, point)
 
 	const svg = new DOMParser().parseFromString(text, 'image/svg+xml').querySelector('svg')
 	if (!svg) {
@@ -357,11 +325,7 @@ export function defaultHandleExternalEmbedContent<T>(
 	editor: Editor,
 	{ point, url, embed }: { point?: VecLike; url: string; embed: T }
 ) {
-	const position =
-		point ??
-		(editor.inputs.getShiftKey()
-			? editor.inputs.getCurrentPagePoint()
-			: editor.getViewportPageBounds().center)
+	const position = getExternalContentPoint(editor, point)
 
 	const { width, height } = embed as { width: number; height: number }
 
@@ -400,11 +364,7 @@ export async function defaultHandleExternalFileContent(
 		return
 	}
 
-	const position =
-		point ??
-		(editor.inputs.getShiftKey()
-			? editor.inputs.getCurrentPagePoint()
-			: editor.getViewportPageBounds().center)
+	const position = getExternalContentPoint(editor, point)
 
 	const pagePoint = new Vec(position.x, position.y)
 	const assetPartials: TLAsset[] = []
@@ -454,7 +414,6 @@ export async function defaultHandleExternalFileContent(
 				})
 				console.error(error)
 				editor.deleteAssets([assetAndFile.asset.id])
-				return
 			}
 		})
 	)
@@ -467,11 +426,7 @@ export async function defaultHandleExternalTextContent(
 	editor: Editor,
 	{ point, text, html }: { point?: VecLike; text: string; html?: string }
 ) {
-	const p =
-		point ??
-		(editor.inputs.getShiftKey()
-			? editor.inputs.getCurrentPagePoint()
-			: editor.getViewportPageBounds().center)
+	const p = getExternalContentPoint(editor, point)
 
 	const defaultProps = editor.getShapeUtil<TLTextShape>('text').getDefaultProps()
 
@@ -510,18 +465,18 @@ export async function defaultHandleExternalTextContent(
 	const isRtl = isRightToLeftLanguage(cleanedUpPlaintext)
 
 	if (isMultiLine) {
-		align = isMultiLine ? (isRtl ? 'end' : 'start') : 'middle'
+		align = isRtl ? 'end' : 'start'
 	}
 
 	const theme = editor.getCurrentTheme()
-
-	const rawSize = editor.textMeasure.measureHtml(htmlToMeasure, {
+	const measureOpts = {
 		...TEXT_PROPS,
 		lineHeight: theme.lineHeight,
 		fontFamily: getFontFamily(theme, defaultProps.font),
 		fontSize: theme.fontSize * FONT_SIZES[defaultProps.size],
-		maxWidth: null,
-	})
+	}
+
+	const rawSize = editor.textMeasure.measureHtml(htmlToMeasure, { ...measureOpts, maxWidth: null })
 
 	const minWidth = Math.min(
 		isMultiLine ? editor.getViewportPageBounds().width * 0.9 : 920,
@@ -530,10 +485,7 @@ export async function defaultHandleExternalTextContent(
 
 	if (rawSize.w > minWidth) {
 		const shrunkSize = editor.textMeasure.measureHtml(htmlToMeasure, {
-			...TEXT_PROPS,
-			lineHeight: theme.lineHeight,
-			fontFamily: getFontFamily(theme, defaultProps.font),
-			fontSize: theme.fontSize * FONT_SIZES[defaultProps.size],
+			...measureOpts,
 			maxWidth: minWidth,
 		})
 		w = shrunkSize.w
@@ -607,11 +559,7 @@ export async function defaultHandleExternalUrlContent(
 		})
 	}
 
-	const position =
-		point ??
-		(editor.inputs.getShiftKey()
-			? editor.inputs.getCurrentPagePoint()
-			: editor.getViewportPageBounds().center)
+	const position = getExternalContentPoint(editor, point)
 
 	// Use the new function to create the bookmark
 	const result = await createBookmarkFromUrl(editor, { url, center: position })
@@ -668,7 +616,7 @@ export async function defaultHandleExternalTldrawContent(
 			!isMidInteraction &&
 			selectionBoundsBefore &&
 			selectedBoundsAfter &&
-			selectionBoundsBefore?.collides(selectedBoundsAfter)
+			selectionBoundsBefore.collides(selectedBoundsAfter)
 		) {
 			// Creates a 'puff' to show content has been pasted
 			editor.updateInstanceState({ isChangingStyle: true })
@@ -711,8 +659,7 @@ export async function createShapesForAssets(
 	const currentPoint = Vec.From(position)
 	const partials: TLShapePartial[] = []
 
-	for (let i = 0; i < assets.length; i++) {
-		const asset = assets[i]
+	for (const asset of assets) {
 		const shapeUtil = editor.getShapeUtilForAssetType(asset.type)
 		const partial = shapeUtil?.createShapeForAsset?.(asset, currentPoint) ?? null
 		if (partial) {
@@ -761,7 +708,7 @@ export function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
 	let selectionPageBounds = editor.getSelectionPageBounds()
 
 	if (selectionPageBounds) {
-		const offset = selectionPageBounds!.center.sub(position)
+		const offset = selectionPageBounds.center.sub(position)
 
 		editor.updateShapes(
 			editor.getSelectedShapes().map((shape) => {
@@ -770,8 +717,8 @@ export function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
 				return {
 					id: shape.id,
 					type: shape.type,
-					x: shape.x! - localDelta.x,
-					y: shape.y! - localDelta.y,
+					x: shape.x - localDelta.x,
+					y: shape.y - localDelta.y,
 				}
 			})
 		)
@@ -784,15 +731,12 @@ export function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
 		const gridSnappedPoint = topLeft.clone().snapToGrid(gridSize)
 		const delta = Vec.Sub(topLeft, gridSnappedPoint)
 		editor.updateShapes(
-			editor.getSelectedShapes().map((shape) => {
-				const newPoint = { x: shape.x! - delta.x, y: shape.y! - delta.y }
-				return {
-					id: shape.id,
-					type: shape.type,
-					x: newPoint.x,
-					y: newPoint.y,
-				}
-			})
+			editor.getSelectedShapes().map((shape) => ({
+				id: shape.id,
+				type: shape.type,
+				x: shape.x - delta.x,
+				y: shape.y - delta.y,
+			}))
 		)
 	}
 	// Zoom out to fit the shapes, if necessary
@@ -831,6 +775,15 @@ export function createEmptyBookmarkShape(
 	return editor.getShape(partial.id) as TLBookmarkShape
 }
 
+function getExternalContentPoint(editor: Editor, point?: VecLike): VecLike {
+	return (
+		point ??
+		(editor.inputs.getShiftKey()
+			? editor.inputs.getCurrentPagePoint()
+			: editor.getViewportPageBounds().center)
+	)
+}
+
 async function maybeSanitizeSvgFile(file: File): Promise<File | null> {
 	if (file.type !== 'image/svg+xml') return file
 	try {
@@ -842,6 +795,19 @@ async function maybeSanitizeSvgFile(file: File): Promise<File | null> {
 	} catch {
 		return null
 	}
+}
+
+function formatBytes(bytes: number): string {
+	if (bytes === 0) return '0 bytes'
+
+	const units = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB']
+	const base = 1024
+	const unitIndex = Math.floor(Math.log(bytes) / Math.log(base))
+
+	const value = bytes / Math.pow(base, unitIndex)
+	const formatted = value % 1 === 0 ? value.toString() : value.toFixed(1)
+
+	return `${formatted} ${units[unitIndex]}`
 }
 
 /**
@@ -886,19 +852,6 @@ export function notifyIfFileNotAllowed(
 	}
 
 	if (file.size > maxAssetSize) {
-		const formatBytes = (bytes: number): string => {
-			if (bytes === 0) return '0 bytes'
-
-			const units = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB']
-			const base = 1024
-			const unitIndex = Math.floor(Math.log(bytes) / Math.log(base))
-
-			const value = bytes / Math.pow(base, unitIndex)
-			const formatted = value % 1 === 0 ? value.toString() : value.toFixed(1)
-
-			return `${formatted} ${units[unitIndex]}`
-		}
-
 		toasts.addToast({
 			title: msg('assets.files.size-too-big'),
 			description: msg('assets.files.maximum-size').replace('{size}', formatBytes(maxAssetSize)),

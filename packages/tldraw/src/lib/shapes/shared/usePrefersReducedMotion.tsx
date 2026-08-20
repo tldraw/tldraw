@@ -11,7 +11,7 @@ export function usePrefersReducedMotion() {
 
 	useEffect(() => {
 		if (animationSpeed !== undefined) {
-			setPrefersReducedMotion(animationSpeed === 0 ? true : false)
+			setPrefersReducedMotion(animationSpeed === 0)
 			return
 		}
 

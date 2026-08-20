@@ -8,6 +8,7 @@ import {
 } from '@tldraw/editor'
 import { getHitShapeOnCanvasPointerDown } from '../../../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { updateHoveredOverlayId } from '../../../../selection-logic/updateHoveredOverlayId'
+import { getHitSelectionHandleOverlay } from '../../../selectHelpers'
 import { getTranslateCroppedImageChange } from './crop_helpers'
 
 export class Idle extends StateNode {
@@ -34,8 +35,7 @@ export class Idle extends StateNode {
 	}
 
 	override onCancel() {
-		this.editor.setCroppingShape(null)
-		this.editor.setCurrentTool('select.idle', {})
+		this.cancel()
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
@@ -49,25 +49,14 @@ export class Idle extends StateNode {
 		switch (info.target) {
 			case 'canvas': {
 				// Check overlays first — if we hit a crop/resize handle, re-dispatch
-				const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
-				const hitOverlay = this.editor.overlays.getOverlayAtPoint(
-					currentPagePoint,
-					this.editor.getHitTestMargin()
-				)
+				const hitOverlay = getHitSelectionHandleOverlay(this.editor)
 				if (hitOverlay) {
-					const overlayType = hitOverlay.props.overlayType as string | undefined
-					if (
-						overlayType === 'resize_handle' ||
-						overlayType === 'rotate_handle' ||
-						overlayType === 'mobile_rotate'
-					) {
-						this.onPointerDown({
-							...info,
-							target: 'selection',
-							handle: hitOverlay.props.handle as any,
-						})
-						return
-					}
+					this.onPointerDown({
+						...info,
+						target: 'selection',
+						handle: hitOverlay.props.handle,
+					})
+					return
 				}
 
 				const hitShape = getHitShapeOnCanvasPointerDown(this.editor)
@@ -154,25 +143,14 @@ export class Idle extends StateNode {
 		// Check overlays first — if we hit a resize/rotate handle, re-dispatch
 		// as a selection event so onDoubleClickEdge fires.
 		if (info.target === 'canvas') {
-			const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
-			const hitOverlay = this.editor.overlays.getOverlayAtPoint(
-				currentPagePoint,
-				this.editor.getHitTestMargin()
-			)
+			const hitOverlay = getHitSelectionHandleOverlay(this.editor)
 			if (hitOverlay) {
-				const overlayType = hitOverlay.props.overlayType as string | undefined
-				if (
-					overlayType === 'resize_handle' ||
-					overlayType === 'rotate_handle' ||
-					overlayType === 'mobile_rotate'
-				) {
-					this.onDoubleClick({
-						...info,
-						target: 'selection',
-						handle: hitOverlay.props.handle as any,
-					})
-					return
-				}
+				this.onDoubleClick({
+					...info,
+					target: 'selection',
+					handle: hitOverlay.props.handle,
+				})
+				return
 			}
 		}
 
@@ -198,8 +176,7 @@ export class Idle extends StateNode {
 	override onKeyUp(info: TLKeyboardEventInfo) {
 		switch (info.key) {
 			case 'Enter': {
-				this.editor.setCroppingShape(null)
-				this.editor.setCurrentTool('select.idle', {})
+				this.cancel()
 				break
 			}
 		}
@@ -229,7 +206,7 @@ export class Idle extends StateNode {
 		if (keys.has('ArrowUp')) delta.y += 1
 		if (keys.has('ArrowDown')) delta.y -= 1
 
-		if (delta.equals(new Vec(0, 0))) return
+		if (delta.x === 0 && delta.y === 0) return
 
 		if (shiftKey) delta.mul(10)
 

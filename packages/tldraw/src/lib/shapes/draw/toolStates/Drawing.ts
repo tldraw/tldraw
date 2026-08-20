@@ -76,15 +76,13 @@ export class Drawing extends StateNode {
 		const { inputs } = this.editor
 		const isPen = inputs.getIsPen()
 
-		if (this.isPen && !isPen) {
+		if (this.isPen && !isPen && this.markId) {
 			// The user made a palm gesture before starting a pen gesture;
 			// ideally we'd start the new shape here but we could also just bail
 			// as the next interaction will work correctly
-			if (this.markId) {
-				this.editor.bailToMark(this.markId)
-				this.startShape()
-				return
-			}
+			this.editor.bailToMark(this.markId)
+			this.startShape()
+			return
 		}
 
 		if (this.isPenOrStylus) {
@@ -196,6 +194,40 @@ export class Drawing extends StateNode {
 		return this.segmentDim === DIM_2D ? { type, path, dim: DIM_2D } : { type, path }
 	}
 
+	private getStrokeWidth(shape: DrawableShape): number {
+		return (getDisplayValues(this.util as any, shape) as { strokeWidth: number }).strokeWidth
+	}
+
+	private refreshLineLengthIfShort(shape: DrawableShape, segments: TLDrawShapeSegment[]) {
+		if (this.currentLineLength < this.getStrokeWidth(shape) * 4) {
+			this.currentLineLength = this.getLineLength(segments)
+		}
+	}
+
+	private updateShapeSegments(
+		id: DrawableShape['id'],
+		segments: TLDrawShapeSegment[],
+		segmentsForClose: TLDrawShapeSegment[],
+		size: TLDefaultSizeStyle,
+		scale: number
+	) {
+		const shapePartial: TLShapePartial<DrawableShape> = {
+			id,
+			type: this.shapeType,
+			props: { segments },
+		}
+
+		if (this.canClose()) {
+			;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
+				segmentsForClose,
+				size,
+				scale
+			)
+		}
+
+		this.editor.updateShapes([shapePartial])
+	}
+
 	private startShape() {
 		const inputs = this.editor.inputs
 		const originPagePoint = inputs.getOriginPagePoint()
@@ -251,37 +283,15 @@ export class Drawing extends StateNode {
 				])
 
 				// Convert prevPoint to page space
-				const prevPointPageSpace = Mat.applyToPoint(
+				this.pagePointWhereCurrentSegmentChanged = Mat.applyToPoint(
 					this.editor.getShapePageTransform(shape.id)!,
 					prevPoint
 				)
-				this.pagePointWhereCurrentSegmentChanged = prevPointPageSpace
 				this.pagePointWhereNextSegmentChanged = null
 				const segments = [...shape.props.segments, newSegment]
 
-				const dvStrokeWidth = (getDisplayValues(this.util as any, shape) as { strokeWidth: number })
-					.strokeWidth
-				if (this.currentLineLength < dvStrokeWidth * 4) {
-					this.currentLineLength = this.getLineLength(segments)
-				}
-
-				const shapePartial: TLShapePartial<DrawableShape> = {
-					id: shape.id,
-					type: this.shapeType,
-					props: {
-						segments,
-					},
-				}
-
-				if (this.canClose()) {
-					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
-						segments,
-						shape.props.size,
-						shape.props.scale
-					)
-				}
-
-				this.editor.updateShapes([shapePartial])
+				this.refreshLineLengthIfShort(shape, segments)
+				this.updateShapeSegments(shape.id, segments, segments, shape.props.size, shape.props.scale)
 
 				return
 			}
@@ -314,7 +324,7 @@ export class Drawing extends StateNode {
 			return
 		}
 		this.currentLineLength = 0
-		this.initialShape = this.editor.getShape<DrawableShape>(id)
+		this.initialShape = shape
 	}
 
 	private updateDrawingShape() {
@@ -348,7 +358,7 @@ export class Drawing extends StateNode {
 				}
 
 				const hasMovedFarEnough =
-					Vec.Dist2(pagePointWhereNextSegmentChanged, inputs.getCurrentPagePoint()) >
+					Vec.Dist2(pagePointWhereNextSegmentChanged, currentPagePoint) >
 					this.editor.options.dragDistanceSquared
 
 				// Find the distance from where the pointer was when shift was released and
@@ -356,7 +366,7 @@ export class Drawing extends StateNode {
 				// the current segment changed (to match the pagepoint where next segment changed)
 				// and set the pagepoint where next segment changed to null.
 				if (hasMovedFarEnough) {
-					this.pagePointWhereCurrentSegmentChanged = this.pagePointWhereNextSegmentChanged!.clone()
+					this.pagePointWhereCurrentSegmentChanged = pagePointWhereNextSegmentChanged.clone()
 					this.pagePointWhereNextSegmentChanged = null
 
 					// Set the new mode
@@ -387,23 +397,7 @@ export class Drawing extends StateNode {
 						newSegment = this.makeSegment('straight', [newLastPoint, newPoint])
 					}
 
-					const shapePartial: TLShapePartial<DrawableShape> = {
-						id,
-						type: this.shapeType,
-						props: {
-							segments: [...segments, newSegment],
-						},
-					}
-
-					if (this.canClose()) {
-						;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
-							segments,
-							size,
-							scale
-						)
-					}
-
-					this.editor.updateShapes([shapePartial])
+					this.updateShapeSegments(id, [...segments, newSegment], segments, size, scale)
 				}
 				break
 			}
@@ -415,7 +409,7 @@ export class Drawing extends StateNode {
 				}
 
 				const hasMovedFarEnough =
-					Vec.Dist2(pagePointWhereNextSegmentChanged, inputs.getCurrentPagePoint()) >
+					Vec.Dist2(pagePointWhereNextSegmentChanged, currentPagePoint) >
 					this.editor.options.dragDistanceSquared
 
 				// Find the distance from where the pointer was when shift was released and
@@ -423,14 +417,13 @@ export class Drawing extends StateNode {
 				// the current segment changed (to match the pagepoint where next segment changed)
 				// and set the pagepoint where next segment changed to null.
 				if (hasMovedFarEnough) {
-					this.pagePointWhereCurrentSegmentChanged = this.pagePointWhereNextSegmentChanged!.clone()
+					this.pagePointWhereCurrentSegmentChanged = pagePointWhereNextSegmentChanged.clone()
 					this.pagePointWhereNextSegmentChanged = null
 
 					// Set the new mode
 					this.segmentMode = 'free'
 
-					const newSegments = segments.slice()
-					const prevStraightSegment = newSegments[newSegments.length - 1]
+					const prevStraightSegment = segments[segments.length - 1]
 					const prevPoint = b64Vecs.decodeLastPoint(
 						prevStraightSegment.path,
 						prevStraightSegment.dim
@@ -448,34 +441,10 @@ export class Drawing extends StateNode {
 					// Initialize cache for the new free segment
 					this.currentSegmentPoints = interpolatedPoints
 
-					const newFreeSegment = this.makeSegment('free', interpolatedPoints)
+					const finalSegments = [...segments, this.makeSegment('free', interpolatedPoints)]
 
-					const finalSegments = [...newSegments, newFreeSegment]
-
-					const dvStrokeWidth = (
-						getDisplayValues(this.util as any, shape) as { strokeWidth: number }
-					).strokeWidth
-					if (this.currentLineLength < dvStrokeWidth * 4) {
-						this.currentLineLength = this.getLineLength(finalSegments)
-					}
-
-					const shapePartial: TLShapePartial<DrawableShape> = {
-						id,
-						type: this.shapeType,
-						props: {
-							segments: finalSegments,
-						},
-					}
-
-					if (this.canClose()) {
-						;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
-							finalSegments,
-							size,
-							scale
-						)
-					}
-
-					this.editor.updateShapes([shapePartial])
+					this.refreshLineLengthIfShort(shape, finalSegments)
+					this.updateShapeSegments(id, finalSegments, finalSegments, size, scale)
 				}
 
 				break
@@ -485,9 +454,7 @@ export class Drawing extends StateNode {
 				const newSegment = newSegments[newSegments.length - 1]
 
 				const { pagePointWhereCurrentSegmentChanged } = this
-				const inputs = this.editor.inputs
 				const ctrlKey = inputs.getCtrlKey()
-				const currentPagePoint = inputs.getCurrentPagePoint()
 
 				if (!pagePointWhereCurrentSegmentChanged)
 					throw Error('We should have a point where the segment changed')
@@ -496,12 +463,10 @@ export class Drawing extends StateNode {
 				let shouldSnapToAngle = false
 
 				if (this.didJustShiftClickToExtendPreviousShapeLine) {
-					if (this.editor.inputs.getIsDragging()) {
+					if (inputs.getIsDragging()) {
 						// If we've just shift clicked to extend a line, only snap once we've started dragging
 						shouldSnapToAngle = !ctrlKey
 						this.didJustShiftClickToExtendPreviousShapeLine = false
-					} else {
-						// noop
 					}
 				} else {
 					// If we're not shift clicking to extend a line, but we're holding shift, then we should snap
@@ -595,40 +560,16 @@ export class Drawing extends StateNode {
 				// then the user just did a click-and-immediately-press-shift to create a new straight line
 				// without continuing the previous line. In this case, we want to remove the previous segment.
 
-				this.currentLineLength +=
-					newSegments.length && b64Vecs.decodeFirstPoint(newSegment.path, newSegment.dim)
-						? Vec.Dist(
-								b64Vecs.decodeFirstPoint(newSegment.path, newSegment.dim)!,
-								Vec.From(newPoint)
-							)
-						: 0
+				const segmentFirstPoint = b64Vecs.decodeFirstPoint(newSegment.path, newSegment.dim)
+				this.currentLineLength += segmentFirstPoint ? Vec.Dist(segmentFirstPoint, newPoint) : 0
 
 				newSegments[newSegments.length - 1] = {
 					...newSegment,
 					type: 'straight',
-					path: b64Vecs.encodePoints(
-						[b64Vecs.decodeFirstPoint(newSegment.path, newSegment.dim)!, Vec.From(newPoint)],
-						newSegment.dim
-					),
+					path: b64Vecs.encodePoints([segmentFirstPoint!, Vec.From(newPoint)], newSegment.dim),
 				}
 
-				const shapePartial: TLShapePartial<DrawableShape> = {
-					id,
-					type: this.shapeType,
-					props: {
-						segments: newSegments,
-					},
-				}
-
-				if (this.canClose()) {
-					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
-						segments,
-						size,
-						scale
-					)
-				}
-
-				this.editor.updateShapes([shapePartial])
+				this.updateShapeSegments(id, newSegments, segments, size, scale)
 
 				break
 			}
@@ -657,29 +598,8 @@ export class Drawing extends StateNode {
 					path: b64Vecs.encodePoints(cachedPoints, newSegment.dim),
 				}
 
-				const dvStrokeWidth = (getDisplayValues(this.util as any, shape) as { strokeWidth: number })
-					.strokeWidth
-				if (this.currentLineLength < dvStrokeWidth * 4) {
-					this.currentLineLength = this.getLineLength(newSegments)
-				}
-
-				const shapePartial: TLShapePartial<DrawableShape> = {
-					id,
-					type: this.shapeType,
-					props: {
-						segments: newSegments,
-					},
-				}
-
-				if (this.canClose()) {
-					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
-						newSegments,
-						size,
-						scale
-					)
-				}
-
-				this.editor.updateShapes([shapePartial])
+				this.refreshLineLengthIfShort(shape, newSegments)
+				this.updateShapeSegments(id, newSegments, newSegments, size, scale)
 
 				// Set a maximum length for the lines array; after 200 points, complete the line.
 				if (cachedPoints.length > this.util.options.maxPointsPerShape) {

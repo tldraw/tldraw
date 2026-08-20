@@ -82,33 +82,26 @@ export class PointingShape extends StateNode {
 			return
 		}
 
-		const selectingShape = hitShape
-			? this.editor.getOutermostSelectableShape(hitShape)
-			: this.hitShapeForPointerUp
+		const selectingShape = this.editor.getOutermostSelectableShape(hitShape)
 
-		if (selectingShape) {
-			// If the selecting shape has a click handler, call it instead of selecting the shape
-			const util = this.editor.getShapeUtil(selectingShape)
-			if (util.onClick) {
-				const change = util.onClick?.(selectingShape)
-				if (change) {
-					this.editor.markHistoryStoppingPoint('shape on click')
-					this.editor.updateShapes([change])
-					this.parent.transition('idle', info)
-					return
-				}
-			}
+		// If the selecting shape has a click handler, call it instead of selecting the shape
+		const change = this.editor.getShapeUtil(selectingShape).onClick?.(selectingShape)
+		if (change) {
+			this.editor.markHistoryStoppingPoint('shape on click')
+			this.editor.updateShapes([change])
+			this.parent.transition('idle', info)
+			return
+		}
 
-			if (selectingShape.id === focusedGroupId) {
-				if (selectedShapeIds.length > 0) {
-					this.editor.markHistoryStoppingPoint('clearing shape ids')
-					this.editor.setSelectedShapes([])
-				} else {
-					this.editor.popFocusedGroupId()
-				}
-				this.parent.transition('idle', info)
-				return
+		if (selectingShape.id === focusedGroupId) {
+			if (selectedShapeIds.length > 0) {
+				this.editor.markHistoryStoppingPoint('clearing shape ids')
+				this.editor.setSelectedShapes([])
+			} else {
+				this.editor.popFocusedGroupId()
 			}
+			this.parent.transition('idle', info)
+			return
 		}
 
 		if (!this.didSelectOnEnter) {

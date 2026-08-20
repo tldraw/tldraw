@@ -9,7 +9,6 @@ import {
 	TLHighlightShape,
 	TLHighlightShapeProps,
 	TLResizeInfo,
-	VecLike,
 	b64Vecs,
 	debugFlags,
 	getColorValue,
@@ -26,7 +25,7 @@ import { getHighlightFreehandSettings, getPointsFromDrawSegments } from '../draw
 import { FONT_SIZES } from '../shared/default-shape-constants'
 import { getStroke } from '../shared/freehand/getStroke'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
-import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
+import { getSvgDotPath, getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { getDisplayValues } from '../shared/getDisplayValues'
 import { interpolateSegments } from '../shared/interpolate-props'
@@ -169,19 +168,16 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		const zoomLevel = this.editor.getEfficientZoomLevel()
 		const forceSolid = strokeWidth / zoomLevel < 1.5
 
-		const { strokePoints, sw } = getHighlightStrokePoints(shape, strokeWidth, forceSolid)
-		const allPointsFromSegments = getPointsFromDrawSegments(
-			shape.props.segments,
-			shape.props.scaleX,
-			shape.props.scaleY
+		const { strokePoints, sw, allPointsFromSegments } = getHighlightStrokePoints(
+			shape,
+			strokeWidth,
+			forceSolid
 		)
 
-		let strokePath
-		if (strokePoints.length < 2) {
-			strokePath = getIndicatorDot(allPointsFromSegments[0], sw)
-		} else {
-			strokePath = getSvgPathFromStrokePoints(strokePoints, false)
-		}
+		const strokePath =
+			strokePoints.length < 2
+				? getSvgDotPath(allPointsFromSegments[0], sw / 2)
+				: getSvgPathFromStrokePoints(strokePoints, false)
 
 		return new Path2D(strokePath)
 	}
@@ -248,20 +244,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 }
 
-function getShapeDot(point: VecLike) {
-	const r = 0.1
-	return `M ${point.x} ${point.y} m -${r}, 0 a ${r},${r} 0 1,0 ${r * 2},0 a ${r},${r} 0 1,0 -${
-		r * 2
-	},0`
-}
-
-function getIndicatorDot(point: VecLike, sw: number) {
-	const r = sw / 2
-	return `M ${point.x} ${point.y} m -${r}, 0 a ${r},${r} 0 1,0 ${r * 2},0 a ${r},${r} 0 1,0 -${
-		r * 2
-	},0`
-}
-
 function getHighlightStrokePoints(
 	shape: TLHighlightShape,
 	strokeWidth: number,
@@ -286,7 +268,7 @@ function getHighlightStrokePoints(
 
 	const strokePoints = getStrokePoints(allPointsFromSegments, options)
 
-	return { strokePoints, sw }
+	return { strokePoints, sw, allPointsFromSegments }
 }
 
 function getIsDot(shape: TLHighlightShape) {
@@ -309,28 +291,16 @@ function HighlightRenderer({
 	opacity: number
 	strokeColor: string
 }) {
-	const allPointsFromSegments = getPointsFromDrawSegments(
-		shape.props.segments,
-		shape.props.scaleX,
-		shape.props.scaleY
+	const { strokePoints, sw, allPointsFromSegments } = getHighlightStrokePoints(
+		shape,
+		strokeWidth,
+		forceSolid
 	)
-
-	let sw = strokeWidth
-	if (!forceSolid && !shape.props.isPen && allPointsFromSegments.length === 1) {
-		sw += rng(shape.id)() * (sw / 6)
-	}
-
-	const options = getHighlightFreehandSettings({
-		strokeWidth: sw,
-		showAsComplete: shape.props.isComplete || last(shape.props.segments)?.type === 'straight',
-	})
-
-	const strokePoints = getStrokePoints(allPointsFromSegments, options)
 
 	const solidStrokePath =
 		strokePoints.length > 1
 			? getSvgPathFromStrokePoints(strokePoints, false)
-			: getShapeDot(allPointsFromSegments[0])
+			: getSvgDotPath(allPointsFromSegments[0], 0.1)
 
 	return (
 		<path

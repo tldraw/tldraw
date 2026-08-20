@@ -5,6 +5,7 @@ import {
 	TLPointerEventInfo,
 	TLSelectionHandle,
 } from '@tldraw/editor'
+import { returnToInteractionEnd } from '../selectHelpers'
 
 export const CursorTypeMap: Record<TLSelectionHandle, TLCursorType> = {
 	bottom: 'ns-resize',
@@ -31,20 +32,15 @@ export class PointingResizeHandle extends StateNode {
 
 	private info = {} as PointingResizeHandleInfo
 
-	private updateCursor() {
-		const cursorType = CursorTypeMap[this.info.handle!]
-		this.editor.setCursor({
-			type: cursorType,
-			rotation: this.editor.getSelectionRotation(),
-		})
-	}
-
 	override onEnter(info: PointingResizeHandleInfo) {
 		this.info = info
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		}
-		this.updateCursor()
+		this.editor.setCursor({
+			type: CursorTypeMap[info.handle!],
+			rotation: this.editor.getSelectionRotation(),
+		})
 	}
 
 	override onExit() {
@@ -67,7 +63,7 @@ export class PointingResizeHandle extends StateNode {
 	}
 
 	override onPointerUp() {
-		this.complete()
+		this.exitToPreviousTool()
 	}
 
 	override onDoubleClick(info: TLClickEventInfo) {
@@ -85,40 +81,19 @@ export class PointingResizeHandle extends StateNode {
 	}
 
 	override onCancel() {
-		this.cancel()
+		this.exitToPreviousTool()
 	}
 
 	override onComplete() {
-		this.cancel()
+		this.exitToPreviousTool()
 	}
 
 	override onInterrupt() {
-		this.cancel()
+		this.exitToPreviousTool()
 	}
 
-	private complete() {
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				this.editor.setCurrentTool(onInteractionEnd, {})
-			} else {
-				onInteractionEnd()
-			}
-			return
-		}
-		this.parent.transition('idle')
-	}
-
-	private cancel() {
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				this.editor.setCurrentTool(onInteractionEnd, {})
-			} else {
-				onInteractionEnd()
-			}
-			return
-		}
+	private exitToPreviousTool() {
+		if (returnToInteractionEnd(this.editor, this.info.onInteractionEnd)) return
 		this.parent.transition('idle')
 	}
 }

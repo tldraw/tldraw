@@ -17,6 +17,7 @@ import {
 import { ArrowShapeUtil } from '../../../shapes/arrow/ArrowShapeUtil'
 import { clearArrowTargetState } from '../../../shapes/arrow/arrowTargetState'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
+import { returnToInteractionEnd } from '../selectHelpers'
 
 export type DraggingHandleInfo = TLPointerEventInfo & {
 	shape: TLArrowShape | TLLineShape
@@ -81,39 +82,17 @@ export class DraggingHandle extends StateNode {
 		const handles = this.editor.getShapeHandles(shape)!.sort(sortByIndex)
 		const index = handles.findIndex((h) => h.id === info.handle.id)
 
-		// Find the adjacent handle
-		this.initialAdjacentHandle = null
-
-		// First, check if the handle specifies a custom reference handle
-		if (info.handle.snapReferenceHandleId) {
-			const customHandle = handles.find((h) => h.id === info.handle.snapReferenceHandleId)
-			if (customHandle) {
-				this.initialAdjacentHandle = customHandle
-			}
-		}
-
-		// If no custom reference handle, use default behavior
-		if (!this.initialAdjacentHandle) {
-			// Start from the handle and work forward
-			for (let i = index + 1; i < handles.length; i++) {
-				const handle = handles[i]
-				if (handle.type === 'vertex' && handle.id !== 'middle' && handle.id !== info.handle.id) {
-					this.initialAdjacentHandle = handle
-					break
-				}
-			}
-
-			// If still no handle, start from the end and work backward
-			if (!this.initialAdjacentHandle) {
-				for (let i = handles.length - 1; i >= 0; i--) {
-					const handle = handles[i]
-					if (handle.type === 'vertex' && handle.id !== 'middle' && handle.id !== info.handle.id) {
-						this.initialAdjacentHandle = handle
-						break
-					}
-				}
-			}
-		}
+		// The adjacent handle is the custom reference handle if one is specified; otherwise the
+		// next vertex after this one, wrapping around to the last vertex before it.
+		const isAdjacentCandidate = (h: TLHandle) =>
+			h.type === 'vertex' && h.id !== 'middle' && h.id !== info.handle.id
+		this.initialAdjacentHandle =
+			(info.handle.snapReferenceHandleId
+				? handles.find((h) => h.id === info.handle.snapReferenceHandleId)
+				: undefined) ??
+			handles.slice(index + 1).find(isAdjacentCandidate) ??
+			handles.slice().reverse().find(isAdjacentCandidate) ??
+			null
 
 		// <!-- Only relevant to arrows
 		if (this.editor.isShapeOfType(shape, 'arrow')) {
@@ -158,9 +137,7 @@ export class DraggingHandle extends StateNode {
 		const arrowUtil = this.editor.getShapeUtil<ArrowShapeUtil>('arrow')
 		const timeoutValue = arrowUtil.options.pointingPreciseTimeout
 
-		if (this.exactTimeout !== -1) {
-			this.clearExactTimeout()
-		}
+		this.clearExactTimeout()
 
 		this.exactTimeout = this.editor.timers.setTimeout(() => {
 			if (this.getIsActive() && !this.isPrecise) {
@@ -233,19 +210,16 @@ export class DraggingHandle extends StateNode {
 			}
 		}
 
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				if (this.editor.getInstanceState().isToolLocked && onInteractionEnd) {
-					// Return to the tool that was active before this one but only if tool lock is turned on!
-					this.editor.setCurrentTool(onInteractionEnd, { shapeId: this.shapeId })
-					return
-				}
-			} else {
-				onInteractionEnd?.()
-				return
-			}
-		}
+		// Return to the tool that was active before this one but only if tool lock is turned on!
+		if (
+			returnToInteractionEnd(
+				this.editor,
+				this.info.onInteractionEnd,
+				{ shapeId: this.shapeId },
+				{ onlyIfToolLocked: true }
+			)
+		)
+			return
 
 		this.parent.transition('idle')
 	}
@@ -267,16 +241,9 @@ export class DraggingHandle extends StateNode {
 		this.editor.bailToMark(this.markId)
 		this.editor.snaps.clearIndicators()
 
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				// Return to the tool that was active before this one, whether tool lock is turned on or not!
-				this.editor.setCurrentTool(onInteractionEnd, { shapeId: this.shapeId })
-			} else {
-				onInteractionEnd?.()
-			}
+		// Return to the tool that was active before this one, whether tool lock is turned on or not!
+		if (returnToInteractionEnd(this.editor, this.info.onInteractionEnd, { shapeId: this.shapeId }))
 			return
-		}
 
 		this.parent.transition('idle')
 	}

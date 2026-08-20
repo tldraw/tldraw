@@ -82,24 +82,16 @@ export function getFreehandOptions(
 	forceSolid: boolean
 ): StrokeOptions {
 	const last = shapeProps.isComplete || forceComplete
-
-	if (forceSolid) {
-		if (shapeProps.isPen) {
-			return { ...solidRealPressureSettings(strokeWidth), last }
-		} else {
-			return { ...solidSettings(strokeWidth), last }
-		}
-	}
-
-	if (shapeProps.dash === 'draw') {
-		if (shapeProps.isPen) {
-			return { ...realPressureSettings(strokeWidth), last }
-		} else {
-			return { ...simulatePressureSettings(strokeWidth), last }
-		}
-	}
-
-	return { ...solidSettings(strokeWidth), last }
+	const settings = forceSolid
+		? shapeProps.isPen
+			? solidRealPressureSettings
+			: solidSettings
+		: shapeProps.dash === 'draw'
+			? shapeProps.isPen
+				? realPressureSettings
+				: simulatePressureSettings
+			: solidSettings
+	return { ...settings(strokeWidth), last }
 }
 
 /** @public */
@@ -157,11 +149,12 @@ export function getDrawShapeStrokeDashArray(
 	strokeWidth: number,
 	dotAdjustment: number
 ) {
-	return {
-		draw: 'none',
-		solid: `none`,
-		dotted: `${dotAdjustment} ${strokeWidth * 2}`,
-		dashed: `${strokeWidth * 2} ${strokeWidth * 2}`,
-		none: `none`,
-	}[shape.props.dash]
+	switch (shape.props.dash) {
+		case 'dotted':
+			return `${dotAdjustment} ${strokeWidth * 2}`
+		case 'dashed':
+			return `${strokeWidth * 2} ${strokeWidth * 2}`
+		default:
+			return 'none'
+	}
 }

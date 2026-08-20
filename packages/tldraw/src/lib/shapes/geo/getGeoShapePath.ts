@@ -647,9 +647,9 @@ function getCloudPath(
 
 	const paddingX = (width - innerWidth) / 2
 	const paddingY = (height - innerHeight) / 2
-	const bumpPoints = getPillPoints(innerWidth, innerHeight, numBumps).map((p) => {
-		return p.addXY(paddingX, paddingY)
-	})
+	const bumpPoints = getPillPoints(innerWidth, innerHeight, numBumps).map((p) =>
+		p.addXY(paddingX, paddingY)
+	)
 	const maxWiggleX = width < 20 ? 0 : targetBumpProtrusion * 0.3
 	const maxWiggleY = height < 20 ? 0 : targetBumpProtrusion * 0.3
 
@@ -688,21 +688,13 @@ function getCloudPath(
 		const arcPoint = Vec.Lrp(leftPoint, rightPoint, 0.5).add(
 			Vec.Sub(rightPoint, leftPoint).uni().per().mul(finalDistance)
 		)
-		if (arcPoint.x < 0) {
-			arcPoint.x = 0
-		} else if (arcPoint.x > width) {
-			arcPoint.x = width
-		}
-		if (arcPoint.y < 0) {
-			arcPoint.y = 0
-		} else if (arcPoint.y > height) {
-			arcPoint.y = height
-		}
+		arcPoint.x = clamp(arcPoint.x, 0, width)
+		arcPoint.y = clamp(arcPoint.y, 0, height)
 
 		const center = centerOfCircleFromThreePoints(leftWigglePoint, rightWigglePoint, arcPoint)
 
 		const radius = Vec.Dist(
-			center ? center : Vec.Average([leftWigglePoint, rightWigglePoint]),
+			center ?? Vec.Average([leftWigglePoint, rightWigglePoint]),
 			leftWigglePoint
 		)
 

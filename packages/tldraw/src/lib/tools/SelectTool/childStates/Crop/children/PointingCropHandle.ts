@@ -1,9 +1,9 @@
 import { StateNode, TLClickEventInfo, TLPointerEventInfo } from '@tldraw/editor'
+import { returnToInteractionEnd } from '../../../selectHelpers'
 import { CursorTypeMap } from '../../PointingResizeHandle'
 
 type TLPointingCropHandleInfo = TLPointerEventInfo & {
 	target: 'selection'
-} & {
 	onInteractionEnd?: string | (() => void)
 }
 
@@ -42,24 +42,11 @@ export class PointingCropHandle extends StateNode {
 
 	private startCropping() {
 		if (this.editor.getIsReadonly()) return
-		this.parent.transition('cropping', {
-			...this.info,
-			onInteractionEnd: this.info.onInteractionEnd,
-		})
+		this.parent.transition('cropping', this.info)
 	}
 
 	override onPointerUp() {
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				this.editor.setCurrentTool(onInteractionEnd, this.info)
-			} else {
-				onInteractionEnd()
-			}
-			return
-		}
-		this.editor.setCroppingShape(null)
-		this.editor.setCurrentTool('select.idle')
+		this.exitToPreviousTool()
 	}
 
 	override onDoubleClick(info: TLClickEventInfo) {
@@ -77,27 +64,19 @@ export class PointingCropHandle extends StateNode {
 	}
 
 	override onCancel() {
-		this.cancel()
+		this.exitToPreviousTool()
 	}
 
 	override onComplete() {
-		this.cancel()
+		this.exitToPreviousTool()
 	}
 
 	override onInterrupt() {
-		this.cancel()
+		this.exitToPreviousTool()
 	}
 
-	private cancel() {
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				this.editor.setCurrentTool(onInteractionEnd, this.info)
-			} else {
-				onInteractionEnd()
-			}
-			return
-		}
+	private exitToPreviousTool() {
+		if (returnToInteractionEnd(this.editor, this.info.onInteractionEnd, this.info)) return
 		this.editor.setCroppingShape(null)
 		this.editor.setCurrentTool('select.idle')
 	}

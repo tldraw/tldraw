@@ -86,19 +86,8 @@ export function getElbowArrowInfo(
 
 	// We model each edge that an arrow might enter/exit from separately. If an edge is blocked,
 	// `getUsableEdge` might return null.
-	let edgesA = {
-		top: getUsableEdge(aTerminal, bTerminal, 'top', options),
-		right: getUsableEdge(aTerminal, bTerminal, 'right', options),
-		bottom: getUsableEdge(aTerminal, bTerminal, 'bottom', options),
-		left: getUsableEdge(aTerminal, bTerminal, 'left', options),
-	}
-
-	let edgesB = {
-		top: getUsableEdge(bTerminal, aTerminal, 'top', options),
-		right: getUsableEdge(bTerminal, aTerminal, 'right', options),
-		bottom: getUsableEdge(bTerminal, aTerminal, 'bottom', options),
-		left: getUsableEdge(bTerminal, aTerminal, 'left', options),
-	}
+	let edgesA = getUsableEdges(aTerminal, bTerminal, options)
+	let edgesB = getUsableEdges(bTerminal, aTerminal, options)
 
 	// We we don't have a usable edge because it's blocked, we can convert some of the terminals to
 	// points. Point terminals have less strict edge routing rules, but don't look as good
@@ -126,19 +115,8 @@ export function getElbowArrowInfo(
 	}
 
 	if (needsNewEdges) {
-		edgesA = {
-			top: getUsableEdge(aTerminal, bTerminal, 'top', options),
-			right: getUsableEdge(aTerminal, bTerminal, 'right', options),
-			bottom: getUsableEdge(aTerminal, bTerminal, 'bottom', options),
-			left: getUsableEdge(aTerminal, bTerminal, 'left', options),
-		}
-
-		edgesB = {
-			top: getUsableEdge(bTerminal, aTerminal, 'top', options),
-			right: getUsableEdge(bTerminal, aTerminal, 'right', options),
-			bottom: getUsableEdge(bTerminal, aTerminal, 'bottom', options),
-			left: getUsableEdge(bTerminal, aTerminal, 'left', options),
-		}
+		edgesA = getUsableEdges(aTerminal, bTerminal, options)
+		edgesB = getUsableEdges(bTerminal, aTerminal, options)
 	}
 
 	// We expand the bounds of the terminals so we can route arrows around them without the arrows
@@ -158,22 +136,18 @@ export function getElbowArrowInfo(
 	// Calculate the gaps between the two terminals. If gap is positive, B is to the right of A. If
 	// it's negative, the opposite is true. If it's 0, there's no gap between the shapes in that
 	// dimension.
-	let gapX = bTerminal.bounds.minX - aTerminal.bounds.maxX
-	if (gapX < 0) {
-		gapX = aTerminal.bounds.minX - bTerminal.bounds.maxX
-		if (gapX < 0) {
-			gapX = 0
-		}
-		gapX = -gapX
-	}
-	let gapY = bTerminal.bounds.minY - aTerminal.bounds.maxY
-	if (gapY < 0) {
-		gapY = aTerminal.bounds.minY - bTerminal.bounds.maxY
-		if (gapY < 0) {
-			gapY = 0
-		}
-		gapY = -gapY
-	}
+	const gapX = getGap(
+		aTerminal.bounds.minX,
+		aTerminal.bounds.maxX,
+		bTerminal.bounds.minX,
+		bTerminal.bounds.maxX
+	)
+	const gapY = getGap(
+		aTerminal.bounds.minY,
+		aTerminal.bounds.maxY,
+		bTerminal.bounds.minY,
+		bTerminal.bounds.maxY
+	)
 
 	// The midpoint of the gap is a useful point to route arrows through, but the user can also drag
 	// it to choose a new midpoint. First, we calculate some constraints we'll need to keep in mind
@@ -451,8 +425,9 @@ function getBindingGeometryInArrowSpace(
 
 	const targetGeometryInArrowSpace = targetGeometryInTargetSpace.transform(shapeToArrowTransform)
 
-	const center = { x: 0.5, y: 0.5 }
-	const normalizedAnchor = bindingProps.isPrecise ? bindingProps.normalizedAnchor : center
+	const normalizedAnchor = bindingProps.isPrecise
+		? bindingProps.normalizedAnchor
+		: { x: 0.5, y: 0.5 }
 
 	const targetInShapeSpace = {
 		x: lerp(
@@ -466,27 +441,11 @@ function getBindingGeometryInArrowSpace(
 			normalizedAnchor.y
 		),
 	}
-	const centerInShapeSpace = {
-		x: lerp(
-			targetGeometryInTargetSpace.bounds.minX,
-			targetGeometryInTargetSpace.bounds.maxX,
-			center.x
-		),
-		y: lerp(
-			targetGeometryInTargetSpace.bounds.minY,
-			targetGeometryInTargetSpace.bounds.maxY,
-			center.y
-		),
-	}
-
-	const targetInArrowSpace = Mat.applyToPoint(shapeToArrowTransform, targetInShapeSpace)
-	const centerInArrowSpace = Mat.applyToPoint(shapeToArrowTransform, centerInShapeSpace)
 
 	return {
 		bounds: targetGeometryInArrowSpace.bounds,
 		geometry: targetGeometryInArrowSpace,
-		target: targetInArrowSpace,
-		center: centerInArrowSpace,
+		target: Mat.applyToPoint(shapeToArrowTransform, targetInShapeSpace),
 		shapeToArrowTransform,
 	}
 }
@@ -533,6 +492,25 @@ const sideProps = {
 		crossAxis: 'y',
 	},
 } as const
+
+function getGap(aMin: number, aMax: number, bMin: number, bMax: number) {
+	const gap = bMin - aMax
+	if (gap >= 0) return gap
+	return -Math.max(0, aMin - bMax)
+}
+
+function getUsableEdges(
+	a: ElbowArrowTerminal,
+	b: ElbowArrowTerminal,
+	options: ElbowArrowOptions
+): ElbowArrowBoxEdges {
+	return {
+		top: getUsableEdge(a, b, 'top', options),
+		right: getUsableEdge(a, b, 'right', options),
+		bottom: getUsableEdge(a, b, 'bottom', options),
+		left: getUsableEdge(a, b, 'left', options),
+	}
+}
 
 export function getUsableEdge(
 	a: ElbowArrowTerminal,
@@ -709,7 +687,7 @@ function castPathSegmentIntoGeometry(
 
 	if (target.isExact) {
 		nearestIntersectionToPoint2 = target.target
-	} else if (target.geometry) {
+	} else {
 		const intersections = target.geometry.intersectLineSegment(point2, target.target, {
 			includeLabels: false,
 			includeInternal: false,
@@ -754,13 +732,11 @@ function castPathSegmentIntoGeometry(
 		let shouldAddExtraPointForNudge = false
 		if (!target.isExact && offset !== 0) {
 			const nudged = Vec.Nudge(nearestIntersectionToPoint2, point2, offset)
-			nudgedPoint = nudged
 			if (
 				offset < 0 &&
 				!target.geometry.hitTestPoint(nudged, 0, true, Geometry2dFilters.EXCLUDE_NON_STANDARD)
 			) {
 				// point has been nudged _out_ of the shape so lets not actually apply the nudge
-				nudgedPoint = nearestIntersectionToPoint2
 			} else {
 				if (offset < 0) {
 					shouldAddExtraPointForNudge = true
@@ -787,8 +763,6 @@ function fixTinyEndNubs(
 	aTerminal: ElbowArrowTerminal,
 	bTerminal: ElbowArrowTerminal
 ) {
-	if (!route) return
-
 	if (route.points.length >= 3) {
 		const a = route.points[0]
 		const b = route.points[1]
@@ -851,11 +825,8 @@ function adjustTerminalForUnclosedPathIfNeeded(
 		terminal.target[axis.cross]
 	)
 
-	let furthestIntersectionTowardsMin: VecLike | null = null
-	let furthestIntersectionTowardsMinDistance = 0
-	let furthestIntersectionTowardsMax: VecLike | null = null
-	let furthestIntersectionTowardsMaxDistance = 0
-	let side: ElbowArrowSideWithAxis = axis.self
+	let furthestDistanceTowardsMin = 0
+	let furthestDistanceTowardsMax = 0
 
 	for (const intersection of terminal.geometry.intersectLineSegment(
 		min,
@@ -865,35 +836,19 @@ function adjustTerminalForUnclosedPathIfNeeded(
 		if (Math.abs(intersection[axis.self] - terminal.target[axis.self]) < 1) {
 			continue
 		}
+		const distance = Vec.ManhattanDist(intersection, terminal.target)
 		if (intersection[axis.self] < terminal.target[axis.self]) {
-			if (
-				Vec.ManhattanDist(intersection, terminal.target) > furthestIntersectionTowardsMinDistance
-			) {
-				furthestIntersectionTowardsMinDistance = Vec.ManhattanDist(intersection, terminal.target)
-				furthestIntersectionTowardsMin = intersection
-			}
+			furthestDistanceTowardsMin = Math.max(furthestDistanceTowardsMin, distance)
 		} else {
-			if (
-				Vec.ManhattanDist(intersection, terminal.target) > furthestIntersectionTowardsMaxDistance
-			) {
-				furthestIntersectionTowardsMaxDistance = Vec.ManhattanDist(intersection, terminal.target)
-				furthestIntersectionTowardsMax = intersection
-			}
+			furthestDistanceTowardsMax = Math.max(furthestDistanceTowardsMax, distance)
 		}
 	}
 
-	if (furthestIntersectionTowardsMin && furthestIntersectionTowardsMax) {
-		if (furthestIntersectionTowardsMinDistance > furthestIntersectionTowardsMaxDistance) {
-			side = axis.hiEdge
-		} else {
-			side = axis.loEdge
-		}
-	} else if (furthestIntersectionTowardsMin && !furthestIntersectionTowardsMax) {
-		side = axis.hiEdge
-	} else if (!furthestIntersectionTowardsMin && furthestIntersectionTowardsMax) {
-		side = axis.loEdge
-	}
-
-	terminal.side = side
+	terminal.side =
+		furthestDistanceTowardsMin > 0 || furthestDistanceTowardsMax > 0
+			? furthestDistanceTowardsMin > furthestDistanceTowardsMax
+				? axis.hiEdge
+				: axis.loEdge
+			: axis.self
 	return terminal
 }

@@ -421,10 +421,6 @@ function sanitizeCssValue(css: string): string {
 	return decoded
 }
 
-function sanitizeStyleElement(textContent: string): string {
-	return sanitizeCssValue(textContent)
-}
-
 // --- Animation safety ---
 // Animation elements (<animate>, <set>) can overwrite attributes at runtime.
 // If attributeName targets a URI attr (href) or event handler (on*), the animation
@@ -500,7 +496,7 @@ function sanitizeEmbeddedSvgDataUri(value: string, depth: number): string | null
 	return encodeAsSvgDataUri(sanitized)
 }
 
-function sanitizeUri(el: Element, attrName: string, value: string, depth: number): string | null {
+function sanitizeUri(el: Element, value: string, depth: number): string | null {
 	const stripped = value.replace(INVISIBLE_WHITESPACE, '')
 	const tagName = el.tagName.toLowerCase()
 
@@ -552,7 +548,7 @@ function sanitizeSvgAttributes(el: Element, depth: number): void {
 
 		// URI attributes need context-dependent sanitization
 		if (name === 'href' || name === 'xlink:href') {
-			const sanitized = sanitizeUri(el, name, attr.value, depth)
+			const sanitized = sanitizeUri(el, attr.value, depth)
 			if (sanitized === null) {
 				el.removeAttribute(attr.name)
 			} else if (sanitized !== attr.value) {
@@ -634,7 +630,7 @@ function sanitizeNode(node: Element, mode: SanitizeMode, depth: number): void {
 				// <style>: sanitize attrs, sanitize text content as CSS
 				sanitizeSvgAttributes(child, depth)
 				if (child.textContent) {
-					child.textContent = sanitizeStyleElement(child.textContent)
+					child.textContent = sanitizeCssValue(child.textContent)
 				}
 			} else if (ANIMATION_TAGS.has(tag) && isAnimationDangerous(child)) {
 				// Animation targeting href/on* can inject javascript: URIs at runtime

@@ -11,31 +11,28 @@ import {
 	rotateSelectionHandle,
 } from '@tldraw/editor'
 import { getCropBox, getDefaultCrop, getUncroppedSize } from '../../../../../shapes/shared/crop'
+import { returnToInteractionEnd } from '../../../selectHelpers'
 import { CursorTypeMap } from '../../PointingResizeHandle'
 
 type Snapshot = ReturnType<Cropping['createSnapshot']>
+
+type CroppingInfo = TLPointerEventInfo & {
+	target: 'selection'
+	handle: SelectionHandle
+	onInteractionEnd?: string | (() => void)
+}
 
 export class Cropping extends StateNode {
 	static override id = 'cropping'
 	static override trackPerformance = true
 
-	info = {} as TLPointerEventInfo & {
-		target: 'selection'
-		handle: SelectionHandle
-		onInteractionEnd?: string | (() => void)
-	}
+	info = {} as CroppingInfo
 
 	markId = ''
 
 	private snapshot = {} as any as Snapshot
 
-	override onEnter(
-		info: TLPointerEventInfo & {
-			target: 'selection'
-			handle: SelectionHandle
-			onInteractionEnd?: string | (() => void)
-		}
-	) {
+	override onEnter(info: CroppingInfo) {
 		this.info = info
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
@@ -198,32 +195,18 @@ export class Cropping extends StateNode {
 	private complete() {
 		this.updateShapes()
 		kickoutOccludedShapes(this.editor, [this.snapshot.shape.id])
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				this.editor.setCurrentTool(onInteractionEnd, this.info)
-			} else {
-				onInteractionEnd()
-			}
-		} else {
-			this.editor.setCroppingShape(null)
-			this.editor.setCurrentTool('select.idle')
-		}
+		this.exitToPreviousTool()
 	}
 
 	private cancel() {
 		this.editor.bailToMark(this.markId)
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				this.editor.setCurrentTool(onInteractionEnd, this.info)
-			} else {
-				onInteractionEnd()
-			}
-		} else {
-			this.editor.setCroppingShape(null)
-			this.editor.setCurrentTool('select.idle')
-		}
+		this.exitToPreviousTool()
+	}
+
+	private exitToPreviousTool() {
+		if (returnToInteractionEnd(this.editor, this.info.onInteractionEnd, this.info)) return
+		this.editor.setCroppingShape(null)
+		this.editor.setCurrentTool('select.idle')
 	}
 
 	private createSnapshot() {

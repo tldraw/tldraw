@@ -21,9 +21,7 @@ export class DragAndDropManager {
 	}
 
 	shapesToActuallyMove: TLShape[] = []
-	draggedOverShapeIds = new Set<TLShapeId>()
 
-	initialGroupIds = new Map<TLShapeId, TLShapeId>()
 	initialParentIds = new Map<TLShapeId, TLParentId>()
 	initialIndices = new Map<TLShapeId, IndexKey>()
 
@@ -45,9 +43,7 @@ export class DragAndDropManager {
 		for (const shape of shapesToActuallyMove) {
 			const parent = editor.getShapeParent(shape)
 			if (parent && editor.isShapeOfType(parent, 'group')) {
-				if (!movingGroups.has(parent)) {
-					movingGroups.add(parent)
-				}
+				movingGroups.add(parent)
 			}
 		}
 
@@ -69,11 +65,6 @@ export class DragAndDropManager {
 				this.initialParentIds.set(shape.id, parent.id)
 			}
 			this.initialIndices.set(shape.id, shape.index)
-
-			const group = editor.findShapeAncestor(shape, (s) => editor.isShapeOfType(s, 'group'))
-			if (group) {
-				this.initialGroupIds.set(shape.id, group.id)
-			}
 		}
 
 		const allShapes = editor.getCurrentPageShapesSorted()

@@ -92,6 +92,9 @@ const GEO_SHAPE_VERTICAL_ALIGNS = Object.freeze({
 
 const GEO_SHAPE_EMPTY_LABEL_SIZE = Object.freeze({ w: 0, h: 0 })
 
+// Minimum size of the shape to fit a label, based on font size and padding (in unscaled units)
+const MIN_SIZE_WITH_LABEL = (LABEL_PADDING + 1) * 3
+
 // Snapshot the built-in geo types at module init so that collision detection
 // in `configure()` only fires against the built-ins, not against keys added
 // by previous `configure()` calls. This lets repeat `configure()` calls reuse
@@ -218,8 +221,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				labelPadding: LABEL_PADDING,
 				// Margin between label edge and shape edge (in unscaled units)
 				labelEdgeMargin: 8,
-				// Minimum size of the shape to fit a label, based on font size and padding (in unscaled units)
-				minSizeWithLabel: (LABEL_PADDING + 1) * 3,
+				minSizeWithLabel: MIN_SIZE_WITH_LABEL,
 			}
 		},
 		getCustomDisplayValues(_editor, _shape): Partial<GeoShapeUtilDisplayValues> {
@@ -325,7 +327,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					isFilled: true,
 					isLabel: true,
 					excludeFromShapeBounds: true,
-					isEmptyLabel: isEmptyLabel,
+					isEmptyLabel,
 				}),
 			],
 		})
@@ -341,9 +343,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 		// blobby shapes only snap to the center; polygon shapes snap to vertices + center.
 		if (def.snapType === 'blobby') {
-			return { outline: outline, points: [geometry.bounds.center] }
+			return { outline, points: [geometry.bounds.center] }
 		}
-		return { outline: outline, points: [...outline.vertices, geometry.bounds.center] }
+		return { outline, points: [...outline.vertices, geometry.bounds.center] }
 	}
 
 	override getText(shape: TLGeoShape) {
@@ -471,7 +473,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		let textEl
 		if (!isEmptyRichText(richText)) {
-			const bounds = new Box(0, 0, newShape.props.w, (h + growY) / scale)
+			const bounds = new Box(0, 0, newShape.props.w, newShape.props.h)
 			textEl = (
 				<RichTextSVG
 					fontSize={dv.labelFontSize}
@@ -656,7 +658,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		// Text was added for the first time - expand shape to fit (if wasEmpty and now there's text...
 		// It might be just whitespace but it is faster to assume that it is NOT just whitespace and expand
 		// the shape in either case (a label with just spaces text will be less performant but that's acceptable)
-		if (wasEmpty && !isEmpty) {
+		if (wasEmpty) {
 			const expanded = this.expandShapeForFirstLabel(
 				next,
 				unscaledPrev.w,
@@ -815,9 +817,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const batchCached = getBatchLabelSizeCache(this.editor)?.get(shape.id)
 		if (batchCached) return batchCached
 
-		return this._labelSizesForGeoCache.get(shape, () => {
-			return this.measureUnscaledLabelSize(shape)
-		})
+		return this._labelSizesForGeoCache.get(shape, () => this.measureUnscaledLabelSize(shape))
 	}
 
 	/**
@@ -851,9 +851,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 }
 
-const MIN_SIZE_WITH_LABEL = (LABEL_PADDING + 1) * 3
-const MIN_WIDTHS = GEO_SHAPE_MIN_WIDTHS
-
 // Per-editor batch cache, set by batchMeasureGeoLabels before the resize loop and cleared after.
 // When set, onResize will use pre-computed label sizes instead of measuring individually.
 // Uses a WeakMap keyed by editor to avoid issues with multiple editors on the same page.
@@ -885,7 +882,7 @@ function getGeoLabelMeasurementRequest(
 ): { html: string; opts: TLMeasureTextOpts } {
 	const { richText, font, size, w } = shape.props
 	const theme = editor.getCurrentTheme()
-	const minWidth = MIN_WIDTHS[size]
+	const minWidth = GEO_SHAPE_MIN_WIDTHS[size]
 	const html = renderHtmlFromRichTextForMeasurement(editor, richText)
 	const opts: TLMeasureTextOpts = {
 		...TEXT_PROPS,
@@ -942,7 +939,7 @@ export function batchMeasureGeoLabels(
 	for (const [id, snapshot] of shapeSnapshots) {
 		// Only process geo shapes with non-empty text labels
 		if (!editor.isShapeOfType<TLGeoShape>(snapshot.shape, 'geo')) continue
-		const geoShape = snapshot.shape as TLGeoShape
+		const geoShape = snapshot.shape
 		if (isEmptyRichText(geoShape.props.richText)) continue
 
 		// Skip unaligned shapes — they take a different resize path (_resizeUnalignedShape)
@@ -956,37 +953,27 @@ export function batchMeasureGeoLabels(
 			0
 		)
 
-		let effectiveScaleX: number
-		if (isAspectRatioLocked || snapshot.isAspectRatioLocked) {
-			// When aspect ratio is locked, both axes get the same absolute scale
-			const uniformScale = Math.max(Math.abs(scale.x), Math.abs(scale.y))
-			effectiveScaleX = uniformScale
-		} else {
-			effectiveScaleX = Math.abs(areWidthAndHeightAlignedWithCorrectAxis ? scale.x : scale.y)
-		}
+		// When aspect ratio is locked, both axes get the same absolute scale
+		const effectiveScaleX =
+			isAspectRatioLocked || snapshot.isAspectRatioLocked
+				? Math.max(Math.abs(scale.x), Math.abs(scale.y))
+				: Math.abs(areWidthAndHeightAlignedWithCorrectAxis ? scale.x : scale.y)
 
 		// Compute the target width for measurement (same logic as onResize)
 		const targetW = getGeoResizeTargetWidth(geoShape.props, effectiveScaleX)
 
 		// Build a temporary shape with the target width for measurement
-		const tempShape = {
+		const { html, opts } = getGeoLabelMeasurementRequest(editor, {
 			...geoShape,
-			props: {
-				...geoShape.props,
-				w: targetW * geoShape.props.scale,
-			},
-		} as TLGeoShape
-
-		const { html, opts } = getGeoLabelMeasurementRequest(editor, tempShape)
+			props: { ...geoShape.props, w: targetW * geoShape.props.scale },
+		})
 		requests.push({ id, html, opts })
 	}
 
 	if (requests.length === 0) return
 
 	// Batch measure all labels in one DOM pass
-	const results = editor.textMeasure.measureHtmlBatch(
-		requests.map(({ html, opts }) => ({ html, opts }))
-	)
+	const results = editor.textMeasure.measureHtmlBatch(requests)
 
 	// Build the cache map with label sizes (adding padding)
 	const cache = new Map<TLShapeId, { w: number; h: number }>()

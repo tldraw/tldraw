@@ -22,6 +22,7 @@ import {
 	getIndexBetween,
 	intersectLineSegmentCircle,
 } from '@tldraw/editor'
+import { TLArcArrowInfo } from '../../shapes/arrow/arrow-types'
 import { getArrowInfo } from '../../shapes/arrow/getArrowInfo'
 import { getArrowBindings, removeArrowBinding } from '../../shapes/arrow/shared'
 
@@ -187,18 +188,15 @@ function reparentArrow(editor: Editor, arrowId: TLShapeId) {
 			parentPageId
 	} else if (startShape || endShape) {
 		const bindingParentId = (startShape || endShape)?.parentId
-		// If the arrow and the shape that it is bound to have the same parent, then keep that parent
-		if (bindingParentId && bindingParentId === arrow.parentId) {
-			nextParentId = arrow.parentId
-		} else {
-			// if arrow has one binding, keep arrow on its own page
-			nextParentId = parentPageId
-		}
+		// If the arrow and the shape that it is bound to have the same parent, then keep that parent;
+		// otherwise keep the arrow on its own page
+		nextParentId =
+			bindingParentId && bindingParentId === arrow.parentId ? arrow.parentId : parentPageId
 	} else {
 		return
 	}
 
-	if (nextParentId && nextParentId !== arrow.parentId) {
+	if (nextParentId !== arrow.parentId) {
 		editor.reparentShapes([arrowId], nextParentId)
 	}
 
@@ -208,24 +206,20 @@ function reparentArrow(editor: Editor, arrowId: TLShapeId) {
 	const startSibling = editor.getShapeNearestSibling(reparentedArrow, startShape)
 	const endSibling = editor.getShapeNearestSibling(reparentedArrow, endShape)
 
-	let highestSibling: TLShape | undefined
-
-	if (startSibling && endSibling) {
-		highestSibling = startSibling.index > endSibling.index ? startSibling : endSibling
-	} else if (startSibling && !endSibling) {
-		highestSibling = startSibling
-	} else if (endSibling && !startSibling) {
-		highestSibling = endSibling
-	} else {
-		return
-	}
+	const highestSibling =
+		startSibling && endSibling
+			? startSibling.index > endSibling.index
+				? startSibling
+				: endSibling
+			: (startSibling ?? endSibling)
+	if (!highestSibling) return
 
 	let finalIndex: IndexKey
 
 	const higherSiblings = editor
 		.getSortedChildIdsForParent(highestSibling.parentId)
 		.map((id) => editor.getShape(id)!)
-		.filter((sibling) => sibling.index > highestSibling!.index)
+		.filter((sibling) => sibling.index > highestSibling.index)
 
 	if (higherSiblings.length) {
 		// there are siblings above the highest bound sibling, we need to
@@ -285,9 +279,7 @@ function arrowDidUpdate(editor: Editor, arrow: TLArrowShape) {
 		const binding = bindings[handle]
 		if (!binding) continue
 		const boundShape = editor.getShape(binding.toId)
-		const isShapeInSamePageAsArrow =
-			editor.getAncestorPageId(arrow) === editor.getAncestorPageId(boundShape)
-		if (!boundShape || !isShapeInSamePageAsArrow) {
+		if (!boundShape || editor.getAncestorPageId(arrow) !== editor.getAncestorPageId(boundShape)) {
 			updateArrowTerminal({ editor, arrow, terminal: handle, unbind: true })
 		}
 	}
@@ -336,59 +328,10 @@ export function updateArrowTerminal({
 
 	// fix up the bend:
 	if (info.type === 'arc') {
-		// find the new start/end points of the resulting arrow
-		const newStart =
-			terminal === 'start'
-				? startPoint
-				: getValidTerminalPoint(info.start.handle, arrow.props.start)
-		const newEnd =
-			terminal === 'end' ? endPoint : getValidTerminalPoint(info.end.handle, arrow.props.end)
-		const newMidPoint = Vec.Med(newStart, newEnd)
-		const arrowDirection = Vec.Sub(newStart, newEnd)
-		if (approximately(Vec.Len2(arrowDirection), 0)) {
-			editor.updateShape(update)
-			if (unbind) {
-				removeArrowBinding(editor, arrow, terminal)
-			}
-			return
-		}
-
-		// intersect a line segment perpendicular to the new arrow with the old arrow arc to
-		// find the new mid-point
-		const lineSegment = arrowDirection
-			.per()
-			.uni()
-			.mul(info.handleArc.radius * 2 * Math.sign(arrow.props.bend))
-		const targetPoint = Vec.Add(newMidPoint, lineSegment)
-		if (
-			!Vec.IsFinite(info.handleArc.center) ||
-			!Number.isFinite(info.handleArc.radius) ||
-			!Vec.IsFinite(targetPoint)
-		) {
-			editor.updateShape(update)
-			if (unbind) {
-				removeArrowBinding(editor, arrow, terminal)
-			}
-			return
-		}
-
-		// find the intersections with the old arrow arc:
-		const intersections = intersectLineSegmentCircle(
-			info.handleArc.center,
-			targetPoint,
-			info.handleArc.center,
-			info.handleArc.radius
-		)
-
-		if (intersections?.length) {
-			const intersection = intersections.reduce((closest, candidate) =>
-				Vec.Dist2(candidate, targetPoint) < Vec.Dist2(closest, targetPoint) ? candidate : closest
-			)
-			const bend = Vec.Dist(newMidPoint, intersection) * Math.sign(arrow.props.bend)
-			// use `approximately` to avoid endless update loops
-			if (!approximately(bend, update.props.bend)) {
-				update.props.bend = bend
-			}
+		const bend = getArcBendAfterTerminalMove(info, arrow, terminal, startPoint, endPoint)
+		// use `approximately` to avoid endless update loops
+		if (bend !== undefined && !approximately(bend, update.props.bend)) {
+			update.props.bend = bend
 		}
 	}
 
@@ -396,6 +339,52 @@ export function updateArrowTerminal({
 	if (unbind) {
 		removeArrowBinding(editor, arrow, terminal)
 	}
+}
+
+function getArcBendAfterTerminalMove(
+	info: TLArcArrowInfo,
+	arrow: TLArrowShape,
+	terminal: 'start' | 'end',
+	startPoint: Vec,
+	endPoint: Vec
+): number | undefined {
+	// find the new start/end points of the resulting arrow
+	const newStart =
+		terminal === 'start' ? startPoint : getValidTerminalPoint(info.start.handle, arrow.props.start)
+	const newEnd =
+		terminal === 'end' ? endPoint : getValidTerminalPoint(info.end.handle, arrow.props.end)
+	const newMidPoint = Vec.Med(newStart, newEnd)
+	const arrowDirection = Vec.Sub(newStart, newEnd)
+	if (approximately(Vec.Len2(arrowDirection), 0)) return
+
+	// intersect a line segment perpendicular to the new arrow with the old arrow arc to
+	// find the new mid-point
+	const lineSegment = arrowDirection
+		.per()
+		.uni()
+		.mul(info.handleArc.radius * 2 * Math.sign(arrow.props.bend))
+	const targetPoint = Vec.Add(newMidPoint, lineSegment)
+	if (
+		!Vec.IsFinite(info.handleArc.center) ||
+		!Number.isFinite(info.handleArc.radius) ||
+		!Vec.IsFinite(targetPoint)
+	) {
+		return
+	}
+
+	// find the intersections with the old arrow arc:
+	const intersections = intersectLineSegmentCircle(
+		info.handleArc.center,
+		targetPoint,
+		info.handleArc.center,
+		info.handleArc.radius
+	)
+	if (!intersections?.length) return
+
+	const intersection = intersections.reduce((closest, candidate) =>
+		Vec.Dist2(candidate, targetPoint) < Vec.Dist2(closest, targetPoint) ? candidate : closest
+	)
+	return Vec.Dist(newMidPoint, intersection) * Math.sign(arrow.props.bend)
 }
 
 function getValidTerminalPoint(

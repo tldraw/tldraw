@@ -19,10 +19,6 @@ import type { NoteShapeUtil } from '../NoteShapeUtil'
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
-	dragged = false
-
-	info = {} as TLPointerEventInfo
-
 	markId = ''
 
 	shape = {} as TLNoteShape
@@ -128,13 +124,13 @@ export class Pointing extends StateNode {
 		if (this.editor.getInstanceState().isToolLocked) {
 			this.parent.transition('idle')
 		} else {
-			startEditingShapeWithRichText(this.editor, this.shape.id, { info: this.info })
+			startEditingShapeWithRichText(this.editor, this.shape.id)
 		}
 	}
 
 	private cancel() {
 		this.editor.bailToMark(this.markId)
-		this.parent.transition('idle', this.info)
+		this.parent.transition('idle')
 	}
 }
 

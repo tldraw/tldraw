@@ -17,17 +17,15 @@ export const BOOKMARK_HEIGHT = 320
 export const BOOKMARK_JUST_URL_HEIGHT = 46
 const SHORT_BOOKMARK_HEIGHT = 101
 
+export function getBookmarkAssetIdForUrl(url: string): TLAssetId {
+	return AssetRecordType.createId(getHashForString(url))
+}
+
 export function getBookmarkHeight(editor: Editor, assetId?: TLAssetId | null) {
 	const asset = (assetId ? editor.getAsset(assetId) : null) as TLBookmarkAsset | null
 
-	if (asset) {
-		if (!asset.props.image) {
-			if (!asset.props.title) {
-				return BOOKMARK_JUST_URL_HEIGHT
-			} else {
-				return SHORT_BOOKMARK_HEIGHT
-			}
-		}
+	if (asset && !asset.props.image) {
+		return asset.props.title ? SHORT_BOOKMARK_HEIGHT : BOOKMARK_JUST_URL_HEIGHT
 	}
 
 	return BOOKMARK_HEIGHT
@@ -52,10 +50,8 @@ export function getHumanReadableAddress(url: string) {
 }
 
 export function updateBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmarkShape) {
-	const { url } = shape.props
-
 	// Derive the asset id from the URL
-	const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
+	const assetId = getBookmarkAssetIdForUrl(shape.props.url)
 
 	if (editor.getAsset(assetId)) {
 		// Existing asset for this URL?
@@ -103,7 +99,7 @@ export function getResolvedBookmarkAssetId(
 	if (assetId) return assetId
 	if (!url) return null
 
-	const derivedId: TLAssetId = AssetRecordType.createId(getHashForString(url))
+	const derivedId = getBookmarkAssetIdForUrl(url)
 	return editor.getAsset(derivedId) ? derivedId : null
 }
 
@@ -192,8 +188,7 @@ export async function createBookmarkFromUrl(
 		// If we already have a bookmark asset for this URL (e.g. another bookmark
 		// shape was created from the same URL earlier), use it immediately rather
 		// than re-fetching.
-		const expectedAssetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
-		const existingAsset = editor.getAsset(expectedAssetId) as TLBookmarkAsset | null
+		const existingAsset = editor.getAsset(getBookmarkAssetIdForUrl(url)) as TLBookmarkAsset | null
 
 		const shapeId = createShapeId()
 		const shapePartial: TLShapePartial<TLBookmarkShape> = {
@@ -211,9 +206,7 @@ export async function createBookmarkFromUrl(
 			},
 		}
 
-		editor.run(() => {
-			editor.createShapes([shapePartial])
-		})
+		editor.createShapes([shapePartial])
 
 		const createdShape = editor.getShape<TLBookmarkShape>(shapeId)
 		if (!createdShape) {

@@ -15,6 +15,7 @@ import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { TLArcInfo, TLArrowInfo } from './arrow-types'
 import {
 	BOUND_ARROW_OFFSET,
+	BoundShapeInfo,
 	MIN_ARROW_LENGTH,
 	TLArrowBindings,
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
@@ -22,6 +23,7 @@ import {
 	getArrowTerminalsInArrowSpace,
 	getBoundShapeInfoForTerminal,
 	getBoundShapeRelationships,
+	getBoundShapeStrokeOffset,
 } from './shared'
 import { getStraightArrowInfo } from './straight-arrow'
 
@@ -110,80 +112,23 @@ export function getCurvedArrowInfo(
 	let minLength = MIN_ARROW_LENGTH * shape.props.scale
 
 	if (startShapeInfo && !startShapeInfo.isExact) {
-		const startInPageSpace = Mat.applyToPoint(arrowPageTransform, tempA)
-		const centerInPageSpace = Mat.applyToPoint(arrowPageTransform, handleArc.center)
-		const endInPageSpace = Mat.applyToPoint(arrowPageTransform, tempB)
-
-		const inverseTransform = Mat.Inverse(startShapeInfo.transform)
-
-		const startInStartShapeLocalSpace = Mat.applyToPoint(inverseTransform, startInPageSpace)
-		const centerInStartShapeLocalSpace = Mat.applyToPoint(inverseTransform, centerInPageSpace)
-		const endInStartShapeLocalSpace = Mat.applyToPoint(inverseTransform, endInPageSpace)
-
-		const { isClosed } = startShapeInfo
-		let point: VecLike | undefined
-		let intersections = Array.from(
-			startShapeInfo.geometry.intersectCircle(centerInStartShapeLocalSpace, handleArc.radius, {
-				includeLabels: false,
-				includeInternal: false,
-			})
+		const point = getArcTerminalPointInBoundShape(
+			editor,
+			shape,
+			startShapeInfo,
+			'start',
+			arrowPageTransform,
+			tempA,
+			tempB,
+			handleArc,
+			distFn
 		)
-
-		if (intersections.length) {
-			const angleToStart = centerInStartShapeLocalSpace.angle(startInStartShapeLocalSpace)
-			const angleToEnd = centerInStartShapeLocalSpace.angle(endInStartShapeLocalSpace)
-			const dAB = distFn(angleToStart, angleToEnd)
-
-			// Filter out any intersections that aren't in the arc
-			intersections = intersections.filter(
-				(pt) => distFn(angleToStart, centerInStartShapeLocalSpace.angle(pt)) <= dAB
-			)
-
-			const targetDist = dAB * 0.25
-
-			intersections.sort(
-				isClosed
-					? (p0, p1) =>
-							Math.abs(distFn(angleToStart, centerInStartShapeLocalSpace.angle(p0)) - targetDist) <
-							Math.abs(distFn(angleToStart, centerInStartShapeLocalSpace.angle(p1)) - targetDist)
-								? -1
-								: 1
-					: (p0, p1) =>
-							distFn(angleToStart, centerInStartShapeLocalSpace.angle(p0)) <
-							distFn(angleToStart, centerInStartShapeLocalSpace.angle(p1))
-								? -1
-								: 1
-			)
-
-			point = intersections[0]
-		}
-		if (!point) {
-			if (isClosed) {
-				const nearestPoint = startShapeInfo.geometry.nearestPoint(startInStartShapeLocalSpace, {
-					includeInternal: false,
-					includeLabels: false,
-				})
-				if (Vec.DistMin(nearestPoint, startInStartShapeLocalSpace, 1)) {
-					point = nearestPoint
-				}
-			} else {
-				point = startInStartShapeLocalSpace
-			}
-		}
-
 		if (point) {
-			tempA.setTo(
-				editor.getPointInShapeSpace(shape, Mat.applyToPoint(startShapeInfo.transform, point))
-			)
-
+			tempA.setTo(point)
 			startShapeInfo.didIntersect = true
 
 			if (arrowheadStart !== 'none') {
-				const strokeOffset =
-					arrowSW / 2 +
-					('size' in startShapeInfo.shape.props
-						? (theme.strokeWidth * STROKE_SIZES[startShapeInfo.shape.props.size]) / 2
-						: 0)
+				const strokeOffset = getBoundShapeStrokeOffset(theme, arrowSW, startShapeInfo)
 				offsetA = (BOUND_ARROW_OFFSET + strokeOffset) * shape.props.scale
 				minLength += strokeOffset * shape.props.scale
 			}
@@ -191,82 +136,23 @@ export function getCurvedArrowInfo(
 	}
 
 	if (endShapeInfo && !endShapeInfo.isExact) {
-		// get points in shape's coordinates?
-		const startInPageSpace = Mat.applyToPoint(arrowPageTransform, tempA)
-		const endInPageSpace = Mat.applyToPoint(arrowPageTransform, tempB)
-		const centerInPageSpace = Mat.applyToPoint(arrowPageTransform, handleArc.center)
-
-		const inverseTransform = Mat.Inverse(endShapeInfo.transform)
-
-		const startInEndShapeLocalSpace = Mat.applyToPoint(inverseTransform, startInPageSpace)
-		const centerInEndShapeLocalSpace = Mat.applyToPoint(inverseTransform, centerInPageSpace)
-		const endInEndShapeLocalSpace = Mat.applyToPoint(inverseTransform, endInPageSpace)
-
-		const isClosed = endShapeInfo.isClosed
-		let point: VecLike | undefined
-		let intersections = Array.from(
-			endShapeInfo.geometry.intersectCircle(centerInEndShapeLocalSpace, handleArc.radius, {
-				includeLabels: false,
-				includeInternal: false,
-			})
+		const point = getArcTerminalPointInBoundShape(
+			editor,
+			shape,
+			endShapeInfo,
+			'end',
+			arrowPageTransform,
+			tempA,
+			tempB,
+			handleArc,
+			distFn
 		)
-
-		if (intersections.length) {
-			const angleToStart = centerInEndShapeLocalSpace.angle(startInEndShapeLocalSpace)
-			const angleToEnd = centerInEndShapeLocalSpace.angle(endInEndShapeLocalSpace)
-			const dAB = distFn(angleToStart, angleToEnd)
-			const targetDist = dAB * 0.75
-
-			// or simplified...
-
-			intersections = intersections.filter(
-				(pt) => distFn(angleToStart, centerInEndShapeLocalSpace.angle(pt)) <= dAB
-			)
-
-			intersections.sort(
-				isClosed
-					? (p0, p1) =>
-							Math.abs(distFn(angleToStart, centerInEndShapeLocalSpace.angle(p0)) - targetDist) <
-							Math.abs(distFn(angleToStart, centerInEndShapeLocalSpace.angle(p1)) - targetDist)
-								? -1
-								: 1
-					: (p0, p1) =>
-							distFn(angleToStart, centerInEndShapeLocalSpace.angle(p0)) <
-							distFn(angleToStart, centerInEndShapeLocalSpace.angle(p1))
-								? -1
-								: 1
-			)
-
-			point = intersections[0]
-		}
-		if (!point) {
-			if (isClosed) {
-				const nearestPoint = endShapeInfo.geometry.nearestPoint(endInEndShapeLocalSpace, {
-					includeInternal: false,
-					includeLabels: false,
-				})
-				if (Vec.DistMin(nearestPoint, endInEndShapeLocalSpace, 1)) {
-					point = nearestPoint
-				}
-			} else {
-				point = endInEndShapeLocalSpace
-			}
-		}
-
 		if (point) {
-			// Set b to target local point -> page point -> shape local point
-			tempB.setTo(
-				editor.getPointInShapeSpace(shape, Mat.applyToPoint(endShapeInfo.transform, point))
-			)
-
+			tempB.setTo(point)
 			endShapeInfo.didIntersect = true
 
 			if (arrowheadEnd !== 'none') {
-				const strokeOffset =
-					arrowSW / 2 +
-					('size' in endShapeInfo.shape.props
-						? (theme.strokeWidth * STROKE_SIZES[endShapeInfo.shape.props.size]) / 2
-						: 0)
+				const strokeOffset = getBoundShapeStrokeOffset(theme, arrowSW, endShapeInfo)
 				offsetB = (BOUND_ARROW_OFFSET + strokeOffset) * shape.props.scale
 				minLength += strokeOffset * shape.props.scale
 			}
@@ -415,6 +301,93 @@ export function getCurvedArrowInfo(
 		bodyArc,
 		isValid: bodyArc.length !== 0 && isFinite(bodyArc.center.x) && isFinite(bodyArc.center.y),
 	}
+}
+
+/**
+ * Find where the arc leaves the shape bound to one of the arrow's terminals. Returns the point in
+ * arrow space, or undefined if the arc doesn't reach the shape.
+ */
+function getArcTerminalPointInBoundShape(
+	editor: Editor,
+	shape: TLArrowShape,
+	shapeInfo: BoundShapeInfo,
+	terminal: 'start' | 'end',
+	arrowPageTransform: Mat,
+	tempA: Vec,
+	tempB: Vec,
+	handleArc: TLArcInfo,
+	distFn: (a: number, b: number) => number
+): Vec | undefined {
+	// get points in shape's coordinates?
+	const inverseTransform = Mat.Inverse(shapeInfo.transform)
+	const startInLocalSpace = Mat.applyToPoint(
+		inverseTransform,
+		Mat.applyToPoint(arrowPageTransform, tempA)
+	)
+	const centerInLocalSpace = Mat.applyToPoint(
+		inverseTransform,
+		Mat.applyToPoint(arrowPageTransform, handleArc.center)
+	)
+	const endInLocalSpace = Mat.applyToPoint(
+		inverseTransform,
+		Mat.applyToPoint(arrowPageTransform, tempB)
+	)
+	const terminalInLocalSpace = terminal === 'start' ? startInLocalSpace : endInLocalSpace
+
+	const { isClosed } = shapeInfo
+	let point: VecLike | undefined
+	let intersections = Array.from(
+		shapeInfo.geometry.intersectCircle(centerInLocalSpace, handleArc.radius, {
+			includeLabels: false,
+			includeInternal: false,
+		})
+	)
+
+	if (intersections.length) {
+		const angleToStart = centerInLocalSpace.angle(startInLocalSpace)
+		const angleToEnd = centerInLocalSpace.angle(endInLocalSpace)
+		const dAB = distFn(angleToStart, angleToEnd)
+		const targetDist = dAB * (terminal === 'start' ? 0.25 : 0.75)
+
+		// Filter out any intersections that aren't in the arc
+		intersections = intersections.filter(
+			(pt) => distFn(angleToStart, centerInLocalSpace.angle(pt)) <= dAB
+		)
+
+		intersections.sort(
+			isClosed
+				? (p0, p1) =>
+						Math.abs(distFn(angleToStart, centerInLocalSpace.angle(p0)) - targetDist) <
+						Math.abs(distFn(angleToStart, centerInLocalSpace.angle(p1)) - targetDist)
+							? -1
+							: 1
+				: (p0, p1) =>
+						distFn(angleToStart, centerInLocalSpace.angle(p0)) <
+						distFn(angleToStart, centerInLocalSpace.angle(p1))
+							? -1
+							: 1
+		)
+
+		point = intersections[0]
+	}
+
+	if (!point) {
+		if (isClosed) {
+			const nearestPoint = shapeInfo.geometry.nearestPoint(terminalInLocalSpace, {
+				includeInternal: false,
+				includeLabels: false,
+			})
+			if (Vec.DistMin(nearestPoint, terminalInLocalSpace, 1)) {
+				point = nearestPoint
+			}
+		} else {
+			point = terminalInLocalSpace
+		}
+	}
+
+	if (!point) return
+	// target local point -> page point -> shape local point
+	return editor.getPointInShapeSpace(shape, Mat.applyToPoint(shapeInfo.transform, point))
 }
 
 /**

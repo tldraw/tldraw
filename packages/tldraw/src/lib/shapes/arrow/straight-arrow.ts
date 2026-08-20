@@ -10,6 +10,7 @@ import {
 	getArrowTerminalsInArrowSpace,
 	getBoundShapeInfoForTerminal,
 	getBoundShapeRelationships,
+	getBoundShapeStrokeOffset,
 } from './shared'
 
 export function getStraightArrowInfo(
@@ -83,8 +84,6 @@ export function getStraightArrowInfo(
 
 	let offsetA = 0
 	let offsetB = 0
-	let strokeOffsetA = 0
-	let strokeOffsetB = 0
 	let minLength = MIN_ARROW_LENGTH * shape.props.scale
 
 	const theme = editor.getCurrentTheme()
@@ -136,11 +135,7 @@ export function getStraightArrowInfo(
 			arrowheadStart !== 'none' &&
 			!startShapeInfo.isExact
 		) {
-			strokeOffsetA =
-				arrowSW / 2 +
-				('size' in startShapeInfo.shape.props
-					? (theme.strokeWidth * STROKE_SIZES[startShapeInfo.shape.props.size]) / 2
-					: 0)
+			const strokeOffsetA = getBoundShapeStrokeOffset(theme, arrowSW, startShapeInfo)
 			offsetA = (BOUND_ARROW_OFFSET + strokeOffsetA) * shape.props.scale
 			minLength += strokeOffsetA * shape.props.scale
 		}
@@ -153,11 +148,7 @@ export function getStraightArrowInfo(
 			arrowheadEnd !== 'none' &&
 			!endShapeInfo.isExact
 		) {
-			strokeOffsetB =
-				arrowSW / 2 +
-				('size' in endShapeInfo.shape.props
-					? (theme.strokeWidth * STROKE_SIZES[endShapeInfo.shape.props.size]) / 2
-					: 0)
+			const strokeOffsetB = getBoundShapeStrokeOffset(theme, arrowSW, endShapeInfo)
 			offsetB = (BOUND_ARROW_OFFSET + strokeOffsetB) * shape.props.scale
 			minLength += strokeOffsetB * shape.props.scale
 		}
@@ -229,23 +220,17 @@ function updateArrowheadPointWithBoundShape(
 	arrowPageTransform: MatModel,
 	targetShapeInfo?: BoundShapeInfo
 ) {
-	if (targetShapeInfo === undefined) {
-		// No bound shape? The arrowhead point will be at the arrow terminal.
-		return
-	}
-
-	if (targetShapeInfo.isExact) {
-		// Exact type binding? The arrowhead point will be at the arrow terminal.
-		return
-	}
+	// no binding, or an exact one: the arrowhead point stays at the arrow terminal
+	if (targetShapeInfo === undefined || targetShapeInfo.isExact) return
 
 	// From and To in page space
 	const pageFrom = Mat.applyToPoint(arrowPageTransform, opposite)
 	const pageTo = Mat.applyToPoint(arrowPageTransform, point)
 
 	// From and To in local space of the target shape
-	const targetFrom = Mat.applyToPoint(Mat.Inverse(targetShapeInfo.transform), pageFrom)
-	const targetTo = Mat.applyToPoint(Mat.Inverse(targetShapeInfo.transform), pageTo)
+	const targetTransformInverse = Mat.Inverse(targetShapeInfo.transform)
+	const targetFrom = Mat.applyToPoint(targetTransformInverse, pageFrom)
+	const targetTo = Mat.applyToPoint(targetTransformInverse, pageTo)
 
 	const intersection = Array.from(
 		targetShapeInfo.geometry.intersectLineSegment(targetFrom, targetTo, {
@@ -257,9 +242,9 @@ function updateArrowheadPointWithBoundShape(
 	let targetInt: VecLike | undefined
 
 	if (intersection.length) {
-		targetInt =
-			intersection.sort((p1, p2) => Vec.Dist2(p1, targetFrom) - Vec.Dist2(p2, targetFrom))[0] ??
-			(targetShapeInfo.isClosed ? undefined : targetTo)
+		targetInt = intersection.sort(
+			(p1, p2) => Vec.Dist2(p1, targetFrom) - Vec.Dist2(p2, targetFrom)
+		)[0]
 	}
 
 	if (targetInt === undefined) {

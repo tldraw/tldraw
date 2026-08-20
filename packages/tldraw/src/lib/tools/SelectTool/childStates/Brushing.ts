@@ -1,6 +1,5 @@
 import {
 	Box,
-	Mat,
 	StateNode,
 	TLCancelEventInfo,
 	TLKeyboardEventInfo,
@@ -26,9 +25,7 @@ export class Brushing extends StateNode {
 	isWrapMode = false
 
 	viewportDidChange = false
-	cleanupViewportChangeReactor() {
-		void null
-	} // cleanup function for the viewport reactor
+	cleanupViewportChangeReactor?: () => void // cleanup function for the viewport reactor
 
 	override onEnter(info: TLPointerEventInfo & { target: 'canvas' }) {
 		const { editor } = this
@@ -74,7 +71,7 @@ export class Brushing extends StateNode {
 		this.initialSelectedShapeIds = []
 		this.editor.updateInstanceState({ brush: null })
 
-		this.cleanupViewportChangeReactor()
+		this.cleanupViewportChangeReactor?.()
 	}
 
 	override onTick({ elapsed }: TLTickEventInfo) {
@@ -136,13 +133,6 @@ export class Brushing extends StateNode {
 		// We'll be testing the corners of the brush against the shapes
 		const { corners } = brush
 
-		let A: Vec,
-			B: Vec,
-			shape: TLShape,
-			pageBounds: Box | undefined,
-			pageTransform: Mat | undefined,
-			localCorners: Vec[]
-
 		// Some notes on optimization. We could easily cache all of the shape positions at
 		// the start of the interaction and then do very fast checks against them, but that
 		// would mean changes introduced by other collaborators wouldn't be reflected—a user
@@ -156,68 +146,50 @@ export class Brushing extends StateNode {
 		// On a page with ~5000 shapes, on-screen hit tests are about 2x faster than
 		// testing all shapes.
 
-		const brushBoxIsInsideViewport = editor.getViewportPageBounds().contains(brush)
-		const currentPageId = editor.getCurrentPageId()
-
 		// Use spatial index to filter candidates
 		const candidateIds = editor.getShapeIdsInsideBounds(brush)
 
-		// Early return if no candidates - avoid expensive getCurrentPageShapesSorted()
-		// But still update brush visual and selection
-		if (candidateIds.size === 0) {
-			const currentBrush = editor.getInstanceState().brush
-			if (!currentBrush || !brush.equals(currentBrush)) {
-				editor.updateInstanceState({ brush: { ...brush.toJson() } })
-			}
+		if (candidateIds.size > 0) {
+			const brushBoxIsInsideViewport = editor.getViewportPageBounds().contains(brush)
+			const currentPageId = editor.getCurrentPageId()
 
-			const current = editor.getSelectedShapeIds()
-			if (current.length !== results.size || current.some((id) => !results.has(id))) {
-				editor.setSelectedShapes(Array.from(results))
-			}
-			return
-		}
+			const allShapes =
+				brushBoxIsInsideViewport && !this.viewportDidChange
+					? editor.getCurrentPageRenderingShapesSorted()
+					: editor.getCurrentPageShapesSorted()
 
-		const allShapes =
-			brushBoxIsInsideViewport && !this.viewportDidChange
-				? editor.getCurrentPageRenderingShapesSorted()
-				: editor.getCurrentPageShapesSorted()
-		const shapesToHitTest = allShapes.filter((shape) => candidateIds.has(shape.id))
+			for (const shape of allShapes) {
+				if (!candidateIds.has(shape.id)) continue
+				if (excludedShapeIds.has(shape.id) || results.has(shape.id)) continue
 
-		testAllShapes: for (let i = 0, n = shapesToHitTest.length; i < n; i++) {
-			shape = shapesToHitTest[i]
-			if (excludedShapeIds.has(shape.id) || results.has(shape.id)) continue testAllShapes
+				const pageBounds = editor.getShapePageBounds(shape)
+				if (!pageBounds) continue
 
-			pageBounds = editor.getShapePageBounds(shape)
-			if (!pageBounds) continue testAllShapes
+				// If the brush fully wraps a shape, it's almost certainly a hit
+				if (brush.contains(pageBounds)) {
+					this.handleHit(shape, currentPagePoint, currentPageId, results, corners)
+					continue
+				}
 
-			// If the brush fully wraps a shape, it's almost certainly a hit
-			if (brush.contains(pageBounds)) {
-				this.handleHit(shape, currentPagePoint, currentPageId, results, corners)
-				continue testAllShapes
-			}
+				// If we're in wrap mode and the brush did not fully encloses the shape, it's a miss
+				// We also skip frame-like shapes unless we've completely selected them.
+				if (isWrapping || editor.isShapeFrameLike(shape)) continue
 
-			// If we're in wrap mode and the brush did not fully encloses the shape, it's a miss
-			// We also skip frame-like shapes unless we've completely selected them.
-			if (isWrapping || editor.isShapeFrameLike(shape)) {
-				continue testAllShapes
-			}
-
-			// If the brush collides the page bounds, then do hit tests against
-			// each of the brush's four sides.
-			if (brush.collides(pageBounds)) {
-				// Shapes expect to hit test line segments in their own coordinate system,
-				// so we first need to get the brush corners in the shape's local space.
-				pageTransform = editor.getShapePageTransform(shape)
-				if (!pageTransform) continue testAllShapes
-				localCorners = pageTransform.clone().invert().applyToPoints(corners)
-				// See if any of the edges intersect the shape's geometry
-				const geometry = editor.getShapeGeometry(shape)
-				hitTestBrushEdges: for (let i = 0; i < 4; i++) {
-					A = localCorners[i]
-					B = localCorners[(i + 1) % 4]
-					if (geometry.hitTestLineSegment(A, B, 0)) {
-						this.handleHit(shape, currentPagePoint, currentPageId, results, corners)
-						break hitTestBrushEdges
+				// If the brush collides the page bounds, then do hit tests against
+				// each of the brush's four sides.
+				if (brush.collides(pageBounds)) {
+					// Shapes expect to hit test line segments in their own coordinate system,
+					// so we first need to get the brush corners in the shape's local space.
+					const pageTransform = editor.getShapePageTransform(shape)
+					if (!pageTransform) continue
+					const localCorners = pageTransform.clone().invert().applyToPoints(corners)
+					// See if any of the edges intersect the shape's geometry
+					const geometry = editor.getShapeGeometry(shape)
+					for (let i = 0; i < 4; i++) {
+						if (geometry.hitTestLineSegment(localCorners[i], localCorners[(i + 1) % 4], 0)) {
+							this.handleHit(shape, currentPagePoint, currentPageId, results, corners)
+							break
+						}
 					}
 				}
 			}

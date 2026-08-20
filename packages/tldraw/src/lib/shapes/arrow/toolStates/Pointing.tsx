@@ -1,4 +1,11 @@
-import { StateNode, TLArrowShape, createShapeId, maybeSnapToGrid } from '@tldraw/editor'
+import {
+	StateNode,
+	TLArrowShape,
+	TLHandle,
+	VecLike,
+	createShapeId,
+	maybeSnapToGrid,
+} from '@tldraw/editor'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
 import { clearArrowTargetState, updateArrowTargetState } from '../arrowTargetState'
 
@@ -117,19 +124,7 @@ export class Pointing extends StateNode {
 		const handles = this.editor.getShapeHandles(shape)
 		if (!handles) throw Error(`expected handles for arrow`)
 
-		const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
-		const initial = this.shape
-		const startHandle = handles.find((h) => h.id === 'start')!
-		const change = util.onHandleDrag?.(shape, {
-			handle: { ...startHandle, x: 0, y: 0 },
-			isPrecise: true,
-			isCreatingShape: true,
-			initial: initial,
-		})
-
-		if (change) {
-			this.editor.updateShapes([change])
-		}
+		this.dragHandle(shape, handles, 'start', { x: 0, y: 0 }, true)
 
 		// Cache the current shape after those changes
 		this.shape = this.editor.getShape(id)
@@ -144,45 +139,35 @@ export class Pointing extends StateNode {
 		if (!handles) throw Error(`expected handles for arrow`)
 
 		// start update
-		{
-			const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
-			const initial = this.shape
-			const startHandle = handles.find((h) => h.id === 'start')!
-			const change = util.onHandleDrag?.(shape, {
-				handle: { ...startHandle, x: 0, y: 0 },
-				isPrecise: this.isPrecise,
-				isCreatingShape: true,
-				initial: initial,
-			})
-
-			if (change) {
-				this.editor.updateShapes([change])
-			}
-		}
+		this.dragHandle(shape, handles, 'start', { x: 0, y: 0 }, this.isPrecise)
 
 		// end update
-		{
-			const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
-			const initial = this.shape
-			const point = this.editor.getPointInShapeSpace(
-				shape,
-				this.editor.inputs.getCurrentPagePoint()
-			)
-			const endHandle = handles.find((h) => h.id === 'end')!
-			const change = util.onHandleDrag?.(this.editor.getShape(shape)!, {
-				handle: { ...endHandle, x: point.x, y: point.y },
-				isPrecise: this.isPrecise,
-				isCreatingShape: true,
-				initial: initial,
-			})
-
-			if (change) {
-				this.editor.updateShapes([change])
-			}
-		}
+		const point = this.editor.getPointInShapeSpace(shape, this.editor.inputs.getCurrentPagePoint())
+		this.dragHandle(this.editor.getShape(shape)!, handles, 'end', point, this.isPrecise)
 
 		// Cache the current shape after those changes
 		this.shape = this.editor.getShape(shape.id)
+	}
+
+	private dragHandle(
+		shape: TLArrowShape,
+		handles: TLHandle[],
+		handleId: 'start' | 'end',
+		point: VecLike,
+		isPrecise: boolean
+	) {
+		const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
+		const handle = handles.find((h) => h.id === handleId)!
+		const change = util.onHandleDrag?.(shape, {
+			handle: { ...handle, x: point.x, y: point.y },
+			isPrecise,
+			isCreatingShape: true,
+			initial: this.shape,
+		})
+
+		if (change) {
+			this.editor.updateShapes([change])
+		}
 	}
 
 	private startPreciseTimeout() {

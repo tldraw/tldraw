@@ -220,10 +220,10 @@ export class EditingShape extends StateNode {
 		this.editor.setEditingShape(hitShape.id)
 
 		const isMobile = tlenv.isIos || tlenv.isAndroid
-		if (!isMobile || !isEditToEditAction) {
-			this.editor.emit('place-caret', { shapeId: hitShape.id, point: info.point })
-		} else if (isMobile && isEditToEditAction) {
+		if (isMobile && isEditToEditAction) {
 			this.editor.emit('select-all-text', { shapeId: hitShape.id })
+		} else {
+			this.editor.emit('place-caret', { shapeId: hitShape.id, point: info.point })
 		}
 		updateHoveredShapeId(this.editor)
 	}

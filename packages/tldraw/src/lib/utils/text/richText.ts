@@ -89,6 +89,10 @@ export const tipTapDefaultExtensions: Extensions = getTipTapDefaultExtensions()
 // todo: bust this if the editor changes, too
 const htmlCache = new WeakCache<TLRichText, string>()
 
+function getTipTapExtensions(editor: Editor) {
+	return editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
+}
+
 /**
  * Renders HTML from a rich text string using an explicit set of TipTap extensions, rather than the
  * ones configured on an editor. Use this when rendering rich text outside of a shape's editor
@@ -119,11 +123,9 @@ export function renderHtmlFromRichTextWithExtensions(
  * @public
  */
 export function renderHtmlFromRichText(editor: Editor, richText: TLRichText) {
-	return htmlCache.get(richText, () => {
-		const tipTapExtensions =
-			editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
-		return renderHtmlFromRichTextWithExtensions(richText, tipTapExtensions)
-	})
+	return htmlCache.get(richText, () =>
+		renderHtmlFromRichTextWithExtensions(richText, getTipTapExtensions(editor))
+	)
 }
 
 /**
@@ -175,13 +177,9 @@ export function isEditingRichTextList(editor: Editor) {
 export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText) {
 	if (isEmptyRichText(richText)) return ''
 
-	return plainTextFromRichTextCache.get(richText, () => {
-		const tipTapExtensions =
-			editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
-		return generateText(richText as JSONContent, tipTapExtensions, {
-			blockSeparator: '\n',
-		})
-	})
+	return plainTextFromRichTextCache.get(richText, () =>
+		generateText(richText as JSONContent, getTipTapExtensions(editor), { blockSeparator: '\n' })
+	)
 }
 
 /**
@@ -192,9 +190,7 @@ export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText
  * @public
  */
 export function renderRichTextFromHTML(editor: Editor, html: string): TLRichText {
-	const tipTapExtensions =
-		editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
-	return generateJSON(html, tipTapExtensions) as TLRichText
+	return generateJSON(html, getTipTapExtensions(editor)) as TLRichText
 }
 
 /** @public */

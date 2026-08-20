@@ -53,7 +53,7 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 		url: string | null
 	}>(() => ({
 		asset: assetId ? (editor.getAsset<TLImageAsset | TLVideoAsset>(assetId) ?? null) : null,
-		url: null as string | null,
+		url: null,
 	}))
 
 	// A flag for whether we've resolved the asset URL at least once, after which we can debounce
@@ -70,13 +70,11 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 
 	useEffect(() => {
 		// Check if the assetId changed (not just resolution/scale updates)
-		const assetIdChanged = previousAssetId.current !== assetId
-		previousAssetId.current = assetId
-
 		// Set flag to run immediately (skip debouncing) for the next resolution
-		if (assetIdChanged) {
+		if (previousAssetId.current !== assetId) {
 			shouldRunImmediately.current = true
 		}
+		previousAssetId.current = assetId
 
 		if (!assetId) return
 
@@ -109,9 +107,8 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 
 			// aside ...we could bail here if the only thing that has changed is the shape has changed from culled to not culled
 
-			const screenScale = exportInfo
-				? exportInfo.scale * (width / asset.props.w)
-				: editor.getEfficientZoomLevel() * (width / asset.props.w)
+			const screenScale =
+				(exportInfo ? exportInfo.scale : editor.getEfficientZoomLevel()) * (width / asset.props.w)
 
 			function resolve(asset: TLImageAsset | TLVideoAsset, url: string | null) {
 				if (isCancelled) return // don't update if the hook has remounted

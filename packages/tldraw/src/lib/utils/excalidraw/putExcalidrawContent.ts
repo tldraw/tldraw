@@ -100,10 +100,12 @@ export async function putExcalidrawContent(
 		}
 
 		if (element.groupIds && element.groupIds.length > 0) {
-			if (groupShapeIdToChildren.has(element.groupIds[0])) {
-				groupShapeIdToChildren.get(element.groupIds[0])?.push(id)
+			const groupId = element.groupIds[0]
+			const siblings = groupShapeIdToChildren.get(groupId)
+			if (siblings) {
+				siblings.push(id)
 			} else {
-				groupShapeIdToChildren.set(element.groupIds[0], [id])
+				groupShapeIdToChildren.set(groupId, [id])
 			}
 		} else {
 			rootShapeIds.push(id)
@@ -113,20 +115,11 @@ export async function putExcalidrawContent(
 			case 'rectangle':
 			case 'ellipse':
 			case 'diamond': {
-				let text = ''
-				let align: TLDefaultHorizontalAlignStyle = 'middle'
-
-				if (element.boundElements !== null) {
-					for (const boundElement of element.boundElements) {
-						if (boundElement.type === 'text') {
-							const labelElement = elements.find((elm: any) => elm.id === boundElement.id)
-							if (labelElement) {
-								text = labelElement.text
-								align = textAlignToAlignTypes[labelElement.textAlign]
-							}
-						}
-					}
-				}
+				const labelElement = getBoundLabelElement(elements, element)
+				const text = labelElement?.text ?? ''
+				const align: TLDefaultHorizontalAlignStyle = labelElement
+					? textAlignToAlignTypes[labelElement.textAlign]
+					: 'middle'
 
 				const colorToUse =
 					element.backgroundColor === 'transparent' ? element.strokeColor : element.backgroundColor
@@ -177,8 +170,7 @@ export async function putExcalidrawContent(
 				break
 			}
 			case 'line': {
-				const points = element.points.slice()
-				if (points.length < 2) {
+				if (element.points.length < 2) {
 					break
 				}
 				const indices = getIndices(element.points.length)
@@ -206,18 +198,7 @@ export async function putExcalidrawContent(
 				break
 			}
 			case 'arrow': {
-				let text = ''
-
-				if (element.boundElements !== null) {
-					for (const boundElement of element.boundElements) {
-						if (boundElement.type === 'text') {
-							const labelElement = elements.find((elm: any) => elm.id === boundElement.id)
-							if (labelElement) {
-								text = labelElement.text
-							}
-						}
-					}
-				}
+				const text = getBoundLabelElement(elements, element)?.text ?? ''
 
 				const start = element.points[0]
 				const end = element.points[element.points.length - 1]
@@ -243,32 +224,19 @@ export async function putExcalidrawContent(
 					},
 				})
 
-				if (startTargetId) {
+				for (const [terminal, toId] of [
+					['start', startTargetId],
+					['end', endTargetId],
+				] as const) {
+					if (!toId) continue
 					tldrawContent.bindings!.push({
 						id: createBindingId(),
 						typeName: 'binding',
 						type: 'arrow',
 						fromId: id,
-						toId: startTargetId,
+						toId,
 						props: {
-							terminal: 'start',
-							snap: 'none',
-							normalizedAnchor: { x: 0.5, y: 0.5 },
-							isPrecise: false,
-							isExact: false,
-						},
-						meta: {},
-					})
-				}
-				if (endTargetId) {
-					tldrawContent.bindings!.push({
-						id: createBindingId(),
-						typeName: 'binding',
-						type: 'arrow',
-						fromId: id,
-						toId: endTargetId,
-						props: {
-							terminal: 'end',
+							terminal,
 							snap: 'none',
 							normalizedAnchor: { x: 0.5, y: 0.5 },
 							isPrecise: false,
@@ -379,6 +347,18 @@ export async function putExcalidrawContent(
 
 /* --------------- Translating Helpers --------_------ */
 
+function getBoundLabelElement(elements: any[], element: any): any {
+	let labelElement: any
+	if (element.boundElements !== null) {
+		for (const boundElement of element.boundElements) {
+			if (boundElement.type === 'text') {
+				labelElement = elements.find((elm: any) => elm.id === boundElement.id) ?? labelElement
+			}
+		}
+	}
+	return labelElement
+}
+
 const getOpacity = (opacity: number): TLOpacityType => {
 	const t = opacity / 100
 	if (t < 0.2) {
@@ -449,8 +429,7 @@ function mapExcalidrawColorToTldrawColors(
 	light: TLDefaultColorStyle,
 	dark: TLDefaultColorStyle
 ) {
-	const colors = [0, 1, 2, 3, 4].map((index) => oc[excalidrawColor][index])
-	return Object.fromEntries(colors.map((c, i) => [c, i < 3 ? light : dark]))
+	return Object.fromEntries(oc[excalidrawColor].map((c, i) => [c, i < 3 ? light : dark]))
 }
 
 const colorsToColors: Record<string, TLDefaultColorStyle> = {

@@ -3,7 +3,6 @@ import {
 	Editor,
 	Mat,
 	MatModel,
-	PageRecordType,
 	StateNode,
 	TLNoteShape,
 	TLPointerEventInfo,
@@ -23,6 +22,7 @@ import {
 import type { NoteShapeUtil } from '../../../shapes/note/NoteShapeUtil'
 import { getDisplayValues } from '../../../shapes/shared/getDisplayValues'
 import { DragAndDropManager } from '../DragAndDropManager'
+import { returnToInteractionEnd } from '../selectHelpers'
 
 export type TranslatingInfo = TLPointerEventInfo & {
 	target: 'shape'
@@ -87,7 +87,6 @@ export class Translating extends StateNode {
 		this.onCreate = onCreate
 
 		this.isCloning = false
-		this.info = info
 
 		this.editor.setCursor({ type: 'move', rotation: 0 })
 		this.selectionSnapshot = getTranslatingSnapshot(this.editor)
@@ -158,7 +157,7 @@ export class Translating extends StateNode {
 
 	protected startCloning() {
 		if (this.isCreating) return
-		const shapeIds = Array.from(this.editor.getSelectedShapeIds())
+		const shapeIds = this.editor.getSelectedShapeIds()
 
 		// If we can't create the shapes, don't even start cloning
 		if (!this.editor.canCreateShapes(shapeIds)) return
@@ -167,7 +166,7 @@ export class Translating extends StateNode {
 		this.reset()
 		this.markId = this.editor.markHistoryStoppingPoint('translate cloning')
 
-		this.editor.duplicateShapes(Array.from(this.editor.getSelectedShapeIds()))
+		this.editor.duplicateShapes(shapeIds)
 
 		this.snapshot = getTranslatingSnapshot(this.editor)
 		this.handleStart()
@@ -195,21 +194,18 @@ export class Translating extends StateNode {
 			this.snapshot.movingShapes.map((s) => s.id)
 		)
 
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				if (this.editor.getInstanceState().isToolLocked) {
-					this.editor.setCurrentTool(onInteractionEnd)
-					return
-				}
-			} else {
-				onInteractionEnd()
-				return
-			}
-		}
+		if (
+			returnToInteractionEnd(
+				this.editor,
+				this.info.onInteractionEnd,
+				{},
+				{ onlyIfToolLocked: true }
+			)
+		)
+			return
 
 		if (this.isCreating) {
-			this.onCreate?.(this.editor.getOnlySelectedShape())
+			this.onCreate(this.editor.getOnlySelectedShape())
 		} else {
 			this.parent.transition('idle')
 		}
@@ -228,15 +224,7 @@ export class Translating extends StateNode {
 		})
 
 		this.reset()
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				this.editor.setCurrentTool(onInteractionEnd)
-			} else {
-				onInteractionEnd()
-			}
-			return
-		}
+		if (returnToInteractionEnd(this.editor, this.info.onInteractionEnd)) return
 		this.parent.transition('idle', this.info)
 	}
 
@@ -341,18 +329,14 @@ export class Translating extends StateNode {
 			editor,
 			snapshot: { shapeSnapshots },
 		} = this
-		const movingShapes: TLShape[] = []
 
 		shapeSnapshots.forEach((shapeSnapshot) => {
 			const shape = editor.getShape(shapeSnapshot.shape.id)
 			if (!shape) return
-			movingShapes.push(shape)
 
-			const parentTransform = isPageId(shape.parentId)
+			shapeSnapshot.parentTransform = isPageId(shape.parentId)
 				? null
 				: Mat.Inverse(editor.getShapePageTransform(shape.parentId)!)
-
-			shapeSnapshot.parentTransform = parentTransform
 		})
 	}
 }
@@ -374,7 +358,7 @@ function getTranslatingSnapshot(editor: Editor) {
 
 			pagePoints.push(pagePoint)
 
-			const parentTransform = PageRecordType.isId(shape.parentId)
+			const parentTransform = isPageId(shape.parentId)
 				? null
 				: Mat.Inverse(editor.getShapePageTransform(shape.parentId)!)
 
@@ -414,12 +398,10 @@ function getTranslatingSnapshot(editor: Editor) {
 		(s) => editor.isShapeOfType(s.shape, 'note') && editor.isPointInShape(s.shape, originPagePoint)
 	) as (MovingShapeSnapshot & { shape: TLNoteShape })[]
 
-	if (allHoveredNotes.length === 0) {
-		// noop
-	} else if (allHoveredNotes.length === 1) {
+	if (allHoveredNotes.length === 1) {
 		// just one, easy
 		noteSnapshot = allHoveredNotes[0]
-	} else {
+	} else if (allHoveredNotes.length > 1) {
 		// More than one under the cursor, so we need to find the highest shape in z-order
 		const allShapesSorted = editor.getCurrentPageShapesSorted()
 		noteSnapshot = allHoveredNotes
@@ -559,21 +541,19 @@ export function moveShapesToPoint({
 	const averageSnap = Vec.Sub(averageSnappedPoint, averagePagePoint)
 
 	editor.updateShapes(
-		compact(
-			shapeSnapshots.map(({ shape, pagePoint, parentTransform }): TLShapePartial | null => {
-				const newPagePoint = Vec.Add(pagePoint, averageSnap)
+		shapeSnapshots.map(({ shape, pagePoint, parentTransform }): TLShapePartial => {
+			const newPagePoint = Vec.Add(pagePoint, averageSnap)
 
-				const newLocalPoint = parentTransform
-					? Mat.applyToPoint(parentTransform, newPagePoint)
-					: newPagePoint
+			const newLocalPoint = parentTransform
+				? Mat.applyToPoint(parentTransform, newPagePoint)
+				: newPagePoint
 
-				return {
-					id: shape.id,
-					type: shape.type,
-					x: newLocalPoint.x,
-					y: newLocalPoint.y,
-				}
-			})
-		)
+			return {
+				id: shape.id,
+				type: shape.type,
+				x: newLocalPoint.x,
+				y: newLocalPoint.y,
+			}
+		})
 	)
 }

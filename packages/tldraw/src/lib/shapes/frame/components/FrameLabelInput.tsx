@@ -3,7 +3,7 @@ import { forwardRef, useCallback, useEffect, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../../ui/constants'
 import { useBreakpoint } from '../../../ui/context/breakpoints'
 import { useTranslation } from '../../../ui/hooks/useTranslation/useTranslation'
-import { defaultEmptyAs } from '../frameHelpers'
+import { getFrameTitle } from '../frameHelpers'
 
 export const FrameLabelInput = forwardRef<
 	HTMLInputElement,
@@ -45,8 +45,7 @@ export const FrameLabelInput = forwardRef<
 			const shape = editor.getShape<TLFrameShape>(id)
 			if (!shape) return
 
-			const name = shape.props.name
-			if (name === value) return
+			if (shape.props.name === value) return
 
 			editor.updateShapes([
 				{
@@ -59,15 +58,8 @@ export const FrameLabelInput = forwardRef<
 		[id, editor]
 	)
 
-	const handleBlur = useCallback(
-		(e: React.FocusEvent<HTMLInputElement>) => {
-			renameFrame(e.currentTarget.value)
-		},
-		[renameFrame]
-	)
-
 	const handleChange = useCallback(
-		(e: React.ChangeEvent<HTMLInputElement>) => {
+		(e: React.SyntheticEvent<HTMLInputElement>) => {
 			renameFrame(e.currentTarget.value)
 		},
 		[renameFrame]
@@ -79,7 +71,7 @@ export const FrameLabelInput = forwardRef<
 			promptOpen.current = false
 			return
 		}
-		if (isEditing && shouldUseWindowPrompt && !promptOpen.current) {
+		if (shouldUseWindowPrompt && !promptOpen.current) {
 			promptOpen.current = true
 			const shape = editor.getShape<TLFrameShape>(id)
 			const currentName = shape?.props.name ?? ''
@@ -103,12 +95,12 @@ export const FrameLabelInput = forwardRef<
 				value={name}
 				autoFocus={!shouldUseWindowPrompt}
 				onKeyDown={handleKeyDown}
-				onBlur={handleBlur}
+				onBlur={handleChange}
 				onChange={handleChange}
 				onPointerDown={handlePointerDown}
 				draggable={false}
 			/>
-			{defaultEmptyAs(name, 'Frame') + String.fromCharCode(8203)}
+			{getFrameTitle(name)}
 		</div>
 	)
 })

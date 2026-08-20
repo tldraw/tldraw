@@ -1,4 +1,4 @@
-import { exhaustiveSwitchError, TLArrowShape } from '@tldraw/editor'
+import { exhaustiveSwitchError } from '@tldraw/editor'
 import { PathBuilder, PathBuilderOpts } from '../shared/PathBuilder'
 import { TLArrowInfo } from './arrow-types'
 import { getRouteHandlePath } from './elbow/getElbowArrowInfo'
@@ -41,7 +41,7 @@ export function getArrowBodyPathBuilder(info: TLArrowInfo): PathBuilder {
 	}
 }
 
-export function getArrowBodyPath(shape: TLArrowShape, info: TLArrowInfo, opts: PathBuilderOpts) {
+export function getArrowBodyPath(info: TLArrowInfo, opts: PathBuilderOpts) {
 	return getArrowBodyPathBuilder(info).toSvg(opts)
 }
 

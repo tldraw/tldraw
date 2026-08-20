@@ -88,7 +88,7 @@ export class Erasing extends StateNode {
 
 		// Otherwise, erasing shapes are all the shapes that were hit before plus any new shapes that are hit
 		const erasing = new Set<TLShapeId>(erasingShapeIds)
-		const minDist = this.editor.getHitTestMargin()
+		const minDist = editor.getHitTestMargin()
 
 		// Create bounds around line segment with margin
 		const lineBounds = Box.FromPoints([previousPagePoint, currentPagePoint]).expandBy(minDist)
@@ -143,14 +143,13 @@ export class Erasing extends StateNode {
 					erasing.add(outermost.id)
 				}
 			}
-
-			this._erasingShapeIds = [...erasing]
 		}
 
+		this._erasingShapeIds = [...erasing]
 		// Remove the hit shapes, except if they're in the list of excluded shapes
 		// (these excluded shapes will be any frames or groups the pointer was inside of
 		// when the user started erasing)
-		this.editor.setErasingShapes(this._erasingShapeIds.filter((id) => !excludedShapeIds.has(id)))
+		editor.setErasingShapes(this._erasingShapeIds.filter((id) => !excludedShapeIds.has(id)))
 	}
 
 	complete(info?: TLPointerEventInfo) {

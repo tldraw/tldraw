@@ -120,48 +120,25 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 	override getGeometry(shape: TLImageShape): Geometry2d {
 		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : null
-		const mimeType = asset && 'mimeType' in asset.props ? asset.props.mimeType : null
-		const supportsTransparency = mimeType != null && TRANSPARENT_IMAGE_MIMETYPES.includes(mimeType)
-		const assetSrc = asset && 'src' in asset.props ? asset.props.src : null
-
-		if (shape.props.crop?.isCircle) {
-			if (supportsTransparency && assetSrc) {
-				const src = assetSrc
-				return new ImageEllipse2d({
-					width: shape.props.w,
-					height: shape.props.h,
-					isFilled: true,
-					alphaDataGetter: () => getAlphaData(src),
-					crop: shape.props.crop,
-					flipX: shape.props.flipX,
-					flipY: shape.props.flipY,
-				})
-			}
-			return new Ellipse2d({
-				width: shape.props.w,
-				height: shape.props.h,
-				isFilled: true,
-			})
-		}
+		const { supportsTransparency, assetSrc } = getAssetTransparencyInfo(asset)
+		const { w: width, h: height, crop, flipX, flipY } = shape.props
 
 		if (supportsTransparency && assetSrc) {
-			const src = assetSrc
-			return new ImageRectangle2d({
-				width: shape.props.w,
-				height: shape.props.h,
+			const alphaConfig = {
+				width,
+				height,
 				isFilled: true,
-				alphaDataGetter: () => getAlphaData(src),
-				crop: shape.props.crop,
-				flipX: shape.props.flipX,
-				flipY: shape.props.flipY,
-			})
+				alphaDataGetter: () => getAlphaData(assetSrc),
+				crop,
+				flipX,
+				flipY,
+			}
+			return crop?.isCircle ? new ImageEllipse2d(alphaConfig) : new ImageRectangle2d(alphaConfig)
 		}
 
-		return new Rectangle2d({
-			width: shape.props.w,
-			height: shape.props.h,
-			isFilled: true,
-		})
+		return crop?.isCircle
+			? new Ellipse2d({ width, height, isFilled: true })
+			: new Rectangle2d({ width, height, isFilled: true })
 	}
 
 	override getAriaDescriptor(shape: TLImageShape) {
@@ -259,11 +236,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 	override onDoubleClickEdge(shape: TLImageShape) {
 		const props = shape.props
-		if (!props) return
-
-		if (this.editor.getCroppingShapeId() !== shape.id) {
-			return
-		}
+		if (this.editor.getCroppingShapeId() !== shape.id) return
 
 		const crop = structuredClone(props.crop) || {
 			topLeft: { x: 0, y: 0 },
@@ -354,9 +327,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 		return undefined
 	}, [editor, isAnimated, prefersReducedMotion, url])
 
-	const mimeType = asset && 'mimeType' in asset.props ? asset.props.mimeType : null
-	const supportsTransparency = mimeType != null && TRANSPARENT_IMAGE_MIMETYPES.includes(mimeType)
-	const assetSrc = asset && 'src' in asset.props ? asset.props.src : null
+	const { supportsTransparency, assetSrc } = getAssetTransparencyInfo(asset)
 
 	useEffect(() => {
 		if (url && supportsTransparency) {
@@ -404,7 +375,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 				>
 					{asset ? null : <BrokenAssetIcon />}
 				</div>
-				{'url' in shape.props && shape.props.url && <HyperlinkButton url={shape.props.url} />}
+				{shape.props.url && <HyperlinkButton url={shape.props.url} />}
 			</HTMLContainer>
 		)
 	}
@@ -475,6 +446,14 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 		</>
 	)
 })
+
+function getAssetTransparencyInfo(asset: TLAsset | null | undefined) {
+	const mimeType = asset && 'mimeType' in asset.props ? asset.props.mimeType : null
+	return {
+		supportsTransparency: mimeType != null && TRANSPARENT_IMAGE_MIMETYPES.includes(mimeType),
+		assetSrc: asset && 'src' in asset.props ? asset.props.src : null,
+	}
+}
 
 function getIsAnimated(editor: Editor, assetId: TLAssetId) {
 	const asset = assetId ? editor.getAsset(assetId) : undefined
@@ -589,7 +568,7 @@ function SvgImage({ shape, src }: { shape: TLImageShape; src: string }) {
 						width={width}
 						height={height}
 						aria-label={shape.props.altText}
-						style={flip ? { ...flip } : { transform: cropTransform }}
+						style={flip ?? { transform: cropTransform }}
 					/>
 				</g>
 			</>
