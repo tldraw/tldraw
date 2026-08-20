@@ -94,7 +94,8 @@ function matchesValue(matcher: QueryValueMatcher<any>, value: unknown): boolean 
 	if (value === undefined) return false
 	if ('eq' in matcher && !sameValueZero(value, matcher.eq)) return false
 	if ('neq' in matcher && sameValueZero(value, matcher.neq)) return false
-	if ('gt' in matcher && (typeof value !== 'number' || value <= matcher.gt)) return false
+	// `>` rather than `!(<=)` so `NaN` (as value or bound) never satisfies `gt`.
+	if ('gt' in matcher && !(typeof value === 'number' && value > matcher.gt)) return false
 	return true
 }
 
