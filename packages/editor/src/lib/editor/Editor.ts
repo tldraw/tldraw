@@ -7725,10 +7725,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const maxWidth = commonBounds.width
 
-		// sort the shape clusters by width and then height, descending
+		// sort the shape clusters by width and then height, descending: potpack fills each row's
+		// right-hand space with the shapes that follow, so they must be no taller than the row
 		shapeClustersToPack
-			.sort((a, b) => a.pageBounds.width - b.pageBounds.width)
-			.sort((a, b) => a.pageBounds.height - b.pageBounds.height)
+			.sort((a, b) => b.pageBounds.width - a.pageBounds.width)
+			.sort((a, b) => b.pageBounds.height - a.pageBounds.height)
 
 		// Start with is (sort of) the square of the area
 		const startWidth = Math.max(Math.ceil(Math.sqrt(area / 0.95)), maxWidth)
