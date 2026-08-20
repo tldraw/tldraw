@@ -46,7 +46,7 @@ import { EditorProvider, useEditor } from './hooks/useEditor'
 import { EditorComponentsProvider } from './hooks/useEditorComponents'
 import { useEvent } from './hooks/useEvent'
 import { useForceUpdate } from './hooks/useForceUpdate'
-import { useShallowObjectIdentity } from './hooks/useIdentity'
+import { useDeepObjectIdentity, useShallowObjectIdentity } from './hooks/useIdentity'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useRefState } from './hooks/useRefState'
 import { useStateAttribute } from './hooks/useStateAttribute'
@@ -311,18 +311,23 @@ export const TldrawEditor = memo(function TldrawEditor({
 	const ErrorFallback =
 		components?.ErrorFallback === undefined ? DefaultErrorFallback : components?.ErrorFallback
 
-	// Merge deprecated props with options
-	// options values take precedence over the deprecated props
+	// Merge deprecated props with options (options win). Nested option objects are
+	// identity-stabilised too: `options` is a dependency of the editor-creating effect, so an
+	// inline `options={{ camera: { ... } }}` would otherwise recreate the editor on every render.
+	const camera = useDeepObjectIdentity(_options?.camera)
+	const text = useShallowObjectIdentity(_options?.text ?? _textOptions)
+	const mergedDeepLinks = _options?.deepLinks ?? _deepLinks
+	const deepLinkOptions = useDeepObjectIdentity(
+		mergedDeepLinks === true ? undefined : mergedDeepLinks
+	)
+	const deepLinks = mergedDeepLinks === true ? true : deepLinkOptions
 	const mergedOptions = useMemo(() => {
 		let result = _options
-		if (_textOptions) {
-			result = { ...result, text: result?.text ?? _textOptions }
-		}
-		if (_deepLinks !== undefined) {
-			result = { ...result, deepLinks: result?.deepLinks ?? _deepLinks }
-		}
+		if (camera !== undefined) result = { ...result, camera }
+		if (text !== undefined) result = { ...result, text }
+		if (deepLinks !== undefined) result = { ...result, deepLinks }
 		return result
-	}, [_options, _textOptions, _deepLinks])
+	}, [_options, camera, text, deepLinks])
 
 	// apply defaults. if you're using the bare @tldraw/editor package, we
 	// default these to the "tldraw zero" configuration. We have different
@@ -660,19 +665,22 @@ function TldrawEditorWithReadyStore({
 	useEffect(
 		function handleFocusOnPointerDownForPreserveFocusMode() {
 			if (!editor) return
+			const container = editor.getContainer()
 
 			function handleFocusOnPointerDown() {
 				if (!editor) return
 				editor.focus()
 			}
 
-			function handleBlurOnPointerDown() {
+			function handleBlurOnPointerDown(e: PointerEvent) {
 				if (!editor) return
+				// The same pointerdown bubbles from the container to the body; blurring here would
+				// cancel the interaction the container listener just focused for.
+				if (container.contains(e.target as Node | null)) return
 				editor.blur()
 			}
 
 			if (autoFocus && noAutoFocus()) {
-				const container = editor.getContainer()
 				container.addEventListener('pointerdown', handleFocusOnPointerDown)
 				container.ownerDocument.body.addEventListener('pointerdown', handleBlurOnPointerDown)
 
