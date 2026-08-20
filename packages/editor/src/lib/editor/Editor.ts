@@ -3141,11 +3141,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const collaborators = this.getCollaborators()
 		let leaderPresence = null as null | TLInstancePresence
 		while (targetUserId && !visited.includes(targetUserId)) {
-			leaderPresence = collaborators.find((c) => c.userId === targetUserId) ?? null
-			targetUserId = leaderPresence?.followingUserId ?? null
-			if (leaderPresence) {
-				visited.push(leaderPresence.userId)
-			}
+			const nextPresence = collaborators.find((c) => c.userId === targetUserId)
+			// Stop at the last resolvable presence, otherwise a leader whose own leader has left
+			// (or whose presence hasn't arrived yet) can't be followed at all
+			if (!nextPresence) break
+			leaderPresence = nextPresence
+			targetUserId = nextPresence.followingUserId ?? null
+			visited.push(nextPresence.userId)
 		}
 		return leaderPresence
 	}
