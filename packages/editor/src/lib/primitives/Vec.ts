@@ -164,9 +164,9 @@ export class Vec {
 	}
 
 	cross(V: VecLike) {
-		this.x = this.y * V.z! - this.z * V.y
-		this.y = this.z * V.x - this.x * V.z!
-		// this.z = this.x * V.y - this.y * V.x
+		const { x, y, z } = this
+		this.x = y * V.z! - z * V.y
+		this.y = z * V.x - x * V.z!
 		return this
 	}
 

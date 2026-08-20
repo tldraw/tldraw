@@ -339,6 +339,13 @@ describe('Vec.Slope', () => {
 	})
 })
 
+describe('Vec.cross', () => {
+	it('Matches the static Vec.Cross.', () => {
+		expect(Vec.Cross(new Vec(1, 2, 3), new Vec(4, 5, 6))).toMatchObject({ x: -3, y: 6 })
+		expect(new Vec(1, 2, 3).cross(new Vec(4, 5, 6))).toMatchObject({ x: -3, y: 6 })
+	})
+})
+
 describe('Vec.ToAngle', () => {
 	it('Gets an angle from a vector.', () => {
 		expect(Vec.ToAngle(new Vec(1, 0.5))).toEqual(0.4636476090008061)
