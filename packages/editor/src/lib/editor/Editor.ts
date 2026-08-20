@@ -5150,8 +5150,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.setCamera(prevCamera)
 
 			if (content) {
-				// If we had content on the previous page, put it on the new page
-				return this.putContentOntoCurrentPage(content)
+				// If we had content on the previous page, put it on the new page at the same coordinates
+				// (otherwise offscreen content gets re-centred on the viewport)
+				return this.putContentOntoCurrentPage(content, { preservePosition: true })
 			}
 		})
 
