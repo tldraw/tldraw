@@ -147,15 +147,46 @@ describe('intersectLineSegmentLineSegment', () => {
 	})
 
 	describe('touching endpoints', () => {
-		it('should return null when segments touch at endpoints (coincident case)', () => {
+		it('should find intersection when segments touch at endpoints', () => {
 			const a1 = new Vec(0, 0)
 			const a2 = new Vec(5, 5)
 			const b1 = new Vec(5, 5)
 			const b2 = new Vec(10, 0)
 
+			// a2 === b1 is a touch, not a coincident (collinear) pair
 			const result = intersectLineSegmentLineSegment(a1, a2, b1, b2)
 
-			expect(result).toBeNull() // coincident case
+			expect(result).not.toBeNull()
+			expect(result!.x).toBeCloseTo(5, 5)
+			expect(result!.y).toBeCloseTo(5, 5)
+		})
+
+		it('should find intersection when one segment starts on the other (T-junction)', () => {
+			// Used to return null for a1/b1 touches but not a2/b2 touches
+			expect(
+				intersectLineSegmentLineSegment(
+					new Vec(0, 0),
+					new Vec(0, 10),
+					new Vec(-5, 0),
+					new Vec(5, 0)
+				)
+			).toMatchObject({ x: 0, y: 0 })
+			expect(
+				intersectLineSegmentLineSegment(
+					new Vec(-5, 0),
+					new Vec(5, 0),
+					new Vec(0, 0),
+					new Vec(0, 10)
+				)
+			).toMatchObject({ x: 0, y: 0 })
+			expect(
+				intersectLineSegmentLineSegment(
+					new Vec(0, 10),
+					new Vec(0, 0),
+					new Vec(-5, 0),
+					new Vec(5, 0)
+				)
+			).toMatchObject({ x: 0, y: 0 })
 		})
 
 		it('should return null when segments touch at one endpoint (coincident case)', () => {
@@ -483,9 +514,12 @@ describe('intersectLineSegmentPolyline', () => {
 		const points = [new Vec(0, 10), new Vec(5, 5), new Vec(5, 5), new Vec(10, 0)]
 		const result = intersectLineSegmentPolyline(a1, a2, points)
 		expect(result).not.toBeNull()
-		expect(result!.length).toBe(1)
-		expect(result![0].x).toBeCloseTo(5, 5)
-		expect(result![0].y).toBeCloseTo(5, 5)
+		// the crossing is at a shared vertex, so both non-degenerate edges report it
+		expect(result!.length).toBe(2)
+		for (const point of result!) {
+			expect(point.x).toBeCloseTo(5, 5)
+			expect(point.y).toBeCloseTo(5, 5)
+		}
 	})
 
 	it('should handle polyline with zero-length segments', () => {
@@ -494,9 +528,12 @@ describe('intersectLineSegmentPolyline', () => {
 		const points = [new Vec(0, 10), new Vec(5, 5), new Vec(5, 5), new Vec(10, 0)]
 		const result = intersectLineSegmentPolyline(a1, a2, points)
 		expect(result).not.toBeNull()
-		expect(result!.length).toBe(1)
-		expect(result![0].x).toBeCloseTo(5, 5)
-		expect(result![0].y).toBeCloseTo(5, 5)
+		// the zero-length edge contributes nothing; the two edges sharing the vertex each report it
+		expect(result!.length).toBe(2)
+		for (const point of result!) {
+			expect(point.x).toBeCloseTo(5, 5)
+			expect(point.y).toBeCloseTo(5, 5)
+		}
 	})
 
 	it('should handle polyline that touches segment endpoint', () => {
@@ -504,7 +541,11 @@ describe('intersectLineSegmentPolyline', () => {
 		const a2 = new Vec(5, 5)
 		const points = [new Vec(5, 5), new Vec(10, 0)]
 		const result = intersectLineSegmentPolyline(a1, a2, points)
-		expect(result).toBeNull() // coincident case
+		// touching at an endpoint is an intersection, not a coincident pair
+		expect(result).not.toBeNull()
+		expect(result!.length).toBe(1)
+		expect(result![0].x).toBeCloseTo(5, 5)
+		expect(result![0].y).toBeCloseTo(5, 5)
 	})
 
 	it('should handle complex polyline with multiple intersections', () => {
@@ -562,9 +603,12 @@ describe('intersectLineSegmentPolyline', () => {
 			const points = [new Vec(0, 0), new Vec(5, 5), new Vec(10, 0)] // vertex at (5,5)
 			const result = intersectLineSegmentPolyline(a1, a2, points)
 			expect(result).not.toBeNull()
-			expect(result!.length).toBe(1)
-			expect(result![0].x).toBeCloseTo(5, 5)
-			expect(result![0].y).toBeCloseTo(5, 5)
+			// both edges sharing the vertex report the crossing
+			expect(result!.length).toBe(2)
+			for (const point of result!) {
+				expect(point.x).toBeCloseTo(5, 5)
+				expect(point.y).toBeCloseTo(5, 5)
+			}
 		})
 
 		it('should detect intersection when line segment passes through a polyline vertext (floating point error case)', () => {
@@ -642,15 +686,24 @@ describe('intersectLineSegmentPolygon', () => {
 		expect(result).toBeNull()
 	})
 
-	it('should return single intersection at exit corner', () => {
+	it('should return intersections at both corners a diagonal touches', () => {
 		const a1 = new Vec(0, 0)
 		const a2 = new Vec(10, 10)
 		const points = [new Vec(0, 10), new Vec(10, 10), new Vec(10, 0), new Vec(0, 0)]
 		const result = intersectLineSegmentPolygon(a1, a2, points)
 		expect(result).not.toBeNull()
-		expect(result!.length).toBe(1)
-		expect(result![0].x).toBeCloseTo(10, 5)
-		expect(result![0].y).toBeCloseTo(10, 5)
+		// the segment starts on one corner and ends on the other; each corner is
+		// shared by two edges, so each is reported twice
+		const sorted = result!
+			.slice()
+			.sort((a, b) => a.x - b.x)
+			.map((p) => [p.x, p.y])
+		expect(sorted).toEqual([
+			[0, 0],
+			[0, 0],
+			[10, 10],
+			[10, 10],
+		])
 	})
 })
 

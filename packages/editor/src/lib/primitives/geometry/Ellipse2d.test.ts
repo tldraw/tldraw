@@ -243,3 +243,13 @@ describe('Ellipse2d.getSvgPathData', () => {
 		expect(ellipse().getSvgPathData(false)).toBe(ellipse().getSvgPathData())
 	})
 })
+
+describe('Ellipse2d.hitTestLineSegment with a margin', () => {
+	it('honours the distance margin', () => {
+		const e = new Ellipse2d({ width: 100, height: 100, isFilled: false })
+		const A = new Vec(50, -5)
+		const B = new Vec(60, -5)
+		expect(e.hitTestLineSegment(A, B)).toBe(false)
+		expect(e.hitTestLineSegment(A, B, 10)).toBe(true)
+	})
+})
