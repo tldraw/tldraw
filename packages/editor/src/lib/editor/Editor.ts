@@ -5844,14 +5844,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getSelectedShapeAtPoint(point: VecLike): TLShape | undefined {
 		const selectedShapeIds = this.getSelectedShapeIds()
-		const margin = this.options.hitTestMargin / this.getZoomLevel()
+		if (selectedShapeIds.length === 0) return undefined
+		const selectedShapeIdSet = new Set(selectedShapeIds)
+		const margin = this.getHitTestMargin()
 		const sortedShapes = this.getCurrentPageShapesSorted()
 
 		// iterate from the top (highest z-index) to find the top-most matching shape
 		for (let i = sortedShapes.length - 1; i >= 0; i--) {
 			const shape = sortedShapes[i]
 			if (shape.type === 'group') continue
-			if (!selectedShapeIds.includes(shape.id)) continue
+			if (!selectedShapeIdSet.has(shape.id)) continue
 			if (
 				this.getShapeGeometry(shape).hitTestPoint(
 					this.getPointInShapeSpace(shape, point),
@@ -6022,9 +6024,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// other hits would be occluded by the shape.
 						return inMarginClosestToEdgeHit || shape
 					} else {
-						// If the shape is bigger than the viewport, then skip it.
-						if (this.getShapePageBounds(shape)!.contains(viewportPageBounds)) continue
-
 						// If we're close to the edge of the shape, and if it's the closest edge among
 						// all the edges that we've gotten close to so far, then we will want to hit the
 						// shape unless we hit something else or closer in later iterations.
@@ -6045,6 +6044,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 								inMarginClosestToEdgeHit = shape
 							}
 						} else if (!inMarginClosestToEdgeHit) {
+							// If the shape is bigger than the viewport, then skip it. (Only here: its
+							// edges should still be hittable within the margin.)
+							if (this.getShapePageBounds(shape)!.contains(viewportPageBounds)) continue
+
 							// If we're not within margin distance to any edge, and if the
 							// shape is hollow, then we want to hit the shape with the
 							// smallest area. (There's a bug here with self-intersecting
@@ -6063,6 +6066,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// If the distance is less than the margin, return the shape as the hit.
 				// Use the editor's configurable hit test margin.
 				if (distance < this.getHitTestMargin()) {
+					// An edge we already hit (above this shape) that is at least as close still wins,
+					// matching the closest-edge rule used for hollow shapes
+					if (inMarginClosestToEdgeHit && inMarginClosestToEdgeDistance <= distance) {
+						return inMarginClosestToEdgeHit
+					}
 					return shape
 				}
 			}
