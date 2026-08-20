@@ -129,7 +129,13 @@ import { Geometry2d } from '../primitives/geometry/Geometry2d'
 import { Group2d } from '../primitives/geometry/Group2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
 import { Mat, MatLike } from '../primitives/Mat'
-import { PI, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
+import {
+	HALF_PI,
+	approximately,
+	areAnglesCompatible,
+	clamp,
+	pointInPolygon,
+} from '../primitives/utils'
 import { Vec, VecLike } from '../primitives/Vec'
 import { areShapesContentEqual } from '../utils/areShapesContentEqual'
 import { dataUrlToFile } from '../utils/assets'
@@ -2649,9 +2655,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getSelectionRotatedScreenBounds(): Box | undefined {
 		const bounds = this.getSelectionRotatedPageBounds()
 		if (!bounds) return undefined
-		const { x, y } = this.pageToScreen(bounds.point)
-		const zoom = this.getZoomLevel()
-		return new Box(x, y, bounds.width * zoom, bounds.height * zoom)
+		// Don't use pageToScreen here: it reads the screen bounds without capturing them, so this
+		// computed would never invalidate when the container moves
+		const screenBounds = this.getViewportScreenBounds()
+		const { x: cx, y: cy, z: zoom } = this.getCamera()
+		return new Box(
+			(bounds.x + cx) * zoom + screenBounds.x,
+			(bounds.y + cy) * zoom + screenBounds.y,
+			bounds.width * zoom,
+			bounds.height * zoom
+		)
 	}
 
 	// Focus Group
@@ -4075,9 +4088,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			let newCy = cy + dy
 			let newCz = cz
 
-			// animate zoom if z direction is passed in
+			// animate zoom if z direction is passed in. Use an exponential factor so that a single
+			// long frame can't drive the zoom to zero or negative (which would give NaN coordinates)
 			if (dirZ !== 0) {
-				newCz = cz * (1 + dirZ * currentSpeed * elapsed)
+				newCz = cz * Math.exp(dirZ * currentSpeed * elapsed)
 				// Adjust x/y to keep the viewport center fixed while zooming
 				const center = this.getViewportScreenCenter()
 				newCx += center.x / newCz - center.x / cz
@@ -7395,9 +7409,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// optionally filter to axis-aligned shapes (rotation is a multiple of 90 degrees)
 		if (opts?.filterAxisAligned) {
-			freshShapes = freshShapes.filter(
-				(s) => this.getShapePageTransform(s)?.rotation() % (PI / 2) === 0
-			)
+			freshShapes = freshShapes.filter((s) => {
+				// Page rotations come back through atan2 on a composed matrix, so a 270° shape can land
+				// a hair either side of the multiple; an exact === 0 check drops it
+				const remainder = Math.abs(this.getShapePageTransform(s).rotation() % HALF_PI)
+				return Math.min(remainder, HALF_PI - remainder) < 1e-9
+			})
 		}
 
 		const clusters: { shapes: TLShape[]; pageBounds: Box }[] = []
@@ -7618,12 +7635,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		let shapeGap: number = 0
 
+		// Stack in spatial order rather than input (z) order, otherwise shapes swap places
+		shapeClustersToStack.sort((a, b) => a.pageBounds[min] - b.pageBounds[min])
+
 		if (_gap === 0) {
 			// note: this is not used in the current tldraw.com; there we use a specified stack
 
 			const gaps: Record<number, number> = {}
-
-			shapeClustersToStack.sort((a, b) => a.pageBounds[min] - b.pageBounds[min])
 
 			// Collect all of the gaps between shapes. We want to find
 			// patterns (equal gaps between shapes) and use the most common
@@ -9946,7 +9964,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (shapeIdMap.has(newShape.parentId)) {
 				newShape.parentId = shapeIdMap.get(oldShape.parentId)!
 			} else {
-				rootShapeIds.push(newShape.id)
 				// newShape.parentId = pasteParentId
 				newShape.index = index
 				index = getIndexAbove(index)
@@ -9989,10 +10006,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 				(asset.type === 'video' && asset.props.src?.startsWith('data:video'))
 			) {
 				// it's src is a base64 image or video; we need to create a new asset without the src,
-				// then create a new asset from the original src. So we save a copy of the original asset,
-				// then delete the src from the original asset.
-				assetsToUpdate.push(structuredClone(asset as TLImageAsset | TLVideoAsset))
-				asset.props.src = null
+				// then create a new asset from the original src. So we keep the original asset for the
+				// upload and create a copy with its src removed. Copy rather than mutate: when no
+				// migration applies, migrateStoreSnapshot hands back the caller's own record objects.
+				assetsToUpdate.push(asset as TLImageAsset | TLVideoAsset)
+				const assetWithoutSrc = structuredClone(asset as TLImageAsset | TLVideoAsset)
+				assetWithoutSrc.props.src = null
+				assetsToCreate.push(assetWithoutSrc)
+				continue
 			}
 
 			// Add the asset to the list of assets to create
