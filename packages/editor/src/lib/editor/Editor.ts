@@ -8948,13 +8948,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? (shapes as TLShapeId[])
 				: (shapes.map((s) => (s as TLShape).id) as TLShapeId[])
 
-		if (ids.length <= 1) return this
-
 		const shapesToGroup = compact(
 			(this._shouldIgnoreShapeLock ? ids : this._getUnlockedShapeIds(ids)).map((id) =>
 				this.getShape(id)
 			)
 		)
+		// Check the count after dropping locked / missing shapes, otherwise two locked ids get
+		// past this and Box.Common([]) throws below
+		if (shapesToGroup.length <= 1) return this
+
 		const sortedShapeIds = shapesToGroup.sort(sortByIndex).map((s) => s.id)
 		const childBounds = compact(shapesToGroup.map((shape) => this.getShapePageBounds(shape)))
 		const pageBounds = Box.Common(childBounds)
@@ -8967,11 +8969,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const parentId = this.findCommonAncestor(shapesToGroup) ?? this.getCurrentPageId()
 
-		// Only group when the select tool is active
-		if (this.getCurrentToolId() !== 'select') return this
-
-		// If not already in idle, cancel the current interaction (get back to idle)
-		if (!this.isIn('select.idle')) {
+		// If the select tool is mid-interaction, cancel it (get back to idle) before grouping
+		if (this.isIn('select') && !this.isIn('select.idle')) {
 			this.cancel()
 		}
 
@@ -8981,6 +8980,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			.sort(sortByIndex)
 
 		const highestIndex = shapesWithRootParent[shapesWithRootParent.length - 1]?.index
+
+		// createShapes bails out when the page is full, so check first; otherwise the shapes get
+		// reparented into a group that was never created and vanish from the page
+		if (!this.canCreateShapes([groupId])) {
+			alertMaxShapes(this)
+			return this
+		}
 
 		this.run(() => {
 			this.createShapes([
@@ -9038,9 +9044,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (shapesToUngroup.length === 0) return this
 
-		// todo: the editor shouldn't know about the select tool, move to group / ungroup actions
-		if (this.getCurrentToolId() !== 'select') return this
-		if (!this.isIn('select.idle')) {
+		// If the select tool is mid-interaction, cancel it (get back to idle) before ungrouping
+		if (this.isIn('select') && !this.isIn('select.idle')) {
 			this.cancel()
 		}
 
@@ -9063,10 +9068,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (groups.length === 0) return this
 
 		this.run(() => {
-			let group: TLGroupShape
-
 			for (let i = 0, n = groups.length; i < n; i++) {
-				group = groups[i]
+				// Re-read the group: ungrouping an outer group earlier in this loop reparents the
+				// inner ones, and the stale parentId would send their children into a group that's
+				// about to be deleted
+				const group = this.getShape<TLGroupShape>(groups[i].id)
+				if (!group) continue
 				const childIds = this.getSortedChildIdsForParent(group.id)
 
 				for (let j = 0, n = childIds.length; j < n; j++) {
