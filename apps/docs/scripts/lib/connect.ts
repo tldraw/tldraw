@@ -13,17 +13,6 @@ export async function connect(opts: { reset?: boolean; mode: 'readonly' | 'readw
 	})
 
 	if (opts.reset) {
-		// Create the authors table if it does not exist
-
-		await db.run(`DROP TABLE IF EXISTS authors`)
-		await db.run(`CREATE TABLE IF NOT EXISTS authors (
-			id TEXT PRIMARY_KEY,
-			name TEXT NOT NULL,
-			email TEXT NOT NULL,
-			twitter TEXT NOT NULL,
-			image TEXT NOT NULL
-		)`)
-
 		// Create the sections table if it does not exist
 
 		await db.run(`DROP TABLE IF EXISTS sections`)
@@ -82,7 +71,6 @@ export async function connect(opts: { reset?: boolean; mode: 'readonly' | 'readw
 			path TEXT,
 			githubLink TEXT,
 			embed TEXT,
-			FOREIGN KEY (authorId) REFERENCES authors(id),
 			FOREIGN KEY (sectionId) REFERENCES sections(id),
 			FOREIGN KEY (categoryId) REFERENCES categories(id)
 		)`)
