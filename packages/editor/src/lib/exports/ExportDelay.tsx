@@ -42,7 +42,7 @@ export class ExportDelay {
 
 		const result = await Promise.race([timeoutPromise, resolvePromise])
 		if (result === 'timeout') {
-			console.warn('[tldraw] Export delay timed out after ${this.maxDelayTimeMs}ms')
+			console.warn(`[tldraw] Export delay timed out after ${this.maxDelayTimeMs}ms`)
 		}
 
 		this.isResolved = true

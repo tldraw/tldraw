@@ -6,12 +6,23 @@ import {
 	unsafe__withoutCapture,
 } from '@tldraw/state'
 import type { RecordsDiff } from '@tldraw/store'
-import { TLPageId, TLShape, TLShapeId, isBinding, isPageId, isShape } from '@tldraw/tlschema'
-import type { TLRecord } from '@tldraw/tlschema'
+import {
+	TLPageId,
+	TLRecord,
+	TLShape,
+	TLShapeId,
+	isBinding,
+	isPageId,
+	isShape,
+} from '@tldraw/tlschema'
 import { objectMapValues } from '@tldraw/utils'
 import { Box } from '../../../primitives/Box'
 import type { Editor } from '../../Editor'
 import { RBushIndex, type SpatialElement } from './RBushIndex'
+
+function toSpatialElement(id: TLShapeId, bounds: Box): SpatialElement {
+	return { minX: bounds.minX, minY: bounds.minY, maxX: bounds.maxX, maxY: bounds.maxY, id }
+}
 
 /**
  * Manages spatial indexing for efficient shape location queries.
@@ -102,13 +113,7 @@ export class SpatialIndexManager {
 		for (const shape of this.editor.getCurrentPageShapes()) {
 			const bounds = this.editor.getShapePageBounds(shape.id)
 			if (bounds && bounds.isValid()) {
-				elements.push({
-					minX: bounds.minX,
-					minY: bounds.minY,
-					maxX: bounds.maxX,
-					maxY: bounds.maxY,
-					id: shape.id,
-				})
+				elements.push(toSpatialElement(shape.id, bounds))
 			}
 		}
 
@@ -253,13 +258,7 @@ export class SpatialIndexManager {
 			if (bounds && bounds.isValid()) {
 				if (!this.areBoundsEqualToSpatialElement(bounds, indexedElement)) {
 					pendingRemoves.delete(id)
-					pendingUpserts.push({
-						minX: bounds.minX,
-						minY: bounds.minY,
-						maxX: bounds.maxX,
-						maxY: bounds.maxY,
-						id,
-					})
+					pendingUpserts.push(toSpatialElement(id, bounds))
 				}
 			} else if (this.rbush.has(id)) {
 				pendingRemoves.add(id)
@@ -272,12 +271,8 @@ export class SpatialIndexManager {
 		return true
 	}
 
-	private areBoundsEqualToSpatialElement(
-		a: Box | undefined,
-		b: SpatialElement | undefined
-	): boolean {
-		if (!a && !b) return true
-		if (!a || !b) return false
+	private areBoundsEqualToSpatialElement(a: Box, b: SpatialElement | undefined): boolean {
+		if (!b) return false
 		return a.minX === b.minX && a.minY === b.minY && a.maxX === b.maxX && a.maxY === b.maxY
 	}
 

@@ -1,4 +1,4 @@
-import { TLShape, TLShapeId } from '@tldraw/tlschema'
+import { TLShape } from '@tldraw/tlschema'
 import { IndexKey, compact } from '@tldraw/utils'
 import { Vec } from '../../primitives/Vec'
 import { BaseBoxShapeUtil, TLBaseBoxShape } from './BaseBoxShapeUtil'
@@ -82,24 +82,20 @@ export abstract class BaseFrameLikeShapeUtil<
 		const { editor } = this
 
 		if (draggingShapes.every((s) => s.parentId === shape.id)) return
-
-		// Check to see whether any of the shapes can have their old index restored
-		let canRestoreOriginalIndices = false
-		const previousChildren = draggingShapes.filter(
-			(s) => shape.id === (initialParentIds.get(s.id) as TLShapeId)
-		)
-
-		if (previousChildren.length > 0) {
-			const currentChildren = compact(
-				editor.getSortedChildIdsForParent(shape).map((id) => editor.getShape(id))
-			)
-			if (previousChildren.every((s) => !currentChildren.find((c) => c.index === s.index))) {
-				canRestoreOriginalIndices = true
-			}
-		}
-
 		// If any of the children are the ancestor of the frame, quit here
 		if (draggingShapes.some((s) => editor.hasAncestor(shape, s.id))) return
+
+		// Check to see whether any of the shapes can have their old index restored
+		const previousChildren = draggingShapes.filter((s) => initialParentIds.get(s.id) === shape.id)
+		let canRestoreOriginalIndices = false
+		if (previousChildren.length > 0) {
+			const currentIndices = new Set(
+				compact(editor.getSortedChildIdsForParent(shape).map((id) => editor.getShape(id))).map(
+					(c) => c.index
+				)
+			)
+			canRestoreOriginalIndices = previousChildren.every((s) => !currentIndices.has(s.index))
+		}
 
 		editor.reparentShapes(draggingShapes, shape.id)
 

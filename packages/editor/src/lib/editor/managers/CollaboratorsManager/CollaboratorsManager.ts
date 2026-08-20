@@ -1,6 +1,6 @@
 import { EMPTY_ARRAY, atom, computed } from '@tldraw/state'
 import type { TLInstancePresence } from '@tldraw/tlschema'
-import { areArraysShallowEqual, maxBy } from '@tldraw/utils'
+import { areArraysShallowEqual } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
 
 /**
@@ -54,14 +54,17 @@ export class CollaboratorsManager {
 	getCollaborators(): TLInstancePresence[] {
 		const allPresenceRecords = this._getCollaboratorsQuery().get()
 		if (!allPresenceRecords.length) return EMPTY_ARRAY
-		const userIds = [...new Set(allPresenceRecords.map((c) => c.userId))].sort()
-		return userIds.map((id) => {
-			const latestPresence = maxBy(
-				allPresenceRecords.filter((c) => c.userId === id),
-				(p) => p.lastActivityTimestamp ?? 0
-			)
-			return latestPresence!
-		})
+		const latestByUserId = new Map<string, TLInstancePresence>()
+		for (const presence of allPresenceRecords) {
+			const existing = latestByUserId.get(presence.userId)
+			if (
+				!existing ||
+				(presence.lastActivityTimestamp ?? 0) > (existing.lastActivityTimestamp ?? 0)
+			) {
+				latestByUserId.set(presence.userId, presence)
+			}
+		}
+		return [...latestByUserId.keys()].sort().map((id) => latestByUserId.get(id)!)
 	}
 
 	/**

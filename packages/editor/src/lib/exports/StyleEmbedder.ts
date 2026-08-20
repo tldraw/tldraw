@@ -53,7 +53,7 @@ export class StyleEmbedder {
 			? getDefaultStylesForTagName(element.ownerDocument, element.tagName.toLowerCase())
 			: NO_STYLES
 
-		const parentStyles = Object.assign({}, NO_STYLES) as Styles
+		const parentStyles: Styles = {}
 		if (shouldSkipInheritedParentStyles) {
 			let el = element.parentElement
 			// Keep going up the tree to find all the relevant styles
@@ -206,14 +206,14 @@ interface ReadStyleOpts {
 	parentStyles: ReadonlyStyles
 }
 
-function styleFromElement(element: Element, { defaultStyles, parentStyles }: ReadStyleOpts) {
+function styleFromElement(element: Element, opts: ReadStyleOpts) {
 	// `computedStyleMap` produces a more accurate representation of the styles, but it's not
 	// supported in firefox at the time of writing. So we fall back to `getComputedStyle` if it's
 	// not available.
 	if (element.computedStyleMap) {
-		return styleFromComputedStyleMap(element.computedStyleMap(), { defaultStyles, parentStyles })
+		return styleFromComputedStyleMap(element.computedStyleMap(), opts)
 	}
-	return styleFromComputedStyle(getComputedStyle(element), { defaultStyles, parentStyles })
+	return styleFromComputedStyle(getComputedStyle(element), opts)
 }
 
 function styleFromPseudoElement(element: Element, pseudo: string) {
@@ -229,51 +229,30 @@ function styleFromPseudoElement(element: Element, pseudo: string) {
 	return styleFromComputedStyle(style, { defaultStyles: NO_STYLES, parentStyles: NO_STYLES })
 }
 
-function styleFromComputedStyleMap(
-	style: StylePropertyMapReadOnly,
-	{ defaultStyles, parentStyles }: ReadStyleOpts
-) {
-	const styles: Record<string, string> = {}
-	const currentColor = style.get('color')?.toString() || ''
-	const ruleOptions = {
-		currentColor,
-		parentStyles,
-		defaultStyles,
-		getStyle: (property: string) => style.get(property)?.toString() ?? '',
-	}
-	for (const property of style.keys()) {
-		if (!shouldIncludeCssProperty(property)) continue
-
-		const value = style.get(property)!.toString()
-
-		if (defaultStyles[property] === value) continue
-
-		const rule = getOwnProperty(cssRules, property)
-		if (rule && rule(value, property, ruleOptions)) continue
-
-		styles[property] = value
-	}
-
-	return styles
+function styleFromComputedStyleMap(style: StylePropertyMapReadOnly, opts: ReadStyleOpts) {
+	return readStyles(style.keys(), (property) => style.get(property)?.toString() ?? '', opts)
 }
 
-function styleFromComputedStyle(
-	style: CSSStyleDeclaration,
+function styleFromComputedStyle(style: CSSStyleDeclaration, opts: ReadStyleOpts) {
+	return readStyles(forInKeys(style), (property) => style.getPropertyValue(property), opts)
+}
+
+function* forInKeys(obj: object) {
+	for (const key in obj) yield key
+}
+
+function readStyles(
+	properties: Iterable<string>,
+	getStyle: (property: string) => string,
 	{ defaultStyles, parentStyles }: ReadStyleOpts
 ) {
-	const styles: Record<string, string> = {}
-	const currentColor = style.color
-	const ruleOptions = {
-		currentColor,
-		parentStyles,
-		defaultStyles,
-		getStyle: (property: string) => style.getPropertyValue(property),
-	}
+	const styles: Styles = {}
+	const ruleOptions = { currentColor: getStyle('color'), parentStyles, defaultStyles, getStyle }
 
-	for (const property in style) {
+	for (const property of properties) {
 		if (!shouldIncludeCssProperty(property)) continue
 
-		const value = style.getPropertyValue(property)
+		const value = getStyle(property)
 
 		if (defaultStyles[property] === value) continue
 
@@ -282,6 +261,7 @@ function styleFromComputedStyle(
 
 		styles[property] = value
 	}
+
 	return styles
 }
 
@@ -345,9 +325,7 @@ function getDefaultStylesForTagName(ownerDoc: Document, tagName: string) {
 		const { foreignObject, document } = getDefaultStyleFrame(ownerDoc)
 		const element = document.createElement(tagName)
 		foreignObject.appendChild(element)
-		existing = element.computedStyleMap
-			? styleFromComputedStyleMap(element.computedStyleMap(), defaultStyleReadOptions)
-			: styleFromComputedStyle(getComputedStyle(element), defaultStyleReadOptions)
+		existing = styleFromElement(element, defaultStyleReadOptions)
 		foreignObject.removeChild(element)
 		defaultStylesByTagName[tagName] = existing
 	}

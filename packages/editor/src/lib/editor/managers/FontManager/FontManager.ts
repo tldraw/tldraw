@@ -50,10 +50,7 @@ export class FontManager {
 				const fontFacesComputed = computed('font faces', () => this.getShapeFontFaces(id))
 				return computed(
 					'font load state',
-					() => {
-						const states = fontFacesComputed.get().map((face) => this.getFontState(face))
-						return states
-					},
+					() => fontFacesComputed.get().map((face) => this.getFontState(face)),
 					{ isEqual: areArraysShallowEqual }
 				)
 			}
@@ -158,6 +155,10 @@ export class FontManager {
 		}
 	}
 
+	private resolveUrl(font: TLFontFace) {
+		return this.assetUrls?.[font.src.url] ?? font.src.url
+	}
+
 	private findOrCreateFontFace(font: TLFontFace) {
 		const containerDocument = this.editor.getContainerDocument()
 
@@ -191,8 +192,7 @@ export class FontManager {
 			}
 		}
 
-		const url = this.assetUrls?.[font.src.url] ?? font.src.url
-		const instance = new FontFace(font.family, `url(${JSON.stringify(url)})`, {
+		const instance = new FontFace(font.family, `url(${JSON.stringify(this.resolveUrl(font))})`, {
 			...mapObjectMapValues(defaultFontFaceDescriptors, (key) => font[key]),
 			display: 'swap',
 		})
@@ -204,8 +204,7 @@ export class FontManager {
 	}
 
 	async toEmbeddedCssDeclaration(font: TLFontFace) {
-		const url = this.assetUrls?.[font.src.url] ?? font.src.url
-		const dataUrl = await FileHelpers.urlToDataUrl(url)
+		const dataUrl = await FileHelpers.urlToDataUrl(this.resolveUrl(font))
 
 		const src = compact([
 			`url("${dataUrl}")`,

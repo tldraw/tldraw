@@ -159,6 +159,29 @@ function findAdjacentGaps(
 	return matches
 }
 
+function edgesEqual(a: [VecModel, VecModel], b: [VecModel, VecModel]) {
+	return (
+		round(a[0].x) === round(b[0].x) &&
+		round(a[0].y) === round(b[0].y) &&
+		round(a[1].x) === round(b[1].x) &&
+		round(a[1].y) === round(b[1].y)
+	)
+}
+
+/**
+ * Records `nudge` as a candidate snap on one axis. Returns false if it is farther than the best
+ * so far; otherwise updates `minOffset` and clears the list first when it is strictly closer.
+ */
+function acceptNudge(nearestSnaps: NearestSnap[], minOffset: Vec, axis: 'x' | 'y', nudge: number) {
+	const offset = Math.abs(nudge)
+	if (round(offset) > round(minOffset[axis])) return false
+	// we found a point that is significantly closer than all previous points
+	// so wipe the slate clean and start over
+	if (round(offset) < round(minOffset[axis])) nearestSnaps.length = 0
+	minOffset[axis] = offset
+	return true
+}
+
 function dedupeGapSnaps(snaps: Array<Extract<SnapIndicator, { type: 'gaps' }>>) {
 	// sort by descending order of number of gaps
 	snaps.sort((a, b) => b.gaps.length - a.gaps.length)
@@ -172,20 +195,8 @@ function dedupeGapSnaps(snaps: Array<Extract<SnapIndicator, { type: 'gaps' }>>) 
 				otherSnap.direction === snap.direction &&
 				snap.gaps.every(
 					(gap) =>
-						otherSnap.gaps.some(
-							(otherGap) =>
-								round(gap.startEdge[0].x) === round(otherGap.startEdge[0].x) &&
-								round(gap.startEdge[0].y) === round(otherGap.startEdge[0].y) &&
-								round(gap.startEdge[1].x) === round(otherGap.startEdge[1].x) &&
-								round(gap.startEdge[1].y) === round(otherGap.startEdge[1].y)
-						) &&
-						otherSnap.gaps.some(
-							(otherGap) =>
-								round(gap.endEdge[0].x) === round(otherGap.endEdge[0].x) &&
-								round(gap.endEdge[0].y) === round(otherGap.endEdge[0].y) &&
-								round(gap.endEdge[1].x) === round(otherGap.endEdge[1].x) &&
-								round(gap.endEdge[1].y) === round(otherGap.endEdge[1].y)
-						)
+						otherSnap.gaps.some((otherGap) => edgesEqual(gap.startEdge, otherGap.startEdge)) &&
+						otherSnap.gaps.some((otherGap) => edgesEqual(gap.endEdge, otherGap.endEdge))
 				)
 			) {
 				snaps.splice(i, 1)
@@ -211,7 +222,6 @@ export class BoundsSnaps {
 			const snapPoints =
 				boundsSnapGeometry.points ?? editor.getShapeGeometry(shape).bounds.cornersAndCenter
 
-			if (!pageTransform || !snapPoints) return undefined
 			return snapPoints.map((point, i) => {
 				const { x, y } = Mat.applyToPoint(pageTransform, point)
 				return { x, y, id: `${shape.id}:${i}` }
@@ -250,17 +260,15 @@ export class BoundsSnaps {
 		const horizontal: Gap[] = []
 		const vertical: Gap[] = []
 
-		let startNode: GapNode, endNode: GapNode
-
 		const sortedShapesOnCurrentPageHorizontal = this.getSnappableGapNodes().sort((a, b) => {
 			return a.pageBounds.minX - b.pageBounds.minX
 		})
 
 		// Collect horizontal gaps
 		for (let i = 0; i < sortedShapesOnCurrentPageHorizontal.length; i++) {
-			startNode = sortedShapesOnCurrentPageHorizontal[i]
+			const startNode = sortedShapesOnCurrentPageHorizontal[i]
 			for (let j = i + 1; j < sortedShapesOnCurrentPageHorizontal.length; j++) {
-				endNode = sortedShapesOnCurrentPageHorizontal[j]
+				const endNode = sortedShapesOnCurrentPageHorizontal[j]
 
 				if (
 					// is there space between the boxes
@@ -302,9 +310,9 @@ export class BoundsSnaps {
 		})
 
 		for (let i = 0; i < sortedShapesOnCurrentPageVertical.length; i++) {
-			startNode = sortedShapesOnCurrentPageVertical[i]
+			const startNode = sortedShapesOnCurrentPageVertical[i]
 			for (let j = i + 1; j < sortedShapesOnCurrentPageVertical.length; j++) {
-				endNode = sortedShapesOnCurrentPageVertical[j]
+				const endNode = sortedShapesOnCurrentPageVertical[j]
 
 				if (
 					// is there space between the boxes
@@ -355,7 +363,7 @@ export class BoundsSnaps {
 		dragDelta: Vec
 	}): SnapData {
 		const snapThreshold = this.manager.getSnapThreshold()
-		const visibleSnapPointsNotInSelection = this.getSnappablePoints()
+		const otherNodeSnapPoints = this.getSnappablePoints()
 
 		const selectionPageBounds = initialSelectionPageBounds.clone().translate(dragDelta)
 
@@ -366,8 +374,6 @@ export class BoundsSnaps {
 				y: y + dragDelta.y,
 			})
 		)
-
-		const otherNodeSnapPoints = visibleSnapPointsNotInSelection
 
 		const nearestSnapsX: NearestSnap[] = []
 		const nearestSnapsY: NearestSnap[] = []
@@ -577,7 +583,7 @@ export class BoundsSnaps {
 			nearestSnapsY,
 		})
 
-		this.manager.setIndicators([...pointSnaps])
+		this.manager.setIndicators(pointSnaps)
 
 		return { nudge }
 	}
@@ -599,37 +605,23 @@ export class BoundsSnaps {
 		// which are closest to it in each axis
 		for (const thisSnapPoint of selectionSnapPoints) {
 			for (const otherSnapPoint of otherNodeSnapPoints) {
-				const offset = Vec.Sub(thisSnapPoint, otherSnapPoint)
-				const offsetX = Math.abs(offset.x)
-				const offsetY = Math.abs(offset.y)
+				const nudgeX = otherSnapPoint.x - thisSnapPoint.x
+				const nudgeY = otherSnapPoint.y - thisSnapPoint.y
 
-				if (round(offsetX) <= round(minOffset.x)) {
-					if (round(offsetX) < round(minOffset.x)) {
-						// we found a point that is significantly closer than all previous points
-						// so wipe the slate clean and start over
-						nearestSnapsX.length = 0
-					}
-
+				if (acceptNudge(nearestSnapsX, minOffset, 'x', nudgeX)) {
 					nearestSnapsX.push({
 						type: 'points',
 						points: { thisPoint: thisSnapPoint, otherPoint: otherSnapPoint },
-						nudge: otherSnapPoint.x - thisSnapPoint.x,
+						nudge: nudgeX,
 					})
-					minOffset.x = offsetX
 				}
 
-				if (round(offsetY) <= round(minOffset.y)) {
-					if (round(offsetY) < round(minOffset.y)) {
-						// we found a point that is significantly closer than all previous points
-						// so wipe the slate clean and start over
-						nearestSnapsY.length = 0
-					}
+				if (acceptNudge(nearestSnapsY, minOffset, 'y', nudgeY)) {
 					nearestSnapsY.push({
 						type: 'points',
 						points: { thisPoint: thisSnapPoint, otherPoint: otherSnapPoint },
-						nudge: otherSnapPoint.y - thisSnapPoint.y,
+						nudge: nudgeY,
 					})
-					minOffset.y = offsetY
 				}
 			}
 		}
@@ -666,13 +658,7 @@ export class BoundsSnaps {
 			const centerNudge = gapMidX - selectionPageBounds.center.x
 			const gapIsLargerThanSelection = gap.length > selectionPageBounds.width
 
-			if (gapIsLargerThanSelection && round(Math.abs(centerNudge)) <= round(minOffset.x)) {
-				if (round(Math.abs(centerNudge)) < round(minOffset.x)) {
-					// reset if we found a closer snap
-					nearestSnapsX.length = 0
-				}
-				minOffset.x = Math.abs(centerNudge)
-
+			if (gapIsLargerThanSelection && acceptNudge(nearestSnapsX, minOffset, 'x', centerNudge)) {
 				const snap: NearestSnap = {
 					type: 'gap_center',
 					gap,
@@ -746,13 +732,7 @@ export class BoundsSnaps {
 			const selectionRightX = selectionPageBounds.maxX
 
 			const duplicationLeftNudge = duplicationLeftX - selectionRightX
-			if (round(Math.abs(duplicationLeftNudge)) <= round(minOffset.x)) {
-				if (round(Math.abs(duplicationLeftNudge)) < round(minOffset.x)) {
-					// reset if we found a closer snap
-					nearestSnapsX.length = 0
-				}
-				minOffset.x = Math.abs(duplicationLeftNudge)
-
+			if (acceptNudge(nearestSnapsX, minOffset, 'x', duplicationLeftNudge)) {
 				nearestSnapsX.push({
 					type: 'gap_duplicate',
 					gap,
@@ -766,13 +746,7 @@ export class BoundsSnaps {
 			const selectionLeftX = selectionPageBounds.minX
 
 			const duplicationRightNudge = duplicationRightX - selectionLeftX
-			if (round(Math.abs(duplicationRightNudge)) <= round(minOffset.x)) {
-				if (round(Math.abs(duplicationRightNudge)) < round(minOffset.x)) {
-					// reset if we found a closer snap
-					nearestSnapsX.length = 0
-				}
-				minOffset.x = Math.abs(duplicationRightNudge)
-
+			if (acceptNudge(nearestSnapsX, minOffset, 'x', duplicationRightNudge)) {
 				nearestSnapsX.push({
 					type: 'gap_duplicate',
 					gap,
@@ -801,13 +775,7 @@ export class BoundsSnaps {
 
 			const gapIsLargerThanSelection = gap.length > selectionPageBounds.height
 
-			if (gapIsLargerThanSelection && round(Math.abs(centerNudge)) <= round(minOffset.y)) {
-				if (round(Math.abs(centerNudge)) < round(minOffset.y)) {
-					// reset if we found a closer snap
-					nearestSnapsY.length = 0
-				}
-				minOffset.y = Math.abs(centerNudge)
-
+			if (gapIsLargerThanSelection && acceptNudge(nearestSnapsY, minOffset, 'y', centerNudge)) {
 				const snap: NearestSnap = {
 					type: 'gap_center',
 					gap,
@@ -882,13 +850,7 @@ export class BoundsSnaps {
 			const selectionBottomY = selectionPageBounds.maxY
 
 			const duplicationTopNudge = duplicationTopY - selectionBottomY
-			if (round(Math.abs(duplicationTopNudge)) <= round(minOffset.y)) {
-				if (round(Math.abs(duplicationTopNudge)) < round(minOffset.y)) {
-					// reset if we found a closer snap
-					nearestSnapsY.length = 0
-				}
-				minOffset.y = Math.abs(duplicationTopNudge)
-
+			if (acceptNudge(nearestSnapsY, minOffset, 'y', duplicationTopNudge)) {
 				nearestSnapsY.push({
 					type: 'gap_duplicate',
 					gap,
@@ -902,13 +864,7 @@ export class BoundsSnaps {
 			const selectionTopY = selectionPageBounds.minY
 
 			const duplicationBottomNudge = duplicationBottomY - selectionTopY
-			if (round(Math.abs(duplicationBottomNudge)) <= round(minOffset.y)) {
-				if (round(Math.abs(duplicationBottomNudge)) < round(minOffset.y)) {
-					// reset if we found a closer snap
-					nearestSnapsY.length = 0
-				}
-				minOffset.y = Math.abs(duplicationBottomNudge)
-
+			if (acceptNudge(nearestSnapsY, minOffset, 'y', duplicationBottomNudge)) {
 				nearestSnapsY.push({
 					type: 'gap_duplicate',
 					gap,
@@ -928,36 +884,19 @@ export class BoundsSnaps {
 	}): PointsSnapIndicator[] {
 		// point snaps may align on multiple parallel lines so we need to split the pairs
 		// into groups based on where they are in their their snap axes
-		const snapGroupsX = {} as { [key: string]: SnapPair[] }
-		const snapGroupsY = {} as { [key: string]: SnapPair[] }
-
-		if (nearestSnapsX.length > 0) {
-			for (const snap of nearestSnapsX) {
-				if (snap.type === 'points') {
-					const key = round(snap.points.otherPoint.x)
-					if (!snapGroupsX[key]) {
-						snapGroupsX[key] = []
-					}
-					snapGroupsX[key].push(snap.points)
-				}
+		const groupPointSnaps = (snaps: NearestSnap[], axis: 'x' | 'y') => {
+			const groups: { [key: string]: SnapPair[] } = {}
+			for (const snap of snaps) {
+				if (snap.type !== 'points') continue
+				const key = round(snap.points.otherPoint[axis])
+				;(groups[key] ??= []).push(snap.points)
 			}
-		}
-
-		if (nearestSnapsY.length > 0) {
-			for (const snap of nearestSnapsY) {
-				if (snap.type === 'points') {
-					const key = round(snap.points.otherPoint.y)
-					if (!snapGroupsY[key]) {
-						snapGroupsY[key] = []
-					}
-					snapGroupsY[key].push(snap.points)
-				}
-			}
+			return Object.values(groups)
 		}
 
 		// and finally create all the snap lines for the UI to render
-		return Object.values(snapGroupsX)
-			.concat(Object.values(snapGroupsY))
+		return groupPointSnaps(nearestSnapsX, 'x')
+			.concat(groupPointSnaps(nearestSnapsY, 'y'))
 			.map((snapGroup) => ({
 				id: uniqueId(),
 				type: 'points',
@@ -992,120 +931,157 @@ export class BoundsSnaps {
 
 		const result: GapsSnapIndicator[] = []
 
-		if (nearestSnapsX.length > 0) {
-			for (const snap of nearestSnapsX) {
-				if (snap.type === 'points') continue
+		for (const snap of nearestSnapsX) {
+			if (snap.type === 'points') continue
 
-				const {
-					gap: { breadthIntersection, startEdge, startNode, endNode, length, endEdge },
-				} = snap
+			const {
+				gap: { breadthIntersection, startEdge, startNode, endNode, length, endEdge },
+			} = snap
 
-				switch (snap.type) {
-					case 'gap_center': {
-						// create
-						const newGapsLength = (length - selectionPageBounds.width) / 2
-						const gapBreadthIntersection = rangeIntersection(
-							breadthIntersection[0],
-							breadthIntersection[1],
-							selectionPageBounds.minY,
-							selectionPageBounds.maxY
-						)!
-						result.push({
-							type: 'gaps',
-							direction: 'horizontal',
-							id: uniqueId(),
-							gaps: [
-								...findAdjacentGaps(
-									horizontal,
-									startNode.id,
-									newGapsLength,
-									'backward',
-									gapBreadthIntersection
-								),
-								{
-									startEdge,
-									endEdge: selectionSides.left,
-								},
-								{
-									startEdge: selectionSides.right,
-									endEdge,
-								},
-								...findAdjacentGaps(
-									horizontal,
-									endNode.id,
-									newGapsLength,
-									'forward',
-									gapBreadthIntersection
-								),
-							],
-						})
-						break
-					}
-					case 'gap_duplicate': {
-						// create
-						const gapBreadthIntersection = rangeIntersection(
-							breadthIntersection[0],
-							breadthIntersection[1],
-							selectionPageBounds.minY,
-							selectionPageBounds.maxY
-						)!
-						result.push({
-							type: 'gaps',
-							direction: 'horizontal',
-							id: uniqueId(),
-							gaps:
-								snap.protrusionDirection === 'left'
-									? [
-											{
-												startEdge: selectionSides.right,
-												endEdge: startEdge.map((v) =>
-													v.clone().addXY(-startNode.pageBounds.width, 0)
-												) as [Vec, Vec],
-											},
-											{ startEdge, endEdge },
-											...findAdjacentGaps(
-												horizontal,
-												endNode.id,
-												length,
-												'forward',
-												gapBreadthIntersection
-											),
-										]
-									: [
-											...findAdjacentGaps(
-												horizontal,
-												startNode.id,
-												length,
-												'backward',
-												gapBreadthIntersection
-											),
-											{ startEdge, endEdge },
-											{
-												startEdge: endEdge.map((v) =>
-													v.clone().addXY(snap.gap.endNode.pageBounds.width, 0)
-												) as [Vec, Vec],
-												endEdge: selectionSides.left,
-											},
-										],
-						})
+			switch (snap.type) {
+				case 'gap_center': {
+					// create
+					const newGapsLength = (length - selectionPageBounds.width) / 2
+					const gapBreadthIntersection = rangeIntersection(
+						breadthIntersection[0],
+						breadthIntersection[1],
+						selectionPageBounds.minY,
+						selectionPageBounds.maxY
+					)!
+					result.push({
+						type: 'gaps',
+						direction: 'horizontal',
+						id: uniqueId(),
+						gaps: [
+							...findAdjacentGaps(
+								horizontal,
+								startNode.id,
+								newGapsLength,
+								'backward',
+								gapBreadthIntersection
+							),
+							{
+								startEdge,
+								endEdge: selectionSides.left,
+							},
+							{
+								startEdge: selectionSides.right,
+								endEdge,
+							},
+							...findAdjacentGaps(
+								horizontal,
+								endNode.id,
+								newGapsLength,
+								'forward',
+								gapBreadthIntersection
+							),
+						],
+					})
+					break
+				}
+				case 'gap_duplicate': {
+					// create
+					const gapBreadthIntersection = rangeIntersection(
+						breadthIntersection[0],
+						breadthIntersection[1],
+						selectionPageBounds.minY,
+						selectionPageBounds.maxY
+					)!
+					result.push({
+						type: 'gaps',
+						direction: 'horizontal',
+						id: uniqueId(),
+						gaps:
+							snap.protrusionDirection === 'left'
+								? [
+										{
+											startEdge: selectionSides.right,
+											endEdge: startEdge.map((v) =>
+												v.clone().addXY(-startNode.pageBounds.width, 0)
+											) as [Vec, Vec],
+										},
+										{ startEdge, endEdge },
+										...findAdjacentGaps(
+											horizontal,
+											endNode.id,
+											length,
+											'forward',
+											gapBreadthIntersection
+										),
+									]
+								: [
+										...findAdjacentGaps(
+											horizontal,
+											startNode.id,
+											length,
+											'backward',
+											gapBreadthIntersection
+										),
+										{ startEdge, endEdge },
+										{
+											startEdge: endEdge.map((v) =>
+												v.clone().addXY(snap.gap.endNode.pageBounds.width, 0)
+											) as [Vec, Vec],
+											endEdge: selectionSides.left,
+										},
+									],
+					})
 
-						break
-					}
+					break
 				}
 			}
 		}
 
-		if (nearestSnapsY.length > 0) {
-			for (const snap of nearestSnapsY) {
-				if (snap.type === 'points') continue
+		for (const snap of nearestSnapsY) {
+			if (snap.type === 'points') continue
 
-				const {
-					gap: { breadthIntersection, startEdge, startNode, endNode, length, endEdge },
-				} = snap
+			const {
+				gap: { breadthIntersection, startEdge, startNode, endNode, length, endEdge },
+			} = snap
 
-				switch (snap.type) {
-					case 'gap_center': {
-						const newGapsLength = (length - selectionPageBounds.height) / 2
+			switch (snap.type) {
+				case 'gap_center': {
+					const newGapsLength = (length - selectionPageBounds.height) / 2
+					const gapBreadthIntersection = rangeIntersection(
+						breadthIntersection[0],
+						breadthIntersection[1],
+						selectionPageBounds.minX,
+						selectionPageBounds.maxX
+					)!
+
+					result.push({
+						type: 'gaps',
+						direction: 'vertical',
+						id: uniqueId(),
+						gaps: [
+							...findAdjacentGaps(
+								vertical,
+								startNode.id,
+								newGapsLength,
+								'backward',
+								gapBreadthIntersection
+							),
+							{
+								startEdge,
+								endEdge: selectionSides.top,
+							},
+							{
+								startEdge: selectionSides.bottom,
+								endEdge,
+							},
+							...findAdjacentGaps(
+								vertical,
+								snap.gap.endNode.id,
+								newGapsLength,
+								'forward',
+								gapBreadthIntersection
+							),
+						],
+					})
+					break
+				}
+				case 'gap_duplicate':
+					{
 						const gapBreadthIntersection = rangeIntersection(
 							breadthIntersection[0],
 							breadthIntersection[1],
@@ -1117,84 +1093,43 @@ export class BoundsSnaps {
 							type: 'gaps',
 							direction: 'vertical',
 							id: uniqueId(),
-							gaps: [
-								...findAdjacentGaps(
-									vertical,
-									startNode.id,
-									newGapsLength,
-									'backward',
-									gapBreadthIntersection
-								),
-								{
-									startEdge,
-									endEdge: selectionSides.top,
-								},
-								{
-									startEdge: selectionSides.bottom,
-									endEdge,
-								},
-								...findAdjacentGaps(
-									vertical,
-									snap.gap.endNode.id,
-									newGapsLength,
-									'forward',
-									gapBreadthIntersection
-								),
-							],
+							gaps:
+								snap.protrusionDirection === 'top'
+									? [
+											{
+												startEdge: selectionSides.bottom,
+												endEdge: startEdge.map((v) =>
+													v.clone().addXY(0, -startNode.pageBounds.height)
+												) as [Vec, Vec],
+											},
+											{ startEdge, endEdge },
+											...findAdjacentGaps(
+												vertical,
+												endNode.id,
+												length,
+												'forward',
+												gapBreadthIntersection
+											),
+										]
+									: [
+											...findAdjacentGaps(
+												vertical,
+												startNode.id,
+												length,
+												'backward',
+												gapBreadthIntersection
+											),
+											{ startEdge, endEdge },
+											{
+												startEdge: endEdge.map((v) =>
+													v.clone().addXY(0, endNode.pageBounds.height)
+												) as [Vec, Vec],
+												endEdge: selectionSides.top,
+											},
+										],
 						})
-						break
 					}
-					case 'gap_duplicate':
-						{
-							const gapBreadthIntersection = rangeIntersection(
-								breadthIntersection[0],
-								breadthIntersection[1],
-								selectionPageBounds.minX,
-								selectionPageBounds.maxX
-							)!
-
-							result.push({
-								type: 'gaps',
-								direction: 'vertical',
-								id: uniqueId(),
-								gaps:
-									snap.protrusionDirection === 'top'
-										? [
-												{
-													startEdge: selectionSides.bottom,
-													endEdge: startEdge.map((v) =>
-														v.clone().addXY(0, -startNode.pageBounds.height)
-													) as [Vec, Vec],
-												},
-												{ startEdge, endEdge },
-												...findAdjacentGaps(
-													vertical,
-													endNode.id,
-													length,
-													'forward',
-													gapBreadthIntersection
-												),
-											]
-										: [
-												...findAdjacentGaps(
-													vertical,
-													startNode.id,
-													length,
-													'backward',
-													gapBreadthIntersection
-												),
-												{ startEdge, endEdge },
-												{
-													startEdge: endEdge.map((v) =>
-														v.clone().addXY(0, endNode.pageBounds.height)
-													) as [Vec, Vec],
-													endEdge: selectionSides.top,
-												},
-											],
-							})
-						}
-						break
-				}
+					break
 			}
 		}
 

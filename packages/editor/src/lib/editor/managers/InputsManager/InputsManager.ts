@@ -474,10 +474,10 @@ export class InputsManager extends EditorManager {
 	 * @internal
 	 */
 	updatePointerVelocity(elapsed: number) {
+		if (elapsed === 0) return
+
 		const currentScreenPoint = this.getCurrentScreenPoint()
 		const pointerVelocity = this.getPointerVelocity()
-
-		if (elapsed === 0) return
 
 		const delta = Vec.Sub(currentScreenPoint, this._velocityPrevPoint)
 		this._velocityPrevPoint = currentScreenPoint.clone()
@@ -527,11 +527,14 @@ export class InputsManager extends EditorManager {
 		// The "screen point" is relative to the "screen bounds";
 		// it will be 0,0 when its actual screen position is equal
 		// to screenBounds.point. This is confusing!
-		this._currentScreenPoint.set(new Vec(sx, sy))
+		const nextScreenPoint = new Vec(sx, sy)
+		this._currentScreenPoint.set(nextScreenPoint)
 		const nx = sx / cz - cx
 		const ny = sy / cz - cy
+		let nextPagePoint = currentPagePoint
 		if (isFinite(nx) && isFinite(ny)) {
-			this._currentPagePoint.set(new Vec(nx, ny, sz))
+			nextPagePoint = new Vec(nx, ny, sz)
+			this._currentPagePoint.set(nextPagePoint)
 		}
 
 		this._isPen.set(info.type === 'pointer' && info.isPen)
@@ -539,20 +542,19 @@ export class InputsManager extends EditorManager {
 		// Reset velocity on pointer down, or when a pinch starts or ends
 		if (info.name === 'pointer_down' || isPinching) {
 			this._pointerVelocity.set(new Vec())
-			this._originScreenPoint.set(this._currentScreenPoint.__unsafe__getWithoutCapture())
-			this._originPagePoint.set(this._currentPagePoint.__unsafe__getWithoutCapture())
+			this._originScreenPoint.set(nextScreenPoint)
+			this._originPagePoint.set(nextPagePoint)
 		}
 
 		if (this._getHasCollaborators()) {
 			this.editor.run(
 				() => {
-					const pagePoint = this._currentPagePoint.__unsafe__getWithoutCapture()
 					this.editor.store.put([
 						{
 							id: TLPOINTER_ID,
 							typeName: 'pointer',
-							x: pagePoint.x,
-							y: pagePoint.y,
+							x: nextPagePoint.x,
+							y: nextPagePoint.y,
 							lastActivityTimestamp:
 								// If our pointer moved only because we're following some other user, then don't
 								// update our last activity timestamp; otherwise, update it to the current timestamp.

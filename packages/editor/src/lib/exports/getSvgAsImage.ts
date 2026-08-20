@@ -56,12 +56,7 @@ export async function getSvgAsImageWithOptions(
 
 	const blob = await new Promise<Blob | null>((resolve) =>
 		outputCanvas.canvas.toBlob(
-			(blob) => {
-				if (!blob || debugFlags.throwToBlob.get()) {
-					resolve(null)
-				}
-				resolve(blob)
-			},
+			(blob) => resolve(debugFlags.throwToBlob.get() ? null : blob),
 			'image/' + type,
 			quality
 		)
@@ -177,17 +172,17 @@ function measureContentBounds(
 	const declaredRight = w - extraPx
 	const declaredBottom = h - extraPx
 
+	function rowHasContent(y: number) {
+		for (let x = 0; x < w; x++) {
+			if (isContentPixel((y * w + x) * 4)) return true
+		}
+		return false
+	}
+
 	// Scan from top edge inward: find first row with content or declared bounds
 	let cropTop = declaredTop
 	for (let y = 0; y < declaredTop; y++) {
-		let hasContent = false
-		for (let x = 0; x < w; x++) {
-			if (isContentPixel((y * w + x) * 4)) {
-				hasContent = true
-				break
-			}
-		}
-		if (hasContent) {
+		if (rowHasContent(y)) {
 			cropTop = y
 			break
 		}
@@ -196,30 +191,24 @@ function measureContentBounds(
 	// Scan from bottom edge inward
 	let cropBottom = declaredBottom
 	for (let y = h - 1; y >= declaredBottom; y--) {
-		let hasContent = false
-		for (let x = 0; x < w; x++) {
-			if (isContentPixel((y * w + x) * 4)) {
-				hasContent = true
-				break
-			}
-		}
-		if (hasContent) {
+		if (rowHasContent(y)) {
 			cropBottom = y + 1
 			break
 		}
 	}
 
+	// Columns only need scanning within the rows we're keeping
+	function colHasContent(x: number) {
+		for (let y = cropTop; y < cropBottom; y++) {
+			if (isContentPixel((y * w + x) * 4)) return true
+		}
+		return false
+	}
+
 	// Scan from left edge inward
 	let cropLeft = declaredLeft
 	for (let x = 0; x < declaredLeft; x++) {
-		let hasContent = false
-		for (let y = cropTop; y < cropBottom; y++) {
-			if (isContentPixel((y * w + x) * 4)) {
-				hasContent = true
-				break
-			}
-		}
-		if (hasContent) {
+		if (colHasContent(x)) {
 			cropLeft = x
 			break
 		}
@@ -228,14 +217,7 @@ function measureContentBounds(
 	// Scan from right edge inward
 	let cropRight = declaredRight
 	for (let x = w - 1; x >= declaredRight; x--) {
-		let hasContent = false
-		for (let y = cropTop; y < cropBottom; y++) {
-			if (isContentPixel((y * w + x) * 4)) {
-				hasContent = true
-				break
-			}
-		}
-		if (hasContent) {
+		if (colHasContent(x)) {
 			cropRight = x + 1
 			break
 		}

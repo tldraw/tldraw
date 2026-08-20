@@ -1,6 +1,6 @@
 import { Computed, computed, isUninitialized, RESET_VALUE } from '@tldraw/state'
-import { CollectionDiff, RecordsDiff } from '@tldraw/store'
-import { isShape, TLParentId, TLRecord, TLShape, TLShapeId, TLStore } from '@tldraw/tlschema'
+import { CollectionDiff } from '@tldraw/store'
+import { isShape, TLParentId, TLShape, TLShapeId, TLStore } from '@tldraw/tlschema'
 import { sortByIndex } from '@tldraw/utils'
 
 type ParentShapeIdsToChildShapeIds = Record<TLParentId, TLShapeId[]>
@@ -14,10 +14,10 @@ function fromScratch(
 	const sortedShapes = Array.from(shapeIds, (id) => store.get(id)!).sort(sortByIndex)
 
 	// Populate the result object with an array for each parent.
-	sortedShapes.forEach((shape) => {
+	for (const shape of sortedShapes) {
 		result[shape.parentId] ??= []
 		result[shape.parentId].push(shape.id)
-	})
+	}
 
 	return result
 }
@@ -56,11 +56,7 @@ export function parentsToChildren(store: TLStore) {
 
 			const toSort = new Set<TLShapeId[]>()
 
-			let changes: RecordsDiff<TLRecord>
-
-			for (let i = 0, n = diff.length; i < n; i++) {
-				changes = diff[i]
-
+			for (const changes of diff) {
 				// Iterate through the added shapes, add them to the new value and mark them for sorting
 				for (const record of Object.values(changes.added)) {
 					if (!isShape(record)) continue
@@ -84,8 +80,6 @@ export function parentsToChildren(store: TLStore) {
 					} else if (from.index !== to.index) {
 						// If the parent is the same but the index has changed (e.g. if they've been reordered), update the parent's array at the new index
 						ensureNewArray(to.parentId)
-						const idx = newValue![to.parentId].indexOf(to.id)
-						newValue![to.parentId][idx] = to.id
 						toSort.add(newValue![to.parentId])
 					}
 				}

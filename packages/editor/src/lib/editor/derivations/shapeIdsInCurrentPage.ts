@@ -64,9 +64,7 @@ export function deriveShapeIdsInCurrentPage(store: TLStore, getCurrentPageId: ()
 			return fromScratch()
 		}
 
-		const builder = new IncrementalSetConstructor<TLShapeId>(
-			prevValue
-		) as IncrementalSetConstructor<TLShapeId>
+		const builder = new IncrementalSetConstructor<TLShapeId>(prevValue)
 
 		for (const changes of diff) {
 			for (const record of Object.values(changes.added)) {

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { TLWheelEventInfo } from '../editor/types/event-types'
 import { tlenv } from '../globals/environment'
+import { clamp } from '../primitives/utils'
 import { Vec } from '../primitives/Vec'
 import { preventDefault } from '../utils/dom'
 import { isAccelKey } from '../utils/keyboard'
@@ -206,7 +207,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 		}
 
 		function onTouchStart(event: TouchEvent) {
-			if (!(event.target === elm || elm?.contains(event.target as Node))) return
+			if (!elm?.contains(event.target as Node)) return
 
 			activeTouches = Array.from(event.touches)
 
@@ -251,7 +252,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 			// very unstable zooming behavior.
 			const bounds = getScaleBounds()
 			const rawScale = initScaleFrom * (distance / initDistanceBetweenFingers)
-			scaleOffset = Math.min(bounds.max, Math.max(bounds.min, rawScale))
+			scaleOffset = clamp(rawScale, bounds.min, bounds.max)
 
 			switch (pinchState) {
 				case 'zooming': {
@@ -288,7 +289,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 
 		function onGestureStart(event: Event) {
 			const e = event as GestureEvent
-			if (!(e.target === elm || elm?.contains(e.target as Node))) return
+			if (!elm?.contains(e.target as Node)) return
 
 			preventDefault(e)
 			e.stopPropagation()
@@ -316,7 +317,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 
 		function onGestureChange(event: Event) {
 			const e = event as GestureEvent
-			if (!(e.target === elm || elm?.contains(e.target as Node))) return
+			if (!elm?.contains(e.target as Node)) return
 
 			preventDefault(e)
 			e.stopPropagation()
@@ -330,7 +331,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 			// Safari GestureEvent.scale is a multiplier relative to gesture start
 			const bounds = getScaleBounds()
 			const rawScale = safariGestureInitialScale * e.scale
-			scaleOffset = Math.min(bounds.max, Math.max(bounds.min, rawScale))
+			scaleOffset = clamp(rawScale, bounds.min, bounds.max)
 
 			// Update distance tracking for pinch state (treat scale change as distance change)
 			currDistanceBetweenFingers = e.scale * initDistanceBetweenFingers
@@ -344,7 +345,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 
 		function onGestureEnd(event: Event) {
 			const e = event as GestureEvent
-			if (!(e.target === elm || elm?.contains(e.target as Node))) return
+			if (!elm?.contains(e.target as Node)) return
 
 			preventDefault(e)
 			e.stopPropagation()

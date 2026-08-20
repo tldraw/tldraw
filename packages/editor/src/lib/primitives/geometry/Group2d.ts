@@ -49,19 +49,10 @@ export class Group2d extends Geometry2d {
 	override nearestPoint(point: VecLike, filters?: Geometry2dFilters): Vec {
 		let dist = Infinity
 		let nearest: Vec | undefined
-
-		const { children } = this
-
-		if (children.length === 0) {
-			throw Error('no children')
-		}
-
-		let p: Vec
-		let d: number
-		for (const child of children) {
+		for (const child of this.children) {
 			if (child.isExcludedByFilter(filters)) continue
-			p = child.nearestPoint(point, filters)
-			d = Vec.Dist2(p, point)
+			const p = child.nearestPoint(point, filters)
+			const d = Vec.Dist2(p, point)
 			if (d < dist) {
 				dist = d
 				nearest = p
@@ -109,11 +100,14 @@ export class Group2d extends Geometry2d {
 		return false
 	}
 
-	override intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters) {
+	private collectFromChildren(
+		filters: Geometry2dFilters | undefined,
+		getHits: (child: Geometry2d) => VecLike[]
+	) {
 		const result: VecLike[] = []
 		for (const child of this.children) {
 			if (child.isExcludedByFilter(filters)) continue
-			const hits = child.intersectLineSegment(A, B, filters)
+			const hits = getHits(child)
 			for (let i = 0, n = hits.length; i < n; i++) {
 				result.push(hits[i])
 			}
@@ -121,16 +115,14 @@ export class Group2d extends Geometry2d {
 		return result
 	}
 
+	override intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters) {
+		return this.collectFromChildren(filters, (child) => child.intersectLineSegment(A, B, filters))
+	}
+
 	override intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters) {
-		const result: VecLike[] = []
-		for (const child of this.children) {
-			if (child.isExcludedByFilter(filters)) continue
-			const hits = child.intersectCircle(center, radius, filters)
-			for (let i = 0, n = hits.length; i < n; i++) {
-				result.push(hits[i])
-			}
-		}
-		return result
+		return this.collectFromChildren(filters, (child) =>
+			child.intersectCircle(center, radius, filters)
+		)
 	}
 
 	override getBoundsVertices(): Vec[] {
@@ -146,27 +138,11 @@ export class Group2d extends Geometry2d {
 	}
 
 	override intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters) {
-		const result: VecLike[] = []
-		for (const child of this.children) {
-			if (child.isExcludedByFilter(filters)) continue
-			const hits = child.intersectPolygon(polygon, filters)
-			for (let i = 0, n = hits.length; i < n; i++) {
-				result.push(hits[i])
-			}
-		}
-		return result
+		return this.collectFromChildren(filters, (child) => child.intersectPolygon(polygon, filters))
 	}
 
 	override intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters) {
-		const result: VecLike[] = []
-		for (const child of this.children) {
-			if (child.isExcludedByFilter(filters)) continue
-			const hits = child.intersectPolyline(polyline, filters)
-			for (let i = 0, n = hits.length; i < n; i++) {
-				result.push(hits[i])
-			}
-		}
-		return result
+		return this.collectFromChildren(filters, (child) => child.intersectPolyline(polyline, filters))
 	}
 
 	override interpolateAlongEdge(t: number, filters?: Geometry2dFilters): Vec {
@@ -193,23 +169,22 @@ export class Group2d extends Geometry2d {
 	override uninterpolateAlongEdge(point: VecLike, filters?: Geometry2dFilters): number {
 		const totalLength = this.getLength(filters)
 
-		let closestChild = null
+		let closestChild: Geometry2d | null = null
+		let closestStart = 0
+		let closestEnd = 0
 		let closestDistance = Infinity
 		let distanceTraveled = 0
 
 		for (const child of this.children) {
 			if (child.isExcludedByFilter(filters)) continue
-			const childLength = child.getLength(filters)
-			const newDistanceTraveled = distanceTraveled + childLength
+			const newDistanceTraveled = distanceTraveled + child.getLength(filters)
 
 			const distance = child.distanceToPoint(point, false, filters)
 			if (distance < closestDistance) {
 				closestDistance = distance
-				closestChild = {
-					startLength: distanceTraveled,
-					endLength: newDistanceTraveled,
-					child,
-				}
+				closestChild = child
+				closestStart = distanceTraveled
+				closestEnd = newDistanceTraveled
 			}
 
 			distanceTraveled = newDistanceTraveled
@@ -217,13 +192,8 @@ export class Group2d extends Geometry2d {
 
 		assert(closestChild)
 
-		const normalizedDistanceInChild = closestChild.child.uninterpolateAlongEdge(point, filters)
-		const childTLength = lerp(
-			closestChild.startLength,
-			closestChild.endLength,
-			normalizedDistanceInChild
-		)
-		return childTLength / totalLength
+		const normalizedDistanceInChild = closestChild.uninterpolateAlongEdge(point, filters)
+		return lerp(closestStart, closestEnd, normalizedDistanceInChild) / totalLength
 	}
 
 	override transform(transform: Mat): Geometry2d {
@@ -257,10 +227,9 @@ export class Group2d extends Geometry2d {
 			const nextDist = corner.dist(nextCorner)
 
 			const A = corner.clone().lrp(prevCorner, 4 / prevDist)
-			const B = corner
 			const C = corner.clone().lrp(nextCorner, 4 / nextDist)
 
-			path += `M${A.x},${A.y} L${B.x},${B.y} L${C.x},${C.y} `
+			path += `M${A.x},${A.y} L${corner.x},${corner.y} L${C.x},${C.y} `
 		}
 		return path
 	}

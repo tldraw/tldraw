@@ -15,7 +15,8 @@ export class Pointing extends StateNode {
 		if (editor.inputs.getIsDragging()) {
 			const originPagePoint = editor.inputs.getOriginPagePoint()
 
-			const shapeType = (this.parent as BaseBoxShapeTool)!.shapeType
+			const parent = this.parent as BaseBoxShapeTool
+			const shapeType = parent.shapeType
 
 			const id = createShapeId()
 
@@ -42,7 +43,6 @@ export class Pointing extends StateNode {
 			}
 			editor.select(id)
 
-			const parent = this.parent as BaseBoxShapeTool
 			this.editor.setCurrentTool(
 				'select.resizing',
 				{
@@ -85,7 +85,7 @@ export class Pointing extends StateNode {
 	complete() {
 		const originPagePoint = this.editor.inputs.getOriginPagePoint()
 
-		const shapeType = (this.parent as BaseBoxShapeTool)!.shapeType as TLBaseBoxShape['type']
+		const shapeType = (this.parent as BaseBoxShapeTool).shapeType
 
 		const id = createShapeId()
 
@@ -102,7 +102,7 @@ export class Pointing extends StateNode {
 			},
 		])
 
-		const shape = this.editor.getShape<TLBaseBoxShape>(id)!
+		const shape = this.editor.getShape<TLBaseBoxShape>(id)
 		if (!shape) {
 			this.cancel()
 			return
