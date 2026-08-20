@@ -249,10 +249,9 @@ function useCreateWorkspaceDialog() {
 					onClose={onClose}
 					onCreate={async (name) => {
 						const id = uniqueId()
-						try {
-							await app.z.mutate.createWorkspace({ id, name }).client
-						} catch (e) {
-							app.showMutationRejectionToast((e as Error).message as ZErrorCode)
+						const createRes = await app.z.mutate.createWorkspace({ id, name }).client
+						if (createRes.type === 'error') {
+							app.showMutationRejectionToast(createRes.error.message as ZErrorCode)
 							return
 						}
 						trackEvent('create-workspace', { source: 'sidebar' })
