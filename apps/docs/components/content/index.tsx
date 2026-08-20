@@ -1,6 +1,5 @@
 import shikiRehype from '@shikijs/rehype'
 import { MDXRemote } from 'next-mdx-remote-client/rsc'
-import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeSlug from 'rehype-slug-custom-id'
 import remarkGfm from 'remark-gfm'
 import { ApiHeading } from '@/components/content/api-heading'
@@ -84,7 +83,6 @@ export function Content({
 					mdxOptions: {
 						remarkPlugins: [remarkGfm],
 						rehypePlugins: [
-							[rehypeAutolinkHeadings, {}],
 							[
 								rehypeSlug,
 								{
@@ -101,6 +99,11 @@ export function Content({
 										light: 'github-light-default',
 									},
 									defaultColor: false,
+									// Without `langs` the plugin loads all ~300 bundled grammars (seconds and
+									// >100MB per build worker / dev server). Anything not listed is still
+									// loaded on demand thanks to `lazy`.
+									langs: ['ts', 'tsx', 'typescript', 'bash', 'sh', 'css', 'toml', 'html'],
+									lazy: true,
 								},
 							],
 						],

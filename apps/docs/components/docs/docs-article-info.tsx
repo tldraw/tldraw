@@ -7,8 +7,10 @@ import { Article } from '@/types/content-types'
 const githubContentRoot = 'https://github.com/tldraw/tldraw/blob/main/apps/docs/content/'
 
 export function DocsArticleInfo({ article }: { article: Article }) {
-	if (article.authorId === 'api') {
-		// This article is actually source code and we link to it already in 'See source code'
+	if (article.sectionId === 'reference') {
+		// This article is actually source code and we link to it already in 'See source code'.
+		// (Not keyed on `authorId === 'api'`: that's also the default for any article without an
+		// `author:` frontmatter key.)
 		return null
 	}
 

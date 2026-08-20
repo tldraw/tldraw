@@ -78,6 +78,13 @@ export function generateSection(section: InputSection, articles: Articles, index
 					// Otherwise, add it to the category's list of articles
 					sectionCategoryArticles[article.categoryId].push(article)
 				}
+			} else if (isExamplesSection) {
+				// An example's category comes from its folder. Falling back to "uncategorized" would
+				// keep the unknown categoryId on the article, and an article whose category has no
+				// row is silently missing from the sidebar and llms.txt.
+				throw new Error(
+					`Unknown example category "${categoryId}" for ${pathname}. Add it to EXAMPLES_CATEGORIES in generateExamplesContent.ts.`
+				)
 			} else {
 				// otherwise, add it to the section's uncategorized list
 				sectionUncategorizedArticles.push(article)
@@ -211,7 +218,7 @@ function getArticleData({
 }): Article {
 	const {
 		group = null,
-		priority = -1,
+		priority = null,
 		hero = null,
 		thumbnail = null,
 		socialImage = null,
@@ -240,7 +247,8 @@ function getArticleData({
 		sectionIndex: 0,
 		groupIndex: -1,
 		groupId: group,
-		categoryIndex: order ?? priority,
+		// Like the examples app, an article without a priority sorts after the prioritized ones
+		categoryIndex: order ?? priority ?? 999999,
 		priority,
 		sectionId: sectionId,
 		author: [author],

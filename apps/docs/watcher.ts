@@ -1,28 +1,38 @@
 import fs from 'fs'
+import { debounce } from '@tldraw/utils'
 import { WebSocketServer } from 'ws'
 import { refreshContent } from './scripts/lib/refreshContent'
-import { debounce } from './utils/debounce'
 import { nicelog } from './utils/nicelog'
 
 // set environment variable to development
 // @ts-expect-error whatever
 process.env.NODE_ENV = 'development'
 
-refreshContent({ silent: true })
-
-fs.watch(
-	'content',
-	{ persistent: true, recursive: true },
-	debounce(async (eventType, fileName) => {
-		nicelog(`Refreshing after ${eventType}: ${fileName}`)
-		// todo: if a file was only updated, then only update the file that changed, any links that point to it, etc.
+// Refreshes are chained so they never overlap: each one drops and rebuilds every table in
+// content.db, and two running at once fail with "no such table" / UNIQUE violations and can
+// leave the db half-filled. A rejection here would otherwise be unhandled and take down the
+// `yarn dev` process (concurrently --kill-others), so log it instead.
+let refreshQueue: Promise<void> = Promise.resolve()
+function queueRefresh(reason: string) {
+	refreshQueue = refreshQueue.then(async () => {
+		nicelog(`Refreshing after ${reason}`)
 		try {
 			await refreshContent({ silent: true })
 			clients.forEach((ws) => ws.send('refresh'))
 		} catch (e: any) {
 			nicelog(`x Could not refresh content: ${e.message}`)
 		}
-	}, 250)
+	})
+	return refreshQueue
+}
+
+queueRefresh('startup')
+
+fs.watch(
+	'content',
+	{ persistent: true, recursive: true },
+	// todo: if a file was only updated, then only update the file that changed, any links that point to it, etc.
+	debounce((eventType, fileName) => queueRefresh(`${eventType}: ${fileName}`), 250)
 )
 
 const wss = new WebSocketServer({ port: 3201 })

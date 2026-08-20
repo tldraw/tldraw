@@ -42,25 +42,19 @@ export function DocsFeedbackWidget({ className }: { className?: string }) {
 		'idle' | 'thumbs-up' | 'thumbs-down' | 'loading' | 'success' | 'error'
 	>('idle')
 
-	const handleThumbsDown = async () => {
-		setState((s) => {
-			const next = s === 'thumbs-down' ? 'idle' : 'thumbs-down'
-			if (s === 'thumbs-down') {
-				submitThumbsFeedback(sessionId, pathname, -1)
-			}
-			return next
-		})
+	// Clicking a thumb selects it (and records the vote); clicking it again deselects it. The
+	// tracking call stays outside the setState updater: React double-invokes updaters in
+	// StrictMode, which would double-count the vote.
+	const handleThumbs = (thumb: 'thumbs-up' | 'thumbs-down') => {
+		const next = state === thumb ? 'idle' : thumb
+		if (next === thumb) {
+			submitThumbsFeedback(sessionId, pathname, thumb === 'thumbs-up' ? 1 : -1)
+		}
+		setState(next)
 	}
 
-	const handleThumbsUp = () => {
-		setState((s) => {
-			const next = s === 'thumbs-up' ? 'idle' : 'thumbs-up'
-			if (s === 'thumbs-up') {
-				submitThumbsFeedback(sessionId, pathname, 1)
-			}
-			return next
-		})
-	}
+	const handleThumbsDown = () => handleThumbs('thumbs-down')
+	const handleThumbsUp = () => handleThumbs('thumbs-up')
 
 	const handleSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
 		e.preventDefault()
