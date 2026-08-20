@@ -315,6 +315,18 @@ describe('CameraOptions.wheelBehavior', () => {
 			.forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 5, z: 1 })
 	})
+
+	it('When wheelBehavior is none, the input mode preference does not re-enable the wheel', () => {
+		editor.user.updateUserPreferences({ inputMode: 'trackpad' })
+		editor
+			.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, wheelBehavior: 'none' })
+			.dispatch({
+				...wheelEvent,
+				delta: new Vec(5, 10, 0.01),
+			})
+			.forceTick()
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+	})
 })
 
 describe('Zoom direction inversion', () => {
