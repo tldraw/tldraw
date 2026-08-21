@@ -68,8 +68,7 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 		// This is a significant performance optimization when moving many bound shapes.
 		//
 		// An index-only change is an explicit reorder of the arrow (send to back, bring
-		// forward, ...). Restacking here would put the arrow straight back above its bound
-		// shapes and make the reorder a no-op (#10433), so only react to parent changes.
+		// forward, ...); restacking it above its bound shapes here would undo that (#10433).
 		if (reason !== 'ancestry' && shapeBefore.parentId === shapeAfter.parentId) {
 			return
 		}
