@@ -383,14 +383,14 @@ function parseShortcut(shortcut: string): ParsedKbd | null {
 	if (atomic) {
 		modifierParts = atomic[1] ? atomic[1].split('+') : []
 		keyPart = atomic[2]
+	} else if (shortcut.includes('[[')) {
+		// Anything else containing `[[` is a malformed atomic token; never let it become a junk key.
+		return null
 	} else if (shortcut === '+' || shortcut.endsWith('++')) {
 		// `cmd++` is the `+` key. A single trailing `+` (`alt+shift+`, what the legacy `?`
 		// marker leaves behind) must stay unregistered, so only a doubled `+` counts.
 		modifierParts = shortcut.slice(0, -2).split('+')
 		keyPart = '+'
-	} else if (shortcut.includes('[[')) {
-		// Anything else containing `[[` is a malformed atomic token; never let it become a junk key.
-		return null
 	} else {
 		modifierParts = shortcut.split('+')
 		keyPart = modifierParts.pop() ?? ''

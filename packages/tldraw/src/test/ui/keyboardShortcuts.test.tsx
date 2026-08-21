@@ -358,6 +358,8 @@ describe('parseKbd literal plus key', () => {
 	it('rejects an atomic token without a + separator before it', () => {
 		expect(parseKbd('cmd[[+]]')).toEqual([])
 		expect(parseKbd('cmd+foo[[+]]')).toEqual([])
+		expect(parseKbd('[[foo]]++')).toEqual([])
+		expect(parseKbd('[[]]')).toEqual([])
 	})
 
 	it('still drops a single trailing + so legacy markers cannot become a plus binding', () => {
