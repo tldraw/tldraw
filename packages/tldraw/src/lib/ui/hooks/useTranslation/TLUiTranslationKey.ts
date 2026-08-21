@@ -411,6 +411,7 @@ export type TLUiTranslationKey =
 	| 'shortcuts-dialog.collaboration'
 	| 'shortcuts-dialog.a11y'
 	| 'shortcuts-dialog.text-formatting'
+	| 'shortcuts-dialog.disabled-notice'
 	| 'style-panel.title'
 	| 'style-panel.align'
 	| 'style-panel.label-align'
