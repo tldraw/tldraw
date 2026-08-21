@@ -73,6 +73,7 @@ export class Brushing extends StateNode {
 	override onExit() {
 		this.initialSelectedShapeIds = []
 		this.editor.updateInstanceState({ brush: null })
+		this.editor.edgeScrollManager.reset()
 
 		this.cleanupViewportChangeReactor()
 	}

@@ -112,6 +112,7 @@ export class Translating extends StateNode {
 		this.editor.snaps.clearIndicators()
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.dragAndDropManager.clear()
+		this.editor.edgeScrollManager.reset()
 	}
 
 	override onTick({ elapsed }: TLTickEventInfo) {
