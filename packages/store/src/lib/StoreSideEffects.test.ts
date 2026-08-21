@@ -626,3 +626,32 @@ describe('atomic operations (AO)', () => {
 		])
 	})
 })
+
+describe('handler removal during dispatch (SE)', () => {
+	it('[SE1] a handler that removes itself while running does not stop later handlers from running', () => {
+		const calls: string[] = []
+		const removeA = store.sideEffects.registerAfterCreateHandler('book', () => {
+			calls.push('A')
+			removeA()
+		})
+		store.sideEffects.registerAfterCreateHandler('book', () => calls.push('B'))
+
+		store.put([book1])
+		expect(calls).toEqual(['A', 'B'])
+
+		store.put([book2])
+		expect(calls).toEqual(['A', 'B', 'B'])
+	})
+
+	it('[SE1] an operationComplete handler that removes itself does not skip the next one', () => {
+		const calls: string[] = []
+		const removeA = store.sideEffects.registerOperationCompleteHandler(() => {
+			calls.push('A')
+			removeA()
+		})
+		store.sideEffects.registerOperationCompleteHandler(() => calls.push('B'))
+
+		store.put([book1])
+		expect(calls).toEqual(['A', 'B'])
+	})
+})
