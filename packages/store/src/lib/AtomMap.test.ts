@@ -630,3 +630,20 @@ describe('AtomMap', () => {
 		expect(Object.prototype.toString.call(map)).toBe('[object AtomMap]')
 	})
 })
+
+describe('AtomMap: mutators do not capture (AM)', () => {
+	it('[AM4] deleteMany does not subscribe the calling reaction to the map', () => {
+		const map = new AtomMap('test', [
+			['a', 1],
+			['b', 2],
+		])
+		let runs = 0
+		react('remover', () => {
+			runs++
+			map.deleteMany(['a'])
+		})
+		expect(runs).toBe(1)
+		map.set('zzz', 9)
+		expect(runs).toBe(1)
+	})
+})
