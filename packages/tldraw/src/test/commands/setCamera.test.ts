@@ -1257,6 +1257,19 @@ test('calling setCameraOptions will apply the new constraints', () => {
 	`)
 })
 
+test('a forced animated camera move ends at the forced position', () => {
+	editor.user.updateUserPreferences({ animationSpeed: 1 })
+	editor.setCameraOptions({
+		...DEFAULT_CAMERA_OPTIONS,
+		constraints: { ...DEFAULT_CONSTRAINTS, behavior: 'contain' },
+	})
+	editor.setCamera({ x: -5000, y: -5000, z: 1 }, { force: true, animation: { duration: 100 } })
+	editor.emit('tick', 50)
+	editor.emit('tick', 100)
+	// the final frame must not re-apply the constraints that `force` bypassed
+	expect(editor.getCamera()).toMatchObject({ x: -5000, y: -5000, z: 1 })
+})
+
 test('slideCamera zoom momentum survives a long frame', () => {
 	editor.user.updateUserPreferences({ animationSpeed: 1 })
 	editor.setCamera({ x: 0, y: 0, z: 1 })
