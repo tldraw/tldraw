@@ -53,3 +53,4 @@ This release adds a `center` operation to `Editor.alignShapes`, a `tleditors` re
 - Fix the people menu's collaborator rows not lining up with your own row above them: the follow icon sat too close to the right edge, and collaborator names sat slightly left of your own. ([#9900](https://github.com/tldraw/tldraw/pull/9900))
 - Fix the comment thread popover briefly rendering with a doubled shadow the first time a thread is opened. ([#9886](https://github.com/tldraw/tldraw/pull/9886))
 - Fix background tabs repeatedly dropping and re-establishing their sync connection when the browser throttles timers. ([#9964](https://github.com/tldraw/tldraw/pull/9964))
+- Fix keyboard shortcuts being unable to bind the `+` key (`cmd++` was silently dropped and rendered as a bare modifier) and `shift+<glyph>` shortcuts such as `shift+:` never firing. ([#10067](https://github.com/tldraw/tldraw/issues/10067))
