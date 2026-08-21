@@ -66,11 +66,11 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 		// When translating arrows together with their bound shapes, only x/y changes.
 		// In this case, bindings remain valid and no reparenting is needed.
 		// This is a significant performance optimization when moving many bound shapes.
-		if (
-			reason !== 'ancestry' &&
-			shapeBefore.parentId === shapeAfter.parentId &&
-			shapeBefore.index === shapeAfter.index
-		) {
+		//
+		// An index-only change is an explicit reorder of the arrow (send to back, bring
+		// forward, ...). Restacking here would put the arrow straight back above its bound
+		// shapes and make the reorder a no-op (#10433), so only react to parent changes.
+		if (reason !== 'ancestry' && shapeBefore.parentId === shapeAfter.parentId) {
 			return
 		}
 		arrowDidUpdate(this.editor, shapeAfter as TLArrowShape)

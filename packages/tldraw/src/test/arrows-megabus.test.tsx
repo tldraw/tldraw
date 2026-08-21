@@ -850,3 +850,72 @@ describe('When the bound shape changes geometry', () => {
 		expect(endBinding().props.normalizedAnchor).toMatchObject(resnapped)
 	})
 })
+
+describe('Reordering a bound arrow', () => {
+	const order = () => editor.getCurrentPageShapesSorted().map((shape) => shape.id)
+
+	beforeEach(() => {
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+			{ id: ids.box2, type: 'geo', x: 300, y: 0, props: { w: 100, h: 100 } },
+		])
+		editor.createShape({
+			id: ids.arrow1,
+			type: 'arrow',
+			x: 50,
+			y: 50,
+			props: { start: { x: 0, y: 0 }, end: { x: 300, y: 0 } },
+		})
+		// exact bindings run the arrow center to center, so its bounds overlap both boxes
+		for (const [terminal, toId] of [
+			['start', ids.box1],
+			['end', ids.box2],
+		] as const) {
+			editor.createBinding({
+				type: 'arrow',
+				fromId: ids.arrow1,
+				toId,
+				props: {
+					terminal,
+					isExact: true,
+					isPrecise: true,
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					snap: 'none',
+				},
+			})
+		}
+		expect(order()).toEqual([ids.box1, ids.box2, ids.arrow1])
+	})
+
+	it('lets send to back move the arrow below its bound shapes', () => {
+		editor.sendToBack([ids.arrow1])
+		expect(order()).toEqual([ids.arrow1, ids.box1, ids.box2])
+	})
+
+	it('lets send backward move the arrow below a bound shape', () => {
+		editor.sendBackward([ids.arrow1])
+		expect(order()).toEqual([ids.box1, ids.arrow1, ids.box2])
+	})
+
+	it('lets bring to front move the arrow above an unrelated shape', () => {
+		editor.createShapes([{ id: ids.box3, type: 'geo', x: 600, y: 0 }])
+		expect(order()).toEqual([ids.box1, ids.box2, ids.arrow1, ids.box3])
+		editor.bringToFront([ids.arrow1])
+		expect(order()).toEqual([ids.box1, ids.box2, ids.box3, ids.arrow1])
+	})
+
+	it('still brings the arrow up with a bound shape that is brought to front', () => {
+		editor.sendToBack([ids.arrow1])
+		editor.bringToFront([ids.box1])
+		expect(order()).toEqual([ids.box2, ids.box1, ids.arrow1])
+	})
+
+	it('restores the stacking order on undo', () => {
+		editor.markHistoryStoppingPoint()
+		editor.sendToBack([ids.arrow1])
+		editor.undo()
+		expect(order()).toEqual([ids.box1, ids.box2, ids.arrow1])
+		editor.redo()
+		expect(order()).toEqual([ids.arrow1, ids.box1, ids.box2])
+	})
+})
