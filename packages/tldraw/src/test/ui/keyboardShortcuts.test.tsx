@@ -164,6 +164,28 @@ async function setupFocusedEditor() {
 	return { editor }
 }
 
+async function setupEditorWithKbd(kbd: string) {
+	const onSelect = vi.fn()
+	const { editor } = await renderTldrawComponentWithEditor(
+		(onMount) => (
+			<Tldraw
+				onMount={onMount}
+				overrides={{
+					actions: (_editor, actions) => ({
+						...actions,
+						'test-kbd': { id: 'test-kbd', label: 'Test kbd', kbd, onSelect },
+					}),
+				}}
+			/>
+		),
+		{ waitForPatterns: false }
+	)
+	act(() => {
+		editor.updateInstanceState({ isFocused: true })
+	})
+	return { editor, onSelect }
+}
+
 function keydown(editor: Editor, init: KeyboardEventInit) {
 	act(() => {
 		editor
@@ -367,5 +389,82 @@ describe('parseKbd canonicalizes shifted glyphs', () => {
 		expect(parseKbd('cmd+alt+shift++')).toEqual([
 			{ ...NO_MODS, shift: true, meta: true, alt: true, key: '=' },
 		])
+	})
+})
+
+describe('literal plus key shortcuts', () => {
+	it.each([
+		['cmd++', { key: '+', code: 'BracketRight', metaKey: true }],
+		['cmd+[[+]]', { key: '+', code: 'BracketRight', metaKey: true }],
+		['+', { key: '+', code: 'BracketRight' }],
+		['shift+cmd++', { key: '+', code: 'BracketRight', metaKey: true, shiftKey: true }],
+		[
+			'cmd+alt+shift++',
+			{ key: '+', code: 'BracketRight', metaKey: true, altKey: true, shiftKey: true },
+		],
+		['shift+[[+]]', { key: '+', code: 'BracketRight', shiftKey: true }],
+	])('fires %s on the + key', async (kbd, init) => {
+		const { editor, onSelect } = await setupEditorWithKbd(kbd)
+		keydown(editor, init)
+		expect(onSelect).toHaveBeenCalledTimes(1)
+	})
+
+	it('does not fire cmd++ on cmd+=', async () => {
+		const { editor, onSelect } = await setupEditorWithKbd('cmd++')
+		keydown(editor, { key: '=', code: 'Equal', metaKey: true })
+		expect(onSelect).not.toHaveBeenCalled()
+	})
+})
+
+describe('shifted glyph shortcuts', () => {
+	it('fires shift+: when the browser reports : with shift held', async () => {
+		const { editor, onSelect } = await setupEditorWithKbd('shift+:')
+		keydown(editor, { key: ':', code: 'Semicolon', shiftKey: true })
+		expect(onSelect).toHaveBeenCalledTimes(1)
+	})
+
+	it.each([
+		['Digit6 code', 'Digit6'],
+		['non-digit code', 'Equal'],
+	])('fires shift+^ when the browser reports ^ with shift held (%s)', async (_name, code) => {
+		const { editor, onSelect } = await setupEditorWithKbd('shift+^')
+		keydown(editor, { key: '^', code, shiftKey: true })
+		expect(onSelect).toHaveBeenCalledTimes(1)
+	})
+
+	// The bindings the issue response recommends for real hardware: AZERTY shift+`:` key emits
+	// `/`, JIS shift+`^` key emits `~`.
+	it('fires shift+/ on a real AZERTY shift+: key press', async () => {
+		const { editor, onSelect } = await setupEditorWithKbd('shift+/')
+		keydown(editor, { key: '/', code: 'Semicolon', shiftKey: true })
+		expect(onSelect).toHaveBeenCalledTimes(1)
+	})
+
+	it('fires shift+~ on a real JIS shift+^ key press', async () => {
+		const { editor, onSelect } = await setupEditorWithKbd('shift+~')
+		keydown(editor, { key: '~', code: 'Equal', shiftKey: true })
+		expect(onSelect).toHaveBeenCalledTimes(1)
+	})
+
+	it('keeps the shifted number row positional: shift+& does not fire on German Digit6, shift+6 does', async () => {
+		const amp = await setupEditorWithKbd('shift+&')
+		keydown(amp.editor, { key: '&', code: 'Digit6', shiftKey: true })
+		expect(amp.onSelect).not.toHaveBeenCalled()
+
+		const six = await setupEditorWithKbd('shift+6')
+		keydown(six.editor, { key: '&', code: 'Digit6', shiftKey: true })
+		expect(six.onSelect).toHaveBeenCalledTimes(1)
+	})
+
+	it('still fires shift+/ on a US ? event', async () => {
+		const { editor, onSelect } = await setupEditorWithKbd('shift+/')
+		keydown(editor, { key: '?', code: 'Slash', shiftKey: true })
+		expect(onSelect).toHaveBeenCalledTimes(1)
+	})
+
+	it('still fires shift+1 on a US ! event', async () => {
+		const { editor, onSelect } = await setupEditorWithKbd('shift+1')
+		keydown(editor, { key: '!', code: 'Digit1', shiftKey: true })
+		expect(onSelect).toHaveBeenCalledTimes(1)
 	})
 })
