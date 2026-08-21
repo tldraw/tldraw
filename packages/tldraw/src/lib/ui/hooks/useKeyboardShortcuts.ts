@@ -406,6 +406,9 @@ function parseShortcut(shortcut: string): ParsedKbd | null {
 
 	let key = keyPart.toLowerCase()
 	if (KEY_ALIASES[key]) key = KEY_ALIASES[key]
+	// getEventKey normalizes a shifted event through the same table, so `shift+:` can only ever
+	// match if it is stored as `shift+;`.
+	if (result.shift && SHIFT_KEY_TO_BASE[key]) key = SHIFT_KEY_TO_BASE[key]
 	result.key = key
 	return result
 }

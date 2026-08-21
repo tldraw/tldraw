@@ -345,3 +345,27 @@ describe('parseKbd literal plus key', () => {
 		expect(parseKbd(getHotkeysStringFromKbd('shift+?'))).toEqual([])
 	})
 })
+
+describe('parseKbd canonicalizes shifted glyphs', () => {
+	it('maps a shifted glyph to its US base key so it matches the normalized event key', () => {
+		expect(parseKbd('shift+:')).toEqual([{ ...NO_MODS, shift: true, key: ';' }])
+		expect(parseKbd('shift+^')).toEqual([{ ...NO_MODS, shift: true, key: '6' }])
+		expect(parseKbd('shift+cmd+^')).toEqual([{ ...NO_MODS, shift: true, meta: true, key: '6' }])
+	})
+
+	it('treats the shifted and unshifted spellings as the same binding', () => {
+		expect(parseKbd('shift+:')).toEqual(parseKbd('shift+;'))
+		expect(parseKbd('shift+?')).toEqual(parseKbd('shift+/'))
+	})
+
+	it('leaves an unshifted glyph alone', () => {
+		expect(parseKbd(':')).toEqual([{ ...NO_MODS, key: ':' }])
+	})
+
+	it('canonicalizes a shifted literal plus to =', () => {
+		expect(parseKbd('shift+cmd++')).toEqual([{ ...NO_MODS, shift: true, meta: true, key: '=' }])
+		expect(parseKbd('cmd+alt+shift++')).toEqual([
+			{ ...NO_MODS, shift: true, meta: true, alt: true, key: '=' },
+		])
+	})
+})
