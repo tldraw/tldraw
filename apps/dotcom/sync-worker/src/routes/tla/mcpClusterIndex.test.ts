@@ -42,7 +42,7 @@ function makeShape(id: string, x: number): TLShape {
 function makePage(
 	shapes = [makeShape('shape:one', 0), makeShape('shape:two', 5000)]
 ): ResolvedPageOk {
-	return { ok: true, pageId: 'page:a', pageName: 'Cover', shapes }
+	return { ok: true, pageId: 'page:a', pageName: 'Cover', shapes, pageIds: ['page:a'] }
 }
 
 const MEASUREMENTS: Record<string, ShapeMeasurement> = {
@@ -97,6 +97,18 @@ describe('the stored index', () => {
 		expect(parseClusterIndex(JSON.stringify({ ...index, clusters: undefined }))).toBeNull()
 	})
 
+	it('refuses to rebuild for a page that has gained shapes', () => {
+		const index = buildClusterIndex(clusterPage(makePage(), MEASUREMENTS))
+
+		// The direction a stored index cannot otherwise notice. Nothing about the index is wrong — it
+		// rebuilds cleanly — it is just short, and answering short is a wrong answer no uncached call
+		// could give. An index built when the page was empty is the worst case: a full page would be
+		// reported as having no clusters at all.
+		const grown = makePage([...makePage().shapes, makeShape('shape:three', 200)])
+		expect(clustersFromIndex(grown, index)).toBeNull()
+		expect(clustersFromIndex(grown, buildClusterIndex([]))).toBeNull()
+	})
+
 	it('refuses to rebuild for a page whose shapes it does not name', () => {
 		const index = buildClusterIndex(clusterPage(makePage(), MEASUREMENTS))
 
@@ -124,7 +136,7 @@ describe('reading and writing', () => {
 		// And writing under the new version replaces the row rather than adding one, so a file's cache
 		// is bounded by its page count no matter how often it is edited.
 		await writePageClusterIndex({ env }, moved, page, buildClusterIndex(clusters))
-		expect(namespace.store.size).toBe(1)
+		expect([...namespace.objects.values()].flatMap((store) => [...store.keys()])).toHaveLength(1)
 	})
 
 	it('does not store a page whose index is over the size cap', async () => {
@@ -138,7 +150,7 @@ describe('reading and writing', () => {
 
 		// Nothing written, and nothing thrown: a page this size keeps measuring, which is what it did
 		// before the cache existed.
-		expect(namespace.store.size).toBe(0)
+		expect([...namespace.objects.values()].flatMap((store) => [...store.keys()])).toHaveLength(0)
 		expect(await readPageClusters({ env }, BOARD, page)).toBeNull()
 	})
 
@@ -180,8 +192,10 @@ describe('reading and writing', () => {
 
 		// Not a shape parseClusterIndex checks field by field — reading it throws inside the rebuild,
 		// which the cache read catches and reports. Either way the caller measures.
-		for (const [key, row] of namespace.store) {
-			namespace.store.set(key, { ...row, payload: '{"v":1,"clusters":[{}],"text":{}}' })
+		for (const store of namespace.objects.values()) {
+			for (const [key, row] of store) {
+				store.set(key, { ...row, payload: '{"v":1,"clusters":[{}],"text":{}}' })
+			}
 		}
 		expect(await readPageClusters({ env }, BOARD, page)).toBeNull()
 	})

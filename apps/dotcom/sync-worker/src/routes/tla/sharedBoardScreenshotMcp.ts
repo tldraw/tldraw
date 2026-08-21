@@ -654,7 +654,7 @@ async function callPageInfoTool(
 			return resolved.result
 		}
 
-		const clustered = await clustersFor(env, resolved, userId, telemetry, request, ctx)
+		const clustered = await clustersFor(resolved, { env, userId, telemetry, request, ctx })
 		if (!clustered.ok) return clustered.result
 		telemetry({ cacheStatus: 'none', clusterCacheStatus: clustered.clusterCacheStatus })
 		return getPageInfo(resolved.page, clustered.clusters)
@@ -844,12 +844,20 @@ type PageClustersResult =
 // The session lands on the `browser_run_session` spend ledger inside the measure itself, so callers
 // carry no duration bookkeeping.
 async function clustersFor(
-	env: Environment,
 	resolved: Extract<ResolvedBoardPage, { ok: true }>,
-	userId: string,
-	telemetry: McpTelemetryWriter,
-	request: Request,
-	ctx: ExecutionContext | undefined
+	{
+		env,
+		userId,
+		telemetry,
+		request,
+		ctx,
+	}: {
+		env: Environment
+		userId: string
+		telemetry: McpTelemetryWriter
+		request: Request
+		ctx: ExecutionContext | undefined
+	}
 ): Promise<PageClustersResult> {
 	const cacheContext = { env, request, ctx }
 	const cached = await readPageClusters(cacheContext, resolved.board, resolved.page)
@@ -907,7 +915,7 @@ async function callClusterInfoTool(
 			return resolved.result
 		}
 
-		const clustered = await clustersFor(env, resolved, userId, telemetry, request, ctx)
+		const clustered = await clustersFor(resolved, { env, userId, telemetry, request, ctx })
 		if (!clustered.ok) return clustered.result
 		const result = getClusterInfo(resolved.page, clustered.clusters, input.clusterId, input.page)
 		if (result.isError) {
@@ -970,7 +978,7 @@ async function renderShapeSetScreenshot(
 			resolved: Extract<ResolvedBoardPage, { ok: true }>,
 			telemetry: McpTelemetryWriter
 		): Promise<
-			| { ok: true; shapeIds: string[]; clusterCacheStatus?: 'hit' | 'miss' }
+			| { ok: true; shapeIds: string[]; clusterCacheStatus: 'hit' | 'miss' }
 			| { ok: false; result: ReturnType<typeof toolError> }
 		>
 	}
@@ -1010,7 +1018,7 @@ async function renderShapeSetScreenshot(
 		const shapeIds = picked.shapeIds
 		// Carried onto every row below: whether this call had to measure is as much a part of what it
 		// spent as whether it had to capture.
-		clusterCacheStatus = picked.clusterCacheStatus ?? 'none'
+		clusterCacheStatus = picked.clusterCacheStatus
 
 		// Keyed on the shape set, so two requests naming the same shapes share one cached PNG — they
 		// render identically.
@@ -1129,7 +1137,7 @@ async function callClusterScreenshotTool(
 		userId,
 		extras: { clusterIds: input.clusterIds.join(',') },
 		pickShapes: async (resolved, telemetry) => {
-			const clustered = await clustersFor(env, resolved, userId, telemetry, request, ctx)
+			const clustered = await clustersFor(resolved, { env, userId, telemetry, request, ctx })
 			if (!clustered.ok) return { ok: false, result: clustered.result }
 			const picked = pickClusterShapes(clustered.clusters, input.clusterIds, input.page)
 			if (picked.ok) return { ...picked, clusterCacheStatus: clustered.clusterCacheStatus }

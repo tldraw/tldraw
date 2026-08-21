@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	McpClusterIndexSql,
 	ensureMcpClusterIndexTable,
+	pruneMcpClusterIndexRows,
 	readMcpClusterIndexRow,
 	writeMcpClusterIndexRow,
 } from './mcpClusterIndexStorage'
@@ -71,6 +72,25 @@ describe('the cluster index table', () => {
 
 		expect(countRows(sql)).toBe(2)
 		expect(readMcpClusterIndexRow(sql, KEY)).toBe('{"v":1,"n":"live"}')
+	})
+
+	it('drops the rows for pages the board no longer has', () => {
+		const sql = makeSql()
+		ensureMcpClusterIndexTable(sql)
+		writeMcpClusterIndexRow(sql, KEY, '{"v":1,"n":"a"}')
+		writeMcpClusterIndexRow(sql, { ...KEY, pageId: 'page:gone' }, '{"v":1,"n":"gone"}')
+		writeMcpClusterIndexRow(sql, { ...KEY, kind: 'published', pageId: 'page:gone' }, '{"v":1}')
+
+		pruneMcpClusterIndexRows(sql, 'shared_file', ['page:a'])
+
+		// Without this the table is bounded by every page id the board has ever had: a page deleted
+		// after it was indexed leaves a row nothing reads, replaces, or expires.
+		expect(readMcpClusterIndexRow(sql, { ...KEY, pageId: 'page:gone' })).toBeNull()
+		expect(readMcpClusterIndexRow(sql, KEY)).toBe('{"v":1,"n":"a"}')
+		// Scoped to the kind it was told about: the published board's pages are a different list.
+		expect(readMcpClusterIndexRow(sql, { ...KEY, kind: 'published', pageId: 'page:gone' })).toBe(
+			'{"v":1}'
+		)
 	})
 
 	it('is safe to ensure repeatedly, which every call does', () => {

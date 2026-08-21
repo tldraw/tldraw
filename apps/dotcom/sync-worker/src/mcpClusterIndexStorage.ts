@@ -1,4 +1,4 @@
-import { McpClusterIndexKey } from './types'
+import { McpClusterIndexKey, ThumbnailBoardKind } from './types'
 
 // The SQL behind the MCP cluster index cache (see mcpClusterIndex.ts for what it is for), kept apart
 // from TLFileDurableObject so it can be run against a real SQLite database in a test — otherwise
@@ -15,7 +15,8 @@ export interface McpClusterIndexSql {
  * edit history, with no expiry policy to run. There is no slug either — the object is already
  * per-file, and a published slug can be rotated, which would strand a row nothing ever replaces.
  * `kind` stays, because one file is two boards: the live shared file and the frozen published
- * snapshot, which cluster differently once they have drifted apart.
+ * snapshot, which cluster differently once they have drifted apart. Unpublishing leaves the
+ * `published` rows behind — bounded by the page count, and replaced by version on a republish.
  */
 export function ensureMcpClusterIndexTable(sql: McpClusterIndexSql) {
 	sql.exec(
@@ -47,6 +48,28 @@ export function readMcpClusterIndexRow(
 		)
 		.toArray() as { payload: string }[]
 	return rows[0]?.payload ?? null
+}
+
+/**
+ * Drops the rows for pages this board no longer has.
+ *
+ * Without this the table is bounded by the page ids a board has *ever* had rather than by the pages
+ * it has now: a page deleted after it was indexed leaves a row nothing reads, replaces, or expires.
+ * Run on every write, which is the only moment the current page list is in hand anyway.
+ */
+export function pruneMcpClusterIndexRows(
+	sql: McpClusterIndexSql,
+	kind: ThumbnailBoardKind,
+	pageIds: string[]
+) {
+	// A board always has at least the page being written, so the list is never empty and the generated
+	// `NOT IN ()` is never the syntax error an empty one would be.
+	const placeholders = pageIds.map(() => '?').join(', ')
+	sql.exec(
+		`DELETE FROM mcp_cluster_index WHERE kind = ? AND pageId NOT IN (${placeholders})`,
+		kind,
+		...pageIds
+	)
 }
 
 export function writeMcpClusterIndexRow(

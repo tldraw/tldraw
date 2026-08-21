@@ -154,37 +154,49 @@ export function makeMeasuringBrowserBinding(
 
 // In-memory stand-in for the TLDR_DOC namespace, with the file object's MCP cluster index storage.
 //
-// One store per namespace, keyed the way the real table is (kind, pageId) with the version held as a
-// value rather than part of the key — so a write for new content replaces the old row exactly as
-// `INSERT OR REPLACE` does, and a read for a stale version misses. mcpClusterIndexStorage.test.ts is
-// what holds this fake to the real statements.
+// One store per object id, because that is the property the design rests on: the index key carries no
+// slug precisely because each file has its own object, so a fake that pooled every file into one
+// store could not tell a right `fileId` from a wrong one.
 //
-// `store` is exposed so a test can seed a row, corrupt one, or assert that a tool wrote one; `calls`
-// counts reads and writes, which is how a test tells "served from cache" from "measured again"
-// without inspecting the browser binding.
+// Within a store, rows are keyed the way the real table is — (kind, pageId), with the version held as
+// a value rather than part of the key — so a write for new content replaces the old row exactly as
+// `INSERT OR REPLACE` does, a read for a stale version misses, and a write prunes the pages the board
+// no longer has. mcpClusterIndexStorage.test.ts is what holds this fake to the real statements.
 export function makeFakeFileDurableObjectNamespace() {
-	const store = new Map<string, { version: string; payload: string }>()
+	const objects = new Map<string, Map<string, { version: string; payload: string }>>()
 	const calls = { get: 0, put: 0 }
 	const keyOf = (key: { kind: string; pageId: string }) => `${key.kind}/${key.pageId}`
-
-	const stub = {
-		async getMcpClusterIndex(key: any) {
-			calls.get++
-			const row = store.get(keyOf(key))
-			return row && row.version === key.version ? row.payload : null
-		},
-		async putMcpClusterIndex(key: any, payload: string) {
-			calls.put++
-			store.set(keyOf(key), { version: key.version, payload })
-		},
+	const storeFor = (id: string) => {
+		const existing = objects.get(id)
+		if (existing) return existing
+		const created = new Map<string, { version: string; payload: string }>()
+		objects.set(id, created)
+		return created
 	}
 
 	return {
-		store,
+		objects,
 		calls,
 		// A legible id rather than an opaque hash, so an assertion that reaches one reads as `do(<name>)`.
 		idFromName: (name: string) => ({ toString: () => `do(${name})` }),
-		get: () => stub,
+		get: (id: { toString(): string }) => {
+			const store = storeFor(String(id))
+			return {
+				async getMcpClusterIndex(key: any) {
+					calls.get++
+					const row = store.get(keyOf(key))
+					return row && row.version === key.version ? row.payload : null
+				},
+				async putMcpClusterIndex(key: any, payload: string, livePageIds: string[]) {
+					calls.put++
+					for (const existing of [...store.keys()]) {
+						const [kind, pageId] = existing.split('/')
+						if (kind === key.kind && !livePageIds.includes(pageId)) store.delete(existing)
+					}
+					store.set(keyOf(key), { version: key.version, payload })
+				},
+			}
+		},
 	}
 }
 
@@ -206,6 +218,13 @@ export function makeScreenshotTestEnv(overrides: Partial<Record<string, unknown>
 /** The fake TLDR_DOC namespace an env was built with, for tests that assert on cache traffic. */
 export function clusterIndexStoreOf(env: Environment) {
 	return env.TLDR_DOC as unknown as ReturnType<typeof makeFakeFileDurableObjectNamespace>
+}
+
+/** Every cluster index row an env holds, as `<object>|<kind>/<pageId>`, for whole-store assertions. */
+export function clusterIndexKeysOf(env: Environment) {
+	return [...clusterIndexStoreOf(env).objects].flatMap(([id, store]) =>
+		[...store.keys()].map((key) => `${id}|${key}`)
+	)
 }
 
 export function screenshotOf(env: Environment) {

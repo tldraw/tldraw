@@ -16,6 +16,7 @@ import {
 	blobValuesOf,
 	blobsWithPrefix,
 	callerBlobsOf,
+	clusterIndexKeysOf,
 	clusterIndexStoreOf,
 	datapointsNamed,
 	failureBlobsOf,
@@ -833,6 +834,69 @@ describe('cluster index cache', () => {
 		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
 	})
 
+	it('gives each file its own index, shared files included', async () => {
+		grantReadAccess()
+		vi.mocked(getSharedFileInfo).mockImplementation(async (_env, slug) => ({
+			id: slug,
+			shared: true,
+			isDeleted: false,
+		}))
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(PAGES))
+		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
+
+		const clusterId = await firstClusterId(env, 'user_ix_two', 'file-a')
+		await callTool('get_cluster_info', { boardId: 'file-a', clusterId }, env, 'user_ix_two')
+		await callTool('get_page_info', { boardId: 'file-b' }, env, 'user_ix_two')
+
+		// Two boards, two objects: the index key carries no slug precisely because each file has its
+		// own durable object, so file-b's page must miss even though it clusters identically.
+		expect(clusterIndexKeysOf(env)).toEqual([
+			'do(/r/file-a)|shared_file/page:a',
+			'do(/r/file-b)|shared_file/page:a',
+		])
+		// file-a: one measure for get_page_info, none for the get_cluster_info that followed it.
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure', 'measure'])
+		expect(blobsWithPrefix(env, 'clusters:')).toEqual([
+			'clusters:miss',
+			'clusters:hit',
+			'clusters:miss',
+		])
+	})
+
+	it('answers from the index while global browser capacity is exhausted', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		const clusterId = await firstClusterId(env, 'user_ix_cap', 'abc')
+
+		// The global cap is the ceiling on Browser Run sessions, so it is checked on the miss path only:
+		// a call that spends nothing must not be refused by it.
+		;(env as any).MCP_SERVER_BROWSER_RATE_LIMITER = { limit: async () => ({ success: false }) }
+		const cached = await callTool(
+			'get_cluster_info',
+			{ boardId: 'abc', clusterId },
+			env,
+			'user_ix_cap'
+		)
+		const uncached = await callTool(
+			'get_page_info',
+			{ boardId: 'abc', page: 1 },
+			env,
+			'user_ix_cap'
+		)
+
+		expect(cached.isError).toBeUndefined()
+		expect(uncached.isError).toBe(true)
+		expect(uncached.content[0].text).toContain('Screenshot capacity is busy')
+		expect(failureBlobsOf(env)).toContain('failure:rate_limited_global')
+		expect(blobsWithPrefix(env, 'clusters:')).toEqual([
+			'clusters:miss',
+			'clusters:hit',
+			'clusters:miss',
+		])
+		// And the refusal cost nothing: only the first call ever reached a browser.
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
+	})
+
 	it('measures again when the board content moves on', async () => {
 		mockPublishedBoard()
 		const env = makeEnv()
@@ -848,7 +912,28 @@ describe('cluster index cache', () => {
 		await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix3')
 
 		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure', 'measure'])
-		expect(clusterIndexStoreOf(env).store.size).toBe(1)
+		expect(clusterIndexKeysOf(env)).toEqual(['do(/r/file-1)|published/page:a'])
+	})
+
+	it('forgets a page the board no longer has', async () => {
+		const board = makeSnapshot(PAGES)
+		mockPublishedBoard(board)
+		const env = makeEnv()
+		await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix_prune')
+		await callTool('get_page_info', { boardId: 'abc', page: 1 }, env, 'user_ix_prune')
+		expect(clusterIndexKeysOf(env)).toHaveLength(2)
+
+		// The second page is deleted, and the next write is the only moment anything knows the board's
+		// current page list — without a prune there, its row would sit there for the life of the file.
+		mockPublishedBoard(makeSnapshot([PAGES[0], PAGES[2]]))
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1751234567892,
+		})
+		await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix_prune')
+
+		expect(clusterIndexKeysOf(env)).toEqual(['do(/r/file-1)|published/page:a'])
 	})
 
 	it('treats a row it cannot parse as a miss', async () => {
@@ -858,8 +943,10 @@ describe('cluster index cache', () => {
 
 		// Whatever is in there — a half-written row, or one from a build whose index format has since
 		// changed — the tool answers, and it answers by measuring.
-		for (const [key, row] of clusterIndexStoreOf(env).store) {
-			clusterIndexStoreOf(env).store.set(key, { ...row, payload: '{"v":999,"clusters":[]}' })
+		for (const store of clusterIndexStoreOf(env).objects.values()) {
+			for (const [key, row] of store) {
+				store.set(key, { ...row, payload: '{"v":999,"clusters":[]}' })
+			}
 		}
 		const result = await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix4')
 

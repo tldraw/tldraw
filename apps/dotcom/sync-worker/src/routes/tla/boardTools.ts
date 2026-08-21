@@ -276,7 +276,18 @@ export function getBoardInfo(snapshot: RoomSnapshot): ToolResult {
 // Separate from the tools below because the caller has to know the page id before it can measure the
 // page, and measuring is what produces the `measurements` those tools need.
 export type ResolvedPage =
-	| { ok: true; pageId: string; pageName: string; shapes: TLShape[] }
+	| {
+			ok: true
+			pageId: string
+			pageName: string
+			shapes: TLShape[]
+			/**
+			 * Every page this board currently has, in board order. Carried because the cluster index is
+			 * stored per page and nothing else would ever tell it a page had been deleted — see
+			 * `pruneMcpClusterIndexRows`.
+			 */
+			pageIds: string[]
+	  }
 	| { ok: false; reason: 'no_pages' | 'page_out_of_range'; result: ToolResult }
 
 export function resolvePage(snapshot: RoomSnapshot, page: PageSelector): ResolvedPage {
@@ -302,6 +313,7 @@ export function resolvePage(snapshot: RoomSnapshot, page: PageSelector): Resolve
 		pageId: targetPage.id,
 		pageName: targetPage.name,
 		shapes: getShapesOnPage(snapshot, targetPage.id),
+		pageIds: pages.map((page) => page.id),
 	}
 }
 
@@ -393,9 +405,21 @@ export function parseClusterIndex(json: string): PageClusterIndex | null {
 
 /**
  * Rebuilds full clusters from a stored index and the page it was built for, or null when the two
- * disagree: a shape the index names is not on the page. That should be impossible — an index is only
- * read back for the content version it was built from — but a null costs one render, and serving a
- * cluster that is quietly a shape short costs a wrong answer.
+ * disagree. A null costs one render; serving a mismatch costs a wrong answer that no uncached path
+ * could produce, so the check runs in both directions.
+ *
+ * Clustering partitions a page — every shape lands in exactly one cluster — so the index and the page
+ * agree only if they name the same shapes *and* the same number of them. Naming one the page lacks is
+ * the obvious half. The other half is what catches a page that has *gained* shapes since it was
+ * indexed, which a stored index cannot otherwise notice: it would rebuild cleanly and answer short,
+ * and an index built when the page was empty would report a full page as having no clusters at all.
+ *
+ * That skew is reachable. A published board's version is `lastPublished`, which Postgres carries the
+ * moment the publish is requested, while the R2 snapshot it names is written afterwards by the effect
+ * outbox — so a call landing in that gap measures the old content and stores it under the new
+ * version. Shared files have a narrower version of the same race between the `head` that reads the
+ * etag and the `get` that reads the snapshot. Both are rare and neither is worth a lock; both are a
+ * miss here.
  *
  * A malformed row throws instead, from reading a field the format promised; the cache read treats
  * that as a miss too.
@@ -406,6 +430,7 @@ export function clustersFromIndex(
 ): ShapeCluster[] | null {
 	const byId = new Map(page.shapes.map((shape) => [shape.id as string, shape]))
 	const clusters: ShapeCluster[] = []
+	let named = 0
 
 	for (const cluster of index.clusters) {
 		const shapes: TLShapeWithPlainText[] = []
@@ -415,6 +440,7 @@ export function clustersFromIndex(
 			const text = index.text[shapeId]
 			shapes.push(text ? { ...shape, plainText: text } : shape)
 		}
+		named += shapes.length
 		clusters.push({
 			id: cluster.id,
 			label: cluster.label,
@@ -424,7 +450,7 @@ export function clustersFromIndex(
 		})
 	}
 
-	return clusters
+	return named === page.shapes.length ? clusters : null
 }
 
 // The three clustering tools take clusters, not measurements: a call served from a stored index and

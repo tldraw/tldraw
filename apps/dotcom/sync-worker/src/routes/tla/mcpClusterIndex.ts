@@ -29,9 +29,12 @@ interface CacheContext {
 /**
  * The ceiling on a stored index, above which a page is never cached and keeps measuring.
  *
- * A page of a few thousand shapes serializes to tens of kilobytes. The cap is for the outlier: rows
- * are replaced on edit but never expired, so whatever is written is paid for as long as the file
- * lives. Measured in UTF-16 units rather than bytes, which for shape ids is the same number.
+ * A page of a few thousand shapes serializes to tens of kilobytes. The cap is for the outlier, and it
+ * is deliberately generous — the biggest pages are the most expensive to measure, so refusing to
+ * cache them is refusing the cache's best case. What it bounds is the worst case a file can hold:
+ * this times its page count times the two board kinds, paid for as long as the file lives, since rows
+ * are replaced and pruned but never expired. Measured in UTF-16 units, so a page of
+ * non-ASCII text stores more bytes than the number suggests — well inside any storage limit either way.
  */
 export const MAX_CLUSTER_INDEX_LENGTH = 256 * 1024
 
@@ -93,7 +96,8 @@ export async function writePageClusterIndex(
 
 		await getRoomDurableObject(env, board.fileId).putMcpClusterIndex(
 			keyFor(board, page.pageId),
-			payload
+			payload,
+			page.pageIds
 		)
 	} catch (error) {
 		// Reported, never raised. The measurements are in hand and the tool's answer is correct; a

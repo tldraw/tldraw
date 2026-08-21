@@ -138,8 +138,7 @@ export async function resolveThumbnailBoard(
 	const persisted = await env.ROOMS.head(getR2KeyForRoom({ slug, isApp: true }))
 	if (!persisted) return { ok: false, reason: 'board_empty' }
 
-	// A shared file's slug is its file id, so the two are the same handle by construction.
-	return { ok: true, board: { kind, slug, version: persisted.etag, access, file, fileId: slug } }
+	return { ok: true, board: { kind, slug, version: persisted.etag, access, file, fileId: file.id } }
 }
 
 // Reads a resolved board's snapshot, keeping the two outcomes callers must tell apart distinct.

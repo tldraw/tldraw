@@ -75,6 +75,7 @@ import { PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
 import {
 	ensureMcpClusterIndexTable,
+	pruneMcpClusterIndexRows,
 	readMcpClusterIndexRow,
 	writeMcpClusterIndexRow,
 } from './mcpClusterIndexStorage'
@@ -2686,15 +2687,41 @@ export class TLFileDurableObject extends DurableObject {
 	 * Storage-only — none of these boot the room. They run on a Worker's critical path, and the point
 	 * of the cache is to be cheaper than the browser render it replaces.
 	 */
-	/** One page's stored cluster index, or null when nothing was stored for this content version. */
-	async getMcpClusterIndex(key: McpClusterIndexKey): Promise<string | null> {
+	// `CREATE TABLE IF NOT EXISTS` is a write, and a cheap one, but running it per call would make the
+	// read path a write path — which is what lets a request in flight during a hard delete put storage
+	// back into an object that has already been emptied. Once per instance, after the delete check.
+	private mcpClusterIndexReady = false
+	private ensureMcpClusterIndex() {
+		if (this.mcpClusterIndexReady) return
 		ensureMcpClusterIndexTable(this.ctx.storage.sql)
+		this.mcpClusterIndexReady = true
+	}
+
+	/**
+	 * One page's stored cluster index, or null when nothing was stored for this content version.
+	 *
+	 * Refuses for a deleted file rather than reading: `appFileRecordDidDelete` empties this object's
+	 * storage and then treats the delete as terminal, so anything written after it is never collected.
+	 * An MCP request that resolved a board just before the delete landed is exactly that case.
+	 */
+	async getMcpClusterIndex(key: McpClusterIndexKey): Promise<string | null> {
+		if (this._documentInfo?.deleted) return null
+		this.ensureMcpClusterIndex()
 		return readMcpClusterIndexRow(this.ctx.storage.sql, key)
 	}
 
-	/** Stores one page's cluster index, replacing whatever that page last had. */
-	async putMcpClusterIndex(key: McpClusterIndexKey, payload: string): Promise<void> {
-		ensureMcpClusterIndexTable(this.ctx.storage.sql)
+	/**
+	 * Stores one page's cluster index, replacing whatever that page last had and dropping the rows for
+	 * pages the board no longer has.
+	 */
+	async putMcpClusterIndex(
+		key: McpClusterIndexKey,
+		payload: string,
+		livePageIds: string[]
+	): Promise<void> {
+		if (this._documentInfo?.deleted) return
+		this.ensureMcpClusterIndex()
+		pruneMcpClusterIndexRows(this.ctx.storage.sql, key.kind, livePageIds)
 		writeMcpClusterIndexRow(this.ctx.storage.sql, key, payload)
 	}
 
