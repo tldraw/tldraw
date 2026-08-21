@@ -36,8 +36,11 @@ export function TlaDeleteFileDialog({
 	const handleDelete = async () => {
 		const token = await auth.getToken()
 		if (!token) throw new Error('No token')
+		if (!(await app.deleteOrForgetFile(fileId, workspaceId))) {
+			onClose()
+			return
+		}
 		trackEvent('delete-file', { source: 'file-menu' })
-		await app.deleteOrForgetFile(fileId, workspaceId)
 
 		// Stay in the workspace the file was deleted from: go to its most recent remaining
 		// file, or — if that was its last file — create a fresh blank file in it, the same
