@@ -522,6 +522,67 @@ describe('28. TLSocketRoom (SR)', () => {
 			expect(room.getSessions()[0].isConnected).toBe(false)
 			expect(socket.close).toHaveBeenCalled()
 		})
+
+		it('[SR6] ignores a close/error reported for a socket the session has moved on from', () => {
+			const oldSocket = createMockSocket()
+			connectSession(room, 'test-session', oldSocket)
+			// the client reconnects under the same session id before the old socket's close lands
+			const newSocket = createMockSocket()
+			connectSession(room, 'test-session', newSocket)
+			expect(room.getSessions()[0].isConnected).toBe(true)
+
+			room.handleSocketClose('test-session', oldSocket)
+			room.handleSocketError('test-session', oldSocket)
+			expect(room.getSessions()[0].isConnected).toBe(true)
+			expect(newSocket.close).not.toHaveBeenCalled()
+
+			// the current socket's close still cancels the session
+			room.handleSocketClose('test-session', newSocket)
+			expect(room.getSessions()[0].isConnected).toBe(false)
+			expect(newSocket.close).toHaveBeenCalled()
+		})
+
+		it('[SR4][SR6] a stale close delivered through the attached listeners does not cancel the replacement session', () => {
+			// mock sockets that actually dispatch to the listeners TLSocketRoom attaches (SR4)
+			function createListeningSocket() {
+				const listeners: Record<string, ((e: any) => void)[]> = {}
+				const s: WebSocketMinimal & { fire(type: string): void } = {
+					send: vi.fn(),
+					close: vi.fn(() => {
+						s.readyState = WebSocket.CLOSED
+					}),
+					readyState: WebSocket.OPEN,
+					addEventListener: vi.fn((type: string, fn: (e: any) => void) => {
+						;(listeners[type] ??= []).push(fn)
+					}),
+					removeEventListener: vi.fn((type: string, fn: (e: any) => void) => {
+						listeners[type] = (listeners[type] ?? []).filter((f) => f !== fn)
+					}),
+					fire(type: string) {
+						for (const fn of listeners[type] ?? []) fn({})
+					},
+				}
+				return s
+			}
+			const w1 = createListeningSocket()
+			connectSession(room, 'S', w1)
+			// w1's network died silently: the client reconnects on w2 with the same session id
+			w1.readyState = WebSocket.CLOSED
+			const w2 = createListeningSocket()
+			connectSession(room, 'S', w2)
+			expect(w1.removeEventListener).toHaveBeenCalledTimes(3)
+
+			// the old socket's close event finally fires — the live session on w2 must survive
+			w1.fire('close')
+			w1.fire('error')
+			expect(room.getSessions()).toEqual([
+				expect.objectContaining({ sessionId: 'S', isConnected: true }),
+			])
+			expect(w2.close).not.toHaveBeenCalled()
+
+			w2.fire('close')
+			expect(room.getSessions()[0].isConnected).toBe(false)
+		})
 	})
 
 	describe('session reporting', () => {
@@ -1120,6 +1181,42 @@ describe('28. TLSocketRoom (SR)', () => {
 	})
 
 	describe('handleSocketResume', () => {
+		it('[SR14] ignores a resume of a stale socket while a live socket owns the session id', () => {
+			const room = new TLSocketRoom({})
+			const oldSocket = createMockSocket()
+			connectSession(room, 'S', oldSocket)
+			const snapshot = room.getSessionSnapshot('S')!
+
+			// the client reconnected on a new socket and is mid-handshake
+			const newSocket = createMockSocket()
+			room.handleSocketConnect({ sessionId: 'S', socket: newSocket })
+
+			// the host now sees the old socket close and resumes it briefly before closing it (as
+			// hibernation hosts do to broadcast the presence removal)
+			oldSocket.readyState = WebSocket.CLOSED
+			room.handleSocketResume({ sessionId: 'S', socket: oldSocket, snapshot })
+			room.handleSocketClose('S', oldSocket)
+
+			// the live socket's handshake still completes on the live socket
+			room.handleSocketMessage(
+				'S',
+				JSON.stringify({
+					type: 'connect',
+					connectRequestId: 'connect-S',
+					lastServerClock: 0,
+					protocolVersion: getTlsyncProtocolVersion(),
+					schema: createTLSchema().serialize(),
+				})
+			)
+			expect(room.getSessions()).toEqual([
+				expect.objectContaining({ sessionId: 'S', isConnected: true }),
+			])
+			expect(newSocket.close).not.toHaveBeenCalled()
+			expect(vi.mocked(newSocket.send).mock.calls.map((c) => JSON.parse(c[0]).type)).toContain(
+				'connect'
+			)
+		})
+
 		it('[SR14] creates a connected session that handles pings', () => {
 			const room = new TLSocketRoom({})
 			const socket = createMockSocket()

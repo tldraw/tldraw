@@ -354,9 +354,12 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		const { sessionId, socket, isReadonly = false, objectAccess = 'write' } = opts
 		const handleSocketMessage = (event: MessageEvent) =>
 			this.handleSocketMessage(sessionId, event.data)
-		const handleSocketError = this.handleSocketError.bind(this, sessionId)
-		const handleSocketClose = this.handleSocketClose.bind(this, sessionId)
+		const handleSocketError = () => this.handleSocketError(sessionId, socket)
+		const handleSocketClose = () => this.handleSocketClose(sessionId, socket)
 
+		// A reconnect reuses the session id (useSync always sends its tab id). Detach the previous
+		// socket's listeners so its late close/error can't be taken for the new socket's.
+		this.retireSocketEntry(sessionId)
 		this.sessions.set(sessionId, {
 			assembler: new JsonChunkAssembler(),
 			socket,
@@ -371,24 +374,43 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			sessionId,
 			isReadonly,
 			objectAccess,
-			socket: new ServerSocketAdapter({
-				ws: socket,
-				onBeforeSendMessage: this.opts.onBeforeSendMessage
-					? (message, stringified) =>
-							this.opts.onBeforeSendMessage!({
-								sessionId,
-								message,
-								stringified,
-								meta: this.room.sessions.get(sessionId)?.meta as SessionMeta,
-							})
-					: undefined,
-			}),
+			socket: this.createSocketAdapter(sessionId, socket),
 			meta: 'meta' in opts ? (opts.meta as any) : undefined,
 		})
 
 		socket.addEventListener?.('message', handleSocketMessage)
 		socket.addEventListener?.('close', handleSocketClose)
 		socket.addEventListener?.('error', handleSocketError)
+	}
+
+	private createSocketAdapter(sessionId: string, socket: WebSocketMinimal) {
+		return new ServerSocketAdapter<R>({
+			ws: socket,
+			onBeforeSendMessage: this.opts.onBeforeSendMessage
+				? (message, stringified) =>
+						this.opts.onBeforeSendMessage!({
+							sessionId,
+							message,
+							stringified,
+							meta: this.room.sessions.get(sessionId)?.meta as SessionMeta,
+						})
+				: undefined,
+		})
+	}
+
+	private retireSocketEntry(sessionId: string) {
+		this.sessions.get(sessionId)?.unlisten()
+	}
+
+	/**
+	 * A close/error reported for a socket that is no longer the session's socket comes from a
+	 * connection this session id has since moved on from (a reconnect that raced the old
+	 * socket's teardown). Acting on it would cancel the healthy replacement session.
+	 */
+	private isStaleSocketEvent(sessionId: string, socket: WebSocketMinimal | undefined) {
+		if (!socket) return false
+		const current = this.sessions.get(sessionId)?.socket
+		return current !== undefined && current !== socket
 	}
 
 	private clearSnapshotTimer(sessionId: string) {
@@ -493,17 +515,23 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * where socket event listeners cannot be attached directly. This will initiate cleanup
 	 * and session removal for the affected client.
 	 *
+	 * Pass the socket the event came from whenever you have it: a client that reconnects under
+	 * the same session id can leave its previous socket to close later, and that late event is
+	 * then ignored instead of tearing down the new connection.
+	 *
 	 * @param sessionId - Session identifier matching the one used in handleSocketConnect
+	 * @param socket - The socket that errored, when known
 	 *
 	 * @example
 	 * ```ts
 	 * // In a custom WebSocket handler
 	 * socket.addEventListener('error', () => {
-	 *   room.handleSocketError(sessionId)
+	 *   room.handleSocketError(sessionId, socket)
 	 * })
 	 * ```
 	 */
-	handleSocketError(sessionId: string) {
+	handleSocketError(sessionId: string, socket?: WebSocketMinimal) {
+		if (this.isStaleSocketEvent(sessionId, socket)) return
 		this.clearSnapshotTimer(sessionId)
 		this.room.handleClose(sessionId)
 	}
@@ -513,17 +541,23 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * environments where socket event listeners cannot be attached directly. This will
 	 * initiate cleanup and session removal for the disconnected client.
 	 *
+	 * Pass the socket the event came from whenever you have it: a client that reconnects under
+	 * the same session id can leave its previous socket to close later, and that late event is
+	 * then ignored instead of tearing down the new connection.
+	 *
 	 * @param sessionId - Session identifier matching the one used in handleSocketConnect
+	 * @param socket - The socket that closed, when known
 	 *
 	 * @example
 	 * ```ts
 	 * // In a custom WebSocket handler
 	 * socket.addEventListener('close', () => {
-	 *   room.handleSocketClose(sessionId)
+	 *   room.handleSocketClose(sessionId, socket)
 	 * })
 	 * ```
 	 */
-	handleSocketClose(sessionId: string) {
+	handleSocketClose(sessionId: string, socket?: WebSocketMinimal) {
+		if (this.isStaleSocketEvent(sessionId, socket)) return
 		this.clearSnapshotTimer(sessionId)
 		this.room.handleClose(sessionId)
 	}
@@ -569,6 +603,21 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	) {
 		const { sessionId, socket, snapshot } = opts
 
+		// Hosts resume a socket they are about to close so the room can broadcast its presence
+		// removal. If a newer, open socket already owns this session id, that resume would displace
+		// the live session and its close would then cancel it — ignore the closing socket. (Two open
+		// sockets for one id, e.g. on a hibernation wake-up, keep the last-resumed-wins behaviour.)
+		const current = this.sessions.get(sessionId)?.socket
+		if (
+			current &&
+			current !== socket &&
+			socket.readyState !== 1 /* OPEN */ &&
+			current.readyState === 1 /* OPEN */
+		) {
+			return
+		}
+
+		this.retireSocketEntry(sessionId)
 		this.sessions.set(sessionId, {
 			assembler: new JsonChunkAssembler(),
 			socket,
@@ -588,18 +637,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			presenceRecord: snapshot.presenceRecord,
 			requiresLegacyRejection: snapshot.requiresLegacyRejection,
 			supportsStringAppend: snapshot.supportsStringAppend,
-			socket: new ServerSocketAdapter({
-				ws: socket,
-				onBeforeSendMessage: this.opts.onBeforeSendMessage
-					? (message, stringified) =>
-							this.opts.onBeforeSendMessage!({
-								sessionId,
-								message,
-								stringified,
-								meta: this.room.sessions.get(sessionId)?.meta as SessionMeta,
-							})
-					: undefined,
-			}),
+			socket: this.createSocketAdapter(sessionId, socket),
 			meta: 'meta' in opts ? (opts.meta as any) : undefined,
 		})
 	}
@@ -949,6 +987,11 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 */
 	close() {
 		this.room.close()
+		// the room forgets its sessions on close and emits no session_removed for them, so drop
+		// our entries (and their socket listeners) here rather than leaving them for the lifetime
+		// of the closed room
+		this.sessions.forEach((session) => session.unlisten())
+		this.sessions.clear()
 		for (const sessionId of this.snapshotTimers.keys()) {
 			this.clearSnapshotTimer(sessionId)
 		}
