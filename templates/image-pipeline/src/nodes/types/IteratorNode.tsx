@@ -1,5 +1,4 @@
-import classNames from 'classnames'
-import { T, useEditor, useValue } from 'tldraw'
+import { T, useEditor } from 'tldraw'
 import { apiGenerate } from '../../api/pipelineApi'
 import { IteratorIcon } from '../../components/icons/IteratorIcon'
 import {
@@ -9,8 +8,7 @@ import {
 	NODE_ROW_HEIGHT_PX,
 	NODE_WIDTH_PX,
 } from '../../constants'
-import { Port, ShapePort } from '../../ports/Port'
-import { getNodeInputPortValues } from '../nodePorts'
+import { ShapePort } from '../../ports/Port'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	areAnyInputsOutOfDate,
@@ -20,8 +18,8 @@ import {
 	InputValues,
 	NodeComponentProps,
 	NodeDefinition,
-	NodeImage,
-	NodePortLabel,
+	NodeImagePreview,
+	NodePortRow,
 	NodeRow,
 	updateNode,
 } from './shared'
@@ -34,6 +32,13 @@ export const IteratorNode = T.object({
 	totalCount: T.number,
 	lastResultUrl: T.string.nullable(),
 })
+
+function parseItems(items: string) {
+	return items
+		.split('\n')
+		.map((s) => s.trim())
+		.filter((s) => s.length > 0)
+}
 
 export class IteratorNodeDefinition extends NodeDefinition<IteratorNode> {
 	static type = 'iterator'
@@ -88,10 +93,7 @@ export class IteratorNodeDefinition extends NodeDefinition<IteratorNode> {
 		node: IteratorNode,
 		inputs: InputValues
 	): Promise<ExecutionResult> {
-		const items = node.items
-			.split('\n')
-			.map((s) => s.trim())
-			.filter((s) => s.length > 0)
+		const items = parseItems(node.items)
 
 		if (items.length === 0) {
 			updateNode<IteratorNode>(this.editor, shape, (n) => ({
@@ -126,26 +128,16 @@ export class IteratorNodeDefinition extends NodeDefinition<IteratorNode> {
 		return { output: lastResult, current_item: items[items.length - 1] }
 	}
 	getOutputInfo(shape: NodeShape, node: IteratorNode, inputs: InfoValues): InfoValues {
-		const items = node.items
-			.split('\n')
-			.map((s) => s.trim())
-			.filter((s) => s.length > 0)
+		const items = parseItems(node.items)
 		const currentItem =
 			node.completedCount > 0
 				? (items[Math.min(node.completedCount - 1, items.length - 1)] ?? null)
 				: null
 
+		const isOutOfDate = areAnyInputsOutOfDate(inputs) || shape.props.isOutOfDate
 		return {
-			output: {
-				value: node.lastResultUrl,
-				isOutOfDate: areAnyInputsOutOfDate(inputs) || shape.props.isOutOfDate,
-				dataType: 'image',
-			},
-			current_item: {
-				value: currentItem,
-				isOutOfDate: areAnyInputsOutOfDate(inputs) || shape.props.isOutOfDate,
-				dataType: 'text',
-			},
+			output: { value: node.lastResultUrl, isOutOfDate, dataType: 'image' },
+			current_item: { value: currentItem, isOutOfDate, dataType: 'text' },
 		}
 	}
 	Component = IteratorNodeComponent
@@ -153,29 +145,17 @@ export class IteratorNodeDefinition extends NodeDefinition<IteratorNode> {
 
 function IteratorNodeComponent({ shape, node }: NodeComponentProps<IteratorNode>) {
 	const editor = useEditor()
-
-	const templateInput = useValue(
-		'template',
-		() => getNodeInputPortValues(editor, shape.id).template,
-		[editor, shape.id]
-	)
-
-	const items = node.items
-		.split('\n')
-		.map((s) => s.trim())
-		.filter((s) => s.length > 0)
+	const items = parseItems(node.items)
 
 	return (
 		<>
-			<NodeRow>
-				<Port shapeId={shape.id} portId="template" />
-				<NodePortLabel dataType="any">Template</NodePortLabel>
-				{templateInput ? (
-					<span className="NodeRow-connected-value">connected</span>
-				) : (
-					<span className="NodeRow-disconnected">optional</span>
-				)}
-			</NodeRow>
+			<NodePortRow
+				shapeId={shape.id}
+				portId="template"
+				dataType="any"
+				label="Template"
+				disconnectedLabel="optional"
+			/>
 			<NodeRow className="PromptNode-row">
 				<textarea
 					className="PromptNode-textarea"
@@ -217,19 +197,12 @@ function IteratorNodeComponent({ shape, node }: NodeComponentProps<IteratorNode>
 					</div>
 				)}
 			</NodeRow>
-			<div
-				className={classNames('NodeImagePreview', {
-					NodeImagePreview_loading: shape.props.isOutOfDate,
-				})}
-			>
-				{node.lastResultUrl ? (
-					<NodeImage src={node.lastResultUrl} alt="Iterator result" />
-				) : (
-					<div className="NodeImagePreview-empty">
-						<span>Run to iterate items</span>
-					</div>
-				)}
-			</div>
+			<NodeImagePreview
+				src={node.lastResultUrl}
+				alt="Iterator result"
+				emptyText="Run to iterate items"
+				isLoading={shape.props.isOutOfDate}
+			/>
 		</>
 	)
 }

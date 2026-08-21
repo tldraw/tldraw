@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import { T, useEditor } from 'tldraw'
 import { LoadImageIcon } from '../../components/icons/LoadImageIcon'
 import {
@@ -11,11 +11,12 @@ import { ShapePort } from '../../ports/Port'
 import { sleep } from '../../utils/sleep'
 import { NodeShape } from '../NodeShapeUtil'
 import {
+	blobToDataUrl,
 	ExecutionResult,
 	InfoValues,
 	NodeComponentProps,
 	NodeDefinition,
-	NodeImage,
+	NodeImagePreview,
 	NodeRow,
 	updateNode,
 } from './shared'
@@ -69,16 +70,6 @@ export class LoadImageNodeDefinition extends NodeDefinition<LoadImageNode> {
 	Component = LoadImageNodeComponent
 }
 
-/** Read a File as a data URL. */
-function readFileAsDataUrl(file: File): Promise<string> {
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader()
-		reader.onload = () => resolve(reader.result as string)
-		reader.onerror = () => reject(reader.error)
-		reader.readAsDataURL(file)
-	})
-}
-
 /** Open the native file picker for an image file. */
 function selectImageFile(): Promise<File | null> {
 	return new Promise((resolve) => {
@@ -115,42 +106,36 @@ function LoadImageNodeComponent({ shape, node }: NodeComponentProps<LoadImageNod
 	const editor = useEditor()
 	const [isDragOver, setIsDragOver] = useState(false)
 
-	const handleFile = useCallback(
-		async (file: File) => {
-			if (!file.type.startsWith('image/')) return
-			const dataUrl = await readFileAsDataUrl(file)
-			updateNode<LoadImageNode>(editor, shape, (n) => ({ ...n, imageUrl: dataUrl }))
-		},
-		[editor, shape]
-	)
+	const handleFile = async (file: File) => {
+		if (!file.type.startsWith('image/')) return
+		const dataUrl = await blobToDataUrl(file)
+		updateNode<LoadImageNode>(editor, shape, (n) => ({ ...n, imageUrl: dataUrl }))
+	}
 
-	const handleBrowse = useCallback(async () => {
+	const handleBrowse = async () => {
 		const file = await selectImageFile()
 		if (file) handleFile(file)
-	}, [handleFile])
+	}
 
-	const handleDrop = useCallback(
-		(e: React.DragEvent) => {
-			e.preventDefault()
-			e.stopPropagation()
-			setIsDragOver(false)
-			const file = e.dataTransfer.files[0]
-			if (file) handleFile(file)
-		},
-		[handleFile]
-	)
-
-	const handleDragOver = useCallback((e: React.DragEvent) => {
-		e.preventDefault()
-		e.stopPropagation()
-		setIsDragOver(true)
-	}, [])
-
-	const handleDragLeave = useCallback((e: React.DragEvent) => {
+	const handleDrop = (e: React.DragEvent) => {
 		e.preventDefault()
 		e.stopPropagation()
 		setIsDragOver(false)
-	}, [])
+		const file = e.dataTransfer.files[0]
+		if (file) handleFile(file)
+	}
+
+	const handleDragOver = (e: React.DragEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		setIsDragOver(true)
+	}
+
+	const handleDragLeave = (e: React.DragEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		setIsDragOver(false)
+	}
 
 	return (
 		<>
@@ -175,20 +160,15 @@ function LoadImageNodeComponent({ shape, node }: NodeComponentProps<LoadImageNod
 					</button>
 				)}
 			</NodeRow>
-			<div
-				className={`NodeImagePreview ${isDragOver ? 'NodeImagePreview_dragover' : ''}`}
+			<NodeImagePreview
+				src={node.imageUrl}
+				alt="Loaded"
+				emptyText={isDragOver ? 'Drop image here' : 'Drop or browse for an image'}
+				className={isDragOver ? 'NodeImagePreview_dragover' : undefined}
 				onDrop={handleDrop}
 				onDragOver={handleDragOver}
 				onDragLeave={handleDragLeave}
-			>
-				{node.imageUrl ? (
-					<NodeImage src={node.imageUrl} alt="Loaded" />
-				) : (
-					<div className="NodeImagePreview-empty">
-						<span>{isDragOver ? 'Drop image here' : 'Drop or browse for an image'}</span>
-					</div>
-				)}
-			</div>
+			/>
 		</>
 	)
 }

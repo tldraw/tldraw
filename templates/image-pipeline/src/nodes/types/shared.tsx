@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { PointerEvent, SyntheticEvent, useCallback, useRef, useState } from 'react'
+import { PointerEvent, ReactNode, SyntheticEvent, useCallback, useRef, useState } from 'react'
 import {
 	Editor,
 	T,
@@ -157,6 +157,156 @@ export function NodePortLabel({
 	)
 }
 
+export function useNodeInput(shapeId: TLShapeId, portId: PortId) {
+	const editor = useEditor()
+	return useValue('node input', () => getNodeInputPortValues(editor, shapeId)[portId], [
+		editor,
+		shapeId,
+		portId,
+	])
+}
+
+/**
+ * A row for an input port: shows the port, its label, and either the connected value (a
+ * placeholder while it's being computed) or a "not connected" hint.
+ */
+export function NodePortRow({
+	shapeId,
+	portId,
+	dataType,
+	label,
+	disconnectedLabel = 'not connected',
+	renderValue,
+}: {
+	shapeId: TLShapeId
+	portId: PortId
+	dataType: PortDataType
+	label: ReactNode
+	disconnectedLabel?: string
+	renderValue?: (input: InfoValue) => ReactNode
+}) {
+	const input = useNodeInput(shapeId, portId)
+	return (
+		<NodeRow>
+			<Port shapeId={shapeId} portId={portId} />
+			<NodePortLabel dataType={dataType}>{label}</NodePortLabel>
+			{input ? (
+				<span className="NodeRow-connected-value">
+					{input.isOutOfDate || input.value === STOP_EXECUTION ? (
+						<NodePlaceholder />
+					) : renderValue ? (
+						renderValue(input)
+					) : (
+						'connected'
+					)}
+				</span>
+			) : (
+				<span className="NodeRow-disconnected">{disconnectedLabel}</span>
+			)}
+		</NodeRow>
+	)
+}
+
+export function NodeTruncatedText({ text, max = 20 }: { text: string; max?: number }) {
+	return (
+		<span title={text}>
+			{text.slice(0, max)}
+			{text.length > max ? '...' : ''}
+		</span>
+	)
+}
+
+export function NodeSelectRow<Id extends string>({
+	label,
+	value,
+	options,
+	onChange,
+}: {
+	label?: string
+	value: string
+	options: readonly { id: Id; label: string }[]
+	onChange: (value: Id) => void
+}) {
+	return (
+		<NodeRow>
+			{label && <span className="NodeInputRow-label">{label}</span>}
+			<select value={value} onChange={(e) => onChange(e.target.value as Id)}>
+				{options.map((option) => (
+					<option key={option.id} value={option.id}>
+						{option.label}
+					</option>
+				))}
+			</select>
+		</NodeRow>
+	)
+}
+
+export function NodeSliderRow({
+	label,
+	value,
+	min,
+	max,
+	step,
+	suffix = '',
+	onChange,
+}: {
+	label: string
+	value: number
+	min: number
+	max: number
+	step?: number
+	suffix?: string
+	onChange: (value: number) => void
+}) {
+	return (
+		<NodeRow className="NodeInputRow">
+			<span className="NodeInputRow-label">{label}</span>
+			<input
+				type="range"
+				min={min}
+				max={max}
+				step={step}
+				value={value}
+				onChange={(e) => onChange(Number(e.target.value))}
+				onPointerDown={(e) => e.stopPropagation()}
+			/>
+			<span className="NodeRow-value">
+				{value}
+				{suffix}
+			</span>
+		</NodeRow>
+	)
+}
+
+export function NodeImagePreview({
+	src,
+	alt,
+	emptyText,
+	isLoading,
+	className,
+	...divProps
+}: {
+	src: string | null
+	alt: string
+	emptyText: string
+	isLoading?: boolean
+} & React.HTMLAttributes<HTMLDivElement>) {
+	return (
+		<div
+			{...divProps}
+			className={classNames('NodeImagePreview', className, { NodeImagePreview_loading: isLoading })}
+		>
+			{src ? (
+				<NodeImage src={src} alt={alt} />
+			) : (
+				<div className="NodeImagePreview-empty">
+					<span>{emptyText}</span>
+				</div>
+			)}
+		</div>
+	)
+}
+
 /**
  * A row in a node for a numeric input. If the port is connected, the input is disabled and the
  * value is taken from the port. Otherwise, the input is editable with a spinner for incrementing
@@ -179,11 +329,7 @@ export function NodeInputRow({
 }) {
 	const editor = useEditor()
 	const inputRef = useRef<HTMLInputElement>(null)
-	const portInfo = useValue('from port', () => getNodeInputPortValues(editor, shapeId)[portId], [
-		editor,
-		shapeId,
-		portId,
-	])
+	const portInfo = useNodeInput(shapeId, portId)
 	const valueFromPort = portInfo?.value
 	const isOutOfDate = portInfo?.isOutOfDate
 
@@ -330,7 +476,7 @@ export function loadImage(url: string): Promise<HTMLImageElement> {
 	return new Promise((resolve, reject) => {
 		const img = new Image()
 		img.onload = () => resolve(img)
-		img.onerror = (_e) => reject(new Error('Failed to load image'))
+		img.onerror = () => reject(new Error('Failed to load image'))
 		img.crossOrigin = 'anonymous'
 		img.src = url
 	})

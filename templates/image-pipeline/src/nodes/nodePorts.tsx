@@ -90,14 +90,11 @@ const nodeInputPortValuesCache = createComputedCache(
 
 		const values: InfoValues = {}
 		for (const connection of sorted) {
-			if (!connection || connection.terminal !== 'end') continue
+			if (connection.terminal !== 'end') continue
 
-			const connectedShapeOutputs = getNodeOutputPortInfo(editor, connection.connectedShapeId)
-			if (!connectedShapeOutputs) {
-				continue
-			}
-
-			const output = connectedShapeOutputs[connection.connectedPortId]
+			const output = getNodeOutputPortInfo(editor, connection.connectedShapeId)[
+				connection.connectedPortId
+			]
 			if (!output) continue
 			const port = ports[connection.ownPortId]
 
@@ -161,7 +158,7 @@ const nodeOutputPortInfoCache = createComputedCache(
 			)
 		}
 
-		return getNodeOutputInfo(editor, node, inputs as InfoValues)
+		return getNodeOutputInfo(editor, node, inputs)
 	},
 	{
 		areRecordsEqual: (a, b) => a.props === b.props,
