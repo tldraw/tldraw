@@ -56,6 +56,16 @@ export function registerDefaultSideEffects(editor: Editor) {
 					}
 				}
 
+				// Duplicate, select all, etc. move the selection off the cropping shape without ending
+				// the crop; left alone, the crop handles and the selection then point at different shapes
+				if (
+					next.croppingShapeId &&
+					prev.selectedShapeIds !== next.selectedShapeIds &&
+					!(next.selectedShapeIds.length === 1 && next.selectedShapeIds[0] === next.croppingShapeId)
+				) {
+					editor.setCroppingShape(null)
+				}
+
 				if (prev.editingShapeId !== next.editingShapeId) {
 					if (!prev.editingShapeId && next.editingShapeId) {
 						if (!editor.isIn('select.editing_shape')) {

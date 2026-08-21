@@ -84,5 +84,8 @@ export class SelectTool extends StateNode {
 		if (this.editor.getCurrentPageState().editingShapeId) {
 			this.editor.setEditingShape(null)
 		}
+		if (this.editor.getCroppingShapeId()) {
+			this.editor.setCroppingShape(null)
+		}
 	}
 }

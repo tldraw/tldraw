@@ -297,6 +297,51 @@ describe('When in the crop.idle state', () => {
 		editor.expectToBeIn('select.idle')
 	})
 
+	it('switching tools clears the cropping shape id', () => {
+		editor
+			.expectToBeIn('select.idle')
+			.doubleClick(550, 550, ids.imageB)
+			.expectToBeIn('select.crop.idle')
+		expect(editor.getCroppingShapeId()).toBe(ids.imageB)
+		editor.setCurrentTool('geo')
+		editor.expectToBeIn('geo.idle')
+		expect(editor.getCroppingShapeId()).toBe(null)
+		editor.setCurrentTool('select')
+		editor.expectToBeIn('select.idle')
+		expect(editor.getCroppingShapeId()).toBe(null)
+		expect(editor.getSelectedShapeIds()).toMatchObject([ids.imageB])
+	})
+
+	it('changing page clears the cropping shape id and leaves crop mode', () => {
+		const pageA = editor.getCurrentPageId()
+		editor.createPage({ name: 'page b' })
+		const pageB = editor.getPages().find((p) => p.id !== pageA)!.id
+		editor
+			.expectToBeIn('select.idle')
+			.doubleClick(550, 550, ids.imageB)
+			.expectToBeIn('select.crop.idle')
+		expect(editor.getCroppingShapeId()).toBe(ids.imageB)
+		editor.setCurrentPage(pageB)
+		editor.expectToBeIn('select.idle')
+		expect(editor.getCroppingShapeId()).toBe(null)
+		editor.setCurrentPage(pageA)
+		editor.expectToBeIn('select.idle')
+		expect(editor.getCroppingShapeId()).toBe(null)
+	})
+
+	it('duplicating the cropping shape clears the cropping shape id and leaves crop mode', () => {
+		editor
+			.expectToBeIn('select.idle')
+			.doubleClick(550, 550, ids.imageB)
+			.expectToBeIn('select.crop.idle')
+		expect(editor.getCroppingShapeId()).toBe(ids.imageB)
+		editor.duplicateShapes([ids.imageB], { x: 100, y: 0 })
+		const duplicateId = editor.getOnlySelectedShapeId()
+		expect(duplicateId).not.toBe(ids.imageB)
+		expect(editor.getCroppingShapeId()).toBe(null)
+		editor.expectToBeIn('select.idle')
+	})
+
 	it('pointing the canvas should point canvas', () => {
 		editor
 			.expectToBeIn('select.idle')

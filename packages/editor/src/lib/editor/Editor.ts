@@ -4969,6 +4969,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.stopFollowingUser()
 		// finish off any in-progress interactions
 		this.complete()
+		// Cropping ignores `complete` (undo and menus send it too), and it's per-page state, so
+		// clear it here while the page being left is still current
+		this.setCroppingShape(null)
 
 		return this.run(
 			() => {
