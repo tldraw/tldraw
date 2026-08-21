@@ -1055,7 +1055,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		const requiresDownMigrations = migrations.value.length > 0
 
-		const connect = async (msg: Extract<TLSocketServerSentEvent<R>, { type: 'connect' }>) => {
+		const connect = (msg: Extract<TLSocketServerSentEvent<R>, { type: 'connect' }>) => {
+			// broadcastChanges may have force-reconnected everyone (wipeAll) while we were in the
+			// transaction, removing this very session; re-adding it would resurrect a session whose
+			// socket is already closed and emit a second `session_removed` for it later
+			if (this.sessions.get(session.sessionId) !== session) return
 			this.sessions.set(session.sessionId, {
 				state: RoomSessionState.Connected,
 				sessionId: session.sessionId,
