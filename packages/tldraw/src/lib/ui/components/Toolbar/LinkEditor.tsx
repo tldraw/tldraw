@@ -23,8 +23,6 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 	const source = 'rich-text-menu'
 	const linkifiedValue = value.startsWith('http') ? value : `https://${value}`
 
-	const handleValueChange = (value: string) => setValue(value)
-
 	const handleLinkComplete = useCallback(
 		(link: string) => {
 			trackEvent('rich-text', { operation: 'link-edit', source })
@@ -56,8 +54,6 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 		textEditor.chain().unsetLink().focus().run()
 		onClose()
 	}, [trackEvent, source, textEditor, onClose])
-
-	const handleLinkCancel = () => onClose()
 
 	useEffect(() => {
 		const doc = editor.getContainerDocument()
@@ -92,9 +88,9 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 				data-testid="rich-text.link-input"
 				className="tlui-rich-text__toolbar-link-input"
 				value={value}
-				onValueChange={handleValueChange}
+				onValueChange={setValue}
 				onComplete={handleLinkComplete}
-				onCancel={handleLinkCancel}
+				onCancel={onClose}
 				placeholder="example.com"
 				aria-label="example.com"
 			/>

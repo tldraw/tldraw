@@ -36,12 +36,12 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 		[editor]
 	)
 
+	if (isReadonlyMode && !isInAcceptableReadonlyState) return
+
 	// Get the actions menu content, either the default component or the user's
 	// override. If there's no menu content, then the user has set it to null,
 	// so skip rendering the menu.
-
 	const content = children ?? <DefaultActionsMenuContent />
-	if (isReadonlyMode && !isInAcceptableReadonlyState) return
 
 	return (
 		<TldrawUiPopover id="actions-menu">
