@@ -123,6 +123,10 @@ export interface SerializedSchemaV2 {
  */
 export type SerializedSchema = SerializedSchemaV1 | SerializedSchemaV2
 
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
 /**
  * Upgrades a serialized schema from version 1 to version 2 format.
  *
@@ -153,8 +157,15 @@ export type SerializedSchema = SerializedSchemaV1 | SerializedSchemaV2
  * @public
  */
 export function upgradeSchema(schema: SerializedSchema): Result<SerializedSchemaV2, string> {
-	if (schema.schemaVersion > 2 || schema.schemaVersion < 1) return Result.err('Bad schema version')
-	if (schema.schemaVersion === 2) return Result.ok(schema as SerializedSchemaV2)
+	// Persisted schemas are untrusted input: check the shape rather than crash on a missing or
+	// malformed `sequences`/`recordVersions` further down.
+	if (!isPlainRecord(schema)) return Result.err('Bad schema')
+	if (schema.schemaVersion === 2) {
+		if (!isPlainRecord(schema.sequences)) return Result.err('Bad schema: missing sequences')
+		return Result.ok(schema)
+	}
+	if (schema.schemaVersion !== 1) return Result.err('Bad schema version')
+	if (!isPlainRecord(schema.recordVersions)) return Result.err('Bad schema: missing recordVersions')
 	const result: SerializedSchemaV2 = {
 		schemaVersion: 2,
 		sequences: {
@@ -163,8 +174,12 @@ export function upgradeSchema(schema: SerializedSchema): Result<SerializedSchema
 	}
 
 	for (const [typeName, recordVersion] of Object.entries(schema.recordVersions)) {
+		if (!isPlainRecord(recordVersion)) return Result.err('Bad schema: malformed recordVersions')
 		result.sequences[`com.tldraw.${typeName}`] = recordVersion.version
 		if ('subTypeKey' in recordVersion) {
+			if (!isPlainRecord(recordVersion.subTypeVersions)) {
+				return Result.err('Bad schema: malformed subTypeVersions')
+			}
 			for (const [subType, version] of Object.entries(recordVersion.subTypeVersions)) {
 				result.sequences[`com.tldraw.${typeName}.${subType}`] = version
 			}
@@ -425,6 +440,10 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 	public getMigrationsSince(persistedSchema: SerializedSchema): Result<Migration[], string> {
 		// Every result — success, empty, or error — is cached, so cache once around the whole
 		// computation rather than at each of its exit points.
+		// A non-object schema (see upgradeSchema) cannot be a WeakMap key; its error result is cheap
+		// to recompute.
+		if (!isPlainRecord(persistedSchema)) return this.computeMigrationsSince(persistedSchema)
+
 		const cached = this.migrationCache.get(persistedSchema)
 		if (cached) {
 			return cached
@@ -442,8 +461,11 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		}
 		const schema = upgradeResult.value
 		const sequenceIdsToInclude = new Set(
-			// start with any shared sequences
-			Object.keys(schema.sequences).filter((sequenceId) => this.migrations[sequenceId])
+			// start with any shared sequences. Own-property lookups: a persisted sequence id like
+			// 'constructor' must not resolve to an Object.prototype member.
+			Object.keys(schema.sequences).filter((sequenceId) =>
+				getOwnProperty(this.migrations, sequenceId)
+			)
 		)
 
 		// also include any sequences that are not in the persisted schema but are marked as postHoc
@@ -548,8 +570,8 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			migrationsToApply = migrationsToApply.slice().reverse()
 		}
 
-		record = structuredClone(record)
 		try {
+			record = structuredClone(record)
 			for (const migration of migrationsToApply) {
 				if (migration.scope === 'store') throw new Error(/* won't happen, just for TS */)
 				if (migration.scope === 'storage') throw new Error(/* won't happen, just for TS */)
@@ -678,14 +700,15 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		if (migrationsToApply.length === 0) {
 			return { type: 'success', value: snapshot.store }
 		}
-		const store = Object.assign(
-			new Map<string, R>(objectMapEntries(snapshot.store).map(devFreeze)),
-			{
-				getSchema: () => snapshot.schema,
-				setSchema: (_: SerializedSchema) => {},
-			}
-		)
 		try {
+			// devFreeze throws for non-plain values, which is a migration failure like any other
+			const store = Object.assign(
+				new Map<string, R>(objectMapEntries(snapshot.store).map(devFreeze)),
+				{
+					getSchema: () => snapshot.schema,
+					setSchema: (_: SerializedSchema) => {},
+				}
+			)
 			this.migrateStorage(store)
 			if (opts?.mutateInputStore) {
 				for (const [id, record] of store.entries()) {
