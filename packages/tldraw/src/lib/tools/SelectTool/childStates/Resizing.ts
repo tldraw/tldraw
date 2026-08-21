@@ -43,6 +43,10 @@ export class Resizing extends StateNode {
 	// A switch to detect when the user is holding ctrl
 	private didHoldCommand = false
 
+	// Set once complete() or cancel() has run, so onExit can tell an orderly finish apart from
+	// being exited from outside (e.g. a tool shortcut pressed mid-drag)
+	private didFinish = false
+
 	// we transition into the resizing state from the geo pointing state, which starts with a shape of size w: 1, h: 1,
 	// so if the user drags x: +50, y: +50 after mouseDown, the shape will be w: 51, h: 51, which is too many pixels, alas
 	// so we allow passing a further offset into this state to negate such issues
@@ -55,6 +59,7 @@ export class Resizing extends StateNode {
 
 		this.info = info
 		this.didHoldCommand = false
+		this.didFinish = false
 
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
@@ -126,6 +131,8 @@ export class Resizing extends StateNode {
 	}
 
 	private cancel() {
+		this.didFinish = true
+
 		// Call onResizeCancel callback before resetting
 		const { shapeSnapshots } = this.snapshot
 
@@ -152,6 +159,8 @@ export class Resizing extends StateNode {
 	}
 
 	private complete() {
+		this.didFinish = true
+
 		kickoutOccludedShapes(this.editor, this.snapshot.selectedShapeIds)
 
 		this.handleResizeEnd()
@@ -543,6 +552,12 @@ export class Resizing extends StateNode {
 		setBatchLabelSizeCache(this.editor, null)
 		if (this.info.isCreating && this.editor.getHintingShapeIds().length > 0) {
 			this.editor.setHintingShapes([])
+		}
+		// Exited mid-creation without complete() or cancel(), e.g. a tool shortcut pressed while
+		// dragging out a text box: the shape created at the drag threshold was never committed and
+		// would otherwise be left behind, empty and invisible (#10401)
+		if (this.info.isCreating && !this.didFinish) {
+			this.editor.bailToMark(this.markId)
 		}
 	}
 

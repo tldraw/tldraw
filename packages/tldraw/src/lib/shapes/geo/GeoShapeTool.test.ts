@@ -229,6 +229,17 @@ describe('When in the resizing state while creating a geo shape', () => {
 		editor.expectToBeIn('select.idle')
 	})
 
+	it('Removes the pending geo shape when another tool is selected mid-drag', () => {
+		editor.setCurrentTool('geo')
+		editor.pointerDown(50, 50)
+		editor.pointerMove(100, 100)
+		editor.expectToBeIn('select.resizing')
+		expect(editor.getCurrentPageShapes().length).toBe(1)
+		editor.setCurrentTool('draw')
+		editor.expectToBeIn('draw.idle')
+		expect(editor.getCurrentPageShapes().length).toBe(0)
+	})
+
 	it('Returns to geo.idle on complete if tool lock is enabled', () => {
 		editor.updateInstanceState({ isToolLocked: true })
 		editor.setCurrentTool('geo')
