@@ -1,5 +1,16 @@
-import { DefaultDashStyle, createShapeId, toRichText } from '@tldraw/editor'
+import {
+	BaseBoxShapeUtil,
+	BaseFrameLikeShapeUtil,
+	DefaultDashStyle,
+	RecordProps,
+	T,
+	TLBaseShape,
+	createShapeId,
+	getColorValue,
+	toRichText,
+} from '@tldraw/editor'
 import { vi } from 'vitest'
+import { FrameShapeUtil } from '../../lib/shapes/frame/FrameShapeUtil'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -165,4 +176,89 @@ it('waits for required fonts to load before measuring the export', async () => {
 	const svg = await exportPromise
 	expect(resolved).toBe(true)
 	expect(svg!.svg).toMatch(/^<svg/)
+})
+
+// Not registered in TLGlobalShapePropsMap: the tldraw test project already sits at TypeScript's
+// discriminated-union limit for TLShapePartial, so one more augmentation breaks typecheck.
+const BROKEN_EXPORT_TYPE = 'my-broken-export-shape'
+const FRAME_LIKE_TYPE = 'my-frame-like-shape'
+
+type MyBrokenExportShape = TLBaseShape<typeof BROKEN_EXPORT_TYPE, { w: number; h: number }>
+type MyFrameLikeShape = TLBaseShape<typeof FRAME_LIKE_TYPE, { w: number; h: number }>
+
+class BrokenExportShapeUtil extends BaseBoxShapeUtil<any> {
+	static override type = BROKEN_EXPORT_TYPE
+	static override props: RecordProps<MyBrokenExportShape> = { w: T.number, h: T.number }
+	override getDefaultProps() {
+		return { w: 100, h: 100 }
+	}
+	override component() {
+		return null as any
+	}
+	override getIndicatorPath() {
+		return undefined
+	}
+	override toSvg(): never {
+		throw new Error('toSvg failed')
+	}
+}
+
+class FrameLikeShapeUtil extends BaseFrameLikeShapeUtil<any> {
+	static override type = FRAME_LIKE_TYPE
+	static override props: RecordProps<MyFrameLikeShape> = { w: T.number, h: T.number }
+	override getDefaultProps() {
+		return { w: 100, h: 100 }
+	}
+	override component() {
+		return null as any
+	}
+	override getIndicatorPath() {
+		return undefined
+	}
+}
+
+// jsdom serializes colors as rgb(), so compare against the same normalization
+function toCssColor(color: string) {
+	const el = document.createElement('div')
+	el.style.backgroundColor = color
+	return el.style.backgroundColor
+}
+
+it('rejects when a shape throws from toSvg instead of timing out with an empty export', async () => {
+	const editor = new TestEditor({ shapeUtils: [BrokenExportShapeUtil] })
+	const id = createShapeId('broken')
+	editor.createShape({ id, type: BROKEN_EXPORT_TYPE, x: 0, y: 0, props: { w: 100, h: 100 } } as any)
+
+	await expect(editor.getSvgString([id])).rejects.toThrow('toSvg failed')
+})
+
+it('takes a single frame-like export background from the shape util of that shape', async () => {
+	const editor = new TestEditor({
+		shapeUtils: [FrameShapeUtil.configure({ showColors: true }), FrameLikeShapeUtil],
+	})
+	const frameId = createShapeId('frame')
+	const frameLikeId = createShapeId('frame-like')
+	editor.createShape({
+		id: frameId,
+		type: 'frame',
+		x: 0,
+		y: 0,
+		props: { w: 100, h: 100, color: 'red' },
+	})
+	editor.createShape({
+		id: frameLikeId,
+		type: FRAME_LIKE_TYPE,
+		x: 200,
+		y: 0,
+		props: { w: 100, h: 100 },
+	} as any)
+	const colors = editor.getCurrentTheme().colors[editor.getColorMode()]
+
+	const frameSvg = parseSvg(await editor.getSvgString([frameId], { background: true }))
+	expect(frameSvg.style.backgroundColor).toBe(toCssColor(getColorValue(colors, 'red', 'frameFill')))
+
+	// the custom frame-like shape has no color prop, so it gets the plain solid background
+	// rather than a transparent one from reading the default frame util's options
+	const frameLikeSvg = parseSvg(await editor.getSvgString([frameLikeId], { background: true }))
+	expect(frameLikeSvg.style.backgroundColor).toBe(toCssColor(colors.solid))
 })
