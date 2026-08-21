@@ -33,6 +33,10 @@ const imageResize = path.relative(
 	process.cwd(),
 	path.resolve(REPO_ROOT, './apps/dotcom/image-resize-worker')
 )
+const tailWorker = path.relative(
+	process.cwd(),
+	path.resolve(REPO_ROOT, './apps/dotcom/tail-worker')
+)
 const tldrawusercontent = path.relative(
 	process.cwd(),
 	path.resolve(REPO_ROOT, './apps/dotcom/tldrawusercontent-worker')
@@ -68,6 +72,9 @@ const env = makeEnv([
 	'GC_MAPS_API_KEY',
 	'GH_TOKEN',
 	'GOOGLE_API_KEY',
+	'GRAFANA_LOKI_ENDPOINT',
+	'GRAFANA_LOKI_TOKEN',
+	'GRAFANA_LOKI_USER',
 	'HEALTH_CHECK_BEARER_TOKEN',
 	'HEALTH_WORKER_UPDOWN_WEBHOOK_PATH',
 	'IMAGE_WORKER',
@@ -136,7 +143,13 @@ interface TimingEntry {
 	durationMs: number
 }
 
-type WorkerId = 'asset-upload' | 'health' | 'multiplayer' | 'tldrawusercontent' | 'image-resize'
+type WorkerId =
+	| 'asset-upload'
+	| 'health'
+	| 'multiplayer'
+	| 'tldrawusercontent'
+	| 'image-resize'
+	| 'multiplayer-tail'
 
 interface WorkerDeployment {
 	id: WorkerId
@@ -185,8 +198,17 @@ const workerDeployments: WorkerDeployment[] = [
 		id: 'multiplayer',
 		stepLabel: 'deploying multiplayer worker to cloudflare',
 		timingLabel: 'worker deploy: multiplayer',
-		dependsOn: [],
+		// `tail_consumers` in the sync worker's wrangler.toml names a service that must already exist,
+		// so the tail worker has to be deployed first.
+		dependsOn: ['multiplayer-tail'],
 		run: deployTlsyncWorker,
+	},
+	{
+		id: 'multiplayer-tail',
+		stepLabel: 'deploying tail worker to cloudflare',
+		timingLabel: 'worker deploy: multiplayer-tail',
+		dependsOn: [],
+		run: deployTailWorker,
 	},
 	{
 		id: 'asset-upload',
@@ -666,6 +688,27 @@ async function deployHealthWorker({ dryRun }: { dryRun: boolean }) {
 		vars: {
 			DISCORD_HEALTH_WEBHOOK_URL: env.DISCORD_HEALTH_WEBHOOK_URL,
 			HEALTH_WORKER_UPDOWN_WEBHOOK_PATH: env.HEALTH_WORKER_UPDOWN_WEBHOOK_PATH,
+		},
+	})
+}
+
+async function deployTailWorker({ dryRun }: { dryRun: boolean }) {
+	// Previews get no tail consumer: the sync worker's preview env sets no `tail_consumers`, and the
+	// error volume this exists to catch is a production phenomenon.
+	if (previewId) return
+
+	await wranglerDeploy({
+		location: tailWorker,
+		dryRun,
+		env: env.TLDRAW_ENV,
+		vars: {
+			TLDRAW_ENV: env.TLDRAW_ENV,
+			GRAFANA_LOKI_ENDPOINT: env.GRAFANA_LOKI_ENDPOINT,
+			GRAFANA_LOKI_USER: env.GRAFANA_LOKI_USER,
+			// `wranglerDeploy` passes vars with `--var`, which makes them plaintext vars readable in the
+			// Cloudflare dashboard rather than secrets. Same handling as CLERK_SECRET_KEY, PIERRE_KEY and
+			// SUPABASE_KEY — but this one is a token for a different vendor, so it is worth knowing.
+			GRAFANA_LOKI_TOKEN: env.GRAFANA_LOKI_TOKEN,
 		},
 	})
 }
