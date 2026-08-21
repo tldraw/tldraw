@@ -349,7 +349,7 @@ export class Drawing extends StateNode {
 
 				const hasMovedFarEnough =
 					Vec.Dist2(pagePointWhereNextSegmentChanged, inputs.getCurrentPagePoint()) >
-					this.editor.options.dragDistanceSquared
+					this.editor.options.dragDistanceSquared / this.editor.getZoomLevel() ** 2
 
 				// Find the distance from where the pointer was when shift was released and
 				// where it is now; if it's far enough away, then update the page point where
@@ -416,7 +416,7 @@ export class Drawing extends StateNode {
 
 				const hasMovedFarEnough =
 					Vec.Dist2(pagePointWhereNextSegmentChanged, inputs.getCurrentPagePoint()) >
-					this.editor.options.dragDistanceSquared
+					this.editor.options.dragDistanceSquared / this.editor.getZoomLevel() ** 2
 
 				// Find the distance from where the pointer was when shift was released and
 				// where it is now; if it's far enough away, then update the page point where

@@ -121,6 +121,56 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			expect(shape.props.segments[2].type).toBe('straight')
 		})
 
+		it('Starts a new segment after moving a screen-space distance when zoomed in', () => {
+			// At 8x zoom, 5 screen pixels is 0.625 page units, below the page-space threshold
+			editor.setCamera({ x: 0, y: 0, z: 8 })
+			editor
+				.setCurrentTool(toolType)
+				.pointerDown(100, 100)
+				.pointerMove(120, 120)
+				.keyDown('Shift')
+				.pointerMove(125, 125)
+
+			let shape = editor.getCurrentPageShapes()[0] as DrawableShape
+			expect(shape.props.segments.map((s) => s.type)).toEqual(['free', 'straight'])
+
+			editor.keyUp('Shift').pointerMove(130, 130)
+
+			shape = editor.getCurrentPageShapes()[0] as DrawableShape
+			expect(shape.props.segments.map((s) => s.type)).toEqual(['free', 'straight', 'free'])
+			editor.pointerUp()
+		})
+
+		it('Does not start a new segment before moving a screen-space distance when zoomed out', () => {
+			// At 0.1x zoom, 2 screen pixels is 20 page units, above the page-space threshold
+			editor.setCamera({ x: 0, y: 0, z: 0.1 })
+			editor
+				.setCurrentTool(toolType)
+				.pointerDown(100, 100)
+				.pointerMove(120, 120)
+				.keyDown('Shift')
+				.pointerMove(122, 122)
+
+			let shape = editor.getCurrentPageShapes()[0] as DrawableShape
+			expect(shape.props.segments.map((s) => s.type)).toEqual(['free'])
+
+			editor.pointerMove(130, 130)
+
+			shape = editor.getCurrentPageShapes()[0] as DrawableShape
+			expect(shape.props.segments.map((s) => s.type)).toEqual(['free', 'straight'])
+
+			editor.keyUp('Shift').pointerMove(132, 132)
+
+			shape = editor.getCurrentPageShapes()[0] as DrawableShape
+			expect(shape.props.segments.map((s) => s.type)).toEqual(['free', 'straight'])
+
+			editor.pointerMove(140, 140)
+
+			shape = editor.getCurrentPageShapes()[0] as DrawableShape
+			expect(shape.props.segments.map((s) => s.type)).toEqual(['free', 'straight', 'free'])
+			editor.pointerUp()
+		})
+
 		it('Extends previously drawn line when shift is held', () => {
 			editor
 				.setCurrentTool(toolType)
