@@ -1480,6 +1480,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						}
 					}
 					if (updates.length > 0) {
+						editor.markHistoryStoppingPoint('unlock all')
 						editor.updateShapes(updates)
 					}
 				},
