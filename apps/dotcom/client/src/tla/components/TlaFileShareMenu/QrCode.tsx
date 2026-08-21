@@ -1,5 +1,5 @@
-import { useEffect, useLayoutEffect, useRef } from 'react'
-import { FileHelpers, useLocalStorageState, useValue } from 'tldraw'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { FileHelpers, useValue } from 'tldraw'
 import { useGlobalEditor } from '../../../utils/globalEditor'
 import { getLocalSessionState } from '../../utils/local-session-state'
 import { createQRCodeImageDataString } from '../../utils/qrcode'
@@ -8,8 +8,9 @@ import styles from './file-share-menu.module.css'
 export function QrCode({ url }: { url: string }) {
 	const ref = useRef<HTMLImageElement>(null)
 
-	// Save the QR codes in local storage
-	const [qrCode, setQrCode] = useLocalStorageState<string | null>(url, null)
+	// Not cached in localStorage: the url carries the viewport, so every camera move would add a
+	// new data-url entry that nothing ever evicts.
+	const [qrCode, setQrCode] = useState<string | null>(null)
 
 	const theme = useValue('is dark mode', () => getLocalSessionState().theme, [])
 	const editor = useGlobalEditor()
