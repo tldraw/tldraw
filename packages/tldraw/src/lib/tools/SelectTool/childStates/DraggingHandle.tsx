@@ -42,12 +42,11 @@ export class DraggingHandle extends StateNode {
 	info!: DraggingHandleInfo
 
 	isPrecise = false
-	isPreciseId: TLShapeId | null = null
-	pointingId: TLShapeId | null = null
 
 	override onEnter(info: DraggingHandleInfo) {
 		const { shape, isCreating, creatingMarkId, handle } = info
 		this.info = info
+		this.isPrecise = false
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		}
@@ -115,22 +114,16 @@ export class DraggingHandle extends StateNode {
 			}
 		}
 
-		// <!-- Only relevant to arrows
 		if (this.editor.isShapeOfType(shape, 'arrow')) {
 			const initialBinding = getArrowBindings(this.editor, shape)[info.handle.id as 'start' | 'end']
 
-			this.isPrecise = false
-
 			if (initialBinding) {
 				this.isPrecise = initialBinding.props.isPrecise
-				if (this.isPrecise) {
-					this.isPreciseId = initialBinding.toId
-				} else {
+				if (!this.isPrecise) {
 					this.resetExactTimeout()
 				}
 			}
 		}
-		// -->
 
 		// Call onHandleDragStart callback
 		const handleDragInfo = {
@@ -150,10 +143,8 @@ export class DraggingHandle extends StateNode {
 		this.editor.select(this.shapeId)
 	}
 
-	// Only relevant to arrows
 	private exactTimeout = -1
 
-	// Only relevant to arrows
 	private resetExactTimeout() {
 		const arrowUtil = this.editor.getShapeUtil<ArrowShapeUtil>('arrow')
 		const timeoutValue = arrowUtil.options.pointingPreciseTimeout
@@ -165,14 +156,12 @@ export class DraggingHandle extends StateNode {
 		this.exactTimeout = this.editor.timers.setTimeout(() => {
 			if (this.getIsActive() && !this.isPrecise) {
 				this.isPrecise = true
-				this.isPreciseId = this.pointingId
 				this.update()
 			}
 			this.exactTimeout = -1
 		}, timeoutValue)
 	}
 
-	// Only relevant to arrows
 	private clearExactTimeout() {
 		if (this.exactTimeout !== -1) {
 			clearTimeout(this.exactTimeout)
@@ -207,6 +196,8 @@ export class DraggingHandle extends StateNode {
 
 	override onExit() {
 		this.parent.setCurrentToolIdMask(undefined)
+		// Otherwise a timer armed by this drag can flip the next drag to precise
+		this.clearExactTimeout()
 		clearArrowTargetState(this.editor)
 		this.editor.snaps.clearIndicators()
 
@@ -354,22 +345,17 @@ export class DraggingHandle extends StateNode {
 
 		const next: TLShapePartial<any> = { id: shape.id, type: shape.type, ...changes }
 
-		// Arrows
 		if (initialHandle.type === 'vertex' && this.editor.isShapeOfType(shape, 'arrow')) {
 			const bindingAfter = getArrowBindings(editor, shape)[initialHandle.id as 'start' | 'end']
 
 			if (bindingAfter) {
 				if (initialBinding?.toId !== bindingAfter.toId) {
-					this.pointingId = bindingAfter.toId
 					this.isPrecise = pointerVelocity.len() < 0.5 || altKey
-					this.isPreciseId = this.isPrecise ? bindingAfter.toId : null
 					this.resetExactTimeout()
 				}
 			} else {
 				if (initialBinding) {
-					this.pointingId = null
 					this.isPrecise = false
-					this.isPreciseId = null
 					this.resetExactTimeout()
 				}
 			}
