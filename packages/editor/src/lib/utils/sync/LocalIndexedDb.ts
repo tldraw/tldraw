@@ -128,7 +128,12 @@ export class LocalIndexedDb {
 		if (this.isClosed) return
 		this.isClosed = true
 		await this.pending()
-		;(await this.getDb()).close()
+		try {
+			;(await this.getDb()).close()
+		} catch {
+			// the database never opened, so there is nothing to close — but the instance must
+			// still be released, or hardReset() would abort on it before deleting anything
+		}
 		LocalIndexedDb.connectedInstances.delete(this)
 	}
 
@@ -152,15 +157,18 @@ export class LocalIndexedDb {
 			try {
 				return await cb(tx)
 			} finally {
-				if (!this.isClosed) {
-					await done
-				} else {
-					tx.abort()
-				}
+				// Always let the transaction finish, even when close() has been called meanwhile:
+				// close() waits for pending transactions before closing the database, and aborting
+				// here would roll back a write (e.g. the last persist before unmount) whose promise
+				// then resolved as if it had succeeded.
+				await done
 			}
 		})()
 		this.pendingTransactionSet.add(txPromise)
-		txPromise.finally(() => this.pendingTransactionSet.delete(txPromise))
+		// `.finally` would return a promise that rejects alongside txPromise and that nobody
+		// handles, surfacing every failed write as an unhandled rejection on top of the real one
+		const untrack = () => this.pendingTransactionSet.delete(txPromise)
+		txPromise.then(untrack, untrack)
 		return txPromise
 	}
 
@@ -208,31 +216,21 @@ export class LocalIndexedDb {
 			const schemaStore = tx.objectStore(Table.Schema)
 			const sessionStateStore = tx.objectStore(Table.SessionState)
 
+			// issue every request up front and settle them together: awaiting each one would
+			// serialize the writes on the request's success event (see the idb readme)
+			const requests: Promise<unknown>[] = []
 			for (const [id, record] of Object.entries(changes.added)) {
-				await recordsStore.put(record, id)
+				requests.push(recordsStore.put(record, id))
 			}
-
 			for (const [_prev, updated] of Object.values(changes.updated)) {
-				await recordsStore.put(updated, updated.id)
+				requests.push(recordsStore.put(updated, updated.id))
 			}
-
 			for (const id of Object.keys(changes.removed)) {
-				await recordsStore.delete(id)
+				requests.push(recordsStore.delete(id))
 			}
-
-			schemaStore.put(schema.serialize(), Table.Schema)
-			if (sessionStateSnapshot && sessionId) {
-				sessionStateStore.put(
-					{
-						snapshot: sessionStateSnapshot,
-						updatedAt: Date.now(),
-						id: sessionId,
-					} satisfies SessionStateSnapshotRow,
-					sessionId
-				)
-			} else if (sessionStateSnapshot || sessionId) {
-				console.error('sessionStateSnapshot and instanceId must be provided together')
-			}
+			requests.push(schemaStore.put(schema.serialize(), Table.Schema))
+			requests.push(...putSessionState(sessionStateStore, sessionId, sessionStateSnapshot))
+			await Promise.all(requests)
 		})
 	}
 
@@ -252,26 +250,13 @@ export class LocalIndexedDb {
 			const schemaStore = tx.objectStore(Table.Schema)
 			const sessionStateStore = tx.objectStore(Table.SessionState)
 
-			await recordsStore.clear()
-
+			const requests: Promise<unknown>[] = [recordsStore.clear()]
 			for (const [id, record] of Object.entries(snapshot)) {
-				await recordsStore.put(record, id)
+				requests.push(recordsStore.put(record, id))
 			}
-
-			schemaStore.put(schema.serialize(), Table.Schema)
-
-			if (sessionStateSnapshot && sessionId) {
-				sessionStateStore.put(
-					{
-						snapshot: sessionStateSnapshot,
-						updatedAt: Date.now(),
-						id: sessionId,
-					} satisfies SessionStateSnapshotRow,
-					sessionId
-				)
-			} else if (sessionStateSnapshot || sessionId) {
-				console.error('sessionStateSnapshot and instanceId must be provided together')
-			}
+			requests.push(schemaStore.put(schema.serialize(), Table.Schema))
+			requests.push(...putSessionState(sessionStateStore, sessionId, sessionStateSnapshot))
+			await Promise.all(requests)
 		})
 	}
 
@@ -307,11 +292,34 @@ export class LocalIndexedDb {
 	async removeAssets(assetId: string[]) {
 		await this.tx('readwrite', [Table.Assets], async (tx) => {
 			const assetsStore = tx.objectStore(Table.Assets)
-			for (const id of assetId) {
-				await assetsStore.delete(id)
-			}
+			await Promise.all(assetId.map((id) => assetsStore.delete(id)))
 		})
 	}
+}
+
+function putSessionState(
+	sessionStateStore: {
+		put(value: SessionStateSnapshotRow, key: string): Promise<unknown>
+	},
+	sessionId: string | null | undefined,
+	sessionStateSnapshot: TLSessionStateSnapshot | null | undefined
+): Promise<unknown>[] {
+	if (sessionStateSnapshot && sessionId) {
+		return [
+			sessionStateStore.put(
+				{
+					snapshot: sessionStateSnapshot,
+					updatedAt: Date.now(),
+					id: sessionId,
+				} satisfies SessionStateSnapshotRow,
+				sessionId
+			),
+		]
+	}
+	if (sessionStateSnapshot || sessionId) {
+		console.error('sessionStateSnapshot and sessionId must be provided together')
+	}
+	return []
 }
 
 /** @internal */
