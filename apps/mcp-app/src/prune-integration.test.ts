@@ -16,7 +16,7 @@ import {
 	type WranglerDevHandle,
 } from './wrangler-dev-harness'
 
-const ADMIN_TOKEN = 'test-admin-token'
+const MCP_PRUNE_ADMIN_TOKEN = 'test-admin-token'
 // Short enough that the expiry alarm fires inside the test; the re-arm floor
 // (60s) still pushes the next one out, so we only assert the row survived.
 const IDLE_TTL_MS = 3000
@@ -30,7 +30,7 @@ describe('session DO pruning and idle expiry', () => {
 	beforeAll(async () => {
 		server = await startWranglerDev({
 			port,
-			vars: { ADMIN_TOKEN, IDLE_TTL_MS_OVERRIDE: String(IDLE_TTL_MS) },
+			vars: { MCP_PRUNE_ADMIN_TOKEN, IDLE_TTL_MS_OVERRIDE: String(IDLE_TTL_MS) },
 			fixtures: MINIMAL_FIXTURES,
 		})
 	}, 90_000)
@@ -41,7 +41,7 @@ describe('session DO pruning and idle expiry', () => {
 		return fetch(`${base()}${path}`, {
 			...init,
 			headers: {
-				Authorization: `Bearer ${ADMIN_TOKEN}`,
+				Authorization: `Bearer ${MCP_PRUNE_ADMIN_TOKEN}`,
 				'Content-Type': 'application/json',
 				...init.headers,
 			},

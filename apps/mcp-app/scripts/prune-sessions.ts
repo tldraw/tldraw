@@ -12,7 +12,7 @@
  * not just destroy-scheduled — means "already evaluated" and is skipped on re-run).
  *
  * Env: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID (list);
- *      MCP_WORKER_ORIGIN (default https://tldraw-mcp-app.tldraw.workers.dev), MCP_ADMIN_TOKEN (prune).
+ *      MCP_WORKER_ORIGIN (default https://tldraw-mcp-app.tldraw.workers.dev), MCP_PRUNE_ADMIN_TOKEN (prune).
  */
 /* eslint-disable no-console */
 import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'fs'
@@ -104,7 +104,7 @@ async function prune(args: string[]): Promise<void> {
 		)
 	}
 	const origin = env('MCP_WORKER_ORIGIN', 'https://tldraw-mcp-app.tldraw.workers.dev')
-	const token = env('MCP_ADMIN_TOKEN')
+	const token = env('MCP_PRUNE_ADMIN_TOKEN')
 
 	const resultsFile = dryRun ? DRY_RUN_RESULTS_FILE : RESULTS_FILE
 	const done = new Set<string>()

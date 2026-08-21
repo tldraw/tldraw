@@ -40,8 +40,8 @@ interface Env {
 	LOADER: WorkerLoader
 	RATE_LIMITER: RateLimit
 	MCP_AUTH_TOKEN: string
-	/** Gates /admin/prune. Unset = endpoint is off (404). Set with `wrangler secret put ADMIN_TOKEN`. */
-	ADMIN_TOKEN?: string
+	/** Gates /admin/prune. Unset = endpoint is off (404). Set with `wrangler secret put MCP_PRUNE_ADMIN_TOKEN`. */
+	MCP_PRUNE_ADMIN_TOKEN?: string
 	MCP_IS_DEV: string
 	WORKER_ORIGIN: string
 	MCP_ANALYTICS?: AnalyticsEngineDataset
@@ -81,7 +81,10 @@ function corsResponse(response: Response): Response {
 
 /** 401 unless the request carries the admin bearer token; null when it does. */
 function requireAdminToken(request: Request, env: Env): Response | null {
-	if (!env.ADMIN_TOKEN || request.headers.get('Authorization') !== `Bearer ${env.ADMIN_TOKEN}`) {
+	if (
+		!env.MCP_PRUNE_ADMIN_TOKEN ||
+		request.headers.get('Authorization') !== `Bearer ${env.MCP_PRUNE_ADMIN_TOKEN}`
+	) {
 		return new Response('Unauthorized', { status: 401 })
 	}
 	return null
@@ -469,7 +472,7 @@ export default {
 			// Ops-only: prune idle session DOs by id. Sits above the MCP bearer gate
 			// and uses its own secret so the prune script needs exactly one token.
 			if (url.pathname === '/admin/prune') {
-				if (!env.ADMIN_TOKEN) return new Response('Not found', { status: 404 })
+				if (!env.MCP_PRUNE_ADMIN_TOKEN) return new Response('Not found', { status: 404 })
 				if (request.method !== 'POST') return new Response('Method not allowed', { status: 405 })
 				const denied = requireAdminToken(request, env)
 				if (denied) return denied
