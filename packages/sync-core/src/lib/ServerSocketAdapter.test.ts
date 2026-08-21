@@ -86,4 +86,20 @@ describe('ServerSocketAdapter', () => {
 		adapter.close(1001, 'Going away')
 		expect(ws.close).toHaveBeenLastCalledWith(1001, 'Going away')
 	})
+
+	it('[SA3] close truncates a reason longer than 123 UTF-8 bytes rather than letting the socket throw', () => {
+		const ws = new MockWebSocket()
+		const adapter = new ServerSocketAdapter({ ws })
+
+		const longAscii = 'x'.repeat(200)
+		adapter.close(4099, longAscii)
+		expect(ws.close).toHaveBeenLastCalledWith(4099, 'x'.repeat(123))
+
+		// multi-byte characters are never cut in half
+		const emoji = '\u{1F600}' // 4 bytes
+		adapter.close(4099, emoji.repeat(40))
+		const sent = (ws.close as any).mock.calls.at(-1)[1] as string
+		expect(new TextEncoder().encode(sent).length).toBeLessThanOrEqual(123)
+		expect(sent).toBe(emoji.repeat(30))
+	})
 })
