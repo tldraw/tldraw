@@ -554,22 +554,30 @@ export async function defaultHandleExternalTextContent(
 	const newPoint = maybeSnapToGrid(new Vec(p.x - w / 2, p.y - h / 2), editor)
 	const shapeId = createShapeId()
 
-	// Allow this to trigger the max shapes reached alert
-	editor.createShapes([
-		{
-			id: shapeId,
-			type: 'text',
-			x: newPoint.x,
-			y: newPoint.y,
-			props: {
-				richText: richTextToPaste,
-				// if the text has more than one line, align it to the left
-				textAlign: align,
-				autoSize,
-				w,
+	editor.run(() => {
+		// Allow this to trigger the max shapes reached alert
+		editor.createShapes([
+			{
+				id: shapeId,
+				type: 'text',
+				x: newPoint.x,
+				y: newPoint.y,
+				props: {
+					richText: richTextToPaste,
+					// if the text has more than one line, align it to the left
+					textAlign: align,
+					autoSize,
+					w,
+				},
 			},
-		},
-	])
+		])
+
+		// createShapes silently creates nothing when the page is full, so only
+		// select the shape if it actually exists
+		if (editor.getShape(shapeId)) {
+			editor.select(shapeId)
+		}
+	})
 }
 
 /** @public */
@@ -623,6 +631,8 @@ export async function defaultHandleExternalUrlContent(
 		})
 		return
 	}
+
+	editor.select(result.value.id)
 }
 
 /** @public */
