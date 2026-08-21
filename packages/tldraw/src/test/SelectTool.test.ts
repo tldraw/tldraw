@@ -3,6 +3,7 @@ import {
 	ShapeUtil,
 	TLArrowShape,
 	TLFrameShape,
+	TLGeoShape,
 	createShapeId,
 	toRichText,
 } from '@tldraw/editor'
@@ -55,6 +56,24 @@ describe('TLSelectTool.Idle', () => {
 		const nudgedShape = editor.getShape(shape.id)
 		expect(nudgedShape).toBeDefined()
 		expect(nudgedShape?.x).toBe(101)
+	})
+
+	it('Makes a shape double click change its own undo step', () => {
+		const shape = editor.getShape<TLGeoShape>(ids.box1)!
+		expect(shape.props.geo).toBe('rectangle')
+
+		// Alt+double-click swaps a rectangle to a check-box via GeoShapeUtil.onDoubleClick
+		editor.keyDown('Alt')
+		editor.doubleClick(150, 150, { target: 'shape', shape }, { altKey: true })
+		editor.keyUp('Alt')
+
+		expect(editor.getShape<TLGeoShape>(ids.box1)!.props.geo).toBe('check-box')
+		expect(editor.getOnlySelectedShapeId()).toBe(ids.box1)
+
+		editor.undo()
+
+		expect(editor.getShape<TLGeoShape>(ids.box1)!.props.geo).toBe('rectangle')
+		expect(editor.getOnlySelectedShapeId()).toBe(ids.box1)
 	})
 })
 
