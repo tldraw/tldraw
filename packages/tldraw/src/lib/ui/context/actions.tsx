@@ -125,7 +125,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		}
 
 		function canApplySelectionAction() {
-			return editor.isIn('select') && editor.getSelectedShapeIds().length > 0
+			// Only the idle states count: while a pointer gesture is in progress (translating,
+			// resizing, brushing, cropping, ...) a shortcut would act on the very shapes being
+			// dragged, e.g. delete removes the shape under the pointer and lock stops it
+			// following the drag (#10396).
+			if (!editor.isIn('select.idle') && !editor.isIn('select.crop.idle')) return false
+			return editor.getSelectedShapeIds().length > 0
 		}
 
 		function scaleShapes(scaleFactor: number) {
