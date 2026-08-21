@@ -854,6 +854,12 @@ export class TLFileDurableObject extends DurableObject {
 					if (!hasOwnerAccess && file.sharedLinkType !== 'edit') {
 						openMode = ROOM_OPEN_MODE.READ_ONLY
 					}
+				} else {
+					// No file row means every check above was skipped, so admitting the socket would
+					// open the room to anyone holding the id — the R2 blob and the DO's SQLite outlive
+					// the row through the whole hard-delete window (and forever if the delete effect
+					// parks). Fail closed, like onDownloadTldr.
+					return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 				}
 			} else {
 				// Legacy rooms are now read-only
@@ -890,7 +896,7 @@ export class TLFileDurableObject extends DurableObject {
 			getRoomTimer.report('on_request_get_room')
 
 			// Don't connect if we're already at max connections
-			if (room.getNumActiveSessions() > MAX_CONNECTIONS) {
+			if (room.getNumActiveSessions() >= MAX_CONNECTIONS) {
 				return closeSocket(TLSyncErrorCloseEventReason.ROOM_FULL)
 			}
 
