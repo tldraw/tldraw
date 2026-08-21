@@ -75,7 +75,7 @@ export class EditingShape extends StateNode {
 		}
 
 		// Check if dragging from editing shape with blurred input
-		if (this.didPointerDownOnEditingShape && this.editor.inputs.isDragging) {
+		if (this.didPointerDownOnEditingShape && this.editor.inputs.getIsDragging()) {
 			if (this.editor.getIsReadonly()) return
 
 			const editingShape = this.editor.getEditingShape()
@@ -132,7 +132,7 @@ export class EditingShape extends StateNode {
 				}
 
 				// for shapes with labels, check to see if the click was inside of the shape's label
-				const geometry = this.editor.getShapeUtil(selectingShape).getGeometry(selectingShape)
+				const geometry = this.editor.getShapeGeometry(selectingShape)
 				const textLabels = getTextLabels(geometry)
 				const textLabel = textLabels.length === 1 ? textLabels[0] : undefined
 				// N.B. One nuance here is that we want empty text fields to be removed from the canvas when the user clicks away from them.
