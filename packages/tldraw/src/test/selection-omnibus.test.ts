@@ -1376,6 +1376,29 @@ for (const key of ['Shift', 'Control']) {
 			editor.pointerUp()
 			editor.expectToBeIn('select.idle')
 		})
+
+		it('does not remove a selected shape from the selection on pointer up when alt is also held', () => {
+			editor.select(ids.box1, ids.box3)
+			editor.keyDown(key)
+			editor.keyDown('Alt')
+			editor.pointerMove(450, 50) // inside of box 3
+			expect(editor.getHoveredShapeId()).toBe(ids.box3)
+			editor.pointerDown()
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box3])
+			editor.pointerUp()
+			// same as a plain click on a shape within the selection
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
+		})
+
+		it('does not add a selected shape to the selection on pointer up when alt is also held', () => {
+			editor.keyDown(key)
+			editor.keyDown('Alt')
+			editor.pointerMove(450, 50) // inside of box 3
+			expect(editor.getHoveredShapeId()).toBe(ids.box3)
+			editor.pointerDown()
+			editor.pointerUp()
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
+		})
 	})
 }
 
