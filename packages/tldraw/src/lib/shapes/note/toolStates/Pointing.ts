@@ -183,10 +183,12 @@ export function createNoteShape(editor: Editor, id: TLShapeId, center: Vec) {
 
 	editor.select(id)
 	const bounds = editor.getShapeGeometry(shape).bounds
-	const newPoint = maybeSnapToGrid(
-		new Vec(shape.x - bounds.width / 2, shape.y - bounds.height / 2),
-		editor
-	)
+	// shape.x/y are in the parent's space (createShape may have parented the note into a
+	// rotated frame), so the half-size offset has to be rotated into that space too
+	const delta = new Vec(bounds.width / 2, bounds.height / 2)
+	const parentTransform = editor.getShapeParentTransform(shape)
+	if (parentTransform) delta.rot(-parentTransform.rotation())
+	const newPoint = maybeSnapToGrid(new Vec(shape.x - delta.x, shape.y - delta.y), editor)
 
 	// Center the text around the created point
 	editor.updateShapes([
