@@ -307,6 +307,37 @@ describe('TextManager', () => {
 			expect(result.spans[0].text).toBe(`a${family}b`)
 		})
 
+		it('should measure each text node with its own offsets', () => {
+			const starts: [unknown, number][] = []
+			const RangeMock = global.Range as unknown as ReturnType<typeof vi.fn>
+			RangeMock.mockImplementationOnce(function () {
+				return {
+					setStart: vi.fn((node: unknown, offset: number) => starts.push([node, offset])),
+					setEnd: vi.fn(),
+					getClientRects: vi.fn(() => [
+						{ width: 10, height: 16, left: 0, top: 0, right: 10, bottom: 16 },
+					]),
+				}
+			})
+
+			const first = { nodeType: 3, textContent: 'ab' }
+			const second = { nodeType: 3, textContent: 'cd' }
+			const mockElementWithText = {
+				childNodes: [first, { nodeType: 1 }, second],
+				getBoundingClientRect: () => ({ left: 0, top: 0 }),
+			}
+
+			textManager.measureElementTextNodeSpans(mockElementWithText as any)
+
+			// the range must be placed in the node being measured, not the first one
+			expect(starts).toEqual([
+				[first, 0],
+				[first, 1],
+				[second, 0],
+				[second, 1],
+			])
+		})
+
 		it('should handle truncation option', () => {
 			const mockTextNode = {
 				nodeType: 3, // TEXT_NODE
