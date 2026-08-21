@@ -377,7 +377,7 @@ describe('parseKbd canonicalizes shifted glyphs', () => {
 
 	it('treats the shifted and unshifted spellings as the same binding', () => {
 		expect(parseKbd('shift+:')).toEqual(parseKbd('shift+;'))
-		expect(parseKbd('shift+?')).toEqual(parseKbd('shift+/'))
+		expect(parseKbd('shift+{')).toEqual(parseKbd('shift+['))
 	})
 
 	it('leaves an unshifted glyph alone', () => {

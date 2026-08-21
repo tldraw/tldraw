@@ -389,7 +389,7 @@ function parseShortcut(shortcut: string): ParsedKbd | null {
 		modifierParts = shortcut.slice(0, -2).split('+')
 		keyPart = '+'
 	} else if (shortcut.includes('[[')) {
-		// An unmatched `[[` (no `+` directly before it, or nested) is a malformed atomic token.
+		// Anything else containing `[[` is a malformed atomic token; never let it become a junk key.
 		return null
 	} else {
 		modifierParts = shortcut.split('+')
