@@ -263,11 +263,18 @@ export function getNoteShapeForAdjacentPosition(
 		nextNote = editor.getShape(id)!
 	}
 
-	editor.zoomToSelectionIfOffscreen(16, {
-		animation: {
-			duration: editor.options.animationMediumMs,
-		},
-		inset: 0,
-	})
+	// When dragging a clone handle the caller is about to move the note under the pointer,
+	// so don't animate the camera towards the adjacent slot
+	if (!forceNew) {
+		// Select the next note first: the zoom targets the selection, and until now that was
+		// still the note we came from (which is on screen), so the new note never scrolled into view.
+		editor.select(nextNote.id)
+		editor.zoomToSelectionIfOffscreen(16, {
+			animation: {
+				duration: editor.options.animationMediumMs,
+			},
+			inset: 0,
+		})
+	}
 	return nextNote
 }
