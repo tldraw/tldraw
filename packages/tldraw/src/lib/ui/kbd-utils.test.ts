@@ -25,3 +25,17 @@ describe('kbd', () => {
 		expect(kbd('cmd+=')).toEqual([...kbd('cmd+-').slice(0, -1), '='])
 	})
 })
+
+describe('kbd on darwin', () => {
+	it('renders cmd++ as the command glyph and a + keycap', async () => {
+		vi.resetModules()
+		vi.doMock('@tldraw/editor', async (importOriginal) => {
+			const actual = await importOriginal<typeof import('@tldraw/editor')>()
+			return { ...actual, tlenv: { ...actual.tlenv, isDarwin: true } }
+		})
+		const { kbd: darwinKbd } = await import('./kbd-utils')
+		vi.doUnmock('@tldraw/editor')
+		expect(darwinKbd('cmd++')).toEqual(['⌘', '+'])
+		expect(darwinKbd('cmd+alt+shift++')).toEqual(['⌘', '⌥', '⇧', '+'])
+	})
+})

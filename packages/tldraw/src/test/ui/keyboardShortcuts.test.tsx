@@ -350,6 +350,11 @@ describe('parseKbd literal plus key', () => {
 		])
 	})
 
+	it('tolerates extra plus signs before the literal plus key', () => {
+		expect(parseKbd('cmd+++')).toEqual([{ ...NO_MODS, meta: true, key: '+' }])
+		expect(parseKbd('++')).toEqual([{ ...NO_MODS, key: '+' }])
+	})
+
 	it('parses an atomic [[+]] token as the + key', () => {
 		expect(parseKbd('cmd+[[+]]')).toEqual([{ ...NO_MODS, meta: true, key: '+' }])
 		expect(parseKbd('[[+]]')).toEqual([{ ...NO_MODS, key: '+' }])
@@ -409,6 +414,12 @@ describe('literal plus key shortcuts', () => {
 		const { editor, onSelect } = await setupEditorWithKbd(kbd)
 		keydown(editor, init)
 		expect(onSelect).toHaveBeenCalledTimes(1)
+	})
+
+	it('does not fire shift++ on an unshifted + press', async () => {
+		const { editor, onSelect } = await setupEditorWithKbd('shift++')
+		keydown(editor, { key: '+', code: 'BracketRight' })
+		expect(onSelect).not.toHaveBeenCalled()
 	})
 
 	it('does not fire cmd++ on cmd+=', async () => {
