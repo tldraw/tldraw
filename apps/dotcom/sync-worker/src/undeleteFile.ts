@@ -16,6 +16,8 @@ export async function undeleteFile(db: Kysely<DB>, fileId: string): Promise<Unde
 		if (!file) return { result: 'not_found' }
 		if (!file.isDeleted) return { result: 'not_deleted', file }
 
+		// owningGroupId is nullable until #10050's follow-up migration makes it NOT NULL; this
+		// guard goes with it.
 		if (file.owningGroupId) {
 			const group = await tx
 				.selectFrom('group')

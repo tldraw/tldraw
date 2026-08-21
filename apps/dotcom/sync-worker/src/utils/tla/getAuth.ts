@@ -129,11 +129,11 @@ export type SignedInAuth = ReturnType<
 > & { userId: string }
 
 /**
- * Whether a user may *view* a file: they own it, they can reach it through the group that owns it, or
- * it is shared via link — in which case `sharedLinkType` is irrelevant, since a link shared for
+ * Whether a user may *view* a file: they can reach it through the group that owns it, or it is
+ * shared via link — in which case `sharedLinkType` is irrelevant, since a link shared for
  * editing is also one that can be viewed.
  *
- * The read-side counterpart of `requireWriteAccessToFile`, which is the same three checks plus a
+ * The read-side counterpart of `requireWriteAccessToFile`, which is the same two checks plus a
  * `sharedLinkType === 'edit'` requirement. Kept as a separate function rather than a parameter on
  * that one, because the two differ in how they answer as well as what they ask: this returns a
  * boolean where that throws a `StatusError` naming the reason. A caller that must not reveal whether

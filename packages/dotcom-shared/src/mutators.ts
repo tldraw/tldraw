@@ -108,7 +108,7 @@ function assertValidId(id: string) {
  * @param tx - The transaction
  * @param userId - The user ID to check permissions for
  * @param file - The file to check permissions on
- * @param allowGuestAccess - If true, shared files are accessible even if user isn't owner/member
+ * @param allowGuestAccess - If true, shared files are accessible even if the user isn't a member
  */
 async function assertUserCanAccessFileInternal(
 	tx: Transaction<TlaSchema>,
@@ -124,9 +124,7 @@ async function assertUserCanAccessFileInternal(
 		return
 	}
 
-	if (!file.owningGroupId) {
-		assert(file.owningGroupId, ZErrorCode.bad_request)
-	}
+	assert(file.owningGroupId, ZErrorCode.bad_request)
 	const role = await getRole(tx, userId, file.owningGroupId)
 	assert(can(role, 'accessFiles'), ZErrorCode.forbidden)
 }
@@ -135,7 +133,7 @@ async function assertUserCanAccessFileInternal(
  * Check if a user can access (read) a file.
  * A user can access a file if:
  * - They are a member of the owning workspace (new model: user is in file.owningGroupId)
- * - The file is shared (regardless of ownership model)
+ * - The file is shared
  */
 async function assertUserCanAccessFile(tx: Transaction<TlaSchema>, userId: string, file: TlaFile) {
 	await assertUserCanAccessFileInternal(tx, userId, file, true)
@@ -662,7 +660,7 @@ export function createMutators(userId: string) {
 				await tx.mutate.group_file.delete({ fileId, groupId: file.owningGroupId })
 			}
 
-			// Transfer file ownership from user to group
+			// Point the file at its new workspace
 			await tx.mutate.file.update({
 				id: fileId,
 				owningGroupId: workspaceId,

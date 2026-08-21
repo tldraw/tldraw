@@ -107,10 +107,12 @@ describe('hasReadAccessToFile', () => {
 		expect(await hasReadAccessToFile(env, 'user-1', 'nope')).toEqual(DENIED)
 	})
 
-	// Checked before ownership, so a soft-deleted board stops being readable for its owner too — the
-	// board is in the trash, and a screenshot of it is not something to serve out of the MCP tools.
-	it('refuses a deleted file even for its owner', async () => {
-		mockFileRow({ ownerId: 'user-1', isDeleted: true })
+	// Checked before workspace access, so a soft-deleted board stops being readable for the members
+	// of its own workspace too — the board is in the trash, and a screenshot of it is not something
+	// to serve out of the MCP tools.
+	it('refuses a deleted file even for a workspace member', async () => {
+		mockFileRow({ owningGroupId: 'group-1', isDeleted: true })
+		vi.mocked(getRole).mockResolvedValue('member' as any)
 		expect(await hasReadAccessToFile(env, 'user-1', 'file-1')).toEqual(DENIED)
 	})
 

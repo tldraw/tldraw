@@ -158,7 +158,7 @@ export const queries = defineQueries({
 	/**
 	 * The caller's own comments that someone else has reacted to, for the notifications feed's
 	 * "reacted to your comment" entries. Uses the same access building blocks as {@link comments}
-	 * (owner, file state, group membership). Ordering by reaction time is client-side:
+	 * (file state, group membership). Ordering by reaction time is client-side:
 	 * `buildReactionNotifications` stamps each entry with its newest foreign reaction and
 	 * `mergeNotifications` sorts on it.
 	 *

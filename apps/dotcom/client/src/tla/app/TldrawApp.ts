@@ -939,7 +939,8 @@ export class TldrawApp {
 	}
 
 	/**
-	 * Remove a user's file states for a file and delete the file if the user is the owner of the file.
+	 * Remove the user's file state and the workspace's link to a file, deleting the file itself only
+	 * if that workspace is the one that owns it.
 	 */
 	async deleteOrForgetFile(fileId: string, workspaceId: string = this.getHomeWorkspaceId()) {
 		// Optimistic update, remove file and file states
