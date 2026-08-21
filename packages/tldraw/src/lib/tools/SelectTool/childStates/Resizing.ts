@@ -125,6 +125,10 @@ export class Resizing extends StateNode {
 		this.cancel()
 	}
 
+	override onInterrupt() {
+		this.cancel()
+	}
+
 	private cancel() {
 		// Call onResizeCancel callback before resetting
 		const { shapeSnapshots } = this.snapshot
