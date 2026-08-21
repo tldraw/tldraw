@@ -166,8 +166,6 @@ class ClusterState {
 	private readonly centroidY: Float64Array
 	private readonly counts: Int32Array
 	private readonly nodes: ClusterNode[]
-	private readonly memberLists: string[][]
-	private readonly minMemberIds: string[]
 	// Per-cluster sums of member render offsets (screen px), maintained like the centroid sums.
 	// Null when no offsets were passed — offsetDelta() then answers null unconditionally, which
 	// routes every pricing call down the offset-unaware path.
@@ -185,8 +183,6 @@ class ClusterState {
 		this.centroidY = new Float64Array(n)
 		this.counts = new Int32Array(n)
 		this.nodes = new Array(n)
-		this.memberLists = new Array(n)
-		this.minMemberIds = new Array(n)
 
 		if (screenOffsets !== undefined && screenOffsets.size > 0) {
 			this.offsetX = new Float64Array(n)
@@ -213,8 +209,6 @@ class ClusterState {
 			this.centroidX[i] = leaf.point.x
 			this.centroidY[i] = leaf.point.y
 			this.counts[i] = 1
-			this.memberLists[i] = [leaf.id]
-			this.minMemberIds[i] = leaf.id
 			this.nodes[i] = {
 				id: leaf.id,
 				centroid: { x: leaf.point.x, y: leaf.point.y },
@@ -237,6 +231,7 @@ class ClusterState {
 		return root
 	}
 
+	/** Allocation-free: this is the hot path when no offsets are passed. */
 	centroidDistance(aRoot: number, bRoot: number): number {
 		return Math.hypot(
 			this.centroidX[aRoot] - this.centroidX[bRoot],
@@ -271,12 +266,12 @@ class ClusterState {
 	}
 
 	merge(aRoot: number, bRoot: number, z: number): RawMergeEvent {
-		const leftRoot = this.minMemberIds[aRoot] < this.minMemberIds[bRoot] ? aRoot : bRoot
+		const leftRoot = this.nodes[aRoot].members[0] < this.nodes[bRoot].members[0] ? aRoot : bRoot
 		const rightRoot = leftRoot === aRoot ? bRoot : aRoot
 		const left = this.nodes[leftRoot]
 		const right = this.nodes[rightRoot]
 		const count = this.counts[leftRoot] + this.counts[rightRoot]
-		const members = mergeSortedMembers(this.memberLists[leftRoot], this.memberLists[rightRoot])
+		const members = mergeSortedMembers(left.members, right.members)
 
 		const minX = Math.min(this.minX[leftRoot], this.minX[rightRoot])
 		const minY = Math.min(this.minY[leftRoot], this.minY[rightRoot])
@@ -308,8 +303,6 @@ class ClusterState {
 		this.centroidY[leftRoot] = centroidY
 		this.counts[leftRoot] = count
 		this.nodes[leftRoot] = result
-		this.memberLists[leftRoot] = members
-		this.minMemberIds[leftRoot] = members[0]
 		if (this.offsetX !== null && this.offsetY !== null) {
 			this.offsetX[leftRoot] += this.offsetX[rightRoot]
 			this.offsetY[leftRoot] += this.offsetY[rightRoot]
@@ -355,15 +348,8 @@ class EdgeMaxHeap {
 		this.loIds = new Array(n)
 		this.hiIds = new Array(n)
 		for (let i = 0; i < n; i++) {
-			const aId = leaves[edges[i].a].id
-			const bId = leaves[edges[i].b].id
-			if (aId < bId) {
-				this.loIds[i] = aId
-				this.hiIds[i] = bId
-			} else {
-				this.loIds[i] = bId
-				this.hiIds[i] = aId
-			}
+			this.loIds[i] = leaves[edges[i].a].id
+			this.hiIds[i] = leaves[edges[i].b].id
 		}
 	}
 
