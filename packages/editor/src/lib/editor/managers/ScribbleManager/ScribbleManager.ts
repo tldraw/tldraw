@@ -51,6 +51,7 @@ interface Session {
 	state: 'active' | 'stopping' | 'complete'
 	options: Required<Omit<ScribbleSessionOptions, 'id'>>
 	idleTimeoutHandle?: number
+	idleDeadline: number
 	fadeElapsed: number
 	totalPointsAtFadeStart: number
 }
@@ -84,6 +85,7 @@ export class ScribbleManager {
 				fadeEasing: options.fadeEasing ?? (options.fadeMode === 'grouped' ? 'ease-in' : 'linear'),
 				fadeDurationMs: options.fadeDurationMs ?? this.editor.options.laserFadeoutMs,
 			},
+			idleDeadline: 0,
 			fadeElapsed: 0,
 			totalPointsAtFadeStart: 0,
 		}
@@ -389,11 +391,26 @@ export class ScribbleManager {
 
 	// ==================== PRIVATE HELPERS ====================
 
+	// Called on every pointer move and laser tick, so keep one pending timer per
+	// session and re-arm it only when it fires early. Otherwise every call leaves a
+	// timer id behind in editor.timers for the editor's lifetime.
 	private resetIdleTimeout(session: Session): void {
-		this.clearIdleTimeout(session)
+		session.idleDeadline = Date.now() + session.options.idleTimeoutMs
+		if (session.idleTimeoutHandle === undefined) {
+			this.armIdleTimeout(session, session.options.idleTimeoutMs)
+		}
+	}
+
+	private armIdleTimeout(session: Session, delay: number): void {
 		session.idleTimeoutHandle = this.editor.timers.setTimeout(() => {
-			this.stopSession(session.id)
-		}, session.options.idleTimeoutMs)
+			session.idleTimeoutHandle = undefined
+			const remaining = session.idleDeadline - Date.now()
+			if (remaining > 0) {
+				this.armIdleTimeout(session, remaining)
+			} else {
+				this.stopSession(session.id)
+			}
+		}, delay)
 	}
 
 	private clearIdleTimeout(session: Session): void {
@@ -433,10 +450,13 @@ export class ScribbleManager {
 			}
 		}
 
-		// Remove completed items in individual fade mode
+		// Remove faded-out items in individual fade mode. A scribble that has not
+		// received its first point yet is also empty but must stay, otherwise the
+		// session is dropped before the tool gets to add a point.
 		if (session.options.fadeMode === 'individual') {
 			for (let i = session.items.length - 1; i >= 0; i--) {
-				if (session.items[i].scribble.points.length === 0) {
+				const { scribble } = session.items[i]
+				if (scribble.points.length === 0 && scribble.state === 'stopping') {
 					session.items.splice(i, 1)
 				}
 			}
