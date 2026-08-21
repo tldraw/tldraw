@@ -13,7 +13,7 @@ import {
 import { getCropBox, getDefaultCrop, getUncroppedSize } from '../../../../../shapes/shared/crop'
 import { CursorTypeMap } from '../../PointingResizeHandle'
 
-type Snapshot = ReturnType<Cropping['createSnapshot']>
+type Snapshot = NonNullable<ReturnType<Cropping['createSnapshot']>>
 
 export class Cropping extends StateNode {
 	static override id = 'cropping'
@@ -40,8 +40,15 @@ export class Cropping extends StateNode {
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		}
+		// The shape can be deleted (remotely, by undo) between pointer down and the drag
+		const snapshot = this.createSnapshot()
+		if (!snapshot) {
+			this.editor.setCroppingShape(null)
+			this.editor.setCurrentTool('select.idle')
+			return
+		}
 		this.markId = this.editor.markHistoryStoppingPoint('cropping')
-		this.snapshot = this.createSnapshot()
+		this.snapshot = snapshot
 		this.updateShapes()
 	}
 
@@ -232,7 +239,8 @@ export class Cropping extends StateNode {
 
 		const shape = this.editor.getOnlySelectedShape() as ShapeWithCrop
 
-		const selectionBounds = this.editor.getSelectionRotatedPageBounds()!
+		const selectionBounds = this.editor.getSelectionRotatedPageBounds()
+		if (!shape || !selectionBounds) return null
 
 		const dragHandlePoint = Vec.RotWith(
 			selectionBounds.getHandlePoint(this.info.handle!),
