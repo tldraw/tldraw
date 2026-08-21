@@ -4,7 +4,7 @@ import { IRequest } from 'itty-router'
 import { sql } from 'kysely'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
-import { requireAuth } from '../../utils/tla/getAuth'
+import { getAuth } from '../../utils/tla/getAuth'
 import { getJoinableWorkspaceFromInvite } from '../../utils/tla/getJoinableWorkspaceFromInvite'
 
 export async function acceptInvite(request: IRequest, env: Environment): Promise<Response> {
@@ -16,7 +16,15 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 		)
 	}
 
-	const auth = await requireAuth(request, env)
+	// Inside the handler's own error shape: the generic 401 body from the router has no `message`,
+	// which the client shows as the toast description.
+	const auth = await getAuth(request, env)
+	if (!auth) {
+		return Response.json(
+			{ error: true, message: 'Sign in to accept this invite' } satisfies AcceptInviteResponseBody,
+			{ status: 401 }
+		)
+	}
 	const db = createPostgresConnectionPool(env, 'acceptInvite')
 
 	try {
@@ -34,7 +42,6 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 				)
 			}
 
-			// Check if user is already a member of this group (with row lock to prevent race conditions)
 			const existingMember = await tx
 				.selectFrom('group_user')
 				.select('userId')
@@ -87,7 +94,9 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 				index = getIndexBelow(lowestIndexGroup.rows[0].index as IndexKey)
 			}
 
-			// Add user to the group
+			// Add user to the group. Two accepts racing past the membership check above (two tabs,
+			// two devices) would otherwise turn the second into a unique violation and a 500 for a
+			// join that succeeded.
 			await tx
 				.insertInto('group_user')
 				.values({
@@ -100,6 +109,7 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 					createdAt: Date.now(),
 					updatedAt: Date.now(),
 				})
+				.onConflict((oc) => oc.columns(['userId', 'groupId']).doNothing())
 				.execute()
 
 			return Response.json({
