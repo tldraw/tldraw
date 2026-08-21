@@ -97,6 +97,10 @@ export class Rotating extends StateNode {
 		this.cancel()
 	}
 
+	override onInterrupt() {
+		this.cancel()
+	}
+
 	// ---
 
 	private update() {
