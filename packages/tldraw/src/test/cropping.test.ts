@@ -1251,3 +1251,37 @@ describe('When cropping with modifiers and snapping...', () => {
 		expect(editor.snaps.getIndicators().length).toBe(0)
 	})
 })
+
+describe('When a second press on a crop handle arrives as a double click', () => {
+	it('still crops when the press becomes a drag instead of resetting the crop', () => {
+		editor.doubleClick(550, 550, ids.imageB).expectToBeIn('select.crop.idle')
+		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+
+		editor.pointerDown(500, 600, { target: 'selection', handle: 'bottom' }).pointerUp()
+		editor.expectToBeIn('select.crop.idle')
+		editor.pointerDown(500, 600, { target: 'selection', handle: 'bottom' })
+		editor.dispatch({
+			type: 'click',
+			name: 'double_click',
+			phase: 'down',
+			point: { x: 500, y: 600 },
+			pointerId: 1,
+			button: 0,
+			shiftKey: false,
+			altKey: false,
+			ctrlKey: false,
+			metaKey: false,
+			accelKey: false,
+			target: 'selection',
+			handle: 'bottom',
+		})
+		editor.expectToBeIn('select.crop.pointing_crop_handle')
+		editor.pointerMove(510, 590)
+		editor.expectToBeIn('select.crop.cropping')
+		editor.pointerUp()
+
+		const after = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+		expect(after).not.toMatchObject(before)
+		expect(after.bottomRight.y).toBeLessThan(before.bottomRight.y)
+	})
+})
