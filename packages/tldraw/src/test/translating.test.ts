@@ -2305,6 +2305,68 @@ describe('cancelling a translate operation', () => {
 	})
 })
 
+describe('when shapes disappear mid-drag', () => {
+	it('does not crash when a bound arrow being translated is deleted', () => {
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+			{
+				id: ids.lineA,
+				type: 'arrow',
+				x: 200,
+				y: 200,
+				props: { start: { x: 0, y: 0 }, end: { x: 100, y: 100 } },
+			},
+		])
+		editor.createBindings([
+			{
+				fromId: ids.lineA,
+				toId: ids.box1,
+				type: 'arrow',
+				props: {
+					terminal: 'start',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: false,
+					snap: 'none',
+				},
+			},
+		])
+		editor.select(ids.lineA)
+		editor.pointerDown(250, 250, { target: 'shape', shape: editor.getShape(ids.lineA) })
+		editor.pointerMove(260, 260)
+		editor.expectToBeIn('select.translating')
+
+		editor.store.mergeRemoteChanges(() => editor.store.remove([ids.lineA]))
+
+		expect(() => editor.pointerMove(270, 270)).not.toThrow()
+		expect(() => editor.pointerUp(270, 270)).not.toThrow()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('does not crash when the drop target is deleted', () => {
+		editor.createShapes([
+			{ id: ids.frame1, type: 'frame', x: 500, y: 0, props: { w: 200, h: 200 } },
+			{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+		])
+		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.box1) })
+		editor.pointerMove(600, 100)
+		vi.advanceTimersByTime(300)
+		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.frame1)
+
+		editor.store.mergeRemoteChanges(() => editor.store.remove([ids.frame1]))
+
+		expect(() => {
+			editor.pointerMove(610, 110)
+			vi.advanceTimersByTime(300)
+			editor.pointerUp(610, 110)
+		}).not.toThrow()
+		editor.expectToBeIn('select.idle')
+		// The dragged shape shouldn't be left orphaned under the deleted frame
+		expect(editor.getShape(ids.box1)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getCurrentPageShapeIds().has(ids.box1)).toBe(true)
+	})
+})
+
 it('preserves z-indexes when translating', () => {
 	editor.createShape({ type: 'geo', x: 0, y: 0, props: { w: 200, h: 200 } })
 	editor.createShape({ type: 'geo', x: 100, y: 100, props: { w: 200, h: 200 } })

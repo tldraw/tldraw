@@ -181,9 +181,11 @@ export class DragAndDropManager {
 				return
 			}
 
-			if (this.prevDraggingOverShape) {
-				const util = editor.getShapeUtil(this.prevDraggingOverShape)
-				const prevDraggingOverShape = this.editor.getShape(this.prevDraggingOverShape)!
+			const prevDraggingOverShape = this.prevDraggingOverShape
+				? this.editor.getShape(this.prevDraggingOverShape.id)
+				: undefined
+			if (prevDraggingOverShape) {
+				const util = editor.getShapeUtil(prevDraggingOverShape)
 				const removableShapes = getRemovableShapesForTarget(
 					editor,
 					prevDraggingOverShape,
@@ -196,6 +198,16 @@ export class DragAndDropManager {
 						initialParentIds: this.initialParentIds,
 						initialIndices: this.initialIndices,
 					})
+				}
+			} else if (this.prevDraggingOverShape) {
+				// The previous target was deleted mid-drag (e.g. by a remote user) without taking
+				// the dragged shapes with it, so onDragShapesOut can't run. Put any shapes it had
+				// adopted back on the page; otherwise they'd keep a parentId that no longer exists
+				// and disappear from the page.
+				const deletedTargetId = this.prevDraggingOverShape.id
+				const orphanedShapes = draggingShapes.filter((s) => s.parentId === deletedTargetId)
+				if (orphanedShapes.length > 0) {
+					editor.reparentShapes(orphanedShapes, editor.getCurrentPageId())
 				}
 			}
 
