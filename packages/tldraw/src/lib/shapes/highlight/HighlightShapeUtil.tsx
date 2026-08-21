@@ -241,7 +241,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	): TLHighlightShapeProps {
 		return {
 			...(t > 0.5 ? endShape.props : startShape.props),
-			...endShape.props,
 			segments: interpolateSegments(startShape.props.segments, endShape.props.segments, t),
 			scale: lerp(startShape.props.scale, endShape.props.scale, t),
 		}
