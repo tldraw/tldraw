@@ -460,3 +460,23 @@ describe('applying diffs (H)', () => {
 		})
 	})
 })
+
+describe('listeners: re-entrancy (H)', () => {
+	it('[H5] a listener added by another listener during a flush does not receive that flush', async () => {
+		const late = vi.fn()
+		store.listen(() => {
+			if (late.mock.calls.length === 0 && !(late as any).registered) {
+				;(late as any).registered = true
+				store.listen(late)
+			}
+		})
+
+		store.put([tolkein()])
+		await new Promise((resolve) => requestAnimationFrame(resolve))
+		expect(late).not.toHaveBeenCalled()
+
+		store.put([hobbit()])
+		await new Promise((resolve) => requestAnimationFrame(resolve))
+		expect(late).toHaveBeenCalledTimes(1)
+	})
+})
