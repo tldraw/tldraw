@@ -12,19 +12,19 @@ export interface McpClusterIndexSql {
 /**
  * The primary key deliberately excludes `version`: a page holds one row, and new content replaces the
  * row for the old content. That is what bounds a file's cache by its page count rather than by its
- * edit history, with no expiry policy to run. `kind` is in the key because one file is two boards —
- * the live shared file and the frozen published snapshot — which cluster differently once they drift.
+ * edit history, with no expiry policy to run. There is no slug either — the object is already
+ * per-file, and a published slug can be rotated, which would strand a row nothing ever replaces.
+ * `kind` stays, because one file is two boards: the live shared file and the frozen published
+ * snapshot, which cluster differently once they have drifted apart.
  */
 export function ensureMcpClusterIndexTable(sql: McpClusterIndexSql) {
 	sql.exec(
 		`CREATE TABLE IF NOT EXISTS mcp_cluster_index (
 			kind TEXT NOT NULL,
-			slug TEXT NOT NULL,
 			pageId TEXT NOT NULL,
 			version TEXT NOT NULL,
 			payload TEXT NOT NULL,
-			updatedAt INTEGER NOT NULL,
-			PRIMARY KEY (kind, slug, pageId)
+			PRIMARY KEY (kind, pageId)
 		)`
 	)
 }
@@ -40,9 +40,8 @@ export function readMcpClusterIndexRow(
 ): string | null {
 	const rows = sql
 		.exec(
-			'SELECT payload FROM mcp_cluster_index WHERE kind = ? AND slug = ? AND pageId = ? AND version = ?',
+			'SELECT payload FROM mcp_cluster_index WHERE kind = ? AND pageId = ? AND version = ?',
 			key.kind,
-			key.slug,
 			key.pageId,
 			key.version
 		)
@@ -53,16 +52,13 @@ export function readMcpClusterIndexRow(
 export function writeMcpClusterIndexRow(
 	sql: McpClusterIndexSql,
 	key: McpClusterIndexKey,
-	payload: string,
-	now: number
+	payload: string
 ) {
 	sql.exec(
-		'INSERT OR REPLACE INTO mcp_cluster_index (kind, slug, pageId, version, payload, updatedAt) VALUES (?, ?, ?, ?, ?, ?)',
+		'INSERT OR REPLACE INTO mcp_cluster_index (kind, pageId, version, payload) VALUES (?, ?, ?, ?)',
 		key.kind,
-		key.slug,
 		key.pageId,
 		key.version,
-		payload,
-		now
+		payload
 	)
 }

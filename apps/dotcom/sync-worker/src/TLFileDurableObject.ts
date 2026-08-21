@@ -2686,20 +2686,16 @@ export class TLFileDurableObject extends DurableObject {
 	 * Storage-only — none of these boot the room. They run on a Worker's critical path, and the point
 	 * of the cache is to be cheaper than the browser render it replaces.
 	 */
-	private ensureMcpClusterIndex() {
-		ensureMcpClusterIndexTable(this.ctx.storage.sql)
-	}
-
 	/** One page's stored cluster index, or null when nothing was stored for this content version. */
 	async getMcpClusterIndex(key: McpClusterIndexKey): Promise<string | null> {
-		this.ensureMcpClusterIndex()
+		ensureMcpClusterIndexTable(this.ctx.storage.sql)
 		return readMcpClusterIndexRow(this.ctx.storage.sql, key)
 	}
 
 	/** Stores one page's cluster index, replacing whatever that page last had. */
 	async putMcpClusterIndex(key: McpClusterIndexKey, payload: string): Promise<void> {
-		this.ensureMcpClusterIndex()
-		writeMcpClusterIndexRow(this.ctx.storage.sql, key, payload, Date.now())
+		ensureMcpClusterIndexTable(this.ctx.storage.sql)
+		writeMcpClusterIndexRow(this.ctx.storage.sql, key, payload)
 	}
 
 	/**

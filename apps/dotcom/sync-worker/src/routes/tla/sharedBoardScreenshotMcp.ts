@@ -1,4 +1,8 @@
-import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
+import {
+	DEFAULT_THUMBNAIL_HEIGHT,
+	DEFAULT_THUMBNAIL_WIDTH,
+	ShapeCluster,
+} from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import {
 	MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT,
@@ -20,27 +24,27 @@ import {
 	MCP_SERVER_INFO,
 	MCP_SERVER_INSTRUCTIONS,
 	PAGE_INFO_TOOL_NAME,
-	PageClusterIndex,
 	PageSelector,
 	ResolvedPageOk,
 	ToolResult,
 	buildClusterIndex,
+	clusterPage,
 	describePageSelector,
 	getBoardInfo,
-	getClusterInfoFromIndex,
-	getPageInfoFromIndex,
+	getClusterInfo,
+	getPageInfo,
 	getToolDefinitions,
 	parseBoardInfoInput,
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
 	parsePageInfoInput,
-	pickClusterShapesFromIndex,
+	pickClusterShapes,
 	resolvePage,
 	toolError as modelToolError,
 	toolPageResult,
 } from './boardTools'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
-import { readPageClusterIndex, writePageClusterIndex } from './mcpClusterIndex'
+import { readPageClusters, writePageClusterIndex } from './mcpClusterIndex'
 import {
 	ResolveThumbnailBoardResult,
 	ResolvedThumbnailBoard,
@@ -650,10 +654,10 @@ async function callPageInfoTool(
 			return resolved.result
 		}
 
-		const clustered = await clusterIndexFor(env, resolved, userId, telemetry, { request, ctx })
+		const clustered = await clustersFor(env, resolved, userId, telemetry, request, ctx)
 		if (!clustered.ok) return clustered.result
 		telemetry({ cacheStatus: 'none', clusterCacheStatus: clustered.clusterCacheStatus })
-		return getPageInfoFromIndex(resolved.page, clustered.index)
+		return getPageInfo(resolved.page, clustered.clusters)
 	} catch (error) {
 		// Unlike get_board_info, this tool can fail mid-measure, so its failures belong on the same
 		// request ledger as the screenshot tool's. The measure session itself reports separately.
@@ -812,8 +816,8 @@ async function checkPerUserRateLimit(
 	)
 }
 
-type ClusterIndexResult =
-	| { ok: true; index: PageClusterIndex; clusterCacheStatus: 'hit' | 'miss' }
+type PageClustersResult =
+	| { ok: true; clusters: ShapeCluster[]; clusterCacheStatus: 'hit' | 'miss' }
 	| { ok: false; result: ToolCallResult }
 
 // How the three clustering tools get a page's clusters, and the one place that decides whether that
@@ -839,16 +843,17 @@ type ClusterIndexResult =
 //
 // The session lands on the `browser_run_session` spend ledger inside the measure itself, so callers
 // carry no duration bookkeeping.
-async function clusterIndexFor(
+async function clustersFor(
 	env: Environment,
 	resolved: Extract<ResolvedBoardPage, { ok: true }>,
 	userId: string,
 	telemetry: McpTelemetryWriter,
-	cacheContext: { request: Request; ctx?: ExecutionContext }
-): Promise<ClusterIndexResult> {
-	const context = { env, request: cacheContext.request, ctx: cacheContext.ctx }
-	const cached = await readPageClusterIndex(context, resolved.board, resolved.page)
-	if (cached) return { ok: true, index: cached, clusterCacheStatus: 'hit' }
+	request: Request,
+	ctx: ExecutionContext | undefined
+): Promise<PageClustersResult> {
+	const cacheContext = { env, request, ctx }
+	const cached = await readPageClusters(cacheContext, resolved.board, resolved.page)
+	if (cached) return { ok: true, clusters: cached, clusterCacheStatus: 'hit' }
 
 	if (await isGlobalBrowserRunRateLimited(env)) {
 		telemetry({
@@ -870,9 +875,14 @@ async function clusterIndexFor(
 	const measurements = await measurePageShapes(env, resolved.board, resolved.page.pageId, {
 		surface: 'mcp',
 	})
-	const index = buildClusterIndex(resolved.page, measurements)
-	await writePageClusterIndex(context, resolved.board, resolved.page, index)
-	return { ok: true, index, clusterCacheStatus: 'miss' }
+	const clusters = clusterPage(resolved.page, measurements)
+	await writePageClusterIndex(
+		cacheContext,
+		resolved.board,
+		resolved.page,
+		buildClusterIndex(clusters)
+	)
+	return { ok: true, clusters, clusterCacheStatus: 'miss' }
 }
 
 async function callClusterInfoTool(
@@ -897,14 +907,9 @@ async function callClusterInfoTool(
 			return resolved.result
 		}
 
-		const clustered = await clusterIndexFor(env, resolved, userId, telemetry, { request, ctx })
+		const clustered = await clustersFor(env, resolved, userId, telemetry, request, ctx)
 		if (!clustered.ok) return clustered.result
-		const result = getClusterInfoFromIndex(
-			resolved.page,
-			clustered.index,
-			input.clusterId,
-			input.page
-		)
+		const result = getClusterInfo(resolved.page, clustered.clusters, input.clusterId, input.page)
 		if (result.isError) {
 			telemetry({
 				cacheStatus: 'none',
@@ -1124,14 +1129,9 @@ async function callClusterScreenshotTool(
 		userId,
 		extras: { clusterIds: input.clusterIds.join(',') },
 		pickShapes: async (resolved, telemetry) => {
-			const clustered = await clusterIndexFor(env, resolved, userId, telemetry, { request, ctx })
+			const clustered = await clustersFor(env, resolved, userId, telemetry, request, ctx)
 			if (!clustered.ok) return { ok: false, result: clustered.result }
-			const picked = pickClusterShapesFromIndex(
-				resolved.page,
-				clustered.index,
-				input.clusterIds,
-				input.page
-			)
+			const picked = pickClusterShapes(clustered.clusters, input.clusterIds, input.page)
 			if (picked.ok) return { ...picked, clusterCacheStatus: clustered.clusterCacheStatus }
 			// `cluster_not_found` on both events. The request ledger used to file this as
 			// `failure:shape_not_found` while the per-call event filed the very same refusal as

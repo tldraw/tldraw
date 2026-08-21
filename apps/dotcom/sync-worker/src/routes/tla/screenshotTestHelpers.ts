@@ -154,9 +154,10 @@ export function makeMeasuringBrowserBinding(
 
 // In-memory stand-in for the TLDR_DOC namespace, with the file object's MCP cluster index storage.
 //
-// One store shared by every object id, keyed the way the real table is (kind, slug, pageId) with the
-// version held as a value rather than part of the key — so a write for new content replaces the old
-// row exactly as `INSERT OR REPLACE` does, and a read for a stale version misses.
+// One store per namespace, keyed the way the real table is (kind, pageId) with the version held as a
+// value rather than part of the key — so a write for new content replaces the old row exactly as
+// `INSERT OR REPLACE` does, and a read for a stale version misses. mcpClusterIndexStorage.test.ts is
+// what holds this fake to the real statements.
 //
 // `store` is exposed so a test can seed a row, corrupt one, or assert that a tool wrote one; `calls`
 // counts reads and writes, which is how a test tells "served from cache" from "measured again"
@@ -164,8 +165,7 @@ export function makeMeasuringBrowserBinding(
 export function makeFakeFileDurableObjectNamespace() {
 	const store = new Map<string, { version: string; payload: string }>()
 	const calls = { get: 0, put: 0 }
-	const keyOf = (key: { kind: string; slug: string; pageId: string }) =>
-		`${key.kind}/${key.slug}/${key.pageId}`
+	const keyOf = (key: { kind: string; pageId: string }) => `${key.kind}/${key.pageId}`
 
 	const stub = {
 		async getMcpClusterIndex(key: any) {
