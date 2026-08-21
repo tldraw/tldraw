@@ -187,3 +187,124 @@ describe('When brushing arrows', () => {
 		expect(editor.getSelectedShapeIds()).toStrictEqual([])
 	})
 })
+
+// Each of these selection changes happens while the select tool is idle with no
+// pending history mark, so without a stopping point the selection change merges
+// into the entry that created the shape and undo deletes the shape (#10412).
+describe('Selection changes while idle are their own undo step', () => {
+	const ids = {
+		box1: createShapeId('box1'),
+		box2: createShapeId('box2'),
+		group1: createShapeId('group1'),
+	}
+
+	beforeEach(() => {
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+		editor.setCamera({ x: 0, y: 0, z: 1 })
+	})
+
+	function createBoxesWithNothingSelected() {
+		editor.markHistoryStoppingPoint('create boxes')
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+			{ id: ids.box2, type: 'geo', x: 400, y: 100, props: { w: 100, h: 100 } },
+		])
+		editor.selectNone()
+		editor.setCurrentTool('select')
+		expect(editor.getSelectedShapeIds()).toEqual([])
+	}
+
+	it('brushing from an empty selection', () => {
+		createBoxesWithNothingSelected()
+
+		editor.pointerDown(50, 50).pointerMove(250, 250).pointerUp(250, 250)
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+
+		editor.undo()
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		expect(editor.getShape(ids.box1)).toBeDefined()
+		expect(editor.getShape(ids.box2)).toBeDefined()
+	})
+
+	it('brushing from an existing selection is a single undo step', () => {
+		createBoxesWithNothingSelected()
+		editor.setSelectedShapes([ids.box2])
+
+		editor.pointerDown(50, 50).pointerMove(250, 250).pointerUp(250, 250)
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+
+		editor.undo()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+	})
+
+	it('right-clicking empty canvas to clear the selection', () => {
+		createBoxesWithNothingSelected()
+		editor.setSelectedShapes([ids.box1])
+
+		editor.rightClick(700, 700)
+		expect(editor.getSelectedShapeIds()).toEqual([])
+
+		editor.undo()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		expect(editor.getShape(ids.box1)).toBeDefined()
+	})
+
+	it('pressing Enter with only groups selected', () => {
+		createBoxesWithNothingSelected()
+		editor.groupShapes([ids.box1, ids.box2], { groupId: ids.group1 })
+		editor.setSelectedShapes([ids.group1])
+
+		editor.keyDown('Enter').keyUp('Enter')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
+
+		editor.undo()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.group1])
+		expect(editor.getShape(ids.group1)).toBeDefined()
+	})
+
+	it('Tab traversal', () => {
+		createBoxesWithNothingSelected()
+		editor.setSelectedShapes([ids.box1])
+
+		editor.keyDown('Tab').keyUp('Tab')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+
+		editor.undo()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		expect(editor.getShape(ids.box2)).toBeDefined()
+	})
+
+	it('Ctrl+arrow traversal', () => {
+		createBoxesWithNothingSelected()
+		editor.setSelectedShapes([ids.box1])
+
+		editor.keyDown('ArrowRight', { ctrlKey: true }).keyUp('ArrowRight', { ctrlKey: true })
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+
+		editor.undo()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		expect(editor.getShape(ids.box2)).toBeDefined()
+	})
+
+	it('Ctrl+Shift+arrow parent and child traversal', () => {
+		createBoxesWithNothingSelected()
+		editor.groupShapes([ids.box1, ids.box2], { groupId: ids.group1 })
+		editor.setSelectedShapes([ids.group1])
+
+		editor
+			.keyDown('ArrowDown', { ctrlKey: true, shiftKey: true })
+			.keyUp('ArrowDown', { ctrlKey: true, shiftKey: true })
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+
+		editor
+			.keyDown('ArrowUp', { ctrlKey: true, shiftKey: true })
+			.keyUp('ArrowUp', { ctrlKey: true, shiftKey: true })
+		expect(editor.getSelectedShapeIds()).toEqual([ids.group1])
+
+		editor.undo()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		editor.undo()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.group1])
+		expect(editor.getShape(ids.group1)).toBeDefined()
+	})
+})

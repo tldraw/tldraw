@@ -4,12 +4,17 @@ import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPoi
 export class PointingCanvas extends StateNode {
 	static override id = 'pointing_canvas'
 
+	private didMark = false
+
 	override onEnter(info: TLPointerEventInfo & { target: 'canvas' }) {
 		const additiveSelectionKey = info.shiftKey || info.accelKey
+
+		this.didMark = false
 
 		if (!additiveSelectionKey) {
 			if (this.editor.getSelectedShapeIds().length > 0) {
 				this.editor.markHistoryStoppingPoint('selecting none')
+				this.didMark = true
 				this.editor.selectNone()
 			}
 		}
@@ -17,6 +22,13 @@ export class PointingCanvas extends StateNode {
 
 	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.getIsDragging()) {
+			// A brush from an empty selection has no mark yet, so its selection
+			// would merge into the previous history entry and undo would revert
+			// that edit too (#10412). Marking only here keeps a plain click on
+			// empty canvas out of the undo stack.
+			if (!this.didMark) {
+				this.editor.markHistoryStoppingPoint('brushing')
+			}
 			this.parent.transition('brushing', info)
 		}
 	}

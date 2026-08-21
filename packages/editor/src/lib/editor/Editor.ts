@@ -2498,6 +2498,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private _selectShapesAndZoom(ids: TLShapeId[]) {
+		this.markHistoryStoppingPoint('selecting adjacent shape')
 		this.setSelectedShapes(ids)
 		this.zoomToSelectionIfOffscreen(256, {
 			animation: {
