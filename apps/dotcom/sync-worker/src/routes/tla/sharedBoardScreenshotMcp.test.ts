@@ -1,3 +1,4 @@
+import { THUMBNAIL_RENDER_GLOBAL } from '@tldraw/dotcom-shared'
 import { THUMBNAIL_RENDER_TIMEOUT_MS } from '@tldraw/dotcom-shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { MCP_PER_USER_RATE_LIMIT } from '../../config'
@@ -1606,5 +1607,87 @@ describe('protocol telemetry', () => {
 		// Unrecognized agents collapse to one value rather than becoming a new dimension each.
 		expect(normalizeMcpClient('some-new-agent/1.0')).toBe('other')
 		expect(normalizeMcpClient(null)).toBe('none')
+	})
+})
+
+// Push is the whole point of the spike, and it fails silently in the most convincing way: if the
+// payload never reaches the render page, the page just fetches one and every render still succeeds.
+// So these assert on the request body the binding was handed, not on the PNG coming back.
+describe('pushed snapshots', () => {
+	function screenshotBody(env: Environment) {
+		// The clustering tools measure before they capture, so the screenshot is the last call.
+		const calls = screenshotOf(env).mock.calls
+		return calls.at(-1)![1] as {
+			url: string
+			addScriptTag?: Array<{ content: string }>
+		}
+	}
+
+	function pushedPayload(env: Environment) {
+		const content = screenshotBody(env).addScriptTag?.[0]?.content
+		if (!content) return null
+		// Evaluated the way the browser will, which also proves the escaping produces valid JS.
+		// `window` is supplied rather than global because these tests run in node.
+		return new Function('window', `${content}; return window.${THUMBNAIL_RENDER_GLOBAL}`)({})
+	}
+
+	it('injects the snapshot and tells the page to expect it', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		const clusterId = await firstClusterId(env, 'user_push_1', 'abc')
+
+		await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'abc', clusterIds: [clusterId] },
+			env,
+			'user_push_2'
+		)
+
+		const body = screenshotBody(env)
+		expect(body.addScriptTag).toHaveLength(1)
+		// Without this the page cannot tell a push is coming and would fetch immediately, so the
+		// injected payload would arrive too late to be used.
+		expect(new URL(body.url).searchParams.get('push')).toBe('1')
+	})
+
+	it('pushes only the requested cluster, not the whole board', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		const clusterId = await firstClusterId(env, 'user_push_3', 'abc')
+
+		await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'abc', clusterIds: [clusterId] },
+			env,
+			'user_push_4'
+		)
+
+		const payload = pushedPayload(env)
+		expect(payload).not.toBeNull()
+
+		const pushedIds = payload.records.map((record: any) => record.id)
+		// Every page but the one being drawn is gone, and with it that page's shapes.
+		expect(pushedIds).not.toContain('page:b')
+		expect(pushedIds.some((id: string) => id.startsWith('shape:'))).toBe(true)
+		// The render params ride along, so the page needs nothing from the token to draw this.
+		expect(payload.renderParams.pageId).toBe('page:a')
+		expect(payload.error).toBe(false)
+	})
+
+	// The token is still minted and still on the URL even when pushing: it is what lets the page
+	// recover if the injected tag never runs.
+	it('keeps the token available as a fallback', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		const clusterId = await firstClusterId(env, 'user_push_5', 'abc')
+
+		await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'abc', clusterIds: [clusterId] },
+			env,
+			'user_push_6'
+		)
+
+		expect(new URL(screenshotBody(env).url).searchParams.get('token')).toBeTruthy()
 	})
 })

@@ -2,6 +2,8 @@ import {
 	DEFAULT_THUMBNAIL_WIDTH,
 	MAX_THUMBNAIL_DIMENSION,
 	MIN_THUMBNAIL_DIMENSION,
+	THUMBNAIL_RENDER_GLOBAL,
+	THUMBNAIL_RENDER_PUSH_PARAM,
 	THUMBNAIL_SETTLE_TIMEOUT_MS,
 	ThumbnailRenderParams,
 	ThumbnailShapeMeasurement,
@@ -45,8 +47,64 @@ type LoaderData =
 			message: string
 	  }
 
+// How long to wait for a pushed snapshot before giving up and fetching one.
+//
+// The worker injects the payload with the Quick Action's `addScriptTag`, which runs *after*
+// navigation — so at the moment this loader first runs, the global is usually not there yet. Reading
+// it once would therefore miss every push and quietly fall back to the fetch, which looks exactly
+// like push working and is why this waits rather than checks. The budget only has to cover the gap
+// between DOMContentLoaded and the injected tag executing; a genuine pull is not delayed by it,
+// because a render page reached without a push is only ever opened with a token.
+const PUSHED_SNAPSHOT_TIMEOUT_MS = 2_000
+const PUSHED_SNAPSHOT_POLL_MS = 25
+
+declare global {
+	interface Window {
+		[THUMBNAIL_RENDER_GLOBAL]?: ThumbnailSnapshotResponseBody
+	}
+}
+
+function awaitPushedSnapshot(timeoutMs: number): Promise<ThumbnailSnapshotResponseBody | null> {
+	if (window[THUMBNAIL_RENDER_GLOBAL]) return Promise.resolve(window[THUMBNAIL_RENDER_GLOBAL]!)
+	return new Promise((resolve) => {
+		const startedAt = Date.now()
+		const interval = setInterval(() => {
+			const pushed = window[THUMBNAIL_RENDER_GLOBAL]
+			if (pushed) {
+				clearInterval(interval)
+				resolve(pushed)
+			} else if (Date.now() - startedAt >= timeoutMs) {
+				clearInterval(interval)
+				resolve(null)
+			}
+		}, PUSHED_SNAPSHOT_POLL_MS)
+	})
+}
+
 const { loader, useData } = defineLoader(async (args): Promise<LoaderData> => {
-	const token = new URL(args.request.url).searchParams.get('token')
+	const url = new URL(args.request.url)
+	const token = url.searchParams.get('token')
+
+	// Only a render the worker announced a push for waits for one. A pull render must not pay this
+	// budget just to discover nobody is pushing — that would be flat added latency on every OG
+	// capture, and would make a push/pull comparison meaningless.
+	if (url.searchParams.get(THUMBNAIL_RENDER_PUSH_PARAM) === '1') {
+		// Authoritative when it arrives: the worker injects a snapshot it just read under the same
+		// gate the token would have been checked against, so there is nothing further to verify.
+		const pushed = await awaitPushedSnapshot(PUSHED_SNAPSHOT_TIMEOUT_MS)
+		if (pushed) {
+			if (pushed.error) return { ok: false, message: pushed.message }
+			return {
+				ok: true,
+				token: token ?? '',
+				records: pushed.records,
+				schema: pushed.schema,
+				renderParams: pushed.renderParams,
+			}
+		}
+		// Fell through: the injected tag never ran. The token below is what makes that recoverable.
+	}
+
 	if (!token) {
 		return { ok: false, message: 'Missing render token' }
 	}
