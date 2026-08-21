@@ -36,8 +36,9 @@ export function kbd(str: string) {
 							.match(/__CTRL__|__ALT__|./g) || []
 			)
 			.flat()
-			.map((sub, index) => {
-				if (sub[0] === '+') return []
+			.map((sub, index, arr) => {
+				// A `+` is a separator unless it is the key itself, which is always last.
+				if (sub[0] === '+' && index !== arr.length - 1) return []
 
 				let modifiedKey
 				if (sub === '__CTRL__') {
