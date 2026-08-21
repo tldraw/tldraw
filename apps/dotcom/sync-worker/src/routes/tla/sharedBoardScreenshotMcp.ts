@@ -1,4 +1,8 @@
-import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
+import {
+	DEFAULT_THUMBNAIL_HEIGHT,
+	DEFAULT_THUMBNAIL_WIDTH,
+	ShapeCluster,
+} from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import {
 	MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT,
@@ -22,8 +26,9 @@ import {
 	PAGE_INFO_TOOL_NAME,
 	PageSelector,
 	ResolvedPageOk,
-	ShapeMeasurement,
 	ToolResult,
+	buildClusterIndex,
+	clusterPage,
 	describePageSelector,
 	getBoardInfo,
 	getClusterInfo,
@@ -39,6 +44,7 @@ import {
 	toolPageResult,
 } from './boardTools'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
+import { readPageClusters, writePageClusterIndex } from './mcpClusterIndex'
 import {
 	ResolveThumbnailBoardResult,
 	ResolvedThumbnailBoard,
@@ -648,10 +654,10 @@ async function callPageInfoTool(
 			return resolved.result
 		}
 
-		const measured = await measureFor(env, resolved, userId, telemetry)
-		if (!measured.ok) return measured.result
-		telemetry({ cacheStatus: 'none' })
-		return getPageInfo(resolved.page, measured.measurements)
+		const clustered = await clustersFor(resolved, { env, userId, telemetry, request, ctx })
+		if (!clustered.ok) return clustered.result
+		telemetry({ cacheStatus: 'none', clusterCacheStatus: clustered.clusterCacheStatus })
+		return getPageInfo(resolved.page, clustered.clusters)
 	} catch (error) {
 		// Unlike get_board_info, this tool can fail mid-measure, so its failures belong on the same
 		// request ledger as the screenshot tool's. The measure session itself reports separately.
@@ -760,6 +766,11 @@ function mcpTelemetryWriter(env: Environment) {
 		// requests refused before the cache read. Keeping those out of hit/miss is what lets a
 		// hit-rate-by-source panel read cache health rather than refusal volume.
 		cacheStatus: 'hit' | 'miss' | 'none'
+		// What the cluster index cache did, on its own dimension rather than folded into `cacheStatus`:
+		// the two caches answer different questions (one saves a capture, the other saves a measure)
+		// and a single blob mixing them would make either hit rate unreadable. `none` for the tools
+		// and refusals that never reach the clustering step.
+		clusterCacheStatus?: 'hit' | 'miss' | 'none'
 		failureReason?: string
 		rateLimitAllowed?: boolean
 		callerHash?: string
@@ -805,33 +816,57 @@ async function checkPerUserRateLimit(
 	)
 }
 
-type MeasureResult =
-	| { ok: true; measurements: Record<string, ShapeMeasurement> }
+type PageClustersResult =
+	| { ok: true; clusters: ShapeCluster[]; clusterCacheStatus: 'hit' | 'miss' }
 	| { ok: false; result: ToolCallResult }
 
-// Clustering needs real geometry, and the only way to get it is to run an editor in Browser
-// Rendering — the same cost as a screenshot. Every caller goes through here, so that cost is stated
-// once rather than implied in three places, and so it is *counted*: a measure used to run a full
-// Browser Run session checked against neither the global limiter nor the per-board one. Three of the
-// four tools measure before they can answer anything, so the account-wide ceiling the global limiter
-// describes was several times the one it actually enforced.
+// How the three clustering tools get a page's clusters, and the one place that decides whether that
+// costs a browser session.
 //
-// The global limiter only. The per-board limiter is deliberately left to the capture path: it allows
-// 2 a minute, and the ordinary cluster-screenshot flow measures three times against one board
-// (get_page_info, get_cluster_info, then the screenshot's own), so counting measures against it would
-// refuse the documented flow rather than an abusive one.
+// Clustering needs real geometry, and the only way to get it is to run an editor in Browser
+// Rendering — the same cost as a screenshot. But the answer only moves when the board's content
+// moves, so the first tool to measure a page stores it (mcpClusterIndex.ts, keyed by the board's
+// content version) and every later call for the same content is served from that. In the documented
+// drill-down — get_page_info, then get_cluster_info, then get_cluster_screenshot — that is one
+// measure for the first call and none for the rest, where it used to be one each.
+//
+// A miss falls back to measuring, so nothing here can leave a tool unable to answer: a cache that is
+// empty, stale, unreadable, or was never written because get_page_info was skipped behaves exactly
+// like the pipeline did before it existed.
+//
+// The limiters are consulted on the miss path only — checking them on a hit would meter calls that
+// spend nothing. It is the global limiter and not the per-board one: that allows 2 a minute, and a
+// cold drill-down can legitimately measure once and capture once against the same board, so counting
+// measures there would refuse the documented flow rather than an abusive one. A measure used to check
+// neither, which is what made the account-wide ceiling several times the number the global limiter
+// describes.
 //
 // The session lands on the `browser_run_session` spend ledger inside the measure itself, so callers
 // carry no duration bookkeeping.
-async function measureFor(
-	env: Environment,
+async function clustersFor(
 	resolved: Extract<ResolvedBoardPage, { ok: true }>,
-	userId: string,
-	telemetry: McpTelemetryWriter
-): Promise<MeasureResult> {
+	{
+		env,
+		userId,
+		telemetry,
+		request,
+		ctx,
+	}: {
+		env: Environment
+		userId: string
+		telemetry: McpTelemetryWriter
+		request: Request
+		ctx: ExecutionContext | undefined
+	}
+): Promise<PageClustersResult> {
+	const cacheContext = { env, request, ctx }
+	const cached = await readPageClusters(cacheContext, resolved.board, resolved.page)
+	if (cached) return { ok: true, clusters: cached, clusterCacheStatus: 'hit' }
+
 	if (await isGlobalBrowserRunRateLimited(env)) {
 		telemetry({
 			cacheStatus: 'none',
+			clusterCacheStatus: 'miss',
 			rateLimitAllowed: false,
 			failureReason: 'rate_limited_global',
 			callerHash: await sha256(userId),
@@ -844,12 +879,18 @@ async function measureFor(
 			),
 		}
 	}
-	return {
-		ok: true,
-		measurements: await measurePageShapes(env, resolved.board, resolved.page.pageId, {
-			surface: 'mcp',
-		}),
-	}
+
+	const measurements = await measurePageShapes(env, resolved.board, resolved.page.pageId, {
+		surface: 'mcp',
+	})
+	const clusters = clusterPage(resolved.page, measurements)
+	await writePageClusterIndex(
+		cacheContext,
+		resolved.board,
+		resolved.page,
+		buildClusterIndex(clusters)
+	)
+	return { ok: true, clusters, clusterCacheStatus: 'miss' }
 }
 
 async function callClusterInfoTool(
@@ -874,14 +915,18 @@ async function callClusterInfoTool(
 			return resolved.result
 		}
 
-		const measured = await measureFor(env, resolved, userId, telemetry)
-		if (!measured.ok) return measured.result
-		const result = getClusterInfo(resolved.page, measured.measurements, input.clusterId, input.page)
+		const clustered = await clustersFor(resolved, { env, userId, telemetry, request, ctx })
+		if (!clustered.ok) return clustered.result
+		const result = getClusterInfo(resolved.page, clustered.clusters, input.clusterId, input.page)
 		if (result.isError) {
-			telemetry({ cacheStatus: 'none', failureReason: 'cluster_not_found' })
+			telemetry({
+				cacheStatus: 'none',
+				clusterCacheStatus: clustered.clusterCacheStatus,
+				failureReason: 'cluster_not_found',
+			})
 			return withTelemetryReason(result, 'cluster_not_found')
 		}
-		telemetry({ cacheStatus: 'none' })
+		telemetry({ cacheStatus: 'none', clusterCacheStatus: clustered.clusterCacheStatus })
 		return result
 	} catch (error) {
 		return toolFailure(error, {
@@ -933,7 +978,8 @@ async function renderShapeSetScreenshot(
 			resolved: Extract<ResolvedBoardPage, { ok: true }>,
 			telemetry: McpTelemetryWriter
 		): Promise<
-			{ ok: true; shapeIds: string[] } | { ok: false; result: ReturnType<typeof toolError> }
+			| { ok: true; shapeIds: string[]; clusterCacheStatus: 'hit' | 'miss' }
+			| { ok: false; result: ReturnType<typeof toolError> }
 		>
 	}
 ) {
@@ -941,6 +987,8 @@ async function renderShapeSetScreenshot(
 	// Whether the PNG cache was actually consulted, for the catch below: a failure before the cache
 	// read says nothing about cache health and files under `cache:none`, one after it was a miss.
 	let consultedCache = false
+	// Set once the shapes are picked, since that is the step that either measures or reads the index.
+	let clusterCacheStatus: 'hit' | 'miss' | 'none' = 'none'
 
 	try {
 		// Checked before the cache, unlike the two below: this is the per-caller ceiling on calls, not
@@ -968,6 +1016,9 @@ async function renderShapeSetScreenshot(
 		const picked = await pickShapes(resolved, telemetry)
 		if (!picked.ok) return picked.result
 		const shapeIds = picked.shapeIds
+		// Carried onto every row below: whether this call had to measure is as much a part of what it
+		// spent as whether it had to capture.
+		clusterCacheStatus = picked.clusterCacheStatus
 
 		// Keyed on the shape set, so two requests naming the same shapes share one cached PNG — they
 		// render identically.
@@ -975,7 +1026,7 @@ async function renderShapeSetScreenshot(
 		consultedCache = true
 		const cached = await env.MCP_DATA_BUCKET.get(cacheKey)
 		if (cached) {
-			telemetry({ cacheStatus: 'hit' })
+			telemetry({ cacheStatus: 'hit', clusterCacheStatus })
 			return toolPageResult(
 				decodeThumbnailPageName(cached.customMetadata?.pageName),
 				arrayBufferToBase64(await cached.arrayBuffer())
@@ -991,6 +1042,7 @@ async function renderShapeSetScreenshot(
 		) {
 			telemetry({
 				cacheStatus: 'miss',
+				clusterCacheStatus,
 				rateLimitAllowed: false,
 				failureReason: 'rate_limited_board',
 				callerHash: await sha256(userId),
@@ -1003,6 +1055,7 @@ async function renderShapeSetScreenshot(
 		if (await isGlobalBrowserRunRateLimited(env)) {
 			telemetry({
 				cacheStatus: 'miss',
+				clusterCacheStatus,
 				rateLimitAllowed: false,
 				failureReason: 'rate_limited_global',
 				callerHash: await sha256(userId),
@@ -1042,7 +1095,7 @@ async function renderShapeSetScreenshot(
 			})
 		}
 
-		telemetry({ cacheStatus: 'miss' })
+		telemetry({ cacheStatus: 'miss', clusterCacheStatus })
 		return toolPageResult(resolved.page.pageName, render.base64)
 	} catch (error) {
 		// The sessions this call held, failed or not, are already on the spend ledger; what is recorded
@@ -1056,6 +1109,7 @@ async function renderShapeSetScreenshot(
 			summary: 'Screenshot failed',
 			telemetry,
 			cacheStatus: consultedCache ? 'miss' : 'none',
+			clusterCacheStatus,
 		})
 	}
 }
@@ -1083,19 +1137,18 @@ async function callClusterScreenshotTool(
 		userId,
 		extras: { clusterIds: input.clusterIds.join(',') },
 		pickShapes: async (resolved, telemetry) => {
-			const measured = await measureFor(env, resolved, userId, telemetry)
-			if (!measured.ok) return { ok: false, result: measured.result }
-			const picked = pickClusterShapes(
-				resolved.page,
-				measured.measurements,
-				input.clusterIds,
-				input.page
-			)
-			if (picked.ok) return picked
+			const clustered = await clustersFor(resolved, { env, userId, telemetry, request, ctx })
+			if (!clustered.ok) return { ok: false, result: clustered.result }
+			const picked = pickClusterShapes(clustered.clusters, input.clusterIds, input.page)
+			if (picked.ok) return { ...picked, clusterCacheStatus: clustered.clusterCacheStatus }
 			// `cluster_not_found` on both events. The request ledger used to file this as
 			// `failure:shape_not_found` while the per-call event filed the very same refusal as
 			// `reason:cluster_not_found`, so the two dashboards disagreed about what had happened.
-			telemetry({ cacheStatus: 'none', failureReason: 'cluster_not_found' })
+			telemetry({
+				cacheStatus: 'none',
+				clusterCacheStatus: clustered.clusterCacheStatus,
+				failureReason: 'cluster_not_found',
+			})
 			return { ...picked, result: withTelemetryReason(picked.result, 'cluster_not_found') }
 		},
 	})
@@ -1166,6 +1219,7 @@ function toolFailure(
 		summary,
 		telemetry,
 		cacheStatus = 'none',
+		clusterCacheStatus = 'none',
 		recordAs,
 	}: {
 		env: Environment
@@ -1184,6 +1238,8 @@ function toolFailure(
 		telemetry?: McpTelemetryWriter
 		/** What the cache had done by the time this failed. See `consultedCache`. */
 		cacheStatus?: 'hit' | 'miss' | 'none'
+		/** The same, for the cluster index cache. See `clusterCacheStatus`. */
+		clusterCacheStatus?: 'hit' | 'miss' | 'none'
 		/**
 		 * Narrows the code that gets *recorded*, leaving the caller's message on the classifier's own
 		 * verdict. For the one tool whose failures the classifier can misread — see `get_board_info`.
@@ -1194,7 +1250,7 @@ function toolFailure(
 	reportThumbnailError(error, { ctx, env, request, surface, extras })
 	const failureReason = classifyScreenshotFailure(error)
 	const recorded = recordAs ? recordAs(failureReason) : failureReason
-	telemetry?.({ cacheStatus, failureReason: recorded })
+	telemetry?.({ cacheStatus, clusterCacheStatus, failureReason: recorded })
 	return toolError(`${summary}: ${describeThumbnailFailure(failureReason)}.`, recorded)
 }
 

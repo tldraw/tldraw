@@ -73,13 +73,19 @@ import {
 } from './commentRows'
 import { PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
+import {
+	ensureMcpClusterIndexTable,
+	pruneMcpClusterIndexRows,
+	readMcpClusterIndexRow,
+	writeMcpClusterIndexRow,
+} from './mcpClusterIndexStorage'
 import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom, listAllObjectKeys } from './r2'
 import { RoomNotFoundError, shouldSkipMissingRoomEffect } from './roomEffectHelpers'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import { generateSnapshotChunks } from './snapshotUtils'
-import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
+import { Analytics, DBLoadResult, Environment, McpClusterIndexKey, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
@@ -2707,6 +2713,51 @@ export class TLFileDurableObject extends DurableObject {
 	async awaitPersist(opts?: { throwOnFailure?: boolean }) {
 		if (!this._documentInfo) return
 		await this.persistToDatabase(opts?.throwOnFailure ? { throwOnFailure: true } : undefined)
+	}
+
+	/**
+	 * The MCP server's cluster index cache (mcpClusterIndexStorage.ts), which lives here because it is
+	 * content derived from the room this object owns: it dies with the file, and needs no expiry.
+	 *
+	 * Storage-only — none of these boot the room. They run on a Worker's critical path, and the point
+	 * of the cache is to be cheaper than the browser render it replaces.
+	 */
+	// `CREATE TABLE IF NOT EXISTS` is a write, and a cheap one, but running it per call would make the
+	// read path a write path — which is what lets a request in flight during a hard delete put storage
+	// back into an object that has already been emptied. Once per instance, after the delete check.
+	private mcpClusterIndexReady = false
+	private ensureMcpClusterIndex() {
+		if (this.mcpClusterIndexReady) return
+		ensureMcpClusterIndexTable(this.ctx.storage.sql)
+		this.mcpClusterIndexReady = true
+	}
+
+	/**
+	 * One page's stored cluster index, or null when nothing was stored for this content version.
+	 *
+	 * Refuses for a deleted file rather than reading: `appFileRecordDidDelete` empties this object's
+	 * storage and then treats the delete as terminal, so anything written after it is never collected.
+	 * An MCP request that resolved a board just before the delete landed is exactly that case.
+	 */
+	async getMcpClusterIndex(key: McpClusterIndexKey): Promise<string | null> {
+		if (this._documentInfo?.deleted) return null
+		this.ensureMcpClusterIndex()
+		return readMcpClusterIndexRow(this.ctx.storage.sql, key)
+	}
+
+	/**
+	 * Stores one page's cluster index, replacing whatever that page last had and dropping the rows for
+	 * pages the board no longer has.
+	 */
+	async putMcpClusterIndex(
+		key: McpClusterIndexKey,
+		payload: string,
+		livePageIds: string[]
+	): Promise<void> {
+		if (this._documentInfo?.deleted) return
+		this.ensureMcpClusterIndex()
+		pruneMcpClusterIndexRows(this.ctx.storage.sql, key.kind, livePageIds)
+		writeMcpClusterIndexRow(this.ctx.storage.sql, key, payload)
 	}
 
 	/**
