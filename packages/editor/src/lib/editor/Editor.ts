@@ -3598,11 +3598,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.stopFollowingUser()
 		}
 
-		const _point = Vec.Cast(point)
-
-		if (!Number.isFinite(_point.x)) _point.x = 0
-		if (!Number.isFinite(_point.y)) _point.y = 0
-		if (_point.z === undefined || !Number.isFinite(_point.z)) point.z = this.getZoomLevel()
+		// Resolve the zoom before building the Vec: Vec.Cast would default a missing z to 1,
+		// and a missing or non-finite z should keep the current zoom level instead
+		const _point = new Vec(
+			Number.isFinite(point.x) ? point.x : 0,
+			Number.isFinite(point.y) ? point.y : 0,
+			Number.isFinite(point.z) ? point.z! : this.getZoomLevel()
+		)
 
 		const camera = this.getConstrainedCamera(_point, opts)
 

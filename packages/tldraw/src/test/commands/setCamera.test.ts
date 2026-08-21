@@ -1257,6 +1257,14 @@ test('calling setCameraOptions will apply the new constraints', () => {
 	`)
 })
 
+test('keeps the current zoom when setCamera is called without a finite zoom', () => {
+	editor.setCamera({ x: 0, y: 0, z: 0.5 })
+	editor.setCamera({ x: 100, y: 100 })
+	expect(editor.getCamera()).toMatchObject({ x: 100, y: 100, z: 0.5 })
+	editor.setCamera({ x: 0, y: 0, z: NaN })
+	expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 0.5 })
+})
+
 test('slideCamera zoom momentum survives a long frame', () => {
 	editor.user.updateUserPreferences({ animationSpeed: 1 })
 	editor.setCamera({ x: 0, y: 0, z: 1 })
