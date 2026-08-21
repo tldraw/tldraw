@@ -208,7 +208,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **RC4** Storage `onChange` notifications carrying a foreign transaction id make the room broadcast the new changes to all connected clients. The room's own transactions (id `'TLSyncRoom.txn'`) do not re-broadcast this way.
 - **RC5** If an external change leaves the storage unable to produce an incremental diff (`wipeAll`), the room closes every session so clients reconnect and re-hydrate.
 - **RC6** The idle timeout defaults to `SESSION_IDLE_TIMEOUT` (20s) and is configurable via `clientTimeout`. A finite positive timeout starts a periodic prune interval of `min(2000, timeout/4)` ms; `Infinity` or 0 disables the interval (pruning then only happens on message activity or via the follow-up prune scheduled when a socket close/error cancels a session, per SES2).
-- **RC7** `close()` closes every session's socket and stops background work; `isClosed()` reports it.
+- **RC7** `close()` marks the room closed, stops background work and pending per-session flush timers, closes every session's socket (a socket that throws on close does not stop the others) and forgets the sessions without emitting `session_removed`; no prune timers are scheduled afterwards, so late socket events cannot emit lifecycle events on a closed room. `isClosed()` reports it.
 
 ## 23. `TLSyncRoom` — connect handshake (HS)
 
@@ -239,7 +239,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 
 - **RB1** Data messages (`patch`, `push_result`) to a session are debounced: the first is sent immediately wrapped as `{ type: 'data', data: [msg] }`; messages within the following `DATA_MESSAGE_DEBOUNCE_INTERVAL` (1000/60 ms) are buffered and flushed together as one `data` message. The array handed to the socket is not mutated afterwards, so sockets may serialize lazily.
 - **RB2** Non-data messages flush any buffered data messages first, preserving order — except `pong`, which skips the flush.
-- **RB3** Sending to a session whose socket is closed cancels that session.
+- **RB3** Sending to a session whose socket is closed cancels that session — on the debounced flush path as well as the immediate one.
 - **RB4** Broadcasts are migrated per session (MG1); a migration failure rejects only the affected session, and the broadcast proceeds for the others.
 - **RB5** `sendCustomMessage` delivers `{ type: 'custom', data }` to a connected session; sending to an unknown or not-yet-connected session logs a warning and does nothing.
 
