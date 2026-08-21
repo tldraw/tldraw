@@ -1,8 +1,7 @@
-import { T } from 'tldraw'
+import { sleep, T } from 'tldraw'
 import { EarthquakeIcon } from '../../components/icons/EarthquakeIcon'
-import { NODE_HEADER_HEIGHT_PX, NODE_ROW_HEIGHT_PX, NODE_WIDTH_PX } from '../../constants'
+import { NODE_ROW_HEIGHT_PX } from '../../constants'
 import { ShapePort } from '../../ports/Port'
-import { sleep } from '../../utils/sleep'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	ExecutionResult,
@@ -10,7 +9,9 @@ import {
 	NodeComponentProps,
 	NodeDefinition,
 	NodeRow,
+	outputPort,
 	STOP_EXECUTION,
+	updateNode,
 } from './shared'
 
 /**
@@ -61,17 +62,13 @@ export class EarthquakeNodeDefinition extends NodeDefinition<EarthquakeNode> {
 	}
 
 	getPorts(_shape: NodeShape, _node: EarthquakeNode): Record<string, ShapePort> {
-		return {
-			output: {
-				id: 'output',
-				x: NODE_WIDTH_PX,
-				y: NODE_HEADER_HEIGHT_PX / 2,
-				terminal: 'start',
-			},
-		}
+		return { output: outputPort }
 	}
 
-	async execute(shape: NodeShape, node: EarthquakeNode): Promise<ExecutionResult> {
+	async execute(shape: NodeShape, _node: EarthquakeNode): Promise<ExecutionResult> {
+		const setData = (earthquakeData: EarthquakeNode['earthquakeData']) =>
+			updateNode<EarthquakeNode>(this.editor, shape, (node) => ({ ...node, earthquakeData }), false)
+
 		try {
 			// Simulate loading delay
 			await sleep(500)
@@ -79,34 +76,19 @@ export class EarthquakeNodeDefinition extends NodeDefinition<EarthquakeNode> {
 			const response = await fetch(
 				'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson'
 			)
-
 			if (!response.ok) {
 				throw new Error(`HTTP error! status: ${response.status}`)
 			}
 
 			const data: EarthquakeApiResponse = await response.json()
-
 			if (data.features.length === 0) {
 				// Update node with no data state
-				this.editor.updateShape({
-					id: shape.id,
-					type: shape.type,
-					props: {
-						node: {
-							...node,
-							earthquakeData: null,
-						},
-						isOutOfDate: false,
-					},
-				})
+				setData(null)
 				return { output: STOP_EXECUTION }
 			}
 
 			// Pick a random earthquake
-			const randomIndex = Math.floor(Math.random() * data.features.length)
-			const earthquake = data.features[randomIndex]
-			console.log(data.features)
-
+			const earthquake = data.features[Math.floor(Math.random() * data.features.length)]
 			const earthquakeData = {
 				magnitude: earthquake.properties.mag,
 				location: earthquake.properties.place,
@@ -115,55 +97,25 @@ export class EarthquakeNodeDefinition extends NodeDefinition<EarthquakeNode> {
 			}
 
 			// Update node with fetched data
-			this.editor.updateShape({
-				id: shape.id,
-				type: shape.type,
-				props: {
-					node: {
-						...node,
-						earthquakeData,
-					},
-					isOutOfDate: false,
-				},
-			})
+			setData(earthquakeData)
 
-			return {
-				output: earthquakeData.magnitude,
-			}
+			return { output: earthquakeData.magnitude }
 		} catch (error) {
 			console.error('Failed to fetch earthquake data:', error)
 
 			// Update node with error state
-			this.editor.updateShape({
-				id: shape.id,
-				type: shape.type,
-				props: {
-					node: {
-						...node,
-						earthquakeData: null,
-					},
-					isOutOfDate: false,
-				},
-			})
+			setData(null)
 
 			return { output: STOP_EXECUTION }
 		}
 	}
 
 	getOutputInfo(shape: NodeShape, node: EarthquakeNode): InfoValues {
-		if (shape.props.isOutOfDate) {
-			return {
-				output: {
-					value: STOP_EXECUTION,
-					isOutOfDate: true,
-				},
-			}
-		}
-
+		const { isOutOfDate } = shape.props
 		return {
 			output: {
-				value: node.earthquakeData?.magnitude ?? STOP_EXECUTION,
-				isOutOfDate: shape.props.isOutOfDate,
+				value: isOutOfDate ? STOP_EXECUTION : (node.earthquakeData?.magnitude ?? STOP_EXECUTION),
+				isOutOfDate,
 			},
 		}
 	}

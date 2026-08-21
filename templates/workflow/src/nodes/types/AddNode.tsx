@@ -1,14 +1,8 @@
-import { Editor, getIndexAbove, getIndicesBetween, IndexKey, T, useEditor } from 'tldraw'
+import { Editor, getIndexAbove, getIndicesBetween, IndexKey, sleep, T, useEditor } from 'tldraw'
 import { AddIcon } from '../../components/icons/AddIcon'
-import {
-	NODE_HEADER_HEIGHT_PX,
-	NODE_ROW_HEADER_GAP_PX,
-	NODE_ROW_HEIGHT_PX,
-	NODE_WIDTH_PX,
-} from '../../constants'
+import { NODE_ROW_HEIGHT_PX } from '../../constants'
 import { ShapePort } from '../../ports/Port'
 import { indexList, indexListEntries, indexListLength } from '../../utils'
-import { sleep } from '../../utils/sleep'
 import { getNodePortConnections } from '../nodePorts'
 import { NodeShape } from '../NodeShapeUtil'
 import {
@@ -19,6 +13,8 @@ import {
 	NodeComponentProps,
 	NodeDefinition,
 	NodeInputRow,
+	outputPort,
+	rowPort,
 	updateNode,
 } from './shared'
 
@@ -56,29 +52,10 @@ export class AddNodeDefinition extends NodeDefinition<AddNode> {
 	getPorts(_shape: NodeShape, node: AddNode): Record<string, ShapePort> {
 		return {
 			// The add node has a single output port...
-			output: {
-				id: 'output',
-				x: NODE_WIDTH_PX,
-				y: NODE_HEADER_HEIGHT_PX / 2,
-				terminal: 'start',
-			},
+			output: outputPort,
 			// ...and one input port for each item.
 			...Object.fromEntries(
-				Object.keys(node.items)
-					.sort()
-					.map((idx, i) => [
-						`item_${idx}`,
-						{
-							id: `item_${idx}`,
-							x: 0,
-							y:
-								NODE_HEADER_HEIGHT_PX +
-								NODE_ROW_HEADER_GAP_PX +
-								NODE_ROW_HEIGHT_PX * i +
-								NODE_ROW_HEIGHT_PX / 2,
-							terminal: 'end',
-						},
-					])
+				indexListEntries(node.items).map(([idx], i) => [`item_${idx}`, rowPort(`item_${idx}`, i)])
 			),
 		}
 	}
@@ -86,10 +63,10 @@ export class AddNodeDefinition extends NodeDefinition<AddNode> {
 	async execute(shape: NodeShape, node: AddNode, inputs: InputValues): Promise<ExecutionResult> {
 		await sleep(1000)
 
-		const result = Object.entries(node.items).reduce((acc, [idx, value]) => {
-			const currentValue = inputs[`item_${idx}`] ?? value
-			return acc + currentValue
-		}, 0)
+		const result = Object.entries(node.items).reduce(
+			(acc, [idx, value]) => acc + (inputs[`item_${idx}`] ?? value),
+			0
+		)
 		updateNode<AddNode>(this.editor, shape, (node) => ({
 			...node,
 			lastResult: result,
