@@ -10996,7 +10996,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (info.name === 'cancel' || info.name === 'complete') {
 				this.inputs.setIsDragging(false)
 
-				if (this.inputs.getIsPanning()) {
+				// A pan owned by a held spacebar outlives the cancelled interaction;
+				// key_up ends it. Otherwise Escape mid-pan stops the camera until
+				// the user releases and re-presses Space (#10446).
+				if (this.inputs.getIsPanning() && !this.inputs.keys.has('Space')) {
 					this.inputs.setIsPanning(false)
 					this.inputs.setIsSpacebarPanning(false)
 					this.setCursor({ type: this._prevCursor, rotation: 0 })
