@@ -9,13 +9,14 @@ import { tlenv } from '@tldraw/editor'
  * Source: https://github.com/jaywcjlove/hotkeys-js
  */
 
-// N.B. We rework these Windows placeholders down below.
-const cmdKey = tlenv.isDarwin ? '⌘' : '__CTRL__'
-const ctrlKey = tlenv.isDarwin ? '⌃' : '__CTRL__'
-const altKey = tlenv.isDarwin ? '⌥' : '__ALT__'
-
 /** @public */
 export function kbd(str: string) {
+	// N.B. We rework these Windows placeholders down below.
+	const cmdKey = tlenv.isDarwin ? '⌘' : '__CTRL__'
+	const ctrlKey = tlenv.isDarwin ? '⌃' : '__CTRL__'
+	const altKey = tlenv.isDarwin ? '⌥' : '__ALT__'
+	const shiftKey = tlenv.isDarwin ? '⇧' : '__SHIFT__'
+
 	return (
 		(splitKbd(str)[0] ?? '')
 			// If the string contains [[Tab]], we don't split these up
@@ -28,12 +29,12 @@ export function kbd(str: string) {
 							.replace(/cmd\+/g, cmdKey)
 							.replace(/ctrl\+/g, ctrlKey)
 							.replace(/alt\+/g, altKey)
-							.replace(/shift\+/g, '⇧')
+							.replace(/shift\+/g, shiftKey)
 							// Backwards compatibility with the old system.
 							.replace(/\$/g, cmdKey)
 							.replace(/\?/g, altKey)
-							.replace(/!/g, '⇧')
-							.match(/__CTRL__|__ALT__|./g) || []
+							.replace(/!/g, shiftKey)
+							.match(/__CTRL__|__ALT__|__SHIFT__|./g) || []
 			)
 			.flat()
 			.map((sub, index) => {
@@ -44,6 +45,8 @@ export function kbd(str: string) {
 					modifiedKey = 'Ctrl'
 				} else if (sub === '__ALT__') {
 					modifiedKey = 'Alt'
+				} else if (sub === '__SHIFT__') {
+					modifiedKey = 'Shift'
 				} else {
 					modifiedKey = sub[0].toUpperCase() + sub.slice(1)
 				}
