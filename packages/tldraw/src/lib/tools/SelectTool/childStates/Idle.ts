@@ -472,6 +472,7 @@ export class Idle extends StateNode {
 				const changes = util.onDoubleClickHandle?.(shape, handle)
 
 				if (changes) {
+					this.editor.markHistoryStoppingPoint('double click handle')
 					this.editor.updateShapes([changes])
 				} else {
 					// If the shape's double click handler has not created a change,
