@@ -503,6 +503,48 @@ describe('Line points: id-mapped object with a decoupled index', () => {
 	})
 })
 
+describe('Grid mode when dragging a handle', () => {
+	beforeEach(() => {
+		editor.updateInstanceState({ isGridMode: true })
+	})
+
+	it('suspends the grid while the accel key is held', () => {
+		editor.select(id)
+		editor.pointerDown(250, 250, {
+			target: 'handle',
+			shape: getShape(),
+			handle: getHandles().find((h) => h.id === 'a2')!,
+		})
+
+		editor.pointerMove(263, 277)
+		expect(getShape().props.points.a2).toMatchObject({ x: 110, y: 130 })
+
+		editor.pointerMove(263, 277, undefined, { ctrlKey: true })
+		expect(editor.snaps.getIndicators()).toHaveLength(0)
+		expect(getShape().props.points.a2).toMatchObject({ x: 113, y: 127 })
+	})
+
+	it('lets a shape snap win over the grid', () => {
+		editor.user.updateUserPreferences({ isSnapMode: true })
+		editor.createShapes([
+			{ id: createShapeId('box'), type: 'geo', x: 203, y: 203, props: { w: 100, h: 100 } },
+		])
+
+		editor.select(id)
+		editor
+			.pointerDown(250, 250, {
+				target: 'handle',
+				shape: getShape(),
+				handle: getHandles().find((h) => h.id === 'a2')!,
+			})
+			.pointerMove(205, 241)
+
+		// the handle snapped to the box's left edge at page (203, 241); the grid must not move it afterwards
+		expect(editor.snaps.getIndicators()).toHaveLength(1)
+		expect(getShape().props.points.a2).toMatchObject({ x: 53, y: 91 })
+	})
+})
+
 function getHandlesFor(shapeId: TLLineShape['id']) {
 	return editor.getShapeHandles<TLLineShape>(shapeId)!
 }
