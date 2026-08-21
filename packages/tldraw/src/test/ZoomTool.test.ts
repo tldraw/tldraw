@@ -200,6 +200,34 @@ describe('TLSelectTool.Zooming', () => {
 	})
 })
 
+describe('current tool id mask', () => {
+	beforeEach(() => {
+		editor = new TestEditor()
+	})
+
+	it('reports the previous tool as the current tool id while the zoom tool is active', () => {
+		editor.setCurrentTool('draw')
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'draw.idle' })
+		editor.expectToBeIn('zoom.idle')
+		expect(editor.getCurrentToolId()).toBe('draw')
+	})
+
+	it('clears the mask when returning to the previous tool', () => {
+		editor.setCurrentTool('draw')
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'draw.idle' })
+		editor.keyUp('z')
+		editor.expectToBeIn('draw.idle')
+		expect(editor.getCurrentToolId()).toBe('draw')
+		editor.setCurrentTool('select')
+		expect(editor.getCurrentToolId()).toBe('select')
+	})
+
+	it('reports zoom when entered without a previous tool', () => {
+		editor.setCurrentTool('zoom')
+		expect(editor.getCurrentToolId()).toBe('zoom')
+	})
+})
+
 describe('ZoomQuick', () => {
 	beforeEach(() => {
 		editor = new TestEditor()
