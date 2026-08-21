@@ -32,9 +32,10 @@ export function intersectLineSegmentLineSegment(
 
 	// These comparisons inline approximately(x, 0) and approximatelyLte(x, 0/1)
 	// to avoid 7+ function calls per invocation.
-	if (Math.abs(ua_t) <= precision || Math.abs(ub_t) <= precision) return null // coincident
-
-	if (Math.abs(u_b) <= precision) return null // parallel
+	// Do not treat ua_t/ub_t of zero as coincident on their own: with a non-zero
+	// u_b they only mean a1/b1 lies on the other line (ua/ub = 0), which can be a
+	// real intersection at that endpoint.
+	if (Math.abs(u_b) <= precision) return null // parallel or coincident
 
 	const ua = ua_t / u_b
 	const ub = ub_t / u_b

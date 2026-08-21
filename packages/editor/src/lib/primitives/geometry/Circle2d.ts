@@ -1,5 +1,4 @@
 import { Box } from '../Box'
-import { intersectLineSegmentCircle } from '../intersect'
 import { PI2, getPointOnCircle } from '../utils'
 import { Vec, VecLike } from '../Vec'
 import { getVerticesCountForArcLength } from './geometry-constants'
@@ -88,8 +87,16 @@ export class Circle2d extends Geometry2d {
 	}
 
 	hitTestLineSegment(A: VecLike, B: VecLike, distance = 0): boolean {
+		// Along the segment the distance to the center spans [nearest, furthest]
+		// (convex, so the furthest is at an endpoint). Testing for a crossing of the
+		// expanded circle instead would miss a segment lying entirely within the
+		// margin band or, when filled, entirely inside.
 		const { _center, _radius: radius } = this
-		return intersectLineSegmentCircle(A, B, _center, radius + distance) !== null
+		const nearest = Vec.DistanceToLineSegment(A, B, _center)
+		if (nearest > radius + distance) return false
+		if (this.isFilled) return true
+		const furthest = Math.sqrt(Math.max(Vec.Dist2(A, _center), Vec.Dist2(B, _center)))
+		return furthest >= radius - distance
 	}
 
 	getSvgPathData(): string {
