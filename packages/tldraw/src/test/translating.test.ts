@@ -200,6 +200,40 @@ describe('When translating...', () => {
 	})
 })
 
+describe('When translating into the edge zone across gestures', () => {
+	beforeEach(() => {
+		editor.dispose()
+		// Default edgeScrollDelay and edgeScrollEaseDuration, unlike the suite above
+		editor = new TestEditor()
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
+		editor.createShapes([box(ids.box1, 10, 10, 100, 100)])
+	})
+
+	it('waits for the delay again on a drag that starts where the previous one ended', () => {
+		// Drag into the right edge zone and hold until the camera scrolls
+		editor.pointerDown(50, 50, ids.box1).pointerMove(1078, 50)
+		editor.forceTick(20)
+		expect(editor.getCamera().x).toBeLessThan(0)
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+		expect(editor.edgeScrollManager.getIsEdgeScrolling()).toBe(false)
+
+		const cameraAfterFirstDrag = editor.getCamera()
+
+		// Start a second drag in the edge zone: one 16ms tick is well inside the 200ms delay
+		editor.pointerDown(1078, 50, ids.box1).pointerMove(1078, 70)
+		editor.expectToBeIn('select.translating')
+		expect(editor.getCamera()).toMatchObject({
+			x: cameraAfterFirstDrag.x,
+			y: cameraAfterFirstDrag.y,
+		})
+
+		// Past the delay the camera scrolls again
+		editor.forceTick(20)
+		expect(editor.getCamera().x).toBeLessThan(cameraAfterFirstDrag.x)
+	})
+})
+
 describe('When cloning...', () => {
 	beforeEach(() => {
 		editor.createShapes([
