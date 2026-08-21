@@ -85,6 +85,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **H8** `addHistoryInterceptor(fn)` calls `fn(entry, source)` synchronously for every change-set as it happens and returns a remover.
 - **H9** `applyDiff(diff)` puts the `added` and `updated` records and removes the `removed` ids. `runCallbacks: false` disables side effects for the application (AO3). Applying a diff and then its `reverseRecordsDiff` (D2) restores the prior state.
 - **H10** `applyDiff` with `ignoreEphemeralKeys: true` ignores changes to keys in the type's `ephemeralKeySet` when applying updates to existing records: non-ephemeral changed keys are merged onto the stored record, and an update touching only ephemeral keys is dropped. Updates for records that don't exist are applied in full, as are records in `added`.
+- **H13** A listener that throws does not prevent the other listeners from receiving the same flush; the first error is rethrown once every listener has been called.
 
 ## 9. Validation (V)
 
