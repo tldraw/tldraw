@@ -361,3 +361,60 @@ describe('When the selectLockedShapes option is enabled', () => {
 		expect(lockEditor.getShape(ids.lockedShapeA)).not.toBeUndefined()
 	})
 })
+
+describe('Children of locked shapes', () => {
+	const framedBox = createShapeId('framedBox')
+
+	beforeEach(() => {
+		editor.createShape({
+			id: framedBox,
+			type: 'geo',
+			x: 10,
+			y: 10,
+			parentId: ids.lockedFrame,
+			isLocked: false,
+		})
+	})
+
+	it('Cannot be deleted', () => {
+		editor.deleteShapes([framedBox, ids.groupedBoxA])
+		expect(editor.getShape(framedBox)).toBeDefined()
+		expect(editor.getShape(ids.groupedBoxA)).toBeDefined()
+	})
+
+	it('Cannot be deleted when selected via the context menu path', () => {
+		// Right-clicking a child of a locked frame selects it so the context menu can show it
+		editor.setSelectedShapes([framedBox])
+		editor.deleteShapes(editor.getSelectedShapeIds())
+		expect(editor.getShape(framedBox)).toBeDefined()
+	})
+
+	it('Cannot be duplicated', () => {
+		const shapeCount = editor.getCurrentPageShapes().length
+		editor.duplicateShapes([framedBox, ids.groupedBoxA])
+		expect(editor.getCurrentPageShapes().length).toBe(shapeCount)
+	})
+
+	it('Cannot be grouped', () => {
+		const shapeCount = editor.getCurrentPageShapes().length
+		editor.groupShapes([framedBox, ids.unlockedShapeA, ids.unlockedShapeB])
+		expect(editor.getCurrentPageShapes().length).toBe(shapeCount + 1)
+		expect(editor.getShape(framedBox)!.parentId).toBe(ids.lockedFrame)
+	})
+
+	it('Cannot be selected with select all', () => {
+		editor.setSelectedShapes([framedBox])
+		editor.selectAll()
+		expect(editor.getSelectedShapeIds()).toEqual([])
+	})
+
+	it('Can be deleted when forced', () => {
+		editor.run(
+			() => {
+				editor.deleteShapes([framedBox])
+				expect(editor.getShape(framedBox)).toBeUndefined()
+			},
+			{ ignoreShapeLock: true }
+		)
+	})
+})
