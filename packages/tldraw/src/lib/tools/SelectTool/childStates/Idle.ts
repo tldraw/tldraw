@@ -598,7 +598,15 @@ export class Idle extends StateNode {
 			// This feature flag lets us start editing a note shape's label when a key is pressed.
 			// We exclude certain keys to avoid conflicting with modifiers, but there are conflicts
 			// with other action kbds, hence why this is kept behind a feature flag.
-			if (!SKIPPED_KEYS_FOR_AUTO_EDITING.includes(info.key) && !info.altKey && !info.ctrlKey) {
+			// Only printable single characters count: named keys (F1, CapsLock, Escape, ...) have
+			// multi-character `key` values and must not start editing.
+			if (
+				info.key.length === 1 &&
+				!SKIPPED_KEYS_FOR_AUTO_EDITING.includes(info.key) &&
+				!info.altKey &&
+				!info.ctrlKey &&
+				!info.metaKey
+			) {
 				// If the only selected shape is editable, then begin editing it
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
 				if (
