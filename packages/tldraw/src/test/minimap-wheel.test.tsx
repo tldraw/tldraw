@@ -4,8 +4,8 @@ import { vi } from 'vitest'
 import { Tldraw } from '../lib/Tldraw'
 import { renderTldrawComponentWithEditor } from './testutils/renderTldrawComponent'
 
-// jsdom has no 2D canvas; the minimap manager throws without a context, which unmounts the
-// minimap before a wheel can reach it.
+// jsdom has no 2D canvas context; without one the minimap manager throws on mount and the
+// minimap reports a crash instead of rendering normally.
 const getContext = vi.spyOn(HTMLCanvasElement.prototype, 'getContext')
 
 beforeEach(() => {
