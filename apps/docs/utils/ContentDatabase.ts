@@ -52,20 +52,6 @@ export class ContentDatabase {
 		return undefined
 	}
 
-	async getSection(sectionId: string, opts = {} as { optional?: boolean }) {
-		const db = await this.getDb()
-		const section = await db.get('SELECT * FROM sections WHERE id = ?', sectionId)
-		if (!opts.optional) assert(section, `Could not find a section with sectionId ${sectionId}`)
-		return section
-	}
-
-	async getCategory(categoryId: string, opts = {} as { optional?: boolean }): Promise<Category> {
-		const db = await this.getDb()
-		const category = await db.get('SELECT * FROM categories WHERE id = ?', categoryId)
-		if (!opts.optional) assert(category, `Could not find a category with categoryId ${categoryId}`)
-		return category
-	}
-
 	async getArticleHeadings(articleId: string): Promise<ArticleHeading[]> {
 		const db = await this.getDb()
 
@@ -75,27 +61,6 @@ export class ContentDatabase {
 		)
 		assert(headings, `Could not find headings for an article with articleId ${articleId}`)
 		return headings
-	}
-
-	async getCategoriesForSection(sectionId: string, opts = {} as { optional?: boolean }) {
-		const db = await this.getDb()
-		const categories = await db.all<Category[]>(
-			'SELECT * FROM categories WHERE sectionId = ?',
-			sectionId
-		)
-		if (!opts.optional) assert(categories, `Could not find categories for sectionId ${sectionId}`)
-		return categories
-	}
-
-	async getCategoryArticles(sectionId: string, categoryId: string) {
-		const db = await this.getDb()
-		const articles = await db.all<Article[]>(
-			'SELECT id, title, description, sectionId, categoryId, authorId, priority, hero, thumbnail, socialImage, date, path FROM articles WHERE sectionId = ? AND categoryId = ?',
-			sectionId,
-			categoryId
-		)
-		assert(articles, `Could not find articles for category with categoryId ${categoryId}`)
-		return articles
 	}
 
 	async getArticleLinks(article: Article): Promise<ArticleLinks> {
