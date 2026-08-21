@@ -10,7 +10,7 @@ import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { toggleSidebar } from '../utils/local-session-state'
 
-const { loader, useData } = defineLoader(async (args) => {
+const { loader, useMaybeData } = defineLoader(async (args) => {
 	const fileSlug = args.params.fileSlug
 
 	if (!fileSlug) return null
@@ -32,7 +32,7 @@ export function ErrorBoundary() {
 }
 
 export function Component({ error: _error }: { error?: unknown }) {
-	const data = useData()
+	const data = useMaybeData()
 	const [allTimestamps, setAllTimestamps] = useState<string[]>([])
 	const [hasMore, setHasMore] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
