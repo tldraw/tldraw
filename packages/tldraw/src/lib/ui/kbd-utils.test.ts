@@ -14,6 +14,7 @@ describe('kbd', () => {
 		expect(kbd('cmd++')).toEqual([...kbd('cmd+=').slice(0, -1), '+'])
 		expect(kbd('cmd+alt+shift++')).toEqual([...kbd('cmd+alt+shift+=').slice(0, -1), '+'])
 		expect(kbd('+')).toEqual(['+'])
+		expect(kbd('++')).toEqual(['+'])
 	})
 
 	it('renders an atomic [[+]] as a + keycap', () => {
