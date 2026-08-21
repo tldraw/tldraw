@@ -19,6 +19,9 @@ export interface PruneStats {
 /** Subrequest budget per worker invocation caps how many DO stubs one batch may fan out to. */
 export const ADMIN_PRUNE_MAX_IDS = 100
 
+/** A real prune below this idle threshold kills live sessions; both the endpoint and the script require an explicit force. */
+export const MIN_SAFE_IDLE_MS = 7 * 24 * 60 * 60 * 1000
+
 export function decidePrune(
 	stats: PruneStats,
 	now: number,

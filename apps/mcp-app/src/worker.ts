@@ -11,7 +11,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { McpAgent } from 'agents/mcp'
 import { CanvasStore } from './canvas-store'
 import { Logger } from './logger'
-import { ADMIN_PRUNE_MAX_IDS, decidePrune } from './prune'
+import { ADMIN_PRUNE_MAX_IDS, MIN_SAFE_IDLE_MS, decidePrune } from './prune'
 import type { PruneResult, PruneStats } from './prune'
 import { registerTools } from './register-tools'
 import { loadEditorApiSpecFromAssets, loadMethodMapFromAssets } from './shared/generated-data'
@@ -45,11 +45,11 @@ interface Env {
 	MCP_IS_DEV: string
 	WORKER_ORIGIN: string
 	MCP_ANALYTICS?: AnalyticsEngineDataset
-	/** Dev-only: shortens IDLE_TTL_MS (ms) for scripts/verify-prune.sh. Ignored unless MCP_IS_DEV. */
+	/** Dev-only: shortens IDLE_TTL_MS (ms) for prune-integration.test.ts. Ignored unless MCP_IS_DEV. */
 	IDLE_TTL_MS_OVERRIDE?: string
 }
 
-// Dev-only override so scripts/verify-prune.sh can exercise expiry in seconds.
+// Dev-only override so prune-integration.test.ts can exercise expiry in seconds.
 function idleTtlMs(env: Env): number {
 	const override = env.MCP_IS_DEV === 'true' ? Number(env.IDLE_TTL_MS_OVERRIDE) : NaN
 	return Number.isFinite(override) && override > 0 ? override : IDLE_TTL_MS
@@ -292,8 +292,10 @@ export class TldrawMCP extends McpAgent<Env> {
 
 		// Keep the LRU window, but never evict a checkpoint a canvas still points at: a
 		// multi-canvas session would otherwise silently reopen an older canvas empty.
+		// `IS NOT NULL`: one NULL in a NOT IN subquery makes the whole predicate NULL and
+		// the DELETE silently matches nothing, forever.
 		void this
-			.sql`DELETE FROM checkpoints WHERE id NOT IN (SELECT id FROM checkpoints ORDER BY created_at DESC LIMIT ${MAX_CHECKPOINTS}) AND id NOT IN (SELECT checkpoint_id FROM canvas_checkpoints)`
+			.sql`DELETE FROM checkpoints WHERE id NOT IN (SELECT id FROM checkpoints ORDER BY created_at DESC LIMIT ${MAX_CHECKPOINTS}) AND id NOT IN (SELECT checkpoint_id FROM canvas_checkpoints WHERE checkpoint_id IS NOT NULL)`
 
 		this.logger.debug('Checkpoint saved', { checkpointId: id, shapes: shapes.length })
 	}
@@ -320,30 +322,31 @@ export class TldrawMCP extends McpAgent<Env> {
 		const sql = this.ctx.storage.sql
 		let lastActivity: number | null = null
 		let checkpointCount = 0
-		try {
-			const meta = sql.exec(`SELECT value FROM meta WHERE key = 'lastActivity'`).toArray()
-			if (meta.length > 0) {
-				const n = Number(meta[0].value)
-				// A corrupt value must fail toward keep, not toward condemn.
-				lastActivity = Number.isFinite(n) ? n : null
+		// Only a missing table means "never active". Any other storage error must
+		// propagate: swallowing it reads as null → infinitely idle → a live session
+		// gets condemned on a transient storage hiccup.
+		const tableRows = (query: string) => {
+			try {
+				return sql.exec(query).toArray()
+			} catch (err) {
+				if (/no such table/.test(String(err))) return []
+				throw err
 			}
-		} catch {
-			// no meta table
 		}
-		try {
-			const cp = sql
-				.exec(`SELECT COUNT(*) AS n, MAX(created_at) AS last FROM checkpoints`)
-				.toArray()
-			if (cp.length > 0) {
-				checkpointCount = Number(cp[0].n ?? 0)
-				// Legacy DOs predate the lastActivity key; the newest snapshot is the next best signal.
-				if (lastActivity === null && cp[0].last != null) {
-					const n = Number(cp[0].last)
-					if (Number.isFinite(n)) lastActivity = n
-				}
+		const meta = tableRows(`SELECT value FROM meta WHERE key = 'lastActivity'`)
+		if (meta.length > 0) {
+			const n = Number(meta[0].value)
+			// A corrupt value must fail toward keep, not toward condemn.
+			lastActivity = Number.isFinite(n) ? n : null
+		}
+		const cp = tableRows(`SELECT COUNT(*) AS n, MAX(created_at) AS last FROM checkpoints`)
+		if (cp.length > 0) {
+			checkpointCount = Number(cp[0].n ?? 0)
+			// Legacy DOs predate the lastActivity key; the newest snapshot is the next best signal.
+			if (lastActivity === null && cp[0].last != null) {
+				const n = Number(cp[0].last)
+				if (Number.isFinite(n)) lastActivity = n
 			}
-		} catch {
-			// no checkpoints table
 		}
 		return { lastActivity, checkpointCount }
 	}
@@ -360,12 +363,16 @@ export class TldrawMCP extends McpAgent<Env> {
 		const id = this.ctx.id.toString()
 		const bytes = this.ctx.storage.sql.databaseSize
 		if (await this.ctx.storage.get('cf_agents_destroy_pending')) {
+			// Marker without an alarm (setAlarm failed or the invocation died between the
+			// two writes) would otherwise be reported as condemned on every retry while
+			// the storage stays put. Re-arm; setAlarm is idempotent if one is pending.
+			await this.ctx.storage.setAlarm(Date.now())
 			return {
 				id,
 				idleMs: null,
 				checkpointCount: 0,
 				bytes,
-				action: 'kept',
+				action: 'destroy-scheduled',
 				note: 'already condemned',
 			}
 		}
@@ -396,24 +403,31 @@ export class TldrawMCP extends McpAgent<Env> {
 	 */
 	async expireIfIdle(): Promise<void> {
 		let kept = true
+		let failed = false
+		let lastActivity: number | null = null
 		try {
 			const result = await this.pruneIfIdle(idleTtlMs(this.env), false)
 			kept = result.action === 'kept'
+			if (kept) lastActivity = this.readPruneStats().lastActivity
 		} catch (err) {
 			// Must fall through to the re-arm; see the doc comment above.
+			failed = true
 			console.error('[TldrawMCP] expireIfIdle check failed', String(err))
 		}
 		if (!kept) return
-		const { lastActivity } = this.readPruneStats()
+		// After a failed check `lastActivity + ttl` is usually already in the past
+		// (legacy DO), so the 60s floor alone would retry every minute with no
+		// backoff for as long as storage keeps erroring. Back off to an hour.
+		const floorMs = failed ? 60 * 60_000 : 60_000
 		const next = (lastActivity ?? Date.now()) + idleTtlMs(this.env)
 		try {
-			await this.schedule(new Date(Math.max(next, Date.now() + 60_000)), 'expireIfIdle', null)
+			await this.schedule(new Date(Math.max(next, Date.now() + floorMs)), 'expireIfIdle', null)
 		} catch (err) {
 			console.error('[TldrawMCP] failed to re-arm idle expiry', String(err))
 		}
 	}
 
-	/** Dev helper for scripts/verify-prune.sh: inspect the armed expiry schedule row(s). */
+	/** Dev helper for prune-integration.test.ts: inspect the armed expiry schedule row(s). */
 	async listExpirySchedules(): Promise<Array<{ id: string; time: number }>> {
 		const schedules = await this.listSchedules()
 		return schedules
@@ -459,7 +473,7 @@ export default {
 				if (request.method !== 'POST') return new Response('Method not allowed', { status: 405 })
 				const denied = requireAdminToken(request, env)
 				if (denied) return denied
-				let body: { ids?: unknown; maxIdleMs?: unknown; dryRun?: unknown }
+				let body: { ids?: unknown; maxIdleMs?: unknown; dryRun?: unknown; force?: unknown }
 				try {
 					body = await request.json()
 				} catch {
@@ -469,14 +483,24 @@ export default {
 					return new Response('Bad request: JSON object required', { status: 400 })
 				}
 				const ids = Array.isArray(body.ids) ? body.ids : null
-				const maxIdleMs = typeof body.maxIdleMs === 'number' ? body.maxIdleMs : null
-				const dryRun = body.dryRun === true
-				if (!ids || maxIdleMs === null || ids.length > ADMIN_PRUNE_MAX_IDS) {
+				const maxIdleMs =
+					typeof body.maxIdleMs === 'number' && Number.isFinite(body.maxIdleMs)
+						? body.maxIdleMs
+						: null
+				// Strict boolean: a `"true"` string must not silently become a real run.
+				const dryRun = typeof body.dryRun === 'boolean' ? body.dryRun : null
+				if (!ids || maxIdleMs === null || dryRun === null || ids.length > ADMIN_PRUNE_MAX_IDS) {
 					return new Response(
-						`Bad request: ids[] (max ${ADMIN_PRUNE_MAX_IDS}) and numeric maxIdleMs required`,
-						{
-							status: 400,
-						}
+						`Bad request: ids[] (max ${ADMIN_PRUNE_MAX_IDS}), finite numeric maxIdleMs and boolean dryRun required`,
+						{ status: 400 }
+					)
+				}
+				// Server-side floor so a typo in a hand-rolled request cannot condemn live
+				// sessions; the script's own guard is only defence for the happy path.
+				if (!dryRun && maxIdleMs < MIN_SAFE_IDLE_MS && body.force !== true) {
+					return new Response(
+						`Bad request: maxIdleMs below ${MIN_SAFE_IDLE_MS}ms condemns live sessions; pass force: true`,
+						{ status: 400 }
 					)
 				}
 				const results = await Promise.all(
@@ -486,14 +510,19 @@ export default {
 							const stub = env.MCP_OBJECT.get(env.MCP_OBJECT.idFromString(String(id)))
 							return await stub.pruneIfIdle(maxIdleMs, dryRun)
 						} catch (err) {
-							return { id: String(id), error: err instanceof Error ? err.message : String(err) }
+							// The message round-trips to the script's JSONL, but Workers logs need a
+							// trace too so DO overload is distinguishable from a malformed id.
+							const name = err instanceof Error ? err.constructor.name : typeof err
+							const message = err instanceof Error ? err.message : String(err)
+							console.error('[admin/prune] id failed', String(id), name, message)
+							return { id: String(id), error: `${name}: ${message}` }
 						}
 					})
 				)
 				return Response.json(results)
 			}
 
-			// Dev helper for scripts/verify-prune.sh: map a session id to its DO id.
+			// Dev helper for prune-integration.test.ts: map a session id to its DO id.
 			if (url.pathname === '/admin/do-id' && env.MCP_IS_DEV === 'true') {
 				const denied = requireAdminToken(request, env)
 				if (denied) return denied
@@ -501,7 +530,7 @@ export default {
 				return new Response(env.MCP_OBJECT.idFromName(`streamable-http:${session}`).toString())
 			}
 
-			// Dev helper for scripts/verify-prune.sh: inspect a session's armed expiry schedule.
+			// Dev helper for prune-integration.test.ts: inspect a session's armed expiry schedule.
 			if (url.pathname === '/admin/schedules' && env.MCP_IS_DEV === 'true') {
 				const denied = requireAdminToken(request, env)
 				if (denied) return denied

@@ -16,14 +16,17 @@
  */
 /* eslint-disable no-console */
 import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'fs'
+import { MIN_SAFE_IDLE_MS } from '../src/prune'
 
 const IDS_FILE = 'prune-ids.txt'
 const RESULTS_FILE = 'prune-results.jsonl'
 const DRY_RUN_RESULTS_FILE = 'prune-dry-run.jsonl'
 const BATCH = 100
 const CONCURRENCY = 4
-const MIN_SAFE_IDLE_MS = 7 * 24 * 60 * 60 * 1000
 const DAY = 24 * 60 * 60 * 1000
+
+/** A response that will be identical for every batch (auth, route, validation); abort the run. */
+class FatalError extends Error {}
 
 function env(name: string, fallback?: string): string {
 	const v = process.env[name] ?? fallback
@@ -49,10 +52,16 @@ async function cf(path: string): Promise<any> {
 
 async function list(): Promise<void> {
 	const account = env('CLOUDFLARE_ACCOUNT_ID')
-	const namespaces = await cf(`/accounts/${account}/workers/durable_objects/namespaces`)
-	const ns = namespaces.result.find(
-		(n: any) => n.class === 'TldrawMCP' && n.script === 'tldraw-mcp-app'
-	)
+	// Page-based (unlike the objects endpoint); every preview worker owns namespaces,
+	// so the account is well past one page.
+	let ns: any
+	for (let page = 1; !ns; page++) {
+		const res = await cf(
+			`/accounts/${account}/workers/durable_objects/namespaces?page=${page}&per_page=100`
+		)
+		ns = res.result.find((n: any) => n.class === 'TldrawMCP' && n.script === 'tldraw-mcp-app')
+		if (res.result.length < 100) break
+	}
 	if (!ns) throw new Error('TldrawMCP namespace not found for script tldraw-mcp-app')
 	console.log(`namespace ${ns.id}`)
 	writeFileSync(IDS_FILE, '')
@@ -99,20 +108,34 @@ async function prune(args: string[]): Promise<void> {
 
 	const resultsFile = dryRun ? DRY_RUN_RESULTS_FILE : RESULTS_FILE
 	const done = new Set<string>()
+	const hist: Record<string, { count: number; bytes: number }> = {}
+	let condemned = 0
+	let errors = 0
+	function tally(r: any) {
+		if (r.error) {
+			errors++
+			return
+		}
+		const b = bucket(r.idleMs)
+		hist[b] ??= { count: 0, bytes: 0 }
+		hist[b].count++
+		hist[b].bytes += r.bytes ?? 0
+		if (r.action === 'destroy-scheduled') condemned++
+	}
 	if (existsSync(resultsFile)) {
 		for (const line of readFileSync(resultsFile, 'utf8').split('\n')) {
 			if (!line) continue
 			const r = JSON.parse(line)
-			if (dryRun) {
-				// A dry run never mutates a DO, so nothing is terminal in the destroy-scheduled
-				// sense; any prior non-error row already answered "what would happen" and is
-				// skipped so a re-run resumes instead of re-evaluating from scratch.
-				if (!r.error) done.add(r.id)
-			} else if (r.action === 'destroy-scheduled') {
-				// Only destroy-scheduled is terminal (storage is gone after it); kept ids
-				// may cross the threshold on a later, longer --max-idle pass and must be re-evaluated.
-				done.add(r.id)
-			}
+			// Dry run: nothing is terminal, any prior non-error row already answered "what
+			// would happen". Real run: only destroy-scheduled is terminal; kept ids may cross
+			// a later, longer --max-idle threshold and must be re-evaluated.
+			const skip = dryRun ? !r.error : r.action === 'destroy-scheduled'
+			if (!skip) continue
+			done.add(r.id)
+			// Skipped rows still count, so a resumed or re-run invocation reports the
+			// whole file rather than just the remainder. Re-evaluated rows are tallied
+			// when their fresh result lands.
+			tally(r)
 		}
 	}
 	const ids = readFileSync(IDS_FILE, 'utf8')
@@ -122,9 +145,6 @@ async function prune(args: string[]): Promise<void> {
 		`${ids.length} ids to process (${done.size} already ${dryRun ? 'evaluated' : 'condemned'}), dryRun=${dryRun}, maxIdle=${maxIdleMs}ms`
 	)
 
-	const hist: Record<string, { count: number; bytes: number }> = {}
-	let condemned = 0
-	let errors = 0
 	let processed = 0
 	const batches: string[][] = []
 	for (let i = 0; i < ids.length; i += BATCH) batches.push(ids.slice(i, i + BATCH))
@@ -133,34 +153,40 @@ async function prune(args: string[]): Promise<void> {
 		const res = await fetch(`${origin}/admin/prune`, {
 			method: 'POST',
 			headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-			body: JSON.stringify({ ids: batch, maxIdleMs, dryRun }),
+			body: JSON.stringify({ ids: batch, maxIdleMs, dryRun, force }),
+			signal: AbortSignal.timeout(60_000),
 		})
-		if (!res.ok) throw new Error(`/admin/prune ${res.status}: ${await res.text()}`)
+		if (!res.ok) {
+			const text = await res.text()
+			// Auth/route/validation failures are the same for every batch: stop instead of
+			// burning through the whole id file counting errors.
+			if ([400, 401, 404, 405].includes(res.status)) {
+				throw new FatalError(`/admin/prune ${res.status}: ${text}`)
+			}
+			throw new Error(`/admin/prune ${res.status}: ${text}`)
+		}
 		const results: any[] = await res.json()
 		for (const r of results) {
 			appendFileSync(resultsFile, JSON.stringify(r) + '\n')
-			if (r.error) {
-				errors++
-				continue
-			}
-			const b = bucket(r.idleMs)
-			hist[b] ??= { count: 0, bytes: 0 }
-			hist[b].count++
-			hist[b].bytes += r.bytes ?? 0
-			if (r.action === 'destroy-scheduled') condemned++
+			tally(r)
 		}
 		processed += batch.length
 		process.stdout.write(`\r${processed}/${ids.length} condemned=${condemned} errors=${errors}`)
 	}
 
 	let next = 0
+	let fatal: FatalError | undefined
 	await Promise.all(
 		Array.from({ length: CONCURRENCY }, async () => {
-			while (next < batches.length) {
+			while (next < batches.length && !fatal) {
 				const b = batches[next++]
 				try {
 					await runBatch(b)
 				} catch (err) {
+					if (err instanceof FatalError) {
+						fatal = err
+						break
+					}
 					errors += b.length
 					console.error(`\nbatch failed: ${String(err)}`)
 				}
@@ -177,6 +203,8 @@ async function prune(args: string[]): Promise<void> {
 			)
 	}
 	console.log(`condemned=${condemned} errors=${errors}`)
+	if (fatal !== undefined) throw new FatalError(fatal.message)
+	if (errors > 0) process.exitCode = 1
 }
 
 const [cmd, ...rest] = process.argv.slice(2)
