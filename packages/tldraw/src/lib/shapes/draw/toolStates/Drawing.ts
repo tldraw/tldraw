@@ -697,7 +697,7 @@ export class Drawing extends StateNode {
 					const currentPagePoint = inputs.getCurrentPagePoint()
 
 					// Reset cache for the new shape's segment
-					const initialPoint = new Vec(0, 0, this.isPenOrStylus ? +(z! * 1.25).toFixed() : 0.5)
+					const initialPoint = new Vec(0, 0, this.isPenOrStylus ? +(z! * 1.25).toFixed(2) : 0.5)
 					this.currentSegmentPoints = [initialPoint]
 
 					this.editor.createShape({

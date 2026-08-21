@@ -450,6 +450,36 @@ describe('frame shapes', () => {
 		expect(editor.getOnlySelectedShape()!.parentId).toBe(frameId)
 	})
 
+	it('restores the original index of a child that is dragged out and back in', () => {
+		const frameId = createShapeId('frame')
+		const boxA = createShapeId('A')
+		const boxB = createShapeId('B')
+		const boxC = createShapeId('C')
+		editor.createShapes([
+			{ id: frameId, type: 'frame', x: 0, y: 0, props: { w: 200, h: 200 } },
+			// A second page-level shape, so that dragging B out lands it at page index a3: the same
+			// index as C inside the frame, which must not block restoring B to a2
+			{ id: createShapeId('X'), type: 'geo', x: 400, y: 400, props: { w: 50, h: 50 } },
+			{ id: boxA, type: 'geo', parentId: frameId, x: 10, y: 10, props: { w: 40, h: 40 } },
+			{ id: boxB, type: 'geo', parentId: frameId, x: 75, y: 75, props: { w: 50, h: 50 } },
+			{ id: boxC, type: 'geo', parentId: frameId, x: 150, y: 150, props: { w: 40, h: 40 } },
+		])
+		expect(editor.getSortedChildIdsForParent(frameId)).toEqual([boxA, boxB, boxC])
+		expect(editor.getShape(boxB)!.index).toBe('a2')
+
+		editor.setCurrentTool('select').select(boxB)
+		editor.pointerDown(100, 100).pointerMove(300, 300)
+		vi.advanceTimersByTime(300)
+		expect(editor.getShape(boxB)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getShape(boxB)!.index).toBe('a3')
+
+		editor.pointerMove(100, 100)
+		vi.advanceTimersByTime(300)
+		editor.pointerUp(100, 100)
+		expect(editor.getShape(boxB)!.parentId).toBe(frameId)
+		expect(editor.getSortedChildIdsForParent(frameId)).toEqual([boxA, boxB, boxC])
+	})
+
 	it('does not reparent shapes that are being dragged from within the frame', () => {
 		dragCreateFrame({ down: [0, 0], move: [200, 200], up: [200, 200] })
 		const frame = editor.getLastCreatedShape()
@@ -1716,6 +1746,27 @@ it('avoids crash when dragging into descendant', () => {
 	editor.select(frame1id)
 	editor.pointerDown(25, 25)
 	editor.pointerMove(30, 30)
+})
+
+it('unparents a frame dragged out of its parent by a point over its own nested child', () => {
+	const outer = createShapeId('outer')
+	const mid = createShapeId('mid')
+	const inner = createShapeId('inner')
+	editor.createShapes([
+		{ id: outer, type: 'frame', x: 0, y: 0, props: { w: 1000, h: 1000 } },
+		{ id: mid, type: 'frame', parentId: outer, x: 100, y: 100, props: { w: 500, h: 500 } },
+		{ id: inner, type: 'frame', parentId: mid, x: 100, y: 100, props: { w: 200, h: 200 } },
+	])
+
+	// inner travels with mid and stays under the pointer the whole drag; it must not be taken
+	// for the drop target, or outer never sees mid leave
+	editor.select(mid)
+	editor.pointerDown(250, 250)
+	editor.pointerMove(2000, 2000)
+	vi.advanceTimersByTime(300)
+
+	expect(editor.getShape(mid)!.parentId).toBe(editor.getCurrentPageId())
+	expect(editor.getShape(inner)!.parentId).toBe(mid)
 })
 
 describe('When dragging groups or shapes within a group', () => {
