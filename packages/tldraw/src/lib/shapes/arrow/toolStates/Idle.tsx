@@ -29,8 +29,17 @@ export class Idle extends StateNode {
 
 	override onExit() {
 		clearArrowTargetState(this.editor)
+		this.resetPrecise()
+	}
+
+	// Precise mode is earned by hovering one target; it must not carry over to the next
+	// target or to the next arrow.
+	private resetPrecise() {
+		this.isPrecise = false
+		this.preciseTargetId = null
 		if (this.isPreciseTimerId !== null) {
 			clearTimeout(this.isPreciseTimerId)
+			this.isPreciseTimerId = null
 		}
 	}
 
@@ -50,7 +59,26 @@ export class Idle extends StateNode {
 	update() {
 		const arrowUtil = this.editor.getShapeUtil<ArrowShapeUtil>('arrow')
 
-		const targetState = updateArrowTargetState({
+		const targetState = this.updateTargetState()
+
+		if (targetState && targetState.target.id !== this.preciseTargetId) {
+			const wasPrecise = this.isPrecise
+			this.resetPrecise()
+			// The hint above was published with the previous target's precise flag. Republish it
+			// so the overlay matches the imprecise binding a click would now create.
+			if (wasPrecise) this.updateTargetState()
+			this.preciseTargetId = targetState.target.id
+			this.isPreciseTimerId = this.editor.timers.setTimeout(() => {
+				this.isPrecise = true
+				this.update()
+			}, arrowUtil.options.hoverPreciseTimeout)
+		} else if (!targetState && this.preciseTargetId) {
+			this.resetPrecise()
+		}
+	}
+
+	private updateTargetState() {
+		return updateArrowTargetState({
 			editor: this.editor,
 			pointInPageSpace: this.editor.inputs.getCurrentPagePoint(),
 			arrow: undefined,
@@ -58,23 +86,5 @@ export class Idle extends StateNode {
 			currentBinding: undefined,
 			oppositeBinding: undefined,
 		})
-
-		if (targetState && targetState.target.id !== this.preciseTargetId) {
-			if (this.isPreciseTimerId !== null) {
-				clearTimeout(this.isPreciseTimerId)
-			}
-
-			this.preciseTargetId = targetState.target.id
-			this.isPreciseTimerId = this.editor.timers.setTimeout(() => {
-				this.isPrecise = true
-				this.update()
-			}, arrowUtil.options.hoverPreciseTimeout)
-		} else if (!targetState && this.preciseTargetId) {
-			this.isPrecise = false
-			this.preciseTargetId = null
-			if (this.isPreciseTimerId !== null) {
-				clearTimeout(this.isPreciseTimerId)
-			}
-		}
 	}
 }
