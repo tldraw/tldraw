@@ -22,7 +22,7 @@ describe('kbd', () => {
 	})
 
 	it('renders an atomic [[+]] as a + keycap', () => {
-		expect(kbd('cmd+[[+]]')).toEqual(kbd('cmd++'))
+		expect(kbd('cmd+[[+]]')).toEqual([...kbd('cmd+=').slice(0, -1), '+'])
 	})
 
 	it('still renders a shifted glyph as written', () => {
@@ -33,6 +33,9 @@ describe('kbd', () => {
 
 describe('kbd on darwin', () => {
 	it('renders cmd++ as the command glyph and a + keycap', async () => {
+		onTestFinished(() => {
+			vi.resetModules()
+		})
 		vi.resetModules()
 		vi.doMock('@tldraw/editor', async (importOriginal) => {
 			const actual = await importOriginal<typeof import('@tldraw/editor')>()

@@ -367,6 +367,11 @@ describe('parseKbd literal plus key', () => {
 		expect(parseKbd('[[]]')).toEqual([])
 	})
 
+	it('keeps multi-character atomic tokens display-only', () => {
+		expect(parseKbd('[[Tab]]')).toEqual([])
+		expect(parseKbd('cmd+[[Enter]]')).toEqual([])
+	})
+
 	it('still drops a single trailing + so legacy markers cannot become a plus binding', () => {
 		// getHotkeysStringFromKbd treats ? as the legacy alt marker and strips it, leaving 'alt+shift+'.
 		expect(getHotkeysStringFromKbd('shift+?')).toBe('alt+shift+')
@@ -404,12 +409,9 @@ describe('literal plus key shortcuts', () => {
 		['cmd++', { key: '+', code: 'BracketRight', metaKey: true }],
 		['cmd+[[+]]', { key: '+', code: 'BracketRight', metaKey: true }],
 		['+', { key: '+', code: 'BracketRight' }],
-		['shift+cmd++', { key: '+', code: 'BracketRight', metaKey: true, shiftKey: true }],
-		[
-			'cmd+alt+shift++',
-			{ key: '+', code: 'BracketRight', metaKey: true, altKey: true, shiftKey: true },
-		],
-		['shift+[[+]]', { key: '+', code: 'BracketRight', shiftKey: true }],
+		['shift+cmd++', { key: '+', code: 'Equal', metaKey: true, shiftKey: true }],
+		['cmd+alt+shift++', { key: '+', code: 'Equal', metaKey: true, altKey: true, shiftKey: true }],
+		['shift+[[+]]', { key: '+', code: 'Equal', shiftKey: true }],
 	])('fires %s on the + key', async (kbd, init) => {
 		const { editor, onSelect } = await setupEditorWithKbd(kbd)
 		keydown(editor, init)

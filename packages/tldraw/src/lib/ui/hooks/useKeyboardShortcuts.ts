@@ -378,8 +378,10 @@ function parseShortcut(shortcut: string): ParsedKbd | null {
 
 	let modifierParts: string[]
 	let keyPart: string
-	// Prefix must be empty or end in `+` so `cmd[[+]]` stays malformed; same token class as kbd().
-	const atomic = /^(?:(.*)\+)?\[\[([^\]]+)\]\]$/.exec(shortcut)
+	// Only a single-character token binds (`[[+]]`). Longer ones like `[[Tab]]` are display-only
+	// labels in the shortcuts dialog and must not start capturing real keys. Prefix must be empty
+	// or end in `+` so `cmd[[+]]` stays malformed.
+	const atomic = /^(?:(.*)\+)?\[\[([^\]])\]\]$/.exec(shortcut)
 	if (atomic) {
 		modifierParts = atomic[1] ? atomic[1].split('+') : []
 		keyPart = atomic[2]
