@@ -4,16 +4,18 @@ import type {
 	MermaidBlueprintEdge,
 	MermaidBlueprintNode,
 } from './blueprint'
-import { buildClassDefColorMap, type ParsedNodeColors } from './colors'
+import { buildClassDefColorMap, type ParsedNodeColors, toNodeColorProps } from './colors'
 import {
 	buildNodeCentersFromSvg,
+	claimNearestEdgeBend,
 	parseAllEdgePointsFromSvg,
 	parseClustersFromSvg,
+	parseDomId,
 	type ParsedDiagramLayout,
 	parseNodesFromSvg,
 	scaleLayout,
 } from './svgParsing'
-import { getArrowBend, LAYOUT_SCALE, orderTopDown } from './utils'
+import { dropDanglingEdges, LAYOUT_SCALE, orderTopDown } from './utils'
 
 interface DiagramEdge {
 	id1: string
@@ -55,24 +57,36 @@ interface FlattenResult {
 }
 
 function flattenStateHierarchy(
-	states: Map<string, StateStmt>,
-	relations: DiagramEdge[],
-	parentCompound: string | null = null,
-	topLevelStates?: Map<string, StateStmt>
+	topLevelStates: Map<string, StateStmt>,
+	topLevelRelations: DiagramEdge[]
 ): FlattenResult {
-	const leafStates = new Map<string, FlatState>()
-	const compoundLabels = new Map<string, string>()
-	const parentOf = new Map<string, string>()
-	const allEdges: DiagramEdge[] = []
-	const root = topLevelStates ?? states
+	const result: FlattenResult = {
+		leafStates: new Map(),
+		compoundLabels: new Map(),
+		parentOf: new Map(),
+		allEdges: [],
+	}
 
-	for (const [id, state] of states) {
-		if (parentCompound) parentOf.set(id, parentCompound)
+	function visit(
+		states: Map<string, StateStmt>,
+		relations: DiagramEdge[],
+		parentCompound: string | null
+	) {
+		for (const [id, state] of states) {
+			if (parentCompound) result.parentOf.set(id, parentCompound)
 
-		if (state.doc && state.doc.length > 0) {
-			compoundLabels.set(id, state.description || id)
+			if (!state.doc || state.doc.length === 0) {
+				result.leafStates.set(id, {
+					id,
+					type: getEffectiveType(state),
+					label: getStateLabel(state),
+				})
+				continue
+			}
 
-			const childStatesMap = new Map<string, StateStmt>()
+			result.compoundLabels.set(id, state.description || id)
+
+			const childStates = new Map<string, StateStmt>()
 			const childRelations: DiagramEdge[] = []
 
 			for (const stmt of state.doc) {
@@ -81,13 +95,11 @@ function flattenStateHierarchy(
 					// like `state H <<history>>` — the ID and stereotype are stored
 					// as separate plain string entries.  Look up the state in the
 					// top-level map so it gets proper parentage.
-					const topState = root.get(stmt)
-					if (topState && !childStatesMap.has(stmt)) {
-						childStatesMap.set(stmt, topState)
-					}
+					const topState = topLevelStates.get(stmt)
+					if (topState && !childStates.has(stmt)) childStates.set(stmt, topState)
 				} else if (stmt.stmt === 'state' || stmt.stmt === 'default') {
 					const stateEntry = stmt as StateStmt
-					childStatesMap.set(stateEntry.id, stateEntry)
+					childStates.set(stateEntry.id, stateEntry)
 				} else if (stmt.stmt === 'relation') {
 					const relation = stmt as unknown as {
 						state1: StateStmt
@@ -97,11 +109,8 @@ function flattenStateHierarchy(
 					// Relation state refs are shallow objects without `doc`. Only add
 					// them when the state hasn't been registered yet so we don't
 					// overwrite a compound-state entry that carries its nested doc.
-					if (!childStatesMap.has(relation.state1.id)) {
-						childStatesMap.set(relation.state1.id, relation.state1)
-					}
-					if (!childStatesMap.has(relation.state2.id)) {
-						childStatesMap.set(relation.state2.id, relation.state2)
+					for (const ref of [relation.state1, relation.state2]) {
+						if (!childStates.has(ref.id)) childStates.set(ref.id, ref)
 					}
 					childRelations.push({
 						id1: relation.state1.id,
@@ -111,23 +120,14 @@ function flattenStateHierarchy(
 				}
 			}
 
-			const nested = flattenStateHierarchy(childStatesMap, childRelations, id, root)
-			for (const [key, state] of nested.leafStates) leafStates.set(key, state)
-			for (const [key, label] of nested.compoundLabels) compoundLabels.set(key, label)
-			for (const [key, parent] of nested.parentOf) parentOf.set(key, parent)
-			allEdges.push(...nested.allEdges)
-		} else {
-			leafStates.set(id, {
-				id,
-				type: getEffectiveType(state),
-				label: getStateLabel(state),
-			})
+			visit(childStates, childRelations, id)
 		}
+
+		result.allEdges.push(...relations)
 	}
 
-	allEdges.push(...relations)
-
-	return { leafStates, compoundLabels, parentOf, allEdges }
+	visit(topLevelStates, topLevelRelations, null)
+	return result
 }
 
 const FIXED_NODE_SIZES: Record<string, [number, number]> = {
@@ -135,29 +135,26 @@ const FIXED_NODE_SIZES: Record<string, [number, number]> = {
 	end: [40, 40],
 }
 
+interface Rect {
+	x: number
+	y: number
+	w: number
+	h: number
+}
+
 function stateToNodes(
 	state: FlatState,
-	x: number,
-	y: number,
-	w: number,
-	h: number,
+	rect: Rect,
 	parentId: string | undefined,
 	colors: ParsedNodeColors | undefined
 ): MermaidBlueprintNode[] {
-	const base = { x, y, w, h, parentId, color: 'black' as const }
+	const { x, y, w, h } = rect
 	const label = state.label || undefined
-
 	const node = (
 		id: string,
 		kind: string,
-		partial: Partial<Pick<MermaidBlueprintNode, 'x' | 'y' | 'w' | 'h' | 'parentId'>> &
-			Omit<MermaidBlueprintNode, 'id' | 'kind' | 'x' | 'y' | 'w' | 'h' | 'parentId'>
-	): MermaidBlueprintNode => ({
-		id,
-		kind,
-		...base,
-		...partial,
-	})
+		overrides: Partial<Omit<MermaidBlueprintNode, 'id' | 'kind'>>
+	): MermaidBlueprintNode => ({ id, kind, ...rect, parentId, color: 'black', ...overrides })
 
 	switch (state.type) {
 		case 'note':
@@ -175,10 +172,9 @@ function stateToNodes(
 			return [node(state.id, 'start', { fill: 'solid' })]
 		case 'end': {
 			const innerSize = w * 0.6
-			const innerId = `${state.id}__inner`
 			return [
 				node(state.id, 'end', { fill: 'none' }),
-				node(innerId, 'end_inner', {
+				node(`${state.id}__inner`, 'end_inner', {
 					x: x + (w - innerSize) / 2,
 					y: y + (h - innerSize) / 2,
 					w: innerSize,
@@ -214,8 +210,7 @@ function stateToNodes(
 			return [
 				node(state.id, state.type, {
 					label,
-					...(colors?.fillColor && { fill: 'solid' as const }),
-					...(colors && { color: colors.strokeColor ?? colors.fillColor }),
+					...toNodeColorProps(colors),
 					align: 'middle',
 					verticalAlign: 'middle',
 					size: 'm',
@@ -226,22 +221,13 @@ function stateToNodes(
 
 const FRAME_PAD = 24
 const FRAME_TOP = 54
+const STATE_ID = /^state-(.+)-\d+$/
 
 /** Parse state-diagram SVG layout data for use by {@link stateToBlueprint}. */
 export function parseStateDiagramLayout(root: Element): ParsedDiagramLayout {
-	// Mermaid 11.15 prefixes node and cluster dom ids with the diagram id (e.g.
-	// `mermaid-0-state-Foo-1` instead of `state-Foo-1`), so tolerate that
-	// optional `mermaid-<n>-` prefix when reading the clean id.
-	const nodes = parseNodesFromSvg(
-		root,
-		'.node',
-		(domId) => domId.match(/^(?:mermaid-\d+-)?state-(.+)-\d+$/)?.[1] ?? domId
-	)
-	const clusters = parseClustersFromSvg(
-		root,
-		'.statediagram-cluster',
-		(domId) => domId.match(/^(?:mermaid-\d+-)?state-(.+)-\d+$/)?.[1] ?? domId
-	)
+	const parseId = (domId: string) => parseDomId(domId, STATE_ID)
+	const nodes = parseNodesFromSvg(root, '.node', parseId)
+	const clusters = parseClustersFromSvg(root, '.statediagram-cluster', parseId)
 	const edges = parseAllEdgePointsFromSvg(root, (dataId) =>
 		/(?:^|-)edge\d+$/.test(dataId) ? { start: '', end: '' } : null
 	)
@@ -256,7 +242,7 @@ export function stateToBlueprint(
 	relations: DiagramEdge[],
 	classDefs?: Map<string, StyleClass>
 ): DiagramMermaidBlueprint {
-	const stateColorMap = classDefs ? buildClassDefColorMap(classDefs, states) : new Map()
+	const stateColorMap = buildClassDefColorMap(classDefs ?? new Map(), states)
 	const { nodes: svgNodes, clusters: svgClusters, edges: svgEdges } = layout
 	const nodeCenters = buildNodeCentersFromSvg(svgNodes, svgClusters)
 
@@ -275,105 +261,72 @@ export function stateToBlueprint(
 		allEdges.push({ id1: id, id2: noteId, relationTitle: undefined })
 	}
 
-	const nodeLayout = new Map<string, { absX: number; absY: number; w: number; h: number }>()
+	const nodeLayout = new Map<string, Rect>()
 	for (const [id, state] of leafStates) {
 		const svgNode = svgNodes.get(id)
 		if (!svgNode) continue
 
-		const fixed = FIXED_NODE_SIZES[state.type]
-		const nodeWidth = fixed ? fixed[0] : svgNode.width + 20
-		const nodeHeight = fixed ? fixed[1] : svgNode.height + 8
-		nodeLayout.set(id, {
-			absX: svgNode.center.x - nodeWidth / 2,
-			absY: svgNode.center.y - nodeHeight / 2,
-			w: nodeWidth,
-			h: nodeHeight,
-		})
+		const [w, h] = FIXED_NODE_SIZES[state.type] ?? [svgNode.width + 20, svgNode.height + 8]
+		nodeLayout.set(id, { x: svgNode.center.x - w / 2, y: svgNode.center.y - h / 2, w, h })
 	}
 
 	const compoundIds = [...compoundLabels.keys()]
-	const frameBounds = new Map<string, { absX: number; absY: number; w: number; h: number }>()
+	const compoundsTopDown = orderTopDown(
+		compoundIds,
+		(id) => id,
+		(id) => parentOf.get(id)
+	)
+	const frameBounds = new Map<string, Rect>()
 
 	// Use SVG cluster bounds as the authoritative frame size. Mermaid's
 	// layout already accounts for label width, padding, and special nodes
 	// like <<history>> that are rendered outside the visual cluster.
 	// Fall back to child-based computation only when no SVG cluster exists.
-	const bottomUp = orderTopDown(
-		compoundIds,
-		(id) => id,
-		(id) => parentOf.get(id)
-	).reverse()
-
-	for (const compoundId of bottomUp) {
+	// Children are visited first (bottom-up) so nested frames are already sized.
+	for (const compoundId of [...compoundsTopDown].reverse()) {
 		const cluster = svgClusters.get(compoundId)
 		if (cluster) {
 			frameBounds.set(compoundId, {
-				absX: cluster.topLeft.x,
-				absY: cluster.topLeft.y,
+				x: cluster.topLeft.x,
+				y: cluster.topLeft.y,
 				w: cluster.width,
 				h: cluster.height,
 			})
 			continue
 		}
 
-		let frameMinX = Infinity
-		let frameMinY = Infinity
-		let frameMaxX = -Infinity
-		let frameMaxY = -Infinity
-
-		for (const [id] of leafStates) {
+		let minX = Infinity
+		let minY = Infinity
+		let maxX = -Infinity
+		let maxY = -Infinity
+		for (const [id, rect] of [...nodeLayout, ...frameBounds]) {
 			if (parentOf.get(id) !== compoundId) continue
-
-			const layout = nodeLayout.get(id)
-			if (!layout) continue
-
-			frameMinX = Math.min(frameMinX, layout.absX)
-			frameMinY = Math.min(frameMinY, layout.absY)
-			frameMaxX = Math.max(frameMaxX, layout.absX + layout.w)
-			frameMaxY = Math.max(frameMaxY, layout.absY + layout.h)
+			minX = Math.min(minX, rect.x)
+			minY = Math.min(minY, rect.y)
+			maxX = Math.max(maxX, rect.x + rect.w)
+			maxY = Math.max(maxY, rect.y + rect.h)
 		}
-
-		for (const innerId of compoundIds) {
-			if (parentOf.get(innerId) !== compoundId) continue
-
-			const innerBounds = frameBounds.get(innerId)
-			if (!innerBounds) continue
-
-			frameMinX = Math.min(frameMinX, innerBounds.absX)
-			frameMinY = Math.min(frameMinY, innerBounds.absY)
-			frameMaxX = Math.max(frameMaxX, innerBounds.absX + innerBounds.w)
-			frameMaxY = Math.max(frameMaxY, innerBounds.absY + innerBounds.h)
-		}
-
-		if (!isFinite(frameMinX)) continue
+		if (!isFinite(minX)) continue
 
 		frameBounds.set(compoundId, {
-			absX: frameMinX - FRAME_PAD,
-			absY: frameMinY - FRAME_TOP,
-			w: frameMaxX - frameMinX + FRAME_PAD * 2,
-			h: frameMaxY - frameMinY + FRAME_PAD + FRAME_TOP,
+			x: minX - FRAME_PAD,
+			y: minY - FRAME_TOP,
+			w: maxX - minX + FRAME_PAD * 2,
+			h: maxY - minY + FRAME_PAD + FRAME_TOP,
 		})
 	}
 
 	// Un-parent any leaf state whose center falls outside its parent frame.
 	// Mermaid renders some pseudo-states (e.g. <<history>>) outside the
 	// visual compound cluster even though they're declared inside it.
-	for (const [id] of leafStates) {
+	for (const [id, rect] of nodeLayout) {
 		const pid = parentOf.get(id)
-		if (!pid) continue
+		const frame = pid ? frameBounds.get(pid) : undefined
+		if (!frame) continue
 
-		const frame = frameBounds.get(pid)
-		const layout = nodeLayout.get(id)
-		if (!frame || !layout) continue
-
-		const cx = layout.absX + layout.w / 2
-		const cy = layout.absY + layout.h / 2
-		if (
-			cx < frame.absX ||
-			cx > frame.absX + frame.w ||
-			cy < frame.absY ||
-			cy > frame.absY + frame.h
-		) {
+		const cx = rect.x + rect.w / 2
+		const cy = rect.y + rect.h / 2
+		if (cx < frame.x || cx > frame.x + frame.w || cy < frame.y || cy > frame.y + frame.h) {
 			parentOf.delete(id)
 		}
 	}
@@ -381,22 +334,14 @@ export function stateToBlueprint(
 	const nodes: MermaidBlueprintNode[] = []
 	const blueprintEdges: MermaidBlueprintEdge[] = []
 
-	for (const compoundId of orderTopDown(
-		compoundIds,
-		(id) => id,
-		(id) => parentOf.get(id)
-	)) {
+	for (const compoundId of compoundsTopDown) {
 		const bounds = frameBounds.get(compoundId)
 		if (!bounds) continue
 
-		const kind = 'compound'
 		nodes.push({
 			id: compoundId,
-			kind,
-			x: bounds.absX,
-			y: bounds.absY,
-			w: bounds.w,
-			h: bounds.h,
+			kind: 'compound',
+			...bounds,
 			parentId: parentOf.get(compoundId),
 			label: compoundLabels.get(compoundId) || compoundId,
 			fill: 'semi',
@@ -409,53 +354,20 @@ export function stateToBlueprint(
 	}
 
 	for (const [id, state] of leafStates) {
-		const layout = nodeLayout.get(id)
-		if (!layout) continue
+		const rect = nodeLayout.get(id)
+		if (!rect) continue
 
-		nodes.push(
-			...stateToNodes(
-				state,
-				layout.absX,
-				layout.absY,
-				layout.w,
-				layout.h,
-				parentOf.get(id),
-				stateColorMap.get(id)
-			)
-		)
+		nodes.push(...stateToNodes(state, rect, parentOf.get(id), stateColorMap.get(id)))
 	}
 
 	const claimed = new Set<number>()
-
 	for (const edge of allEdges) {
-		const startCenter = nodeCenters.get(edge.id1)
-		const endCenter = nodeCenters.get(edge.id2)
-
-		let bend = 0
-		if (startCenter && endCenter) {
-			let bestIndex = -1
-			let bestDistance = Infinity
-			for (let edgeIndex = 0; edgeIndex < svgEdges.length; edgeIndex++) {
-				if (claimed.has(edgeIndex) || svgEdges[edgeIndex].points.length < 2) continue
-
-				const points = svgEdges[edgeIndex].points
-				const distance =
-					Math.hypot(points[0].x - startCenter.x, points[0].y - startCenter.y) +
-					Math.hypot(
-						points[points.length - 1].x - endCenter.x,
-						points[points.length - 1].y - endCenter.y
-					)
-				if (distance < bestDistance) {
-					bestDistance = distance
-					bestIndex = edgeIndex
-				}
-			}
-			if (bestIndex >= 0) {
-				claimed.add(bestIndex)
-				bend = getArrowBend(svgEdges[bestIndex])
-			}
-		}
-
+		const bend = claimNearestEdgeBend(
+			svgEdges,
+			claimed,
+			nodeCenters.get(edge.id1),
+			nodeCenters.get(edge.id2)
+		)
 		const isNoteEdge = edge.id2.endsWith('----note') || edge.id1.endsWith('----note')
 		blueprintEdges.push({
 			startNodeId: edge.id1,
@@ -466,9 +378,5 @@ export function stateToBlueprint(
 		})
 	}
 
-	const nodeIds = new Set(nodes.map((n) => n.id))
-	const validEdges = blueprintEdges.filter(
-		(e) => nodeIds.has(e.startNodeId) && nodeIds.has(e.endNodeId)
-	)
-	return { diagramKind: 'state', nodes, edges: validEdges }
+	return { diagramKind: 'state', nodes, edges: dropDanglingEdges(nodes, blueprintEdges) }
 }

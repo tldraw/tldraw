@@ -1,4 +1,5 @@
 import { DEFAULT_THEME, TLDefaultColorStyle, TLDefaultDashStyle, TLDefaultSizeStyle } from 'tldraw'
+import type { MermaidBlueprintNode } from './blueprint'
 
 type Color = [number, number, number, number]
 
@@ -22,27 +23,27 @@ export function buildClassDefColorMap(
 	if (classDefs.size === 0) return result
 
 	for (const [nodeId, item] of items) {
-		if (!item.classes || item.classes.length === 0) continue
-
-		for (const className of item.classes) {
-			const classDef = classDefs.get(className)
-			if (!classDef || classDef.styles.length === 0) continue
-
-			const props = parseCssProps(classDef.styles)
-			const fill = toColor(props.get('fill'))
-			const stroke = toColor(props.get('stroke'))
-
-			if (!fill && !stroke) continue
-
-			const colors: ParsedNodeColors = {}
-			if (fill) colors.fillColor = nearestTldrawColor(fill)
-			if (stroke) colors.strokeColor = nearestTldrawColor(stroke)
-			result.set(nodeId, colors)
-			break
+		for (const className of item.classes ?? []) {
+			const colors = parseNodeInlineColor(classDefs.get(className)?.styles)
+			if (colors) {
+				result.set(nodeId, colors)
+				break
+			}
 		}
 	}
 
 	return result
+}
+
+/** Blueprint node style props for parsed fill/stroke colors: solid fill when a fill was set, stroke color preferred. */
+export function toNodeColorProps(
+	colors: ParsedNodeColors | undefined
+): Pick<MermaidBlueprintNode, 'fill' | 'color'> {
+	if (!colors) return {}
+	return {
+		...(colors.fillColor && { fill: 'solid' as const }),
+		color: colors.strokeColor ?? colors.fillColor,
+	}
 }
 
 export function parseRgbToTldrawColor(

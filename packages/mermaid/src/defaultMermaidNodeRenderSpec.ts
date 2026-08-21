@@ -5,6 +5,7 @@ import type {
 	MermaidDiagramKind,
 	MermaidNodeRenderMapper,
 } from './blueprint'
+import { MERMAID_MINDMAP_NODE_TYPE } from './mindmapDiagram'
 
 function flowchartKindToGeo(kind: string): TLGeoShapeGeoStyle {
 	switch (kind) {
@@ -25,11 +26,6 @@ function flowchartKindToGeo(kind: string): TLGeoShapeGeoStyle {
 			return 'rhombus'
 		case 'lean_left':
 			return 'rhombus-2'
-		case 'subgraph':
-		case 'square':
-		case 'rect':
-		case 'round':
-		case 'subroutine':
 		default:
 			return 'rectangle'
 	}
@@ -43,10 +39,6 @@ function stateKindToGeo(kind: string): TLGeoShapeGeoStyle {
 		case 'end':
 		case 'end_inner':
 			return 'ellipse'
-		case 'compound':
-		case 'note':
-		case 'fork':
-		case 'join':
 		default:
 			return 'rectangle'
 	}
@@ -58,32 +50,31 @@ function sequenceKindToGeo(kind: string): TLGeoShapeGeoStyle {
 			return 'ellipse'
 		case 'database':
 			return 'oval'
-		case 'sequence_activation':
-		case 'sequence_fragment':
-		case 'sequence_fragment_section':
-		case 'sequence_note':
 		default:
 			return 'rectangle'
 	}
 }
 
 function mindmapKindToGeo(kind: string): TLGeoShapeGeoStyle {
-	const type = Number(kind)
-	switch (type) {
-		case 3:
+	switch (Number(kind)) {
+		case MERMAID_MINDMAP_NODE_TYPE.CIRCLE:
 			return 'ellipse'
-		case 4:
+		case MERMAID_MINDMAP_NODE_TYPE.CLOUD:
 			return 'cloud'
-		case 6:
+		case MERMAID_MINDMAP_NODE_TYPE.HEXAGON:
 			return 'hexagon'
-		case 5:
+		case MERMAID_MINDMAP_NODE_TYPE.BANG:
 			return 'star'
-		case 2:
-		case 1:
-		case 0:
 		default:
 			return 'rectangle'
 	}
+}
+
+const KIND_TO_GEO: Record<MermaidDiagramKind, (kind: string) => TLGeoShapeGeoStyle> = {
+	flowchart: flowchartKindToGeo,
+	state: stateKindToGeo,
+	sequence: sequenceKindToGeo,
+	mindmap: mindmapKindToGeo,
 }
 
 /**
@@ -95,24 +86,7 @@ export function defaultMermaidNodeRenderSpec(
 	diagramKind: MermaidDiagramKind,
 	kind: string
 ): MermaidBlueprintNodeRenderSpec {
-	let geo: TLGeoShapeGeoStyle
-	switch (diagramKind) {
-		case 'flowchart':
-			geo = flowchartKindToGeo(kind)
-			break
-		case 'state':
-			geo = stateKindToGeo(kind)
-			break
-		case 'sequence':
-			geo = sequenceKindToGeo(kind)
-			break
-		case 'mindmap':
-			geo = mindmapKindToGeo(kind)
-			break
-		default:
-			geo = 'rectangle'
-	}
-	return { variant: 'geo', geo }
+	return { variant: 'geo', geo: KIND_TO_GEO[diagramKind]?.(kind) ?? 'rectangle' }
 }
 
 /**
