@@ -28,7 +28,7 @@ async function openLocalDb(persistenceKey: string) {
 
 	addDbName(storeId)
 
-	return await openDB<StoreName>(storeId, 4, {
+	const db = await openDB<StoreName>(storeId, 4, {
 		upgrade(database) {
 			if (!database.objectStoreNames.contains(Table.Records)) {
 				database.createObjectStore(Table.Records)
@@ -43,7 +43,15 @@ async function openLocalDb(persistenceKey: string) {
 				database.createObjectStore(Table.Assets)
 			}
 		},
+		// Another tab is deleting (hard reset) or upgrading this database. Its request waits
+		// until every open connection closes, so holding ours would stall it indefinitely.
+		// Closing here lets it proceed; this tab's next write then fails and goes through
+		// the write-failure alert-and-reload path.
+		blocking() {
+			db.close()
+		},
 	})
+	return db
 }
 
 async function migrateLegacyAssetDbIfNeeded(persistenceKey: string) {
