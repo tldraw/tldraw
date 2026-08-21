@@ -23,9 +23,10 @@ export class ScribbleBrushing extends StateNode {
 	newlySelectedShapeIds = new Set<TLShapeId>()
 
 	override onEnter() {
-		this.initialSelectedShapeIds = new Set<TLShapeId>(
-			this.editor.inputs.getShiftKey() ? this.editor.getSelectedShapeIds() : []
-		)
+		// Always captured, not only when shift is held, so that cancelling can restore
+		// the prior selection the same way a rectangle brush does (#10429). Whether it
+		// is merged into the live selection is decided per-update by the shift key.
+		this.initialSelectedShapeIds = new Set<TLShapeId>(this.editor.getSelectedShapeIds())
 		this.newlySelectedShapeIds = new Set<TLShapeId>()
 		this.size = 0
 		this.hits.clear()
