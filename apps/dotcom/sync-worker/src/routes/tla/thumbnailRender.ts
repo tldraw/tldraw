@@ -335,6 +335,7 @@ function writeBrowserRunSessionTelemetry(
 		height,
 		transport,
 		payloadChars,
+		browserMsUsed,
 	}: {
 		/** `ok`, or the bounded browser failure code for a session that died. */
 		outcome: string
@@ -354,6 +355,12 @@ function writeBrowserRunSessionTelemetry(
 		 * backstop. Good enough as an axis to plot duration against, which is what it is here for.
 		 */
 		payloadChars: number
+		/**
+		 * Browser wall clock billed (`X-Browser-Ms-Used`), 0 for sessions that died before a response
+		 * or ran on the local dev service. `durationMs - browserMsUsed` isolates queueing and
+		 * transfer, which is where most of this pipeline's variance lives.
+		 */
+		browserMsUsed: number
 	}
 ) {
 	writeDataPoint(undefined, env.MEASURE, env, 'browser_run_session', {
@@ -364,7 +371,7 @@ function writeBrowserRunSessionTelemetry(
 			`reason:${session.reason ?? 'none'}`,
 			`transport:${transport}`,
 		],
-		doubles: [width, height, durationMs, payloadChars],
+		doubles: [width, height, durationMs, payloadChars, browserMsUsed],
 	})
 }
 
@@ -489,6 +496,7 @@ async function renderThumbnailScreenshot(
 				height,
 				transport,
 				payloadChars,
+				browserMsUsed: 0,
 			})
 		}
 		throw error
@@ -504,6 +512,7 @@ async function renderThumbnailScreenshot(
 			height,
 			transport,
 			payloadChars,
+			browserMsUsed: timed.browserMsUsed,
 		})
 		throw new Error('Render produced an empty screenshot')
 	}
@@ -515,6 +524,7 @@ async function renderThumbnailScreenshot(
 		height,
 		transport,
 		payloadChars,
+		browserMsUsed: timed.browserMsUsed,
 	})
 	return { base64: arrayBufferToBase64(buffer), durationMs: timed.durationMs }
 }
@@ -530,6 +540,13 @@ type ThumbnailScreenshotRequestBody = ReturnType<typeof getThumbnailScreenshotRe
 interface TimedCapture {
 	buffer: ArrayBuffer
 	durationMs: number
+	/**
+	 * Browser wall clock billed for the session (Browser Run's `X-Browser-Ms-Used`), or 0 where the
+	 * transport has none (the local dev service). `durationMs - browserMsUsed` is everything that
+	 * happened outside the browser — RPC, Browser Run queueing, response transfer — which is the
+	 * noise a push/pull comparison has to see past.
+	 */
+	browserMsUsed: number
 }
 
 async function callBrowserRun(
@@ -567,7 +584,11 @@ async function callBrowserRun(
 			timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
 		})
 	})
-	return { buffer, durationMs: Date.now() - startedAt }
+	return {
+		buffer,
+		durationMs: Date.now() - startedAt,
+		browserMsUsed: Number(response.headers.get('X-Browser-Ms-Used')) || 0,
+	}
 }
 
 // The request cannot cap its own total: `gotoOptions.timeout` and `waitForSelector.timeout` are
@@ -677,7 +698,11 @@ async function callLocalScreenshotService(
 		)
 	}
 	const buffer = await response.arrayBuffer()
-	return { buffer, durationMs: Date.now() - startedAt }
+	return {
+		buffer,
+		durationMs: Date.now() - startedAt,
+		browserMsUsed: Number(response.headers.get('X-Browser-Ms-Used')) || 0,
+	}
 }
 
 // Writes one rendered PNG to a thumbnail cache, stamping the content version (so a stale version
