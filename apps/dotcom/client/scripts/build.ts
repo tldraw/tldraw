@@ -161,6 +161,14 @@ async function build() {
 
 	writeFileSync('.vercel/output/static/index.html', newIndex)
 
+	// The thumbnail render entry waits on these same faces during its settle phase, so it preloads
+	// them too — otherwise their fetch starts only after the SDK has booted and the editor mounted.
+	const thumbnailHtml = readFileSync('.vercel/output/static/thumbnail-render.html', 'utf8')
+	writeFileSync(
+		'.vercel/output/static/thumbnail-render.html',
+		thumbnailHtml.replace('<!-- $PRELOADED_FONTS -->', fontPreloads)
+	)
+
 	const multiplayerServerUrl = getMultiplayerServerURL() ?? 'http://localhost:8787'
 
 	// Includes the .js.map files: they're content-hashed like the chunks they describe, so they're

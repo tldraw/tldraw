@@ -7,6 +7,7 @@ import {
 	THUMBNAIL_SETTLE_TIMEOUT_MS,
 	ThumbnailRenderParams,
 	ThumbnailShapeMeasurement,
+	ThumbnailRenderTimingsRequestBody,
 	ThumbnailSnapshotResponseBody,
 	getLicenseKey,
 } from '@tldraw/dotcom-shared'
@@ -14,7 +15,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	Box,
 	Editor,
-	FileHelpers,
 	Image,
 	SerializedSchema,
 	TLPageId,
@@ -39,6 +39,46 @@ import { embedShapeUtils } from '../utils/embedShapeUtil'
 
 const THUMBNAIL_SNAPSHOT_ENDPOINT = '/api/app/thumbnail-render/snapshot'
 const THUMBNAIL_RESULT_ENDPOINT = '/api/app/thumbnail-render/result'
+
+// Phase stamps for the timing beacon, module-scoped because the page renders exactly once. Each is
+// performance.now() at the moment the phase completed; the beacon ships them after the export so
+// the deltas — boot, acquire, mount, settle, export — can be read per render from telemetry
+// (`render_page_timings`). Worker-side timing can only see the session total; this is what ranks
+// the page's own phases against each other.
+const pageTimings: {
+	source?: 'push' | 'fetch'
+	bootAt?: number
+	dataAt?: number
+	mountAt?: number
+	settledAt?: number
+} = {}
+
+// Fire-and-forget: nothing waits on this, and `keepalive` lets the request outlive the page —
+// which it must, because the screenshot (and the session's teardown) follows the ready marker
+// almost immediately.
+function sendTimingsBeacon(token: string, exportedAt: number) {
+	const { source, bootAt, dataAt, mountAt, settledAt } = pageTimings
+	if (
+		!token ||
+		!source ||
+		bootAt === undefined ||
+		dataAt === undefined ||
+		mountAt === undefined ||
+		settledAt === undefined
+	) {
+		return
+	}
+	const body: ThumbnailRenderTimingsRequestBody = {
+		token,
+		timings: { source, bootAt, dataAt, mountAt, settledAt, exportedAt },
+	}
+	fetch(THUMBNAIL_RESULT_ENDPOINT, {
+		method: 'POST',
+		keepalive: true,
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(body),
+	}).catch(() => {})
+}
 
 export type ThumbnailRenderData =
 	| {
@@ -93,6 +133,7 @@ function awaitPushedSnapshot(timeoutMs: number): Promise<ThumbnailSnapshotRespon
  * served, so the push-wait and the token fallback cannot drift.
  */
 export async function acquireThumbnailRenderData(url: URL): Promise<ThumbnailRenderData> {
+	pageTimings.bootAt = performance.now()
 	const token = url.searchParams.get('token')
 
 	// Only a render the worker announced a push for waits for one. A pull render must not pay this
@@ -104,6 +145,8 @@ export async function acquireThumbnailRenderData(url: URL): Promise<ThumbnailRen
 		const pushed = await awaitPushedSnapshot(PUSHED_SNAPSHOT_TIMEOUT_MS)
 		if (pushed) {
 			if (pushed.error) return { ok: false, message: pushed.message }
+			pageTimings.source = 'push'
+			pageTimings.dataAt = performance.now()
 			return {
 				ok: true,
 				token: token ?? '',
@@ -131,6 +174,8 @@ export async function acquireThumbnailRenderData(url: URL): Promise<ThumbnailRen
 		return { ok: false, message: data.message }
 	}
 
+	pageTimings.source = 'fetch'
+	pageTimings.dataAt = performance.now()
 	return {
 		ok: true,
 		token,
@@ -178,13 +223,16 @@ function ThumbnailRenderPage({
 	)
 
 	// Once the export is ready it's shown as a full-viewport <img>, so the worker's Browser Rendering
-	// screenshot captures the exact editor.toImage output rather than the live editor canvas.
-	const [dataUrl, setDataUrl] = useState<string | null>(null)
+	// screenshot captures the exact editor.toImage output rather than the live editor canvas. An
+	// object URL, not a data URL: blobToDataUrl base64-encodes the whole PNG on the main thread,
+	// which on a heavy board is megabytes of string work standing between the export and the ready
+	// marker. Never revoked — the page exists for exactly one render.
+	const [imageUrl, setImageUrl] = useState<string | null>(null)
 	const handleImage = useCallback(async (blob: Blob) => {
-		setDataUrl(await FileHelpers.blobToDataUrl(blob))
+		setImageUrl(URL.createObjectURL(blob))
 	}, [])
 
-	if (dataUrl) return <ThumbnailImage dataUrl={dataUrl} width={width} height={height} />
+	if (imageUrl) return <ThumbnailImage src={imageUrl} width={width} height={height} />
 
 	return (
 		<div
@@ -202,6 +250,7 @@ function ThumbnailRenderPage({
 				shapeUtils={embedShapeUtils}
 				snapshot={snapshot}
 				onMount={(editor) => {
+					pageTimings.mountAt = performance.now()
 					editor.user.updateUserPreferences({ colorScheme: theme })
 					editor.updateInstanceState({ isReadonly: true })
 					// Render the specific page the token asked for; without one, keep the page the
@@ -234,6 +283,7 @@ function ThumbnailRenderPage({
 						height={height}
 						camera={renderParams.camera}
 						shapeIds={renderParams.shapeIds}
+						token={token}
 						onImage={handleImage}
 					/>
 				)}
@@ -248,18 +298,18 @@ function ThumbnailRenderPage({
 // page is quiescent when the screenshot is taken. Also used by the dev fixture page
 // (dev-browser-run-thumbnail.tsx), so its ready/error markers stay identical to production's.
 export function ThumbnailImage({
-	dataUrl,
+	src,
 	width,
 	height,
 }: {
-	dataUrl: string
+	src: string
 	width: number
 	height: number
 }) {
 	return (
 		<img
 			ref={signalThumbnailReadyIfComplete}
-			src={dataUrl}
+			src={src}
 			alt=""
 			style={{ display: 'block', width, height }}
 			onLoad={signalThumbnailReady}
@@ -402,6 +452,7 @@ export function ThumbnailExportSignal({
 	camera,
 	shapeIds,
 	settleTimeoutMs = THUMBNAIL_SETTLE_TIMEOUT_MS,
+	token,
 	onImage,
 }: {
 	theme: 'light' | 'dark'
@@ -410,6 +461,8 @@ export function ThumbnailExportSignal({
 	camera?: 'content'
 	shapeIds?: string[]
 	settleTimeoutMs?: number
+	/** Authorises the timing beacon. Absent on the dev fixture page, which sends none. */
+	token?: string
 	onImage(blob: Blob): void | Promise<void>
 }) {
 	const editor = useEditor()
@@ -428,6 +481,7 @@ export function ThumbnailExportSignal({
 				sleep(settleTimeoutMs),
 			])
 			if (cancelled) return
+			pageTimings.settledAt = performance.now()
 			// Re-fit content now that fonts and assets have settled: autosized text re-measures after
 			// the web font loads, so the fit computed in onMount (before fonts) is stale and would clip.
 			if (shapeIds?.length) {
@@ -437,10 +491,14 @@ export function ThumbnailExportSignal({
 			}
 			const blob = await exportThumbnailImage(editor, theme, width, height, shapeIds)
 			if (cancelled) return
+			// Before onImage rather than after: the ready marker follows the image paint, and the
+			// screenshot (then the session's teardown) follows the marker — keepalive covers the
+			// race, but not starting one is better.
+			if (token) sendTimingsBeacon(token, performance.now())
 			await onImage(blob)
 		})().catch((error) => {
 			if (cancelled) return
-			// FileHelpers.blobToDataUrl rejects with the FileReader's ProgressEvent rather than an
+			// Some browser APIs reject with an Event (e.g. FileReader's ProgressEvent) rather than an
 			// Error; don't let that stringify to "[object ProgressEvent]" in the error marker.
 			if (error instanceof Event) {
 				setThumbnailError('Could not read thumbnail blob')
@@ -452,7 +510,7 @@ export function ThumbnailExportSignal({
 		return () => {
 			cancelled = true
 		}
-	}, [editor, theme, width, height, camera, shapeIds, settleTimeoutMs, onImage])
+	}, [editor, theme, width, height, camera, shapeIds, settleTimeoutMs, token, onImage])
 
 	return null
 }
