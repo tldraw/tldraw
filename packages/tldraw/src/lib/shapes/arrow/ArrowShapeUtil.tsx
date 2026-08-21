@@ -689,8 +689,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override onResize(shape: TLArrowShape, info: TLResizeInfo<TLArrowShape>) {
 		const { scaleX, scaleY } = info
 
-		const bindings = this._resizeInitialBindings.get(shape, () =>
-			getArrowBindings(this.editor, shape)
+		// Key on `info.initialShape`: the editor passes a fresh `{ ...initialShape, x, y }` as
+		// `shape` on every frame, so keying on it would re-read the already-mirrored bindings
+		// from the store and flip the anchors back and forth while dragging past zero.
+		const bindings = this._resizeInitialBindings.get(info.initialShape, () =>
+			getArrowBindings(this.editor, info.initialShape)
 		)
 		const terminals = getArrowTerminalsInArrowSpace(this.editor, shape, bindings)
 
