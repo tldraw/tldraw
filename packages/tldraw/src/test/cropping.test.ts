@@ -211,6 +211,48 @@ describe('When in the select.idle state', () => {
 		expect(editor.getCroppingShapeId()).toBe(ids.imageB)
 	})
 
+	it('does not start cropping when the editor is readonly', () => {
+		editor.updateInstanceState({ isReadonly: true })
+
+		// enter
+		editor
+			.expectToBeIn('select.idle')
+			.select(ids.imageB)
+			.keyDown('Enter')
+			.keyUp('Enter')
+			.expectToBeIn('select.idle')
+
+		expect(editor.getCroppingShapeId()).toBe(null)
+
+		// double clicking a selection handle
+		editor
+			.doubleClick(550, 550, {
+				target: 'selection',
+				handle: 'bottom_right',
+			})
+			.expectToBeIn('select.idle')
+
+		expect(editor.getCroppingShapeId()).toBe(null)
+
+		// control-pointing a selection handle
+		editor
+			.pointerDown(500, 550, {
+				target: 'selection',
+				handle: 'bottom',
+				ctrlKey: true,
+				accelKey: true,
+			})
+			.expectToBeIn('select.brushing')
+			.cancel()
+
+		expect(editor.getCroppingShapeId()).toBe(null)
+
+		// setting the cropping shape directly
+		editor.setCroppingShape(ids.imageB)
+		expect(editor.canCropShape(ids.imageB)).toBe(false)
+		expect(editor.getCroppingShapeId()).toBe(null)
+	})
+
 	it('when only an image is selected control-pointing a selection handle should transition to select.crop.pointing_crop_handle', () => {
 		// two shapes / edge
 		editor
