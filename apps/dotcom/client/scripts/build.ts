@@ -14,7 +14,7 @@ import json5 from 'json5'
 import regexgen from 'regexgen'
 import { exec } from '../../../../internal/scripts/lib/exec'
 import { nicelog } from '../../../../internal/scripts/lib/nicelog'
-import { csp } from '../src/utils/csp'
+import { csp, thumbnailRenderCsp } from '../src/utils/csp'
 import { reportBundleSize } from './measure-bundle-size'
 import { getMultiplayerServerURL } from './multiplayer-server-url'
 import { Config } from './vercel-output-config'
@@ -250,7 +250,11 @@ async function build() {
 						check: true,
 						src: '^/__thumbnail-render$',
 						dest: '/thumbnail-render.html',
-						headers: commonSecurityHeaders,
+						// The app headers, but with the render page's CSP: the app policy's script-src
+						// blocks the inline script Browser Run injects to push the snapshot in, which
+						// silently downgraded every push render to the token fetch. See
+						// thumbnailRenderCsp for why the relaxation is safe on this route.
+						headers: { ...commonSecurityHeaders, 'Content-Security-Policy': thumbnailRenderCsp },
 					},
 					// serve static files
 					{
