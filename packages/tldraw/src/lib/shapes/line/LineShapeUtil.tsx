@@ -22,12 +22,12 @@ import {
 	lineShapeMigrations,
 	lineShapeProps,
 	mapObjectMapValues,
-	maybeSnapToGrid,
 	sortByIndex,
 	useColorMode,
 } from '@tldraw/editor'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
+import { maybeSnapHandleToGrid } from '../shared/maybeSnapHandleToGrid'
 import { PathBuilder, PathBuilderGeometry2d } from '../shared/PathBuilder'
 
 const handlesCache = new WeakCache<TLLineShape['props'], TLHandle[]>()
@@ -179,7 +179,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	override onHandleDrag(shape: TLLineShape, { handle }: TLHandleDragInfo<TLLineShape>) {
-		const newPoint = maybeSnapToGrid(new Vec(handle.x, handle.y), this.editor)
+		const newPoint = maybeSnapHandleToGrid(new Vec(handle.x, handle.y), this.editor)
 		// handle.id is the point's key (== its id), so we update the point in place.
 		return {
 			...shape,
