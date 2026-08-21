@@ -43,8 +43,7 @@ export class Resizing extends StateNode {
 	// A switch to detect when the user is holding ctrl
 	private didHoldCommand = false
 
-	// Set once complete() or cancel() has run, so onExit can tell an orderly finish apart from
-	// being exited from outside (e.g. a tool shortcut pressed mid-drag)
+	// Set by complete() and cancel(); see onExit for what happens when neither ran
 	private didFinish = false
 
 	// we transition into the resizing state from the geo pointing state, which starts with a shape of size w: 1, h: 1,
