@@ -56,9 +56,39 @@ jobs:
           GRAFANA_SERVER: ${{ secrets.GRAFANA_SERVER }}
           GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN }}
 
+      # Everything except alert rules, folders first. Two orderings matter and neither is
+      # the alphabetical one this glob would otherwise give: folders have to exist before
+      # anything annotated into them, and alert rules go last (see the step below for why).
+      # A commit adding a folder and a dashboard inside it lands both in one push, so the
+      # folder cannot be assumed to already be there.
       - name: Push resources
         if: github.event_name == 'push'
-        run: gcx resources push -p internal/grafana/resources --on-error abort
+        run: |
+          shopt -s nullglob
+          for dir in internal/grafana/resources/*folders*/; do
+            gcx resources push -p "$dir" --on-error abort
+          done
+          for dir in internal/grafana/resources/*/; do
+            case "$dir" in *folders*|*alertrules*) continue ;; esac
+            gcx resources push -p "$dir" --on-error abort
+          done
+        env:
+          GRAFANA_SERVER: ${{ secrets.GRAFANA_SERVER }}
+          GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN }}
+
+      # Alert rules are the one resource type that can fail here having passed the PR
+      # dry run, because alerting has no server-side dry-run — the PR reports them as
+      # "skipped". A newly created rule carrying group labels is rejected outright
+      # ("cannot set group when creating a new rule"), so the first time any new rule
+      # lands, this step is where it surfaces. Kept last and separate so that failure
+      # costs the rule, not every dashboard in the tree. Still fails the job.
+      - name: Push alert rules
+        if: github.event_name == 'push'
+        run: |
+          shopt -s nullglob
+          for dir in internal/grafana/resources/*alertrules*/; do
+            gcx resources push -p "$dir" --on-error abort
+          done
         env:
           GRAFANA_SERVER: ${{ secrets.GRAFANA_SERVER }}
           GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN }}
