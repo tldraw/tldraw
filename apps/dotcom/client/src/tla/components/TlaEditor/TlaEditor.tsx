@@ -250,7 +250,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}, []),
 	})
 
-	// we need to prevent calling onFileExit if the store is in an error state
+	// we need to prevent recording the file exit if the store is in an error state
 	const storeError = useRef(false)
 	if (store.status === 'error') {
 		storeError.current = true

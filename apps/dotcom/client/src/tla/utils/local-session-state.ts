@@ -160,11 +160,6 @@ export function toggleMobileSidebar(open: boolean = !getIsSidebarOpenMobile()) {
 	})
 }
 
-export function setLocalSessionState(state: TldrawAppSessionState) {
-	localSessionState.set(state)
-	setInLocalStorage(STORAGE_KEY, JSON.stringify(localSessionState.get()))
-}
-
 export function updateLocalSessionState(
 	fn: (state: TldrawAppSessionState) => Partial<TldrawAppSessionState>
 ) {
@@ -172,8 +167,4 @@ export function updateLocalSessionState(
 		return { ...state, ...fn(state) }
 	})
 	setInLocalStorage(STORAGE_KEY, JSON.stringify(localSessionState.get()))
-}
-
-export function useLocalSessionState() {
-	return useValue('session', () => getLocalSessionState(), [])
 }
