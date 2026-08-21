@@ -298,6 +298,7 @@ export type TLUiTranslationKey =
 	| 'a11y.shape-index'
 	| 'a11y.shape-image'
 	| 'a11y.shape-video'
+	| 'a11y.shape-group'
 	| 'a11y.multiple-shapes'
 	| 'a11y.select-shape'
 	| 'a11y.select-shape-direction'
