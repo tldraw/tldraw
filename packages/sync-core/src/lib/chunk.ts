@@ -38,13 +38,33 @@ export function chunk(msg: string, maxSafeMessageSize = MAX_SAFE_MESSAGE_SIZE) {
 		let offset = msg.length
 		while (offset > 0) {
 			const prefix = `${chunkNumber}_`
-			const chunkSize = Math.max(Math.min(maxSafeMessageSize - prefix.length, offset), 1)
+			let chunkSize = Math.max(Math.min(maxSafeMessageSize - prefix.length, offset), 1)
+			// Never split a surrogate pair across chunks: WebSocket.send converts each chunk to a
+			// USVString, turning a lone surrogate into U+FFFD, and the reassembled JSON would then
+			// carry corrupted text (e.g. an emoji becoming '\uFFFD\uFFFD') without any error.
+			// Shrink the chunk by one so the pair moves whole into the preceding chunk; when the
+			// chunk is already a single character, grow it by one instead (as CH3 already permits).
+			if (
+				chunkSize < offset &&
+				isLowSurrogate(msg.charCodeAt(offset - chunkSize)) &&
+				isHighSurrogate(msg.charCodeAt(offset - chunkSize - 1))
+			) {
+				chunkSize += chunkSize > 1 ? -1 : 1
+			}
 			chunks.unshift(prefix + msg.slice(offset - chunkSize, offset))
 			offset -= chunkSize
 			chunkNumber++
 		}
 		return chunks
 	}
+}
+
+function isHighSurrogate(code: number) {
+	return code >= 0xd800 && code <= 0xdbff
+}
+
+function isLowSurrogate(code: number) {
+	return code >= 0xdc00 && code <= 0xdfff
 }
 
 // The 's' flag (dotAll) makes '.' match any character including line terminators
