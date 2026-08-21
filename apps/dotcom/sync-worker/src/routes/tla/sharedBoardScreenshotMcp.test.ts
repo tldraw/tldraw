@@ -814,6 +814,25 @@ describe('cluster index cache', () => {
 		])
 	})
 
+	it('caches a page with no clusters at all', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+
+		const first = await callTool('get_page_info', { boardId: 'abc', page: 2 }, env, 'user_ix_blank')
+		const second = await callTool(
+			'get_page_info',
+			{ boardId: 'abc', page: 2 },
+			env,
+			'user_ix_blank'
+		)
+
+		// An empty page's index is an empty list, which has to read back as a hit rather than as
+		// "nothing stored" — otherwise the one page that costs the least to answer re-measures forever.
+		expect(JSON.parse(first.content[0].text).clusterCount).toBe(0)
+		expect(second.content).toEqual(first.content)
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
+	})
+
 	it('measures again when the board content moves on', async () => {
 		mockPublishedBoard()
 		const env = makeEnv()
