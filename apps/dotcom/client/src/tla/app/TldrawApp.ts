@@ -1098,6 +1098,13 @@ export class TldrawApp {
 		const totalFiles = files.length
 		let uploadedFiles = 0
 		if (totalFiles === 0) return
+		// createFile runs this check too, but only after the snapshot and its assets are already
+		// uploaded — which would orphan a room in R2 and stack a generic error on the limit toast.
+		if (!this.canCreateNewFile(workspaceId ?? this.getHomeWorkspaceId())) {
+			this.showMaxFilesToast()
+			onUploadError?.()
+			return
+		}
 
 		// this is only approx since we upload the files in pieces and they are base64 encoded
 		// in the json blob, so this will usually be a big overestimate. But that's fine because
@@ -1259,10 +1266,14 @@ export class TldrawApp {
 			throw Error(response.message)
 		}
 		const fileId = response.slugs[0]
+		// `||` not `??`: File.name is never nullish, so the document-name fallback was unreachable
+		// and a file called `.tldr` would reach createFile with an empty name (bad_request).
 		const name =
-			file.name?.replace(/\.tldr$/, '') ??
-			Object.values(snapshot.store).find((d): d is TLDocument => d.typeName === 'document')?.name ??
-			''
+			file.name.replace(/\.tldr$/, '').trim() ||
+			Object.values(snapshot.store)
+				.find((d): d is TLDocument => d.typeName === 'document')
+				?.name?.trim() ||
+			undefined
 
 		return this.createFile({ fileId, name, workspaceId })
 	}
