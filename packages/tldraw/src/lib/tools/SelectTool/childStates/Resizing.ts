@@ -133,6 +133,7 @@ export class Resizing extends StateNode {
 			const current = this.editor.getShape(shape.id)
 			if (current) {
 				const util = this.editor.getShapeUtil(shape)
+				if (!util.canResize(shape)) return
 				util.onResizeCancel?.(shape, current)
 			}
 		})
@@ -178,12 +179,15 @@ export class Resizing extends StateNode {
 	}
 
 	private handleResizeStart() {
+		// Non-resizable shapes are in the snapshot only to be repositioned, so they don't get the
+		// resize lifecycle callbacks (matching Editor.resizeShape).
 		const { shapeSnapshots } = this.snapshot
 
 		const changes: TLShapePartial[] = []
 
 		shapeSnapshots.forEach(({ shape }) => {
 			const util = this.editor.getShapeUtil(shape)
+			if (!util.canResize(shape)) return
 			const change = util.onResizeStart?.(shape)
 			if (change) {
 				changes.push(change)
@@ -203,6 +207,7 @@ export class Resizing extends StateNode {
 		shapeSnapshots.forEach(({ shape }) => {
 			const current = this.editor.getShape(shape.id)!
 			const util = this.editor.getShapeUtil(shape)
+			if (!util.canResize(shape)) return
 			const change = util.onResizeEnd?.(shape, current)
 			if (change) {
 				changes.push(change)
@@ -582,17 +587,16 @@ export class Resizing extends StateNode {
 
 			const util = editor.getShapeUtil(shape)
 
-			// If the shape can resize, add it to the resizing shapes snapshots
-			if (util.canResize(shape)) {
-				const pageTransform = editor.getShapePageTransform(shape)!
-				shapeSnapshots.set(shape.id, {
-					shape,
-					bounds: editor.getShapeGeometry(shape).bounds,
-					pageTransform,
-					pageRotation: Mat.Decompose(pageTransform).rotation,
-					isAspectRatioLocked: util.isAspectRatioLocked(shape),
-				})
-			}
+			// Shapes that can't resize are snapshotted too: getResizeShapePartial repositions them
+			// so they keep their place in the selection instead of being left behind.
+			const pageTransform = editor.getShapePageTransform(shape)!
+			shapeSnapshots.set(shape.id, {
+				shape,
+				bounds: editor.getShapeGeometry(shape).bounds,
+				pageTransform,
+				pageRotation: Mat.Decompose(pageTransform).rotation,
+				isAspectRatioLocked: util.isAspectRatioLocked(shape),
+			})
 
 			// Special case:
 			// For frames, we don't want to resize children but we DO want to get a snapshot of their children so that we can restore their
