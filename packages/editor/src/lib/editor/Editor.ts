@@ -11052,7 +11052,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		switch (type) {
 			case 'pinch': {
-				if (cameraOptions.isLocked) return
+				// A lock stops the camera, not the gesture: pinch_end must still run, otherwise
+				// locking mid-pinch leaves isPinching stuck and every pointer event is ignored.
+				if (cameraOptions.isLocked && info.name !== 'pinch_end') return
 				clearTimeout(this._longPressTimeout)
 				this.inputs.updateFromEvent(info)
 
@@ -11163,8 +11165,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				let wheelBehavior = cameraOptions.wheelBehavior
 				const inputMode = this.user.getUserPreferences().inputMode
 
-				// If the user has set their input mode preference, then use that to determine the wheel behavior
-				if (inputMode !== null) {
+				// The user's input mode preference picks between pan and zoom, but it must not
+				// re-enable a wheel the app disabled with `wheelBehavior: 'none'`.
+				if (inputMode !== null && wheelBehavior !== 'none') {
 					wheelBehavior = inputMode === 'trackpad' ? 'pan' : 'zoom'
 				}
 
@@ -11530,7 +11533,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 									}
 								}
 
-								if (offset) {
+								// `_animateToViewport` bypasses `setCamera`, so honor the lock here.
+								if (offset && !cameraOptions.isLocked) {
 									const bounds = this.getViewportPageBounds()
 									const next = bounds.clone().translate(offset.mulV({ x: bounds.w, y: bounds.h }))
 									this._animateToViewport(next, { animation: { duration: 320 } })
