@@ -801,3 +801,9 @@ describe('integration with reactive state (QI, QQ)', () => {
 		expect(tolkeinBookCount.get()).toBe(2)
 	})
 })
+
+describe('queries across rolled-back transactions (QH, QQ)', () => {
+	it('[QQ5] exec with an empty expression returns every record of the type', () => {
+		expect(store.query.exec('book', {})).toHaveLength(4)
+	})
+})

@@ -580,8 +580,8 @@ describe('executeQuery (QE)', () => {
 			const query = {}
 			const result = executeQuery(store.query, 'book', query)
 
-			// Empty query in executeQuery returns empty set (special handling is done in StoreQueries)
-			expect(result).toEqual(new Set())
+			// an empty expression imposes no constraint, matching objectMatchesQuery
+			expect(result).toEqual(new Set(Object.values(books).map((b) => b.id)))
 		})
 
 		it('should handle different record types separately', () => {
@@ -1447,5 +1447,69 @@ describe('reactive nested queries (QE3, QI5, QQ)', () => {
 			// Should now be empty
 			expect(idsQuery.get()).toEqual(new Set())
 		})
+	})
+})
+
+describe('index and predicate agreement (QE)', () => {
+	// Both matching strategies must agree, since a query switches between them (from-scratch uses
+	// the indexes, incremental updates use the predicate).
+	function agree<TypeName extends 'book' | 'author'>(typeName: TypeName, query: any) {
+		const fromIndexes = executeQuery(store.query, typeName, query)
+		const fromPredicate = new Set(
+			store
+				.allRecords()
+				.filter((r) => r.typeName === typeName && objectMatchesQuery(query, r as any))
+				.map((r) => r.id)
+		)
+		expect(fromIndexes).toEqual(fromPredicate)
+		return fromIndexes
+	}
+
+	it('[QE1] eq with undefined matches nothing in both strategies', () => {
+		expect(agree('book', { metadata: { copies: { eq: undefined } } }).size).toBe(0)
+	})
+
+	it('[QE1] eq and neq use SameValueZero, so NaN matches NaN', () => {
+		const odd = Book.create({
+			title: 'NaN',
+			authorId: authors.asimov.id,
+			publishedYear: 2000,
+			inStock: true,
+			rating: NaN,
+		})
+		store.put([odd])
+		expect(agree('book', { rating: { eq: NaN } })).toEqual(new Set([odd.id]))
+		expect(agree('book', { rating: { neq: NaN } }).has(odd.id)).toBe(false)
+	})
+
+	it('[QE1] gt never matches NaN, as a value or as the bound', () => {
+		const odd = Book.create({
+			title: 'NaN',
+			authorId: authors.asimov.id,
+			publishedYear: 2000,
+			inStock: true,
+			rating: NaN,
+		})
+		store.put([odd])
+		expect(agree('book', { rating: { gt: 0 } }).has(odd.id)).toBe(false)
+		expect(agree('book', { rating: { gt: NaN } }).size).toBe(0)
+	})
+
+	it('[QE1] a matcher with several operators applies all of them', () => {
+		const result = agree('author', { age: { gt: 70, neq: 75 } })
+		expect(result.size).toBeGreaterThan(0)
+		for (const id of result) {
+			const author = store.get(id) as Author
+			expect(author.age).toBeGreaterThan(70)
+			expect(author.age).not.toBe(75)
+		}
+	})
+
+	it('[QE3] an empty nested sub-expression matches every record', () => {
+		expect(agree('book', { metadata: {} }).size).toBe(Object.keys(books).length)
+	})
+
+	it('[QE4] the empty expression matches every record in both strategies', () => {
+		expect(agree('author', {}).size).toBe(Object.keys(authors).length)
 	})
 })

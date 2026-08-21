@@ -1,5 +1,6 @@
 import { objectMapFromEntries, objectMapValues } from '@tldraw/utils'
 import { IdOf, UnknownRecord } from './BaseRecord'
+import { hasAnyKey } from './RecordsDiff'
 import { intersectSets } from './setUtils'
 import { StoreQueries } from './StoreQueries'
 
@@ -47,7 +48,6 @@ export type QueryValueMatcher<T> = { eq: T } | { neq: T } | { gt: number }
  *
  * @public
  */
-/** @public */
 export type QueryExpression<R extends object> = {
 	[k in keyof R & string]?: R[k] extends string | number | boolean | null | undefined
 		? QueryValueMatcher<R[k]>
@@ -82,23 +82,35 @@ function extractMatcherPaths(
 	return paths
 }
 
+// SameValueZero, the key equality of the `Map`s backing the indexes: `NaN` matches `NaN`.
+function sameValueZero(a: unknown, b: unknown) {
+	return a === b || (a !== a && b !== b)
+}
+
+// The one place matcher semantics live. `objectMatchesQuery` (the predicate used for incremental
+// updates) and `executeQuery` (the index lookup used from scratch) must agree, and the indexes only
+// track defined values, so an undefined value never matches any matcher.
+function matchesValue(matcher: QueryValueMatcher<any>, value: unknown): boolean {
+	if (value === undefined) return false
+	if ('eq' in matcher && !sameValueZero(value, matcher.eq)) return false
+	if ('neq' in matcher && sameValueZero(value, matcher.neq)) return false
+	// `>` rather than `!(<=)` so `NaN` (as value or bound) never satisfies `gt`.
+	if ('gt' in matcher && !(typeof value === 'number' && value > matcher.gt)) return false
+	return true
+}
+
 export function objectMatchesQuery<T extends object>(query: QueryExpression<T>, object: T) {
 	for (const [key, matcher] of Object.entries(query)) {
 		const value = object[key as keyof T]
 
-		// if you add matching logic here, make sure you also update executeQuery,
-		// where initial data is pulled out of the indexes, since that requires different
-		// matching logic
 		if (isQueryValueMatcher(matcher)) {
-			if ('eq' in matcher && value !== matcher.eq) return false
-			// undefined values must not match neq: the indexes executeQuery reads only
-			// track defined values, and the two matching strategies have to agree
-			if ('neq' in matcher && (value === matcher.neq || value === undefined)) return false
-			if ('gt' in matcher && (typeof value !== 'number' || value <= matcher.gt)) return false
+			if (!matchesValue(matcher, value)) return false
 			continue
 		}
 
-		// It's a nested query
+		// A nested query. Mirror `extractMatcherPaths`, for which only matchers constrain anything:
+		// a non-object entry or an empty sub-expression matches every record.
+		if (typeof matcher !== 'object' || matcher === null || !hasAnyKey(matcher)) continue
 		if (typeof value !== 'object' || value === null) return false
 		if (!objectMatchesQuery(matcher as QueryExpression<any>, value as any)) {
 			return false
@@ -147,6 +159,12 @@ export function executeQuery<R extends UnknownRecord, TypeName extends R['typeNa
 	// Extract all paths with matchers (flattens nested queries)
 	const matcherPaths = extractMatcherPaths(query)
 
+	// No matchers means no constraints, so every record of the type matches — as it does for
+	// `objectMatchesQuery`, for which an empty expression is vacuously true.
+	if (matcherPaths.length === 0) {
+		return store.getAllIdsForType(typeName)
+	}
+
 	// Build a set of matching IDs for each path
 	const matchIds = objectMapFromEntries(
 		matcherPaths.map(({ path }) => [path, new Set<IdOf<S>>()] as const)
@@ -156,24 +174,19 @@ export function executeQuery<R extends UnknownRecord, TypeName extends R['typeNa
 	for (const { path, matcher } of matcherPaths) {
 		const index = store.index(typeName, path as any)
 
-		if ('eq' in matcher) {
+		if ('eq' in matcher && !('neq' in matcher) && !('gt' in matcher)) {
+			// a lone `eq` is a direct index lookup
 			const ids = index.get().get(matcher.eq)
 			if (ids) {
 				for (const id of ids) {
 					matchIds[path].add(id)
 				}
 			}
-		} else if ('neq' in matcher) {
+		} else {
+			// anything else scans the index's values, filtered by the same `matchesValue` the
+			// predicate path uses
 			for (const [value, ids] of index.get()) {
-				if (value !== matcher.neq) {
-					for (const id of ids) {
-						matchIds[path].add(id)
-					}
-				}
-			}
-		} else if ('gt' in matcher) {
-			for (const [value, ids] of index.get()) {
-				if (typeof value === 'number' && value > matcher.gt) {
+				if (matchesValue(matcher, value)) {
 					for (const id of ids) {
 						matchIds[path].add(id)
 					}

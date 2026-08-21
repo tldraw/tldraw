@@ -12,7 +12,7 @@ import { AtomMap } from './AtomMap'
 import { IdOf, UnknownRecord } from './BaseRecord'
 import { executeQuery, objectMatchesQuery, QueryExpression } from './executeQuery'
 import { IncrementalSetConstructor } from './IncrementalSetConstructor'
-import { hasAnyKey, RecordsDiff, squashRecordDiffsMutableByType } from './RecordsDiff'
+import { RecordsDiff, squashRecordDiffsMutableByType } from './RecordsDiff'
 import { diffSets } from './setUtils'
 import { CollectionDiff } from './Store'
 
@@ -510,19 +510,14 @@ export class StoreQueries<R extends UnknownRecord> {
 
 		const typeHistory = this.filterHistory(typeName)
 
-		const fromScratch = () => {
+		const fromScratch = (query: QueryExpression<S>) => {
 			// deref type history early to allow first incremental update to use diffs
 			typeHistory.get()
-			const query: QueryExpression<S> = queryCreator()
-			if (!hasAnyKey(query)) {
-				return this.getAllIdsForType(typeName)
-			}
-
 			return executeQuery(this, typeName, query)
 		}
 
-		const fromScratchWithDiff = (prevValue: Set<IdOf<S>>) => {
-			const nextValue = fromScratch()
+		const fromScratchWithDiff = (prevValue: Set<IdOf<S>>, query: QueryExpression<S>) => {
+			const nextValue = fromScratch(query)
 			const diff = diffSets(prevValue, nextValue)
 			if (diff) {
 				return withDiff(nextValue, diff)
@@ -539,18 +534,18 @@ export class StoreQueries<R extends UnknownRecord> {
 			(prevValue, lastComputedEpoch) => {
 				const query = cachedQuery.get()
 				if (isUninitialized(prevValue)) {
-					return fromScratch()
+					return fromScratch(query)
 				}
 
 				// if the query changed since last time this ran then we need to start again
 				if (lastComputedEpoch < cachedQuery.lastChangedEpoch) {
-					return fromScratchWithDiff(prevValue)
+					return fromScratchWithDiff(prevValue, query)
 				}
 
 				// otherwise iterate over the changes from the store and apply them to the previous value if needed
 				const history = typeHistory.getDiffSince(lastComputedEpoch)
 				if (history === RESET_VALUE) {
-					return fromScratchWithDiff(prevValue)
+					return fromScratchWithDiff(prevValue, query)
 				}
 
 				const setConstructor = new IncrementalSetConstructor<IdOf<S>>(

@@ -122,14 +122,14 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **QQ2** The query expression is itself reactive: `queryCreator` may read signals, and when the expression it returns changes (by deep equality), the query rebuilds and emits a correct diff. An expression that is deep-equal to the previous one causes no rebuild.
 - **QQ3** Changes that do not affect the result (unrelated types, updates that keep a record matching, irrelevant property changes) leave the same `Set` object in place.
 - **QQ4** `records(typeName, queryCreator?)` returns the matching records as an array, with shallow-array equality (same members → no change). `record(typeName, queryCreator?)` returns one matching record or `undefined`.
-- **QQ5** `exec(typeName, query)` runs one non-reactive query and returns matching records; with no matches it returns the shared empty array.
+- **QQ5** `exec(typeName, query)` runs one non-reactive query and returns matching records (all records of the type for `{}`); with no matches it returns the shared empty array.
 
 ## 14. Query execution (QE)
 
-- **QE1** `{ eq: v }` matches strict equality; `{ neq: v }` matches records whose value is defined and differs from `v` — records missing the property do not match, mirroring the indexes, which only track defined values; `{ gt: n }` matches only numbers strictly greater than `n` (non-numeric values never match `gt`).
+- **QE1** `{ eq: v }` matches by SameValueZero (so `NaN` matches `NaN`); `{ neq: v }` matches values that differ from `v` by SameValueZero; `{ gt: n }` matches only numbers strictly greater than `n` (non-numeric values never match `gt`). A record whose value is `undefined` matches no matcher at all, mirroring the indexes, which only track defined values — so `{ eq: undefined }` matches nothing. A matcher with several operators applies all of them.
 - **QE2** Multiple properties in one expression are ANDed; the result is the intersection of the per-property matches.
-- **QE3** A nested object in the expression matches into the corresponding nested record object, to any depth. If the record's value at that level is missing or not an object, the record does not match.
-- **QE4** The empty expression `{}` matches every record of the type: `objectMatchesQuery({}, r)` is true and `ids(type)` contains all ids. (The raw `executeQuery` helper instead returns an empty set for an empty expression; `StoreQueries.ids` special-cases it before calling `executeQuery`.)
+- **QE3** A nested object in the expression matches into the corresponding nested record object, to any depth. If the record's value at that level is missing or not an object, the record does not match. An empty nested object (or an entry that is neither a matcher nor an object) imposes no constraint.
+- **QE4** The empty expression `{}` matches every record of the type: `objectMatchesQuery({}, r)` is true, `executeQuery(store, type, {})` returns every id of the type, and `ids(type)` contains all ids.
 - **QE5** `executeQuery` (index-based) and `objectMatchesQuery` (predicate) agree: the set of ids returned equals the set of records matching the predicate, including for nested paths and across record types.
 
 ## 15. Schema (SC)
