@@ -116,12 +116,18 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		const asset = this.editor.getAsset<TLAsset>(props.assetId)
 		if (!asset) return null
 
-		const src = await videoSvgExportCache.get(asset, async () => {
-			const assetUrl = await ctx.resolveAssetUrl(asset.id, props.w)
-			if (!assetUrl) return null
-			const video = await MediaHelpers.loadVideo(assetUrl, this.editor.getContainerDocument())
-			return await MediaHelpers.getVideoFrameAsDataUrl(video, 0)
-		})
+		const src = await videoSvgExportCache
+			.get(asset, async () => {
+				const assetUrl = await ctx.resolveAssetUrl(asset.id, props.w)
+				if (!assetUrl) return null
+				const video = await MediaHelpers.loadVideo(assetUrl, this.editor.getContainerDocument())
+				return await MediaHelpers.getVideoFrameAsDataUrl(video, 0)
+			})
+			.catch((error) => {
+				// Don't memoize a failure: the next export should retry for this asset.
+				videoSvgExportCache.items.delete(asset)
+				throw error
+			})
 
 		if (!src) return null
 
