@@ -368,7 +368,6 @@ export function parseKbd(kbd: string): ParsedKbd[] {
 }
 
 function parseShortcut(shortcut: string): ParsedKbd | null {
-	const parts = shortcut.split('+')
 	const result: ParsedKbd = {
 		key: '',
 		shift: false,
@@ -377,23 +376,41 @@ function parseShortcut(shortcut: string): ParsedKbd | null {
 		meta: false,
 	}
 
-	let keyPart = ''
-	for (let i = 0; i < parts.length; i++) {
-		const part = parts[i]
-		const isLast = i === parts.length - 1
-		if (!isLast) {
-			const modAlias = MODIFIER_ALIASES[part.toLowerCase()]
-			if (modAlias) result[modAlias] = true
-			// silently drop unknown leading parts
-		} else {
-			keyPart = part
-		}
+	let modifierParts: string[]
+	let keyPart: string
+	// Only a single-character token binds (`[[+]]`). Longer ones like `[[Tab]]` are display-only
+	// labels in the shortcuts dialog and must not start capturing real keys. Prefix must be empty
+	// or end in `+` so `cmd[[+]]` stays malformed.
+	const atomic = /^(?:(.*)\+)?\[\[([^\]])\]\]$/.exec(shortcut)
+	if (atomic) {
+		modifierParts = atomic[1] ? atomic[1].split('+') : []
+		keyPart = atomic[2]
+	} else if (shortcut.includes('[[')) {
+		// Anything else containing `[[` is a malformed atomic token; never let it become a junk key.
+		return null
+	} else if (shortcut === '+' || shortcut.endsWith('++')) {
+		// `cmd++` is the `+` key. A single trailing `+` (`alt+shift+`, what the legacy `?`
+		// marker leaves behind) must stay unregistered, so only a doubled `+` counts.
+		modifierParts = shortcut.slice(0, -2).split('+')
+		keyPart = '+'
+	} else {
+		modifierParts = shortcut.split('+')
+		keyPart = modifierParts.pop() ?? ''
+	}
+
+	for (const part of modifierParts) {
+		const modAlias = MODIFIER_ALIASES[part.toLowerCase()]
+		if (modAlias) result[modAlias] = true
+		// silently drop unknown leading parts
 	}
 
 	if (!keyPart) return null
 
 	let key = keyPart.toLowerCase()
 	if (KEY_ALIASES[key]) key = KEY_ALIASES[key]
+	// getEventKey normalizes a shifted event through the same table, so `shift+:` can only ever
+	// match if it is stored as `shift+;`.
+	if (result.shift && SHIFT_KEY_TO_BASE[key]) key = SHIFT_KEY_TO_BASE[key]
 	result.key = key
 	return result
 }
