@@ -9162,18 +9162,47 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (shapeIdsToDelete.length === 0) return this
 
-		// We also need to delete these shapes' descendants
+		// We also need to delete these shapes' descendants. Locked descendants survive (with their
+		// own subtrees) and move to the nearest ancestor that isn't being deleted; otherwise
+		// deleting a frame or group would silently take its locked contents with it.
 		const allShapeIdsToDelete = new Set<TLShapeId>(shapeIdsToDelete)
+		const lockedDescendantIds: TLShapeId[] = []
 
 		for (const id of shapeIdsToDelete) {
 			this.visitDescendants(id, (childId) => {
+				if (!this._shouldIgnoreShapeLock && this.getShape(childId)?.isLocked) {
+					lockedDescendantIds.push(childId)
+					return false
+				}
 				allShapeIdsToDelete.add(childId)
 			})
 		}
 
 		this.emit('deleted-shapes', [...allShapeIdsToDelete])
 		this.emit('edit')
-		return this.run(() => this.store.remove([...allShapeIdsToDelete]))
+		return this.run(() => {
+			// Batch survivors by their outermost deleted ancestor and insert them at its index so
+			// they keep their z-order among the ancestor's siblings.
+			const survivorsByAncestorId = new Map<TLShapeId, TLShapeId[]>()
+			for (const id of lockedDescendantIds) {
+				let ancestor = this.getShape(this.getShape(id)!.parentId as TLShapeId)!
+				while (isShapeId(ancestor.parentId) && allShapeIdsToDelete.has(ancestor.parentId)) {
+					ancestor = this.getShape(ancestor.parentId)!
+				}
+				const survivors = survivorsByAncestorId.get(ancestor.id)
+				if (survivors) {
+					survivors.push(id)
+				} else {
+					survivorsByAncestorId.set(ancestor.id, [id])
+				}
+			}
+			for (const [ancestorId, survivors] of survivorsByAncestorId) {
+				const ancestor = this.getShape(ancestorId)!
+				this.reparentShapes(survivors, ancestor.parentId, ancestor.index)
+			}
+
+			this.store.remove([...allShapeIdsToDelete])
+		})
 	}
 
 	/**
