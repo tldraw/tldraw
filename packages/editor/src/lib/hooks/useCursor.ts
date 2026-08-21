@@ -23,8 +23,9 @@ function getCursorCss(
 	const dx = 1 * c - 1 * s
 	const dy = 1 * s + 1 * c
 
+	// A raw '#' in the colour (hex) would end the unencoded data url as a fragment.
 	return (
-		`url("data:image/svg+xml,<svg height='32' width='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg' style='color: ${color};'><defs><filter id='shadow' y='-40%' x='-40%' width='180px' height='180%' color-interpolation-filters='sRGB'><feDropShadow dx='${dx}' dy='${dy}' stdDeviation='1.2' flood-opacity='.5'/></filter></defs><g fill='none' transform='rotate(${
+		`url("data:image/svg+xml,<svg height='32' width='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg' style='color: ${encodeURIComponent(color)};'><defs><filter id='shadow' y='-40%' x='-40%' width='180px' height='180%' color-interpolation-filters='sRGB'><feDropShadow dx='${dx}' dy='${dy}' stdDeviation='1.2' flood-opacity='.5'/></filter></defs><g fill='none' transform='rotate(${
 			r + tr
 		} 16 16)${f ? ` scale(-1,-1) translate(0, -32)` : ''}' filter='url(%23shadow)'>` +
 		svg.replaceAll(`"`, `'`) +
@@ -43,6 +44,9 @@ const STATIC_CURSORS = [
 	'text',
 	'zoom-in',
 	'zoom-out',
+	'rotate',
+	'resize-edge',
+	'resize-corner',
 ]
 
 type CursorFunction = (rotation: number, flip: boolean, color: string) => string
