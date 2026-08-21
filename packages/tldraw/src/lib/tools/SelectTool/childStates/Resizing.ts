@@ -21,6 +21,7 @@ import {
 } from '@tldraw/editor'
 import { getEnclosedShapeIds } from '../../../shapes/frame/FrameShapeTool'
 import { batchMeasureGeoLabels, setBatchLabelSizeCache } from '../../../shapes/geo/GeoShapeUtil'
+import { GestureShapeChangeTracker } from '../GestureShapeChangeTracker'
 
 export type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'
@@ -49,6 +50,11 @@ export class Resizing extends StateNode {
 	creationCursorOffset = { x: 0, y: 0 } as VecLike
 
 	private snapshot = {} as any as Snapshot
+
+	private changeTracker = new GestureShapeChangeTracker(
+		this.editor,
+		(id) => this.snapshot.shapeSnapshots?.has(id) ?? false
+	)
 
 	override onEnter(info: ResizingInfo) {
 		const { isCreating = false, creatingMarkId, creationCursorOffset = { x: 0, y: 0 } } = info
@@ -91,6 +97,9 @@ export class Resizing extends StateNode {
 		if (isCreating) {
 			this.editor.setCursor({ type: 'cross', rotation: 0 })
 		}
+
+		// Watch for changes made to the resizing shapes from outside this interaction.
+		this.changeTracker.start()
 
 		this.handleResizeStart()
 		this.updateShapes()
@@ -178,43 +187,61 @@ export class Resizing extends StateNode {
 	}
 
 	private handleResizeStart() {
-		const { shapeSnapshots } = this.snapshot
+		this.changeTracker.ignoreChanges(() => {
+			const { shapeSnapshots } = this.snapshot
 
-		const changes: TLShapePartial[] = []
+			const changes: TLShapePartial[] = []
 
-		shapeSnapshots.forEach(({ shape }) => {
-			const util = this.editor.getShapeUtil(shape)
-			const change = util.onResizeStart?.(shape)
-			if (change) {
-				changes.push(change)
+			shapeSnapshots.forEach(({ shape }) => {
+				const util = this.editor.getShapeUtil(shape)
+				const change = util.onResizeStart?.(shape)
+				if (change) {
+					changes.push(change)
+				}
+			})
+
+			if (changes.length > 0) {
+				this.editor.updateShapes(changes)
 			}
 		})
-
-		if (changes.length > 0) {
-			this.editor.updateShapes(changes)
-		}
 	}
 
 	private handleResizeEnd() {
-		const { shapeSnapshots } = this.snapshot
+		this.changeTracker.ignoreChanges(() => {
+			const { shapeSnapshots } = this.snapshot
 
-		const changes: TLShapePartial[] = []
+			const changes: TLShapePartial[] = []
 
-		shapeSnapshots.forEach(({ shape }) => {
-			const current = this.editor.getShape(shape.id)!
-			const util = this.editor.getShapeUtil(shape)
-			const change = util.onResizeEnd?.(shape, current)
-			if (change) {
-				changes.push(change)
+			shapeSnapshots.forEach(({ shape }) => {
+				const current = this.editor.getShape(shape.id)!
+				const util = this.editor.getShapeUtil(shape)
+				const change = util.onResizeEnd?.(shape, current)
+				if (change) {
+					changes.push(change)
+				}
+			})
+
+			if (changes.length > 0) {
+				this.editor.updateShapes(changes)
 			}
 		})
-
-		if (changes.length > 0) {
-			this.editor.updateShapes(changes)
-		}
 	}
 
 	private updateShapes() {
+		this.changeTracker.ignoreChanges(() => {
+			// Resizing recomputes each shape from `snapshot + scale` every update, so
+			// a change made to the resizing shapes from outside this interaction
+			// would otherwise be stomped. When the tracker has noticed such a change,
+			// re-anchor the snapshot (resetting the origin to the current pointer so
+			// the scale resolves to 1) before resizing.
+			if (this.changeTracker.getAndClearChanged()) {
+				this.snapshot = this._createSnapshot(this.editor.inputs.getCurrentPagePoint())
+			}
+			this._updateShapes()
+		})
+	}
+
+	private _updateShapes() {
 		const {
 			editor,
 			info,
@@ -223,6 +250,7 @@ export class Resizing extends StateNode {
 				shapeSnapshots,
 				selectionBounds,
 				cursorHandleOffset,
+				originPagePoint: snapshotOriginPagePoint,
 				selectedShapeIds,
 				selectionRotation,
 				canShapesDeform,
@@ -283,7 +311,7 @@ export class Resizing extends StateNode {
 			.sub(cursorHandleOffset)
 			.sub(this.creationCursorOffset)
 
-		const originPagePoint = editor.inputs.getOriginPagePoint().clone().sub(cursorHandleOffset)
+		const originPagePoint = snapshotOriginPagePoint.clone().sub(cursorHandleOffset)
 
 		if (editor.getInstanceState().isGridMode && !isHoldingAccel) {
 			const { gridSize } = editor.getDocumentSettings()
@@ -537,6 +565,7 @@ export class Resizing extends StateNode {
 	}
 
 	override onExit() {
+		this.changeTracker.stop()
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.editor.snaps.clearIndicators()
@@ -546,11 +575,10 @@ export class Resizing extends StateNode {
 		}
 	}
 
-	private _createSnapshot() {
+	private _createSnapshot(originPagePoint = this.editor.inputs.getOriginPagePoint()) {
 		const { editor } = this
 		const selectedShapeIds = editor.getSelectedShapeIds()
 		const selectionRotation = editor.getSelectionRotation()
-		const originPagePoint = editor.inputs.getOriginPagePoint()
 
 		const selectionBounds = editor.getSelectionRotatedPageBounds()
 		if (!selectionBounds) throw Error('Resizing but nothing is selected')
@@ -658,6 +686,10 @@ export class Resizing extends StateNode {
 			shapeSnapshots,
 			selectionBounds,
 			cursorHandleOffset,
+			// The page point the gesture is measured from. Normally the drag origin,
+			// but reset to the current pointer when the snapshot is re-anchored after
+			// an external change, so the scale resolves to 1 there and doesn't jump.
+			originPagePoint,
 			selectionRotation,
 			selectedShapeIds,
 			canShapesDeform,
