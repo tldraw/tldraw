@@ -38,7 +38,8 @@ export function kbd(str: string) {
 			.flat()
 			// A `+` is a separator unless it is the key itself, which is always last. Filter before
 			// mapping so `index` below counts rendered parts, else `++` gets a separator prepended.
-			.filter((sub, index, arr) => sub[0] !== '+' || index === arr.length - 1)
+			// An empty atomic token (`[[]]`) yields an empty sub that would throw on `sub[0]` below.
+			.filter((sub, index, arr) => sub !== '' && (sub[0] !== '+' || index === arr.length - 1))
 			.map((sub, index) => {
 				let modifiedKey
 				if (sub === '__CTRL__') {

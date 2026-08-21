@@ -17,6 +17,10 @@ describe('kbd', () => {
 		expect(kbd('++')).toEqual(['+'])
 	})
 
+	it('does not throw on an empty atomic token', () => {
+		expect(kbd('[[]]')).toEqual([])
+	})
+
 	it('renders an atomic [[+]] as a + keycap', () => {
 		expect(kbd('cmd+[[+]]')).toEqual(kbd('cmd++'))
 	})
