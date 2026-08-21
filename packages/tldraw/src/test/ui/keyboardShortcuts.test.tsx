@@ -314,3 +314,34 @@ describe('shifted number-row shortcuts across keyboard layouts', () => {
 		expect(zoomOut).toHaveBeenCalledTimes(1)
 	})
 })
+
+const NO_MODS = { shift: false, alt: false, ctrl: false, meta: false }
+
+describe('parseKbd literal plus key', () => {
+	it('parses a doubled trailing + as the + key', () => {
+		expect(parseKbd('cmd++')).toEqual([{ ...NO_MODS, meta: true, key: '+' }])
+		expect(parseKbd('+')).toEqual([{ ...NO_MODS, key: '+' }])
+		expect(parseKbd('cmd++,ctrl++,+')).toEqual([
+			{ ...NO_MODS, meta: true, key: '+' },
+			{ ...NO_MODS, ctrl: true, key: '+' },
+			{ ...NO_MODS, key: '+' },
+		])
+	})
+
+	it('parses an atomic [[+]] token as the + key', () => {
+		expect(parseKbd('cmd+[[+]]')).toEqual([{ ...NO_MODS, meta: true, key: '+' }])
+		expect(parseKbd('[[+]]')).toEqual([{ ...NO_MODS, key: '+' }])
+	})
+
+	it('rejects an atomic token without a + separator before it', () => {
+		expect(parseKbd('cmd[[+]]')).toEqual([])
+		expect(parseKbd('cmd+foo[[+]]')).toEqual([])
+	})
+
+	it('still drops a single trailing + so legacy markers cannot become a plus binding', () => {
+		// getHotkeysStringFromKbd treats ? as the legacy alt marker and strips it, leaving 'alt+shift+'.
+		expect(getHotkeysStringFromKbd('shift+?')).toBe('alt+shift+')
+		expect(parseKbd('alt+shift+')).toEqual([])
+		expect(parseKbd(getHotkeysStringFromKbd('shift+?'))).toEqual([])
+	})
+})

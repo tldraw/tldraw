@@ -368,7 +368,6 @@ export function parseKbd(kbd: string): ParsedKbd[] {
 }
 
 function parseShortcut(shortcut: string): ParsedKbd | null {
-	const parts = shortcut.split('+')
 	const result: ParsedKbd = {
 		key: '',
 		shift: false,
@@ -377,17 +376,30 @@ function parseShortcut(shortcut: string): ParsedKbd | null {
 		meta: false,
 	}
 
-	let keyPart = ''
-	for (let i = 0; i < parts.length; i++) {
-		const part = parts[i]
-		const isLast = i === parts.length - 1
-		if (!isLast) {
-			const modAlias = MODIFIER_ALIASES[part.toLowerCase()]
-			if (modAlias) result[modAlias] = true
-			// silently drop unknown leading parts
-		} else {
-			keyPart = part
-		}
+	let modifierParts: string[]
+	let keyPart: string
+	// Prefix must be empty or end in `+` so `cmd[[+]]` stays malformed; same token class as kbd().
+	const atomic = /^(?:(.*)\+)?\[\[([^\]]+)\]\]$/.exec(shortcut)
+	if (atomic) {
+		modifierParts = atomic[1] ? atomic[1].split('+') : []
+		keyPart = atomic[2]
+	} else if (shortcut === '+' || shortcut.endsWith('++')) {
+		// `cmd++` is the `+` key. A single trailing `+` (`alt+shift+`, what the legacy `?`
+		// marker leaves behind) must stay unregistered, so only a doubled `+` counts.
+		modifierParts = shortcut.slice(0, -2).split('+')
+		keyPart = '+'
+	} else if (shortcut.includes('[[')) {
+		// An unmatched `[[` (no `+` directly before it, or nested) is a malformed atomic token.
+		return null
+	} else {
+		modifierParts = shortcut.split('+')
+		keyPart = modifierParts.pop() ?? ''
+	}
+
+	for (const part of modifierParts) {
+		const modAlias = MODIFIER_ALIASES[part.toLowerCase()]
+		if (modAlias) result[modAlias] = true
+		// silently drop unknown leading parts
 	}
 
 	if (!keyPart) return null
