@@ -469,15 +469,13 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 		return (
 			<>
-				{ctx.isDarkMode ? null : (
-					<rect
-						rx={1}
-						width={dv.noteWidth}
-						height={bounds.h}
-						fill={dv.noteBackgroundColor}
-						filter={`url(#${filterId})`}
-					/>
-				)}
+				<rect
+					rx={1}
+					width={dv.noteWidth}
+					height={bounds.h}
+					fill={dv.noteBackgroundColor}
+					filter={`url(#${filterId})`}
+				/>
 				<rect rx={1} width={dv.noteWidth} height={bounds.h} fill={dv.noteBackgroundColor} />
 				<RichTextSVG
 					fontSize={(shape.props.fontSizeAdjustment ?? 1) * dv.labelFontSize}
