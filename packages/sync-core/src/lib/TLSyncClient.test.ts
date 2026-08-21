@@ -21,6 +21,8 @@ import {
 	getTlsyncProtocolVersion,
 } from './protocol'
 import {
+	COLLABORATIVE_SYNC_FPS,
+	SOLO_SYNC_FPS,
 	TLPersistentClientSocket,
 	TLPresenceMode,
 	TLSocketStatusChangeEvent,
@@ -231,6 +233,7 @@ describe('TLSyncClient', () => {
 			socket: TLPersistentClientSocket<TestRecord>
 			presence: Atom<TestRecord | null>
 			presenceMode?: Atom<TLPresenceMode>
+			syncFps?: number | Atom<number>
 			onLoad(self: TLSyncClient<TestRecord, Store<TestRecord, any>>): void
 			onSyncError(reason: string): void
 			onCustomMessageReceived?(data: any): void
@@ -908,13 +911,32 @@ describe('TLSyncClient', () => {
 
 		it('[CP6] drops the network throttle from 30fps to 1fps in solo mode', () => {
 			client = createClient()
-			expect((client as any).fpsScheduler.targetFps).toBe(30)
+			expect((client as any).fpsScheduler.targetFps).toBe(COLLABORATIVE_SYNC_FPS)
 
 			presenceMode.set('solo')
-			expect((client as any).fpsScheduler.targetFps).toBe(1)
+			expect((client as any).fpsScheduler.targetFps).toBe(SOLO_SYNC_FPS)
 
 			presenceMode.set('full')
-			expect((client as any).fpsScheduler.targetFps).toBe(30)
+			expect((client as any).fpsScheduler.targetFps).toBe(COLLABORATIVE_SYNC_FPS)
+		})
+
+		it('[CP6] an explicit syncFps overrides the rate presence would have chosen', () => {
+			// The point of the option: a caller whose connection costs nothing says so directly,
+			// instead of claiming to have company in the room to get the faster rate as a side effect.
+			client = createClient({ syncFps: COLLABORATIVE_SYNC_FPS })
+			expect((client as any).fpsScheduler.targetFps).toBe(COLLABORATIVE_SYNC_FPS)
+
+			presenceMode.set('solo')
+			expect((client as any).fpsScheduler.targetFps).toBe(COLLABORATIVE_SYNC_FPS)
+		})
+
+		it('[CP6] follows syncFps when it is a signal', () => {
+			const syncFps = atom('syncFps', 10)
+			client = createClient({ syncFps })
+			expect((client as any).fpsScheduler.targetFps).toBe(10)
+
+			syncFps.set(COLLABORATIVE_SYNC_FPS)
+			expect((client as any).fpsScheduler.targetFps).toBe(COLLABORATIVE_SYNC_FPS)
 		})
 
 		it('[CP7] stops sending pushes when the store reports possible corruption', () => {
