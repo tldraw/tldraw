@@ -752,7 +752,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 						}
 
 						if (deleteBindingIds.length) {
-							this.deleteBindings(deleteBindingIds)
+							// straight to the store: this cleanup must run even when deleteBindings would
+							// refuse (readonly), e.g. for a deletion that arrived from a remote peer
+							this.store.remove(deleteBindingIds)
 						}
 					},
 				},
@@ -1969,6 +1971,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 **/
 	updateDocumentSettings(settings: Partial<TLDocument>): this {
+		if (this.getIsReadonly()) return this
 		this.run(
 			() => {
 				this.store.put([{ ...this.getDocumentSettings(), ...settings }])
@@ -6764,6 +6767,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * binding, but the `type`, `toId`, and `fromId` must all be provided.
 	 */
 	createBindings<B extends TLBinding = TLBinding>(partials: TLBindingCreate<B>[]) {
+		if (this.getIsReadonly()) return this
+
 		const bindings: TLBinding[] = []
 		for (const partial of partials) {
 			const fromShape = this.getShape(partial.fromId)
@@ -6803,6 +6808,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * binding is skipped. The changes from the partial are merged into the existing record.
 	 */
 	updateBindings(partials: (TLBindingUpdate | null | undefined)[]) {
+		if (this.getIsReadonly()) return this
+
 		const updated: TLBinding[] = []
 
 		for (const partial of partials) {
@@ -6840,6 +6847,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Delete several bindings by their IDs. If a binding ID doesn't exist, it's ignored.
 	 */
 	deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes = false } = {}) {
+		if (this.getIsReadonly()) return this
+		return this._deleteBindings(bindings, { isolateShapes })
+	}
+
+	// Unguarded so that withIsolatedShapes can transiently isolate shapes (copy, duplicate)
+	// in readonly mode; the public deleteBindings is what readonly blocks.
+	/** @internal */
+	_deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes = false } = {}) {
 		const ids = bindings.map((binding) => (typeof binding === 'string' ? binding : binding.id))
 		if (isolateShapes) {
 			this.store.atomic(() => {
@@ -11727,7 +11742,7 @@ function withIsolatedShapes<T>(
 					}
 				}
 
-				editor.deleteBindings([...bindingsToRemove], { isolateShapes: true })
+				editor._deleteBindings([...bindingsToRemove], { isolateShapes: true })
 
 				try {
 					result = Result.ok(callback(bindingsWithBoth))
