@@ -501,6 +501,43 @@ describe('PointingLabel', () => {
 		editor.expectToBeIn('select.idle')
 	})
 
+	it('returns to idle on pointer up when the arrow is deleted mid-press', () => {
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: {
+					richText: toRichText('Test Label'),
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 0 },
+				},
+			},
+		])
+		const shape = editor.getShape(ids.arrow1)!
+		editor.select(shape.id)
+
+		editor.pointerDown(150, 100, {
+			target: 'shape',
+			shape,
+		})
+		editor.pointerMove(160, 100)
+		editor.expectToBeIn('select.pointing_arrow_label')
+
+		editor.deleteShapes([ids.arrow1])
+
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getShape(ids.arrow1)).toBeUndefined()
+
+		// The next press must reach the canvas again
+		editor.pointerDown(300, 300)
+		editor.expectToBeIn('select.pointing_canvas')
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+	})
+
 	it('Doesnt go into pointing_arrow_label mode if not selecting the arrow shape', () => {
 		editor.createShapes([
 			{

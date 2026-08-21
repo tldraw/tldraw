@@ -134,7 +134,13 @@ export class PointingArrowLabel extends StateNode {
 
 	override onPointerUp() {
 		const shape = this.editor.getShape<TLArrowShape>(this.shapeId)
-		if (!shape) return
+		if (!shape) {
+			// The arrow was deleted mid-press (collaborator, Delete key). Returning
+			// without transitioning leaves the tool stuck in this state, which has
+			// no pointer down handler.
+			this.complete()
+			return
+		}
 
 		if (this.didDrag || !this.wasAlreadySelected) {
 			this.complete()
