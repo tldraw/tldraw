@@ -607,9 +607,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		networkDiff?: NetworkDiff<R> | null,
 		sourceSessionId?: string
 	) {
-		// Pre-compute network diff if not provided
-		const unmigrated = networkDiff ?? toNetworkDiff(diff)
-		if (!unmigrated) return this
+		// Computed once and shared by every session that needs no down-migration; the push path
+		// hands us the diff it already computed (in legacy append mode when needed), and re-deriving
+		// it per session would both repeat the diffing work and lose that legacy handling.
+		const legacyAppendMode = !this.getCanEmitStringAppend()
+		const unmigrated = networkDiff ?? toNetworkDiff(diff, legacyAppendMode)
 
 		this.sessions.forEach((session) => {
 			if (session.state !== RoomSessionState.Connected) return
@@ -623,7 +625,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				session.sessionId,
 				session.serializedSchema,
 				session.requiresDownMigrations,
-				diff
+				diff,
+				unmigrated,
+				legacyAppendMode
 			)
 			if (!diffResult.ok) return
 
@@ -798,6 +802,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * @param requiresDownMigrations - Whether the client needs down migrations
 	 * @param diff - The TLSyncForwardDiff containing full records to migrate
 	 * @param unmigrated - Optional pre-computed NetworkDiff for when no migration is needed
+	 * @param legacyAppendMode - Emit string appends as puts (SES5); defaults to the room-wide state
 	 * @returns A NetworkDiff with migrated records, or a migration failure
 	 */
 	private migrateDiffOrRejectSession(
@@ -805,10 +810,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		serializedSchema: SerializedSchema,
 		requiresDownMigrations: boolean,
 		diff: TLSyncForwardDiff<R>,
-		unmigrated?: NetworkDiff<R>
+		unmigrated?: NetworkDiff<R>,
+		legacyAppendMode = !this.getCanEmitStringAppend()
 	): Result<NetworkDiff<R>, MigrationFailureReason> {
 		if (!requiresDownMigrations) {
-			return Result.ok(unmigrated ?? toNetworkDiff(diff) ?? {})
+			return Result.ok(unmigrated ?? toNetworkDiff(diff, legacyAppendMode))
 		}
 
 		const result: NetworkDiff<R> = {}
@@ -828,7 +834,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					this.rejectSession(sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 					return Result.err(toResult.reason)
 				}
-				const patch = diffRecord(fromResult.value, toResult.value)
+				const patch = diffRecord(fromResult.value, toResult.value, legacyAppendMode)
 				if (patch) {
 					result[id] = [RecordOpType.Patch, patch]
 				}
@@ -1196,7 +1202,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 			let { value: state } = res
 
-			// Get the existing document, if any
 			const doc =
 				prevDoc !== undefined ? (prevDoc ?? undefined) : (storage.get(id) as R | undefined)
 
@@ -1212,7 +1217,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// If there's an existing document, replace it with the new state
 				// but propagate a diff rather than the entire value
 				const recordType = assertExists(getOwnProperty(this.schema.types, doc.typeName))
-				const diff = diffAndValidateRecord(doc, state, recordType)
+				const diff = diffAndValidateRecord(doc, state, recordType, legacyAppendMode)
 				if (diff) {
 					storage.set(id, state)
 					propagateOp(changes, id, [RecordOpType.Patch, diff], doc, state)
@@ -1330,6 +1335,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					!session ||
 					(this.objectTypes.has(typeName) ? session.objectAccess !== 'read' : !session.isReadonly)
 
+				// what authorizers see of the pushing session, shared by every authorized op in this push
+				const authSession = session
+					? { sessionId: session.sessionId, isReadonly: session.isReadonly, meta: session.meta }
+					: null
+
 				if (message.diff) {
 					// The push request was for the document scope.
 					for (const [id, op] of objectMapEntriesIterable(message.diff!)) {
@@ -1380,26 +1390,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 										authorize = (prevRec, next) => {
 											const result = authorizePut(
 												prevRec
-													? {
-															session: {
-																sessionId: session.sessionId,
-																isReadonly: session.isReadonly,
-																meta: session.meta,
-															},
-															type: 'update',
-															prev: prevRec,
-															next,
-														}
-													: {
-															session: {
-																sessionId: session.sessionId,
-																isReadonly: session.isReadonly,
-																meta: session.meta,
-															},
-															type: 'create',
-															prev: null,
-															next,
-														}
+													? { session: authSession!, type: 'update', prev: prevRec, next }
+													: { session: authSession!, type: 'create', prev: null, next }
 											)
 											if (!result) {
 												this.log?.warn?.(
@@ -1431,11 +1423,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								const authorize = authorizePatch
 									? (prev: R, next: R) => {
 											const result = authorizePatch({
-												session: {
-													sessionId: session.sessionId,
-													isReadonly: session.isReadonly,
-													meta: session.meta,
-												},
+												session: authSession!,
 												type: 'update',
 												prev,
 												next,
@@ -1469,16 +1457,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								const authorizeRemove = session && this.authorizerFor(doc.typeName)
 								if (
 									authorizeRemove &&
-									!authorizeRemove({
-										session: {
-											sessionId: session.sessionId,
-											isReadonly: session.isReadonly,
-											meta: session.meta,
-										},
-										type: 'delete',
-										prev: doc,
-										next: null,
-									})
+									!authorizeRemove({ session: authSession!, type: 'delete', prev: doc, next: null })
 								) {
 									this.log?.warn?.(
 										'authorizer vetoed delete',
@@ -1510,7 +1489,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		let pushResult: TLSocketServerSentEvent<R> | undefined
 		if (changes && session) {
 			// txn did not apply verbatim so we should broadcast the actual changes
-			result.docChanges.diffs = { networkDiff: toNetworkDiff(changes) ?? {}, diff: changes }
+			result.docChanges.diffs = {
+				networkDiff: toNetworkDiff(changes, legacyAppendMode),
+				diff: changes,
+			}
 		}
 
 		if (isEqual(result.docChanges.diffs?.networkDiff, message.diff)) {
@@ -1535,7 +1517,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				session.serializedSchema,
 				session.requiresDownMigrations,
 				result.docChanges.diffs.diff,
-				result.docChanges.diffs.networkDiff
+				result.docChanges.diffs.networkDiff,
+				legacyAppendMode
 			)
 			if (diff.ok) {
 				pushResult = {
