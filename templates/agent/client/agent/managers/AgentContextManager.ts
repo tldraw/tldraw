@@ -1,12 +1,5 @@
-import { Atom, atom, Box, structuredClone, Vec } from 'tldraw'
-import { FocusedShape } from '../../../shared/format/FocusedShape'
-import {
-	AreaContextItem,
-	ContextItem,
-	PointContextItem,
-	ShapeContextItem,
-	ShapesContextItem,
-} from '../../../shared/types/ContextItem'
+import { Atom, atom, Box, exhaustiveSwitchError, structuredClone, Vec } from 'tldraw'
+import { ContextItem, ShapesContextItem } from '../../../shared/types/ContextItem'
 import type { TldrawAgent } from '../TldrawAgent'
 import { BaseAgentManager } from './BaseAgentManager'
 
@@ -68,14 +61,11 @@ export class AgentContextManager extends BaseAgentManager {
 		this.$contextItems.update((items) => {
 			// Don't add shapes that are already within context
 			if (item.type === 'shapes') {
-				const newItems = dedupeShapesContextItem(item, items)
-				return [...items, ...newItems]
+				return [...items, ...dedupeShapesContextItem(item, items)]
 			}
 
 			// Don't add items that are already in context
-			if (this.has(item)) {
-				return items
-			}
+			if (this.has(item)) return items
 
 			return [...items, structuredClone(item)]
 		})
@@ -105,18 +95,14 @@ export class AgentContextManager extends BaseAgentManager {
 	 */
 	has(item: ContextItem) {
 		const items = this.$contextItems.get()
-		if (items.some((v) => areContextItemsEqual(v, item))) {
-			return true
-		}
+		if (items.some((v) => areContextItemsEqual(v, item))) return true
 
 		if (item.type === 'shape') {
-			for (const existingItem of items) {
-				if (existingItem.type === 'shapes') {
-					if (existingItem.shapes.some((shape) => shape.shapeId === item.shape.shapeId)) {
-						return true
-					}
-				}
-			}
+			return items.some(
+				(existing) =>
+					existing.type === 'shapes' &&
+					existing.shapes.some((shape) => shape.shapeId === item.shape.shapeId)
+			)
 		}
 
 		return false
@@ -133,21 +119,18 @@ function areContextItemsEqual(a: ContextItem, b: ContextItem): boolean {
 
 	switch (a.type) {
 		case 'shape': {
-			const _b = b as ShapeContextItem
-			return a.shape.shapeId === _b.shape.shapeId
+			return a.shape.shapeId === (b as typeof a).shape.shapeId
 		}
 		case 'shapes': {
-			const _b = b as ShapesContextItem
-			if (a.shapes.length !== _b.shapes.length) return false
-			return a.shapes.every((shape) => _b.shapes.find((s) => s.shapeId === shape.shapeId))
+			const bShapes = (b as typeof a).shapes
+			if (a.shapes.length !== bShapes.length) return false
+			return a.shapes.every((shape) => bShapes.some((s) => s.shapeId === shape.shapeId))
 		}
 		case 'area': {
-			const _b = b as AreaContextItem
-			return Box.Equals(a.bounds, _b.bounds)
+			return Box.Equals(a.bounds, (b as typeof a).bounds)
 		}
 		case 'point': {
-			const _b = b as PointContextItem
-			return Vec.Equals(a.point, _b.point)
+			return Vec.Equals(a.point, (b as typeof a).point)
 		}
 		default: {
 			exhaustiveSwitchError(a)
@@ -169,51 +152,26 @@ function dedupeShapesContextItem(
 	const existingShapeIds = new Set<string>()
 
 	// Check individual shapes
-	existingItems.forEach((contextItem) => {
+	for (const contextItem of existingItems) {
 		if (contextItem.type === 'shape') {
 			existingShapeIds.add(contextItem.shape.shapeId)
 		} else if (contextItem.type === 'shapes') {
-			contextItem.shapes.forEach((shape: FocusedShape) => {
-				existingShapeIds.add(shape.shapeId)
-			})
+			for (const shape of contextItem.shapes) existingShapeIds.add(shape.shapeId)
 		}
-	})
+	}
 
 	// Filter out shapes that are already in the context
 	const newShapes = item.shapes.filter((shape) => !existingShapeIds.has(shape.shapeId))
 
 	// Only add if there are remaining shapes
-	if (newShapes.length > 0) {
-		// If only one shape remains, add it as a single shape item
-		if (newShapes.length === 1) {
-			const newItem: ContextItem = {
-				type: 'shape',
-				shape: newShapes[0],
-				source: item.source,
-			}
-			return [structuredClone(newItem)]
-		}
-
-		// Otherwise add as a shapes group
-		const newItem: ContextItem = {
-			type: 'shapes',
-			shapes: newShapes,
-			source: item.source,
-		}
-		return [structuredClone(newItem)]
-	}
-
 	// No new shapes to add
-	return []
-}
+	if (newShapes.length === 0) return []
 
-/**
- * Throw an error if a switch case is not exhaustive.
- *
- * This is a helper function that is used internally by the manager.
- */
-function exhaustiveSwitchError(value: never, property?: string): never {
-	const debugValue =
-		property && value && typeof value === 'object' && property in value ? value[property] : value
-	throw new Error(`Unknown switch case ${debugValue}`)
+	// If only one shape remains, add it as a single shape item
+	// Otherwise add as a shapes group
+	const newItem: ContextItem =
+		newShapes.length === 1
+			? { type: 'shape', shape: newShapes[0], source: item.source }
+			: { type: 'shapes', shapes: newShapes, source: item.source }
+	return [structuredClone(newItem)]
 }

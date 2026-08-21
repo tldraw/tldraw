@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react'
 import { reverseRecordsDiff, squashRecordDiffs } from 'tldraw'
-import { AgentIcon, AgentIconType } from '../../../shared/icons/AgentIcon'
+import { AgentIcon } from '../../../shared/icons/AgentIcon'
+import { ChatHistoryInfo } from '../../../shared/types/ChatHistoryInfo'
 import { ChatHistoryActionItem } from '../../../shared/types/ChatHistoryItem'
 import { useAgent } from '../../agent/TldrawAgentAppProvider'
 import { ChatHistoryGroup } from './ChatHistoryGroup'
@@ -13,62 +14,38 @@ export function ChatHistoryGroupWithDiff({ group }: { group: ChatHistoryGroup })
 	const { editor } = agent
 	const diff = useMemo(() => squashRecordDiffs(items.map((item) => item.diff)), [items])
 
-	// Accept all changes from this group
-	const handleAccept = useCallback(() => {
-		agent.chat.update((currentChatHistoryItems) => {
-			const newItems = [...currentChatHistoryItems]
-			for (const item of items) {
-				const index = newItems.findIndex((v) => v === item)
+	// Mark every item in the group, and apply or reverse each item's diff so the canvas matches
+	const setAcceptance = useCallback(
+		(acceptance: 'accepted' | 'rejected') => {
+			agent.chat.update((currentChatHistoryItems) => {
+				const newItems = [...currentChatHistoryItems]
+				for (const item of items) {
+					const index = newItems.indexOf(item)
+					if (index !== -1) {
+						newItems[index] = { ...item, acceptance }
+					}
 
-				// Mark the item as accepted
-				if (index !== -1) {
-					newItems[index] = { ...item, acceptance: 'accepted' }
+					const wasRejected = item.acceptance === 'rejected'
+					if (acceptance === 'accepted' && wasRejected) {
+						editor.store.applyDiff(item.diff)
+					} else if (acceptance === 'rejected' && !wasRejected) {
+						editor.store.applyDiff(reverseRecordsDiff(item.diff))
+					}
 				}
-
-				// Apply the diff if needed
-				if (item.acceptance === 'rejected') {
-					editor.store.applyDiff(item.diff)
-				}
-			}
-			return newItems
-		})
-	}, [items, editor, agent.chat])
-
-	// Reject all changes from this group
-	const handleReject = useCallback(() => {
-		agent.chat.update((currentChatHistoryItems) => {
-			const newItems = [...currentChatHistoryItems]
-			for (const item of items) {
-				const index = newItems.findIndex((v) => v === item)
-
-				// Mark the item as rejected
-				if (index !== -1) {
-					newItems[index] = { ...item, acceptance: 'rejected' }
-				}
-
-				// Reverse the diff if needed
-				if (item.acceptance !== 'rejected') {
-					const reverseDiff = reverseRecordsDiff(item.diff)
-					editor.store.applyDiff(reverseDiff)
-				}
-			}
-			return newItems
-		})
-	}, [items, editor, agent.chat])
+				return newItems
+			})
+		},
+		[items, editor, agent.chat]
+	)
 
 	// Get the acceptance status of the group
 	// If all items are accepted, the group is accepted
 	// If all items are rejected, the group is rejected
 	// Otherwise, the group is pending
 	const acceptance = useMemo<ChatHistoryActionItem['acceptance']>(() => {
-		if (items.length === 0) return 'pending'
-		const acceptance = items[0].acceptance
-		for (let i = 1; i < items.length; i++) {
-			if (items[i].acceptance !== acceptance) {
-				return 'pending'
-			}
-		}
-		return acceptance
+		const first = items[0]?.acceptance
+		if (!first) return 'pending'
+		return items.every((item) => item.acceptance === first) ? first : 'pending'
 	}, [items])
 
 	const steps = useMemo(
@@ -79,10 +56,10 @@ export function ChatHistoryGroupWithDiff({ group }: { group: ChatHistoryGroup })
 	return (
 		<div className="chat-history-change">
 			<div className="chat-history-change-acceptance">
-				<button onClick={handleReject} disabled={acceptance === 'rejected'}>
+				<button onClick={() => setAcceptance('rejected')} disabled={acceptance === 'rejected'}>
 					{acceptance === 'rejected' ? 'Rejected' : 'Reject'}
 				</button>
-				<button onClick={handleAccept} disabled={acceptance === 'accepted'}>
+				<button onClick={() => setAcceptance('accepted')} disabled={acceptance === 'accepted'}>
 					{acceptance === 'accepted' ? 'Accepted' : 'Accept'}
 				</button>
 			</div>
@@ -92,12 +69,7 @@ export function ChatHistoryGroupWithDiff({ group }: { group: ChatHistoryGroup })
 	)
 }
 
-interface DiffStep {
-	icon: AgentIconType | null
-	description: string | null
-}
-
-function DiffSteps({ steps }: { steps: DiffStep[] }) {
+function DiffSteps({ steps }: { steps: Pick<ChatHistoryInfo, 'icon' | 'description'>[] }) {
 	let previousDescription = ''
 	return (
 		<div className="agent-changes">
