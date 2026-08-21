@@ -28,13 +28,19 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { assetUrls } from '../utils/assetUrls'
-import { defineLoader } from '../utils/defineLoader'
 import { embedShapeUtils } from '../utils/embedShapeUtil'
+
+// The thumbnail render page: a real editor, loaded with one board's records, that exports itself
+// and displays the export for Browser Run to screenshot. Served as its own Vite entry
+// (thumbnail-render.html + thumbnail-render-main.tsx) rather than as an SPA route, so a capture
+// boots the SDK and nothing else — no router, no Clerk, no service worker. /__thumbnail-render is
+// rewritten to that entry at the edge (scripts/build.ts) and in dev
+// (vite-thumbnail-screenshot-plugin.ts), so the URL the sync-worker renders never moves.
 
 const THUMBNAIL_SNAPSHOT_ENDPOINT = '/api/app/thumbnail-render/snapshot'
 const THUMBNAIL_RESULT_ENDPOINT = '/api/app/thumbnail-render/result'
 
-type LoaderData =
+export type ThumbnailRenderData =
 	| {
 			ok: true
 			token: string
@@ -50,11 +56,11 @@ type LoaderData =
 // How long to wait for a pushed snapshot before giving up and fetching one.
 //
 // The worker injects the payload with the Quick Action's `addScriptTag`, which runs *after*
-// navigation — so at the moment this loader first runs, the global is usually not there yet. Reading
+// navigation — so at the moment the page first checks, the global may not be there yet. Reading
 // it once would therefore miss every push and quietly fall back to the fetch, which looks exactly
 // like push working and is why this waits rather than checks. The budget only has to cover the gap
 // between DOMContentLoaded and the injected tag executing; a genuine pull is not delayed by it,
-// because a render page reached without a push is only ever opened with a token.
+// because only a URL carrying THUMBNAIL_RENDER_PUSH_PARAM waits at all.
 const PUSHED_SNAPSHOT_TIMEOUT_MS = 2_000
 const PUSHED_SNAPSHOT_POLL_MS = 25
 
@@ -81,8 +87,12 @@ function awaitPushedSnapshot(timeoutMs: number): Promise<ThumbnailSnapshotRespon
 	})
 }
 
-const { loader, useData } = defineLoader(async (args): Promise<LoaderData> => {
-	const url = new URL(args.request.url)
+/**
+ * Resolves the records this render should draw, preferring a snapshot the worker pushed into the
+ * page over fetching one back out of it. The single acquisition path for every way the page is
+ * served, so the push-wait and the token fallback cannot drift.
+ */
+export async function acquireThumbnailRenderData(url: URL): Promise<ThumbnailRenderData> {
 	const token = url.searchParams.get('token')
 
 	// Only a render the worker announced a push for waits for one. A pull render must not pay this
@@ -128,12 +138,9 @@ const { loader, useData } = defineLoader(async (args): Promise<LoaderData> => {
 		schema: data.schema,
 		renderParams: data.renderParams,
 	}
-})
+}
 
-export { loader }
-
-export function Component() {
-	const data = useData()
+export function ThumbnailRenderView({ data }: { data: ThumbnailRenderData }) {
 	if (!data.ok) return <ThumbnailRenderError message={data.message} />
 	return (
 		<ThumbnailRenderPage

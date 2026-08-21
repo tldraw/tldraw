@@ -130,8 +130,12 @@ test('dev reset route exists only in development routing', () => {
 	)
 })
 
-test('the thumbnail render route is included in production routing', () => {
-	expect(spaRoutes.map((route) => route.reactRouterPattern)).toContain('/__thumbnail-render')
+test('the thumbnail render page is not an SPA route', () => {
+	// It is served from its own Vite entry (thumbnail-render.html) via an edge rewrite, so a Browser
+	// Run capture never boots the app shell. Keeping it out of the SPA routes is load-bearing the
+	// other way too: an SPA fallback for this path would mask a broken rewrite by quietly serving
+	// the old page, and every capture would silently pay the shell again.
+	expect(spaRoutes.map((route) => route.reactRouterPattern)).not.toContain('/__thumbnail-render')
 })
 
 test('all React routes match', () => {

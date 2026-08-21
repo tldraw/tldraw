@@ -1,0 +1,18 @@
+import { createRoot } from 'react-dom/client'
+// The full app stylesheet, not a subset: the render page's job is to look exactly like the app,
+// and hand-picking "the rules that reach the canvas" is how a fidelity bug ships. CSS is inert
+// without the DOM that matches it, so the unused majority costs bytes, not correctness.
+import '../styles/globals.css'
+import { ThumbnailRenderView, acquireThumbnailRenderData } from './pages/thumbnail-render'
+
+// The dedicated entry for the thumbnail render page (see thumbnail-render.html). Everything the SPA
+// boots before its router — Sentry, Clerk and its CDN fetch, Helmet, the service worker — is
+// deliberately absent: a capture pays for this entry's load on every render, and none of that can
+// appear in the pixels. What must match the app exactly (the SDK build, tldraw.css, assetUrls,
+// embed shape utils, the license key) is imported by the page module itself.
+async function boot() {
+	const data = await acquireThumbnailRenderData(new URL(window.location.href))
+	createRoot(document.getElementById('root')!).render(<ThumbnailRenderView data={data} />)
+}
+
+boot()
