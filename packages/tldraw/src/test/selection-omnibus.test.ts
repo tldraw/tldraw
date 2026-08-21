@@ -2074,6 +2074,9 @@ it('Ignores locked shapes when hovering', () => {
 })
 
 describe('Edge scrolling', () => {
+	// edgeScrollSpeed is px per 60 Hz frame; forceTick emits a 16ms tick
+	const pxPerTick = (editor: TestEditor) => editor.options.edgeScrollSpeed * (16 / (1000 / 60))
+
 	it('moves the camera correctly when delay and duration are zero', () => {
 		editor = new TestEditor({
 			options: {
@@ -2088,16 +2091,16 @@ describe('Edge scrolling', () => {
 		editor.pointerDown()
 		editor.pointerMove(0, 0)
 
-		expect(editor.getCamera()).toMatchObject({
-			x: editor.options.edgeScrollSpeed,
-			y: editor.options.edgeScrollSpeed,
+		expect(editor.getCamera()).toCloselyMatchObject({
+			x: pxPerTick(editor),
+			y: pxPerTick(editor),
 		})
 
 		editor.forceTick()
 
-		expect(editor.getCamera()).toMatchObject({
-			x: editor.options.edgeScrollSpeed * 2,
-			y: editor.options.edgeScrollSpeed * 2,
+		expect(editor.getCamera()).toCloselyMatchObject({
+			x: pxPerTick(editor) * 2,
+			y: pxPerTick(editor) * 2,
 		})
 	})
 
@@ -2116,16 +2119,16 @@ describe('Edge scrolling', () => {
 		editor.pointerMove(0, 0)
 
 		// one tick's length of delay
-		expect(editor.getCamera()).toMatchObject({
+		expect(editor.getCamera()).toCloselyMatchObject({
 			x: 0,
 			y: 0,
 		})
 
 		editor.forceTick()
 
-		expect(editor.getCamera()).toMatchObject({
-			x: editor.options.edgeScrollSpeed,
-			y: editor.options.edgeScrollSpeed,
+		expect(editor.getCamera()).toCloselyMatchObject({
+			x: pxPerTick(editor),
+			y: pxPerTick(editor),
 		})
 	})
 
@@ -2144,16 +2147,16 @@ describe('Edge scrolling', () => {
 		editor.pointerMove(0, 0)
 
 		// one tick's length of delay
-		expect(editor.getCamera()).toMatchObject({
-			x: editor.options.edgeScrollSpeed * 0.125,
-			y: editor.options.edgeScrollSpeed * 0.125,
+		expect(editor.getCamera()).toCloselyMatchObject({
+			x: pxPerTick(editor) * 0.125,
+			y: pxPerTick(editor) * 0.125,
 		})
 
 		editor.forceTick()
 
-		expect(editor.getCamera()).toMatchObject({
-			x: editor.options.edgeScrollSpeed * 1.125,
-			y: editor.options.edgeScrollSpeed * 1.125,
+		expect(editor.getCamera()).toCloselyMatchObject({
+			x: pxPerTick(editor) * 1.125,
+			y: pxPerTick(editor) * 1.125,
 		})
 	})
 })
