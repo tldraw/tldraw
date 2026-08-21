@@ -1,6 +1,8 @@
 import {
+	compact,
 	debugFlags,
 	Editor,
+	isPageId,
 	TLGeoShape,
 	TLShapeId,
 	unsafe__withoutCapture,
@@ -106,19 +108,26 @@ export function generateShapeAnnouncementMessage(args: {
 
 		const shapeUtil = editor.getShapeUtil(shape.type)
 
-		const isMedia = ['image', 'video'].includes(shape.type)
+		// Shapes with no tool of their own (media, groups) have dedicated a11y keys instead of `tool.*`.
+		const hasA11yShapeKey = ['image', 'video', 'group'].includes(shape.type)
 		// Yeah, yeah this is a bit of a hack, we should get better translations.
 		let shapeType = ''
 		if (shape.type === 'geo') {
 			shapeType = msg(`geo-style.${(shape as TLGeoShape).props.geo}`)
-		} else if (isMedia) {
+		} else if (hasA11yShapeKey) {
 			shapeType = msg(`a11y.shape-${shape.type}`)
 		} else {
 			shapeType = msg(`tool.${shape.type}`)
 		}
 
-		// Get shape index in reading order
-		const readingOrderShapes = editor.getCurrentPageShapesInReadingOrder()
+		// Index among siblings, since a shape inside a frame or group isn't in the page-level order
+		const readingOrderShapes = isPageId(shape.parentId)
+			? editor.getCurrentPageShapesInReadingOrder()
+			: editor.getShapesInReadingOrder(
+					compact(
+						editor.getSortedChildIdsForParent(shape.parentId).map((id) => editor.getShape(id))
+					)
+				)
 		const currentShapeIndex = (readingOrderShapes.findIndex((s) => s.id === shapeId) + 1).toString()
 		const totalShapes = readingOrderShapes.length.toString()
 		const shapeIndex = msg('a11y.shape-index')
