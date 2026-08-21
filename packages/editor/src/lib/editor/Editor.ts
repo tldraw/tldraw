@@ -2287,12 +2287,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			firstParentId &&
 			selectedShapeIds.every((shapeId) => this.getShape(shapeId)?.parentId === firstParentId) &&
 			!isPageId(firstParentId)
-		const filteredShapes = isSelectedWithinContainer
-			? this.getCurrentPageShapes().filter((shape) => shape.parentId === firstParentId)
-			: this.getCurrentPageShapes().filter((shape) => isPageId(shape.parentId))
-		const readingOrderShapes = isSelectedWithinContainer
-			? this._getShapesInReadingOrder(filteredShapes)
-			: this.getCurrentPageShapesInReadingOrder()
+		// Locked shapes can't be selected by clicking or select all, so traversal skips them too
+		const filteredShapes = this.getCurrentPageShapes().filter(
+			(shape) =>
+				!shape.isLocked &&
+				(isSelectedWithinContainer ? shape.parentId === firstParentId : isPageId(shape.parentId))
+		)
+		const readingOrderShapes = this._getShapesInReadingOrder(filteredShapes)
 		const currentShapeId: TLShapeId | undefined =
 			selectedShapeIds.length === 1
 				? selectedShapeIds[0]
