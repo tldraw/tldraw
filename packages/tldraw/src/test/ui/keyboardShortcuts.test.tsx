@@ -434,11 +434,12 @@ describe('shifted glyph shortcuts', () => {
 		expect(onSelect).toHaveBeenCalledTimes(1)
 	})
 
-	// The bindings the issue response recommends for real hardware: AZERTY shift+`:` key emits
-	// `/`, JIS shift+`^` key emits `~`.
+	// Shortcuts bind the glyph the browser reports, so on hardware where the keycap differs from
+	// the shifted output (#10067) the emitted glyph is the one to bind: AZERTY shift+`:` (on the
+	// Period position) emits `/`, JIS shift+`^` (on Equal) emits `~`.
 	it('fires shift+/ on a real AZERTY shift+: key press', async () => {
 		const { editor, onSelect } = await setupEditorWithKbd('shift+/')
-		keydown(editor, { key: '/', code: 'Semicolon', shiftKey: true })
+		keydown(editor, { key: '/', code: 'Period', shiftKey: true })
 		expect(onSelect).toHaveBeenCalledTimes(1)
 	})
 
