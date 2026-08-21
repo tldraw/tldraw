@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import { ApiItem } from '@microsoft/api-extractor-model'
 import { APIGroup, InputSection } from '@/types/content-types'
 import { nicelog } from '@/utils/nicelog'
 import { TldrawApiModel } from '@/utils/TldrawApiModel'
@@ -72,14 +73,33 @@ export async function createApiMarkdown() {
 
 		const entrypoint = packageModel.entryPoints[0]
 
-		for (let j = 0; j < entrypoint.members.length; j++) {
-			const item = entrypoint.members[j]
+		// Overloads and same-named declarations (an interface and a const both called
+		// `Geometry2dFilters`, the four `computed` overloads) share a slug and therefore a page.
+		// Writing each item to `${slug}.mdx` in turn would leave only the last one documented.
+		const membersBySlug = new Map<string, ApiItem[]>()
+		for (const item of entrypoint.members) {
+			const slug = getSlug(item)
+			membersBySlug.set(slug, [...(membersBySlug.get(slug) ?? []), item])
+		}
 
-			const outputFileName = `${getSlug(item)}.mdx`
+		let order = 0
+		for (const [slug, items] of membersBySlug) {
+			const outputFileName = `${slug}.mdx`
 
-			const result = await getApiMarkdown(model, categoryName, item, j)
+			let frontmatter = ''
+			const bodies: string[] = []
+			for (const item of items) {
+				const result = await getApiMarkdown(model, categoryName, item, order)
+				frontmatter ||= result.frontmatter
+				bodies.push(result.markdown)
+			}
+			order++
+
 			nicelog(`✎ ${outputFileName}`)
-			fs.writeFileSync(path.join(OUTPUT_DIR, outputFileName), result.markdown)
+			fs.writeFileSync(
+				path.join(OUTPUT_DIR, outputFileName),
+				frontmatter + bodies.join('\n---\n\n')
+			)
 		}
 	}
 
@@ -87,10 +107,10 @@ export async function createApiMarkdown() {
 
 	const sectionsJsonPath = path.join(CONTENT_DIR, 'sections.json')
 	const sectionsJson = JSON.parse(fs.readFileSync(sectionsJsonPath, 'utf8')) as InputSection[]
-	sectionsJson.splice(
-		sectionsJson.findIndex((s) => s.id === 'reference'),
-		1
-	)
+	// findIndex returns -1 when there's no reference section yet, and splice(-1, 1) would drop
+	// the last real section instead
+	const existingIndex = sectionsJson.findIndex((s) => s.id === 'reference')
+	if (existingIndex !== -1) sectionsJson.splice(existingIndex, 1)
 	sectionsJson.push(apiInputSection)
 	fs.writeFileSync(sectionsJsonPath, JSON.stringify(sectionsJson, null, '\t') + '\n')
 
