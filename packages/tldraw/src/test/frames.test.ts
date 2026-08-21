@@ -1314,6 +1314,127 @@ describe('When deleting/removing a frame', () => {
 		expect(editor.getShape(frame1Id)).toBeDefined()
 		expect(editor.getShape(rectId)).toBeDefined()
 	})
+
+	describe('with locked children', () => {
+		const frameId = createShapeId('frame')
+		const lockedId = createShapeId('locked')
+		const unlockedId = createShapeId('unlocked')
+
+		beforeEach(() => {
+			editor.createShapes([
+				{ id: frameId, type: 'frame', x: 100, y: 100, props: { w: 200, h: 200 } },
+				{ id: lockedId, type: 'geo', parentId: frameId, x: 10, y: 20, isLocked: true },
+				{ id: unlockedId, type: 'geo', parentId: frameId, x: 50, y: 50 },
+			])
+		})
+
+		it('keeps a locked child on the page at the same position when the frame is deleted', () => {
+			editor.deleteShape(frameId)
+
+			expect(editor.getShape(frameId)).toBeUndefined()
+			expect(editor.getShape(unlockedId)).toBeUndefined()
+			expect(editor.getShape(lockedId)).toMatchObject({
+				parentId: editor.getCurrentPageId(),
+				x: 110,
+				y: 120,
+				isLocked: true,
+			})
+		})
+
+		it('does not report the locked child as deleted', () => {
+			const deleted: TLShapeId[][] = []
+			editor.on('deleted-shapes', (ids) => deleted.push(ids))
+
+			editor.deleteShape(frameId)
+
+			expect(deleted).toEqual([expect.arrayContaining([frameId, unlockedId])])
+			expect(deleted[0]).not.toContain(lockedId)
+		})
+
+		it('restores the locked child to the frame on undo', () => {
+			editor.markHistoryStoppingPoint('before delete')
+			editor.deleteShape(frameId)
+			editor.undo()
+
+			expect(editor.getShape(frameId)).toBeDefined()
+			expect(editor.getShape(unlockedId)).toMatchObject({ parentId: frameId })
+			expect(editor.getShape(lockedId)).toMatchObject({ parentId: frameId, x: 10, y: 20 })
+		})
+
+		it('reparents the locked child to the nearest surviving ancestor', () => {
+			const outerId = createShapeId('outer')
+			editor.createShape({
+				id: outerId,
+				type: 'frame',
+				x: 1000,
+				y: 1000,
+				props: { w: 500, h: 500 },
+			})
+			editor.reparentShapes([frameId], outerId)
+
+			editor.deleteShape(frameId)
+
+			expect(editor.getShape(lockedId)).toMatchObject({ parentId: outerId })
+			expect(editor.getShapePageBounds(lockedId)).toMatchObject({ x: 110, y: 120 })
+		})
+
+		it('keeps a locked descendant of a deleted nested frame', () => {
+			const innerId = createShapeId('inner')
+			editor.createShapes([
+				{ id: innerId, type: 'frame', parentId: frameId, x: 100, y: 100, props: { w: 50, h: 50 } },
+			])
+			editor.reparentShapes([lockedId], innerId)
+
+			editor.deleteShape(frameId)
+
+			expect(editor.getShape(innerId)).toBeUndefined()
+			expect(editor.getShape(lockedId)).toMatchObject({ parentId: editor.getCurrentPageId() })
+		})
+
+		it('keeps the unlocked children of a surviving locked child', () => {
+			const lockedFrameId = createShapeId('lockedFrame')
+			const grandchildId = createShapeId('grandchild')
+			editor.createShapes([
+				{
+					id: lockedFrameId,
+					type: 'frame',
+					parentId: frameId,
+					x: 0,
+					y: 0,
+					isLocked: true,
+					props: { w: 100, h: 100 },
+				},
+				{ id: grandchildId, type: 'geo', parentId: lockedFrameId, x: 5, y: 5 },
+			])
+
+			editor.deleteShape(frameId)
+
+			expect(editor.getShape(lockedFrameId)).toMatchObject({ parentId: editor.getCurrentPageId() })
+			expect(editor.getShape(grandchildId)).toMatchObject({ parentId: lockedFrameId, x: 5, y: 5 })
+		})
+
+		it('keeps a locked child of a deleted group', () => {
+			const groupId = createShapeId('group')
+			editor.updateShape({ id: lockedId, type: 'geo', isLocked: false })
+			editor.groupShapes([lockedId, unlockedId], { groupId })
+			editor.updateShape({ id: lockedId, type: 'geo', isLocked: true })
+			expect(editor.getShape(groupId)).toMatchObject({ parentId: frameId })
+
+			editor.deleteShape(groupId)
+
+			expect(editor.getShape(groupId)).toBeUndefined()
+			expect(editor.getShape(unlockedId)).toBeUndefined()
+			expect(editor.getShape(lockedId)).toMatchObject({ parentId: frameId, x: 10, y: 20 })
+		})
+
+		it('deletes locked children when shape locks are ignored', () => {
+			editor.run(() => editor.deleteShape(frameId), { ignoreShapeLock: true })
+
+			expect(editor.getShape(frameId)).toBeUndefined()
+			expect(editor.getShape(lockedId)).toBeUndefined()
+			expect(editor.getShape(unlockedId)).toBeUndefined()
+		})
+	})
 })
 
 describe('When dragging a shape', () => {
