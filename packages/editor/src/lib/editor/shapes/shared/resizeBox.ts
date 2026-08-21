@@ -1,5 +1,6 @@
 import { VecModel } from '@tldraw/tlschema'
 import { Box } from '../../../primitives/Box'
+import { clamp } from '../../../primitives/utils'
 import { Vec } from '../../../primitives/Vec'
 import { TLResizeHandle } from '../../types/selection-types'
 import type { TLBaseBoxShape } from '../BaseBoxShapeUtil'
@@ -36,29 +37,31 @@ export function resizeBox<T extends TLBaseBoxShape>(
 	const offset = new Vec(0, 0)
 
 	if (w > 0) {
-		if (w < minWidth) {
+		const clampedW = clamp(w, minWidth, maxWidth)
+		if (clampedW !== w) {
 			switch (handle) {
 				case 'top_left':
 				case 'left':
 				case 'bottom_left': {
-					offset.x = w - minWidth
+					offset.x = w - clampedW
 					break
 				}
 				case 'top':
 				case 'bottom': {
-					offset.x = (w - minWidth) / 2
+					offset.x = (w - clampedW) / 2
 					break
 				}
 				default: {
 					offset.x = 0
 				}
 			}
-			w = minWidth
+			w = clampedW
 		}
 	} else {
 		offset.x = w
 		w = -w
-		if (w < minWidth) {
+		const clampedW = clamp(w, minWidth, maxWidth)
+		if (clampedW !== w) {
 			switch (handle) {
 				case 'top_left':
 				case 'left':
@@ -67,26 +70,27 @@ export function resizeBox<T extends TLBaseBoxShape>(
 					break
 				}
 				default: {
-					offset.x = -minWidth
+					offset.x = -clampedW
 				}
 			}
 
-			w = minWidth
+			w = clampedW
 		}
 	}
 
 	if (h > 0) {
-		if (h < minHeight) {
+		const clampedH = clamp(h, minHeight, maxHeight)
+		if (clampedH !== h) {
 			switch (handle) {
 				case 'top_left':
 				case 'top':
 				case 'top_right': {
-					offset.y = h - minHeight
+					offset.y = h - clampedH
 					break
 				}
 				case 'right':
 				case 'left': {
-					offset.y = (h - minHeight) / 2
+					offset.y = (h - clampedH) / 2
 					break
 				}
 				default: {
@@ -94,12 +98,13 @@ export function resizeBox<T extends TLBaseBoxShape>(
 				}
 			}
 
-			h = minHeight
+			h = clampedH
 		}
 	} else {
 		offset.y = h
 		h = -h
-		if (h < minHeight) {
+		const clampedH = clamp(h, minHeight, maxHeight)
+		if (clampedH !== h) {
 			switch (handle) {
 				case 'top_left':
 				case 'top':
@@ -108,10 +113,10 @@ export function resizeBox<T extends TLBaseBoxShape>(
 					break
 				}
 				default: {
-					offset.y = -minHeight
+					offset.y = -clampedH
 				}
 			}
-			h = minHeight
+			h = clampedH
 		}
 	}
 
@@ -122,8 +127,8 @@ export function resizeBox<T extends TLBaseBoxShape>(
 		x,
 		y,
 		props: {
-			w: Math.min(maxWidth, w),
-			h: Math.min(maxHeight, h),
+			w,
+			h,
 		},
 	}
 }
