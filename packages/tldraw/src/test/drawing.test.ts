@@ -1,4 +1,4 @@
-import { TLDrawShape, TLHighlightShape, last } from '@tldraw/editor'
+import { PageRecordType, TLDrawShape, TLHighlightShape, last } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { base64ToPoints } from '../lib/utils/test-helpers'
 import { TEST_DRAW_SHAPE_SCREEN_POINTS } from './drawing.data'
@@ -161,6 +161,32 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			const shape2 = editor.getCurrentPageShapes()[1] as DrawableShape
 			expect(shape2.props.segments.length).toBe(1)
 			expect(shape2.props.segments[0].type).toBe('straight')
+		})
+
+		it('Does not extend previously drawn line after changing page', () => {
+			// regression for #10400: shift-clicking after a page change appended a
+			// segment to the shape on the old page instead of starting a new shape
+			const page1Id = editor.getCurrentPageId()
+			editor.setCurrentTool(toolType).pointerDown(10, 10).pointerMove(20, 20).pointerUp()
+
+			const shapeOnPage1 = editor.getCurrentPageShapes()[0] as DrawableShape
+			expect(shapeOnPage1.props.segments.length).toBe(1)
+
+			const page2Id = PageRecordType.createId()
+			editor.createPage({ id: page2Id, name: 'Page 2' })
+			editor.setCurrentPage(page2Id)
+			editor.keyDown('Shift').pointerDown(30, 30).pointerMove(40, 40).pointerUp()
+
+			expect(editor.getCurrentPageShapes()).toHaveLength(1)
+			const shapeOnPage2 = editor.getCurrentPageShapes()[0] as DrawableShape
+			expect(shapeOnPage2.id).not.toBe(shapeOnPage1.id)
+			expect(editor.isShapeInPage(shapeOnPage2, page2Id)).toBe(true)
+			expect(shapeOnPage2.props.segments.length).toBe(1)
+			expect(shapeOnPage2.props.segments[0].type).toBe('straight')
+
+			// The shape on the first page is untouched
+			expect(editor.getShape(shapeOnPage1.id)).toEqual(shapeOnPage1)
+			expect(editor.isShapeInPage(shapeOnPage1.id, page1Id)).toBe(true)
 		})
 
 		it('Snaps to 15 degree angle when shift is held', () => {
