@@ -3060,6 +3060,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!_shape) return false
 		const util = this.getShapeUtil(_shape)
 		if (!util.canCrop(_shape)) return false
+		if (this.getIsReadonly()) return false
 		if (this.isShapeOrAncestorLocked(_shape)) return false
 		return true
 	}
