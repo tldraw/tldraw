@@ -172,3 +172,59 @@ test('writes that come in during a persist operation will get persisted afterwar
 	await tick()
 	expect(client.db.storeChanges).toHaveBeenCalledTimes(1)
 })
+
+test('pagehide flushes pending changes without waiting for the throttle', async () => {
+	const { client, tick } = testClient()
+	await tick()
+	client.store.put([PageRecordType.create({ name: 'test', index: 'a0' as IndexKey })])
+	await tick()
+	expect(client.db.storeSnapshot).toHaveBeenCalledTimes(1)
+
+	client.store.put([PageRecordType.create({ name: 'test2', index: 'a1' as IndexKey })])
+	expect(client.db.storeChanges).not.toHaveBeenCalled()
+
+	window.dispatchEvent(new Event('pagehide'))
+	expect(client.db.storeChanges).toHaveBeenCalledTimes(1)
+})
+
+test('hiding the tab flushes pending changes without waiting for the throttle', async () => {
+	const { client, tick } = testClient()
+	await tick()
+	client.store.put([PageRecordType.create({ name: 'test', index: 'a0' as IndexKey })])
+	await tick()
+	expect(client.db.storeSnapshot).toHaveBeenCalledTimes(1)
+
+	client.store.put([PageRecordType.create({ name: 'test2', index: 'a1' as IndexKey })])
+	expect(client.db.storeChanges).not.toHaveBeenCalled()
+
+	const visibilityState = vi.spyOn(document, 'visibilityState', 'get')
+	try {
+		visibilityState.mockReturnValue('hidden')
+		document.dispatchEvent(new Event('visibilitychange'))
+		expect(client.db.storeChanges).toHaveBeenCalledTimes(1)
+	} finally {
+		visibilityState.mockRestore()
+	}
+})
+
+test('pagehide does not write before the initial load has completed', async () => {
+	const { client } = testClient()
+	window.dispatchEvent(new Event('pagehide'))
+	expect(client.db.storeSnapshot).not.toHaveBeenCalled()
+	expect(client.db.storeChanges).not.toHaveBeenCalled()
+})
+
+test('pagehide and visibilitychange listeners are removed when the client closes', async () => {
+	const removeWindowListener = vi.spyOn(window, 'removeEventListener')
+	const removeDocumentListener = vi.spyOn(document, 'removeEventListener')
+	try {
+		const { client, tick } = testClient()
+		await tick()
+		client.close()
+		expect(removeWindowListener).toHaveBeenCalledWith('pagehide', expect.any(Function))
+		expect(removeDocumentListener).toHaveBeenCalledWith('visibilitychange', expect.any(Function))
+	} finally {
+		removeWindowListener.mockRestore()
+		removeDocumentListener.mockRestore()
+	}
+})
