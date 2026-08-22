@@ -38,9 +38,12 @@ function testClient(channel = new BroadcastChannelMock('test')) {
 
 	client.db.storeSnapshot = vi.fn(() => Promise.resolve())
 	client.db.storeChanges = vi.fn(() => Promise.resolve())
+	client.db.pruneSessions = vi.fn(() => Promise.resolve())
 
 	return {
-		client: client as { db: { storeSnapshot: Mock; storeChanges: Mock } } & typeof client,
+		client: client as {
+			db: { storeSnapshot: Mock; storeChanges: Mock; pruneSessions: Mock }
+		} & typeof client,
 		store,
 		onLoad,
 		onLoadError,
@@ -81,6 +84,23 @@ test('the client connects on instantiation, announcing its schema', async () => 
 	const [msg] = channel.postMessage.mock.calls[0]
 
 	expect(msg).toMatchObject({ type: 'announce', schema: {} })
+})
+
+test('the client prunes stale session state rows after loading, keeping its own', async () => {
+	const { client, onLoad, tick } = testClient()
+	expect(client.db.pruneSessions).not.toHaveBeenCalled()
+	await tick()
+	expect(onLoad).toHaveBeenCalledTimes(1)
+	expect(client.db.pruneSessions).toHaveBeenCalledTimes(1)
+	expect(client.db.pruneSessions).toHaveBeenCalledWith({ keepSessionId: client.sessionId })
+})
+
+test('a failed session prune does not fail the load', async () => {
+	const { client, onLoad, onLoadError, tick } = testClient()
+	client.db.pruneSessions.mockImplementation(() => Promise.reject(new Error('nope')))
+	await tick()
+	expect(onLoad).toHaveBeenCalledTimes(1)
+	expect(onLoadError).not.toHaveBeenCalled()
 })
 
 test('when a client receives an announce with a newer schema version it reloads itself', async () => {
