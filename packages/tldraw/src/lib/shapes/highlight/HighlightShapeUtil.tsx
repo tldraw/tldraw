@@ -128,7 +128,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	component(shape: TLHighlightShape) {
-		const dv = getDisplayValues(this, shape)
+		const colorMode = useColorMode()
+		const dv = getDisplayValues(this, shape, colorMode)
 		const sw = dv.strokeWidth * shape.props.scale
 		const forceSolid = useHighlightForceSolid(this.editor, sw)
 
