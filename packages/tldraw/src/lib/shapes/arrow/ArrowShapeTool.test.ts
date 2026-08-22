@@ -88,6 +88,23 @@ describe('When in the pointing state', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(10, 10)
 		editor.expectToBeIn('select.dragging_handle')
 	})
+
+	it('removes the pressed arrow when switching tools before dragging', () => {
+		const shapesBefore = editor.getCurrentPageShapes().length
+		editor.setCurrentTool('arrow').pointerDown(0, 0)
+		expect(editor.getCurrentPageShapes().length).toBe(shapesBefore + 1)
+		editor.setCurrentTool('geo')
+		expect(editor.getCurrentPageShapes().length).toBe(shapesBefore)
+		editor.expectToBeIn('geo.idle')
+	})
+
+	it('removes the pressed arrow when switching to the select tool before dragging', () => {
+		const shapesBefore = editor.getCurrentPageShapes().length
+		editor.setCurrentTool('arrow').pointerDown(0, 0)
+		editor.setCurrentTool('select')
+		expect(editor.getCurrentPageShapes().length).toBe(shapesBefore)
+		editor.expectToBeIn('select.idle')
+	})
 })
 
 // This could be moved to dragging_handle
