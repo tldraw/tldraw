@@ -233,7 +233,9 @@ export class Drawing extends StateNode {
 		if (this.initialShape) {
 			const shape = this.editor.getShape<DrawableShape>(this.initialShape.id)
 
-			if (shape && this.segmentMode === 'straight') {
+			// The remembered shape survives a page change; extending it from another
+			// page would silently append a segment to content the user can't see (#10400)
+			if (shape && this.segmentMode === 'straight' && this.editor.isShapeInPage(shape)) {
 				// Connect dots
 
 				this.didJustShiftClickToExtendPreviousShapeLine = true
