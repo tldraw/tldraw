@@ -833,9 +833,7 @@ export class TLFileDurableObject extends DurableObject {
 
 					// Check if user has owner access (directly or via group membership)
 					let hasOwnerAccess = false
-					if (file.ownerId && file.ownerId === auth?.userId) {
-						hasOwnerAccess = true
-					} else if (file.owningGroupId && auth?.userId) {
+					if (file.owningGroupId && auth?.userId) {
 						// Check the user can access the owning group's files
 						const groupCheckTimer = this.timer()
 						const role = await getRole(this.db, auth.userId, file.owningGroupId)
@@ -959,9 +957,7 @@ export class TLFileDurableObject extends DurableObject {
 		}
 
 		let hasOwnerAccess = false
-		if (file.ownerId && file.ownerId === auth?.userId) {
-			hasOwnerAccess = true
-		} else if (file.owningGroupId && auth?.userId) {
+		if (file.owningGroupId && auth?.userId) {
 			const role = await getRole(this.db, auth.userId, file.owningGroupId)
 			if (can(role, 'accessFiles')) {
 				hasOwnerAccess = true
@@ -2599,9 +2595,6 @@ export class TLFileDurableObject extends DurableObject {
 				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
 				continue
 			}
-			// allow the owner to stay connected
-			// Check if user owns the file directly
-			if (file.ownerId && session.meta.userId === file.ownerId) continue
 
 			const canAccessFiles = async () => {
 				const role = await getRole(this.db, session.meta.userId, file.owningGroupId)
@@ -2621,10 +2614,7 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
-	async appFileRecordDidDelete({
-		id,
-		publishedSlug,
-	}: Pick<TlaFile, 'id' | 'ownerId' | 'publishedSlug'>) {
+	async appFileRecordDidDelete({ id, publishedSlug }: Pick<TlaFile, 'id' | 'publishedSlug'>) {
 		if (this._documentInfo?.deleted) return
 
 		this._fileRecordCache = null

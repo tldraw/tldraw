@@ -85,7 +85,7 @@ export const file = table('file')
 		ownerId: string().optional(),
 		owningGroupId: string().optional(),
 		ownerName: string(),
-		ownerAvatar: string(),
+		ownerAvatar: string().optional(),
 		thumbnail: string(),
 		shared: boolean(),
 		sharedLinkType: string(),
@@ -229,12 +229,7 @@ export const comment_reaction = table('comment_reaction')
 	})
 	.primaryKey('id')
 
-const fileRelationships = relationships(file, ({ one, many }) => ({
-	owner: one({
-		sourceField: ['ownerId'],
-		destField: ['id'],
-		destSchema: user,
-	}),
+const fileRelationships = relationships(file, ({ many }) => ({
 	states: many({
 		sourceField: ['id'],
 		destField: ['fileId'],
