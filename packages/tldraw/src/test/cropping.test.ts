@@ -1390,3 +1390,15 @@ describe('When cropping with modifiers and snapping...', () => {
 		expect(editor.snaps.getIndicators().length).toBe(0)
 	})
 })
+
+describe('Leaving crop mode by switching tools', () => {
+	it('clears the cropping shape', () => {
+		editor.doubleClick(550, 550, ids.imageB).expectToBeIn('select.crop.idle')
+		expect(editor.getCroppingShapeId()).toBe(ids.imageB)
+		editor.setCurrentTool('hand')
+		expect(editor.getCroppingShapeId()).toBe(null)
+		editor.setCurrentTool('select')
+		editor.expectToBeIn('select.idle')
+		expect(editor.getCroppingShapeId()).toBe(null)
+	})
+})
