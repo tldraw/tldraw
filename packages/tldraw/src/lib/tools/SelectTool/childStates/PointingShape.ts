@@ -65,7 +65,10 @@ export class PointingShape extends StateNode {
 		const focusedGroupId = this.editor.getFocusedGroupId()
 		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 
-		const additiveSelectionKey = info.shiftKey || info.accelKey
+		// Alt suppresses additive selection here as it does on enter and in
+		// selectOnCanvasPointerUp; otherwise shift+alt or ctrl+alt releasing over
+		// a selected shape would toggle it out of the selection.
+		const additiveSelectionKey = (info.shiftKey || info.accelKey) && !info.altKey
 
 		const hitShape =
 			this.editor.getShapeAtPoint(currentPagePoint, {
