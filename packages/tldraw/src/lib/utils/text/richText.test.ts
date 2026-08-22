@@ -1,9 +1,22 @@
 import { TLRichText, toRichText } from '@tldraw/editor'
+import { TestEditor } from '../../../test/TestEditor'
 import {
 	isEmptyRichText,
 	renderHtmlFromRichTextWithExtensions,
+	renderPlaintextFromRichText,
+	renderRichTextFromHTML,
 	tipTapDefaultExtensions,
 } from './richText'
+
+let editor: TestEditor
+
+beforeEach(() => {
+	editor = new TestEditor()
+})
+
+const text = (t: string) => ({ type: 'text', text: t })
+const paragraph = (t: string) => ({ type: 'paragraph', content: [text(t)] })
+const listItem = (...content: any[]) => ({ type: 'listItem', content })
 
 const render = (content: TLRichText['content']) =>
 	renderHtmlFromRichTextWithExtensions(
@@ -83,5 +96,92 @@ describe('isEmptyRichText', () => {
 			],
 		}
 		expect(isEmptyRichText(richText)).toBe(false)
+	})
+})
+
+describe('renderPlaintextFromRichText', () => {
+	const plain = (content: TLRichText['content']) =>
+		renderPlaintextFromRichText(editor, { type: 'doc', content } as TLRichText)
+
+	it('separates paragraphs with a single newline', () => {
+		expect(plain([paragraph('one'), paragraph('two')])).toBe('one\ntwo')
+	})
+
+	it('renders bullet list items as one dashed line each', () => {
+		expect(
+			plain([
+				paragraph('Shopping'),
+				{
+					type: 'bulletList',
+					content: [listItem(paragraph('eggs')), listItem(paragraph('milk'))],
+				},
+				paragraph('Done'),
+			])
+		).toBe('Shopping\n- eggs\n- milk\nDone')
+	})
+
+	it('numbers ordered list items from the list start', () => {
+		expect(
+			plain([
+				{
+					type: 'orderedList',
+					attrs: { start: 3 },
+					content: [listItem(paragraph('three')), listItem(paragraph('four'))],
+				},
+			])
+		).toBe('3. three\n4. four')
+	})
+
+	it('indents nested lists under their parent item', () => {
+		expect(
+			plain([
+				{
+					type: 'bulletList',
+					content: [
+						listItem(paragraph('fruit'), {
+							type: 'orderedList',
+							content: [listItem(paragraph('apple')), listItem(paragraph('pear'))],
+						}),
+						listItem(paragraph('veg')),
+					],
+				},
+			])
+		).toBe('- fruit\n  1. apple\n  2. pear\n- veg')
+	})
+})
+
+describe('renderRichTextFromHTML', () => {
+	const hrefs = (html: string) => {
+		const found: string[] = []
+		const walk = (node: any) => {
+			for (const mark of node.marks ?? []) if (mark.type === 'link') found.push(mark.attrs.href)
+			for (const child of node.content ?? []) walk(child)
+		}
+		walk(renderRichTextFromHTML(editor, html))
+		return found
+	}
+
+	it('gives a scheme-less href a scheme so it does not resolve against the host page', () => {
+		expect(
+			hrefs(
+				'<p><a href="example.com">a</a> <a href="www.example.com?q=1">b</a> <a href="//example.com/path">c</a></p>'
+			)
+		).toEqual(['https://example.com', 'https://www.example.com?q=1', 'https://example.com/path'])
+	})
+
+	it('leaves hrefs that already have a scheme alone', () => {
+		expect(
+			hrefs(
+				'<p><a href="http://example.com">a</a> <a href="https://example.com">b</a> <a href="mailto:hi@example.com">c</a></p>'
+			)
+		).toEqual(['http://example.com', 'https://example.com', 'mailto:hi@example.com'])
+	})
+
+	it('leaves explicitly relative hrefs alone', () => {
+		expect(
+			hrefs(
+				'<p><a href="/docs">a</a> <a href="./docs">b</a> <a href="#top">c</a> <a href="?q=1">d</a></p>'
+			)
+		).toEqual(['/docs', './docs', '#top', '?q=1'])
 	})
 })

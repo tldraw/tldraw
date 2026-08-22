@@ -5,7 +5,9 @@ import {
 	generateHTML,
 	generateJSON,
 	generateText,
+	getText,
 	JSONContent,
+	TextSerializer,
 } from '@tiptap/core'
 import { Code } from '@tiptap/extension-code'
 import { Highlight } from '@tiptap/extension-highlight'
@@ -62,6 +64,9 @@ export function getTipTapDefaultExtensions(
 			link: {
 				openOnClick: false,
 				autolink: true,
+				// The link editor prefixes a bare address with `https://`, so autolinking a typed one
+				// must do the same rather than tiptap's `http` default.
+				defaultProtocol: 'https',
 			},
 			// Prevent trailing paragraph insertion after lists (fixes #7641)
 			trailingNode: {
@@ -165,8 +170,44 @@ export function isEditingRichTextList(editor: Editor) {
 	return !!(textEditor?.isActive('bulletList') || textEditor?.isActive('orderedList'))
 }
 
+function isListNode(node: Node) {
+	return node.type.name === 'bulletList' || node.type.name === 'orderedList'
+}
+
+// Without a serializer, tiptap's `getText` treats a list, each of its items, and each item's
+// paragraph as separate blocks, so the block separator lands three times between items and the
+// markers are lost. This renders one `- ` / `1. ` line per item (nested lists indented) instead.
+function renderListToText(
+	list: Node,
+	textSerializers: Record<string, TextSerializer>,
+	indent = ''
+): string {
+	const isOrdered = list.type.name === 'orderedList'
+	const start: number = list.attrs.start ?? 1
+	const lines: string[] = []
+	list.forEach((item, _offset, index) => {
+		const marker = isOrdered ? `${start + index}. ` : '- '
+		const continuation = ' '.repeat(marker.length)
+		item.forEach((child, _childOffset, childIndex) => {
+			if (isListNode(child)) {
+				lines.push(renderListToText(child, textSerializers, indent + continuation))
+			} else {
+				const prefix = childIndex === 0 ? marker : continuation
+				lines.push(indent + prefix + getText(child, { blockSeparator: '\n', textSerializers }))
+			}
+		})
+	})
+	return lines.join('\n')
+}
+
+const listTextSerializers: Record<string, TextSerializer> = {
+	bulletList: ({ node }) => renderListToText(node, listTextSerializers),
+	orderedList: ({ node }) => renderListToText(node, listTextSerializers),
+}
+
 /**
- * Renders plaintext from a rich text string.
+ * Renders plaintext from a rich text string. Each block renders on its own line, and list items
+ * are prefixed with `- ` or `1. ` markers.
  * @param editor - The editor instance.
  * @param richText - The rich text content.
  *
@@ -180,6 +221,7 @@ export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText
 			editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
 		return generateText(richText as JSONContent, tipTapExtensions, {
 			blockSeparator: '\n',
+			textSerializers: listTextSerializers,
 		})
 	})
 }
@@ -194,7 +236,32 @@ export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText
 export function renderRichTextFromHTML(editor: Editor, html: string): TLRichText {
 	const tipTapExtensions =
 		editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
-	return generateJSON(html, tipTapExtensions) as TLRichText
+	const richText = generateJSON(html, tipTapExtensions)
+	normalizeLinkHrefs(richText)
+	return richText as TLRichText
+}
+
+// Pasted HTML can carry an `href` like `example.com`, which the browser would resolve
+// relative to the host page. Give it a scheme so the link opens where the author meant. Anything
+// that already has a scheme, or is explicitly relative (`/`, `./`, `#`, `?`), is left alone.
+function normalizeLinkHrefs(node: JSONContent) {
+	if (node.marks) {
+		for (const mark of node.marks) {
+			if (mark.type !== 'link' || typeof mark.attrs?.href !== 'string') continue
+			mark.attrs.href = normalizeHref(mark.attrs.href)
+		}
+	}
+	if (node.content) {
+		for (const child of node.content) normalizeLinkHrefs(child)
+	}
+}
+
+function normalizeHref(href: string) {
+	const trimmed = href.trim()
+	if (trimmed === '' || /^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return href
+	if (trimmed.startsWith('//')) return `https:${trimmed}`
+	if (/^[/.#?]/.test(trimmed)) return href
+	return `https://${trimmed}`
 }
 
 /** @public */
