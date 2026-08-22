@@ -424,7 +424,19 @@ export async function defaultHandleExternalFileContent(
 			})
 			continue
 		}
-		const assetInfo = await getAssetInfo(editor, sanitizedFile)
+		// An undecodable image rejects here; uncaught, it aborts the whole drop,
+		// including files that already succeeded, with no toast (#10438).
+		let assetInfo: TLAsset | null
+		try {
+			assetInfo = await getAssetInfo(editor, sanitizedFile)
+		} catch (error) {
+			toasts.addToast({
+				title: msg('assets.files.upload-failed'),
+				severity: 'error',
+			})
+			console.error(error)
+			continue
+		}
 		if (!assetInfo) continue
 		if (assetInfo.type === 'image') {
 			editor.createTemporaryAssetPreview(assetInfo.id, sanitizedFile)
