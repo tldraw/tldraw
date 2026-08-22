@@ -56,6 +56,29 @@ describe('TLSelectTool.Idle', () => {
 		expect(nudgedShape).toBeDefined()
 		expect(nudgedShape?.x).toBe(101)
 	})
+
+	it('Does not nudge selected shapes on arrow key down while spacebar panning', () => {
+		const shape = editor.getShape(ids.box1)!
+		editor.select(shape.id)
+		editor.keyDown(' ')
+		expect(editor.inputs.getIsSpacebarPanning()).toBe(true)
+		editor.keyDown('ArrowRight')
+		editor.keyRepeat('ArrowRight')
+		editor.keyUp('ArrowRight')
+		editor.keyUp(' ')
+		expect(editor.getShape(shape.id)).toMatchObject({ x: 100, y: 100 })
+	})
+
+	it('Does not nudge selected shapes on arrow key down while alt is held', () => {
+		const shape = editor.getShape(ids.box1)!
+		editor.select(shape.id)
+		editor.keyDown('Alt')
+		editor.keyDown('ArrowRight')
+		editor.keyRepeat('ArrowRight')
+		editor.keyUp('ArrowRight')
+		editor.keyUp('Alt')
+		expect(editor.getShape(shape.id)).toMatchObject({ x: 100, y: 100 })
+	})
 })
 
 // todo: turn on feature flag for these tests or remove them
@@ -743,6 +766,31 @@ describe('When double clicking a selection handle that registers as a canvas eve
 		overlayEditor.doubleClick(200, 200)
 
 		expect(overlayEditor.getShape<TLArrowShape>(id)!.props.arrowheadEnd).toBe('arrow')
+	})
+
+	it('Undoes an arrowhead toggled by handle double-click without undoing the selection', () => {
+		const id = createShapeId()
+		overlayEditor
+			.createShapes([
+				{
+					id,
+					type: 'arrow',
+					x: 100,
+					y: 100,
+					props: { start: { x: 0, y: 0 }, end: { x: 100, y: 100 } },
+				},
+			])
+			.selectNone()
+		overlayEditor.markHistoryStoppingPoint('before selecting arrow')
+		overlayEditor.select(id)
+
+		overlayEditor.doubleClick(200, 200)
+		expect(overlayEditor.getShape<TLArrowShape>(id)!.props.arrowheadEnd).toBe('none')
+
+		overlayEditor.undo()
+
+		expect(overlayEditor.getShape<TLArrowShape>(id)!.props.arrowheadEnd).toBe('arrow')
+		expect(overlayEditor.getSelectedShapeIds()).toEqual([id])
 	})
 })
 
