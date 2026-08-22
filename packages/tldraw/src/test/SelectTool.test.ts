@@ -5,6 +5,7 @@ import {
 	TLFrameShape,
 	TLGeoShape,
 	createShapeId,
+	debugFlags,
 	toRichText,
 } from '@tldraw/editor'
 import { vi } from 'vitest'
@@ -108,7 +109,15 @@ describe('TLSelectTool.Idle', () => {
 })
 
 // todo: turn on feature flag for these tests or remove them
-describe.skip('Edit on type', () => {
+describe('Edit on type', () => {
+	beforeEach(() => {
+		debugFlags.editOnType.set(true)
+	})
+
+	afterEach(() => {
+		debugFlags.editOnType.reset()
+	})
+
 	it('Starts editing shape on key down if shape does auto-edit on key stroke', () => {
 		const id = createShapeId()
 		editor.createShapes([
@@ -167,8 +176,30 @@ describe.skip('Edit on type', () => {
 		editor.keyDown('a', { altKey: true })
 		// Simulate ctrlKey being pressed
 		editor.keyDown('a', { ctrlKey: true })
+		// Simulate metaKey being pressed
+		editor.keyDown('a', { metaKey: true })
 		expect(editor.getEditingShapeId()).not.toBe(shape.id)
 	})
+
+	it.each(['F1', 'CapsLock', 'Escape', 'ArrowLeft', 'Home'])(
+		'Does not start editing on non-printable key %s',
+		(key) => {
+			const id = createShapeId()
+			editor.createShapes([
+				{
+					id,
+					type: 'note',
+					x: 100,
+					y: 100,
+					props: { richText: toRichText('hello') },
+				},
+			])!
+			const shape = editor.getShape(id)!
+			editor.select(shape.id)
+			editor.keyDown(key)
+			expect(editor.getEditingShapeId()).toBe(null)
+		}
+	)
 })
 
 describe('TLSelectTool.PointingShape when the shape is deleted mid-click', () => {
