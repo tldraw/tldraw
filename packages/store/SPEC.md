@@ -234,7 +234,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 
 - **IM1** `set` and `delete` return a new map and leave the original unchanged.
 - **IM2** `get(k)` returns the value or `undefined`; `get(k, notSetValue)` returns `notSetValue` for missing keys.
-- **IM3** Keys may be objects (hashed by identity): distinct object keys with equal contents are distinct keys. A constructor given duplicate keys keeps the last value.
+- **IM3** Keys may be objects (hashed by identity): distinct object keys with equal contents are distinct keys. Key equality is SameValueZero (`NaN` equals `NaN`, `0` equals `-0`), and string keys named after `Object.prototype` members are ordinary keys. A constructor given duplicate keys keeps the last value.
 - **IM4** `withMutations(fn)` batches many changes into one new map; if `fn` changes nothing, the same instance is returned.
 - **IM5** `deleteAll(keys)` removes all the given keys.
 - **IM6** `entries`/`keys`/`values`/iteration yield every entry exactly once, consistent with `size`.
