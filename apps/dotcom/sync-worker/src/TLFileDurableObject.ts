@@ -724,10 +724,10 @@ export class TLFileDurableObject extends DurableObject {
 					this._fileRecordCache = result
 					return this._fileRecordCache
 				},
-				{
-					attempts: 20,
-					waitDuration: 100,
-				}
+				// Absence is retried because the row may still be committing. Query errors are retried
+				// too: isTransientConnectionError is R2-shaped and misses Postgres errors like "too many
+				// clients already" or ECONNREFUSED, and failing those fast only saves the 2s budget.
+				{ attempts: 20, waitDuration: 100 }
 			)
 
 			timer.report('get_file_record')
@@ -766,83 +766,102 @@ export class TLFileDurableObject extends DurableObject {
 			serverWebSocket.close(TLSyncErrorCloseEventCode, reason)
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		}
-
-		if (this.documentInfo.deleted) {
-			return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
+		// For infra failures (Postgres, rate limiter, etc.): a TLSyncErrorCloseEventCode close is
+		// terminal on the client (error screen, no reconnect), which would strand every connecting
+		// user for the length of a transient blip. Any other code puts the client in 'offline' and
+		// ReconnectManager retries with backoff, matching what the pre-accept 500 → 1006 used to
+		// do. Workers only allow 1000 or 3000-4999 here.
+		const closeSocketRetryable = () => {
+			serverWebSocket.close(1000, 'transient_error')
+			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		}
 
-		const authTimer = this.timer()
-		const auth = await getAuth(req, this.env)
-		authTimer.report('on_request_auth')
-
-		if (this.documentInfo.isApp) {
-			openMode = ROOM_OPEN_MODE.READ_WRITE
-			const file = await this.getAppFileRecord()
-
-			if (file) {
-				if (file.isDeleted) {
-					return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
-				}
-
-				if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, auth))) {
-					return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
-				}
-
-				if (!auth && !file.shared) {
-					return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
-				}
-
-				const rateLimitTimer = this.timer()
-				if (auth?.userId) {
-					const rateLimited = await isRateLimited(this.env, auth.userId)
-					if (rateLimited) {
-						this.logEvent({
-							type: 'client',
-							userId: auth.userId,
-							name: 'rate_limited',
-						})
-						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
-					}
-				} else {
-					const rateLimited = await isRateLimited(this.env, sessionId)
-					if (rateLimited) {
-						this.logEvent({
-							type: 'client',
-							userId: auth?.userId,
-							name: 'rate_limited',
-						})
-						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
-					}
-				}
-				rateLimitTimer.report('on_request_rate_limit')
-
-				// Check if user has owner access (directly or via group membership)
-				let hasOwnerAccess = false
-				if (file.ownerId && file.ownerId === auth?.userId) {
-					hasOwnerAccess = true
-				} else if (file.owningGroupId && auth?.userId) {
-					// Check the user can access the owning group's files
-					const groupCheckTimer = this.timer()
-					const role = await getRole(this.db, auth.userId, file.owningGroupId)
-					if (can(role, 'accessFiles')) {
-						hasOwnerAccess = true
-					}
-					groupCheckTimer.report('on_request_group_check')
-				}
-
-				if (!hasOwnerAccess && !file.shared) {
-					return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
-				}
-
-				// Guests only get canvas write on an `edit` link. `sharedLinkType` is a plain
-				// string column with legacy values in it, so anything else fails closed.
-				if (!hasOwnerAccess && file.sharedLinkType !== 'edit') {
-					openMode = ROOM_OPEN_MODE.READ_ONLY
-				}
+		// Everything from here through the permission checks below can throw on an infra failure
+		// now that those failures bubble instead of being swallowed. An uncaught throw here would
+		// 500 with the accepted server socket leaked in the hibernation set, so catch broadly and
+		// close it instead.
+		let auth: Awaited<ReturnType<typeof getAuth>>
+		try {
+			if (this.documentInfo.deleted) {
+				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 			}
-		} else {
-			// Legacy rooms are now read-only
-			openMode = ROOM_OPEN_MODE.READ_ONLY
+
+			const authTimer = this.timer()
+			auth = await getAuth(req, this.env)
+			authTimer.report('on_request_auth')
+
+			if (this.documentInfo.isApp) {
+				openMode = ROOM_OPEN_MODE.READ_WRITE
+				const file = await this.getAppFileRecord()
+
+				if (file) {
+					if (file.isDeleted) {
+						return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
+					}
+
+					if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, auth))) {
+						return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
+					}
+
+					if (!auth && !file.shared) {
+						return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
+					}
+
+					const rateLimitTimer = this.timer()
+					if (auth?.userId) {
+						const rateLimited = await isRateLimited(this.env, auth.userId)
+						if (rateLimited) {
+							this.logEvent({
+								type: 'client',
+								userId: auth.userId,
+								name: 'rate_limited',
+							})
+							return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
+						}
+					} else {
+						const rateLimited = await isRateLimited(this.env, sessionId)
+						if (rateLimited) {
+							this.logEvent({
+								type: 'client',
+								userId: auth?.userId,
+								name: 'rate_limited',
+							})
+							return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
+						}
+					}
+					rateLimitTimer.report('on_request_rate_limit')
+
+					// Check if user has owner access (directly or via group membership)
+					let hasOwnerAccess = false
+					if (file.ownerId && file.ownerId === auth?.userId) {
+						hasOwnerAccess = true
+					} else if (file.owningGroupId && auth?.userId) {
+						// Check the user can access the owning group's files
+						const groupCheckTimer = this.timer()
+						const role = await getRole(this.db, auth.userId, file.owningGroupId)
+						if (can(role, 'accessFiles')) {
+							hasOwnerAccess = true
+						}
+						groupCheckTimer.report('on_request_group_check')
+					}
+
+					if (!hasOwnerAccess && !file.shared) {
+						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
+					}
+
+					// Guests only get canvas write on an `edit` link. `sharedLinkType` is a plain
+					// string column with legacy values in it, so anything else fails closed.
+					if (!hasOwnerAccess && file.sharedLinkType !== 'edit') {
+						openMode = ROOM_OPEN_MODE.READ_ONLY
+					}
+				}
+			} else {
+				// Legacy rooms are now read-only
+				openMode = ROOM_OPEN_MODE.READ_ONLY
+			}
+		} catch (e) {
+			this.reportError(e)
+			return closeSocketRetryable()
 		}
 
 		try {
@@ -904,7 +923,8 @@ export class TLFileDurableObject extends DurableObject {
 			if (e instanceof RoomNotFoundError) {
 				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 			}
-			throw e
+			this.reportError(e)
+			return closeSocketRetryable()
 		}
 	}
 
@@ -1071,12 +1091,15 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	override async alarm() {
-		const result = this.ogRenderDebouncer.onAlarm(Date.now())
+		// One clock reading for the whole fire: the debounce decision and the pending marker's expiry
+		// both count from it (see `firedAt` on enqueueOgImageRender).
+		const firedAt = Date.now()
+		const result = this.ogRenderDebouncer.onAlarm(firedAt)
 		if (!result.render) {
 			await this.ctx.storage.setAlarm(result.reArmAt)
 			return
 		}
-		await this.requestOgRenderForEdit()
+		await this.requestOgRenderForEdit(firedAt)
 	}
 
 	/**
@@ -1668,7 +1691,17 @@ export class TLFileDurableObject extends DurableObject {
 								})
 						}
 					},
-					{ attempts: PERSIST_RETRIES_MAX, waitDuration: 2000 }
+					{
+						// throwOnFailure callers (publish) are awaited inside a 30s outbox effect
+						// timeout; the default 100 attempts (~200s) would blow past it, surfacing as a
+						// generic timeout with the real cause lost. Cap those callers' own retries well
+						// under it. Not a hard bound: a best-effort persist already queued ahead on the
+						// serial executionQueue can still push the wait past the timeout - the effect
+						// timeout covers that, and since the retried effect queues behind the same
+						// task and the clock check makes it a no-op, an overlap is harmless.
+						attempts: opts?.throwOnFailure ? PERSIST_RETRIES_MAX_THROWING : PERSIST_RETRIES_MAX,
+						waitDuration: 2000,
+					}
 				)
 			})
 			.catch((e) => {
@@ -1687,7 +1720,7 @@ export class TLFileDurableObject extends DurableObject {
 	 * shows. Downstream, the pending marker single-flights the ask and the consumer re-checks
 	 * `(board, version)` before spending a Browser Run slot — neither is a rate control either.
 	 */
-	private async requestOgRenderForEdit() {
+	private async requestOgRenderForEdit(firedAt: number) {
 		try {
 			// Two states skip, and neither is about privacy: a legacy room is not an app file and has no
 			// board identity to render, and a deleted one has nothing worth depicting. `shared`, `private`
@@ -1700,7 +1733,7 @@ export class TLFileDurableObject extends DurableObject {
 			const result = await enqueueOgImageRender(
 				this.env,
 				{ kind: 'shared_file', slug },
-				{ reason: 'edit' }
+				{ reason: 'edit', firedAt }
 			)
 			// No board identifier: for a shared file the slug is a capability, and a derived id is still a
 			// board identity in a log sink. The result alone is what this line is for.
@@ -2666,12 +2699,14 @@ export class TLFileDurableObject extends DurableObject {
 
 	/**
 	 * @internal
+	 * Best-effort by default: a failed persist here just means callers fall back to the
+	 * last-persisted snapshot, as before. Pass `{ throwOnFailure: true }` only for callers that
+	 * must not act on stale data (e.g. publishSnapshot reads the R2 blob straight after this
+	 * resolves, so a swallowed failure there would publish a stale snapshot).
 	 */
-	async awaitPersist() {
+	async awaitPersist(opts?: { throwOnFailure?: boolean }) {
 		if (!this._documentInfo) return
-		// publishSnapshot reads the R2 blob straight after this resolves; a swallowed persist
-		// failure here would let it publish a stale snapshot, so surface it instead.
-		await this.persistToDatabase({ throwOnFailure: true })
+		await this.persistToDatabase(opts?.throwOnFailure ? { throwOnFailure: true } : undefined)
 	}
 
 	/**
@@ -2793,3 +2828,6 @@ export class TLFileDurableObject extends DurableObject {
 
 const PERSIST_RETRIES_NOTIFY_THRESHOLD = 10
 const PERSIST_RETRIES_MAX = 100
+// ~10 attempts * 2s = ~20s of own retries, sized for the 30s outbox effect timeout (see
+// persistToDatabase for why this is not a hard bound).
+const PERSIST_RETRIES_MAX_THROWING = 10

@@ -1,4 +1,4 @@
-import { assert } from '@tldraw/editor'
+import { PageRecordType, assert } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 
 let editor: TestEditor
@@ -202,6 +202,35 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 		const line = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 		assert(editor.isShapeOfType(line, 'line'))
 		expect(Object.keys(line.props.points).length).toBe(3)
+	})
+
+	it('does not extend a line on another page after changing page', () => {
+		// regression for #10400: shift-clicking after a page change added a point
+		// to the line on the old page instead of starting a new line
+		editor.updateInstanceState({ isToolLocked: true })
+		editor
+			.setCurrentTool('line')
+			.pointerDown(0, 0, { target: 'canvas' })
+			.pointerMove(10, 10)
+			.pointerUp(10, 10)
+
+		const lineOnPage1 = editor.getCurrentPageShapes()[0]
+		assert(editor.isShapeOfType(lineOnPage1, 'line'))
+		expect(Object.keys(lineOnPage1.props.points).length).toBe(2)
+
+		const page2Id = PageRecordType.createId()
+		editor.createPage({ id: page2Id, name: 'Page 2' })
+		editor.setCurrentPage(page2Id)
+		editor.keyDown('Shift').pointerDown(20, 10, { target: 'canvas' }).pointerUp(20, 10)
+
+		expect(editor.getCurrentPageShapes()).toHaveLength(1)
+		const lineOnPage2 = editor.getCurrentPageShapes()[0]
+		assert(editor.isShapeOfType(lineOnPage2, 'line'))
+		expect(lineOnPage2.id).not.toBe(lineOnPage1.id)
+		expect(editor.isShapeInPage(lineOnPage2, page2Id)).toBe(true)
+
+		// The line on the first page is untouched
+		expect(editor.getShape(lineOnPage1.id)).toEqual(lineOnPage1)
 	})
 })
 

@@ -333,4 +333,79 @@ describe('the computed decorator (C8, C9, C10)', () => {
 
 		warn.mockRestore()
 	})
+
+	it('[C8] can be applied as a factory with no options', () => {
+		// the options argument is optional, so `@computed()` must work like `@computed`
+		class Foo {
+			a = atom('a', 1)
+			@computed()
+			getB() {
+				return this.a.get() * 2
+			}
+		}
+
+		const foo = new Foo()
+		expect(foo.getB()).toBe(2)
+		foo.a.set(2)
+		expect(foo.getB()).toBe(4)
+	})
+
+	it('[C8] a subclass override can call the superclass computed via super', () => {
+		// each decoration stores its computed under its own key; keying by method name made the
+		// super call re-enter the subclass's own computed and overflow the stack
+		class Base {
+			a = atom('a', 1)
+			@computed
+			getB() {
+				return this.a.get() * 2
+			}
+		}
+		class Sub extends Base {
+			@computed
+			override getB() {
+				return super.getB() + 1
+			}
+		}
+
+		const sub = new Sub()
+		expect(sub.getB()).toBe(3)
+		sub.a.set(2)
+		expect(sub.getB()).toBe(5)
+		expect(new Base().getB()).toBe(2)
+	})
+
+	it('[C9] getComputedInstance resolves the nearest decorated method on the prototype chain', () => {
+		class Base {
+			a = atom('a', 1)
+			@computed
+			getB() {
+				return this.a.get() * 2
+			}
+		}
+		class Sub extends Base {
+			@computed
+			override getB() {
+				return super.getB() + 1
+			}
+		}
+		class PlainSub extends Base {
+			override getB() {
+				return super.getB() + 100
+			}
+		}
+
+		const sub = new Sub()
+		const subInst = getComputedInstance(sub, 'getB')
+		expect(subInst.get()).toBe(3)
+		sub.a.set(2)
+		expect(subInst.get()).toBe(5)
+
+		// a plain (undecorated) override still exposes the superclass's computed
+		const plain = new PlainSub()
+		expect(getComputedInstance(plain, 'getB').get()).toBe(2)
+
+		// the returned type unwraps the method's return type
+		const n: number = getComputedInstance(new Base(), 'getB').get()
+		expect(n).toBe(2)
+	})
 })

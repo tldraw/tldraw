@@ -1,6 +1,6 @@
 import { StoreSchema, SynchronousStorage, UnknownRecord } from '@tldraw/store'
+import { TLStoreSnapshot } from '@tldraw/tlschema'
 import { assert, isEqual, objectMapEntriesIterable, objectMapValues } from '@tldraw/utils'
-import { TLStoreSnapshot } from 'tldraw'
 import { diffRecord, NetworkDiff, RecordOpType } from './diff'
 import { RoomSnapshot } from './TLSyncRoom'
 
