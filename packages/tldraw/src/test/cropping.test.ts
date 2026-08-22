@@ -211,6 +211,48 @@ describe('When in the select.idle state', () => {
 		expect(editor.getCroppingShapeId()).toBe(ids.imageB)
 	})
 
+	it('does not start cropping when the editor is readonly', () => {
+		editor.updateInstanceState({ isReadonly: true })
+
+		// enter
+		editor
+			.expectToBeIn('select.idle')
+			.select(ids.imageB)
+			.keyDown('Enter')
+			.keyUp('Enter')
+			.expectToBeIn('select.idle')
+
+		expect(editor.getCroppingShapeId()).toBe(null)
+
+		// double clicking a selection handle
+		editor
+			.doubleClick(550, 550, {
+				target: 'selection',
+				handle: 'bottom_right',
+			})
+			.expectToBeIn('select.idle')
+
+		expect(editor.getCroppingShapeId()).toBe(null)
+
+		// control-pointing a selection handle
+		editor
+			.pointerDown(500, 550, {
+				target: 'selection',
+				handle: 'bottom',
+				ctrlKey: true,
+				accelKey: true,
+			})
+			.expectToBeIn('select.brushing')
+			.cancel()
+
+		expect(editor.getCroppingShapeId()).toBe(null)
+
+		// setting the cropping shape directly
+		editor.setCroppingShape(ids.imageB)
+		expect(editor.canCropShape(ids.imageB)).toBe(false)
+		expect(editor.getCroppingShapeId()).toBe(null)
+	})
+
 	it('when only an image is selected control-pointing a selection handle should transition to select.crop.pointing_crop_handle', () => {
 		// two shapes / edge
 		editor
@@ -595,6 +637,74 @@ describe('When in the select.crop.translating_crop state', () => {
 		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
 	})
 
+	it('pressing escape mid-drag reverts only that drag, not earlier crops in the session', () => {
+		const original = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+
+		editor
+			.expectToBeIn('select.idle')
+			.doubleClick(550, 550, ids.imageB)
+			.expectToBeIn('select.crop.idle')
+			.pointerDown(500, 600, { target: 'selection', handle: 'bottom', ctrlKey: false })
+			.pointerMove(510, 590)
+			.expectToBeIn('select.crop.cropping')
+			.pointerUp()
+			.expectToBeIn('select.crop.idle')
+
+		const afterFirstCrop = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+		expect(afterFirstCrop).not.toMatchObject(original)
+
+		editor
+			.pointerDown(550, 550, { target: 'shape', shape: editor.getShape(ids.imageB) })
+			.pointerMove(250, 250)
+			.expectToBeIn('select.crop.translating_crop')
+
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(afterFirstCrop)
+
+		editor.cancel().expectToBeIn('select.crop.idle')
+
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(afterFirstCrop)
+
+		// The session is still open: escaping from idle reverts everything since crop mode began
+		editor.cancel().expectToBeIn('select.idle')
+
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(original)
+	})
+
+	it('pressing escape mid-drag keeps the session squashing into one undo step on exit', () => {
+		const original = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+
+		editor
+			.doubleClick(550, 550, ids.imageB)
+			.expectToBeIn('select.crop.idle')
+			.pointerDown(500, 600, { target: 'selection', handle: 'bottom', ctrlKey: false })
+			.pointerMove(510, 590)
+			.pointerUp()
+			.expectToBeIn('select.crop.idle')
+			.pointerDown(550, 550, { target: 'shape', shape: editor.getShape(ids.imageB) })
+			.pointerMove(250, 250)
+			.expectToBeIn('select.crop.translating_crop')
+			.cancel()
+			.expectToBeIn('select.crop.idle')
+			.pointerDown(550, 550, { target: 'shape', shape: editor.getShape(ids.imageB) })
+			.pointerMove(300, 300)
+			.pointerUp()
+			.expectToBeIn('select.crop.idle')
+			.pointerDown(550, 550, { target: 'shape', shape: editor.getShape(ids.imageB) })
+			.pointerMove(500, 500)
+			.pointerUp()
+			.expectToBeIn('select.crop.idle')
+
+		const afterSession = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+		expect(afterSession).not.toMatchObject(original)
+
+		editor.keyDown('Enter').keyUp('Enter').expectToBeIn('select.idle')
+
+		editor.undo()
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(original)
+		editor.redo()
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(afterSession)
+	})
+
 	it('pressing enter / pointer up / complete should transition to select.crop.idle', () => {
 		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
@@ -726,6 +836,35 @@ describe('When in the select.crop.cropping state', () => {
 			.expectToBeIn('select.crop.idle')
 
 		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
+	})
+
+	it('escape / cancel mid-drag reverts only that drag, not earlier crops in the session', () => {
+		const original = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+
+		editor
+			.cancel()
+			.expectToBeIn('select.idle')
+			.doubleClick(550, 550, ids.imageB)
+			.expectToBeIn('select.crop.idle')
+			.pointerDown(500, 600, { target: 'selection', handle: 'bottom', ctrlKey: false })
+			.pointerMove(510, 590)
+			.expectToBeIn('select.crop.cropping')
+			.pointerUp()
+			.expectToBeIn('select.crop.idle')
+
+		const afterFirstCrop = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+		expect(afterFirstCrop).not.toMatchObject(original)
+
+		editor
+			.pointerDown(700, 550, { target: 'selection', handle: 'right', ctrlKey: false })
+			.pointerMove(650, 550)
+			.expectToBeIn('select.crop.cropping')
+
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(afterFirstCrop)
+
+		editor.cancel().expectToBeIn('select.crop.idle')
+
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(afterFirstCrop)
 	})
 
 	it('pointer up / complete should commit the change and transition to crop.idle when that is the history state', () => {

@@ -1792,6 +1792,33 @@ describe('scribble brushes to add to the selection', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
 	})
 
+	it('restores the prior selection when cancelled without shift', () => {
+		editor.select(ids.box2)
+		editor.pointerMove(-50, -50)
+		editor.keyDown('Alt')
+		// ctrl-press keeps the current selection and starts a brush on drag
+		editor.pointerDown(-50, -50, { target: 'canvas', accelKey: true })
+		editor.pointerMove(50, 50)
+		editor.expectToBeIn('select.scribble_brushing')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		editor.cancel()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+	})
+
+	it('restores the prior selection when cancelled with shift', () => {
+		editor.select(ids.box2)
+		editor.pointerMove(-50, -50)
+		editor.keyDown('Alt')
+		editor.keyDown('Shift')
+		editor.pointerDown(-50, -50, { target: 'canvas', accelKey: true })
+		editor.pointerMove(50, 50)
+		editor.expectToBeIn('select.scribble_brushing')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
+		editor.cancel()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+	})
+
 	it('selects when switching between moves', () => {
 		editor.ungroupShapes([ids.group1]) // ungroup boxes 3 and 4
 		editor.pointerMove(650, 0)
