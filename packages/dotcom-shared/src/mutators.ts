@@ -409,6 +409,9 @@ export function createMutators(userId: string) {
 			assert(fileId, ZErrorCode.bad_request)
 			assert(typeof index === 'string' || index == null, ZErrorCode.bad_request)
 			assert(workspaceId, ZErrorCode.bad_request)
+			// Without this any signed-in user who knows a (fileId, workspaceId) pair — a guest who
+			// opened a shared link, a removed member — could rewrite that workspace's pin order.
+			assert(can(await getRole(tx, userId, workspaceId), 'accessFiles'), ZErrorCode.forbidden)
 
 			// Pinned files are group_file rows with a non-null index.
 			// New pins go above the workspace's current top pinned file.
@@ -430,6 +433,9 @@ export function createMutators(userId: string) {
 
 		unpinFile: async (tx: Tx, { fileId, workspaceId }: { fileId: string; workspaceId: string }) => {
 			assert(fileId, ZErrorCode.bad_request)
+			assert(workspaceId, ZErrorCode.bad_request)
+			// See pinFile.
+			assert(can(await getRole(tx, userId, workspaceId), 'accessFiles'), ZErrorCode.forbidden)
 
 			await tx.mutate.group_file.update({
 				fileId,
