@@ -131,6 +131,23 @@ describe('When in the pointing state', () => {
 		editor.expectToBeIn('frame.idle')
 		expect(editor.getCurrentPageShapes().length).toBe(1)
 	})
+
+	it('Leaves nothing behind on complete before the pointer is released', () => {
+		editor.setCurrentTool('frame')
+		editor.pointerDown(50, 50)
+		editor.expectToBeIn('frame.pointing')
+		editor.complete()
+		editor.expectToBeIn('frame.idle')
+		expect(editor.getCurrentPageShapes().length).toBe(0)
+	})
+
+	it('Does not create a frame when undo is pressed mid-press', () => {
+		editor.setCurrentTool('frame')
+		editor.pointerDown(50, 50)
+		editor.undo()
+		editor.expectToBeIn('frame.idle')
+		expect(editor.getCurrentPageShapes().length).toBe(0)
+	})
 })
 
 describe('When in the resizing state', () => {

@@ -143,6 +143,18 @@ describe('distributeShapes command', () => {
 			})
 		})
 
+		it('stacks in spatial order, not selection order, when a gap is given', () => {
+			// boxC sits between boxA and boxB on the page but comes after both in the input
+			editor.updateShapes([{ id: ids.boxC, type: 'geo', x: 50, y: 0 }])
+			editor.stackShapes([ids.boxA, ids.boxB, ids.boxC], 'horizontal', 10)
+			vi.advanceTimersByTime(1000)
+			editor.expectShapeToMatch(
+				{ id: ids.boxA, x: 0 },
+				{ id: ids.boxC, x: 110 },
+				{ id: ids.boxB, x: 220 }
+			)
+		})
+
 		it('stacks the shapes based on the most common gap', () => {
 			editor.setSelectedShapes([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
 			editor.stackShapes(editor.getSelectedShapeIds(), 'horizontal', 0)

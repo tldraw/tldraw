@@ -3867,6 +3867,33 @@ it('uses the cross cursor when create resizing', () => {
 	expect(editor.getInstanceState().cursor.rotation).toBe(0)
 })
 
+describe('When brushing from a selection handle with the accel key', () => {
+	it('resets the resize cursor when brushing starts from a resize handle', () => {
+		editor.select(ids.boxA)
+		editor.pointerDownOnHandle('bottom_right', { ctrlKey: true })
+		editor.expectToBeIn('select.brushing')
+		expect(editor.getInstanceState().cursor).toMatchObject({ type: 'default', rotation: 0 })
+
+		editor.pointerMoveBy(50, 50)
+		expect(editor.getInstanceState().cursor).toMatchObject({ type: 'default', rotation: 0 })
+
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getInstanceState().cursor).toMatchObject({ type: 'default', rotation: 0 })
+	})
+
+	it('resets the rotate cursor when brushing starts from a rotate handle', () => {
+		editor.select(ids.boxA)
+		editor.pointerDownOnHandle('top_right_rotate', { ctrlKey: true })
+		editor.expectToBeIn('select.brushing')
+		expect(editor.getInstanceState().cursor).toMatchObject({ type: 'default', rotation: 0 })
+
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getInstanceState().cursor).toMatchObject({ type: 'default', rotation: 0 })
+	})
+})
+
 describe('Resizing text from the right edge', () => {
 	it('Resizes text from the right edge', () => {
 		const id = createShapeId()
