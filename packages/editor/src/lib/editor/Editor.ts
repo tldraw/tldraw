@@ -72,6 +72,7 @@ import {
 	Result,
 	ZERO_INDEX_KEY,
 	annotateError,
+	areArraysShallowEqual,
 	assert,
 	assertExists,
 	bind,
@@ -552,6 +553,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 				nextPageState.editingShapeId = null
 			}
 
+			if (
+				prevPageState.croppingShapeId &&
+				shapesNoLongerInPage.has(prevPageState.croppingShapeId)
+			) {
+				if (!nextPageState) nextPageState = { ...prevPageState }
+				nextPageState.croppingShapeId = null
+			}
+
 			const hintingShapeIds = prevPageState.hintingShapeIds.filter(
 				(id) => !shapesNoLongerInPage.has(id)
 			)
@@ -946,7 +955,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const mode = this.store.props.collaboration.mode
 			this.disposables.add(
 				react('update collaboration mode', () => {
-					this.store.put([{ ...this.getInstanceState(), isReadonly: mode.get() === 'readonly' }])
+					const isReadonly = mode.get() === 'readonly'
+					// only track `mode`, and keep the sync out of the user's undo history
+					unsafe__withoutCapture(() =>
+						this._updateInstanceState({ isReadonly }, { history: 'ignore' })
+					)
 				})
 			)
 		}
@@ -2804,57 +2817,38 @@ export class Editor extends EventEmitter<TLEventMap> {
 	setEditingShape(shape: TLShapeId | TLShape | null): this {
 		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 
-		if (!id) {
-			// setting the editing shape to null
+		// id was provided but the next editing shape was not editable or didn't exist, so do nothing
+		if (id && !this.canEditShape(id)) return this
+
+		this.run(() => {
+			// Clean up the previous editing shape. This runs outside the history-ignored batch below,
+			// otherwise document changes made by onEditEnd (e.g. deleting an empty text shape) are
+			// never recorded and leave a phantom undo entry whose redo resurrects the shape.
+			const prevEditingShapeId = this.getEditingShapeId()
+			if (prevEditingShapeId) {
+				const prevEditingShape = this.getShape(prevEditingShapeId)
+				if (prevEditingShape) {
+					this.getShapeUtil(prevEditingShape).onEditEnd?.(prevEditingShape)
+				}
+			}
+
 			this.run(
 				() => {
-					// Clean up the previous editing shape
-					const prevEditingShapeId = this.getEditingShapeId()
-					if (prevEditingShapeId) {
-						const prevEditingShape = this.getShape(prevEditingShapeId)
-						if (prevEditingShape) {
-							this.getShapeUtil(prevEditingShape).onEditEnd?.(prevEditingShape)
-						}
-					}
-
 					// Clean up the editing shape state and rich text editor
 					this._updateCurrentPageState({ editingShapeId: null })
 					this._currentRichTextEditor.set(null)
+
+					if (!id) return
+
+					this.select(id)
+					this._updateCurrentPageState({ editingShapeId: id })
+
+					const nextEditingShape = this.getShape(id)! // shape should be there because canEditShape checked it. Possible small chance that onEditEnd deleted it?
+					this.getShapeUtil(nextEditingShape).onEditStart?.(nextEditingShape)
 				},
 				{ history: 'ignore' }
 			)
-
-			return this
-		}
-
-		// id was provided but the next editing shape was not editable or didn't exist, so do nothing
-		if (!this.canEditShape(id)) return this
-
-		// id was provided and the next editing shape is editable, so set the rich text editor to null
-		this.run(
-			() => {
-				// Clean up the previous editing shape
-				const prevEditingShapeId = this.getEditingShapeId()
-				if (prevEditingShapeId) {
-					const prevEditingShape = this.getShape(prevEditingShapeId)
-					if (prevEditingShape) {
-						this.getShapeUtil(prevEditingShape).onEditEnd?.(prevEditingShape)
-					}
-				}
-
-				// Clean up the editing shape state and rich text editor
-				this._updateCurrentPageState({ editingShapeId: null })
-				this._currentRichTextEditor.set(null)
-
-				// Set the new editing shape
-				this.select(id)
-				this._updateCurrentPageState({ editingShapeId: id })
-
-				const nextEditingShape = this.getShape(id)! // shape should be there because canEditShape checked it. Possible small chance that onEditEnd deleted it?
-				this.getShapeUtil(nextEditingShape).onEditStart?.(nextEditingShape)
-			},
-			{ history: 'ignore' }
-		)
+		})
 
 		return this
 	}
@@ -3019,26 +3013,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setErasingShapes(shapes: TLShapeId[] | TLShape[]): this {
+		// copy before sorting: the caller may pass a store-owned (frozen) array
 		const ids =
 			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
+				? (shapes as TLShapeId[]).slice()
 				: (shapes as TLShape[]).map((shape) => shape.id)
 		ids.sort() // sort the incoming ids
 		const erasingShapeIds = this.getErasingShapeIds()
 		this.run(
 			() => {
-				if (ids.length === erasingShapeIds.length) {
-					// if the new ids are the same length as the current ids, they might be the same.
-					// presuming the current ids are also sorted, check each item to see if it's the same;
-					// if we find any unequal, then we know the new ids are different.
-					for (let i = 0; i < ids.length; i++) {
-						if (ids[i] !== erasingShapeIds[i]) {
-							this._updateCurrentPageState({ erasingShapeIds: ids })
-							break
-						}
-					}
-				} else {
-					// if the ids are a different length, then we know they're different.
+				// the current ids are also sorted, so a shallow comparison tells us whether they changed
+				if (!areArraysShallowEqual(ids, erasingShapeIds)) {
 					this._updateCurrentPageState({ erasingShapeIds: ids })
 				}
 			},
@@ -3075,6 +3060,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!_shape) return false
 		const util = this.getShapeUtil(_shape)
 		if (!util.canCrop(_shape)) return false
+		if (this.getIsReadonly()) return false
 		if (this.isShapeOrAncestorLocked(_shape)) return false
 		return true
 	}
@@ -3154,11 +3140,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const collaborators = this.getCollaborators()
 		let leaderPresence = null as null | TLInstancePresence
 		while (targetUserId && !visited.includes(targetUserId)) {
-			leaderPresence = collaborators.find((c) => c.userId === targetUserId) ?? null
-			targetUserId = leaderPresence?.followingUserId ?? null
-			if (leaderPresence) {
-				visited.push(leaderPresence.userId)
-			}
+			const nextPresence = collaborators.find((c) => c.userId === targetUserId)
+			// Stop at the last resolvable presence, otherwise a leader whose own leader has left
+			// (or whose presence hasn't arrived yet) can't be followed at all
+			if (!nextPresence) break
+			leaderPresence = nextPresence
+			targetUserId = nextPresence.followingUserId ?? null
+			visited.push(nextPresence.userId)
 		}
 		return leaderPresence
 	}
@@ -3361,7 +3349,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			...this._cameraOptions.__unsafe__getWithoutCapture(),
 			...opts,
 		})
-		if (next.zoomSteps?.length < 1) next.zoomSteps = [1]
+		// `undefined < 1` is false, so an explicit `zoomSteps: undefined` would otherwise get through
+		// and make every later camera move throw
+		if (!next.zoomSteps || next.zoomSteps.length < 1) next.zoomSteps = [1]
 		this._cameraOptions.set(next)
 		this.setCamera(this.getCamera())
 		return this
@@ -7240,27 +7230,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (this.getIsReadonly() || ids.length === 0) return this
 
-		let allLocked = true,
-			allUnlocked = true
+		let allLocked = true
 		const shapesToToggle: TLShape[] = []
 		for (const id of ids) {
 			const shape = this.getShape(id)
 			if (shape) {
 				shapesToToggle.push(shape)
-				if (shape.isLocked) {
-					allUnlocked = false
-				} else {
-					allLocked = false
-				}
+				if (!shape.isLocked) allLocked = false
 			}
 		}
 		this.run(() => {
-			if (allUnlocked) {
-				this.updateShapes(
-					shapesToToggle.map((shape) => ({ id: shape.id, type: shape.type, isLocked: true }))
-				)
-				this.setSelectedShapes([])
-			} else if (allLocked) {
+			if (allLocked) {
 				this.updateShapes(
 					shapesToToggle.map((shape) => ({ id: shape.id, type: shape.type, isLocked: false }))
 				)
@@ -7268,6 +7248,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.updateShapes(
 					shapesToToggle.map((shape) => ({ id: shape.id, type: shape.type, isLocked: true }))
 				)
+				this.setSelectedShapes([])
 			}
 		})
 
@@ -7743,10 +7724,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const maxWidth = commonBounds.width
 
-		// sort the shape clusters by width and then height, descending
+		// sort the shape clusters by width and then height, descending: potpack fills each row's
+		// right-hand space with the shapes that follow, so they must be no taller than the row
 		shapeClustersToPack
-			.sort((a, b) => a.pageBounds.width - b.pageBounds.width)
-			.sort((a, b) => a.pageBounds.height - b.pageBounds.height)
+			.sort((a, b) => b.pageBounds.width - a.pageBounds.width)
+			.sort((a, b) => b.pageBounds.height - a.pageBounds.height)
 
 		// Start with is (sort of) the square of the area
 		const startWidth = Math.max(Math.ceil(Math.sqrt(area / 0.95)), maxWidth)
