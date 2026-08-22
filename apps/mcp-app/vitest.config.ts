@@ -6,5 +6,8 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
 	test: {
 		include: ['src/**/*.test.ts'],
+		// Two files boot their own `wrangler dev` and write/remove dist/ fixtures; in
+		// parallel they race on those files and one of them reads the other's stub.
+		fileParallelism: false,
 	},
 })
