@@ -45,6 +45,10 @@ export class PointingCanvas extends StateNode {
 		this.complete()
 	}
 
+	override onCancel() {
+		this.parent.transition('idle')
+	}
+
 	override onInterrupt() {
 		this.parent.transition('idle')
 	}
