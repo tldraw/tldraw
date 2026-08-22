@@ -48,7 +48,19 @@ export function DefaultDebugMenuContent({
 	return (
 		<>
 			<TldrawUiMenuGroup id="items">
-				<TldrawUiMenuItem id="hard-reset" onSelect={hardResetEditor} label={'Hard reset'} />
+				<TldrawUiMenuItem
+					id="hard-reset"
+					onSelect={() => {
+						if (
+							window.confirm(
+								'Hard reset will delete all tldraw data stored in this browser, including every document and your preferences. This cannot be undone.'
+							)
+						) {
+							hardResetEditor()
+						}
+					}}
+					label={'Hard reset'}
+				/>
 				<TldrawUiMenuItem
 					id="add-toast"
 					onSelect={() => {
