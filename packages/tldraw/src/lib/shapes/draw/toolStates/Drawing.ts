@@ -347,8 +347,10 @@ export class Drawing extends StateNode {
 					throw Error('We should have a point where the segment changed')
 				}
 
+				// page-space distance against a screen-space threshold, so scale by the zoom
+				const zoom = this.editor.getZoomLevel()
 				const hasMovedFarEnough =
-					Vec.Dist2(pagePointWhereNextSegmentChanged, inputs.getCurrentPagePoint()) >
+					Vec.Dist2(pagePointWhereNextSegmentChanged, inputs.getCurrentPagePoint()) * zoom * zoom >
 					this.editor.options.dragDistanceSquared
 
 				// Find the distance from where the pointer was when shift was released and
@@ -414,8 +416,10 @@ export class Drawing extends StateNode {
 					throw Error('We should have a point where the segment changed')
 				}
 
+				// page-space distance against a screen-space threshold, so scale by the zoom
+				const zoom = this.editor.getZoomLevel()
 				const hasMovedFarEnough =
-					Vec.Dist2(pagePointWhereNextSegmentChanged, inputs.getCurrentPagePoint()) >
+					Vec.Dist2(pagePointWhereNextSegmentChanged, inputs.getCurrentPagePoint()) * zoom * zoom >
 					this.editor.options.dragDistanceSquared
 
 				// Find the distance from where the pointer was when shift was released and
