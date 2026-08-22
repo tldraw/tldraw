@@ -660,14 +660,4 @@ describe('AtomMap: Map parity (AM)', () => {
 		}
 		expect(seen).toHaveLength(1)
 	})
-
-	it('[AM3] symbol and null-prototype keys work', () => {
-		const map = new AtomMap<unknown, number>('test')
-		const sym = Symbol('k')
-		const nullProto = Object.create(null)
-		map.set(sym, 1).set(nullProto, 2)
-		expect(map.get(sym)).toBe(1)
-		expect(map.get(nullProto)).toBe(2)
-		expect(() => map.update(Symbol('missing'), (v) => v)).toThrow('not found')
-	})
 })

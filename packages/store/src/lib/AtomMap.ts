@@ -2,12 +2,6 @@ import { atom, Atom, transact, UNINITIALIZED } from '@tldraw/state'
 import { assert } from '@tldraw/utils'
 import { emptyMap, ImmutableMap } from './ImmutableMap'
 
-// Atom names are debugging aids; `String()` throws for null-prototype objects and template literals
-// throw for symbols, and a Map must accept both as keys.
-function keyToName(key: unknown) {
-	return typeof key === 'object' && key !== null ? '[object]' : String(key)
-}
-
 /**
  * A drop-in replacement for Map that stores values in atoms and can be used in reactive contexts.
  * @public
@@ -38,7 +32,7 @@ export class AtomMap<K, V> implements Map<K, V> {
 		if (entries) {
 			atoms = atoms.withMutations((atoms) => {
 				for (const [k, v] of entries) {
-					atoms.set(k, atom(`${name}:${keyToName(k)}`, v))
+					atoms.set(k, atom(`${name}:${String(k)}`, v))
 				}
 			})
 		}
@@ -164,7 +158,7 @@ export class AtomMap<K, V> implements Map<K, V> {
 			existingAtom.set(value)
 		} else {
 			this.atoms.update((atoms) => {
-				return atoms.set(key, atom(`${this.name}:${keyToName(key)}`, value))
+				return atoms.set(key, atom(`${this.name}:${String(key)}`, value))
 			})
 		}
 		return this
@@ -230,7 +224,7 @@ export class AtomMap<K, V> implements Map<K, V> {
 	update(key: K, updater: (value: V) => V) {
 		const valueAtom = this.atoms.__unsafe__getWithoutCapture().get(key)
 		if (!valueAtom) {
-			throw new Error(`AtomMap: key ${keyToName(key)} not found`)
+			throw new Error(`AtomMap: key ${key} not found`)
 		}
 		const value = valueAtom.__unsafe__getWithoutCapture()
 		assert(value !== UNINITIALIZED)

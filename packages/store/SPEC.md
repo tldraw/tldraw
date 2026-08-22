@@ -198,7 +198,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 
 - **AM1** `get`/`has` are reactive per key: an effect reading a present key re-runs when that key's value changes or the key is deleted, but not when other keys are set, updated, or deleted.
 - **AM2** Reading an absent key subscribes to the map's key set, so the reader re-runs when that key is later added (a reader of an absent key may also re-run when the key set otherwise changes — per-key isolation applies to present keys).
-- **AM3** `set` adds or updates and returns the map. `update(key, fn)` replaces an existing value and throws for a missing key. Any value usable as a `Map` key (including symbols and null-prototype objects) is accepted.
+- **AM3** `set` adds or updates and returns the map. `update(key, fn)` replaces an existing value and throws for a missing key.
 - **AM4** `delete` returns whether the key existed. `deleteMany(keys)` deletes in one transaction (one reaction for the whole batch), returns the `[key, value]` pairs actually deleted, and ignores missing keys.
 - **AM5** `clear()` empties the map.
 - **AM6** `entries`, `keys`, `values`, `forEach`, `[Symbol.iterator]`, and `size` see exactly the live entries and are reactive. `forEach` honors `thisArg`. As with `Map`, an entry deleted during iteration before it is visited is skipped.
