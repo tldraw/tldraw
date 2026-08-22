@@ -2305,6 +2305,32 @@ describe('cancelling a translate operation', () => {
 	})
 })
 
+it('returns to idle after a creating translate with no onCreate', () => {
+	editor.createShape({ type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+	const shape = editor.getLastCreatedShape()
+	editor.select(shape)
+	editor.pointerMove(50, 50)
+	editor.setCurrentTool('select.translating', {
+		type: 'pointer',
+		button: 0,
+		altKey: false,
+		ctrlKey: false,
+		metaKey: false,
+		accelKey: false,
+		isPen: false,
+		name: 'pointer_move',
+		point: { x: 50, y: 50 },
+		pointerId: 0,
+		shape,
+		shiftKey: false,
+		target: 'shape',
+		isCreating: true,
+	} satisfies TranslatingInfo)
+	editor.pointerMove(100, 100)
+	editor.pointerUp(100, 100)
+	editor.expectToBeIn('select.idle')
+})
+
 it('preserves z-indexes when translating', () => {
 	editor.createShape({ type: 'geo', x: 0, y: 0, props: { w: 200, h: 200 } })
 	editor.createShape({ type: 'geo', x: 100, y: 100, props: { w: 200, h: 200 } })
