@@ -440,6 +440,7 @@ export class Idle extends StateNode {
 					// Call the shape's double click handler
 					const change = util.onDoubleClick?.(shape)
 					if (change) {
+						this.editor.markHistoryStoppingPoint('double click shape')
 						this.editor.updateShapes([change])
 						return
 					}
