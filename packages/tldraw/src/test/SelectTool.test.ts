@@ -767,6 +767,31 @@ describe('When double clicking a selection handle that registers as a canvas eve
 
 		expect(overlayEditor.getShape<TLArrowShape>(id)!.props.arrowheadEnd).toBe('arrow')
 	})
+
+	it('Undoes an arrowhead toggled by handle double-click without undoing the selection', () => {
+		const id = createShapeId()
+		overlayEditor
+			.createShapes([
+				{
+					id,
+					type: 'arrow',
+					x: 100,
+					y: 100,
+					props: { start: { x: 0, y: 0 }, end: { x: 100, y: 100 } },
+				},
+			])
+			.selectNone()
+		overlayEditor.markHistoryStoppingPoint('before selecting arrow')
+		overlayEditor.select(id)
+
+		overlayEditor.doubleClick(200, 200)
+		expect(overlayEditor.getShape<TLArrowShape>(id)!.props.arrowheadEnd).toBe('none')
+
+		overlayEditor.undo()
+
+		expect(overlayEditor.getShape<TLArrowShape>(id)!.props.arrowheadEnd).toBe('arrow')
+		expect(overlayEditor.getSelectedShapeIds()).toEqual([id])
+	})
 })
 
 describe('When editing shapes', () => {
