@@ -1376,6 +1376,29 @@ for (const key of ['Shift', 'Control']) {
 			editor.pointerUp()
 			editor.expectToBeIn('select.idle')
 		})
+
+		it('does not remove a selected shape from the selection on pointer up when alt is also held', () => {
+			editor.select(ids.box1, ids.box3)
+			editor.keyDown(key)
+			editor.keyDown('Alt')
+			editor.pointerMove(450, 50) // inside of box 3
+			expect(editor.getHoveredShapeId()).toBe(ids.box3)
+			editor.pointerDown()
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box3])
+			editor.pointerUp()
+			// same as a plain click on a shape within the selection
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
+		})
+
+		it('does not add a selected shape to the selection on pointer up when alt is also held', () => {
+			editor.keyDown(key)
+			editor.keyDown('Alt')
+			editor.pointerMove(450, 50) // inside of box 3
+			expect(editor.getHoveredShapeId()).toBe(ids.box3)
+			editor.pointerDown()
+			editor.pointerUp()
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
+		})
 	})
 }
 
@@ -1790,6 +1813,33 @@ describe('scribble brushes to add to the selection', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		editor.keyDown('Shift')
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
+	})
+
+	it('restores the prior selection when cancelled without shift', () => {
+		editor.select(ids.box2)
+		editor.pointerMove(-50, -50)
+		editor.keyDown('Alt')
+		// ctrl-press keeps the current selection and starts a brush on drag
+		editor.pointerDown(-50, -50, { target: 'canvas', accelKey: true })
+		editor.pointerMove(50, 50)
+		editor.expectToBeIn('select.scribble_brushing')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		editor.cancel()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+	})
+
+	it('restores the prior selection when cancelled with shift', () => {
+		editor.select(ids.box2)
+		editor.pointerMove(-50, -50)
+		editor.keyDown('Alt')
+		editor.keyDown('Shift')
+		editor.pointerDown(-50, -50, { target: 'canvas', accelKey: true })
+		editor.pointerMove(50, 50)
+		editor.expectToBeIn('select.scribble_brushing')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
+		editor.cancel()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
 	})
 
 	it('selects when switching between moves', () => {
