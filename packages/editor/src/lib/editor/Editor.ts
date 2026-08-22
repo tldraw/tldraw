@@ -3397,8 +3397,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const { constraints } = cameraOptions
 
 				// Clamp padding to half the viewport size on either dimension
-				const py = Math.min(constraints.padding.y, vsb.w / 2)
-				const px = Math.min(constraints.padding.x, vsb.h / 2)
+				const px = Math.min(constraints.padding.x, vsb.w / 2)
+				const py = Math.min(constraints.padding.y, vsb.h / 2)
 
 				// Expand the bounds by the padding
 				const bounds = Box.From(cameraOptions.constraints.bounds)
@@ -3467,14 +3467,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 						}
 						case 'inside': {
 							// When below fit zoom, constrain the camera so that the bounds stay completely within the viewport
-							if (z < zx) x = clamp(x, minX, (vsb.w - px) / z - bounds.w)
+							if (z < zx) x = clamp(x, minX, (vsb.w - px) / z - bounds.w - bounds.x)
 							// When above fit zoom, keep the bounds within padding distance of the viewport edge
 							else x = clamp(x, minX + freeW, minX)
 							break
 						}
 						case 'outside': {
 							// Constrain the camera so that the bounds never leaves the viewport
-							x = clamp(x, px / z - bounds.w, (vsb.w - px) / z)
+							x = clamp(x, px / z - bounds.w - bounds.x, (vsb.w - px) / z - bounds.x)
 							break
 						}
 						case 'free': {
@@ -3499,12 +3499,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 							break
 						}
 						case 'inside': {
-							if (z < zy) y = clamp(y, minY, (vsb.h - py) / z - bounds.h)
+							if (z < zy) y = clamp(y, minY, (vsb.h - py) / z - bounds.h - bounds.y)
 							else y = clamp(y, minY + freeH, minY)
 							break
 						}
 						case 'outside': {
-							y = clamp(y, py / z - bounds.h, (vsb.h - py) / z)
+							y = clamp(y, py / z - bounds.h - bounds.y, (vsb.h - py) / z - bounds.y)
 							break
 						}
 						case 'free': {
@@ -11750,10 +11750,10 @@ function withIsolatedShapes<T>(
 
 function getCameraFitXFitY(editor: Editor, cameraOptions: TLCameraOptions) {
 	if (!cameraOptions.constraints) throw Error('Should have constraints here')
-	const {
-		padding: { x: px, y: py },
-	} = cameraOptions.constraints
 	const vsb = editor.getViewportScreenBounds()
+	// Clamp padding to half the viewport size on either dimension, as getConstrainedCamera does
+	const px = Math.min(cameraOptions.constraints.padding.x, vsb.w / 2)
+	const py = Math.min(cameraOptions.constraints.padding.y, vsb.h / 2)
 	const bounds = Box.From(cameraOptions.constraints.bounds)
 	const zx = (vsb.w - px * 2) / bounds.w
 	const zy = (vsb.h - py * 2) / bounds.h
