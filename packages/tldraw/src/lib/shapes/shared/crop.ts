@@ -551,7 +551,13 @@ export function getCroppedImageDataForReplacedImage(
 	let crop = defaultCrop
 	let newDisplayW = origDisplayW
 	let newDisplayH = origDisplayH
-	const isOriginalCrop = isEqual(imageShape.props.crop, defaultCrop)
+	// Compare the bounds, not the whole object: an explicit `isCircle: false` must still count
+	// as the original crop.
+	const isOriginalCrop =
+		!!imageShape.props.crop &&
+		isEqual(imageShape.props.crop.topLeft, defaultCrop.topLeft) &&
+		isEqual(imageShape.props.crop.bottomRight, defaultCrop.bottomRight) &&
+		!imageShape.props.crop.isCircle
 
 	if (isOriginalCrop) {
 		newDisplayW = origDisplayW
