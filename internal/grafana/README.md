@@ -10,6 +10,8 @@ This directory currently provisions:
 
 There are two MCP dashboards, for two different servers. `MCP server (shared boards)` covers the public server on the sync worker at `POST /app/mcp` (`apps/dotcom/sync-worker`), which reads its protocol metrics from the `MEASURE` dataset. `MCP app sessions` covers the separate tldraw MCP app worker (`apps/mcp-app`) and its own `MCP_ANALYTICS` dataset. Neither one's panels belong on `Dotcom events` — that dashboard covers the sync worker's own events.
 
+`Dotcom events V1` holds only the catch-all `Room events` panel and `max attempts before persistence success`; new panels go on `Dotcom events`.
+
 Contact points, notification policies, and data sources are hand-managed in Grafana on purpose.
 
 ## Conventions
@@ -21,6 +23,19 @@ Every provisioned dashboard carries the tags `provisioned` and `repo:tldraw/tldr
 1. Edit the files under `resources/`.
 2. Open a PR. CI validates the resources and dry-runs the push so you can see what would change. (The alerting API doesn't support server-side dry-run, so alert rules show as "skipped: client-side check only" — that's expected, not an error.)
 3. Merge. The deploy workflow (`.github/workflows/deploy-grafana.yml`) pushes to Grafana Cloud.
+
+## Adding a new alert rule
+
+A rule file carrying `grafana.com/group` labels cannot be _created_ by the push. Grafana rejects it with `cannot set group when creating a new rule` — the resource API can only update a rule that is already in a group. Nothing catches this earlier: alerting has no server-side dry-run, so the PR reports the rule as "skipped" and goes green.
+
+Bootstrap the group once by hand, then let the push adopt it:
+
+    gcx api /api/v1/provisioning/folder/<folder uid>/rule-groups/<group> \
+      -X PUT -H 'X-Disable-Provenance: true' -d @group.json
+
+`group.json` uses the classic provisioning shape (`{title, folderUid, interval, rules: [...]}`), which is not the shape of the file in this tree: `spec.expressions` becomes a `data` array, the expression carrying `source: true` becomes `condition`, and `spec.trigger.interval` becomes the group's `interval` in seconds. `X-Disable-Provenance: true` is what leaves provenance clear so the push can take ownership afterwards.
+
+`dotcom-file-do-exceptions` was created this way on 2026-08-18, after PR #10052's deploy failed on it.
 
 ## Pulling fresh state
 

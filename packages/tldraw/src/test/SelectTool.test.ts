@@ -58,6 +58,29 @@ describe('TLSelectTool.Idle', () => {
 		expect(nudgedShape?.x).toBe(101)
 	})
 
+	it('Does not nudge selected shapes on arrow key down while spacebar panning', () => {
+		const shape = editor.getShape(ids.box1)!
+		editor.select(shape.id)
+		editor.keyDown(' ')
+		expect(editor.inputs.getIsSpacebarPanning()).toBe(true)
+		editor.keyDown('ArrowRight')
+		editor.keyRepeat('ArrowRight')
+		editor.keyUp('ArrowRight')
+		editor.keyUp(' ')
+		expect(editor.getShape(shape.id)).toMatchObject({ x: 100, y: 100 })
+	})
+
+	it('Does not nudge selected shapes on arrow key down while alt is held', () => {
+		const shape = editor.getShape(ids.box1)!
+		editor.select(shape.id)
+		editor.keyDown('Alt')
+		editor.keyDown('ArrowRight')
+		editor.keyRepeat('ArrowRight')
+		editor.keyUp('ArrowRight')
+		editor.keyUp('Alt')
+		expect(editor.getShape(shape.id)).toMatchObject({ x: 100, y: 100 })
+	})
+
 	it('Makes a shape double click change its own undo step', () => {
 		const shape = editor.getShape<TLGeoShape>(ids.box1)!
 		expect(shape.props.geo).toBe('rectangle')

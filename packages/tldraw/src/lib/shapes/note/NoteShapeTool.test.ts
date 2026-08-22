@@ -143,6 +143,33 @@ describe('When in the pointing state', () => {
 		editor.expectToBeIn('note.idle')
 		expect(editor.getCurrentPageShapes().length).toBe(1)
 	})
+
+	it('Leaves nothing behind on complete before the pointer is released', () => {
+		editor.setCurrentTool('note')
+		editor.pointerDown(50, 50)
+		editor.expectToBeIn('note.pointing')
+		editor.complete()
+		editor.expectToBeIn('note.idle')
+		expect(editor.getCurrentPageShapes().length).toBe(0)
+	})
+
+	it('Does not create a note when undo is pressed mid-press', () => {
+		editor.setCurrentTool('note')
+		editor.pointerDown(50, 50)
+		editor.undo()
+		editor.expectToBeIn('note.idle')
+		expect(editor.getCurrentPageShapes().length).toBe(0)
+	})
+
+	it('Leaves nothing behind on complete before the pointer is released on a coarse pointer', () => {
+		editor.updateInstanceState({ isCoarsePointer: true })
+		editor.setCurrentTool('note')
+		editor.pointerDown(50, 50)
+		editor.expectToBeIn('note.pointing')
+		editor.complete()
+		editor.expectToBeIn('note.idle')
+		expect(editor.getCurrentPageShapes().length).toBe(0)
+	})
 })
 
 describe('Adjacent note position helpers (sticky pits)', () => {

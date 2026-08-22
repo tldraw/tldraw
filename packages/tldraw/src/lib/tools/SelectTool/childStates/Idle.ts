@@ -590,7 +590,7 @@ export class Idle extends StateNode {
 					}
 					return
 				}
-				this.nudgeSelectedShapes(false)
+				this.nudgeSelectedShapes(info, false)
 				return
 			}
 		}
@@ -636,7 +636,7 @@ export class Idle extends StateNode {
 					)
 					return
 				}
-				this.nudgeSelectedShapes(true)
+				this.nudgeSelectedShapes(info, true)
 				break
 			}
 			case 'Tab': {
@@ -755,12 +755,17 @@ export class Idle extends StateNode {
 		startEditingShapeWithRichText(this.editor, id, { info })
 	}
 
-	private nudgeSelectedShapes(ephemeral = false) {
+	private nudgeSelectedShapes(info: TLKeyboardEventInfo, ephemeral = false) {
 		const {
 			editor: {
 				inputs: { keys },
 			},
 		} = this
+
+		// Space+arrow pages the camera and Alt+arrow is the change-page shortcut; both
+		// events still reach this state, so without this guard the selection also
+		// moves one unit (#10397)
+		if (info.altKey || this.editor.inputs.getIsSpacebarPanning()) return
 
 		// We want to use the "actual" shift key state,
 		// not the one that's in the editor.inputs.shiftKey,
