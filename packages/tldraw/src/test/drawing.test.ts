@@ -121,6 +121,39 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			expect(shape.props.segments[2].type).toBe('straight')
 		})
 
+		it('Switches segment types after the same screen distance regardless of zoom', () => {
+			// Without the zoom correction the threshold is 4 canvas units, which at 800% is
+			// 32 screen pixels of the stroke not following the pointer (#10392).
+			editor.setCamera({ x: 0, y: 0, z: 8 })
+			editor
+				.setCurrentTool(toolType)
+				.pointerDown(100, 100)
+				.pointerMove(120, 100)
+				.keyDown('Shift')
+				.pointerMove(125, 100)
+
+			let shape = editor.getCurrentPageShapes()[0] as DrawableShape
+			expect(shape.props.segments.map((s) => s.type)).toEqual(['free', 'straight'])
+
+			editor.keyUp('Shift').pointerMove(130, 100)
+
+			shape = editor.getCurrentPageShapes()[0] as DrawableShape
+			expect(shape.props.segments.map((s) => s.type)).toEqual(['free', 'straight', 'free'])
+		})
+
+		it('Does not switch segment types until the pointer has moved past the drag distance', () => {
+			editor.setCamera({ x: 0, y: 0, z: 8 })
+			editor
+				.setCurrentTool(toolType)
+				.pointerDown(100, 100)
+				.pointerMove(120, 100)
+				.keyDown('Shift')
+				.pointerMove(123, 100)
+
+			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
+			expect(shape.props.segments.map((s) => s.type)).toEqual(['free'])
+		})
+
 		it('Extends previously drawn line when shift is held', () => {
 			editor
 				.setCurrentTool(toolType)

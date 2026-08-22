@@ -111,7 +111,7 @@ The client hook named `useHasFileAdminRights` currently returns true for any mem
 
 ## Data sync model
 
-The user durable object syncs:
+The client's Zero queries (see `TldrawApp.preload`) sync:
 
 - The current user.
 - The user's `file_state` rows and related files.
@@ -123,7 +123,7 @@ The user durable object syncs:
 
 The sidebar is built from the workspace graph. For migrated users, `getFile(fileId)` only returns a file if it can be found through one of the user's workspace memberships. A shared file may still be openable through the file durable object even when it is not returned by `getFile`.
 
-When membership or workspace file subscriptions change, the user durable object may do a hard reboot and refetch the graph. That keeps the sidebar consistent after other users move files, delete files, add files, remove members, or delete workspaces.
+Zero replicates membership and workspace file changes incrementally, which keeps the sidebar consistent after other users move files, delete files, add files, remove members, or delete workspaces. Server-side effects of file changes (room notifications, publish/unpublish) run through the `effect_outbox` drained by `TLFileEffectProcessor`.
 
 The live canvas connection is checked separately by the file durable object:
 
@@ -262,7 +262,7 @@ The active workspace then changes because the open file belongs to that workspac
 
 The user presses the sidebar new-file button. The app creates the file in the active workspace, navigates to it, and starts rename on desktop.
 
-Other members of the workspace receive the new file through sync. Depending on subscription state, their user durable object may refetch the workspace graph before the file appears.
+Other members of the workspace receive the new file through Zero sync.
 
 ### Sharing a workspace
 
@@ -294,7 +294,7 @@ If the file is only a home guest link, removal removes that home link. The file 
 
 ### Another member creates a file in the active workspace
 
-The user's workspace graph gains a `group_file` row and the new file. The sidebar eventually shows it in the active workspace's unpinned list. The file may appear after a user durable object refetch if the new file creates a new subscription.
+The user's workspace graph gains a `group_file` row and the new file. The sidebar shows it in the active workspace's unpinned list once Zero has replicated the rows.
 
 The user is not navigated away from their current file.
 
@@ -352,7 +352,7 @@ The deleting user's client navigates to another file or creates a new one. Other
 
 ### An owner removes the current user from a workspace
 
-The current user's `group_user` row is deleted. Their user durable object loses the workspace subscription and refetches the graph. The workspace disappears from the sidebar.
+The current user's `group_user` row is deleted. Zero drops the workspace from the user's query results and the workspace disappears from the sidebar.
 
 For files owned by that workspace:
 
@@ -484,8 +484,8 @@ Main files reviewed:
 - `apps/dotcom/client/src/tla/hooks/useTldrFileDrop.ts`
 - `apps/dotcom/client/src/tla/components/TlaEditor/sneaky/SneakyFileDropHandler.tsx`
 - `apps/dotcom/sync-worker/src/TLFileDurableObject.ts`
-- `apps/dotcom/sync-worker/src/UserDataSyncer.ts`
-- `apps/dotcom/sync-worker/src/fetchEverythingSql.snap.ts`
+- `apps/dotcom/sync-worker/src/TLFileEffectProcessor.ts`
+- `apps/dotcom/sync-worker/src/fileEffects.ts`
 - `apps/dotcom/sync-worker/src/routes/tla/acceptInvite.ts`
 - `apps/dotcom/sync-worker/src/routes/tla/getInviteInfo.ts`
 - `apps/dotcom/sync-worker/src/utils/tla/getJoinableWorkspaceFromInvite.ts`
