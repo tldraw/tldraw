@@ -587,7 +587,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'frame-selection',
 				label: 'action.frame-selection',
-				kbd: 'cmd+alt+g',
+				kbd: 'cmd+alt+g,ctrl+alt+g',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -1480,6 +1480,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						}
 					}
 					if (updates.length > 0) {
+						editor.markHistoryStoppingPoint('unlock all')
 						editor.updateShapes(updates)
 					}
 				},

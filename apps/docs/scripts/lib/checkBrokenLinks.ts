@@ -15,6 +15,11 @@ const INTERNAL_REWRITES: Record<string, string> = {
 	'/installation': '/getting-started/installation',
 }
 
+// Section and category paths are not pages: only article paths are generated
+// (dynamicParams = false) and page.tsx 404s for anything else. These section roots are
+// reachable only because next.config.js redirects them to an article.
+const REDIRECTED_SECTION_PATHS = ['/docs', '/examples', '/reference', '/starter-kits']
+
 // Path prefixes that are served by another system (e.g. the marketing site)
 // rather than this Next.js app, so they will never appear in the docs DB.
 // Matches the prefix as an exact path OR as a parent of a subpath:
@@ -140,17 +145,12 @@ export async function checkBrokenLinks(): Promise<number> {
 	const articles = await db.all<{ path: string | null; content: string }[]>(
 		'SELECT path, content FROM articles'
 	)
-	const sections = await db.all<{ path: string }[]>('SELECT path FROM sections')
-	const categories = await db.all<{ path: string | null }[]>('SELECT path FROM categories')
 
 	for (const row of articles) {
 		if (row.path) validPaths.add(row.path)
 	}
-	for (const row of sections) {
-		if (row.path) validPaths.add(row.path)
-	}
-	for (const row of categories) {
-		if (row.path) validPaths.add(row.path)
+	for (const path of REDIRECTED_SECTION_PATHS) {
+		validPaths.add(path)
 	}
 
 	// Add internal rewrite sources (these are valid URLs that rewrite to DB paths)

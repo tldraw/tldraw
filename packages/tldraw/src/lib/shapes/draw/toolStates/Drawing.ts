@@ -347,8 +347,10 @@ export class Drawing extends StateNode {
 					throw Error('We should have a point where the segment changed')
 				}
 
+				// page-space distance against a screen-space threshold, so scale by the zoom
+				const zoom = this.editor.getZoomLevel()
 				const hasMovedFarEnough =
-					Vec.Dist2(pagePointWhereNextSegmentChanged, inputs.getCurrentPagePoint()) >
+					Vec.Dist2(pagePointWhereNextSegmentChanged, inputs.getCurrentPagePoint()) * zoom * zoom >
 					this.editor.options.dragDistanceSquared
 
 				// Find the distance from where the pointer was when shift was released and
@@ -414,8 +416,10 @@ export class Drawing extends StateNode {
 					throw Error('We should have a point where the segment changed')
 				}
 
+				// page-space distance against a screen-space threshold, so scale by the zoom
+				const zoom = this.editor.getZoomLevel()
 				const hasMovedFarEnough =
-					Vec.Dist2(pagePointWhereNextSegmentChanged, inputs.getCurrentPagePoint()) >
+					Vec.Dist2(pagePointWhereNextSegmentChanged, inputs.getCurrentPagePoint()) * zoom * zoom >
 					this.editor.options.dragDistanceSquared
 
 				// Find the distance from where the pointer was when shift was released and
@@ -693,7 +697,7 @@ export class Drawing extends StateNode {
 					const currentPagePoint = inputs.getCurrentPagePoint()
 
 					// Reset cache for the new shape's segment
-					const initialPoint = new Vec(0, 0, this.isPenOrStylus ? +(z! * 1.25).toFixed() : 0.5)
+					const initialPoint = new Vec(0, 0, this.isPenOrStylus ? +(z! * 1.25).toFixed(2) : 0.5)
 					this.currentSegmentPoints = [initialPoint]
 
 					this.editor.createShape({
