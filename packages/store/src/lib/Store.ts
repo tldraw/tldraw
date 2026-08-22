@@ -1210,11 +1210,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 			if (!this.pendingAfterEvents) {
 				this.sideEffects.handleOperationComplete(source)
-			} else {
-				// if the side effects triggered by a remote operation resulted in more effects,
-				// those extra effects should not be marked as originating remotely.
-				source = 'user'
 			}
+			// Whatever the after-handlers or the operation-complete handlers changed in response to
+			// a remote operation is not itself remote: later rounds are attributed to 'user'.
+			source = 'user'
 		}
 	}
 	private _isInAtomicOp = false
