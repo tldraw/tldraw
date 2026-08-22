@@ -56,7 +56,7 @@ A board with no usable cached image is sent to the site-wide default (`/social-o
 
 Nothing renders on crawler demand any more, so a board's thumbnail has to exist before its first share. Two triggers make that happen, both enqueueing onto the same queue and consumer, and both subject to the same re-resolve and version check at render time. Every queue message carries a `reason` (`publish`, `edit`) that rides through to telemetry; `crawler` survives in the union only as the fallback for messages enqueued before the field existed.
 
-- **Publish.** The `publish` effect in `TLPostgresReplicator` enqueues a render right after `publishSnapshot` writes the frozen R2 snapshot, so a published board's image is being made before its link is pasted anywhere. `unpublish` deletes the cached image and pending marker instead — the one replicator effect that touches a thumbnail. **Unsharing has no effect of its own**: every board renders whether shared or not, and the share gate is applied at serve time, so there is nothing derived from a board's public state to tear down when it goes private.
+- **Publish.** `publishSnapshot` (the outbox publish effect in `utils/publishSnapshots.ts`, run by `TLFileEffectProcessor`) enqueues a render right after it writes the frozen R2 snapshot, so a published board's image is being made before its link is pasted anywhere. `unpublishSnapshot` deletes the cached image and pending marker instead — the one outbox effect that touches a thumbnail. **Unsharing has no effect of its own**: every board renders whether shared or not, and the share gate is applied at serve time, so there is nothing derived from a board's public state to tear down when it goes private.
 - **On edit.** `TLFileDurableObject.persistToDatabase` schedules a render on a persist that actually advanced the document clock. The only states that skip are `legacy` and `deleted` (see "Rendering every board"); shared and private boards both render. There is no sampling and no staleness window — a persist means the board's saved content genuinely differs from what the cached thumbnail shows, which is exactly when a re-render is warranted.
 
   **The ask is debounced, not throttled.** Each persist pushes the render deadline out by `OG_RENDER_DEBOUNCE_MS` (60s), so a board renders once its editing _settles_ rather than on a cadence while it is still being drawn on — which is what a thumbnail is for. `OG_RENDER_MAX_WAIT_MS` (5 minutes), measured from the first persist since the last render, stops a board that is never left alone from never rendering. The arithmetic lives in `utils/ogRenderDebounce.ts` so it is testable without standing up a durable object; the object supplies the clock and the alarm.
@@ -523,7 +523,7 @@ flowchart TB
     end
 
     subgraph warm ["Refresh triggers (ahead of the first crawler)"]
-        PUB["publish effect<br/>(TLPostgresReplicator)"]
+        PUB["publish effect<br/>(publishSnapshots.ts via TLFileEffectProcessor)"]
         SPEC["persist on edit<br/>(TLFileDurableObject,<br/>debounced 60s, 5min max wait)"]
     end
 
@@ -641,7 +641,7 @@ There are two constants to tune, both in `config.ts`, and the measurement in "Wh
 ### Explicitly not doing
 
 - Synchronous wait in `getOgImage` — the queue's ~5s default batch linger means a short wait mostly misses, and the phases above remove the need. Revisit only with data showing otherwise.
-- An `isEmpty`-based trigger — the `file.isEmpty` column is vestigial (written `true` at creation, never flipped by client or server), so there is no replicator-visible first-content transition.
+- An `isEmpty`-based trigger — the `file.isEmpty` column is vestigial (written `true` at creation, never flipped by client or server), so there is no outbox-visible first-content transition.
 - A DO-owned render single-flight — the advisory pending marker plus the consumer's version check is the accepted model and stays adequate at these volumes.
 - A cap on thumbnail rendering — see "Request limits". Capping our own derived artifact only buys staler thumbnails; the caps belong on the MCP endpoint, which is the surface an outside caller can actually drive.
 
