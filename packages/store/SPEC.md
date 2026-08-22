@@ -201,7 +201,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **AM3** `set` adds or updates and returns the map. `update(key, fn)` replaces an existing value and throws for a missing key.
 - **AM4** `delete` returns whether the key existed. `deleteMany(keys)` deletes in one transaction (one reaction for the whole batch), returns the `[key, value]` pairs actually deleted, and ignores missing keys.
 - **AM5** `clear()` empties the map.
-- **AM6** `entries`, `keys`, `values`, `forEach`, `[Symbol.iterator]`, and `size` see exactly the live entries and are reactive. `forEach` honors `thisArg`.
+- **AM6** `entries`, `keys`, `values`, `forEach`, `[Symbol.iterator]`, and `size` see exactly the live entries and are reactive. `forEach` honors `thisArg`. As with `Map`, an entry deleted during iteration before it is visited is skipped.
 - **AM7** Changes made inside a rolled-back `@tldraw/state` transaction are restored: additions disappear, updates revert, deletions reappear.
 - **AM8** `Object.prototype.toString.call(map)` is `[object AtomMap]`.
 - **AM9** `getOrInsert(key, defaultValue)` and `getOrInsertComputed(key, callback)` return the existing value for a present key, and otherwise insert and return the new value. `callback` runs only when the key is absent.
