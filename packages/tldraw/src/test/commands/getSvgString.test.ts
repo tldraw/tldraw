@@ -137,6 +137,24 @@ it('Accepts a background option', async () => {
 	expect(svg2.style.backgroundColor).toBe('transparent')
 })
 
+it.each([
+	{ darkMode: false, label: 'light mode' },
+	{ darkMode: true, label: 'dark mode' },
+])('exports the note shadow in $label', async ({ darkMode }) => {
+	const noteId = createShapeId('note')
+	editor.createShapes([{ id: noteId, type: 'note', x: 0, y: 0 }])
+
+	const result = parseSvg(await editor.getSvgString([noteId], { darkMode }))
+
+	const filterIds = Array.from(result.querySelectorAll('filter')).map((f) => f.id)
+	expect(filterIds).toContain('note-shadow-shape_note')
+
+	const shadowRects = Array.from(result.querySelectorAll('rect')).filter(
+		(r) => r.getAttribute('filter') === 'url(#note-shadow-shape_note)'
+	)
+	expect(shadowRects).toHaveLength(1)
+})
+
 // Note: this test exports, which bumps a module-level id counter that the snapshot tests
 // above are sensitive to - so keep it after them.
 it('waits for required fonts to load before measuring the export', async () => {
