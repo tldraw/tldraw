@@ -1,6 +1,10 @@
-import { ThumbnailRenderResultRequestBody } from '@tldraw/dotcom-shared'
+import {
+	ThumbnailRenderResultRequestBody,
+	ThumbnailRenderTimingsRequestBody,
+} from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
+import { writeDataPoint } from '../../utils/analytics'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { ShapeMeasurement } from './boardTools'
 import { putRenderResult } from './thumbnailRender'
@@ -17,11 +21,42 @@ export async function putThumbnailRenderResult(
 	request: IRequest,
 	env: Environment
 ): Promise<Response> {
-	let body: ThumbnailRenderResultRequestBody
+	let body: ThumbnailRenderResultRequestBody | ThumbnailRenderTimingsRequestBody
 	try {
-		body = (await request.json()) as ThumbnailRenderResultRequestBody
+		body = (await request.json()) as
+			| ThumbnailRenderResultRequestBody
+			| ThumbnailRenderTimingsRequestBody
 	} catch {
 		return Response.json({ error: true, message: 'Invalid JSON body' }, { status: 400 })
+	}
+
+	// The render page's phase-timing beacon, sharing this route because it shares the route's
+	// auth story: a signed token proves the POST comes from a render we asked for. Telemetry only —
+	// nothing downstream waits on it, so it is accepted for any valid token, screenshot or measure.
+	if ('timings' in body) {
+		if (!body.token || typeof body.timings !== 'object') {
+			return Response.json(
+				{ error: true, message: 'token and timings are required' },
+				{ status: 400 }
+			)
+		}
+		const job = await verifyThumbnailRenderToken(env, body.token)
+		if (!job) {
+			return Response.json({ error: true, message: 'Invalid render token' }, { status: 403 })
+		}
+		const { source, bootAt, dataAt, mountAt, settledAt, exportedAt } = body.timings
+		const stamps = [bootAt, dataAt, mountAt, settledAt, exportedAt]
+		if (!stamps.every(Number.isFinite)) {
+			return Response.json({ error: true, message: 'timings must be finite' }, { status: 400 })
+		}
+		// One datapoint per completed export: where the in-browser time went. browser_run_session
+		// prices the whole session; this decomposes it into boot / acquire / mount / settle / export,
+		// which is what ranks the render page's optimisations against each other.
+		writeDataPoint(undefined, env.MEASURE, env, 'render_page_timings', {
+			blobs: [`surface:${job.surface ?? 'og'}`, `source:${source === 'push' ? 'push' : 'fetch'}`],
+			doubles: stamps,
+		})
+		return Response.json({ error: false })
 	}
 
 	if (!body?.token || !body.bounds || typeof body.bounds !== 'object') {

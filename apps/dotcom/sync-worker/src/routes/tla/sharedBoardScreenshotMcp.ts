@@ -39,6 +39,7 @@ import {
 	toolPageResult,
 } from './boardTools'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
+import { buildPushPayload } from './sliceSnapshotForRender'
 import {
 	ResolveThumbnailBoardResult,
 	ResolvedThumbnailBoard,
@@ -723,7 +724,14 @@ async function loadBoardForTool(
 }
 
 type ResolvedBoardPage =
-	| { ok: true; board: ResolvedThumbnailBoard; page: ResolvedPageOk }
+	// `snapshot` is the one this resolution already read, carried so a screenshot can push those
+	// records into the render page instead of having it fetch the same board back out of the worker.
+	| {
+			ok: true
+			board: ResolvedThumbnailBoard
+			page: ResolvedPageOk
+			snapshot: import('@tldraw/sync-core').RoomSnapshot
+	  }
 	| { ok: false; reason: BoardToolFailureReason; result: ToolCallResult }
 
 async function resolveBoardPage(
@@ -744,7 +752,7 @@ async function resolveBoardPage(
 			result: withTelemetryReason(pageResult.result, reason),
 		}
 	}
-	return { ok: true, board: loaded.board, page: pageResult }
+	return { ok: true, board: loaded.board, page: pageResult, snapshot: loaded.snapshot }
 }
 
 // One datapoint shape for every MCP tool: `source: 'mcp'`, plus whatever the row carries.
@@ -1021,6 +1029,14 @@ async function renderShapeSetScreenshot(
 			width: DEFAULT_THUMBNAIL_WIDTH,
 			height: DEFAULT_THUMBNAIL_HEIGHT,
 			telemetry: { source: 'mcp' },
+			// Push the cluster rather than the board. This tool usually wants a handful of shapes out
+			// of a whole document, so the slice is most of the win here — and slicing is best-effort by
+			// design: it throws rather than hand over a set it cannot vouch for, and that lands us back
+			// on the fetch, which sends everything and cannot be wrong that way.
+			push: buildPushPayload(resolved.snapshot, {
+				pageId: resolved.page.pageId,
+				shapeIds,
+			}),
 		})
 
 		// The render is already paid for and the PNG in hand is what the caller asked for, so a failed

@@ -172,6 +172,25 @@ export interface ThumbnailRenderResultRequestBody {
 	bounds: Record<string, ThumbnailShapeMeasurement>
 }
 
+/**
+ * The render page's phase timings, POSTed to the result route as a fire-and-forget beacon once the
+ * export completes. All values are `performance.now()` stamps (ms since navigation start), so the
+ * deltas between them are the phase costs a worker-side clock cannot see: script boot, snapshot
+ * acquisition, editor mount, the settle wait, and the export itself.
+ */
+export interface ThumbnailRenderTimingsRequestBody {
+	token: string
+	timings: {
+		/** How the page got its snapshot — what the transport blob claims, confirmed from the page. */
+		source: 'push' | 'fetch'
+		bootAt: number
+		dataAt: number
+		mountAt: number
+		settledAt: number
+		exportedAt: number
+	}
+}
+
 export type ThumbnailSnapshotResponseBody =
 	| {
 			error: false

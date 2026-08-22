@@ -5,7 +5,10 @@ import react from '@vitejs/plugin-react'
 import { config } from 'dotenv'
 import { defineConfig, Plugin } from 'vite'
 import { getMultiplayerServerURL } from './scripts/multiplayer-server-url'
-import { thumbnailScreenshotPlugin } from './scripts/vite-thumbnail-screenshot-plugin'
+import {
+	thumbnailRenderEntryPlugin,
+	thumbnailScreenshotPlugin,
+} from './scripts/vite-thumbnail-screenshot-plugin'
 import { zodLocalePlugin } from './scripts/vite-zod-locale-plugin.js'
 
 export { getMultiplayerServerURL }
@@ -66,6 +69,7 @@ export default defineConfig((env) => ({
 	plugins: [
 		spaFallbackPlugin(),
 		thumbnailScreenshotPlugin(),
+		thumbnailRenderEntryPlugin(),
 		zodLocalePlugin(fileURLToPath(new URL('./scripts/zod-locales-shim.js', import.meta.url))),
 		react(),
 		formatjs({
@@ -87,6 +91,16 @@ export default defineConfig((env) => ({
 
 		// our svg icons break if we use data urls, so disable inline assets for now
 		assetsInlineLimit: 0,
+
+		rollupOptions: {
+			input: {
+				index: fileURLToPath(new URL('./index.html', import.meta.url)),
+				// The thumbnail render page's own entry, so a Browser Run capture boots the SDK
+				// without the app shell. /__thumbnail-render is rewritten to it at the edge
+				// (scripts/build.ts) and in dev (thumbnailRenderEntryPlugin).
+				'thumbnail-render': fileURLToPath(new URL('./thumbnail-render.html', import.meta.url)),
+			},
+		},
 	},
 	// add backwards-compatible support for NEXT_PUBLIC_ env vars
 	define: {

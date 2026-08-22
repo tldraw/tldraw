@@ -22,6 +22,34 @@ export const LOCAL_SCREENSHOT_PATH = '/__screenshot'
 // an allowlist the caller supplies is not an allowlist. Mirrors THUMBNAIL_RENDER_PATH.
 const RENDER_PATH = '/__thumbnail-render'
 
+// Serves the render page from its own entry in dev, mirroring the edge rewrite the deployed client
+// gets from scripts/build.ts. Registered before Vite's own middlewares, so the SPA HTML fallback
+// never sees the path — which also means a broken rewrite fails loudly here instead of silently
+// serving the app shell.
+export function thumbnailRenderEntryPlugin(): Plugin {
+	const rewrite = (url: string | undefined) =>
+		url === RENDER_PATH || url?.startsWith(`${RENDER_PATH}?`)
+			? `/thumbnail-render.html${url.slice(RENDER_PATH.length)}`
+			: null
+	return {
+		name: 'thumbnail-render-entry',
+		configureServer(server) {
+			server.middlewares.use((req, _res, next) => {
+				const rewritten = rewrite(req.url)
+				if (rewritten) req.url = rewritten
+				next()
+			})
+		},
+		configurePreviewServer(server) {
+			server.middlewares.use((req, _res, next) => {
+				const rewritten = rewrite(req.url)
+				if (rewritten) req.url = rewritten
+				next()
+			})
+		},
+	}
+}
+
 export function thumbnailScreenshotPlugin(): Plugin {
 	// Chromium takes about a second to start, so it is launched once for the dev server's lifetime
 	// rather than per request.

@@ -16,6 +16,17 @@ export const THUMBNAIL_SETTLED_SELECTOR = '[data-thumbnail-ready="true"], [data-
 // <body> so it resolves to a single element (both <html> and <body> carry the ready marker).
 const THUMBNAIL_CAPTURE_SELECTOR = 'body[data-thumbnail-ready="true"]'
 
+// The global the worker injects the snapshot onto, and the render page reads it back off. Shared so
+// the two names cannot drift: a mismatch is invisible — the page simply never sees a payload and
+// falls back to fetching one, so push looks like it works while never actually being exercised.
+export const THUMBNAIL_RENDER_GLOBAL = '__TLDRAW_RENDER__'
+
+// Set on the render URL when the worker is injecting a snapshot, so the page knows to wait for one.
+// Without it the page cannot tell "a push is coming, hold on" from "nobody is pushing, fetch now",
+// and would have to wait out the timeout on every pull render — which would land as pure added
+// latency on the OG path and make the two transports incomparable.
+export const THUMBNAIL_RENDER_PUSH_PARAM = 'push'
+
 // Builds the `/screenshot` request body. `timeoutMs` is granted to navigation and to the
 // settle+export wait *individually* — these are per-phase timers, not a cap on the call. They
 // exist so Browser Run gives up on a dead page early; bounding the call as a whole is the
@@ -27,16 +38,24 @@ export function getThumbnailScreenshotRequestBody({
 	width,
 	height,
 	timeoutMs,
+	injectedScript,
 }: {
 	renderUrl: string
 	width: number
 	height: number
 	timeoutMs: number
+	/**
+	 * JS evaluated in the page, used to push the snapshot in rather than have the page fetch it.
+	 * Runs *after* navigation, so the render page has to await the global rather than read it once —
+	 * see the loader in thumbnail-render.tsx.
+	 */
+	injectedScript?: string
 }) {
 	const headers = getThumbnailScreenshotExtraHeaders(renderUrl)
 	return {
 		url: renderUrl,
 		...(headers ? { setExtraHTTPHeaders: headers } : null),
+		...(injectedScript ? { addScriptTag: [{ content: injectedScript }] } : null),
 		viewport: {
 			width,
 			height,

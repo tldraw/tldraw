@@ -1,11 +1,16 @@
 import {
 	DEFAULT_THUMBNAIL_HEIGHT,
 	DEFAULT_THUMBNAIL_WIDTH,
+	THUMBNAIL_RENDER_GLOBAL,
 	THUMBNAIL_RENDER_PATH,
+	THUMBNAIL_RENDER_PUSH_PARAM,
 	THUMBNAIL_RENDER_TIMEOUT_MS,
+	ThumbnailSnapshotResponseBody,
 	getThumbnailScreenshotRequestBody,
 } from '@tldraw/dotcom-shared'
+import { SerializedSchema } from '@tldraw/store'
 import { RoomSnapshot } from '@tldraw/sync-core'
+import { TLRecord } from '@tldraw/tlschema'
 import { THUMBNAIL_RENDER_TOKEN_TTL_MS } from '../../config'
 import { getR2KeyForRoom } from '../../r2'
 import {
@@ -32,6 +37,7 @@ import {
 	getSharedFileRoomSnapshot,
 	isFileViewableFor,
 } from './getSharedFile'
+import { toRenderScriptLiteral } from './sliceSnapshotForRender'
 import {
 	BoardSnapshotReadError,
 	BrowserRenderError,
@@ -208,6 +214,7 @@ export async function captureThumbnailScreenshot(
 		width,
 		height,
 		telemetry,
+		push,
 	}: {
 		/** Which pipeline is asking. Signed into the job; namespaces the minted-token record. */
 		surface: ThumbnailRenderSurface
@@ -230,6 +237,15 @@ export async function captureThumbnailScreenshot(
 		 * definition a screenshot render.
 		 */
 		telemetry: { source: BrowserRunSessionContext['source']; reason?: OgImageRenderReason }
+		/**
+		 * The board's records, to be injected into the render page instead of fetched back out of the
+		 * worker. Opt-in per surface: a caller passes this only when it already holds the snapshot, so
+		 * pushing costs no extra read. Omit it and the render page fetches, exactly as before.
+		 *
+		 * Not a promise that push will be used — a payload over the binding's 32 MiB RPC limit falls
+		 * back to the fetch (see renderThumbnailScreenshot).
+		 */
+		push?: { records: TLRecord[]; schema: SerializedSchema }
 	}
 ): Promise<{ base64: string; durationMs: number }> {
 	const job: ThumbnailRenderJob = {
@@ -254,6 +270,8 @@ export async function captureThumbnailScreenshot(
 		theme,
 		exp: Date.now() + THUMBNAIL_RENDER_TOKEN_TTL_MS,
 	}
+	// Minted even when the snapshot is pushed, because the pushed render still has to be able to fall
+	// back to fetching one (see renderThumbnailScreenshot). One R2 write, off the browser's path.
 	const token = await mintRecordedRenderToken(env, job)
 	try {
 		return await renderThumbnailScreenshot(
@@ -263,6 +281,24 @@ export async function captureThumbnailScreenshot(
 				width,
 				height,
 				session: { source: telemetry.source, mode: 'screenshot', reason: telemetry.reason },
+				// The payload the snapshot route would have answered with, assembled here instead. Kept
+				// identical to that response shape so the render page has one code path, not two.
+				push: push && {
+					error: false as const,
+					records: push.records,
+					schema: push.schema,
+					renderParams: {
+						camera: job.camera,
+						...(job.pageId ? { pageId: job.pageId } : null),
+						...(job.shapeIds ? { shapeIds: job.shapeIds } : null),
+						x: job.x,
+						y: job.y,
+						z: job.z,
+						width: job.width,
+						height: job.height,
+						theme: job.theme,
+					},
+				},
 			}
 		)
 	} finally {
@@ -297,12 +333,34 @@ function writeBrowserRunSessionTelemetry(
 		durationMs,
 		width,
 		height,
+		transport,
+		payloadChars,
+		browserMsUsed,
 	}: {
 		/** `ok`, or the bounded browser failure code for a session that died. */
 		outcome: string
 		durationMs: number
 		width: number
 		height: number
+		/**
+		 * How the render page got its snapshot: `push` injected, `pull` fetched, `push_fallback`
+		 * tried to inject and was refused. This is what makes the two transports comparable on one
+		 * deployment rather than across environments and days.
+		 */
+		transport: RenderTransport
+		/**
+		 * Length of the injected script in UTF-16 code units, or 0 when nothing was injected. A lower
+		 * bound on its wire size rather than the size itself — non-ASCII board text costs more bytes
+		 * than characters — which is why the guard below leaves headroom and the capture keeps a
+		 * backstop. Good enough as an axis to plot duration against, which is what it is here for.
+		 */
+		payloadChars: number
+		/**
+		 * Browser wall clock billed (`X-Browser-Ms-Used`), 0 for sessions that died before a response
+		 * or ran on the local dev service. `durationMs - browserMsUsed` isolates queueing and
+		 * transfer, which is where most of this pipeline's variance lives.
+		 */
+		browserMsUsed: number
 	}
 ) {
 	writeDataPoint(undefined, env.MEASURE, env, 'browser_run_session', {
@@ -311,9 +369,31 @@ function writeBrowserRunSessionTelemetry(
 			`mode:${session.mode}`,
 			`outcome:${outcome}`,
 			`reason:${session.reason ?? 'none'}`,
+			`transport:${transport}`,
 		],
-		doubles: [width, height, durationMs],
+		doubles: [width, height, durationMs, payloadChars, browserMsUsed],
 	})
+}
+
+type RenderTransport = 'push' | 'pull' | 'push_fallback'
+
+// The binding serializes the whole request body, not just the payload, so leave room for the rest of
+// it and for structured-clone overhead rather than testing against the limit exactly. Measured
+// 2026-08-21: a 25.6MB snapshot pushes fine and 32MB is refused, the refusal naming this limit.
+const RPC_MESSAGE_LIMIT_BYTES = 32 * 1024 * 1024
+const PUSH_PAYLOAD_BUDGET_BYTES = RPC_MESSAGE_LIMIT_BYTES - 1024 * 1024
+
+// Compared against the script's *character* count, which undercounts multi-byte text — so the
+// headroom above is doing real work here, and the capture's catch covers what slips past it. Exact
+// byte counting would mean encoding a copy of a payload that can already be tens of megabytes.
+function isWithinRpcLimit(injectedScript: string) {
+	return injectedScript.length <= PUSH_PAYLOAD_BUDGET_BYTES
+}
+
+// The binding reports this as a plain Error, so there is nothing to match on but the message.
+// Deliberately narrow: anything else must not be mistaken for "too big" and silently downgraded.
+function isRpcOversizeError(error: unknown) {
+	return error instanceof Error && /Serialized RPC .*limited to/i.test(error.message)
 }
 
 // The pixels come from editor.toImage on the render page, which displays its own export as a
@@ -323,26 +403,68 @@ function writeBrowserRunSessionTelemetry(
 async function renderThumbnailScreenshot(
 	env: Environment,
 	renderUrl: string,
-	{ width, height, session }: { width: number; height: number; session: BrowserRunSessionContext }
+	{
+		width,
+		height,
+		session,
+		push,
+	}: {
+		width: number
+		height: number
+		session: BrowserRunSessionContext
+		push?: ThumbnailSnapshotResponseBody
+	}
 ): Promise<{ base64: string; durationMs: number }> {
 	// Built once and handed to whichever transport runs, so the wait strategy, capture target and
 	// timeout cannot drift between Browser Run and its development stand-in.
-	const requestBody = getThumbnailScreenshotRequestBody({
-		renderUrl,
-		width,
-		height,
-		timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
-	})
+	const buildRequestBody = (injectedScript?: string) => {
+		// Tell the page a payload is coming, so only a pushed render pays the wait for it.
+		const url = new URL(renderUrl)
+		if (injectedScript) url.searchParams.set(THUMBNAIL_RENDER_PUSH_PARAM, '1')
+		return getThumbnailScreenshotRequestBody({
+			renderUrl: url.toString(),
+			width,
+			height,
+			timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
+			injectedScript,
+		})
+	}
+
+	// Push first when the caller supplied a payload, and fall back to the fetch if the binding refuses
+	// it. Only the RPC size limit falls back: it is the one failure that means "this board is too big
+	// for this transport" rather than "this render is broken", and it costs nothing when it happens —
+	// the throw is in-worker, before any browser session exists, so no Browser Run time is spent and
+	// no attempt is consumed. Anything else propagates, so a real bug cannot hide behind a silent
+	// downgrade to the old path.
+	let transport: RenderTransport = 'pull'
+	let payloadChars = 0
+	let injectedScript: string | undefined
+
+	if (push) {
+		const script = `window.${THUMBNAIL_RENDER_GLOBAL}=${toRenderScriptLiteral(push)}`
+		payloadChars = script.length
+		if (isWithinRpcLimit(script)) {
+			transport = 'push'
+			injectedScript = script
+		} else {
+			// Refused up front rather than caught: it keeps the oversize case off the retry path, and
+			// the binding's own error is a generic Error we would have to string-match to recognise.
+			transport = 'push_fallback'
+		}
+	}
+
+	const requestBody = buildRequestBody(injectedScript)
 
 	// Local dev has no route to Browser Run, so it points this at a screenshot service instead (the
 	// client's dev server, which can drive Playwright). Selected on the var being set rather than on
 	// an environment name, so only an environment that configures one can take this path.
 	let timed: TimedCapture
 	const startedAt = Date.now()
-	try {
+
+	const runCapture = (body: ThumbnailScreenshotRequestBody) => {
 		const capture = env.LOCAL_SCREENSHOT_SERVICE_URL
-			? callLocalScreenshotService(env.LOCAL_SCREENSHOT_SERVICE_URL, requestBody)
-			: callBrowserRun(env, requestBody)
+			? callLocalScreenshotService(env.LOCAL_SCREENSHOT_SERVICE_URL, body)
+			: callBrowserRun(env, body)
 		// Measures are exempt from the worker-side deadline, and it is the *result* that makes them
 		// so: the render page POSTs its measurements before signalling ready, and the result route
 		// accepts any unexpired signed token, so abandoning the wait early would let that POST land
@@ -350,9 +472,19 @@ async function renderThumbnailScreenshot(
 		// in a bucket that must never get a lifecycle rule. The deadline exists for the OG pipeline's
 		// invariants, which never price a measure; a measure stays bounded by the quick action's own
 		// per-phase timers.
-		timed = await (session.mode === 'measure'
-			? capture
-			: abandonAtRenderTimeout(capture, startedAt))
+		return session.mode === 'measure' ? capture : abandonAtRenderTimeout(capture, startedAt)
+	}
+
+	try {
+		timed = await runCapture(requestBody).catch((error) => {
+			// Backstop to the size guard above. That guard measures the injected string; the binding
+			// measures its own serialization of the entire body, so a payload sitting near the line can
+			// still be refused. Recovering costs nothing — the throw precedes any browser session — and
+			// not recovering would fail a board that renders perfectly well today.
+			if (transport !== 'push' || !isRpcOversizeError(error)) throw error
+			transport = 'push_fallback'
+			return runCapture(buildRequestBody())
+		})
 	} catch (error) {
 		// A BrowserRenderError is a session that existed and died, so it lands on the ledger with the
 		// time it held its browser. Anything else never created a session and records nothing.
@@ -362,6 +494,9 @@ async function renderThumbnailScreenshot(
 				durationMs: error.durationMs,
 				width,
 				height,
+				transport,
+				payloadChars,
+				browserMsUsed: 0,
 			})
 		}
 		throw error
@@ -375,6 +510,9 @@ async function renderThumbnailScreenshot(
 			durationMs: timed.durationMs,
 			width,
 			height,
+			transport,
+			payloadChars,
+			browserMsUsed: timed.browserMsUsed,
 		})
 		throw new Error('Render produced an empty screenshot')
 	}
@@ -384,6 +522,9 @@ async function renderThumbnailScreenshot(
 		durationMs: timed.durationMs,
 		width,
 		height,
+		transport,
+		payloadChars,
+		browserMsUsed: timed.browserMsUsed,
 	})
 	return { base64: arrayBufferToBase64(buffer), durationMs: timed.durationMs }
 }
@@ -399,6 +540,13 @@ type ThumbnailScreenshotRequestBody = ReturnType<typeof getThumbnailScreenshotRe
 interface TimedCapture {
 	buffer: ArrayBuffer
 	durationMs: number
+	/**
+	 * Browser wall clock billed for the session (Browser Run's `X-Browser-Ms-Used`), or 0 where the
+	 * transport has none (the local dev service). `durationMs - browserMsUsed` is everything that
+	 * happened outside the browser — RPC, Browser Run queueing, response transfer — which is the
+	 * noise a push/pull comparison has to see past.
+	 */
+	browserMsUsed: number
 }
 
 async function callBrowserRun(
@@ -436,7 +584,11 @@ async function callBrowserRun(
 			timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
 		})
 	})
-	return { buffer, durationMs: Date.now() - startedAt }
+	return {
+		buffer,
+		durationMs: Date.now() - startedAt,
+		browserMsUsed: Number(response.headers.get('X-Browser-Ms-Used')) || 0,
+	}
 }
 
 // The request cannot cap its own total: `gotoOptions.timeout` and `waitForSelector.timeout` are
@@ -546,7 +698,11 @@ async function callLocalScreenshotService(
 		)
 	}
 	const buffer = await response.arrayBuffer()
-	return { buffer, durationMs: Date.now() - startedAt }
+	return {
+		buffer,
+		durationMs: Date.now() - startedAt,
+		browserMsUsed: Number(response.headers.get('X-Browser-Ms-Used')) || 0,
+	}
 }
 
 // Writes one rendered PNG to a thumbnail cache, stamping the content version (so a stale version
