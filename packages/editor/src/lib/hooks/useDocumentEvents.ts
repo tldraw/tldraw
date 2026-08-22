@@ -29,8 +29,12 @@ export function useDocumentEvents() {
 			// re-dispatched, which would lead to an infinite loop.
 			if ((e as any).isSpecialRedispatchedEvent) return
 			preventDefault(e)
-			e.stopPropagation()
 			const cvs = container.querySelector('.tl-canvas')
+			// A drop on the canvas itself already reaches the canvas (and any shape's own React
+			// drop handlers) by bubbling; stopping it here would hide it from React, which
+			// delegates from the root above this container.
+			if (cvs?.contains(e.target as Node | null)) return
+			e.stopPropagation()
 			if (!cvs) return
 			const newEvent = new DragEvent(e.type, e)
 			;(newEvent as any).isSpecialRedispatchedEvent = true
@@ -277,10 +281,13 @@ export function useDocumentEvents() {
 
 		container.addEventListener('wheel', handleWheel, { passive: false })
 
+		// Not the shared `preventDefault` reference: the DOM dedupes identical listeners, so with two
+		// editors in one document the first cleanup would otherwise remove it for both.
+		const handleGesture = (e: Event) => preventDefault(e)
 		const ownerDoc = container.ownerDocument
-		ownerDoc.addEventListener('gesturestart', preventDefault)
-		ownerDoc.addEventListener('gesturechange', preventDefault)
-		ownerDoc.addEventListener('gestureend', preventDefault)
+		ownerDoc.addEventListener('gesturestart', handleGesture)
+		ownerDoc.addEventListener('gesturechange', handleGesture)
+		ownerDoc.addEventListener('gestureend', handleGesture)
 
 		container.addEventListener('keydown', handleKeyDown)
 		container.addEventListener('keyup', handleKeyUp)
@@ -290,9 +297,9 @@ export function useDocumentEvents() {
 
 			container.removeEventListener('wheel', handleWheel)
 
-			ownerDoc.removeEventListener('gesturestart', preventDefault)
-			ownerDoc.removeEventListener('gesturechange', preventDefault)
-			ownerDoc.removeEventListener('gestureend', preventDefault)
+			ownerDoc.removeEventListener('gesturestart', handleGesture)
+			ownerDoc.removeEventListener('gesturechange', handleGesture)
+			ownerDoc.removeEventListener('gestureend', handleGesture)
 
 			container.removeEventListener('keydown', handleKeyDown)
 			container.removeEventListener('keyup', handleKeyUp)

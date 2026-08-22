@@ -8,14 +8,11 @@ import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
 import {
 	commentSchemaRecords,
-	CommentToolbarItem,
 	createTLSchema,
 	DefaultContextMenu,
 	DefaultContextMenuContent,
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
-	DefaultToolbar,
-	DefaultToolbarContent,
 	Editor,
 	ExampleDialog,
 	PerformanceApiAdapter,
@@ -118,13 +115,6 @@ const components: TLComponents = {
 		</DefaultDebugMenu>
 	),
 	InFrontOfTheCanvas: Comments,
-	// The default toolbar doesn't include the comment tool, so add it here.
-	Toolbar: () => (
-		<DefaultToolbar>
-			<CommentToolbarItem />
-			<DefaultToolbarContent />
-		</DefaultToolbar>
-	),
 }
 
 // Dragging the comment tool out anchors a comment to a rectangular region; a click anchors a pin.

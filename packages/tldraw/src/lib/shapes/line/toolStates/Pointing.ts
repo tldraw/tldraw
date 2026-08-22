@@ -30,7 +30,9 @@ export class Pointing extends StateNode {
 		// Previously created line shape that we might be extending
 		const shape = info.shapeId && this.editor.getShape<TLLineShape>(info.shapeId)
 
-		if (shape && inputs.getShiftKey()) {
+		// The shape id carried through idle survives a page change; extending it from
+		// another page would silently add a point to content the user can't see (#10400)
+		if (shape && inputs.getShiftKey() && this.editor.isShapeInPage(shape)) {
 			// Extending a previous shape
 			this.markId = this.editor.markHistoryStoppingPoint(`creating_line:${shape.id}`)
 			this.shape = shape

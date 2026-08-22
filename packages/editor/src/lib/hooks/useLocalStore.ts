@@ -1,5 +1,5 @@
-import { TLAsset, TLAssetStore, TLStoreSnapshot } from '@tldraw/tlschema'
-import { WeakCache } from '@tldraw/utils'
+import { TLAssetId, TLAssetStore, TLStoreSnapshot } from '@tldraw/tlschema'
+import { noop } from '@tldraw/utils'
 import { useEffect } from 'react'
 import { TLStoreOptions, createTLStore } from '../config/createTLStore'
 import { TLEditorSnapshot } from '../config/TLEditorSnapshot'
@@ -33,7 +33,9 @@ export function useLocalStore(
 
 		setState({ status: 'loading' })
 
-		const objectURLCache = new WeakCache<TLAsset, Promise<string | null>>()
+		// Keyed by asset id rather than record identity so that a record update doesn't mint
+		// another object url for the same blob; every url minted here is revoked on cleanup.
+		const objectURLCache = new Map<TLAssetId, Promise<string | null>>()
 		const assets: TLAssetStore = {
 			upload: async (asset, file) => {
 				await client.db.storeAsset(asset.id, file)
@@ -43,11 +45,14 @@ export function useLocalStore(
 				if (!asset.props.src) return null
 
 				if (asset.props.src.startsWith('asset:')) {
-					return await objectURLCache.get(asset, async () => {
-						const blob = await client.db.getAsset(asset.id)
-						if (!blob) return null
-						return URL.createObjectURL(blob)
-					})
+					let objectURL = objectURLCache.get(asset.id)
+					if (!objectURL) {
+						objectURL = client.db
+							.getAsset(asset.id)
+							.then((blob) => (blob ? URL.createObjectURL(blob) : null))
+						objectURLCache.set(asset.id, objectURL)
+					}
+					return await objectURL
 				}
 
 				return asset.props.src
@@ -78,6 +83,9 @@ export function useLocalStore(
 		return () => {
 			isClosed = true
 			client.close()
+			for (const objectURL of objectURLCache.values()) {
+				objectURL.then((url) => url && URL.revokeObjectURL(url), noop)
+			}
 		}
 	}, [options, setState])
 
