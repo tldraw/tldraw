@@ -141,7 +141,8 @@ export function getAvailableNoteAdjacentPositions(
 				getNoteAdjacentPositions(editor, {
 					pagePoint: transform.point(),
 					pageRotation: rotation,
-					growY: shape.props.growY,
+					// page units, like the base positions (see PointingHandle)
+					growY: shape.props.growY * shape.props.scale,
 					extraHeight,
 					scale,
 					noteWidth,
