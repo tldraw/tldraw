@@ -444,6 +444,7 @@ function getTranslatingSnapshot(editor: Editor) {
 			extraHeight: noteSnapshot.shape.props.growY ?? 0,
 			noteWidth: dv.noteWidth,
 			noteHeight: dv.noteHeight,
+			excludeShapeIds: selectedShapeIds,
 		})
 		noteCenterOffset = new Vec(dv.noteWidth / 2, dv.noteHeight / 2)
 	}
