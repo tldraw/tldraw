@@ -18,11 +18,11 @@ import {
 	T,
 	TLShape,
 	createShapeId,
-} from '../..'
-import { TestEditor } from '../test/TestEditor'
+} from '../../..'
+import { TestEditor } from '../../test/TestEditor'
 
 const BOX_TYPE = 'my-custom-shape'
-import { TEST_BOX_TYPE as NO_BIND_TYPE } from '../test/testShapeTypes'
+import { TEST_BOX_TYPE as NO_BIND_TYPE } from '../../test/testShapeTypes'
 // Augmenting TLGlobalBindingPropsMap from inside the editor package narrows TLBinding['type']
 // for Editor.ts itself and breaks its typecheck, so the custom binding is cast instead
 const BINDING_TYPE = 'bd-binding' as unknown as TLBinding['type']

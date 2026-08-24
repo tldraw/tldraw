@@ -13,8 +13,8 @@ import {
 	createShapeId,
 	createTLCurrentUser,
 	createTLStore,
-} from '../..'
-import { Editor, TLEditorOptions } from './Editor'
+} from '../../..'
+import { Editor, TLEditorOptions } from '../Editor'
 
 const MY_CUSTOM_SHAPE_TYPE = 'my-custom-shape'
 

@@ -11,9 +11,9 @@ import {
 	createShapeId,
 	createTLCurrentUser,
 	createTLStore,
-} from '../..'
-import { Editor } from './Editor'
-import { StateNode } from './tools/StateNode'
+} from '../../..'
+import { Editor } from '../Editor'
+import { StateNode } from '../tools/StateNode'
 
 const MY_CUSTOM_SHAPE_TYPE = 'my-custom-shape'
 

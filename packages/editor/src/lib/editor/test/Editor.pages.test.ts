@@ -12,8 +12,8 @@ import {
 	createShapeId,
 	createTLCurrentUser,
 	createTLStore,
-} from '../..'
-import { Editor } from './Editor'
+} from '../../..'
+import { Editor } from '../Editor'
 
 const MY_CUSTOM_SHAPE_TYPE = 'my-custom-shape'
 

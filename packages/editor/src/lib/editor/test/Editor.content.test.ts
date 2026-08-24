@@ -9,8 +9,8 @@ import {
 	TLContent,
 	TLShape,
 	createShapeId,
-} from '../..'
-import { TestEditor } from '../test/TestEditor'
+} from '../../..'
+import { TestEditor } from '../../test/TestEditor'
 
 const BOX_TYPE = 'my-custom-shape'
 const IMAGE_TYPE = 'ct-image'

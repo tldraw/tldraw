@@ -11,11 +11,11 @@ import {
 	TLShape,
 	Vec,
 	createShapeId,
-} from '../..'
-import { TestEditor } from '../test/TestEditor'
+} from '../../..'
+import { TestEditor } from '../../test/TestEditor'
 
 const BOX_TYPE = 'my-custom-shape'
-import { TEST_FRAME_TYPE as CONTAINER_TYPE } from '../test/testShapeTypes'
+import { TEST_FRAME_TYPE as CONTAINER_TYPE } from '../../test/testShapeTypes'
 
 declare module '@tldraw/tlschema' {
 	export interface TLGlobalShapePropsMap {

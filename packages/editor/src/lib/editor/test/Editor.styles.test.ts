@@ -8,12 +8,12 @@ import {
 	TLShape,
 	TLStateNodeConstructor,
 	createShapeId,
-} from '../..'
-import { TestEditor } from '../test/TestEditor'
-import { StateNode } from './tools/StateNode'
+} from '../../..'
+import { TestEditor } from '../../test/TestEditor'
+import { StateNode } from '../tools/StateNode'
 
 const BOX_TYPE = 'st-box'
-import { TEST_BOX_TYPE as PLAIN_TYPE } from '../test/testShapeTypes'
+import { TEST_BOX_TYPE as PLAIN_TYPE } from '../../test/testShapeTypes'
 
 const ColorStyle = StyleProp.define('st:color', { defaultValue: 'black', type: T.string })
 const SizeStyle = StyleProp.defineEnum('st:size', { defaultValue: 'm', values: ['s', 'm', 'l'] })

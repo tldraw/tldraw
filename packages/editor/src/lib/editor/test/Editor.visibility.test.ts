@@ -12,8 +12,8 @@ import {
 	createTLCurrentUser,
 	createTLStore,
 	react,
-} from '../..'
-import { Editor, TLEditorOptions } from './Editor'
+} from '../../..'
+import { Editor, TLEditorOptions } from '../Editor'
 
 const MY_CUSTOM_SHAPE_TYPE = 'my-custom-shape'
 

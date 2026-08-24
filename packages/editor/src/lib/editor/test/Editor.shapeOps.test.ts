@@ -13,10 +13,10 @@ import {
 	TLStateNodeConstructor,
 	createShapeId,
 	resizeBox,
-} from '../..'
-import { TestEditor } from '../test/TestEditor'
-import { TEST_BOX_TYPE as BOX_TYPE, TEST_FRAME_TYPE as FIXED_TYPE } from '../test/testShapeTypes'
-import { StateNode } from './tools/StateNode'
+} from '../../..'
+import { TestEditor } from '../../test/TestEditor'
+import { TEST_BOX_TYPE as BOX_TYPE, TEST_FRAME_TYPE as FIXED_TYPE } from '../../test/testShapeTypes'
+import { StateNode } from '../tools/StateNode'
 
 type IBoxShape = TLShape<typeof BOX_TYPE>
 type IFixedShape = TLShape<typeof FIXED_TYPE>

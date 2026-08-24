@@ -8,14 +8,14 @@ import {
 	T,
 	TLShape,
 	createShapeId,
-} from '../..'
-import { TestEditor } from '../test/TestEditor'
+} from '../../..'
+import { TestEditor } from '../../test/TestEditor'
 
 // Bitmap rendering and content trimming need a real canvas, which jsdom does not have; the
 // editor's contract with these helpers is tested through what it passes and how it handles
 // their results.
-vi.mock('../exports/getSvgAsImage', async (importOriginal) => {
-	const actual = await importOriginal<typeof import('../exports/getSvgAsImage')>()
+vi.mock('../../exports/getSvgAsImage', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('../../exports/getSvgAsImage')>()
 	return {
 		...actual,
 		getSvgAsImageWithOptions: vi.fn(),
@@ -24,7 +24,7 @@ vi.mock('../exports/getSvgAsImage', async (importOriginal) => {
 })
 
 const { getSvgAsImageWithOptions, trimSvgToContent } = vi.mocked(
-	await import('../exports/getSvgAsImage')
+	await import('../../exports/getSvgAsImage')
 )
 
 const BOX_TYPE = 'my-custom-shape'

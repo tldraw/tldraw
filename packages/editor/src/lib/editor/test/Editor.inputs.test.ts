@@ -10,9 +10,9 @@ import {
 	TLPointerEventInfo,
 	TLShape,
 	createShapeId,
-} from '../..'
-import { TestEditor } from '../test/TestEditor'
-import { StateNode } from './tools/StateNode'
+} from '../../..'
+import { TestEditor } from '../../test/TestEditor'
+import { StateNode } from '../tools/StateNode'
 
 const BOX_TYPE = 'my-custom-shape'
 
