@@ -134,13 +134,16 @@ export class PointingArrowLabel extends StateNode {
 
 	override onPointerUp() {
 		const shape = this.editor.getShape<TLArrowShape>(this.shapeId)
-		if (!shape) return
 
-		if (this.didDrag || !this.wasAlreadySelected) {
-			this.complete()
-		} else if (this.editor.canEditShape(shape)) {
+		// Clicking the label of an already-selected arrow starts editing it; every other
+		// outcome (drag, fresh selection, deleted or uneditable arrow) must leave this state,
+		// which has no pointer down handler to recover from.
+		if (shape && !this.didDrag && this.wasAlreadySelected && this.editor.canEditShape(shape)) {
 			startEditingShapeWithRichText(this.editor, shape.id)
+			return
 		}
+
+		this.complete()
 	}
 
 	override onCancel() {
