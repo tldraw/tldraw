@@ -74,10 +74,15 @@ function sendTimingsBeacon(token: string, exportedAt: number) {
 		token,
 		timings: { source, bootAt, dataAt, mountAt, settledAt, exportedAt },
 	}
+	// text/plain, deliberately: an html-mode page has no origin, so this POST is cross-origin, and
+	// a JSON content type would trigger a CORS preflight the worker does not answer. A simple
+	// request needs no preflight and is delivered (opaquely) regardless; Request.json() on the
+	// worker parses the body without consulting the content type.
 	fetch(apiUrl(THUMBNAIL_RESULT_ENDPOINT), {
 		method: 'POST',
 		keepalive: true,
-		headers: { 'Content-Type': 'application/json' },
+		mode: 'no-cors',
+		headers: { 'Content-Type': 'text/plain' },
 		body: JSON.stringify(body),
 	}).catch(() => {})
 }
