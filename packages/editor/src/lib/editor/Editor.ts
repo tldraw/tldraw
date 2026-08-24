@@ -622,7 +622,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				if (invalidBindingTypes.size) {
 					const t = invalidBindingTypes
-					invalidBindingTypes = new Set()
+					invalidBindingTypes = new Set<TLBinding['type']>()
 					for (const type of t) {
 						const util = this.getBindingUtil(type)
 						util.onOperationComplete?.()

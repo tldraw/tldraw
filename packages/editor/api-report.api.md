@@ -1007,6 +1007,19 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                type: "ct-image";
+                typeName: 'shape';
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
                 type: "draw";
                 typeName: 'shape';
                 x: number;
@@ -1072,6 +1085,19 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                type: "handle-box";
+                typeName: 'shape';
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
                 type: "highlight";
                 typeName: 'shape';
                 x: number;
@@ -1086,6 +1112,19 @@ export class Editor extends EventEmitter<TLEventMap> {
                 props: any;
                 rotation: number;
                 type: "image";
+                typeName: 'shape';
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "indicator-box";
                 typeName: 'shape';
                 x: number;
                 y: number;
@@ -1137,7 +1176,46 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
-                type: "test-persistent";
+                type: "snap-box";
+                typeName: 'shape';
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "st-box";
+                typeName: 'shape';
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "test-box";
+                typeName: 'shape';
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "test-frame";
                 typeName: 'shape';
                 x: number;
                 y: number;
@@ -1151,6 +1229,19 @@ export class Editor extends EventEmitter<TLEventMap> {
                 props: any;
                 rotation: number;
                 type: "test-shape";
+                typeName: 'shape';
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "test-tool-box";
                 typeName: 'shape';
                 x: number;
                 y: number;

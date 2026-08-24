@@ -45,6 +45,7 @@ const mockElement = {
 const mockCreateElement = vi.fn(() => {
 	const element = { ...mockElement }
 	element.style = createMockStyle()
+	element.remove = vi.fn()
 	element.cloneNode = vi.fn(() => ({ ...element }))
 
 	// Make textContent and innerHTML reactive like real DOM elements
@@ -74,6 +75,7 @@ const mockCreateElement = vi.fn(() => {
 // Mock editor
 const mockDocument = {
 	createElement: mockCreateElement,
+	createDocumentFragment: vi.fn(() => ({ appendChild: vi.fn() })),
 }
 const mockEditor = {
 	getContainer: vi.fn(() => ({
@@ -544,6 +546,124 @@ describe('TextManager', () => {
 
 			const result = textManager.measureTextSpans('Test', opts)
 			expect(Array.isArray(result)).toBe(true)
+		})
+	})
+
+	describe('measureHtmlBatch', () => {
+		const baseOpts = {
+			fontFamily: 'serif',
+			fontStyle: 'normal',
+			fontWeight: 'normal',
+			fontSize: 12,
+			lineHeight: 1.5,
+			maxWidth: null,
+			padding: '0px',
+		}
+
+		function createdElements() {
+			return mockCreateElement.mock.results.map((r) => r.value as any)
+		}
+
+		it('returns an empty array for no requests without touching the DOM', () => {
+			const created = mockCreateElement.mock.calls.length
+			expect(textManager.measureHtmlBatch([])).toEqual([])
+			expect(mockCreateElement).toHaveBeenCalledTimes(created)
+		})
+
+		it('measures each request with its own pooled element', () => {
+			const results = textManager.measureHtmlBatch([
+				{ html: 'one', opts: baseOpts },
+				{ html: 'two', opts: { ...baseOpts, measureScrollWidth: true } },
+			])
+
+			expect(results).toEqual([
+				{ x: 0, y: 0, w: 100, h: 20, scrollWidth: 0 },
+				{ x: 0, y: 0, w: 100, h: 20, scrollWidth: 100 },
+			])
+
+			// the first element is the manager's own measurement element
+			const [, first, second] = createdElements()
+			expect(first.innerHTML).toBe('one')
+			expect(second.innerHTML).toBe('two')
+			expect(first.style.getPropertyValue('font-size')).toBe('12px')
+			expect(first.style.getPropertyValue('line-height')).toBe('18px')
+			// the pool grows one element at a time, each in its own fragment
+			expect(mockDocument.createDocumentFragment).toHaveBeenCalledTimes(2)
+		})
+
+		it('reuses pooled elements and only grows the pool when needed', () => {
+			textManager.measureHtmlBatch([{ html: 'a', opts: baseOpts }])
+			expect(mockCreateElement).toHaveBeenCalledTimes(2)
+
+			textManager.measureHtmlBatch([{ html: 'a', opts: baseOpts }])
+			expect(mockCreateElement).toHaveBeenCalledTimes(2)
+
+			textManager.measureHtmlBatch([
+				{ html: 'a', opts: baseOpts },
+				{ html: 'b', opts: baseOpts },
+				{ html: 'c', opts: baseOpts },
+			])
+			expect(mockCreateElement).toHaveBeenCalledTimes(4)
+		})
+
+		it('shrinks the pool when a smaller batch arrives', () => {
+			textManager.measureHtmlBatch([
+				{ html: 'a', opts: baseOpts },
+				{ html: 'b', opts: baseOpts },
+				{ html: 'c', opts: baseOpts },
+			])
+			const [, , second, third] = createdElements()
+
+			textManager.measureHtmlBatch([{ html: 'a', opts: baseOpts }])
+
+			expect(third.remove).toHaveBeenCalledTimes(1)
+			expect(second.remove).toHaveBeenCalledTimes(1)
+			expect(mockCreateElement).toHaveBeenCalledTimes(4)
+
+			textManager.measureHtmlBatch([
+				{ html: 'a', opts: baseOpts },
+				{ html: 'b', opts: baseOpts },
+			])
+			expect(mockCreateElement).toHaveBeenCalledTimes(5)
+		})
+
+		it('resets styles applied by a previous batch before measuring again', () => {
+			textManager.measureHtmlBatch([
+				{
+					html: 'a',
+					opts: {
+						...baseOpts,
+						maxWidth: 200,
+						minWidth: 50,
+						otherStyles: { 'letter-spacing': '2px' },
+					},
+				},
+			])
+			const [, el] = createdElements()
+			expect(el.style.getPropertyValue('max-width')).toBe('200px')
+			expect(el.style.getPropertyValue('min-width')).toBe('50px')
+			expect(el.style.getPropertyValue('letter-spacing')).toBe('2px')
+
+			textManager.measureHtmlBatch([{ html: 'a', opts: baseOpts }])
+
+			expect(el.style.removeProperty).toHaveBeenCalledWith('letter-spacing')
+			expect(el.style.setProperty).toHaveBeenCalledWith('max-width', null)
+			expect(el.style.setProperty).toHaveBeenCalledWith('min-width', null)
+			expect(el.style.getPropertyValue('letter-spacing')).toBe('')
+		})
+
+		it('removes pooled elements on dispose', () => {
+			textManager.measureHtmlBatch([
+				{ html: 'a', opts: baseOpts },
+				{ html: 'b', opts: baseOpts },
+			])
+			const [own, first, second] = createdElements()
+
+			textManager.dispose()
+
+			expect(own.remove).toHaveBeenCalledTimes(1)
+			expect(first.remove).toHaveBeenCalledTimes(1)
+			expect(second.remove).toHaveBeenCalledTimes(1)
 		})
 	})
 })
