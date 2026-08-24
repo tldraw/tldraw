@@ -8,11 +8,10 @@
 
 {{ define "tldraw.discord.alert" -}}
 {{ if eq .Labels.alertname "DatasourceNoData" -}}
-⚠️ **No metrics** for **{{ .Labels.rulename }}** - the datasource returned no series. Usually the metrics source is down (for Zero rules: Fly.io metrics), not the alert condition itself.
-{{ else -}}
+⚠️ **No metrics** for **{{ .Labels.rulename }}** (usually the metrics source is down - for Zero rules: Fly.io metrics - not the alert condition itself)
+{{- else -}}
 {{ with .Labels.severity }}**{{ . | toUpper }}** · {{ end }}{{ template "tldraw.discord.short" . }}
-{{ end -}}
-[View]({{ .GeneratorURL }}){{ with .DashboardURL }} · [Dashboard]({{ . }}){{ end }}
+{{- end }} · [View]({{ .GeneratorURL }}){{ with .DashboardURL }} · [Dashboard]({{ . }}){{ end }}
 {{- end }}
 
 {{ define "tldraw.discord.text" -}}
