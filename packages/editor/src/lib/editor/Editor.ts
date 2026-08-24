@@ -1776,7 +1776,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				},
 				extras: {
 					activeStateNode: this.root.getPath(),
-					selectedShapes: this.getSelectedShapes().map((s) => {
+					selectedShapes: this.getSelectedShapes().map((s): TLShape => {
 						const { props, ...rest } = s
 						const { text: _text, richText: _richText, ...restProps } = props as any
 						return {
