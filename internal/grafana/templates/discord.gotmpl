@@ -12,7 +12,7 @@
 {{ else -}}
 {{ with .Labels.severity }}**{{ . | toUpper }}** · {{ end }}{{ template "tldraw.discord.short" . }}
 {{ end -}}
-[View]({{ .GeneratorURL }}) · [Silence]({{ .SilenceURL }}){{ with .DashboardURL }} · [Dashboard]({{ . }}){{ end }}
+[View]({{ .GeneratorURL }}){{ with .DashboardURL }} · [Dashboard]({{ . }}){{ end }}
 {{- end }}
 
 {{ define "tldraw.discord.text" -}}
