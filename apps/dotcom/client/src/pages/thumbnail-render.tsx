@@ -74,17 +74,26 @@ function sendTimingsBeacon(token: string, exportedAt: number) {
 		token,
 		timings: { source, bootAt, dataAt, mountAt, settledAt, exportedAt },
 	}
-	// text/plain, deliberately: an html-mode page has no origin, so this POST is cross-origin, and
-	// a JSON content type would trigger a CORS preflight the worker does not answer. A simple
-	// request needs no preflight and is delivered (opaquely) regardless; Request.json() on the
-	// worker parses the body without consulting the content type.
-	fetch(apiUrl(THUMBNAIL_RESULT_ENDPOINT), {
-		method: 'POST',
-		keepalive: true,
-		mode: 'no-cors',
-		headers: { 'Content-Type': 'text/plain' },
-		body: JSON.stringify(body),
-	}).catch(() => {})
+	// Two delivery paths, matched to where the page runs. A url-mode page is same-origin and the
+	// plain fetch is proven; forcing it into no-cors mode turned out to stop delivery entirely.
+	// An html-mode page has no origin, so a JSON fetch would need a CORS preflight the worker does
+	// not answer — sendBeacon is the one channel built for this: no preflight, queued by the
+	// browser, and it survives the teardown that follows the ready marker.
+	const payload = JSON.stringify(body)
+	if (window[THUMBNAIL_RENDER_CONFIG_GLOBAL]) {
+		try {
+			navigator.sendBeacon(apiUrl(THUMBNAIL_RESULT_ENDPOINT), payload)
+		} catch {
+			// diagnostic-only; a page that cannot report still renders
+		}
+	} else {
+		fetch(apiUrl(THUMBNAIL_RESULT_ENDPOINT), {
+			method: 'POST',
+			keepalive: true,
+			headers: { 'Content-Type': 'application/json' },
+			body: payload,
+		}).catch(() => {})
+	}
 }
 
 export type ThumbnailRenderData =
