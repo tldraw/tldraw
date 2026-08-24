@@ -16,13 +16,27 @@ export function shouldSkipMissingRoomEffect(error: unknown, file: TlaFile): bool
 	return error instanceof RoomNotFoundError && file.isDeleted
 }
 
-// Reported (not thrown) when a room boot is still pending just under the outbox drain's 30s
-// effect timeout, so Sentry names the stage the boot is stuck at before the drain bumps the
-// row. Without it a wedged boot parks a row as a bare EffectTimeoutError with no cause (#10541).
-export class BootStallError extends Error {
-	constructor(slug: string, stage: string | null, ms: number) {
-		super(`room boot for ${slug} still pending after ${ms}ms at stage: ${stage ?? 'unknown'}`)
-		this.name = 'BootStallError'
+// Reported (not thrown) when an outbox file effect is still pending just under the drain's
+// 30s effect timeout, so Sentry names the cause before the drain bumps the row. Without it a
+// wedged effect parks a row as a bare EffectTimeoutError (#10541). The guaranteed fact is
+// that the effect stalled; a boot stage, when present, says where the room boot is stuck —
+// a null stage means the boot settled and the stall is in post-boot work (e.g. the
+// per-session permission refresh).
+export class FileEffectStallError extends Error {
+	constructor(
+		slug: string,
+		command: 'insert' | 'update',
+		stage: string | null,
+		stageAgeMs: number | null,
+		ms: number
+	) {
+		super(
+			`file ${command} effect for ${slug} still pending after ${ms}ms` +
+				(stage !== null
+					? ` at boot stage ${stage} (${stageAgeMs}ms in stage)`
+					: ' in post-boot work')
+		)
+		this.name = 'FileEffectStallError'
 	}
 }
 
