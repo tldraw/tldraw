@@ -361,6 +361,7 @@ describe('Group2d.transform', () => {
 		expect(t.distanceToPoint(new Vec(300, 50))).toBe(100)
 	})
 
+	// Locks in current behaviour, see #10562.
 	it('drops the ignored children', () => {
 		const ignored = new Rectangle2d({ x: 500, width: 10, height: 10, isFilled: true, ignore: true })
 		const g = new Group2d({ children: [rectA(), ignored] })

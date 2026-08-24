@@ -130,6 +130,7 @@ describe('current theme', () => {
 		expect(editor.getCurrentTheme()).toEqual(oceanTheme)
 	})
 
+	// Locks in current behaviour, see #10558.
 	it('setCurrentTheme warns about an unknown id but still sets it', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 		try {

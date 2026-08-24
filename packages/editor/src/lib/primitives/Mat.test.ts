@@ -326,6 +326,7 @@ describe('Mat apply helpers', () => {
 		expect(Mat.applyToXY(m, 1, 2)).toEqual([12, 24])
 	})
 
+	// Locks in current behaviour, see #10557.
 	it('applies only the translation component to a box', () => {
 		const box = new Box(5, 5, 100, 50)
 		expect(Mat.applyToBounds(Mat.Translate(10, 20), box)).toEqual(new Box(15, 25, 100, 50))

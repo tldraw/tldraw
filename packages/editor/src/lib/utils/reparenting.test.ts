@@ -230,6 +230,7 @@ describe('getDroppedShapesToNewParents', () => {
 			expect(remainingIds(result.remainingShapesToReparent)).toEqual([])
 		})
 
+		// Locks in current behaviour, see #10554.
 		it('substitutes the group even when only some of its direct children are moving', () => {
 			frame(ids.frameA, 0, 0)
 			box(ids.box1, 50, 50)
@@ -439,7 +440,7 @@ describe('kickoutOccludedShapes', () => {
 	})
 
 	// Skipped: the fallback parent is `editor.getCurrentPageId()`, so a child kicked out of a frame
-	// on another page is moved onto the current page instead of staying on its own page.
+	// on another page is moved onto the current page instead of staying on its own page. See #10553.
 	it.skip('keeps a kicked out child on the page its frame is on', () => {
 		const page2 = PageRecordType.createId('page2')
 		editor.createPage({ id: page2, name: 'page 2' })

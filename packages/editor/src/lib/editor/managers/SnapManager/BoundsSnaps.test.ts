@@ -225,6 +225,7 @@ describe('snappable shapes', () => {
 		expect(editor.snaps.getSnappableShapes()).toEqual(new Set([locked]))
 	})
 
+	// Locks in current behaviour, see #10559.
 	it('still includes shapes hidden via getShapeVisibility', () => {
 		editor.dispose()
 		editor = new TestEditor({

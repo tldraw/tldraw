@@ -78,6 +78,7 @@ describe('ThemeManager', () => {
 			expect(warn).not.toHaveBeenCalled()
 		})
 
+		// Locks in current behaviour, see #10558.
 		it('warns for an unknown theme id and leaves the current theme unresolved', () => {
 			const manager = createManager()
 			manager.setCurrentTheme('sunset')

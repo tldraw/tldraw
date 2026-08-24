@@ -226,6 +226,7 @@ describe('selectAdjacentShape', () => {
 		expect(selected()).toEqual([ids.a])
 	})
 
+	// Locks in current behaviour, see #10560.
 	it('selects the second to last shape for prev when nothing is selected', () => {
 		// the missing selection is treated as index -1, so prev lands two from the end
 		editor.selectAdjacentShape('prev')

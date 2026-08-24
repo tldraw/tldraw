@@ -671,6 +671,7 @@ describe('Geometry2d.distanceToLineSegment', () => {
 		expect(square().distanceToLineSegment(new Vec(150, -50), new Vec(150, 50))).toBe(50)
 	})
 
+	// Locks in current behaviour, see #10556.
 	it('measures from the polygon vertices, not its edges', () => {
 		// the segment is 5 units above the middle of the top edge, but 50.25 from the nearest vertex
 		expect(square().distanceToLineSegment(new Vec(50, -10), new Vec(50, -5))).toBeCloseTo(
