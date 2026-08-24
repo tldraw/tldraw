@@ -269,6 +269,9 @@ export class TLFileDurableObject extends DurableObject {
 					// outbox no-ops after a couple of synchronous SQL statements, so the cost per
 					// room start is trivial.
 					queueMicrotask(() => void this.drainCommentOutbox())
+					// Clear here, not only when the room settles: storage-only callers (restore,
+					// .tldr download) never boot the room and would leave a stale stage behind.
+					this._bootStage = null
 					return storage
 				})
 				.catch((error) => {
