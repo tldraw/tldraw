@@ -75,7 +75,13 @@ import { PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom, listAllObjectKeys } from './r2'
-import { RoomNotFoundError, shouldSkipMissingRoomEffect } from './roomEffectHelpers'
+import {
+	BootStallError,
+	RoomNotFoundError,
+	SourcePersistTimeoutError,
+	settleWithin,
+	shouldSkipMissingRoomEffect,
+} from './roomEffectHelpers'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import { generateSnapshotChunks } from './snapshotUtils'
@@ -238,6 +244,7 @@ export class TLFileDurableObject extends DurableObject {
 			throw new Error('documentInfo must be present when accessing room')
 		}
 		if (!this._storage) {
+			this._bootStage = 'storage-load'
 			const promise = retry(() => this.loadStorage(this.documentInfo.slug), {
 				// Allow RoomNotFoundError to bubble up since it means the room doesn't exist
 				// and there's no point in retrying.
@@ -271,6 +278,7 @@ export class TLFileDurableObject extends DurableObject {
 					// Never cache a rejection: the condition may heal, and a cached rejection
 					// makes every later retry fail instantly.
 					if (this._storage === promise) this._storage = null
+					this._bootStage = null
 					throw error
 				})
 			this._storage = promise
@@ -279,6 +287,11 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	_room: Promise<TLSocketRoom<TLRecord, SessionMeta>> | null = null
+
+	// Which boot phase a pending _storage/_room promise last reached. Pending promises are
+	// cached, so when a boot wedges every caller awaits the same stuck await — this names it
+	// (see BootStallError and __admin__getDocumentInfo).
+	_bootStage: string | null = null
 
 	sentry: ReturnType<typeof createSentry> | null = null
 
@@ -289,6 +302,7 @@ export class TLFileDurableObject extends DurableObject {
 		if (!this._room) {
 			const promise = this.getStorage()
 				.then(async (storage) => {
+					this._bootStage = 'room-create'
 					const room = new TLSocketRoom<TLRecord, SessionMeta>({
 						storage,
 						schema: fileSyncSchema,
@@ -369,12 +383,14 @@ export class TLFileDurableObject extends DurableObject {
 					}
 					// Also associate file assets after we load the room
 					setTimeout(this.maybeAssociateFileAssets.bind(this), PERSIST_INTERVAL_MS)
+					this._bootStage = null
 					return room
 				})
 				.catch((error) => {
 					// Never cache a rejection: the condition may heal, and a cached rejection
 					// makes every later retry fail instantly.
 					if (this._room === promise) this._room = null
+					this._bootStage = null
 					throw error
 				})
 			this._room = promise
@@ -1182,6 +1198,7 @@ export class TLFileDurableObject extends DurableObject {
 		const serialized = typeof data === 'string' ? data : JSON.stringify(data)
 		const snapshot = typeof data === 'string' ? JSON.parse(data) : data
 
+		this._bootStage = 'source-r2-put'
 		const putTimer = this.timer()
 		const key = getR2KeyForRoom({ slug: this._fileRecordCache.id, isApp: true })
 		const roomObject = await this.r2.rooms.put(key, serialized)
@@ -1216,9 +1233,21 @@ export class TLFileDurableObject extends DurableObject {
 				// The source file's content is copied verbatim into this (user-owned) room. Read
 				// access to the source `id` is authorized upstream when the file record is created
 				// (see the `createFile` mutator), since that is where the user's identity is known.
+				// Bound the wait: a busy source room can hold its serial persist queue longer than
+				// the outbox drain's 30s effect timeout, wedging this boot and parking the insert
+				// effect (#10541). Its last persisted snapshot is at most one persist throttle
+				// stale, which a duplicate can tolerate.
+				this._bootStage = 'source-await-persist'
 				const awaitPersistTimer = this.timer()
-				await getRoomDurableObject(this.env, id).awaitPersist()
+				const persistWait = await settleWithin(
+					getRoomDurableObject(this.env, id).awaitPersist(),
+					SOURCE_PERSIST_WAIT_TIMEOUT_MS
+				)
+				if (persistWait === 'timeout') {
+					this.reportError(new SourcePersistTimeoutError(id, SOURCE_PERSIST_WAIT_TIMEOUT_MS))
+				}
 				awaitPersistTimer.report('create_from_source_await_persist')
+				this._bootStage = 'source-r2-fetch'
 
 				const r2FetchTimer = this.timer()
 				const text = await this.r2.rooms
@@ -2538,7 +2567,7 @@ export class TLFileDurableObject extends DurableObject {
 			})
 		}
 		try {
-			await this.getRoom()
+			await this.reportIfBootStalls(this.getRoom(), file)
 		} catch (e) {
 			if (shouldSkipMissingRoomEffect(e, file)) {
 				console.error('appFileRecordCreated: room not found for deleted file, skipping', e)
@@ -2564,7 +2593,7 @@ export class TLFileDurableObject extends DurableObject {
 		}
 
 		try {
-			await this.updateRoomForFileRecord(file)
+			await this.reportIfBootStalls(this.updateRoomForFileRecord(file), file)
 		} catch (e) {
 			if (shouldSkipMissingRoomEffect(e, file)) {
 				console.error('appFileRecordDidUpdate: room not found for deleted file, skipping', e)
@@ -2709,6 +2738,20 @@ export class TLFileDurableObject extends DurableObject {
 		await this.persistToDatabase(opts?.throwOnFailure ? { throwOnFailure: true } : undefined)
 	}
 
+	// Report-only watchdog for outbox effect RPCs: fires just under the drain's 30s effect
+	// timeout so Sentry gets the boot stage before the drain bumps the row as a bare timeout.
+	// The outbox owns retry semantics — this never rejects or cancels the work.
+	private async reportIfBootStalls<T>(work: Promise<T>, file: TlaFile): Promise<T> {
+		const timer = setTimeout(() => {
+			this.reportError(new BootStallError(file.id, this._bootStage, BOOT_STALL_REPORT_MS))
+		}, BOOT_STALL_REPORT_MS)
+		try {
+			return await work
+		} finally {
+			clearTimeout(timer)
+		}
+	}
+
 	/**
 	 * Reports this object's stored identity and liveness without booting the room. Reads raw
 	 * storage so rooms with a stale documentInfo version still resolve; null for a
@@ -2724,6 +2767,7 @@ export class TLFileDurableObject extends DurableObject {
 			deleted: !!info.deleted,
 			connectedSockets: this.ctx.getWebSockets().length,
 			roomLoaded: this._room !== null,
+			bootStage: this._bootStage,
 		}
 	}
 
@@ -2831,3 +2875,8 @@ const PERSIST_RETRIES_MAX = 100
 // ~10 attempts * 2s = ~20s of own retries, sized for the 30s outbox effect timeout (see
 // persistToDatabase for why this is not a hard bound).
 const PERSIST_RETRIES_MAX_THROWING = 10
+// Both sized against the outbox drain's 30s EFFECT_TIMEOUT_MS: the persist wait must leave
+// room for the rest of the from-source boot, and the stall report must land before the
+// drain gives up on the attempt.
+const SOURCE_PERSIST_WAIT_TIMEOUT_MS = 10_000
+const BOOT_STALL_REPORT_MS = 25_000
