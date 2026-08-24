@@ -64,7 +64,7 @@ import { trackEvent } from '../../utils/analytics'
 import { ZERO_SERVER } from '../../utils/config'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
-import { TLAppUiContextType } from '../utils/app-ui-events'
+import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
 import { getDateFormat } from '../utils/dates'
 import { FeatureFlags } from '../utils/FeatureFlagPoller'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
@@ -1091,10 +1091,16 @@ export class TldrawApp {
 
 	async uploadTldrFiles(
 		files: File[],
-		onFirstFileUploaded?: (fileId: string) => void,
-		workspaceId?: string,
-		onUploadError?: () => void
+		opts: {
+			/** Where the import started; reported as the `create-file` source for each file. */
+			source: TLAppUiEventSource
+			onFirstFileUploaded?(fileId: string): void
+			workspaceId?: string
+			onUploadError?(): void
+		}
 	) {
+		let { onFirstFileUploaded } = opts
+		const { source, workspaceId, onUploadError } = opts
 		const totalFiles = files.length
 		let uploadedFiles = 0
 		if (totalFiles === 0) return
@@ -1172,6 +1178,8 @@ export class TldrawApp {
 					uploaded: ++uploadedFiles + 1,
 				}),
 			})
+
+			this.trackEvent('create-file', { source })
 
 			if (onFirstFileUploaded) {
 				onFirstFileUploaded(res.value.fileId)
