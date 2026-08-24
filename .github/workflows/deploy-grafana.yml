@@ -92,3 +92,24 @@ jobs:
         env:
           GRAFANA_SERVER: ${{ secrets.GRAFANA_SERVER }}
           GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN }}
+
+      # Notification templates can't go through `gcx resources push` — gcx's discovery
+      # registry ignores the notifications.alerting.grafana.app API group entirely — so
+      # template files live in templates/ (not resources/) and go through the classic
+      # provisioning API. The PUT is idempotent and sets `api` provenance, which locks
+      # UI edits the same way provisioned resources are locked.
+      - name: Push notification templates
+        if: github.event_name == 'push'
+        run: |
+          shopt -s nullglob
+          for f in internal/grafana/templates/*.gotmpl; do
+            name=$(basename "$f" .gotmpl)
+            jq -Rs '{template: .}' "$f" | curl -fsS -X PUT \
+              "$GRAFANA_SERVER/api/v1/provisioning/templates/$name" \
+              -H "Authorization: Bearer $GRAFANA_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d @- > /dev/null
+          done
+        env:
+          GRAFANA_SERVER: ${{ secrets.GRAFANA_SERVER }}
+          GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN }}
