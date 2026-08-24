@@ -325,6 +325,7 @@ function ThumbnailRenderPage({
 						height={height}
 						camera={renderParams.camera}
 						shapeIds={renderParams.shapeIds}
+						capture={renderParams.capture}
 						token={token}
 						onImage={handleImage}
 					/>
@@ -494,6 +495,7 @@ export function ThumbnailExportSignal({
 	camera,
 	shapeIds,
 	settleTimeoutMs = THUMBNAIL_SETTLE_TIMEOUT_MS,
+	capture,
 	token,
 	onImage,
 }: {
@@ -503,6 +505,8 @@ export function ThumbnailExportSignal({
 	camera?: 'content'
 	shapeIds?: string[]
 	settleTimeoutMs?: number
+	/** `live`: signal ready after settle and fit, without exporting — see ThumbnailRenderParams. */
+	capture?: 'live'
 	/** Authorises the timing beacon. Absent on the dev fixture page, which sends none. */
 	token?: string
 	onImage(blob: Blob): void | Promise<void>
@@ -531,6 +535,14 @@ export function ThumbnailExportSignal({
 			} else if (camera === 'content') {
 				fitContentCamera(editor, width, height)
 			}
+			// Live capture: the settled, fitted canvas is the picture — the screenshotting browser
+			// rasterizes it, so the export (and the paint of its result) has nothing left to do.
+			// The beacon's exportedAt stamp doubles as ready here; the deltas still read correctly.
+			if (capture === 'live') {
+				if (token) sendTimingsBeacon(token, performance.now())
+				signalThumbnailReady()
+				return
+			}
 			const blob = await exportThumbnailImage(editor, theme, width, height, shapeIds)
 			if (cancelled) return
 			// Before onImage rather than after: the ready marker follows the image paint, and the
@@ -552,7 +564,7 @@ export function ThumbnailExportSignal({
 		return () => {
 			cancelled = true
 		}
-	}, [editor, theme, width, height, camera, shapeIds, settleTimeoutMs, token, onImage])
+	}, [editor, theme, width, height, camera, shapeIds, settleTimeoutMs, capture, token, onImage])
 
 	return null
 }

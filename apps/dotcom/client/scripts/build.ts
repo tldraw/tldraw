@@ -297,6 +297,10 @@ async function build() {
 		throw new Error('inline render build did not produce the expected single JS + CSS pair')
 	}
 	const inlineJs = readFileSync(`dist-inline/assets/${inlineJsFile}`, 'utf8')
+		// Translations are excluded from inlining (see vite.inline.config.ts); their references
+		// become empty-JSON data URIs so the artifact stays origin-free. Nothing renders from them
+		// with the UI hidden, and an empty object is a valid "no strings" translation either way.
+		.replace(/\/assets\/[A-Za-z0-9._-]+\.json/g, 'data:application/json,%7B%7D')
 		.replaceAll('</script', '<\\/script')
 		.replaceAll('<!--', '<\\!--')
 	const inlineCss = readFileSync(`dist-inline/assets/${inlineCssFile}`, 'utf8').replaceAll(

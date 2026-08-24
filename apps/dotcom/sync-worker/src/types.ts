@@ -133,6 +133,9 @@ export interface Environment {
 	// '1' opts a deployment into html-mode captures: the self-contained render page fetched from the
 	// client origin and sent inside the Browser Run request. Off everywhere it is unset.
 	THUMBNAIL_RENDER_INLINE: string | undefined
+	// '1' opts MCP screenshots into live-canvas capture: the page settles and fits, and the
+	// screenshotting browser rasterizes the canvas instead of the page exporting itself.
+	THUMBNAIL_RENDER_LIVE_CAPTURE: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
 	// The MCP server's public URL, and the resource identifier it advertises in RFC 9728 protected

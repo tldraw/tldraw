@@ -1759,3 +1759,53 @@ describe('inline html captures', () => {
 		expect(body.addScriptTag).toBeTruthy()
 	})
 })
+
+// Live capture rides inside the signed job and the pushed render params, gated on its own flag.
+describe('live capture flag', () => {
+	beforeEach(() => resetInlineRenderPageForTests())
+	afterEach(() => vi.restoreAllMocks())
+
+	it('stamps capture: live into the pushed render params when enabled', async () => {
+		vi.spyOn(globalThis, 'fetch').mockImplementation(async (input: any) => {
+			if (String(input).endsWith('/thumbnail-render-inline.html')) {
+				return new Response(
+					`<!doctype html><html><head><script>${THUMBNAIL_RENDER_GLOBAL}</script></head><body></body></html>`,
+					{ status: 200 }
+				)
+			}
+			throw new Error(`unexpected fetch ${input}`)
+		})
+		mockPublishedBoard()
+		const env = makeEnv({ THUMBNAIL_RENDER_INLINE: '1', THUMBNAIL_RENDER_LIVE_CAPTURE: '1' })
+		const clusterId = await firstClusterId(env, 'user_live_1', 'abc')
+
+		await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'abc', clusterIds: [clusterId] },
+			env,
+			'user_live_2'
+		)
+
+		const body = screenshotOf(env).mock.calls.at(-1)![1] as { html?: string }
+		expect(body.html).toContain('"capture":"live"')
+	})
+
+	it('leaves capture out when the flag is off', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		const clusterId = await firstClusterId(env, 'user_live_3', 'abc')
+
+		await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'abc', clusterIds: [clusterId] },
+			env,
+			'user_live_4'
+		)
+
+		const body = screenshotOf(env).mock.calls.at(-1)![1] as {
+			url?: string
+			addScriptTag?: { content: string }[]
+		}
+		expect(body.addScriptTag?.[0]?.content ?? '').not.toContain('"capture"')
+	})
+})

@@ -267,6 +267,7 @@ export async function captureThumbnailScreenshot(
 		width,
 		height,
 		telemetry,
+		capture,
 		push,
 	}: {
 		/** Which pipeline is asking. Signed into the job; namespaces the minted-token record. */
@@ -290,6 +291,8 @@ export async function captureThumbnailScreenshot(
 		 * definition a screenshot render.
 		 */
 		telemetry: { source: BrowserRunSessionContext['source']; reason?: OgImageRenderReason }
+		/** `live` skips the in-page export and lets the screenshot rasterize the live canvas. */
+		capture?: 'live'
 		/**
 		 * The board's records, to be injected into the render page instead of fetched back out of the
 		 * worker. Opt-in per surface: a caller passes this only when it already holds the snapshot, so
@@ -311,6 +314,7 @@ export async function captureThumbnailScreenshot(
 		access: board.access,
 		surface,
 		camera: 'content',
+		...(capture ? { capture } : null),
 		...(pageId ? { pageId } : null),
 		...(shapeIds?.length ? { shapeIds } : null),
 		// Ignored while `camera` is 'content', which is what every surface mints; carried because the
@@ -333,7 +337,12 @@ export async function captureThumbnailScreenshot(
 			{
 				width,
 				height,
-				session: { source: telemetry.source, mode: 'screenshot', reason: telemetry.reason },
+				session: {
+					source: telemetry.source,
+					mode: 'screenshot',
+					reason: telemetry.reason,
+					capture: capture ?? 'export',
+				},
 				// The payload the snapshot route would have answered with, assembled here instead. Kept
 				// identical to that response shape so the render page has one code path, not two.
 				push: push && {
@@ -342,6 +351,7 @@ export async function captureThumbnailScreenshot(
 					schema: push.schema,
 					renderParams: {
 						camera: job.camera,
+						...(job.capture ? { capture: job.capture } : null),
 						...(job.pageId ? { pageId: job.pageId } : null),
 						...(job.shapeIds ? { shapeIds: job.shapeIds } : null),
 						x: job.x,
@@ -370,6 +380,8 @@ export interface BrowserRunSessionContext {
 	mode: 'measure' | 'screenshot'
 	/** The queue trigger, on sessions the queue runs. Request-path sessions have none. */
 	reason?: OgImageRenderReason
+	/** How the page produced its pixels: in-page export, or the live canvas. Absent on measures. */
+	capture?: 'live' | 'export'
 }
 
 // The Browser Run spend ledger: one datapoint per browser session actually created, written here at
@@ -423,6 +435,8 @@ function writeBrowserRunSessionTelemetry(
 			`outcome:${outcome}`,
 			`reason:${session.reason ?? 'none'}`,
 			`transport:${transport}`,
+			// Appended like transport: existing blob positions must not shift.
+			`capture:${session.capture ?? 'none'}`,
 		],
 		doubles: [width, height, durationMs, payloadChars, browserMsUsed],
 	})

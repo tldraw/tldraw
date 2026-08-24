@@ -44,6 +44,8 @@ export interface ThumbnailRenderJob {
 	 * writing records at the time, since the MCP tool minted `public` and `public` is never recorded.
 	 */
 	surface?: ThumbnailRenderSurface
+	/** Mirrors ThumbnailRenderParams.capture: `live` skips the in-page export. Signed like the rest. */
+	capture?: 'live'
 	/**
 	 * A version that rotates when the rendered content changes, so it can key the thumbnail cache.
 	 * Published boards use the file's `lastPublished` timestamp; shared files use the persisted

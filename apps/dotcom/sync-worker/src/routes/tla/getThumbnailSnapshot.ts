@@ -93,6 +93,7 @@ export async function getThumbnailSnapshot(
 		schema: snapshot.schema,
 		renderParams: {
 			...(job.camera ? { camera: job.camera } : null),
+			...(job.capture ? { capture: job.capture } : null),
 			...(job.pageId ? { pageId: job.pageId } : null),
 			...(job.shapeIds ? { shapeIds: job.shapeIds } : null),
 			...(job.mode ? { mode: job.mode } : null),

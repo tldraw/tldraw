@@ -21,8 +21,11 @@ export default async (env: { mode: string; command: 'build' | 'serve' }) => {
 			cssCodeSplit: false,
 			// Everything the bundle references rides along as data URIs. The main build pins this to
 			// 0 because the app's svg icon handling breaks as data urls; this page hides all UI, so
-			// none of that chrome is ever drawn.
-			assetsInlineLimit: 100 * 1024 * 1024,
+			// none of that chrome is ever drawn. Translations are the one exclusion: the asset-urls
+			// module imports every locale (~2MB) and the render page, UI hidden, can never show a
+			// translated string — they stay as file references here and the assembly step in
+			// scripts/build.ts rewrites those references to empty-JSON stubs.
+			assetsInlineLimit: (filePath: string) => !filePath.endsWith('.json'),
 			// A source map for an inlined bundle would double the artifact for nothing.
 			sourcemap: false,
 		},

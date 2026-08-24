@@ -1029,6 +1029,10 @@ async function renderShapeSetScreenshot(
 			width: DEFAULT_THUMBNAIL_WIDTH,
 			height: DEFAULT_THUMBNAIL_HEIGHT,
 			telemetry: { source: 'mcp' },
+			// Preview trial (see THUMBNAIL_RENDER_LIVE_CAPTURE in types.ts): let the screenshot
+			// rasterize the live canvas instead of running editor.toImage in the page. Agent-facing
+			// only — the OG surface keeps the export path's pixel-exact sizing.
+			...(env.THUMBNAIL_RENDER_LIVE_CAPTURE === '1' ? { capture: 'live' as const } : null),
 			// Push the cluster rather than the board. This tool usually wants a handful of shapes out
 			// of a whole document, so the slice is most of the win here — and slicing is best-effort by
 			// design: it throws rather than hand over a set it cannot vouch for, and that lands us back
