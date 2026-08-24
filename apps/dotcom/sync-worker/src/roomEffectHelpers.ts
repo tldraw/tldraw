@@ -22,11 +22,18 @@ export function shouldSkipMissingRoomEffect(error: unknown, file: TlaFile): bool
 // that the effect stalled; a boot stage, when present, says where the room boot is stuck —
 // a null stage means the boot settled and the stall is in post-boot work (e.g. the
 // per-session permission refresh).
+export type BootStage =
+	| 'storage-load'
+	| 'source-await-persist'
+	| 'source-r2-fetch'
+	| 'source-r2-put'
+	| 'room-create'
+
 export class FileEffectStallError extends Error {
 	constructor(
 		slug: string,
 		command: 'insert' | 'update',
-		stage: string | null,
+		stage: BootStage | null,
 		stageAgeMs: number | null,
 		ms: number
 	) {

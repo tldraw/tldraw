@@ -76,6 +76,7 @@ import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom, listAllObjectKeys } from './r2'
 import {
+	BootStage,
 	FileEffectStallError,
 	RoomNotFoundError,
 	SourcePersistTimeoutError,
@@ -294,9 +295,9 @@ export class TLFileDurableObject extends DurableObject {
 	// Which boot phase a pending _storage/_room promise last reached, and when it was entered.
 	// Pending promises are cached, so when a boot wedges every caller awaits the same stuck
 	// await — this names it and its age (see FileEffectStallError and __admin__getDocumentInfo).
-	_bootStage: { stage: string; startedAt: number } | null = null
+	_bootStage: { stage: BootStage; startedAt: number } | null = null
 
-	private setBootStage(stage: string | null) {
+	private setBootStage(stage: BootStage | null) {
 		this._bootStage = stage === null ? null : { stage, startedAt: Date.now() }
 	}
 
