@@ -10,7 +10,7 @@
 {{ if eq .Labels.alertname "DatasourceNoData" -}}
 ⚠️ **No metrics** for **{{ .Labels.rulename }}** - the datasource returned no series. Usually the metrics source is down (for Zero rules: Fly.io metrics), not the alert condition itself.
 {{ else -}}
-{{ with .Labels.severity }}**{{ . | toUpper }}** · {{ end }}{{ .Annotations.summary }}
+{{ with .Labels.severity }}**{{ . | toUpper }}** · {{ end }}{{ template "tldraw.discord.short" . }}
 {{ end -}}
 [View]({{ .GeneratorURL }}) · [Silence]({{ .SilenceURL }}){{ with .DashboardURL }} · [Dashboard]({{ . }}){{ end }}
 {{- end }}
