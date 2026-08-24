@@ -116,6 +116,10 @@ async function build() {
 	await exec('yarn', ['test', 'src/routes.test.tsx'])
 	const spaRoutes = loadSpaRoutes()
 	await exec('../../../node_modules/.bin/vite', ['build', '--emptyOutDir'])
+	// Second pass: the thumbnail render entry as one self-contained file, for the sync-worker's
+	// html-mode captures (the whole page rides inside the Browser Run request; the browser fetches
+	// nothing). Assembled below once the assets exist.
+	await exec('../../../node_modules/.bin/vite', ['build', '--config', 'vite.inline.config.ts'])
 	await exec('yarn', ['run', '-T', 'sentry-cli', 'sourcemaps', 'inject', 'dist/assets'])
 	// Clear output static folder (in case we are running locally and have already built the app once before)
 	await exec('rm', ['-rf', '.vercel/output'])
@@ -277,6 +281,48 @@ async function build() {
 			2
 		)
 	)
+
+	// Assemble the self-contained render artifact from the inline pass: one JS chunk and one CSS
+	// file, spliced into the HTML with the sequences that would close an inline block early escaped.
+	// Served as a static file so the worker can fetch it once per isolate and cache it; it is not a
+	// page anyone navigates to.
+	const inlineHtmlSrc = readFileSync('dist-inline/thumbnail-render.html', 'utf8')
+	const inlineJsFile = readdirSync('dist-inline/assets').find(
+		(f) => f.startsWith('thumbnail-render-') && f.endsWith('.js')
+	)
+	const inlineCssFile = readdirSync('dist-inline/assets').find(
+		(f) => f.startsWith('style-') && f.endsWith('.css')
+	)
+	if (!inlineJsFile || !inlineCssFile) {
+		throw new Error('inline render build did not produce the expected single JS + CSS pair')
+	}
+	const inlineJs = readFileSync(`dist-inline/assets/${inlineJsFile}`, 'utf8')
+		.replaceAll('</script', '<\\/script')
+		.replaceAll('<!--', '<\\!--')
+	const inlineCss = readFileSync(`dist-inline/assets/${inlineCssFile}`, 'utf8').replaceAll(
+		'</style',
+		'<\\/style'
+	)
+	const scriptTagMatch = inlineHtmlSrc.match(
+		/<script type="module"[^>]*src="\/assets\/[^"]*"[^>]*><\/script>/
+	)
+	const linkTagMatch = inlineHtmlSrc.match(
+		/<link rel="stylesheet"[^>]*href="\/assets\/style-[^"]*"[^>]*\/?>/
+	)
+	if (!scriptTagMatch || !linkTagMatch) {
+		throw new Error('inline render html did not contain the expected script/style references')
+	}
+	// Replacer functions, not replacement strings: a multi-megabyte replacement is effectively
+	// guaranteed to contain `$&`/`$'` sequences, which String.replace would expand into chunks of
+	// the surrounding document.
+	const inlineArtifact = inlineHtmlSrc
+		.replace(linkTagMatch[0], () => `<style>${inlineCss}</style>`)
+		.replace(scriptTagMatch[0], () => `<script type="module">${inlineJs}</script>`)
+		.replace(/<!-- Filled by scripts\/build\.ts[\s\S]*?\$PRELOADED_FONTS -->/, '')
+	if (inlineArtifact.includes('/assets/')) {
+		throw new Error('inline render artifact still references /assets/ — it is not self-contained')
+	}
+	writeFileSync('.vercel/output/static/thumbnail-render-inline.html', inlineArtifact)
 
 	await reportBundleSize('.vercel/output/static')
 }

@@ -130,6 +130,9 @@ export interface Environment {
 	// Origin serving the client thumbnail render page (THUMBNAIL_RENDER_PATH). Set per
 	// environment in wrangler.toml.
 	MCP_SCREENSHOT_RENDER_ORIGIN: string | undefined
+	// '1' opts a deployment into html-mode captures: the self-contained render page fetched from the
+	// client origin and sent inside the Browser Run request. Off everywhere it is unset.
+	THUMBNAIL_RENDER_INLINE: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
 	// The MCP server's public URL, and the resource identifier it advertises in RFC 9728 protected

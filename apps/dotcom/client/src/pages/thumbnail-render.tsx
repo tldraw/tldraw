@@ -2,8 +2,10 @@ import {
 	DEFAULT_THUMBNAIL_WIDTH,
 	MAX_THUMBNAIL_DIMENSION,
 	MIN_THUMBNAIL_DIMENSION,
+	THUMBNAIL_RENDER_CONFIG_GLOBAL,
 	THUMBNAIL_RENDER_GLOBAL,
 	THUMBNAIL_RENDER_PUSH_PARAM,
+	ThumbnailRenderConfig,
 	THUMBNAIL_SETTLE_TIMEOUT_MS,
 	ThumbnailRenderParams,
 	ThumbnailShapeMeasurement,
@@ -72,7 +74,7 @@ function sendTimingsBeacon(token: string, exportedAt: number) {
 		token,
 		timings: { source, bootAt, dataAt, mountAt, settledAt, exportedAt },
 	}
-	fetch(THUMBNAIL_RESULT_ENDPOINT, {
+	fetch(apiUrl(THUMBNAIL_RESULT_ENDPOINT), {
 		method: 'POST',
 		keepalive: true,
 		headers: { 'Content-Type': 'application/json' },
@@ -107,7 +109,15 @@ const PUSHED_SNAPSHOT_POLL_MS = 25
 declare global {
 	interface Window {
 		[THUMBNAIL_RENDER_GLOBAL]?: ThumbnailSnapshotResponseBody
+		[THUMBNAIL_RENDER_CONFIG_GLOBAL]?: ThumbnailRenderConfig
 	}
+}
+
+// An html-mode page has no origin, so relative requests cannot resolve; the spliced config carries
+// the API origin instead. A url-mode page has no config and keeps using relative paths.
+function apiUrl(path: string) {
+	const origin = window[THUMBNAIL_RENDER_CONFIG_GLOBAL]?.apiOrigin
+	return origin ? new URL(path, origin).toString() : path
 }
 
 function awaitPushedSnapshot(timeoutMs: number): Promise<ThumbnailSnapshotResponseBody | null> {
@@ -134,7 +144,25 @@ function awaitPushedSnapshot(timeoutMs: number): Promise<ThumbnailSnapshotRespon
  */
 export async function acquireThumbnailRenderData(url: URL): Promise<ThumbnailRenderData> {
 	pageTimings.bootAt = performance.now()
-	const token = url.searchParams.get('token')
+	const config = window[THUMBNAIL_RENDER_CONFIG_GLOBAL]
+	const token = config?.token ?? url.searchParams.get('token')
+
+	// A snapshot that is already here needs no waiting and no announcement — this is every html-mode
+	// render, where the worker splices the payload into <head> ahead of any script, and the fast path
+	// for a url-mode push whose injected tag won the race.
+	const already = window[THUMBNAIL_RENDER_GLOBAL]
+	if (already) {
+		if (already.error) return { ok: false, message: already.message }
+		pageTimings.source = 'push'
+		pageTimings.dataAt = performance.now()
+		return {
+			ok: true,
+			token: token ?? '',
+			records: already.records,
+			schema: already.schema,
+			renderParams: already.renderParams,
+		}
+	}
 
 	// Only a render the worker announced a push for waits for one. A pull render must not pay this
 	// budget just to discover nobody is pushing — that would be flat added latency on every OG
@@ -163,7 +191,7 @@ export async function acquireThumbnailRenderData(url: URL): Promise<ThumbnailRen
 	}
 
 	const result = await fetch(
-		`${THUMBNAIL_SNAPSHOT_ENDPOINT}?token=${encodeURIComponent(token)}`
+		apiUrl(`${THUMBNAIL_SNAPSHOT_ENDPOINT}?token=${encodeURIComponent(token)}`)
 	).catch(() => null)
 	if (!result?.ok) {
 		return { ok: false, message: `Could not load render job (${result?.status ?? 'network'})` }
@@ -540,7 +568,7 @@ function ThumbnailMeasureSignal({ token }: { token: string }) {
 				const text = editor.getShapeUtil(shape).getText(shape)
 				bounds[id] = { x: box.x, y: box.y, w: box.w, h: box.h, ...(text ? { text } : null) }
 			}
-			await fetch(THUMBNAIL_RESULT_ENDPOINT, {
+			await fetch(apiUrl(THUMBNAIL_RESULT_ENDPOINT), {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ token, bounds }),

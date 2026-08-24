@@ -14,6 +14,8 @@
 
 # PWA build artifacts
 /dev-dist
+# the single-file render artifact's intermediate build (see vite.inline.config.ts)
+/dist-inline
 
 # production
 /build

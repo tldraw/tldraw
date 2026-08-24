@@ -27,6 +27,18 @@ export const THUMBNAIL_RENDER_GLOBAL = '__TLDRAW_RENDER__'
 // latency on the OG path and make the two transports incomparable.
 export const THUMBNAIL_RENDER_PUSH_PARAM = 'push'
 
+// Spliced into the page alongside the snapshot when the worker sends the page as inline `html`
+// (no navigation, no origin). An origin-less document cannot make relative requests, so the worker
+// tells the page where its API lives and hands it the render token directly — there is no URL to
+// carry one.
+export const THUMBNAIL_RENDER_CONFIG_GLOBAL = '__TLDRAW_RENDER_CONFIG__'
+
+export interface ThumbnailRenderConfig {
+	/** Absolute origin for the page's own requests (the beacon; the snapshot fetch fallback). */
+	apiOrigin: string
+	token: string
+}
+
 // Builds the `/screenshot` request body. `timeoutMs` is granted to navigation and to the
 // settle+export wait *individually* — these are per-phase timers, not a cap on the call. They
 // exist so Browser Run gives up on a dead page early; bounding the call as a whole is the
@@ -85,6 +97,43 @@ export function getThumbnailScreenshotRequestBody({
 		// screenshot). On a failure it's absent, so the capture errors out immediately instead of
 		// screenshotting the error page. `selector` targets an element without waiting (waitForSelector
 		// above is the wait), so a missing element fails fast rather than re-waiting the timeout.
+		selector: THUMBNAIL_CAPTURE_SELECTOR,
+		screenshotOptions: {
+			type: 'png',
+		},
+	}
+}
+
+// The html-mode request: the whole self-contained render page (payload already spliced into its
+// <head>) rides inside the Browser Run request, so the browser navigates nowhere and fetches
+// nothing. Same wait strategy and capture target as the url mode — the page behaves identically
+// once running.
+export function getThumbnailScreenshotHtmlRequestBody({
+	html,
+	width,
+	height,
+	timeoutMs,
+}: {
+	html: string
+	width: number
+	height: number
+	timeoutMs: number
+}) {
+	return {
+		html,
+		viewport: {
+			width,
+			height,
+			deviceScaleFactor: 1,
+		},
+		gotoOptions: {
+			waitUntil: 'domcontentloaded',
+			timeout: timeoutMs,
+		},
+		waitForSelector: {
+			selector: THUMBNAIL_SETTLED_SELECTOR,
+			timeout: timeoutMs,
+		},
 		selector: THUMBNAIL_CAPTURE_SELECTOR,
 		screenshotOptions: {
 			type: 'png',

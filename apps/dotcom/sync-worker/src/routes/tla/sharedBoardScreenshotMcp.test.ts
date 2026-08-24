@@ -35,6 +35,7 @@ import {
 	resetRateLimitFallbackForTests,
 	sharedBoardScreenshotMcp,
 } from './sharedBoardScreenshotMcp'
+import { resetInlineRenderPageForTests } from './thumbnailRender'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
@@ -1689,5 +1690,72 @@ describe('pushed snapshots', () => {
 		)
 
 		expect(new URL(screenshotBody(env).url).searchParams.get('token')).toBeTruthy()
+	})
+})
+
+// The html-mode transport: the whole self-contained page rides inside the Browser Run request.
+// Asserted at the request-body layer, like push — a broken inline path degrades silently into the
+// url modes, so only the body the binding received proves which transport ran.
+describe('inline html captures', () => {
+	beforeEach(() => resetInlineRenderPageForTests())
+	afterEach(() => vi.restoreAllMocks())
+
+	function stubArtifactFetch(html: string) {
+		const realFetch = globalThis.fetch
+		vi.spyOn(globalThis, 'fetch').mockImplementation(async (input: any, init?: any) => {
+			if (String(input).endsWith('/thumbnail-render-inline.html')) {
+				return new Response(html, { status: 200 })
+			}
+			return realFetch(input, init)
+		})
+	}
+
+	it('sends the spliced page as html, with no url and both globals ahead of the module script', async () => {
+		stubArtifactFetch(
+			`<!doctype html><html><head><script>${THUMBNAIL_RENDER_GLOBAL}</script></head><body></body></html>`
+		)
+		mockPublishedBoard()
+		const env = makeEnv({ THUMBNAIL_RENDER_INLINE: '1' })
+		const clusterId = await firstClusterId(env, 'user_inline_1', 'abc')
+
+		await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'abc', clusterIds: [clusterId] },
+			env,
+			'user_inline_2'
+		)
+
+		const calls = screenshotOf(env).mock.calls
+		const body = calls.at(-1)![1] as { url?: string; html?: string }
+		expect(body.url).toBeUndefined()
+		expect(body.html).toBeTruthy()
+		// The payload and the page config both sit in <head>, before any page script runs.
+		const head = body.html!.slice(0, body.html!.indexOf('</head>'))
+		expect(head).toContain(`window.${THUMBNAIL_RENDER_GLOBAL}=`)
+		expect(head).toContain('__TLDRAW_RENDER_CONFIG__')
+		expect(head).toContain('"apiOrigin"')
+	})
+
+	it('falls back to the url-mode push when the artifact cannot be fetched', async () => {
+		vi.spyOn(globalThis, 'fetch').mockImplementation(async (input: any) => {
+			if (String(input).endsWith('/thumbnail-render-inline.html')) {
+				return new Response('nope', { status: 404 })
+			}
+			throw new Error(`unexpected fetch ${input}`)
+		})
+		mockPublishedBoard()
+		const env = makeEnv({ THUMBNAIL_RENDER_INLINE: '1' })
+		const clusterId = await firstClusterId(env, 'user_inline_3', 'abc')
+
+		await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'abc', clusterIds: [clusterId] },
+			env,
+			'user_inline_4'
+		)
+
+		const body = screenshotOf(env).mock.calls.at(-1)![1] as { url?: string; addScriptTag?: unknown }
+		expect(body.url).toContain('push=1')
+		expect(body.addScriptTag).toBeTruthy()
 	})
 })

@@ -4,8 +4,11 @@ import {
 	THUMBNAIL_RENDER_GLOBAL,
 	THUMBNAIL_RENDER_PATH,
 	THUMBNAIL_RENDER_PUSH_PARAM,
+	THUMBNAIL_RENDER_CONFIG_GLOBAL,
 	THUMBNAIL_RENDER_TIMEOUT_MS,
+	ThumbnailRenderConfig,
 	ThumbnailSnapshotResponseBody,
+	getThumbnailScreenshotHtmlRequestBody,
 	getThumbnailScreenshotRequestBody,
 } from '@tldraw/dotcom-shared'
 import { SerializedSchema } from '@tldraw/store'
@@ -181,6 +184,56 @@ async function mintRecordedRenderToken(env: Environment, job: ThumbnailRenderJob
 	const token = await mintThumbnailRenderToken(env, job)
 	await recordMintedRenderToken(env, job, token)
 	return token
+}
+
+// The self-contained render page for html-mode captures, fetched from the client origin once per
+// isolate and reused. A single static file — no page route is involved when it is used, so a
+// render's only network round trip is the Browser Run call itself. A fetch failure resolves null
+// (and clears the cache so the next render retries) rather than failing the capture: the url-mode
+// path below still works and every render must survive this file being missing, since the client
+// deploys separately from the worker.
+let inlineRenderPagePromise: Promise<string | null> | null = null
+function getInlineRenderPage(env: Environment): Promise<string | null> {
+	if (!inlineRenderPagePromise) {
+		inlineRenderPagePromise = (async () => {
+			try {
+				const response = await fetch(`${getRenderOrigin(env)}/thumbnail-render-inline.html`)
+				if (!response.ok) return null
+				const html = await response.text()
+				// A rewrite gone wrong serves the SPA shell here, which would navigate nowhere useful.
+				// The artifact is recognisable by the global its own bundle awaits.
+				if (!html.includes(THUMBNAIL_RENDER_GLOBAL)) return null
+				return html
+			} catch {
+				return null
+			}
+		})().then((result) => {
+			if (result === null) inlineRenderPagePromise = null
+			return result
+		})
+	}
+	return inlineRenderPagePromise
+}
+
+// The artifact cache is module state that would leak between test cases; production isolates never
+// need this.
+export function resetInlineRenderPageForTests() {
+	inlineRenderPagePromise = null
+}
+
+// Splices the snapshot and the page's config into the artifact's <head>, ahead of its module
+// script, so the page finds both synchronously at boot — no injection, no race, no wait.
+export function spliceInlineRenderPage(
+	artifact: string,
+	payload: ThumbnailSnapshotResponseBody,
+	config: ThumbnailRenderConfig
+) {
+	const globals =
+		`<script>window.${THUMBNAIL_RENDER_GLOBAL}=${toRenderScriptLiteral(payload)};` +
+		`window.${THUMBNAIL_RENDER_CONFIG_GLOBAL}=${toRenderScriptLiteral(config)}</script>`
+	// A replacer function, not a replacement string: board text can contain `$&`/`$'` sequences,
+	// which String.replace would expand into fragments of the artifact itself.
+	return artifact.replace('<head>', () => `<head>${globals}`)
 }
 
 export function buildThumbnailRenderUrl(renderOrigin: string, token: string) {
@@ -375,7 +428,7 @@ function writeBrowserRunSessionTelemetry(
 	})
 }
 
-type RenderTransport = 'push' | 'pull' | 'push_fallback'
+type RenderTransport = 'inline' | 'push' | 'pull' | 'push_fallback'
 
 // The binding serializes the whole request body, not just the payload, so leave room for the rest of
 // it and for structured-clone overhead rather than testing against the limit exactly. Measured
@@ -386,9 +439,11 @@ const PUSH_PAYLOAD_BUDGET_BYTES = RPC_MESSAGE_LIMIT_BYTES - 1024 * 1024
 // Compared against the script's *character* count, which undercounts multi-byte text — so the
 // headroom above is doing real work here, and the capture's catch covers what slips past it. Exact
 // byte counting would mean encoding a copy of a payload that can already be tens of megabytes.
-function isWithinRpcLimit(injectedScript: string) {
-	return injectedScript.length <= PUSH_PAYLOAD_BUDGET_BYTES
+function isWithinRpcLimit(candidate: string) {
+	return candidate.length <= PUSH_PAYLOAD_BUDGET_BYTES
 }
+
+type ThumbnailScreenshotHtmlRequestBody = ReturnType<typeof getThumbnailScreenshotHtmlRequestBody>
 
 // The binding reports this as a plain Error, so there is nothing to match on but the message.
 // Deliberately narrow: anything else must not be mistaken for "too big" and silently downgraded.
@@ -438,22 +493,55 @@ async function renderThumbnailScreenshot(
 	// downgrade to the old path.
 	let transport: RenderTransport = 'pull'
 	let payloadChars = 0
-	let injectedScript: string | undefined
+	let inlineHtml: string | undefined
+	const pushScript = push
+		? `window.${THUMBNAIL_RENDER_GLOBAL}=${toRenderScriptLiteral(push)}`
+		: undefined
 
-	if (push) {
-		const script = `window.${THUMBNAIL_RENDER_GLOBAL}=${toRenderScriptLiteral(push)}`
-		payloadChars = script.length
-		if (isWithinRpcLimit(script)) {
-			transport = 'push'
-			injectedScript = script
-		} else {
-			// Refused up front rather than caught: it keeps the oversize case off the retry path, and
-			// the binding's own error is a generic Error we would have to string-match to recognise.
-			transport = 'push_fallback'
+	if (push && pushScript) {
+		payloadChars = pushScript.length
+
+		// Inline html first: the whole self-contained page rides in the request, so the browser
+		// navigates nowhere, fetches nothing, and there is no injection to race. Steps down to the
+		// url-mode push when the artifact is missing (a client not yet deployed with it) or the
+		// combined document would cross the RPC limit.
+		// Opt-in per deployment: unit tests must not fetch the artifact over the network, and dev's
+		// local screenshot service only speaks url mode.
+		const inlineEnabled = env.THUMBNAIL_RENDER_INLINE === '1' && !env.LOCAL_SCREENSHOT_SERVICE_URL
+		const artifact = inlineEnabled ? await getInlineRenderPage(env) : null
+		if (artifact) {
+			const token = new URL(renderUrl).searchParams.get('token') ?? ''
+			const spliced = spliceInlineRenderPage(artifact, push, {
+				apiOrigin: new URL(renderUrl).origin,
+				token,
+			})
+			if (isWithinRpcLimit(spliced)) {
+				transport = 'inline'
+				inlineHtml = spliced
+			}
+		}
+
+		if (transport !== 'inline') {
+			if (isWithinRpcLimit(pushScript)) {
+				transport = 'push'
+			} else {
+				// Refused up front rather than caught: it keeps the oversize case off the retry path,
+				// and the binding's own error is a generic Error we would have to string-match to
+				// recognise.
+				transport = 'push_fallback'
+			}
 		}
 	}
 
-	const requestBody = buildRequestBody(injectedScript)
+	const requestBody: ThumbnailScreenshotRequestBody | ThumbnailScreenshotHtmlRequestBody =
+		transport === 'inline' && inlineHtml
+			? getThumbnailScreenshotHtmlRequestBody({
+					html: inlineHtml,
+					width,
+					height,
+					timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
+				})
+			: buildRequestBody(transport === 'push' ? pushScript : undefined)
 
 	// Local dev has no route to Browser Run, so it points this at a screenshot service instead (the
 	// client's dev server, which can drive Playwright). Selected on the var being set rather than on
@@ -461,7 +549,9 @@ async function renderThumbnailScreenshot(
 	let timed: TimedCapture
 	const startedAt = Date.now()
 
-	const runCapture = (body: ThumbnailScreenshotRequestBody) => {
+	const runCapture = (
+		body: ThumbnailScreenshotRequestBody | ThumbnailScreenshotHtmlRequestBody
+	) => {
 		const capture = env.LOCAL_SCREENSHOT_SERVICE_URL
 			? callLocalScreenshotService(env.LOCAL_SCREENSHOT_SERVICE_URL, body)
 			: callBrowserRun(env, body)
@@ -481,7 +571,14 @@ async function renderThumbnailScreenshot(
 			// measures its own serialization of the entire body, so a payload sitting near the line can
 			// still be refused. Recovering costs nothing — the throw precedes any browser session — and
 			// not recovering would fail a board that renders perfectly well today.
-			if (transport !== 'push' || !isRpcOversizeError(error)) throw error
+			if (!isRpcOversizeError(error)) throw error
+			// An inline render steps down to the url-mode push if that still fits; either push form
+			// steps down to the fetch. A pull render refused for size has no smaller form and throws.
+			if (transport === 'inline' && pushScript && isWithinRpcLimit(pushScript)) {
+				transport = 'push'
+				return runCapture(buildRequestBody(pushScript))
+			}
+			if (transport !== 'push' && transport !== 'inline') throw error
 			transport = 'push_fallback'
 			return runCapture(buildRequestBody())
 		})
@@ -551,7 +648,7 @@ interface TimedCapture {
 
 async function callBrowserRun(
 	env: Environment,
-	requestBody: ThumbnailScreenshotRequestBody
+	requestBody: ThumbnailScreenshotRequestBody | ThumbnailScreenshotHtmlRequestBody
 ): Promise<TimedCapture> {
 	if (!env.BROWSER) {
 		throw new Error(
@@ -675,7 +772,7 @@ function truncate(text: string) {
 // evidence that it works in production.
 async function callLocalScreenshotService(
 	serviceUrl: string,
-	requestBody: ThumbnailScreenshotRequestBody
+	requestBody: ThumbnailScreenshotRequestBody | ThumbnailScreenshotHtmlRequestBody
 ): Promise<TimedCapture> {
 	const startedAt = Date.now()
 	const response = await fetch(serviceUrl, {
