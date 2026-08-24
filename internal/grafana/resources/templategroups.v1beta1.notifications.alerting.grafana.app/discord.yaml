@@ -1,4 +1,4 @@
-apiVersion: notifications.alerting.grafana.app/v0alpha1
+apiVersion: notifications.alerting.grafana.app/v1beta1
 kind: TemplateGroup
 metadata:
   annotations:
