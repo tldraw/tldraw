@@ -2743,10 +2743,15 @@ export class TLFileDurableObject extends DurableObject {
 
 	// Report-only watchdog for outbox effect RPCs: fires just under the drain's 30s effect
 	// timeout so Sentry gets the boot stage before the drain bumps the row as a bare timeout.
-	// The outbox owns retry semantics — this never rejects or cancels the work.
+	// The outbox owns retry semantics — this never rejects or cancels the work. A null stage
+	// means the boot already settled and the stall is in work after it (e.g. the per-session
+	// permission refresh in updateRoomForFileRecord) — report that as 'post-boot', not a boot
+	// failure.
 	private async reportIfBootStalls<T>(work: Promise<T>, file: TlaFile): Promise<T> {
 		const timer = setTimeout(() => {
-			this.reportError(new BootStallError(file.id, this._bootStage, BOOT_STALL_REPORT_MS))
+			this.reportError(
+				new BootStallError(file.id, this._bootStage ?? 'post-boot', BOOT_STALL_REPORT_MS)
+			)
 		}, BOOT_STALL_REPORT_MS)
 		try {
 			return await work
