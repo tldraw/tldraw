@@ -276,15 +276,11 @@ export async function captureThumbnailScreenshot(
 	}
 	const token = await mintRecordedRenderToken(env, job)
 	try {
-		return await renderThumbnailScreenshot(
-			env,
-			buildThumbnailRenderUrl(getRenderOrigin(env), token),
-			{
-				width,
-				height,
-				session: { source: telemetry.source, mode: 'screenshot', reason: telemetry.reason },
-			}
-		)
+		return await runRenderSession(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
+			width,
+			height,
+			session: { source: telemetry.source, mode: 'screenshot', reason: telemetry.reason },
+		})
 	} finally {
 		// The MCP surface keys its records by token, so nothing later overwrites this one and it has to
 		// be dropped here — the same cleanup a measure gets, for the same reason. In `finally` because a
@@ -336,11 +332,16 @@ function writeBrowserRunSessionTelemetry(
 	})
 }
 
-// The pixels come from editor.toImage on the render page, which displays its own export as a
-// full-viewport image for the Quick Action to capture. A failed render marks an error state rather
-// than the ready one, so it returns as a failure immediately instead of burning the timeout (see
-// THUMBNAIL_SETTLED_SELECTOR / THUMBNAIL_CAPTURE_SELECTOR in @tldraw/dotcom-shared).
-async function renderThumbnailScreenshot(
+// One Browser Run session against the render page, returning whatever the Quick Action captured.
+// Only the capture path wants those pixels: they are editor.toImage's output, which the page
+// displays as a full-viewport image to be caught. A measure runs no export and discards the image —
+// the session is only how the page gets to run, and its answer comes back through the result
+// endpoint.
+//
+// A failed render marks an error state rather than the ready one, so it returns as a failure
+// immediately instead of burning the timeout (see THUMBNAIL_SETTLED_SELECTOR /
+// THUMBNAIL_CAPTURE_SELECTOR in @tldraw/dotcom-shared).
+async function runRenderSession(
 	env: Environment,
 	renderUrl: string,
 	{ width, height, session }: { width: number; height: number; session: BrowserRunSessionContext }
@@ -577,9 +578,8 @@ export async function measurePageShapes(
 	const key = getRenderResultKey(token)
 
 	try {
-		// The screenshot is discarded — it is only how the browser session is driven, and how we know the
-		// page reached its terminal state. The answer arrives via the result endpoint.
-		await renderThumbnailScreenshot(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
+		// Awaited for the ready signal, not for the image it returns; see runRenderSession.
+		await runRenderSession(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
 			width: DEFAULT_THUMBNAIL_WIDTH,
 			height: DEFAULT_THUMBNAIL_HEIGHT,
 			// The measure runs only on the MCP surface today; `surface` names the render pipeline for the

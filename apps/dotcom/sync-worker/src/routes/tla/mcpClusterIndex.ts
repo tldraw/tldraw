@@ -19,6 +19,12 @@ import { reportThumbnailError } from './thumbnailShared'
 // The store is the file's own Durable Object, addressed by `ResolvedThumbnailBoard.fileId`. That is
 // the only Durable Object hop in the MCP request path — the tools otherwise read the room's
 // persisted snapshot straight out of R2 and never talk to the object that wrote it.
+//
+// Fresh relative to the snapshot, not to the board. An index is keyed to the content version it was
+// measured from, so it can never be staler than the snapshot the call is already reading — and that
+// snapshot is the last persisted one, which for a shared file lags the live room by the persist
+// interval. A tool carries that same lag whether it hit this cache or measured from scratch, so no
+// expiry here would shorten it (see "Open questions" in browser-run-thumbnails.md).
 
 interface CacheContext {
 	env: Environment
