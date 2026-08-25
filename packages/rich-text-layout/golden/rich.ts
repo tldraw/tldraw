@@ -41,6 +41,7 @@ export function layoutRichCase(c: RichCase) {
 		lineHeight: LINE_HEIGHT,
 		padding: '0px',
 		maxWidth: c.maxWidth,
+		textAlign: c.textAlign,
 	})
 }
 

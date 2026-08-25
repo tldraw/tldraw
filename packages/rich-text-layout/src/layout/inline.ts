@@ -1,9 +1,10 @@
 import type { LayoutCursor, PreparedTextWithSegments } from '@chenglou/pretext'
 import { DocInline } from '../document/types'
-import { getPretext } from '../measure/install'
+import { getPretext, pretextFontString } from '../measure/install'
 import { FontSpec, MeasureContext, fontSpecToString } from '../measure/types'
 import { ResolvedBlockStyle, ResolvedInlineStyle } from '../style/types'
 import { detectDirection } from './bidi'
+import { LayoutProfile } from './profile'
 import { visualOrder } from './reorder'
 import { Fragment, FragmentKind, LineBox } from './types'
 
@@ -28,6 +29,7 @@ export interface InlineLayoutOptions {
 	block: ResolvedBlockStyle
 	maxWidth: number
 	measure: MeasureContext
+	profile: LayoutProfile
 	/** Leading marker fragment for list items, placed before the first line. */
 	marker?: { text: string; style: ResolvedInlineStyle; path: number[] } | null
 }
@@ -36,6 +38,8 @@ export interface InlineLayoutOptions {
 export type InlineLine = Omit<LineBox, 'blockIndex' | 'x' | 'y'> & {
 	/** Width of trailing preserved whitespace that hangs past `width`. */
 	trailingWhitespaceWidth: number
+	/** Whether the line ends its paragraph or at a forced break (justification leaves it ragged). */
+	endsChunk: boolean
 }
 
 /** @internal */
@@ -240,7 +244,7 @@ function prepareChunk(
 	const dominantRun = runs[dominant] ?? null
 	const dominantFont: FontSpec = dominantRun ? dominantRun.style.font : block.font
 	const letterSpacing = dominantRun ? dominantRun.style.letterSpacing : block.letterSpacing
-	const fontString = fontSpecToString(dominantFont)
+	const fontString = pretextFontString(dominantFont, measure)
 
 	const signature = runSignature(chunk, runs)
 	const key = [
@@ -435,11 +439,13 @@ function inlineBoxMetrics(
 	return { above: m.ascent + half, below: m.descent + half }
 }
 
-function baselineShiftFor(style: ResolvedInlineStyle, parentFontSize: number) {
-	// Blink lowers subscripts by a fifth and raises superscripts by a third of the parent font
-	// size rather than reading the font's own subscript metrics.
-	if (style.verticalAlign === 'sub') return parentFontSize / 5
-	if (style.verticalAlign === 'super') return -parentFontSize / 3
+function baselineShiftFor(
+	style: ResolvedInlineStyle,
+	parentFontSize: number,
+	profile: LayoutProfile
+) {
+	if (style.verticalAlign === 'sub') return parentFontSize * profile.subscriptShift
+	if (style.verticalAlign === 'super') return -parentFontSize * profile.superscriptShift
 	return 0
 }
 
@@ -452,7 +458,7 @@ export function layoutInline(
 	content: InlineContent,
 	options: InlineLayoutOptions
 ): InlineLayoutResult {
-	const { block, measure } = options
+	const { block, measure, profile } = options
 	const maxWidth = block.whiteSpace === 'pre' ? Infinity : options.maxWidth
 	const chunks = buildChunks(content, block.whiteSpace, block.wordBreak)
 	const pretext = getPretext()
@@ -468,7 +474,12 @@ export function layoutInline(
 	const lines: InlineLine[] = []
 	let maxContentWidth = 0
 
-	const makeLine = (fragments: Fragment[], width: number, trailing: number): InlineLine => {
+	const makeLine = (
+		fragments: Fragment[],
+		width: number,
+		trailing: number,
+		endsChunk: boolean
+	): InlineLine => {
 		let above = strut.above
 		let below = strut.below
 		for (const f of fragments) {
@@ -476,13 +487,15 @@ export function layoutInline(
 			above = Math.max(above, m.above - f.baselineShift)
 			below = Math.max(below, m.below + f.baselineShift)
 		}
+		const height = profile.roundLineBoxes ? Math.round(above + below) : above + below
 		return {
 			width,
-			height: above + below,
+			height,
 			baseline: above,
 			direction,
 			fragments,
 			trailingWhitespaceWidth: trailing,
+			endsChunk,
 		}
 	}
 
@@ -512,7 +525,7 @@ export function layoutInline(
 		if (chunk.text.length === 0) {
 			const fragments: Fragment[] = []
 			placeMarker(fragments)
-			lines.push(makeLine(fragments, 0, 0))
+			lines.push(makeLine(fragments, 0, 0, true))
 			continue
 		}
 		const pc = prepareChunk(chunk, content.runs, block, measure)
@@ -554,7 +567,7 @@ export function layoutInline(
 						from: chunk.srcOff[piece.from],
 						to: chunk.srcOff[piece.to - 1] + 1,
 					},
-					baselineShift: baselineShiftFor(run.style, block.fontSize),
+					baselineShift: baselineShiftFor(run.style, block.fontSize, profile),
 					ascent: measure.metrics(run.style.font).ascent,
 					descent: measure.metrics(run.style.font).descent,
 				})
@@ -595,12 +608,18 @@ export function layoutInline(
 				fragments.splice(0, fragments.length, ...reordered)
 			}
 
+			const endsChunk = cursorOffset(pc, range.end) >= chunk.text.length
 			placeMarker(fragments)
-			lines.push(makeLine(fragments, contentWidth, trailing))
+			lines.push(makeLine(fragments, contentWidth, trailing, endsChunk))
 			// Max-content comes from whole-fragment measurements rather than pretext's per-segment
-			// sums: fonts with kerning or contextual alternates (tldraw's draw font) shape a word
-			// differently from the sum of its parts, and browsers measure the shaped run.
-			if (maxWidth === Infinity) maxContentWidth = Math.max(maxContentWidth, x)
+			// sums: fonts with kerning or contextual alternates shape a word differently from the
+			// sum of its parts, and browsers measure the shaped run.
+			if (maxWidth === Infinity) {
+				// pretext's range width is the sum of separately measured segments.
+				const shaped = profile.shapeAcrossWordBoundaries ? x : range.width
+				const lineMax = profile.trailingSpacesInMaxContent ? shaped : shaped - trailing
+				maxContentWidth = Math.max(maxContentWidth, lineMax)
+			}
 
 			if (
 				range.end.segmentIndex === cursor.segmentIndex &&
@@ -615,7 +634,7 @@ export function layoutInline(
 	if (lines.length === 0) {
 		const fragments: Fragment[] = []
 		placeMarker(fragments)
-		lines.push(makeLine(fragments, 0, 0))
+		lines.push(makeLine(fragments, 0, 0, true))
 	}
 
 	return { lines, maxContentWidth, direction }

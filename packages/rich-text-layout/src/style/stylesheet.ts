@@ -1,4 +1,5 @@
 import { PMMark, PMNode } from '../document/types'
+import { LayoutProfile } from '../layout/profile'
 import { FontSpec, MeasureContext } from '../measure/types'
 import {
 	FontSizeValue,
@@ -105,11 +106,13 @@ function parseLineHeight(value: LineHeightValue | undefined): LineHeightInherit 
 	return { kind: 'px', value: parseFloat(value) }
 }
 
-function lineHeightPx(inherit: LineHeightInherit, font: FontSpec, measure: MeasureContext): number {
-	if (inherit === null) {
-		const m = measure.metrics(font)
-		return m.ascent + m.descent
-	}
+function lineHeightPx(
+	inherit: LineHeightInherit,
+	font: FontSpec,
+	measure: MeasureContext,
+	profile: LayoutProfile
+): number {
+	if (inherit === null) return profile.normalLineHeight(measure.metrics(font), font.size)
 	return inherit.kind === 'factor' ? inherit.value * font.size : inherit.value
 }
 
@@ -177,7 +180,8 @@ const DEFAULT_ROOT: RootStyleDefaults = {
 export function createStyleResolver(
 	sheet: StyleSheet,
 	measure: MeasureContext,
-	root: StyleDeclaration = {}
+	root: StyleDeclaration,
+	profile: LayoutProfile
 ): StyleResolver {
 	// The root element of a layout is not a document node, so its style is declared directly
 	// rather than matched: it plays the role of the container's computed style.
@@ -211,7 +215,7 @@ export function createStyleResolver(
 		const parentCtx: LengthContext = {
 			fontSize: parentSize,
 			zeroAdvance: measure.metrics(parentFont).zeroAdvance,
-			lineHeight: lineHeightPx(parentLineHeightInherit, parentFont, measure),
+			lineHeight: lineHeightPx(parentLineHeightInherit, parentFont, measure, profile),
 		}
 		const fontSize = resolveFontSize(decl.fontSize, parentSize, parentCtx)
 		const font = fontSpec(fontFamily, fontSize, fontWeight, fontStyle)
@@ -220,7 +224,7 @@ export function createStyleResolver(
 			parseLineHeight(decl.lineHeight) === undefined
 				? parentLineHeightInherit
 				: parseLineHeight(decl.lineHeight)!
-		const lineHeight = lineHeightPx(lineHeightInherit, font, measure)
+		const lineHeight = lineHeightPx(lineHeightInherit, font, measure, profile)
 		const ownCtx: LengthContext = {
 			fontSize,
 			zeroAdvance: measure.metrics(font).zeroAdvance,
@@ -338,7 +342,7 @@ export function createStyleResolver(
 			fontSize,
 			fontWeight,
 			fontStyle,
-			lineHeight: lineHeightPx(lineHeightInherit, font, measure),
+			lineHeight: lineHeightPx(lineHeightInherit, font, measure, profile),
 			color,
 			letterSpacing,
 			textDecoration,

@@ -23,7 +23,7 @@ export type FontWeightValue = 'normal' | 'bold' | 'bolder' | 'lighter' | number 
 export type FontStyleValue = 'normal' | 'italic' | 'oblique'
 
 /** @public */
-export type TextAlignValue = 'start' | 'end' | 'left' | 'right' | 'center'
+export type TextAlignValue = 'start' | 'end' | 'left' | 'right' | 'center' | 'justify'
 
 /** @public */
 export type WhiteSpaceValue = 'normal' | 'pre-wrap' | 'pre'
