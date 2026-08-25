@@ -31952,7 +31952,6 @@ __metadata:
     "@types/react-dom": "npm:^19.2.3"
     chokidar-cli: "npm:^3.0.0"
     classnames: "npm:^2.5.1"
-    idb: "npm:^7.1.1"
     jest-diff: "npm:^30.4.1"
     lazyrepo: "npm:0.0.0-alpha.27"
     lz-string: "npm:^1.5.0"
