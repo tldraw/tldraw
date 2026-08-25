@@ -135,14 +135,10 @@ const config = {
 		},
 		'check-bundle-size': {
 			execution: 'independent',
-			workspaceOverrides: {
-				// The SDK check bundles packages/tldraw from source, so it depends on every SDK
-				// package's sources and manifests, not just its own workspace.
-				'packages/tldraw': {
-					cache: {
-						inputs: ['<rootDir>/packages/*/src/**/*', '<rootDir>/packages/*/package.json'],
-					},
-				},
+			// Every bundle check pulls in SDK package sources, so a change in packages/* must
+			// invalidate the cache even though it lives outside the checking workspace.
+			cache: {
+				inputs: ['src/**/*', '<rootDir>/packages/*/src/**/*', '<rootDir>/packages/*/package.json'],
 			},
 		},
 		'api-check': {

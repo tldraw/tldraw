@@ -496,11 +496,11 @@ async function checkSideEffects({
 }): Promise<boolean> {
 	let errorCount = 0
 	for (const { relativePath, packageJson, name } of packages) {
-		const isPublishedLibrary =
-			relativePath.startsWith('packages/') &&
-			!packageJson.private &&
-			existsSync(join(REPO_ROOT, relativePath, 'src/index.ts'))
-		if (!isPublishedLibrary) continue
+		if (!relativePath.startsWith('packages/') || packageJson.private) continue
+		if (!existsSync(join(REPO_ROOT, relativePath, 'src/index.ts'))) {
+			nicelog(['  ⏩ ', kleur.grey(`${name}: skipped (no src/index.ts)`)].join(''))
+			continue
+		}
 
 		const actual = packageJson.sideEffects
 		const ok =
@@ -525,8 +525,15 @@ async function checkSideEffects({
 			].join('')
 		)
 		if (fix) {
-			packageJson.sideEffects = expectedSideEffects
-			await writeJsonFile(join(REPO_ROOT, relativePath, 'package.json'), packageJson)
+			// Keep the key next to "type", where the hand-written manifests put it
+			const fixed: Record<string, unknown> = {}
+			for (const [key, value] of Object.entries(packageJson)) {
+				if (key === 'sideEffects') continue
+				fixed[key] = value
+				if (key === 'type') fixed.sideEffects = expectedSideEffects
+			}
+			if (!('sideEffects' in fixed)) fixed.sideEffects = expectedSideEffects
+			await writeJsonFile(join(REPO_ROOT, relativePath, 'package.json'), fixed)
 		}
 	}
 

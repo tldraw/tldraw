@@ -1,6 +1,6 @@
 import { mkdtempSync, rmSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
-import { join, relative } from 'path'
+import { join } from 'path'
 import { gzipSync } from 'zlib'
 import { build } from 'esbuild'
 import kleur from 'kleur'
@@ -12,35 +12,42 @@ import { nicelog } from './lib/nicelog'
 // code only reachable through the package barrel is not dragged in. The canaries are modules that
 // nothing in the default `<Tldraw />` tree imports; if one shows up in the bundle then some package
 // lost its `sideEffects` declaration or a module grew an import-time side effect, and every consumer
-// of the SDK pays for the whole barrel again.
+// of the SDK pays for the whole barrel again. The `export *` entry asserts the opposite so that a
+// renamed or deleted canary fails loudly instead of matching nothing forever.
 
 interface Entry {
 	name: string
 	source: string
 	sizeLimitBytes?: number
 	mustNotInclude?: string[]
+	mustInclude?: string[]
 }
+
+const TLDRAW_CANARIES = [
+	'packages/tldraw/src/lib/utils/tldr/buildFromV1Document.ts',
+	'packages/tldraw/src/lib/TldrawImage.tsx',
+	'packages/tldraw/src/lib/ui/components/primitives/TldrawUiSelect.tsx',
+	'node_modules/@radix-ui/react-select/',
+]
+const EDITOR_CANARIES = ['packages/editor/src/lib/hooks/useTLStore.ts']
 
 const ENTRIES: Entry[] = [
 	{
 		name: "import { Tldraw } from 'tldraw'",
 		source: `export { Tldraw } from '${REPO_ROOT}/packages/tldraw/src/index'`,
+		// Bump deliberately when the SDK legitimately grows; this exists to make growth visible.
 		sizeLimitBytes: 1_800_000,
-		mustNotInclude: [
-			'packages/tldraw/src/lib/utils/tldr/buildFromV1Document.ts',
-			'packages/tldraw/src/lib/TldrawImage.tsx',
-			'packages/tldraw/src/lib/ui/components/primitives/TldrawUiSelect.tsx',
-			'node_modules/@radix-ui/react-select/',
-		],
+		mustNotInclude: [...TLDRAW_CANARIES, ...EDITOR_CANARIES],
 	},
 	{
 		name: "import { TldrawEditor } from '@tldraw/editor'",
 		source: `export { TldrawEditor } from '${REPO_ROOT}/packages/editor/src/index'`,
-		mustNotInclude: ['packages/editor/src/lib/hooks/useTLStore.ts'],
+		mustNotInclude: EDITOR_CANARIES,
 	},
 	{
 		name: "export * from 'tldraw'",
 		source: `export * from '${REPO_ROOT}/packages/tldraw/src/index'`,
+		mustInclude: [...TLDRAW_CANARIES, ...EDITOR_CANARIES],
 	},
 ]
 
@@ -48,6 +55,7 @@ async function measure(entry: Entry, dir: string) {
 	const entryFile = join(dir, 'entry.ts')
 	writeFileSync(entryFile, entry.source)
 	const result = await build({
+		absWorkingDir: REPO_ROOT,
 		entryPoints: [entryFile],
 		bundle: true,
 		minify: true,
@@ -55,28 +63,21 @@ async function measure(entry: Entry, dir: string) {
 		platform: 'browser',
 		target: 'es2022',
 		external: ['react', 'react-dom', 'react/jsx-runtime'],
-		loader: {
-			'.css': 'empty',
-			'.svg': 'dataurl',
-			'.png': 'dataurl',
-			'.woff2': 'dataurl',
-			'.json': 'json',
-		},
+		// Same defines as build-package.ts, so the version-registration code is as small as it is
+		// in a published build
 		define: {
 			'globalThis.TLDRAW_LIBRARY_IS_BUILD': 'true',
 			'globalThis.TLDRAW_LIBRARY_NAME': '"tldraw"',
 			'globalThis.TLDRAW_LIBRARY_VERSION': '"0.0.0"',
 			'globalThis.TLDRAW_LIBRARY_MODULES': '"esm"',
-			'process.env.NODE_ENV': '"production"',
 		},
 		write: false,
 		logLevel: 'silent',
 		metafile: true,
 	})
 	const output = result.outputFiles[0].contents
-	const inputs = Object.keys(Object.values(result.metafile.outputs)[0].inputs).map((file) =>
-		relative(REPO_ROOT, join(dir, file))
-	)
+	// Metafile paths are relative to absWorkingDir, i.e. the repo root
+	const inputs = Object.keys(Object.values(result.metafile.outputs)[0].inputs)
 	return {
 		minified: output.length,
 		gzipped: gzipSync(output, { level: 9 }).length,
@@ -91,7 +92,8 @@ function kb(bytes: number) {
 async function main() {
 	const args = minimist(process.argv.slice(2))
 	const dir = mkdtempSync(join(tmpdir(), 'tldraw-bundle-'))
-	let failed = false
+	let tooBig = false
+	let badInputs = false
 	try {
 		for (const entry of ENTRIES) {
 			const { minified, gzipped, inputs } = await measure(entry, dir)
@@ -100,18 +102,26 @@ async function main() {
 			)
 
 			if (entry.sizeLimitBytes && minified > entry.sizeLimitBytes) {
-				failed = true
+				tooBig = true
 				nicelog(
 					`  ${kleur.red().bold('ERROR')} exceeds the size limit of ${kb(entry.sizeLimitBytes)} minified`
 				)
 			}
 
 			for (const pattern of entry.mustNotInclude ?? []) {
-				const hits = inputs.filter((file) => file.includes(pattern))
-				if (hits.length) {
-					failed = true
+				if (inputs.some((file) => file.includes(pattern))) {
+					badInputs = true
 					nicelog(
 						`  ${kleur.red().bold('ERROR')} includes ${pattern}, which nothing in this entry should need`
+					)
+				}
+			}
+
+			for (const pattern of entry.mustInclude ?? []) {
+				if (!inputs.some((file) => file.includes(pattern))) {
+					badInputs = true
+					nicelog(
+						`  ${kleur.red().bold('ERROR')} does not include ${pattern}; was the canary renamed or removed?`
 					)
 				}
 			}
@@ -124,14 +134,21 @@ async function main() {
 		rmSync(dir, { recursive: true, force: true })
 	}
 
-	if (failed) {
+	if (badInputs) {
 		nicelog(
 			kleur.red(
-				'\nThe SDK bundle includes code that consumers should not pay for. Check that every package in packages/* declares "sideEffects" (yarn check-packages) and that no module runs code at import time.'
+				'\nThe SDK bundle includes code that consumers should not pay for. Check that every package in packages/* declares "sideEffects" (yarn check-packages) and that no module runs code at import time. Canaries live in internal/scripts/check-sdk-bundle.ts.'
 			)
 		)
-		process.exit(1)
 	}
+	if (tooBig) {
+		nicelog(
+			kleur.red(
+				'\nThe SDK bundle has grown past its size limit. If the growth is intended, bump sizeLimitBytes in internal/scripts/check-sdk-bundle.ts.'
+			)
+		)
+	}
+	if (badInputs || tooBig) process.exit(1)
 }
 
 main()

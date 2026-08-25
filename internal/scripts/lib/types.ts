@@ -53,9 +53,9 @@ export const ProductConfig = T.object({
 export type ProductConfig = T.TypeOf<typeof ProductConfig>
 
 export const PackageJson = T.object({
-	sideEffects: T.or(T.boolean, T.arrayOf(T.string)).optional(),
 	name: T.string,
 	private: T.boolean.optional(),
+	sideEffects: T.or(T.boolean, T.arrayOf(T.string)).optional(),
 	workspaces: T.arrayOf(T.string).optional(),
 	[EXPORT_CONFIG_KEY]: TemplateConfig.optional(),
 	[PRODUCT_CONFIG_KEY]: ProductConfig.optional(),
