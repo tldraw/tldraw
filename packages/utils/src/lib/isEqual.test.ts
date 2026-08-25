@@ -108,6 +108,18 @@ describe('isEqual', () => {
 		expect(isEqual(new Uint8Array([1, 2]), new Int8Array([1, 2]))).toBe(false)
 		expect(isEqual(new Uint8Array([1, 2]).buffer, new Uint8Array([1, 2]).buffer)).toBe(true)
 		expect(isEqual(new Uint8Array([1, 2]).buffer, new Uint8Array([1, 2, 3]).buffer)).toBe(false)
+		expect(
+			isEqual(
+				new DataView(new Uint8Array([1, 2]).buffer),
+				new DataView(new Uint8Array([1, 2]).buffer)
+			)
+		).toBe(true)
+		expect(
+			isEqual(
+				new DataView(new Uint8Array([1, 2]).buffer),
+				new DataView(new Uint8Array([1, 3]).buffer)
+			)
+		).toBe(false)
 	})
 
 	it('tolerates circular references', () => {

@@ -564,6 +564,28 @@ describe('throttle options', () => {
 		expect(fn).toHaveBeenLastCalledWith(4)
 	})
 
+	it('forwards this to the wrapped function', () => {
+		const obj = {
+			seen: [] as unknown[],
+			method: throttle(function (this: any) {
+				this.seen.push(this)
+			}, 100),
+		}
+		obj.method()
+		obj.method()
+		vi.advanceTimersByTime(100)
+		expect(obj.seen).toEqual([obj, obj])
+	})
+
+	it('recovers when the wall clock is set backwards', () => {
+		const fn = vi.fn()
+		const throttled = throttle(fn, 100)
+		throttled()
+		vi.setSystemTime(Date.now() - 60 * 60 * 1000)
+		throttled()
+		expect(fn).toHaveBeenCalledTimes(2)
+	})
+
 	it('wait: 0 invokes synchronously on every call', () => {
 		const fn = vi.fn()
 		const throttled = throttle(fn, 0)

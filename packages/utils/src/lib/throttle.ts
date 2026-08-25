@@ -297,22 +297,25 @@ export function throttle<F extends (...args: any[]) => any>(
 	let lastInvokeTime = -Infinity
 	// eslint-disable-next-line no-restricted-globals
 	let timeout: ReturnType<typeof setTimeout> | undefined
+	let pendingThis: unknown
 	let pendingArgs: Args | undefined
 	let result: Result | undefined
 
-	function invoke(args: Args) {
+	function invoke(thisArg: unknown, args: Args) {
 		pendingArgs = undefined
+		pendingThis = undefined
 		lastInvokeTime = Date.now()
-		result = fn(...args)
+		result = fn.apply(thisArg, args)
 		return result
 	}
 
 	function onTimeout() {
 		timeout = undefined
-		if (pendingArgs) invoke(pendingArgs)
+		if (pendingArgs) invoke(pendingThis, pendingArgs)
 	}
 
-	function schedule(args: Args, delay: number) {
+	function schedule(thisArg: unknown, args: Args, delay: number) {
+		pendingThis = thisArg
 		pendingArgs = args
 		if (timeout === undefined) {
 			// It's up to the consumer of throttle to call `cancel`
@@ -321,18 +324,21 @@ export function throttle<F extends (...args: any[]) => any>(
 		}
 	}
 
-	const throttled = function (...args: Args) {
+	const throttled = function (this: unknown, ...args: Args) {
 		const now = Date.now()
-		const remaining = wait - (now - lastInvokeTime)
+		const elapsed = now - lastInvokeTime
+		// A wall clock that has been set backwards would otherwise stall the function for the size
+		// of the jump, so treat it as the window having passed
+		const remaining = elapsed < 0 ? 0 : wait - elapsed
 		if (remaining <= 0 && timeout === undefined) {
-			if (leading) return invoke(args)
+			if (leading) return invoke(this, args)
 			// Without a leading edge the window still starts now, so the trailing call lands at
 			// `wait` rather than immediately
 			lastInvokeTime = now
-			if (trailing) schedule(args, wait)
+			if (trailing) schedule(this, args, wait)
 			return result
 		}
-		if (trailing) schedule(args, remaining)
+		if (trailing) schedule(this, args, remaining)
 		return result
 	} as ThrottledFunction<F>
 
@@ -342,6 +348,7 @@ export function throttle<F extends (...args: any[]) => any>(
 			timeout = undefined
 		}
 		pendingArgs = undefined
+		pendingThis = undefined
 		lastInvokeTime = -Infinity
 	}
 

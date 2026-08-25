@@ -12,8 +12,9 @@ export type IsEqualCustomizer = (a: unknown, b: unknown) => boolean | undefined
  *
  * Compares primitives by value (`NaN` equals `NaN`), and recursively compares arrays, plain
  * objects and class instances (own enumerable string keys), `Date`, `RegExp`, `Map`, `Set`,
- * `ArrayBuffer` and typed arrays. Objects with different constructors are never equal. Circular
- * references are tolerated.
+ * `ArrayBuffer` and typed arrays. Objects with different constructors (including null-prototype
+ * objects versus plain objects) are never equal, and symbol keys are ignored. Circular references
+ * are tolerated.
  *
  * @param a - The first value
  * @param b - The second value
@@ -117,6 +118,13 @@ function compareObjects(
 			return compareArrays(a as unknown[], b as unknown[], customizer, stack)
 	}
 
+	if (a instanceof DataView) {
+		const other = b as DataView
+		return compareBytes(
+			new Uint8Array(a.buffer, a.byteOffset, a.byteLength),
+			new Uint8Array(other.buffer, other.byteOffset, other.byteLength)
+		)
+	}
 	if (ArrayBuffer.isView(a)) {
 		return compareArrays(
 			a as unknown as ArrayLike<unknown>,
