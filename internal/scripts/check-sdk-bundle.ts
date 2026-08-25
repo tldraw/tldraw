@@ -23,20 +23,29 @@ interface Entry {
 	mustInclude?: string[]
 }
 
+// Each canary is public API that the default editor never imports. If one of them is ever wired
+// into the default tree on purpose, swap it for another consumer-only module rather than
+// deleting the check.
 const TLDRAW_CANARIES = [
+	// only reachable via parseTldrawJsonFile / parseAndLoadDocument
 	'packages/tldraw/src/lib/utils/tldr/buildFromV1Document.ts',
+	// a standalone component, not rendered by <Tldraw />
 	'packages/tldraw/src/lib/TldrawImage.tsx',
+	// a UI primitive no default menu uses; drags in @radix-ui/react-select via the radix-ui umbrella
 	'packages/tldraw/src/lib/ui/components/primitives/TldrawUiSelect.tsx',
 	'node_modules/@radix-ui/react-select/',
 ]
+// TldrawEditor uses useLocalStore, never the standalone store hook
 const EDITOR_CANARIES = ['packages/editor/src/lib/hooks/useTLStore.ts']
 
 const ENTRIES: Entry[] = [
 	{
 		name: "import { Tldraw } from 'tldraw'",
 		source: `export { Tldraw } from '${REPO_ROOT}/packages/tldraw/src/index'`,
-		// Bump deliberately when the SDK legitimately grows; this exists to make growth visible.
-		sizeLimitBytes: 1_800_000,
+		// Measured at 1,657,637 B when this check was added, and 1,738,900 B with every
+		// sideEffects declaration ignored, so the limit sits between the two. Bump it deliberately
+		// when the SDK legitimately grows; it exists to make growth visible, not to forbid it.
+		sizeLimitBytes: 1_700_000,
 		mustNotInclude: [...TLDRAW_CANARIES, ...EDITOR_CANARIES],
 	},
 	{
