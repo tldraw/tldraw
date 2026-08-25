@@ -59,7 +59,7 @@ export interface TldrawTextMeasurerOptions {
  * @public
  */
 export interface TldrawRichTextLayoutOptions extends TLMeasureTextOpts {
-	textAlign?: 'start' | 'center' | 'end' | 'left' | 'right'
+	textAlign?: 'start' | 'center' | 'end' | 'left' | 'right' | 'justify'
 	/** Overrides the measurer's colours for this layout, e.g. for a dark-mode export. */
 	colors?: TldrawRichTextColors
 	/** Text colour written to the layout's fragments; measurement doesn't depend on it. */
@@ -128,14 +128,6 @@ export function createTldrawRichTextStyles(opts: {
 	const link = opts.colors?.link ?? '#2f80ed'
 	const highlight = opts.colors?.highlight ?? '#fddd00'
 	return [
-		// The TextDirection extension writes a `dir` attribute on every block.
-		{
-			match: (ctx) => {
-				const dir = ctx.node.attrs?.dir
-				return dir === 'ltr' || dir === 'rtl' || dir === 'auto'
-			},
-			style: (ctx) => ({ direction: ctx.node.attrs!.dir as 'ltr' | 'rtl' | 'auto' }),
-		},
 		nodeRule('paragraph', { marginTop: 0, marginBottom: 0, minHeight: '1lh' }),
 		nodeRule(['bulletList', 'orderedList'], (ctx) => {
 			const items = ctx.node.content?.length ?? 0

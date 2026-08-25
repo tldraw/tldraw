@@ -175,7 +175,10 @@ async function main() {
 		const { renderSvg } = await import('../src/render/svg')
 		const rich = richCorpus().filter((c) => !/cjk|rtl|emoji/.test(c.docKey))
 		const cases = rich.map((c) => {
-			const layout = layoutRichCase(c)
+			// The reference box is whole pixels wide (a shape's bounds); align inside the same box
+			// so centred/end-aligned lines aren't shifted by the fractional max-content width.
+			const measured = layoutRichCase(c)
+			const layout = layoutRichCase(c, { width: Math.ceil(measured.width) })
 			return {
 				id: c.id,
 				docKey: c.docKey,
@@ -234,7 +237,11 @@ async function main() {
 	}
 }
 
-main().catch((err) => {
-	console.error(err)
-	process.exit(1)
-})
+main().then(
+	// the tldraw modules loaded for the rich corpus keep a jsdom window alive; exit explicitly
+	() => process.exit(0),
+	(err) => {
+		console.error(err)
+		process.exit(1)
+	}
+)
