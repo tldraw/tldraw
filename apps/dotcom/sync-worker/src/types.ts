@@ -134,7 +134,9 @@ export interface Environment {
 	// client origin and sent inside the Browser Run request. Off everywhere it is unset.
 	THUMBNAIL_RENDER_INLINE: string | undefined
 	// '1' opts MCP screenshots into live-canvas capture: the page settles and fits, and the
-	// screenshotting browser rasterizes the canvas instead of the page exporting itself.
+	// screenshotting browser rasterizes the canvas instead of the page exporting itself. Applies
+	// only to renders that push a sliced payload — a render that fetches the whole board exports,
+	// or the live canvas would show neighbours the request excluded (see renderParamsForJob).
 	THUMBNAIL_RENDER_LIVE_CAPTURE: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined

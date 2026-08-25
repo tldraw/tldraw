@@ -15,4 +15,13 @@ async function boot() {
 	createRoot(document.getElementById('root')!).render(<ThumbnailRenderView data={data} />)
 }
 
-boot()
+// A rejected acquisition — a 200 whose body fails to parse, an unforeseen throw — must still reach
+// a terminal marker: a page with neither data-thumbnail-ready nor data-thumbnail-error burns the
+// whole Browser Run timeout instead of failing the capture in milliseconds.
+boot().catch((error) => {
+	createRoot(document.getElementById('root')!).render(
+		<ThumbnailRenderView
+			data={{ ok: false, message: error instanceof Error ? error.message : String(error) }}
+		/>
+	)
+})

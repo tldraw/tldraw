@@ -113,6 +113,7 @@ export function thumbnailScreenshotPlugin(): Plugin {
 interface ScreenshotRequest {
 	captureSelector: string
 	height: number
+	injectedScripts: string[]
 	settledSelector: string
 	timeoutMs: number
 	url: string
@@ -138,9 +139,19 @@ function parseRequest(body: any, host: string | undefined): ScreenshotRequest {
 		throw new Error('Request is not a thumbnail screenshot request body')
 	}
 
+	// `addScriptTag` is how the worker pushes a snapshot into the page after navigation. Dropping
+	// it here would leave every dev push render polling out its whole push wait before falling back
+	// to the token fetch — flat added latency on each screenshot, recorded as transport:push anyway.
+	const injectedScripts: string[] = Array.isArray(body.addScriptTag)
+		? body.addScriptTag
+				.map((tag: unknown) => (tag as { content?: unknown } | null)?.content)
+				.filter((content: unknown): content is string => typeof content === 'string')
+		: []
+
 	return {
 		captureSelector,
 		height,
+		injectedScripts,
 		settledSelector,
 		timeoutMs,
 		url: new URL(`${RENDER_PATH}${search}`, `http://${host ?? '127.0.0.1'}`).toString(),
@@ -158,6 +169,10 @@ async function capture(browser: Browser, request: ScreenshotRequest) {
 	})
 	try {
 		await page.goto(request.url, { waitUntil: 'domcontentloaded', timeout: request.timeoutMs })
+		// After navigation, exactly when Browser Run runs it — the page's push wait covers this gap.
+		for (const content of request.injectedScripts) {
+			await page.addScriptTag({ content })
+		}
 		await page.waitForSelector(request.settledSelector, { timeout: request.timeoutMs })
 		const target = await page.$(request.captureSelector)
 		if (!target) {

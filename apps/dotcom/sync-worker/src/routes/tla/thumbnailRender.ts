@@ -31,6 +31,7 @@ import {
 	deleteMintedRenderToken,
 	mintThumbnailRenderToken,
 	recordMintedRenderToken,
+	renderParamsForJob,
 } from '../../utils/renderTokens'
 import { ShapeMeasurement } from './boardTools'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
@@ -186,30 +187,53 @@ async function mintRecordedRenderToken(env: Environment, job: ThumbnailRenderJob
 	return token
 }
 
-// The self-contained render page for html-mode captures, fetched from the client origin once per
-// isolate and reused. A single static file — no page route is involved when it is used, so a
+// The self-contained render page for html-mode captures, fetched from the client origin and
+// cached per isolate. A single static file — no page route is involved when it is used, so a
 // render's only network round trip is the Browser Run call itself. A fetch failure resolves null
 // (and clears the cache so the next render retries) rather than failing the capture: the url-mode
 // path below still works and every render must survive this file being missing, since the client
 // deploys separately from the worker.
+//
+// Cached stale-while-revalidate rather than for the isolate's lifetime: the artifact bundles the
+// SDK, so an isolate that outlives a client deploy would otherwise keep splicing fresh snapshots —
+// possibly at a newer schema — into a pre-deploy page until it happened to recycle, failing
+// html-mode captures in a way that looks machine-dependent. The TTL bounds that window; serving
+// stale while the refresh runs keeps the fetch off every render's path.
+const INLINE_RENDER_PAGE_TTL_MS = 5 * 60 * 1000
+
 let inlineRenderPagePromise: Promise<string | null> | null = null
+let inlineRenderPageFetchedAt = 0
+
+async function fetchInlineRenderPage(env: Environment): Promise<string | null> {
+	try {
+		const response = await fetch(`${getRenderOrigin(env)}/thumbnail-render-inline.html`)
+		if (!response.ok) return null
+		const html = await response.text()
+		// A rewrite gone wrong serves the SPA shell here, which would navigate nowhere useful.
+		// The artifact is recognisable by the global its own bundle awaits — and it must have a
+		// <head> for the splice below to land the payload in, or the page would boot payloadless
+		// and fail on a missing token.
+		if (!html.includes(THUMBNAIL_RENDER_GLOBAL) || !html.includes('<head>')) return null
+		return html
+	} catch {
+		return null
+	}
+}
+
 function getInlineRenderPage(env: Environment): Promise<string | null> {
 	if (!inlineRenderPagePromise) {
-		inlineRenderPagePromise = (async () => {
-			try {
-				const response = await fetch(`${getRenderOrigin(env)}/thumbnail-render-inline.html`)
-				if (!response.ok) return null
-				const html = await response.text()
-				// A rewrite gone wrong serves the SPA shell here, which would navigate nowhere useful.
-				// The artifact is recognisable by the global its own bundle awaits.
-				if (!html.includes(THUMBNAIL_RENDER_GLOBAL)) return null
-				return html
-			} catch {
-				return null
-			}
-		})().then((result) => {
+		inlineRenderPageFetchedAt = Date.now()
+		inlineRenderPagePromise = fetchInlineRenderPage(env).then((result) => {
 			if (result === null) inlineRenderPagePromise = null
 			return result
+		})
+	} else if (Date.now() - inlineRenderPageFetchedAt > INLINE_RENDER_PAGE_TTL_MS) {
+		// The clock resets on the attempt, not on its outcome, so a refresh that fails — or is
+		// cancelled with the invocation it rode on — is retried one TTL later rather than once per
+		// render; a failed refresh keeps serving the artifact we have, same as before.
+		inlineRenderPageFetchedAt = Date.now()
+		void fetchInlineRenderPage(env).then((fresh) => {
+			if (fresh !== null) inlineRenderPagePromise = Promise.resolve(fresh)
 		})
 	}
 	return inlineRenderPagePromise
@@ -219,21 +243,34 @@ function getInlineRenderPage(env: Environment): Promise<string | null> {
 // need this.
 export function resetInlineRenderPageForTests() {
 	inlineRenderPagePromise = null
+	inlineRenderPageFetchedAt = 0
 }
 
-// Splices the snapshot and the page's config into the artifact's <head>, ahead of its module
-// script, so the page finds both synchronously at boot — no injection, no race, no wait.
-export function spliceInlineRenderPage(
-	artifact: string,
-	payload: ThumbnailSnapshotResponseBody,
-	config: ThumbnailRenderConfig
-) {
-	const globals =
-		`<script>window.${THUMBNAIL_RENDER_GLOBAL}=${toRenderScriptLiteral(payload)};` +
+// Whether this deployment sends html-mode captures. Opt-in per deployment: unit tests must not
+// fetch the artifact over the network, and dev's local screenshot service only speaks url mode.
+function isInlineRenderEnabled(env: Environment) {
+	return env.THUMBNAIL_RENDER_INLINE === '1' && !env.LOCAL_SCREENSHOT_SERVICE_URL
+}
+
+// Builds the <script> that plants the pushed snapshot and the page config as globals. The payload
+// arrives pre-serialized (toRenderScriptLiteral) because the same multi-megabyte literal also backs
+// the url-mode push script — serialized once per render, not once per transport.
+export function buildInlineGlobalsScript(payloadLiteral: string, config: ThumbnailRenderConfig) {
+	return (
+		`<script>window.${THUMBNAIL_RENDER_GLOBAL}=${payloadLiteral};` +
 		`window.${THUMBNAIL_RENDER_CONFIG_GLOBAL}=${toRenderScriptLiteral(config)}</script>`
-	// A replacer function, not a replacement string: board text can contain `$&`/`$'` sequences,
-	// which String.replace would expand into fragments of the artifact itself.
-	return artifact.replace('<head>', () => `<head>${globals}`)
+	)
+}
+
+// Splices the globals into the artifact's <head>, ahead of its module script, so the page finds
+// both synchronously at boot — no injection, no race, no wait. Inserted with slice concatenation
+// rather than String.replace, so board text containing replacement patterns (`$&`/`$'`) can never
+// expand into fragments of the artifact itself.
+export function spliceInlineRenderPage(artifact: string, globalsScript: string) {
+	const head = artifact.indexOf('<head>')
+	if (head === -1) return artifact
+	const insertAt = head + '<head>'.length
+	return artifact.slice(0, insertAt) + globalsScript + artifact.slice(insertAt)
 }
 
 export function buildThumbnailRenderUrl(renderOrigin: string, token: string) {
@@ -291,7 +328,13 @@ export async function captureThumbnailScreenshot(
 		 * definition a screenshot render.
 		 */
 		telemetry: { source: BrowserRunSessionContext['source']; reason?: OgImageRenderReason }
-		/** `live` skips the in-page export and lets the screenshot rasterize the live canvas. */
+		/**
+		 * `live` skips the in-page export and lets the screenshot rasterize the live canvas. Only
+		 * meaningful alongside `push`, and it travels only inside the pushed payload: the live canvas
+		 * shows everything in the fitted viewport, which is the requested picture exactly when the
+		 * records were sliced for this render. A render that falls back to fetching the whole board
+		 * exports as always — see renderParamsForJob.
+		 */
 		capture?: 'live'
 		/**
 		 * The board's records, to be injected into the render page instead of fetched back out of the
@@ -314,7 +357,6 @@ export async function captureThumbnailScreenshot(
 		access: board.access,
 		surface,
 		camera: 'content',
-		...(capture ? { capture } : null),
 		...(pageId ? { pageId } : null),
 		...(shapeIds?.length ? { shapeIds } : null),
 		// Ignored while `camera` is 'content', which is what every surface mints; carried because the
@@ -327,6 +369,10 @@ export async function captureThumbnailScreenshot(
 		theme,
 		exp: Date.now() + THUMBNAIL_RENDER_TOKEN_TTL_MS,
 	}
+	// Warm the once-per-isolate artifact fetch under the token mint's R2 write below, so a cold
+	// isolate's first render doesn't pay the two in sequence. getInlineRenderPage caches its promise
+	// and resolves null on failure, so this can neither throw nor waste the fetch.
+	if (push && isInlineRenderEnabled(env)) void getInlineRenderPage(env)
 	// Minted even when the snapshot is pushed, because the pushed render still has to be able to fall
 	// back to fetching one (see renderThumbnailScreenshot). One R2 write, off the browser's path.
 	const token = await mintRecordedRenderToken(env, job)
@@ -343,23 +389,17 @@ export async function captureThumbnailScreenshot(
 					reason: telemetry.reason,
 					capture: capture ?? 'export',
 				},
-				// The payload the snapshot route would have answered with, assembled here instead. Kept
-				// identical to that response shape so the render page has one code path, not two.
+				// The payload the snapshot route would have answered with, assembled here instead —
+				// through the same builder that route uses, so the two shapes cannot drift. `capture`
+				// is the one deliberate addition: it rides only with the pushed slice, never on the
+				// fetch (see renderParamsForJob).
 				push: push && {
 					error: false as const,
 					records: push.records,
 					schema: push.schema,
 					renderParams: {
-						camera: job.camera,
-						...(job.capture ? { capture: job.capture } : null),
-						...(job.pageId ? { pageId: job.pageId } : null),
-						...(job.shapeIds ? { shapeIds: job.shapeIds } : null),
-						x: job.x,
-						y: job.y,
-						z: job.z,
-						width: job.width,
-						height: job.height,
-						theme: job.theme,
+						...renderParamsForJob(job),
+						...(capture ? { capture } : null),
 					},
 				},
 			}
@@ -380,7 +420,12 @@ export interface BrowserRunSessionContext {
 	mode: 'measure' | 'screenshot'
 	/** The queue trigger, on sessions the queue runs. Request-path sessions have none. */
 	reason?: OgImageRenderReason
-	/** How the page produced its pixels: in-page export, or the live canvas. Absent on measures. */
+	/**
+	 * The capture mode this render was asked for: in-page export, or the live canvas. Absent on
+	 * measures. What the page actually did can differ on a fallback — a render that fetched its
+	 * snapshot exports regardless (see renderParamsForJob); the page beacon's `source` blob is the
+	 * ground truth there.
+	 */
 	capture?: 'live' | 'export'
 }
 
@@ -414,10 +459,12 @@ function writeBrowserRunSessionTelemetry(
 		 */
 		transport: RenderTransport
 		/**
-		 * Length of the injected script in UTF-16 code units, or 0 when nothing was injected. A lower
-		 * bound on its wire size rather than the size itself — non-ASCII board text costs more bytes
-		 * than characters — which is why the guard below leaves headroom and the capture keeps a
-		 * backstop. Good enough as an axis to plot duration against, which is what it is here for.
+		 * Length of the injected payload in UTF-16 code units — the whole spliced document for an
+		 * inline render, the injected script for a push, the last refused form for a fallback — or 0
+		 * when nothing was injected. A lower bound on its wire size rather than the size itself —
+		 * non-ASCII board text costs more bytes than characters — which is why the guard below leaves
+		 * headroom and the capture keeps a backstop. Good enough as an axis to plot duration against,
+		 * which is what it is here for.
 		 */
 		payloadChars: number
 		/**
@@ -450,11 +497,13 @@ type RenderTransport = 'inline' | 'push' | 'pull' | 'push_fallback'
 const RPC_MESSAGE_LIMIT_BYTES = 32 * 1024 * 1024
 const PUSH_PAYLOAD_BUDGET_BYTES = RPC_MESSAGE_LIMIT_BYTES - 1024 * 1024
 
-// Compared against the script's *character* count, which undercounts multi-byte text — so the
-// headroom above is doing real work here, and the capture's catch covers what slips past it. Exact
-// byte counting would mean encoding a copy of a payload that can already be tens of megabytes.
-function isWithinRpcLimit(candidate: string) {
-	return candidate.length <= PUSH_PAYLOAD_BUDGET_BYTES
+// Compared against a *character* count, which undercounts multi-byte text — so the headroom above
+// is doing real work here, and the capture's catch covers what slips past it. Exact byte counting
+// would mean encoding a copy of a payload that can already be tens of megabytes. Takes a length
+// rather than the string so the inline gate can sum its parts without building the combined
+// document first.
+function isWithinRpcLimit(candidateLength: number) {
+	return candidateLength <= PUSH_PAYLOAD_BUDGET_BYTES
 }
 
 type ThumbnailScreenshotHtmlRequestBody = ReturnType<typeof getThumbnailScreenshotHtmlRequestBody>
@@ -508,35 +557,37 @@ async function renderThumbnailScreenshot(
 	let transport: RenderTransport = 'pull'
 	let payloadChars = 0
 	let inlineHtml: string | undefined
-	const pushScript = push
-		? `window.${THUMBNAIL_RENDER_GLOBAL}=${toRenderScriptLiteral(push)}`
-		: undefined
+	let pushScript: string | undefined
+	// Serialized once: the same literal backs every transport that carries the payload (the inline
+	// globals and the url-mode push script), so a multi-megabyte snapshot pays JSON.stringify and
+	// escaping a single time per render instead of once per form.
+	const payloadLiteral = push ? toRenderScriptLiteral(push) : undefined
 
-	if (push && pushScript) {
-		payloadChars = pushScript.length
-
+	if (payloadLiteral) {
 		// Inline html first: the whole self-contained page rides in the request, so the browser
 		// navigates nowhere, fetches nothing, and there is no injection to race. Steps down to the
 		// url-mode push when the artifact is missing (a client not yet deployed with it) or the
 		// combined document would cross the RPC limit.
-		// Opt-in per deployment: unit tests must not fetch the artifact over the network, and dev's
-		// local screenshot service only speaks url mode.
-		const inlineEnabled = env.THUMBNAIL_RENDER_INLINE === '1' && !env.LOCAL_SCREENSHOT_SERVICE_URL
-		const artifact = inlineEnabled ? await getInlineRenderPage(env) : null
+		const artifact = isInlineRenderEnabled(env) ? await getInlineRenderPage(env) : null
 		if (artifact) {
-			const token = new URL(renderUrl).searchParams.get('token') ?? ''
-			const spliced = spliceInlineRenderPage(artifact, push, {
-				apiOrigin: new URL(renderUrl).origin,
-				token,
+			const parsedRenderUrl = new URL(renderUrl)
+			const globalsScript = buildInlineGlobalsScript(payloadLiteral, {
+				apiOrigin: parsedRenderUrl.origin,
+				token: parsedRenderUrl.searchParams.get('token') ?? '',
 			})
-			if (isWithinRpcLimit(spliced)) {
+			// Gated on arithmetic before the splice, so a near-limit board never pays for a combined
+			// ~30MB document that is only ever measured and discarded.
+			if (isWithinRpcLimit(artifact.length + globalsScript.length)) {
 				transport = 'inline'
-				inlineHtml = spliced
+				inlineHtml = spliceInlineRenderPage(artifact, globalsScript)
+				payloadChars = inlineHtml.length
 			}
 		}
 
 		if (transport !== 'inline') {
-			if (isWithinRpcLimit(pushScript)) {
+			pushScript = `window.${THUMBNAIL_RENDER_GLOBAL}=${payloadLiteral}`
+			payloadChars = pushScript.length
+			if (isWithinRpcLimit(pushScript.length)) {
 				transport = 'push'
 			} else {
 				// Refused up front rather than caught: it keeps the oversize case off the retry path,
@@ -579,23 +630,41 @@ async function renderThumbnailScreenshot(
 		return session.mode === 'measure' ? capture : abandonAtRenderTimeout(capture, startedAt)
 	}
 
-	try {
-		timed = await runCapture(requestBody).catch((error) => {
-			// Backstop to the size guard above. That guard measures the injected string; the binding
-			// measures its own serialization of the entire body, so a payload sitting near the line can
-			// still be refused. Recovering costs nothing — the throw precedes any browser session — and
-			// not recovering would fail a board that renders perfectly well today.
-			if (!isRpcOversizeError(error)) throw error
-			// An inline render steps down to the url-mode push if that still fits; either push form
-			// steps down to the fetch. A pull render refused for size has no smaller form and throws.
-			if (transport === 'inline' && pushScript && isWithinRpcLimit(pushScript)) {
-				transport = 'push'
-				return runCapture(buildRequestBody(pushScript))
+	// Runs the capture, stepping the transport down one rung — inline, then url-mode push, then the
+	// plain fetch — each time the binding refuses the body for size. A loop rather than a chained
+	// catch, so a retry's own refusal (a payload that beat the character guard but lost to the
+	// binding's byte count) keeps stepping down instead of escaping half-way to the fetch that would
+	// have rendered it.
+	const captureSteppingDown = async (): Promise<TimedCapture> => {
+		let body = requestBody
+		for (;;) {
+			try {
+				return await runCapture(body)
+			} catch (error) {
+				// Backstop to the size guard above. That guard measures characters; the binding
+				// measures its own serialization of the entire body, so a payload sitting near the line
+				// can still be refused. Recovering costs nothing — the throw precedes any browser
+				// session — and not recovering would fail a board that renders perfectly well today.
+				if (!isRpcOversizeError(error)) throw error
+				if (transport === 'inline' && payloadLiteral) {
+					const script = `window.${THUMBNAIL_RENDER_GLOBAL}=${payloadLiteral}`
+					if (isWithinRpcLimit(script.length)) {
+						transport = 'push'
+						payloadChars = script.length
+						body = buildRequestBody(script)
+						continue
+					}
+				}
+				// A pull render refused for size has no smaller form and throws.
+				if (transport !== 'push' && transport !== 'inline') throw error
+				transport = 'push_fallback'
+				body = buildRequestBody()
 			}
-			if (transport !== 'push' && transport !== 'inline') throw error
-			transport = 'push_fallback'
-			return runCapture(buildRequestBody())
-		})
+		}
+	}
+
+	try {
+		timed = await captureSteppingDown()
 	} catch (error) {
 		// A BrowserRenderError is a session that existed and died, so it lands on the ledger with the
 		// time it held its browser. Anything else never created a session and records nothing.

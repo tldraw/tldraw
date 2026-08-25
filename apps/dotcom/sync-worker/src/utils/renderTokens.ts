@@ -1,3 +1,4 @@
+import { ThumbnailRenderParams } from '@tldraw/dotcom-shared'
 import {
 	Environment,
 	ThumbnailBoardAccess,
@@ -44,8 +45,6 @@ export interface ThumbnailRenderJob {
 	 * writing records at the time, since the MCP tool minted `public` and `public` is never recorded.
 	 */
 	surface?: ThumbnailRenderSurface
-	/** Mirrors ThumbnailRenderParams.capture: `live` skips the in-page export. Signed like the rest. */
-	capture?: 'live'
 	/**
 	 * A version that rotates when the rendered content changes, so it can key the thumbnail cache.
 	 * Published boards use the file's `lastPublished` timestamp; shared files use the persisted
@@ -170,6 +169,33 @@ export async function verifyThumbnailRenderToken(
  */
 export function renderJobAccess(job: Pick<ThumbnailRenderJob, 'access'>): ThumbnailBoardAccess {
 	return job.access ?? 'public'
+}
+
+/**
+ * The render parameters a job implies — the shape the render page draws from, whether it arrives on
+ * the snapshot response or inside a pushed payload. One builder for both, because the two drifting
+ * apart means a pushed and a fetched render of the same job draw differently with no error anywhere.
+ *
+ * `capture` is deliberately not part of the job or of this output: live capture rasterizes
+ * everything inside the fitted viewport, which is only the requested picture when the records were
+ * sliced for this render — so it rides exclusively with a pushed payload (see
+ * captureThumbnailScreenshot), and a render that falls back to fetching the whole board exports.
+ * Built field-by-field rather than spread, so a token minted by an older worker that still signed
+ * `capture` sheds it here.
+ */
+export function renderParamsForJob(job: ThumbnailRenderJob): ThumbnailRenderParams {
+	return {
+		...(job.camera ? { camera: job.camera } : null),
+		...(job.pageId ? { pageId: job.pageId } : null),
+		...(job.shapeIds ? { shapeIds: job.shapeIds } : null),
+		...(job.mode ? { mode: job.mode } : null),
+		x: job.x,
+		y: job.y,
+		z: job.z,
+		width: job.width,
+		height: job.height,
+		theme: job.theme,
+	}
 }
 
 /**

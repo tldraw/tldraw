@@ -81,6 +81,27 @@ describe('the timing beacon', () => {
 		expect((env.MEASURE as any).writeDataPoint).not.toHaveBeenCalled()
 	})
 
+	// Valid JSON that is not an object: the endpoint is unauthenticated, so scanners send exactly
+	// this, and `'timings' in null` would escape as a worker 500 where a 400 is the answer.
+	it.each([null, 42, 'a string'])(
+		'refuses the non-object JSON body %j with a 400',
+		async (body) => {
+			const env = makeScreenshotTestEnv() as unknown as Environment
+			const response = await putThumbnailRenderResult(makeRequest(body), env)
+			expect(response.status).toBe(400)
+		}
+	)
+
+	it('refuses timings: null rather than destructuring it', async () => {
+		const env = makeScreenshotTestEnv() as unknown as Environment
+		const token = await mintThumbnailRenderToken(env, JOB)
+
+		const response = await putThumbnailRenderResult(makeRequest({ token, timings: null }), env)
+
+		expect(response.status).toBe(400)
+		expect((env.MEASURE as any).writeDataPoint).not.toHaveBeenCalled()
+	})
+
 	it('leaves the measure-result branch alone', async () => {
 		const env = makeScreenshotTestEnv() as unknown as Environment
 		const token = await mintThumbnailRenderToken(env, { ...JOB, mode: 'measure' })

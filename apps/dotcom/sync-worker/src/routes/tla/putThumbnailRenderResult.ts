@@ -30,11 +30,18 @@ export async function putThumbnailRenderResult(
 		return Response.json({ error: true, message: 'Invalid JSON body' }, { status: 400 })
 	}
 
+	// `null`, numbers and strings are valid JSON too; refused as the caller's mistake here, where
+	// the `in` and property checks below would throw on them and escape as a worker 500.
+	if (!body || typeof body !== 'object') {
+		return Response.json({ error: true, message: 'Invalid JSON body' }, { status: 400 })
+	}
+
 	// The render page's phase-timing beacon, sharing this route because it shares the route's
 	// auth story: a signed token proves the POST comes from a render we asked for. Telemetry only —
 	// nothing downstream waits on it, so it is accepted for any valid token, screenshot or measure.
 	if ('timings' in body) {
-		if (!body.token || typeof body.timings !== 'object') {
+		// `typeof null` is 'object', and these timings get destructured below.
+		if (!body.token || !body.timings || typeof body.timings !== 'object') {
 			return Response.json(
 				{ error: true, message: 'token and timings are required' },
 				{ status: 400 }

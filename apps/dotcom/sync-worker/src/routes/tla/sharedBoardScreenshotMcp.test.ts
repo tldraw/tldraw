@@ -1232,6 +1232,38 @@ describe('shape screenshots', () => {
 		expect(failureBlobsOf(env)).toEqual(['failure:none', 'failure:none'])
 	})
 
+	// With an execution context the write rides waitUntil, so the caller's response is not held for
+	// an R2 round trip after a render they already waited seconds for — and the write still lands.
+	it('writes the cache through waitUntil when an execution context exists', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		const clusterId = await firstClusterId(env, 'user_wu_1', 'abc')
+		const extended: Promise<unknown>[] = []
+		const ctx = {
+			waitUntil: (promise: Promise<unknown>) => extended.push(promise),
+		} as unknown as ExecutionContext
+
+		const result = await rpcResult(
+			await sharedBoardScreenshotMcp(
+				makeToolCall(
+					'get_cluster_screenshot',
+					{ boardId: 'abc', clusterIds: [clusterId] },
+					'user_wu_2'
+				),
+				env,
+				ctx
+			)
+		)
+
+		expect(result.isError).toBeUndefined()
+		expect(extended.length).toBeGreaterThan(0)
+		await Promise.all(extended)
+		const cachedKeys = [...(env.MCP_DATA_BUCKET as any).store.keys()].filter((key) =>
+			(key as string).startsWith('mcp/')
+		)
+		expect(cachedKeys).toHaveLength(1)
+	})
+
 	it('records the hashed account only on rate-limited rows', async () => {
 		mockPublishedBoard()
 		const successEnv = makeEnv()
@@ -1758,6 +1790,109 @@ describe('inline html captures', () => {
 		expect(body.url).toContain('push=1')
 		expect(body.addScriptTag).toBeTruthy()
 	})
+
+	// The artifact bundles the SDK, so an isolate that outlives a client deploy must not keep
+	// splicing snapshots into the pre-deploy page forever. Stale-while-revalidate: past the TTL the
+	// cached copy is still served (the refetch must not sit on any render's path) and the fresh one
+	// takes over from the next render.
+	it('refreshes the cached artifact in the background once the TTL passes', async () => {
+		vi.useFakeTimers({ toFake: ['Date'] })
+		let artifactVersion = 'ARTIFACT_V1'
+		const realFetch = globalThis.fetch
+		vi.spyOn(globalThis, 'fetch').mockImplementation(async (input: any, init?: any) => {
+			if (String(input).endsWith('/thumbnail-render-inline.html')) {
+				// A real origin round trip takes a beat (timers are real; only Date is faked). The
+				// delay is what pins that a TTL refresh serves the stale copy instead of making any
+				// render wait on the refetch.
+				await new Promise((resolve) => setTimeout(resolve, 25))
+				return new Response(
+					`<!doctype html><html><head><script>${THUMBNAIL_RENDER_GLOBAL}</script><!--${artifactVersion}--></head><body></body></html>`,
+					{ status: 200 }
+				)
+			}
+			return realFetch(input, init)
+		})
+		mockPublishedBoard()
+		const env = makeEnv({ THUMBNAIL_RENDER_INLINE: '1' })
+		// Distinct boards per call: the PNG cache would otherwise answer the later calls and no
+		// capture (and no artifact use) would happen at all.
+		const clusterId = await firstClusterId(env, 'user_swr_1', 'abc')
+		const lastHtml = () => (screenshotOf(env).mock.calls.at(-1)![1] as { html?: string }).html
+
+		await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'abc', clusterIds: [clusterId] },
+			env,
+			'user_swr_2'
+		)
+		expect(lastHtml()).toContain('ARTIFACT_V1')
+
+		// A client deploy publishes a new artifact, and the isolate's copy passes its TTL.
+		artifactVersion = 'ARTIFACT_V2'
+		vi.setSystemTime(Date.now() + 6 * 60_000)
+
+		await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'def', clusterIds: [clusterId] },
+			env,
+			'user_swr_3'
+		)
+		expect(lastHtml()).toContain('ARTIFACT_V1')
+
+		// Let the background refetch land (it takes the mock's 25ms; timers are real).
+		await new Promise((resolve) => setTimeout(resolve, 50))
+		await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'ghi', clusterIds: [clusterId] },
+			env,
+			'user_swr_4'
+		)
+		expect(lastHtml()).toContain('ARTIFACT_V2')
+	})
+
+	// The binding measures the bytes of its own serialization where the worker's guard counts UTF-16
+	// units, so a body can beat the guard and still be refused — and each refusal must step down a
+	// rung (inline, url-mode push, plain fetch) rather than the retry's own refusal escaping as the
+	// render's failure.
+	it('walks an oversize refusal down the whole ladder: inline, push, then the fetch', async () => {
+		stubArtifactFetch(
+			`<!doctype html><html><head><script>${THUMBNAIL_RENDER_GLOBAL}</script></head><body></body></html>`
+		)
+		mockPublishedBoard()
+		const env = makeEnv({ THUMBNAIL_RENDER_INLINE: '1' })
+		const measuring = (env as any).BROWSER
+		;(env as any).BROWSER = {
+			quickAction: vi.fn(async (action: string, body: any) => {
+				// Refuse every payload-carrying form the way the binding does; only the plain fetch
+				// body goes through.
+				if (body.html || body.addScriptTag) {
+					throw new Error('Serialized RPC arguments or return values are limited to 32 MiB')
+				}
+				return measuring.quickAction(action, body)
+			}),
+		}
+		const clusterId = await firstClusterId(env, 'user_ladder_1', 'abc')
+
+		const result = await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'abc', clusterIds: [clusterId] },
+			env,
+			'user_ladder_2'
+		)
+
+		expect(result.isError).not.toBe(true)
+		const bodies = screenshotOf(env).mock.calls.map((call) => call[1] as any)
+		const inlineAt = bodies.findIndex((body) => body.html)
+		expect(inlineAt).toBeGreaterThanOrEqual(0)
+		expect(bodies[inlineAt + 1]?.addScriptTag).toBeTruthy()
+		// The rung that rendered: the plain fetch, with no payload and no push announcement.
+		const finalBody = bodies.at(-1)!
+		expect(bodies.length).toBe(inlineAt + 3)
+		expect(finalBody.html).toBeUndefined()
+		expect(finalBody.addScriptTag).toBeUndefined()
+		expect(new URL(finalBody.url).searchParams.get('push')).toBeNull()
+		expect(blobValuesOf(env, 'browser_run_session', 'transport').at(-1)).toBe('push_fallback')
+	})
 })
 
 // Live capture rides inside the signed job and the pushed render params, gated on its own flag.
@@ -1807,5 +1942,31 @@ describe('live capture flag', () => {
 			addScriptTag?: { content: string }[]
 		}
 		expect(body.addScriptTag?.[0]?.content ?? '').not.toContain('"capture"')
+	})
+
+	// Live capture must not survive a fall back to the fetch: the snapshot response is the whole
+	// board, and rasterizing the live canvas against it would draw every neighbour inside the
+	// fitted viewport. So the pushed params carry it and the signed job — what the fetch path
+	// re-derives its params from — does not.
+	it('keeps capture out of the signed job, so a fetch fallback exports', async () => {
+		mockPublishedBoard()
+		const env = makeEnv({ THUMBNAIL_RENDER_LIVE_CAPTURE: '1' })
+		const clusterId = await firstClusterId(env, 'user_live_5', 'abc')
+
+		await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'abc', clusterIds: [clusterId] },
+			env,
+			'user_live_6'
+		)
+
+		const body = screenshotOf(env).mock.calls.at(-1)![1] as {
+			url: string
+			addScriptTag?: { content: string }[]
+		}
+		expect(body.addScriptTag?.[0]?.content ?? '').toContain('"capture":"live"')
+		const job = await verifyThumbnailRenderToken(env, new URL(body.url).searchParams.get('token')!)
+		expect(job).not.toBeNull()
+		expect((job as any)?.capture).toBeUndefined()
 	})
 })

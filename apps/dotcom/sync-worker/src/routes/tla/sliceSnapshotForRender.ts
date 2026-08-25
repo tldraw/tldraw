@@ -208,10 +208,16 @@ export function buildPushPayload(
 	}
 }
 
+const SCRIPT_UNSAFE = /[<\u2028\u2029]/g
+const SCRIPT_ESCAPES: Record<string, string> = {
+	'<': '\\u003c',
+	'\u2028': '\\u2028',
+	'\u2029': '\\u2029',
+}
+
 /** Serializes a payload for injection into the render page as a `<script>` body. */
 export function toRenderScriptLiteral(payload: unknown) {
-	return JSON.stringify(payload)
-		.replace(/</g, '\\u003c')
-		.replace(/\u2028/g, '\\u2028')
-		.replace(/\u2029/g, '\\u2029')
+	// One combined pass: per-character replaces would each scan and copy what can be tens of
+	// megabytes of serialized snapshot.
+	return JSON.stringify(payload).replace(SCRIPT_UNSAFE, (match) => SCRIPT_ESCAPES[match])
 }

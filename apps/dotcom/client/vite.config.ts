@@ -67,9 +67,14 @@ function urlOrLocalFallback(mode: string, url: string | undefined, localFallback
 // https://vitejs.dev/config/
 export default defineConfig((env) => ({
 	plugins: [
+		// Ahead of spaFallbackPlugin, and the order is load-bearing: middleware registers in plugin
+		// order, so this rewrites the extensionless /__thumbnail-render to its .html entry before the
+		// preview server's SPA fallback can rewrite it to /index.html — which would leave every
+		// preview-server capture (including the e2e webServer) hanging on a page that never marks
+		// itself ready.
+		thumbnailRenderEntryPlugin(),
 		spaFallbackPlugin(),
 		thumbnailScreenshotPlugin(),
-		thumbnailRenderEntryPlugin(),
 		zodLocalePlugin(fileURLToPath(new URL('./scripts/zod-locales-shim.js', import.meta.url))),
 		react(),
 		formatjs({

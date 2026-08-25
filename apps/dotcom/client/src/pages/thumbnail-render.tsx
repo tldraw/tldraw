@@ -223,7 +223,12 @@ export async function acquireThumbnailRenderData(url: URL): Promise<ThumbnailRen
 		token,
 		records: data.records,
 		schema: data.schema,
-		renderParams: data.renderParams,
+		// Live capture is only correct against a payload sliced for this render, which only a push
+		// delivers: a fetched snapshot is the whole board, and rasterizing the live canvas would put
+		// every neighbour inside the fitted viewport into the frame. The worker no longer sends
+		// `capture` on snapshot responses; dropping it here also covers a token minted by an older
+		// worker mid-deploy.
+		renderParams: { ...data.renderParams, capture: undefined },
 	}
 }
 
@@ -520,8 +525,9 @@ export function ThumbnailExportSignal({
 		;(async () => {
 			await Promise.race([
 				(async () => {
-					await waitForFonts()
-					await preloadImageAssets(editor, settleDeadline)
+					// Fonts and asset warming are independent, so they overlap; the editor's own <img>
+					// elements are watched last because they appear as the warmed assets resolve.
+					await Promise.all([waitForFonts(), preloadImageAssets(editor, settleDeadline)])
 					await waitForEditorImages(editor, settleDeadline)
 				})(),
 				sleep(settleTimeoutMs),
@@ -539,6 +545,13 @@ export function ThumbnailExportSignal({
 			// rasterizes it, so the export (and the paint of its result) has nothing left to do.
 			// The beacon's exportedAt stamp doubles as ready here; the deltas still read correctly.
 			if (capture === 'live') {
+				// The re-fit above is a store write the canvas catches up with on a later commit, and
+				// shapes culled at the pre-fit camera have no DOM yet. Two animation frames guarantee a
+				// commit and a paint at the fitted camera land before the marker; without them the
+				// screenshot can race the paint and capture a mis-framed or incomplete canvas.
+				await nextAnimationFrame()
+				await nextAnimationFrame()
+				if (cancelled) return
 				if (token) sendTimingsBeacon(token, performance.now())
 				signalThumbnailReady()
 				return
@@ -694,6 +707,10 @@ function makeBlankThumbnail(width: number, height: number, background: string): 
 	})
 }
 
+function nextAnimationFrame() {
+	return new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+}
+
 async function waitForFonts() {
 	if (!('fonts' in document)) return
 	try {
@@ -737,9 +754,15 @@ function preloadImage(url: string, deadline: number) {
 // mount. Wait until the set of images inside the editor is fully loaded and stable across a few
 // consecutive checks.
 async function waitForEditorImages(editor: Editor, deadline: number) {
+	// Boards with no asset records — most cluster screenshots are text and geometry — have nothing
+	// for the stability poll to watch, and its consecutive-checks heuristic costs several hundred ms
+	// of pure waiting when the answer is knowable up front. Every <img> the canvas creates is backed
+	// by an asset record (image and video shapes, bookmark previews), so none of those means none to
+	// wait for.
+	if (!editor.store.allRecords().some((record) => record.typeName === 'asset')) return
 	let stableChecks = 0
 	let lastCount = -1
-	while (Date.now() < deadline && stableChecks < 3) {
+	while (Date.now() < deadline) {
 		const images = Array.from(editor.getContainer().querySelectorAll('img'))
 		if (images.every((img) => img.complete) && images.length === lastCount) {
 			stableChecks++
@@ -747,6 +770,8 @@ async function waitForEditorImages(editor: Editor, deadline: number) {
 			stableChecks = 0
 		}
 		lastCount = images.length
+		// Settled: don't pay one more poll interval just to notice.
+		if (stableChecks >= 3) return
 		await sleep(100)
 	}
 }

@@ -104,6 +104,26 @@ describe('getThumbnailSnapshot', () => {
 		expect(body.renderParams).toMatchObject({ camera: 'content', pageId: 'page:abc' })
 	})
 
+	// A worker version before this one signed `capture` into MCP jobs, and those tokens cross a
+	// rolling deploy. This response is the whole board, where live capture would rasterize every
+	// neighbour inside the fitted viewport — so whatever the job carries, it is never served here.
+	it('never serves capture on the render params, even for a token that signed one', async () => {
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue({
+			documents: [{ state: { id: 'shape:1', typeName: 'shape' }, lastChangedClock: 0 }],
+			schema: { schemaVersion: 2, sequences: {} },
+			clock: 0,
+		} as any)
+
+		const response = await getThumbnailSnapshot(
+			makeRequest(await mintToken({ capture: 'live' } as unknown as Partial<ThumbnailRenderJob>)),
+			env
+		)
+
+		expect(response.status).toBe(200)
+		const body = (await response.json()) as any
+		expect(body.renderParams.capture).toBeUndefined()
+	})
+
 	it('returns 404 when the token targets a page that no longer exists in the snapshot', async () => {
 		// A shared file's live snapshot can lose the targeted page to a concurrent edit between the
 		// token being minted and the render reloading the snapshot. Rendering a different page would

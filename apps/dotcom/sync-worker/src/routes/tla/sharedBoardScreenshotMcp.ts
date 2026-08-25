@@ -1021,6 +1021,14 @@ async function renderShapeSetScreenshot(
 			)
 		}
 
+		// Push the cluster rather than the board. This tool usually wants a handful of shapes out
+		// of a whole document, so the slice is most of the win here — and slicing is best-effort by
+		// design: it throws rather than hand over a set it cannot vouch for, and that lands us back
+		// on the fetch, which sends everything and cannot be wrong that way.
+		const push = buildPushPayload(resolved.snapshot, {
+			pageId: resolved.page.pageId,
+			shapeIds,
+		})
 		const render = await captureThumbnailScreenshot(env, resolved.board, {
 			surface: 'mcp',
 			pageId: resolved.page.pageId,
@@ -1031,16 +1039,11 @@ async function renderShapeSetScreenshot(
 			telemetry: { source: 'mcp' },
 			// Preview trial (see THUMBNAIL_RENDER_LIVE_CAPTURE in types.ts): let the screenshot
 			// rasterize the live canvas instead of running editor.toImage in the page. Agent-facing
-			// only — the OG surface keeps the export path's pixel-exact sizing.
-			...(env.THUMBNAIL_RENDER_LIVE_CAPTURE === '1' ? { capture: 'live' as const } : null),
-			// Push the cluster rather than the board. This tool usually wants a handful of shapes out
-			// of a whole document, so the slice is most of the win here — and slicing is best-effort by
-			// design: it throws rather than hand over a set it cannot vouch for, and that lands us back
-			// on the fetch, which sends everything and cannot be wrong that way.
-			push: buildPushPayload(resolved.snapshot, {
-				pageId: resolved.page.pageId,
-				shapeIds,
-			}),
+			// only — the OG surface keeps the export path's pixel-exact sizing. And only when a sliced
+			// payload is actually going with the render: against a fetched whole board, the live
+			// canvas would show every neighbour inside the fitted viewport, not the shapes asked for.
+			...(env.THUMBNAIL_RENDER_LIVE_CAPTURE === '1' && push ? { capture: 'live' as const } : null),
+			push,
 		})
 
 		// The render is already paid for and the PNG in hand is what the caller asked for, so a failed
@@ -1048,11 +1051,18 @@ async function renderShapeSetScreenshot(
 		// and burn the caller's rate-limit budget for nothing. Reported rather than raised: the caller
 		// can't act on it, but a cache that stops absorbing writes means every call re-renders. The page
 		// name is URI-encoded because R2 custom metadata is not reliably unicode-safe.
-		try {
-			await putThumbnailPng(env.MCP_DATA_BUCKET, cacheKey, render.base64, resolved.board.version, {
-				pageName: encodeURIComponent(resolved.page.pageName),
-			})
-		} catch (error) {
+		//
+		// Rides waitUntil so the caller is not held for an R2 round trip after a render they already
+		// waited seconds for; the catch is attached first, so the extended promise can never reject.
+		// Awaited only where there is no execution context to extend (unit tests), which also keeps
+		// cache-dependent assertions deterministic.
+		const cacheWrite = putThumbnailPng(
+			env.MCP_DATA_BUCKET,
+			cacheKey,
+			render.base64,
+			resolved.board.version,
+			{ pageName: encodeURIComponent(resolved.page.pageName) }
+		).catch((error) => {
 			reportThumbnailError(error, {
 				ctx,
 				env,
@@ -1060,7 +1070,9 @@ async function renderShapeSetScreenshot(
 				surface: 'mcp_screenshot_cache_write',
 				extras: { boardId, page: describePageSelector(page), theme, ...extras },
 			})
-		}
+		})
+		if (ctx) ctx.waitUntil(cacheWrite)
+		else await cacheWrite
 
 		telemetry({ cacheStatus: 'miss' })
 		return toolPageResult(resolved.page.pageName, render.base64)
