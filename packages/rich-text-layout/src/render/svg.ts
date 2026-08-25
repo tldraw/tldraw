@@ -113,8 +113,14 @@ function renderLine(line: LineBox, options: SvgRenderOptions, precision: number)
 			y: num(baselineY + f.baselineShift, precision),
 			...styleAttrs(f.style, options),
 		}
-		// Browsers set tabular figures on ::marker so counters line up.
-		if (f.kind === 'marker') attrs['font-variant-numeric'] = 'tabular-nums'
+		if (f.kind === 'marker') {
+			// Browsers set tabular figures on ::marker and right-align the counter to the content
+			// edge. Anchoring at the end lets the renderer's digit widths differ from the measured
+			// ones (tabular figures aren't measurable through canvas) without moving that edge.
+			attrs.x = num(line.x + f.x + f.width + dx, precision)
+			attrs['text-anchor'] = 'end'
+			attrs.style = 'font-variant-numeric: tabular-nums'
+		}
 		tspans.push({ tag: 'tspan', attrs, children: [f.text] })
 	}
 	if (tspans.length === 0) return nodes
