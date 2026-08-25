@@ -5,6 +5,7 @@
 //   yarn golden --pixels   rasterize the native svg (Chromium and resvg) against foreignObject
 //   yarn golden --refresh  re-measure in Chromium instead of using cached results
 //   yarn golden --dump     write the per-case rows to results/rows.json for inspection
+//   yarn golden --webkit   measure against WebKit instead of Chromium
 import { createHash } from 'crypto'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { dirname, join } from 'path'
@@ -17,6 +18,7 @@ import { EngineResult, installTldrawFonts, measurePlainInEngine } from './engine
 
 const RESULTS_DIR = join(__dirname, 'results')
 const args = new Set(process.argv.slice(2))
+const browserName = args.has('--webkit') ? 'webkit' : 'chromium'
 
 interface Row {
 	id: string
@@ -40,13 +42,13 @@ async function chromiumResults(
 ): Promise<Map<string, ChromiumResult>> {
 	mkdirSync(RESULTS_DIR, { recursive: true })
 	const hash = createHash('sha1').update(JSON.stringify(requests)).digest('hex').slice(0, 12)
-	const file = join(RESULTS_DIR, `chromium-${name}-${hash}.json`)
+	const file = join(RESULTS_DIR, `${browserName}-${name}-${hash}.json`)
 	let results: ChromiumResult[]
 	if (existsSync(file) && !args.has('--refresh')) {
 		results = JSON.parse(readFileSync(file, 'utf8'))
 	} else {
-		console.log(`Measuring ${requests.length} ${name} cases in Chromium...`)
-		results = await measureInChromium(requests)
+		console.log(`Measuring ${requests.length} ${name} cases in ${browserName}...`)
+		results = await measureInChromium(requests, browserName)
 		writeFileSync(file, JSON.stringify(results))
 	}
 	return new Map(results.map((r) => [r.id, r]))
@@ -156,6 +158,7 @@ async function main() {
 				family: c.family,
 				fontSize: c.fontSize,
 				maxWidth: c.maxWidth,
+				otherStyles: { 'text-align': c.textAlign },
 			}))
 		)
 		const engineRich = new Map<string, EngineResult>()
@@ -179,6 +182,7 @@ async function main() {
 				family: c.family,
 				fontSize: c.fontSize,
 				maxWidth: c.maxWidth,
+				textAlign: c.textAlign,
 				html: richCaseToHtml(c),
 				engine: {
 					id: c.id,
@@ -223,7 +227,7 @@ async function main() {
 	}
 
 	const text = report.join('\n')
-	writeFileSync(join(__dirname, 'report.md'), text)
+	writeFileSync(join(__dirname, browserName === 'webkit' ? 'report-webkit.md' : 'report.md'), text)
 	console.log(text)
 	if (args.has('--dump')) {
 		writeFileSync(join(RESULTS_DIR, 'rows.json'), JSON.stringify(rows, null, 1))

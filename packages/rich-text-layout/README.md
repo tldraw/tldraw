@@ -98,40 +98,26 @@ layoutDocument(doc, { styles }) // applied after defaultUserAgentStyles
 
 Headings, lists and code are nothing but rules; the engine has no node-type special cases.
 
-### Output
+### Engines
+
+Browsers disagree on a few layout rules, and the engine makes those explicit instead of baking one browser in:
 
 ```ts
-interface TextLayout {
-	width
-	height
-	maxContentWidth
-	blocks: BlockBox[]
-	lines: LineBox[]
-}
-interface LineBox {
-	blockIndex
-	x
-	y
-	width
-	height
-	baseline
-	direction
-	fragments: Fragment[]
-}
-interface Fragment {
-	x
-	width
-	text
-	style
-	kind: 'text' | 'marker' | 'tab' | 'space'
-	source: { path; from; to }
-	baselineShift
-	ascent
-	descent
-}
+layoutDocument(doc, { engine: 'webkit' })
+layoutDocument(doc, { profile: { trailingSpacesInMaxContent: false, subscriptShift: 0.25 } })
 ```
 
-`source.path` is the index path to the ProseMirror text node and `from`/`to` are offsets within it, so hit-testing and selection can map back to the document.
+`engine` picks a preset (`chromiumLayoutProfile`, the default, or `webkitLayoutProfile`); `profile` overrides individual fields of `LayoutProfile`: whether preserved trailing spaces count toward max-content width, whether a line is shaped as a whole or word by word, the `sub`/`super` baseline shifts, how `line-height: normal` is derived from font metrics, and whether line boxes snap to whole pixels. The WebKit preset's shaping and trailing-space rules were measured with `yarn golden --webkit` (Latin text otherwise matches WebKit as closely as Chromium, 0.05px); its line-box rounding comes from the WebKit behaviour documented in tldraw issue 8970. Not in the profile: pretext's own line-fit tolerances and URL break opportunities are chosen from `navigator`, so in node the engine breaks URLs like Chromium even with `engine: 'webkit'` (13 of the 32 URL cases wrap one line later in WebKit).
+
+### Alignment
+
+`textAlign` accepts `start`, `end`, `left`, `right`, `center` and `justify`. Justified lines stretch their interior spaces; the last line of a paragraph and lines before a hard break stay ragged, as in browsers. The user agent sheet also reads TipTap's `textAlign` and `dir` block attributes (from the TextAlign and TextDirection extensions) so documents that carry alignment and direction lay out without extra rules.
+
+### Several measure contexts
+
+A process can hold any number of measure contexts (a browser canvas and a node canvas, or two font sets). Pass one per call with `LayoutOptions.measureContext`; `installMeasureContext` sets the default. pretext's per-font caches are namespaced by context, so switching between them costs nothing and never mixes widths.
+
+### Output
 
 ### Renderers
 
@@ -240,8 +226,8 @@ Everything else in the corpus is within 0.2px. The headline: for the Latin-scrip
 
 ## Limitations
 
-- One measure context per process at a time (pretext caches widths globally per font string); `installMeasureContext` clears pretext's caches when the backend changes.
 - pretext must not have been used with another canvas before `installMeasureContext` runs in the same process; the installer throws if it cannot capture pretext's context.
-- No `text-indent`, `text-transform`, `word-spacing`, justification, vertical writing, or borders/padding other than `padding-left`.
+- No `text-indent`, `text-transform`, `word-spacing`, vertical writing, or borders/padding other than `padding-left`; no replaced elements (an image node lays out as an empty block).
 - Letter spacing is applied per chunk in the dominant run's value; mixed letter spacing within a paragraph is approximated.
-- Line gap is ignored for `line-height: normal`.
+- Line gap is ignored for `line-height: normal` (canvas metrics don't expose it); override `LayoutProfile.normalLineHeight` if your backend knows it.
+- Font fallback is the backend's job: `createCanvasMeasureContext` and `createNodeMeasureContext` take `fallbackFamilies`, and any family list in a style can name fallback faces directly. Metrics always come from the primary family, as in browsers.
