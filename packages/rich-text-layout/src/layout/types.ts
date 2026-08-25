@@ -42,6 +42,19 @@ export interface Fragment {
 	/** Font ascent and descent of the fragment's font, in pixels: the inline box renderers paint. */
 	ascent: number
 	descent: number
+	/**
+	 * Set on `marker` fragments of disc/circle/square lists: browsers draw these as shapes rather
+	 * than glyphs. The rect is relative to the line box, like `x`; `text` keeps a glyph fallback.
+	 */
+	symbol?: MarkerSymbol
+}
+
+/** @public */
+export interface MarkerSymbol {
+	shape: 'disc' | 'circle' | 'square'
+	x: number
+	y: number
+	size: number
 }
 
 /** @public */

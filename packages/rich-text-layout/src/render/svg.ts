@@ -1,4 +1,4 @@
-import { Fragment, LineBox, TextLayout } from '../layout/types'
+import { Fragment, LineBox, MarkerSymbol, TextLayout } from '../layout/types'
 import { ResolvedInlineStyle } from '../style/types'
 
 /**
@@ -104,15 +104,18 @@ function renderLine(line: LineBox, options: SvgRenderOptions, precision: number)
 	const tspans: SvgNode[] = []
 	for (const f of mergeSpaces(line.fragments)) {
 		if (f.kind === 'tab' || f.text.length === 0) continue
-		tspans.push({
-			tag: 'tspan',
-			attrs: {
-				x: num(line.x + f.x + dx, precision),
-				y: num(baselineY + f.baselineShift, precision),
-				...styleAttrs(f.style, options),
-			},
-			children: [f.text],
-		})
+		if (f.kind === 'marker' && f.symbol) {
+			nodes.push(symbolNode(f.symbol, line.x + dx, line.y + dy, f.style.color, precision))
+			continue
+		}
+		const attrs: Record<string, string | number> = {
+			x: num(line.x + f.x + dx, precision),
+			y: num(baselineY + f.baselineShift, precision),
+			...styleAttrs(f.style, options),
+		}
+		// Browsers set tabular figures on ::marker so counters line up.
+		if (f.kind === 'marker') attrs['font-variant-numeric'] = 'tabular-nums'
+		tspans.push({ tag: 'tspan', attrs, children: [f.text] })
 	}
 	if (tspans.length === 0) return nodes
 
@@ -130,6 +133,42 @@ function renderLine(line: LineBox, options: SvgRenderOptions, precision: number)
 	}
 	nodes.push({ tag: 'text', attrs: textAttrs, children: tspans })
 	return nodes
+}
+
+function symbolNode(
+	symbol: MarkerSymbol,
+	x: number,
+	y: number,
+	color: string,
+	precision: number
+): SvgNode {
+	const { shape, size } = symbol
+	if (shape === 'square') {
+		return {
+			tag: 'rect',
+			attrs: {
+				x: num(x + symbol.x, precision),
+				y: num(y + symbol.y, precision),
+				width: size,
+				height: size,
+				fill: color,
+			},
+			children: [],
+		}
+	}
+	const attrs: Record<string, string | number> = {
+		cx: num(x + symbol.x + size / 2, precision),
+		cy: num(y + symbol.y + size / 2, precision),
+		r: num(shape === 'circle' ? (size - 1) / 2 : size / 2, precision),
+	}
+	if (shape === 'circle') {
+		attrs.fill = 'none'
+		attrs.stroke = color
+		attrs['stroke-width'] = 1
+	} else {
+		attrs.fill = color
+	}
+	return { tag: 'circle', attrs, children: [] }
 }
 
 /**

@@ -169,6 +169,10 @@ function makeMarker(b: LaidOutBlock, info: ListItemInfo) {
 	const s = b.state.style
 	const text = markerText(s.listStyleType, info)
 	if (!text) return null
+	const symbol =
+		s.listStyleType === 'disc' || s.listStyleType === 'circle' || s.listStyleType === 'square'
+			? s.listStyleType
+			: undefined
 	const style: ResolvedInlineStyle = {
 		fontFamily: s.fontFamily,
 		fontSize: s.fontSize,
@@ -182,7 +186,7 @@ function makeMarker(b: LaidOutBlock, info: ListItemInfo) {
 		verticalAlign: 'baseline',
 		font: s.font,
 	}
-	return { text, style, path: b.block.path }
+	return { text, style, path: b.block.path, symbol }
 }
 
 function markerText(type: ListStyleTypeValue, info: ListItemInfo): string {

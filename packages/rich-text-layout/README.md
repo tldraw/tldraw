@@ -96,7 +96,7 @@ layoutDocument(doc, { styles }) // applied after defaultUserAgentStyles
 
 `defaultUserAgentStyles` approximates browser defaults for the StarterKit node set: heading sizes and margins, `ul`/`ol` padding, disc/circle/square nesting, decimal counters, `code` in monospace, `sub`/`sup` sizing. Pass `userAgentStyles: null` to start from nothing. Rules get a `StyleMatchContext` (`node`, `marks`, `ancestors`, `index`, `listDepth`) and can return a declaration or compute one.
 
-Headings, lists and code are nothing but rules; the engine has no node-type special cases.
+Headings, lists and code are nothing but rules; the engine has no node-type special cases. `src/consumer.test.ts` lays out a document with its own node types, marks with attributes, fonts and sheet (no user agent defaults) through the public API alone, which is the test that a second consumer needs no core changes.
 
 ### Engines
 
@@ -118,6 +118,23 @@ layoutDocument(doc, { profile: { trailingSpacesInMaxContent: false, subscriptShi
 A process can hold any number of measure contexts (a browser canvas and a node canvas, or two font sets). Pass one per call with `LayoutOptions.measureContext`; `installMeasureContext` sets the default. pretext's per-font caches are namespaced by context, so switching between them costs nothing and never mixes widths.
 
 ### Output
+
+### Hit-testing and selection
+
+`LayoutQuery` turns a layout back into document coordinates:
+
+```ts
+const query = new LayoutQuery(layout)
+query.hitTest(x, y) // → { position: { path, offset }, lineIndex, fragmentIndex, trailing }
+query.caretRect({ path: [0, 0], offset: 3 }) // → { x, y, height, lineIndex }
+query.rangeRects(anchor, head) // → one rect per line, zero-width for empty lines in the range
+```
+
+Positions use the same `path`/`offset` coordinates as `Fragment.source`. Points outside the text snap to the nearest line and edge; an offset shared by the end of one line and the start of the next resolves to the end of the first, the way a browser keeps the caret at the end of a wrapped line.
+
+### List markers
+
+Disc, circle and square markers come out as shapes, not glyphs: Blink sizes and places them from the rounded font ascent `A` (`⌊2A/3⌋`-derived width, `⌊2A/3⌋ + 7` px before the content edge, `⌊3(A − ⌊2A/3⌋)/2⌋` below the content-area top), and those rules are reproduced so the SVG, canvas and DOM renderers draw the same bullet Chromium does at every size. Counters are text with a trailing space, right-aligned to the content edge, rendered with tabular figures like `::marker`. `Fragment.symbol` carries the shape geometry for renderers of your own.
 
 ### Renderers
 

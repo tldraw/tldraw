@@ -149,7 +149,14 @@ describe('layoutDocument', () => {
 			[20, 'marker', '•'],
 			[40, 'marker', '◦'],
 		])
-		expect(layout.lines[0].fragments[0].x).toBe(-20)
+		// Blink bullet geometry for a 16px ascent: offset 10, 5px bullet, 7px from the content edge
+		expect(layout.lines[0].fragments[0].x).toBe(-17)
+		expect(layout.lines[0].fragments[0].symbol).toEqual({
+			shape: 'disc',
+			x: -17,
+			y: 9 + 5,
+			size: 5,
+		})
 		expect(layout.width).toBe(40 + 50)
 	})
 

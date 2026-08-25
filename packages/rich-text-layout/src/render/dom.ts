@@ -40,6 +40,23 @@ export function renderDom(layout: TextLayout, options: DomRenderOptions): DomEle
 	for (const line of layout.lines) {
 		for (const f of line.fragments) {
 			if (f.kind === 'tab' || f.text.length === 0) continue
+			if (f.kind === 'marker' && f.symbol) {
+				const { shape, size } = f.symbol
+				const dot = options.createElement('span')
+				Object.assign(dot.style, {
+					position: 'absolute',
+					left: `${line.x + f.symbol.x + dx}px`,
+					top: `${line.y + f.symbol.y + dy}px`,
+					width: `${size}px`,
+					height: `${size}px`,
+					boxSizing: 'border-box',
+					borderRadius: shape === 'square' ? '0' : '50%',
+					background: shape === 'circle' ? 'transparent' : f.style.color,
+					border: shape === 'circle' ? `1px solid ${f.style.color}` : 'none',
+				})
+				root.appendChild(dot)
+				continue
+			}
 			const span = options.createElement('span')
 			const top = line.y + line.baseline + f.baselineShift - f.ascent + dy
 			Object.assign(span.style, {

@@ -29,6 +29,12 @@ export interface BlockBox {
 // @public
 export interface CanvasDrawContextLike {
     // (undocumented)
+    arc(x: number, y: number, radius: number, startAngle: number, endAngle: number): void;
+    // (undocumented)
+    beginPath(): void;
+    // (undocumented)
+    fill(): void;
+    // (undocumented)
     fillRect(x: number, y: number, width: number, height: number): void;
     // (undocumented)
     fillStyle: string;
@@ -36,6 +42,14 @@ export interface CanvasDrawContextLike {
     fillText(text: string, x: number, y: number): void;
     // (undocumented)
     font: string;
+    // (undocumented)
+    lineWidth: number;
+    // (undocumented)
+    stroke(): void;
+    // (undocumented)
+    strokeRect(x: number, y: number, width: number, height: number): void;
+    // (undocumented)
+    strokeStyle: string;
     // (undocumented)
     textBaseline: string;
 }
@@ -68,8 +82,23 @@ export interface CanvasTextContextLike {
     };
 }
 
+// @public (undocumented)
+export interface CaretRect {
+    // (undocumented)
+    height: number;
+    // (undocumented)
+    lineIndex: number;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
 // @public
 export const chromiumLayoutProfile: LayoutProfile;
+
+// @public
+export function compareDocPositions(a: DocPosition, b: DocPosition): number;
 
 // @public
 export function createCanvasMeasureContext(ctx: CanvasTextContextLike, options?: CanvasMeasureContextOptions): MeasureContext;
@@ -91,6 +120,14 @@ export function detectDirection(text: string): 'ltr' | 'rtl';
 
 // @public (undocumented)
 export type DirectionValue = 'auto' | 'ltr' | 'rtl';
+
+// @public
+export interface DocPosition {
+    // (undocumented)
+    offset: number;
+    // (undocumented)
+    path: number[];
+}
 
 // @public
 export interface DomElementLike {
@@ -168,6 +205,7 @@ export interface Fragment {
     source: FragmentSource;
     // (undocumented)
     style: ResolvedInlineStyle;
+    symbol?: MarkerSymbol;
     // (undocumented)
     text: string;
     // (undocumented)
@@ -191,6 +229,16 @@ export interface FragmentSource {
 
 // @public
 export function getMeasureContext(): MeasureContext;
+
+// @public (undocumented)
+export interface HitResult {
+    fragmentIndex: number;
+    // (undocumented)
+    lineIndex: number;
+    // (undocumented)
+    position: DocPosition;
+    trailing: boolean;
+}
 
 // @public
 export function installMeasureContext(ctx: MeasureContext): Promise<void>;
@@ -232,6 +280,16 @@ export interface LayoutProfile {
 }
 
 // @public
+export class LayoutQuery {
+    constructor(layout: TextLayout, measure?: MeasureContext);
+    caretRect(position: DocPosition): CaretRect | null;
+    hitTest(x: number, y: number): HitResult | null;
+    // (undocumented)
+    readonly layout: TextLayout;
+    rangeRects(anchor: DocPosition, head: DocPosition): Rect[];
+}
+
+// @public
 export type Length = `${number}ch` | `${number}em` | `${number}lh` | `${number}px` | number;
 
 // @public (undocumented)
@@ -267,6 +325,18 @@ export interface ListItemInfo {
 
 // @public (undocumented)
 export type ListStyleTypeValue = 'circle' | 'decimal' | 'disc' | 'lower-alpha' | 'lower-roman' | 'none' | 'square' | 'upper-alpha' | 'upper-roman';
+
+// @public (undocumented)
+export interface MarkerSymbol {
+    // (undocumented)
+    shape: 'circle' | 'disc' | 'square';
+    // (undocumented)
+    size: number;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
 
 // @public
 export function markRule(types: readonly string[] | string, style: StyleRule['style'], extra?: (mark: PMMark, ctx: StyleMatchContext) => boolean): StyleRule;
@@ -358,6 +428,18 @@ export interface PMNode {
     text?: string;
     // (undocumented)
     type: string;
+}
+
+// @public (undocumented)
+export interface Rect {
+    // (undocumented)
+    height: number;
+    // (undocumented)
+    width: number;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
 }
 
 // @public

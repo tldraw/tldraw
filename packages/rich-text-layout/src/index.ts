@@ -13,6 +13,8 @@ export type {
 export { detectDirection } from './layout/bidi'
 export { layoutDocument } from './layout/document'
 export { layoutPlainText } from './layout/plainText'
+export { LayoutQuery, compareDocPositions } from './layout/query'
+export type { CaretRect, DocPosition, HitResult, Rect } from './layout/query'
 export { chromiumLayoutProfile, webkitLayoutProfile } from './layout/profile'
 export type { LayoutEngine, LayoutProfile } from './layout/profile'
 export type { PlainTextLayoutOptions } from './layout/plainText'
@@ -23,6 +25,7 @@ export type {
 	FragmentSource,
 	LayoutOptions,
 	LineBox,
+	MarkerSymbol,
 	TextLayout,
 } from './layout/types'
 export { createCanvasMeasureContext } from './measure/canvas'
