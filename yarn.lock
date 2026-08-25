@@ -12380,7 +12380,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@tldraw/rich-text-layout@workspace:packages/rich-text-layout":
+"@tldraw/rich-text-layout@workspace:*, @tldraw/rich-text-layout@workspace:packages/rich-text-layout":
   version: 0.0.0-use.local
   resolution: "@tldraw/rich-text-layout@workspace:packages/rich-text-layout"
   dependencies:
@@ -32088,7 +32088,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "tldraw@workspace:packages/tldraw"
   dependencies:
+    "@napi-rs/canvas": "npm:^0.1.65"
     "@peculiar/webcrypto": "npm:^1.5.0"
+    "@resvg/resvg-js": "npm:^2.6.2"
     "@testing-library/dom": "npm:^10.0.0"
     "@testing-library/react": "npm:^16.0.0"
     "@tiptap/core": "npm:^3.12.1"
@@ -32100,6 +32102,7 @@ __metadata:
     "@tiptap/starter-kit": "npm:^3.12.1"
     "@tldraw/driver": "workspace:*"
     "@tldraw/editor": "workspace:*"
+    "@tldraw/rich-text-layout": "workspace:*"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
@@ -32118,6 +32121,7 @@ __metadata:
     react-dom: "npm:^19.2.1"
     resize-observer-polyfill: "npm:^1.5.1"
     vitest: "npm:^4.1.7"
+    wawoff2: "npm:^2.0.1"
   peerDependencies:
     react: ^18.2.0 || ^19.2.1
     react-dom: ^18.2.0 || ^19.2.1

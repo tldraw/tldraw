@@ -547,3 +547,55 @@ describe('TextManager', () => {
 		})
 	})
 })
+
+describe('injected measurer', () => {
+	it('delegates every method and creates no measurement elements', () => {
+		const box = { x: 0, y: 0, w: 10, h: 20, scrollWidth: 0 }
+		const delegate = {
+			measureText: vi.fn(() => box),
+			measureHtml: vi.fn(() => box),
+			measureHtmlBatch: vi.fn(() => [box, box]),
+			measureTextSpans: vi.fn(() => [{ text: 'a', box }]),
+			dispose: vi.fn(),
+		}
+		const appendChild = vi.fn()
+		const editor = {
+			getContainer: vi.fn(() => ({ appendChild })),
+			getContainerDocument: vi.fn(() => mockDocument),
+		} as any
+		const manager = new TextManager(editor, delegate)
+		expect(appendChild).not.toHaveBeenCalled()
+
+		const opts = {
+			fontStyle: 'normal',
+			fontWeight: 'normal',
+			fontFamily: 'Arial',
+			fontSize: 16,
+			lineHeight: 1.35,
+			maxWidth: null,
+			padding: '0px',
+		}
+		expect(manager.measureText('a', opts)).toBe(box)
+		expect(manager.measureHtml('<p>a</p>', opts)).toBe(box)
+		expect(
+			manager.measureHtmlBatch([
+				{ html: 'a', opts },
+				{ html: 'b', opts },
+			])
+		).toHaveLength(2)
+		expect(
+			manager.measureTextSpans('a', {
+				...opts,
+				overflow: 'wrap',
+				width: 100,
+				height: 20,
+				padding: 0,
+				textAlign: 'start',
+			})
+		).toEqual([{ text: 'a', box }])
+		expect(delegate.measureText).toHaveBeenCalledWith('a', opts)
+
+		manager.dispose()
+		expect(delegate.dispose).toHaveBeenCalled()
+	})
+})

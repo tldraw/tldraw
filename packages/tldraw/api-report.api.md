@@ -38,6 +38,7 @@ import { JSX } from 'react/jsx-runtime';
 import { JSXElementConstructor } from 'react';
 import { LANGUAGES } from '@tldraw/editor';
 import { MatLike } from '@tldraw/editor';
+import { MeasureContext } from '@tldraw/rich-text-layout';
 import { MemoExoticComponent } from 'react';
 import { MigrationFailureReason } from '@tldraw/editor';
 import { MigrationSequence } from '@tldraw/store';
@@ -70,8 +71,10 @@ import { SnapIndicator } from '@tldraw/editor';
 import { StarterKitOptions } from '@tiptap/starter-kit';
 import { StateNode } from '@tldraw/editor';
 import { StyleProp } from '@tldraw/editor';
+import { StyleSheet as StyleSheet_2 } from '@tldraw/rich-text-layout';
 import { SvgExportContext } from '@tldraw/editor';
 import { SVGProps } from 'react';
+import { TextLayout } from '@tldraw/rich-text-layout';
 import { TiptapEditor } from '@tldraw/editor';
 import { TLAnyBindingUtilConstructor } from '@tldraw/editor';
 import { TLAnyShapeUtilConstructor } from '@tldraw/editor';
@@ -136,6 +139,7 @@ import { TLKeyboardEventInfo } from '@tldraw/editor';
 import { TLLineShape } from '@tldraw/editor';
 import { TLLineShapePoint } from '@tldraw/editor';
 import { TLLineShapeSplineStyle } from '@tldraw/tlschema';
+import { TLMeasureTextOpts } from '@tldraw/editor';
 import { TLNoteShape } from '@tldraw/editor';
 import { TLNoteShapeProps } from '@tldraw/editor';
 import { TLOpacityType } from '@tldraw/tlschema';
@@ -162,6 +166,7 @@ import { TLShapeUtilConstructor } from '@tldraw/editor';
 import { TLStateNodeConstructor } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
+import { TLTextMeasurer } from '@tldraw/editor';
 import { TLTextOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLTheme } from '@tldraw/editor';
@@ -835,6 +840,15 @@ export function createEmptyBookmarkShape(editor: Editor, url: string, position: 
 
 // @public
 export function createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike): Promise<TLShapeId[]>;
+
+// @public
+export function createTldrawRichTextStyles(opts: {
+    lineHeight: number;
+    colors?: TldrawRichTextColors;
+}): StyleSheet_2;
+
+// @public
+export function createTldrawTextMeasurer(options: TldrawTextMeasurerOptions): TldrawTextMeasurer;
 
 // @public (undocumented)
 export interface CropBoxOptions {
@@ -2819,6 +2833,12 @@ export interface MoveToPathBuilderCommand extends PathBuilderCommandBase {
     type: 'move';
 }
 
+// @public
+export function NativeRichTextSVG(props: NativeRichTextSVGProps): ReactElement<unknown, JSXElementConstructor<any> | string> | null;
+
+// @public
+export type NativeRichTextSVGProps = RichTextSVGProps;
+
 // @public (undocumented)
 export interface NonePathBuilderOpts extends BasePathBuilderOpts {
     // (undocumented)
@@ -3349,7 +3369,7 @@ export interface RichTextLabelProps {
 }
 
 // @public
-export function RichTextSVG({ bounds, richText, fontSize, fontFamily, lineHeight, textAlign, verticalAlign, wrap, labelColor, padding, showTextOutline, }: RichTextSVGProps): JSX.Element;
+export function RichTextSVG(props: RichTextSVGProps): JSX.Element;
 
 // @public (undocumented)
 export interface RichTextSVGProps {
@@ -4187,6 +4207,37 @@ export interface TldrawImageProps extends TLImageExportOptions {
 
 // @public (undocumented)
 export type TldrawProps = TldrawBaseProps & TldrawEditorStoreProps;
+
+// @public
+export interface TldrawRichTextColors {
+    highlight?: string;
+    link?: string;
+}
+
+// @public
+export interface TldrawRichTextLayoutOptions extends TLMeasureTextOpts {
+    color?: string;
+    colors?: TldrawRichTextColors;
+    // (undocumented)
+    textAlign?: 'center' | 'end' | 'left' | 'right' | 'start';
+}
+
+// @public
+export interface TldrawTextMeasurer extends TLTextMeasurer {
+    // (undocumented)
+    layoutRichText(richText: TLRichText_2, opts: TldrawRichTextLayoutOptions): TextLayout;
+    // (undocumented)
+    layoutText(text: string, opts: TldrawRichTextLayoutOptions): TextLayout;
+    // (undocumented)
+    readonly measureContext: MeasureContext;
+}
+
+// @public
+export interface TldrawTextMeasurerOptions {
+    colors?: TldrawRichTextColors;
+    extensions?: Extensions;
+    measureContext: MeasureContext;
+}
 
 // @public (undocumented)
 export const TldrawUi: React_3.MemoExoticComponent<({ renderDebugMenuItems, children, hideUi, components, ...rest }: TldrawUiProps) => JSX.Element>;

@@ -875,7 +875,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme, textMeasurer, }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'center' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -3364,6 +3364,7 @@ export interface SvgExportContext {
     readonly pixelRatio: null | number;
     resolveAssetUrl(assetId: TLAssetId, width: number): Promise<null | string>;
     readonly scale: number;
+    readonly text: TLSvgExportTextMode;
     waitUntil(promise: Promise<void>): void;
 }
 
@@ -3388,7 +3389,8 @@ export const Table: {
 
 // @public (undocumented)
 export class TextManager extends EditorManager {
-    constructor(editor: Editor);
+    constructor(editor: Editor, injected?: null | TLTextMeasurer);
+    readonly injected: null | TLTextMeasurer;
     measureElementTextNodeSpans(element: HTMLElement, { shouldTruncateToFirstLine }?: {
         shouldTruncateToFirstLine?: boolean;
     }): {
@@ -3992,6 +3994,7 @@ export interface TLEditorOptions {
     overlayUtils?: readonly TLAnyOverlayUtilConstructor[];
     shapeUtils: readonly TLAnyShapeUtilConstructor[];
     store: TLStore;
+    textMeasurer?: TLTextMeasurer;
     // @deprecated
     textOptions?: TLTextOptions;
     themes?: Partial<TLThemes>;
@@ -4411,6 +4414,7 @@ export interface TLMeasureTextOpts {
     otherStyles?: Record<string, string>;
     // (undocumented)
     padding: string;
+    richText?: TLRichText;
 }
 
 // @public (undocumented)
@@ -4839,7 +4843,11 @@ export interface TLSvgExportOptions {
     pixelRatio?: number;
     preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
     scale?: number;
+    text?: TLSvgExportTextMode;
 }
+
+// @public
+export type TLSvgExportTextMode = 'foreignObject' | 'native';
 
 // @public (undocumented)
 export interface TLSvgTextExternalContent extends TLBaseExternalContent {
@@ -4867,6 +4875,18 @@ export interface TLTextExternalContentSource {
     subtype: 'html' | 'json' | 'text' | 'url';
     // (undocumented)
     type: 'text';
+}
+
+// @public
+export interface TLTextMeasurer {
+    dispose?(): void;
+    measureHtml(html: string, opts: TLMeasureTextOpts): TLMeasuredTextSize;
+    measureHtmlBatch(requests: BatchMeasurementRequest[]): TLMeasuredTextSize[];
+    measureText(text: string, opts: TLMeasureTextOpts): TLMeasuredTextSize;
+    measureTextSpans(text: string, opts: TLMeasureTextSpanOpts): {
+        box: BoxModel;
+        text: string;
+    }[];
 }
 
 // @public (undocumented)

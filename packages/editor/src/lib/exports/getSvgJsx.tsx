@@ -18,7 +18,7 @@ import { InnerShape, InnerShapeBackground } from '../components/Shape'
 import type { Editor, TLRenderingShape } from '../editor/Editor'
 import { getColorValue } from '../editor/managers/ThemeManager/defaultThemes'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
-import { TLImageExportOptions } from '../editor/types/misc-types'
+import { TLImageExportOptions, TLSvgExportTextMode } from '../editor/types/misc-types'
 import {
 	SvgExportContext,
 	SvgExportContextProvider,
@@ -40,6 +40,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 		// should we include the background in the export? or is it transparent?
 		background = editor.getInstanceState().exportBackground,
 		preserveAspectRatio,
+		text = 'foreignObject',
 	} = opts
 
 	// Resolve the padding mode:
@@ -118,6 +119,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 			renderingShapes={renderingShapes}
 			onMount={initialEffectPromise.resolve}
 			waitUntil={exportDelay.waitUntil}
+			text={text}
 		>
 			{}
 		</SvgExport>
@@ -209,6 +211,7 @@ function SvgExport({
 	renderingShapes,
 	onMount,
 	waitUntil,
+	text,
 }: {
 	editor: Editor
 	preserveAspectRatio?: string
@@ -222,6 +225,7 @@ function SvgExport({
 	renderingShapes: TLRenderingShape[]
 	onMount(): void
 	waitUntil(promise: Promise<void>): void
+	text: TLSvgExportTextMode
 }) {
 	const masksId = useUniqueSafeId()
 	const theme = editor.getCurrentTheme()
@@ -263,6 +267,7 @@ function SvgExport({
 			addExportDef,
 			scale,
 			pixelRatio,
+			text,
 			async resolveAssetUrl(assetId, width) {
 				const asset = editor.getAsset(assetId)
 				if (!asset || (asset.type !== 'image' && asset.type !== 'video')) return null
@@ -274,7 +279,7 @@ function SvgExport({
 				})
 			},
 		}),
-		[isDarkMode, colorMode, waitUntil, addExportDef, scale, pixelRatio, editor]
+		[isDarkMode, colorMode, waitUntil, addExportDef, scale, pixelRatio, text, editor]
 	)
 
 	const didRenderRef = useRef(false)
