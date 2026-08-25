@@ -201,7 +201,16 @@ export type TLServerEvent =
 				| 'comment_reaction_orphan_prune'
 				| 'room_empty'
 				| 'fail_persist'
-				| 'room_start'
+	  }
+	| {
+			type: 'room'
+			name: 'room_start'
+			/**
+			 * How many hibernated sockets this boot resumed. Zero means a cold boot, and anything
+			 * higher means the durable object woke with clients still attached — which nothing else
+			 * in the dataset distinguishes, since both emit the same `room_start`.
+			 */
+			resumedSockets: number
 	  }
 	| {
 			type: 'send_message'

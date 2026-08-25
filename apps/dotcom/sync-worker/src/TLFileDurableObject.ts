@@ -375,19 +375,32 @@ export class TLFileDurableObject extends DurableObject {
 						authorizeRecord: authorizeFileRecord,
 					})
 
-					this.logEvent({ type: 'room', name: 'room_start' })
-					// Resume any sessions that survived hibernation
+					// Sessions that survived hibernation. Collected before the event so room_start can
+					// carry the count, and resumed after it so a resume that throws still leaves the
+					// boot counted — those are the boots the count exists to find.
+					const resumes: {
+						sessionId: string
+						socket: WebSocket
+						snapshot: SessionStateSnapshot
+						meta: SessionMeta
+					}[] = []
 					for (const ws of this.state.getWebSockets()) {
 						const attachment = ws.deserializeAttachment() as SocketAttachment | null
 						if (!attachment?.sessionId) continue
 						if (attachment.snapshot) {
-							room.handleSocketResume({
+							resumes.push({
 								sessionId: attachment.sessionId,
 								socket: ws,
 								snapshot: attachment.snapshot,
 								meta: attachment.meta,
 							})
 						}
+					}
+
+					this.logEvent({ type: 'room', name: 'room_start', resumedSockets: resumes.length })
+
+					for (const resume of resumes) {
+						room.handleSocketResume(resume)
 					}
 					// Also associate file assets after we load the room
 					setTimeout(this.maybeAssociateFileAssets.bind(this), PERSIST_INTERVAL_MS)
@@ -481,12 +494,21 @@ export class TLFileDurableObject extends DurableObject {
 			new WebSocketRequestResponsePair('{"type":"ping"}', '{"type":"pong"}')
 		)
 
+		// Nothing awaits this, so a storage failure here rejects into the void and takes the object
+		// down with it — the one path that only runs on a cold start, and so never ran at all while
+		// the file DO couldn't hibernate. Rethrown after reporting: the object genuinely cannot
+		// continue without documentInfo, and resetting it is the runtime's correct response.
 		state.blockConcurrencyWhile(async () => {
-			const existingDocumentInfo = (await this.storage.get('documentInfo')) as DocumentInfo | null
-			if (existingDocumentInfo?.version !== CURRENT_DOCUMENT_INFO_VERSION) {
-				this._documentInfo = null
-			} else {
-				this._documentInfo = existingDocumentInfo
+			try {
+				const existingDocumentInfo = (await this.storage.get('documentInfo')) as DocumentInfo | null
+				if (existingDocumentInfo?.version !== CURRENT_DOCUMENT_INFO_VERSION) {
+					this._documentInfo = null
+				} else {
+					this._documentInfo = existingDocumentInfo
+				}
+			} catch (e) {
+				this.reportError(e, { source: 'blockConcurrencyWhile' })
+				throw e
 			}
 		})
 	}
@@ -584,13 +606,16 @@ export class TLFileDurableObject extends DurableObject {
 		return ws.deserializeAttachment() as SocketAttachment | null
 	}
 
+	// The runtime discards whatever these handlers reject with, so anything that escapes them is
+	// invisible: getRoom() in particular can fail while loading the room from storage, which breaks
+	// the main sync path. Catch and report instead.
 	override async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
-		const attachment = this.getSocketAttachment(ws)
-		if (!attachment?.sessionId) return
-		if (!this._documentInfo) return
-
-		this.sessionIdToWs.set(attachment.sessionId, ws)
 		try {
+			const attachment = this.getSocketAttachment(ws)
+			if (!attachment?.sessionId) return
+			if (!this._documentInfo) return
+
+			this.sessionIdToWs.set(attachment.sessionId, ws)
 			const room = await this.getRoom()
 			room.handleSocketMessage(attachment.sessionId, message)
 		} catch (e) {
@@ -599,29 +624,40 @@ export class TLFileDurableObject extends DurableObject {
 				ws.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.NOT_FOUND)
 				return
 			}
-			throw e
+			// Report before closing, so a throw from close() can't cost us the Sentry event.
+			this.reportError(e, { source: 'webSocketMessage' })
+			// The message is lost either way, so the socket has to go: leaving it up would let the
+			// client carry on believing it is synced while its local state silently diverges. Closed
+			// without a code, though — TLSyncErrorCloseEventCode is fatal on the client, which tears
+			// the sync client down into an error state only a reload clears. What lands here is
+			// transient (a getRoom() that failed resuming from hibernation), so a codeless close
+			// reads as 'offline' and the reconnect manager reconnects and resyncs from scratch.
+			ws.close()
 		}
 	}
 
 	override async webSocketClose(ws: WebSocket) {
-		return this.handleWebSocketEnd(ws, 'handleSocketClose')
+		await this.handleWebSocketEnd(ws, 'handleSocketClose')
 	}
 
-	override async webSocketError(ws: WebSocket) {
-		return this.handleWebSocketEnd(ws, 'handleSocketError')
+	override async webSocketError(ws: WebSocket, error: unknown) {
+		// The socket failed rather than closing cleanly. That error was previously dropped on the
+		// floor, so a client whose connection kept breaking left no trace here at all.
+		this.reportError(error, { source: 'webSocketError' })
+		await this.handleWebSocketEnd(ws, 'handleSocketError')
 	}
 
 	private async handleWebSocketEnd(
 		ws: WebSocket,
 		method: 'handleSocketClose' | 'handleSocketError'
 	) {
-		const attachment = this.getSocketAttachment(ws)
-		if (!attachment?.sessionId) return
-
-		this.sessionIdToWs.delete(attachment.sessionId)
-		if (!this._documentInfo) return
-
 		try {
+			const attachment = this.getSocketAttachment(ws)
+			if (!attachment?.sessionId) return
+
+			this.sessionIdToWs.delete(attachment.sessionId)
+			if (!this._documentInfo) return
+
 			const room = await this.getRoom()
 
 			// If the DO was hibernating, this session was never re-added to the room.
@@ -642,7 +678,10 @@ export class TLFileDurableObject extends DurableObject {
 				console.error('handleWebSocketEnd: room not found, skipping', e)
 				return
 			}
-			throw e
+			// Both callers await this, so a failure here would otherwise reject their handler and
+			// vanish. Reported rather than rethrown: the socket is already gone either way, and the
+			// only thing lost is presence cleanup for other clients in the room.
+			this.reportError(e, { source: method })
 		}
 	}
 
@@ -1110,16 +1149,24 @@ export class TLFileDurableObject extends DurableObject {
 			.catch((e) => this.reportError(e))
 	}
 
-	override async alarm() {
-		// One clock reading for the whole fire: the debounce decision and the pending marker's expiry
-		// both count from it (see `firedAt` on enqueueOgImageRender).
-		const firedAt = Date.now()
-		const result = this.ogRenderDebouncer.onAlarm(firedAt)
-		if (!result.render) {
-			await this.ctx.storage.setAlarm(result.reArmAt)
-			return
+	// Rethrown rather than swallowed, unlike the socket handlers: the runtime retries an alarm that
+	// rejects, and dropping the error here would silently cancel the OG render this alarm exists to
+	// perform. Reporting only adds the Sentry record it was missing.
+	override async alarm(alarmInfo?: AlarmInvocationInfo) {
+		try {
+			// One clock reading for the whole fire: the debounce decision and the pending marker's
+			// expiry both count from it (see `firedAt` on enqueueOgImageRender).
+			const firedAt = Date.now()
+			const result = this.ogRenderDebouncer.onAlarm(firedAt)
+			if (!result.render) {
+				await this.ctx.storage.setAlarm(result.reArmAt)
+				return
+			}
+			await this.requestOgRenderForEdit(firedAt)
+		} catch (e) {
+			this.reportError(e, { source: 'alarm', retryCount: alarmInfo?.retryCount ?? 0 })
+			throw e
 		}
-		await this.requestOgRenderForEdit(firedAt)
 	}
 
 	/**
@@ -1157,7 +1204,11 @@ export class TLFileDurableObject extends DurableObject {
 				break
 			}
 			case 'room': {
-				this.writeEvent(event.name, {})
+				if (event.name === 'room_start') {
+					this.writeEvent(event.name, { doubles: [event.resumedSockets] })
+				} else {
+					this.writeEvent(event.name, {})
+				}
 				break
 			}
 			case 'client': {
@@ -2546,13 +2597,19 @@ export class TLFileDurableObject extends DurableObject {
 			})
 	}
 
-	protected reportError(e: unknown) {
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		this.sentry?.withScope((scope) => {
-			scope.setExtra('slug', this._documentInfo?.slug)
+	protected reportError(e: unknown, extras?: Record<string, unknown>) {
+		try {
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
-			this.sentry?.captureException(e)
-		})
+			this.sentry?.withScope((scope) => {
+				scope.setExtra('slug', this._documentInfo?.slug)
+				if (extras) scope.setExtras(extras)
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				this.sentry?.captureException(e)
+			})
+		} catch (_e) {
+			// Callers report from cleanup paths and from outside their own try blocks, so reporting
+			// must never be the thing that throws and skip the cleanup it was added to protect.
+		}
 		console.error(e)
 	}
 
