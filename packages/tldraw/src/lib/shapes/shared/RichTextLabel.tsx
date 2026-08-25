@@ -9,6 +9,7 @@ import {
 	resolveLineHeightPx,
 	useEditor,
 	useReactor,
+	useSvgExportContext,
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
@@ -16,6 +17,7 @@ import React, { useMemo } from 'react'
 import { renderHtmlFromRichText } from '../../utils/text/richText'
 import { RichTextArea } from '../text/RichTextArea'
 import { isLegacyAlign } from './legacyProps'
+import { NativeRichTextSVG } from './NativeRichTextSVG'
 import { useEditableRichText } from './useEditableRichText'
 
 /** @public */
@@ -223,7 +225,15 @@ export interface RichTextSVGProps {
  *
  * @public @react
  */
-export function RichTextSVG({
+export function RichTextSVG(props: RichTextSVGProps) {
+	const exportContext = useSvgExportContext()
+	if (exportContext?.text === 'native') {
+		return <NativeRichTextSVG {...props} />
+	}
+	return <ForeignObjectRichTextSVG {...props} />
+}
+
+function ForeignObjectRichTextSVG({
 	bounds,
 	richText,
 	fontSize,

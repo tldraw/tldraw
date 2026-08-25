@@ -662,6 +662,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			const html = renderHtmlFromRichTextForMeasurement(this.editor, richText)
 			const nextTextSize = this.editor.textMeasure.measureHtml(html, {
 				...TEXT_PROPS,
+				richText,
 				lineHeight: dv.labelLineHeight,
 				fontFamily: dv.labelFontFamily,
 				fontSize: fontSizeAdjustment,
@@ -679,6 +680,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				const html = renderHtmlFromRichTextForMeasurement(this.editor, richText)
 				const nextTextSizeWithOverflowBreak = this.editor.textMeasure.measureHtml(html, {
 					...TEXT_PROPS,
+					richText,
 					lineHeight: dv.labelLineHeight,
 					fontFamily: dv.labelFontFamily,
 					fontSize: fontSizeAdjustment,

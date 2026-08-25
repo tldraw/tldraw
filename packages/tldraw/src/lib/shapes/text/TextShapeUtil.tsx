@@ -377,6 +377,7 @@ function getTextSize(editor: Editor, props: TLTextShape['props'], dv: TextShapeU
 		fontFamily: dv.fontFamily,
 		fontSize: dv.fontSize,
 		maxWidth: maybeFixedWidth,
+		richText,
 	})
 
 	// If we're autosizing the measureText will essentially `Math.floor`
