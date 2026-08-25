@@ -91,6 +91,24 @@ describe(ArraySet, () => {
 		expect(as.add(1)).toBe(true)
 	})
 
+	it('[AS4] a fresh ArraySet answers every query as empty and survives remove and clear', () => {
+		const as = new ArraySet<number>()
+
+		expect(as.has(1)).toBe(false)
+		expect(as.size()).toBe(0)
+		expect(as.isEmpty).toBe(true)
+		expect([...as]).toEqual([])
+		expect(get(as)).toEqual(new Set())
+
+		expect(as.remove(1)).toBe(false)
+		as.clear()
+
+		expect(as.isEmpty).toBe(true)
+		expect(as.add(1)).toBe(true)
+		expect(as.has(1)).toBe(true)
+		expect(as.size()).toBe(1)
+	})
+
 	it('works with small numbers of things', () => {
 		const as = new ArraySet<number>()
 
@@ -172,25 +190,33 @@ function runTest(seed: number) {
 	const s = new Set<number>()
 	const r = rng(seed)
 
-	const nums = new Array(ARRAY_SIZE_THRESHOLD * 2).fill(0).map(() => Math.floor(r() * 100))
+	// Enough candidates, and enough bias toward adds, that the set fills past the promotion
+	// threshold rather than hovering below it in array mode forever.
+	const nums = new Array(ARRAY_SIZE_THRESHOLD * 4).fill(0).map(() => Math.floor(r() * 100))
 
 	for (let i = 0; i < 1000; i++) {
 		const num = nums[Math.floor(r() * nums.length)]
 
 		const choice = r()
-		if (choice < 0.45) {
-			as.add(num)
-			s.add(num)
-		} else if (choice < 0.9) {
-			as.remove(num)
-			s.delete(num)
-		} else {
-			as.clear()
-			s.clear()
-		}
-
 		try {
+			if (choice < 0.55) {
+				expect(as.add(num)).toBe(!s.has(num))
+				s.add(num)
+			} else if (choice < 0.95) {
+				expect(as.remove(num)).toBe(s.has(num))
+				s.delete(num)
+			} else {
+				as.clear()
+				s.clear()
+			}
+
 			expect(get(as)).toEqual(s)
+			expect(new Set([...as])).toEqual(s)
+			expect(as.size()).toBe(s.size)
+			expect(as.isEmpty).toBe(s.size === 0)
+			for (const n of nums) {
+				expect(as.has(n)).toBe(s.has(n))
+			}
 		} catch (e) {
 			console.error('Failed on iteration', i, 'with seed', seed)
 			throw e
@@ -198,7 +224,7 @@ function runTest(seed: number) {
 	}
 }
 
-describe('fuzzing this thing (if this fails tell david)', () => {
+describe('fuzzing against a reference Set', () => {
 	new Array(10).fill(0).forEach(() => {
 		const seed = Math.floor(Math.random() * 1000000)
 		it(`fuzz with seed ${seed}`, () => {

@@ -17,56 +17,51 @@ class Transaction {
 
 	initialAtomValues = new Map<_Atom, any>()
 
-	/**
-	 * Get whether this transaction is a root (no parents).
-	 *
-	 * @public
-	 */
 	// eslint-disable-next-line tldraw/no-setter-getter
 	get isRoot() {
 		return this.parent === null
 	}
 
-	/**
-	 * Commit the transaction's changes.
-	 *
-	 * @public
-	 */
 	commit() {
-		if (inst.globalIsReacting) {
-			// if we're committing during a reaction we actually need to
-			// use the 'cleanup' reactors set to ensure we re-run effects if necessary
-			for (const atom of this.initialAtomValues.keys()) {
-				traverseAtomForCleanup(atom)
-			}
-		} else if (this.isRoot) {
+		if (this.isRoot) {
 			// For root transactions, flush changed atoms
 			flushChanges(this.initialAtomValues.keys())
-		} else {
-			// For transactions with parents, add the transaction's initial values to the parent's.
-			this.initialAtomValues.forEach((value, atom) => {
-				if (!this.parent!.initialAtomValues.has(atom)) {
-					this.parent!.initialAtomValues.set(atom, value)
-				}
-			})
+			return
 		}
+		// For transactions with parents, add the transaction's initial values to the parent's, so
+		// an outer rollback can still undo them (T7). This must come before any "are we reacting?" special case: a nested
+		// transaction committed by an effect during the reaction phase used to skip this fold and
+		// its changes survived the outer rollback.
+		// A parent that has recorded nothing yet adopts the map outright: this transaction is
+		// finished with it, and the common nested case is a single inner transaction doing all
+		// the writes.
+		const parentValues = this.parent!.initialAtomValues
+		if (parentValues.size === 0) {
+			this.parent!.initialAtomValues = this.initialAtomValues
+			return
+		}
+		this.initialAtomValues.forEach((value, atom) => {
+			if (!parentValues.has(atom)) {
+				parentValues.set(atom, value)
+			}
+		})
 	}
 
 	/**
-	 * Abort the transaction.
+	 * Abort the transaction. Restores every atom changed in this transaction to its initial
+	 * value, then commits. Must be called while this is still `inst.currentTransaction`, so that
+	 * the restoring sets are recorded against it instead of each flushing effects on their own.
 	 *
 	 * @public
 	 */
 	abort() {
 		inst.globalEpoch++
 
-		// Reset each of the transaction's atoms to its initial value.
 		this.initialAtomValues.forEach((value, atom) => {
 			atom.set(value)
 			atom.historyBuffer?.clear()
 		})
 
-		// Commit the changes.
 		this.commit()
 	}
 }
@@ -79,19 +74,7 @@ const inst = singleton('transactions', () => ({
 	currentTransaction: null as Transaction | null,
 
 	cleanupReactors: null as null | Set<Reactor>,
-	reactionEpoch: GLOBAL_START_EPOCH + 1,
 }))
-
-/**
- * Gets the current reaction epoch, which is used to track when reactions are running.
- * The reaction epoch is updated at the start of each reaction cycle.
- *
- * @returns The current reaction epoch number
- * @public
- */
-export function getReactionEpoch() {
-	return inst.reactionEpoch
-}
 
 /**
  * Gets the current global epoch, which is incremented every time any atom changes.
@@ -105,17 +88,18 @@ export function getGlobalEpoch() {
 }
 
 /**
- * Checks whether any reactions are currently executing.
- * When true, the system is in the middle of processing effects and side effects.
+ * Whether a transaction (sync or async) is currently open. While one is, atom changes are
+ * recorded but their children are not traversed until it commits.
  *
- * @returns True if reactions are currently running, false otherwise
- * @public
+ * @internal
  */
-export function getIsReacting() {
-	return inst.globalIsReacting
+export function getIsInTransaction() {
+	return inst.currentTransaction !== null
 }
 
-// Reusable state for traverse to avoid closure allocation
+// The set `traverseChild` collects reactors into. Module-level rather than a closure so that a
+// flush over thousands of atoms doesn't allocate a visitor per atom; traversal never runs user
+// code, so nothing can re-enter and swap it mid-walk.
 let traverseReactors: Set<Reactor>
 
 function traverseChild(child: Child) {
@@ -132,33 +116,32 @@ function traverseChild(child: Child) {
 	}
 }
 
-function traverse(reactors: Set<Reactor>, child: Child) {
-	traverseReactors = reactors
-	traverseChild(child)
-}
-
 /**
- * Collect all of the reactors that need to run for an atom and run them.
+ * Collect all of the reactors that need to run for an atom and run them. During the reaction
+ * phase the affected effects are instead queued for the cleanup pass, so a change made by an
+ * effect never interrupts the pass that is running (P4).
  *
  * @param atoms - The atoms to flush changes for.
  */
 function flushChanges(atoms: Iterable<_Atom>) {
 	if (inst.globalIsReacting) {
-		throw new Error('flushChanges cannot be called during a reaction')
+		for (const atom of atoms) {
+			traverseAtomForCleanup(atom)
+		}
+		return
 	}
 
 	const outerTxn = inst.currentTransaction
 	try {
-		// clear the transaction stack
+		// clear the transaction stack. Transactions started by effects must be roots: the committing
+		// transaction (if any) has already handed its changes to this flush.
 		inst.currentTransaction = null
 		inst.globalIsReacting = true
-		inst.reactionEpoch = inst.globalEpoch
 
-		// Collect all of the visited reactors.
 		const reactors = new Set<Reactor>()
-
+		traverseReactors = reactors
 		for (const atom of atoms) {
-			atom.children.visit((child) => traverse(reactors, child))
+			atom.children.visit(traverseChild)
 		}
 
 		// Run each reactor.
@@ -185,28 +168,17 @@ function flushChanges(atoms: Iterable<_Atom>) {
 	}
 }
 
-/**
- * Handle a change to an atom.
- *
- * @param atom The atom that changed.
- * @param previousValue The atom's previous value.
- *
- * @internal
- */
+/** @internal */
 export function atomDidChange(atom: _Atom, previousValue: any) {
 	if (inst.currentTransaction) {
 		// If we are in a transaction, then all we have to do is preserve
 		// the value of the atom at the start of the transaction in case
-		// we need to roll back.
+		// we need to roll back. Children are not traversed until the
+		// transaction commits, which is why `Computed` must not trust its
+		// traversal-based cache shortcut while a transaction is open.
 		if (!inst.currentTransaction.initialAtomValues.has(atom)) {
 			inst.currentTransaction.initialAtomValues.set(atom, previousValue)
 		}
-	} else if (inst.globalIsReacting) {
-		// If the atom changed during the reaction phase of flushChanges
-		// (and there are no transactions started inside the reaction phase)
-		// then we are past the point where a transaction can be aborted
-		// so we don't need to note down the previousValue.
-		traverseAtomForCleanup(atom)
 	} else {
 		// If there is no transaction, flush the changes immediately.
 		flushChanges([atom])
@@ -214,16 +186,11 @@ export function atomDidChange(atom: _Atom, previousValue: any) {
 }
 
 function traverseAtomForCleanup(atom: _Atom) {
-	const rs = (inst.cleanupReactors ??= new Set())
-	atom.children.visit((child) => traverse(rs, child))
+	traverseReactors = inst.cleanupReactors ??= new Set()
+	atom.children.visit(traverseChild)
 }
 
-/**
- * Advances the global epoch counter by one.
- * This is used internally to track when changes occur across the reactive system.
- *
- * @internal
- */
+/** @internal */
 export function advanceGlobalEpoch() {
 	inst.globalEpoch++
 }
@@ -251,7 +218,7 @@ export function advanceGlobalEpoch() {
  * // Logs "Hello, Jane Smith!"
  * ```
  *
- * If the function throws, the transaction is aborted and any signals that were updated during the transaction revert to their state before the transaction began.
+ * If the function throws, the transaction is aborted and any signals that were updated during the transaction revert to their state before the transaction began. An aborted transaction still flushes effects: effects whose parents went through a change-and-restore round trip are checked again and, if a parent's value differs from what they last saw (an atom they read directly always will), run once more with the restored values.
  *
  * @example
  * ```ts
@@ -269,8 +236,9 @@ export function advanceGlobalEpoch() {
  *  throw new Error('oops')
  * })
  *
- * // Does not log
  * // firstName.get() === 'John'
+ * // Logs "Hello, John Doe!" again: effects whose parents were changed and restored still run,
+ * // and observe the restored values.
  * ```
  *
  * A `rollback` callback is passed into the function.
@@ -293,9 +261,9 @@ export function advanceGlobalEpoch() {
  *  rollback()
  * })
  *
- * // Does not log
  * // firstName.get() === 'John'
  * // lastName.get() === 'Doe'
+ * // Logs "Hello, John Doe!" again, as above.
  * ```
  *
  * @param fn - The function to run in a transaction, called with a function to roll back the change.
@@ -305,7 +273,6 @@ export function advanceGlobalEpoch() {
 export function transaction<T>(fn: (rollback: () => void) => T) {
 	const txn = new Transaction(inst.currentTransaction, true)
 
-	// Set the current transaction to the transaction
 	inst.currentTransaction = txn
 
 	try {
@@ -313,10 +280,8 @@ export function transaction<T>(fn: (rollback: () => void) => T) {
 		let rollback = false
 
 		try {
-			// Run the function.
 			result = fn(() => (rollback = true))
 		} catch (e) {
-			// Abort the transaction if the function throws.
 			txn.abort()
 			throw e
 		}
@@ -326,7 +291,6 @@ export function transaction<T>(fn: (rollback: () => void) => T) {
 		}
 
 		if (rollback) {
-			// If the rollback was triggered, abort the transaction.
 			txn.abort()
 		} else {
 			txn.commit()
@@ -334,7 +298,6 @@ export function transaction<T>(fn: (rollback: () => void) => T) {
 
 		return result
 	} finally {
-		// Set the current transaction to the transaction's parent.
 		inst.currentTransaction = txn.parent
 	}
 }
@@ -420,6 +383,7 @@ export async function deferAsyncEffects<T>(fn: () => Promise<T>) {
 
 	let result = undefined as T | undefined
 
+	// `undefined` means "did not throw"; a thrown `undefined` is stored as `null` so it still counts.
 	let error = undefined as any
 	try {
 		// Run the function.
@@ -430,6 +394,7 @@ export async function deferAsyncEffects<T>(fn: () => Promise<T>) {
 	}
 
 	if (--txn.asyncProcessCount > 0) {
+		// Other processes still share this transaction; it settles when the last one finishes.
 		if (typeof error !== 'undefined') {
 			// If the rollback was triggered, abort the transaction.
 			throw error
@@ -438,14 +403,19 @@ export async function deferAsyncEffects<T>(fn: () => Promise<T>) {
 		}
 	}
 
-	inst.currentTransaction = null
-
-	if (typeof error !== 'undefined') {
-		// If the rollback was triggered, abort the transaction.
-		txn.abort()
-		throw error
-	} else {
-		txn.commit()
-		return result
+	// Settle while this is still the current transaction (see `Transaction.abort`): clearing it
+	// first made every restoring set inside `abort()` flush effects on its own, so effects
+	// observed half-restored state.
+	try {
+		if (typeof error !== 'undefined') {
+			// If the rollback was triggered, abort the transaction.
+			txn.abort()
+			throw error
+		} else {
+			txn.commit()
+			return result
+		}
+	} finally {
+		inst.currentTransaction = null
 	}
 }

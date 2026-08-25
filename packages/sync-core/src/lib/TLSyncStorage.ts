@@ -1,6 +1,6 @@
 import { StoreSchema, SynchronousStorage, UnknownRecord } from '@tldraw/store'
+import { TLStoreSnapshot } from '@tldraw/tlschema'
 import { assert, isEqual, objectMapEntriesIterable, objectMapValues } from '@tldraw/utils'
-import { TLStoreSnapshot } from 'tldraw'
 import { diffRecord, NetworkDiff, RecordOpType } from './diff'
 import { RoomSnapshot } from './TLSyncRoom'
 
@@ -205,7 +205,9 @@ export function loadSnapshotIntoStorage<R extends UnknownRecord>(
 		if (isEqual(existing, doc.state)) continue
 		txn.set(doc.state.id, doc.state as R)
 	}
-	for (const id of txn.keys()) {
+	// materialize the keys first: some SQLite drivers (better-sqlite3) refuse writes while a
+	// statement iterator is open, so deleting during `keys()` would throw
+	for (const id of Array.from(txn.keys())) {
 		if (!docIds.has(id)) {
 			txn.delete(id)
 		}

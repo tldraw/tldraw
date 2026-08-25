@@ -40,7 +40,6 @@ export function strokeShapeIndicators(
 		if (!shape || shape.isLocked) continue
 
 		const pageTransform = editor.getShapePageTransform(shape)
-		if (!pageTransform) continue
 
 		const indicatorPath = indicatorPathCache.get(editor, shape.id)
 		if (!indicatorPath) continue

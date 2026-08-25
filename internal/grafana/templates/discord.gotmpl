@@ -1,0 +1,22 @@
+{{ define "tldraw.discord.short" -}}
+{{ if eq .Labels.alertname "DatasourceNoData" }}No metrics: {{ .Labels.rulename }}{{ else if .Annotations.summary }}{{ .Annotations.summary }}{{ else }}{{ .Labels.alertname }}{{ end }}
+{{- end }}
+
+{{ define "tldraw.discord.title" -}}
+{{ if eq .Status "firing" }}🔴{{ else }}✅{{ end }} {{ if gt (len .Alerts) 1 }}[{{ len .Alerts }} alerts] {{ end }}{{ template "tldraw.discord.short" (index .Alerts 0) }}
+{{- end }}
+
+{{ define "tldraw.discord.alert" -}}
+{{ if eq .Labels.alertname "DatasourceNoData" -}}
+⚠️ **No metrics** for **{{ .Labels.rulename }}** (usually the metrics source is down - for Zero rules: Fly.io metrics - not the alert condition itself)
+{{- else -}}
+{{ with .Labels.severity }}**{{ . | toUpper }}** · {{ end }}{{ template "tldraw.discord.short" . }}
+{{- end }} · [View]({{ .GeneratorURL }}){{ with .DashboardURL }} · [Dashboard]({{ . }}){{ end }}
+{{- end }}
+
+{{ define "tldraw.discord.text" -}}
+{{ range .Alerts.Firing }}{{ template "tldraw.discord.alert" . }}
+{{ end -}}
+{{ range .Alerts.Resolved }}✅ Resolved: {{ template "tldraw.discord.alert" . }}
+{{ end -}}
+{{- end }}

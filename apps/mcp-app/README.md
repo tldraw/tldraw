@@ -135,3 +135,32 @@ Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw).
 ## Community
 
 Have questions, comments or feedback? [Join our discord](https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).
+
+## Session storage lifecycle
+
+Each MCP session is a `TldrawMCP` Durable Object. It keeps up to `MAX_CHECKPOINTS` (50) canvas snapshots and destroys itself after `IDLE_TTL_MS` (7 days) without a checkpoint save — a schedule armed in `init()` and re-armed on every check. Sessions created before this shipped never wake on their own; prune them with the admin endpoint.
+
+### Pruning legacy sessions
+
+Everything runs from `apps/mcp-app` on your machine; nothing in CI touches it.
+
+Env vars the scripts read (put them in your shell or a local `.env` you source; all gitignored outputs land in `apps/mcp-app/`):
+
+| Var                     | Used by      | What                                                                                                                               |
+| ----------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `CLOUDFLARE_ACCOUNT_ID` | `prune:list` | tldraw's Cloudflare account id (dashboard URL, or `wrangler whoami`)                                                               |
+| `CLOUDFLARE_API_TOKEN`  | `prune:list` | API token with **Workers Scripts: Read** on that account; only lists DO namespaces and object ids                                  |
+| `MCP_PRUNE_ADMIN_TOKEN` | `prune:run`  | the value you set as the worker secret below; sent as the bearer to `/admin/prune`                                                 |
+| `MCP_WORKER_ORIGIN`     | `prune:run`  | optional, defaults to `https://tldraw-mcp-app.tldraw.workers.dev`; point at `http://localhost:8787` to rehearse against `yarn dev` |
+
+Steps:
+
+1. Set the secret once on the worker: `npx wrangler secret put MCP_PRUNE_ADMIN_TOKEN` (needs a Cloudflare login with access to `tldraw-mcp-app`; any long random string, e.g. `openssl rand -hex 32`). It is a worker secret, not a GitHub Actions secret: `.github/workflows/deploy-mcp-app.yml` only runs `wrangler deploy` on pushes to `production`, and worker secrets survive deploys. The endpoint 404s until it exists.
+2. `yarn prune:list` → `prune-ids.txt`, one DO id per line for every object with stored data. Page-based walk of the CF API, resumable by re-running.
+3. `yarn prune:run --dry-run` → idle histogram, no writes. Results append to `prune-dry-run.jsonl`; re-running resumes from it and reports the whole file.
+4. Prune, staged: `yarn prune:run --max-idle 30d`, watch the storage graph, then `--max-idle 7d`. Below 7d needs `--force` (the endpoint enforces the same floor). Results append to `prune-results.jsonl`; re-running re-evaluates kept ids and skips only the ones already condemned. Exit code is non-zero if any id errored; auth/route errors abort on the first batch.
+5. Rotate `MCP_PRUNE_ADMIN_TOKEN` (`npx wrangler secret put MCP_PRUNE_ADMIN_TOKEN` with a new value, or `npx wrangler secret delete MCP_PRUNE_ADMIN_TOKEN`) after the prune; the route stays but it should not keep a live token between runs.
+
+To rehearse locally: `yarn dev` in another shell with `--var MCP_PRUNE_ADMIN_TOKEN:dev-token` added to the `wrangler dev` line (or run `npx wrangler dev --var MCP_PRUNE_ADMIN_TOKEN:dev-token --var MCP_IS_DEV:true`), then `MCP_WORKER_ORIGIN=http://localhost:8787 MCP_PRUNE_ADMIN_TOKEN=dev-token yarn prune:run --dry-run` against a hand-written `prune-ids.txt` (get ids from `GET /admin/do-id?session=<mcp-session-id>`, dev-only). `prune-integration.test.ts` does this end to end.
+
+Expect the `destroyed` error fingerprint in Workers observability to spike during a prune (one event per wiped DO — the SDK's teardown abort) and `session_start` to stay flat; if `session_start` during the run exceeds roughly 1% of condemns, stop the run: condemned DOs are being resurrected.

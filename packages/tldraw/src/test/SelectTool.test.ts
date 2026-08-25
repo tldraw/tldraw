@@ -3,6 +3,7 @@ import {
 	ShapeUtil,
 	TLArrowShape,
 	TLFrameShape,
+	TLGeoShape,
 	createShapeId,
 	toRichText,
 } from '@tldraw/editor'
@@ -47,6 +48,13 @@ describe('TLSelectTool.Idle', () => {
 		editor.expectToBeIn('select.pointing_canvas')
 	})
 
+	it('Returns to idle when a canvas press is cancelled', () => {
+		editor.pointerDown(10, 10, { target: 'canvas' })
+		editor.expectToBeIn('select.pointing_canvas')
+		editor.cancel()
+		editor.expectToBeIn('select.idle')
+	})
+
 	it('Nudges selected shapes on arrow key down', () => {
 		const shape = editor.getShape(ids.box1)!
 		editor.select(shape.id)
@@ -55,6 +63,47 @@ describe('TLSelectTool.Idle', () => {
 		const nudgedShape = editor.getShape(shape.id)
 		expect(nudgedShape).toBeDefined()
 		expect(nudgedShape?.x).toBe(101)
+	})
+
+	it('Does not nudge selected shapes on arrow key down while spacebar panning', () => {
+		const shape = editor.getShape(ids.box1)!
+		editor.select(shape.id)
+		editor.keyDown(' ')
+		expect(editor.inputs.getIsSpacebarPanning()).toBe(true)
+		editor.keyDown('ArrowRight')
+		editor.keyRepeat('ArrowRight')
+		editor.keyUp('ArrowRight')
+		editor.keyUp(' ')
+		expect(editor.getShape(shape.id)).toMatchObject({ x: 100, y: 100 })
+	})
+
+	it('Does not nudge selected shapes on arrow key down while alt is held', () => {
+		const shape = editor.getShape(ids.box1)!
+		editor.select(shape.id)
+		editor.keyDown('Alt')
+		editor.keyDown('ArrowRight')
+		editor.keyRepeat('ArrowRight')
+		editor.keyUp('ArrowRight')
+		editor.keyUp('Alt')
+		expect(editor.getShape(shape.id)).toMatchObject({ x: 100, y: 100 })
+	})
+
+	it('Makes a shape double click change its own undo step', () => {
+		const shape = editor.getShape<TLGeoShape>(ids.box1)!
+		expect(shape.props.geo).toBe('rectangle')
+
+		// Alt+double-click swaps a rectangle to a check-box via GeoShapeUtil.onDoubleClick
+		editor.keyDown('Alt')
+		editor.doubleClick(150, 150, { target: 'shape', shape }, { altKey: true })
+		editor.keyUp('Alt')
+
+		expect(editor.getShape<TLGeoShape>(ids.box1)!.props.geo).toBe('check-box')
+		expect(editor.getOnlySelectedShapeId()).toBe(ids.box1)
+
+		editor.undo()
+
+		expect(editor.getShape<TLGeoShape>(ids.box1)!.props.geo).toBe('rectangle')
+		expect(editor.getOnlySelectedShapeId()).toBe(ids.box1)
 	})
 })
 
@@ -501,6 +550,42 @@ describe('PointingLabel', () => {
 		editor.expectToBeIn('select.idle')
 	})
 
+	it('Keeps the dragged label position on complete', () => {
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: {
+					richText: toRichText('Test Label'),
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 0 },
+				},
+			},
+		])
+		const shape = editor.getShape<TLArrowShape>(ids.arrow1)!
+		const initialLabelPosition = shape.props.labelPosition
+
+		editor.pointerDown(150, 100, {
+			target: 'shape',
+			shape,
+		})
+		editor.pointerMove(160, 100)
+		editor.expectToBeIn('select.pointing_arrow_label')
+		editor.pointerMove(190, 100)
+
+		const draggedLabelPosition = editor.getShape<TLArrowShape>(ids.arrow1)!.props.labelPosition
+		expect(draggedLabelPosition).not.toBe(initialLabelPosition)
+
+		// A menu opening or an undo keypress mid-drag completes the interaction
+		editor.complete()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getShape<TLArrowShape>(ids.arrow1)!.props.labelPosition).toBe(
+			draggedLabelPosition
+		)
+	})
+
 	it('Doesnt go into pointing_arrow_label mode if not selecting the arrow shape', () => {
 		editor.createShapes([
 			{
@@ -743,6 +828,31 @@ describe('When double clicking a selection handle that registers as a canvas eve
 		overlayEditor.doubleClick(200, 200)
 
 		expect(overlayEditor.getShape<TLArrowShape>(id)!.props.arrowheadEnd).toBe('arrow')
+	})
+
+	it('Undoes an arrowhead toggled by handle double-click without undoing the selection', () => {
+		const id = createShapeId()
+		overlayEditor
+			.createShapes([
+				{
+					id,
+					type: 'arrow',
+					x: 100,
+					y: 100,
+					props: { start: { x: 0, y: 0 }, end: { x: 100, y: 100 } },
+				},
+			])
+			.selectNone()
+		overlayEditor.markHistoryStoppingPoint('before selecting arrow')
+		overlayEditor.select(id)
+
+		overlayEditor.doubleClick(200, 200)
+		expect(overlayEditor.getShape<TLArrowShape>(id)!.props.arrowheadEnd).toBe('none')
+
+		overlayEditor.undo()
+
+		expect(overlayEditor.getShape<TLArrowShape>(id)!.props.arrowheadEnd).toBe('arrow')
+		expect(overlayEditor.getSelectedShapeIds()).toEqual([id])
 	})
 })
 

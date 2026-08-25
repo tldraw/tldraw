@@ -308,13 +308,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					style: 'normal',
 				})
 
-		if (shape.props.textLastEditedBy && !isEmptyRichText(shape.props.richText)) {
-			return [...fonts, DefaultFontFaces.tldraw_sans.normal.normal]
-		}
 		const themeFaces = getThemeFontFaces(this.editor.getCurrentTheme(), shape.props.font)
-		if (themeFaces) return [...themeFaces, ...fonts]
+		const textFaces = themeFaces ? [...themeFaces, ...fonts] : fonts
 
-		return fonts.length ? fonts : EMPTY_ARRAY
+		// The attribution line renders in the default sans face regardless of the note's font.
+		// Theme faces come first so an attributed note keeps its custom font (export included).
+		if (shape.props.textLastEditedBy && !isEmptyRichText(shape.props.richText)) {
+			return [...textFaces, DefaultFontFaces.tldraw_sans.normal.normal]
+		}
+
+		return textFaces.length ? textFaces : EMPTY_ARRAY
 	}
 
 	component(shape: TLNoteShape) {

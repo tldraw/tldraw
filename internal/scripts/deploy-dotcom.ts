@@ -55,7 +55,6 @@ const { previewId, sha } = getDeployInfo()
 const env = makeEnv([
 	'ANALYTICS_API_TOKEN',
 	'ANALYTICS_API_URL',
-	'ANTHROPIC_API_KEY',
 	'ASSET_UPLOAD_SENTRY_DSN',
 	'ASSET_UPLOAD',
 	'CLERK_SECRET_KEY',

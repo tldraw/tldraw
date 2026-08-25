@@ -75,12 +75,19 @@ export function localStorageAtom<Value, Diff = unknown>(
 		}
 	}
 
-	window.addEventListener('storage', handleStorageEvent)
+	// The storage helpers above tolerate environments without localStorage (Node, SSR); do the
+	// same here rather than throwing on `window`.
+	const canListen = typeof window !== 'undefined'
+	if (canListen) {
+		window.addEventListener('storage', handleStorageEvent)
+	}
 
 	// Combined cleanup function
 	const cleanup = () => {
 		reactCleanup()
-		window.removeEventListener('storage', handleStorageEvent)
+		if (canListen) {
+			window.removeEventListener('storage', handleStorageEvent)
+		}
 	}
 
 	return [outAtom, cleanup]

@@ -290,9 +290,7 @@ function createMockTx(
 				// Handle the specific SQL for assertNotMaxFiles
 				if (sql.includes('count(*)') && sql.includes('"file"')) {
 					const userId = params[0]
-					const count = store.file.filter(
-						(f) => !f.isDeleted && (f.ownerId === userId || f.owningGroupId === userId)
-					).length
+					const count = store.file.filter((f) => !f.isDeleted && f.owningGroupId === userId).length
 					return [{ count: String(count) }]
 				}
 				return []
@@ -442,6 +440,8 @@ describe('file mutations', () => {
 	})
 
 	it('cannot change immutable field (ownerId)', async () => {
+		// ownerId is unused by the app but still declared and still guarded, so nothing can write
+		// it while the column exists. The guard and this test both go in the column-drop PR.
 		const s = baseStore()
 		const f = makeFile({ id: 'file_aaaa11112222bbbb', owningGroupId: groupId })
 		s.file.push(f)
@@ -759,7 +759,7 @@ describe('onEnterFile', () => {
 	it('mirrors a group-less (legacy) file into home so it stays findable', async () => {
 		const s = {
 			user: [makeUser({ id: userId })],
-			file: [makeFile({ id: fileId, owningGroupId: null, ownerId: userId, shared: true })],
+			file: [makeFile({ id: fileId, owningGroupId: null, shared: true })],
 			file_state: [],
 			group: [makeGroup({ id: userId })],
 			group_user: [makeGroupUser({ userId, groupId: userId, role: 'owner' })],
@@ -1406,22 +1406,6 @@ describe('immutable column bypass attempts', () => {
 	const userId = 'user_aaaa11112222bbbb'
 	const groupId = 'group_aaa11112222bbb'
 
-	it('cannot change file.ownerId to self', async () => {
-		const s = {
-			user: [makeUser({ id: userId })],
-			file: [makeFile({ id: 'file_aaaa11112222bbbb', owningGroupId: groupId })],
-			file_state: [],
-			group: [makeGroup({ id: groupId })],
-			group_user: [makeGroupUser({ userId, groupId })],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
-		const { tx } = createMockTx(s)
-		const m = createMutators(userId)
-		await expectForbidden(() => m.file.update(tx, { id: 'file_aaaa11112222bbbb', ownerId: userId }))
-	})
-
 	it('cannot change file.owningGroupId', async () => {
 		const s = {
 			user: [makeUser({ id: userId })],
@@ -1555,13 +1539,12 @@ describe('file access control logic', () => {
 		)
 	})
 
-	it('cannot enter file with neither ownerId nor owningGroupId', async () => {
+	it('cannot enter file without owningGroupId', async () => {
 		const s = {
 			user: [makeUser({ id: userId })],
 			file: [
 				makeFile({
 					id: 'file_orphan12345678a',
-					ownerId: null,
 					owningGroupId: null,
 					shared: false,
 				}),
@@ -1680,22 +1663,6 @@ describe('createFile from source (duplicate) access control', () => {
 		await expectBadRequest(() => duplicate(m, tx, `${FILE_PREFIX}/${sourceId}`))
 	})
 
-	it('cannot duplicate an inaccessible legacy (ownerId-owned) file', async () => {
-		const s = {
-			user: [makeUser({ id: userId })],
-			file: [makeFile({ id: sourceId, ownerId: 'user_someoneElse1234', shared: false })],
-			file_state: [],
-			group: [],
-			group_user: [],
-			group_file: [],
-			comment: [],
-			comment_read: [],
-		}
-		const { tx } = createMockTx(s, { location: 'server' })
-		const m = createMutators(userId)
-		await expectForbidden(() => duplicate(m, tx, `${FILE_PREFIX}/${sourceId}`))
-	})
-
 	it('does not gate non-file createSource prefixes (e.g. published)', async () => {
 		// a published-doc copy uses a different prefix and must still work even
 		// when there is no readable `file` row for the source id
@@ -1731,7 +1698,7 @@ describe('comment.markRead / comment.markUnread', () => {
 	function commentState(): TableStore {
 		return {
 			user: [makeUser({ id: 'owner1' }), makeUser({ id: 'other1' })],
-			file: [makeFile({ id: 'file1', ownerId: 'owner1' })],
+			file: [makeFile({ id: 'file1', owningGroupId: 'owner1' })],
 			file_state: [],
 			group: [],
 			group_user: [],
@@ -1819,8 +1786,8 @@ describe('comment.markManyRead', () => {
 		return {
 			user: [makeUser({ id: 'owner1' }), makeUser({ id: 'other1' })],
 			file: [
-				makeFile({ id: 'file1', ownerId: 'owner1' }),
-				makeFile({ id: 'file2', ownerId: 'owner1' }),
+				makeFile({ id: 'file1', owningGroupId: 'owner1' }),
+				makeFile({ id: 'file2', owningGroupId: 'owner1' }),
 			],
 			file_state: [],
 			group: [],
