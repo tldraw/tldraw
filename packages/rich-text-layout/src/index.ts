@@ -13,6 +13,8 @@ export type {
 export { detectDirection } from './layout/bidi'
 export { layoutDocument } from './layout/document'
 export { layoutPlainText } from './layout/plainText'
+export { chromiumLayoutProfile, webkitLayoutProfile } from './layout/profile'
+export type { LayoutEngine, LayoutProfile } from './layout/profile'
 export type { PlainTextLayoutOptions } from './layout/plainText'
 export type {
 	BlockBox,

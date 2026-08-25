@@ -2,7 +2,7 @@ import { NodeRegistry } from '../document/types'
 import { MeasureContext } from '../measure/types'
 import { StyleDeclaration } from '../style/types'
 import { layoutDocument } from './document'
-import { TextLayout } from './types'
+import { LayoutOptions, TextLayout } from './types'
 
 /** @public */
 export interface PlainTextLayoutOptions {
@@ -12,6 +12,8 @@ export interface PlainTextLayoutOptions {
 	minWidth?: number
 	padding?: number
 	measureContext?: MeasureContext
+	engine?: LayoutOptions['engine']
+	profile?: LayoutOptions['profile']
 }
 
 const PLAIN_TEXT_REGISTRY: NodeRegistry = {
@@ -48,6 +50,8 @@ export function layoutPlainText(text: string, options: PlainTextLayoutOptions = 
 			minWidth: options.minWidth,
 			padding: options.padding,
 			measureContext: options.measureContext,
+			engine: options.engine,
+			profile: options.profile,
 		}
 	)
 }

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url'
 // Measures corpus cases in Chromium with the exact element structure and styles tldraw's DOM
 // TextManager uses (see packages/editor/src/lib/editor/managers/TextManager/TextManager.ts and
 // the .tl-text / .tl-text-measure / .tl-rich-text rules in packages/editor/editor.css).
-import { chromium } from '@playwright/test'
+import { chromium, webkit } from '@playwright/test'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 import { FAMILIES, FamilyKey, LINE_HEIGHT } from './corpus'
@@ -159,9 +159,14 @@ export function plainTextToHtml(text: string) {
 	return normalized.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
-export async function measureInChromium(requests: ChromiumRequest[]): Promise<ChromiumResult[]> {
+export type BrowserName = 'chromium' | 'webkit'
+
+export async function measureInChromium(
+	requests: ChromiumRequest[],
+	browserName: BrowserName = 'chromium'
+): Promise<ChromiumResult[]> {
 	const editorCss = readFileSync(join(ROOT, 'packages/editor/editor.css'), 'utf8')
-	const browser = await chromium.launch()
+	const browser = await (browserName === 'webkit' ? webkit : chromium).launch()
 	const page = await browser.newPage({ viewport: { width: 1600, height: 1200 } })
 	await page.setContent(
 		`<!doctype html><html><head><style>${fontFaceCss()}</style><style>${editorCss}</style></head>

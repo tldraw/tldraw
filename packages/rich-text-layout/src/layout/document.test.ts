@@ -235,4 +235,71 @@ describe('layoutDocument', () => {
 		}
 		expect(layout.lines[0].direction).toBe('ltr')
 	})
+
+	it('justifies interior lines by stretching spaces and leaves the last line ragged', () => {
+		const layout = layoutDocument(doc(p(t('aa bb cc dd'))), {
+			rootStyle: { ...rootStyle, textAlign: 'justify' },
+			userAgentStyles: null,
+			maxWidth: 70,
+		})
+		const [first, last] = layout.lines
+		// 'aa bb ' fits in 70 (50 wide); its one interior space absorbs the 20px of slack
+		expect(first.fragments.map((f) => f.text)).toEqual(['aa', ' ', 'bb', ' '])
+		expect(first.fragments[1].width).toBe(30)
+		expect(first.fragments[2].x).toBe(50)
+		expect(first.width).toBe(70)
+		expect(last.fragments.map((f) => f.text)).toEqual(['cc', ' ', 'dd'])
+		expect(last.width).toBe(50)
+	})
+
+	it('reads TipTap textAlign and dir attributes through the user agent sheet', () => {
+		const layout = layoutDocument(
+			doc({ type: 'paragraph', attrs: { textAlign: 'center', dir: 'rtl' }, content: [t('ab')] }),
+			{ rootStyle, minWidth: 100 }
+		)
+		expect(layout.blocks[1].style.textAlign).toBe('center')
+		expect(layout.blocks[1].style.direction).toBe('rtl')
+		expect(layout.lines[0].x).toBe(40)
+	})
+
+	it('follows the selected engine profile', () => {
+		const text = doc(p(t('ab ')))
+		expect(layoutDocument(text, { rootStyle, userAgentStyles: null }).width).toBe(30)
+		expect(
+			layoutDocument(text, {
+				rootStyle,
+				userAgentStyles: null,
+				profile: { trailingSpacesInMaxContent: false },
+			}).width
+		).toBe(20)
+
+		const fractional = { ...rootStyle, lineHeight: '30.4px' } as const
+		expect(layoutDocument(text, { rootStyle: fractional, userAgentStyles: null }).height).toBe(30.4)
+		expect(
+			layoutDocument(text, { rootStyle: fractional, userAgentStyles: null, engine: 'webkit' })
+				.height
+		).toBe(30)
+
+		const sub = doc(p(t('x', 'sub')))
+		const shift = (engineProfile: Parameters<typeof layoutDocument>[1]) =>
+			layoutDocument(sub, {
+				rootStyle,
+				styles: [markRule('sub', { verticalAlign: 'sub' })],
+				userAgentStyles: null,
+				...engineProfile,
+			}).lines[0].fragments[0].baselineShift
+		expect(shift({})).toBe(4)
+		expect(shift({ profile: { subscriptShift: 0.5 } })).toBe(10)
+	})
+
+	it('lets several measure contexts coexist without reinstalling', () => {
+		const wide = createFakeMeasureContext({ advance: 1 })
+		const narrow = createFakeMeasureContext({ advance: 0.25 })
+		const opts = { rootStyle, userAgentStyles: null } as const
+		// interleave so pretext's per-font caches would collide if they weren't namespaced
+		expect(layoutDocument(doc(p(t('abcd'))), { ...opts, measureContext: wide }).width).toBe(80)
+		expect(layoutDocument(doc(p(t('abcd'))), { ...opts, measureContext: narrow }).width).toBe(20)
+		expect(layoutDocument(doc(p(t('abcd'))), { ...opts, measureContext: wide }).width).toBe(80)
+		expect(layoutDocument(doc(p(t('abcd'))), opts).width).toBe(40)
+	})
 })

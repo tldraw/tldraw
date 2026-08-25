@@ -69,6 +69,9 @@ export interface CanvasTextContextLike {
 }
 
 // @public
+export const chromiumLayoutProfile: LayoutProfile;
+
+// @public
 export function createCanvasMeasureContext(ctx: CanvasTextContextLike, options?: CanvasMeasureContextOptions): MeasureContext;
 
 // @public
@@ -199,11 +202,16 @@ export function isMeasureContextReady(): boolean;
 export function layoutDocument(doc: PMNode, options?: LayoutOptions): TextLayout;
 
 // @public (undocumented)
+export type LayoutEngine = 'chromium' | 'webkit';
+
+// @public (undocumented)
 export interface LayoutOptions {
+    engine?: LayoutEngine;
     maxWidth?: null | number;
     measureContext?: MeasureContext;
     minWidth?: number;
     padding?: number;
+    profile?: Partial<LayoutProfile>;
     registry?: NodeRegistry;
     rootStyle?: StyleDeclaration;
     styles?: StyleSheet;
@@ -212,6 +220,16 @@ export interface LayoutOptions {
 
 // @public
 export function layoutPlainText(text: string, options?: PlainTextLayoutOptions): TextLayout;
+
+// @public
+export interface LayoutProfile {
+    normalLineHeight(metrics: FontMetrics, fontSize: number): number;
+    roundLineBoxes: boolean;
+    shapeAcrossWordBoundaries: boolean;
+    subscriptShift: number;
+    superscriptShift: number;
+    trailingSpacesInMaxContent: boolean;
+}
 
 // @public
 export type Length = `${number}ch` | `${number}em` | `${number}lh` | `${number}px` | number;
@@ -306,6 +324,8 @@ export function parseFontString(font: string): FontSpec;
 // @public (undocumented)
 export interface PlainTextLayoutOptions {
     // (undocumented)
+    engine?: LayoutOptions['engine'];
+    // (undocumented)
     maxWidth?: null | number;
     // (undocumented)
     measureContext?: MeasureContext;
@@ -313,6 +333,8 @@ export interface PlainTextLayoutOptions {
     minWidth?: number;
     // (undocumented)
     padding?: number;
+    // (undocumented)
+    profile?: LayoutOptions['profile'];
     style?: StyleDeclaration;
 }
 
@@ -509,7 +531,7 @@ export interface SvgRenderOptions {
 }
 
 // @public (undocumented)
-export type TextAlignValue = 'center' | 'end' | 'left' | 'right' | 'start';
+export type TextAlignValue = 'center' | 'end' | 'justify' | 'left' | 'right' | 'start';
 
 // @public (undocumented)
 export type TextDecorationValue = 'line-through' | 'none' | 'underline line-through' | 'underline';
@@ -529,6 +551,9 @@ export interface TextLayout {
 
 // @public (undocumented)
 export type VerticalAlignValue = 'baseline' | 'sub' | 'super';
+
+// @public
+export const webkitLayoutProfile: LayoutProfile;
 
 // @public (undocumented)
 export type WhiteSpaceValue = 'normal' | 'pre-wrap' | 'pre';

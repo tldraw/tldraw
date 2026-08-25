@@ -1,5 +1,5 @@
 import { markRule, nodeRule } from './stylesheet'
-import { ListStyleTypeValue, StyleSheet } from './types'
+import { ListStyleTypeValue, StyleSheet, TextAlignValue } from './types'
 
 const HEADING_SIZES: Record<number, `${number}em`> = {
 	1: '2em',
@@ -28,6 +28,19 @@ const BULLET_BY_DEPTH: ListStyleTypeValue[] = ['disc', 'circle', 'square']
  * @public
  */
 export const defaultUserAgentStyles: StyleSheet = [
+	// TipTap's TextAlign and TextDirection extensions write `textAlign` and `dir` attributes on
+	// blocks, which the HTML renderer turns into inline styles.
+	{
+		match: (ctx) => typeof ctx.node.attrs?.textAlign === 'string',
+		style: (ctx) => ({ textAlign: ctx.node.attrs!.textAlign as TextAlignValue }),
+	},
+	{
+		match: (ctx) => {
+			const dir = ctx.node.attrs?.dir
+			return dir === 'ltr' || dir === 'rtl' || dir === 'auto'
+		},
+		style: (ctx) => ({ direction: ctx.node.attrs!.dir as 'ltr' | 'rtl' | 'auto' }),
+	},
 	nodeRule('paragraph', { marginTop: '1em', marginBottom: '1em' }),
 	nodeRule('heading', (ctx) => {
 		const level = Number(ctx.node.attrs?.level ?? 1)

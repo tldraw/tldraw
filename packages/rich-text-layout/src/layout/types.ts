@@ -6,6 +6,7 @@ import {
 	StyleDeclaration,
 	StyleSheet,
 } from '../style/types'
+import { LayoutEngine, LayoutProfile } from './profile'
 
 /**
  * Where a fragment's text came from: the index path of the ProseMirror text node and the
@@ -105,4 +106,8 @@ export interface LayoutOptions {
 	rootStyle?: StyleDeclaration
 	/** Defaults to the installed context. */
 	measureContext?: MeasureContext
+	/** Which browser's layout rules to follow where they differ. Defaults to `'chromium'`. */
+	engine?: LayoutEngine
+	/** Overrides for individual rules of the chosen engine's profile. */
+	profile?: Partial<LayoutProfile>
 }

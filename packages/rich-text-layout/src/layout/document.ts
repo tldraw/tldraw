@@ -1,7 +1,7 @@
 import { defaultNodeRegistry } from '../document/registry'
 import { DocBlock, ListItemInfo, PMNode } from '../document/types'
 import { walkDocument } from '../document/walk'
-import { getMeasureContext, withMeasureContext } from '../measure/install'
+import { getMeasureContext } from '../measure/install'
 import { MeasureContext } from '../measure/types'
 import {
 	BlockStyleState,
@@ -12,6 +12,7 @@ import {
 import { ListStyleTypeValue, ResolvedInlineStyle, StyleSheet } from '../style/types'
 import { defaultUserAgentStyles } from '../style/userAgent'
 import { InlineLine, buildInlineContent, layoutInline } from './inline'
+import { LayoutProfile, resolveProfile } from './profile'
 import { BlockBox, LayoutOptions, LineBox, TextLayout } from './types'
 
 interface LaidOutBlock {
@@ -37,14 +38,7 @@ interface LaidOutBlock {
  */
 export function layoutDocument(doc: PMNode, options: LayoutOptions = {}): TextLayout {
 	const measure = options.measureContext ?? getMeasureContext()
-	return withMeasureContext(measure, () => layoutDocumentWith(doc, options, measure))
-}
-
-function layoutDocumentWith(
-	doc: PMNode,
-	options: LayoutOptions,
-	measure: MeasureContext
-): TextLayout {
+	const profile = resolveProfile(options.engine, options.profile)
 	const registry = options.registry ?? defaultNodeRegistry
 	const sheet: StyleSheet = [
 		...(options.userAgentStyles === undefined
@@ -52,7 +46,7 @@ function layoutDocumentWith(
 			: (options.userAgentStyles ?? [])),
 		...(options.styles ?? []),
 	]
-	const resolver = createStyleResolver(sheet, measure, options.rootStyle)
+	const resolver = createStyleResolver(sheet, measure, options.rootStyle ?? {}, profile)
 	const padding = options.padding ?? 0
 	const minWidth = Math.max(0, options.minWidth ?? 0)
 	const maxWidth = options.maxWidth == null ? Infinity : Math.max(0, options.maxWidth)
@@ -69,7 +63,7 @@ function layoutDocumentWith(
 			for (const child of b.children) measureMaxContent(child)
 			return
 		}
-		const result = layoutLeaf(b, Infinity, measure, resolver)
+		const result = layoutLeaf(b, Infinity, measure, resolver, profile)
 		maxContent = Math.max(maxContent, result.maxContentWidth + b.inset)
 	}
 	if (!isEmpty) measureMaxContent(tree)
@@ -84,7 +78,13 @@ function layoutDocumentWith(
 			for (const child of b.children) layoutLeaves(child)
 			return
 		}
-		const result = layoutLeaf(b, wraps ? contentWidth - b.inset : Infinity, measure, resolver)
+		const result = layoutLeaf(
+			b,
+			wraps ? contentWidth - b.inset : Infinity,
+			measure,
+			resolver,
+			profile
+		)
 		b.lines = result.lines
 		b.direction = result.direction
 	}
@@ -137,7 +137,8 @@ function layoutLeaf(
 	b: LaidOutBlock,
 	maxWidth: number,
 	measure: MeasureContext,
-	resolver: StyleResolver
+	resolver: StyleResolver,
+	profile: LayoutProfile
 ) {
 	const style = b.state.style
 	const content = buildInlineContent(b.block.inlines, (item) =>
@@ -149,7 +150,13 @@ function layoutLeaf(
 	const marker = b.block.marker ? makeMarker(b, b.block.marker) : null
 	// The available width is the block's content box: its own padding is part of the box.
 	const available = maxWidth === Infinity ? Infinity : Math.max(0, maxWidth - style.paddingLeft)
-	const result = layoutInline(content, { block: style, maxWidth: available, measure, marker })
+	const result = layoutInline(content, {
+		block: style,
+		maxWidth: available,
+		measure,
+		marker,
+		profile,
+	})
 	return {
 		lines: result.lines,
 		maxContentWidth: result.maxContentWidth + style.paddingLeft,
@@ -364,6 +371,7 @@ function emit(b: LaidOutBlock, parentIndex: number, blocks: BlockBox[], lines: L
 		let x = contentX
 		if (align === 'center') x = contentX + (available - line.width) / 2
 		else if (align === 'right') x = contentX + available - line.width
+		else if (align === 'justify' && !line.endsChunk) justify(line, available)
 		lines.push({
 			blockIndex: index,
 			x,
@@ -379,7 +387,36 @@ function emit(b: LaidOutBlock, parentIndex: number, blocks: BlockBox[], lines: L
 	box.lineEnd = lines.length
 }
 
-function resolveAlign(align: string, direction: 'ltr' | 'rtl'): 'left' | 'center' | 'right' {
+/**
+ * Spread a line's slack across its interior spaces. Only spaces stretch (CSS `text-justify:
+ * auto` for scripts with spaces); the last line of a paragraph and lines before a forced break
+ * stay ragged, as in browsers.
+ */
+function justify(line: InlineLine, available: number) {
+	const slack = available - line.width
+	if (slack <= 0) return
+	const spaces = line.fragments.filter(
+		(f) => f.kind === 'space' && f.x + f.width <= line.width + 0.01
+	)
+	if (spaces.length === 0) return
+	const extra = slack / spaces.length
+	let shift = 0
+	for (const f of line.fragments) {
+		if (f.kind === 'marker') continue
+		f.x += shift
+		if (f.kind === 'space' && spaces.includes(f)) {
+			f.width += extra
+			shift += extra
+		}
+	}
+	line.width = available
+}
+
+function resolveAlign(
+	align: string,
+	direction: 'ltr' | 'rtl'
+): 'left' | 'center' | 'right' | 'justify' {
+	if (align === 'justify') return 'justify'
 	if (align === 'center') return 'center'
 	if (align === 'left') return 'left'
 	if (align === 'right') return 'right'

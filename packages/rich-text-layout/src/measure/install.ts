@@ -1,5 +1,5 @@
 import type * as Pretext from '@chenglou/pretext'
-import { MeasureContext, parseFontString } from './types'
+import { FontSpec, MeasureContext, fontSpecToString, parseFontString } from './types'
 
 type PretextModule = typeof Pretext
 
@@ -20,8 +20,8 @@ class ShimContext2D {
 		if (!current) {
 			throw new Error('@tldraw/rich-text-layout: no MeasureContext installed')
 		}
-		const font = parseFontString(this.font)
-		const width = current.measure(text, font).width
+		const { font, context } = resolveTaggedFont(this.font)
+		const width = context.measure(text, font).width
 		// pretext calibrates emoji widths by comparing canvas against a DOM span whenever a
 		// `document` exists. Under jsdom that span has no layout, so the "correction" would be
 		// the whole emoji width. Reporting the probe glyph at no more than 1em keeps pretext
@@ -31,6 +31,39 @@ class ShimContext2D {
 		}
 		return { width }
 	}
+}
+
+// pretext caches widths by font string and measures through one global context. Tagging the
+// font string with the context it belongs to keys those caches per context and lets the shim
+// route each measurement, so several backends can coexist in one process.
+const TAG_PREFIX = '__rtl_ctx_'
+const TAG_RE = /,\s*__rtl_ctx_(\d+)__$/
+const tagsByContext = new WeakMap<MeasureContext, string>()
+const contextsByTag = new Map<string, MeasureContext>()
+const taggedFontCache = new Map<string, { font: FontSpec; context: MeasureContext }>()
+let nextTag = 1
+
+/** @internal */
+export function pretextFontString(font: FontSpec, ctx: MeasureContext): string {
+	let tag = tagsByContext.get(ctx)
+	if (!tag) {
+		tag = `${TAG_PREFIX}${nextTag++}__`
+		tagsByContext.set(ctx, tag)
+		contextsByTag.set(tag, ctx)
+	}
+	return `${fontSpecToString(font)}, ${tag}`
+}
+
+function resolveTaggedFont(fontString: string): { font: FontSpec; context: MeasureContext } {
+	let entry = taggedFontCache.get(fontString)
+	if (entry) return entry
+	const match = TAG_RE.exec(fontString)
+	const context = (match && contextsByTag.get(`${TAG_PREFIX}${match[1]}__`)) || current
+	if (!context) throw new Error('@tldraw/rich-text-layout: no MeasureContext installed')
+	const font = parseFontString(match ? fontString.slice(0, match.index) : fontString)
+	entry = { font, context }
+	taggedFontCache.set(fontString, entry)
+	return entry
 }
 
 const EMOJI_PROBE = '\u{1F600}'
@@ -67,39 +100,15 @@ class ShimOffscreenCanvas {
  * enough for pretext to capture one. Everything pretext measures then goes through the installed
  * context.
  *
- * Call this once before laying anything out; calling it again swaps the backend and clears
- * pretext's width caches. Layout functions are synchronous and throw if this has not resolved.
+ * Call this once before laying anything out; calling it again changes the default backend.
+ * Layout functions are synchronous and throw if this has not resolved.
  *
  * @public
  */
 export async function installMeasureContext(ctx: MeasureContext): Promise<void> {
-	const previous = current
 	current = ctx
 	const mod = await loadPretext()
-	if (previous !== null && previous !== ctx) mod.clearCache()
 	captureIfNeeded(mod)
-}
-
-/**
- * Run a synchronous layout with `ctx` as pretext's measuring context. Layouts that pass their
- * own context would otherwise get pretext's segment widths from whichever context was installed
- * last, while fragment widths came from theirs. Swapping costs pretext its width caches, so a
- * context other than the installed one is correct but slow; the installed one is the fast path.
- *
- * @internal
- */
-export function withMeasureContext<T>(ctx: MeasureContext, fn: () => T): T {
-	if (ctx === current) return fn()
-	const previous = current
-	const mod = getPretext()
-	current = ctx
-	mod.clearCache()
-	try {
-		return fn()
-	} finally {
-		current = previous
-		mod.clearCache()
-	}
 }
 
 function loadPretext(): Promise<PretextModule> {

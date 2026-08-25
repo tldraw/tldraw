@@ -88,6 +88,8 @@ export function plainCorpus(): PlainCase[] {
 	return cases
 }
 
+export type RichAlign = 'start' | 'center' | 'end' | 'justify'
+
 export interface RichCase {
 	id: string
 	kind: 'rich'
@@ -96,7 +98,11 @@ export interface RichCase {
 	family: FamilyKey
 	fontSize: number
 	maxWidth: number | null
+	textAlign: RichAlign
 }
+
+// Documents that exercise alignment: multi-line, mixed runs, lists (forced left in tldraw).
+const ALIGNED_DOCS = ['multiLineMixed', 'headingWrap', 'listWrap', 'boldMidWord', 'hardBreak']
 
 const p = (...content: any[]) => ({ type: 'paragraph', attrs: { dir: 'auto' }, content })
 const t = (text: string, ...marks: string[]) => ({
@@ -201,7 +207,22 @@ export function richCorpus(): RichCase[] {
 						family,
 						fontSize,
 						maxWidth,
+						textAlign: 'start',
 					})
+					if (ALIGNED_DOCS.includes(docKey) && family === 'sans' && fontSize === 24) {
+						for (const textAlign of ['center', 'end', 'justify'] as RichAlign[]) {
+							cases.push({
+								id: `${docKey}/${family}/${fontSize}/${maxWidth ?? 'auto'}/${textAlign}`,
+								kind: 'rich',
+								docKey,
+								doc: d,
+								family,
+								fontSize,
+								maxWidth,
+								textAlign,
+							})
+						}
+					}
 				}
 			}
 		}

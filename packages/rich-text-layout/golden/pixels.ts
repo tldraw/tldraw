@@ -56,6 +56,7 @@ export interface PixelCase {
 	family: FamilyKey
 	fontSize: number
 	maxWidth: number | null
+	textAlign: string
 	html: string
 	engine: EngineResult & { svg: string }
 }
@@ -119,13 +120,21 @@ export async function comparePixels(cases: PixelCase[]): Promise<PixelResult[]> 
 
 		// reference: the foreignObject markup from RichTextSVG, top/start aligned
 		await page.evaluate(
-			({ html, width, height, fontFamily, fontSize, lineHeightPx }) => {
+			({ html, width, height, fontFamily, fontSize, lineHeightPx, textAlign }) => {
 				const box = document.getElementById('box')!
 				box.style.width = `${width}px`
 				box.style.height = `${height}px`
-				box.innerHTML = `<div style="display:flex;font-family:${fontFamily};height:100%;justify-content:flex-start;align-items:flex-start;padding:0px"><div class="tl-rich-text" style="font-size:${fontSize}px;color:#000;line-height:${lineHeightPx}px;--tl-rich-text-heading-line-height:1.35;text-align:start;width:100%;word-wrap:break-word;overflow-wrap:break-word;white-space:pre-wrap;tab-size:2">${html}</div></div>`
+				box.innerHTML = `<div style="display:flex;font-family:${fontFamily};height:100%;justify-content:flex-start;align-items:flex-start;padding:0px"><div class="tl-rich-text" style="font-size:${fontSize}px;color:#000;line-height:${lineHeightPx}px;--tl-rich-text-heading-line-height:1.35;text-align:${textAlign};width:100%;word-wrap:break-word;overflow-wrap:break-word;white-space:pre-wrap;tab-size:2">${html}</div></div>`
 			},
-			{ html: c.html, width, height, fontFamily, fontSize: c.fontSize, lineHeightPx }
+			{
+				html: c.html,
+				width,
+				height,
+				fontFamily,
+				fontSize: c.fontSize,
+				lineHeightPx,
+				textAlign: c.textAlign,
+			}
 		)
 		const reference = await page.screenshot({ clip: { x: 0, y: 0, width, height } })
 
