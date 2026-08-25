@@ -44,5 +44,10 @@ export function refreshPage() {
 
 /** @public */
 export function hardResetEditor() {
-	runtime.hardReset()
+	runtime.hardReset().catch((err) => {
+		// The reset code is loaded on demand; if that load fails (the user is likely already on
+		// the error fallback, possibly offline) at least get them a fresh page.
+		console.error(err)
+		runtime.refreshPage()
+	})
 }
