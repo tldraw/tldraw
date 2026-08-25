@@ -4,11 +4,6 @@
 
 ```ts
 
-import { default as isEqual } from 'lodash.isequal';
-import { default as isEqualWith } from 'lodash.isequalwith';
-import { default as throttle } from 'lodash.throttle';
-import { default as uniq } from 'lodash.uniq';
-
 // @internal
 export function annotateError(error: unknown, annotations: Partial<ErrorAnnotations>): void;
 
@@ -227,12 +222,17 @@ export function invLerp(a: number, b: number, t: number): number;
 // @public
 export function isDefined<T>(value: T): value is typeof value extends undefined ? never : T;
 
-export { isEqual }
+// @public
+export function isEqual(a: unknown, b: unknown): boolean;
 
 // @internal
 export function isEqualAllowingForFloatingPointErrors(obj1: object, obj2: object, threshold?: number): boolean;
 
-export { isEqualWith }
+// @public
+export type IsEqualCustomizer = (a: any, b: any, key: PropertyKey | undefined) => boolean | undefined;
+
+// @public
+export function isEqualWith(a: unknown, b: unknown, customizer?: IsEqualCustomizer): boolean;
 
 // @internal
 export const isNativeStructuredClone: boolean;
@@ -516,7 +516,21 @@ export const STRUCTURED_CLONE_OBJECT_PROTOTYPE: any;
 const structuredClone_2: <T>(i: T) => T;
 export { structuredClone_2 as structuredClone }
 
-export { throttle }
+// @public
+export function throttle<F extends (...args: any[]) => any>(fn: F, wait: number, options?: ThrottleOptions): ThrottledFunction<F>;
+
+// @public
+export interface ThrottledFunction<F extends (...args: any[]) => any> {
+    (...args: Parameters<F>): ReturnType<F> | undefined;
+    cancel(): void;
+    flush(): ReturnType<F> | undefined;
+}
+
+// @public
+export interface ThrottleOptions {
+    leading?: boolean;
+    trailing?: boolean;
+}
 
 // @internal
 export function throttleToNextFrame(fn: () => void): () => void;
@@ -537,7 +551,8 @@ export class Timers {
     setTimeout(contextId: string, handler: TimerHandler, timeout?: number, ...args: any[]): number;
 }
 
-export { uniq }
+// @public
+export function uniq<T>(array: ArrayLike<T> | null | undefined): T[];
 
 // @public
 export function uniqueId(size?: number): string;
