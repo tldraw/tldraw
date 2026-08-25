@@ -55,6 +55,17 @@ export function getExportTextMeasurer(editor: Editor): Promise<TldrawTextMeasure
 function svgNodeToJsx(node: SvgNode, key: number): React.ReactElement {
 	const props: Record<string, unknown> = { key }
 	for (const [name, value] of Object.entries(node.attrs)) {
+		if (name === 'style') {
+			// React wants style as an object of camelCased properties
+			const style: Record<string, string> = {}
+			for (const declaration of String(value).split(';')) {
+				const [prop, val] = declaration.split(':')
+				if (!prop || val === undefined) continue
+				style[prop.trim().replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = val.trim()
+			}
+			props.style = style
+			continue
+		}
 		props[name === 'xml:space' ? 'xmlSpace' : name] = value
 	}
 	return createElement(
