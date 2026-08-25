@@ -476,11 +476,79 @@ async function group<T>(name: string, cb: () => Promise<T>) {
 	}
 }
 
+// Published packages are built unbundled (one output file per source module), so a consumer's
+// bundler sees hundreds of modules and, without this flag, must assume every one of them has
+// import-time side effects and keep them all. Only the package entry point (which registers the
+// library version) and stylesheets have side effects worth keeping.
+const expectedSideEffects = [
+	'./src/index.ts',
+	'./dist-esm/index.mjs',
+	'./dist-cjs/index.js',
+	'**/*.css',
+]
+
+async function checkSideEffects({
+	packages,
+	fix,
+}: {
+	packages: Package[]
+	fix: boolean
+}): Promise<boolean> {
+	let errorCount = 0
+	for (const { relativePath, packageJson, name } of packages) {
+		const isPublishedLibrary =
+			relativePath.startsWith('packages/') &&
+			!packageJson.private &&
+			existsSync(join(REPO_ROOT, relativePath, 'src/index.ts'))
+		if (!isPublishedLibrary) continue
+
+		const actual = packageJson.sideEffects
+		const ok =
+			Array.isArray(actual) &&
+			actual.length === expectedSideEffects.length &&
+			actual.every((v, i) => v === expectedSideEffects[i])
+		if (ok) {
+			nicelog(['✅ ', kleur.green(`${name}: `), kleur.grey('sideEffects')].join(''))
+			continue
+		}
+
+		errorCount++
+		nicelog(
+			[
+				'❌ ',
+				kleur.red(`${name}: `),
+				kleur.grey('sideEffects -> '),
+				kleur.red(JSON.stringify(actual ?? null)),
+				kleur.gray(' (expected: '),
+				kleur.green(JSON.stringify(expectedSideEffects)),
+				kleur.gray(')'),
+			].join('')
+		)
+		if (fix) {
+			packageJson.sideEffects = expectedSideEffects
+			await writeJsonFile(join(REPO_ROOT, relativePath, 'package.json'), packageJson)
+		}
+	}
+
+	if (errorCount) {
+		if (fix) {
+			nicelog(kleur.yellow(`Fixed ${errorCount} errors`))
+			return true
+		}
+		nicelog(kleur.red(`Found ${errorCount} errors (run \`yarn check-packages --fix\`)`))
+		return false
+	}
+	return true
+}
+
 async function main({ fix }: { fix: boolean }) {
 	const packages = await getAllWorkspacePackages()
 
 	const scriptsOk = await group('Checking package.json scripts...', () =>
 		checkPackageJsonScripts({ packages, fix })
+	)
+	const sideEffectsOk = await group('Checking package.json sideEffects...', () =>
+		checkSideEffects({ packages, fix })
 	)
 	const tsConfigsOk = await group('Checking tsconfig.json files...', () =>
 		checkTsConfigs({ packages, fix })
@@ -492,7 +560,7 @@ async function main({ fix }: { fix: boolean }) {
 		checkProductMetadata({ packages, fix })
 	)
 
-	if (!scriptsOk || !tsConfigsOk || !libsOk || !productMetadataOk) {
+	if (!scriptsOk || !sideEffectsOk || !tsConfigsOk || !libsOk || !productMetadataOk) {
 		process.exit(1)
 	}
 }

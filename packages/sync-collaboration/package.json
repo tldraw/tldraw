@@ -26,6 +26,12 @@
 	"main": "./src/index.ts",
 	"types": "./.tsbuild/index.d.ts",
 	"type": "module",
+	"sideEffects": [
+		"./src/index.ts",
+		"./dist-esm/index.mjs",
+		"./dist-cjs/index.js",
+		"**/*.css"
+	],
 	"scripts": {
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test": "yarn run -T vitest --passWithNoTests",

@@ -80,6 +80,7 @@ Code quality:
 - `yarn format` - format the repo
 - `yarn format-current` - format changed files
 - `yarn api-check` - validate public API reports
+- `yarn lazy check-bundle-size` - measure the SDK and worker bundles and fail if the SDK pulls in code a consumer of `<Tldraw />` should not pay for
 
 ## Validation workflow
 

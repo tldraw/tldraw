@@ -27,6 +27,12 @@
 	"types": "./.tsbuild/index.d.ts",
 	"style": "./commenting.css",
 	"type": "module",
+	"sideEffects": [
+		"./src/index.ts",
+		"./dist-esm/index.mjs",
+		"./dist-cjs/index.js",
+		"**/*.css"
+	],
 	"files": [
 		"commenting.css"
 	],

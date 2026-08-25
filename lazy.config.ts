@@ -133,6 +133,18 @@ const config = {
 				outputs: ['<rootDir>/apps/dotcom/client/public/tla/locales-compiled/*.json'],
 			},
 		},
+		'check-bundle-size': {
+			execution: 'independent',
+			workspaceOverrides: {
+				// The SDK check bundles packages/tldraw from source, so it depends on every SDK
+				// package's sources and manifests, not just its own workspace.
+				'packages/tldraw': {
+					cache: {
+						inputs: ['<rootDir>/packages/*/src/**/*', '<rootDir>/packages/*/package.json'],
+					},
+				},
+			},
+		},
 		'api-check': {
 			execution: 'top-level',
 			baseCommand: `tsx <rootDir>/internal/scripts/api-check.ts`,
