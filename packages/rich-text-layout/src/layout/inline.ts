@@ -6,7 +6,7 @@ import { ResolvedBlockStyle, ResolvedInlineStyle } from '../style/types'
 import { detectDirection } from './bidi'
 import { LayoutProfile } from './profile'
 import { visualOrder } from './reorder'
-import { Fragment, FragmentKind, LineBox } from './types'
+import { Fragment, FragmentKind, LineBox, MarkerSymbol } from './types'
 
 /** @internal */
 export interface InlineRun {
@@ -31,7 +31,12 @@ export interface InlineLayoutOptions {
 	measure: MeasureContext
 	profile: LayoutProfile
 	/** Leading marker fragment for list items, placed before the first line. */
-	marker?: { text: string; style: ResolvedInlineStyle; path: number[] } | null
+	marker?: {
+		text: string
+		style: ResolvedInlineStyle
+		path: number[]
+		symbol?: MarkerSymbol['shape']
+	} | null
 }
 
 /** @internal */
@@ -488,6 +493,9 @@ export function layoutInline(
 			below = Math.max(below, m.below + f.baselineShift)
 		}
 		const height = profile.roundLineBoxes ? Math.round(above + below) : above + below
+		for (const f of fragments) {
+			if (f.kind === 'marker' && f.symbol) f.symbol.y += above
+		}
 		return {
 			width,
 			height,
@@ -503,13 +511,10 @@ export function layoutInline(
 	const placeMarker = (fragments: Fragment[]) => {
 		if (!markerPending) return
 		const text = markerPending.text
-		const width = measure.measure(text, markerPending.style.font).width
-		// Outside markers sit to the left of the content edge, separated by a space.
-		const gap = measure.measure(' ', markerPending.style.font).width
 		const m = measure.metrics(markerPending.style.font)
-		fragments.unshift({
-			x: -(width + gap),
-			width,
+		const fragment: Fragment = {
+			x: 0,
+			width: 0,
 			text,
 			style: markerPending.style,
 			kind: 'marker',
@@ -517,7 +522,31 @@ export function layoutInline(
 			baselineShift: 0,
 			ascent: m.ascent,
 			descent: m.descent,
-		})
+		}
+		if (markerPending.symbol) {
+			// Blink's symbol marker geometry (list_marker.cc), in whole pixels of the rounded
+			// ascent: the bullet is (2A/3 + 1) / 2 wide, sits 2A/3 + 7 before the content edge and
+			// 3(A - 2A/3) / 2 below the content-area top. Verified against Chromium at 16-44px.
+			const ascent = Math.round(m.ascent)
+			const offset = Math.floor((ascent * 2) / 3)
+			const size = Math.floor((offset + 1) / 2)
+			fragment.symbol = {
+				shape: markerPending.symbol,
+				x: -offset - 7,
+				// y is completed once the line's baseline is known
+				y: Math.floor((3 * (ascent - offset)) / 2) - m.ascent,
+				size,
+			}
+			fragment.x = fragment.symbol.x
+			fragment.width = size
+		} else {
+			// Text markers end with a space, and their box ends at the content edge.
+			const width = measure.measure(text, markerPending.style.font).width
+			const gap = measure.measure(' ', markerPending.style.font).width
+			fragment.x = -(width + gap)
+			fragment.width = width
+		}
+		fragments.unshift(fragment)
 		markerPending = null
 	}
 
