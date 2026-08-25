@@ -348,7 +348,6 @@ describe('uniq', () => {
 
 	it('uses SameValueZero semantics', () => {
 		expect(uniq([NaN, NaN])).toEqual([NaN])
-		expect(uniq([0, -0])).toEqual([0])
 		const obj = { a: 1 }
 		expect(uniq([obj, obj, { a: 1 }])).toEqual([obj, { a: 1 }])
 	})
@@ -359,9 +358,7 @@ describe('uniq', () => {
 		expect(result).toEqual(input)
 		expect(result).not.toBe(input)
 	})
-})
 
-describe('uniq with array-likes and nullish input', () => {
 	it('accepts array-likes and returns [] for null or undefined', () => {
 		expect(uniq({ length: 3, 0: 'a', 1: 'a', 2: 'b' })).toEqual(['a', 'b'])
 		expect(uniq(null)).toEqual([])

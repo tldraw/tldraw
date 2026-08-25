@@ -5,11 +5,7 @@
  *
  * @public
  */
-export type IsEqualCustomizer = (
-	a: any,
-	b: any,
-	key: PropertyKey | undefined
-) => boolean | undefined
+export type IsEqualCustomizer = (a: unknown, b: unknown) => boolean | undefined
 
 /**
  * Deep equality comparison of two values.
@@ -34,7 +30,7 @@ export type IsEqualCustomizer = (
  * @public
  */
 export function isEqual(a: unknown, b: unknown): boolean {
-	return baseIsEqual(a, b, undefined, undefined, undefined)
+	return baseIsEqual(a, b, undefined, undefined)
 }
 
 /**
@@ -57,8 +53,8 @@ export function isEqual(a: unknown, b: unknown): boolean {
  *
  * @public
  */
-export function isEqualWith(a: unknown, b: unknown, customizer?: IsEqualCustomizer): boolean {
-	return baseIsEqual(a, b, customizer, undefined, undefined)
+export function isEqualWith(a: unknown, b: unknown, customizer: IsEqualCustomizer): boolean {
+	return baseIsEqual(a, b, customizer, undefined)
 }
 
 // Pairs of objects currently being compared further up the call stack. Re-encountering an object
@@ -70,11 +66,10 @@ function baseIsEqual(
 	a: unknown,
 	b: unknown,
 	customizer: IsEqualCustomizer | undefined,
-	key: PropertyKey | undefined,
 	stack: Stack | undefined
 ): boolean {
 	if (customizer) {
-		const result = customizer(a, b, key)
+		const result = customizer(a, b)
 		if (result !== undefined) return result
 	}
 
@@ -86,12 +81,10 @@ function baseIsEqual(
 		return false
 	}
 
-	if (stack) {
-		const partner = stack.get(a)
-		if (partner !== undefined) return partner === b
-	} else {
-		stack = new Map()
-	}
+	stack ??= new Map()
+	const partner = stack.get(a)
+	if (partner !== undefined) return partner === b
+
 	stack.set(a, b)
 	try {
 		return compareObjects(a, b, customizer, stack)
@@ -116,29 +109,12 @@ function compareObjects(
 			return String(a) === String(b)
 		case '[object ArrayBuffer]':
 			return compareBytes(new Uint8Array(a as ArrayBuffer), new Uint8Array(b as ArrayBuffer))
-		case '[object DataView]':
-			return compareBytes(
-				new Uint8Array(
-					(a as DataView).buffer,
-					(a as DataView).byteOffset,
-					(a as DataView).byteLength
-				),
-				new Uint8Array(
-					(b as DataView).buffer,
-					(b as DataView).byteOffset,
-					(b as DataView).byteLength
-				)
-			)
 		case '[object Map]':
 			return compareMaps(a as Map<unknown, unknown>, b as Map<unknown, unknown>, customizer, stack)
 		case '[object Set]':
 			return compareSets(a as Set<unknown>, b as Set<unknown>, customizer, stack)
 		case '[object Array]':
 			return compareArrays(a as unknown[], b as unknown[], customizer, stack)
-		case '[object Number]':
-		case '[object String]':
-		case '[object Boolean]':
-			return Object.is((a as object).valueOf(), (b as object).valueOf())
 	}
 
 	if (ArrayBuffer.isView(a)) {
@@ -153,13 +129,10 @@ function compareObjects(
 	if (a.constructor !== b.constructor) return false
 
 	const keysA = Object.keys(a)
-	const keysB = Object.keys(b)
-	if (keysA.length !== keysB.length) return false
+	if (keysA.length !== Object.keys(b).length) return false
 	for (const key of keysA) {
 		if (!Object.prototype.hasOwnProperty.call(b, key)) return false
-	}
-	for (const key of keysA) {
-		if (!baseIsEqual((a as any)[key], (b as any)[key], customizer, key, stack)) return false
+		if (!baseIsEqual((a as any)[key], (b as any)[key], customizer, stack)) return false
 	}
 	return true
 }
@@ -172,7 +145,7 @@ function compareArrays(
 ): boolean {
 	if (a.length !== b.length) return false
 	for (let i = 0; i < a.length; i++) {
-		if (!baseIsEqual(a[i], b[i], customizer, i, stack)) return false
+		if (!baseIsEqual(a[i], b[i], customizer, stack)) return false
 	}
 	return true
 }
@@ -194,7 +167,7 @@ function compareMaps(
 	if (a.size !== b.size) return false
 	for (const [key, value] of a) {
 		if (!b.has(key)) return false
-		if (!baseIsEqual(value, b.get(key), customizer, key as PropertyKey, stack)) return false
+		if (!baseIsEqual(value, b.get(key), customizer, stack)) return false
 	}
 	return true
 }
@@ -214,7 +187,7 @@ function compareSets(
 		if (typeof value !== 'object' || value === null) return false
 		unmatched ??= Array.from(b).filter((other) => !a.has(other))
 		for (let i = 0; i < unmatched.length; i++) {
-			if (baseIsEqual(value, unmatched[i], customizer, undefined, stack)) {
+			if (baseIsEqual(value, unmatched[i], customizer, stack)) {
 				unmatched.splice(i, 1)
 				continue outer
 			}

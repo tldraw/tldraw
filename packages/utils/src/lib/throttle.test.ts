@@ -564,6 +564,27 @@ describe('throttle options', () => {
 		expect(fn).toHaveBeenLastCalledWith(4)
 	})
 
+	it('wait: 0 invokes synchronously on every call', () => {
+		const fn = vi.fn()
+		const throttled = throttle(fn, 0)
+		throttled(1)
+		throttled(2)
+		throttled(3)
+		expect(fn).toHaveBeenCalledTimes(3)
+		expect(fn).toHaveBeenLastCalledWith(3)
+	})
+
+	it('leading: false with flush runs the deferred call immediately', () => {
+		const fn = vi.fn((x: number) => x)
+		const throttled = throttle(fn, 100, { leading: false })
+		throttled(1)
+		expect(fn).not.toHaveBeenCalled()
+		expect(throttled.flush()).toBe(1)
+		expect(fn).toHaveBeenCalledTimes(1)
+		vi.advanceTimersByTime(1000)
+		expect(fn).toHaveBeenCalledTimes(1)
+	})
+
 	it('leading: false defers the first call to the end of the window with the latest args', () => {
 		const fn = vi.fn()
 		const throttled = throttle(fn, 100, { leading: false })

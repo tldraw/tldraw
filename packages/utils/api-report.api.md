@@ -229,10 +229,10 @@ export function isEqual(a: unknown, b: unknown): boolean;
 export function isEqualAllowingForFloatingPointErrors(obj1: object, obj2: object, threshold?: number): boolean;
 
 // @public
-export type IsEqualCustomizer = (a: any, b: any, key: PropertyKey | undefined) => boolean | undefined;
+export type IsEqualCustomizer = (a: unknown, b: unknown) => boolean | undefined;
 
 // @public
-export function isEqualWith(a: unknown, b: unknown, customizer?: IsEqualCustomizer): boolean;
+export function isEqualWith(a: unknown, b: unknown, customizer: IsEqualCustomizer): boolean;
 
 // @internal
 export const isNativeStructuredClone: boolean;
