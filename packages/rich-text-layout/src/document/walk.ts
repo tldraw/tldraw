@@ -1,16 +1,17 @@
 import { defaultNodeRegistry } from './registry'
 import { DocBlock, DocInline, ListItemInfo, NodeKind, NodeRegistry, PMMark, PMNode } from './types'
 
-function kindOf(node: PMNode, registry: NodeRegistry): NodeKind {
+function kindOf(node: PMNode, registry: NodeRegistry, atRoot = false): NodeKind {
 	const spec = registry[node.type]
 	if (spec) return spec.kind
 	if (node.type === 'text' || typeof node.text === 'string') return 'text'
-	// Unknown nodes: anything with block children is a block, anything else is inline. A node with
-	// no content at all is treated as an inline leaf so that e.g. mentions/emoji nodes don't
-	// become empty paragraphs.
+	// Unknown nodes: anything with block children is a block, a node with no content is an inline
+	// leaf (mentions, emoji), and a node with only inline content is a block at the document root
+	// (ProseMirror documents hold blocks) but inline anywhere deeper.
 	const content = node.content ?? []
 	if (content.length === 0) return 'inline'
-	return content.some((child) => isBlockKind(kindOf(child, registry))) ? 'block' : 'inline'
+	if (content.some((child) => isBlockKind(kindOf(child, registry)))) return 'block'
+	return atRoot ? 'block' : 'inline'
 }
 
 function isBlockKind(kind: NodeKind) {
@@ -62,7 +63,8 @@ function walkBlock(
 	const spec = registry[node.type]
 	const kind = spec?.kind ?? kindOf(node, registry)
 
-	const hasBlockChild = content.some((child) => isBlockKind(kindOf(child, registry)))
+	const atRoot = ancestors.length === 0
+	const hasBlockChild = content.some((child) => isBlockKind(kindOf(child, registry, atRoot)))
 	if (!hasBlockChild) {
 		block.inlines = walkInlines(content, path, childAncestors, registry)
 		return block
@@ -100,7 +102,7 @@ function walkBlock(
 
 	for (let i = 0; i < content.length; i++) {
 		const child = content[i]
-		const childKind = kindOf(child, registry)
+		const childKind = kindOf(child, registry, atRoot)
 		if (!isBlockKind(childKind)) {
 			if (!pendingInline) pendingInline = { nodes: [], start: i }
 			pendingInline.nodes.push(child)

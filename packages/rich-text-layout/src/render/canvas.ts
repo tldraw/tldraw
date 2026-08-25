@@ -10,8 +10,15 @@ export interface CanvasDrawContextLike {
 	font: string
 	fillStyle: string
 	textBaseline: string
+	strokeStyle: string
+	lineWidth: number
 	fillText(text: string, x: number, y: number): void
 	fillRect(x: number, y: number, width: number, height: number): void
+	strokeRect(x: number, y: number, width: number, height: number): void
+	beginPath(): void
+	arc(x: number, y: number, radius: number, startAngle: number, endAngle: number): void
+	fill(): void
+	stroke(): void
 }
 
 /** @public */
@@ -51,6 +58,29 @@ export function drawLayout(
 		}
 		for (const f of line.fragments) {
 			if (f.kind === 'tab' || f.text.length === 0) continue
+			if (f.kind === 'marker' && f.symbol) {
+				const { shape, size } = f.symbol
+				const sx = line.x + f.symbol.x + dx
+				const sy = line.y + f.symbol.y + dy
+				ctx.fillStyle = f.style.color
+				ctx.strokeStyle = f.style.color
+				ctx.lineWidth = 1
+				if (shape === 'square') {
+					ctx.fillRect(sx, sy, size, size)
+				} else {
+					ctx.beginPath()
+					ctx.arc(
+						sx + size / 2,
+						sy + size / 2,
+						shape === 'circle' ? (size - 1) / 2 : size / 2,
+						0,
+						Math.PI * 2
+					)
+					if (shape === 'circle') ctx.stroke()
+					else ctx.fill()
+				}
+				continue
+			}
 			ctx.font = fontSpecToString(f.style.font)
 			ctx.fillStyle = f.style.color
 			ctx.fillText(f.text, line.x + f.x + dx, baseline + f.baselineShift)
