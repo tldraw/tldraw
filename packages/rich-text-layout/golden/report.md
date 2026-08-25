@@ -1,6 +1,6 @@
 # Golden drift report
 
-Generated 2026-08-25T13:54:24.190Z
+Generated 2026-08-25T15:43:58.885Z
 
 ## Plain text
 
@@ -238,20 +238,20 @@ Cases: 302. Differing pixels as a share of the box, luminance threshold 48/255.
 
 | renderer                                     | max    | p95   | median |
 | -------------------------------------------- | ------ | ----- | ------ |
-| Chromium (native svg vs foreignObject)       | 9.03%  | 6.15% | 0.20%  |
-| resvg (native svg vs Chromium foreignObject) | 12.65% | 8.89% | 4.49%  |
+| Chromium (native svg vs foreignObject)       | 6.29%  | 4.68% | 0.16%  |
+| resvg (native svg vs Chromium foreignObject) | 12.65% | 8.78% | 4.42%  |
 
 ### Worst 10 (resvg)
 
 | case                       | size     | chromium | resvg  |
 | -------------------------- | -------- | -------- | ------ |
-| tenItems/draw/24/auto      | 133×320  | 8.99%    | 12.65% |
-| tenItems/draw/24/200       | 133×320  | 8.99%    | 12.65% |
+| tenItems/draw/24/auto      | 133×320  | 5.25%    | 12.65% |
+| tenItems/draw/24/200       | 133×320  | 5.25%    | 12.65% |
 | strike/draw/24/auto        | 267×32   | 1.12%    | 11.68% |
 | headingWrap/draw/36/auto   | 2582×113 | 1.81%    | 11.26% |
-| numbered/draw/24/auto      | 113×96   | 7.17%    | 11.06% |
-| numbered/draw/24/200       | 113×96   | 7.17%    | 11.06% |
-| numberedStart/draw/24/auto | 109×96   | 7.28%    | 10.53% |
-| numberedStart/draw/24/200  | 109×96   | 7.28%    | 10.53% |
-| listWrap/draw/24/auto      | 835×32   | 5.66%    | 9.91%  |
-| bullets/draw/24/auto       | 176×96   | 6.15%    | 9.82%  |
+| numbered/draw/24/auto      | 113×96   | 4.68%    | 11.06% |
+| numbered/draw/24/200       | 113×96   | 4.68%    | 11.06% |
+| numberedStart/draw/24/auto | 109×96   | 4.28%    | 10.53% |
+| numberedStart/draw/24/200  | 109×96   | 4.28%    | 10.53% |
+| listWrap/draw/24/auto      | 835×32   | 5.39%    | 9.64%  |
+| headingWrap/sans/36/auto   | 2164×113 | 2.28%    | 9.60%  |
