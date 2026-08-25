@@ -68,6 +68,42 @@ export function getThumbnailScreenshotRequestBody({
 		url: renderUrl,
 		...(headers ? { setExtraHTTPHeaders: headers } : null),
 		...(injectedScript ? { addScriptTag: [{ content: injectedScript }] } : null),
+		...getThumbnailCaptureOptions({ width, height, timeoutMs }),
+	}
+}
+
+// The html-mode request: the whole self-contained render page (payload already spliced into its
+// <head>) rides inside the Browser Run request, so the browser navigates nowhere and fetches
+// nothing. The shared capture options are what keep the two transports behaving identically.
+export function getThumbnailScreenshotHtmlRequestBody({
+	html,
+	width,
+	height,
+	timeoutMs,
+}: {
+	html: string
+	width: number
+	height: number
+	timeoutMs: number
+}) {
+	return {
+		html,
+		...getThumbnailCaptureOptions({ width, height, timeoutMs }),
+	}
+}
+
+// The wait strategy and capture target, shared by the url- and html-mode bodies above so the two
+// transports cannot drift apart.
+function getThumbnailCaptureOptions({
+	width,
+	height,
+	timeoutMs,
+}: {
+	width: number
+	height: number
+	timeoutMs: number
+}) {
+	return {
 		viewport: {
 			width,
 			height,
@@ -97,43 +133,6 @@ export function getThumbnailScreenshotRequestBody({
 		// screenshot). On a failure it's absent, so the capture errors out immediately instead of
 		// screenshotting the error page. `selector` targets an element without waiting (waitForSelector
 		// above is the wait), so a missing element fails fast rather than re-waiting the timeout.
-		selector: THUMBNAIL_CAPTURE_SELECTOR,
-		screenshotOptions: {
-			type: 'png',
-		},
-	}
-}
-
-// The html-mode request: the whole self-contained render page (payload already spliced into its
-// <head>) rides inside the Browser Run request, so the browser navigates nowhere and fetches
-// nothing. Same wait strategy and capture target as the url mode — the page behaves identically
-// once running.
-export function getThumbnailScreenshotHtmlRequestBody({
-	html,
-	width,
-	height,
-	timeoutMs,
-}: {
-	html: string
-	width: number
-	height: number
-	timeoutMs: number
-}) {
-	return {
-		html,
-		viewport: {
-			width,
-			height,
-			deviceScaleFactor: 1,
-		},
-		gotoOptions: {
-			waitUntil: 'domcontentloaded',
-			timeout: timeoutMs,
-		},
-		waitForSelector: {
-			selector: THUMBNAIL_SETTLED_SELECTOR,
-			timeout: timeoutMs,
-		},
 		selector: THUMBNAIL_CAPTURE_SELECTOR,
 		screenshotOptions: {
 			type: 'png',

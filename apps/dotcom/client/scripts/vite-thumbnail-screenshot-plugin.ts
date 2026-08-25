@@ -1,5 +1,5 @@
 import type { Browser } from '@playwright/test'
-import type { Plugin } from 'vite'
+import type { Connect, Plugin } from 'vite'
 
 // Stands in for Cloudflare Browser Rendering while developing. The sync worker's screenshot surfaces
 // (the MCP tool, the OG queue) need a browser to visit the render page, and local dev has no way to
@@ -31,21 +31,18 @@ export function thumbnailRenderEntryPlugin(): Plugin {
 		url === RENDER_PATH || url?.startsWith(`${RENDER_PATH}?`)
 			? `/thumbnail-render.html${url.slice(RENDER_PATH.length)}`
 			: null
+	const middleware: Connect.NextHandleFunction = (req, _res, next) => {
+		const rewritten = rewrite(req.url)
+		if (rewritten) req.url = rewritten
+		next()
+	}
 	return {
 		name: 'thumbnail-render-entry',
 		configureServer(server) {
-			server.middlewares.use((req, _res, next) => {
-				const rewritten = rewrite(req.url)
-				if (rewritten) req.url = rewritten
-				next()
-			})
+			server.middlewares.use(middleware)
 		},
 		configurePreviewServer(server) {
-			server.middlewares.use((req, _res, next) => {
-				const rewritten = rewrite(req.url)
-				if (rewritten) req.url = rewritten
-				next()
-			})
+			server.middlewares.use(middleware)
 		},
 	}
 }

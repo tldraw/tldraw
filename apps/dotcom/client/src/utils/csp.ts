@@ -69,9 +69,13 @@ export const cspDirectives: { [key: string]: string[] } = {
 	'report-uri': [process.env.SENTRY_CSP_REPORT_URI ?? ``],
 }
 
-export const csp = Object.keys(cspDirectives)
-	.map((directive) => `${directive} ${cspDirectives[directive].join(' ')}`)
-	.join('; ')
+function serializeCsp(directives: { [key: string]: string[] }) {
+	return Object.keys(directives)
+		.map((directive) => `${directive} ${directives[directive].join(' ')}`)
+		.join('; ')
+}
+
+export const csp = serializeCsp(cspDirectives)
 
 // The thumbnail render page's CSP: the app policy plus inline script. The sync-worker pushes the
 // board snapshot into this page via Browser Run's addScriptTag, which injects an INLINE script —
@@ -80,14 +84,10 @@ export const csp = Object.keys(cspDirectives)
 // The relaxation is confined to this one machine-facing route: the page renders worker-authored
 // content for a headless capture, and a human who wanders in gets an inert "missing token" page —
 // there is no user session or credential on this origin path for an inline script to reach.
-export const thumbnailRenderCsp = Object.keys(cspDirectives)
-	.map((directive) => {
-		const values = cspDirectives[directive]
-		if (directive === 'script-src')
-			return `${directive} ${[...values, `'unsafe-inline'`].join(' ')}`
-		return `${directive} ${values.join(' ')}`
-	})
-	.join('; ')
+export const thumbnailRenderCsp = serializeCsp({
+	...cspDirectives,
+	'script-src': [...cspDirectives['script-src'], `'unsafe-inline'`],
+})
 
 export const cspDev = Object.keys(cspDirectives)
 	.filter((key) => key !== 'report-uri')

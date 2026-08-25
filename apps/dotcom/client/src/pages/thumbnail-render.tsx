@@ -48,6 +48,8 @@ const THUMBNAIL_RESULT_ENDPOINT = '/api/app/thumbnail-render/result'
 // (`render_page_timings`). Worker-side timing can only see the session total; this is what ranks
 // the page's own phases against each other.
 const pageTimings: {
+	/** Authorises the beacon. Never set on the dev fixture page, which therefore sends none. */
+	token?: string
 	source?: 'push' | 'fetch'
 	bootAt?: number
 	dataAt?: number
@@ -58,8 +60,8 @@ const pageTimings: {
 // Fire-and-forget: nothing waits on this, and `keepalive` lets the request outlive the page —
 // which it must, because the screenshot (and the session's teardown) follows the ready marker
 // almost immediately.
-function sendTimingsBeacon(token: string, exportedAt: number) {
-	const { source, bootAt, dataAt, mountAt, settledAt } = pageTimings
+function sendTimingsBeacon(exportedAt: number) {
+	const { token, source, bootAt, dataAt, mountAt, settledAt } = pageTimings
 	if (
 		!token ||
 		!source ||
@@ -135,7 +137,6 @@ function apiUrl(path: string) {
 }
 
 function awaitPushedSnapshot(timeoutMs: number): Promise<ThumbnailSnapshotResponseBody | null> {
-	if (window[THUMBNAIL_RENDER_GLOBAL]) return Promise.resolve(window[THUMBNAIL_RENDER_GLOBAL]!)
 	return new Promise((resolve) => {
 		const startedAt = Date.now()
 		const interval = setInterval(() => {
@@ -160,45 +161,34 @@ export async function acquireThumbnailRenderData(url: URL): Promise<ThumbnailRen
 	pageTimings.bootAt = performance.now()
 	const config = window[THUMBNAIL_RENDER_CONFIG_GLOBAL]
 	const token = config?.token ?? url.searchParams.get('token')
+	pageTimings.token = token ?? undefined
 
-	// A snapshot that is already here needs no waiting and no announcement — this is every html-mode
-	// render, where the worker splices the payload into <head> ahead of any script, and the fast path
-	// for a url-mode push whose injected tag won the race.
-	const already = window[THUMBNAIL_RENDER_GLOBAL]
-	if (already) {
-		if (already.error) return { ok: false, message: already.message }
+	// A snapshot that is already here needs no waiting and no announcement — every html-mode render
+	// (the worker splices the payload into <head> ahead of any script) and a url-mode push whose
+	// injected tag won the race. Otherwise, only a render the worker announced a push for waits for
+	// one: a pull render must not pay that budget just to discover nobody is pushing — that would be
+	// flat added latency on every OG capture, and would make a push/pull comparison meaningless.
+	const pushed =
+		window[THUMBNAIL_RENDER_GLOBAL] ??
+		(url.searchParams.get(THUMBNAIL_RENDER_PUSH_PARAM) === '1'
+			? await awaitPushedSnapshot(PUSHED_SNAPSHOT_TIMEOUT_MS)
+			: null)
+	if (pushed) {
+		// Authoritative: the worker injected a snapshot it just read under the same gate the token
+		// would have been checked against, so there is nothing further to verify.
+		if (pushed.error) return { ok: false, message: pushed.message }
 		pageTimings.source = 'push'
 		pageTimings.dataAt = performance.now()
 		return {
 			ok: true,
 			token: token ?? '',
-			records: already.records,
-			schema: already.schema,
-			renderParams: already.renderParams,
+			records: pushed.records,
+			schema: pushed.schema,
+			renderParams: pushed.renderParams,
 		}
 	}
-
-	// Only a render the worker announced a push for waits for one. A pull render must not pay this
-	// budget just to discover nobody is pushing — that would be flat added latency on every OG
-	// capture, and would make a push/pull comparison meaningless.
-	if (url.searchParams.get(THUMBNAIL_RENDER_PUSH_PARAM) === '1') {
-		// Authoritative when it arrives: the worker injects a snapshot it just read under the same
-		// gate the token would have been checked against, so there is nothing further to verify.
-		const pushed = await awaitPushedSnapshot(PUSHED_SNAPSHOT_TIMEOUT_MS)
-		if (pushed) {
-			if (pushed.error) return { ok: false, message: pushed.message }
-			pageTimings.source = 'push'
-			pageTimings.dataAt = performance.now()
-			return {
-				ok: true,
-				token: token ?? '',
-				records: pushed.records,
-				schema: pushed.schema,
-				renderParams: pushed.renderParams,
-			}
-		}
-		// Fell through: the injected tag never ran. The token below is what makes that recoverable.
-	}
+	// An announced push whose injected tag never ran falls through to here; the token is what makes
+	// that recoverable.
 
 	if (!token) {
 		return { ok: false, message: 'Missing render token' }
@@ -331,7 +321,6 @@ function ThumbnailRenderPage({
 						camera={renderParams.camera}
 						shapeIds={renderParams.shapeIds}
 						capture={renderParams.capture}
-						token={token}
 						onImage={handleImage}
 					/>
 				)}
@@ -501,7 +490,6 @@ export function ThumbnailExportSignal({
 	shapeIds,
 	settleTimeoutMs = THUMBNAIL_SETTLE_TIMEOUT_MS,
 	capture,
-	token,
 	onImage,
 }: {
 	theme: 'light' | 'dark'
@@ -512,8 +500,6 @@ export function ThumbnailExportSignal({
 	settleTimeoutMs?: number
 	/** `live`: signal ready after settle and fit, without exporting — see ThumbnailRenderParams. */
 	capture?: 'live'
-	/** Authorises the timing beacon. Absent on the dev fixture page, which sends none. */
-	token?: string
 	onImage(blob: Blob): void | Promise<void>
 }) {
 	const editor = useEditor()
@@ -552,7 +538,7 @@ export function ThumbnailExportSignal({
 				await nextAnimationFrame()
 				await nextAnimationFrame()
 				if (cancelled) return
-				if (token) sendTimingsBeacon(token, performance.now())
+				sendTimingsBeacon(performance.now())
 				signalThumbnailReady()
 				return
 			}
@@ -561,7 +547,7 @@ export function ThumbnailExportSignal({
 			// Before onImage rather than after: the ready marker follows the image paint, and the
 			// screenshot (then the session's teardown) follows the marker — keepalive covers the
 			// race, but not starting one is better.
-			if (token) sendTimingsBeacon(token, performance.now())
+			sendTimingsBeacon(performance.now())
 			await onImage(blob)
 		})().catch((error) => {
 			if (cancelled) return
@@ -577,7 +563,7 @@ export function ThumbnailExportSignal({
 		return () => {
 			cancelled = true
 		}
-	}, [editor, theme, width, height, camera, shapeIds, settleTimeoutMs, capture, token, onImage])
+	}, [editor, theme, width, height, camera, shapeIds, settleTimeoutMs, capture, onImage])
 
 	return null
 }
@@ -759,7 +745,7 @@ async function waitForEditorImages(editor: Editor, deadline: number) {
 	// of pure waiting when the answer is knowable up front. Every <img> the canvas creates is backed
 	// by an asset record (image and video shapes, bookmark previews), so none of those means none to
 	// wait for.
-	if (!editor.store.allRecords().some((record) => record.typeName === 'asset')) return
+	if (editor.getAssets().length === 0) return
 	let stableChecks = 0
 	let lastCount = -1
 	while (Date.now() < deadline) {

@@ -1791,6 +1791,39 @@ describe('inline html captures', () => {
 		expect(body.addScriptTag).toBeTruthy()
 	})
 
+	// The whole window between a worker flagged on and the client deploy that publishes the artifact
+	// would otherwise pay a doomed origin fetch on every render — the negative result is cached
+	// (briefly) like a success is.
+	it('caches a missing artifact instead of refetching it per render', async () => {
+		let artifactFetches = 0
+		vi.spyOn(globalThis, 'fetch').mockImplementation(async (input: any) => {
+			if (String(input).endsWith('/thumbnail-render-inline.html')) {
+				artifactFetches++
+				return new Response('nope', { status: 404 })
+			}
+			throw new Error(`unexpected fetch ${input}`)
+		})
+		mockPublishedBoard()
+		const env = makeEnv({ THUMBNAIL_RENDER_INLINE: '1' })
+		// Distinct boards per call, or the PNG cache would answer the second call with no capture.
+		const clusterId = await firstClusterId(env, 'user_negcache_1', 'abc')
+
+		await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'abc', clusterIds: [clusterId] },
+			env,
+			'user_negcache_2'
+		)
+		await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'def', clusterIds: [clusterId] },
+			env,
+			'user_negcache_3'
+		)
+
+		expect(artifactFetches).toBe(1)
+	})
+
 	// The artifact bundles the SDK, so an isolate that outlives a client deploy must not keep
 	// splicing snapshots into the pre-deploy page forever. Stale-while-revalidate: past the TTL the
 	// cached copy is still served (the refetch must not sit on any render's path) and the fresh one

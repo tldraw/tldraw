@@ -7,6 +7,9 @@ import {
 	ROOM_PREFIX,
 	SNAPSHOT_PREFIX,
 	SOCIAL_PREVIEW_BYPASS_PARAM,
+	THUMBNAIL_RENDER_GLOBAL,
+	THUMBNAIL_RENDER_INLINE_PATH,
+	THUMBNAIL_RENDER_PATH,
 } from '@tldraw/dotcom-shared'
 import { T } from '@tldraw/validate'
 import { config } from 'dotenv'
@@ -252,7 +255,7 @@ async function build() {
 					// before the SPA fallback below, which would otherwise answer with index.html.
 					{
 						check: true,
-						src: '^/__thumbnail-render$',
+						src: `^${THUMBNAIL_RENDER_PATH}$`,
 						dest: '/thumbnail-render.html',
 						// The app headers, but with the render page's CSP: the app policy's script-src
 						// blocks the inline script Browser Run injects to push the snapshot in, which
@@ -297,10 +300,6 @@ async function build() {
 		throw new Error('inline render build did not produce the expected single JS + CSS pair')
 	}
 	const inlineJs = readFileSync(`dist-inline/assets/${inlineJsFile}`, 'utf8')
-		// Translations are excluded from inlining (see vite.inline.config.ts); their references
-		// become empty-JSON data URIs so the artifact stays origin-free. Nothing renders from them
-		// with the UI hidden, and an empty object is a valid "no strings" translation either way.
-		.replace(/\/assets\/[A-Za-z0-9._-]+\.json/g, 'data:application/json,%7B%7D')
 		.replaceAll('</script', '<\\/script')
 		.replaceAll('<!--', '<\\!--')
 	const inlineCss = readFileSync(`dist-inline/assets/${inlineCssFile}`, 'utf8').replaceAll(
@@ -322,11 +321,17 @@ async function build() {
 	const inlineArtifact = inlineHtmlSrc
 		.replace(linkTagMatch[0], () => `<style>${inlineCss}</style>`)
 		.replace(scriptTagMatch[0], () => `<script type="module">${inlineJs}</script>`)
-		.replace(/<!-- Filled by scripts\/build\.ts[\s\S]*?\$PRELOADED_FONTS -->/, '')
+		// No preloads here: the artifact's fonts are data URIs inside its own CSS.
+		.replace('<!-- $PRELOADED_FONTS -->', '')
 	if (inlineArtifact.includes('/assets/')) {
 		throw new Error('inline render artifact still references /assets/ — it is not self-contained')
 	}
-	writeFileSync('.vercel/output/static/thumbnail-render-inline.html', inlineArtifact)
+	// What the sync-worker's fetchInlineRenderPage validates before using the artifact; failing its
+	// checks would not error, just silently downgrade every html-mode capture to the url-mode push.
+	if (!inlineArtifact.includes('<head>') || !inlineArtifact.includes(THUMBNAIL_RENDER_GLOBAL)) {
+		throw new Error('inline render artifact would fail the sync-worker artifact validation')
+	}
+	writeFileSync(`.vercel/output/static${THUMBNAIL_RENDER_INLINE_PATH}`, inlineArtifact)
 
 	await reportBundleSize('.vercel/output/static')
 }

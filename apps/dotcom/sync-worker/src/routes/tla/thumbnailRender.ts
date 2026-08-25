@@ -2,6 +2,7 @@ import {
 	DEFAULT_THUMBNAIL_HEIGHT,
 	DEFAULT_THUMBNAIL_WIDTH,
 	THUMBNAIL_RENDER_GLOBAL,
+	THUMBNAIL_RENDER_INLINE_PATH,
 	THUMBNAIL_RENDER_PATH,
 	THUMBNAIL_RENDER_PUSH_PARAM,
 	THUMBNAIL_RENDER_CONFIG_GLOBAL,
@@ -190,9 +191,8 @@ async function mintRecordedRenderToken(env: Environment, job: ThumbnailRenderJob
 // The self-contained render page for html-mode captures, fetched from the client origin and
 // cached per isolate. A single static file — no page route is involved when it is used, so a
 // render's only network round trip is the Browser Run call itself. A fetch failure resolves null
-// (and clears the cache so the next render retries) rather than failing the capture: the url-mode
-// path below still works and every render must survive this file being missing, since the client
-// deploys separately from the worker.
+// rather than failing the capture: the url-mode path below still works and every render must
+// survive this file being missing, since the client deploys separately from the worker.
 //
 // Cached stale-while-revalidate rather than for the isolate's lifetime: the artifact bundles the
 // SDK, so an isolate that outlives a client deploy would otherwise keep splicing fresh snapshots —
@@ -200,19 +200,28 @@ async function mintRecordedRenderToken(env: Environment, job: ThumbnailRenderJob
 // html-mode captures in a way that looks machine-dependent. The TTL bounds that window; serving
 // stale while the refresh runs keeps the fetch off every render's path.
 const INLINE_RENDER_PAGE_TTL_MS = 5 * 60 * 1000
+// A missing artifact is cached too, on a shorter clock: without it, every push render would pay a
+// doomed origin round trip for the whole window where the artifact is absent — most plausibly a
+// worker flagged on before the client deploy that publishes the file.
+const INLINE_RENDER_PAGE_MISSING_TTL_MS = 30 * 1000
+// Bounds a hanging origin: past this the render proceeds on the url-mode push instead of stalling.
+const INLINE_RENDER_PAGE_FETCH_TIMEOUT_MS = 5_000
 
 let inlineRenderPagePromise: Promise<string | null> | null = null
 let inlineRenderPageFetchedAt = 0
+let inlineRenderPageMissing = false
 
 async function fetchInlineRenderPage(env: Environment): Promise<string | null> {
 	try {
-		const response = await fetch(`${getRenderOrigin(env)}/thumbnail-render-inline.html`)
+		const response = await fetch(`${getRenderOrigin(env)}${THUMBNAIL_RENDER_INLINE_PATH}`, {
+			signal: AbortSignal.timeout(INLINE_RENDER_PAGE_FETCH_TIMEOUT_MS),
+		})
 		if (!response.ok) return null
 		const html = await response.text()
 		// A rewrite gone wrong serves the SPA shell here, which would navigate nowhere useful.
 		// The artifact is recognisable by the global its own bundle awaits — and it must have a
 		// <head> for the splice below to land the payload in, or the page would boot payloadless
-		// and fail on a missing token.
+		// and fail on a missing token. scripts/build.ts asserts both before publishing the file.
 		if (!html.includes(THUMBNAIL_RENDER_GLOBAL) || !html.includes('<head>')) return null
 		return html
 	} catch {
@@ -221,19 +230,25 @@ async function fetchInlineRenderPage(env: Environment): Promise<string | null> {
 }
 
 function getInlineRenderPage(env: Environment): Promise<string | null> {
+	const ttl = inlineRenderPageMissing
+		? INLINE_RENDER_PAGE_MISSING_TTL_MS
+		: INLINE_RENDER_PAGE_TTL_MS
 	if (!inlineRenderPagePromise) {
 		inlineRenderPageFetchedAt = Date.now()
 		inlineRenderPagePromise = fetchInlineRenderPage(env).then((result) => {
-			if (result === null) inlineRenderPagePromise = null
+			inlineRenderPageMissing = result === null
 			return result
 		})
-	} else if (Date.now() - inlineRenderPageFetchedAt > INLINE_RENDER_PAGE_TTL_MS) {
+	} else if (Date.now() - inlineRenderPageFetchedAt > ttl) {
 		// The clock resets on the attempt, not on its outcome, so a refresh that fails — or is
 		// cancelled with the invocation it rode on — is retried one TTL later rather than once per
-		// render; a failed refresh keeps serving the artifact we have, same as before.
+		// render; a failed refresh keeps serving what we have, same as before.
 		inlineRenderPageFetchedAt = Date.now()
 		void fetchInlineRenderPage(env).then((fresh) => {
-			if (fresh !== null) inlineRenderPagePromise = Promise.resolve(fresh)
+			if (fresh !== null) {
+				inlineRenderPagePromise = Promise.resolve(fresh)
+				inlineRenderPageMissing = false
+			}
 		})
 	}
 	return inlineRenderPagePromise
@@ -244,6 +259,7 @@ function getInlineRenderPage(env: Environment): Promise<string | null> {
 export function resetInlineRenderPageForTests() {
 	inlineRenderPagePromise = null
 	inlineRenderPageFetchedAt = 0
+	inlineRenderPageMissing = false
 }
 
 // Whether this deployment sends html-mode captures. Opt-in per deployment: unit tests must not
@@ -252,12 +268,18 @@ function isInlineRenderEnabled(env: Environment) {
 	return env.THUMBNAIL_RENDER_INLINE === '1' && !env.LOCAL_SCREENSHOT_SERVICE_URL
 }
 
-// Builds the <script> that plants the pushed snapshot and the page config as globals. The payload
-// arrives pre-serialized (toRenderScriptLiteral) because the same multi-megabyte literal also backs
-// the url-mode push script — serialized once per render, not once per transport.
-export function buildInlineGlobalsScript(payloadLiteral: string, config: ThumbnailRenderConfig) {
+// The one statement that plants the pushed snapshot, shared by every transport that carries it —
+// the url-mode injected script and the inline globals — so the form the page reads back cannot
+// drift between them. The payload arrives pre-serialized (toRenderScriptLiteral) because the same
+// multi-megabyte literal backs each of those forms: serialized once per render, not per transport.
+function buildPushScript(payloadLiteral: string) {
+	return `window.${THUMBNAIL_RENDER_GLOBAL}=${payloadLiteral}`
+}
+
+// Builds the <script> that plants the pushed snapshot and the page config as globals.
+function buildInlineGlobalsScript(payloadLiteral: string, config: ThumbnailRenderConfig) {
 	return (
-		`<script>window.${THUMBNAIL_RENDER_GLOBAL}=${payloadLiteral};` +
+		`<script>${buildPushScript(payloadLiteral)};` +
 		`window.${THUMBNAIL_RENDER_CONFIG_GLOBAL}=${toRenderScriptLiteral(config)}</script>`
 	)
 }
@@ -266,7 +288,7 @@ export function buildInlineGlobalsScript(payloadLiteral: string, config: Thumbna
 // both synchronously at boot — no injection, no race, no wait. Inserted with slice concatenation
 // rather than String.replace, so board text containing replacement patterns (`$&`/`$'`) can never
 // expand into fragments of the artifact itself.
-export function spliceInlineRenderPage(artifact: string, globalsScript: string) {
+function spliceInlineRenderPage(artifact: string, globalsScript: string) {
 	const head = artifact.indexOf('<head>')
 	if (head === -1) return artifact
 	const insertAt = head + '<head>'.length
@@ -548,16 +570,24 @@ async function renderThumbnailScreenshot(
 		})
 	}
 
-	// Push first when the caller supplied a payload, and fall back to the fetch if the binding refuses
-	// it. Only the RPC size limit falls back: it is the one failure that means "this board is too big
-	// for this transport" rather than "this render is broken", and it costs nothing when it happens —
-	// the throw is in-worker, before any browser session exists, so no Browser Run time is spent and
-	// no attempt is consumed. Anything else propagates, so a real bug cannot hide behind a silent
-	// downgrade to the old path.
+	// The transport ladder, built once: every form this render could take, largest first, ending on
+	// the payload-free fetch. The up-front pick and the oversize retry both just advance through it,
+	// so the rung order and each rung's body are owned in exactly one place. Only the RPC size limit
+	// steps down a rung: it is the one failure that means "this board is too big for this transport"
+	// rather than "this render is broken", and it costs nothing when it happens — the throw is
+	// in-worker, before any browser session exists, so no Browser Run time is spent and no attempt
+	// is consumed. Anything else propagates, so a real bug cannot hide behind a silent downgrade to
+	// the old path. Rungs the size guard refuses are left out up front — that keeps the oversize
+	// case off the retry path, where the binding's own refusal is a generic Error we would have to
+	// string-match to recognise. Bodies build lazily so an unattempted rung costs nothing.
+	const rungs: {
+		transport: RenderTransport
+		/** Absent on the terminal rung, which injects nothing: it keeps the last measured value. */
+		payloadChars?: number
+		makeBody(): ThumbnailScreenshotRequestBody | ThumbnailScreenshotHtmlRequestBody
+	}[] = []
 	let transport: RenderTransport = 'pull'
 	let payloadChars = 0
-	let inlineHtml: string | undefined
-	let pushScript: string | undefined
 	// Serialized once: the same literal backs every transport that carries the payload (the inline
 	// globals and the url-mode push script), so a multi-megabyte snapshot pays JSON.stringify and
 	// escaping a single time per render instead of once per form.
@@ -565,9 +595,9 @@ async function renderThumbnailScreenshot(
 
 	if (payloadLiteral) {
 		// Inline html first: the whole self-contained page rides in the request, so the browser
-		// navigates nowhere, fetches nothing, and there is no injection to race. Steps down to the
-		// url-mode push when the artifact is missing (a client not yet deployed with it) or the
-		// combined document would cross the RPC limit.
+		// navigates nowhere, fetches nothing, and there is no injection to race. Absent when the
+		// artifact is missing (a client not yet deployed with it) or the combined document would
+		// cross the RPC limit.
 		const artifact = isInlineRenderEnabled(env) ? await getInlineRenderPage(env) : null
 		if (artifact) {
 			const parsedRenderUrl = new URL(renderUrl)
@@ -578,35 +608,50 @@ async function renderThumbnailScreenshot(
 			// Gated on arithmetic before the splice, so a near-limit board never pays for a combined
 			// ~30MB document that is only ever measured and discarded.
 			if (isWithinRpcLimit(artifact.length + globalsScript.length)) {
-				transport = 'inline'
-				inlineHtml = spliceInlineRenderPage(artifact, globalsScript)
-				payloadChars = inlineHtml.length
+				rungs.push({
+					transport: 'inline',
+					payloadChars: artifact.length + globalsScript.length,
+					makeBody: () =>
+						getThumbnailScreenshotHtmlRequestBody({
+							html: spliceInlineRenderPage(artifact, globalsScript),
+							width,
+							height,
+							timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
+						}),
+				})
 			}
 		}
 
-		if (transport !== 'inline') {
-			pushScript = `window.${THUMBNAIL_RENDER_GLOBAL}=${payloadLiteral}`
-			payloadChars = pushScript.length
-			if (isWithinRpcLimit(pushScript.length)) {
-				transport = 'push'
-			} else {
-				// Refused up front rather than caught: it keeps the oversize case off the retry path,
-				// and the binding's own error is a generic Error we would have to string-match to
-				// recognise.
-				transport = 'push_fallback'
-			}
+		// Sized by arithmetic too, so a render the inline rung serves never builds the script at all.
+		const pushScriptLength = buildPushScript('').length + payloadLiteral.length
+		if (isWithinRpcLimit(pushScriptLength)) {
+			rungs.push({
+				transport: 'push',
+				payloadChars: pushScriptLength,
+				makeBody: () => buildRequestBody(buildPushScript(payloadLiteral)),
+			})
+		} else if (rungs.length === 0) {
+			// No payload form fits at all: the ledger still records the refused form's size.
+			payloadChars = pushScriptLength
 		}
 	}
 
-	const requestBody: ThumbnailScreenshotRequestBody | ThumbnailScreenshotHtmlRequestBody =
-		transport === 'inline' && inlineHtml
-			? getThumbnailScreenshotHtmlRequestBody({
-					html: inlineHtml,
-					width,
-					height,
-					timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
-				})
-			: buildRequestBody(transport === 'push' ? pushScript : undefined)
+	// The terminal rung: the plain fetch, with nothing injected. `push_fallback` when a payload was
+	// offered and could not be delivered, so the two ways of arriving here — refused up front and
+	// refused by the binding — land on one ledger value.
+	rungs.push({
+		transport: payloadLiteral ? 'push_fallback' : 'pull',
+		makeBody: () => buildRequestBody(),
+	})
+
+	let rungIndex = 0
+	const nextBody = () => {
+		const rung = rungs[rungIndex++]
+		if (!rung) return null
+		transport = rung.transport
+		if (rung.payloadChars !== undefined) payloadChars = rung.payloadChars
+		return rung.makeBody()
+	}
 
 	// Local dev has no route to Browser Run, so it points this at a screenshot service instead (the
 	// client's dev server, which can drive Playwright). Selected on the var being set rather than on
@@ -630,35 +675,25 @@ async function renderThumbnailScreenshot(
 		return session.mode === 'measure' ? capture : abandonAtRenderTimeout(capture, startedAt)
 	}
 
-	// Runs the capture, stepping the transport down one rung — inline, then url-mode push, then the
-	// plain fetch — each time the binding refuses the body for size. A loop rather than a chained
-	// catch, so a retry's own refusal (a payload that beat the character guard but lost to the
-	// binding's byte count) keeps stepping down instead of escaping half-way to the fetch that would
-	// have rendered it.
+	// Runs the capture, stepping down one rung each time the binding refuses the body for size. A
+	// loop rather than a chained catch, so a retry's own refusal (a payload that beat the character
+	// guard but lost to the binding's byte count) keeps stepping down instead of escaping half-way
+	// to the fetch that would have rendered it.
 	const captureSteppingDown = async (): Promise<TimedCapture> => {
-		let body = requestBody
+		let body = nextBody()!
 		for (;;) {
 			try {
 				return await runCapture(body)
 			} catch (error) {
-				// Backstop to the size guard above. That guard measures characters; the binding
+				// Backstop to the size guard on the rungs. That guard measures characters; the binding
 				// measures its own serialization of the entire body, so a payload sitting near the line
 				// can still be refused. Recovering costs nothing — the throw precedes any browser
 				// session — and not recovering would fail a board that renders perfectly well today.
 				if (!isRpcOversizeError(error)) throw error
-				if (transport === 'inline' && payloadLiteral) {
-					const script = `window.${THUMBNAIL_RENDER_GLOBAL}=${payloadLiteral}`
-					if (isWithinRpcLimit(script.length)) {
-						transport = 'push'
-						payloadChars = script.length
-						body = buildRequestBody(script)
-						continue
-					}
-				}
-				// A pull render refused for size has no smaller form and throws.
-				if (transport !== 'push' && transport !== 'inline') throw error
-				transport = 'push_fallback'
-				body = buildRequestBody()
+				const next = nextBody()
+				// Past the terminal rung there is no smaller form; the refusal is the render's failure.
+				if (!next) throw error
+				body = next
 			}
 		}
 	}
