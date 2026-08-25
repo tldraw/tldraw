@@ -4219,7 +4219,7 @@ export interface TldrawRichTextLayoutOptions extends TLMeasureTextOpts {
     color?: string;
     colors?: TldrawRichTextColors;
     // (undocumented)
-    textAlign?: 'center' | 'end' | 'left' | 'right' | 'start';
+    textAlign?: 'center' | 'end' | 'justify' | 'left' | 'right' | 'start';
 }
 
 // @public

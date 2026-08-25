@@ -28,7 +28,7 @@ export function richCaseToHtml(c: RichCase) {
 
 let measurer: ReturnType<typeof createTldrawTextMeasurer> | null = null
 
-export function layoutRichCase(c: RichCase) {
+export function layoutRichCase(c: RichCase, box?: { width: number }) {
 	measurer ??= createTldrawTextMeasurer({
 		measureContext: getMeasureContext(),
 		colors: { link: '#3182ed', highlight: '#fddd00' },
@@ -40,7 +40,8 @@ export function layoutRichCase(c: RichCase) {
 		fontStyle: 'normal',
 		lineHeight: LINE_HEIGHT,
 		padding: '0px',
-		maxWidth: c.maxWidth,
+		maxWidth: box?.width ?? c.maxWidth,
+		minWidth: box?.width,
 		textAlign: c.textAlign,
 	})
 }
