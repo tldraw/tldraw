@@ -134,7 +134,10 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	const content = children ?? <DefaultContextMenuContent />
 
 	return (
-		<_ContextMenu.Root dir={dir} onOpenChange={handleOpenChange} modal={false}>
+		// Controlled `open`: tldraw can close the menu itself (MenuClickCapture's
+		// clearOpenMenus), and radix >=2.3.0 only fires onOpenChange on real state
+		// changes — a stale internal `open` would swallow every later right-click.
+		<_ContextMenu.Root dir={dir} open={isOpen} onOpenChange={handleOpenChange} modal={false}>
 			<_ContextMenu.Trigger
 				// When suppressed, disabling the trigger stops Radix from opening the
 				// menu, but it also stops Radix from preventing the native contextmenu —
