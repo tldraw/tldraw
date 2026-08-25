@@ -22,10 +22,12 @@ import {
 	PAGE_INFO_TOOL_NAME,
 	PageSelector,
 	ResolvedPageOk,
+	SEARCH_BOARDS_TOOL_NAME,
 	ShapeMeasurement,
 	ToolResult,
 	describePageSelector,
 	getBoardInfo,
+	getBoardSearchResults,
 	getClusterInfo,
 	getPageInfo,
 	getToolDefinitions,
@@ -33,12 +35,14 @@ import {
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
 	parsePageInfoInput,
+	parseSearchBoardsInput,
 	pickClusterShapes,
 	resolvePage,
 	toolError as modelToolError,
 	toolPageResult,
 } from './boardTools'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
+import { searchAccessibleBoards } from './searchBoards'
 import {
 	ResolveThumbnailBoardResult,
 	ResolvedThumbnailBoard,
@@ -290,6 +294,7 @@ const TOOL_HANDLERS = new Map<
 		ctx?: ExecutionContext
 	) => Promise<ToolCallResult>
 >([
+	[SEARCH_BOARDS_TOOL_NAME, callSearchBoardsTool],
 	[BOARD_INFO_TOOL_NAME, callBoardInfoTool],
 	[PAGE_INFO_TOOL_NAME, callPageInfoTool],
 	[CLUSTER_INFO_TOOL_NAME, callClusterInfoTool],
@@ -580,6 +585,43 @@ export async function getShapesCacheKey(
 ) {
 	const digest = await sha256([...shapeIds].sort().join(','))
 	return `mcp/${board.kind}/${board.slug}/${board.version}/${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT}/${theme}/shapes-${digest}.png`
+}
+
+async function callSearchBoardsTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseSearchBoardsInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	// Not rate limited, for the same reason get_board_info is not: the limiters here bound Browser
+	// Run, and this call spends none. It is not index-bounded either — the ordering sorts the caller's
+	// whole in-scope set — so the revisit signal is `postgres_client_connect` volume from this
+	// surface. See "MCP tools" in browser-run-thumbnails.md.
+
+	try {
+		return getBoardSearchResults(await searchAccessibleBoards(env, userId, input))
+	} catch (error) {
+		// No `telemetry`: like get_board_info, this spends no Browser Run and so writes nothing to
+		// the screenshot ledger, which is the one that answers cache and refusal questions.
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_board_search',
+			// The query is board names the caller typed, so it stays off the Sentry event too — the
+			// shape of the call is what is diagnostic here, not its content.
+			extras: { termCount: input.terms.length, paged: input.cursor !== null },
+			summary: 'Could not search boards',
+			// Every failure here is a Postgres one. The classifier reads render failures, so a pool
+			// timeout would otherwise be recorded as `browser_timeout`.
+			recordAs: () => 'board_lookup_error',
+		})
+	}
 }
 
 async function callBoardInfoTool(
@@ -1149,10 +1191,10 @@ function parseToolInput<T>(parse: () => T, telemetry?: McpTelemetryWriter): Pars
  * bounded reason code, file that on the request ledger, and answer the caller with a message that
  * names the failure class and nothing else.
  *
- * One copy rather than four. The rule it encodes is the same at every site and worth stating once:
+ * One copy rather than five. The rule it encodes is the same at every site and worth stating once:
  * the caller's message and the telemetry blob both come from a closed vocabulary, because internal
  * Postgres and R2 detail must reach neither an outside caller nor a dimension whose cardinality it
- * would blow up. Sentry gets the original, with the unbounded context. The four copies had already
+ * would blow up. Sentry gets the original, with the unbounded context. Those copies had already
  * drifted — that rationale was written out at one of them and nowhere else.
  */
 function toolFailure(
@@ -1178,15 +1220,16 @@ function toolFailure(
 		/** Prefixes the caller's message: `${summary}: ${failure class}.` */
 		summary: string
 		/**
-		 * The request ledger writer. Omitted by `get_board_info` alone, which spends no Browser Run and
-		 * so does not appear on that ledger at all.
+		 * The request ledger writer. Omitted only by `search_boards` and `get_board_info`, which spend
+		 * no Browser Run and so do not appear on that ledger at all.
 		 */
 		telemetry?: McpTelemetryWriter
 		/** What the cache had done by the time this failed. See `consultedCache`. */
 		cacheStatus?: 'hit' | 'miss' | 'none'
 		/**
-		 * Narrows the code that gets *recorded*, leaving the caller's message on the classifier's own
-		 * verdict. For the one tool whose failures the classifier can misread — see `get_board_info`.
+		 * Narrows the classifier's verdict for a tool whose failures it can misread — search_boards and
+		 * get_board_info spend no Browser Run, so a raw Postgres error the classifier would otherwise
+		 * default to a render failure is corrected here, for the caller's message and telemetry alike.
 		 */
 		recordAs?(failureReason: string): string
 	}
@@ -1195,7 +1238,7 @@ function toolFailure(
 	const failureReason = classifyScreenshotFailure(error)
 	const recorded = recordAs ? recordAs(failureReason) : failureReason
 	telemetry?.({ cacheStatus, failureReason: recorded })
-	return toolError(`${summary}: ${describeThumbnailFailure(failureReason)}.`, recorded)
+	return toolError(`${summary}: ${describeThumbnailFailure(recorded)}.`, recorded)
 }
 
 function decodeThumbnailPageName(value: string | undefined): string {

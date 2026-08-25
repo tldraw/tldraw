@@ -1,22 +1,28 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
+import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
 import {
 	BOARD_INFO_TOOL_NAME,
 	BOARD_NOT_FOUND_MESSAGE,
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
 	PAGE_INFO_TOOL_NAME,
+	SEARCH_BOARDS_TOOL_NAME,
 	ShapeMeasurement,
 	ToolResult,
+	compareBoardSearchOrder,
 	getBoardInfo,
+	getBoardSearchResults,
 	getClusterInfo,
 	getPageInfo,
 	handleMcpJsonRpc,
+	isAfterBoardSearchCursor,
 	parseBoardInfoInput,
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
 	parsePageInfoInput,
+	parseSearchBoardsInput,
 	pickClusterShapes,
 	resolvePage,
 	toolError,
@@ -24,6 +30,17 @@ import {
 } from './boardTools'
 
 const HARNESS_GAP_MARKER = '[harness-gap]'
+
+// Insertion order is the fixture stand-in for creation time, but a bare index would have every eval
+// board report a 1970 timestamp — and a model reasoning about "my newest board" reads those. Spaced
+// an hour apart from a fixed date rather than from `Date.now()`, so two runs over the same fixtures
+// produce byte-identical results.
+const FIXTURE_CREATED_AT_BASE_MS = Date.UTC(2026, 0, 5, 9, 0, 0)
+const FIXTURE_CREATED_AT_STEP_MS = 60 * 60 * 1000
+
+function fixtureTimestamp(index: number): number {
+	return FIXTURE_CREATED_AT_BASE_MS + index * FIXTURE_CREATED_AT_STEP_MS
+}
 
 interface FixtureBoard {
 	snapshot: RoomSnapshot
@@ -123,6 +140,28 @@ async function callFixtureTool(
 ): Promise<ToolResult> {
 	try {
 		switch (name) {
+			case SEARCH_BOARDS_TOOL_NAME: {
+				const { terms, cursor } = parseSearchBoardsInput(args)
+				// The session is the whole "account": every board in it is one the caller owns. Names
+				// come from the snapshot, since a fixture has no `file` row to carry one, and
+				// insertion order stands in for creation order — so ordering and paging behave the
+				// way they do in production without fixtures needing timestamps.
+				const rows = [...boards.entries()]
+					.map(([id, board], index) => ({
+						id,
+						name: getDocumentNameFromSnapshot(board.snapshot) ?? '',
+						createdAt: fixtureTimestamp(index),
+						updatedAt: fixtureTimestamp(index),
+						workspaceName: '',
+						isPersonal: true,
+					}))
+					.filter((row) =>
+						terms.every((term) => row.name.toLowerCase().includes(term.toLowerCase()))
+					)
+					.sort(compareBoardSearchOrder)
+					.filter((row) => !cursor || isAfterBoardSearchCursor(row, cursor))
+				return getBoardSearchResults(rows)
+			}
 			case BOARD_INFO_TOOL_NAME: {
 				const { boardId } = parseBoardInfoInput(args)
 				const board = boards.get(boardId)

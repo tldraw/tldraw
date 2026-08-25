@@ -92,6 +92,10 @@ export function describeThumbnailFailure(reason: string): string {
 			return 'rendering is not configured'
 		case 'browser_timeout':
 			return 'rendering timed out'
+		case 'board_lookup_error':
+			// The tools that fail this way start no render, so the default 'the render failed' would
+			// be a plainly wrong thing to tell a caller.
+			return 'the board database could not be reached'
 		default:
 			return 'the render failed'
 	}
@@ -104,6 +108,7 @@ export type ThumbnailErrorSurface =
 	| 'og_queue'
 	| 'thumbnail_snapshot'
 	| 'mcp_board_info'
+	| 'mcp_board_search'
 	| 'mcp_screenshot'
 	// Kept apart from 'mcp_screenshot': the render succeeded and the caller still got their PNG, so
 	// this never means "screenshots are broken" — it means the cache isn't absorbing them and every

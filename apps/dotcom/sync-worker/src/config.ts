@@ -127,8 +127,14 @@ export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
  * sharedBoardScreenshotMcp.ts. The MCP endpoint is the one Browser Run-spending surface an outside
  * caller can drive directly, so a rogue or looping agent is the threat being bounded, and only the
  * calls that actually spend Browser Run are limited — `get_board_info` does the same work the
- * ordinary board routes do for anyone. The global limit is applied per Cloudflare location, so it
- * bounds a caller rather than the account. See "Request limits" in browser-run-thumbnails.md.
+ * ordinary board routes do for anyone. `search_boards` is exempt too, but not for that reason: it
+ * spends no Browser Run, but it does drive the Postgres that serves all of dotcom, with a fresh
+ * `pg.Pool` connect/destroy per call. Its ordering is index-served, so a caller in one workspace
+ * costs a page-sized read; a caller in several still top-N sorts their whole in-scope set. A
+ * dedicated limiter for it is deferred, with `postgres_client_connect` volume as the signal to
+ * revisit; see "MCP tools" in browser-run-thumbnails.md for the measured query plans.
+ * The global limit is applied per Cloudflare location, so it bounds a caller rather than the
+ * account. See "Request limits" in browser-run-thumbnails.md.
  *
  * These constants are only the isolate-local fallback for local dev and tests. Deployed environments
  * are governed by the Cloudflare rate limit bindings in wrangler.toml, so changing a number here
