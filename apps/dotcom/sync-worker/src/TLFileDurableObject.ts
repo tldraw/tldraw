@@ -710,14 +710,13 @@ export class TLFileDurableObject extends DurableObject {
 			const dataText = await data.text()
 
 			// The put carries no version metadata and the restore rewinds clocks, so the cached
-			// versions no longer describe what's in R2; null makes the next persist re-check and
+			// version no longer describes what's in R2; null makes the next persist re-check and
 			// re-stamp. Queued on executionQueue because a persist runs as one task there: an
 			// in-flight one, suspended mid-upload or at its head() hydration, would otherwise
-			// resume after these lines and clobber both the nulls and the restored object.
+			// resume after these lines and clobber both the null and the restored object.
 			await this.executionQueue.push(async () => {
 				await this.r2.rooms.put(roomKey, dataText)
 				this._lastPersistedSnapshotVersion = null
-				this._lastVersionCacheSnapshotVersion = null
 			})
 
 			// Version snapshots only contain the drawing data. Restoring drops the file's comments
@@ -1513,9 +1512,6 @@ export class TLFileDurableObject extends DurableObject {
 	// isolate, and object-lane (comment) writes bump it without changing the document snapshot.
 	_lastPersistedSnapshotVersion: SnapshotVersion | null = null
 
-	// Version last written to the version cache (see _uploadSnapshotToR2).
-	_lastVersionCacheSnapshotVersion: SnapshotVersion | null = null
-
 	// Serializes comment outbox drains (and the restore-path deletes) so they land in order.
 	// Separate from executionQueue (the R2/main-persist queue) since these pushes fire immediately
 	// on commit, not on the throttle.
@@ -1905,14 +1901,11 @@ export class TLFileDurableObject extends DurableObject {
 			await this.setRoomStorageUsedPercentage(roomSizeMB)
 		}
 
-		// Then upload to version cache. Its keys are timestamps rather than one fixed name, so a
-		// write appends where the rooms put above overwrites: skip a version already in the
-		// history, or a persist retry re-running this body would file the same document twice.
-		if (!isSameSnapshotVersion(this._lastVersionCacheSnapshotVersion, snapshotVersion)) {
-			const versionKey = `${key}/${new Date().toISOString()}`
-			await this._uploadSnapshotToBucket(this.r2.versionCache, snapshot, versionKey, customMetadata)
-			this._lastVersionCacheSnapshotVersion = snapshotVersion
-		}
+		// Then upload to version cache. Nothing dedupes this the way the version check in
+		// persistToDatabase does, because nothing after this put can fail: a retry that got here
+		// has already set _lastPersistedSnapshotVersion and takes the skip path instead.
+		const versionKey = `${key}/${new Date().toISOString()}`
+		await this._uploadSnapshotToBucket(this.r2.versionCache, snapshot, versionKey, customMetadata)
 	}
 
 	private async _uploadSnapshotToBucket(
