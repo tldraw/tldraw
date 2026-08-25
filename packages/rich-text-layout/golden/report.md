@@ -1,6 +1,6 @@
 # Golden drift report
 
-Generated 2026-08-24T17:57:20.297Z
+Generated 2026-08-25T15:43:58.885Z
 
 ## Plain text
 
@@ -149,13 +149,13 @@ Cases: 1120
 
 ## Rich text
 
-Cases: 296
+Cases: 326
 
 | group | cases | max dw | p95 dw | max dh | p95 dh | line mismatches |
 | ----- | ----- | ------ | ------ | ------ | ------ | --------------- |
-| all   | 296   | 47.90  | 0.56   | 1.60   | 0.19   | 0               |
+| all   | 326   | 47.90  | 0.44   | 1.60   | 0.16   | 0               |
 | draw  | 148   | 47.90  | 0.65   | 1.60   | 0.40   | 0               |
-| sans  | 148   | 47.90  | 0.06   | 0.19   | 0.04   | 0               |
+| sans  | 178   | 47.90  | 0.12   | 0.19   | 0.03   | 0               |
 
 ### Worst 10 cases
 
@@ -174,14 +174,14 @@ Cases: 296
 
 ## Rich text by document
 
-Cases: 296
+Cases: 326
 
 | group                | cases | max dw | p95 dw | max dh | p95 dh | line mismatches |
 | -------------------- | ----- | ------ | ------ | ------ | ------ | --------------- |
-| all                  | 296   | 47.90  | 0.56   | 1.60   | 0.19   | 0               |
+| all                  | 326   | 47.90  | 0.44   | 1.60   | 0.16   | 0               |
 | boldHeading          | 8     | 0.04   | 0.04   | 0.04   | 0.04   | 0               |
 | boldItalic           | 8     | 0.04   | 0.04   | 0.00   | 0.00   | 0               |
-| boldMidWord          | 8     | 0.05   | 0.05   | 0.00   | 0.00   | 0               |
+| boldMidWord          | 14    | 0.05   | 0.05   | 0.00   | 0.00   | 0               |
 | boldWord             | 8     | 0.03   | 0.03   | 0.00   | 0.00   | 0               |
 | bullets              | 8     | 0.42   | 0.42   | 0.00   | 0.00   | 0               |
 | cjkBold              | 8     | 47.90  | 47.90  | 0.00   | 0.00   | 0               |
@@ -195,16 +195,16 @@ Cases: 296
 | h1                   | 8     | 0.01   | 0.01   | 0.04   | 0.04   | 0               |
 | h2                   | 8     | 0.01   | 0.01   | 0.03   | 0.03   | 0               |
 | h3                   | 8     | 0.09   | 0.09   | 0.03   | 0.03   | 0               |
-| hardBreak            | 8     | 0.02   | 0.02   | 0.00   | 0.00   | 0               |
-| headingWrap          | 8     | 0.02   | 0.02   | 0.21   | 0.21   | 0               |
+| hardBreak            | 14    | 0.02   | 0.02   | 0.00   | 0.00   | 0               |
+| headingWrap          | 14    | 0.02   | 0.02   | 0.21   | 0.21   | 0               |
 | headings             | 8     | 0.02   | 0.02   | 0.04   | 0.04   | 0               |
 | highlight            | 8     | 0.04   | 0.04   | 0.00   | 0.00   | 0               |
 | italic               | 8     | 0.06   | 0.06   | 0.00   | 0.00   | 0               |
 | link                 | 8     | 0.03   | 0.03   | 0.00   | 0.00   | 0               |
 | listThenPara         | 8     | 0.02   | 0.02   | 0.00   | 0.00   | 0               |
-| listWrap             | 8     | 0.45   | 0.45   | 0.00   | 0.00   | 0               |
+| listWrap             | 14    | 0.45   | 0.45   | 0.00   | 0.00   | 0               |
 | longCode             | 8     | 0.01   | 0.01   | 1.60   | 1.60   | 0               |
-| multiLineMixed       | 8     | 0.12   | 0.12   | 0.40   | 0.40   | 0               |
+| multiLineMixed       | 14    | 0.12   | 0.12   | 0.40   | 0.40   | 0               |
 | nestedBullets        | 8     | 0.84   | 0.84   | 0.00   | 0.00   | 0               |
 | numbered             | 8     | 0.42   | 0.42   | 0.00   | 0.00   | 0               |
 | numberedStart        | 8     | 0.42   | 0.42   | 0.00   | 0.00   | 0               |
@@ -234,24 +234,24 @@ Cases: 296
 
 ## Native SVG pixel diff
 
-Cases: 272. Differing pixels as a share of the box, luminance threshold 48/255.
+Cases: 302. Differing pixels as a share of the box, luminance threshold 48/255.
 
 | renderer                                     | max    | p95   | median |
 | -------------------------------------------- | ------ | ----- | ------ |
-| Chromium (native svg vs foreignObject)       | 9.03%  | 6.22% | 0.17%  |
-| resvg (native svg vs Chromium foreignObject) | 12.65% | 9.54% | 4.48%  |
+| Chromium (native svg vs foreignObject)       | 6.29%  | 4.68% | 0.16%  |
+| resvg (native svg vs Chromium foreignObject) | 12.65% | 8.78% | 4.42%  |
 
 ### Worst 10 (resvg)
 
 | case                       | size     | chromium | resvg  |
 | -------------------------- | -------- | -------- | ------ |
-| tenItems/draw/24/auto      | 133×320  | 8.99%    | 12.65% |
-| tenItems/draw/24/200       | 133×320  | 8.99%    | 12.65% |
+| tenItems/draw/24/auto      | 133×320  | 5.25%    | 12.65% |
+| tenItems/draw/24/200       | 133×320  | 5.25%    | 12.65% |
 | strike/draw/24/auto        | 267×32   | 1.12%    | 11.68% |
 | headingWrap/draw/36/auto   | 2582×113 | 1.81%    | 11.26% |
-| numbered/draw/24/auto      | 113×96   | 7.17%    | 11.06% |
-| numbered/draw/24/200       | 113×96   | 7.17%    | 11.06% |
-| numberedStart/draw/24/auto | 109×96   | 7.28%    | 10.53% |
-| numberedStart/draw/24/200  | 109×96   | 7.28%    | 10.53% |
-| listWrap/draw/24/auto      | 835×32   | 5.66%    | 9.91%  |
-| bullets/draw/24/auto       | 176×96   | 6.15%    | 9.82%  |
+| numbered/draw/24/auto      | 113×96   | 4.68%    | 11.06% |
+| numbered/draw/24/200       | 113×96   | 4.68%    | 11.06% |
+| numberedStart/draw/24/auto | 109×96   | 4.28%    | 10.53% |
+| numberedStart/draw/24/200  | 109×96   | 4.28%    | 10.53% |
+| listWrap/draw/24/auto      | 835×32   | 5.39%    | 9.64%  |
+| headingWrap/sans/36/auto   | 2164×113 | 2.28%    | 9.60%  |
