@@ -8,3 +8,4 @@
 DROP PUBLICATION IF EXISTS alltables;
 DROP TABLE IF EXISTS public.user_mutation_number;
 DROP TABLE IF EXISTS public.replicator_boot_id;
+DROP TABLE IF EXISTS public.user_boot_id;
