@@ -4,6 +4,7 @@ import { createTLSchema } from '@tldraw/tlschema'
 import { uniqueId } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { getR2KeyForRoom } from '../../r2'
+import { getSnapshotVersion, getSnapshotVersionMetadata } from '../../snapshotUtils'
 import { Environment } from '../../types'
 import { getUserIdFromRequest } from '../../utils/tla/permissions'
 import { validateSnapshot } from '../../utils/validateSnapshot'
@@ -44,8 +45,12 @@ export async function createFiles(request: IRequest, env: Environment): Promise<
 		// Create a new slug for the room
 		const newSlug = uniqueId()
 
-		// Bang the snapshot into the database
-		await env.ROOMS.put(getR2KeyForRoom({ slug: newSlug, isApp: true }), serializedSnapshot)
+		// Bang the snapshot into the database. Stamped like a persist would: the room DO loads
+		// exactly these bytes, so an unstamped object would make its first persist re-upload
+		// identical content and rotate the etag, costing a thumbnail re-render per dropped file.
+		await env.ROOMS.put(getR2KeyForRoom({ slug: newSlug, isApp: true }), serializedSnapshot, {
+			customMetadata: getSnapshotVersionMetadata(getSnapshotVersion(snapshot)),
+		})
 
 		slugs.push(newSlug)
 	}

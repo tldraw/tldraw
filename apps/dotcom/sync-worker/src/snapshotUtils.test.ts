@@ -1,6 +1,20 @@
-import { RoomSnapshot } from '@tldraw/sync-core'
-import { createTLSchema } from '@tldraw/tlschema'
-import { generateSnapshotChunks } from './snapshotUtils'
+import { DatabaseSync } from 'node:sqlite'
+import { SerializedSchema } from '@tldraw/store'
+import {
+	DEFAULT_INITIAL_SNAPSHOT,
+	NodeSqliteWrapper,
+	RoomSnapshot,
+	SQLiteSyncStorage,
+} from '@tldraw/sync-core'
+import { createTLSchema, TLRecord } from '@tldraw/tlschema'
+import {
+	generateSnapshotChunks,
+	getDocumentVersion,
+	getSnapshotVersion,
+	getSnapshotVersionMetadata,
+	isSameSnapshotVersion,
+	readPersistedSnapshotVersion,
+} from './snapshotUtils'
 
 describe('generateSnapshotChunks', () => {
 	const decoder = new TextDecoder()
@@ -75,5 +89,198 @@ describe('generateSnapshotChunks', () => {
 		// Verify the combined result is valid JSON
 		const result = chunksToString(generateSnapshotChunks(snapshot))
 		expect(() => JSON.parse(result)).not.toThrow()
+	})
+})
+
+function makeSnapshot(partial: Partial<RoomSnapshot>): RoomSnapshot {
+	return {
+		schema: createTLSchema().serialize(),
+		documents: [],
+		tombstones: {},
+		...partial,
+	}
+}
+
+function doc(id: string, lastChangedClock: number): RoomSnapshot['documents'][number] {
+	return { state: { id: id as any, typeName: 'shape' }, lastChangedClock }
+}
+
+describe('getDocumentVersion', () => {
+	test('is 0 for an empty snapshot', () => {
+		expect(getDocumentVersion(makeSnapshot({}))).toBe(0)
+	})
+
+	test('is the max lastChangedClock across documents', () => {
+		const snapshot = makeSnapshot({
+			documents: [doc('a', 3), doc('b', 11), doc('c', 7)],
+		})
+		expect(getDocumentVersion(snapshot)).toBe(11)
+	})
+
+	test('includes tombstone clocks, so a delete is a new version', () => {
+		const snapshot = makeSnapshot({
+			documents: [doc('a', 3)],
+			tombstones: { b: 12 },
+		})
+		expect(getDocumentVersion(snapshot)).toBe(12)
+	})
+
+	test('includes tombstoneHistoryStartsAtClock, so pruning is a new version', () => {
+		const snapshot = makeSnapshot({
+			documents: [doc('a', 3)],
+			tombstones: {},
+			tombstoneHistoryStartsAtClock: 15,
+		})
+		expect(getDocumentVersion(snapshot)).toBe(15)
+	})
+
+	test('ignores the shared clock counter that object-lane (comment) writes bump', () => {
+		// A comment write advances documentClock without touching any document, so two
+		// snapshots that differ only in documentClock must report the same version.
+		const before = makeSnapshot({ documents: [doc('a', 10)], documentClock: 10 })
+		const after = makeSnapshot({ documents: [doc('a', 10)], documentClock: 21, clock: 21 })
+		expect(getDocumentVersion(after)).toBe(getDocumentVersion(before))
+		expect(getDocumentVersion(after)).toBe(10)
+	})
+})
+
+function schemaWithSequences(sequences: Record<string, number>): SerializedSchema {
+	return { schemaVersion: 2, sequences }
+}
+
+describe('getSnapshotVersion', () => {
+	test('changes when a migration advances the schema but touches no record', () => {
+		// migrateStorage always writes the migrated schema, but only calls storage.set for records
+		// whose content actually changed — so a migration that applies to no record on this board
+		// leaves every clock untouched. The document version alone reads that as a no-op, which
+		// would leave the migrated schema unpersisted forever.
+		const documents = [doc('a', 10)]
+		const before = makeSnapshot({ documents, schema: schemaWithSequences({ store: 4 }) })
+		const after = makeSnapshot({ documents, schema: schemaWithSequences({ store: 5 }) })
+
+		expect(getDocumentVersion(after)).toBe(getDocumentVersion(before))
+		expect(isSameSnapshotVersion(getSnapshotVersion(after), getSnapshotVersion(before))).toBe(false)
+	})
+
+	test('is unchanged for a snapshot that differs only in the shared clock counter', () => {
+		const documents = [doc('a', 10)]
+		const before = makeSnapshot({ documents, documentClock: 10 })
+		const after = makeSnapshot({ documents, documentClock: 21, clock: 21 })
+		expect(isSameSnapshotVersion(getSnapshotVersion(after), getSnapshotVersion(before))).toBe(true)
+	})
+
+	test('ignores key order in the serialized schema', () => {
+		// Key order carries no meaning, and treating it as a change would re-upload every board.
+		const a = makeSnapshot({ schema: schemaWithSequences({ x: 1, y: 2 }) })
+		const b = makeSnapshot({ schema: { sequences: { y: 2, x: 1 }, schemaVersion: 2 } })
+		expect(getSnapshotVersion(a).schemaVersion).toBe(getSnapshotVersion(b).schemaVersion)
+	})
+
+	test('distinguishes a missing schema from any present one', () => {
+		const missing = getSnapshotVersion(makeSnapshot({ schema: undefined }))
+		const present = getSnapshotVersion(makeSnapshot({}))
+		expect(missing.schemaVersion).not.toBe(present.schemaVersion)
+	})
+})
+
+describe('isSameSnapshotVersion', () => {
+	test('never matches an unknown (null) version on either side', () => {
+		const version = getSnapshotVersion(makeSnapshot({}))
+		expect(isSameSnapshotVersion(null, version)).toBe(false)
+		expect(isSameSnapshotVersion(version, null)).toBe(false)
+		expect(isSameSnapshotVersion(null, null)).toBe(false)
+	})
+
+	test('does not match when only the document version differs', () => {
+		const a = getSnapshotVersion(makeSnapshot({ documents: [doc('a', 1)] }))
+		const b = getSnapshotVersion(makeSnapshot({ documents: [doc('a', 2)] }))
+		expect(isSameSnapshotVersion(a, b)).toBe(false)
+	})
+})
+
+describe('stamping a snapshot at creation', () => {
+	// The creation paths (createFiles, handleFileCreateFromSource, __admin__createLegacyRoom)
+	// stamp the version of the bytes they write, and the room DO then loads exactly those bytes.
+	// If a load changed the version, the first persist would re-upload identical content — the
+	// re-render and etag rotation the stamp exists to prevent.
+	function versionAfterLoad(snapshot: RoomSnapshot) {
+		const storage = new SQLiteSyncStorage<TLRecord>({
+			sql: new NodeSqliteWrapper(new DatabaseSync(':memory:')),
+			snapshot,
+		})
+		return getSnapshotVersion(storage.getSnapshot())
+	}
+
+	test('survives the load for a snapshot shaped like createFiles writes', () => {
+		const created: RoomSnapshot = {
+			schema: createTLSchema().serialize(),
+			clock: 0,
+			documents: [doc('shape:a', 0), doc('shape:b', 0)],
+			tombstones: {},
+		}
+		expect(isSameSnapshotVersion(versionAfterLoad(created), getSnapshotVersion(created))).toBe(true)
+	})
+
+	test('survives the load for DEFAULT_INITIAL_SNAPSHOT', () => {
+		expect(
+			isSameSnapshotVersion(
+				versionAfterLoad(DEFAULT_INITIAL_SNAPSHOT),
+				getSnapshotVersion(DEFAULT_INITIAL_SNAPSHOT)
+			)
+		).toBe(true)
+	})
+
+	test('survives the load for a copied board carrying edits and deletions', () => {
+		const source: RoomSnapshot = {
+			schema: createTLSchema().serialize(),
+			documentClock: 40,
+			tombstoneHistoryStartsAtClock: 12,
+			documents: [doc('shape:a', 31), doc('shape:b', 17)],
+			tombstones: { 'shape:gone': 28 },
+		}
+		expect(isSameSnapshotVersion(versionAfterLoad(source), getSnapshotVersion(source))).toBe(true)
+	})
+})
+
+describe('readPersistedSnapshotVersion', () => {
+	function bucketWithHead(result: { customMetadata?: Record<string, string> } | null) {
+		return { head: async (_key: string) => result } as any
+	}
+
+	test('round-trips the version written by getSnapshotVersionMetadata', async () => {
+		const snapshot = makeSnapshot({ documents: [doc('a', 42)] })
+		const written = getSnapshotVersion(snapshot)
+		const customMetadata = getSnapshotVersionMetadata(written)
+
+		const read = await readPersistedSnapshotVersion(bucketWithHead({ customMetadata }), 'key')
+
+		expect(read).toEqual(written)
+		expect(read?.documentVersion).toBe(42)
+	})
+
+	test('is null when the object does not exist', async () => {
+		expect(await readPersistedSnapshotVersion(bucketWithHead(null), 'key')).toBe(null)
+	})
+
+	test('is null for a legacy object with no metadata', async () => {
+		expect(await readPersistedSnapshotVersion(bucketWithHead({}), 'key')).toBe(null)
+	})
+
+	test('is null for malformed metadata', async () => {
+		expect(
+			await readPersistedSnapshotVersion(
+				bucketWithHead({ customMetadata: { documentVersion: 'not-a-number', schemaVersion: 'a' } }),
+				'key'
+			)
+		).toBe(null)
+	})
+
+	test('is null when the schema version is absent, so the object is re-uploaded', async () => {
+		expect(
+			await readPersistedSnapshotVersion(
+				bucketWithHead({ customMetadata: { documentVersion: '42' } }),
+				'key'
+			)
+		).toBe(null)
 	})
 })
