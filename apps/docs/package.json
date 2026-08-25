@@ -73,7 +73,7 @@
 		"next-mdx-remote-client": "^1.1.2",
 		"next-themes": "^0.3.0",
 		"query-string": "^9.1.1",
-		"radix-ui": "^1.5.0",
+		"radix-ui": "^1.4.2",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"react-instantsearch": "^7.15.1",
