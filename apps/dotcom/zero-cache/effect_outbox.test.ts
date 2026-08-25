@@ -24,7 +24,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 // points at a real local dev stack whose `public` schema holds real dev data, this suite
 // instead creates a throwaway database with CREATE DATABASE, and drops it in afterAll.
 //
-// Owning a whole database also means the REAL migration chain (000 → 048) can run
+// Owning a whole database also means the REAL migration chain (000 onward) can run
 // verbatim, exactly like migrate.ts applies it. Every trigger involved — the outbox
 // trigger, the group-delete cascade, the updatedAt bumper (005), the owner-details
 // denormalizers — is the shipped one, not a test copy, so a behavior change in any
