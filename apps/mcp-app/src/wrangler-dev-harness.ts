@@ -50,19 +50,7 @@ export async function startWranglerDev(opts: {
 		}
 	)
 
-	const deadline = Date.now() + 60_000
-	for (;;) {
-		try {
-			const res = await fetch(`${base}/health`, { signal: AbortSignal.timeout(1000) })
-			if (res.ok) break
-		} catch {
-			// not up yet
-		}
-		if (Date.now() > deadline) throw new Error('wrangler dev did not become ready in 60s')
-		await new Promise((r) => setTimeout(r, 500))
-	}
-
-	return {
+	const handle: WranglerDevHandle = {
 		base,
 		stop() {
 			if (server.pid) {
@@ -76,6 +64,24 @@ export async function startWranglerDev(opts: {
 			for (const path of writtenFixtures) rmSync(path, { force: true })
 		},
 	}
+
+	const deadline = Date.now() + 60_000
+	for (;;) {
+		try {
+			const res = await fetch(`${base}/health`, { signal: AbortSignal.timeout(1000) })
+			if (res.ok) break
+		} catch {
+			// not up yet
+		}
+		if (Date.now() > deadline) {
+			// callers never see a handle on throw, so clean up here or the group leaks
+			handle.stop()
+			throw new Error('wrangler dev did not become ready in 60s')
+		}
+		await new Promise((r) => setTimeout(r, 500))
+	}
+
+	return handle
 }
 
 /** Minimal assets so init() can load the widget and a canvas read resolves. */
