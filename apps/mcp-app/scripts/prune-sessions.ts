@@ -36,6 +36,7 @@ const NAMESPACE_ID = '164dab144e614bb9ac54367e0ffaf56c'
 const RESULTS_FILE = 'prune-results.jsonl'
 const DRY_RUN_RESULTS_FILE = 'prune-dry-run.jsonl'
 const BATCH = 100
+/** Batches in flight. The ceiling is DO wake latency, not our worker; --concurrency raises it. */
 const CONCURRENCY = 4
 const DAY = 24 * 60 * 60 * 1000
 
@@ -173,6 +174,10 @@ async function prune(args: string[]): Promise<void> {
 			`Refusing to prune below 7d without --force (asked for ${idleArg}); this kills live sessions`
 		)
 	}
+	const concurrencyArg = args.indexOf('--concurrency')
+	const concurrency = concurrencyArg === -1 ? CONCURRENCY : Number(args[concurrencyArg + 1])
+	if (!Number.isInteger(concurrency) || concurrency < 1)
+		throw new Error('--concurrency needs a positive integer')
 	const limitArg = args.indexOf('--limit')
 	const limit = limitArg === -1 ? Infinity : Number(args[limitArg + 1])
 	if (!Number.isFinite(limit) && limitArg !== -1) throw new Error('--limit needs a number')
@@ -219,7 +224,7 @@ async function prune(args: string[]): Promise<void> {
 	}
 
 	console.log(
-		`dryRun=${dryRun}, maxIdle=${maxIdleMs}ms, resuming at line ${skipLines}${limit === Infinity ? '' : `, limit ${limit}`}, appending to ${resultsFile}`
+		`dryRun=${dryRun}, maxIdle=${maxIdleMs}ms, concurrency=${concurrency}, resuming at line ${skipLines}${limit === Infinity ? '' : `, limit ${limit}`}, appending to ${resultsFile}`
 	)
 
 	let dispatched = skipLines
@@ -285,9 +290,9 @@ async function prune(args: string[]): Promise<void> {
 		inFlight.set(seq, task)
 		dispatched += batch.length
 		process.stdout.write(`\r${dispatched} processed, condemned=${condemned} errors=${errors}`)
-		if (inFlight.size >= CONCURRENCY) await Promise.race(inFlight.values())
+		if (inFlight.size >= concurrency) await Promise.race(inFlight.values())
 		// ~10 req/s per worker -> ~1000 DO wakes/s
-		await new Promise((r) => setTimeout(r, 100 / CONCURRENCY))
+		await new Promise((r) => setTimeout(r, 100 / concurrency))
 	}
 
 	let lineNo = 0
