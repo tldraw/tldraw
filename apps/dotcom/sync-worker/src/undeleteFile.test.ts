@@ -104,28 +104,21 @@ describe('undeleteFile', () => {
 		expect(inserts).toEqual([])
 	})
 
-	it('clears the flag and restores the owner file_state', async () => {
-		const file = makeFile()
-		const { db, updates, inserts, getTransactionCount } = makeFakeDb(file)
-		expect(await undeleteFile(db, file.id)).toEqual({
-			result: 'restored',
-			file,
-		})
-		expect(getTransactionCount()).toBe(1)
+	it('bumps lastPublished when restoring a published file, to trigger a republish', async () => {
+		const file = makeFile({ published: true, lastPublished: 123 })
+		const { db, updates } = makeFakeDb(file)
+		await undeleteFile(db, file.id)
 		expect(updates).toEqual([
-			{ table: 'file', values: { isDeleted: false, updatedAt: expect.any(Number) } },
-		])
-		expect(inserts).toEqual([
 			{
-				table: 'file_state',
+				table: 'file',
 				values: {
-					userId: 'user-1',
-					fileId: 'file-1',
-					firstVisitAt: expect.any(Number),
-					isFileOwner: true,
+					isDeleted: false,
+					updatedAt: expect.any(Number),
+					lastPublished: expect.any(Number),
 				},
 			},
 		])
+		expect(updates[0].values.lastPublished).not.toBe(123)
 	})
 
 	it('restores the group_file link for a group-owned file', async () => {

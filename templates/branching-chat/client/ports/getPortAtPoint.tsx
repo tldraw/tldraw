@@ -18,7 +18,6 @@ export function getPortAtPoint(
 
 	// get the ports on that shape
 	const ports = getNodePorts(editor, shape)
-	if (!ports) return null
 
 	// transform the ports to page space
 	const shapeTransform = editor.getShapePageTransform(shape)

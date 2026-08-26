@@ -40,8 +40,8 @@ export class MessageNodeDefinition extends NodeDefinition<MessageNode> {
 	getBodyWidthPx(_shape: NodeShape, _node: MessageNode): number {
 		return NODE_WIDTH_PX
 	}
-	getBodyHeightPx(_shape: NodeShape, _node: MessageNode): number {
-		const assistantMessage = _node.assistantMessage.trim()
+	getBodyHeightPx(_shape: NodeShape, node: MessageNode): number {
+		const assistantMessage = node.assistantMessage.trim()
 		if (assistantMessage === '') return NODE_HEIGHT_PX
 		const size = this.editor.textMeasure.measureText(assistantMessage, {
 			fontFamily: 'Inter',
@@ -77,28 +77,16 @@ function MessageNodeComponent({ node, shape }: NodeComponentProps<MessageNode>) 
 		// 4. update node with assistant message
 
 		const messages: ModelMessage[] = []
-
-		const connectedNodeShapes = getAllConnectedNodes(editor, shape, 'end')
-		for (const connectedShape of connectedNodeShapes) {
+		for (const connectedShape of getAllConnectedNodes(editor, shape, 'end')) {
 			const node = editor.getShape(connectedShape)
-
-			if (!node) continue
-			if (!editor.isShapeOfType(node, 'node')) continue
+			if (!node || !editor.isShapeOfType(node, 'node')) continue
 			if (node.props.node.type !== 'message') continue
 
 			if (node.props.node.assistantMessage && connectedShape !== shape.id) {
-				messages.push({
-					role: 'assistant',
-					content: node.props.node.assistantMessage ?? '',
-				})
+				messages.push({ role: 'assistant', content: node.props.node.assistantMessage })
 			}
-
-			messages.push({
-				role: 'user',
-				content: node.props.node.userMessage ?? '',
-			})
+			messages.push({ role: 'user', content: node.props.node.userMessage })
 		}
-
 		messages.reverse()
 
 		// clear any previous assistant message before starting
@@ -154,70 +142,68 @@ function MessageNodeComponent({ node, shape }: NodeComponentProps<MessageNode>) 
 	)
 
 	return (
-		<>
-			<div
-				style={{
-					pointerEvents: 'auto',
-					display: 'flex',
-					flexDirection: 'column',
-				}}
-			>
-				<div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-					<div
-						style={{
-							height: '100%',
-							width: 32,
-							paddingLeft: 4,
-							display: 'flex',
-							justifyContent: 'center',
-							alignItems: 'center',
-							cursor: 'grab',
-						}}
-					>
-						<TldrawUiButtonIcon icon={<HandleIcon />} />
-					</div>
-					<div
-						style={{ padding: '4px 0px 0px 4px', flexGrow: 2 }}
-						onPointerDown={editor.markEventAsHandled}
-					>
-						<div style={{ padding: '0px 12px', borderRadius: 6, border: '1px solid #e2e8f0' }}>
-							<TldrawUiInput
-								value={node.userMessage}
-								onValueChange={handleMessageChange}
-								onComplete={handleSend}
-							/>
-						</div>
-					</div>
-					<div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0px 0px' }}>
-						<TldrawUiButton
-							type="primary"
-							onClick={handleSend}
-							onPointerDown={editor.markEventAsHandled}
-						>
-							<TldrawUiButtonIcon icon={<SendIcon />} />
-						</TldrawUiButton>
+		<div
+			style={{
+				pointerEvents: 'auto',
+				display: 'flex',
+				flexDirection: 'column',
+			}}
+		>
+			<div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+				<div
+					style={{
+						height: '100%',
+						width: 32,
+						paddingLeft: 4,
+						display: 'flex',
+						justifyContent: 'center',
+						alignItems: 'center',
+						cursor: 'grab',
+					}}
+				>
+					<TldrawUiButtonIcon icon={<HandleIcon />} />
+				</div>
+				<div
+					style={{ padding: '4px 0px 0px 4px', flexGrow: 2 }}
+					onPointerDown={editor.markEventAsHandled}
+				>
+					<div style={{ padding: '0px 12px', borderRadius: 6, border: '1px solid #e2e8f0' }}>
+						<TldrawUiInput
+							value={node.userMessage}
+							onValueChange={handleMessageChange}
+							onComplete={handleSend}
+						/>
 					</div>
 				</div>
-				{node.assistantMessage && (
-					<div style={{ padding: 4 }}>
-						<div
-							style={{
-								padding: 8,
-								lineHeight: '1.3',
-								fontSize: '12px',
-								borderRadius: 6,
-								border: '1px solid #e2e8f0',
-								fontWeight: '500',
-								fontFamily: 'Inter',
-								overflowWrap: 'normal',
-								whiteSpace: 'pre-wrap',
-							}}
-						>
-							{node.assistantMessage}
-						</div>
-					</div>
-				)}
+				<div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0px 0px' }}>
+					<TldrawUiButton
+						type="primary"
+						onClick={handleSend}
+						onPointerDown={editor.markEventAsHandled}
+					>
+						<TldrawUiButtonIcon icon={<SendIcon />} />
+					</TldrawUiButton>
+				</div>
 			</div>
-		</>
+			{node.assistantMessage && (
+				<div style={{ padding: 4 }}>
+					<div
+						style={{
+							padding: 8,
+							lineHeight: '1.3',
+							fontSize: '12px',
+							borderRadius: 6,
+							border: '1px solid #e2e8f0',
+							fontWeight: '500',
+							fontFamily: 'Inter',
+							overflowWrap: 'normal',
+							whiteSpace: 'pre-wrap',
+						}}
+					>
+						{node.assistantMessage}
+					</div>
+				</div>
+			)}
+		</div>
 	)
 }

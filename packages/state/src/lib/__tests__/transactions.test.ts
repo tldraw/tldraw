@@ -183,6 +183,29 @@ describe('transactions (T)', () => {
 		expect(a.get()).toBe('a')
 	})
 
+	it('[T7] an outer rollback undoes an inner transaction committed during the reaction phase', () => {
+		// Regression: committing a nested transaction inside an effect used to skip folding its
+		// initial values into the parent, so the outer rollback could not restore them.
+		const trigger = atom('', 0)
+		const a = atom('', 'a')
+		const b = atom('', 'b')
+
+		react('', () => {
+			if (trigger.get() === 0) return
+			transaction((rollback) => {
+				b.set('B')
+				transaction(() => {
+					a.set('A')
+				})
+				rollback()
+			})
+		})
+		trigger.set(1)
+
+		expect(a.get()).toBe('a')
+		expect(b.get()).toBe('b')
+	})
+
 	it('[T4] rollback restores computed signals too', () => {
 		const firstName = atom('', 'John')
 		const lastName = atom('', 'Doe')

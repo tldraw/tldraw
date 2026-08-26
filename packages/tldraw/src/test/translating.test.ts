@@ -2305,6 +2305,48 @@ describe('cancelling a translate operation', () => {
 	})
 })
 
+describe('cloning mid-drag', () => {
+	it('reparents the clone, not the original, when alt is pressed during the drag', () => {
+		editor.createShapes([
+			{ id: ids.frame1, type: 'frame', x: 500, y: 0, props: { w: 200, h: 200 } },
+			{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+		])
+		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.box1) })
+		editor.pointerMove(60, 60)
+		editor.expectToBeIn('select.translating')
+		editor.keyDown('Alt')
+		editor.pointerMove(600, 100)
+		vi.advanceTimersByTime(300)
+		editor.pointerUp(600, 100)
+
+		const original = editor.getShape(ids.box1)!
+		expect(original.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getShapePageBounds(original)).toMatchObject({ x: 0, y: 0 })
+
+		const clone = editor.getCurrentPageShapes().find((s) => s.type === 'geo' && s.id !== ids.box1)!
+		expect(clone.parentId).toBe(ids.frame1)
+	})
+
+	it('reparents the original when alt is released during the drag', () => {
+		editor.createShapes([
+			{ id: ids.frame1, type: 'frame', x: 500, y: 0, props: { w: 200, h: 200 } },
+			{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+		])
+		editor.keyDown('Alt')
+		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.box1) })
+		editor.pointerMove(60, 60)
+		editor.expectToBeIn('select.translating')
+		editor.keyUp('Alt')
+		vi.advanceTimersByTime(250) // the alt key is released on a timer
+		editor.pointerMove(600, 100)
+		vi.advanceTimersByTime(300)
+		editor.pointerUp(600, 100)
+
+		expect(editor.getCurrentPageShapes().filter((s) => s.type === 'geo')).toHaveLength(1)
+		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.frame1)
+	})
+})
+
 it('preserves z-indexes when translating', () => {
 	editor.createShape({ type: 'geo', x: 0, y: 0, props: { w: 200, h: 200 } })
 	editor.createShape({ type: 'geo', x: 100, y: 100, props: { w: 200, h: 200 } })

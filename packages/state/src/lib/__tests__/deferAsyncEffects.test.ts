@@ -112,6 +112,29 @@ describe('deferAsyncEffects (AT)', () => {
 		expect(b.get()).toBe(0)
 	})
 
+	it('[AT3][T6] effects never observe partially restored values when an async transaction aborts', async () => {
+		// Regression: the rollback used to run after the async transaction had been cleared, so each
+		// restoring set flushed effects on its own and they saw one atom restored but not the other.
+		const a = atom('', 1)
+		const b = atom('', 1)
+		const seen: string[] = []
+		react('', () => {
+			seen.push(`${a.get()},${b.get()}`)
+		})
+		seen.length = 0
+
+		await expect(
+			deferAsyncEffects(async () => {
+				a.set(2)
+				b.set(2)
+				await sleep(1)
+				throw new Error('boom')
+			})
+		).rejects.toThrow('boom')
+
+		expect(seen).toEqual(['1,1'])
+	})
+
 	it('[AT3][AT4] rolls back everything when a nested async transaction throws', async () => {
 		const a = atom('', 0)
 		const b = atom('', 0)
