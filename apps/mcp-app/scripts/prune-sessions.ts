@@ -148,6 +148,19 @@ async function list(restart: boolean): Promise<void> {
 
 /** Stream a file line by line: the ids file and the results log both reach tens of
  * millions of lines, well past what readFileSync can hold. */
+/** Ids whose most recent ledger row is an error, so a sweep does not re-do successes. */
+async function* errorIdsFromLedger(file: string): AsyncGenerator<string> {
+	if (!existsSync(file)) return
+	const failed = new Map<string, boolean>()
+	for await (const line of readLines(file)) {
+		const r = JSON.parse(line)
+		failed.set(r.id, Boolean(r.error))
+	}
+	for (const [id, isError] of failed) {
+		if (isError) yield id
+	}
+}
+
 async function* readLines(file: string): AsyncGenerator<string> {
 	const rl = createInterface({ input: createReadStream(file, 'utf8'), crlfDelay: Infinity })
 	for await (const line of rl) {
@@ -174,6 +187,7 @@ async function prune(args: string[]): Promise<void> {
 			`Refusing to prune below 7d without --force (asked for ${idleArg}); this kills live sessions`
 		)
 	}
+	const retryErrors = args.includes('--retry-errors')
 	const concurrencyArg = args.indexOf('--concurrency')
 	const concurrency = concurrencyArg === -1 ? CONCURRENCY : Number(args[concurrencyArg + 1])
 	if (!Number.isInteger(concurrency) || concurrency < 1)
@@ -208,7 +222,7 @@ async function prune(args: string[]): Promise<void> {
 	// dispatched in order. The offset only carries over for the same run parameters —
 	// a longer --max-idle must re-evaluate ids the previous pass kept.
 	let skipLines = 0
-	if (existsSync(PROGRESS_FILE)) {
+	if (!retryErrors && existsSync(PROGRESS_FILE)) {
 		const prev = JSON.parse(readFileSync(PROGRESS_FILE, 'utf8'))
 		if (prev.dryRun === dryRun && prev.maxIdleMs === maxIdleMs && prev.idsSize === idsSize) {
 			skipLines = prev.linesDone ?? 0
@@ -224,7 +238,7 @@ async function prune(args: string[]): Promise<void> {
 	}
 
 	console.log(
-		`dryRun=${dryRun}, maxIdle=${maxIdleMs}ms, concurrency=${concurrency}, resuming at line ${skipLines}${limit === Infinity ? '' : `, limit ${limit}`}, appending to ${resultsFile}`
+		`dryRun=${dryRun}, maxIdle=${maxIdleMs}ms, concurrency=${concurrency}, ${retryErrors ? 'retrying ledger errors' : `resuming at line ${skipLines}`}${limit === Infinity ? '' : `, limit ${limit}`}, appending to ${resultsFile}`
 	)
 
 	let dispatched = skipLines
@@ -266,10 +280,12 @@ async function prune(args: string[]): Promise<void> {
 			completedSizes.delete(committedBatch++)
 			size = completedSizes.get(committedBatch)
 		}
-		writeFileSync(
-			PROGRESS_FILE,
-			JSON.stringify({ dryRun, maxIdleMs, idsSize, linesDone: committedLines })
-		)
+		if (!retryErrors) {
+			writeFileSync(
+				PROGRESS_FILE,
+				JSON.stringify({ dryRun, maxIdleMs, idsSize, linesDone: committedLines })
+			)
+		}
 	}
 
 	const inFlight = new Map<number, Promise<void>>()
@@ -297,8 +313,11 @@ async function prune(args: string[]): Promise<void> {
 
 	let lineNo = 0
 	let batch: string[] = []
-	for await (const id of readLines(IDS_FILE)) {
-		if (++lineNo <= skipLines) continue
+	// Offset resume walks past error rows and never returns to them, so failures need
+	// their own sweep: --retry-errors re-reads the ledger instead of the ids file.
+	const source = retryErrors ? errorIdsFromLedger(resultsFile) : readLines(IDS_FILE)
+	for await (const id of source) {
+		if (!retryErrors && ++lineNo <= skipLines) continue
 		if (lineNo - skipLines > limit) break
 		batch.push(id)
 		if (batch.length < BATCH) continue
