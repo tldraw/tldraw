@@ -151,10 +151,14 @@ async function list(restart: boolean): Promise<void> {
 /** Ids whose most recent ledger row is an error, so a sweep does not re-do successes. */
 async function* errorIdsFromLedger(file: string): AsyncGenerator<string> {
 	if (!existsSync(file)) return
+	// Only ids that have failed at least once are tracked: holding every id of a 35M-row
+	// ledger would rebuild the multi-GB set this script exists to avoid. A later success
+	// row flips an entry to false rather than dropping it, so last-row-wins still holds.
 	const failed = new Map<string, boolean>()
 	for await (const line of readLines(file)) {
 		const r = JSON.parse(line)
-		failed.set(r.id, Boolean(r.error))
+		if (r.error) failed.set(r.id, true)
+		else if (failed.has(r.id)) failed.set(r.id, false)
 	}
 	for (const [id, isError] of failed) {
 		if (isError) yield id
@@ -273,12 +277,17 @@ async function prune(args: string[]): Promise<void> {
 			tally(r)
 		}
 		appendFileSync(resultsFile, out)
-		completedSizes.set(seq, batch.length)
+		commit(seq, batch.length)
+	}
+
+	/** Advance the durable offset across a contiguous run of finished batches. */
+	function commit(seq: number, size: number) {
+		completedSizes.set(seq, size)
 		// The final batch is short, so count actual ids rather than seq * BATCH.
-		for (let size = completedSizes.get(committedBatch); size !== undefined; ) {
-			committedLines += size
+		for (let s = completedSizes.get(committedBatch); s !== undefined; ) {
+			committedLines += s
 			completedSizes.delete(committedBatch++)
-			size = completedSizes.get(committedBatch)
+			s = completedSizes.get(committedBatch)
 		}
 		if (!retryErrors) {
 			writeFileSync(
@@ -297,8 +306,18 @@ async function prune(args: string[]): Promise<void> {
 					fatal ??= err
 					return
 				}
-				errors += batch.length
-				console.error(`\nbatch failed: ${String(err)}`)
+				// A whole-batch failure still has to be recorded and committed: without a
+				// ledger row --retry-errors can never find these ids, and without a commit
+				// the offset freezes here for the rest of the run.
+				const message = err instanceof Error ? err.message : String(err)
+				let out = ''
+				for (const id of batch) {
+					out += JSON.stringify({ id, error: `batch: ${message}` }) + '\n'
+					errors++
+				}
+				appendFileSync(resultsFile, out)
+				commit(seq, batch.length)
+				console.error(`\nbatch failed: ${message}`)
 			})
 			.finally(() => {
 				inFlight.delete(seq)
@@ -317,8 +336,9 @@ async function prune(args: string[]): Promise<void> {
 	// their own sweep: --retry-errors re-reads the ledger instead of the ids file.
 	const source = retryErrors ? errorIdsFromLedger(resultsFile) : readLines(IDS_FILE)
 	for await (const id of source) {
-		if (!retryErrors && ++lineNo <= skipLines) continue
-		if (lineNo - skipLines > limit) break
+		lineNo++
+		if (!retryErrors && lineNo <= skipLines) continue
+		if (lineNo - (retryErrors ? 0 : skipLines) > limit) break
 		batch.push(id)
 		if (batch.length < BATCH) continue
 		await dispatch(batch)
