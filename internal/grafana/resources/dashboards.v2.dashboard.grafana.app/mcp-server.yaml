@@ -847,6 +847,346 @@ spec:
                 mode: multi
                 sort: desc
           version: 13.2.0-29854286369
+    panel-17:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob7, 11) as transport, sum(_sample_interval) as renders
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'browser_run_session'
+                        AND blob3 = 'source:mcp'
+                        AND blob4 = 'mode:screenshot'
+                        AND blob7 != ''
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, transport
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob7, 11) as transport, sum(_sample_interval) as renders
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'browser_run_session'
+                        AND blob3 = 'source:mcp'
+                        AND blob4 = 'mode:screenshot'
+                        AND blob7 != ''
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, transport
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: 'How the render page got its snapshot for this server, which only ever renders cluster screenshots (mode:screenshot): inline means the whole self-contained page rode inside the Browser Run request; push means the worker injected the sliced payload after navigation; pull means the page fetched the snapshot with its render token; push_fallback means a payload was offered and refused for size, so the render fell back to the fetch. A push_fallback surge points at a missing inline artifact or the size guard disagreeing with the binding byte count. Counts are sum(_sample_interval) so they survive Analytics Engine sampling; rows from before the transport blob existed are excluded.'
+        id: 17
+        links: []
+        title: Cluster screenshots by transport
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: line
+                  fillOpacity: 10
+                  gradientMode: opacity
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1.5
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds: *id001
+                unit: short
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-18:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileWeighted(0.5, double3, _sample_interval) as total_p50, quantileWeighted(0.5, double5, _sample_interval) as browser_p50, quantileWeighted(0.95, double3, _sample_interval) as total_p95, quantileWeighted(0.95, double5, _sample_interval) as browser_p95
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'browser_run_session'
+                        AND blob3 = 'source:mcp'
+                        AND blob4 = 'mode:screenshot'
+                        AND blob5 = 'outcome:ok'
+                        AND double5 > 0
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileWeighted(0.5, double3, _sample_interval) as total_p50, quantileWeighted(0.5, double5, _sample_interval) as browser_p50, quantileWeighted(0.95, double3, _sample_interval) as total_p95, quantileWeighted(0.95, double5, _sample_interval) as browser_p95
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'browser_run_session'
+                        AND blob3 = 'source:mcp'
+                        AND blob4 = 'mode:screenshot'
+                        AND blob5 = 'outcome:ok'
+                        AND double5 > 0
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: 'Total session wall clock (double3) against the browser wall clock Browser Run bills for it (double5, from the X-Browser-Ms-Used header), for successful cluster screenshots. The gap between the lines is everything outside the browser — RPC, Browser Run queueing, response transfer — which is where the pipeline variance lives. Sessions with no billed time recorded (failures, the local dev service, rows from before the field existed) are excluded by double5 > 0.'
+        id: 18
+        links: []
+        title: In-browser vs total session time
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: line
+                  fillOpacity: 10
+                  gradientMode: opacity
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1.5
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds: *id001
+                unit: ms
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-19:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob4, 8) as source, quantileWeighted(0.5, double1, _sample_interval) as boot, quantileWeighted(0.5, double2 - double1, _sample_interval) as acquire, quantileWeighted(0.5, double3 - double2, _sample_interval) as mount, quantileWeighted(0.5, double4 - double3, _sample_interval) as settle, quantileWeighted(0.5, double5 - double4, _sample_interval) as export
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'render_page_timings'
+                        AND blob3 = 'surface:mcp'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, source
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob4, 8) as source, quantileWeighted(0.5, double1, _sample_interval) as boot, quantileWeighted(0.5, double2 - double1, _sample_interval) as acquire, quantileWeighted(0.5, double3 - double2, _sample_interval) as mount, quantileWeighted(0.5, double4 - double3, _sample_interval) as settle, quantileWeighted(0.5, double5 - double4, _sample_interval) as export
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'render_page_timings'
+                        AND blob3 = 'surface:mcp'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, source
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: 'Where the in-page time goes, from the render page timing beacon (render_page_timings): p50 per phase for this server (surface:mcp), split by how the page got its snapshot (source push vs fetch). Phases are deltas between performance.now() stamps — script boot, snapshot acquisition, editor mount, the settle wait for fonts and assets, and the export. Beacons only arrive from url-mode pages: an html-mode page has no network egress in Browser Run, so transport:inline renders are absent here by construction and the browser_run_session ledger is the complete instrument for that mode. The og surface beacons onto the same event.'
+        id: 19
+        links: []
+        title: Render page phase timings
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: line
+                  fillOpacity: 10
+                  gradientMode: opacity
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1.5
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds: *id001
+                unit: ms
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
     panel-2:
       kind: Panel
       spec:
@@ -1786,6 +2126,33 @@ spec:
             width: 12
             x: 12
             y: 36
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-17
+            height: 8
+            width: 8
+            x: 0
+            y: 44
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-18
+            height: 8
+            width: 8
+            x: 8
+            y: 44
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-19
+            height: 8
+            width: 8
+            x: 16
+            y: 44
   links: []
   liveNow: false
   preload: false
