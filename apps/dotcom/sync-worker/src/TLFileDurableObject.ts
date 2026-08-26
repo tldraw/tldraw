@@ -87,11 +87,11 @@ import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import {
 	generateSnapshotChunks,
-	getSnapshotVersion,
+	getSnapshotFingerprint,
 	getSnapshotMetadata,
-	isSameSnapshotVersion,
-	resolvePersistedSnapshotVersion,
-	SnapshotVersion,
+	isSameFingerprint,
+	resolvePersistedFingerprint,
+	SnapshotFingerprint,
 } from './snapshotUtils'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
@@ -716,7 +716,7 @@ export class TLFileDurableObject extends DurableObject {
 			// lines and clobber both the null and the restored object.
 			await this.executionQueue.push(async () => {
 				await this.r2.rooms.put(roomKey, dataText)
-				this._lastPersistedSnapshotVersion = null
+				this._lastPersistedFingerprint = null
 			})
 
 			// Version snapshots only contain the drawing data. Restoring drops the file's comments
@@ -1506,14 +1506,14 @@ export class TLFileDurableObject extends DurableObject {
 
 	_lastPersistedClock: number | null = null
 
-	// Version (getSnapshotVersion) of the snapshot known to be in the rooms bucket, read from its
-	// customMetadata so a cold start doesn't re-upload a board nobody edited. The clock guard
-	// above can't do this — it dies with the isolate, and object-lane (comment) writes bump it
-	// without changing the document snapshot.
+	// Fingerprint of the snapshot known to be in the rooms bucket, read from its customMetadata so
+	// a cold start doesn't re-upload a board nobody edited. The clock guard above can't do this —
+	// it dies with the isolate, and object-lane (comment) writes bump it without changing the
+	// document snapshot.
 	//
 	// undefined means "not looked up yet" and null means "looked up, no usable stamp"; the two are
-	// distinct because the lookup must happen at most once (see resolvePersistedSnapshotVersion).
-	_lastPersistedSnapshotVersion: SnapshotVersion | null | undefined = undefined
+	// distinct because the lookup must happen at most once (see resolvePersistedFingerprint).
+	_lastPersistedFingerprint: SnapshotFingerprint | null | undefined = undefined
 
 	// Serializes comment outbox drains (and the restore-path deletes) so they land in order.
 	// Separate from executionQueue (the R2/main-persist queue) since these pushes fire immediately
@@ -1765,14 +1765,14 @@ export class TLFileDurableObject extends DurableObject {
 						this.maybeAssociateFileAssets()
 
 						const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
-						const snapshotVersion = getSnapshotVersion(snapshot)
-						const persistedVersion = await resolvePersistedSnapshotVersion(
-							this._lastPersistedSnapshotVersion,
+						const snapshotFingerprint = getSnapshotFingerprint(snapshot)
+						const persistedFingerprint = await resolvePersistedFingerprint(
+							this._lastPersistedFingerprint,
 							this.r2.rooms,
 							key
 						)
-						this._lastPersistedSnapshotVersion = persistedVersion
-						if (isSameSnapshotVersion(persistedVersion, snapshotVersion)) {
+						this._lastPersistedFingerprint = persistedFingerprint
+						if (isSameFingerprint(persistedFingerprint, snapshotFingerprint)) {
 							// The clock moved but neither the document nor the schema did — a comment
 							// write, or a cold start re-checking work a previous incarnation already
 							// persisted. Uploading would store byte-identical content under a new
@@ -1784,7 +1784,7 @@ export class TLFileDurableObject extends DurableObject {
 							return
 						}
 						await this._uploadSnapshotToR2(snapshot, key)
-						this._lastPersistedSnapshotVersion = snapshotVersion
+						this._lastPersistedFingerprint = snapshotFingerprint
 
 						this.logEvent({
 							type: 'persist_success',
@@ -1902,7 +1902,7 @@ export class TLFileDurableObject extends DurableObject {
 
 		// Then upload to version cache. Nothing dedupes this the way the version check in
 		// persistToDatabase does, because nothing after this put can fail: a retry that got here
-		// has already set _lastPersistedSnapshotVersion and takes the skip path instead.
+		// has already set _lastPersistedFingerprint and takes the skip path instead.
 		const versionKey = `${key}/${new Date().toISOString()}`
 		await this._uploadSnapshotToBucket(this.r2.versionCache, snapshot, versionKey, customMetadata)
 	}
