@@ -80,6 +80,25 @@ export async function readPersistedSnapshotVersion(
 	return { documentVersion, schemaVersion }
 }
 
+/**
+ * Resolves the version stamped on an R2 object at most once, returning `known` untouched after
+ * that. `undefined` means "not looked up yet"; `null` means "looked up, no usable stamp", and the
+ * two must stay distinct.
+ *
+ * Looking it up a second time would let a persist observe its own partial write. A persist that
+ * stamps the rooms object and then fails before writing the history entry retries with the
+ * version it resolved beforehand; re-reading would hand it back its own fresh stamp, so it would
+ * conclude everything was persisted and drop the history entry it still owes.
+ */
+export async function resolvePersistedSnapshotVersion(
+	known: SnapshotVersion | null | undefined,
+	bucket: R2Bucket,
+	key: string
+): Promise<SnapshotVersion | null> {
+	if (known !== undefined) return known
+	return await readPersistedSnapshotVersion(bucket, key)
+}
+
 /** Unknown (null) never matches, so an unstamped object is always re-uploaded. */
 export function isSameSnapshotVersion(
 	a: SnapshotVersion | null,

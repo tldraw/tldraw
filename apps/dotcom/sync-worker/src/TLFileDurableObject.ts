@@ -90,7 +90,7 @@ import {
 	getSnapshotVersion,
 	getSnapshotVersionMetadata,
 	isSameSnapshotVersion,
-	readPersistedSnapshotVersion,
+	resolvePersistedSnapshotVersion,
 	SnapshotVersion,
 } from './snapshotUtils'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
@@ -709,11 +709,11 @@ export class TLFileDurableObject extends DurableObject {
 			}
 			const dataText = await data.text()
 
-			// The put carries no version metadata and the restore rewinds clocks, so the cached
-			// version no longer describes what's in R2; null makes the next persist re-check and
-			// re-stamp. Queued on executionQueue because a persist runs as one task there: an
-			// in-flight one, suspended mid-upload or at its head() hydration, would otherwise
-			// resume after these lines and clobber both the null and the restored object.
+			// The put deliberately carries no version metadata, so null ("looked up, no usable
+			// stamp") is the truth about R2 and the next persist re-uploads and re-stamps.
+			// Queued on executionQueue because a persist runs as one task there: an in-flight one,
+			// suspended mid-upload or at its version lookup, would otherwise resume after these
+			// lines and clobber both the null and the restored object.
 			await this.executionQueue.push(async () => {
 				await this.r2.rooms.put(roomKey, dataText)
 				this._lastPersistedSnapshotVersion = null
@@ -1506,11 +1506,14 @@ export class TLFileDurableObject extends DurableObject {
 
 	_lastPersistedClock: number | null = null
 
-	// Version (getSnapshotVersion) of the snapshot known to be in the rooms bucket. null means
-	// unknown: lazily hydrated from the rooms object's customMetadata, so a cold start doesn't
-	// re-upload a board nobody edited. The clock guard above can't do this — it dies with the
-	// isolate, and object-lane (comment) writes bump it without changing the document snapshot.
-	_lastPersistedSnapshotVersion: SnapshotVersion | null = null
+	// Version (getSnapshotVersion) of the snapshot known to be in the rooms bucket, read from its
+	// customMetadata so a cold start doesn't re-upload a board nobody edited. The clock guard
+	// above can't do this — it dies with the isolate, and object-lane (comment) writes bump it
+	// without changing the document snapshot.
+	//
+	// undefined means "not looked up yet" and null means "looked up, no usable stamp"; the two are
+	// distinct because the lookup must happen at most once (see resolvePersistedSnapshotVersion).
+	_lastPersistedSnapshotVersion: SnapshotVersion | null | undefined = undefined
 
 	// Serializes comment outbox drains (and the restore-path deletes) so they land in order.
 	// Separate from executionQueue (the R2/main-persist queue) since these pushes fire immediately
@@ -1763,13 +1766,13 @@ export class TLFileDurableObject extends DurableObject {
 
 						const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
 						const snapshotVersion = getSnapshotVersion(snapshot)
-						if (this._lastPersistedSnapshotVersion === null) {
-							this._lastPersistedSnapshotVersion = await readPersistedSnapshotVersion(
-								this.r2.rooms,
-								key
-							)
-						}
-						if (isSameSnapshotVersion(this._lastPersistedSnapshotVersion, snapshotVersion)) {
+						const persistedVersion = await resolvePersistedSnapshotVersion(
+							this._lastPersistedSnapshotVersion,
+							this.r2.rooms,
+							key
+						)
+						this._lastPersistedSnapshotVersion = persistedVersion
+						if (isSameSnapshotVersion(persistedVersion, snapshotVersion)) {
 							// The clock moved but neither the document nor the schema did — a comment
 							// write, or a cold start re-checking work a previous incarnation already
 							// persisted. Uploading would store byte-identical content under a new

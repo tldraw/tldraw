@@ -14,6 +14,7 @@ import {
 	getSnapshotVersionMetadata,
 	isSameSnapshotVersion,
 	readPersistedSnapshotVersion,
+	resolvePersistedSnapshotVersion,
 } from './snapshotUtils'
 
 describe('generateSnapshotChunks', () => {
@@ -195,6 +196,58 @@ describe('isSameSnapshotVersion', () => {
 		const a = getSnapshotVersion(makeSnapshot({ documents: [doc('a', 1)] }))
 		const b = getSnapshotVersion(makeSnapshot({ documents: [doc('a', 2)] }))
 		expect(isSameSnapshotVersion(a, b)).toBe(false)
+	})
+})
+
+describe('resolvePersistedSnapshotVersion', () => {
+	// Each head() call returns the next entry, then repeats the last one.
+	function countingBucket(results: Array<{ customMetadata?: Record<string, string> } | null>) {
+		const state = { calls: 0 }
+		const bucket = {
+			head: async (_key: string) => results[Math.min(state.calls++, results.length - 1)],
+		} as any
+		return { bucket, state }
+	}
+
+	test('does not re-read a stamp the failing persist itself just wrote', async () => {
+		// The reported failure: a persist finds no stamp, writes the rooms object (stamping it),
+		// then fails on the history upload. Its retry re-resolves. If that re-read R2 it would get
+		// back its own fresh stamp, match the current version, take the skip path, and drop the
+		// history entry it still owes.
+		const snapshot = makeSnapshot({ documents: [doc('shape:a', 7)] })
+		const stampedByTheFailedAttempt = getSnapshotVersion(snapshot)
+		const { bucket, state } = countingBucket([
+			null,
+			{ customMetadata: getSnapshotVersionMetadata(stampedByTheFailedAttempt) },
+		])
+
+		const firstAttempt = await resolvePersistedSnapshotVersion(undefined, bucket, 'key')
+		expect(firstAttempt).toBe(null)
+
+		const retry = await resolvePersistedSnapshotVersion(firstAttempt, bucket, 'key')
+
+		expect(retry).toBe(null)
+		expect(isSameSnapshotVersion(retry, stampedByTheFailedAttempt)).toBe(false)
+		expect(state.calls).toBe(1)
+	})
+
+	test('reads R2 when nothing has been looked up yet', async () => {
+		const snapshot = makeSnapshot({ documents: [doc('shape:a', 9)] })
+		const version = getSnapshotVersion(snapshot)
+		const { bucket, state } = countingBucket([
+			{ customMetadata: getSnapshotVersionMetadata(version) },
+		])
+
+		expect(await resolvePersistedSnapshotVersion(undefined, bucket, 'key')).toEqual(version)
+		expect(state.calls).toBe(1)
+	})
+
+	test('returns an already-known version without reading R2', async () => {
+		const version = getSnapshotVersion(makeSnapshot({ documents: [doc('shape:a', 3)] }))
+		const { bucket, state } = countingBucket([null])
+
+		expect(await resolvePersistedSnapshotVersion(version, bucket, 'key')).toEqual(version)
+		expect(state.calls).toBe(0)
 	})
 })
 
