@@ -15,9 +15,14 @@
  *      MCP_WORKER_ORIGIN (default https://tldraw-mcp-app.tldraw.workers.dev), MCP_PRUNE_ADMIN_TOKEN (prune).
  */
 /* eslint-disable no-console */
+import { createHash } from 'crypto'
 import {
 	appendFileSync,
+	closeSync,
 	createReadStream,
+	ftruncateSync,
+	openSync,
+	readSync,
 	existsSync,
 	readFileSync,
 	renameSync,
@@ -111,8 +116,9 @@ async function list(restart: boolean): Promise<void> {
 	if (existsSync(CURSOR_FILE) && existsSync(IDS_FILE) && !restart) {
 		const saved = readFileSync(CURSOR_FILE, 'utf8').trim()
 		if (saved === DONE_SENTINEL) {
+			// Left in place deliberately: deleting it would let the next plain `list`
+			// fall into the fresh-walk branch and truncate a completed multi-hour file.
 			console.log(`${IDS_FILE} is already complete; pass --restart to walk again`)
-			rmSync(CURSOR_FILE, { force: true })
 			return
 		}
 		if (!saved) throw new Error(`${CURSOR_FILE} is empty; delete it to restart the walk`)
@@ -120,6 +126,9 @@ async function list(restart: boolean): Promise<void> {
 		for await (const _ of readLines(IDS_FILE)) baseline++
 		console.log(`resuming from saved cursor, ${baseline} ids already in ${IDS_FILE}`)
 	} else {
+		// Drop the old cursor before truncating: if the first page never lands, a later
+		// run must not resume from it against an empty file and skip the prefix.
+		rmSync(CURSOR_FILE, { force: true })
 		writeFileSync(IDS_FILE, '')
 	}
 	const startFraction = cursor ? keyspaceFraction(cursor) : 0
@@ -154,66 +163,64 @@ async function list(restart: boolean): Promise<void> {
 		process.stdout.write(`\r${line}`)
 		if (++pages % 100 === 0) process.stdout.write('\n')
 	} while (cursor)
-	rmSync(CURSOR_FILE, { force: true })
+	// The sentinel written by the terminal page stays, so the file is not re-walked
+	// (and truncated) by accident.
 	console.log(`\nwrote ${withData} ids to ${IDS_FILE} (this run)`)
 }
 
 /** Stream a file line by line: the ids file and the results log both reach tens of
  * millions of lines, well past what readFileSync can hold. */
-/** Identity of the ids file: size alone collides, since Durable Object ids are fixed width
- * and a re-walk can produce the same byte count with different contents. */
+/** Content hash of the ids file. A line offset is only meaningful against the exact bytes
+ * it was measured on, and Durable Object ids are fixed width: size, count and the extreme
+ * ids all survive an edit in the middle. */
 async function fileIdentity(file: string): Promise<string> {
-	const { size } = statSync(file)
-	let first = ''
-	let last = ''
-	for await (const line of readLines(file)) {
-		first ||= line
-		last = line
-	}
-	return `${size}:${first.slice(0, 16)}:${last.slice(0, 16)}`
+	const hash = createHash('sha256')
+	for await (const chunk of createReadStream(file)) hash.update(chunk as Buffer)
+	return `${statSync(file).size}:${hash.digest('hex').slice(0, 16)}`
 }
 
-/** Replays the current pass's ledger rows into `tally`, resolving ids that appear more
- * than once to their latest row. Without that a `--retry-errors` sweep leaves the
- * original failure counted forever, and every later resume exits non-zero.
- *
- * Streams twice rather than buffering: the ledger reaches tens of millions of rows. Only
- * ids that have failed are held, which is a small fraction of any pass. */
-async function replayPass(
-	file: string,
-	passMarker: string,
-	tally: (row: any) => void,
-	uncount: (row: any) => void
-): Promise<void> {
+/** Drops an unterminated final line, so the next append cannot be concatenated onto a
+ * fragment and corrupt the row it lands on. */
+function repairLedger(file: string): void {
+	if (!existsSync(file)) return
+	const { size } = statSync(file)
+	if (size === 0) return
+	const fd = openSync(file, 'r+')
+	try {
+		const window = Math.min(size, 1 << 16)
+		const buf = Buffer.alloc(window)
+		readSync(fd, buf, 0, window, size - window)
+		if (buf[window - 1] === 0x0a) return
+		const lastNewline = buf.lastIndexOf(0x0a)
+		const keep = lastNewline === -1 ? 0 : size - window + lastNewline + 1
+		ftruncateSync(fd, keep)
+		console.log(`repaired ${file}: dropped ${size - keep} bytes of a torn final row`)
+	} finally {
+		closeSync(fd)
+	}
+}
+
+/** Yields the current pass's ledger rows: everything after the most recent marker for
+ * this pass. Rows from an earlier threshold must not be replayed, and a torn final row
+ * from an interrupted append is skipped. */
+async function* rowsForPass(file: string, passMarker: string): AsyncGenerator<any> {
 	let markerAt = -1
 	let index = 0
 	for await (const line of readLines(file)) {
 		if (line === passMarker) markerAt = index
 		index++
 	}
-	const counted = new Map<string, any>()
 	index = 0
 	for await (const line of readLines(file)) {
 		const at = index++
 		if (at <= markerAt) continue
 		if (line.startsWith('{"pass":')) continue
-		let row: any
 		try {
-			row = JSON.parse(line)
+			const row = JSON.parse(line)
+			if (row?.id) yield row
 		} catch {
 			// torn final line from an interrupted append
-			continue
 		}
-		if (!row?.id) continue
-		const previous = counted.get(row.id)
-		if (previous) {
-			uncount(previous)
-			counted.delete(row.id)
-		}
-		tally(row)
-		// Only rows that can be superseded are worth remembering, and only errors are
-		// ever retried.
-		if (row.error) counted.set(row.id, row)
 	}
 }
 
@@ -280,10 +287,37 @@ async function prune(args: string[]): Promise<void> {
 	// A line offset is only meaningful against the exact file it was measured on;
 	// regenerating or swapping the ids file must invalidate it.
 	const idsIdentity = await fileIdentity(IDS_FILE)
+	repairLedger(resultsFile)
 
 	const hist: Record<string, { count: number; bytes: number }> = {}
 	let condemned = 0
 	let errors = 0
+	// An id can be counted more than once: --retry-errors supersedes an error from
+	// arbitrarily far back, and a crash replays batches that finished past the contiguous
+	// checkpoint — including their live re-run. Errors stay addressable (a small fraction
+	// of any pass); successes only need a sliding window, since a replayed row and its
+	// re-run land within a few batches of each other.
+	const errored = new Map<string, any>()
+	const recent = new Map<string, any>()
+	const recentOrder: string[] = []
+	const windowSize = Math.max(4 * BATCH, 2 * concurrency * BATCH)
+	function record(row: any) {
+		const previous = errored.get(row.id) ?? recent.get(row.id)
+		if (previous) {
+			untally(previous)
+			errored.delete(row.id)
+			recent.delete(row.id)
+		}
+		tally(row)
+		if (row.error) {
+			errored.set(row.id, row)
+			return
+		}
+		recent.set(row.id, row)
+		recentOrder.push(row.id)
+		while (recentOrder.length > windowSize) recent.delete(recentOrder.shift()!)
+	}
+
 	/** Reverses a tally when a later ledger row supersedes it. */
 	function untally(r: any) {
 		if (r.error) {
@@ -342,7 +376,7 @@ async function prune(args: string[]): Promise<void> {
 	// earlier threshold or of an error a later sweep already repaired.
 	const passMarker = JSON.stringify({ pass: { dryRun, maxIdleMs, idsIdentity } })
 	if (skipLines > 0 && existsSync(resultsFile)) {
-		await replayPass(resultsFile, passMarker, tally, untally)
+		for await (const row of rowsForPass(resultsFile, passMarker)) record(row)
 	} else if (!retryErrors) {
 		appendFileSync(resultsFile, passMarker + '\n')
 	}
@@ -380,7 +414,7 @@ async function prune(args: string[]): Promise<void> {
 		let out = ''
 		for (const r of results) {
 			out += JSON.stringify(r) + '\n'
-			tally(r)
+			record(r)
 		}
 		appendFileSync(resultsFile, out)
 		commit(seq, batch.length)
@@ -423,8 +457,9 @@ async function prune(args: string[]): Promise<void> {
 				const message = err instanceof Error ? err.message : String(err)
 				let out = ''
 				for (const id of batch) {
-					out += JSON.stringify({ id, error: `batch: ${message}` }) + '\n'
-					errors++
+					const row = { id, error: `batch: ${message}` }
+					out += JSON.stringify(row) + '\n'
+					record(row)
 				}
 				appendFileSync(resultsFile, out)
 				commit(seq, batch.length)
