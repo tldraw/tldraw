@@ -1,12 +1,6 @@
-import { DatabaseSync } from 'node:sqlite'
 import { SerializedSchema } from '@tldraw/store'
-import {
-	DEFAULT_INITIAL_SNAPSHOT,
-	NodeSqliteWrapper,
-	RoomSnapshot,
-	SQLiteSyncStorage,
-} from '@tldraw/sync-core'
-import { createTLSchema, TLRecord } from '@tldraw/tlschema'
+import { RoomSnapshot } from '@tldraw/sync-core'
+import { createTLSchema } from '@tldraw/tlschema'
 import {
 	generateSnapshotChunks,
 	getLastDocumentChangeClock,
@@ -286,54 +280,6 @@ describe('resolvePersistedFingerprint', () => {
 
 		expect(await resolvePersistedFingerprint(fingerprint, bucket, 'key')).toEqual(fingerprint)
 		expect(state.calls).toBe(0)
-	})
-})
-
-describe('stamping a snapshot at creation', () => {
-	// The creation paths (createFiles, handleFileCreateFromSource, __admin__createLegacyRoom)
-	// stamp the fingerprint of the bytes they write, and the room DO then loads exactly those bytes.
-	// If a load changed the fingerprint, the first persist would re-upload identical content — the
-	// re-render and etag rotation the stamp exists to prevent.
-	function fingerprintAfterLoad(snapshot: RoomSnapshot) {
-		const storage = new SQLiteSyncStorage<TLRecord>({
-			sql: new NodeSqliteWrapper(new DatabaseSync(':memory:')),
-			snapshot,
-		})
-		return getSnapshotFingerprint(storage.getSnapshot())
-	}
-
-	test('survives the load for a snapshot shaped like createFiles writes', () => {
-		const created: RoomSnapshot = {
-			schema: createTLSchema().serialize(),
-			clock: 0,
-			documents: [doc('shape:a', 0), doc('shape:b', 0)],
-			tombstones: {},
-		}
-		expect(isSameFingerprint(fingerprintAfterLoad(created), getSnapshotFingerprint(created))).toBe(
-			true
-		)
-	})
-
-	test('survives the load for DEFAULT_INITIAL_SNAPSHOT', () => {
-		expect(
-			isSameFingerprint(
-				fingerprintAfterLoad(DEFAULT_INITIAL_SNAPSHOT),
-				getSnapshotFingerprint(DEFAULT_INITIAL_SNAPSHOT)
-			)
-		).toBe(true)
-	})
-
-	test('survives the load for a copied board carrying edits and deletions', () => {
-		const source: RoomSnapshot = {
-			schema: createTLSchema().serialize(),
-			documentClock: 40,
-			tombstoneHistoryStartsAtClock: 12,
-			documents: [doc('shape:a', 31), doc('shape:b', 17)],
-			tombstones: { 'shape:gone': 28 },
-		}
-		expect(isSameFingerprint(fingerprintAfterLoad(source), getSnapshotFingerprint(source))).toBe(
-			true
-		)
 	})
 })
 

@@ -1277,12 +1277,7 @@ export class TLFileDurableObject extends DurableObject {
 		this.setBootStage('source-r2-put')
 		const putTimer = this.timer()
 		const key = getR2KeyForRoom({ slug: this._fileRecordCache.id, isApp: true })
-		// Stamped like a persist would: the DO loads exactly these bytes, so an unstamped object
-		// would make the first persist re-upload identical content, rotating the etag and costing
-		// a thumbnail re-render for every file created from a source.
-		const roomObject = await this.r2.rooms.put(key, serialized, {
-			customMetadata: getSnapshotMetadata(snapshot),
-		})
+		const roomObject = await this.r2.rooms.put(key, serialized)
 		putTimer.report('create_from_source_r2_put')
 
 		return {
@@ -3057,9 +3052,7 @@ export class TLFileDurableObject extends DurableObject {
 			deleted: false,
 		})
 		const key = getR2KeyForRoom({ slug: id, isApp: false })
-		await this.r2.rooms.put(key, JSON.stringify(DEFAULT_INITIAL_SNAPSHOT), {
-			customMetadata: getSnapshotMetadata(DEFAULT_INITIAL_SNAPSHOT),
-		})
+		await this.r2.rooms.put(key, JSON.stringify(DEFAULT_INITIAL_SNAPSHOT))
 		await this.getRoom()
 	}
 }
