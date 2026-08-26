@@ -99,12 +99,18 @@ async function list(restart: boolean): Promise<void> {
 	// The cursor is the only way back into a partial walk (the objects endpoint has no
 	// start-after), so checkpoint it per page and append when resuming.
 	let cursor: string | undefined
+	// Ids already on disk, and how far into the keyspace a resumed walk starts. Both
+	// projections are relative to those: without them a resume divides this run's
+	// zero-based count by an 11%-in position and reports a total that only climbs.
+	let baseline = 0
 	if (existsSync(CURSOR_FILE) && existsSync(IDS_FILE) && !restart) {
 		cursor = readFileSync(CURSOR_FILE, 'utf8').trim() || undefined
-		console.log(`resuming from saved cursor (${IDS_FILE} kept)`)
+		for await (const _ of readLines(IDS_FILE)) baseline++
+		console.log(`resuming from saved cursor, ${baseline} ids already in ${IDS_FILE}`)
 	} else {
 		writeFileSync(IDS_FILE, '')
 	}
+	const startFraction = cursor ? keyspaceFraction(cursor) : 0
 	let total = 0
 	let withData = 0
 	let pages = 0
@@ -125,9 +131,10 @@ async function list(restart: boolean): Promise<void> {
 		const lastId = page.result[page.result.length - 1]?.id
 		const done = lastId ? keyspaceFraction(lastId) : 0
 		const elapsed = Date.now() - startedAt
-		const projected = done > 0 ? Math.round(total / done) : 0
-		const eta = done > 0 ? humanDuration((elapsed / done) * (1 - done)) : '?'
-		const line = `listed ${total} (with data ${withData}) ${(done * 100).toFixed(1)}% of keyspace, ~${projected} projected, eta ${eta}`
+		const walked = done - startFraction
+		const projected = done > 0 ? Math.round((baseline + withData) / done) : 0
+		const eta = walked > 0 ? humanDuration((elapsed / walked) * (1 - done)) : '?'
+		const line = `${baseline + withData} ids (${(done * 100).toFixed(1)}% of keyspace) ~${projected} projected, eta ${eta}`
 		// Overwrite in place for the live view, but leave a durable line every 100 pages
 		// so a long walk keeps a history you can eyeball after the fact.
 		process.stdout.write(`\r${line}`)
