@@ -4,7 +4,7 @@ import { createTLSchema } from '@tldraw/tlschema'
 import { uniqueId } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { getR2KeyForRoom } from '../../r2'
-import { getSnapshotVersion, getSnapshotVersionMetadata } from '../../snapshotUtils'
+import { getSnapshotMetadata } from '../../snapshotUtils'
 import { Environment } from '../../types'
 import { getUserIdFromRequest } from '../../utils/tla/permissions'
 import { validateSnapshot } from '../../utils/validateSnapshot'
@@ -49,7 +49,7 @@ export async function createFiles(request: IRequest, env: Environment): Promise<
 		// exactly these bytes, so an unstamped object would make its first persist re-upload
 		// identical content and rotate the etag, costing a thumbnail re-render per dropped file.
 		await env.ROOMS.put(getR2KeyForRoom({ slug: newSlug, isApp: true }), serializedSnapshot, {
-			customMetadata: getSnapshotVersionMetadata(getSnapshotVersion(snapshot)),
+			customMetadata: getSnapshotMetadata(snapshot),
 		})
 
 		slugs.push(newSlug)

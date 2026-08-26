@@ -4,6 +4,8 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 // "which version is persisted?" without downloading the object.
 const DOCUMENT_VERSION_METADATA_KEY = 'documentVersion'
 const SCHEMA_VERSION_METADATA_KEY = 'schemaVersion'
+// Diagnostic only — deliberately absent from SnapshotVersion, see getSnapshotMetadata.
+const DOCUMENT_CLOCK_METADATA_KEY = 'documentClock'
 
 /**
  * Identifies the persisted content of a snapshot. Two snapshots with equal versions serialize to
@@ -54,11 +56,27 @@ export function getSnapshotVersion(snapshot: RoomSnapshot): SnapshotVersion {
 	}
 }
 
-export function getSnapshotVersionMetadata(version: SnapshotVersion): Record<string, string> {
-	return {
+/**
+ * The R2 metadata stamped on a persisted snapshot: the {@link SnapshotVersion} the next persist
+ * compares against, plus `documentClock` recording the clock the object was written at.
+ *
+ * `documentClock` is deliberately not part of `SnapshotVersion` and no read path compares it. It
+ * is the counter shared with the object lane, so a comment write moves it without changing a byte
+ * of the document — comparing on it would force an upload per comment and defeat the dedupe. It
+ * is stamped so a history entry records when it was taken; on the rooms object it therefore reads
+ * as the clock at the last document write, not the room's current clock.
+ */
+export function getSnapshotMetadata(snapshot: RoomSnapshot): Record<string, string> {
+	const version = getSnapshotVersion(snapshot)
+	const metadata: Record<string, string> = {
 		[DOCUMENT_VERSION_METADATA_KEY]: String(version.documentVersion),
 		[SCHEMA_VERSION_METADATA_KEY]: version.schemaVersion,
 	}
+	const documentClock = snapshot.documentClock ?? snapshot.clock
+	if (documentClock !== undefined) {
+		metadata[DOCUMENT_CLOCK_METADATA_KEY] = String(documentClock)
+	}
+	return metadata
 }
 
 /**

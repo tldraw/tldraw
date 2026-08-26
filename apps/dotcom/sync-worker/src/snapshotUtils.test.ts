@@ -11,7 +11,7 @@ import {
 	generateSnapshotChunks,
 	getDocumentVersion,
 	getSnapshotVersion,
-	getSnapshotVersionMetadata,
+	getSnapshotMetadata,
 	isSameSnapshotVersion,
 	readPersistedSnapshotVersion,
 	resolvePersistedSnapshotVersion,
@@ -199,6 +199,42 @@ describe('isSameSnapshotVersion', () => {
 	})
 })
 
+describe('getSnapshotMetadata', () => {
+	test('stamps documentClock but keeps it out of the version', () => {
+		// documentClock is the counter shared with the object lane, so a comment write moves it
+		// without changing a byte of the document. It is recorded for diagnostics only — comparing
+		// on it would force an upload for every comment and defeat the dedupe entirely.
+		const documents = [doc('shape:a', 10)]
+		const beforeComment = makeSnapshot({ documents, documentClock: 10 })
+		const afterComment = makeSnapshot({ documents, documentClock: 21, clock: 21 })
+
+		expect(getSnapshotMetadata(beforeComment).documentClock).toBe('10')
+		expect(getSnapshotMetadata(afterComment).documentClock).toBe('21')
+		expect(
+			isSameSnapshotVersion(getSnapshotVersion(afterComment), getSnapshotVersion(beforeComment))
+		).toBe(true)
+	})
+
+	test('a stamp still matches after comments have moved the clock past it', async () => {
+		// The rooms object keeps the clock of the last document write, so its stamp goes stale as
+		// comments accumulate. Reading it back must still dedupe against the live snapshot.
+		const documents = [doc('shape:a', 10)]
+		const atUpload = makeSnapshot({ documents, documentClock: 10 })
+		const afterComments = makeSnapshot({ documents, documentClock: 99, clock: 99 })
+
+		const read = await readPersistedSnapshotVersion(
+			{ head: async () => ({ customMetadata: getSnapshotMetadata(atUpload) }) } as any,
+			'key'
+		)
+
+		expect(isSameSnapshotVersion(read, getSnapshotVersion(afterComments))).toBe(true)
+	})
+
+	test('omits documentClock when the snapshot has no clock at all', () => {
+		expect(getSnapshotMetadata(makeSnapshot({})).documentClock).toBeUndefined()
+	})
+})
+
 describe('resolvePersistedSnapshotVersion', () => {
 	// Each head() call returns the next entry, then repeats the last one.
 	function countingBucket(results: Array<{ customMetadata?: Record<string, string> } | null>) {
@@ -218,7 +254,7 @@ describe('resolvePersistedSnapshotVersion', () => {
 		const stampedByTheFailedAttempt = getSnapshotVersion(snapshot)
 		const { bucket, state } = countingBucket([
 			null,
-			{ customMetadata: getSnapshotVersionMetadata(stampedByTheFailedAttempt) },
+			{ customMetadata: getSnapshotMetadata(snapshot) },
 		])
 
 		const firstAttempt = await resolvePersistedSnapshotVersion(undefined, bucket, 'key')
@@ -234,9 +270,7 @@ describe('resolvePersistedSnapshotVersion', () => {
 	test('reads R2 when nothing has been looked up yet', async () => {
 		const snapshot = makeSnapshot({ documents: [doc('shape:a', 9)] })
 		const version = getSnapshotVersion(snapshot)
-		const { bucket, state } = countingBucket([
-			{ customMetadata: getSnapshotVersionMetadata(version) },
-		])
+		const { bucket, state } = countingBucket([{ customMetadata: getSnapshotMetadata(snapshot) }])
 
 		expect(await resolvePersistedSnapshotVersion(undefined, bucket, 'key')).toEqual(version)
 		expect(state.calls).toBe(1)
@@ -300,10 +334,10 @@ describe('readPersistedSnapshotVersion', () => {
 		return { head: async (_key: string) => result } as any
 	}
 
-	test('round-trips the version written by getSnapshotVersionMetadata', async () => {
+	test('round-trips the version written by getSnapshotMetadata', async () => {
 		const snapshot = makeSnapshot({ documents: [doc('a', 42)] })
 		const written = getSnapshotVersion(snapshot)
-		const customMetadata = getSnapshotVersionMetadata(written)
+		const customMetadata = getSnapshotMetadata(snapshot)
 
 		const read = await readPersistedSnapshotVersion(bucketWithHead({ customMetadata }), 'key')
 

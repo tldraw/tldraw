@@ -88,7 +88,7 @@ import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImag
 import {
 	generateSnapshotChunks,
 	getSnapshotVersion,
-	getSnapshotVersionMetadata,
+	getSnapshotMetadata,
 	isSameSnapshotVersion,
 	resolvePersistedSnapshotVersion,
 	SnapshotVersion,
@@ -1275,7 +1275,7 @@ export class TLFileDurableObject extends DurableObject {
 		// would make the first persist re-upload identical content, rotating the etag and costing
 		// a thumbnail re-render for every file created from a source.
 		const roomObject = await this.r2.rooms.put(key, serialized, {
-			customMetadata: getSnapshotVersionMetadata(getSnapshotVersion(snapshot)),
+			customMetadata: getSnapshotMetadata(snapshot),
 		})
 		putTimer.report('create_from_source_r2_put')
 
@@ -1783,7 +1783,7 @@ export class TLFileDurableObject extends DurableObject {
 							this.bumpFileUpdatedAt()
 							return
 						}
-						await this._uploadSnapshotToR2(snapshot, key, snapshotVersion)
+						await this._uploadSnapshotToR2(snapshot, key)
 						this._lastPersistedSnapshotVersion = snapshotVersion
 
 						this.logEvent({
@@ -1886,12 +1886,8 @@ export class TLFileDurableObject extends DurableObject {
 			})
 	}
 
-	private async _uploadSnapshotToR2(
-		snapshot: RoomSnapshot,
-		key: string,
-		snapshotVersion: SnapshotVersion
-	) {
-		const customMetadata = getSnapshotVersionMetadata(snapshotVersion)
+	private async _uploadSnapshotToR2(snapshot: RoomSnapshot, key: string) {
+		const customMetadata = getSnapshotMetadata(snapshot)
 		// Upload to rooms bucket first
 		const roomSizeMB = await this._uploadSnapshotToBucket(
 			this.r2.rooms,
@@ -3011,7 +3007,7 @@ export class TLFileDurableObject extends DurableObject {
 		})
 		const key = getR2KeyForRoom({ slug: id, isApp: false })
 		await this.r2.rooms.put(key, JSON.stringify(DEFAULT_INITIAL_SNAPSHOT), {
-			customMetadata: getSnapshotVersionMetadata(getSnapshotVersion(DEFAULT_INITIAL_SNAPSHOT)),
+			customMetadata: getSnapshotMetadata(DEFAULT_INITIAL_SNAPSHOT),
 		})
 		await this.getRoom()
 	}
