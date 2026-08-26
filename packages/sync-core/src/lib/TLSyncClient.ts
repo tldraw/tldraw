@@ -4,6 +4,7 @@ import {
 	RecordsDiff,
 	Store,
 	UnknownRecord,
+	isRecordsDiffEmpty,
 	reverseRecordsDiff,
 	squashRecordDiffsMutable,
 } from '@tldraw/store'
@@ -381,6 +382,13 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 	/** The queue of in-flight push requests that have not yet been acknowledged by the server */
 	private pendingPushRequests: TLPushRequest<R>[] = []
+
+	/** Callers of {@link TLSyncClient.flush} waiting for the server to settle a captured clock. */
+	private readonly flushWaiters = new Set<{
+		targetClock: number
+		resolve(): void
+		reject(error: Error): void
+	}>()
 	private unsentChanges: {
 		nextDiff?: RecordsDiff<R>
 		nextPresence?: R | null
@@ -510,46 +518,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.fpsScheduler = new FpsScheduler(COLLABORATIVE_MODE_FPS)
 
 		// Initialize throttled methods after throttle instance is created
-		this.sendUnsentChanges = this.fpsScheduler.fpsThrottle(() => {
-			this.debug('sending unsent changes', {
-				isConnectedToRoom: this.isConnectedToRoom,
-				unsentChanges: this.unsentChanges,
-			})
-			if (!this.isConnectedToRoom || this.store.isPossiblyCorrupted()) {
-				return
-			}
-			if (!this.unsentChanges.nextDiff && !this.unsentChanges.nextPresence) {
-				return
-			}
-			const diff = this.unsentChanges.nextDiff
-				? (getNetworkDiff(this.unsentChanges.nextDiff) ?? undefined)
-				: undefined
-			const presence = this.unsentChanges.nextPresence
-				? getPresenceOp<R>(this.lastPushedPresenceState, this.unsentChanges.nextPresence)
-				: undefined
-
-			if (!diff && !presence) {
-				return
-			}
-
-			const pushRequest: TLPushRequest<R> = {
-				type: 'push',
-				clientClock: this.clientClock,
-				diff,
-				presence,
-			}
-
-			this.debug('sending push request', pushRequest)
-			this.socket.sendMessage(pushRequest)
-
-			if (this.unsentChanges.nextPresence) {
-				this.lastPushedPresenceState = this.unsentChanges.nextPresence
-			}
-			this.clientClock++
-			this.pendingPushRequests.push(pushRequest)
-			this.unsentChanges.nextDiff = undefined
-			this.unsentChanges.nextPresence = undefined
-		})
+		this.sendUnsentChanges = this.fpsScheduler.fpsThrottle(() => this.sendUnsentChangesNow())
 
 		this.scheduleRebase = this.fpsScheduler.fpsThrottle(this.rebase)
 
@@ -722,6 +691,12 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.firstUnansweredPingAt = null
 		this.pendingPushRequests = []
 		this.incomingDiffBuffer = []
+		// CF5: the pending pushes above were just dropped, so their results will never arrive — a
+		// waiter left in place would either hang forever or, worse, be resolved by the emptied
+		// queue as if the server had settled changes it never received.
+		this.rejectFlushWaiters(
+			new Error('The connection was reset before the server settled the flushed changes')
+		)
 		this.unsentChanges.nextDiff = undefined
 		this.unsentChanges.nextPresence = undefined
 		if (this.socket.connectionStatus === 'online') {
@@ -831,13 +806,13 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			case 'push_result':
 				if (!this.isConnectedToRoom) break
 				this.incomingDiffBuffer.push(event)
-				this.scheduleRebase()
+				this.rebaseSoon()
 				break
 			case 'data':
 				// wait for a connect to succeed before processing more events
 				if (!this.isConnectedToRoom) break
 				this.incomingDiffBuffer.push(...event.data)
-				this.scheduleRebase()
+				this.rebaseSoon()
 				break
 			case 'incompatibility_error':
 				// legacy unrecoverable errors
@@ -853,6 +828,112 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			default:
 				exhaustiveSwitchError(event)
 		}
+	}
+
+	/**
+	 * Send every change the store holds right now — without waiting for a frame — and resolve once
+	 * the server has settled them. Edits made after the call are not waited for: the promise
+	 * covers exactly the state at the moment of the call, so a busy client can never starve a
+	 * flush.
+	 */
+	flush(): Promise<void> {
+		this.debug('flush')
+		// CF4: pushes silently stop for a corrupted store (CP7) — resolving here would claim
+		// "settled" for changes that will never be sent.
+		if (this.store.isPossiblyCorrupted()) {
+			return Promise.reject(
+				new Error('Cannot flush: the store is possibly corrupted and sync is stopped')
+			)
+		}
+		// CF1: deliver the store's batched listener notifications so "right now" includes edits
+		// still in its queue, then send directly — the throttled path only queues on the fps
+		// scheduler, and a page that gets no frames never drains it.
+		this.store._flushHistory()
+		this.sendUnsentChangesNow()
+		// CF4: while disconnected, local changes live only in the speculative diff (CP3) — the send
+		// above was a no-op, they will only leave after a reconnect, and waiting for one here has
+		// no bound the client can promise.
+		if (!this.isConnectedToRoom && !isRecordsDiffEmpty(this.speculativeChanges)) {
+			return Promise.reject(
+				new Error('Cannot flush: not connected to the room; retry after reconnecting')
+			)
+		}
+		const targetClock = this.clientClock - 1
+		if (
+			this.pendingPushRequests.length === 0 ||
+			this.pendingPushRequests[0].clientClock > targetClock
+		) {
+			// CF3
+			return Promise.resolve()
+		}
+		return new Promise<void>((resolve, reject) => {
+			this.flushWaiters.add({ targetClock, resolve, reject })
+		})
+	}
+
+	// CF6: the throttle rides requestAnimationFrame, and the page of a waiting flush may never get
+	// another frame — the push went out only because flush sent it directly, and its result would
+	// otherwise sit buffered until a frame that never comes.
+	private rebaseSoon() {
+		if (this.flushWaiters.size > 0) {
+			this.rebase()
+		} else {
+			this.scheduleRebase()
+		}
+	}
+
+	// Pushes are answered strictly in order and clocks are monotonic, so "settled through clock N"
+	// is a single comparison against the front of the queue.
+	private settleFlushWaiters() {
+		if (this.flushWaiters.size === 0) return
+		const front = this.pendingPushRequests[0]
+		for (const waiter of this.flushWaiters) {
+			if (!front || front.clientClock > waiter.targetClock) {
+				this.flushWaiters.delete(waiter)
+				waiter.resolve()
+			}
+		}
+	}
+
+	private sendUnsentChangesNow() {
+		this.debug('sending unsent changes', {
+			isConnectedToRoom: this.isConnectedToRoom,
+			unsentChanges: this.unsentChanges,
+		})
+		if (!this.isConnectedToRoom || this.store.isPossiblyCorrupted()) {
+			return
+		}
+		if (!this.unsentChanges.nextDiff && !this.unsentChanges.nextPresence) {
+			return
+		}
+		const diff = this.unsentChanges.nextDiff
+			? (getNetworkDiff(this.unsentChanges.nextDiff) ?? undefined)
+			: undefined
+		const presence = this.unsentChanges.nextPresence
+			? getPresenceOp<R>(this.lastPushedPresenceState, this.unsentChanges.nextPresence)
+			: undefined
+
+		if (!diff && !presence) {
+			return
+		}
+
+		const pushRequest: TLPushRequest<R> = {
+			type: 'push',
+			clientClock: this.clientClock,
+			diff,
+			presence,
+		}
+
+		this.debug('sending push request', pushRequest)
+		this.socket.sendMessage(pushRequest)
+
+		if (this.unsentChanges.nextPresence) {
+			this.lastPushedPresenceState = this.unsentChanges.nextPresence
+		}
+		this.clientClock++
+		this.pendingPushRequests.push(pushRequest)
+		this.unsentChanges.nextDiff = undefined
+		this.unsentChanges.nextPresence = undefined
 	}
 
 	/**
@@ -873,9 +954,21 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.disposables.forEach((dispose) => dispose())
 		this.sendUnsentChanges.cancel?.()
 		this.scheduleRebase.cancel?.()
+		// CF5
+		this.rejectFlushWaiters(
+			new Error('The sync client closed before the server settled the flushed changes')
+		)
 		if (typeof window !== 'undefined' && (window as any).tlsync === this) {
 			delete (window as any).tlsync
 		}
+	}
+
+	private rejectFlushWaiters(error: Error) {
+		if (this.flushWaiters.size === 0) return
+		for (const waiter of this.flushWaiters) {
+			waiter.reject(error)
+		}
+		this.flushWaiters.clear()
 	}
 
 	private lastPushedPresenceState: R | null = null
@@ -1016,6 +1109,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				}
 			})
 			this.lastServerClock = diffs.at(-1)?.serverClock ?? this.lastServerClock
+			this.settleFlushWaiters()
 		} catch (e) {
 			console.error(e)
 			this.store.ensureStoreIsUsable()
