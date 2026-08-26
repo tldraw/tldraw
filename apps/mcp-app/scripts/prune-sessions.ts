@@ -15,10 +15,23 @@
  *      MCP_WORKER_ORIGIN (default https://tldraw-mcp-app.tldraw.workers.dev), MCP_PRUNE_ADMIN_TOKEN (prune).
  */
 /* eslint-disable no-console */
-import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'fs'
+import {
+	appendFileSync,
+	createReadStream,
+	existsSync,
+	readFileSync,
+	rmSync,
+	writeFileSync,
+} from 'fs'
+import { createInterface } from 'readline'
 import { MIN_SAFE_IDLE_MS } from '../src/prune'
 
 const IDS_FILE = 'prune-ids.txt'
+const CURSOR_FILE = 'prune-list-cursor.txt'
+const PROGRESS_FILE = 'prune-progress.json'
+/** The `TldrawMCP` namespace on the tldraw-mcp-app worker. Resolving it by name cost a
+ * paged scan of every namespace on the account (every preview worker owns some). */
+const NAMESPACE_ID = '164dab144e614bb9ac54367e0ffaf56c'
 const RESULTS_FILE = 'prune-results.jsonl'
 const DRY_RUN_RESULTS_FILE = 'prune-dry-run.jsonl'
 const BATCH = 100
@@ -42,46 +55,95 @@ function parseDuration(s: string): number {
 }
 
 async function cf(path: string): Promise<any> {
-	const res = await fetch(`https://api.cloudflare.com/client/v4${path}`, {
-		headers: { Authorization: `Bearer ${env('CLOUDFLARE_API_TOKEN')}` },
-	})
-	const json: any = await res.json()
-	if (!json.success) throw new Error(`CF API ${path}: ${JSON.stringify(json.errors)}`)
-	return json
+	// A multi-hour walk meets transient failures as a certainty, not a risk: one
+	// unretried `fetch failed` used to throw away the whole listing.
+	let lastError: unknown
+	for (let attempt = 0; attempt < 6; attempt++) {
+		if (attempt > 0) await new Promise((r) => setTimeout(r, Math.min(30_000, 2 ** attempt * 1000)))
+		try {
+			const res = await fetch(`https://api.cloudflare.com/client/v4${path}`, {
+				headers: { Authorization: `Bearer ${env('CLOUDFLARE_API_TOKEN')}` },
+				signal: AbortSignal.timeout(60_000),
+			})
+			if (res.status === 429 || res.status >= 500) {
+				lastError = new Error(`CF API ${path}: HTTP ${res.status}`)
+				continue
+			}
+			const json: any = await res.json()
+			if (!json.success) throw new Error(`CF API ${path}: ${JSON.stringify(json.errors)}`)
+			return json
+		} catch (err) {
+			// A rejected body/auth error is terminal; only network-level faults retry.
+			if (err instanceof Error && err.message.startsWith('CF API')) throw err
+			lastError = err
+		}
+	}
+	throw new Error(`CF API ${path}: giving up after 6 attempts: ${String(lastError)}`)
 }
 
-async function list(): Promise<void> {
+/** Fraction of the id keyspace walked, from an id's leading hex. Ids are hashes, so
+ * they arrive in sorted order and are uniformly distributed: position is progress. */
+function keyspaceFraction(id: string): number {
+	return parseInt(id.slice(0, 6), 16) / 0x1000000
+}
+
+function humanDuration(ms: number): string {
+	const h = Math.floor(ms / 3_600_000)
+	const m = Math.round((ms % 3_600_000) / 60_000)
+	return h > 0 ? `${h}h${String(m).padStart(2, '0')}m` : `${m}m`
+}
+
+async function list(restart: boolean): Promise<void> {
 	const account = env('CLOUDFLARE_ACCOUNT_ID')
-	// Page-based (unlike the objects endpoint); every preview worker owns namespaces,
-	// so the account is well past one page.
-	let ns: any
-	for (let page = 1; !ns; page++) {
-		const res = await cf(
-			`/accounts/${account}/workers/durable_objects/namespaces?page=${page}&per_page=100`
-		)
-		ns = res.result.find((n: any) => n.class === 'TldrawMCP' && n.script === 'tldraw-mcp-app')
-		if (res.result.length < 100) break
-	}
-	if (!ns) throw new Error('TldrawMCP namespace not found for script tldraw-mcp-app')
-	console.log(`namespace ${ns.id}`)
-	writeFileSync(IDS_FILE, '')
+	console.log(`namespace ${NAMESPACE_ID}`)
+	// The cursor is the only way back into a partial walk (the objects endpoint has no
+	// start-after), so checkpoint it per page and append when resuming.
 	let cursor: string | undefined
+	if (existsSync(CURSOR_FILE) && existsSync(IDS_FILE) && !restart) {
+		cursor = readFileSync(CURSOR_FILE, 'utf8').trim() || undefined
+		console.log(`resuming from saved cursor (${IDS_FILE} kept)`)
+	} else {
+		writeFileSync(IDS_FILE, '')
+	}
 	let total = 0
 	let withData = 0
+	let pages = 0
+	const startedAt = Date.now()
 	do {
 		const q = new URLSearchParams({ limit: '1000' })
 		if (cursor) q.set('cursor', cursor)
 		const page = await cf(
-			`/accounts/${account}/workers/durable_objects/namespaces/${ns.id}/objects?${q}`
+			`/accounts/${account}/workers/durable_objects/namespaces/${NAMESPACE_ID}/objects?${q}`
 		)
 		const ids = page.result.filter((o: any) => o.hasStoredData).map((o: any) => o.id)
 		total += page.result.length
 		withData += ids.length
 		if (ids.length) appendFileSync(IDS_FILE, ids.join('\n') + '\n')
 		cursor = page.result_info?.cursor || undefined
-		process.stdout.write(`\rlisted ${total} (with data ${withData})`)
+		writeFileSync(CURSOR_FILE, cursor ?? '')
+
+		const lastId = page.result[page.result.length - 1]?.id
+		const done = lastId ? keyspaceFraction(lastId) : 0
+		const elapsed = Date.now() - startedAt
+		const projected = done > 0 ? Math.round(total / done) : 0
+		const eta = done > 0 ? humanDuration((elapsed / done) * (1 - done)) : '?'
+		const line = `listed ${total} (with data ${withData}) ${(done * 100).toFixed(1)}% of keyspace, ~${projected} projected, eta ${eta}`
+		// Overwrite in place for the live view, but leave a durable line every 100 pages
+		// so a long walk keeps a history you can eyeball after the fact.
+		process.stdout.write(`\r${line}`)
+		if (++pages % 100 === 0) process.stdout.write('\n')
 	} while (cursor)
-	console.log(`\nwrote ${withData} ids to ${IDS_FILE}`)
+	rmSync(CURSOR_FILE, { force: true })
+	console.log(`\nwrote ${withData} ids to ${IDS_FILE} (this run)`)
+}
+
+/** Stream a file line by line: the ids file and the results log both reach tens of
+ * millions of lines, well past what readFileSync can hold. */
+async function* readLines(file: string): AsyncGenerator<string> {
+	const rl = createInterface({ input: createReadStream(file, 'utf8'), crlfDelay: Infinity })
+	for await (const line of rl) {
+		if (line) yield line
+	}
 }
 
 function bucket(idleMs: number | null): string {
@@ -105,9 +167,8 @@ async function prune(args: string[]): Promise<void> {
 	}
 	const origin = env('MCP_WORKER_ORIGIN', 'https://tldraw-mcp-app.tldraw.workers.dev')
 	const token = env('MCP_PRUNE_ADMIN_TOKEN')
-
 	const resultsFile = dryRun ? DRY_RUN_RESULTS_FILE : RESULTS_FILE
-	const done = new Set<string>()
+
 	const hist: Record<string, { count: number; bytes: number }> = {}
 	let condemned = 0
 	let errors = 0
@@ -122,34 +183,41 @@ async function prune(args: string[]): Promise<void> {
 		hist[b].bytes += r.bytes ?? 0
 		if (r.action === 'destroy-scheduled') condemned++
 	}
-	if (existsSync(resultsFile)) {
-		for (const line of readFileSync(resultsFile, 'utf8').split('\n')) {
-			if (!line) continue
-			const r = JSON.parse(line)
-			// Dry run: nothing is terminal, any prior non-error row already answered "what
-			// would happen". Real run: only destroy-scheduled is terminal; kept ids may cross
-			// a later, longer --max-idle threshold and must be re-evaluated.
-			const skip = dryRun ? !r.error : r.action === 'destroy-scheduled'
-			if (!skip) continue
-			done.add(r.id)
-			// Skipped rows still count, so a resumed or re-run invocation reports the
-			// whole file rather than just the remainder. Re-evaluated rows are tallied
-			// when their fresh result lands.
-			tally(r)
+
+	// Resume by line offset, not by a set of seen ids: at tens of millions of ids a Set
+	// costs gigabytes, while the ids file is a stable ordered list and batches are
+	// dispatched in order. The offset only carries over for the same run parameters —
+	// a longer --max-idle must re-evaluate ids the previous pass kept.
+	let skipLines = 0
+	if (existsSync(PROGRESS_FILE)) {
+		const prev = JSON.parse(readFileSync(PROGRESS_FILE, 'utf8'))
+		if (prev.dryRun === dryRun && prev.maxIdleMs === maxIdleMs) {
+			skipLines = prev.linesDone ?? 0
+		} else {
+			console.log(
+				`ignoring progress from a different pass (dryRun=${prev.dryRun}, maxIdle=${prev.maxIdleMs}ms)`
+			)
 		}
 	}
-	const ids = readFileSync(IDS_FILE, 'utf8')
-		.split('\n')
-		.filter((l) => l && !done.has(l))
+	// Replay the log so a resumed run reports the whole pass, not just its remainder.
+	if (skipLines > 0 && existsSync(resultsFile)) {
+		for await (const line of readLines(resultsFile)) tally(JSON.parse(line))
+	}
+
 	console.log(
-		`${ids.length} ids to process (${done.size} already ${dryRun ? 'evaluated' : 'condemned'}), dryRun=${dryRun}, maxIdle=${maxIdleMs}ms`
+		`dryRun=${dryRun}, maxIdle=${maxIdleMs}ms, resuming at line ${skipLines}, appending to ${resultsFile}`
 	)
 
-	let processed = 0
-	const batches: string[][] = []
-	for (let i = 0; i < ids.length; i += BATCH) batches.push(ids.slice(i, i + BATCH))
+	let dispatched = skipLines
+	let fatal: FatalError | undefined
+	// Batches finish out of order, so only advance the durable offset across a
+	// contiguous run of completed batches; a kill re-does at most CONCURRENCY batches.
+	let nextSeq = 0
+	const completedSizes = new Map<number, number>()
+	let committedLines = skipLines
+	let committedBatch = 0
 
-	async function runBatch(batch: string[]) {
+	async function runBatch(batch: string[], seq: number) {
 		const res = await fetch(`${origin}/admin/prune`, {
 			method: 'POST',
 			headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -166,34 +234,58 @@ async function prune(args: string[]): Promise<void> {
 			throw new Error(`/admin/prune ${res.status}: ${text}`)
 		}
 		const results: any[] = await res.json()
+		let out = ''
 		for (const r of results) {
-			appendFileSync(resultsFile, JSON.stringify(r) + '\n')
+			out += JSON.stringify(r) + '\n'
 			tally(r)
 		}
-		processed += batch.length
-		process.stdout.write(`\r${processed}/${ids.length} condemned=${condemned} errors=${errors}`)
+		appendFileSync(resultsFile, out)
+		completedSizes.set(seq, batch.length)
+		// The final batch is short, so count actual ids rather than seq * BATCH.
+		for (let size = completedSizes.get(committedBatch); size !== undefined; ) {
+			committedLines += size
+			completedSizes.delete(committedBatch++)
+			size = completedSizes.get(committedBatch)
+		}
+		writeFileSync(PROGRESS_FILE, JSON.stringify({ dryRun, maxIdleMs, linesDone: committedLines }))
 	}
 
-	let next = 0
-	let fatal: FatalError | undefined
-	await Promise.all(
-		Array.from({ length: CONCURRENCY }, async () => {
-			while (next < batches.length && !fatal) {
-				const b = batches[next++]
-				try {
-					await runBatch(b)
-				} catch (err) {
-					if (err instanceof FatalError) {
-						fatal = err
-						break
-					}
-					errors += b.length
-					console.error(`\nbatch failed: ${String(err)}`)
+	const inFlight = new Map<number, Promise<void>>()
+	async function dispatch(batch: string[]) {
+		const seq = nextSeq++
+		const task = runBatch(batch, seq)
+			.catch((err) => {
+				if (err instanceof FatalError) {
+					fatal ??= err
+					return
 				}
-				await new Promise((r) => setTimeout(r, 100)) // ~10 req/s per worker -> ~1000 DO wakes/s
-			}
-		})
-	)
+				errors += batch.length
+				console.error(`\nbatch failed: ${String(err)}`)
+			})
+			.finally(() => {
+				inFlight.delete(seq)
+			})
+		inFlight.set(seq, task)
+		dispatched += batch.length
+		process.stdout.write(`\r${dispatched} processed, condemned=${condemned} errors=${errors}`)
+		if (inFlight.size >= CONCURRENCY) await Promise.race(inFlight.values())
+		// ~10 req/s per worker -> ~1000 DO wakes/s
+		await new Promise((r) => setTimeout(r, 100 / CONCURRENCY))
+	}
+
+	let lineNo = 0
+	let batch: string[] = []
+	for await (const id of readLines(IDS_FILE)) {
+		if (++lineNo <= skipLines) continue
+		batch.push(id)
+		if (batch.length < BATCH) continue
+		await dispatch(batch)
+		batch = []
+		if (fatal) break
+	}
+	if (batch.length && !fatal) await dispatch(batch)
+	await Promise.all(inFlight.values())
+
 	console.log('\n\nidle histogram (count / GB):')
 	for (const k of ['<7d', '7-30d', '30-90d', '>90d']) {
 		const h = hist[k]
@@ -210,7 +302,7 @@ async function prune(args: string[]): Promise<void> {
 const [cmd, ...rest] = process.argv.slice(2)
 const run =
 	cmd === 'list'
-		? list()
+		? list(rest.includes('--restart'))
 		: cmd === 'prune'
 			? prune(rest)
 			: Promise.reject(new Error('usage: list | prune'))
