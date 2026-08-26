@@ -91,7 +91,14 @@ import {
 } from './roomEffectHelpers'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
-import { generateSnapshotChunks } from './snapshotUtils'
+import {
+	generateSnapshotChunks,
+	getSnapshotFingerprint,
+	getSnapshotMetadata,
+	isSameFingerprint,
+	resolvePersistedFingerprint,
+	SnapshotFingerprint,
+} from './snapshotUtils'
 import { Analytics, DBLoadResult, Environment, McpClusterIndexKey, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { createSupabaseClient } from './utils/createSupabaseClient'
@@ -708,7 +715,15 @@ export class TLFileDurableObject extends DurableObject {
 			}
 			const dataText = await data.text()
 
-			await this.r2.rooms.put(roomKey, dataText)
+			// The put deliberately carries no version metadata, so null ("looked up, no usable
+			// stamp") is the truth about R2 and the next persist re-uploads and re-stamps.
+			// Queued on executionQueue because a persist runs as one task there: an in-flight one,
+			// suspended mid-upload or at its version lookup, would otherwise resume after these
+			// lines and clobber both the null and the restored object.
+			await this.executionQueue.push(async () => {
+				await this.r2.rooms.put(roomKey, dataText)
+				this._lastPersistedFingerprint = null
+			})
 
 			// Version snapshots only contain the drawing data. Restoring drops the file's comments
 			// (product decision): loading the bare snapshot wipes the object lane, and the Postgres
@@ -1492,6 +1507,15 @@ export class TLFileDurableObject extends DurableObject {
 
 	_lastPersistedClock: number | null = null
 
+	// Fingerprint of the snapshot known to be in the rooms bucket, read from its customMetadata so
+	// a cold start doesn't re-upload a board nobody edited. The clock guard above can't do this —
+	// it dies with the isolate, and object-lane (comment) writes bump it without changing the
+	// document snapshot.
+	//
+	// undefined means "not looked up yet" and null means "looked up, no usable stamp"; the two are
+	// distinct because the lookup must happen at most once (see resolvePersistedFingerprint).
+	_lastPersistedFingerprint: SnapshotFingerprint | null | undefined = undefined
+
 	// Serializes comment outbox drains (and the restore-path deletes) so they land in order.
 	// Separate from executionQueue (the R2/main-persist queue) since these pushes fire immediately
 	// on commit, not on the throttle.
@@ -1742,7 +1766,26 @@ export class TLFileDurableObject extends DurableObject {
 						this.maybeAssociateFileAssets()
 
 						const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
+						const snapshotFingerprint = getSnapshotFingerprint(snapshot)
+						const persistedFingerprint = await resolvePersistedFingerprint(
+							this._lastPersistedFingerprint,
+							this.r2.rooms,
+							key
+						)
+						this._lastPersistedFingerprint = persistedFingerprint
+						if (isSameFingerprint(persistedFingerprint, snapshotFingerprint)) {
+							// The clock moved but neither the document nor the schema did — a comment
+							// write, or a cold start re-checking work a previous incarnation already
+							// persisted. Uploading would store byte-identical content under a new
+							// history timestamp and re-render an unchanged thumbnail; skip both, but
+							// keep the rest of a persist's observable behavior.
+							this._lastPersistedClock = snapshot.documentClock
+							this.markPersistenceGood()
+							this.bumpFileUpdatedAt()
+							return
+						}
 						await this._uploadSnapshotToR2(snapshot, key)
+						this._lastPersistedFingerprint = snapshotFingerprint
 
 						this.logEvent({
 							type: 'persist_success',
@@ -1756,31 +1799,9 @@ export class TLFileDurableObject extends DurableObject {
 						// alarm write per persist, not awaited here (see scheduleOgRender), so a slow or
 						// failed write cannot hold up a persist.
 						this.scheduleOgRender()
-						// Store the clock in DO storage so we can compare against SQLite on next load.
-						if (this.persistenceBad) {
-							this.broadcastPersistenceEvent({ type: 'persistence_good' })
-							this.persistenceBad = false
-						}
+						this.markPersistenceGood()
 
-						// Update the updatedAt timestamp in the database
-						if (this.documentInfo.isApp) {
-							// don't await on this because otherwise
-							// if this logic is invoked during another db transaction
-							// (e.g. when publishing a file)
-							// that transaction will deadlock
-							this.db
-								.updateTable('file')
-								.set({ updatedAt: new Date().getTime() })
-								.where('id', '=', this.documentInfo.slug)
-								.execute()
-								.catch((e) => {
-									this.logEvent({
-										type: 'room',
-										name: 'failed_persist_to_db',
-									})
-									this.reportError(e)
-								})
-						}
+						this.bumpFileUpdatedAt()
 					},
 					{
 						// throwOnFailure callers (publish) are awaited inside a 30s outbox effect
@@ -1835,23 +1856,63 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
+	// Clears the "persistence bad" banner clients are showing. Also called when a persist skips
+	// its uploads: a skip is a successful persist, and the banner would otherwise stay up until
+	// the isolate dies on a board whose only remaining writes are comments.
+	private markPersistenceGood() {
+		if (!this.persistenceBad) return
+		this.broadcastPersistenceEvent({ type: 'persistence_good' })
+		this.persistenceBad = false
+	}
+
+	// Updates the file's updatedAt timestamp. Also called when a persist skips its uploads,
+	// because comment-only activity should still surface as file activity.
+	private bumpFileUpdatedAt() {
+		if (!this.documentInfo.isApp) return
+		// don't await on this because otherwise
+		// if this logic is invoked during another db transaction
+		// (e.g. when publishing a file)
+		// that transaction will deadlock
+		this.db
+			.updateTable('file')
+			.set({ updatedAt: new Date().getTime() })
+			.where('id', '=', this.documentInfo.slug)
+			.execute()
+			.catch((e) => {
+				this.logEvent({
+					type: 'room',
+					name: 'failed_persist_to_db',
+				})
+				this.reportError(e)
+			})
+	}
+
 	private async _uploadSnapshotToR2(snapshot: RoomSnapshot, key: string) {
+		const customMetadata = getSnapshotMetadata(snapshot)
 		// Upload to rooms bucket first
-		const roomSizeMB = await this._uploadSnapshotToBucket(this.r2.rooms, snapshot, key)
+		const roomSizeMB = await this._uploadSnapshotToBucket(
+			this.r2.rooms,
+			snapshot,
+			key,
+			customMetadata
+		)
 		// Update storage percentage
 		if (roomSizeMB !== null) {
 			await this.setRoomStorageUsedPercentage(roomSizeMB)
 		}
 
-		// Then upload to version cache
+		// Then upload to version cache. Nothing dedupes this the way the version check in
+		// persistToDatabase does, because nothing after this put can fail: a retry that got here
+		// has already set _lastPersistedFingerprint and takes the skip path instead.
 		const versionKey = `${key}/${new Date().toISOString()}`
-		await this._uploadSnapshotToBucket(this.r2.versionCache, snapshot, versionKey)
+		await this._uploadSnapshotToBucket(this.r2.versionCache, snapshot, versionKey, customMetadata)
 	}
 
 	private async _uploadSnapshotToBucket(
 		bucket: R2Bucket,
 		snapshot: RoomSnapshot,
-		key: string
+		key: string,
+		customMetadata: Record<string, string>
 	): Promise<number | null> {
 		// Funnel through the shared connection budget so the upload can't contend with a concurrent
 		// asset-association pass (or the version-cache upload) and exhaust Cloudflare's connections.
@@ -1860,11 +1921,14 @@ export class TLFileDurableObject extends DurableObject {
 				// Try multipart upload first, retrying transient connection drops before falling back.
 				// Only connection-type errors are worth retrying; anything else fails fast to the PUT
 				// fallback rather than sleeping between attempts.
-				return await retry(() => this._uploadSnapshotToBucketMultipart(bucket, snapshot, key), {
-					attempts: 3,
-					waitDuration: 500,
-					matchError: isTransientConnectionError,
-				})
+				return await retry(
+					() => this._uploadSnapshotToBucketMultipart(bucket, snapshot, key, customMetadata),
+					{
+						attempts: 3,
+						waitDuration: 500,
+						matchError: isTransientConnectionError,
+					}
+				)
 			} catch (multipartError) {
 				// Falling back to a simple PUT is the designed recovery path, so it's a breadcrumb
 				// rather than a captured exception — only a failure of the fallback itself is reported.
@@ -1873,7 +1937,7 @@ export class TLFileDurableObject extends DurableObject {
 					message: `Multipart upload failed, falling back to simple PUT: ${multipartError}`,
 				})
 				try {
-					return await this._uploadSnapshotToBucketSimple(bucket, snapshot, key)
+					return await this._uploadSnapshotToBucketSimple(bucket, snapshot, key, customMetadata)
 				} catch (putError) {
 					this.reportError(putError)
 					throw putError
@@ -1886,9 +1950,10 @@ export class TLFileDurableObject extends DurableObject {
 	private async _uploadSnapshotToBucketMultipart(
 		bucket: R2Bucket,
 		snapshot: RoomSnapshot,
-		key: string
+		key: string,
+		customMetadata: Record<string, string>
 	) {
-		const out = await bucket.createMultipartUpload(key)
+		const out = await bucket.createMultipartUpload(key, { customMetadata })
 
 		try {
 			// 5MB buffer
@@ -1944,10 +2009,11 @@ export class TLFileDurableObject extends DurableObject {
 	private async _uploadSnapshotToBucketSimple(
 		bucket: R2Bucket,
 		snapshot: RoomSnapshot,
-		key: string
+		key: string,
+		customMetadata: Record<string, string>
 	) {
 		const serialized = JSON.stringify(snapshot)
-		const result = await bucket.put(key, serialized)
+		const result = await bucket.put(key, serialized, { customMetadata })
 		if (result) {
 			return result.size / MB
 		}
