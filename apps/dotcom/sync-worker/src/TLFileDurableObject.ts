@@ -2847,12 +2847,12 @@ export class TLFileDurableObject extends DurableObject {
 	/**
 	 * One page's stored cluster index, or null when nothing was stored for this content version.
 	 *
-	 * Refuses for a deleted file rather than reading: `appFileRecordDidDelete` empties this object's
-	 * storage and then treats the delete as terminal, so anything written after it is never collected.
-	 * An MCP request that resolved a board just before the delete landed is exactly that case.
+	 * Refuses when documentInfo is absent or deleted rather than reading: `appFileRecordDidDelete`
+	 * empties this object's storage, so a deleted object comes back from hibernation with null here.
+	 * Allowing that state to initialize the table would resurrect storage nothing ever collects.
 	 */
 	async getMcpClusterIndex(key: McpClusterIndexKey): Promise<string | null> {
-		if (this._documentInfo?.deleted) return null
+		if (!this._documentInfo || this._documentInfo.deleted) return null
 		this.ensureMcpClusterIndex()
 		return readMcpClusterIndexRow(this.ctx.storage.sql, key)
 	}
@@ -2866,7 +2866,7 @@ export class TLFileDurableObject extends DurableObject {
 		payload: string,
 		livePageIds: string[]
 	): Promise<void> {
-		if (this._documentInfo?.deleted) return
+		if (!this._documentInfo || this._documentInfo.deleted) return
 		this.ensureMcpClusterIndex()
 		pruneMcpClusterIndexRows(this.ctx.storage.sql, key.kind, livePageIds)
 		writeMcpClusterIndexRow(this.ctx.storage.sql, key, payload)

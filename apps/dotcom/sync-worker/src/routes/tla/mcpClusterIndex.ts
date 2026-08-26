@@ -44,8 +44,12 @@ interface CacheContext {
  */
 export const MAX_CLUSTER_INDEX_LENGTH = 256 * 1024
 
-function keyFor(board: ResolvedThumbnailBoard, pageId: string): McpClusterIndexKey {
-	return { kind: board.kind, pageId, version: String(board.version) }
+function keyFor(
+	board: ResolvedThumbnailBoard,
+	pageId: string,
+	snapshotVersion: string
+): McpClusterIndexKey {
+	return { kind: board.kind, pageId, version: snapshotVersion }
 }
 
 /**
@@ -58,11 +62,12 @@ function keyFor(board: ResolvedThumbnailBoard, pageId: string): McpClusterIndexK
 export async function readPageClusters(
 	{ env, request, ctx }: CacheContext,
 	board: ResolvedThumbnailBoard,
-	page: ResolvedPageOk
+	page: ResolvedPageOk,
+	snapshotVersion: string
 ): Promise<ShapeCluster[] | null> {
 	try {
 		const stored = await getRoomDurableObject(env, board.fileId).getMcpClusterIndex(
-			keyFor(board, page.pageId)
+			keyFor(board, page.pageId, snapshotVersion)
 		)
 		if (!stored) return null
 
@@ -94,14 +99,15 @@ export async function writePageClusterIndex(
 	{ env, request, ctx }: CacheContext,
 	board: ResolvedThumbnailBoard,
 	page: ResolvedPageOk,
-	index: PageClusterIndex
+	index: PageClusterIndex,
+	snapshotVersion: string
 ): Promise<void> {
 	try {
 		const payload = JSON.stringify(index)
 		if (payload.length > MAX_CLUSTER_INDEX_LENGTH) return
 
 		await getRoomDurableObject(env, board.fileId).putMcpClusterIndex(
-			keyFor(board, page.pageId),
+			keyFor(board, page.pageId, snapshotVersion),
 			payload,
 			page.pageIds
 		)

@@ -414,12 +414,9 @@ export function parseClusterIndex(json: string): PageClusterIndex | null {
  * indexed, which a stored index cannot otherwise notice: it would rebuild cleanly and answer short,
  * and an index built when the page was empty would report a full page as having no clusters at all.
  *
- * That skew is reachable. A published board's version is `lastPublished`, which Postgres carries the
- * moment the publish is requested, while the R2 snapshot it names is written afterwards by the effect
- * outbox — so a call landing in that gap measures the old content and stores it under the new
- * version. Shared files have a narrower version of the same race between the `head` that reads the
- * etag and the `get` that reads the snapshot. Both are rare and neither is worth a lock; both are a
- * miss here.
+ * The storage key is a digest of the snapshot actually read, so normal content changes cannot
+ * produce this skew. This remains a cheap integrity check for malformed or corrupted rows, where
+ * falling back to one render is safer than serving a plausible partial answer.
  *
  * A malformed row throws instead, from reading a field the format promised; the cache read treats
  * that as a miss too.

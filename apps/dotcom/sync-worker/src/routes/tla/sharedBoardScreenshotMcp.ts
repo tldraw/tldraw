@@ -684,7 +684,12 @@ async function callPageInfoTool(
 type BoardToolFailureReason = 'not_found' | 'board_empty' | 'page_not_found'
 
 type LoadedBoard =
-	| { ok: true; board: ResolvedThumbnailBoard; snapshot: import('@tldraw/sync-core').RoomSnapshot }
+	| {
+			ok: true
+			board: ResolvedThumbnailBoard
+			snapshot: import('@tldraw/sync-core').RoomSnapshot
+			snapshotVersion: string
+	  }
 	| { ok: false; reason: BoardToolFailureReason; result: ToolCallResult }
 
 async function loadBoardForTool(
@@ -725,11 +730,21 @@ async function loadBoardForTool(
 			result: toolError(BOARD_EMPTY_MESSAGE, 'board_empty'),
 		}
 	}
-	return { ok: true, board: resolved.board, snapshot }
+	// The board version is resolved before this read, so it can move independently of the snapshot:
+	// publishing updates lastPublished before its outbox writes R2, and a shared file can change
+	// between HEAD and GET. Key the cluster index to the bytes we actually read so neither gap can
+	// store an old measurement under new content.
+	const snapshotVersion = await sha256(JSON.stringify(snapshot))
+	return { ok: true, board: resolved.board, snapshot, snapshotVersion }
 }
 
 type ResolvedBoardPage =
-	| { ok: true; board: ResolvedThumbnailBoard; page: ResolvedPageOk }
+	| {
+			ok: true
+			board: ResolvedThumbnailBoard
+			page: ResolvedPageOk
+			snapshotVersion: string
+	  }
 	| { ok: false; reason: BoardToolFailureReason; result: ToolCallResult }
 
 async function resolveBoardPage(
@@ -750,7 +765,12 @@ async function resolveBoardPage(
 			result: withTelemetryReason(pageResult.result, reason),
 		}
 	}
-	return { ok: true, board: loaded.board, page: pageResult }
+	return {
+		ok: true,
+		board: loaded.board,
+		page: pageResult,
+		snapshotVersion: loaded.snapshotVersion,
+	}
 }
 
 // One datapoint shape for every MCP tool: `source: 'mcp'`, plus whatever the row carries.
@@ -860,7 +880,12 @@ async function clustersFor(
 	}
 ): Promise<PageClustersResult> {
 	const cacheContext = { env, request, ctx }
-	const cached = await readPageClusters(cacheContext, resolved.board, resolved.page)
+	const cached = await readPageClusters(
+		cacheContext,
+		resolved.board,
+		resolved.page,
+		resolved.snapshotVersion
+	)
 	if (cached) return { ok: true, clusters: cached, clusterCacheStatus: 'hit' }
 
 	if (await isGlobalBrowserRunRateLimited(env)) {
@@ -888,7 +913,8 @@ async function clustersFor(
 		cacheContext,
 		resolved.board,
 		resolved.page,
-		buildClusterIndex(clusters)
+		buildClusterIndex(clusters),
+		resolved.snapshotVersion
 	)
 	return { ok: true, clusters, clusterCacheStatus: 'miss' }
 }

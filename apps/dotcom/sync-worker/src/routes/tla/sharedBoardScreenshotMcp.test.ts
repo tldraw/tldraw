@@ -931,18 +931,30 @@ describe('cluster index cache', () => {
 		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
 	})
 
-	it('measures again when the board content moves on', async () => {
-		mockPublishedBoard()
+	it('keys an index to the snapshot read during the publish gap', async () => {
+		const oldSnapshot = makeSnapshot(PAGES)
+		mockPublishedBoard(oldSnapshot)
 		const env = makeEnv()
 		await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix3')
 
-		// A republish rotates the version this board's index is keyed by, so the stored row is no
-		// longer for the content being asked about and the page is measured again.
+		// Postgres moves first during a republish. While R2 still holds the old snapshot, the old index
+		// remains valid for the content this call actually reads and avoids a redundant measure.
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
 			published: true,
 			lastPublished: 1751234567891,
 		})
+		await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix3')
+
+		// Then R2 catches up with the same shape ids but changed geometry. Keying by lastPublished (and
+		// validating ids/counts alone) would serve the old clustering forever; keying by the snapshot
+		// bytes makes this a miss.
+		const newSnapshot = makeSnapshot(PAGES)
+		const firstShape = newSnapshot.documents.find(
+			(record: any) => record.state.typeName === 'shape'
+		)!
+		firstShape.state.x = 5000
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(newSnapshot)
 		await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix3')
 
 		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure', 'measure'])

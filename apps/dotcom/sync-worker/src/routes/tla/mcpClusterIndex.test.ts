@@ -58,6 +58,8 @@ const BOARD: ResolvedThumbnailBoard = {
 	fileId: 'file-1',
 }
 
+const SNAPSHOT_VERSION = 'snapshot-v1'
+
 function makeEnv() {
 	const namespace = makeFakeFileDurableObjectNamespace()
 	return { env: makeScreenshotTestEnv({ TLDR_DOC: namespace }), namespace }
@@ -125,17 +127,22 @@ describe('reading and writing', () => {
 		const page = makePage()
 		const clusters = clusterPage(page, MEASUREMENTS)
 
-		await writePageClusterIndex({ env }, BOARD, page, buildClusterIndex(clusters))
-		expect(await readPageClusters({ env }, BOARD, page)).toEqual(clusters)
+		await writePageClusterIndex({ env }, BOARD, page, buildClusterIndex(clusters), SNAPSHOT_VERSION)
+		expect(await readPageClusters({ env }, BOARD, page, SNAPSHOT_VERSION)).toEqual(clusters)
 		expect(namespace.calls.put).toBe(1)
 
-		// A rotated version is a miss: the row is still there, but it is not for this content.
+		// The resolved board version can move before R2 does, so it is deliberately not the cache key.
 		const moved = { ...BOARD, version: 'v2' }
-		expect(await readPageClusters({ env }, moved, page)).toBeNull()
+		expect(await readPageClusters({ env }, moved, page, SNAPSHOT_VERSION)).toEqual(clusters)
 
-		// And writing under the new version replaces the row rather than adding one, so a file's cache
+		// The digest of the snapshot actually read is the key. This catches a publish-gap read where
+		// lastPublished already moved but R2 still held the previous snapshot, even when both snapshots
+		// contain the same shape ids.
+		expect(await readPageClusters({ env }, moved, page, 'snapshot-v2')).toBeNull()
+
+		// And writing under the new snapshot replaces the row rather than adding one, so a file's cache
 		// is bounded by its page count no matter how often it is edited.
-		await writePageClusterIndex({ env }, moved, page, buildClusterIndex(clusters))
+		await writePageClusterIndex({ env }, moved, page, buildClusterIndex(clusters), 'snapshot-v2')
 		expect([...namespace.objects.values()].flatMap((store) => [...store.keys()])).toHaveLength(1)
 	})
 
@@ -146,12 +153,12 @@ describe('reading and writing', () => {
 		const index = buildClusterIndex(clusterPage(page, {}))
 
 		expect(JSON.stringify(index).length).toBeGreaterThan(MAX_CLUSTER_INDEX_LENGTH)
-		await writePageClusterIndex({ env }, BOARD, page, index)
+		await writePageClusterIndex({ env }, BOARD, page, index, SNAPSHOT_VERSION)
 
 		// Nothing written, and nothing thrown: a page this size keeps measuring, which is what it did
 		// before the cache existed.
 		expect([...namespace.objects.values()].flatMap((store) => [...store.keys()])).toHaveLength(0)
-		expect(await readPageClusters({ env }, BOARD, page)).toBeNull()
+		expect(await readPageClusters({ env }, BOARD, page, SNAPSHOT_VERSION)).toBeNull()
 	})
 
 	it('reports a broken durable object as a miss rather than raising', async () => {
@@ -169,13 +176,14 @@ describe('reading and writing', () => {
 		const env = makeScreenshotTestEnv({ TLDR_DOC: broken }) as Environment
 		const page = makePage()
 
-		expect(await readPageClusters({ env }, BOARD, page)).toBeNull()
+		expect(await readPageClusters({ env }, BOARD, page, SNAPSHOT_VERSION)).toBeNull()
 		await expect(
 			writePageClusterIndex(
 				{ env },
 				BOARD,
 				page,
-				buildClusterIndex(clusterPage(page, MEASUREMENTS))
+				buildClusterIndex(clusterPage(page, MEASUREMENTS)),
+				SNAPSHOT_VERSION
 			)
 		).resolves.toBeUndefined()
 	})
@@ -187,7 +195,8 @@ describe('reading and writing', () => {
 			{ env },
 			BOARD,
 			page,
-			buildClusterIndex(clusterPage(page, MEASUREMENTS))
+			buildClusterIndex(clusterPage(page, MEASUREMENTS)),
+			SNAPSHOT_VERSION
 		)
 
 		// Not a shape parseClusterIndex checks field by field — reading it throws inside the rebuild,
@@ -197,6 +206,6 @@ describe('reading and writing', () => {
 				store.set(key, { ...row, payload: '{"v":1,"clusters":[{}],"text":{}}' })
 			}
 		}
-		expect(await readPageClusters({ env }, BOARD, page)).toBeNull()
+		expect(await readPageClusters({ env }, BOARD, page, SNAPSHOT_VERSION)).toBeNull()
 	})
 })
