@@ -21,6 +21,7 @@ import {
 	existsSync,
 	readFileSync,
 	rmSync,
+	statSync,
 	writeFileSync,
 } from 'fs'
 import { createInterface } from 'readline'
@@ -172,9 +173,15 @@ async function prune(args: string[]): Promise<void> {
 			`Refusing to prune below 7d without --force (asked for ${idleArg}); this kills live sessions`
 		)
 	}
+	const limitArg = args.indexOf('--limit')
+	const limit = limitArg === -1 ? Infinity : Number(args[limitArg + 1])
+	if (!Number.isFinite(limit) && limitArg !== -1) throw new Error('--limit needs a number')
 	const origin = env('MCP_WORKER_ORIGIN', 'https://tldraw-mcp-app.tldraw.workers.dev')
 	const token = env('MCP_PRUNE_ADMIN_TOKEN')
 	const resultsFile = dryRun ? DRY_RUN_RESULTS_FILE : RESULTS_FILE
+	// A line offset is only meaningful against the exact file it was measured on;
+	// regenerating or swapping the ids file must invalidate it.
+	const idsSize = statSync(IDS_FILE).size
 
 	const hist: Record<string, { count: number; bytes: number }> = {}
 	let condemned = 0
@@ -198,11 +205,11 @@ async function prune(args: string[]): Promise<void> {
 	let skipLines = 0
 	if (existsSync(PROGRESS_FILE)) {
 		const prev = JSON.parse(readFileSync(PROGRESS_FILE, 'utf8'))
-		if (prev.dryRun === dryRun && prev.maxIdleMs === maxIdleMs) {
+		if (prev.dryRun === dryRun && prev.maxIdleMs === maxIdleMs && prev.idsSize === idsSize) {
 			skipLines = prev.linesDone ?? 0
 		} else {
 			console.log(
-				`ignoring progress from a different pass (dryRun=${prev.dryRun}, maxIdle=${prev.maxIdleMs}ms)`
+				`ignoring progress from a different pass (dryRun=${prev.dryRun}, maxIdle=${prev.maxIdleMs}ms, idsSize=${prev.idsSize})`
 			)
 		}
 	}
@@ -212,7 +219,7 @@ async function prune(args: string[]): Promise<void> {
 	}
 
 	console.log(
-		`dryRun=${dryRun}, maxIdle=${maxIdleMs}ms, resuming at line ${skipLines}, appending to ${resultsFile}`
+		`dryRun=${dryRun}, maxIdle=${maxIdleMs}ms, resuming at line ${skipLines}${limit === Infinity ? '' : `, limit ${limit}`}, appending to ${resultsFile}`
 	)
 
 	let dispatched = skipLines
@@ -254,7 +261,10 @@ async function prune(args: string[]): Promise<void> {
 			completedSizes.delete(committedBatch++)
 			size = completedSizes.get(committedBatch)
 		}
-		writeFileSync(PROGRESS_FILE, JSON.stringify({ dryRun, maxIdleMs, linesDone: committedLines }))
+		writeFileSync(
+			PROGRESS_FILE,
+			JSON.stringify({ dryRun, maxIdleMs, idsSize, linesDone: committedLines })
+		)
 	}
 
 	const inFlight = new Map<number, Promise<void>>()
@@ -284,6 +294,7 @@ async function prune(args: string[]): Promise<void> {
 	let batch: string[] = []
 	for await (const id of readLines(IDS_FILE)) {
 		if (++lineNo <= skipLines) continue
+		if (lineNo - skipLines > limit) break
 		batch.push(id)
 		if (batch.length < BATCH) continue
 		await dispatch(batch)
