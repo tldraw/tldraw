@@ -550,6 +550,42 @@ describe('PointingLabel', () => {
 		editor.expectToBeIn('select.idle')
 	})
 
+	it('Keeps the dragged label position on complete', () => {
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: {
+					richText: toRichText('Test Label'),
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 0 },
+				},
+			},
+		])
+		const shape = editor.getShape<TLArrowShape>(ids.arrow1)!
+		const initialLabelPosition = shape.props.labelPosition
+
+		editor.pointerDown(150, 100, {
+			target: 'shape',
+			shape,
+		})
+		editor.pointerMove(160, 100)
+		editor.expectToBeIn('select.pointing_arrow_label')
+		editor.pointerMove(190, 100)
+
+		const draggedLabelPosition = editor.getShape<TLArrowShape>(ids.arrow1)!.props.labelPosition
+		expect(draggedLabelPosition).not.toBe(initialLabelPosition)
+
+		// A menu opening or an undo keypress mid-drag completes the interaction
+		editor.complete()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getShape<TLArrowShape>(ids.arrow1)!.props.labelPosition).toBe(
+			draggedLabelPosition
+		)
+	})
+
 	it('Doesnt go into pointing_arrow_label mode if not selecting the arrow shape', () => {
 		editor.createShapes([
 			{

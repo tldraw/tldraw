@@ -259,6 +259,17 @@ export interface ThumbnailBoardRef {
 }
 
 /**
+ * Which page of which board a stored MCP cluster index belongs to. The object it is stored in is
+ * already the board's file, so this addresses a page within that. See mcpClusterIndexStorage.ts.
+ */
+export interface McpClusterIndexKey {
+	kind: ThumbnailBoardKind
+	pageId: string
+	/** The board's content version, so an index is only read back for the content it was built from. */
+	version: string
+}
+
+/**
  * How much of a board a caller is entitled to. `public` is the anonymous gate: the board must be
  * shared via link. `render` is for generating a thumbnail we will store but not necessarily serve
  * publicly, so it only requires that the board exists and has content.
