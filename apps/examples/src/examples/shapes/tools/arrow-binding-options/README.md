@@ -15,17 +15,14 @@ keywords:
   ]
 ---
 
-Demonstrate arrow binding options for precise positioning.
+Control where a bound arrow lands on a shape with `isPrecise`, `isExact`, and `normalizedAnchor`.
 
 ---
 
-This example shows the different arrow binding options that control how arrows connect to shapes:
+Arrow bindings are records created with `editor.createBindings`. Three props on the binding decide where the arrow's terminal ends up:
 
-- **isPrecise: false** - Arrow always targets the center of the shape (default safe behavior)
-- **isPrecise: true** - Arrow respects the `normalizedAnchor` and targets the specified position
-- **isExact: false** - Arrow stops at the shape's edge (default)
-- **isExact: true** - Arrow passes through the shape to reach the exact target point
+- `normalizedAnchor` is a point on the target shape in normalized coordinates: `{x: 0.5, y: 0.5}` is the center, `{x: 0, y: 0}` the top-left, `{x: 1, y: 1}` the bottom-right.
+- `isPrecise: false` ignores the anchor and aims at the shape's center. `isPrecise: true` aims at the anchor.
+- `isExact: false` stops the arrow at the shape's edge. `isExact: true` lets the arrow continue into the shape until it reaches the anchor point.
 
-The `normalizedAnchor` property specifies where on the shape the arrow connects using normalized coordinates (0-1 on each axis). For example, `{x: 0.5, y: 0.5}` is the center, `{x: 0, y: 0}` is top-left, and `{x: 1, y: 1}` is bottom-right.
-
-These options provide fine-grained control over arrow positioning for technical diagrams, architectural drawings, and other use cases requiring precise arrow placement.
+The example creates four shape-and-arrow pairs, one for each combination. Try dragging the shapes around: the arrows stay bound and re-route according to their options. Select an arrow and drag its endpoint to see how the editor sets these props interactively (pausing over a shape makes the binding precise).

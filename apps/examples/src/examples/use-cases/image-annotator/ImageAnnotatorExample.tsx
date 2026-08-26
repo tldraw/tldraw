@@ -38,7 +38,7 @@ export default function ImageAnnotatorWrapper() {
 			return (
 				<div className="ImageAnnotator">
 					<ImageAnnotationEditor
-						// remount tldraw if the image/id changes:
+						// remount tldraw when a new image is chosen
 						key={state.id}
 						image={state.image}
 						onDone={(result) => setState({ phase: 'export', result })}

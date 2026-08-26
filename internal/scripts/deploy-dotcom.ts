@@ -55,7 +55,6 @@ const { previewId, sha } = getDeployInfo()
 const env = makeEnv([
 	'ANALYTICS_API_TOKEN',
 	'ANALYTICS_API_URL',
-	'ANTHROPIC_API_KEY',
 	'ASSET_UPLOAD_SENTRY_DSN',
 	'ASSET_UPLOAD',
 	'CLERK_SECRET_KEY',
@@ -120,9 +119,6 @@ const flyioAppName =
 			? `${env.TLDRAW_ENV}-zero-vs`
 			: undefined
 const flyioReplAppName = deployZero === 'flyio-multinode' ? `${env.TLDRAW_ENV}-zero-rm` : undefined
-
-// pierre is not in production yet, so get the key directly from process.env
-const pierreKey = process.env.PIERRE_KEY ?? ''
 
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
@@ -588,7 +584,6 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			SUPABASE_KEY: env.SUPABASE_LITE_ANON_KEY,
 			SENTRY_DSN: env.WORKER_SENTRY_DSN,
 			TLDRAW_ENV: env.TLDRAW_ENV,
-			PIERRE_KEY: pierreKey,
 			ASSET_UPLOAD_ORIGIN: env.ASSET_UPLOAD,
 			USER_CONTENT_URL: env.USER_CONTENT_URL,
 			WORKER_NAME: workerId,
@@ -609,7 +604,14 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			// MCP_SCREENSHOT_RENDER_ORIGIN in wrangler.toml; previews have no such entry, so inject
 			// it here (Browser Run can't reach an origin that isn't configured for the deployment).
 			...(previewId
-				? { MCP_SCREENSHOT_RENDER_ORIGIN: `https://${previewId}-preview-deploy.tldraw.com` }
+				? {
+						MCP_SCREENSHOT_RENDER_ORIGIN: `https://${previewId}-preview-deploy.tldraw.com`,
+						// Previews advertise and verify against their own public URL like every other
+						// deployed environment — the Host-derived fallback in getMcpResourceUrl is for
+						// local dev and tests only. Injected here because previews have no wrangler.toml
+						// vars block at all.
+						MCP_SERVER_URL: `https://${previewId}-preview-deploy.tldraw.com/api/app/mcp`,
+					}
 				: {}),
 		},
 		sentry: {

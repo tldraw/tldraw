@@ -40,9 +40,10 @@ jobs:
 
       - name: Check out code
         uses: actions/checkout@v6
-        with:
-          submodules: true
-          fetch-depth: 0
+        env:
+          # Abort a stalled fetch so checkout's retry kicks in instead of hanging until the job timeout
+          GIT_HTTP_LOW_SPEED_LIMIT: 1000
+          GIT_HTTP_LOW_SPEED_TIME: 60
 
       - uses: ./.github/actions/setup
 
@@ -161,7 +162,6 @@ jobs:
 
           ANALYTICS_API_URL: ${{ secrets.ANALYTICS_API_URL }}
           ANALYTICS_API_TOKEN: ${{ secrets.ANALYTICS_API_TOKEN }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ASSET_UPLOAD_SENTRY_DSN: ${{ secrets.ASSET_UPLOAD_SENTRY_DSN }}
           BOTCOM_POSTGRES_CONNECTION_STRING: ${{ env.POSTGRES_URL_NON_POOLING || secrets.BOTCOM_POSTGRES_CONNECTION_STRING }}
           BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: ${{ env.POSTGRES_URL || secrets.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING }}
@@ -193,7 +193,6 @@ jobs:
           VITE_GA4_MEASUREMENT_ID: ${{ secrets.VITE_GA4_MEASUREMENT_ID }}
           WORKER_SENTRY_DSN: ${{ secrets.WORKER_SENTRY_DSN }}
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-          PIERRE_KEY: ${{ secrets.PIERRE_KEY }}
           ZERO_ADMIN_PASSWORD: ${{ secrets.ZERO_ADMIN_PASSWORD }}
           ZERO_R2_ENDPOINT: ${{ secrets.ZERO_R2_ENDPOINT }}
           ZERO_R2_BUCKET_NAME: ${{ secrets.ZERO_R2_BUCKET_NAME }}

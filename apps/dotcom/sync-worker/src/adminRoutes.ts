@@ -3,9 +3,10 @@ import {
 	AdminFileStatsResponseBody,
 	AdminOutboxRowsResponseBody,
 	AdminOutboxStatsResponseBody,
+	AllowlistEntry,
 	FILE_PREFIX,
 	FeatureFlagKey,
-	FriendsAndFamilyEntry,
+	FeatureFlagValue,
 	LOCAL_FILE_PREFIX,
 	PUBLISH_PREFIX,
 	ROOM_PREFIX,
@@ -30,14 +31,15 @@ import {
 	getRoomDurableObject,
 	getRoomDurableObjectById,
 	getRoomDurableObjectId,
-	getUserDurableObject,
 } from './utils/durableObjects'
-import { FEATURE_FLAG_KEYS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
 import {
-	getFriendsAndFamilyList,
-	parseFriendsAndFamilyEmails,
-	setFriendsAndFamilyList,
-} from './utils/mcpFriendsAndFamily'
+	FEATURE_FLAG_KEYS,
+	FeatureFlagUpdate,
+	getAllFeatureFlagValues,
+	getFeatureFlagType,
+	parseAllowlistEmails,
+	setFeatureFlag,
+} from './utils/featureFlags'
 import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
 
 /**
@@ -46,13 +48,13 @@ import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/get
  * per address, and an email with no tldraw account fails the save instead of being stored as an
  * entry that can never match.
  */
-async function resolveFriendsAndFamilyUsers(
+async function resolveAllowlistUsers(
 	env: Environment,
 	emails: string[]
-): Promise<FriendsAndFamilyEntry[]> {
+): Promise<AllowlistEntry[]> {
 	if (!emails.length) return []
 
-	const db = createPostgresConnectionPool(env, '/app/admin/mcp-friends-and-family')
+	const db = createPostgresConnectionPool(env, '/app/admin/feature-flags')
 	try {
 		const rows = await db
 			.selectFrom('user')
@@ -75,6 +77,58 @@ async function resolveFriendsAndFamilyUsers(
 	} finally {
 		await db.destroy()
 	}
+}
+
+/**
+ * Refreshes the email labels an allowlist carries, and marks the entries whose user id no longer
+ * resolves to an account.
+ *
+ * The stored email is written once at save time and never updated, so it rots: an address change
+ * leaves an entry that still *works* — matching is by id — while displaying the old address, and
+ * re-saving the list as displayed then 400s on a line the admin cannot pick out from the rest. A
+ * deleted account leaves an entry that looks like a live grant and matches nobody. Resolved on read
+ * instead, which costs the admin panel one query per page load and the request path nothing.
+ */
+async function withResolvedAllowlistLabels(
+	env: Environment,
+	flags: Record<string, FeatureFlagValue>
+): Promise<Record<string, FeatureFlagValue>> {
+	const entriesOf = (flag: FeatureFlagValue) =>
+		flag.type === 'allowlist' && Array.isArray(flag.users) ? flag.users : []
+
+	const ids = [
+		...new Set(Object.values(flags).flatMap((flag) => entriesOf(flag).map((e) => e.userId))),
+	]
+	if (!ids.length) return flags
+
+	const db = createPostgresConnectionPool(env, '/app/admin/feature-flags')
+	let emailById: Map<string, string>
+	try {
+		const rows = await db
+			.selectFrom('user')
+			.select(['id', 'email'])
+			.where('id', 'in', ids)
+			.execute()
+		emailById = new Map(rows.map((row) => [row.id, row.email]))
+	} finally {
+		await db.destroy()
+	}
+
+	return Object.fromEntries(
+		Object.entries(flags).map(([key, flag]) => {
+			if (flag.type !== 'allowlist') return [key, flag]
+			return [
+				key,
+				{
+					...flag,
+					users: entriesOf(flag).map((entry) => {
+						const email = emailById.get(entry.userId)
+						return email ? { ...entry, email } : { ...entry, missing: true }
+					}),
+				},
+			]
+		})
+	)
 }
 
 async function requireUser(env: Environment, q: string) {
@@ -115,18 +169,10 @@ export const adminRoutes = createRouter<Environment>()
 				.leftJoin('group_file', 'group_file.fileId', 'file.id')
 				.where('file.isDeleted', '=', false)
 				.where((eb) =>
-					eb.or([
-						eb('file.ownerId', '=', userRow.id),
-						eb(
-							'group_file.groupId',
-							'in',
-							memberships.length ? memberships.map((m) => m.id) : ['']
-						),
-					])
+					eb('group_file.groupId', 'in', memberships.length ? memberships.map((m) => m.id) : [''])
 				)
-				// distinctOn dedupes before the limit is applied, so a file matching both the owner
-				// clause and multiple group memberships (join fanout) still only counts once against
-				// the 500 cap.
+				// distinctOn dedupes before the limit is applied, so a file matching multiple
+				// group memberships (join fanout) still only counts once against the 500 cap.
 				.distinctOn('file.id')
 				.orderBy('file.id')
 				.selectAll('file')
@@ -353,10 +399,12 @@ export const adminRoutes = createRouter<Environment>()
 		}
 		return json(await roomDo.__admin__closeAllSessions())
 	})
-	.get('/app/admin/feature-flags', getFeatureFlagsAdmin)
+	.get('/app/admin/feature-flags', async (_req, env) => {
+		return json(await withResolvedAllowlistLabels(env, await getAllFeatureFlagValues(env)))
+	})
 	.post('/app/admin/feature-flags', async (req, env) => {
 		const body: any = await req.json()
-		const { flag, enabled, percentage } = body
+		const { flag, enabled, percentage, emails } = body
 
 		if (typeof flag !== 'string') {
 			throw new StatusError(400, 'flag (string) is required')
@@ -374,32 +422,46 @@ export const adminRoutes = createRouter<Environment>()
 		if (!FEATURE_FLAG_KEYS.includes(flag as FeatureFlagKey)) {
 			throw new StatusError(400, `Invalid flag. Must be one of: ${FEATURE_FLAG_KEYS.join(', ')}`)
 		}
+		const flagKey = flag as FeatureFlagKey
 
-		const update: { enabled?: boolean; percentage?: number } = {}
-		if (enabled !== undefined) update.enabled = enabled
-		if (percentage !== undefined) update.percentage = percentage
-
-		await setFeatureFlag(env, flag as FeatureFlagKey, update)
-		return json({ success: true, flag, ...update })
-	})
-	.get('/app/admin/mcp-friends-and-family', async (_req, env) => {
-		return json({ entries: await getFriendsAndFamilyList(env) })
-	})
-	.post('/app/admin/mcp-friends-and-family', async (req, env) => {
-		const body: any = await req.json()
-
-		// Parsing before resolving means a typo is rejected at the point someone can still fix it,
-		// rather than sitting in the list looking like it grants access while matching nothing.
-		let emails: string[]
-		try {
-			emails = parseFriendsAndFamilyEmails(body?.entries)
-		} catch (e) {
-			throw new StatusError(400, e instanceof Error ? e.message : String(e))
+		// A field that means nothing for this flag's type is refused rather than dropped. It used to be
+		// dropped silently and still answered `{success: true, users: […]}`, so an admin could send an
+		// allowlist to a percentage flag, be told it saved, and have nothing stored anywhere.
+		const type = getFeatureFlagType(env, flagKey)
+		if (percentage !== undefined && type !== 'percentage') {
+			throw new StatusError(400, `"${flagKey}" is a ${type} flag; percentage does not apply to it`)
+		}
+		if (emails !== undefined && type !== 'allowlist') {
+			throw new StatusError(400, `"${flagKey}" is a ${type} flag; emails do not apply to it`)
 		}
 
-		const entries = await resolveFriendsAndFamilyUsers(env, emails)
-		await setFriendsAndFamilyList(env, entries)
-		return json({ success: true, entries })
+		let update: FeatureFlagUpdate
+		if (type === 'allowlist') {
+			let users: AllowlistEntry[] | undefined
+			if (emails !== undefined) {
+				// An allowlist is edited as emails and stored as user ids. Parsing before resolving means a
+				// typo is rejected at the point someone can still fix it, rather than sitting in the list
+				// looking like it grants access while matching nothing; resolving at save time means an email
+				// with no tldraw account fails the save instead of being stored as an entry that can never
+				// match.
+				let parsed: string[]
+				try {
+					parsed = parseAllowlistEmails(emails)
+				} catch (e) {
+					throw new StatusError(400, e instanceof Error ? e.message : String(e))
+				}
+				users = await resolveAllowlistUsers(env, parsed)
+			}
+			update = { type, enabled, users }
+		} else if (type === 'percentage') {
+			update = { type, enabled, percentage }
+		} else {
+			update = { type, enabled }
+		}
+
+		await setFeatureFlag(env, flagKey, update)
+		const { type: _type, ...stored } = update
+		return json({ success: true, flag, ...stored })
 	})
 	.post('/app/admin/create_legacy_file', async (_res, env) => {
 		const slug = uniqueId()
@@ -444,28 +506,14 @@ export const adminRoutes = createRouter<Environment>()
 		await getFileEffectProcessor(env)
 			.poke()
 			.catch(() => {})
-		// Hard-reboot every affected user so the restored rows replicate to their session (the
-		// isDeleted false-flip case flagged in dotcom-shared mutators.ts). Best-effort: the
-		// writes already committed, so a reboot failure must not surface as a 500 (a retry would
-		// just 400 with 'File is not deleted' without rebooting anyone). Bounded concurrency keeps
-		// us inside the worker's connection budget for workspaces with many members.
-		const rebootQueue = new PQueue({ concurrency: 5 })
-		await rebootQueue.addAll(
-			outcome.rebootUserIds.map((userId) => async () => {
-				try {
-					await getUserDurableObject(env, userId).admin_forceHardReboot(userId)
-				} catch (e) {
-					console.error(`Failed to reboot user ${userId} after undeleting file ${fileId}`, e)
-				}
-			})
-		)
 		return json({ success: true })
 	})
 	// Deleted files the user OWNS: legacy direct owner, their home workspace (group id = user
 	// id), or a workspace where they hold the owner role. Mere memberships and guest files are
 	// excluded — the per-row Undelete button restores files, so the list must only contain files
-	// the user legitimately owns. Queried from Postgres because the user's replicated store
-	// filters out their own deleted files (see fetchEverythingSql).
+	// the user legitimately owns. Queried from Postgres because the synced store never surfaces
+	// deleted files: the client filters on file.isDeleted, and the join rows that sync a file
+	// (file_state, group_file) are removed on delete.
 	.get('/app/admin/user/deleted_files', async (res, env) => {
 		const q = res.query['q']
 		if (typeof q !== 'string') {
@@ -489,7 +537,6 @@ export const adminRoutes = createRouter<Environment>()
 			)
 			.where((eb) =>
 				eb.or([
-					eb('file.ownerId', '=', userRow.id),
 					eb('file.owningGroupId', '=', userRow.id),
 					eb(
 						'file.owningGroupId',
@@ -595,7 +642,7 @@ export const adminRoutes = createRouter<Environment>()
 		const file = await pg
 			.selectFrom('file')
 			.where('id', '=', slug)
-			.select(['id', 'name', 'ownerId', 'owningGroupId', 'isDeleted', 'createSource'])
+			.select(['id', 'name', 'owningGroupId', 'isDeleted', 'createSource'])
 			.executeTakeFirst()
 
 		const snapshot = await getFileSnapshot(env, slug, true)
@@ -786,7 +833,6 @@ export const adminRoutes = createRouter<Environment>()
 				.selectFrom('file')
 				.where('id', '=', slug)
 				.select([
-					'ownerId',
 					'owningGroupId',
 					'createdAt',
 					'updatedAt',
@@ -866,7 +912,7 @@ export const adminRoutes = createRouter<Environment>()
 		const stats: AdminFileStatsResponseBody = {
 			file: fileRow
 				? {
-						ownerType: fileRow.ownerId ? 'user' : fileRow.owningGroupId ? 'group' : 'none',
+						ownerType: fileRow.owningGroupId ? 'group' : 'none',
 						createdAt: fileRow.createdAt,
 						updatedAt: fileRow.updatedAt,
 						isDeleted: fileRow.isDeleted,
@@ -1131,9 +1177,6 @@ async function performUserDeletion(
 
 	// Step 5: Hard delete groups and user in a transaction
 	await pg.transaction().execute(async (tx) => {
-		// Clean up tables that don't have CASCADE delete constraints
-		await tx.deleteFrom('user_mutation_number').where('userId', '=', userRow.id).execute()
-
 		// Clean up assets that reference this user (nullable foreign key)
 		await tx.deleteFrom('asset').where('userId', '=', userRow.id).execute()
 
@@ -1158,10 +1201,4 @@ async function performUserDeletion(
 	// Delete user from analytics service
 	sendProgress?.('analytics', 'Deleting user from analytics...')
 	await deleteUserFromAnalytics(userRow.id, env, sendProgress)
-
-	sendProgress?.('durable_object', 'Cleaning up user durable object state...')
-
-	// Clean up user durable object state and R2 data
-	const user = getUserDurableObject(env, userRow.id)
-	await user.admin_delete(userRow.id)
 }

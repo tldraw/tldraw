@@ -1,0 +1,15 @@
+.locked-shapes-panel {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	padding: 4px 8px;
+}
+
+.locked-shapes-panel label {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 13px;
+	cursor: pointer;
+	user-select: none;
+}

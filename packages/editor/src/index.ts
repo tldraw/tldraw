@@ -290,6 +290,7 @@ export {
 export { getOwnerDocument, getOwnerWindow } from './lib/exports/domUtils'
 export { getSvgAsImage } from './lib/exports/getSvgAsImage'
 export { tlenv, tlenvReactive } from './lib/globals/environment'
+export { tleditors } from './lib/globals/editors'
 export { tlmenus } from './lib/globals/menus'
 export { tltime } from './lib/globals/time'
 export {
@@ -341,7 +342,11 @@ export {
 	type LicenseState,
 	type ValidLicenseKeyResult,
 } from './lib/license/LicenseManager'
-export { LICENSE_TIMEOUT, useLicenseContext } from './lib/license/LicenseProvider'
+export {
+	LICENSE_TIMEOUT,
+	useLicenseContext,
+	useMaybeLicenseManager,
+} from './lib/license/LicenseProvider'
 export { useLicenseFeatureFlag } from './lib/license/useLicenseManagerState'
 export {
 	defaultTldrawOptions,

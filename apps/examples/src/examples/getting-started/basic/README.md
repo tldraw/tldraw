@@ -20,6 +20,8 @@ The simplest way to use the `Tldraw` component.
 
 ---
 
-The `Tldraw` component provides the tldraw editor as a regular React component. You can put this component anywhere in your React project. In this example, we make the component take up the height and width of the container.
+The `Tldraw` component renders the full tldraw editor as a regular React component. Put it anywhere in your React tree; it fills whatever container it's given, so the container needs a size. Here `.tldraw__editor` makes it fill the page.
 
-By default, the component does not persist between refreshes or sync locally between tabs. To keep your work after a refresh, check the [persistence key example](https://tldraw.dev/examples/persistence-key).
+Import `tldraw/tldraw.css` alongside the component. Without it, the editor's UI has no styling.
+
+By default the editor does not persist between refreshes or sync between tabs. To keep your work after a refresh, see the [persistence key example](https://tldraw.dev/examples/persistence-key).

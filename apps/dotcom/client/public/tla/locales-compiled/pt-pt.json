@@ -14,7 +14,7 @@
   "029f235f01": [
     {
       "type": 0,
-      "value": "Estamos trabalhando no suporte para arquivos de "
+      "value": "Estamos a trabalhar no suporte para ficheiros de "
     },
     {
       "children": [
@@ -56,7 +56,7 @@
   "04a2dd56d6": [
     {
       "type": 0,
-      "value": "Convide seus colegas de equipe"
+      "value": "Convide os seus colegas de equipa"
     }
   ],
   "05b2656486": [
@@ -78,7 +78,7 @@
   "05f43078e9": [
     {
       "type": 0,
-      "value": "Você atingiu o número máximo de espaços de trabalho. É necessário excluir os espaços de trabalho antigos antes de criar novos."
+      "value": "Atingiu o número máximo de espaços de trabalho. É necessário eliminar os espaços de trabalho antigos antes de criar novos."
     }
   ],
   "06b9281e39": [
@@ -108,7 +108,7 @@
   "093ac7483a": [
     {
       "type": 0,
-      "value": "Ainda não é possível abrir arquivos "
+      "value": "Ainda não é possível abrir ficheiros "
     },
     {
       "type": 1,
@@ -118,7 +118,7 @@
   "0a91f7fa87": [
     {
       "type": 0,
-      "value": "Este arquivo atingiu o limite de tamanho e as alterações podem não ser mais salvas. Remova parte do conteúdo ou crie um novo arquivo."
+      "value": "Este ficheiro atingiu o limite de tamanho e as alterações podem deixar de ser guardadas. Remova algum conteúdo ou crie um novo ficheiro."
     }
   ],
   "0b27918290": [
@@ -166,7 +166,7 @@
   "12a6766ba1": [
     {
       "type": 0,
-      "value": "Desafixar arquivo"
+      "value": "Desafixar ficheiro"
     }
   ],
   "13ddd375ad": [
@@ -274,13 +274,13 @@
   "2de510be71": [
     {
       "type": 0,
-      "value": "A regeneração substitui o link de convite atual por um novo. Qualquer pessoa que estiver usando o link antigo precisará do novo para participar."
+      "value": "A regeneração substitui o link de convite atual por um novo. Qualquer pessoa que estiver a usar o link antigo precisará do novo para participar."
     }
   ],
   "2e2b3c700b": [
     {
       "type": 0,
-      "value": "Incluir link para o arquivo atual"
+      "value": "Incluir link para o ficheiro atual"
     }
   ],
   "2e9856a31e": [
@@ -322,7 +322,7 @@
   "34e34c43ec": [
     {
       "type": 0,
-      "value": "Gerenciar"
+      "value": "Gerir"
     }
   ],
   "375396d6e5": [
@@ -382,7 +382,7 @@
   "454aad3b3c": [
     {
       "type": 0,
-      "value": "Tem certeza de que deseja excluir "
+      "value": "Tem a certeza de que pretende eliminar "
     },
     {
       "children": [
@@ -414,7 +414,7 @@
   "477df802ca": [
     {
       "type": 0,
-      "value": "Para continuar a edição, copie o arquivo para a sua pasta de arquivos."
+      "value": "Para continuar a editar, copie o ficheiro para os seus ficheiros."
     }
   ],
   "47839e47a5": [
@@ -426,7 +426,7 @@
   "47f493a590": [
     {
       "type": 0,
-      "value": "Arquivo PIN"
+      "value": "Afixar ficheiro"
     }
   ],
   "49ee308734": [
@@ -438,7 +438,7 @@
   "4d0d3ddec9": [
     {
       "type": 0,
-      "value": "Este site usa cookies para fazer o aplicativo funcionar e coletar análises."
+      "value": "Este site utiliza cookies para fazer a aplicação funcionar e recolher dados analíticos."
     }
   ],
   "4d1c8263ba": [
@@ -462,7 +462,7 @@
   "51317dcad5": [
     {
       "type": 0,
-      "value": "Este é o seu espaço de trabalho privado. Crie um novo espaço de trabalho para convidar colegas de equipe."
+      "value": "Este é o seu espaço de trabalho privado. Crie um novo espaço de trabalho para convidar colegas de equipa."
     }
   ],
   "517bb809d9": [
@@ -480,7 +480,7 @@
   "542248f0ba": [
     {
       "type": 0,
-      "value": "Este arquivo agora é somente leitura."
+      "value": "Este ficheiro é agora apenas de leitura."
     }
   ],
   "54286b1d01": [
@@ -548,7 +548,7 @@
   "5bec508475": [
     {
       "type": 0,
-      "value": "Navegador antigo detectado. Atualize seu navegador para usar este aplicativo."
+      "value": "Navegador antigo detetado. Atualize o seu navegador para utilizar esta aplicação."
     }
   ],
   "5bff3c9c88": [
@@ -606,7 +606,7 @@
   "60a68c29d6": [
     {
       "type": 0,
-      "value": "Faça login para comentar"
+      "value": "Inicie sessão para comentar"
     }
   ],
   "61057a0c84": [
@@ -677,7 +677,7 @@
   "681e10aecb": [
     {
       "type": 0,
-      "value": "Novo arquivo"
+      "value": "Novo ficheiro"
     }
   ],
   "6832ac5936": [
@@ -689,7 +689,7 @@
   "694f82ed9d": [
     {
       "type": 0,
-      "value": "Excluir espaço de trabalho"
+      "value": "Eliminar espaço de trabalho"
     }
   ],
   "6a26f54883": [
@@ -737,13 +737,13 @@
   "74ff4bad28": [
     {
       "type": 0,
-      "value": "Nenhum arquivo encontrado"
+      "value": "Nenhum ficheiro encontrado"
     }
   ],
   "752b79f137": [
     {
       "type": 0,
-      "value": "Você atingiu o número máximo de arquivos. Você precisa excluir os arquivos antigos antes de criar novos."
+      "value": "Atingiu o número máximo de ficheiros. É necessário eliminar os ficheiros antigos antes de criar novos."
     }
   ],
   "7542d62aac": [
@@ -761,13 +761,13 @@
   "761e93ede9": [
     {
       "type": 0,
-      "value": "Gerenciar cookies"
+      "value": "Gerir cookies"
     }
   ],
   "764671e008": [
     {
       "type": 0,
-      "value": "Converse conosco no Discord"
+      "value": "Fale connosco no Discord"
     }
   ],
   "7697920637": [
@@ -785,7 +785,7 @@
   "7827371d1a": [
     {
       "type": 0,
-      "value": "Este arquivo multiplayer anônimo do tldraw agora é somente leitura. Para continuar editando, faça login e copie-o para seus arquivos."
+      "value": "Este ficheiro multiplayer anónimo do tldraw é agora apenas de leitura. Para continuar a editar, inicie sessão e copie-o para os seus ficheiros."
     }
   ],
   "78e9815992": [
@@ -809,7 +809,7 @@
   "7b1329f5ca": [
     {
       "type": 0,
-      "value": "Manual do usuário"
+      "value": "Manual do utilizador"
     }
   ],
   "7be10fc592": [
@@ -857,13 +857,13 @@
   "815e116a2e": [
     {
       "type": 0,
-      "value": "Tem algum bug, problema ou ideia para o tldraw? Conte para a gente! Preencha este formulário e entraremos em contato por e-mail, se necessário. Você também pode "
+      "value": "Tem um bug, problema ou ideia para o tldraw? Diga-nos! Preencha este formulário e entraremos em contacto por e-mail, se necessário. Também pode "
     },
     {
       "children": [
         {
           "type": 0,
-          "value": "conversar conosco no Discord"
+          "value": "falar connosco no Discord"
         }
       ],
       "type": 8,
@@ -877,7 +877,7 @@
       "children": [
         {
           "type": 0,
-          "value": "enviar um problema no GitHub"
+          "value": "submeter um problema no GitHub"
         }
       ],
       "type": 8,
@@ -891,7 +891,7 @@
   "81666c6e4a": [
     {
       "type": 0,
-      "value": "Tem certeza de que deseja esquecer "
+      "value": "Tem a certeza de que pretende esquecer "
     },
     {
       "children": [
@@ -937,13 +937,13 @@
     },
     {
       "type": 0,
-      "value": " arquivos .tldr."
+      "value": " ficheiros .tldr."
     }
   ],
   "86c66437fd": [
     {
       "type": 0,
-      "value": "Renomear arquivo"
+      "value": "Renomear ficheiro"
     }
   ],
   "87fdb09de6": [
@@ -991,7 +991,7 @@
   "90646db02d": [
     {
       "type": 0,
-      "value": "Tem certeza de que deseja excluir "
+      "value": "Tem a certeza de que pretende eliminar "
     },
     {
       "children": [
@@ -1091,7 +1091,7 @@
   "9e93c98d88": [
     {
       "type": 0,
-      "value": "Excluir"
+      "value": "Recusar"
     }
   ],
   "a078644c42": [
@@ -1117,7 +1117,7 @@
   "a0da245992": [
     {
       "type": 0,
-      "value": "Exporte o conteúdo como um arquivo .tldr: Selecione \"Download\" no menu superior esquerdo."
+      "value": "Exporte o conteúdo como um ficheiro .tldr: selecione \"Download\" no menu superior esquerdo."
     }
   ],
   "a104439641": [
@@ -1183,7 +1183,7 @@
   "a8873770ab": [
     {
       "type": 0,
-      "value": "O arquivo está ficando grande."
+      "value": "O ficheiro está a ficar grande."
     }
   ],
   "a9ded1e5ce": [
@@ -1207,7 +1207,7 @@
   "ab0df9ba36": [
     {
       "type": 0,
-      "value": "Limite de arquivo atingido"
+      "value": "Limite do ficheiro atingido"
     }
   ],
   "af3dc88931": [
@@ -1225,7 +1225,7 @@
   "b028909917": [
     {
       "type": 0,
-      "value": "Usuário convidado"
+      "value": "Utilizador convidado"
     }
   ],
   "b03400e2db": [
@@ -1259,7 +1259,7 @@
   "b2c3c2e30c": [
     {
       "type": 0,
-      "value": "O arquivo está cheio"
+      "value": "O ficheiro está cheio"
     }
   ],
   "b357b524e7": [
@@ -1312,7 +1312,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Carregando arquivo .tldr…"
+              "value": "A carregar ficheiro .tldr…"
             }
           ]
         },
@@ -1320,7 +1320,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Carregando "
+              "value": "A carregar "
             },
             {
               "type": 1,
@@ -1336,7 +1336,7 @@
             },
             {
               "type": 0,
-              "value": " arquivos .tldr…"
+              "value": " ficheiros .tldr…"
             }
           ]
         }
@@ -1359,7 +1359,7 @@
   "c17466812d": [
     {
       "type": 0,
-      "value": "Gerenciar espaço de trabalho"
+      "value": "Gerir espaço de trabalho"
     }
   ],
   "c2276c9127": [
@@ -1425,7 +1425,7 @@
   "ce0547606c": [
     {
       "type": 0,
-      "value": "Este arquivo está se aproximando do limite de tamanho. Considere remover parte do conteúdo ou criar um novo arquivo."
+      "value": "Este ficheiro está a aproximar-se do limite de tamanho. Considere remover algum conteúdo ou criar um novo ficheiro."
     }
   ],
   "cea291e45e": [
@@ -1721,19 +1721,19 @@
   "f09b16bc5f": [
     {
       "type": 0,
-      "value": "Usamos cookies para mantê-lo conectado, sincronizar seus arquivos e coletar análises para nos ajudar a melhorar o tldraw."
+      "value": "Utilizamos cookies para manter a sua sessão iniciada, sincronizar os seus ficheiros e recolher dados analíticos que nos ajudam a melhorar o tldraw."
     }
   ],
   "f0e8bff6f9": [
     {
       "type": 0,
-      "value": "Configurações do usuário"
+      "value": "Definições do utilizador"
     }
   ],
   "f2569594b2": [
     {
       "type": 0,
-      "value": "Usamos esses cookies para salvar seus arquivos e configurações."
+      "value": "Utilizamos estes cookies para guardar os seus ficheiros e definições."
     }
   ],
   "f2a6c498fb": [
@@ -1815,13 +1815,13 @@
   "f5ddc8d9c1": [
     {
       "type": 0,
-      "value": "Por enquanto, você pode "
+      "value": "Por agora, pode "
     },
     {
       "children": [
         {
           "type": 0,
-          "value": "exportar como um arquivo "
+          "value": "exportar como um ficheiro "
         },
         {
           "type": 1,
@@ -1833,7 +1833,7 @@
     },
     {
       "type": 0,
-      "value": " para usá-lo aqui."
+      "value": " para o utilizar aqui."
     }
   ],
   "fa2ead697d": [
@@ -1851,7 +1851,7 @@
   "fc9d47046b": [
     {
       "type": 0,
-      "value": "Tem certeza de que deseja sair deste espaço de trabalho?"
+      "value": "Tem a certeza de que pretende sair deste espaço de trabalho?"
     }
   ],
   "fed5ec05eb": [
@@ -1863,7 +1863,7 @@
   "ff2fefd3c6": [
     {
       "type": 0,
-      "value": "Tem certeza de que deseja remover "
+      "value": "Tem a certeza de que pretende remover "
     },
     {
       "type": 1,
@@ -1877,13 +1877,13 @@
   "ff52811b98": [
     {
       "type": 0,
-      "value": "Crie uma conta gratuita para salvar seus arquivos e compartilhar desenhos com seus colegas de equipe."
+      "value": "Crie uma conta gratuita para guardar os seus ficheiros e desenhar com os seus colegas de equipa."
     }
   ],
   "ffcd73e997": [
     {
       "type": 0,
-      "value": "Importar arquivo…"
+      "value": "Importar ficheiro…"
     }
   ]
 }

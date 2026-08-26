@@ -31,8 +31,13 @@ function spaFallbackPlugin(): Plugin {
 				const ext = path.extname(pathname)
 
 				// If this looks like a page request (no file extension, not an api call),
-				// rewrite to index.html so sirv serves the SPA
-				if (!pathname.startsWith('/api') && !ext) {
+				// rewrite to index.html so sirv serves the SPA.
+				//
+				// The well-known exclusion is not cosmetic: this middleware runs ahead of the proxy, so
+				// without it the MCP server's OAuth metadata URL — extensionless, and not under /api —
+				// would be answered with the SPA's index.html. A client would parse that as a failed
+				// discovery and never find the authorization server, with nothing logged either side.
+				if (!pathname.startsWith('/api') && !pathname.startsWith('/.well-known/') && !ext) {
 					req.url = '/index.html' + (url.includes('?') ? url.substring(url.indexOf('?')) : '')
 				}
 				next()
@@ -113,6 +118,13 @@ export default defineConfig((env) => ({
 	server: {
 		allowedHosts: process.env.VITE_ALLOWED_HOSTS?.split(',').filter(Boolean),
 		proxy: {
+			// OAuth protected resource metadata for the MCP server. Served by the sync worker but
+			// addressed at this origin, because RFC 9728 puts it at the resource's own origin rather than
+			// under its path — the deployed equivalent is the extra route in the worker's wrangler.toml.
+			// Not rewritten: the worker matches this path as-is.
+			'/.well-known/oauth-protected-resource': {
+				target: getMultiplayerServerURL() || 'http://127.0.0.1:8787',
+			},
 			'/api': {
 				target: getMultiplayerServerURL() || 'http://127.0.0.1:8787',
 				rewrite: (path) => path.replace(/^\/api/, ''),
@@ -141,6 +153,10 @@ export default defineConfig((env) => ({
 	},
 	preview: {
 		proxy: {
+			// See the dev server proxy above.
+			'/.well-known/oauth-protected-resource': {
+				target: getMultiplayerServerURL() || 'http://127.0.0.1:8787',
+			},
 			'/api': {
 				target: getMultiplayerServerURL() || 'http://127.0.0.1:8787',
 				rewrite: (path) => path.replace(/^\/api/, ''),

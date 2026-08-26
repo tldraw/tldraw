@@ -85,7 +85,7 @@ export const file = table('file')
 		ownerId: string().optional(),
 		owningGroupId: string().optional(),
 		ownerName: string(),
-		ownerAvatar: string(),
+		ownerAvatar: string().optional(),
 		thumbnail: string(),
 		shared: boolean(),
 		sharedLinkType: string(),
@@ -229,12 +229,7 @@ export const comment_reaction = table('comment_reaction')
 	})
 	.primaryKey('id')
 
-const fileRelationships = relationships(file, ({ one, many }) => ({
-	owner: one({
-		sourceField: ['ownerId'],
-		destField: ['id'],
-		destSchema: user,
-	}),
+const fileRelationships = relationships(file, ({ many }) => ({
 	states: many({
 		sourceField: ['id'],
 		destField: ['fileId'],
@@ -417,34 +412,6 @@ export type TlaCommentMentionPartial = Partial<TlaCommentMention> & {
 	userId: TlaCommentMention['userId']
 }
 
-export type TlaRow =
-	| TlaFile
-	| TlaFileState
-	| TlaFileVisitor
-	| TlaUser
-	| TlaGroup
-	| TlaGroupUser
-	| TlaGroupFile
-	| TlaComment
-	| TlaCommentThread
-	| TlaCommentRead
-	| TlaCommentMention
-export type TlaRowPartial =
-	| TlaFilePartial
-	| TlaFileStatePartial
-	| TlaUserPartial
-	| TlaGroupPartial
-	| TlaGroupUserPartial
-	| TlaGroupFilePartial
-	| TlaCommentPartial
-	| TlaCommentThreadPartial
-	| TlaCommentReadPartial
-	| TlaCommentMentionPartial
-export interface TlaUserMutationNumber {
-	userId: string
-	mutationNumber: number
-}
-
 export const immutableColumns = {
 	user: new Set<keyof TlaUser>(['email', 'createdAt', 'updatedAt', 'avatar']),
 	file: new Set<keyof TlaFile>([
@@ -525,7 +492,6 @@ export interface DB {
 	group: TlaGroup
 	group_user: TlaGroupUser
 	group_file: TlaGroupFile
-	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
 	welcome_template: TlaWelcomeTemplate
 	comment: TlaComment & CommentPersistenceColumns

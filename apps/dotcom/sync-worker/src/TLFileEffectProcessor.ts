@@ -3,7 +3,13 @@ import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { sql } from 'kysely'
 import { FileEffectDeps, processFileEffect } from './fileEffects'
-import { EFFECT_TIMEOUT_MS, MAX_ATTEMPTS, computeNextAlarm, drainOutbox } from './outboxDrain'
+import {
+	EFFECT_TIMEOUT_MS,
+	MAX_ATTEMPTS,
+	computeNextAlarm,
+	drainOutbox,
+	shouldReportEffectFailure,
+} from './outboxDrain'
 import { createPostgresConnectionPool } from './postgres'
 import { Analytics, Environment } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
@@ -103,7 +109,10 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 			notifyUpdate: (file) => getRoomDurableObject(this.env, file.id).appFileRecordDidUpdate(file),
 			notifyDelete: (fileRow) =>
 				getRoomDurableObject(this.env, fileRow.id).appFileRecordDidDelete(fileRow),
-			publish: (file) => publishSnapshot(this.env, file),
+			publish: (file) =>
+				publishSnapshot(this.env, file, (error) =>
+					this.captureException(error, { publishThumbnailEnqueue: true })
+				),
 			unpublish: (file) => unpublishSnapshot(this.env, file),
 		}
 		// One handler per source table. Future effect sources (e.g. notifications)
@@ -133,7 +142,11 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 					// Exponential backoff from the row's current attempt count, capped at 5 minutes.
 					// The base IS the effect timeout, so the first retry can't land before a
 					// timed-out RPC's window closes (the RPC keeps running — it can't be cancelled),
-					// avoiding an overlapping retry.
+					// avoiding an overlapping retry. This relies on the RPC actually finishing within
+					// the window: a publish effect's awaitPersist used to retry for up to ~200s
+					// (PERSIST_RETRIES_MAX * 2s), well past this 30s timeout, so a zombie publish
+					// could still be running when a retried attempt started. awaitPersist now caps
+					// its throwing retries at ~20s (PERSIST_RETRIES_MAX_THROWING), so it can't.
 					const backoffSeconds = Math.min(2 ** row.attempts * (EFFECT_TIMEOUT_MS / 1000), 300)
 					const backoff = sql<Date>`now() + (${backoffSeconds} || ' seconds')::interval`
 					// (a) Back off the failed row itself and bump its attempt count.
@@ -186,16 +199,21 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 					})
 				},
 				onError: (error, row) => {
-					// Every failed attempt is reported (Sentry groups the retries); parking
-					// additionally emits its own analytics event because it means giving up on the effect.
-					this.captureException(error, {
-						tableName: row.tableName,
-						entityId: row.entityId,
-						command: row.command,
-						outboxId: row.id,
-						attempts: row.attempts + 1,
-					})
-					if (row.attempts + 1 >= MAX_ATTEMPTS) {
+					// Report the first failure (immediate visibility) and the parking failure (data
+					// loss), but not every retry in between - under an outage, one row can burn through
+					// MAX_ATTEMPTS attempts, and reporting each would eat Sentry's rate limit and drop
+					// the parking events that matter most. See shouldReportEffectFailure's doc comment.
+					const isParking = row.attempts + 1 >= MAX_ATTEMPTS
+					if (shouldReportEffectFailure(row.attempts)) {
+						this.captureException(error, {
+							tableName: row.tableName,
+							entityId: row.entityId,
+							command: row.command,
+							outboxId: row.id,
+							attempts: row.attempts + 1,
+						})
+					}
+					if (isParking) {
 						this.writeEvent('outbox_parked', { blobs: [row.tableName, row.command] })
 					}
 				},

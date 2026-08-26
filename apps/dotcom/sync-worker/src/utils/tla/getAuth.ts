@@ -128,56 +128,56 @@ export type SignedInAuth = ReturnType<
 	Extract<Awaited<ReturnType<ClerkClient['authenticateRequest']>>, { isSignedIn: true }>['toAuth']
 > & { userId: string }
 
-export async function requireWriteAccessToFile(
-	request: IRequest,
-	env: Environment,
-	roomId: string
-) {
-	const auth = await requireAuth(request, env)
+/**
+ * Whether a user may *view* a file: they can reach it through the group that owns it, or it is
+ * shared via link — in which case `sharedLinkType` is irrelevant, since a link shared for
+ * editing is also one that can be viewed.
+ *
+ * The read-side counterpart of `requireWriteAccessToFile`, which is the same two checks plus a
+ * `sharedLinkType === 'edit'` requirement. Kept as a separate function rather than a parameter on
+ * that one, because the two differ in how they answer as well as what they ask: this returns a
+ * boolean where that throws a `StatusError` naming the reason. A caller that must not reveal whether
+ * a file exists — the MCP server, where the caller supplies the id — cannot use a helper that
+ * distinguishes 404 from 403 for it.
+ *
+ * Says nothing about whether the file exists, is deleted, or is a test file: a missing file is simply
+ * not accessible, and callers that need to tell those apart do so through their own resolution step.
+ *
+ * Hands back the row it read on success, structurally the `SharedFileInfo` the thumbnail resolution
+ * wants, so the caller does not immediately dial Postgres again for a strict subset of the same
+ * columns. Deliberately not a licence to cache it: it is safe only for a caller re-applying the gate
+ * microseconds later inside one function, which is exactly where `loadBoardSnapshot` already accepts
+ * one and where the render page's own read deliberately does not.
+ */
+export type ReadAccessToFile =
+	| { ok: true; file: { id: string; shared: boolean; isDeleted: boolean } }
+	| { ok: false }
 
-	const db = createPostgresConnectionPool(env, 'sync-worker/hasWriteAccessToFile')
+export async function hasReadAccessToFile(
+	env: Environment,
+	userId: string,
+	fileId: string
+): Promise<ReadAccessToFile> {
+	const db = createPostgresConnectionPool(env, 'sync-worker/hasReadAccessToFile')
 
 	try {
 		const file = await db
 			.selectFrom('file')
-			.select('ownerId')
-			.select('owningGroupId')
-			.select('shared')
-			.select('sharedLinkType')
-			.where('id', '=', roomId)
+			.select(['id', 'owningGroupId', 'shared', 'isDeleted'])
+			.where('id', '=', fileId)
 			.executeTakeFirst()
 
-		if (!file) {
-			throw new StatusError(404, 'File not found')
-		}
-
-		// If the user is the owner of the file, they have write access
-		if (file.ownerId === auth.userId) {
-			return
-		}
-
-		// If the file is owned by a group, check the user can access its files
+		if (!file || file.isDeleted) return { ok: false }
+		const granted = {
+			ok: true,
+			file: { id: file.id, shared: file.shared, isDeleted: false },
+		} as const
 		if (file.owningGroupId) {
-			const role = await getRole(db, auth.userId, file.owningGroupId)
-			if (can(role, 'accessFiles')) {
-				return
-			}
+			const role = await getRole(db, userId, file.owningGroupId)
+			if (can(role, 'accessFiles')) return granted
 		}
-
-		// If the file is not shared, the user does not have write access
-		if (!file.shared) {
-			throw new StatusError(403, 'File is not shared')
-		}
-
-		// If the file is shared but not for editing, deny access
-		if (file.sharedLinkType !== 'edit') {
-			throw new StatusError(403, 'File is shared but not for editing')
-		}
-
-		// file is shared and for editing, allow access
-		return
+		return file.shared === true ? granted : { ok: false }
 	} finally {
-		// Ensure database connection is properly closed
 		await db.destroy()
 	}
 }

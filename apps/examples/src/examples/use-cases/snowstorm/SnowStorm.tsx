@@ -37,7 +37,6 @@ class Snowstorm {
 
 	baseWindX = 0
 
-	// Configuration options
 	private readonly config = {
 		flakesMax: 128,
 		flakeSizeMin: 2,
@@ -81,28 +80,24 @@ class Snowstorm {
 		flake.element.style.opacity = rnd(0.5, 1).toString()
 	}
 
-	// Main render loop
 	render(screenPoint: Vec, pointerVelocity: Vec, time: number) {
 		if (!this.active) return
 
-		const q = Math.sin(time / GUST_ROTATION_DURATION)
-
-		// make wind gradually cycle between 0 and 10, maybe a bit randomly, like gusts of wind
-		this.baseWindX = q * MAX_GUST_SPEED
+		// slow sinusoidal gusts
+		this.baseWindX = Math.sin(time / GUST_ROTATION_DURATION) * MAX_GUST_SPEED
 
 		const pointerLen = pointerVelocity.len2()
 
 		for (const flake of this.flakes) {
 			const dist2 = Vec.Dist2(screenPoint, new Vec(flake.x, flake.y))
 
-			// if the pointer is moving quickly, give nearby snowflakes a little boost based on the pointer velocity
+			// a fast-moving pointer pushes nearby flakes; flakes it leaves behind slow back down
 			if (dist2 < MIN_POINTER_DISTANCE_SQUARED) {
 				if (pointerLen > 1) {
 					flake.pvx = pointerVelocity.x
 					flake.pvy = pointerVelocity.y < 0 ? pointerVelocity.y / 2 : pointerVelocity.y // don't push up as easily
 				}
 			} else {
-				// otherwise, declay down other snowflakes that have been boosted
 				if (flake.pvx !== 0) {
 					flake.pvx *= SNOWFLAKE_VELOCITY_DECAY
 					if (Math.abs(flake.pvx) < 0.01) {
@@ -118,11 +113,10 @@ class Snowstorm {
 				}
 			}
 
-			// Move the flake based on the wind, the base wind, the pointer velocity, and some random wobble
 			flake.x += flake.vx + this.windX + this.baseWindX + flake.pvx
 			flake.y += flake.vy + this.windY + flake.pvy
 
-			// Wrap the snowflakes around the screen horizontally
+			// wrap around the screen
 			if (flake.x < 0) {
 				flake.x += this.width
 				flake.pvx = 0
@@ -131,7 +125,6 @@ class Snowstorm {
 				flake.pvx = 0
 			}
 
-			// Wrap the snowflakes around the screen vertically
 			if (flake.y < 0) {
 				flake.y += this.height
 				flake.pvy = 0
@@ -149,6 +142,9 @@ class Snowstorm {
 		this.height = this.container.clientHeight
 	}
 
+	// Bound once so the same reference can be removed in stop()
+	private handleResize = this.resize.bind(this)
+
 	start() {
 		this.active = true
 		while (this.flakes.length < this.config.flakesMax) {
@@ -156,7 +152,7 @@ class Snowstorm {
 			this.configureSnowflake(flake)
 			this.flakes.push(flake)
 		}
-		window.addEventListener('resize', this.resize)
+		window.addEventListener('resize', this.handleResize)
 	}
 
 	stop() {
@@ -169,13 +165,14 @@ class Snowstorm {
 
 	dispose() {
 		this.stop()
-		window.removeEventListener('resize', this.resize)
+		window.removeEventListener('resize', this.handleResize)
 	}
 }
 
 export function SnowStorm() {
 	const editor = useEditor()
 	const rElm = useRef<HTMLDivElement>(null)
+	// [1]
 	const prefersReducedMotion = usePrefersReducedMotion()
 
 	useEffect(() => {
@@ -187,26 +184,22 @@ export function SnowStorm() {
 
 		const start = Date.now()
 
+		// [2]
 		function updateOnTick() {
 			const time = Date.now() - start
 
 			const newCamera = editor.getCamera()
 
-			// Apply camera movement effect only when zoom isn't changing
+			// [3]
 			if (newCamera.z === camera.z) {
 				const dx = (newCamera.x - camera.x) * camera.z
 				const dy = (newCamera.y - camera.y) * camera.z
 
-				// add the camera movement to the velocity
 				velocity.addXY(
 					Math.min(dx / MAX_PIXELS_SCROLL_EFFECT, MAX_SCROLL_SPEED),
 					Math.min(dy / MAX_PIXELS_SCROLL_EFFECT, MAX_SCROLL_SPEED)
 				)
-
-				// decay velocity
 				velocity.mul(SNOWFLAKE_VELOCITY_DECAY)
-
-				// stop the snowflakes from moving if the camera is not moving
 				if (velocity.len2() < 1) {
 					velocity.x = 0
 					velocity.y = 0
@@ -235,3 +228,18 @@ export function SnowStorm() {
 
 	return <div ref={rElm} className="snowstorm" />
 }
+
+/*
+[1]
+Respect the OS "reduce motion" setting: no snow at all when it is on.
+
+[2]
+The editor emits a `tick` event every animation frame with the editor's own timing, so
+hooking into it keeps the effect in step with the canvas and stops with it. Positions are
+written straight to the DOM rather than through React state.
+
+[3]
+Panning the camera adds "wind" so the snow appears to blow past as you scroll. This is skipped
+while zooming since the camera position changes then without any real scrolling.
+`editor.inputs.getPointerVelocity()` also nudges flakes near a fast-moving pointer.
+*/

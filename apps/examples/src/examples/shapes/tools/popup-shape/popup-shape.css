@@ -1,0 +1,19 @@
+.popup-shape-shadow,
+.popup-shape-card {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	transition: all 0.5s;
+}
+
+.popup-shape-shadow {
+	background-color: rgba(0, 0, 0, 0.5);
+}
+
+.popup-shape-card {
+	transform-origin: top center;
+	background: gold;
+	border: 1px solid goldenrod;
+}

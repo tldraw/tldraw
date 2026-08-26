@@ -1,39 +1,38 @@
 import { useEffect, useRef, useState } from 'react'
-import { EASINGS, Editor, TLShape, TldrawUiButton, track, useEditor } from 'tldraw'
-import { showSearch } from './TextSearchExample'
+import { atom, EASINGS, Editor, TLShape, TldrawUiButton, track, useEditor } from 'tldraw'
+
+export const showSearch = atom('showSearch', false)
 
 interface SearchResult {
 	text: string
 	shape: TLShape
 }
 
+// [1]
+function getShapesWithText(editor: Editor, text: string): SearchResult[] {
+	if (!text) return []
+	const query = text.toLowerCase()
+	const results: SearchResult[] = []
+	for (const shape of editor.getCurrentPageShapes()) {
+		const shapeText = editor.getShapeUtil(shape).getText(shape)
+		if (shapeText?.toLowerCase().includes(query)) {
+			results.push({ text: shapeText, shape })
+		}
+	}
+	return results.sort((a, b) => a.text.localeCompare(b.text))
+}
+
 function moveToShape(editor: Editor, shape: TLShape) {
-	const bounds = editor.getShapePageBounds(shape.id)
-	if (!bounds) return
 	editor.setSelectedShapes([shape.id])
 	editor.zoomToSelection({
 		animation: { duration: 500, easing: EASINGS.easeInOutCubic },
 	})
 }
 
-function keyDown(e: React.KeyboardEvent) {
+function handleKeyDown(e: React.KeyboardEvent) {
 	if (e.key === 'Escape') {
 		showSearch.set(false)
 	}
-}
-
-function getShapesWithText(editor: Editor, text: string): SearchResult[] {
-	if (!text || text.length === 0) return []
-	const shapes = editor.getCurrentPageShapes()
-	const result: SearchResult[] = []
-	shapes.forEach((shape) => {
-		const util = editor.getShapeUtil(shape)
-		const shapeText = util.getText(shape)
-		if (shapeText && shapeText.includes(text)) {
-			result.push({ text: shapeText, shape })
-		}
-	})
-	return result.sort((a, b) => a.text.localeCompare(b.text))
 }
 
 export const TextSearchPanel = track(() => {
@@ -51,30 +50,39 @@ export const TextSearchPanel = track(() => {
 
 	if (!isVisible) return null
 
+	// [2]
 	const results = getShapesWithText(editor, searchText)
 	return (
 		<div
 			className="text-search-panel scroll-light"
 			onPointerDown={editor.markEventAsHandled}
-			onKeyDown={keyDown}
+			onKeyDown={handleKeyDown}
 		>
 			<input
 				className="text-search-input"
 				ref={inputRef}
 				onChange={(e) => setSearchText(e.target.value)}
-			></input>
-			{results.map((result) => {
-				return (
-					<TldrawUiButton
-						key={'text-search-panel-button:' + result.shape.id}
-						type="normal"
-						className="text-search-panel-button"
-						onClick={() => moveToShape(editor, result.shape)}
-					>
-						{result.text}
-					</TldrawUiButton>
-				)
-			})}
+			/>
+			{results.map((result) => (
+				<TldrawUiButton
+					key={result.shape.id}
+					type="normal"
+					className="text-search-panel-button"
+					onClick={() => moveToShape(editor, result.shape)}
+				>
+					{result.text}
+				</TldrawUiButton>
+			))}
 		</div>
 	)
 })
+
+/*
+[1]
+Every shape util can report its text through `getText(shape)`. It returns `undefined` for shapes with
+no text, so this works across geo, text, note, arrow, and any custom shape that implements it.
+
+[2]
+The component is wrapped in `track`, so calling `getShapesWithText` during render subscribes it to the
+page's shapes. Results update live as text on the canvas changes, not just when the query changes.
+*/

@@ -87,9 +87,7 @@ export const MentionList = forwardRef<HTMLDivElement, MentionListProps>(function
 						// bare mousedown would blur the composer — which now dismisses the picker — before
 						// the click could select. Selection runs on click; focus stays put.
 						onMouseDown={(e) => e.preventDefault()}
-						onClick={() => {
-							if (onSelect) onSelect(member)
-						}}
+						onClick={() => onSelect?.(member)}
 					>
 						{renderMember ? renderMember(member) : <DefaultMemberRow member={member} />}
 					</button>

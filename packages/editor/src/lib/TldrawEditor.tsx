@@ -51,11 +51,11 @@ import { useLocalStore } from './hooks/useLocalStore'
 import { useRefState } from './hooks/useRefState'
 import { useStateAttribute } from './hooks/useStateAttribute'
 import { useZoomCss } from './hooks/useZoomCss'
-import { LicenseProvider } from './license/LicenseProvider'
+import { LicenseProvider, useLicenseContext } from './license/LicenseProvider'
 import { Watermark } from './license/Watermark'
 import { TldrawOptions } from './options'
 import { TLDeepLinkOptions } from './utils/deepLinks'
-import { getGlobalDocument } from './utils/dom'
+import { getGlobalDocument, getGlobalWindow } from './utils/dom'
 import { TLTextOptions } from './utils/richText'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
@@ -433,11 +433,20 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	const container = useContainer()
 
 	useLayoutEffect(() => {
-		if (user.userPreferences.get().colorScheme === 'dark') {
+		// Resolve the scheme the same way UserPreferencesManager.getIsDarkMode will once the
+		// editor mounts, so a 'system' user on a dark OS doesn't get a light loading screen that
+		// flips dark on mount.
+		const scheme = user.userPreferences.get().colorScheme ?? rest.colorScheme ?? 'light'
+		const isDark =
+			scheme === 'dark' ||
+			(scheme === 'system' &&
+				typeof window !== 'undefined' &&
+				!!getGlobalWindow().matchMedia?.('(prefers-color-scheme: dark)').matches)
+		if (isDark) {
 			container.classList.remove('tl-theme__light')
 			container.classList.add('tl-theme__dark')
 		}
-	}, [container, user])
+	}, [container, user, rest.colorScheme])
 
 	const { LoadingScreen } = useEditorComponents()
 
@@ -497,6 +506,7 @@ function TldrawEditorWithReadyStore({
 >) {
 	const { ErrorFallback } = useEditorComponents()
 	const container = useContainer()
+	const licenseManager = useLicenseContext()
 
 	const [editor, setEditor] = useRefState<Editor | null>(null)
 
@@ -563,6 +573,7 @@ function TldrawEditorWithReadyStore({
 				themes: themes,
 				initialTheme: initialTheme,
 			})
+			editor.licenseManager = licenseManager
 
 			editor.updateViewportScreenBounds(canvasRef.current ?? container)
 
@@ -598,6 +609,7 @@ function TldrawEditorWithReadyStore({
 			user,
 			setEditor,
 			licenseKey,
+			licenseManager,
 			getShapeVisibility,
 			assetUrls,
 		]

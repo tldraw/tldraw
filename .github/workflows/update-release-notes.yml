@@ -5,9 +5,8 @@ on:
   # draft GitHub release synced by the skill) in step with each dotcom release —
   # the same production push that deploys dotcom and publishes the `next` package.
   # Production only: a push to main must not trigger a notes run on every merge.
-  # Release-notes commits carry `[skip ci]`, so a notes-only push does not re-trigger
-  # this workflow, and the job only ever opens a PR against main (it never pushes to
-  # production), so there is no deploy loop.
+  # Release-notes PR titles carry `[skip ci]` so their squash-merge commits skip main
+  # push workflows. Branch commits omit the marker so required PR checks run.
   push:
     branches:
       - production
@@ -103,7 +102,7 @@ jobs:
         if: steps.changes.outputs.has_changes == 'true'
         run: |
           gh pr create \
-            --title "docs: update release notes" \
+            --title "docs(releases): update release notes [skip ci]" \
             --body "$(cat <<'EOF'
           In order to keep the release notes up to date, this PR adds entries for PRs merged since the last update.
 

@@ -17,12 +17,16 @@ keywords:
   ]
 ---
 
-A second example of how to use side effect APIs to constrain shape movement within a bounding box.
+Keep a shape inside a bounding box when it's moved or resized, using a before-change side effect.
 
 ---
 
-This example demonstrates how to use tldraw's side effect APIs to enforce permissions or
-constraints on shapes. We create a rectangle that can be dragged around, but its movement
-is constrained to stay within an invisible container using the `registerBeforeChangeHandler`
-side effect. This pattern is useful for implementing permission systems, bounded regions,
-or any scenario where you need to restrict where shapes can be positioned.
+This is a follow-on to the permissions example. That one only clamps a shape's position; here the
+`registerBeforeChangeHandler` side effect also clamps its size, so resizing past the container edge
+shrinks the shape instead of letting it escape.
+
+Try dragging the rectangle and pulling its resize handles past the dashed border. Because a
+before-change handler sees the shape before it's written to the store, cached lookups like
+`editor.getShapeGeometry` would return the shape's old size, so the example computes geometry from
+the proposed record with `editor.getShapeUtil(shape).getGeometry(shape)`. The size clamp assumes an
+unrotated rectangle; rotated shapes would need their page bounds clamped instead.

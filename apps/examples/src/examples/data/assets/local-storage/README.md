@@ -17,8 +17,10 @@ keywords:
   ]
 ---
 
-Manually persist the contents of the editor to storage.
+Load and save the document yourself using `getSnapshot`, `loadSnapshot`, and `store.listen`.
 
 ---
 
-In this example, we load the contents of the editor from your browser's `localStorage`, and save it there when you make changes.
+The `persistenceKey` prop gives you local persistence for free, but if you want to save to your own backend you need to do the load/save loop yourself. This example does that against `localStorage`: it creates a store with `createTLStore`, loads a saved snapshot into it with `loadSnapshot` before the editor mounts, then uses a throttled `store.listen` callback to serialize the store with `getSnapshot` on every change.
+
+Draw something, reload the page, and it will still be there. To reset, clear the `example-3` key from local storage in your browser's dev tools.
