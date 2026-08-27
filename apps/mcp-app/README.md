@@ -165,7 +165,7 @@ Steps:
 
    Expect roughly 400 ids/s at the default concurrency of 4; `--concurrency 16` or higher shortens a full pass considerably, since the ceiling is Durable Object wake latency rather than the worker.
 
-   Transient `Network connection lost` and `code was updated` faults are retried once inside the endpoint, but a fraction still lands as `{ id, error }` rows, and offset-based resume never revisits them. Sweep them at the end with `yarn prune:run --max-idle 7d --retry-errors`, which re-reads the ledger for ids whose latest row is an error and leaves the offset alone. Repeat until it reports zero.
+   Transient `Network connection lost` and `code was updated` faults are retried once inside the endpoint, but a fraction still lands as `{ id, error }` rows, and offset-based resume never revisits them. Sweep them at the end with `yarn prune:run --max-idle 7d --retry-errors`, which re-reads the ledger for ids whose latest row is an error and leaves the offset alone. Repeat until it reports zero. A sweep appends to the end of the ledger, so it only applies to the most recent pass; retrying an older one is refused, since its results would land outside that pass's region.
 
 5. Rotate `MCP_PRUNE_ADMIN_TOKEN` (`npx wrangler secret put MCP_PRUNE_ADMIN_TOKEN` with a new value, or `npx wrangler secret delete MCP_PRUNE_ADMIN_TOKEN`) after the prune; the route stays but it should not keep a live token between runs.
 

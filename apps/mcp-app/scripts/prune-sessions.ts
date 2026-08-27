@@ -292,6 +292,17 @@ async function summarize(file: string, passMarker: string): Promise<void> {
 	if (errors > 0) process.exitCode = 1
 }
 
+/** The last pass marker in the ledger, if any. New rows always append to the end, so
+ * only that pass can receive them. */
+async function lastPassMarker(file: string): Promise<string | undefined> {
+	if (!existsSync(file)) return undefined
+	let marker: string | undefined
+	for await (const line of readLines(file)) {
+		if (line.startsWith('{"pass":')) marker = line
+	}
+	return marker
+}
+
 /** Entries whose most recent row in this pass is an error. Keyed by source line, so a
  * retry inherits the position its result belongs to, and scoped to the pass, since line
  * numbers index one specific ids file. */
@@ -395,6 +406,21 @@ async function prune(args: string[]): Promise<void> {
 	const passMarker = JSON.stringify({
 		pass: { format: LEDGER_FORMAT, dryRun, maxIdleMs, idsIdentity },
 	})
+	if (retryErrors) {
+		// A sweep appends to the end of the ledger, which lands inside whichever pass
+		// marker comes last. Repairing an earlier pass would therefore write its results
+		// outside that pass's region: the errors would never clear, and the rows would be
+		// counted against the newer pass instead.
+		const latest = await lastPassMarker(resultsFile)
+		if (latest === undefined) {
+			throw new Error(`${resultsFile} has no pass to retry`)
+		}
+		if (latest !== passMarker) {
+			throw new Error(
+				`--retry-errors only works on the most recent pass in ${resultsFile}. Re-run it with the arguments of that pass (${latest}), or start a fresh pass.`
+			)
+		}
+	}
 	if (skipLines === 0 && !retryErrors) appendFileSync(resultsFile, passMarker + '\n')
 
 	console.log(
