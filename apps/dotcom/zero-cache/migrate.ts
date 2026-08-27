@@ -3,6 +3,7 @@ import { existsSync, readFileSync, readdirSync } from 'fs'
 import { createServer } from 'http'
 import { Kysely, PostgresDialect, sql } from 'kysely'
 import pg from 'pg'
+import { hasTransactionBlock } from './migrationSql'
 
 const postgresConnectionString: string =
 	process.env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING ||
@@ -132,7 +133,7 @@ async function migrate(summary: string[], dryRun: boolean) {
 
 			try {
 				const migrationSql = readFileSync(`${migrationsPath}/${migration}`, 'utf8').toString()
-				if (migrationSql.match(/(BEGIN|COMMIT);/)) {
+				if (hasTransactionBlock(migrationSql)) {
 					throw new Error(
 						`Migration ${migration} contains a transaction block. Migrations run in transactions, so you don't need to include them in the migration file.`
 					)
