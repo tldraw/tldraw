@@ -44,6 +44,9 @@ const NAMESPACE_ID = '164dab144e614bb9ac54367e0ffaf56c'
 const RESULTS_FILE = 'prune-results.jsonl'
 const DRY_RUN_RESULTS_FILE = 'prune-dry-run.jsonl'
 const BATCH = 100
+/** How far a finished batch may run ahead of the durable checkpoint. Bounds both the
+ * rows a crash replays and the pending-sequence bookkeeping. */
+const MAX_UNCOMMITTED_BATCHES = 32
 /** Batches in flight. The ceiling is DO wake latency, not our worker; --concurrency raises it. */
 const CONCURRENCY = 4
 const DAY = 24 * 60 * 60 * 1000
@@ -298,11 +301,14 @@ async function prune(args: string[]): Promise<void> {
 	// of any pass); successes only need a sliding window, since a replayed row and its
 	// re-run land within a few batches of each other.
 	const errored = new Map<string, any>()
-	const recent = new Map<string, any>()
-	const recentOrder: string[] = []
-	const windowSize = Math.max(4 * BATCH, 2 * concurrency * BATCH)
+	const recent = new Map<string, { row: any; stamp: number }>()
+	const recentOrder: Array<{ id: string; stamp: number }> = []
+	// Dispatch cannot run more than MAX_UNCOMMITTED_BATCHES ahead of the checkpoint, so
+	// that many batches bounds what a crash can replay; double it for the re-run rows.
+	const windowSize = 2 * MAX_UNCOMMITTED_BATCHES * BATCH
+	let stamp = 0
 	function record(row: any) {
-		const previous = errored.get(row.id) ?? recent.get(row.id)
+		const previous = errored.get(row.id) ?? recent.get(row.id)?.row
 		if (previous) {
 			untally(previous)
 			errored.delete(row.id)
@@ -313,9 +319,15 @@ async function prune(args: string[]): Promise<void> {
 			errored.set(row.id, row)
 			return
 		}
-		recent.set(row.id, row)
-		recentOrder.push(row.id)
-		while (recentOrder.length > windowSize) recent.delete(recentOrder.shift()!)
+		const entry = { row, stamp: stamp++ }
+		recent.set(row.id, entry)
+		recentOrder.push({ id: row.id, stamp: entry.stamp })
+		while (recentOrder.length > windowSize) {
+			const evicted = recentOrder.shift()!
+			// A superseded id was re-pushed, leaving its old position behind; dropping the
+			// live entry on that stale position would shorten the window for that id.
+			if (recent.get(evicted.id)?.stamp === evicted.stamp) recent.delete(evicted.id)
+		}
 	}
 
 	/** Reverses a tally when a later ledger row supersedes it. */
@@ -471,7 +483,17 @@ async function prune(args: string[]): Promise<void> {
 		inFlight.set(seq, task)
 		dispatched += batch.length
 		process.stdout.write(`\r${dispatched} processed, condemned=${condemned} errors=${errors}`)
-		if (inFlight.size >= concurrency) await Promise.race(inFlight.values())
+		// Two separate bounds. `concurrency` caps work in flight; MAX_UNCOMMITTED_BATCHES
+		// caps how far ahead of the durable checkpoint a completed batch can get. Without
+		// the second, one slow early sequence lets unboundedly many later batches finish
+		// and be replayed after a crash — past any dedupe window — while `completedSizes`
+		// grows with them.
+		while (
+			inFlight.size > 0 &&
+			(inFlight.size >= concurrency || nextSeq - committedBatch >= MAX_UNCOMMITTED_BATCHES)
+		) {
+			await Promise.race(inFlight.values())
+		}
 		// ~10 req/s per worker -> ~1000 DO wakes/s
 		await new Promise((r) => setTimeout(r, 100 / concurrency))
 	}
