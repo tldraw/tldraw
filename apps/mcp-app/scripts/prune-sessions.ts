@@ -47,6 +47,12 @@ const BATCH = 100
 /** How far a finished batch may run ahead of the durable checkpoint. Bounds both the
  * rows a crash replays and the pending-sequence bookkeeping. */
 const MAX_UNCOMMITTED_BATCHES = 32
+
+/** One id together with its 1-based position in the ids file. */
+interface Entry {
+	id: string
+	line: number
+}
 /** Batches in flight. The ceiling is DO wake latency, not our worker; --concurrency raises it. */
 const CONCURRENCY = 4
 const DAY = 24 * 60 * 60 * 1000
@@ -227,13 +233,60 @@ async function* rowsForPass(file: string, passMarker: string): AsyncGenerator<an
 	}
 }
 
-/** Ids whose most recent ledger row is an error, so a sweep does not re-do successes. */
-async function* errorIdsFromLedger(file: string): AsyncGenerator<string> {
+/** Reports the pass's outcome from its ledger, resolving each source line to the last row
+ * written for it. Streams twice and indexes by line number, so memory is one small typed
+ * array rather than a set of ids. */
+async function summarize(file: string, passMarker: string): Promise<void> {
 	if (!existsSync(file)) return
-	// Only ids that have failed at least once are tracked: holding every id of a 35M-row
-	// ledger would rebuild the multi-GB set this script exists to avoid. A later success
-	// row flips an entry to false rather than dropping it, so last-row-wins still holds.
-	const failed = new Map<string, boolean>()
+	let maxLine = 0
+	for await (const row of rowsForPass(file, passMarker)) {
+		if (typeof row.line === 'number' && row.line > maxLine) maxLine = row.line
+	}
+	// Row ordinals are 1-based so that 0 reads as "no row for this line".
+	const latest = new Uint32Array(maxLine + 1)
+	let ordinal = 0
+	for await (const row of rowsForPass(file, passMarker)) {
+		ordinal++
+		if (typeof row.line === 'number') latest[row.line] = ordinal
+	}
+
+	const hist: Record<string, { count: number; bytes: number }> = {}
+	let condemned = 0
+	let errors = 0
+	ordinal = 0
+	for await (const row of rowsForPass(file, passMarker)) {
+		ordinal++
+		if (typeof row.line !== 'number' || latest[row.line] !== ordinal) continue
+		if (row.error) {
+			errors++
+			continue
+		}
+		const b = bucket(row.idleMs)
+		hist[b] ??= { count: 0, bytes: 0 }
+		hist[b].count++
+		hist[b].bytes += row.bytes ?? 0
+		if (row.action === 'destroy-scheduled') condemned++
+	}
+
+	console.log('\n\nidle histogram (count / GB):')
+	for (const k of ['<7d', '7-30d', '30-90d', '>90d']) {
+		const h = hist[k]
+		if (h) {
+			console.log(
+				`  ${k.padEnd(7)} ${String(h.count).padStart(9)}  ${(h.bytes / 1e9).toFixed(2)} GB`
+			)
+		}
+	}
+	console.log(`condemned=${condemned} errors=${errors}`)
+	if (errors > 0) process.exitCode = 1
+}
+
+/** Entries whose most recent ledger row for that source line is an error. Keyed by line
+ * rather than id so a retry inherits the position the result belongs to. */
+async function* failedEntriesFromLedger(file: string): AsyncGenerator<Entry> {
+	if (!existsSync(file)) return
+	// Only failing lines are held: a small fraction of any pass.
+	const failed = new Map<number, string>()
 	for await (const line of readLines(file)) {
 		let r: any
 		try {
@@ -241,13 +294,11 @@ async function* errorIdsFromLedger(file: string): AsyncGenerator<string> {
 		} catch {
 			continue
 		}
-		if (!r.id) continue
-		if (r.error) failed.set(r.id, true)
-		else if (failed.has(r.id)) failed.set(r.id, false)
+		if (!r?.id || typeof r.line !== 'number') continue
+		if (r.error) failed.set(r.line, r.id)
+		else failed.delete(r.line)
 	}
-	for (const [id, isError] of failed) {
-		if (isError) yield id
-	}
+	for (const [line, id] of failed) yield { id, line }
 }
 
 async function* readLines(file: string): AsyncGenerator<string> {
@@ -292,68 +343,12 @@ async function prune(args: string[]): Promise<void> {
 	const idsIdentity = await fileIdentity(IDS_FILE)
 	repairLedger(resultsFile)
 
-	const hist: Record<string, { count: number; bytes: number }> = {}
+	// Live counters for the progress line only; summarize() reports the real numbers.
 	let condemned = 0
 	let errors = 0
-	// An id can be counted more than once: --retry-errors supersedes an error from
-	// arbitrarily far back, and a crash replays batches that finished past the contiguous
-	// checkpoint — including their live re-run. Errors stay addressable (a small fraction
-	// of any pass); successes only need a sliding window, since a replayed row and its
-	// re-run land within a few batches of each other.
-	const errored = new Map<string, any>()
-	const recent = new Map<string, { row: any; stamp: number }>()
-	const recentOrder: Array<{ id: string; stamp: number }> = []
-	// Dispatch cannot run more than MAX_UNCOMMITTED_BATCHES ahead of the checkpoint, so
-	// that many batches bounds what a crash can replay; double it for the re-run rows.
-	const windowSize = 2 * MAX_UNCOMMITTED_BATCHES * BATCH
-	let stamp = 0
-	function record(row: any) {
-		const previous = errored.get(row.id) ?? recent.get(row.id)?.row
-		if (previous) {
-			untally(previous)
-			errored.delete(row.id)
-			recent.delete(row.id)
-		}
-		tally(row)
-		if (row.error) {
-			errored.set(row.id, row)
-			return
-		}
-		const entry = { row, stamp: stamp++ }
-		recent.set(row.id, entry)
-		recentOrder.push({ id: row.id, stamp: entry.stamp })
-		while (recentOrder.length > windowSize) {
-			const evicted = recentOrder.shift()!
-			// A superseded id was re-pushed, leaving its old position behind; dropping the
-			// live entry on that stale position would shorten the window for that id.
-			if (recent.get(evicted.id)?.stamp === evicted.stamp) recent.delete(evicted.id)
-		}
-	}
-
-	/** Reverses a tally when a later ledger row supersedes it. */
-	function untally(r: any) {
-		if (r.error) {
-			errors--
-			return
-		}
-		const b = bucket(r.idleMs)
-		const h = hist[b]
-		if (h) {
-			h.count--
-			h.bytes -= r.bytes ?? 0
-		}
-		if (r.action === 'destroy-scheduled') condemned--
-	}
 	function tally(r: any) {
-		if (r.error) {
-			errors++
-			return
-		}
-		const b = bucket(r.idleMs)
-		hist[b] ??= { count: 0, bytes: 0 }
-		hist[b].count++
-		hist[b].bytes += r.bytes ?? 0
-		if (r.action === 'destroy-scheduled') condemned++
+		if (r.error) errors++
+		else if (r.action === 'destroy-scheduled') condemned++
 	}
 
 	// Resume by line offset, not by a set of seen ids: at tens of millions of ids a Set
@@ -387,11 +382,7 @@ async function prune(args: string[]): Promise<void> {
 	// Mark where this pass begins so a resume replays its own rows, not those of an
 	// earlier threshold or of an error a later sweep already repaired.
 	const passMarker = JSON.stringify({ pass: { dryRun, maxIdleMs, idsIdentity } })
-	if (skipLines > 0 && existsSync(resultsFile)) {
-		for await (const row of rowsForPass(resultsFile, passMarker)) record(row)
-	} else if (!retryErrors) {
-		appendFileSync(resultsFile, passMarker + '\n')
-	}
+	if (skipLines === 0 && !retryErrors) appendFileSync(resultsFile, passMarker + '\n')
 
 	console.log(
 		`dryRun=${dryRun}, maxIdle=${maxIdleMs}ms, concurrency=${concurrency}, ${retryErrors ? 'retrying ledger errors' : `resuming at line ${skipLines}`}${limit === Infinity ? '' : `, limit ${limit}`}, appending to ${resultsFile}`
@@ -406,11 +397,11 @@ async function prune(args: string[]): Promise<void> {
 	let committedLines = skipLines
 	let committedBatch = 0
 
-	async function runBatch(batch: string[], seq: number) {
+	async function runBatch(batch: Entry[], seq: number) {
 		const res = await fetch(`${origin}/admin/prune`, {
 			method: 'POST',
 			headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-			body: JSON.stringify({ ids: batch, maxIdleMs, dryRun, force }),
+			body: JSON.stringify({ ids: batch.map((e) => e.id), maxIdleMs, dryRun, force }),
 			signal: AbortSignal.timeout(60_000),
 		})
 		if (!res.ok) {
@@ -423,10 +414,14 @@ async function prune(args: string[]): Promise<void> {
 			throw new Error(`/admin/prune ${res.status}: ${text}`)
 		}
 		const results: any[] = await res.json()
+		const lineOf = new Map(batch.map((e) => [e.id, e.line]))
 		let out = ''
 		for (const r of results) {
-			out += JSON.stringify(r) + '\n'
-			record(r)
+			// The line is what makes a duplicate identifiable later: the same id can be
+			// written more than once, but only one row per line is the current result.
+			const row = { ...r, line: lineOf.get(r.id) }
+			out += JSON.stringify(row) + '\n'
+			tally(row)
 		}
 		appendFileSync(resultsFile, out)
 		commit(seq, batch.length)
@@ -455,7 +450,7 @@ async function prune(args: string[]): Promise<void> {
 	}
 
 	const inFlight = new Map<number, Promise<void>>()
-	async function dispatch(batch: string[]) {
+	async function dispatch(batch: Entry[]) {
 		const seq = nextSeq++
 		const task = runBatch(batch, seq)
 			.catch((err) => {
@@ -468,10 +463,10 @@ async function prune(args: string[]): Promise<void> {
 				// the offset freezes here for the rest of the run.
 				const message = err instanceof Error ? err.message : String(err)
 				let out = ''
-				for (const id of batch) {
-					const row = { id, error: `batch: ${message}` }
+				for (const entry of batch) {
+					const row = { id: entry.id, line: entry.line, error: `batch: ${message}` }
 					out += JSON.stringify(row) + '\n'
-					record(row)
+					tally(row)
 				}
 				appendFileSync(resultsFile, out)
 				commit(seq, batch.length)
@@ -499,15 +494,20 @@ async function prune(args: string[]): Promise<void> {
 	}
 
 	let lineNo = 0
-	let batch: string[] = []
+	let batch: Entry[] = []
 	// Offset resume walks past error rows and never returns to them, so failures need
 	// their own sweep: --retry-errors re-reads the ledger instead of the ids file.
-	const source = retryErrors ? errorIdsFromLedger(resultsFile) : readLines(IDS_FILE)
-	for await (const id of source) {
+	const source = retryErrors
+		? failedEntriesFromLedger(resultsFile)
+		: (async function* () {
+				let n = 0
+				for await (const id of readLines(IDS_FILE)) yield { id, line: ++n }
+			})()
+	for await (const entry of source) {
 		lineNo++
 		if (!retryErrors && lineNo <= skipLines) continue
 		if (lineNo - (retryErrors ? 0 : skipLines) > limit) break
-		batch.push(id)
+		batch.push(entry)
 		if (batch.length < BATCH) continue
 		await dispatch(batch)
 		batch = []
@@ -516,17 +516,13 @@ async function prune(args: string[]): Promise<void> {
 	if (batch.length && !fatal) await dispatch(batch)
 	await Promise.all(inFlight.values())
 
-	console.log('\n\nidle histogram (count / GB):')
-	for (const k of ['<7d', '7-30d', '30-90d', '>90d']) {
-		const h = hist[k]
-		if (h)
-			console.log(
-				`  ${k.padEnd(7)} ${String(h.count).padStart(9)}  ${(h.bytes / 1e9).toFixed(2)} GB`
-			)
-	}
-	console.log(`condemned=${condemned} errors=${errors}`)
+	// The live counters above are progress only: batches finish out of order, a resume
+	// re-runs whatever the checkpoint had not committed, and a sweep supersedes errors,
+	// so any arrival-order accounting drifts. The reported numbers come from the ledger
+	// instead, keeping exactly one row per source line — the last one written.
+	await summarize(resultsFile, passMarker)
+
 	if (fatal !== undefined) throw new FatalError(fatal.message)
-	if (errors > 0) process.exitCode = 1
 }
 
 const [cmd, ...rest] = process.argv.slice(2)
