@@ -2,9 +2,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { TLUiEventHandler, Tldraw, react, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-// There's a guide at the bottom of this file!
-
-// [1]
 function sendToAnalytics(name: string, params: Record<string, unknown>) {
 	// Replace this with your analytics provider's capture call
 	console.debug('[analytics]', name, params)
@@ -22,7 +19,7 @@ function AnalyticsTracker({
 }) {
 	const editor = useEditor()
 
-	// [3]
+	// [1]
 	useEffect(() => {
 		const disposables = [
 			editor.sideEffects.registerAfterCreateHandler('shape', (shape) => {
@@ -33,7 +30,7 @@ function AnalyticsTracker({
 			}),
 		]
 
-		// [4]
+		// [2]
 		let debounceTimer: ReturnType<typeof setTimeout> | undefined
 		let lastReported = ''
 		disposables.push(
@@ -73,7 +70,7 @@ export default function AnalyticsEventsExample() {
 		setLog((events) => [{ name, params }, ...events].slice(0, 50))
 	}, [])
 
-	// [2]
+	// [3]
 	const handleUiEvent = useCallback<TLUiEventHandler>(
 		(name, data) => {
 			if (name === 'select-tool') {
@@ -126,20 +123,6 @@ layer of the SDK:
 The right-hand panel shows every event as it is sent.
 
 [1]
-Every event funnels through this one function, so it is the only place that
-knows about your analytics provider: replace its body with the capture call
-from whichever service you use. Keeping a single seam also gives you one place
-to add shared properties (a session id, the document id) to every event.
-
-[2]
-The `onUiEvent` prop fires for every high-level action the default UI performs,
-whichever way it was triggered, and its `source` property tells you whether it
-came from the toolbar, a menu, or a keyboard shortcut. We track `select-tool`
-here; see the `TLUiEventMap` type or the ui events example for everything else
-it reports. Note that it only fires for the default UI: calling
-`editor.setCurrentTool` yourself does not report a UI event.
-
-[3]
 Side effects are the cleanest hook for document changes. The after-create and
 after-delete handlers fire for every shape record, no matter how it was made:
 drawn, pasted, duplicated, or created by an undo or redo. If you want to count
@@ -150,7 +133,7 @@ and read the added records from each change diff instead.
 Each register call returns an unregister function; the effect's cleanup calls
 them all, so the handlers detach cleanly if the component unmounts.
 
-[4]
+[2]
 Selection is derived state, so the reactive `react` function is the right
 observer: it re-runs whenever `editor.getSelectedShapeIds()` changes. Raw
 selection changes are noisy (a drag-select can change the selection every
@@ -162,4 +145,12 @@ In a production app you would also batch: accumulate events in memory and flush
 them on an interval and on the page's `visibilitychange` (via `sendBeacon`),
 rather than sending one network request per event. Some providers' scripts do
 this batching for you; check yours before building it.
+
+[3]
+The `onUiEvent` prop fires for every high-level action the default UI performs,
+whichever way it was triggered, and its `source` property tells you whether it
+came from the toolbar, a menu, or a keyboard shortcut. We track `select-tool`
+here; see the `TLUiEventMap` type or the ui events example for everything else
+it reports. Note that it only fires for the default UI: calling
+`editor.setCurrentTool` yourself does not report a UI event.
 */
