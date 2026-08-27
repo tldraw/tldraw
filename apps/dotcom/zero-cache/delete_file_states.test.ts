@@ -8,14 +8,10 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 // guest file_state rows and guest home-group file links (group_file rows) when a
 // file is unshared (shared: true -> false).
 //
-// Regression coverage for: unsharing a group-owned file (ownerId NULL,
-// owningGroupId set) used to leave guest file_states behind, because the original
-// trigger keyed on `OLD."ownerId" != "userId"` and `NULL != x` is NULL in SQL.
-// Visiting a shared file also links it into the visitor's home group via a
-// group_file row (home group id == user id) — that link is what puts the file in
-// their recent files, and nothing cleaned it up either, so the file name lingered
-// in an ex-guest's recent files after access was revoked.
-// See migration 034_fix_unshare_group_file_cleanup.sql.
+// Visiting a shared file links it into the visitor's home group via a group_file
+// row (home group id == user id) — that link is what puts the file in their recent
+// files, so unshare has to remove it as well as the file_state, or the file name
+// lingers in an ex-guest's recent files after access is revoked.
 //
 // This talks to a real postgres (the trigger is plpgsql, so fakes can't exercise
 // it). It is opt-in: set ZERO_CACHE_TEST_POSTGRES_URL (local dev stack:
@@ -37,25 +33,35 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 const DIRNAME = dirname(fileURLToPath(import.meta.url))
 const CONNECTION_STRING = process.env.ZERO_CACHE_TEST_POSTGRES_URL
 
-// The real, shipped function body. We load it from the migration file so the test
-// exercises exactly what runs in production rather than a hand-copied duplicate.
-const FIXED_FUNCTION_SQL = readFileSync(
-	join(DIRNAME, 'migrations', '034_fix_unshare_group_file_cleanup.sql'),
-	'utf8'
-)
+// The real, shipped function body, sliced out of the migration that last defined it so the
+// test exercises production's function rather than a hand-copied duplicate. Unlike 034, which
+// was this function and nothing else, 050 also drops columns and rebinds triggers, so only the
+// one definition is taken from it.
+function loadShippedFunction(migrationFile: string, name: string): string {
+	const migration = readFileSync(join(DIRNAME, 'migrations', migrationFile), 'utf8')
+	const marker = `CREATE OR REPLACE FUNCTION public.${name}()`
+	const start = migration.indexOf(marker)
+	const end = migration.indexOf('$function$;', start)
+	if (start === -1 || end === -1) {
+		throw new Error(`could not find ${name}() in ${migrationFile}`)
+	}
+	// Drop the `public.` qualifier: the migration targets public, while everything here lives
+	// in a throwaway schema pinned with SET LOCAL search_path. Left in place it would
+	// CREATE OR REPLACE the *production* function whenever this test runs against a shared
+	// database — the one way this suite could reach outside its own schema.
+	const sql = migration
+		.slice(start, end + '$function$;'.length)
+		.replace(marker, `CREATE OR REPLACE FUNCTION ${name}()`)
+	if (sql.includes('public.')) {
+		throw new Error(`refusing to run ${name}(): a public. reference survived unqualifying`)
+	}
+	return sql
+}
 
-// The original (buggy) function body, kept here so we can prove the bug exists and
-// that the fix is what closes it.
-const BUGGY_FUNCTION_SQL = `
-CREATE OR REPLACE FUNCTION delete_file_states() RETURNS TRIGGER AS $$
-BEGIN
-  IF OLD.shared = TRUE AND NEW.shared = FALSE THEN
-    DELETE FROM file_state WHERE "fileId" = OLD.id AND OLD."ownerId" != "userId";
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-`
+const DELETE_FILE_STATES_SQL = loadShippedFunction(
+	'050_drop_legacy_owner_columns.sql',
+	'delete_file_states'
+)
 
 const schemaName = `tldraw_test_${process.pid}`
 
@@ -75,11 +81,9 @@ CREATE TABLE "${schemaName}"."group_user" (
 );
 CREATE TABLE "${schemaName}"."file" (
   "id" TEXT PRIMARY KEY,
-  "ownerId" TEXT,
-  "owningGroupId" TEXT,
-  "shared" BOOLEAN NOT NULL,
-  -- mirror the production XOR invariant so the test seed stays realistic
-  CHECK (("ownerId" IS NULL) != ("owningGroupId" IS NULL))
+  -- NOT NULL mirrors production: since 050 every file belongs to a workspace
+  "owningGroupId" TEXT NOT NULL,
+  "shared" BOOLEAN NOT NULL
 );
 CREATE TABLE "${schemaName}"."file_state" (
   "userId" TEXT NOT NULL,
@@ -159,21 +163,16 @@ describeMaybe('delete_file_states trigger (unshare cleanup)', () => {
 			`INSERT INTO "${schemaName}"."group_user" ("userId", "groupId") VALUES ('uOwner', 'g1'), ('uMember', 'g1')`
 		)
 
-		// group-owned shared file: ownerId NULL, owningGroupId set
 		await client.query(
-			`INSERT INTO "${schemaName}"."file" ("id", "ownerId", "owningGroupId", "shared") VALUES ('fGroup', NULL, 'g1', true)`
-		)
-		// legacy user-owned shared file: ownerId set, owningGroupId NULL
-		await client.query(
-			`INSERT INTO "${schemaName}"."file" ("id", "ownerId", "owningGroupId", "shared") VALUES ('fLegacy', 'uOwner', NULL, true)`
+			`INSERT INTO "${schemaName}"."file" ("id", "owningGroupId", "shared") VALUES ('fGroup', 'g1', true)`
 		)
 		// a shared file we will NOT unshare, as a control
 		await client.query(
-			`INSERT INTO "${schemaName}"."file" ("id", "ownerId", "owningGroupId", "shared") VALUES ('fControl', 'uOwner', NULL, true)`
+			`INSERT INTO "${schemaName}"."file" ("id", "owningGroupId", "shared") VALUES ('fControl', 'g1', true)`
 		)
 
 		// everyone has a file_state on every file
-		for (const fileId of ['fGroup', 'fLegacy', 'fControl']) {
+		for (const fileId of ['fGroup', 'fControl']) {
 			await client.query(
 				`INSERT INTO "${schemaName}"."file_state" ("userId", "fileId") VALUES ('uOwner', $1), ('uMember', $1), ('uGuest', $1)`,
 				[fileId]
@@ -187,8 +186,7 @@ describeMaybe('delete_file_states trigger (unshare cleanup)', () => {
 				('fGroup', 'g1'),
 				('fGroup', 'uMember'),
 				('fGroup', 'uGuest'),
-				('fLegacy', 'uOwner'),
-				('fLegacy', 'uGuest'),
+				('fControl', 'g1'),
 				('fControl', 'uGuest')`
 		)
 	}
@@ -218,9 +216,9 @@ describeMaybe('delete_file_states trigger (unshare cleanup)', () => {
 		return res.rows.map((r) => r.groupId)
 	}
 
-	describe('with the fixed function (migration 034)', () => {
+	describe('with the shipped function', () => {
 		beforeEach(async () => {
-			await inTestSchema(FIXED_FUNCTION_SQL)
+			await inTestSchema(DELETE_FILE_STATES_SQL)
 			await client.query(SCHEMA_SQL)
 			await seed()
 		})
@@ -239,42 +237,10 @@ describeMaybe('delete_file_states trigger (unshare cleanup)', () => {
 			expect(await linksFor('fGroup')).toEqual(['g1', 'uMember'])
 		})
 
-		it('removes the guest state but keeps the owner when a legacy file is unshared', async () => {
-			await unshare('fLegacy')
-			expect(await statesFor('fLegacy')).toEqual(['uOwner'])
-		})
-
-		it('removes the guest file link but keeps the owner link when a legacy file is unshared', async () => {
-			await unshare('fLegacy')
-			expect(await linksFor('fLegacy')).toEqual(['uOwner'])
-		})
-
 		it('leaves still-shared files untouched', async () => {
 			await unshare('fGroup')
 			expect(await statesFor('fControl')).toEqual(['uGuest', 'uMember', 'uOwner'])
-			expect(await linksFor('fControl')).toEqual(['uGuest'])
-		})
-	})
-
-	describe('with the original buggy function (regression guard)', () => {
-		beforeEach(async () => {
-			await inTestSchema(BUGGY_FUNCTION_SQL)
-			await client.query(SCHEMA_SQL)
-			await seed()
-		})
-
-		it('demonstrates the bug: group-owned guest state survives because ownerId is NULL', async () => {
-			await unshare('fGroup')
-			// NULL != "userId" is NULL, so the old DELETE matched nothing: the guest lingers
-			expect(await statesFor('fGroup')).toEqual(['uGuest', 'uMember', 'uOwner'])
-			// and the old function never touched group_file at all, so the guest's
-			// home-group link (their recent-files entry) survived too
-			expect(await linksFor('fGroup')).toEqual(['g1', 'uGuest', 'uMember'])
-		})
-
-		it('still works for legacy files (so the regression is group-specific)', async () => {
-			await unshare('fLegacy')
-			expect(await statesFor('fLegacy')).toEqual(['uOwner'])
+			expect(await linksFor('fControl')).toEqual(['g1', 'uGuest'])
 		})
 	})
 })

@@ -100,9 +100,7 @@ async function copyFilesToStaging(fileIds: string[]) {
 				const testFile: TlaFile = {
 					id: newId,
 					name: 'Test File',
-					ownerId: null,
 					ownerName: 'Test User',
-					ownerAvatar: null,
 					thumbnail: '',
 					shared: false,
 					sharedLinkType: 'link',
@@ -115,8 +113,7 @@ async function copyFilesToStaging(fileIds: string[]) {
 					isDeleted: false,
 					createSource: null,
 					// the staging user's home workspace: home group id is the user's own id. Must be set —
-					// file_owner_xor_check rejects a row with neither owner, and cleanup-test-files finds
-					// these rows by owningGroupId.
+					// the column is NOT NULL, and cleanup-test-files finds these rows by owningGroupId.
 					owningGroupId: env.STAGING_OWNER_ID,
 				}
 
