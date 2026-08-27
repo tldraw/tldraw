@@ -47,6 +47,10 @@ const BATCH = 100
 /** How far a finished batch may run ahead of the durable checkpoint. Bounds both the
  * rows a crash replays and the pending-sequence bookkeeping. */
 const MAX_UNCOMMITTED_BATCHES = 32
+/** Stamped into the pass marker and the checkpoint. Ledgers and checkpoints from an
+ * older format never match a current pass, so their rows are neither replayed nor
+ * counted, and their offsets are never reused. */
+const LEDGER_FORMAT = 2
 
 /** One id together with its 1-based position in the ids file. */
 interface Entry {
@@ -223,7 +227,9 @@ async function* rowsForPass(file: string, passMarker: string): AsyncGenerator<an
 	for await (const line of readLines(file)) {
 		const at = index++
 		if (at <= markerAt) continue
-		if (line.startsWith('{"pass":')) continue
+		// The region ends at the next marker: rows past it belong to another pass, whose
+		// line numbers index a different ids file and would otherwise be counted here.
+		if (line.startsWith('{"pass":')) return
 		try {
 			const row = JSON.parse(line)
 			if (row?.id) yield row
@@ -240,7 +246,12 @@ async function summarize(file: string, passMarker: string): Promise<void> {
 	if (!existsSync(file)) return
 	let maxLine = 0
 	for await (const row of rowsForPass(file, passMarker)) {
-		if (typeof row.line === 'number' && row.line > maxLine) maxLine = row.line
+		if (typeof row.line !== 'number') {
+			throw new Error(
+				`${file} has rows without a line number: it predates the current ledger format. Delete it and ${PROGRESS_FILE}, then re-run the pass.`
+			)
+		}
+		if (row.line > maxLine) maxLine = row.line
 	}
 	// Row ordinals are 1-based so that 0 reads as "no row for this line".
 	const latest = new Uint32Array(maxLine + 1)
@@ -281,22 +292,21 @@ async function summarize(file: string, passMarker: string): Promise<void> {
 	if (errors > 0) process.exitCode = 1
 }
 
-/** Entries whose most recent ledger row for that source line is an error. Keyed by line
- * rather than id so a retry inherits the position the result belongs to. */
-async function* failedEntriesFromLedger(file: string): AsyncGenerator<Entry> {
+/** Entries whose most recent row in this pass is an error. Keyed by source line, so a
+ * retry inherits the position its result belongs to, and scoped to the pass, since line
+ * numbers index one specific ids file. */
+async function* failedEntriesFromLedger(file: string, passMarker: string): AsyncGenerator<Entry> {
 	if (!existsSync(file)) return
 	// Only failing lines are held: a small fraction of any pass.
 	const failed = new Map<number, string>()
-	for await (const line of readLines(file)) {
-		let r: any
-		try {
-			r = JSON.parse(line)
-		} catch {
-			continue
+	for await (const row of rowsForPass(file, passMarker)) {
+		if (typeof row.line !== 'number') {
+			throw new Error(
+				`${file} has rows without a line number: it predates the current ledger format. Delete it and ${PROGRESS_FILE}, then re-run the pass.`
+			)
 		}
-		if (!r?.id || typeof r.line !== 'number') continue
-		if (r.error) failed.set(r.line, r.id)
-		else failed.delete(r.line)
+		if (row.error) failed.set(row.line, row.id)
+		else failed.delete(row.line)
 	}
 	for (const [line, id] of failed) yield { id, line }
 }
@@ -367,6 +377,7 @@ async function prune(args: string[]): Promise<void> {
 		}
 		if (prev) {
 			if (
+				prev.format === LEDGER_FORMAT &&
 				prev.dryRun === dryRun &&
 				prev.maxIdleMs === maxIdleMs &&
 				prev.idsIdentity === idsIdentity
@@ -374,14 +385,16 @@ async function prune(args: string[]): Promise<void> {
 				skipLines = prev.linesDone ?? 0
 			} else {
 				console.log(
-					`ignoring progress from a different pass (dryRun=${prev.dryRun}, maxIdle=${prev.maxIdleMs}ms, ids=${prev.idsIdentity})`
+					`ignoring progress from a different pass (format=${prev.format}, dryRun=${prev.dryRun}, maxIdle=${prev.maxIdleMs}ms, ids=${prev.idsIdentity})`
 				)
 			}
 		}
 	}
 	// Mark where this pass begins so a resume replays its own rows, not those of an
 	// earlier threshold or of an error a later sweep already repaired.
-	const passMarker = JSON.stringify({ pass: { dryRun, maxIdleMs, idsIdentity } })
+	const passMarker = JSON.stringify({
+		pass: { format: LEDGER_FORMAT, dryRun, maxIdleMs, idsIdentity },
+	})
 	if (skipLines === 0 && !retryErrors) appendFileSync(resultsFile, passMarker + '\n')
 
 	console.log(
@@ -439,6 +452,7 @@ async function prune(args: string[]): Promise<void> {
 		if (!retryErrors) {
 			// Rename is atomic, so a kill can never leave a half-written checkpoint.
 			const payload = JSON.stringify({
+				format: LEDGER_FORMAT,
 				dryRun,
 				maxIdleMs,
 				idsIdentity,
@@ -498,7 +512,7 @@ async function prune(args: string[]): Promise<void> {
 	// Offset resume walks past error rows and never returns to them, so failures need
 	// their own sweep: --retry-errors re-reads the ledger instead of the ids file.
 	const source = retryErrors
-		? failedEntriesFromLedger(resultsFile)
+		? failedEntriesFromLedger(resultsFile, passMarker)
 		: (async function* () {
 				let n = 0
 				for await (const id of readLines(IDS_FILE)) yield { id, line: ++n }
