@@ -31,7 +31,7 @@ import {
 	writeFileSync,
 } from 'fs'
 import { createInterface } from 'readline'
-import { MIN_SAFE_IDLE_MS } from '../src/prune'
+import { ADMIN_PRUNE_MAX_IDS, MIN_SAFE_IDLE_MS } from '../src/prune'
 
 const IDS_FILE = 'prune-ids.txt'
 const CURSOR_FILE = 'prune-list-cursor.txt'
@@ -353,6 +353,14 @@ async function prune(args: string[]): Promise<void> {
 	const concurrency = concurrencyArg === -1 ? CONCURRENCY : Number(args[concurrencyArg + 1])
 	if (!Number.isInteger(concurrency) || concurrency < 1)
 		throw new Error('--concurrency needs a positive integer')
+	const batchArg = args.indexOf('--batch')
+	const batchSize = batchArg === -1 ? BATCH : Number(args[batchArg + 1])
+	if (!Number.isInteger(batchSize) || batchSize < 1 || batchSize > ADMIN_PRUNE_MAX_IDS) {
+		throw new Error(`--batch needs an integer between 1 and ${ADMIN_PRUNE_MAX_IDS}`)
+	}
+	const timeoutArg = args.indexOf('--timeout')
+	const timeoutMs = timeoutArg === -1 ? 60_000 : Number(args[timeoutArg + 1]) * 1000
+	if (!Number.isFinite(timeoutMs) || timeoutMs < 1000) throw new Error('--timeout needs seconds')
 	const limitArg = args.indexOf('--limit')
 	const limit = limitArg === -1 ? Infinity : Number(args[limitArg + 1])
 	if (!Number.isFinite(limit) && limitArg !== -1) throw new Error('--limit needs a number')
@@ -424,7 +432,7 @@ async function prune(args: string[]): Promise<void> {
 	if (skipLines === 0 && !retryErrors) appendFileSync(resultsFile, passMarker + '\n')
 
 	console.log(
-		`dryRun=${dryRun}, maxIdle=${maxIdleMs}ms, concurrency=${concurrency}, ${retryErrors ? 'retrying ledger errors' : `resuming at line ${skipLines}`}${limit === Infinity ? '' : `, limit ${limit}`}, appending to ${resultsFile}`
+		`dryRun=${dryRun}, maxIdle=${maxIdleMs}ms, concurrency=${concurrency}, batch=${batchSize}, timeout=${timeoutMs / 1000}s, ${retryErrors ? 'retrying ledger errors' : `resuming at line ${skipLines}`}${limit === Infinity ? '' : `, limit ${limit}`}, appending to ${resultsFile}`
 	)
 
 	let dispatched = skipLines
@@ -441,7 +449,7 @@ async function prune(args: string[]): Promise<void> {
 			method: 'POST',
 			headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
 			body: JSON.stringify({ ids: batch.map((e) => e.id), maxIdleMs, dryRun, force }),
-			signal: AbortSignal.timeout(60_000),
+			signal: AbortSignal.timeout(timeoutMs),
 		})
 		if (!res.ok) {
 			const text = await res.text()
@@ -548,7 +556,7 @@ async function prune(args: string[]): Promise<void> {
 		if (!retryErrors && lineNo <= skipLines) continue
 		if (lineNo - (retryErrors ? 0 : skipLines) > limit) break
 		batch.push(entry)
-		if (batch.length < BATCH) continue
+		if (batch.length < batchSize) continue
 		await dispatch(batch)
 		batch = []
 		if (fatal) break
