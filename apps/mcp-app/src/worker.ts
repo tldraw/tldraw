@@ -79,6 +79,12 @@ function corsResponse(response: Response): Response {
 	return new Response(response.body, { status: response.status, headers })
 }
 
+/** Transient Durable Object faults: the object moved, was evicted, or the script redeployed. */
+function isRetryableDoError(err: unknown): boolean {
+	const message = err instanceof Error ? err.message : String(err)
+	return /Network connection lost|code was updated|internal error|overloaded/i.test(message)
+}
+
 /** 401 unless the request carries the admin bearer token; null when it does. */
 function requireAdminToken(request: Request, env: Env): Response | null {
 	if (
@@ -509,17 +515,25 @@ export default {
 				const results = await Promise.all(
 					ids.map(async (id) => {
 						// idFromString throws on malformed hex — keep it inside the per-id guard.
-						try {
-							const stub = env.MCP_OBJECT.get(env.MCP_OBJECT.idFromString(String(id)))
-							return await stub.pruneIfIdle(maxIdleMs, dryRun)
-						} catch (err) {
-							// The message round-trips to the script's JSONL, but Workers logs need a
-							// trace too so DO overload is distinguishable from a malformed id.
-							const name = err instanceof Error ? err.constructor.name : typeof err
-							const message = err instanceof Error ? err.message : String(err)
-							console.error('[admin/prune] id failed', String(id), name, message)
-							return { id: String(id), error: `${name}: ${message}` }
+						let lastError: unknown
+						for (let attempt = 0; attempt < 2; attempt++) {
+							try {
+								const stub = env.MCP_OBJECT.get(env.MCP_OBJECT.idFromString(String(id)))
+								return await stub.pruneIfIdle(maxIdleMs, dryRun)
+							} catch (err) {
+								lastError = err
+								// `Network connection lost` and `code was updated` are routine at this
+								// fan-out; without a retry they land in the caller's ledger, which
+								// resumes by offset and so would never revisit them.
+								if (!isRetryableDoError(err)) break
+							}
 						}
+						// The message round-trips to the script's JSONL, but Workers logs need a
+						// trace too so DO overload is distinguishable from a malformed id.
+						const name = lastError instanceof Error ? lastError.constructor.name : typeof lastError
+						const message = lastError instanceof Error ? lastError.message : String(lastError)
+						console.error('[admin/prune] id failed', String(id), name, message)
+						return { id: String(id), error: `${name}: ${message}` }
 					})
 				)
 				return Response.json(results)
