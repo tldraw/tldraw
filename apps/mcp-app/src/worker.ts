@@ -79,10 +79,18 @@ function corsResponse(response: Response): Response {
 	return new Response(response.body, { status: response.status, headers })
 }
 
+/** Grace period before the condemned object's alarm runs destroy(). destroy() ends in
+ * `ctx.abort("destroyed")`, which kills the isolate along with any RPC still returning
+ * from it: with no delay the caller sees `Error: destroyed` for a prune that in fact
+ * succeeded. Matches the SDK's own DESTROY_ALARM_DELAY_MS. */
+const DESTROY_ALARM_DELAY_MS = 1000
+
 /** Transient Durable Object faults: the object moved, was evicted, or the script redeployed. */
 function isRetryableDoError(err: unknown): boolean {
 	const message = err instanceof Error ? err.message : String(err)
-	return /Network connection lost|code was updated|internal error|overloaded/i.test(message)
+	return /Network connection lost|code was updated|internal error|overloaded|object has moved/i.test(
+		message
+	)
 }
 
 /** 401 unless the request carries the admin bearer token; null when it does. */
@@ -375,7 +383,7 @@ export class TldrawMCP extends McpAgent<Env> {
 			// Marker without an alarm (setAlarm failed or the invocation died between the
 			// two writes) would otherwise be reported as condemned on every retry while
 			// the storage stays put. Re-arm; setAlarm is idempotent if one is pending.
-			await this.ctx.storage.setAlarm(Date.now())
+			await this.ctx.storage.setAlarm(Date.now() + DESTROY_ALARM_DELAY_MS)
 			return {
 				id,
 				idleMs: null,
@@ -390,7 +398,7 @@ export class TldrawMCP extends McpAgent<Env> {
 		if (action === 'destroy-scheduled') {
 			this.env.MCP_ANALYTICS?.writeDataPoint({ blobs: ['session_end', id], doubles: [Date.now()] })
 			await this.ctx.storage.put('cf_agents_destroy_pending', true)
-			await this.ctx.storage.setAlarm(Date.now())
+			await this.ctx.storage.setAlarm(Date.now() + DESTROY_ALARM_DELAY_MS)
 		}
 		return {
 			id,
@@ -512,14 +520,24 @@ export default {
 						{ status: 400 }
 					)
 				}
+				// Batch timings, because a client-side timeout says nothing about where the
+				// time went: whether wakes are uniformly slow or a few stragglers hold up
+				// the batch, and how much of it is the retry path.
+				const startedAt = Date.now()
+				const durations: number[] = []
+				let retries = 0
 				const results = await Promise.all(
 					ids.map(async (id) => {
+						const idStartedAt = Date.now()
 						// idFromString throws on malformed hex — keep it inside the per-id guard.
 						let lastError: unknown
 						for (let attempt = 0; attempt < 2; attempt++) {
+							if (attempt > 0) retries++
 							try {
 								const stub = env.MCP_OBJECT.get(env.MCP_OBJECT.idFromString(String(id)))
-								return await stub.pruneIfIdle(maxIdleMs, dryRun)
+								const result = await stub.pruneIfIdle(maxIdleMs, dryRun)
+								durations.push(Date.now() - idStartedAt)
+								return result
 							} catch (err) {
 								lastError = err
 								// `Network connection lost` and `code was updated` are routine at this
@@ -528,6 +546,7 @@ export default {
 								if (!isRetryableDoError(err)) break
 							}
 						}
+						durations.push(Date.now() - idStartedAt)
 						// The message round-trips to the script's JSONL, but Workers logs need a
 						// trace too so DO overload is distinguishable from a malformed id.
 						const name = lastError instanceof Error ? lastError.constructor.name : typeof lastError
@@ -535,6 +554,11 @@ export default {
 						console.error('[admin/prune] id failed', String(id), name, message)
 						return { id: String(id), error: `${name}: ${message}` }
 					})
+				)
+				const sorted = durations.sort((a, b) => a - b)
+				const at = (q: number) => sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * q))]
+				console.warn(
+					`[admin/prune] ids=${ids.length} total=${Date.now() - startedAt}ms retries=${retries} errors=${results.filter((r: any) => r.error).length} p50=${at(0.5)}ms p95=${at(0.95)}ms max=${sorted[sorted.length - 1]}ms`
 				)
 				return Response.json(results)
 			}
