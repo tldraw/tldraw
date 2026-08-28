@@ -127,160 +127,6 @@ spec:
                 mode: single
                 sort: none
           version: 13.0.0-22478626928
-    panel-2:
-      kind: Panel
-      spec:
-        data:
-          kind: QueryGroup
-          spec:
-            queries:
-              - kind: PanelQuery
-                spec:
-                  hidden: false
-                  query:
-                    datasource:
-                      name: bdgu7tk03irr4e
-                    group: vertamedia-clickhouse-datasource
-                    kind: DataQuery
-                    spec:
-                      dateTimeType: DATETIME
-                      editorMode: builder
-                      extrapolate: true
-                      format: time_series
-                      formattedQuery: "  SELECT toStartOfInterval(timestamp, INTERVAL\
-                        \ '$interval' SECOND) as date, blob1 as event, count() as total\n\
-                        \  FROM 'MCP_ANALYTICS'\n  WHERE timestamp >= toDateTime($from)\
-                        \ AND timestamp <= toDateTime($to)\n  AND blob1 = 'session_start'\n\
-                        \  GROUP BY date, event\n  ORDER BY date ASC\n"
-                      intervalFactor: 1
-                      query: "  SELECT toStartOfInterval(timestamp, INTERVAL '$interval'\
-                        \ SECOND) as date, blob2 as tool, count() as total\n    FROM\
-                        \ 'MCP_ANALYTICS'\n    WHERE timestamp >= toDateTime($from)\
-                        \ AND timestamp <= toDateTime($to)\n    AND blob1 = 'tool_called'\n\
-                        \    and blob2 = 'create_shapes'\n    GROUP BY date, tool\n\
-                        \    ORDER BY date ASC\n"
-                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '120'\
-                        \ SECOND) as date, blob2 as tool, count() as total\n    FROM\
-                        \ 'MCP_ANALYTICS'\n    WHERE timestamp >= toDateTime(1772623318)\
-                        \ AND timestamp <= toDateTime(1772796118)\n    AND blob1 = 'tool_called'\n\
-                        \    and blob2 = 'create_shapes'\n    GROUP BY date, tool\n\
-                        \    ORDER BY date ASC"
-                      round: 0s
-                      skip_comments: true
-                    version: v0
-                  refId: A
-            queryOptions: {}
-            transformations: []
-        description: Sessions are created when you make a request to the MCP worker
-        id: 2
-        links: []
-        title: Tool Call (create_shapes)
-        vizConfig:
-          group: stat
-          kind: VizConfig
-          spec:
-            fieldConfig:
-              defaults:
-                color:
-                  mode: thresholds
-                thresholds:
-                  mode: absolute
-                  steps:
-                    - color: green
-                      value: 0
-              overrides: []
-            options:
-              colorMode: value
-              graphMode: area
-              justifyMode: center
-              orientation: auto
-              percentChangeColorMode: standard
-              reduceOptions:
-                calcs:
-                  - sum
-                fields: ''
-                values: false
-              showPercentChange: false
-              textMode: auto
-              wideLayout: true
-          version: 13.0.0-22478626928
-    panel-3:
-      kind: Panel
-      spec:
-        data:
-          kind: QueryGroup
-          spec:
-            queries:
-              - kind: PanelQuery
-                spec:
-                  hidden: false
-                  query:
-                    datasource:
-                      name: bdgu7tk03irr4e
-                    group: vertamedia-clickhouse-datasource
-                    kind: DataQuery
-                    spec:
-                      dateTimeType: DATETIME
-                      editorMode: builder
-                      extrapolate: true
-                      format: time_series
-                      formattedQuery: "  SELECT toStartOfInterval(timestamp, INTERVAL\
-                        \ '$interval' SECOND) as date, blob1 as event, count() as total\n\
-                        \  FROM 'MCP_ANALYTICS'\n  WHERE timestamp >= toDateTime($from)\
-                        \ AND timestamp <= toDateTime($to)\n  AND blob1 = 'session_start'\n\
-                        \  GROUP BY date, event\n  ORDER BY date ASC\n"
-                      intervalFactor: 1
-                      query: "  SELECT toStartOfInterval(timestamp, INTERVAL '$interval'\
-                        \ SECOND) as date, blob2 as tool, count() as total\n    FROM\
-                        \ 'MCP_ANALYTICS'\n    WHERE timestamp >= toDateTime($from)\
-                        \ AND timestamp <= toDateTime($to)\n    AND blob1 = 'tool_called'\n\
-                        \    and blob2 = 'update_shapes'\n    GROUP BY date, tool\n\
-                        \    ORDER BY date ASC\n"
-                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '120'\
-                        \ SECOND) as date, blob2 as tool, count() as total\n    FROM\
-                        \ 'MCP_ANALYTICS'\n    WHERE timestamp >= toDateTime(1772623318)\
-                        \ AND timestamp <= toDateTime(1772796118)\n    AND blob1 = 'tool_called'\n\
-                        \    and blob2 = 'update_shapes'\n    GROUP BY date, tool\n\
-                        \    ORDER BY date ASC"
-                      round: 0s
-                      skip_comments: true
-                    version: v0
-                  refId: A
-            queryOptions: {}
-            transformations: []
-        description: Sessions are created when you make a request to the MCP worker
-        id: 3
-        links: []
-        title: Tool Call (update_shapes)
-        vizConfig:
-          group: stat
-          kind: VizConfig
-          spec:
-            fieldConfig:
-              defaults:
-                color:
-                  mode: thresholds
-                thresholds:
-                  mode: absolute
-                  steps:
-                    - color: yellow
-                      value: 0
-              overrides: []
-            options:
-              colorMode: value
-              graphMode: area
-              justifyMode: center
-              orientation: auto
-              percentChangeColorMode: standard
-              reduceOptions:
-                calcs:
-                  - sum
-                fields: ''
-                values: false
-              showPercentChange: false
-              textMode: auto
-              wideLayout: true
-          version: 13.0.0-22478626928
     panel-4:
       kind: Panel
       spec:
@@ -302,22 +148,23 @@ spec:
                       extrapolate: true
                       format: time_series
                       formattedQuery: "  SELECT toStartOfInterval(timestamp, INTERVAL\
-                        \ '$interval' SECOND) as date, blob1 as event, count() as total\n\
-                        \  FROM 'MCP_ANALYTICS'\n  WHERE timestamp >= toDateTime($from)\
-                        \ AND timestamp <= toDateTime($to)\n  AND blob1 = 'session_start'\n\
-                        \  GROUP BY date, event\n  ORDER BY date ASC\n"
+                        \ '$interval' SECOND) as date, blob2 as tool, count() as total\n\
+                        \    FROM 'MCP_ANALYTICS'\n    WHERE timestamp >= toDateTime($from)\
+                        \ AND timestamp <= toDateTime($to)\n    AND blob1 = 'tool_called'\n\
+                        \    and blob2 = 'exec'\n    GROUP BY date, tool\n    ORDER\
+                        \ BY date ASC\n"
                       intervalFactor: 1
                       query: "  SELECT toStartOfInterval(timestamp, INTERVAL '$interval'\
                         \ SECOND) as date, blob2 as tool, count() as total\n    FROM\
                         \ 'MCP_ANALYTICS'\n    WHERE timestamp >= toDateTime($from)\
                         \ AND timestamp <= toDateTime($to)\n    AND blob1 = 'tool_called'\n\
-                        \    and blob2 = 'read_me'\n    GROUP BY date, tool\n    ORDER\
+                        \    and blob2 = 'exec'\n    GROUP BY date, tool\n    ORDER\
                         \ BY date ASC\n"
                       rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '120'\
                         \ SECOND) as date, blob2 as tool, count() as total\n    FROM\
                         \ 'MCP_ANALYTICS'\n    WHERE timestamp >= toDateTime(1772623318)\
                         \ AND timestamp <= toDateTime(1772796118)\n    AND blob1 = 'tool_called'\n\
-                        \    and blob2 = 'read_me'\n    GROUP BY date, tool\n    ORDER\
+                        \    and blob2 = 'exec'\n    GROUP BY date, tool\n    ORDER\
                         \ BY date ASC"
                       round: 0s
                       skip_comments: true
@@ -325,10 +172,10 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: Sessions are created when you make a request to the MCP worker
+        description: tool_called events for the exec tool.
         id: 4
         links: []
-        title: Tool Call (read_me)
+        title: Tool call (exec)
         vizConfig:
           group: stat
           kind: VizConfig
@@ -358,7 +205,7 @@ spec:
               textMode: auto
               wideLayout: true
           version: 13.0.0-22478626928
-    panel-5:
+    panel-2:
       kind: Panel
       spec:
         data:
@@ -379,22 +226,23 @@ spec:
                       extrapolate: true
                       format: time_series
                       formattedQuery: "  SELECT toStartOfInterval(timestamp, INTERVAL\
-                        \ '$interval' SECOND) as date, blob1 as event, count() as total\n\
-                        \  FROM 'MCP_ANALYTICS'\n  WHERE timestamp >= toDateTime($from)\
-                        \ AND timestamp <= toDateTime($to)\n  AND blob1 = 'session_start'\n\
-                        \  GROUP BY date, event\n  ORDER BY date ASC\n"
+                        \ '$interval' SECOND) as date, blob2 as tool, count() as total\n\
+                        \    FROM 'MCP_ANALYTICS'\n    WHERE timestamp >= toDateTime($from)\
+                        \ AND timestamp <= toDateTime($to)\n    AND blob1 = 'tool_called'\n\
+                        \    and blob2 = 'search'\n    GROUP BY date, tool\n    ORDER\
+                        \ BY date ASC\n"
                       intervalFactor: 1
                       query: "  SELECT toStartOfInterval(timestamp, INTERVAL '$interval'\
                         \ SECOND) as date, blob2 as tool, count() as total\n    FROM\
                         \ 'MCP_ANALYTICS'\n    WHERE timestamp >= toDateTime($from)\
                         \ AND timestamp <= toDateTime($to)\n    AND blob1 = 'tool_called'\n\
-                        \    and blob2 = 'delete_shapes'\n    GROUP BY date, tool\n\
+                        \    and blob2 = 'search'\n    GROUP BY date, tool\n\
                         \    ORDER BY date ASC\n"
                       rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '120'\
                         \ SECOND) as date, blob2 as tool, count() as total\n    FROM\
                         \ 'MCP_ANALYTICS'\n    WHERE timestamp >= toDateTime(1772623318)\
                         \ AND timestamp <= toDateTime(1772796118)\n    AND blob1 = 'tool_called'\n\
-                        \    and blob2 = 'delete_shapes'\n    GROUP BY date, tool\n\
+                        \    and blob2 = 'search'\n    GROUP BY date, tool\n\
                         \    ORDER BY date ASC"
                       round: 0s
                       skip_comments: true
@@ -402,10 +250,10 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: Tool calls
-        id: 5
+        description: tool_called events for the search tool.
+        id: 2
         links: []
-        title: Tool Call (delete_shapes)
+        title: Tool call (search)
         vizConfig:
           group: stat
           kind: VizConfig
@@ -417,7 +265,7 @@ spec:
                 thresholds:
                   mode: absolute
                   steps:
-                    - color: red
+                    - color: green
                       value: 0
               overrides: []
             options:
@@ -896,7 +744,7 @@ spec:
               kind: ElementReference
               name: panel-4
             height: 13
-            width: 6
+            width: 12
             x: 0
             y: 13
         - kind: GridLayoutItem
@@ -905,26 +753,8 @@ spec:
               kind: ElementReference
               name: panel-2
             height: 13
-            width: 6
-            x: 6
-            y: 13
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-3
-            height: 13
-            width: 6
+            width: 12
             x: 12
-            y: 13
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-5
-            height: 13
-            width: 6
-            x: 18
             y: 13
         - kind: GridLayoutItem
           spec:
