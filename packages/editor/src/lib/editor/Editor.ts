@@ -110,6 +110,7 @@ import {
 import {
 	DEFAULT_ANIMATION_OPTIONS,
 	DEFAULT_CAMERA_OPTIONS,
+	FRAME_MS_60HZ,
 	INTERNAL_POINTER_IDS,
 	LEFT_MOUSE_BUTTON,
 	MIDDLE_MOUSE_BUTTON,
@@ -4086,8 +4087,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				newCy += center.y / newCz - center.y / cz
 			}
 
-			// Apply friction
-			currentSpeed *= 1 - friction
+			// Apply friction per unit of elapsed time, not per tick, or a 120 Hz display decays twice as fast
+			currentSpeed *= (1 - friction) ** (elapsed / FRAME_MS_60HZ)
 			if (currentSpeed < speedThreshold) {
 				cancel()
 			} else {
