@@ -529,6 +529,7 @@ export async function defaultHandleExternalTextContent(
 
 	const rawSize = editor.textMeasure.measureHtml(htmlToMeasure, {
 		...TEXT_PROPS,
+		richText: richTextToPaste,
 		lineHeight: theme.lineHeight,
 		fontFamily: getFontFamily(theme, defaultProps.font),
 		fontSize: theme.fontSize * FONT_SIZES[defaultProps.size],
@@ -543,6 +544,7 @@ export async function defaultHandleExternalTextContent(
 	if (rawSize.w > minWidth) {
 		const shrunkSize = editor.textMeasure.measureHtml(htmlToMeasure, {
 			...TEXT_PROPS,
+			richText: richTextToPaste,
 			lineHeight: theme.lineHeight,
 			fontFamily: getFontFamily(theme, defaultProps.font),
 			fontSize: theme.fontSize * FONT_SIZES[defaultProps.size],

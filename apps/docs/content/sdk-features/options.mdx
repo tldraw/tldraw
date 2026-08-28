@@ -63,6 +63,8 @@ Cap shape, page, and file counts:
 
 Setting `maxPages` to 1 effectively disables multi-page functionality and removes the page menu from the UI.
 
+A `createShapes` call that would exceed `maxShapesPerPage` is dropped in full without throwing. The editor emits a `max-shapes` event; with no listener registered it also logs a console warning, once per editor.
+
 ### Interaction timing
 
 Configure how the editor interprets user input timing:
@@ -191,8 +193,11 @@ Options that affect rendering performance:
 | `debouncedZoomThreshold`     | 500      | Shape count threshold for debounced zoom |
 | `maxFontsToLoadBeforeRender` | Infinity | Fonts to load before showing canvas      |
 | `textShadowLod`              | 0.35     | Zoom threshold for text shadow rendering |
+| `frameLoop`                  | 'auto'   | How the editor's tick loop runs          |
 
 When `debouncedZoom` is enabled and the page has more shapes than `debouncedZoomThreshold`, the editor returns a cached zoom level during camera movement. This reduces re-renders of complex documents.
+
+Setting `frameLoop` to `'manual'` starts no animation-frame loop; advance time yourself with `editor.emit('tick', elapsedMs)`. This is mainly useful for headless editors and tests.
 
 ### UI and features
 

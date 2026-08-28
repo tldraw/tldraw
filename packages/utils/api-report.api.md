@@ -35,6 +35,9 @@ export function bind<T extends (...args: any[]) => any>(target: object, property
 export function bind<This extends object, T extends (...args: any[]) => any>(originalMethod: T, context: ClassMethodDecoratorContext<This, T>): void;
 
 // @internal
+export function cancelRaf(id: number): void;
+
+// @internal
 export function clearLocalStorage(): void;
 
 // @internal
@@ -431,6 +434,9 @@ export function promiseWithResolve<T>(): Promise<T> & {
     reject(reason?: any): void;
     resolve(value: T): void;
 };
+
+// @internal
+export function raf(callback: (time: number) => void): number;
 
 // @public
 export type RecursivePartial<T> = {

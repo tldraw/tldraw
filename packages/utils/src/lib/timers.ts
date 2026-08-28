@@ -1,5 +1,43 @@
 /* eslint-disable tldraw/no-restricted-properties */
 
+const GLOBAL = globalThis as any
+
+/**
+ * Requests an animation frame in any environment. In browsers this is `requestAnimationFrame`.
+ * Where no frame scheduler exists (Node, workers) it falls back to a 16ms timeout that is
+ * unref'd, so a pending frame never keeps a server process alive after other work finishes.
+ *
+ * Always cancel with {@link cancelRaf}. The fallback's id belongs to the timeout id space, so
+ * `cancelAnimationFrame` would miss it and the frame would still fire.
+ *
+ * @internal
+ */
+export function raf(callback: (time: number) => void): number {
+	if (typeof GLOBAL.requestAnimationFrame === 'function') {
+		return GLOBAL.requestAnimationFrame(callback)
+	}
+	// performance.now() to match real requestAnimationFrame's monotonic timestamp —
+	// Date.now() here would hand a mixing consumer an epoch-sized delta
+	const id = GLOBAL.setTimeout(() => callback(performance.now()), 16)
+	id?.unref?.()
+	return id
+}
+
+/**
+ * Cancels a frame requested with {@link raf}, in any environment.
+ *
+ * @internal
+ */
+export function cancelRaf(id: number): void {
+	// Branch on requestAnimationFrame to mirror raf's choice — a fallback timeout id handed to
+	// cancelAnimationFrame would be missed and the frame would still fire.
+	if (typeof GLOBAL.requestAnimationFrame === 'function') {
+		GLOBAL.cancelAnimationFrame?.(id)
+		return
+	}
+	GLOBAL.clearTimeout(id)
+}
+
 /**
  * A utility class for managing timeouts, intervals, and animation frames with context-based organization and automatic cleanup.
  * Helps prevent memory leaks by organizing timers into named contexts that can be cleared together.
@@ -58,7 +96,10 @@ export class Timers {
 	 * @public
 	 */
 	setTimeout(contextId: string, handler: TimerHandler, timeout?: number, ...args: any[]): number {
-		const id = window.setTimeout(handler, timeout, args)
+		const id = GLOBAL.setTimeout(handler, timeout, ...args)
+		// In Node, editor-owned timers must never pin the process: a headless editor that is
+		// simply forgotten (not disposed) should still let the process exit. No-op in browsers.
+		id?.unref?.()
 		const current = this.timeouts.get(contextId) ?? []
 		this.timeouts.set(contextId, [...current, id])
 		return id
@@ -80,7 +121,10 @@ export class Timers {
 	 * @public
 	 */
 	setInterval(contextId: string, handler: TimerHandler, timeout?: number, ...args: any[]): number {
-		const id = window.setInterval(handler, timeout, args)
+		const id = GLOBAL.setInterval(handler, timeout, ...args)
+		// See setTimeout above — same rule for repeating timers (e.g. the collaborator
+		// visibility clock a sync agent starts by reading collaborators).
+		id?.unref?.()
 		const current = this.intervals.get(contextId) ?? []
 		this.intervals.set(contextId, [...current, id])
 		return id
@@ -100,7 +144,7 @@ export class Timers {
 	 * @public
 	 */
 	requestAnimationFrame(contextId: string, callback: FrameRequestCallback): number {
-		const id = window.requestAnimationFrame(callback)
+		const id = raf(callback)
 		const current = this.rafs.get(contextId) ?? []
 		this.rafs.set(contextId, [...current, id])
 		return id
@@ -125,7 +169,7 @@ export class Timers {
 	dispose(contextId: string) {
 		this.timeouts.get(contextId)?.forEach((id) => clearTimeout(id))
 		this.intervals.get(contextId)?.forEach((id) => clearInterval(id))
-		this.rafs.get(contextId)?.forEach((id) => cancelAnimationFrame(id))
+		this.rafs.get(contextId)?.forEach((id) => cancelRaf(id))
 
 		this.timeouts.delete(contextId)
 		this.intervals.delete(contextId)

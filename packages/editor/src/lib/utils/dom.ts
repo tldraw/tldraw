@@ -149,6 +149,20 @@ export function elementShouldCaptureKeys(el: Element | null, includeButtonsAndMe
 	)
 }
 
+let injectedDocument: Document | null = null
+
+/**
+ * Provides a fallback `Document` for environments that have none, such as headless Node. A
+ * real global `document` always wins. The injection is scoped to tldraw and does not affect
+ * other libraries' environment detection. Only structure and serialization are needed, not
+ * layout.
+ *
+ * @public
+ */
+export function setDefaultDocument(document: Document): void {
+	injectedDocument = document
+}
+
 /**
  * Returns the global `document`. Use this instead of bare `document` to satisfy lint rules.
  *
@@ -161,7 +175,7 @@ export function elementShouldCaptureKeys(el: Element | null, includeButtonsAndMe
 export function getGlobalDocument(): Document {
 	// eslint-disable-next-line no-restricted-globals
 	if (typeof document !== 'undefined') return document
-	return globalThis.document
+	return globalThis.document ?? injectedDocument
 }
 
 /**

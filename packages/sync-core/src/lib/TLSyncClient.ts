@@ -478,7 +478,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 *   - store - The local tldraw store to synchronize
 	 *   - socket - WebSocket adapter for server communication
 	 *   - presence - Reactive signal containing current user's presence data
-	 *   - presenceMode - Optional signal controlling presence sharing (defaults to 'full')
+	 *   - presenceMode - Optional signal controlling presence sharing. When omitted, presence is pushed once after connect but ongoing updates are not shared; pass a signal reading 'full' to share continuously
 	 *   - onLoad - Callback fired when initial sync completes successfully
 	 *   - onSyncError - Callback fired when sync fails with error reason
 	 *   - onCustomMessageReceived - Optional handler for custom messages
@@ -876,6 +876,28 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		if (typeof window !== 'undefined' && (window as any).tlsync === this) {
 			delete (window as any).tlsync
 		}
+	}
+
+	/**
+	 * Whether this client has local changes the server has not yet acknowledged: unsent diffs
+	 * or presence, unconfirmed push requests, and — while disconnected — any optimistic local
+	 * changes. A disconnected client with no local changes reports none.
+	 *
+	 * @public
+	 */
+	hasPendingChanges(): boolean {
+		const hasQueuedChanges = !!(
+			this.unsentChanges.nextDiff ||
+			this.unsentChanges.nextPresence ||
+			this.pendingPushRequests.length > 0
+		)
+		if (this.isConnectedToRoom) return hasQueuedChanges
+		return (
+			hasQueuedChanges ||
+			Object.keys(this.speculativeChanges.added).length > 0 ||
+			Object.keys(this.speculativeChanges.updated).length > 0 ||
+			Object.keys(this.speculativeChanges.removed).length > 0
+		)
 	}
 
 	private lastPushedPresenceState: R | null = null

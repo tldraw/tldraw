@@ -2,17 +2,17 @@ import {
 	Extension,
 	Extensions,
 	extensions,
-	generateHTML,
 	generateJSON,
-	generateText,
+	getSchema,
 	JSONContent,
 } from '@tiptap/core'
 import { Code } from '@tiptap/extension-code'
 import { Highlight } from '@tiptap/extension-highlight'
-import { Node } from '@tiptap/pm/model'
+import { DOMParser as ProseMirrorDOMParser, DOMSerializer, Node } from '@tiptap/pm/model'
 import { StarterKit, type StarterKitOptions } from '@tiptap/starter-kit'
 import {
 	Editor,
+	getGlobalDocument,
 	getOwnProperty,
 	RichTextFontVisitorState,
 	TLFontFace,
@@ -103,7 +103,25 @@ export function renderHtmlFromRichTextWithExtensions(
 	richText: TLRichText,
 	extensions: Extensions
 ): string {
-	const html = generateHTML(richText as JSONContent, extensions)
+	// This is what tiptap's `generateHTML` does internally, minus its hard dependency on a global
+	// `window.document`: serializing against an explicit document lets headless environments
+	// provide one (see `setDefaultDocument`) without installing DOM globals process-wide.
+	const doc = getGlobalDocument()
+	if (!doc) {
+		throw new Error(
+			'tldraw: rendering rich text requires a Document implementation. In a headless ' +
+				'environment, provide one with setDefaultDocument().'
+		)
+	}
+	const schema = getSchema(extensions)
+	const contentNode = Node.fromJSON(schema, richText as JSONContent)
+	const container = doc.createElement('div')
+	DOMSerializer.fromSchema(schema).serializeFragment(
+		contentNode.content,
+		{ document: doc },
+		container
+	)
+	const html = container.innerHTML
 	// We replace empty paragraphs with a single line break to prevent the browser from collapsing
 	// them. The paragraph's attributes are kept: paragraphs render with a `dir` attribute, usually
 	// `auto` but `ltr` or `rtl` when the direction was set explicitly or parsed from pasted HTML.
@@ -165,6 +183,58 @@ export function isEditingRichTextList(editor: Editor) {
 	return !!(textEditor?.isActive('bulletList') || textEditor?.isActive('orderedList'))
 }
 
+type TextSerializers = Record<string, (props: { node: JSONContent }) => string>
+
+// tiptap attaches a node extension's `renderText` to its schema spec as `toText`; collecting
+// those here keeps custom nodes (mentions, emoji) serializing the way generateText did.
+function getTextSerializers(extensions: Extensions): TextSerializers {
+	const serializers: TextSerializers = {}
+	const schema = getSchema(extensions)
+	for (const [name, type] of Object.entries(schema.nodes)) {
+		const toText = (type.spec as { toText?: TextSerializers[string] }).toText
+		if (toText) serializers[name] = toText
+	}
+	return serializers
+}
+
+// One plaintext line per textblock, with hard breaks splitting lines. A textblock is a
+// paragraph/heading (even empty — a blank line) or any node with direct text/hardBreak
+// children: an allowlist alone would drop code-block text, and empty plaintext routes into
+// the editor's delete-shape-when-empty paths. This replaces tiptap's generateText, whose
+// per-block-boundary separator doubled for nested blocks ('\n\none\n\ntwo' for a list).
+function collectPlaintextLines(node: JSONContent, lines: string[], serializers: TextSerializers) {
+	const isTextBlock =
+		node.type === 'paragraph' ||
+		node.type === 'heading' ||
+		(node.content?.some((child) => child.type === 'text' || child.type === 'hardBreak') ?? false)
+	if (isTextBlock) {
+		let line = ''
+		for (const child of node.content ?? []) {
+			if (child.type === 'hardBreak') {
+				lines.push(line)
+				line = ''
+			} else {
+				const serialize = child.type ? serializers[child.type] : undefined
+				line += serialize ? serialize({ node: child }) : (child.text ?? '')
+			}
+		}
+		lines.push(line)
+		return
+	}
+	const serialize = node.type ? serializers[node.type] : undefined
+	if (serialize && !node.content?.length) {
+		// A custom leaf node sitting at block level still gets its text serializer
+		lines.push(serialize({ node }))
+		return
+	}
+	for (const child of node.content ?? []) {
+		collectPlaintextLines(child, lines, serializers)
+	}
+}
+
+const textSerializersCache = new WeakCache<Editor, TextSerializers>()
+const plainTextPerEditorCache = new WeakCache<Editor, WeakCache<TLRichText, string>>()
+
 /**
  * Renders plaintext from a rich text string.
  * @param editor - The editor instance.
@@ -175,13 +245,45 @@ export function isEditingRichTextList(editor: Editor) {
 export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText) {
 	if (isEmptyRichText(richText)) return ''
 
-	return plainTextFromRichTextCache.get(richText, () => {
-		const tipTapExtensions =
-			editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
-		return generateText(richText as JSONContent, tipTapExtensions, {
-			blockSeparator: '\n',
-		})
+	const serializers = textSerializersCache.get(editor, () => {
+		try {
+			return getTextSerializers(
+				editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
+			)
+		} catch {
+			// textOptions: null — no extensions means no custom serializers, and plaintext
+			// rendering itself needs none
+			return {}
+		}
 	})
+	const renderLines = () => {
+		const lines: string[] = []
+		collectPlaintextLines(richText as JSONContent, lines, serializers)
+		return lines.join('\n')
+	}
+	// Custom serializers make the output editor-specific, so those editors get their own
+	// cache; the shared cache is only safe for the serializer-free default configuration.
+	if (Object.keys(serializers).length === 0) {
+		return plainTextFromRichTextCache.get(richText, renderLines)
+	}
+	return plainTextPerEditorCache.get(editor, () => new WeakCache()).get(richText, renderLines)
+}
+
+// Mirrors the whitespace stripping inside tiptap's elementFromString, so the headless parse
+// below produces the same document a browser's generateJSON would for formatted html.
+function removeFormattingWhitespace(node: {
+	childNodes: ArrayLike<{ nodeType: number; nodeValue: string | null }>
+	removeChild(child: any): unknown
+}) {
+	const children = node.childNodes
+	for (let i = children.length - 1; i >= 0; i -= 1) {
+		const child = children[i] as any
+		if (child.nodeType === 3 && child.nodeValue && /^(\n\s\s|\n)$/.test(child.nodeValue)) {
+			node.removeChild(child)
+		} else if (child.nodeType === 1) {
+			removeFormattingWhitespace(child)
+		}
+	}
 }
 
 /**
@@ -194,7 +296,24 @@ export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText
 export function renderRichTextFromHTML(editor: Editor, html: string): TLRichText {
 	const tipTapExtensions =
 		editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
-	return generateJSON(html, tipTapExtensions) as TLRichText
+	// eslint-disable-next-line no-restricted-globals
+	if (typeof window !== 'undefined') {
+		return generateJSON(html, tipTapExtensions) as TLRichText
+	}
+	// Headless: generateJSON requires window.DOMParser. The injected document (linkedom) is a
+	// real HTML parser, so parse there and run the same ProseMirror DOMParser tiptap uses.
+	const doc = getGlobalDocument()
+	if (!doc) {
+		throw new Error(
+			'tldraw: parsing rich text from HTML requires a Document implementation. In a headless ' +
+				'environment, provide one with setDefaultDocument().'
+		)
+	}
+	const container = doc.createElement('div')
+	container.innerHTML = html
+	removeFormattingWhitespace(container)
+	const schema = getSchema(tipTapExtensions)
+	return ProseMirrorDOMParser.fromSchema(schema).parse(container).toJSON() as TLRichText
 }
 
 /** @public */

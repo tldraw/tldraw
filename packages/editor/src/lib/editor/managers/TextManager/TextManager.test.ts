@@ -1,6 +1,11 @@
 import { vi } from 'vitest'
 import { Editor } from '../../Editor'
-import { TextManager, TLMeasureTextSpanOpts } from './TextManager'
+import {
+	TextManager,
+	TLMeasureTextOpts,
+	TLMeasureTextSpanOpts,
+	TLTextMeasurer,
+} from './TextManager'
 
 // Create a simple mock DOM environment
 function createMockStyle() {
@@ -545,5 +550,131 @@ describe('TextManager', () => {
 			const result = textManager.measureTextSpans('Test', opts)
 			expect(Array.isArray(result)).toBe(true)
 		})
+	})
+})
+
+describe('TextManager with an injected measurer', () => {
+	const measureOpts: TLMeasureTextOpts = {
+		fontStyle: 'normal',
+		fontWeight: 'normal',
+		fontFamily: 'tldraw_sans',
+		fontSize: 24,
+		lineHeight: 1.35,
+		maxWidth: null,
+		padding: '0px',
+	}
+
+	function createSpyMeasurer(): TLTextMeasurer & {
+		calls: { method: string; input: unknown }[]
+		disposed: boolean
+	} {
+		const size = { x: 0, y: 0, w: 10, h: 20, scrollWidth: 0 }
+		const measurer = {
+			calls: [] as { method: string; input: unknown }[],
+			disposed: false,
+			measureText(text: string) {
+				measurer.calls.push({ method: 'measureText', input: text })
+				return size
+			},
+			measureHtml(html: string) {
+				measurer.calls.push({ method: 'measureHtml', input: html })
+				return size
+			},
+			measureHtmlBatch(requests: { html: string }[]) {
+				measurer.calls.push({ method: 'measureHtmlBatch', input: requests.map((r) => r.html) })
+				return requests.map(() => size)
+			},
+			measureTextSpans(text: string) {
+				measurer.calls.push({ method: 'measureTextSpans', input: text })
+				return [{ text, box: { x: 0, y: 0, w: 10, h: 20 } }]
+			},
+			dispose() {
+				measurer.disposed = true
+			},
+		}
+		return measurer
+	}
+
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('creates no measurement element and delegates all four methods', () => {
+		const measurer = createSpyMeasurer()
+		const manager = new TextManager(mockEditor, measurer)
+
+		expect(mockEditor.getContainer).not.toHaveBeenCalled()
+
+		manager.measureText('hello', measureOpts)
+		manager.measureHtml('<p dir="auto">hello</p>', measureOpts)
+		manager.measureHtmlBatch([{ html: '<p dir="auto">a</p>', opts: measureOpts }])
+		manager.measureTextSpans('hello', {
+			overflow: 'wrap',
+			width: 100,
+			height: 50,
+			padding: 0,
+			fontSize: 24,
+			fontWeight: 'normal',
+			fontFamily: 'tldraw_sans',
+			fontStyle: 'normal',
+			lineHeight: 1.35,
+			textAlign: 'middle',
+		})
+
+		expect(measurer.calls.map((c) => c.method)).toEqual([
+			'measureText',
+			'measureHtml',
+			'measureHtmlBatch',
+			'measureTextSpans',
+		])
+		expect(mockEditor.getContainer).not.toHaveBeenCalled()
+	})
+
+	it('normalizes line endings before delegating, like the DOM path', () => {
+		const measurer = createSpyMeasurer()
+		const manager = new TextManager(mockEditor, measurer)
+
+		manager.measureText('a\r\nb\rc', measureOpts)
+		expect(measurer.calls[0].input).toBe('a\nb\nc')
+	})
+
+	it('short-circuits empty inputs without calling the measurer', () => {
+		const measurer = createSpyMeasurer()
+		const manager = new TextManager(mockEditor, measurer)
+
+		expect(manager.measureHtmlBatch([])).toEqual([])
+		expect(
+			manager.measureTextSpans('', {
+				overflow: 'wrap',
+				width: 100,
+				height: 50,
+				padding: 0,
+				fontSize: 24,
+				fontWeight: 'normal',
+				fontFamily: 'tldraw_sans',
+				fontStyle: 'normal',
+				lineHeight: 1.35,
+				textAlign: 'middle',
+			})
+		).toEqual([])
+		expect(measurer.calls).toEqual([])
+	})
+
+	it('disposes the injected measurer with the manager', () => {
+		const measurer = createSpyMeasurer()
+		const manager = new TextManager(mockEditor, measurer)
+		expect(measurer.disposed).toBe(false)
+		manager.dispose()
+		expect(measurer.disposed).toBe(true)
+	})
+
+	it('exposes the measurer as the public injected field', () => {
+		const measurer = createSpyMeasurer()
+		const withMeasurer = new TextManager(mockEditor, measurer)
+		expect(withMeasurer.injected).toBe(measurer)
+		withMeasurer.dispose()
+		const withoutMeasurer = new TextManager(mockEditor)
+		expect(withoutMeasurer.injected).toBe(null)
+		withoutMeasurer.dispose()
 	})
 })

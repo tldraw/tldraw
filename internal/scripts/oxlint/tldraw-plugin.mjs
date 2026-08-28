@@ -408,6 +408,8 @@ const rules = {
 						case 'tldraw':
 							if (parts.length === 1) return
 							if (importPath.endsWith('.css')) return
+							// a real exports-map subpath (monorepo-only until prepack preserves it)
+							if (importPath === 'tldraw/headless-defaults') return
 							break
 						case '@tldraw':
 							if (parts.length === 2) return

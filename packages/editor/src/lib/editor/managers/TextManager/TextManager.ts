@@ -1,4 +1,4 @@
-import { BoxModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
+import { BoxModel, TLDefaultHorizontalAlignStyle, TLRichText } from '@tldraw/tlschema'
 import { iterateGraphemes, objectMapKeys } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
 import { EditorManager } from '../EditorManager'
@@ -74,6 +74,13 @@ export interface TLMeasureTextOpts {
 	otherStyles?: Record<string, string>
 	disableOverflowWrapBreaking?: boolean
 	measureScrollWidth?: boolean
+	/**
+	 * The rich text document the measured html was rendered from, when there is one. The html
+	 * is authoritative, since it reflects the editor's text extensions and may be placeholder
+	 * content. A measurer that shares the editor's text configuration may lay this out
+	 * directly instead of re-parsing the html.
+	 */
+	richText?: TLRichText
 }
 
 /** @public */
@@ -92,6 +99,38 @@ export interface TLMeasureTextSpanOpts {
 	measureScrollWidth?: boolean
 }
 
+/**
+ * A replacement for the editor's DOM-based text measurement, injected via
+ * `TLEditorOptions.textMeasurer`. When a measurer is injected the editor creates no hidden
+ * measurement elements, so text-bearing shapes work without a DOM.
+ *
+ * Implementations must match the DOM measurer's box model: `w` and `h` include padding, and
+ * `scrollWidth` is only needed when `measureScrollWidth` is set. Measured bounds are written
+ * into the document, so an inaccurate measurer produces bounds that every client sees.
+ *
+ * @public
+ */
+export interface TLTextMeasurer {
+	/** Measure a plain-text string. */
+	measureText(text: string, opts: TLMeasureTextOpts): TLMeasuredTextSize
+	/** Measure a rendered rich-text html string. */
+	measureHtml(html: string, opts: TLMeasureTextOpts): TLMeasuredTextSize
+	/**
+	 * Measure many html strings in one pass. Results must agree with calling `measureHtml` on
+	 * each request individually; the batch form exists so implementations can amortize setup
+	 * across requests.
+	 */
+	measureHtmlBatch(requests: BatchMeasurementRequest[]): TLMeasuredTextSize[]
+	/** Measure text into positioned spans, split on line breaks and word boundaries. */
+	measureTextSpans(text: string, opts: TLMeasureTextSpanOpts): { text: string; box: BoxModel }[]
+	/**
+	 * Called when the owning editor is disposed. A measurer shared across several editors is
+	 * disposed when the first of them is — share a stateful measurer across editors with that
+	 * in mind.
+	 */
+	dispose?(): void
+}
+
 const spaceCharacterRegex = /\s/
 
 const initialDefaultStyles = Object.freeze({
@@ -105,15 +144,25 @@ const initialDefaultStyles = Object.freeze({
 
 /** @public */
 export class TextManager extends EditorManager {
-	private elm: HTMLDivElement
+	/** The measurer injected through `TLEditorOptions.textMeasurer`, or null when measuring with the DOM. */
+	readonly injected: TLTextMeasurer | null
+
+	private elm: HTMLDivElement | null = null
 	private poolElms: PoolItem[] = []
 
-	constructor(editor: Editor) {
+	constructor(editor: Editor, injected: TLTextMeasurer | null = null) {
 		super(editor)
+		this.injected = injected
+		if (injected) {
+			// An injected measurer owns measurement entirely — creating the hidden element here
+			// would require a DOM, which the headless use case doesn't have.
+			this.register(() => injected.dispose?.())
+			return
+		}
 		this.elm = this.createMeasurementEl()
 		this.editor.getContainer().appendChild(this.elm)
 		this.register(() => {
-			this.elm.remove()
+			this.elm?.remove()
 			for (const { el } of this.poolElms) {
 				el.remove()
 			}
@@ -209,6 +258,7 @@ export class TextManager extends EditorManager {
 
 	measureHtmlBatch(requests: BatchMeasurementRequest[]): TLMeasuredTextSize[] {
 		if (requests.length === 0) return []
+		if (this.injected) return this.injected.measureHtmlBatch(requests)
 
 		while (this.poolElms.length > requests.length) {
 			const { el } = this.poolElms.pop()!
@@ -249,13 +299,26 @@ export class TextManager extends EditorManager {
 	}
 
 	measureText(textToMeasure: string, opts: TLMeasureTextOpts): TLMeasuredTextSize {
+		if (this.injected) {
+			// Normalize line endings before delegating so a measurer never sees \r; the DOM
+			// path gets the same treatment inside normalizeTextForDom below.
+			return this.injected.measureText(textToMeasure.replace(fixNewLines, '\n'), opts)
+		}
 		const div = this.editor.getContainerDocument().createElement('div')
 		div.textContent = normalizeTextForDom(textToMeasure)
 		return this.measureHtml(div.innerHTML, opts)
 	}
 
+	private getElm(): HTMLDivElement {
+		if (!this.elm) {
+			throw new Error('TextManager: DOM measurement is unavailable when a textMeasurer is injected')
+		}
+		return this.elm
+	}
+
 	measureHtml(html: string, opts: TLMeasureTextOpts): TLMeasuredTextSize {
-		const { elm } = this
+		if (this.injected) return this.injected.measureHtml(html, opts)
+		const elm = this.getElm()
 
 		const restoreStyles = this.setElementStyles(elm, this.getMeasureStyles(opts))
 
@@ -399,8 +462,11 @@ export class TextManager extends EditorManager {
 		opts: TLMeasureTextSpanOpts
 	): { text: string; box: BoxModel }[] {
 		if (textToMeasure === '') return []
+		if (this.injected) {
+			return this.injected.measureTextSpans(textToMeasure.replace(fixNewLines, '\n'), opts)
+		}
 
-		const { elm } = this
+		const elm = this.getElm()
 
 		const shouldTruncateToFirstLine =
 			opts.overflow === 'truncate-ellipsis' || opts.overflow === 'truncate-clip'

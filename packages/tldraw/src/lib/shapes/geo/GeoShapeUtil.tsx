@@ -830,6 +830,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		const textSize = this.editor.textMeasure.measureHtml(html, {
 			...TEXT_PROPS,
+			richText: shape.props.richText,
 			fontFamily: dv.labelFontFamily,
 			fontSize: dv.labelFontSize,
 			lineHeight: dv.labelLineHeight,
@@ -889,6 +890,7 @@ function getGeoLabelMeasurementRequest(
 	const html = renderHtmlFromRichTextForMeasurement(editor, richText)
 	const opts: TLMeasureTextOpts = {
 		...TEXT_PROPS,
+		richText,
 		fontFamily: getFontFamily(theme, font),
 		fontSize: theme.fontSize * LABEL_FONT_SIZES[size],
 		lineHeight: theme.lineHeight,

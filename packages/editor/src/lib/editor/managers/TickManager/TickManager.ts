@@ -1,4 +1,4 @@
-import { throttleToNextFrame as _throttleToNextFrame, bind } from '@tldraw/utils'
+import { throttleToNextFrame as _throttleToNextFrame, bind, cancelRaf, raf } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
 import { EditorManager } from '../EditorManager'
 
@@ -7,9 +7,8 @@ const throttleToNextFrame =
 		? // At test time we should use actual raf and not throttle, because throttle was set up to evaluate immediately during tests, which causes stack overflow
 			// for the tick manager since it sets up a raf loop.
 			function mockThrottle(cb: any) {
-				// eslint-disable-next-line no-restricted-globals
-				const frame = requestAnimationFrame(cb)
-				return () => cancelAnimationFrame(frame)
+				const frame = raf(cb)
+				return () => cancelRaf(frame)
 			}
 		: _throttleToNextFrame
 
@@ -17,7 +16,9 @@ const throttleToNextFrame =
 export class TickManager extends EditorManager {
 	constructor(editor: Editor) {
 		super(editor)
-		this.start()
+		if (editor.options.frameLoop !== 'manual') {
+			this.start()
+		}
 	}
 
 	cancelRaf?: null | (() => void)

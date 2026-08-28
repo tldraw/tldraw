@@ -248,6 +248,10 @@ const channel =
 		? new BroadcastChannel('tldraw-user-sync')
 		: null
 
+// Node has a global BroadcastChannel too, and an open one holds the event loop — without this,
+// any process that imports the editor never exits. No-op in browsers, which have no unref.
+;(channel as any)?.unref?.()
+
 channel?.addEventListener('message', (e) => {
 	const data = e.data as undefined | UserChangeBroadcastMessage
 	if (data?.type === broadcastEventKey && data?.origin !== getBroadcastOrigin()) {

@@ -40,6 +40,7 @@ describe('TickManager', () => {
 
 		editor = {
 			emit: mockEmit,
+			options: { frameLoop: 'auto' },
 		} as unknown as Mocked<Editor>
 
 		tickManager = new TickManager(editor)

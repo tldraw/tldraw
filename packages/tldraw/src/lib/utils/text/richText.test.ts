@@ -1,7 +1,10 @@
+import { Extensions, Node } from '@tiptap/core'
 import { TLRichText, toRichText } from '@tldraw/editor'
+import { TestEditor } from '../../../test/TestEditor'
 import {
 	isEmptyRichText,
 	renderHtmlFromRichTextWithExtensions,
+	renderPlaintextFromRichText,
 	tipTapDefaultExtensions,
 } from './richText'
 
@@ -83,5 +86,109 @@ describe('isEmptyRichText', () => {
 			],
 		}
 		expect(isEmptyRichText(richText)).toBe(false)
+	})
+})
+
+describe('renderPlaintextFromRichText', () => {
+	const editors: TestEditor[] = []
+	function makeEditor(extensions?: Extensions) {
+		const editor = new TestEditor(
+			extensions ? { options: { text: { tipTapConfig: { extensions } } } } : {}
+		)
+		editors.push(editor)
+		return editor
+	}
+	afterEach(() => {
+		for (const editor of editors.splice(0)) editor.dispose()
+	})
+
+	// A minimal custom inline node with a renderText serializer, the way mention/emoji
+	// extensions define one.
+	const Mention = Node.create({
+		name: 'mention',
+		group: 'inline',
+		inline: true,
+		atom: true,
+		addAttributes() {
+			return { label: { default: '' } }
+		},
+		renderText({ node }) {
+			return `@${node.attrs.label}`
+		},
+		renderHTML() {
+			return ['span']
+		},
+	})
+
+	const paragraph = (text: string): TLRichText['content'][number] => ({
+		type: 'paragraph',
+		content: text === '' ? [] : [{ type: 'text', text }],
+	})
+	const doc = (...content: TLRichText['content']): TLRichText => ({ type: 'doc', content })
+
+	it('renders default content one line per textblock', () => {
+		const editor = makeEditor()
+		expect(renderPlaintextFromRichText(editor, doc(paragraph('one'), paragraph('two')))).toBe(
+			'one\ntwo'
+		)
+		expect(
+			renderPlaintextFromRichText(
+				editor,
+				doc({
+					type: 'paragraph',
+					content: [
+						{ type: 'text', text: 'a' },
+						{ type: 'hardBreak' },
+						{ type: 'text', text: 'b' },
+					],
+				})
+			)
+		).toBe('a\nb')
+		expect(
+			renderPlaintextFromRichText(
+				editor,
+				doc({
+					type: 'bulletList',
+					content: [
+						{ type: 'listItem', content: [paragraph('first')] },
+						{ type: 'listItem', content: [paragraph('second')] },
+					],
+				})
+			)
+		).toBe('first\nsecond')
+		expect(
+			renderPlaintextFromRichText(
+				editor,
+				doc({ type: 'codeBlock', content: [{ type: 'text', text: 'const a = 1' }] })
+			)
+		).toBe('const a = 1')
+	})
+
+	it('honors custom node renderText serializers, like generateText did', () => {
+		const editor = makeEditor([...tipTapDefaultExtensions, Mention])
+		const rt = doc({
+			type: 'paragraph',
+			content: [
+				{ type: 'text', text: 'hello ' },
+				{ type: 'mention', attrs: { label: 'Steve' } },
+			],
+		})
+		expect(renderPlaintextFromRichText(editor, rt)).toBe('hello @Steve')
+	})
+
+	it('caches per editor when custom serializers exist', () => {
+		// The same rich text object must not leak one editor's serialization to another —
+		// output depends on each editor's extensions.
+		const rt = doc({
+			type: 'paragraph',
+			content: [
+				{ type: 'text', text: 'hello ' },
+				{ type: 'mention', attrs: { label: 'Steve' } },
+			],
+		})
+		const withMention = makeEditor([...tipTapDefaultExtensions, Mention])
+		const plain = makeEditor()
+		expect(renderPlaintextFromRichText(withMention, rt)).toBe('hello @Steve')
+		expect(renderPlaintextFromRichText(plain, rt)).toBe('hello ')
 	})
 })

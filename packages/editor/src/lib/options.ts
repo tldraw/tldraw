@@ -63,6 +63,11 @@ export type TLClipboardPasteRawInfo =
  * @public
  */
 export interface TldrawOptions {
+	/**
+	 * A `createShapes` call that would exceed this cap is dropped in full without throwing.
+	 * The editor emits a `'max-shapes'` event; with no listener registered it also logs a
+	 * console warning, once per editor.
+	 */
 	readonly maxShapesPerPage: number
 	readonly maxFilesAtOnce: number
 	readonly maxPages: number
@@ -124,6 +129,12 @@ export interface TldrawOptions {
 	 * By default, the toolbar items are accessible via number shortcuts according to their order. To disable this, set this option to false.
 	 */
 	readonly enableToolbarKeyboardShortcuts: boolean
+	/**
+	 * How the editor's frame loop runs. `'auto'` (the default) schedules an animation-frame
+	 * loop emitting `'tick'` events; `'manual'` starts none — nothing time-based advances
+	 * until you emit ticks yourself with `editor.emit('tick', elapsedMs)`.
+	 */
+	readonly frameLoop: 'auto' | 'manual'
 	/**
 	 * The maximum number of fonts that will be loaded while blocking the main rendering of the
 	 * canvas. If there are more than this number of fonts needed, we'll just show the canvas right
@@ -336,6 +347,7 @@ export const defaultTldrawOptions = {
 	createTextOnCanvasDoubleClick: true,
 	exportProvider: Fragment,
 	enableToolbarKeyboardShortcuts: true,
+	frameLoop: 'auto',
 	maxFontsToLoadBeforeRender: Infinity,
 	nonce: undefined,
 	debouncedZoom: true,

@@ -1,0 +1,10 @@
+{
+	"extends": "../../internal/config/tsconfig.base.json",
+	"include": ["examples"],
+	"exclude": ["node_modules"],
+	"compilerOptions": {
+		"composite": false,
+		"noEmit": true,
+		"types": ["node", "vitest/globals"]
+	}
+}

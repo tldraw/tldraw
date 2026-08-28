@@ -1,7 +1,6 @@
 import { TLShapeId } from '@tldraw/tlschema'
 import { assert } from '@tldraw/utils'
 import { flushSync } from 'react-dom'
-import { createRoot } from 'react-dom/client'
 import type { Editor } from '../editor/Editor'
 import { TLSvgExportOptions } from '../editor/types/misc-types'
 import { getOwnerWindow } from './domUtils'
@@ -44,7 +43,9 @@ export async function exportToSvg(
 	// we have to add the element to the document as otherwise styles won't be computed correctly.
 	container.appendChild(renderTarget)
 
-	// create a react root...
+	// create a react root. `react-dom/client` is imported lazily because its scheduler opens a
+	// MessageChannel at module load, which keeps headless Node processes alive forever.
+	const { createRoot } = await import('react-dom/client')
 	const root = createRoot(renderTarget, { identifierPrefix: `export_${idCounter++}_` })
 	try {
 		// ...wait for a tick so we know we're not in e.g. a react lifecycle method...

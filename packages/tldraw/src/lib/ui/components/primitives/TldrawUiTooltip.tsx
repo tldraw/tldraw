@@ -2,24 +2,38 @@ import {
 	assert,
 	atom,
 	Editor,
-	getGlobalDocument,
 	tlenvReactive,
 	uniqueId,
 	useMaybeEditor,
 	useValue,
 } from '@tldraw/editor'
-import { Tooltip as _Tooltip } from 'radix-ui'
 import React, {
 	createContext,
 	forwardRef,
+	lazy,
 	ReactNode,
+	Suspense,
 	useContext,
 	useEffect,
 	useRef,
-	useState,
 } from 'react'
 import { useDirection } from '../../hooks/useTranslation/useTranslation'
 import { useTldrawUiOrientation } from './layout'
+
+// Radix (and its react-remove-scroll graph) is loaded lazily so that importing this module —
+// which every default shape util transitively does — costs nothing in processes that never
+// render, like headless Node. Browsers kick the fetch off immediately at import time, so the
+// Suspense fallbacks below show for at most a first-mount pass.
+const LazyTooltipSingletonHost = lazy(async () => ({
+	default: (await import('./TldrawUiTooltipRadix')).TooltipSingletonHost,
+}))
+const LazyFallbackTooltip = lazy(async () => ({
+	default: (await import('./TldrawUiTooltipRadix')).FallbackTooltip,
+}))
+// A failed preload (stale chunk after a deploy, offline) must not surface as an unhandled
+// rejection at import time — the lazy boundaries report the real failure when a tooltip renders.
+// eslint-disable-next-line no-restricted-globals
+if (typeof window !== 'undefined') import('./TldrawUiTooltipRadix').catch(() => {})
 
 const DEFAULT_TOOLTIP_DELAY_MS = 700
 
@@ -176,7 +190,8 @@ class TooltipManager {
 	}
 }
 
-const tooltipManager = TooltipManager.getInstance()
+/** @internal */
+export const tooltipManager = TooltipManager.getInstance()
 
 /** @public */
 export function hideAllTooltips() {
@@ -193,150 +208,15 @@ export interface TldrawUiTooltipProviderProps {
 
 /** @public @react */
 export function TldrawUiTooltipProvider({ children }: TldrawUiTooltipProviderProps) {
+	// The radix provider wraps only the lazily-loaded singleton, never `children` — wrapping
+	// children in a component that appears after the lazy load would remount the whole app.
 	return (
-		<_Tooltip.Provider skipDelayDuration={700}>
-			<TooltipSingletonContext.Provider value={true}>
-				{children}
-				<TooltipSingleton />
-			</TooltipSingletonContext.Provider>
-		</_Tooltip.Provider>
-	)
-}
-
-// The singleton tooltip component that renders once
-function TooltipSingleton() {
-	const [isOpen, setIsOpen] = useState(false)
-	const triggerRef = useRef<HTMLDivElement>(null)
-	const isFirstShowRef = useRef(true)
-	const editor = useMaybeEditor()
-	const dir = useDirection()
-
-	const currentTooltip = useValue(
-		'current tooltip',
-		() => tooltipManager.getCurrentTooltipData(),
-		[]
-	)
-
-	const cameraState = useValue('camera state', () => editor?.getCameraState(), [editor])
-
-	// Hide tooltip when camera is moving (panning/zooming)
-	useEffect(() => {
-		if (cameraState === 'moving' && isOpen && currentTooltip) {
-			tooltipManager.handleEvent({
-				type: 'hide',
-				tooltipId: currentTooltip.id,
-				editor,
-				instant: true,
-			})
-		}
-	}, [cameraState, isOpen, currentTooltip, editor])
-
-	useEffect(() => {
-		const doc = editor?.getContainerDocument() ?? getGlobalDocument()
-		function handleKeyDown(event: KeyboardEvent) {
-			if (event.key === 'Escape' && currentTooltip && isOpen) {
-				hideAllTooltips()
-				event.stopPropagation()
-			}
-		}
-
-		doc.addEventListener('keydown', handleKeyDown, { capture: true })
-		return () => {
-			doc.removeEventListener('keydown', handleKeyDown, { capture: true })
-		}
-	}, [editor, currentTooltip, isOpen])
-
-	// Hide tooltip and prevent new ones from opening while pointer is down
-	useEffect(() => {
-		const doc = editor?.getContainerDocument() ?? getGlobalDocument()
-		function handlePointerDown() {
-			tooltipManager.handleEvent({ type: 'pointer_down' })
-		}
-
-		function handlePointerUp() {
-			tooltipManager.handleEvent({ type: 'pointer_up' })
-		}
-
-		doc.addEventListener('pointerdown', handlePointerDown, { capture: true })
-		doc.addEventListener('pointerup', handlePointerUp, { capture: true })
-		doc.addEventListener('pointercancel', handlePointerUp, { capture: true })
-		return () => {
-			doc.removeEventListener('pointerdown', handlePointerDown, { capture: true })
-			doc.removeEventListener('pointerup', handlePointerUp, { capture: true })
-			doc.removeEventListener('pointercancel', handlePointerUp, { capture: true })
-			// Reset pointer state on unmount to prevent stuck state
-			tooltipManager.handleEvent({ type: 'pointer_up' })
-		}
-	}, [editor])
-
-	// Update open state and trigger position
-	useEffect(() => {
-		// eslint-disable-next-line no-restricted-globals
-		let timer: ReturnType<typeof setTimeout> | null = null
-		if (currentTooltip && triggerRef.current) {
-			// Position the invisible trigger element over the active element
-			const activeRect = currentTooltip.targetElement.getBoundingClientRect()
-			const trigger = triggerRef.current
-
-			trigger.style.position = 'fixed'
-			trigger.style.left = '0px'
-			trigger.style.top = '0px'
-			const cbOffset = trigger.getBoundingClientRect()
-
-			trigger.style.left = `${activeRect.left - cbOffset.left}px`
-			trigger.style.top = `${activeRect.top - cbOffset.top}px`
-
-			trigger.style.width = `${activeRect.width}px`
-			trigger.style.height = `${activeRect.height}px`
-			trigger.style.pointerEvents = 'none'
-			trigger.style.zIndex = '9999'
-
-			// Handle delay for first show
-			if (isFirstShowRef.current) {
-				// eslint-disable-next-line no-restricted-globals
-				timer = setTimeout(() => {
-					setIsOpen(true)
-					isFirstShowRef.current = false
-				}, currentTooltip.delayDuration)
-			} else {
-				// Subsequent tooltips show immediately
-				setIsOpen(true)
-			}
-		} else {
-			// Hide tooltip immediately
-			setIsOpen(false)
-			// Reset first show state after tooltip is hidden
-			isFirstShowRef.current = true
-		}
-
-		return () => {
-			if (timer !== null) {
-				clearTimeout(timer)
-			}
-		}
-	}, [currentTooltip])
-
-	if (!currentTooltip) {
-		return null
-	}
-
-	return (
-		<_Tooltip.Root open={isOpen} delayDuration={0}>
-			<_Tooltip.Trigger asChild>
-				<div ref={triggerRef} />
-			</_Tooltip.Trigger>
-			<_Tooltip.Content
-				className="tlui-tooltip"
-				side={currentTooltip.side}
-				sideOffset={currentTooltip.sideOffset}
-				avoidCollisions
-				collisionPadding={8}
-				dir={dir}
-			>
-				{currentTooltip.content}
-				<_Tooltip.Arrow className="tlui-tooltip__arrow" />
-			</_Tooltip.Content>
-		</_Tooltip.Root>
+		<TooltipSingletonContext.Provider value={true}>
+			{children}
+			<Suspense fallback={null}>
+				<LazyTooltipSingletonHost />
+			</Suspense>
+		</TooltipSingletonContext.Provider>
 	)
 }
 
@@ -394,28 +274,24 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 				delayDuration ?? (editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS)
 		}
 
-		// Fallback to old behavior if no provider
+		// Fallback to old behavior if no provider. The Suspense fallback renders the trigger
+		// children plainly until radix resolves — at least one first-mount pass even when the
+		// module is already loaded, so children briefly remount into the radix trigger.
 		if (!hasProvider || enhancedA11yMode) {
 			return (
-				<_Tooltip.Root
-					delayDuration={delayDurationToUse}
-					disableHoverableContent={!enhancedA11yMode}
-				>
-					<_Tooltip.Trigger asChild ref={ref}>
-						{children}
-					</_Tooltip.Trigger>
-					<_Tooltip.Content
-						className="tlui-tooltip"
+				<Suspense fallback={<>{children}</>}>
+					<LazyFallbackTooltip
+						content={content}
 						side={sideToUse}
 						sideOffset={sideOffset}
-						avoidCollisions
-						collisionPadding={8}
 						dir={dir}
+						delayDuration={delayDurationToUse}
+						enhancedA11yMode={enhancedA11yMode}
+						triggerRef={ref}
 					>
-						{content}
-						<_Tooltip.Arrow className="tlui-tooltip__arrow" />
-					</_Tooltip.Content>
-				</_Tooltip.Root>
+						{children}
+					</LazyFallbackTooltip>
+				</Suspense>
 			)
 		}
 

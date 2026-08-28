@@ -1,5 +1,50 @@
-import { describe, expect, it, vi } from 'vitest'
-import { Timers } from './timers'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { Timers, cancelRaf, raf } from './timers'
+
+afterEach(() => {
+	vi.unstubAllGlobals()
+	vi.useRealTimers()
+})
+
+describe('raf fallback', () => {
+	// The headless frame loop rides on this: without requestAnimationFrame, raf must still
+	// fire (via an unref'd timeout) and cancelRaf must still cancel it.
+	it('fires the callback with a monotonic (not epoch) timestamp', () => {
+		vi.useFakeTimers()
+		vi.stubGlobal('requestAnimationFrame', undefined)
+		vi.stubGlobal('cancelAnimationFrame', undefined)
+		const cb = vi.fn()
+		raf(cb)
+		vi.advanceTimersByTime(20)
+		expect(cb).toHaveBeenCalledTimes(1)
+		// performance.now()-scale, not Date.now() — an epoch delta would wreck mixed consumers
+		expect(cb.mock.calls[0][0]).toBeLessThan(Date.now() / 2)
+	})
+
+	it('cancelRaf cancels a fallback frame', () => {
+		vi.useFakeTimers()
+		vi.stubGlobal('requestAnimationFrame', undefined)
+		vi.stubGlobal('cancelAnimationFrame', undefined)
+		const cb = vi.fn()
+		cancelRaf(raf(cb))
+		vi.advanceTimersByTime(50)
+		expect(cb).not.toHaveBeenCalled()
+	})
+
+	it('cancelRaf cancels a fallback frame even when cancelAnimationFrame exists', () => {
+		// Mixed environment: raf chose the timeout fallback, so handing its id to
+		// cancelAnimationFrame would miss it and the frame would still fire.
+		vi.useFakeTimers()
+		vi.stubGlobal('requestAnimationFrame', undefined)
+		const cancelAnimationFrame = vi.fn()
+		vi.stubGlobal('cancelAnimationFrame', cancelAnimationFrame)
+		const cb = vi.fn()
+		cancelRaf(raf(cb))
+		vi.advanceTimersByTime(50)
+		expect(cb).not.toHaveBeenCalled()
+		expect(cancelAnimationFrame).not.toHaveBeenCalled()
+	})
+})
 
 describe('Timers', () => {
 	it('tracks timers by context and disposes them correctly', () => {
@@ -71,5 +116,16 @@ describe('Timers', () => {
 		expect(mockClearTimeout).toHaveBeenCalledWith(1)
 
 		vi.unstubAllGlobals()
+	})
+
+	it('passes extra args to the handler individually, as documented', () => {
+		// The handler used to receive the args as one array, contradicting the doc.
+		vi.useFakeTimers()
+		const timers = new Timers()
+		const spy = vi.fn()
+		timers.setTimeout('args', spy, 0, 'a', 'b')
+		vi.advanceTimersByTime(1)
+		expect(spy).toHaveBeenCalledWith('a', 'b')
+		timers.disposeAll()
 	})
 })

@@ -433,7 +433,11 @@
 			}
 		},
 		{
-			"files": ["internal/**/*", "templates/simple-server-example/**/*"],
+			"files": [
+				"internal/**/*",
+				"templates/simple-server-example/**/*",
+				"packages/headless/examples/**/*"
+			],
 			"rules": {
 				"no-console": "off"
 			}

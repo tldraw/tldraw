@@ -132,6 +132,7 @@ export {
 	type SnapIndicator,
 } from './lib/editor/managers/SnapManager/SnapManager'
 export { SpatialIndexManager } from './lib/editor/managers/SpatialIndexManager/SpatialIndexManager'
+export { approximateTextMeasurer } from './lib/editor/managers/TextManager/approximateTextMeasurer'
 export {
 	TextManager,
 	resolveLineHeightPx,
@@ -139,6 +140,7 @@ export {
 	type TLMeasuredTextSize,
 	type TLMeasureTextOpts,
 	type TLMeasureTextSpanOpts,
+	type TLTextMeasurer,
 } from './lib/editor/managers/TextManager/TextManager'
 export { DEFAULT_THEME } from './lib/editor/managers/ThemeManager/defaultThemes'
 export { ThemeManager, resolveThemes } from './lib/editor/managers/ThemeManager/ThemeManager'
@@ -472,6 +474,7 @@ export {
 	moveElementInto,
 	preventDefault,
 	releasePointerCapture,
+	setDefaultDocument,
 	setPointerCapture,
 	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	stopEventPropagation,

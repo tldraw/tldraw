@@ -1,3 +1,5 @@
+import { cancelRaf, raf } from './timers'
+
 const isTest = () =>
 	typeof process !== 'undefined' &&
 	process.env.NODE_ENV === 'test' &&
@@ -53,8 +55,7 @@ export class FpsScheduler {
 
 		if (elapsed < this.targetTimePerFrame) {
 			// If we're too early to flush, we need to wait until the next frame to try and flush again.
-			// eslint-disable-next-line no-restricted-globals
-			this.frameRaf = requestAnimationFrame(() => {
+			this.frameRaf = raf(() => {
 				this.frameRaf = undefined
 				this.tick(true)
 			})
@@ -69,8 +70,7 @@ export class FpsScheduler {
 		} else {
 			// If we haven't already waited for the next frame to run the tick, we need to wait until the next frame to flush.
 			if (this.flushRaf) return // ...though if there's a flush raf, that means we'll be flushing on the next frame already, so we can do nothing here.
-			// eslint-disable-next-line no-restricted-globals
-			this.flushRaf = requestAnimationFrame(() => {
+			this.flushRaf = raf(() => {
 				this.flushRaf = undefined
 				this.lastFlushTime = Date.now()
 				this.flush()
@@ -96,11 +96,11 @@ export class FpsScheduler {
 		if (isTest()) {
 			fn.cancel = () => {
 				if (this.frameRaf) {
-					cancelAnimationFrame(this.frameRaf)
+					cancelRaf(this.frameRaf)
 					this.frameRaf = undefined
 				}
 				if (this.flushRaf) {
-					cancelAnimationFrame(this.flushRaf)
+					cancelRaf(this.flushRaf)
 					this.flushRaf = undefined
 				}
 			}

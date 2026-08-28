@@ -36,6 +36,7 @@
 	"types": "./.tsbuild/index.d.ts",
 	"exports": {
 		".": "./src/index.ts",
+		"./headless-defaults": "./src/headless-defaults.ts",
 		"./src/test/test-jsx": "./src/test/test-jsx.tsx",
 		"./*.css": "./*.css"
 	},
@@ -58,6 +59,7 @@
 		"tldraw.css"
 	],
 	"dependencies": {
+		"@radix-ui/react-slot": "1.2.3",
 		"@tiptap/core": "^3.12.1",
 		"@tiptap/extension-code": "^3.12.1",
 		"@tiptap/extension-highlight": "^3.12.1",

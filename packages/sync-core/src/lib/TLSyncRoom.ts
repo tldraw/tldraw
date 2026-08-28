@@ -258,6 +258,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}, 1000)
 
 	private scheduleFollowUpPrune() {
+		// A socket close event can land after room.close() (the handshake races it); scheduling
+		// then leaks a timer that pins a Node process for SESSION_REMOVAL_WAIT_TIME.
+		if (this._isClosed) return
 		if (this.pruneTimer) return
 		this.pruneTimer = setTimeout(this.pruneSessions, SESSION_REMOVAL_WAIT_TIME + 100)
 	}
@@ -273,11 +276,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * and stops background processes.
 	 */
 	close() {
+		// Set the flag first: socket.close() below can dispatch its close event synchronously
+		// (in-process sockets, workers), re-entering cancelSession — which must see the room
+		// as closed or it re-arms the prune timer the disposables just cleared.
+		this._isClosed = true
 		this.disposables.forEach((d) => d())
 		this.sessions.forEach((session) => {
 			session.socket.close()
 		})
-		this._isClosed = true
 	}
 
 	/**
@@ -531,6 +537,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			return
 		}
 
+		if (session.state === RoomSessionState.Connected && session.debounceTimer) {
+			clearTimeout(session.debounceTimer)
+		}
 		this.sessions.delete(sessionId)
 
 		try {

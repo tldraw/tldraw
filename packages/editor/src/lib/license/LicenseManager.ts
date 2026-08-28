@@ -174,6 +174,10 @@ export class LicenseManager {
 	}
 
 	private getIsDevelopment() {
+		// Headless (no window) has no origin to inspect; NODE_ENV is the only signal.
+		if (typeof window === 'undefined') {
+			return process.env.NODE_ENV !== 'production'
+		}
 		const protocol = window.location.protocol
 		const hostname = window.location.hostname
 
@@ -223,6 +227,9 @@ export class LicenseManager {
 	}
 
 	private maybeTrack(result: LicenseFromKeyResult, licenseState: LicenseState): void {
+		// Headless deployments are never tracked: there is no watermark to account for and no
+		// page URL to report.
+		if (typeof window === 'undefined') return
 		const trackType = this.getTrackType(result, licenseState)
 		if (!trackType) {
 			return
@@ -386,6 +393,9 @@ export class LicenseManager {
 	}
 
 	private isDomainValid(licenseInfo: LicenseInfo) {
+		// Headless has no hostname to validate against; the signature and expiry checks still
+		// apply, so a valid key is accepted for any host.
+		if (typeof window === 'undefined') return true
 		const currentHostname = window.location.hostname.toLowerCase()
 
 		return licenseInfo.hosts.some((host) => {

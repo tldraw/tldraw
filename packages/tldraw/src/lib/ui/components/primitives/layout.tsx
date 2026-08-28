@@ -1,5 +1,8 @@
+// The standalone slot package, not the radix-ui barrel: the barrel eagerly loads every
+// primitive (react-remove-scroll and friends), and this module sits in the default shape
+// utils' import graph, which headless Node processes load without ever rendering.
+import * as Slot from '@radix-ui/react-slot'
 import classNames from 'classnames'
-import { Slot } from 'radix-ui'
 import { HTMLAttributes, ReactNode, createContext, forwardRef, useContext } from 'react'
 
 /** @public */

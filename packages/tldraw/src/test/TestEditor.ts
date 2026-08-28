@@ -9,10 +9,10 @@ import {
 	RequiredKeys,
 	TLContent,
 	TLEditorOptions,
-	TLMeasureTextOpts,
 	TLShape,
 	TLShapePartial,
 	TLStoreOptions,
+	approximateTextMeasurer,
 	createShapeId,
 	createTLStore,
 } from '@tldraw/editor'
@@ -114,6 +114,7 @@ export class TestEditor extends Editor {
 				...storeOptions,
 			}),
 			getContainer: () => elm,
+			textMeasurer: options.textMeasurer ?? approximateTextMeasurer,
 			initialState: 'select',
 			options: {
 				...options.options,
@@ -132,52 +133,6 @@ export class TestEditor extends Editor {
 
 		// Pretty hacky way to mock the screen bounds
 		document.body.appendChild(this.elm)
-
-		this.textMeasure.measureText = (
-			textToMeasure: string,
-			opts: TLMeasureTextOpts
-		): BoxModel & { scrollWidth: number } => {
-			const breaks = textToMeasure.split('\n')
-			const longest = breaks.reduce((acc, curr) => {
-				return curr.length > acc.length ? curr : acc
-			}, '')
-
-			const w = longest.length * (opts.fontSize / 2)
-
-			return {
-				x: 0,
-				y: 0,
-				w: opts.maxWidth === null ? w : Math.max(w, opts.maxWidth),
-				h:
-					(opts.maxWidth === null ? breaks.length : Math.ceil(w / opts.maxWidth) + breaks.length) *
-					opts.fontSize,
-				scrollWidth: opts.measureScrollWidth
-					? opts.maxWidth === null
-						? w
-						: Math.max(w, opts.maxWidth)
-					: 0,
-			}
-		}
-
-		this.textMeasure.measureHtml = (
-			html: string,
-			opts: TLMeasureTextOpts
-		): BoxModel & { scrollWidth: number } => {
-			const textToMeasure = html
-				.split('</p><p dir="auto">')
-				.join('\n')
-				.replace(/<[^>]+>/g, '')
-			return this.textMeasure.measureText(textToMeasure, opts)
-		}
-
-		this.textMeasure.measureTextSpans = (textToMeasure, opts) => {
-			const box = this.textMeasure.measureText(textToMeasure, {
-				...opts,
-				maxWidth: opts.width,
-				padding: `${opts.padding}px`,
-			})
-			return [{ box, text: textToMeasure }]
-		}
 
 		// Turn off edge scrolling for tests. Tests that require this can turn it back on.
 		this.user.updateUserPreferences({ edgeScrollSpeed: 0 })

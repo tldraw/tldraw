@@ -1,5 +1,5 @@
 /**
- * Just a wrapper around `window.fetch` that sets the `referrerPolicy` to `strict-origin-when-cross-origin`.
+ * Just a wrapper around `fetch` that sets the `referrerPolicy` to `strict-origin-when-cross-origin`.
  *
  * @param input - A Request object or string containing the URL to fetch
  * @param init - Optional request initialization options
@@ -7,8 +7,10 @@
  * @internal
  */
 export async function fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+	// globalThis, not window: Node has global fetch but no window, and headless url imports
+	// route through here.
 	// eslint-disable-next-line tldraw/no-restricted-properties
-	return window.fetch(input, {
+	return globalThis.fetch(input, {
 		// We want to make sure that the referrer is not sent to other domains.
 		referrerPolicy: 'strict-origin-when-cross-origin',
 		...init,

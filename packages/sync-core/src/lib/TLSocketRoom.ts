@@ -401,6 +401,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 	private scheduleDebouncedSnapshot(sessionId: string) {
 		if (!this.opts.onSessionSnapshot) return
+		// A message can arrive after close(); scheduling then would leak a timer past the
+		// drain in close() and keep a Node process alive for up to 5s.
+		if (this.isClosed()) return
 		this.clearSnapshotTimer(sessionId)
 		this.snapshotTimers.set(
 			sessionId,
@@ -439,6 +442,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * ```
 	 */
 	handleSocketMessage(sessionId: string, message: string | AllowSharedBufferSource) {
+		// A message racing close() must not be processed: the pruneSessions throttle and the
+		// snapshot debounce it would reach both schedule ref'd timers on a drained room.
+		if (this.isClosed()) return
 		const assembler = this.sessions.get(sessionId)?.assembler
 		if (!assembler) {
 			this.log?.warn?.('Received message from unknown session', sessionId)

@@ -148,6 +148,7 @@ import {
 	parseDeepLinkString,
 } from '../utils/deepLinks'
 import { getIncrementedName } from '../utils/getIncrementedName'
+import { createHeadlessContainer } from '../utils/headlessContainer'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { getDroppedShapesToNewParents, kickoutOccludedShapes } from '../utils/reparenting'
 import { TLTextOptions, TiptapEditor } from '../utils/richText'
@@ -170,7 +171,8 @@ import { PerformanceManager } from './managers/PerformanceManager/PerformanceMan
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
-import { TextManager } from './managers/TextManager/TextManager'
+import { approximateTextMeasurer } from './managers/TextManager/approximateTextMeasurer'
+import { TextManager, TLTextMeasurer } from './managers/TextManager/TextManager'
 import { ThemeManager, resolveThemes } from './managers/ThemeManager/ThemeManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
@@ -260,10 +262,23 @@ export interface TLEditorOptions {
 	licenseKey?: string
 	fontAssetUrls?: { [key: string]: string | undefined }
 	/**
-	 * Should return a containing html element which has all the styles applied to the editor. If not
-	 * given, the body element will be used.
+	 * Replaces the editor's DOM-based text measurement. When given, the editor creates no
+	 * hidden measurement elements and can run headlessly. See {@link TLTextMeasurer}.
 	 */
-	getContainer(): HTMLElement
+	textMeasurer?: TLTextMeasurer
+	/**
+	 * Should return a containing html element which has all the styles applied to the editor.
+	 * Required unless `headless` is true.
+	 */
+	getContainer?(): HTMLElement
+	/**
+	 * Runs the editor against an inert container stub instead of a real element. The document
+	 * API works, but rendering-dependent features require a real container, and text measures
+	 * with {@link approximateTextMeasurer} unless a `textMeasurer` is injected. Mutually
+	 * exclusive with `getContainer`. Prefer `createHeadlessEditor` from `@tldraw/headless`,
+	 * which sets this.
+	 */
+	headless?: boolean
 	/**
 	 * Provides a way to hide shapes.
 	 *
@@ -366,6 +381,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		fontAssetUrls,
 		themes,
 		initialTheme,
+		textMeasurer,
+		headless,
 	}: TLEditorOptions) {
 		super()
 
@@ -400,14 +417,37 @@ export class Editor extends EventEmitter<TLEventMap> {
 			...options?.camera,
 		})
 
-		this.getContainer = getContainer
+		if (getContainer && headless) {
+			// A silent winner here would either drop the export guard (getContainer wins) or
+			// ignore a real container (headless wins) — both surprising, so refuse the combination.
+			throw new Error('TLEditorOptions.getContainer and headless are mutually exclusive.')
+		}
+		if (getContainer) {
+			this.getContainer = getContainer
+			this._isHeadless = false
+		} else if (headless) {
+			const headlessContainer = createHeadlessContainer()
+			this.getContainer = () => headlessContainer
+			this._isHeadless = true
+		} else {
+			// Requiring explicit intent keeps a dropped or mistyped option from silently
+			// producing a non-rendering editor with approximate text metrics.
+			throw new Error(
+				'TLEditorOptions.getContainer is required. To run the editor without a DOM, use createHeadlessEditor from @tldraw/headless (or pass headless: true).'
+			)
+		}
 
 		this._textOptions = atom('text options', options?.text ?? null)
 
 		this.user = new UserPreferencesManager(user ?? createTLCurrentUser(), colorScheme ?? 'light')
 		this.disposables.add(() => this.user.dispose())
 
-		this.textMeasure = new TextManager(this)
+		// A container-less editor has no DOM to measure text in, so it falls back to the
+		// character-count approximation unless the caller injected something better.
+		this.textMeasure = new TextManager(
+			this,
+			textMeasurer ?? (this._isHeadless ? approximateTextMeasurer : null)
+		)
 		this.disposables.add(() => this.textMeasure.dispose())
 
 		this._themeManager = new ThemeManager(this, {
@@ -945,9 +985,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			unregisterMountedEditor(this)
 		})
 
-		this.timers.requestAnimationFrame(() => {
-			this._tickManager.start()
-		})
+		if (this.options.frameLoop !== 'manual') {
+			this.timers.requestAnimationFrame(() => {
+				this._tickManager.start()
+			})
+		}
 
 		this.performanceTracker = new PerformanceTracker()
 
@@ -1070,6 +1112,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	isDisposed = false
 
+	private _warnedDisposedWrite = false
+	// Dispose doesn't seal the store (stores can outlive editors), so a write through a
+	// disposed editor still lands with nothing reacting — an easy silent bug. Warn once.
+	private warnIfDisposedWrite() {
+		if (!this.isDisposed || this._warnedDisposedWrite) return
+		this._warnedDisposedWrite = true
+		console.warn(
+			'Editor: mutating shapes or bindings through a disposed editor. The change is applied to the store, but this editor no longer reacts to it.'
+		)
+	}
+
 	private readonly _isMounted = atom('isMounted', false)
 
 	/**
@@ -1092,6 +1145,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal */
 	private readonly _tickManager: TickManager
+
+	// True when the editor was constructed without a `getContainer` option and is running
+	// against the inert headless container stub.
+	private readonly _isHeadless: boolean
 
 	/**
 	 * A manager for the editor's input state.
@@ -4196,16 +4253,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// removed), its body is null and there's nothing meaningful to measure.
 		if (!doc.body) return this
 
-		const insets = [
-			// top
-			screenBounds.minY !== 0,
-			// right
-			!approximately(doc.body.scrollWidth, screenBounds.maxX, 1),
-			// bottom
-			!approximately(doc.body.scrollHeight, screenBounds.maxY, 1),
-			// left
-			screenBounds.minX !== 0,
-		]
+		// Without a real container there is no page to be inset against — the stub's body has
+		// no layout, so measuring it would report phantom insets on every viewport change.
+		const insets = this._isHeadless
+			? [false, false, false, false]
+			: [
+					// top
+					screenBounds.minY !== 0,
+					// right
+					!approximately(doc.body.scrollWidth, screenBounds.maxX, 1),
+					// bottom
+					!approximately(doc.body.scrollHeight, screenBounds.maxY, 1),
+					// left
+					screenBounds.minX !== 0,
+				]
 
 		const { _willSetInitialBounds } = this
 
@@ -5676,7 +5737,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get the common ancestor of two or more shapes that matches a predicate.
+	 * Get the common ancestor of two or more shapes that matches a predicate. Returns
+	 * `undefined` when the only thing the shapes share is the page itself.
 	 *
 	 * @param shapes - The shapes (or shape ids) to check.
 	 * @param predicate - The predicate to match.
@@ -6122,7 +6184,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param bounds - The bounds to search within.
-	 * @returns Unordered set of shape IDs within the given bounds.
+	 * @returns Unordered set of shape IDs intersecting the given bounds. Despite the name, a
+	 * shape only partially inside is included.
 	 *
 	 * @public
 	 */
@@ -6773,6 +6836,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * binding, but the `type`, `toId`, and `fromId` must all be provided.
 	 */
 	createBindings<B extends TLBinding = TLBinding>(partials: TLBindingCreate<B>[]) {
+		this.warnIfDisposedWrite()
 		const bindings: TLBinding[] = []
 		for (const partial of partials) {
 			const fromShape = this.getShape(partial.fromId)
@@ -6812,6 +6876,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * binding is skipped. The changes from the partial are merged into the existing record.
 	 */
 	updateBindings(partials: (TLBindingUpdate | null | undefined)[]) {
+		this.warnIfDisposedWrite()
 		const updated: TLBinding[] = []
 
 		for (const partial of partials) {
@@ -6849,6 +6914,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Delete several bindings by their IDs. If a binding ID doesn't exist, it's ignored.
 	 */
 	deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes = false } = {}) {
+		this.warnIfDisposedWrite()
 		const ids = bindings.map((binding) => (typeof binding === 'string' ? binding : binding.id))
 		if (isolateShapes) {
 			this.store.atomic(() => {
@@ -6906,7 +6972,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* -------------------- Commands -------------------- */
 
 	/**
-	 * Rotate shapes by a delta in radians.
+	 * Rotate shapes by a delta in radians. The pivot is the center of the shapes' common
+	 * rotated page bounds, unless `opts.center` overrides it, so a shape's x/y can move. Setting
+	 * `rotation` through `updateShapes` instead pivots around the shape's own x/y origin.
 	 *
 	 * @example
 	 * ```ts
@@ -7155,6 +7223,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Move shapes to page.
+	 *
+	 * Note: the editor switches to the destination page, moving the camera to the moved shapes
+	 * and selecting them there. Bindings cannot cross pages, so moving only one end of a bound
+	 * pair (e.g. an arrow's target but not the arrow) silently drops that binding. Move bound
+	 * shapes together to keep their bindings.
 	 *
 	 * @example
 	 * ```ts
@@ -7584,7 +7657,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param shapes - The shapes (or shape ids) to stack.
 	 * @param operation - Whether to stack horizontally or vertically.
-	 * @param gap - The gap to leave between shapes. By default, uses the editor's `adjacentShapeMargin` option.
+	 * @param gap - The gap to leave between shapes. By default, uses the editor's `adjacentShapeMargin` option. A gap of `0` infers the most common existing gap, which requires at least three shapes; with two shapes it does nothing.
 	 *
 	 * @public
 	 */
@@ -8536,6 +8609,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!Array.isArray(shapes)) {
 			throw Error('Editor.createShapes: must provide an array of shapes or shape partials')
 		}
+		this.warnIfDisposedWrite()
 		if (this.getIsReadonly()) return this
 		if (shapes.length <= 0) return this
 
@@ -9052,6 +9126,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	updateShapes<T extends TLShape>(partials: (TLShapePartial<T> | null | undefined)[]) {
+		this.warnIfDisposedWrite()
 		const compactedPartials: TLShapePartial<T>[] = []
 
 		for (let i = 0, n = partials.length; i < n; i++) {
@@ -9146,6 +9221,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	deleteShapes(ids: TLShapeId[]): this
 	deleteShapes(shapes: TLShape[]): this
 	deleteShapes(_ids: TLShapeId[] | TLShape[]): this {
+		this.warnIfDisposedWrite()
 		if (this.getIsReadonly()) return this
 
 		if (!Array.isArray(_ids)) {
@@ -10153,6 +10229,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	async getSvgElement(shapes: TLShapeId[] | TLShape[], opts: TLSvgExportOptions = {}) {
+		if (this._isHeadless) {
+			// Without this guard the export pipeline dies deep in react-dom with an error that
+			// reads like a bundler misconfiguration.
+			throw new Error(
+				'Image and SVG export are not available in a headless editor (there is no renderer).'
+			)
+		}
 		const ids =
 			shapes.length === 0
 				? this.getCurrentPageShapeIdsSorted()
@@ -11640,8 +11723,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 }
 
+const warnedMaxShapes = new WeakSet<Editor>()
+
 function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
 	const name = editor.getPage(pageId)!.name
+	if (editor.listenerCount('max-shapes') === 0 && !warnedMaxShapes.has(editor)) {
+		// The default UI shows a toast for this event. Headless (or any consumer without a
+		// listener) would otherwise see a create call silently drop its entire batch. Once per
+		// editor — an import loop at the cap would otherwise warn per call.
+		warnedMaxShapes.add(editor)
+		console.warn(
+			`Editor: dropped a shape create because page "${name}" is at the maxShapesPerPage limit (${editor.options.maxShapesPerPage}). Listen for the 'max-shapes' event to handle this.`
+		)
+	}
 	editor.emit('max-shapes', { name, pageId, count: editor.options.maxShapesPerPage })
 }
 

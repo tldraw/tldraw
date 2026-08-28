@@ -24,7 +24,7 @@ The editor measures text to calculate shape bounds, handle text wrapping, and po
 
 ## How text measurement works
 
-The `TextManager` creates a hidden measurement element on initialization and appends it to the editor container. This element stays in the DOM throughout the editor's lifecycle, so repeated measurements don't pay the cost of creating and removing elements.
+By default, the `TextManager` creates a hidden measurement element on initialization and appends it to the editor container. This element stays in the DOM throughout the editor's lifecycle, so repeated measurements don't pay the cost of creating and removing elements. Alternatively, measurement can be replaced entirely by passing a [TLTextMeasurer](?) as the `textMeasurer` editor option — the editor then creates no measurement elements at all, which is what lets it run without a DOM (a headless editor with no injected measurer falls back to the approximate [approximateTextMeasurer](?)). Measurement options carry the source rich text document alongside the rendered html (`TLMeasureTextOpts.richText`), so an injected measurer that shares the editor's text configuration can lay the document out directly instead of parsing html.
 
 ```typescript
 // Simplified for clarity - see TextManager.ts for full implementation
