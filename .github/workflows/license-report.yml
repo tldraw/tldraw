@@ -31,8 +31,9 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v6
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           # `pull_request` checks out a detached merge commit, which we can't push back to.
-          ref: ${{ github.head_ref }}
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - uses: ./.github/actions/setup
 
