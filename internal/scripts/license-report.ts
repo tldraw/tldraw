@@ -10,7 +10,8 @@ import { glob } from 'glob'
 import { exec } from './lib/exec'
 
 // `remoteVersion` is omitted: it's the newest published version matching our range, so it changes
-// whenever an upstream maintainer publishes. The rest is a function of the lockfile, so CI can diff.
+// whenever an upstream maintainer publishes, committing a new page on unrelated PRs. The rest is a
+// function of the lockfile.
 const FIELDS = [
 	'department',
 	'relatedTo',

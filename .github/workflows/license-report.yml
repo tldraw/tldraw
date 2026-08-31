@@ -1,10 +1,9 @@
-name: Check license report
+name: Update license report
 
-# Don't add this to the required checks: it's path-filtered, so it doesn't report at all on PRs
-# that leave dependencies alone, and a required check that never reports blocks the PR forever.
+# Skipped on PRs from forks: the push below needs write access to the head branch.
 
 permissions:
-  contents: read
+  contents: write
 
 on:
   pull_request:
@@ -22,23 +21,31 @@ defaults:
     shell: bash
 
 jobs:
-  check:
-    name: 'Check license report'
+  update:
+    name: 'Update license report'
+    if: github.event.pull_request.head.repo.full_name == github.repository
     timeout-minutes: 15
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out code
         uses: actions/checkout@v6
+        with:
+          # `pull_request` checks out a detached merge commit, which we can't push back to.
+          ref: ${{ github.head_ref }}
 
       - uses: ./.github/actions/setup
+
+      - name: Configure Git
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Generate license report
         run: yarn license-report --prod
 
-      - name: Check the docs page is up to date
+      - name: Commit changes
         run: |
-          if ! git diff --exit-code -- apps/docs/content/community/dependencies.mdx; then
-            echo "::error::The dependency list is out of date. Run \`yarn license-report --prod\` and commit the result."
-            exit 1
-          fi
+          git add apps/docs/content/community/dependencies.mdx
+          git diff --cached --quiet || git commit -m 'Update license report'
+          git push
