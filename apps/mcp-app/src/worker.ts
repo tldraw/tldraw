@@ -453,9 +453,15 @@ export class TldrawMCP extends McpAgent<Env> {
 	 * Tears down immediately by the named strategy, so the teardown paths can be
 	 * compared against each other in production without a deploy per variant.
 	 *
-	 * - `sdk`: the SDK's own destroy(), abort included — what shipped originally.
+	 * - `sdk`: condemned via the destroy marker, exactly as the prune pass did, so the
+	 *   SDK's own destroy() — isolate abort included — runs from the alarm.
 	 * - `quiet`: destroy() with the abort defused, so the object shuts down normally.
 	 * - `raw`: deleteAlarm + deleteAll only, touching none of the SDK's teardown.
+	 *
+	 * `sdk` cannot destroy inline: the SDK's abort fires on a `setTimeout(0)` that
+	 * races this method's own response, so the caller would record an error for a wipe
+	 * that succeeded — the failure mode that made a production pass report 18,580
+	 * errors against 161 successes.
 	 */
 	async wipeNow(mode: WipeMode): Promise<{ id: string; mode: WipeMode; before: number }> {
 		const id = this.ctx.id.toString()
@@ -466,7 +472,8 @@ export class TldrawMCP extends McpAgent<Env> {
 		} else if (mode === 'quiet') {
 			await this.destroy()
 		} else {
-			await super.destroy()
+			await this.ctx.storage.put('cf_agents_destroy_pending', true)
+			await this.ctx.storage.setAlarm(Date.now() + DESTROY_ALARM_DELAY_MS)
 		}
 		return { id, mode, before }
 	}
