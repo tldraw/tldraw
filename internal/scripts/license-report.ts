@@ -1,7 +1,7 @@
 // Reports the third-party licenses in packages/* as html (for printing to PDF), markdown, and — in
 // `--prod` mode — the docs page at apps/docs/content/community/dependencies.mdx.
 //
-// apps/, internal/ and templates/ are excluded: none of them ship to SDK consumers.
+// Only published packages/* workspaces are covered: nothing else ships to SDK consumers.
 
 import { execSync } from 'child_process'
 import { readFileSync, writeFileSync } from 'fs'
@@ -133,14 +133,13 @@ function getWorkspaces(): string[] {
 	return execSync('yarn workspaces list', { encoding: 'utf-8' })
 		.split('\n')
 		.map((line) => line.split(': ')[1])
-		.filter(
-			(location) =>
-				location &&
-				location !== '.' &&
-				!location.startsWith('apps/') &&
-				!location.startsWith('internal/') &&
-				!location.startsWith('templates/')
-		)
+		.filter((location) => location && location.startsWith('packages/'))
+		.filter((location) => {
+			// Private packages (dotcom-shared, worker-shared) never reach npm, so their dependencies
+			// aren't part of what an SDK consumer installs.
+			const manifest = JSON.parse(readFileSync(`${location}/package.json`, 'utf-8'))
+			return !manifest.private
+		})
 		.sort()
 }
 

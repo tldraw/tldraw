@@ -20,35 +20,31 @@ This covers the runtime dependencies that the `@tldraw/*` packages declare direc
 
 ## Dependencies
 
-| Dependency                                                                       | Version | License    | Used by                                      |
-| -------------------------------------------------------------------------------- | ------- | ---------- | -------------------------------------------- |
-| [@rocicorp/zero](https://github.com/rocicorp/mono)                               | 1.9.0   | Apache-2.0 | `dotcom-shared`                              |
-| [@tiptap/core](https://github.com/ueberdosis/tiptap)                             | 3.13.0  | MIT        | `commenting`, `editor`, `mentions`, `tldraw` |
-| [@tiptap/extension-code](https://github.com/ueberdosis/tiptap)                   | 3.13.0  | MIT        | `tldraw`                                     |
-| [@tiptap/extension-highlight](https://github.com/ueberdosis/tiptap)              | 3.13.0  | MIT        | `tldraw`                                     |
-| [@tiptap/extension-list](https://github.com/ueberdosis/tiptap)                   | 3.13.0  | MIT        | `tldraw`                                     |
-| [@tiptap/extension-mention](https://github.com/ueberdosis/tiptap)                | 3.13.0  | MIT        | `mentions`                                   |
-| [@tiptap/pm](https://github.com/ueberdosis/tiptap)                               | 3.13.0  | MIT        | `commenting`, `editor`, `mentions`, `tldraw` |
-| [@tiptap/react](https://github.com/ueberdosis/tiptap)                            | 3.13.0  | MIT        | `commenting`, `editor`, `mentions`, `tldraw` |
-| [@tiptap/starter-kit](https://github.com/ueberdosis/tiptap)                      | 3.13.0  | MIT        | `tldraw`                                     |
-| [@tiptap/suggestion](https://github.com/ueberdosis/tiptap)                       | 3.13.0  | MIT        | `mentions`                                   |
-| [classnames](https://github.com/JedWatson/classnames)                            | 2.5.1   | MIT        | `editor`, `tldraw`                           |
-| [cloudflare-workers-unfurl](https://github.com/tldraw/cloudflare-workers-unfurl) | 0.0.9   | MIT        | `worker-shared`                              |
-| [eventemitter3](https://github.com/primus/eventemitter3)                         | 4.0.7   | MIT        | `editor`                                     |
-| [idb](https://github.com/jakearchibald/idb)                                      | 7.1.1   | ISC        | `editor`, `tldraw`                           |
-| [is-plain-object](https://github.com/jonschlinkert/is-plain-object)              | 5.0.0   | MIT        | `editor`                                     |
-| [itty-router](https://github.com/kwhitley/itty-router)                           | 5.0.18  | MIT        | `worker-shared`                              |
-| [lodash.isequal](https://github.com/lodash/lodash)                               | 4.5.0   | MIT        | `utils`                                      |
-| [lodash.isequalwith](https://github.com/lodash/lodash)                           | 4.4.0   | MIT        | `utils`                                      |
-| [lodash.throttle](https://github.com/lodash/lodash)                              | 4.1.1   | MIT        | `utils`                                      |
-| [lodash.uniq](https://github.com/lodash/lodash)                                  | 4.5.0   | MIT        | `utils`                                      |
-| [lz-string](https://github.com/pieroxy/lz-string)                                | 1.5.0   | MIT        | `tldraw`                                     |
-| [mermaid](https://github.com/mermaid-js/mermaid)                                 | 11.16.1 | MIT        | `mermaid`                                    |
-| [nanoevents](https://github.com/ai/nanoevents)                                   | 7.0.1   | MIT        | `sync`, `sync-core`                          |
-| [radix-ui](https://github.com/radix-ui/primitives)                               | 1.4.2   | MIT        | `tldraw`                                     |
-| [rbush](https://github.com/mourner/rbush)                                        | 3.0.1   | MIT        | `editor`                                     |
-| [toucan-js](https://github.com/robertcepa/toucan-js)                             | 3.4.0   | MIT        | `worker-shared`                              |
-| [ws](https://github.com/websockets/ws)                                           | 8.21.0  | MIT        | `sync`, `sync-core`                          |
+| Dependency                                                          | Version | License | Used by                                      |
+| ------------------------------------------------------------------- | ------- | ------- | -------------------------------------------- |
+| [@tiptap/core](https://github.com/ueberdosis/tiptap)                | 3.13.0  | MIT     | `commenting`, `editor`, `mentions`, `tldraw` |
+| [@tiptap/extension-code](https://github.com/ueberdosis/tiptap)      | 3.13.0  | MIT     | `tldraw`                                     |
+| [@tiptap/extension-highlight](https://github.com/ueberdosis/tiptap) | 3.13.0  | MIT     | `tldraw`                                     |
+| [@tiptap/extension-list](https://github.com/ueberdosis/tiptap)      | 3.13.0  | MIT     | `tldraw`                                     |
+| [@tiptap/extension-mention](https://github.com/ueberdosis/tiptap)   | 3.13.0  | MIT     | `mentions`                                   |
+| [@tiptap/pm](https://github.com/ueberdosis/tiptap)                  | 3.13.0  | MIT     | `commenting`, `editor`, `mentions`, `tldraw` |
+| [@tiptap/react](https://github.com/ueberdosis/tiptap)               | 3.13.0  | MIT     | `commenting`, `editor`, `mentions`, `tldraw` |
+| [@tiptap/starter-kit](https://github.com/ueberdosis/tiptap)         | 3.13.0  | MIT     | `tldraw`                                     |
+| [@tiptap/suggestion](https://github.com/ueberdosis/tiptap)          | 3.13.0  | MIT     | `mentions`                                   |
+| [classnames](https://github.com/JedWatson/classnames)               | 2.5.1   | MIT     | `editor`, `tldraw`                           |
+| [eventemitter3](https://github.com/primus/eventemitter3)            | 4.0.7   | MIT     | `editor`                                     |
+| [idb](https://github.com/jakearchibald/idb)                         | 7.1.1   | ISC     | `editor`, `tldraw`                           |
+| [is-plain-object](https://github.com/jonschlinkert/is-plain-object) | 5.0.0   | MIT     | `editor`                                     |
+| [lodash.isequal](https://github.com/lodash/lodash)                  | 4.5.0   | MIT     | `utils`                                      |
+| [lodash.isequalwith](https://github.com/lodash/lodash)              | 4.4.0   | MIT     | `utils`                                      |
+| [lodash.throttle](https://github.com/lodash/lodash)                 | 4.1.1   | MIT     | `utils`                                      |
+| [lodash.uniq](https://github.com/lodash/lodash)                     | 4.5.0   | MIT     | `utils`                                      |
+| [lz-string](https://github.com/pieroxy/lz-string)                   | 1.5.0   | MIT     | `tldraw`                                     |
+| [mermaid](https://github.com/mermaid-js/mermaid)                    | 11.16.1 | MIT     | `mermaid`                                    |
+| [nanoevents](https://github.com/ai/nanoevents)                      | 7.0.1   | MIT     | `sync`, `sync-core`                          |
+| [radix-ui](https://github.com/radix-ui/primitives)                  | 1.4.2   | MIT     | `tldraw`                                     |
+| [rbush](https://github.com/mourner/rbush)                           | 3.0.1   | MIT     | `editor`                                     |
+| [ws](https://github.com/websockets/ws)                              | 8.21.0  | MIT     | `sync`, `sync-core`                          |
 
 ## Inline code
 
