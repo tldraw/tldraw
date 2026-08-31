@@ -2304,8 +2304,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const shapeIds = readingOrderShapes.map((shape) => shape.id)
 
 			const currentIndex = currentShapeId ? shapeIds.indexOf(currentShapeId) : -1
+			// With no current index, stepping from -1 makes 'prev' land one shape
+			// before the last; seed it from 0 so it wraps to the last shape. See #10559.
+			const startIndex = currentIndex === -1 && direction === 'prev' ? 0 : currentIndex
 			const adjacentIndex =
-				(currentIndex + (direction === 'next' ? 1 : -1) + shapeIds.length) % shapeIds.length
+				(startIndex + (direction === 'next' ? 1 : -1) + shapeIds.length) % shapeIds.length
 			adjacentShapeId = shapeIds[adjacentIndex]
 		} else {
 			if (!currentShapeId) return
