@@ -203,6 +203,15 @@ function escapeMdxCell(value: string): string {
 		.replace(/\}/g, '&#125;')
 }
 
+/** Author and copyright strings carry bracketed emails, which a browser would eat as a tag. */
+function escapeHtml(value: string): string {
+	return value
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+}
+
 function generateHtml(rows: ReportRow[], inlineLicenses: InlineLicense[]): string {
 	const headerCells = [...COLUMN_LABELS, 'source']
 		.map((label) => `<th class="string">${label}</th>`)
@@ -212,7 +221,9 @@ function generateHtml(rows: ReportRow[], inlineLicenses: InlineLicense[]): strin
 		.map((row) => {
 			const link = toHttpsUrl(row.link)
 			const cells = FIELDS.map((field) =>
-				field === 'link' ? (link ? `<a href="${link}">${link}</a>` : row.link) : row[field]
+				field === 'link' && link
+					? `<a href="${escapeHtml(link)}">${escapeHtml(link)}</a>`
+					: escapeHtml(row[field])
 			)
 			return `<tr>${cells.map((cell) => `<td>${cell}</td>`).join('')}<td></td></tr>`
 		})
@@ -220,18 +231,20 @@ function generateHtml(rows: ReportRow[], inlineLicenses: InlineLicense[]): strin
 
 	const inlineRows = inlineLicenses
 		.map((license) => {
-			const licenseLink = license.licenseUrl ? `<a href="${license.licenseUrl}">License</a>` : ''
+			const licenseLink = license.licenseUrl
+				? `<a href="${escapeHtml(license.licenseUrl)}">License</a>`
+				: ''
 			const cells = [
 				'tldraw',
 				'Inline Code',
-				license.file,
+				escapeHtml(license.file),
 				'',
 				'not material',
-				license.licenseType,
+				escapeHtml(license.licenseType),
 				licenseLink,
 				'',
 				'',
-				license.copyright,
+				escapeHtml(license.copyright),
 				'',
 			]
 			return `<tr>${cells.map((cell) => `<td>${cell}</td>`).join('')}</tr>`
@@ -365,14 +378,12 @@ async function main() {
 	const prodOnly = process.argv.includes('--prod')
 	const only = devOnly ? 'dev' : prodOnly ? 'prod' : 'dev,prod,peer,opt'
 
+	// Not tolerated per-workspace: a registry blip would silently drop that workspace's packages,
+	// and CI would commit the truncated list to the public page.
 	const rows: ReportRow[] = []
 	for (const location of getWorkspaces()) {
 		console.log('running license-report in', location)
-		try {
-			rows.push(...(await getReportRows(location, only)))
-		} catch (e) {
-			console.error(`Error running license-report in ${location}, ${e}`)
-		}
+		rows.push(...(await getReportRows(location, only)))
 	}
 
 	console.log('\nSearching for inline license comments (/*!)...')
@@ -397,4 +408,7 @@ async function main() {
 	}
 }
 
-main()
+main().catch((e) => {
+	console.error(e)
+	process.exit(1)
+})
