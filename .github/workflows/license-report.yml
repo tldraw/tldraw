@@ -1,0 +1,44 @@
+name: Check license report
+
+# Don't add this to the required checks: it's path-filtered, so it doesn't report at all on PRs
+# that leave dependencies alone, and a required check that never reports blocks the PR forever.
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    paths:
+      - '**/package.json'
+      - 'yarn.lock'
+      - 'internal/scripts/license-report.ts'
+      - '.github/workflows/license-report.yml'
+
+env:
+  CI: 1
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  check:
+    name: 'Check license report'
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup
+
+      - name: Generate license report
+        run: yarn license-report --prod
+
+      - name: Check the docs page is up to date
+        run: |
+          if ! git diff --exit-code -- apps/docs/content/community/dependencies.mdx; then
+            echo "::error::The dependency list is out of date. Run \`yarn license-report --prod\` and commit the result."
+            exit 1
+          fi
