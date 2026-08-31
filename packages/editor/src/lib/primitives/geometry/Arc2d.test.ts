@@ -225,4 +225,13 @@ describe('Arc2d.getSvgPathData', () => {
 		})
 		expect(arc.getSvgPathData()).toBe('M10, 0 A10 10 0 0 1 7.07, 7.07')
 	})
+
+	it('does not mutate the stored points', () => {
+		const start = new Vec(10, 0)
+		const end = new Vec(10 / Math.SQRT2, 10 / Math.SQRT2)
+		const arc = new Arc2d({ center: new Vec(0, 0), start, end, sweepFlag: 1, largeArcFlag: 0 })
+		arc.getSvgPathData()
+		expect(start).toMatchObject({ x: 10, y: 0 })
+		expect(end).toMatchObject({ x: 10 / Math.SQRT2, y: 10 / Math.SQRT2 })
+	})
 })
