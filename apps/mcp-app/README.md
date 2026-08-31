@@ -171,4 +171,19 @@ Steps:
 
 To rehearse locally: `yarn dev` in another shell with `--var MCP_PRUNE_ADMIN_TOKEN:dev-token` added to the `wrangler dev` line (or run `npx wrangler dev --var MCP_PRUNE_ADMIN_TOKEN:dev-token --var MCP_IS_DEV:true`), then `MCP_WORKER_ORIGIN=http://localhost:8787 MCP_PRUNE_ADMIN_TOKEN=dev-token yarn prune:run --dry-run` against a hand-written `prune-ids.txt` (get ids from `GET /admin/do-id?session=<mcp-session-id>`, dev-only). `prune-integration.test.ts` does this end to end.
 
+### Ops endpoints
+
+All take the same `MCP_PRUNE_ADMIN_TOKEN` bearer and 404 when it is unset.
+
+| Route                 | Purpose                                                                                                                                                         |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /admin/prune`   | `{ ids, maxIdleMs, dryRun, force }` — condemn idle objects; the prune script's backend                                                                          |
+| `POST /admin/inspect` | `{ ids }` — what an object actually holds: `bytes`, `tables`, `appTables`, `wiped`, `destroyPending`, `alarm`                                                   |
+| `POST /admin/wipe`    | `{ ids, mode }` — tear down now by strategy: `sdk` (SDK destroy, isolate abort), `quiet` (abort defused, normal shutdown), `raw` (deleteAlarm + deleteAll only) |
+| `GET /admin/config`   | the constants and overrides actually deployed                                                                                                                   |
+
+`inspect` is the way to confirm a teardown landed. Any RPC wakes the object and the agents SDK's constructor recreates its own schema, so `bytes` never returns to zero and the SDK tables are always present — **`appTables` is the signal**: `checkpoints`/`meta` exist only if the session's own data survived. An intact object reports ~152 KB with three app tables; a wiped one reports ~120 KB with none.
+
+`wipe` exists so the teardown strategies can be compared in production without a deploy each: Cloudflare reclaims an object only when "it shuts down [and] its storage is empty", and an isolate abort is not a shutdown.
+
 Expect the `destroyed` error fingerprint in Workers observability to spike during a prune (one event per wiped DO — the SDK's teardown abort) and `session_start` to stay flat; if `session_start` during the run exceeds roughly 1% of condemns, stop the run: condemned DOs are being resurrected.
