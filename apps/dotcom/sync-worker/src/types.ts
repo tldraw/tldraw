@@ -218,6 +218,19 @@ export type TLServerEvent =
 			resumedSockets: number
 	  }
 	| {
+			type: 'version_chain_write'
+			/** Which kind of object this persist wrote, and — for a keyframe — what forced it. */
+			wrote: 'keyframe' | 'delta'
+			reason: string
+			bytes: number
+			depth: number
+	  }
+	| {
+			/** A cadence keyframe retired a chain; did that chain reconstruct the state it claims? */
+			type: 'version_chain_verify'
+			ok: boolean
+	  }
+	| {
 			type: 'send_message'
 			messageType: string
 			messageLength: number
