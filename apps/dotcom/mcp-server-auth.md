@@ -47,7 +47,7 @@ The flag stages the rollout: required auth goes on for the flagged population fi
 
 ## Where this started
 
-`sharedBoardScreenshotMcp.ts` is a hand-rolled JSON-RPC handler on a single route, not an MCP SDK server. There are no sessions, no Durable Objects, and no per-caller state. What the starting point looked like:
+`mcpServer.ts` is a hand-rolled JSON-RPC handler on a single route, not an MCP SDK server. There are no sessions, no Durable Objects, and no per-caller state. What the starting point looked like:
 
 - **The protocol version was pinned to `2024-11-05`** (`MCP_PROTOCOL_VERSION`). This predates MCP authorization entirely — auth was introduced in `2025-03-26` and reworked in `2025-06-18`. **Upgrading the advertised protocol version was a prerequisite**, not a follow-up: there is no conformant way to bolt auth onto `2024-11-05`, and clients keying off the advertised version won't attempt a flow the server claims not to support.
 - **Abuse control already existed and was not naive.** Three tiers of rate limit (per-IP, per-board, global Browser Run cap), a kill switch (`MCP_SCREENSHOT_ENABLED`), and telemetry with deliberately bounded cardinality. [#9667](https://github.com/tldraw/tldraw/pull/9667) confines rate limiting to this endpoint — the one Browser Run-spending surface an outside caller drives directly — and splits it across three bindings so the tiers can hold different numbers. Auth was never going to be the first line of defence here; it's a better key for a defence that was already built.
@@ -161,7 +161,7 @@ Two consequences worth designing around now:
 
 ## How it was built
 
-The auth check sits inside `sharedBoardScreenshotMcp`, after the `isMcpScreenshotEnabled` kill switch (so a disabled server still looks absent rather than unauthorized) and before the JSON-RPC body is read.
+The auth check sits inside `mcpServer`, after the `isMcpScreenshotEnabled` kill switch (so a disabled server still looks absent rather than unauthorized) and before the JSON-RPC body is read.
 
 - The advertised protocol version is `2025-11-25`, `initialize` echoes the client's when we speak it, and `2025-06-18` and `2025-03-26` stay accepted. `2024-11-05` is not in the supported list, which is the point: it predates MCP authorization, so advertising it would leave a client unable to obtain a token but convinced the server was behaving to spec.
 - Protected resource metadata at `/.well-known/oauth-protected-resource/api/app/mcp`, and `401` + `WWW-Authenticate` from the route when no valid token is present. Every call needs one.
@@ -197,7 +197,7 @@ So the flag work picks a key:
 
 - **The friends-and-family flag landed first** ([#9809](https://github.com/tldraw/tldraw/pull/9809)), as a boolean flag beside its own list — built to raise rate limits for signed-in callers while the endpoint still served anonymous ones. Requiring auth collapsed that design: once every caller is on a hand-picked list, a raised tier for a subset of that list is two lists doing one job. So the list folded into the `mcp_server_access` allowlist flag — keeping #9809's edit-as-emails, store-as-ids resolution — and the boolean flag was removed. The split the plan described still holds in the code: auth establishes identity, the flag decides who is switched on, and widening the rollout is a KV edit rather than a deploy.
 - **[#9667](https://github.com/tldraw/tldraw/pull/9667) is the significant dependency, and this branch is stacked on it.** It builds the private-board render path, the signed `ThumbnailBoardAccess` level, and two-factor render tokens — most of what the access check would otherwise have needed. It also relocates MCP screenshots to their own bucket and confines rate limiting to the MCP endpoint. **This cannot merge before it does.**
-- **[#9774](https://github.com/tldraw/tldraw/pull/9774)** is concurrently rewriting `sharedBoardScreenshotMcp.ts` and its tests (cluster-based tools, cache key changes, new telemetry surfaces). This branch is not written against it, so expect conflicts in that file. They should be shallow — auth wraps the route rather than changing tool internals — but the per-user resolution does replace `resolveSharedBoardById`, which its new tools will also call, and the cluster tools will need the same access check rather than the public gate.
+- **[#9774](https://github.com/tldraw/tldraw/pull/9774)** is concurrently rewriting `mcpServer.ts` and its tests (cluster-based tools, cache key changes, new telemetry surfaces). This branch is not written against it, so expect conflicts in that file. They should be shallow — auth wraps the route rather than changing tool internals — but the per-user resolution does replace `resolveSharedBoardById`, which its new tools will also call, and the cluster tools will need the same access check rather than the public gate.
 - **`apps/mcp-app` is a separate decision.** It's a different server with a different architecture (MCP SDK, `McpAgent`, Durable Objects), gated on a single shared `MCP_AUTH_TOKEN` that isn't set in production, with no per-user identity. It needs its own answer; the two shouldn't be bundled.
 
 ## Rollout

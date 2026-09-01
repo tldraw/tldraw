@@ -3,7 +3,7 @@ import { Environment } from '../../types'
 import { base64UrlDecode } from '../../utils/base64'
 
 // Shared fakes for the Browser Run thumbnail / OG image tests (thumbnailRender,
-// sharedBoardScreenshotMcp, ogImageQueue, getOgImage). The R2/browser/queue fakes, snapshot builder
+// mcpServer, ogImageQueue, getOgImage). The R2/browser/queue fakes, snapshot builder
 // and token helpers belong here rather than in any one test file, so that all four exercise the same
 // stand-ins.
 

@@ -53,9 +53,9 @@ import {
 	mcpCorsPreflight,
 	withMcpCors,
 } from './routes/tla/mcpAuth'
+import { mcpServer } from './routes/tla/mcpServer'
 import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
 import { putThumbnailRenderResult } from './routes/tla/putThumbnailRenderResult'
-import { sharedBoardScreenshotMcp } from './routes/tla/sharedBoardScreenshotMcp'
 import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
 import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
@@ -101,9 +101,7 @@ const router = createRouter<Environment>()
 	.options('/app/mcp', mcpCorsPreflight)
 	.options(MCP_PROTECTED_RESOURCE_METADATA_PATH, mcpCorsPreflight)
 	// .all so MCP server can correctly respond to non-post requests with 405
-	.all('/app/mcp', async (req, env, ctx) =>
-		withMcpCors(await sharedBoardScreenshotMcp(req, env, ctx))
-	)
+	.all('/app/mcp', async (req, env, ctx) => withMcpCors(await mcpServer(req, env, ctx)))
 	// Registered at the origin rather than under /app, because RFC 9728 puts protected resource
 	// metadata at a well-known path derived from the resource's own path — a client looks for exactly
 	// this URL and nowhere else. The /api/* route pattern does not cover it, so wrangler.toml carries

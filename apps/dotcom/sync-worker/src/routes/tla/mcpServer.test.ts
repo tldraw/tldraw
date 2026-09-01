@@ -14,6 +14,12 @@ import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFi
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import { authenticateMcpRequest } from './mcpAuth'
 import {
+	isMcpScreenshotEnabled,
+	normalizeMcpClient,
+	resetRateLimitFallbackForTests,
+	mcpServer,
+} from './mcpServer'
+import {
 	blobValuesOf,
 	blobsWithPrefix,
 	callerBlobsOf,
@@ -28,12 +34,6 @@ import {
 	screenshotOf,
 	sessionsOf,
 } from './screenshotTestHelpers'
-import {
-	isMcpScreenshotEnabled,
-	normalizeMcpClient,
-	resetRateLimitFallbackForTests,
-	sharedBoardScreenshotMcp,
-} from './sharedBoardScreenshotMcp'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
@@ -188,7 +188,7 @@ async function rpcError(response: Response) {
 // limits and the board access check both work from. Defaulted, so only tests that care about
 // caller identity have to name one.
 async function callTool(name: string, args: object, env = makeEnv(), userId = 'user_default') {
-	return rpcResult(await sharedBoardScreenshotMcp(makeToolCall(name, args, userId), env))
+	return rpcResult(await mcpServer(makeToolCall(name, args, userId), env))
 }
 
 // Kept as an alias so the pre-merge assertions that read a result off a raw response still read
@@ -310,10 +310,7 @@ describe('tool inputs', () => {
 describe('MCP server', () => {
 	it('lists the replacement tools without the old page screenshot tool', async () => {
 		const result = await resultOf(
-			await sharedBoardScreenshotMcp(
-				makeRpcRequest('tools/list', undefined, { userId: 'user_1' }),
-				makeEnv()
-			)
+			await mcpServer(makeRpcRequest('tools/list', undefined, { userId: 'user_1' }), makeEnv())
 		)
 		expect(result.tools.map((tool: any) => tool.name)).toEqual([
 			'get_board_info',
@@ -356,7 +353,7 @@ describe('authentication', () => {
 		mockPublishedBoard()
 		const env = makeEnv()
 
-		const response = await sharedBoardScreenshotMcp(makeRequest(), env)
+		const response = await mcpServer(makeRequest(), env)
 
 		expect(response.status).toBe(401)
 		expect(await response.json()).toEqual(REFUSAL)
@@ -371,7 +368,7 @@ describe('authentication', () => {
 		mockPublishedBoard()
 		const env = makeEnv()
 
-		await sharedBoardScreenshotMcp(makeToolCall('get_cluster_screenshot', { boardId: 'abc' }), env)
+		await mcpServer(makeToolCall('get_cluster_screenshot', { boardId: 'abc' }), env)
 
 		expect(getPublishedFileInfo).not.toHaveBeenCalled()
 		expect(getSharedFileInfo).not.toHaveBeenCalled()
@@ -385,7 +382,7 @@ describe('authentication', () => {
 		refuseAuth('not_allowlisted')
 		const env = makeEnv()
 
-		await sharedBoardScreenshotMcp(makeRpcRequest('tools/list'), env)
+		await mcpServer(makeRpcRequest('tools/list'), env)
 
 		expect(blobValuesOf(env, 'mcp_server_auth_refusal', 'reason')).toEqual(['not_allowlisted'])
 		expect(datapointsNamed(env, TOOL_CALL_EVENT)).toEqual([])
@@ -415,7 +412,7 @@ describe('MCP_SCREENSHOT_ENABLED', () => {
 		mockPublishedBoard()
 		const env = makeEnv({ MCP_SCREENSHOT_ENABLED: 'false' })
 
-		const response = await sharedBoardScreenshotMcp(
+		const response = await mcpServer(
 			makeToolCall(
 				'get_cluster_screenshot',
 				{ boardId: 'abc', clusterIds: ['cluster:any'] },
@@ -432,7 +429,7 @@ describe('MCP_SCREENSHOT_ENABLED', () => {
 	// Disabled means gone, not "here but empty": a client that can still initialize and list tools
 	// would advertise tools that every call then rejects.
 	it('hides the protocol handshake while disabled', async () => {
-		const response = await sharedBoardScreenshotMcp(
+		const response = await mcpServer(
 			makeRpcRequest('initialize', undefined, { userId: 'user_41' }),
 			makeEnv({ MCP_SCREENSHOT_ENABLED: 'false' })
 		)
@@ -441,7 +438,7 @@ describe('MCP_SCREENSHOT_ENABLED', () => {
 	})
 
 	it('answers anything but POST with 405', async () => {
-		const response = await sharedBoardScreenshotMcp(
+		const response = await mcpServer(
 			new Request('https://sync.tldraw.xyz/app/mcp', { method: 'GET' }) as any,
 			makeEnv()
 		)
@@ -453,7 +450,7 @@ describe('MCP_SCREENSHOT_ENABLED', () => {
 describe('protocol versions', () => {
 	it('reports what it speaks, so a client can pick a version', async () => {
 		const result = await rpcResult(
-			await sharedBoardScreenshotMcp(makeModernRpcRequest('server/discover'), makeEnv())
+			await mcpServer(makeModernRpcRequest('server/discover'), makeEnv())
 		)
 		expect(result).toMatchObject({
 			resultType: 'complete',
@@ -468,7 +465,7 @@ describe('protocol versions', () => {
 
 	it('answers server/discover even when the request names a version it does not speak', async () => {
 		// Refusing here would leave the client no way to find a version we have in common.
-		const response = await sharedBoardScreenshotMcp(
+		const response = await mcpServer(
 			makeModernRpcRequest('server/discover', undefined, { version: '2024-11-05' }),
 			makeEnv()
 		)
@@ -477,7 +474,7 @@ describe('protocol versions', () => {
 	})
 
 	it('rejects a version it does not speak, naming the ones it does', async () => {
-		const response = await sharedBoardScreenshotMcp(
+		const response = await mcpServer(
 			makeModernRpcRequest('tools/list', undefined, { version: '2024-11-05' }),
 			makeEnv()
 		)
@@ -491,25 +488,20 @@ describe('protocol versions', () => {
 	it('offers 2025-11-25 to a client that asks to initialize at 2024-11-05', async () => {
 		// Naming a version we do support is how the handshake declines one.
 		const result = await rpcResult(
-			await sharedBoardScreenshotMcp(
-				makeRpcRequest('initialize', { protocolVersion: '2024-11-05' }),
-				makeEnv()
-			)
+			await mcpServer(makeRpcRequest('initialize', { protocolVersion: '2024-11-05' }), makeEnv())
 		)
 		expect(result.protocolVersion).toBe(LEGACY_VERSION)
 	})
 
 	it('serves a request with no version header as legacy', async () => {
 		// Clients are meant to send the header and plenty don't, so it's served rather than rejected.
-		const response = await sharedBoardScreenshotMcp(makeRpcRequest('ping'), makeEnv())
+		const response = await mcpServer(makeRpcRequest('ping'), makeEnv())
 		expect(response.status).toBe(200)
 		expect(await rpcResult(response)).toEqual({})
 	})
 
 	it('envelopes modern results and leaves legacy ones alone', async () => {
-		const modern = await rpcResult(
-			await sharedBoardScreenshotMcp(makeModernRpcRequest('tools/list'), makeEnv())
-		)
+		const modern = await rpcResult(await mcpServer(makeModernRpcRequest('tools/list'), makeEnv()))
 		expect(modern).toMatchObject({
 			resultType: 'complete',
 			cacheScope: 'public',
@@ -517,9 +509,7 @@ describe('protocol versions', () => {
 		})
 		expect(modern.ttlMs).toBeGreaterThan(0)
 
-		const legacy = await rpcResult(
-			await sharedBoardScreenshotMcp(makeRpcRequest('tools/list'), makeEnv())
-		)
+		const legacy = await rpcResult(await mcpServer(makeRpcRequest('tools/list'), makeEnv()))
 		expect(legacy.resultType).toBeUndefined()
 		expect(legacy.ttlMs).toBeUndefined()
 		expect(legacy._meta).toBeUndefined()
@@ -528,7 +518,7 @@ describe('protocol versions', () => {
 	})
 
 	it('drops ping for modern callers, which no longer have it', async () => {
-		const response = await sharedBoardScreenshotMcp(makeModernRpcRequest('ping'), makeEnv())
+		const response = await mcpServer(makeModernRpcRequest('ping'), makeEnv())
 		expect(response.status).toBe(404)
 		expect((await rpcError(response)).code).toBe(-32601)
 	})
@@ -537,7 +527,7 @@ describe('protocol versions', () => {
 		mockPublishedBoard()
 		const env = makeEnv()
 		const result = await rpcResult(
-			await sharedBoardScreenshotMcp(
+			await mcpServer(
 				makeModernRpcRequest('tools/call', {
 					name: 'get_board_info',
 					arguments: { boardId: 'abc' },
@@ -554,7 +544,7 @@ describe('protocol versions', () => {
 // The routing headers duplicate body fields, so a disagreement between them has to be rejected.
 describe('modern request headers', () => {
 	it('rejects a method header that disagrees with the body', async () => {
-		const response = await sharedBoardScreenshotMcp(
+		const response = await mcpServer(
 			makeModernRpcRequest('tools/list', undefined, { headers: { 'mcp-method': 'tools/call' } }),
 			makeEnv()
 		)
@@ -563,7 +553,7 @@ describe('modern request headers', () => {
 	})
 
 	it('rejects a tool call whose name header disagrees with the body', async () => {
-		const response = await sharedBoardScreenshotMcp(
+		const response = await mcpServer(
 			makeModernRpcRequest(
 				'tools/call',
 				{ name: 'get_board_info', arguments: { boardId: 'abc' } },
@@ -578,7 +568,7 @@ describe('modern request headers', () => {
 	it('rejects a modern request missing a required header', async () => {
 		const request = makeModernRpcRequest('tools/list')
 		request.headers.delete('mcp-method')
-		const response = await sharedBoardScreenshotMcp(request, makeEnv())
+		const response = await mcpServer(request, makeEnv())
 		expect(response.status).toBe(400)
 		expect(await rpcError(response)).toMatchObject({ code: -32020 })
 	})
@@ -588,7 +578,7 @@ describe('modern request headers', () => {
 		mockPublishedBoard()
 		const encoded = `=?base64?${btoa('get_board_info')}?=`
 		const result = await rpcResult(
-			await sharedBoardScreenshotMcp(
+			await mcpServer(
 				makeModernRpcRequest(
 					'tools/call',
 					{ name: 'get_board_info', arguments: { boardId: 'abc' } },
@@ -1537,10 +1527,7 @@ describe('protocol telemetry', () => {
 	it('reports inherited property names as unknown tools rather than calling them', async () => {
 		for (const name of ['constructor', 'toString', '__proto__', 'valueOf', 'hasOwnProperty']) {
 			const env = makeEnv()
-			const response = await sharedBoardScreenshotMcp(
-				makeToolCall(name, { secret: 'echo-me' }),
-				env
-			)
+			const response = await mcpServer(makeToolCall(name, { secret: 'echo-me' }), env)
 			const body = (await response.json()) as any
 
 			expect(body.error, name).toMatchObject({ code: -32602 })
@@ -1555,10 +1542,7 @@ describe('protocol telemetry', () => {
 	it('handles a non-string clientInfo.name at initialize', async () => {
 		for (const name of [123, true, ['a'], { x: 1 }, null]) {
 			const env = makeEnv()
-			const response = await sharedBoardScreenshotMcp(
-				makeRpcRequest('initialize', { clientInfo: { name } }),
-				env
-			)
+			const response = await mcpServer(makeRpcRequest('initialize', { clientInfo: { name } }), env)
 
 			expect(response.status, String(name)).toBe(200)
 			expect((await response.json()) as any, String(name)).toMatchObject({
@@ -1572,7 +1556,7 @@ describe('protocol telemetry', () => {
 	it('records the client family from the user agent', async () => {
 		mockPublishedBoard()
 		const env = makeEnv()
-		await sharedBoardScreenshotMcp(
+		await mcpServer(
 			makeRpcRequest(
 				'tools/call',
 				{ name: 'get_board_info', arguments: { boardId: 'abc' } },
@@ -1586,7 +1570,7 @@ describe('protocol telemetry', () => {
 
 	it('records the calling application named at initialize', async () => {
 		const env = makeEnv()
-		await sharedBoardScreenshotMcp(
+		await mcpServer(
 			makeRpcRequest('initialize', { clientInfo: { name: 'Claude', version: '1.0' } }),
 			env
 		)
