@@ -114,7 +114,7 @@ import { isTestFile } from './utils/tla/isTestFile'
 import { ChainState, PendingDelta, SegmentBody } from './versionChain'
 import { decodeVersionBody } from './versionChainCodec'
 import { getVersionChainMode } from './versionChainConfig'
-import { reconstructVersion } from './versionChainRead'
+import { deleteAllVersions, reconstructVersion } from './versionChainRead'
 import { writeVersionChainEntry } from './versionChainWrite'
 import { snapshotContentHash } from './versionDelta'
 import { resolveWelcomeSnapshot } from './welcome/resolveWelcomeSnapshot'
@@ -2992,10 +2992,11 @@ export class TLFileDurableObject extends DurableObject {
 
 			// remove edit history
 			const r2Key = getR2KeyForRoom({ slug: id, isApp: true })
-			const editHistory = await listAllObjectKeys(this.env.ROOMS_HISTORY_EPHEMERAL, r2Key)
-			if (editHistory.length > 0) {
-				await this.env.ROOMS_HISTORY_EPHEMERAL.delete(editHistory)
-			}
+			await deleteAllVersions({
+				chainBucket: this.env.ROOMS_HISTORY,
+				legacyBucket: this.env.ROOMS_HISTORY_EPHEMERAL,
+				roomKey: r2Key,
+			})
 
 			// remove main file
 			await this.env.ROOMS.delete(r2Key)
@@ -3194,10 +3195,11 @@ export class TLFileDurableObject extends DurableObject {
 		const roomKey = getR2KeyForRoom({ slug, isApp: false })
 
 		// remove edit history
-		const editHistory = await listAllObjectKeys(this.env.ROOMS_HISTORY_EPHEMERAL, roomKey)
-		if (editHistory.length > 0) {
-			await this.env.ROOMS_HISTORY_EPHEMERAL.delete(editHistory)
-		}
+		await deleteAllVersions({
+			chainBucket: this.env.ROOMS_HISTORY,
+			legacyBucket: this.env.ROOMS_HISTORY_EPHEMERAL,
+			roomKey,
+		})
 
 		// remove main file
 		await this.env.ROOMS.delete(roomKey)
