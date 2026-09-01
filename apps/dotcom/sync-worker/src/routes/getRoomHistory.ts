@@ -6,6 +6,7 @@ import { Environment } from '../types'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
 import { requireAdminAccessToRequest } from '../utils/tla/getAuth'
 import { isTestFile } from '../utils/tla/isTestFile'
+import { listVersionTimestamps } from '../versionChainRead'
 
 function getMonthPrefix(date: Date): string {
 	return date.toISOString().split('T')[0].substring(0, 7)
@@ -17,54 +18,27 @@ function getPreviousMonth(date: Date): Date {
 	return prev
 }
 
-async function fetchTimestampsFromBatch(
-	bucket: R2Bucket,
-	roomKey: string,
-	prefix: string,
-	limit: number,
-	cursor?: string
-): Promise<{ timestamps: string[]; batch: any }> {
-	const fullPrefix = `${roomKey}/${prefix}`
-	const batch = await bucket.list({
-		prefix: fullPrefix,
-		limit,
-		cursor,
-	})
-
-	const timestamps = batch.objects
-		.map((o) => o.key.replace(roomKey + '/', ''))
-		.filter((timestamp) => timestamp && timestamp !== roomKey)
-
-	return { timestamps, batch }
-}
-
 async function fetchTimestampsForPrefix(
-	bucket: R2Bucket,
+	env: Environment,
 	roomKey: string,
 	prefix: string,
 	limit?: number
 ): Promise<string[]> {
-	const batchLimit = limit || 1000
-	// eslint-disable-next-line prefer-const
-	let { timestamps, batch } = await fetchTimestampsFromBatch(bucket, roomKey, prefix, batchLimit)
-
-	// Continue listing if there are more objects
-	while (batch.truncated && timestamps.length < (limit || Infinity)) {
-		const next = await fetchTimestampsFromBatch(bucket, roomKey, prefix, batchLimit, batch.cursor)
-		timestamps.push(...next.timestamps)
-		batch = next.batch
-	}
-
-	// Sort
-	return timestamps.sort((a, b) => b.localeCompare(a))
+	const timestamps = await listVersionTimestamps({
+		chainBucket: env.ROOMS_HISTORY,
+		legacyBucket: env.ROOMS_HISTORY_EPHEMERAL,
+		roomKey,
+		prefix,
+	})
+	return limit ? timestamps.slice(0, limit) : timestamps
 }
 
 async function monthHasEntries(
-	bucket: R2Bucket,
+	env: Environment,
 	roomKey: string,
 	monthPrefix: string
 ): Promise<boolean> {
-	const timestamps = await fetchTimestampsForPrefix(bucket, roomKey, monthPrefix, 1)
+	const timestamps = await fetchTimestampsForPrefix(env, roomKey, monthPrefix, 1)
 	return timestamps.length > 0
 }
 
@@ -86,7 +60,6 @@ export async function getRoomHistory(
 
 	const offset = request.query?.offset as string // offset is the earliest timestamp from the previous page
 
-	const versionCacheBucket = env.ROOMS_HISTORY_EPHEMERAL
 	const bucketKey = getR2KeyForRoom({ slug: roomId, isApp })
 
 	let allTimestamps: string[] = []
@@ -104,12 +77,7 @@ export async function getRoomHistory(
 		}
 	} else {
 		// If we don't have an offset we can check if the room doesn't have too many entries
-		const allTimestampsForRoom = await fetchTimestampsForPrefix(
-			versionCacheBucket,
-			bucketKey,
-			'',
-			1000
-		)
+		const allTimestampsForRoom = await fetchTimestampsForPrefix(env, bucketKey, '', 1000)
 
 		// If we have fewer than 1000 entries, return them all
 		if (allTimestampsForRoom.length < 1000) {
@@ -127,7 +95,7 @@ export async function getRoomHistory(
 	let foundMonthWithEntries = false
 	while (!foundMonthWithEntries && monthsChecked < maxMonthsToCheck) {
 		const monthPrefix = getMonthPrefix(currentMonth)
-		const hasEntries = await monthHasEntries(versionCacheBucket, bucketKey, monthPrefix)
+		const hasEntries = await monthHasEntries(env, bucketKey, monthPrefix)
 
 		if (hasEntries) {
 			foundMonthWithEntries = true
@@ -145,11 +113,7 @@ export async function getRoomHistory(
 		// Collect timestamps from multiple months until we reach the target count
 		while (allTimestamps.length < targetEntryCount && monthsCollected < maxMonthsToCollect) {
 			const monthPrefix = getMonthPrefix(currentMonth)
-			const monthTimestamps = await fetchTimestampsForPrefix(
-				versionCacheBucket,
-				bucketKey,
-				monthPrefix
-			)
+			const monthTimestamps = await fetchTimestampsForPrefix(env, bucketKey, monthPrefix)
 
 			let filteredTimestamps = monthTimestamps
 			if (offset) {
@@ -175,11 +139,7 @@ export async function getRoomHistory(
 
 		while (monthsToCheck > 0) {
 			const previousMonthPrefix = getMonthPrefix(checkMonth)
-			const hasMoreEntries = await monthHasEntries(
-				versionCacheBucket,
-				bucketKey,
-				previousMonthPrefix
-			)
+			const hasMoreEntries = await monthHasEntries(env, bucketKey, previousMonthPrefix)
 
 			if (hasMoreEntries) {
 				hasMore = true
