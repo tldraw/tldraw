@@ -14,7 +14,7 @@ metadata:
   namespace: stacks-890472
 spec:
   annotations:
-    description: Token processing rate of {{ $value | humanize }} tokens/sec is 3x
+    description: Token processing rate of {{ $value | humanize }} tokens/sec is 5x
       higher than the 7-day average for job {{ $labels.job }}.
     summary: Anthropic API token rate anomaly detected.
   execErrState: Ok
@@ -57,8 +57,10 @@ spec:
           (
             rate(gen_ai_usage_tokens_total{job=~"integrations/anthropic/.*"}[1h])
             >
-            3 * avg_over_time(rate(gen_ai_usage_tokens_total{job=~"integrations/anthropic/.*"}[1h])[7d:1h])
+            5 * avg_over_time(rate(gen_ai_usage_tokens_total{job=~"integrations/anthropic/.*"}[1h])[7d:1h])
           )
+          and
+          rate(gen_ai_usage_tokens_total{job=~"integrations/anthropic/.*"}[1h]) > 1000
         instant: true
         intervalMs: 1000
         maxDataPoints: 43200
@@ -106,7 +108,7 @@ spec:
   labels:
     __converted_prometheus_rule__: 'true'
     severity: warning
-  missingSeriesEvalsToResolve: 1
+  missingSeriesEvalsToResolve: 10
   noDataState: Ok
   title: AnthropicTokenRateAnomaly
   trigger:

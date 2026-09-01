@@ -54,6 +54,16 @@ import {
 export interface ResolvedThumbnailBoard extends ThumbnailBoardRef {
 	version: string | number
 	/**
+	 * The file this board's content belongs to: the slug itself for a shared file, and the parent file
+	 * a published slug resolves to for a published board.
+	 *
+	 * Carried because the file's Durable Object is addressed by it, and that object is where the MCP
+	 * server caches a page's cluster index (see mcpClusterIndex.ts). Kept off `ThumbnailBoardRef`,
+	 * which is the *identity* of a board and keys its caches: two kinds can share a file id, so a key
+	 * built from this would collide a published board's index with its file's.
+	 */
+	fileId: string
+	/**
 	 * The gate this board was resolved under, carried so a render cannot be minted under a weaker one
 	 * than the resolution used. `captureThumbnailScreenshot` signs it into the job, and the snapshot
 	 * route reads the board back under it.
@@ -107,7 +117,17 @@ export async function resolveThumbnailBoard(
 		// apply: an unpublished board has no published snapshot to render in the first place.
 		const publishedFile = await getPublishedFileInfo(env, slug)
 		if (!publishedFile?.published) return { ok: false, reason: 'not_found' }
-		return { ok: true, board: { kind, slug, version: publishedFile.lastPublished, access } }
+		return {
+			ok: true,
+			board: {
+				kind,
+				slug,
+				version: publishedFile.lastPublished,
+				access,
+				// The row this published slug resolved through, which is the file that owns the snapshot.
+				fileId: publishedFile.id,
+			},
+		}
 	}
 
 	const file = knownFile ?? (await getSharedFileInfo(env, slug))
@@ -118,7 +138,7 @@ export async function resolveThumbnailBoard(
 	const persisted = await env.ROOMS.head(getR2KeyForRoom({ slug, isApp: true }))
 	if (!persisted) return { ok: false, reason: 'board_empty' }
 
-	return { ok: true, board: { kind, slug, version: persisted.etag, access, file } }
+	return { ok: true, board: { kind, slug, version: persisted.etag, access, file, fileId: file.id } }
 }
 
 // Reads a resolved board's snapshot, keeping the two outcomes callers must tell apart distinct.
@@ -256,15 +276,11 @@ export async function captureThumbnailScreenshot(
 	}
 	const token = await mintRecordedRenderToken(env, job)
 	try {
-		return await renderThumbnailScreenshot(
-			env,
-			buildThumbnailRenderUrl(getRenderOrigin(env), token),
-			{
-				width,
-				height,
-				session: { source: telemetry.source, mode: 'screenshot', reason: telemetry.reason },
-			}
-		)
+		return await runRenderSession(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
+			width,
+			height,
+			session: { source: telemetry.source, mode: 'screenshot', reason: telemetry.reason },
+		})
 	} finally {
 		// The MCP surface keys its records by token, so nothing later overwrites this one and it has to
 		// be dropped here — the same cleanup a measure gets, for the same reason. In `finally` because a
@@ -316,11 +332,16 @@ function writeBrowserRunSessionTelemetry(
 	})
 }
 
-// The pixels come from editor.toImage on the render page, which displays its own export as a
-// full-viewport image for the Quick Action to capture. A failed render marks an error state rather
-// than the ready one, so it returns as a failure immediately instead of burning the timeout (see
-// THUMBNAIL_SETTLED_SELECTOR / THUMBNAIL_CAPTURE_SELECTOR in @tldraw/dotcom-shared).
-async function renderThumbnailScreenshot(
+// One Browser Run session against the render page, returning whatever the Quick Action captured.
+// Only the capture path wants those pixels: they are editor.toImage's output, which the page
+// displays as a full-viewport image to be caught. A measure runs no export and discards the image —
+// the session is only how the page gets to run, and its answer comes back through the result
+// endpoint.
+//
+// A failed render marks an error state rather than the ready one, so it returns as a failure
+// immediately instead of burning the timeout (see THUMBNAIL_SETTLED_SELECTOR /
+// THUMBNAIL_CAPTURE_SELECTOR in @tldraw/dotcom-shared).
+async function runRenderSession(
 	env: Environment,
 	renderUrl: string,
 	{ width, height, session }: { width: number; height: number; session: BrowserRunSessionContext }
@@ -619,9 +640,8 @@ export async function measurePageShapes(
 	const key = getRenderResultKey(token)
 
 	try {
-		// The screenshot is discarded — it is only how the browser session is driven, and how we know the
-		// page reached its terminal state. The answer arrives via the result endpoint.
-		await renderThumbnailScreenshot(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
+		// Awaited for the ready signal, not for the image it returns; see runRenderSession.
+		await runRenderSession(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
 			width: DEFAULT_THUMBNAIL_WIDTH,
 			height: DEFAULT_THUMBNAIL_HEIGHT,
 			// The measure runs only on the MCP surface today; `surface` names the render pipeline for the
@@ -709,6 +729,13 @@ export function writeScreenshotTelemetry(
 		 */
 		cacheStatus: 'hit' | 'stale' | 'miss' | 'none'
 		/**
+		 * What the MCP cluster index cache did, which decides whether the call ran a measure render.
+		 * Its own dimension rather than part of `cacheStatus`, which is the PNG cache: the two save
+		 * different things, and one blob mixing them would make either hit rate unreadable. `none` on
+		 * every OG row and on any MCP row that never reached the clustering step.
+		 */
+		clusterCacheStatus?: 'hit' | 'miss' | 'none'
+		/**
 		 * Hashed identity of whoever asked, for surfaces that have one. Recorded only on rate-limited
 		 * rows — see below.
 		 *
@@ -744,6 +771,8 @@ export function writeScreenshotTelemetry(
 			// follow-up concept at all, so a query for triggered renders can say `followup:false` and mean
 			// it, instead of sweeping up every og and mcp datapoint too.
 			`followup:${data.followUp ?? 'none'}`,
+			// Appended, like the two above, so nothing shifts. Only the MCP clustering tools ever set it.
+			`clusters:${data.clusterCacheStatus ?? 'none'}`,
 		],
 		doubles: [
 			DEFAULT_THUMBNAIL_WIDTH,
