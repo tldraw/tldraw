@@ -249,8 +249,12 @@ export async function deleteAllVersions({
 		[chainBucket, legacyBucket].map(async (bucket) => {
 			// Trailing slash: a bare roomKey prefix also matches sibling rooms whose slug is a
 			// prefix of this one (deleting "abc" must not sweep "abcd").
-			for (const key of await listKeys(bucket, `${roomKey}/`)) {
-				await bucket.delete(key)
+			const keys = await listKeys(bucket, `${roomKey}/`)
+			// Batched: one delete per key is an unbounded subrequest loop, and a room with a long
+			// pre-chain history would hit the per-request subrequest cap mid-sweep and leave
+			// objects behind. R2 accepts at most 1000 keys per delete call.
+			for (let i = 0; i < keys.length; i += 1000) {
+				await bucket.delete(keys.slice(i, i + 1000))
 			}
 		})
 	)

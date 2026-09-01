@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { createFakeR2 } from './test/fakeR2'
 import { SEGMENT_CAP, segmentCustomMetadata, versionKey } from './versionChain'
 import { decodeVersionBody, encodeVersionBody } from './versionChainCodec'
-import { listVersionTimestamps, reconstructVersion } from './versionChainRead'
+import { deleteAllVersions, listVersionTimestamps, reconstructVersion } from './versionChainRead'
 import { buildSnapshotDelta } from './versionDelta'
 
 const roomKey = 'app_rooms/slug'
@@ -321,6 +321,33 @@ describe('reconstructVersion', () => {
 		})
 
 		expect(result?.snapshot).toEqual(versions[1])
+	})
+})
+
+describe('deleteAllVersions', () => {
+	it('sweeps a long history in batched deletes, not one subrequest per key', async () => {
+		const legacyBucket = createFakeR2()
+		for (let i = 0; i < 1100; i++) {
+			await legacyBucket.put(`${roomKey}/2026-08-01T${String(i).padStart(6, '0')}Z`, '{}')
+		}
+		let deleteCalls = 0
+		const counting = new Proxy(legacyBucket, {
+			get(target, prop) {
+				if (prop === 'delete') {
+					return async (keys: string | string[]) => {
+						deleteCalls++
+						expect(Array.isArray(keys) ? keys.length : 1).toBeLessThanOrEqual(1000)
+						return (target as any).delete(keys)
+					}
+				}
+				return (target as any)[prop as keyof R2Bucket]
+			},
+		}) as R2Bucket
+
+		await deleteAllVersions({ chainBucket: createFakeR2(), legacyBucket: counting, roomKey })
+
+		expect((await legacyBucket.list({ prefix: `${roomKey}/` })).objects).toHaveLength(0)
+		expect(deleteCalls).toBe(2)
 	})
 })
 
