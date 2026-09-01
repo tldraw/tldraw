@@ -3631,6 +3631,103 @@ describe('shapes that have do not resize', () => {
 	})
 })
 
+describe('resizing a group with shapes that do not resize', () => {
+	const rectId = createShapeId('rect')
+	const bookmarkId = createShapeId('bookmark')
+	const groupId = createShapeId('groupA')
+
+	function setupConcentricGroup() {
+		editor.createShapes([
+			box(rectId, 0, 0, 200, 320),
+			// a bookmark without an asset is 320 tall
+			{ id: bookmarkId, type: 'bookmark', x: 0, y: 0, props: { w: 200 } },
+		])
+		editor.groupShapes([rectId, bookmarkId], { groupId })
+		editor.select(groupId)
+	}
+
+	it('keeps a non-resizable shape centred when resizing from the bottom right', () => {
+		setupConcentricGroup()
+		editor.resizeSelection({ scaleX: 2, scaleY: 2.1 }, 'bottom_right')
+
+		expect(editor.getShapePageBounds(rectId)).toMatchObject({ x: 0, y: 0, w: 400, h: 672 })
+		// same result as resizing the two shapes as an ungrouped selection
+		expect(editor.getShapePageBounds(bookmarkId)).toMatchObject({ x: 100, y: 176, w: 200, h: 320 })
+	})
+
+	it('keeps a non-resizable shape centred when resizing from the top left', () => {
+		setupConcentricGroup()
+		editor.resizeSelection({ scaleX: 2, scaleY: 2.1 }, 'top_left')
+
+		expect(editor.getShapePageBounds(rectId)).toMatchObject({ x: -200, y: -352, w: 400, h: 672 })
+		expect(editor.getShapePageBounds(bookmarkId)).toMatchObject({
+			x: -100,
+			y: -176,
+			w: 200,
+			h: 320,
+		})
+	})
+
+	it('scales the relative position of an off-centre non-resizable shape', () => {
+		editor.createShapes([
+			box(rectId, 0, 0, 800, 640),
+			{ id: bookmarkId, type: 'bookmark', x: 0, y: 0, props: { w: 200 } },
+		])
+		editor.groupShapes([rectId, bookmarkId], { groupId })
+		editor.select(groupId)
+		editor.resizeSelection({ scaleX: 2, scaleY: 2 }, 'bottom_right')
+
+		expect(editor.getShapePageBounds(rectId)).toMatchObject({ x: 0, y: 0, w: 1600, h: 1280 })
+		// the bookmark's centre scales from (100, 160) to (200, 320)
+		expect(editor.getShapePageBounds(bookmarkId)).toMatchObject({ x: 100, y: 160, w: 200, h: 320 })
+	})
+
+	it('scales the relative position of a note', () => {
+		const noteId = createShapeId('noteA')
+		editor.createShapes([box(rectId, 0, 0, 400, 400), { id: noteId, type: 'note', x: 0, y: 0 }])
+		editor.groupShapes([rectId, noteId], { groupId })
+		editor.select(groupId)
+		editor.resizeSelection({ scaleX: 2, scaleY: 2 }, 'bottom_right')
+
+		expect(editor.getShapePageBounds(rectId)).toMatchObject({ x: 0, y: 0, w: 800, h: 800 })
+		// the note's centre scales from (100, 100) to (200, 200)
+		expect(editor.getShapePageBounds(noteId)).toMatchObject({ x: 100, y: 100, w: 200, h: 200 })
+	})
+
+	it('keeps a non-resizable shape centred in nested groups', () => {
+		const outerRectId = createShapeId('outerRect')
+		const outerGroupId = createShapeId('groupB')
+		editor.createShapes([
+			box(rectId, 0, 0, 200, 320),
+			{ id: bookmarkId, type: 'bookmark', x: 0, y: 0, props: { w: 200 } },
+		])
+		editor.groupShapes([rectId, bookmarkId], { groupId })
+		editor.createShapes([box(outerRectId, 0, 0, 200, 320)])
+		editor.groupShapes([groupId, outerRectId], { groupId: outerGroupId })
+		editor.select(outerGroupId)
+		editor.resizeSelection({ scaleX: 2, scaleY: 2 }, 'bottom_right')
+
+		expect(editor.getShapePageBounds(outerRectId)).toMatchObject({ x: 0, y: 0, w: 400, h: 640 })
+		expect(editor.getShapePageBounds(bookmarkId)).toMatchObject({ x: 100, y: 160, w: 200, h: 320 })
+	})
+
+	it('keeps a non-resizable shape in place when flipping a selection that contains its group', () => {
+		const otherRectId = createShapeId('otherRect')
+		editor.createShapes([
+			box(rectId, 0, 0, 200, 320),
+			{ id: bookmarkId, type: 'bookmark', x: 0, y: 0, props: { w: 200 } },
+			box(otherRectId, 400, 0, 200, 320),
+		])
+		editor.groupShapes([rectId, bookmarkId], { groupId })
+		editor.select(groupId, otherRectId)
+		editor.flipShapes(editor.getSelectedShapeIds(), 'horizontal')
+
+		expect(editor.getShapePageBounds(otherRectId)).toMatchObject({ x: 0, y: 0, w: 200, h: 320 })
+		expect(editor.getShapePageBounds(rectId)).toMatchObject({ x: 400, y: 0, w: 200, h: 320 })
+		expect(editor.getShapePageBounds(bookmarkId)).toMatchObject({ x: 400, y: 0, w: 200, h: 320 })
+	})
+})
+
 // describe('clicking the drag handle imprecisely', () => {
 //   it('does not prevent grid snapping', () => {
 //     // 0   10

@@ -8325,29 +8325,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 			scaleAxisRotation
 		)
 
-		const initialPageCenterInParentSpace = this.getPointInParentSpace(
-			initialShape.id,
-			initialPageCenter
-		)
-		const newPageCenterInParentSpace = this.getPointInParentSpace(initialShape.id, newPageCenter)
-
-		const delta = Vec.Sub(newPageCenterInParentSpace, initialPageCenterInParentSpace)
+		// Position the shape absolutely in its parent's current space: a parent-space delta added
+		// to the shape's initial x/y would double-count any move the parent itself makes during
+		// the same gesture — a repositioned group carries its children with it (#10617).
+		const initialPageOrigin = Mat.applyToPoint(pageTransform, new Vec())
+		const newPageOrigin = Vec.Add(newPageCenter, Vec.Sub(initialPageOrigin, initialPageCenter))
+		const newLocalOrigin = this.getPointInParentSpace(initialShape.id, newPageOrigin)
 
 		if (workingShape) {
 			// the util's onResize ran but returned no change; keep the working update (which may
 			// include changes from onResizeStart / onResizeEnd) and reposition the shape
 			return {
 				...workingShape,
-				x: initialShape.x + delta.x,
-				y: initialShape.y + delta.y,
+				x: newLocalOrigin.x,
+				y: newLocalOrigin.y,
 			}
 		}
 
 		return {
 			id,
 			type: initialShape.type as any,
-			x: initialShape.x + delta.x,
-			y: initialShape.y + delta.y,
+			x: newLocalOrigin.x,
+			y: newLocalOrigin.y,
 		}
 	}
 
