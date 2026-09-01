@@ -47,6 +47,9 @@ export interface Environment {
 
 	ROOMS: R2Bucket
 	ROOMS_HISTORY_EPHEMERAL: R2Bucket
+	// Delta chains. ROOMS_HISTORY_EPHEMERAL keeps every version written before cut-over, so both
+	// buckets stay on the read path until the standing history is compacted.
+	ROOMS_HISTORY: R2Bucket
 
 	ROOM_SNAPSHOTS: R2Bucket
 	SNAPSHOT_SLUG_TO_PARENT_SLUG: KVNamespace
@@ -75,6 +78,8 @@ export interface Environment {
 	ASSET_UPLOAD_ORIGIN: string | undefined
 	USER_CONTENT_URL: string | undefined
 	MULTIPLAYER_SERVER: string | undefined
+	VERSION_CHAIN_MODE: string | undefined
+	VERSION_CHAIN_ROLLOUT_PERCENT: string | undefined
 
 	HEALTH_CHECK_BEARER_TOKEN: string | undefined
 	HEALTH_CHECK_DB_SIZE_THRESHOLD_GB: string | undefined

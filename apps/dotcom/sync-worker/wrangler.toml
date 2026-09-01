@@ -127,6 +127,8 @@ name = "dev-tldraw-multiplayer"
 compatibility_date = "2025-06-05"
 
 [env.dev.vars]
+VERSION_CHAIN_MODE = "dual"
+VERSION_CHAIN_ROLLOUT_PERCENT = "100"
 BOTCOM_POSTGRES_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6543/postgres"
 BOTCOM_POSTGRES_POOLED_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6432/postgres"
 TLDRAW_ENV = "development"
@@ -156,6 +158,8 @@ name = "main-tldraw-multiplayer"
 workers_dev = false
 
 [env.staging.vars]
+VERSION_CHAIN_MODE = "dual"
+VERSION_CHAIN_ROLLOUT_PERCENT = "100"
 HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "4"
 HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "1024"
@@ -169,6 +173,8 @@ name = "tldraw-multiplayer"
 workers_dev = false
 
 [env.production.vars]
+VERSION_CHAIN_MODE = "off"
+VERSION_CHAIN_ROLLOUT_PERCENT = "0"
 HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "10"
 HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "2048"
@@ -300,6 +306,24 @@ bucket_name = "rooms-history-ephemeral-preview"
 [[env.production.r2_buckets]]
 binding = "ROOMS_HISTORY_EPHEMERAL"
 bucket_name = "rooms-history-ephemeral"
+
+#################### Rooms History chain bucket ####################
+[[env.dev.r2_buckets]]
+binding = "ROOMS_HISTORY"
+bucket_name = "rooms-history-preview"
+preview_bucket_name = "rooms-history-preview"
+
+[[env.preview.r2_buckets]]
+binding = "ROOMS_HISTORY"
+bucket_name = "rooms-history-preview"
+
+[[env.staging.r2_buckets]]
+binding = "ROOMS_HISTORY"
+bucket_name = "rooms-history-preview"
+
+[[env.production.r2_buckets]]
+binding = "ROOMS_HISTORY"
+bucket_name = "rooms-history"
 
 #################### Room snapshots bucket ####################
 # in dev, we write to the preview bucket and need a `preview_bucket_name`
