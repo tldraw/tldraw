@@ -157,6 +157,12 @@ LOCAL_SCREENSHOT_SERVICE_URL = "http://localhost:3000/__screenshot"
 name = "main-tldraw-multiplayer"
 workers_dev = false
 
+# Previews get only script-injected vars by default; the chain mode rides in toml so a
+# preview deploy actually exercises the new write path.
+[env.preview.vars]
+VERSION_CHAIN_MODE = "dual"
+VERSION_CHAIN_ROLLOUT_PERCENT = "100"
+
 [env.staging.vars]
 VERSION_CHAIN_MODE = "dual"
 VERSION_CHAIN_ROLLOUT_PERCENT = "100"
