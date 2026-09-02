@@ -4,7 +4,13 @@ import { describe, expect, it } from 'vitest'
 import { createFakeR2 } from './test/fakeR2'
 import { SEGMENT_CAP, segmentCustomMetadata, versionKey } from './versionChain'
 import { decodeVersionBody, encodeVersionBody } from './versionChainCodec'
-import { deleteAllVersions, listVersionTimestamps, reconstructVersion } from './versionChainRead'
+import {
+	deleteAllVersions,
+	listVersionTimestamps,
+	loadChainIndex,
+	openWholeVersionStream,
+	reconstructVersion,
+} from './versionChainRead'
 import { buildSnapshotDelta } from './versionDelta'
 
 const roomKey = 'app_rooms/slug'
@@ -321,6 +327,120 @@ describe('reconstructVersion', () => {
 		})
 
 		expect(result?.snapshot).toEqual(versions[1])
+	})
+})
+
+describe('reconstructVersion under clock skew', () => {
+	it('orders segments by sequence when a later segment has an earlier key', async () => {
+		const chainBucket = createFakeR2()
+		const versions = [
+			snapshot(1, ['shape:a']),
+			snapshot(2, ['shape:a', 'shape:b']),
+			snapshot(3, ['shape:a', 'shape:b', 'shape:c']),
+			snapshot(4, ['shape:b', 'shape:c']),
+		]
+		const keyframeKey = versionKey(roomKey, isoAt(10), 'keyframe')
+		const kf = await encodeVersionBody(versions[0])
+		await chainBucket.put(keyframeKey, kf.body, { customMetadata: kf.metadata })
+		// Segment 1 opened at :20, holds seq 1-2. The DO then moved to a host whose clock is
+		// behind: segment 2 opened at :15, holds seq 3.
+		const put = async (key: string, firstSeq: number, deltas: Array<{ t: string; delta: any }>) => {
+			const encoded = await encodeVersionBody({ v: 1, deltas })
+			await chainBucket.put(key, encoded.body, {
+				customMetadata: {
+					...encoded.metadata,
+					...segmentCustomMetadata({ keyframeKey, firstSeq, timestamps: deltas.map((d) => d.t) }),
+				},
+			})
+		}
+		await put(versionKey(roomKey, isoAt(20), 'segment'), 1, [
+			{ t: isoAt(20), delta: buildSnapshotDelta(versions[0], versions[1]) },
+			{ t: isoAt(21), delta: buildSnapshotDelta(versions[1], versions[2]) },
+		])
+		await put(versionKey(roomKey, isoAt(15), 'segment'), 3, [
+			{ t: isoAt(15), delta: buildSnapshotDelta(versions[2], versions[3]) },
+		])
+
+		const late = await reconstructVersion({
+			chainBucket,
+			legacyBucket: createFakeR2(),
+			roomKey,
+			timestamp: isoAt(15),
+		})
+		const early = await reconstructVersion({
+			chainBucket,
+			legacyBucket: createFakeR2(),
+			roomKey,
+			timestamp: isoAt(21),
+		})
+
+		expect(late?.snapshot).toEqual(versions[3])
+		expect(early?.snapshot).toEqual(versions[2])
+	})
+})
+
+describe('openWholeVersionStream', () => {
+	async function text(stream: ReadableStream<Uint8Array>) {
+		return await new Response(stream).text()
+	}
+
+	it('streams a keyframe decompressed, a legacy copy raw, and nothing for a delta', async () => {
+		const chainBucket = createFakeR2()
+		const legacyBucket = createFakeR2()
+		const versions = [snapshot(1, ['shape:a']), snapshot(2, ['shape:a', 'shape:b'])]
+		const timestamps = await seedChain(chainBucket, versions)
+		const legacy = snapshot(9, ['shape:legacy'])
+		await legacyBucket.put(`${roomKey}/2026-08-01T00:00:00.000Z`, JSON.stringify(legacy))
+		const { entries: index } = await loadChainIndex(chainBucket, roomKey)
+
+		const keyframe = await openWholeVersionStream({
+			chainBucket,
+			legacyBucket,
+			roomKey,
+			timestamp: timestamps[0],
+			index,
+		})
+		const legacyStream = await openWholeVersionStream({
+			chainBucket,
+			legacyBucket,
+			roomKey,
+			timestamp: '2026-08-01T00:00:00.000Z',
+			index,
+		})
+		const delta = await openWholeVersionStream({
+			chainBucket,
+			legacyBucket,
+			roomKey,
+			timestamp: timestamps[1],
+			index,
+		})
+
+		expect(JSON.parse(await text(keyframe!))).toEqual(versions[0])
+		expect(JSON.parse(await text(legacyStream!))).toEqual(legacy)
+		expect(delta).toBeNull()
+	})
+})
+
+describe('listVersionTimestamps with a limit', () => {
+	it('caps the result and reuses a preloaded index', async () => {
+		const chainBucket = createFakeR2()
+		const legacyBucket = createFakeR2()
+		await seedChain(chainBucket, [snapshot(1, ['shape:a']), snapshot(2, ['shape:a', 'shape:b'])])
+		for (let i = 0; i < 5; i++) {
+			await legacyBucket.put(`${roomKey}/2026-08-0${i + 1}T00:00:00.000Z`, '{}')
+		}
+		const { entries: index } = await loadChainIndex(chainBucket, roomKey)
+
+		const capped = await listVersionTimestamps({
+			chainBucket,
+			legacyBucket,
+			roomKey,
+			prefix: '',
+			index,
+			limit: 1,
+		})
+
+		expect(capped).toEqual([isoAt(1)])
 	})
 })
 

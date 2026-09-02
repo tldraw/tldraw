@@ -278,8 +278,12 @@ export class TLFileDurableObject extends DurableObject {
 						fileSyncSchema.migrateStorage(txn)
 					})
 					// R2 holds exactly what we just loaded, so the next persist diffs against it rather
-					// than cutting a keyframe every time the durable object wakes.
-					this._lastPersistedSnapshot = storage.getSnapshot?.() ?? null
+					// than cutting a keyframe every time the durable object wakes. Gated on the mode: this
+					// is a second decoded copy of the board pinned for the DO's lifetime, not worth paying
+					// for where chains are off.
+					if (getVersionChainMode(this.env, getR2KeyForRoom(this.documentInfo)) !== 'off') {
+						this._lastPersistedSnapshot = storage.getSnapshot?.() ?? null
+					}
 					// Drain any outbox entries stranded by a previous incarnation (e.g. a Postgres
 					// blip during the last-out drain). Retries are otherwise onChange-driven
 					// (triggerPersist), so a reopened room where users only view would never drain.
@@ -1322,6 +1326,10 @@ export class TLFileDurableObject extends DurableObject {
 				this.writeEvent(event.type, { blobs: [event.ok ? 'ok' : 'fail'] })
 				break
 			}
+			case 'version_chain_error': {
+				this.writeEvent(event.type, {})
+				break
+			}
 			default: {
 				exhaustiveSwitchError(event)
 			}
@@ -1667,7 +1675,8 @@ export class TLFileDurableObject extends DurableObject {
 	// backlog of copies — durability shouldn't wait on background asset work.
 	private addR2Operation<T>(type: R2OperationType, task: () => Promise<T>) {
 		return this.r2Queue.add(this.trackQueuedTask(type, task), {
-			priority: type === 'snapshot_upload' ? 1 : 0,
+			// Both sit on the serial persist path; neither may wait behind an asset_copy backlog.
+			priority: type === 'snapshot_upload' || type === 'version_chain_write' ? 1 : 0,
 		})
 	}
 
@@ -1806,6 +1815,10 @@ export class TLFileDurableObject extends DurableObject {
 	async persistToDatabase(opts?: { throwOnFailure?: boolean }) {
 		await this.executionQueue
 			.push(async () => {
+				// One timestamp per persist, not per attempt: in dual mode a retry after a failed
+				// legacy upload must land the legacy copy under the same version key the chain
+				// already wrote, or the two buckets disagree about when this version exists.
+				const iso = new Date().toISOString()
 				await retry(
 					async ({ attempt }) => {
 						if (attempt === PERSIST_RETRIES_NOTIFY_THRESHOLD && !this.persistenceBad) {
@@ -1852,7 +1865,7 @@ export class TLFileDurableObject extends DurableObject {
 							this.bumpFileUpdatedAt()
 							return
 						}
-						await this._uploadSnapshotToR2(snapshot, key)
+						await this._uploadSnapshotToR2(snapshot, key, iso)
 						this._lastPersistedFingerprint = snapshotFingerprint
 
 						this.logEvent({
@@ -1955,7 +1968,7 @@ export class TLFileDurableObject extends DurableObject {
 			})
 	}
 
-	private async _uploadSnapshotToR2(snapshot: RoomSnapshot, key: string) {
+	private async _uploadSnapshotToR2(snapshot: RoomSnapshot, key: string, iso: string) {
 		const customMetadata = getSnapshotMetadata(snapshot)
 		// Upload to rooms bucket first
 		const roomSizeMB = await this._uploadSnapshotToBucket(
@@ -1969,11 +1982,21 @@ export class TLFileDurableObject extends DurableObject {
 			await this.setRoomStorageUsedPercentage(roomSizeMB)
 		}
 
-		const iso = new Date().toISOString()
 		const mode = getVersionChainMode(this.env, key)
 
-		if (mode !== 'off') {
+		if (mode === 'chain') {
 			await this._writeVersionChainEntry(snapshot, key, iso)
+		} else if (mode === 'dual') {
+			// The bake is a shadow write. A non-transient chain failure here (corrupt segment, a
+			// 4xx, DO storage) must be a metric, not a failed persist — the outer retry would
+			// otherwise re-upload the rooms object 100 times, raise persistence_bad, and never
+			// reach the legacy write that dual mode exists to keep.
+			try {
+				await this._writeVersionChainEntry(snapshot, key, iso)
+			} catch (error) {
+				this.logEvent({ type: 'version_chain_error' })
+				this.reportError(error)
+			}
 		}
 		// Dual-write keeps the legacy full copy so the verifier has something to compare
 		// reconstructions against on live traffic. Stage 3 of the rollout flips this to 'chain'.

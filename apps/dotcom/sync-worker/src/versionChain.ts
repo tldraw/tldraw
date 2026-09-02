@@ -56,12 +56,19 @@ export interface ChainState {
 	keyframeBytes: number
 	deltaCount: number
 	headFingerprint: SnapshotFingerprint
+	/**
+	 * Content hash of the chain head. The fingerprint alone is not a strong enough identity:
+	 * tombstone pruning rewrites tombstones without moving any clock, so a wake can seed a diff
+	 * base that passes the fingerprint check yet differs from what the chain encodes.
+	 */
+	headHash: string
 	openSegment: OpenSegment | null
 }
 
 export type KeyframeReason =
 	| 'no-chain'
 	| 'fingerprint-mismatch'
+	| 'content-mismatch'
 	| 'schema-change'
 	| 'delta-count'
 	| 'chain-age'
@@ -76,6 +83,7 @@ export function decideVersionWrite({
 	iso,
 	chain,
 	previousFingerprint,
+	previousHash,
 	nextFingerprint,
 	deltaBytes,
 	now,
@@ -85,6 +93,8 @@ export function decideVersionWrite({
 	chain: ChainState | null
 	/** Fingerprint of the state this delta was diffed from — must be the chain head. */
 	previousFingerprint: SnapshotFingerprint
+	/** Content hash of that same state; catches divergence the fingerprint cannot see. */
+	previousHash: string
 	/** Fingerprint of the state about to be written — carries any schema change. */
 	nextFingerprint: SnapshotFingerprint
 	deltaBytes: number
@@ -100,6 +110,9 @@ export function decideVersionWrite({
 	}
 	if (!isSameFingerprint(chain.headFingerprint, previousFingerprint)) {
 		return { kind: 'keyframe', reason: 'fingerprint-mismatch' }
+	}
+	if (chain.headHash !== previousHash) {
+		return { kind: 'keyframe', reason: 'content-mismatch' }
 	}
 	if (chain.deltaCount >= MAX_DELTAS_PER_CHAIN) return { kind: 'keyframe', reason: 'delta-count' }
 	if (now - chain.keyframeAt > MAX_CHAIN_AGE_MS) return { kind: 'keyframe', reason: 'chain-age' }

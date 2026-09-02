@@ -24,6 +24,7 @@ function chain(partial: Partial<ChainState> = {}): ChainState {
 		keyframeBytes: 1_000_000,
 		deltaCount: 0,
 		headFingerprint: fingerprint,
+		headHash: 'h0',
 		openSegment: null,
 		...partial,
 	}
@@ -35,6 +36,7 @@ function decide(partial: Partial<ChainState> | null, overrides: Record<string, u
 		iso,
 		chain: partial === null ? null : chain(partial),
 		previousFingerprint: fingerprint,
+		previousHash: 'h0',
 		nextFingerprint: fingerprint,
 		deltaBytes: 10,
 		now,
@@ -57,6 +59,14 @@ describe('decideVersionWrite', () => {
 		expect(
 			decide({}, { previousFingerprint: { lastDocumentChangeClock: 99, schemaHash: 'abc' } })
 		).toEqual({ kind: 'keyframe', reason: 'fingerprint-mismatch' })
+	})
+
+	it('cuts a keyframe when the diff base has the right fingerprint but different content', () => {
+		// Tombstone pruning is the known way to get here: clocks unmoved, tombstones rewritten.
+		expect(decide({}, { previousHash: 'different' })).toEqual({
+			kind: 'keyframe',
+			reason: 'content-mismatch',
+		})
 	})
 
 	it('cuts a keyframe at the delta count limit', () => {
