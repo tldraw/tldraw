@@ -1,4 +1,5 @@
 import {
+	Editor,
 	exhaustiveSwitchError,
 	getPointerInfo,
 	preventDefault,
@@ -293,6 +294,33 @@ export function TldrawUiMenuItem<
 	}
 }
 
+/**
+ * A drag out of the toolbar starts once the pointer has left the toolbar and travelled past the
+ * drag distance threshold. Distance alone isn't enough: tapping a button with a stylus, finger or
+ * trackpad almost always includes a few pixels of movement, which spawned unwanted shapes (#6906,
+ * #7666). Leaving the toolbar is the intent signal; the threshold only guards presses that land
+ * right at the toolbar's edge.
+ */
+function isDragOutOfToolbar(
+	editor: Editor,
+	e: React.PointerEvent<HTMLButtonElement>,
+	screenSpaceStart: VecModel,
+	bounds: Element
+) {
+	const { left, top, right, bottom } = bounds.getBoundingClientRect()
+	const { clientX: x, clientY: y } = e
+	if (x >= left && x <= right && y >= top && y <= bottom) return false
+
+	// Read the pointer type off the event rather than `isCoarsePointer`: the instance state flag
+	// is synced a frame after the first pointer down, so a pen tap right after mouse use would be
+	// judged with the mouse threshold.
+	const minDistanceSq =
+		e.pointerType === 'mouse'
+			? editor.options.uiDragDistanceSquared
+			: editor.options.uiCoarseDragDistanceSquared
+	return Vec.Dist2(screenSpaceStart, { x, y }) > minDistanceSq
+}
+
 function useDraggableEvents(
 	onDragStart: TLUiToolItem['onDragStart'],
 	onSelect: TLUiToolItem['onSelect']
@@ -306,6 +334,7 @@ function useDraggableEvents(
 			| {
 					name: 'pointing'
 					screenSpaceStart: VecModel
+					dragOutBounds: Element
 			  }
 			| {
 					name: 'dragging'
@@ -319,6 +348,9 @@ function useDraggableEvents(
 			state = {
 				name: 'pointing',
 				screenSpaceStart: { x: e.clientX, y: e.clientY },
+				// The toolbar this button sits in: the main toolbar or the overflow popover. A button
+				// rendered outside any toolbar uses its own bounds.
+				dragOutBounds: e.currentTarget.closest('.tlui-toolbar') ?? e.currentTarget,
 			}
 
 			e.currentTarget.setPointerCapture(e.pointerId)
@@ -328,13 +360,7 @@ function useDraggableEvents(
 			if ((e as any).isSpecialRedispatchedEvent) return
 
 			if (state.name === 'pointing') {
-				const distanceSq = Vec.Dist2(state.screenSpaceStart, { x: e.clientX, y: e.clientY })
-				if (
-					distanceSq >
-					(editor.getInstanceState().isCoarsePointer
-						? editor.options.uiCoarseDragDistanceSquared
-						: editor.options.uiDragDistanceSquared)
-				) {
+				if (isDragOutOfToolbar(editor, e, state.screenSpaceStart, state.dragOutBounds)) {
 					const screenSpaceStart = state.screenSpaceStart
 					state = {
 						name: 'dragging',
