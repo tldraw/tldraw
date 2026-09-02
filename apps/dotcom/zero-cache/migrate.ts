@@ -124,6 +124,13 @@ async function migrate(summary: string[], dryRun: boolean) {
 			)
 		}
 
+		// DDL on a replicated table takes ACCESS EXCLUSIVE. Without a lock timeout, one long-running
+		// reader makes the deploy hang while every room persist queues behind the waiting DDL.
+		// Failing here aborts the deploy before Zero and the sync-worker roll, and a rerun picks up
+		// where it left off. SET LOCAL is transaction-scoped, so it holds through a
+		// transaction-mode pooler.
+		await sql`SET LOCAL lock_timeout = '10s'`.execute(tx)
+
 		let appliedNewMigration = false
 		for (const migration of migrations) {
 			if (appliedMigrations.rows.some((m: any) => m.filename === migration)) {

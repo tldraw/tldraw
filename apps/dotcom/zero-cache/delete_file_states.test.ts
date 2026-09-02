@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs'
+import { readFileSync, readdirSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import pg from 'pg'
@@ -25,7 +25,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 // trusted to stick — and unqualified DDL like `DROP TABLE ... CASCADE` would then
 // run against `public`. So no statement here relies on session state: everything
 // the test owns is schema-qualified explicitly, and the statements that cannot be
-// qualified (the shipped migration SQL, executed verbatim, and the UPDATEs whose
+// qualified (the shipped function definition, executed verbatim, and the UPDATEs whose
 // trigger body resolves table names at execution time) run inside a transaction
 // with `SET LOCAL search_path` — a transaction is exactly the unit a
 // transaction-mode pooler pins to a single backend, and SET LOCAL expires with it.
@@ -33,35 +33,48 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 const DIRNAME = dirname(fileURLToPath(import.meta.url))
 const CONNECTION_STRING = process.env.ZERO_CACHE_TEST_POSTGRES_URL
 
-// The real, shipped function body, sliced out of the migration that last defined it so the
-// test exercises production's function rather than a hand-copied duplicate. Unlike 034, which
-// was this function and nothing else, 050 also drops columns and rebinds triggers, so only the
-// one definition is taken from it.
-function loadShippedFunction(migrationFile: string, name: string): string {
-	const migration = readFileSync(join(DIRNAME, 'migrations', migrationFile), 'utf8')
-	const marker = `CREATE OR REPLACE FUNCTION public.${name}()`
-	const start = migration.indexOf(marker)
-	const end = migration.indexOf('$function$;', start)
-	if (start === -1 || end === -1) {
-		throw new Error(`could not find ${name}() in ${migrationFile}`)
+// The real, shipped function body, sliced out of whichever migration last defined it so the test
+// exercises production's function rather than a hand-copied duplicate. Found by scanning rather
+// than by filename: a hard-coded 034 kept this suite green against a body production no longer
+// ran once 050 redefined the function.
+function loadShippedFunction(name: string): string {
+	const dir = join(DIRNAME, 'migrations')
+	const header = new RegExp(`CREATE OR REPLACE FUNCTION (public\\.)?${name}\\(\\)`)
+	const migrationFile = readdirSync(dir)
+		.filter((f) => f.endsWith('.sql'))
+		.sort()
+		.filter((f) => header.test(readFileSync(join(dir, f), 'utf8')))
+		.at(-1)
+	if (!migrationFile) {
+		throw new Error(`no migration defines ${name}()`)
+	}
+	const migration = readFileSync(join(dir, migrationFile), 'utf8')
+	const start = migration.search(header)
+	// The body is dollar-quoted with whatever tag the migration chose ($$ early on, $function$
+	// in 050), and the statement ends at the first semicolon after the closing tag.
+	const tag = /AS\s+(\$[A-Za-z_]*\$)/.exec(migration.slice(start))
+	if (!tag) {
+		throw new Error(`could not find the body of ${name}() in ${migrationFile}`)
+	}
+	const close = migration.indexOf(tag[1], start + tag.index + tag[0].length)
+	const end = close === -1 ? -1 : migration.indexOf(';', close + tag[1].length)
+	if (end === -1) {
+		throw new Error(`could not find the end of ${name}() in ${migrationFile}`)
 	}
 	// Drop the `public.` qualifier: the migration targets public, while everything here lives
 	// in a throwaway schema pinned with SET LOCAL search_path. Left in place it would
 	// CREATE OR REPLACE the *production* function whenever this test runs against a shared
 	// database — the one way this suite could reach outside its own schema.
 	const sql = migration
-		.slice(start, end + '$function$;'.length)
-		.replace(marker, `CREATE OR REPLACE FUNCTION ${name}()`)
+		.slice(start, end + 1)
+		.replace(header, `CREATE OR REPLACE FUNCTION ${name}()`)
 	if (sql.includes('public.')) {
 		throw new Error(`refusing to run ${name}(): a public. reference survived unqualifying`)
 	}
 	return sql
 }
 
-const DELETE_FILE_STATES_SQL = loadShippedFunction(
-	'050_drop_legacy_owner_columns.sql',
-	'delete_file_states'
-)
+const DELETE_FILE_STATES_SQL = loadShippedFunction('delete_file_states')
 
 const schemaName = `tldraw_test_${process.pid}`
 
@@ -111,11 +124,10 @@ describeMaybe('delete_file_states trigger (unshare cleanup)', () => {
 	let client: pg.Client
 
 	// Runs statements inside one transaction with search_path pinned to the test
-	// schema. This is for SQL we execute verbatim (the shipped migration and the
-	// original buggy function) and for statements whose trigger body resolves
-	// unqualified table names at execution time. SET LOCAL scopes the setting to
-	// the transaction, so it works through transaction-mode poolers and cannot
-	// leak to or from other sessions.
+	// schema. This is for SQL we execute verbatim (the shipped function definition)
+	// and for statements whose trigger body resolves unqualified table names at
+	// execution time. SET LOCAL scopes the setting to the transaction, so it works
+	// through transaction-mode poolers and cannot leak to or from other sessions.
 	async function inTestSchema(...statements: string[]) {
 		await client.query('BEGIN')
 		try {
@@ -157,7 +169,7 @@ describeMaybe('delete_file_states trigger (unshare cleanup)', () => {
 	})
 
 	async function seed() {
-		// group g1 with an owner and a member; guest is NOT a member
+		// group g1 with two members; guest is NOT a member
 		await client.query(`INSERT INTO "${schemaName}"."group" ("id") VALUES ('g1')`)
 		await client.query(
 			`INSERT INTO "${schemaName}"."group_user" ("userId", "groupId") VALUES ('uOwner', 'g1'), ('uMember', 'g1')`
@@ -216,31 +228,29 @@ describeMaybe('delete_file_states trigger (unshare cleanup)', () => {
 		return res.rows.map((r) => r.groupId)
 	}
 
-	describe('with the shipped function', () => {
-		beforeEach(async () => {
-			await inTestSchema(DELETE_FILE_STATES_SQL)
-			await client.query(SCHEMA_SQL)
-			await seed()
-		})
+	beforeEach(async () => {
+		await inTestSchema(DELETE_FILE_STATES_SQL)
+		await client.query(SCHEMA_SQL)
+		await seed()
+	})
 
-		it('removes the guest state but keeps group members when a group-owned file is unshared', async () => {
-			await unshare('fGroup')
-			// owner + member of the owning group keep access; guest is cleaned up
-			expect(await statesFor('fGroup')).toEqual(['uMember', 'uOwner'])
-		})
+	it('removes the guest state but keeps group members when a group-owned file is unshared', async () => {
+		await unshare('fGroup')
+		// owner + member of the owning group keep access; guest is cleaned up
+		expect(await statesFor('fGroup')).toEqual(['uMember', 'uOwner'])
+	})
 
-		it('removes the guest file link but keeps the owning group row and member links', async () => {
-			await unshare('fGroup')
-			// the file still lives in its owning group, and the member keeps their
-			// home-group link (they retain access); the guest's link is cleaned up
-			// so the file stops showing in their recent files
-			expect(await linksFor('fGroup')).toEqual(['g1', 'uMember'])
-		})
+	it('removes the guest file link but keeps the owning group row and member links', async () => {
+		await unshare('fGroup')
+		// the file still lives in its owning group, and the member keeps their
+		// home-group link (they retain access); the guest's link is cleaned up
+		// so the file stops showing in their recent files
+		expect(await linksFor('fGroup')).toEqual(['g1', 'uMember'])
+	})
 
-		it('leaves still-shared files untouched', async () => {
-			await unshare('fGroup')
-			expect(await statesFor('fControl')).toEqual(['uGuest', 'uMember', 'uOwner'])
-			expect(await linksFor('fControl')).toEqual(['g1', 'uGuest'])
-		})
+	it('leaves still-shared files untouched', async () => {
+		await unshare('fGroup')
+		expect(await statesFor('fControl')).toEqual(['uGuest', 'uMember', 'uOwner'])
+		expect(await linksFor('fControl')).toEqual(['g1', 'uGuest'])
 	})
 })

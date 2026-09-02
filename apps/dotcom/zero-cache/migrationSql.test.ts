@@ -16,6 +16,26 @@ describe('hasTransactionBlock', () => {
 		expect(hasTransactionBlock('BEGIN;\nALTER TABLE foo DROP COLUMN bar;\nCOMMIT;')).toBe(true)
 	})
 
+	// A lowercase or long-form commit is the dangerous one: it ends the runner's transaction
+	// silently, so a dry run applies everything after it for real.
+	it.each([
+		'commit;',
+		'COMMIT WORK;',
+		'COMMIT TRANSACTION;',
+		'ROLLBACK;',
+		'START TRANSACTION;',
+		'BEGIN TRANSACTION;',
+		'END TRANSACTION;',
+		'begin ;',
+	])('finds %s', (statement) => {
+		expect(hasTransactionBlock(`ALTER TABLE foo DROP COLUMN bar;\n${statement}`)).toBe(true)
+	})
+
+	it('does not mistake a DO block or a plpgsql END for one', () => {
+		expect(hasTransactionBlock(`DO $$\nBEGIN\n  RAISE NOTICE 'x';\nEND $$;`)).toBe(false)
+		expect(hasTransactionBlock(`IF x THEN\n  y;\nEND IF;\nEND;`)).toBe(false)
+	})
+
 	// The reason the check is punctuation-sensitive rather than word-based: every plpgsql function
 	// body opens with a bare BEGIN, so a word-based check would reject most trigger migrations.
 	it('does not mistake a plpgsql function body for one', () => {

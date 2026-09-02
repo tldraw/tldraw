@@ -9,9 +9,20 @@
 -- bodies: a function still naming a dropped column survives the DDL and fails at runtime on
 -- the next write. That is why the function work below is explicit, and comes first.
 --
--- The runner puts the whole migration in one transaction (migrate.ts), which is what this
--- needs: each DDL change to a replicated table resets every view-syncer pipeline and
--- rehydrates connected clients, and Zero is notified once after all of it. Deploy off-peak.
+-- The runner puts the whole migration in one transaction (migrate.ts). A transaction with any
+-- DDL on a replicated table resets every view-syncer pipeline and rehydrates connected clients,
+-- once per transaction rather than per statement, and Zero is notified once after all of it.
+-- Deploy off-peak, and only after #10653 has shipped: a client whose schema still declares
+-- these columns is disconnected the moment they drop.
+
+-- Fails before any DDL if a file still has no workspace, with a message that says so. Without
+-- this the first thing to notice is the SET NOT NULL at the very end.
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM public."file" WHERE "owningGroupId" IS NULL) THEN
+    RAISE EXCEPTION 'files without an owningGroupId remain; every file must belong to a workspace before the legacy owner columns can be dropped';
+  END IF;
+END $$;
 
 -- These exist only to maintain the legacy columns.
 
@@ -30,27 +41,24 @@ DROP FUNCTION IF EXISTS public.update_file_owner_details();
 -- `file_state` row for, so a file its owner had never opened got the id and no link.
 DROP FUNCTION IF EXISTS public.migrate_user_to_groups(text, text);
 
--- Was two arms, one per ownership model. Only the group arm is reachable now, and its
--- `"ownerAvatar" = ''` assignment goes with the column.
+-- Was two arms, one per ownership model. Only the group arm is reachable now, its
+-- `"ownerAvatar" = ''` assignment goes with the column, and its null check goes with the
+-- NOT NULL constraint at the end of this migration: nothing writes `file` in between.
 CREATE OR REPLACE FUNCTION public.set_file_owner_details()
  RETURNS trigger
  LANGUAGE plpgsql
 AS $function$
 BEGIN
-  IF NEW."owningGroupId" IS NOT NULL THEN
-    UPDATE "file"
-    SET "ownerName" = g."name"
-    FROM public."group" g
-    WHERE g."id" = NEW."owningGroupId" AND "file"."id" = NEW."id";
-  END IF;
-
+  UPDATE "file"
+  SET "ownerName" = g."name"
+  FROM public."group" g
+  WHERE g."id" = NEW."owningGroupId" AND "file"."id" = NEW."id";
   RETURN NEW;
 END;
 $function$;
 
--- Recreated rather than left alone: its column list still named "ownerId".
-DROP TRIGGER IF EXISTS set_file_owner_details_trigger ON public."file";
-CREATE TRIGGER set_file_owner_details_trigger
+-- Redefined rather than left alone: its column list still named "ownerId".
+CREATE OR REPLACE TRIGGER set_file_owner_details_trigger
 AFTER INSERT OR UPDATE OF "owningGroupId" ON public."file"
 FOR EACH ROW EXECUTE FUNCTION set_file_owner_details();
 
@@ -87,7 +95,7 @@ BEGIN
     DELETE FROM group_file gf
     WHERE gf."fileId" = OLD.id
       -- never the owning group's own row: that's where the file lives
-      AND gf."groupId" IS DISTINCT FROM OLD."owningGroupId"
+      AND gf."groupId" <> OLD."owningGroupId"
       -- not a home-group link of a current owning-group member
       AND NOT EXISTS (
         SELECT 1 FROM group_user gu
