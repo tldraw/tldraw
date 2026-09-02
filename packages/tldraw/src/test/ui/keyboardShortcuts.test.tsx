@@ -340,4 +340,40 @@ describe('frame selection shortcut', () => {
 		expect(editor.getShape(a)?.parentId).toBe(frame!.id)
 		expect(editor.getShape(b)?.parentId).toBe(frame!.id)
 	})
+
+	// Unlike group, framing a single shape is a real operation, so the shortcut must not
+	// require two or more selected shapes.
+	it('wraps a single selected shape in a frame', async () => {
+		const { editor } = await setupFocusedEditor()
+		const a = createShapeId()
+		act(() => {
+			editor.createShapes([{ id: a, type: 'geo', x: 0, y: 0 }])
+			editor.select(a)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
+
+		const frame = editor.getCurrentPageShapes().find((s) => editor.isShapeOfType(s, 'frame'))
+		expect(frame).toBeDefined()
+		expect(editor.getShape(a)?.parentId).toBe(frame!.id)
+		expect(editor.getSelectedShapeIds()).toEqual([frame!.id])
+	})
+
+	it('removes the frame when a single frame is selected', async () => {
+		const { editor } = await setupFocusedEditor()
+		const frameId = createShapeId()
+		const a = createShapeId()
+		act(() => {
+			editor.createShapes([
+				{ id: frameId, type: 'frame', x: 0, y: 0, props: { w: 200, h: 200 } },
+				{ id: a, type: 'geo', parentId: frameId, x: 10, y: 10 },
+			])
+			editor.select(frameId)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
+
+		expect(editor.getShape(frameId)).toBeUndefined()
+		expect(editor.getShape(a)?.parentId).toBe(editor.getCurrentPageId())
+	})
 })

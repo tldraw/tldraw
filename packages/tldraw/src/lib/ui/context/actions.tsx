@@ -619,8 +619,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						return
 					}
 
+					// Unlike group, a frame around a single shape is meaningful, so any
+					// non-empty selection can be framed.
 					const ids = editor.getSelectedShapeIds()
-					if (ids.length < 2) return
 
 					const shapes = compact(ids.map((id) => editor.getShape(id)))
 					const pageBounds = editor.getSelectionPageBounds()

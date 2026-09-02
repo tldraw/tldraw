@@ -105,7 +105,18 @@ export function UngroupMenuItem() {
 
 /** @public @react */
 export function FrameSelectionMenuItem() {
-	const shouldDisplay = useAllowGroup()
+	const editor = useEditor()
+	const shouldDisplay = useValue(
+		'allow frame selection',
+		() => {
+			const selectedShapes = editor.getSelectedShapes()
+			if (selectedShapes.length === 0) return false
+			// When every selected shape is a frame the action unframes instead, which
+			// RemoveFrameMenuItem already offers under its own label.
+			return !selectedShapes.every((shape) => editor.isShapeOfType(shape, 'frame'))
+		},
+		[editor]
+	)
 	if (!shouldDisplay) return null
 
 	return <TldrawUiMenuActionItem actionId="frame-selection" />
