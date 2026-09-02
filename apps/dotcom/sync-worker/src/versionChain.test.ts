@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { MAX_CHAIN_AGE_MS, MAX_DELTAS_PER_CHAIN, SEGMENT_CAP } from './config'
+import {
+	MAX_CHAIN_AGE_MS,
+	MAX_DELTAS_PER_CHAIN,
+	SEGMENT_CAP,
+	WORKER_MAX_SIMULTANEOUS_CONNECTIONS,
+} from './config'
 import { SnapshotFingerprint } from './snapshotUtils'
 import {
 	ChainState,
@@ -130,6 +135,15 @@ describe('decideVersionWrite', () => {
 			isNewSegment: true,
 			segment: { key: `${roomKey}/${iso}.s`, firstSeq: SEGMENT_CAP + 1, count: 1 },
 		})
+	})
+})
+
+describe('tuning invariants', () => {
+	it('keeps a restore fan-out within the simultaneous connection limit', () => {
+		// Keyframe plus every segment of a full chain, fetched in parallel by reconstructVersion.
+		const fanOut = 1 + Math.ceil(MAX_DELTAS_PER_CHAIN / SEGMENT_CAP)
+
+		expect(fanOut).toBeLessThanOrEqual(WORKER_MAX_SIMULTANEOUS_CONNECTIONS)
 	})
 })
 
