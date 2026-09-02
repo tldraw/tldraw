@@ -1,9 +1,13 @@
-import { EMPTY_ARRAY } from '@tldraw/state'
 import { assert, invLerp, lerp } from '@tldraw/utils'
 import { Box } from '../Box'
-import { Mat } from '../Mat'
+import { MatModel } from '../Mat'
 import { Vec, VecLike } from '../Vec'
-import { Geometry2d, Geometry2dFilters, Geometry2dOptions } from './Geometry2d'
+import {
+	Geometry2d,
+	Geometry2dFilters,
+	Geometry2dOptions,
+	TransformedGeometry2dOptions,
+} from './Geometry2d'
 
 /** @public */
 export class Group2d extends Geometry2d {
@@ -36,9 +40,15 @@ export class Group2d extends Geometry2d {
 
 	override getVertices(filters: Geometry2dFilters): Vec[] {
 		if (this.isExcludedByFilter(filters)) return []
-		return this.children
-			.filter((c) => !c.isExcludedByFilter(filters))
-			.flatMap((c) => c.getVertices(filters))
+		const vertices: Vec[] = []
+		for (const child of this.children) {
+			if (child.isExcludedByFilter(filters)) continue
+			const childVertices = child.getVertices(filters)
+			for (let i = 0, n = childVertices.length; i < n; i++) {
+				vertices.push(childVertices[i])
+			}
+		}
+		return vertices
 	}
 
 	override nearestPoint(point: VecLike, filters?: Geometry2dFilters): Vec {
@@ -84,9 +94,11 @@ export class Group2d extends Geometry2d {
 		hitInside: boolean,
 		filters = Geometry2dFilters.EXCLUDE_LABELS
 	): boolean {
-		return !!this.children
-			.filter((c) => !c.isExcludedByFilter(filters))
-			.find((c) => c.hitTestPoint(point, margin, hitInside))
+		for (const child of this.children) {
+			if (child.isExcludedByFilter(filters)) continue
+			if (child.hitTestPoint(point, margin, hitInside)) return true
+		}
+		return false
 	}
 
 	override hitTestLineSegment(
@@ -95,42 +107,71 @@ export class Group2d extends Geometry2d {
 		zoom: number,
 		filters = Geometry2dFilters.EXCLUDE_LABELS
 	): boolean {
-		return !!this.children
-			.filter((c) => !c.isExcludedByFilter(filters))
-			.find((c) => c.hitTestLineSegment(A, B, zoom))
+		for (const child of this.children) {
+			if (child.isExcludedByFilter(filters)) continue
+			if (child.hitTestLineSegment(A, B, zoom)) return true
+		}
+		return false
 	}
 
 	override intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters) {
-		return this.children.flatMap((child) => {
-			if (child.isExcludedByFilter(filters)) return EMPTY_ARRAY
-			return child.intersectLineSegment(A, B, filters)
-		})
+		const result: VecLike[] = []
+		for (const child of this.children) {
+			if (child.isExcludedByFilter(filters)) continue
+			const hits = child.intersectLineSegment(A, B, filters)
+			for (let i = 0, n = hits.length; i < n; i++) {
+				result.push(hits[i])
+			}
+		}
+		return result
 	}
 
 	override intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters) {
-		return this.children.flatMap((child) => {
-			if (child.isExcludedByFilter(filters)) return EMPTY_ARRAY
-			return child.intersectCircle(center, radius, filters)
-		})
+		const result: VecLike[] = []
+		for (const child of this.children) {
+			if (child.isExcludedByFilter(filters)) continue
+			const hits = child.intersectCircle(center, radius, filters)
+			for (let i = 0, n = hits.length; i < n; i++) {
+				result.push(hits[i])
+			}
+		}
+		return result
 	}
 
 	override getBoundsVertices(): Vec[] {
 		if (this.excludeFromShapeBounds) return []
-		return this.children.flatMap((child) => child.getBoundsVertices())
+		const vertices: Vec[] = []
+		for (const child of this.children) {
+			const childVertices = child.getBoundsVertices()
+			for (let i = 0, n = childVertices.length; i < n; i++) {
+				vertices.push(childVertices[i])
+			}
+		}
+		return vertices
 	}
 
 	override intersectPolygon(polygon: VecLike[], filters?: Geometry2dFilters) {
-		return this.children.flatMap((child) => {
-			if (child.isExcludedByFilter(filters)) return EMPTY_ARRAY
-			return child.intersectPolygon(polygon, filters)
-		})
+		const result: VecLike[] = []
+		for (const child of this.children) {
+			if (child.isExcludedByFilter(filters)) continue
+			const hits = child.intersectPolygon(polygon, filters)
+			for (let i = 0, n = hits.length; i < n; i++) {
+				result.push(hits[i])
+			}
+		}
+		return result
 	}
 
 	override intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters) {
-		return this.children.flatMap((child) => {
-			if (child.isExcludedByFilter(filters)) return EMPTY_ARRAY
-			return child.intersectPolyline(polyline, filters)
-		})
+		const result: VecLike[] = []
+		for (const child of this.children) {
+			if (child.isExcludedByFilter(filters)) continue
+			const hits = child.intersectPolyline(polyline, filters)
+			for (let i = 0, n = hits.length; i < n; i++) {
+				result.push(hits[i])
+			}
+		}
+		return result
 	}
 
 	override interpolateAlongEdge(t: number, filters?: Geometry2dFilters): Vec {
@@ -190,12 +231,18 @@ export class Group2d extends Geometry2d {
 		return childTLength / totalLength
 	}
 
-	override transform(transform: Mat): Geometry2d {
+	override transform(transform: MatModel, opts?: TransformedGeometry2dOptions): Geometry2d {
+		// Each child's own transform preserves its `ignore` flag, so the constructor
+		// re-partitions ignored children back into `ignoredChildren` instead of dropping
+		// them (#10562).
 		return new Group2d({
-			children: this.children.map((c) => c.transform(transform)),
-			isLabel: this.isLabel,
-			debugColor: this.debugColor,
-			ignore: this.ignore,
+			children: [...this.children, ...this.ignoredChildren].map((c) => c.transform(transform)),
+			isLabel: opts?.isLabel ?? this.isLabel,
+			isEmptyLabel: this.isEmptyLabel,
+			isInternal: opts?.isInternal ?? this.isInternal,
+			debugColor: opts?.debugColor ?? this.debugColor,
+			ignore: opts?.ignore ?? this.ignore,
+			excludeFromShapeBounds: this.excludeFromShapeBounds,
 		})
 	}
 

@@ -4,6 +4,7 @@ import { publishDates } from '../../version'
 import { str2ab } from '../utils/licensing'
 import {
 	FLAGS,
+	getEnabledFeatures,
 	getLicenseState,
 	LicenseManager,
 	PROPERTIES,
@@ -315,6 +316,42 @@ describe('LicenseManager', () => {
 			expect(result.isDomainValid).toBe(true)
 		})
 
+		it('Fails if the wildcard domain is a prefix of the current hostname', async () => {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('https://sub.example.com.other.io')
+
+			const permissiveHostsInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			permissiveHostsInfo[PROPERTIES.HOSTS] = ['*.example.com']
+			const permissiveLicenseKey = await generateLicenseKey(
+				JSON.stringify(permissiveHostsInfo),
+				keyPair
+			)
+			const result = (await licenseManager.getLicenseFromKey(
+				permissiveLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isDomainValid).toBe(false)
+		})
+
+		it('Fails if the current hostname only ends with the wildcard domain', async () => {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('https://notexample.com')
+
+			const permissiveHostsInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			permissiveHostsInfo[PROPERTIES.HOSTS] = ['*.example.com']
+			const permissiveLicenseKey = await generateLicenseKey(
+				JSON.stringify(permissiveHostsInfo),
+				keyPair
+			)
+			const result = (await licenseManager.getLicenseFromKey(
+				permissiveLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isDomainValid).toBe(false)
+		})
+
 		it('Fails if has a subdomain wildcard isnt for the same base domain', async () => {
 			// @ts-ignore
 			delete window.location
@@ -421,6 +458,107 @@ describe('LicenseManager', () => {
 			expect(result.isDomainValid).toBe(true)
 		})
 
+		it('Is not development mode on a custom protocol', async () => {
+			process.env.NODE_ENV = 'production'
+			try {
+				// @ts-ignore
+				delete window.location
+				// @ts-ignore
+				window.location = new URL('app-bundle://app/index.html')
+
+				const nativeLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+				nativeLicenseInfo[PROPERTIES.FLAGS] = FLAGS.NATIVE_LICENSE
+				nativeLicenseInfo[PROPERTIES.HOSTS] = ['app-bundle:']
+				const nativeLicenseKey = await generateLicenseKey(
+					JSON.stringify(nativeLicenseInfo),
+					keyPair
+				)
+				const nativeLicenseManager = new LicenseManager('', keyPair.publicKey)
+				const result = (await nativeLicenseManager.getLicenseFromKey(
+					nativeLicenseKey
+				)) as ValidLicenseKeyResult
+				expect(result).toMatchObject({
+					isLicenseParseable: true,
+					isNativeLicense: true,
+					isDomainValid: true,
+					isDevelopment: false,
+				})
+				expect(getLicenseState(result, () => {}, result.isDevelopment)).toBe('licensed')
+			} finally {
+				process.env.NODE_ENV = 'test'
+			}
+		})
+
+		it('Validates the domain on a custom protocol', async () => {
+			process.env.NODE_ENV = 'production'
+			try {
+				// @ts-ignore
+				delete window.location
+				// @ts-ignore
+				window.location = new URL('app-bundle://app/index.html')
+
+				const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+				const customProtocolLicenseManager = new LicenseManager('', keyPair.publicKey)
+				const result = (await customProtocolLicenseManager.getLicenseFromKey(
+					licenseKey
+				)) as ValidLicenseKeyResult
+				expect(result).toMatchObject({ isDomainValid: false, isDevelopment: false })
+				expect(getLicenseState(result, () => {}, result.isDevelopment)).toBe(
+					'unlicensed-production'
+				)
+			} finally {
+				process.env.NODE_ENV = 'test'
+			}
+		})
+
+		it('Is development mode over http on a non-loopback host', async () => {
+			process.env.NODE_ENV = 'production'
+			try {
+				// @ts-ignore
+				delete window.location
+				// @ts-ignore
+				window.location = new URL('http://www.example.com')
+
+				const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+				const httpLicenseManager = new LicenseManager('', keyPair.publicKey)
+				const result = (await httpLicenseManager.getLicenseFromKey(
+					licenseKey
+				)) as ValidLicenseKeyResult
+				expect(result.isDevelopment).toBe(true)
+			} finally {
+				process.env.NODE_ENV = 'test'
+			}
+		})
+
+		it.each([
+			['http://localhost:5173/', true],
+			['http://127.0.0.1:3000/', true],
+			['https://localhost:8443/', true],
+			['https://[::1]:8443/', true],
+			['http://192.168.1.5:3000/', true],
+			['http://staging-box/', true],
+			['https://www.example.com/', false],
+			['tauri://localhost/index.html', false],
+			['http://tauri.localhost/index.html', false],
+			['app://tauri.localhost/com.example.app', false],
+			['app-bundle://localhost/index.html', false],
+		])('Development mode at %s is %s', async (href, expected) => {
+			process.env.NODE_ENV = 'production'
+			try {
+				// @ts-ignore
+				delete window.location
+				// @ts-ignore
+				window.location = new URL(href)
+
+				const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+				const manager = new LicenseManager('', keyPair.publicKey)
+				const result = (await manager.getLicenseFromKey(licenseKey)) as ValidLicenseKeyResult
+				expect(result.isDevelopment).toBe(expected)
+			} finally {
+				process.env.NODE_ENV = 'test'
+			}
+		})
+
 		it('Fails if it is a native app with the wrong protocol', async () => {
 			// @ts-ignore
 			delete window.location
@@ -436,6 +574,29 @@ describe('LicenseManager', () => {
 			)) as ValidLicenseKeyResult
 			expect(result.isDomainValid).toBe(false)
 		})
+
+		it.each(['tauri://localhost/index.html', 'http://tauri.localhost/index.html'])(
+			'Does not license an unrelated key at %s',
+			async (href) => {
+				process.env.NODE_ENV = 'production'
+				try {
+					// @ts-ignore
+					delete window.location
+					// @ts-ignore
+					window.location = new URL(href)
+
+					const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+					const manager = new LicenseManager('', keyPair.publicKey)
+					const result = (await manager.getLicenseFromKey(licenseKey)) as ValidLicenseKeyResult
+					expect(result).toMatchObject({ isDevelopment: false, isDomainValid: false })
+					expect(getLicenseState(result, () => {}, result.isDevelopment)).toBe(
+						'unlicensed-production'
+					)
+				} finally {
+					process.env.NODE_ENV = 'test'
+				}
+			}
+		)
 	})
 
 	describe('License types and flags', () => {
@@ -507,6 +668,62 @@ describe('LicenseManager', () => {
 			)) as ValidLicenseKeyResult
 			expect(result.isEvaluationLicense).toBe(true)
 			expect(result.isEvaluationLicenseExpired).toBe(true)
+		})
+
+		it('Checks for the commenting feature flag', async () => {
+			const commentingLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			commentingLicenseInfo[PROPERTIES.FLAGS] |= FLAGS.FEAT_COMMENTING
+			const commentingLicenseKey = await generateLicenseKey(
+				JSON.stringify(commentingLicenseInfo),
+				keyPair
+			)
+			const result = (await licenseManager.getLicenseFromKey(
+				commentingLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isCommentingEnabled).toBe(true)
+			expect(result.isCollaborationEnabled).toBe(false)
+		})
+
+		it('Checks for the collaboration feature flag', async () => {
+			const collaborationLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			collaborationLicenseInfo[PROPERTIES.FLAGS] |= FLAGS.FEAT_COLLABORATION
+			const collaborationLicenseKey = await generateLicenseKey(
+				JSON.stringify(collaborationLicenseInfo),
+				keyPair
+			)
+			const result = (await licenseManager.getLicenseFromKey(
+				collaborationLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isCollaborationEnabled).toBe(true)
+			// The collaboration umbrella grants the commenting sub-feature.
+			expect(result.isCommentingEnabled).toBe(true)
+		})
+
+		it('Leaves feature flags off when no feature bits are set', async () => {
+			const standardLicenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+			const result = (await licenseManager.getLicenseFromKey(
+				standardLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isCollaborationEnabled).toBe(false)
+			expect(result.isCommentingEnabled).toBe(false)
+		})
+
+		it('Enables features synchronously in development, before validation resolves', () => {
+			process.env.NODE_ENV = 'development'
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('https://www.example.com')
+
+			try {
+				// No await: the feature flags should already reflect development (all enabled) rather
+				// than the fail-closed default, which only lifts once async validation resolves.
+				const devLicenseManager = new LicenseManager('', keyPair.publicKey)
+				expect(devLicenseManager.isFeatureEnabled('commenting')).toBe(true)
+				expect(devLicenseManager.isFeatureEnabled('collaboration')).toBe(true)
+			} finally {
+				process.env.NODE_ENV = 'test'
+			}
 		})
 	})
 
@@ -793,6 +1010,8 @@ function getDefaultLicenseResult(overrides: Partial<ValidLicenseKeyResult>): Val
 		isLicensedWithWatermark: false,
 		isEvaluationLicense: false,
 		isEvaluationLicenseExpired: false,
+		isCollaborationEnabled: false,
+		isCommentingEnabled: false,
 		daysSinceExpiry: 0,
 		// WatermarkManager does not check these fields, it relies on the calculated values like isAnnualLicenseExpired
 		license: {
@@ -1091,6 +1310,93 @@ describe('getLicenseState', () => {
 				'Your tldraw license has been expired for more than 30 days!',
 				'Please reach out to sales@tldraw.com to renew your license.',
 			])
+		})
+	})
+})
+
+describe('getEnabledFeatures', () => {
+	it('enables every feature in development regardless of flags', () => {
+		const result = getDefaultLicenseResult({
+			isCollaborationEnabled: false,
+			isCommentingEnabled: false,
+		})
+		expect(getEnabledFeatures(result, 'unlicensed', true)).toEqual({
+			collaboration: true,
+			commenting: true,
+		})
+	})
+
+	it('reflects the license flags for a valid licensed state', () => {
+		const result = getDefaultLicenseResult({
+			isCollaborationEnabled: false,
+			isCommentingEnabled: true,
+		})
+		expect(getEnabledFeatures(result, 'licensed', false)).toEqual({
+			collaboration: false,
+			commenting: true,
+		})
+	})
+
+	it('still grants features while showing a watermark', () => {
+		const result = getDefaultLicenseResult({
+			isCollaborationEnabled: true,
+			isCommentingEnabled: true,
+		})
+		expect(getEnabledFeatures(result, 'licensed-with-watermark', false)).toEqual({
+			collaboration: true,
+			commenting: true,
+		})
+	})
+
+	it.each(['unlicensed', 'unlicensed-production', 'expired', 'pending'] as const)(
+		'disables all features for the %s state in production',
+		(state) => {
+			const result = getDefaultLicenseResult({
+				isCollaborationEnabled: true,
+				isCommentingEnabled: true,
+			})
+			expect(getEnabledFeatures(result, state, false)).toEqual({
+				collaboration: false,
+				commenting: false,
+			})
+		}
+	)
+
+	it('enables every feature for an evaluation license regardless of flags', () => {
+		const result = getDefaultLicenseResult({
+			isEvaluationLicense: true,
+			isCollaborationEnabled: false,
+			isCommentingEnabled: false,
+		})
+		expect(getEnabledFeatures(result, 'licensed', false)).toEqual({
+			collaboration: true,
+			commenting: true,
+		})
+	})
+
+	it('disables all features for an expired evaluation license', () => {
+		const result = getDefaultLicenseResult({
+			isEvaluationLicense: true,
+			isEvaluationLicenseExpired: true,
+			isCollaborationEnabled: false,
+			isCommentingEnabled: false,
+		})
+		expect(getEnabledFeatures(result, 'expired', false)).toEqual({
+			collaboration: false,
+			commenting: false,
+		})
+	})
+
+	it('disables all features when the license is not parseable', () => {
+		expect(
+			getEnabledFeatures(
+				{ isLicenseParseable: false, reason: 'no-key-provided' },
+				'licensed',
+				false
+			)
+		).toEqual({
+			collaboration: false,
+			commenting: false,
 		})
 	})
 })

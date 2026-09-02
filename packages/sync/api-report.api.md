@@ -6,6 +6,7 @@
 
 import { Editor } from 'tldraw';
 import { TLAssetStore } from 'tldraw';
+import { TLObjectStoreAccess } from '@tldraw/sync-core';
 import { TLPersistentClientSocket } from '@tldraw/sync-core';
 import { TLPresenceStateInfo } from 'tldraw';
 import { TLStore } from 'tldraw';
@@ -16,10 +17,16 @@ import { TLUser } from 'tldraw';
 import { TLUserStore } from 'tldraw';
 
 // @public
-export type RemoteTLStoreWithStatus = Exclude<TLStoreWithStatus, {
+export type RemoteTLStoreWithStatus = (Extract<TLStoreWithStatus, {
+    status: 'synced-remote';
+}> & {
+    readonly objectAccess: TLObjectStoreAccess;
+}) | Exclude<TLStoreWithStatus, {
     status: 'not-synced';
 } | {
     status: 'synced-local';
+} | {
+    status: 'synced-remote';
 }>;
 
 // @public

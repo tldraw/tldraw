@@ -1,11 +1,23 @@
-import { act, fireEvent, screen } from '@testing-library/react'
-import { createShapeId, tlenvReactive } from '@tldraw/editor'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
+import { createShapeId, Editor, TldrawOptions, tlenvReactive } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TLComponents, Tldraw } from '../../lib/Tldraw'
 import { DefaultContextMenu } from '../../lib/ui/components/ContextMenu/DefaultContextMenu'
+import { TLUiOverrides } from '../../lib/ui/overrides'
 import {
 	renderTldrawComponent,
 	renderTldrawComponentWithEditor,
 } from '../testutils/renderTldrawComponent'
+
+// The paste item only renders when the clipboard API exists at module load, so the
+// stub has to be in place before the menu modules are imported.
+const clipboard = vi.hoisted(() => {
+	const clipboard = { read: vi.fn(), write: vi.fn() }
+	Object.assign(navigator, { clipboard })
+	// @ts-expect-error jsdom has no ClipboardItem
+	window.ClipboardItem = class {}
+	return clipboard
+})
 
 it('opens on right-click', async () => {
 	await renderTldrawComponent(
@@ -166,6 +178,54 @@ it('right-click in a shape tool reveals shape actions (rightClickPanning off)', 
 	await screen.findByTestId('context-menu.delete')
 })
 
+it('pastes at the point where the menu was opened, not where the item was chosen', async () => {
+	// Regression for #10423: the pointer keeps moving (over the menu) between the
+	// right-click and choosing Paste, and the pasted content used to follow it.
+	const onClipboardPasteRaw = vi.fn<NonNullable<TldrawOptions['onClipboardPasteRaw']>>(() => false)
+	const { editor } = await renderTldrawComponentWithEditor(
+		(onMount) => <Tldraw options={{ onClipboardPasteRaw }} onMount={onMount} />,
+		{ waitForPatterns: false }
+	)
+	clipboard.read.mockResolvedValue([new window.ClipboardItem({})])
+
+	function movePointerTo(x: number, y: number) {
+		act(() => {
+			editor.dispatch({
+				type: 'pointer',
+				name: 'pointer_move',
+				target: 'canvas',
+				point: { x, y, z: 0.5 },
+				pointerId: 1,
+				button: 0,
+				isPen: false,
+				shiftKey: false,
+				altKey: false,
+				ctrlKey: false,
+				metaKey: false,
+				accelKey: false,
+			})
+			// pointer moves are batched until the next tick
+			editor.emit('tick', 16)
+		})
+	}
+
+	const canvas = await screen.findByTestId('canvas')
+	movePointerTo(100, 200)
+	fireEvent.contextMenu(canvas)
+	const pasteItem = await screen.findByTestId('context-menu.paste')
+
+	// travel down the menu before choosing the item
+	movePointerTo(300, 400)
+	expect(editor.inputs.getCurrentPagePoint()).toMatchObject({ x: 300, y: 400 })
+
+	fireEvent.click(pasteItem)
+	await waitFor(() => expect(onClipboardPasteRaw).toHaveBeenCalled())
+	expect(onClipboardPasteRaw.mock.calls[0][0]).toMatchObject({
+		source: 'clipboard-read',
+		point: { x: 100, y: 200 },
+	})
+})
+
 it('tunnels context menu', async () => {
 	const components: TLComponents = {
 		ContextMenu: (props) => {
@@ -192,4 +252,82 @@ it('tunnels context menu', async () => {
 	await screen.findByTestId('context-menu')
 	const elm = await screen.findByTestId('abc123')
 	expect(elm).toBeDefined()
+})
+
+describe('conversions submenus gate on their actions', () => {
+	async function openContextMenu(overrides?: TLUiOverrides, onMount?: (editor: Editor) => void) {
+		await renderTldrawComponent(
+			<Tldraw
+				overrides={overrides}
+				onMount={(editor) => {
+					editor.createShape({ id: createShapeId(), type: 'geo' })
+					onMount?.(editor)
+				}}
+			/>,
+			{ waitForPatterns: false }
+		)
+		const canvas = await screen.findByTestId('canvas')
+		fireEvent.contextMenu(canvas)
+		await screen.findByTestId('context-menu')
+		// wait for the menu to fully render before making absence assertions
+		await screen.findByTestId('context-menu.select-all')
+	}
+
+	it('shows the export-as and copy-as submenus by default', async () => {
+		await openContextMenu()
+		expect(screen.queryByTestId('context-menu-sub.export-as-button')).not.toBeNull()
+		expect(screen.queryByTestId('context-menu-sub.copy-as-button')).not.toBeNull()
+	})
+
+	it('hides the export-as submenu when all export actions are removed', async () => {
+		await openContextMenu({
+			actions(_editor, actions) {
+				delete actions['export-as-svg']
+				delete actions['export-as-png']
+				return actions
+			},
+		})
+		// regression for #9133: the submenu should not linger once its actions are gone
+		expect(screen.queryByTestId('context-menu-sub.export-as-button')).toBeNull()
+		// unrelated submenus are unaffected
+		expect(screen.queryByTestId('context-menu-sub.copy-as-button')).not.toBeNull()
+	})
+
+	it('hides the copy-as submenu when all copy actions are removed', async () => {
+		await openContextMenu({
+			actions(_editor, actions) {
+				delete actions['copy-as-svg']
+				delete actions['copy-as-png']
+				return actions
+			},
+		})
+		expect(screen.queryByTestId('context-menu-sub.copy-as-button')).toBeNull()
+		expect(screen.queryByTestId('context-menu-sub.export-as-button')).not.toBeNull()
+	})
+
+	it('keeps the export-as submenu when at least one export action remains', async () => {
+		await openContextMenu({
+			actions(_editor, actions) {
+				delete actions['export-as-svg']
+				return actions
+			},
+		})
+		expect(screen.queryByTestId('context-menu-sub.export-as-button')).not.toBeNull()
+	})
+
+	it('keeps the copy-as submenu for copy-as-json when debug mode is on', async () => {
+		// copy-as-json only renders in debug mode, so with the other formats removed the submenu
+		// should stay only when debug mode is enabled.
+		await openContextMenu(
+			{
+				actions(_editor, actions) {
+					delete actions['copy-as-svg']
+					delete actions['copy-as-png']
+					return actions
+				},
+			},
+			(editor) => editor.updateInstanceState({ isDebugMode: true })
+		)
+		expect(screen.queryByTestId('context-menu-sub.copy-as-button')).not.toBeNull()
+	})
 })

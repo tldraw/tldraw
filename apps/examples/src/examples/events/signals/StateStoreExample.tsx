@@ -4,10 +4,12 @@ import 'tldraw/tldraw.css'
 // There's a guide at the bottom of this file!
 
 // [1]
-const InfoPanel = track(() => {
+const InfoPanel = track(function InfoPanel() {
 	const editor = useEditor()
 	const tool = editor.getCurrentToolId()
 	const zoom = editor.getZoomLevel().toFixed(2)
+
+	// [2]
 	useReactor(
 		'change title',
 		() => {
@@ -16,39 +18,26 @@ const InfoPanel = track(() => {
 		},
 		[editor]
 	)
+
 	return (
-		<div style={{ pointerEvents: 'all', backgroundColor: 'thistle', fontSize: 14, padding: 8 }}>
+		<div className="tlui-menu" style={{ fontSize: 14, padding: 8 }}>
 			<div>tool: {tool}</div>
 			<div>zoom: {zoom}</div>
 		</div>
 	)
 })
 
-// [2]
+// [3]
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function AlternativeInfoPanel() {
 	const editor = useEditor()
-	const tool = useValue(
-		'current tool',
-		() => {
-			if (!editor) throw new Error('No editor')
-			return `Current Tool: ${editor.getCurrentToolId()}`
-		},
-		[editor]
-	)
-	const zoom = useValue(
-		'zoom',
-		() => {
-			if (!editor) throw new Error('No editor')
-			return `Zoom Level: ${editor.getZoomLevel().toFixed(2)}`
-		},
-		[editor]
-	)
+	const tool = useValue('current tool', () => editor.getCurrentToolId(), [editor])
+	const zoom = useValue('zoom', () => editor.getZoomLevel().toFixed(2), [editor])
 
 	return (
-		<div style={{ pointerEvents: 'all', backgroundColor: 'thistle', fontSize: 14, padding: 8 }}>
-			<div>{tool}</div>
-			<div>{zoom}</div>
+		<div className="tlui-menu" style={{ fontSize: 14, padding: 8 }}>
+			<div>tool: {tool}</div>
+			<div>zoom: {zoom}</div>
 		</div>
 	)
 }
@@ -66,23 +55,24 @@ export default function StateStoreExample() {
 }
 
 /*
-
-tldraw uses signals to manage its state and store. You can subscribe to values in the store 
-and run side effects when they change.
+tldraw's editor state is built on signals. Any `editor.get...()` call reads a signal, and there
+are two ways to make a React component follow those reads.
 
 [1]
-	Our InfoPanel component will display above the style panel. We want it to show the current
-	selected tool and zoom level of the editor. In order to make sure it displays up-to-date
-	information, we can wrap the component in the track function. This will track any signals
-	used in the component and re-render it when they change. 
-	
-	We also use the useReactor hook to update the document title with the number of shapes. This 
-	side effect will run whenever the shapes on the page change. We pass the editor as a 
-	dependency to the useReactor hook so it will always have the latest editor instance. 
-	useQuickReactor runs immediately, whereas useReactor runs on the next animation frame.
+`track` wraps a component so that every signal read during render is recorded, and the component
+re-renders when any of them change. Here that's the current tool and the zoom level. This panel
+is placed in the `SharePanel` slot, above the style panel.
 
 [2]
-	We can also use the useValue hook to subscribe to a value in the store. You can pass it a 
-	value or a function. Functions will be memoized and only re-run when the dependencies change.
+`useReactor` runs a side effect (rather than a render) whenever the signals it reads change,
+throttled to once per animation frame. Here it keeps the document title in sync with the shape
+count. `useQuickReactor` is the same but runs synchronously on every change. Both take a deps
+array like `useEffect`; the effect is re-created when the deps change.
 
+[3]
+`useValue` is the more targeted alternative: pass a name, a function that reads signals, and a
+deps array, and the component re-renders only when the function's *return value* changes. This
+version of the panel behaves identically to [1]. Prefer `useValue` when you want to pick a few
+values out of a component that shouldn't otherwise track everything it touches; `track` is
+convenient when the whole component is about editor state.
 */

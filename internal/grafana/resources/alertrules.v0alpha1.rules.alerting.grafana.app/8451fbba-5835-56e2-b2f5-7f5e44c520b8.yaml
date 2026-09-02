@@ -1,0 +1,115 @@
+apiVersion: rules.alerting.grafana.app/v0alpha1
+kind: AlertRule
+metadata:
+  annotations:
+    grafana.app/folder: anthropic
+    grafana.com/provenance: ''
+    grafana.com/updateTimestamp: '2026-03-20T11:22:55Z'
+    grafana.com/updatedBy: bf1wptf89bpq8d
+  labels:
+    grafana.app/folder: anthropic
+    grafana.com/group: anthropic
+    grafana.com/group-index: '1'
+  name: 8451fbba-5835-56e2-b2f5-7f5e44c520b8
+  namespace: stacks-890472
+spec:
+  annotations:
+    description: Token processing rate of {{ $value | humanize }} tokens/sec is 5x
+      higher than the 7-day average for job {{ $labels.job }}.
+    summary: Anthropic API token rate anomaly detected.
+  execErrState: Ok
+  expressions:
+    prometheus_math:
+      model:
+        datasource:
+          IsPrunable: false
+          access: ''
+          apiVersion: ''
+          basicAuth: false
+          basicAuthUser: ''
+          created: '0001-01-01T00:00:00Z'
+          database: ''
+          id: -100
+          isDefault: false
+          jsonData: {}
+          name: __expr__
+          readOnly: false
+          secureJsonData: {}
+          type: __expr__
+          uid: __expr__
+          updated: '0001-01-01T00:00:00Z'
+          url: ''
+          user: ''
+          withCredentials: false
+        expression: is_number($query) || is_nan($query) || is_inf($query)
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: prometheus_math
+        type: math
+      queryType: math
+    query:
+      datasourceUID: grafanacloud-prom
+      model:
+        datasource:
+          type: prometheus
+          uid: grafanacloud-prom
+        expr: |
+          (
+            rate(gen_ai_usage_tokens_total{job=~"integrations/anthropic/.*"}[1h])
+            >
+            5 * avg_over_time(rate(gen_ai_usage_tokens_total{job=~"integrations/anthropic/.*"}[1h])[7d:1h])
+          )
+          and
+          rate(gen_ai_usage_tokens_total{job=~"integrations/anthropic/.*"}[1h]) > 1000
+        instant: true
+        intervalMs: 1000
+        maxDataPoints: 43200
+        range: false
+        refId: query
+      queryType: prometheus
+      relativeTimeRange:
+        from: 11m0s
+        to: 1m0s
+    threshold:
+      model:
+        conditions:
+          - evaluator:
+              params:
+                - 0
+              type: gt
+        datasource:
+          IsPrunable: false
+          access: ''
+          apiVersion: ''
+          basicAuth: false
+          basicAuthUser: ''
+          created: '0001-01-01T00:00:00Z'
+          database: ''
+          id: -100
+          isDefault: false
+          jsonData: {}
+          name: __expr__
+          readOnly: false
+          secureJsonData: {}
+          type: __expr__
+          uid: __expr__
+          updated: '0001-01-01T00:00:00Z'
+          url: ''
+          user: ''
+          withCredentials: false
+        expression: prometheus_math
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: threshold
+        type: threshold
+      queryType: threshold
+      source: true
+  for: 15m0s
+  labels:
+    __converted_prometheus_rule__: 'true'
+    severity: warning
+  missingSeriesEvalsToResolve: 10
+  noDataState: Ok
+  title: AnthropicTokenRateAnomaly
+  trigger:
+    interval: 1m

@@ -1,0 +1,94 @@
+apiVersion: rules.alerting.grafana.app/v0alpha1
+kind: AlertRule
+metadata:
+  annotations:
+    grafana.app/folder: dotcom
+    grafana.com/provenance: ''
+  labels:
+    grafana.app/folder: dotcom
+    grafana.com/group: dotcom-alerts
+    grafana.com/group-index: '1'
+  name: dotcom-file-do-exceptions
+  namespace: stacks-890472
+spec:
+  annotations:
+    description: TLFileDurableObject threw more than 300 uncaught exceptions in the
+      last hour. Quiet hours run 1-50; the bursts that followed hibernation being
+      enabled on 2026-08-13 run 700-1300. Check the "DO exceptions by namespace"
+      panel on the Cloudflare platform metrics dashboard, then Sentry for the
+      matching source tag.
+    summary: File room durable objects are throwing uncaught exceptions
+  execErrState: Error
+  expressions:
+    A:
+      datasourceUID: ffuyblsuemj28b
+      model:
+        columns:
+          - selector: sum.requests
+            text: exceptions
+            type: number
+        format: table
+        global_query_id: ''
+        parser: backend
+        refId: A
+        root_selector: data.viewer.accounts[0].durableObjectsInvocationsAdaptiveGroups
+        source: url
+        type: graphql
+        url: https://api.cloudflare.com/client/v4/graphql
+        url_options:
+          body_content_type: application/json
+          body_graphql_query: |-
+            query {
+              viewer {
+                accounts(filter: {accountTag: "c34edc4e76350954b63adebde86d5eb1"}) {
+                  durableObjectsInvocationsAdaptiveGroups(limit: 1, filter: {datetime_geq: "${__from:date:iso}", datetime_leq: "${__to:date:iso}", namespaceId: "5864db4344ac4c55bfd94e81dd25a043", status: "scriptThrewException"}) {
+                    sum { requests }
+                  }
+                }
+              }
+            }
+          body_type: graphql
+          method: POST
+      relativeTimeRange:
+        from: 1h0m0s
+        to: 0s
+    C:
+      model:
+        conditions:
+          - evaluator:
+              params:
+                - 300
+              type: gt
+            operator:
+              type: and
+            query:
+              params:
+                - C
+            reducer:
+              params: []
+              type: last
+            type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+      queryType: expression
+      source: true
+  for: 10m0s
+  labels:
+    service: dotcom
+    severity: warning
+  # The query filters to scriptThrewException, so a healthy hour returns no rows at
+  # all rather than a zero. NoData here means "nothing threw" — alerting on it would
+  # invert the rule.
+  noDataState: Ok
+  notificationSettings:
+    receiver: Discord
+    type: SimplifiedRouting
+  title: File room DO exceptions
+  trigger:
+    interval: 10m

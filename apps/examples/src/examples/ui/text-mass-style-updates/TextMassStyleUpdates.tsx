@@ -4,15 +4,16 @@ import {
 	DefaultStylePanel,
 	DefaultStylePanelContent,
 	Editor,
+	ExtractShapeByProps,
 	tipTapDefaultExtensions,
 	TLComponents,
 	Tldraw,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
 	TldrawUiButtonLabel,
+	TLRichText,
 	TLShape,
 	TLShapeId,
-	TLTextShape,
 	TLUiStylePanelProps,
 	useEditor,
 	useValue,
@@ -31,12 +32,12 @@ const STYLES: { style: Style; icon: string; label: string }[] = [
 	{ style: 'highlight', icon: 'highlight', label: 'Highlight' },
 ]
 
-function isRichTextShape(shape: TLShape): shape is TLTextShape {
+type RichTextShape = ExtractShapeByProps<{ richText: TLRichText }>
+
+function isRichTextShape(shape: TLShape): shape is RichTextShape {
 	return 'richText' in shape.props
 }
 
-// [1]
-/** Check whether every text node in the document carries the given mark. */
 function isUniformlyMarked(doc: Node, markName: string): boolean {
 	let hasText = false
 	let allMarked = true
@@ -51,7 +52,7 @@ function isUniformlyMarked(doc: Node, markName: string): boolean {
 	return hasText && allMarked
 }
 
-/** Return a new document with the mark added to or removed from every text node. */
+// [1]
 function setMark(doc: Node, schema: Schema, markName: string, active: boolean): Node {
 	const markType = schema.marks[markName]
 
@@ -64,7 +65,6 @@ function setMark(doc: Node, schema: Schema, markName: string, active: boolean): 
 	})
 }
 
-/** Map over all text nodes in a document, returning a new document. */
 function mapTextNodes(node: Node, schema: Schema, fn: (textNode: Node) => Node): Node {
 	if (node.isText) return fn(node)
 	if (node.content.size === 0) return node
@@ -115,8 +115,8 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 		() => {
 			const allIds = editor.getShapeAndDescendantIds(selectedShapeIds)
 			return [...allIds].filter((id) => {
-				const shape = editor.getShape(id) as any
-				return !!shape?.props?.richText
+				const shape = editor.getShape(id)
+				return !!shape && isRichTextShape(shape)
 			})
 		},
 		[editor, selectedShapeIds]
@@ -167,19 +167,19 @@ function StyleButton({
 	return (
 		<TldrawUiButton
 			type="menu"
-			data-isactive={isActive}
+			isActive={isActive}
 			onClick={() => {
-				const shouldRemove = textShapeIds.every((id) => isUniformlyStyled(editor, id, style))
 				editor.run(() => {
+					editor.markHistoryStoppingPoint(`toggle ${style}`)
 					editor.getSelectedShapeIds().forEach((id) => {
-						setMarkOnShape(editor, id, style, !shouldRemove)
+						setMarkOnShape(editor, id, style, !isActive)
 					})
 				})
 			}}
 			title={`${label} all text in selected shapes`}
 		>
 			<TldrawUiButtonIcon icon={icon} />
-			<TldrawUiButtonLabel>{label} All</TldrawUiButtonLabel>
+			<TldrawUiButtonLabel>{label} all</TldrawUiButtonLabel>
 		</TldrawUiButton>
 	)
 }
@@ -197,26 +197,34 @@ export default function TextMassStyleUpdatesExample() {
 }
 
 /*
-This example shows how to add buttons to the style panel that toggle rich text marks
-(bold, italic, highlight) on all text within selected shapes at once, using ProseMirror's
-Node API.
+This example adds bold, italic, and highlight buttons to the style panel that
+toggle the mark on all text in the selected shapes at once, including text
+shapes nested inside selected frames and groups. Rich text is a TipTap
+(ProseMirror) JSON document; rather than walk the JSON by hand we parse it into
+a ProseMirror `Node` and use its mark API. For a hand-rolled JSON version, see
+the "Format rich text on multiple shapes" example.
 
 [1]
-We use ProseMirror's Node.fromJSON to parse the rich text content from shape props into
-a proper document node. This gives us access to the built-in mark utilities for checking
-and manipulating marks, rather than manually traversing the JSON structure.
+`setMark` and `mapTextNodes` rebuild a ProseMirror document with each text
+node's marks changed. ProseMirror nodes are immutable, so we return a new tree
+rather than mutating in place.
 
 [2]
-setMarkOnShape handles both text shapes (by setting the mark on the rich text document)
-and parent shapes like frames (by recursing into children). The add/remove decision is
-made globally: if all text in all selected shapes already has the mark, it's removed from
-all of them; otherwise it's added to all of them.
+`setMarkOnShape` parses `shape.props.richText` with `Node.fromJSON`, using the
+schema built from tldraw's default TipTap extensions, and writes the result back
+with `toJSON()`. It handles both shapes with rich text (by rewriting the document)
+and container shapes like frames and groups (by recursing into their children
+via `getSortedChildIdsForParent`). The add/remove decision is made once per
+click: if every text node in every selected shape already has the mark, remove
+it everywhere; otherwise add it everywhere.
 
 [3]
-We override the StylePanel component to add our custom buttons above the default style
-panel content. The buttons only appear when the selection includes text shapes.
+The custom `StylePanel` wraps `DefaultStylePanel` and adds a section above the
+default content. `getShapeAndDescendantIds` expands the selection to include
+nested shapes so the buttons appear when a frame containing text is selected.
 
 [4]
-Each style button uses useValue to reactively check whether all selected text shapes
-are uniformly styled, keeping the active state in sync with the document.
+Each button reads its active state inside `useValue`, so it stays in sync as
+the selection or the shapes' text changes. Reactivity here comes from
+`editor.getShape` being read inside the computation.
 */

@@ -996,6 +996,39 @@ describe('Shape navigation', () => {
 			expect(editor.getSelectedShapeIds().length).toBeGreaterThan(0)
 		})
 
+		it('selects the first shape in reading order on next with no selection', () => {
+			// Create shapes left to right
+			editor.createShapes([
+				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+				{ id: ids.box2, type: 'geo', x: 100, y: 0 },
+				{ id: ids.box3, type: 'geo', x: 200, y: 0 },
+			])
+
+			// Start with no selection
+			editor.selectNone()
+
+			// Navigating forward should select the first shape
+			editor.selectAdjacentShape('next')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		})
+
+		// See #10559
+		it('selects the last shape in reading order on prev with no selection', () => {
+			// Create shapes left to right
+			editor.createShapes([
+				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+				{ id: ids.box2, type: 'geo', x: 100, y: 0 },
+				{ id: ids.box3, type: 'geo', x: 200, y: 0 },
+			])
+
+			// Start with no selection
+			editor.selectNone()
+
+			// Navigating backward should wrap to the last shape, not the second-to-last
+			editor.selectAdjacentShape('prev')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
+		})
+
 		it('navigates in row-wise reading order with complex layouts', () => {
 			// Create shapes in a grid-like pattern
 			editor.createShapes([

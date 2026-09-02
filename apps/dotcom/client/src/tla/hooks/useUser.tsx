@@ -12,6 +12,13 @@ interface TldrawUser {
 }
 const UserContext = createContext<null | TldrawUser>(null)
 
+export function getIsTldrawStaff(clerkUser: UserResource | null | undefined) {
+	return (
+		clerkUser?.primaryEmailAddress?.verification?.status === 'verified' &&
+		clerkUser.primaryEmailAddress.emailAddress.endsWith('@tldraw.com')
+	)
+}
+
 export function UserProvider({ children }: { children: ReactNode }) {
 	const { isLoaded, ...others } = useClerkUser()
 	const user = useShallowObjectIdentity(others.user)
@@ -33,9 +40,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 		return {
 			id: storeUser.id,
 			clerkUser: user,
-			isTldraw:
-				user?.primaryEmailAddress?.verification.status === 'verified' &&
-				user.primaryEmailAddress.emailAddress.endsWith('@tldraw.com'),
+			isTldraw: getIsTldrawStaff(user),
 			getToken: async () => {
 				const token = await getToken()
 				assert(token)

@@ -6,16 +6,15 @@ keywords:
   [easter egg, white, color, fill, lined-fill, label, scale, hidden styles, keyboard shortcuts]
 ---
 
-Use tldraw's collection of easter egg styles programmatically.
+Set style values that are hidden or hard to find in the default style panel.
 
 ---
 
-tldraw includes several "easter egg" styles that aren't visible in the default UI but can be accessed through keyboard shortcuts or set programmatically. These styles include:
+Several style values are valid on shapes but are not prominent in the default UI. Some have keyboard shortcuts; all can be set through the shape's props:
 
-- **White** (`Option+T`): A white color option for shapes
-- **Fill** (`Option+F`) - An alternative solid fill variant
-- **Lined fill** (`Option+Shift+F`) - A lined fill pattern variant
-- **Label color** - A separate color property for text labels on shapes, independent from the shape's main color
-- **Scale** - A scale property for shapes, independent from the shape's size, available via the **Dynamic size** preference
+- **White** color (`Alt+T`), which the color picker leaves out
+- **Fill** (`Alt+F`), a solid fill in the shape's full color, and **lined fill** (`Alt+Shift+F`), a slightly lighter solid variant, both in the fill picker's overflow dropdown
+- **Label color**, a separate color for a shape's label text, with no picker at all
+- **Scale**, a multiplier for stroke width and text size that the "Dynamic size" preference sets automatically
 
-This example programmatically creates shapes demonstrating each of these easter egg styles. While these styles aren't publicly exposed in the default UI, they can be useful for specific use cases or when you need more control over styling.
+The example creates one shape for each. Try selecting a shape and pressing the shortcuts to see the styles change.

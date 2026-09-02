@@ -1,3 +1,4 @@
+import { useActions } from '../../context/actions'
 import { useCanRedo, useCanUndo } from '../../hooks/menu-hooks'
 import { AccessibilityMenu } from '../AccessibilityMenu'
 import { ColorSchemeMenu } from '../ColorSchemeMenu'
@@ -54,6 +55,11 @@ export function DefaultMainMenuContent() {
 
 /** @public @react */
 export function ExportFileContentSubMenu() {
+	const actions = useActions()
+
+	// If a consumer has removed the export actions via `overrides`, don't render an empty submenu.
+	if (!actions['export-all-as-svg'] && !actions['export-all-as-png']) return null
+
 	return (
 		<TldrawUiMenuSubmenu id="export-all-as" label="context-menu.export-all-as" size="small">
 			<TldrawUiMenuGroup id="export-all-as-group">

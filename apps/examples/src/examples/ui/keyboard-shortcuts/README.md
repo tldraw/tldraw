@@ -5,14 +5,16 @@ priority: 3
 keywords: [shortcuts, hotkeys, keybindings, kbd, overrides, actions, tools, customize]
 ---
 
-Replace tldraw's default keyboard shortcuts with your own.
+Change tldraw's default keyboard shortcuts for tools and actions.
 
 ---
 
-This example shows how you can replace tldraw's default keyboard shortcuts with your own,
-or add a shortcut for an action that doesn't have one. An example of how to add shortcuts
-for custom tools can be found in the custom-config example.
+Shortcuts are the `kbd` field on tool and action definitions. Use the `actions` and `tools` functions of `TLUiOverrides` to return copies with different `kbd` strings, then pass the overrides to `<Tldraw>`. The keyboard shortcuts dialog reads the same field, so it updates automatically.
 
-- Toggle show grid by pressing 'x'
-- Select the Draw tool by pressing 'p'
-- Copy as png by pressing 'ctrl/cmd + 1'
+Try it:
+
+- Press `x` to toggle the grid
+- Press `p` to select the draw tool
+- Press `cmd+1` (or `ctrl+1`) to copy the selection as a PNG
+
+For adding shortcuts to custom tools, see the custom config example.

@@ -11,8 +11,16 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/__debug-tail/?$",
   },
   {
+    "reactRouterPattern": "/__thumbnail-render",
+    "vercelRouterPattern": "^/__thumbnail-render/?$",
+  },
+  {
     "reactRouterPattern": "/admin",
     "vercelRouterPattern": "^/admin/?$",
+  },
+  {
+    "reactRouterPattern": "/admin/:section",
+    "vercelRouterPattern": "^/admin/[^/]*/?$",
   },
   {
     "reactRouterPattern": "/f/:fileSlug",
@@ -25,14 +33,6 @@ exports[`the_routes 1`] = `
   {
     "reactRouterPattern": "/f/:fileSlug/history/:timestamp",
     "vercelRouterPattern": "^/f/[^/]*/history/[^/]*/?$",
-  },
-  {
-    "reactRouterPattern": "/f/:fileSlug/pierre-history",
-    "vercelRouterPattern": "^/f/[^/]*/pierre-history/?$",
-  },
-  {
-    "reactRouterPattern": "/f/:fileSlug/pierre-history/:commitHash",
-    "vercelRouterPattern": "^/f/[^/]*/pierre-history/[^/]*/?$",
   },
   {
     "reactRouterPattern": "/import",

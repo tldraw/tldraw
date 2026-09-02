@@ -60,18 +60,20 @@ export default function ExternalUiExample() {
 }
 
 /*
-[1] 
-Use React state to store the editor instance.
+[1]
+Components outside `Tldraw` can't use `useEditor()`, so we hold the editor in React
+state instead. It's null until the editor mounts.
 
 [2]
 Use the `onMount` prop to get the editor instance and store it in state.
 
 [3]
-Use data from the editor instance or use the editor's methods to control the editor.
-Note that these callbacks also need to work if the editor isn't mounted yet.
+Read from the editor with `useValue` (so the active button updates when the tool
+changes) and call its methods to control it. The callbacks guard against the editor
+not being mounted yet.
 
 [4]
-The geo tool is a bit special since it controls the creation of many geo shapes (oval, rectangle, etc).
-This is why we first set the type of the shape we wish to add, then we set the tool to 'geo'.
-You can see all the available geo shapes in the `GeoShapeGeoStyle` enum.
+The geo tool creates whichever geo shape is set in `GeoShapeGeoStyle` (oval,
+rectangle, etc), so set the style first, then switch tools. `editor.run` batches the
+two updates together.
 */

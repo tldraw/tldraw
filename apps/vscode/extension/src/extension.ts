@@ -2,6 +2,7 @@ import { watch } from 'fs'
 import path from 'path'
 import * as vscode from 'vscode'
 import { TldrawEditorProvider } from './TldrawEditorProvider'
+import { TldrawOfflineFileProvider } from './TldrawOfflineFileProvider'
 import { nicelog } from './utils'
 
 export function activate(context: vscode.ExtensionContext) {
@@ -30,6 +31,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 
 		context.subscriptions.push(TldrawEditorProvider.register(context))
+		context.subscriptions.push(TldrawOfflineFileProvider.register())
 	} catch (e) {
 		console.error(e)
 	}

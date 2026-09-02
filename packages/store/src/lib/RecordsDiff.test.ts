@@ -148,3 +148,30 @@ describe('squashing diffs (D)', () => {
 		expect(mutableTarget).toEqual(immutableResult)
 	})
 })
+
+describe('diff ownership (D)', () => {
+	it('[D2] reverseRecordsDiff does not share its collections with the input', () => {
+		const input = diff({ 'book:1': book('book:1', 'Added') })
+		const reversed = reverseRecordsDiff(input)
+		squashRecordDiffsMutable(reversed, [diff({ 'book:1': book('book:1', 'Older') })])
+		expect(input).toEqual(diff({ 'book:1': book('book:1', 'Added') }))
+	})
+
+	it('[D4] mutateFirstDiff with no diffs returns an empty diff', () => {
+		expect(squashRecordDiffs([], { mutateFirstDiff: true })).toEqual(createEmptyRecordsDiff())
+	})
+
+	it('[D4] mutateFirstDiff does not mutate the [from, to] tuples of the first diff in place', () => {
+		const v1 = book('book:1', 'v1')
+		const v2 = book('book:1', 'v2')
+		const v3 = book('book:1', 'v3')
+		const tuple: [Book, Book] = [v1, v2]
+		const first = diff({}, { 'book:1': tuple })
+		const result = squashRecordDiffs([first, diff({}, { 'book:1': [v2, v3] })], {
+			mutateFirstDiff: true,
+		})
+		expect(result).toBe(first)
+		expect(result.updated['book:1' as RecordId<Book>]).toEqual([v1, v3])
+		expect(tuple).toEqual([v1, v2])
+	})
+})

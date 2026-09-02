@@ -5,6 +5,9 @@
   "00b177e080": {
     "translation": "Chấp nhận lời mời"
   },
+  "029f235f01": {
+    "translation": "Chúng tôi đang nỗ lực hỗ trợ các tệp từ <a><strong>{appName}</strong></a>."
+  },
   "03b3e13197": {
     "translation": "Kéo tệp vào thanh bên ở trang này. Hoặc chọn tùy chọn 'Nhập tệp' từ menu người dùng."
   },
@@ -13,6 +16,9 @@
   },
   "04a2dd56d6": {
     "translation": "Mời đồng đội"
+  },
+  "05b2656486": {
+    "translation": "<name>{author}</name> đã nhắc đến bạn"
   },
   "05f43078e9": {
     "translation": "Bạn đã đạt đến số lượng không gian làm việc tối đa. Bạn cần xóa các không gian làm việc cũ trước khi tạo không gian làm việc mới."
@@ -28,6 +34,9 @@
   },
   "08bd40c754": {
     "translation": "Tài khoản"
+  },
+  "093ac7483a": {
+    "translation": "Chưa thể mở tệp {extension}"
   },
   "0a91f7fa87": {
     "translation": "Tệp này đã đạt đến giới hạn kích thước và các thay đổi có thể không còn được lưu nữa. Hãy xóa bớt nội dung hoặc tạo một tệp mới."
@@ -59,6 +68,9 @@
   "13ddd375ad": {
     "translation": "Xuất dưới dạng"
   },
+  "14b03eeeb5": {
+    "translation": "Tùy chọn thông báo"
+  },
   "181b90f889": {
     "translation": "Tạo tệp"
   },
@@ -79,6 +91,9 @@
   },
   "250ddea65c": {
     "translation": "Giới thiệu về tldraw"
+  },
+  "2755e3ab39": {
+    "translation": "<name>{author}</name> đã bình luận trên diễn đàn của bạn"
   },
   "299cb00a7a": {
     "translation": "Tải lên thất bại"
@@ -149,6 +164,9 @@
   "46137245cd": {
     "translation": "Cảm ơn bạn đã giúp chúng tôi cải thiện tldraw!"
   },
+  "46de2de6bb": {
+    "translation": "Chấp nhận điều khoản sử dụng"
+  },
   "477df802ca": {
     "translation": "Để tiếp tục chỉnh sửa, vui lòng sao chép tệp vào thư mục của bạn."
   },
@@ -179,11 +197,17 @@
   "517bb809d9": {
     "translation": "Menu trang"
   },
+  "53770fd374": {
+    "translation": "Chưa đọc"
+  },
   "542248f0ba": {
     "translation": "Tập tin này hiện chỉ có thể đọc"
   },
   "54286b1d01": {
     "translation": "Đã đạt tới giới hạn cộng tác viên"
+  },
+  "545241e7dd": {
+    "translation": "{count} chưa đọc"
   },
   "554a05155c": {
     "translation": "Vẫn gặp sự cố? <a>Báo cáo sự cố</a>"
@@ -209,6 +233,9 @@
   "5bff3c9c88": {
     "translation": "Không gian làm việc của tôi"
   },
+  "5bffeebf03": {
+    "translation": "<name>{author}</name> đã phản hồi bình luận của bạn"
+  },
   "5d04a002ea": {
     "translation": "Không thể kết nối"
   },
@@ -221,8 +248,17 @@
   "5fb63579fc": {
     "translation": "Sao chép"
   },
+  "608e9d366e": {
+    "translation": "Bạn đã nắm bắt được hết mọi thứ rồi."
+  },
+  "60a68c29d6": {
+    "translation": "Đăng nhập để bình luận"
+  },
   "61057a0c84": {
     "translation": "Để sau"
+  },
+  "61fb03fd7b": {
+    "translation": "{count, plural, other {# Mọi người đã phản hồi bình luận của bạn}}"
   },
   "625fd29749": {
     "translation": "Cũ hơn"
@@ -274,6 +310,9 @@
   },
   "752b79f137": {
     "translation": "Bạn đã đạt đến số lượng tệp tối đa. Bạn cần xóa các tệp cũ trước khi tạo tệp mới."
+  },
+  "7542d62aac": {
+    "translation": "Đánh dấu tất cả là đã đọc"
   },
   "7573b8110a": {
     "translation": "Không có quyền truy cập"
@@ -331,6 +370,9 @@
   },
   "81666c6e4a": {
     "translation": "Bạn có chắc chắn muốn quên <strong>{fileName}</strong> không?"
+  },
+  "8413c683b4": {
+    "translation": "Bình luận"
   },
   "858ba4765e": {
     "translation": "Thành viên"
@@ -422,6 +464,9 @@
   "a239905023": {
     "translation": "Xuất ảnh"
   },
+  "a274f4d467": {
+    "translation": "Thông báo"
+  },
   "a3debabee7": {
     "translation": "Chính sách cookie"
   },
@@ -446,6 +491,9 @@
   "aac449eef6": {
     "translation": "Tạo không gian làm việc"
   },
+  "aaec8f7cde": {
+    "translation": "Người nào đó"
+  },
   "ab0df9ba36": {
     "translation": "Đã đạt đến giới hạn tập tin"
   },
@@ -455,6 +503,12 @@
   },
   "b028909917": {
     "translation": "Người dùng khách"
+  },
+  "b03400e2db": {
+    "translation": "<name>{author}</name> đã trả lời"
+  },
+  "b1c94ca2fb": {
+    "translation": "Tất cả"
   },
   "b2326c3a34": {
     "translation": "Tái tạo"
@@ -528,6 +582,9 @@
   "cea291e45e": {
     "translation": "Tìm hiểu thêm về xuất bản."
   },
+  "d0e3556476": {
+    "translation": "<name>{author}</name> và {count, plural, one {# other} other {# others}} đã phản hồi bình luận của bạn"
+  },
   "d3d2e61733": {
     "translation": "Đóng"
   },
@@ -573,6 +630,9 @@
   "e404559826": {
     "translation": "Điều khoản dịch vụ"
   },
+  "e65b2dcb6f": {
+    "translation": "<name>{a}</name> và <name>{b}</name> đã phản hồi bình luận của bạn"
+  },
   "e81c4e4f2b": {
     "translation": "hoặc"
   },
@@ -600,6 +660,9 @@
   "ede55d955f": {
     "translation": "Đọc <a>chính sách cookie</a> của chúng tôi để tìm hiểu thêm."
   },
+  "edec9387f9": {
+    "translation": "Bình luận này đã bị xóa."
+  },
   "ef53538ae4": {
     "translation": "Thành viên"
   },
@@ -618,8 +681,14 @@
   "f2a6c498fb": {
     "translation": "Xóa"
   },
+  "f476ba8646": {
+    "translation": "<name>{a}</name>, <name>{b}</name> và {count, plural, one {# other} other {# others}} đã phản hồi bình luận của bạn"
+  },
   "f4f70727dc": {
     "translation": "Cài đặt"
+  },
+  "f5ddc8d9c1": {
+    "translation": "Hiện tại, bạn có thể <a>xuất dưới dạng tệp {extension}</a> để sử dụng ở đây."
   },
   "fa2ead697d": {
     "translation": "Chính sách bảo mật"

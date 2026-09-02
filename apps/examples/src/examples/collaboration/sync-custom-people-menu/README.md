@@ -17,10 +17,10 @@ keywords:
 multiplayer: true
 ---
 
-A custom multiplayer people menu / facepile that displays connected collaborators.
+Build a custom people menu that lists connected collaborators and their cursor positions.
 
 ---
 
-This example demonstrates how to build a custom people menu (or facepile) that shows information about all users in a multiplayer session.
+Replace the `SharePanel` slot with your own component and read `editor.getCollaborators()` inside `useValue`. Each entry is a `TLInstancePresence` record with the collaborator's name, color, cursor, camera, and selection, so you can render a richer or differently styled presence indicator than the default facepile.
 
-This is useful when you want to create a more detailed or custom-styled presence indicator than the default tldraw provides. This example shows user's names, ids, colors, and cursor position, all information provided in the `TLInstancePresence` returned by `editor.getCollaborators()`.
+Open the example in two tabs to see the other user appear in the list.

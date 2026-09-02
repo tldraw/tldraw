@@ -19,7 +19,6 @@ import {
 	TlaFileStatePartial,
 	TlaFlags,
 	TlaGroupFile,
-	TlaGroupUser,
 	TlaSchema,
 	TlaUser,
 	TlaUserPartial,
@@ -109,7 +108,7 @@ function assertValidId(id: string) {
  * @param tx - The transaction
  * @param userId - The user ID to check permissions for
  * @param file - The file to check permissions on
- * @param allowGuestAccess - If true, shared files are accessible even if user isn't owner/member
+ * @param allowGuestAccess - If true, shared files are accessible even if the user isn't a member
  */
 async function assertUserCanAccessFileInternal(
 	tx: Transaction<TlaSchema>,
@@ -125,25 +124,16 @@ async function assertUserCanAccessFileInternal(
 		return
 	}
 
-	if (file.ownerId) {
-		// Legacy model: user must own the file
-		assert(file.ownerId === userId, ZErrorCode.forbidden)
-	} else if (file.owningGroupId) {
-		// New model: user must be a member of the owning workspace
-		const role = await getRole(tx, userId, file.owningGroupId)
-		assert(can(role, 'accessFiles'), ZErrorCode.forbidden)
-	} else {
-		// File has neither ownerId nor owningGroupId - invalid state
-		assert(false, ZErrorCode.bad_request)
-	}
+	assert(file.owningGroupId, ZErrorCode.bad_request)
+	const role = await getRole(tx, userId, file.owningGroupId)
+	assert(can(role, 'accessFiles'), ZErrorCode.forbidden)
 }
 
 /**
  * Check if a user can access (read) a file.
  * A user can access a file if:
- * - They own it (legacy model: file.ownerId matches userId)
  * - They are a member of the owning workspace (new model: user is in file.owningGroupId)
- * - The file is shared (regardless of ownership model)
+ * - The file is shared
  */
 async function assertUserCanAccessFile(tx: Transaction<TlaSchema>, userId: string, file: TlaFile) {
 	await assertUserCanAccessFileInternal(tx, userId, file, true)
@@ -152,7 +142,6 @@ async function assertUserCanAccessFile(tx: Transaction<TlaSchema>, userId: strin
 /**
  * Check if a user can update (write to) a file.
  * A user can update a file if:
- * - They own it (legacy model: file.ownerId matches userId)
  * - They are a member of the owning workspace (new model: user is in file.owningGroupId)
  * Note: Sharing only grants read access, not write access
  */
@@ -175,20 +164,6 @@ export function createMutators(userId: string) {
 			},
 		},
 		file: {
-			/** @deprecated */
-			deleteOrForget: async (tx: Tx, { id }: { id: string }) => {
-				const file = await tx.run(zql.file.where('id', '=', id).one())
-				if (!file) return
-				await tx.mutate.file_state.delete({ fileId: id, userId })
-				if (file.ownerId && file.ownerId === userId) {
-					await tx.mutate.file.update({
-						id: file.id,
-						ownerId: file.ownerId,
-						publishedSlug: file.publishedSlug,
-						isDeleted: true,
-					})
-				}
-			},
 			update: async (tx: Tx, _file: TlaFilePartial) => {
 				disallowImmutableMutations(_file, immutableColumns.file)
 				const file = await tx.run(zql.file.where('id', '=', _file.id).one())
@@ -235,30 +210,55 @@ export function createMutators(userId: string) {
 			},
 		},
 
-		/** @deprecated */
-		init: async (tx: Tx, { user, time }: { user: TlaUser; time: number }) => {
-			assert(user.id === userId, ZErrorCode.forbidden)
-			time = ensureSensibleTimestamp(time)
-			await tx.mutate.user.insert({ ...user, flags: '' })
-			await tx.mutate.group.insert({
-				id: userId,
-				name: user.name,
-				createdAt: time,
-				updatedAt: time,
-				isDeleted: false,
-				inviteSecret: null,
-				inviteLinkEnabled: true,
-			})
-			await tx.mutate.group_user.insert({
-				userId,
-				groupId: userId,
-				createdAt: time,
-				updatedAt: time,
-				role: 'owner',
-				index: 'a1' as IndexKey,
-				userColor: user.color,
-				userName: user.name,
-			})
+		comment: {
+			/**
+			 * Mark a comment as read by the current user. Row present = read; readAt is stored so
+			 * an "edits reset unread" rule can later be added client-side without a migration.
+			 */
+			markRead: async (tx: Tx, { commentId, readAt }: { commentId: string; readAt: number }) => {
+				if (tx.location === 'server') {
+					// Verify the comment exists and the user can access its file
+					const comment = await tx.run(zql.comment.where('id', '=', commentId).one())
+					assert(comment, ZErrorCode.bad_request)
+					const file = await tx.run(zql.file.where('id', '=', comment.fileId).one())
+					await assertUserCanAccessFile(tx, userId, file!)
+				}
+				await tx.mutate.comment_read.upsert({
+					userId,
+					commentId,
+					readAt: ensureSensibleTimestamp(readAt),
+				})
+			},
+			/**
+			 * Mark a batch of comments as read by the current user in one mutation — opening a thread
+			 * or "mark all read" would otherwise pay a mutation (comment lookup, file lookup, access
+			 * check) per comment. One access check per distinct fileId covers the whole batch.
+			 */
+			markManyRead: async (
+				tx: Tx,
+				{ commentIds, readAt }: { commentIds: string[]; readAt: number }
+			) => {
+				const uniqueIds = [...new Set(commentIds)]
+				if (uniqueIds.length === 0) return
+				if (tx.location === 'server') {
+					// Verify every comment exists and the user can access each involved file
+					const comments = await tx.run(zql.comment.where('id', 'IN', uniqueIds))
+					assert(comments.length === uniqueIds.length, ZErrorCode.bad_request)
+					const fileIds = new Set(comments.map((comment) => comment.fileId))
+					for (const fileId of fileIds) {
+						const file = await tx.run(zql.file.where('id', '=', fileId).one())
+						await assertUserCanAccessFile(tx, userId, file!)
+					}
+				}
+				const timestamp = ensureSensibleTimestamp(readAt)
+				for (const commentId of uniqueIds) {
+					await tx.mutate.comment_read.upsert({ userId, commentId, readAt: timestamp })
+				}
+			},
+			/** Mark a comment as unread by deleting the current user's read row. Own-row-only by construction. */
+			markUnread: async (tx: Tx, { commentId }: { commentId: string }) => {
+				await tx.mutate.comment_read.delete({ userId, commentId })
+			},
 		},
 
 		createFile: async (
@@ -316,10 +316,8 @@ export function createMutators(userId: string) {
 			await tx.mutate.file.insert({
 				id: fileId,
 				name,
-				ownerId: null,
 				owningGroupId: workspaceId,
 				ownerName: '',
-				ownerAvatar: '',
 				thumbnail: '',
 				shared: true,
 				sharedLinkType: 'edit',
@@ -347,8 +345,6 @@ export function createMutators(userId: string) {
 				lastVisitAt: null,
 				firstVisitAt: null,
 				lastSessionState: null,
-				// isFileOwner is no longer used in new model.
-				isFileOwner: false,
 			})
 		},
 
@@ -359,6 +355,9 @@ export function createMutators(userId: string) {
 			assert(fileId, ZErrorCode.bad_request)
 			assert(typeof index === 'string' || index == null, ZErrorCode.bad_request)
 			assert(workspaceId, ZErrorCode.bad_request)
+			// Without this any signed-in user who knows a (fileId, workspaceId) pair — a guest who
+			// opened a shared link, a removed member — could rewrite that workspace's pin order.
+			assert(can(await getRole(tx, userId, workspaceId), 'accessFiles'), ZErrorCode.forbidden)
 
 			// Pinned files are group_file rows with a non-null index.
 			// New pins go above the workspace's current top pinned file.
@@ -380,6 +379,9 @@ export function createMutators(userId: string) {
 
 		unpinFile: async (tx: Tx, { fileId, workspaceId }: { fileId: string; workspaceId: string }) => {
 			assert(fileId, ZErrorCode.bad_request)
+			assert(workspaceId, ZErrorCode.bad_request)
+			// See pinFile.
+			assert(can(await getRole(tx, userId, workspaceId), 'accessFiles'), ZErrorCode.forbidden)
 
 			await tx.mutate.group_file.update({
 				fileId,
@@ -409,34 +411,45 @@ export function createMutators(userId: string) {
 			assert(fileId, ZErrorCode.bad_request)
 			time = ensureSensibleTimestamp(time)
 
+			const file = await tx.run(zql.file.where('id', '=', fileId).one())
+
 			// Verify the user has permission to access this file
 			if (tx.location === 'server') {
-				const file = await tx.run(zql.file.where('id', '=', fileId).one())
 				await assertUserCanAccessFile(tx, userId, file!)
 			}
 
 			// If we get here, the user has legitimate access to the file
 			await tx.mutate.file_state.upsert({ fileId, userId, firstVisitAt: time })
 
-			const workspaceFileRows = await tx.run(zql.group_file.where('fileId', '=', fileId))
-			const userWorkspaceMemberships = await tx.run(zql.group_user.where('userId', '=', userId))
-			// Add a visited file to the user's home group unless it already belongs to one of
-			// their groups. This is what surfaces a shared file the user opened as a "guest
-			// file" in their sidebar. (Files owned by a workspace the user is a member of are
-			// not mirrored here — and the sidebar read path also filters out any that slip
-			// through, see getWorkspaceFilesSorted — so a workspace file never shows in home.)
-			if (
-				!userWorkspaceMemberships.some((g: TlaGroupUser) =>
-					workspaceFileRows.some((gf: TlaGroupFile) => gf.groupId === g.groupId)
-				)
-			) {
-				await tx.mutate.group_file.insert({
-					fileId,
-					groupId: userId,
-					createdAt: time,
-					updatedAt: time,
-					index: null,
-				})
+			// Add a visited file to the user's home group so it shows as a "guest file" in the
+			// sidebar — unless it's already visible to the user somewhere else. A file is listed
+			// in a workspace only when that workspace actually OWNS it (getWorkspaceFilesSorted
+			// lists a non-home workspace's file only when owningGroupId === workspaceId), so the
+			// only thing that should suppress the home link is the file being owned by a
+			// workspace the user belongs to.
+			//
+			// We deliberately do NOT key off "any group_file row in one of my groups": a
+			// stale/mislinked row (e.g. a leftover from the removed drag-to-link feature,
+			// #9107/#9254, or a create-workspace-race mirror) points at a workspace that does
+			// not own the file, so it shows the file nowhere. Counting it here would skip the
+			// home link and make the file invisible in the sidebar entirely.
+			const alreadyLinkedInHome = await tx.run(
+				zql.group_file.where('fileId', '=', fileId).where('groupId', '=', userId).one()
+			)
+			if (!alreadyLinkedInHome) {
+				// getRole returns null when the user isn't a member of the file's owning
+				// workspace (and for a null owningGroupId), so this is true only when the file
+				// is genuinely owned by a workspace the user belongs to.
+				const ownedByOneOfMyWorkspaces = (await getRole(tx, userId, file?.owningGroupId)) !== null
+				if (!ownedByOneOfMyWorkspaces) {
+					await tx.mutate.group_file.insert({
+						fileId,
+						groupId: userId,
+						createdAt: time,
+						updatedAt: time,
+						index: null,
+					})
+				}
 			}
 		},
 		createWorkspace: async (tx: Tx, { id, name }: { id: string; name: string }) => {
@@ -622,9 +635,6 @@ export function createMutators(userId: string) {
 			}
 
 			await tx.mutate.group.update({ id: id, isDeleted: true })
-			// TODO: test that this works on the client and that the groups and group_users are removed
-			// from the user's durable object state.
-			// ALSO TODO: add special case for isDeleted becoming false in user data syncer to trigger a hard reboot
 			if (tx.location !== 'server') {
 				await tx.mutate.group_user.delete({ userId, groupId: id })
 			}
@@ -656,7 +666,7 @@ export function createMutators(userId: string) {
 				await tx.mutate.group_file.delete({ fileId, groupId: file.owningGroupId })
 			}
 
-			// Transfer file ownership from user to group
+			// Point the file at its new workspace
 			await tx.mutate.file.update({
 				id: fileId,
 				owningGroupId: workspaceId,

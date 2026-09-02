@@ -1,8 +1,8 @@
 import { createRouter, notFound } from '@tldraw/worker-shared'
 import { sql } from 'kysely'
+import { MAX_ATTEMPTS } from './outboxDrain'
 import { createPostgresConnectionPool } from './postgres'
 import { isDebugLogging, type Environment } from './types'
-import { getStatsDurableObjct } from './utils/durableObjects'
 import { getClerkClient } from './utils/tla/getAuth'
 
 function isAuthorized(req: Request, env: Environment) {
@@ -15,26 +15,6 @@ export const healthCheckRoutes = createRouter<Environment>()
 	.all('/health-check/*', (req, env) => {
 		if (isDebugLogging(env) || isAuthorized(req, env)) return undefined
 		return new Response('Unauthorized', { status: 401 })
-	})
-	.get('/health-check/replicator', async (_, env) => {
-		const stats = getStatsDurableObjct(env)
-		const unusualRetries = await stats.unusualNumberOfReplicatorBootRetries()
-		if (unusualRetries) {
-			return new Response('High ammount of replicator boot retries', { status: 500 })
-		}
-		const isGettingUpdates = await stats.isReplicatorGettingUpdates()
-		if (!isGettingUpdates) {
-			return new Response('Replicator is not getting postgres updates', { status: 500 })
-		}
-		return new Response('ok', { status: 200 })
-	})
-	.get('/health-check/user-durable-objects', async (_, env) => {
-		const stats = getStatsDurableObjct(env)
-		const abortsOverThreshold = await stats.unusualNumberOfUserDOAborts()
-		if (abortsOverThreshold) {
-			return new Response('High ammount of user durable object aborts', { status: 500 })
-		}
-		return new Response('ok', { status: 200 })
 	})
 	.get('/health-check/clerk', async (_, env) => {
 		const clerk = getClerkClient(env)
@@ -91,9 +71,9 @@ export const healthCheckRoutes = createRouter<Environment>()
 			await db.destroy()
 		}
 	})
-	// Combined postgres health check: db size, changelog size, WAL retention, replication slots, and
-	// tlpr replicator status. Grouped into a single endpoint because updown.io charges per check
-	// invocation. Failures include the sub-check name so alerts remain distinguishable.
+	// Combined postgres health check: db size, changelog size, WAL retention, and replication slots.
+	// Grouped into a single endpoint because updown.io charges per check invocation.
+	// Failures include the sub-check name so alerts remain distinguishable.
 	.get('/health-check/postgres', async (_, env) => {
 		const db = createPostgresConnectionPool(env, '/health-check/postgres')
 		const failures: string[] = []
@@ -172,7 +152,7 @@ export const healthCheckRoutes = createRouter<Environment>()
 				}>`
 					SELECT slot_name, active, wal_status
 					FROM pg_replication_slots
-					WHERE slot_name LIKE 'zero_%' OR slot_name LIKE 'tlpr_%'
+					WHERE slot_name LIKE 'zero_%'
 				`.execute(db)
 				const unhealthy = result.rows.filter(
 					(row) => row.wal_status === 'lost' || row.wal_status === 'unreserved'
@@ -189,31 +169,65 @@ export const healthCheckRoutes = createRouter<Environment>()
 				failures.push('replication-slots: query failed')
 			}
 
-			// tlpr-replicator
+			if (failures.length > 0) {
+				return new Response(`FAIL ${failures.join('; ')}`, { status: 500 })
+			}
+			return new Response(`ok (${okDetails.join(', ')})`, { status: 200 })
+		} finally {
+			await db.destroy()
+		}
+	})
+	// Split from /health-check/postgres so the monitor name identifies the outbox subsystem
+	// directly instead of burying it in a combined postgres failure string. There's no lag
+	// alert here: backoff rows are expected to sit with a future nextRetryAt, so alerting on
+	// lag alone would trip on healthy backoff; Sentry already covers individual sub-parking
+	// failures. Parked and stalled below cover the two failure modes that actually matter.
+	.get('/health-check/outbox', async (_, env) => {
+		const db = createPostgresConnectionPool(env, '/health-check/outbox')
+		const failures: string[] = []
+		const okDetails: string[] = []
+		try {
+			// outbox-parked
 			try {
-				const result = await sql<{
-					slot_name: string
-					active: boolean
-					wal_status: string | null
-				}>`
-					SELECT slot_name, active, wal_status
-					FROM pg_replication_slots
-					WHERE slot_name LIKE 'tlpr_%'
+				const result = await sql<{ parked: string }>`
+					SELECT count(*) FILTER (WHERE attempts >= ${sql.raw(String(MAX_ATTEMPTS))}) AS parked
+					FROM effect_outbox
 				`.execute(db)
-				if (result.rows.length === 0) {
-					failures.push('tlpr-replicator: no slot found')
+				const row = result.rows[0]
+				const parked = row?.parked ? parseInt(row.parked, 10) : 0
+				if (parked > 0) {
+					failures.push(`outbox-parked: ${parked} rows parked`)
 				} else {
-					const slot = result.rows[0]
-					if (!slot.active) {
-						failures.push(`tlpr-replicator: ${slot.slot_name} not active`)
-					} else if (slot.wal_status === 'lost' || slot.wal_status === 'unreserved') {
-						failures.push(`tlpr-replicator: ${slot.slot_name} wal_status=${slot.wal_status}`)
-					} else {
-						okDetails.push('tlpr: active')
-					}
+					okDetails.push('outbox: 0 parked')
 				}
-			} catch (_e) {
-				failures.push('tlpr-replicator: query failed')
+			} catch (e) {
+				console.error('health-check outbox:', e)
+				failures.push('outbox: query failed')
+			}
+
+			// outbox-stalled: parked-only detection needs the drain to run at all. If the alarm
+			// chain died, unparked rows sit untouched forever and never reach the parked
+			// threshold, so the check above stays green. A row is stalled when it has been
+			// ELIGIBLE to process (created, or past its backoff) for 15+ minutes: a live drain
+			// sweeps every 30s and backoff caps at 5 minutes, so it would have deleted, bumped,
+			// or re-deferred any eligible row long before that.
+			try {
+				const result = await sql<{ stalled: string }>`
+					SELECT count(*) AS stalled
+					FROM effect_outbox
+					WHERE attempts < ${sql.raw(String(MAX_ATTEMPTS))}
+						AND GREATEST("createdAt", coalesce("nextRetryAt", "createdAt")) < now() - interval '15 minutes'
+				`.execute(db)
+				const row = result.rows[0]
+				const stalled = row?.stalled ? parseInt(row.stalled, 10) : 0
+				if (stalled > 0) {
+					failures.push(`outbox-stalled: ${stalled} rows untouched > 15m`)
+				} else {
+					okDetails.push('outbox: 0 stalled')
+				}
+			} catch (e) {
+				console.error('health-check outbox:', e)
+				failures.push('outbox-stalled: query failed')
 			}
 
 			if (failures.length > 0) {

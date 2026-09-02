@@ -41,7 +41,10 @@ const globlikeRegExp = (input: string) => {
 
 const checkHostnames = (hostnames: readonly string[], targetHostname: string) => {
 	return !!hostnames.find((hostname) => {
-		const re = new RegExp(globlikeRegExp(hostname))
+		// The host must be the pattern or a subdomain of it. Unanchored, `tldraw.com` would
+		// also match `tldraw.com.evil.io`, which would then inherit that definition's relaxed
+		// iframe sandbox permissions.
+		const re = new RegExp(`^(?:.+\\.)?${globlikeRegExp(hostname)}$`)
 		return targetHostname.match(re)
 	})
 }
@@ -98,4 +101,33 @@ export function getEmbedInfo(
 	} catch {
 		return undefined
 	}
+}
+
+const ASPECT_RATIO_EPSILON = 0.001
+
+/**
+ * Given an embed shape's current size and a newly-resolved aspect ratio, return the size it should
+ * be corrected to, or `null` when no change is needed — either because there's no resolved ratio or
+ * the shape is already at it. The correction preserves the box's area, so a portrait video takes the
+ * same visual footprint as a landscape one instead of ballooning the shape's height.
+ *
+ * @param opts - The current `w`/`h` and the `resolvedRatio` (`width / height`) discovered at runtime.
+ * @internal
+ */
+export function getCorrectedEmbedSize({
+	w,
+	h,
+	resolvedRatio,
+}: {
+	w: number
+	h: number
+	resolvedRatio: number | undefined
+}): { w: number; h: number } | null {
+	if (!resolvedRatio || resolvedRatio <= 0) return null
+
+	// Already at the resolved ratio: nothing to do.
+	if (Math.abs(w / h - resolvedRatio) <= ASPECT_RATIO_EPSILON) return null
+
+	const area = w * h
+	return { w: Math.sqrt(area * resolvedRatio), h: Math.sqrt(area / resolvedRatio) }
 }

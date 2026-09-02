@@ -13,6 +13,7 @@ import {
 	createTLStore,
 	noop,
 	react,
+	tleditors,
 	toRichText,
 } from '@tldraw/editor'
 import { StrictMode } from 'react'
@@ -93,6 +94,21 @@ describe('<TldrawEditor />', () => {
 			/>,
 			{ waitForPatterns: false }
 		)
+	})
+
+	it('runs the teardown returned by the store onMount option when unmounted', async () => {
+		const teardown = vi.fn()
+		const storeOnMount = vi.fn(() => teardown)
+		const store = createTLStore({ shapeUtils: [], bindingUtils: [], onMount: storeOnMount })
+		const rendered = await renderTldrawComponent(
+			<TldrawEditor store={store} tools={defaultTools} initialState="select" />,
+			{ waitForPatterns: false }
+		)
+		expect(storeOnMount).toHaveBeenCalledTimes(1)
+		expect(teardown).not.toHaveBeenCalled()
+
+		act(() => rendered.unmount())
+		expect(teardown).toHaveBeenCalledTimes(1)
 	})
 
 	it('throws if the store has different shapes to the ones passed in', async () => {
@@ -181,6 +197,7 @@ describe('<TldrawEditor />', () => {
 
 		// mounted after render:
 		expect(editor.getIsMounted()).toBe(true)
+		expect(tleditors.getMounted()).toEqual([editor])
 
 		// getIsMounted is reactive:
 		const mountedValues: boolean[] = []
@@ -191,6 +208,7 @@ describe('<TldrawEditor />', () => {
 		// the unmount event fired and the mounted state flipped back to false:
 		expect(onUnmount).toHaveBeenCalledTimes(1)
 		expect(editor.getIsMounted()).toBe(false)
+		expect(tleditors.getMounted()).toEqual([])
 		expect(mountedValues).toEqual([true, false])
 
 		stop()

@@ -8,7 +8,12 @@ import {
 } from '@tldraw/editor'
 import { TestEditor } from '../test/TestEditor'
 import { defaultAssetUtils } from './defaultAssetUtils'
-import { notifyIfFileNotAllowed } from './defaultExternalContentHandlers'
+import {
+	defaultHandleExternalTextContent,
+	defaultHandleExternalUrlContent,
+	notifyIfFileNotAllowed,
+	registerDefaultExternalContentHandlers,
+} from './defaultExternalContentHandlers'
 
 // A custom asset type used only in this test. We avoid declaring it via
 // `TLGlobalAssetPropsMap` module augmentation because that would leak into
@@ -171,5 +176,101 @@ describe('notifyIfFileNotAllowed', () => {
 		expect(addToast).toHaveBeenCalledWith(
 			expect.objectContaining({ title: 'assets.files.size-too-big' })
 		)
+	})
+})
+
+describe('defaultHandleExternalUrlContent', () => {
+	let editor: TestEditor
+
+	afterEach(() => {
+		editor?.dispose()
+	})
+
+	it('creates a bookmark for a valid http(s) url', async () => {
+		editor = new TestEditor()
+		const { opts, addToast } = makeOpts()
+
+		await defaultHandleExternalUrlContent(
+			editor,
+			{ url: 'https://example.com', point: { x: 0, y: 0 } },
+			opts
+		)
+
+		const shapes = editor.getCurrentPageShapes()
+		expect(shapes.length).toBe(1)
+		expect(shapes[0].type).toBe('bookmark')
+		expect(addToast).not.toHaveBeenCalled()
+	})
+
+	it('selects the created bookmark', async () => {
+		editor = new TestEditor()
+		const { opts } = makeOpts()
+
+		await defaultHandleExternalUrlContent(
+			editor,
+			{ url: 'https://example.com', point: { x: 0, y: 0 } },
+			opts
+		)
+
+		const [bookmark] = editor.getCurrentPageShapes()
+		expect(bookmark.type).toBe('bookmark')
+		expect(editor.getSelectedShapeIds()).toEqual([bookmark.id])
+	})
+
+	it('shows a toast and logs the url for a url with an invalid protocol', async () => {
+		// Regression test for #8097: dragging content from a browser tab in Chrome
+		// with an ad blocker active supplies a DataTransfer url rewritten to
+		// `about:blank#blocked`. That protocol is not valid for a bookmark shape's
+		// `url` prop (T.linkUrl), so creating one threw a ValidationError and
+		// crashed the editor. We now surface a toast to the user and warn with the
+		// offending url for local debugging instead, and never throw or create a
+		// shape.
+		editor = new TestEditor()
+		const { opts, addToast } = makeOpts()
+		registerDefaultExternalContentHandlers(editor, opts)
+		const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		await expect(
+			defaultHandleExternalUrlContent(
+				editor,
+				{ url: 'about:blank#blocked', point: { x: 0, y: 0 } },
+				opts
+			)
+		).resolves.not.toThrow()
+
+		expect(editor.getCurrentPageShapes()).toEqual([])
+		expect(addToast).toHaveBeenCalledWith(
+			expect.objectContaining({ title: 'assets.url.failed', severity: 'error' })
+		)
+		expect(consoleWarn).toHaveBeenCalledWith(expect.stringContaining('about:blank#blocked'))
+
+		consoleWarn.mockRestore()
+	})
+})
+
+describe('defaultHandleExternalTextContent', () => {
+	let editor: TestEditor
+
+	afterEach(() => {
+		editor?.dispose()
+	})
+
+	it('selects the created text shape', async () => {
+		editor = new TestEditor()
+
+		await defaultHandleExternalTextContent(editor, { text: 'hello', point: { x: 0, y: 0 } })
+
+		const [text] = editor.getCurrentPageShapes()
+		expect(text.type).toBe('text')
+		expect(editor.getSelectedShapeIds()).toEqual([text.id])
+	})
+
+	it('does not select anything when the page is full and no shape is created', async () => {
+		editor = new TestEditor({ options: { maxShapesPerPage: 0 } })
+
+		await defaultHandleExternalTextContent(editor, { text: 'hello', point: { x: 0, y: 0 } })
+
+		expect(editor.getCurrentPageShapes()).toEqual([])
+		expect(editor.getSelectedShapeIds()).toEqual([])
 	})
 })

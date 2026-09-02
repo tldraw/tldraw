@@ -67,8 +67,10 @@ function convertReactToVercel(path: string): string {
 		throw new Error(`Wildcard routes like '${path}' are not supported yet (you can add support!)`)
 	}
 	// react-router supports optional route segments https://reactrouter.com/en/main/route/route#optional-segments
-	// but we don't use them yet so just fail for now until we need them (if ever)
-	if (path.match(/\?\//)) {
+	// but we don't use them yet so just fail for now until we need them (if ever). A trailing
+	// optional param would silently lose its optionality in the Vercel pattern (use two explicit
+	// routes instead), so reject any '?' here, not just mid-path ones.
+	if (path.includes('?')) {
 		throw new Error(
 			`Optional route segments like in '${path}' are not supported yet (you can add this)`
 		)
@@ -119,7 +121,17 @@ test('the_routes', () => {
 
 test('dev reset route exists only in development routing', () => {
 	expect(devSpaRoutes.map((route) => route.reactRouterPattern)).toContain('/dev/reset-local-state')
+	expect(devSpaRoutes.map((route) => route.reactRouterPattern)).toContain(
+		'/dev/browser-run-thumbnail'
+	)
 	expect(spaRoutes.map((route) => route.reactRouterPattern)).not.toContain('/dev/reset-local-state')
+	expect(spaRoutes.map((route) => route.reactRouterPattern)).not.toContain(
+		'/dev/browser-run-thumbnail'
+	)
+})
+
+test('the thumbnail render route is included in production routing', () => {
+	expect(spaRoutes.map((route) => route.reactRouterPattern)).toContain('/__thumbnail-render')
 })
 
 test('all React routes match', () => {

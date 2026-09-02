@@ -69,14 +69,20 @@ export class ThemeManager {
 		return this._themes.get()[this.getCurrentThemeId()]!
 	}
 
-	/** Set the current theme by id. The theme must have been previously registered. */
+	/**
+	 * Set the current theme by id. The theme must have been previously registered; an
+	 * unregistered id is ignored and the current theme is kept.
+	 */
 	setCurrentTheme(id: TLThemeId): void {
-		if (process.env.NODE_ENV !== 'production') {
-			if (!(id in this._themes.get())) {
+		// Storing an unregistered id would make getCurrentTheme() return
+		// undefined despite its TLTheme return type.
+		if (!(id in this._themes.get())) {
+			if (process.env.NODE_ENV !== 'production') {
 				console.warn(
 					`Theme '${id}' not found. Available themes: ${Object.keys(this._themes.get()).join(', ')}`
 				)
 			}
+			return
 		}
 
 		this._currentThemeId.set(id)

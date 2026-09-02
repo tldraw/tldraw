@@ -187,10 +187,15 @@ function createDemoAssetStore(host: string): TLAssetStore {
 			const objectName = `${id}-${file.name}`.replace(/\W/g, '-')
 			const url = `${host}/uploads/${objectName}`
 
-			await fetch(url, {
+			const response = await fetch(url, {
 				method: 'POST',
 				body: file,
 			})
+			// a rejected upload (invalid name, duplicate, server error) resolves the fetch; without
+			// this the asset would point at a URL that was never stored
+			if (!response.ok) {
+				throw new Error(`Failed to upload asset (${response.status})`)
+			}
 
 			return { src: url }
 		},

@@ -40,9 +40,10 @@ jobs:
 
       - name: Check out code
         uses: actions/checkout@v6
-        with:
-          submodules: true
-          fetch-depth: 0
+        env:
+          # Abort a stalled fetch so checkout's retry kicks in instead of hanging until the job timeout
+          GIT_HTTP_LOW_SPEED_LIMIT: 1000
+          GIT_HTTP_LOW_SPEED_TIME: 60
 
       - uses: ./.github/actions/setup
 
@@ -63,7 +64,9 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          # Pinned: v2.112.0 rejects the Management API's own timestamps, which
+          # breaks `branches get` and `branches delete`. See supabase/cli#6115.
+          version: 2.111.0
 
       - name: Delete Supabase branch
         if: contains(github.event.pull_request.labels.*.name, 'reset-preview-db')
@@ -138,7 +141,7 @@ jobs:
 
       - name: Setup Fly cli
         if: env.DEPLOY_ZERO == 'flyio' || env.DEPLOY_ZERO == 'flyio-multinode'
-        uses: superfly/flyctl-actions/setup-flyctl@master
+        uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1 # 1.6
 
       - name: Deploy
         run: yarn tsx internal/scripts/deploy-dotcom.ts
@@ -159,13 +162,13 @@ jobs:
 
           ANALYTICS_API_URL: ${{ secrets.ANALYTICS_API_URL }}
           ANALYTICS_API_TOKEN: ${{ secrets.ANALYTICS_API_TOKEN }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ASSET_UPLOAD_SENTRY_DSN: ${{ secrets.ASSET_UPLOAD_SENTRY_DSN }}
           BOTCOM_POSTGRES_CONNECTION_STRING: ${{ env.POSTGRES_URL_NON_POOLING || secrets.BOTCOM_POSTGRES_CONNECTION_STRING }}
           BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: ${{ env.POSTGRES_URL || secrets.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          MCP_SCREENSHOT_TOKEN_SECRET: ${{ secrets.MCP_SCREENSHOT_TOKEN_SECRET }}
           DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
           DISCORD_FEEDBACK_WEBHOOK_URL: ${{ secrets.DISCORD_FEEDBACK_WEBHOOK_URL }}
           PLAIN_API_KEY: ${{ secrets.PLAIN_API_KEY }}
@@ -190,7 +193,6 @@ jobs:
           VITE_GA4_MEASUREMENT_ID: ${{ secrets.VITE_GA4_MEASUREMENT_ID }}
           WORKER_SENTRY_DSN: ${{ secrets.WORKER_SENTRY_DSN }}
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-          PIERRE_KEY: ${{ secrets.PIERRE_KEY }}
           ZERO_ADMIN_PASSWORD: ${{ secrets.ZERO_ADMIN_PASSWORD }}
           ZERO_R2_ENDPOINT: ${{ secrets.ZERO_R2_ENDPOINT }}
           ZERO_R2_BUCKET_NAME: ${{ secrets.ZERO_R2_BUCKET_NAME }}

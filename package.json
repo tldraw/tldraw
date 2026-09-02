@@ -41,10 +41,9 @@
 		"refresh-assets": "lazy refresh-assets",
 		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/examples' --filter='packages/tldraw' --filter='apps/bemo-worker' --filter='apps/dotcom/image-resize-worker'",
 		"dev-vscode": "code ./apps/vscode/extension && lazy run dev --filter='apps/vscode/{extension,editor}'",
-		"dev-app": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/dotcom/*' --filter='packages/tldraw'",
-		"dev-app:clean": "yarn workspace @tldraw/zero-cache dev:clean",
-		"dev-app:clean:all": "yarn workspace @tldraw/zero-cache dev:clean:all",
-		"dev-app:doctor": "yarn workspace @tldraw/zero-cache dev:doctor",
+		"dev-app": "process-compose -f apps/dotcom/process-compose.yaml up",
+		"dev-app:clean": "docker compose -f apps/dotcom/zero-cache/docker/docker-compose.yml down --volumes && rm -f /tmp/tldraw-dotcom-zero-dev.db /tmp/tldraw-dotcom-zero-dev.db-shm /tmp/tldraw-dotcom-zero-dev.db-wal && rm -rf apps/dotcom/sync-worker/.wrangler/state-dev apps/dotcom/zero-cache/.schema.js",
+		"dev-app:doctor": "process-compose -f apps/dotcom/process-compose.yaml process list",
 		"dev-docs": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/docs'",
 		"dev-huppy": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter 'internal/huppy'",
 		"dev-template": "./internal/scripts/dev-template.sh",
@@ -65,9 +64,11 @@
 		"profile-typescript": "tsx internal/scripts/profile-typescript.ts",
 		"profile-tsserver": "tsx internal/scripts/profile-tsserver.ts",
 		"check-packages": "tsx internal/scripts/check-packages.ts",
+		"product-manifest": "tsx internal/scripts/product-manifest.ts",
 		"check-circular-deps": "tsx internal/scripts/check-circular-deps.ts",
 		"update-pr-template": "tsx internal/scripts/update-pr-template.ts",
 		"generate-test-licenses": "tsx internal/scripts/generate-test-licenses.ts",
+		"license-report": "tsx internal/scripts/license-report.ts",
 		"api-check": "lazy api-check",
 		"test-ci": "yarn vitest run",
 		"test": "yarn vitest",
@@ -89,11 +90,11 @@
 		"npm": ">=7.0.0",
 		"node": ">=22.12.0"
 	},
-	"packageManager": "yarn@4.12.0",
+	"packageManager": "yarn@4.17.1",
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,cjs,mjs}": [
 			"oxfmt --no-error-on-unmatched-pattern",
-			"oxlint"
+			"oxlint --no-error-on-unmatched-pattern"
 		],
 		"*.{css,md,mdx,html,yml,yaml}": [
 			"oxfmt --no-error-on-unmatched-pattern"
@@ -103,6 +104,7 @@
 		"@lingual/i18n-check": "^0.5.5",
 		"@microsoft/api-extractor": "^7.55.2",
 		"@swc/core": "^1.15.18",
+		"@tldraw/scripts": "workspace:*",
 		"@types/adm-zip": "^0.5.7",
 		"@types/aws-lambda": "8.10.148",
 		"@types/glob": "^8.1.0",
@@ -110,10 +112,9 @@
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"@types/semver": "^7.5.8",
-		"@typescript/native-preview": "^7.0.0-dev.20260129.1",
 		"@vitest/coverage-v8": "^4.1.7",
 		"@vitest/ui": "^4.1.7",
-		"adm-zip": "^0.5.16",
+		"adm-zip": "^0.6.0",
 		"docx": "^9.5.1",
 		"fs-extra": "^11.3.0",
 		"husky": "^8.0.3",
@@ -128,7 +129,7 @@
 		"oxlint-tsgolint": "^0.23.0",
 		"rimraf": "^4.4.1",
 		"tsx": "^4.19.2",
-		"typescript": "^5.8.3",
+		"typescript": "^7.0.2",
 		"vercel": "^52.0.0",
 		"vite-plugin-circular-dependency": "^0.5.0",
 		"vitest": "^4.1.7",
@@ -157,9 +158,6 @@
 			"built": true
 		},
 		"@swc/core": {
-			"built": true
-		},
-		"@typescript/native-preview": {
 			"built": true
 		},
 		"@vscode/vsce-sign": {
@@ -198,7 +196,7 @@
 		"@types/node": "^22.15.31",
 		"ws": "8.21.0",
 		"js-cookie": "3.0.7",
-		"postcss": "8.5.10",
+		"postcss": "8.5.23",
 		"react-router": "6.30.4",
 		"@remix-run/router": "1.23.2",
 		"@octokit/plugin-paginate-rest@11.3.1": "11.4.1",

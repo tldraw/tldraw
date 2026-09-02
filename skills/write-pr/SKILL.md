@@ -1,6 +1,6 @@
 ---
 name: write-pr
-description: Reference standards for writing pull request titles and descriptions in the tldraw repository. Use as supporting guidance when another skill or workflow needs PR content standards, not as the user-facing create/update PR workflow.
+description: Reference standards for writing pull request titles and descriptions in the tldraw repository, plus the pre-flight comment sweep over the diff. Use as supporting guidance when another skill or workflow needs PR content standards, not as the user-facing create/update PR workflow.
 ---
 
 # Writing pull requests
@@ -61,7 +61,7 @@ A noun describing the affected area: `fix(editor):`, `feat(sync):`, `docs(exampl
 
 ## PR body
 
-Use this template:
+Bug fix and improvement PRs (`bugfix` and `improvement` change types) use the before/after template below. Everything else uses this one:
 
 ```md
 <description paragraph>
@@ -93,6 +93,53 @@ Start with: "In order to X, this PR does Y." Follow the reviewer-first rules at 
 - Keep it specific - avoid vague phrases like "improve user experience"
 - Link related issues in the first paragraph
 - Don't expect readers to also read the linked issue
+
+### Bug fix and improvement PRs
+
+Bug fix and improvement PRs use a fixed shape instead of the description paragraph. The same reviewer-first rules apply; the structure exists so a reviewer can see what was wrong (or lacking), what it does now, and why, without reading the diff.
+
+```md
+This PR fixes a bug where <symptom a user or developer would hit>.
+
+### Before
+
+<what the code did and why that produced the symptom>
+
+### After
+
+<what the code does now>
+
+### Implementation notes
+
+<optional: what exactly changed and how — decisions, trade-offs, anything non-obvious>
+
+### Change type
+
+- [x] `bugfix` | `improvement`
+
+### Test plan
+
+- [x] Unit tests — the new test fails on `main` and passes with this change
+
+### Release notes
+
+- Fix <symptom> | Improve <behavior>
+
+### Code changes
+
+| Section   | LOC change |
+| --------- | ---------- |
+| Core code | +10 / -2   |
+| Tests     | +5 / -0    |
+```
+
+- **Intro** — one sentence. For a bug: "This PR fixes a bug where X," where X is the observable symptom, not the cause or the fix. For an improvement: "This PR improves X so that Y," where Y is what a user or developer can now do. Link the issue here if there is one. If the PR does more than one thing, add a second sentence ("It also ...") rather than a list.
+- **Before** — the behavior before, and the mechanism that produced it. For a bug, name the function or path at fault; this is the one place a short description of *how* the old code went wrong belongs, because it is the cause the reviewer is checking the fix against. For an improvement, describe what the user or developer had to do (or couldn't do) and what in the code made it that way.
+- **After** — the behavior after. State what the code now does, at the same level of detail as Before. Note any spec or doc that was updated alongside.
+- **Implementation notes** — optional. Include only when there is something the Before/After pair doesn't carry: an approach you chose over another, a subtlety in the change, a follow-up you deliberately left out. Skip the heading entirely when there is nothing to say; most small fixes have nothing.
+- The `### Change type` / `### Test plan` / `### Release notes` / `### API changes` / `### Code changes` blocks follow as usual. For bug fixes, say in the test plan whether the new tests fail on `main`.
+
+tldraw/tldraw#10117, #10118, and #10119 are worked examples of bug fixes in this shape.
 
 ### Change type
 
@@ -174,6 +221,26 @@ Create a table that includes net LOC changes for each of the following sections.
 ## Related issues
 
 Search for and link relevant issues that this PR addresses.
+
+## The comment sweep
+
+A pre-flight check on the diff, not the description: read the diff's added comments as carefully as its added code, and cut before opening the PR.
+
+```bash
+git diff origin/main...HEAD -U0 | grep -nE '^\+\s*(//|/\*|\*)'
+```
+
+Judge what that prints against **Comments** in the root `AGENTS.md`. That section is the rule and this one does not restate it — one test is worth carrying in your head as you read:
+
+> **A good comment names a failure mode, not a mechanism.**
+
+The mechanism is on screen already. What isn't is what goes wrong without it. A block that only describes what the code does is cuttable in full; a block that says "otherwise X" keeps that sentence and loses the paragraph explaining it twice.
+
+**Expect length, not category, to be the defect.** Most substantial comment blocks that need editing already name a real force — they are the right kind of comment at two or three times the necessary length. So the usual edit is a trim to the load-bearing lines, not a delete.
+
+Leave alone, or trim at most: diagrams, enumerated case lists where the list is the specification, provenance (an issue number, "we tried X and it did Y"), and anything carrying an invariant. In `packages/*`, doc comments on the `@public` surface are the API reference — hold them to the same "says something the code doesn't" bar, but they are a deliverable, not overhead.
+
+Pre-flight rather than post-review because it is cheap now and expensive later. A comment restating its own code reads as padding, costs a review round-trip to remove, and once merged nobody goes back for it. Explaining the change is the PR body's job — the diff is not where that belongs.
 
 ## Human notes (preserve exactly)
 

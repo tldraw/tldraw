@@ -36,9 +36,9 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 ## 4. RecordsDiff (D)
 
 - **D1** `createEmptyRecordsDiff()` returns `{ added: {}, updated: {}, removed: {} }`; `isRecordsDiffEmpty` is true exactly when all three collections are empty.
-- **D2** `reverseRecordsDiff` swaps added and removed and reverses each `[from, to]` pair.
+- **D2** `reverseRecordsDiff` swaps added and removed and reverses each `[from, to]` pair. The result shares no collections or pairs with the input, so squashing into it leaves the input untouched.
 - **D3** `squashRecordDiffs(diffs)` combines sequential diffs into one. Per record id: add then update → add with the final value; add then remove → nothing; update then update → one update from the original `from` to the final `to`; update then remove → remove of the original `from`; remove then add → update from the removed value to the added value, unless the added value is reference-identical to the removed one, in which case nothing.
-- **D4** `squashRecordDiffs` does not mutate its inputs unless `mutateFirstDiff: true`, in which case the first diff is the (mutated) result. `squashRecordDiffsMutable(target, diffs)` applies diffs onto `target` in place with the same semantics.
+- **D4** `squashRecordDiffs` does not mutate its inputs unless `mutateFirstDiff: true`, in which case the first diff is the (mutated) result (an empty diff when there are no diffs); its `[from, to]` pairs are replaced rather than mutated in place. `squashRecordDiffsMutable(target, diffs)` applies diffs onto `target` in place with the same semantics; the target must own its pairs (start from `createEmptyRecordsDiff()`).
 
 ## 5. Store: reading and writing (S)
 
@@ -62,7 +62,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **AO5** `afterChange` fires only when the before and after records differ by deep equality. (Putting a structurally-equal copy still records a history entry per S3/H1 — only the callback is suppressed.)
 - **AO6** After-handlers run when the outermost atomic's function completes, still inside the transaction. Changes they make trigger another round of after-events, repeating until quiescent. More than 100 rounds throws `Maximum store update depth exceeded`.
 - **AO7** `operationComplete` handlers fire after the after-events of an operation settle; if an `operationComplete` handler makes further changes, the flush (including `operationComplete`) runs again until quiescent.
-- **AO8** `mergeRemoteChanges(fn)` runs `fn` atomically with source `'remote'`; nested calls inside another `mergeRemoteChanges` just run `fn`. After the merge the integrity checker runs. Changes that side-effect handlers make in response to remote changes are attributed to `'user'`.
+- **AO8** `mergeRemoteChanges(fn)` runs `fn` atomically with source `'remote'`; nested calls inside another `mergeRemoteChanges` just run `fn`. After the merge the integrity checker runs. Changes that side-effect handlers — `after*` and `operationComplete` alike — make in response to remote changes are attributed to `'user'`, as are the callback rounds they trigger.
 
 ## 7. Side effect handlers (SE)
 
@@ -84,7 +84,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **H7** `extractingChanges(fn)` returns the squashed diff of exactly the changes made during `fn` (listeners still see those changes normally).
 - **H8** `addHistoryInterceptor(fn)` calls `fn(entry, source)` synchronously for every change-set as it happens and returns a remover.
 - **H9** `applyDiff(diff)` puts the `added` and `updated` records and removes the `removed` ids. `runCallbacks: false` disables side effects for the application (AO3). Applying a diff and then its `reverseRecordsDiff` (D2) restores the prior state.
-- **H10** `applyDiff` with `ignoreEphemeralKeys: true` ignores changes to keys in the type's `ephemeralKeySet` when applying updates to existing records: non-ephemeral changed keys are merged onto the stored record, and an update touching only ephemeral keys is dropped. Updates for records that don't exist are applied in full, as are records in `added`.
+- **H10** `applyDiff` with `ignoreEphemeralKeys: true` ignores changes to keys in the type's `ephemeralKeySet` when applying updates to existing records: non-ephemeral changed keys are merged onto the stored record (including the removal of a non-ephemeral key that the update leaves out), and an update touching only ephemeral keys is dropped. Updates for records that don't exist are applied in full, as are records in `added`.
 
 ## 9. Validation (V)
 
@@ -119,7 +119,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 ## 13. Queries: ids, records, record, exec (QQ)
 
 - **QQ1** `store.query.ids(typeName, queryCreator?)` returns a computed `Set` of the ids of matching records; with no query it contains all ids of that type. Its history diffs are `CollectionDiff`s.
-- **QQ2** The query expression is itself reactive: `queryCreator` may read signals, and when the expression it returns changes (by deep equality), the query rebuilds and emits a correct diff. An expression that is deep-equal to the previous one causes no rebuild.
+- **QQ2** The query expression is itself reactive: `queryCreator` is called with no arguments and may read signals, and when the expression it returns changes (by deep equality), the query rebuilds and emits a correct diff. An expression that is deep-equal to the previous one causes no rebuild.
 - **QQ3** Changes that do not affect the result (unrelated types, updates that keep a record matching, irrelevant property changes) leave the same `Set` object in place.
 - **QQ4** `records(typeName, queryCreator?)` returns the matching records as an array, with shallow-array equality (same members → no change). `record(typeName, queryCreator?)` returns one matching record or `undefined`.
 - **QQ5** `exec(typeName, query)` runs one non-reactive query and returns matching records; with no matches it returns the shared empty array.
@@ -151,7 +151,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 ## 17. Migrations: sorting (MS)
 
 - **MS1** `sortMigrations` orders migrations within a sequence by version (`foo/1` before `foo/2`), regardless of input order.
-- **MS2** A migration with `dependsOn` sorts after all of its dependencies, across sequences.
+- **MS2** A migration with `dependsOn` sorts after all of its dependencies, across sequences. A dependency that is also the implicit predecessor in the sequence, or that is listed more than once, is redundant rather than circular.
 - **MS3** Among valid orderings, a migration that others explicitly depend on is scheduled close to (immediately before) its dependents.
 - **MS4** Circular dependencies (direct or via the implicit sequence order) throw.
 
@@ -201,9 +201,10 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **AM3** `set` adds or updates and returns the map. `update(key, fn)` replaces an existing value and throws for a missing key.
 - **AM4** `delete` returns whether the key existed. `deleteMany(keys)` deletes in one transaction (one reaction for the whole batch), returns the `[key, value]` pairs actually deleted, and ignores missing keys.
 - **AM5** `clear()` empties the map.
-- **AM6** `entries`, `keys`, `values`, `forEach`, `[Symbol.iterator]`, and `size` see exactly the live entries and are reactive. `forEach` honors `thisArg`.
+- **AM6** `entries`, `keys`, `values`, `forEach`, `[Symbol.iterator]`, and `size` see exactly the live entries and are reactive. `forEach` honors `thisArg`. As with `Map`, an entry deleted during iteration before it is visited is skipped.
 - **AM7** Changes made inside a rolled-back `@tldraw/state` transaction are restored: additions disappear, updates revert, deletions reappear.
 - **AM8** `Object.prototype.toString.call(map)` is `[object AtomMap]`.
+- **AM9** `getOrInsert(key, defaultValue)` and `getOrInsertComputed(key, callback)` return the existing value for a present key, and otherwise insert and return the new value. `callback` runs only when the key is absent.
 
 ## 23. AtomSet (AS)
 
@@ -224,7 +225,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 ## 26. IncrementalSetConstructor — internal (ISC)
 
 - **ISC1** `get()` returns `undefined` when there are no net changes: nothing done, adding already-present items, removing absent items, or add/remove round trips that cancel out.
-- **ISC2** Otherwise `get()` returns `{ value, diff }`, where `value` is the new set and `diff` is the `CollectionDiff` relative to the original set; the original set is not mutated.
+- **ISC2** Otherwise `get()` returns `{ value, diff }`, where `value` is the new set and `diff` is the `CollectionDiff` relative to the original set, with `added`/`removed` present only when non-empty; the original set is not mutated.
 - **ISC3** Re-adding an item removed earlier in the construction restores it (and removes it from `diff.removed`); removing an item added earlier cancels the add.
 
 ## 27. ImmutableMap — internal (IM)
@@ -233,7 +234,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 
 - **IM1** `set` and `delete` return a new map and leave the original unchanged.
 - **IM2** `get(k)` returns the value or `undefined`; `get(k, notSetValue)` returns `notSetValue` for missing keys.
-- **IM3** Keys may be objects (hashed by identity): distinct object keys with equal contents are distinct keys. A constructor given duplicate keys keeps the last value.
+- **IM3** Keys may be objects (hashed by identity): distinct object keys with equal contents are distinct keys. Key equality is SameValueZero (`NaN` equals `NaN`, `0` equals `-0`), and string keys named after `Object.prototype` members are ordinary keys. A constructor given duplicate keys keeps the last value.
 - **IM4** `withMutations(fn)` batches many changes into one new map; if `fn` changes nothing, the same instance is returned.
 - **IM5** `deleteAll(keys)` removes all the given keys.
 - **IM6** `entries`/`keys`/`values`/iteration yield every entry exactly once, consistent with `size`.

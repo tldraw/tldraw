@@ -460,3 +460,25 @@ describe('applying diffs (H)', () => {
 		})
 	})
 })
+
+describe('applying diffs with ignoreEphemeralKeys (H)', () => {
+	it('[H10] ignoreEphemeralKeys also applies the removal of a non-ephemeral key', () => {
+		const visitId = Visit.createId('jane')
+		const visit = Visit.create({ id: visitId, visitorName: 'Jane', lastActive: 100 })
+		store.put([visit])
+
+		const { visitorName: _dropped, ...withoutName } = visit
+		store.applyDiff(
+			{
+				added: {},
+				updated: { [visitId]: [visit, withoutName as Visit] },
+				removed: {},
+			} as RecordsDiff<LibraryType>,
+			{ ignoreEphemeralKeys: true }
+		)
+
+		const result = store.get(visitId) as Visit
+		expect('visitorName' in result).toBe(false)
+		expect(result.lastActive).toBe(100)
+	})
+})

@@ -58,12 +58,15 @@ api-md
 
 packages/tldraw/tldraw.css
 packages/namespaced-tldraw/tldraw.css
+packages/commenting/commenting.css
+packages/collaboration/collaboration.css
 
 packages/assets/embed-icons
 packages/assets/fonts
 packages/assets/icons
 packages/assets/translations
 packages/assets/watermarks
+packages/commenting/assets
 apps/examples/www/embed-icons
 apps/examples/www/fonts
 apps/examples/www/icons
@@ -107,9 +110,9 @@ apps/docs/api
 
 .wrangler
 /vercel.json
-license-report-prod.html
-license-report.html
-license-report.md
+license-report*.html
+license-report*.md
+license-report*.pdf
 
 .bundle-meta.json
 .zed

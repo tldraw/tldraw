@@ -181,6 +181,9 @@ export class Translating extends StateNode {
 		this.editor.duplicateShapes(Array.from(this.editor.getSelectedShapeIds()))
 
 		this.snapshot = getTranslatingSnapshot(this.editor)
+		// The manager ignores startDraggingShapes while it is running, so it has to be
+		// cleared or it keeps reparenting the originals instead of the clones
+		this.dragAndDropManager.clear()
 		this.handleStart()
 		this.updateShapes()
 	}
@@ -190,6 +193,8 @@ export class Translating extends StateNode {
 		this.snapshot = this.selectionSnapshot
 		this.reset()
 		this.markId = this.editor.markHistoryStoppingPoint('translate')
+		// Same as in startCloning: the manager is still tracking the (now deleted) clones
+		this.dragAndDropManager.clear()
 		this.updateShapes()
 	}
 
@@ -495,6 +500,7 @@ function getTranslatingSnapshot(editor: Editor) {
 			extraHeight: noteSnapshot.shape.props.growY ?? 0,
 			noteWidth: dv.noteWidth,
 			noteHeight: dv.noteHeight,
+			excludeShapeIds: selectedShapeIds,
 		})
 		noteCenterOffset = new Vec(dv.noteWidth / 2, dv.noteHeight / 2)
 	}

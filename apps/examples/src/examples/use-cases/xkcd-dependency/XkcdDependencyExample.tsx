@@ -3,10 +3,8 @@ import { useEffect, useRef } from 'react'
 import { createShapeId, Tldraw, TLShapeId, toRichText, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-// Block positions from the xkcd "Dependency" comic (#2347)
-// Each group of 4 values is [x, y, width, height]
-// y=0 is the bottom of the tower, y increases going up
-// Source: https://editor.p5js.org/isohedral/sketches/vJa5RiZWs
+// Block positions from the xkcd "Dependency" comic (#2347), as [x, y, w, h] quads with y=0 at
+// the bottom of the tower. Source: https://editor.p5js.org/isohedral/sketches/vJa5RiZWs
 const RAW_DATA = [
 	0.5, 0.5, 217.113, 16.4414, 14.168, 16.9414, 181.059, 19.4141, 28.4297, 36.3555, 55.668, 10.6953,
 	158.977, 36.3555, 7.921, 25.7539, 36.5547, 47.0508, 42.9844, 15.0586, 31.9961, 62.1094, 144.4099,
@@ -35,10 +33,9 @@ const RAW_DATA = [
 const CANVAS_H = 434
 const SCALE = 3
 
-// The "critical dependency" block — a small block near the base of the tower
+// The "critical dependency" block near the base of the tower
 const DEPENDENCY_BLOCK_INDEX = 3
 
-// tldraw colors to cycle through
 const COLORS = [
 	'light-blue',
 	'light-green',
@@ -230,19 +227,18 @@ function XkcdDependency() {
 
 		editor.zoomToFit({ animation: { duration: 300 } })
 
+		// [1]
 		RAPIER.init().then(() => {
 			if (cancelled) return
 
 			const world = new RAPIER.World({ x: 0, y: 200 })
 			worldRef.current = world
 
-			// Static ground body below the tower
 			const groundBody = world.createRigidBody(
 				RAPIER.RigidBodyDesc.fixed().setTranslation((minX + maxX) / 2, groundY + 50)
 			)
 			world.createCollider(RAPIER.ColliderDesc.cuboid(((maxX - minX) * 3) / 2, 50), groundBody)
 
-			// Dynamic bodies for each block
 			const blockIdSet = new Set<string>()
 			const bodies: typeof bodiesRef.current = []
 			for (let i = 0; i < blocks.length; i++) {
@@ -264,7 +260,7 @@ function XkcdDependency() {
 			}
 			bodiesRef.current = bodies
 
-			// Warm up: settle any overlaps from the initial layout, then sleep everything
+			// [2]
 			for (let i = 0; i < 120; i++) world.step()
 			const settled: { id: TLShapeId; type: 'geo'; x: number; y: number; rotation: number }[] = []
 			for (const { id, body, w, h } of bodies) {
@@ -283,7 +279,7 @@ function XkcdDependency() {
 			let updatingFromPhysics = false
 			const kinematicIds = new Set<string>()
 
-			// Only handle deletions — drag syncing is done in the tick handler
+			// [3]
 			removeListener = editor.store.listen(
 				({ changes }) => {
 					if (updatingFromPhysics) return
@@ -303,6 +299,7 @@ function XkcdDependency() {
 				{ source: 'user', scope: 'document' }
 			)
 
+			// [4]
 			onTick = () => {
 				if (!worldRef.current) return
 
@@ -392,3 +389,24 @@ export default function XkcdDependencyExample() {
 		</div>
 	)
 }
+
+/*
+[1]
+Rapier is a WASM module and must be initialised asynchronously. The shapes are created first
+so the comic appears immediately; physics attaches once the module is ready.
+
+[2]
+The traced block positions overlap slightly, so the world is stepped a number of times before
+the first frame to let them settle, then every body is put to sleep so the tower is still
+until something disturbs it.
+
+[3]
+When the user deletes a block, its rigid body is removed too and everything is woken so the
+tower re-settles. `source: 'user'` filters out the position updates we write ourselves.
+
+[4]
+Every editor `tick`, selected blocks are switched to kinematic bodies that follow the shape's
+position (so dragging moves the physics body, not the other way round), the world is stepped,
+and every awake, unselected body writes its position and rotation back to its shape with
+`editor.updateShapes`.
+*/

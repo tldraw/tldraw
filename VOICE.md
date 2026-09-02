@@ -108,7 +108,7 @@ Short clarifying comparisons are fine—"shapes are just records (JSON objects)"
 
 ## Avoiding AI writing tells
 
-AI-generated text has recognizable patterns. Avoid these to keep our docs sounding human.
+AI-generated text has recognizable patterns. Avoid these to keep our writing sounding human. For a comprehensive catalog, see [Wikipedia: Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing).
 
 ### Hollow importance claims
 
@@ -131,7 +131,9 @@ AI loves to emphasize significance without saying anything concrete. These phras
 
 ### Trailing gerund phrases
 
-AI ends sentences with vague gerund clauses that claim importance without substance:
+**This is one of the most common AI writing patterns. Actively hunt for and eliminate trailing gerunds.**
+
+AI ends sentences with gerund clauses (-ing phrases) that claim importance without substance:
 
 - "...emphasizing the significance of X"
 - "...reflecting the continued relevance of Y"
@@ -146,6 +148,43 @@ AI ends sentences with vague gerund clauses that claim importance without substa
 **Do:**
 
 > The editor batches updates automatically. This keeps renders fast even when many shapes change at once.
+
+**Even neutral trailing gerunds are a problem.** They weaken sentences by burying the point at the end, making prose feel monotonous and AI-generated. This isn't just about avoiding hollow importance claims—it's about sentence structure.
+
+Common neutral trailing gerunds to eliminate:
+
+- "...allowing you to X"
+- "...enabling users to X"
+- "...making it easy to X"
+- "...giving you X"
+- "...providing X"
+- "...creating X"
+- "...resulting in X"
+- "...causing X to Y"
+
+**Don't:**
+
+> The store is reactive, allowing you to subscribe to changes.
+
+> When `shrink` is greater than zero, the stroke width also decreases during fade-out, creating a smooth disappearance effect.
+
+> The editor exposes methods for shape manipulation, making it easy to create complex diagrams.
+
+**Do:**
+
+> The store is reactive. You can subscribe to changes.
+
+> When `shrink` is greater than zero, the stroke width also decreases during fade-out. This creates a smooth disappearance effect.
+
+> The editor exposes methods for shape manipulation. You can use these to create complex diagrams.
+
+Or lead with what matters:
+
+> Set `shrink` above zero for a smooth disappearance effect—the stroke width decreases during fade-out.
+
+> You can create complex diagrams using the editor's shape manipulation methods.
+
+**The fix is simple**: Split into two sentences, or restructure so the important information comes first. When you see a comma followed by an -ing word near the end of a sentence, that's your signal to rewrite.
 
 ### Formulaic transitions
 
@@ -185,7 +224,7 @@ AI overuses three-part lists. Real writing has lists of two, or four, or seven i
 
 ### Promotional language
 
-AI picks up marketing speak from its training data. We're writing technical docs, not ad copy:
+AI picks up marketing speak from its training data. We're writing technical content, not ad copy:
 
 - "breathtaking," "stunning," "beautiful"
 - "seamless," "frictionless," "effortless"
@@ -205,6 +244,8 @@ AI picks up marketing speak from its training data. We're writing technical docs
 
 AI writing often features multiple em dashes where a comma or period would be more natural. One em dash per paragraph is fine; several is a red flag. Also avoid dramatic formulations that call for an em dash.
 
+LLMs especially use em dashes in formulaic, punched-up ways—often mimicking sales copy by over-emphasizing clauses. They also use em dashes where humans would use commas, parentheses, or colons.
+
 **Don't:**
 
 > It's not just a history manager—it's a way to track changes across time.
@@ -217,9 +258,44 @@ AI writing often features multiple em dashes where a comma or period would be mo
 
 > The store is reactive: it notifies subscribers when data changes. All records are fully typed.
 
+### Negation parallelism
+
+The "It's not X, it's Y" structure is an AI signature. Real writing just says what something is.
+
+**Don't:**
+
+> It's not just a canvas—it's a complete editing experience.
+
+> The editor isn't simply a state container; it's a reactive system.
+
+**Do:**
+
+> The editor is a reactive system that manages all document state.
+
+### Overused AI vocabulary
+
+Certain words appear disproportionately in LLM output. Avoid these unless they're genuinely the right word:
+
+| Avoid        | Use instead                |
+| ------------ | -------------------------- |
+| delve (into) | explore, examine, look at  |
+| pivotal      | important, key, critical   |
+| underscore   | emphasize, show, highlight |
+| leverage     | use                        |
+| utilize      | use                        |
+| multifaceted | complex, varied            |
+| nuanced      | subtle, detailed           |
+| foster       | encourage, create          |
+| bolster      | strengthen, support        |
+| spearhead    | lead                       |
+| paradigm     | model, approach            |
+| synergy      | (usually delete entirely)  |
+
+These words aren't wrong, but their overuse signals AI authorship. If you find yourself reaching for them, consider whether a simpler word works.
+
 ### Bullet points with bolded headers
 
-In prose documentation, this format is a ChatGPT signature:
+In prose writing, this format is a ChatGPT signature:
 
 **Don't:**
 
@@ -232,6 +308,38 @@ In prose documentation, this format is a ChatGPT signature:
 > The store is reactive: it automatically notifies subscribers when data changes. All records are fully typed. You can persist data to IndexedDB or sync it to a server.
 
 This format is fine for reference material (API docs, style guides, changelogs) where scanability matters more than flow. Use a table if you have genuinely parallel information to present.
+
+### Regression to the mean
+
+AI replaces specific, unusual details with generic positive-sounding language. LLMs are trained on text where notable things are described with important-sounding words, so they tend to smooth over unique facts in favor of statistical averages.
+
+**Don't:**
+
+> The arrow tool is a powerful and versatile feature that enables users to create professional-looking diagrams.
+
+> Steve is a visionary leader who has made significant contributions to the field.
+
+**Do:**
+
+> The arrow tool draws arrows between shapes. Arrows can have different heads, labels, and curve styles.
+
+> Steve invented the train-coupling device used in most modern rail systems.
+
+The fix: preserve specific facts. If you don't know the specifics, research them or omit the claim entirely. Vague importance claims add nothing.
+
+### Uniform sentence structure
+
+AI defaults to sentences of similar length and paragraphs of similar size. Real writing has rhythm—short punchy sentences, then longer ones with more detail. Paragraphs vary based on content, not formula.
+
+**Don't:**
+
+> The editor manages document state. The store holds shape records. Bindings connect related shapes. Tools handle user interactions.
+
+**Do:**
+
+> The editor manages all document state. It holds shapes in a reactive store—when data changes, the UI updates automatically. Tools handle user interaction: each tool is a state machine that responds to pointer and keyboard events.
+
+If your prose feels monotonous, vary your sentence lengths. Start some sentences with the subject, others with a clause. Let the content dictate structure.
 
 ## Grammar and mechanics
 
@@ -251,7 +359,7 @@ This format is fine for reference material (API docs, style guides, changelogs) 
 
 > We recommend the tldraw sync packages for collaboration.
 
-In nuggets and blog-style content, "we" works for narrative: "We tried X, but Y worked better."
+In nuggets and blog-style content, "we" also works for narrative: "We tried X, but Y worked better."
 
 **Use "the SDK" or "the editor" when describing what the software does:**
 
@@ -283,6 +391,14 @@ Don't say "we support X" when you mean "the editor supports X"—it conflates th
 > Data is kept here as a table of JSON serializable records.
 
 > The event is first processed in order to update its inputs.
+
+**Tables still prefer active voice.** When describing states or behaviors in tables, make the subject act rather than be acted upon:
+
+| Don't                                | Do                                                                |
+| ------------------------------------ | ----------------------------------------------------------------- |
+| "The scribble is temporarily paused" | "The manager pauses the scribble" or "Drawing pauses temporarily" |
+| "The request is being processed"     | "The server processes the request"                                |
+| "Points are removed from the tail"   | "The scribble removes points from its tail"                       |
 
 ### Sentence structure
 
@@ -491,7 +607,7 @@ The reader learns from seeing our approach, not from being told what to do.
 
 ### Complete and runnable, followed by fragments
 
-When showing code examples, your _first_ snippet should provide a full working examples.
+When showing code examples, your _first_ snippet should provide a full working example. Following examples can be fragments.
 
 **Do:**
 
@@ -651,6 +767,12 @@ Link to API docs using the `[MethodName](?)` pattern:
 Always link to runnable examples when available:
 
 > For an example of how to create custom shapes, see our [custom shapes example](/examples/shapes/tools/custom-shape).
+
+## General notes
+
+- Do not include AI attribution in written content
+- American English spelling
+- Avoid complicated grammar, obscure vocabulary, jokes, or cultural idioms
 
 ## Evaluation checklist
 
