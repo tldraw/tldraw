@@ -1,0 +1,188 @@
+---
+title: v5.4.0
+description: A center align operation, a tleditors registry of mounted editors, faster signals and store layers, and a broad reliability pass across the SDK
+author: tldraw
+date: 09/02/2026
+order: 0
+status: published
+keywords:
+  - changelog
+  - release
+  - v5.4
+  - v5.4.0
+  - align-center
+  - tleditors
+  - reliability
+  - signals
+---
+
+[View on GitHub](https://github.com/tldraw/tldraw/releases/tag/v5.4.0)
+
+This release adds a `center` operation to `Editor.alignShapes`, a `tleditors` registry of mounted editors, `iterateGraphemes` to `@tldraw/utils`, and two new reactive methods on `AtomMap`. It also deprecates `useViewportHeight`, speeds up the signals and store layers, and lands a broad reliability pass across the SDK, with over a hundred fixes to undo history, selection and tool interactions, cropping, arrows, the signals and store layers, sync, and local persistence.
+
+## API changes
+
+- 🔜 **`useViewportHeight()`** is deprecated. Read `window.visualViewport` directly instead. The hook returns only the visible viewport's bottom edge, and keeping a panel clear of the software keyboard generally needs the whole visible rectangle. ([#9826](https://github.com/tldraw/tldraw/pull/9826))
+- Add `'center'` as an `Editor.alignShapes` operation. It applies the existing `'center-horizontal'` and `'center-vertical'` operations together, so shapes center on both axes in one command. ([#9074](https://github.com/tldraw/tldraw/pull/9074))
+- Add `tleditors`, a reactive global registry of currently mounted editors. Use it to reach live editors from outside the React tree, for example from sidebar chrome or a keyboard shortcut handler. ([#9904](https://github.com/tldraw/tldraw/pull/9904))
+
+  ```tsx
+  import { tleditors, useValue } from 'tldraw'
+
+  const mounted = useValue('mounted editors', () => tleditors.getMounted(), [])
+  ```
+
+- Add `getOrInsert(key, defaultValue)` and `getOrInsertComputed(key, callback)` to `AtomMap`, matching the `Map` methods added in newer JavaScript runtimes. Both are reactive, and the callback only runs when the key is absent. ([#9752](https://github.com/tldraw/tldraw/pull/9752))
+- Add `isPage(record)` to `@tldraw/tlschema`, a type guard that narrows an unknown record to `TLPage`, matching the guards already exported for the other record types. ([#9774](https://github.com/tldraw/tldraw/pull/9774))
+- Add `iterateGraphemes(str)` to `@tldraw/utils`. It iterates a string's grapheme clusters, using `Intl.Segmenter` when it's available and falling back to code-point iteration when it isn't. ([#9896](https://github.com/tldraw/tldraw/pull/9896))
+- `EmojiPickerProps.onSelect` now receives the originating event as an optional second argument. Custom reaction palettes can forward it to opt into shift multi-select. ([#9999](https://github.com/tldraw/tldraw/pull/9999))
+
+## Improvements
+
+- Shift-click an emoji in a comment's reaction palette to add several reactions without the palette closing. A plain click still applies the reaction and closes the palette. ([#9999](https://github.com/tldraw/tldraw/pull/9999))
+- Keyboard input now counts as collaborator presence activity, so peers no longer fade out and disappear while someone is typing. ([#9929](https://github.com/tldraw/tldraw/pull/9929))
+- Reduce per-pointer-event allocations in `Group2d` and `Editor` hit-testing. ([#8600](https://github.com/tldraw/tldraw/pull/8600))
+- Speed up signal reads in `@tldraw/state`. Capturing a parent used to scan the capturing signal's parent set twice, once to check for the parent and again to add it. ([#9690](https://github.com/tldraw/tldraw/pull/9690))
+- Reduce per-signal memory use and per-flush allocations in `@tldraw/state`. ([#10155](https://github.com/tldraw/tldraw/pull/10155))
+- Speed up editor hot paths: set lookups replace array scans in the selection side effect and the erasing check, `getCollaborators` makes a single pass over the presence records, and `getShapeUtil` only builds its assert message when the lookup fails. ([#10358](https://github.com/tldraw/tldraw/pull/10358))
+- Reduce the work and allocations in `@tldraw/store` history bookkeeping, so squashing record diffs and filtering query history no longer build intermediate copies on every tick. ([#9689](https://github.com/tldraw/tldraw/pull/9689), [#9869](https://github.com/tldraw/tldraw/pull/9869))
+- Move the `exportBackground` default (`true`) into the `TLInstance` record type in `@tldraw/tlschema`, so every code path that creates the instance record gets the same value. ([#10534](https://github.com/tldraw/tldraw/pull/10534))
+
+## Bug fixes
+
+### Crashes
+
+- Fix the editor failing to load on older browsers that lack `Intl.Segmenter`, such as Firefox before 125. ([#9896](https://github.com/tldraw/tldraw/pull/9896))
+- Fix the frame loop stopping permanently when a `tick` or `frame` listener threw, which silently disabled camera animations, edge scrolling, and other frame-driven behavior for the rest of the session. ([#9946](https://github.com/tldraw/tldraw/pull/9946))
+- Fix a crash when computing a frame's geometry if its heading text couldn't be measured yet. ([#9496](https://github.com/tldraw/tldraw/pull/9496))
+- Fix a crash in hit testing when a custom frame-like shape uses a plain, non-group geometry. ([#10328](https://github.com/tldraw/tldraw/pull/10328))
+- Fix a crash when pressing Enter with a frame, video, or embed selected while the geo, arrow, or text tool is active. ([#10195](https://github.com/tldraw/tldraw/pull/10195))
+- Fix default UI components such as `DefaultToolbar` crashing when mounted outside the `Tldraw` component. ([#10007](https://github.com/tldraw/tldraw/pull/10007))
+
+### Undo and history
+
+- Fix undo after a cut also reverting the change made before it. ([#9920](https://github.com/tldraw/tldraw/pull/9920))
+- Fix several actions merging into the previous undo step instead of creating their own: **Unlock all**, changing an arrowhead, keyboard changes to the opacity and image zoom sliders, alt+double-clicking a rectangle into a check-box, saving alt text, and dropping a file or url onto the canvas. ([#10468](https://github.com/tldraw/tldraw/pull/10468), [#10469](https://github.com/tldraw/tldraw/pull/10469), [#10470](https://github.com/tldraw/tldraw/pull/10470), [#10473](https://github.com/tldraw/tldraw/pull/10473), [#10474](https://github.com/tldraw/tldraw/pull/10474), [#10478](https://github.com/tldraw/tldraw/pull/10478))
+- Fix exiting an empty text shape leaving a phantom undo entry: document changes made by `onEditEnd` are now recorded in history. ([#10369](https://github.com/tldraw/tldraw/pull/10369))
+- Fix undo after `bailToMark` removing records that were not part of the undone change. ([#10207](https://github.com/tldraw/tldraw/pull/10207))
+- Fix undo/redo not removing an optional record property that the change had deleted. ([#10215](https://github.com/tldraw/tldraw/pull/10215))
+- Fix collaboration-mode readonly syncs ending up in the user's undo history. ([#10372](https://github.com/tldraw/tldraw/pull/10372))
+- Fix changes made by `operationComplete` handlers after a remote merge being attributed to the remote source. ([#10229](https://github.com/tldraw/tldraw/pull/10229))
+
+### Selection and tools
+
+- Fix Escape being ignored while pressing on the canvas with the select tool. ([#10175](https://github.com/tldraw/tldraw/pull/10175))
+- Fix Escape during a scribble selection dropping the prior selection. ([#10489](https://github.com/tldraw/tldraw/pull/10489))
+- Fix Space+arrow and Alt+arrow also nudging the selected shapes. ([#10453](https://github.com/tldraw/tldraw/pull/10453))
+- Fix Alt not suppressing Shift/Ctrl additive selection when releasing the pointer over a selected shape. ([#10510](https://github.com/tldraw/tldraw/pull/10510))
+- Fix bookmarks and other non-resizable shapes being left behind when resizing a multi-selection. ([#10491](https://github.com/tldraw/tldraw/pull/10491))
+- Fix alt-cloning mid-drag reparenting the original shape instead of the clone when dropping into a frame. ([#10186](https://github.com/tldraw/tldraw/pull/10186))
+- Fix the cursor staying as a resize or rotate arrow when Ctrl/Cmd+dragging a selection handle to brush-select. ([#10487](https://github.com/tldraw/tldraw/pull/10487))
+- Fix handle snapping on rotated shapes landing off the snap target. ([#10168](https://github.com/tldraw/tldraw/pull/10168))
+- Fix an interrupted press with the geo, frame, or note tool (undo, opening a menu, or changing page before releasing) creating a default-size shape. ([#10506](https://github.com/tldraw/tldraw/pull/10506))
+- Fix an invisible empty text shape being left behind when switching tools while dragging out a text box. ([#10457](https://github.com/tldraw/tldraw/pull/10457))
+- Fix the text tool undoing earlier work when cancelling a pointer-down after a drag-created text shape. ([#10194](https://github.com/tldraw/tldraw/pull/10194))
+- Fix shift-click with the draw, highlight, and line tools editing a shape on the previous page after a page change. ([#10455](https://github.com/tldraw/tldraw/pull/10455))
+- Fix the draw tool's shift segment threshold depending on the zoom level. ([#10240](https://github.com/tldraw/tldraw/pull/10240))
+- Fix the first point of a pen stroke losing its pressure value. ([#10243](https://github.com/tldraw/tldraw/pull/10243))
+- Fix small, slowly drawn loops sometimes failing to close, because dense input sampling made the stroke measure shorter than it was. ([#9930](https://github.com/tldraw/tldraw/pull/9930))
+- Fix the eraser dropping a frame it was pressed on once the drag begins. ([#10507](https://github.com/tldraw/tldraw/pull/10507))
+- Fix a camera jump when a second finger touches down during a one-finger zoom with the hand tool. ([#10178](https://github.com/tldraw/tldraw/pull/10178))
+- Fix Escape ending a spacebar pan while Space is still held. ([#10504](https://github.com/tldraw/tldraw/pull/10504))
+- Fix tools whose `onEnter` transitions to a child state ending up with two active children. ([#10354](https://github.com/tldraw/tldraw/pull/10354))
+- Fix double clicks being cancelled by small pointer movements when the editor container is offset from the page origin. ([#10349](https://github.com/tldraw/tldraw/pull/10349))
+- Fix modifier keys (Shift, Alt, Ctrl, Cmd) briefly being treated as held at the start of a new click or drag right after being released, which could momentarily affect snapping and other modifier-dependent behavior. ([#9523](https://github.com/tldraw/tldraw/pull/9523))
+- Fix held keys, including Space panning, staying active after the window loses focus. ([#10500](https://github.com/tldraw/tldraw/pull/10500))
+
+### Cropping
+
+- Fix stale crop state after leaving crop mode by switching tools. ([#10167](https://github.com/tldraw/tldraw/pull/10167))
+- Fix Escape during a crop drag reverting the whole crop session instead of only the drag in progress. ([#10462](https://github.com/tldraw/tldraw/pull/10462))
+- Fix Escape in image crop mode clearing the selection. ([#10463](https://github.com/tldraw/tldraw/pull/10463))
+- Fix crop mode staying active when the cropping shape is deleted. ([#10370](https://github.com/tldraw/tldraw/pull/10370))
+- Fix pressing Enter on a selected image entering crop mode in a readonly editor. ([#10492](https://github.com/tldraw/tldraw/pull/10492))
+
+### Arrows and shapes
+
+- Fix arrows bound to custom shapes with non-standard `size` values rendering as `NaN`. ([#10214](https://github.com/tldraw/tldraw/pull/10214))
+- Fix elbow arrows with a free terminal sometimes routing through the bound shape. ([#10219](https://github.com/tldraw/tldraw/pull/10219))
+- Fix arrow geometry ignoring a custom stroke width from `getCustomDisplayValues`. ([#10230](https://github.com/tldraw/tldraw/pull/10230))
+- Fix the arrow binding target highlight staying visible after clicking an arrow handle without dragging. ([#10191](https://github.com/tldraw/tldraw/pull/10191))
+- Fix a stub arrow being left on the canvas when switching tools during an arrow press. ([#10461](https://github.com/tldraw/tldraw/pull/10461))
+- Fix arrow label drag reverting when a menu opens or undo is pressed mid-drag. ([#10493](https://github.com/tldraw/tldraw/pull/10493))
+- Fix Cmd+Enter / Tab on a note creating a duplicate on top of an existing neighbour. ([#10199](https://github.com/tldraw/tldraw/pull/10199))
+- Fix adjacent-note snapping under a scaled, grown note. ([#10204](https://github.com/tldraw/tldraw/pull/10204))
+- Fix the note tool not snapping a new note beside the note it just created when tool lock is on. ([#10484](https://github.com/tldraw/tldraw/pull/10484))
+- Fix attributed notes losing their font in exports. ([#10249](https://github.com/tldraw/tldraw/pull/10249))
+- Fix shift-extending a line inside a rotated frame placing the point incorrectly. ([#10238](https://github.com/tldraw/tldraw/pull/10238))
+- Fix the second diagonal of an x-box shape being treated as an outer edge. ([#10245](https://github.com/tldraw/tldraw/pull/10245))
+- Fix a replaced image being zoomed when the original had an explicit default crop. ([#10234](https://github.com/tldraw/tldraw/pull/10234))
+- Fix video shapes showing a floating spinner with no bounding box while their asset uploads or loads. They now show the same loading plate as image shapes. ([#9994](https://github.com/tldraw/tldraw/pull/9994))
+- Fix **Flatten to image** producing different groupings depending on selection order, and not merging clusters that were only connected through a bridging shape. ([#8661](https://github.com/tldraw/tldraw/pull/8661))
+
+### Editor
+
+- Fix dragging a frame out of its parent when grabbed over a nested child, and restore a child's original z-order when dragged back into a frame. ([#10329](https://github.com/tldraw/tldraw/pull/10329))
+- Fix camera constraints for bounds away from the page origin, and clamp padding against the correct viewport axis. ([#10337](https://github.com/tldraw/tldraw/pull/10337))
+- Fix `setCameraOptions({ zoomSteps: undefined })` breaking every later camera move. ([#10387](https://github.com/tldraw/tldraw/pull/10387))
+- Fix `slideCamera` zoom momentum driving the zoom to zero on a long frame. ([#10388](https://github.com/tldraw/tldraw/pull/10388))
+- Fix malformed viewport deep links moving the camera to the origin instead of falling back to fitting the page content. ([#10508](https://github.com/tldraw/tldraw/pull/10508))
+- Fix following a user whose own leader has left or has no presence yet. ([#10389](https://github.com/tldraw/tldraw/pull/10389))
+- Fix `getSelectionRotatedScreenBounds` going stale when the editor container moves. ([#10390](https://github.com/tldraw/tldraw/pull/10390))
+- Fix `duplicateShapes` throwing on unknown ids and offsetting nested duplicates twice. ([#10355](https://github.com/tldraw/tldraw/pull/10355))
+- Fix `packShapes` packing shapes of different heights into a single column. ([#10381](https://github.com/tldraw/tldraw/pull/10381))
+- Fix `stackShapes` reordering shapes when a gap is given. ([#10383](https://github.com/tldraw/tldraw/pull/10383))
+- Fix nested 270° shapes being dropped from axis-aligned shape clustering. ([#10384](https://github.com/tldraw/tldraw/pull/10384))
+- Fix `putContentOntoCurrentPage` mutating the content passed to it. ([#10367](https://github.com/tldraw/tldraw/pull/10367))
+- Fix `setErasingShapes` mutating its input array, so it accepts store-owned (frozen) arrays. ([#10371](https://github.com/tldraw/tldraw/pull/10371))
+- Fix the teardown returned by the `createTLStore` `onMount` option never running when the editor unmounts. ([#10375](https://github.com/tldraw/tldraw/pull/10375))
+- Fix drop events inside the canvas never reaching React drop handlers, and keep Safari gesture suppression working with multiple editors on a page. ([#10360](https://github.com/tldraw/tldraw/pull/10360))
+- Fix object URLs for locally persisted assets leaking across remounts. ([#10361](https://github.com/tldraw/tldraw/pull/10361))
+- Fix the click-capture overlay staying over the canvas after right-click panning with a menu open. ([#10359](https://github.com/tldraw/tldraw/pull/10359))
+- Fix hiding and showing menus by context id, and tolerate corrupt user-preference data in localStorage. ([#10344](https://github.com/tldraw/tldraw/pull/10344))
+- Fix `Vec.Slope`, `Vec.cross`, and `areAnglesCompatible` for negative angles, `rotateSelectionHandle` for negative rotations, and dotted dash arrays for very short paths. ([#10352](https://github.com/tldraw/tldraw/pull/10352))
+- Fix laser trails staying visible after changing page. ([#10509](https://github.com/tldraw/tldraw/pull/10509))
+- Fix locking a mixed selection of locked and unlocked shapes leaving the shapes selected. ([#10480](https://github.com/tldraw/tldraw/pull/10480))
+- Fix wheel event normalization passing through non-finite delta values. ([#9586](https://github.com/tldraw/tldraw/pull/9586))
+
+### UI
+
+- Fix the **Frame selection** shortcut (Ctrl+Alt+G) not working on Windows and Linux. ([#10481](https://github.com/tldraw/tldraw/pull/10481))
+- Fix pasted text shapes and bookmarks not being selected after paste. ([#10485](https://github.com/tldraw/tldraw/pull/10485))
+- Fix context-menu paste landing under the pointer instead of at the right-click point. ([#10488](https://github.com/tldraw/tldraw/pull/10488))
+- Fix file drops and pastes silently doing nothing when one of the files is an image that can't be decoded. The bad file is now skipped with an error toast and the other files are placed. ([#10495](https://github.com/tldraw/tldraw/pull/10495))
+- Fix the **Edit link** dialog staying open as an empty panel when its shape is deleted or deselected. ([#10496](https://github.com/tldraw/tldraw/pull/10496))
+- Fix wheel and trackpad scrolling over the minimap moving the camera at double rate. ([#10499](https://github.com/tldraw/tldraw/pull/10499))
+- Fix the actions menu button appearing, and opening empty, in readonly mode with the hand and zoom tools. ([#10503](https://github.com/tldraw/tldraw/pull/10503))
+- Fix closing a stacked dialog by touch also closing the dialog beneath it. ([#10002](https://github.com/tldraw/tldraw/pull/10002))
+- Fix the loading screen not honoring the system theme on a dark OS, and the reduce motion preference not following the OS setting until a reload. ([#10528](https://github.com/tldraw/tldraw/pull/10528))
+- Fix the storage read-failure alert promising a reload that never happened. ([#10530](https://github.com/tldraw/tldraw/pull/10530))
+- Fix the casing of the error fallback's refresh button. ([#10362](https://github.com/tldraw/tldraw/pull/10362))
+- Fix pasted links showing a broken preview image when the linked page has no Open Graph image. ([#9909](https://github.com/tldraw/tldraw/pull/9909))
+- Fix the counterclockwise rotation tooltip not showing its comma key. ([#9772](https://github.com/tldraw/tldraw/pull/9772))
+- Fix the spacing around the cursor chat item in the context menu. ([#9921](https://github.com/tldraw/tldraw/pull/9921))
+- Fix the people menu's collaborator rows not lining up with your own row above them: the follow icon sat too close to the right edge, and collaborator names sat slightly left of your own. ([#9900](https://github.com/tldraw/tldraw/pull/9900))
+- Fix the comment thread popover briefly rendering with a doubled shadow the first time a thread is opened. ([#9886](https://github.com/tldraw/tldraw/pull/9886))
+
+### Persistence and sync
+
+- Fix edits made in the last 350 ms before closing or reloading a tab being lost from local persistence. ([#10526](https://github.com/tldraw/tldraw/pull/10526))
+- Fix background tabs repeatedly dropping and re-establishing their sync connection when the browser throttles timers. ([#9964](https://github.com/tldraw/tldraw/pull/9964))
+- Fix `useSyncDemo` creating assets for uploads the server rejected. ([#10109](https://github.com/tldraw/tldraw/pull/10109))
+- Fix `loadSnapshot` failing on better-sqlite3, and `NodeSqliteWrapper` getting stuck in a transaction when `COMMIT` fails. ([#10111](https://github.com/tldraw/tldraw/pull/10111), [#10113](https://github.com/tldraw/tldraw/pull/10113))
+
+### Signals and store
+
+- Fix computeds returning stale values when read inside a transaction during an effect, from a deferred effect, or after a reactor restarts. ([#10145](https://github.com/tldraw/tldraw/pull/10145))
+- Fix effects with no signal dependencies re-running on every `start()`. ([#10148](https://github.com/tldraw/tldraw/pull/10148))
+- Fix nested transactions inside effects not rolling back with their parent. ([#10149](https://github.com/tldraw/tldraw/pull/10149))
+- Fix effects observing half-restored state when a `deferAsyncEffects` call throws. ([#10150](https://github.com/tldraw/tldraw/pull/10150))
+- Fix `@computed` on a subclass override that calls `super`, and `@computed()` with no arguments. ([#10151](https://github.com/tldraw/tldraw/pull/10151))
+- Fix computeds re-running their compute function on every read after their first derive throws. ([#10152](https://github.com/tldraw/tldraw/pull/10152))
+- Fix computeds read inside an atom's `computeDiff` never seeing that change, and an explicit `null` diff passed to `atom.set()` or returned from `withDiff()` clearing history. ([#10153](https://github.com/tldraw/tldraw/pull/10153))
+- Fix `localStorageAtom` throwing outside the browser. ([#10154](https://github.com/tldraw/tldraw/pull/10154))
+- Fix a stack overflow in `ImmutableMap` and `AtomMap` for keys named after `Object.prototype` members, and make `NaN` and `-0` key equality match native `Map`. ([#10202](https://github.com/tldraw/tldraw/pull/10202))
+- Fix `AtomMap` throwing when an entry is deleted mid-iteration. ([#10209](https://github.com/tldraw/tldraw/pull/10209))
+- Fix `StoreSchema.create` reporting a redundant migration dependency as circular. ([#10213](https://github.com/tldraw/tldraw/pull/10213))
+- Fix the `store.query.ids()` query creator being called with a computed's `(previousValue, epoch)` arguments. ([#10218](https://github.com/tldraw/tldraw/pull/10218))
+- Fix `CollectionDiff`s from `store.query.ids()` and `index()` containing an empty `added` or `removed` set after an add/remove round trip. ([#10221](https://github.com/tldraw/tldraw/pull/10221))
