@@ -88,6 +88,33 @@ describe('verifyRoomVersions under clock skew', () => {
 	})
 })
 
+describe('verifyRoomVersions with a limit', () => {
+	it('spends the budget on the newest chain first', async () => {
+		const chainBucket = createFakeR2()
+		const legacyBucket = createFakeR2()
+		// Two chains: an old one whose legacy copy is wrong, and a new one that is fine.
+		const old = snapshot(1, ['shape:old'])
+		const recent = snapshot(2, ['shape:new'])
+		for (const [iso, version, legacy] of [
+			['2026-08-01T00:00:00.000Z', old, snapshot(9, ['shape:tampered'])],
+			['2026-09-01T00:00:00.000Z', recent, recent],
+		] as const) {
+			const kf = await encodeVersionBody(version)
+			await chainBucket.put(versionKey(roomKey, iso, 'keyframe'), kf.body, {
+				customMetadata: kf.metadata,
+			})
+			await legacyBucket.put(`${roomKey}/${iso}`, JSON.stringify(legacy))
+		}
+
+		const limited = await verifyRoomVersions({ chainBucket, legacyBucket, roomKey, limit: 1 })
+		const full = await verifyRoomVersions({ chainBucket, legacyBucket, roomKey, limit: 10 })
+
+		// With budget for one version, the newest chain is the one that gets checked.
+		expect(limited).toEqual({ checked: 1, mismatches: [], errors: [] })
+		expect(full.mismatches).toEqual(['2026-08-01T00:00:00.000Z'])
+	})
+})
+
 describe('verifyRoomVersions', () => {
 	it('reports no mismatches when reconstruction matches the full copies', async () => {
 		const chainBucket = createFakeR2()

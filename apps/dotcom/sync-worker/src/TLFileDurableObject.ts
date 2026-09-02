@@ -153,7 +153,7 @@ type R2OperationType =
 	| 'asset_copy'
 	| 'snapshot_upload'
 	| 'version_chain_write'
-	| 'version_chain_verify'
+	| 'version_chain_read'
 
 // Transient R2 failures worth retrying — dropped connections and the connection-limit error the
 // shared budget exists to avoid. Anything else (a bad request, missing object, etc.) is permanent,
@@ -777,17 +777,35 @@ export class TLFileDurableObject extends DurableObject {
 			let dataText: string
 			let restored: RoomSnapshot | undefined
 			try {
-				const buckets = { chainBucket: this.r2.versionChain, legacyBucket: this.r2.versionCache }
-				const { entries: index } = await loadChainIndex(this.r2.versionChain, roomKey)
-				const whole = await openWholeVersionStream({ ...buckets, roomKey, timestamp, index })
-				if (whole) {
-					dataText = await new Response(whole).text()
-				} else {
-					const reconstruction = await reconstructVersion({ ...buckets, roomKey, timestamp, index })
-					if (!reconstruction) {
-						return new Response('Version not found', { status: 400 })
+				// One R2 queue slot for the whole read: reconstruction fans out to the keyframe plus
+				// every segment, and beside a persist upload or asset copies that is over the
+				// connection budget the queue exists to hold.
+				const read = await this.addR2Operation(
+					'version_chain_read',
+					async (): Promise<{ text: string } | { snapshot: RoomSnapshot } | null> => {
+						const buckets = {
+							chainBucket: this.r2.versionChain,
+							legacyBucket: this.r2.versionCache,
+						}
+						const { entries: index } = await loadChainIndex(this.r2.versionChain, roomKey)
+						const whole = await openWholeVersionStream({ ...buckets, roomKey, timestamp, index })
+						if (whole) return { text: await new Response(whole).text() }
+						const reconstruction = await reconstructVersion({
+							...buckets,
+							roomKey,
+							timestamp,
+							index,
+						})
+						return reconstruction ? { snapshot: reconstruction.snapshot } : null
 					}
-					restored = reconstruction.snapshot
+				)
+				if (!read) {
+					return new Response('Version not found', { status: 400 })
+				}
+				if ('text' in read) {
+					dataText = read.text
+				} else {
+					restored = read.snapshot
 					dataText = JSON.stringify(restored)
 				}
 			} catch (error) {
@@ -2122,7 +2140,7 @@ export class TLFileDurableObject extends DurableObject {
 			// One queue slot: reconstruction fans out to the keyframe plus every segment in
 			// parallel, and with one other R2 op alongside that is exactly the Worker's six
 			// simultaneous connections. Outside the queue it would contend with the persist.
-			const reconstruction = await this.addR2Operation('version_chain_verify', () =>
+			const reconstruction = await this.addR2Operation('version_chain_read', () =>
 				reconstructVersion({
 					chainBucket: this.r2.versionChain,
 					legacyBucket: this.r2.versionCache,

@@ -59,7 +59,12 @@ export async function verifyRoomVersions({
 	// orders them — never by key. Keys are wall-clock timestamps, and a durable object re-created
 	// on a host whose clock runs behind opens a later segment under an earlier key; walking the
 	// index in key order would fail the rollout gate on a chain that history reads serve fine.
-	const keyframes = entries.filter((entry) => entry.kind === 'keyframe')
+	// Newest chain first: `limit` bounds the work, and the versions a rollout gate must see are
+	// the ones the current write path just produced. An active room writes ~2,000 versions a day,
+	// so oldest-first would spend the whole budget on history and never reach today's code.
+	const keyframes = entries
+		.filter((entry) => entry.kind === 'keyframe')
+		.sort((a, b) => b.key.localeCompare(a.key))
 	for (const keyframe of keyframes) {
 		if (checked >= limit) break
 		const segments = entries
