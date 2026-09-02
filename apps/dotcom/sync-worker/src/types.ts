@@ -231,6 +231,10 @@ export type TLServerEvent =
 			ok: boolean
 	  }
 	| {
+			/** A chain write failed in dual mode and was swallowed so the persist could complete. */
+			type: 'version_chain_error'
+	  }
+	| {
 			type: 'send_message'
 			messageType: string
 			messageLength: number

@@ -1,4 +1,5 @@
 import { Environment } from './types'
+import { hashToPercentage } from './utils/featureFlags'
 
 export type VersionChainMode = 'off' | 'dual' | 'chain'
 
@@ -20,15 +21,6 @@ export function getVersionChainMode(env: Environment, roomKey: string): VersionC
 	if (!Number.isFinite(percent) || percent <= 0) return 'off'
 	if (percent >= 100) return mode
 
-	return hashToPercentage(roomKey) < percent ? mode : 'off'
-}
-
-/** FNV-1a, matching utils/featureFlags.ts so bucketing behaves the same way everywhere. */
-function hashToPercentage(input: string): number {
-	let hash = 2166136261
-	for (let i = 0; i < input.length; i++) {
-		hash ^= input.charCodeAt(i)
-		hash = Math.imul(hash, 16777619)
-	}
-	return (hash >>> 0) % 100
+	// Same bucketing function as the KV feature flags, keyed by room instead of user.
+	return hashToPercentage(roomKey, '') < percent ? mode : 'off'
 }
