@@ -5,28 +5,7 @@ import { renderTldrawComponentWithEditor } from './testutils/renderTldrawCompone
 
 // These tests drive the toolbar button's real pointer handlers (useDraggableEvents) rather than
 // calling onDragStart directly, so the drag-out threshold is exercised the way a device exercises
-// it. jsdom is missing PointerEvent, pointer capture and layout, so those are polyfilled here.
-
-if (typeof (globalThis as any).PointerEvent === 'undefined') {
-	;(globalThis as any).PointerEvent = class PointerEvent extends MouseEvent {
-		pointerId: number
-		pointerType: string
-		pressure: number
-		isPrimary: boolean
-		constructor(type: string, params: any = {}) {
-			super(type, params)
-			this.pointerId = params.pointerId ?? 0
-			this.pointerType = params.pointerType ?? ''
-			this.pressure = params.pressure ?? 0
-			this.isPrimary = params.isPrimary ?? false
-		}
-	}
-}
-if (!Element.prototype.setPointerCapture) {
-	Element.prototype.setPointerCapture = () => {}
-	Element.prototype.releasePointerCapture = () => {}
-	Element.prototype.hasPointerCapture = () => false
-}
+// it. jsdom has no layout, so the toolbar's rect is stubbed.
 
 // A 400×48 toolbar pill along the bottom of the window.
 const toolbarRect = { left: 100, top: 900, right: 500, bottom: 948 }
@@ -34,7 +13,7 @@ const toolbarRect = { left: 100, top: 900, right: 500, bottom: 948 }
 type PointerType = 'mouse' | 'pen' | 'touch'
 
 function pointerEvent(type: string, x: number, y: number, pointerType: PointerType) {
-	return new (globalThis as any).PointerEvent(type, {
+	return new PointerEvent(type, {
 		bubbles: true,
 		cancelable: true,
 		clientX: x,
@@ -79,12 +58,20 @@ async function move(x: number, y: number, pointerType: PointerType) {
 	})
 }
 
+// jsdom doesn't synthesize a click from pointerup, so dispatch it by hand.
 async function release(x: number, y: number, pointerType: PointerType) {
 	await act(async () => {
 		button.dispatchEvent(pointerEvent('pointerup', x, y, pointerType))
 		button.dispatchEvent(
 			new MouseEvent('click', { bubbles: true, cancelable: true, clientX: x, clientY: y })
 		)
+	})
+}
+
+// The editor queues pointer moves until the next tick.
+async function tick() {
+	await act(async () => {
+		editor.emit('tick', 16)
 	})
 }
 
@@ -96,10 +83,10 @@ describe('dragging a tool out of the toolbar', () => {
 	it('does not start a drag while the pointer stays inside the toolbar, however far it moves', async () => {
 		await press(300, 924, 'mouse')
 		await move(306, 924, 'mouse') // past the 4px mouse threshold
-		await move(300, 947, 'mouse') // down to the bottom edge
+		await move(480, 948, 'mouse') // 180px, past the 25px coarse threshold, right on the bottom edge
 		expect(shapeTypes()).toEqual([])
 
-		await release(300, 947, 'mouse')
+		await release(480, 948, 'mouse')
 		expect(shapeTypes()).toEqual([])
 		expect(editor.getCurrentToolId()).toBe('arrow') // the press was a click
 	})
@@ -116,9 +103,19 @@ describe('dragging a tool out of the toolbar', () => {
 	it('starts a drag once the pointer leaves the toolbar', async () => {
 		await press(300, 924, 'mouse')
 		await move(300, 880, 'mouse')
-
 		expect(shapeTypes()).toEqual(['arrow'])
-		expect(editor.isIn('select.translating')).toBe(true)
+		expect(editor.getPath()).toBe('select.translating')
+
+		// The shape is created at the press point and moved under the pointer right away.
+		await tick()
+		const { x, y } = editor.getShapePageBounds(editor.getCurrentPageShapes()[0])!.center
+		const pointer = editor.screenToPage({ x: 300, y: 880 })
+		expect({ x, y }).toEqual({ x: pointer.x, y: pointer.y })
+
+		// The click that follows a drag doesn't select the tool.
+		await release(300, 880, 'mouse')
+		expect(editor.getPath()).toBe('select.idle')
+		expect(shapeTypes()).toEqual(['arrow'])
 	})
 
 	it('guards a pen press at the toolbar edge with the coarse threshold', async () => {
@@ -140,12 +137,13 @@ describe('dragging a tool out of the toolbar', () => {
 	})
 
 	it('reads the pointer type from the event, not the editor coarse pointer state', async () => {
-		// The instance state flag syncs a frame after the first pointer down, so it still says
-		// "mouse" during the first pen tap after mouse use.
+		await press(300, 902, 'pen')
+		// In the browser the coarse pointer flag reaches the instance state a frame after the
+		// pointer down, so it still says "mouse" during the first pen tap after mouse use. The sync
+		// is synchronous in tests, so force the stale value by hand.
 		await act(async () => {
 			editor.updateInstanceState({ isCoarsePointer: false })
 		})
-		await press(300, 902, 'pen')
 		await move(300, 890, 'pen') // 12px travelled: past the mouse threshold, not the pen one
 		expect(shapeTypes()).toEqual([])
 	})

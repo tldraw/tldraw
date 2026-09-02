@@ -85,7 +85,7 @@ Control when pointer movement becomes a drag operation:
 | `uiDragDistanceSquared`       | 16      | Distance² for UI element drag (4px)      |
 | `uiCoarseDragDistanceSquared` | 625     | Distance² for touch UI drag (25px)       |
 
-Values are squared to avoid computing square roots during drag detection. The larger touch thresholds prevent accidental drags on mobile devices. The UI thresholds apply to dragging a tool out of the toolbar: the drag only starts once the pointer has left the toolbar, so the threshold only affects presses that begin near its edge.
+Values are squared to avoid computing square roots during drag detection. The larger touch thresholds prevent accidental drags on mobile devices. The UI thresholds govern dragging a tool out of the toolbar. A drag starts once the pointer has left the toolbar, so they matter only for presses that begin near its edge.
 
 ### Handle and hit testing
 
