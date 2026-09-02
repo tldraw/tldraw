@@ -1,4 +1,5 @@
 import { TLPageId, useEditor, useValue } from '@tldraw/editor'
+import { getFrameableShapeIds } from '../../utils/frames/frames'
 import { supportsDownloadingOriginal, useActions } from '../context/actions'
 import { useUiEvents } from '../context/events'
 import { useToasts } from '../context/toasts'
@@ -111,9 +112,9 @@ export function FrameSelectionMenuItem() {
 		() => {
 			const selectedShapes = editor.getSelectedShapes()
 			if (selectedShapes.length === 0) return false
-			// When every selected shape is a frame the action unframes instead, which
-			// RemoveFrameMenuItem already offers under its own label.
-			return !selectedShapes.every((shape) => editor.isShapeOfType(shape, 'frame'))
+			// An all-frame selection would unframe instead; RemoveFrameMenuItem already covers that.
+			if (selectedShapes.every((shape) => editor.isShapeOfType(shape, 'frame'))) return false
+			return getFrameableShapeIds(editor, editor.getSelectedShapeIds()).length > 0
 		},
 		[editor]
 	)

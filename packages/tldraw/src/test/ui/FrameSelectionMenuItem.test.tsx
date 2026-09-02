@@ -22,15 +22,17 @@ async function setup() {
 	const frameId = createShapeId()
 	const a = createShapeId()
 	const b = createShapeId()
+	const locked = createShapeId()
 	act(() => {
 		editor.createShapes([
 			{ id: frameId, type: 'frame', x: 0, y: 0, props: { w: 200, h: 200 } },
 			{ id: a, type: 'geo', x: 300, y: 0 },
 			{ id: b, type: 'geo', x: 500, y: 0 },
+			{ id: locked, type: 'geo', x: 700, y: 0, isLocked: true },
 		])
 	})
 
-	return { editor, frameId, a, b }
+	return { editor, frameId, a, b, locked }
 }
 
 const findItem = () => screen.findByTestId('kbd.frame-selection')
@@ -67,6 +69,21 @@ describe('FrameSelectionMenuItem', () => {
 	it('shows for a frame selected together with another shape', async () => {
 		const { editor, frameId, a } = await setup()
 		act(() => editor.select(frameId, a))
+		await findItem()
+	})
+
+	it('is hidden when nothing in the selection can be framed', async () => {
+		const { editor, locked, a } = await setup()
+		act(() => editor.select(a))
+		await findItem()
+
+		act(() => editor.select(locked))
+		await expectNoItem()
+	})
+
+	it('shows for a locked shape selected together with a frameable one', async () => {
+		const { editor, locked, a } = await setup()
+		act(() => editor.select(locked, a))
 		await findItem()
 	})
 })
