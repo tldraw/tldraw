@@ -6,7 +6,7 @@ This directory currently provisions:
 
 - Eleven dashboards: `Zero on Fly.io — service health` (`zero-fly-health`), `Zero slow queries` (`slow-queries`), and `Zero-cache HTTP edge (Fly.io)` (`ni7hhgd`) in the `Zero` folder; `Anthropic scrape overview` in the `Anthropic` folder; `Dotcom events` (`ni5k8zc`), `Dotcom events V1` (`adgumkhou3chsd`), `File effect outbox`, `MCP server (shared boards)` (`mcp-server`), `MCP app sessions` (`kotx6wj`), and `Bemo analytics` in the `Dotcom` folder; and `Cloudflare platform metrics` (`nivs2rl`), which sits at the root rather than in a folder. The events pipeline currently reports from **staging** — set the environment variable accordingly when a dashboard looks empty.
 - All 13 Grafana-managed alert rules (Zero replication/errors/backups, Fly.io container health, Anthropic cost/usage, file room DO exceptions)
-- The folders `Zero` (dashboards + 9 rules), `Dotcom` (6 dashboards + 1 rule), and `Anthropic` (1 dashboard + 3 cost rules)
+- The folders `Zero` (dashboards + 9 rules), `Dotcom` (6 dashboards + 1 rule), and `Anthropic` (1 dashboard + 3 rules, see below)
 - The `discord` and `email` notification templates (`templates/*.gotmpl`, defining `tldraw.discord.title` / `tldraw.discord.text` and `tldraw.email.subject` / `tldraw.email.message`), which compress alert notifications to severity + summary + links (no Silence link on Discord: silence URLs carry one matcher per label and blow Discord’s 2000-char message cap on multi-instance alerts, truncating mid-link) and explain `DatasourceNoData` as a likely metrics-source outage. Templates can't go through `gcx resources push` — gcx ignores the `notifications.alerting.grafana.app` API group — so they live in `templates/` instead of `resources/` and the deploy workflow PUTs them through the classic provisioning API. Each contact point's optional Title/Subject and Message fields reference these templates; those references are set by hand (contact points stay hand-managed), so the templates only take effect while a contact point points at them.
 
 There are two MCP dashboards, for two different servers. `MCP server (shared boards)` covers the public server on the sync worker at `POST /app/mcp` (`apps/dotcom/sync-worker`), which reads its protocol metrics from the `MEASURE` dataset. `MCP app sessions` covers the separate tldraw MCP app worker (`apps/mcp-app`) and its own `MCP_ANALYTICS` dataset. Neither one's panels belong on `Dotcom events` — that dashboard covers the sync worker's own events.
@@ -18,6 +18,23 @@ Contact points, notification policies, and data sources are hand-managed in Graf
 ## Conventions
 
 Every provisioned dashboard carries the tags `provisioned` and `repo:tldraw/tldraw`, so anyone looking at it in Grafana knows where it's managed from. Add both tags when adopting a new dashboard into this tree.
+
+## Anthropic rules
+
+The three rules in the `Anthropic` folder watch the Grafana Anthropic integration's scrape of the Anthropic Admin API. The two metrics behave very differently, and the rules are shaped around that:
+
+- `gen_ai_usage_tokens_total` is near real time and is labelled by API key, model, and token type (`input`, `output`, `cache_creation_5m`, `cache_creation_1h`, `input_cache_read`). About 70 series at the time of writing. This is the only intraday signal.
+- `gen_ai_cost` is **month-to-date** spend in cents, with no API key label, updated **once a day at about 03:00 UTC**. It resets on the 1st, and has had no data at all on the 1st. Anything built on it describes the last completed day, sees a runaway up to 27 hours late, and is blind for a day or two at each month rollover.
+
+`AnthropicTokenBurst` (warning) fires when the summed rate across all series, excluding cache reads, exceeds 1000 tokens/sec over an hour (about 3.6M tokens/hour). Three deliberate choices, each learned the hard way:
+
+- **Summed, not per series.** A per-series rule makes one alert instance per key × model × token type, and every lightly used series has a tiny baseline that any real session clears.
+- **No baseline.** Usage is bursty and mostly idle (the median hour is under 10 tokens/sec), so a 7-day average is close to zero and "5x the average" is a normal working hour. #10579 and #10582 tuned the multiplier and floor twice and it still paged on ordinary sessions.
+- **Cache reads excluded.** They cost a tenth of uncached input and dominate agent and eval traffic. On 2026-09-01 and 09-02 the rule paged repeatedly on Opus 5 cache reads from the internal evals key, which spent about $50 that day. The floor is chosen so that workload stays quiet (it peaks around 500 non-cache-read tokens/sec) while the 2026-08-21 to 08-22 incident, roughly 2000 tokens/sec of uncached Sonnet 4.5 input for two days at about $500, clears it within the hour.
+
+`AnthropicDailyCostSpike` (warning) fires when the last completed day cost more than 1.5x the day before, with a $50 floor. `AnthropicHighCostThreshold` (critical) fires when the last completed day cost more than $1000. Both use `increase(gen_ai_cost[1d])` rather than `offset` subtraction so the monthly reset reads as a counter reset and counts from zero instead of going negative. The scrape gap on the 1st is still a blind spot: the first day of the month reads as roughly $0 because there is nothing to diff against. Because the metric only steps once a day, a firing rule stays firing until the next 03:00 update.
+
+All three are filter queries (`expr > threshold`), so the alert series only exists while the condition holds. `missingSeriesEvalsToResolve: 10` is what stops a single quiet minute from resolving and re-firing them.
 
 ## Making a change
 
