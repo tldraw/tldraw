@@ -1,4 +1,10 @@
-import { ShapeWithCrop, StateNode, TLKeyboardEventInfo, TLPointerEventInfo } from '@tldraw/editor'
+import {
+	ShapeWithCrop,
+	StateNode,
+	TLKeyboardEventInfo,
+	TLPointerEventInfo,
+	bind,
+} from '@tldraw/editor'
 import { GestureShapeChangeTracker } from '../../../GestureShapeChangeTracker'
 import { getTranslateCroppedImageChange } from './crop_helpers'
 
@@ -17,10 +23,7 @@ export class TranslatingCrop extends StateNode {
 
 	private snapshot = {} as any as Snapshot
 
-	private changeTracker = new GestureShapeChangeTracker(
-		this.editor,
-		(id) => id === this.snapshot.shape?.id
-	)
+	private changeTracker = new GestureShapeChangeTracker(this.editor)
 
 	override onEnter(
 		info: TLPointerEventInfo & {
@@ -36,7 +39,7 @@ export class TranslatingCrop extends StateNode {
 		this.editor.setCursor({ type: 'move', rotation: 0 })
 
 		// Watch for changes made to the cropping shape from outside this interaction.
-		this.changeTracker.start()
+		this.changeTracker.start(this.snapshot.shape ? [this.snapshot.shape.id] : [])
 
 		this.updateShapes()
 	}
@@ -105,26 +108,27 @@ export class TranslatingCrop extends StateNode {
 	}
 
 	protected updateShapes() {
-		this.changeTracker.ignoreChanges(() => {
-			// Crop translation recomputes from `snapshot + delta` every update, so a
-			// change made to the shape from outside this interaction would otherwise
-			// be stomped. When the tracker has noticed such a change, re-anchor the
-			// snapshot (resetting the origin to the current pointer) before updating.
-			if (this.changeTracker.getAndClearChanged()) {
-				this.snapshot = this.createSnapshot(this.editor.inputs.getCurrentPagePoint())
-			}
+		this.changeTracker.ignoreChanges(this.updateShapesIgnoringExternalChanges)
+	}
 
-			const shape = this.snapshot.shape as ShapeWithCrop
+	@bind
+	private updateShapesIgnoringExternalChanges() {
+		// Otherwise the stale crop snapshot would overwrite an external change.
+		if (this.changeTracker.getAndClearChanged()) {
+			this.snapshot = this.createSnapshot(this.editor.inputs.getCurrentPagePoint())
+			this.changeTracker.setTrackedShapeIds(this.snapshot.shape ? [this.snapshot.shape.id] : [])
+		}
 
-			if (!shape) return
+		const shape = this.snapshot.shape as ShapeWithCrop
 
-			const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
-			const delta = currentPagePoint.clone().sub(this.snapshot.originPagePoint)
-			const partial = getTranslateCroppedImageChange(this.editor, shape, delta)
+		if (!shape) return
 
-			if (partial) {
-				this.editor.updateShapes([partial])
-			}
-		})
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
+		const delta = currentPagePoint.clone().sub(this.snapshot.originPagePoint)
+		const partial = getTranslateCroppedImageChange(this.editor, shape, delta)
+
+		if (partial) {
+			this.editor.updateShapes([partial])
+		}
 	}
 }

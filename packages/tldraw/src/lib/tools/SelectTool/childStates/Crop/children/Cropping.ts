@@ -6,6 +6,7 @@ import {
 	StateNode,
 	TLPointerEventInfo,
 	Vec,
+	bind,
 	isAccelKey,
 	kickoutOccludedShapes,
 	rotateSelectionHandle,
@@ -30,10 +31,7 @@ export class Cropping extends StateNode {
 
 	private snapshot = {} as any as Snapshot
 
-	private changeTracker = new GestureShapeChangeTracker(
-		this.editor,
-		(id) => id === this.snapshot.shape?.id
-	)
+	private changeTracker = new GestureShapeChangeTracker(this.editor)
 
 	override onEnter(
 		info: TLPointerEventInfo & {
@@ -50,7 +48,7 @@ export class Cropping extends StateNode {
 		this.snapshot = this.createSnapshot()
 
 		// Watch for changes made to the cropping shape from outside this interaction.
-		this.changeTracker.start()
+		this.changeTracker.start(this.snapshot.shape ? [this.snapshot.shape.id] : [])
 
 		this.updateShapes()
 	}
@@ -94,99 +92,100 @@ export class Cropping extends StateNode {
 	}
 
 	private updateShapes() {
-		this.changeTracker.ignoreChanges(() => {
-			const { editor } = this
+		this.changeTracker.ignoreChanges(this.updateShapesIgnoringExternalChanges)
+	}
 
-			// Cropping recomputes from `snapshot + change` every update, so a change
-			// made to the shape from outside this interaction would otherwise be
-			// stomped. When the tracker has noticed such a change, re-anchor the
-			// snapshot (resetting the origin to the current pointer) before updating.
-			if (this.changeTracker.getAndClearChanged()) {
-				this.snapshot = this.createSnapshot(editor.inputs.getCurrentPagePoint())
-			}
+	@bind
+	private updateShapesIgnoringExternalChanges() {
+		const { editor } = this
 
-			const {
-				shape,
-				cursorHandleOffset,
-				originPagePoint: snapshotOriginPagePoint,
+		// Otherwise the stale crop snapshot would overwrite an external change.
+		if (this.changeTracker.getAndClearChanged()) {
+			this.snapshot = this.createSnapshot(editor.inputs.getCurrentPagePoint())
+			this.changeTracker.setTrackedShapeIds(this.snapshot.shape ? [this.snapshot.shape.id] : [])
+		}
+
+		const {
+			shape,
+			cursorHandleOffset,
+			originPagePoint: snapshotOriginPagePoint,
+			initialSelectionPageBounds,
+			selectionRotation,
+		} = this.snapshot
+
+		if (!shape) return
+		const util = editor.getShapeUtil<ShapeWithCrop>(shape.type)
+		if (!util) return
+
+		const shiftKey = editor.inputs.getShiftKey()
+		const altKey = editor.inputs.getAltKey()
+		const isHoldingAccel = isAccelKey(editor.inputs)
+
+		const currentPagePoint = editor.inputs.getCurrentPagePoint().clone().sub(cursorHandleOffset)
+		const originPagePoint = snapshotOriginPagePoint.clone().sub(cursorHandleOffset)
+
+		// Grid snapping (matches resize): snap the cropped frame to the grid.
+		if (editor.getInstanceState().isGridMode && !isHoldingAccel) {
+			const { gridSize } = editor.getDocumentSettings()
+			currentPagePoint.snapToGrid(gridSize)
+		}
+
+		// Shape-bounds snapping: the visible crop frame is the shape's page bounds and its
+		// dragged edge moves 1:1 with the unrotated drag delta, so we can reuse the same
+		// snapping the resize uses. Gate it exactly like resize, and skip when rotated.
+		editor.snaps.clearIndicators()
+		const shouldSnap = editor.user.getIsSnapMode() ? !isHoldingAccel : isHoldingAccel
+		let didSnap = false
+		if (shouldSnap && initialSelectionPageBounds && selectionRotation % HALF_PI === 0) {
+			const { nudge } = editor.snaps.shapeBounds.snapResizeShapes({
+				dragDelta: Vec.Sub(currentPagePoint, originPagePoint),
 				initialSelectionPageBounds,
-				selectionRotation,
-			} = this.snapshot
-
-			if (!shape) return
-			const util = editor.getShapeUtil<ShapeWithCrop>(shape.type)
-			if (!util) return
-
-			const shiftKey = editor.inputs.getShiftKey()
-			const altKey = editor.inputs.getAltKey()
-			const isHoldingAccel = isAccelKey(editor.inputs)
-
-			const currentPagePoint = editor.inputs.getCurrentPagePoint().clone().sub(cursorHandleOffset)
-			const originPagePoint = snapshotOriginPagePoint.clone().sub(cursorHandleOffset)
-
-			// Grid snapping (matches resize): snap the cropped frame to the grid.
-			if (editor.getInstanceState().isGridMode && !isHoldingAccel) {
-				const { gridSize } = editor.getDocumentSettings()
-				currentPagePoint.snapToGrid(gridSize)
-			}
-
-			// Shape-bounds snapping: the visible crop frame is the shape's page bounds and its
-			// dragged edge moves 1:1 with the unrotated drag delta, so we can reuse the same
-			// snapping the resize uses. Gate it exactly like resize, and skip when rotated.
-			editor.snaps.clearIndicators()
-			const shouldSnap = editor.user.getIsSnapMode() ? !isHoldingAccel : isHoldingAccel
-			let didSnap = false
-			if (shouldSnap && initialSelectionPageBounds && selectionRotation % HALF_PI === 0) {
-				const { nudge } = editor.snaps.shapeBounds.snapResizeShapes({
-					dragDelta: Vec.Sub(currentPagePoint, originPagePoint),
-					initialSelectionPageBounds,
-					handle: rotateSelectionHandle(this.info.handle, selectionRotation),
-					isAspectRatioLocked: shiftKey,
-					isResizingFromCenter: altKey,
-				})
-				currentPagePoint.add(nudge)
-				didSnap = true
-			}
-
-			const change = currentPagePoint.clone().sub(originPagePoint).rot(-shape.rotation)
-
-			const crop = shape.props.crop ?? getDefaultCrop()
-			const uncroppedSize = getUncroppedSize(shape.props, crop)
-
-			const cropFn = util.onCrop?.bind(util) ?? getCropBox
-			const partial = cropFn(shape, {
-				handle: this.info.handle,
-				change,
-				crop,
-				uncroppedSize,
-				initialShape: this.snapshot.shape,
-				aspectRatioLocked: shiftKey,
+				handle: rotateSelectionHandle(this.info.handle, selectionRotation),
+				isAspectRatioLocked: shiftKey,
 				isResizingFromCenter: altKey,
 			})
-			if (partial) {
-				editor.updateShapes([
-					{
-						id: shape.id,
-						type: shape.type,
-						...partial,
-					},
-				])
-			}
+			currentPagePoint.add(nudge)
+			didSnap = true
+		}
 
-			// If the crop's content limit stopped the frame edge short of the snap target,
-			// clear the now-misleading snap line so it doesn't float past the image content.
-			if (didSnap && initialSelectionPageBounds) {
-				this.reconcileSnapIndicators(
-					initialSelectionPageBounds,
-					Vec.Sub(currentPagePoint, originPagePoint),
-					rotateSelectionHandle(this.info.handle, selectionRotation),
-					shiftKey,
-					altKey
-				)
-			}
+		const change = currentPagePoint.clone().sub(originPagePoint).rot(-shape.rotation)
 
-			if (partial) this.updateCursor()
+		const crop = shape.props.crop ?? getDefaultCrop()
+		const uncroppedSize = getUncroppedSize(shape.props, crop)
+
+		const cropFn = util.onCrop?.bind(util) ?? getCropBox
+		const partial = cropFn(shape, {
+			handle: this.info.handle,
+			change,
+			crop,
+			uncroppedSize,
+			initialShape: this.snapshot.shape,
+			aspectRatioLocked: shiftKey,
+			isResizingFromCenter: altKey,
 		})
+		if (partial) {
+			editor.updateShapes([
+				{
+					id: shape.id,
+					type: shape.type,
+					...partial,
+				},
+			])
+		}
+
+		// If the crop's content limit stopped the frame edge short of the snap target,
+		// clear the now-misleading snap line so it doesn't float past the image content.
+		if (didSnap && initialSelectionPageBounds) {
+			this.reconcileSnapIndicators(
+				initialSelectionPageBounds,
+				Vec.Sub(currentPagePoint, originPagePoint),
+				rotateSelectionHandle(this.info.handle, selectionRotation),
+				shiftKey,
+				altKey
+			)
+		}
+
+		if (partial) this.updateCursor()
 	}
 
 	private reconcileSnapIndicators(

@@ -14,8 +14,8 @@ import { Editor, TLShapeId } from '@tldraw/editor'
  * its snapshot onto the current shapes:
  *
  * - wrap the gesture's own writes in {@link GestureShapeChangeTracker.ignoreChanges}
- *   so they aren't mistaken for external changes. This is the per-frame common
- *   case and costs O(1), which keeps detection off the hot path,
+ *   so they aren't mistaken for external changes; each resulting shape-change
+ *   callback exits in O(1) before the tracked-ID lookup,
  * - check {@link GestureShapeChangeTracker.getAndClearChanged} at the top of each
  *   update; when it returns true, the gesture re-anchors its snapshot.
  *
@@ -25,26 +25,30 @@ export class GestureShapeChangeTracker {
 	private isApplyingOwnChange = false
 	private changed = false
 	private dispose?: () => void
+	private trackedShapeIds = new Set<TLShapeId>()
 
-	constructor(
-		private readonly editor: Editor,
-		/** Whether a changed shape is one this gesture is manipulating. */
-		private readonly isTrackedShape: (id: TLShapeId) => boolean
-	) {}
+	constructor(private readonly editor: Editor) {}
 
-	start() {
+	start(shapeIds: Iterable<TLShapeId>) {
 		this.changed = false
+		this.setTrackedShapeIds(shapeIds)
 		this.dispose = this.editor.sideEffects.registerAfterChangeHandler('shape', (_prev, next) => {
 			// Our own writes are wrapped in `ignoreChanges`, so anything that lands
 			// while that flag is set is the gesture moving its shapes.
 			if (this.isApplyingOwnChange || this.changed) return
-			if (this.isTrackedShape(next.id)) this.changed = true
+			if (this.trackedShapeIds.has(next.id)) this.changed = true
 		})
 	}
 
 	stop() {
 		this.dispose?.()
 		this.dispose = undefined
+		this.trackedShapeIds.clear()
+	}
+
+	setTrackedShapeIds(shapeIds: Iterable<TLShapeId>) {
+		this.trackedShapeIds.clear()
+		for (const id of shapeIds) this.trackedShapeIds.add(id)
 	}
 
 	/** Forget any pending external change, e.g. after bailing to a mark. */

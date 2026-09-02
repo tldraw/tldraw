@@ -13,6 +13,7 @@ import {
 	Vec,
 	VecLike,
 	areAnglesCompatible,
+	bind,
 	compact,
 	isAccelKey,
 	isShapeId,
@@ -54,10 +55,7 @@ export class Resizing extends StateNode {
 
 	private snapshot = {} as any as Snapshot
 
-	private changeTracker = new GestureShapeChangeTracker(
-		this.editor,
-		(id) => this.snapshot.shapeSnapshots?.has(id) ?? false
-	)
+	private changeTracker = new GestureShapeChangeTracker(this.editor)
 
 	override onEnter(info: ResizingInfo) {
 		const { isCreating = false, creatingMarkId, creationCursorOffset = { x: 0, y: 0 } } = info
@@ -103,7 +101,7 @@ export class Resizing extends StateNode {
 		}
 
 		// Watch for changes made to the resizing shapes from outside this interaction.
-		this.changeTracker.start()
+		this.changeTracker.start(this.snapshot.shapeSnapshots.keys())
 
 		this.handleResizeStart()
 		this.updateShapes()
@@ -240,20 +238,17 @@ export class Resizing extends StateNode {
 	}
 
 	private updateShapes() {
-		this.changeTracker.ignoreChanges(() => {
-			// Resizing recomputes each shape from `snapshot + scale` every update, so
-			// a change made to the resizing shapes from outside this interaction
-			// would otherwise be stomped. When the tracker has noticed such a change,
-			// re-anchor the snapshot (resetting the origin to the current pointer so
-			// the scale resolves to 1) before resizing.
-			if (this.changeTracker.getAndClearChanged()) {
-				this.snapshot = this._createSnapshot(this.editor.inputs.getCurrentPagePoint())
-			}
-			this._updateShapes()
-		})
+		this.changeTracker.ignoreChanges(this._updateShapes)
 	}
 
+	@bind
 	private _updateShapes() {
+		// Otherwise the stale resize snapshot would overwrite an external change.
+		if (this.changeTracker.getAndClearChanged()) {
+			this.snapshot = this._createSnapshot(this.editor.inputs.getCurrentPagePoint())
+			this.changeTracker.setTrackedShapeIds(this.snapshot.shapeSnapshots.keys())
+		}
+
 		const {
 			editor,
 			info,

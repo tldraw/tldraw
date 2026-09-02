@@ -53,10 +53,7 @@ export class Translating extends StateNode {
 
 	dragAndDropManager = new DragAndDropManager(this.editor)
 
-	private changeTracker = new GestureShapeChangeTracker(
-		this.editor,
-		(id) => this.snapshot.shapeSnapshots?.some((s) => s.shape.id === id) ?? false
-	)
+	private changeTracker = new GestureShapeChangeTracker(this.editor)
 
 	override onEnter(info: TranslatingInfo) {
 		const { isCreating = false, creatingMarkId, onCreate = () => void null } = info
@@ -97,10 +94,9 @@ export class Translating extends StateNode {
 
 		this.editor.setCursor({ type: 'move', rotation: 0 })
 
-		// Watch for changes made to the moving shapes from outside this interaction.
-		this.changeTracker.start()
-
 		this.selectionSnapshot = getTranslatingSnapshot(this.editor)
+		// Watch for changes made to the moving shapes from outside this interaction.
+		this.changeTracker.start(this.selectionSnapshot.shapeSnapshots.map((s) => s.shape.id))
 
 		// Don't clone on create; otherwise clone on altKey
 		if (!this.isCreating) {
@@ -181,6 +177,7 @@ export class Translating extends StateNode {
 		this.editor.duplicateShapes(Array.from(this.editor.getSelectedShapeIds()))
 
 		this.snapshot = getTranslatingSnapshot(this.editor)
+		this.changeTracker.setTrackedShapeIds(this.snapshot.shapeSnapshots.map((s) => s.shape.id))
 		// The manager ignores startDraggingShapes while it is running, so it has to be
 		// cleared or it keeps reparenting the originals instead of the clones
 		this.dragAndDropManager.clear()
@@ -191,6 +188,7 @@ export class Translating extends StateNode {
 	protected stopCloning() {
 		this.isCloning = false
 		this.snapshot = this.selectionSnapshot
+		this.changeTracker.setTrackedShapeIds(this.snapshot.shapeSnapshots.map((s) => s.shape.id))
 		this.reset()
 		this.markId = this.editor.markHistoryStoppingPoint('translate')
 		// Same as in startCloning: the manager is still tracking the (now deleted) clones
@@ -328,48 +326,46 @@ export class Translating extends StateNode {
 	}
 
 	protected updateShapes() {
-		this.changeTracker.ignoreChanges(() => {
-			// Translating computes shape positions from scratch on every update as
-			// `snapshot position + drag delta`, so a change made to the moving
-			// shapes from outside this interaction (e.g. `rotateShapesBy` bound to a
-			// keyboard shortcut) would otherwise be stomped here. When the tracker
-			// has noticed such a change, re-anchor the snapshot onto the current
-			// shapes first.
-			if (this.changeTracker.getAndClearChanged()) {
-				this.foldExternalChangesIntoSnapshot()
-			}
+		this.changeTracker.ignoreChanges(this.updateShapesIgnoringExternalChanges)
+	}
 
-			const { snapshot } = this
+	@bind
+	private updateShapesIgnoringExternalChanges() {
+		// Otherwise the stale translation snapshot would overwrite an external change.
+		if (this.changeTracker.getAndClearChanged()) {
+			this.foldExternalChangesIntoSnapshot()
+		}
 
-			// We should have started already, but hey
-			this.dragAndDropManager.startDraggingShapes(
-				snapshot.movingShapes,
-				this.editor.inputs.getOriginPagePoint(),
-				this.updateParentTransforms
-			)
+		const { snapshot } = this
 
-			moveShapesToPoint({
-				editor: this.editor,
-				snapshot,
-			})
+		// We should have started already, but hey
+		this.dragAndDropManager.startDraggingShapes(
+			snapshot.movingShapes,
+			this.editor.inputs.getOriginPagePoint(),
+			this.updateParentTransforms
+		)
 
-			const { movingShapes } = snapshot
+		moveShapesToPoint({
+			editor: this.editor,
+			snapshot,
+		})
 
-			const changes: TLShapePartial[] = []
+		const { movingShapes } = snapshot
 
-			movingShapes.forEach((shape) => {
-				const current = this.editor.getShape(shape.id)!
-				const util = this.editor.getShapeUtil(shape)
-				const change = util.onTranslate?.(shape, current)
-				if (change) {
-					changes.push(change)
-				}
-			})
+		const changes: TLShapePartial[] = []
 
-			if (changes.length > 0) {
-				this.editor.updateShapes(changes)
+		movingShapes.forEach((shape) => {
+			const current = this.editor.getShape(shape.id)!
+			const util = this.editor.getShapeUtil(shape)
+			const change = util.onTranslate?.(shape, current)
+			if (change) {
+				changes.push(change)
 			}
 		})
+
+		if (changes.length > 0) {
+			this.editor.updateShapes(changes)
+		}
 	}
 
 	// Re-anchor each shape's snapshot origin onto its current position after an

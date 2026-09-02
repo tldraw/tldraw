@@ -4,6 +4,7 @@ import {
 	TLPointerEventInfo,
 	TLRotationSnapshot,
 	applyRotationToSnapshotShapes,
+	bind,
 	degreesToRadians,
 	getRotationSnapshot,
 	kickoutOccludedShapes,
@@ -27,10 +28,7 @@ export class Rotating extends StateNode {
 
 	markId = ''
 
-	private changeTracker = new GestureShapeChangeTracker(
-		this.editor,
-		(id) => this.snapshot.shapeSnapshots?.some((s) => s.shape.id === id) ?? false
-	)
+	private changeTracker = new GestureShapeChangeTracker(this.editor)
 
 	override onEnter(
 		info: TLPointerEventInfo & { target: 'selection'; onInteractionEnd?: string | (() => void) }
@@ -54,7 +52,7 @@ export class Rotating extends StateNode {
 		this.snapshot = snapshot
 
 		// Watch for changes made to the rotating shapes from outside this interaction.
-		this.changeTracker.start()
+		this.changeTracker.start(snapshot.shapeSnapshots.map((s) => s.shape.id))
 
 		// Trigger a pointer move
 		const newSelectionRotation = this._getRotationFromPointerPosition({
@@ -112,31 +110,30 @@ export class Rotating extends StateNode {
 	// ---
 
 	private update() {
-		this.changeTracker.ignoreChanges(() => {
-			// Rotation recomputes each shape from `snapshot + delta` every update, so
-			// a change made to the rotating shapes from outside this interaction
-			// would otherwise be stomped here. When the tracker has noticed such a
-			// change, re-anchor the snapshot onto the current shapes first.
-			if (this.changeTracker.getAndClearChanged()) {
-				this.reanchorSnapshot()
-			}
+		this.changeTracker.ignoreChanges(this.updateShapes)
+	}
 
-			const newSelectionRotation = this._getRotationFromPointerPosition({
-				snapToNearestDegree: false,
-			})
+	@bind
+	private updateShapes() {
+		// Otherwise the stale rotation snapshot would overwrite an external change.
+		if (this.changeTracker.getAndClearChanged()) {
+			this.reanchorSnapshot()
+		}
 
-			applyRotationToSnapshotShapes({
-				editor: this.editor,
-				delta: newSelectionRotation,
-				snapshot: this.snapshot,
-				stage: 'update',
-			})
+		const newSelectionRotation = this._getRotationFromPointerPosition({
+			snapToNearestDegree: false,
+		})
 
-			// Update cursor
-			this.editor.setCursor({
-				type: CursorTypeMap[this.info.handle as RotateCorner],
-				rotation: newSelectionRotation + this.snapshot.initialShapesRotation,
-			})
+		applyRotationToSnapshotShapes({
+			editor: this.editor,
+			delta: newSelectionRotation,
+			snapshot: this.snapshot,
+			stage: 'update',
+		})
+
+		this.editor.setCursor({
+			type: CursorTypeMap[this.info.handle as RotateCorner],
+			rotation: newSelectionRotation + this.snapshot.initialShapesRotation,
 		})
 	}
 
@@ -153,6 +150,7 @@ export class Rotating extends StateNode {
 			this.editor.inputs.getCurrentPagePoint()
 		)
 		this.snapshot = snapshot
+		this.changeTracker.setTrackedShapeIds(snapshot.shapeSnapshots.map((s) => s.shape.id))
 	}
 
 	private cancel() {
