@@ -29,7 +29,9 @@ export async function listAllObjectKeys(
 	let cursor: string | undefined
 
 	do {
-		const result = await bucket.list({ prefix, cursor, limit: limit ?? 1000 })
+		const result = await bucket.list(
+			limit === undefined ? { prefix, cursor } : { prefix, cursor, limit }
+		)
 		keys.push(...result.objects.map((o) => o.key))
 		if (limit !== undefined && keys.length >= limit) return keys.slice(0, limit)
 		cursor = result.truncated ? result.cursor : undefined
