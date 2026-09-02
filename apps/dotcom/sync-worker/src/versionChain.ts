@@ -1,3 +1,10 @@
+import {
+	MAX_CHAIN_AGE_MS,
+	MAX_DELTA_SIZE_RATIO,
+	MAX_DELTAS_PER_CHAIN,
+	MIN_SIZE_RULE_DELTA_BYTES,
+	SEGMENT_CAP,
+} from './config'
 import { isSameFingerprint, SnapshotFingerprint } from './snapshotUtils'
 import { SnapshotDelta } from './versionDelta'
 
@@ -12,22 +19,6 @@ export interface SegmentBody {
 	v: 1
 	deltas: PendingDelta[]
 }
-
-export const MAX_DELTAS_PER_CHAIN = 64
-export const MAX_CHAIN_AGE_MS = 24 * 60 * 60 * 1000
-export const MAX_DELTA_SIZE_RATIO = 0.5
-/**
- * The size rule only fires above this. Gzip's fixed overhead makes a tiny delta comparable to a
- * tiny keyframe, so without a floor a near-empty board cuts a keyframe on every persist — and a
- * sub-4KB delta is never the mass rewrite the rule exists to catch.
- */
-export const MIN_SIZE_RULE_DELTA_BYTES = 4096
-/**
- * Deltas per segment object. Bounds three things at once: how much gets rewritten on each persist,
- * how many GETs a restore costs, and how many timestamps have to fit in R2 custom metadata. Much
- * above 32 and the metadata budget starts to bind.
- */
-export const SEGMENT_CAP = 16
 
 const KEYFRAME_SUFFIX = '.k'
 const SEGMENT_SUFFIX = '.s'
