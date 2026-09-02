@@ -1,4 +1,4 @@
-import { DefaultTextAlignStyle, toRichText } from '@tldraw/editor'
+import { createShapeId, DefaultTextAlignStyle, toRichText } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from '../../../test/TestEditor'
 import { TextShapeTool } from './TextShapeTool'
@@ -72,6 +72,70 @@ describe(TextShapeTool, () => {
 		expect(editor.getCurrentPageShapes().length).toBe(0)
 		editor.redo()
 		expect(editor.getCurrentPageShapes().length).toBe(0)
+	})
+
+	it('Costs no undo step when an empty text shape is abandoned', () => {
+		const boxId = createShapeId()
+		editor.createShape({ id: boxId, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+		editor.select(boxId)
+		editor.markHistoryStoppingPoint()
+		editor.updateShape({ id: boxId, type: 'geo', x: 500 })
+		expect(editor.getShape(boxId)!.x).toBe(500)
+
+		editor.setCurrentTool('text')
+		editor.pointerDown(200, 200)
+		editor.pointerUp()
+		editor.expectToBeIn('select.editing_shape')
+		editor.cancel()
+		expect(editor.getCurrentPageShapes().length).toBe(1)
+		// Dropping the creation also restores the selection it replaced
+		expect(editor.getSelectedShapeIds()).toEqual([boxId])
+
+		// The abandoned creation left nothing behind, so the first undo reaches the move
+		editor.undo()
+		expect(editor.getShape(boxId)!.x).toBe(0)
+	})
+
+	it('Costs no undo step when an empty text shape dragged out to a fixed width is abandoned', () => {
+		const boxId = createShapeId()
+		editor.createShape({ id: boxId, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+		editor.markHistoryStoppingPoint()
+		editor.updateShape({ id: boxId, type: 'geo', x: 500 })
+
+		editor.setCurrentTool('text')
+		editor.pointerDown(200, 200)
+		vi.advanceTimersByTime(200)
+		editor.pointerMove(400, 200)
+		editor.pointerUp()
+		editor.cancel()
+		expect(editor.getCurrentPageShapes().length).toBe(1)
+
+		editor.undo()
+		expect(editor.getShape(boxId)!.x).toBe(0)
+	})
+
+	it('Still costs one undo step when the text shape survives', () => {
+		const boxId = createShapeId()
+		editor.createShape({ id: boxId, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+		editor.markHistoryStoppingPoint()
+		editor.updateShape({ id: boxId, type: 'geo', x: 500 })
+
+		editor.setCurrentTool('text')
+		editor.pointerDown(200, 200)
+		editor.pointerUp()
+		editor.updateShapes([
+			{
+				...editor.getCurrentPageShapes().find((s) => s.type === 'text')!,
+				type: 'text',
+				props: { richText: toRichText('Hello') },
+			},
+		])
+		editor.cancel()
+		expect(editor.getCurrentPageShapes().length).toBe(2)
+
+		editor.undo()
+		expect(editor.getCurrentPageShapes().length).toBe(1)
+		expect(editor.getShape(boxId)!.x).toBe(500)
 	})
 })
 

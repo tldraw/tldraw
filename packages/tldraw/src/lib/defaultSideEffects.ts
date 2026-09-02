@@ -65,6 +65,12 @@ export function registerDefaultSideEffects(editor: Editor) {
 							// then create the shape with a flag that will let it know to
 							// go back to the text tool once the edit is complete.
 							const shape = editor.getEditingShape()
+							// When editing begins as part of creating the shape, the tool leaves a
+							// mark named after it. Carrying that mark into the editing state lets it
+							// drop the whole creation if the shape doesn't survive the edit.
+							const creatingMarkId = shape
+								? (editor.getMarkIdMatching(`creating_text:${shape.id}`) ?? undefined)
+								: undefined
 							if (
 								shape &&
 								shape.type === 'text' &&
@@ -75,11 +81,13 @@ export function registerDefaultSideEffects(editor: Editor) {
 									target: 'shape',
 									shape: shape,
 									isCreatingTextWhileToolLocked: true,
+									creatingMarkId,
 								})
 							} else {
 								editor.setCurrentTool('select.editing_shape', {
 									target: 'shape',
 									shape: shape,
+									creatingMarkId,
 								})
 							}
 						}
