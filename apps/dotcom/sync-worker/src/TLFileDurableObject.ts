@@ -755,18 +755,27 @@ export class TLFileDurableObject extends DurableObject {
 			if (!timestamp) {
 				return new Response('Missing timestamp', { status: 400 })
 			}
-			// Reconstructs from the chain with legacy fallback, so restores work for versions on
-			// either side of the encoding cut-over.
-			const reconstruction = await reconstructVersion({
-				chainBucket: this.r2.versionChain,
-				legacyBucket: this.r2.versionCache,
-				roomKey,
-				timestamp,
-			})
-			if (!reconstruction) {
-				return new Response('Version not found', { status: 400 })
+			// Reconstructs from the chain, falling back to the legacy full copy both when the chain
+			// has nothing for this version and when it is broken — an admin who can preview a version
+			// must be able to restore it while the full copies exist.
+			let dataText: string
+			try {
+				const reconstruction = await reconstructVersion({
+					chainBucket: this.r2.versionChain,
+					legacyBucket: this.r2.versionCache,
+					roomKey,
+					timestamp,
+				})
+				if (!reconstruction) {
+					return new Response('Version not found', { status: 400 })
+				}
+				dataText = JSON.stringify(reconstruction.snapshot)
+			} catch (error) {
+				const legacy = await this.r2.versionCache.get(`${roomKey}/${timestamp}`)
+				if (!legacy) throw error
+				this.reportError(error)
+				dataText = await legacy.text()
 			}
-			const dataText = JSON.stringify(reconstruction.snapshot)
 
 			// The put deliberately carries no version metadata, so null ("looked up, no usable
 			// stamp") is the truth about R2 and the next persist re-uploads and re-stamps.

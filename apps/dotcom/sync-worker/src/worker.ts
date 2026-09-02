@@ -130,6 +130,10 @@ const router = createRouter<Environment>()
 		joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_ONLY)
 	)
 	.get(`/${ROOM_PREFIX}/:roomId/history`, (req, env) => getRoomHistory(req, env, false))
+	// Legacy rooms dual-write chains too; without this the rollout gate has a blind spot.
+	.get(`/${ROOM_PREFIX}/:roomId/history/verify`, (req, env) =>
+		verifyVersionChainRoute(req, env, false)
+	)
 	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, (req, env) =>
 		getRoomHistorySnapshot(req, env, false)
 	)

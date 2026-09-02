@@ -5,7 +5,7 @@ import { Environment } from '../types'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
 import { requireAdminAccessToRequest } from '../utils/tla/getAuth'
 import { isTestFile } from '../utils/tla/isTestFile'
-import { reconstructVersion } from '../versionChainRead'
+import { loadChainIndex, openWholeVersionStream, reconstructVersion } from '../versionChainRead'
 
 // Get a snapshot of the room at a given point in time
 export async function getRoomHistorySnapshot(
@@ -27,14 +27,17 @@ export async function getRoomHistorySnapshot(
 	const timestamp = request.params.timestamp
 	const roomKey = getR2KeyForRoom({ slug: roomId, isApp })
 
+	const buckets = { chainBucket: env.ROOMS_HISTORY, legacyBucket: env.ROOMS_HISTORY_EPHEMERAL }
 	let result
 	try {
-		result = await reconstructVersion({
-			chainBucket: env.ROOMS_HISTORY,
-			legacyBucket: env.ROOMS_HISTORY_EPHEMERAL,
-			roomKey,
-			timestamp,
-		})
+		const { entries: index } = await loadChainIndex(env.ROOMS_HISTORY, roomKey)
+		// Keyframes and legacy full copies stream straight through — parsing and re-serializing a
+		// 25MB board costs ~3x the body on a 128MB isolate. Only a delta replay materializes.
+		const whole = await openWholeVersionStream({ ...buckets, roomKey, timestamp, index })
+		if (whole) {
+			return new Response(whole, { headers: { 'content-type': 'application/json' } })
+		}
+		result = await reconstructVersion({ ...buckets, roomKey, timestamp, index })
 	} catch (error) {
 		// A broken chain must not take history down while the legacy full copies still exist.
 		// Serve the copy and let the error report — the verifier is how the chain gets fixed.

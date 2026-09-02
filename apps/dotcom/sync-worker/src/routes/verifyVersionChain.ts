@@ -2,6 +2,7 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 import { notFound } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
 import { getR2KeyForRoom } from '../r2'
+import { canonicalJson } from '../snapshotUtils'
 import { Environment } from '../types'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
 import { requireAdminAccessToRequest } from '../utils/tla/getAuth'
@@ -34,7 +35,9 @@ export async function verifyRoomVersions({
 }): Promise<VerifyResult> {
 	const { entries } = await loadChainIndex(chainBucket, roomKey)
 
-	const mismatches: string[] = []
+	// A set: a version can fail both the hash check and the legacy comparison, and it is one
+	// mismatch, not two.
+	const mismatches = new Set<string>()
 	const errors: Array<{ timestamp: string; message: string }> = []
 	let checked = 0
 
@@ -44,7 +47,7 @@ export async function verifyRoomVersions({
 		if (!legacyObject) return
 		checked++
 		const expected = (await decodeVersionBody(legacyObject)) as RoomSnapshot
-		if (canonical(snapshot) !== canonical(expected)) mismatches.push(timestamp)
+		if (canonical(snapshot) !== canonical(expected)) mismatches.add(timestamp)
 	}
 
 	// Each chain replays once, front to back, comparing every intermediate state against the
@@ -75,10 +78,9 @@ export async function verifyRoomVersions({
 			const body = (await decodeVersionBody(object)) as SegmentBody
 			for (const { t, delta } of body.deltas) {
 				state = applySnapshotDelta(state, delta)
-				// Intra-chain check, independent of the legacy copies: applyObjectDiff's leniency
-				// means a broken delta applies cleanly, and after cut-over the recorded hash is the
-				// only witness.
-				if (delta.hash !== snapshotContentHash(state)) mismatches.push(t)
+				// Intra-chain check, independent of the legacy copies — after cut-over the recorded
+				// hash is the only witness (see snapshotContentHash).
+				if (delta.hash !== snapshotContentHash(state)) mismatches.add(t)
 				await compareToLegacy(state, t)
 			}
 			expectedSeq += entry.timestamps.length
@@ -91,7 +93,7 @@ export async function verifyRoomVersions({
 		}
 	}
 
-	return { checked, mismatches, errors }
+	return { checked, mismatches: [...mismatches], errors }
 }
 
 /** Record order is unstable between persists, so compare content and not serialization order. */
@@ -101,22 +103,13 @@ function canonical(snapshot: RoomSnapshot): string {
 		documentClock: snapshot.documentClock,
 		// The schema decides how a restore migrates, so a reconstruction that dropped or swapped
 		// it must read as a mismatch, not a pass.
-		schema: sortedJson(snapshot.schema ?? null),
+		schema: canonicalJson(snapshot.schema ?? null),
 		tombstoneHistoryStartsAtClock: snapshot.tombstoneHistoryStartsAtClock,
 		tombstones: Object.fromEntries(Object.entries(snapshot.tombstones ?? {}).sort()),
 		documents: [...snapshot.documents]
 			.sort((a, b) => String(a.state.id).localeCompare(String(b.state.id)))
-			.map((d) => [d.state.id, d.lastChangedClock, sortedJson(d.state)]),
+			.map((d) => [d.state.id, d.lastChangedClock, canonicalJson(d.state)]),
 	})
-}
-
-function sortedJson(value: unknown): string {
-	if (value === null || typeof value !== 'object') return JSON.stringify(value) ?? 'undefined'
-	if (Array.isArray(value)) return `[${value.map(sortedJson).join(',')}]`
-	const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) =>
-		a.localeCompare(b)
-	)
-	return `{${entries.map(([k, v]) => `${JSON.stringify(k)}:${sortedJson(v)}`).join(',')}}`
 }
 
 export async function verifyVersionChainRoute(
