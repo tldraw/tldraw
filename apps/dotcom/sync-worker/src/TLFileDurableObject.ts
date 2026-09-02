@@ -144,7 +144,11 @@ const R2_QUEUE_DEPTH_ALERT_THRESHOLD = 100
 
 // The kinds of R2 operation that share the connection budget, used to break queue depth down per
 // type in metrics.
-type R2OperationType = 'asset_copy' | 'snapshot_upload' | 'version_chain_write'
+type R2OperationType =
+	| 'asset_copy'
+	| 'snapshot_upload'
+	| 'version_chain_write'
+	| 'version_chain_verify'
 
 // Transient R2 failures worth retrying — dropped connections and the connection-limit error the
 // shared budget exists to avoid. Anything else (a bad request, missing object, etc.) is permanent,
@@ -721,6 +725,9 @@ export class TLFileDurableObject extends DurableObject {
 	// The open segment's deltas. Null means "not known here yet" — after an eviction they are
 	// refetched from the segment object in R2, which is the durable copy.
 	_pendingDeltas: PendingDelta[] | null = null
+	// The version key the chain head was written under, so a retried persist can put the legacy
+	// copy of the same content under the same key.
+	_versionChainHeadIso: string | null = null
 
 	private async getVersionChain(): Promise<ChainState | null> {
 		if (!this._versionChainLoaded) {
@@ -792,6 +799,7 @@ export class TLFileDurableObject extends DurableObject {
 				this._versionChain = null
 				this._versionChainLoaded = true
 				this._pendingDeltas = null
+				this._versionChainHeadIso = null
 				await this.storage.delete('versionChain')
 			})
 
@@ -1824,10 +1832,6 @@ export class TLFileDurableObject extends DurableObject {
 	async persistToDatabase(opts?: { throwOnFailure?: boolean }) {
 		await this.executionQueue
 			.push(async () => {
-				// One timestamp per persist, not per attempt: in dual mode a retry after a failed
-				// legacy upload must land the legacy copy under the same version key the chain
-				// already wrote, or the two buckets disagree about when this version exists.
-				const iso = new Date().toISOString()
 				await retry(
 					async ({ attempt }) => {
 						if (attempt === PERSIST_RETRIES_NOTIFY_THRESHOLD && !this.persistenceBad) {
@@ -1874,7 +1878,7 @@ export class TLFileDurableObject extends DurableObject {
 							this.bumpFileUpdatedAt()
 							return
 						}
-						await this._uploadSnapshotToR2(snapshot, key, iso)
+						await this._uploadSnapshotToR2(snapshot, key)
 						this._lastPersistedFingerprint = snapshotFingerprint
 
 						this.logEvent({
@@ -1977,8 +1981,13 @@ export class TLFileDurableObject extends DurableObject {
 			})
 	}
 
-	private async _uploadSnapshotToR2(snapshot: RoomSnapshot, key: string, iso: string) {
+	private async _uploadSnapshotToR2(snapshot: RoomSnapshot, key: string) {
 		const customMetadata = getSnapshotMetadata(snapshot)
+		// Per attempt, not per persist: the retry loop re-reads the snapshot, so a retry may carry
+		// newer content that deserves its own version. When the chain already holds THIS content
+		// from an earlier attempt, _writeVersionChainEntry hands back the key it used, and the
+		// legacy copy lands under that same key — the two buckets must agree on when a version is.
+		let iso = new Date().toISOString()
 		// Upload to rooms bucket first
 		const roomSizeMB = await this._uploadSnapshotToBucket(
 			this.r2.rooms,
@@ -1994,14 +2003,14 @@ export class TLFileDurableObject extends DurableObject {
 		const mode = getVersionChainMode(this.env, key)
 
 		if (mode === 'chain') {
-			await this._writeVersionChainEntry(snapshot, key, iso)
+			iso = await this._writeVersionChainEntry(snapshot, key, iso)
 		} else if (mode === 'dual') {
 			// The bake is a shadow write. A non-transient chain failure here (corrupt segment, a
 			// 4xx, DO storage) must be a metric, not a failed persist — the outer retry would
 			// otherwise re-upload the rooms object 100 times, raise persistence_bad, and never
 			// reach the legacy write that dual mode exists to keep.
 			try {
-				await this._writeVersionChainEntry(snapshot, key, iso)
+				iso = await this._writeVersionChainEntry(snapshot, key, iso)
 			} catch (error) {
 				this.logEvent({ type: 'version_chain_error' })
 				this.reportError(error)
@@ -2022,13 +2031,23 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
-	private async _writeVersionChainEntry(snapshot: RoomSnapshot, key: string, iso: string) {
+	/**
+	 * Writes this snapshot into the chain and returns the version key (ISO timestamp) it lives under
+	 * — `iso` when written now, or the key from an earlier attempt when the chain already holds
+	 * exactly this content.
+	 */
+	private async _writeVersionChainEntry(
+		snapshot: RoomSnapshot,
+		key: string,
+		iso: string
+	): Promise<string> {
 		let chain = await this.getVersionChain()
+		const fingerprint = getSnapshotFingerprint(snapshot)
 		// Re-entry guard: a dual-write persist that failed on the legacy upload retries this whole
 		// method with the chain already holding this exact version. Without it, every such retry
 		// appends a no-op delta at a fresh timestamp — the duplicate class #10571 exists to kill.
-		if (chain && isSameFingerprint(chain.headFingerprint, getSnapshotFingerprint(snapshot))) {
-			return
+		if (chain && isSameFingerprint(chain.headFingerprint, fingerprint)) {
+			return this._versionChainHeadIso ?? iso
 		}
 		let pending: PendingDelta[] = []
 		if (chain) {
@@ -2059,6 +2078,7 @@ export class TLFileDurableObject extends DurableObject {
 		)
 		this._versionChain = result.chain
 		this._pendingDeltas = result.pending
+		this._versionChainHeadIso = iso
 		await this.storage.put('versionChain', result.chain)
 		const previous = this._lastPersistedSnapshot
 		this._lastPersistedSnapshot = snapshot
@@ -2081,16 +2101,22 @@ export class TLFileDurableObject extends DurableObject {
 		) {
 			this.ctx.waitUntil(this._verifyRetiredChain(pending[pending.length - 1].t, previous))
 		}
+		return iso
 	}
 
 	private async _verifyRetiredChain(lastDeltaTimestamp: string, expected: RoomSnapshot) {
 		try {
-			const reconstruction = await reconstructVersion({
-				chainBucket: this.r2.versionChain,
-				legacyBucket: this.r2.versionCache,
-				roomKey: getR2KeyForRoom(this.documentInfo),
-				timestamp: lastDeltaTimestamp,
-			})
+			// One queue slot: reconstruction fans out to the keyframe plus every segment in
+			// parallel, and with one other R2 op alongside that is exactly the Worker's six
+			// simultaneous connections. Outside the queue it would contend with the persist.
+			const reconstruction = await this.addR2Operation('version_chain_verify', () =>
+				reconstructVersion({
+					chainBucket: this.r2.versionChain,
+					legacyBucket: this.r2.versionCache,
+					roomKey: getR2KeyForRoom(this.documentInfo),
+					timestamp: lastDeltaTimestamp,
+				})
+			)
 			const ok =
 				!!reconstruction &&
 				snapshotContentHash(reconstruction.snapshot) === snapshotContentHash(expected)

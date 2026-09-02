@@ -201,8 +201,16 @@ export const MIN_SIZE_RULE_DELTA_BYTES = 4096
  * each persist (~140KB worst case at this cap), how many GETs a restore costs (1 keyframe + 4
  * segments at kf64), and how many ISO timestamps have to fit in the segment's R2 custom metadata
  * (~400 bytes at 16). Much above 32 and the metadata budget starts to bind.
+ *
+ * Restore fetches the keyframe and every segment in parallel, and a Worker may have six
+ * connections waiting for headers at once; a seventh queues. `1 + MAX_DELTAS_PER_CHAIN /
+ * SEGMENT_CAP` must stay at or under six or restores start serializing — a test in
+ * versionChain.test.ts pins it.
  */
 export const SEGMENT_CAP = 16
+
+/** Cloudflare's per-invocation ceiling on connections simultaneously waiting for headers. */
+export const WORKER_MAX_SIMULTANEOUS_CONNECTIONS = 6
 
 /**
  * The URL of the PostHog instance to use.
