@@ -151,8 +151,9 @@ export const POPOVER_OFFSET = {
 	list: { x: MARKER_SIZE + PREVIEW_GAP, y: CARD_TOP_Y - MARKER_SIZE / 2 },
 } as const
 
-/** The open thread's popover container, portaled above the UI panels. A wheel over it passes
- *  through to the canvas (unless it scrolls its own content), like tldraw's panels. */
+/** The open thread's popover container, portaled to the comment layer beneath the UI panels. A
+ *  wheel over it passes through to the canvas (unless it scrolls its own content), like tldraw's
+ *  panels. */
 export function ThreadPopover({
 	base,
 	children,

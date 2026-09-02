@@ -387,8 +387,8 @@ export const ThreadPin = memo(function ThreadPin({
 						{pinContent}
 					</CommentPin>
 				</button>
-				{/* The popover portals up to the menus layer (above the UI panels) so it isn't clipped;
-			    the pin itself stays in the canvas-in-front layer, beneath the UI. */}
+				{/* The popover portals up to the floating comment layer, clear of the in-front content;
+			    the pin itself stays in the canvas-in-front layer. Both sit beneath the UI panels. */}
 				{open && (
 					<ThreadPopover
 						base={{
