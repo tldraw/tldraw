@@ -114,7 +114,12 @@ import { isTestFile } from './utils/tla/isTestFile'
 import { ChainState, PendingDelta, SegmentBody } from './versionChain'
 import { decodeVersionBody } from './versionChainCodec'
 import { getVersionChainMode } from './versionChainConfig'
-import { deleteAllVersions, reconstructVersion } from './versionChainRead'
+import {
+	deleteAllVersions,
+	loadChainIndex,
+	openWholeVersionStream,
+	reconstructVersion,
+} from './versionChainRead'
 import { writeVersionChainEntry } from './versionChainWrite'
 import { snapshotContentHash } from './versionDelta'
 import { resolveWelcomeSnapshot } from './welcome/resolveWelcomeSnapshot'
@@ -765,18 +770,26 @@ export class TLFileDurableObject extends DurableObject {
 			// Reconstructs from the chain, falling back to the legacy full copy both when the chain
 			// has nothing for this version and when it is broken — an admin who can preview a version
 			// must be able to restore it while the full copies exist.
+			// Whole objects (keyframes, legacy copies) are read as text once — the same cost as the
+			// handler this replaces — and only a delta replay materializes a snapshot, which is then
+			// reused below rather than re-parsed. Parsing, re-serializing and parsing again a large
+			// board is what pushes a 128MB isolate over.
 			let dataText: string
+			let restored: RoomSnapshot | undefined
 			try {
-				const reconstruction = await reconstructVersion({
-					chainBucket: this.r2.versionChain,
-					legacyBucket: this.r2.versionCache,
-					roomKey,
-					timestamp,
-				})
-				if (!reconstruction) {
-					return new Response('Version not found', { status: 400 })
+				const buckets = { chainBucket: this.r2.versionChain, legacyBucket: this.r2.versionCache }
+				const { entries: index } = await loadChainIndex(this.r2.versionChain, roomKey)
+				const whole = await openWholeVersionStream({ ...buckets, roomKey, timestamp, index })
+				if (whole) {
+					dataText = await new Response(whole).text()
+				} else {
+					const reconstruction = await reconstructVersion({ ...buckets, roomKey, timestamp, index })
+					if (!reconstruction) {
+						return new Response('Version not found', { status: 400 })
+					}
+					restored = reconstruction.snapshot
+					dataText = JSON.stringify(restored)
 				}
-				dataText = JSON.stringify(reconstruction.snapshot)
 			} catch (error) {
 				const legacy = await this.r2.versionCache.get(`${roomKey}/${timestamp}`)
 				if (!legacy) throw error
@@ -835,7 +848,7 @@ export class TLFileDurableObject extends DurableObject {
 			// retries and let the dropped comments resurrect on the next fresh-SQLite load.
 			// follow-up: a durable wipe-marker recorded alongside the outbox would let the DO
 			// itself retry the fileId-wide delete, closing the dependence on caller retries.
-			const snapshot = JSON.parse(dataText) as RoomSnapshot
+			const snapshot = restored ?? (JSON.parse(dataText) as RoomSnapshot)
 
 			const storage = await this.getStorage()
 			storage.transaction((txn) => {

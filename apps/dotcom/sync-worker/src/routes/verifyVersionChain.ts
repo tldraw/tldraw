@@ -54,42 +54,55 @@ export async function verifyRoomVersions({
 	// legacy full copy at the same timestamp. Reconstructing per version would refetch the same
 	// keyframe and segments once per version — quadratic over a chain for no extra coverage,
 	// since this fold is exactly the fold reconstruction performs.
-	let state: RoomSnapshot | null = null
-	let keyframeKey: string | null = null
-	let expectedSeq = 1
-
-	for (const entry of entries) {
+	//
+	// Segments are grouped under their keyframe and ordered by sequence, exactly as reconstruction
+	// orders them — never by key. Keys are wall-clock timestamps, and a durable object re-created
+	// on a host whose clock runs behind opens a later segment under an earlier key; walking the
+	// index in key order would fail the rollout gate on a chain that history reads serve fine.
+	const keyframes = entries.filter((entry) => entry.kind === 'keyframe')
+	for (const keyframe of keyframes) {
 		if (checked >= limit) break
+		const segments = entries
+			.filter((entry) => entry.kind === 'segment' && entry.keyframeKey === keyframe.key)
+			.sort((a, b) => a.firstSeq! - b.firstSeq!)
+
+		let state: RoomSnapshot
 		try {
-			if (entry.kind === 'keyframe') {
-				const object = await chainBucket.get(entry.key)
-				if (!object) throw new Error(`keyframe ${entry.key} is missing`)
-				state = (await decodeVersionBody(object)) as RoomSnapshot
-				keyframeKey = entry.key
-				expectedSeq = 1
-				await compareToLegacy(state, entry.timestamps[0])
-				continue
-			}
-			if (!state || entry.keyframeKey !== keyframeKey || entry.firstSeq !== expectedSeq) {
-				throw new Error(`segment ${entry.key} does not chain from the last keyframe`)
-			}
-			const object = await chainBucket.get(entry.key)
-			if (!object) throw new Error(`segment ${entry.key} disappeared`)
-			const body = (await decodeVersionBody(object)) as SegmentBody
-			for (const { t, delta } of body.deltas) {
-				state = applySnapshotDelta(state, delta)
-				// Intra-chain check, independent of the legacy copies — after cut-over the recorded
-				// hash is the only witness (see snapshotContentHash).
-				if (delta.hash !== snapshotContentHash(state)) mismatches.add(t)
-				await compareToLegacy(state, t)
-			}
-			expectedSeq += entry.timestamps.length
+			const object = await chainBucket.get(keyframe.key)
+			if (!object) throw new Error(`keyframe ${keyframe.key} is missing`)
+			state = (await decodeVersionBody(object)) as RoomSnapshot
+			await compareToLegacy(state, keyframe.timestamps[0])
 		} catch (e: any) {
-			errors.push({ timestamp: entry.timestamps[0], message: String(e?.message ?? e) })
-			// A broken link invalidates every later state in this chain. Stay dark until the next
-			// keyframe resynchronizes the replay.
-			state = null
-			keyframeKey = null
+			errors.push({ timestamp: keyframe.timestamps[0], message: String(e?.message ?? e) })
+			continue
+		}
+
+		let expectedSeq = 1
+		for (const segment of segments) {
+			if (checked >= limit) break
+			try {
+				if (segment.firstSeq !== expectedSeq) {
+					throw new Error(
+						`segment ${segment.key} expected at sequence ${expectedSeq}, found ${segment.firstSeq}`
+					)
+				}
+				const object = await chainBucket.get(segment.key)
+				if (!object) throw new Error(`segment ${segment.key} disappeared`)
+				const body = (await decodeVersionBody(object)) as SegmentBody
+				for (const { t, delta } of body.deltas) {
+					state = applySnapshotDelta(state, delta)
+					// Intra-chain check, independent of the legacy copies — after cut-over the
+					// recorded hash is the only witness (see snapshotContentHash).
+					if (delta.hash !== snapshotContentHash(state)) mismatches.add(t)
+					await compareToLegacy(state, t)
+				}
+				expectedSeq += segment.timestamps.length
+			} catch (e: any) {
+				errors.push({ timestamp: segment.timestamps[0], message: String(e?.message ?? e) })
+				// A broken link invalidates every later state in this chain; the next keyframe
+				// starts a fresh replay.
+				break
+			}
 		}
 	}
 
@@ -123,12 +136,15 @@ export async function verifyVersionChainRoute(
 
 	await requireAdminAccessToRequest(request, env)
 
-	const limit = Number(request.query.limit ?? 200)
+	// Every checked version costs at least one R2 read, so an unbounded limit walks into the
+	// per-invocation subrequest cap mid-run and reports nothing.
+	const requested = Number(request.query.limit ?? 200)
+	const limit = Math.min(Number.isFinite(requested) && requested > 0 ? requested : 200, 1000)
 	const result = await verifyRoomVersions({
 		chainBucket: env.ROOMS_HISTORY,
 		legacyBucket: env.ROOMS_HISTORY_EPHEMERAL,
 		roomKey: getR2KeyForRoom({ slug: roomId, isApp }),
-		limit: Number.isFinite(limit) ? limit : 200,
+		limit,
 	})
 
 	return new Response(JSON.stringify(result), {
