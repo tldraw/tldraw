@@ -1,8 +1,9 @@
 import { UnknownRecord } from '@tldraw/store'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { describe, expect, it } from 'vitest'
+import { SEGMENT_CAP } from './config'
 import { createFakeR2 } from './test/fakeR2'
-import { ChainState, PendingDelta, SEGMENT_CAP } from './versionChain'
+import { ChainState, PendingDelta } from './versionChain'
 import { reconstructVersion } from './versionChainRead'
 import { writeVersionChainEntry } from './versionChainWrite'
 
