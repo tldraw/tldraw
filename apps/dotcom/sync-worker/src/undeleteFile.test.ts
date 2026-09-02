@@ -6,8 +6,10 @@ function makeFile(overrides: Partial<TlaFile> = {}): TlaFile {
 	return {
 		id: 'file-1',
 		name: 'My file',
-		owningGroupId: 'group-9',
+		ownerId: 'user-1',
+		owningGroupId: undefined,
 		ownerName: '',
+		ownerAvatar: '',
 		thumbnail: '',
 		shared: true,
 		sharedLinkType: 'edit',
@@ -120,7 +122,7 @@ describe('undeleteFile', () => {
 	})
 
 	it('restores the group_file link for a group-owned file', async () => {
-		const file = makeFile()
+		const file = makeFile({ ownerId: undefined, owningGroupId: 'group-9' })
 		const { db, inserts } = makeFakeDb(file, { groupRow: { isDeleted: false } })
 		const result = await undeleteFile(db, file.id)
 		expect(result.result).toBe('restored')
@@ -138,7 +140,7 @@ describe('undeleteFile', () => {
 	})
 
 	it('returns group_deleted and writes nothing when the owning group is soft-deleted', async () => {
-		const file = makeFile()
+		const file = makeFile({ ownerId: undefined, owningGroupId: 'group-9' })
 		const { db, updates, inserts } = makeFakeDb(file, {
 			groupRow: { isDeleted: true },
 		})
@@ -148,7 +150,7 @@ describe('undeleteFile', () => {
 	})
 
 	it('returns group_deleted and writes nothing when the owning group row is missing', async () => {
-		const file = makeFile()
+		const file = makeFile({ ownerId: undefined, owningGroupId: 'group-9' })
 		const { db, updates, inserts } = makeFakeDb(file, {
 			groupRow: 'none',
 		})

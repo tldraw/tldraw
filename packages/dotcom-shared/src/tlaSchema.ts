@@ -55,6 +55,8 @@ export const file_state = table('file_state')
 		lastEditAt: number().optional(),
 		lastSessionState: string().optional(),
 		lastVisitAt: number().optional(),
+		isFileOwner: boolean().optional(),
+		isPinned: boolean().optional(),
 	})
 	.primaryKey('userId', 'fileId')
 
@@ -80,8 +82,10 @@ export const file = table('file')
 	.columns({
 		id: string(),
 		name: string(),
+		ownerId: string().optional(),
 		owningGroupId: string().optional(),
 		ownerName: string(),
+		ownerAvatar: string().optional(),
 		thumbnail: string(),
 		shared: boolean(),
 		sharedLinkType: string(),
@@ -412,15 +416,17 @@ export const immutableColumns = {
 	user: new Set<keyof TlaUser>(['email', 'createdAt', 'updatedAt', 'avatar']),
 	file: new Set<keyof TlaFile>([
 		'ownerName',
+		'ownerAvatar',
 		'owningGroupId',
 		'publishedSlug',
+		'ownerId',
 		'thumbnail',
 		'isDeleted',
 		'createSource',
 		'updatedAt',
 		'createdAt',
 	]),
-	file_state: new Set<keyof TlaFileState>(['firstVisitAt']),
+	file_state: new Set<keyof TlaFileState>(['firstVisitAt', 'isFileOwner']),
 } as const
 
 export function isColumnMutable(tableName: keyof typeof immutableColumns, column: string) {

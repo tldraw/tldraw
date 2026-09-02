@@ -66,8 +66,10 @@ function makeComment(overrides: Partial<TlaComment> & { id: string; fileId: stri
 function makeFile(overrides: Partial<TlaFile> & { id: string }): TlaFile {
 	return {
 		name: 'Untitled',
+		ownerId: null,
 		owningGroupId: null,
 		ownerName: '',
+		ownerAvatar: '',
 		thumbnail: '',
 		shared: false,
 		sharedLinkType: 'edit',
@@ -128,6 +130,8 @@ function makeFileState(
 		lastEditAt: null,
 		lastSessionState: null,
 		lastVisitAt: null,
+		isFileOwner: false,
+		isPinned: false,
 		...overrides,
 	}
 }
@@ -433,6 +437,17 @@ describe('file mutations', () => {
 		const { tx } = createMockTx(s)
 		const m = createMutators(otherId)
 		await expectForbidden(() => m.file.update(tx, { id: f.id, name: 'Hacked' }))
+	})
+
+	it('cannot change immutable field (ownerId)', async () => {
+		// ownerId is unused by the app but still declared and still guarded, so nothing can write
+		// it while the column exists. The guard and this test both go in the column-drop PR.
+		const s = baseStore()
+		const f = makeFile({ id: 'file_aaaa11112222bbbb', owningGroupId: groupId })
+		s.file.push(f)
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await expectForbidden(() => m.file.update(tx, { id: f.id, ownerId: 'evil' }))
 	})
 
 	it('cannot change immutable field (owningGroupId)', async () => {
