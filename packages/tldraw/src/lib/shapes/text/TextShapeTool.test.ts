@@ -114,6 +114,29 @@ describe(TextShapeTool, () => {
 		expect(editor.getShape(boxId)!.x).toBe(0)
 	})
 
+	it('Does not discard later work when an existing text shape is emptied', () => {
+		// The mark from a shape's creation stays on the undo stack after the shape survives, so
+		// editing that shape later must not treat it as the creation of the shape being edited
+		editor.setCurrentTool('text')
+		editor.pointerDown(200, 200)
+		editor.pointerUp()
+		const textId = editor.getCurrentPageShapes().find((s) => s.type === 'text')!.id
+		editor.updateShapes([{ id: textId, type: 'text', props: { richText: toRichText('Hello') } }])
+		editor.cancel()
+		expect(editor.getShape(textId)).toBeDefined()
+
+		const boxId = createShapeId()
+		editor.createShape({ id: boxId, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+
+		editor.select(textId)
+		editor.setEditingShape(textId)
+		editor.updateShapes([{ id: textId, type: 'text', props: { richText: toRichText('') } }])
+		editor.cancel()
+
+		expect(editor.getShape(textId)).toBeUndefined()
+		expect(editor.getShape(boxId)).toBeDefined()
+	})
+
 	it('Still costs one undo step when the text shape survives', () => {
 		const boxId = createShapeId()
 		editor.createShape({ id: boxId, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
