@@ -32,6 +32,7 @@ This release adds a `center` operation to `Editor.alignShapes`, a `tleditors` re
 - Shift-click an emoji in a comment's reaction palette to add several reactions without the palette closing. A plain click still applies the reaction and closes the palette. ([#9999](https://github.com/tldraw/tldraw/pull/9999))
 - Keyboard input now counts as collaborator presence activity, so peers no longer fade out and disappear while someone is typing. ([#9929](https://github.com/tldraw/tldraw/pull/9929))
 - Reduce per-pointer-event allocations in `Group2d` and `Editor` hit-testing. ([#8600](https://github.com/tldraw/tldraw/pull/8600))
+- Speed up editor hot paths: set lookups replace array scans in the selection side effect and the erasing check, `getCollaborators` makes a single pass over the presence records, and `getShapeUtil` only builds its assert message when the lookup fails. ([#10358](https://github.com/tldraw/tldraw/pull/10358))
 - Speed up signal reads in `@tldraw/state`. Capturing a parent used to scan the capturing signal's parent set twice, once to check for the parent and again to add it. ([#9690](https://github.com/tldraw/tldraw/pull/9690))
 - Reduce per-signal memory use and per-flush allocations in `@tldraw/state`. ([#10155](https://github.com/tldraw/tldraw/pull/10155))
 - Reduce the work and allocations in `@tldraw/store` history bookkeeping, so squashing record diffs and filtering query history no longer build intermediate copies on every tick. ([#9689](https://github.com/tldraw/tldraw/pull/9689), [#9869](https://github.com/tldraw/tldraw/pull/9869))
@@ -46,7 +47,6 @@ This release adds a `center` operation to `Editor.alignShapes`, a `tleditors` re
 - Fix a crash when computing a frame's geometry if its heading text couldn't be measured yet. ([#9496](https://github.com/tldraw/tldraw/pull/9496))
 - Fix a crash in hit testing when a custom frame-like shape uses a plain, non-group geometry. ([#10328](https://github.com/tldraw/tldraw/pull/10328))
 - Fix a crash when pressing Enter with a frame, video, or embed selected while the geo, arrow, or text tool is active. ([#10195](https://github.com/tldraw/tldraw/pull/10195))
-- Fix default UI components such as `DefaultToolbar` crashing when mounted outside the `Tldraw` component. ([#10007](https://github.com/tldraw/tldraw/pull/10007))
 
 ### Undo and history
 
@@ -152,7 +152,8 @@ This release adds a `center` operation to `Editor.alignShapes`, a `tleditors` re
 - Fix the spacing around the cursor chat item in the context menu. ([#9921](https://github.com/tldraw/tldraw/pull/9921))
 - Fix the people menu's collaborator rows not lining up with your own row above them: the follow icon sat too close to the right edge, and collaborator names sat slightly left of your own. ([#9900](https://github.com/tldraw/tldraw/pull/9900))
 - Fix the comment thread popover briefly rendering with a doubled shadow the first time a thread is opened. ([#9886](https://github.com/tldraw/tldraw/pull/9886))
-### Persistence, sync, and licensing
+
+### Persistence and sync
 
 - Fix edits made in the last 350 ms before closing or reloading a tab being lost from local persistence. ([#10526](https://github.com/tldraw/tldraw/pull/10526))
 - Fix background tabs repeatedly dropping and re-establishing their sync connection when the browser throttles timers. ([#9964](https://github.com/tldraw/tldraw/pull/9964))
