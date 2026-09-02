@@ -12,7 +12,7 @@ import { AtomMap } from './AtomMap'
 import { IdOf, UnknownRecord } from './BaseRecord'
 import { executeQuery, objectMatchesQuery, QueryExpression } from './executeQuery'
 import { IncrementalSetConstructor } from './IncrementalSetConstructor'
-import { RecordsDiff } from './RecordsDiff'
+import { hasAnyKey, RecordsDiff, squashRecordDiffsMutableByType } from './RecordsDiff'
 import { diffSets } from './setUtils'
 import { CollectionDiff } from './Store'
 
@@ -197,62 +197,9 @@ export class StoreQueries<R extends UnknownRecord> {
 				if (diff === RESET_VALUE) return this.history.get()
 
 				const res = { added: {}, removed: {}, updated: {} } as RecordsDiff<S>
-				let numAdded = 0
-				let numRemoved = 0
-				let numUpdated = 0
+				const size = squashRecordDiffsMutableByType(res, diff, typeName)
 
-				for (const changes of diff) {
-					for (const added of objectMapValues(changes.added)) {
-						if (added.typeName === typeName) {
-							if (res.removed[added.id as IdOf<S>]) {
-								const original = res.removed[added.id as IdOf<S>]
-								delete res.removed[added.id as IdOf<S>]
-								numRemoved--
-								if (original !== added) {
-									res.updated[added.id as IdOf<S>] = [original, added as S]
-									numUpdated++
-								}
-							} else {
-								res.added[added.id as IdOf<S>] = added as S
-								numAdded++
-							}
-						}
-					}
-
-					for (const [from, to] of objectMapValues(changes.updated)) {
-						if (to.typeName === typeName) {
-							if (res.added[to.id as IdOf<S>]) {
-								res.added[to.id as IdOf<S>] = to as S
-							} else if (res.updated[to.id as IdOf<S>]) {
-								res.updated[to.id as IdOf<S>] = [res.updated[to.id as IdOf<S>][0], to as S]
-							} else {
-								res.updated[to.id as IdOf<S>] = [from as S, to as S]
-								numUpdated++
-							}
-						}
-					}
-
-					for (const removed of objectMapValues(changes.removed)) {
-						if (removed.typeName === typeName) {
-							if (res.added[removed.id as IdOf<S>]) {
-								// was added during this diff sequence, so just undo the add
-								delete res.added[removed.id as IdOf<S>]
-								numAdded--
-							} else if (res.updated[removed.id as IdOf<S>]) {
-								// remove oldest version
-								res.removed[removed.id as IdOf<S>] = res.updated[removed.id as IdOf<S>][0]
-								delete res.updated[removed.id as IdOf<S>]
-								numUpdated--
-								numRemoved++
-							} else {
-								res.removed[removed.id as IdOf<S>] = removed as S
-								numRemoved++
-							}
-						}
-					}
-				}
-
-				if (numAdded || numRemoved || numUpdated) {
+				if (size) {
 					return withDiff(this.history.get(), res)
 				} else {
 					return lastValue
@@ -470,7 +417,7 @@ export class StoreQueries<R extends UnknownRecord> {
 	record<TypeName extends R['typeName']>(
 		typeName: TypeName,
 		queryCreator: () => QueryExpression<Extract<R, { typeName: TypeName }>> = () => ({}),
-		name = 'record:' + typeName + (queryCreator ? ':' + queryCreator.toString() : '')
+		name = 'record:' + typeName + ':' + queryCreator.toString()
 	): Computed<Extract<R, { typeName: TypeName }> | undefined> {
 		type S = Extract<R, { typeName: TypeName }>
 		const ids = this.ids(typeName, queryCreator, name)
@@ -510,7 +457,7 @@ export class StoreQueries<R extends UnknownRecord> {
 	records<TypeName extends R['typeName']>(
 		typeName: TypeName,
 		queryCreator: () => QueryExpression<Extract<R, { typeName: TypeName }>> = () => ({}),
-		name = 'records:' + typeName + (queryCreator ? ':' + queryCreator.toString() : '')
+		name = 'records:' + typeName + ':' + queryCreator.toString()
 	): Computed<Array<Extract<R, { typeName: TypeName }>>> {
 		type S = Extract<R, { typeName: TypeName }>
 		const ids = this.ids(typeName, queryCreator, 'ids:' + name)
@@ -554,7 +501,7 @@ export class StoreQueries<R extends UnknownRecord> {
 	ids<TypeName extends R['typeName']>(
 		typeName: TypeName,
 		queryCreator: () => QueryExpression<Extract<R, { typeName: TypeName }>> = () => ({}),
-		name = 'ids:' + typeName + (queryCreator ? ':' + queryCreator.toString() : '')
+		name = 'ids:' + typeName + ':' + queryCreator.toString()
 	): Computed<
 		Set<IdOf<Extract<R, { typeName: TypeName }>>>,
 		CollectionDiff<IdOf<Extract<R, { typeName: TypeName }>>>
@@ -567,7 +514,7 @@ export class StoreQueries<R extends UnknownRecord> {
 			// deref type history early to allow first incremental update to use diffs
 			typeHistory.get()
 			const query: QueryExpression<S> = queryCreator()
-			if (Object.keys(query).length === 0) {
+			if (!hasAnyKey(query)) {
 				return this.getAllIdsForType(typeName)
 			}
 
@@ -583,7 +530,10 @@ export class StoreQueries<R extends UnknownRecord> {
 				return prevValue
 			}
 		}
-		const cachedQuery = computed('ids_query:' + name, queryCreator, {
+		// Wrapped rather than passed straight through: a computed's derive function receives
+		// `(previousValue, lastComputedEpoch)`, which a queryCreator with optional parameters
+		// would otherwise misread.
+		const cachedQuery = computed('ids_query:' + name, () => queryCreator(), {
 			isEqual,
 		})
 

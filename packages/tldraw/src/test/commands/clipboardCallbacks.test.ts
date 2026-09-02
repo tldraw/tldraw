@@ -116,7 +116,9 @@ describe('handleNativeOrMenuCopy', () => {
 				writeText: vi.fn(),
 			},
 		})
-		globalThis.ClipboardItem = vi.fn((payload: any) => payload) as any
+		globalThis.ClipboardItem = vi.fn(function (payload: any) {
+			return payload
+		}) as any
 		return written
 	}
 

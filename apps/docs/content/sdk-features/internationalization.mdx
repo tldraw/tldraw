@@ -19,11 +19,13 @@ accuracy: 9
 notes: Consider linking to an i18n example if one exists.
 ---
 
-Tldraw's UI supports 50 languages out of the box, including right-to-left languages like Arabic, Hebrew, Farsi, and Urdu. The translation system loads language files on demand, detects the user's browser language, and lets you override any translation string or add custom ones.
+Tldraw's UI supports 49 languages out of the box, including right-to-left languages like Arabic, Hebrew, Farsi, and Urdu. The translation system loads language files on demand, detects the user's browser language, and lets you override any translation string or add custom ones.
 
 ## Setting the locale
 
-The user's locale is stored in [user preferences](/sdk-features/user-preferences). By default, tldraw detects the browser's language and selects the closest match from supported languages.
+The user's locale is stored in [user preferences](/sdk-features/user-preferences). By default, tldraw detects the browser's language and selects the closest match from supported languages. The default main menu also includes a language submenu where users can change it.
+
+To set the locale from your application, update the user's locale preference. The UI reads its language from `editor.user.getLocale()`, so this takes effect immediately:
 
 ```tsx
 import { Tldraw } from 'tldraw'
@@ -46,30 +48,32 @@ export default function App() {
 }
 ```
 
-The `locale` value uses standard language codes: `'en'`, `'fr'`, `'de'`, `'ja'`, `'zh-cn'`, `'ar'`, and so on.
+The `locale` value uses lowercase language codes: `'en'`, `'fr'`, `'de'`, `'ja'`, `'zh-cn'`, `'ar'`, and so on.
+
+The `Tldraw` component also has a `locale` prop. Today it only sets the language for the outer translation provider (used by the loading screen); the editor UI itself keeps reading the user preference, so prefer `updateUserPreferences` to change the visible language.
 
 ### Automatic detection
 
-When no locale is set, tldraw uses `getDefaultTranslationLocale()` to detect the user's preferred language from the browser:
+When no locale is set, tldraw uses [getDefaultTranslationLocale](?) to detect the user's preferred language from the browser:
 
 ```ts
-import { getDefaultTranslationLocale } from '@tldraw/tlschema'
+import { getDefaultTranslationLocale } from 'tldraw'
 
 // Returns 'fr', 'en', 'zh-cn', etc. based on browser settings
 const locale = getDefaultTranslationLocale()
 ```
 
-The detection algorithm:
+For each entry in the browser's `navigator.languages` array, in order, it:
 
-1. Reads the browser's `navigator.languages` array
-2. Tries an exact match against supported languages
-3. Falls back to language-only match (e.g., `'fr-CA'` → `'fr'`)
-4. Applies region defaults for Chinese (`'zh'` → `'zh-cn'`), Portuguese (`'pt'` → `'pt-br'`), Korean (`'ko'` → `'ko-kr'`), and Hindi (`'hi'` → `'hi-in'`)
-5. Defaults to `'en'` if no match is found
+1. Tries an exact match against supported languages
+2. Falls back to a language-only match (e.g., `'fr-CA'` → `'fr'`)
+3. Applies region defaults for Chinese (`'zh'` → `'zh-cn'`), Portuguese (`'pt'` → `'pt-br'`), Korean (`'ko'` → `'ko-kr'`), and Hindi (`'hi'` → `'hi-in'`)
+
+The first entry that matches wins. If none match, it defaults to `'en'`.
 
 ## Using translations in components
 
-The `useTranslation` hook returns a function for looking up translation strings:
+The [useTranslation](?) hook returns a function for looking up translation strings. Unknown keys are returned as-is, so you can pass plain text or your own keys:
 
 ```tsx
 import { useTranslation } from 'tldraw'
@@ -80,7 +84,7 @@ function CopyButton() {
 }
 ```
 
-For access to the full translation object including locale and text direction:
+Use [useCurrentTranslation](?) for the full translation object, including locale and text direction:
 
 ```tsx
 import { useCurrentTranslation } from 'tldraw'
@@ -124,7 +128,7 @@ function App() {
 }
 ```
 
-Overrides are merged with the base translations for each language. English serves as the fallback—any key missing from the target language uses the English string.
+Overrides are merged with the base translations for each language. English is the fallback: any key missing from the target language uses the English string. If you add your own keys (for example a custom tool label), provide at least an `en` override for them.
 
 ### Translation keys
 
@@ -140,10 +144,10 @@ const key: TLUiTranslationKey = 'action.copy'
 
 ## Supported languages
 
-Import `LANGUAGES` from `@tldraw/tlschema` for the complete list of supported languages:
+Import [LANGUAGES](?) from `tldraw` for the complete list of supported languages:
 
 ```tsx
-import { LANGUAGES } from '@tldraw/tlschema'
+import { LANGUAGES } from 'tldraw'
 
 function LanguageSelector() {
 	return (
@@ -158,32 +162,33 @@ function LanguageSelector() {
 }
 ```
 
-Each entry in `LANGUAGES` has a `locale` code and a `label` in that language's native script.
+Each entry in `LANGUAGES` is a [TLLanguage](?) with a `locale` code and a `label` in that language's native script. Translation files are only loaded for locales in this list, so you can't add a new language by supplying a translation file alone.
 
 The supported languages include: English, Spanish, French, German, Italian, Portuguese (Brazilian and European), Dutch, Russian, Polish, Czech, Danish, Finnish, Swedish, Hungarian, Norwegian, Romanian, Turkish, Ukrainian, Greek, Croatian, Slovenian, Arabic, Hebrew, Farsi, Urdu, Hindi, Tamil, Telugu, Malayalam, Kannada, Bengali, Gujarati, Nepali, Marathi, Punjabi, Thai, Khmer, Vietnamese, Indonesian, Malay, Filipino, Somali, Japanese, Korean, Simplified Chinese, Traditional Chinese (Taiwan), Catalan, and Galician.
 
 ## Right-to-left support
 
-Languages like Arabic, Hebrew, Farsi, and Urdu automatically set `dir: 'rtl'` in the translation object. The tldraw UI respects this direction, mirroring layout and text alignment.
+Languages like Arabic, Hebrew, Farsi, and Urdu automatically set `dir: 'rtl'` in the translation object. The tldraw UI respects this direction. Layout and text alignment mirror automatically. The `dir` attribute is set on the editor's root container, and the built-in components use CSS logical properties (`margin-inline-start`, `inset-inline-end`, and so on) so they flip without per-component code.
 
-When building custom UI components, use the `dir` property from the translation context:
+When building custom UI components, use the [useDirection](?) hook to get the current text direction. It returns `'ltr'` or `'rtl'` from the active translation context, the same value as `useCurrentTranslation().dir`:
 
 ```tsx
-import { useCurrentTranslation } from 'tldraw'
+import { useDirection } from 'tldraw'
 
 function CustomPanel() {
-	const { dir } = useCurrentTranslation()
+	const dir = useDirection()
 	return <aside dir={dir}>{/* Panel content */}</aside>
 }
 ```
+
+Use `useCurrentTranslation` instead when you also need the locale, label, or `messages` from the same render.
 
 ## Building a language picker
 
 Here's a language picker that updates the user's locale preference:
 
 ```tsx
-import { useEditor, useValue } from 'tldraw'
-import { LANGUAGES } from '@tldraw/tlschema'
+import { LANGUAGES, useEditor, useValue } from 'tldraw'
 
 function LanguagePicker() {
 	const editor = useEditor()
@@ -218,3 +223,9 @@ Translations load asynchronously when the locale changes. The system:
 4. Updates the translation context
 
 During loading, the UI uses the previous translations to avoid flicker. If loading fails, English remains as the fallback.
+
+To use translations outside the full tldraw UI, wrap your components in [TldrawUiTranslationProvider](?) (inside an `AssetUrlsProvider`).
+
+## Related examples
+
+- [Custom translations and overrides](/examples/ui/custom-language-translations) - Override translation strings and use them in custom UI.

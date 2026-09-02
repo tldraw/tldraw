@@ -88,6 +88,17 @@ async function main() {
 			await exec('git', ['reset', `origin/${latestReleaseBranch}`, '--hard'])
 			await exec('git', ['log', '-1', '--oneline'])
 			await exec('git', ['cherry-pick', commitSha])
+
+			// the push to the release branch below must trigger publish.yml, but some
+			// merge commits (e.g. release-notes updates) carry `[skip ci]`, which would
+			// suppress it. strip skip-ci markers from the cherry-picked commit message.
+			const message = (await exec('git', ['log', '-1', '--format=%B'])).trim()
+			const cleanedMessage = message
+				.replace(/ *\[(?:skip ci|ci skip|no ci|skip actions|actions skip)\]/gi, '')
+				.trim()
+			if (cleanedMessage !== message) {
+				await exec('git', ['commit', '--amend', '-m', cleanedMessage])
+			}
 		}
 	)
 
@@ -98,7 +109,7 @@ async function main() {
 			await exec('yarn', ['install'])
 			await exec('yarn', ['refresh-assets', '--force'])
 
-			const diff = await getAnyPackageDiff()
+			const diff = await getAnyPackageDiff(version.format())
 			if (diff) {
 				let message = kleur.red().bold(`・ERROR・`)
 				message += `\nCannot cherry-pick docs changes from PR '${kleur.cyan().bold(pr.title)}' https://github.com/tldraw/tldraw/pulls/${pr}`

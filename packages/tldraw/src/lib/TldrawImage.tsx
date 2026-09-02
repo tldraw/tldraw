@@ -2,6 +2,7 @@ import {
 	Editor,
 	TLAnyBindingUtilConstructor,
 	TLAnyShapeUtilConstructor,
+	TLAssetStore,
 	TLEditorSnapshot,
 	TLImageExportOptions,
 	TLPageId,
@@ -52,6 +53,12 @@ export interface TldrawImageProps extends TLImageExportOptions {
 	 * Asset URL overrides.
 	 */
 	assetUrls?: TLUiAssetUrlOverrides
+	/**
+	 * The asset store to use for resolving the snapshot's assets, matching the `assets` prop on
+	 * {@link Tldraw}. Without one, assets that aren't stored inline (as data URLs) can't be
+	 * resolved and won't appear in the image.
+	 */
+	assets?: TLAssetStore
 	/**
 	 * Options for the editor.
 	 */
@@ -105,7 +112,11 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		() => mergeArraysAndReplaceDefaults('type', _bindingUtils, defaultBindingUtils),
 		[_bindingUtils]
 	)
-	const store = useTLStore({ snapshot: props.snapshot, shapeUtils: shapeUtilsWithDefaults })
+	const store = useTLStore({
+		snapshot: props.snapshot,
+		shapeUtils: shapeUtilsWithDefaults,
+		assets: props.assets,
+	})
 
 	const {
 		pageId,
@@ -163,8 +174,8 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		const shapeIds = editor.getCurrentPageShapeIds()
 
 		async function setSvg() {
-			// We have to wait for the fonts to load so that we can correctly measure text sizes
-			await editor.fonts.loadRequiredFontsForCurrentPage(editor.options.maxFontsToLoadBeforeRender)
+			// toImage waits for the required fonts to load (so text is measured correctly) before
+			// it renders, so we don't need to do it here.
 			const imageResult = await editor.toImage([...shapeIds], {
 				bounds,
 				scale,

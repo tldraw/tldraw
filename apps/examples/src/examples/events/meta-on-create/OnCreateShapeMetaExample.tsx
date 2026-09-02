@@ -1,62 +1,69 @@
-import { TLShape, Tldraw, track, useEditor } from 'tldraw'
+import { TLComponents, TLShape, Tldraw, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
 
-export default function OnCreateShapeMetaExample() {
-	return (
-		<div className="tldraw__editor">
-			<Tldraw
-				persistenceKey="example"
-				onMount={(editor) => {
-					//[1]
-					editor.getInitialMetaForShape = (_shape) => {
-						return {
-							createdBy: editor.user.getId(),
-							createdAt: Date.now(),
-						}
-					}
-				}}
-			>
-				<MetaUiHelper />
-			</Tldraw>
-		</div>
-	)
-}
+// [1]
+type ShapeWithMyMeta = TLShape & { meta: { createdBy: string; createdAt: number } }
 
-// [2]
-type ShapeWithMyMeta = TLShape & { meta: { updatedBy: string; updatedAt: string } }
-
-// [3]
-export const MetaUiHelper = track(function MetaUiHelper() {
+function MetaUiHelper() {
 	const editor = useEditor()
-	const onlySelectedShape = editor.getOnlySelectedShape() as ShapeWithMyMeta | null
+	// [2]
+	const onlySelectedShape = useValue(
+		'only selected shape',
+		() => editor.getOnlySelectedShape() as ShapeWithMyMeta | null,
+		[editor]
+	)
 
 	return (
-		<pre style={{ position: 'absolute', zIndex: 300, top: 64, left: 12, margin: 0 }}>
+		<pre className="tlui-menu" style={{ margin: 0, padding: 8 }}>
 			{onlySelectedShape
 				? JSON.stringify(onlySelectedShape.meta, null, '\t')
 				: 'Select one shape to see its meta data.'}
 		</pre>
 	)
-})
+}
+
+const components: TLComponents = {
+	TopPanel: MetaUiHelper,
+}
+
+export default function OnCreateShapeMetaExample() {
+	return (
+		<div className="tldraw__editor">
+			<Tldraw
+				persistenceKey="meta-on-create-example"
+				components={components}
+				onMount={(editor) => {
+					// [3]
+					editor.getInitialMetaForShape = (_shape) => {
+						return {
+							createdBy: editor.user.getExternalId(),
+							createdAt: Date.now(),
+						}
+					}
+				}}
+			/>
+		</div>
+	)
+}
 
 /*
-This example demonstrates how to add your own data to shapes using the meta property as they're
-created. Check out the docs for a more detailed explanation of the meta property: 
-https://tldraw.dev/docs/shapes#Meta-information
+Every shape has a `meta` property for your own JSON data. tldraw stores and syncs it but never
+reads it. This example records who created each shape and when. See the shapes docs for more on
+meta: https://tldraw.dev/docs/shapes#meta
 
 [1]
-getInitialMetaForShape is a method you can replace at runtime. Here we use a callback on the onMount
-prop to replace the default implementation with our own.
+A shape's `meta` is typed as `JsonObject`. To get useful types for your own fields, intersect
+the shape type with the shape of your meta.
 
 [2]
-All tldraw shapes have a meta property with a type of unknown. To type your meta data you can use 
-a union like this.
+Reading `editor.getOnlySelectedShape()` inside `useValue` re-renders this panel whenever the
+selection changes.
 
 [3]
-A minimal ui component that displays the meta data of the selected shape. We use track to make sure
-that the component is re-rendered when the signals it's tracking change. Check out the signals example
-for more info: https://tldraw.dev/examples/signals
-
+`getInitialMetaForShape` is called by `createShapes` for every new shape. Its result is merged
+with any `meta` passed to `createShapes`, with the explicit meta winning. It's a plain method on
+the editor, so the simplest way to customize it is to replace it in `onMount`. The shape is
+passed in, so you can return different meta for different shape types.
 */

@@ -133,7 +133,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 			if (this.editor.getCurrentPageState().focusedGroupId === group.id) {
 				this.editor.popFocusedGroupId()
 			}
-			this.editor.reparentShapes(children, group.parentId)
+			this.editor.reparentShapes(children, group.parentId, group.index)
 			this.editor.deleteShapes([group.id])
 			return
 		}

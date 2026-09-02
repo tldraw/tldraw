@@ -10,7 +10,6 @@ import {
 	Tldraw,
 	Vec,
 	resizeBox,
-	structuredClone,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
@@ -33,9 +32,6 @@ class HouseShapeUtil extends ShapeUtil<HouseShape> {
 	static override type = HOUSE_TYPE
 	static override props = houseShapeProps
 
-	override canResize(shape: HouseShape) {
-		return true
-	}
 	override getDefaultProps() {
 		return {
 			w: 100,
@@ -80,13 +76,7 @@ class HouseShapeUtil extends ShapeUtil<HouseShape> {
 		return new Path2D(housePathData + doorPathData)
 	}
 	override onResize(shape: HouseShape, info: TLResizeInfo<HouseShape>) {
-		const resized = resizeBox(shape, info)
-		const next = structuredClone(info.initialShape)
-		next.x = resized.x
-		next.y = resized.y
-		next.props.w = resized.props.w
-		next.props.h = resized.props.h
-		return next
+		return resizeBox(shape, info)
 	}
 }
 // [4]
@@ -137,29 +127,25 @@ export default function ShapeWithGeometryExample() {
 }
 
 /*
-Introduction:
-This file demonstrates how to create a shape with custom geometry in tldraw. The
-shape we're creating is a simple house shape with a door. The HouseShapeUtil class
-defines the behavior and appearance of our custom house shape.
+This file shows a shape with custom (non-rectangular) geometry: a house with a door.
 
 [1]
-The getGeometry method defines the geometric representation of our shape. This geometry
-is used for hit-testing, intersection checking and other geometric calculations. We use
-Polygon2d for the house body and Rectangle2d for the door. These are combined into a
-Group2d to form the complete house geometry.
+getGeometry returns the geometry the editor uses for hit testing, selection bounds,
+snapping, and arrow binding. It does not have to match a rectangle: here the house body
+is a Polygon2d and the door is a Rectangle2d, combined into a Group2d. Because the
+geometry is a polygon rather than the bounding box, clicking in the empty corners
+either side of the roof does not select the shape.
 
 [2]
-The component method determines how our shape is rendered. We create SVG paths for
-both the house body and the door, combining them into a single path element. This
-method is called when the shape needs to be drawn on the canvas. The tl-svg-container
-class contains some helpful styles for rendering the svg correctly.
+The component draws the same vertices as an SVG path. Vec's toString() gives "x, y", so
+joining the vertices produces valid path data. The tl-svg-container class sizes the svg
+to the shape and turns off pointer events on it.
 
 [3]
-The indicator method renders the same path as a thin blue line when the shape is selected.
+getIndicatorPath returns a Path2D for the same outline; tldraw strokes it onto the canvas
+overlay as the blue selection outline.
 
 [4]
-The getHouseVertices function calculates the vertices for both the house body and the door
-based on the shape's dimensions. This is used by both the geometry and rendering methods
-to ensure consistency in the shape's appearance.
-
+Both the geometry and the rendering derive from getHouseVertices, so hit testing always
+matches what the user sees. Keep them in sync when you change how a shape looks.
 */

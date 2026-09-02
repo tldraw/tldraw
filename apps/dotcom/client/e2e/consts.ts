@@ -1,4 +1,4 @@
-const NUMBER_OF_USERS = 8
+export const NUMBER_OF_USERS = 8
 export const USERS = Array.from({ length: NUMBER_OF_USERS }).map(
 	(_, i) => `huppy+clerk_test${i + 1}@tldraw.com`
 )

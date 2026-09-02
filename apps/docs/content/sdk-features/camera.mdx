@@ -18,31 +18,28 @@ accuracy: 9
 notes: Could use more direct "you" address and questions-as-transitions per voice guide. Some passive constructions remain.
 ---
 
-The camera system controls how users view and navigate the infinite canvas. It manages viewport position and zoom level, and transforms coordinates between screen space and page space. The editor uses these transformations to map mouse positions to canvas locations and render shapes at any zoom level.
-
-The camera handles user input for panning and zooming, supports constraints for bounded experiences, and provides methods for programmatic movement with smooth animations. It also integrates with collaboration features for real-time viewport following.
+The camera controls which part of the infinite canvas is visible. It holds the viewport's position and zoom, converts between screen space and page space, and responds to user input like wheel, trackpad, keyboard, and touch. You can constrain it to a bounded area, move it programmatically with animation, and follow other users' viewports in collaborative sessions.
 
 ## How it works
 
-The camera represents the viewport's position and zoom using three values: `x` and `y` for position in page space, and `z` for zoom level. A zoom of `1` means 100%, `0.5` is 50%, and `2` is 200%. The camera's x and y coordinates represent the top-left corner of the viewport in page coordinates.
+The camera represents the viewport's position and zoom using three values: `x` and `y` for position in page space, and `z` for zoom level. A zoom of `1` means 100%, `0.5` is 50%, and `2` is 200%. The camera's `x` and `y` are the page-space offset of the viewport: the page point at the viewport's top-left corner is `(-x, -y)`.
 
-The camera transforms between two coordinate spaces:
-
-- **Screen space** - Browser pixels from the document origin
-- **Page space** - The infinite canvas coordinate system
-
-The `screenToPage()` method converts mouse positions to canvas coordinates, while `pageToScreen()` converts canvas coordinates to screen positions:
+The camera converts between screen space (browser pixels) and page space (the canvas). Use [Editor#screenToPage](?) to turn a mouse position into a canvas point and [Editor#pageToScreen](?) to go the other way. See [Coordinates](/sdk-features/coordinates) for the full set of conversions.
 
 ```typescript
 const pagePoint = editor.screenToPage({ x: event.clientX, y: event.clientY })
 const screenPoint = editor.pageToScreen({ x: shape.x, y: shape.y })
 ```
 
-The camera responds to user input through mouse wheel, trackpad gestures, keyboard shortcuts, and touch events. The `wheelBehavior` option determines whether scrolling pans or zooms the viewport.
+Read the camera with [Editor#getCamera](?) or [Editor#getZoomLevel](?), and read the visible page area with [Editor#getViewportPageBounds](?). All of these are reactive, so you can use them in `track` components or `useValue`.
 
 ## Camera options
 
-Camera behavior is configured through `TLCameraOptions`:
+Configure the camera with [TLCameraOptions](?). Pass the initial options through the `options.camera` prop, or change them at runtime with [Editor#setCameraOptions](?), which re-applies the constraints to the current camera immediately:
+
+```tsx
+<Tldraw options={{ camera: { wheelBehavior: 'zoom' } }} />
+```
 
 ```typescript
 editor.setCameraOptions({
@@ -54,13 +51,13 @@ editor.setCameraOptions({
 })
 ```
 
-The `isLocked` option prevents all camera movement, useful for fixed-viewport experiences.
+Set `isLocked` to freeze the camera for fixed-viewport apps. Camera methods then do nothing unless you pass `force: true`.
 
-The `wheelBehavior` option determines how mouse wheel or trackpad scroll affects the viewport: `'pan'` for navigating large diagrams, `'zoom'` for detail work, or `'none'` to disable wheel interaction.
+`wheelBehavior` decides what the mouse wheel or trackpad scroll does: `'pan'`, `'zoom'`, or `'none'`. If the user has set an input mode in their preferences, that preference wins: `'trackpad'` pans and `'mouse'` zooms.
 
-The `panSpeed` and `zoomSpeed` multipliers adjust input sensitivity. Values below 1 slow down movement, values above 1 speed it up.
+`panSpeed` and `zoomSpeed` are multipliers on input sensitivity. Values below 1 slow movement down, values above 1 speed it up.
 
-The `zoomSteps` array defines discrete zoom levels. The first value sets minimum zoom, the last sets maximum zoom, and intermediate values determine snap points for zoom controls.
+`zoomSteps` lists the discrete zoom levels used by zoom in and zoom out. The first value is the minimum zoom and the last is the maximum; the camera clamps to this range even without constraints.
 
 ## Camera constraints
 
@@ -81,35 +78,37 @@ editor.setCameraOptions({
 
 The `bounds` define the constrained area in page space. The camera restricts panning outside this rectangle based on the `behavior` setting.
 
-The `padding` adds screen space margin inside the viewport, preventing content from touching the screen edges.
+The `padding` adds a screen-space margin inside the viewport so content doesn't touch the edges.
 
-The `origin` determines how bounds are positioned within the viewport when using `'fixed'` behavior. Values of `{ x: 0.5, y: 0.5 }` center the bounds, while `{ x: 0, y: 0 }` aligns to the top-left.
+The `origin` positions the bounds within the viewport when an axis uses `'fixed'` behavior, when `'contain'` is zoomed out below the fit zoom, and when the camera resets. `{ x: 0.5, y: 0.5 }` centers the bounds; `{ x: 0, y: 0 }` aligns them top-left.
 
 ### Zoom fitting
 
-The `initialZoom` and `baseZoom` options control how content fits the viewport:
+`initialZoom` is the zoom the camera starts at and returns to on reset. `baseZoom` is the zoom that `zoomSteps` are multiplied by, so a step of `1` means "the base zoom" rather than 100%. Both accept the same values:
 
-- `'default'`: 100% zoom, showing content at actual size
-- `'fit-min'`: Fit the smaller axis, ensuring all bounds are visible
-- `'fit-max'`: Fit the larger axis, potentially cropping content
-- `'fit-x'`: Fit horizontally, filling the viewport width
-- `'fit-y'`: Fit vertically, filling the viewport height
-- `'fit-x-100'`: Fit horizontally or use 100%, whichever is smaller
-- `'fit-y-100'`: Fit vertically or use 100%, whichever is smaller
-- `'fit-min-100'`: Fit the smaller axis or use 100%, whichever is smaller
-- `'fit-max-100'`: Fit the larger axis or use 100%, whichever is smaller
-
-The `initialZoom` sets the starting zoom when the camera resets. The `baseZoom` defines the reference point for zoom steps, affecting how zoom in/out operations scale relative to the viewport.
+| Value           | Description                                                             |
+| --------------- | ----------------------------------------------------------------------- |
+| `'default'`     | 100% zoom                                                               |
+| `'fit-x'`       | The bounds' width fills the viewport width                              |
+| `'fit-y'`       | The bounds' height fills the viewport height                            |
+| `'fit-min'`     | The smaller axis fills the viewport; the larger axis may extend past it |
+| `'fit-max'`     | The larger axis fills the viewport, so the full bounds stay visible     |
+| `'fit-x-100'`   | `fit-x` or 100%, whichever is smaller                                   |
+| `'fit-y-100'`   | `fit-y` or 100%, whichever is smaller                                   |
+| `'fit-min-100'` | `fit-min` or 100%, whichever is smaller                                 |
+| `'fit-max-100'` | `fit-max` or 100%, whichever is smaller                                 |
 
 ### Constraint behaviors
 
-The `behavior` option controls how bounds constrain camera movement:
+The `behavior` option controls how the bounds constrain camera movement:
 
-- `'free'`: Bounds are ignored, allowing unlimited panning
-- `'fixed'`: Bounds are positioned at the origin regardless of pan attempts
-- `'inside'`: Bounds must stay completely within the viewport
-- `'outside'`: Bounds must stay touching the viewport edges
-- `'contain'`: Uses `'fixed'` when zoomed out and `'inside'` when zoomed in
+| Value       | Description                                                                     |
+| ----------- | ------------------------------------------------------------------------------- |
+| `'free'`    | The bounds are ignored                                                          |
+| `'fixed'`   | The bounds are pinned at the origin; the user can't pan                         |
+| `'inside'`  | The bounds stay completely within the viewport                                  |
+| `'outside'` | The bounds stay touching the viewport                                           |
+| `'contain'` | `'fixed'` when zoomed out below the fit zoom, `'inside'` when zoomed in past it |
 
 Set behavior per axis for asymmetric constraints:
 
@@ -122,11 +121,12 @@ behavior: {
 
 ## Camera methods
 
-The editor provides methods for programmatic camera control. All methods accept an optional options object with:
+The camera-move methods below ([Editor#setCamera](?), [Editor#centerOnPoint](?), [Editor#zoomIn](?), [Editor#zoomOut](?), [Editor#zoomToFit](?), [Editor#zoomToSelection](?), [Editor#zoomToBounds](?), and [Editor#resetZoom](?)) accept optional [TLCameraMoveOptions](?):
 
-- `animation` - add smooth transitions with `duration` and `easing`
+- `animation` - animate the move with `duration` and `easing`
 - `immediate` - move the camera immediately rather than on the next tick
 - `force` - move the camera even when `isLocked` is true
+- `reset` - reset the camera to the constraints' initial zoom and origin
 
 ### Basic navigation
 
@@ -147,7 +147,7 @@ Zoom in or out. Both methods accept an optional screen point to zoom toward:
 ```typescript
 editor.zoomIn()
 editor.zoomOut()
-editor.zoomIn(editor.inputs.currentScreenPoint, { animation: { duration: 200 } })
+editor.zoomIn(editor.inputs.getCurrentScreenPoint(), { animation: { duration: 200 } })
 ```
 
 ### Zoom to content
@@ -161,7 +161,7 @@ editor.zoomToFit()
 // Fit the current selection
 editor.zoomToSelection()
 
-// Reset zoom to 100% (or initial zoom if constraints are set)
+// Reset zoom to 100%. With constraints, toggles between the initial zoom and 100%
 editor.resetZoom()
 
 // Fit specific bounds with padding
@@ -169,15 +169,11 @@ const bounds = { x: 0, y: 0, w: 1000, h: 800 }
 editor.zoomToBounds(bounds, { inset: 100 })
 ```
 
-The `zoomToBounds` method accepts `inset` to add padding around the bounds and `targetZoom` to limit the maximum zoom level.
-
-### Quick zoom navigation
-
-The default tldraw UI includes a quick zoom tool activated by pressing `z`. This zooms out to show the entire canvas with a viewport brush indicating where you'll zoom to. Move the cursor to reposition the target viewport, then release to zoom to that location. Press Escape to cancel and return to the original view. This provides a fast way to navigate large canvases without losing your place.
+`zoomToBounds` accepts `inset` to add screen-space padding around the bounds and `targetZoom` to cap the zoom level.
 
 ### Animated movement
 
-Add smooth transitions using the `animation` option. The `EASINGS` object provides common easing functions:
+Add smooth transitions with the `animation` option. The [EASINGS](?) object provides common easing functions:
 
 ```typescript
 import { EASINGS } from 'tldraw'
@@ -193,36 +189,38 @@ editor.setCamera(
 )
 ```
 
-Camera animations stop automatically when users pan or zoom, ensuring user input takes precedence over programmatic movement. You can also stop camera animations at any time with the editor's `stopCameraAnimation()` method.
+Camera animations stop automatically when the user pans or zooms: user input takes precedence over programmatic movement. You can also stop them at any time with [Editor#stopCameraAnimation](?). See [Animation](/sdk-features/animation) for more on animation options and user preferences.
 
 ### Momentum scrolling
 
-Create momentum-based camera movement:
+Use [Editor#slideCamera](?) for kinetic scrolling, for example to keep the camera moving after a gesture ends:
 
 ```typescript
 editor.slideCamera({
-	speed: 2,
+	speed: 1,
 	direction: { x: 1, y: 0 },
 	friction: 0.1,
 	speedThreshold: 0.01,
 })
 ```
 
-The `speed` and `direction` control initial velocity. The `friction` value determines how fast the camera decelerates (higher friction stops movement faster). The `speedThreshold` sets the minimum speed before the animation stops completely. Use this for kinetic scrolling or to continue movement after gesture completion.
+`speed` is clamped to a maximum of `1` and `direction` sets the initial velocity. A `z` component on `direction` slides the zoom as well. `friction` controls how fast the camera decelerates (higher stops sooner) and defaults to `editor.options.cameraSlideFriction`. The slide ends once the speed drops below `speedThreshold`.
+
+### Quick zoom navigation
+
+The default tldraw UI has a quick zoom mode. Press `z` to select the zoom tool, then hold Shift. The camera zooms out to show your current viewport plus everything on the page, and a brush marks where you'll land. Move the cursor to place the brush and release Shift to zoom there. Press Escape to cancel and return to the original view.
 
 ## Collaboration features
 
-The camera system integrates with collaboration through user following. When following another user, the camera tracks their viewport position and zoom.
+Call [Editor#startFollowingUser](?) to track another user's viewport, or [Editor#zoomToUser](?) to jump to their cursor once. While following, the camera fits the other user's viewport inside yours: if the aspect ratios differ, the zoom adjusts so their whole viewport stays visible.
 
-User following respects the follower's viewport size. If aspect ratios differ, the system adjusts zoom to keep the followed user's content visible while maintaining the follower's viewport dimensions.
-
-See [User following](/sdk-features/user-following) for implementation details.
+See [User following](/sdk-features/user-following) for details.
 
 ## Related examples
 
-- **[Camera options](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/configuration/camera-options)** - Configure the camera's options and constraints including zoom behavior, pan speed, and camera bounds.
-- **[Image annotator](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/use-cases/image-annotator)** - An image annotator that demonstrates how to configure camera options for fixed-viewport annotation apps.
-- **[Slideshow (fixed camera)](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/use-cases/slideshow)** - A simple slideshow app with a fixed camera using camera constraints.
-- **[Lock camera zoom](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/editor-api/lock-camera-zoom)** - Lock the camera at a specific zoom level using the camera controls API.
-- **[Zoom to bounds](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/editor-api/zoom-to-bounds)** - Programmatically zoom the camera to specific bounds using the editor's `zoomToBounds` method.
-- **[Scrollable container](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/layout/scroll)** - Use the editor inside a scrollable container with proper mousewheel event handling.
+- [Camera options](/examples/configuration/camera-options) - Configure the camera's options and constraints, including zoom behavior, pan speed, and camera bounds.
+- [Image annotator](/examples/use-cases/image-annotator) - Configure camera options for a fixed-viewport annotation app.
+- [Slideshow (fixed camera)](/examples/use-cases/slideshow) - A slideshow with a fixed camera using camera constraints.
+- [Lock camera zoom](/examples/editor-api/lock-camera-zoom) - Lock the camera at a specific zoom level.
+- [Zoom to bounds](/examples/editor-api/zoom-to-bounds) - Zoom the camera to specific bounds with `zoomToBounds`.
+- [Scrollable container](/examples/layout/scroll) - Use the editor inside a scrollable container with mousewheel handling.

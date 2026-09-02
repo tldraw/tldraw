@@ -8,12 +8,18 @@ import {
 	maybeSnapToGrid,
 } from '@tldraw/editor'
 import { GeoShapeUtil } from '../GeoShapeUtil'
+import { getGeoTypeDefinition } from '../getGeoShapePath'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
 	override onPointerUp() {
 		this.complete()
+	}
+
+	override onLongPress() {
+		// On a touch (coarse pointer) long-press, cancel the pending shape so it leaves nothing behind.
+		if (this.editor.getInstanceState().isCoarsePointer) this.cancel()
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
@@ -64,7 +70,8 @@ export class Pointing extends StateNode {
 	}
 
 	override onComplete() {
-		this.complete()
+		// Not a release: see BaseBoxShapeTool's Pointing state for why this cancels.
+		this.cancel()
 	}
 
 	override onInterrupt() {
@@ -81,15 +88,10 @@ export class Pointing extends StateNode {
 		const scale = this.editor.getResizeScaleFactor()
 
 		const geo = this.editor.getStyleForNextShape(GeoShapeGeoStyle)
-		const geoShapeUtil = this.editor.getShapeUtil('geo') as GeoShapeUtil
+		const geoShapeUtil = this.editor.getShapeUtil<GeoShapeUtil>('geo')
 
-		const customType = geoShapeUtil.options.customGeoStyles?.[geo]
-		const size =
-			geo === 'star'
-				? { w: 200, h: 190 }
-				: geo === 'cloud'
-					? { w: 300, h: 180 }
-					: (customType?.defaultSize ?? { w: 200, h: 200 })
+		const def = getGeoTypeDefinition(geo, geoShapeUtil.options.customGeoTypes)
+		const size = def?.defaultSize ?? { w: 200, h: 200 }
 
 		this.editor.createShapes([
 			{

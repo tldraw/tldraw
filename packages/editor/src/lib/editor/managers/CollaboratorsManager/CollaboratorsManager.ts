@@ -1,10 +1,6 @@
 import { EMPTY_ARRAY, atom, computed } from '@tldraw/state'
-import { TLInstancePresence } from '@tldraw/tlschema'
-import { maxBy } from '@tldraw/utils'
-import {
-	getCollaboratorStateFromElapsedTime,
-	shouldShowCollaborator,
-} from '../../../utils/collaboratorState'
+import type { TLInstancePresence } from '@tldraw/tlschema'
+import { areArraysShallowEqual } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
 
 /**
@@ -17,12 +13,19 @@ import type { Editor } from '../../Editor'
  * @public
  */
 export class CollaboratorsManager {
-	constructor(private readonly editor: Editor) {
+	constructor(private readonly editor: Editor) {}
+
+	private _visibilityClockStarted = false
+
+	private _startVisibilityClock() {
+		if (this._visibilityClockStarted) return
+		this._visibilityClockStarted = true
+
 		// Editor disposes `editor.timers` on its own teardown, so the interval is
 		// automatically cleared when the editor is disposed.
-		editor.timers.setInterval(() => {
+		this.editor.timers.setInterval(() => {
 			this._visibilityClock.set(Date.now())
-		}, editor.options.collaboratorCheckIntervalMs)
+		}, this.editor.options.collaboratorCheckIntervalMs)
 	}
 
 	/**
@@ -34,33 +37,38 @@ export class CollaboratorsManager {
 	@computed
 	private _getCollaboratorsQuery() {
 		return this.editor.store.query.records('instance_presence', () => ({
-			userId: { neq: this.editor.user.getId() },
+			userId: { neq: this.editor.user.getRecordId() },
 		}))
 	}
+
+	// These queries all derive fresh arrays with map/filter, so they compare results with
+	// shallow (element-identity) equality: a presence update that leaves a derived list's
+	// elements unchanged — e.g. a peer moving on another page — keeps the previous array's
+	// identity and doesn't invalidate downstream subscribers such as the cursor layer.
 
 	/**
 	 * Returns a list of presence records for all peer collaborators.
 	 * This will return the latest presence record for each connected user.
 	 */
-	@computed
+	@computed({ isEqual: areArraysShallowEqual })
 	getCollaborators(): TLInstancePresence[] {
 		const allPresenceRecords = this._getCollaboratorsQuery().get()
 		if (!allPresenceRecords.length) return EMPTY_ARRAY
-		const userIds = [...new Set(allPresenceRecords.map((c) => c.userId))].sort()
-		return userIds.map((id) => {
-			const latestPresence = maxBy(
-				allPresenceRecords.filter((c) => c.userId === id),
-				(p) => p.lastActivityTimestamp ?? 0
-			)
-			return latestPresence!
-		})
+		const latestByUserId = new Map<string, TLInstancePresence>()
+		for (const presence of allPresenceRecords) {
+			const latest = latestByUserId.get(presence.userId)
+			if (!latest || (presence.lastActivityTimestamp ?? 0) > (latest.lastActivityTimestamp ?? 0)) {
+				latestByUserId.set(presence.userId, presence)
+			}
+		}
+		return [...latestByUserId.keys()].sort().map((id) => latestByUserId.get(id)!)
 	}
 
 	/**
 	 * Returns a list of presence records for all peer collaborators on the current page.
 	 * This will return the latest presence record for each connected user.
 	 */
-	@computed
+	@computed({ isEqual: areArraysShallowEqual })
 	getCollaboratorsOnCurrentPage(): TLInstancePresence[] {
 		const currentPageId = this.editor.getCurrentPageId()
 		return this.getCollaborators().filter((c) => c.currentPageId === currentPageId)
@@ -73,16 +81,44 @@ export class CollaboratorsManager {
 	 * highlighted users. Re-evaluates on the visibility clock, so callers don't need to
 	 * drive their own activity timer.
 	 */
-	@computed
+	@computed({ isEqual: areArraysShallowEqual })
 	getVisibleCollaborators(): TLInstancePresence[] {
+		const { editor } = this
+		const { collaboratorInactiveTimeoutMs, collaboratorIdleTimeoutMs } = editor.options
+
+		this._startVisibilityClock()
 		this._visibilityClock.get()
 		const now = Date.now()
-		return this.getCollaborators().filter((presence) => {
-			// Treat a missing `lastActivityTimestamp` as "active right now" (elapsed = 0)
-			// so newly-joined peers aren't immediately classified as idle/inactive.
-			const elapsed = Math.max(0, now - (presence.lastActivityTimestamp ?? now))
-			const state = getCollaboratorStateFromElapsedTime(this.editor, elapsed)
-			return shouldShowCollaborator(this.editor, presence, state)
+		const collaborators = this.getCollaborators()
+		if (!collaborators.length) return EMPTY_ARRAY
+
+		const { followingUserId, highlightedUserIds } = this.editor.getInstanceState()
+		const currentUserId = this.editor.user.getRecordId()
+
+		return collaborators.filter((presence) => {
+			const { lastActivityTimestamp, userId, chatMessage } = presence
+
+			// Treat a missing or zero `lastActivityTimestamp` as "active right now"
+			// (elapsed = 0) so newly-joined peers aren't immediately classified as
+			// idle/inactive. The broadcast default for peers who haven't moved their
+			// pointer yet is `0` (e.g. someone on a touch device who joins and just
+			// watches), so a plain `?? now` would leave them hidden. See issue #9017.
+			const elapsed = lastActivityTimestamp ? Math.max(0, now - lastActivityTimestamp) : 0
+
+			if (elapsed > collaboratorInactiveTimeoutMs) {
+				// Inactive: If they're inactive, only show if we're following them or they're highlighted
+				return followingUserId === userId || highlightedUserIds.includes(userId)
+			}
+
+			if (elapsed > collaboratorIdleTimeoutMs) {
+				// Idle: If they're idle and following us, hide them unless they have a chat message or are highlighted
+				if (presence.followingUserId === currentUserId) {
+					return !!(chatMessage || highlightedUserIds.includes(userId))
+				}
+			}
+
+			// Active
+			return true
 		})
 	}
 
@@ -90,7 +126,7 @@ export class CollaboratorsManager {
 	 * Returns a list of presence records for peer collaborators who should currently be
 	 * shown in the UI, filtered to those on the current page.
 	 */
-	@computed
+	@computed({ isEqual: areArraysShallowEqual })
 	getVisibleCollaboratorsOnCurrentPage(): TLInstancePresence[] {
 		const currentPageId = this.editor.getCurrentPageId()
 		return this.getVisibleCollaborators().filter((c) => c.currentPageId === currentPageId)

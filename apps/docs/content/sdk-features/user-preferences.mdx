@@ -18,19 +18,17 @@ accuracy: 9
 notes: Reading preferences snippet only shows 6 of 15 available getters. Some passive constructions. Persistence section could be condensed.
 ---
 
-User preferences store per-user settings that persist across sessions and synchronize across browser tabs. Access them through `editor.user`:
+User preferences store per-user settings that persist across sessions and synchronize across browser tabs. Access them through `editor.user`, a [UserPreferencesManager](?):
 
 ```tsx
-import { Tldraw, useEditor } from 'tldraw'
+import { Tldraw, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 function PreferencesPanel() {
 	const editor = useEditor()
 
-	// Read preferences
-	const isDark = editor.user.getIsDarkMode()
-	const animationSpeed = editor.user.getAnimationSpeed()
-	const locale = editor.user.getLocale()
+	// Read preferences reactively
+	const isDark = useValue('isDarkMode', () => editor.user.getIsDarkMode(), [editor])
 
 	// Update preferences
 	const toggleDarkMode = () => {
@@ -51,11 +49,13 @@ export default function App() {
 }
 ```
 
-Preferences fall into three categories: visual settings (color scheme, animation speed), interaction settings (snap mode, edge scroll speed), and identity properties (user name, color, locale). The system stores data in localStorage and uses the BroadcastChannel API to sync changes across tabs in real time.
+Preferences cover visual settings (color scheme, animation speed), interaction settings (snap mode, edge scroll speed), and identity (user name, color, locale). By default the editor stores them in localStorage and syncs them across tabs with a BroadcastChannel.
+
+To supply preferences from your own auth or state instead, pass a `user` created with [useTldrawCurrentUser](?) (or [createTLCurrentUser](?)) to the `Tldraw` component. Preferences you provide this way are yours to persist and sync. See [Collaboration](/sdk-features/collaboration#integrating-with-usetldrawcurrentuser) for a full example.
 
 ## Reading preferences
 
-The `UserPreferencesManager` exposes each preference as a computed value. These are reactive: when you read them, your component automatically re-renders when the value changes.
+The `UserPreferencesManager` exposes each preference as a computed value. These are reactive [signals](/sdk-features/signals): read them inside `useValue` (or another reactive context) and your component re-renders when the value changes.
 
 ```tsx
 // Individual preferences
@@ -66,13 +66,18 @@ const userName = editor.user.getName()
 const userColor = editor.user.getColor()
 const isSnapMode = editor.user.getIsSnapMode()
 
-// All preferences as an object
+// The user's id as a `user:` prefixed record id, for presence and attribution
+const userId = editor.user.getRecordId()
+
+// All preferences as an object, with defaults resolved
 const allPrefs = editor.user.getUserPreferences()
 ```
 
+The tables below list the getter for each preference. Every preference in [TLUserPreferences](?) is optional; `null` or `undefined` means "use the default".
+
 ## Updating preferences
 
-Use `updateUserPreferences()` to change one or more preferences at once:
+Use [UserPreferencesManager#updateUserPreferences](?) to change one or more preferences at once:
 
 ```tsx
 editor.user.updateUserPreferences({
@@ -88,36 +93,35 @@ Changes apply immediately, save to localStorage, and broadcast to other tabs.
 
 ### Visual preferences
 
-| Preference         | Type                            | Default                        | Description                          |
-| ------------------ | ------------------------------- | ------------------------------ | ------------------------------------ |
-| `colorScheme`      | `'light' \| 'dark' \| 'system'` | `'light'`                      | Theme mode                           |
-| `animationSpeed`   | `number`                        | `1` (or `0` if reduced motion) | Multiplier for animation durations   |
-| `enhancedA11yMode` | `boolean`                       | `false`                        | Additional UI labels and visual aids |
-
-When `colorScheme` is `'system'`, the editor tracks the operating system's dark mode preference through a media query listener.
+| Preference         | Getter                | Type                            | Default                                        | Description                          |
+| ------------------ | --------------------- | ------------------------------- | ---------------------------------------------- | ------------------------------------ |
+| `colorScheme`      | `getIsDarkMode`       | `'light' \| 'dark' \| 'system'` | `'light'`                                      | Theme mode                           |
+| `animationSpeed`   | `getAnimationSpeed`   | `number`                        | `1`, or `0` if the user prefers reduced motion | Multiplier for animation durations   |
+| `enhancedA11yMode` | `getEnhancedA11yMode` | `boolean`                       | `false`                                        | Additional UI labels and visual aids |
 
 ### Interaction preferences
 
-| Preference                    | Type                            | Default | Description                                     |
-| ----------------------------- | ------------------------------- | ------- | ----------------------------------------------- |
-| `isSnapMode`                  | `boolean`                       | `false` | Snap shapes to other shapes and guides          |
-| `isWrapMode`                  | `boolean`                       | `false` | Enable text wrapping in text shapes             |
-| `isDynamicSizeMode`           | `boolean`                       | `false` | Live shape updates during resize                |
-| `isPasteAtCursorMode`         | `boolean`                       | `false` | Paste at cursor instead of original location    |
-| `edgeScrollSpeed`             | `number`                        | `1`     | Speed multiplier for edge scrolling during drag |
-| `areKeyboardShortcutsEnabled` | `boolean`                       | `true`  | Enable or disable keyboard shortcuts            |
-| `inputMode`                   | `'trackpad' \| 'mouse' \| null` | `null`  | Optimize behavior for input device              |
+| Preference                    | Getter                           | Type                            | Default | Description                                                                    |
+| ----------------------------- | -------------------------------- | ------------------------------- | ------- | ------------------------------------------------------------------------------ |
+| `isSnapMode`                  | `getIsSnapMode`                  | `boolean`                       | `false` | Snap shapes to other shapes and guides                                         |
+| `isWrapMode`                  | `getIsWrapMode`                  | `boolean`                       | `false` | Brush selection only selects shapes fully inside the brush ("Select on wrap")  |
+| `isDynamicSizeMode`           | `getIsDynamicResizeMode`         | `boolean`                       | `false` | Scale new shapes with the zoom level so they stay the same size on screen      |
+| `isPasteAtCursorMode`         | `getIsPasteAtCursorMode`         | `boolean`                       | `false` | Paste at cursor instead of original location                                   |
+| `edgeScrollSpeed`             | `getEdgeScrollSpeed`             | `number`                        | `1`     | Speed multiplier for edge scrolling during drag                                |
+| `areKeyboardShortcutsEnabled` | `getAreKeyboardShortcutsEnabled` | `boolean`                       | `true`  | Enable or disable keyboard shortcuts                                           |
+| `inputMode`                   | `getInputMode`                   | `'trackpad' \| 'mouse' \| null` | `null`  | Optimize behavior for input device                                             |
+| `isZoomDirectionInverted`     | `getIsZoomDirectionInverted`     | `boolean`                       | `false` | Invert scroll-wheel zoom direction. Only applies when `inputMode` is `'mouse'` |
 
 ### Identity properties
 
-| Preference | Type     | Default             | Description                          |
-| ---------- | -------- | ------------------- | ------------------------------------ |
-| `id`       | `string` | Auto-generated      | Unique user identifier               |
-| `name`     | `string` | `''`                | Display name shown to collaborators  |
-| `color`    | `string` | Random from palette | User color for cursor and selections |
-| `locale`   | `string` | Browser locale      | Language code (e.g., `'en'`, `'fr'`) |
+| Preference | Getter                         | Type     | Default                          | Description                                                      |
+| ---------- | ------------------------------ | -------- | -------------------------------- | ---------------------------------------------------------------- |
+| `id`       | `getExternalId`, `getRecordId` | `string` | Auto-generated                   | Unique user identifier. `getRecordId` returns it as a `TLUserId` |
+| `name`     | `getName`                      | `string` | `''`                             | Display name shown to collaborators                              |
+| `color`    | `getColor`                     | `string` | Random from the built-in palette | User color for cursor and selections                             |
+| `locale`   | `getLocale`                    | `string` | Browser locale                   | Language code (e.g., `'en'`, `'fr'`)                             |
 
-The user color is randomly chosen from 12 visually distinct colors designed for collaboration.
+The user color is picked at random from `USER_COLORS`, a palette of 12 colors. The `id` is what [attribution](/sdk-features/attribution) and presence records use to identify the user.
 
 ## Dark mode
 
@@ -132,18 +136,10 @@ The editor-level `colorScheme` prop sets the default color scheme. When a user p
 
 ## Persistence and synchronization
 
-Preferences persist to localStorage under the key `TLDRAW_USER_DATA_v3`. Each save includes a version number, and the system runs migrations when loading older data to keep preferences compatible across tldraw releases.
+The default user persists preferences to localStorage under the key `TLDRAW_USER_DATA_v3`. Each save includes a version number, and the editor migrates older data on load so preferences stay compatible across tldraw releases. It validates the loaded data with [userTypeValidator](?) and falls back to fresh preferences if the data is invalid.
 
-The system uses the BroadcastChannel API to sync preference changes across browser tabs. When you change a preference in one tab, all other tabs update automatically. Each tab has a unique origin ID to avoid processing its own broadcasts.
-
-## Accessibility defaults
-
-The `animationSpeed` default respects the `prefers-reduced-motion` media query. Users with reduced motion enabled get `animationSpeed: 0` by default, disabling animations without manual configuration.
-
-## Validation
-
-Preferences are validated using `userTypeValidator` from `@tldraw/editor`. Invalid data falls back to fresh preferences rather than causing errors.
+The editor also broadcasts preference changes to other tabs over a BroadcastChannel. When you change a preference in one tab, all other tabs update automatically.
 
 ## Related examples
 
-- [Toggle dark mode](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/ui/dark-mode-toggle) - Toggle between light and dark mode by changing `colorScheme`.
+- [Toggle dark mode](/examples/ui/dark-mode-toggle) - Toggle between light and dark mode by changing `colorScheme`.

@@ -8,6 +8,7 @@ import {
 	mapObjectMapValues,
 	objectMapEntries,
 } from '@tldraw/utils'
+import { areShapesContentEqual } from '../../../utils/areShapesContentEqual'
 import type { Editor } from '../../Editor'
 
 interface FontState {
@@ -15,6 +16,17 @@ interface FontState {
 	readonly instance: FontFace
 	readonly loadingPromise: Promise<void>
 }
+
+interface ShapeFontFacesCache {
+	get(id: TLShapeId): TLFontFace[] | undefined
+}
+
+interface ShapeFontLoadStateCache {
+	get(id: TLShapeId): (FontState | null)[] | undefined
+}
+
+const EMPTY_SHAPE_FONT_FACES_CACHE: ShapeFontFacesCache = { get: () => undefined }
+const EMPTY_SHAPE_FONT_LOAD_STATE_CACHE: ShapeFontLoadStateCache = { get: () => undefined }
 
 /** @public */
 export class FontManager {
@@ -30,7 +42,7 @@ export class FontManager {
 			},
 			{
 				areResultsEqual: areArraysShallowEqual,
-				areRecordsEqual: (a, b) => a.props === b.props && a.meta === b.meta,
+				areRecordsEqual: areShapesContentEqual,
 			}
 		)
 
@@ -49,8 +61,15 @@ export class FontManager {
 		)
 	}
 
-	private readonly shapeFontFacesCache
-	private readonly shapeFontLoadStateCache
+	dispose() {
+		this.fontStates.clear()
+		this.fontsToLoad.clear()
+		this.shapeFontFacesCache = EMPTY_SHAPE_FONT_FACES_CACHE
+		this.shapeFontLoadStateCache = EMPTY_SHAPE_FONT_LOAD_STATE_CACHE
+	}
+
+	private shapeFontFacesCache: ShapeFontFacesCache
+	private shapeFontLoadStateCache: ShapeFontLoadStateCache
 
 	getShapeFontFaces(shape: TLShape | TLShapeId): TLFontFace[] {
 		const shapeId = typeof shape === 'string' ? shape : shape.id
@@ -88,16 +107,30 @@ export class FontManager {
 		if (existingState) return existingState.loadingPromise
 
 		const instance = this.findOrCreateFontFace(font)
+		// dispose() clears fontStates while loads may still be in flight, so a late
+		// callback must only touch the exact entry it was created for - not a fresh
+		// entry from a later request. Check identity, not just presence.
+		const isStale = () => this.fontStates.__unsafe__getWithoutCapture(font) !== state
 		const state: FontState = {
 			state: 'loading',
 			instance,
 			loadingPromise: instance
 				.load()
 				.then(() => {
+					if (isStale()) {
+						// eslint-disable-next-line no-console
+						console.debug(`Font "${font.family}" load interrupted by editor dispose`)
+						return
+					}
 					this.editor.getContainerDocument().fonts.add(instance)
 					this.fontStates.update(font, (s) => ({ ...s, state: 'ready' }))
 				})
 				.catch((err) => {
+					if (isStale()) {
+						// eslint-disable-next-line no-console
+						console.debug(`Font "${font.family}" load interrupted by editor dispose`, err)
+						return
+					}
 					console.error(err)
 					this.fontStates.update(font, (s) => ({ ...s, state: 'error' }))
 				}),
@@ -127,7 +160,26 @@ export class FontManager {
 	}
 
 	private findOrCreateFontFace(font: TLFontFace) {
-		const fonts = this.editor.getContainerDocument().fonts
+		const containerDocument = this.editor.getContainerDocument()
+
+		// `findOrCreateFontFace` runs for every font on every editor mount, and a fresh
+		// editor (e.g. switching documents) gets a fresh FontManager with no memory of the
+		// previous one. The dedup below is an O(n) scan of the document's whole FontFaceSet,
+		// so without a cache that scan re-ran on every mount (measurably expensive on mobile
+		// Safari). Cache the resolved FontFace per document so repeated lookups - and
+		// remounts - are O(1). Keyed per document for cross-window embedding.
+		let cache = fontFaceCacheByDocument.get(containerDocument)
+		if (!cache) {
+			cache = new Map()
+			fontFaceCacheByDocument.set(containerDocument, cache)
+		}
+		const key = getFontFaceCacheKey(font)
+		const cached = cache.get(key)
+		if (cached) return cached
+
+		const fonts = containerDocument.fonts
+		// On a cache miss we still scan once, so font faces added outside this manager
+		// (e.g. preloaded fonts) are reused rather than duplicated.
 		for (const existing of fonts) {
 			if (
 				existing.family === font.family &&
@@ -135,6 +187,7 @@ export class FontManager {
 					([key, defaultValue]) => existing[key] === (font[key] ?? defaultValue)
 				)
 			) {
+				cache.set(key, existing)
 				return existing
 			}
 		}
@@ -146,6 +199,7 @@ export class FontManager {
 		})
 
 		fonts.add(instance)
+		cache.set(key, instance)
 
 		return instance
 	}
@@ -186,4 +240,28 @@ const defaultFontFaceDescriptors = {
 	ascentOverride: 'normal',
 	descentOverride: 'normal',
 	lineGapOverride: 'normal',
+}
+
+// A FontFace is fully determined by its family and descriptors, so resolved faces can be
+// cached per document and reused across FontManager instances (e.g. editor remounts),
+// turning the per-lookup FontFaceSet scan into an O(1) map lookup. Faces are never removed
+// from `document.fonts` (FontManager.dispose leaves them), so the cache stays valid for the
+// document's lifetime. Keyed per document for cross-window embedding.
+let fontFaceCacheByDocument = new WeakMap<Document, Map<string, FontFace>>()
+
+function getFontFaceCacheKey(font: TLFontFace): string {
+	return JSON.stringify([
+		font.family,
+		...objectMapEntries(defaultFontFaceDescriptors).map(
+			([key, defaultValue]) => font[key] ?? defaultValue
+		),
+	])
+}
+
+/**
+ * Resets the per-document font-face cache. Only intended for tests.
+ * @internal
+ */
+export function clearFontFaceCacheForTests() {
+	fontFaceCacheByDocument = new WeakMap()
 }

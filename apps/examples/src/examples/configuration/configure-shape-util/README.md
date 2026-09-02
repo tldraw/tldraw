@@ -14,10 +14,12 @@ keywords:
   ]
 ---
 
-Change the behavior of built-in shapes by setting their options.
+Change the behavior of built-in shapes with `ShapeUtil.configure`.
 
 ---
 
-Some of the builtin tldraw shapes can be customized to behave differently based on your needs. This is done via the `ShapeUtil.configure` function which returns a new version of the shape's util class with custom options specified.
+Several built-in shape utils expose an `options` object. `ShapeUtil.configure(options)` returns a subclass of the util with those options overridden, and passing that subclass in the `shapeUtils` prop replaces the default one.
 
-You can see a shape's options by looking at the `options` property of its `ShapeUtil`. For example, the note shape's options are listed at [`NoteShapeOptions`](https://tldraw.dev/reference/tldraw/NoteShapeOptions).
+You can find a shape's options in the `options` property of its util, for example [`NoteShapeOptions`](https://tldraw.dev/reference/tldraw/NoteShapeOptions) and [`FrameShapeOptions`](https://tldraw.dev/reference/tldraw/FrameShapeOptions). Here notes get `resizeMode: 'scale'` so they can be resized by dragging a handle, and frames get `showColors: true` so the color style applies to them.
+
+Try creating a note (N) and dragging a corner handle, or a frame (F) and changing its color in the style panel.

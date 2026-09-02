@@ -12,7 +12,6 @@ import {
 	exhaustiveSwitchError,
 	isEqual,
 	objectMapEntries,
-	structuredClone,
 	uniqueId,
 } from '@tldraw/utils'
 import {
@@ -25,6 +24,7 @@ import {
 } from './diff'
 import { interval } from './interval'
 import {
+	TLObjectStoreAccess,
 	TLPushRequest,
 	TLSocketClientSentEvent,
 	TLSocketServerSentDataEvent,
@@ -286,6 +286,12 @@ export interface TLPersistentClientSocket<
 
 const PING_INTERVAL = 5000
 const MAX_TIME_TO_WAIT_FOR_SERVER_INTERACTION_BEFORE_RESETTING_CONNECTION = PING_INTERVAL * 2
+/**
+ * How long an unanswered ping may stay outstanding before the connection is considered dead.
+ * Tuned together with MAX_TIME_TO_WAIT_FOR_SERVER_INTERACTION_BEFORE_RESETTING_CONNECTION:
+ * a reset needs both stale interaction and a ping overdue by this much.
+ */
+const PONG_TIMEOUT = PING_INTERVAL * 2
 
 // Should connect support chunking the response to allow for large payloads?
 
@@ -367,6 +373,11 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	/** The last clock time from the most recent server update */
 	private lastServerClock = -1
 	private lastServerInteractionTimestamp = Date.now()
+	/**
+	 * Send time of the oldest outstanding ping; answered iff `lastServerInteractionTimestamp >= it`
+	 * (any server message counts). Null until the first ping after (re)connect.
+	 */
+	private firstUnansweredPingAt: number | null = null
 
 	/** The queue of in-flight push requests that have not yet been acknowledged by the server */
 	private pendingPushRequests: TLPushRequest<R>[] = []
@@ -438,8 +449,13 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 * @param self - The TLSyncClient instance that connected
 	 * @param details - Connection details
 	 *   - isReadonly - Whether the connection is in read-only mode
+	 *   - objectAccess - Write access for object-store lane record types (defaults to 'write'
+	 *     when the server doesn't send it, e.g. older servers or rooms with no object lane)
 	 */
-	private readonly onAfterConnect?: (self: this, details: { isReadonly: boolean }) => void
+	private readonly onAfterConnect?: (
+		self: this,
+		details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
+	) => void
 
 	private readonly onCustomMessageReceived?: TLCustomMessageHandler
 
@@ -479,7 +495,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		onLoad(self: TLSyncClient<R, S>): void
 		onSyncError(reason: string): void
 		onCustomMessageReceived?: TLCustomMessageHandler
-		onAfterConnect?(self: TLSyncClient<R, S>, details: { isReadonly: boolean }): void
+		onAfterConnect?(
+			self: TLSyncClient<R, S>,
+			details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
+		): void
 		didCancel?(): boolean
 	}) {
 		this.didCancel = config.didCancel
@@ -592,6 +611,14 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				this.debug('ping loop', { isConnectedToRoom: this.isConnectedToRoom })
 				if (!this.isConnectedToRoom) return
 				try {
+					// advance the marker only when the previous ping was answered: a half-open socket
+					// that accepts sends but returns nothing must not keep refreshing its own alibi
+					if (
+						this.firstUnansweredPingAt === null ||
+						this.lastServerInteractionTimestamp >= this.firstUnansweredPingAt
+					) {
+						this.firstUnansweredPingAt = Date.now()
+					}
 					this.socket.sendMessage({ type: 'ping' })
 				} catch (error) {
 					console.warn('ping failed, resetting', error)
@@ -610,11 +637,27 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 					MAX_TIME_TO_WAIT_FOR_SERVER_INTERACTION_BEFORE_RESETTING_CONNECTION
 				) {
 					this.debug('health check passed', { timeSinceLastServerInteraction })
-					// last ping was recent, so no need to take any action
 					return
 				}
 
-				console.warn(`Haven't heard from the server in a while, resetting connection...`)
+				// Silence alone is not evidence of a dead socket: in a throttled hidden tab our own ping
+				// loop stops, so the server had nothing to answer. Only reset on an unanswered ping.
+				const firstUnansweredPingAt = this.firstUnansweredPingAt
+				const pingOverdue =
+					firstUnansweredPingAt !== null &&
+					this.lastServerInteractionTimestamp < firstUnansweredPingAt &&
+					Date.now() - firstUnansweredPingAt >= PONG_TIMEOUT
+				if (!pingOverdue) {
+					this.debug('health check stale but no overdue ping', { timeSinceLastServerInteraction })
+					return
+				}
+
+				// A frozen tab can deliver a queued pong only after these catch-up ticks run, so one
+				// spurious reset on unfreeze is still possible — rare, and the reconnect is clean.
+				console.warn(`Haven't heard from the server in a while, resetting connection...`, {
+					timeSinceLastServerInteraction,
+					pingOutstandingMs: Date.now() - firstUnansweredPingAt!,
+				})
 				this.resetConnection()
 			}, PING_INTERVAL * 2)
 		)
@@ -676,6 +719,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 		this.lastPushedPresenceState = null
 		this.isConnectedToRoom = false
+		this.firstUnansweredPingAt = null
 		this.pendingPushRequests = []
 		this.incomingDiffBuffer = []
 		this.unsentChanges.nextDiff = undefined
@@ -758,7 +802,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			// this.isConnectedToRoom = true
 			// this.store.applyDiff(stashedChanges, false)
 
-			this.onAfterConnect?.(this, { isReadonly: event.isReadonly })
+			this.onAfterConnect?.(this, {
+				isReadonly: event.isReadonly,
+				objectAccess: event.objectAccess ?? 'write',
+			})
 			const presence = this.presenceState?.get()
 			if (presence) {
 				this.pushPresence(presence)
@@ -826,6 +873,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.disposables.forEach((dispose) => dispose())
 		this.sendUnsentChanges.cancel?.()
 		this.scheduleRebase.cancel?.()
+		if (typeof window !== 'undefined' && (window as any).tlsync === this) {
+			delete (window as any).tlsync
+		}
 	}
 
 	private lastPushedPresenceState: R | null = null
@@ -850,10 +900,11 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		// in offline mode, we only accumulate in speculativeChanges
 		if (!this.isConnectedToRoom) return
 		if (!this.unsentChanges.nextDiff) {
-			this.unsentChanges.nextDiff = structuredClone(change)
-		} else {
-			squashRecordDiffsMutable(this.unsentChanges.nextDiff, [change])
+			this.unsentChanges.nextDiff = { added: {} as any, updated: {} as any, removed: {} as any }
 		}
+		// records are immutable, so sharing their references with `change` is fine — the
+		// squash gives nextDiff its own containers and tuples without deep-cloning records
+		squashRecordDiffsMutable(this.unsentChanges.nextDiff, [change])
 		this.sendUnsentChanges()
 	}
 

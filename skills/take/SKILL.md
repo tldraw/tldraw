@@ -42,6 +42,8 @@ Read the full issue and comments. Identify:
 - Technical notes and affected files.
 - Relevant discussion or clarifications.
 
+Agent-drafted issues may include `## Confidence` and `## Open questions` sections. Treat any unanswered `Critical:` question, `_Awaiting answer._` entry, or `More Info Needed` label as a blocker unless codebase exploration proves the intended behavior is unambiguous. Resolve blockers with the user before implementing; non-critical questions marked `_Deferred by user; not blocking implementation._` may remain open.
+
 If the issue lacks detail, explore the codebase before deciding whether implementation is safe.
 
 ### 3. Assign the issue
@@ -103,7 +105,7 @@ End with:
 
 ## Rules
 
-- Ask the user when requirements are unclear.
+- Ask the user when requirements are unclear. Do not implement past unanswered critical questions or unresolved `_Awaiting answer._` placeholders.
 - Do not guess at unspecified product behavior.
 - Keep the implementation scoped to the issue.
 - Never include AI attribution in commits, issues, or PRs.

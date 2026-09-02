@@ -4,12 +4,20 @@
 
 `@tldraw/state` powers the reactive system at the heart of [tldraw](https://www.tldraw.com), handling everything from canvas updates to collaborative state synchronization. It's designed to work seamlessly with [@tldraw/store](https://github.com/tldraw/tldraw/tree/main/packages/store) and has optional [React bindings](https://github.com/tldraw/tldraw/tree/main/packages/state-react).
 
+## Documentation
+
+Documentation for the most recent release can be found on [tldraw.dev/docs](https://tldraw.dev/docs), including [reference docs](https://tldraw.dev/reference/editor/Editor). Our release notes can be found [here](https://tldraw.dev/releases).
+
+For more agent-friendly docs, see our [LLMs.txt](https://tldraw.dev/llms.txt).
+
+A `DOCS.md` file is included alongside this README in the published package, with detailed API documentation and usage examples.
+
 ## Why @tldraw/state?
 
 - **Fine-grained reactivity** - Only re-runs computations when their actual dependencies change
 - **High performance** - Lazy evaluation and efficient dependency tracking
 - **Automatic updates** - Derived values and side effects update automatically
-- **Time travel** - Built-in history tracking and transactions with rollback support
+- **Incremental updates** - Built-in diff history and transactions with rollback support
 - **Framework agnostic** - Works with any JavaScript framework or vanilla JS
 - **TypeScript first** - Excellent type safety with full TypeScript support
 
@@ -21,7 +29,7 @@ Perfect for building reactive UIs, real-time collaborative apps, and complex sta
 npm install @tldraw/state
 ```
 
-## Quick Start
+## Quick start
 
 ```ts
 import { atom, computed, react } from '@tldraw/state'
@@ -49,9 +57,9 @@ count.set(42)
 // Logs: "Hello, tldraw! Count: 42"
 ```
 
-## Core Concepts
+## Core concepts
 
-### Atoms - State Containers
+### Atoms - state containers
 
 Atoms hold raw values and are the foundation of your reactive state:
 
@@ -70,7 +78,7 @@ user.update((current) => ({ ...current, age: 31 }))
 theme.set('dark')
 ```
 
-### Computed Values - Automatic Derivation
+### Computed values - automatic derivation
 
 Computed signals derive their values from other signals and update automatically:
 
@@ -90,7 +98,7 @@ firstName.set('Jane')
 console.log(fullName.get()) // "Jane Doe" - automatically updated!
 ```
 
-### Reactions - Side Effects
+### Reactions - side effects
 
 Reactions run side effects when their dependencies change:
 
@@ -112,7 +120,7 @@ selectedId.set('shape-123')
 stop()
 ```
 
-### Transactions - Batched Updates
+### Transactions - batched updates
 
 Batch multiple updates to prevent intermediate reactions:
 
@@ -135,11 +143,11 @@ transact(() => {
 // Logs: "(10, 20)"
 ```
 
-## Advanced Features
+## Advanced features
 
-### History & Time Travel
+### History and diffs
 
-Track changes over time for undo/redo functionality:
+Track changes over time so that dependents can update incrementally instead of recomputing from scratch:
 
 ```ts
 const canvas = atom(
@@ -151,16 +159,17 @@ const canvas = atom(
 	}
 )
 
-// Make changes...
+// Remember where you are...
+const startEpoch = canvas.lastChangedEpoch
+
+// ... make changes ...
 canvas.update((state) => ({ shapes: [...state.shapes, newShape] }))
 
-// Get diffs since a point in time
-const startTime = getGlobalEpoch()
-// ... make more changes ...
-const diffs = canvas.getDiffSince(startTime)
+// ... and get the diffs since then (or RESET_VALUE if the history doesn't reach back that far)
+const diffs = canvas.getDiffSince(startEpoch)
 ```
 
-### Performance Optimization
+### Performance optimization
 
 Use `unsafe__withoutCapture` to read values without creating dependencies:
 
@@ -186,21 +195,18 @@ react('debug-reaction', () => {
 })
 ```
 
-## Integration Examples
+## Integration examples
 
 ### With tldraw SDK
 
 ```ts
-// In a tldraw application
-const editor = useEditor()
-
-// Create reactive state that works with tldraw
+// e.g. in Tldraw's onMount callback, which receives the editor
 const selectedShapes = computed('selectedShapes', () => {
 	return editor.getSelectedShapeIds().map((id) => editor.getShape(id))
 })
 
-// React to selection changes
-react('update-property-panel', () => {
+// React to selection changes; call the returned function to stop
+const stop = react('update-property-panel', () => {
 	const shapes = selectedShapes.get()
 	updatePropertyPanel(shapes)
 })
@@ -215,27 +221,28 @@ npm install @tldraw/state-react
 ```
 
 ```tsx
-import { useAtom, useComputed } from '@tldraw/state-react'
+import { track, useAtom, useComputed } from '@tldraw/state-react'
 
-function Counter() {
-	const [count, setCount] = useAtom(countAtom)
-	const doubled = useComputed(() => count * 2, [count])
+// track() re-renders the component when any signal it reads changes
+const Counter = track(function Counter() {
+	const count = useAtom('count', 0)
+	const doubled = useComputed('doubled', () => count.get() * 2, [count])
 
 	return (
 		<div>
-			<p>Count: {count}</p>
-			<p>Doubled: {doubled}</p>
-			<button onClick={() => setCount(count + 1)}>+</button>
+			<p>Count: {count.get()}</p>
+			<p>Doubled: {doubled.get()}</p>
+			<button onClick={() => count.set(count.get() + 1)}>+</button>
 		</div>
 	)
-}
+})
 ```
 
-## API Reference
+## API reference
 
 For complete API documentation, see [DOCS.md](./DOCS.md).
 
-### Core Functions
+### Core functions
 
 - `atom(name, initialValue, options?)` - Create a reactive state container
 - `computed(name, computeFn, options?)` - Create a derived value
@@ -252,16 +259,16 @@ For complete API documentation, see [DOCS.md](./DOCS.md).
 - `unsafe__withoutCapture(fn)` - Read state without creating dependencies
 - `whyAmIRunning()` - Debug what triggered an update
 - `getComputedInstance(obj, prop)` - Get underlying computed instance
-- `getGlobalEpoch()` - Get current time for history tracking
+- `signal.getDiffSince(epoch)` - Get the diffs recorded since an epoch (see `signal.lastChangedEpoch`)
 
-## Related Packages
+## Related packages
 
 - **[@tldraw/state-react](../state-react)** - React bindings for @tldraw/state
 - **[@tldraw/store](../store)** - Record storage built on @tldraw/state
 - **[@tldraw/editor](../editor)** - The tldraw canvas editor
 - **[@tldraw/tldraw](../tldraw)** - Complete tldraw UI components
 
-## Examples & Patterns
+## Examples & patterns
 
 Looking for more examples? Check out:
 
@@ -269,7 +276,7 @@ Looking for more examples? Check out:
 
 ## Contributing
 
-Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
+Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
 
 ## License
 

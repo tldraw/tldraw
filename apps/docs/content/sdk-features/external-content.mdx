@@ -21,7 +21,7 @@ notes: None - previously identified issues were fixed.
 The external content system handles content from outside the editor: pasted text, dropped files, embedded URLs, and more. You register handlers for specific content types, and the editor routes incoming content to the appropriate handler.
 
 ```tsx
-import { Tldraw, Editor, defaultHandleExternalTextContent } from 'tldraw'
+import { Tldraw, Editor, defaultHandleExternalTextContent, toRichText } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 export default function App() {
@@ -36,7 +36,7 @@ export default function App() {
 					type: 'text',
 					x: center.x,
 					y: center.y,
-					props: { text: 'Custom HTML handling!' },
+					props: { richText: toRichText('Custom HTML handling!') },
 				})
 			} else {
 				// Fall back to default behavior
@@ -55,47 +55,48 @@ export default function App() {
 
 ## How it works
 
-Two systems handle external content: content handlers and asset handlers.
-
-**Content handlers** transform external content into shapes. When a user pastes text, drops an image, or embeds a URL, the content handler for that type processes the data and creates shapes on the canvas.
-
-**Asset handlers** process external assets into asset records. When an image file arrives, the asset handler extracts dimensions, uploads the file, and returns an asset record with the uploaded URL. The content handler then creates a shape referencing that asset.
+Two systems handle external content. Content handlers transform external content into shapes: when a user pastes text, drops an image, or embeds a URL, the content handler for that type creates shapes on the canvas. Asset handlers turn external files and URLs into asset records: when an image file arrives, the asset handler extracts dimensions, uploads the file, and returns an asset record with the uploaded URL. The content handler then creates a shape referencing that asset.
 
 The flow works like this:
 
 1. Content arrives (paste, drop, or API call)
-2. The editor calls `putExternalContent` with the content object
+2. The editor calls `putExternalContent` with the content object (a no-op in readonly mode unless you pass `{ force: true }`)
 3. The registered handler for that content type processes it
 4. The handler creates shapes, assets, or both
 
+`<Tldraw>` registers the default handlers before it runs your `onMount`, so any handler you register in `onMount` replaces the default for that type.
+
 ## Content types
 
-The system supports these content types:
+Every content type carries an optional `point` (where to place the content) and `sources`, the other formats found on the clipboard alongside it (`text` with a `subtype` of `html`, `text`, `url`, or `json`, plus `tldraw`, `excalidraw`, and `error`).
+
+```typescript
+interface TLBaseExternalContent {
+	sources?: TLExternalContentSource[]
+	point?: VecLike
+}
+```
 
 ### Text
 
-Text content comes from clipboard paste operations. The handler receives `text` (plain text), optional `html` (HTML markup), and `point` (where to place the content). The default handler creates text shapes, detecting right-to-left languages and handling multi-line text.
+Text content comes from clipboard paste operations. The handler receives `text` (plain text) and optional `html`. The default handler creates a text shape, converting HTML to rich text when it's present, detecting right-to-left languages, and left-aligning multi-line text.
 
 ```typescript
-interface TLTextExternalContent {
+interface TLTextExternalContent extends TLBaseExternalContent {
 	type: 'text'
 	text: string
 	html?: string
-	point?: VecLike
-	sources?: TLExternalContentSource[]
 }
 ```
 
 ### Files
 
-File content represents one or more files dropped onto the canvas. The handler receives an array of `File` objects and validates file types and sizes before creating shapes.
+File content represents one or more files dropped onto the canvas. The handler receives an array of `File` objects and validates file types and sizes before creating shapes. The `<Tldraw>` props `maxAssetSize`, `maxImageDimension`, `acceptedImageMimeTypes`, and `acceptedVideoMimeTypes` control those limits, and `editor.options.maxFilesAtOnce` caps the batch.
 
 ```typescript
-interface TLFilesExternalContent {
+interface TLFilesExternalContent extends TLBaseExternalContent {
 	type: 'files'
 	files: File[]
-	point?: VecLike
-	ignoreParent?: boolean
 }
 ```
 
@@ -103,15 +104,14 @@ The default handler creates temporary previews for images, uploads the files, an
 
 ### File replace
 
-File replace content handles replacing an existing image or video shape's asset. This is used when a user drags a new file onto an existing image shape.
+File replace content swaps an existing image or video shape's asset. The Replace media action dispatches it through [Editor#replaceExternalContent](?).
 
 ```typescript
-interface TLFileReplaceExternalContent {
+interface TLFileReplaceExternalContent extends TLBaseExternalContent {
 	type: 'file-replace'
 	file: File
 	shapeId: TLShapeId
-	isImage: boolean
-	point?: VecLike
+	isImage: boolean // Deprecated: no longer used by the default handler
 }
 ```
 
@@ -119,25 +119,23 @@ The default handler validates the file, creates a new asset, and updates the tar
 
 ### URLs
 
-URL content represents a URL to insert. The default handler checks if the URL matches a known embed pattern (YouTube, Twitter, etc.) and creates an embed shape. Otherwise, it fetches Open Graph metadata and creates a bookmark shape.
+URL content represents a URL to insert. The default handler rejects invalid URLs with a toast, then checks if the URL matches a known embed pattern (YouTube, Figma, etc.) and creates an embed shape. Otherwise, it fetches Open Graph metadata and creates a bookmark shape.
 
 ```typescript
-interface TLUrlExternalContent {
+interface TLUrlExternalContent extends TLBaseExternalContent {
 	type: 'url'
 	url: string
-	point?: VecLike
 }
 ```
 
 ### SVG text
 
-SVG text content handles raw SVG markup. The handler parses the SVG, extracts dimensions, creates an image asset, and inserts an image shape.
+SVG text content handles raw SVG markup. The handler sanitizes and parses the SVG, extracts dimensions, creates an image asset, and inserts an image shape.
 
 ```typescript
-interface TLSvgTextExternalContent {
+interface TLSvgTextExternalContent extends TLBaseExternalContent {
 	type: 'svg-text'
 	text: string
-	point?: VecLike
 }
 ```
 
@@ -146,11 +144,10 @@ interface TLSvgTextExternalContent {
 Embed content creates embed shapes for embeddable URLs like YouTube videos. This content type is usually invoked by the URL handler when it detects an embeddable URL.
 
 ```typescript
-interface TLEmbedExternalContent<EmbedDefinition> {
+interface TLEmbedExternalContent<EmbedDefinition> extends TLBaseExternalContent {
 	type: 'embed'
 	url: string
 	embed: EmbedDefinition
-	point?: VecLike
 }
 ```
 
@@ -159,10 +156,9 @@ interface TLEmbedExternalContent<EmbedDefinition> {
 These handlers process serialized content from other tldraw editors or Excalidraw. The `tldraw` handler calls `putContentOntoCurrentPage` to insert shapes. The `excalidraw` handler converts Excalidraw shapes to tldraw equivalents.
 
 ```typescript
-interface TLTldrawExternalContent {
+interface TLTldrawExternalContent extends TLBaseExternalContent {
 	type: 'tldraw'
 	content: TLContent
-	point?: VecLike
 }
 ```
 
@@ -170,14 +166,16 @@ interface TLTldrawExternalContent {
 
 Asset handlers turn external files and URLs into asset records. There are two asset handler types:
 
-| Type   | Input         | Output                                  |
-| ------ | ------------- | --------------------------------------- |
-| `file` | `File` object | Image or video asset record             |
-| `url`  | URL string    | Bookmark asset with Open Graph metadata |
+| Type   | Input         | Output                                                                                          |
+| ------ | ------------- | ----------------------------------------------------------------------------------------------- |
+| `file` | `File` object | An asset record from whichever [AssetUtil](?) accepts the MIME type (image or video by default) |
+| `url`  | URL string    | Bookmark asset with Open Graph metadata                                                         |
 
-The `file` handler extracts dimensions and file size, uploads the file via `editor.uploadAsset`, and returns an asset record. The `url` handler fetches the page's Open Graph metadata (title, description, image) and creates a bookmark asset.
+The default `file` handler checks the file's type and size, sanitizes SVGs, asks the matching asset util for an asset record, uploads the file via `editor.uploadAsset`, and returns the record. To support a new file type, register a custom [AssetUtil](?) (see [Assets](/sdk-features/assets)) rather than replacing this handler. The `url` handler fetches the page's Open Graph metadata (title, description, image) and creates a bookmark asset.
 
 ```typescript
+import { AssetRecordType, MediaHelpers } from 'tldraw'
+
 editor.registerExternalAssetHandler('file', async ({ file, assetId }) => {
 	const size = await MediaHelpers.getImageSize(file)
 
@@ -191,7 +189,7 @@ editor.registerExternalAssetHandler('file', async ({ file, assetId }) => {
 			w: size.w,
 			h: size.h,
 			mimeType: file.type,
-			isAnimated: false,
+			isAnimated: await MediaHelpers.isAnimated(file),
 			fileSize: file.size,
 		},
 		meta: {},
@@ -248,44 +246,36 @@ editor.registerExternalContentHandler('text', null)
 
 ## Customizing handlers
 
-Register a new handler to replace the default behavior for any content type. Your handler receives the content object and can create shapes, insert assets, or do anything else.
+Register a new handler to replace the default behavior for any content type. Your handler receives the content object and can create shapes, insert assets, or do anything else. To extend rather than replace, call the default handler from your custom handler, as the example at the top of this page does for text.
 
-To extend rather than replace, call the default handler from your custom handler:
+The default handlers are exported from `tldraw`. Some of them take a third [TLDefaultExternalContentHandlerOpts](?) argument carrying `toasts`, `msg`, and the file limits from `<Tldraw>`; get `toasts` and `msg` from [useToasts](?) and [useTranslation](?) (or [useDefaultHelpers](?)) inside the UI.
+
+| Handler                                   | Extra options |
+| ----------------------------------------- | ------------- |
+| `defaultHandleExternalTextContent`        | No            |
+| `defaultHandleExternalSvgTextContent`     | No            |
+| `defaultHandleExternalEmbedContent`       | No            |
+| `defaultHandleExternalTldrawContent`      | No            |
+| `defaultHandleExternalExcalidrawContent`  | No            |
+| `defaultHandleExternalFileContent`        | Yes           |
+| `defaultHandleExternalFileReplaceContent` | Yes           |
+| `defaultHandleExternalUrlContent`         | Yes           |
+| `defaultHandleExternalFileAsset`          | Yes           |
+| `defaultHandleExternalUrlAsset`           | Yes           |
 
 ```typescript
-import { defaultHandleExternalTextContent } from 'tldraw'
+import { defaultHandleExternalFileContent, useToasts, useTranslation } from 'tldraw'
 
-editor.registerExternalContentHandler('text', async (content) => {
-	// Custom handling for HTML
-	const htmlSource = content.sources?.find((s) => s.type === 'text' && s.subtype === 'html')
-	if (htmlSource) {
-		const center = content.point ?? editor.getViewportPageBounds().center
-		editor.createShape({
-			type: 'my-html-shape',
-			x: center.x,
-			y: center.y,
-			props: { html: htmlSource.data },
-		})
-		return
-	}
+const toasts = useToasts()
+const msg = useTranslation()
 
-	// Fall back to default for plain text
-	await defaultHandleExternalTextContent(editor, content)
+editor.registerExternalContentHandler('files', async (content) => {
+	const small = content.files.filter((file) => file.size < 1024 * 1024)
+	await defaultHandleExternalFileContent(editor, { ...content, files: small }, { toasts, msg })
 })
 ```
 
-The default handlers are exported from `@tldraw/tldraw`:
-
-- `defaultHandleExternalTextContent`
-- `defaultHandleExternalFileContent`
-- `defaultHandleExternalUrlContent`
-- `defaultHandleExternalSvgTextContent`
-- `defaultHandleExternalEmbedContent`
-- `defaultHandleExternalTldrawContent`
-- `defaultHandleExternalExcalidrawContent`
-- `defaultHandleExternalFileAsset`
-- `defaultHandleExternalUrlAsset`
-- `defaultHandleExternalFileReplaceContent`
+For clipboard-only hooks that run before parsing or before the handler (`onClipboardPasteRaw`, `onBeforePasteFromClipboard`, `onBeforeCopyToClipboard`), see [Clipboard](/sdk-features/clipboard).
 
 ## Related examples
 

@@ -5,6 +5,7 @@ import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
 import { useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
+import { embedShapeUtils } from '../../../utils/embedShapeUtil'
 import { globalEditor } from '../../../utils/globalEditor'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
@@ -103,6 +104,7 @@ function TlaEditorInner({
 				licenseKey={getLicenseKey()}
 				snapshot={snapshot}
 				assetUrls={assetUrls}
+				shapeUtils={embedShapeUtils}
 				onMount={handleMount}
 				overrides={[fileSystemUiOverrides]}
 				initialState={'hand'}

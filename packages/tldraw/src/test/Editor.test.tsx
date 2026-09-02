@@ -325,6 +325,30 @@ describe('Editor.TickManager', () => {
 			y: 0.23437,
 		})
 	})
+
+	it('smooths pointer velocity consistently across frame rates', () => {
+		const getVelocityAfterMoving = (elapsed: number, frameCount: number) => {
+			const testEditor = new TestEditor({})
+			try {
+				for (let i = 1; i <= frameCount; i++) {
+					testEditor.pointerMove((10 * i) / frameCount, (10 * i) / frameCount)
+					testEditor.inputs.updatePointerVelocity(elapsed)
+				}
+				return testEditor.inputs.getPointerVelocity().toJson()
+			} finally {
+				testEditor.dispose()
+			}
+		}
+
+		expect(getVelocityAfterMoving(16, 1)).toCloselyMatchObject({
+			x: 0.3125,
+			y: 0.3125,
+		})
+		expect(getVelocityAfterMoving(8, 2)).toCloselyMatchObject({
+			x: 0.3125,
+			y: 0.3125,
+		})
+	})
 })
 
 describe("App's default tool", () => {
@@ -889,6 +913,9 @@ describe('instance.isReadonly', () => {
 		expect(editor.getIsReadonly()).toBe(false)
 		mode.set('readonly')
 		expect(editor.getIsReadonly()).toBe(true)
+
+		// syncing the mode is not a user edit, so it must not show up in the undo history
+		expect(editor.getCanUndo()).toBe(false)
 	})
 })
 

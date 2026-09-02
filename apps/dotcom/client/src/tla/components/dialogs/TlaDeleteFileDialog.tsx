@@ -1,5 +1,4 @@
 import { useAuth } from '@clerk/clerk-react'
-import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	TldrawUiButton,
@@ -9,6 +8,7 @@ import {
 	TldrawUiDialogFooter,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
+	useValue,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useApp } from '../../hooks/useAppState'
@@ -18,11 +18,11 @@ import { F } from '../../utils/i18n'
 
 export function TlaDeleteFileDialog({
 	fileId,
-	groupId,
+	workspaceId,
 	onClose,
 }: {
 	fileId: string
-	groupId: string
+	workspaceId: string
 	onClose(): void
 }) {
 	const app = useApp()
@@ -31,23 +31,30 @@ export function TlaDeleteFileDialog({
 	const auth = useAuth()
 
 	const isOwner = useHasFileAdminRights(fileId)
+	const fileName = useValue('file name', () => app.getFileName(fileId), [fileId, app])
 
-	const handleDelete = useCallback(async () => {
+	const handleDelete = async () => {
 		const token = await auth.getToken()
 		if (!token) throw new Error('No token')
 		trackEvent('delete-file', { source: 'file-menu' })
-		await app.deleteOrForgetFile(fileId, groupId)
-		const recentFiles = app.getMyFiles()
-		if (recentFiles.length === 0) {
-			const result = await app.createFile()
+		await app.deleteOrForgetFile(fileId, workspaceId)
+
+		// Stay in the workspace the file was deleted from: go to its most recent remaining
+		// file, or — if that was its last file — create a fresh blank file in it, the same
+		// "always land on a file" behavior as opening an empty workspace. (Home lists its files
+		// via getMyFiles rather than as a workspace.)
+		const isHome = workspaceId === app.getHomeWorkspaceId()
+		const remaining = isHome ? app.getMyFiles() : app.getWorkspaceFilesSorted(workspaceId)
+		if (remaining.length > 0) {
+			navigate(routes.tlaFile(remaining[0].fileId))
+		} else {
+			const result = await app.createFile({ workspaceId })
 			if (result.ok) {
 				navigate(routes.tlaFile(result.value.fileId))
 			}
-		} else {
-			navigate(routes.tlaFile(recentFiles[0].fileId))
 		}
 		onClose()
-	}, [auth, app, fileId, groupId, onClose, navigate, trackEvent])
+	}
 
 	return (
 		<>
@@ -60,9 +67,15 @@ export function TlaDeleteFileDialog({
 			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
 				<>
 					{isOwner ? (
-						<F defaultMessage="Are you sure you want to delete this file?" />
+						<F
+							defaultMessage="Are you sure you want to delete <strong>{fileName}</strong>?"
+							values={{ fileName, strong: (chunks) => <strong>{chunks}</strong> }}
+						/>
 					) : (
-						<F defaultMessage="Are you sure you want to forget this file?" />
+						<F
+							defaultMessage="Are you sure you want to forget <strong>{fileName}</strong>?"
+							values={{ fileName, strong: (chunks) => <strong>{chunks}</strong> }}
+						/>
 					)}
 				</>
 			</TldrawUiDialogBody>

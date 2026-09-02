@@ -1,4 +1,5 @@
 {
+	"ignoreCommand": "bash ../../internal/scripts/vercel/should-build-tldraw-new.sh",
 	"redirects": [
 		{
 			"source": "/(.*)",

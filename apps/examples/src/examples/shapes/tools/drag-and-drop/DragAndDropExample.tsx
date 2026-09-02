@@ -1,10 +1,11 @@
 import {
+	BaseFrameLikeShapeUtil,
 	Circle2d,
 	Geometry2d,
+	Group2d,
 	HTMLContainer,
 	Rectangle2d,
 	ShapeUtil,
-	TLDragShapesOutInfo,
 	TLShape,
 	Tldraw,
 } from 'tldraw'
@@ -16,7 +17,7 @@ const MY_COUNTER_SHAPE_TYPE = 'my-counter-shape'
 // [1]
 declare module 'tldraw' {
 	export interface TLGlobalShapePropsMap {
-		[MY_GRID_SHAPE_TYPE]: Record<string, never>
+		[MY_GRID_SHAPE_TYPE]: { w: number; h: number }
 		[MY_COUNTER_SHAPE_TYPE]: Record<string, never>
 	}
 }
@@ -65,52 +66,43 @@ class MyCounterShapeUtil extends ShapeUtil<MyCounterShape> {
 }
 
 // [4]
-class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
+class MyGridShapeUtil extends BaseFrameLikeShapeUtil<MyGridShape> {
 	static override type = MY_GRID_SHAPE_TYPE
 
 	getDefaultProps(): MyGridShape['props'] {
-		return {}
+		return {
+			w: SLOT_SIZE * 5,
+			h: SLOT_SIZE * 2,
+		}
 	}
 
-	getGeometry(): Geometry2d {
-		return new Rectangle2d({
-			width: SLOT_SIZE * 5,
-			height: SLOT_SIZE * 2,
-			isFilled: true,
+	// Frame-like shapes must return a Group2d: the editor's hit testing walks its children.
+	override getGeometry(shape: MyGridShape): Geometry2d {
+		return new Group2d({
+			children: [new Rectangle2d({ width: shape.props.w, height: shape.props.h, isFilled: true })],
 		})
 	}
 
-	override canResize(shape: MyGridShape) {
+	override canResize(_shape: MyGridShape) {
 		return false
 	}
-	override hideResizeHandles(shape: MyGridShape) {
+
+	override hideResizeHandles(_shape: MyGridShape) {
 		return true
 	}
 
 	// [5]
-	override onDragShapesIn(shape: MyGridShape, draggingShapes: TLShape[]): void {
-		const { editor } = this
-		const reparentingShapes = draggingShapes.filter(
-			(s) => s.parentId !== shape.id && s.type === 'my-counter-shape'
-		)
-		if (reparentingShapes.length === 0) return
-		editor.reparentShapes(reparentingShapes, shape.id)
+	override canReceiveNewChildrenOfType(_shape: MyGridShape, type: TLShape['type']) {
+		return type === MY_COUNTER_SHAPE_TYPE
 	}
 
 	// [6]
-	override onDragShapesOut(
-		shape: MyGridShape,
-		draggingShapes: TLShape[],
-		info: TLDragShapesOutInfo
-	): void {
-		const { editor } = this
-		const reparentingShapes = draggingShapes.filter((s) => s.parentId !== shape.id)
-		if (!info.nextDraggingOverShapeId) {
-			editor.reparentShapes(reparentingShapes, editor.getCurrentPageId())
-		}
+	override canRemoveChildrenOfType(_shape: MyGridShape, type: TLShape['type']) {
+		return type !== MY_COUNTER_SHAPE_TYPE
 	}
 
-	component() {
+	// [7]
+	component(shape: MyGridShape) {
 		return (
 			<HTMLContainer
 				style={{
@@ -118,6 +110,8 @@ class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
 					borderRight: '1px solid #ccc',
 					borderBottom: '1px solid #ccc',
 					backgroundSize: `${SLOT_SIZE}px ${SLOT_SIZE}px`,
+					width: shape.props.w,
+					height: shape.props.h,
 					backgroundImage: `
 						linear-gradient(to right, #ccc 1px, transparent 1px),
 						linear-gradient(to bottom, #ccc 1px, transparent 1px)
@@ -127,18 +121,20 @@ class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
 		)
 	}
 
-	getIndicatorPath() {
+	override getIndicatorPath(shape: MyGridShape) {
 		const path = new Path2D()
-		path.rect(0, 0, SLOT_SIZE * 5, SLOT_SIZE * 2)
+		path.rect(0, 0, shape.props.w, shape.props.h)
 		return path
 	}
 }
+
+const shapeUtils = [MyGridShapeUtil, MyCounterShapeUtil]
 
 export default function DragAndDropExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				shapeUtils={[MyGridShapeUtil, MyCounterShapeUtil]}
+				shapeUtils={shapeUtils}
 				onMount={(editor) => {
 					if (editor.getCurrentPageShapeIds().size > 0) return
 					editor.createShape({ type: 'my-grid-shape', x: 100, y: 100 })
@@ -153,27 +149,33 @@ export default function DragAndDropExample() {
 
 /*
 [1]
-First, we need to extend TLGlobalShapePropsMap to add our shape's props to the global type system.
-This tells TypeScript about the shape's properties. Here we use Record<string, never> since our shapes
-don't need any custom properties. These are very basic custom shapes: see the custom shape examples for
-more complex examples.
+First, we extend TLGlobalShapePropsMap to add our shapes' props to the global type system. The grid
+has a width and height; the counter has no props at all, so we use Record<string, never>.
 
 [2]
 Define the shape types using TLShape with each shape's type as a type argument.
 
 [3]
-Create a ShapeUtil for the counter shape. This defines how the shape behaves and renders. We disable resizing
-and use Circle2d geometry for collision detection. The component renders as a red circle using HTMLContainer.
+The counter is a plain ShapeUtil with fixed size: resizing is disabled and the geometry is a filled
+Circle2d, so hit-testing follows the circle rather than its bounding box.
 
 [4]
-Create a ShapeUtil for the grid shape. This creates a rectangular grid that can accept dropped shapes. We use
-Rectangle2d geometry and render it with CSS grid lines using background gradients.
+The grid extends BaseFrameLikeShapeUtil, which provides everything a container needs: it reparents
+shapes dropped onto it in onDragShapesIn, reparents them back to the page in onDragShapesOut, clips
+its children to its geometry, and treats itself as a frame for selection and erasing.
 
 [5]
-Override onDragShapesIn to handle when shapes are dragged into the grid. We filter for counter shapes that
-aren't already children of this grid, then reparent them to become children. This makes them move with the grid.
+canReceiveNewChildrenOfType gates which shape types can be dropped in. The editor only calls
+onDragShapesIn for shapes that pass this check. Here only counters are accepted, so dragging a geo
+shape over the grid does nothing.
 
 [6]
-Override onDragShapesOut to handle when shapes are dragged out of the grid. If they're not being dragged to
-another shape, we reparent them back to the page level, making them independent again.
+canRemoveChildrenOfType gates which children can be dragged out. When it returns false the editor
+doesn't call onDragShapesOut and doesn't reparent the child when it's moved outside the parent's
+geometry, so counters are pinned to the grid once dropped.
+
+[7]
+The grid draws its slots with CSS gradients. Because BaseFrameLikeShapeUtil clips children to the
+grid's geometry, a pinned counter dragged past the edge stays a child and is clipped at the border,
+which makes it obvious that it still belongs to the grid.
 */

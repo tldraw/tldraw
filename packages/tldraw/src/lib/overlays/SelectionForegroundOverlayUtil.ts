@@ -1,13 +1,12 @@
 import {
 	Box,
-	Circle2d,
-	Edge2d,
 	Geometry2d,
 	HALF_PI,
 	Mat,
 	type Editor,
 	OverlayUtil,
 	Polygon2d,
+	Rectangle2d,
 	RotateCorner,
 	SelectionCorner,
 	SelectionEdge,
@@ -50,24 +49,24 @@ export interface TLSelectionForegroundOverlay extends TLOverlay {
 
 interface SelectionState {
 	bounds: Box
-	expandedBounds: Box
 	onlyShape: TLShape | null
-	isLockedShape: boolean
 	isCoarsePointer: boolean
 	zoom: number
 	rotation: number
 	width: number
 	height: number
-	size: number
-	targetSize: number
-	targetSizeX: number
-	targetSizeY: number
-	expandDx: number
-	expandDy: number
-	isTinyX: boolean
-	isTinyY: boolean
+	/** Visual side length of the rendered resize-handle squares. */
+	handleSize: number
+	/** Base half-extent of the interactive hit target for handles. */
+	hitTargetSize: number
+	/** Hit target half-extent along the x axis (narrower for small selections). */
+	hitTargetSizeX: number
+	/** Hit target half-extent along the y axis (narrower for small selections). */
+	hitTargetSizeY: number
+	/** Offset from the unexpanded bounds to the expanded selection outline. */
+	expandOffsetX: number
+	expandOffsetY: number
 	isSmallX: boolean
-	isSmallY: boolean
 	shouldDisplayControls: boolean
 	shouldDisplayBox: boolean
 	showCropHandles: boolean
@@ -78,6 +77,11 @@ interface SelectionState {
 	hideAlternateCornerHandles: boolean
 	hideAlternateCropHandles: boolean
 	showOnlyOneHandle: boolean
+}
+
+interface SelectionForegroundColors {
+	strokeColor: string
+	bgColor: string
 }
 
 /**
@@ -101,6 +105,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 			'select.pointing_selection',
 			'select.pointing_shape',
 			'select.pointing_resize_handle',
+			'select.pointing_rotate_handle',
 			'select.resizing',
 			'select.crop.idle',
 			'select.crop.pointing_crop',
@@ -126,7 +131,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		const transform = Mat.Compose(
 			Mat.Translate(state.bounds.x, state.bounds.y),
 			Mat.Rotate(state.rotation),
-			Mat.Translate(state.expandDx, state.expandDy)
+			Mat.Translate(state.expandOffsetX, state.expandOffsetY)
 		)
 
 		const { overlayType, handle } = overlay.props
@@ -151,13 +156,14 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		ctx.save()
 		ctx.translate(state.bounds.x, state.bounds.y)
 		ctx.rotate(state.rotation)
-		ctx.translate(state.expandDx, state.expandDy)
+		ctx.translate(state.expandOffsetX, state.expandOffsetY)
 
-		this._renderSelectionBox(ctx, state)
-		this._renderResizeCorners(ctx, state)
-		this._renderCropHandles(ctx, state)
-		this._renderMobileRotateHandle(ctx, state)
-		this._renderTextResizeHandles(ctx, state)
+		const colors = this._getThemeColors()
+		this._renderSelectionBox(ctx, state, colors)
+		this._renderResizeCorners(ctx, state, colors)
+		this._renderCropHandles(ctx, state, colors)
+		this._renderMobileRotateHandle(ctx, state, colors)
+		this._renderTextResizeHandles(ctx, state, colors)
 
 		ctx.restore()
 	}
@@ -349,19 +355,28 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		transform: Mat
 	): Geometry2d {
 		if (handle === 'top' || handle === 'bottom' || handle === 'left' || handle === 'right') {
-			const edge = this._getEdgeLocalPoints(handle, state.width, state.height)
-			return new Edge2d({
-				start: Mat.applyToPoint(transform, edge.start),
-				end: Mat.applyToPoint(transform, edge.end),
+			const rect = this._getEdgeLocalRect(handle, state)
+			return new Polygon2d({
+				points: this._localRectToPoints(rect.x, rect.y, rect.w, rect.h).map((p) =>
+					Mat.applyToPoint(transform, p)
+				),
+				isFilled: true,
 			})
 		}
 
-		const cp = this._getCornerLocalPoint(handle as SelectionCorner, state.width, state.height)
-		const s = Math.max(state.targetSizeX, state.targetSizeY) * 1.5
+		const cornerPoint = this._getCornerLocalPoint(
+			handle as SelectionCorner,
+			state.width,
+			state.height
+		)
+		const cornerHitHalfSize = Math.max(state.hitTargetSizeX, state.hitTargetSizeY) * 1.5
 		return new Polygon2d({
-			points: this._localRectToPoints(cp.x - s, cp.y - s, s * 2, s * 2).map((p) =>
-				Mat.applyToPoint(transform, p)
-			),
+			points: this._localRectToPoints(
+				cornerPoint.x - cornerHitHalfSize,
+				cornerPoint.y - cornerHitHalfSize,
+				cornerHitHalfSize * 2,
+				cornerHitHalfSize * 2
+			).map((p) => Mat.applyToPoint(transform, p)),
 			isFilled: true,
 		})
 	}
@@ -371,13 +386,14 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		state: SelectionState,
 		transform: Mat
 	): Geometry2d {
-		const cornerSize = Math.max(state.targetSizeX, state.targetSizeY) * 1.5
+		const cornerSize = Math.max(state.hitTargetSizeX, state.hitTargetSizeY) * 1.62
 		const center = this._getRotateHandleLocalCenter(handle, state.width, state.height, cornerSize)
-		const radius = (state.targetSize * 3) / 2
-		return new Circle2d({
+		const radius = cornerSize
+		return new Rectangle2d({
 			x: center.x - radius,
 			y: center.y - radius,
-			radius,
+			width: radius * 2,
+			height: radius * 2,
 			isFilled: true,
 		}).transform(transform)
 	}
@@ -395,28 +411,34 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 
 	// --- Rendering (all helpers assume ctx is in local selection space) ---
 
-	private _renderSelectionBox(ctx: CanvasRenderingContext2D, state: SelectionState) {
+	private _renderSelectionBox(
+		ctx: CanvasRenderingContext2D,
+		state: SelectionState,
+		colors: SelectionForegroundColors
+	) {
 		if (!state.shouldDisplayBox) return
-		const { strokeColor } = this._getThemeColors()
-		ctx.strokeStyle = strokeColor
+		ctx.strokeStyle = colors.strokeColor
 		ctx.lineWidth = this.options.lineWidth / state.zoom
 		ctx.strokeRect(0, 0, state.width, state.height)
 	}
 
-	private _renderResizeCorners(ctx: CanvasRenderingContext2D, state: SelectionState) {
+	private _renderResizeCorners(
+		ctx: CanvasRenderingContext2D,
+		state: SelectionState,
+		colors: SelectionForegroundColors
+	) {
 		if (!state.showResizeHandles) return
 
-		const { strokeColor, bgColor } = this._getThemeColors()
-		const { size, width, height, hideAlternateCornerHandles, showOnlyOneHandle, zoom } = state
+		const { handleSize, width, height, hideAlternateCornerHandles, showOnlyOneHandle, zoom } = state
 
-		ctx.fillStyle = bgColor
-		ctx.strokeStyle = strokeColor
+		ctx.fillStyle = colors.bgColor
+		ctx.strokeStyle = colors.strokeColor
 		ctx.lineWidth = this.options.lineWidth / zoom
 
 		const drawCorner = (x: number, y: number, hidden: boolean) => {
 			if (hidden) return
-			ctx.fillRect(x - size / 2, y - size / 2, size, size)
-			ctx.strokeRect(x - size / 2, y - size / 2, size, size)
+			ctx.fillRect(x - handleSize / 2, y - handleSize / 2, handleSize, handleSize)
+			ctx.strokeRect(x - handleSize / 2, y - handleSize / 2, handleSize, handleSize)
 		}
 
 		drawCorner(0, 0, false) // top-left always shown
@@ -425,70 +447,76 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		drawCorner(0, height, hideAlternateCornerHandles) // bottom-left
 	}
 
-	private _renderCropHandles(ctx: CanvasRenderingContext2D, state: SelectionState) {
+	private _renderCropHandles(
+		ctx: CanvasRenderingContext2D,
+		state: SelectionState,
+		colors: SelectionForegroundColors
+	) {
 		if (!state.showCropHandles) return
 
-		const { strokeColor } = this._getThemeColors()
-		const { size, width, height, hideAlternateCropHandles } = state
-		const cropStrokeWidth = size / 3
+		const { handleSize, width, height, hideAlternateCropHandles } = state
+		const cropStrokeWidth = handleSize / 3
 		const offset = cropStrokeWidth / 2
 
 		ctx.beginPath()
-		ctx.strokeStyle = strokeColor
+		ctx.strokeStyle = colors.strokeColor
 		ctx.lineWidth = cropStrokeWidth
 		ctx.lineCap = 'butt'
 		ctx.lineJoin = 'miter'
 
 		// top_left corner (always shown)
-		ctx.moveTo(-offset, size)
+		ctx.moveTo(-offset, handleSize)
 		ctx.lineTo(-offset, -offset)
-		ctx.lineTo(size, -offset)
+		ctx.lineTo(handleSize, -offset)
 
 		// bottom_right corner (always shown)
-		ctx.moveTo(width + offset, height - size)
+		ctx.moveTo(width + offset, height - handleSize)
 		ctx.lineTo(width + offset, height + offset)
-		ctx.lineTo(width - size, height + offset)
+		ctx.lineTo(width - handleSize, height + offset)
 
 		if (!hideAlternateCropHandles) {
 			// top_right corner
-			ctx.moveTo(width - size, -offset)
+			ctx.moveTo(width - handleSize, -offset)
 			ctx.lineTo(width + offset, -offset)
-			ctx.lineTo(width + offset, size)
+			ctx.lineTo(width + offset, handleSize)
 
 			// bottom_left corner
-			ctx.moveTo(size, height + offset)
+			ctx.moveTo(handleSize, height + offset)
 			ctx.lineTo(-offset, height + offset)
-			ctx.lineTo(-offset, height - size)
+			ctx.lineTo(-offset, height - handleSize)
 
 			// top edge
-			ctx.moveTo(width / 2 - size, -offset)
-			ctx.lineTo(width / 2 + size, -offset)
+			ctx.moveTo(width / 2 - handleSize, -offset)
+			ctx.lineTo(width / 2 + handleSize, -offset)
 
 			// right edge
-			ctx.moveTo(width + offset, height / 2 - size)
-			ctx.lineTo(width + offset, height / 2 + size)
+			ctx.moveTo(width + offset, height / 2 - handleSize)
+			ctx.lineTo(width + offset, height / 2 + handleSize)
 
 			// bottom edge
-			ctx.moveTo(width / 2 - size, height + offset)
-			ctx.lineTo(width / 2 + size, height + offset)
+			ctx.moveTo(width / 2 - handleSize, height + offset)
+			ctx.lineTo(width / 2 + handleSize, height + offset)
 
 			// left edge
-			ctx.moveTo(-offset, height / 2 - size)
-			ctx.lineTo(-offset, height / 2 + size)
+			ctx.moveTo(-offset, height / 2 - handleSize)
+			ctx.lineTo(-offset, height / 2 + handleSize)
 		}
 
 		ctx.stroke()
 	}
 
-	private _renderMobileRotateHandle(ctx: CanvasRenderingContext2D, state: SelectionState) {
+	private _renderMobileRotateHandle(
+		ctx: CanvasRenderingContext2D,
+		state: SelectionState,
+		colors: SelectionForegroundColors
+	) {
 		if (!state.showMobileRotateHandle) return
 
-		const { strokeColor, bgColor } = this._getThemeColors()
 		const { cx, cy } = this._getMobileRotateCenter(state)
-		const fgRadius = state.size / SQUARE_ROOT_PI
+		const fgRadius = state.handleSize / SQUARE_ROOT_PI
 
-		ctx.fillStyle = bgColor
-		ctx.strokeStyle = strokeColor
+		ctx.fillStyle = colors.bgColor
+		ctx.strokeStyle = colors.strokeColor
 		ctx.lineWidth = this.options.lineWidth / state.zoom
 		ctx.beginPath()
 		ctx.arc(cx, cy, fgRadius, 0, Math.PI * 2)
@@ -496,7 +524,11 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		ctx.stroke()
 	}
 
-	private _renderTextResizeHandles(ctx: CanvasRenderingContext2D, state: SelectionState) {
+	private _renderTextResizeHandles(
+		ctx: CanvasRenderingContext2D,
+		state: SelectionState,
+		colors: SelectionForegroundColors
+	) {
 		const {
 			shouldDisplayControls,
 			isCoarsePointer,
@@ -504,21 +536,20 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 			zoom,
 			width,
 			height,
-			size,
-			targetSizeY,
+			handleSize,
+			hitTargetSizeY,
 		} = state
 		if (!shouldDisplayControls || !isCoarsePointer || !onlyShape || onlyShape.type !== 'text') {
 			return
 		}
 
-		const textHandleHeight = Math.min(24 / zoom, height - targetSizeY * 3)
+		const textHandleHeight = Math.min(24 / zoom, height - hitTargetSizeY * 3)
 		if (textHandleHeight * zoom < 4) return
 
-		const { strokeColor } = this._getThemeColors()
-		const hw = size / 2
-		const r = size / 4
+		const hw = handleSize / 2
+		const r = handleSize / 4
 
-		ctx.fillStyle = strokeColor
+		ctx.fillStyle = colors.strokeColor
 		ctx.beginPath()
 		ctx.roundRect(0 - hw / 2, height / 2 - textHandleHeight / 2, hw, textHandleHeight, r)
 		ctx.fill()
@@ -543,87 +574,94 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		const onlyShape = editor.getOnlySelectedShape()
 		if (onlyShape && editor.isShapeHidden(onlyShape)) return null
 
+		const onlyShapeUtil = onlyShape ? editor.getShapeUtil(onlyShape) : null
 		const isLockedShape = !!(onlyShape && editor.isShapeOrAncestorLocked(onlyShape))
 
-		const expandOutlineBy = onlyShape
-			? editor.getShapeUtil(onlyShape).expandSelectionOutlinePx(onlyShape)
-			: 0
+		const expandOutlineBy =
+			onlyShape && onlyShapeUtil ? onlyShapeUtil.expandSelectionOutlinePx(onlyShape) : 0
 		const expandedBounds =
 			expandOutlineBy instanceof Box
 				? bounds.clone().expand(expandOutlineBy).zeroFix()
 				: bounds.clone().expandBy(expandOutlineBy).zeroFix()
 
-		const isCoarsePointer = editor.getInstanceState().isCoarsePointer
-		const isChangingStyle = editor.getInstanceState().isChangingStyle
+		const instanceState = editor.getInstanceState()
+		const isCoarsePointer = instanceState.isCoarsePointer
+		const isChangingStyle = instanceState.isChangingStyle
+		const isReadonly = editor.getIsReadonly()
 		const zoom = editor.getZoomLevel()
 		const rotation = editor.getSelectionRotation()
 
 		const width = expandedBounds.width
 		const height = expandedBounds.height
-		const size = 8 / zoom
-		const isTinyX = width < size * 2
-		const isTinyY = height < size * 2
-		const isSmallX = width < size * 4
-		const isSmallY = height < size * 4
-		const isSmallCropX = width < size * 5
-		const isSmallCropY = height < size * 5
+		const handleSize = 8 / zoom
+		const isTinyX = width < handleSize * 2
+		const isTinyY = height < handleSize * 2
+		const isSmallX = width < handleSize * 4
+		const isSmallY = height < handleSize * 4
+		const isSmallCropX = width < handleSize * 5
+		const isSmallCropY = height < handleSize * 5
 
 		const mobileHandleMultiplier = isCoarsePointer ? 1.75 : 1
-		const targetSize = (6 / zoom) * mobileHandleMultiplier
-		const targetSizeX = (isSmallX ? targetSize / 2 : targetSize) * (mobileHandleMultiplier * 0.75)
-		const targetSizeY = (isSmallY ? targetSize / 2 : targetSize) * (mobileHandleMultiplier * 0.75)
+		const hitTargetSize = (6 / zoom) * mobileHandleMultiplier
+		const hitTargetSizeX =
+			(isSmallX ? hitTargetSize / 2 : hitTargetSize) * (mobileHandleMultiplier * 0.75)
+		const hitTargetSizeY =
+			(isSmallY ? hitTargetSize / 2 : hitTargetSize) * (mobileHandleMultiplier * 0.75)
 
-		const expandDx = expandedBounds.x - bounds.x
-		const expandDy = expandedBounds.y - bounds.y
+		const expandOffsetX = expandedBounds.x - bounds.x
+		const expandOffsetY = expandedBounds.y - bounds.y
 
 		const shouldDisplayControls =
 			editor.isInAny(
 				'select.idle',
 				'select.pointing_selection',
 				'select.pointing_shape',
+				'select.pointing_resize_handle',
+				'select.pointing_rotate_handle',
 				'select.crop.idle'
 			) &&
 			!isChangingStyle &&
-			!editor.getIsReadonly()
+			!isReadonly
 
 		const showCropHandles =
 			editor.isInAny(
 				'select.crop.idle',
 				'select.crop.pointing_crop',
 				'select.crop.pointing_crop_handle'
-			) && !editor.getIsReadonly()
+			) && !isReadonly
+
+		const canOnlyShapeResize =
+			onlyShape && onlyShapeUtil
+				? onlyShapeUtil.canResize(onlyShape) && !onlyShapeUtil.hideResizeHandles(onlyShape)
+				: true
+		const hideOnlyShapeRotateHandle =
+			onlyShape && onlyShapeUtil ? onlyShapeUtil.hideRotateHandle(onlyShape) : false
+		const hideOnlyShapeSelectionBounds =
+			onlyShape && onlyShapeUtil ? onlyShapeUtil.hideSelectionBoundsFg(onlyShape) : false
 
 		const showResizeHandles =
-			shouldDisplayControls &&
-			!isLockedShape &&
-			!showCropHandles &&
-			(onlyShape
-				? editor.getShapeUtil(onlyShape).canResize(onlyShape) &&
-					!editor.getShapeUtil(onlyShape).hideResizeHandles(onlyShape)
-				: true)
+			shouldDisplayControls && !isLockedShape && !showCropHandles && canOnlyShapeResize
 
 		const showCornerRotateHandles =
 			shouldDisplayControls &&
 			!isLockedShape &&
 			!isCoarsePointer &&
 			!(isTinyX || isTinyY) &&
-			(onlyShape ? !editor.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true)
+			!hideOnlyShapeRotateHandle
 
 		const showMobileRotateHandle =
 			shouldDisplayControls &&
 			!isLockedShape &&
 			isCoarsePointer &&
 			(!isSmallX || !isSmallY) &&
-			(onlyShape ? !editor.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true)
+			!hideOnlyShapeRotateHandle
 
 		const hideAlternateCornerHandles = isTinyX || isTinyY
 		const hideAlternateCropHandles = isSmallCropX || isSmallCropY
 		const showOnlyOneHandle = isTinyX && isTinyY
 		const showHandles = showResizeHandles || showCropHandles
 
-		const showSelectionBounds =
-			(onlyShape ? !editor.getShapeUtil(onlyShape).hideSelectionBoundsFg(onlyShape) : true) &&
-			!isChangingStyle
+		const showSelectionBounds = !hideOnlyShapeSelectionBounds && !isChangingStyle
 
 		const shouldDisplayBox =
 			(showSelectionBounds &&
@@ -637,7 +675,8 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 					'select.crop.idle',
 					'select.crop.pointing_crop',
 					'select.crop.pointing_crop_handle',
-					'select.pointing_resize_handle'
+					'select.pointing_resize_handle',
+					'select.pointing_rotate_handle'
 				)) ||
 			(showSelectionBounds &&
 				editor.isIn('select.resizing') &&
@@ -645,24 +684,19 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 
 		return {
 			bounds,
-			expandedBounds,
 			onlyShape,
-			isLockedShape,
 			isCoarsePointer,
 			zoom,
 			rotation,
 			width,
 			height,
-			size,
-			targetSize,
-			targetSizeX,
-			targetSizeY,
-			expandDx,
-			expandDy,
-			isTinyX,
-			isTinyY,
+			handleSize,
+			hitTargetSize,
+			hitTargetSizeX,
+			hitTargetSizeY,
+			expandOffsetX,
+			expandOffsetY,
 			isSmallX,
-			isSmallY,
 			shouldDisplayControls,
 			shouldDisplayBox,
 			showCropHandles,
@@ -677,23 +711,23 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 	}
 
 	private _getMobileRotateCenter(state: SelectionState): { cx: number; cy: number } {
-		const { width, height, targetSize, isSmallX, onlyShape, rotation } = state
+		const { width, height, hitTargetSize, isSmallX, onlyShape, rotation } = state
 		const editor = this.editor
 		const isMediaShape =
 			!!onlyShape &&
 			(editor.isShapeOfType(onlyShape, 'image') || editor.isShapeOfType(onlyShape, 'video'))
 		const isShapeTooCloseToContextualToolbar = rotation / HALF_PI > 1.6 && rotation / HALF_PI < 2.4
 
-		const cx = isSmallX ? -targetSize * 1.5 : width / 2
+		const cx = isSmallX ? -hitTargetSize * 1.5 : width / 2
 		const cy = isSmallX
 			? height / 2
 			: isMediaShape && !isShapeTooCloseToContextualToolbar
-				? height + targetSize * 1.5
-				: -targetSize * 1.5
+				? height + hitTargetSize * 1.5
+				: -hitTargetSize * 1.5
 		return { cx, cy }
 	}
 
-	private _getThemeColors(): { strokeColor: string; bgColor: string } {
+	private _getThemeColors(): SelectionForegroundColors {
 		const editor = this.editor
 		const themeColors = editor.getCurrentTheme().colors[editor.getColorMode()]
 		return {
@@ -713,20 +747,20 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		}
 	}
 
-	private _getEdgeLocalPoints(
+	private _getEdgeLocalRect(
 		edge: SelectionEdge,
-		width: number,
-		height: number
-	): { start: Vec; end: Vec } {
+		state: SelectionState
+	): { x: number; y: number; w: number; h: number } {
+		const { width, height, hitTargetSizeX, hitTargetSizeY } = state
 		switch (edge) {
 			case 'top':
-				return { start: new Vec(0, 0), end: new Vec(width, 0) }
+				return { x: 0, y: -hitTargetSizeY, w: width, h: hitTargetSizeY * 2 }
 			case 'right':
-				return { start: new Vec(width, 0), end: new Vec(width, height) }
+				return { x: width - hitTargetSizeX, y: 0, w: hitTargetSizeX * 2, h: height }
 			case 'bottom':
-				return { start: new Vec(0, height), end: new Vec(width, height) }
+				return { x: 0, y: height - hitTargetSizeY, w: width, h: hitTargetSizeY * 2 }
 			case 'left':
-				return { start: new Vec(0, 0), end: new Vec(0, height) }
+				return { x: -hitTargetSizeX, y: 0, w: hitTargetSizeX * 2, h: height }
 		}
 	}
 

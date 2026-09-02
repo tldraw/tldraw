@@ -19,20 +19,20 @@ notes: Minor passive phrasing in places. Add API links using [BindingUtil](?) fo
 
 Bindings create persistent relationships between shapes. When you draw an arrow to a rectangle, a binding stores that connection so the arrow stays attached when you move the rectangle. Bindings power features like arrows that follow shapes, stickers that stick to other shapes, and layout constraints that keep shapes aligned.
 
-The SDK handles bookkeeping for you: when you delete a shape, its bindings are cleaned up automatically, and lifecycle hooks let bound shapes react to changes.
+The SDK handles bookkeeping for you: when you delete a shape, its bindings are cleaned up automatically, and lifecycle hooks on the binding's [BindingUtil](?) let you react to changes.
 
 ## How it works
 
-When you create a binding, the editor stores it as a record with `fromId` and `toId` fields pointing to shape IDs. The editor maintains an index of all bindings touching each shape, making queries efficient. When either shape changes position, transforms, or gets deleted, the binding's `BindingUtil` receives callbacks that can update the bound shapes accordingly.
+When you create a binding, the editor stores it as a record with `fromId` and `toId` fields pointing to shape IDs. The editor maintains an index of all bindings touching each shape. When either shape changes position, transforms, or gets deleted, the binding's [BindingUtil](?) receives callbacks that can update the bound shapes accordingly.
 
 The system handles several scenarios automatically:
 
-- When a shape is deleted, all its bindings are removed and the remaining shapes receive isolation callbacks
+- When a shape is deleted, all its bindings are removed and their binding utils receive isolation and deletion callbacks
 - When shapes are copied, only bindings between copied shapes are duplicated
 - When shapes are moved to different pages, cross-page bindings are automatically removed
-- When bound shapes are transformed together, the binding maintains their relationship
+- When both bound shapes are copied or duplicated together, the binding is copied with them
 
-The bindings index is a computed value that updates incrementally as bindings change, providing fast lookups without scanning all records.
+The bindings index is a computed value that updates incrementally as bindings change. Lookups are fast and never scan all records.
 
 ## Key concepts
 
@@ -40,11 +40,11 @@ The bindings index is a computed value that updates incrementally as bindings ch
 
 Every binding has direction. The `fromId` points to the source shape, and the `toId` points to the target shape. For arrows, the arrow is always the "from" shape and the shape it points to is the "to" shape. This directionality determines which lifecycle hooks fire and lets the system know which shape "owns" the relationship.
 
-The distinction matters when shapes change. If you move a rectangle that an arrow points to, the arrow's `onAfterChangeToShape` hook fires. If you move the arrow itself, its `onAfterChangeFromShape` hook fires. Both hooks can update the arrow's position, but they're called in different contexts.
+The distinction matters when shapes change. If you move a rectangle that an arrow points to, the arrow binding's `onAfterChangeToShape` hook fires. If you move the arrow itself, `onAfterChangeFromShape` fires instead.
 
 ### Binding records
 
-A binding record contains just enough information to identify the relationship and store relationship-specific data:
+A binding record ([TLBaseBinding](?)) contains just enough information to identify the relationship and store relationship-specific data:
 
 ```typescript
 interface TLBaseBinding<Type, Props> {
@@ -62,29 +62,30 @@ The `props` field holds binding-specific data. Arrow bindings store the normaliz
 
 ### BindingUtil lifecycle
 
-Each binding type implements a `BindingUtil` class that responds to events throughout the binding's lifetime. The lifecycle hooks fall into several categories:
+Each binding type implements a [BindingUtil](?) class that responds to events throughout the binding's lifetime:
 
-**Creation and changes** - `onBeforeCreate`, `onAfterCreate`, `onBeforeChange`, and `onAfterChange` fire when the binding record itself is modified. These hooks can return new binding records to override the changes.
-
-**Shape changes** - `onAfterChangeFromShape` and `onAfterChangeToShape` fire when the bound shapes change. These are the most commonly used hooks for keeping shapes synchronized. Arrow bindings use these to update the arrow's position and parent when the target shape moves.
-
-**Deletion and isolation** - `onBeforeDelete` and `onAfterDelete` fire when the binding is removed. More importantly, `onBeforeIsolateFromShape` and `onBeforeIsolateToShape` fire before a binding is removed due to separation (deletion, copy, or duplication). Isolation hooks let shapes "bake in" the binding's current state before it disappears.
-
-**Batch completion** - `onOperationComplete` fires after all binding operations in a transaction finish. This is useful for computing aggregate updates across multiple related bindings.
+| Hooks                                                                | When they fire                                                                                                                                                                         |
+| -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `onBeforeCreate`, `onAfterCreate`, `onBeforeChange`, `onAfterChange` | The binding record itself is created or modified. The `onBefore*` hooks can return a replacement binding record.                                                                       |
+| `onAfterChangeFromShape`, `onAfterChangeToShape`                     | A bound shape changes. These are the most common hooks for keeping shapes synchronized. Arrow bindings use them to update the arrow's position and parent when the target shape moves. |
+| `onBeforeDelete`, `onAfterDelete`                                    | The binding record is removed.                                                                                                                                                         |
+| `onBeforeDeleteFromShape`, `onBeforeDeleteToShape`                   | A bound shape is about to be deleted.                                                                                                                                                  |
+| `onBeforeIsolateFromShape`, `onBeforeIsolateToShape`                 | The bound shapes are about to be separated (one is deleted, copied, or duplicated without the other). Use these to "bake in" the binding's current state before it disappears.         |
+| `onOperationComplete`                                                | All binding operations in a transaction have finished. Use it to compute aggregate updates across many related bindings.                                                               |
 
 ### Isolation vs deletion
 
-Isolation callbacks handle a specific problem: when an arrow's target shape is deleted, the arrow shouldn't suddenly point to empty space. The `onBeforeIsolateFromShape` hook lets the arrow update its terminal position to match the current attachment point before the binding is removed. The arrow then appears to "let go" of the shape naturally.
+Isolation callbacks handle a specific problem: when an arrow's target shape is deleted, the arrow shouldn't suddenly point to empty space. The `onBeforeIsolateFromShape` hook receives the binding and the `removedShape`, and lets the arrow update its terminal position to match the current attachment point before the binding is removed. The arrow then appears to "let go" of the shape naturally.
 
 Isolation also occurs during copy and duplicate operations. If you copy an arrow but not its target, the copied arrow needs to convert its binding into a fixed position. The isolation callback handles this transformation.
 
-Use isolation callbacks for consistency updates that should happen whenever shapes separate. Use deletion callbacks for actions specific to deletion, like removing a sticker when its parent shape is deleted.
+Use isolation callbacks for consistency updates that should happen whenever shapes separate. Use `onBeforeDeleteFromShape` and `onBeforeDeleteToShape` for actions specific to deletion, like removing a sticker when its parent shape is deleted.
 
 ## API patterns
 
 ### Creating bindings
 
-Create bindings using `editor.createBinding()` or `editor.createBindings()`. You must provide the binding type, fromId, and toId. The BindingUtil supplies default props.
+Create bindings using [Editor#createBinding](?) or [Editor#createBindings](?). You must provide the binding type, `fromId`, and `toId`. The BindingUtil supplies default props for anything you leave out. The editor checks both shapes' `canBind()` first and skips the binding if either refuses.
 
 ```typescript
 editor.createBinding({
@@ -103,7 +104,7 @@ editor.createBinding({
 
 ### Querying bindings
 
-The editor provides several methods for finding bindings:
+The editor provides several methods for finding bindings: [Editor#getBinding](?), [Editor#getBindingsFromShape](?), [Editor#getBindingsToShape](?), and [Editor#getBindingsInvolvingShape](?).
 
 ```typescript
 // Get a specific binding by ID
@@ -121,16 +122,17 @@ const all = editor.getBindingsInvolvingShape(shape.id, 'arrow')
 
 ### Updating and deleting bindings
 
-Update bindings with partials, just like shapes:
+Update bindings with [Editor#updateBinding](?), passing a partial with the binding's `id` and `type`:
 
 ```typescript
 editor.updateBinding({
 	id: binding.id,
+	type: 'arrow',
 	props: { normalizedAnchor: { x: 0.8, y: 0.2 } },
 })
 ```
 
-Delete bindings directly or let the system remove them automatically when shapes are deleted. Pass `isolateShapes: true` to trigger isolation callbacks:
+Delete bindings with [Editor#deleteBinding](?), or let the system remove them automatically when shapes are deleted. Pass `isolateShapes: true` to trigger isolation callbacks:
 
 ```typescript
 editor.deleteBinding(binding.id, { isolateShapes: true })
@@ -138,28 +140,32 @@ editor.deleteBinding(binding.id, { isolateShapes: true })
 
 ### Controlling which shapes can bind
 
-Shapes control whether they accept bindings by implementing `canBind()` in their ShapeUtil:
+Shapes control whether they accept bindings by implementing [ShapeUtil#canBind](?):
 
 ```typescript
 class MyShapeUtil extends ShapeUtil<MyShape> {
-	canBind({ fromShapeType, toShapeType, bindingType }: TLShapeUtilCanBindOpts) {
+	static override type = 'my-shape' as const
+
+	override canBind({ toShape, bindingType }: TLShapeUtilCanBindOpts) {
 		// Only allow arrow bindings where this shape is the target
-		return bindingType === 'arrow' && toShapeType === this.type
+		return bindingType === 'arrow' && toShape.type === 'my-shape'
 	}
 }
 ```
 
-The editor calls both shapes' `canBind()` methods before creating a binding. If either returns false, the binding is not created.
+The editor calls both shapes' `canBind()` methods before creating or updating a binding. If either returns false, the binding is skipped. Use [Editor#canBindShapes](?) to run the same check yourself.
 
 ## Extension points
 
-Custom binding types let you create new kinds of relationships between shapes. The process involves defining the binding's data structure, implementing its behavior, and registering it with the editor.
+Custom binding types let you create new kinds of relationships between shapes.
 
 ### Defining the binding type
 
-First, extend the type system to include your binding's props. Use TypeScript's module augmentation to add your binding type to the global binding props map:
+First, extend the type system to include your binding's props. Use TypeScript's module augmentation to add your binding type to [TLGlobalBindingPropsMap](?), then derive the binding type from [TLBinding](?):
 
 ```typescript
+import { TLBinding, VecModel } from 'tldraw'
+
 declare module 'tldraw' {
 	export interface TLGlobalBindingPropsMap {
 		myBinding: {
@@ -168,25 +174,43 @@ declare module 'tldraw' {
 		}
 	}
 }
+
+type MyBinding = TLBinding<'myBinding'>
 ```
 
 ### Implementing BindingUtil
 
-Create a class extending `BindingUtil` with your binding type. At minimum, implement `getDefaultProps()`. Add lifecycle hooks based on what behavior you need:
+Create a class extending [BindingUtil](?) with your binding type. At minimum, implement `getDefaultProps()`. Add lifecycle hooks based on what behavior you need:
 
 ```typescript
+import {
+	BindingOnShapeChangeOptions,
+	BindingOnShapeIsolateOptions,
+	BindingUtil,
+	RecordProps,
+	T,
+	vecModelValidator,
+} from 'tldraw'
+
 class MyBindingUtil extends BindingUtil<MyBinding> {
-	static override type = 'myBinding'
+	static override type = 'myBinding' as const
+	static override props: RecordProps<MyBinding> = {
+		anchor: vecModelValidator,
+		strength: T.number,
+	}
 
 	override getDefaultProps() {
 		return { anchor: { x: 0.5, y: 0.5 }, strength: 1 }
 	}
 
-	override onAfterChangeToShape({ binding, shapeAfter }) {
+	override onAfterChangeToShape({ binding, shapeAfter }: BindingOnShapeChangeOptions<MyBinding>) {
 		// Update the "from" shape when the "to" shape moves
 	}
 
-	override onBeforeIsolateFromShape({ binding }) {
+	override onBeforeIsolateFromShape({
+		binding,
+		removedShape,
+	}: BindingOnShapeIsolateOptions<MyBinding>) {
 		// Bake in current state before the binding is removed
 	}
 }
@@ -204,6 +228,7 @@ Pass your BindingUtil to the editor via the `bindingUtils` prop:
 
 The examples app includes several binding implementations that demonstrate different use cases:
 
-- **[Sticker bindings](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shapes/tools/sticker-bindings)** - Shapes that stick to other shapes and follow them when moved. Demonstrates `onAfterChangeToShape` for position updates and `onBeforeDeleteToShape` for cascading deletion.
-- **[Pin bindings](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shapes/tools/pin-bindings)** - Pins that connect networks of shapes together, moving them as a group. Demonstrates `onOperationComplete` for computing aggregate updates across multiple related bindings.
-- **[Layout bindings](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shapes/tools/layout-bindings)** - Constraining shapes to layout positions. Demonstrates using bindings to enforce spatial relationships between shapes.
+- [Sticker bindings](/examples/shapes/tools/sticker-bindings) - Shapes that stick to other shapes and follow them when moved. Demonstrates `onAfterChangeToShape` for position updates and `onBeforeDeleteToShape` for cascading deletion.
+- [Pin bindings](/examples/shapes/tools/pin-bindings) - Pins that connect networks of shapes together, moving them as a group. Demonstrates `onOperationComplete` for computing aggregate updates across multiple related bindings.
+- [Layout bindings](/examples/shapes/tools/layout-bindings) - Constraining shapes to layout positions. Demonstrates using bindings to enforce spatial relationships between shapes.
+- [Arrow binding options](/examples/shapes/tools/arrow-binding-options) - Configuring how the built-in arrow binding attaches to shapes.

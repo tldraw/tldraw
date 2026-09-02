@@ -1,6 +1,7 @@
 import { ReactNode, useMemo } from 'react'
 import { DefaultBackground } from '../components/default-components/DefaultBackground'
 import { DefaultCanvas } from '../components/default-components/DefaultCanvas'
+import { DefaultCursor } from '../components/default-components/DefaultCursor'
 import { DefaultErrorFallback } from '../components/default-components/DefaultErrorFallback'
 import { DefaultGrid } from '../components/default-components/DefaultGrid'
 import { DefaultLoadingScreen } from '../components/default-components/DefaultLoadingScreen'
@@ -29,11 +30,11 @@ export function EditorComponentsProvider({
 		(): Required<TLEditorComponents> => ({
 			Background: DefaultBackground,
 			Canvas: DefaultCanvas,
+			CollaboratorCursor: DefaultCursor,
 			Grid: DefaultGrid,
 			InFrontOfTheCanvas: null,
 			LoadingScreen: DefaultLoadingScreen,
 			OnTheCanvas: null,
-			SelectionBackground: null,
 			ShapeWrapper: DefaultShapeWrapper,
 			Spinner: DefaultSpinner,
 			SvgDefs: DefaultSvgDefs,

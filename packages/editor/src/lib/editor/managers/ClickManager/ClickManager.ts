@@ -4,13 +4,7 @@ import type { Editor } from '../../Editor'
 import { TLClickEventInfo, TLPointerEventInfo } from '../../types/event-types'
 
 /** @public */
-export type TLClickState =
-	| 'idle'
-	| 'pendingDouble'
-	| 'pendingTriple'
-	| 'pendingQuadruple'
-	| 'pendingOverflow'
-	| 'overflow'
+export type TLClickState = 'idle' | 'pendingDouble' | 'pendingOverflow' | 'overflow'
 
 const MAX_CLICK_DISTANCE = 40
 
@@ -26,6 +20,8 @@ export class ClickManager {
 
 	private _previousScreenPoint?: Vec
 
+	private _isPressingWhilePending = false
+
 	@bind
 	_getClickTimeout(state: TLClickState, id = uniqueId()) {
 		this._clickId = id
@@ -34,30 +30,12 @@ export class ClickManager {
 			() => {
 				if (this._clickState === state && this._clickId === id) {
 					switch (this._clickState) {
-						case 'pendingTriple': {
-							this.editor.dispatch({
-								...this.lastPointerInfo,
-								type: 'click',
-								name: 'double_click',
-								phase: 'settle',
-							})
-							break
-						}
-						case 'pendingQuadruple': {
-							this.editor.dispatch({
-								...this.lastPointerInfo,
-								type: 'click',
-								name: 'triple_click',
-								phase: 'settle',
-							})
-							break
-						}
 						case 'pendingOverflow': {
 							this.editor.dispatch({
 								...this.lastPointerInfo,
 								type: 'click',
-								name: 'quadruple_click',
-								phase: 'settle',
+								name: 'double_click',
+								phase: this._isPressingWhilePending ? 'settle-down' : 'settle-up',
 							})
 							break
 						}
@@ -100,6 +78,8 @@ export class ClickManager {
 				if (!this._clickState) return info
 				this._clickScreenPoint = Vec.From(info.point)
 
+				this._isPressingWhilePending = true
+
 				if (
 					this._previousScreenPoint &&
 					Vec.Dist2(this._previousScreenPoint, this._clickScreenPoint) > MAX_CLICK_DISTANCE ** 2
@@ -113,32 +93,12 @@ export class ClickManager {
 
 				switch (this._clickState) {
 					case 'pendingDouble': {
-						this._clickState = 'pendingTriple'
-						this._clickTimeout = this._getClickTimeout(this._clickState)
+						this._clickState = 'pendingOverflow'
+						this._getClickTimeout(this._clickState)
 						return {
 							...info,
 							type: 'click',
 							name: 'double_click',
-							phase: 'down',
-						}
-					}
-					case 'pendingTriple': {
-						this._clickState = 'pendingQuadruple'
-						this._clickTimeout = this._getClickTimeout(this._clickState)
-						return {
-							...info,
-							type: 'click',
-							name: 'triple_click',
-							phase: 'down',
-						}
-					}
-					case 'pendingQuadruple': {
-						this._clickState = 'pendingOverflow'
-						this._clickTimeout = this._getClickTimeout(this._clickState)
-						return {
-							...info,
-							type: 'click',
-							name: 'quadruple_click',
 							phase: 'down',
 						}
 					}
@@ -154,35 +114,22 @@ export class ClickManager {
 						// overflow
 					}
 				}
-				this._clickTimeout = this._getClickTimeout(this._clickState)
+				this._getClickTimeout(this._clickState)
 				return info
 			}
 			case 'pointer_up': {
 				if (!this._clickState) return info
+
 				this._clickScreenPoint = Vec.From(info.point)
 
+				this._isPressingWhilePending = false
+
 				switch (this._clickState) {
-					case 'pendingTriple': {
-						return {
-							...this.lastPointerInfo,
-							type: 'click',
-							name: 'double_click',
-							phase: 'up',
-						}
-					}
-					case 'pendingQuadruple': {
-						return {
-							...this.lastPointerInfo,
-							type: 'click',
-							name: 'triple_click',
-							phase: 'up',
-						}
-					}
 					case 'pendingOverflow': {
 						return {
 							...this.lastPointerInfo,
 							type: 'click',
-							name: 'quadruple_click',
+							name: 'double_click',
 							phase: 'up',
 						}
 					}
@@ -194,10 +141,12 @@ export class ClickManager {
 				return info
 			}
 			case 'pointer_move': {
+				// Compare in client coordinates like _clickScreenPoint; the container-relative
+				// inputs screen point would add the container offset and cancel on any movement.
 				if (
 					this._clickState !== 'idle' &&
 					this._clickScreenPoint &&
-					Vec.Dist2(this._clickScreenPoint, this.editor.inputs.getCurrentScreenPoint()) >
+					Vec.Dist2(this._clickScreenPoint, info.point) >
 						(this.editor.getInstanceState().isCoarsePointer
 							? this.editor.options.coarseDragDistanceSquared
 							: this.editor.options.dragDistanceSquared)
@@ -219,5 +168,8 @@ export class ClickManager {
 	cancelDoubleClickTimeout() {
 		this._clickTimeout = clearTimeout(this._clickTimeout)
 		this._clickState = 'idle'
+		// when a double click is cancelled, we are no longer pending any further
+		// clicks, so we set this to false even if the user is still pressing
+		this._isPressingWhilePending = false
 	}
 }

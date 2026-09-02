@@ -1,13 +1,19 @@
 {
 	"name": "@tldraw/editor",
 	"description": "tldraw infinite canvas SDK (editor).",
-	"version": "4.5.10",
+	"version": "5.3.2",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
 	},
 	"homepage": "https://tldraw.dev",
 	"license": "SEE LICENSE IN LICENSE.md",
+	"tldraw_product": {
+		"stableId": "tldraw:sdk-core",
+		"name": "SDK",
+		"type": "product",
+		"premium": false
+	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tldraw/tldraw"
@@ -81,6 +87,9 @@
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"resize-observer-polyfill": "^1.5.1",
-		"vitest": "^3.2.4"
+		"vitest": "^4.1.7"
+	},
+	"engines": {
+		"node": ">=22.12.0"
 	}
 }

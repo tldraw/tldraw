@@ -74,10 +74,15 @@ export const AssetRecordType: RecordType<TLAsset<"bookmark" | "image" | "video">
 
 // @public
 export class b64Vecs {
-    static decodeFirstPoint(b64Points: string): null | VecModel;
-    static decodeLastPoint(b64Points: string): null | VecModel;
-    static decodePoints(base64: string): VecModel[];
-    static encodePoints(points: VecModel[]): string;
+    static decodeFirstPoint(b64Points: string, dim?: 2 | 3): null | VecModel;
+    static decodeFirstPoint2D(b64Points: string): null | VecModel;
+    static decodeLastPoint(b64Points: string, dim?: 2 | 3): null | VecModel;
+    static decodeLastPoint2D(b64Points: string): null | VecModel;
+    static decodePoints(base64: string, dim?: 2 | 3): VecModel[];
+    static decodePoints2D(base64: string): VecModel[];
+    static encodePoints(points: VecModel[], dim?: 2 | 3): string;
+    static encodePoints2D(points: VecModel[]): string;
+    static isSinglePoint(b64Points: string, dim?: 2 | 3): boolean;
     // @internal
     static _legacyDecodePoints(base64: string): VecModel[];
     // @internal
@@ -127,6 +132,22 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 
 // @public
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
+
+// @public
+export const commentReactionRecordConfig: CustomRecordInfo;
+
+// @public
+export const commentRecordConfig: CustomRecordInfo;
+
+// @public
+export const commentSchemaRecords: {
+    'comment-reaction': CustomRecordInfo;
+    'comment-thread': CustomRecordInfo;
+    comment: CustomRecordInfo;
+};
+
+// @public
+export const commentThreadRecordConfig: CustomRecordInfo;
 
 // @public
 export function compressLegacySegments(segments: {
@@ -182,6 +203,45 @@ export function createBindingValidator<Type extends string, Props extends JsonOb
 export function createCachedUserResolve(resolveFn: (userId: string) => null | TLUser): (userId: string) => Signal<null | TLUser>;
 
 // @public
+export function createComment(props: {
+    authorId: string;
+    body: TLRichText;
+    meta?: JsonObject;
+    now?: number;
+    pageId: TLPageId;
+    threadId: TLCommentThreadId;
+}): TLComment;
+
+// @public (undocumented)
+export function createCommentId(id?: string): TLCommentId;
+
+// @public
+export function createCommentReaction(props: {
+    commentId: TLCommentId;
+    emoji: string;
+    meta?: JsonObject;
+    now?: number;
+    pageId: TLPageId;
+    threadId: TLCommentThreadId;
+    userId: string;
+}): TLCommentReaction;
+
+// @public
+export function createCommentReactionId(commentId: TLCommentId, userId: string, emoji: string): TLCommentReactionId;
+
+// @public
+export function createCommentThread(props: {
+    anchor: TLCommentAnchor;
+    createdBy: string;
+    meta?: JsonObject;
+    now?: number;
+    pageId: TLPageId;
+}): TLCommentThread;
+
+// @public (undocumented)
+export function createCommentThreadId(id?: string): TLCommentThreadId;
+
+// @public
 export function createCustomRecordId<T extends string>(typeName: T, id?: string): RecordId<UnknownRecord> & `${T}:${string}`;
 
 // @public
@@ -193,7 +253,7 @@ export function createCustomRecordMigrationIds<const S extends string, const T e
 export function createCustomRecordMigrationSequence(migrations: TLPropsMigrations): TLPropsMigrations;
 
 // @public
-export function createPresenceStateDerivation($user: Signal<null | TLUser>, opts?: CreatePresenceStateDerivationOpts): (store: TLStore) => Signal<null | TLInstancePresence, unknown>;
+export function createPresenceStateDerivation($user: Signal<null | TLUser>, opts?: CreatePresenceStateDerivationOpts): (store: TLStore) => Signal<null | TLInstancePresence>;
 
 // @public (undocumented)
 export interface CreatePresenceStateDerivationOpts {
@@ -220,7 +280,7 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
 }): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P] | undefined; }>>;
 
 // @public
-export function createTLSchema({ shapes, bindings, assets, user, records, migrations }?: {
+export function createTLSchema({ shapes, bindings, assets, user, records, migrations, }?: {
     assets?: Record<string, SchemaPropsInfo>;
     bindings?: Record<string, SchemaPropsInfo>;
     migrations?: readonly MigrationSequence[];
@@ -381,6 +441,12 @@ export const DefaultTextAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
 export const DefaultVerticalAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
 
 // @public
+export const DIM_2D = 2;
+
+// @public
+export const DIM_3D = 3;
+
+// @public
 export const DocumentRecordType: RecordType<TLDocument, never>;
 
 // @public
@@ -451,7 +517,7 @@ export function getDefaultUserPresence(store: TLStore, user: TLUser): {
         x: number;
         y: number;
     };
-    followingUserId: null | string;
+    followingUserId: TLUserId | null;
     lastActivityTimestamp: number;
     meta: {};
     screenBounds: BoxModel;
@@ -516,6 +582,15 @@ export function isBinding(record?: UnknownRecord): record is TLBinding;
 export function isBindingId(id?: string): id is TLBindingId;
 
 // @public
+export function isCommentId(id: string): id is TLCommentId;
+
+// @public
+export function isCommentReactionId(id: string): id is TLCommentReactionId;
+
+// @public
+export function isCommentThreadId(id: string): id is TLCommentThreadId;
+
+// @public
 export function isCustomRecord(typeName: string, record?: UnknownRecord): boolean;
 
 // @public
@@ -526,6 +601,9 @@ export function isDocument(record?: UnknownRecord): record is TLDocument;
 
 // @internal (undocumented)
 export function isFontEntry(value: unknown): value is TLThemeFont;
+
+// @public
+export function isPage(record?: UnknownRecord): record is TLPage;
 
 // @public
 export function isPageId(id: string): id is TLPageId;
@@ -541,152 +619,152 @@ export function isUserId(id: string): id is TLUserId;
 
 // @public (undocumented)
 export const LANGUAGES: readonly [{
-    readonly label: "Bahasa Indonesia";
-    readonly locale: "id";
+    readonly label: 'Bahasa Indonesia';
+    readonly locale: 'id';
 }, {
-    readonly label: "Bahasa Melayu";
-    readonly locale: "ms";
+    readonly label: 'Bahasa Melayu';
+    readonly locale: 'ms';
 }, {
-    readonly label: "Català";
-    readonly locale: "ca";
+    readonly label: 'Català';
+    readonly locale: 'ca';
 }, {
-    readonly label: "Čeština";
-    readonly locale: "cs";
+    readonly label: 'Čeština';
+    readonly locale: 'cs';
 }, {
-    readonly label: "Danish";
-    readonly locale: "da";
+    readonly label: 'Danish';
+    readonly locale: 'da';
 }, {
-    readonly label: "Deutsch";
-    readonly locale: "de";
+    readonly label: 'Deutsch';
+    readonly locale: 'de';
 }, {
-    readonly label: "English";
-    readonly locale: "en";
+    readonly label: 'English';
+    readonly locale: 'en';
 }, {
-    readonly label: "Español";
-    readonly locale: "es";
+    readonly label: 'Español';
+    readonly locale: 'es';
 }, {
-    readonly label: "Filipino";
-    readonly locale: "tl";
+    readonly label: 'Filipino';
+    readonly locale: 'tl';
 }, {
-    readonly label: "Français";
-    readonly locale: "fr";
+    readonly label: 'Français';
+    readonly locale: 'fr';
 }, {
-    readonly label: "Galego";
-    readonly locale: "gl";
+    readonly label: 'Galego';
+    readonly locale: 'gl';
 }, {
-    readonly label: "Hrvatski";
-    readonly locale: "hr";
+    readonly label: 'Hrvatski';
+    readonly locale: 'hr';
 }, {
-    readonly label: "Italiano";
-    readonly locale: "it";
+    readonly label: 'Italiano';
+    readonly locale: 'it';
 }, {
-    readonly label: "Magyar";
-    readonly locale: "hu";
+    readonly label: 'Magyar';
+    readonly locale: 'hu';
 }, {
-    readonly label: "Nederlands";
-    readonly locale: "nl";
+    readonly label: 'Nederlands';
+    readonly locale: 'nl';
 }, {
-    readonly label: "Norwegian";
-    readonly locale: "no";
+    readonly label: 'Norwegian';
+    readonly locale: 'no';
 }, {
-    readonly label: "Polski";
-    readonly locale: "pl";
+    readonly label: 'Polski';
+    readonly locale: 'pl';
 }, {
-    readonly label: "Português - Brasil";
-    readonly locale: "pt-br";
+    readonly label: 'Português - Brasil';
+    readonly locale: 'pt-br';
 }, {
-    readonly label: "Português - Europeu";
-    readonly locale: "pt-pt";
+    readonly label: 'Português - Europeu';
+    readonly locale: 'pt-pt';
 }, {
-    readonly label: "Română";
-    readonly locale: "ro";
+    readonly label: 'Română';
+    readonly locale: 'ro';
 }, {
-    readonly label: "Slovenščina";
-    readonly locale: "sl";
+    readonly label: 'Slovenščina';
+    readonly locale: 'sl';
 }, {
-    readonly label: "Somali";
-    readonly locale: "so";
+    readonly label: 'Somali';
+    readonly locale: 'so';
 }, {
-    readonly label: "Suomi";
-    readonly locale: "fi";
+    readonly label: 'Suomi';
+    readonly locale: 'fi';
 }, {
-    readonly label: "Svenska";
-    readonly locale: "sv";
+    readonly label: 'Svenska';
+    readonly locale: 'sv';
 }, {
-    readonly label: "Tiếng Việt";
-    readonly locale: "vi";
+    readonly label: 'Tiếng Việt';
+    readonly locale: 'vi';
 }, {
-    readonly label: "Türkçe";
-    readonly locale: "tr";
+    readonly label: 'Türkçe';
+    readonly locale: 'tr';
 }, {
-    readonly label: "Ελληνικά";
-    readonly locale: "el";
+    readonly label: 'Ελληνικά';
+    readonly locale: 'el';
 }, {
-    readonly label: "Русский";
-    readonly locale: "ru";
+    readonly label: 'Русский';
+    readonly locale: 'ru';
 }, {
-    readonly label: "Українська";
-    readonly locale: "uk";
+    readonly label: 'Українська';
+    readonly locale: 'uk';
 }, {
-    readonly label: "עברית";
-    readonly locale: "he";
+    readonly label: 'עברית';
+    readonly locale: 'he';
 }, {
-    readonly label: "اردو";
-    readonly locale: "ur";
+    readonly label: 'اردو';
+    readonly locale: 'ur';
 }, {
-    readonly label: "عربي";
-    readonly locale: "ar";
+    readonly label: 'عربي';
+    readonly locale: 'ar';
 }, {
-    readonly label: "فارسی";
-    readonly locale: "fa";
+    readonly label: 'فارسی';
+    readonly locale: 'fa';
 }, {
-    readonly label: "नेपाली";
-    readonly locale: "ne";
+    readonly label: 'नेपाली';
+    readonly locale: 'ne';
 }, {
-    readonly label: "मराठी";
-    readonly locale: "mr";
+    readonly label: 'मराठी';
+    readonly locale: 'mr';
 }, {
-    readonly label: "हिन्दी";
-    readonly locale: "hi-in";
+    readonly label: 'हिन्दी';
+    readonly locale: 'hi-in';
 }, {
-    readonly label: "বাংলা";
-    readonly locale: "bn";
+    readonly label: 'বাংলা';
+    readonly locale: 'bn';
 }, {
-    readonly label: "ਪੰਜਾਬੀ";
-    readonly locale: "pa";
+    readonly label: 'ਪੰਜਾਬੀ';
+    readonly locale: 'pa';
 }, {
-    readonly label: "ગુજરાતી";
-    readonly locale: "gu-in";
+    readonly label: 'ગુજરાતી';
+    readonly locale: 'gu-in';
 }, {
-    readonly label: "தமிழ்";
-    readonly locale: "ta";
+    readonly label: 'தமிழ்';
+    readonly locale: 'ta';
 }, {
-    readonly label: "తెలుగు";
-    readonly locale: "te";
+    readonly label: 'తెలుగు';
+    readonly locale: 'te';
 }, {
-    readonly label: "ಕನ್ನಡ";
-    readonly locale: "kn";
+    readonly label: 'ಕನ್ನಡ';
+    readonly locale: 'kn';
 }, {
-    readonly label: "മലയാളം";
-    readonly locale: "ml";
+    readonly label: 'മലയാളം';
+    readonly locale: 'ml';
 }, {
-    readonly label: "ภาษาไทย";
-    readonly locale: "th";
+    readonly label: 'ภาษาไทย';
+    readonly locale: 'th';
 }, {
-    readonly label: "ភាសាខ្មែរ";
-    readonly locale: "km-kh";
+    readonly label: 'ភាសាខ្មែរ';
+    readonly locale: 'km-kh';
 }, {
-    readonly label: "한국어";
-    readonly locale: "ko-kr";
+    readonly label: '한국어';
+    readonly locale: 'ko-kr';
 }, {
-    readonly label: "日本語";
-    readonly locale: "ja";
+    readonly label: '日本語';
+    readonly locale: 'ja';
 }, {
-    readonly label: "简体中文";
-    readonly locale: "zh-cn";
+    readonly label: '简体中文';
+    readonly locale: 'zh-cn';
 }, {
-    readonly label: "繁體中文 (台灣)";
-    readonly locale: "zh-tw";
+    readonly label: '繁體中文 (台灣)';
+    readonly locale: 'zh-tw';
 }];
 
 // @public
@@ -1029,6 +1107,81 @@ export type TLCameraId = RecordId<TLCamera>;
 export type TLCanvasUiColor = SetValue<typeof TL_CANVAS_UI_COLOR_TYPES>;
 
 // @public
+export interface TLComment extends BaseRecord<'comment', TLCommentId> {
+    authorId: string;
+    body: TLRichText;
+    // (undocumented)
+    createdAt: number;
+    editedAt: null | number;
+    isDeleted: boolean;
+    // (undocumented)
+    meta: JsonObject;
+    pageId: TLPageId;
+    threadId: TLCommentThreadId;
+}
+
+// @public
+export type TLCommentAnchor = {
+    pinX?: number;
+    h: number;
+    pinY?: number;
+    type: 'region';
+    w: number;
+    x: number;
+    y: number;
+} | {
+    isPrecise: boolean;
+    shapeId: TLShapeId;
+    type: 'shape';
+    x: number;
+    y: number;
+} | {
+    type: 'page';
+} | {
+    type: 'point';
+    x: number;
+    y: number;
+};
+
+// @public (undocumented)
+export type TLCommentId = RecordId<TLComment>;
+
+// @public
+export interface TLCommentReaction extends BaseRecord<'comment-reaction', TLCommentReactionId> {
+    commentId: TLCommentId;
+    // (undocumented)
+    createdAt: number;
+    emoji: string;
+    // (undocumented)
+    meta: JsonObject;
+    pageId: TLPageId;
+    threadId: TLCommentThreadId;
+    userId: string;
+}
+
+// @public (undocumented)
+export type TLCommentReactionId = RecordId<TLCommentReaction>;
+
+// @public
+export interface TLCommentThread extends BaseRecord<'comment-thread', TLCommentThreadId> {
+    anchor: TLCommentAnchor;
+    // (undocumented)
+    createdAt: number;
+    createdBy: string;
+    isDeleted: boolean;
+    // (undocumented)
+    meta: JsonObject;
+    pageId: TLPageId;
+    resolved: {
+        at: number;
+        by: string;
+    } | null;
+}
+
+// @public (undocumented)
+export type TLCommentThreadId = RecordId<TLCommentThread>;
+
+// @public
 export type TLCreateShapePartial<T extends TLShape = TLShape> = T extends T ? {
     meta?: Partial<T['meta']>;
     props?: Partial<T['props']>;
@@ -1147,6 +1300,7 @@ export interface TLDrawShapeProps {
 
 // @public
 export interface TLDrawShapeSegment {
+    dim?: 2 | 3;
     path: string;
     type: 'free' | 'straight';
 }
@@ -1207,6 +1361,8 @@ export interface TLGeoShapeProps {
     color: TLDefaultColorStyle;
     dash: TLDefaultDashStyle;
     fill: TLDefaultFillStyle;
+    flipX: boolean;
+    flipY: boolean;
     font: TLDefaultFontStyle;
     geo: TLGeoShapeGeoStyle;
     growY: number;
@@ -1355,9 +1511,9 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     exportBackground: boolean;
     // (undocumented)
-    followingUserId: null | string;
+    followingUserId: null | TLUserId;
     // (undocumented)
-    highlightedUserIds: string[];
+    highlightedUserIds: TLUserId[];
     // (undocumented)
     insets: boolean[];
     // (undocumented)
@@ -1451,7 +1607,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
         y: number;
     } | null;
     // (undocumented)
-    followingUserId: null | string;
+    followingUserId: null | TLUserId;
     // (undocumented)
     lastActivityTimestamp: null | number;
     // (undocumented)
@@ -1463,7 +1619,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
     // (undocumented)
     selectedShapeIds: TLShapeId[];
     // (undocumented)
-    userId: string;
+    userId: TLUserId;
     // (undocumented)
     userName: string;
 }
@@ -1512,7 +1668,7 @@ export interface TLNoteShapeProps {
     richText: TLRichText;
     scale: number;
     size: TLDefaultSizeStyle;
-    textFirstEditedBy: null | string;
+    textLastEditedBy: null | string;
     url: string;
     verticalAlign: TLDefaultVerticalAlignStyle;
 }

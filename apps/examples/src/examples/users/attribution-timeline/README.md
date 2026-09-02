@@ -18,8 +18,10 @@ keywords:
   ]
 ---
 
-Scrub through per-user change history with identity-aware timeline attribution.
+Record every store change with the user who made it, then scrub through history globally or per user.
 
 ---
 
-This example combines the user store with a timeline scrubber to create an attribution-aware history viewer. Switch between users (Alice, Bob, Carol) using the buttons at the top, make changes as each user, then use the slider at the bottom to scrub through the timeline. In "All" mode the slider navigates the full global history. Filter by a user to selectively remove or restore only that user's changes — other users' shapes stay on canvas while you scrub.
+A `TLUserStore` tells the editor who is current. This example listens to the store with `store.listen({ scope: 'document', source: 'user' })`, tags each `RecordsDiff` with that user, and builds two kinds of scrubber from the log: an "All" slider that walks the full chronological history, and one slider per user that applies or reverts only that user's changes while everyone else's stay on the canvas. Scrubbing replays diffs with `squashRecordDiffs`, `reverseRecordsDiff`, and `store.applyDiff`, wrapped in `mergeRemoteChanges` so the replay isn't itself recorded.
+
+Switch between Alice, Bob, and Carol with the buttons at the top, draw something as each, then drag the sliders at the bottom. The "All" count is always the sum of the per-user counts.

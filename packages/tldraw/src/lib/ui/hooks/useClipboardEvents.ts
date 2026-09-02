@@ -103,7 +103,7 @@ export function extractIframeFromHtml(
 }
 
 /** @public */
-export const isValidHttpURL = (url: string) => {
+export function isValidHttpURL(url: string) {
 	try {
 		const u = new URL(url)
 		return u.protocol === 'http:' || u.protocol === 'https:'
@@ -236,11 +236,11 @@ type ClipboardThing =
  * @param point - The point to paste at
  * @internal
  */
-const handlePasteFromEventClipboardData = async (
+export async function handlePasteFromEventClipboardData(
 	editor: Editor,
 	clipboardData: DataTransfer,
 	point?: VecLike
-) => {
+) {
 	// Do not paste while in any editing state
 	if (editor.getEditingShapeId() !== null) return
 
@@ -280,7 +280,7 @@ const handlePasteFromEventClipboardData = async (
 		}
 	}
 
-	handleClipboardThings(editor, things, point, 'native-event')
+	return await handleClipboardThings(editor, things, point, 'native-event')
 }
 
 /**
@@ -292,7 +292,7 @@ const handlePasteFromEventClipboardData = async (
  * @param point - The point to paste at
  * @internal
  */
-const handlePasteFromClipboardApi = async ({
+export async function handlePasteFromClipboardApi({
 	editor,
 	clipboardItems,
 	point,
@@ -304,7 +304,7 @@ const handlePasteFromClipboardApi = async ({
 	point?: VecLike
 	fallbackFiles?: File[]
 	clipboardPasteSource: 'native-event' | 'clipboard-read'
-}) => {
+}) {
 	// We need to populate the array of clipboard things
 	// based on the ClipboardItems from the Clipboard API.
 	// This is done in a different way than when using
@@ -392,25 +392,7 @@ async function handleClipboardThings(
 	point: VecLike | undefined,
 	clipboardPasteSource: 'native-event' | 'clipboard-read'
 ) {
-	// 1. Handle files
-	//
-	// We need to handle files separately because if we want them to
-	// be placed next to each other, we need to create them all at once.
-
-	const files = things.filter(
-		(t) => (t.type === 'file' || t.type === 'blob') && t.source !== null
-	) as Extract<ClipboardThing, { type: 'file' } | { type: 'blob' }>[]
-
-	// Just paste the files, nothing else
-	if (files.length) {
-		if (files.length > editor.options.maxFilesAtOnce) {
-			throw Error('Too many files')
-		}
-		const fileBlobs = compact(await Promise.all(files.map((t) => t.source)))
-		return await pasteFiles(editor, fileBlobs, point, undefined, clipboardPasteSource)
-	}
-
-	// 2. Generate clipboard results for non-file things
+	// 1. Generate clipboard results for non-file things
 	//
 	// Getting the source from the items is async, however they must be accessed syncronously;
 	// we can't await them in a loop. So we'll map them to promises and await them all at once,
@@ -418,18 +400,13 @@ async function handleClipboardThings(
 
 	const results = await Promise.all<TLExternalContentSource>(
 		things
-			.filter((t) => t.type !== 'file')
+			.filter((t) => t.type !== 'file' && t.type !== 'blob')
 			.map(
 				(t) =>
 					new Promise((r) => {
 						const thing = t as Exclude<ClipboardThing, { type: 'file' } | { type: 'blob' }>
 
-						if (thing.type === 'file') {
-							r({ type: 'error', data: null, reason: 'unexpected file' })
-							return
-						}
-
-						thing.source.then((text) => {
+						const parsed = thing.source.then((text) => {
 							// first, see if we can find tldraw content, which is JSON inside of an html comment
 							const tldrawHtmlComment = text.match(/<div data-tldraw[^>]*>(.*)<\/div>/)?.[1]
 
@@ -544,9 +521,38 @@ async function handleClipboardThings(
 
 							r({ type: 'error', data: text, reason: 'unhandled case' })
 						})
+
+						// If we can't read one of the clipboard items (e.g. the browser rejects a
+						// getType call), or the handler above throws, resolve this thing to an
+						// error source rather than hanging the whole paste.
+						parsed.catch((error) => {
+							r({ type: 'error', data: null, reason: `error reading clipboard data: ${error}` })
+						})
 					})
 			)
 	)
+
+	// 2. Handle files
+	//
+	// We need to handle files separately because if we want them to
+	// be placed next to each other, we need to create them all at once.
+	// We pass along the other clipboard sources (e.g. text and html found
+	// on the clipboard next to an image) so that external content handlers
+	// can make use of them.
+
+	const files = things.filter((t) => t.type === 'file' || t.type === 'blob') as Extract<
+		ClipboardThing,
+		{ type: 'file' } | { type: 'blob' }
+	>[]
+
+	// Paste the files, carrying the other sources along with them
+	if (files.length) {
+		if (files.length > editor.options.maxFilesAtOnce) {
+			throw Error('Too many files')
+		}
+		const fileBlobs = compact(await Promise.all(files.map((t) => t.source)))
+		return await pasteFiles(editor, fileBlobs, point, results, clipboardPasteSource)
+	}
 
 	// 3.
 	//
@@ -697,10 +703,10 @@ async function handleClipboardThings(
  *
  * @public
  */
-export const handleNativeOrMenuCopy = async (
+export async function handleNativeOrMenuCopy(
 	editor: Editor,
 	context: TLClipboardWriteInfo = { operation: 'copy', source: 'menu' }
-): Promise<boolean> => {
+): Promise<boolean> {
 	const nav = editor.getContainerWindow().navigator
 	let content = await editor.resolveAssetsInContent(
 		editor.getContentFromCurrentPage(editor.getSelectedShapeIds())
@@ -797,6 +803,7 @@ export function useMenuClipboardEvents() {
 
 			const didCopy = await handleNativeOrMenuCopy(editor, { operation: 'cut', source: 'menu' })
 			if (didCopy) {
+				editor.markHistoryStoppingPoint('cut')
 				editor.deleteShapes(editor.getSelectedShapeIds())
 				trackEvent('cut', { source })
 			}
@@ -894,6 +901,7 @@ export function useNativeClipboardEvents() {
 
 			const didCopy = await handleNativeOrMenuCopy(editor, { operation: 'cut', source: 'native' })
 			if (didCopy) {
+				editor.markHistoryStoppingPoint('cut')
 				editor.deleteShapes(editor.getSelectedShapeIds())
 				trackEvent('cut', { source: 'kbd' })
 			}

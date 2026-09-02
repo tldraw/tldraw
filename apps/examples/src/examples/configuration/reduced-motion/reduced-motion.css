@@ -1,4 +1,3 @@
-/* Pulse shape container */
 .pulse-shape {
 	display: flex;
 	align-items: center;
@@ -18,7 +17,6 @@
 	color: var(--tl-color-text-1);
 }
 
-/* Shared pulse indicator styles */
 .pulse-indicator,
 .pulse-indicator--static {
 	width: 40px;
@@ -27,13 +25,11 @@
 	margin: 0 auto 16px;
 }
 
-/* Animated indicator */
 .pulse-indicator {
 	background-color: var(--tl-color-primary);
 	animation: pulse 2s ease-in-out infinite;
 }
 
-/* Static indicator - no animation */
 .pulse-indicator--static {
 	background-color: var(--tl-color-text-3);
 }
@@ -50,14 +46,11 @@
 	}
 }
 
-/* Motion toggle */
 .motion-toggle {
-	position: absolute;
-	top: 100px;
-	left: 20px;
 	display: flex;
 	gap: 8px;
 	align-items: center;
+	padding: 0 8px;
 	pointer-events: all;
 }
 

@@ -38,7 +38,7 @@ Apps and examples:
 
 ## Setup
 
-Requires Node `^20.0.0`. Enable Corepack before installing dependencies:
+Requires Node `>=22.12.0`. Enable Corepack before installing dependencies:
 
 ```bash
 npm i -g corepack && yarn
@@ -53,6 +53,8 @@ Development:
 - `yarn dev-docs` - start the docs site
 - `yarn dev-vscode` - start VS Code extension development
 - `yarn dev-template <template name>` - run a template
+
+Always run dev commands from the repo root. The root `yarn dev` runs each package's `predev` step, which generates build artifacts like `packages/tldraw/tldraw.css`. Running a per-workspace command (`yarn workspace examples.tldraw.com dev`) skips `predev`, so imports such as `tldraw/tldraw.css` fail to resolve. In a fresh git worktree, run `yarn install` first since worktrees start without `node_modules`.
 
 Build:
 
@@ -111,6 +113,12 @@ Bindings:
 
 - Shape relationships use binding records and `BindingUtil` classes.
 - Arrows and other connected shapes should update through binding utilities, not ad hoc shape mutation.
+
+Managers:
+
+- Editor subsystems live in `packages/editor/src/lib/editor/managers/` as classes owned and disposed by the `Editor`.
+- A manager that subscribes to events or holds a resource should extend `EditorManager` and register its cleanup so it runs on `dispose()`: `addEditorEvent(event, fn)` for editor bus events, `register(fn)` for everything else (store side effects, reactions, DOM listeners, child resources). Use `editor.timers` for timeouts/intervals/frames and `editor.disposables` for cleanup on the editor itself.
+- Don't extend `EditorManager` for managers with no teardown. See the `EditorManager` doc comment for the full decision guide.
 
 Store and schema:
 
@@ -182,6 +190,22 @@ Dependencies:
 
 - Keep dependencies workspace-appropriate.
 - If changing dependency manifests or lockfiles, make sure the lockfile update is intentional and included.
+- Every package a file imports must be declared in the owning workspace's own `package.json`. Yarn's `node-modules` linker hoists everything to the repo root, so an undeclared import still resolves here but breaks consumers on pnpm or Yarn PnP. The `tldraw/no-undeclared-dependencies` lint rule enforces this across `packages/*`; adding a workspace dependency also needs a matching `references` entry in that package's `tsconfig.json` (`yarn check-packages --fix`).
+- Dependency install/build scripts are off by default (`enableScripts: false` in `.yarnrc.yml`), which closes the main supply-chain `postinstall` code-execution path. Packages that genuinely need to build (native/napi modules, binary downloaders) are allowlisted with `built: true` under `dependenciesMeta` in the root `package.json`. When adding a dependency that ships a native addon or downloads a platform binary, add an allowlist entry — Yarn silently skips unlisted scripts, so a missing entry shows up as a runtime or build failure, not an install error.
+
+## Comments
+
+A comment earns its place by saying something the code cannot: why this way, what breaks otherwise, which bug it guards. The litmus: a good comment names a failure mode, not a mechanism.
+
+Scope: these rules apply to comments you write — new code, and lines you are already changing. Do not sweep existing comments while fixing a bug or refactoring; that buries a small change in a large diff. Leave an existing comment alone unless your change makes it inaccurate, you are rewriting the lines it is attached to, or the user asked for a cleanup. If you notice comments worth cleaning up, mention it or do it in a separate PR.
+
+When writing comments:
+
+- Don't restate the code (`/** Get the toolbar */` above `getToolbar()`), narrate it (`// Delete the shapes` above `editor.deleteShapes()`), add section banners, list call sites, or write `@param`/`@returns` that only repeat the signature.
+- State a rationale once where the shared thing lives; don't copy it across sibling call sites.
+- Keep comments shorter than the code they explain. Narrative that spans files belongs in a doc (`README.md`, `SPEC.md`, `apps/docs/content/`) with a short pointer from the code.
+- Always keep: non-obvious invariants, issue numbers and provenance, constants nobody should tune blindly, diagrams, and enumerated cases the code must not break.
+- In `packages/*`, doc comments on the `@public` surface become the API reference; density there is expected. In `apps/*` and `templates/*`, keep comments sparse.
 
 ## Writing style
 

@@ -19,9 +19,9 @@ accuracy: 10
 notes: ''
 ---
 
-The editor's history system tracks changes to the [store](/sdk-features/store) and provides undo/redo functionality. Changes are organized into batches separated by marks, which act as stopping points. This lets complex interactions be undone as single atomic operations rather than individual edits.
+The editor's history system tracks changes to the [store](/sdk-features/store) and provides undo/redo. Changes are organized into batches separated by marks, which act as stopping points, so a complex interaction undoes as one step instead of many.
 
-The history manager captures all user-initiated changes automatically. Multiple rapid changes are compressed into cohesive undo steps, and you can control which changes are recorded using history options.
+The history manager captures all user-initiated store changes automatically and batches rapid changes into single undo steps. You control which changes are recorded with history options. The default UI binds undo to Cmd/Ctrl+Z and redo to Cmd/Ctrl+Shift+Z.
 
 ## How it works
 
@@ -40,7 +40,7 @@ When you undo, the manager reverses all changes back to the previous mark, moves
 
 ## Marks and stopping points
 
-Marks define where undo and redo operations stop. Create marks at the start of user interactions so that complex operations can be undone in one step.
+Marks define where undo and redo operations stop. Create marks with [Editor#markHistoryStoppingPoint](?) at the start of user interactions so that complex operations can be undone in one step. The optional name only shows up in the mark id, which is useful for debugging.
 
 ```typescript
 const markId = editor.markHistoryStoppingPoint('rotate shapes')
@@ -48,7 +48,7 @@ editor.rotateShapesBy(editor.getSelectedShapeIds(), Math.PI / 4)
 // Undoing will return to this mark
 ```
 
-Each mark has a unique identifier that you can use with [bailToMark](#bailing) or [squashToMark](#squashing). Creating a mark flushes pending changes and clears the redo stack.
+Each mark has a unique identifier that you can use with [bailToMark](#bailing) or [squashToMark](#squashing). Creating a mark flushes pending changes onto the undo stack. It doesn't clear the redo stack; the next recorded change does that.
 
 ## Basic operations
 
@@ -63,12 +63,14 @@ editor.redo() // Reapply changes
 
 Both methods return the editor instance for chaining.
 
-The [Editor#canUndo](?) and [Editor#canRedo](?) properties are reactive, so you can use them to update UI button states automatically:
+The [Editor#canUndo](?) and [Editor#canRedo](?) methods are reactive, so you can use them to update UI button states automatically:
 
-```typescript
+```tsx
+import { useEditor, useValue } from 'tldraw'
+
 function UndoButton() {
 	const editor = useEditor()
-	const canUndo = useValue('canUndo', () => editor.canUndo, [editor])
+	const canUndo = useValue('canUndo', () => editor.canUndo(), [editor])
 	return (
 		<button disabled={!canUndo} onClick={() => editor.undo()}>
 			Undo
@@ -109,7 +111,9 @@ The three history modes are:
 
 > We use `record-preserveRedoStack` when selecting shapes. This way you can undo, select some shapes, copy them, and then redo back to where you were. The selection goes on the undo stack, but existing redos aren't cleared.
 
-> We use `ignore` for live cursor positions. Showing where collaborators' pointers are doesn't need to be undoable.
+> We use `ignore` when writing your own pointer position for collaborators to see. Where your cursor was doesn't need to be undoable. (Changes that arrive from other users are marked `'remote'` and are never recorded.)
+
+Nested `run` calls keep the outer mode unless they set their own, and no mode is applied while an undo or redo is in progress.
 
 ## Advanced features
 
@@ -126,7 +130,7 @@ editor.bailToMark(markId) // Roll back and discard all changes since mark
 
 [Editor#bail](?) reverts to the most recent mark. [Editor#bailToMark](?) reverts to a specific mark by ID.
 
-> We use bailing while cloning shapes. A user can switch between translating and cloning by pressing or releasing the control modifier key during a drag. When this changes, we bail on the changes since the interaction started, then apply the new mode's changes.
+> We use bailing while cloning shapes. A user can switch between translating and cloning by pressing or releasing the alt (option) key during a drag. When this changes, we bail on the changes since the interaction started, then apply the new mode's changes.
 
 ### Squashing
 
@@ -140,9 +144,9 @@ editor.nudgeShapes(shapes, { x: -5, y: -5 })
 editor.squashToMark(markId) // All three nudges become one undo step
 ```
 
-Squashing doesn't change the current state, only how history is organized.
+Squashing doesn't change the current state, only how history is organized. If the mark isn't on the undo stack, `squashToMark` logs an error and does nothing.
 
-> We use squashing during image cropping. As the user adjusts the crop, each change is recorded, allowing undo/redo of individual adjustments. When the user finishes cropping and exits this mode, we squash all the intermediate changes into one history entry. A single undo restores the image to its state before cropping began.
+> We use squashing during image cropping. While the user adjusts the crop, each change is recorded and can be undone individually. When the user exits crop mode, we squash the intermediate changes into one history entry. A single undo restores the image to its state before cropping began.
 
 ### Clearing history
 
@@ -155,19 +159,11 @@ editor.clearHistory() // Start with clean history
 
 ## Integration with the store
 
-The history manager listens to [store](/sdk-features/store) changes through a history interceptor. It only captures changes marked with source `'user'`, ignoring internal updates and external synchronization.
+The history manager listens to [store](/sdk-features/store) changes through a history interceptor. It only captures changes with source `'user'`; changes merged from other clients (source `'remote'`) are ignored, and internal writes that shouldn't be undoable use `history: 'ignore'`. Only store records take part in undo/redo; state held outside the store, like your own atoms, does not.
 
-Internally, the manager has three states:
-
-| State                        | Captures changes | Clears redo stack |
-| ---------------------------- | ---------------- | ----------------- |
-| `Recording`                  | Yes              | Yes               |
-| `RecordingPreserveRedoStack` | Yes              | No                |
-| `Paused`                     | No               | No                |
-
-The `Paused` state is used during undo/redo operations, which prevents them from creating new history entries while they apply diffs.
+The three history modes map onto three internal states: `Recording`, `RecordingPreserveRedoStack`, and `Paused`. The manager pauses itself while applying an undo or redo so those writes don't create new entries.
 
 ## Related examples
 
-- [Timeline scrubber](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/use-cases/timeline-scrubber) - A visual timeline that lets users scrub through document history.
-- [Store events](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/events/store-events) - Listen to store changes, which is how the history manager tracks modifications.
+- [Timeline scrubber](/examples/use-cases/timeline-scrubber) - A visual timeline that lets users scrub through document history.
+- [Store events](/examples/events/store-events) - Listen to store changes, which is how the history manager tracks modifications.

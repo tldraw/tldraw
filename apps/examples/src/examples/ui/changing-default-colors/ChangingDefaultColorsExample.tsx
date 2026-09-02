@@ -8,14 +8,19 @@ export default function ChangingDefaultColorsExample() {
 		<div className="tldraw__editor">
 			{/* [1] */}
 			<Tldraw
-				persistenceKey="example"
+				persistenceKey="changing-default-colors-example"
 				onMount={(editor) => {
-					const theme = { ...editor.getTheme('default')! }
-					theme.colors = {
-						...theme.colors,
-						light: { ...theme.colors.light, black: { ...theme.colors.light.black, solid: 'aqua' } },
-					}
-					editor.updateTheme(theme)
+					const theme = editor.getTheme('default')!
+					editor.updateTheme({
+						...theme,
+						colors: {
+							...theme.colors,
+							light: {
+								...theme.colors.light,
+								black: { ...theme.colors.light.black, solid: 'aqua' },
+							},
+						},
+					})
 				}}
 			/>
 		</div>
@@ -23,17 +28,13 @@ export default function ChangingDefaultColorsExample() {
 }
 
 /*
-
 [1]
-Use editor.updateTheme() to customize a theme's color palette.
-Get the current theme with editor.getTheme(), modify it, and pass it back.
+Use `editor.updateTheme()` to change a theme's color palette. Get the current
+theme with `editor.getTheme()`, copy it with the values you want changed, and
+pass it back. Here we make the "black" color's solid value aqua in light mode.
 
-Remember that you can't add or remove colors here yet. These colors are
-used by our default shapes and we need to make sure that we don't end
-up with a color that we can't handle, or else this could get propagated
-to other users in a multiplayer session.
-
-At the moment, if you want to create new colors, you will need to create
-your own shapes that understand those colors. We're working on making
-this easier!
+Changing values this way keeps the set of color names the same, so existing
+shapes (and other users in a multiplayer session) keep working. To add or
+remove colors, or register additional named themes, see the custom theme and
+multiple themes examples.
 */

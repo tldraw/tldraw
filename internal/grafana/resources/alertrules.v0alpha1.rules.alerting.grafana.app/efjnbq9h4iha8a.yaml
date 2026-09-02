@@ -1,0 +1,69 @@
+apiVersion: rules.alerting.grafana.app/v0alpha1
+kind: AlertRule
+metadata:
+  annotations:
+    grafana.app/folder: f6hsw6
+    grafana.com/provenance: ''
+    grafana.com/updateTimestamp: '2026-04-28T08:48:46Z'
+    grafana.com/updatedBy: ae5t47muqbegwf
+  labels:
+    grafana.app/folder: f6hsw6
+    grafana.com/group: zero-fly-alerts
+    grafana.com/group-index: '4'
+  name: efjnbq9h4iha8a
+  namespace: stacks-890472
+spec:
+  annotations:
+    summary: Zero container OOM kill detected
+  execErrState: Ok
+  expressions:
+    A:
+      datasourceUID: afj5re4yk9og0e
+      model:
+        datasource:
+          type: prometheus
+          uid: afj5re4yk9og0e
+        editorMode: code
+        expr: fly_instance_exit_oom{app=~"production-zero-rm|production-zero-vs"}
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+      relativeTimeRange:
+        from: 10m0s
+        to: 0s
+    C:
+      model:
+        conditions:
+          - evaluator:
+              params:
+                - 0
+              type: gt
+            operator:
+              type: and
+            query:
+              params:
+                - C
+            reducer:
+              params: []
+              type: last
+            type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+      queryType: expression
+      source: true
+  labels:
+    service: zero
+    severity: critical
+  noDataState: Ok
+  title: Flyio zero container oom kill
+  trigger:
+    interval: 1m

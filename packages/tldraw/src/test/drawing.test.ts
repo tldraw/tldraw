@@ -1,4 +1,4 @@
-import { TLDrawShape, TLHighlightShape, last } from '@tldraw/editor'
+import { PageRecordType, TLDrawShape, TLHighlightShape, last } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { base64ToPoints } from '../lib/utils/test-helpers'
 import { TEST_DRAW_SHAPE_SCREEN_POINTS } from './drawing.data'
@@ -78,7 +78,7 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			const segment = shape.props.segments[0]
 			expect(segment.type).toBe('straight')
 
-			const points = base64ToPoints(segment.path)
+			const points = base64ToPoints(segment.path, segment.dim)
 			expect(points.length).toBe(2)
 		})
 
@@ -119,6 +119,39 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			expect(shape.props.segments[0].type).toBe('straight')
 			expect(shape.props.segments[1].type).toBe('free')
 			expect(shape.props.segments[2].type).toBe('straight')
+		})
+
+		it('Switches segment types after the same screen distance regardless of zoom', () => {
+			// Without the zoom correction the threshold is 4 canvas units, which at 800% is
+			// 32 screen pixels of the stroke not following the pointer (#10392).
+			editor.setCamera({ x: 0, y: 0, z: 8 })
+			editor
+				.setCurrentTool(toolType)
+				.pointerDown(100, 100)
+				.pointerMove(120, 100)
+				.keyDown('Shift')
+				.pointerMove(125, 100)
+
+			let shape = editor.getCurrentPageShapes()[0] as DrawableShape
+			expect(shape.props.segments.map((s) => s.type)).toEqual(['free', 'straight'])
+
+			editor.keyUp('Shift').pointerMove(130, 100)
+
+			shape = editor.getCurrentPageShapes()[0] as DrawableShape
+			expect(shape.props.segments.map((s) => s.type)).toEqual(['free', 'straight', 'free'])
+		})
+
+		it('Does not switch segment types until the pointer has moved past the drag distance', () => {
+			editor.setCamera({ x: 0, y: 0, z: 8 })
+			editor
+				.setCurrentTool(toolType)
+				.pointerDown(100, 100)
+				.pointerMove(120, 100)
+				.keyDown('Shift')
+				.pointerMove(123, 100)
+
+			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
+			expect(shape.props.segments.map((s) => s.type)).toEqual(['free'])
 		})
 
 		it('Extends previously drawn line when shift is held', () => {
@@ -163,6 +196,32 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			expect(shape2.props.segments[0].type).toBe('straight')
 		})
 
+		it('Does not extend previously drawn line after changing page', () => {
+			// regression for #10400: shift-clicking after a page change appended a
+			// segment to the shape on the old page instead of starting a new shape
+			const page1Id = editor.getCurrentPageId()
+			editor.setCurrentTool(toolType).pointerDown(10, 10).pointerMove(20, 20).pointerUp()
+
+			const shapeOnPage1 = editor.getCurrentPageShapes()[0] as DrawableShape
+			expect(shapeOnPage1.props.segments.length).toBe(1)
+
+			const page2Id = PageRecordType.createId()
+			editor.createPage({ id: page2Id, name: 'Page 2' })
+			editor.setCurrentPage(page2Id)
+			editor.keyDown('Shift').pointerDown(30, 30).pointerMove(40, 40).pointerUp()
+
+			expect(editor.getCurrentPageShapes()).toHaveLength(1)
+			const shapeOnPage2 = editor.getCurrentPageShapes()[0] as DrawableShape
+			expect(shapeOnPage2.id).not.toBe(shapeOnPage1.id)
+			expect(editor.isShapeInPage(shapeOnPage2, page2Id)).toBe(true)
+			expect(shapeOnPage2.props.segments.length).toBe(1)
+			expect(shapeOnPage2.props.segments[0].type).toBe('straight')
+
+			// The shape on the first page is untouched
+			expect(editor.getShape(shapeOnPage1.id)).toEqual(shapeOnPage1)
+			expect(editor.isShapeInPage(shapeOnPage1.id, page1Id)).toBe(true)
+		})
+
 		it('Snaps to 15 degree angle when shift is held', () => {
 			const magnitude = 10
 			const angle = (17 * Math.PI) / 180
@@ -177,7 +236,7 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment = shape.props.segments[0]
-			const points = base64ToPoints(segment.path)
+			const points = base64ToPoints(segment.path, segment.dim)
 			expect(points[1].x).toBeCloseTo(snappedX)
 			expect(points[1].y).toBeCloseTo(snappedY)
 		})
@@ -188,11 +247,20 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			const x = magnitude * Math.cos(angle)
 			const y = magnitude * Math.sin(angle)
 
-			editor.setCurrentTool(toolType).keyDown('Meta').pointerDown(0, 0).pointerMove(x, y)
+			// Shift held during pointerDown enters straight-line (angle-snapping) mode.
+			// Cmd pressed after pointerDown disables the angle snap. We press cmd
+			// after pointerDown so the accel-to-erase shortcut (which fires from
+			// the tool's idle state) doesn't intercept it.
+			editor
+				.setCurrentTool(toolType)
+				.keyDown('Shift')
+				.pointerDown(0, 0)
+				.keyDown('Meta')
+				.pointerMove(x, y)
 
 			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment = shape.props.segments[0]
-			const points = base64ToPoints(segment.path)
+			const points = base64ToPoints(segment.path, segment.dim)
 			expect(points[1].x).toBeCloseTo(x)
 			expect(points[1].y).toBeCloseTo(y)
 		})
@@ -212,14 +280,14 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 			const shape1 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment1 = last(shape1.props.segments)!
-			const points1 = base64ToPoints(segment1.path)
+			const points1 = base64ToPoints(segment1.path, segment1.dim)
 			const point1 = last(points1)!
 			expect(point1.x).toBe(1)
 
 			editor.keyDown('Meta')
 			const shape2 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment2 = last(shape2.props.segments)!
-			const points2 = base64ToPoints(segment2.path)
+			const points2 = base64ToPoints(segment2.path, segment2.dim)
 			const point2 = last(points2)!
 			expect(point2.x).toBe(0)
 		})
@@ -239,14 +307,14 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 			const shape1 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment1 = last(shape1.props.segments)!
-			const points1 = base64ToPoints(segment1.path)
+			const points1 = base64ToPoints(segment1.path, segment1.dim)
 			const point1 = last(points1)!
 			expect(point1.x).toBe(1)
 
 			editor.keyDown('Meta')
 			const shape2 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment2 = last(shape2.props.segments)!
-			const points2 = base64ToPoints(segment2.path)
+			const points2 = base64ToPoints(segment2.path, segment2.dim)
 			const point2 = last(points2)!
 			expect(point2.x).toBe(0)
 		})
@@ -266,6 +334,47 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			expect(editor.getCurrentPageShapes()).toHaveLength(1)
 			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
 			expect(shape.props.segments.length).toBe(1)
+		})
+
+		describe('chooses the segment encoding from the input device', () => {
+			const getFirstSegment = () => {
+				const shape = editor.getCurrentPageShapes()[0] as DrawableShape
+				return shape.props.segments[0]
+			}
+
+			it('drops pressure (2D) for a non-pressure device like a mouse', () => {
+				editor.setCurrentTool(toolType).pointerDown(0, 0).pointerMove(10, 10).pointerMove(20, 5)
+
+				const segment = getFirstSegment()
+				expect(segment.dim).toBe(2)
+
+				const zs = base64ToPoints(segment.path, segment.dim).map((p) => p.z!)
+				expect(zs.every((z) => Math.abs(z - 0.5) < 0.01)).toBe(true)
+			})
+
+			it('keeps full 3D and preserves varying pressure for a pen', () => {
+				editor
+					.setCurrentTool(toolType)
+					.pointerDown(0, 0, { isPen: true, point: { x: 0, y: 0, z: 0.3 } })
+					.pointerMove(10, 10, { isPen: true, point: { x: 10, y: 10, z: 0.6 } })
+					.pointerMove(20, 5, { isPen: true, point: { x: 20, y: 5, z: 0.9 } })
+
+				const segment = getFirstSegment()
+				expect(segment.dim).toBeUndefined()
+
+				const zs = base64ToPoints(segment.path, segment.dim).map((p) => p.z!)
+				expect(zs.some((z) => Math.abs(z - 0.5) > 0.01)).toBe(true)
+				expect(new Set(zs.map((z) => z.toFixed(2))).size).toBeGreaterThan(1)
+			})
+
+			it('keeps 3D for a stylus that reports as a mouse (pressure that is not the fabricated 0.5)', () => {
+				editor
+					.setCurrentTool(toolType)
+					.pointerDown(0, 0, { point: { x: 0, y: 0, z: 0.7 } })
+					.pointerMove(10, 10, { point: { x: 10, y: 10, z: 0.7 } })
+
+				expect(getFirstSegment().dim).toBeUndefined()
+			})
 		})
 	})
 }

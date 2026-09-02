@@ -1,12 +1,12 @@
 import { Vec, VecLike, VecModel } from 'tldraw'
 
-export const getOuterTangentPoints = (
+export function getOuterTangentPoints(
 	c0: VecLike,
 	r0: number,
 	c1: VecLike,
 	r1: number,
 	side?: 'edgeA' | 'edgeB'
-): VecModel[] => {
+): VecModel[] {
 	const offsetAngle = Vec.Angle(c0, c1)
 	const d = Vec.Dist(c0, c1)
 
@@ -43,7 +43,7 @@ export const getOuterTangentPoints = (
 	]
 }
 
-export const getGlobEndPoint = (c: VecModel, d: VecModel, r: number, side: number = 0) => {
+export function getGlobEndPoint(c: VecModel, d: VecModel, r: number, side: number = 0) {
 	const angle = Vec.Angle(c, d)
 
 	const displacement = Vec.Sub(c, d)
@@ -62,7 +62,7 @@ export const getGlobEndPoint = (c: VecModel, d: VecModel, r: number, side: numbe
 	return p
 }
 
-export const getArcFlag = (c: VecModel, e0: VecModel, e1: VecModel) => {
+export function getArcFlag(c: VecModel, e0: VecModel, e1: VecModel) {
 	const d0 = Vec.Angle(c, e0)
 	const d1 = Vec.Angle(c, e1)
 
@@ -73,7 +73,7 @@ export const getArcFlag = (c: VecModel, e0: VecModel, e1: VecModel) => {
 	return theta > 0 ? false : true
 }
 
-export const projectTensionPoint = (lineStart: VecModel, lineEnd: VecModel, handle: VecModel) => {
+export function projectTensionPoint(lineStart: VecModel, lineEnd: VecModel, handle: VecModel) {
 	const lineDir = Vec.Sub(lineEnd, lineStart)
 	const lineLength = lineDir.len()
 
@@ -84,12 +84,12 @@ export const projectTensionPoint = (lineStart: VecModel, lineEnd: VecModel, hand
 	return clampedProjection / lineLength
 }
 
-export const circleCentresOverlap = (c0: VecModel, r0: number, c1: VecModel) => {
+export function circleCentresOverlap(c0: VecModel, r0: number, c1: VecModel) {
 	const d = Vec.Dist(c0, c1)
 	return d <= r0
 }
 
-export const getClosestPointOnCircle = (c: VecModel, r: number, p: VecModel) => {
+export function getClosestPointOnCircle(c: VecModel, r: number, p: VecModel) {
 	const pDirection = Vec.Sub(p, c).uni()
 
 	return Vec.Add(c, Vec.Mul(pDirection, r + 1)).toJson()

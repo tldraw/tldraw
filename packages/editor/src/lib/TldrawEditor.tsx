@@ -24,6 +24,7 @@ import React, {
 } from 'react'
 import { version } from '../version'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
+import { EditorPortalProvider } from './components/EditorPortal'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { createTLCurrentUser, TLCurrentUser } from './config/createTLCurrentUser'
 import { TLStoreBaseOptions } from './config/createTLStore'
@@ -50,11 +51,11 @@ import { useLocalStore } from './hooks/useLocalStore'
 import { useRefState } from './hooks/useRefState'
 import { useStateAttribute } from './hooks/useStateAttribute'
 import { useZoomCss } from './hooks/useZoomCss'
-import { LicenseProvider } from './license/LicenseProvider'
+import { LicenseProvider, useLicenseContext } from './license/LicenseProvider'
 import { Watermark } from './license/Watermark'
 import { TldrawOptions } from './options'
 import { TLDeepLinkOptions } from './utils/deepLinks'
-import { getGlobalDocument } from './utils/dom'
+import { getGlobalDocument, getGlobalWindow } from './utils/dom'
 import { TLTextOptions } from './utils/richText'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
@@ -304,6 +305,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 	registerFontsFromThemes(resolvedThemes)
 
 	const [container, setContainer] = useState<HTMLElement | null>(null)
+	const [portalHost, setPortalHost] = useState<HTMLElement | null>(null)
 	const user = useMemo(() => _user ?? createTLCurrentUser(), [_user])
 
 	const ErrorFallback =
@@ -352,24 +354,30 @@ export const TldrawEditor = memo(function TldrawEditor({
 				{container && (
 					<LicenseProvider licenseKey={rest.licenseKey}>
 						<ContainerProvider container={container}>
-							<EditorComponentsProvider overrides={components}>
-								{store ? (
-									store instanceof Store ? (
-										// Store is ready to go, whether externally synced or not
-										<TldrawEditorWithReadyStore {...withDefaults} store={store} user={user} />
+							<EditorPortalProvider host={portalHost}>
+								<EditorComponentsProvider overrides={components}>
+									{store ? (
+										store instanceof Store ? (
+											// Store is ready to go, whether externally synced or not
+											<TldrawEditorWithReadyStore {...withDefaults} store={store} user={user} />
+										) : (
+											// Store is a synced store, so handle syncing stages internally
+											<TldrawEditorWithLoadingStore {...withDefaults} store={store} user={user} />
+										)
 									) : (
-										// Store is a synced store, so handle syncing stages internally
-										<TldrawEditorWithLoadingStore {...withDefaults} store={store} user={user} />
-									)
-								) : (
-									// We have no store (it's undefined) so create one and possibly sync it
-									<TldrawEditorWithOwnStore {...withDefaults} store={store} user={user} />
-								)}
-							</EditorComponentsProvider>
+										// We have no store (it's undefined) so create one and possibly sync it
+										<TldrawEditorWithOwnStore {...withDefaults} store={store} user={user} />
+									)}
+								</EditorComponentsProvider>
+							</EditorPortalProvider>
 						</ContainerProvider>
 					</LicenseProvider>
 				)}
 			</OptionalErrorBoundary>
+			{/* The host for <EditorPortal>, last among the container's children so that anything
+			    portaled through it lands after the canvas and the UI — behind the UI's "skip to main
+			    content" link in the tab order, which only works while nothing precedes it. */}
+			<div className="tl-portal-host" ref={setPortalHost} />
 		</div>
 	)
 })
@@ -425,11 +433,20 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	const container = useContainer()
 
 	useLayoutEffect(() => {
-		if (user.userPreferences.get().colorScheme === 'dark') {
+		// Resolve the scheme the same way UserPreferencesManager.getIsDarkMode will once the
+		// editor mounts, so a 'system' user on a dark OS doesn't get a light loading screen that
+		// flips dark on mount.
+		const scheme = user.userPreferences.get().colorScheme ?? rest.colorScheme ?? 'light'
+		const isDark =
+			scheme === 'dark' ||
+			(scheme === 'system' &&
+				typeof window !== 'undefined' &&
+				!!getGlobalWindow().matchMedia?.('(prefers-color-scheme: dark)').matches)
+		if (isDark) {
 			container.classList.remove('tl-theme__light')
 			container.classList.add('tl-theme__dark')
 		}
-	}, [container, user])
+	}, [container, user, rest.colorScheme])
 
 	const { LoadingScreen } = useEditorComponents()
 
@@ -489,6 +506,7 @@ function TldrawEditorWithReadyStore({
 >) {
 	const { ErrorFallback } = useEditorComponents()
 	const container = useContainer()
+	const licenseManager = useLicenseContext()
 
 	const [editor, setEditor] = useRefState<Editor | null>(null)
 
@@ -555,6 +573,7 @@ function TldrawEditorWithReadyStore({
 				themes: themes,
 				initialTheme: initialTheme,
 			})
+			editor.licenseManager = licenseManager
 
 			editor.updateViewportScreenBounds(canvasRef.current ?? container)
 
@@ -590,6 +609,7 @@ function TldrawEditorWithReadyStore({
 			user,
 			setEditor,
 			licenseKey,
+			licenseManager,
 			getShapeVisibility,
 			assetUrls,
 		]
@@ -801,7 +821,16 @@ export function useOnMount(onMount?: TLOnMountHandler) {
 			{ history: 'ignore' }
 		)
 		window.tldrawReady = true
-		return teardown
+		return () => {
+			teardown?.()
+			// The editor's component can unmount without the editor being disposed (for example when
+			// the canvas is swapped for an error fallback), so emit `unmount` here rather than relying
+			// on disposal. If the editor is being disposed, `dispose()` emits `unmount` itself, so we
+			// only emit here when it's still mounted and alive.
+			if (editor.getIsMounted() && !editor.isDisposed) {
+				editor.run(() => editor.emit('unmount'), { history: 'ignore' })
+			}
+		}
 	})
 
 	React.useLayoutEffect(() => {

@@ -14,6 +14,7 @@ export function useExtraDragIconOverrides() {
 			tools(editor, tools) {
 				tools.select.onDragStart = function (source, info) {
 					onDragFromToolbarToCreateShape(editor, info, {
+						maskedToolId: 'select',
 						createShape: (id) => {
 							const sizeStyle = editor.getStyleForNextShape(DefaultSizeStyle)
 							return editor.createShape({
@@ -37,6 +38,7 @@ export function useExtraDragIconOverrides() {
 
 				tools.hand.onDragStart = function (source, info) {
 					onDragFromToolbarToCreateShape(editor, info, {
+						maskedToolId: 'hand',
 						createShape: (id) => {
 							const sizeStyle = editor.getStyleForNextShape(DefaultSizeStyle)
 							return editor.createShape({
@@ -60,6 +62,7 @@ export function useExtraDragIconOverrides() {
 
 				tools.draw.onDragStart = function (source, info) {
 					onDragFromToolbarToCreateShape(editor, info, {
+						maskedToolId: 'draw',
 						createShape: (id) => {
 							const sizeStyle = editor.getStyleForNextShape(DefaultSizeStyle)
 							return editor.createShape({

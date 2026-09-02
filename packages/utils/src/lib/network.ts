@@ -24,7 +24,7 @@ export async function fetch(input: RequestInfo | URL, init?: RequestInit): Promi
  * @returns HTMLImageElement with referrerPolicy set to 'strict-origin-when-cross-origin'
  * @internal
  */
-export const Image = (width?: number, height?: number) => {
+export function Image(width?: number, height?: number) {
 	// eslint-disable-next-line tldraw/no-restricted-properties
 	const img = new window.Image(width, height)
 	img.referrerPolicy = 'strict-origin-when-cross-origin'

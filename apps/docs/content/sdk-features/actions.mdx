@@ -49,11 +49,11 @@ export default function App() {
 }
 ```
 
-The `@tldraw/tldraw` package includes about 80 default actions covering editing, arrangement, export, zoom, and preferences. You can override any of these or add your own through the `overrides` prop.
+The `tldraw` package includes nearly 100 default actions covering editing, arrangement, export, zoom, and preferences. You can override any of these or add your own through the `overrides` prop, typed as [TLUiOverrides](?).
 
 ## How actions work
 
-Actions live in a React context provided by `ActionsProvider`. When the UI mounts, it registers all default actions, applies any overrides you've provided, and makes them available through the `useActions` hook. Menus and toolbars look up actions by ID and render them with their labels, icons, and keyboard shortcuts.
+Actions live in a React context inside the tldraw UI. When the UI mounts, it registers all default actions, applies any overrides you've provided, and makes them available through the [useActions](?) hook. Menus and toolbars look up actions by ID and render them with their labels, icons, and keyboard shortcuts.
 
 Each action has an `onSelect` handler that receives a source parameter indicating where it was triggered:
 
@@ -65,39 +65,26 @@ const duplicateAction = actions['duplicate']
 duplicateAction.onSelect('toolbar')
 ```
 
-Keyboard shortcuts are bound automatically. The `useKeyboardShortcuts` hook parses each action's `kbd` property and registers hotkey handlers. When a shortcut fires, it calls the action's `onSelect` with `'kbd'` as the source.
+Keyboard shortcuts are bound automatically. The [useKeyboardShortcuts](?) hook parses each action's `kbd` property and registers hotkey handlers. When a shortcut fires, it calls the action's `onSelect` with `'kbd'` as the source.
 
 ## Action structure
 
-The `TLUiActionItem` interface defines what an action contains:
-
-```typescript
-interface TLUiActionItem {
-	id: string
-	label?: string | { [key: string]: string }
-	icon?: string | React.ReactElement
-	kbd?: string
-	readonlyOk?: boolean
-	checkbox?: boolean
-	isRequiredA11yAction?: boolean
-	onSelect(source: TLUiEventSource): Promise<void> | void
-}
-```
+The [TLUiActionItem](?) interface defines what an action contains:
 
 | Property               | Description                                                                                                                                                   |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `id`                   | Unique identifier for the action (e.g., `'duplicate'`, `'zoom-in'`)                                                                                           |
 | `label`                | Translation key for display text. Can be a string or an object mapping contexts to different keys (see [Context-sensitive labels](#context-sensitive-labels)) |
 | `icon`                 | Icon name from tldraw's icon set, or a custom React element                                                                                                   |
-| `kbd`                  | Keyboard shortcut string. Use commas to separate platform alternatives: `'cmd+g,ctrl+g'` binds Cmd+G on Mac and Ctrl+G elsewhere                              |
+| `kbd`                  | Keyboard shortcut string. Use commas to bind several combinations, e.g. `'cmd+g,ctrl+g'` (see [Keyboard shortcuts](#keyboard-shortcuts))                      |
 | `readonlyOk`           | When `true`, the action works in readonly mode. Defaults to `false`                                                                                           |
 | `checkbox`             | When `true`, renders as a toggle with a checkmark indicator in menus                                                                                          |
 | `isRequiredA11yAction` | When `true`, the keyboard shortcut works even when shortcuts are normally disabled (e.g., while editing a shape). Used for accessibility actions              |
-| `onSelect`             | Handler called when the action is triggered. Receives a `source` parameter indicating the trigger origin (`'kbd'`, `'menu'`, `'toolbar'`, etc.)               |
+| `onSelect`             | Handler called when the action is triggered. Receives a [TLUiEventSource](?) indicating the trigger origin (`'kbd'`, `'menu'`, `'toolbar'`, etc.)             |
 
 ## Accessing actions
 
-Use the `useActions` hook to get all registered actions:
+Use the [useActions](?) hook to get all registered actions:
 
 ```typescript
 import { useActions } from 'tldraw'
@@ -117,21 +104,18 @@ The hook returns a record mapping action IDs to action objects. You can iterate 
 
 ## Default actions
 
-The default actions cover most editing operations you'd expect in a canvas application. Here are some common categories:
+The default actions cover most editing operations you'd expect in a canvas application. Some common ones, by category:
 
-**Editing**: `undo`, `redo`, `duplicate`, `delete`, `copy`, `cut`, `paste`
+| Category    | Action ids                                                                                                                                                                 |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Editing     | `undo`, `redo`, `duplicate`, `delete`, `copy`, `cut`, `paste`                                                                                                              |
+| Grouping    | `group`, `ungroup`                                                                                                                                                         |
+| Arrangement | `bring-to-front`, `bring-forward`, `send-backward`, `send-to-back`, `align-left`, `align-center-horizontal`, `align-right`, `distribute-horizontal`, `distribute-vertical` |
+| Export      | `export-as-svg`, `export-as-png`, `copy-as-svg`, `copy-as-png`                                                                                                             |
+| Zoom        | `zoom-in`, `zoom-out`, `zoom-to-100`, `zoom-to-fit`, `zoom-to-selection`, `select-zoom-tool`                                                                               |
+| Preferences | `toggle-dark-mode`, `toggle-snap-mode`, `toggle-grid`, `toggle-focus-mode`                                                                                                 |
 
-**Grouping**: `group`, `ungroup`
-
-**Arrangement**: `bring-to-front`, `bring-forward`, `send-backward`, `send-to-back`, `align-left`, `align-center-horizontal`, `align-right`, `distribute-horizontal`, `distribute-vertical`
-
-**Export**: `export-as-svg`, `export-as-png`, `copy-as-svg`, `copy-as-png`
-
-**Zoom**: `zoom-in`, `zoom-out`, `zoom-to-100`, `zoom-to-fit`, `zoom-to-selection`, `select-zoom-tool`
-
-**Preferences**: `toggle-dark-mode`, `toggle-snap-mode`, `toggle-grid`, `toggle-focus-mode`
-
-Each action includes appropriate guards. For example, `group` checks that multiple shapes are selected before enabling, and arrangement actions verify that shapes can be reordered.
+The full list is in the [default actions source](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/context/actions.tsx). Most actions guard themselves inside their handlers. For example, `group` and the arrangement actions do nothing unless shapes are selected and the select tool is active.
 
 ## Overriding actions
 
@@ -156,6 +140,8 @@ function App() {
 	return <Tldraw overrides={overrides} />
 }
 ```
+
+The `copy`, `cut`, and `paste` shortcuts are handled by native clipboard events rather than the `kbd` system, so changing their `kbd` has no effect.
 
 ### Modifying behavior
 
@@ -202,11 +188,11 @@ const overrides: TLUiOverrides = {
 }
 ```
 
-Custom actions integrate with the keyboard shortcut system automatically. To add them to menus, you'll also need to override the menu components.
+Custom actions integrate with the keyboard shortcut system automatically. To add them to menus, override the menu components; see [Actions in menus](#actions-in-menus) and the [custom menus example](/examples/ui/custom-menus).
 
 ### Using helper utilities
 
-The override function receives a `helpers` object with useful utilities:
+The override function receives a `helpers` object ([TLUiOverrideHelpers](?), the return value of [useDefaultHelpers](?)):
 
 ```typescript
 const overrides: TLUiOverrides = {
@@ -252,21 +238,21 @@ Available helpers:
 
 ## Keyboard shortcuts
 
-Shortcuts use a simple string format with modifier keys separated by `+`. Use commas to specify alternatives for different platforms:
+Shortcuts use a simple string format with modifier keys separated by `+`. Use commas to bind several combinations to the same action. Every combination is active on every platform; the conventional `cmd+…,ctrl+…` pair covers Mac and everything else, and only the shortcut hint shown in menus ([TldrawUiKbd](?)) is platform-specific:
 
 ```typescript
-kbd: 'cmd+g,ctrl+g' // Cmd+G on Mac, Ctrl+G elsewhere
-kbd: 'shift+1' // Shift+1 on all platforms
-kbd: 'cmd+shift+s,ctrl+shift+s' // Cmd+Shift+S on Mac, Ctrl+Shift+S elsewhere
+kbd: 'cmd+g,ctrl+g' // Cmd+G or Ctrl+G
+kbd: 'shift+1' // Shift+1
+kbd: 'cmd+shift+s,ctrl+shift+s' // Cmd+Shift+S or Ctrl+Shift+S
 ```
 
-Available modifiers are `cmd`, `ctrl`, `shift`, and `alt`. Special keys include `del`, `backspace`, `enter`, `escape`, and arrow keys.
+Modifiers are `cmd` (alias `meta`), `ctrl`, `shift`, and `alt` (alias `option`). Special keys include `del`, `backspace`, `enter`, `escape`, `space`, and the arrow keys (`left`, `right`, `up`, `down`).
 
-Shortcuts are disabled when a menu is open, a shape is being edited, the editor has a crashing error, or the user has disabled keyboard shortcuts in preferences. Actions marked with `isRequiredA11yAction: true` bypass this check for accessibility purposes.
+Shortcuts only fire while the editor is focused and the key event does not target a text input. They are also disabled when a menu is open, a shape is being edited, the editor has a crashing error, or the user has disabled keyboard shortcuts in preferences. In readonly mode, only actions with `readonlyOk` are bound. Actions marked with `isRequiredA11yAction: true` bypass the disabled check for accessibility purposes.
 
 ## Actions in menus
 
-The default UI uses `TldrawUiMenuActionItem` to render actions in menus:
+The default UI uses [TldrawUiMenuActionItem](?) to render actions in menus:
 
 ```typescript
 import { TldrawUiMenuActionItem, TldrawUiMenuGroup } from 'tldraw'
@@ -282,11 +268,11 @@ function CustomMenu() {
 }
 ```
 
-This component looks up the action by ID and renders it with the correct label, icon, shortcut hint, and disabled state. For toggle actions, use `TldrawUiMenuActionCheckboxItem` which displays a checkmark when active.
+This component looks up the action by ID and renders it with the correct label, icon, and shortcut hint. Pass `disabled` yourself if the item should be disabled. For toggle actions, use [TldrawUiMenuActionCheckboxItem](?) with a `checked` prop.
 
 ## Context-sensitive labels
 
-Some actions show different labels depending on where they appear. The `label` property can be an object mapping context names to translation keys:
+Some actions show different labels depending on where they appear. The `label` property can be an object mapping menu context types ([TLUiMenuContextType](?), plus `default`) to translation keys:
 
 ```typescript
 actions['export-as-svg'] = {
@@ -320,6 +306,6 @@ actions['custom-action'] = {
 
 ## Related examples
 
-- [Action overrides](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/ui/action-overrides) — Add custom actions and modify existing action shortcuts using the overrides prop.
-- [Keyboard shortcuts](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/ui/keyboard-shortcuts) — Change keyboard shortcuts for tools and actions.
-- [Custom menus](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/ui/custom-menus) — Build custom menus that use actions with proper labels and shortcuts.
+- [Action overrides](/examples/ui/action-overrides) - Add custom actions and modify existing action shortcuts using the overrides prop.
+- [Keyboard shortcuts](/examples/ui/keyboard-shortcuts) - Change keyboard shortcuts for tools and actions.
+- [Custom menus](/examples/ui/custom-menus) - Build custom menus that use actions with proper labels and shortcuts.

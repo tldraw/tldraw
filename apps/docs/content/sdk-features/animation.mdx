@@ -17,23 +17,17 @@ accuracy: 9
 notes: Voice issues with "enable" and passive constructions ("are interpolated", "is useful for").
 ---
 
-The animation system controls smooth transitions for shapes and camera movements. Shape animations handle properties like position, rotation, and opacity. Camera animations manage viewport transitions for panning and zooming.
-
-Shape animations run independently and can be interrupted or replaced. Camera animations integrate with the camera system and respect user animation speed preferences for accessibility.
+The animation system drives smooth transitions for shapes and for the camera. Shape animations interpolate a shape's position, rotation, opacity, and props. Camera animations move the viewport for pans and zooms.
 
 ## How it works
 
-Animations in tldraw use the tick system to drive frame-by-frame updates. On each tick, active animations calculate elapsed time, apply easing functions to determine progress, and interpolate between start and end values.
+Animations run on the editor's [tick system](/sdk-features/ticks). When you call [Editor#animateShape](?) or a camera method with an `animation` option, the editor subscribes to `tick` events, applies the easing function to the elapsed time, and interpolates between the start and end values until the animation completes.
 
-The editor emits `tick` events at the browser's animation frame rate. The animation methods handle all of this internally: when you call `animateShape()` or `setCamera()` with animation options, the editor subscribes to tick events, calculates progress using the easing function, and updates the shape or camera state until the animation completes.
-
-Camera animations respect the user's animation speed preference, which can be set to zero to disable animations entirely. Shape animations do not check this preference. If you need reduced motion support for shape animations, check `editor.user.getAnimationSpeed()` yourself and skip the animation when it returns zero.
+Camera animations respect the user's animation speed preference; shape animations don't. See [User preferences](#user-preferences) below.
 
 ## Shape animations
 
-Shape animations enable smooth transitions for individual shape properties. The editor tracks each animating shape independently, allowing multiple concurrent animations that can be interrupted or replaced.
-
-Use `animateShape()` to animate a single shape or `animateShapes()` to animate multiple shapes simultaneously:
+Use [Editor#animateShape](?) to animate a single shape or [Editor#animateShapes](?) to animate several at once. The editor tracks each animating shape independently, so multiple animations can run at the same time:
 
 ```typescript
 import { createShapeId, EASINGS } from 'tldraw'
@@ -48,40 +42,31 @@ editor.animateShape(
 
 ### Animated properties
 
-The animation system handles interpolation for core shape properties that are common across all shape types. These built-in properties use linear interpolation (lerp) to calculate intermediate values between the start and end states:
+The editor linearly interpolates the properties common to every shape: `x`, `y`, `rotation` (in radians), and `opacity` (0 to 1).
 
-- `x` - Horizontal position
-- `y` - Vertical position
-- `opacity` - Shape transparency (0 to 1)
-- `rotation` - Shape rotation angle in radians
-
-For shape-specific properties like width, height, or custom values, shape utilities can define their own interpolation logic by implementing the `getInterpolatedProps()` method. This allows each shape type to control how its unique properties animate. For example, box shapes interpolate their dimensions:
+For shape-specific props like width and height, the shape util implements [ShapeUtil#getInterpolatedProps](?). If a util doesn't implement it, the props jump to their end values on the first frame. This is how [BaseBoxShapeUtil](?) interpolates its dimensions (`lerp` is exported from `tldraw`):
 
 ```typescript
 getInterpolatedProps(startShape: Shape, endShape: Shape, t: number) {
-  return {
-    ...endShape.props,
-    w: lerp(startShape.props.w, endShape.props.w, t),
-    h: lerp(startShape.props.h, endShape.props.h, t),
-  }
+	return {
+		...endShape.props,
+		w: lerp(startShape.props.w, endShape.props.w, t),
+		h: lerp(startShape.props.h, endShape.props.h, t),
+	}
 }
 ```
 
 ### Animation lifecycle
 
-Each animation receives a unique ID when started. The editor maintains a map of shape IDs to animation IDs to track which shapes are currently animating.
+Shape animations default to a duration of 500 ms and `linear` easing. Intermediate frames don't create history entries; when the animation finishes the editor calls `updateShapes()` with the final values, so a single undo restores the starting state.
 
-You can interrupt animations in two ways. Calling `updateShapes()` on an animating shape cancels its animation and immediately applies the new values. Starting a new animation for a shape automatically cancels any existing animation for that shape.
+You can interrupt an animation in two ways. Calling `updateShapes()` on an animating shape cancels its animation and applies the new values immediately. Starting a new animation for a shape cancels the existing one.
 
-User interactions always take precedence over ongoing animations. If you drag a shape that's currently animating, the animation stops and the shape responds to your input immediately.
+User interaction wins over ongoing animations. If you drag a shape that's animating, the animation stops and the shape follows your pointer.
 
 ## Camera animations
 
-Camera animations move the viewport smoothly using easing functions. These animations integrate with the camera system and can be interrupted by user input like panning or zooming.
-
-### Viewport animations
-
-The `setCamera()` method accepts an animation option to smoothly transition to a new camera position:
+The camera-move methods ([Editor#setCamera](?), [Editor#zoomToBounds](?), [Editor#zoomToFit](?), and the rest) accept an `animation` option in [TLCameraMoveOptions](?). Without it, or with a `duration` of `0`, the camera jumps straight to the target. See [Camera](/sdk-features/camera) for the full set of methods.
 
 ```typescript
 editor.setCamera(
@@ -90,20 +75,14 @@ editor.setCamera(
 )
 ```
 
-Camera animations automatically stop when the user interacts with the viewport through mouse wheel, pinch gestures, or keyboard navigation.
+Camera animations default to `easeInOutCubic` easing. They stop as soon as the user pans, zooms, or pinches, and you can stop them yourself with [Editor#stopCameraAnimation](?). If the camera is locked, camera methods do nothing unless you pass `force: true`.
 
 ### Zooming to bounds
 
-Use `zoomToBounds()` to animate the camera so a specific area fills the viewport. This is useful for focusing on shapes, navigating between sections, or implementing slideshow-style transitions:
+Use `zoomToBounds()` to animate the camera so a specific area fills the viewport, for example to focus on shapes or build slideshow-style transitions. You can also cap the zoom with `targetZoom` and add screen-space padding with `inset`:
 
 ```typescript
 const bounds = { x: 0, y: 0, w: 800, h: 600 }
-editor.zoomToBounds(bounds, { animation: { duration: 500 } })
-```
-
-You can also specify a target zoom level and inset padding:
-
-```typescript
 editor.zoomToBounds(bounds, {
 	animation: { duration: 500 },
 	targetZoom: 1, // zoom to 100%
@@ -111,7 +90,7 @@ editor.zoomToBounds(bounds, {
 })
 ```
 
-The `zoomToFit()` method is a convenience wrapper that zooms to fit all shapes on the current page:
+`zoomToFit()` is a convenience wrapper that zooms to fit all shapes on the current page:
 
 ```typescript
 editor.zoomToFit({ animation: { duration: 200 } })
@@ -119,39 +98,27 @@ editor.zoomToFit({ animation: { duration: 200 } })
 
 ### Camera slide
 
-The `slideCamera()` method creates momentum-based camera movement that gradually decelerates:
+[Editor#slideCamera](?) creates momentum-based camera movement that decelerates under friction:
 
 ```typescript
 editor.slideCamera({
-	speed: 2,
+	speed: 1,
 	direction: { x: 1, y: 0 },
 	friction: 0.1,
 })
 ```
 
-This method respects the user's animation speed preference. If animation speed is set to zero, the slide animation is disabled.
-
 ## Easing functions
 
-Easing functions control the rate of change during animations, making movements feel natural rather than mechanical. Choose an easing based on the interaction: use `easeOut` variants when responding to user actions (the animation starts fast and settles), `easeIn` for exits or dismissals (gradual start, quick finish), and `easeInOut` for autonomous movements like camera transitions (smooth start and end).
+Easing functions control the rate of change during an animation. Use an `easeOut` curve when responding to user actions (fast start, gentle settle), `easeIn` for exits (gentle start, quick finish), and `easeInOut` for autonomous moves like camera transitions.
 
-The editor provides these easing functions in `EASINGS`:
-
-- `linear` - Constant rate of change, useful for progress indicators
-- `easeInQuad`, `easeOutQuad`, `easeInOutQuad` - Subtle, gentle curves
-- `easeInCubic`, `easeOutCubic`, `easeInOutCubic` - Balanced, natural-feeling motion
-- `easeInQuart`, `easeOutQuart`, `easeInOutQuart` - More pronounced acceleration
-- `easeInQuint`, `easeOutQuint`, `easeInOutQuint` - Strong acceleration curves
-- `easeInSine`, `easeOutSine`, `easeInOutSine` - Very gentle, sinusoidal curves
-- `easeInExpo`, `easeOutExpo`, `easeInOutExpo` - Dramatic, exponential curves
-
-Shape animations default to `linear` easing. Camera animations default to `easeInOutCubic`. For shape animations responding to user actions, `easeOutCubic` or `easeOutQuad` often feel more responsive since the animation starts fast and settles gradually.
+[EASINGS](?) provides `linear` plus the standard `easeIn`, `easeOut`, and `easeInOut` variants of `Quad`, `Cubic`, `Quart`, `Quint`, `Sine`, and `Expo`, for example `EASINGS.easeOutCubic` or `EASINGS.easeInOutSine`.
 
 ## User preferences
 
-Camera animations check `editor.user.getAnimationSpeed()` before running. This value multiplies animation durations, so users can speed up, slow down, or disable animations entirely.
+Camera animations check `editor.user.getAnimationSpeed()` before running. This value is a speed multiplier: the editor divides animation durations by it, so users can speed up, slow down, or disable animations entirely. It defaults to `0` when the operating system reports `prefers-reduced-motion`.
 
-When animation speed is zero, camera methods like `setCamera()`, `slideCamera()`, `zoomToBounds()`, and `zoomToFit()` skip the animation and jump immediately to the final position. Shape animations via `animateShape()` and `animateShapes()` do not check this preference automatically. If you need reduced motion support for shape animations, check the animation speed yourself:
+When animation speed is zero, `setCamera()`, `zoomToBounds()`, `zoomToFit()`, and the other camera-move methods jump straight to the target, and `slideCamera()` does nothing. `animateShape()` and `animateShapes()` do not check this preference. If you need reduced motion support for shape animations, check the animation speed yourself:
 
 ```typescript
 if (editor.user.getAnimationSpeed() > 0) {
@@ -166,4 +133,6 @@ if (editor.user.getAnimationSpeed() > 0) {
 
 ## Related examples
 
-The [slideshow example](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/use-cases/slideshow) uses camera animations to smoothly transition between slides using `zoomToBounds` with animation options. The [camera options example](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/configuration/camera-options) demonstrates camera constraints and animations for bounded canvas experiences.
+- [Shape animation](/examples/editor-api/shape-animation) - Animate shapes with `animateShape` and easing functions.
+- [Slideshow](/examples/use-cases/slideshow) - Transition between slides with `zoomToBounds` and animation options.
+- [Reduced motion](/examples/configuration/reduced-motion) - Respect the user's animation speed preference and `prefers-reduced-motion`.

@@ -16,7 +16,7 @@ keywords:
   - image resolution
 ---
 
-The tldraw SDK uses several techniques to maintain smooth performance even with thousands of shapes on the canvas. Understanding these systems helps you build custom shapes that perform well and avoid common pitfalls.
+The tldraw SDK uses several techniques to maintain smooth performance even with thousands of shapes on the canvas. This article covers what the SDK does for you and what to do in custom shapes.
 
 ## How tldraw optimizes rendering
 
@@ -24,7 +24,7 @@ The tldraw SDK uses several techniques to maintain smooth performance even with 
 
 Shapes outside the viewport don't need to render. The editor maintains a spatial index that tracks which shapes are visible, and hides off-screen shapes by setting `display: none` on their DOM elements. This means a canvas with 10,000 shapes might only render 50 if the rest are out of view.
 
-Culling happens automatically for all shapes. The shapes remain in the store and can still be selected or updated—they just don't incur rendering cost. See [Culling](/sdk-features/culling) for details on how to control this behavior for custom shapes.
+Culling happens automatically for all shapes. The shapes remain in the store and can still be selected or updated; they just don't incur rendering cost. Selected shapes and the shape being edited are never culled. See [Culling](/sdk-features/culling) for details on how to control this behavior for custom shapes.
 
 ### Reactive signals
 
@@ -62,27 +62,27 @@ editor.run(() => {
 
 When the camera moves, shape components receive the new zoom level to scale stroke widths and other visual properties. On documents with many shapes, recalculating everything mid-zoom causes jank.
 
-The editor provides `editor.getEfficientZoomLevel()` which returns a stable value during camera movement when the document has more than 500 shapes (configurable via the `debouncedZoomThreshold` option). Once the camera stops, the value updates to the true zoom level.
+The editor provides [Editor#getEfficientZoomLevel](?), which returns a stable value during camera movement when the document has more than 500 shapes (configurable via the `debouncedZoomThreshold` option). Once the camera stops, the value updates to the true zoom level.
 
 Shape components should use this value rather than `editor.getZoomLevel()` for properties that affect rendering:
 
 ```tsx
-function MyShapeComponent({ shape }) {
+function MyShapeComponent({ shape }: { shape: MyShape }) {
 	const editor = useEditor()
 	const zoom = useValue('zoom', () => editor.getEfficientZoomLevel(), [editor])
 
 	// Stroke width stays stable during camera movement
 	const strokeWidth = 2 / zoom
 
-	return <path strokeWidth={strokeWidth} ... />
+	return <path d={getPathForShape(shape)} strokeWidth={strokeWidth} />
 }
 ```
 
 ### Geometry caching
 
-Computing a shape's geometry—bounds, hit test regions, outline—can be expensive. The editor caches these computations and invalidates them only when a shape's props change.
+Computing a shape's geometry (bounds, hit test regions, outline) can be expensive. The editor caches these computations and invalidates them only when a shape's props change.
 
-Access cached geometry through `editor.getShapeGeometry(shapeId)` rather than calling `shapeUtil.getGeometry()` directly. The editor handles caching, transforms, and bounds calculation.
+Access cached geometry through [Editor#getShapeGeometry](?) rather than calling `shapeUtil.getGeometry()` directly. The editor handles caching, transforms, and bounds calculation.
 
 ### Level of detail
 
@@ -90,7 +90,7 @@ tldraw adjusts rendering fidelity based on zoom level and on-screen size, a tech
 
 **Image resolution scaling**
 
-When you zoom out or resize an image shape, tldraw requests a lower-resolution version from your asset store. The `resolve` method on [TLAssetStore](?) receives a [TLAssetContext](?) with `steppedScreenScale`—the ratio of the shape's on-screen size to the image's native size, rounded up to the nearest power of two. Use this to serve appropriately sized images:
+When you zoom out or resize an image shape, tldraw requests a lower-resolution version from your asset store. The `resolve` method on [TLAssetStore](?) receives a [TLAssetContext](?) with `steppedScreenScale`: the ratio of the shape's on-screen size (in CSS pixels) to the image's native size, rounded up to the nearest power of two. Multiply by `dpr` to get device pixels:
 
 ```ts
 const assetStore: TLAssetStore = {
@@ -104,18 +104,13 @@ const assetStore: TLAssetStore = {
 }
 ```
 
-A 4000px-wide photo zoomed out to take up 200px on screen only needs 200 device pixels worth of data. This reduces memory usage and decoding cost. Resolution updates are debounced so images don't thrash between sizes during zooming.
+A 4000px-wide photo zoomed out to take up 200px on screen has a screen scale of 0.05, which steps up to 0.0625, so you'd serve a 250px-wide image (times `dpr`) instead of the full 4000px. This reduces memory usage and decoding cost. Resolution updates are debounced so images don't thrash between sizes during zooming.
 
 **Built-in shape simplifications**
 
-The built-in shapes reduce rendering complexity at low zoom levels:
+The built-in shapes reduce rendering complexity at low zoom levels. Sticky notes drop their box shadow in favor of a plain bottom border. Dashed and dotted freehand strokes render as solid lines. The hatch pattern fill switches to a solid fallback color. Text outlines turn off below the `textShadowLod` threshold (default 0.35) to reduce compositing cost, and are always off on Safari.
 
-- **Note shadows** — Box shadows on sticky notes are hidden when zoomed out far enough, replaced by a simple border
-- **Draw shapes** — Freehand strokes switch from their detailed "draw" style to solid paths
-- **Pattern fills** — Hatch and cross-hatch fills switch to solid colors
-- **Text outlines** — Text shadow outlines disable below the `textShadowLod` threshold (default 0.35) to reduce compositing cost
-
-These transitions use [Editor#getEfficientZoomLevel](?) so they stay stable during camera movement rather than updating every frame. Custom shapes can use the same technique—see [Simplify at small sizes](#simplify-at-small-sizes) below.
+These transitions use [Editor#getEfficientZoomLevel](?) so they stay stable during camera movement rather than updating every frame. Custom shapes can use the same technique. See [Simplify at small sizes](#simplify-at-small-sizes) below.
 
 ## Tips for custom shapes
 
@@ -126,7 +121,7 @@ When shapes are very small on screen, fine details become invisible. Rendering s
 Use `editor.getEfficientZoomLevel()` to detect when shapes are small enough to simplify:
 
 ```tsx
-function MyShapeComponent({ shape }) {
+function MyShapeComponent({ shape }: { shape: MyShape }) {
 	const editor = useEditor()
 	const isSmall = useValue(
 		'is small',
@@ -148,31 +143,13 @@ function MyShapeComponent({ shape }) {
 }
 ```
 
-The built-in shapes use this pattern. Pattern fills switch to solid colors when zoomed out far enough, and text shadows disable at low zoom levels (controlled by the `textShadowLod` option).
-
 ### Avoid shape animations
 
 Animating shape properties causes continuous re-renders. A spinning shape triggers updates every frame. If you have many shapes or complex rendering, this adds up quickly.
 
-If you need animation, consider:
+If you need animation, use CSS animations for purely visual effects that don't change shape data, use a canvas for particle systems or complex effects, and keep the number of concurrently animating shapes small.
 
-- **CSS animations** for purely visual effects that don't change shape data
-- **Canvas rendering** for particle systems or complex animations
-- **Limiting concurrent animations** to a small number of shapes
-
-The [Animation](/sdk-features/animation) article covers the editor's animation system. The animation system handles camera movement and occasional shape transitions. It's not designed for continuous per-shape animation.
-
-### Use stable values for zoom-dependent calculations
-
-When calculating values that depend on zoom (stroke widths, font sizes, handle positions), use `getEfficientZoomLevel()` rather than `getZoomLevel()`. This prevents recalculations during camera movement:
-
-```tsx
-// Avoid: causes re-renders during zoom
-const strokeWidth = 2 / editor.getZoomLevel()
-
-// Better: stable during camera movement
-const strokeWidth = 2 / editor.getEfficientZoomLevel()
-```
+The [Animation](/sdk-features/animation) article covers the editor's animation system. It handles camera movement and occasional shape transitions. It's not designed for continuous per-shape animation.
 
 ### Keep component functions cheap
 
@@ -196,7 +173,7 @@ For calculations that affect hit testing or bounds, put them in `getGeometry()` 
 
 ### Disable culling only when necessary
 
-By default, all shapes participate in culling. Override `canCull()` to return `false` only for shapes that genuinely need to stay rendered off-screen:
+By default, all shapes participate in culling. Override [ShapeUtil#canCull](?) to return `false` only for shapes that genuinely need to stay rendered off-screen:
 
 ```ts
 class MyShapeUtil extends ShapeUtil<MyShape> {
@@ -207,13 +184,7 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 }
 ```
 
-Common reasons to disable culling:
-
-- Shapes that measure their DOM content to determine size
-- Shapes with visual effects (shadows, glows) that extend beyond bounds
-- Shapes running animations that should continue off-screen
-
-For most shapes, leave culling enabled.
+Reasons to disable culling include shapes that measure their DOM content to determine size, shapes with visual effects (shadows, glows) that extend beyond their bounds, and shapes running animations that should continue off-screen. For most shapes, leave culling enabled.
 
 ## Editor options for performance
 
@@ -243,24 +214,38 @@ function App() {
 
 ## Measuring performance
 
-When investigating performance issues:
+When investigating performance issues, start with the numbers: `editor.getCurrentPageShapeIds().size` tells you how many shapes are on the current page and [Editor#getCulledShapes](?) tells you how many of them are hidden by culling. Then use React DevTools and Chrome's Performance tab to find slow components, and test with a production build, since development mode has overhead that production builds don't.
 
-1. **Check shape count** — `editor.getCurrentPageShapeIds().size` tells you how many shapes are on the current page
-2. **Check culled shapes** — `editor.getCulledShapes().size` shows how many are hidden by culling
-3. **Use browser profiler** — React DevTools and Chrome's Performance tab help identify slow components
-4. **Test with production builds** — Development mode has overhead that production builds don't
+If performance degrades with many shapes, look for shapes that disable culling unnecessarily, components that use `getZoomLevel()` instead of `getEfficientZoomLevel()`, expensive calculations inside component render functions, and continuous animations on many shapes.
 
-If performance degrades with many shapes, look for:
+### Subscribing to performance events
 
-- Shapes that disable culling unnecessarily
-- Components that use `getZoomLevel()` instead of `getEfficientZoomLevel()`
-- Expensive calculations inside component render functions
-- Continuous animations on many shapes
+For programmatic monitoring (telemetry or in-app dashboards), the editor exposes [PerformanceManager](?) at `editor.performance`. Subscribe to events and you'll get aggregated frame-time stats from real interactions, with no overhead when no listeners are attached:
+
+```ts
+const unsub = editor.performance.on('interaction-end', (event) => {
+	console.log(`${event.name}: ${event.fps.toFixed(1)} fps, p95=${event.p95FrameTime.toFixed(1)}ms`)
+})
+// later: unsub()
+```
+
+The `'interaction-end'` event fires when an interaction state exits, with `fps`, `p95FrameTime`, and (in supporting browsers) Long Animation Frame attribution. `'camera-end'` fires after pan/zoom debounce with the same shape. `'shapes-created'`, `'shapes-updated'`, and `'shapes-deleted'` carry per-type counts. `'frame'` fires every animation frame while a listener is attached. See [TLPerfEventMap](?) for the full set.
+
+Custom tools opt into interaction tracking by setting [StateNode#trackPerformance](?) on the state node class. When the state is entered, the manager starts a tracking window; when it exits, it emits `'interaction-start'` / `'interaction-end'` with the state path. Built-in interactions like `select.translating` and `draw.drawing` already track, so you only need this for custom states.
+
+If you're profiling in Chrome DevTools, [PerformanceApiAdapter](?) wires the same events into native `performance.mark()` / `performance.measure()` calls so they show up on the Performance timeline:
+
+```ts
+import { PerformanceApiAdapter } from 'tldraw'
+
+const adapter = new PerformanceApiAdapter(editor.performance)
+// later: adapter.dispose()
+```
 
 ## Related
 
-- [Culling](/sdk-features/culling) — How viewport culling works and how to control it
-- [Signals](/sdk-features/signals) — The reactive state system
-- [Store](/sdk-features/store) — How the reactive database batches changes
-- [Options](/sdk-features/options) — All available editor options
-- [Animation](/sdk-features/animation) — The shape and camera animation systems
+- [Culling](/sdk-features/culling): how viewport culling works and how to control it
+- [Signals](/sdk-features/signals): the reactive state system
+- [Store](/sdk-features/store): how the reactive database batches changes
+- [Options](/sdk-features/options): all available editor options
+- [Animation](/sdk-features/animation): the shape and camera animation systems

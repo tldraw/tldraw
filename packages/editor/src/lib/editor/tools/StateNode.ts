@@ -152,7 +152,9 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 			}
 
 			if (prevChildState?.id !== nextChildState.id) {
-				prevChildState?.exit(info, id)
+				// The previous child is inactive when transitioning from a parent's onEnter (or from a
+				// node that was already exited); exiting it again would fire a spurious onExit
+				if (prevChildState?.getIsActive()) prevChildState.exit(info, id)
 				currState._current.set(nextChildState)
 				nextChildState.enter(info, prevChildState?.id || 'initial')
 				if (!nextChildState.getIsActive()) break
@@ -188,10 +190,18 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 			this.editor.performance._notifyInteractionStart(this.id, this.getPath())
 		}
 
+		const currentBeforeEnter = this.getCurrent()
 		this._isActive.set(true)
 		this.onEnter?.(info, from)
 
-		if (this.children && this.initial && this.getIsActive()) {
+		// If onEnter already transitioned to a child, entering the initial child on top of it would
+		// leave that child active but orphaned
+		if (
+			this.children &&
+			this.initial &&
+			this.getIsActive() &&
+			this.getCurrent() === currentBeforeEnter
+		) {
 			const initial = this.children[this.initial]
 			this._current.set(initial)
 			initial.enter(info, from)
@@ -268,8 +278,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	onLongPress?(info: TLPointerEventInfo): void
 	onPointerUp?(info: TLPointerEventInfo): void
 	onDoubleClick?(info: TLClickEventInfo): void
-	onTripleClick?(info: TLClickEventInfo): void
-	onQuadrupleClick?(info: TLClickEventInfo): void
 	onRightClick?(info: TLPointerEventInfo): void
 	onMiddleClick?(info: TLPointerEventInfo): void
 	onKeyDown?(info: TLKeyboardEventInfo): void

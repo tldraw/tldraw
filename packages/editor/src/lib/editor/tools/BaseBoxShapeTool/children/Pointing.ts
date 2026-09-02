@@ -65,12 +65,20 @@ export class Pointing extends StateNode {
 		this.complete()
 	}
 
+	override onLongPress() {
+		// On a touch (coarse pointer) long-press, cancel the pending shape so it leaves nothing behind.
+		if (this.editor.getInstanceState().isCoarsePointer) this.cancel()
+	}
+
 	override onCancel() {
 		this.cancel()
 	}
 
 	override onComplete() {
-		this.complete()
+		// `complete` arrives mid-press from undo, menus opening, page changes, and focus loss,
+		// none of which is a release; committing here would drop a default-size shape the user
+		// never asked for. Match the text and arrow tools and leave nothing behind.
+		this.cancel()
 	}
 
 	override onInterrupt() {

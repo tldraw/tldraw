@@ -6,15 +6,16 @@ import {
 } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useMemo } from 'react'
-import { Editor, TLComponents, Tldraw } from 'tldraw'
+import { commentSchemaRecords, Editor, TLComponents, Tldraw } from 'tldraw'
 import { StoreErrorScreen } from '../../../components/StoreErrorScreen'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
-import { MULTIPLAYER_SERVER } from '../../../utils/config'
+import { CLIENT_BUILD_TIMESTAMP, MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
+import { embedShapeUtils } from '../../../utils/embedShapeUtil'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { useMaybeApp } from '../../hooks/useAppState'
@@ -75,10 +76,14 @@ function TlaEditorInner({
 	const assets = useMemo(() => multiplayerAssetStore(), [])
 
 	const storeWithStatus = useSync({
-		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${fileSlug}`,
+		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${fileSlug}?v=${CLIENT_BUILD_TIMESTAMP}`,
 		roomId: fileSlug,
 		assets,
 		trackAnalyticsEvent: trackEvent,
+		// Register the comment record types so the schema matches the server's (see
+		// fileSyncSchema in TLFileDurableObject) — without them the server rejects the
+		// session as too old. Legacy rooms don't render a comments UI.
+		records: commentSchemaRecords,
 	})
 
 	const fileSystemUiOverrides = useFileEditorOverrides({})
@@ -115,6 +120,7 @@ function TlaEditorInner({
 				licenseKey={getLicenseKey()}
 				store={storeWithStatus}
 				assetUrls={assetUrls}
+				shapeUtils={embedShapeUtils}
 				onMount={handleMount}
 				overrides={[fileSystemUiOverrides]}
 				initialState={isReadonly ? 'hand' : 'select'}

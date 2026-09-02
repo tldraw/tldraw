@@ -1,120 +1,98 @@
-import _ from 'lodash'
-import { useCallback, useEffect, useState } from 'react'
-import { Editor, TLEventMapHandler, Tldraw } from 'tldraw'
+import { useCallback, useState } from 'react'
+import { isEqual, TLEventMapHandler, TLShape, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
+import './store-events.css'
 
 // There's a guide at the bottom of this file!
 
 export default function StoreEventsExample() {
-	const [editor, setEditor] = useState<Editor>()
-
-	const setAppToState = useCallback((editor: Editor) => {
-		setEditor(editor)
-	}, [])
-
 	const [storeEvents, setStoreEvents] = useState<string[]>([])
 
-	useEffect(() => {
-		if (!editor) return
+	// [1]
+	const handleChangeEvent = useCallback<TLEventMapHandler<'change'>>((change) => {
+		const messages: string[] = []
 
-		function logChangeEvent(eventName: string) {
-			setStoreEvents((events) => [...events, eventName])
-		}
-
-		//[1]
-		const handleChangeEvent: TLEventMapHandler<'change'> = (change) => {
-			// Added
-			for (const record of Object.values(change.changes.added)) {
-				if (record.typeName === 'shape') {
-					logChangeEvent(`created shape (${record.type})\n`)
-				}
-			}
-
-			// Updated
-			for (const [from, to] of Object.values(change.changes.updated)) {
-				if (
-					from.typeName === 'instance' &&
-					to.typeName === 'instance' &&
-					from.currentPageId !== to.currentPageId
-				) {
-					logChangeEvent(`changed page (${from.currentPageId}, ${to.currentPageId})`)
-				} else if (from.id.startsWith('shape') && to.id.startsWith('shape')) {
-					let diff = _.reduce(
-						from,
-						(result: any[], value, key: string) =>
-							_.isEqual(value, (to as any)[key]) ? result : result.concat([key, (to as any)[key]]),
-						[]
-					)
-					if (diff?.[0] === 'props') {
-						diff = _.reduce(
-							(from as any).props,
-							(result: any[], value, key) =>
-								_.isEqual(value, (to as any).props[key])
-									? result
-									: result.concat([key, (to as any).props[key]]),
-							[]
-						)
-					}
-					logChangeEvent(`updated shape (${JSON.stringify(diff)})\n`)
-				}
-			}
-
-			// Removed
-			for (const record of Object.values(change.changes.removed)) {
-				if (record.typeName === 'shape') {
-					logChangeEvent(`deleted shape (${record.type})\n`)
-				}
+		for (const record of Object.values(change.changes.added)) {
+			if (record.typeName === 'shape') {
+				messages.push(`created shape (${record.type})`)
 			}
 		}
 
-		// [2]
-		const cleanupFunction = editor.store.listen(handleChangeEvent, { source: 'user', scope: 'all' })
-
-		return () => {
-			cleanupFunction()
+		for (const [from, to] of Object.values(change.changes.updated)) {
+			if (from.typeName === 'instance' && to.typeName === 'instance') {
+				if (from.currentPageId !== to.currentPageId) {
+					messages.push(`changed page (${from.currentPageId}, ${to.currentPageId})`)
+				}
+			} else if (from.typeName === 'shape' && to.typeName === 'shape') {
+				messages.push(`updated shape (${describeShapeDiff(from, to)})`)
+			}
 		}
-	}, [editor])
+
+		for (const record of Object.values(change.changes.removed)) {
+			if (record.typeName === 'shape') {
+				messages.push(`deleted shape (${record.type})`)
+			}
+		}
+
+		if (messages.length) {
+			setStoreEvents((events) => [...events, ...messages])
+		}
+	}, [])
 
 	return (
-		<div style={{ display: 'flex' }}>
-			<div style={{ width: '60%', height: '100vh' }}>
-				<Tldraw onMount={setAppToState} />
+		<div className="store-events">
+			<div className="store-events__editor">
+				<Tldraw
+					onMount={(editor) => {
+						// [2]
+						return editor.store.listen(handleChangeEvent, { source: 'user', scope: 'all' })
+					}}
+				/>
 			</div>
-			<div
-				style={{
-					width: '40%',
-					height: '100vh',
-					padding: 8,
-					background: '#eee',
-					border: 'none',
-					fontFamily: 'monospace',
-					fontSize: 12,
-					borderLeft: 'solid 2px #333',
-					display: 'flex',
-					flexDirection: 'column-reverse',
-					overflow: 'auto',
-				}}
-				onCopy={(event) => event.stopPropagation()}
-			>
-				<pre>{storeEvents}</pre>
+			<div className="store-events__log" onCopy={(event) => event.stopPropagation()}>
+				<pre>{storeEvents.join('\n')}</pre>
 			</div>
 		</div>
 	)
 }
 
+// [3]
+function describeShapeDiff(from: TLShape, to: TLShape) {
+	const changed: string[] = []
+	for (const key of Object.keys(to) as (keyof TLShape)[]) {
+		if (key === 'props') {
+			for (const propKey of Object.keys(to.props)) {
+				const a = (from.props as Record<string, unknown>)[propKey]
+				const b = (to.props as Record<string, unknown>)[propKey]
+				if (!isEqual(a, b)) changed.push(`props.${propKey}: ${JSON.stringify(b)}`)
+			}
+		} else if (!isEqual(from[key], to[key])) {
+			changed.push(`${key}: ${JSON.stringify(to[key])}`)
+		}
+	}
+	return changed.join(', ')
+}
+
 /*
-This example shows how to listen to store events. This includes things creating/deleting shapes,
-or moving between pages, but not things such as pointer and keyboard events. Those are canvas events.
-To listen to changes to the canvas, check out the canvas events example.
+Store events tell you what changed in the document: shapes created, updated, or deleted, pages
+switched, and so on. They don't include input like pointer and keyboard events; for those, see
+the canvas events example.
 
 [1]
-This is the fire hose, it will be called at the end of every transaction. We're checking to see what 
-kind of changes were made and logging a more readable message to the to our panel.
+The listener receives a `HistoryEntry` for every transaction. Its `changes` is a `RecordsDiff`
+with `added`, `updated`, and `removed` maps keyed by record id, and `updated` entries are
+`[from, to]` pairs. Records of all types come through here (shapes, pages, the instance record,
+camera, and so on), so we check `typeName` and turn the ones we care about into readable lines.
 
 [2]
-This is the function that subscribes to changes to the store. You pass in the callback function that 
-you want to execute along with a handy filter object. In this case, we're only listening to changes
-that were made by the user. It also returns a cleanup function that you can shove into the return of 
-a useeffect hook.
+`editor.store.listen` returns an unsubscribe function, and `onMount` can return a cleanup
+function, so returning one from the other is all the wiring needed. The filters restrict this
+listener to changes made by the local user (`source: 'user'`, as opposed to `'remote'` changes
+arriving from other clients) across all record scopes. Use `scope: 'document'` if you only care
+about persisted document content and not things like the camera or selection.
 
+[3]
+Compare the two versions of an updated shape and list the top-level and `props` fields that
+changed. Nested values like `richText` need a deep comparison, so this uses `isEqual`, which
+tldraw re-exports from lodash.
 */

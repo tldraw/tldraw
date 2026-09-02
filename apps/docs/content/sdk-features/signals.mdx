@@ -19,9 +19,11 @@ accuracy: 10
 notes: ''
 ---
 
-The tldraw SDK uses signals for state management. Signals automatically track dependencies and update efficiently: when state changes, only the parts of your application that depend on that state will update.
+The tldraw SDK uses signals for state management. Signals automatically track dependencies: when state changes, only the parts of your application that depend on that state update.
 
-The editor exposes many of its internal values as signals. Methods like `editor.getSelectedShapeIds()` and `editor.getCurrentPageShapes()` return reactive values that update automatically when the underlying state changes. The React bindings connect these signals to components, so your UI stays in sync without manual subscription management.
+The editor exposes many of its internal values as signals. Methods like `editor.getSelectedShapeIds()` and `editor.getCurrentPageShapes()` return reactive values that update automatically when the underlying state changes. The React bindings connect these signals to components. You don't need to manage subscriptions yourself.
+
+The signals library lives in `@tldraw/state` and its React bindings in `@tldraw/state-react`. Both are re-exported from `tldraw`, so `import { atom, useValue, track } from 'tldraw'` also works.
 
 ## Core concepts
 
@@ -43,11 +45,7 @@ count.update((n) => n + 1)
 count.get() // 6
 ```
 
-The first argument is a name for debugging. The second is the initial value. Atoms support a few options:
-
-- `isEqual` — Custom equality function to determine if a value has changed
-- `historyLength` — Number of diffs to retain for incremental updates
-- `computeDiff` — Function to compute diffs between values
+The first argument is a name for debugging. The second is the initial value. Atoms accept an options object with `isEqual` (a custom equality function), `historyLength` (the number of diffs to retain for incremental updates), and `computeDiff` (a function to compute diffs between values, only used when `historyLength` is set).
 
 ### Computed values
 
@@ -213,12 +211,12 @@ Tracked components re-render when any signal accessed during render changes. Thi
 
 ### useAtom and useComputed
 
-Create component-local signals that persist across renders:
+Create component-local signals that persist across renders. Reading `.get()` during render only subscribes the component if it's wrapped in `track` (otherwise read the value with `useValue`), so wrap the component:
 
 ```tsx
-import { useAtom, useComputed } from '@tldraw/state-react'
+import { track, useAtom, useComputed } from '@tldraw/state-react'
 
-function Counter() {
+const Counter = track(function Counter() {
 	const count = useAtom('count', 0)
 	const doubled = useComputed('doubled', () => count.get() * 2, [count])
 
@@ -229,7 +227,7 @@ function Counter() {
 			<div>Doubled: {doubled.get()}</div>
 		</div>
 	)
-}
+})
 ```
 
 ### useReactor and useQuickReactor
@@ -252,9 +250,9 @@ function SelectionLogger({ editor }) {
 
 	// Runs immediately — for critical state synchronization
 	useQuickReactor(
-		'sync data',
+		'sync selection',
 		() => {
-			syncToServer(editor.getDocumentState())
+			syncSelectionToServer(editor.getSelectedShapeIds())
 		},
 		[editor]
 	)
@@ -380,25 +378,24 @@ react('log name changes', () => {
 
 ### @tldraw/state
 
-| Export                       | Description                                                     |
-| ---------------------------- | --------------------------------------------------------------- |
-| `atom(name, value, options)` | Create a mutable signal                                         |
-| `computed(name, fn)`         | Create a derived signal                                         |
-| `@computed`                  | Decorator for computed class methods                            |
-| `react(name, fn, options)`   | Run an effect immediately, returns cleanup function             |
-| `reactor(name, fn, options)` | Create a controllable effect with `start()` and `stop()`        |
-| `transact(fn)`               | Batch changes into a single update                              |
-| `transaction(fn)`            | Batch changes with rollback support                             |
-| `isAtom(value)`              | Type guard for atoms                                            |
-| `isSignal(value)`            | Type guard for any signal                                       |
-| `getComputedInstance(o, p)`  | Get the underlying computed for a `@computed` decorated method  |
-| `whyAmIRunning()`            | Debug helper to trace update triggers                           |
-| `unsafe__withoutCapture(fn)` | Read signals without creating dependencies                      |
-| `RESET_VALUE`                | Symbol returned by `getDiffSince` when history is insufficient  |
-| `isUninitialized(value)`     | Check if a computed is running its first derivation             |
-| `withDiff(value, diff)`      | Manually provide a diff when returning from a computed          |
-| `localStorageAtom(name, v)`  | Returns `[atom, cleanup]` tuple; atom persists to localStorage  |
-| `deferAsyncEffects(fn)`      | Queue effects for async operations (used internally for stores) |
+| Export                               | Description                                                    |
+| ------------------------------------ | -------------------------------------------------------------- |
+| `atom(name, value, options)`         | Create a mutable signal                                        |
+| `computed(name, fn, options)`        | Create a derived signal                                        |
+| `@computed`                          | Decorator for computed class methods                           |
+| `react(name, fn, options)`           | Run an effect immediately, returns cleanup function            |
+| `reactor(name, fn, options)`         | Create a controllable effect with `start()` and `stop()`       |
+| `transact(fn)`                       | Batch changes into a single update                             |
+| `transaction(fn)`                    | Batch changes with rollback support                            |
+| `isAtom(value)`                      | Type guard for atoms                                           |
+| `isSignal(value)`                    | Type guard for any signal                                      |
+| `getComputedInstance(o, p)`          | Get the underlying computed for a `@computed` decorated method |
+| `whyAmIRunning()`                    | Debug helper to trace update triggers                          |
+| `unsafe__withoutCapture(fn)`         | Read signals without creating dependencies                     |
+| `RESET_VALUE`                        | Symbol returned by `getDiffSince` when history is insufficient |
+| `isUninitialized(value)`             | Check if a computed is running its first derivation            |
+| `withDiff(value, diff)`              | Manually provide a diff when returning from a computed         |
+| `localStorageAtom(name, v, options)` | Returns `[atom, cleanup]` tuple; atom persists to localStorage |
 
 ### @tldraw/state-react
 
@@ -415,4 +412,5 @@ react('log name changes', () => {
 
 ## Related examples
 
-- **[Reactive inputs](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/editor-api/reactive-inputs)** — Using `useValue` with editor input state.
+- [Signals](/examples/events/signals) - Subscribing to store values and running side effects with `track`, `useValue`, and `useReactor`.
+- [Reactive inputs](/examples/editor-api/reactive-inputs) - Using `useValue` with editor input state.

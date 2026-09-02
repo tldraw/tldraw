@@ -41,7 +41,6 @@ export interface StrokeOptions {
 export interface StrokePoint {
 	point: Vec
 	input: Vec
-	vector: Vec
 	pressure: number
 	distance: number
 	runningLength: number

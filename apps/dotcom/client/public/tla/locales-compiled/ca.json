@@ -5,6 +5,38 @@
       "value": "Exporta"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Accepta la invitació"
+    }
+  ],
+  "029f235f01": [
+    {
+      "type": 0,
+      "value": "Estem treballant per aconseguir compatibilitat amb els fitxers de "
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": 1,
+              "value": "appName"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -19,6 +51,34 @@
     {
       "type": 1,
       "value": "GetHelpLink"
+    }
+  ],
+  "04a2dd56d6": [
+    {
+      "type": 0,
+      "value": "Convida els companys d'equip"
+    }
+  ],
+  "05b2656486": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " t'ha esmentat"
+    }
+  ],
+  "05f43078e9": [
+    {
+      "type": 0,
+      "value": "Has arribat al nombre màxim d'espais de treball. Cal suprimir els espais de treball antics abans de crear-ne de nous."
     }
   ],
   "06b9281e39": [
@@ -45,6 +105,16 @@
       "value": "Compte"
     }
   ],
+  "093ac7483a": [
+    {
+      "type": 0,
+      "value": "Encara no es poden obrir els fitxers "
+    },
+    {
+      "type": 1,
+      "value": "extension"
+    }
+  ],
   "0a91f7fa87": [
     {
       "type": 0,
@@ -63,10 +133,28 @@
       "value": "Menú Fitxer"
     }
   ],
+  "0c4383617a": [
+    {
+      "type": 0,
+      "value": "S'ha produït un error en carregar aquesta invitació. Torna-ho a provar."
+    }
+  ],
   "0d1f2bb523": [
     {
       "type": 0,
       "value": "Enviar comentaris"
+    }
+  ],
+  "1063e38cb5": [
+    {
+      "type": 0,
+      "value": "Elimina"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Copia a l'espai de treball personal"
     }
   ],
   "110a4b01be": [
@@ -75,22 +163,10 @@
       "value": "Publicar"
     }
   ],
-  "129b9e34ea": [
-    {
-      "type": 0,
-      "value": "Sortir del grup"
-    }
-  ],
   "12a6766ba1": [
     {
       "type": 0,
       "value": "Desfixar fitxer"
-    }
-  ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Prova el SDK de tldraw"
     }
   ],
   "13ddd375ad": [
@@ -99,16 +175,10 @@
       "value": "Exporta com a"
     }
   ],
-  "146ffe2fd9": [
+  "14b03eeeb5": [
     {
       "type": 0,
-      "value": "Mostra'n més"
-    }
-  ],
-  "14d65465b7": [
-    {
-      "type": 0,
-      "value": "Suprimeix el grup"
+      "value": "Opcions de notificació"
     }
   ],
   "181b90f889": [
@@ -129,10 +199,36 @@
       "value": "Avui"
     }
   ],
-  "2445e5e347": [
+  "1ffd709937": [
     {
       "type": 0,
-      "value": "Crea un grup"
+      "value": "Un espai de treball ha de tenir com a mínim un propietari. Primer, fes que algú altre sigui el propietari."
+    }
+  ],
+  "21f66c9c00": [
+    {
+      "type": 0,
+      "value": "Nom de l'espai de treball"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Has estat convidat a unir-te a "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Crea un compte gratuït per continuar."
     }
   ],
   "250ddea65c": [
@@ -141,16 +237,56 @@
       "value": "Sobre tldraw"
     }
   ],
+  "2755e3ab39": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ha comentat al teu tauler"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
       "value": "La càrrega ha fallat"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Els meus fitxers"
+      "value": "Benvingut/da al teu espai de treball"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Cerca..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "La regeneració substitueix l'enllaç d'invitació actual per un de nou. Tothom qui utilitzi l'enllaç antic necessitarà el nou per unir-s'hi."
+    }
+  ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Inclou un enllaç al fitxer actual"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Regenera l'enllaç d'invitació"
     }
   ],
   "31246941ad": [
@@ -163,12 +299,6 @@
     {
       "type": 0,
       "value": "i18n: Ressaltar que falta"
-    }
-  ],
-  "32210b37e4": [
-    {
-      "type": 0,
-      "value": "Afegeix un enllaç"
     }
   ],
   "324a0f3182": [
@@ -187,6 +317,18 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Gestiona"
+    }
+  ],
+  "375396d6e5": [
+    {
+      "type": 0,
+      "value": "Eliminar membre"
     }
   ],
   "3bc7d6ea2f": [
@@ -219,6 +361,12 @@
       "value": "Diagrama de Mermaid no compatible"
     }
   ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Tema de color"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -231,10 +379,36 @@
       "value": "Obteniu ajuda a Discord"
     }
   ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Esteu segur que voleu suprimir "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Gràcies per ajudar-nos a millorar tldraw!"
+    }
+  ],
+  "46de2de6bb": [
+    {
+      "type": 0,
+      "value": "Accepta les condicions d'ús"
     }
   ],
   "477df802ca": [
@@ -255,18 +429,6 @@
       "value": "Fitxer fixat"
     }
   ],
-  "49049467ff": [
-    {
-      "type": 0,
-      "value": "Enganxa l'URL del fitxer tldraw..."
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Esteu segur que voleu oblidar aquest fitxer?"
-    }
-  ],
   "49ee308734": [
     {
       "type": 0,
@@ -285,24 +447,6 @@
       "value": "Torna a carregar"
     }
   ],
-  "4da5988a2e": [
-    {
-      "type": 0,
-      "value": "Suprimeix el grup…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Més opcions"
-    }
-  ],
-  "4e6fbf032b": [
-    {
-      "type": 0,
-      "value": "Esteu segur que voleu suprimir aquest grup? Aquesta acció no es pot desfer."
-    }
-  ],
   "5097d89907": [
     {
       "type": 0,
@@ -315,10 +459,22 @@
       "value": "No es pot anul·lar la publicació del fitxer."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Aquest és el teu espai de treball privat. Crea'n un de nou per convidar els companys d'equip."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
       "value": "Menú de pàgina"
+    }
+  ],
+  "53770fd374": [
+    {
+      "type": 0,
+      "value": "No llegit"
     }
   ],
   "542248f0ba": [
@@ -331,6 +487,16 @@
     {
       "type": 0,
       "value": "S'ha arribat al límit de col·laboradors"
+    }
+  ],
+  "545241e7dd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " sense llegir"
     }
   ],
   "554a05155c": [
@@ -355,6 +521,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Crea un espai de treball"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -365,40 +537,6 @@
     {
       "type": 0,
       "value": "Política de privadesa"
-    }
-  ],
-  "5a86b22fa0": [
-    {
-      "type": 0,
-      "value": "Arrossega els fitxers aquí, "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "crea un fitxer"
-        }
-      ],
-      "type": 8,
-      "value": "create"
-    },
-    {
-      "type": 0,
-      "value": " o "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "copia l'enllaç d'invitació"
-        }
-      ],
-      "type": 8,
-      "value": "invite"
-    },
-    {
-      "type": 0,
-      "value": " per començar."
     }
   ],
   "5a95a425f7": [
@@ -413,10 +551,26 @@
       "value": "S'ha detectat un navegador antic. Actualitzeu el navegador per utilitzar aquesta aplicació."
     }
   ],
-  "5c6fe42bc2": [
+  "5bff3c9c88": [
     {
       "type": 0,
-      "value": "Revoca aquest enllaç i crea'n un de nou."
+      "value": "El meu espai de treball"
+    }
+  ],
+  "5bffeebf03": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ha reaccionat al teu comentari"
     }
   ],
   "5d04a002ea": [
@@ -431,12 +585,6 @@
       "value": "No hem pogut penjar part del contingut que vas crear abans d'iniciar la sessió."
     }
   ],
-  "5ea8bb44be": [
-    {
-      "type": 0,
-      "value": "Has estat convidat a unir-te al grup:"
-    }
-  ],
   "5f3c333678": [
     {
       "type": 0,
@@ -449,10 +597,51 @@
       "value": "Còpia"
     }
   ],
+  "608e9d366e": [
+    {
+      "type": 0,
+      "value": "Ja esteu tots al dia."
+    }
+  ],
+  "60a68c29d6": [
+    {
+      "type": 0,
+      "value": "Inicia la sessió per comentar"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
       "value": "Més tard"
+    }
+  ],
+  "61fb03fd7b": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Algú ha reaccionat al teu comentari"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " persones han reaccionat al teu comentari"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "625fd29749": [
@@ -485,10 +674,22 @@
       "value": "Hi ha disponible una nova versió de tldraw. Torneu a carregar la pàgina per continuar."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Fitxer nou"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
       "value": "Introdueix la teva adreça electrònica"
+    }
+  ],
+  "694f82ed9d": [
+    {
+      "type": 0,
+      "value": "Suprimeix l'espai de treball"
     }
   ],
   "6a26f54883": [
@@ -507,12 +708,6 @@
     {
       "type": 0,
       "value": "Seguiu aquests passos per importar el contingut manualment:"
-    }
-  ],
-  "70222abcfc": [
-    {
-      "type": 0,
-      "value": "Configuració del grup"
     }
   ],
   "70a6facb9d": [
@@ -539,10 +734,22 @@
       "value": "Torneu a carregar la pàgina"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "No s'han trobat fitxers"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
       "value": "Heu arribat al nombre màxim de fitxers. Heu de suprimir fitxers antics abans de crear-ne de nous."
+    }
+  ],
+  "7542d62aac": [
+    {
+      "type": 0,
+      "value": "Marca-ho tot com a llegit"
     }
   ],
   "7573b8110a": [
@@ -569,12 +776,6 @@
       "value": "Torneu a carregar"
     }
   ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw és una pissarra blanca en línia gratuïta. Crea un compte per desar els teus fitxers i treballar amb els teus amics."
-    }
-  ],
   "777f9e90cf": [
     {
       "type": 0,
@@ -597,6 +798,12 @@
     {
       "type": 0,
       "value": "Envieu un problema a GitHub"
+    }
+  ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Per defecte"
     }
   ],
   "7b1329f5ca": [
@@ -623,12 +830,6 @@
       "value": "Oblida't"
     }
   ],
-  "7cfe6c43dc": [
-    {
-      "type": 0,
-      "value": "Sortir del grup…"
-    }
-  ],
   "7daeced9ff": [
     {
       "type": 0,
@@ -645,6 +846,12 @@
     {
       "type": 0,
       "value": "Descarrega"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Nou espai de treball"
     }
   ],
   "815e116a2e": [
@@ -681,6 +888,38 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Esteu segur que voleu oblidar "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
+  "8413c683b4": [
+    {
+      "type": 0,
+      "value": "Comentaris"
+    }
+  ],
+  "858ba4765e": [
+    {
+      "type": 0,
+      "value": "Membre"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -707,10 +946,16 @@
       "value": "Canvia el nom del fitxer"
     }
   ],
-  "8ad4303b83": [
+  "87fdb09de6": [
     {
       "type": 0,
-      "value": "No, gràcies."
+      "value": "Ja ets membre d'aquest espai de treball"
+    }
+  ],
+  "88bf6ab42c": [
+    {
+      "type": 0,
+      "value": "Aquest enllaç d'invitació ha caducat"
     }
   ],
   "8c2d3d730c": [
@@ -743,22 +988,24 @@
       "value": "Canvia el nom"
     }
   ],
-  "91e49bb0eb": [
+  "90646db02d": [
     {
       "type": 0,
-      "value": "Copia als meus fitxers"
-    }
-  ],
-  "930390d222": [
+      "value": "Esteu segur que voleu suprimir "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
     {
       "type": 0,
-      "value": "Enllaç d'invitació copiat"
-    }
-  ],
-  "9489b2f82a": [
-    {
-      "type": 0,
-      "value": "Ja ets membre d'aquest grup"
+      "value": "? Aquesta acció no es pot desfer."
     }
   ],
   "95aacd4d4a": [
@@ -785,16 +1032,16 @@
       "value": "Condicions d'ús"
     }
   ],
-  "98c997a27e": [
-    {
-      "type": 0,
-      "value": "Afegeix un enllaç de fitxer"
-    }
-  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Llum"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Esborra la cerca"
     }
   ],
   "9b33f5c63c": [
@@ -847,6 +1094,26 @@
       "value": "Desactivar"
     }
   ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Has estat convidat a unir-te a "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -877,6 +1144,12 @@
       "value": "Exportar imatge"
     }
   ],
+  "a274f4d467": [
+    {
+      "type": 0,
+      "value": "Notificacions"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -887,6 +1160,12 @@
     {
       "type": 0,
       "value": "Envia"
+    }
+  ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Surt"
     }
   ],
   "a6cc403d56": [
@@ -913,6 +1192,18 @@
       "value": "Fons"
     }
   ],
+  "aac449eef6": [
+    {
+      "type": 0,
+      "value": "Crea un espai de treball"
+    }
+  ],
+  "aaec8f7cde": [
+    {
+      "type": 0,
+      "value": "Algú"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -937,6 +1228,34 @@
       "value": "Usuari convidat"
     }
   ],
+  "b03400e2db": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ha respost"
+    }
+  ],
+  "b1c94ca2fb": [
+    {
+      "type": 0,
+      "value": "Tot"
+    }
+  ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Regenera"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -949,10 +1268,10 @@
       "value": "Adreça electrònica"
     }
   ],
-  "b3d2db69fe": [
+  "b48becc771": [
     {
       "type": 0,
-      "value": "URL del fitxer"
+      "value": "Activa les invitacions"
     }
   ],
   "b6d4223e60": [
@@ -979,10 +1298,10 @@
       "value": "Inicia la sessió per compartir"
     }
   ],
-  "bb93a7590f": [
+  "bbaaf8b6bf": [
     {
       "type": 0,
-      "value": "Accepta i uneix-te al grup"
+      "value": "Les invitacions estan desactivades"
     }
   ],
   "bbbcefd7ce": [
@@ -1037,30 +1356,16 @@
       "value": "ownerName"
     }
   ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Gestiona l'espai de treball"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Més informació sobre com compartir."
-    }
-  ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Permet que "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": " ens ajudi a millorar tldraw."
     }
   ],
   "c303bd1095": [
@@ -1075,12 +1380,6 @@
       "value": "Galetes essencials"
     }
   ],
-  "c6155aaecc": [
-    {
-      "type": 0,
-      "value": "Nom del grup"
-    }
-  ],
   "c655b27b1e": [
     {
       "type": 0,
@@ -1093,10 +1392,10 @@
       "value": "Convidar"
     }
   ],
-  "c74ea6dbff": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Mostra menys"
+      "value": "Copia al meu espai de treball"
     }
   ],
   "c87aacf567": [
@@ -1109,12 +1408,6 @@
     {
       "type": 0,
       "value": "Ignora"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Desa"
     }
   ],
   "cceaefbc20": [
@@ -1139,6 +1432,56 @@
     {
       "type": 0,
       "value": "Més informació sobre la publicació."
+    }
+  ],
+  "d0e3556476": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " i "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " han reaccionat al teu comentari"
     }
   ],
   "d3d2e61733": [
@@ -1217,22 +1560,16 @@
       "value": "Entra aquí per veure el contingut"
     }
   ],
-  "d9e35d0f55": [
-    {
-      "type": 0,
-      "value": "Heu arribat al nombre màxim de grups. Heu de suprimir els grups antics abans de crear-ne de nous."
-    }
-  ],
   "dbbebf3c03": [
     {
       "type": 0,
       "value": "Només convidar"
     }
   ],
-  "dcdaa754fe": [
+  "dbf9b24193": [
     {
       "type": 0,
-      "value": "URL de fitxer tldraw no vàlida"
+      "value": "Sortir de l'espai de treball"
     }
   ],
   "dfdb78a4e4": [
@@ -1241,10 +1578,10 @@
       "value": "Senyals de depuració d'aplicacions"
     }
   ],
-  "e0c88179b3": [
+  "e0aa021e21": [
     {
       "type": 0,
-      "value": "Convida membres"
+      "value": "D'acord"
     }
   ],
   "e2198d6228": [
@@ -1259,16 +1596,40 @@
       "value": "Resum legal"
     }
   ],
-  "e3afed0047": [
-    {
-      "type": 0,
-      "value": "Administrador"
-    }
-  ],
   "e404559826": [
     {
       "type": 0,
       "value": "Condicions del servei"
+    }
+  ],
+  "e65b2dcb6f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " i "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " han reaccionat al teu comentari"
     }
   ],
   "e81c4e4f2b": [
@@ -1277,16 +1638,16 @@
       "value": "o"
     }
   ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Zona de perill"
-    }
-  ],
   "ea4788705e": [
     {
       "type": 0,
       "value": "Cancel·la"
+    }
+  ],
+  "eb1e2b0542": [
+    {
+      "type": 0,
+      "value": "Demana'n un de nou al propietari de l'espai de treball."
     }
   ],
   "ebfe9ce86e": [
@@ -1339,6 +1700,12 @@
       "value": " per obtenir més informació."
     }
   ],
+  "edec9387f9": [
+    {
+      "type": 0,
+      "value": "Aquest comentari ha estat suprimit."
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1375,16 +1742,98 @@
       "value": "Suprimeix"
     }
   ],
+  "f476ba8646": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " i "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " han reaccionat al teu comentari"
+    }
+  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "Configuració"
     }
   ],
-  "f714e36843": [
+  "f5ddc8d9c1": [
     {
       "type": 0,
-      "value": "Esteu segur que voleu sortir d'aquest grup?"
+      "value": "De moment, podeu "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "exportar com a fitxer "
+        },
+        {
+          "type": 1,
+          "value": "extension"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " per utilitzar-lo aquí."
     }
   ],
   "fa2ead697d": [
@@ -1399,10 +1848,10 @@
       "value": "Visor"
     }
   ],
-  "fd1be3efcf": [
+  "fc9d47046b": [
     {
       "type": 0,
-      "value": "Esteu segur que voleu suprimir aquest fitxer?"
+      "value": "Esteu segur que voleu sortir d'aquest espai de treball?"
     }
   ],
   "fed5ec05eb": [
@@ -1411,10 +1860,24 @@
       "value": "Enllaç copiat"
     }
   ],
-  "ff7a814974": [
+  "ff2fefd3c6": [
     {
       "type": 0,
-      "value": "Afegeix un enllaç de fitxer…"
+      "value": "Esteu segur que voleu eliminar "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " d'aquest espai de treball?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Crea un compte gratuït per desar els teus fitxers i dibuixar amb tldraw amb els teus companys d'equip."
     }
   ],
   "ffcd73e997": [

@@ -74,7 +74,7 @@
 }
 
 .resizeHandleIndicator {
-	background-color: var(--tla-color-primary);
+	background-color: var(--tl-color-primary);
 	height: 100%;
 	width: var(--indicator-width);
 	opacity: 0;

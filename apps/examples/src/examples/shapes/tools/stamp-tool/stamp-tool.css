@@ -1,0 +1,25 @@
+.stamp-panel {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	margin: 8px;
+	padding: 4px;
+}
+
+.stamp-panel-button {
+	font-size: 18px;
+}
+
+.stamp-panel-button[data-active='true'] {
+	background: var(--tl-color-muted-2);
+}
+
+.stamp-panel-thumbnail {
+	width: 22px;
+	height: 22px;
+	object-fit: contain;
+}
+
+.stamp-panel-upload {
+	color: var(--tl-color-text-3);
+}

@@ -1,4 +1,4 @@
-import { times } from 'lodash'
+import times from 'lodash/times'
 import { Atom, atom, isAtom } from '../Atom'
 import { Computed, computed, isComputed } from '../Computed'
 import { Reactor, reactor } from '../EffectScheduler'
@@ -79,7 +79,19 @@ interface FuzzSystemState {
 	derivations: Record<string, { derivation: Computed<Letter>; sneakyGet: () => Letter }>
 	derivationsInDerivations: Record<string, Computed<Computed<Letter>>>
 	atomsInDerivations: Record<string, Computed<Atom<Letter>>>
-	reactors: Record<string, { reactor: Reactor; result: string | null; dependencies: Signal<any>[] }>
+	reactors: Record<
+		string,
+		{
+			reactor: Reactor
+			result: string | null
+			dependencies: Signal<any>[]
+			// runs its body inside a transaction that first writes a fixed letter to an atom, so
+			// that reads inside transactions inside the reaction phase get exercised
+			transacting: boolean
+			// schedules through a queue drained by the `flush_deferred` op (like state-react does)
+			deferred: boolean
+		}
+	>
 }
 
 type Op =
@@ -91,6 +103,8 @@ type Op =
 	| { type: 'run_several_ops_in_transaction'; ops: Op[] }
 	| { type: 'start_reactor'; id: string }
 	| { type: 'stop_reactor'; id: string }
+	| { type: 'deref_derivation_in_transaction'; id: string; atomId: string; value: Letter }
+	| { type: 'flush_deferred' }
 
 const MAX_ATOMS = 10
 const MAX_ATOMS_IN_ATOMS = 10
@@ -103,6 +117,7 @@ const MAX_OPS_IN_TRANSACTION = 10
 
 class Test {
 	source: RandomSource
+	deferredExecutes: Array<() => void> = []
 	systemState: FuzzSystemState = {
 		atoms: {},
 		atomsInAtoms: {},
@@ -132,10 +147,13 @@ class Test {
 			expected: {},
 			actual: {},
 		}
-		for (const [reactorId, { reactor, result: actualResult, dependencies }] of Object.entries(
-			this.systemState.reactors
-		)) {
+		for (const [
+			reactorId,
+			{ reactor, result: actualResult, dependencies, deferred },
+		] of Object.entries(this.systemState.reactors)) {
 			if (!reactor.scheduler.isActivelyListening) continue
+			// a deferred reactor's result lags until its queued execute runs
+			if (deferred && this.deferredExecutes.length > 0) continue
 			result.expected[reactorId] = dependencies.map(this.unpack_sneaky).join(':')
 			result.actual[reactorId] = actualResult
 		}
@@ -202,6 +220,10 @@ class Test {
 			)
 		})
 
+		// atoms not yet claimed by a transacting reactor; two reactors writing different letters to
+		// the same atom would keep re-triggering each other
+		const writableAtoms = Object.values(this.systemState.atoms)
+
 		times(this.source.nextIntInRange(1, MAX_REACTORS), () => {
 			const reactorId = this.source.nextId()
 			const dependencies: Signal<any>[] = []
@@ -235,12 +257,39 @@ class Test {
 				dependencies.push(this.source.selectOne(Object.values(this.systemState.atoms)))
 			})
 
+			const transacting = writableAtoms.length > 0 && this.source.choice(0.3)
+			const deferred = !transacting && this.source.choice(0.3)
+			// A transacting reactor writes one fixed letter to its own atom before reading its
+			// dependencies, inside a transaction. Writing the same letter every run means it cannot
+			// keep re-triggering itself, and the oracle (which reads the atoms' current values)
+			// stays valid once the reaction phase has settled.
+			const writeAtom = transacting
+				? writableAtoms.splice(this.source.nextInt(writableAtoms.length), 1)[0]
+				: null
+			const writeLetter = this.source.selectOne(LETTERS)
+			const body = () => {
+				this.systemState.reactors[reactorId].result = dependencies.map(unpack).join(':')
+			}
+			const fn = writeAtom
+				? () => {
+						transact(() => {
+							writeAtom.set(writeLetter)
+							body()
+						})
+					}
+				: body
 			this.systemState.reactors[reactorId] = {
-				reactor: reactor(reactorId, () => {
-					this.systemState.reactors[reactorId].result = dependencies.map(unpack).join(':')
-				}),
+				reactor: reactor(
+					reactorId,
+					fn,
+					deferred
+						? { scheduleEffect: (execute) => this.deferredExecutes.push(execute) }
+						: undefined
+				),
 				result: '',
 				dependencies,
+				transacting,
+				deferred,
 			}
 		})
 	}
@@ -299,6 +348,17 @@ class Test {
 					id: this.source.selectOne(Object.keys(this.systemState.reactors)),
 				}
 			},
+			'deref derivation in transaction': () => {
+				return {
+					type: 'deref_derivation_in_transaction',
+					id: this.source.selectOne(Object.keys(this.systemState.derivations)),
+					atomId: this.source.selectOne(Object.keys(this.systemState.atoms)),
+					value: this.source.selectOne(LETTERS),
+				}
+			},
+			flush_deferred: () => {
+				return { type: 'flush_deferred' }
+			},
 		})
 	}
 
@@ -313,7 +373,14 @@ class Test {
 				break
 			}
 			case 'deref_derivation': {
-				this.systemState.derivations[op.id].derivation.get()
+				const { derivation, sneakyGet } = this.systemState.derivations[op.id]
+				const actual = derivation.get()
+				const expected = sneakyGet()
+				if (actual !== expected) {
+					throw new Error(
+						`derivation ${op.id} returned ${String(actual)}, expected ${String(expected)}`
+					)
+				}
 				break
 			}
 			case 'deref_derivation_in_derivation': {
@@ -336,6 +403,28 @@ class Test {
 			}
 			case 'stop_reactor': {
 				this.systemState.reactors[op.id].reactor.stop()
+				break
+			}
+			case 'deref_derivation_in_transaction': {
+				// T2: a read inside a transaction must see the in-transaction value, whether or not
+				// the derivation is actively listening
+				const { derivation, sneakyGet } = this.systemState.derivations[op.id]
+				transact(() => {
+					this.systemState.atoms[op.atomId].set(op.value)
+					const actual = derivation.get()
+					const expected = sneakyGet()
+					if (actual !== expected) {
+						throw new Error(
+							`derivation ${op.id} read inside a transaction returned ${String(actual)}, expected ${String(expected)}`
+						)
+					}
+				})
+				break
+			}
+			case 'flush_deferred': {
+				const executes = this.deferredExecutes
+				this.deferredExecutes = []
+				for (const execute of executes) execute()
 				break
 			}
 			default: {

@@ -1,3 +1,4 @@
+import { warnOnce } from '@tldraw/editor'
 import * as React from 'react'
 import { useAssetUrls } from '../../context/asset-urls'
 import { DEFAULT_TRANSLATION } from './defaultTranslation'
@@ -36,9 +37,21 @@ export function useCurrentTranslation() {
 }
 
 /**
- * Provides a translation context to the editor.
+ * Like {@link useCurrentTranslation}, but returns `null` instead of throwing when used outside
+ * of a `<TldrawUiTranslationProvider />` / `<TldrawUiContextProvider />`.
  *
- * @internal
+ * @public
+ */
+export function useMaybeCurrentTranslation() {
+	return React.useContext(TranslationsContext)
+}
+
+/**
+ * Provides a translation context to the editor. Wrap this around components that use
+ * `useTranslation` (such as `TldrawSelectionForeground`) when you don't want to use the
+ * full `TldrawUiContextProvider`. Must be rendered inside an `AssetUrlsProvider`.
+ *
+ * @public @react
  */
 export function TldrawUiTranslationProvider({
 	overrides,
@@ -115,7 +128,9 @@ export function useTranslation() {
 
 	React.useEffect(() => {
 		if (!translation?.messages) {
-			console.warn('No translation messages found, falling back to default translation.')
+			warnOnce(
+				'No translation messages found, falling back to default translation. Wrap your app in <TldrawUiContextProvider>, or in both <AssetUrlsProvider> and <TldrawUiTranslationProvider>, to provide translations.'
+			)
 		}
 	}, [translation?.messages])
 
@@ -133,8 +148,8 @@ export function useTranslation() {
  * @public
  */
 export function useDirection() {
-	const translation = useCurrentTranslation()
-	return translation.dir
+	const translation = useMaybeCurrentTranslation()
+	return translation?.dir ?? 'ltr'
 }
 
 export function untranslated(string: string) {

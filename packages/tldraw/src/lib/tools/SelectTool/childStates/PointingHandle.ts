@@ -1,4 +1,4 @@
-import { StateNode, TLPointerEventInfo } from '@tldraw/editor'
+import { StateNode, TLClickEventInfo, TLPointerEventInfo } from '@tldraw/editor'
 import {
 	ShapeHandlePointingInfo,
 	ShapeHandlePointingSession,
@@ -9,9 +9,11 @@ export class PointingHandle extends StateNode {
 
 	info = {} as ShapeHandlePointingInfo
 	private session: ShapeHandlePointingSession | null = null
+	private isDoubleClick = false
 
 	override onEnter(info: ShapeHandlePointingInfo) {
 		this.info = info
+		this.isDoubleClick = false
 		this.session = new ShapeHandlePointingSession(this.editor, info)
 		this.session.start()
 	}
@@ -22,8 +24,32 @@ export class PointingHandle extends StateNode {
 	}
 
 	override onPointerUp() {
+		if (this.isDoubleClick) {
+			this.parent.transition('idle')
+			this.parent.getCurrent()?.handleEvent({
+				...this.info,
+				type: 'click',
+				name: 'double_click',
+				phase: 'down',
+			})
+			return
+		}
+
 		if (this.session?.click()) return
 		this.parent.transition('idle', this.info)
+	}
+
+	override onDoubleClick(info: TLClickEventInfo) {
+		if (
+			this.editor.inputs.getShiftKey() ||
+			info.phase !== 'down' ||
+			info.ctrlKey ||
+			info.shiftKey
+		) {
+			return
+		}
+
+		this.isDoubleClick = true
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {

@@ -30,6 +30,11 @@ const indicatorPathCache = createComputedCache(
 	(editor: Editor, shape: TLShape) => {
 		const util = editor.getShapeUtil(shape)
 		return util.getIndicatorPath(shape)
+	},
+	{
+		areRecordsEqual(a, b) {
+			return a.props === b.props
+		},
 	}
 )
 
@@ -189,7 +194,7 @@ export class ArrowHintOverlayUtil extends OverlayUtil<TLArrowHintOverlay> {
 	}
 
 	/** @internal */
-	_renderIndicatorPath(ctx: CanvasRenderingContext2D, indicatorPath: TLIndicatorPath) {
+	private _renderIndicatorPath(ctx: CanvasRenderingContext2D, indicatorPath: TLIndicatorPath) {
 		if (indicatorPath instanceof Path2D) {
 			ctx.stroke(indicatorPath)
 		} else {

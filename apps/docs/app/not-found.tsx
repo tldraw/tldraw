@@ -29,7 +29,7 @@ const links = [
 	{
 		caption: 'Examples',
 		icon: PlayIcon,
-		href: '/examples',
+		href: '/examples/basic',
 	},
 	{
 		caption: 'Blog',

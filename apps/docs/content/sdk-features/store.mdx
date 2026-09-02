@@ -21,7 +21,7 @@ notes: ''
 
 The store is tldraw's reactive database. It holds all shapes, pages, bindings, assets, and other records that make up your document. The store is reactive: when data changes, the UI updates automatically. It validates all records against a schema and tracks every change for undo/redo, persistence, and synchronization.
 
-In most cases you won't interact with the store directly—the editor wraps it with higher-level methods like [Editor#createShapes](?) and [Editor#getCurrentPageShapes](?). But understanding the store helps when you need snapshots for persistence, want to listen for changes, or need direct access to records.
+In most cases you won't interact with the store directly. The editor wraps it with higher-level methods like [Editor#createShapes](?) and [Editor#getCurrentPageShapes](?). But understanding the store helps when you need snapshots for persistence, want to listen for changes, or need direct access to records.
 
 ## Records
 
@@ -56,7 +56,121 @@ Records have a scope that determines how they're persisted and synchronized:
 | `session`  | Optional  | No                    | Current page, camera position    |
 | `presence` | No        | Yes                   | Cursor positions, user selection |
 
-Document records are your actual drawing data—saved to storage and synced across instances. Session records are local to one editor instance, like which page you're viewing. Presence records sync to other users in real-time but aren't saved—they're for showing cursors and selections in multiplayer.
+Document records are your actual drawing data, saved to storage and synced across instances. Session records are local to one editor instance, like which page you're viewing. Presence records sync to other users in real time but aren't saved. They're for showing cursors and selections in multiplayer.
+
+## Custom record types
+
+Shapes, bindings, and assets cover most drawing use cases, but some data doesn't fit any of them, like comments attached to a shape or per-user annotations. Register a custom record type and these records live in the store like any other: validated, migrated, persisted, and synced according to the scope you pick.
+
+Pass record definitions to [createTLStore](?) under the `records` option, then give that store to the `Tldraw` component. (Under the hood this calls [createTLSchema](?) with the same `records` option, so you can also build a schema directly.)
+
+```tsx
+import { createTLStore, T, Tldraw } from 'tldraw'
+
+const store = createTLStore({
+	records: {
+		comment: {
+			scope: 'document',
+			validator: T.object({
+				id: T.string,
+				typeName: T.literal('comment'),
+				shapeId: T.string,
+				authorId: T.string,
+				text: T.string,
+				createdAt: T.number,
+			}),
+			createDefaultProperties: () => ({ createdAt: Date.now() }),
+		},
+	},
+})
+
+function App() {
+	return <Tldraw store={store} />
+}
+```
+
+For multiplayer, pass the same `records` option to `useSync`. Type names must not collide with tldraw's built-in types (`shape`, `page`, `asset`, and so on); `createTLSchema` throws if they do.
+
+Each entry is a [CustomRecordInfo](?):
+
+| Field                     | Type                                     | Description                                                                                                                                                                              |
+| ------------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scope`                   | `'document' \| 'session'`                | `document` for synced and persisted data, `session` for local-only data. Custom `presence`-scoped types aren't supported by tldraw sync, which allows only one presence type per schema. |
+| `validator`               | `T.Validatable`                          | Validates the full record (including `id` and `typeName`) on every write.                                                                                                                |
+| `createDefaultProperties` | `() => Record<string, unknown>`          | Optional. Default properties used when you build a record with `store.schema.types.<name>.create()`.                                                                                     |
+| `migrations`              | `MigrationSequence \| TLPropsMigrations` | Optional. Schema evolution for the record type. An empty sequence is created automatically if you omit it.                                                                               |
+
+For type-safe IDs and TypeScript narrowing across your app, augment [TLGlobalRecordPropsMap](?) so the SDK's `TLRecord` union knows about your record types:
+
+```ts
+import { BaseRecord, RecordId } from 'tldraw'
+
+interface TLComment extends BaseRecord<'comment', RecordId<TLComment>> {
+	shapeId: string
+	authorId: string
+	text: string
+	createdAt: number
+}
+
+declare module 'tldraw' {
+	export interface TLGlobalRecordPropsMap {
+		comment: TLComment
+	}
+}
+```
+
+### Creating and reading custom records
+
+Use [createCustomRecordId](?) to mint IDs that match the `typeName:suffix` convention the store expects. It returns a generic record ID, so cast it to your own ID type. The companion guards [isCustomRecordId](?) and [isCustomRecord](?) check the type name but return plain booleans; they don't narrow the TypeScript type, so cast after checking:
+
+```ts
+import { createCustomRecordId, isCustomRecord, RecordId } from 'tldraw'
+
+const commentId = createCustomRecordId('comment') as RecordId<TLComment>
+
+editor.store.put([
+	{
+		id: commentId,
+		typeName: 'comment',
+		shapeId: 'shape:abc123',
+		authorId: 'user:alice',
+		text: 'Looks good',
+		createdAt: Date.now(),
+	},
+])
+
+for (const record of editor.store.allRecords()) {
+	if (isCustomRecord('comment', record)) {
+		console.log((record as TLComment).text)
+	}
+}
+```
+
+Custom records appear in `store.listen` diffs and participate in undo/redo when written through the usual store APIs. `editor.store.query.records('comment')` gives you a typed, reactive list of them. Sync clients include `document`-scoped records in the synced document automatically.
+
+### Custom record migrations
+
+Define migrations the same way you would for shape props. Use [createCustomRecordMigrationIds](?) to generate the canonical `com.tldraw.<type>/<version>` IDs, then [createCustomRecordMigrationSequence](?) for the sequence itself:
+
+```ts
+import { createCustomRecordMigrationIds, createCustomRecordMigrationSequence } from 'tldraw'
+
+const commentVersions = createCustomRecordMigrationIds('comment', {
+	AddAuthorId: 1,
+})
+
+const commentMigrations = createCustomRecordMigrationSequence({
+	sequence: [
+		{
+			id: commentVersions.AddAuthorId,
+			up: (record) => ({ ...record, authorId: record.authorId ?? 'unknown' }),
+			down: ({ authorId, ...rest }) => rest,
+		},
+	],
+})
+```
+
+Pass `commentMigrations` as the `migrations` field on the comment's `CustomRecordInfo` and the store will run them when loading older snapshots. See the [custom records example](/examples/data/assets/custom-records) for a complete app.
 
 ## Basic operations
 
@@ -82,23 +196,14 @@ The reactive [Store#get](?) integrates with tldraw's signals system. When you ca
 
 ### Creating and updating records
 
-The [Store#put](?) method handles both creation and updates:
+The [Store#put](?) method handles both creation and updates. A `put` with a new `id` creates the record; a `put` with an existing `id` replaces it. For shapes, [Editor#createShape](?) fills in the required fields for you, so you'll usually reach for `put` when updating:
 
 ```ts
-// Create a new record
-editor.store.put([
-	{
-		id: 'shape:my-shape' as TLShapeId,
-		typeName: 'shape',
-		type: 'geo',
-		x: 0,
-		y: 0,
-		// ... all required fields
-	},
-])
+// Create a shape through the editor, which fills in defaults
+editor.createShape({ id: shapeId, type: 'geo', x: 0, y: 0 })
 
 // Update an existing record (put with same id)
-const shape = editor.store.get(shapeId)
+const shape = editor.store.get(shapeId)!
 editor.store.put([{ ...shape, x: 100 }])
 ```
 
@@ -161,7 +266,7 @@ editor.store.listen(handleChanges, { source: 'all', scope: 'document' })
 
 The `source` indicates where the change came from: `'user'` for local edits, `'remote'` for synchronized changes from other users.
 
-For maintaining internal consistency—like cleaning up bindings when a shape is deleted—use [side effects](/sdk-features/side-effects) instead. Side effects are lifecycle hooks that can intercept and modify records during operations.
+To keep data internally consistent, like cleaning up bindings when a shape is deleted, use [side effects](/sdk-features/side-effects) instead. Side effects are lifecycle hooks that can intercept and modify records during operations.
 
 ## Snapshots
 
@@ -179,7 +284,7 @@ const { document, session } = getSnapshot(editor.store)
 localStorage.setItem('my-drawing', JSON.stringify({ document, session }))
 ```
 
-The `document` snapshot contains shapes, pages, bindings, and assets—everything that makes up the drawing itself. The `session` snapshot contains per-instance state like the current page and camera position.
+The `document` snapshot contains shapes, pages, bindings, and assets: everything that makes up the drawing itself. The `session` snapshot contains per-instance state like the current page and camera position.
 
 For multiplayer apps, you typically save document state to your server and session state per-user locally.
 
@@ -223,7 +328,7 @@ Snapshots include schema version information. When you load a snapshot from an o
 const migrated = editor.store.migrateSnapshot(oldSnapshot)
 ```
 
-The migration system handles schema changes between tldraw versions. You can also define custom migrations for your own record types—see [persistence](/docs/persistence) for details.
+The migration system handles schema changes between tldraw versions. You can also define migrations for custom shape props and custom record types. See [persistence](/sdk-features/persistence#migrations) for details.
 
 ## Queries
 
@@ -249,22 +354,21 @@ const textShapes = editor.store.query.records('shape', () => ({
 const allShapes = editor.store.query.records('shape')
 ```
 
-Query expressions support `eq` for exact matches. The `records()` method returns a computed array that updates when matching records change, while `index()` returns a map from property values to record IDs.
+Query expressions support `eq` (equals), `neq` (not equals), and `gt` (greater than, for numbers). The `records()` method returns a computed array that updates when matching records change, while `index()` returns a computed map from property values to sets of record IDs.
 
 ## Transactions
 
-Batch multiple changes into a single update with `Store.atomic`:
+Batch multiple changes with [Editor#run](?). Changes inside the callback are applied together, side effects see a consistent state, and the whole batch becomes one undo step:
 
 ```ts
-editor.store.atomic(() => {
+editor.run(() => {
 	editor.store.put([shape1, shape2])
 	editor.store.update(shape3Id, (s) => ({ ...s, x: 100 }))
 	editor.store.remove([shape4Id])
 })
-// All changes applied together, listeners notified once
 ```
 
-Without batching, each operation triggers listeners separately. Transactions ensure observers see a consistent state and reduce re-renders.
+Store listeners are already batched: the store collects changes and notifies listeners once per animation frame, squashing adjacent changes from the same source. See [history](/sdk-features/history) for the undo/redo options `run` accepts.
 
 ## Computed caches
 
@@ -302,6 +406,7 @@ Creating your own store is useful when you need to load data before mounting the
 
 ## Related examples
 
-- **[Store events](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/events/store-events)** — Listening to store changes and displaying them in real-time.
-- **[Snapshots](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/editor-api/snapshots)** — Saving and loading editor state with `getSnapshot` and `loadSnapshot`.
-- **[Local storage](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/data/assets/local-storage)** — Persisting to localStorage with throttled saves.
+- [Store events](/examples/events/store-events) - Listening to store changes and displaying them in real time.
+- [Snapshots](/examples/editor-api/snapshots) - Saving and loading editor state with `getSnapshot` and `loadSnapshot`.
+- [Local storage](/examples/data/assets/local-storage) - Persisting to localStorage with throttled saves.
+- [Custom records](/examples/data/assets/custom-records) - Registering and rendering a custom record type.

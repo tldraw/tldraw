@@ -18,22 +18,21 @@ In tldraw, a **tool** is a top-level state in our state chart. The select tool, 
 	caption="The first level of states in the state chart are known as tools."
 />
 
-For a full guide to the tool system, including state hierarchy, event handling, child states, tool lock, creating custom tools, and overriding defaults, see the [Tools](/sdk-features/tools) page.
-
 ## Default and custom tools
 
-The `<Tldraw>` component includes default tools like [select](/reference/tldraw/SelectTool), [hand](/reference/tldraw/HandTool), [draw](/reference/tldraw/DrawShapeTool), and [arrow](/reference/tldraw/ArrowShapeTool). The core `@tldraw/editor` package has no built-in tools—if you use `<TldrawEditor>` directly, you provide your own.
+The `<Tldraw>` component includes default tools like [SelectTool](?), [HandTool](?), [DrawShapeTool](?), and [ArrowShapeTool](?). The core `@tldraw/editor` package has no built-in tools. If you use `<TldrawEditor>` directly, you provide your own.
 
-You can create custom tools by extending [StateNode](/reference/editor/StateNode) and passing them to the `tools` prop:
+You can create custom tools by extending [StateNode](?) and passing them to the `tools` prop:
 
 ```tsx
-import { StateNode, TLPointerEventInfo, Tldraw } from 'tldraw'
+import { StateNode, Tldraw, toRichText } from 'tldraw'
 
 class StampTool extends StateNode {
 	static override id = 'stamp'
 
-	onPointerDown(info: TLPointerEventInfo) {
-		// Create a shape at the click position
+	override onPointerDown() {
+		const { x, y } = this.editor.inputs.getCurrentPagePoint()
+		this.editor.createShape({ type: 'text', x, y, props: { richText: toRichText('❤️') } })
 	}
 }
 
@@ -42,27 +41,32 @@ export default function App() {
 }
 ```
 
+Registering a tool adds it to the state chart but not to the toolbar. To add a toolbar button and keyboard shortcut, see the [add tool to toolbar example](/examples/ui/add-tool-to-toolbar). Tools with multiple states declare child states with `static children()`; see the [Tools](/sdk-features/tools) guide.
+
 ## Changing tools
 
-Change the active tool with [editor.setCurrentTool](/reference/editor/Editor#setCurrentTool):
+Change the active tool with [Editor#setCurrentTool](?), and read it with [Editor#getCurrentToolId](?):
 
 ```ts
 editor.setCurrentTool('select')
 editor.setCurrentTool('hand')
 editor.setCurrentTool('draw')
+editor.getCurrentToolId() // 'draw'
 ```
 
 ## Learn more
 
-For comprehensive coverage of tools, see these guides:
-
-- **[Tools](/sdk-features/tools)** — Full guide to the tool system: state hierarchy, event handling, child states, tool lock, creating custom tools, and overriding defaults
-- **[Events](/sdk-features/events)** — How the editor dispatches events and how to subscribe to them
-- **[Input handling](/sdk-features/input-handling)** — Pointer tracking, keyboard state, and the `editor.inputs` API
-- **[Ticks](/sdk-features/ticks)** — Frame-synchronized updates for animations and continuous interactions
+| Guide                                          | Covers                                                                                                   |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| [Tools](/sdk-features/tools)                   | State hierarchy, event handling, child states, tool lock, creating custom tools, and overriding defaults |
+| [Events](/sdk-features/events)                 | How the editor dispatches events and how to subscribe to them                                            |
+| [Input handling](/sdk-features/input-handling) | Pointer tracking, keyboard state, and the `editor.inputs` API                                            |
+| [Ticks](/sdk-features/ticks)                   | Frame-synchronized updates for animations and continuous interactions                                    |
 
 ## Examples
 
-- [Custom tool](/examples/shapes/tools/custom-tool) — A simple tool that adds stickers to the canvas
-- [Tool with child states](/examples/shapes/tools/tool-with-child-states) — A tool with multiple states for complex interactions
-- [Screenshot tool](/examples/shapes/tools/screenshot-tool) — A tool for capturing canvas regions
+| Example                                                                 | Description                                          |
+| ----------------------------------------------------------------------- | ---------------------------------------------------- |
+| [Custom tool](/examples/shapes/tools/custom-tool)                       | A simple tool that adds stickers to the canvas       |
+| [Tool with child states](/examples/shapes/tools/tool-with-child-states) | A tool with multiple states for complex interactions |
+| [Screenshot tool](/examples/shapes/tools/screenshot-tool)               | A tool for capturing canvas regions                  |

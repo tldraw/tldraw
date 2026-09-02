@@ -6,6 +6,7 @@ import { useEditor } from '../hooks/useEditor'
 import { Vec } from '../primitives/Vec'
 import { releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/getPointerInfo'
+import { getPointerEventButton } from '../utils/pointer'
 
 /**
  * When a menu is open, this component prevents the user from interacting with the canvas.
@@ -68,28 +69,16 @@ export function MenuClickCapture() {
 
 	const handlePointerDown = useCallback(
 		(e: PointerEvent) => {
-			if (e.button !== 0 && e.button !== 2) return
+			const button = getPointerEventButton(e)
+			if (button !== 0 && button !== 2) return
 
-			flushSync(() => setIsPointing(true))
-			setPointerCapture(e.currentTarget, e)
-			rPointerState.current = {
-				isDown: true,
-				isDragging: false,
-				button: e.button,
-				start: new Vec(e.clientX, e.clientY),
-			}
-
-			if (e.button === 2) {
-				if (!editor.options.rightClickPanning) {
-					// Right-click panning off: close the open menu and swallow the native
-					// contextmenu that would otherwise briefly open a new one (causing a flash).
-					swallowNextNativeContextMenu()
-					editor.menus.clearOpenMenus()
-					return
-				}
+			if (button === 2 && editor.options.rightClickPanning) {
 				// Forward right-click pointerdown through the canvas's own handler so
-				// pointer capture is also set on the canvas (load-bearing: without this
+				// pointer capture is set on the canvas (load-bearing: without this
 				// the context menu briefly flashes closed during consecutive right-clicks).
+				// The canvas owns the rest of the gesture, so don't capture or mark
+				// pointing here: this element's pointerup would never fire, leaving it
+				// mounted over the canvas after the menu closes.
 				// We don't clearOpenMenus() — Radix's DismissableLayer closes the menu
 				// via outside-click detection, keeping its internal state in sync.
 				const canvas =
@@ -97,6 +86,21 @@ export function MenuClickCapture() {
 				canvasEvents.onPointerDown?.({ ...e, currentTarget: canvas })
 				swallowNextNativeContextMenu()
 				return
+			}
+
+			flushSync(() => setIsPointing(true))
+			setPointerCapture(e.currentTarget, e)
+			rPointerState.current = {
+				isDown: true,
+				isDragging: false,
+				button,
+				start: new Vec(e.clientX, e.clientY),
+			}
+
+			if (button === 2) {
+				// Right-click panning off: swallow the native contextmenu that would otherwise
+				// briefly open a new menu (causing a flash) once the open one closes below.
+				swallowNextNativeContextMenu()
 			}
 
 			editor.menus.clearOpenMenus()
@@ -111,8 +115,7 @@ export function MenuClickCapture() {
 
 			// Left-click: wait for the drag threshold before forwarding anything, then
 			// replay pointerdown at the original start so the editor records the
-			// correct drag origin. Right-click forwards moves immediately (pointerdown
-			// was already dispatched in handlePointerDown).
+			// correct drag origin. Right-click forwards moves immediately.
 			if (state.button !== 2 && !state.isDragging) {
 				if (
 					Vec.Dist2(state.start, new Vec(e.clientX, e.clientY)) <=
@@ -141,13 +144,15 @@ export function MenuClickCapture() {
 
 	const handlePointerUp = useCallback(
 		(e: PointerEvent) => {
-			const isStaticRightClick = e.button === 2 && !rPointerState.current.isDragging
+			const isStaticRightClick =
+				rPointerState.current.button === 2 && !rPointerState.current.isDragging
 
 			editor.dispatch({
 				type: 'pointer',
 				target: 'canvas',
 				name: 'pointer_up',
 				...getPointerInfo(editor, e),
+				button: rPointerState.current.button === 2 ? 2 : getPointerEventButton(e),
 			})
 
 			if (isStaticRightClick && editor.options.rightClickPanning) {

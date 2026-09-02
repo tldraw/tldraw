@@ -1,15 +1,101 @@
-import { atom, computed, unsafe__withoutCapture } from '@tldraw/state'
+import { atom, computed, react, unsafe__withoutCapture } from '@tldraw/state'
 import { AtomSet } from '@tldraw/store'
 import { TLINSTANCE_ID, TLPOINTER_ID } from '@tldraw/tlschema'
-import { INTERNAL_POINTER_IDS } from '../../../constants'
+import { bind, throttle } from '@tldraw/utils'
 import { Vec } from '../../../primitives/Vec'
 import { isAccelKey } from '../../../utils/keyboard'
 import type { Editor } from '../../Editor'
 import { TLPinchEventInfo, TLPointerEventInfo, TLWheelEventInfo } from '../../types/event-types'
+import { EditorManager } from '../EditorManager'
+
+const POINTER_VELOCITY_REFERENCE_INTERVAL_MS = 16
+const POINTER_VELOCITY_REFERENCE_SMOOTHING = 0.5
+
+// How often `markActivity` is allowed to stamp the activity timestamp. Each
+// stamp re-broadcasts presence, so this must be long enough to keep input
+// bursts (e.g. typing, held keys) from flooding the network. It must also stay
+// comfortably shorter than `collaboratorIdleTimeoutMs` so a continuously-active
+// peer never flickers to idle between stamps; the throttle window is capped
+// below that option when it's configured shorter than the default, but never
+// below the floor, so a degenerate idle timeout can't disable throttling.
+const ACTIVITY_TIMESTAMP_THROTTLE_MS = 1000
+const ACTIVITY_TIMESTAMP_THROTTLE_FLOOR_MS = 100
+
+// DOM events that count as presence activity. `beforeinput` covers IME and
+// mobile keyboards (e.g. gesture typing), which often don't fire per-character
+// keydown events. `gesturestart`/`gesturechange` are Safari's proprietary
+// trackpad-pinch events, which produce neither pointer nor wheel events.
+const ACTIVITY_EVENTS = [
+	'pointerdown',
+	'pointermove',
+	'pointerup',
+	'keydown',
+	'beforeinput',
+	'wheel',
+	'gesturestart',
+	'gesturechange',
+]
 
 /** @public */
-export class InputsManager {
-	constructor(private readonly editor: Editor) {}
+export class InputsManager extends EditorManager {
+	constructor(editor: Editor) {
+		super(editor)
+		this.addEditorEvent('frame', this._onFrame)
+
+		// Track input only while mounted and sharing with someone: a solo user
+		// pays for no listeners at all, and the window is resolved on attach
+		// rather than up front, when the container is guaranteed to exist.
+		//
+		// The mount check must come first. This runs eagerly during the editor's
+		// constructor, where `editor.collaborators` isn't assigned yet, so reading
+		// collaborators here would throw; a never-mounted editor short-circuits
+		// before that, and re-runs once mount flips the atom.
+		this.register(
+			react('presence activity listeners', () => {
+				if (this.editor.getIsMounted() && this._getHasCollaborators()) {
+					this._attachActivityListeners()
+				} else {
+					this._detachActivityListeners()
+				}
+			})
+		)
+		this.register(() => {
+			this._detachActivityListeners()
+			this._throttledActivityStamp.cancel()
+		})
+	}
+
+	private _detachActivityListenersFn: null | (() => void) = null
+
+	/**
+	 * User input anywhere in the editor's tab counts as activity for collaborator presence —
+	 * presence means "this person is here", whether or not the input lands on the editor itself
+	 * (e.g. typing in a sidebar next to the canvas). Listen in the capture phase so input that
+	 * other handlers swallow still counts.
+	 */
+	private _attachActivityListeners() {
+		if (this._detachActivityListenersFn) return
+
+		const win = this.editor.getContainerWindow()
+		for (const name of ACTIVITY_EVENTS) {
+			win.addEventListener(name, this.markActivity, { capture: true })
+		}
+		this._detachActivityListenersFn = () => {
+			for (const name of ACTIVITY_EVENTS) {
+				win.removeEventListener(name, this.markActivity, { capture: true })
+			}
+		}
+	}
+
+	private _detachActivityListeners() {
+		this._detachActivityListenersFn?.()
+		this._detachActivityListenersFn = null
+	}
+
+	@bind
+	private _onFrame(elapsed: number) {
+		this.updatePointerVelocity(elapsed)
+	}
 
 	private _originPagePoint = atom<Vec>('originPagePoint', new Vec())
 	/**
@@ -117,8 +203,7 @@ export class InputsManager {
 	}
 
 	/**
-	 * Normally you shouldn't need to set the pointer velocity directly, this is set by the tick manager.
-	 * However, this is currently used in tests to fake pointer velocity.
+	 * Normally you shouldn't need to set the pointer velocity directly. Used in tests to fake pointer velocity.
 	 * @param pointerVelocity - The pointer velocity.
 	 * @internal
 	 */
@@ -450,6 +535,53 @@ export class InputsManager {
 		return this.editor.getCollaborators().length > 0 // could we do this more efficiently?
 	}
 
+	private readonly _throttledActivityStamp = throttle(
+		() => {
+			const pointer = this.editor.store.unsafeGetWithoutCapture(TLPOINTER_ID)
+			if (!pointer) return
+
+			this.editor.run(
+				() => {
+					this.editor.store.put([{ ...pointer, lastActivityTimestamp: Date.now() }])
+				},
+				{ history: 'ignore' }
+			)
+		},
+		// Stay comfortably below the idle timeout so a continuously-active peer
+		// never flickers to idle between throttled stamps.
+		Math.max(
+			ACTIVITY_TIMESTAMP_THROTTLE_FLOOR_MS,
+			Math.min(ACTIVITY_TIMESTAMP_THROTTLE_MS, this.editor.options.collaboratorIdleTimeoutMs / 3)
+		),
+		{ trailing: false }
+	)
+
+	/**
+	 * Mark the current user as active for collaborator presence. User input anywhere in the
+	 * editor's tab counts as activity automatically; call this to make input that doesn't produce
+	 * DOM events count too, so peers don't classify this user as idle or inactive while they're
+	 * still interacting. Calls are throttled on the leading edge, so it's safe to call from
+	 * high-frequency input events.
+	 *
+	 * @example
+	 * ```ts
+	 * // Gamepads are polled rather than event-driven, so stamp activity from the poll
+	 * editor.timers.setInterval(() => {
+	 * 	const isPressed = navigator
+	 * 		.getGamepads()
+	 * 		.some((pad) => pad?.buttons.some((button) => button.pressed))
+	 * 	if (isPressed) editor.inputs.markActivity()
+	 * }, 50)
+	 * ```
+	 */
+	@bind
+	markActivity() {
+		// Check for collaborators before consuming the throttle window, so input
+		// while alone doesn't delay the first stamp after a peer joins.
+		if (!this._getHasCollaborators()) return
+		this._throttledActivityStamp()
+	}
+
 	/**
 	 * The previous point used for velocity calculation (updated each tick, not each pointer event).
 	 * @internal
@@ -473,8 +605,14 @@ export class InputsManager {
 		const length = delta.len()
 		const direction = length ? delta.div(length) : new Vec(0, 0)
 
-		// consider adjusting this with an easing rather than a linear interpolation
-		const next = pointerVelocity.clone().lrp(direction.mul(length / elapsed), 0.5)
+		// Preserve the old 16ms smoothing with alpha = 1 - (1 - 0.5)^(elapsed / 16).
+		const smoothing =
+			1 -
+			Math.pow(
+				1 - POINTER_VELOCITY_REFERENCE_SMOOTHING,
+				elapsed / POINTER_VELOCITY_REFERENCE_INTERVAL_MS
+			)
+		const next = pointerVelocity.clone().lrp(direction.mul(length / elapsed), smoothing)
 
 		// if the velocity is very small, just set it to 0
 		if (Math.abs(next.x) < 0.01) next.x = 0
@@ -535,13 +673,12 @@ export class InputsManager {
 							typeName: 'pointer',
 							x: pagePoint.x,
 							y: pagePoint.y,
+							// The activity timestamp is stamped by the container's input
+							// listeners (see `markActivity`), not by pointer position updates:
+							// synthetic moves, like the camera following another user, don't
+							// count as activity.
 							lastActivityTimestamp:
-								// If our pointer moved only because we're following some other user, then don't
-								// update our last activity timestamp; otherwise, update it to the current timestamp.
-								info.type === 'pointer' && info.pointerId === INTERNAL_POINTER_IDS.CAMERA_MOVE
-									? (this.editor.store.unsafeGetWithoutCapture(TLPOINTER_ID)
-											?.lastActivityTimestamp ?? Date.now())
-									: Date.now(),
+								this.editor.store.unsafeGetWithoutCapture(TLPOINTER_ID)?.lastActivityTimestamp ?? 0,
 							meta: {},
 						},
 					])

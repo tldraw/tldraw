@@ -1,10 +1,11 @@
-import { AcceptInviteResponseBody, userHasFlag } from '@tldraw/dotcom-shared'
+import { AcceptInviteResponseBody } from '@tldraw/dotcom-shared'
 import { getIndexBelow, IndexKey } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { sql } from 'kysely'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
 import { requireAuth } from '../../utils/tla/getAuth'
+import { getJoinableWorkspaceFromInvite } from '../../utils/tla/getJoinableWorkspaceFromInvite'
 
 export async function acceptInvite(request: IRequest, env: Environment): Promise<Response> {
 	const { token } = request.params
@@ -20,14 +21,10 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 
 	try {
 		return await db.transaction().execute(async (tx) => {
-			// First, validate the invite token and get group info
-			const group = await tx
-				.selectFrom('group')
-				.select(['id', 'name', 'isDeleted'])
-				.where('inviteSecret', '=', token)
-				.executeTakeFirst()
+			// First, validate the invite token and get workspace info
+			const workspace = await getJoinableWorkspaceFromInvite(tx, token)
 
-			if (!group || group.isDeleted) {
+			if (!workspace) {
 				return Response.json(
 					{
 						error: true,
@@ -41,7 +38,7 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 			const existingMember = await tx
 				.selectFrom('group_user')
 				.select('userId')
-				.where('groupId', '=', group.id)
+				.where('groupId', '=', workspace.id)
 				.where('userId', '=', auth.userId)
 				.executeTakeFirst()
 
@@ -49,8 +46,8 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 				return Response.json({
 					error: false,
 					message: 'You are already a member of this group',
-					groupId: group.id,
-					groupName: group.name,
+					workspaceId: workspace.id,
+					workspaceName: workspace.name,
 					alreadyMember: true,
 				} satisfies AcceptInviteResponseBody)
 			}
@@ -71,27 +68,6 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 					{ status: 404 }
 				)
 			}
-			if (!userHasFlag(user.flags, 'groups_backend')) {
-				return Response.json(
-					{
-						error: true,
-						message: 'User is not migrated to the groups model',
-					} satisfies AcceptInviteResponseBody,
-					{ status: 400 }
-				)
-			}
-
-			// Ensure user has groups_frontend flag when accepting invite
-			if (!userHasFlag(user.flags, 'groups_frontend')) {
-				const currentFlags = user.flags ? user.flags.split(/[,\s]+/).filter(Boolean) : []
-				const newFlags = [...currentFlags, 'groups_frontend'].join(',')
-				await tx
-					.updateTable('user')
-					.set({ flags: newFlags })
-					.where('id', '=', auth.userId)
-					.execute()
-			}
-
 			// Get the lowest index to place new group at the top
 			const lowestIndexGroup = await sql<{
 				index: string
@@ -115,11 +91,11 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 			await tx
 				.insertInto('group_user')
 				.values({
-					groupId: group.id,
+					groupId: workspace.id,
 					userId: auth.userId,
 					userColor: user.color || '#000000',
 					userName: user.name,
-					role: 'admin',
+					role: 'member',
 					index,
 					createdAt: Date.now(),
 					updatedAt: Date.now(),
@@ -129,8 +105,8 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 			return Response.json({
 				error: false,
 				message: 'Successfully joined the group',
-				groupId: group.id,
-				groupName: group.name,
+				workspaceId: workspace.id,
+				workspaceName: workspace.name,
 				success: true,
 			} satisfies AcceptInviteResponseBody)
 		})

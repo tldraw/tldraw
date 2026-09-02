@@ -15,7 +15,13 @@ export interface TLCursorProps {
 	chatMessage: string
 }
 
-/** @public @react */
+/**
+ * The default collaborator cursor: the arrow glyph plus a name tag or chat bubble. The arrow is a
+ * `<use>` of a shared `<defs>` symbol that `LiveCollaborators` renders, so a `DefaultCursor`
+ * used outside that layer draws no arrow.
+ *
+ * @public @react
+ */
 export const DefaultCursor = memo(function DefaultCursor({
 	className,
 	zoom,
@@ -32,7 +38,7 @@ export const DefaultCursor = memo(function DefaultCursor({
 	if (!point) return null
 
 	return (
-		<div ref={rCursor} className={classNames('tl-overlays__item', className)}>
+		<div ref={rCursor} className={classNames('tl-collaborators__item', className)}>
 			<svg className="tl-cursor" aria-hidden="true">
 				<use href={`#${cursorId}`} color={color} />
 			</svg>

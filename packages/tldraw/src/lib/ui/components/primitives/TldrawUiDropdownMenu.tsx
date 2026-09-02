@@ -68,6 +68,7 @@ export interface TLUiDropdownMenuContentProps {
 	align?: 'start' | 'center' | 'end'
 	sideOffset?: number
 	alignOffset?: number
+	collisionPadding?: number
 	children: ReactNode
 }
 
@@ -78,6 +79,7 @@ export function TldrawUiDropdownMenuContent({
 	align = 'start',
 	sideOffset = 8,
 	alignOffset = 8,
+	collisionPadding = 4,
 	children,
 }: TLUiDropdownMenuContentProps) {
 	const container = useContainer()
@@ -90,7 +92,7 @@ export function TldrawUiDropdownMenuContent({
 				sideOffset={sideOffset}
 				align={align}
 				alignOffset={alignOffset}
-				collisionPadding={4}
+				collisionPadding={collisionPadding}
 			>
 				{children}
 			</_DropdownMenu.Content>

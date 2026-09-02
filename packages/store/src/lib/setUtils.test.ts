@@ -1,105 +1,64 @@
 import { describe, expect, it } from 'vitest'
 import { diffSets, intersectSets } from './setUtils'
 
-describe('intersectSets', () => {
-	it('should return intersection of multiple sets', () => {
-		const set1 = new Set([1, 2, 3, 4])
-		const set2 = new Set([2, 3, 4, 5])
-		const set3 = new Set([3, 4, 5, 6])
+// Tests for SPEC.md §25 (set utilities).
+// Rule IDs like [SU1] in test names refer to that document.
 
-		const result = intersectSets([set1, set2, set3])
+describe('intersectSets (SU)', () => {
+	it('[SU1] returns the elements present in every set', () => {
+		expect(
+			intersectSets([new Set([1, 2, 3, 4]), new Set([2, 3, 4, 5]), new Set([3, 4, 5, 6])])
+		).toEqual(new Set([3, 4]))
 
-		expect(Array.from(result).sort()).toEqual([3, 4])
+		expect(intersectSets([new Set([1, 2, 3]), new Set([4, 5, 6])])).toEqual(new Set())
+		expect(intersectSets([new Set([1, 2, 3]), new Set(), new Set([2, 3, 4])])).toEqual(new Set())
 	})
 
-	it('should return empty set when no sets provided', () => {
-		const result = intersectSets([])
-		expect(result.size).toBe(0)
+	it('[SU1] no sets yields an empty set', () => {
+		expect(intersectSets([])).toEqual(new Set())
 	})
 
-	it('should return empty set when no common elements exist', () => {
-		const set1 = new Set([1, 2, 3])
-		const set2 = new Set([4, 5, 6])
+	it('[SU1] a single set yields a copy', () => {
+		const set = new Set([1, 2, 3])
+		const result = intersectSets([set])
 
-		const result = intersectSets([set1, set2])
-
-		expect(result.size).toBe(0)
-	})
-
-	it('should return empty set when any set is empty', () => {
-		const set1 = new Set([1, 2, 3])
-		const set2 = new Set<number>()
-		const set3 = new Set([2, 3, 4])
-
-		const result = intersectSets([set1, set2, set3])
-
-		expect(result.size).toBe(0)
-	})
-
-	it('should return copy of single set', () => {
-		const set1 = new Set([1, 2, 3])
-		const result = intersectSets([set1])
-
-		expect(result).not.toBe(set1)
-		expect(Array.from(result).sort()).toEqual([1, 2, 3])
+		expect(result).not.toBe(set)
+		expect(result).toEqual(set)
 	})
 })
 
-describe('diffSets', () => {
-	it('should detect added elements', () => {
-		const prev = new Set(['a', 'b'])
-		const next = new Set(['a', 'b', 'c'])
+describe('diffSets (SU)', () => {
+	it('[SU2] reports added and removed elements, with only the populated keys', () => {
+		expect(diffSets(new Set(['a', 'b']), new Set(['a', 'b', 'c']))).toEqual({
+			added: new Set(['c']),
+		})
 
-		const result = diffSets(prev, next)
+		expect(diffSets(new Set(['a', 'b', 'c']), new Set(['a', 'b']))).toEqual({
+			removed: new Set(['c']),
+		})
 
-		expect(result?.added).toBeDefined()
-		expect(result?.removed).toBeUndefined()
-		expect(Array.from(result!.added!)).toEqual(['c'])
+		expect(diffSets(new Set(['a', 'b']), new Set(['b', 'c']))).toEqual({
+			added: new Set(['c']),
+			removed: new Set(['a']),
+		})
 	})
 
-	it('should detect removed elements', () => {
-		const prev = new Set(['a', 'b', 'c'])
-		const next = new Set(['a', 'b'])
-
-		const result = diffSets(prev, next)
-
-		expect(result?.removed).toBeDefined()
-		expect(result?.added).toBeUndefined()
-		expect(Array.from(result!.removed!)).toEqual(['c'])
+	it('[SU2] returns undefined when the sets have the same members', () => {
+		expect(diffSets(new Set(['a', 'b', 'c']), new Set(['a', 'b', 'c']))).toBeUndefined()
+		expect(diffSets(new Set(), new Set())).toBeUndefined()
 	})
 
-	it('should detect both added and removed elements', () => {
-		const prev = new Set(['a', 'b'])
-		const next = new Set(['b', 'c'])
-
-		const result = diffSets(prev, next)
-
-		expect(result?.added).toBeDefined()
-		expect(result?.removed).toBeDefined()
-		expect(Array.from(result!.added!)).toEqual(['c'])
-		expect(Array.from(result!.removed!)).toEqual(['a'])
-	})
-
-	it('should return undefined when sets are identical', () => {
-		const prev = new Set(['a', 'b', 'c'])
-		const next = new Set(['a', 'b', 'c'])
-
-		const result = diffSets(prev, next)
-
-		expect(result).toBeUndefined()
-	})
-
-	it('should handle object references correctly', () => {
+	it('[SU2] compares object members by reference', () => {
 		const obj1 = { id: 1 }
 		const obj2 = { id: 2 }
 		const obj3 = { id: 3 }
 
-		const prev = new Set([obj1, obj2])
-		const next = new Set([obj2, obj3])
+		expect(diffSets(new Set([obj1, obj2]), new Set([obj2, obj3]))).toEqual({
+			added: new Set([obj3]),
+			removed: new Set([obj1]),
+		})
 
-		const result = diffSets(prev, next)
-
-		expect(result?.added?.has(obj3)).toBe(true)
-		expect(result?.removed?.has(obj1)).toBe(true)
+		// structurally equal but distinct objects are different members
+		expect(diffSets(new Set([{ id: 1 }]), new Set([{ id: 1 }]))).toBeDefined()
 	})
 })

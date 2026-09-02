@@ -156,6 +156,9 @@ export function getChangedKeys<T extends object>(obj1: T, obj2: T): (keyof T)[];
 export function getErrorAnnotations(error: Error): ErrorAnnotations;
 
 // @public
+export function getFirstCharacter(str: string): string;
+
+// @public
 export function getFirstFromIterable<T = unknown>(set: Map<any, T> | Set<T>): T;
 
 // @internal
@@ -210,7 +213,7 @@ export function groupBy<K extends string, V>(array: ReadonlyArray<V>, keySelecto
 export function hasOwnProperty(obj: object, key: string): boolean;
 
 // @internal
-const Image_2: (width?: number | undefined, height?: number | undefined) => HTMLImageElement;
+function Image_2(width?: number, height?: number): HTMLImageElement;
 export { Image_2 as Image }
 
 // @public
@@ -241,6 +244,9 @@ export function isNonNull<T>(value: T): value is typeof value extends null ? nev
 export function isNonNullish<T>(value: T): value is typeof value extends undefined ? never : typeof value extends null ? never : T;
 
 // @public
+export function iterateGraphemes(str: string): IterableIterator<string>;
+
+// @public
 export type JsonArray = JsonValue[];
 
 // @public
@@ -263,6 +269,19 @@ export function lerp(a: number, b: number, t: number): number;
 
 // @public
 export function lns(str: string): string;
+
+// @public
+export class LruCache<K, V> {
+    constructor(maxSize: number);
+    // (undocumented)
+    get(key: K): undefined | V;
+    // (undocumented)
+    has(key: K): boolean;
+    // (undocumented)
+    set(key: K, value: V): void;
+    // (undocumented)
+    get size(): number;
+}
 
 // @public
 export type MakeUndefinedOptional<T extends object> = Expand<{
@@ -335,7 +354,7 @@ export function mockUniqueId(fn: (size?: number) => string): void;
 export function modulate(value: number, rangeA: number[], rangeB: number[], clamp?: boolean): number;
 
 // @internal
-export const noop: () => void;
+export function noop(): void;
 
 // @internal
 export function objectMapEntries<Obj extends object>(object: Obj): Array<[keyof Obj, Obj[keyof Obj]]>;
@@ -445,7 +464,7 @@ export function retry<T>(fn: (args: {
     attempt: number;
     remaining: number;
     total: number;
-}) => Promise<T>, { attempts, waitDuration, abortSignal, matchError }?: {
+}) => Promise<T>, { attempts, waitDuration, abortSignal, matchError, }?: {
     abortSignal?: AbortSignal;
     attempts?: number;
     matchError?(error: unknown): boolean;
@@ -459,7 +478,7 @@ export function rng(seed?: string): () => number;
 export function rotateArray<T>(arr: T[], offset: number): T[];
 
 // @public
-export const safeParseUrl: (url: string, baseUrl?: string | undefined | URL) => undefined | URL;
+export function safeParseUrl(url: string, baseUrl?: string | URL): undefined | URL;
 
 // @internal
 export function setInLocalStorage(key: string, value: string): void;
@@ -510,8 +529,8 @@ export class Timers {
     forContext(contextId: string): {
         dispose: () => void;
         requestAnimationFrame: (callback: FrameRequestCallback) => number;
-        setInterval: (handler: TimerHandler, timeout?: number | undefined, ...args: any[]) => number;
-        setTimeout: (handler: TimerHandler, timeout?: number | undefined, ...args: any[]) => number;
+        setInterval: (handler: TimerHandler, timeout?: number, ...args: any[]) => number;
+        setTimeout: (handler: TimerHandler, timeout?: number, ...args: any[]) => number;
     };
     requestAnimationFrame(contextId: string, callback: FrameRequestCallback): number;
     setInterval(contextId: string, handler: TimerHandler, timeout?: number, ...args: any[]): number;

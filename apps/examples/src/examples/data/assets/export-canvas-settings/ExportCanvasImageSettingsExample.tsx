@@ -6,7 +6,7 @@ const components: TLUiComponents = {
 	SharePanel: ExportCanvasButton,
 }
 
-export default function ExportCanvasImageExample() {
+export default function ExportCanvasImageSettingsExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw components={components} />
@@ -25,7 +25,10 @@ function ExportCanvasButton() {
 	})
 
 	// [2]
-	const [box, setBox] = useState({ x: 0, y: 0, w: 0, h: 0 })
+	const [box, setBox] = useState(() => {
+		const v = editor.getViewportPageBounds()
+		return { x: Math.round(v.x), y: Math.round(v.y), w: Math.round(v.w), h: Math.round(v.h) }
+	})
 
 	return (
 		<div
@@ -105,19 +108,18 @@ function ExportCanvasButton() {
 					const shapeIds = editor.getCurrentPageShapeIds()
 					if (shapeIds.size === 0) return alert('No shapes on the canvas')
 
+					// [3]
 					const { blob } = await editor.toImage([...shapeIds], {
 						format: 'png',
 						...opts,
-						// If we have numbers for all of the box values, we can use them as bounds
-						bounds: Object.values(box).every((b) => !Number.isNaN(b))
-							? new Box(box.x, box.y, box.w, box.h)
-							: undefined,
+						bounds: box.w > 0 && box.h > 0 ? new Box(box.x, box.y, box.w, box.h) : undefined,
 					})
 
 					const link = document.createElement('a')
-					link.href = window.URL.createObjectURL(blob)
-					link.download = 'every-shape-on-the-canvas.jpg'
+					link.href = URL.createObjectURL(blob)
+					link.download = 'every-shape-on-the-canvas.png'
 					link.click()
+					URL.revokeObjectURL(link.href)
 				}}
 			>
 				Export canvas as image
@@ -158,14 +160,18 @@ const Control = ({
 }
 
 /*
-This example shows how you can use the image export settings in tldraw when generating an image.
+[1]
+`TLImageExportOptions` controls the export. The built-in export and copy actions fill
+these from user preferences (e.g. `editor.user.getIsDarkMode()`), but when you call
+`toImage` yourself you choose. `padding` accepts a number of pixels or 'auto', which
+trims to the visual bounds of the content; the default here matches
+`editor.options.defaultSvgPadding`.
 
-1.
-These are our defaults, though the rest of export / copy features use the user preferences,
-e.g. editor.user.getIsDarkMode() for whether the user has enabled dark mode or not. But if
-you're calling the image functions yourself, you can provide whatever options you wish.
+[2]
+`bounds` crops the export to a page-space box instead of fitting the shapes. It starts
+as the current viewport so the first export matches what you see.
 
-2.
-The bounding box is an optional argument that you can use to export a specific part of the canvas
-or selection.
+[3]
+A box with zero width or height is treated as "no bounds", so the export fits all
+shapes.
 */

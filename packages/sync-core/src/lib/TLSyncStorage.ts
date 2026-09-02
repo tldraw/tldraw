@@ -1,6 +1,6 @@
 import { StoreSchema, SynchronousStorage, UnknownRecord } from '@tldraw/store'
+import { TLStoreSnapshot } from '@tldraw/tlschema'
 import { assert, isEqual, objectMapEntriesIterable, objectMapValues } from '@tldraw/utils'
-import { TLStoreSnapshot } from 'tldraw'
 import { diffRecord, NetworkDiff, RecordOpType } from './diff'
 import { RoomSnapshot } from './TLSyncRoom'
 
@@ -83,7 +83,22 @@ export interface TLSyncStorage<R extends UnknownRecord> {
 
 	onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void
 
+	/** A snapshot of the document lane only — never contains object-store lane records. */
 	getSnapshot?(): RoomSnapshot
+
+	/**
+	 * A snapshot of the object-store lane (see `objectTypes` on the storage), for hosts that
+	 * persist object-lane records separately from the document. Same entry shape as
+	 * `RoomSnapshot['documents']` so a lane can be persisted and re-seeded via a merged snapshot.
+	 */
+	getObjectsSnapshot?(): RoomSnapshot['documents']
+
+	/**
+	 * The same entries for the given ids, for callers that need a handful of records rather than the
+	 * whole (parsed) lane. Ids with no object-lane record are omitted — document-lane ids included —
+	 * and duplicates yield one entry.
+	 */
+	getObjectsByIds?(ids: Iterable<string>): RoomSnapshot['documents']
 }
 
 /**
@@ -190,7 +205,9 @@ export function loadSnapshotIntoStorage<R extends UnknownRecord>(
 		if (isEqual(existing, doc.state)) continue
 		txn.set(doc.state.id, doc.state as R)
 	}
-	for (const id of txn.keys()) {
+	// materialize the keys first: some SQLite drivers (better-sqlite3) refuse writes while a
+	// statement iterator is open, so deleting during `keys()` would throw
+	for (const id of Array.from(txn.keys())) {
 		if (!docIds.has(id)) {
 			txn.delete(id)
 		}

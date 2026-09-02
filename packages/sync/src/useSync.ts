@@ -2,6 +2,7 @@ import { atom, transact } from '@tldraw/state'
 import {
 	ClientWebSocketAdapter,
 	TLCustomMessageHandler,
+	TLObjectStoreAccess,
 	TLPersistentClientSocket,
 	TLPresenceMode,
 	TLRemoteSyncError,
@@ -78,10 +79,19 @@ const defaultCustomMessageHandler: TLCustomMessageHandler = () => {}
  *
  * @public
  */
-export type RemoteTLStoreWithStatus = Exclude<
-	TLStoreWithStatus,
-	{ status: 'synced-local' } | { status: 'not-synced' }
->
+export type RemoteTLStoreWithStatus =
+	| Exclude<
+			TLStoreWithStatus,
+			{ status: 'synced-local' } | { status: 'not-synced' } | { status: 'synced-remote' }
+	  >
+	| (Extract<TLStoreWithStatus, { status: 'synced-remote' }> & {
+			/**
+			 * Write access for object-store lane record types (e.g. comments), as granted by the
+			 * server for this session. Independent of the canvas read-only state, so a session can
+			 * be allowed to comment without being allowed to edit. Defaults to `'write'`.
+			 */
+			readonly objectAccess: TLObjectStoreAccess
+	  })
 
 /**
  * Creates a reactive store synchronized with a multiplayer server for real-time collaboration.
@@ -170,6 +180,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	const [state, setState] = useRefState<{
 		readyClient?: TLSyncClient<TLRecord, TLStore>
 		error?: Error
+		objectAccess?: TLObjectStoreAccess
 	} | null>(null)
 	const {
 		uri,
@@ -319,13 +330,17 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			getUserPresence,
 		})(store)
 
-		const otherUserPresences = store.query.ids('instance_presence', () => ({
-			userId: { neq: currentUser.get().id },
-		}))
+		// Every connected session — each tab, window, or device — pushes its
+		// presence on connect, so the store holds one instance_presence record per
+		// *other* session in the room, including the user's own other tabs. (The
+		// server never echoes a session its own record.) So an empty set means
+		// we're genuinely the only session and can throttle to solo; any other
+		// session — another user, or just another tab of our own — keeps us at the
+		// full sync rate so edits propagate without the solo-mode lag.
+		const otherSessions = store.query.ids('instance_presence')
 
 		const presenceMode = computed<TLPresenceMode>('presenceMode', () => {
-			if (otherUserPresences.get().size === 0) return 'solo'
-			return 'full'
+			return otherSessions.get().size === 0 ? 'solo' : 'full'
 		})
 
 		const client = new TLSyncClient<TLRecord, TLStore>({
@@ -334,7 +349,8 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			didCancel: () => didCancel,
 			onLoad(client) {
 				track?.(MULTIPLAYER_EVENT_NAME, { name: 'load', roomId })
-				setState({ readyClient: client })
+				// Merge so we don't clobber objectAccess if onAfterConnect ran first.
+				setState((prev) => ({ ...prev, readyClient: client }))
 			},
 			onSyncError(reason) {
 				console.error('sync error', reason)
@@ -360,7 +376,12 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				setState({ error: new TLRemoteSyncError(reason) })
 				socket.close()
 			},
-			onAfterConnect(_, { isReadonly }) {
+			onAfterConnect(_, { isReadonly, objectAccess }) {
+				// Object-lane (comment) write access is decided per session by the server and can
+				// change on reconnect (e.g. when the file's share tier changes), so surface it on
+				// the returned status for consumers that gate comment UI. This fires before the
+				// first onLoad, hence the merge in both directions.
+				setState((prev) => ({ ...prev, objectAccess }))
 				transact(() => {
 					syncMode.set(isReadonly ? 'readonly' : 'readwrite')
 					// if the server crashes and loses all data it can return an empty document
@@ -408,6 +429,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				status: 'synced-remote',
 				connectionStatus: connectionStatus === 'error' ? 'offline' : connectionStatus,
 				store: state.readyClient.store,
+				objectAccess: state.objectAccess ?? 'write',
 			}
 		},
 		[state]

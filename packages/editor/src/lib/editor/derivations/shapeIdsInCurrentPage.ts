@@ -33,15 +33,19 @@ const isShapeInPage = (store: TLStore, pageId: TLPageId, shape: TLShape): boolea
  * @param store - The tldraw store.
  * @param getCurrentPageId - A function that returns the current page id.
  */
-export const deriveShapeIdsInCurrentPage = (store: TLStore, getCurrentPageId: () => TLPageId) => {
+export function deriveShapeIdsInCurrentPage(store: TLStore, getCurrentPageId: () => TLPageId) {
 	const shapesIndex = store.query.ids('shape')
 	let lastPageId: null | TLPageId = null
 	function fromScratch() {
 		const currentPageId = getCurrentPageId()
 		lastPageId = currentPageId
-		return new Set(
-			[...shapesIndex.get()].filter((id) => isShapeInPage(store, currentPageId, store.get(id)!))
-		)
+		const result = new Set<TLShapeId>()
+		for (const id of shapesIndex.get()) {
+			if (isShapeInPage(store, currentPageId, store.get(id)!)) {
+				result.add(id)
+			}
+		}
+		return result
 	}
 	return computed<Set<TLShapeId>>('_shapeIdsInCurrentPage', (prevValue, lastComputedEpoch) => {
 		if (isUninitialized(prevValue)) {

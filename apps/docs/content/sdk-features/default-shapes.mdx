@@ -45,29 +45,31 @@ The default shapes loosely fall into five categories based on their primary func
 
 ### Geo
 
-The geo shape renders geometric primitives with optional text labels. It supports 20 different geometric forms—rectangles, ellipses, triangles, stars, polygons, directional arrows, and special shapes like clouds and hearts. Geo shapes can display rich text labels with configurable alignment, making them the foundation for flowcharts, diagrams, and annotated illustrations.
+The geo shape renders geometric primitives with optional text labels. It supports 20 different geometric forms—rectangles, ellipses, triangles, stars, polygons, directional arrows, and special shapes like clouds and hearts. Geo shapes can display rich text labels with configurable alignment, which makes them the usual building block for flowcharts and diagrams.
 
 For complete documentation on geometric forms, label positioning, tool interactions, and configuration, see [Geo shape](/sdk-features/geo-shape).
 
 Quick reference:
 
-| Property        | Type                            | Description                                     |
-| --------------- | ------------------------------- | ----------------------------------------------- |
-| `geo`           | `TLGeoShapeGeoStyle`            | The geometric form                              |
-| `w`             | `number`                        | Width in pixels                                 |
-| `h`             | `number`                        | Height in pixels                                |
-| `richText`      | `TLRichText`                    | Text label displayed inside the shape           |
-| `color`         | `TLDefaultColorStyle`           | Stroke/outline color                            |
-| `labelColor`    | `TLDefaultColorStyle`           | Text label color (separate from stroke)         |
-| `fill`          | `TLDefaultFillStyle`            | Fill style (`none`, `semi`, `solid`, `pattern`) |
-| `dash`          | `TLDefaultDashStyle`            | Stroke pattern                                  |
-| `size`          | `TLDefaultSizeStyle`            | Size preset affecting stroke width              |
-| `font`          | `TLDefaultFontStyle`            | Font family for the label                       |
-| `align`         | `TLDefaultHorizontalAlignStyle` | Horizontal text alignment                       |
-| `verticalAlign` | `TLDefaultVerticalAlignStyle`   | Vertical text alignment                         |
-| `growY`         | `number`                        | Additional vertical space for text overflow     |
-| `url`           | `string`                        | Optional hyperlink URL                          |
-| `scale`         | `number`                        | Scale factor applied to the shape               |
+| Property        | Type                            | Description                                 |
+| --------------- | ------------------------------- | ------------------------------------------- |
+| `geo`           | `TLGeoShapeGeoStyle`            | The geometric form                          |
+| `w`             | `number`                        | Width in pixels                             |
+| `h`             | `number`                        | Height in pixels                            |
+| `richText`      | `TLRichText`                    | Text label displayed inside the shape       |
+| `color`         | `TLDefaultColorStyle`           | Stroke/outline color                        |
+| `labelColor`    | `TLDefaultColorStyle`           | Text label color (separate from stroke)     |
+| `fill`          | `TLDefaultFillStyle`            | Fill style                                  |
+| `dash`          | `TLDefaultDashStyle`            | Stroke pattern                              |
+| `size`          | `TLDefaultSizeStyle`            | Size preset affecting stroke width          |
+| `font`          | `TLDefaultFontStyle`            | Font family for the label                   |
+| `align`         | `TLDefaultHorizontalAlignStyle` | Horizontal text alignment                   |
+| `verticalAlign` | `TLDefaultVerticalAlignStyle`   | Vertical text alignment                     |
+| `growY`         | `number`                        | Additional vertical space for text overflow |
+| `url`           | `string`                        | Optional hyperlink URL                      |
+| `scale`         | `number`                        | Scale factor applied to the shape           |
+| `flipX`         | `boolean`                       | Mirror the shape horizontally               |
+| `flipY`         | `boolean`                       | Mirror the shape vertically                 |
 
 ### Text
 
@@ -132,28 +134,33 @@ editor.createShape({
 
 ### Draw
 
-The draw shape captures freehand strokes and straight line segments. It supports pressure-sensitive input from pens and styluses, automatic shape closing, angle snapping when holding Shift, and hybrid freehand/straight-line drawing modes. Points are stored in a delta-encoded base64 format for efficiency.
+The draw shape captures freehand strokes and straight line segments. It supports pressure-sensitive input from pens and styluses, automatic shape closing, angle snapping when holding Shift, and hybrid freehand/straight-line drawing modes. Points are stored in a delta-encoded base64 format; strokes from devices without pressure are stored as 2D (`dim: 2`) and pen strokes keep the pressure value.
 
 For complete documentation on the draw shape and draw tool, including drawing modes, pen support, angle snapping, and programmatic creation, see the [Draw shape](/sdk-features/draw-shape) article.
 
 Quick reference:
 
-| Property     | Type                   | Description                                                |
-| ------------ | ---------------------- | ---------------------------------------------------------- |
-| `color`      | `TLDefaultColorStyle`  | Stroke color                                               |
-| `fill`       | `TLDefaultFillStyle`   | Fill style (applies when `isClosed` is true)               |
-| `dash`       | `TLDefaultDashStyle`   | Stroke pattern                                             |
-| `size`       | `TLDefaultSizeStyle`   | Stroke width preset                                        |
-| `segments`   | `TLDrawShapeSegment[]` | Array of segments with `type` and base64-encoded `path`    |
-| `isComplete` | `boolean`              | Whether the user has finished drawing this stroke          |
-| `isClosed`   | `boolean`              | Whether the path forms a closed shape                      |
-| `isPen`      | `boolean`              | Whether drawn with a stylus (enables pressure-based width) |
+| Property     | Type                   | Description                                                                           |
+| ------------ | ---------------------- | ------------------------------------------------------------------------------------- |
+| `color`      | `TLDefaultColorStyle`  | Stroke color                                                                          |
+| `fill`       | `TLDefaultFillStyle`   | Fill style (applies when `isClosed` is true)                                          |
+| `dash`       | `TLDefaultDashStyle`   | Stroke pattern                                                                        |
+| `size`       | `TLDefaultSizeStyle`   | Stroke width preset                                                                   |
+| `segments`   | `TLDrawShapeSegment[]` | Array of segments with `type`, base64-encoded `path`, and optional `dim` (`2` or `3`) |
+| `isComplete` | `boolean`              | Whether the user has finished drawing this stroke                                     |
+| `isClosed`   | `boolean`              | Whether the path forms a closed shape                                                 |
+| `isPen`      | `boolean`              | Whether drawn with a stylus (enables pressure-based width)                            |
+| `scale`      | `number`               | Scale factor applied to the shape                                                     |
+| `scaleX`     | `number`               | Horizontal scale factor for lazy resize                                               |
+| `scaleY`     | `number`               | Vertical scale factor for lazy resize                                                 |
 
 ### Line
 
-The line shape creates multi-point lines with draggable handles. Unlike draw shapes, line shapes have explicit control points that you can manipulate after creation. Each point has an ID and index for ordering, allowing points to be added, removed, or repositioned. Lines support both straight segments and smooth cubic spline interpolation.
+The line shape creates multi-point lines with draggable handles. Unlike draw shapes, line shapes have explicit control points that you can manipulate after creation. Each point has an ID and a fractional index for ordering. You can add, remove, or reposition points. Lines support both straight segments and smooth cubic spline interpolation.
 
 ```tsx
+import { IndexKey } from 'tldraw'
+
 editor.createShape({
 	type: 'line',
 	x: 100,
@@ -164,9 +171,9 @@ editor.createShape({
 		size: 'm',
 		spline: 'line',
 		points: {
-			a1: { id: 'a1', index: 'a1', x: 0, y: 0 },
-			a2: { id: 'a2', index: 'a2', x: 100, y: 50 },
-			a3: { id: 'a3', index: 'a3', x: 200, y: 0 },
+			a1: { id: 'a1', index: 'a1' as IndexKey, x: 0, y: 0 },
+			a2: { id: 'a2', index: 'a2' as IndexKey, x: 100, y: 50 },
+			a3: { id: 'a3', index: 'a3' as IndexKey, x: 200, y: 0 },
 		},
 		scale: 1,
 	},
@@ -184,13 +191,15 @@ Properties:
 | `points` | `Record<string, TLLineShapePoint>` | Dictionary of control points with IDs, indices, and positions |
 | `scale`  | `number`                           | Scale factor applied to the shape                             |
 
-Line shapes don't have configuration options. The line tool's behavior is controlled through tool configuration rather than the shape utility.
+Line shapes don't have configuration options.
 
 ### Highlight
 
-The highlight shape works like draw but renders semi-transparently for marking up content. It simulates a highlighter pen, rendering with configurable opacity layers that create the characteristic translucent appearance. Like draw shapes, highlights support pressure-sensitive input and automatic shape splitting for long strokes.
+The highlight shape works like draw but renders semi-transparently for marking up content. It draws two passes with configurable opacities to imitate a highlighter pen. Like draw shapes, highlights support pressure-sensitive input and automatic shape splitting for long strokes.
 
 ```tsx
+import { b64Vecs } from 'tldraw'
+
 editor.createShape({
 	type: 'highlight',
 	x: 100,
@@ -198,7 +207,16 @@ editor.createShape({
 	props: {
 		color: 'yellow',
 		size: 'l',
-		segments: [],
+		segments: [
+			{
+				type: 'free',
+				path: b64Vecs.encodePoints([
+					{ x: 0, y: 0, z: 0.5 },
+					{ x: 100, y: 10, z: 0.5 },
+					{ x: 200, y: 0, z: 0.5 },
+				]),
+			},
+		],
 		isComplete: true,
 		isPen: false,
 		scale: 1,
@@ -208,16 +226,16 @@ editor.createShape({
 
 Properties:
 
-| Property     | Type                   | Description                                  |
-| ------------ | ---------------------- | -------------------------------------------- |
-| `color`      | `TLDefaultColorStyle`  | Highlight color (yellow, green, blue, etc.)  |
-| `size`       | `TLDefaultSizeStyle`   | Stroke width preset                          |
-| `segments`   | `TLDrawShapeSegment[]` | Array of segments with base64-encoded points |
-| `isComplete` | `boolean`              | Whether the user has finished this stroke    |
-| `isPen`      | `boolean`              | Whether drawn with a stylus                  |
-| `scale`      | `number`               | Scale factor applied to the shape            |
-| `scaleX`     | `number`               | Horizontal scale factor for lazy resize      |
-| `scaleY`     | `number`               | Vertical scale factor for lazy resize        |
+| Property     | Type                   | Description                                                                               |
+| ------------ | ---------------------- | ----------------------------------------------------------------------------------------- |
+| `color`      | `TLDefaultColorStyle`  | Highlight color (yellow, green, blue, etc.)                                               |
+| `size`       | `TLDefaultSizeStyle`   | Stroke width preset                                                                       |
+| `segments`   | `TLDrawShapeSegment[]` | Array of segments with base64-encoded points (see [Draw shape](/sdk-features/draw-shape)) |
+| `isComplete` | `boolean`              | Whether the user has finished this stroke                                                 |
+| `isPen`      | `boolean`              | Whether drawn with a stylus                                                               |
+| `scale`      | `number`               | Scale factor applied to the shape                                                         |
+| `scaleX`     | `number`               | Horizontal scale factor for lazy resize                                                   |
+| `scaleY`     | `number`               | Vertical scale factor for lazy resize                                                     |
 
 Configuration options:
 
@@ -225,13 +243,14 @@ Configuration options:
 | ------------------- | -------- | ------- | ------------------------------------------------------------------------- |
 | `maxPointsPerShape` | `number` | `600`   | Maximum points before starting a new shape. Same behavior as draw shapes. |
 
-The highlight's `underlayOpacity` (default `0.82`) and `overlayOpacity` (default `0.35`) are display values that can be overridden via `getCustomDisplayValues`.
+The highlight's `underlayOpacity` (default `0.82`) and `overlayOpacity` (default `0.35`) are display values that can be overridden via `getCustomDisplayValues`:
 
 ```tsx
 const ConfiguredHighlightUtil = HighlightShapeUtil.configure({
 	maxPointsPerShape: 800,
-	underlayOpacity: 0.7,
-	overlayOpacity: 0.4,
+	getCustomDisplayValues() {
+		return { underlayOpacity: 0.7, overlayOpacity: 0.4 }
+	},
 })
 ```
 
@@ -239,7 +258,7 @@ const ConfiguredHighlightUtil = HighlightShapeUtil.configure({
 
 ### Image
 
-The image shape displays raster images with support for cropping, flipping, and animation control. Images link to asset records that store the actual image data (either as base64 or URLs). The shape maintains aspect ratio during resize and supports circular cropping for profile photos or decorative effects.
+The image shape displays raster images with support for cropping and flipping. Images link to asset records that store the actual image data (either as base64 or URLs). The shape maintains aspect ratio during resize and supports circular cropping.
 
 ```tsx
 editor.createShape({
@@ -262,23 +281,23 @@ editor.createShape({
 
 Properties:
 
-| Property  | Type                  | Description                                                     |
-| --------- | --------------------- | --------------------------------------------------------------- |
-| `w`       | `number`              | Display width in pixels                                         |
-| `h`       | `number`              | Display height in pixels                                        |
-| `assetId` | `TLAssetId \| null`   | Reference to asset record containing image data                 |
-| `url`     | `string`              | Direct URL (used when no asset)                                 |
-| `crop`    | `TLShapeCrop \| null` | Crop region with `topLeft`, `bottomRight` (0-1), and `isCircle` |
-| `flipX`   | `boolean`             | Mirror the image horizontally                                   |
-| `flipY`   | `boolean`             | Mirror the image vertically                                     |
-| `playing` | `boolean`             | Whether animated images (GIFs) should play                      |
-| `altText` | `string`              | Accessibility description                                       |
+| Property  | Type                  | Description                                                                                           |
+| --------- | --------------------- | ----------------------------------------------------------------------------------------------------- |
+| `w`       | `number`              | Display width in pixels                                                                               |
+| `h`       | `number`              | Display height in pixels                                                                              |
+| `assetId` | `TLAssetId \| null`   | Reference to asset record containing image data                                                       |
+| `url`     | `string`              | Direct URL (used when no asset)                                                                       |
+| `crop`    | `TLShapeCrop \| null` | Crop region with `topLeft`, `bottomRight` (0-1), and `isCircle`                                       |
+| `flipX`   | `boolean`             | Mirror the image horizontally                                                                         |
+| `flipY`   | `boolean`             | Mirror the image vertically                                                                           |
+| `playing` | `boolean`             | Whether animated images (GIFs) should play (stored on the record; the default util always plays them) |
+| `altText` | `string`              | Accessibility description                                                                             |
 
 Image shapes don't have configuration options. Image handling behavior is controlled through the editor's asset management system.
 
 ### Video
 
-The video shape displays video content with playback controls. Like images, videos link to asset records. The shape tracks playback position and state, and supports autoplay for automatic playback when the shape becomes visible.
+The video shape displays video content with playback controls. Like images, videos link to asset records. Videos autoplay by default and respect the user's `prefers-reduced-motion` setting. The `time` and `playing` props are stored on the record, but the default util does not drive playback from them.
 
 ```tsx
 editor.createShape({
@@ -325,7 +344,7 @@ const ConfiguredVideoUtil = VideoShapeUtil.configure({
 
 ### Bookmark
 
-The bookmark shape displays a URL as a card with metadata including title, description, and preview image. Bookmarks are created when you paste URLs onto the canvas. The editor fetches metadata from the URL and stores it in an associated asset record. Bookmark shapes have fixed dimensions and can't be resized.
+The bookmark shape displays a URL as a card with metadata including title, description, and preview image. The editor creates a bookmark when you paste a URL onto the canvas. It fetches metadata from the URL and stores it in an associated asset record. Bookmark shapes have fixed dimensions and can't be resized.
 
 ```tsx
 editor.createShape({
@@ -385,6 +404,8 @@ Properties:
 
 The frame shape provides a visual container for organizing shapes. Shapes inside a frame are clipped to its bounds and move with the frame when it's repositioned. Frames display a header with the frame's name, and optionally colored borders and backgrounds. They're useful for creating sections, organizing content into logical groups, or defining artboard-like regions for export.
 
+For a complete guide, see [Frame shape](/sdk-features/frame-shape).
+
 ```tsx
 editor.createShape({
 	type: 'frame',
@@ -424,9 +445,11 @@ const ConfiguredFrameUtil = FrameShapeUtil.configure({
 })
 ```
 
+To build your own container shape that behaves like a frame, extend `BaseFrameLikeShapeUtil` rather than re-implementing every behavior on `FrameShapeUtil`. The base class provides defaults for clipping children, full-brush selection, blocking erasure from inside, and drag-and-drop reparenting — see [Shapes](/sdk-features/shapes#frames) for details and the [portal shapes example](/examples/shapes/tools/portal-shapes) for a working implementation.
+
 ### Group
 
-The group shape logically combines multiple shapes without visual representation. Groups let you move and transform shapes together while preserving their relative positions. The group's geometry is computed as the union of all child shapes' geometries. Groups are created through the editor API rather than directly, and they delete themselves automatically when their last child is removed or ungrouped.
+The group shape logically combines multiple shapes without visual representation. Groups let you move and transform shapes together while preserving their relative positions. The group's geometry is computed as the union of all child shapes' geometries. You create groups through the editor API rather than directly. A group deletes itself when it has one child or none left.
 
 ```tsx
 // Create a group from selected shapes
@@ -439,15 +462,15 @@ editor.ungroupShapes([groupId])
 const children = editor.getSortedChildIdsForParent(groupId)
 ```
 
-Groups have no visual properties; their `props` object is empty. All visual characteristics come from their child shapes. Their geometry is the union of all child geometries. Groups delete themselves automatically when the last child is removed, and arrows can't bind to them. Double-click a group to enter it and edit children directly.
+Groups have no visual properties; their `props` object is empty. All visual characteristics come from their child shapes. Arrows can't bind to groups. Double-click a group to enter it and edit its children directly.
 
-Group shapes don't have configuration options.
+Group shapes don't have configuration options. For a complete guide, see [Groups](/sdk-features/groups).
 
 ## Connectors
 
 ### Arrow
 
-The arrow shape creates lines that can bind to other shapes. Arrows automatically update when their connected shapes move, maintaining the visual connection. They support two routing modes: `arc` for smooth curves controlled by a bend parameter, and `elbow` for right-angle routing that navigates around obstacles. Arrows can display text labels positioned along their length, and offer multiple arrowhead styles for both terminals.
+The arrow shape creates lines that can bind to other shapes. Arrows update automatically when their connected shapes move. They support two routing modes: `arc` for smooth curves controlled by a bend parameter, and `elbow` for right-angle routing that navigates around obstacles. Arrows can display text labels positioned along their length, and offer multiple arrowhead styles for both terminals.
 
 The arrow binding system creates connections automatically when arrow terminals are dragged near other shapes. Bindings can be "precise" (connecting to a specific point) or "imprecise" (connecting to the shape's center or edge).
 
@@ -500,28 +523,26 @@ Properties:
 
 The available arrowhead styles are: `none`, `arrow`, `triangle`, `square`, `dot`, `pipe`, `diamond`, `inverted`, `bar`
 
-Configuration options:
+Configuration options control snap behavior, timing, and rendering:
 
-Arrows have extensive configuration options that control snap behavior, timing, and rendering:
-
-| Option                                      | Type                                 | Default                              | Description                                                                                          |
-| ------------------------------------------- | ------------------------------------ | ------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| `expandElbowLegLength`                      | `Record<TLDefaultSizeStyle, number>` | `{ s: 28, m: 36, l: 44, xl: 66 }`    | How far elbow arrows extend from target shapes, per size.                                            |
-| `minElbowLegLength`                         | `Record<TLDefaultSizeStyle, number>` | Based on stroke width × 3            | Minimum length of an elbow arrow's leg segment.                                                      |
-| `minElbowHandleDistance`                    | `number`                             | `16`                                 | Minimum screen pixels between two elbow handles. Closer handles are hidden.                          |
-| `arcArrowCenterSnapDistance`                | `number`                             | `16`                                 | Screen pixels at which arc arrows snap to target shape centers. Set to 0 to disable.                 |
-| `elbowArrowCenterSnapDistance`              | `number`                             | `24`                                 | Screen pixels at which elbow arrows snap to target shape centers.                                    |
-| `elbowArrowEdgeSnapDistance`                | `number`                             | `20`                                 | Screen pixels at which elbow arrows snap to target shape edges.                                      |
-| `elbowArrowPointSnapDistance`               | `number`                             | `24`                                 | Screen pixels at which elbow arrows snap to directional points (top, right, bottom, left) of shapes. |
-| `elbowArrowAxisSnapDistance`                | `number`                             | `16`                                 | Screen pixels at which elbow arrows snap to axes through shape centers.                              |
-| `labelCenterSnapDistance`                   | `number`                             | `10`                                 | Screen pixels at which arrow labels snap to the arrow's center when dragged.                         |
-| `elbowMidpointSnapDistance`                 | `number`                             | `10`                                 | Screen pixels at which elbow midpoint handles snap to the midpoint between shapes.                   |
-| `elbowMinSegmentLengthToShowMidpointHandle` | `number`                             | `20`                                 | Minimum segment length before showing the midpoint drag handle.                                      |
-| `hoverPreciseTimeout`                       | `number`                             | `600`                                | Milliseconds to wait while hovering before switching to precise targeting.                           |
-| `pointingPreciseTimeout`                    | `number`                             | `320`                                | Milliseconds to wait while pointing/dragging before switching to precise targeting.                  |
-| `shouldBeExact`                             | `(editor: Editor) => boolean`        | Returns `editor.inputs.getAltKey()`  | Function determining whether arrows stop exactly at pointer vs. at shape edges.                      |
-| `shouldIgnoreTargets`                       | `(editor: Editor) => boolean`        | Returns `editor.inputs.getCtrlKey()` | Function determining whether to skip binding to target shapes.                                       |
-| `showTextOutline`                           | `boolean`                            | `true`                               | Whether to show a text outline on arrow labels for readability.                                      |
+| Option                                      | Type                                              | Default                              | Description                                                                                          |
+| ------------------------------------------- | ------------------------------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| `expandElbowLegLength`                      | `Record<TLDefaultSizeStyle, number>`              | `{ s: 28, m: 36, l: 44, xl: 66 }`    | How far elbow arrows extend from target shapes, per size.                                            |
+| `minElbowLegLength`                         | `Record<TLDefaultSizeStyle, number>`              | Based on stroke width × 3            | Minimum length of an elbow arrow's leg segment.                                                      |
+| `minElbowHandleDistance`                    | `number`                                          | `16`                                 | Minimum screen pixels between two elbow handles. Closer handles are hidden.                          |
+| `arcArrowCenterSnapDistance`                | `number`                                          | `16`                                 | Screen pixels at which arc arrows snap to target shape centers. Set to 0 to disable.                 |
+| `elbowArrowCenterSnapDistance`              | `number`                                          | `24`                                 | Screen pixels at which elbow arrows snap to target shape centers.                                    |
+| `elbowArrowEdgeSnapDistance`                | `number`                                          | `20`                                 | Screen pixels at which elbow arrows snap to target shape edges.                                      |
+| `elbowArrowPointSnapDistance`               | `number`                                          | `24`                                 | Screen pixels at which elbow arrows snap to directional points (top, right, bottom, left) of shapes. |
+| `elbowArrowAxisSnapDistance`                | `number`                                          | `16`                                 | Screen pixels at which elbow arrows snap to axes through shape centers.                              |
+| `labelCenterSnapDistance`                   | `number`                                          | `10`                                 | Screen pixels at which arrow labels snap to the arrow's center when dragged.                         |
+| `elbowMidpointSnapDistance`                 | `number`                                          | `10`                                 | Screen pixels at which elbow midpoint handles snap to the midpoint between shapes.                   |
+| `elbowMinSegmentLengthToShowMidpointHandle` | `number`                                          | `20`                                 | Minimum segment length before showing the midpoint drag handle.                                      |
+| `hoverPreciseTimeout`                       | `number`                                          | `600`                                | Milliseconds to wait while hovering before switching to precise targeting.                           |
+| `pointingPreciseTimeout`                    | `number`                                          | `320`                                | Milliseconds to wait while pointing/dragging before switching to precise targeting.                  |
+| `shouldBeExact`                             | `(editor: Editor, isPrecise: boolean) => boolean` | Returns `editor.inputs.getAltKey()`  | Function determining whether arrows stop exactly at pointer vs. at shape edges.                      |
+| `shouldIgnoreTargets`                       | `(editor: Editor) => boolean`                     | Returns `editor.inputs.getCtrlKey()` | Function determining whether to skip binding to target shapes.                                       |
+| `showTextOutline`                           | `boolean`                                         | `true`                               | Whether to show a text outline on arrow labels for readability.                                      |
 
 ```tsx
 const ConfiguredArrowUtil = ArrowShapeUtil.configure({
@@ -554,13 +575,13 @@ interface TLBaseShape {
 
 Most shapes also support common style properties through the style system:
 
-| Style   | Values                                | Description       |
-| ------- | ------------------------------------- | ----------------- |
-| `color` | `black`, `grey`, `light-violet`, etc. | Stroke/text color |
-| `fill`  | `none`, `semi`, `solid`, `pattern`    | Fill style        |
-| `dash`  | `solid`, `dashed`, `dotted`, `draw`   | Stroke pattern    |
-| `size`  | `s`, `m`, `l`, `xl`                   | Size preset       |
-| `font`  | `draw`, `sans`, `serif`, `mono`       | Font family       |
+| Style   | Values                                                   | Description       |
+| ------- | -------------------------------------------------------- | ----------------- |
+| `color` | `black`, `grey`, `light-violet`, etc.                    | Stroke/text color |
+| `fill`  | `none`, `semi`, `solid`, `pattern`, `fill`, `lined-fill` | Fill style        |
+| `dash`  | `draw`, `solid`, `dashed`, `dotted`, `none`              | Stroke pattern    |
+| `size`  | `s`, `m`, `l`, `xl`                                      | Size preset       |
+| `font`  | `draw`, `sans`, `serif`, `mono`                          | Font family       |
 
 ## Using configured shapes
 

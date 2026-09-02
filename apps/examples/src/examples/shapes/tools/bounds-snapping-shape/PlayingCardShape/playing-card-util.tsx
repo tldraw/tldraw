@@ -110,44 +110,39 @@ export class PlayingCardUtil extends BaseBoxShapeUtil<IPlayingCard> {
 /*
 This is a utility class for the PlayingCard shape. This is where you define the shape's behavior,
 how it renders (its component and indicator), and how it handles different events. The most relevant
-part of the code to custom snapping can be found in [7].
+part of the code to custom snapping can be found in [6].
 
 [1]
-First, we need to extend TLGlobalShapePropsMap to add our shape's props to the global type system.
-This tells TypeScript about the shape's properties. For this shape, we define width (w), height (h),
-and suit as the shape's properties.
+First, we extend TLGlobalShapePropsMap to add our shape's props to the global type system. For this
+shape, we define width (w), height (h), and suit as the shape's properties.
 
 [2]
 Define the shape type using TLShape with the shape's type as a type argument.
 
 [3]
-We define the shape's type and props for the editor. We can use tldraw's validator library to
-make sure that the store always has shape data we can trust. In this case, we define the width
-and height properties as numbers and assign a validator from tldraw's library to them.
+We define the shape's type and props for the editor. The validators make sure the store always has
+shape data we can trust: width and height are numbers, and suit is a string.
 
 [4]
-We're going to lock the aspect ratio of this shape.
+We lock the aspect ratio so cards keep their proportions when resized.
 
 [5]
 getDefaultProps determines what our shape looks like when click-creating one. In this case, we
-want the shape to be 270x370 pixels and generate a suit for the card at random.
+want the shape to be 270x370 pixels with a random suit.
 
 [6]
-This is the important part for custom snapping. We define the getBoundsSnapGeometry method. This
-method returns the geometry that the shape will snap to. In this case, we want the shape to snap
-to a rectangle in the top left that contains the suit of the card. We can use the Rectangle2d helper
-again here and set it to the same width and height as the span containing the suit which is defined
-in [7].
+This is the important part for custom snapping. getBoundsSnapGeometry returns the points that the
+shape snaps to and that other shapes snap against, instead of the default bounding box. Here it's
+the corners and center of the square in the top left that contains the suit, the same size as the
+span defined in [7]. That's what lets a card snap into place just below or beside another card's
+suit icon.
 
 [7]
-We define the component method. This controls what the shape looks like and it returns JSX. It
-generates a random suit for the card and returns a div with the suit in the center and a span with
-the suit in the top left. The HTMLContainer component is a helpful wrapper that the tldraw library
-exports, it's a div that comes with a css class.
+The component method controls what the shape looks like. It returns a div with the suit in the
+center and a span with the suit in the top left. HTMLContainer is a div wrapper that the tldraw
+library exports with the css needed to position it correctly.
 
 [8]
-The indicator is the blue box that appears around the shape when it's selected. We're just returning
-a rectangle with the same width and height as the shape here.
-
-
+getIndicatorPath returns a Path2D for the blue outline that appears around the shape when it's
+selected or hovered. tldraw strokes it onto the canvas overlay.
 */

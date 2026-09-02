@@ -62,10 +62,12 @@ Locked shapes resist most operations:
 | ------------ | -------------------------------------------------------------------------------------------------------- |
 | Selection    | Clicking a locked shape doesn't select it. Brush selection and [Editor#selectAll](?) skip locked shapes. |
 | Movement     | Pointer drags pass through locked shapes to the canvas.                                                  |
-| Modification | [Editor#updateShape](?) calls on locked shapes are ignored.                                              |
-| Deletion     | [Editor#deleteShapes](?) skips locked shapes.                                                            |
-| Grouping     | Locked shapes can't be added to groups.                                                                  |
+| Modification | [Editor#updateShape](?) ignores locked shapes, except for an update that unlocks them.                   |
+| Deletion     | [Editor#deleteShapes](?) and [Editor#duplicateShapes](?) skip locked shapes.                             |
+| Grouping     | [Editor#groupShapes](?) and [Editor#ungroupShapes](?) skip locked shapes.                                |
 | Editing      | Double-clicking a locked shape doesn't enter edit mode.                                                  |
+
+Right-clicking a locked shape still selects it so the context menu can offer an unlock option. If you want left-click, brush, and scribble selection to include locked shapes too, set the `selectLockedShapes` option in [TldrawOptions](?). The shapes stay protected from moves, edits, and deletes; `selectAll` still skips them.
 
 ## Ancestor locking
 
@@ -76,7 +78,7 @@ Lock state inherits through the shape hierarchy. If a shape's ancestor is locked
 const isProtected = editor.isShapeOrAncestorLocked(shape)
 ```
 
-Locking a frame or group protects all its children without needing to lock each shape individually.
+Locking a frame or group protects its children from pointer interactions and [Editor#updateShapes](?) without locking each shape individually. Bulk operations such as [Editor#deleteShapes](?) only check each shape's own `isLocked`, so a child of a locked frame can still be deleted programmatically.
 
 ## Bypassing locks programmatically
 
@@ -93,15 +95,15 @@ editor.run(
 )
 ```
 
-This bypasses the lock check for all operations inside the callback. Use it carefully since the lock exists to protect shapes from unintended changes.
+This bypasses the lock check for all operations inside the callback.
 
-Even with `ignoreShapeLock: true`, some behaviors remain unchanged: locked shapes still can't be selected by clicking, pointer events still pass through to the canvas, and `selectAll()` still skips locked shapes. The flag affects store operations (create, update, delete), not the selection and interaction model.
+Even with `ignoreShapeLock: true`, some behaviors remain unchanged: locked shapes still can't be selected by clicking, pointer events still pass through to the canvas, and `selectAll()` still skips locked shapes. The flag affects [Editor#updateShapes](?), [Editor#deleteShapes](?), [Editor#duplicateShapes](?), [Editor#groupShapes](?), and [Editor#ungroupShapes](?), not the selection and interaction model.
 
 ## Shapes that can be edited while locked
 
 Some shapes have interactive content that should remain usable even when locked. Embed shapes (YouTube videos, Figma files, interactive maps) are a good example: you might want the embed locked in place but still playable or navigable.
 
-[ShapeUtils](/sdk-features/shapes#shapeutil) can override [ShapeUtil#canEditWhileLocked](?) to allow editing interactions on locked shapes:
+[ShapeUtils](/sdk-features/shapes#shapeutil) can override [ShapeUtil#canEditWhileLocked](?) (default `false`) to allow editing interactions on locked shapes. The built-in embed shape returns `true` unless its embed definition says otherwise:
 
 ```typescript
 class MyInteractiveShapeUtil extends ShapeUtil<MyShape> {
@@ -111,8 +113,12 @@ class MyInteractiveShapeUtil extends ShapeUtil<MyShape> {
 }
 ```
 
-When this returns `true`, double-clicking the locked shape enters edit mode, letting users interact with the shape's content without being able to move or resize it.
+When this returns `true`, [Editor#canEditShape](?) allows the shape to enter edit mode while locked, so users can interact with its content without moving or resizing it. It doesn't make the shape hit-testable on its own: with default options a double-click on a locked shape still passes through to the canvas. The shape enters edit mode when you call [Editor#setEditingShape](?), or when the user selects it (for example with `selectLockedShapes` enabled) and presses Enter or double-clicks.
 
 ## Locking in the UI
 
-In the default tldraw UI, users can lock shapes through the context menu or the keyboard shortcut (`Shift+L`). Users can right-click on a locked shape to access the context menu, which shows an unlock option.
+In the default tldraw UI, users can lock shapes through the context menu or the keyboard shortcut (`Shift+L`). Right-clicking a locked shape opens the context menu with an unlock option, and the main menu has an "Unlock all" action.
+
+## Related examples
+
+- [Locked shapes](/examples/editor-api/locked-shapes) - Create locked shapes and modify them with `ignoreShapeLock`.

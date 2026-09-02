@@ -19,27 +19,24 @@ notes: ''
 
 Side effects are lifecycle hooks that run when records are created, updated, or deleted. You can use them to intercept and modify records, validate changes, or react to completed operations by updating related data.
 
-The editor uses side effects internally to keep data consistent. When you delete a shape, the editor automatically removes its bindings. When a binding changes, the connected shapes get notified to update. These hooks let independent parts of the system stay in sync without being directly coupled.
+The editor uses side effects internally to keep data consistent. When you delete a shape, the editor automatically removes its bindings. When a binding changes, its `BindingUtil` gets a chance to update the connected shapes. These hooks let independent parts of the system stay in sync without being directly coupled. Side effects live on the [store](/sdk-features/store) and are exposed as [Editor#sideEffects](?), a [StoreSideEffects](?) instance.
 
 ## How it works
 
 ### Before and after handlers
 
-Side effects provide six handler types organized around three operations: create, change, and delete. Each operation has a "before" and "after" phase.
+Side effects provide six handler types organized around three operations: create, change, and delete. Each operation has a "before" and "after" phase. Handlers are registered per record `typeName` (`'shape'`, `'binding'`, `'page'`, or a custom type); check `shape.type` inside the handler if you only care about one kind of shape.
 
-**Before handlers** run during the operation and can modify or block changes:
+| Handler        | Runs                       | Return value                                                                  |
+| -------------- | -------------------------- | ----------------------------------------------------------------------------- |
+| `beforeCreate` | Before a record is stored  | The record to store. Return a modified copy to change it.                     |
+| `beforeChange` | Before an update is stored | The record to store. Return `prev` to block the change, or a modified `next`. |
+| `beforeDelete` | Before a record is removed | `false` to prevent deletion.                                                  |
+| `afterCreate`  | After a record is stored   | Nothing. Update other records in response.                                    |
+| `afterChange`  | After an update is stored  | Nothing. Update other records in response.                                    |
+| `afterDelete`  | After a record is removed  | Nothing. Clean up references or cascade deletions.                            |
 
-- `beforeCreate` transforms records before creation. Return a modified record to change what gets stored.
-- `beforeChange` intercepts updates. Return the previous record to block the change, or return a modified record.
-- `beforeDelete` can return `false` to prevent deletion.
-
-**After handlers** run once the operation completes. They can't modify the record that triggered them, but they can update other records:
-
-- `afterCreate` reacts to new records by updating related data.
-- `afterChange` responds to updates by maintaining relationships.
-- `afterDelete` cleans up orphaned references or cascades deletions.
-
-The key distinction: use before handlers to modify the record being operated on, and after handlers to update other records in response.
+Use before handlers to modify the record being operated on, and after handlers to update other records in response. Returning `prev` from `beforeChange` blocks the change because the store sees no difference from what's already stored and skips the write.
 
 ### Source tracking
 
@@ -60,11 +57,9 @@ You might auto-save only after user operations, or skip validation for trusted r
 Register side effects using the type-specific methods on `editor.sideEffects`. Each method returns a cleanup function you can call to remove the handler:
 
 ```typescript
-const cleanup = editor.sideEffects.registerAfterDeleteHandler('shape', (shape, source) => {
-	// Clean up bindings involving the deleted shape
-	const bindings = editor.getBindingsInvolvingShape(shape.id)
-	if (bindings.length) {
-		editor.deleteBindings(bindings)
+const cleanup = editor.sideEffects.registerAfterCreateHandler('shape', (shape, source) => {
+	if (shape.type === 'note') {
+		editor.updateShape({ id: shape.id, type: 'note', meta: { createdAt: Date.now() } })
 	}
 })
 
@@ -72,17 +67,19 @@ const cleanup = editor.sideEffects.registerAfterDeleteHandler('shape', (shape, s
 cleanup()
 ```
 
+To register several handlers at once, pass an object keyed by type name to `editor.sideEffects.register({ shape: { afterCreate, beforeDelete } })`; it returns a single cleanup function.
+
 ### Execution order
 
-Handlers execute in registration order. If you register three `afterCreate` handlers for shapes, they run in the sequence they were registered. This matters when handlers depend on each other's effects.
+Handlers execute in registration order. If one handler reads a value another handler writes, register the writer first.
 
-Side effects run within store transactions. All before handlers complete before any after handlers run. The `operationComplete` handler runs last, after all individual record handlers finish.
+Before handlers run inline as each record is written. After handlers are queued and run when the outermost store operation completes, so changes made inside them belong to the same transaction and the same undo step. If an after handler makes further changes, their handlers run in a follow-up pass. The `operationComplete` handler runs once at the end, after every pass has finished.
 
 ## Use cases
 
 ### Constraining shape positions
 
-Before handlers can enforce constraints on records. This example keeps shapes within a certain area by returning a modified record:
+Before handlers can enforce constraints on records. This example blocks moves into negative coordinates by returning the previous record:
 
 ```typescript
 editor.sideEffects.registerBeforeChangeHandler('shape', (prev, next, source) => {
@@ -95,7 +92,7 @@ editor.sideEffects.registerBeforeChangeHandler('shape', (prev, next, source) => 
 
 ### Cascading deletions
 
-You can delete related shapes when a parent is removed. This example deletes empty frames:
+You can cascade deletions to related records. This example deletes a frame when its last child is removed:
 
 ```typescript
 editor.sideEffects.registerAfterDeleteHandler('shape', (shape, source) => {
@@ -123,9 +120,8 @@ editor.sideEffects.registerOperationCompleteHandler((source) => {
 
 ## Related examples
 
-- [Before create/update shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/events/before-create-update-shape) - Constrain shapes to a circular area
-- [Before delete shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/events/before-delete-shape) - Prevent deletion of certain shapes
-- [After create/update shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/events/after-create-update-shape) - Ensure only one red shape exists at a time
-- [After delete shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/events/after-delete-shape) - Delete empty frames automatically
-- [Shape meta (on create)](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/events/meta-on-create) - Add creation timestamps to shapes
-- [Shape meta (on change)](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/events/meta-on-change) - Track modification history
+- [Before create/update shape](/examples/events/before-create-update-shape) - Constrain shapes to a circular area
+- [Before delete shape](/examples/events/before-delete-shape) - Prevent deletion of certain shapes
+- [After create/update shape](/examples/events/after-create-update-shape) - Ensure only one red shape exists at a time
+- [After delete shape](/examples/events/after-delete-shape) - Delete empty frames automatically
+- [Shape meta (on change)](/examples/events/meta-on-change) - Track modification history with a before-change handler

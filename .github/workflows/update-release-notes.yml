@@ -1,6 +1,15 @@
 name: Update release notes
 
 on:
+  # Update release notes whenever production is updated, keeping next.mdx (and the
+  # draft GitHub release synced by the skill) in step with each dotcom release —
+  # the same production push that deploys dotcom and publishes the `next` package.
+  # Production only: a push to main must not trigger a notes run on every merge.
+  # Release-notes PR titles carry `[skip ci]` so their squash-merge commits skip main
+  # push workflows. Branch commits omit the marker so required PR checks run.
+  push:
+    branches:
+      - production
   workflow_dispatch:
 
 concurrency:
@@ -22,7 +31,7 @@ jobs:
         uses: tibdex/github-app-token@b62528385c34dbc9f38e5f4225ac829252d1ea92
         with:
           app_id: ${{ secrets.HUPPY_APP_ID }}
-          private_key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
+          private_key: ${{ secrets.HUPPY_PRIVATE_KEY }}
 
       - name: Check out code
         uses: actions/checkout@v6
@@ -49,12 +58,26 @@ jobs:
           git checkout -b "$BRANCH_NAME"
           echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
+      # Recorded before the skill runs so the close step below can tell an
+      # already-open PR from an earlier run apart from the one this run opens.
+      - name: Find open release notes PRs
+        id: existing_prs
+        run: |
+          {
+            echo 'numbers<<PR_LIST_EOF'
+            gh pr list --state open --base main --limit 100 --json number,headRefName \
+              --jq '.[] | select(.headRefName | test("^(release-notes/update-|update-release-notes-)")) | .number'
+            echo 'PR_LIST_EOF'
+          } >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
+
       - name: Install Claude Code
         run: npm install -g @anthropic-ai/claude-code
 
       - name: Run update-release-notes skill
         run: |
-          claude --skip-permissions --print "/update-release-notes"
+          claude --dangerously-skip-permissions --print "/update-release-notes"
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
@@ -79,7 +102,7 @@ jobs:
         if: steps.changes.outputs.has_changes == 'true'
         run: |
           gh pr create \
-            --title "docs: update release notes" \
+            --title "docs(releases): update release notes [skip ci]" \
             --body "$(cat <<'EOF'
           In order to keep the release notes up to date, this PR adds entries for PRs merged since the last update.
 
@@ -94,7 +117,38 @@ jobs:
           EOF
           )" \
             --base main \
-            --head "${{ steps.branch.outputs.branch_name }}"
+            --head "${{ steps.branch.outputs.branch_name }}" \
+            --label "docs-hotfix-please"
+        env:
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
+
+      # Each run regenerates the notes from scratch, so a PR opened by this run
+      # supersedes any release notes PR left open by an earlier run. The PR may come
+      # from the step above or from the skill itself, so this compares the currently
+      # open PRs against the ones recorded before the skill ran rather than relying on
+      # a single known PR number. When this run opened nothing, the older PR is still
+      # the pending update and is left alone.
+      - name: Close superseded PRs
+        run: |
+          EXISTING="${{ steps.existing_prs.outputs.numbers }}"
+          CURRENT=$(gh pr list --state open --base main --limit 100 --json number,headRefName \
+            --jq '.[] | select(.headRefName | test("^(release-notes/update-|update-release-notes-)")) | .number')
+
+          NEW_PRS=$(comm -13 <(echo "$EXISTING" | sort) <(echo "$CURRENT" | sort))
+          if [ -z "$NEW_PRS" ]; then
+            echo "This run did not open a release notes PR, nothing to supersede"
+            exit 0
+          fi
+
+          # The new PR is already open at this point, so a failure to tidy up an old
+          # one is a warning, not a reason to fail the run.
+          NEWEST=$(echo "$NEW_PRS" | sort -n | tail -n 1)
+          echo "$EXISTING" | while read -r PR; do
+            [ -n "$PR" ] || continue
+            echo "Closing superseded release notes PR #$PR"
+            gh pr close "$PR" --delete-branch --comment "Superseded by #$NEWEST." \
+              || echo "Warning: could not close #$PR"
+          done
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
 

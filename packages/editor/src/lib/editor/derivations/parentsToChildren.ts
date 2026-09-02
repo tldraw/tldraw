@@ -22,7 +22,7 @@ function fromScratch(
 	return result
 }
 
-export const parentsToChildren = (store: TLStore) => {
+export function parentsToChildren(store: TLStore) {
 	const shapeIdsQuery = store.query.ids<'shape'>('shape')
 	const shapeHistory = store.query.filterHistory('shape')
 

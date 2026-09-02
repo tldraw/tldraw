@@ -68,6 +68,7 @@ export class TLLocalSyncClient {
 	private disposables = new Set<() => void>()
 	private diffQueue: Array<RecordsDiff<UnknownRecord> | typeof UPDATE_INSTANCE_STATE> = []
 	private didDispose = false
+	private didLoad = false
 	private shouldDoFullDBWrite = true
 	private isReloading = false
 	readonly persistenceKey: string
@@ -142,6 +143,28 @@ export class TLLocalSyncClient {
 				{ scope: 'session' }
 			)
 		)
+
+		if (typeof window !== 'undefined') {
+			// Persists are throttled, so without this the last PERSIST_THROTTLE_MS of edits are lost
+			// whenever the tab is closed or reloaded. `pagehide` is the last reliable event before
+			// unload on desktop; on mobile the page can be discarded without it firing, so we also
+			// flush when the tab is hidden.
+			const flush = () => {
+				// Before the initial load completes a full write would overwrite the saved
+				// document with an empty store.
+				if (!this.didLoad) return
+				this.persistIfNeeded()
+			}
+			const onVisibilityChange = () => {
+				if (document.visibilityState === 'hidden') flush()
+			}
+			window.addEventListener('pagehide', flush)
+			document.addEventListener('visibilitychange', onVisibilityChange)
+			this.disposables.add(() => {
+				window.removeEventListener('pagehide', flush)
+				document.removeEventListener('visibilitychange', onVisibilityChange)
+			})
+		}
 
 		this.connect(onLoad, onLoadError)
 
@@ -249,6 +272,7 @@ export class TLLocalSyncClient {
 			this.disposables.add(() => {
 				this.channel.close()
 			})
+			this.didLoad = true
 			onLoad(this)
 		} catch (e: any) {
 			this.debug('error loading data from store', e)
@@ -262,6 +286,9 @@ export class TLLocalSyncClient {
 		this.debug('closing')
 		this.didDispose = true
 		this.disposables.forEach((d) => d())
+		if (typeof window !== 'undefined' && (window as any).tlsync === this) {
+			delete (window as any).tlsync
+		}
 	}
 
 	private isPersisting = false

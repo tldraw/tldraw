@@ -3,6 +3,7 @@ import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
 
+// [1]
 const components: TLEditorComponents = {
 	Background: () => {
 		return <div style={{ position: 'absolute', inset: 0, backgroundColor: '#f0f8ff' }} />
@@ -18,7 +19,11 @@ export default function CustomComponentsExample() {
 }
 
 /*
-This example shows how to change the default components that tldraw uses on the canvas via the `components` prop.
-Components include things like the background, grid, cursor, selection background, and more.
-In this case we change the canvas background to a light blue color.
+The `components` prop replaces the background, grid, cursors, shape indicators, and more. See
+`TLEditorComponents` for the full list.
+
+[1]
+Define the components object outside the React component so it's a stable reference. Here we
+replace the `Background` component with a plain div in a light blue color. Passing `null` for a
+component hides it entirely.
 */

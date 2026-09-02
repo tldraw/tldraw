@@ -36,6 +36,10 @@ export class Brushing extends StateNode {
 
 		this.isWrapMode = editor.user.getIsWrapMode()
 
+		// Accel-pressing a resize or rotate handle brushes instead of resizing or rotating,
+		// and the handle's hover cursor would otherwise stay up for the whole brush.
+		editor.setCursor({ type: 'default', rotation: 0 })
+
 		this.viewportDidChange = false
 
 		let isInitialCheck = true
@@ -52,11 +56,14 @@ export class Brushing extends StateNode {
 			return
 		}
 
+		const selectLockedShapes = editor.options.selectLockedShapes
 		this.excludedShapeIds = new Set(
 			editor
 				.getCurrentPageShapes()
 				.filter(
-					(shape) => editor.isShapeOfType(shape, 'group') || editor.isShapeOrAncestorLocked(shape)
+					(shape) =>
+						editor.isShapeOfType(shape, 'group') ||
+						(!selectLockedShapes && editor.isShapeOrAncestorLocked(shape))
 				)
 				.map((shape) => shape.id)
 		)

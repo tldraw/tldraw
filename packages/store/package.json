@@ -1,13 +1,19 @@
 {
 	"name": "@tldraw/store",
 	"description": "tldraw infinite canvas SDK (store).",
-	"version": "4.5.10",
+	"version": "5.3.2",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
 	},
 	"homepage": "https://tldraw.dev",
 	"license": "MIT",
+	"tldraw_product": {
+		"stableId": "tldraw:sdk-core",
+		"name": "SDK",
+		"type": "product",
+		"premium": false
+	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tldraw/tldraw"
@@ -53,6 +59,9 @@
 		"@peculiar/webcrypto": "^1.5.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"raf": "^3.4.1",
-		"vitest": "^3.2.4"
+		"vitest": "^4.1.7"
+	},
+	"engines": {
+		"node": ">=22.12.0"
 	}
 }

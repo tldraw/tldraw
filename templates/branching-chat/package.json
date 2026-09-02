@@ -17,20 +17,24 @@
 			"shortDescription": "A branching chat interface.",
 			"order": 7
 		},
+		"deploy": {
+			"target": "cloudflare",
+			"host": "branching-chat.templates.tldraw.dev"
+		},
 		"scripts": {
 			"lint": null
 		}
 	},
 	"scripts": {
 		"build": "tsc && vite build",
-		"dev": "vite",
+		"dev": "vite --host",
 		"preview": "vite preview",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
-		"@ai-sdk/google": "^2.0.14",
+		"@ai-sdk/google": "^2.0.74",
 		"@cloudflare/vite-plugin": "^1.29.1",
-		"ai": "^5.0.63",
+		"ai": "^5.0.194",
 		"classnames": "^2.5.1",
 		"itty-router": "^5.0.18",
 		"radix-ui": "^1.4.2",
@@ -46,6 +50,6 @@
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^6.0.1",
 		"typescript": "^5.8.3",
-		"vite": "^8.0.1"
+		"vite": "^8.0.16"
 	}
 }

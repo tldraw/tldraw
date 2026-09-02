@@ -1,4 +1,4 @@
-import { Box, DEFAULT_CAMERA_OPTIONS, Vec, createShapeId } from '@tldraw/editor'
+import { Box, DEFAULT_CAMERA_OPTIONS, Vec, createShapeId, last } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from '../TestEditor'
 
@@ -138,6 +138,102 @@ describe('With default options', () => {
 			})
 			.forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+	})
+})
+
+describe('Zoom clamping preserves the focal point', () => {
+	beforeEach(() => {
+		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS })
+	})
+
+	// An off-center screen point, so a center-preserving clamp would shift it.
+	const cursor = { x: 200, y: 150 }
+
+	it('keeps the point under the cursor fixed when wheel zooming out past the min', () => {
+		editor.setCamera({ x: 0, y: 0, z: 0.06 }) // just above the 0.05 min
+		editor.pointerMove(cursor.x, cursor.y)
+		const before = editor.screenToPage(cursor)
+
+		// Each event halves the zoom, overshooting the min, then pins at it.
+		for (let i = 0; i < 4; i++) {
+			editor
+				.dispatch({
+					...wheelEvent,
+					point: new Vec(cursor.x, cursor.y),
+					delta: new Vec(0, 0, -0.5),
+					ctrlKey: true,
+				})
+				.forceTick()
+		}
+
+		expect(editor.getZoomLevel()).toBe(DEFAULT_CAMERA_OPTIONS.zoomSteps[0])
+		const after = editor.screenToPage(cursor)
+		expect(after.x).toBeCloseTo(before.x, 4)
+		expect(after.y).toBeCloseTo(before.y, 4)
+	})
+
+	it('keeps the point under the cursor fixed when wheel zooming in past the max', () => {
+		const max = last(DEFAULT_CAMERA_OPTIONS.zoomSteps)!
+		editor.setCamera({ x: 0, y: 0, z: max * 0.9 }) // just below the max
+		editor.pointerMove(cursor.x, cursor.y)
+		const before = editor.screenToPage(cursor)
+
+		for (let i = 0; i < 4; i++) {
+			editor
+				.dispatch({
+					...wheelEvent,
+					point: new Vec(cursor.x, cursor.y),
+					delta: new Vec(0, 0, 0.5),
+					ctrlKey: true,
+				})
+				.forceTick()
+		}
+
+		expect(editor.getZoomLevel()).toBe(max)
+		const after = editor.screenToPage(cursor)
+		expect(after.x).toBeCloseTo(before.x, 4)
+		expect(after.y).toBeCloseTo(before.y, 4)
+	})
+
+	it('does not translate the camera once zoom is pinned at the min', () => {
+		const min = DEFAULT_CAMERA_OPTIONS.zoomSteps[0]
+		editor.setCamera({ x: 0, y: 0, z: min })
+		editor.pointerMove(cursor.x, cursor.y)
+		const camera = { ...editor.getCamera() }
+
+		for (let i = 0; i < 3; i++) {
+			editor
+				.dispatch({
+					...wheelEvent,
+					point: new Vec(cursor.x, cursor.y),
+					delta: new Vec(0, 0, -0.5),
+					ctrlKey: true,
+				})
+				.forceTick()
+		}
+
+		expect(editor.getCamera()).toMatchObject({ x: camera.x, y: camera.y, z: min })
+	})
+
+	it('keeps the focal point fixed when setCamera requests an out-of-range zoom', () => {
+		// Mimic a cursor-anchored zoom request that overshoots the min: choose
+		// x/y so screen point (200, 150) stays fixed at the requested zoom.
+		const px = cursor.x
+		const py = cursor.y
+		editor.setCamera({ x: 0, y: 0, z: 0.06 })
+		const { x: cx, y: cy, z: cz } = editor.getCamera()
+		const before = editor.screenToPage(cursor)
+
+		const requestedZoom = 0.02 // below the 0.05 min
+		editor.setCamera(
+			new Vec(cx + px / requestedZoom - px / cz, cy + py / requestedZoom - py / cz, requestedZoom),
+			{ immediate: true }
+		)
+
+		expect(editor.getZoomLevel()).toBe(DEFAULT_CAMERA_OPTIONS.zoomSteps[0])
+		const after = editor.screenToPage(cursor)
+		expect(after.x).toBeCloseTo(before.x, 4)
+		expect(after.y).toBeCloseTo(before.y, 4)
 	})
 })
 
@@ -332,6 +428,18 @@ describe('CameraOptions.panSpeed', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 5, y: 10, z: 1 })
 	})
 
+	it('Does not zoom when spacebar panning momentum is applied on release', () => {
+		editor
+			.dispatch({ ...keyBoardEvent, key: ' ', code: 'Space' })
+			.pointerDown(0, 0)
+			.pointerMove(50, 50)
+
+		editor.inputs.setPointerVelocity(new Vec(1, 1))
+		editor.pointerUp().forceTick()
+
+		expect(editor.getCamera().z).toBe(1)
+	})
+
 	it('Does not affect edge scroll panning', () => {
 		const shapeId = createShapeId()
 		const viewportScreenBounds = editor.getViewportScreenBounds()
@@ -345,11 +453,13 @@ describe('CameraOptions.panSpeed', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 		// pointerMove calls forceTick() internally, so we don't need an extra forceTick() call
 		editor.pointerDown(shape.x, shape.y, shapeId).forceTick().pointerMove(-5000, -5000)
-		// At maximum speed and a zoom level of 1, the camera should move by 25px per tick if the screen
-		// is wider than 1000 pixels, or by 25 * 0.612px if it is smaller.
-		const newX = viewportScreenBounds.w < 1000 ? 25 * 0.612 : 25
-		const newY = viewportScreenBounds.h < 1000 ? 25 * 0.612 : 25
-		expect(editor.getCamera()).toMatchObject({ x: newX, y: newY, z: 1 })
+		// At maximum speed and a zoom level of 1, the camera should move by 25px per 60 Hz frame if the
+		// screen is wider than 1000 pixels, or by 25 * 0.612px if it is smaller. forceTick emits a 16ms
+		// tick, so scale the expectation to that.
+		const pxPerTick = 25 * (16 / (1000 / 60))
+		const newX = viewportScreenBounds.w < 1000 ? pxPerTick * 0.612 : pxPerTick
+		const newY = viewportScreenBounds.h < 1000 ? pxPerTick * 0.612 : pxPerTick
+		expect(editor.getCamera()).toCloselyMatchObject({ x: newX, y: newY, z: 1 })
 	})
 })
 
@@ -1147,4 +1257,91 @@ test('calling setCameraOptions will apply the new constraints', () => {
 		  "z": 1,
 		}
 	`)
+})
+
+describe('Constraint bounds away from the page origin', () => {
+	it('keeps the bounds inside the padded viewport with the inside behavior', () => {
+		editor.setCameraOptions({
+			...DEFAULT_CAMERA_OPTIONS,
+			constraints: {
+				...DEFAULT_CONSTRAINTS,
+				bounds: { x: 1000, y: 0, w: 800, h: 600 },
+				padding: { x: 100, y: 100 },
+				behavior: { x: 'inside', y: 'free' },
+			},
+		})
+		// the bounds' right edge stops at the right padding edge
+		editor.setCamera({ x: 100000, y: 0, z: 1 })
+		expect(editor.getCamera()).toMatchObject({ x: -300, y: 0, z: 1 })
+		expect(editor.pageToScreen({ x: 1800, y: 0 }).x).toBe(1500)
+		// the bounds' left edge stops at the left padding edge
+		editor.setCamera({ x: -100000, y: 0, z: 1 })
+		expect(editor.getCamera()).toMatchObject({ x: -900, y: 0, z: 1 })
+		expect(editor.pageToScreen({ x: 1000, y: 0 }).x).toBe(100)
+	})
+
+	it('keeps the bounds adjacent to the padded viewport with the outside behavior', () => {
+		editor.setCameraOptions({
+			...DEFAULT_CAMERA_OPTIONS,
+			constraints: {
+				...DEFAULT_CONSTRAINTS,
+				bounds: { x: 1000, y: 0, w: 800, h: 600 },
+				padding: { x: 100, y: 100 },
+				behavior: { x: 'outside', y: 'free' },
+			},
+		})
+		// the bounds' left edge stops at the right padding edge
+		editor.setCamera({ x: 100000, y: 0, z: 1 })
+		expect(editor.getCamera()).toMatchObject({ x: 500, y: 0, z: 1 })
+		expect(editor.pageToScreen({ x: 1000, y: 0 }).x).toBe(1500)
+		// the bounds' right edge stops at the left padding edge
+		editor.setCamera({ x: -100000, y: 0, z: 1 })
+		expect(editor.getCamera()).toMatchObject({ x: -1700, y: 0, z: 1 })
+		expect(editor.pageToScreen({ x: 1800, y: 0 }).x).toBe(100)
+	})
+})
+
+test('clamps horizontal padding against the viewport width, not its height', () => {
+	editor.setCameraOptions({
+		...DEFAULT_CAMERA_OPTIONS,
+		constraints: {
+			...DEFAULT_CONSTRAINTS,
+			bounds: { x: 0, y: 0, w: 200, h: 100 },
+			padding: { x: 600, y: 0 },
+			behavior: { x: 'inside', y: 'free' },
+		},
+	})
+	// 600 is below half of the 1600px viewport width, so the padding is honoured as is
+	editor.setCamera({ x: -100000, y: 0, z: 1 })
+	expect(editor.getCamera()).toMatchObject({ x: 600, y: 0, z: 1 })
+})
+
+test('slideCamera zoom momentum survives a long frame', () => {
+	editor.user.updateUserPreferences({ animationSpeed: 1 })
+	editor.setCamera({ x: 0, y: 0, z: 1 })
+	editor.slideCamera({ speed: 1, direction: { x: 0, y: 0, z: -0.01 } })
+	// a 100ms frame would have driven a linear zoom factor to zero (and the camera to NaN)
+	editor.emit('tick', 100)
+	const { x, y, z } = editor.getCamera()
+	expect(z).toBeGreaterThan(0)
+	expect(z).toBeLessThan(1)
+	expect(Number.isFinite(x) && Number.isFinite(y)).toBe(true)
+})
+
+test('slideCamera coasts the same distance regardless of tick rate', () => {
+	editor.user.updateUserPreferences({ animationSpeed: 1 })
+
+	const coastFor = (ticksPerSecond: number) => {
+		editor.setCamera({ x: 0, y: 0, z: 1 })
+		editor.slideCamera({ speed: 1, direction: { x: 1, y: 0 } })
+		// two seconds of ticks at the given rate, more than enough for the slide to finish
+		for (let i = 0; i < ticksPerSecond * 2; i++) editor.emit('tick', 1000 / ticksPerSecond)
+		return editor.getCamera().x
+	}
+
+	const at60Hz = coastFor(60)
+	const at120Hz = coastFor(120)
+
+	expect(at60Hz).toBeGreaterThan(0)
+	expect(at120Hz / at60Hz).toBeCloseTo(1, 1)
 })

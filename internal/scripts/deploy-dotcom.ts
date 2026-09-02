@@ -55,12 +55,12 @@ const { previewId, sha } = getDeployInfo()
 const env = makeEnv([
 	'ANALYTICS_API_TOKEN',
 	'ANALYTICS_API_URL',
-	'ANTHROPIC_API_KEY',
 	'ASSET_UPLOAD_SENTRY_DSN',
 	'ASSET_UPLOAD',
 	'CLERK_SECRET_KEY',
 	'CLOUDFLARE_ACCOUNT_ID',
 	'CLOUDFLARE_API_TOKEN',
+	'MCP_SCREENSHOT_TOKEN_SECRET',
 	'DISCORD_DEPLOY_WEBHOOK_URL',
 	'DISCORD_FEEDBACK_WEBHOOK_URL',
 	'DISCORD_HEALTH_WEBHOOK_URL',
@@ -119,9 +119,6 @@ const flyioAppName =
 			? `${env.TLDRAW_ENV}-zero-vs`
 			: undefined
 const flyioReplAppName = deployZero === 'flyio-multinode' ? `${env.TLDRAW_ENV}-zero-rm` : undefined
-
-// pierre is not in production yet, so get the key directly from process.env
-const pierreKey = process.env.PIERRE_KEY ?? ''
 
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
@@ -284,19 +281,28 @@ const zeroQueryUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/
 // Staging: Supabase Micro (60 max_connections, 200 pooled clients)
 // Preview: Supabase branch instance (~60 max_connections per branch, isolated)
 // Production: higher limits but sync worker also connects, so ~30% of capacity for Zero
-// TODO(production): tune these once we know prod Postgres limits
+
 // Fly.io VM sizes per environment.
-// Production RM uses performance (dedicated) CPUs; everything else uses shared.
+// Production uses performance (dedicated) CPUs for both RM and VS; staging uses shared.
+// killTimeout: window between SIGTERM and SIGKILL on stop. Lets VS drain client
+// WebSockets and RM flush litestream / release /data handles before being killed.
+// Fly's API caps it at 5m regardless of CPU kind (the 24h dedicated-CPU figure
+// from their blog is not actually accepted by the Machines API today — deploys
+// fail with "invalid stop_config.timeout, cannot exceed 5 minutes").
 const zeroVmSizes = {
 	staging: {
 		rm: { cpus: 1, memory: '2gb', cpuKind: 'shared' },
 		vs: { cpus: 2, memory: '4gb' },
 		volumeSize: '1gb',
+		vsMinMachines: 1,
+		killTimeout: '5m',
 	},
 	production: {
-		rm: { cpus: 4, memory: '8gb', cpuKind: 'performance' },
+		rm: { cpus: 2, memory: '4gb', cpuKind: 'performance' },
 		vs: { cpus: 4, memory: '8gb', cpuKind: 'performance' },
 		volumeSize: '8gb',
+		vsMinMachines: 7,
+		killTimeout: '5m',
 	},
 	preview: { single: { cpus: 2, memory: '2gb' } },
 } as const
@@ -342,6 +348,8 @@ interface MultiNodeVmSizes {
 	rm: VmSize
 	vs: VmSize
 	volumeSize: string
+	vsMinMachines: number
+	killTimeout: string
 }
 const zeroVm = zeroVmSizes[env.TLDRAW_ENV as keyof typeof zeroVmSizes] as
 	| SingleNodeVmSizes
@@ -361,7 +369,9 @@ async function main() {
 		await withTiming('prebuild assets', () => exec('yarn', ['lazy', 'prebuild']))
 
 		// link to vercel and supabase projects:
-		await withTiming('vercel link', () => vercelCli('link', ['--project', env.VERCEL_PROJECT_ID]))
+		await withTiming('vercel link', () =>
+			vercelCli('link', ['--yes', '--project', env.VERCEL_PROJECT_ID])
+		)
 	})
 
 	// deploy pre-flight steps:
@@ -445,13 +455,8 @@ async function main() {
 
 function getZeroUrl() {
 	switch (env.TLDRAW_ENV) {
-		case 'preview': {
-			if (deployZero === 'flyio') {
-				return `https://${flyioAppName}.fly.dev/`
-			} else {
-				return 'https://zero-backend-not-deployed.tldraw.com'
-			}
-		}
+		case 'preview':
+			return `https://${flyioAppName}.fly.dev/`
 		case 'staging':
 			if (deployZero === 'flyio-multinode') {
 				return `https://${flyioAppName}.fly.dev/`
@@ -470,7 +475,12 @@ async function prepareDotcomApp() {
 	// pre-build the app:
 	await exec('yarn', ['build-app'], {
 		env: {
+			// the build script measures the finished bundle and sends the numbers to PostHog, so we
+			// can see the client's size over time. every deploy reports; the events carry
+			// TLDRAW_ENV so a trend can be filtered down to production.
+			BUNDLE_SIZE_ANALYTICS_ENABLED: 'true',
 			NEXT_PUBLIC_TLDRAW_RELEASE_INFO: `${env.RELEASE_COMMIT_HASH} ${new Date().toISOString()}`,
+			RELEASE_COMMIT_HASH: env.RELEASE_COMMIT_HASH,
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
 			USER_CONTENT_URL: env.USER_CONTENT_URL,
 			ZERO_SERVER: getZeroUrl(),
@@ -574,7 +584,6 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			SUPABASE_KEY: env.SUPABASE_LITE_ANON_KEY,
 			SENTRY_DSN: env.WORKER_SENTRY_DSN,
 			TLDRAW_ENV: env.TLDRAW_ENV,
-			PIERRE_KEY: pierreKey,
 			ASSET_UPLOAD_ORIGIN: env.ASSET_UPLOAD,
 			USER_CONTENT_URL: env.USER_CONTENT_URL,
 			WORKER_NAME: workerId,
@@ -590,6 +599,20 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			HEALTH_CHECK_BEARER_TOKEN: env.HEALTH_CHECK_BEARER_TOKEN,
 			ANALYTICS_API_URL: env.ANALYTICS_API_URL,
 			ANALYTICS_API_TOKEN: env.ANALYTICS_API_TOKEN,
+			MCP_SCREENSHOT_TOKEN_SECRET: env.MCP_SCREENSHOT_TOKEN_SECRET,
+			// Previews render thumbnails from their own client origin. Staging and production set
+			// MCP_SCREENSHOT_RENDER_ORIGIN in wrangler.toml; previews have no such entry, so inject
+			// it here (Browser Run can't reach an origin that isn't configured for the deployment).
+			...(previewId
+				? {
+						MCP_SCREENSHOT_RENDER_ORIGIN: `https://${previewId}-preview-deploy.tldraw.com`,
+						// Previews advertise and verify against their own public URL like every other
+						// deployed environment — the Host-derived fallback in getMcpResourceUrl is for
+						// local dev and tests only. Injected here because previews have no wrangler.toml
+						// vars block at all.
+						MCP_SERVER_URL: `https://${previewId}-preview-deploy.tldraw.com/api/app/mcp`,
+					}
+				: {}),
 		},
 		sentry: {
 			project: 'tldraw-sync',
@@ -608,7 +631,7 @@ async function deployImageResizeWorker({ dryRun }: { dryRun: boolean }) {
 	if (previewId && !didUpdateImageResizeWorker) {
 		await setWranglerPreviewConfig(imageResize, {
 			name: workerId,
-			customDomain: `${previewId}-images.tldraw.xyz`,
+			routeHostname: `${previewId}-images.tldraw.xyz`,
 			serviceBinding: {
 				binding: 'SYNC_WORKER',
 				service: `${previewId}-tldraw-multiplayer`,
@@ -647,6 +670,11 @@ async function deployHealthWorker({ dryRun }: { dryRun: boolean }) {
 }
 
 type ExecOpts = NonNullable<Parameters<typeof exec>[2]>
+// `--yes` is per-subcommand in the vercel CLI, not a global flag. it is valid
+// for `link`, `deploy`, and `alias rm`; passing it to other subcommands like
+// `alias set` now hard-errors with "unknown or unexpected option: --yes" since
+// vercel removed permissive arg parsing. callers add `--yes` to `args` when
+// they want the non-interactive prompt skip.
 async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 	return exec(
 		'yarn',
@@ -659,7 +687,6 @@ async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 			env.VERCEL_TOKEN,
 			'--scope',
 			env.VERCEL_ORG_ID,
-			'--yes',
 			...args,
 		],
 		{
@@ -747,6 +774,7 @@ function updateFlyioReplicationManagerToml(appName: string, backupPath: string):
 		.replaceAll('__VM_CPUS', String(zeroVm.rm.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.rm.memory)
 		.replaceAll('__VOLUME_SIZE', zeroVm.volumeSize)
+		.replaceAll('__KILL_TIMEOUT', zeroVm.killTimeout)
 		.replaceAll('__TLDRAW_ENV', env.TLDRAW_ENV)
 		.replaceAll('__ZERO_VERSION', zeroVersion)
 
@@ -786,6 +814,8 @@ function updateFlyioViewSyncerToml(
 		.replaceAll('__VM_MEMORY', zeroVm.vs.memory)
 		.replaceAll('__CPU_KIND', zeroVm.vs.cpuKind ?? 'shared')
 		.replaceAll('__VOLUME_SIZE', zeroVm.volumeSize)
+		.replaceAll('__VS_MIN_MACHINES', String(zeroVm.vsMinMachines))
+		.replaceAll('__KILL_TIMEOUT', zeroVm.killTimeout)
 		.replaceAll('__TLDRAW_ENV', env.TLDRAW_ENV)
 		.replaceAll('__ZERO_VERSION', zeroVersion)
 
@@ -869,9 +899,14 @@ async function deployZeroViaFlyIoMultiNode() {
 	await exec('flyctl', ['deploy', '-a', flyioAppName, '-c', 'flyio-view-syncer.toml'], {
 		pwd: zeroCacheFolder,
 	})
-	await exec('flyctl', ['scale', 'count', '2', '-a', flyioAppName, '--yes'], {
-		pwd: zeroCacheFolder,
-	})
+	assert('vsMinMachines' in zeroVm, 'multi-node VM sizes required')
+	await exec(
+		'flyctl',
+		['scale', 'count', String(zeroVm.vsMinMachines), '-a', flyioAppName, '--yes'],
+		{
+			pwd: zeroCacheFolder,
+		}
+	)
 }
 
 async function deployZeroBackend() {
@@ -886,9 +921,16 @@ async function deploySpa(): Promise<{ deploymentUrl: string; inspectUrl: string 
 	// both 'staging' and 'production' are deployed to vercel as 'production' deploys
 	// in separate 'projects'
 	const prod = env.TLDRAW_ENV !== 'preview'
-	const out = await vercelCli('deploy', ['--prebuilt', ...(prod ? ['--prod'] : [])], {
-		pwd: dotcom,
-	})
+	// Upload the prebuilt output as a single tarball. We serve the .js.map files rather than
+	// stripping them, which pushes the deploy past Vercel's 15,000-individual-file upload limit;
+	// archiving sidesteps that limit.
+	const out = await vercelCli(
+		'deploy',
+		['--yes', '--prebuilt', '--archive=tgz', ...(prod ? ['--prod'] : [])],
+		{
+			pwd: dotcom,
+		}
+	)
 
 	const previewURL = out.match(/Preview: (https:\/\/\S*)/)?.[1]
 	const inspectUrl = out.match(/Inspect: (https:\/\/\S*)/)?.[1]

@@ -142,6 +142,9 @@ describe('When translating...', () => {
 			.expectShapeToMatch({ id: ids.box1, x: 60, y: 60 })
 	})
 
+	// edgeScrollSpeed is 25px per 60 Hz frame; forceTick emits a 16ms tick
+	const edgeScrollPxPerTick = 25 * (16 / (1000 / 60))
+
 	it('translates a single shape near the top left edge', () => {
 		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
 		editor.pointerDown(50, 50, ids.box1).pointerMove(0, 50) // [-50, 0]
@@ -151,7 +154,7 @@ describe('When translating...', () => {
 		editor.forceTick()
 		editor
 			// The change is bigger than expected because the camera moves
-			.expectShapeToMatch({ id: ids.box1, x: -65, y: 10 })
+			.expectShapeToMatch({ id: ids.box1, x: -40 - edgeScrollPxPerTick, y: 10 })
 			// We'll continue moving in the x position, but now we'll also move in the y position.
 			// The speed in the y position is smaller since we are further away from the edge.
 			.pointerMove(0, 25)
@@ -175,16 +178,27 @@ describe('When translating...', () => {
 		editor.forceTick()
 		editor
 			// The change is bigger than expected because the camera moves
-			.expectShapeToMatch({ id: ids.box1, x: 1115, y: 10 })
+			.expectShapeToMatch({ id: ids.box1, x: 1040 + edgeScrollPxPerTick * 3, y: 10 })
 			.pointerMove(1080, 800)
 
+		// The viewport is shorter than 1000px, so vertical scrolling runs at 0.612x, and the pointer
+		// is only 75% of the way into the edge zone
+		const edgeScrollPyPerTick = edgeScrollPxPerTick * 0.612 * 0.75
 		editor.forceTick()
 		editor.forceTick()
 		editor.forceTick()
 		editor
-			.expectShapeToMatch({ id: ids.box1, x: 1215, y: 805.9 })
+			.expectShapeToMatch({
+				id: ids.box1,
+				x: 1040 + edgeScrollPxPerTick * 7,
+				y: 760 + edgeScrollPyPerTick * 4,
+			})
 			.pointerUp()
-			.expectShapeToMatch({ id: ids.box1, x: 1240, y: 821.2 })
+			.expectShapeToMatch({
+				id: ids.box1,
+				x: 1040 + edgeScrollPxPerTick * 8,
+				y: 760 + edgeScrollPyPerTick * 4 + edgeScrollPxPerTick * 0.612,
+			})
 	})
 
 	it('translates multiple shapes', () => {
@@ -783,9 +797,6 @@ describe('snapping with multiple shapes', () => {
 })
 
 describe('Snap-between behavior', () => {
-	beforeEach(() => {
-		editor?.dispose()
-	})
 	it('snaps a shape horizontally between two others', () => {
 		// ┌─────┐               ┌─────┐
 		// │     │               │     │
@@ -1160,9 +1171,6 @@ describe('Snap-between behavior', () => {
 })
 
 describe('Snap-next-to behavior', () => {
-	beforeEach(() => {
-		editor?.dispose()
-	})
 	it('snaps a shape to the left of two others, matching the gap size', () => {
 		// ┌───┐
 		// │ X │
@@ -2308,6 +2316,48 @@ describe('cancelling a translate operation', () => {
 		expect(editor.getShape(shapeId)?.meta).toMatchObject({ a: 'after' })
 		editor.cancel()
 		expect(editor.getShape(shapeId)?.meta).toMatchObject({ a: 'before' })
+	})
+})
+
+describe('cloning mid-drag', () => {
+	it('reparents the clone, not the original, when alt is pressed during the drag', () => {
+		editor.createShapes([
+			{ id: ids.frame1, type: 'frame', x: 500, y: 0, props: { w: 200, h: 200 } },
+			{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+		])
+		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.box1) })
+		editor.pointerMove(60, 60)
+		editor.expectToBeIn('select.translating')
+		editor.keyDown('Alt')
+		editor.pointerMove(600, 100)
+		vi.advanceTimersByTime(300)
+		editor.pointerUp(600, 100)
+
+		const original = editor.getShape(ids.box1)!
+		expect(original.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getShapePageBounds(original)).toMatchObject({ x: 0, y: 0 })
+
+		const clone = editor.getCurrentPageShapes().find((s) => s.type === 'geo' && s.id !== ids.box1)!
+		expect(clone.parentId).toBe(ids.frame1)
+	})
+
+	it('reparents the original when alt is released during the drag', () => {
+		editor.createShapes([
+			{ id: ids.frame1, type: 'frame', x: 500, y: 0, props: { w: 200, h: 200 } },
+			{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+		])
+		editor.keyDown('Alt')
+		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.box1) })
+		editor.pointerMove(60, 60)
+		editor.expectToBeIn('select.translating')
+		editor.keyUp('Alt')
+		vi.advanceTimersByTime(250) // the alt key is released on a timer
+		editor.pointerMove(600, 100)
+		vi.advanceTimersByTime(300)
+		editor.pointerUp(600, 100)
+
+		expect(editor.getCurrentPageShapes().filter((s) => s.type === 'geo')).toHaveLength(1)
+		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.frame1)
 	})
 })
 

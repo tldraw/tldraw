@@ -1,6 +1,22 @@
 import { BoxModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
-import { objectMapKeys } from '@tldraw/utils'
+import { iterateGraphemes, objectMapKeys } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
+import { EditorManager } from '../EditorManager'
+
+/**
+ * The whole-pixel line-height for a given font size and tldraw's unitless line-height
+ * multiplier. tldraw's theme stores line-height as a multiplier (e.g. 1.35); resolving it
+ * to a whole pixel keeps line spacing identical across rendering engines, which otherwise
+ * disagree on fractional line boxes (WebKit snaps them to whole pixels, Blink keeps the
+ * fraction) and let multi-line text drift apart. Apply it everywhere line-height is used —
+ * measurement, on-canvas render, and export — so geometry and rendering agree.
+ * See https://github.com/tldraw/tldraw/issues/8970.
+ *
+ * @public
+ */
+export function resolveLineHeightPx(fontSize: number, lineHeight: number): number {
+	return Math.round(fontSize * lineHeight)
+}
 
 const fixNewLines = /\r?\n|\r/g
 
@@ -88,13 +104,21 @@ const initialDefaultStyles = Object.freeze({
 })
 
 /** @public */
-export class TextManager {
+export class TextManager extends EditorManager {
 	private elm: HTMLDivElement
 	private poolElms: PoolItem[] = []
 
-	constructor(public editor: Editor) {
+	constructor(editor: Editor) {
+		super(editor)
 		this.elm = this.createMeasurementEl()
 		this.editor.getContainer().appendChild(this.elm)
+		this.register(() => {
+			this.elm.remove()
+			for (const { el } of this.poolElms) {
+				el.remove()
+			}
+			this.poolElms.length = 0
+		})
 	}
 
 	private createMeasurementEl(): HTMLDivElement {
@@ -154,21 +178,16 @@ export class TextManager {
 			'font-style': opts.fontStyle,
 			'font-weight': opts.fontWeight,
 			'font-size': opts.fontSize + 'px',
-			'line-height': opts.lineHeight.toString(),
+			'line-height': `${resolveLineHeightPx(opts.fontSize, opts.lineHeight)}px`,
+			// Unitless multiplier consumed by the .tl-rich-text h1–h6 rule (see editor.css),
+			// so heading measurement matches on-canvas rendering.
+			'--tl-rich-text-heading-line-height': `${opts.lineHeight}`,
 			padding: opts.padding,
 			'max-width': opts.maxWidth ? opts.maxWidth + 'px' : undefined,
 			'min-width': opts.minWidth ? opts.minWidth + 'px' : undefined,
 			'overflow-wrap': opts.disableOverflowWrapBreaking ? 'normal' : 'break-word',
 			...opts.otherStyles,
 		}
-	}
-
-	dispose() {
-		this.elm.remove()
-		for (const { el } of this.poolElms) {
-			el.remove()
-		}
-		this.poolElms.length = 0
 	}
 
 	private ensurePoolSize(size: number) {
@@ -286,15 +305,24 @@ export class TextManager {
 		for (const childNode of element.childNodes) {
 			if (childNode.nodeType !== Node.TEXT_NODE) continue
 
-			for (const char of childNode.textContent ?? '') {
-				// place the range around the characters we're interested in
+			for (const segment of iterateGraphemes(childNode.textContent ?? '')) {
+				// place the range around the grapheme we're interested in
 				range.setStart(textNode, idx)
-				range.setEnd(textNode, idx + char.length)
+				range.setEnd(textNode, idx + segment.length)
 				// measure the range. some browsers return multiple rects for the
 				// first char in a new line - one for the line break, and one for
 				// the character itself. we're only interested in the character.
 				const rects = range.getClientRects()
-				const rect = rects[rects.length - 1]!
+				const rect = rects[rects.length - 1]
+
+				// some graphemes produce no layout rectangle (e.g. zero-width
+				// spaces or newlines). skip them rather than crashing, but keep
+				// advancing the index so later graphemes stay aligned.
+				// See https://github.com/tldraw/tldraw/issues/9112.
+				if (!rect) {
+					idx += segment.length
+					continue
+				}
 
 				// calculate the position of the character relative to the element
 				const top = rect.top + offsetY
@@ -302,7 +330,7 @@ export class TextManager {
 				const right = rect.right + offsetX
 				const isRTL = left < prevCharLeftForRTLTest
 
-				const isSpaceCharacter = spaceCharacterRegex.test(char)
+				const isSpaceCharacter = spaceCharacterRegex.test(segment)
 				if (
 					// If we're at a word boundary...
 					isSpaceCharacter !== prevCharWasSpaceCharacter ||
@@ -326,7 +354,7 @@ export class TextManager {
 					// start a new span
 					currentSpan = {
 						box: { x: left, y: top, w: rect.width, h: rect.height },
-						text: char,
+						text: segment,
 					}
 					prevCharLeftForRTLTest = left
 				} else {
@@ -337,16 +365,16 @@ export class TextManager {
 
 					// otherwise we just need to extend the current span with the next character
 					currentSpan.box.w = isRTL ? currentSpan.box.w + rect.width : right - currentSpan.box.x
-					currentSpan.text += char
+					currentSpan.text += segment
 				}
 
-				if (char === '\n') {
+				if (segment === '\n') {
 					prevCharLeftForRTLTest = 0
 				}
 
 				prevCharWasSpaceCharacter = isSpaceCharacter
 				prevCharTop = top
-				idx += char.length
+				idx += segment.length
 			}
 		}
 
@@ -382,7 +410,7 @@ export class TextManager {
 			'font-style': opts.fontStyle,
 			'font-weight': opts.fontWeight,
 			'font-size': opts.fontSize + 'px',
-			'line-height': opts.lineHeight.toString(),
+			'line-height': `${resolveLineHeightPx(opts.fontSize, opts.lineHeight)}px`,
 			width: `${elementWidth}px`,
 			height: 'min-content',
 			'text-align': textAlignmentsForLtr[opts.textAlign],
@@ -406,7 +434,8 @@ export class TextManager {
 			if (opts.overflow === 'truncate-ellipsis' && didTruncate) {
 				// we need to measure the ellipsis to know how much space it takes up
 				elm.textContent = '…'
-				const ellipsisWidth = Math.ceil(this.measureElementTextNodeSpans(elm).spans[0].box.w)
+				const ellipsisSpan = this.measureElementTextNodeSpans(elm).spans[0]
+				const ellipsisWidth = ellipsisSpan ? Math.ceil(ellipsisSpan.box.w) : 0
 
 				// then, we need to subtract that space from the width we have and measure again:
 				elm.style.setProperty('width', `${elementWidth - ellipsisWidth}px`)
@@ -419,7 +448,12 @@ export class TextManager {
 				// have to do this after measuring, not before, because adding the
 				// ellipsis changes how whitespace might be getting collapsed by the
 				// browser.
-				const lastSpan = truncatedSpans[truncatedSpans.length - 1]!
+				const lastSpan = truncatedSpans[truncatedSpans.length - 1]
+				// If nothing measurable remained, return the (possibly empty)
+				// spans as-is rather than dereferencing a missing last span.
+				if (!lastSpan) {
+					return truncatedSpans
+				}
 				truncatedSpans.push({
 					text: '…',
 					box: {

@@ -17,13 +17,15 @@ accuracy: 9
 notes: Add API link formatting using [Editor#methodName](?) syntax. Fix blockquote formatting for examples link.
 ---
 
-Groups are logical containers that combine multiple shapes into a single selectable unit. Unlike frames, groups have no visual representation—they exist purely to organize shapes. Their geometry is the union of their children's geometries, their bounds update automatically as children change, and they clean themselves up when their contents are deleted. Groups support nesting, allowing hierarchical organization of shapes on the canvas.
+Groups are logical containers that combine multiple shapes into a single selectable unit. Unlike frames, groups draw nothing of their own apart from a dashed outline while the group is focused. Their geometry is the union of their children's geometries, their bounds update automatically as children change, and they clean themselves up when their contents are deleted. Groups can be nested inside other groups.
 
 ## Creating groups
 
-Use `editor.groupShapes()` to combine shapes into a group. Pass an array of shape IDs or shape objects, and the method creates a new group containing those shapes:
+Use [Editor#groupShapes](?) to combine shapes into a group. Pass an array of shape IDs or shape objects, and the method creates a new group containing those shapes:
 
 ```typescript
+import { createShapeId } from 'tldraw'
+
 // Group selected shapes
 editor.groupShapes(editor.getSelectedShapeIds())
 
@@ -37,13 +39,13 @@ editor.groupShapes([shapeId1, shapeId2], {
 })
 ```
 
-Grouping requires at least two shapes. The method does nothing if you pass fewer. Users can also group shapes with Ctrl+G (Cmd+G on Mac).
+Grouping requires at least two shapes. The method does nothing if you pass fewer, and it skips [locked shapes](/sdk-features/locked-shapes). Users can also group shapes with Ctrl+G (Cmd+G on Mac); when the only selected shape is a group, the same shortcut ungroups it.
 
-The new group is positioned at the top-left of the combined bounds of all grouped shapes. Its z-index matches the highest z-index among the grouped shapes, so it appears at the front of the layer stack.
+The new group is positioned at the top-left of the combined bounds of all grouped shapes. It takes the z-index of the topmost grouped shape, so it sits where that shape was in its parent's layer stack.
 
 ## Ungrouping
 
-Use `editor.ungroupShapes()` to dissolve groups and release their children:
+Use [Editor#ungroupShapes](?) to dissolve groups and release their children:
 
 ```typescript
 // Ungroup selected groups
@@ -56,13 +58,15 @@ editor.ungroupShapes([groupId])
 editor.ungroupShapes([groupId], { select: false })
 ```
 
-Ungrouping moves children to the group's parent, preserving their exact page positions and rotations. The layer order is maintained—children appear where the group was in the z-stack. If you pass a mix of groups and non-groups, only the groups are ungrouped; the non-groups remain selected. Users can ungroup with Ctrl+Shift+G (Cmd+Shift+G on Mac).
+Ungrouping moves children to the group's parent and preserves their page positions and rotations. Layer order is maintained: children appear where the group was in the z-stack. If you pass a mix of groups and non-groups, only the groups are ungrouped and the non-groups stay selected. Users can ungroup with Ctrl+Shift+G (Cmd+Shift+G on Mac).
 
 Ungrouping is not recursive. If a group contains other groups, those inner groups remain intact. Ungroup them separately if needed.
 
 ## Focused groups
 
-The editor tracks a **focused group** that defines the current editing scope. When you're focused inside a group, you can select and manipulate the shapes within it. Without focus, clicking a shape inside a group selects the group itself, not the individual shape.
+The editor tracks a focused group that defines the current editing scope. When you're focused inside a group, you can select and manipulate the shapes within it. Without focus, clicking a shape inside a group selects the group itself, not the individual shape.
+
+Use [Editor#getFocusedGroup](?), [Editor#getFocusedGroupId](?), [Editor#setFocusedGroup](?), and [Editor#popFocusedGroupId](?):
 
 ```typescript
 // Get the current focused group
@@ -74,7 +78,7 @@ const focusedId = editor.getFocusedGroupId()
 // Focus a specific group
 editor.setFocusedGroup(groupId)
 
-// Exit the current focused group
+// Exit the current focused group and select it
 editor.popFocusedGroupId()
 ```
 
@@ -83,6 +87,7 @@ The editor manages focus automatically based on selection:
 - Selecting a shape inside a group focuses that group
 - Selecting shapes across multiple groups focuses their common ancestor
 - Pressing Escape pops focus one level up (or back to the page)
+- Pressing Enter with only groups selected selects their children
 - Clearing selection keeps the current focus
 
 ### Layered selection
@@ -122,10 +127,7 @@ When grouping shapes that already have different parents, the editor finds their
 
 ## Automatic cleanup
 
-Groups maintain themselves automatically through the `onChildrenChange` lifecycle hook:
-
-- **Empty groups delete themselves.** If you delete all children of a group, the group is removed.
-- **Single-child groups ungroup themselves.** If a group ends up with only one child (after deleting others), it dissolves and reparents that child to the group's parent.
+Groups maintain themselves through the [ShapeUtil#onChildrenChange](?) lifecycle hook. If you delete all children of a group, the group is removed. If a group ends up with only one child, it dissolves and reparents that child to the group's parent.
 
 This cleanup happens immediately when children change, so you never end up with degenerate groups.
 
@@ -138,14 +140,14 @@ editor.deleteShapes([boxA])
 
 ## Bounds and transforms
 
-Group bounds are computed from their children's geometries. The `Group2d` geometry class aggregates all child geometries for hit testing and bounds calculation:
+Group bounds are computed from their children's geometries. The [Group2d](?) geometry class aggregates all child geometries for hit testing and bounds calculation:
 
 ```typescript
 // Get a group's bounds
 const bounds = editor.getShapePageBounds(groupId)
 
 // Bounds update automatically when children move
-editor.updateShape({ id: childId, x: newX, y: newY })
+editor.updateShape({ id: childId, type: 'geo', x: newX, y: newY })
 const updatedBounds = editor.getShapePageBounds(groupId)
 ```
 
@@ -155,7 +157,7 @@ Position preservation works both ways. When you group shapes, their page positio
 
 ## Creating shapes inside groups
 
-When you create new shapes while focused inside a group, those shapes automatically become children of the focused group:
+When you create new shapes while focused inside a group, those shapes become children of the focused group unless they're positioned over a container such as a frame, which takes precedence:
 
 ```typescript
 // Focus a group by selecting a shape inside it
@@ -176,14 +178,12 @@ If no group is focused, new shapes are created on the current page.
 
 ## Limitations
 
-Groups have a few constraints worth knowing about.
+Arrows can't bind to groups. [ShapeUtil#canBind](?) returns `false` for group shapes, so arrows must bind to individual shapes within the group.
 
-Arrows can't bind to groups. The `canBind()` method returns `false` for group shapes, so arrows must bind to individual shapes within the group.
+Groups have no visual properties. You can't style a group itself, only its children.
 
-Groups have no visual properties—they're purely structural containers. You can't style a group itself, only its children.
-
-Both grouping and ungrouping require the select tool to be active and in its idle state. The operations won't run while you're in the middle of another interaction.
+Both grouping and ungrouping require the select tool to be active, and do nothing in readonly mode. If you're in the middle of another interaction, the editor cancels it before running the operation.
 
 ## Related examples
 
-- **[Layer panel](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/ui/layer-panel)** - Build a hierarchical layer panel that shows shape and group structure with visibility controls.
+- [Layer panel](/examples/ui/layer-panel) - Build a hierarchical layer panel that shows shape and group structure with visibility controls.

@@ -1,0 +1,27 @@
+name: Discord fail notify
+description: Post a failure message to the Discord deploy/health channel.
+
+inputs:
+  webhook-url:
+    description: Discord webhook URL
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Notify Discord
+      shell: bash
+      env:
+        DISCORD_WEBHOOK_URL: ${{ inputs.webhook-url }}
+        WORKFLOW: ${{ github.workflow }}
+        REF: ${{ github.ref_name }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+          echo "::warning::DISCORD_WEBHOOK_URL is empty; skipping Discord notification."
+          exit 0
+        fi
+        payload=$(jq -nc \
+          --arg content "<@&1414904550917144586> ❌ **${WORKFLOW}** failed on \`${REF}\`: <${RUN_URL}>" \
+          '{content: $content}')
+        curl -fsS -X POST -H "Content-Type: application/json" -d "$payload" "$DISCORD_WEBHOOK_URL"

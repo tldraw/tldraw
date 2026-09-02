@@ -21,55 +21,55 @@ accuracy: 10
 notes: ''
 ---
 
-Tools in tldraw define how the editor responds to user input. Each tool handles a specific interaction mode—selecting shapes, drawing, or panning the canvas. You implement tools as state machines using the `StateNode` class, which gives you a structured way to manage complex interactions through a hierarchy of states. The editor maintains a single active tool at any time and routes all input events through it. When you click the hand icon in the toolbar, the editor transitions from the select tool to the hand tool, changing how the canvas responds to your mouse movements and clicks.
+Tools in tldraw define how the editor responds to user input. Each tool handles one interaction mode: selecting shapes, drawing, panning the canvas. The editor has a single active tool at any time and routes all input events through it. When you click the hand icon in the toolbar, the editor transitions from the select tool to the hand tool, and the canvas starts responding to drags by panning.
 
-The state machine architecture lets you handle multi-step interactions cleanly. For example, when you use the select tool to resize a shape, the tool transitions through multiple states: idle, pointing the resize handle, and actively resizing. Each state handles different events and can transition to other states based on user input. This pattern keeps your tool logic organized and makes complex interactions manageable.
+You implement tools as state machines using the [StateNode](?) class. Multi-step interactions map onto child states: when you resize a shape with the select tool, the tool moves through `idle`, `pointing_resize_handle`, and `resizing`. Each state handles different events and can transition to other states.
 
 ## How it works
 
 Tools are organized in a hierarchical state machine where each node can handle events and contain child states. The editor creates a root state that contains all tools as children. When an input event occurs, it flows down from the root through the currently active tool and its active child state.
 
-The [StateNode](?) class provides the foundation for this system. Each state node has an id, optional children, and methods for handling events. State nodes come in three types: root nodes that contain tools, branch nodes that have child states, and leaf nodes that perform actual work. Tools themselves are typically branch nodes with child states representing different phases of an interaction.
+Each state node has an id, optional children, and methods for handling events. State nodes come in three types: root nodes that contain tools, branch nodes that have child states, and leaf nodes that perform actual work. Tools themselves are typically branch nodes with child states representing different phases of an interaction.
 
-When a state becomes active, its `onEnter` method runs. When it becomes inactive, its `onExit` method runs. Between these lifecycle events, the state handles input through event methods like `onPointerDown`, `onPointerMove`, and `onKeyDown`. If a state doesn't handle an event, it passes through without effect. Child states receive events after their parent, allowing both to respond.
+When a state becomes active, its `onEnter` method runs. When it becomes inactive, its `onExit` method runs. Between these lifecycle events, the state handles input through event methods like `onPointerDown`, `onPointerMove`, and `onKeyDown`. A state that doesn't implement a handler skips the event, and the event still continues down to the active child state, so a parent and its child can both respond.
 
-You trigger transitions between states explicitly through the `transition` method. When the select tool's idle state detects a pointer down on a shape, it calls `this.parent.transition('pointing_shape', info)` to move to the pointing state. The transition triggers the appropriate exit and enter handlers, maintaining clean state boundaries.
+You trigger transitions between states explicitly through [StateNode#transition](?). When the select tool's idle state detects a pointer down on a shape, it calls `this.parent.transition('pointing_shape', info)` to move to the pointing state. The transition runs the old state's `onExit` and the new state's `onEnter`.
 
 ## Key concepts
 
 ### State hierarchy
 
-Tools exist in a tree structure starting from a root node. The root contains all available tools like select, hand, eraser, and draw. Each tool can contain child states for different phases of its interaction. For example, the select tool has children including idle, pointing, translating, resizing, and rotating. When the select tool is active and the user starts dragging a shape, the active path becomes `select.translating`.
+Tools exist in a tree structure starting from a root node. The root contains all available tools like select, hand, eraser, and draw. Each tool can contain child states for different phases of its interaction. For example, the select tool has children including `idle`, `pointing_shape`, `translating`, `resizing`, and `rotating`. When the select tool is active and the user starts dragging a shape, the active path becomes `select.translating`.
 
-The hierarchy allows tools to share common behavior at higher levels while specializing at lower levels. The select tool handles keyboard shortcuts at its top level, while child states handle specific mouse interactions. This organization prevents duplicate logic across related states.
+The hierarchy lets a tool share behavior across its child states. The select tool's `onEnter` and `onExit` set up and tear down state that every child uses, while the child states handle pointer and keyboard interactions.
 
 ### Event handling
 
-State nodes implement event handler methods that match input event types. The handlers receive an info object containing event details like pointer position, keyboard modifiers, and the event target. Common handlers include `onPointerDown`, `onPointerMove`, `onPointerUp`, `onKeyDown`, and `onTick` for animation frame updates.
+State nodes implement event handler methods that match input event types. The handlers receive an info object containing event details like pointer position, keyboard modifiers, and the event target. The full set is `onPointerDown`, `onPointerMove`, `onPointerUp`, `onLongPress`, `onDoubleClick`, `onRightClick`, `onMiddleClick`, `onKeyDown`, `onKeyUp`, `onKeyRepeat`, `onWheel`, `onCancel`, `onComplete`, `onInterrupt`, and `onTick` for animation frame updates.
 
-Events flow through the state hierarchy. When a pointer move occurs, the root receives it first, then the current tool, then the tool's active child state. Each node can handle the event by implementing the corresponding method. The hand tool's dragging state implements `onPointerMove` to update the camera position as the user drags.
+The hand tool's dragging state implements `onPointerMove` to update the camera position as the user drags.
 
 ### State transitions
 
-The `transition` method moves between states by id. You can transition to a direct child using just its id, or to deeper descendants using dot notation like `'crop.pointing_crop_handle'`. Transitions are atomic - the old state's `onExit` runs, the new state's `onEnter` runs, and the state is updated.
+You can transition to a direct child using just its id, or to deeper descendants using dot notation like `'crop.pointing_crop_handle'`.
 
 Transitions carry information through their second parameter. When transitioning from idle to pointing, the pointer event info passes along so the pointing state knows where the interaction started. This data is available in both the exit handler of the old state and the enter handler of the new state.
 
 ### Tool registration
 
-Tools are registered with the editor through the root state. The `@tldraw/editor` package provides only the root state with no tools. The `@tldraw/tldraw` package extends this with a full suite of tools. Custom tools are added by creating a custom root state that includes them as children.
+Tools are registered with the editor through the root state. The `@tldraw/editor` package provides only the root state with no tools. The `tldraw` package adds its full suite of tools. Custom tools are added through the `tools` prop, described below.
 
-The editor's `setCurrentTool` method transitions the root state to a different tool by id. The `getCurrentTool` method returns the currently active tool state node. These methods provide the public API for tool management while the state machine handles the internal transitions.
+[Editor#setCurrentTool](?) transitions the root state to a different tool by id. [Editor#getCurrentTool](?) returns the active tool state node, and [Editor#getCurrentToolId](?) returns its id.
 
-### Event target detection
+### Event targets
 
-Event info objects include a target property indicating what the user interacted with. Possible targets include canvas, shape, handle, and selection. The select tool's idle state uses this to determine which child state to transition to. A pointer down on a shape transitions to pointing_shape, while a pointer down on the canvas transitions to pointing_canvas.
+Event info objects include a `target` property indicating what the user interacted with: `canvas`, `shape`, `handle`, `selection`, or `overlay`. The canvas dispatches every pointer event with `target: 'canvas'`. The select tool's idle state hit-tests the pointer position and re-dispatches the event to itself with a more specific target, then transitions to the matching child state: `pointing_shape` for a shape, `pointing_canvas` for empty canvas.
 
-Target detection happens before events reach tools, using the editor's geometry system to determine what's under the pointer. This separation means tools can focus on interaction logic without implementing hit testing.
+Custom tools that need to know what's under the pointer do their own hit testing with methods like [Editor#getShapeAtPoint](?).
 
 ### Tool lock
 
-Tool lock keeps the current tool active after completing an action. Normally, tools like draw or geo return to the select tool after creating a shape. With tool lock enabled, the tool stays active so you can create multiple shapes without reselecting the tool each time.
+Tool lock keeps the current tool active after completing an action. Normally, tools like geo, arrow, or note return to the select tool after creating a shape. With tool lock enabled, the tool stays active so you can create multiple shapes without reselecting the tool each time.
 
 Tool lock is stored in instance state:
 
@@ -85,56 +85,75 @@ const current = editor.getInstanceState().isToolLocked
 editor.updateInstanceState({ isToolLocked: !current })
 ```
 
-Custom tools should check `isToolLocked` when deciding whether to return to the select tool after completing their action.
+Tool lock is not enforced by the state machine. Custom tools check `isToolLocked` themselves when deciding where to go after completing their action:
+
+```ts
+if (this.editor.getInstanceState().isToolLocked) {
+	this.parent.transition('idle')
+} else {
+	this.editor.setCurrentTool('select')
+}
+```
 
 ## Creating custom tools
 
-To create a custom tool, extend the `StateNode` class and implement the required static properties and event handlers.
+To create a custom tool, extend the [StateNode](?) class and implement the static properties and event handlers you need. The simplest tool has no child states and handles events directly. Register it with the `tools` prop:
+
+```tsx
+import { StateNode, TLPointerEventInfo, Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+class MeasureTool extends StateNode {
+	static override id = 'measure'
+
+	override onEnter() {
+		this.editor.setCursor({ type: 'cross', rotation: 0 })
+	}
+
+	override onPointerDown(info: TLPointerEventInfo) {
+		const start = this.editor.inputs.getCurrentPagePoint()
+		// Start measuring from this point
+	}
+
+	override onPointerUp(info: TLPointerEventInfo) {
+		// Finalize measurement and return to select tool
+		this.editor.setCurrentTool('select')
+	}
+}
+
+const customTools = [MeasureTool]
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw tools={customTools} />
+		</div>
+	)
+}
+```
+
+Define the tools array once, outside the component or in a `useMemo`, so the editor isn't recreated on each render.
+
+The `StateNode` class has these static properties:
+
+| Property             | Description                                                                                                                                           |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                 | Required. The unique identifier for this state                                                                                                        |
+| `initial`            | The id of the initial child state (required if the tool has children)                                                                                 |
+| `children()`         | A function returning an array of child state constructors                                                                                             |
+| `isLockable`         | Whether the toolbar shows the tool-lock toggle while this tool is active (default: `true`). The tool itself still has to check `isToolLocked`.        |
+| `useCoalescedEvents` | Whether to receive the browser's coalesced pointer move events for higher-fidelity input, as the draw tool does (default: `false`; always off on iOS) |
+
+Tools with multiple phases use child states. A tool with children sets `initial` and `children()`:
 
 ```typescript
-import { StateNode, TLPointerEventInfo } from '@tldraw/editor'
+import { StateNode } from 'tldraw'
 
 export class StampTool extends StateNode {
 	static override id = 'stamp'
 	static override initial = 'idle'
 	static override children() {
 		return [StampIdle, StampPointing]
-	}
-
-	override onEnter() {
-		this.editor.setCursor({ type: 'cross', rotation: 0 })
-	}
-}
-```
-
-The `StateNode` class has these static properties:
-
-| Property             | Description                                                             |
-| -------------------- | ----------------------------------------------------------------------- |
-| `id`                 | Required. The unique identifier for this state                          |
-| `initial`            | The id of the initial child state (required if the tool has children)   |
-| `children()`         | A function returning an array of child state constructors               |
-| `isLockable`         | Whether tool lock applies to this tool (default: `true`)                |
-| `useCoalescedEvents` | Whether to batch pointer move events for performance (default: `false`) |
-
-For a simple tool without child states, implement event handlers directly on the tool class:
-
-```typescript
-export class MeasureTool extends StateNode {
-	static override id = 'measure'
-
-	override onPointerDown(info: TLPointerEventInfo) {
-		const { currentPagePoint } = this.editor.inputs
-		// Start measuring from this point
-	}
-
-	override onPointerMove(info: TLPointerEventInfo) {
-		// Update measurement as pointer moves
-	}
-
-	override onPointerUp(info: TLPointerEventInfo) {
-		// Finalize measurement and return to select tool
-		this.editor.setCurrentTool('select')
 	}
 }
 ```
@@ -146,7 +165,7 @@ export class DrawingPointing extends StateNode {
 	static override id = 'pointing'
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.getIsDragging()) {
 			this.parent.transition('drawing', info)
 		}
 	}
@@ -157,30 +176,15 @@ export class DrawingPointing extends StateNode {
 }
 ```
 
-Access the editor through `this.editor` to read input state, manipulate shapes, or transition tools. Access the parent state through `this.parent` to transition between sibling states. The editor instance provides the full API for querying and modifying the document.
-
-To register a custom tool, pass it to the Tldraw component via the `tools` prop:
-
-```tsx
-import { Tldraw } from 'tldraw'
-import 'tldraw/tldraw.css'
-
-const customTools = [StampTool, MeasureTool]
-
-export default function App() {
-	return <Tldraw tools={customTools} />
-}
-```
-
-The tools array should be defined outside the component to avoid recreation on each render.
+Access the editor through `this.editor` to read input state, manipulate shapes, or transition tools. Access the parent state through `this.parent` to transition between sibling states.
 
 ## Overriding default tools
 
-The tldraw component provides several ways to customize which tools are available. You can remove tools from the toolbar, add new tools, or dynamically register and unregister tools at runtime.
+You can remove tools from the UI, add custom tools to it, or register and unregister tools at runtime.
 
 ### Removing tools from the toolbar
 
-Use the `overrides` prop to modify which tools appear in the UI. The `tools` function receives the current tools object and returns a modified version:
+Use the `overrides` prop ([TLUiOverrides](?)) to modify which tools appear in the UI. The `tools` function receives the current tools object and returns a modified version:
 
 ```typescript
 import { Tldraw, TLUiOverrides } from 'tldraw'
@@ -198,11 +202,11 @@ function App() {
 }
 ```
 
-This removes the tool from the UI but doesn't remove it from the editor's state machine. Users can still activate the tool programmatically or via keyboard shortcuts. To fully disable a tool, you'd also need to remove its keyboard shortcut binding.
+This removes the tool from the toolbar, its keyboard shortcut, and the menus, since all of them read from the same tools object. It doesn't remove the tool from the editor's state machine: `editor.setCurrentTool('text')` still works.
 
 ### Adding custom tools to the toolbar
 
-When you create a custom tool, you need to add it both to the editor's state machine and to the UI. The `tools` prop registers the tool with the state machine, while `overrides.tools` adds it to the UI context:
+When you create a custom tool, you need to add it both to the editor's state machine and to the UI. The `tools` prop registers the tool with the state machine, while `overrides.tools` adds a [TLUiToolItem](?) to the UI context. The `kbd` you set here is what registers the keyboard shortcut:
 
 ```typescript
 import { Tldraw, TLUiOverrides, StateNode } from 'tldraw'
@@ -230,11 +234,11 @@ function App() {
 }
 ```
 
-To make the tool appear in the toolbar, override the `Toolbar` component and include your tool item. See the "Add a tool to the toolbar" example for the complete implementation.
+The `icon` is a key into the UI's asset URLs; a custom icon needs an `assetUrls` override, or you can reuse a built-in icon name. To make the tool appear in the toolbar, override the `Toolbar` component and include your tool item. See the [add a tool to the toolbar example](/examples/ui/add-tool-to-toolbar) for the complete implementation.
 
 ### Dynamic tool registration
 
-Tools can be added or removed at runtime using the `setTool` and `removeTool` methods on the editor. This is useful when tool availability depends on user permissions, feature flags, or application state.
+Tools can be added or removed at runtime using [Editor#setTool](?) and [Editor#removeTool](?). This is useful when tool availability depends on user permissions, feature flags, or application state.
 
 ```tsx
 import { useState } from 'react'
@@ -266,18 +270,25 @@ function App() {
 		setIsEnabled(!isEnabled)
 	}
 
-	return <Tldraw onMount={setEditor} />
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw onMount={setEditor} />
+			<button style={{ position: 'absolute', top: 64, left: 8, zIndex: 1000 }} onClick={toggleTool}>
+				{isEnabled ? 'Remove heart tool' : 'Add heart tool'}
+			</button>
+		</div>
+	)
 }
 ```
 
-When removing a tool, check whether the user is currently using it. If so, transition to a different tool like select to avoid leaving the editor in an invalid state. The `setTool` method adds a tool constructor to the state chart, while `removeTool` removes it.
+When removing a tool, check whether the user is currently using it. If so, transition to a different tool like select to avoid leaving the editor in an invalid state. `setTool` throws if a tool with the same id is already registered.
 
 ## Related examples
 
-- **[Custom tool (sticker)](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shapes/tools/custom-tool)** - A simple custom tool that adds a heart emoji sticker to the canvas when you click, demonstrating the basics of extending StateNode.
-- **[Custom tool with child states](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shapes/tools/tool-with-child-states)** - Expands on the sticker tool to show how to create a tool with complex interactions using child states in the state machine.
-- **[Screenshot tool](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shapes/tools/screenshot-tool)** - A custom tool that takes a screenshot of a specific area of the canvas, demonstrating how to handle multi-step interactions.
-- **[Lasso select tool](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/editor-api/lasso-select-tool)** - A custom selection tool that uses freehand drawing to select shapes, showing how to build alternative selection tools with reactive atoms and overlays.
-- **[Add a tool to the toolbar](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/ui/add-tool-to-toolbar)** - Shows how to make your custom tool icon appear on tldraw's toolbar by overriding the toolbar component and providing custom assets.
-- **[Remove a tool from the toolbar](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/ui/remove-tool)** - Shows how to remove a default tool from the toolbar using UI overrides.
-- **[Dynamic tools with setTool and removeTool](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/editor-api/dynamic-tools)** - Demonstrates how to dynamically add and remove tools from the editor's state chart after initialization, useful for conditional tool availability.
+- [Custom tool (sticker)](/examples/shapes/tools/custom-tool) - A tool that adds a heart sticker to the canvas when you click.
+- [Custom tool with child states](/examples/shapes/tools/tool-with-child-states) - The sticker tool rebuilt with idle, pointing, and dragging child states.
+- [Screenshot tool](/examples/shapes/tools/screenshot-tool) - Drag a box on the canvas and export it as an image.
+- [Lasso select tool](/examples/editor-api/lasso-select-tool) - A freehand selection tool built with reactive atoms and overlays.
+- [Add a tool to the toolbar](/examples/ui/add-tool-to-toolbar) - Put a custom tool in the toolbar and keyboard shortcuts dialog with custom assets.
+- [Remove a tool from the toolbar](/examples/ui/remove-tool) - Remove a default tool with UI overrides.
+- [Dynamic tools with setTool and removeTool](/examples/editor-api/dynamic-tools) - Add and remove tools from the state chart after initialization.

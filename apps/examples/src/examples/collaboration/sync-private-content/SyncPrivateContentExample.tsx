@@ -26,7 +26,7 @@ const components: TLComponents = {
 	InFrontOfTheCanvas: () => {
 		const editor = useEditor()
 		const isInSelectTool = useIsToolSelected(useTools().select)
-		const userId = useValue('userId', () => editor.user.getId(), [])
+		const userId = useValue('userId', () => editor.user.getExternalId(), [editor])
 		const myPrivateSelectedShapes = useValue(
 			'private shapes',
 			() =>
@@ -87,7 +87,7 @@ function App({ roomId }: { roomId: string }) {
 				options={{ deepLinks: true }}
 				// [4]
 				getShapeVisibility={(shape, editor) => {
-					const userId = editor.user.getId()
+					const userId = editor.user.getExternalId()
 					if (!!shape.meta.private && shape.meta.ownerId !== userId) {
 						return 'hidden'
 					}
@@ -95,26 +95,34 @@ function App({ roomId }: { roomId: string }) {
 				}}
 				onMount={(editor) => {
 					// [5]
-					editor.store.sideEffects.registerBeforeCreateHandler('shape', (shape) => {
-						if ('private' in shape.meta) return shape
-						return {
-							...shape,
-							meta: {
-								...shape.meta,
-								private: isPrivateMode$.get(),
-								ownerId: editor.user.getId(),
-							},
+					const removeCreateHandler = editor.store.sideEffects.registerBeforeCreateHandler(
+						'shape',
+						(shape) => {
+							if ('private' in shape.meta) return shape
+							return {
+								...shape,
+								meta: {
+									...shape.meta,
+									private: isPrivateMode$.get(),
+									ownerId: editor.user.getExternalId(),
+								},
+							}
 						}
-					})
+					)
 
 					// [6]
-					return react('clean up selection', () => {
+					const stopCleaningSelection = react('clean up selection', () => {
 						const selectedShapes = editor.getSelectedShapes()
 						const filteredSelectedShapes = selectedShapes.filter((s) => !editor.isShapeHidden(s))
 						if (filteredSelectedShapes.length !== selectedShapes.length) {
 							editor.select(...filteredSelectedShapes)
 						}
 					})
+
+					return () => {
+						removeCreateHandler()
+						stopCleaningSelection()
+					}
 				}}
 				components={components}
 			/>
@@ -130,17 +138,36 @@ export default function SyncPrivateContentExample({ roomId }: { roomId: string }
 	)
 }
 
-/**
- * This example demonstrates how to create a 'private' drawing mode where any shapes created by one person cannot be seen by another.
- * It sets up a simple ownership system where each shape created is tagged with the id of the user who created it.
- * It also adds a boolean flag to each shape called 'private' which is set to true if the shape is created in private mode.
- * If the user selects one or more private shapes, they will be given the option to make them public.
- *
- * 1. We create a context to store the atom that will hold the state of the private drawing mode. We are using signals here but you can use any state management library you like.
- * 2. We override the `InFrontOfTheCanvas` component to add a tool panel at the top of the screen that allows the user to toggle private drawing mode on and off, and to make private shapes public.
- * 3. We use the context to get the atom that holds the state of the private drawing mode. We then have to call 'useValue' on the atom to get the current value in a reactive way.
- * 4. We override the `getShapeVisibility` function to hide shapes that are private and not owned by the current user.
- * 5. We register a side effect that adds the 'private' and 'ownerId' meta fields to each shape created. We set the 'private' field to the current value of the private drawing mode atom.
- * 6. We register a side effect that cleans up the selection by removing any hidden shapes from the selection. This re-runs whenever the selection or the hidden state of a selected shape changes.
- * 7. Child shapes (e.g inside groups and frames) do not inherit the 'private' meta property from their parent. So when making a shape public, we decide to also make all descendant shapes public since this is most likely what the user intended.
- */
+/*
+A 'private' drawing mode: shapes created while it is on are tagged with the creator's id and hidden
+from everyone else. Selecting your own private shapes offers to make them public.
+
+[1]
+A context holding the atom for the private-mode flag. Signals are used here, but any state
+container works.
+
+[2]
+The `InFrontOfTheCanvas` slot hosts a small panel that toggles private mode, or, when private shapes
+are selected, offers to make them public.
+
+[3]
+`useValue` on the atom gives the panel a reactive read of the flag.
+
+[4]
+`getShapeVisibility` hides shapes that are private and owned by someone else. Hidden shapes are
+still in the store and still sync; they're just not rendered or hittable for this user.
+
+[5]
+A before-create side effect stamps every new shape with `private` and `ownerId` meta. Because it
+runs in the store, it covers every creation path (tools, paste, duplicate), not just the ones this
+UI knows about. `onMount` returns a cleanup so the handler and the reaction below are removed when
+the editor unmounts.
+
+[6]
+A reaction that drops hidden shapes from the selection. Without it, toggling private mode while a
+now-hidden shape is selected would leave an invisible selection.
+
+[7]
+Child shapes inside groups and frames don't inherit their parent's `private` meta, so making a
+shape public also makes its descendants public, which is what the user almost certainly meant.
+*/

@@ -22,7 +22,7 @@ accuracy: 10
 notes: ''
 ---
 
-The tldraw SDK provides two objects for detecting the user's environment: `tlenv` for fixed browser and platform information, and `tlenvReactive` for values that change during a session (like whether the user is using touch input). We use these internally to work around browser quirks, and you can use them in custom shapes or tools.
+The tldraw SDK provides two objects for detecting the user's environment. [tlenv](?) holds fixed browser and platform information. [tlenvReactive](?) holds values that change during a session, like whether the user is currently using touch input. We use these internally to work around browser quirks, and you can use them in custom shapes or tools.
 
 ## Static environment: tlenv
 
@@ -43,15 +43,22 @@ tlenv.isDarwin // true if macOS
 
 // Capability detection
 tlenv.hasCanvasSupport // true if Promise and HTMLCanvasElement exist
+tlenv.isTouchDevice // true if the device has a touch screen
 ```
+
+`isTouchDevice` reflects the hardware, so it stays true on a touchscreen laptop even while the user is using a mouse. For the pointer currently in use, read `isCoarsePointer` from `tlenvReactive` below.
 
 ### Common patterns
 
 **Platform-specific keyboard shortcuts:**
 
 ```typescript
-// Use Cmd on Mac, Ctrl elsewhere
-const accelKey = tlenv.isDarwin ? e.metaKey : e.ctrlKey
+import { isAccelKey } from 'tldraw'
+
+// Cmd on Mac, Ctrl elsewhere
+if (isAccelKey(e)) {
+	// Handle the shortcut
+}
 ```
 
 **Mobile detection:**
@@ -74,7 +81,7 @@ if (tlenv.isSafari) {
 
 ## Reactive environment: tlenvReactive
 
-The `tlenvReactive` atom contains values that can change during a session, like the current pointer type. Use `useValue` to subscribe to changes in React components.
+The `tlenvReactive` atom contains values that can change during a session: `isCoarsePointer` (the current pointer type) and `supportsP3ColorSpace` (whether the current display supports the P3 color gamut). Use [useValue](?) to subscribe to changes in React components.
 
 ```tsx
 import { tlenvReactive, useValue } from 'tldraw'
@@ -93,7 +100,7 @@ function TouchFriendlyButton() {
 
 ### Coarse pointer detection
 
-The `isCoarsePointer` value tracks whether the user is currently using touch input. We detect this two ways: by listening to the `(any-pointer: coarse)` media query, and by checking `pointerType` on each pointer event. This dual approach handles devices that support both mouse and touch—like laptops with touchscreens—where the user might switch input methods mid-session.
+The `isCoarsePointer` value tracks whether the user is currently using touch input. We detect this two ways: by listening to the `(any-pointer: coarse)` media query, and by checking `pointerType` on each pointer down event. Any pointer that isn't a mouse counts as coarse, so pen input switches to coarse mode too. Laptops with touchscreens can switch input methods mid-session; the pointer down check catches that.
 
 ```typescript
 import { tlenvReactive, react } from 'tldraw'
@@ -110,14 +117,38 @@ react('pointer type changed', () => {
 
 Note: We force fine pointer mode on Firefox desktop regardless of the actual input device, since Firefox's coarse pointer reporting is unreliable there.
 
+## Cross-window contexts
+
+When the editor is mounted inside an iframe, an Electron pop-out window, or an Obsidian plugin, the global `document` and `window` aren't necessarily the ones the editor's DOM lives in. Reading `document.activeElement` or attaching a listener to the global `window` will silently fail or target the wrong frame.
+
+Use the editor's container helpers instead of bare globals. They are marked internal, so their signatures may change, but they are what the SDK itself uses:
+
+```typescript
+const doc = editor.getContainerDocument() // the document the editor is mounted in
+const win = editor.getContainerWindow() // the window the editor is mounted in
+```
+
+When you have a DOM node and want the document or window that owns it (rather than where the editor lives), use the standalone helpers:
+
+```typescript
+import { getOwnerDocument, getOwnerWindow } from 'tldraw'
+
+const doc = getOwnerDocument(node)
+const win = getOwnerWindow(node)
+```
+
+These are what the editor uses internally for export, measurement, focus tracking, and event listeners. Custom shapes and tools that touch the DOM directly should use them too. Anything that calls `document` or `window` directly will target the wrong realm once your app is embedded in an iframe or pop-out window.
+
 ## Browser quirks we handle
 
 Here's a sample of what we use environment detection for internally.
 
-**Safari** has the most workarounds. SVG-to-image export fails silently unless we add a 250ms delay after loading the image—a WebKit bug that's been open for years. We also draw minimap triangles four times because Safari's WebGL implementation sometimes drops draw calls. Text outlines render incorrectly, so we disable them entirely on Safari.
+**Safari** has the most workarounds. During SVG-to-image export, Safari fires the image's load event before the fonts inside the SVG have loaded, so we wait an extra 250ms—a WebKit bug that's been open for years. Text outlines are a performance problem on Safari, so we disable them there.
 
-**iOS** coalesced pointer events are broken (they report wrong coordinates), so we skip them entirely and use individual events. We also handle the virtual keyboard differently since iOS doesn't fire standard resize events.
+**iOS** support for coalesced pointer events is unreliable (`getCoalescedEvents` is sometimes missing entirely), so we skip coalesced events on iOS and dispatch individual pointer events instead. We also skip Safari's proprietary `GestureEvent` on iOS.
 
 **Firefox** desktop's `(any-pointer: coarse)` media query reports false positives when a touchscreen is present but not in use. We force fine pointer mode on Firefox desktop to avoid jumpy UI.
 
-**Chrome for iOS** has its own print implementation that doesn't trigger the standard `beforeprint` event, so we detect it and handle printing manually.
+**Chrome for iOS** has its own print implementation that doesn't trigger the standard `beforeprint` event, so we call our print handler manually before printing. Safari desktop needs `document.execCommand('print')` instead of `window.print()`.
+
+See [Instance state](/sdk-features/instance-state) for `isCoarsePointer` on the instance record, which mirrors `tlenvReactive`.

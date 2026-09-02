@@ -1,6 +1,7 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	DEFAULT_THEME,
+	Editor,
 	TLDefaultColor,
 	TLTheme,
 	TLThemeFont,
@@ -17,9 +18,6 @@ import silkscreenRegularUrl from './custom-font/Silkscreen-Regular.ttf'
 import './custom-theme.css'
 
 // [1]
-// Extend the type system so TypeScript knows about our custom color and font.
-// Because we pass `themes` to `<Tldraw>`, the custom names are
-// registered automatically at store creation time.
 declare module '@tldraw/tlschema' {
 	interface TLThemeDefaultColors {
 		pink: TLDefaultColor
@@ -28,7 +26,7 @@ declare module '@tldraw/tlschema' {
 		pixel: TLThemeFont
 		cursive: TLThemeFont
 	}
-	// [7] Remove the "light-*" color variants from the palette.
+	// [2]
 	interface TLRemovedDefaultThemeColors {
 		'light-violet': true
 		'light-blue': true
@@ -57,12 +55,11 @@ function makeColor(solid: string, semi: string, pattern: string): TLDefaultColor
 	}
 }
 
-// [2]
+// [3]
 const pinkLight = makeColor('#e91e8c', '#fce4f2', '#f06baf')
 const pinkDark = makeColor('#f06baf', '#3d1a2e', '#e91e8c')
 
-// [8] Custom font — use a local font loaded from a bundled TTF file.
-// The `icon` field provides a React element for the style panel button.
+// [4]
 const pixelFont: TLThemeFont = {
 	fontFamily: "'Silkscreen', sans-serif",
 	icon: <div style={{ fontFamily: 'Silkscreen, sans-serif', fontSize: 16, lineHeight: 1 }}>Aa</div>,
@@ -82,7 +79,9 @@ const pixelFont: TLThemeFont = {
 	],
 }
 
-// Custom font — use a Google Font loaded via full URLs.
+// Custom font — use a Google Font loaded via full URLs. These versioned
+// gstatic URLs expire when Google revs the font; refresh them from
+// https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700 if they 404.
 const cursiveFont: TLThemeFont = {
 	fontFamily: "'Comic Neue', cursive",
 	icon: <div style={{ fontFamily: "'Comic Neue', cursive", fontSize: 16, lineHeight: 1 }}>Aa</div>,
@@ -90,7 +89,7 @@ const cursiveFont: TLThemeFont = {
 		{
 			family: 'Comic Neue',
 			src: {
-				url: 'https://fonts.gstatic.com/s/comicneue/v8/4UaErEJDsxBrF37olUeD_wHLwpteLwtHJlc.woff2',
+				url: 'https://fonts.gstatic.com/s/comicneue/v9/4UaHrEJDsxBrF37olUeD96rp57F2IwM.woff2',
 				format: 'woff2',
 			},
 			weight: 'normal',
@@ -99,7 +98,7 @@ const cursiveFont: TLThemeFont = {
 		{
 			family: 'Comic Neue',
 			src: {
-				url: 'https://fonts.gstatic.com/s/comicneue/v8/4UaFrEJDsxBrF37olUeD96_RTplUKylCNlcw_Q.woff2',
+				url: 'https://fonts.gstatic.com/s/comicneue/v9/4UaErEJDsxBrF37olUeD_xHM8pxULilENlY.woff2',
 				format: 'woff2',
 			},
 			weight: 'bold',
@@ -108,11 +107,11 @@ const cursiveFont: TLThemeFont = {
 	],
 }
 
-// [10] Build a reduced font palette: drop "serif", keep the rest, add custom fonts.
+// [5]
 const { serif: _serif, ...keptFonts } = DEFAULT_THEME.fonts
 const customFonts = { ...keptFonts, pixel: pixelFont, cursive: cursiveFont } as TLTheme['fonts']
 
-// [11] Build a reduced color palette: drop "light-*" variants, add "pink".
+// [6]
 function colorsWithoutLightVariants(base: Record<string, unknown>, pink: TLDefaultColor) {
 	const {
 		'light-violet': _lv,
@@ -124,8 +123,7 @@ function colorsWithoutLightVariants(base: Record<string, unknown>, pink: TLDefau
 	return { ...kept, pink } as TLTheme['colors']['light']
 }
 
-// [12] Translation overrides so the style panel shows human-readable names
-// for our custom colors and fonts instead of raw keys like "color-style.pink".
+// [7]
 const uiOverrides: TLUiOverrides = {
 	translations: {
 		en: {
@@ -136,34 +134,44 @@ const uiOverrides: TLUiOverrides = {
 	},
 }
 
-// [3] Defaults for the adjustable theme values
+// [8]
 const DEFAULTS = {
 	fontSize: 16,
 	lineHeight: 1.35,
 	strokeWidth: 2,
 }
 
+// [9]
+const themes: Partial<TLThemes> = {
+	default: {
+		id: 'default',
+		fontSize: DEFAULTS.fontSize,
+		lineHeight: DEFAULTS.lineHeight,
+		strokeWidth: DEFAULTS.strokeWidth,
+		fonts: customFonts,
+		colors: {
+			light: colorsWithoutLightVariants(DEFAULT_THEME.colors.light, pinkLight),
+			dark: colorsWithoutLightVariants(DEFAULT_THEME.colors.dark, pinkDark),
+		},
+	},
+}
+
 export default function CustomThemeExample() {
 	const [fontSize, setFontSize] = useState(DEFAULTS.fontSize)
 	const [lineHeight, setLineHeight] = useState(DEFAULTS.lineHeight)
 	const [strokeWidth, setStrokeWidth] = useState(DEFAULTS.strokeWidth)
+	const editorRef = useRef<Editor | null>(null)
 
-	// [4] Customize the default theme: add the custom "pink" color,
-	// custom fonts, and merge slider overrides so adjustments apply to both modes.
-	const themes = useMemo<Partial<TLThemes>>(() => {
-		return {
-			default: {
-				id: 'default',
-				fontSize,
-				lineHeight,
-				strokeWidth,
-				fonts: customFonts,
-				colors: {
-					light: colorsWithoutLightVariants(DEFAULT_THEME.colors.light, pinkLight),
-					dark: colorsWithoutLightVariants(DEFAULT_THEME.colors.dark, pinkDark),
-				},
-			},
-		}
+	// Apply slider values to the theme programmatically. Rather than passing
+	// a new `themes` object whenever a value changes (which would recreate the
+	// store and reload the canvas from persistence), we update the existing
+	// "default" theme in place via `editor.updateTheme()`. Spreading the current
+	// theme preserves the custom colors and fonts while overriding the adjusted
+	// values. Shapes re-render reactively without the board flashing.
+	useEffect(() => {
+		const editor = editorRef.current
+		if (!editor) return
+		editor.updateTheme({ ...editor.getTheme('default')!, fontSize, lineHeight, strokeWidth })
 	}, [fontSize, lineHeight, strokeWidth])
 
 	return (
@@ -173,6 +181,7 @@ export default function CustomThemeExample() {
 				themes={themes}
 				overrides={uiOverrides}
 				onMount={(editor) => {
+					editorRef.current = editor
 					if (editor.getCurrentPageShapeIds().size > 0) return
 
 					editor.createShape({
@@ -193,7 +202,7 @@ export default function CustomThemeExample() {
 							richText: toRichText('Hello'),
 						},
 					})
-					// [5] Use the custom "pink" color declared in our themes
+					// [10]
 					editor.createShape({
 						type: 'geo',
 						x: 600,
@@ -206,7 +215,7 @@ export default function CustomThemeExample() {
 						y: 350,
 						props: { richText: toRichText('Theme text'), size: 'l' },
 					})
-					// [9] Use the custom fonts declared in our themes
+					// [11]
 					editor.createShape({
 						type: 'text',
 						x: 350,
@@ -243,7 +252,7 @@ export default function CustomThemeExample() {
 	)
 }
 
-// [6] A panel with sliders to adjust theme values in real time.
+// [12]
 function ThemeControls({
 	fontSize,
 	onFontSizeChange,
@@ -365,63 +374,64 @@ function ThemeSlider({
 /*
 
 [1]
-Extend `TLThemeDefaultColors` and `TLThemeFonts` interfaces via module augmentation
-to add a custom "pink" color and custom "pixel" / "cursive" fonts. Because
-`themes` is passed to `<Tldraw>`, these names are registered
-automatically.
+Extend the `TLThemeDefaultColors` and `TLThemeFonts` interfaces via module
+augmentation so TypeScript knows about the custom "pink" color and the "pixel"
+and "cursive" fonts. Because `themes` is passed to `<Tldraw>`, the names are
+registered with the style enums automatically at store creation.
 
 [2]
-Define color entries for light and dark variants. Each theme definition
-needs a full `TLDefaultColor` entry for the custom color in both palettes.
+Extend `TLRemovedDefaultThemeColors` to remove built-in colors from the type.
+This is the type-level half of removing the "light-*" variants; [6] removes
+them from the theme values.
 
 [3]
-Default values for the adjustable theme properties. These match the defaults
-in `DEFAULT_THEME`.
+Define color entries for light and dark variants. Each theme needs a full
+`TLDefaultColor` entry for the custom color in both palettes.
 
 [4]
-The `themes` object is recomputed whenever a slider changes.
-Because `Tldraw` accepts `themes` as a prop, updating the object
-triggers a reactive theme change — shapes immediately re-render with the
-new values. The active color mode (light or dark) is determined by the
-user's color scheme preference.
+A custom font has a `fontFamily` CSS string and, for fonts that need loading, a
+`faces` array of `TLFontFace` entries pointing at the font files (here bundled
+locally via import; the cursive font below uses remote URLs). System fonts like
+Arial or Georgia can omit `faces`. The `icon` field is the React element the
+style panel uses as the button for this font; here "Aa" rendered in the font
+itself.
 
 [5]
-Create a shape using the custom "pink" color. Because the theme definition
-declares the color, it passes validation automatically.
+Remove a built-in font: destructure "serif" out of the default font palette and
+spread the rest. The serif option disappears from the style panel and the two
+custom fonts take its place.
 
 [6]
-A panel with sliders for `fontSize`, `lineHeight`, and `strokeWidth`.
-Adjusting these values lets you see in real time how theme values affect
-shape rendering. Try drawing some shapes with different sizes and then
-moving the stroke width slider!
+Remove built-in colors: destructure the "light-*" variants out of the default
+palette. They won't appear in the style panel, and "pink" is added in their place.
+
+[7]
+Translation overrides provide human-readable names for custom style values.
+Without these, the tooltip for "pink" would show the raw key "color-style.pink".
 
 [8]
-Define a custom font with a fontFamily CSS string and font face definitions
-for loading. The `faces` array contains `TLFontFace` entries with URLs to
-the actual font files (here bundled locally via import). For system fonts
-(like Arial or Georgia), you can omit `faces` entirely — they don't need
-loading. The `icon` field provides a React element that the style panel
-uses as the button icon for this font — here a letter "A" rendered in
-the custom font itself.
+Default values for the adjustable theme properties. These match `DEFAULT_THEME`.
 
 [9]
-Create shapes using the custom "pixel" and "cursive" fonts. They show up
-in the style panel alongside the remaining built-in fonts (draw, sans, mono).
+The `themes` prop is a stable object passed once to `<Tldraw>`. It registers the
+custom color and fonts at store creation and seeds the starting values. Slider
+adjustments are applied at runtime with `editor.updateTheme()` rather than by
+passing a new `themes` prop, because a new object would recreate the store and
+reload the canvas from persistence. `updateTheme` updates the active theme
+reactively, so shapes re-render immediately. Which palette (light or dark) is
+used follows the user's color scheme preference.
 
 [10]
-Demonstrate removing a built-in font: destructure out "serif" from the
-default font palette and spread the rest. The serif font option disappears
-from the style panel. Two custom fonts are added in its place.
+Create a shape using the custom "pink" color. Because the theme declares the
+color, it passes validation.
 
 [11]
-Demonstrate removing built-in colors: destructure out the "light-*" color
-variants from the default palette. They won't appear in the style panel.
-The custom "pink" color is added in their place.
+Create shapes using the custom "pixel" and "cursive" fonts. They show up in the
+style panel alongside the remaining built-in fonts (draw, sans, mono).
 
 [12]
-Translation overrides provide human-readable names for custom style values.
-Without these, the tooltip for a custom color like "pink" would show the
-raw translation key "color-style.pink". Pass an `overrides` prop to `<Tldraw>`
-with a `translations` map keyed by locale code (here just `en`).
+A panel with sliders for `fontSize`, `lineHeight`, and `strokeWidth`. Try
+drawing some shapes with different sizes and then moving the stroke width
+slider to see how theme values affect shape rendering.
 
 */

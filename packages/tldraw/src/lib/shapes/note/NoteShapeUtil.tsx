@@ -1,7 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	Box,
-	DefaultFontFamilies,
 	EMPTY_ARRAY,
 	Group2d,
 	IndexKey,
@@ -25,6 +24,7 @@ import {
 	noteShapeMigrations,
 	noteShapeProps,
 	resizeScaled,
+	resolveLineHeightPx,
 	rng,
 	toRichText,
 	useColorMode,
@@ -36,6 +36,7 @@ import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelp
 import { TldrawUiTooltip } from '../../ui/components/primitives/TldrawUiTooltip'
 import { TranslationsContext } from '../../ui/hooks/useTranslation/useTranslation'
 import {
+	isEditingRichTextList,
 	isEmptyRichText,
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,
@@ -177,7 +178,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			fontSizeAdjustment: 1,
 			url: '',
 			scale: 1,
-			textFirstEditedBy: null,
+			textLastEditedBy: null,
 		}
 	}
 
@@ -295,7 +296,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override getReferencedUserIds(shape: TLNoteShape) {
-		return shape.props.textFirstEditedBy ? [shape.props.textFirstEditedBy] : []
+		return shape.props.textLastEditedBy ? [shape.props.textLastEditedBy] : []
 	}
 
 	override getFontFaces(shape: TLNoteShape) {
@@ -307,18 +308,21 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					style: 'normal',
 				})
 
-		if (shape.props.textFirstEditedBy && !isEmptyRichText(shape.props.richText)) {
-			return [...fonts, DefaultFontFaces.tldraw_sans.normal.normal]
-		}
 		const themeFaces = getThemeFontFaces(this.editor.getCurrentTheme(), shape.props.font)
-		if (themeFaces) return [...themeFaces, ...fonts]
+		const textFaces = themeFaces ? [...themeFaces, ...fonts] : fonts
 
-		return fonts.length ? fonts : EMPTY_ARRAY
+		// The attribution line renders in the default sans face regardless of the note's font.
+		// Theme faces come first so an attributed note keeps its custom font (export included).
+		if (shape.props.textLastEditedBy && !isEmptyRichText(shape.props.richText)) {
+			return [...textFaces, DefaultFontFaces.tldraw_sans.normal.normal]
+		}
+
+		return textFaces.length ? textFaces : EMPTY_ARRAY
 	}
 
 	component(shape: TLNoteShape) {
 		const { id, type, props } = shape
-		const { scale, richText, fontSizeAdjustment, textFirstEditedBy } = props
+		const { scale, richText, fontSizeAdjustment, textLastEditedBy } = props
 
 		const handleKeyDown = useNoteKeydownHandler(id)
 
@@ -334,9 +338,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const nw = dv.noteWidth * scale
 		const nh = getNoteHeight(shape, dv.noteHeight)
 
-		// Shadows are hidden when zoomed out far enough or in dark mode
-		let hideShadows = useEfficientZoomThreshold(0.25 / scale)
-		if (colorMode === 'dark') hideShadows = true
+		// Shadows are hidden when zoomed out far enough; the cheap borderBottom takes over.
+		const hideShadows = useEfficientZoomThreshold(0.25 / scale)
 
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 
@@ -346,12 +349,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const attribution = useValue(
 			'attribution',
 			() => {
-				if (!textFirstEditedBy || isEmpty) return null
-				const name = this.editor.getAttributionDisplayName(textFirstEditedBy)
+				if (!textLastEditedBy || isEmpty) return null
+				const name = this.editor.getAttributionDisplayName(textLastEditedBy)
 				if (!name) return null
 				return { short: name.split(' ')[0], full: name }
 			},
-			[textFirstEditedBy, isEmpty, this.editor]
+			[textLastEditedBy, isEmpty, this.editor]
 		)
 
 		return (
@@ -458,10 +461,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			),
 		})
 
-		const { textFirstEditedBy } = shape.props
+		const { textLastEditedBy } = shape.props
 		const attributionName =
-			textFirstEditedBy && !isEmptyRichText(shape.props.richText)
-				? this.editor.getAttributionDisplayName(textFirstEditedBy)?.split(' ')[0]
+			textLastEditedBy && !isEmptyRichText(shape.props.richText)
+				? (this.editor.getAttributionDisplayName(textLastEditedBy)?.split(' ')[0] ?? null)
 				: null
 
 		return (
@@ -489,17 +492,26 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					showTextOutline={false}
 				/>
 				{attributionName && (
-					<text
-						x={dv.noteWidth - 8}
-						y={bounds.h - 6}
-						textAnchor="end"
-						fontFamily={DefaultFontFamilies['sans']}
-						fontSize={11}
-						fill={dv.labelColor}
-						opacity={0.6}
+					<foreignObject
+						x={0}
+						y={0}
+						width={dv.noteWidth}
+						height={bounds.h}
+						className="tl-export-embed-styles"
 					>
-						{attributionName}
-					</text>
+						<div style={{ position: 'relative', width: '100%', height: '100%' }}>
+							<div
+								className="tl-note__attribution"
+								style={{
+									fontSize: 11,
+									color: dv.labelColor,
+									opacity: 0.6,
+								}}
+							>
+								{attributionName}
+							</div>
+						</div>
+					</foreignObject>
 				)}
 			</>
 		)
@@ -507,6 +519,21 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override onBeforeCreate(next: TLNoteShape) {
 		return this.getNoteSizeAdjustments(next)
+	}
+
+	override onBeforeDuplicate(
+		_source: TLNoteShape,
+		duplicate: TLNoteShape
+	): TLNoteShape | undefined {
+		// Attribution follows the last person to produce the note's text. Duplicating (or pasting)
+		// a note with text is a new act of authorship by the current user, so re-stamp the copy to
+		// them rather than carrying over the original author's identity. Empty notes have no
+		// attribution to begin with, so leave them alone.
+		if (isEmptyRichText(duplicate.props.richText)) return
+		return {
+			...duplicate,
+			props: { ...duplicate.props, textLastEditedBy: this.editor.getAttributionUserId() },
+		}
 	}
 
 	override onBeforeUpdate(prev: TLNoteShape, next: TLNoteShape) {
@@ -525,12 +552,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			if (isEmptyRichText(next.props.richText)) {
 				shape = {
 					...shape,
-					props: { ...shape.props, textFirstEditedBy: null },
+					props: { ...shape.props, textLastEditedBy: null },
 				}
-			} else if (!prev.props.textFirstEditedBy) {
+			} else {
 				shape = {
 					...shape,
-					props: { ...shape.props, textFirstEditedBy: this.editor.getAttributionUserId() },
+					props: { ...shape.props, textLastEditedBy: this.editor.getAttributionUserId() },
 				}
 			}
 		}
@@ -592,7 +619,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const { richText } = shape.props
 
 		if (isEmptyRichText(richText)) {
-			const minHeight = dv.labelFontSize * dv.labelLineHeight + dv.labelPadding * 2
+			const minHeight =
+				resolveLineHeightPx(dv.labelFontSize, dv.labelLineHeight) + dv.labelPadding * 2
 			return { labelHeight: minHeight, labelWidth: 100, fontSizeAdjustment: 1 }
 		}
 
@@ -668,6 +696,15 @@ function useNoteKeydownHandler(id: TLShapeId) {
 
 			const isTab = e.key === 'Tab'
 			const isCmdEnter = (e.metaKey || e.ctrlKey) && e.key === 'Enter'
+
+			if (isTab && isEditingRichTextList(editor)) {
+				// In a list, let the rich text editor indent the item instead of
+				// creating a new note. Prevent default so Tab doesn't move focus out
+				// of the editor when the item can't be indented (e.g. the first item).
+				e.preventDefault()
+				return
+			}
+
 			if (isTab || isCmdEnter) {
 				e.preventDefault()
 

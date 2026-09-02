@@ -69,7 +69,7 @@
 		"gray-matter": "^4.0.3",
 		"instantsearch.js": "^4.77.1",
 		"js-cookie": "^3.0.5",
-		"next": "^15.5.14",
+		"next": "^16.3.0",
 		"next-mdx-remote-client": "^1.1.2",
 		"next-themes": "^0.3.0",
 		"query-string": "^9.1.1",
@@ -77,7 +77,6 @@
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"react-instantsearch": "^7.15.1",
-		"rehype-autolink-headings": "^7.1.0",
 		"rehype-slug": "^6.0.0",
 		"rehype-slug-custom-id": "^2.0.0",
 		"remark": "^15.0.1",
@@ -108,10 +107,10 @@
 		"patch-package": "^8.0.0",
 		"postcss": "^8.5.1",
 		"postinstall-postinstall": "^2.1.0",
-		"sharp": "^0.33.5",
+		"sharp": "^0.35.3",
 		"tailwindcss": "^3.4.17",
 		"tsx": "^4.19.2",
-		"typescript": "^5.8.3",
+		"typescript": "^7.0.2",
 		"ws": "^8.18.0"
 	}
 }

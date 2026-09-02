@@ -17,9 +17,21 @@ accuracy: 9
 notes: Could use more question-style transitions per voice guide.
 ---
 
-User following lets you track a collaborator's viewport in real-time. When you follow someone, your [camera](/sdk-features/camera) automatically moves to match their view, including page changes and zoom level. The editor handles follow chains (A follows B who follows C) and smoothly interpolates your viewport toward the target on each frame.
+User following lets you track a collaborator's viewport. When you follow someone, your [camera](/sdk-features/camera) moves to match their view, including page changes and zoom level. The editor handles follow chains (A follows B who follows C) and interpolates your viewport toward the target on each frame.
 
-Following works with the [collaboration](/docs/collaboration) presence system to track collaborators. It stops automatically when you interact with the canvas or when the followed user disconnects.
+Following works with the [collaboration](/docs/collaboration) presence system, so it needs a collaborative store. User ids are branded [TLUserId](?) values: take them from presence records, or create one with [createUserId](?). The default People menu already exposes this: clicking a collaborator zooms to them, and the follow button beside their name starts or stops following. The API below is what it calls.
+
+```ts
+import { createUserId } from 'tldraw'
+
+const userId = createUserId('user-abc-123')
+
+editor.startFollowingUser(userId)
+editor.stopFollowingUser()
+editor.zoomToUser(userId)
+```
+
+Following stops when you interact with the canvas or when the followed user disconnects.
 
 ## How it works
 
@@ -27,19 +39,19 @@ Following works with the [collaboration](/docs/collaboration) presence system to
 
 When you call [Editor#startFollowingUser](?), the editor stores the target user ID in `followingUserId` on the instance state and sets up two reactive processes: one watches for page changes and switches pages when the followed user navigates, and another runs on every frame to interpolate your camera toward their viewport.
 
-The frame handler calculates the difference between your current viewport and the target, then applies smooth interpolation using your animation speed preference. This creates an ease-out effect where the camera moves quickly at first and slows as it approaches. Once the viewport difference drops below the `followChaseViewportSnap` threshold (default 2 pixels), the editor locks onto the target and stops interpolating until they move again.
+The frame handler calculates the difference between your current viewport and the target, then interpolates using your animation speed preference. The camera moves quickly at first and slows as it approaches. Once the viewport difference drops below the `followChaseViewportSnap` threshold (default 2 pixels), the editor locks onto the target and mirrors their viewport exactly instead of interpolating. If the animation speed preference is 0, it locks on immediately.
 
 ### Viewport calculation
 
-The editor reads the followed user's camera state and screen bounds from their presence record, constructs their viewport in page space, then resizes your viewport to contain theirs while maintaining your screen's aspect ratio. This ensures you can see everything the followed user sees, regardless of different screen sizes.
+The editor reads the followed user's camera state and screen bounds from their presence record, constructs their viewport in page space, then resizes your viewport to contain theirs while maintaining your screen's aspect ratio. You can see everything the followed user sees, regardless of screen size.
 
-The interpolation uses `lerp` on viewport bounds rather than camera values directly, which produces more natural movement when zoom levels differ. The interpolation factor clamps between 0.1 and 0.8 based on the animation speed preference, preventing both sluggish and aggressive following.
+The interpolation uses `lerp` on viewport bounds rather than camera values directly, which produces more natural movement when zoom levels differ. The interpolation factor clamps between 0.1 and 0.8 based on the animation speed preference, so following is never sluggish or aggressive.
 
 ### Page synchronization
 
 Page changes happen separately from camera movement. A reactive effect watches the followed user's `currentPageId` and immediately switches [pages](/sdk-features/pages) when it changes. The page switch uses a direct store update rather than `setCurrentPage()` to avoid triggering the automatic follow-stopping behavior that occurs on manual page changes.
 
-When switching pages to follow a user, the editor sets an internal `_isLockedOnFollowingUser` flag to prevent camera interpolation from running until the page switch completes. This avoids jarring camera movements during page transitions.
+When switching pages to follow a user, the editor pauses camera interpolation until the page switch completes. This avoids jarring camera movements during page transitions.
 
 ## API methods
 
@@ -48,43 +60,43 @@ When switching pages to follow a user, the editor sets an internal `_isLockedOnF
 Start following a user's viewport. Pass a user ID to set up frame handlers that track their camera and page.
 
 ```ts
-editor.startFollowingUser('user-abc-123')
+editor.startFollowingUser(userId)
 ```
 
 The editor automatically stops following any previously followed user before starting the new follow. If it can't find the target user's presence, the method returns early without starting follow mode.
 
 ### stopFollowingUser
 
-Stop following and return control to the local user. This commits the current camera position to the store and clears `followingUserId` from instance state.
+[Editor#stopFollowingUser](?) stops following and returns control to the local user. This commits the current camera position to the store, clears `followingUserId` from instance state, and emits the editor's `stop-following` event.
 
 ```ts
 editor.stopFollowingUser()
 ```
 
-Following stops automatically when you interact with the canvas through panning, zooming, or selecting shapes. Manual page changes also stop following unless the follow system itself initiated the page change.
+Following stops automatically when you pan or zoom the canvas. Manual page changes also stop following unless the follow system itself initiated the page change.
 
 ### zoomToUser
 
-Move the camera instantly to a user's cursor position without entering follow mode. Use this for one-time navigation to a collaborator's location.
+[Editor#zoomToUser](?) animates the camera to a user's cursor position without entering follow mode. Use this for one-time navigation to a collaborator's location.
 
 ```ts
-editor.zoomToUser('user-abc-123')
-editor.zoomToUser('user-abc-123', { animation: { duration: 200 } })
+editor.zoomToUser(userId)
+editor.zoomToUser(userId, { animation: { duration: 200 } })
 ```
 
-If you're already following someone, `zoomToUser()` stops following first. The method switches pages if necessary, centers the camera on the user's cursor, and briefly highlights their cursor for visual feedback. The highlight clears after `collaboratorIdleTimeoutMs`.
+If you're already following someone, `zoomToUser()` stops following first. The method switches pages if necessary, centers the camera on the user's cursor, and briefly highlights their cursor. The highlight clears after `collaboratorIdleTimeoutMs` (default 3 seconds). If the user is on a different page, the camera jumps without animating.
 
 ## Follow chains
 
 When user A follows user B who is following user C, user A follows user C directly rather than B's view of C. The editor traverses the follow chain until it finds a user who isn't following anyone else.
 
-The traversal maintains a visited set to prevent infinite loops if users create a circular follow chain. If a cycle is detected, it returns the last valid presence before the cycle. This keeps the system stable even with invalid follow configurations.
+The traversal maintains a visited set to prevent infinite loops if users create a circular follow chain. If a cycle is detected, it returns the last valid presence before the cycle.
 
 ```ts
 // A follows B follows C
 // A's camera tracks C's viewport, not B's viewport
-editor.startFollowingUser('user-b')
-// Internally resolves to user-c's presence if user-b is following user-c
+editor.startFollowingUser(userB)
+// Internally resolves to C's presence if B is following C
 ```
 
 The follow chain resolution runs on every frame, so changes in the chain (like B stopping following C) immediately affect A's target viewport without requiring A to restart following.
@@ -96,7 +108,7 @@ The follow chain resolution runs on every frame, so changes in the chain (like B
 The [DefaultFollowingIndicator](?) component displays a colored border around the canvas when you're following someone. It reads `followingUserId` from instance state and fetches the corresponding presence record to get the user's color.
 
 ```tsx
-import { useEditor, usePresence, useValue } from '@tldraw/editor'
+import { TLUserId, useEditor, usePresence, useValue } from 'tldraw'
 
 export function DefaultFollowingIndicator() {
 	const editor = useEditor()
@@ -107,14 +119,14 @@ export function DefaultFollowingIndicator() {
 	return <FollowingIndicatorInner userId={followingUserId} />
 }
 
-function FollowingIndicatorInner({ userId }: { userId: string }) {
+function FollowingIndicatorInner({ userId }: { userId: TLUserId }) {
 	const presence = usePresence(userId)
 	if (!presence) return null
 	return <div className="tlui-following-indicator" style={{ borderColor: presence.color }} />
 }
 ```
 
-You can override this component through the [UI customization](/sdk-features/ui-components) system to change its appearance or add the followed user's name.
+You can override it through the `FollowingIndicator` slot of [TLUiComponents](?) to change its appearance or add the followed user's name. See [UI components](/sdk-features/ui-components).
 
 ### Follow state detection
 
@@ -129,9 +141,9 @@ if (followingUserId) {
 
 The presence records from [Editor#getCollaborators](?) include each user's `followingUserId`, so you can visualize the entire follow graph and show which users are following whom.
 
-## Related
+## Related articles
 
-- [Camera](/sdk-features/camera) - Learn about viewport and camera control
+- [Camera](/sdk-features/camera) - Viewport and camera control
 - [Collaboration](/docs/collaboration) - Set up multiplayer presence and sync
-- [Pages](/sdk-features/pages) - Understand page management
+- [Pages](/sdk-features/pages) - Page management
 - [UI components](/sdk-features/ui-components) - Customize UI elements like the following indicator

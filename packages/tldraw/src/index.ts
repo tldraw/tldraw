@@ -64,9 +64,23 @@ export {
 } from './lib/overlays/ArrowBindingHintOverlayUtil'
 export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
 export { ArrowHintOverlayUtil, type TLArrowHintOverlay } from './lib/overlays/ArrowHintOverlayUtil'
-export { BrushOverlayUtil, type TLBrushOverlay } from './lib/overlays/BrushOverlayUtil'
+export {
+	BrushOverlayUtil,
+	type BrushOverlayUtilDisplayValues,
+	type BrushOverlayUtilOptions,
+	type TLBrushOverlay,
+} from './lib/overlays/BrushOverlayUtil'
 export { ZoomBrushOverlayUtil, type TLZoomBrushOverlay } from './lib/overlays/ZoomBrushOverlayUtil'
 export { ScribbleOverlayUtil, type TLScribbleOverlay } from './lib/overlays/ScribbleOverlayUtil'
+export {
+	CollaboratorHintOverlayUtil,
+	type TLCollaboratorHintOverlay,
+} from './lib/overlays/CollaboratorHintOverlayUtil'
+// Deprecated, but still exported so apps that customized canvas-drawn cursors keep working.
+// oxlint-disable-next-line typescript/no-deprecated
+export { CollaboratorCursorOverlayUtil } from './lib/overlays/CollaboratorCursorOverlayUtil'
+// oxlint-disable-next-line typescript/no-deprecated
+export type { TLCollaboratorCursorOverlay } from './lib/overlays/CollaboratorCursorOverlayUtil'
 export {
 	CollaboratorBrushOverlayUtil,
 	type TLCollaboratorBrushOverlay,
@@ -76,14 +90,6 @@ export {
 	type TLCollaboratorScribbleOverlay,
 } from './lib/overlays/CollaboratorScribbleOverlayUtil'
 export {
-	CollaboratorHintOverlayUtil,
-	type TLCollaboratorHintOverlay,
-} from './lib/overlays/CollaboratorHintOverlayUtil'
-export {
-	CollaboratorCursorOverlayUtil,
-	type TLCollaboratorCursorOverlay,
-} from './lib/overlays/CollaboratorCursorOverlayUtil'
-export {
 	CollaboratorShapeIndicatorOverlayUtil,
 	type TLCollaboratorShapeIndicatorOverlay,
 } from './lib/overlays/CollaboratorShapeIndicatorOverlayUtil'
@@ -91,6 +97,10 @@ export {
 	ShapeHandleOverlayUtil,
 	type TLShapeHandleOverlay,
 } from './lib/overlays/ShapeHandleOverlayUtil'
+export {
+	ShapeIndicatorOverlayUtil,
+	type TLShapeIndicatorOverlay,
+} from './lib/overlays/ShapeIndicatorOverlayUtil'
 export {
 	SelectionForegroundOverlayUtil,
 	type TLSelectionForegroundOverlay,
@@ -107,8 +117,10 @@ export {
 	embedShapePermissionDefaults,
 	unknownEmbedShapePermissionOverrides,
 	type CustomEmbedDefinition,
+	type DefaultEmbedConfig,
 	type DefaultEmbedDefinitionType,
 	type EmbedDefinition,
+	type GoogleMapsEmbedConfig,
 	type TLEmbedDefinition,
 	type TLEmbedShapePermissions,
 } from './lib/defaultEmbedDefinitions'
@@ -207,7 +219,11 @@ export {
 	type GeoShapeOptions,
 	type GeoShapeUtilDisplayValues,
 } from './lib/shapes/geo/GeoShapeUtil'
-export { type GeoTypeDefinition } from './lib/shapes/geo/getGeoShapePath'
+export {
+	defaultGeoTypeDefinitions,
+	getGeoTypeDefinition,
+	type GeoTypeDefinition,
+} from './lib/shapes/geo/getGeoShapePath'
 export { HighlightShapeTool } from './lib/shapes/highlight/HighlightShapeTool'
 export {
 	HighlightShapeUtil,
@@ -250,7 +266,6 @@ export {
 export { getStroke } from './lib/shapes/shared/freehand/getStroke'
 export { getStrokeOutlinePoints } from './lib/shapes/shared/freehand/getStrokeOutlinePoints'
 export { getStrokePoints } from './lib/shapes/shared/freehand/getStrokePoints'
-export { setStrokePointRadii } from './lib/shapes/shared/freehand/setStrokePointRadii'
 export { getSvgPathFromStrokePoints } from './lib/shapes/shared/freehand/svg'
 export { type StrokeOptions, type StrokePoint } from './lib/shapes/shared/freehand/types'
 export {
@@ -351,6 +366,7 @@ export {
 } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
 export { DefaultKeyboardShortcutsDialogContent } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
 export { LanguageMenu } from './lib/ui/components/LanguageMenu'
+export { InputModeMenu } from './lib/ui/components/InputModeMenu'
 export {
 	DefaultMainMenu,
 	type TLUiMainMenuProps,
@@ -380,6 +396,7 @@ export {
 	DuplicateMenuItem,
 	EditLinkMenuItem,
 	EditMenuSubmenu,
+	ExportAsMenuGroup,
 	FitFrameToContentMenuItem,
 	GroupMenuItem,
 	MoveToPageMenu,
@@ -644,6 +661,7 @@ export {
 	AssetToolbarItem,
 	CheckBoxToolbarItem,
 	CloudToolbarItem,
+	CommentToolbarItem,
 	DefaultToolbarContent,
 	DiamondToolbarItem,
 	DrawToolbarItem,
@@ -711,7 +729,11 @@ export {
 	type TLUiActionItem,
 	type TLUiActionsContextType,
 } from './lib/ui/context/actions'
-export { AssetUrlsProvider, useAssetUrls } from './lib/ui/context/asset-urls'
+export {
+	AssetUrlsProvider,
+	useAssetUrls,
+	type AssetUrlsProviderProps,
+} from './lib/ui/context/asset-urls'
 export {
 	BreakPointProvider,
 	useBreakpoint,
@@ -789,6 +811,7 @@ export { RTL_LANGUAGES, type TLUiTranslation } from './lib/ui/hooks/useTranslati
 export {
 	useCurrentTranslation,
 	useDirection,
+	useMaybeCurrentTranslation,
 	useTranslation,
 	type TLUiTranslationContextType,
 	type TLUiTranslationProviderProps,
@@ -811,9 +834,11 @@ export {
 export { sanitizeSvg } from './lib/utils/svg/sanitizeSvg'
 export {
 	defaultAddFontsFromNode,
+	getTipTapDefaultExtensions,
 	KeyboardShiftEnterTweakExtension,
 	renderHtmlFromRichText,
 	renderHtmlFromRichTextForMeasurement,
+	renderHtmlFromRichTextWithExtensions,
 	renderPlaintextFromRichText,
 	renderRichTextFromHTML,
 	tipTapDefaultExtensions,

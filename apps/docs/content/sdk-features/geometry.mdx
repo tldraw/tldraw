@@ -18,11 +18,11 @@ accuracy: 9
 notes: Point2d margin parameter documentation could clarify its actual usage in hitTestLineSegment.
 ---
 
-Geometry in tldraw is a mathematical description of a shape's form. Each shape has a [Geometry2d](?) that defines its outline, bounds, and spatial properties. When you click to select a shape, the geometry determines whether the click hit. When you brush a selection box, the geometry calculates intersections. When you snap an arrow to a shape's edge, the geometry provides the nearest point. For the broader shape system, see [Shapes](/docs/shapes).
+Geometry in tldraw is a mathematical description of a shape's form. Each shape has a [Geometry2d](?) that defines its outline, bounds, and spatial properties. The editor uses it to decide whether a click hit the shape, whether a selection brush intersects it, and where an arrow should snap to its edge. For the broader shape system, see [Shapes](/sdk-features/shapes).
 
 ## How geometry works
 
-Each [ShapeUtil](?) implements a [ShapeUtil#getGeometry](?) method that returns a [Geometry2d](?) instance. The editor calls this method to calculate bounds, test hits, find intersections, and measure distances.
+Each [ShapeUtil](?) implements a [ShapeUtil#getGeometry](?) method that returns a [Geometry2d](?) instance. The editor calls this method to calculate bounds, test hits, find intersections, and measure distances. It receives an optional [TLGeometryOpts](?) with a `context` string, and callers can pass the same option to [Editor#getShapeGeometry](?) to request context-specific geometry.
 
 ```typescript
 class MyShapeUtil extends ShapeUtil<MyShape> {
@@ -196,14 +196,16 @@ new CubicSpline2d({
 
 ### Point2d
 
-A single point. Requires both `point` and `margin` parameters—the margin determines how close a click must be to register as a hit.
+A single point. The constructor requires both `point` and `margin` parameters.
 
 ```typescript
 new Point2d({
 	point: new Vec(50, 50),
-	margin: 10, // clicks within 10 units count as hits
+	margin: 10,
 })
 ```
+
+The `margin` option doesn't expand the hit area: hit-test margins are supplied by the editor at query time, like every other geometry.
 
 ### Group2d
 
@@ -218,7 +220,7 @@ new Group2d({
 })
 ```
 
-Group2d is essential for shapes with multiple parts. The geo shape uses it to combine its outline with its label bounds. The arrow shape uses it to combine the arrow body with its label.
+Use Group2d for shapes with multiple parts. The geo shape uses it to combine its outline with its label bounds. The arrow shape uses it to combine the arrow body with its label. Nested groups are flattened: a Group2d passed as a child contributes its own children.
 
 ## Geometry operations
 
@@ -242,7 +244,7 @@ Get the points that define the geometry's outline:
 const vertices = geometry.vertices // Vec[]
 ```
 
-For curves, this returns a discretized approximation with enough points to represent the curve accurately.
+For curves, this returns a discretized approximation. By default `vertices` excludes label geometry.
 
 ### Hit testing
 
@@ -254,11 +256,13 @@ geometry.hitTestPoint(point, margin, hitInside)
 
 The `margin` expands the hit area. The `hitInside` parameter controls whether points inside unfilled shapes count as hits.
 
-Test if a line segment intersects the geometry:
+Test if a line segment passes within `distance` of the geometry:
 
 ```typescript
 geometry.hitTestLineSegment(A, B, distance)
 ```
+
+After a hit succeeds, the editor calls `geometry.ignoreHit(point)`. Override it to reject hits at specific points and let shapes behind this one be selected instead; the image shape uses this for transparent pixels.
 
 ### Distance and intersection
 
@@ -276,10 +280,12 @@ const distance = geometry.distanceToPoint(point)
 
 Negative distances mean the point is inside a filled geometry.
 
-Get intersection points with a line segment:
+Get intersection points with a line segment, circle, polygon, or polyline:
 
 ```typescript
 const intersections = geometry.intersectLineSegment(A, B)
+const circleHits = geometry.intersectCircle(center, radius)
+const polygonHits = geometry.intersectPolygon(points)
 ```
 
 ### Length, area, and interpolation
@@ -290,6 +296,8 @@ Get the perimeter length and area:
 const length = geometry.length // perimeter length
 const area = geometry.area // enclosed area (0 for open paths)
 ```
+
+A Group2d reports the area of its first child, not the union of its children.
 
 Find a point at a fraction along the edge:
 
@@ -354,7 +362,7 @@ getGeometry(shape: MyShape) {
 }
 ```
 
-The `isLabel` property marks geometry that represents text labels. This affects filtering in some operations.
+The `isLabel` property marks geometry that represents text labels; see [Geometry filtering](#Geometry-filtering).
 
 ### Custom polygons
 
@@ -414,7 +422,7 @@ const geometry = editor.getShapeGeometry(shape)
 const pageBounds = editor.getShapePageBounds(shape)
 ```
 
-The cache invalidates automatically when shape props change. You don't need to manage invalidation yourself.
+The cache invalidates automatically when a shape's props or meta change. You don't need to manage invalidation yourself.
 
 ## Geometry filtering
 
@@ -447,7 +455,7 @@ The geometry system provides filter presets for common scenarios:
 | `EXCLUDE_LABELS`       | No              | Yes               |
 | `EXCLUDE_INTERNAL`     | Yes             | No                |
 
-Most operations use `EXCLUDE_NON_STANDARD` by default, which gives you the shape's main outline without labels or internal geometry.
+The `vertices` and `length` getters, and Group2d's hit tests, default to `EXCLUDE_LABELS`: labels are left out but internal geometry is included. Arrow routing passes `EXCLUDE_NON_STANDARD` to get the bare outline. Pass a filter explicitly to any method that accepts one when you need something else.
 
 ## Advanced options
 
@@ -469,11 +477,9 @@ const label = new Rectangle2d({
 })
 ```
 
-This is useful for labels and other auxiliary geometry that shouldn't change the shape's overall size.
-
 ### ignore
 
-When set on geometry inside a Group2d, that geometry is placed in an `ignoredChildren` array and won't participate in the group's operations like hit testing, bounds calculation, or rendering.
+When set on geometry inside a Group2d, that geometry is placed in an `ignoredChildren` array and won't participate in the group's hit testing, bounds, or other queries. The geometry debug view still draws it.
 
 ```typescript
 new Group2d({
@@ -500,20 +506,20 @@ new Rectangle2d({
 })
 ```
 
-Enable the geometry debug view through the debug panel to visualize shape geometry during development.
+Turn on the `debugGeometry` flag in the debug menu to draw shape geometry on the canvas during development.
 
 ## Transformed geometry
 
-The [TransformedGeometry2d](?) class wraps a geometry with a transformation matrix. This is useful when you need geometry in a different coordinate space without creating new geometry objects.
+The [TransformedGeometry2d](?) class wraps a geometry with a transformation matrix, so you can query it in a different coordinate space without rebuilding it. Group shapes use this to combine their children's geometry in the group's local space.
 
 ```typescript
 const transformed = geometry.transform(matrix)
 ```
 
-All operations on the transformed geometry apply the transformation automatically. One limitation: transformed geometry doesn't support `getSvgPathData()`—you'll need to transform the path data yourself if you need it.
+All operations on the transformed geometry apply the transformation automatically. One limitation: transformed geometry throws from `getSvgPathData()`. Call it on the source geometry and transform the result if you need path data.
 
 ## Related examples
 
-- **[Custom shape geometry](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shapes/tools/shape-with-geometry)** - A house-shaped custom shape using Polygon2d and Group2d geometry.
-- **[Cubic bezier curve shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shapes/tools/cubic-bezier-shape)** - Interactive bezier curve editing with CubicBezier2d geometry and custom handles.
-- **[Custom bounds snapping](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shapes/tools/bounds-snapping-shape)** - Playing card shapes with custom snap geometry so they stack with visible icons.
+- **[Custom shape geometry](/examples/shapes/tools/shape-with-geometry)** - A house-shaped custom shape using Polygon2d and Group2d geometry.
+- **[Cubic bezier curve shape](/examples/shapes/tools/cubic-bezier-shape)** - Interactive bezier curve editing with CubicBezier2d geometry and custom handles.
+- **[Custom bounds snapping](/examples/shapes/tools/bounds-snapping-shape)** - Playing card shapes with custom snap geometry so they stack with visible icons.

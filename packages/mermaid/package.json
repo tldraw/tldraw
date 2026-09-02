@@ -1,13 +1,20 @@
 {
 	"name": "@tldraw/mermaid",
 	"description": "Mermaid diagram to tldraw shape conversion.",
-	"version": "4.5.10",
+	"version": "5.3.2",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
 	},
 	"homepage": "https://tldraw.dev",
 	"license": "SEE LICENSE IN LICENSE.md",
+	"tldraw_product": {
+		"stableId": "tldraw:mermaid",
+		"name": "Mermaid",
+		"type": "feature",
+		"parent": "tldraw:sdk-core",
+		"premium": false
+	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tldraw/tldraw"
@@ -42,7 +49,7 @@
 	"dependencies": {
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
-		"mermaid": "11.12.2"
+		"mermaid": "11.16.1"
 	},
 	"peerDependencies": {
 		"react": "^18.2.0 || ^19.2.1",
@@ -51,6 +58,9 @@
 	},
 	"devDependencies": {
 		"lazyrepo": "0.0.0-alpha.27",
-		"vitest": "^3.2.4"
+		"vitest": "^4.1.7"
+	},
+	"engines": {
+		"node": ">=22.12.0"
 	}
 }

@@ -1,4 +1,4 @@
-import { atom } from '@tldraw/state'
+import { atom, transact } from '@tldraw/state'
 import { publishDates, version } from '../../version'
 import { getDefaultCdnBaseUrl } from '../utils/assets'
 import { importPublicKey, str2ab } from '../utils/licensing'
@@ -6,7 +6,7 @@ import { importPublicKey, str2ab } from '../utils/licensing'
 const GRACE_PERIOD_DAYS = 30
 
 export const FLAGS = {
-	// -- MUTUALLY EXCLUSIVE FLAGS --
+	// -- MUTUALLY EXCLUSIVE FLAGS
 	// Annual means the license expires after a time period, usually 1 year.
 	ANNUAL_LICENSE: 1,
 	// Perpetual means the license never expires up to the max supported version.
@@ -22,6 +22,12 @@ export const FLAGS = {
 	// Native means the license is for native apps which switches
 	// on special-case logic.
 	NATIVE_LICENSE: 1 << 5,
+
+	// -- FEATURE FLAGS --
+	// Collaboration is the umbrella flag for collaboration features; it grants all sub-features.
+	FEAT_COLLABORATION: 1 << 6,
+	// Commenting is the first sub-feature of collaboration.
+	FEAT_COMMENTING: 1 << 7,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
@@ -43,6 +49,23 @@ export interface LicenseInfo {
 	hosts: string[]
 	flags: number
 	expiryDate: string
+}
+
+/**
+ * Names of the licensable product features gated by the license. `collaboration` is an umbrella
+ * that also grants all of its sub-features (currently just `commenting`).
+ *
+ * @internal
+ */
+export type LicenseFeatureName = 'collaboration' | 'commenting'
+
+const NO_FEATURES: Readonly<Record<LicenseFeatureName, boolean>> = {
+	collaboration: false,
+	commenting: false,
+}
+const ALL_FEATURES: Readonly<Record<LicenseFeatureName, boolean>> = {
+	collaboration: true,
+	commenting: true,
 }
 
 /** @internal */
@@ -84,6 +107,8 @@ export interface ValidLicenseKeyResult {
 	isLicensedWithWatermark: boolean
 	isEvaluationLicense: boolean
 	isEvaluationLicenseExpired: boolean
+	isCollaborationEnabled: boolean
+	isCommentingEnabled: boolean
 	daysSinceExpiry: number
 }
 
@@ -98,6 +123,9 @@ export class LicenseManager {
 	public isTest: boolean
 	public isCryptoAvailable: boolean
 	state = atom<LicenseState>('license state', 'pending')
+	featureFlags = atom<Record<LicenseFeatureName, boolean>>('license feature flags', {
+		...NO_FEATURES,
+	})
 	public verbose = true
 
 	constructor(licenseKey: string | undefined, testPublicKey?: string) {
@@ -105,6 +133,14 @@ export class LicenseManager {
 		this.isDevelopment = this.getIsDevelopment()
 		this.publicKey = testPublicKey || this.publicKey
 		this.isCryptoAvailable = !!crypto.subtle
+
+		// In development every feature is enabled (see `getEnabledFeatures`), and that doesn't depend
+		// on the async validation result. Reflect it eagerly so features aren't reported as disabled
+		// during the validation window — or left disabled if validation rejects (the `.catch` below
+		// never sets `featureFlags`). In production the fail-closed default stands until validation.
+		if (this.isDevelopment) {
+			this.featureFlags.set({ ...ALL_FEATURES })
+		}
 
 		this.getLicenseFromKey(licenseKey)
 			.then((result) => {
@@ -116,7 +152,12 @@ export class LicenseManager {
 
 				this.maybeTrack(result, licenseState)
 
-				this.state.set(licenseState)
+				// Update both atoms atomically so dependents never observe the license state and the
+				// feature flags out of sync mid-update.
+				transact(() => {
+					this.state.set(licenseState)
+					this.featureFlags.set(getEnabledFeatures(result, licenseState, this.isDevelopment))
+				})
 			})
 			.catch((error) => {
 				console.error('License validation failed:', error)
@@ -124,13 +165,34 @@ export class LicenseManager {
 			})
 	}
 
+	/**
+	 * Returns whether a given licensable feature is enabled. Reactive: reading this inside a signal
+	 * recomputes when license validation resolves.
+	 */
+	isFeatureEnabled(feature: LicenseFeatureName): boolean {
+		return this.featureFlags.get()[feature]
+	}
+
 	private getIsDevelopment() {
-		// If we are using https on a non-localhost domain we assume it's a production env and a development one otherwise
+		const protocol = window.location.protocol
+		const hostname = window.location.hostname
+
+		// Tauri uses `tauri://localhost` on macOS and Linux and `http://tauri.localhost` on Windows.
+		if (hostname.toLowerCase().endsWith('.localhost')) {
+			return process.env.NODE_ENV !== 'production'
+		}
+
 		return (
-			!['https:', 'vscode-webview:'].includes(window.location.protocol) ||
-			window.location.hostname === 'localhost' ||
+			protocol === 'http:' ||
+			(protocol === 'https:' && this.isLoopbackHost(hostname)) ||
 			process.env.NODE_ENV !== 'production'
 		)
+	}
+
+	private isLoopbackHost(hostname: string) {
+		// localhost, IPv4 loopback (127.0.0.0/8) and IPv6 loopback (::1) are all local development hosts
+		const host = hostname.toLowerCase().replace(/^\[|\]$/g, '')
+		return host === 'localhost' || host === '::1' || /^127(?:\.\d{1,3}){3}$/.test(host)
 	}
 
 	private getTrackType(result: LicenseFromKeyResult, licenseState: LicenseState): TrackType {
@@ -274,9 +336,24 @@ export class LicenseManager {
 			const expiryDate = new Date(licenseInfo.expiryDate)
 			const isAnnualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.ANNUAL_LICENSE)
 			const isPerpetualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.PERPETUAL_LICENSE)
-
 			const isEvaluationLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.EVALUATION_LICENSE)
-			const daysSinceExpiry = this.getDaysSinceExpiry(expiryDate)
+
+			const isAnnualLicenseExpired = isAnnualLicense && this.isAnnualLicenseExpired(expiryDate)
+			const isPerpetualLicenseExpired =
+				isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate)
+
+			// The collaboration umbrella grants all of its sub-features, so commenting is enabled
+			// by either the commenting flag or the collaboration flag.
+			const isCollaborationEnabled = this.isFlagEnabled(licenseInfo.flags, FLAGS.FEAT_COLLABORATION)
+			const isCommentingEnabled =
+				isCollaborationEnabled || this.isFlagEnabled(licenseInfo.flags, FLAGS.FEAT_COMMENTING)
+
+			// For perpetual licenses, the calendar expiry date only gates access to future
+			// major/minor releases; it does not "expire" the license itself. While the user
+			// is still on a covered version we report `daysSinceExpiry` as 0 so consumers
+			// (and the grace-period warning) don't treat them as past expiry.
+			const daysSinceExpiry =
+				isPerpetualLicense && !isPerpetualLicenseExpired ? 0 : this.getDaysSinceExpiry(expiryDate)
 
 			const result: ValidLicenseKeyResult = {
 				license: licenseInfo,
@@ -285,15 +362,17 @@ export class LicenseManager {
 				isDomainValid: this.isDomainValid(licenseInfo),
 				expiryDate,
 				isAnnualLicense,
-				isAnnualLicenseExpired: isAnnualLicense && this.isAnnualLicenseExpired(expiryDate),
+				isAnnualLicenseExpired,
 				isPerpetualLicense,
-				isPerpetualLicenseExpired: isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate),
+				isPerpetualLicenseExpired,
 				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.INTERNAL_LICENSE),
 				isNativeLicense: this.isNativeLicense(licenseInfo),
 				isLicensedWithWatermark: this.isFlagEnabled(licenseInfo.flags, FLAGS.WITH_WATERMARK),
 				isEvaluationLicense,
 				isEvaluationLicenseExpired:
 					isEvaluationLicense && this.isEvaluationLicenseExpired(expiryDate),
+				isCollaborationEnabled,
+				isCommentingEnabled,
 				daysSinceExpiry,
 			}
 			this.outputLicenseInfoIfNeeded(result)
@@ -335,7 +414,9 @@ export class LicenseManager {
 
 			// Glob testing, we only support '*.somedomain.com' right now.
 			if (host.includes('*')) {
-				const globToRegex = new RegExp(host.replace(/\*/g, '.*?'))
+				const globToRegex = new RegExp(
+					normalizedHostOrUrlRegex.replace(/\./g, '\\.').replace(/\*/g, '.*?') + '$'
+				)
 				return globToRegex.test(currentHostname) || globToRegex.test(`www.${currentHostname}`)
 			}
 
@@ -357,14 +438,26 @@ export class LicenseManager {
 	}
 
 	private getExpirationDateWithoutGracePeriod(expiryDate: Date) {
-		return new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate())
+		// The named expiry date is the last day the license is fully usable, so the license
+		// expires at the end of that day, i.e. the start of the following day. We work in UTC
+		// (the expiry date is minted and parsed as a UTC date-only string) so the cutoff is a
+		// single predictable instant for every user regardless of their local timezone.
+		return new Date(
+			Date.UTC(
+				expiryDate.getUTCFullYear(),
+				expiryDate.getUTCMonth(),
+				expiryDate.getUTCDate() + 1 // Add 1 day so the named date is fully usable
+			)
+		)
 	}
 
 	private getExpirationDateWithGracePeriod(expiryDate: Date) {
 		return new Date(
-			expiryDate.getFullYear(),
-			expiryDate.getMonth(),
-			expiryDate.getDate() + GRACE_PERIOD_DAYS + 1 // Add 1 day to include the expiration day
+			Date.UTC(
+				expiryDate.getUTCFullYear(),
+				expiryDate.getUTCMonth(),
+				expiryDate.getUTCDate() + GRACE_PERIOD_DAYS + 1 // Add 1 day to include the expiration day
+			)
 		)
 	}
 
@@ -454,6 +547,45 @@ export class LicenseManager {
 	}
 
 	static className = 'tl-watermark_SEE-LICENSE'
+}
+
+/**
+ * Derives which licensable features are enabled from the parse result and the derived license
+ * state. In development every feature is enabled so SDK developers can build against them; in
+ * production a feature requires both an active, valid license and the corresponding flag.
+ *
+ * @internal
+ */
+export function getEnabledFeatures(
+	result: LicenseFromKeyResult,
+	licenseState: LicenseState,
+	isDevelopment: boolean
+): Record<LicenseFeatureName, boolean> {
+	// Development gets all features so SDK developers can build against them.
+	if (isDevelopment) {
+		return { ...ALL_FEATURES }
+	}
+
+	// Features require an active, valid license. Both the 30-day grace-period 'licensed' state and
+	// the watermark state count as valid; unlicensed/expired/pending do not.
+	if (
+		!result.isLicenseParseable ||
+		(licenseState !== 'licensed' && licenseState !== 'licensed-with-watermark')
+	) {
+		return { ...NO_FEATURES }
+	}
+
+	// Evaluation licenses get every feature so prospects can trial the whole product without us
+	// having to mint per-feature evaluation keys. Expired evaluation licenses are already excluded
+	// above: they resolve to the 'expired' state.
+	if (result.isEvaluationLicense) {
+		return { ...ALL_FEATURES }
+	}
+
+	return {
+		collaboration: result.isCollaborationEnabled,
+		commenting: result.isCommentingEnabled,
+	}
 }
 
 export function getLicenseState(

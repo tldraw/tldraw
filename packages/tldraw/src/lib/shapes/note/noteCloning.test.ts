@@ -241,11 +241,11 @@ describe('Clone handles and attribution', () => {
 		})
 		const updated = editor.getShape<TLNoteShape>(shape.id)!
 		// Sanity check - the source note has attribution set
-		expect(updated.props.textFirstEditedBy).not.toBeNull()
+		expect(updated.props.textLastEditedBy).not.toBeNull()
 		return updated
 	}
 
-	it('Does not preserve textFirstEditedBy when creating an adjacent note via click', () => {
+	it('Does not preserve textLastEditedBy when creating an adjacent note via click', () => {
 		const shape = createNoteWithAttribution()
 
 		editor.select(shape.id)
@@ -261,10 +261,10 @@ describe('Clone handles and attribution', () => {
 
 		const newShape = editor.getLastCreatedShape<TLNoteShape>()
 		expect(newShape.id).not.toBe(shape.id)
-		expect(newShape.props.textFirstEditedBy).toBeNull()
+		expect(newShape.props.textLastEditedBy).toBeNull()
 	})
 
-	it('Does not preserve textFirstEditedBy when creating an adjacent note via drag', () => {
+	it('Does not preserve textLastEditedBy when creating an adjacent note via drag', () => {
 		const shape = createNoteWithAttribution()
 
 		editor.select(shape.id)
@@ -282,7 +282,7 @@ describe('Clone handles and attribution', () => {
 
 		const newShape = editor.getLastCreatedShape<TLNoteShape>()
 		expect(newShape.id).not.toBe(shape.id)
-		expect(newShape.props.textFirstEditedBy).toBeNull()
+		expect(newShape.props.textLastEditedBy).toBeNull()
 
 		editor.pointerUp()
 	})

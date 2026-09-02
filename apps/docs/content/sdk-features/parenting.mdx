@@ -18,7 +18,7 @@ accuracy: 10
 notes: ''
 ---
 
-Every shape in tldraw has a parent. A shape's parent is either the page it lives on or another shape that contains it. This parent-child relationship creates a hierarchy that affects how shapes move, transform, and render. Groups and frames use this hierarchy to contain other shapes; the editor tracks this hierarchy to manage transforms, selection, and rendering order.
+Every shape in tldraw has a parent: either the page it lives on or another shape that contains it. Groups and frames use this hierarchy to hold other shapes. The editor uses it for transforms, selection, and rendering order.
 
 ## The parentId property
 
@@ -34,7 +34,7 @@ const groupedShape = editor.getShape(childShapeId)
 console.log(groupedShape.parentId) // "shape:someGroup"
 ```
 
-You can check what type of parent a shape has using `isPageId` and `isShapeId` from `@tldraw/tlschema`:
+You can check what type of parent a shape has using `isPageId` and `isShapeId`, both exported from `tldraw`:
 
 ```typescript
 import { isPageId, isShapeId } from 'tldraw'
@@ -167,27 +167,31 @@ editor.reparentShapes([shapeA, shapeB], editor.getCurrentPageId())
 
 The method handles coordinate transformation automatically. If the parent is rotated, children's positions and rotations are adjusted so they appear in the same place on the page.
 
-You can optionally specify an insert index to control z-ordering:
+You can pass an `IndexKey` (a fractional index string, not a numeric position) as the third argument to control z-ordering. The reparented shapes are inserted at that key among the new parent's children:
 
 ```typescript
-// Insert at a specific position in the parent's child stack
-editor.reparentShapes([newChild], parentId, insertIndex)
+// Put the child where the group sat in its parent's stack
+editor.reparentShapes([newChild], group.parentId, group.index)
 ```
+
+When you omit `parentId` from [Editor#createShapes](?), the editor picks one for you: the focused group, or a container such as a frame under the shape's `x` and `y`. Deleting a shape with [Editor#deleteShapes](?) also deletes its descendants.
 
 ## Transforms and coordinates
 
 Parent-child relationships affect coordinate systems. A child shape's `x` and `y` are relative to its parent, not the page.
 
-To convert between coordinate systems:
+Use [Editor#getPointInShapeSpace](?) and [Editor#getShapePageTransform](?) to convert between coordinate systems:
 
 ```typescript
-// Convert a page point to a shape's local space ([Editor#getPointInShapeSpace](?))
+// Convert a page point to a shape's local space
 const localPoint = editor.getPointInShapeSpace(parentShape, pagePoint)
 
-// Get a shape's position in page coordinates ([Editor#getShapePageTransform](?))
+// Get a shape's position in page coordinates
 const pageTransform = editor.getShapePageTransform(childShape)
 const pagePoint = pageTransform.point()
 ```
+
+[Editor#getShapeParentTransform](?) and [Editor#getShapeLocalTransform](?) give you the other two pieces of the composition.
 
 When you move a parent, all children move with it. Their local coordinates stay the same, but their page coordinates change.
 
@@ -219,28 +223,11 @@ if (editor.isShapeOrAncestorLocked(myShape)) {
 }
 ```
 
-This is what the editor uses internally to determine if shapes should respond to interactions.
+The editor uses this for pointer interactions and [Editor#updateShapes](?). Bulk operations such as [Editor#deleteShapes](?) only check each shape's own `isLocked`. See [Locked shapes](/sdk-features/locked-shapes).
 
 ## Hidden shapes
 
-The editor can track shape visibility through [Editor#isShapeHidden](?). This only works if you provide a `getShapeVisibility` callback when creating the editor:
-
-```typescript
-const editor = new Editor({
-	getShapeVisibility: (shape, editor) => {
-		// Return 'hidden', 'visible', or 'inherit'
-		return shape.meta.hidden ? 'hidden' : 'inherit'
-	},
-	// ... other options
-})
-
-// Now you can check visibility
-if (editor.isShapeHidden(myShape)) {
-	// Shape won't render (either it or an ancestor is hidden)
-}
-```
-
-A shape is hidden if its visibility is `'hidden'` or if any ancestor is hidden (unless the shape explicitly overrides with `'visible'`). Without a `getShapeVisibility` callback, `isShapeHidden()` always returns `false`.
+Visibility also inherits through the hierarchy: a shape is hidden if the `getShapeVisibility` prop returns `'hidden'` for it or for any ancestor, unless the shape returns `'visible'`. Check with [Editor#isShapeHidden](?). See [Visibility](/sdk-features/visibility).
 
 ## The focused group
 
@@ -248,5 +235,5 @@ The editor tracks a "focused group" that determines which level of the hierarchy
 
 ## Related examples
 
-- **[Layer panel](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/ui/layer-panel)** - Build a hierarchical layer panel that shows parent-child relationships.
-- **[Drag and drop](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shapes/tools/drag-and-drop)** - Handle reparenting when dropping shapes onto containers.
+- [Layer panel](/examples/ui/layer-panel) - Build a hierarchical layer panel that shows parent-child relationships.
+- [Drag and drop](/examples/shapes/tools/drag-and-drop) - Handle reparenting when dropping shapes onto containers, using [ShapeUtil#canReceiveNewChildrenOfType](?) and [ShapeUtil#onDragShapesIn](?).

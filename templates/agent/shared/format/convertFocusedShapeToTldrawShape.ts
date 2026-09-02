@@ -149,10 +149,14 @@ function convertTextShapeToTldrawShape(
 	// Determine the base font size and scale - focusedShape takes priority
 	let textSize: TLDefaultSizeStyle = 's'
 	let scale = 1
+	const font = defaultTextShape.props?.font ?? 'draw'
 
 	if (focusedShape.fontSize) {
 		const { textSize: calculatedTextSize, scale: calculatedScale } =
-			convertFocusedFontSizeToTldrawFontSizeAndScale(focusedShape.fontSize)
+			convertFocusedFontSizeToTldrawFontSizeAndScale(editor, focusedShape.fontSize, {
+				...defaultTextShape.props,
+				font,
+			})
 		textSize = calculatedTextSize
 		scale = calculatedScale
 	} else if (defaultTextShape.props?.size) {
@@ -167,7 +171,6 @@ function convertTextShapeToTldrawShape(
 		focusedShape.maxWidth !== undefined && focusedShape.maxWidth !== null
 			? false
 			: (defaultTextShape.props?.autoSize ?? true)
-	const font = defaultTextShape.props?.font ?? 'draw'
 
 	let richText
 	if (focusedShape.text !== undefined) {
@@ -513,6 +516,8 @@ function convertGeoShapeToTldrawShape(
 				url: defaultGeoShape.props?.url ?? '',
 				verticalAlign: defaultGeoShape.props?.verticalAlign ?? 'middle',
 				w: focusedShape.w ?? defaultGeoShape.props?.w ?? 100,
+				flipX: defaultGeoShape.props?.flipX ?? false,
+				flipY: defaultGeoShape.props?.flipY ?? false,
 			},
 			meta: {
 				note: focusedShape.note ?? defaultGeoShape.meta?.note ?? '',
@@ -564,7 +569,7 @@ function convertNoteShapeToTldrawShape(
 				scale: defaultNoteShape.props?.scale ?? 1,
 				url: defaultNoteShape.props?.url ?? '',
 				verticalAlign: defaultNoteShape.props?.verticalAlign ?? 'middle',
-				textFirstEditedBy: defaultNoteShape.props?.textFirstEditedBy ?? null,
+				textLastEditedBy: defaultNoteShape.props?.textLastEditedBy ?? null,
 			},
 			meta: {
 				note: focusedShape.note ?? defaultNoteShape.meta?.note ?? '',

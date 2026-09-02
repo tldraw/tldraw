@@ -3,6 +3,7 @@ import {
 	computed,
 	createCachedUserResolve,
 	createUserId,
+	Editor,
 	Tldraw,
 	TldrawUiButton,
 	TLNoteShape,
@@ -99,9 +100,7 @@ function AttributionPanel() {
 		[editor]
 	)
 
-	const currentUser = useValue('current-user', () => editor.store.props.users.currentUser.get(), [
-		editor,
-	])
+	const currentUser = useValue(editor.store.props.users.currentUser)
 
 	return (
 		<div className="attribution-panel">
@@ -123,12 +122,16 @@ function AttributionPanel() {
 						<span className="attribution-label">Type</span>
 						<span>{info.type}</span>
 					</div>
-					{info.textFirstEditedByName && (
+					{info.createdByName && (
 						<div className="attribution-row">
-							<span className="attribution-label">Text first edited by</span>
-							<span style={{ color: info.textFirstEditedByColor }}>
-								{info.textFirstEditedByName}
-							</span>
+							<span className="attribution-label">Created by</span>
+							<span style={{ color: info.createdByColor }}>{info.createdByName}</span>
+						</div>
+					)}
+					{info.textLastEditedByName && (
+						<div className="attribution-row">
+							<span className="attribution-label">Text last edited by</span>
+							<span style={{ color: info.textLastEditedByColor }}>{info.textLastEditedByName}</span>
 						</div>
 					)}
 				</div>
@@ -140,31 +143,62 @@ function AttributionPanel() {
 }
 
 // [5]
-function attributionSummary(editor: { store: { props: { users: TLUserStore } } }, shape: TLShape) {
+function attributionSummary(editor: Editor, shape: TLShape) {
+	const createdBy = typeof shape.meta.createdBy === 'string' ? shape.meta.createdBy : null
+	const createdByUser = createdBy
+		? (editor.store.props.users.resolve?.(createdBy).get() ?? null)
+		: null
+
 	const noteProps = shape.type === 'note' ? (shape as TLNoteShape).props : null
-	const textFirstEditedBy = noteProps?.textFirstEditedBy ?? null
-	const textFirstEditedByUser = textFirstEditedBy
-		? (editor.store.props.users.resolve?.(textFirstEditedBy).get() ?? null)
+	const textLastEditedBy = noteProps?.textLastEditedBy ?? null
+	const textLastEditedByUser = textLastEditedBy
+		? (editor.store.props.users.resolve?.(textLastEditedBy).get() ?? null)
 		: null
 
 	return {
 		type: shape.type,
-		textFirstEditedByName: textFirstEditedByUser?.name ?? null,
-		textFirstEditedByColor: textFirstEditedByUser?.color,
+		createdByName: createdByUser?.name ?? null,
+		createdByColor: createdByUser?.color,
+		textLastEditedByName: textLastEditedByUser?.name ?? null,
+		textLastEditedByColor: textLastEditedByUser?.color,
 	}
 }
 
+const components = {
+	TopPanel: UserSwitcher,
+	SharePanel: AttributionPanel,
+}
+
 // [6]
+function handleMount(editor: Editor) {
+	const stampWithCurrentUser = (shape: TLShape) => {
+		if (typeof shape.meta.createdBy === 'string') return shape
+		const userId = editor.getAttributionUserId()
+		if (!userId) return shape
+		return { ...shape, meta: { ...shape.meta, createdBy: userId } }
+	}
+
+	// Shapes persisted before this example started stamping get attributed to whoever is
+	// current on load, without polluting the undo stack
+	const toBackfill = editor
+		.getCurrentPageShapes()
+		.filter((s) => typeof s.meta.createdBy !== 'string')
+		.map(stampWithCurrentUser)
+	if (toBackfill.length) {
+		editor.run(() => editor.updateShapes(toBackfill), { history: 'ignore' })
+	}
+
+	editor.sideEffects.registerBeforeCreateHandler('shape', stampWithCurrentUser)
+}
+
 export default function AttributionExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				persistenceKey="attribution-example"
 				users={users}
-				components={{
-					TopPanel: UserSwitcher,
-					SharePanel: AttributionPanel,
-				}}
+				onMount={handleMount}
+				components={components}
 			/>
 		</div>
 	)
@@ -172,34 +206,31 @@ export default function AttributionExample() {
 
 /*
 [1]
-A fake user directory stored in a reactive atom. In a real app this would be
-backed by your auth system or user service. Each user has an id, display name,
-and color. Because it's an atom, changes (like renaming a user) automatically
-propagate to anything reading from the TLUserStore.
+A fake user directory in a reactive atom. In a real app this would be backed by your
+auth system. Because it's an atom, changes (like renaming a user) propagate to anything
+reading through the `TLUserStore`.
 
 [2]
-The custom TLUserStore. `currentUser` and `resolve` return reactive Signals
-derived from the atoms — any computed or useValue that reads `.get()` on these
-signals will re-evaluate when the underlying data changes.
+The `TLUserStore`. `currentUser` and `resolve` are signals, so `useValue` and computeds
+that read them re-evaluate when the underlying data changes. `createCachedUserResolve`
+returns the same signal for repeated lookups of the same id, which the editor relies on
+to avoid recomputation.
 
 [3]
-The top panel lets you switch which user is "logged in" and edit the active
-user's name. Try drawing a shape as Alice, then renaming her — the attribution
-panel updates live. Switch to Bob and create a note with text to see
-"Text first edited by" appear.
+Switch which user is "logged in" and edit the active user's name. Draw a shape as Alice,
+rename her, and the attribution panel updates live. Switch to Bob and edit a note's text
+to see the built-in "Text last edited by" appear.
 
 [4]
-The panel reads `editor.store.props.users.currentUser.get()` to show who is
-active, and reads shape-specific props (like `textFirstEditedBy` on notes) for
-per-shape attribution. Each attribution field is a user ID string — we call
-`resolve(userId).get()` to get live display data.
+The panel shows the current user and, for the selected shape, resolves `meta.createdBy`
+(set by our side effect) and `textLastEditedBy` (built into note shapes). Both are user
+id strings; `resolve(userId).get()` turns them into live display data.
 
 [5]
-Extracts attribution info from a shape. Note shapes have a `textFirstEditedBy`
-prop that tracks who first edited the note text.
+Read `meta.createdBy` for any shape, plus the built-in `textLastEditedBy` prop on notes.
 
 [6]
-We pass the custom user store as the `users` prop on the Tldraw component.
-The TopPanel shows the user-switcher with name editing, and the SharePanel
-shows the attribution inspector.
+`editor.getAttributionUserId()` returns the current user's id (and makes sure a `user:`
+record exists for them). A `beforeCreate` side effect stamps it onto every new shape's
+`meta.createdBy`, which lets you attribute any shape type, not just notes.
 */

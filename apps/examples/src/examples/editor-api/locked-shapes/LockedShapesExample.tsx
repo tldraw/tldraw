@@ -1,7 +1,21 @@
-import { createShapeId, Tldraw, TldrawUiButton, TLShapeId, toRichText, useEditor } from 'tldraw'
+import { useMemo } from 'react'
+import {
+	atom,
+	createShapeId,
+	Editor,
+	Tldraw,
+	TldrawUiButton,
+	TLComponents,
+	TLShapeId,
+	toRichText,
+	useEditor,
+	useValue,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
+import './locked-shapes.css'
 
-// [1]
+// There's a guide at the bottom of this file!
+
 const TEMPLATE_IDS: TLShapeId[] = [
 	createShapeId('t1'),
 	createShapeId('t2'),
@@ -9,120 +23,115 @@ const TEMPLATE_IDS: TLShapeId[] = [
 	createShapeId('t4'),
 ]
 
-// [2]
+const HOME_POSITIONS = [
+	{ x: 100, y: 100 },
+	{ x: 250, y: 100 },
+	{ x: 100, y: 250 },
+	{ x: 250, y: 250 },
+]
+
+// [1]
+const selectLockedShapes$ = atom('selectLockedShapes', false)
+
 function ControlPanel() {
 	const editor = useEditor()
+	const selectLockedShapes = useValue(selectLockedShapes$)
 
-	// [3] Update locked shapes using ignoreShapeLock option
-	// Without ignoreShapeLock: true, these updates would be blocked
-	const handleScatter = () => {
+	// [2]
+	const moveTemplates = (positions: { x: number; y: number }[]) => {
 		editor.run(
 			() => {
-				editor.updateShapes(
-					TEMPLATE_IDS.map((id) => ({
-						id,
-						type: 'geo',
-						x: 50 + Math.random() * 300,
-						y: 50 + Math.random() * 300,
-					}))
-				)
+				editor.updateShapes(TEMPLATE_IDS.map((id, i) => ({ id, type: 'geo', ...positions[i] })))
 			},
 			{ ignoreShapeLock: true }
 		)
 	}
 
-	const handleReset = () => {
-		editor.run(
-			() => {
-				editor.updateShapes([
-					{ id: TEMPLATE_IDS[0], type: 'geo', x: 100, y: 100 },
-					{ id: TEMPLATE_IDS[1], type: 'geo', x: 250, y: 100 },
-					{ id: TEMPLATE_IDS[2], type: 'geo', x: 100, y: 250 },
-					{ id: TEMPLATE_IDS[3], type: 'geo', x: 250, y: 250 },
-				])
-			},
-			{ ignoreShapeLock: true }
+	const handleScatter = () => {
+		moveTemplates(
+			TEMPLATE_IDS.map(() => ({ x: 50 + Math.random() * 300, y: 50 + Math.random() * 300 }))
 		)
 	}
 
 	return (
-		<div className="tlui-menu">
+		<div className="tlui-menu locked-shapes-panel">
+			<label title="When on, left-click and brush selection include locked shapes.">
+				<input
+					type="checkbox"
+					checked={selectLockedShapes}
+					onChange={() => selectLockedShapes$.set(!selectLockedShapes)}
+				/>
+				Allow selecting locked shapes
+			</label>
 			<TldrawUiButton type="normal" onClick={handleScatter}>
 				Scatter
 			</TldrawUiButton>
-			<TldrawUiButton type="normal" onClick={handleReset}>
+			<TldrawUiButton type="normal" onClick={() => moveTemplates(HOME_POSITIONS)}>
 				Reset
 			</TldrawUiButton>
 		</div>
 	)
 }
 
-const components = {
+const components: TLComponents = {
 	TopPanel: ControlPanel,
 }
 
-// [4]
+// [3]
+function handleMount(editor: Editor) {
+	if (!editor.getShape(TEMPLATE_IDS[0])) {
+		const props = {
+			geo: 'rectangle' as const,
+			w: 130,
+			h: 130,
+			dash: 'dashed' as const,
+			color: 'light-blue' as const,
+			fill: 'semi' as const,
+			richText: toRichText('Locked'),
+		}
+		editor.createShapes(
+			TEMPLATE_IDS.map((id, i) => ({ id, type: 'geo', ...HOME_POSITIONS[i], props }))
+		)
+		editor.toggleLock(TEMPLATE_IDS)
+	}
+	editor.zoomToFit({ animation: { duration: 0 } })
+}
+
 export default function LockedShapesExample() {
+	const selectLockedShapes = useValue(selectLockedShapes$)
+	const options = useMemo(() => ({ selectLockedShapes }), [selectLockedShapes])
+
 	return (
 		<div className="tldraw__editor">
-			<Tldraw
-				components={components}
-				onMount={(editor) => {
-					// Skip if shapes already exist
-					if (editor.getShape(TEMPLATE_IDS[0])) {
-						editor.zoomToFit({ animation: { duration: 0 } })
-						return
-					}
-
-					// [5] Create locked template shapes
-					const shapeProps = {
-						geo: 'rectangle' as const,
-						w: 130,
-						h: 130,
-						dash: 'dashed' as const,
-						color: 'light-blue' as const,
-						fill: 'semi' as const,
-						richText: toRichText('Locked'),
-					}
-
-					editor.createShapes([
-						{ id: TEMPLATE_IDS[0], type: 'geo', x: 100, y: 100, props: shapeProps },
-						{ id: TEMPLATE_IDS[1], type: 'geo', x: 250, y: 100, props: shapeProps },
-						{ id: TEMPLATE_IDS[2], type: 'geo', x: 100, y: 250, props: shapeProps },
-						{ id: TEMPLATE_IDS[3], type: 'geo', x: 250, y: 250, props: shapeProps },
-					])
-
-					// [6] Lock them immediately
-					editor.toggleLock(TEMPLATE_IDS)
-					editor.zoomToFit({ animation: { duration: 0 } })
-				}}
-			/>
+			<Tldraw components={components} options={options} onMount={handleMount} />
 		</div>
 	)
 }
 
 /*
-This example demonstrates the key distinction between locked shapes and programmatic updates:
+Locked shapes can't be moved, resized, edited, or deleted by the user. This example shows two ways the
+editor lets you work around that:
 
-Locked shapes prevent ALL user interaction (dragging, deleting, etc.), but programs can still
-modify them using the ignoreShapeLock option. This is useful for shapes that should be fixed
-in place by the user but need to be repositioned programmatically.
+- `editor.run(fn, { ignoreShapeLock: true })` lifts the lock guard for the duration of the callback, so
+  code can move shapes the user can't drag.
+- The `selectLockedShapes` editor option lets locked shapes be selected by left-click, brush, and
+  scribble selection. Only selection changes; the lock guards still apply to everything else.
 
-[1] Pre-defined shape IDs so we can reference them later.
+Try it: left-click a blue shape and nothing happens (right-click still selects it). Turn on "Allow
+selecting locked shapes" and left-click or brush across one; it selects, but the handles won't move it.
+Scatter and Reset move the shapes regardless of the toggle.
 
-[2] Control panel with action buttons.
+[1]
+The toggle lives in a module-level `atom` so both the control panel (inside the editor) and the example
+component (outside it) can read it with `useValue`. Editor options are read-only once the editor is
+created, so the example passes a new `options` object to `<Tldraw>`, which recreates the editor with
+the new setting. The store is preserved, so the shapes and camera survive the swap.
 
-[3] Both buttons use editor.run() with { ignoreShapeLock: true } to bypass the lock constraint.
-This option allows programmatic updates even though user interactions on these shapes are blocked.
+[2]
+Both buttons wrap `updateShapes` in `editor.run` with `ignoreShapeLock: true`. Without it, updates to
+locked shapes are silently dropped.
 
-[4] The main component sets up the editor.
-
-[5] On mount, we create a 2x2 grid of template shapes.
-
-[6] We immediately lock them with toggleLock(). The key behavior: users cannot move or delete
-these shapes, but the Scatter/Reset buttons can still reposition them programmatically.
-
-Try it:
-- Try dragging any template shape (won't work - they're locked by the user interface)
-- Click Scatter or Reset to see how programmatic updates work with ignoreShapeLock: true
+[3]
+On mount, create a 2x2 grid of shapes and lock them with `toggleLock`. `onMount` runs again whenever the
+editor is recreated, so it checks whether the shapes already exist first.
 */

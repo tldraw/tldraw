@@ -1,15 +1,14 @@
-import { track, useEditor, usePresence } from '@tldraw/editor'
+import { TLUserId, track, useEditor, usePresence } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiRow } from '../primitives/layout'
 import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 
 /** @public */
 export interface TLUiPeopleMenuItemProps {
-	userId: string
+	userId: TLUserId
 }
 
 /** @public @react */
@@ -32,13 +31,13 @@ export const DefaultPeopleMenuItem = track(function DefaultPeopleMenuItem({
 		}
 	}, [editor, userId, trackEvent])
 
-	const theyAreFollowingYou = presence?.followingUserId === editor.user.getId()
+	const theyAreFollowingYou = presence?.followingUserId === editor.user.getRecordId()
 	const youAreFollowingThem = editor.getInstanceState().followingUserId === userId
 
 	if (!presence) return null
 
 	return (
-		<TldrawUiRow
+		<div
 			className="tlui-people-menu__item"
 			data-follow={youAreFollowingThem || theyAreFollowingYou}
 		>
@@ -70,6 +69,6 @@ export const DefaultPeopleMenuItem = track(function DefaultPeopleMenuItem({
 					icon={theyAreFollowingYou ? 'leading' : youAreFollowingThem ? 'following' : 'follow'}
 				/>
 			</TldrawUiButton>
-		</TldrawUiRow>
+		</div>
 	)
 })

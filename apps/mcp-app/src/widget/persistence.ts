@@ -177,7 +177,7 @@ function toAssetRecords(value: unknown): TLAsset[] {
 	return value.filter((a): a is TLAsset => isPlainObject(a) && typeof a.id === 'string')
 }
 
-export interface CheckpointResult {
+interface CheckpointResult {
 	checkpointId: string
 	sessionId: string | null
 	shapes: TLShape[]

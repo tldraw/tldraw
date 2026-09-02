@@ -44,6 +44,7 @@ export class EditingShape extends StateNode {
 			this.parent.setCurrentToolIdMask('text')
 		}
 
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 		updateHoveredShapeId(this.editor)
 		this.editor.select(editingShape)
 	}

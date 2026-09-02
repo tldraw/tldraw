@@ -22,7 +22,7 @@ export const FOCUSED_COLORS = [
 	'white',
 ] as const
 
-export type FocusedColor = (typeof FOCUSED_COLORS)[number]
+type FocusedColor = (typeof FOCUSED_COLORS)[number]
 
 export function asColor(color: string): FocusedColor {
 	if (FOCUSED_COLORS.includes(color as FocusedColor)) {
@@ -38,7 +38,7 @@ export function asColor(color: string): FocusedColor {
 
 // ---- Fill ----
 
-export type FocusedFill = 'none' | 'tint' | 'background' | 'solid' | 'pattern'
+type FocusedFill = 'none' | 'tint' | 'background' | 'solid' | 'pattern'
 
 const FOCUSED_TO_SHAPE_FILLS: Record<FocusedFill, TLDefaultFillStyle> = {
 	none: 'none',

@@ -22,13 +22,13 @@ accuracy: 9
 notes: Some sections could be more direct.
 ---
 
-The `@tldraw/sync` package provides real-time multiplayer collaboration for tldraw. Multiple users can edit the same document simultaneously, see each other's cursors, and follow each other's viewports. The sync system handles connection management, conflict resolution, and presence synchronization automatically.
+The `@tldraw/sync` package provides real-time multiplayer collaboration for tldraw. Multiple users can edit the same document simultaneously, see each other's cursors, and follow each other's viewports. The sync system handles connection management, conflict resolution, and presence.
 
 Collaboration requires a server component to coordinate changes between clients. Use tldraw's demo server for prototyping, or run your own server for production.
 
 ## Quick start with the demo server
 
-The fastest way to add multiplayer is with `useSyncDemo`. This hook connects to a hosted demo server that handles synchronization:
+The fastest way to add multiplayer is with [useSyncDemo](?). This hook connects to a hosted demo server that handles synchronization:
 
 ```tsx
 import { useSyncDemo } from '@tldraw/sync'
@@ -50,7 +50,7 @@ Anyone who opens the app with the same `roomId` will see the same document and e
 
 ## Production setup with useSync
 
-For production, use the `useSync` hook with your own server:
+For production, use the [useSync](?) hook with your own server:
 
 ```tsx
 import { useSync } from '@tldraw/sync'
@@ -79,7 +79,7 @@ export default function Room({ roomId }: { roomId: string }) {
 }
 ```
 
-The `useSync` hook returns a `RemoteTLStoreWithStatus` object with three possible states:
+The `useSync` hook returns a [RemoteTLStoreWithStatus](?) object with three possible states:
 
 | Status          | Description                                                    |
 | --------------- | -------------------------------------------------------------- |
@@ -89,7 +89,7 @@ The `useSync` hook returns a `RemoteTLStoreWithStatus` object with three possibl
 
 ### Asset storage
 
-Production setups require an asset store for handling images, videos, and other files:
+Production setups require a [TLAssetStore](?) for handling images, videos, and other files:
 
 ```tsx
 const myAssetStore: TLAssetStore = {
@@ -117,7 +117,7 @@ See the [Assets](/docs/assets) documentation for more on implementing asset stor
 
 ## User identity
 
-By default, users get a random name and color from localStorage. To customize this, pass a `users` store whose methods return reactive `Signal` values:
+By default, users get a default name and a random color, stored in localStorage. To customize this, pass a [TLUserStore](?) as `users`, whose methods return reactive `Signal` values:
 
 ```tsx
 import { computed, UserRecordType, createUserId } from 'tldraw'
@@ -149,7 +149,7 @@ const users: TLUserStore = {
 
 ### Integrating with useTldrawCurrentUser
 
-If you need to let users edit their preferences through tldraw's UI, use `useTldrawCurrentUser`:
+If you need to let users edit their preferences through tldraw's UI, use [useTldrawCurrentUser](?):
 
 ```tsx
 import { useSyncDemo } from '@tldraw/sync'
@@ -184,7 +184,7 @@ export default function App({ roomId }: { roomId: string }) {
 			return UserRecordType.create({
 				id: createUserId(p.id),
 				name: p.name ?? '',
-				color: p.color ?? undefined,
+				color: p.color ?? '',
 			})
 		})
 		return { currentUser }
@@ -218,7 +218,7 @@ The connection status reflects the WebSocket connection state. When offline, cha
 
 ## Custom presence
 
-The presence system controls what information is shared with other users. By default, it includes cursor position, selected shapes, and viewport bounds. You can customize this with `getUserPresence`:
+The presence system controls what information is shared with other users. By default, it includes cursor position, selected shapes, and viewport bounds. You can customize this with `getUserPresence`, starting from [getDefaultUserPresence](?):
 
 ```tsx
 import { getDefaultUserPresence } from 'tldraw'
@@ -258,22 +258,21 @@ The `uri` option accepts a function that returns a string or Promise. This runs 
 
 ## Running your own server
 
-For production, you'll need to run a sync server. The `@tldraw/sync-core` package provides `TLSocketRoom` for server-side room management.
+For production, you'll need to run a sync server. The `@tldraw/sync-core` package provides [TLSocketRoom](?) for server-side room management.
 
-We provide a complete Cloudflare Workers template that includes:
+Our [Cloudflare Workers template](https://github.com/tldraw/tldraw/tree/main/templates/sync-cloudflare) is the same setup that runs tldraw.com. It includes:
 
 - WebSocket sync via Durable Objects (one per room)
 - Asset storage with R2
 - Bookmark unfurling for URL previews
-- Production-ready architecture that scales automatically
 
 Get started with the template:
 
 ```bash
-npx create-tldraw@latest --template sync-cloudflare
+npm create tldraw@latest -- --template multiplayer
 ```
 
-Or copy the relevant pieces to your existing infrastructure. The template handles the complexity of room lifecycle, connection management, and state persistence.
+Or copy the relevant pieces into your existing infrastructure. See [Sync](/docs/sync) for other server setups.
 
 ### Server architecture
 
@@ -326,15 +325,34 @@ export default function App({ roomId }: { roomId: string }) {
 
 Pass the shape and binding utilities to both the sync hook (for schema registration) and the Tldraw component (for rendering). If they don't match, shapes may fail to sync or render correctly.
 
+`useSyncDemo` adds tldraw's default utilities for you. `useSync` doesn't: when you pass `shapeUtils` or `bindingUtils` to `useSync`, include the defaults yourself, for example `shapeUtils: [...defaultShapeUtils, MyCustomShapeUtil]`.
+
+## Comments
+
+Comment threads sync the same way, through record types you opt into with the `records` option:
+
+```tsx
+import { useSync } from '@tldraw/sync'
+import { commentSchemaRecords } from 'tldraw'
+
+const store = useSync({
+	uri: `wss://your-server.com/sync/${roomId}`,
+	assets: myAssetStore,
+	records: commentSchemaRecords,
+})
+```
+
+Your server's schema needs the same registration. On the server you can also serve comments through the room's object-store lane, which gates them by their own per-session permission. A viewer who can't edit the document can still comment. See [Commenting](/sdk-features/commenting) for the tool, the canvas layer, and the server setup.
+
 ## Building custom sync
 
-The `@tldraw/sync` package handles many complexities: connection management, reconnection, conflict resolution, and protocol versioning. For most applications, it's the right choice. However, you might need custom sync when integrating with existing infrastructure, using a different transport (like WebRTC), or implementing specialized conflict resolution.
+The `@tldraw/sync` package handles connection management, reconnection, conflict resolution, and protocol versioning. For most applications, it's the right choice. You might need custom sync when integrating with existing infrastructure, using a different transport (like WebRTC), or implementing specialized conflict resolution.
 
 tldraw's store provides the primitives you need to build your own sync layer.
 
 ### Listening to changes
 
-The store's `listen` method notifies you when records change:
+The store's [Store#listen](?) method notifies you when records change:
 
 ```tsx
 const unsubscribe = editor.store.listen(
@@ -361,7 +379,7 @@ For sync, you typically want `source: 'user'` (only local changes) and `scope: '
 
 ### Change structure
 
-Changes arrive as a `RecordsDiff` object with three categories:
+Changes arrive as a [RecordsDiff](?) object with three categories:
 
 ```tsx
 interface RecordsDiff<R> {
@@ -375,7 +393,7 @@ Each entry is keyed by record ID. For updates, you get both the previous and cur
 
 ### Applying remote changes
 
-When you receive changes from other clients, wrap them in `mergeRemoteChanges`:
+When you receive changes from other clients, wrap them in [Store#mergeRemoteChanges](?):
 
 ```tsx
 function applyRemoteChanges(records: TLRecord[], deletedIds: TLRecord['id'][]) {
@@ -390,7 +408,7 @@ function applyRemoteChanges(records: TLRecord[], deletedIds: TLRecord['id'][]) {
 }
 ```
 
-This marks the changes as `'remote'` source, so your own listener won't echo them back to the server. It also batches the operations into a single history entry.
+This marks the changes as `'remote'` source, so your own listener won't echo them back to the server. It also batches the operations into a single transaction, and remote changes never enter the undo/redo history.
 
 ### Snapshots and serialization
 
@@ -413,30 +431,20 @@ The snapshot format includes schema information, so tldraw can automatically mig
 
 ### Presence records
 
-User presence (cursors, selections, viewports) uses special `instance_presence` records:
+User presence (cursors, selections, viewports) uses [InstancePresenceRecordType](?) records. Only `userId`, `userName`, and `currentPageId` are required; everything else has a default:
 
 ```tsx
-import { InstancePresenceRecordType } from 'tldraw'
+import { createUserId, InstancePresenceRecordType } from 'tldraw'
 
-// Create a presence record for a remote user
+// Create a presence record for a remote user, keyed by that client's session id
 const presence = InstancePresenceRecordType.create({
-	id: InstancePresenceRecordType.createId(
-		editor.store.id // Store ID identifies this client
-	),
-	userId: 'user-123',
+	id: InstancePresenceRecordType.createId(remoteSessionId),
+	userId: createUserId('user-123'),
 	userName: 'Alice',
 	color: '#ff6b6b',
 	currentPageId: editor.getCurrentPageId(),
 	cursor: { x: 100, y: 200, type: 'default', rotation: 0 },
-	selectedShapeIds: [],
-	camera: { x: 0, y: 0, z: 1 },
-	screenBounds: { x: 0, y: 0, w: 1920, h: 1080 },
 	lastActivityTimestamp: Date.now(),
-	chatMessage: '',
-	brush: null,
-	scribbles: [],
-	followingUserId: null,
-	meta: {},
 })
 
 // Add to store
@@ -445,7 +453,7 @@ editor.store.put([presence])
 // Update cursor position
 editor.store.update(presence.id, (record) => ({
 	...record,
-	cursor: { ...record.cursor, x: 150, y: 250 },
+	cursor: { x: 150, y: 250, type: 'default', rotation: 0 },
 }))
 
 // Remove when user disconnects
@@ -469,10 +477,13 @@ editor.store.listen(
 Here's a minimal example using a WebSocket for broadcast sync (no conflict resolution):
 
 ```tsx
-import { Tldraw, createTLStore, defaultShapeUtils, TLRecord } from 'tldraw'
+import { useEffect, useRef, useState } from 'react'
+import { Tldraw, createTLStore, defaultBindingUtils, defaultShapeUtils } from 'tldraw'
 
 function App() {
-	const [store] = useState(() => createTLStore({ shapeUtils: defaultShapeUtils }))
+	const [store] = useState(() =>
+		createTLStore({ shapeUtils: defaultShapeUtils, bindingUtils: defaultBindingUtils })
+	)
 	const wsRef = useRef<WebSocket | null>(null)
 
 	useEffect(() => {
@@ -519,11 +530,12 @@ function App() {
 }
 ```
 
-This example omits important concerns like initial state sync, reconnection handling, and conflict resolution. For production use, consider starting with `@tldraw/sync` and customizing it, or studying its implementation for guidance on handling these edge cases.
+This example omits initial state sync, reconnection handling, and conflict resolution. For production, start with `@tldraw/sync` and customize it, or study its implementation for how it handles these cases.
 
 ## Related examples
 
 - [Multiplayer sync](/examples/collaboration/sync-demo) — Basic multiplayer setup with the demo server
-- [Custom user](/examples/collaboration/sync-custom-user) — Setting custom user identity for multiplayer
+- [Custom user](/examples/users/sync-custom-user) — Setting custom user identity for multiplayer
 - [Custom presence](/examples/collaboration/sync-custom-presence) — Customizing presence data sent to collaborators
 - [Custom shapes](/examples/collaboration/sync-custom-shape) — Syncing custom shapes with multiplayer
+- [User presence](/examples/collaboration/user-presence) — Manually creating and updating presence records

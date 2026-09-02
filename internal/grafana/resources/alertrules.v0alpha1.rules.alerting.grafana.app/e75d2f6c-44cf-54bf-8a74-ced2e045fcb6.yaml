@@ -1,0 +1,128 @@
+apiVersion: rules.alerting.grafana.app/v0alpha1
+kind: AlertRule
+metadata:
+  annotations:
+    grafana.app/folder: anthropic
+    grafana.com/provenance: ''
+    grafana.com/updateTimestamp: '2026-03-20T11:22:55Z'
+    grafana.com/updatedBy: bf1wptf89bpq8d
+  labels:
+    grafana.app/folder: anthropic
+    grafana.com/group: anthropic
+    grafana.com/group-index: '0'
+  name: e75d2f6c-44cf-54bf-8a74-ced2e045fcb6
+  namespace: stacks-890472
+spec:
+  annotations:
+    description: 'Cost over the last 24h of ${{ $value | humanize }} is more than
+      1.5x the previous 24h.'
+    summary: Anthropic API daily cost spike detected.
+  execErrState: Ok
+  expressions:
+    prometheus_math:
+      model:
+        datasource:
+          IsPrunable: false
+          access: ''
+          apiVersion: ''
+          basicAuth: false
+          basicAuthUser: ''
+          created: '0001-01-01T00:00:00Z'
+          database: ''
+          id: -100
+          isDefault: false
+          jsonData: {}
+          name: __expr__
+          readOnly: false
+          secureJsonData: {}
+          type: __expr__
+          uid: __expr__
+          updated: '0001-01-01T00:00:00Z'
+          url: ''
+          user: ''
+          withCredentials: false
+        expression: is_number($query) || is_nan($query) || is_inf($query)
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: prometheus_math
+        type: math
+      queryType: math
+    query:
+      datasourceUID: grafanacloud-prom
+      model:
+        datasource:
+          type: prometheus
+          uid: grafanacloud-prom
+        expr: |
+          (
+            (
+              sum(gen_ai_cost{job=~"integrations/anthropic/.*"})
+              -
+              sum(gen_ai_cost{job=~"integrations/anthropic/.*"} offset 1d)
+            ) / 100
+            >
+            1.5 *
+            (
+              sum(gen_ai_cost{job=~"integrations/anthropic/.*"} offset 1d)
+              -
+              sum(gen_ai_cost{job=~"integrations/anthropic/.*"} offset 2d)
+            ) / 100
+          )
+          and
+          (
+            sum(gen_ai_cost{job=~"integrations/anthropic/.*"})
+            -
+            sum(gen_ai_cost{job=~"integrations/anthropic/.*"} offset 1d)
+          ) / 100 > 50
+        instant: true
+        intervalMs: 1000
+        maxDataPoints: 43200
+        range: false
+        refId: query
+      queryType: prometheus
+      relativeTimeRange:
+        from: 11m0s
+        to: 1m0s
+    threshold:
+      model:
+        conditions:
+          - evaluator:
+              params:
+                - 0
+              type: gt
+        datasource:
+          IsPrunable: false
+          access: ''
+          apiVersion: ''
+          basicAuth: false
+          basicAuthUser: ''
+          created: '0001-01-01T00:00:00Z'
+          database: ''
+          id: -100
+          isDefault: false
+          jsonData: {}
+          name: __expr__
+          readOnly: false
+          secureJsonData: {}
+          type: __expr__
+          uid: __expr__
+          updated: '0001-01-01T00:00:00Z'
+          url: ''
+          user: ''
+          withCredentials: false
+        expression: prometheus_math
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: threshold
+        type: threshold
+      queryType: threshold
+      source: true
+  for: 5m0s
+  labels:
+    __converted_prometheus_rule__: 'true'
+    severity: warning
+  missingSeriesEvalsToResolve: 10
+  noDataState: Ok
+  title: AnthropicDailyCostSpike
+  trigger:
+    interval: 1m

@@ -22,6 +22,11 @@ const CustomUi = track(() => {
 
 	useEffect(() => {
 		const handleKeyUp = (e: KeyboardEvent) => {
+			if (editor.getEditingShapeId() !== null) return
+			const target = e.target as HTMLElement | null
+			if (target?.isContentEditable) return
+			if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA') return
+
 			switch (e.key) {
 				case 'Delete':
 				case 'Backspace': {
@@ -50,7 +55,7 @@ const CustomUi = track(() => {
 		return () => {
 			window.removeEventListener('keyup', handleKeyUp)
 		}
-	})
+	}, [editor])
 
 	return (
 		<div className="custom-layout">
@@ -82,24 +87,20 @@ const CustomUi = track(() => {
 })
 
 /*
-This example shows how to create your own custom ui for the editor.
-
 [1]
-We render the Tldraw component with the `hideUi` prop. This will hide the default
-toolbar, style menu and pages menu. We also render our custom ui component inside the 
-Tldraw component. This gives us access to the editor instance via React context.
+We render the `Tldraw` component with the `hideUi` prop, which hides the default toolbar, style
+panel, menus, and so on. Our custom UI is rendered as a child of `Tldraw`, which gives it access to
+the editor instance via React context.
 
-The context menu isn't hidden by the `hideUi` prop, if you want to hide it you can
-render the parts that make up the Tldraw component separately and omit the context
-menu. Check out the exploded example to see how to do this.
+The context menu isn't hidden by `hideUi`. If you want to hide it too, render the parts that make
+up the `Tldraw` component separately and omit the context menu; see the exploded example.
 
 [2]
-We use the `track` function to wrap our component. This makes our component reactive- it will
-re-render when the signals it is tracking change. Check out the signals example for more info:
+The component is wrapped in `track()` so it re-renders when the signals it reads change; here
+`editor.getCurrentToolId()` drives which button is active. See the signals example for more:
 https://tldraw.dev/examples/signals
 
-We gain access to the editor instance via the `useEditor` hook. We use the `useEffect` hook
-to add event listeners for keyboard shortcuts. We use editor methods to change the current
-tool and delete shapes.
-
+We get the editor via `useEditor` and add a window `keyup` listener for our own shortcuts. The
+listener skips key presses while a shape is being edited or when an input has focus, so typing text
+doesn't switch tools.
 */

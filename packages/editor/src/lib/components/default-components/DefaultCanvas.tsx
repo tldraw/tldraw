@@ -1,7 +1,7 @@
 import { react } from '@tldraw/state'
 import { useQuickReactor, useValue } from '@tldraw/state-react'
 import { TLShapeId } from '@tldraw/tlschema'
-import { modulate, objectMapValues } from '@tldraw/utils'
+import { objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
 import { Fragment, JSX, useEffect, useRef, useState } from 'react'
 import { tlenv } from '../../globals/environment'
@@ -16,9 +16,10 @@ import { useGestureEvents } from '../../hooks/useGestureEvents'
 import { useScreenBounds } from '../../hooks/useScreenBounds'
 import { ShapeCullingProvider, useShapeCulling } from '../../hooks/useShapeCulling'
 import { Box } from '../../primitives/Box'
-import { toDomPrecision } from '../../primitives/utils'
 import { debugFlags } from '../../utils/debug-flags'
 import { setStyleProperty } from '../../utils/dom'
+import { getHtmlLayerTransform } from '../../utils/getHtmlLayerTransform'
+import { LiveCollaborators } from '../LiveCollaborators'
 import { MenuClickCapture } from '../MenuClickCapture'
 import { Shape } from '../Shape'
 import { CanvasOverlays } from './CanvasOverlays'
@@ -32,7 +33,7 @@ export interface TLCanvasComponentProps {
 export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	const editor = useEditor()
 
-	const { SelectionBackground, Background, SvgDefs } = useEditorComponents()
+	const { Background, SvgDefs } = useEditorComponents()
 
 	const rCanvas = useRef<HTMLDivElement>(null)
 	const rHtmlLayer = useRef<HTMLDivElement>(null)
@@ -63,44 +64,38 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 		[editor]
 	)
 
-	const rMemoizedStuff = useRef({ lodDisableTextOutline: false, allowTextOutline: true })
+	const rMemoizedStuff = useRef({ lodDisableTextOutline: false, canUpdateTextOutline: true })
+
+	useQuickReactor(
+		'set text outline',
+		function setTextOutline() {
+			if (rMemoizedStuff.current.canUpdateTextOutline) {
+				if (tlenv.isSafari) {
+					// We don't allow text outlines on safari for performance reasons
+					container.style.setProperty('--tl-text-outline', 'none')
+					rMemoizedStuff.current.canUpdateTextOutline = false // will prevent this check in the future
+				} else {
+					const efficientZoom = editor.getEfficientZoomLevel()
+					// If we're zoomed way out, and have this option enabled, then we hide text outline
+					const lodDisableTextOutline = efficientZoom < editor.options.textShadowLod
+					// Skip the style update if the property is the same as it was before
+					if (lodDisableTextOutline !== rMemoizedStuff.current.lodDisableTextOutline) {
+						container.style.setProperty(
+							'--tl-text-outline',
+							lodDisableTextOutline ? 'none' : `var(--tl-text-outline-reference)`
+						)
+					}
+					rMemoizedStuff.current.lodDisableTextOutline = lodDisableTextOutline
+				}
+			}
+		},
+		[editor, container]
+	)
 
 	useQuickReactor(
 		'position layers',
 		function positionLayersWhenCameraMoves() {
-			const { x, y, z } = editor.getCamera()
-
-			// This should only run once on first load
-			if (rMemoizedStuff.current.allowTextOutline && tlenv.isSafari) {
-				container.style.setProperty('--tl-text-outline', 'none')
-				rMemoizedStuff.current.allowTextOutline = false
-			}
-
-			// And this should only run if we're not in Safari;
-			// If we're below the lod distance for text shadows, turn them off
-			if (
-				rMemoizedStuff.current.allowTextOutline &&
-				z < editor.options.textShadowLod !== rMemoizedStuff.current.lodDisableTextOutline
-			) {
-				const lodDisableTextOutline = z < editor.options.textShadowLod
-				container.style.setProperty(
-					'--tl-text-outline',
-					lodDisableTextOutline ? 'none' : `var(--tl-text-outline-reference)`
-				)
-				rMemoizedStuff.current.lodDisableTextOutline = lodDisableTextOutline
-			}
-
-			// Because the html container has a width/height of 1px, we
-			// need to create a small offset when zoomed to ensure that
-			// the html container and svg container are lined up exactly.
-			const offset =
-				z >= 1 ? modulate(z, [1, 8], [0.125, 0.5], true) : modulate(z, [0.1, 1], [-2, 0.125], true)
-
-			const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
-				x + offset
-			)}px,${toDomPrecision(y + offset)}px)`
-
-			setStyleProperty(rHtmlLayer.current, 'transform', transform)
+			setStyleProperty(rHtmlLayer.current, 'transform', getHtmlLayerTransform(editor))
 		},
 		[editor, container]
 	)
@@ -152,32 +147,33 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 				{isGridMode && Grid && <GridWrapper />}
 				<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
 					<OnTheCanvasWrapper />
-					{SelectionBackground && <SelectionBackgroundWrapper />}
 					{hideShapes ? null : <ShapesLayer canvasRef={rCanvas} />}
 				</div>
-				<div className="tl-overlays">
-					<CanvasOverlays />
-				</div>
+				<CanvasOverlays />
 				<MovingCameraHitTestBlocker />
 			</div>
-			<div
-				className="tl-canvas__in-front"
-				onPointerDown={editor.markEventAsHandled}
-				onPointerUp={editor.markEventAsHandled}
-				onTouchStart={editor.markEventAsHandled}
-				onTouchEnd={editor.markEventAsHandled}
-			>
-				<InFrontOfTheCanvasWrapper />
-			</div>
+			<InFrontOfTheCanvasWrapper />
+			<LiveCollaborators />
 			<MenuClickCapture />
 		</>
 	)
 }
 
 function InFrontOfTheCanvasWrapper() {
+	const editor = useEditor()
 	const { InFrontOfTheCanvas } = useEditorComponents()
 	if (!InFrontOfTheCanvas) return null
-	return <InFrontOfTheCanvas />
+	return (
+		<div
+			className="tl-canvas__in-front"
+			onPointerDown={editor.markEventAsHandled}
+			onPointerUp={editor.markEventAsHandled}
+			onTouchStart={editor.markEventAsHandled}
+			onTouchEnd={editor.markEventAsHandled}
+		>
+			<InFrontOfTheCanvas />
+		</div>
+	)
 }
 
 function GridWrapper() {
@@ -334,21 +330,6 @@ function DebugSvgCopy({ id, mode }: { id: TLShapeId; mode: 'img' | 'iframe' }) {
 			}}
 		/>
 	)
-}
-
-function SelectionBackgroundWrapper() {
-	const editor = useEditor()
-	const selectionRotation = useValue('selection rotation', () => editor.getSelectionRotation(), [
-		editor,
-	])
-	const selectionBounds = useValue(
-		'selection bounds',
-		() => editor.getSelectionRotatedPageBounds(),
-		[editor]
-	)
-	const { SelectionBackground } = useEditorComponents()
-	if (!selectionBounds || !SelectionBackground) return null
-	return <SelectionBackground bounds={selectionBounds} rotation={selectionRotation} />
 }
 
 function OnTheCanvasWrapper() {

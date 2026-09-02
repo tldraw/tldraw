@@ -10,7 +10,7 @@ export function GeoShapeBody({
 	strokeWidth: unscaledStrokeWidth,
 	fillColor,
 	patternFillFallbackColor,
-	customGeoStyles,
+	customGeoTypes,
 }: {
 	shape: TLGeoShape
 	shouldScale: boolean
@@ -19,13 +19,13 @@ export function GeoShapeBody({
 	strokeWidth: number
 	fillColor: string
 	patternFillFallbackColor: string
-	customGeoStyles?: Record<string, GeoTypeDefinition>
+	customGeoTypes?: Record<string, GeoTypeDefinition>
 }) {
 	const scaleToUse = shouldScale ? shape.props.scale : 1
 	const strokeWidth = unscaledStrokeWidth * scaleToUse
 	const { dash, fill } = shape.props
 
-	const path = getGeoShapePath(shape, unscaledStrokeWidth, customGeoStyles)
+	const path = getGeoShapePath(shape, unscaledStrokeWidth, customGeoTypes)
 	const fillPath =
 		dash === 'draw' && !forceSolid
 			? path.toDrawD({ strokeWidth, randomSeed: shape.id, passes: 1, offset: 0, onlyFilled: true })

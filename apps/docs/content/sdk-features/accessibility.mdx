@@ -54,17 +54,17 @@ export default function App() {
 }
 ```
 
-The `priority` option accepts `'polite'` or `'assertive'`. Polite announcements wait for a pause in speech, while assertive announcements interrupt immediately.
+The `priority` option accepts `'polite'` or `'assertive'` and defaults to `'assertive'`. Polite announcements wait for a pause in speech, while assertive announcements interrupt immediately. See [TLUiA11y](?) for the message type.
 
 > See the [screen reader accessibility example](/examples/ui/screen-reader-accessibility) for custom shape descriptions and announcements.
 
 ## Keyboard navigation
 
-Users can navigate between shapes using the keyboard. Tab moves focus to the next shape in reading order, and Shift+Tab moves to the previous shape. Arrow keys with Ctrl/Cmd move selection to the nearest shape in that direction.
+Users can navigate between shapes using the keyboard. With a shape selected, Tab moves selection to the next shape in reading order and Shift+Tab moves to the previous shape. Arrow keys with Ctrl/Cmd move selection to the nearest shape in that direction, and Ctrl/Cmd+Shift+Down or Up select a group's first child or its parent. [Editor#selectAdjacentShape](?) is the programmatic equivalent.
 
 Tldraw determines reading order by analyzing shape positions on the canvas. Shapes are grouped into rows based on their vertical position, then sorted left-to-right within each row. This creates a natural top-to-bottom, left-to-right reading order similar to text. You can access this order programmatically with [Editor#getCurrentPageShapesInReadingOrder](?).
 
-A "Skip to main content" link appears when users Tab into the editor, allowing keyboard users to jump directly to the first shape on the canvas.
+A "Skip to main content" link appears when users Tab into the editor. It selects the first shape on the canvas and zooms to it.
 
 ### Excluding shapes from keyboard navigation
 
@@ -106,7 +106,7 @@ editor.updateShapes([
 
 ### Custom shape descriptions
 
-Custom shapes can provide screen reader descriptions by overriding [ShapeUtil#getAriaDescriptor](?):
+Give custom shapes screen reader descriptions by overriding [ShapeUtil#getAriaDescriptor](?):
 
 ```tsx
 class CardShapeUtil extends ShapeUtil<CardShape> {
@@ -122,9 +122,9 @@ class CardShapeUtil extends ShapeUtil<CardShape> {
 If your shape has visible text, override [ShapeUtil#getText](?) instead. The announcement system checks `getAriaDescriptor()` first, then falls back to `getText()`:
 
 ```tsx
-class NoteShapeUtil extends ShapeUtil<NoteShape> {
-	getText(shape: NoteShape) {
-		return shape.props.content
+class CardShapeUtil extends ShapeUtil<CardShape> {
+	getText(shape: CardShape) {
+		return shape.props.title
 	}
 
 	// ...
@@ -156,13 +156,13 @@ The hook returns `true` when:
 - The `animationSpeed` preference is 0 (the default when the OS prefers reduced motion)
 - When used outside an editor context, the operating system's reduced motion preference is enabled
 
-Users can toggle reduced motion through the accessibility menu under Help.
+Users can toggle reduced motion through the accessibility menu, found under Preferences in the main menu.
 
 > See the [reduced motion example](/examples/configuration/reduced-motion) for a custom shape that respects motion preferences.
 
 ## Enhanced accessibility mode
 
-The `enhancedA11yMode` user preference adds visible labels to UI elements that normally rely on icons alone. When enabled, the style panel shows text labels for each section like "Color", "Opacity", and "Align", making the interface more navigable for users who need additional context.
+The `enhancedA11yMode` user preference adds visible labels to UI elements that normally rely on icons alone. When enabled, the style panel shows text labels for each section like "Color", "Opacity", and "Align". This helps users who need more context than an icon provides.
 
 Toggle this setting programmatically:
 
@@ -174,7 +174,7 @@ editor.user.updateUserPreferences({
 
 ## Disabling keyboard shortcuts
 
-Some users prefer or require keyboard shortcuts to be disabled, particularly when using assistive technologies that have their own keyboard commands. The `areKeyboardShortcutsEnabled` preference controls this:
+Assistive technologies often have their own keyboard commands that conflict with tldraw's shortcuts. The `areKeyboardShortcutsEnabled` preference lets users turn tldraw's shortcuts off:
 
 ```tsx
 editor.user.updateUserPreferences({
@@ -186,7 +186,7 @@ When disabled, tldraw's keyboard shortcuts don't interfere with assistive techno
 
 ## Accessibility menu
 
-The default UI includes an accessibility submenu under Help with toggles for:
+The default UI includes an accessibility submenu under Preferences in the main menu, with toggles for:
 
 | Setting                     | Effect                                        |
 | --------------------------- | --------------------------------------------- |
@@ -208,17 +208,9 @@ See [AccessibilityMenu](?) for the default implementation.
 
 ## Best practices for custom shapes
 
-When building custom shapes, consider these accessibility guidelines:
+Override `getAriaDescriptor()` or `getText()` to give screen reader users context about what the shape contains. A shape announced as "card" is less useful than "Meeting notes: Q4 planning session".
 
-**Provide meaningful descriptions.** Override `getAriaDescriptor()` or `getText()` to give screen reader users context about what the shape contains. A shape labeled "card" is less useful than "Meeting notes: Q4 planning session".
-
-**Use semantic HTML where possible.** The shape's `component()` renders inside an HTML container. Use appropriate heading levels, lists, and other semantic elements rather than styled divs.
-
-**Support keyboard interaction.** If your shape has interactive elements, ensure they're focusable and operable with the keyboard. Use standard focus indicators and ARIA attributes where needed.
-
-**Respect motion preferences.** Check `usePrefersReducedMotion()` before showing animations. Provide static alternatives for animated content.
-
-**Consider contrast.** Shape colors must meet WCAG contrast requirements against typical backgrounds. The default color styles are designed with accessibility in mind.
+The shape's `component()` renders inside an HTML container, so the usual web accessibility rules apply: use semantic elements rather than styled divs, make interactive elements focusable and operable with the keyboard, and check `usePrefersReducedMotion()` before showing animations.
 
 For more on creating custom shapes, see [Custom shapes](/docs/shapes).
 
@@ -227,7 +219,7 @@ For more on creating custom shapes, see [Custom shapes](/docs/shapes).
 Enable the `a11y` debug flag to log accessibility announcements to the console:
 
 ```tsx
-import { debugFlags } from '@tldraw/editor'
+import { debugFlags } from 'tldraw'
 
 debugFlags.a11y.set(true)
 ```
