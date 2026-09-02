@@ -1,7 +1,7 @@
-import { preventDefault, useContainer } from '@tldraw/editor'
+import { preventDefault, useContainer, usePassThroughWheelEvents } from '@tldraw/editor'
 import classNames from 'classnames'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
-import { ReactNode } from 'react'
+import { ReactNode, useRef, useState } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from './Button/TldrawUiButton'
@@ -84,9 +84,22 @@ export function TldrawUiDropdownMenuContent({
 }: TLUiDropdownMenuContentProps) {
 	const container = useContainer()
 
+	// The menu portals into the container, so it sits outside the canvas and outside any
+	// pass-through root. Without this, a wheel over an open menu never reaches the canvas.
+	// A menu long enough to scroll still scrolls: the hook defers to real scroll containers.
+	//
+	// Opening the menu doesn't re-render this component — radix mounts the content from context
+	// after the root's state changes, and `children` keeps its identity so React bails out here.
+	// A plain ref would still read null, so the node reports itself through state instead.
+	const [content, setContent] = useState<HTMLDivElement | null>(null)
+	const rContent = useRef<HTMLDivElement | null>(null)
+	rContent.current = content
+	usePassThroughWheelEvents(rContent)
+
 	return (
 		<_DropdownMenu.Portal container={container}>
 			<_DropdownMenu.Content
+				ref={setContent}
 				className={classNames('tlui-menu', className)}
 				side={side}
 				sideOffset={sideOffset}
