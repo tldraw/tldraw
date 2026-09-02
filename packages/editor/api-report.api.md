@@ -2105,7 +2105,7 @@ export class Group2d extends Geometry2d {
     // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
-    transform(transform: Mat): Geometry2d;
+    transform(transform: MatModel, opts?: TransformedGeometry2dOptions): Geometry2d;
     // (undocumented)
     uninterpolateAlongEdge(point: VecLike, filters?: Geometry2dFilters): number;
 }

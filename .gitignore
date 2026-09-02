@@ -110,9 +110,9 @@ apps/docs/api
 
 .wrangler
 /vercel.json
-license-report-prod.html
-license-report.html
-license-report.md
+license-report*.html
+license-report*.md
+license-report*.pdf
 
 .bundle-meta.json
 .zed
