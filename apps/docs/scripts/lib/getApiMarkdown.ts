@@ -1,6 +1,3 @@
-import { APIGroup } from '@/types/content-types'
-import { TldrawApiModel } from '@/utils/TldrawApiModel'
-import { TABLE_OF_CONTENTS_CLASSNAME } from '@/utils/config'
 import {
 	ApiClass,
 	ApiConstructSignature,
@@ -25,6 +22,9 @@ import {
 	Excerpt,
 	HeritageType,
 } from '@microsoft/api-extractor-model'
+import { APIGroup } from '@/types/content-types'
+import { TABLE_OF_CONTENTS_CLASSNAME } from '@/utils/config'
+import { TldrawApiModel } from '@/utils/TldrawApiModel'
 import { MarkdownWriter, formatWithPrettier, getPath, getSlug } from './utils'
 
 interface Result {
@@ -303,7 +303,9 @@ function getItemTitle(item: ApiItem) {
 		return 'Constructor'
 	}
 
-	const name = item.displayName
+	// Escape square brackets so a name like `[Symbol.iterator]` followed by the
+	// `(\u00A0)` call parens below doesn't parse as a markdown link.
+	const name = item.displayName.replaceAll('[', '\\[').replaceAll(']', '\\]')
 	if (item.kind === ApiItemKind.Method || item.kind === ApiItemKind.Function) {
 		return `${name}(\u00A0)`
 	}

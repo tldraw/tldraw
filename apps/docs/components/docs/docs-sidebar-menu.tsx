@@ -1,11 +1,11 @@
 'use client'
 
-import { APIGroup } from '@/types/content-types'
-import { cn } from '@/utils/cn'
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react'
 import { ChevronRightIcon } from '@heroicons/react/16/solid'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { APIGroup } from '@/types/content-types'
+import { cn } from '@/utils/cn'
 
 export function DocsSidebarMenu({
 	title,

@@ -1,13 +1,19 @@
 {
 	"name": "@tldraw/state",
 	"description": "tldraw infinite canvas SDK (state).",
-	"version": "4.4.0",
+	"version": "5.3.2",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
 	},
 	"homepage": "https://tldraw.dev",
 	"license": "MIT",
+	"tldraw_product": {
+		"stableId": "tldraw:sdk-core",
+		"name": "SDK",
+		"type": "product",
+		"premium": false
+	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tldraw/tldraw"
@@ -45,7 +51,7 @@
 	"devDependencies": {
 		"@types/lodash": "^4.17.14",
 		"lodash": "^4.17.21",
-		"vitest": "^3.2.4"
+		"vitest": "^4.1.7"
 	},
 	"dependencies": {
 		"@tldraw/utils": "workspace:*"
@@ -55,5 +61,8 @@
 		"entryPoint": "./src/index.ts",
 		"displayName": "@tldraw/state",
 		"tsconfig": "./tsconfig.json"
+	},
+	"engines": {
+		"node": ">=22.12.0"
 	}
 }

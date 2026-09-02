@@ -1,0 +1,20 @@
+.event-blocker__backdrop {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.event-blocker__panel {
+	pointer-events: all;
+	width: 400px;
+	padding: 32px;
+	border-radius: 20px;
+	box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.2);
+	background-color: white;
+}
+
+.event-blocker__panel p {
+	user-select: text;
+}

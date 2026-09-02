@@ -90,12 +90,12 @@ export class LassoingState extends StateNode {
 			return pointInPolygon(vertex, lassoPoints)
 		})
 
-		// Early return if any vertex is not inside the lasso
 		if (!allVerticesInside) {
 			return false
 		}
 
-		// If any shape edges intersect with the lasso, then we know it can't be fully contained by the lasso because of like the mean value theorem or something.
+		// All vertices can be inside the lasso while an edge still crosses it, e.g. a
+		// wide shape inside a concave lasso. Reject those too.
 		if (geometry.isClosed) {
 			if (polygonsIntersect(shapeVertices, lassoPoints)) {
 				return false
@@ -125,26 +125,27 @@ export class LassoingState extends StateNode {
 }
 
 /*
-This is where we define the actual lasso select tool and its functionality.
-
-For a general guide on how to built tools with child states, see the `MiniSelectTool` in the only-editor example.
+For a general guide on building tools with child states, see the `MiniSelectTool` in the only-editor example.
 
 [1]
-The main meat of this tool is in the `LassoingState` class. This is the state that is active when the user has the tool selected and holds the mouse down.
+`LassoingState` is active from pointer down until pointer up.
 
     [a]
-    The `points` attribute is an instance of the `atom` class. This makes the entire thing work by allowing us to reactively read the lasso points from the `Overlays` layer (which we then use to draw the lasso). As the user moves the mouse, `points` will be updated.
+    `points` is an `atom` rather than a plain array so that `LassoOverlayUtil`, which reads it while
+    rendering the canvas overlay, re-renders whenever a point is added.
 
     [b]
-    `onPointerMove()`, which is called when the user moves the mouse, calls `addPointToLasso()`, which adds the current mouse position in page space to `points`.
+    Each pointer move appends the current page-space pointer position to `points`.
 
     [c]
-    `getShapesInLasso()`, alongside `doesLassoFullyContainShape()` handles the logic of figuring out which shapes on the canvas are fully contained within the lasso.
+    A shape counts as inside the lasso when every one of its page-space vertices is inside the lasso
+    polygon and none of its edges cross the lasso outline.
 
     [d]
-    `onPointerUp()`, which is called when the user releases the mouse, calls the state's `complete()` function. This gets all shapes inside the lasso and selects all of them using the editor's `setSelectedShapes()` function.
+    On pointer up (or when the editor completes the interaction some other way, e.g. a menu opens or
+    the page changes), select the enclosed shapes and hand back to the select tool.
 
-In general, if we wanted to add more functionality to the lasso select, we could:
+If you wanted to take the lasso further, you could:
 - live update the selection as the user moves the mouse, similar to how the default select and brush select tools work
 - use modifier keys to add or subtract from the selection instead of just setting the selection
 - properly handle what happens when we select a shape that's grouped with other shapes (do we select the shape within the group or move up a level and select the entire group? what about layers?)

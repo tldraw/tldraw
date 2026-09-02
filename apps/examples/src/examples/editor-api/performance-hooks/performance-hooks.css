@@ -1,0 +1,46 @@
+.perf-panel {
+	position: absolute;
+	bottom: 64px;
+	right: 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 8px 12px;
+	font-size: 12px;
+	min-width: 200px;
+	background-color: var(--tl-color-panel);
+	border-radius: var(--tl-radius-3);
+	box-shadow: var(--tl-shadow-2);
+	pointer-events: none;
+	z-index: var(--tl-layer-panels);
+}
+
+.perf-section {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+
+.perf-section-title {
+	font-size: 12px;
+	margin-bottom: 2px;
+}
+
+.perf-row {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.perf-label {
+	opacity: 0.6;
+}
+
+.perf-value {
+	font-family: var(--tl-font-mono);
+	font-size: 11px;
+}
+
+.perf-hint {
+	opacity: 0.5;
+}

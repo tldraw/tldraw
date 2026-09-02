@@ -3,7 +3,7 @@ title: LLM documentation
 status: published
 author: steveruizok
 date: 2/1/2026
-order: 8
+order: 9
 keywords:
   - llm
   - ai
@@ -15,21 +15,21 @@ keywords:
   - agent
 ---
 
-The tldraw docs are optimized for use with large language models (LLMs). Whether you're using an AI coding assistant, building an agent that works with tldraw, or prompting a chat model, you can access our documentation in formats designed for LLM consumption.
+The tldraw docs are available in formats built for large language models (LLMs): plain-text bundles you can hand to a coding assistant or agent, and a copy-as-markdown button on every article.
 
 ## llms.txt
 
-We publish our documentation at [tldraw.dev/llms.txt](https://tldraw.dev/llms.txt), following the [llms.txt standard](https://llmstxt.org/) for providing LLM-friendly content. This file serves as an index to all SDK documentation, examples, and release notes.
+We publish [tldraw.dev/llms.txt](https://tldraw.dev/llms.txt), following the [llms.txt convention](https://llmstxt.org/). It indexes the SDK feature articles, the examples, and the release notes, and links to several bundles of the same content. The bundles are regenerated on every docs build.
 
-The index includes links to several focused exports:
+| File                                                      | Contents                                     |
+| --------------------------------------------------------- | -------------------------------------------- |
+| [llms.txt](https://tldraw.dev/llms.txt)                   | Index with links to all resources            |
+| [llms-full.txt](https://tldraw.dev/llms-full.txt)         | SDK feature articles, releases, and examples |
+| [llms-docs.txt](https://tldraw.dev/llms-docs.txt)         | SDK feature articles only                    |
+| [llms-releases.txt](https://tldraw.dev/llms-releases.txt) | Release notes only                           |
+| [llms-examples.txt](https://tldraw.dev/llms-examples.txt) | Examples with full source code               |
 
-| File                                                      | Contents                             |
-| --------------------------------------------------------- | ------------------------------------ |
-| [llms.txt](https://tldraw.dev/llms.txt)                   | Index with links to all resources    |
-| [llms-full.txt](https://tldraw.dev/llms-full.txt)         | All SDK docs, releases, and examples |
-| [llms-docs.txt](https://tldraw.dev/llms-docs.txt)         | SDK feature documentation only       |
-| [llms-releases.txt](https://tldraw.dev/llms-releases.txt) | Release notes only                   |
-| [llms-examples.txt](https://tldraw.dev/llms-examples.txt) | Examples with full source code       |
+The guides in this section of the site (under `/docs`) aren't in the bundles. Use the copy button below for those.
 
 ### Using llms.txt with AI assistants
 
@@ -40,24 +40,17 @@ When working with an AI coding assistant, you can provide context by including t
 - Use `llms-releases.txt` when asking about recent changes or migration between versions
 - Use `llms-full.txt` when you need comprehensive context across all documentation
 
-Many AI tools support fetching URLs directly, so you can reference these files by URL in your prompts.
+Many AI tools fetch URLs directly, so you can reference these files by URL in your prompts:
+
+```
+Read https://tldraw.dev/llms-docs.txt, then add a custom shape to my app.
+```
 
 ## Copy markdown button
 
-Every documentation page on tldraw.dev includes a "Copy markdown" button in the header. Click it to copy the page content as clean markdown, ready to paste into any LLM conversation.
+Every article on tldraw.dev has a "Copy markdown" button in its header. Click it to copy the article as markdown, ready to paste into an LLM conversation. The copy keeps headings, code blocks, and links, and strips the site navigation.
 
-This is useful when you want to:
+## Related
 
-- Ask an AI assistant about a specific feature
-- Include documentation context in a prompt
-- Reference our docs in your own documentation or notes
-
-The copied markdown preserves headings, code blocks, links, and other formatting while removing site-specific elements that aren't relevant in a plain text context.
-
-## Building AI-powered apps
-
-If you're building AI-powered applications with tldraw, see our [AI integrations](/docs/ai) guide. It covers patterns for using the canvas with AI models, including:
-
-- Using the canvas to display AI-generated content
-- Building visual workflows with AI nodes
-- Creating AI agents that can read and manipulate the canvas
+- [AI integrations](/docs/ai) — Using the canvas with AI models: generated content, workflows, and agents
+- [Mermaid diagrams](/docs/mermaid) — Turning model-generated diagram text into shapes

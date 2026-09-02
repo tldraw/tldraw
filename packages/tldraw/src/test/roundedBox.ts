@@ -1,6 +1,6 @@
 import { Box } from '@tldraw/editor'
 
-export const roundedBox = (box: Box, accuracy = 0.01) => {
+export function roundedBox(box: Box, accuracy = 0.01) {
 	// for some reason jest treats -0 and 0 as not equal, so prevent -0s from appearing
 	const noNegativeZero = (value: number) => (value === 0 ? 0 : value)
 

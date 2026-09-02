@@ -14,8 +14,8 @@ keywords:
   ]
 ---
 
-You can remove a tool from the user interface.
+Remove the text tool from the toolbar and keyboard shortcuts with a `tools` override.
 
 ---
 
-Using overrides, you can remove a tool from the toolbar, keyboard shortcuts, and other parts of the user interface. The tool will still be present in the application but not accessible to the user.
+The `tools` override in `TLUiOverrides` receives the map of UI tool items and returns the one the UI should use. Deleting an entry removes that tool from the toolbar, its keyboard shortcut, and the keyboard shortcuts dialog. The tool is still registered with the editor, so it can be activated programmatically with `editor.setCurrentTool`. Here we remove the text tool; try pressing `T` and note that nothing happens.

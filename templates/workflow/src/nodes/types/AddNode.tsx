@@ -41,7 +41,7 @@ export class AddNodeDefinition extends NodeDefinition<AddNode> {
 	static validator = AddNode
 	title = 'Add'
 	heading = 'Add'
-	icon = (<AddIcon />)
+	icon = <AddIcon />
 	getDefault(): AddNode {
 		return {
 			type: 'add',

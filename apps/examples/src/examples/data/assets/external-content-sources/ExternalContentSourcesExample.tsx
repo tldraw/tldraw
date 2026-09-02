@@ -20,10 +20,10 @@ declare module 'tldraw' {
 // There's a guide at the bottom of this page!
 
 // [1]
-export type IDangerousHtmlShape = TLShape<typeof DANGEROUS_HTML_TYPE>
+type DangerousHtmlShape = TLShape<typeof DANGEROUS_HTML_TYPE>
 
 // [2]
-class DangerousHtmlExample extends BaseBoxShapeUtil<IDangerousHtmlShape> {
+class DangerousHtmlShapeUtil extends BaseBoxShapeUtil<DangerousHtmlShape> {
 	static override type = DANGEROUS_HTML_TYPE
 
 	override getDefaultProps() {
@@ -34,7 +34,7 @@ class DangerousHtmlExample extends BaseBoxShapeUtil<IDangerousHtmlShape> {
 		}
 	}
 
-	override component(shape: IDangerousHtmlShape) {
+	override component(shape: DangerousHtmlShape) {
 		return (
 			<HTMLContainer style={{ overflow: 'auto' }}>
 				<div dangerouslySetInnerHTML={{ __html: shape.props.html }}></div>
@@ -42,26 +42,27 @@ class DangerousHtmlExample extends BaseBoxShapeUtil<IDangerousHtmlShape> {
 		)
 	}
 
-	override indicator(shape: IDangerousHtmlShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	override getIndicatorPath(shape: DangerousHtmlShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 
-// [3]
+const shapeUtils = [DangerousHtmlShapeUtil]
 
 export default function ExternalContentSourcesExample() {
 	const handleMount = useCallback((editor: Editor) => {
-		// We will register a new handler for text content. When a user pastes `text/html` content into the editor,
-		// we will create a new shape with that html content.
-		// To test this copy some html content from VS Code or some other text editor.
+		// [3]
 		editor.registerExternalContentHandler('text', async (content) => {
+			// [4]
 			const htmlSource = content.sources?.find((s) => s.type === 'text' && s.subtype === 'html')
 
 			if (htmlSource) {
 				const center = content.point ?? editor.getViewportPageBounds().center
 
 				editor.createShape({
-					type: 'dangerous-html',
+					type: DANGEROUS_HTML_TYPE,
 					x: center.x - 250,
 					y: center.y - 150,
 					props: {
@@ -69,7 +70,6 @@ export default function ExternalContentSourcesExample() {
 					},
 				})
 			} else {
-				// otherwise, we'll fall back to the default handler
 				await defaultHandleExternalTextContent(editor, content)
 			}
 		})
@@ -77,30 +77,34 @@ export default function ExternalContentSourcesExample() {
 
 	return (
 		<div className="tldraw__editor">
-			<Tldraw onMount={handleMount} shapeUtils={[DangerousHtmlExample]} />
+			<Tldraw onMount={handleMount} shapeUtils={shapeUtils} />
 		</div>
 	)
 }
 
 /*
-Introduction:
-This example shows how to handle content pasted from external sources, this could be
-embeds, files, svgs, text, images, or urls. In this case we will handle text/html content.
+When content arrives from outside the editor (paste, drop, or `putExternalContent`), it's
+classified as text, files, url, svg-text, embed, or tldraw content and routed to the handler
+registered for that type. This example replaces the text handler so that pasted `text/html`
+becomes a shape that renders the HTML directly.
 
 [1]
-We want to render our html on the canvas, the best way to do that is to create a new shape util.
-Here's where we define the type for our shape.
+The shape type. Its `html` prop holds the raw pasted markup.
 
 [2]
-This is our shape util. It's a class that extends BaseBoxShapeUtil. For a more detailed
-example of how to create a custom shape, see the custom config example.
+A minimal box shape that renders its `html` with `dangerouslySetInnerHTML`. It's called
+"dangerous" for a reason: never do this with HTML you don't trust. See the custom shape
+examples for a fuller shape util.
 
 [3]
-We use the onMount prop to get access to the editor instance via
-the handleMount callback (check out the API example for a more detailed look at this). Then we
-call the registerExternalContentHandler method, we could choose to handle embeds, files, svgs,
-text, images, or urls. For this example we will handle text/html content. The handler is called
-with the point where the user pasted the content and an array of sources. We will find and
-return the html source, then create a new shape with that html content.
+`registerExternalContentHandler('text', ...)` replaces the built-in text handler for this
+editor. The other content types (`files`, `url`, `svg-text`, `embed`, `tldraw`) can be
+overridden the same way.
 
+[4]
+Pasted text arrives with a `sources` array, one entry per clipboard flavor. Rich text
+editors and code editors usually put both `text/plain` and `text/html` on the clipboard.
+When there's an HTML source we create our shape at the paste point (or the viewport center
+for keyboard paste); otherwise we defer to `defaultHandleExternalTextContent`, which
+creates a normal text shape.
 */

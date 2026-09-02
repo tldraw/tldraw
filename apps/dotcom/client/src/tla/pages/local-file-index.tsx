@@ -1,4 +1,4 @@
-/* eslint-disable react/jsx-no-literals */
+/* eslint-disable tldraw/jsx-no-literals */
 import { deleteDB } from 'idb'
 import { Link, useNavigate } from 'react-router-dom'
 import { compact } from 'tldraw'
@@ -37,7 +37,7 @@ export function Component() {
 				{data.map((persistenceKey) => (
 					<li key={persistenceKey}>
 						<Link
-							style={{ color: 'var(--tla-color-primary)' }}
+							style={{ color: 'var(--tl-color-primary)' }}
 							to={routes.tlaLocalFile(persistenceKey)}
 						>
 							{routes.tlaLocalFile(persistenceKey)}

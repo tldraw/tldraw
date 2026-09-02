@@ -1,6 +1,5 @@
 'use client'
 
-import { cn } from '@/utils/cn'
 import {
 	CloseButton,
 	Popover,
@@ -11,6 +10,7 @@ import {
 import { ChevronDownIcon } from '@heroicons/react/16/solid'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import { cn } from '@/utils/cn'
 
 export function NavigationLink({
 	caption,

@@ -35,7 +35,7 @@ import { StyleProp } from './StyleProp'
  */
 export const DefaultDashStyle = StyleProp.defineEnum('tldraw:dash', {
 	defaultValue: 'draw',
-	values: ['draw', 'solid', 'dashed', 'dotted'],
+	values: ['draw', 'solid', 'dashed', 'dotted', 'none'],
 })
 
 /**

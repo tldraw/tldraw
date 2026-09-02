@@ -1,6 +1,5 @@
 'use client'
 
-import { cn } from '@/utils/cn'
 import { MagnifyingGlassIcon as MagnifyingGlassIconSmall } from '@heroicons/react/20/solid'
 import {
 	MagnifyingGlassIcon as MagnifyingGlassIconLarge,
@@ -9,6 +8,7 @@ import {
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { twJoin } from 'tailwind-merge'
+import { cn } from '@/utils/cn'
 import { Search } from '.'
 
 export function SearchButton({

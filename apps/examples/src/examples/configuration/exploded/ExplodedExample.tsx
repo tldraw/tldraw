@@ -5,15 +5,12 @@ import {
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	DefaultContextMenuContent,
 	TldrawEditor,
-	TldrawHandles,
-	TldrawOverlays,
-	TldrawScribble,
-	TldrawSelectionForeground,
-	TldrawShapeIndicators,
 	TldrawUi,
 	defaultAddFontsFromNode,
+	defaultAssetUtils,
 	defaultBindingUtils,
 	defaultEditorAssetUrls,
+	defaultOverlayUtils,
 	defaultShapeTools,
 	defaultShapeUtils,
 	defaultTools,
@@ -28,16 +25,6 @@ import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
 
-// [1]
-const defaultComponents = {
-	Scribble: TldrawScribble,
-	ShapeIndicators: TldrawShapeIndicators,
-	CollaboratorScribble: TldrawScribble,
-	SelectionForeground: TldrawSelectionForeground,
-	Handles: TldrawHandles,
-	Overlays: TldrawOverlays,
-}
-
 const allDefaultTools = [...defaultTools, ...defaultShapeTools]
 const defaultOptions = {
 	text: {
@@ -48,7 +35,7 @@ const defaultOptions = {
 	},
 }
 
-//[2]
+// [1]
 export default function ExplodedExample() {
 	return (
 		<div className="tldraw__editor">
@@ -56,8 +43,9 @@ export default function ExplodedExample() {
 				initialState="select"
 				shapeUtils={defaultShapeUtils}
 				bindingUtils={defaultBindingUtils}
+				assetUtils={defaultAssetUtils}
+				overlayUtils={defaultOverlayUtils}
 				tools={allDefaultTools}
-				components={defaultComponents}
 				persistenceKey="exploded-example"
 				options={defaultOptions}
 				assetUrls={defaultEditorAssetUrls}
@@ -75,7 +63,7 @@ function InsideEditorAndUiContext() {
 	const toasts = useToasts()
 	const msg = useTranslation()
 
-	// [3]
+	// [2]
 	useEffect(() => {
 		registerDefaultExternalContentHandlers(editor, {
 			maxImageDimension: 5000,
@@ -100,27 +88,21 @@ function InsideEditorAndUiContext() {
 	)
 }
 
-/* 
-The tldraw library is built from many sublibraries. This example shows how to build the tldraw
-component from its subcomponents for max customisation. You can edit, omit or add to these
-subcomponents to create your app.
+/*
+The `Tldraw` component is a thin wrapper that wires these pieces together. Assembling them
+yourself lets you swap or omit any of them.
 
-[1] Here we've imported some components from the tldraw library which we will later pass to the
-TldrawEditor component. These components are not part of the more minimal defaults, so we need to
-import them separately. For help creating your own components to pass into the components prop check
-out the custom components example.
+[1]
+`TldrawEditor` is the UI-free editor. Everything the `Tldraw` component normally supplies is
+passed in explicitly here: the default shape utils, binding utils, asset utils, overlay utils,
+tools, asset URLs, and the rich text options. Swap any of these for your own; the custom config example shows
+how to write shapes and tools. `TldrawUi` renders the default UI around it, and the context menu
+is mounted as a child so it can wrap the canvas.
 
-[2] Here we've passed the default components object to the TldrawEditor component. Along with
-default tools and shapeutils, You could input your own custom shapes/tools here. For help creating
-your own shapes/tools check out the custom config example.
-
-We also set the initial state to 'select' and render the UI, context menu and canvas components. You
-could add your own custom components here, omit these ones, and/or change the initial state of the
-application to whatever you want. 
-
-[3] Inside of the editor and UI context, we need to set up extra pieces to get the editor working
-with our default shapes and tools. We register the default external content handlers, which sets up
-handling for things like images and pasted content. We also register the default side effects, which
-react to changes to the editor's store.
-
+[2]
+Two more things the `Tldraw` component does on mount that `TldrawEditor` does not: register the
+default external content handlers (dropped and pasted files, URLs, embeds, SVG text) and the
+default store side effects (for example, resolving an embed's aspect ratio when it is created).
+Both need the toasts and translation contexts from `TldrawUi`, which is why this component is
+rendered inside it.
 */

@@ -1,28 +1,21 @@
 import { Signal, computed } from '@tldraw/state'
-import { TLStore } from './TLStore'
 import { CameraRecordType } from './records/TLCamera'
 import { TLINSTANCE_ID } from './records/TLInstance'
 import { InstancePageStateRecordType } from './records/TLPageState'
 import { TLPOINTER_ID } from './records/TLPointer'
 import { InstancePresenceRecordType, TLInstancePresence } from './records/TLPresence'
+import { TLUser } from './records/TLUser'
+import { TLStore } from './TLStore'
 
-/**
- * The information about a user which is used for multiplayer features.
- * @public
- */
-export interface TLPresenceUserInfo {
+/** @public */
+export interface CreatePresenceStateDerivationOpts {
+	/** Custom instance ID. If not provided, one is generated from the store ID. */
+	instanceId?: TLInstancePresence['id']
 	/**
-	 * id - A unique identifier for the user. This should be the same across all devices and sessions.
+	 * Override how presence state is built from the store and current user.
+	 * Defaults to {@link getDefaultUserPresence}.
 	 */
-	id: string
-	/**
-	 * The user's display name.
-	 */
-	name?: string | null
-	/**
-	 * The user's color. If not given, a random color will be assigned.
-	 */
-	color?: string | null
+	getUserPresence?(store: TLStore, user: TLUser): TLPresenceStateInfo | null
 }
 
 /**
@@ -33,8 +26,8 @@ export interface TLPresenceUserInfo {
  * position, selected shapes, camera position, and user metadata that gets synchronized in
  * multiplayer scenarios.
  *
- * @param $user - A reactive signal containing the user information
- * @param instanceId - Optional custom instance ID. If not provided, one will be generated based on the store ID
+ * @param $user - A reactive signal containing the user information, or `null` when anonymous
+ * @param opts - Optional configuration for instance ID and presence derivation
  * @returns A function that takes a store and returns a computed signal of the user's presence state
  *
  * @example
@@ -42,7 +35,7 @@ export interface TLPresenceUserInfo {
  * import { createPresenceStateDerivation } from '@tldraw/tlschema'
  * import { atom } from '@tldraw/state'
  *
- * const userSignal = atom('user', { id: 'user-123', name: 'Alice', color: '#ff0000' })
+ * const userSignal = atom('user', { id: 'user-123', name: 'Alice', color: '#ff0000', meta: {} })
  * const presenceDerivation = createPresenceStateDerivation(userSignal)
  *
  * // Use with a store to get reactive presence state
@@ -53,15 +46,17 @@ export interface TLPresenceUserInfo {
  * @public
  */
 export function createPresenceStateDerivation(
-	$user: Signal<TLPresenceUserInfo>,
-	instanceId?: TLInstancePresence['id']
+	$user: Signal<TLUser | null>,
+	opts?: CreatePresenceStateDerivationOpts
 ) {
+	const { instanceId, getUserPresence: _getUserPresence } = opts ?? {}
+	const getUserPresence = _getUserPresence ?? getDefaultUserPresence
 	return (store: TLStore): Signal<TLInstancePresence | null> => {
 		return computed('instancePresence', () => {
 			const user = $user.get()
 			if (!user) return null
 
-			const state = getDefaultUserPresence(store, user)
+			const state = getUserPresence(store, user)
 			if (!state) return null
 
 			return InstancePresenceRecordType.create({
@@ -98,7 +93,7 @@ export type TLPresenceStateInfo = Parameters<(typeof InstancePresenceRecordType)
  * ```ts
  * import { getDefaultUserPresence } from '@tldraw/tlschema'
  *
- * const user = { id: 'user-123', name: 'Alice', color: '#ff0000' }
+ * const user = { id: 'user-123', name: 'Alice', color: '#ff0000', meta: {} }
  * const presenceInfo = getDefaultUserPresence(store, user)
  *
  * if (presenceInfo) {
@@ -122,7 +117,7 @@ export type TLPresenceStateInfo = Parameters<(typeof InstancePresenceRecordType)
  *
  * @public
  */
-export function getDefaultUserPresence(store: TLStore, user: TLPresenceUserInfo) {
+export function getDefaultUserPresence(store: TLStore, user: TLUser) {
 	const instance = store.get(TLINSTANCE_ID)
 	const pageState = store.get(InstancePageStateRecordType.createId(instance?.currentPageId))
 	const camera = store.get(CameraRecordType.createId(instance?.currentPageId))
@@ -136,14 +131,14 @@ export function getDefaultUserPresence(store: TLStore, user: TLPresenceUserInfo)
 		brush: instance.brush,
 		scribbles: instance.scribbles,
 		userId: user.id,
-		userName: user.name ?? '',
+		userName: user.name,
 		followingUserId: instance.followingUserId,
 		camera: {
 			x: camera.x,
 			y: camera.y,
 			z: camera.z,
 		},
-		color: user.color ?? '#FF0000',
+		color: user.color || '#FF0000',
 		currentPageId: instance.currentPageId,
 		cursor: {
 			x: pointer.x,

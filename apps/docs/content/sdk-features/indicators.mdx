@@ -8,36 +8,42 @@ keywords:
   - hover
   - outline
   - ShapeUtil
-  - ShapeIndicator
+  - getIndicatorPath
   - hinting
 status: published
 date: 01/31/2026
 ---
 
-Indicators are the colored outlines that appear around shapes when they're selected, hovered, or being interacted with. Every shape defines its own indicator through the [ShapeUtil#indicator](?) method.
+Indicators are the colored outlines that appear around shapes when they're selected, hovered, or being interacted with. Every shape defines its own indicator through the [ShapeUtil#getIndicatorPath](?) method.
 
 ## How indicators work
 
-When you hover over or select a shape, tldraw renders an SVG outline that matches the shape's geometry. The indicator is separate from the shape itself—it renders in an overlay layer above the canvas.
+When you hover over or select a shape, tldraw draws an outline that matches the shape's geometry. The indicator is separate from the shape itself: the [ShapeIndicatorOverlayUtil](?) strokes it on a canvas overlay above the shapes, in the theme's selection color.
 
 Indicators appear in three contexts:
 
-| Context  | When it appears                               | Stroke weight |
-| -------- | --------------------------------------------- | ------------- |
-| Selected | Shape is in the current selection             | 1.5px         |
-| Hovered  | Pointer is over an unselected shape           | 1.5px         |
-| Hinting  | Shape is a drop target during drag operations | 2.5px         |
+| Context  | When it appears                                                                                   | Stroke weight |
+| -------- | ------------------------------------------------------------------------------------------------- | ------------- |
+| Selected | Shape is in the current selection                                                                 | 1.5px         |
+| Hovered  | Pointer is over an unselected shape while the select tool is idle (fine pointers only, not touch) | 1.5px         |
+| Hinting  | Shape is a drop target during drag operations                                                     | 2.5px         |
 
-For collaborative editing, indicators also show which shapes other users have selected, using each collaborator's cursor color. Locked shapes never show indicators.
+For collaborative editing, [CollaboratorShapeIndicatorOverlayUtil](?) also shows which shapes other users have selected, in each collaborator's cursor color. Locked shapes never show indicators.
 
 ## Defining an indicator
 
-Every [ShapeUtil](?) must implement the `indicator` method. This method returns SVG elements that outline the shape:
+Every [ShapeUtil](?) must implement the `getIndicatorPath` method. This method returns a `Path2D`, a richer [TLIndicatorPath](?) object for indicators that need clipping or additional stroked paths, or `undefined` to draw no indicator:
 
 ```tsx
-import { ShapeUtil, TLBaseShape, Rectangle2d, T, RecordProps } from 'tldraw'
+import { ShapeUtil, TLShape, Rectangle2d, T, RecordProps } from 'tldraw'
 
-type MyShape = TLBaseShape<'myshape', { w: number; h: number }>
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		myshape: { w: number; h: number }
+	}
+}
+
+type MyShape = TLShape<'myshape'>
 
 class MyShapeUtil extends ShapeUtil<MyShape> {
 	static override type = 'myshape' as const
@@ -62,156 +68,54 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 		return <div style={{ width: shape.props.w, height: shape.props.h }} />
 	}
 
-	indicator(shape: MyShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: MyShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 ```
 
-The indicator method receives the shape and returns SVG elements. You don't need to set stroke color or width—tldraw applies those automatically based on context.
+The `getIndicatorPath` method receives the shape and returns paths in the shape's local coordinate space. You don't need to set stroke color or width—tldraw applies those automatically based on context.
 
 ### Common indicator patterns
 
-For rectangular shapes, return a `<rect>`:
+For circular shapes, use an ellipse path:
 
 ```tsx
-indicator(shape: MyShape) {
-	return <rect width={shape.props.w} height={shape.props.h} />
-}
-```
-
-For circular shapes, use an ellipse or circle:
-
-```tsx
-indicator(shape: MyShape) {
+getIndicatorPath(shape: MyShape) {
 	const { w, h } = shape.props
-	return <ellipse cx={w / 2} cy={h / 2} rx={w / 2} ry={h / 2} />
+	const path = new Path2D()
+	path.ellipse(w / 2, h / 2, w / 2, h / 2, 0, 0, Math.PI * 2)
+	return path
 }
 ```
 
 For complex paths, use the shape's geometry:
 
 ```tsx
-indicator(shape: MyShape) {
-	const path = this.editor.getShapeGeometry(shape).toSvgPathString()
-	return <path d={path} />
+getIndicatorPath(shape: MyShape) {
+	const geometry = this.editor.getShapeGeometry(shape)
+	return new Path2D(geometry.toSimpleSvgPath())
 }
 ```
 
 ### Indicators with labels
 
-Shapes with labels may need to clip the indicator where the label appears. Arrow shapes do this to prevent the indicator from overlapping label text. Return a more complex SVG structure to handle clipping.
-
-## Canvas-based indicators
-
-For performance-critical shapes, you can implement `getIndicatorPath()` to render indicators directly to a canvas instead of using SVG. Canvas rendering performs better with large selections.
-
-```tsx
-class MyShapeUtil extends ShapeUtil<MyShape> {
-	// Return false to use canvas rendering
-	override useLegacyIndicator() {
-		return false
-	}
-
-	// Return a Path2D for canvas rendering
-	override getIndicatorPath(shape: MyShape): Path2D {
-		const path = new Path2D()
-		path.rect(0, 0, shape.props.w, shape.props.h)
-		return path
-	}
-
-	// Still required as fallback
-	indicator(shape: MyShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
-	}
-}
-```
-
-When `useLegacyIndicator()` returns `false`, tldraw calls `getIndicatorPath()` instead of `indicator()`. Tldraw strokes the Path2D directly on an overlay canvas.
-
-For shapes that need clipping (like arrows with labels), return an object with additional path information:
+Shapes with labels may need to clip the indicator where the label appears. Arrow shapes do this to prevent the indicator from overlapping label text. Return an object with `path`, an optional `clipPath`, and optional `additionalPaths`. The clip is applied even-odd before stroking `path`, so an outer rectangle plus the label rectangle punches a hole for the label. `additionalPaths` are stroked afterwards without the clip:
 
 ```tsx
 override getIndicatorPath(shape: MyShape) {
-	return {
-		path: mainPath,
-		clipPath: labelClipPath,
-		additionalPaths: [extraPath],
-	}
-}
-```
+	const path = new Path2D()
+	path.moveTo(0, 0)
+	path.lineTo(shape.props.w, shape.props.h)
 
-## Controlling indicator visibility
+	// Even-odd: the outer rect keeps everything, the inner rect punches a hole
+	const clipPath = new Path2D()
+	clipPath.rect(-100, -100, shape.props.w + 200, shape.props.h + 200)
+	clipPath.rect(40, 40, 20, 20)
 
-The [DefaultShapeIndicators](?) component manages which indicators appear. By default, indicators show for:
-
-- All shapes in the current selection
-- The shape under the pointer (when hovering)
-- Shapes marked as "hinting" (drop targets during drag operations)
-
-### Show or hide all indicators
-
-Override the `ShapeIndicators` component to control visibility globally:
-
-```tsx
-import { Tldraw, DefaultShapeIndicators, TLComponents } from 'tldraw'
-import 'tldraw/tldraw.css'
-
-const components: TLComponents = {
-	ShapeIndicators: () => {
-		// Hide all indicators
-		return <DefaultShapeIndicators hideAll />
-	},
-}
-
-export default function App() {
-	return (
-		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw components={components} />
-		</div>
-	)
-}
-```
-
-Pass `showAll` to always show indicators for every visible shape. Pass `hideAll` to suppress them entirely.
-
-### Custom indicator logic
-
-For custom visibility logic, override `ShapeIndicators` completely:
-
-```tsx
-import { Tldraw, TLComponents, useEditor, useEditorComponents, useValue } from 'tldraw'
-import 'tldraw/tldraw.css'
-
-const components: TLComponents = {
-	ShapeIndicators: () => {
-		const editor = useEditor()
-		const { ShapeIndicator } = useEditorComponents()
-
-		const shapesToShow = useValue(
-			'shapes with indicators',
-			() => {
-				// Show indicators only for geo shapes
-				return editor.getRenderingShapes().filter(({ id }) => {
-					const shape = editor.getShape(id)
-					return shape?.type === 'geo'
-				})
-			},
-			[editor]
-		)
-
-		if (!ShapeIndicator) return null
-
-		return shapesToShow.map(({ id }) => <ShapeIndicator key={id} shapeId={id} />)
-	},
-}
-
-export default function App() {
-	return (
-		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw components={components} />
-		</div>
-	)
+	return { path, clipPath }
 }
 ```
 
@@ -227,48 +131,25 @@ editor.setHintingShapes([targetShapeId])
 editor.setHintingShapes([])
 ```
 
-Hinting indicators render with a thicker stroke (2.5px vs 1.5px) to distinguish them from regular selection.
+## Customizing indicators
 
-## Customizing the indicator component
-
-Override `ShapeIndicator` to change how individual indicators render:
+The stroke widths and paint order live on `ShapeIndicatorOverlayUtil.options` (`lineWidth`, `hintedLineWidth`, `zIndex`). Adjust them with `configure`, or subclass the util and override `getOverlays()` to change which shapes get indicators, then pass it through the `overlayUtils` prop. See [Overlay utils](/sdk-features/overlay-utils) for how overlay utils are registered and replaced.
 
 ```tsx
-import { Tldraw, TLComponents, TLShapeIndicatorProps, DefaultShapeIndicator } from 'tldraw'
-import 'tldraw/tldraw.css'
+import { ShapeIndicatorOverlayUtil, Tldraw } from 'tldraw'
 
-const components: TLComponents = {
-	ShapeIndicator: (props: TLShapeIndicatorProps) => {
-		// Use a custom color for all indicators
-		return <DefaultShapeIndicator {...props} color="red" opacity={0.5} />
-	},
-}
+const ThickIndicators = ShapeIndicatorOverlayUtil.configure({ lineWidth: 3 })
 
-export default function App() {
-	return (
-		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw components={components} />
-		</div>
-	)
+function App() {
+	return <Tldraw overlayUtils={[ThickIndicators]} />
 }
 ```
-
-The [TLShapeIndicatorProps](?) interface includes:
-
-| Prop        | Description                                    |
-| ----------- | ---------------------------------------------- |
-| `shapeId`   | The shape's ID                                 |
-| `userId`    | User ID for collaborator indicators (optional) |
-| `color`     | Stroke color (defaults to selection color)     |
-| `opacity`   | Opacity from 0 to 1                            |
-| `className` | Additional CSS class                           |
-| `hidden`    | Whether to hide this indicator                 |
 
 ## Related articles
 
 - [Shapes](/sdk-features/shapes) - Learn how to create custom shapes with their own indicators
 - [Selection](/sdk-features/selection) - Understand how selection state controls indicator visibility
-- [UI components](/sdk-features/ui-components) - Customize canvas components including indicators
+- [Overlay utils](/sdk-features/overlay-utils) - The overlay system that draws indicators
 
 ## Related examples
 

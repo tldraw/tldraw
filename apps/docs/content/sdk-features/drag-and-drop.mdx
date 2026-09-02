@@ -12,48 +12,22 @@ status: published
 date: 2/4/2026
 ---
 
-The drag and drop system lets shapes respond when other shapes are dragged over them. Frames use this to reparent shapes when you drag them inside. You can use the same callbacks in your [ShapeUtil](?) to build custom container shapes, slot-based layouts, or any shape that should react to shapes being dragged over it.
+The drag and drop system lets shapes respond when other shapes are dragged over them. Frames use this to reparent shapes when you drag them inside. You can use the same callbacks in your [ShapeUtil](?) to build custom container shapes or any shape that should react to shapes being dragged over it.
 
-```tsx
-import { ShapeUtil, TLShape, TLDragShapesOutInfo } from 'tldraw'
-
-class MyContainerShapeUtil extends ShapeUtil<MyContainerShape> {
-	static override type = 'my-container' as const
-
-	// Called when shapes are first dragged into this shape
-	override onDragShapesIn(shape: MyContainerShape, draggingShapes: TLShape[]) {
-		// Reparent the shapes to become children of this container
-		this.editor.reparentShapes(draggingShapes, shape.id)
-	}
-
-	// Called when shapes are dragged out of this shape
-	override onDragShapesOut(
-		shape: MyContainerShape,
-		draggingShapes: TLShape[],
-		info: TLDragShapesOutInfo
-	) {
-		// If not dragging into another shape, move back to the page
-		if (!info.nextDraggingOverShapeId) {
-			this.editor.reparentShapes(draggingShapes, this.editor.getCurrentPageId())
-		}
-	}
-
-	// ... other required methods
-}
-```
+If you want frame-like behavior (accept children, reparent them on drag in and out, clip them), extend [BaseFrameLikeShapeUtil](?), which implements all of the callbacks below. Implement them yourself when you need something different.
 
 ## Drag callbacks
 
-When a user drags shapes across the canvas, the editor tracks which shape (if any) is under the cursor. Your shape util can implement these callbacks to respond:
+While the select tool translates shapes, it tracks which shape (if any) is under the cursor using [Editor#getDraggingOverShape](?). Your shape util can implement these callbacks to respond:
 
-| Callback           | When it fires                                                                     |
-| ------------------ | --------------------------------------------------------------------------------- |
-| `onDragShapesIn`   | Shapes are first dragged over this shape                                          |
-| `onDragShapesOver` | Shapes continue being dragged over this shape (on an interval, when cursor moves) |
-| `onDragShapesOut`  | Shapes are dragged away from this shape                                           |
-| `onDropShapesOver` | Shapes are dropped onto this shape                                                |
+| Callback                        | When it fires                                                                     |
+| ------------------------------- | --------------------------------------------------------------------------------- |
+| [ShapeUtil#onDragShapesIn](?)   | Shapes are first dragged over this shape                                          |
+| [ShapeUtil#onDragShapesOver](?) | Shapes continue being dragged over this shape (on an interval, when cursor moves) |
+| [ShapeUtil#onDragShapesOut](?)  | Shapes are dragged away from this shape                                           |
+| [ShapeUtil#onDropShapesOver](?) | Shapes are dropped onto this shape                                                |
 
-The callbacks receive the target shape (the one being dragged over), an array of the shapes being dragged, and an info object with context about the drag operation.
+The callbacks receive the target shape (the one being dragged over), an array of the shapes being dragged, and an info object with context about the drag operation. Locked shapes are never dragged, and if every child of a group is being dragged, the group is dragged instead of its children.
 
 ### onDragShapesIn
 
@@ -71,7 +45,7 @@ override onDragShapesIn(shape: MyContainerShape, draggingShapes: TLShape[]) {
 
 ### onDragShapesOver
 
-Called on an interval while shapes are being dragged over this shape, but only when the cursor moves. Use it for visual feedback or grid snapping:
+Called on an interval while shapes are being dragged over this shape, but only when the cursor moves. Use it for visual feedback or custom snapping:
 
 ```typescript
 override onDragShapesOver(shape: MyGridShape, draggingShapes: TLShape[]) {
@@ -94,7 +68,7 @@ override onDragShapesOver(shape: MyGridShape, draggingShapes: TLShape[]) {
 
 ### onDragShapesOut
 
-Called when shapes are dragged away from this shape. Use it to reparent shapes back to the page:
+Called when shapes are dragged away from this shape, including when the drag moves into another shape. Use it to reparent shapes back to the page:
 
 ```typescript
 override onDragShapesOut(
@@ -159,17 +133,17 @@ Some callbacks have additional properties:
 | `prevDraggingOverShapeId` | `onDragShapesIn`  | The previous shape that was dragged over |
 | `nextDraggingOverShapeId` | `onDragShapesOut` | The next shape being dragged into        |
 
-The `initialParentIds` and `initialIndices` maps let you restore shapes to their original positions. Frames use this to preserve z-ordering when shapes are dragged back to their original parent.
+The `initialParentIds` and `initialIndices` maps let you restore shapes to their original positions. Frames use them to preserve z-ordering when shapes are dragged back to their original parent.
 
 ## Determining what's under the cursor
 
-The editor automatically determines which shape is being dragged over by checking which shape's geometry contains the cursor point. It tests shapes from front to back and returns the first hit.
+[Editor#getDraggingOverShape](?) determines which shape is being dragged over by checking which shape's geometry contains the cursor point. It tests shapes from front to back, skipping locked shapes, hidden shapes, and the shapes being dragged, and returns the first hit.
 
-Only shapes that implement drag callbacks are considered as drop targets. If your shape util doesn't override any drag callbacks, shapes will pass through it when being dragged.
+Only shapes that implement drag callbacks are considered as drop targets. If your shape util doesn't override any drag callbacks, shapes will pass through it when being dragged. While shapes are dragged over a target that accepts them, the editor hints the target with [Editor#setHintingShapes](?).
 
 ## Controlling which shapes can be dropped
 
-Use the [ShapeUtil#canReceiveNewChildrenOfType](?) method to control which shape types your container accepts:
+Use the [ShapeUtil#canReceiveNewChildrenOfType](?) method to control which shape types your container accepts. The editor uses it to decide whether `onDragShapesIn` and `onDropShapesOver` fire for a dragged shape:
 
 ```typescript
 override canReceiveNewChildrenOfType(shape: MyContainerShape, type: TLShape['type']) {
@@ -178,7 +152,20 @@ override canReceiveNewChildrenOfType(shape: MyContainerShape, type: TLShape['typ
 }
 ```
 
-You must check this yourself in your drag callbacks. The editor does not call it automatically.
+The default is `false`, so any shape that should accept dropped children must override this method. `onDragShapesOver` is not gated by this method, which lets you provide visual feedback even when the target won't accept the drop.
+
+## Controlling which shapes can be dragged out
+
+Use the [ShapeUtil#canRemoveChildrenOfType](?) method to control which child shape types can be dragged out of your container. The editor uses it to decide whether `onDragShapesOut` fires for a child shape, and to decide whether to automatically [reparent](/sdk-features/parenting) a child that has moved outside its parent's geometry:
+
+```typescript
+override canRemoveChildrenOfType(shape: MyContainerShape, type: TLShape['type']) {
+	// Pin certain children in place; allow others to be removed
+	return type !== 'pinned-item'
+}
+```
+
+The default is `true`, so children can be dragged out of any container unless this method is overridden.
 
 ## Example: slot container
 
@@ -259,15 +246,13 @@ class SlotContainerShapeUtil extends ShapeUtil<SlotContainerShape> {
 		)
 	}
 
-	indicator(shape: SlotContainerShape) {
-		return <rect width={shape.props.slots * 100} height={100} />
+	getIndicatorPath(shape: SlotContainerShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.slots * 100, 100)
+		return path
 	}
 }
 ```
-
-## External content
-
-For handling content dragged from outside the browser (files, URLs, images), see [External content handling](/sdk-features/external-content). The callbacks on this page are for shape-to-shape drag and drop within the canvas.
 
 ## Related examples
 
@@ -276,5 +261,5 @@ For handling content dragged from outside the browser (files, URLs, images), see
 
 ## Related docs
 
-- [External content handling](/sdk-features/external-content) - Handle files, URLs, and other content dragged from outside the browser.
+- [External content handling](/sdk-features/external-content) - Handle files, URLs, and other content dragged from outside the browser. The callbacks on this page are for shape-to-shape drag and drop within the canvas.
 - [Parenting and ancestors](/sdk-features/parenting) - Learn about parent-child relationships and the [Editor#reparentShapes](?) method.

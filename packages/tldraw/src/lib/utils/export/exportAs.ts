@@ -1,4 +1,11 @@
-import { Editor, sanitizeId, TLExportType, TLImageExportOptions, TLShapeId } from '@tldraw/editor'
+import {
+	Editor,
+	getGlobalDocument,
+	sanitizeId,
+	TLExportType,
+	TLImageExportOptions,
+	TLShapeId,
+} from '@tldraw/editor'
 
 /** @public */
 export interface ExportAsOptions extends TLImageExportOptions {
@@ -28,6 +35,7 @@ export async function exportAs(
 		name = `shapes at ${getTimestamp()}`
 		if (ids.length === 1) {
 			const first = editor.getShape(ids[0])!
+			// Uses isShapeOfType (not isFrameLike) because it accesses frame-specific props (name)
 			if (editor.isShapeOfType(first, 'frame')) {
 				name = first.props.name || 'frame'
 			} else {
@@ -39,7 +47,7 @@ export async function exportAs(
 
 	const { blob } = await editor.toImage(ids, opts)
 	const file = new File([blob], name, { type: blob.type })
-	downloadFile(file)
+	downloadFile(file, editor.getContainerDocument())
 }
 
 function getTimestamp() {
@@ -56,8 +64,8 @@ function getTimestamp() {
 }
 
 /** @internal */
-export function downloadFile(file: File) {
-	const link = document.createElement('a')
+export function downloadFile(file: File, doc?: Document) {
+	const link = (doc ?? getGlobalDocument()).createElement('a')
 	const url = URL.createObjectURL(file)
 	link.href = url
 	link.download = file.name

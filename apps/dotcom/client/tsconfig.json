@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
-		"target": "ES5",
 		"lib": ["DOM", "DOM.Iterable", "ESNext"],
+		"target": "esnext",
 		"allowJs": true,
 		"skipLibCheck": true,
 		"strict": true,
@@ -11,19 +11,21 @@
 		"module": "esnext",
 		"moduleResolution": "bundler",
 		"resolveJsonModule": true,
+		"noUncheckedSideEffectImports": false,
 		"isolatedModules": true,
 		"jsx": "preserve",
 		"jsxImportSource": "react",
 		"incremental": true,
-		"downlevelIteration": true,
-		"plugins": [{ "name": "next" }],
+		"experimentalDecorators": true,
 		"types": ["vitest/globals"]
 	},
 	"include": ["**/*.ts", "**/*.tsx", "zero.config.ts"],
 	"exclude": ["node_modules", "_archive"],
 	"references": [
 		{ "path": "../../../packages/assets" },
+		{ "path": "../../../packages/commenting" },
 		{ "path": "../../../packages/dotcom-shared" },
+		{ "path": "../../../packages/mermaid" },
 		{ "path": "../../../packages/sync" },
 		{ "path": "../../../packages/sync-core" },
 		{ "path": "../../../packages/tldraw" },

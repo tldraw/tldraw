@@ -1,0 +1,120 @@
+---
+title: Driving the editor
+status: published
+author: steveruizok
+date: 4/28/2026
+order: 8
+keywords:
+  - driver
+  - automation
+  - scripting
+  - testing
+  - repl
+  - imperative
+  - input
+  - simulation
+---
+
+You can drive the tldraw editor programmatically with the `@tldraw/driver` package. It wraps an [Editor](?) with an imperative, fluent API for simulating user input, using only public editor methods. You can use it for scripting, automation, REPL sessions, and writing tests.
+
+## Quick start
+
+Install the package alongside `tldraw`:
+
+```bash
+npm install @tldraw/driver
+```
+
+Wrap an [Editor](?) instance with a [Driver](?) and dispatch input:
+
+```tsx
+import { Driver } from '@tldraw/driver'
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw
+				onMount={(editor) => {
+					const driver = new Driver(editor)
+
+					driver.click(100, 200).pointerDown(300, 400).pointerMove(500, 600).pointerUp()
+					driver.keyPress('a')
+
+					return () => driver.dispose()
+				}}
+			/>
+		</div>
+	)
+}
+```
+
+Every input method returns `this`, so calls can be chained. Coordinates default to the current pointer position when omitted, which is why `pointerUp()` needs none. Call `dispose` when you're done so the driver can clean up its side-effect handlers.
+
+## Simulating input
+
+Pointer, keyboard, wheel, and pinch events all flow through `editor.dispatch`, so they go through the editor's normal tool state machines. A pointerDown, pointerMove, pointerUp sequence with the draw tool active creates real draw shapes:
+
+```ts
+editor.setCurrentTool('draw')
+driver.pointerDown(100, 100)
+driver.pointerMove(150, 120)
+driver.pointerMove(200, 140)
+driver.pointerUp()
+```
+
+Pointer coordinates are in screen space. For page-space positions, use `editor.pageToScreen` to convert before dispatching.
+
+Pointer methods take two optional trailing arguments. The third is either a partial `TLPointerEventInfo` or a shape id, which targets that shape. The fourth overrides modifier keys for that one event:
+
+```ts
+driver.click(100, 100, shapeId, { shiftKey: true })
+```
+
+Modifiers pressed with `keyDown` carry into later pointer events, because the driver reads modifier state from `editor.inputs`:
+
+```ts
+driver.keyDown('Shift')
+driver.click(100, 100, { target: 'canvas' })
+driver.keyUp('Shift')
+```
+
+Each input method emits a tick after dispatching. Tools that do work over several frames may need more; call `forceTick(count)` to emit extra ticks.
+
+## Manipulating the selection
+
+Selection helpers work in page coordinates and convert to screen space internally, so you can move, rotate, and resize the current selection without computing pointer paths by hand:
+
+```ts
+driver.translateSelection(50, 0)
+driver.rotateSelection(Math.PI / 4)
+driver.resizeSelection({ scaleX: 2 }, 'bottom_right')
+```
+
+## Clipboard
+
+The driver keeps its own in-memory clipboard, independent of the system clipboard. Useful for scripted copy, cut, and paste flows and testing:
+
+```ts
+driver.copy() // copies the current selection
+driver.paste({ x: 400, y: 400 }) // page point; ignored while Shift is held
+```
+
+## Queries
+
+The driver registers an `editor.sideEffects` handler that records every shape created while it's attached, whatever created it, so you can grab the most recent result of a scripted action:
+
+```ts
+const shape = driver.getLastCreatedShape()
+const lastFive = driver.getLastCreatedShapes(5)
+```
+
+See [Driver](?) for the full list of query helpers: shape and selection page centers, rotations, and arrows bound to a shape.
+
+## Related
+
+- [Driver](?) — Full reference for every input, selection, clipboard, and query method
+- [Editor](?) — The editor class the driver wraps
+- [Shapes](/docs/shapes) — Defining shape types that driver-produced input will interact with
+- [Tools](/docs/tools) — Understanding the tool state machines that process simulated events

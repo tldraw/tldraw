@@ -1,13 +1,19 @@
 {
 	"name": "@tldraw/assets",
 	"description": "tldraw infinite canvas SDK (assets).",
-	"version": "4.4.0",
+	"version": "5.3.2",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
 	},
 	"homepage": "https://tldraw.dev",
 	"license": "SEE LICENSE IN LICENSE.md",
+	"tldraw_product": {
+		"stableId": "tldraw:sdk-core",
+		"name": "SDK",
+		"type": "product",
+		"premium": false
+	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tldraw/tldraw"
@@ -53,6 +59,9 @@
 	"devDependencies": {
 		"lazyrepo": "0.0.0-alpha.27",
 		"ts-node-dev": "^1.1.8",
-		"typescript": "^5.8.3"
+		"typescript": "^7.0.2"
+	},
+	"engines": {
+		"node": ">=22.12.0"
 	}
 }

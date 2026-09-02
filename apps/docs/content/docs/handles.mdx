@@ -15,7 +15,7 @@ In tldraw, handles are interactive control points on shapes that let users manip
 
 ## Handle basics
 
-Handles appear when a shape is selected. Each handle has a position, type, and optional snapping behavior. You define handles by implementing `getHandles` on your [ShapeUtil](?):
+Handles appear when a single shape is selected with the select tool. Each handle has a position, type, and optional snapping behavior. You define handles by implementing `getHandles` on your [ShapeUtil](?):
 
 ```tsx
 import { ShapeUtil, TLHandle, ZERO_INDEX_KEY } from 'tldraw'
@@ -43,18 +43,18 @@ Handle coordinates are in the shape's local coordinate system, where `(0, 0)` is
 
 There are four handle types:
 
-| Type      | Description                                                                 |
-| --------- | --------------------------------------------------------------------------- |
-| `vertex`  | A primary control point that defines part of the shape's geometry           |
-| `virtual` | A secondary handle between vertices, often used for adding new points       |
-| `create`  | A handle for extending geometry, like adding a point to the end of a line   |
-| `clone`   | A handle for duplicating the shape, used by notes for quick adjacent copies |
+| Type      | Description                                                                   |
+| --------- | ----------------------------------------------------------------------------- |
+| `vertex`  | A primary control point that defines part of the shape's geometry             |
+| `virtual` | A secondary handle that isn't a vertex, like the arrow's midpoint bend handle |
+| `create`  | A handle for adding new geometry, like inserting a point into a line segment  |
+| `clone`   | A handle for duplicating the shape, used by notes for quick adjacent copies   |
 
-Most custom shapes use `vertex` handles. The `virtual` and `create` types are used by the line shape to let users add points to a path.
+Most custom shapes use `vertex` handles. The arrow shape uses a `virtual` handle for its midpoint, and the line shape uses `create` handles to let users add points between vertices.
 
 ## Responding to handle drags
 
-When a user drags a handle, tldraw calls `onHandleDrag` with the updated handle position. Return the new shape props:
+When a user drags a handle, tldraw calls `onHandleDrag` with the updated handle position. Return a partial of the shape with the changed props:
 
 ```tsx
 import { ShapeUtil, TLHandleDragInfo } from 'tldraw'
@@ -64,18 +64,19 @@ class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 
 	override onHandleDrag(shape: SpeechBubbleShape, { handle }: TLHandleDragInfo<SpeechBubbleShape>) {
 		return {
-			...shape,
-			props: {
-				...shape.props,
-				tailX: handle.x,
-				tailY: handle.y,
-			},
+			props: { tailX: handle.x, tailY: handle.y },
 		}
 	}
 }
 ```
 
-The `handle` object in `TLHandleDragInfo` contains the updated `x` and `y` coordinates. Use these to update your shape's props.
+The `handle` in [TLHandleDragInfo](?) carries the new `x` and `y` after any snapping. The info object also has these fields:
+
+| Field             | Description                                                             |
+| ----------------- | ----------------------------------------------------------------------- |
+| `initial`         | The shape as it was when the drag started                               |
+| `isPrecise`       | Whether the user is dragging precisely, for example by holding Alt      |
+| `isCreatingShape` | Whether the handle drag is part of creating the shape, like a new arrow |
 
 ### Lifecycle callbacks
 
@@ -89,7 +90,7 @@ For more control over handle interactions, implement these additional methods:
 
 ## Handle snapping
 
-Handles can snap to other shapes' geometry. Set `snapType` on the handle:
+Handles can snap to other shapes' geometry. Set `snapType` on the handle. Snapping engages while the user holds Ctrl (Cmd on Mac); with snap mode turned on in preferences, it's the reverse: snapping is on and Ctrl disables it. The older `canSnap: true` flag is deprecated; use `snapType: 'point'` instead.
 
 ```tsx
 {
@@ -104,14 +105,14 @@ Handles can snap to other shapes' geometry. Set `snapType` on the handle:
 
 The `snapType` options are:
 
-| Value     | Behavior                                               |
-| --------- | ------------------------------------------------------ |
-| `'point'` | Snaps to key points on other shapes (corners, centers) |
-| `'align'` | Snaps to alignment guides from other shapes            |
+| Value     | Behavior                                                                               |
+| --------- | -------------------------------------------------------------------------------------- |
+| `'point'` | Snaps to key points on other shapes first, then to the nearest point on their outlines |
+| `'align'` | Snaps the handle's x and y independently to the x and y of key points on other shapes  |
 
 ### Angle snapping
 
-When the user holds Shift while dragging, handles snap to 15-degree angles. By default, this is relative to the shape's position. You can snap relative to another handle by setting `snapReferenceHandleId`:
+When the user holds Shift while dragging, handles snap to 15-degree angles. By default, the angle is measured relative to the next vertex handle on the shape. You can snap relative to a specific handle by setting `snapReferenceHandleId`:
 
 ```tsx
 {
@@ -125,11 +126,11 @@ When the user holds Shift while dragging, handles snap to 15-degree angles. By d
 }
 ```
 
-This is useful for bezier curves where control points should snap to angles relative to their associated endpoint.
+Bezier curves use this so control points snap to angles relative to their associated endpoint.
 
 ### Custom snap geometry
 
-By default, handles snap to a shape's outline and key points. Override `getHandleSnapGeometry` to customize what handles snap to:
+By default, handles snap to a shape's outline (its geometry) and to no key points. Override `getHandleSnapGeometry` to customize what handles snap to:
 
 ```tsx
 import { HandleSnapGeometry, ShapeUtil } from 'tldraw'
@@ -156,19 +157,44 @@ class BezierCurveUtil extends ShapeUtil<BezierCurveShape> {
 
 The `HandleSnapGeometry` object has these properties:
 
-| Property             | Description                                                    |
-| -------------------- | -------------------------------------------------------------- |
-| `outline`            | Custom outline geometry for snapping (default: shape geometry) |
-| `points`             | Key points to snap to (corners, centers, etc.)                 |
-| `getSelfSnapOutline` | Returns outline for self-snapping given a handle               |
-| `getSelfSnapPoints`  | Returns points for self-snapping given a handle                |
+| Property             | Description                                                               |
+| -------------------- | ------------------------------------------------------------------------- |
+| `outline`            | Outline geometry to snap to (default: shape geometry; `null` disables it) |
+| `points`             | Key points to snap to, like corners or centers (default: none)            |
+| `getSelfSnapOutline` | Returns outline for self-snapping given a handle                          |
+| `getSelfSnapPoints`  | Returns points for self-snapping given a handle                           |
+
+## Reading handles
+
+Use [Editor#getShapeHandles](?) to get the handles for any shape:
+
+```ts
+const handles = editor.getShapeHandles(shape)
+if (handles) {
+	for (const handle of handles) {
+		console.log(handle.id, handle.x, handle.y)
+	}
+}
+```
+
+Returns `undefined` if the shape doesn't have handles.
 
 ## Complete example
 
 Here's a speech bubble shape with a draggable tail handle:
 
 ```tsx
-import { Polygon2d, ShapeUtil, TLHandle, TLHandleDragInfo, TLShape, ZERO_INDEX_KEY } from 'tldraw'
+import {
+	Polygon2d,
+	ShapeUtil,
+	SVGContainer,
+	T,
+	TLHandle,
+	TLHandleDragInfo,
+	TLShape,
+	Vec,
+	ZERO_INDEX_KEY,
+} from 'tldraw'
 
 const SPEECH_BUBBLE_TYPE = 'speech-bubble'
 
@@ -182,6 +208,7 @@ type SpeechBubbleShape = TLShape<typeof SPEECH_BUBBLE_TYPE>
 
 class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	static override type = SPEECH_BUBBLE_TYPE
+	static override props = { w: T.number, h: T.number, tailX: T.number, tailY: T.number }
 
 	getDefaultProps(): SpeechBubbleShape['props'] {
 		return { w: 200, h: 100, tailX: 100, tailY: 150 }
@@ -191,13 +218,13 @@ class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		const { w, h, tailX, tailY } = shape.props
 		return new Polygon2d({
 			points: [
-				{ x: 0, y: 0 },
-				{ x: w, y: 0 },
-				{ x: w, y: h },
-				{ x: w * 0.7, y: h },
-				{ x: tailX, y: tailY },
-				{ x: w * 0.3, y: h },
-				{ x: 0, y: h },
+				new Vec(0, 0),
+				new Vec(w, 0),
+				new Vec(w, h),
+				new Vec(w * 0.7, h),
+				new Vec(tailX, tailY),
+				new Vec(w * 0.3, h),
+				new Vec(0, h),
 			],
 			isFilled: true,
 		})
@@ -218,45 +245,25 @@ class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 
 	override onHandleDrag(shape: SpeechBubbleShape, { handle }: TLHandleDragInfo<SpeechBubbleShape>) {
 		return {
-			...shape,
-			props: {
-				...shape.props,
-				tailX: handle.x,
-				tailY: handle.y,
-			},
+			props: { tailX: handle.x, tailY: handle.y },
 		}
 	}
 
 	component(shape: SpeechBubbleShape) {
 		const geometry = this.getGeometry(shape)
 		return (
-			<svg className="tl-svg-container">
+			<SVGContainer>
 				<path d={geometry.getSvgPathData()} fill="white" stroke="black" />
-			</svg>
+			</SVGContainer>
 		)
 	}
 
-	indicator(shape: SpeechBubbleShape) {
+	getIndicatorPath(shape: SpeechBubbleShape) {
 		const geometry = this.getGeometry(shape)
-		return <path d={geometry.getSvgPathData()} />
+		return new Path2D(geometry.getSvgPathData())
 	}
 }
 ```
-
-## Reading handles
-
-Use [Editor#getShapeHandles](?) to get the handles for any shape:
-
-```ts
-const handles = editor.getShapeHandles(shape)
-if (handles) {
-	for (const handle of handles) {
-		console.log(handle.id, handle.x, handle.y)
-	}
-}
-```
-
-Returns `undefined` if the shape doesn't have handles.
 
 ## Examples
 

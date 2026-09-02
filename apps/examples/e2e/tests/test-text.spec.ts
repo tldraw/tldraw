@@ -250,6 +250,21 @@ test.describe('text measurement', () => {
 		expect(formatLines(spans)).toEqual([[' \n'], [' \n'], [' \n'], [' ']])
 	})
 
+	test('should keep emoji grapheme clusters together', async () => {
+		// 👨‍👩‍👧 is several code points joined by zero-width joiners; it must be
+		// measured as one grapheme so no code points get dropped from the span text.
+		const family = '\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}'
+		const spans = await page.evaluate<
+			{ text: string; box: BoxModel }[],
+			typeof measureTextSpansOptions
+		>(async (options) => {
+			const familyEmoji = '\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}'
+			return editor.textMeasure.measureTextSpans(`a${familyEmoji}b`, { ...options, width: 200 })
+		}, measureTextSpansOptions)
+
+		expect(formatLines(spans).flat().join('')).toBe(`a${family}b`)
+	})
+
 	test('for auto-font-sizing shapes, should do normal font size for text that does not have long words', async () => {
 		const shape = await page.evaluate(() => {
 			const id = 'shape:testShape' as TLShapeId
@@ -269,7 +284,7 @@ test.describe('text measurement', () => {
 			return editor.getShape(id) as TLNoteShape
 		})
 
-		expect(shape.props.fontSizeAdjustment).toEqual(32)
+		expect(shape.props.fontSizeAdjustment).toEqual(1)
 	})
 
 	test('for auto-font-sizing shapes, should auto-size text that have slightly long words', async () => {
@@ -291,7 +306,7 @@ test.describe('text measurement', () => {
 			return editor.getShape(id) as TLNoteShape
 		})
 
-		expect(shape.props.fontSizeAdjustment).toEqual(27)
+		expect(shape.props.fontSizeAdjustment).toEqual(0.84375)
 	})
 
 	test('for auto-font-sizing shapes, should auto-size text that have long words', async () => {
@@ -313,7 +328,7 @@ test.describe('text measurement', () => {
 			return editor.getShape(id) as TLNoteShape
 		})
 
-		expect(shape.props.fontSizeAdjustment).toEqual(20)
+		expect(shape.props.fontSizeAdjustment).toEqual(0.625)
 	})
 
 	test('for auto-font-sizing shapes, should wrap text that has words that are way too long', async () => {
@@ -337,7 +352,7 @@ test.describe('text measurement', () => {
 			return editor.getShape(id) as TLNoteShape
 		})
 
-		expect(shape.props.fontSizeAdjustment).toEqual(14)
+		expect(shape.props.fontSizeAdjustment).toEqual(0.4375)
 	})
 
 	test('should use custom renderMethod for text measurement', async () => {

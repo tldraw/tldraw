@@ -1,0 +1,10 @@
+{
+	"ignoreCommand": "bash ../../internal/scripts/vercel/should-build-tldraw-new.sh",
+	"redirects": [
+		{
+			"source": "/(.*)",
+			"destination": "https://tldraw.com/new",
+			"permanent": false
+		}
+	]
+}

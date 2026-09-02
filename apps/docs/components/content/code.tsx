@@ -1,6 +1,5 @@
 'use client'
 
-import { cn } from '@/utils/cn'
 import { assert, getOwnProperty } from '@tldraw/utils'
 import React, {
 	Fragment,
@@ -11,6 +10,7 @@ import React, {
 	useContext,
 	useMemo,
 } from 'react'
+import { cn } from '@/utils/cn'
 import { TldrawLink } from '../common/tldraw-link'
 
 const CodeLinksContext = createContext<Record<string, string>>({})

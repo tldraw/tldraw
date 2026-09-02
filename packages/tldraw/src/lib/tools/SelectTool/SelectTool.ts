@@ -1,8 +1,8 @@
 import { StateNode, TLStateNodeConstructor, react } from '@tldraw/editor'
 import { Brushing } from './childStates/Brushing'
-import { Crop } from './childStates/Crop/Crop'
 import { Cropping } from './childStates/Crop/children/Cropping'
 import { PointingCropHandle } from './childStates/Crop/children/PointingCropHandle'
+import { Crop } from './childStates/Crop/Crop'
 import { DraggingHandle } from './childStates/DraggingHandle'
 import { EditingShape } from './childStates/EditingShape'
 import { Idle } from './childStates/Idle'
@@ -83,6 +83,10 @@ export class SelectTool extends StateNode {
 		this.reactor?.()
 		if (this.editor.getCurrentPageState().editingShapeId) {
 			this.editor.setEditingShape(null)
+		}
+		// Leaving crop mode for another tool would otherwise keep the image in its cropping state
+		if (this.editor.getCroppingShapeId()) {
+			this.editor.setCroppingShape(null)
 		}
 	}
 }

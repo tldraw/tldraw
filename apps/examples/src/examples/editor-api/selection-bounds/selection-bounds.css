@@ -1,0 +1,50 @@
+.selection-bounds-box {
+	position: absolute;
+	top: 0;
+	left: 0;
+	pointer-events: none;
+	transform-origin: top left;
+}
+
+.selection-bounds-box--axis {
+	border: 2px dashed rgba(45, 116, 255, 0.95);
+	background: rgba(45, 116, 255, 0.08);
+	z-index: 9998;
+}
+
+.selection-bounds-box--rotated {
+	border: 2px solid rgba(237, 137, 54, 0.95);
+	background: rgba(237, 137, 54, 0.12);
+	z-index: 9999;
+}
+
+.selection-bounds-key {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 8px 12px;
+	font-size: 12px;
+	font-family: monospace;
+	pointer-events: none;
+}
+.selection-bounds-key-item {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.selection-bounds-key-swatch {
+	width: 16px;
+	height: 10px;
+	border-radius: 2px;
+}
+
+.selection-bounds-key-swatch--axis {
+	border: 2px dashed rgba(45, 116, 255, 0.95);
+	background: rgba(45, 116, 255, 0.08);
+}
+
+.selection-bounds-key-swatch--rotated {
+	border: 2px solid rgba(237, 137, 54, 0.95);
+	background: rgba(237, 137, 54, 0.12);
+}

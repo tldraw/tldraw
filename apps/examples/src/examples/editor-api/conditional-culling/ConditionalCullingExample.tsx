@@ -1,9 +1,9 @@
 import { BaseBoxShapeUtil, HTMLContainer, RecordProps, T, TLShape, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
+import './conditional-culling.css'
 
 // There's a guide at the bottom of this file!
 
-// [1] Define the shape type
 const GLOW_SHAPE_TYPE = 'glow-shape'
 
 declare module 'tldraw' {
@@ -14,7 +14,6 @@ declare module 'tldraw' {
 
 type GlowShape = TLShape<typeof GLOW_SHAPE_TYPE>
 
-// [2] Create the shape util
 class GlowShapeUtil extends BaseBoxShapeUtil<GlowShape> {
 	static override type = GLOW_SHAPE_TYPE
 	static override props: RecordProps<GlowShape> = {
@@ -31,38 +30,16 @@ class GlowShapeUtil extends BaseBoxShapeUtil<GlowShape> {
 		}
 	}
 
-	// [3] Conditional culling based on shape props
+	// [1]
 	override canCull(shape: GlowShape) {
 		return !shape.props.preventCulling
 	}
 
-	// [4] Both shapes always have glow - the checkbox controls culling behavior
+	// [2]
 	component(shape: GlowShape) {
 		return (
-			<HTMLContainer
-				style={{
-					width: shape.props.w,
-					height: shape.props.h,
-					backgroundColor: '#2f80ed',
-					borderRadius: 8,
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'center',
-					boxShadow: '0 0 80px 50px rgba(47, 128, 237, 0.8)',
-					pointerEvents: 'all',
-				}}
-			>
-				<label
-					style={{
-						display: 'flex',
-						alignItems: 'center',
-						gap: 8,
-						color: 'white',
-						fontWeight: 'bold',
-						fontSize: 13,
-						cursor: 'pointer',
-					}}
-				>
+			<HTMLContainer className="glow-shape">
+				<label>
 					<input
 						type="checkbox"
 						checked={shape.props.preventCulling}
@@ -74,7 +51,6 @@ class GlowShapeUtil extends BaseBoxShapeUtil<GlowShape> {
 							})
 						}
 						onPointerDown={(e) => e.stopPropagation()}
-						style={{ width: 16, height: 16, cursor: 'pointer' }}
 					/>
 					Prevent culling
 				</label>
@@ -82,21 +58,22 @@ class GlowShapeUtil extends BaseBoxShapeUtil<GlowShape> {
 		)
 	}
 
-	indicator(shape: GlowShape) {
-		return <rect width={shape.props.w} height={shape.props.h} rx={8} />
+	getIndicatorPath(shape: GlowShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 
 const shapeUtils = [GlowShapeUtil]
 
-// [5]
 export default function ConditionalCullingExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				shapeUtils={shapeUtils}
 				onMount={(editor) => {
-					// Create two shapes stacked vertically - easier to pan horizontally
+					// [3]
 					editor.createShape({
 						type: GLOW_SHAPE_TYPE,
 						x: 200,
@@ -116,29 +93,23 @@ export default function ConditionalCullingExample() {
 }
 
 /*
-This example demonstrates conditional culling - where some shapes can be culled
-(hidden when off-screen) and others cannot, based on their properties.
+Culling hides a shape (`display: none`) once its bounds leave the viewport. Shapes whose visuals
+extend past their bounds (glows, drop shadows, other overflow) pop in and out at the viewport
+edge when that happens. Returning false from `canCull()` keeps the shape visible off-screen.
 
-Why is this useful?
+[1]
+`canCull()` is called per shape, so the decision can depend on the shape's own props (or any
+other state). Here a checkbox on the shape flips it.
 
-Shapes with visual effects that extend beyond their bounds (like shadows, glows,
-or other overflow effects) can appear to "pop" abruptly when scrolled on/off screen
-if culling is enabled. By returning false from canCull(), the shape remains rendered
-even when its bounds are outside the viewport, preventing this visual artifact.
+[2]
+Both shapes render the same glow; only the checkbox differs. Stopping pointer-down propagation
+lets the checkbox receive the click instead of the select tool starting a drag.
 
-[1] Define a shape type with a `preventCulling` property.
+[3]
+Two shapes stacked vertically so you can pan sideways and watch both leave the viewport at once.
+The one with "Prevent culling" checked keeps its glow visible past the edge; the other vanishes
+as soon as its bounds are off-screen.
 
-[2] Create a ShapeUtil that extends BaseBoxShapeUtil for simple rectangular shapes.
-
-[3] Override canCull() to return false when preventCulling is true.
-
-[4] Both shapes have the same glow effect. The checkbox controls culling behavior,
-    not the visual appearance - this makes it easy to compare the two behaviors.
-
-[5] Create two shapes stacked vertically. Pan the canvas horizontally to move them off-screen:
-    - The shape with "Prevent culling" checked stays visible (glow doesn't pop)
-    - The shape without it checked disappears abruptly at the viewport edge
-
-Performance note: Disabling culling means the shape is always rendered, even when
-off-screen. Use this sparingly for shapes that truly need it (overflow effects).
+Culled shapes skip layout and paint, so only opt out of culling for shapes that genuinely
+need it.
 */

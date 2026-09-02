@@ -4,7 +4,7 @@ import { GlobShape } from './GlobShapeUtil'
 import { NodeShape } from './NodeShapeUtil'
 import { getOuterTangentPoints } from './utils'
 
-export const getStartAndEndNodes = (editor: Editor, glob: TLShapeId) => {
+export function getStartAndEndNodes(editor: Editor, glob: TLShapeId) {
 	const bindings = editor.getBindingsFromShape<GlobBinding>(glob, 'glob')
 	if (!bindings.length) return null
 
@@ -35,14 +35,14 @@ export function getGlobBindings(editor: Editor, shape: GlobShape): GlobBindings 
 	return { start, end }
 }
 
-export const getGlobTangentUpdate = (
+export function getGlobTangentUpdate(
 	editor: Editor,
 	globId: TLShapeId,
 	startNodePagePos: VecLike,
 	startRadius: number,
 	endNodePagePos: VecLike,
 	endRadius: number
-) => {
+) {
 	// Calculate midpoint in page space
 	const midPagePos = Vec.Average([startNodePagePos, endNodePagePos])
 

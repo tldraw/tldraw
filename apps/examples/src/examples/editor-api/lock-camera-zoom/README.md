@@ -16,10 +16,10 @@ keywords:
   ]
 ---
 
-Lock the camera at a specific zoom level.
+Lock the camera at its current zoom level by collapsing `zoomSteps` to a single value.
 
 ---
 
-Need to lock the camera at its current zoom level? You can use the camera controls API to keep the zoom level from changing.
+The camera's `zoomSteps` option defines the zoom levels the camera can move between; the smallest and largest steps also bound the zoom range. Setting `zoomSteps` to a single value equal to the current zoom (`editor.setCameraOptions({ zoomSteps: [editor.getZoomLevel()] })`) means every zoom gesture, shortcut, and menu action has nowhere to go, so the zoom stays fixed while panning still works. Restoring `DEFAULT_CAMERA_OPTIONS.zoomSteps` unlocks it.
 
-In this example, press Shift+K to lock the camera at its current zoom level. Press Shift+L to unlock the camera and allow it to zoom again.
+Press Shift+K to lock the camera at its current zoom, then try scrolling, pinching, or using the zoom menu. Press Shift+K again to unlock.

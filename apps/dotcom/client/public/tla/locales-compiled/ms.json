@@ -5,6 +5,38 @@
       "value": "Eksport"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Terima jemputan"
+    }
+  ],
+  "029f235f01": [
+    {
+      "type": 0,
+      "value": "Kami sedang berusaha untuk menyokong fail daripada "
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": 1,
+              "value": "appName"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -19,6 +51,34 @@
     {
       "type": 1,
       "value": "GetHelpLink"
+    }
+  ],
+  "04a2dd56d6": [
+    {
+      "type": 0,
+      "value": "Jemput rakan sepasukan"
+    }
+  ],
+  "05b2656486": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " menyebut anda"
+    }
+  ],
+  "05f43078e9": [
+    {
+      "type": 0,
+      "value": "Anda telah mencapai bilangan maksimum ruang kerja. Anda perlu memadam ruang kerja lama sebelum mencipta ruang kerja baharu."
     }
   ],
   "06b9281e39": [
@@ -45,6 +105,20 @@
       "value": "Akaun"
     }
   ],
+  "093ac7483a": [
+    {
+      "type": 0,
+      "value": "Tidak dapat membuka fail "
+    },
+    {
+      "type": 1,
+      "value": "extension"
+    },
+    {
+      "type": 0,
+      "value": " lagi"
+    }
+  ],
   "0a91f7fa87": [
     {
       "type": 0,
@@ -63,10 +137,28 @@
       "value": "menu fail"
     }
   ],
+  "0c4383617a": [
+    {
+      "type": 0,
+      "value": "Ada masalah semasa memuatkan jemputan ini. Sila cuba lagi."
+    }
+  ],
   "0d1f2bb523": [
     {
       "type": 0,
       "value": "Hantar maklum balas"
+    }
+  ],
+  "1063e38cb5": [
+    {
+      "type": 0,
+      "value": "Alih keluar"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Salin ke ruang kerja peribadi"
     }
   ],
   "110a4b01be": [
@@ -75,22 +167,10 @@
       "value": "Terbitkan"
     }
   ],
-  "129b9e34ea": [
-    {
-      "type": 0,
-      "value": "Tinggalkan kumpulan"
-    }
-  ],
   "12a6766ba1": [
     {
       "type": 0,
       "value": "Nyahsemat fail"
-    }
-  ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Cuba tldraw SDK"
     }
   ],
   "13ddd375ad": [
@@ -99,16 +179,10 @@
       "value": "Eksport sebagai"
     }
   ],
-  "146ffe2fd9": [
+  "14b03eeeb5": [
     {
       "type": 0,
-      "value": "Tunjukkan lagi"
-    }
-  ],
-  "14d65465b7": [
-    {
-      "type": 0,
-      "value": "Padamkan kumpulan"
+      "value": "Pilihan pemberitahuan"
     }
   ],
   "181b90f889": [
@@ -129,10 +203,36 @@
       "value": "Hari ini"
     }
   ],
-  "2445e5e347": [
+  "1ffd709937": [
     {
       "type": 0,
-      "value": "Buat kumpulan"
+      "value": "Ruang kerja mesti mempunyai sekurang-kurangnya seorang pemilik. Jadikan orang lain sebagai pemilik terlebih dahulu."
+    }
+  ],
+  "21f66c9c00": [
+    {
+      "type": 0,
+      "value": "Nama ruang kerja"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Anda telah dijemput untuk menyertai "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Cipta akaun percuma untuk meneruskan."
     }
   ],
   "250ddea65c": [
@@ -141,16 +241,56 @@
       "value": "Mengenai tldraw"
     }
   ],
+  "2755e3ab39": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " telah mengulas di papan anda"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
       "value": "Muat naik gagal"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Fail saya"
+      "value": "Selamat datang ke ruang kerja anda"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Cari..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Penjanaan semula akan menggantikan pautan jemputan semasa dengan yang baharu. Sesiapa sahaja yang menggunakan pautan lama memerlukan pautan baharu untuk menyertai."
+    }
+  ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Sertakan pautan ke fail semasa"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Jana semula pautan jemputan"
     }
   ],
   "31246941ad": [
@@ -163,12 +303,6 @@
     {
       "type": 0,
       "value": "i18n: Serlahkan Hilang"
-    }
-  ],
-  "32210b37e4": [
-    {
-      "type": 0,
-      "value": "Tambah pautan"
     }
   ],
   "324a0f3182": [
@@ -187,6 +321,18 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Urus"
+    }
+  ],
+  "375396d6e5": [
+    {
+      "type": 0,
+      "value": "Alih keluar ahli"
     }
   ],
   "3bc7d6ea2f": [
@@ -213,6 +359,18 @@
       "value": "Terima semua"
     }
   ],
+  "3e2ae04ff0": [
+    {
+      "type": 0,
+      "value": "Gambar rajah Mermaid yang tidak disokong"
+    }
+  ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Tema warna"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -225,10 +383,36 @@
       "value": "Dapatkan bantuan tentang Discord"
     }
   ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Adakah anda pasti mahu memadam "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Terima kasih kerana membantu kami meningkatkan tldraw!"
+    }
+  ],
+  "46de2de6bb": [
+    {
+      "type": 0,
+      "value": "Terima syarat penggunaan"
     }
   ],
   "477df802ca": [
@@ -249,18 +433,6 @@
       "value": "Pin fail"
     }
   ],
-  "49049467ff": [
-    {
-      "type": 0,
-      "value": "Tampalkan URL fail tdraw..."
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Adakah anda pasti mahu melupakan fail ini?"
-    }
-  ],
   "49ee308734": [
     {
       "type": 0,
@@ -279,16 +451,10 @@
       "value": "Muat semula"
     }
   ],
-  "4da5988a2e": [
+  "5097d89907": [
     {
       "type": 0,
-      "value": "Padamkan kumpulan…"
-    }
-  ],
-  "4e6fbf032b": [
-    {
-      "type": 0,
-      "value": "Adakah anda pasti mahu memadamkan kumpulan ini? Tindakan ini tidak boleh dibuat asal."
+      "value": "Gambar rajah tidak disokong, sebaliknya akan menjana SVG"
     }
   ],
   "50db1b7e1e": [
@@ -297,10 +463,22 @@
       "value": "Tidak dapat menyahterbitkan fail."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Ini ruang kerja peribadi anda. Cipta ruang kerja baharu untuk menjemput rakan sepasukan."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
       "value": "Menu halaman"
+    }
+  ],
+  "53770fd374": [
+    {
+      "type": 0,
+      "value": "Belum dibaca"
     }
   ],
   "542248f0ba": [
@@ -313,6 +491,16 @@
     {
       "type": 0,
       "value": "Had kolaborator dicapai"
+    }
+  ],
+  "545241e7dd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " belum dibaca"
     }
   ],
   "554a05155c": [
@@ -337,6 +525,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Cipta ruang kerja"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -347,40 +541,6 @@
     {
       "type": 0,
       "value": "Dasar privasi"
-    }
-  ],
-  "5a86b22fa0": [
-    {
-      "type": 0,
-      "value": "Seret fail ke sini, "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "buat fail"
-        }
-      ],
-      "type": 8,
-      "value": "create"
-    },
-    {
-      "type": 0,
-      "value": " atau "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "copy link invite"
-        }
-      ],
-      "type": 8,
-      "value": "invite"
-    },
-    {
-      "type": 0,
-      "value": " untuk bermula."
     }
   ],
   "5a95a425f7": [
@@ -395,22 +555,38 @@
       "value": "Pelayar lama dikesan. Sila kemas kini pelayar anda untuk menggunakan aplikasi ini."
     }
   ],
-  "5c6fe42bc2": [
+  "5bff3c9c88": [
     {
       "type": 0,
-      "value": "Batalkan pautan ini dan buat yang baharu."
+      "value": "Ruang kerja saya"
+    }
+  ],
+  "5bffeebf03": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " telah memberi reaksi terhadap komen anda"
+    }
+  ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Tidak dapat menyambung"
     }
   ],
   "5d26ae7550": [
     {
       "type": 0,
       "value": "Kami gagal memuat naik beberapa kandungan yang anda buat sebelum anda melog masuk."
-    }
-  ],
-  "5ea8bb44be": [
-    {
-      "type": 0,
-      "value": "Anda telah dijemput untuk menyertai kumpulan:"
     }
   ],
   "5f3c333678": [
@@ -425,10 +601,43 @@
       "value": "salin"
     }
   ],
+  "608e9d366e": [
+    {
+      "type": 0,
+      "value": "Anda sudah membaca semuanya."
+    }
+  ],
+  "60a68c29d6": [
+    {
+      "type": 0,
+      "value": "Log masuk untuk mengulas"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
       "value": "Nanti"
+    }
+  ],
+  "61fb03fd7b": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " orang memberi reaksi kepada komen anda"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "625fd29749": [
@@ -443,6 +652,12 @@
       "value": "awak"
     }
   ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Segarkan semula"
+    }
+  ],
   "6609dd239e": [
     {
       "type": 0,
@@ -455,10 +670,22 @@
       "value": "Versi baharu tldraw tersedia. Sila muat semula halaman untuk meneruskan."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Fail baharu"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
       "value": "Masukkan alamat e-mel anda"
+    }
+  ],
+  "694f82ed9d": [
+    {
+      "type": 0,
+      "value": "Padam ruang kerja"
     }
   ],
   "6a26f54883": [
@@ -477,12 +704,6 @@
     {
       "type": 0,
       "value": "Ikuti langkah ini untuk mengimport kandungan secara manual:"
-    }
-  ],
-  "70222abcfc": [
-    {
-      "type": 0,
-      "value": "Tetapan kumpulan"
     }
   ],
   "70a6facb9d": [
@@ -509,10 +730,22 @@
       "value": "Sila muat semula halaman"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Tiada fail ditemui"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
       "value": "Anda telah mencapai bilangan maksimum fail. Anda perlu memadam fail lama sebelum membuat yang baharu."
+    }
+  ],
+  "7542d62aac": [
+    {
+      "type": 0,
+      "value": "Tandakan semua sebagai telah dibaca"
     }
   ],
   "7573b8110a": [
@@ -539,12 +772,6 @@
       "value": "Sila muat semula"
     }
   ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw ialah papan putih dalam talian percuma. Buat akaun untuk menyimpan fail anda dan bekerjasama dengan rakan anda."
-    }
-  ],
   "777f9e90cf": [
     {
       "type": 0,
@@ -567,6 +794,12 @@
     {
       "type": 0,
       "value": "Serahkan isu pada GitHub"
+    }
+  ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Lalai"
     }
   ],
   "7b1329f5ca": [
@@ -593,12 +826,6 @@
       "value": "lupa"
     }
   ],
-  "7cfe6c43dc": [
-    {
-      "type": 0,
-      "value": "Tinggalkan kumpulan…"
-    }
-  ],
   "7daeced9ff": [
     {
       "type": 0,
@@ -615,6 +842,12 @@
     {
       "type": 0,
       "value": "Muat turun"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Ruang kerja baharu"
     }
   ],
   "815e116a2e": [
@@ -651,6 +884,38 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Adakah anda pasti mahu melupakan "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
+  "8413c683b4": [
+    {
+      "type": 0,
+      "value": "Komen"
+    }
+  ],
+  "858ba4765e": [
+    {
+      "type": 0,
+      "value": "Ahli"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -677,10 +942,16 @@
       "value": "Namakan semula fail"
     }
   ],
-  "8ad4303b83": [
+  "87fdb09de6": [
     {
       "type": 0,
-      "value": "Tidak terima kasih"
+      "value": "Anda sudah menjadi ahli ruang kerja ini"
+    }
+  ],
+  "88bf6ab42c": [
+    {
+      "type": 0,
+      "value": "Pautan jemputan ini telah tamat tempoh"
     }
   ],
   "8c2d3d730c": [
@@ -713,22 +984,24 @@
       "value": "Namakan semula"
     }
   ],
-  "91e49bb0eb": [
+  "90646db02d": [
     {
       "type": 0,
-      "value": "Salin ke fail saya"
-    }
-  ],
-  "930390d222": [
+      "value": "Adakah anda pasti mahu memadam "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
     {
       "type": 0,
-      "value": "Pautan jemputan disalin"
-    }
-  ],
-  "9489b2f82a": [
-    {
-      "type": 0,
-      "value": "Anda sudah pun menjadi ahli kumpulan ini"
+      "value": "? Tindakan ini tidak boleh dibuat asal."
     }
   ],
   "95aacd4d4a": [
@@ -755,16 +1028,16 @@
       "value": "Syarat Penggunaan"
     }
   ],
-  "98c997a27e": [
-    {
-      "type": 0,
-      "value": "Tambah pautan fail"
-    }
-  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Cahaya"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Kosongkan carian"
     }
   ],
   "9b33f5c63c": [
@@ -793,6 +1066,12 @@
       "value": "Padam fail"
     }
   ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Kami menghadapi masalah untuk menyambung ke perkhidmatan pengesahan kami. Ini biasanya bersifat sementara. Sila cuba muat semula halaman."
+    }
+  ],
   "9ceb927baa": [
     {
       "type": 0,
@@ -809,6 +1088,26 @@
     {
       "type": 0,
       "value": "Pilih keluar"
+    }
+  ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Anda telah dijemput untuk menyertai "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "a0da245992": [
@@ -841,6 +1140,12 @@
       "value": "Eksport imej"
     }
   ],
+  "a274f4d467": [
+    {
+      "type": 0,
+      "value": "Pemberitahuan"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -851,6 +1156,12 @@
     {
       "type": 0,
       "value": "Hantar"
+    }
+  ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Tinggalkan"
     }
   ],
   "a6cc403d56": [
@@ -877,6 +1188,18 @@
       "value": "Latar belakang"
     }
   ],
+  "aac449eef6": [
+    {
+      "type": 0,
+      "value": "Cipta ruang kerja"
+    }
+  ],
+  "aaec8f7cde": [
+    {
+      "type": 0,
+      "value": "Seseorang"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -901,6 +1224,34 @@
       "value": "Pengguna tetamu"
     }
   ],
+  "b03400e2db": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " membalas"
+    }
+  ],
+  "b1c94ca2fb": [
+    {
+      "type": 0,
+      "value": "Semua"
+    }
+  ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Menjana semula"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -913,10 +1264,10 @@
       "value": "Alamat e-mel"
     }
   ],
-  "b3d2db69fe": [
+  "b48becc771": [
     {
       "type": 0,
-      "value": "URL fail"
+      "value": "Dayakan jemputan"
     }
   ],
   "b6d4223e60": [
@@ -943,10 +1294,10 @@
       "value": "Log masuk untuk berkongsi"
     }
   ],
-  "bb93a7590f": [
+  "bbaaf8b6bf": [
     {
       "type": 0,
-      "value": "Terima dan sertai kumpulan"
+      "value": "Jemputan dilumpuhkan"
     }
   ],
   "bbbcefd7ce": [
@@ -993,30 +1344,16 @@
       "value": "ownerName"
     }
   ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Urus ruang kerja"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Ketahui lebih lanjut tentang perkongsian."
-    }
-  ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Benarkan "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analitik"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": " untuk membantu kami meningkatkan tldraw."
     }
   ],
   "c303bd1095": [
@@ -1031,12 +1368,6 @@
       "value": "Kuki penting"
     }
   ],
-  "c6155aaecc": [
-    {
-      "type": 0,
-      "value": "Nama kumpulan"
-    }
-  ],
   "c655b27b1e": [
     {
       "type": 0,
@@ -1049,10 +1380,10 @@
       "value": "Jemput"
     }
   ],
-  "c74ea6dbff": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Tunjukkan lebih sedikit"
+      "value": "Salin ke ruang kerja saya"
     }
   ],
   "c87aacf567": [
@@ -1061,10 +1392,10 @@
       "value": "Log keluar"
     }
   ],
-  "c9cc8cce24": [
+  "c8a59e7135": [
     {
       "type": 0,
-      "value": "Jimat"
+      "value": "Ketepikan"
     }
   ],
   "cceaefbc20": [
@@ -1089,6 +1420,56 @@
     {
       "type": 0,
       "value": "Ketahui lebih lanjut tentang penerbitan."
+    }
+  ],
+  "d0e3556476": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " dan "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " memberi reaksi terhadap komen anda"
     }
   ],
   "d3d2e61733": [
@@ -1167,22 +1548,16 @@
       "value": "Pergi ke sini untuk melihat kandungannya"
     }
   ],
-  "d9e35d0f55": [
-    {
-      "type": 0,
-      "value": "Anda telah mencapai bilangan maksimum kumpulan. Anda perlu memadamkan kumpulan lama sebelum membuat kumpulan baharu."
-    }
-  ],
   "dbbebf3c03": [
     {
       "type": 0,
       "value": "Jemput sahaja"
     }
   ],
-  "dcdaa754fe": [
+  "dbf9b24193": [
     {
       "type": 0,
-      "value": "URL fail tldraw tidak sah"
+      "value": "Tinggalkan ruang kerja"
     }
   ],
   "dfdb78a4e4": [
@@ -1191,10 +1566,10 @@
       "value": "Bendera nyahpepijat apl"
     }
   ],
-  "e0c88179b3": [
+  "e0aa021e21": [
     {
       "type": 0,
-      "value": "Jemput ahli"
+      "value": "OK"
     }
   ],
   "e2198d6228": [
@@ -1209,16 +1584,40 @@
       "value": "Ringkasan undang-undang"
     }
   ],
-  "e3afed0047": [
-    {
-      "type": 0,
-      "value": "Admin"
-    }
-  ],
   "e404559826": [
     {
       "type": 0,
       "value": "Syarat perkhidmatan"
+    }
+  ],
+  "e65b2dcb6f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " dan "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " telah memberi reaksi terhadap komen anda"
     }
   ],
   "e81c4e4f2b": [
@@ -1227,16 +1626,16 @@
       "value": "atau"
     }
   ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Zon bahaya"
-    }
-  ],
   "ea4788705e": [
     {
       "type": 0,
       "value": "Batal"
+    }
+  ],
+  "eb1e2b0542": [
+    {
+      "type": 0,
+      "value": "Minta yang baharu daripada pemilik ruang kerja."
     }
   ],
   "ebfe9ce86e": [
@@ -1289,10 +1688,16 @@
       "value": " kami untuk mengetahui lebih lanjut."
     }
   ],
+  "edec9387f9": [
+    {
+      "type": 0,
+      "value": "Komen ini telah dipadamkan."
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
-      "value": "ahli"
+      "value": "Ahli"
     }
   ],
   "ef7de3f485": [
@@ -1325,16 +1730,98 @@
       "value": "Padam"
     }
   ],
+  "f476ba8646": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " dan "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " lagi"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " lagi"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " telah memberi reaksi terhadap komen anda"
+    }
+  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "tetapan"
     }
   ],
-  "f714e36843": [
+  "f5ddc8d9c1": [
     {
       "type": 0,
-      "value": "Adakah anda pasti mahu meninggalkan kumpulan ini?"
+      "value": "Buat masa ini, anda boleh "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "eksport sebagai fail "
+        },
+        {
+          "type": 1,
+          "value": "extension"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " untuk menggunakannya di sini."
     }
   ],
   "fa2ead697d": [
@@ -1349,10 +1836,10 @@
       "value": "Penonton"
     }
   ],
-  "fd1be3efcf": [
+  "fc9d47046b": [
     {
       "type": 0,
-      "value": "Adakah anda pasti mahu memadamkan fail ini?"
+      "value": "Adakah anda pasti mahu meninggalkan ruang kerja ini?"
     }
   ],
   "fed5ec05eb": [
@@ -1361,10 +1848,24 @@
       "value": "pautan disalin"
     }
   ],
-  "ff7a814974": [
+  "ff2fefd3c6": [
     {
       "type": 0,
-      "value": "Tambahkan pautan fail…"
+      "value": "Adakah anda pasti mahu mengalih keluar "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " daripada ruang kerja ini?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Cipta akaun percuma untuk menyimpan fail anda dan tldraw bersama rakan sepasukan anda."
     }
   ],
   "ffcd73e997": [

@@ -18,7 +18,9 @@ status: published
 date: 1/31/2026
 ---
 
-Instance state is the per-tab state that tracks your current session. It includes which page you're viewing, whether the grid is visible, if debug mode is on, and transient interaction state like the current cursor position. Unlike document state (shapes, pages, assets), instance state belongs to a single browser tab and isn't synced between collaborators.
+Instance state is the per-tab state that tracks your current session. It includes which page you're viewing, whether the grid is visible, if debug mode is on, and transient interaction state like the current cursor.
+
+Unlike document state (shapes, pages, assets), instance state belongs to a single browser tab and isn't synced between collaborators.
 
 ```tsx
 import { Tldraw } from 'tldraw'
@@ -52,7 +54,7 @@ const instance = editor.getInstanceState()
 instance.isGridMode // true if grid is visible
 instance.isDebugMode // true if debug overlays are shown
 instance.isFocusMode // true if UI is minimized
-instance.isPenMode // true if stylus input detected
+instance.isPenMode // true once a direct-display stylus (e.g. Apple Pencil) is used
 instance.isToolLocked // true if tool stays active after creating shapes
 instance.isReadonly // true if editing is disabled
 
@@ -103,7 +105,7 @@ const { isGridMode } = editor.getInstanceState()
 editor.updateInstanceState({ isGridMode: !isGridMode })
 ```
 
-Changes take effect immediately and persist for the session. When using a `persistenceKey`, some properties persist across sessions (see [Session persistence](#session-persistence) below).
+Changes take effect immediately. By default they are not added to the undo stack; pass `{ history: 'record' }` as the second argument to record them. When using a `persistenceKey`, some properties persist across sessions (see [Session persistence](#session-persistence) below).
 
 Note that `currentPageId` cannot be changed through `updateInstanceState`. Use [Editor#setCurrentPage](?) instead.
 
@@ -113,46 +115,47 @@ Note that `currentPageId` cannot be changed through `updateInstanceState`. Use [
 
 These boolean flags control major editor behaviors:
 
-| Property       | Description                                     | Persists |
-| -------------- | ----------------------------------------------- | -------- |
-| `isGridMode`   | Show grid overlay on the canvas                 | Yes      |
-| `isDebugMode`  | Show debug information overlays                 | Yes      |
-| `isFocusMode`  | Minimize the UI to just the canvas              | Yes      |
-| `isToolLocked` | Keep current tool active after creating a shape | Yes      |
-| `isReadonly`   | Prevent all document modifications              | Yes      |
-| `isPenMode`    | Track whether stylus input has been detected    | No       |
-| `isFocused`    | Whether the editor currently has keyboard focus | Yes      |
+| Property       | Description                                                                                           | Persists |
+| -------------- | ----------------------------------------------------------------------------------------------------- | -------- |
+| `isGridMode`   | Show grid overlay on the canvas                                                                       | Yes      |
+| `isDebugMode`  | Show the debug panel (current tool state, debug menu)                                                 | Yes      |
+| `isFocusMode`  | Minimize the UI to just the canvas                                                                    | Yes      |
+| `isToolLocked` | Keep current tool active after creating a shape                                                       | Yes      |
+| `isReadonly`   | Prevent document edits, except for shapes whose util allows editing in readonly                       | No       |
+| `isPenMode`    | Set automatically when a direct-display stylus (e.g. Apple Pencil) is used; touch is ignored while on | No       |
+| `isFocused`    | Whether the editor currently has keyboard focus                                                       | No       |
 
 ### Display state
 
 Properties that track the current display environment:
 
-| Property           | Description                                                   | Persists |
-| ------------------ | ------------------------------------------------------------- | -------- |
-| `screenBounds`     | Viewport position and dimensions (x, y, w, h)                 | Yes      |
-| `devicePixelRatio` | Display scaling factor (e.g., 2 for Retina)                   | Yes      |
-| `isCoarsePointer`  | Indicates touch or low-precision input is active              | Yes      |
-| `isHoveringCanvas` | Whether pointer is over the canvas (null if no hover support) | No       |
-| `insets`           | Safe area insets as `[top, right, bottom, left]` booleans     | Yes      |
+| Property           | Description                                                                                      | Persists |
+| ------------------ | ------------------------------------------------------------------------------------------------ | -------- |
+| `screenBounds`     | Viewport position and dimensions (x, y, w, h)                                                    | No       |
+| `devicePixelRatio` | Display scaling factor (e.g., 2 for Retina)                                                      | No       |
+| `isCoarsePointer`  | Indicates touch or low-precision input is active; mirrors `tlenvReactive`                        | No       |
+| `isHoveringCanvas` | Whether pointer is over the canvas (null if no hover support)                                    | No       |
+| `insets`           | Whether the container is inset from the document edge on each side, `[top, right, bottom, left]` | No       |
 
 ### Navigation state
 
-| Property        | Description                      | Persists |
-| --------------- | -------------------------------- | -------- |
-| `currentPageId` | ID of the currently active page  | No       |
-| `openMenus`     | Array of currently open menu IDs | No       |
+| Property        | Description                                            | Persists |
+| --------------- | ------------------------------------------------------ | -------- |
+| `currentPageId` | ID of the currently active page                        | Yes      |
+| `openMenus`     | Unused by the SDK; open menus are tracked by `tlmenus` | No       |
 
 ### Interaction state
 
 Temporary state used during user interactions:
 
-| Property          | Description                                      | Persists |
-| ----------------- | ------------------------------------------------ | -------- |
-| `cursor`          | Current cursor type and rotation                 | No       |
-| `brush`           | Selection brush bounds during drag selection     | No       |
-| `zoomBrush`       | Zoom brush bounds during zoom-to-area            | No       |
-| `scribbles`       | Active scribble animations (eraser trails, etc.) | No       |
-| `isChangingStyle` | True while style picker is active                | No       |
+| Property          | Description                                                  | Persists |
+| ----------------- | ------------------------------------------------------------ | -------- |
+| `cursor`          | Current cursor type and rotation                             | No       |
+| `brush`           | Selection brush bounds during drag selection                 | No       |
+| `zoomBrush`       | Zoom brush bounds during zoom-to-area                        | No       |
+| `scribbles`       | Active scribble animations (eraser trails, etc.)             | No       |
+| `isChangingStyle` | Set after a style change; resets after 1s or on pointer move | No       |
+| `cameraState`     | Whether the camera is `'idle'` or `'moving'`                 | No       |
 
 ### Shape creation
 
@@ -182,6 +185,8 @@ Properties for multiplayer features:
 | `meta`             | Arbitrary JSON data for your application | No       |
 | `exportBackground` | Include background color when exporting  | Yes      |
 
+The "Persists" column shows what a `persistenceKey` saves between sessions. Separately, when you call `loadSnapshot`, a wider set of instance properties (screen bounds, pointer type, readonly, and the mode flags above) is preserved from the existing store rather than overwritten by the snapshot; see [TLSessionStateSnapshot](?).
+
 ## Common patterns
 
 ### Focus mode
@@ -200,11 +205,11 @@ Show a grid overlay to help with alignment:
 editor.updateInstanceState({ isGridMode: true })
 ```
 
-The grid respects the camera zoom level. You can customize the grid appearance by overriding the `Grid` component.
+The grid respects the camera zoom level. You can customize the grid appearance by overriding the `Grid` component via the `components` prop.
 
 ### Debug mode
 
-Debug mode shows useful overlays including shape bounds, geometry points, and performance information:
+Debug mode shows the debug panel: the current tool state path, an optional FPS counter, and the debug menu:
 
 ```typescript
 editor.updateInstanceState({ isDebugMode: true })
@@ -215,13 +220,7 @@ editor.updateInstanceState({ isDebugMode: true })
 When tool lock is enabled, the current tool stays active after creating a shape instead of returning to the select tool:
 
 ```typescript
-// Enable tool lock
 editor.updateInstanceState({ isToolLocked: true })
-
-// Check if locked
-if (editor.getInstanceState().isToolLocked) {
-	// Tool will stay active after creating shapes
-}
 ```
 
 Custom tools should check this property to decide whether to return to select after completing their action. See [Tools](/sdk-features/tools#tool-lock) for implementation details.
@@ -255,13 +254,13 @@ The value updates automatically when the user switches between mouse and touch.
 
 ## Session persistence
 
-When you use a `persistenceKey` on the [Tldraw](?) component, some instance properties persist across browser sessions. Properties marked "Persists: Yes" in the tables above are saved and restored.
+When you use a `persistenceKey` on the [Tldraw](?) component, some instance properties persist across browser sessions. Properties marked "Persists: Yes" in the tables above are saved and restored, along with each page's camera and selection.
 
-Temporary state like cursor position, selection brushes, and open menus always reset when the page reloads. Navigation state like `currentPageId` doesn't persist because the referenced page might not exist in a fresh session.
+Temporary state like cursor position, selection brushes, and scribbles always resets when the page reloads. `currentPageId` is restored only if that page still exists in the document.
 
 ## Instance state vs page state
 
-Instance state ([TLInstance](?)) is global to the editor—there's one instance record per browser tab. Page state ([TLInstancePageState](?)) is per-page and tracks page-specific information like selection:
+Instance state ([TLInstance](?)) is global to the editor: there's one instance record per browser tab. Page state ([TLInstancePageState](?)) is per-page and tracks selection, hover, editing, cropping, and focused group for that page. See [Selection](/sdk-features/selection).
 
 ```typescript
 // Instance state: global to the editor

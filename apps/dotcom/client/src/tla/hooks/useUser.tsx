@@ -1,16 +1,23 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import type { UserResource } from '@clerk/types'
 import { ReactNode, createContext, useContext, useMemo } from 'react'
-import { DefaultSpinner, LoadingScreen, assert, useShallowObjectIdentity } from 'tldraw'
+import { assert, useShallowObjectIdentity } from 'tldraw'
 import { useMaybeApp } from './useAppState'
 
-export interface TldrawUser {
+interface TldrawUser {
 	id: string
 	clerkUser: UserResource
 	isTldraw: boolean
 	getToken(): Promise<string>
 }
 const UserContext = createContext<null | TldrawUser>(null)
+
+export function getIsTldrawStaff(clerkUser: UserResource | null | undefined) {
+	return (
+		clerkUser?.primaryEmailAddress?.verification?.status === 'verified' &&
+		clerkUser.primaryEmailAddress.emailAddress.endsWith('@tldraw.com')
+	)
+}
 
 export function UserProvider({ children }: { children: ReactNode }) {
 	const { isLoaded, ...others } = useClerkUser()
@@ -33,9 +40,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 		return {
 			id: storeUser.id,
 			clerkUser: user,
-			isTldraw:
-				user?.primaryEmailAddress?.verification.status === 'verified' &&
-				user.primaryEmailAddress.emailAddress.endsWith('@tldraw.com'),
+			isTldraw: getIsTldrawStaff(user),
 			getToken: async () => {
 				const token = await getToken()
 				assert(token)
@@ -45,24 +50,19 @@ export function UserProvider({ children }: { children: ReactNode }) {
 	}, [getToken, isSignedIn, user, app])
 
 	if (!isLoaded || !isAuthLoaded || !app) {
-		return (
-			<div className="tldraw__editor">
-				<LoadingScreen>
-					<DefaultSpinner />
-				</LoadingScreen>
-			</div>
-		)
+		// Render a blank editor surface while auth loads, with no spinner or fade.
+		return <div className="tldraw__editor" />
 	}
 
 	return <UserContext.Provider value={value}>{children}</UserContext.Provider>
 }
 
-export function useTldrawUser() {
+export function useTldrawCurrentUser() {
 	return useContext(UserContext)
 }
 
 export function useLoggedInUser() {
-	const user = useTldrawUser()
+	const user = useTldrawCurrentUser()
 	if (!user) throw new Error('User not signed in')
 	return user
 }

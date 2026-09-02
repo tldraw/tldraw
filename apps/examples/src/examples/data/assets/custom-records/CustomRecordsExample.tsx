@@ -1,30 +1,38 @@
 import { useCallback, useMemo } from 'react'
 import {
+	BaseRecord,
 	CustomRecordInfo,
+	RecordId,
 	T,
 	Tldraw,
+	TldrawUiButton,
+	TldrawUiButtonLabel,
 	Vec,
 	createCustomRecordId,
 	createCustomRecordMigrationIds,
 	createCustomRecordMigrationSequence,
 	createTLStore,
-	isCustomRecord,
-	track,
 	useEditor,
+	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import './custom-records.css'
 
 // There's a guide at the bottom of this file!
 
 // [1]
 const MARKER_TYPE = 'marker'
-interface Marker {
-	id: string
-	typeName: typeof MARKER_TYPE
+interface Marker extends BaseRecord<typeof MARKER_TYPE, RecordId<Marker>> {
 	x: number
 	y: number
 	label: string
 	icon: string
+}
+
+declare module 'tldraw' {
+	interface TLGlobalRecordPropsMap {
+		[MARKER_TYPE]: Marker
+	}
 }
 
 // [2]
@@ -66,24 +74,57 @@ const markerRecord: CustomRecordInfo = {
 
 // [4]
 function createMarkerId(id?: string) {
-	return createCustomRecordId(MARKER_TYPE, id)
+	return createCustomRecordId(MARKER_TYPE, id) as Marker['id']
 }
 
 const ICONS = ['📍', '⭐', '🏠', '🏢', '🎯', '⚠️']
 
 // [5]
-const MarkerOverlay = track(function MarkerOverlay() {
+function MarkerOverlay() {
 	const editor = useEditor()
+	const markersQuery = useMemo(() => editor.store.query.records(MARKER_TYPE), [editor])
+	const markers = useValue(
+		'markers on screen',
+		() =>
+			markersQuery.get().map((marker) => ({
+				marker,
+				screenPoint: editor.pageToViewport(new Vec(marker.x, marker.y)),
+			})),
+		[editor, markersQuery]
+	)
 
-	const markers = editor.store
-		.allRecords()
-		.filter((r) => isCustomRecord(MARKER_TYPE, r)) as any as Marker[]
+	return (
+		<>
+			{markers.map(({ marker, screenPoint }) => {
+				return (
+					<div
+						key={marker.id}
+						className="custom-records-marker"
+						style={{ left: screenPoint.x, top: screenPoint.y }}
+						title={marker.label}
+						onPointerDown={(e) => {
+							e.stopPropagation()
+							if (e.button === 2 || e.ctrlKey) {
+								editor.store.remove([marker.id])
+							}
+						}}
+					>
+						<span className="custom-records-marker__icon">{marker.icon}</span>
+						<span className="custom-records-marker__label">{marker.label}</span>
+					</div>
+				)
+			})}
+		</>
+	)
+}
+
+function AddMarkerButton() {
+	const editor = useEditor()
 
 	const addMarker = useCallback(() => {
 		const label = prompt('Marker label:')
 		if (!label) return
-		const center = editor.getViewportScreenCenter()
-		const point = editor.screenToPage(center)
+		const point = editor.getViewportPageBounds().center
 		editor.store.put([
 			{
 				id: createMarkerId(),
@@ -92,75 +133,23 @@ const MarkerOverlay = track(function MarkerOverlay() {
 				y: point.y,
 				label,
 				icon: ICONS[Math.floor(Math.random() * ICONS.length)],
-			} as any,
+			},
 		])
 	}, [editor])
 
 	return (
-		<>
-			{markers.map((marker) => {
-				const screenPoint = editor.pageToViewport(new Vec(marker.x, marker.y))
-				return (
-					<div
-						key={marker.id}
-						style={{
-							position: 'absolute',
-							left: screenPoint.x,
-							top: screenPoint.y,
-							transform: 'translate(-50%, -100%)',
-							display: 'flex',
-							flexDirection: 'column',
-							alignItems: 'center',
-							pointerEvents: 'all',
-							cursor: 'pointer',
-						}}
-						title={marker.label}
-						onPointerDown={(e) => {
-							e.stopPropagation()
-							if (e.button === 2 || e.ctrlKey) {
-								editor.store.remove([marker.id as any])
-							}
-						}}
-					>
-						<span style={{ fontSize: 28 }}>{marker.icon}</span>
-						<span
-							style={{
-								fontSize: 11,
-								background: 'white',
-								border: '1px solid #ccc',
-								borderRadius: 4,
-								padding: '1px 4px',
-								whiteSpace: 'nowrap',
-								maxWidth: 120,
-								overflow: 'hidden',
-								textOverflow: 'ellipsis',
-							}}
-						>
-							{marker.label}
-						</span>
-					</div>
-				)
-			})}
-			<button
-				onClick={addMarker}
-				style={{
-					position: 'absolute',
-					top: 50,
-					right: 10,
-					zIndex: 1000,
-					padding: '6px 12px',
-					borderRadius: 6,
-					border: '1px solid #ccc',
-					background: 'white',
-					cursor: 'pointer',
-					fontSize: 14,
-				}}
-			>
-				+ Add marker
-			</button>
-		</>
+		<div className="tlui-menu" style={{ pointerEvents: 'all' }}>
+			<TldrawUiButton type="normal" onClick={addMarker}>
+				<TldrawUiButtonLabel>Add marker</TldrawUiButtonLabel>
+			</TldrawUiButton>
+		</div>
 	)
-})
+}
+
+const components = {
+	InFrontOfTheCanvas: MarkerOverlay,
+	TopPanel: AddMarkerButton,
+}
 
 // [6]
 export default function CustomRecordsExample() {
@@ -174,56 +163,44 @@ export default function CustomRecordsExample() {
 
 	return (
 		<div className="tldraw__editor">
-			<Tldraw
-				store={store}
-				components={{
-					InFrontOfTheCanvas: MarkerOverlay,
-				}}
-			/>
+			<Tldraw store={store} components={components} />
 		</div>
 	)
 }
 
 /*
-Introduction:
-
-You can add custom record types to the tldraw store to persist and synchronize
-domain-specific data that doesn't fit into shapes, bindings, or assets. This example
-adds a "marker" record type — like a map pin that marks a location on the canvas.
+Custom record types let you keep domain data in the tldraw store that isn't a shape,
+binding, or asset, so it's persisted, synced, and migrated alongside everything else.
+This example adds a "marker" record: a pin at a page position with a label and icon.
 
 [1]
-Define your record's type name and TypeScript type. The record must have `id` and
-`typeName` fields — these are required by the store system.
+The record type extends `BaseRecord`, which supplies `id` and `typeName`. Augmenting
+`TLGlobalRecordPropsMap` adds it to `TLRecord`, so `store.query.records('marker')`,
+`store.put`, and `store.remove` are all typed without casts.
 
 [2]
-Use `createCustomRecordMigrationIds` to define versioned migration IDs for your record
-type. These follow the convention `com.tldraw.{typeName}/{version}`.
+`createCustomRecordMigrationIds` builds ids in the form `com.tldraw.marker/1`, which is
+the sequence id the store expects for custom records.
 
 [3]
-Create a CustomRecordInfo configuration object. This tells the store how to handle
-your record type:
-- `scope`: 'document' records are persisted and synced. 'session' records are local only.
-- `validator`: Validates the record structure using tldraw's validation library.
-- `migrations`: Optional. Define how the record evolves over time using
-  `createCustomRecordMigrationSequence`. Each migration has an `id` (from the version ids),
-  an `up` function to add/transform fields, and an optional `down` function for backwards
-  compatibility. If omitted, an empty migration sequence is created automatically.
-- `createDefaultProperties`: Factory for default property values.
+The `CustomRecordInfo` passed to the store:
+- `scope: 'document'` means persisted and synced; `'session'` would keep records local.
+- `validator` checks the whole record, including `id` and `typeName`.
+- `migrations` is optional. Each entry mutates the record in place (or returns a new
+  one). Here version 1 adds the `icon` field to markers saved before it existed.
+- `createDefaultProperties` fills in anything `store.put` doesn't supply.
 
 [4]
-A helper to create properly formatted record IDs. Record IDs follow the pattern
-`typeName:uniqueId`.
+Ids for custom records are `typeName:uniqueId`. `createCustomRecordId` returns a
+generic record id, so we cast to `Marker['id']` once here.
 
 [5]
-A React component that renders markers on the canvas and provides a button to add new
-ones. We use the `track` wrapper so the component re-renders when the store changes.
-We use `isCustomRecord` to filter records by type, and `pageToViewport` to position
-the markers correctly as the camera moves. Right-click (or ctrl-click) a marker to
-remove it.
+`store.query.records(MARKER_TYPE)` returns a computed signal of all marker records.
+Reading it and `pageToViewport` inside `useValue` means the overlay re-renders when a
+marker is added or removed and when the camera moves, so pins stay glued to their page
+position. Right-click (or ctrl-click) a marker to remove it.
 
 [6]
-We create a store with our custom record type using `createTLStore` and pass it to
-Tldraw via the `store` prop. The `records` option registers our marker type alongside
-the built-in record types (shapes, assets, etc.).
-
+Register the record type when creating the store via the `records` option, then pass
+the store to `Tldraw`. The store must be created once, so it's wrapped in `useMemo`.
 */

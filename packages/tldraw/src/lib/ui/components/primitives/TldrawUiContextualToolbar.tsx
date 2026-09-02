@@ -6,7 +6,6 @@ import {
 	react,
 	useAtom,
 	useEditor,
-	usePassThroughMouseOverEvents,
 	usePassThroughWheelEvents,
 	useValue,
 	Vec,
@@ -41,19 +40,18 @@ export interface TLUiContextualToolbarProps {
  *
  * @public @react
  */
-export const TldrawUiContextualToolbar = ({
+export function TldrawUiContextualToolbar({
 	children,
 	className,
 	isMousingDown,
 	getSelectionBounds,
 	changeOnlyWhenYChanges = false,
 	label,
-}: TLUiContextualToolbarProps) => {
+}: TLUiContextualToolbarProps) {
 	const editor = useEditor()
 	const toolbarRef = useRef<HTMLDivElement>(null)
 
 	usePassThroughWheelEvents(toolbarRef as RefObject<HTMLDivElement | null>)
-	usePassThroughMouseOverEvents(toolbarRef as RefObject<HTMLDivElement | null>)
 
 	const { isVisible, isInteractive, hide, show, position, move } =
 		useToolbarVisibilityStateMachine(changeOnlyWhenYChanges)

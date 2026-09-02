@@ -30,7 +30,7 @@ class SlidesManager {
 	])
 
 	@computed getCurrentSlides() {
-		return this._slides.get().sort((a, b) => (a.index < b.index ? -1 : 1))
+		return [...this._slides.get()].sort((a, b) => a.index - b.index)
 	}
 
 	private _currentSlideId = atom('currentSlide', '1')
@@ -90,7 +90,7 @@ class SlidesManager {
 
 const slidesContext = createContext({} as SlidesManager)
 
-export const SlidesProvider = ({ children }: { children: ReactNode }) => {
+export function SlidesProvider({ children }: { children: ReactNode }) {
 	const [slideManager] = useState(() => new SlidesManager())
 	return <slidesContext.Provider value={slideManager}>{children}</slidesContext.Provider>
 }

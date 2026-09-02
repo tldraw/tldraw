@@ -1,4 +1,5 @@
 import { Editor, TLExternalContentSource, VecLike } from '@tldraw/editor'
+import { putPastedExternalContent } from './putPastedContent'
 
 /**
  * When the clipboard has plain text that is a valid URL, create a bookmark shape and insert it into
@@ -13,14 +14,19 @@ export async function pasteUrl(
 	editor: Editor,
 	url: string,
 	point?: VecLike,
-	sources?: TLExternalContentSource[]
+	sources?: TLExternalContentSource[],
+	clipboardPasteSource: 'native-event' | 'clipboard-read' = 'native-event'
 ) {
 	editor.markHistoryStoppingPoint('paste')
 
-	return await editor.putExternalContent({
-		type: 'url',
-		point,
-		url,
-		sources,
-	})
+	return await putPastedExternalContent(
+		editor,
+		{
+			type: 'url',
+			point,
+			url,
+			sources,
+		},
+		{ source: clipboardPasteSource, point }
+	)
 }

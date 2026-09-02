@@ -1,7 +1,7 @@
-import { Vec, VecLike, lerp, pointInPolygon } from 'tldraw'
+import { Vec, intersectLineSegmentLineSegment, invLerp, lerp, pointInPolygon } from 'tldraw'
 import { SpeechBubbleShape } from './SpeechBubbleUtil'
 
-export const getSpeechBubbleVertices = (shape: SpeechBubbleShape): Vec[] => {
+export function getSpeechBubbleVertices(shape: SpeechBubbleShape): Vec[] {
 	const { w, tail } = shape.props
 
 	const fullHeight = shape.props.h + shape.props.growY
@@ -95,7 +95,6 @@ export function getTailIntersectionPoint(shape: SpeechBubbleShape) {
 	let segmentsIntersection: Vec | null = null
 	let intersectionSegment: Vec[] | null = null
 
-	// If the point inside of the box's corners?
 	const insideShape = pointInPolygon(tailInShapeSpace, corners)
 
 	// We want to be sure we get an intersection, so if the point is
@@ -138,7 +137,6 @@ export function getTailIntersectionPoint(shape: SpeechBubbleShape) {
 	const squaredRelative = Math.abs(middleRelative) ** 2 * Math.sign(middleRelative) // square it and keep the sign
 	const squared = mapRange(-1, 1, 0, totalDistance, squaredRelative) // -1 to 1 -> absolute
 
-	//keep it away from the edges
 	const offset = (segments.indexOf(intersectionSegment) % 2 === 0 ? w / 10 : fullHeight / 10) * 3
 	const constrained = mapRange(0, totalDistance, offset, totalDistance - offset, distance)
 
@@ -157,39 +155,6 @@ export function getTailIntersectionPoint(shape: SpeechBubbleShape) {
 	}
 }
 
-// This function is copied from the tldraw codebase
-function intersectLineSegmentLineSegment(a1: VecLike, a2: VecLike, b1: VecLike, b2: VecLike) {
-	const ABx = a1.x - b1.x
-	const ABy = a1.y - b1.y
-	const BVx = b2.x - b1.x
-	const BVy = b2.y - b1.y
-	const AVx = a2.x - a1.x
-	const AVy = a2.y - a1.y
-	const ua_t = BVx * ABy - BVy * ABx
-	const ub_t = AVx * ABy - AVy * ABx
-	const u_b = BVy * AVx - BVx * AVy
-
-	if (ua_t === 0 || ub_t === 0) return null // coincident
-
-	if (u_b === 0) return null // parallel
-
-	if (u_b !== 0) {
-		const ua = ua_t / u_b
-		const ub = ub_t / u_b
-		if (0 <= ua && ua <= 1 && 0 <= ub && ub <= 1) {
-			return Vec.AddXY(a1, ua * AVx, ua * AVy)
-		}
-	}
-
-	return null // no intersection
-}
-
-/**
- * Inverse linear interpolation
- */
-function invLerp(a: number, b: number, v: number) {
-	return (v - a) / (b - a)
-}
 /**
  * Maps a value from one range to another.
  * e.g. mapRange(10, 20, 50, 100, 15) => 75

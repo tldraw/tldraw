@@ -18,7 +18,9 @@ export class ErrorShapeUtil extends BaseBoxShapeUtil<ErrorShape> {
 	component() {
 		throw new Error('Error!')
 	}
-	indicator() {
-		throw new Error('Error!')
+	// Indicators are drawn on a shared canvas overlay with no error boundary, so
+	// throwing here would break every overlay. Return nothing instead.
+	getIndicatorPath() {
+		return undefined
 	}
 }

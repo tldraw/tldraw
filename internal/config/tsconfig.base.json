@@ -17,10 +17,11 @@
 		"lib": ["DOM", "DOM.Iterable", "ESNext"],
 		"module": "esnext",
 		"target": "esnext",
-		"moduleResolution": "node",
+		"moduleResolution": "bundler",
 		"noFallthroughCasesInSwitch": true,
 		"noImplicitAny": true,
 		"noImplicitReturns": true,
+		"noUncheckedSideEffectImports": false,
 		"noUnusedLocals": false,
 		"noUnusedParameters": false,
 		"skipLibCheck": true,
@@ -29,6 +30,7 @@
 		"strictNullChecks": true,
 		"useDefineForClassFields": true,
 		"noImplicitOverride": true,
+		"experimentalDecorators": true,
 		"types": ["node", "vitest/globals"]
 	},
 	"exclude": ["node_modules"]

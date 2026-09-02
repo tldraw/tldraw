@@ -32,6 +32,12 @@ tldraw provides a feature-complete infinite canvas engine designed to be the fou
 - **DOM canvas** — web rendering supports anything the browser supports, including embedded websites from YouTube, Figma, GitHub, [and more](https://tldraw.dev/sdk-features/embed-shape)
 - **Broad support** — works in any browser across desktop, touch screens, tablets, and mobile devices
 
+## Who's using tldraw
+
+The tldraw SDK powers canvas experiences in products from [Google](https://about.google), [Shopify](https://www.shopify.com), [BlackRock](https://www.blackrock.com), [Autodesk](https://blogs.autodesk.com/forma/2024/06/20/forma-board-collaborative-tool-for-architects/), [ClickUp](https://tldraw.dev/blog/clickup), [Replit](https://docs.replit.com/replitai/canvas), [Google Stitch](https://stitch.withgoogle.com), [Luma](https://lumalabs.ai/app), [Runway](https://runwayml.com), [Padlet](https://tldraw.dev/blog/padlet), [Mobbin](https://tldraw.dev/blog/mobbin), [Jam](https://tldraw.dev/blog/jam), [Craft](https://support.craft.do/en/write-and-edit/whiteboards), [Honeycomb](https://www.honeycomb.io/platform/canvas), [SchoolAI](https://schoolai.com/products/powerups), [Brisk](https://www.briskteaching.com/post/boost-whiteboard), [CADChat](https://cadchat.com), [bigpi](https://www.bigpi.ai), [Genio](https://genio.co), [Pollination](https://www.pollination.solutions), [Legendkeeper](https://www.legendkeeper.com), [Matilda](https://www.matilda.io), [Aries](https://aries.com/infinite), [Alai](https://getalai.com), [Dirac](https://www.diracinc.com), and many more.
+
+See our [showcase](https://tldraw.dev/showcase) for case studies on how teams build with tldraw.
+
 ## Quick start
 
 Install the tldraw package:
@@ -69,12 +75,13 @@ npx create-tldraw@latest
 - **Agent** — AI agents that read, interpret, and modify canvas content
 - **Workflow** — drag-and-drop node builder for automation pipelines, visual programming, and no-code platforms
 - **Chat** — canvas-powered AI chat where users sketch, annotate, and mark up images alongside conversations
+- **Image pipeline** — node-based builder for image generation pipelines
 - **Branching chat** — AI chat with visual branching, letting users explore and compare different conversation paths
 - **Shader** — WebGL shaders that respond to canvas interactions
 
 ## Local development
 
-The development server runs the examples app at `localhost:5420`. Clone the repo, then enable [corepack](https://nodejs.org/api/corepack.html) for the correct yarn version:
+The development server runs the examples app at `localhost:5420`. You'll need [Node.js](https://nodejs.org) `^20.0.0`. Clone the repo, then enable [corepack](https://nodejs.org/api/corepack.html) for the correct yarn version:
 
 ```bash
 npm i -g corepack
@@ -87,6 +94,14 @@ yarn
 yarn dev
 ```
 
+## Documentation
+
+Documentation for the most recent release can be found on [tldraw.dev/docs](https://tldraw.dev/docs), including [reference docs](https://tldraw.dev/reference/editor/Editor). Our release notes can be found [here](https://tldraw.dev/releases).
+
+For more agent-friendly docs, see our [LLMs.txt](https://tldraw.dev/llms.txt).
+
+From 5.1.x onward, published packages also include a `DOCS.md` file with the appropriate docs-site content and a generated `RELEASE_NOTES.md` file with versioned release notes. If you or your coding agent need release notes for your installed version specifically, check these files alongside the source in your `node_modules` folder.
+
 ## Community
 
 - [Discord](https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink) — questions, feedback, and discussion
@@ -95,7 +110,7 @@ yarn dev
 
 ## Contributing
 
-See our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md) to learn about contributing to tldraw.
+We are not accepting contributions at this time. If you've found a bug or have a feature request, please [create an issue](https://github.com/tldraw/tldraw/issues/new/choose) and we can discuss it there. See our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md) for details.
 
 ## License
 
@@ -113,18 +128,12 @@ Please see our [trademark guidelines](https://github.com/tldraw/tldraw/blob/main
   <img src="https://contrib.rocks/image?repo=tldraw/tldraw&max=400&columns=20" width="100%"/>
 </a>
 
-## Star history
+## Star History
 
-<a href="https://star-history.com/#tldraw/tldraw">
-	<picture>
-	  <source
-	    media="(prefers-color-scheme: dark)"
-	    srcset="https://api.star-history.com/svg?repos=tldraw/tldraw&type=Date&theme=dark"
-	  />
-	  <source
-	    media="(prefers-color-scheme: light)"
-	    srcset="https://api.star-history.com/svg?repos=tldraw/tldraw&type=Date"
-	  />
-	  <img src="https://api.star-history.com/svg?repos=tldraw/tldraw&type=Date" alt="Star History Chart" width="100%" />
-	</picture>
+<a href="https://www.star-history.com/?repos=tldraw%2Ftldraw&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=tldraw/tldraw&type=date&theme=dark&legend=top-left&sealed_token=YTo3tyinAnKu6ejENN9D7GqA1uojjEwF1sh1zJsYGDOp0BmB2_UZbnYBZmhW6UZ7ObW96D5J9M5ww8M2d6AniQZ6fIWxWHqpnnFw02hhk5UfAsz52Y-VFJ0ooQDSyIwW6VL64YD4HGQIwmq_0_jIhposmAekoBMCsIZeMX2lQo3j9l59kintv74U5X0y" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=tldraw/tldraw&type=date&legend=top-left&sealed_token=YTo3tyinAnKu6ejENN9D7GqA1uojjEwF1sh1zJsYGDOp0BmB2_UZbnYBZmhW6UZ7ObW96D5J9M5ww8M2d6AniQZ6fIWxWHqpnnFw02hhk5UfAsz52Y-VFJ0ooQDSyIwW6VL64YD4HGQIwmq_0_jIhposmAekoBMCsIZeMX2lQo3j9l59kintv74U5X0y" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=tldraw/tldraw&type=date&legend=top-left&sealed_token=YTo3tyinAnKu6ejENN9D7GqA1uojjEwF1sh1zJsYGDOp0BmB2_UZbnYBZmhW6UZ7ObW96D5J9M5ww8M2d6AniQZ6fIWxWHqpnnFw02hhk5UfAsz52Y-VFJ0ooQDSyIwW6VL64YD4HGQIwmq_0_jIhposmAekoBMCsIZeMX2lQo3j9l59kintv74U5X0y" />
+ </picture>
 </a>

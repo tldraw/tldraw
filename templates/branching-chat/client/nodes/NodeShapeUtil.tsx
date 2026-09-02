@@ -1,16 +1,12 @@
-import classNames from 'classnames'
 import {
 	Circle2d,
 	Group2d,
 	HTMLContainer,
 	RecordProps,
 	Rectangle2d,
-	resizeBox,
 	ShapeUtil,
-	TLResizeInfo,
 	TLShape,
 	useEditor,
-	useUniqueSafeId,
 	useValue,
 } from 'tldraw'
 import { NODE_WIDTH_PX, PORT_RADIUS_PX } from '../constants'
@@ -22,7 +18,6 @@ import {
 	getNodeTypePorts,
 	getNodeWidthPx,
 	NodeType,
-	NodeTypePorts,
 } from './nodeTypes'
 
 const NODE_TYPE = 'node'
@@ -49,25 +44,25 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 		}
 	}
 
-	override canEdit() {
+	override canEdit(_shape: NodeShape) {
 		return false
 	}
-	override canResize() {
+	override canResize(_shape: NodeShape) {
 		return false
 	}
-	override hideResizeHandles() {
+	override hideResizeHandles(_shape: NodeShape) {
 		return true
 	}
-	override hideRotateHandle() {
+	override hideRotateHandle(_shape: NodeShape) {
 		return true
 	}
-	override hideSelectionBoundsBg() {
+	override hideSelectionBoundsBg(_shape: NodeShape) {
 		return true
 	}
-	override hideSelectionBoundsFg() {
+	override hideSelectionBoundsFg(_shape: NodeShape) {
 		return true
 	}
-	override isAspectRatioLocked() {
+	override isAspectRatioLocked(_shape: NodeShape) {
 		return false
 	}
 	override getBoundsSnapGeometry(_shape: NodeShape) {
@@ -103,51 +98,21 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 		})
 	}
 
-	override onResize(shape: any, info: TLResizeInfo<any>) {
-		return resizeBox(shape, info)
-	}
-
 	component(shape: NodeShape) {
 		return <NodeShape shape={shape} />
 	}
 
-	indicator(shape: NodeShape) {
+	getIndicatorPath(shape: NodeShape) {
+		const height = getNodeHeightPx(this.editor, shape)
+		const path = new Path2D()
+		path.rect(0, 0, NODE_WIDTH_PX, height)
 		const ports = getNodePorts(this.editor, shape)
-		return <NodeShapeIndicator shape={shape} ports={ports} />
+		for (const port of Object.values(ports)) {
+			path.moveTo(port.x + PORT_RADIUS_PX, port.y)
+			path.arc(port.x, port.y, PORT_RADIUS_PX, 0, Math.PI * 2)
+		}
+		return path
 	}
-}
-
-// SVG indicator component that shows selection bounds and ports
-function NodeShapeIndicator({ shape, ports }: { shape: NodeShape; ports: NodeTypePorts }) {
-	const editor = useEditor()
-	const id = useUniqueSafeId()
-	const height = useValue('height', () => getNodeHeightPx(editor, shape), [
-		shape.props.node,
-		editor,
-	])
-
-	return (
-		<>
-			{/* Create a mask to show ports as holes in the selection bounds */}
-			<mask id={id}>
-				<rect width={NODE_WIDTH_PX + 10} height={height + 10} fill="white" x={-5} y={-5} />
-				{Object.values(ports).map((port) => (
-					<circle
-						key={port.id}
-						cx={port.x}
-						cy={port.y}
-						r={PORT_RADIUS_PX}
-						fill="black"
-						strokeWidth={0}
-					/>
-				))}
-			</mask>
-			<rect rx={9} width={NODE_WIDTH_PX} height={height} mask={`url(#${id})`} />
-			{Object.values(ports).map((port) => (
-				<circle key={port.id} cx={port.x} cy={port.y} r={PORT_RADIUS_PX} />
-			))}
-		</>
-	)
 }
 
 // Main node component that renders the HTML content
@@ -156,7 +121,7 @@ function NodeShape({ shape }: { shape: NodeShape }) {
 
 	return (
 		<HTMLContainer
-			className={classNames('NodeShape')}
+			className="NodeShape"
 			style={{
 				width: getNodeWidthPx(editor, shape),
 				height: getNodeHeightPx(editor, shape),

@@ -39,6 +39,7 @@ export function useDefaultHelpers() {
 		const files = await getLocalFiles({
 			allowMultiple: true,
 			mimeTypes,
+			document: editor.getContainerDocument(),
 		})
 		if (!files.length) return
 		editor.markHistoryStoppingPoint('insert media')
@@ -57,6 +58,7 @@ export function useDefaultHelpers() {
 				mimeTypes: mimeTypes?.filter((m) =>
 					isImage ? m.startsWith('image/') : m.startsWith('video/')
 				),
+				document: editor.getContainerDocument(),
 			})
 			if (!files.length) return
 			const shape = editor.getOnlySelectedShape()

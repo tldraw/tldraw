@@ -1,3 +1,4 @@
+import { CommentTool, commentToolOverrides } from '@tldraw/commenting'
 import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
@@ -8,9 +9,14 @@ import {
 	TLComponents,
 	TLSessionStateSnapshot,
 	TLUiDialogsContextType,
+	TLUserStore,
 	Tldraw,
 	TldrawUiMenuItem,
+	UserRecordType,
+	commentSchemaRecords,
+	computed,
 	createSessionStateSnapshotSignal,
+	createUserId,
 	parseDeepLinkString,
 	react,
 	throttle,
@@ -21,37 +27,52 @@ import {
 	useEvent,
 	useValue,
 } from 'tldraw'
+import { SneakyMermaidHandler } from '../../../components/SneakyMermaidHandler/SneakyMermaidHandler'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
-
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
+import { usePerformanceTracking } from '../../../hooks/usePerformanceTracking'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
-import { MULTIPLAYER_SERVER } from '../../../utils/config'
+import { CLIENT_BUILD_TIMESTAMP, MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
-import { isProductionEnv } from '../../../utils/env'
+import { embedShapeUtils } from '../../../utils/embedShapeUtil'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
-import { useTldrawUser } from '../../hooks/useUser'
+import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
-import { A11yAudit } from './TlaDebug'
-import { TlaEditorWrapper } from './TlaEditorWrapper'
+import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
+import { CommentsOnCanvas, SignInToComment, useAnonCommentToolOverrides } from './CommentsOnCanvas'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
 import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
+import { SneakyCommentDeepLink } from './sneaky/SneakyCommentDeepLink'
 import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { SneakyDebugModeToast } from './sneaky/SneakyDebugModeToast'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakyLargeFileHander } from './sneaky/SneakyLargeFileHandler'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
+import { A11yAudit } from './TlaDebug'
+import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
+
+// Composing needs a signed-in author and an editable canvas. Signed-out visitors on an
+// editable canvas get a sign-in prompt where the composers would be; view-only sessions
+// read threads without composers (the server rejects their writes in the authorizers).
+const tlaCommentTools = [
+	CommentTool.configure({
+		canComment: ({ editor, currentUserId }) => currentUserId !== null && !editor.getIsReadonly(),
+		components: { ComposerFallback: SignInToComment },
+	}),
+]
 
 /** @internal */
 export const components: TLComponents = {
@@ -61,6 +82,9 @@ export const components: TLComponents = {
 	SharePanel: TlaEditorSharePanel,
 	Dialogs: null,
 	Toasts: null,
+	// No loading screen on tla editors: the editor only mounts once it's ready,
+	// so a spinner would only flash before the content appears.
+	LoadingScreen: null,
 }
 
 interface TlaEditorProps {
@@ -113,11 +137,13 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 	const trackRoomLoaded = useRoomLoadTracking()
 	const trackNewRoomCreation = useNewRoomCreationTracking()
+	const trackPerformance = usePerformanceTracking()
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			trackRoomLoaded(editor)
 			trackNewRoomCreation(app, fileId)
+			const cleanupPerf = trackPerformance(editor)
 			;(window as any).app = app
 			;(window as any).editor = editor
 			// Register the editor globally
@@ -163,14 +189,24 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			}).then(setIsReady)
 
 			return () => {
+				cleanupPerf()
 				fileStateUpdater.dispose()
 				abortController.abort()
 			}
 		},
-		[addDialog, trackRoomLoaded, trackNewRoomCreation, app, fileId, remountImageShapes, setIsReady]
+		[
+			addDialog,
+			trackRoomLoaded,
+			trackNewRoomCreation,
+			trackPerformance,
+			app,
+			fileId,
+			remountImageShapes,
+			setIsReady,
+		]
 	)
 
-	const user = useTldrawUser()
+	const user = useTldrawCurrentUser()
 	const getUserToken = useEvent(async () => {
 		return (await user?.getToken()) ?? 'not-logged-in'
 	})
@@ -179,16 +215,36 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		return multiplayerAssetStore({ getFileId: () => fileId, getToken: getUserToken })
 	}, [fileId, getUserToken])
 
+	const users: TLUserStore | undefined = useMemo(() => {
+		const prefs = app?.tlUser.userPreferences
+		if (!prefs) return undefined
+		const currentUser = computed('currentUser', () => {
+			const p = prefs.get()
+			return UserRecordType.create({
+				id: createUserId(p.id),
+				name: p.name ?? '',
+				color: p.color ?? '',
+			})
+		})
+		return {
+			currentUser,
+		}
+	}, [app?.tlUser.userPreferences])
+
 	const store = useSync({
 		uri: useCallback(async () => {
 			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
+			url.searchParams.set('v', CLIENT_BUILD_TIMESTAMP)
 			if (hasUser) {
 				url.searchParams.set('accessToken', await getUserToken())
 			}
 			return url.toString()
 		}, [fileSlug, hasUser, getUserToken]),
 		assets,
-		userInfo: app?.tlUser.userPreferences,
+		users,
+		// Register the opt-in `comment` record type so comment records sync through the file room.
+		// Must match the server schema (see fileSyncSchema in TLFileDurableObject).
+		records: commentSchemaRecords,
 		onCustomMessageReceived: useCallback((message: TLCustomServerEvent) => {
 			trackEvent(message.type)
 		}, []),
@@ -235,13 +291,30 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 	const overrides = useFileEditorOverrides({ fileSlug })
 	const extraDragIconOverrides = useExtraDragIconOverrides()
+	const anonCommentToolOverrides = useAnonCommentToolOverrides()
+	const commentingEnabled = useIsCommentingEnabled()
 
 	const instanceComponents = useMemo((): TLComponents => {
 		return {
 			...components,
 			DebugMenu: () => <CustomDebugMenu />,
+			InFrontOfTheCanvas: commentingEnabled
+				? () => <CommentsOnCanvas fileId={fileId} />
+				: undefined,
 		}
-	}, [])
+	}, [fileId, commentingEnabled])
+
+	// Without the tool and its overrides there's no comment button in Quick Actions and no `c`
+	// shortcut, so commenting is fully absent for users the flag doesn't cover. On read-only
+	// canvases the button and shortcut hide via the UI's readonly handling, and composing is
+	// gated by the tool's `canComment`.
+	const editorOverrides = useMemo(
+		() =>
+			commentingEnabled
+				? [overrides, extraDragIconOverrides, commentToolOverrides, anonCommentToolOverrides]
+				: [overrides, extraDragIconOverrides],
+		[commentingEnabled, overrides, extraDragIconOverrides, anonCommentToolOverrides]
+	)
 
 	return (
 		<TlaEditorWrapper>
@@ -250,20 +323,28 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				licenseKey={getLicenseKey()}
 				store={store}
 				assetUrls={assetUrls}
+				shapeUtils={embedShapeUtils}
+				tools={commentingEnabled ? tlaCommentTools : undefined}
 				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
 				components={instanceComponents}
-				options={{ actionShortcutsLocation: 'toolbar', deepLinks: deepLinks ? true : undefined }}
-				overrides={[overrides, extraDragIconOverrides]}
+				options={{
+					actionShortcutsLocation: 'toolbar',
+					deepLinks: deepLinks ? true : undefined,
+				}}
+				overrides={editorOverrides}
 				getShapeVisibility={getShapeVisibility}
 			>
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
 				<SneakyToolSwitcher />
+				<SneakyMermaidHandler />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
 				<SneakyDebugModeToast />
+				{commentingEnabled && <SneakyCommentDeepLink />}
+				<TlaAnonDotDevLink />
 			</Tldraw>
 		</TlaEditorWrapper>
 	)
@@ -271,37 +352,24 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 function CustomDebugMenu() {
 	const app = useMaybeApp()
+	const user = useTldrawCurrentUser()
 	const openAndTrack = useOpenUrlAndTrack('unknown')
 	const editor = useEditor()
 	const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
 	return (
 		<DefaultDebugMenu>
 			<A11yAudit />
-			{!isReadOnly && app && (
-				<>
-					<TldrawUiMenuItem
-						id="user-manual"
-						label="File history"
-						readonlyOk
-						onSelect={() => {
-							const url = new URL(window.location.href)
-							url.pathname += '/history'
-							openAndTrack(url.toString())
-						}}
-					/>
-					{!isProductionEnv && (
-						<TldrawUiMenuItem
-							id="user-manual"
-							label="File history (pierre)"
-							readonlyOk
-							onSelect={() => {
-								const url = new URL(window.location.href)
-								url.pathname += '/pierre-history'
-								openAndTrack(url.toString())
-							}}
-						/>
-					)}
-				</>
+			{!isReadOnly && app && user?.isTldraw && (
+				<TldrawUiMenuItem
+					id="user-manual"
+					label="File history"
+					readonlyOk
+					onSelect={() => {
+						const url = new URL(window.location.href)
+						url.pathname += '/history'
+						openAndTrack(url.toString())
+					}}
+				/>
 			)}
 			<DefaultDebugMenuContent />
 		</DefaultDebugMenu>

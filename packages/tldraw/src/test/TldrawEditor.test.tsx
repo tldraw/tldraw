@@ -12,11 +12,12 @@ import {
 	createShapeId,
 	createTLStore,
 	noop,
+	react,
+	tleditors,
 	toRichText,
 } from '@tldraw/editor'
 import { StrictMode } from 'react'
 import { vi } from 'vitest'
-import { TldrawSelectionForeground } from '../lib/canvas/TldrawSelectionForeground'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { defaultTools } from '../lib/defaultTools'
 import { createDrawSegments } from '../lib/utils/test-helpers'
@@ -95,6 +96,21 @@ describe('<TldrawEditor />', () => {
 		)
 	})
 
+	it('runs the teardown returned by the store onMount option when unmounted', async () => {
+		const teardown = vi.fn()
+		const storeOnMount = vi.fn(() => teardown)
+		const store = createTLStore({ shapeUtils: [], bindingUtils: [], onMount: storeOnMount })
+		const rendered = await renderTldrawComponent(
+			<TldrawEditor store={store} tools={defaultTools} initialState="select" />,
+			{ waitForPatterns: false }
+		)
+		expect(storeOnMount).toHaveBeenCalledTimes(1)
+		expect(teardown).not.toHaveBeenCalled()
+
+		act(() => rendered.unmount())
+		expect(teardown).toHaveBeenCalledTimes(1)
+	})
+
 	it('throws if the store has different shapes to the ones passed in', async () => {
 		const spy = vi.spyOn(console, 'error').mockImplementation(noop)
 		// expect(() =>
@@ -169,6 +185,33 @@ describe('<TldrawEditor />', () => {
 		expect(initialEditor.dispose).toHaveBeenCalledTimes(1)
 		expect(onMount).toHaveBeenCalledTimes(2)
 		expect(onMount.mock.lastCall![0].store).toBe(newStore)
+	})
+
+	it('reflects mount state via getIsMounted and the mount/unmount events', async () => {
+		const onUnmount = vi.fn()
+		const { editor, rendered } = await renderTldrawComponentWithEditor(
+			(onMount) => <TldrawEditor tools={defaultTools} initialState="select" onMount={onMount} />,
+			{ waitForPatterns: false }
+		)
+		editor.on('unmount', onUnmount)
+
+		// mounted after render:
+		expect(editor.getIsMounted()).toBe(true)
+		expect(tleditors.getMounted()).toEqual([editor])
+
+		// getIsMounted is reactive:
+		const mountedValues: boolean[] = []
+		const stop = react('track mounted', () => mountedValues.push(editor.getIsMounted()))
+
+		act(() => rendered.unmount())
+
+		// the unmount event fired and the mounted state flipped back to false:
+		expect(onUnmount).toHaveBeenCalledTimes(1)
+		expect(editor.getIsMounted()).toBe(false)
+		expect(tleditors.getMounted()).toEqual([])
+		expect(mountedValues).toEqual([true, false])
+
+		stop()
 	})
 
 	it('Renders the canvas and shapes', async () => {
@@ -256,8 +299,8 @@ describe('<TldrawEditor />', () => {
 			shapeTypesToTest.length
 		)
 
-		// Check that the canvas indicators element is present
-		expect(document.querySelector('.tl-canvas-indicators')).toBeTruthy()
+		// Check that the canvas overlays element is present (indicators render here too)
+		expect(document.querySelector('.tl-canvas-overlays')).toBeTruthy()
 
 		// Select one of the shapes (the note shape)
 		const noteShapeId = shapeIds[9] // note is at index 9
@@ -273,7 +316,7 @@ describe('<TldrawEditor />', () => {
 		expect(editor.getCurrentToolId()).toBe('eraser')
 	})
 
-	it('Renders TldrawSelectionForeground without TldrawUiContextProvider', async () => {
+	it('Renders selection overlays without TldrawUiContextProvider', async () => {
 		// Unmock useTranslation so we test the real implementation.
 		// (setupVitest.js globally mocks it to prevent errors in other tests)
 		const actual = await vi.importActual<
@@ -292,7 +335,6 @@ describe('<TldrawEditor />', () => {
 				initialState="select"
 				tools={defaultTools}
 				components={{
-					SelectionForeground: TldrawSelectionForeground,
 					// Use a custom error fallback to detect errors that would
 					// otherwise be silently caught by the default error boundary
 					ErrorFallback: ({ error }) => {
@@ -332,7 +374,9 @@ describe('<TldrawEditor />', () => {
 		// (useTranslation would throw without the fix, which the error boundary catches)
 		expect(errors).toHaveLength(0)
 		expect(document.querySelector('[data-testid="test-error-fallback"]')).toBeNull()
-		expect(document.querySelector('[data-testid="selection-foreground"]')).toBeTruthy()
+		// Selection foreground is now rendered via the OverlayUtil canvas system,
+		// so we verify via the canvas-overlays element instead of the old SVG element
+		expect(document.querySelector('.tl-canvas-overlays')).toBeTruthy()
 
 		spy.mockRestore()
 	})
@@ -537,10 +581,10 @@ describe('Custom shapes', () => {
 	class CardUtil extends BaseBoxShapeUtil<CardShape> {
 		static override type = CARD_TYPE
 
-		override isAspectRatioLocked(_shape: CardShape) {
+		override isAspectRatioLocked(shape: CardShape) {
 			return false
 		}
-		override canResize(_shape: CardShape) {
+		override canResize(shape: CardShape) {
 			return true
 		}
 
@@ -569,8 +613,10 @@ describe('Custom shapes', () => {
 			)
 		}
 
-		indicator(shape: CardShape) {
-			return <rect data-testid="card-indicator" width={shape.props.w} height={shape.props.h} />
+		getIndicatorPath(shape: CardShape) {
+			const path = new Path2D()
+			path.rect(0, 0, shape.props.w, shape.props.h)
+			return path
 		}
 	}
 
@@ -633,8 +679,9 @@ describe('Custom shapes', () => {
 		// Select the shape
 		await act(async () => editor.select(id))
 
-		// Is the shape's component rendering?
-		expect(await screen.findByTestId('card-indicator')).toBeTruthy()
+		// Indicators are now rendered via the canvas overlay system (not DOM),
+		// so we verify selection state instead of a DOM element
+		expect(editor.getSelectedShapeIds()).toEqual([id])
 
 		// Select the tool...
 		await act(async () => editor.setCurrentTool('card'))

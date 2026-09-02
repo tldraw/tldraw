@@ -16,6 +16,7 @@ import {
 	useUniqueSafeId,
 } from '@tldraw/editor'
 import React, { useLayoutEffect, useRef } from 'react'
+import { isEditingRichTextList } from '../../utils/text/richText'
 
 /** @public */
 export interface TextAreaProps {
@@ -264,8 +265,7 @@ function handleTab(editor: Editor, view: EditorView, event: KeyboardEvent) {
 	// Don't exit the editor.
 	event.preventDefault()
 
-	const textEditor = editor.getRichTextEditor()
-	if (textEditor?.isActive('bulletList') || textEditor?.isActive('orderedList')) return
+	if (isEditingRichTextList(editor)) return
 
 	const { state, dispatch } = view
 	const { $from, $to } = state.selection

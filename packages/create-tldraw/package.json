@@ -1,13 +1,20 @@
 {
 	"name": "create-tldraw",
 	"description": "tldraw infinite canvas SDK (create cli).",
-	"version": "4.4.0",
+	"version": "5.3.2",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
 	},
 	"homepage": "https://tldraw.dev",
 	"license": "SEE LICENSE IN LICENSE.md",
+	"tldraw_product": {
+		"stableId": "tldraw:create-tldraw",
+		"name": "Create tldraw CLI",
+		"type": "feature",
+		"parent": "tldraw:sdk-core",
+		"premium": false
+	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tldraw/tldraw"
@@ -47,12 +54,15 @@
 		"@tldraw/utils": "workspace:*",
 		"ansi-regex": "^6.1.0",
 		"ansi-styles": "^6.2.1",
-		"esbuild": "^0.25.6",
+		"esbuild": "^0.28.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"picocolors": "^1.1.1",
 		"string-width": "^7.2.0",
 		"strip-ansi": "^7.1.0",
-		"tar": "^7.4.3"
+		"tar": "^7.5.11"
 	},
-	"// because this is bundled, all dependencies should be dev dependencies.": null
+	"// because this is bundled, all dependencies should be dev dependencies.": null,
+	"engines": {
+		"node": ">=22.12.0"
+	}
 }

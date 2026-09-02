@@ -13,11 +13,11 @@ keywords:
   - localstorage
 ---
 
-Persistence means storing the editor's state to a database and restoring it later. The tldraw SDK provides several approaches: automatic local persistence with a single prop, manual snapshots for custom storage backends, and a migration system for handling schema changes.
+Persistence means storing the editor's state to a database and restoring it later. The simplest option is the `persistenceKey` prop, which saves to the browser automatically. Snapshots and the `store` prop give you more control, and migrations bring old data up to date.
 
 ## Local persistence
 
-The simplest approach is the `persistenceKey` prop. This automatically saves to IndexedDB and syncs across browser tabs:
+The simplest approach is the `persistenceKey` prop. This automatically saves the document and any uploaded [assets](/docs/assets) to IndexedDB and syncs across browser tabs:
 
 ```tsx
 import { Tldraw } from 'tldraw'
@@ -46,17 +46,17 @@ const { document, session } = getSnapshot(editor.store)
 await saveToDatabase(document)
 
 // Load
-const document = await loadFromDatabase()
-loadSnapshot(editor.store, { document })
+const saved = await loadFromDatabase()
+loadSnapshot(editor.store, { document: saved })
 ```
 
-The snapshot has two parts: `document` (shapes, pages, bindings) which you typically save to a server, and `session` (camera, selection, UI state) which you keep per-user locally.
+The snapshot has two parts: `document` (shapes, pages, bindings) which you typically save to a server, and `session` (camera, selection, UI state) which you keep per-user locally. Loading a snapshot replaces the current document.
 
-See [Persistence](/sdk-features/persistence) for complete coverage of snapshots, async loading with `TLStoreWithStatus`, and auto-save patterns.
+To load a snapshot once on startup, pass it to the `snapshot` prop of `<Tldraw>` instead. See [Persistence](/sdk-features/persistence) for complete coverage of snapshots, async loading with [TLStoreWithStatus](?), and auto-save patterns.
 
 ## The store
 
-The editor's [store](/sdk-features/store) is a reactive database that holds all records. You can create a standalone store, load data into it, and pass it to the editor:
+The editor's [store](/sdk-features/store) is a reactive database that holds all records. You can create a standalone store with [createTLStore](?), load data into it, and pass it to the editor:
 
 ```tsx
 import { useState } from 'react'
@@ -80,7 +80,7 @@ See [Store](/sdk-features/store) for details on store operations, listening to c
 
 ## Multiplayer sync
 
-For real-time collaboration, use the `@tldraw/sync` package. Multiple users can edit the same document simultaneously, see each other's cursors, and follow each other's viewports:
+For real-time collaboration, use the `@tldraw/sync` package and its [useSyncDemo](?) hook. Multiple users can edit the same document simultaneously, see each other's cursors, and follow each other's viewports:
 
 ```tsx
 import { useSyncDemo } from '@tldraw/sync'
@@ -102,8 +102,8 @@ See [Persistence](/sdk-features/persistence#migrations) for details on shape pro
 
 ## Examples
 
-- [Persistence key](/examples/data/persistence-key) — Automatic local persistence with a single prop
-- [Snapshots](/examples/data/snapshots) — Saving and loading editor state
-- [Local storage](/examples/data/local-storage) — Custom persistence with throttled auto-save
-- [Store events](/examples/data/store-events) — Listening to store changes
-- [Shape with migrations](/examples/data/shape-with-migrations) — Migrations for custom shape props
+- [Persistence key](/examples/configuration/persistence-key) — Automatic local persistence with a single prop
+- [Snapshots](/examples/editor-api/snapshots) — Saving and loading editor state
+- [Local storage](/examples/data/assets/local-storage) — Custom persistence with throttled auto-save
+- [Store events](/examples/events/store-events) — Listening to store changes
+- [Shape with migrations](/examples/shapes/tools/shape-with-migrations) — Migrations for custom shape props

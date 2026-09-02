@@ -13,20 +13,17 @@ keywords:
     addopenmenu,
     deleteopenmenu,
     usemenuisopen,
-    ui,
   ]
 ---
 
-Programmatically control dropdown menus via hover interactions using the editor's menu tracking API.
+Open and close a dropdown menu from hover events using `editor.menus`.
 
 ---
 
-This example demonstrates how to open and close menus programmatically using the `editor.menus` API. Instead of relying solely on click triggers, you can control menu state in response to any UI event—in this case, hovering over specific zones.
+tldraw keeps track of open menus in `editor.menus`, keyed by id. The UI's dropdown primitives read that state, so you can open or close a menu from anywhere by writing to it:
 
-The key APIs used are:
+- `editor.menus.addOpenMenu(id)` opens a menu
+- `editor.menus.deleteOpenMenu(id)` closes it
+- `useMenuIsOpen(id)` subscribes to a menu's open state
 
-- `editor.menus.addOpenMenu(id)` - Register a menu as open
-- `editor.menus.deleteOpenMenu(id)` - Close a specific menu
-- `useMenuIsOpen(id)` - Subscribe to menu state reactively
-
-This pattern is useful for building custom toolbars, navigation systems, or any UI where menus should respond to external events rather than just their own triggers.
+Try hovering the green-labeled zone to open the dropdown and the red-labeled zone to close it. Clicking the trigger button still works as usual. This is handy for hover-driven toolbars or for closing menus in response to events elsewhere in your app.

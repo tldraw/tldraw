@@ -1,24 +1,22 @@
-import { Tldraw, react } from 'tldraw'
+import { DEFAULT_THEME, TLTheme, Tldraw, react, structuredClone } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
 
 // [1]
+const RECTANGLE_SELECTION_THEME: TLTheme = structuredClone(DEFAULT_THEME)
+RECTANGLE_SELECTION_THEME.colors.light.selectionStroke = '#cc0000'
+RECTANGLE_SELECTION_THEME.colors.light.selectionFill = 'rgba(255, 68, 68, 0.24)'
+RECTANGLE_SELECTION_THEME.colors.dark.selectionStroke = '#ff4444'
+RECTANGLE_SELECTION_THEME.colors.dark.selectionFill = 'rgba(255, 68, 68, 0.32)'
+
 export default function SelectionColorConditionExample() {
 	return (
 		<div className="tldraw__editor">
-			<style>{`
-				/* Custom selection color for rectangle shapes */
-				.tl-container.rectangle-selection {
-					--tl-color-selection: #ff4444;
-					--tl-color-selection-stroke: #cc0000;
-				}
-			`}</style>
-
 			<Tldraw
 				onMount={(editor) => {
 					// [2]
-					const stopListening = react('update selection classname', () => {
+					const stopListening = react('update selection theme', () => {
 						const selectedShapes = editor.getSelectedShapes()
 
 						// [3]
@@ -29,11 +27,10 @@ export default function SelectionColorConditionExample() {
 							)
 
 						// [4]
-						if (allAreRectangles) {
-							editor.getContainer().classList.add('rectangle-selection')
-						} else {
-							editor.getContainer().classList.remove('rectangle-selection')
-						}
+						editor.updateTheme({
+							...(allAreRectangles ? RECTANGLE_SELECTION_THEME : DEFAULT_THEME),
+							id: 'default',
+						})
 					})
 
 					// [5]
@@ -54,32 +51,28 @@ export default function SelectionColorConditionExample() {
 }
 
 /*
-
-Introduction:
-
-This example shows how to change the selection color based on the types of shapes selected.
-When all selected shapes are rectangles, the selection will appear red instead of the default blue.
+This example changes the selection color based on which shapes are selected:
+red when every selected shape is a rectangle, the default blue otherwise.
 
 [1]
-We use the onMount prop to set up our selection listener when the editor is first mounted.
+Selection colors live on the theme (`selectionStroke` and `selectionFill`), not
+in CSS variables, because the selection overlays are drawn to canvas. We clone
+DEFAULT_THEME and override those two colors for both light and dark modes.
 
 [2]
-We use the react function to create a reactive effect that runs whenever the selection changes.
-The first parameter is a unique name for this effect, and the second is a function that will
-be called whenever the selection updates.
+`react` runs the callback once, then again whenever any signal it read changes.
+Here it reads the selection, so it re-runs on every selection change. It
+returns a disposer, which we return from onMount so it's cleaned up when the
+editor unmounts.
 
 [3]
-Here we check if all selected shapes are rectangle geo shapes. You can customize this condition
-to check for any shape type or combination. For example:
-- Check for circles: shape.type === 'geo' && shape.props.geo === 'ellipse'
-- Check for text: shape.type === 'text'
-- Check for mixed types: shape.type === 'geo' && (shape.props.geo === 'rectangle' || shape.props.geo === 'ellipse')
+Change this condition to check for any shape type or combination.
 
 [4]
-Based on our condition, we add or remove a CSS class from the editor's container. The CSS
-file (selection-color-condition.css) defines the custom colors for the .rectangle-selection class.
+`editor.updateTheme` replaces the theme registered under the given id. Both
+variants keep the id 'default', so this swaps the current theme in place and
+leaves the module-level DEFAULT_THEME object untouched.
 
 [5]
-We create some shapes to test our condition.
-
+Some shapes to test with. The two rectangles are selected on load.
 */

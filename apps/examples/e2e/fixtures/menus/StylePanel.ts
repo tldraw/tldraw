@@ -4,6 +4,7 @@ export class StylePanel {
 	readonly stylesArray: string[]
 	readonly colors: { [key: string]: Locator }
 	readonly fill: { [key: string]: Locator }
+	readonly fillExtra: Locator
 	readonly dash: { [key: string]: Locator }
 	readonly size: { [key: string]: Locator }
 	readonly font: { [key: string]: Locator }
@@ -39,6 +40,7 @@ export class StylePanel {
 			semi: this.page.getByTestId('style.fill.semi'),
 			solid: this.page.getByTestId('style.fill.solid'),
 		}
+		this.fillExtra = this.page.getByTestId('style.fill-extra')
 		this.dash = {
 			draw: this.page.getByTestId('style.dash.draw'),
 			dashed: this.page.getByTestId('style.dash.dashed'),

@@ -35,8 +35,10 @@ import { TLShapeId } from './TLShape'
  *
  * @public
  */
-export interface TLInstancePageState
-	extends BaseRecord<'instance_page_state', TLInstancePageStateId> {
+export interface TLInstancePageState extends BaseRecord<
+	'instance_page_state',
+	TLInstancePageStateId
+> {
 	pageId: RecordId<TLPage>
 	selectedShapeIds: TLShapeId[]
 	hintingShapeIds: TLShapeId[]
@@ -210,7 +212,11 @@ export const InstancePageStateRecordType = createRecordType<TLInstancePageState>
 		ephemeralKeys: {
 			pageId: false,
 			selectedShapeIds: false,
-			editingShapeId: false,
+			// editingShapeId is set with `history: 'ignore'`, so entering the editing
+			// state is never undoable. Marking it ephemeral keeps undo/redo from
+			// reapplying a stale editingShapeId (e.g. after a shape it pointed at was
+			// deleted), which could leave the editor pointing at a missing shape.
+			editingShapeId: true,
 			croppingShapeId: false,
 			meta: false,
 

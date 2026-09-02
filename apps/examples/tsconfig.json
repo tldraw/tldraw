@@ -5,6 +5,8 @@
 	"compilerOptions": { "outDir": "./.tsbuild" },
 	"references": [
 		{ "path": "../../packages/assets" },
+		{ "path": "../../packages/commenting" },
+		{ "path": "../../packages/mermaid" },
 		{ "path": "../../packages/sync" },
 		{ "path": "../../packages/state" },
 		{ "path": "../../packages/tldraw" },

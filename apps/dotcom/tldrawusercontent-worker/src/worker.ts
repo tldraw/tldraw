@@ -9,6 +9,8 @@ import {
 	handleUserAssetUpload,
 	isAllowedOrigin,
 	notFound,
+	retry,
+	TRANSIENT_RETRY_OPTIONS,
 } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { cors } from 'itty-router'
@@ -43,7 +45,10 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			let userId: string | null = null
 			if (fileId) {
 				const authHeader = request.headers.get('Authorization')
-				const validation = await this.env.SYNC_WORKER.validateUpload(fileId, authHeader)
+				const validation = await retry(
+					() => this.env.SYNC_WORKER.validateUpload(fileId, authHeader),
+					TRANSIENT_RETRY_OPTIONS
+				)
 				if (!validation.ok) {
 					const status = validation.error === 'File not found' ? 404 : 403
 					return Response.json({ error: validation.error }, { status })
@@ -64,7 +69,10 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			// will pick up the association later if this fails.
 			if (res.status === 200 && fileId) {
 				try {
-					await this.env.SYNC_WORKER.confirmUpload(objectName, fileId, userId)
+					await retry(
+						() => this.env.SYNC_WORKER.confirmUpload(objectName, fileId, userId),
+						TRANSIENT_RETRY_OPTIONS
+					)
 				} catch (e) {
 					console.error('Failed to queue asset association', e)
 				}

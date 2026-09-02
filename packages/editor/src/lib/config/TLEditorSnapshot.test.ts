@@ -2,8 +2,8 @@ import { PageRecordType, TLStore, createShapeId } from '@tldraw/tlschema'
 import { IndexKey } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
 import { Box } from '../primitives/Box'
-import { TLEditorSnapshot, getSnapshot, loadSnapshot } from './TLEditorSnapshot'
 import { createTLStore } from './createTLStore'
+import { TLEditorSnapshot, getSnapshot, loadSnapshot } from './TLEditorSnapshot'
 
 const createEditor = (store: TLStore) => {
 	return new Editor({

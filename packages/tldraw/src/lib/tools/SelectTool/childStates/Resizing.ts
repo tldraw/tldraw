@@ -2,8 +2,6 @@ import {
 	Box,
 	HALF_PI,
 	Mat,
-	PI,
-	PI2,
 	SelectionCorner,
 	SelectionEdge,
 	StateNode,
@@ -16,8 +14,12 @@ import {
 	VecLike,
 	areAnglesCompatible,
 	compact,
+	isShapeId,
 	kickoutOccludedShapes,
+	rotateSelectionHandle,
 } from '@tldraw/editor'
+import { getEnclosedShapeIds } from '../../../shapes/frame/FrameShapeTool'
+import { batchMeasureGeoLabels, setBatchLabelSizeCache } from '../../../shapes/geo/GeoShapeUtil'
 
 export type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'
@@ -31,6 +33,7 @@ export type ResizingInfo = TLPointerEventInfo & {
 
 export class Resizing extends StateNode {
 	static override id = 'resizing'
+	static override trackPerformance = true
 
 	info = {} as ResizingInfo
 
@@ -38,6 +41,9 @@ export class Resizing extends StateNode {
 
 	// A switch to detect when the user is holding ctrl
 	private didHoldCommand = false
+
+	// Set by complete() and cancel(); see onExit for what happens when neither ran
+	private didFinish = false
 
 	// we transition into the resizing state from the geo pointing state, which starts with a shape of size w: 1, h: 1,
 	// so if the user drags x: +50, y: +50 after mouseDown, the shape will be w: 51, h: 51, which is too many pixels, alas
@@ -51,6 +57,7 @@ export class Resizing extends StateNode {
 
 		this.info = info
 		this.didHoldCommand = false
+		this.didFinish = false
 
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
@@ -122,6 +129,8 @@ export class Resizing extends StateNode {
 	}
 
 	private cancel() {
+		this.didFinish = true
+
 		// Call onResizeCancel callback before resetting
 		const { shapeSnapshots } = this.snapshot
 
@@ -129,6 +138,7 @@ export class Resizing extends StateNode {
 			const current = this.editor.getShape(shape.id)
 			if (current) {
 				const util = this.editor.getShapeUtil(shape)
+				if (!util.canResize(shape)) return
 				util.onResizeCancel?.(shape, current)
 			}
 		})
@@ -148,6 +158,8 @@ export class Resizing extends StateNode {
 	}
 
 	private complete() {
+		this.didFinish = true
+
 		kickoutOccludedShapes(this.editor, this.snapshot.selectedShapeIds)
 
 		this.handleResizeEnd()
@@ -174,12 +186,15 @@ export class Resizing extends StateNode {
 	}
 
 	private handleResizeStart() {
+		// Non-resizable shapes are in the snapshot only to be repositioned, so they don't get the
+		// resize lifecycle callbacks (matching Editor.resizeShape).
 		const { shapeSnapshots } = this.snapshot
 
 		const changes: TLShapePartial[] = []
 
 		shapeSnapshots.forEach(({ shape }) => {
 			const util = this.editor.getShapeUtil(shape)
+			if (!util.canResize(shape)) return
 			const change = util.onResizeStart?.(shape)
 			if (change) {
 				changes.push(change)
@@ -199,6 +214,7 @@ export class Resizing extends StateNode {
 		shapeSnapshots.forEach(({ shape }) => {
 			const current = this.editor.getShape(shape.id)!
 			const util = this.editor.getShapeUtil(shape)
+			if (!util.canResize(shape)) return
 			const change = util.onResizeEnd?.(shape, current)
 			if (change) {
 				changes.push(change)
@@ -211,24 +227,30 @@ export class Resizing extends StateNode {
 	}
 
 	private updateShapes() {
-		const altKey = this.editor.inputs.getAltKey()
-		const shiftKey = this.editor.inputs.getShiftKey()
 		const {
-			frames,
-			shapeSnapshots,
-			selectionBounds,
-			cursorHandleOffset,
-			selectedShapeIds,
-			selectionRotation,
-			canShapesDeform,
-		} = this.snapshot
+			editor,
+			info,
+			snapshot: {
+				frames,
+				shapeSnapshots,
+				selectionBounds,
+				cursorHandleOffset,
+				selectedShapeIds,
+				selectionRotation,
+				canShapesDeform,
+				initialSelectionPageBounds,
+				resizeLevels,
+			},
+		} = this
+		const altKey = editor.inputs.getAltKey()
+		const shiftKey = editor.inputs.getShiftKey()
 
 		let isAspectRatioLocked = shiftKey || !canShapesDeform
 
 		if (shapeSnapshots.size === 1) {
 			const onlySnapshot = [...shapeSnapshots.values()][0]!
-			if (this.editor.isShapeOfType(onlySnapshot.shape, 'text')) {
-				isAspectRatioLocked = !(this.info.handle === 'left' || this.info.handle === 'right')
+			if (editor.isShapeOfType(onlySnapshot.shape, 'text')) {
+				isAspectRatioLocked = !(info.handle === 'left' || info.handle === 'right')
 			}
 		}
 
@@ -267,30 +289,30 @@ export class Resizing extends StateNode {
 
 		const isHoldingAccel = this.editor.inputs.getAccelKey()
 
-		const currentPagePoint = this.editor.inputs
+		const currentPagePoint = editor.inputs
 			.getCurrentPagePoint()
 			.clone()
 			.sub(cursorHandleOffset)
 			.sub(this.creationCursorOffset)
 
-		const originPagePoint = this.editor.inputs.getOriginPagePoint().clone().sub(cursorHandleOffset)
+		const originPagePoint = editor.inputs.getOriginPagePoint().clone().sub(cursorHandleOffset)
 
-		if (this.editor.getInstanceState().isGridMode && !isHoldingAccel) {
-			const { gridSize } = this.editor.getDocumentSettings()
+		if (editor.getInstanceState().isGridMode && !isHoldingAccel) {
+			const { gridSize } = editor.getDocumentSettings()
 			currentPagePoint.snapToGrid(gridSize)
 		}
 
-		const dragHandle = this.info.handle as SelectionCorner | SelectionEdge
+		const dragHandle = info.handle as SelectionCorner | SelectionEdge
 		const scaleOriginHandle = rotateSelectionHandle(dragHandle, Math.PI)
 
-		this.editor.snaps.clearIndicators()
+		editor.snaps.clearIndicators()
 
-		const shouldSnap = this.editor.user.getIsSnapMode() ? !isHoldingAccel : isHoldingAccel
+		const shouldSnap = editor.user.getIsSnapMode() ? !isHoldingAccel : isHoldingAccel
 
 		if (shouldSnap && selectionRotation % HALF_PI === 0) {
-			const { nudge } = this.editor.snaps.shapeBounds.snapResizeShapes({
+			const { nudge } = editor.snaps.shapeBounds.snapResizeShapes({
 				dragDelta: Vec.Sub(currentPagePoint, originPagePoint),
-				initialSelectionPageBounds: this.snapshot.initialSelectionPageBounds,
+				initialSelectionPageBounds: initialSelectionPageBounds,
 				handle: rotateSelectionHandle(dragHandle, selectionRotation),
 				isAspectRatioLocked,
 				isResizingFromCenter: altKey,
@@ -362,23 +384,49 @@ export class Resizing extends StateNode {
 			})
 		}
 
-		for (const id of shapeSnapshots.keys()) {
-			const snapshot = shapeSnapshots.get(id)!
+		// Batch-measure geo shape labels to avoid layout thrashing (only worth it for multiple shapes).
+		if (shapeSnapshots.size > 1) {
+			batchMeasureGeoLabels(
+				this.editor,
+				shapeSnapshots,
+				scale,
+				selectionRotation,
+				isAspectRatioLocked
+			)
+		}
 
-			this.editor.resizeShape(id, scale, {
-				initialShape: snapshot.shape,
-				initialBounds: snapshot.bounds,
-				initialPageTransform: snapshot.pageTransform,
-				dragHandle,
-				mode:
-					selectedShapeIds.length === 1 && id === selectedShapeIds[0]
-						? 'resize_bounds'
-						: 'scale_shape',
-				scaleOrigin: scaleOriginPage,
-				isAspectRatioLocked,
-				scaleAxisRotation: selectionRotation,
-				skipStartAndEndCallbacks: true,
-			})
+		// Resize all shapes (onResize will use the batch cache for geo shapes when available).
+		// Collect the updates for each nesting level and commit them in a single batch, so that
+		// each pointer move pays the store's per-commit costs once per level rather than once per
+		// shape. Shapes that are rotated out of alignment with the selection can't be expressed
+		// as a single update; getResizeShapePartial resizes those immediately and returns null.
+		for (const level of resizeLevels) {
+			const changes: TLShapePartial[] = []
+
+			for (const id of level) {
+				const snapshot = shapeSnapshots.get(id)!
+
+				const change = editor.getResizeShapePartial(id, scale, {
+					initialShape: snapshot.shape,
+					initialBounds: snapshot.bounds,
+					initialPageTransform: snapshot.pageTransform,
+					dragHandle,
+					mode:
+						selectedShapeIds.length === 1 && id === selectedShapeIds[0]
+							? 'resize_bounds'
+							: 'scale_shape',
+					scaleOrigin: scaleOriginPage,
+					isAspectRatioLocked,
+					scaleAxisRotation: selectionRotation,
+					skipStartAndEndCallbacks: true,
+				})
+
+				if (change) changes.push(change)
+			}
+
+			if (changes.length > 0) {
+				editor.updateShapes(changes)
+			}
 		}
 
 		// If there's only one shape snapshot and it's a frame and the user is holding ctrl,
@@ -386,6 +434,8 @@ export class Resizing extends StateNode {
 		// the frame rather than resizing it.
 		if (isHoldingAccel) {
 			this.didHoldCommand = true
+
+			const childChanges: TLShapePartial[] = []
 
 			for (const { id, children } of frames) {
 				if (!children.length) continue
@@ -400,7 +450,7 @@ export class Resizing extends StateNode {
 
 				if (delta.x !== 0 || delta.y !== 0) {
 					for (const child of children) {
-						this.editor.updateShape({
+						childChanges.push({
 							id: child.id,
 							type: child.type,
 							x: child.x - delta.x,
@@ -409,14 +459,19 @@ export class Resizing extends StateNode {
 					}
 				}
 			}
+
+			if (childChanges.length > 0) {
+				this.editor.updateShapes(childChanges)
+			}
 		} else if (this.didHoldCommand) {
 			// If we're no longer holding the command key...
 			this.didHoldCommand = false
 
+			const childChanges: TLShapePartial[] = []
+
 			for (const { children } of frames) {
-				if (!children.length) continue
 				for (const child of children) {
-					this.editor.updateShape({
+					childChanges.push({
 						id: child.id,
 						type: child.type,
 						x: child.x,
@@ -424,7 +479,32 @@ export class Resizing extends StateNode {
 					})
 				}
 			}
+
+			if (childChanges.length > 0) {
+				this.editor.updateShapes(childChanges)
+			}
 		}
+
+		this.updateEnclosureHints()
+	}
+
+	// While drag-creating a frame, hint the sibling shapes that would become its children on pointer up
+	private updateEnclosureHints() {
+		if (!this.info.isCreating) return
+
+		const shape = this.editor.getOnlySelectedShape()
+		if (!shape || !this.editor.isShapeOfType(shape, 'frame')) return
+
+		const hintingShapeIds = getEnclosedShapeIds(this.editor, shape)
+		const prevHintingShapeIds = this.editor.getHintingShapeIds()
+		if (
+			hintingShapeIds.length === prevHintingShapeIds.length &&
+			hintingShapeIds.every((id, i) => id === prevHintingShapeIds[i])
+		) {
+			return
+		}
+
+		this.editor.setHintingShapes(hintingShapeIds)
 	}
 
 	// ---
@@ -440,36 +520,48 @@ export class Resizing extends StateNode {
 		isFlippedY: boolean
 		rotation: number
 	}) {
-		const nextCursor = { ...this.editor.getInstanceState().cursor }
+		const prevCursor = this.editor.getInstanceState().cursor
+		let nextCursorType = prevCursor.type
 
 		switch (dragHandle) {
 			case 'top_left':
 			case 'bottom_right': {
-				nextCursor.type = 'nwse-resize'
+				nextCursorType = 'nwse-resize'
 				if (isFlippedX !== isFlippedY) {
-					nextCursor.type = 'nesw-resize'
+					nextCursorType = 'nesw-resize'
 				}
 				break
 			}
 			case 'top_right':
 			case 'bottom_left': {
-				nextCursor.type = 'nesw-resize'
+				nextCursorType = 'nesw-resize'
 				if (isFlippedX !== isFlippedY) {
-					nextCursor.type = 'nwse-resize'
+					nextCursorType = 'nwse-resize'
 				}
 				break
 			}
 		}
 
-		nextCursor.rotation = rotation
+		// this runs on every pointer move, so skip the instance state update when nothing changed
+		if (nextCursorType === prevCursor.type && rotation === prevCursor.rotation) return
 
-		this.editor.setCursor(nextCursor)
+		this.editor.setCursor({ type: nextCursorType, rotation })
 	}
 
 	override onExit() {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.editor.snaps.clearIndicators()
+		setBatchLabelSizeCache(this.editor, null)
+		if (this.info.isCreating && this.editor.getHintingShapeIds().length > 0) {
+			this.editor.setHintingShapes([])
+		}
+		// Exited mid-creation without complete() or cancel(), e.g. a tool shortcut pressed while
+		// dragging out a text box: the shape created at the drag threshold was never committed and
+		// would otherwise be left behind, empty and invisible (#10401)
+		if (this.info.isCreating && !this.didFinish) {
+			this.editor.bailToMark(this.markId)
+		}
 	}
 
 	private _createSnapshot() {
@@ -508,17 +600,16 @@ export class Resizing extends StateNode {
 
 			const util = editor.getShapeUtil(shape)
 
-			// If the shape can resize, add it to the resizing shapes snapshots
-			if (util.canResize(shape)) {
-				const pageTransform = editor.getShapePageTransform(shape)!
-				shapeSnapshots.set(shape.id, {
-					shape,
-					bounds: editor.getShapeGeometry(shape).bounds,
-					pageTransform,
-					pageRotation: Mat.Decompose(pageTransform).rotation,
-					isAspectRatioLocked: util.isAspectRatioLocked(shape),
-				})
-			}
+			// Shapes that can't resize are snapshotted too: getResizeShapePartial repositions them
+			// so they keep their place in the selection instead of being left behind.
+			const pageTransform = editor.getShapePageTransform(shape)!
+			shapeSnapshots.set(shape.id, {
+				shape,
+				bounds: editor.getShapeGeometry(shape).bounds,
+				pageTransform,
+				pageRotation: Mat.Decompose(pageTransform).rotation,
+				isAspectRatioLocked: util.isAspectRatioLocked(shape),
+			})
 
 			// Special case:
 			// For frames, we don't want to resize children but we DO want to get a snapshot of their children so that we can restore their
@@ -526,7 +617,7 @@ export class Resizing extends StateNode {
 			// descendants (easy) but also flagging with behavior like "resize" or "keep absolute position" or "reposition only with accel key",
 			// though I'm not sure where that would be defined; perhaps better handled with onResizeStart / onResize callbacks on the util, and
 			// pass `accelKeyIsPressed` as well as `accelKeyWasPressed`?
-			if (editor.isShapeOfType(shape, 'frame')) {
+			if (editor.isShapeFrameLike(shape)) {
 				frames.push({
 					id: shape.id,
 					children: compact(
@@ -552,6 +643,34 @@ export class Resizing extends StateNode {
 				!areAnglesCompatible(shape.pageRotation, selectionRotation) || shape.isAspectRatioLocked
 		)
 
+		// Group the shapes into levels of relative nesting so that each level can be resized in a
+		// single batched update. A shape whose ancestor is also resizing must commit after that
+		// ancestor, because its new position is computed against the parent's current transform.
+		// In the common case (no resizing shape is parented to another resizing shape) there is a
+		// single level, so each pointer move commits one update for all shapes.
+		const resizeLevels: TLShapeId[][] = []
+		const levelByShapeId = new Map<TLShapeId, number>()
+		const getLevel = (id: TLShapeId): number => {
+			const cached = levelByShapeId.get(id)
+			if (cached !== undefined) return cached
+			let level = 0
+			let parentId = editor.getShape(id)?.parentId
+			while (parentId && isShapeId(parentId)) {
+				if (shapeSnapshots.has(parentId)) {
+					level = getLevel(parentId) + 1
+					break
+				}
+				parentId = editor.getShape(parentId)?.parentId
+			}
+			levelByShapeId.set(id, level)
+			return level
+		}
+		for (const id of shapeSnapshots.keys()) {
+			const level = getLevel(id)
+			while (resizeLevels.length <= level) resizeLevels.push([])
+			resizeLevels[level].push(id)
+		}
+
 		return {
 			shapeSnapshots,
 			selectionBounds,
@@ -561,28 +680,9 @@ export class Resizing extends StateNode {
 			canShapesDeform,
 			initialSelectionPageBounds: this.editor.getSelectionPageBounds()!,
 			frames,
+			resizeLevels,
 		}
 	}
 }
 
 type Snapshot = ReturnType<Resizing['_createSnapshot']>
-
-const ORDERED_SELECTION_HANDLES: (SelectionEdge | SelectionCorner)[] = [
-	'top',
-	'top_right',
-	'right',
-	'bottom_right',
-	'bottom',
-	'bottom_left',
-	'left',
-	'top_left',
-]
-
-export function rotateSelectionHandle(handle: SelectionEdge | SelectionCorner, rotation: number) {
-	// first find out how many tau we need to rotate by
-	rotation = rotation % PI2
-	const numSteps = Math.round(rotation / (PI / 4))
-
-	const currentIndex = ORDERED_SELECTION_HANDLES.indexOf(handle)
-	return ORDERED_SELECTION_HANDLES[(currentIndex + numSteps) % ORDERED_SELECTION_HANDLES.length]
-}

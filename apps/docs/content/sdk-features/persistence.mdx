@@ -39,7 +39,7 @@ export default function App() {
 }
 ```
 
-With this prop, the editor saves to IndexedDB whenever it changes, loads from IndexedDB on mount, synchronizes across browser tabs with the same key, and stores assets alongside the document.
+With this prop, the editor saves to IndexedDB whenever it changes and loads from IndexedDB on mount. It also stores assets alongside the document and keeps tabs with the same key in sync. Under the hood this is the internal `useLocalStore` hook.
 
 Each persistence key represents a separate document:
 
@@ -48,7 +48,7 @@ Each persistence key represents a separate document:
 <Tldraw persistenceKey="document-b" />
 ```
 
-Two editors with the same key share the same document and stay in sync. Each editor still maintains its own session state (camera position, selection, current page).
+Two editors with the same key share the same document and stay in sync. Each editor still maintains its own session state (camera position, selection, current page), saved per tab under the `sessionId` prop, which defaults to a unique id for the tab.
 
 ## Snapshots
 
@@ -56,7 +56,7 @@ For custom storage backends, use snapshots to save and load editor state. A snap
 
 ### Getting a snapshot
 
-Call [getSnapshot](?) with the editor's store to get the current state:
+Call [getSnapshot](?) with the editor's store (or [Editor#getSnapshot](?)) to get the current state:
 
 ```ts
 import { getSnapshot } from 'tldraw'
@@ -86,7 +86,7 @@ localStorage.setItem(`session-${documentId}`, JSON.stringify(session))
 
 ### Loading a snapshot
 
-Call [loadSnapshot](?) to restore state into an existing editor:
+Call [loadSnapshot](?) (or [Editor#loadSnapshot](?)) to restore state into an existing editor:
 
 ```ts
 import { loadSnapshot } from 'tldraw'
@@ -108,6 +108,8 @@ if (session) {
 	loadSnapshot(editor.store, { session })
 }
 ```
+
+Loading a `document` on its own preserves the editor's current session state. Pass `{ forceOverwriteSessionState: true }` as a third argument to replace it with the snapshot's session instead.
 
 ### Initial state
 
@@ -219,11 +221,11 @@ export default function App() {
 }
 ```
 
-The editor shows appropriate UI for each status. The possible values are:
+The editor shows the `LoadingScreen` component while the status is `loading`, throws the `error` to the nearest error boundary, and renders normally for the other statuses. The possible values are:
 
 | Status          | Meaning                                                             |
 | --------------- | ------------------------------------------------------------------- |
-| `loading`       | Store is being loaded                                               |
+| `loading`       | The store is loading                                                |
 | `error`         | Loading failed                                                      |
 | `not-synced`    | Store created without persistence                                   |
 | `synced-local`  | Store loaded from local storage                                     |
@@ -231,7 +233,7 @@ The editor shows appropriate UI for each status. The possible values are:
 
 ## Listening for changes
 
-Subscribe to store changes to implement auto-save or sync:
+Subscribe to store changes with [Store#listen](?) to implement auto-save or sync:
 
 ```ts
 const cleanup = editor.store.listen((entry) => {
@@ -249,7 +251,7 @@ const cleanup = editor.store.listen((entry) => {
 })
 ```
 
-The listener returns a cleanup function you should call when unmounting.
+The `listen` method returns a cleanup function you should call when unmounting.
 
 ### Filtering changes
 
@@ -270,7 +272,7 @@ editor.store.listen(handleChanges, { source: 'all', scope: 'document' })
 
 ### Throttled auto-save
 
-Here's a pattern for auto-saving with throttling:
+Here's a pattern for auto-saving with throttling (`lodash` isn't a tldraw dependency, so bring your own throttle):
 
 ```ts
 import { throttle } from 'lodash'
@@ -286,7 +288,7 @@ const cleanup = editor.store.listen(saveToStorage)
 
 ## Remote changes
 
-When synchronizing with a multiplayer backend, use [Store#mergeRemoteChanges](?) to apply updates from other users:
+When synchronizing with a multiplayer backend, use [Store#mergeRemoteChanges](?) with [Store#put](?) and [Store#remove](?) to apply updates from other users:
 
 ```ts
 myRemoteSource.on('change', (changes) => {
@@ -302,14 +304,14 @@ myRemoteSource.on('change', (changes) => {
 })
 ```
 
-Changes inside `mergeRemoteChanges` are tagged with `source: 'remote'`. This lets you filter them out when listening, avoiding infinite sync loops:
+Changes inside `mergeRemoteChanges` are tagged with `source: 'remote'`. This lets you filter them out when listening, so you don't create an infinite sync loop:
 
 ```ts
 // Only save user changes, not remote changes
 editor.store.listen(saveToServer, { source: 'user', scope: 'document' })
 ```
 
-For production multiplayer apps, consider using the [@tldraw/sync](/docs/sync) package instead of building your own sync layer.
+For production multiplayer apps, use the [@tldraw/sync](/docs/sync) package instead of building your own sync layer.
 
 ## Migrations
 
@@ -361,7 +363,7 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 }
 ```
 
-The `down` migrations are used in multiplayer when a peer needs an older schema version.
+Multiplayer sync uses the `down` migrations when a peer is running an older schema version.
 
 ### General migrations
 
@@ -405,18 +407,19 @@ const store = createTLStore({ migrations: [migrations] })
 
 Migrations support different scopes depending on what you need to change:
 
-| Scope    | Use case                                                      |
-| -------- | ------------------------------------------------------------- |
-| `record` | Runs on individual records matching an optional filter        |
-| `store`  | Receives the entire serialized store for cross-record changes |
+| Scope     | Use case                                                                                                          |
+| --------- | ----------------------------------------------------------------------------------------------------------------- |
+| `record`  | Runs on individual records matching an optional filter                                                            |
+| `store`   | Receives the entire serialized store for cross-record changes                                                     |
+| `storage` | Receives a `SynchronousRecordStorage` with `get`, `set`, `delete`, `keys`, `values`, and `entries`. Has no `down` |
 
-Most migrations use `record` scope. Use `store` when you need to read or modify multiple records together.
+Most migrations use `record` scope. Use `store` or `storage` when you need to read or modify multiple records together.
 
 ## Examples
 
-- [Persistence key](/examples/data/persistence-key) - Automatic local persistence with a single prop
-- [Snapshots](/examples/data/snapshots) - Saving and loading editor state
-- [Local storage](/examples/data/local-storage) - Custom persistence with throttled auto-save
-- [Store events](/examples/data/store-events) - Listening to store changes
-- [Shape with migrations](/examples/data/shape-with-migrations) - Migrations for custom shape props
-- [Meta migrations](/examples/data/meta-migrations) - General migrations for meta properties
+- [Persistence key](/examples/configuration/persistence-key) - Automatic local persistence with a single prop
+- [Snapshots](/examples/editor-api/snapshots) - Saving and loading editor state
+- [Local storage](/examples/data/assets/local-storage) - Custom persistence with throttled auto-save
+- [Store events](/examples/events/store-events) - Listening to store changes
+- [Shape with migrations](/examples/shapes/tools/shape-with-migrations) - Migrations for custom shape props
+- [Meta migrations](/examples/data/assets/meta-migrations) - General migrations for meta properties

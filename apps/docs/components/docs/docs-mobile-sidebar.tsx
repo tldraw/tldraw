@@ -1,10 +1,10 @@
+import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
+import { Bars3Icon } from '@heroicons/react/16/solid'
+import { XMarkIcon } from '@heroicons/react/20/solid'
 import { DocsCategoryMenu } from '@/components/docs/docs-category-menu'
 import { DocsSidebarMenu } from '@/components/docs/docs-sidebar-menu'
 import { processSidebarContent } from '@/components/docs/docs-sidebar-utils'
 import { db } from '@/utils/ContentDatabase'
-import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
-import { Bars3Icon } from '@heroicons/react/16/solid'
-import { XMarkIcon } from '@heroicons/react/20/solid'
 
 export async function DocsMobileSidebar({
 	sectionId,

@@ -37,7 +37,12 @@ export class Pointing extends StateNode {
 	}
 
 	override onExit() {
-		this.shape = undefined
+		// The press already created the arrow, so leaving without a drag (pointer up, cancel, or a
+		// tool switch) would otherwise strand a zero-length stub on the canvas
+		if (this.shape) {
+			this.editor.bailToMark(this.markId)
+			this.shape = undefined
+		}
 		clearArrowTargetState(this.editor)
 		this.clearPreciseTimeout()
 	}
@@ -55,8 +60,11 @@ export class Pointing extends StateNode {
 
 			this.updateArrowShapeEndHandle()
 
+			// Hand the arrow off before exiting so onExit does not bail it away
+			const shape = this.shape
+			this.shape = undefined
 			this.editor.setCurrentTool('select.dragging_handle', {
-				shape: this.shape,
+				shape,
 				handle: { id: 'end', type: 'vertex', index: 'a3', x: 0, y: 0 },
 				isCreating: true,
 				creatingMarkId: this.markId || undefined,
@@ -67,6 +75,11 @@ export class Pointing extends StateNode {
 
 	override onPointerUp() {
 		this.cancel()
+	}
+
+	override onLongPress() {
+		// On a touch (coarse pointer) long-press, cancel the pending shape so it leaves nothing behind.
+		if (this.editor.getInstanceState().isCoarsePointer) this.cancel()
 	}
 
 	override onCancel() {
@@ -82,10 +95,6 @@ export class Pointing extends StateNode {
 	}
 
 	cancel() {
-		if (this.shape) {
-			// the arrow might not have been created yet!
-			this.editor.bailToMark(this.markId)
-		}
 		this.parent.transition('idle')
 	}
 

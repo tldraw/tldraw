@@ -4,9 +4,11 @@ import {
 	HTMLContainer,
 	RecordProps,
 	T,
+	TLComponents,
 	Tldraw,
 	TldrawUiButton,
 	TLShape,
+	TLUiOverrides,
 	useA11y,
 	useEditor,
 } from 'tldraw'
@@ -66,24 +68,32 @@ export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 		)
 	}
 
-	indicator(shape: CardShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: CardShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 
 const customShapes = [CardShapeUtil]
 
+// [3]
+const overrides: TLUiOverrides = {
+	translations: {
+		en: { [`tool.${CARD_SHAPE_TYPE}`]: 'Note card' },
+	},
+}
+
 function CustomAnnouncementPanel() {
 	const editor = useEditor()
-	// [3]
+	// [4]
 	const a11y = useA11y()
 	const [isEnabled, setIsEnabled] = useState(false)
 
-	// [4]
+	// [5]
 	const handleActionConfirmation = () => {
 		const selectedShapes = editor.getSelectedShapes()
 		if (selectedShapes.length > 0) {
-			// Simulate an action being performed
 			a11y.announce({
 				msg: `Action completed for ${selectedShapes.length} shape${selectedShapes.length === 1 ? '' : 's'}`,
 				priority: 'polite',
@@ -96,7 +106,7 @@ function CustomAnnouncementPanel() {
 		}
 	}
 
-	// [5]
+	// [6]
 	const handleValidation = () => {
 		const selectedShapes = editor.getSelectedShapes()
 		if (selectedShapes.length === 0) {
@@ -123,7 +133,7 @@ function CustomAnnouncementPanel() {
 		}
 	}
 
-	// [6]
+	// [7]
 	const handleToggle = () => {
 		const newState = !isEnabled
 		setIsEnabled(newState)
@@ -148,16 +158,19 @@ function CustomAnnouncementPanel() {
 	)
 }
 
+const components: TLComponents = {
+	TopPanel: CustomAnnouncementPanel,
+}
+
 export default function ScreenReaderAccessibilityExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				shapeUtils={customShapes}
-				components={{
-					TopPanel: CustomAnnouncementPanel,
-				}}
+				overrides={overrides}
+				components={components}
 				onMount={(editor) => {
-					// [7]
+					// [8]
 					editor.createShape({
 						type: CARD_SHAPE_TYPE,
 						x: 100,
@@ -194,44 +207,45 @@ export default function ScreenReaderAccessibilityExample() {
 }
 
 /*
-
-Introduction:
-
-This example demonstrates how to create accessible custom shapes and custom screen reader announcements in tldraw.
+This example shows two sides of screen reader support: making a custom shape
+describe itself when selected, and announcing your own messages from custom UI.
 
 [1]
-The getAriaDescriptor() method provides accessibility-specific descriptions for screen readers.
-When a shape is selected, this description is announced to screen reader users.
-This is different from getText() - getAriaDescriptor() is specifically
-for accessibility announcements, not for text extraction or search.
+`getAriaDescriptor()` returns the text announced when the shape is selected.
+It's the place for an alt-text-style description that may differ from what's
+visibly rendered. If it returns nothing, the announcer falls back to
+`getText()`.
 
 [2]
-The getText() method returns the visible text content of the shape. This is used for text
-extraction, search functionality, and as a fallback for accessibility if getAriaDescriptor()
-is not provided. It returns the title and description separated by a newline.
+`getText()` returns the shape's visible text. The editor uses it for text
+extraction and search, and the announcer uses it as the fallback described in
+[1]. Returning it here also lets the "Validate selection" button below check
+whether the selected shapes have any text at all.
 
 [3]
-The useA11y() hook provides access to the accessibility manager. It must be called
-within a component that's rendered inside the Tldraw component.
+The selection announcement ends with the shape's type, looked up as
+`tool.<type>` in the UI translations. Without an override a custom shape is
+announced by its raw key ("tool.note-card"), so we add a translation for it.
 
 [4]
-Polite announcements are used for informational messages that don't require immediate
-attention. They wait for the screen reader to finish its current announcement before
-speaking. This is appropriate for action confirmations and status updates.
+`useA11y()` returns the accessibility context. It must be called from a
+component rendered inside `<Tldraw />`, such as this `TopPanel` component.
 
 [5]
-Assertive announcements are used for critical messages that need immediate attention,
-such as validation errors. They interrupt the current screen reader output to ensure
-the user hears the message right away.
+Polite announcements queue behind whatever the screen reader is currently
+saying. Use them for confirmations and status updates.
 
 [6]
-State change announcements help keep users informed about the current state of the
-application. Use polite priority for state changes unless they're critical.
+Assertive announcements interrupt the current speech. Reserve them for
+messages the user must hear now, like validation errors.
 
 [7]
-Create three sample cards with different titles and descriptions. Try selecting different cards
-to hear how screen readers announce them using the getAriaDescriptor() method. The announcement
-will include the card's custom description followed by the shape type and position information.
-You can also use the buttons in the top panel to trigger custom announcements that demonstrate
-polite and assertive priority levels.
+Announce state changes when the visible change alone (here, the button label
+flipping) wouldn't be noticed by a screen reader user.
+
+[8]
+Create three sample cards. Select one to hear the `getAriaDescriptor()`
+text, followed by the shape type and its index in reading order ("1 of 3").
+The announcements render into an off-screen ARIA live region owned by the
+default `A11y` component, so nothing visible changes.
 */

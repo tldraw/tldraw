@@ -584,6 +584,38 @@ describe('HistoryManager getters and utilities', () => {
 			store.update(ids.a, (s) => ({ ...s, value: 2 }))
 			expect(manager.getNumRedos()).toBe(0)
 		})
+
+		it('should only report replaying while undoing or redoing', () => {
+			const replayStates: boolean[] = []
+			const dispose = store.addHistoryInterceptor(() => {
+				replayStates.push(manager.isReplaying())
+			})
+
+			store.update(ids.a, (s) => ({ ...s, value: 1 }))
+			expect(replayStates).toEqual([false])
+
+			replayStates.length = 0
+			manager.undo()
+			expect(replayStates).toEqual([true])
+			expect(manager.isReplaying()).toBe(false)
+
+			replayStates.length = 0
+			manager.redo()
+			expect(replayStates).toEqual([true])
+			expect(manager.isReplaying()).toBe(false)
+
+			replayStates.length = 0
+			manager.batch(
+				() => {
+					store.update(ids.a, (s) => ({ ...s, value: 2 }))
+				},
+				{ history: 'ignore' }
+			)
+			expect(replayStates).toEqual([false])
+			expect(manager.isReplaying()).toBe(false)
+
+			dispose()
+		})
 	})
 
 	describe('getMarkIdMatching', () => {
@@ -734,6 +766,22 @@ describe('HistoryManager error scenarios and edge cases', () => {
 
 			// Should not change anything when mark doesn't exist
 			expect(store.get(ids.a)!.value).toBe(originalValue)
+		})
+
+		it('should preserve pending diff when mark is not found', () => {
+			manager._mark('real-mark')
+			store.update(ids.a, (s) => ({ ...s, value: 1 }))
+
+			// bail to a mark that doesn't exist
+			manager.bailToMark('non-existent-mark')
+
+			// the pending diff should still be intact
+			expect(store.get(ids.a)!.value).toBe(1)
+			expect(manager.getNumUndos()).toBeGreaterThan(0)
+
+			// a subsequent bail to the real mark should still work
+			manager.bailToMark('real-mark')
+			expect(store.get(ids.a)!.value).toBe(0)
 		})
 
 		it('should find mark correctly when it exists', () => {

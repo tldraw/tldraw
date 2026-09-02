@@ -92,9 +92,10 @@ export class myInteractiveShape extends BaseBoxShapeUtil<IMyInteractiveShape> {
 		)
 	}
 
-	// [5]
-	indicator(shape: IMyInteractiveShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: IMyInteractiveShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 
@@ -105,16 +106,15 @@ see our custom shape example.
 [1]
 This is where we describe how our shape will render
 
-	[a] We need to set pointer-events to all so that we can interact with our shape. This CSS property is
-	set to "none" off by default. We need to manually opt-in to accepting pointer events by setting it to
-	'all' or 'auto'.
+	[a] Shape containers have `pointer-events: none` by default so the canvas receives every
+	pointer event. Set it to `all` (or `auto`) to opt in to receiving events on the shape's HTML.
 
-	[b] We need to stop event propagation so that the editor doesn't select the shape
-		when we click on the checkbox. The 'canvas container' forwards events that it receives
-		on to the editor, so stopping propagation here prevents the event from reaching the canvas.
+	[b] Stop propagation so the editor doesn't select or start dragging the shape when the
+	checkbox is clicked. The canvas container forwards the events it receives on to the editor,
+	so stopping them here keeps them from reaching the canvas.
 
-	[c] If the shape is not checked, we stop event propagation so that the editor doesn't
-		select the shape when we click on the input. If the shape is checked then we allow that event to
-		propagate to the canvas and then get sent to the editor, triggering clicks or drags as usual.
+	[c] While the todo is unchecked, the text input handles its own pointer events. Once it's
+	checked the input is read-only, so we let the events through to the canvas and the shape
+	selects and drags as usual.
 
 */

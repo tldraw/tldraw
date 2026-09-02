@@ -1,9 +1,9 @@
-import { cn } from '@/utils/cn'
 import {
 	ExclamationCircleIcon,
 	ExclamationTriangleIcon,
 	InformationCircleIcon,
 } from '@heroicons/react/20/solid'
+import { cn } from '@/utils/cn'
 
 export function Callout({
 	type = 'info',

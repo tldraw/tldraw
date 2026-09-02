@@ -17,16 +17,11 @@ keywords:
 
 The tldraw SDK supports real-time collaboration. Add collaboration to your project with our [tldraw sync](/docs/sync) library, or use our low-level data APIs to integrate other backends.
 
-<div className="article__image" style={{ border: 'none' }}>
-	<img
-		alt="Multiplayer example using tldraw sync"
-		src="/images/multiplayer.gif"
-		style={{
-			mask: 'url(/images/multiplayer_mask.png) luminance center 100% / 100% no-repeat',
-			WebkitMask: 'url(/images/multiplayer_mask.png) luminance center 100% / 100% no-repeat',
-		}}
-	/>
-</div>
+<MaskedArticleImage
+	gifSrc="/images/multiplayer.gif"
+	maskSrc="/images/multiplayer_mask.png"
+	alt="Multiplayer example using tldraw sync"
+/>
 
 ## Quick start
 
@@ -39,32 +34,72 @@ npm install @tldraw/sync
 ```tsx
 import { Tldraw } from 'tldraw'
 import { useSyncDemo } from '@tldraw/sync'
+import 'tldraw/tldraw.css'
 
-function MyApp() {
-	const store = useSyncDemo({ roomId: 'my-unique-room-id' })
-	return <Tldraw store={store} />
+export default function App() {
+	const store = useSyncDemo({ roomId: 'my-company-my-unique-room-id' })
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw store={store} />
+		</div>
+	)
 }
 ```
 
-Any apps connecting to the same room ID will enter a shared collaboration session. Open your project in an incognito window or different browser to test it out.
+Any apps connecting to the same room ID will enter a shared collaboration session. The room ID namespace is shared by everyone using the demo server, so prefix it with your company or project name. Open your project in an incognito window or different browser to test it out.
 
-The demo server is great for prototyping, but data only lasts 24 hours and rooms are publicly accessible. For production, you'll need to self-host the tldraw sync server—see our full guide on [tldraw sync](/docs/sync).
+The demo server is great for prototyping, but data is deleted after about a day and rooms are publicly accessible. For production, you'll need to self-host the tldraw sync server. See our full guide on [tldraw sync](/docs/sync).
+
+## Comments
+
+Collaborators can also leave anchored comments on the canvas. The `@tldraw/commenting` package provides a comment tool and pins that stick to points and shapes. Each pin opens a thread popover with replies, mentions, reactions, and resolving, and a sidebar lists every thread.
+
+```tsx
+import {
+	CanvasComments,
+	CommentAuthor,
+	commentToolOverrides,
+	commentTools,
+} from '@tldraw/commenting'
+import { useSync } from '@tldraw/sync'
+import { commentSchemaRecords, TLComponents, Tldraw } from 'tldraw'
+import '@tldraw/commenting/commenting.css'
+
+// Your app's user directory, however you already hold it.
+const AUTHORS: Record<string, CommentAuthor> = {
+	'user-123': { name: 'You', color: '#EC5E41' },
+}
+
+const components: TLComponents = {
+	InFrontOfTheCanvas: () => (
+		<CanvasComments currentUserId="user-123" resolveAuthor={(id) => AUTHORS[id]} />
+	),
+}
+
+function MyApp() {
+	const store = useSync({
+		uri: 'wss://your-server.com/sync/my-room',
+		assets: myAssetStore,
+		records: commentSchemaRecords,
+	})
+
+	return (
+		<Tldraw
+			store={store}
+			tools={commentTools}
+			overrides={[commentToolOverrides]}
+			components={components}
+		/>
+	)
+}
+```
+
+Comment records are opt-in, so register `commentSchemaRecords` on your server's schema too, and list the comment record types in the room's `objectTypes` (see [Comments and the object-store lane](/docs/sync#comments-and-the-object-store-lane)). Commenting is a licensed feature. See the [commenting overview](/docs/commenting) for an introduction, or the [commenting reference](/sdk-features/commenting) for anchors, options, and server setup.
 
 ## Using other backends
 
 While [tldraw sync](/docs/sync) is our recommended solution, the tldraw SDK works with any real-time data backend. For example, [Liveblocks offers a tldraw integration](https://liveblocks.io/examples/tldraw-whiteboard), and many teams have connected tldraw to their own infrastructure.
 
-Collaboration involves three concerns:
+A custom backend has to handle a few things. Document changes need to get in and out of the [store](/sdk-features/store); see [Persistence](/docs/persistence) for the basics and the [collaboration deep dive](/sdk-features/collaboration) for building custom sync. Presence (cursor positions, selections, viewports) is shared through presence records, covered in the same deep dive; [Cursors](/sdk-features/cursors) explains how to customize collaborator cursors, and [User following](/sdk-features/user-following) covers tracking another user's viewport.
 
-- **Synchronizing data** — Getting document changes in and out of the [store](/sdk-features/store). See [Persistence](/docs/persistence) for the basics, or [Collaboration](/sdk-features/collaboration) for building custom sync.
-- **User presence** — Sharing cursor positions, selections, and viewports with other users. See [Collaboration](/sdk-features/collaboration) for presence APIs and [Cursors](/sdk-features/cursors) for customizing how collaborator cursors appear.
-- **Collaboration UI** — The visual elements that show other users on the canvas. See [UI components](/sdk-features/ui-components) for overriding components like `CollaboratorCursor`, `CollaboratorBrush`, and `SharePanel`.
-
-## Related
-
-- [tldraw sync](/docs/sync) — Our recommended multiplayer solution
-- [Collaboration](/sdk-features/collaboration) — Deep dive on presence, sync hooks, and building custom sync
-- [Cursors](/sdk-features/cursors) — Cursor types and collaborator cursor customization
-- [User following](/sdk-features/user-following) — Track collaborator viewports in real-time
-- [Store](/sdk-features/store) — Understanding the reactive store
-- [UI components](/sdk-features/ui-components) — Override collaboration UI components
+The visual side is handled by the default UI. Override components like `SharePanel` through [UI components](/sdk-features/ui-components). The [OverlayUtil](?) system renders collaborator cursors, brushes, scribbles, and selection indicators; see [Overlay utils](/sdk-features/overlay-utils).

@@ -35,12 +35,12 @@ const versions = createShapePropsMigrationIds(
 )
 
 // [2]
-export const cardShapeMigrations = createShapePropsMigrationSequence({
+export const myShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{
 			id: versions.AddColor,
 			up(props) {
-				// it is safe to mutate the props object here
+				// props is a mutable copy, so it's safe to change it in place
 				props.color = 'lightblue'
 			},
 			down(props) {
@@ -60,7 +60,7 @@ export class MigratedShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 	}
 
 	// [3]
-	static override migrations = cardShapeMigrations
+	static override migrations = myShapeMigrations
 
 	getDefaultProps(): IMyShape['props'] {
 		return {
@@ -82,8 +82,10 @@ export class MigratedShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 		)
 	}
 
-	indicator(shape: IMyShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: IMyShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 
 	override onResize(shape: IMyShape, info: TLResizeInfo<IMyShape>) {
@@ -97,9 +99,8 @@ export default function ShapeWithMigrationsExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				// Pass in the array of custom shape classes
 				shapeUtils={customShapeUtils}
-				// Use a snapshot to load an old version of the shape
+				// [4]
 				snapshot={snapshot as TLStoreSnapshot}
 			/>
 		</div>
@@ -117,22 +118,26 @@ between different versions. Most of the code above is general "custom shape" cod
 shape example for more details.
 
 [1] First, we need IDs for each migration. List each change with its version number. Once you've
-added a migration, it should not change again.
+shipped a migration, it should not change again; add a new one instead.
 
 [2] Next, we create a migration sequence. This is where we actually write our migration logic. Each
-migration had three parts: an `id` (created in [1]), an `up` migration and `down` migration. In this
-case, the `up` migration adds the `color` prop to the shape, and the `down` migration removes it.
+migration has three parts: an `id` (created in [1]), an `up` migration and a `down` migration. In
+this case, the `up` migration adds the `color` prop to the shape, and the `down` migration removes
+it.
 
 In some cases (mainly in multiplayer sessions) a peer or server may need to take a later version of
 a shape and migrate it down to an older version—in this case, it would run the down migrations in
 order to get it to the needed version.
 
-[3] Finally, we add our migrations to the ShapeUtil. This tells tldraw about the migrations so they
-can be used with your shapes.
+[3] Finally, we add our migrations to the ShapeUtil's static `migrations` property. This tells
+tldraw about the migrations so they can be used with your shapes.
+
+[4] To show the migration running, we load a snapshot that was saved before the `color` prop
+existed. The migration runs as the snapshot loads, so the shape appears light blue.
 
 How it works:
 
-Each time the editor's store creates a snapshot (`editor.store.createSnapshot`), it serializes all
+Each time the editor creates a snapshot (`editor.getSnapshot()`), it serializes all
 of the records (the snapshot's `store`) as well as versions of each record that it contains (the
 snapshot's `schema`). When the editor loads a snapshot, it compares its current schema with the
 snapshot's schema to determine which migrations to apply to each record.
@@ -142,31 +147,33 @@ now has a 'color' prop that was added in version 1.
 
 The snapshot looks something like this:
 
-```json{
+```json
 {
-    "store": {
-        "shape:BqG5uIAa9ig2-ukfnxwBX": {
-            ...,
-            "props": {
-                "w": 300,
-                "h": 300
-            },
-        },
+	"store": {
+		"shape:BqG5uIAa9ig2-ukfnxwBX": {
+			...,
+			"props": {
+				"w": 300,
+				"h": 300
+			}
+		}
 	},
 	"schema": {
 		...,
-		"sequences": {
-			...,
-			"com.tldraw.shape.arrow": 4,
-			"com.tldraw.shape.myshape": 0
+		"recordVersions": {
+			"shape": {
+				"subTypeVersions": {
+					...,
+					"myshapewithmigrations": 0
+				}
+			}
 		}
 	}
 }
 ```
 
-Note that the shape in the snapshot doesn't have a 'color' prop.
-
-Note also that the schema's version for this shape is 0.
+The shape in the snapshot doesn't have a 'color' prop, and the schema's version for this shape is
+0.
 
 When the editor loads the snapshot, it will compare the serialized schema's version with its current
 schema's version for the shape, which is 1 as defined in our shape's migrations. Since the

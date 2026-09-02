@@ -12,6 +12,8 @@ import {
 import 'tldraw/tldraw.css'
 import './menu-system-hover.css'
 
+// There's a guide at the bottom of this file!
+
 // [1]
 function HoverControlledMenu() {
 	const editor = useEditor()
@@ -67,35 +69,30 @@ function HoverControlledMenu() {
 export default function MenuSystemHoverExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw
-				components={{
-					InFrontOfTheCanvas: HoverControlledMenu,
-				}}
-			/>
+			<Tldraw>
+				<HoverControlledMenu />
+			</Tldraw>
 		</div>
 	)
 }
 
 /*
-This example shows how to programmatically control menus using hover events.
+tldraw tracks which menus are open in `editor.menus`, keyed by menu id. The dropdown
+primitives read and write that state, so anything else that writes it can open or close
+a menu too. Here two hover zones do exactly that.
 
 [1]
-The HoverControlledMenu component uses useMenuIsOpen to track the current state
-of our menu. The hook returns a tuple where the first element is a boolean
-indicating whether the menu is open.
+`useMenuIsOpen(id)` returns `[isOpen, setIsOpen]` for a menu id and re-renders when the
+state changes.
 
 [2]
-The first hover zone calls editor.menus.addOpenMenu('hover-menu') on mouse enter.
-This registers the menu as open in the global menu tracking system. The
-TldrawUiDropdownMenuRoot will automatically respond to this state change.
+`editor.menus.addOpenMenu('hover-menu')` marks the menu as open. The dropdown with the
+matching `id` responds by opening.
 
 [3]
-The second hover zone calls editor.menus.deleteOpenMenu('hover-menu') on mouse
-enter, which closes the menu.
+`editor.menus.deleteOpenMenu('hover-menu')` marks it closed again.
 
 [4]
-The TldrawUiDropdownMenuRoot is linked to our menu ID ('hover-menu'). It
-automatically syncs with the menu tracking system, so when we call addOpenMenu
-or deleteOpenMenu, the dropdown responds accordingly. You can also click the
-trigger button to toggle the menu normally.
+`TldrawUiDropdownMenuRoot` takes the same `id`, which is what links it to [2] and [3].
+Clicking the trigger still toggles the menu the normal way.
 */

@@ -1,8 +1,7 @@
 import classNames from 'classnames'
-import { CSSProperties, HtmlHTMLAttributes, useLayoutEffect, useRef } from 'react'
-import styles from './icon.module.css'
-
+import { CSSProperties, useLayoutEffect, useRef } from 'react'
 import mergedSpriteUrl from '../../../assets/0_merged_tla.svg'
+import styles from './icon.module.css'
 
 function getMaskStyle(icon: string): string {
 	return `url(${mergedSpriteUrl}#icon-${icon}) center 100% / 100% no-repeat`
@@ -41,7 +40,9 @@ export function TlaIcon({
 	})
 
 	if (icon === 'none') {
-		return <span className={_className} />
+		// An empty spacer: keep the icon's layout box but no painted mark.
+		// Without this the .icon background-color would fill as a solid rectangle.
+		return <span className={_className} style={{ backgroundColor: 'transparent' }} />
 	}
 
 	return (
@@ -58,8 +59,4 @@ export function TlaIcon({
 			}}
 		/>
 	)
-}
-
-export function TlaIconWrapper(props: HtmlHTMLAttributes<HTMLDivElement>) {
-	return <span {...props} className={classNames(styles.iconWrapper, props.className)} />
 }

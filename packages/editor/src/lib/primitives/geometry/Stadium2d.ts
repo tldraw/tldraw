@@ -1,6 +1,6 @@
 import { Box } from '../Box'
-import { Vec, VecLike } from '../Vec'
 import { PI, pointInPolygon } from '../utils'
+import { Vec, VecLike } from '../Vec'
 import { Arc2d } from './Arc2d'
 import { Edge2d } from './Edge2d'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'

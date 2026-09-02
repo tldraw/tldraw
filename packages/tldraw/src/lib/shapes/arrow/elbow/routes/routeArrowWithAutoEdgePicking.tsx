@@ -6,8 +6,8 @@ import {
 	ElbowArrowSideReason,
 	ElbowArrowSides,
 } from '../definitions'
-import { ElbowArrowWorkingInfo } from './ElbowArrowWorkingInfo'
 import { tryRouteArrow } from './elbowArrowRoutes'
+import { ElbowArrowWorkingInfo } from './ElbowArrowWorkingInfo'
 
 export function routeArrowWithAutoEdgePicking(
 	info: ElbowArrowWorkingInfo,

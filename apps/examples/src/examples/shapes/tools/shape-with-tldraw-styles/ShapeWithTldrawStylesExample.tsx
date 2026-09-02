@@ -9,7 +9,6 @@ import {
 	TLDefaultSizeStyle,
 	Tldraw,
 	TLShape,
-	useDefaultColorTheme,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
@@ -28,11 +27,12 @@ declare module 'tldraw' {
 
 // There's a guide at the bottom of this file!
 
+// [1]
 const FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
-	s: 14,
-	m: 25,
-	l: 38,
-	xl: 48,
+	s: 1.125,
+	m: 1.5,
+	l: 2.25,
+	xl: 2.75,
 }
 
 type IMyShape = TLShape<typeof MY_SHAPE_WITH_TLDRAW_STYLES_TYPE>
@@ -57,9 +57,10 @@ class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 		}
 	}
 
+	// [3]
 	component(shape: IMyShape) {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const theme = useDefaultColorTheme()
+		const theme = this.editor.getCurrentTheme()
+		const colors = theme.colors[this.editor.getColorMode()]
 
 		return (
 			<HTMLContainer
@@ -68,9 +69,8 @@ class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 			>
 				<div
 					style={{
-						// [3]
-						fontSize: FONT_SIZES[shape.props.size],
-						color: getColorValue(theme, shape.props.color, 'solid'),
+						fontSize: theme.fontSize * FONT_SIZES[shape.props.size],
+						color: getColorValue(colors, shape.props.color, 'solid'),
 					}}
 				>
 					Select the shape and use the style panel to change the font size and color
@@ -79,8 +79,10 @@ class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 		)
 	}
 
-	indicator(shape: IMyShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: IMyShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 
@@ -100,26 +102,28 @@ export default function ShapeWithTldrawStylesExample() {
 }
 
 /*
-
-This file shows a custom shape that uses tldraw's default styles.
-For more on custom shapes, see our Custom Shape example.
+This file shows a custom shape that uses tldraw's default styles. For more on
+custom shapes, see the custom shape example.
 
 [1]
-In this example, our custom shape will use the size and color styles from the
-default styles. When typing a custom shape, you can use our types for
-these styles.
+Style values are just strings like 's' or 'black'; it's up to the shape to
+decide what they mean. Here we map each size to a multiplier of the theme's
+base font size (theme.fontSize is 16px in the default theme), so text scales
+with custom themes. Any mapping works; these happen to match tldraw's own text
+shape.
 
 [2]
-For the shape's props, we'll pass the DefaultSizeStyle and DefaultColorStyle
-styles for the two properties, size and color. There's nothing special about
-these styles except that the editor will notice when two shapes are selected
-that share the same style. (You can use the useRelevantStyles hook to get the
-styles of the user's selected shapes.)
+For the shape's props, we use the DefaultSizeStyle and DefaultColorStyle
+StyleProps for the size and color properties. Because the validators are
+StyleProps, the editor treats these props as styles: the style panel shows
+them for this shape, and new shapes pick up the most recently used values.
+(You can use the useRelevantStyles hook to get the styles of the user's
+selected shapes in your own UI.)
 
 [3]
-Here in the component, we'll use the styles to change the way that our shape
-appears. The style values themselves are just strings, like 'xl' or 'black',
-so it's up to you to decide how to use them. In this example, we're using the
-size to set the text's font-size property, and also using the default theme
-(via the useDefaultColorTheme hook) to get the color for the text.
+Inside the component we read the styles to change how the shape looks. We get
+the color from the editor's current theme via editor.getCurrentTheme() and
+getColorValue, which resolves the color name for the current light or dark
+mode. Reading the theme here is reactive, so the shape re-renders when the
+theme or color mode changes.
 */

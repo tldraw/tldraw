@@ -14,7 +14,7 @@ describe('FocusManager', () => {
 			getInstanceState: Mock
 			updateInstanceState: Mock
 			getContainer: Mock
-			isIn: Mock
+			getEditingShapeId: Mock
 			getSelectedShapeIds: Mock
 			complete: Mock
 		}
@@ -36,6 +36,12 @@ describe('FocusManager', () => {
 		// Create mock dispose function
 		mockDispose = vi.fn()
 
+		// Mock document.body event listeners
+		originalAddEventListener = document.body.addEventListener
+		originalRemoveEventListener = document.body.removeEventListener
+		document.body.addEventListener = vi.fn()
+		document.body.removeEventListener = vi.fn()
+
 		// Mock editor
 		editor = {
 			sideEffects: {
@@ -44,16 +50,11 @@ describe('FocusManager', () => {
 			getInstanceState: vi.fn(() => ({ isFocused: false })),
 			updateInstanceState: vi.fn(),
 			getContainer: vi.fn(() => mockContainer),
-			isIn: vi.fn(() => false),
+			getContainerDocument: vi.fn(() => document),
+			getEditingShapeId: vi.fn(() => null),
 			getSelectedShapeIds: vi.fn(() => []),
 			complete: vi.fn(),
 		} as any
-
-		// Mock document.body event listeners
-		originalAddEventListener = document.body.addEventListener
-		originalRemoveEventListener = document.body.removeEventListener
-		document.body.addEventListener = vi.fn()
-		document.body.removeEventListener = vi.fn()
 	})
 
 	afterEach(() => {
@@ -72,7 +73,8 @@ describe('FocusManager', () => {
 	describe('constructor', () => {
 		it('should initialize with editor reference', () => {
 			focusManager = new FocusManager(editor)
-			expect(focusManager.editor).toBe(editor)
+			expect(focusManager).toBeInstanceOf(FocusManager)
+			expect(editor.sideEffects.registerAfterChangeHandler).toHaveBeenCalled()
 		})
 
 		it('should register side effect listener for instance state changes', () => {
@@ -242,7 +244,7 @@ describe('FocusManager', () => {
 		})
 
 		it('should return early when editor is in editing mode', () => {
-			editor.isIn.mockReturnValue(true)
+			editor.getEditingShapeId.mockReturnValue('shape:1')
 			const event = new KeyboardEvent('keydown', { key: 'Tab' })
 
 			keydownHandler(event)
@@ -333,6 +335,13 @@ describe('FocusManager', () => {
 
 			expect(callOrder).toEqual(['complete', 'blur'])
 		})
+
+		it('should complete without blurring the container when blurContainer is false', () => {
+			focusManager.blur({ blurContainer: false })
+
+			expect(editor.complete).toHaveBeenCalled()
+			expect(mockContainer.blur).not.toHaveBeenCalled()
+		})
 	})
 
 	describe('dispose', () => {
@@ -399,7 +408,7 @@ describe('FocusManager', () => {
 			const keydownCall = addEventListenerCalls.find((call: any) => call[0] === 'keydown')
 			const keydownHandler = keydownCall![1]
 
-			editor.isIn.mockReturnValue(true) // Editing mode
+			editor.getEditingShapeId.mockReturnValue('shape:1') // Editing mode
 
 			const event = new KeyboardEvent('keydown', { key: 'Tab' })
 			keydownHandler(event)

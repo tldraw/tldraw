@@ -31,7 +31,7 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 	}
 
 	// [1]
-	override canEdit(_shape: IExamMarkShape): boolean {
+	override canEdit(): boolean {
 		return true
 	}
 
@@ -112,8 +112,10 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 		)
 	}
 
-	override indicator() {
-		return <rect width={EXAM_MARK_WIDTH} height={EXAM_MARK_HEIGHT} rx={4} />
+	override getIndicatorPath() {
+		const path = new Path2D()
+		path.rect(0, 0, EXAM_MARK_WIDTH, EXAM_MARK_HEIGHT)
+		return path
 	}
 
 	getGeometry() {
@@ -131,28 +133,33 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 		return true
 	}
 
-	override canResize(_shape: IExamMarkShape): boolean {
+	override canResize(): boolean {
 		return false
 	}
 }
 
 /*
-A utility class for the exam mark shape. This is where you define the shape's behavior, how it renders (its component and indicator), and how it handles different events. For more details on how to create a custom shape utility, check out the `custom-config` example.
+See the custom-config example for the basics of a shape util. The notes below cover only
+what is specific to this shape.
 
-[1] We allow this component to be editable. This gives us some behavior for free, namely double clicking the shape will start editing the shape, which we can access using `editor.getEditingShapeId()`. With this, we can focus the input when the shape is double clicked. See [1][a] and [1][c] for more details.
+[1]
+Making the shape editable means double-clicking it enters editing mode, which we read back
+via `editor.getEditingShapeId()` and use to enable and focus the input.
 
-[2] Render method — the React component that will be rendered for the shape. It takes the shape as an argument. HTMLContainer is just a div that's being used to wrap the input.
+[2]
+The component is a plain `HTMLContainer` wrapping a number input.
 
- - [a] To control behavior, we need to know if the shape is being edited. We can access this using `editor.getEditingShapeId()`.
+ - [a] The input only receives pointer events while the shape is being edited, so a
+   single click still selects and drags the shape.
 
- - [b] The important part of this shape utility is how it handles the score input. We know we want the ExamScoreLabel component to be able to access the score of the shape, so we want the score to be a prop for the shape.
- Annoying: eslint sometimes thinks this is a class component, but it's not.
+ - [b] Local state holds the raw text of the input (which may be empty or "-" mid-edit);
+   only valid numbers are written back to the shape's `score` prop.
 
- - [c] When the shape is mounted, we set it to be in editing mode.
+ - [c] Newly created marks start in editing mode so the input is ready to type into.
 
- - [d] Focus the input when the the shape is being edited, i.e. when it's double clicked or when it's mounted. This means that when a shape is created, the text is immediately focused and selected.
+ - [d] Focus and select the input whenever editing starts, whether from creation or a
+   double-click.
 
- - [e] We want to be able to edit the score of the shape, so we need to be able to update the shape's props. We do this by using the editor.updateShape method when we detect that the score is a number.
-
-For notes on the other parts of this shape utility, check out the `custom-config` example.
+ - [e] `editor.updateShape` writes the score into the store, which is what makes the total
+   in `ExamScoreLabel` update.
 */

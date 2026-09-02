@@ -1,10 +1,9 @@
 import * as vscode from 'vscode'
+// @ts-ignore
+import type { VscodeMessage } from '../../messages'
 import { DocumentChangeEventArgs, TLDrawDocument } from './TldrawDocument'
 import { TldrawWebviewManager } from './TldrawWebviewManager'
 import { nicelog } from './utils'
-
-// @ts-ignore
-import type { VscodeMessage } from '../../messages'
 
 export class TldrawEditorProvider implements vscode.CustomEditorProvider<TLDrawDocument> {
 	private static newTDFileId = 1

@@ -72,10 +72,10 @@ function debug(...args: any[]) {
  * }
  * ```
  */
-export class ClientWebSocketAdapter
-	implements
-		TLPersistentClientSocket<TLSocketClientSentEvent<TLRecord>, TLSocketServerSentEvent<TLRecord>>
-{
+export class ClientWebSocketAdapter implements TLPersistentClientSocket<
+	TLSocketClientSentEvent<TLRecord>,
+	TLSocketServerSentEvent<TLRecord>
+> {
 	_ws: WebSocket | null = null
 
 	isDisposed = false
@@ -212,7 +212,19 @@ export class ClientWebSocketAdapter
 				this._ws === ws,
 				"sockets must only be orphaned when they are CLOSING or CLOSED, so they can't receive messages"
 			)
-			const parsed = JSON.parse(ev.data.toString())
+			let parsed: TLSocketServerSentEvent<TLRecord>
+			try {
+				parsed = JSON.parse(ev.data.toString())
+			} catch {
+				// A malformed message means the connection delivered corrupt data, so we can't trust
+				// that we're still in sync. Dropping the message can silently desync the client (e.g. a
+				// missed 'patch' is applied as if it never happened), so instead we restart the
+				// connection. Reconnecting re-hydrates the store from the last known server clock and
+				// brings us fully back in sync.
+				warnOnce('Received malformed WebSocket message. Restarting the connection.')
+				this.restart()
+				return
+			}
 			this.messageListeners.forEach((cb) => cb(parsed))
 		}
 
@@ -240,7 +252,7 @@ export class ClientWebSocketAdapter
 	 *
 	 * @returns The current connection status: 'online', 'offline', or 'error'
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get connectionStatus(): TLPersistentClientSocketStatus {
 		const status = this._connectionStatus.get()
 		return status === 'initial' ? 'offline' : status

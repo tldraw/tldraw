@@ -7,7 +7,6 @@ import {
 	TLResizeInfo,
 	TLShape,
 	getColorValue,
-	getDefaultColorTheme,
 	resizeBox,
 } from 'tldraw'
 import { cardShapeMigrations } from './card-shape-migrations'
@@ -34,10 +33,10 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 	static override migrations = cardShapeMigrations
 
 	// [3]
-	override isAspectRatioLocked(_shape: ICardShape) {
+	override isAspectRatioLocked(shape: ICardShape) {
 		return false
 	}
-	override canResize(_shape: ICardShape) {
+	override canResize(shape: ICardShape) {
 		return true
 	}
 
@@ -61,8 +60,11 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 
 	// [6]
 	component(shape: ICardShape) {
-		const bounds = this.editor.getShapeGeometry(shape).bounds
-		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
+		const { editor } = this
+		const bounds = editor.getShapeGeometry(shape).bounds
+		const theme = editor.getCurrentTheme()
+		const colors = theme.colors[editor.getColorMode()]
+		const { color } = shape.props
 
 		//[a]
 		// eslint-disable-next-line react-hooks/rules-of-hooks
@@ -78,8 +80,8 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 					alignItems: 'center',
 					justifyContent: 'center',
 					pointerEvents: 'all',
-					backgroundColor: getColorValue(theme, shape.props.color, 'semi'),
-					color: getColorValue(theme, shape.props.color, 'solid'),
+					backgroundColor: getColorValue(colors, color, 'semi'),
+					color: getColorValue(colors, color, 'solid'),
 				}}
 			>
 				<h2>Clicks: {count}</h2>
@@ -95,8 +97,10 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 	}
 
 	// [7]
-	indicator(shape: ICardShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: ICardShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 
 	// [8]
@@ -117,8 +121,8 @@ Migrations for upgrading shapes (optional)
 Check out card-shape-migrations.ts for more info.
 
 [3]
-Letting the editor know if the shape's aspect ratio is locked, and whether it
-can be resized or bound to other shapes.
+Letting the editor know whether the shape's aspect ratio is locked and whether it
+can be resized. These are the defaults, shown here so you know they exist.
 
 [4]
 The default props the shape will be rendered with when click-creating one.
@@ -130,16 +134,16 @@ doing other geometric calculations.
 [6]
 Render method — the React component that will be rendered for the shape. It takes the
 shape as an argument. HTMLContainer is just a div that's being used to wrap our text
-and button. We can get the shape's bounds using our own getGeometry method.
+and button. The colors come from the editor's current theme so the card follows dark mode.
 
-- [a] Check it out! We can do normal React stuff here like using setState.
-   Annoying: eslint sometimes thinks this is a class component, but it's not.
+- [a] Check it out! We can do normal React stuff here like using useState.
 
 - [b] You need to stop the pointer down event on buttons, otherwise the editor will
-	   think you're trying to select drag the shape.
+	   think you're trying to select or drag the shape.
 
 [7]
-Indicator — used when hovering over a shape or when it's selected; must return only SVG elements here
+getIndicatorPath — returns a Path2D used when hovering over the shape or when it's selected.
+The path is stroked onto the canvas overlay.
 
 [8]
 Resize handler — called when the shape is resized. Sometimes you'll want to do some

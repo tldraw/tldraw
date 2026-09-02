@@ -20,9 +20,13 @@ const validatedShapeProps: RecordProps<ValidatedShape> = {
 	w: T.positiveNumber,
 	h: T.positiveNumber,
 	// [3]
-	percentage: T.nonZeroFiniteNumber.check('max-value', (value) => {
-		if (value > 100) throw new Error('Percentage cannot exceed 100')
-	}),
+	percentage: T.number
+		.check('min-value', (value) => {
+			if (value < 0) throw new Error('Percentage cannot be negative')
+		})
+		.check('max-value', (value) => {
+			if (value > 100) throw new Error('Percentage cannot exceed 100')
+		}),
 	// [4]
 	rating: T.integer.refine((value) => {
 		return Math.max(1, Math.min(5, value))
@@ -50,8 +54,10 @@ class ValidatedShapeUtil extends ShapeUtil<ValidatedShape> {
 		)
 	}
 
-	indicator(shape: ValidatedShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: ValidatedShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 
@@ -84,7 +90,7 @@ export default function CustomValidatorsExample() {
 						type: 'validated-shape',
 						x: 450,
 						y: 100,
-						props: { rating: 10 }, // Will be clamped to 5
+						props: { rating: 10 },
 					})
 				}}
 			/>
@@ -93,21 +99,21 @@ export default function CustomValidatorsExample() {
 }
 
 /*
-This example demonstrates custom validators using .check() and .refine() methods.
-
 [1]
 Extend TLGlobalShapePropsMap to register your custom shape's props with the type system.
 
 [2]
-Define validators for each prop. Each validator adds constraints beyond basic type checking.
+Define validators for each prop. `T.positiveNumber` already rejects negative sizes; the other
+two add constraints of their own.
 
 [3]
-Use .check() to add validation constraints. Each check validates without
-transforming the value. The name (e.g. 'max-value') appears in error messages for debugging.
+`.check()` adds a validation step without changing the value: the function throws for invalid
+input and returns nothing. Checks chain, and the name (e.g. 'max-value') is included in the
+error message so you can tell which one failed.
 
 [4]
-Use .refine() to transform values. Unlike .check(), refine() returns a (possibly modified)
-value rather than just validating. Here it clamps the rating to 1-5 instead of throwing.
+`.refine()` returns a new value, so it can transform as well as validate. Here it clamps the
+rating to 1-5 instead of throwing. The store keeps the refined value, not the one you passed in.
 
 [5]
 Create the shape utils array outside the component to prevent recreation on each render.
@@ -116,10 +122,11 @@ Create the shape utils array outside the component to prevent recreation on each
 Create a valid shape on mount to show the default values.
 
 [7]
-Demonstrate .check() validation by attempting to create a shape with an invalid percentage.
-Open your browser console to see the validation error.
+Creating a shape with `percentage: 150` fails the 'max-value' check. Validation runs when the
+record is written to the store, so `createShape` throws. Open the browser console to see the
+error message.
 
 [8]
-Demonstrate .refine() transformation - this shape is created successfully with rating=10,
-but the stored value is clamped to 5.
+Creating a shape with `rating: 10` succeeds because `.refine()` clamps it: the shape on the
+canvas shows a rating of 5.
 */

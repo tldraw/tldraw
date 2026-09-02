@@ -16,8 +16,10 @@ keywords:
   ]
 ---
 
-Align and distribute shapes using the editor's built-in methods.
+Align and distribute selected shapes with `alignShapes` and `distributeShapes`.
 
 ---
 
-This example demonstrates how to use the `alignShapes` and `distributeShapes` methods to programmatically arrange shapes on the canvas. The example creates 5 shapes at different positions and provides buttons to align them (left, center-horizontal, right, top, center-vertical, bottom) or distribute them (horizontal, vertical). Select multiple shapes and click the buttons to see the alignment and distribution in action. Note that align operations require at least 2 shapes, while distribute operations require at least 3 shapes.
+The editor exposes the same alignment and distribution operations that the built-in context menu uses. `editor.alignShapes(ids, operation)` accepts `left`, `center-horizontal`, `right`, `top`, `center-vertical`, `bottom`, or `center`, and `editor.distributeShapes(ids, operation)` accepts `horizontal` or `vertical`.
+
+The example creates five shapes and selects them. Try clicking the buttons in the top panel, then use "Reset positions" to put the shapes back. Align operations need at least two selected shapes, and distribute operations need at least three, so change the selection to see the buttons become no-ops.

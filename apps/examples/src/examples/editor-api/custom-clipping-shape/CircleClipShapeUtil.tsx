@@ -30,8 +30,9 @@ export type CircleClipShape = TLShape<typeof CIRCLE_CLIP_TYPE>
 
 export const isClippingEnabled$ = atom('isClippingEnabled', true)
 
-// The stroke width used when rendering the circle
 const STROKE_WIDTH = 3
+
+// There's a guide at the bottom of this file!
 
 export class CircleClipShapeUtil extends BaseBoxShapeUtil<CircleClipShape> {
 	static override type = CIRCLE_CLIP_TYPE
@@ -44,7 +45,8 @@ export class CircleClipShapeUtil extends BaseBoxShapeUtil<CircleClipShape> {
 		return false
 	}
 
-	override canReceiveNewChildrenOfType(shape: TLShape) {
+	// [1]
+	override canReceiveNewChildrenOfType(shape: CircleClipShape) {
 		return !shape.isLocked
 	}
 
@@ -69,15 +71,15 @@ export class CircleClipShapeUtil extends BaseBoxShapeUtil<CircleClipShape> {
 		})
 	}
 
+	// [2]
 	override getClipPath(shape: CircleClipShape): Vec[] | undefined {
-		// Generate a polygon approximation of the circle.
-		// We inset the clip path by half the stroke width so that children are
-		// clipped to the inner edge of the stroke, not the center line.
 		const centerX = shape.props.w / 2
 		const centerY = shape.props.h / 2
 		const outerRadius = Math.min(shape.props.w, shape.props.h) / 2
+		// Inset by half the stroke so children clip to the stroke's inner edge, not its center line.
 		const clipRadius = outerRadius - STROKE_WIDTH / 2
-		const segments = clamp(Math.round((PI2 * clipRadius) / 8), 3, 360) // More segments = smoother circle
+		// Roughly one vertex every 8px of circumference.
+		const segments = clamp(Math.round((PI2 * clipRadius) / 8), 3, 360)
 
 		const points: Vec[] = []
 		for (let i = 0; i < segments; i++) {
@@ -90,11 +92,12 @@ export class CircleClipShapeUtil extends BaseBoxShapeUtil<CircleClipShape> {
 		return points
 	}
 
+	// [3]
 	override shouldClipChild(_child: TLShape): boolean {
-		// For now, clip all children - we removed the onlyClipText feature for simplicity
 		return isClippingEnabled$.get()
 	}
 
+	// [4]
 	override component(shape: CircleClipShape) {
 		const radius = Math.min(shape.props.w, shape.props.h) / 2
 		const centerX = shape.props.w / 2
@@ -113,7 +116,6 @@ export class CircleClipShapeUtil extends BaseBoxShapeUtil<CircleClipShape> {
 					strokeWidth={STROKE_WIDTH}
 					strokeDasharray={clippingEnabled ? 'none' : '5,5'}
 				/>
-				{/* Visual indicator */}
 				<text
 					x={centerX}
 					y={centerY + 4}
@@ -127,21 +129,37 @@ export class CircleClipShapeUtil extends BaseBoxShapeUtil<CircleClipShape> {
 		)
 	}
 
-	override indicator(shape: CircleClipShape) {
+	override getIndicatorPath(shape: CircleClipShape) {
 		const radius = Math.min(shape.props.w, shape.props.h) / 2
 		const centerX = shape.props.w / 2
 		const centerY = shape.props.h / 2
-
-		return (
-			<circle
-				cx={toDomPrecision(centerX)}
-				cy={toDomPrecision(centerY)}
-				r={toDomPrecision(radius)}
-			/>
-		)
+		const path = new Path2D()
+		path.arc(centerX, centerY, radius, 0, Math.PI * 2)
+		return path
 	}
 
 	override onResize(shape: CircleClipShape, info: TLResizeInfo<CircleClipShape>) {
 		return resizeBox(shape, info)
 	}
 }
+
+/*
+[1]
+Allow shapes to be dropped into the circle. Dragging a shape over the circle reparents it, at
+which point the clip path applies. `providesBackgroundForChildren` makes children's backgrounds
+render above this shape rather than behind it.
+
+[2]
+`getClipPath` returns a polygon in the shape's local space. The editor transforms it to page
+space and intersects it with any ancestor clip paths, so a circle needs to be approximated with
+enough vertices to look smooth at the sizes it's used at.
+
+[3]
+`shouldClipChild` is only called when `getClipPath` returns a polygon, and lets you exclude some
+children (for example arrows, which frames don't clip). Here it reads a module-level atom so a
+single toggle turns clipping on and off for every circle at once.
+
+[4]
+`component` reads the same atom. Shape components are rendered inside a reactive tracking scope,
+so the circle restyles itself when the atom changes without any explicit subscription.
+*/

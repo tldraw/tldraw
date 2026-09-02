@@ -81,7 +81,7 @@ export class CubicBezier2d extends Polyline2d {
 
 	getSvgPathData(first = true) {
 		const { _a: a, _b: b, _c: c, _d: d } = this
-		return `${first ? `M ${a.toFixed()} ` : ``} C${b.toFixed()} ${c.toFixed()} ${d.toFixed()}`
+		return `${first ? `M ${a} ` : ``} C${b} ${c} ${d}`
 	}
 
 	static GetAtT(segment: CubicBezier2d, t: number) {

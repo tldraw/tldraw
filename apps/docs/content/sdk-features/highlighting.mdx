@@ -40,7 +40,7 @@ export default function App() {
 
 ## Hover highlighting
 
-The editor automatically tracks which shape is under the pointer and displays a selection-style indicator around it. This happens during idle states when the pointer moves over the canvas.
+The editor automatically tracks which shape is under the pointer and displays a selection-style indicator around it. Hovering a child of a group hovers the group, unless that group is focused or selected, in which case the child itself is hovered.
 
 ### Reading hover state
 
@@ -60,7 +60,7 @@ if (hoveredShape) {
 
 ### Setting hover manually
 
-Use [Editor#setHoveredShape](?) to override the automatic hover detection:
+Use [Editor#setHoveredShape](?) to set the hover state yourself:
 
 ```typescript
 // Set hover by shape or ID
@@ -71,22 +71,23 @@ editor.setHoveredShape(myShape.id)
 editor.setHoveredShape(null)
 ```
 
-Use this to highlight a shape that isn't directly under the pointer, such as when implementing custom interaction logic.
+The select tool overwrites this value on the next pointer move while it's idle or editing, so a manual hover only sticks inside your own tool or state. For programmatic emphasis, use hints instead.
 
 ### Automatic hover detection
 
-The editor's select tool automatically updates hover state as the pointer moves. The hover indicator appears when:
+The select tool updates hover state as the pointer moves (throttled to 32ms, and paused while the camera is moving). The hover indicator appears when:
 
-- The editor is idle or editing a shape
+- The select tool is in `idle` or `editing_shape`
 - The pointer is over the canvas (not UI elements)
-- The input is not coarse (not touch input)
+- The pointer is not coarse (touch, and pen on some devices)
 - The editor is not changing styles
+- The shape is not already selected
 
 Touch devices don't show hover indicators because touch has no hovering concept.
 
 ## Hint highlighting
 
-Hints let you highlight multiple shapes programmatically. Unlike hover (single shape, automatic), hints are manually controlled and can include any number of shapes.
+Hints let you highlight multiple shapes programmatically. Unlike hover (single shape, automatic), hints are set explicitly and can include any number of shapes. The select tool uses them too: it hints the drop target during drag-and-drop and the shapes a new frame will enclose, so hints you set may be replaced while the user is dragging.
 
 ### Reading hints
 
@@ -113,32 +114,18 @@ editor.setHintingShapes([shape1.id, shape2.id])
 editor.setHintingShapes([])
 ```
 
-Hinted shapes render with a thicker stroke (2.5px) than selected or hovered shapes (1.5px). This makes them stand out when you need to draw attention to specific shapes.
+Hinted shapes render with a thicker stroke (2.5 screen pixels) than selected or hovered shapes (1.5). Setting hints never creates an undo entry, and ids are deduplicated on write.
 
-### Common use cases
-
-**Draw attention to shapes during a tutorial:**
+For example, to hint the arrows bound to the selected shape, react to the selection:
 
 ```typescript
-function highlightNextStep(editor: Editor, shapeId: TLShapeId) {
-	editor.setHintingShapes([shapeId])
-	// Clear after 3 seconds
-	setTimeout(() => {
-		editor.setHintingShapes([])
-	}, 3000)
-}
-```
+import { react } from 'tldraw'
 
-**Show related shapes when one is selected:**
-
-```typescript
-editor.sideEffects.registerAfterChangeHandler('instance_page_state', (prev, next) => {
-	const selected = next.selectedShapeIds
-	if (selected.length === 1) {
-		// Find bindings connected to the selected shape
-		const bindings = editor.getBindingsToShape(selected[0], 'arrow')
-		const connectedShapeIds = bindings.map((b) => b.fromId)
-		editor.setHintingShapes(connectedShapeIds)
+const stop = react('hint bound arrows', () => {
+	const selected = editor.getOnlySelectedShape()
+	if (selected) {
+		const bindings = editor.getBindingsToShape(selected, 'arrow')
+		editor.setHintingShapes(bindings.map((b) => b.fromId))
 	} else {
 		editor.setHintingShapes([])
 	}
@@ -147,15 +134,7 @@ editor.sideEffects.registerAfterChangeHandler('instance_page_state', (prev, next
 
 ## Visual rendering
 
-Both hover and hint indicators use the same selection color (`--tl-color-selected` CSS variable). The editor renders them using either SVG or canvas depending on the shape's indicator implementation.
-
-| State    | Stroke width | Condition                          |
-| -------- | ------------ | ---------------------------------- |
-| Selected | 1.5px        | Shape is in selection              |
-| Hovered  | 1.5px        | Pointer is over shape (automatic)  |
-| Hinted   | 2.5px        | Shape is in hinting array (manual) |
-
-Collaborator selections render at 1.5px with their user color at reduced opacity.
+Both hover and hint indicators use the theme's selection color. The [ShapeIndicatorOverlayUtil](?) strokes them on a canvas overlay using each shape's [ShapeUtil#getIndicatorPath](?). Collaborator selections render at 1.5px in the collaborator's color at 0.7 opacity. See [Indicators](/sdk-features/indicators) for the stroke widths and how to customize them.
 
 ## Page state storage
 
@@ -172,6 +151,7 @@ Both properties are ephemeral—they don't persist across sessions or sync betwe
 
 ## Related articles
 
+- [Indicators](/sdk-features/indicators) — How indicator outlines are drawn and customized
 - [Instance state](/sdk-features/instance-state) — Session state including page state
 - [Selection](/sdk-features/selection) — Working with selected shapes
 - [Cursors](/sdk-features/cursors) — Cursor types and customization

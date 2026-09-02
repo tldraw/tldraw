@@ -1,12 +1,12 @@
 'use client'
 
-import { track } from '@/app/analytics'
-import { Icon, IconName } from '@/components/common/icon'
-import { cn } from '@/utils/cn'
 import { ArrowLongLeftIcon, ArrowLongRightIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
 import { MouseEventHandler } from 'react'
 import { useFormStatus } from 'react-dom'
+import { track } from '@/app/analytics'
+import { Icon, IconName } from '@/components/common/icon'
+import { cn } from '@/utils/cn'
 import { Loader } from './loader'
 
 export function Button({

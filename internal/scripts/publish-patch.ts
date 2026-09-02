@@ -1,5 +1,6 @@
+import { appendFileSync, readFileSync } from 'node:fs'
 import { Octokit } from '@octokit/rest'
-import { appendFileSync } from 'node:fs'
+import { parse } from 'semver'
 import { extractChangelog } from './extract-draft-changelog'
 import { getAnyPackageDiff } from './lib/didAnyPackageChange'
 import { exec } from './lib/exec'
@@ -46,9 +47,13 @@ async function main() {
 		await publishProductionDocsAndExamplesAndBemo()
 	}
 
+	// Ensure asset directories exist before comparing package contents.
+	// CI may skip postinstall (and thus refresh-assets) when install-state.gz is cached.
+	await exec('yarn', ['refresh-assets', '--force'])
+
 	// Skip releasing a new version if the package contents are identical.
 	// This may happen when cherry-picking docs-only changes.
-	if (!(await getAnyPackageDiff())) {
+	if (!(await getAnyPackageDiff(latestVersionInBranch.format()))) {
 		nicelog('No packages have changed, skipping release')
 		return
 	}
@@ -57,15 +62,42 @@ async function main() {
 		appendFileSync(process.env.GITHUB_OUTPUT, `is_latest_version=${isLatestVersion}\n`)
 	}
 
-	const nextVersion = latestVersionInBranch.inc('patch').format()
+	// Capture the previous tag BEFORE calling .inc(): semver's SemVer.prototype.inc()
+	// mutates the instance in place, so reading latestVersionInBranch.format() afterwards
+	// would return the new version and leave prevTag === tag, producing an empty changelog.
+	const prevTag = `v${latestVersionInBranch.format()}`
+
+	// Determine the version to bump from. Normally this is the latest version
+	// published on npm for this branch. But if a previous patch release was
+	// interrupted after the "v X.Y.Z [skip ci]" version-bump commit was pushed
+	// but before npm publish completed, the local package.json files (and the
+	// matching git tag) will be ahead of npm. In that case we bump from the
+	// local version so we sidestep the orphaned version+tag entirely instead
+	// of trying to re-create them - both `git commit` (no staged changes) and
+	// `git push --follow-tags` (tag already exists at a different commit on
+	// origin) would otherwise fail and permanently wedge the branch.
+	const localTldrawVersion = parse(
+		JSON.parse(readFileSync('packages/tldraw/package.json', 'utf8')).version
+	)
+	const baseVersion =
+		localTldrawVersion && localTldrawVersion.compare(latestVersionInBranch) > 0
+			? localTldrawVersion
+			: latestVersionInBranch
+	if (baseVersion !== latestVersionInBranch) {
+		nicelog(
+			`Local package version ${baseVersion.format()} is ahead of latest npm version ` +
+				`${latestVersionInBranch.format()}; bumping from local to skip past orphaned version.`
+		)
+	}
+
+	// .inc() mutates baseVersion; reparse so callers downstream of us see the
+	// original instance unchanged.
+	const nextVersion = parse(baseVersion.format())!.inc('patch').format()
 	nicelog('Releasing version', nextVersion)
 
 	await setAllVersions(nextVersion, { stageChanges: true })
 
 	const tag = `v${nextVersion}`
-
-	// Get the previous tag for changelog generation
-	const prevTag = `v${latestVersionInBranch.format()}`
 
 	// create and push a new tag
 	await exec('git', ['commit', '-m', `${tag} [skip ci]`])

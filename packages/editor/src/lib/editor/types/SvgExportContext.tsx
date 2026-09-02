@@ -43,6 +43,11 @@ export interface SvgExportContext {
 	readonly isDarkMode: boolean
 
 	/**
+	 * The color mode to use for this export.
+	 */
+	readonly colorMode: 'light' | 'dark'
+
+	/**
 	 * The scale of the export - how much CSS pixels will be scaled up/down by.
 	 */
 	readonly scale: number

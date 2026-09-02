@@ -27,7 +27,7 @@ export class SliderNodeDefinition extends NodeDefinition<SliderNode> {
 	static validator = SliderNode
 	title = 'Slider'
 	heading = 'Slider'
-	icon = (<SliderIcon />)
+	icon = <SliderIcon />
 	getDefault(): SliderNode {
 		return {
 			type: 'slider',
@@ -76,7 +76,7 @@ export function SliderNodeComponent({ shape, node }: NodeComponentProps<SliderNo
 				title={node.value.toString()}
 				onValueChange={(value) => {
 					editor.setSelectedShapes([shape.id])
-					updateNode<SliderNode>(editor, shape, (node) => ({ ...node, value }), false)
+					updateNode<SliderNode>(editor, shape, (node) => ({ ...node, value }))
 				}}
 				onHistoryMark={() => {}}
 			/>

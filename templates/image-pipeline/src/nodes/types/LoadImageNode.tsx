@@ -31,7 +31,7 @@ export class LoadImageNodeDefinition extends NodeDefinition<LoadImageNode> {
 	static validator = LoadImageNode
 	title = 'Load image'
 	heading = 'Image'
-	icon = (<LoadImageIcon />)
+	icon = <LoadImageIcon />
 	category = 'input'
 	getDefault(): LoadImageNode {
 		return {

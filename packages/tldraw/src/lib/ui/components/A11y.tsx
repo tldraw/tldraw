@@ -13,6 +13,7 @@ import {
 import { memo, MouseEvent, useCallback, useEffect, useRef } from 'react'
 import { useA11y } from '../context/a11y'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
+import { suppressBackToContent } from './HelperButtons/BackToContent'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 
 export function SkipToMainContent() {
@@ -27,6 +28,7 @@ export function SkipToMainContent() {
 			const shapes = editor.getCurrentPageShapesInReadingOrder()
 			if (!shapes.length) return
 			editor.setSelectedShapes([shapes[0].id])
+			suppressBackToContent(editor, editor.options.animationMediumMs)
 			editor.zoomToSelectionIfOffscreen(256, {
 				animation: {
 					duration: editor.options.animationMediumMs,
@@ -134,7 +136,7 @@ export function generateShapeAnnouncementMessage(args: {
 }
 
 /** @public */
-export const useSelectedShapesAnnouncer = () => {
+export function useSelectedShapesAnnouncer() {
 	const editor = useMaybeEditor()
 	const a11y = useA11y()
 	const msg = useTranslation()
@@ -182,14 +184,10 @@ const useA11yDebug = (msg: string | undefined) => {
 					'font-weight: normal'
 				)
 			}
+			const doc = container.ownerDocument
 			const handleKeyUp = (e: KeyboardEvent) => {
-				const el = document.activeElement
-				if (
-					e.key === 'Tab' &&
-					el &&
-					el !== document.body &&
-					!el.classList.contains('tl-container')
-				) {
+				const el = doc.activeElement
+				if (e.key === 'Tab' && el && el !== doc.body && !el.classList.contains('tl-container')) {
 					const label = el.getAttribute('aria-label') || el.getAttribute('title') || el.textContent
 					if (label) {
 						log(label)
@@ -201,8 +199,8 @@ const useA11yDebug = (msg: string | undefined) => {
 				log(msg)
 			}
 
-			document.addEventListener('keyup', handleKeyUp)
-			return () => document.removeEventListener('keyup', handleKeyUp)
+			doc.addEventListener('keyup', handleKeyUp)
+			return () => doc.removeEventListener('keyup', handleKeyUp)
 		}
 		return undefined
 	}, [container, msg])

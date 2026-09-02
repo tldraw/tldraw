@@ -1,3 +1,4 @@
+import { objectMapFromEntries, objectMapValues } from '@tldraw/utils'
 import { IdOf, UnknownRecord } from './BaseRecord'
 import { intersectSets } from './setUtils'
 import { StoreQueries } from './StoreQueries'
@@ -90,7 +91,9 @@ export function objectMatchesQuery<T extends object>(query: QueryExpression<T>, 
 		// matching logic
 		if (isQueryValueMatcher(matcher)) {
 			if ('eq' in matcher && value !== matcher.eq) return false
-			if ('neq' in matcher && value === matcher.neq) return false
+			// undefined values must not match neq: the indexes executeQuery reads only
+			// track defined values, and the two matching strategies have to agree
+			if ('neq' in matcher && (value === matcher.neq || value === undefined)) return false
 			if ('gt' in matcher && (typeof value !== 'number' || value <= matcher.gt)) return false
 			continue
 		}
@@ -145,7 +148,9 @@ export function executeQuery<R extends UnknownRecord, TypeName extends R['typeNa
 	const matcherPaths = extractMatcherPaths(query)
 
 	// Build a set of matching IDs for each path
-	const matchIds = Object.fromEntries(matcherPaths.map(({ path }) => [path, new Set<IdOf<S>>()]))
+	const matchIds = objectMapFromEntries(
+		matcherPaths.map(({ path }) => [path, new Set<IdOf<S>>()] as const)
+	)
 
 	// For each path, use the index to find matching IDs
 	for (const { path, matcher } of matcherPaths) {
@@ -183,5 +188,5 @@ export function executeQuery<R extends UnknownRecord, TypeName extends R['typeNa
 	}
 
 	// Intersect all the match sets
-	return intersectSets(Object.values(matchIds)) as Set<IdOf<S>>
+	return intersectSets(objectMapValues(matchIds)) as Set<IdOf<S>>
 }

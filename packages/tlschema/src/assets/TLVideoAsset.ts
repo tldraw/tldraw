@@ -1,6 +1,6 @@
 import { createMigrationIds, createRecordMigrationSequence } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { TLAsset } from '../records/TLAsset'
+import { RecordProps } from '../recordsWithProps'
 import { TLBaseAsset, createAssetValidator } from './TLBaseAsset'
 
 /**
@@ -52,46 +52,21 @@ export type TLVideoAsset = TLBaseAsset<
 	}
 >
 
-/**
- * Runtime validator for TLVideoAsset records. This validator ensures that video asset
- * data conforms to the expected structure and types, providing type safety at runtime.
- * It validates dimensions, file metadata, and ensures URLs are properly formatted.
- *
- * @example
- * ```ts
- * import { videoAssetValidator } from '@tldraw/tlschema'
- *
- * // Validate a video asset object
- * const validAsset = videoAssetValidator.validate({
- *   id: 'asset:video123',
- *   typeName: 'asset',
- *   type: 'video',
- *   props: {
- *     w: 1920,
- *     h: 1080,
- *     name: 'video.mp4',
- *     isAnimated: true,
- *     mimeType: 'video/mp4',
- *     src: 'https://example.com/video.mp4',
- *     fileSize: 1024000
- *   },
- *   meta: {}
- * })
- * ```
- *
- * @public
- */
+/** @public */
+export const videoAssetProps = {
+	w: T.number,
+	h: T.number,
+	name: T.string,
+	isAnimated: T.boolean,
+	mimeType: T.string.nullable(),
+	src: T.srcUrl.nullable(),
+	fileSize: T.number.optional(),
+} satisfies RecordProps<TLVideoAsset>
+
+/** Validator for video assets. @public */
 export const videoAssetValidator: T.Validator<TLVideoAsset> = createAssetValidator(
 	'video',
-	T.object({
-		w: T.number,
-		h: T.number,
-		name: T.string,
-		isAnimated: T.boolean,
-		mimeType: T.string.nullable(),
-		src: T.srcUrl.nullable(),
-		fileSize: T.number.optional(),
-	})
+	T.object(videoAssetProps)
 )
 
 const Versions = createMigrationIds('com.tldraw.asset.video', {
@@ -137,7 +112,7 @@ export { Versions as videoAssetVersions }
 export const videoAssetMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.asset.video',
 	recordType: 'asset',
-	filter: (asset) => (asset as TLAsset).type === 'video',
+	filter: (asset) => (asset as TLVideoAsset).type === 'video',
 	sequence: [
 		{
 			id: Versions.AddIsAnimated,

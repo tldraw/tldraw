@@ -39,7 +39,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		end: vecModelValidator,
 	}
 
-	private isMetaKeyOnTranslateStart = false
+	private isCtrlKeyOnTranslateStart = false
 	private didHitCurveOnTranslateStart = false
 
 	override getDefaultProps(): MyBezierCurveShape['props'] {
@@ -170,12 +170,10 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		const { handle } = info
 		const { id, x, y } = handle
 
-		let props = {}
-		let newProps: any = {}
+		let newProps: Partial<MyBezierCurveShape['props']> = {}
 
-		// if you hold command or control key whilst dragging over a start or end handle,
-		// move the associated control point to the new positions
-		if (this.editor.inputs.getMetaKey()) {
+		// cmd/ctrl + drag on start or end moves that endpoint's control point instead
+		if (this.editor.inputs.getCtrlKey()) {
 			switch (id) {
 				case 'start': {
 					return {
@@ -198,7 +196,6 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 			}
 		}
 
-		// move the handles
 		switch (id) {
 			case 'start': {
 				const delta = Vec.Sub(handle, shape.props.start)
@@ -220,31 +217,28 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 			}
 			default: {
 				newProps = {
-					[id]: { x, y },
+					[id as 'cp1' | 'cp2']: { x, y },
 				}
 				break
 			}
 		}
 
-		props = {
-			...shape.props,
-			...newProps,
-		}
-
 		return {
 			...shape,
-			props,
+			props: {
+				...shape.props,
+				...newProps,
+			},
 		}
 	}
 
 	// [8]
 	override onTranslateStart(shape: MyBezierCurveShape) {
-		// only bend if we start translating with the command or control key pressed
-		// this avoids bending the curve midway through a translation where the user accidentally
-		// holds the command or control key
-		this.isMetaKeyOnTranslateStart = this.editor.inputs.getMetaKey()
+		// sample the meta key once here so the curve doesn't start bending if the user presses
+		// cmd/ctrl partway through a plain translation
+		this.isCtrlKeyOnTranslateStart = this.editor.inputs.getCtrlKey()
 
-		// we should bend the curve if we hit the curve but not the start or end handles,
+		// bend only when the drag started on the curve itself, not on the start or end handle
 		const handles = this.getHandles(shape)
 		const startAndEndHandles = handles.filter(
 			(handle) => handle.id === 'start' || handle.id === 'end'
@@ -270,8 +264,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 	}
 
 	override onTranslate(initial: MyBezierCurveShape, current: MyBezierCurveShape) {
-		// bend the curve
-		if (this.isMetaKeyOnTranslateStart && this.didHitCurveOnTranslateStart) {
+		if (this.isCtrlKeyOnTranslateStart && this.didHitCurveOnTranslateStart) {
 			const delta = Vec.Sub(current, initial)
 			const offsetX = Math.round(delta.x)
 			const offsetY = Math.round(delta.y)
@@ -331,9 +324,9 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		)
 	}
 
-	indicator(shape: MyBezierCurveShape) {
+	getIndicatorPath(shape: MyBezierCurveShape) {
 		const path = this.getGeometry(shape).getSvgPathData(true)
-		return <path d={path} />
+		return new Path2D(path)
 	}
 
 	private shouldShowControlLines(shape: MyBezierCurveShape) {
@@ -349,45 +342,48 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 }
 
 /*
-This is our custom cubic bezier curve shape. A cubic bezier curve is defined by four points: start, end, and two control points (cp1, cp2).
+This is our custom cubic bezier curve shape. A cubic bezier curve is defined by four points: start,
+end, and two control points (cp1, cp2).
 
 [1]
-First, we need to extend TLGlobalShapePropsMap to add our shape's props to the global type system.
-This tells TypeScript about the shape's properties. For this shape, we define four points (start, cp1, cp2, end)
+Extend TLGlobalShapePropsMap to add our shape's props to the global type system: the four points
 that define the curve.
 
 [2]
 Define the shape type using TLShape with the shape's type as a type argument.
 
 [3]
-The BezierCurveShapeUtil extends ShapeUtil to define all behavior for our custom shape. We specify
-the static 'type' and 'props' with validators.
+BezierCurveShapeUtil extends ShapeUtil directly (rather than BaseBoxShapeUtil) because the shape has
+no width and height props; its bounds come from the curve. `vecModelValidator` validates each point.
 
 [4]
-The getGeometry method returns a CubicBezier2d geometry used for hit-testing, bounds calculations,
-and rendering.
+getGeometry returns a CubicBezier2d, which the editor uses for hit-testing, bounds, and snapping.
+Because it isn't filled, clicking inside the curve's bounds but away from the line doesn't hit it.
 
 [5]
-Define four interactive handles: start, end, cp1, and cp2. Each has an id, type, position, and index.
-Control point handles are hidden when they're at the same position as their associated endpoints (collapsed).
+Four handles: start, end, cp1, and cp2. A control point handle is hidden when it sits exactly on
+its endpoint (a "collapsed" corner). `snapType: 'align'` lets a handle snap into alignment with the
+snap points returned from [6].
 
 [6]
-Custom handle snapping via getHandleSnapGeometry: control points (cp1, cp2) can snap to start/end points.
-The snap system automatically handles screen-space thresholds (consistent across zoom levels) and visual
-snap indicators. When a control point is snapped to an endpoint, it effectively "collapses" the curve at
-that end, creating a sharp corner.
+getHandleSnapGeometry controls what handles snap to. `points` are what other shapes' handles snap
+to; `getSelfSnapPoints` returns what this shape's own handles snap to. Control points snap to the
+endpoints so you can collapse them by dragging, and endpoints snap to each other. The snap manager
+handles zoom-independent thresholds and draws the snap indicators.
 
 [7]
-Handle drag behaviors:
-- Meta key + drag start/end handles repositions the associated control point (cp1 or cp2)
-- Dragging start/end handles moves the associated control point to maintain curve shape
-- Dragging cp1/cp2 directly moves only that control point
+onHandleDrag returns the updated shape:
+- Cmd/ctrl + drag on start/end moves that endpoint's control point (cp1 or cp2) instead.
+- Dragging start/end also carries its control point along, so the curve keeps its shape.
+- Dragging cp1/cp2 moves only that control point.
 
 [8]
-Translation with curve bending: Hold meta key while dragging the curve (not handles) to bend it
-by moving both control points together. This is detected on translate start to avoid accidental bending.
+onTranslateStart and onTranslate implement "bending": cmd/ctrl + drag on the curve itself moves both
+control points together instead of moving the shape. Whether to bend is decided once in
+onTranslateStart, based on where the drag started and whether cmd/ctrl was down.
 
 [9]
-Visual feedback: Display dashed lines from start→cp1 and end→cp2 when the shape is selected
-and actively being edited or translated.
+The component draws the curve, plus dashed lines from start→cp1 and end→cp2 while the shape is
+being edited or a handle is being dragged. Stroke widths are divided by the zoom level so they stay
+one screen pixel wide.
 */

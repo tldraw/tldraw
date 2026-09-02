@@ -118,6 +118,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			'chevrons-sw': iconsIcon0MergedSvg + '#chevrons-sw',
 			'clipboard-copied': iconsIcon0MergedSvg + '#clipboard-copied',
 			'clipboard-copy': iconsIcon0MergedSvg + '#clipboard-copy',
+			closed: iconsIcon0MergedSvg + '#closed',
 			code: iconsIcon0MergedSvg + '#code',
 			color: iconsIcon0MergedSvg + '#color',
 			comment: iconsIcon0MergedSvg + '#comment',
@@ -304,6 +305,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			'zh-tw': formatAssetUrl(new URL('./translations/zh-tw.json', import.meta.url).href, opts),
 		},
 		embedIcons: {
+			canva: formatAssetUrl(new URL('./embed-icons/canva.png', import.meta.url).href, opts),
 			codepen: formatAssetUrl(new URL('./embed-icons/codepen.png', import.meta.url).href, opts),
 			codesandbox: formatAssetUrl(
 				new URL('./embed-icons/codesandbox.png', import.meta.url).href,

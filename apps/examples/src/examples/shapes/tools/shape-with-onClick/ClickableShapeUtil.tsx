@@ -1,11 +1,4 @@
-import {
-	BaseBoxShapeUtil,
-	HTMLContainer,
-	RecordProps,
-	T,
-	TLBaseBoxShape,
-	TLShapePartial,
-} from 'tldraw'
+import { BaseBoxShapeUtil, HTMLContainer, RecordProps, T, TLShape, TLShapePartial } from 'tldraw'
 
 // There's a guide at the bottom of this file!
 
@@ -18,10 +11,7 @@ declare module 'tldraw' {
 	}
 }
 
-type ClickableShape = TLBaseBoxShape & {
-	type: typeof CLICKABLE_SHAPE_TYPE
-	props: { count: number }
-}
+type ClickableShape = TLShape<typeof CLICKABLE_SHAPE_TYPE>
 
 // [2]
 export class ClickableShapeUtil extends BaseBoxShapeUtil<ClickableShape> {
@@ -38,10 +28,6 @@ export class ClickableShapeUtil extends BaseBoxShapeUtil<ClickableShape> {
 			h: 100,
 			count: 0,
 		}
-	}
-
-	override canEdit() {
-		return false
 	}
 
 	// [3]
@@ -68,7 +54,6 @@ export class ClickableShapeUtil extends BaseBoxShapeUtil<ClickableShape> {
 					fontSize: 18,
 					fontWeight: 'bold',
 					color: '#333',
-					pointerEvents: 'all',
 				}}
 			>
 				Clicks: {shape.props.count}
@@ -77,8 +62,10 @@ export class ClickableShapeUtil extends BaseBoxShapeUtil<ClickableShape> {
 	}
 
 	// [5]
-	indicator(shape: ClickableShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: ClickableShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 
@@ -94,18 +81,21 @@ Our shape util class. We extend BaseBoxShapeUtil which provides getGeometry (a f
 rectangle from w/h), onResize, and snap geometry for free.
 
 [3]
-This is the key part of the example: the onClick handler. When a user clicks this shape,
-the editor calls onClick. We return a shape partial that increments the count. The editor
-applies this update to the shape automatically.
+The onClick handler is the key part of the example. The select tool calls it on pointer
+up when the user clicks the shape without dragging. If it returns a shape partial, the
+editor applies it and skips selecting the shape; return nothing to fall through to the
+normal selection behavior.
 
-Note: this is different from using React's onClick on a DOM element inside the component.
-ShapeUtil.onClick integrates with the editor's pointer event system, so it works correctly
-alongside other interactions like dragging.
+This is different from a React onClick on a DOM element inside the component: those
+elements sit under the editor's pointer handling (HTMLContainer has pointer-events: none),
+so a React handler would also need pointer-events: all and would fight with dragging.
+ShapeUtil.onClick goes through the editor's event system, so click and drag coexist.
 
 [4]
-The component renders the click count. We don't add any React event handlers here — the
-click handling is done entirely through ShapeUtil.onClick above.
+The component renders the click count. There are no React event handlers here; the click
+handling is done entirely through ShapeUtil.onClick above.
 
 [5]
-The indicator is the blue outline shown when the shape is selected.
+getIndicatorPath returns a Path2D that tldraw strokes onto the canvas overlay as the
+blue outline when the shape is selected.
 */

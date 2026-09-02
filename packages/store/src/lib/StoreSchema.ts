@@ -423,16 +423,21 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 	 * @public
 	 */
 	public getMigrationsSince(persistedSchema: SerializedSchema): Result<Migration[], string> {
-		// Check cache first
+		// Every result — success, empty, or error — is cached, so cache once around the whole
+		// computation rather than at each of its exit points.
 		const cached = this.migrationCache.get(persistedSchema)
 		if (cached) {
 			return cached
 		}
 
+		const result = this.computeMigrationsSince(persistedSchema)
+		this.migrationCache.set(persistedSchema, result)
+		return result
+	}
+
+	private computeMigrationsSince(persistedSchema: SerializedSchema): Result<Migration[], string> {
 		const upgradeResult = upgradeSchema(persistedSchema)
 		if (!upgradeResult.ok) {
-			// Cache the error result
-			this.migrationCache.set(persistedSchema, upgradeResult)
 			return upgradeResult
 		}
 		const schema = upgradeResult.value
@@ -449,10 +454,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		}
 
 		if (sequenceIdsToInclude.size === 0) {
-			const result = Result.ok([])
-			// Cache the empty result
-			this.migrationCache.set(persistedSchema, result)
-			return result
+			return Result.ok([])
 		}
 
 		const allMigrationsToInclude = new Set<MigrationId>()
@@ -471,10 +473,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			const idx = this.migrations[sequenceId].sequence.findIndex((m) => m.id === theirVersionId)
 			// todo: better error handling
 			if (idx === -1) {
-				const result = Result.err('Incompatible schema?')
-				// Cache the error result
-				this.migrationCache.set(persistedSchema, result)
-				return result
+				return Result.err('Incompatible schema?')
 			}
 			for (const migration of this.migrations[sequenceId].sequence.slice(idx + 1)) {
 				allMigrationsToInclude.add(migration.id)
@@ -482,12 +481,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		}
 
 		// collect any migrations
-		const result = Result.ok(
-			this.sortedMigrations.filter(({ id }) => allMigrationsToInclude.has(id))
-		)
-		// Cache the result
-		this.migrationCache.set(persistedSchema, result)
-		return result
+		return Result.ok(this.sortedMigrations.filter(({ id }) => allMigrationsToInclude.has(id)))
 	}
 
 	/**
@@ -632,10 +626,15 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		}
 		// Clean up by filtering out any non-document records.
 		// This is mainly legacy support for extremely early days tldraw.
+		// Collect first: as above, deleting during a live iterator can throw on SQLite backends.
+		const idsToDelete: string[] = []
 		for (const [id, state] of storage.entries()) {
 			if (this.getType(state.typeName).scope !== 'document') {
-				storage.delete(id)
+				idsToDelete.push(id)
 			}
+		}
+		for (const id of idsToDelete) {
+			storage.delete(id)
 		}
 	}
 
@@ -808,7 +807,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 	 */
 	getType(typeName: string) {
 		const type = getOwnProperty(this.types, typeName)
-		assert(type, 'record type does not exists')
+		assert(type, 'record type does not exist')
 		return type
 	}
 }

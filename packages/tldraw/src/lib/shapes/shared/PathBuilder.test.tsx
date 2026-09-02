@@ -1,6 +1,37 @@
 import { PathBuilder } from './PathBuilder'
 
 describe('PathBuilder', () => {
+	describe('transform', () => {
+		it('mirrors a path horizontally within a box while preserving command metadata', () => {
+			const path = new PathBuilder()
+				.moveTo(10, 0, { geometry: { isFilled: true } })
+				.lineTo(100, 0)
+				.lineTo(90, 80)
+				.close()
+
+			// mirror around the horizontal center of a 100-wide box: x' = 100 - x
+			const mirrored = path.transform({ a: -1, b: 0, c: 0, d: 1, e: 100, f: 0 })
+
+			expect(mirrored.toD()).toBe('M 90 0 L 0 0 L 10 80 Z')
+			// original is untouched
+			expect(path.toD()).toBe('M 10 0 L 100 0 L 90 80 Z')
+			// fill metadata carried over
+			const firstCommand = mirrored.commands[0]
+			expect(firstCommand.type).toBe('move')
+			if (firstCommand.type === 'move') {
+				expect(firstCommand.opts?.geometry).toEqual({ isFilled: true })
+			}
+		})
+
+		it('transforms bezier control points too', () => {
+			const path = new PathBuilder().moveTo(0, 0).cubicBezierTo(100, 0, 20, 40, 80, 40)
+
+			const mirrored = path.transform({ a: -1, b: 0, c: 0, d: 1, e: 100, f: 0 })
+
+			expect(mirrored.toD()).toBe('M 100 0 C 80 40 20 40 0 0')
+		})
+	})
+
 	describe('toSvg', () => {
 		it('should build an SVG path', () => {
 			const path = new PathBuilder()
@@ -105,11 +136,11 @@ describe('PathBuilder', () => {
 				.toSvg({ strokeWidth: 10, style: 'draw', randomSeed: '123' })
 
 			expect(path).toMatchInlineSnapshot(`
-			<path
-			  d="M 1.6479 1.9547 L 93.8229 93.8006 Q 100.8939 100.8717 100.8939 90.8717 L 100.9 0.5128 C 70.2895 -25.705 25.518 -25.705 -2.0962 1.9093 C -26.8794 24.5012 -26.8794 69.2727 0.7349 96.8869 M 2.9315 3.0157 L 94.1973 93.0354 Q 101.2684 100.1065 101.2684 90.1065 L 99.3236 -0.0235 C 75.199 -28.4858 30.4275 -28.4858 2.8132 -0.8716 C -27.3141 28.8687 -27.3141 73.6402 0.3001 101.2544"
-			  strokeWidth={10}
-			/>
-		`)
+				<path
+				  d="M 1.1127 1.3198 L 93.8385 93.868 Q 100.9096 100.9391 100.9096 90.9391 L 98.8429 1.0539 C 70.8916 -27.0473 26.1201 -27.0473 -1.4942 0.567 C -25.8613 28.4081 -25.8613 73.1797 1.7529 100.7939 M 1.4332 1.4744 L 92.9725 92.6522 Q 100.0436 99.7233 100.0436 89.7233 L 100.9554 -0.296 C 72.6836 -26.9909 27.9121 -26.9909 0.2978 0.6234 C -29.073 25.7004 -29.073 70.4719 -1.4587 98.0862"
+				  strokeWidth={10}
+				/>
+			`)
 			const closed = new PathBuilder()
 				.moveTo(0, 0)
 				.lineTo(100, 100)
@@ -119,11 +150,11 @@ describe('PathBuilder', () => {
 				.toSvg({ strokeWidth: 10, style: 'draw', randomSeed: '123' })
 
 			expect(closed).toMatchInlineSnapshot(`
-			<path
-			  d="M 8.719 9.0257 L 93.8229 93.8006 Q 100.8939 100.8717 100.8939 90.8717 L 100.9 0.5128 C 70.2895 -25.705 25.518 -25.705 -2.0962 1.9093 C -26.8794 24.5012 -26.8794 69.2727 0.7349 96.8869 L 1.6479 11.9547 Q 1.6479 1.9547 8.719 9.0257 M 10.0026 10.0867 L 94.1973 93.0354 Q 101.2684 100.1065 101.2684 90.1065 L 99.3236 -0.0235 C 75.199 -28.4858 30.4275 -28.4858 2.8132 -0.8716 C -27.3141 28.8687 -27.3141 73.6402 0.3001 101.2544 L 2.9315 13.0157 Q 2.9315 3.0157 10.0026 10.0867"
-			  strokeWidth={10}
-			/>
-		`)
+				<path
+				  d="M 8.1837 8.3908 L 93.8385 93.868 Q 100.9096 100.9391 100.9096 90.9391 L 98.8429 1.0539 C 70.8916 -27.0473 26.1201 -27.0473 -1.4942 0.567 C -25.8613 28.4081 -25.8613 73.1797 1.7529 100.7939 L 1.1127 11.3198 Q 1.1127 1.3198 8.1837 8.3908 M 8.5043 8.5454 L 92.9725 92.6522 Q 100.0436 99.7233 100.0436 89.7233 L 100.9554 -0.296 C 72.6836 -26.9909 27.9121 -26.9909 0.2978 0.6234 C -29.073 25.7004 -29.073 70.4719 -1.4587 98.0862 L 1.4332 11.4744 Q 1.4332 1.4744 8.5043 8.5454"
+				  strokeWidth={10}
+				/>
+			`)
 		})
 	})
 

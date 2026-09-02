@@ -1,10 +1,10 @@
 import { AtomMap, Editor, TLShapeId } from 'tldraw'
-import { NodeShape } from '../nodes/NodeShapeUtil'
 import {
 	getNodeOutputPortInfo,
 	getNodePortConnections,
 	NodePortConnection,
 } from '../nodes/nodePorts'
+import { NodeShape } from '../nodes/NodeShapeUtil'
 import { executeNode } from '../nodes/nodeTypes'
 import { ExecutionResult, STOP_EXECUTION } from '../nodes/types/shared'
 

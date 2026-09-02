@@ -1,4 +1,5 @@
 import { useLayoutEffect, useState } from 'react'
+import { useMaybeEditor } from './useEditor'
 
 /*!
  * BSD License: https://github.com/outline/rich-markdown-editor/blob/main/LICENSE
@@ -10,28 +11,37 @@ import { useLayoutEffect, useState } from 'react'
  * N.B. On iOS, you have to take into account the offsetTop as well so that you get an accurate position
  * while using the virtual keyboard.
  */
-/** @public */
+/**
+ * The height of the visible viewport, including the visual viewport's own offset.
+ *
+ * @deprecated Read `window.visualViewport` directly: this flattens the visible rectangle to a
+ * single scalar, and keeping UI clear of the software keyboard usually needs the other edges too.
+ * Unused since v3.14; will be removed in a future release.
+ *
+ * @public
+ */
 export function useViewportHeight(): number {
-	const visualViewport = window.visualViewport
+	const editor = useMaybeEditor()
+	const win = editor?.getContainerWindow() ?? window
+	const vv = win.visualViewport
 	const [height, setHeight] = useState<number>(() =>
-		visualViewport ? visualViewport.height + visualViewport.offsetTop : window.innerHeight
+		vv ? vv.height + vv.offsetTop : win.innerHeight
 	)
 
 	useLayoutEffect(() => {
+		const win = editor?.getContainerWindow() ?? window
 		const handleResize = () => {
-			const visualViewport = window.visualViewport
-			setHeight(() =>
-				visualViewport ? visualViewport.height + visualViewport.offsetTop : window.innerHeight
-			)
+			const vv = win.visualViewport
+			setHeight(() => (vv ? vv.height + vv.offsetTop : win.innerHeight))
 		}
 
-		window.visualViewport?.addEventListener('resize', handleResize)
-		window.visualViewport?.addEventListener('scroll', handleResize)
+		win.visualViewport?.addEventListener('resize', handleResize)
+		win.visualViewport?.addEventListener('scroll', handleResize)
 
 		return () => {
-			window.visualViewport?.removeEventListener('resize', handleResize)
-			window.visualViewport?.removeEventListener('scroll', handleResize)
+			win.visualViewport?.removeEventListener('resize', handleResize)
+			win.visualViewport?.removeEventListener('scroll', handleResize)
 		}
-	}, [])
+	}, [editor])
 	return height
 }

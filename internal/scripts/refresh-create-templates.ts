@@ -1,5 +1,5 @@
-import { compact } from '@tldraw/utils'
 import { join } from 'path'
+import { compact } from '@tldraw/utils'
 import { REPO_ROOT, writeCodeFile } from './lib/file'
 import { getAllWorkspacePackages } from './lib/workspace'
 

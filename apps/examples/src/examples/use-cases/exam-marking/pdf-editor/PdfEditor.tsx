@@ -28,7 +28,7 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 	const pdfEditorComponents = useMemo<TLComponents>(
 		() => ({
 			PageMenu: null,
-			Overlays: () => <PageOverlayScreen pdf={pdf} />,
+			OnTheCanvas: () => <PageOverlayScreen pdf={pdf} />,
 			SharePanel: () => (
 				<div
 					style={{
@@ -52,7 +52,7 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 	return (
 		<Tldraw
 			onMount={(editor) => {
-				// See the custom-double-click-behavior example for more details on this
+				// [1]
 				type IdleStateNode = StateNode & {
 					handleDoubleClickOnCanvas(info: TLClickEventInfo): void
 				}
@@ -168,7 +168,7 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 
 				let isMobile = editor.getViewportScreenBounds().width < 840
 
-				react('update camera', () => {
+				const stopReacting = react('update camera', () => {
 					const isMobileNow = editor.getViewportScreenBounds().width < 840
 					if (isMobileNow === isMobile) return
 					isMobile = isMobileNow
@@ -176,10 +176,12 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 				})
 
 				updateCameraBounds(isMobile)
+
+				return stopReacting
 			}}
 			components={pdfEditorComponents}
 			tools={customTools}
-			initialState="mark" // set the initial tool to the exam marking tool
+			initialState="mark"
 			shapeUtils={customShapeUtils}
 			overrides={uiOverrides}
 		/>
@@ -226,3 +228,11 @@ const PageOverlayScreen = track(function PageOverlayScreen({ pdf }: { pdf: Pdf }
 		</>
 	)
 })
+
+/*
+[1]
+Double-clicking empty canvas normally creates a text shape. Overriding the select tool's
+`select.idle` handler makes it place an exam mark instead. See the
+custom-double-click-behavior example for details on this technique. The rest of this file
+is the pdf-editor example, with footnotes explained there.
+*/

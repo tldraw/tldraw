@@ -1,64 +1,50 @@
-import { TLComponents, Tldraw, useEditor, useEditorComponents, useValue } from 'tldraw'
+import {
+	createShapeId,
+	ShapeIndicatorOverlayUtil,
+	TLShapeIndicatorOverlay,
+	Tldraw,
+	toRichText,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 
-const components: TLComponents = {
-	OnTheCanvas: () => {
-		const editor = useEditor()
+// There's a guide at the bottom of this file!
 
-		// [1]
-		const renderingShapes = useValue(
-			'rendering shapes',
-			() => editor.getRenderingShapes().filter((_info) => true),
-			[editor]
-		)
-
-		// [2]
-		const { ShapeIndicator } = useEditorComponents()
-		if (!ShapeIndicator) return null
-
-		return (
-			<div style={{ position: 'absolute', top: 0, left: 0, zIndex: 9999 }}>
-				{renderingShapes.map(({ id }) => (
-					<ShapeIndicator key={id + '_indicator'} shapeId={id} />
-				))}
-			</div>
-		)
-	},
-	// [3]
-	// ShapeIndicators: () => {
-	// 	return <DefaultShapeIndicators showAll />
-	// },
+// [1]
+class AllShapesIndicatorOverlayUtil extends ShapeIndicatorOverlayUtil {
+	override getOverlays(): TLShapeIndicatorOverlay[] {
+		const ids = this.editor.getRenderingShapes().map((s) => s.id)
+		if (ids.length === 0) return []
+		return [
+			{
+				id: 'shape_indicator',
+				type: 'shape_indicator',
+				props: { idsToDisplay: ids, hintingShapeIds: [] },
+			},
+		]
+	}
 }
+
+// [2]
+const overlayUtils = [AllShapesIndicatorOverlayUtil]
 
 export default function IndicatorsLogicExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				components={components}
+				overlayUtils={overlayUtils}
 				onMount={(editor) => {
 					if (editor.getCurrentPageShapeIds().size === 0) {
+						const bottomLeftA = createShapeId()
+						const bottomLeftB = createShapeId()
 						editor.createShapes([
-							{
-								type: 'geo',
-								x: 100,
-								y: 100,
-							},
-							{
-								type: 'geo',
-								x: 500,
-								y: 150,
-							},
-							{
-								type: 'geo',
-								x: 100,
-								y: 500,
-							},
-							{
-								type: 'geo',
-								x: 500,
-								y: 500,
-							},
+							{ type: 'geo', x: 100, y: 100 },
+							{ type: 'geo', x: 500, y: 150, props: { geo: 'ellipse' } },
+							{ id: bottomLeftA, type: 'geo', x: 100, y: 500 },
+							{ id: bottomLeftB, type: 'geo', x: 250, y: 400 },
+							{ type: 'text', x: 500, y: 500, props: { richText: toRichText('Hello, world!') } },
 						])
+						editor.groupShapes([bottomLeftA, bottomLeftB])
+						editor.setSelectedShapes([])
 					}
 				}}
 			/>
@@ -67,19 +53,18 @@ export default function IndicatorsLogicExample() {
 }
 
 /*
+Shape indicators are the outlines drawn around hovered and selected shapes. They're
+painted by `ShapeIndicatorOverlayUtil`, an overlay util, so changing when they appear
+means replacing that util.
+
 [1]
-Get which indicators to show (based on the shapes currently on screen).
-You could include logic here using the filter to narrow down which shapes
-you want to show the indicators for.
+Subclass `ShapeIndicatorOverlayUtil` and override `getOverlays()`. The default only lists
+selected, hovered, and hinted shapes; here we list every shape currently being rendered,
+so all of them get an outline all of the time. Filter the ids to indicate only some shapes.
+`render()` is inherited, so the outlines still look like the built-in ones.
 
 [2]
-You could override the default ShapeIndicator component in this
-same TLComponents object, but the default (DefaultIndicator.tsx)
-has a lot of logic for where and how to display the indicator.
-
-[3]
-If all you want to do is show or hide all the indicators, you could 
-create an override for the ShapeIndicators component that returns the
-DefaultShapeIndicators component with `hideAll` or `showAll` props 
-set to true.
+Pass the util via `overlayUtils`. It has the same `static type` (`'shape_indicator'`)
+as the built-in util, so it replaces it instead of running alongside it. Defining the
+array at module level keeps `<Tldraw>` from seeing a new array on every render.
 */

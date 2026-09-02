@@ -1,21 +1,25 @@
 import { atom, computed } from '@tldraw/state'
+import { createUserId, TLUserId } from '@tldraw/tlschema'
+import { TLCurrentUser } from '../../../config/createTLCurrentUser'
 import { TLUserPreferences, defaultUserPreferences } from '../../../config/TLUserPreferences'
-import { TLUser } from '../../../config/createTLUser'
+import { getGlobalWindow } from '../../../utils/dom'
 
 /** @public */
 export class UserPreferencesManager {
 	systemColorScheme = atom<'dark' | 'light'>('systemColorScheme', 'light')
+	private readonly systemPrefersReducedMotion = atom('systemPrefersReducedMotion', false)
 	disposables = new Set<() => void>()
 	dispose() {
 		this.disposables.forEach((d) => d())
+		this.disposables.clear()
 	}
 	constructor(
-		private readonly user: TLUser,
-		private readonly inferDarkMode: boolean
+		private readonly user: TLCurrentUser,
+		private readonly colorScheme: 'light' | 'dark' | 'system'
 	) {
-		if (typeof window === 'undefined' || !window.matchMedia) return
+		if (typeof window === 'undefined' || !getGlobalWindow().matchMedia) return
 
-		const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+		const darkModeMediaQuery = getGlobalWindow().matchMedia('(prefers-color-scheme: dark)')
 		if (darkModeMediaQuery?.matches) {
 			this.systemColorScheme.set('dark')
 		}
@@ -28,6 +32,16 @@ export class UserPreferencesManager {
 		}
 		darkModeMediaQuery?.addEventListener('change', handleChange)
 		this.disposables.add(() => darkModeMediaQuery?.removeEventListener('change', handleChange))
+
+		const reducedMotionMediaQuery = getGlobalWindow().matchMedia('(prefers-reduced-motion: reduce)')
+		this.systemPrefersReducedMotion.set(!!reducedMotionMediaQuery?.matches)
+		const handleReducedMotionChange = (e: MediaQueryListEvent) => {
+			this.systemPrefersReducedMotion.set(e.matches)
+		}
+		reducedMotionMediaQuery?.addEventListener('change', handleReducedMotionChange)
+		this.disposables.add(() =>
+			reducedMotionMediaQuery?.removeEventListener('change', handleReducedMotionChange)
+		)
 	}
 
 	updateUserPreferences(userPreferences: Partial<TLUserPreferences>) {
@@ -38,7 +52,7 @@ export class UserPreferencesManager {
 	}
 	@computed getUserPreferences() {
 		return {
-			id: this.getId(),
+			id: this.getExternalId(),
 			name: this.getName(),
 			locale: this.getLocale(),
 			color: this.getColor(),
@@ -56,7 +70,9 @@ export class UserPreferencesManager {
 	}
 
 	@computed getIsDarkMode() {
-		switch (this.user.userPreferences.get().colorScheme) {
+		const userColorScheme = this.user.userPreferences.get().colorScheme
+		const scheme = userColorScheme ?? this.colorScheme
+		switch (scheme) {
 			case 'dark':
 				return true
 			case 'light':
@@ -64,7 +80,7 @@ export class UserPreferencesManager {
 			case 'system':
 				return this.systemColorScheme.get() === 'dark'
 			default:
-				return this.inferDarkMode ? this.systemColorScheme.get() === 'dark' : false
+				return false
 		}
 	}
 
@@ -76,7 +92,12 @@ export class UserPreferencesManager {
 	}
 
 	@computed getAnimationSpeed() {
-		return this.user.userPreferences.get().animationSpeed ?? defaultUserPreferences.animationSpeed
+		// Until the user explicitly sets a speed, follow the OS reduce-motion setting live rather
+		// than the value `defaultUserPreferences` captured at module load.
+		return (
+			this.user.userPreferences.get().animationSpeed ??
+			(this.systemPrefersReducedMotion.get() ? 0 : 1)
+		)
 	}
 
 	@computed getAreKeyboardShortcutsEnabled() {
@@ -86,8 +107,32 @@ export class UserPreferencesManager {
 		)
 	}
 
-	@computed getId() {
+	/**
+	 * The current user's raw, app-provided id — the value set in the user's
+	 * {@link @tldraw/editor#TLUserPreferences}. Use this when you need the id your application
+	 * assigned to the user. To compare against or look up store records, use
+	 * {@link UserPreferencesManager.getRecordId} instead.
+	 */
+	@computed getExternalId(): string {
 		return this.user.userPreferences.get().id
+	}
+
+	/**
+	 * @deprecated Use {@link UserPreferencesManager.getExternalId} for the raw app-provided id, or
+	 * {@link UserPreferencesManager.getRecordId} for the prefixed `TLUserId` record id.
+	 */
+	@computed getId() {
+		return this.getExternalId()
+	}
+
+	/**
+	 * The current user's id as a tldraw {@link @tldraw/tlschema#TLUserId} record id (prefixed
+	 * with `user:`). Use this when comparing against or looking up store records, such as a
+	 * presence record's `userId` or `followingUserId`. For the raw, app-provided id, use
+	 * {@link UserPreferencesManager.getExternalId}.
+	 */
+	@computed getRecordId(): TLUserId {
+		return createUserId(this.getExternalId())
 	}
 
 	@computed getName() {

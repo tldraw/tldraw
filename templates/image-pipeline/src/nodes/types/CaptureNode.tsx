@@ -30,7 +30,7 @@ export class CaptureNodeDefinition extends NodeDefinition<CaptureNode> {
 	static validator = CaptureNode
 	title = 'Capture'
 	heading = 'Capture'
-	icon = (<CaptureIcon />)
+	icon = <CaptureIcon />
 	category = 'input'
 	resultKeys = ['lastCaptureUrl'] as const
 	override canResizeNode = true

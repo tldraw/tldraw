@@ -4,8 +4,8 @@ import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { useMsg } from '../../../utils/i18n'
 import { getLocalSessionState, updateLocalSessionState } from '../../../utils/local-session-state'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
-import styles from '../sidebar.module.css'
 import { messages } from './sidebar-shared'
+import styles from '../sidebar.module.css'
 
 export function TlaSidebarToggleMobile() {
 	const trackEvent = useTldrawAppUiEvents()

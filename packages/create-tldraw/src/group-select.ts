@@ -5,6 +5,8 @@
  * https://github.com/bombshell-dev/clack/blob/1adb270af5509ead3d22c4fa602b465f39c7a8c2/packages/prompts/src/select.ts
  */
 
+import process from 'node:process'
+import { WriteStream } from 'node:tty'
 import { SelectPrompt } from '@clack/core'
 import {
 	Option,
@@ -14,8 +16,6 @@ import {
 	SelectOptions,
 	symbol,
 } from '@clack/prompts'
-import process from 'node:process'
-import { WriteStream } from 'node:tty'
 import picocolors from 'picocolors'
 import { wrapAnsi } from './wrap-ansi'
 

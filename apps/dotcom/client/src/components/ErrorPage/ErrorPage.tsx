@@ -40,19 +40,16 @@ export const sadFaceIcon = (
 
 export function ErrorPage({
 	messages,
-	icon = sadFaceIcon,
 	cta = <GoBackLink />,
 }: {
-	icon?: ReactNode
 	messages: { header: string; para1: string; para2?: string; cta?: string }
 	cta?: ReactNode
 }) {
 	return (
 		// This sits outside the regular providers, it needs to be able to have the intl object in the app context.
 		<IntlProvider defaultLocale="en" locale="en" messages={translationsEnJson}>
-			<div className="error-page">
+			<div className="error-page" data-testid="tla-error">
 				<div className="error-page__container">
-					{icon}
 					<div className="error-page__content">
 						<h1>{messages.header}</h1>
 						<p>{messages.para1}</p>
@@ -81,7 +78,11 @@ export class RefreshErrorBoundary extends Component<
 			return (
 				<ErrorPage
 					messages={this.props.messages}
-					cta={<button onClick={() => window.location.reload()}>{this.props.messages.cta}</button>}
+					cta={
+						<button type="button" onClick={() => window.location.reload()}>
+							{this.props.messages.cta}
+						</button>
+					}
 				/>
 			)
 		}

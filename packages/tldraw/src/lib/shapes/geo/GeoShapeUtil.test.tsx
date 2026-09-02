@@ -1,5 +1,16 @@
-import { Group2d, IndexKey, TLGeoShape, TLShapeId, createShapeId, toRichText } from '@tldraw/editor'
+import {
+	GeoShapeGeoStyle,
+	Group2d,
+	IndexKey,
+	TLGeoShape,
+	TLShapeId,
+	createShapeId,
+	toRichText,
+} from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from '../../../test/TestEditor'
+import { PathBuilder } from '../shared/PathBuilder'
+import { GeoShapeUtil } from './GeoShapeUtil'
 
 let editor: TestEditor
 let ids: Record<string, TLShapeId>
@@ -168,5 +179,189 @@ describe('Resizing geo shapes with labels', () => {
 		const geo = getGeo()
 		expect(geo.props.w).toBeLessThan(50)
 		expect(geo.props.h).toBeLessThan(50)
+	})
+})
+
+describe('Geo shapes with programmatically-authored empty rich text', () => {
+	const geoId = createShapeId('geo')
+
+	function getGeo() {
+		return editor.getShape<TLGeoShape>(geoId)!
+	}
+
+	// An empty paragraph can be encoded two equally-valid ways. The interactive
+	// editor emits the first (no `content` key); programmatic authoring (snapshot
+	// load, agents emitting tldraw JSON) commonly emits the second (`content: []`).
+	// Both mean "no label", so neither should grow the shape to fit a phantom line.
+	const emptyForms = [
+		{
+			label: 'paragraph with no content key (toRichText output)',
+			richText: toRichText(''),
+		},
+		{
+			label: 'paragraph with empty content array',
+			richText: {
+				type: 'doc',
+				content: [{ type: 'paragraph', attrs: { dir: 'auto' }, content: [] }],
+			} as TLGeoShape['props']['richText'],
+		},
+		{
+			label: 'doc with empty content array',
+			richText: { type: 'doc', content: [] } as TLGeoShape['props']['richText'],
+		},
+	]
+
+	for (const { label, richText } of emptyForms) {
+		test(`does not grow height for an empty label: ${label}`, () => {
+			editor.createShapes([
+				{
+					id: geoId,
+					type: 'geo',
+					props: { w: 110, h: 24, geo: 'rectangle', size: 's', richText },
+				},
+			])
+
+			const geo = getGeo()
+			expect(geo.props.h).toBe(24)
+			expect(geo.props.growY).toBe(0)
+		})
+	}
+})
+
+describe('Flipping geo shapes', () => {
+	const geoId = createShapeId('geo')
+
+	function getGeo() {
+		return editor.getShape<TLGeoShape>(geoId)!
+	}
+
+	beforeEach(() => {
+		editor.createShapes([
+			{ id: geoId, type: 'geo', x: 0, y: 0, props: { geo: 'arrow-left', w: 100, h: 80 } },
+		])
+	})
+
+	test('flip command toggles flipX / flipY like the image shape', () => {
+		expect(getGeo().props.flipX).toBe(false)
+
+		editor.flipShapes([geoId], 'horizontal')
+		expect(getGeo().props).toMatchObject({ flipX: true, flipY: false })
+
+		editor.flipShapes([geoId], 'vertical')
+		expect(getGeo().props).toMatchObject({ flipX: true, flipY: true })
+
+		// flipping again on the same axis restores the original state
+		editor.flipShapes([geoId], 'horizontal')
+		expect(getGeo().props).toMatchObject({ flipX: false, flipY: true })
+	})
+
+	test('flipping a lone geo shape keeps its position and size', () => {
+		const before = getGeo()
+		editor.flipShapes([geoId], 'horizontal')
+		const after = getGeo()
+		expect(after).toMatchObject({
+			x: before.x,
+			y: before.y,
+			props: { w: before.props.w, h: before.props.h, flipX: true },
+		})
+	})
+
+	test('mirrors the geometry when flipped, keeping the bounds unchanged', () => {
+		const util = editor.getShapeUtil('geo')
+		const outlineBefore = (util.getGeometry(getGeo()) as Group2d).children[0]
+		const vertsBefore = outlineBefore.vertices.map((v) => ({ x: v.x, y: v.y }))
+
+		editor.updateShape({ id: geoId, type: 'geo', props: { flipX: true } })
+
+		const outlineAfter = (util.getGeometry(getGeo()) as Group2d).children[0]
+
+		// bounds are unchanged: we mirror geometry within the shape's box, not its w/h
+		expect(outlineAfter.bounds.width).toBeCloseTo(outlineBefore.bounds.width)
+		expect(outlineAfter.bounds.height).toBeCloseTo(outlineBefore.bounds.height)
+
+		// every vertex is mirrored around the horizontal center (w = 100)
+		const vertsAfter = outlineAfter.vertices
+		expect(vertsAfter).toHaveLength(vertsBefore.length)
+		for (const v of vertsBefore) {
+			const mirrored = { x: 100 - v.x, y: v.y }
+			expect(
+				vertsAfter.some(
+					(a) => Math.abs(a.x - mirrored.x) < 0.01 && Math.abs(a.y - mirrored.y) < 0.01
+				)
+			).toBe(true)
+		}
+	})
+})
+
+describe('GeoShapeUtil.configure with customGeoTypes', () => {
+	// Snapshot the built-in geo values so we can clean up any custom keys added
+	// during these tests. `GeoShapeUtil.configure({ customGeoTypes })` mutates
+	// `GeoShapeGeoStyle.values` globally via `addValues`, so without cleanup the
+	// state would leak between tests in this describe block.
+	const builtinGeoValues = [...GeoShapeGeoStyle.values]
+	afterEach(() => {
+		const toRemove = GeoShapeGeoStyle.values.filter((v) => !builtinGeoValues.includes(v))
+		if (toRemove.length > 0) {
+			GeoShapeGeoStyle.removeValues(...toRemove)
+		}
+	})
+
+	const validDef = {
+		getPath: (w: number, h: number) =>
+			new PathBuilder()
+				.moveTo(0, 0, { geometry: { isFilled: true } })
+				.lineTo(w, 0)
+				.lineTo(w, h)
+				.lineTo(0, h)
+				.close(),
+		snapType: 'polygon' as const,
+		icon: 'geo-rectangle',
+		defaultSize: { w: 999, h: 999 },
+	}
+
+	function getConfiguredOptions(customGeoTypes: Record<string, typeof validDef>) {
+		const Configured = GeoShapeUtil.configure({ customGeoTypes })
+		const localEditor = new TestEditor({ shapeUtils: [Configured] })
+		try {
+			const util = localEditor.getShapeUtil('geo') as GeoShapeUtil
+			return util.options.customGeoTypes
+		} finally {
+			localEditor.dispose()
+		}
+	}
+
+	test('keeps non-colliding entries in options.customGeoTypes', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+		try {
+			expect(getConfiguredOptions({ 'my-shape': validDef })).toEqual({ 'my-shape': validDef })
+			expect(warn).not.toHaveBeenCalled()
+		} finally {
+			warn.mockRestore()
+		}
+	})
+
+	test('strips colliding keys from options so runtime lookups do not see them', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+		try {
+			expect(getConfiguredOptions({ rectangle: validDef, 'my-shape': validDef })).toEqual({
+				'my-shape': validDef,
+			})
+			expect(warn).toHaveBeenCalledWith(expect.stringMatching(/customGeoTypes key "rectangle"/))
+		} finally {
+			warn.mockRestore()
+		}
+	})
+
+	test('reusing the same custom key across configure() calls still keeps the entry', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+		try {
+			expect(getConfiguredOptions({ 'my-shape': validDef })).toEqual({ 'my-shape': validDef })
+			// A second configure() call with the same key should not treat it as a
+			// collision with built-ins, so the entry is preserved.
+			expect(getConfiguredOptions({ 'my-shape': validDef })).toEqual({ 'my-shape': validDef })
+			expect(warn).not.toHaveBeenCalled()
+		} finally {
+			warn.mockRestore()
+		}
 	})
 })

@@ -1,5 +1,5 @@
-import { GeneratedContent, InputSection } from '@/types/content-types'
 import path from 'path'
+import { GeneratedContent, InputSection } from '@/types/content-types'
 import { generateSection } from './generateSection'
 
 export async function generateContent() {

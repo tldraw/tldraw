@@ -13,15 +13,9 @@ keywords:
   - generative
 ---
 
-The tldraw SDK provides a foundation for AI-powered canvas applications. You can use language models to read, interpret, and generate content on the canvas—either by driving the editor APIs directly, or by building reactive systems where AI participates in visual workflows.
+You can use language models to read the tldraw canvas and to create shapes on it. This page covers three patterns for doing that: using the canvas as an output surface for generated content, building visual workflows where AI models are nodes in a graph, and giving an agent direct control of the editor. It also covers exporting canvas content so a model can read it.
 
-## Approaches
-
-There are three main patterns for integrating AI with tldraw:
-
-1. **Canvas as output** — Use the canvas to display AI-generated content like images, diagrams, or interactive websites
-2. **Visual workflows** — Use shapes and bindings to create node-based systems where AI models participate in data flows
-3. **AI agents** — Give language models direct access to read and manipulate the canvas through the editor APIs
+If you're feeding the docs themselves to a model, see [LLM documentation](/docs/llm-docs). To turn model-generated diagram text into shapes, see [Mermaid diagrams](/docs/mermaid). To let an agent simulate user input instead of calling editor methods, see [Driving the editor](/docs/driver).
 
 ## Canvas as output
 
@@ -32,7 +26,6 @@ The simplest AI integration uses the canvas as a surface for displaying generate
 Use the [EmbedShapeUtil](?) to display websites, or create custom shapes to render generated images and HTML content:
 
 ```tsx
-// Create a shape to display AI-generated content
 editor.createShape({
 	type: 'embed',
 	x: 100,
@@ -44,6 +37,8 @@ editor.createShape({
 	},
 })
 ```
+
+Embeds from hosts that aren't in the util's embed definitions render in a restricted sandbox. To allow a host of your own, use `EmbedShapeUtil.configure({ embedDefinitions })`. For content you generate yourself, a custom shape (below) is usually the better fit.
 
 For generated images, use the [AssetRecordType](?) to create an asset from a blob or URL, then create an image shape:
 
@@ -79,7 +74,10 @@ editor.createShape({
 For richer AI output, create a custom shape that renders generated content. This approach works well for live HTML previews, interactive prototypes, or any content that needs special rendering:
 
 ```tsx
-// Abbreviated example—a full ShapeUtil also requires getDefaultProps, getGeometry, and indicator
+import { HTMLContainer, ShapeUtil } from 'tldraw'
+
+// Abbreviated: a full ShapeUtil also needs getDefaultProps, getGeometry, and
+// getIndicatorPath. See the Shapes docs for a complete custom shape.
 class PreviewShapeUtil extends ShapeUtil<PreviewShape> {
 	static override type = 'preview' as const
 
@@ -97,7 +95,7 @@ class PreviewShapeUtil extends ShapeUtil<PreviewShape> {
 }
 ```
 
-This pattern is useful for "make real" style applications where users sketch a UI and an AI model generates working code to preview alongside the original drawing.
+This pattern is useful for "make real" style applications where users sketch a UI and an AI model generates working code to preview alongside the original drawing. See [Shapes](/docs/shapes) for how to write the rest of the util.
 
 ## Visual workflows
 
@@ -119,7 +117,8 @@ See the [Workflow starter kit](/starter-kits/workflow) for a complete implementa
 To add AI capabilities to a workflow, create node types that call AI models:
 
 ```tsx
-// Illustrative pseudocode—see the workflow starter kit for the full NodeDefinition interface
+// Abbreviated: a real NodeDefinition also declares a validator, ports, a default
+// value, and a body height. See the workflow starter kit for the full interface.
 class LLMNode extends NodeDefinition<LLMNodeData> {
 	static type = 'llm'
 
@@ -134,7 +133,7 @@ class LLMNode extends NodeDefinition<LLMNodeData> {
 }
 ```
 
-Workflow systems let users compose AI operations visually. They connect prompt sources to models, route outputs to other processing steps, and build complex pipelines without writing code. This is similar to tools like ComfyUI for image generation workflows but uses the tldraw canvas as a foundation.
+Workflow systems let users compose AI operations visually: connect a prompt source to a model, route its output to other steps, and build a pipeline without writing code.
 
 ## AI agents
 
@@ -142,14 +141,15 @@ For full canvas control, you can give AI models direct access to read and manipu
 
 ### Agent architecture
 
-The [Agent starter kit](/starter-kits/agent) provides a complete implementation. The agent gathers visual context through screenshots and structured shape data. This gives the model an understanding of the current canvas state. The agent operates through a modular action system with utilities for creating shapes, drawing, and arranging elements. Responses stream in real-time so users see the agent's work as it happens. A memory system maintains conversation history and context across interactions.
+The [Agent starter kit](/starter-kits/agent) is a complete implementation. The agent gathers context from screenshots and structured shape data, applies the model's responses through a set of typed actions, and streams results onto the canvas as they arrive. Chat history carries across prompts.
 
 ### Using the agent programmatically
 
 The agent exposes a simple API for triggering canvas operations:
 
 ```tsx
-const agent = useTldrawAgent(editor)
+// Inside a component wrapped by the starter kit's TldrawAgentAppProvider
+const agent = useAgent()
 
 // Simple prompt
 agent.prompt('Draw a flowchart showing user authentication')
@@ -171,27 +171,27 @@ The agent builds context from multiple sources:
 - The user's current selection and recent actions
 - Conversation history from the session
 
-This dual approach—visual screenshots plus structured data—gives the model both spatial understanding and precise information about shape properties.
-
 ### How agents manipulate the canvas
 
 Agents perform operations through typed action schemas. Each action has a defined structure, and the agent system validates, sanitizes, and applies actions to the editor:
 
 ```tsx
-// Simplified illustration—the actual implementation converts through a SimpleShape
-// intermediate format. See CreateActionUtil in the agent starter kit for the full code.
+// Abbreviated from CreateActionUtil in the agent starter kit. The model describes
+// shapes in a simplified format that the util converts to a real shape record.
 class CreateActionUtil extends AgentActionUtil<CreateAction> {
 	override applyAction(action: Streaming<CreateAction>, helpers: AgentHelpers) {
-		if (!action.complete) return
+		const { shape } = action
+		if (!shape || !shape._type) return
 
-		const position = helpers.removeOffsetFromVec({ x: action.x, y: action.y })
-
-		this.editor.createShape({
-			type: action.shapeType,
-			x: position.x,
-			y: position.y,
-			props: action.props,
+		// Translate from the model's coordinate space back to the page
+		const shapePartial = helpers.removeOffsetFromShapePartial(shape)
+		const result = convertPartialFocusedShapeToTldrawShape(this.editor, shapePartial, {
+			defaultShape: getDefaultShape(shape._type, action.complete),
+			complete: action.complete,
 		})
+		if (!result.shape) return
+
+		this.editor.createShape(result.shape)
 	}
 }
 ```
@@ -213,24 +213,20 @@ const { blob } = await editor.toImage(editor.getCurrentPageShapes(), { format: '
 
 ### Structured data
 
-Access shape data directly from the store for text extraction or structured analysis:
+Access shape data directly from the store for text extraction or structured analysis. Use [ShapeUtil#getText](?) to extract a shape's text content as a plain string. It returns `undefined` for shapes with no text:
 
 ```tsx
 const shapes = editor.getCurrentPageShapes()
 
-const textContent = shapes
-	.filter((s) => s.type === 'text' || s.type === 'note' || s.type === 'geo')
-	.map((s) => ({
-		id: s.id,
-		type: s.type,
-		text: s.props.text,
-		bounds: editor.getShapePageBounds(s),
-	}))
+const textContent = shapes.map((shape) => ({
+	id: shape.id,
+	type: shape.type,
+	text: editor.getShapeUtil(shape).getText(shape),
+	bounds: editor.getShapePageBounds(shape),
+}))
 ```
 
-### Combining approaches
-
-For best results, send both visual and structured data to the model. The visual representation shows spatial relationships and styling, while the structured data provides exact values for text and positions.
+Sending both to the model works best: the image shows spatial relationships and styling, and the structured data gives exact text and positions.
 
 ## Starter kits
 
@@ -245,8 +241,9 @@ We provide several starter kits for AI integrations:
 
 ## Related
 
-- [Agent starter kit](/starter-kits/agent) — Complete AI agent implementation
-- [Workflow starter kit](/starter-kits/workflow) — Visual programming with node graphs
+- [LLM documentation](/docs/llm-docs) — Feeding the tldraw docs to a model
+- [Mermaid diagrams](/docs/mermaid) — Turning diagram text into shapes
+- [Driving the editor](/docs/driver) — Simulating user input programmatically
 - [Shapes](/docs/shapes) — Creating custom shapes for AI-generated content
 - [Bindings](/sdk-features/bindings) — Connecting shapes for workflow systems
 - [Image export](/sdk-features/image-export) — Exporting canvas content for AI analysis

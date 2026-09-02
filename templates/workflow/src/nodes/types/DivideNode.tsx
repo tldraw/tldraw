@@ -36,7 +36,7 @@ export class DivideNodeDefinition extends NodeDefinition<DivideNode> {
 	static validator = DivideNode
 	title = 'Divide'
 	heading = 'Divide'
-	icon = (<DivideIcon />)
+	icon = <DivideIcon />
 	getDefault(): DivideNode {
 		return {
 			type: 'divide',

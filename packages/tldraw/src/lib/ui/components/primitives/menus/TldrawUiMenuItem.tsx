@@ -149,6 +149,15 @@ export function TldrawUiMenuItem<
 					draggable={false}
 					className="tlui-button tlui-button__menu"
 					data-testid={`${sourceId}.${id}`}
+					onPointerUp={(e) => {
+						// Prevent right-click pointerup from triggering item selection.
+						// Radix calls click() on pointerup when the pointer wasn't pressed
+						// on the item, but doesn't check the button — so a right-click
+						// release while moving across the menu selects the item under the cursor.
+						if (e.button !== 0) {
+							preventDefault(e)
+						}
+					}}
 					onSelect={(e) => {
 						if (noClose) preventDefault(e)
 						if (disableClicks) {
@@ -171,7 +180,9 @@ export function TldrawUiMenuItem<
 		case 'icons': {
 			return (
 				<TldrawUiToolbarButton
+					aria-pressed={isSelected === undefined ? undefined : isSelected ? 'true' : 'false'}
 					data-testid={`${sourceId}.${id}`}
+					isActive={isSelected}
 					type="icon"
 					title={titleStr}
 					disabled={disabled}

@@ -5,6 +5,38 @@
       "value": "Vývozní"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Přijmout pozvání"
+    }
+  ],
+  "029f235f01": [
+    {
+      "type": 0,
+      "value": "Pracujeme na podpoře souborů z aplikace "
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": 1,
+              "value": "appName"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -19,6 +51,34 @@
     {
       "type": 1,
       "value": "GetHelpLink"
+    }
+  ],
+  "04a2dd56d6": [
+    {
+      "type": 0,
+      "value": "Pozvěte spoluhráče"
+    }
+  ],
+  "05b2656486": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " se o vás zmínil"
+    }
+  ],
+  "05f43078e9": [
+    {
+      "type": 0,
+      "value": "Dosáhli jste maximálního počtu pracovních prostorů. Před vytvořením nových pracovních prostorů je třeba smazat staré."
     }
   ],
   "06b9281e39": [
@@ -45,6 +105,20 @@
       "value": "Účet"
     }
   ],
+  "093ac7483a": [
+    {
+      "type": 0,
+      "value": "Soubory "
+    },
+    {
+      "type": 1,
+      "value": "extension"
+    },
+    {
+      "type": 0,
+      "value": " zatím nelze otevřít"
+    }
+  ],
   "0a91f7fa87": [
     {
       "type": 0,
@@ -63,10 +137,28 @@
       "value": "Nabídka Soubor"
     }
   ],
+  "0c4383617a": [
+    {
+      "type": 0,
+      "value": "Při načítání této pozvánky se něco pokazilo. Zkuste to prosím znovu."
+    }
+  ],
   "0d1f2bb523": [
     {
       "type": 0,
       "value": "Odeslat zpětnou vazbu"
+    }
+  ],
+  "1063e38cb5": [
+    {
+      "type": 0,
+      "value": "Odstranit"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Kopírovat do osobního pracovního prostoru"
     }
   ],
   "110a4b01be": [
@@ -75,22 +167,10 @@
       "value": "Publikovat"
     }
   ],
-  "129b9e34ea": [
-    {
-      "type": 0,
-      "value": "Opustit skupinu"
-    }
-  ],
   "12a6766ba1": [
     {
       "type": 0,
       "value": "Odepnout soubor"
-    }
-  ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Vyzkoušejte sadu SDK tldraw"
     }
   ],
   "13ddd375ad": [
@@ -99,16 +179,10 @@
       "value": "Exportovat jako"
     }
   ],
-  "146ffe2fd9": [
+  "14b03eeeb5": [
     {
       "type": 0,
-      "value": "Zobrazit více"
-    }
-  ],
-  "14d65465b7": [
-    {
-      "type": 0,
-      "value": "Smazat skupinu"
+      "value": "Možnosti oznámení"
     }
   ],
   "181b90f889": [
@@ -129,10 +203,36 @@
       "value": "Dnes"
     }
   ],
-  "2445e5e347": [
+  "1ffd709937": [
     {
       "type": 0,
-      "value": "Vytvořit skupinu"
+      "value": "Pracovní prostor musí mít alespoň jednoho vlastníka. Nejprve nastavte vlastníkem někoho jiného."
+    }
+  ],
+  "21f66c9c00": [
+    {
+      "type": 0,
+      "value": "Název pracovního prostoru"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Byli jste pozváni k připojení k "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Pro pokračování si vytvořte bezplatný účet."
     }
   ],
   "250ddea65c": [
@@ -141,16 +241,56 @@
       "value": "O tldraw"
     }
   ],
+  "2755e3ab39": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " okomentoval(a) vaši nástěnku"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
       "value": "Nahrání se nezdařilo"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Moje soubory"
+      "value": "Vítejte ve vašem pracovním prostoru"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Vyhledávání..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Regenerováním se aktuální odkaz s pozvánkou nahradí novým. Každý, kdo používá starý odkaz, bude k připojení potřebovat nový."
+    }
+  ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Přidat odkaz na aktuální soubor"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Znovu vygenerovat odkaz na pozvánku"
     }
   ],
   "31246941ad": [
@@ -163,12 +303,6 @@
     {
       "type": 0,
       "value": "i18n: Zvýraznění chybí"
-    }
-  ],
-  "32210b37e4": [
-    {
-      "type": 0,
-      "value": "Přidat odkaz"
     }
   ],
   "324a0f3182": [
@@ -187,6 +321,18 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Spravovat"
+    }
+  ],
+  "375396d6e5": [
+    {
+      "type": 0,
+      "value": "Odebrat člena"
     }
   ],
   "3bc7d6ea2f": [
@@ -213,6 +359,18 @@
       "value": "Přijmout vše"
     }
   ],
+  "3e2ae04ff0": [
+    {
+      "type": 0,
+      "value": "Nepodporovaný diagram Mermaid"
+    }
+  ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Barevný motiv"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -225,10 +383,36 @@
       "value": "Získejte pomoc na Discordu"
     }
   ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Opravdu chcete smazat soubor "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Děkujeme, že nám pomáháte zlepšovat tldraw!"
+    }
+  ],
+  "46de2de6bb": [
+    {
+      "type": 0,
+      "value": "Přijmout podmínky použití"
     }
   ],
   "477df802ca": [
@@ -249,18 +433,6 @@
       "value": "Připnout soubor"
     }
   ],
-  "49049467ff": [
-    {
-      "type": 0,
-      "value": "Vložit URL soubor tldraw..."
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Opravdu chcete tento soubor zapomenout?"
-    }
-  ],
   "49ee308734": [
     {
       "type": 0,
@@ -279,16 +451,10 @@
       "value": "Znovu načíst"
     }
   ],
-  "4da5988a2e": [
+  "5097d89907": [
     {
       "type": 0,
-      "value": "Smazat skupinu…"
-    }
-  ],
-  "4e6fbf032b": [
-    {
-      "type": 0,
-      "value": "Jste si jisti, že chcete tuto skupinu smazat? Tuto akci nelze vrátit zpět."
+      "value": "Nepodporovaný diagram, místo toho se vygeneruje SVG."
     }
   ],
   "50db1b7e1e": [
@@ -297,10 +463,22 @@
       "value": "Publikování souboru nelze zrušit."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Toto je váš soukromý pracovní prostor. Vytvořte nový pracovní prostor pro pozvání spoluhráčů."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
       "value": "Nabídka stránek"
+    }
+  ],
+  "53770fd374": [
+    {
+      "type": 0,
+      "value": "Nepřečtené"
     }
   ],
   "542248f0ba": [
@@ -313,6 +491,16 @@
     {
       "type": 0,
       "value": "Bylo dosaženo limitu spolupracovníků"
+    }
+  ],
+  "545241e7dd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " nepřečtených"
     }
   ],
   "554a05155c": [
@@ -337,6 +525,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Vytvořte pracovní prostor"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -347,40 +541,6 @@
     {
       "type": 0,
       "value": "Zásady ochrany osobních údajů"
-    }
-  ],
-  "5a86b22fa0": [
-    {
-      "type": 0,
-      "value": "Přetáhněte soubory sem, "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "vytvořte soubor"
-        }
-      ],
-      "type": 8,
-      "value": "create"
-    },
-    {
-      "type": 0,
-      "value": " nebo "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "zkopírujte odkaz na pozvánku"
-        }
-      ],
-      "type": 8,
-      "value": "invite"
-    },
-    {
-      "type": 0,
-      "value": " a začněte."
     }
   ],
   "5a95a425f7": [
@@ -395,22 +555,38 @@
       "value": "Byl detekován starý prohlížeč. Pro použití této aplikace prosím aktualizujte prohlížeč."
     }
   ],
-  "5c6fe42bc2": [
+  "5bff3c9c88": [
     {
       "type": 0,
-      "value": "Zrušte toto propojení a vytvořte nové."
+      "value": "Můj pracovní prostor"
+    }
+  ],
+  "5bffeebf03": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " reagoval na váš komentář"
+    }
+  ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Nelze se připojit"
     }
   ],
   "5d26ae7550": [
     {
       "type": 0,
       "value": "Nepodařilo se nám nahrát část obsahu, který jste vytvořili, než jste se přihlásili."
-    }
-  ],
-  "5ea8bb44be": [
-    {
-      "type": 0,
-      "value": "Byli jste pozváni do skupiny:"
     }
   ],
   "5f3c333678": [
@@ -425,10 +601,73 @@
       "value": "Kopie"
     }
   ],
+  "608e9d366e": [
+    {
+      "type": 0,
+      "value": "Máte přečteno vše."
+    }
+  ],
+  "60a68c29d6": [
+    {
+      "type": 0,
+      "value": "Přihlaste se pro komentování"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
       "value": "Později"
+    }
+  ],
+  "61fb03fd7b": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " lidé reagovali na váš komentář"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " lidí reagovalo na váš komentář"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Někdo reagoval na váš komentář"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " lidí reagovalo na váš komentář"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "625fd29749": [
@@ -443,6 +682,12 @@
       "value": "Vy"
     }
   ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Obnovit"
+    }
+  ],
   "6609dd239e": [
     {
       "type": 0,
@@ -455,10 +700,22 @@
       "value": "K dispozici je nová verze tldraw. Chcete-li pokračovat, znovu načtěte stránku."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Nový soubor"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
       "value": "Zadejte svou e-mailovou adresu"
+    }
+  ],
+  "694f82ed9d": [
+    {
+      "type": 0,
+      "value": "Smazat pracovní prostor"
     }
   ],
   "6a26f54883": [
@@ -477,12 +734,6 @@
     {
       "type": 0,
       "value": "Chcete-li obsah importovat ručně, postupujte takto:"
-    }
-  ],
-  "70222abcfc": [
-    {
-      "type": 0,
-      "value": "Nastavení skupiny"
     }
   ],
   "70a6facb9d": [
@@ -509,10 +760,22 @@
       "value": "Načtěte stránku znovu"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Nenalezeny žádné soubory"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
       "value": "Dosáhli jste maximálního počtu souborů. Před vytvořením nových je třeba odstranit staré soubory."
+    }
+  ],
+  "7542d62aac": [
+    {
+      "type": 0,
+      "value": "Označit vše jako přečtené"
     }
   ],
   "7573b8110a": [
@@ -539,12 +802,6 @@
       "value": "Načtěte znovu"
     }
   ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw je bezplatná online bílá tabule. Vytvořte si účet pro ukládání souborů a spolupráci s přáteli."
-    }
-  ],
   "777f9e90cf": [
     {
       "type": 0,
@@ -567,6 +824,12 @@
     {
       "type": 0,
       "value": "Odešlete problém na GitHub"
+    }
+  ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Výchozí"
     }
   ],
   "7b1329f5ca": [
@@ -593,12 +856,6 @@
       "value": "Zapomenout"
     }
   ],
-  "7cfe6c43dc": [
-    {
-      "type": 0,
-      "value": "Opustit skupinu…"
-    }
-  ],
   "7daeced9ff": [
     {
       "type": 0,
@@ -615,6 +872,12 @@
     {
       "type": 0,
       "value": "Stáhnout"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Nový pracovní prostor"
     }
   ],
   "815e116a2e": [
@@ -651,6 +914,38 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Opravdu chcete zapomenout soubor "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
+  "8413c683b4": [
+    {
+      "type": 0,
+      "value": "Komentáře"
+    }
+  ],
+  "858ba4765e": [
+    {
+      "type": 0,
+      "value": "Člen"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -677,10 +972,16 @@
       "value": "Přejmenovat soubor"
     }
   ],
-  "8ad4303b83": [
+  "87fdb09de6": [
     {
       "type": 0,
-      "value": "Ne, děkuji."
+      "value": "Již jste členem tohoto pracovního prostoru."
+    }
+  ],
+  "88bf6ab42c": [
+    {
+      "type": 0,
+      "value": "Platnost tohoto odkazu na pozvánku vypršela."
     }
   ],
   "8c2d3d730c": [
@@ -713,22 +1014,24 @@
       "value": "Přejmenovat"
     }
   ],
-  "91e49bb0eb": [
+  "90646db02d": [
     {
       "type": 0,
-      "value": "Kopírovat do mých souborů"
-    }
-  ],
-  "930390d222": [
+      "value": "Opravdu chcete smazat "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
     {
       "type": 0,
-      "value": "Zkopírován odkaz na pozvánku"
-    }
-  ],
-  "9489b2f82a": [
-    {
-      "type": 0,
-      "value": "Již jste členem této skupiny"
+      "value": "? Tuto akci nelze vrátit zpět."
     }
   ],
   "95aacd4d4a": [
@@ -755,16 +1058,16 @@
       "value": "Podmínky použití"
     }
   ],
-  "98c997a27e": [
-    {
-      "type": 0,
-      "value": "Přidat odkaz na soubor"
-    }
-  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Světlo"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Vymazat vyhledávání"
     }
   ],
   "9b33f5c63c": [
@@ -793,6 +1096,12 @@
       "value": "Smazat soubor"
     }
   ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Máme potíže s připojením k naší ověřovací službě. Toto je obvykle dočasné. Zkuste prosím obnovit stránku."
+    }
+  ],
   "9ceb927baa": [
     {
       "type": 0,
@@ -809,6 +1118,26 @@
     {
       "type": 0,
       "value": "Odhlásit se"
+    }
+  ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Byli jste pozváni k připojení k "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "a0da245992": [
@@ -841,6 +1170,12 @@
       "value": "Export obrázku"
     }
   ],
+  "a274f4d467": [
+    {
+      "type": 0,
+      "value": "Oznámení"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -851,6 +1186,12 @@
     {
       "type": 0,
       "value": "Předložit"
+    }
+  ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Opustit"
     }
   ],
   "a6cc403d56": [
@@ -877,6 +1218,18 @@
       "value": "Pozadí"
     }
   ],
+  "aac449eef6": [
+    {
+      "type": 0,
+      "value": "Vytvořit pracovní prostor"
+    }
+  ],
+  "aaec8f7cde": [
+    {
+      "type": 0,
+      "value": "Někdo"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -901,6 +1254,34 @@
       "value": "Hostující uživatel"
     }
   ],
+  "b03400e2db": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " odpověděl"
+    }
+  ],
+  "b1c94ca2fb": [
+    {
+      "type": 0,
+      "value": "Vše"
+    }
+  ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Znovu vygenerovat"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -913,10 +1294,10 @@
       "value": "E-mailová adresa"
     }
   ],
-  "b3d2db69fe": [
+  "b48becc771": [
     {
       "type": 0,
-      "value": "URL souboru"
+      "value": "Povolit pozvánky"
     }
   ],
   "b6d4223e60": [
@@ -943,10 +1324,10 @@
       "value": "Přihlaste se pro sdílení"
     }
   ],
-  "bb93a7590f": [
+  "bbaaf8b6bf": [
     {
       "type": 0,
-      "value": "Přijmout a připojit se ke skupině"
+      "value": "Pozvánky jsou zakázány"
     }
   ],
   "bbbcefd7ce": [
@@ -1009,30 +1390,16 @@
       "value": "ownerName"
     }
   ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Správa pracovního prostoru"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Další informace o sdílení."
-    }
-  ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Povolte "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": ", které nám pomohou vylepšit tldraw."
     }
   ],
   "c303bd1095": [
@@ -1047,12 +1414,6 @@
       "value": "Základní soubory cookie"
     }
   ],
-  "c6155aaecc": [
-    {
-      "type": 0,
-      "value": "Název skupiny"
-    }
-  ],
   "c655b27b1e": [
     {
       "type": 0,
@@ -1065,10 +1426,10 @@
       "value": "Pozvat"
     }
   ],
-  "c74ea6dbff": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Zobrazit méně"
+      "value": "Kopírovat do mého pracovního prostoru"
     }
   ],
   "c87aacf567": [
@@ -1077,10 +1438,10 @@
       "value": "Odhlaste se"
     }
   ],
-  "c9cc8cce24": [
+  "c8a59e7135": [
     {
       "type": 0,
-      "value": "Uložit"
+      "value": "Zavřít"
     }
   ],
   "cceaefbc20": [
@@ -1105,6 +1466,56 @@
     {
       "type": 0,
       "value": "Další informace o publikování."
+    }
+  ],
+  "d0e3556476": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " a "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reagovali na váš komentář"
     }
   ],
   "d3d2e61733": [
@@ -1183,22 +1594,16 @@
       "value": "Přejděte sem a podívejte se na obsah"
     }
   ],
-  "d9e35d0f55": [
-    {
-      "type": 0,
-      "value": "Dosáhli jste maximálního počtu skupin. Před vytvořením nových skupin je třeba smazat staré skupiny."
-    }
-  ],
   "dbbebf3c03": [
     {
       "type": 0,
       "value": "Pouze na pozvání"
     }
   ],
-  "dcdaa754fe": [
+  "dbf9b24193": [
     {
       "type": 0,
-      "value": "Neplatná adresa URL souboru tldraw"
+      "value": "Opusťte pracovní prostor"
     }
   ],
   "dfdb78a4e4": [
@@ -1207,10 +1612,10 @@
       "value": "Příznaky ladění aplikace"
     }
   ],
-  "e0c88179b3": [
+  "e0aa021e21": [
     {
       "type": 0,
-      "value": "Pozvat členy"
+      "value": "OK"
     }
   ],
   "e2198d6228": [
@@ -1225,16 +1630,40 @@
       "value": "Právní shrnutí"
     }
   ],
-  "e3afed0047": [
-    {
-      "type": 0,
-      "value": "Administrátor"
-    }
-  ],
   "e404559826": [
     {
       "type": 0,
       "value": "Podmínky služby"
+    }
+  ],
+  "e65b2dcb6f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " a "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " reagovali na váš komentář"
     }
   ],
   "e81c4e4f2b": [
@@ -1243,16 +1672,16 @@
       "value": "nebo"
     }
   ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Nebezpečná zóna"
-    }
-  ],
   "ea4788705e": [
     {
       "type": 0,
       "value": "Zrušit"
+    }
+  ],
+  "eb1e2b0542": [
+    {
+      "type": 0,
+      "value": "Požádejte vlastníka pracovního prostoru o nový."
     }
   ],
   "ebfe9ce86e": [
@@ -1305,6 +1734,12 @@
       "value": " a dozvíte se více."
     }
   ],
+  "edec9387f9": [
+    {
+      "type": 0,
+      "value": "Tento komentář byl smazán."
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1341,16 +1776,98 @@
       "value": "Vymazat"
     }
   ],
+  "f476ba8646": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " a "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reagovali na váš komentář"
+    }
+  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "Nastavení"
     }
   ],
-  "f714e36843": [
+  "f5ddc8d9c1": [
     {
       "type": 0,
-      "value": "Jste si jistý/á, že chcete tuto skupinu opustit?"
+      "value": "Prozatím jej můžete "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "exportovat jako soubor "
+        },
+        {
+          "type": 1,
+          "value": "extension"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " a použít jej zde."
     }
   ],
   "fa2ead697d": [
@@ -1365,10 +1882,10 @@
       "value": "Prohlížeč"
     }
   ],
-  "fd1be3efcf": [
+  "fc9d47046b": [
     {
       "type": 0,
-      "value": "Opravdu chcete tento soubor smazat?"
+      "value": "Jste si jisti, že chcete opustit tento pracovní prostor?"
     }
   ],
   "fed5ec05eb": [
@@ -1377,10 +1894,24 @@
       "value": "Zkopírován odkaz"
     }
   ],
-  "ff7a814974": [
+  "ff2fefd3c6": [
     {
       "type": 0,
-      "value": "Přidat odkaz na soubor…"
+      "value": "Opravdu chcete odstranit "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " z tohoto pracovního prostoru?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Vytvořte si bezplatný účet pro ukládání souborů a kreslení se spoluhráči."
     }
   ],
   "ffcd73e997": [

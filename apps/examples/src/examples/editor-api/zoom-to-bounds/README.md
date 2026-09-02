@@ -5,8 +5,8 @@ priority: 1
 keywords: [zoom, zoomToBounds, camera, bounds, Box, inset, animation, viewport, programmatic zoom]
 ---
 
-Zoom the camera to specific bounds using the editor's `zoomToBounds` function.
+Move the camera to fit a page-space box in the viewport with `editor.zoomToBounds()`.
 
 ---
 
-This example shows how to use the `zoomToBounds` method to programmatically zoom the camera to specific areas of the canvas. The example creates two boxes at different positions and provides buttons to zoom to each one. Note that the bounds the camera ultimately moves to may be different than the bounds you pass into the function. This is because the values of the bounds are massaged to maintain your viewport's aspect ratio. Also, if an inset is not specified, a default one will be set, adding inset padding to the bounds.
+`zoomToBounds(bounds, opts)` fits a `Box` (or any `{ x, y, w, h }`) into the viewport. Two boxes are drawn on the canvas, and the buttons zoom to each one or to `Box.Common` of both. The camera keeps the viewport's aspect ratio, so the visible area may be larger than the box you pass. `inset` adds screen-space padding around the box (defaults to `options.zoomToFitPadding`), and `animation` animates the move instead of jumping.

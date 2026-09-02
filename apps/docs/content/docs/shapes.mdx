@@ -9,19 +9,17 @@ keywords:
   - shapes
   - shapeutils
   - utils
+  - meta
+  - metadata
 ---
 
-In tldraw, a shape is something that can exist on the page, like an arrow, an image, or some text. This article provides an overview of shapes and how to create custom ones.
+In tldraw, a shape is something that can exist on the page, like an arrow, an image, or some text.
 
 ## Shape basics
 
-Shapes are JSON records stored in the editor's [store](/sdk-features/store). Each shape has base properties (position, rotation, opacity) plus a `props` object for shape-specific data. See [Shapes](/sdk-features/shapes) for the full shape system architecture.
+Shapes are JSON records stored in the editor's [store](/sdk-features/store). Each shape has base properties (position, rotation, opacity) plus a `props` object for shape-specific data. Each shape type has a [ShapeUtil](?) class that defines its behavior: how it renders, its geometry for hit testing, and how it responds to interactions.
 
-The [Tldraw](?) component includes [default shapes](/sdk-features/default-shapes) like geo, text, arrow, and draw. The only core shape (always present) is the [group](/sdk-features/groups).
-
-## ShapeUtil
-
-Each shape type has a [ShapeUtil](?) class that defines its behavior: how it renders, its geometry for hit testing, and how it responds to interactions. See [Shapes](/sdk-features/shapes#shapeutil) for details on ShapeUtil methods, lifecycle hooks, and configuration.
+The [Tldraw](?) component includes [default shapes](/sdk-features/default-shapes) like geo, text, arrow, and draw. The only core shape (always present) is the [group](/sdk-features/groups). See [Shapes](/sdk-features/shapes) for the full shape system architecture, including ShapeUtil methods, lifecycle hooks, and configuration.
 
 ## Custom shapes
 
@@ -34,6 +32,8 @@ You can create your own shapes by defining a shape type and a ShapeUtil class.
 Register your shape's props using TypeScript module augmentation:
 
 ```ts
+import { TLShape } from 'tldraw'
+
 const CARD_TYPE = 'card'
 
 declare module 'tldraw' {
@@ -47,13 +47,14 @@ type CardShape = TLShape<typeof CARD_TYPE>
 
 ### Creating a ShapeUtil
 
-Implement the required methods: `getDefaultProps`, `getGeometry`, `component`, and `indicator`:
+Implement the required methods: `getDefaultProps`, `getGeometry`, `component`, and `getIndicatorPath`. Set `static props` so the store validates your shape's props; without it, `props` accepts any JSON value and typos or stale data pass through unchecked.
 
 ```tsx
-import { HTMLContainer, Rectangle2d, ShapeUtil } from 'tldraw'
+import { HTMLContainer, Rectangle2d, ShapeUtil, T } from 'tldraw'
 
 class CardShapeUtil extends ShapeUtil<CardShape> {
 	static override type = CARD_TYPE
+	static override props = { w: T.number, h: T.number }
 
 	getDefaultProps(): CardShape['props'] {
 		return { w: 100, h: 100 }
@@ -71,8 +72,10 @@ class CardShapeUtil extends ShapeUtil<CardShape> {
 		return <HTMLContainer>Hello</HTMLContainer>
 	}
 
-	indicator(shape: CardShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: CardShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 ```
@@ -98,10 +101,94 @@ export default function () {
 }
 ```
 
+## Meta
+
+Every shape has a `meta` property for your own data. Tldraw stores and syncs this data but doesn't use it itself. It's an escape hatch for attaching extra information to shapes, like the name of the user who created a shape or the date it was last changed.
+
+Like `props`, the data in `meta` must be JSON-serializable. Shapes aren't the only records with a `meta` property: pages, bindings, assets, and the document record have one too.
+
+By default, a shape's `meta` is an empty object typed as `JsonObject`. To type your meta data, use an intersection:
+
+```ts
+type ShapeWithMyMeta = TLGeoShape & { meta: { createdBy: string } }
+
+const shape = editor.getShape<ShapeWithMyMeta>(myGeoShapeId)
+```
+
+You can update a shape's `meta` with [Editor#updateShapes](?), the same way you update its props:
+
+```ts
+editor.updateShapes<ShapeWithMyMeta>([
+	{
+		id: myGeoShapeId,
+		type: 'geo',
+		meta: { createdBy: 'Steve' },
+	},
+])
+```
+
+### Initial meta
+
+When [Editor#createShapes](?) creates a shape, it merges the result of [Editor#getInitialMetaForShape](?) with any `meta` you passed. Your explicit `meta` wins. By default this method returns an empty object. Replace it to provide your own initial meta:
+
+```tsx
+editor.getInitialMetaForShape = (shape) => {
+	if (shape.type === 'text') {
+		return { createdBy: currentUser.id, lastModified: Date.now() }
+	}
+	return { createdBy: currentUser.id }
+}
+```
+
+> For a working example, see our [shape meta on create example](/examples/events/meta-on-create).
+
+### Updating meta with side effects
+
+To keep meta up to date as shapes change, register a side effect that runs before each shape update:
+
+```tsx
+editor.sideEffects.registerBeforeChangeHandler('shape', (_prev, next, source) => {
+	if (source !== 'user') return next
+	return {
+		...next,
+		meta: { updatedBy: editor.user.getExternalId(), updatedAt: Date.now() },
+	}
+})
+```
+
+Side effects can run on create, update, and delete for shapes and other records. See [Side effects](/sdk-features/side-effects) for the full API.
+
+> For a working example, see our [shape meta on change example](/examples/events/meta-on-change).
+
+### Validating meta
+
+By default, the store accepts any JSON value in `meta`. To validate meta data at runtime, build your own schema with [createTLSchema](?) and pass validators for each shape type's meta:
+
+```tsx
+import { useState } from 'react'
+import { createTLSchema, createTLStore, defaultShapeSchemas, T, Tldraw } from 'tldraw'
+
+const schema = createTLSchema({
+	shapes: {
+		...defaultShapeSchemas,
+		geo: {
+			...defaultShapeSchemas.geo,
+			meta: { createdBy: T.string },
+		},
+	},
+})
+
+export default function App() {
+	const [store] = useState(() => createTLStore({ schema }))
+	return <Tldraw store={store} />
+}
+```
+
+When you build the schema yourself, include your custom shapes' `props` and `migrations` in the `shapes` map too. Bindings, assets, and user records accept meta validators the same way. For user records, see our [custom user metadata example](/examples/users/custom-user).
+
 ## Extending shapes
 
-- **[BaseBoxShapeUtil](?)** - Extend this for standard rectangular shape behavior
-- **[ShapeUtil#configure](?)** - Customize built-in shapes without subclassing
+Extend [BaseBoxShapeUtil](?) for standard rectangular shape behavior. Use [ShapeUtil#configure](?) to customize a built-in shape's options without subclassing it.
 
 ## Related topics
 

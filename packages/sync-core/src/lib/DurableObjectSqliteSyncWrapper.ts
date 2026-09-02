@@ -15,8 +15,7 @@ import {
 class DurableObjectStatement<
 	TResult extends TLSqliteRow | void,
 	TParams extends TLSqliteInputValue[],
-> implements TLSyncSqliteStatement<TResult, TParams>
-{
+> implements TLSyncSqliteStatement<TResult, TParams> {
 	constructor(
 		private sql: {
 			exec(sql: string, ...bindings: unknown[]): Iterable<any> & { toArray(): any[] }

@@ -1,13 +1,20 @@
 {
 	"name": "@tldraw/sync-core",
 	"description": "tldraw infinite canvas SDK (multiplayer sync).",
-	"version": "4.4.0",
+	"version": "5.3.2",
 	"author": {
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
 	},
 	"homepage": "https://tldraw.dev",
 	"license": "SEE LICENSE IN LICENSE.md",
+	"tldraw_product": {
+		"stableId": "tldraw:sync",
+		"name": "Sync",
+		"type": "feature",
+		"parent": "tldraw:sdk-core",
+		"premium": false
+	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tldraw/tldraw"
@@ -49,10 +56,10 @@
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"tldraw": "workspace:*",
-		"typescript": "^5.8.3",
+		"typescript": "^7.0.2",
 		"uuid-by-string": "^4.0.0",
 		"uuid-readable": "^0.0.2",
-		"vitest": "^3.2.4"
+		"vitest": "^4.1.7"
 	},
 	"dependencies": {
 		"@tldraw/state": "workspace:*",
@@ -65,5 +72,8 @@
 	"peerDependencies": {
 		"react": "^18.2.0 || ^19.2.1",
 		"react-dom": "^18.2.0 || ^19.2.1"
+	},
+	"engines": {
+		"node": ">=22.12.0"
 	}
 }

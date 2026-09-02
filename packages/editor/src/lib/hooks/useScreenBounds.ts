@@ -1,5 +1,6 @@
 import { throttle } from '@tldraw/utils'
 import { useLayoutEffect } from 'react'
+import { getOwnerWindow } from '../exports/domUtils'
 import { useEditor } from './useEditor'
 
 export function useScreenBounds(ref: React.RefObject<HTMLElement | null>) {
@@ -10,6 +11,9 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement | null>) {
 		const updateBounds = throttle(
 			() => {
 				if (!ref.current) return
+				// If the container's document has been torn down (e.g. an iframe
+				// being removed), there's nothing to measure — bail.
+				if (!ref.current.ownerDocument.body) return
 				editor.updateViewportScreenBounds(ref.current)
 			},
 			200,
@@ -21,7 +25,8 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement | null>) {
 		// Rather than running getClientRects on every frame, we'll
 		// run it once a second or when the window resizes.
 		const interval = editor.timers.setInterval(updateBounds, 1000)
-		window.addEventListener('resize', updateBounds)
+		const win = editor.getContainerWindow()
+		win.addEventListener('resize', updateBounds)
 
 		const resizeObserver = new ResizeObserver((entries) => {
 			if (!entries[0].contentRect) return
@@ -42,7 +47,7 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement | null>) {
 
 		return () => {
 			clearInterval(interval)
-			window.removeEventListener('resize', updateBounds)
+			win.removeEventListener('resize', updateBounds)
 			resizeObserver.disconnect()
 			scrollingParent?.removeEventListener('scroll', updateBounds)
 			updateBounds.cancel()
@@ -56,12 +61,14 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement | null>) {
  * https://github.com/excalidraw/excalidraw/blob/48c3465b19f10ec755b3eb84e21a01a468e96e43/packages/excalidraw/utils.ts#L600
  */
 const getNearestScrollableContainer = (element: HTMLElement): HTMLElement | Document => {
+	const doc = element.ownerDocument
+	const win = getOwnerWindow(element)
 	let parent = element.parentElement
 	while (parent) {
-		if (parent === document.body) {
-			return document
+		if (parent === doc.body) {
+			return doc
 		}
-		const { overflowY } = window.getComputedStyle(parent)
+		const { overflowY } = win.getComputedStyle(parent)
 		const hasScrollableContent = parent.scrollHeight > parent.clientHeight
 		if (
 			hasScrollableContent &&
@@ -71,5 +78,5 @@ const getNearestScrollableContainer = (element: HTMLElement): HTMLElement | Docu
 		}
 		parent = parent.parentElement
 	}
-	return document
+	return doc
 }

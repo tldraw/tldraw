@@ -30,6 +30,7 @@ async function main() {
 		webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
 		totalSteps: 4,
 		shouldNotify: true,
+		secretValues: Object.values(env),
 	})
 	await discord.message(`🚀 Triggering dotcom hotfix for PR #${pr.number}...`)
 
@@ -88,6 +89,12 @@ This PR cherry-picks the changes from the original PR to the hotfixes branch for
 		)
 		nicelog(`Waiting for PR #${createdPr.data.number} to be ready for merge...`)
 
+		async function noteManualMerge(mergedByLogin: string | undefined) {
+			const by = mergedByLogin ? `@${mergedByLogin}` : 'someone'
+			nicelog(`Hotfix PR #${createdPr.data.number} was merged manually by ${by}`)
+			await discord.message(`✅ Hotfix PR #${createdPr.data.number} was merged manually by ${by}`)
+		}
+
 		// Maximum wait time: 15 minutes total (action timeout is 20 mins, we need buffer for Discord notification)
 		const maxWaitTimeMs = 15 * 60 * 1000
 		const startTime = Date.now()
@@ -106,21 +113,39 @@ This PR cherry-picks the changes from the original PR to the hotfixes branch for
 			}
 			const prStatus = await getPrDetailsByNumber(octokit, createdPr.data.number)
 
+			// github stops reporting mergeability once a PR is merged or closed by hand, so without
+			// this we'd spin until the timeout and report a false failure for a hotfix that landed.
+			if (prStatus.merged) {
+				await noteManualMerge(prStatus.merged_by?.login)
+				break
+			}
+			if (prStatus.state === 'closed') {
+				throw new Error(`Hotfix PR #${createdPr.data.number} was closed without being merged`)
+			}
+
 			nicelog(`PR #${createdPr.data.number} mergeable_state: ${prStatus.mergeable_state}`)
 
 			if (prStatus.mergeable_state === 'clean') {
 				nicelog(`PR #${createdPr.data.number} is ready for merge`)
-				await octokit.rest.pulls.merge({
-					owner: 'tldraw',
-					repo: 'tldraw',
-					pull_number: createdPr.data.number,
-					merge_method: 'squash',
-					commit_title: `[HOTFIX] ${pr.title}`,
-					commit_message: `This is an automated hotfix for dotcom deployment.
+				try {
+					await octokit.rest.pulls.merge({
+						owner: 'tldraw',
+						repo: 'tldraw',
+						pull_number: createdPr.data.number,
+						merge_method: 'squash',
+						commit_title: `[HOTFIX] ${pr.title}`,
+						commit_message: `This is an automated hotfix for dotcom deployment.
 
 Original PR: #${pr.number}
 Original Author: @${pr.user?.login}`,
-				})
+					})
+				} catch (error) {
+					// the merge api rejects an already-merged PR, so re-check before reporting a failure
+					const latest = await getPrDetailsByNumber(octokit, createdPr.data.number)
+					if (!latest.merged) throw error
+					await noteManualMerge(latest.merged_by?.login)
+					break
+				}
 
 				nicelog(`Successfully merged hotfix PR #${createdPr.data.number}`)
 				break
@@ -148,10 +173,12 @@ Original Author: @${pr.user?.login}`,
 main().catch(async (e: Error) => {
 	console.error(e)
 
+	const env = getEnv()
 	const discord = new Discord({
-		webhookUrl: process.env.DISCORD_DEPLOY_WEBHOOK_URL!,
+		webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
 		totalSteps: 3,
 		shouldNotify: true,
+		secretValues: Object.values(env),
 	})
 
 	await discord

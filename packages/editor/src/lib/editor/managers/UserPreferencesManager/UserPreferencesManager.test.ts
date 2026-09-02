@@ -1,7 +1,8 @@
 import { atom } from '@tldraw/state'
+import { createUserId } from '@tldraw/tlschema'
 import { Mocked, vi } from 'vitest'
+import { TLCurrentUser } from '../../../config/createTLCurrentUser'
 import { TLUserPreferences, defaultUserPreferences } from '../../../config/TLUserPreferences'
-import { TLUser } from '../../../config/createTLUser'
 import { UserPreferencesManager } from './UserPreferencesManager'
 
 // Mock window.matchMedia
@@ -9,7 +10,7 @@ const mockMatchMedia = vi.fn()
 window.matchMedia = mockMatchMedia
 
 describe('UserPreferencesManager', () => {
-	let mockUser: Mocked<TLUser>
+	let mockUser: Mocked<TLCurrentUser>
 	let mockUserPreferences: TLUserPreferences
 	let userPreferencesAtom: any
 	let userPreferencesManager: UserPreferencesManager
@@ -61,7 +62,7 @@ describe('UserPreferencesManager', () => {
 			// Test when window.matchMedia is not available
 			delete (window as any).matchMedia
 
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, 'light')
 
 			expect(userPreferencesManager.systemColorScheme.get()).toBe('light')
 
@@ -76,7 +77,7 @@ describe('UserPreferencesManager', () => {
 				removeEventListener: vi.fn(),
 			})
 
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, 'light')
 
 			expect(userPreferencesManager.systemColorScheme.get()).toBe('light')
 		})
@@ -88,7 +89,7 @@ describe('UserPreferencesManager', () => {
 				removeEventListener: vi.fn(),
 			})
 
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, 'system')
 
 			expect(userPreferencesManager.systemColorScheme.get()).toBe('dark')
 		})
@@ -103,7 +104,7 @@ describe('UserPreferencesManager', () => {
 				removeEventListener: mockRemoveEventListener,
 			})
 
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, 'system')
 
 			expect(mockAddEventListener).toHaveBeenCalledWith('change', expect.any(Function))
 		})
@@ -112,18 +113,18 @@ describe('UserPreferencesManager', () => {
 			const mockAddEventListener = vi.fn()
 			let changeHandler: (e: MediaQueryListEvent) => void
 
-			mockMatchMedia.mockReturnValue({
+			mockMatchMedia.mockImplementation((query: string) => ({
 				matches: false,
 				addEventListener: (event: string, handler: any) => {
-					if (event === 'change') {
+					if (event === 'change' && query === '(prefers-color-scheme: dark)') {
 						changeHandler = handler
 					}
 					mockAddEventListener(event, handler)
 				},
 				removeEventListener: vi.fn(),
-			})
+			}))
 
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, 'system')
 
 			expect(userPreferencesManager.systemColorScheme.get()).toBe('light')
 
@@ -141,7 +142,7 @@ describe('UserPreferencesManager', () => {
 			delete (global as any).window
 
 			expect(() => {
-				userPreferencesManager = new UserPreferencesManager(mockUser, false)
+				userPreferencesManager = new UserPreferencesManager(mockUser, 'light')
 			}).not.toThrow()
 
 			global.window = originalWindow
@@ -158,14 +159,14 @@ describe('UserPreferencesManager', () => {
 				removeEventListener: mockRemoveEventListener,
 			})
 
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, 'system')
 			userPreferencesManager.dispose()
 
 			expect(mockRemoveEventListener).toHaveBeenCalledWith('change', expect.any(Function))
 		})
 
 		it('should call all disposables', () => {
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, 'light')
 
 			const mockDisposable1 = vi.fn()
 			const mockDisposable2 = vi.fn()
@@ -182,7 +183,7 @@ describe('UserPreferencesManager', () => {
 
 	describe('updateUserPreferences', () => {
 		beforeEach(() => {
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, 'light')
 		})
 
 		it('should update user preferences with partial data', () => {
@@ -216,7 +217,7 @@ describe('UserPreferencesManager', () => {
 
 	describe('getUserPreferences', () => {
 		beforeEach(() => {
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, 'light')
 		})
 
 		it('should return complete user preferences with computed values', () => {
@@ -255,7 +256,7 @@ describe('UserPreferencesManager', () => {
 
 	describe('getIsDarkMode', () => {
 		beforeEach(() => {
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, 'light')
 		})
 
 		it('should return true when colorScheme is dark', () => {
@@ -282,28 +283,31 @@ describe('UserPreferencesManager', () => {
 			expect(userPreferencesManager.getIsDarkMode()).toBe(true)
 		})
 
-		it('should use inferDarkMode when colorScheme is undefined', () => {
+		it('should default to light when colorScheme is undefined', () => {
 			userPreferencesAtom.set({ ...mockUserPreferences, colorScheme: undefined })
 
-			// With inferDarkMode = true
-			const managerWithInfer = new UserPreferencesManager(mockUser, true)
-			managerWithInfer.systemColorScheme.set('dark')
-			expect(managerWithInfer.getIsDarkMode()).toBe(true)
-
-			// With inferDarkMode = false
-			const managerWithoutInfer = new UserPreferencesManager(mockUser, false)
-			managerWithoutInfer.systemColorScheme.set('dark')
-			expect(managerWithoutInfer.getIsDarkMode()).toBe(false)
+			const manager = new UserPreferencesManager(mockUser, 'light')
+			manager.systemColorScheme.set('dark')
+			expect(manager.getIsDarkMode()).toBe(false)
 		})
 	})
 
 	describe('individual preference getters', () => {
 		beforeEach(() => {
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, 'light')
 		})
 
-		describe('getId', () => {
-			it('should return user id', () => {
+		describe('getExternalId / getRecordId', () => {
+			it('should return the raw external user id', () => {
+				expect(userPreferencesManager.getExternalId()).toBe(mockUserPreferences.id)
+			})
+
+			it('should return the prefixed record id', () => {
+				expect(userPreferencesManager.getRecordId()).toBe(createUserId(mockUserPreferences.id))
+			})
+
+			it('getId() still returns the external id', () => {
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
 				expect(userPreferencesManager.getId()).toBe(mockUserPreferences.id)
 			})
 		})
@@ -362,6 +366,67 @@ describe('UserPreferencesManager', () => {
 				expect(userPreferencesManager.getAnimationSpeed()).toBe(
 					defaultUserPreferences.animationSpeed
 				)
+			})
+
+			describe('following the OS reduce-motion setting', () => {
+				let reducedMotionChangeHandler: ((e: MediaQueryListEvent) => void) | undefined
+				let osPrefersReducedMotion: boolean
+
+				const mountWithOs = (prefersReducedMotion: boolean) => {
+					osPrefersReducedMotion = prefersReducedMotion
+					reducedMotionChangeHandler = undefined
+					mockMatchMedia.mockImplementation((query: string) => {
+						const isReducedMotion = query === '(prefers-reduced-motion: reduce)'
+						return {
+							matches: isReducedMotion ? osPrefersReducedMotion : false,
+							addEventListener: (event: string, handler: any) => {
+								if (isReducedMotion && event === 'change') reducedMotionChangeHandler = handler
+							},
+							removeEventListener: vi.fn(),
+						}
+					})
+					userPreferencesManager = new UserPreferencesManager(mockUser, 'light')
+				}
+
+				it('resolves an unset speed to 0 when the OS prefers reduced motion', () => {
+					userPreferencesAtom.set({ ...mockUserPreferences, animationSpeed: null })
+					mountWithOs(true)
+					expect(userPreferencesManager.getAnimationSpeed()).toBe(0)
+				})
+
+				it('tracks a live OS change while the speed is unset', () => {
+					userPreferencesAtom.set({ ...mockUserPreferences, animationSpeed: null })
+					mountWithOs(false)
+					expect(userPreferencesManager.getAnimationSpeed()).toBe(1)
+
+					reducedMotionChangeHandler!({ matches: true } as MediaQueryListEvent)
+					expect(userPreferencesManager.getAnimationSpeed()).toBe(0)
+
+					reducedMotionChangeHandler!({ matches: false } as MediaQueryListEvent)
+					expect(userPreferencesManager.getAnimationSpeed()).toBe(1)
+				})
+
+				it('ignores the OS once the user has set a speed explicitly', () => {
+					userPreferencesAtom.set({ ...mockUserPreferences, animationSpeed: 1 })
+					mountWithOs(true)
+					expect(userPreferencesManager.getAnimationSpeed()).toBe(1)
+
+					userPreferencesAtom.set({ ...mockUserPreferences, animationSpeed: 0 })
+					reducedMotionChangeHandler!({ matches: false } as MediaQueryListEvent)
+					expect(userPreferencesManager.getAnimationSpeed()).toBe(0)
+				})
+
+				it('removes the reduce-motion listener on dispose', () => {
+					const removeEventListener = vi.fn()
+					mockMatchMedia.mockReturnValue({
+						matches: false,
+						addEventListener: vi.fn(),
+						removeEventListener,
+					})
+					userPreferencesManager = new UserPreferencesManager(mockUser, 'light')
+					userPreferencesManager.dispose()
+					expect(removeEventListener).toHaveBeenCalledTimes(2)
+				})
 			})
 		})
 
@@ -499,7 +564,7 @@ describe('UserPreferencesManager', () => {
 
 	describe('reactive behavior', () => {
 		beforeEach(() => {
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, 'light')
 		})
 
 		it('should react to user preferences changes', () => {
@@ -533,7 +598,7 @@ describe('UserPreferencesManager', () => {
 
 	describe('edge cases and error handling', () => {
 		beforeEach(() => {
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, 'light')
 		})
 
 		it('should handle undefined user preferences gracefully', () => {
@@ -589,14 +654,14 @@ describe('UserPreferencesManager', () => {
 			mockMatchMedia.mockReturnValue(null)
 
 			expect(() => {
-				userPreferencesManager = new UserPreferencesManager(mockUser, false)
+				userPreferencesManager = new UserPreferencesManager(mockUser, 'light')
 			}).not.toThrow()
 
 			expect(userPreferencesManager.systemColorScheme.get()).toBe('light')
 		})
 
 		it('should handle dispose gracefully in all cases', () => {
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, 'light')
 
 			// Should not throw even if dispose is called multiple times
 			expect(() => userPreferencesManager.dispose()).not.toThrow()
@@ -608,7 +673,7 @@ describe('UserPreferencesManager', () => {
 			const originalWindow = global.window
 			delete (global as any).window
 
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, 'light')
 
 			expect(() => userPreferencesManager.dispose()).not.toThrow()
 			expect(userPreferencesManager.disposables.size).toBe(0)
@@ -619,7 +684,7 @@ describe('UserPreferencesManager', () => {
 
 	describe('integration scenarios', () => {
 		it('should work with real-world preference scenarios', () => {
-			userPreferencesManager = new UserPreferencesManager(mockUser, true)
+			userPreferencesManager = new UserPreferencesManager(mockUser, 'light')
 
 			// User starts with system preference
 			userPreferencesManager.updateUserPreferences({ colorScheme: 'system' })
@@ -641,7 +706,7 @@ describe('UserPreferencesManager', () => {
 		})
 
 		it('should handle preference updates with multiple fields', () => {
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, 'light')
 
 			const updates = {
 				name: 'New User',

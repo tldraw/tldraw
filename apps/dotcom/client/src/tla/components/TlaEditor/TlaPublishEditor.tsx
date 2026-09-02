@@ -3,15 +3,17 @@ import { useMemo } from 'react'
 import { SerializedSchema, TLComponents, TLRecord, Tldraw } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
+import { usePerformanceTracking } from '../../../hooks/usePerformanceTracking'
 import { useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
+import { embedShapeUtils } from '../../../utils/embedShapeUtil'
 import { globalEditor } from '../../../utils/globalEditor'
-import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorPublishedSharePanel } from './editor-components/TlaEditorPublishedSharePanel'
-import styles from './editor.module.css'
 import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
+import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
+import styles from './editor.module.css'
 
 const components: TLComponents = {
 	ErrorFallback: TlaEditorErrorFallback,
@@ -29,6 +31,7 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 	useLegacyUrlParams()
 
 	const handleUiEvent = useHandleUiEvents()
+	const trackPerformance = usePerformanceTracking()
 	const fileEditorOverrides = useFileEditorOverrides({
 		fileSlug: undefined,
 	})
@@ -46,6 +49,7 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 			<Tldraw
 				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
+				shapeUtils={embedShapeUtils}
 				snapshot={snapshot}
 				overrides={[fileEditorOverrides]}
 				onUiEvent={handleUiEvent}
@@ -54,6 +58,7 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 					;(window as any).editor = editor
 					editor.updateInstanceState({ isReadonly: true })
 					globalEditor.set(editor)
+					return trackPerformance(editor)
 				}}
 				components={components}
 				options={{ deepLinks: true }}

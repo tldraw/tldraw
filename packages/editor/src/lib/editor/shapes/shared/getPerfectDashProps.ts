@@ -43,6 +43,13 @@ export function getPerfectDashProps(
 		}
 	}
 
+	if (style === 'none') {
+		return {
+			strokeDasharray: 'none',
+			strokeDashoffset: 'none',
+		}
+	}
+
 	switch (style) {
 		case 'dashed': {
 			ratio = 1
@@ -80,6 +87,9 @@ export function getPerfectDashProps(
 
 	dashCount = Math.floor(totalLength / dashLength / (2 * ratio))
 	dashCount -= dashCount % snap
+	// A path shorter than one dash period (or of zero length, where the count is NaN) would
+	// otherwise divide by zero below and produce an invalid dasharray; draw a single dash instead
+	if (!(dashCount >= 1)) dashCount = 1
 
 	if (dashCount < 3 && style === 'dashed') {
 		if (totalLength / strokeWidth < 4) {

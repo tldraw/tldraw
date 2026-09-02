@@ -14,24 +14,25 @@ status: published
 date: 01/31/2026
 ---
 
-Cursor chat lets users send short messages that appear as bubbles near their cursor. It's designed for quick, ephemeral communication during collaborative sessions—a fast "look here" or "nice work" that doesn't interrupt the canvas workflow.
+Cursor chat lets users send short messages that appear as bubbles near their cursor. It's designed for quick, ephemeral communication during collaborative sessions: a fast "look here" or "nice work" that doesn't interrupt the canvas workflow.
+
+Cursor chat only appears when collaboration UI is enabled, which means the store has to be collaborative. The simplest way to get one is [useSyncDemo](?):
 
 ```tsx
+import { useSyncDemo } from '@tldraw/sync'
 import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 export default function App() {
+	const store = useSyncDemo({ roomId: 'my-cursor-chat-room' })
+
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
 			<Tldraw
+				store={store}
 				onMount={(editor) => {
-					// Start chatting programmatically
-					editor.updateInstanceState({ isChatting: true })
-
-					// Or set a message directly
-					editor.updateInstanceState({
-						chatMessage: 'Hello from the canvas!',
-					})
+					// Show a message bubble at the cursor
+					editor.updateInstanceState({ chatMessage: 'Hello from the canvas!' })
 				}}
 			/>
 		</div>
@@ -39,7 +40,7 @@ export default function App() {
 }
 ```
 
-Cursor chat only appears when collaboration UI is enabled. On desktop, users press `/` to open the chat input, type their message (up to 64 characters), and press Enter to send. The message follows their cursor for a few seconds, then fades away.
+On desktop, users press `/` to open the chat input, type their message (up to 64 characters), and press Enter to send. The message follows their cursor. Once the input closes, the message stays visible for two seconds and then clears.
 
 ## Chat state
 
@@ -78,14 +79,15 @@ When a user starts chatting:
 1. The `CursorChatBubble` component renders an input field at the cursor position
 2. The input tracks the cursor via `pointermove` events
 3. As the user types, `chatMessage` updates in instance state
-4. When they press Enter or the input loses focus, `isChatting` becomes `false`
-5. The message displays for 2 seconds, then clears automatically
+4. When they press Enter with text in the input, the input clears and the message becomes its placeholder; the input stays open for another message
+5. When they press Escape, press Enter with an empty input, or the input loses focus, `isChatting` becomes `false`
+6. The message stays visible for 2 seconds, then clears automatically
 
-Messages time out after 5 seconds while typing, or 2 seconds after the user stops.
+While the input is open, chat times out after 5 seconds of inactivity.
 
 ## Keyboard shortcuts
 
-The default keyboard action for cursor chat is `/`. You can find it under the action ID `open-cursor-chat`:
+The default keyboard action for cursor chat is `/`. You can find it under the action ID `open-cursor-chat`. The action is only registered when collaboration UI is enabled, and the default context menu shows it as [CursorChatItem](?):
 
 ```tsx
 import { Tldraw, useActions } from 'tldraw'
@@ -101,23 +103,23 @@ function ChatButton() {
 
 Inside the chat input:
 
-| Key      | Action                                                            |
-| -------- | ----------------------------------------------------------------- |
-| `Enter`  | Clear input (if content exists) or stop chatting (if input empty) |
-| `Escape` | Stop chatting                                                     |
+| Key      | Action                                                                 |
+| -------- | ---------------------------------------------------------------------- |
+| `Enter`  | Send the message (if content exists) or stop chatting (if input empty) |
+| `Escape` | Stop chatting                                                          |
 
 ## Presence synchronization
 
 In multiplayer sessions, chat messages synchronize automatically through presence records. The `chatMessage` field in [TLInstancePresence](?) contains the message other users see:
 
 ```tsx
-import { InstancePresenceRecordType, Tldraw } from 'tldraw'
+import { createUserId, InstancePresenceRecordType } from 'tldraw'
 
-// Creating a remote user's presence with a chat message
+// Inside onMount: create a remote user's presence with a chat message
 const peerPresence = InstancePresenceRecordType.create({
 	id: InstancePresenceRecordType.createId(editor.store.id),
 	currentPageId: editor.getCurrentPageId(),
-	userId: 'peer-1',
+	userId: createUserId('peer-1'),
 	userName: 'Alice',
 	cursor: { x: 100, y: 200, type: 'default', rotation: 0 },
 	chatMessage: 'Check out this arrow!',
@@ -128,13 +130,14 @@ editor.store.mergeRemoteChanges(() => {
 })
 ```
 
-The presence derivation automatically includes the local user's `chatMessage` from instance state. Changes broadcast to other users automatically.
+The presence derivation includes the local user's `chatMessage` from instance state, so changes broadcast to other users without any extra work.
 
 ## Customizing the chat bubble
 
-You can replace the default chat bubble by providing a custom `CursorChatBubble` component:
+You can replace the default chat bubble by providing a custom `CursorChatBubble` component through [TLUiComponents](?). The slot is only rendered when collaboration UI is enabled, so this example needs a collaborative store too:
 
 ```tsx
+import { useSyncDemo } from '@tldraw/sync'
 import { Tldraw, TLUiComponents, useEditor, track } from 'tldraw'
 import 'tldraw/tldraw.css'
 
@@ -167,15 +170,16 @@ const components: TLUiComponents = {
 }
 
 export default function App() {
+	const store = useSyncDemo({ roomId: 'my-cursor-chat-room' })
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw components={components} />
+			<Tldraw store={store} components={components} />
 		</div>
 	)
 }
 ```
 
-For customizing how remote users' chat messages appear, override the `CollaboratorCursor` component instead. See [Cursors](/sdk-features/cursors) for details.
+Remote users' chat messages render as part of the collaborator cursor, in the DOM cursor layer. To customize how they appear, replace the `CollaboratorCursor` component. See [Cursors](/sdk-features/cursors#rendering-collaborator-cursors) for details.
 
 ## Availability
 
@@ -184,7 +188,7 @@ Cursor chat requires:
 - Collaboration enabled (`editor.store.props.collaboration !== undefined`)
 - A non-touch device (disabled on mobile/tablet)
 
-Check availability before triggering chat programmatically:
+Setting `isChatting` isn't gated, but the bubble won't render without both, so check availability before triggering chat programmatically:
 
 ```tsx
 const hasCollaboration = editor.store.props.collaboration !== undefined

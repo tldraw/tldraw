@@ -1,7 +1,7 @@
 ---
 title: UI components
 created_at: 12/17/2025
-updated_at: 12/29/2025
+updated_at: 3/25/2026
 keywords:
   - ui
   - components
@@ -9,7 +9,7 @@ keywords:
   - menu
   - customization
 status: published
-date: 12/29/2025
+date: 3/25/2026
 readability: 8
 voice: 8
 completeness: 9
@@ -17,9 +17,9 @@ accuracy: 10
 notes: ''
 ---
 
-The `@tldraw/tldraw` package includes a complete React-based UI. It provides the menus, toolbars, panels, and dialogs that users interact with when creating and editing content. The UI is composed of named component slots that you can selectively override or hide, so you can customize the interface while still benefiting from the editor's reactive state management.
+The `tldraw` package includes a complete React-based UI: the menus, toolbars, panels, and dialogs that users interact with when creating and editing content. The UI is composed of named component slots that you can override or hide one at a time.
 
-The UI connects to the editor through React hooks and context providers. Components automatically update when editor state changes. You can replace individual parts of the interface without reimplementing the logic that connects UI actions to editor operations.
+The UI connects to the editor through React hooks and context providers. Components update automatically when editor state changes, so you can replace individual parts of the interface without reimplementing the logic that connects UI actions to editor operations.
 
 ## How it works
 
@@ -38,63 +38,85 @@ The UI divides the screen into distinct layout zones:
 └─────────────────────────────────────────────────────────┘
 ```
 
-The top zone contains the main menu, helper buttons (like "Back to content"), the top panel for collaboration features, and the share and style panels. The bottom zone houses navigation controls, the main toolbar with drawing tools, and the help menu. On desktop, the style panel appears in the top-right zone; on mobile it moves to a modal overlay.
+The top zone contains the main menu, helper buttons (like "Back to content"), an empty top panel slot, and the share and style panels. The bottom zone houses navigation controls, the main toolbar with drawing tools, and the help menu (if you provide one). On desktop, the style panel appears in the top-right zone; on mobile it moves into a popover opened from the toolbar.
 
-Each zone can host multiple components. The toolbar includes the tool selector, tool-specific options, and the tool lock button. These components share context and coordinate through the editor's state.
+Each zone can host multiple components. The toolbar includes the tool selector, tool-specific options, and the tool lock button.
 
 ### Context providers and state management
 
-The UI establishes a hierarchy of React context providers that manage different aspects of the interface. At the root, `TldrawUiContextProvider` coordinates all other providers and merges your overrides. Specialized providers handle translations, tooltips, dialogs, toasts, breakpoints for responsive behavior, and the component registry.
+The UI establishes a hierarchy of React context providers. At the root, [TldrawUiContextProvider](?) coordinates the other providers and applies your overrides. Specialized providers handle translations, tooltips, dialogs, toasts, UI events, accessibility announcements, breakpoints for responsive behavior, and the component registry.
 
-The actions and tools providers transform raw editor methods into UI-friendly actions with labels, icons, and keyboard shortcuts. When you click a toolbar button, the component calls an action from context, which invokes the appropriate editor method. This indirection means the same action can be triggered from multiple places (toolbar, menu, keyboard shortcut) with consistent behavior.
+The actions and tools providers turn editor methods into UI actions with labels, icons, and keyboard shortcuts. When you click a toolbar button, the component calls an action from context, which invokes the editor method. The same action can be triggered from the toolbar, a menu, or a keyboard shortcut. See [Actions](/sdk-features/actions) for details.
 
 ### Reactive UI updates
 
-UI components read editor state through hooks like `useEditor`, `useValue`, and `useReactor`. These hooks use the editor's reactive signal system to automatically re-render when relevant state changes. The style panel uses `useRelevantStyles` to determine which style controls to show based on the current selection—when you select a different shape, the hook detects the change and the panel updates.
-
-This reactive approach means you don't need to manually manage subscriptions or worry about stale state. Components declare their dependencies, and the reactivity system handles the rest.
+UI components read editor state through hooks like [useEditor](?) and [useValue](?). These hooks use the editor's reactive signal system to re-render when relevant state changes. The style panel uses [useRelevantStyles](?) to decide which style controls to show for the current selection: select a different shape and the panel updates.
 
 ## Key components
 
 ### Component slots
 
-The UI defines several component slots you can override or hide.
+The UI defines several component slots you can override or hide. The `Toolbar` holds the tool buttons. The `TopPanel` is an empty top-center slot with no default component; use it for your own UI like a document title or sync status. The `StylePanel` shows style controls for the selected shapes. The `MenuPanel` (top-left) groups the main menu, the page menu, and quick actions. The `NavigationPanel` (bottom-left) provides zoom controls and the minimap toggle. `HelperButtons` appear based on editor state, such as "Back to content" when the camera is far from shapes.
 
-The **Toolbar** contains the primary tool selector with buttons for each available tool (select, draw, shapes, etc.). On mobile, it hides automatically when editing text to make room for the virtual keyboard.
+Each slot is optional. Pass `null` to hide a component, or pass your own React component to replace the default. A few slots have no default: `TopPanel` and `HelpMenu` are `null` unless you provide a component (use [DefaultHelpMenu](?) to opt in to the built-in help menu), and `SharePanel` and `CursorChatBubble` only render when collaboration UI is enabled.
 
-The **TopPanel** displays the page name and collaboration indicators when multiplayer features are enabled. It's hidden in single-player mode.
+### Slot props
 
-The **StylePanel** shows style controls for selected shapes: color, fill, stroke, size, opacity. It appears in the top-right on desktop and as a modal on mobile.
+The UI portion of the `components` prop is shaped by [TLUiComponents](?). Every key is optional: use `null` to hide that slot, or pass a React component. When a slot has a documented props type in the table below, import that type from `tldraw` and type your replacement as `React.ComponentType<…>` (or implement the matching props). When the props column says **none**, the SDK does not declare extra props for that slot beyond what a plain `ComponentType` allows.
 
-The **MenuPanel** houses the main application menu with actions like export, print, and preferences. It's typically in the top-left corner.
+| Slot                      | Props (import from `tldraw`)                                                  |
+| ------------------------- | ----------------------------------------------------------------------------- |
+| `ContextMenu`             | [TLUiContextMenuProps](?)                                                     |
+| `ActionsMenu`             | [TLUiActionsMenuProps](?)                                                     |
+| `HelpMenu`                | [TLUiHelpMenuProps](?)                                                        |
+| `ZoomMenu`                | [TLUiZoomMenuProps](?)                                                        |
+| `MainMenu`                | [TLUiMainMenuProps](?)                                                        |
+| `Minimap`                 | none                                                                          |
+| `StylePanel`              | [TLUiStylePanelProps](?)                                                      |
+| `PageMenu`                | none                                                                          |
+| `NavigationPanel`         | none                                                                          |
+| `Toolbar`                 | none                                                                          |
+| `RichTextToolbar`         | [TLUiRichTextToolbarProps](?)                                                 |
+| `ImageToolbar`            | none                                                                          |
+| `VideoToolbar`            | none                                                                          |
+| `KeyboardShortcutsDialog` | [TLUiKeyboardShortcutsDialogProps](?)                                         |
+| `QuickActions`            | [TLUiQuickActionsProps](?)                                                    |
+| `HelperButtons`           | [TLUiHelperButtonsProps](?)                                                   |
+| `DebugPanel`              | none                                                                          |
+| `DebugMenu`               | none                                                                          |
+| `MenuPanel`               | none                                                                          |
+| `TopPanel`                | none                                                                          |
+| `SharePanel`              | none                                                                          |
+| `CursorChatBubble`        | none                                                                          |
+| `Dialogs`                 | none                                                                          |
+| `Toasts`                  | none                                                                          |
+| `A11y`                    | none                                                                          |
+| `FollowingIndicator`      | none                                                                          |
+| `PeopleMenu`              | none (default component: optional `children` via [DefaultPeopleMenuProps](?)) |
+| `PeopleMenuAvatar`        | [TLUiPeopleMenuAvatarProps](?)                                                |
+| `PeopleMenuFacePile`      | [TLUiPeopleMenuFacePileProps](?)                                              |
+| `PeopleMenuItem`          | [TLUiPeopleMenuItemProps](?)                                                  |
+| `UserPresenceEditor`      | none                                                                          |
 
-The **NavigationPanel** provides page navigation, zoom controls, and the minimap toggle. It sits in the bottom-left area.
-
-**HelperButtons** are context-sensitive buttons that appear based on editor state—"Back to content" when the camera is far from shapes, "Exit pen mode" on touch devices.
-
-**ActionsMenu**, **ContextMenu**, and **HelpMenu** provide access to actions and information through different interaction patterns.
-
-Each slot is optional. Pass `null` as an override to hide a component entirely, or provide your own React component to replace the default implementation.
+This table is an index; the authoritative list and types remain [TLUiComponents](?) in the API reference and in the package typings.
 
 ### UI hooks
 
 Components access editor functionality through specialized hooks.
 
-`useEditor` returns the editor instance, providing direct access to all editor methods and state.
+[useEditor](?) returns the editor instance, with direct access to all editor methods and state.
 
-`useActions` returns a collection of UI actions (copy, paste, delete) with their labels, icons, and keyboard shortcuts. Each action is a function you can call from your custom UI.
+[useActions](?) returns the UI actions (copy, paste, delete, and so on) with their labels, icons, and keyboard shortcuts. Call an action's `onSelect` from your custom UI.
 
-`useTools` returns the available tools with their metadata. The toolbar uses this to render tool buttons.
+[useTools](?) returns the available tools with their metadata. The toolbar uses this to render tool buttons.
 
-`useRelevantStyles` determines which styles are relevant to the current selection and returns their values. It powers the style panel.
+[useRelevantStyles](?) returns the styles relevant to the current selection and their values. It powers the style panel.
 
-`useBreakpoint` returns a numeric breakpoint index (0-7) that maps to the `PORTRAIT_BREAKPOINT` enum. Compare against values like `PORTRAIT_BREAKPOINT.MOBILE` or `PORTRAIT_BREAKPOINT.TABLET_SM` to adapt layout for different screen sizes.
-
-These hooks encapsulate common UI patterns and keep your custom components in sync with editor state.
+[useBreakpoint](?) returns a numeric breakpoint index (0-7) matching the [PORTRAIT_BREAKPOINT](?) constants. Compare against values like `PORTRAIT_BREAKPOINT.MOBILE` or `PORTRAIT_BREAKPOINT.TABLET_SM` to adapt layout for different screen sizes.
 
 ## Hiding the UI
 
-You can hide the default tldraw user interface entirely using the `hideUi` prop. This turns off both the visuals and the keyboard shortcuts.
+You can hide the default tldraw user interface entirely using the `hideUi` prop. This hides the visual UI only: keyboard shortcuts and clipboard handling keep working.
 
 ```tsx
 import { Tldraw } from 'tldraw'
@@ -109,7 +131,7 @@ export default function App() {
 }
 ```
 
-When the UI is hidden, you can't select tools using keyboard shortcuts. You can still control the editor programmatically through `Editor` methods. Open the console and try:
+With the UI hidden, you can still control the editor programmatically through [Editor](?) methods. Open the console and try:
 
 ```ts
 editor.setCurrentTool('draw')
@@ -155,7 +177,7 @@ export default function App() {
 }
 ```
 
-The `useTools` hook returns an object mapping tool IDs to [TLUiToolItem](/reference/tldraw/TLUiToolItem) objects. Each tool item contains metadata like `id`, `label`, `icon`, and `kbd` (keyboard shortcut).
+The `useTools` hook returns an object mapping tool IDs to [TLUiToolItem](?) objects. Each tool item contains metadata like `id`, `label`, `icon`, and `kbd` (keyboard shortcut).
 
 ### Hiding components
 
@@ -164,9 +186,9 @@ Pass `null` to hide a component entirely. This is useful for focused experiences
 ```tsx
 <Tldraw
 	components={{
-		HelpMenu: null,
+		PageMenu: null,
 		DebugMenu: null,
-		SharePanel: null,
+		NavigationPanel: null,
 	}}
 />
 ```
@@ -175,11 +197,11 @@ See the [UI components hidden example](/examples/ui/ui-components-hidden) for a 
 
 ## Overrides
 
-Control tldraw's menu content with the `overrides` prop. This prop accepts a [TLUiOverrides](/reference/tldraw/TLUiOverrides) object, which has methods for `actions` and `tools`, and a `translations` property.
+Control tldraw's actions, tools, and translations with the `overrides` prop. This prop accepts a [TLUiOverrides](?) object, which has methods for `actions` and `tools`, and a `translations` property.
 
 ### Actions
 
-The user interface has a set of shared actions used in the menus and keyboard shortcuts. Override these by providing an `actions` method that receives the editor, the [default actions](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/context/actions.tsx), and a helpers object, then returns a mutated actions object.
+The user interface has a set of shared actions used in the menus and keyboard shortcuts. Override these by providing an `actions` method that receives the editor, the [default actions](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/context/actions.tsx), and a helpers object, then returns a mutated actions object. See [Actions](/sdk-features/actions) for the full story.
 
 ```tsx
 import { Tldraw, TLUiOverrides } from 'tldraw'
@@ -213,7 +235,7 @@ export default function App() {
 }
 ```
 
-The `actions` object is a map of [TLUiActionItem](/reference/tldraw/TLUiActionItem)s, keyed by their `id`. See the [action overrides example](/examples/ui/action-overrides) for more.
+The `actions` object is a map of [TLUiActionItem](?)s, keyed by their `id`. See the [action overrides example](/examples/ui/action-overrides) for more.
 
 ### Tools
 
@@ -225,7 +247,7 @@ const myOverrides: TLUiOverrides = {
 		// Create a tool item in the UI's context
 		tools.card = {
 			id: 'card',
-			icon: 'color',
+			icon: 'geo-rectangle',
 			label: 'tools.card',
 			kbd: 'c',
 			onSelect: () => {
@@ -237,7 +259,7 @@ const myOverrides: TLUiOverrides = {
 }
 ```
 
-The `tools` object is a map of [TLUiToolItem](/reference/tldraw/TLUiToolItem)s, keyed by their `id`. See the [add tool to toolbar example](/examples/ui/add-tool-to-toolbar) for a complete implementation.
+The `tools` object is a map of [TLUiToolItem](?)s, keyed by their `id`. See the [add tool to toolbar example](/examples/ui/add-tool-to-toolbar) for a complete implementation.
 
 ### Translations
 
@@ -276,20 +298,21 @@ export default function App() {
 }
 ```
 
-The callback receives the event name as a string and an object with information about the event's source (e.g. `menu` or `context-menu`) and other data specific to each event, such as the direction in an `align-shapes` event.
+The callback receives the event name as a string and an object with the event's `source` (e.g. `menu` or `context-menu`) and other data specific to each event, such as the `operation` in an `align-shapes` event.
 
 Note that `onUiEvent` only fires for UI interactions. Calling [Editor#alignShapes](?) directly won't trigger this callback. See the [UI events example](/examples/events/ui-events) for more.
 
 ## Related articles
 
 - [UI primitives](/sdk-features/ui-primitives) - Use tldraw's button, menu, dialog, and other UI components in your custom interfaces
+- [Overlay utils](/sdk-features/overlay-utils) - Customize canvas overlays like brushes, indicators, snaps, scribbles, and collaborator cursors
 - [Internationalization](/sdk-features/internationalization) - Customize translations and add new languages
 - [Tools](/sdk-features/tools) - Learn how tools work and create your own
 
 ## Related examples
 
 - [Replace the entire UI](/examples/ui/custom-ui) - Build a completely custom toolbar UI while using the editor's functionality
-- [Custom canvas components](/examples/ui/custom-components) - Override individual canvas components like the brush selection box and scribble
+- [Custom canvas components](/examples/ui/custom-components) - Override individual canvas components like the background and grid
 - [Hide the entire UI](/examples/ui/hide-ui) - Use hideUi to hide the entire default interface
 - [Hide UI components](/examples/ui/ui-components-hidden) - Selectively hide specific UI components
 - [Changing menus](/examples/ui/custom-menus) - Create custom menus using tldraw's menu system

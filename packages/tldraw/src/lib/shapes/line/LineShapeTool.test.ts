@@ -1,4 +1,4 @@
-import { assert } from '@tldraw/editor'
+import { PageRecordType, assert } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 
 let editor: TestEditor
@@ -202,6 +202,76 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 		const line = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 		assert(editor.isShapeOfType(line, 'line'))
 		expect(Object.keys(line.props.points).length).toBe(3)
+	})
+
+	it('does not extend a line on another page after changing page', () => {
+		// regression for #10400: shift-clicking after a page change added a point
+		// to the line on the old page instead of starting a new line
+		editor.updateInstanceState({ isToolLocked: true })
+		editor
+			.setCurrentTool('line')
+			.pointerDown(0, 0, { target: 'canvas' })
+			.pointerMove(10, 10)
+			.pointerUp(10, 10)
+
+		const lineOnPage1 = editor.getCurrentPageShapes()[0]
+		assert(editor.isShapeOfType(lineOnPage1, 'line'))
+		expect(Object.keys(lineOnPage1.props.points).length).toBe(2)
+
+		const page2Id = PageRecordType.createId()
+		editor.createPage({ id: page2Id, name: 'Page 2' })
+		editor.setCurrentPage(page2Id)
+		editor.keyDown('Shift').pointerDown(20, 10, { target: 'canvas' }).pointerUp(20, 10)
+
+		expect(editor.getCurrentPageShapes()).toHaveLength(1)
+		const lineOnPage2 = editor.getCurrentPageShapes()[0]
+		assert(editor.isShapeOfType(lineOnPage2, 'line'))
+		expect(lineOnPage2.id).not.toBe(lineOnPage1.id)
+		expect(editor.isShapeInPage(lineOnPage2, page2Id)).toBe(true)
+
+		// The line on the first page is untouched
+		expect(editor.getShape(lineOnPage1.id)).toEqual(lineOnPage1)
+	})
+})
+
+describe('minimum bend distance for shift-clicked handles is measured in screen space', () => {
+	// regression for #7661: minimum bend distance for shift-clicked handles is measured in screen space
+	// Creates a two-point line whose end handle sits at screen point (200, 200), the
+	// camera being static so the handle's screen position matches the pointer-up location.
+	function createTwoPointLine() {
+		editor
+			.setCurrentTool('line')
+			.pointerDown(100, 100, { target: 'canvas' })
+			.pointerMove(200, 200)
+			.pointerUp(200, 200)
+	}
+
+	beforeEach(() => {
+		editor.updateInstanceState({ isToolLocked: true })
+	})
+
+	it('adds a point when the click is more than 2 screen pixels away while zoomed in', () => {
+		editor.setCamera({ x: 0, y: 0, z: 4 })
+		createTwoPointLine()
+		// 4 screen pixels from the end handle: past the 2px screen threshold, but only 1
+		// page unit — under the old page-space threshold this would have merged.
+		editor.keyDown('Shift').pointerDown(204, 200, { target: 'canvas' }).pointerUp(204, 200)
+
+		const line = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
+		assert(editor.isShapeOfType(line, 'line'))
+		expect(Object.keys(line.props.points).length).toBe(3)
+	})
+
+	it('merges the click when within 2 screen pixels while zoomed out', () => {
+		editor.setCamera({ x: 0, y: 0, z: 0.25 })
+		createTwoPointLine()
+		// 1 screen pixel from the end handle: within the 2px screen threshold, but 4 page
+		// units — under the old page-space threshold this would have added a point.
+		editor.keyDown('Shift').pointerDown(201, 200, { target: 'canvas' }).pointerUp(201, 200)
+
+		const line = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
+		assert(editor.isShapeOfType(line, 'line'))
+		expect(Object.keys(line.props.points).length).toBe(2)
 	})
 })
 

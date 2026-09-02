@@ -310,7 +310,7 @@ export const SetMyViewAction = z
 	.meta({
 		title: 'Set My View',
 		description:
-			'The AI changes the bounds of its own viewport to navigate to other areas of the canvas if needed.',
+			'The AI changes the bounds of its own viewport to navigate to other areas of the canvas if needed. `x` and `y` are the top-left corner of the area you want to see, and `w` and `h` are its width and height. To center your view on a point, set `x` and `y` to that point minus half the width and height.',
 	})
 
 export type SetMyViewAction = z.infer<typeof SetMyViewAction>

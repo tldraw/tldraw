@@ -1,6 +1,6 @@
 import { BaseBoxShapeUtil, HTMLContainer, TLShape } from 'tldraw'
 
-// There's a guide at the bottom of this page!
+// There's a guide at the bottom of this file!
 
 const BOX_TYPE = 'box'
 
@@ -16,13 +16,11 @@ export type MiniBoxShape = TLShape<typeof BOX_TYPE>
 
 // [3]
 export class MiniBoxShapeUtil extends BaseBoxShapeUtil<MiniBoxShape> {
-	//[a]
 	static override type = BOX_TYPE
-	//[b]
 	override getDefaultProps(): MiniBoxShape['props'] {
 		return { w: 100, h: 100, color: '#efefef' }
 	}
-	//[c]
+	// [a]
 	component(shape: MiniBoxShape) {
 		return (
 			<HTMLContainer>
@@ -38,31 +36,27 @@ export class MiniBoxShapeUtil extends BaseBoxShapeUtil<MiniBoxShape> {
 			</HTMLContainer>
 		)
 	}
-	//[d]
-	indicator(shape: MiniBoxShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	// [b]
+	getIndicatorPath(shape: MiniBoxShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 
 /*
-This is our shape util, in tldraw all shapes extend the shape util class. In this
-example we're extending the built-in BaseBoxShapeUtil class. This class provides
-the functionality for our shape.
-
 [1]
-First, we need to extend TLGlobalShapePropsMap to add our shape's props to the global type system.
-This tells TypeScript about the shape's properties. For this shape, we define width (w), height (h),
-and color as the shape's properties.
+Registering the props in TLGlobalShapePropsMap is what makes `editor.createShapes({ type: 'box' })`
+type-check and gives `TLShape<'box'>` its props type.
 
 [2]
-Define the shape type using TLShape with the shape's type as a type argument.
+The shape's record type, derived from the registration above.
 
 [3]
-The shape util itself.
-	[a] The type of shape this util is for, this should match the shape type we defined in [2].
-	[b] The default props for our shape. These will be used when creating a new shape.
-	[c] The component for our shape. This returns JSX and is what will be rendered on the
-		canvas. The HtmlContainer component is a div that provides some useful styles.
-	[d] The indicator for our shape, this also returns JSX. This is what will be rendered
-		on the canvas when the shape is selected.
+BaseBoxShapeUtil supplies rectangular geometry and resize behavior for any shape with `w` and `h`
+props, so this util only needs to say what the box looks like.
+	[a] HTMLContainer positions the shape's DOM on the canvas. `pointerEvents: 'all'` is what
+		lets the select tool receive events with this shape as the target.
+	[b] The indicator is the outline drawn when the shape is selected or hovered, as a Path2D in
+		shape space.
 */

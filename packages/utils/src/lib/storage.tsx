@@ -1,4 +1,4 @@
-/* eslint-disable no-restricted-syntax */
+/* eslint-disable tldraw/no-direct-storage */
 
 /**
  * Get a value from local storage.

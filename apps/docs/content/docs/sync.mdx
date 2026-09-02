@@ -33,24 +33,24 @@ There are two main ways to go about hosting tldraw sync:
 
 ### Use our Cloudflare template
 
-The best way to get started hosting your own backend is to clone and deploy [our Cloudflare template](https://github.com/tldraw/tldraw-sync-cloudflare). The template provides the same setup that runs on tldraw.com.
+The best way to get started hosting your own backend is to clone and deploy [our Cloudflare template](https://github.com/tldraw/tldraw/tree/main/templates/sync-cloudflare). The template provides the same setup that runs on tldraw.com.
 
 It uses:
 
-- [Durable Objects](https://developers.cloudflare.com/durable-objects/) to provide a unique WebSocket server per room.
-- [R2](https://developers.cloudflare.com/r2/) to persist document snapshots and store large binary assets like images and videos.
+- [Durable Objects](https://developers.cloudflare.com/durable-objects/) to provide a unique WebSocket server per room. Room state is persisted automatically to the durable object's built-in SQLite storage.
+- [R2](https://developers.cloudflare.com/r2/) to store large binary assets like images and videos.
 
 There are some features that we have not provided and you might want to add yourself, such as authentication and authorization, rate limiting and size limiting for asset uploads, storing snapshots of documents over time for long-term history, and listing and searching for rooms.
 
 Make sure you also read the section below about [deployment concerns](#deployment-concerns).
 
-[Get started with the Cloudflare template](https://github.com/tldraw/tldraw-sync-cloudflare).
+[Get started with the Cloudflare template](https://github.com/tldraw/tldraw/tree/main/templates/sync-cloudflare).
 
 ### Integrate tldraw sync into your own backend
 
 We recommend Cloudflare. The `@tldraw/sync-core` library also integrates tldraw sync into any JavaScript server environment that supports WebSockets.
 
-We have a [simple server example](https://github.com/tldraw/tldraw/tree/main/templates/simple-server-example), supporting both NodeJS and Bun, to use as a reference for how things should be stitched together.
+We have a [simple Node.js server example](https://github.com/tldraw/tldraw/tree/main/templates/simple-server-example) to use as a reference for how things should be stitched together.
 
 ## What does a tldraw sync backend do?
 
@@ -60,17 +60,18 @@ A backend for tldraw sync consists of two or three parts:
 - An **asset storage** provider for large binary files like images and videos.
 - (If using the built-in bookmark shape) An **unfurling service** to extract metadata about bookmark URLs.
 
-On the frontend, there is just one part: the **sync client**, created using the [`useSync`](?) hook from the `@tldraw/sync` package.
+On the frontend, there is just one part: the **sync client**, created using the [useSync](?) hook from the `@tldraw/sync` package.
 
 Here's a simple client implementation:
 
 ```tsx
 import { Tldraw, TLAssetStore, Editor } from 'tldraw'
 import { useSync } from '@tldraw/sync'
+import 'tldraw/tldraw.css'
 import { uploadFileAndReturnUrl } from './assets'
 import { convertUrlToBookmarkAsset } from './unfurl'
 
-function MyEditorComponent({ myRoomId }) {
+function MyEditorComponent({ myRoomId }: { myRoomId: string }) {
 	// This hook creates a sync client that manages the websocket connection to the server
 	// and coordinates updates to the document state.
 	const store = useSync({
@@ -103,13 +104,19 @@ And [here's a full working example](https://github.com/tldraw/tldraw/blob/main/t
 
 ### WebSocket server
 
-The `@tldraw/sync-core` package exports a class called [`TLSocketRoom`](?) that should be created server-side on a per-document basis.
+The `@tldraw/sync-core` package exports a class called [TLSocketRoom](?) that should be created server-side on a per-document basis.
 
-`TLSocketRoom` is used to
+`TLSocketRoom` stores the authoritative copy of the document, relays changes between sync clients over WebSockets, and exposes hooks for persisting the document when it changes.
 
-- Store an authoritative in-memory copy of the document state
-- Transparently set up communication between multiple sync clients via WebSockets.
-- Provide hooks for persisting the document state when it changes.
+Attach each incoming WebSocket to the room and forward its events:
+
+```tsx
+room.handleSocketConnect({ sessionId, socket })
+// If your platform doesn't let the room add listeners to the socket itself
+// (Bun.serve, Cloudflare hibernation), forward events by hand:
+room.handleSocketMessage(sessionId, message)
+room.handleSocketClose(sessionId)
+```
 
 <Callout type="info">
 	You should make sure that there's only ever one `TLSocketRoom` globally for each room in your app.
@@ -118,7 +125,7 @@ The `@tldraw/sync-core` package exports a class called [`TLSocketRoom`](?) that 
 	tldraw.com.
 </Callout>
 
-Read the reference docs for [`TLSocketRoom`](?), and see an example of how to use it in the [simple server example](https://github.com/tldraw/tldraw/blob/main/templates/simple-server-example/src/server/rooms.ts).
+Read the reference docs for [TLSocketRoom](?), and see an example of how to use it in the [simple server example](https://github.com/tldraw/tldraw/blob/main/templates/simple-server-example/src/server/rooms.ts).
 
 ### Storage backends
 
@@ -126,7 +133,7 @@ Read the reference docs for [`TLSocketRoom`](?), and see an example of how to us
 
 #### InMemorySyncStorage (default)
 
-[`InMemorySyncStorage`](?) keeps all document state in memory. It's simple to use, but data is lost when the process restarts. To persist data, pass an `onChange` callback to the constructor and save snapshots to your database.
+[InMemorySyncStorage](?) keeps all document state in memory. It's simple to use, but data is lost when the process restarts. To persist data, pass an `onChange` callback to the constructor and save snapshots to your database.
 
 ```tsx
 import { InMemorySyncStorage, TLSocketRoom } from '@tldraw/sync-core'
@@ -144,9 +151,9 @@ const room = new TLSocketRoom({ storage })
 
 #### SQLiteSyncStorage (recommended for persistence)
 
-[`SQLiteSyncStorage`](?) stores document state in SQLite. Data survives process restarts automatically. This is the recommended approach for production deployments.
+[SQLiteSyncStorage](?) stores document state in SQLite. Data survives process restarts automatically. This is the recommended approach for production deployments.
 
-**For Cloudflare Durable Objects:**
+##### Cloudflare Durable Objects
 
 ```tsx
 import { DurableObject } from 'cloudflare:workers'
@@ -164,7 +171,7 @@ export class TLSyncDurableObject extends DurableObject {
 }
 ```
 
-**For Node.js with better-sqlite3 or node:sqlite:**
+##### Node.js with better-sqlite3 or node:sqlite
 
 ```tsx
 import Database from 'better-sqlite3' // replace with 'node:sqlite' if using
@@ -177,28 +184,97 @@ const room = new TLSocketRoom({ storage })
 ```
 
 <Callout type="info">
-	`SQLiteSyncStorage` automatically creates and manages its database tables. You can use the
-	`tablePrefix` option to avoid conflicts if you're sharing a database with other data.
+	`SQLiteSyncStorage` automatically creates and manages its database tables. You can pass a
+	`tablePrefix` option to the SQL wrapper to avoid conflicts if you're sharing a database with other
+	data.
 </Callout>
+
+### WebSocket hibernation
+
+Some serverless platforms let WebSocket connections survive while the surrounding object hibernates. [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/best-practices/websockets/) is the most common example. The platform keeps the sockets open, but your in-memory state (including the `TLSocketRoom`) is gone when the object wakes back up. Without help, every wake forces every client to reconnect.
+
+`TLSocketRoom` exposes three APIs for hibernation. The `onSessionSnapshot` callback fires when a session has had no message activity for about 5 seconds, so you can persist its state. [TLSocketRoom#getSessionSnapshot](?) returns that snapshot on demand. [TLSocketRoom#handleSocketResume](?) restores a session straight into `Connected` state when the object wakes back up.
+
+Here's the pattern in a Cloudflare Durable Object that uses the WebSocket Hibernation API:
+
+```tsx
+import {
+	DurableObjectSqliteSyncWrapper,
+	type SessionStateSnapshot,
+	SQLiteSyncStorage,
+	TLSocketRoom,
+} from '@tldraw/sync-core'
+import { TLRecord } from '@tldraw/tlschema'
+import { DurableObject } from 'cloudflare:workers'
+
+interface SocketAttachment {
+	sessionId: string
+	snapshot?: SessionStateSnapshot
+}
+
+export class TldrawDurableObject extends DurableObject {
+	private room: TLSocketRoom<TLRecord, void> | null = null
+	// Maps sessionId → ws. Populate this in your webSocketMessage handler.
+	private readonly sessionIdToWs = new Map<string, WebSocket>()
+
+	private getOrCreateRoom() {
+		if (this.room) return this.room
+
+		const sql = new DurableObjectSqliteSyncWrapper(this.ctx.storage)
+		const storage = new SQLiteSyncStorage<TLRecord>({ sql })
+
+		this.room = new TLSocketRoom<TLRecord, void>({
+			storage,
+			// Cloudflare keeps WebSockets alive across hibernation, so let it manage timeouts.
+			clientTimeout: Infinity,
+			// Persist each session's snapshot to its WebSocket attachment when it goes idle.
+			onSessionSnapshot: (sessionId, snapshot) => {
+				const ws = this.sessionIdToWs.get(sessionId)
+				if (ws) ws.serializeAttachment({ sessionId, snapshot })
+			},
+		})
+
+		// Resume any sessions whose sockets survived hibernation.
+		for (const ws of this.ctx.getWebSockets()) {
+			const attachment = ws.deserializeAttachment() as SocketAttachment | null
+			if (attachment?.snapshot) {
+				this.room.handleSocketResume({
+					sessionId: attachment.sessionId,
+					socket: ws,
+					snapshot: attachment.snapshot,
+				})
+			}
+		}
+
+		return this.room
+	}
+}
+```
+
+Three pieces make this work. The `onSessionSnapshot` callback persists each session's state to its WebSocket's attachment so the snapshot is still around after hibernation. When the object wakes up with sockets still open, `handleSocketResume` replays each saved snapshot and the session lands straight in `Connected` state; the client never sees a reconnect. Setting `clientTimeout: Infinity` disables the room's idle timer; hibernating platforms handle keep-alive themselves and would otherwise see the room disconnect healthy clients.
+
+For a complete implementation, including the hibernation event handlers that populate `sessionIdToWs`, see the [sync-cloudflare template](https://github.com/tldraw/tldraw/tree/main/templates/sync-cloudflare).
+
+For non-hibernating environments (Node servers, long-lived processes), you don't need any of this. The in-memory `TLSocketRoom` outlives individual sockets, and the default `clientTimeout` (20 seconds) removes idle sessions.
 
 ### Asset storage
 
 Tldraw also needs a way to store and retrieve large binary assets like images and videos.
 
 You'll need to make sure your backend can handle asset uploads & downloads, then implement
-[`TLAssetStore`](?) to connect it to tldraw.
+[TLAssetStore](?) to connect it to tldraw.
 
 - Read about [how assets work in tldraw](/docs/assets).
-- Read the [`TLAssetStore`](?) reference docs.
+- Read the [TLAssetStore](?) reference docs.
 - See a complete example of an asset store in the
-  [`tldraw-sync-cloudflare`](https://github.com/tldraw/tldraw/blob/main/templates/sync-cloudflare/client/multiplayerAssetStore.tsx)
+  [`sync-cloudflare`](https://github.com/tldraw/tldraw/blob/main/templates/sync-cloudflare/client/multiplayerAssetStore.tsx)
   template.
 
 ### Unfurling service
 
 If you want to use the built-in bookmark shape, you'll need to use or implement an unfurling service that returns metadata about URLs.
 
-This should be registered with the [`Editor`](?) when it loads.
+This should be registered with the [Editor](?) when it loads.
 
 ```tsx
 <Tldraw
@@ -226,6 +302,7 @@ these don't automatically include tldraw's default shapes like arrows and rectan
 pass those in explicitly if you're using them:
 
 ```tsx
+import { useMemo } from 'react'
 import { Tldraw, defaultShapeUtils, defaultBindingUtils } from 'tldraw'
 import { useSync } from '@tldraw/sync'
 
@@ -243,9 +320,9 @@ function MyApp() {
 
 #### On the server
 
-Use [`createTLSchema`](?) to create a store schema, and pass that into [`TLSocketRoom`](?). You can
-use shape/binding utils here, but schema will only look at two properties:
-[`props`](/reference/editor/ShapeUtil#props) and
+Use [createTLSchema](?) to create a store schema, and pass that into [TLSocketRoom](?). You can
+use shape/binding utils here, but the schema only reads three properties:
+[`props`](/reference/editor/ShapeUtil#props), `meta`, and
 [`migrations`](/sdk-features/persistence#migrations). You need to provide the default shape
 schemas if you're using them.
 
@@ -258,7 +335,7 @@ const schema = createTLSchema({
 		...defaultShapeSchemas,
 
 		myCustomShape: {
-			// Validations for this shapes `props`.
+			// Validations for this shape's `props`.
 			props: myCustomShapeProps,
 			// Migrations between versions of this shape.
 			migrations: myCustomShapeMigrations,
@@ -277,9 +354,50 @@ const room = new TLSocketRoom({
 })
 ```
 
-Both `props` and `migration` are optional. If you omit `props`, you won't have any server-side
+Both `props` and `migrations` are optional. If you omit `props`, you won't have any server-side
 validation for your shape, which could result in bad data being stored. If you omit `migrations`,
 clients on different versions won't be able to collaborate without errors.
+
+### Comments and the object-store lane
+
+A room can serve some record types through a second partition, the object-store lane, which is persisted and permissioned separately from the document. Comments are the main use for it.
+
+Comment threads, comments, and reactions are record types that aren't in the default schema. Register
+them with the `records` option on both ends: `useSync` on the client, [createTLSchema](?) on the
+server. Both sides must register the same types, or the connection will fail schema validation.
+
+```ts
+import { TLSocketRoom } from '@tldraw/sync-core'
+import { commentSchemaRecords, createTLSchema } from '@tldraw/tlschema'
+
+const schema = createTLSchema({ records: commentSchemaRecords })
+
+const room = new TLSocketRoom({
+	schema,
+	objectTypes: ['comment', 'comment-thread', 'comment-reaction'],
+})
+```
+
+`objectTypes` serves those record types through the room's object-store lane instead of the document
+lane. Lane records are persisted separately from the document, left out of document snapshots, and
+gated by a per-session `objectAccess` permission rather than by `isReadonly`. That's how a session
+can be allowed to comment without being allowed to edit:
+
+```ts
+room.handleSocketConnect({
+	sessionId,
+	socket,
+	isReadonly: true,
+	objectAccess: 'write',
+})
+```
+
+`objectAccess` is `'read'` or `'write'` and defaults to `'write'` on connect. Read the lane's contents with
+[TLSocketRoom#getCurrentObjectsSnapshot](?), and use the room's `onCommittedChanges` callback to
+mirror committed records into your own database. That callback only fires for client pushes, not for
+`updateStore`, `loadSnapshot`, or direct storage writes. For per-record rules like "only the author
+may edit a comment", pass authorizers to the room's `authorizeRecord` option (see [TLRecordAuthorizers](?)).
+See [Commenting](/sdk-features/commenting) for the client side and the ready-made comment authorizers.
 
 ### Deployment concerns
 
@@ -296,9 +414,9 @@ clients on different versions won't be able to collaborate without errors.
 
 If you have been using some other solution for data sync, you can migrate your existing data to the tldraw sync format.
 
-Both [`InMemorySyncStorage`](?) and [`SQLiteSyncStorage`](?) support loading [`TLStoreSnapshot`](?) snapshots, so you can add a backwards-compatibility layer that lazily imports data from your old system and converts it to a `TLStoreSnapshot`.
+[SQLiteSyncStorage](?) accepts a [TLStoreSnapshot](?) directly, and [TLSocketRoom#loadSnapshot](?) accepts one for any storage backend, so you can add a backwards-compatibility layer that lazily imports data from your old system and converts it to a `TLStoreSnapshot`.
 
-**Example with SQLiteSyncStorage (recommended):**
+#### With SQLiteSyncStorage (recommended)
 
 ```tsx
 import { SQLiteSyncStorage, NodeSqliteWrapper, TLSocketRoom } from '@tldraw/sync-core'
@@ -327,12 +445,13 @@ function loadOrMakeRoom(roomId: string, db: Database.Database) {
 }
 ```
 
-**Example with InMemorySyncStorage:**
+#### With InMemorySyncStorage
 
 ```tsx
 import { InMemorySyncStorage, TLSocketRoom } from '@tldraw/sync-core'
 
 async function loadOrMakeRoom(roomId: string) {
+	// InMemorySyncStorage takes a RoomSnapshot, which is what getSnapshot() returns.
 	const data = await loadRoomDataFromCurrentStore(roomId)
 	if (data) {
 		const storage = new InMemorySyncStorage({ snapshot: data })
@@ -342,9 +461,10 @@ async function loadOrMakeRoom(roomId: string) {
 	if (legacyData) {
 		// Convert your old data to a TLStoreSnapshot.
 		const snapshot = convertOldDataToSnapshot(legacyData)
-		// Load it into the room.
-		const storage = new InMemorySyncStorage({ snapshot })
+		// Load it into the room. loadSnapshot accepts a TLStoreSnapshot.
+		const storage = new InMemorySyncStorage()
 		const room = new TLSocketRoom({ storage })
+		room.loadSnapshot(snapshot)
 		// Save an updated copy of the snapshot in the new place
 		// so that next time we can load it directly.
 		await saveRoomData(roomId, storage.getSnapshot())
@@ -362,7 +482,7 @@ async function loadOrMakeRoom(roomId: string) {
 
 If you were previously using R2 to store room snapshots (as shown in earlier versions of the sync-cloudflare template), you can migrate to SQLite storage while preserving existing data.
 
-**Step 1: Update wrangler.toml if needed**
+#### Step 1: Update wrangler.toml if needed
 
 If your Durable Object class was originally created _without_ SQLite support, you need to add a new migration with a new Durable Object class that uses SQLite storage.
 You need to keep the old class for at least one release because it can't be deleted while it's still being used, but you can convert it to an empty class.
@@ -385,7 +505,7 @@ bindings = [
 ]
 ```
 
-**Step 2: Rename your Durable Object and add fallback loading**
+#### Step 2: Rename your Durable Object and add fallback loading
 
 Rename your existing class (e.g. `TldrawDurableObject` → `TldrawDurableObjectSqlite`) and update the loading logic to check SQLite first, then fall back to R2:
 
@@ -451,7 +571,7 @@ export class TldrawDurableObjectSqlite {
 }
 ```
 
-**Step 3: Update your worker exports**
+#### Step 3: Update your worker exports
 
 Make sure both classes are exported from your worker entry point:
 

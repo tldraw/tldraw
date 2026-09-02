@@ -21,13 +21,13 @@ Every shape in tldraw has an `index` property that determines its visual stackin
 
 ## Why fractional indexing?
 
-Integer-based indexing has problems. If you have shapes at indices `[0, 1, 2]` and want to insert between 0 and 1, you'd need to renumber subsequent shapes or use floats that eventually lose precision.
+Integer indices don't leave room to insert. If you have shapes at indices `[0, 1, 2]` and want to insert between 0 and 1, you'd need to renumber subsequent shapes or use floats that eventually lose precision.
 
-Fractional indexing uses lexicographically sortable strings. You can always generate a new index between any two existing indices. Standard JavaScript string comparison sorts them correctly, and reordering only updates the moved shapes - not every shape on the canvas.
+Fractional indexing uses lexicographically sortable strings. You can always generate a new index between any two existing indices. Standard JavaScript string comparison sorts them correctly, and reordering only updates the moved shapes, not every shape on the canvas.
 
 ## Index structure
 
-Indices are strings like `'a1'`, `'a2'`, or `'a1V'`. The first letter is the integer part (base-62 encoded), and optional following characters are the fractional part for inserting between existing indices. The `@tldraw/utils` package uses the [jittered fractional indexing](https://www.npmjs.com/package/jittered-fractional-indexing) algorithm to generate these strings.
+Indices are strings like `'a1'`, `'a2'`, or `'a1V'`. The leading letter says how many characters make up the integer part (`a` means two characters, `b` means three, and so on), and anything after that is the fractional part for inserting between existing indices. Digits are base-62. The `@tldraw/utils` package uses a vendored copy of the [jittered fractional indexing](https://www.npmjs.com/package/jittered-fractional-indexing) algorithm to generate these strings.
 
 ## Generating indices
 
@@ -52,7 +52,7 @@ const between = getIndexBetween('a1' as IndexKey, 'a3' as IndexKey) // e.g. 'a2'
 const above = getIndexAbove('a1' as IndexKey) // e.g. 'a2'
 const below = getIndexBelow('a2' as IndexKey) // e.g. 'a1'
 
-// Generate multiple indices at once (exact values vary due to jittering)
+// Generate multiple indices at once
 const multipleAbove = getIndicesAbove('a0' as IndexKey, 3)
 const multipleBelow = getIndicesBelow('a2' as IndexKey, 2)
 const multipleBetween = getIndicesBetween('a0' as IndexKey, 'a2' as IndexKey, 2)
@@ -62,7 +62,9 @@ const shapes = [{ index: 'a2' as IndexKey }, { index: 'a1' as IndexKey }]
 shapes.sort(sortByIndex) // [{ index: 'a1' }, { index: 'a2' }]
 ```
 
-The algorithm includes jittering (randomization) to reduce conflicts in collaborative environments. When two users insert shapes at the same position simultaneously, jittering makes them generate different indices instead of identical ones.
+The algorithm jitters (randomizes) the generated keys, so the exact values above vary between calls. This reduces conflicts in collaborative environments: when two users insert shapes at the same position simultaneously, they generate different indices instead of identical ones, and both operations merge cleanly. Jittering is disabled when `NODE_ENV` is `test` so tests are deterministic.
+
+`getIndices(n, start?)` returns the starting index (default `'a1'`) followed by `n` indices above it. `ZERO_INDEX_KEY` is the first index, `'a0'`. To find the next free index in a parent, use [Editor#getHighestIndexForParent](?) with `getIndexAbove`.
 
 ## Reordering shapes
 
@@ -86,7 +88,7 @@ editor.sendBackward(['shape:abc123' as TLShapeId])
 editor.bringForward(['shape:abc123' as TLShapeId])
 ```
 
-By default, these methods only move shapes past other shapes they visually overlap. This makes keyboard shortcuts feel intuitive - pressing "send backward" moves a shape behind the shape it's actually covering, not behind some distant shape.
+By default, these methods only move shapes past other shapes whose page bounds overlap theirs. This makes keyboard shortcuts feel intuitive: pressing "send backward" moves a shape behind the shape it's actually covering, not behind some distant shape.
 
 To move past any shape regardless of overlap:
 
@@ -109,27 +111,21 @@ Shape indices are always relative to siblings within the same parent. When you r
 
 If shapes are already at the target position, no updates occur.
 
-## Collaboration
-
-Fractional indexing works well for real-time collaboration. When two users simultaneously reorder shapes, they generate different indices in the same region of index space. Both operations succeed and merge cleanly.
-
-The jittering mentioned earlier is important here. Without it, two users inserting at the same position would generate identical indices, causing conflicts. With jittering, they get different indices that sort near each other but remain distinct.
-
-Since reordering only updates the moved shapes' indices, it doesn't interfere with other concurrent edits to different shapes.
+If you need full control over ordering (for example in a layer panel), set a shape's `index` directly with [Editor#updateShapes](?).
 
 ## Index validation
 
-`IndexKey` is a branded type - you can't accidentally pass an arbitrary string as an index. Use `validateIndexKey` to check if a string is valid:
+`IndexKey` is a branded type, so you can't accidentally pass an arbitrary string as an index. To validate a string at runtime, use the `indexKey` validator from `@tldraw/validate`:
 
 ```ts
-import { validateIndexKey } from '@tldraw/utils'
+import { T } from 'tldraw'
 
-validateIndexKey('a1') // passes, 'a1' is a valid index
-validateIndexKey('invalid!') // throws an error
+T.indexKey.validate('a1') // returns 'a1' as IndexKey
+T.indexKey.validate('invalid!') // throws a ValidationError
 ```
 
 The store validates indices when you create or update shapes, so the editor won't enter an invalid state.
 
-## Related
+## Related examples
 
-- [Layer panel example](/examples/ui/layer-panel) - Shows shape hierarchy and z-order in a custom panel
+- [Layer panel](/examples/ui/layer-panel) - Shows shape hierarchy and z-order in a custom panel

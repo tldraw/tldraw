@@ -1,5 +1,4 @@
 import {
-	Mat,
 	StateNode,
 	TLLineShape,
 	TLShapeId,
@@ -12,6 +11,7 @@ import {
 	structuredClone,
 } from '@tldraw/editor'
 
+// Minimum distance, in screen pixels, between two shift-clicked handles before we merge them
 const MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES = 2
 
 export class Pointing extends StateNode {
@@ -30,7 +30,9 @@ export class Pointing extends StateNode {
 		// Previously created line shape that we might be extending
 		const shape = info.shapeId && this.editor.getShape<TLLineShape>(info.shapeId)
 
-		if (shape && inputs.getShiftKey()) {
+		// The shape id carried through idle survives a page change; extending it from
+		// another page would silently add a point to content the user can't see (#10400)
+		if (shape && inputs.getShiftKey() && this.editor.isShapeInPage(shape)) {
 			// Extending a previous shape
 			this.markId = this.editor.markHistoryStoppingPoint(`creating_line:${shape.id}`)
 			this.shape = shape
@@ -42,18 +44,20 @@ export class Pointing extends StateNode {
 			const endHandle = vertexHandles[vertexHandles.length - 1]
 			const prevEndHandle = vertexHandles[vertexHandles.length - 2]
 
-			const shapePagePoint = Mat.applyToPoint(
-				this.editor.getShapeParentTransform(this.shape)!,
-				new Vec(this.shape.x, this.shape.y)
-			)
 			// nudge the point slightly to avoid zero-length lines
-			const nudgedPoint = Vec.Sub(currentPagePoint, shapePagePoint).addXY(0.1, 0.1)
+			const nudgedPoint = this.editor
+				.getPointInShapeSpace(this.shape, currentPagePoint)
+				.addXY(0.1, 0.1)
 			const nextPoint = maybeSnapToGrid(nudgedPoint, this.editor)
 			const points = structuredClone(this.shape.props.points)
 
+			// compare in screen space
+			const minDistance =
+				MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES / this.editor.getZoomLevel()
+
 			if (
-				Vec.DistMin(endHandle, prevEndHandle, MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES) ||
-				Vec.DistMin(nextPoint, endHandle, MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES)
+				Vec.DistMin(endHandle, prevEndHandle, minDistance) ||
+				Vec.DistMin(nextPoint, endHandle, minDistance)
 			) {
 				// Don't add a new point if the distance between the last two points is too small
 				points[endHandle.id] = {
@@ -134,6 +138,11 @@ export class Pointing extends StateNode {
 
 	override onPointerUp() {
 		this.complete()
+	}
+
+	override onLongPress() {
+		// On a touch (coarse pointer) long-press, cancel the pending shape so it leaves nothing behind.
+		if (this.editor.getInstanceState().isCoarsePointer) this.cancel()
 	}
 
 	override onCancel() {

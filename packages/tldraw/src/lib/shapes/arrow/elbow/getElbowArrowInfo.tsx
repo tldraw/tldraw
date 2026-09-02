@@ -15,8 +15,9 @@ import {
 	VecLike,
 	VecModel,
 } from '@tldraw/editor'
+import { STROKE_SIZES } from '../../shared/default-shape-constants'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
-import { BOUND_ARROW_OFFSET, STROKE_SIZES, TLArrowBindings } from '../shared'
+import { BOUND_ARROW_OFFSET, TLArrowBindings } from '../shared'
 import {
 	ElbowArrowAxes,
 	ElbowArrowBox,
@@ -42,7 +43,8 @@ import {
 export function getElbowArrowInfo(
 	editor: Editor,
 	arrow: TLArrowShape,
-	bindings: TLArrowBindings
+	bindings: TLArrowBindings,
+	arrowStrokeWidth?: number
 ): ElbowArrowInfo {
 	const shapeOptions = editor.getShapeUtil<ArrowShapeUtil>(arrow.type).options
 	const options: ElbowArrowOptions = {
@@ -53,8 +55,20 @@ export function getElbowArrowInfo(
 
 	// Before we can do anything else, we need to find the start and end terminals of the arrow.
 	// These contain the binding info, geometry, bounds, etc.
-	let startTerminal = getElbowArrowTerminalInfo(editor, arrow, bindings.start, arrow.props.start)
-	let endTerminal = getElbowArrowTerminalInfo(editor, arrow, bindings.end, arrow.props.end)
+	let startTerminal = getElbowArrowTerminalInfo(
+		editor,
+		arrow,
+		bindings.start,
+		arrow.props.start,
+		arrowStrokeWidth
+	)
+	let endTerminal = getElbowArrowTerminalInfo(
+		editor,
+		arrow,
+		bindings.end,
+		arrow.props.end,
+		arrowStrokeWidth
+	)
 	// unclosed paths are weird - we handle them outside of the initial terminal info.
 	startTerminal = adjustTerminalForUnclosedPathIfNeeded(startTerminal, endTerminal, options)
 	endTerminal = adjustTerminalForUnclosedPathIfNeeded(endTerminal, startTerminal, options)
@@ -128,12 +142,14 @@ export function getElbowArrowInfo(
 	}
 
 	// We expand the bounds of the terminals so we can route arrows around them without the arrows
-	// being too close to the shapes.
+	// being too close to the shapes. Always a separate Box from `bounds`: ElbowArrowWorkingInfo
+	// transforms `original` and `expanded` in place, so sharing one object would transform a point
+	// terminal twice (a no-op for flips, a 180° turn for rotations) and corrupt the route.
 	const expandedA = aTerminal.isPoint
-		? aTerminal.bounds
+		? aTerminal.bounds.clone()
 		: aTerminal.bounds.clone().expandBy(options.expandElbowLegLength)
 	const expandedB = bTerminal.isPoint
-		? bTerminal.bounds
+		? bTerminal.bounds.clone()
 		: bTerminal.bounds.clone().expandBy(options.expandElbowLegLength)
 
 	const common: ElbowArrowBox = {
@@ -345,9 +361,12 @@ function getElbowArrowTerminalInfo(
 	editor: Editor,
 	arrow: TLArrowShape,
 	binding: TLArrowBinding | undefined,
-	point: VecModel
+	point: VecModel,
+	arrowStrokeWidth?: number
 ): ElbowArrowTerminal {
-	const arrowStrokeSize = (STROKE_SIZES[arrow.props.size] * arrow.props.scale) / 2
+	const theme = editor.getCurrentTheme()
+	const arrowSW = arrowStrokeWidth ?? theme.strokeWidth * STROKE_SIZES[arrow.props.size]
+	const arrowStrokeSize = (arrowSW * arrow.props.scale) / 2
 	const minEndSegmentLength = arrowStrokeSize * 3
 
 	if (binding) {
@@ -359,7 +378,9 @@ function getElbowArrowTerminalInfo(
 			if (arrow.props[arrowheadProp] !== 'none') {
 				const targetScale = 'scale' in target.props ? target.props.scale : 1
 				const targetStrokeSize =
-					'size' in target.props ? ((STROKE_SIZES[target.props.size] ?? 0) * targetScale) / 2 : 0
+					'size' in target.props
+						? (theme.strokeWidth * (STROKE_SIZES[target.props.size] ?? 0) * targetScale) / 2
+						: 0
 
 				arrowheadOffset =
 					arrowStrokeSize + targetStrokeSize + BOUND_ARROW_OFFSET * arrow.props.scale

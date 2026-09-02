@@ -1,0 +1,1827 @@
+apiVersion: dashboard.grafana.app/v2
+kind: Dashboard
+metadata:
+  annotations:
+    grafana.app/folder: dotcom
+  labels: {}
+  name: mcp-server
+  namespace: stacks-890472
+spec:
+  annotations:
+    - kind: AnnotationQuery
+      spec:
+        builtIn: true
+        enable: true
+        hide: true
+        iconColor: rgba(0, 211, 255, 1)
+        name: Annotations & Alerts
+        query:
+          datasource:
+            name: -- Grafana --
+          group: grafana
+          kind: DataQuery
+          spec: {}
+          version: v0
+  cursorSync: Crosshair
+  description:
+    The authenticated MCP server on the sync worker at POST /app/mcp, which serves get_board_info,
+    get_page_info, get_cluster_info and get_cluster_screenshot for any tldraw.com board the signed-in
+    caller can see. Every request needs an OAuth access token from the tldraw Clerk instance and a
+    user the mcp_server_access flag names; refusals are on the mcp_server_auth_refusal event. Protocol traffic comes from the mcp_server_tool_call and mcp_server_initialize
+    events; the render panels are the source:mcp slice of mcp_shared_board_screenshot, whose
+    cross-surface view (og and queue too) stays on Dotcom events. This server only — the separate
+    tldraw MCP app worker (apps/mcp-app) and its own MCP_ANALYTICS dataset are on MCP app
+    sessions.
+  editable: true
+  elements:
+    panel-1:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: table
+                      formatAs: table
+                      intervalFactor: 1
+                      query: |-
+                        SELECT count() as calls
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_tool_call'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                      rawQuery: |-
+                        SELECT count() as calls
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_tool_call'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: Every tools/call the MCP server dispatched, including ones that failed
+          before doing any work.
+        id: 1
+        links: []
+        title: Tool calls
+        vizConfig:
+          group: stat
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: thresholds
+                thresholds: &id001
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: short
+              overrides: []
+            options:
+              colorMode: value
+              graphMode: area
+              justifyMode: auto
+              orientation: auto
+              percentChangeColorMode: standard
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              showPercentChange: false
+              textMode: auto
+              wideLayout: true
+          version: 13.2.0-29854286369
+    panel-10:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob6, 8) as client, count() as calls
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_tool_call'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, client
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob6, 8) as client, count() as calls
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_tool_call'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, client
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: Client family, normalized from the User-Agent header into a bounded set
+          (claude, openai, cursor, python, node, curl, browser, other, none). `none` means
+          the caller sent no User-Agent.
+        id: 10
+        links: []
+        title: Tool calls by client
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: bars
+                  fillOpacity: 80
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 0
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: normal
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds: *id001
+                unit: short
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-11:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: table
+                      formatAs: table
+                      intervalFactor: 1
+                      query: |-
+                        SELECT substring(blob3, 8) as client, count() as handshakes
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_initialize'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY client
+                        ORDER BY handshakes DESC
+                      rawQuery: |-
+                        SELECT substring(blob3, 8) as client, count() as handshakes
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_initialize'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY client
+                        ORDER BY handshakes DESC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: Which applications opened connections, taken from the clientInfo.name
+          each one sends at initialize rather than from its User-Agent.
+        id: 11
+        links: []
+        title: Handshakes by client
+        vizConfig:
+          group: piechart
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                unit: short
+              overrides: []
+            options:
+              displayLabels:
+                - percent
+              legend:
+                displayMode: list
+                overflow: ellipsis
+                placement: right
+                showLegend: true
+                values: []
+              pieType: donut
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: true
+              sort: desc
+              tooltip:
+                hideZeros: false
+                mode: single
+                sort: none
+          version: 13.2.0-29854286369
+    panel-12:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: table
+                      formatAs: table
+                      intervalFactor: 1
+                      query: |-
+                        SELECT substring(blob4, 5) as client_name, substring(blob5, 4) as user_agent, count() as handshakes
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_initialize'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY client_name, user_agent
+                        ORDER BY handshakes DESC
+                        LIMIT 50
+                      rawQuery: |-
+                        SELECT substring(blob4, 5) as client_name, substring(blob5, 4) as user_agent, count() as handshakes
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_initialize'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY client_name, user_agent
+                        ORDER BY handshakes DESC
+                        LIMIT 50
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: The raw clientInfo.name each caller reported, beside the User-Agent family
+          it arrived with. This is where a client that currently lands in `other` gets identified
+          — add it to MCP_CLIENT_FAMILIES in sharedBoardScreenshotMcp.ts and it gets its own
+          series in the panels above.
+        id: 12
+        links: []
+        title: Client names seen at initialize
+        vizConfig:
+          group: table
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                custom:
+                  align: auto
+                  cellOptions:
+                    type: auto
+                  inspect: false
+                thresholds: *id001
+              overrides: []
+            options:
+              cellHeight: sm
+              footer:
+                countRows: false
+                fields: ''
+                reducer:
+                  - sum
+                show: false
+              showHeader: true
+          version: 13.2.0-29854286369
+    panel-13:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob4, 6) as mode, quantileWeighted(0.5, double3, _sample_interval) as p50, quantileWeighted(0.95, double3, _sample_interval) as p95, quantileWeighted(0.99, double3, _sample_interval) as p99
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'browser_run_session'
+                        AND blob3 = 'source:mcp'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, mode
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob4, 6) as mode, quantileWeighted(0.5, double3, _sample_interval) as p50, quantileWeighted(0.95, double3, _sample_interval) as p95, quantileWeighted(0.99, double3, _sample_interval) as p99
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'browser_run_session'
+                        AND blob3 = 'source:mcp'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, mode
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: 'Wall-clock per browser session for this server only (source:mcp), from the
+          browser_run_session ledger, split by what the session was for: measure (the clustering
+          tools sizing a page) vs screenshot. Weighted by _sample_interval to account for Analytics
+          Engine sampling. Failed sessions are included — they held a browser too. The cross-surface
+          view, including the og route and the background queue, is on Dotcom events.'
+        id: 13
+        links: []
+        title: Browser Run render duration percentiles
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: line
+                  fillOpacity: 10
+                  gradientMode: opacity
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1.5
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds: *id001
+                unit: ms
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-14:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob4, 7) as cache_status, count() as total
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_shared_board_screenshot'
+                        AND blob3 = 'source:mcp'
+                        AND blob4 != 'cache:none'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, cache_status
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob4, 7) as cache_status, count() as total
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_shared_board_screenshot'
+                        AND blob3 = 'source:mcp'
+                        AND blob4 != 'cache:none'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, cache_status
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: 'Cache outcome per screenshot attempt: hit (served a cached PNG), miss
+          (had to render). Only misses spend Browser Run, so a falling hit rate is what makes
+          render spend climb. cache:none is excluded — the info tools consult no cache at all
+          and would otherwise swamp both real values.'
+        id: 14
+        links: []
+        title: Screenshot cache status
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: bars
+                  fillOpacity: 80
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 0
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: normal
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds: *id001
+                unit: short
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-15:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob5, 9) as reason, count() as total
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_shared_board_screenshot'
+                        AND blob3 = 'source:mcp'
+                        AND blob5 != 'failure:none'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, reason
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob5, 9) as reason, count() as total
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_shared_board_screenshot'
+                        AND blob3 = 'source:mcp'
+                        AND blob5 != 'failure:none'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, reason
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: Render-path failures for this server only. browser_timeout and browser_failed
+          are Browser Run problems; snapshot_read_error is the board load; the rest are caller-shaped.
+        id: 15
+        links: []
+        title: Screenshot failures by reason
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: bars
+                  fillOpacity: 80
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 0
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: normal
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds: *id001
+                unit: short
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-16:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob5, 9) as reason, count() as blocked
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_shared_board_screenshot'
+                        AND blob3 = 'source:mcp'
+                        AND blob6 = 'rate_limit:blocked'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, reason
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob5, 9) as reason, count() as blocked
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_shared_board_screenshot'
+                        AND blob3 = 'source:mcp'
+                        AND blob6 = 'rate_limit:blocked'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, reason
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: 'Which limiter turned a screenshot away: rate_limited_user is one account
+          over its per-user budget, rate_limited_board is one board being screenshotted too
+          often, and rate_limited_global means the shared Browser Run cap is saturated — that
+          last one is shared with the og and queue surfaces. Rows written before the MCP server
+          required authentication carry rate_limited_ip instead, when the budget was per IP.'
+        id: 16
+        links: []
+        title: Rate-limited screenshot events
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: bars
+                  fillOpacity: 80
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 0
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: normal
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds: *id001
+                unit: short
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-2:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: table
+                      formatAs: table
+                      intervalFactor: 1
+                      query: |-
+                        SELECT countIf(blob4 = 'outcome:error') / count() * 100 as error_rate
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_tool_call'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                      rawQuery: |-
+                        SELECT countIf(blob4 = 'outcome:error') / count() * 100 as error_rate
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_tool_call'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: Share of tool calls that returned an error, for any reason — bad input,
+          a board that could not be found, a rate limit, or a failed render.
+        id: 2
+        links: []
+        title: Tool call error rate
+        vizConfig:
+          group: stat
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: thresholds
+                thresholds: *id001
+                unit: percent
+              overrides: []
+            options:
+              colorMode: value
+              graphMode: area
+              justifyMode: auto
+              orientation: auto
+              percentChangeColorMode: standard
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              showPercentChange: false
+              textMode: auto
+              wideLayout: true
+          version: 13.2.0-29854286369
+    panel-3:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: table
+                      formatAs: table
+                      intervalFactor: 1
+                      query: |-
+                        SELECT count() as handshakes
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_initialize'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                      rawQuery: |-
+                        SELECT count() as handshakes
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_initialize'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: 'initialize requests: one per client session opening a connection to
+          the server. Compare with tool calls to see clients that connect and then never ask
+          for anything.'
+        id: 3
+        links: []
+        title: Handshakes
+        vizConfig:
+          group: stat
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: thresholds
+                thresholds: *id001
+                unit: short
+              overrides: []
+            options:
+              colorMode: value
+              graphMode: area
+              justifyMode: auto
+              orientation: auto
+              percentChangeColorMode: standard
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              showPercentChange: false
+              textMode: auto
+              wideLayout: true
+          version: 13.2.0-29854286369
+    panel-4:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: table
+                      formatAs: table
+                      intervalFactor: 1
+                      query: |-
+                        SELECT count() as renders
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'browser_run_session'
+                        AND blob3 = 'source:mcp'
+                        AND blob4 = 'mode:screenshot'
+                        AND blob5 = 'outcome:ok'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                      rawQuery: |-
+                        SELECT count() as renders
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'browser_run_session'
+                        AND blob3 = 'source:mcp'
+                        AND blob4 = 'mode:screenshot'
+                        AND blob5 = 'outcome:ok'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: Browser sessions on this server that produced a PNG (browser_run_session rows
+          with mode:screenshot and outcome:ok). Measure renders, cache hits and failed sessions are
+          excluded — for measure spend see the duration panel, which splits by mode.
+        id: 4
+        links: []
+        title: Screenshots rendered
+        vizConfig:
+          group: stat
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: thresholds
+                thresholds: *id001
+                unit: short
+              overrides: []
+            options:
+              colorMode: value
+              graphMode: area
+              justifyMode: auto
+              orientation: auto
+              percentChangeColorMode: standard
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              showPercentChange: false
+              textMode: auto
+              wideLayout: true
+          version: 13.2.0-29854286369
+    panel-5:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob3, 6) as tool, count() as calls
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_tool_call'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, tool
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob3, 6) as tool, count() as calls
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_tool_call'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, tool
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: 'Which of the four tools callers actually use: get_board_info, get_page_info,
+          get_cluster_info and get_cluster_screenshot. `unknown` is a call for a tool name
+          this server does not have.'
+        id: 5
+        links: []
+        title: Tool calls by tool
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: bars
+                  fillOpacity: 80
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 0
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: normal
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds: *id001
+                unit: short
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-6:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob4, 9) as outcome, count() as calls
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_tool_call'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, outcome
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob4, 9) as outcome, count() as calls
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_tool_call'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, outcome
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: ok against error, for every tool together. A healthy server is mostly
+          ok with a thin, steady error band; a step change in error usually means one caller
+          found a broken path.
+        id: 6
+        links: []
+        title: Tool call outcomes
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: bars
+                  fillOpacity: 80
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 0
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: normal
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds: *id001
+                unit: short
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-7:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob5, 8) as reason, count() as errors
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_tool_call'
+                        AND blob4 = 'outcome:error'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, reason
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob5, 8) as reason, count() as errors
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_tool_call'
+                        AND blob4 = 'outcome:error'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, reason
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: 'Bounded reason codes: invalid_input, not_found, board_empty, page_not_found,
+          cluster_not_found, unknown_tool, board_lookup_error, the rate_limited_* codes, and
+          the render failure classes. Caller mistakes (invalid_input, *_not_found) are expected
+          traffic; the render classes are ours. unhandled_error means a tool threw instead
+          of returning an error, which is always a bug. Caveat on the clustering tools: they
+          resolve the board and then render it under one catch, so a Postgres stall during
+          the lookup can be reported as browser_timeout — check Postgres before trusting a
+          browser class from get_page_info or get_cluster_info.'
+        id: 7
+        links: []
+        title: Tool call errors by reason
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: bars
+                  fillOpacity: 80
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 0
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: normal
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds: *id001
+                unit: short
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-8:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileWeighted(0.5, double1, _sample_interval) as p50, quantileWeighted(0.95, double1, _sample_interval) as p95, quantileWeighted(0.99, double1, _sample_interval) as p99
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_tool_call'
+                        AND blob5 NOT IN ('reason:unknown_tool', 'reason:invalid_input')
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileWeighted(0.5, double1, _sample_interval) as p50, quantileWeighted(0.95, double1, _sample_interval) as p95, quantileWeighted(0.99, double1, _sample_interval) as p99
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_tool_call'
+                        AND blob5 NOT IN ('reason:unknown_tool', 'reason:invalid_input')
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: End-to-end time inside the tools/call handler, weighted by _sample_interval
+          to account for Analytics Engine sampling. Includes the board lookup, any measure
+          render, and the screenshot itself. Calls rejected before doing any work (an unknown
+          tool name, or arguments that failed to parse) are excluded — they always measure
+          zero, and a client looping one would otherwise hold the reported p50 at zero.
+        id: 8
+        links: []
+        title: Tool call duration percentiles
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: line
+                  fillOpacity: 10
+                  gradientMode: opacity
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1.5
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds: *id001
+                unit: ms
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-9:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob3, 6) as tool, quantileWeighted(0.95, double1, _sample_interval) as p95
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_tool_call'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, tool
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob3, 6) as tool, quantileWeighted(0.95, double1, _sample_interval) as p95
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_tool_call'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, tool
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: The same p95, split per tool. get_board_info reads a snapshot and should
+          stay fast; the clustering tools each pay for a measure render, so they sit an order
+          of magnitude higher.
+        id: 9
+        links: []
+        title: Tool call p95 duration by tool
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: line
+                  fillOpacity: 10
+                  gradientMode: opacity
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1.5
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds: *id001
+                unit: ms
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+  layout:
+    kind: GridLayout
+    spec:
+      items:
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-1
+            height: 4
+            width: 6
+            x: 0
+            y: 0
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-2
+            height: 4
+            width: 6
+            x: 6
+            y: 0
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-3
+            height: 4
+            width: 6
+            x: 12
+            y: 0
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-4
+            height: 4
+            width: 6
+            x: 18
+            y: 0
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-5
+            height: 8
+            width: 12
+            x: 0
+            y: 4
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-6
+            height: 8
+            width: 6
+            x: 12
+            y: 4
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-7
+            height: 8
+            width: 6
+            x: 18
+            y: 4
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-8
+            height: 8
+            width: 12
+            x: 0
+            y: 12
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-9
+            height: 8
+            width: 12
+            x: 12
+            y: 12
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-10
+            height: 8
+            width: 8
+            x: 0
+            y: 20
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-11
+            height: 8
+            width: 8
+            x: 8
+            y: 20
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-12
+            height: 8
+            width: 8
+            x: 16
+            y: 20
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-13
+            height: 8
+            width: 12
+            x: 0
+            y: 28
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-14
+            height: 8
+            width: 12
+            x: 12
+            y: 28
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-15
+            height: 8
+            width: 12
+            x: 0
+            y: 36
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-16
+            height: 8
+            width: 12
+            x: 12
+            y: 36
+  links: []
+  liveNow: false
+  preload: false
+  tags:
+    - tldraw
+    - analytics-engine
+    - mcp
+    - provisioned
+    - repo:tldraw/tldraw
+  timeSettings:
+    autoRefresh: ''
+    autoRefreshIntervals:
+      - 30s
+      - 1m
+      - 5m
+      - 15m
+      - 30m
+      - 1h
+      - 2h
+      - 1d
+    fiscalYearStartMonth: 0
+    from: now-24h
+    hideTimepicker: false
+    timezone: browser
+    to: now
+  title: MCP server (shared boards)
+  variables:
+    - kind: TextVariable
+      spec:
+        current:
+          text: production
+          value: production
+        description: Environment to filter by. Use production, staging, or your pr number
+          (pr-42). Every panel here reads the MEASURE dataset, so it applies to all of them.
+        hide: dontHide
+        label: 'Environment: production | staging | pr-42'
+        name: environment
+        query: production
+        skipUrlSync: false

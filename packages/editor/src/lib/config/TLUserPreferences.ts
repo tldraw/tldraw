@@ -2,6 +2,7 @@ import { atom } from '@tldraw/state'
 import { getDefaultTranslationLocale } from '@tldraw/tlschema'
 import { getFromLocalStorage, setInLocalStorage, structuredClone, uniqueId } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
+import { getGlobalWindow } from '../utils/dom'
 
 const USER_DATA_KEY = 'TLDRAW_USER_DATA_v3'
 
@@ -154,8 +155,8 @@ function getRandomColor() {
 
 /** @internal */
 export function userPrefersReducedMotion() {
-	if (typeof window !== 'undefined' && window.matchMedia) {
-		return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false
+	if (typeof window !== 'undefined' && getGlobalWindow().matchMedia) {
+		return getGlobalWindow().matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false
 	}
 
 	return false
@@ -200,9 +201,9 @@ function migrateUserPreferences(userData: unknown): TLUserPreferences {
 
 	const snapshot = structuredClone(userData) as any
 
-	migrateSnapshot(snapshot)
-
 	try {
+		// migration dereferences `user`, which malformed stored data may not have as an object
+		migrateSnapshot(snapshot)
 		return userTypeValidator.validate(snapshot.user)
 	} catch {
 		return getFreshUserPreferences()
@@ -210,8 +211,12 @@ function migrateUserPreferences(userData: unknown): TLUserPreferences {
 }
 
 function loadUserPreferences(): TLUserPreferences {
-	const userData = (JSON.parse(getFromLocalStorage(USER_DATA_KEY) || 'null') ??
-		null) as null | UserDataSnapshot
+	let userData: unknown = null
+	try {
+		userData = JSON.parse(getFromLocalStorage(USER_DATA_KEY) || 'null')
+	} catch {
+		// corrupt stored data is treated as absent rather than blocking the editor from mounting
+	}
 
 	return migrateUserPreferences(userData)
 }

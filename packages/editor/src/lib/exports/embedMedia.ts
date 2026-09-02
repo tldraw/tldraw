@@ -1,5 +1,5 @@
 import { MediaHelpers } from '@tldraw/utils'
-import { getRenderedChildren } from './domUtils'
+import { getOwnerWindow, getRenderedChildren } from './domUtils'
 import { resourceToDataUrl } from './fetchCache'
 
 function copyAttrs(source: Element, target: Element) {
@@ -14,8 +14,12 @@ function replace(original: HTMLElement, replacement: HTMLElement) {
 	return replacement
 }
 
-async function createImage(dataUrl: string | null, cloneAttributesFrom?: HTMLElement) {
-	const image = document.createElement('img')
+async function createImage(
+	doc: Document,
+	dataUrl: string | null,
+	cloneAttributesFrom?: HTMLElement
+) {
+	const image = doc.createElement('img')
 
 	if (cloneAttributesFrom) {
 		copyAttrs(cloneAttributesFrom, image)
@@ -34,52 +38,54 @@ async function createImage(dataUrl: string | null, cloneAttributesFrom?: HTMLEle
 }
 
 async function getCanvasReplacement(canvas: HTMLCanvasElement) {
+	const doc = canvas.ownerDocument
 	try {
 		const dataURL = canvas.toDataURL()
-		return await createImage(dataURL, canvas)
+		return await createImage(doc, dataURL, canvas)
 	} catch {
-		return await createImage(null, canvas)
+		return await createImage(doc, null, canvas)
 	}
 }
 
 async function getVideoReplacement(video: HTMLVideoElement) {
+	const doc = video.ownerDocument
 	try {
 		const dataUrl = await MediaHelpers.getVideoFrameAsDataUrl(video)
-		return createImage(dataUrl, video)
+		return createImage(doc, dataUrl, video)
 	} catch (err) {
 		console.error('Could not get video frame', err)
 	}
 
 	if (video.poster) {
 		const dataUrl = await resourceToDataUrl(video.poster)
-		return createImage(dataUrl, video)
+		return createImage(doc, dataUrl, video)
 	}
 
-	return createImage(null, video)
+	return createImage(doc, null, video)
 }
 
 export async function embedMedia(node: HTMLElement) {
-	if (node instanceof HTMLCanvasElement) {
+	const win = getOwnerWindow(node)
+	if (node instanceof win.HTMLCanvasElement) {
 		return replace(node, await getCanvasReplacement(node))
-	} else if (node instanceof HTMLVideoElement) {
+	} else if (node instanceof win.HTMLVideoElement) {
 		return replace(node, await getVideoReplacement(node))
-	} else if (node instanceof HTMLImageElement) {
+	} else if (node instanceof win.HTMLImageElement) {
 		const src = node.currentSrc || node.src
 		const dataUrl = await resourceToDataUrl(src)
 		node.setAttribute('src', dataUrl ?? 'data:')
 		node.setAttribute('decoding', 'sync')
 		node.setAttribute('loading', 'eager')
 		try {
-			await node.decode()
+			await (node as HTMLImageElement).decode()
 		} catch {
 			// this is fine
 		}
 		return node
-	} else if (node instanceof HTMLInputElement) {
-		// if an input has a value, make sure it's serialized when we convert to svg
-		node.setAttribute('value', node.value)
-	} else if (node instanceof HTMLTextAreaElement) {
-		node.textContent = node.value
+	} else if (node instanceof win.HTMLInputElement) {
+		node.setAttribute('value', (node as HTMLInputElement).value)
+	} else if (node instanceof win.HTMLTextAreaElement) {
+		node.textContent = (node as HTMLTextAreaElement).value
 	}
 
 	await Promise.all(

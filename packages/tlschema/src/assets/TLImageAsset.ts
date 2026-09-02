@@ -1,6 +1,6 @@
 import { createMigrationIds, createRecordMigrationSequence } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { TLAsset } from '../records/TLAsset'
+import { RecordProps } from '../recordsWithProps'
 import { TLBaseAsset, createAssetValidator } from './TLBaseAsset'
 
 /**
@@ -21,48 +21,22 @@ export type TLImageAsset = TLBaseAsset<
 	}
 >
 
-/**
- * Validator for image assets. Validates the structure and properties of TLImageAsset records
- * to ensure data integrity when image assets are stored or retrieved from the tldraw store.
- *
- * @example
- * ```ts
- * import { imageAssetValidator } from '@tldraw/tlschema'
- *
- * const imageAsset = {
- *   id: 'asset:image123',
- *   typeName: 'asset',
- *   type: 'image',
- *   props: {
- *     w: 800,
- *     h: 600,
- *     name: 'photo.jpg',
- *     isAnimated: false,
- *     mimeType: 'image/jpeg',
- *     src: 'https://example.com/photo.jpg',
- *     fileSize: 156000
- *   },
- *   meta: {}
- * }
- *
- * // Validate the asset
- * const isValid = imageAssetValidator.validate(imageAsset)
- * ```
- *
- * @public
- */
+/** @public */
+export const imageAssetProps = {
+	w: T.number,
+	h: T.number,
+	name: T.string,
+	isAnimated: T.boolean,
+	mimeType: T.string.nullable(),
+	src: T.srcUrl.nullable(),
+	fileSize: T.nonZeroNumber.optional(),
+	pixelRatio: T.positiveNumber.optional(),
+} satisfies RecordProps<TLImageAsset>
+
+/** Validator for image assets. @public */
 export const imageAssetValidator: T.Validator<TLImageAsset> = createAssetValidator(
 	'image',
-	T.object({
-		w: T.number,
-		h: T.number,
-		name: T.string,
-		isAnimated: T.boolean,
-		mimeType: T.string.nullable(),
-		src: T.srcUrl.nullable(),
-		fileSize: T.nonZeroNumber.optional(),
-		pixelRatio: T.positiveNumber.optional(),
-	})
+	T.object(imageAssetProps)
 )
 
 const Versions = createMigrationIds('com.tldraw.asset.image', {
@@ -109,7 +83,7 @@ export { Versions as imageAssetVersions }
 export const imageAssetMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.asset.image',
 	recordType: 'asset',
-	filter: (asset) => (asset as TLAsset).type === 'image',
+	filter: (asset) => (asset as TLImageAsset).type === 'image',
 	sequence: [
 		{
 			id: Versions.AddIsAnimated,

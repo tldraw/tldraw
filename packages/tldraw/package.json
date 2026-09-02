@@ -1,13 +1,19 @@
 {
 	"name": "tldraw",
 	"description": "A tiny little drawing editor.",
-	"version": "4.4.0",
+	"version": "5.3.2",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
 	},
 	"homepage": "https://tldraw.dev",
 	"license": "SEE LICENSE IN LICENSE.md",
+	"tldraw_product": {
+		"stableId": "tldraw:sdk-core",
+		"name": "SDK",
+		"type": "product",
+		"premium": false
+	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tldraw/tldraw"
@@ -61,9 +67,10 @@
 		"@tiptap/starter-kit": "^3.12.1",
 		"@tldraw/driver": "workspace:*",
 		"@tldraw/editor": "workspace:*",
+		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
+		"@tldraw/tlschema": "workspace:*",
 		"classnames": "^2.5.1",
-		"hotkeys-js": "^3.13.9",
 		"idb": "^7.1.1",
 		"lz-string": "^1.5.0",
 		"radix-ui": "^1.4.2"
@@ -81,10 +88,14 @@
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"chokidar-cli": "^3.0.0",
+		"jest-diff": "^30.4.1",
 		"lazyrepo": "0.0.0-alpha.27",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"resize-observer-polyfill": "^1.5.1",
-		"vitest": "^3.2.4"
+		"vitest": "^4.1.7"
+	},
+	"engines": {
+		"node": ">=22.12.0"
 	}
 }

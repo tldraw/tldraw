@@ -1,6 +1,6 @@
-import { Octokit } from '@octokit/rest'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
+import { Octokit } from '@octokit/rest'
 import { REPO_ROOT } from './lib/file'
 import { formatLabelOptionsForPRTemplate, getLabelNames } from './lib/labels'
 

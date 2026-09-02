@@ -95,7 +95,7 @@ export function bind<This extends object, T extends (...args: any[]) => any>(
  */
 export function bind(
 	...args: // legacy stage-2 typescript decorators
-	| [_target: object, propertyKey: string, descriptor: PropertyDescriptor]
+		| [_target: object, propertyKey: string, descriptor: PropertyDescriptor]
 		// TC39 decorators
 		| [originalMethod: (...args: any[]) => any, context: ClassMemberDecoratorContext]
 ): PropertyDescriptor | void {

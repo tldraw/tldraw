@@ -1,6 +1,6 @@
 import { createBindingId, createShapeId, Editor, TLShapeId, VecModel } from 'tldraw'
-import { NodeShape } from '../nodes/NodeShapeUtil'
 import { getNodePortConnections } from '../nodes/nodePorts'
+import { NodeShape } from '../nodes/NodeShapeUtil'
 import { NodeType } from '../nodes/nodeTypes'
 import {
 	PipelineTemplate,

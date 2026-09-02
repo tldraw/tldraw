@@ -35,6 +35,7 @@ export function loopToHtmlElement(elm: Element): HTMLElement {
  * @public
  */
 export function preventDefault(event: React.BaseSyntheticEvent | Event) {
+	if ('cancelable' in event && !event.cancelable) return
 	event.preventDefault()
 	if (debugFlags.logPreventDefaults.get()) {
 		console.warn('preventDefault called on event:', event)
@@ -85,16 +86,52 @@ export function releasePointerCapture(
  *
  * @public
  */
-export const stopEventPropagation = (e: any) => e.stopPropagation()
+export function stopEventPropagation(e: any) {
+	return e.stopPropagation()
+}
 
 /** @internal */
-export const setStyleProperty = (
+export function setStyleProperty(
 	elm: HTMLElement | null,
 	property: string,
 	value: string | number
-) => {
+) {
 	if (!elm) return
 	elm.style.setProperty(property, String(value))
+}
+
+/**
+ * Move an element into a new parent, preserving its state where the platform allows it.
+ *
+ * Uses `Node.moveBefore` (Chromium 133+, Firefox 144+) when both the element and parent are
+ * connected to the same document — this moves the element without resetting its state, so
+ * iframes don't reload and media keeps playing. Otherwise (older browsers, disconnected nodes,
+ * or a cross-document move) it falls back to `appendChild`, which moves the element but resets
+ * its state like an iframe reload.
+ *
+ * This is the primitive tldraw uses to adopt `ShapeUtil.getAppOwnedElement` elements, exposed so
+ * apps can perform symmetric state-preserving moves from `ShapeUtil.onReleaseAppOwnedElement` —
+ * for example moving an element to an off-canvas parking lot between editor sessions.
+ *
+ * @param parent - The element to move `element` into, as its last child.
+ * @param element - The element to move.
+ * @public
+ */
+export function moveElementInto(parent: HTMLElement, element: HTMLElement) {
+	if (
+		element.isConnected &&
+		parent.isConnected &&
+		typeof (parent as any).moveBefore === 'function' &&
+		element.ownerDocument === parent.ownerDocument
+	) {
+		try {
+			;(parent as any).moveBefore(element, null)
+			return
+		} catch {
+			// fall through to appendChild
+		}
+	}
+	parent.appendChild(element)
 }
 
 /** @internal */
@@ -112,7 +149,39 @@ export function elementShouldCaptureKeys(el: Element | null, includeButtonsAndMe
 	)
 }
 
+/**
+ * Returns the global `document`. Use this instead of bare `document` to satisfy lint rules.
+ *
+ * When you have a DOM node or editor instance, prefer the scoped versions instead:
+ * - `getOwnerDocument(node)` – the document that owns a specific DOM node
+ * - `editor.getContainerDocument()` – the document where the editor is mounted
+ *
+ * @internal
+ */
+export function getGlobalDocument(): Document {
+	// eslint-disable-next-line no-restricted-globals
+	if (typeof document !== 'undefined') return document
+	return globalThis.document
+}
+
+/**
+ * Returns the global `window`. Use this instead of bare `window` to satisfy lint rules.
+ *
+ * When you have a DOM node or editor instance, prefer the scoped versions instead:
+ * - `getOwnerWindow(node)` – the window that owns a specific DOM node
+ * - `editor.getContainerWindow()` – the window where the editor is mounted
+ *
+ * @internal
+ */
+export function getGlobalWindow(): Window & typeof globalThis {
+	if (typeof window !== 'undefined') return window as Window & typeof globalThis
+	return globalThis as Window & typeof globalThis
+}
+
 /** @internal */
-export function activeElementShouldCaptureKeys(includeButtonsAndMenus = true) {
-	return elementShouldCaptureKeys(document.activeElement, includeButtonsAndMenus)
+export function activeElementShouldCaptureKeys(includeButtonsAndMenus = true, doc?: Document) {
+	return elementShouldCaptureKeys(
+		(doc ?? getGlobalDocument()).activeElement,
+		includeButtonsAndMenus
+	)
 }

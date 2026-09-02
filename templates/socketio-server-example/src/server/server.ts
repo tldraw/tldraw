@@ -1,6 +1,6 @@
+import { createServer } from 'http'
 import { WebSocketMinimal } from '@tldraw/sync-core'
 import express from 'express'
-import { createServer } from 'http'
 import { Server } from 'socket.io'
 import { loadAsset, storeAsset } from './assets'
 import { makeOrLoadRoom } from './rooms'
@@ -74,10 +74,7 @@ io.on('connection', async (socket) => {
 		}
 
 		// and finally connect the socket to the room
-		room.handleSocketConnect({
-			sessionId: sessionId,
-			socket: socketAdapter,
-		})
+		room.handleSocketConnect({ sessionId, socket: socketAdapter })
 
 		// Handle tldraw sync messages
 		socket.on('tldraw-message', (message) => {

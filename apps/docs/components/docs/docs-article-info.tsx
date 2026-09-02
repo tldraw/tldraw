@@ -1,14 +1,15 @@
+import { format } from 'date-fns'
+import Link from 'next/link'
 import { BackToTopButton } from '@/components/common/back-to-top-button'
 import { GithubIcon } from '@/components/common/icon/github'
 import { Article } from '@/types/content-types'
-import { format } from 'date-fns'
-import Link from 'next/link'
 
 const githubContentRoot = 'https://github.com/tldraw/tldraw/blob/main/apps/docs/content/'
 
 export function DocsArticleInfo({ article }: { article: Article }) {
-	if (article.authorId === 'api') {
-		// This article is actually source code and we link to it already in 'See source code'
+	if (article.sectionId === 'reference') {
+		// Reference pages are source code and already link to it via 'See source code'. Keyed on
+		// section, not `authorId === 'api'`: that's also the default for articles with no `author:`.
 		return null
 	}
 

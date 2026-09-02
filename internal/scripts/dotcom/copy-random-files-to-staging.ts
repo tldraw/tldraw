@@ -1,8 +1,8 @@
+import { writeFileSync } from 'fs'
+import { join } from 'path'
 import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import type { TlaFile } from '@tldraw/dotcom-shared'
-import { writeFileSync } from 'fs'
 import { nanoid } from 'nanoid'
-import { join } from 'path'
 import { Client } from 'pg'
 import { makeEnv } from '../lib/makeEnv'
 
@@ -100,9 +100,9 @@ async function copyFilesToStaging(fileIds: string[]) {
 				const testFile: TlaFile = {
 					id: newId,
 					name: 'Test File',
-					ownerId: env.STAGING_OWNER_ID,
+					ownerId: null,
 					ownerName: 'Test User',
-					ownerAvatar: '',
+					ownerAvatar: null,
 					thumbnail: '',
 					shared: false,
 					sharedLinkType: 'link',
@@ -114,19 +114,20 @@ async function copyFilesToStaging(fileIds: string[]) {
 					isEmpty: false,
 					isDeleted: false,
 					createSource: null,
-					owningGroupId: null,
+					// the staging user's home workspace: home group id is the user's own id. Must be set —
+					// file_owner_xor_check rejects a row with neither owner, and cleanup-test-files finds
+					// these rows by owningGroupId.
+					owningGroupId: env.STAGING_OWNER_ID,
 				}
 
 				const insertQuery = `
-					INSERT INTO file (id, name, "ownerId", "ownerName", "ownerAvatar", thumbnail, shared, "sharedLinkType", published, "lastPublished", "publishedSlug", "createdAt", "updatedAt", "isEmpty", "isDeleted", "owningGroupId")
-					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+					INSERT INTO file (id, name, "ownerName", thumbnail, shared, "sharedLinkType", published, "lastPublished", "publishedSlug", "createdAt", "updatedAt", "isEmpty", "isDeleted", "owningGroupId")
+					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
 				`
 				await stagingClient.query(insertQuery, [
 					testFile.id,
 					testFile.name,
-					testFile.ownerId,
 					testFile.ownerName,
-					testFile.ownerAvatar,
 					testFile.thumbnail,
 					testFile.shared,
 					testFile.sharedLinkType,
@@ -139,6 +140,12 @@ async function copyFilesToStaging(fileIds: string[]) {
 					testFile.isDeleted,
 					testFile.owningGroupId,
 				])
+
+				await stagingClient.query(
+					`INSERT INTO group_file ("fileId", "groupId", "createdAt", "updatedAt", "index")
+					 VALUES ($1, $2, $3, $4, NULL)`,
+					[testFile.id, testFile.owningGroupId, now, now]
+				)
 
 				copiedIds.push(newId)
 			} catch (error) {

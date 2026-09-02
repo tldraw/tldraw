@@ -12,6 +12,7 @@ import {
 	Vec,
 	VecLike,
 	ZERO_INDEX_KEY,
+	createShapeId,
 	getIndicesAbove,
 	vecModelValidator,
 } from 'tldraw'
@@ -117,7 +118,6 @@ class YShapeUtil extends ShapeUtil<YShape> {
 				x: shape.props.armLeft.x,
 				y: shape.props.armLeft.y,
 				index: indices[2],
-				// [7]
 				snapReferenceHandleId: 'center',
 			},
 			{
@@ -126,7 +126,6 @@ class YShapeUtil extends ShapeUtil<YShape> {
 				x: shape.props.armRight.x,
 				y: shape.props.armRight.y,
 				index: indices[3],
-				// [8]
 				snapReferenceHandleId: 'center',
 			},
 		]
@@ -143,7 +142,7 @@ class YShapeUtil extends ShapeUtil<YShape> {
 		}
 	}
 
-	// [9]
+	// [7]
 	component(shape: YShape) {
 		const { center, armTop, armLeft, armRight } = shape.props
 
@@ -179,15 +178,16 @@ class YShapeUtil extends ShapeUtil<YShape> {
 		)
 	}
 
-	indicator(shape: YShape) {
+	getIndicatorPath(shape: YShape) {
 		const { center, armTop, armLeft, armRight } = shape.props
-		return (
-			<>
-				<line x1={center.x} y1={center.y} x2={armTop.x} y2={armTop.y} />
-				<line x1={center.x} y1={center.y} x2={armLeft.x} y2={armLeft.y} />
-				<line x1={center.x} y1={center.y} x2={armRight.x} y2={armRight.y} />
-			</>
-		)
+		const path = new Path2D()
+		path.moveTo(center.x, center.y)
+		path.lineTo(armTop.x, armTop.y)
+		path.moveTo(center.x, center.y)
+		path.lineTo(armLeft.x, armLeft.y)
+		path.moveTo(center.x, center.y)
+		path.lineTo(armRight.x, armRight.y)
+		return path
 	}
 }
 
@@ -203,16 +203,14 @@ export default function CustomRelativeSnappingYShapeExample() {
 					const centerX = viewportPageBounds.center.x
 					const centerY = viewportPageBounds.center.y
 
+					const id = createShapeId()
 					editor.createShape({
+						id,
 						type: Y_SHAPE_TYPE,
 						x: centerX - 100,
 						y: centerY - 100,
 					})
-
-					const shapeId = editor.getCurrentPageShapeIds().values().next().value
-					if (shapeId) {
-						editor.select(shapeId)
-					}
+					editor.select(id)
 				}}
 			/>
 		</div>
@@ -220,40 +218,37 @@ export default function CustomRelativeSnappingYShapeExample() {
 }
 
 /*
-This example demonstrates the `snapReferenceHandleId` property using a Y-shaped connector.
+The shape is a Y-shaped connector: three arms radiating from a center junction point.
 
-The shape has three arms radiating from a center junction point:
-- center (junction point)
-- armTop (top arm endpoint)
-- armLeft (bottom-left arm endpoint)
-- armRight (bottom-right arm endpoint)
+When you hold shift while dragging a handle, the editor snaps the handle's angle to 15 degree
+increments, measured from a reference handle. By default the reference is the next vertex handle
+in index order, which for a shape like this would be a neighbouring arm rather than the junction.
+`snapReferenceHandleId` lets each arm name the center as its reference instead.
 
 [1]
-First, we need to extend TLGlobalShapePropsMap to add our shape's props to the global type system.
-This tells TypeScript about the shape type with four points representing a Y-shaped connector.
+Extend TLGlobalShapePropsMap to add our shape's props to the global type system: four points
+representing the junction and the three arm endpoints.
 
 [2]
 Define the shape type using TLShape with the shape's type as a type argument.
 
 [3]
-The shape util with validators for each point.
+The shape util, with `vecModelValidator` for each point. Selection bounds, resize handles, and
+the rotate handle are hidden because the handles are the whole interface for this shape.
 
 [4]
-Use Group2d geometry containing three line segments from center to each arm.
+The geometry is a Group2d containing three Edge2d segments from the center to each arm, so
+hit-testing follows the lines rather than the bounding box.
 
 [5]
-Four handles in array order: [center, armTop, armLeft, armRight]
+Four handles in index order: [center, armTop, armLeft, armRight]. `getIndicesAbove` generates
+fractional index keys after ZERO_INDEX_KEY so the handles have a well-defined order.
 
 [6]
-With `snapReferenceHandleId: 'center'`, when you shift+drag armTop, it will snap to the center point.
+Each arm sets `snapReferenceHandleId: 'center'`. Shift + drag any arm and its angle snaps
+relative to the junction. Try removing the property from one arm and shift-dragging it: the
+angle then snaps relative to whichever vertex handle comes next in index order.
 
 [7]
-Similarly, armLeft would snap relative to the center point.
-
-[8]
-And armRight would snap to the center point.
-
-[9]
-The component method defines how our shape renders.
-
+The component draws the three arms as SVG lines.
 */

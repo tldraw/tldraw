@@ -1,7 +1,7 @@
-import esbuild from 'esbuild'
 import fs from 'fs'
-import fse, { exists } from 'fs-extra'
 import path from 'path'
+import esbuild from 'esbuild'
+import fse, { exists } from 'fs-extra'
 import { logEnv } from './cli'
 import { getDirname } from './path'
 

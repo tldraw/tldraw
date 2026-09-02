@@ -1,9 +1,9 @@
 import { assert } from '@tldraw/utils'
 import { BaseRecord, RecordId } from '../BaseRecord'
+import { createMigrationIds, createMigrationSequence } from '../migrate'
 import { createRecordType } from '../RecordType'
 import { SerializedStore } from '../Store'
 import { StoreSchema } from '../StoreSchema'
-import { createMigrationIds, createMigrationSequence } from '../migrate'
 
 const UserVersion = createMigrationIds('com.tldraw.user', {
 	AddLocale: 1,

@@ -1,12 +1,35 @@
 import { useValue } from '@tldraw/state-react'
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
+import { useMaybeEditor } from '../hooks/useEditor'
 import { LicenseManager } from './LicenseManager'
 
 /** @internal */
-export const LicenseContext = createContext({} as LicenseManager)
+export const LicenseContext = createContext<LicenseManager | null>(null)
 
 /** @internal */
-export const useLicenseContext = () => useContext(LicenseContext)
+export function useLicenseContext(): LicenseManager {
+	const licenseManager = useMaybeLicenseManager()
+	if (!licenseManager) {
+		throw new Error(
+			'useLicenseContext must be used inside of the <Tldraw /> or <TldrawEditor /> components, or inside an <EditorProvider /> wrapping an editor created by them'
+		)
+	}
+	return licenseManager
+}
+
+/**
+ * Returns the license manager for the current editor, or `null` if there is none. Reads the
+ * license context when inside `<TldrawEditor />`, and otherwise falls back to the license manager
+ * of the nearest editor, so UI mounted outside the editor tree (via `EditorProvider`) resolves the
+ * same license as the editor it belongs to.
+ *
+ * @internal
+ */
+export function useMaybeLicenseManager(): LicenseManager | null {
+	const licenseManager = useContext(LicenseContext)
+	const editor = useMaybeEditor()
+	return licenseManager ?? editor?.licenseManager ?? null
+}
 
 function shouldHideEditorAfterDelay(licenseState: string): boolean {
 	return licenseState === 'expired' || licenseState === 'unlicensed-production'

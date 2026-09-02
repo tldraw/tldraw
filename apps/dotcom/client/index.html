@@ -29,11 +29,6 @@
 				}
 			}
 		</script>
-		<script type="module">
-			if (import.meta.env.MODE === 'development') {
-				fetch('/api/app/replicator-status').then(console.log).catch(console.error)
-			}
-		</script>
 		<style>
 			#root {
 				position: relative;

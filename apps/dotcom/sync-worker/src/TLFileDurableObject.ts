@@ -1,0 +1,3069 @@
+/// <reference no-default-lib="true"/>
+/// <reference types="@cloudflare/workers-types" />
+
+import { SupabaseClient } from '@supabase/supabase-js'
+import {
+	DB,
+	FILE_PREFIX,
+	LOCAL_FILE_PREFIX,
+	PUBLISH_PREFIX,
+	READ_ONLY_LEGACY_PREFIX,
+	READ_ONLY_PREFIX,
+	ROOM_OPEN_MODE,
+	ROOM_PREFIX,
+	ROOM_SIZE_LIMIT_MB,
+	SNAPSHOT_PREFIX,
+	TLCustomServerEvent,
+	TlaFile,
+	WELCOME_CREATE_SOURCE,
+	can,
+	type RoomOpenMode,
+} from '@tldraw/dotcom-shared'
+import {
+	DEFAULT_INITIAL_SNAPSHOT,
+	DurableObjectSqliteSyncWrapper,
+	RoomSnapshot,
+	SQLiteSyncStorage,
+	TLSocketRoom,
+	TLSyncErrorCloseEventCode,
+	TLSyncErrorCloseEventReason,
+	TLSyncForwardDiff,
+	TLSyncStorage,
+	loadSnapshotIntoStorage,
+	type PersistedRoomSnapshotForSupabase,
+	type SessionStateSnapshot,
+	type TLObjectStoreAccess,
+} from '@tldraw/sync-core'
+import {
+	TLAsset,
+	TLAssetId,
+	TLComment,
+	TLDOCUMENT_ID,
+	TLDocument,
+	TLRecord,
+	commentSchemaRecords,
+	createTLSchema,
+	isCommentId,
+	isCommentReactionId,
+	isCommentThreadId,
+} from '@tldraw/tlschema'
+import { ExecutionQueue, assert, assertExists, exhaustiveSwitchError, retry } from '@tldraw/utils'
+import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
+import { DurableObject } from 'cloudflare:workers'
+import { IRequest, Router, StatusError } from 'itty-router'
+import { Kysely, PostgresDialect } from 'kysely'
+import PQueue from 'p-queue'
+import { collectAssetAssociationChanges } from './assetAssociation'
+import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
+import {
+	CommentLoadResult,
+	findEmptiedCommentThreads,
+	findOrphanedReactions,
+	isCommentAuthorFkViolation,
+	isCommentFileFkViolation,
+	isCommentMentionFkViolation,
+	isCommentReactionFkViolation,
+	isCommentThreadFkViolation,
+	isCommentThreadIdFkViolation,
+	liveCommentDocuments,
+	mergeCommentDocumentsIntoSnapshot,
+	outboxEntriesToClear,
+	planCommentDrain,
+	planMentionReconciles,
+} from './commentRows'
+import { PERSIST_INTERVAL_MS } from './config'
+import { Logger } from './Logger'
+import {
+	ensureMcpClusterIndexTable,
+	pruneMcpClusterIndexRows,
+	readMcpClusterIndexRow,
+	writeMcpClusterIndexRow,
+} from './mcpClusterIndexStorage'
+import { TLPostgresPool } from './postgres'
+import { getR2KeyForRoom, listAllObjectKeys } from './r2'
+import {
+	BootStage,
+	FileEffectStallError,
+	RoomNotFoundError,
+	SourcePersistTimeoutError,
+	settleWithin,
+	shouldSkipMissingRoomEffect,
+} from './roomEffectHelpers'
+import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
+import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
+import {
+	generateSnapshotChunks,
+	getSnapshotFingerprint,
+	getSnapshotMetadata,
+	isSameFingerprint,
+	resolvePersistedFingerprint,
+	SnapshotFingerprint,
+} from './snapshotUtils'
+import { Analytics, DBLoadResult, Environment, McpClusterIndexKey, TLServerEvent } from './types'
+import { EventData, writeDataPoint } from './utils/analytics'
+import { createSupabaseClient } from './utils/createSupabaseClient'
+import { getRoomDurableObject } from './utils/durableObjects'
+import { OgRenderDebouncer } from './utils/ogRenderDebounce'
+import { isRateLimited } from './utils/rateLimit'
+import { getSlug } from './utils/roomOpenMode'
+import { throttle } from './utils/throttle'
+import { getAuth, requireAdminAccess, requireAdminAccessToRequest } from './utils/tla/getAuth'
+import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
+import { getRole } from './utils/tla/getRole'
+import { isTestFile } from './utils/tla/isTestFile'
+import { resolveWelcomeSnapshot } from './welcome/resolveWelcomeSnapshot'
+
+const MAX_CONNECTIONS = 50
+
+// Cloudflare allows at most six simultaneous open connections. We funnel every R2 operation the
+// durable object makes — asset copies during association passes AND snapshot uploads during
+// persistence — through a single queue so they can never collectively exceed that budget. An
+// asset copy holds two connections (the R2 get body streaming into the put); a snapshot upload
+// holds ~one at a time (multipart parts are uploaded sequentially). With two operations in flight
+// the worst case is two copies = four connections, leaving two free for Postgres
+// queries. Without a shared budget the upload and a concurrent association pass contend for the
+// same connections, which surfaces as "Network connection lost" during multipart uploads.
+// https://developers.cloudflare.com/workers/platform/limits/#simultaneous-open-connections
+const MAX_CONCURRENT_R2_OPERATIONS = 2
+
+// The shared R2 queue normally sits near empty (two operations in flight, nothing waiting). We only
+// emit a depth metric once it backs up past this many operations, to keep the common case out of
+// analytics — Grafana can then graph how deep the queue gets, in total and broken down by operation
+// type.
+const R2_QUEUE_DEPTH_METRIC_THRESHOLD = 30
+// If the queue ever backs up this far, operations are arriving far faster than the two-at-a-time
+// budget can drain them and a pass is likely to outlast the durable object. Surface it to Sentry
+// (once per sustained spike) so it can alert.
+const R2_QUEUE_DEPTH_ALERT_THRESHOLD = 100
+
+// The kinds of R2 operation that share the connection budget, used to break queue depth down per
+// type in metrics.
+type R2OperationType = 'asset_copy' | 'snapshot_upload'
+
+// Transient R2 failures worth retrying — dropped connections and the connection-limit error the
+// shared budget exists to avoid. Anything else (a bad request, missing object, etc.) is permanent,
+// so retrying only wastes time before the simple-PUT fallback runs.
+function isTransientConnectionError(error: unknown): boolean {
+	const message = error instanceof Error ? error.message : String(error)
+	return /network|connection|closed|reset|timeout/i.test(message)
+}
+
+// increment this any time you make a change to this type
+const CURRENT_DOCUMENT_INFO_VERSION = 3
+interface DocumentInfo {
+	version: number
+	slug: string
+	isApp: boolean
+	deleted: boolean
+}
+
+// Marks "query ran, row absent" inside getAppFileRecord's retry so it can be told apart
+// from infra failures, which must throw rather than masquerade as a missing file.
+class FileRecordNotFoundError extends Error {
+	constructor() {
+		super('File not found')
+		this.name = 'FileRecordNotFoundError'
+	}
+}
+
+interface SocketAttachment {
+	sessionId: string
+	meta: SessionMeta
+	isReadonly: boolean
+	// optional: attachments serialized before the object-store lane existed lack this field
+	objectAccess?: TLObjectStoreAccess
+	// The client bundle's monotonic build timestamp (epoch ms), from the `?v=` connect param.
+	// Absent for bundles that predate the param, or when the param didn't validate.
+	clientBuildTimestamp?: string
+	snapshot: SessionStateSnapshot | null
+}
+
+async function canAccessTestProductionFile(
+	env: Environment,
+	auth: { userId: string } | null
+): Promise<boolean> {
+	try {
+		await requireAdminAccess(env, auth)
+		return true
+	} catch (_e) {
+		return false
+	}
+}
+
+function pruneUnusedAssetsForTldr(records: TLRecord[]): TLRecord[] {
+	const usedAssets = new Set<TLAssetId>()
+	for (const record of records) {
+		if (record.typeName === 'shape' && 'assetId' in record.props && record.props.assetId) {
+			usedAssets.add(record.props.assetId as TLAssetId)
+		}
+	}
+	return records.filter((r) => r.typeName !== 'asset' || usedAssets.has(r.id as TLAssetId))
+}
+
+function arrayBufferToBase64(ab: ArrayBuffer): string {
+	const bytes = new Uint8Array(ab)
+	return bytes.toBase64!()
+}
+
+const MB = 1024 * 1024
+
+// The schema for a file room. Includes the opt-in `comment` record type so comment records sync
+// through the room; comments are persisted to Postgres rather than the main document blob (see
+// drainCommentOutbox / loadCommentsFromPostgres). The same records must be registered on the
+// client (see useSync in the dotcom client) or the schemas won't match.
+const fileSyncSchema = createTLSchema({ records: commentSchemaRecords })
+
+// Record types served through the room's object-store lane rather than the document lane.
+// Object-lane records sync over the same socket but are gated per session by `objectAccess`
+// (instead of `isReadonly`), are excluded from `.tldr` downloads, and are persisted in Postgres
+// rather than the R2 document blob. Every entry must have an `authorizeFileRecord` authorizer —
+// that's where per-tier write policy lives (the `satisfies` enforces it).
+const OBJECT_TYPES = [
+	'comment-thread',
+	'comment',
+	'comment-reaction',
+] as const satisfies readonly (keyof typeof authorizeFileRecord)[]
+
+export class TLFileDurableObject extends DurableObject {
+	// A unique identifier for this instance of the Durable Object
+	id: DurableObjectId
+
+	private _storage: Promise<TLSyncStorage<TLRecord>> | null = null
+
+	private async loadStorage(slug: string): Promise<TLSyncStorage<TLRecord>> {
+		const sql = new DurableObjectSqliteSyncWrapper(this.ctx.storage)
+
+		// If SQLite has been initialized, use it directly
+		if (SQLiteSyncStorage.hasBeenInitialized(sql)) {
+			return new SQLiteSyncStorage<TLRecord>({ sql, objectTypes: OBJECT_TYPES })
+		}
+
+		// SQLite not initialized yet, load from R2 and initialize. The loaded snapshot has the
+		// Postgres comment rows merged in; the storage routes those records into its objects
+		// partition.
+		const result = await this.loadFromDatabase(slug)
+		const storage = new SQLiteSyncStorage<TLRecord>({
+			sql,
+			snapshot: result.snapshot,
+			objectTypes: OBJECT_TYPES,
+		})
+		// We should not await on setRoomStorageUsedPercentage because it calls
+		// getStorage under the hood which will only resolve once this function has returned.
+		this.setRoomStorageUsedPercentage(result.roomSizeMB)
+		return storage
+	}
+
+	private getStorage(): Promise<TLSyncStorage<TLRecord>> {
+		if (!this._documentInfo) {
+			throw new Error('documentInfo must be present when accessing room')
+		}
+		if (!this._storage) {
+			this.setBootStage('storage-load')
+			const promise = retry(() => this.loadStorage(this.documentInfo.slug), {
+				// Allow RoomNotFoundError to bubble up since it means the room doesn't exist
+				// and there's no point in retrying.
+				matchError: (error) => !(error instanceof RoomNotFoundError),
+			})
+				.then((storage) => {
+					storage.onChange(() => {
+						this.triggerPersist()
+					})
+					storage.transaction((txn) => {
+						fileSyncSchema.migrateStorage(txn)
+					})
+					// Drain any outbox entries stranded by a previous incarnation (e.g. a Postgres
+					// blip during the last-out drain). Retries are otherwise onChange-driven
+					// (triggerPersist), so a reopened room where users only view would never drain.
+					// Deferred to a microtask because drainCommentOutbox's queued task awaits
+					// getStorage() — i.e. the very promise this callback resolves. Even a
+					// synchronous call here wouldn't deadlock (ExecutionQueue starts an idle
+					// queue's task synchronously, but the task only suspends on the
+					// already-assigned `_storage` promise — awaiting never blocks); kicking after
+					// this callback returns just keeps the non-reentrancy obvious. An empty
+					// outbox no-ops after a couple of synchronous SQL statements, so the cost per
+					// room start is trivial.
+					queueMicrotask(() => void this.drainCommentOutbox())
+					// Clear here, not only when the room settles: storage-only callers (restore,
+					// .tldr download) never boot the room and would leave a stale stage behind.
+					this.setBootStage(null)
+					return storage
+				})
+				.catch((error) => {
+					// RoomNotFoundError is an expected outcome (missing room), not an infra failure;
+					// callers decide how to surface it, so don't Sentry-report it here.
+					if (!(error instanceof RoomNotFoundError)) this.reportError(error)
+					// Never cache a rejection: the condition may heal, and a cached rejection
+					// makes every later retry fail instantly.
+					if (this._storage === promise) this._storage = null
+					this.setBootStage(null)
+					throw error
+				})
+			this._storage = promise
+		}
+		return this._storage
+	}
+
+	_room: Promise<TLSocketRoom<TLRecord, SessionMeta>> | null = null
+
+	// Which boot phase a pending _storage/_room promise last reached, and when it was entered.
+	// Pending promises are cached, so when a boot wedges every caller awaits the same stuck
+	// await — this names it and its age (see FileEffectStallError and __admin__getDocumentInfo).
+	_bootStage: { stage: BootStage; startedAt: number } | null = null
+
+	private setBootStage(stage: BootStage | null) {
+		this._bootStage = stage === null ? null : { stage, startedAt: Date.now() }
+	}
+
+	sentry: ReturnType<typeof createSentry> | null = null
+
+	getRoom() {
+		if (!this._documentInfo) {
+			throw new Error('documentInfo must be present when accessing room')
+		}
+		if (!this._room) {
+			const promise = this.getStorage()
+				.then(async (storage) => {
+					this.setBootStage('room-create')
+					const room = new TLSocketRoom<TLRecord, SessionMeta>({
+						storage,
+						schema: fileSyncSchema,
+						objectTypes: OBJECT_TYPES,
+						clientTimeout: Infinity,
+						log: {
+							warn: (...args) => this.log.debug('sync warn', ...args),
+							error: (...args) => {
+								this.reportError(args.find((a) => a instanceof Error) ?? new Error(args.join(' ')))
+							},
+						},
+						onSessionSnapshot: (sessionId, snapshot) => {
+							const ws = this.sessionIdToWs.get(sessionId)
+							if (!ws) return
+							const attachment = this.getSocketAttachment(ws)
+							if (!attachment) return
+							ws.serializeAttachment({ ...attachment, snapshot })
+						},
+						onSessionRemoved: async (room, args) => {
+							this.logEvent({
+								type: 'client',
+								name: 'leave',
+								instanceId: args.sessionId,
+							})
+
+							if (args.numSessionsRemaining > 0) return
+							if (!this._room) return
+							this.logEvent({
+								type: 'client',
+								name: 'last_out',
+								instanceId: args.sessionId,
+							})
+							try {
+								await this.persistToDatabase()
+							} catch {
+								// already logged
+							}
+							// make sure nobody joined the room while we were persisting
+							if (room.getNumActiveSessions() > 0) return
+							this._room = null
+							room.close()
+							this.logEvent({ type: 'room', name: 'room_empty' })
+							await this._pool?.end()
+							this._pool = null
+							this._db = null
+						},
+						onBeforeSendMessage: ({ message, stringified }) => {
+							this.logEvent({
+								type: 'send_message',
+								messageType: message.type,
+								messageLength: stringified.length,
+							})
+						},
+						// Record object-lane (comment) changes in the durable outbox as soon as they
+						// commit and push them to Postgres (not on the throttled R2 persist) so Zero
+						// replicates them to the app-level view quickly.
+						onCommittedChanges: ({ diff }) => {
+							this.enqueueCommentChanges(diff)
+						},
+						// Guard attribution with the session's authenticated identity so a client can't
+						// post or edit in someone else's name.
+						authorizeRecord: authorizeFileRecord,
+					})
+
+					// Sessions that survived hibernation. Collected before the event so room_start can
+					// carry the count, and resumed after it so a resume that throws still leaves the
+					// boot counted — those are the boots the count exists to find.
+					const resumes: {
+						sessionId: string
+						socket: WebSocket
+						snapshot: SessionStateSnapshot
+						meta: SessionMeta
+					}[] = []
+					for (const ws of this.state.getWebSockets()) {
+						const attachment = ws.deserializeAttachment() as SocketAttachment | null
+						if (!attachment?.sessionId) continue
+						if (attachment.snapshot) {
+							resumes.push({
+								sessionId: attachment.sessionId,
+								socket: ws,
+								snapshot: attachment.snapshot,
+								meta: attachment.meta,
+							})
+						}
+					}
+
+					this.logEvent({ type: 'room', name: 'room_start', resumedSockets: resumes.length })
+
+					for (const resume of resumes) {
+						room.handleSocketResume(resume)
+					}
+					// Also associate file assets after we load the room
+					setTimeout(this.maybeAssociateFileAssets.bind(this), PERSIST_INTERVAL_MS)
+					this.setBootStage(null)
+					return room
+				})
+				.catch((error) => {
+					// Never cache a rejection: the condition may heal, and a cached rejection
+					// makes every later retry fail instantly.
+					if (this._room === promise) this._room = null
+					this.setBootStage(null)
+					throw error
+				})
+			this._room = promise
+		}
+		return this._room
+	}
+
+	// For storage
+	storage: DurableObjectStorage
+
+	// For persistence
+	private _supabaseClient: SupabaseClient | undefined
+
+	// For analytics
+	measure: Analytics | undefined
+
+	// For error tracking
+	sentryDSN: string | undefined
+
+	readonly supabaseTable: string
+	readonly r2: {
+		readonly rooms: R2Bucket
+		readonly versionCache: R2Bucket
+	}
+
+	_documentInfo: DocumentInfo | null = null
+
+	_db: Kysely<DB> | null = null
+	_pool: TLPostgresPool | null = null
+	private readonly log: Logger
+	/** Map sessionId → ws so onSessionSnapshot can serialize to the right socket. */
+	private readonly sessionIdToWs = new Map<string, WebSocket>()
+
+	/**
+	 * Only legacy (non-app) rooms ever read from supabase, so don't construct the client until one
+	 * asks for it — most DOs never will.
+	 */
+	// eslint-disable-next-line tldraw/no-setter-getter
+	get supabaseClient() {
+		if (!this._supabaseClient) {
+			this._supabaseClient = createSupabaseClient(this.env)
+		}
+		return this._supabaseClient
+	}
+
+	// eslint-disable-next-line tldraw/no-setter-getter
+	get db() {
+		if (!this._db) {
+			this._pool = new TLPostgresPool(this.env, this.log)
+			this._db = new Kysely<DB>({
+				dialect: new PostgresDialect({ pool: this._pool }),
+				log: ['error'],
+			})
+		}
+		return this._db
+	}
+
+	private readonly changeSource = 'TLFileDurableObject'
+
+	constructor(
+		private state: DurableObjectState,
+		override env: Environment
+	) {
+		super(state, env)
+		this.id = state.id
+		this.storage = state.storage
+		this.sentryDSN = env.SENTRY_DSN
+		this.measure = env.MEASURE
+		this.sentry = createSentry(this.state, this.env)
+		this.log = new Logger(env, 'TLDrawDurableObject', this.sentry)
+
+		this.supabaseTable = env.TLDRAW_ENV === 'production' ? 'drawings' : 'drawings_staging'
+		this.r2 = {
+			rooms: env.ROOMS,
+			versionCache: env.ROOMS_HISTORY_EPHEMERAL,
+		}
+
+		// Respond to ping at the platform layer so the DO can hibernate
+		this.state.setWebSocketAutoResponse(
+			new WebSocketRequestResponsePair('{"type":"ping"}', '{"type":"pong"}')
+		)
+
+		// Nothing awaits this, so a storage failure here rejects into the void and takes the object
+		// down with it — the one path that only runs on a cold start, and so never ran at all while
+		// the file DO couldn't hibernate. Rethrown after reporting: the object genuinely cannot
+		// continue without documentInfo, and resetting it is the runtime's correct response.
+		state.blockConcurrencyWhile(async () => {
+			try {
+				const existingDocumentInfo = (await this.storage.get('documentInfo')) as DocumentInfo | null
+				if (existingDocumentInfo?.version !== CURRENT_DOCUMENT_INFO_VERSION) {
+					this._documentInfo = null
+				} else {
+					this._documentInfo = existingDocumentInfo
+				}
+			} catch (e) {
+				this.reportError(e, { source: 'blockConcurrencyWhile' })
+				throw e
+			}
+		})
+	}
+
+	readonly router = Router()
+		.get(
+			`/${ROOM_PREFIX}/:roomId`,
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
+			(req) => this.onRequest(req, ROOM_OPEN_MODE.READ_WRITE)
+		)
+		.get(
+			`/${READ_ONLY_LEGACY_PREFIX}/:roomId`,
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_ONLY_LEGACY),
+			(req) => this.onRequest(req, ROOM_OPEN_MODE.READ_ONLY_LEGACY)
+		)
+		.get(
+			`/${READ_ONLY_PREFIX}/:roomId`,
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_ONLY),
+			(req) => this.onRequest(req, ROOM_OPEN_MODE.READ_ONLY)
+		)
+		.get(
+			`/app/file/:roomId`,
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
+			(req) => this.onRequest(req, ROOM_OPEN_MODE.READ_WRITE)
+		)
+		.get(
+			`/app/file/:roomId/download`,
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
+			(req) => this.onDownloadTldr(req)
+		)
+		.post(
+			`/${ROOM_PREFIX}/:roomId/restore`,
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
+			(req) => this.onRestore(req)
+		)
+		.post(
+			`/app/file/:roomId/restore`,
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
+			(req) => this.onRestore(req)
+		)
+		.all('*', () => new Response('Not found', { status: 404 }))
+
+	// eslint-disable-next-line tldraw/no-setter-getter
+	get documentInfo() {
+		return assertExists(this._documentInfo, 'documentInfo must be present')
+	}
+	setDocumentInfo(info: DocumentInfo) {
+		this._documentInfo = info
+		this.storage.put('documentInfo', info)
+	}
+	async extractDocumentInfoFromRequest(req: IRequest, roomOpenMode: RoomOpenMode) {
+		const slug = assertExists(
+			await getSlug(this.env, req.params.roomId, roomOpenMode),
+			'roomId must be present'
+		)
+		const isApp = new URL(req.url).pathname.startsWith('/app/')
+
+		if (this._documentInfo) {
+			assert(this._documentInfo.slug === slug, 'slug must match')
+		} else {
+			this.setDocumentInfo({
+				version: CURRENT_DOCUMENT_INFO_VERSION,
+				slug,
+				isApp,
+				deleted: false,
+			})
+		}
+	}
+
+	// Handle a request to the Durable Object.
+	override async fetch(req: IRequest) {
+		const sentry = createSentry(this.state, this.env, req)
+
+		try {
+			return await this.router.fetch(req)
+		} catch (err) {
+			// Auth failures (e.g. non-staff hitting restore) are expected denials, not
+			// server errors: return their real status instead of a 500 + Sentry noise.
+			if (err instanceof StatusError) {
+				return new Response(err.message, { status: err.status })
+			}
+			console.error(err)
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			sentry?.captureException(err)
+			return new Response('Something went wrong', {
+				status: 500,
+				statusText: 'Internal Server Error',
+			})
+		}
+	}
+
+	// --- WebSocket hibernation API handlers ---
+
+	private getSocketAttachment(ws: WebSocket): SocketAttachment | null {
+		return ws.deserializeAttachment() as SocketAttachment | null
+	}
+
+	// The runtime discards whatever these handlers reject with, so anything that escapes them is
+	// invisible: getRoom() in particular can fail while loading the room from storage, which breaks
+	// the main sync path. Catch and report instead.
+	override async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
+		try {
+			const attachment = this.getSocketAttachment(ws)
+			if (!attachment?.sessionId) return
+			if (!this._documentInfo) return
+
+			this.sessionIdToWs.set(attachment.sessionId, ws)
+			const room = await this.getRoom()
+			room.handleSocketMessage(attachment.sessionId, message)
+		} catch (e) {
+			if (e instanceof RoomNotFoundError) {
+				// Post-hibernation resume raced a deleted room; there's no room left to message.
+				ws.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.NOT_FOUND)
+				return
+			}
+			// Report before closing, so a throw from close() can't cost us the Sentry event.
+			this.reportError(e, { source: 'webSocketMessage' })
+			// The message is lost either way, so the socket has to go: leaving it up would let the
+			// client carry on believing it is synced while its local state silently diverges. Closed
+			// without a code, though — TLSyncErrorCloseEventCode is fatal on the client, which tears
+			// the sync client down into an error state only a reload clears. What lands here is
+			// transient (a getRoom() that failed resuming from hibernation), so a codeless close
+			// reads as 'offline' and the reconnect manager reconnects and resyncs from scratch.
+			ws.close()
+		}
+	}
+
+	override async webSocketClose(ws: WebSocket) {
+		await this.handleWebSocketEnd(ws, 'handleSocketClose')
+	}
+
+	override async webSocketError(ws: WebSocket, error: unknown) {
+		// The socket failed rather than closing cleanly. That error was previously dropped on the
+		// floor, so a client whose connection kept breaking left no trace here at all.
+		this.reportError(error, { source: 'webSocketError' })
+		await this.handleWebSocketEnd(ws, 'handleSocketError')
+	}
+
+	private async handleWebSocketEnd(
+		ws: WebSocket,
+		method: 'handleSocketClose' | 'handleSocketError'
+	) {
+		try {
+			const attachment = this.getSocketAttachment(ws)
+			if (!attachment?.sessionId) return
+
+			this.sessionIdToWs.delete(attachment.sessionId)
+			if (!this._documentInfo) return
+
+			const room = await this.getRoom()
+
+			// If the DO was hibernating, this session was never re-added to the room.
+			// Resume it briefly so the room can broadcast presence removal to other clients.
+			if (attachment.snapshot && !room.getSessionSnapshot(attachment.sessionId)) {
+				room.handleSocketResume({
+					sessionId: attachment.sessionId,
+					socket: ws,
+					snapshot: attachment.snapshot,
+					meta: attachment.meta,
+				})
+			}
+
+			room[method](attachment.sessionId)
+		} catch (e) {
+			if (e instanceof RoomNotFoundError) {
+				// The socket is already closing/closed; nothing left to clean up on the room side.
+				console.error('handleWebSocketEnd: room not found, skipping', e)
+				return
+			}
+			// Both callers await this, so a failure here would otherwise reject their handler and
+			// vanish. Reported rather than rethrown: the socket is already gone either way, and the
+			// only thing lost is presence cleanup for other clients in the room.
+			this.reportError(e, { source: method })
+		}
+	}
+
+	_isRestoring = false
+	async onRestore(req: IRequest) {
+		this._isRestoring = true
+		try {
+			await requireAdminAccessToRequest(req, this.env)
+			const roomId = this.documentInfo.slug
+			const roomKey = getR2KeyForRoom({ slug: roomId, isApp: this.documentInfo.isApp })
+			const timestamp = ((await req.json()) as any).timestamp
+			if (!timestamp) {
+				return new Response('Missing timestamp', { status: 400 })
+			}
+			const data = await this.r2.versionCache.get(`${roomKey}/${timestamp}`)
+			if (!data) {
+				return new Response('Version not found', { status: 400 })
+			}
+			const dataText = await data.text()
+
+			// The put deliberately carries no version metadata, so null ("looked up, no usable
+			// stamp") is the truth about R2 and the next persist re-uploads and re-stamps.
+			// Queued on executionQueue because a persist runs as one task there: an in-flight one,
+			// suspended mid-upload or at its version lookup, would otherwise resume after these
+			// lines and clobber both the null and the restored object.
+			await this.executionQueue.push(async () => {
+				await this.r2.rooms.put(roomKey, dataText)
+				this._lastPersistedFingerprint = null
+			})
+
+			// Version snapshots only contain the drawing data. Restoring drops the file's comments
+			// (product decision): loading the bare snapshot wipes the object lane, and the Postgres
+			// rows are deleted explicitly since storage transactions don't fire onCommittedChanges.
+			// The cleanup runs through _objectPushQueue so it serializes after any in-flight outbox
+			// drain, and pre-restore outbox entries are cleared so a pending drain can't resurrect
+			// deleted rows.
+			//
+			// Two invariants make this safe against comments committed concurrently with the
+			// restore:
+			// (a) The lane wipe, the outbox high-water-mark capture, and the queue push below run
+			//     in one synchronous block with NO awaits in between. Storage change notifications
+			//     fire on a microtask, so a comment committed after the wipe enqueues its outbox
+			//     entry (seq > maxSeq) and its drain task strictly after ours (queue is FIFO).
+			//     Drains are bounded to the outbox high-water mark captured when they are
+			//     scheduled (see drainCommentOutbox), so no drain queued before ours can touch
+			//     that entry: it survives our scoped clear and its own later drain pushes it to
+			//     Postgres.
+			// (b) The queue's FIFO order means the cleanup task below runs BEFORE any post-wipe
+			//     comment's drain task, so the fileId-wide Postgres deletes can only remove
+			//     pre-restore rows — never rows a post-wipe drain already wrote. The post-wipe
+			//     entry (seq > maxSeq) survives the scoped outbox clear, and its own drain
+			//     re-upserts the row to Postgres AFTER the cleanup.
+			//
+			// Inside the task, the Postgres deletes run BEFORE the outbox clear: if a delete
+			// throws, any pre-restore outbox entries survive, so subsequent drains retry the
+			// per-id deletes (the records are lane-absent after the wipe, taking the delete
+			// path). But a quiescent room has an empty outbox — no per-id retries at all — so
+			// the only guaranteed retry vehicle is this handler's 500 telling the caller to
+			// retry the whole restore. Clearing the outbox first would destroy even the per-id
+			// retries and let the dropped comments resurrect on the next fresh-SQLite load.
+			// follow-up: a durable wipe-marker recorded alongside the outbox would let the DO
+			// itself retry the fileId-wide delete, closing the dependence on caller retries.
+			const snapshot = JSON.parse(dataText) as RoomSnapshot
+
+			const storage = await this.getStorage()
+			storage.transaction((txn) => {
+				loadSnapshotIntoStorage(txn, fileSyncSchema, snapshot)
+			})
+			this.ensureCommentOutbox()
+			const maxSeq = Number(
+				this.ctx.storage.sql
+					.exec('SELECT COALESCE(MAX(seq), 0) AS maxSeq FROM comment_outbox')
+					.toArray()[0].maxSeq
+			)
+			const cleanup = this._objectPushQueue.push(async () => {
+				// comment.threadId is NOT NULL with an ON DELETE CASCADE FK, so deleting the
+				// file's threads provably deletes all its comments too
+				await this.db.deleteFrom('comment_thread').where('fileId', '=', roomId).execute()
+				this.ctx.storage.sql.exec('DELETE FROM comment_outbox WHERE seq <= ?', maxSeq)
+			})
+			await cleanup
+
+			this.maybeAssociateFileAssets()
+
+			return new Response()
+		} finally {
+			this._isRestoring = false
+		}
+	}
+
+	// this might return null if the file doesn't exist yet in the backend, or if it was deleted
+	_fileRecordCache: TlaFile | null = null
+	async getAppFileRecord(): Promise<TlaFile | null> {
+		const timer = this.timer()
+		try {
+			const result = await retry(
+				async () => {
+					if (this._fileRecordCache) {
+						return this._fileRecordCache
+					}
+
+					const result = await this.db
+						.selectFrom('file')
+						.where('id', '=', this.documentInfo.slug)
+						.selectAll()
+						.executeTakeFirst()
+
+					if (!result) {
+						throw new FileRecordNotFoundError()
+					}
+					this._fileRecordCache = result
+					return this._fileRecordCache
+				},
+				// Absence is retried because the row may still be committing. Query errors are retried
+				// too: isTransientConnectionError is R2-shaped and misses Postgres errors like "too many
+				// clients already" or ECONNREFUSED, and failing those fast only saves the 2s budget.
+				{ attempts: 20, waitDuration: 100 }
+			)
+
+			timer.report('get_file_record')
+			return result
+		} catch (e) {
+			timer.report('get_file_record_error')
+			if (e instanceof FileRecordNotFoundError) return null
+			// Query errors are infra failures, not absence: bubble so callers retry
+			// instead of treating the room as nonexistent.
+			throw e
+		}
+	}
+
+	async onRequest(req: IRequest, openMode: RoomOpenMode) {
+		const requestTimer = this.timer()
+
+		// extract query params from request, should include instanceId
+		const url = new URL(req.url)
+		const params = Object.fromEntries(url.searchParams.entries())
+		let { sessionId, storeId } = params
+
+		// handle legacy param names
+		sessionId ??= params.sessionKey ?? params.instanceId
+		storeId ??= params.localClientId
+		// the client bundle's build timestamp. Unvalidated client input that lands in analytics, so
+		// only accept a plain epoch-ms number — anything else (empty, non-numeric, absurdly long)
+		// is treated the same as an absent param rather than recorded verbatim.
+		const clientBuildTimestamp = /^\d{1,16}$/.test(params.v ?? '') ? params.v : undefined
+		const isNewSession = !this._room
+
+		// Create the websocket pair for the client; use hibernation API
+		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
+		this.state.acceptWebSocket(serverWebSocket)
+
+		const closeSocket = (reason: TLSyncErrorCloseEventReason) => {
+			serverWebSocket.close(TLSyncErrorCloseEventCode, reason)
+			return new Response(null, { status: 101, webSocket: clientWebSocket })
+		}
+		// For infra failures (Postgres, rate limiter, etc.): a TLSyncErrorCloseEventCode close is
+		// terminal on the client (error screen, no reconnect), which would strand every connecting
+		// user for the length of a transient blip. Any other code puts the client in 'offline' and
+		// ReconnectManager retries with backoff, matching what the pre-accept 500 → 1006 used to
+		// do. Workers only allow 1000 or 3000-4999 here.
+		const closeSocketRetryable = () => {
+			serverWebSocket.close(1000, 'transient_error')
+			return new Response(null, { status: 101, webSocket: clientWebSocket })
+		}
+
+		// Everything from here through the permission checks below can throw on an infra failure
+		// now that those failures bubble instead of being swallowed. An uncaught throw here would
+		// 500 with the accepted server socket leaked in the hibernation set, so catch broadly and
+		// close it instead.
+		let auth: Awaited<ReturnType<typeof getAuth>>
+		try {
+			if (this.documentInfo.deleted) {
+				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
+			}
+
+			const authTimer = this.timer()
+			auth = await getAuth(req, this.env)
+			authTimer.report('on_request_auth')
+
+			if (this.documentInfo.isApp) {
+				openMode = ROOM_OPEN_MODE.READ_WRITE
+				const file = await this.getAppFileRecord()
+
+				if (file) {
+					if (file.isDeleted) {
+						return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
+					}
+
+					if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, auth))) {
+						return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
+					}
+
+					if (!auth && !file.shared) {
+						return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
+					}
+
+					const rateLimitTimer = this.timer()
+					if (auth?.userId) {
+						const rateLimited = await isRateLimited(this.env, auth.userId)
+						if (rateLimited) {
+							this.logEvent({
+								type: 'client',
+								userId: auth.userId,
+								name: 'rate_limited',
+							})
+							return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
+						}
+					} else {
+						const rateLimited = await isRateLimited(this.env, sessionId)
+						if (rateLimited) {
+							this.logEvent({
+								type: 'client',
+								userId: auth?.userId,
+								name: 'rate_limited',
+							})
+							return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
+						}
+					}
+					rateLimitTimer.report('on_request_rate_limit')
+
+					// Check if user has owner access (directly or via group membership)
+					let hasOwnerAccess = false
+					if (file.owningGroupId && auth?.userId) {
+						// Check the user can access the owning group's files
+						const groupCheckTimer = this.timer()
+						const role = await getRole(this.db, auth.userId, file.owningGroupId)
+						if (can(role, 'accessFiles')) {
+							hasOwnerAccess = true
+						}
+						groupCheckTimer.report('on_request_group_check')
+					}
+
+					if (!hasOwnerAccess && !file.shared) {
+						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
+					}
+
+					// Guests only get canvas write on an `edit` link. `sharedLinkType` is a plain
+					// string column with legacy values in it, so anything else fails closed.
+					if (!hasOwnerAccess && file.sharedLinkType !== 'edit') {
+						openMode = ROOM_OPEN_MODE.READ_ONLY
+					}
+				}
+			} else {
+				// Legacy rooms are now read-only
+				openMode = ROOM_OPEN_MODE.READ_ONLY
+			}
+		} catch (e) {
+			this.reportError(e)
+			return closeSocketRetryable()
+		}
+
+		try {
+			const meta: SessionMeta = {
+				storeId: storeId ?? sessionId,
+				userId: auth?.userId ? auth.userId : null,
+			}
+			const isReadonly = openMode === ROOM_OPEN_MODE.READ_ONLY
+			// Only authenticated users can write comments — authors are stored in Postgres with a
+			// foreign key to the user table, so an anonymous author can't be represented. Tier
+			// gating (view-only sessions) happens in `authorizeFileRecord` off the session's
+			// `isReadonly`.
+			const objectAccess: TLObjectStoreAccess = auth?.userId ? 'write' : 'read'
+			const attachment: SocketAttachment = {
+				sessionId,
+				meta,
+				isReadonly,
+				objectAccess,
+				clientBuildTimestamp,
+				snapshot: null,
+			}
+			serverWebSocket.serializeAttachment(attachment)
+
+			const getRoomTimer = this.timer()
+			const room = await this.getRoom()
+			getRoomTimer.report('on_request_get_room')
+
+			// Don't connect if we're already at max connections
+			if (room.getNumActiveSessions() > MAX_CONNECTIONS) {
+				return closeSocket(TLSyncErrorCloseEventReason.ROOM_FULL)
+			}
+
+			// all good
+			room.handleSocketConnect({
+				sessionId,
+				socket: serverWebSocket,
+				meta,
+				isReadonly,
+				objectAccess,
+			})
+			if (isNewSession) {
+				this.logEvent({
+					type: 'client',
+					name: 'room_reopen',
+					instanceId: sessionId,
+				})
+			}
+			this.logEvent({
+				type: 'client',
+				name: 'enter',
+				instanceId: sessionId,
+				clientBuildTimestamp,
+			})
+
+			requestTimer.report('on_request_total')
+
+			return new Response(null, { status: 101, webSocket: clientWebSocket })
+		} catch (e) {
+			if (e instanceof RoomNotFoundError) {
+				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
+			}
+			this.reportError(e)
+			return closeSocketRetryable()
+		}
+	}
+
+	/** Stream .tldr download (schema + records, R2 assets inlined as base64). Same access as joining the file. */
+	async onDownloadTldr(req: IRequest): Promise<Response> {
+		const TLDRAW_FILE_MIMETYPE = 'application/vnd.tldraw+json'
+		const TLDRAW_FILE_FORMAT_VERSION = 1
+
+		if (!this.documentInfo.isApp) {
+			return new Response('Not found', { status: 404 })
+		}
+
+		const auth = await getAuth(req, this.env)
+		const file = await this.getAppFileRecord()
+		if (!file || file.isDeleted) {
+			return new Response('Not found', { status: 404 })
+		}
+
+		if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, auth))) {
+			return new Response('Not found', { status: 404 })
+		}
+		if (!auth && !file.shared) {
+			return new Response('Unauthorized', { status: 401 })
+		}
+
+		const url = new URL(req.url)
+		const sessionId =
+			url.searchParams.get('instanceId') ?? url.searchParams.get('sessionId') ?? 'anon-download'
+		const rateLimitKey = auth?.userId ?? sessionId
+		if (await isRateLimited(this.env, rateLimitKey)) {
+			return new Response('Rate limited', { status: 429 })
+		}
+
+		let hasOwnerAccess = false
+		if (file.owningGroupId && auth?.userId) {
+			const role = await getRole(this.db, auth.userId, file.owningGroupId)
+			if (can(role, 'accessFiles')) {
+				hasOwnerAccess = true
+			}
+		}
+		if (!hasOwnerAccess && !file.shared) {
+			return new Response('Forbidden', { status: 403 })
+		}
+
+		const storage = await this.getStorage()
+		assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
+		// the document snapshot never contains object-lane records (comments), so .tldr is clean
+		const snapshot = storage.getSnapshot()
+		const records = pruneUnusedAssetsForTldr(snapshot.documents.map((d) => d.state) as TLRecord[])
+
+		const assetRows = await this.db
+			.selectFrom('asset')
+			.where('fileId', '=', this.documentInfo.slug)
+			.select('objectName')
+			.execute()
+		const assetObjectNames = new Set(assetRows.map((r) => r.objectName))
+
+		const documentRecord = records.find((r) => r.typeName === 'document') as TLDocument | undefined
+		// Prefer the TlaFile.name (kept in sync by the app layer) over the TLDocument.name
+		// (which is only updated when the document is open in an editor).
+		const rawName = file.name?.trim() || documentRecord?.name?.trim()
+		const sanitized =
+			rawName?.replace(/[^ \w-]/g, '_').slice(0, 200) || `${this.documentInfo.slug}.tldr`
+		const filename = sanitized.endsWith('.tldr') ? sanitized : `${sanitized}.tldr`
+
+		const env = this.env
+		const stream = new ReadableStream({
+			async start(controller) {
+				try {
+					const encoder = new TextEncoder()
+					controller.enqueue(
+						encoder.encode(
+							`{"tldrawFileFormatVersion":${TLDRAW_FILE_FORMAT_VERSION},"schema":${JSON.stringify(snapshot.schema)},"records":[`
+						)
+					)
+					for (let i = 0; i < records.length; i++) {
+						let record = records[i] as TLRecord
+						const assetSrc = record.typeName === 'asset' ? (record as TLAsset).props.src : null
+						if (
+							record.typeName === 'asset' &&
+							(record as TLAsset).type !== 'bookmark' &&
+							assetSrc &&
+							!assetSrc.startsWith('data:')
+						) {
+							const objectName = new URL(assetSrc).pathname.split('/').pop()
+							if (
+								objectName &&
+								assetObjectNames.has(objectName) &&
+								isValidR2ObjectName(objectName)
+							) {
+								const blob = await env.UPLOADS.get(objectName)
+								if (blob) {
+									const ab = await blob.arrayBuffer()
+									const base64 = arrayBufferToBase64(ab)
+									const assetRecord = record as TLAsset
+									const mimeType =
+										assetRecord.type !== 'bookmark' &&
+										'mimeType' in assetRecord.props &&
+										assetRecord.props.mimeType
+											? assetRecord.props.mimeType
+											: 'application/octet-stream'
+									record = {
+										...record,
+										props: {
+											...(record as TLAsset).props,
+											src: `data:${mimeType};base64,${base64}`,
+										},
+									} as TLRecord
+								}
+							}
+						}
+						controller.enqueue(encoder.encode((i > 0 ? ',' : '') + JSON.stringify(record)))
+					}
+					controller.enqueue(encoder.encode(']}'))
+					controller.close()
+				} catch (e) {
+					controller.error(e)
+				}
+			},
+		})
+
+		return new Response(stream, {
+			headers: {
+				'Content-Type': TLDRAW_FILE_MIMETYPE,
+				'Content-Disposition': `attachment; filename="${filename}"`,
+			},
+		})
+	}
+
+	triggerPersist = throttle(() => {
+		this.persistToDatabase()
+	}, PERSIST_INTERVAL_MS)
+
+	// Whether a persist on this board costs a thumbnail render, and why. The single source of truth for
+	// both the gate in `requestOgRenderForEdit` and the `sharedState` blob on `persist_success`, so the
+	// telemetry cannot report a state that differs from the one the decision was made on.
+	//
+	// `deleted` is its own state rather than folded into `private` or `unknown`: it never renders, so
+	// counting its persists as either would corrupt the shared fraction this exists to measure.
+	//
+	// Both delete lanes count. A hard delete arrives as `appFileRecordDidDelete` and flips
+	// `documentInfo.deleted`; a soft delete (trash) arrives as an ordinary record update and only
+	// flips `isDeleted` on the cached row, leaving `documentInfo.deleted` false. The connection path
+	// already treats the two as one, and so does this.
+	private getBoardRenderState(): 'shared' | 'private' | 'unknown' | 'legacy' | 'deleted' {
+		if (!this.documentInfo.isApp) return 'legacy'
+		if (this.documentInfo.deleted || this._fileRecordCache?.isDeleted) return 'deleted'
+		const shared = this._fileRecordCache?.shared
+		if (shared === undefined) return 'unknown'
+		return shared ? 'shared' : 'private'
+	}
+
+	// Decides when this board's thumbnail is due (see OgRenderDebouncer). This object contributes the
+	// clock and the durable alarm, and the alarm below IS the deadline rather than an approximation of
+	// one: every persist re-arms it, so an eviction loses the in-memory copy and nothing else.
+	private ogRenderDebouncer = new OgRenderDebouncer()
+
+	private scheduleOgRender() {
+		this.ctx.storage
+			.setAlarm(this.ogRenderDebouncer.onPersist(Date.now()))
+			.catch((e) => this.reportError(e))
+	}
+
+	// Rethrown rather than swallowed, unlike the socket handlers: the runtime retries an alarm that
+	// rejects, and dropping the error here would silently cancel the OG render this alarm exists to
+	// perform. Reporting only adds the Sentry record it was missing.
+	override async alarm(alarmInfo?: AlarmInvocationInfo) {
+		try {
+			// One clock reading for the whole fire: the debounce decision and the pending marker's
+			// expiry both count from it (see `firedAt` on enqueueOgImageRender).
+			const firedAt = Date.now()
+			const result = this.ogRenderDebouncer.onAlarm(firedAt)
+			if (!result.render) {
+				await this.ctx.storage.setAlarm(result.reArmAt)
+				return
+			}
+			await this.requestOgRenderForEdit(firedAt)
+		} catch (e) {
+			this.reportError(e, { source: 'alarm', retryCount: alarmInfo?.retryCount ?? 0 })
+			throw e
+		}
+	}
+
+	/**
+	 * Indexes every data point on this object's durable object id, so any event can be grouped by
+	 * room. The id is the one Cloudflare keys its own telemetry on — `$workers.durableObjectId` in
+	 * Workers Logs, and the per-object filter on the namespace's metrics — so a room's analytics,
+	 * logs, traces and CPU/storage numbers all line up on a single value.
+	 *
+	 * Deliberately the id rather than the slug: `idFromName` is one-way, so an id read out of the
+	 * dataset does not open the board, where the slug for an app file is the whole authority of
+	 * `tldraw.com/f/<id>`. Resolving in the useful direction still works from a slug you already
+	 * hold, via `env.TLDR_DOC.idFromName('/r/' + slug)`.
+	 *
+	 * Analytics Engine allows exactly one index, so this is the only object-level dimension these
+	 * events carry.
+	 */
+	private writeEvent(name: string, eventData: EventData) {
+		writeDataPoint(this.sentry, this.measure, this.env, name, {
+			...eventData,
+			indexes: [this.id.toString()],
+		})
+	}
+
+	logEvent(event: TLServerEvent) {
+		switch (event.type) {
+			case 'persist_success': {
+				// This event fires on exactly what triggers a thumbnail render, so it carries what sizing
+				// that spend needs. `writeEvent` already indexes it on the durable object id, which makes
+				// distinct boards countable; `sharedState` is the other half, and has to be recorded here
+				// because the id is one-way and cannot be joined back to a file row.
+				this.writeEvent(event.type, {
+					blobs: [event.sharedState],
+					doubles: [event.attempts],
+				})
+				break
+			}
+			case 'room': {
+				if (event.name === 'room_start') {
+					this.writeEvent(event.name, { doubles: [event.resumedSockets] })
+				} else {
+					this.writeEvent(event.name, {})
+				}
+				break
+			}
+			case 'client': {
+				if (event.name === 'rate_limited') {
+					this.writeEvent(event.name, { blobs: [event.userId ?? 'anon-user'] })
+				} else if (event.name === 'enter') {
+					// blob order is positional per event name. '0' covers bundles that predate the
+					// `?v=` connect param (and clients that sent a bogus one): it stays a number, so
+					// it sorts as the oldest possible build under both string and numeric ordering.
+					this.writeEvent(event.name, {
+						blobs: [event.instanceId, event.clientBuildTimestamp ?? '0'],
+					})
+				} else {
+					this.writeEvent(event.name, { blobs: [event.instanceId] })
+				}
+				break
+			}
+			case 'send_message': {
+				this.writeEvent(event.type, {
+					blobs: [event.messageType],
+					doubles: [event.messageLength],
+				})
+				break
+			}
+			default: {
+				exhaustiveSwitchError(event)
+			}
+		}
+	}
+
+	async handleFileCreateFromSource(): Promise<DBLoadResult> {
+		assert(this._fileRecordCache, 'we need to have a file record to create a file from source')
+
+		const fetchTimer = this.timer()
+		const data = await this.loadCreateSourceData(this._fileRecordCache.createSource)
+		fetchTimer.report('create_from_source_fetch_total')
+
+		if (!data) {
+			throw new RoomNotFoundError(this._fileRecordCache.id)
+		}
+
+		const serialized = typeof data === 'string' ? data : JSON.stringify(data)
+		const snapshot = typeof data === 'string' ? JSON.parse(data) : data
+
+		this.setBootStage('source-r2-put')
+		const putTimer = this.timer()
+		const key = getR2KeyForRoom({ slug: this._fileRecordCache.id, isApp: true })
+		const roomObject = await this.r2.rooms.put(key, serialized)
+		putTimer.report('create_from_source_r2_put')
+
+		return {
+			snapshot,
+			roomSizeMB: roomObject ? roomObject.size / MB : 0,
+		}
+	}
+
+	/**
+	 * Resolve the seed content for a file's `createSource`, as a RoomSnapshot or its serialized
+	 * string. Returns undefined for an unknown source, which the caller turns into RoomNotFoundError.
+	 */
+	private async loadCreateSourceData(
+		createSource: string | null | undefined
+	): Promise<RoomSnapshot | string | null | undefined> {
+		// A new workspace's first file: a fixed marker (no prefix/id) the worker resolves to the
+		// welcome template's content, or a committed default — see resolveWelcomeSnapshot.
+		if (createSource === WELCOME_CREATE_SOURCE) {
+			return await resolveWelcomeSnapshot(this.env, (e) => this.reportError(e))
+		}
+
+		const split = createSource?.split('/')
+		if (!split || split.length !== 2) {
+			throw new RoomNotFoundError(String(createSource))
+		}
+		const [prefix, id] = split
+		switch (prefix) {
+			case FILE_PREFIX: {
+				// The source file's content is copied verbatim into this (user-owned) room. Read
+				// access to the source `id` is authorized upstream when the file record is created
+				// (see the `createFile` mutator), since that is where the user's identity is known.
+				// Bound the wait: a busy source room can hold its serial persist queue longer than
+				// the outbox drain's 30s effect timeout, wedging this boot and parking the insert
+				// effect (#10541). Its last persisted snapshot is typically at most one persist
+				// throttle stale — older only when the source's own persists are failing, which
+				// is reported separately.
+				this.setBootStage('source-await-persist')
+				const awaitPersistTimer = this.timer()
+				const persistWait = await settleWithin(
+					getRoomDurableObject(this.env, id).awaitPersist(),
+					SOURCE_PERSIST_WAIT_TIMEOUT_MS
+				)
+				if (persistWait === 'timeout') {
+					this.reportError(new SourcePersistTimeoutError(id, SOURCE_PERSIST_WAIT_TIMEOUT_MS))
+				}
+				awaitPersistTimer.report('create_from_source_await_persist')
+				this.setBootStage('source-r2-fetch')
+
+				const r2FetchTimer = this.timer()
+				const text = await this.r2.rooms
+					.get(getR2KeyForRoom({ slug: id, isApp: true }))
+					.then((r) => r?.text())
+				r2FetchTimer.report('create_from_source_r2_fetch')
+				return text
+			}
+			case ROOM_PREFIX:
+				return await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_WRITE)
+			case READ_ONLY_PREFIX:
+				return await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_ONLY)
+			case READ_ONLY_LEGACY_PREFIX:
+				return await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_ONLY_LEGACY)
+			case SNAPSHOT_PREFIX:
+				return await getLegacyRoomData(this.env, id, 'snapshot')
+			case PUBLISH_PREFIX:
+				return await getPublishedRoomSnapshot(this.env, id)
+			case LOCAL_FILE_PREFIX:
+				// create empty room, the client will populate it
+				return DEFAULT_INITIAL_SNAPSHOT
+			default:
+				return undefined
+		}
+	}
+
+	// Load the room's drawing data. First we check the R2 bucket, then we fallback to supabase (legacy).
+	async loadFromDatabase(slug: string): Promise<DBLoadResult> {
+		const loadTimer = this.timer()
+		try {
+			const key = getR2KeyForRoom({ slug, isApp: this.documentInfo.isApp })
+
+			// Kick off the Postgres comments load now so it overlaps with the R2 fetch below;
+			// only the merge points further down actually await it.
+			const commentsPromise = this.documentInfo.isApp ? this.loadCommentsFromPostgres() : null
+			// Prevent an unhandled rejection if we exit via a path that never merges (e.g.
+			// RoomNotFoundError). Merge points still await commentsPromise itself, so a Postgres
+			// failure there still fails the room open.
+			commentsPromise?.catch(() => {})
+
+			// when loading, prefer to fetch documents from the bucket
+			const r2FetchTimer = this.timer()
+			const roomFromBucket = await this.r2.rooms.get(key)
+			r2FetchTimer.report('db_load_r2_fetch')
+
+			if (roomFromBucket) {
+				const snapshot = (await roomFromBucket.json()) as RoomSnapshot
+
+				// Object-lane records (comments) live in Postgres, the sole durable comment store
+				// (see drainCommentOutbox). Load them and merge them back into the snapshot so they
+				// seed the room and hydrate to clients on connect. A Postgres failure here fails the
+				// room open (bubbling like an R2 failure) — silently opening without comments would
+				// let the next persist treat them as deleted.
+				if (commentsPromise) {
+					mergeCommentDocumentsIntoSnapshot(snapshot, await commentsPromise)
+				}
+
+				loadTimer.report('db_load_total')
+
+				return {
+					snapshot,
+					roomSizeMB: roomFromBucket.size / MB,
+				}
+			}
+
+			if (this._fileRecordCache?.createSource) {
+				const createFromSourceTimer = this.timer()
+				const res = await this.handleFileCreateFromSource()
+				createFromSourceTimer.report('db_load_create_from_source')
+
+				// `createSource` is never cleared from the file record, so this branch re-enters
+				// whenever the R2 blob is missing — including a from-source file that gained
+				// comments and then lost its DO SQLite before the first throttled R2 persist.
+				// Merge the Postgres comments back in like the other branches, or they'd be
+				// orphaned: visible in the app-level /comments view but absent from the room, and
+				// resurrected inconsistently later. For a genuinely fresh duplicate the query
+				// returns zero rows and the merge is a no-op. Clone the snapshot before merging:
+				// loadCreateSourceData can return the shared DEFAULT_INITIAL_SNAPSHOT module
+				// constant, and the merge mutates top-level snapshot fields.
+				if (commentsPromise) {
+					const snapshot: RoomSnapshot = { ...res.snapshot }
+					mergeCommentDocumentsIntoSnapshot(snapshot, await commentsPromise)
+					res.snapshot = snapshot
+				}
+
+				loadTimer.report('db_load_total')
+
+				return res
+			}
+
+			if (this.documentInfo.isApp) {
+				// finally check whether the file exists in the DB but not in R2 yet
+				const file = await this.getAppFileRecord()
+
+				loadTimer.report('db_load_total')
+				if (!file) {
+					throw new RoomNotFoundError(slug)
+				}
+
+				// Comments can exist in Postgres before the first throttled R2 persist ever runs
+				// (e.g. DO SQLite lost right after commenting on a fresh file), so rehydrate them
+				// here too. Clone the shared DEFAULT_INITIAL_SNAPSHOT constant — the merge reassigns
+				// `documents` and clamps clocks, and must not mutate the module-level object.
+				const snapshot: RoomSnapshot = { ...DEFAULT_INITIAL_SNAPSHOT }
+				mergeCommentDocumentsIntoSnapshot(snapshot, await assertExists(commentsPromise))
+
+				return {
+					snapshot,
+					roomSizeMB: 0,
+				}
+			}
+
+			// if we don't have a room in the bucket, try to load from supabase
+			const supabaseClient = this.supabaseClient
+			if (!supabaseClient) {
+				throw new RoomNotFoundError(slug)
+			}
+
+			const supabaseFetchTimer = this.timer()
+			const { data, error } = await supabaseClient
+				.from(this.supabaseTable)
+				.select('*')
+				.eq('slug', slug)
+
+			supabaseFetchTimer.report('db_load_supabase_fetch')
+
+			if (error) {
+				this.logEvent({ type: 'room', name: 'failed_load_from_db' })
+
+				loadTimer.report('db_load_total')
+
+				console.error('failed to retrieve document', slug, error)
+				throw new Error(error.message)
+			}
+			// if it didn't find a document, data will be an empty array
+			if (data.length === 0) {
+				loadTimer.report('db_load_total')
+				throw new RoomNotFoundError(slug)
+			}
+
+			const roomFromSupabase = data[0] as PersistedRoomSnapshotForSupabase
+			loadTimer.report('db_load_total')
+
+			return {
+				snapshot: roomFromSupabase.drawing,
+				roomSizeMB: 0,
+			}
+		} catch (error) {
+			this.logEvent({ type: 'room', name: 'failed_load_from_db' })
+
+			loadTimer.report('db_load_total_error')
+
+			console.error('failed to fetch doc', slug, error)
+			throw error
+		}
+	}
+
+	private async loadCommentsFromPostgres(): Promise<CommentLoadResult> {
+		const fileId = this.documentInfo.slug
+		const [threadRows, commentRows, reactionRows] = await Promise.all([
+			this.db.selectFrom('comment_thread').where('fileId', '=', fileId).selectAll().execute(),
+			this.db.selectFrom('comment').where('fileId', '=', fileId).selectAll().execute(),
+			this.db.selectFrom('comment_reaction').where('fileId', '=', fileId).selectAll().execute(),
+		])
+		// Soft-deleted threads and their comments never re-enter a room, and neither do reactions
+		// whose comment doesn't; their rows stay in Postgres only (see liveCommentDocuments).
+		return liveCommentDocuments(threadRows, commentRows, reactionRows)
+	}
+
+	timer() {
+		const start = Date.now()
+		return {
+			report: (name: string) => {
+				this.writeEvent(name, {
+					doubles: [Date.now() - start],
+				})
+			},
+		}
+	}
+
+	_lastPersistedClock: number | null = null
+
+	// Fingerprint of the snapshot known to be in the rooms bucket, read from its customMetadata so
+	// a cold start doesn't re-upload a board nobody edited. The clock guard above can't do this —
+	// it dies with the isolate, and object-lane (comment) writes bump it without changing the
+	// document snapshot.
+	//
+	// undefined means "not looked up yet" and null means "looked up, no usable stamp"; the two are
+	// distinct because the lookup must happen at most once (see resolvePersistedFingerprint).
+	_lastPersistedFingerprint: SnapshotFingerprint | null | undefined = undefined
+
+	// Serializes comment outbox drains (and the restore-path deletes) so they land in order.
+	// Separate from executionQueue (the R2/main-persist queue) since these pushes fire immediately
+	// on commit, not on the throttle.
+	private _objectPushQueue = new ExecutionQueue()
+
+	executionQueue = new ExecutionQueue()
+
+	private getUserContentUrl(): string {
+		return assertExists(this.env.USER_CONTENT_URL, 'USER_CONTENT_URL is required')
+	}
+
+	private readonly associateAssetsQueue = new ExecutionQueue()
+
+	// Source objects the association pass confirmed missing from the uploads bucket. Skipped on
+	// later passes so an asset pointing at a gone object doesn't re-attempt an R2 get on every
+	// persist tick. In-memory only: resets with the DO, never touches document data.
+	private readonly missingSourceObjects = new Set<string>()
+
+	// Shared connection budget for every R2 operation this durable object makes. Both asset copies and
+	// snapshot uploads draw from this queue so together they can't exceed Cloudflare's simultaneous-
+	// connection limit (see MAX_CONCURRENT_R2_OPERATIONS).
+	private readonly r2Queue = new PQueue({ concurrency: MAX_CONCURRENT_R2_OPERATIONS })
+
+	// Wraps a queued R2 task so the queue's depth is counted against `type` from submit until the task
+	// settles. While the queue is backed up it writes a per-type depth metric for Grafana, and a
+	// runaway backlog reports to Sentry once per spike (re-arming after the queue drains). Depth and
+	// the alert flag live in this closure rather than on the durable object.
+	private readonly trackQueuedTask = (() => {
+		const depthByType = new Map<R2OperationType, number>()
+		let alerted = false
+		let emitScheduled = false
+		const totalDepth = () => {
+			let total = 0
+			for (const depth of depthByType.values()) total += depth
+			return total
+		}
+		// A single association pass submits all of its copies synchronously, so depth jumps straight
+		// to the batch size. Coalesce that burst into one deferred emit that captures the peak, rather
+		// than writing an analytics point per submitted task (which would flood Analytics Engine).
+		const scheduleEmit = () => {
+			if (emitScheduled) return
+			emitScheduled = true
+			queueMicrotask(() => {
+				emitScheduled = false
+				const total = totalDepth()
+				if (total < R2_QUEUE_DEPTH_METRIC_THRESHOLD) return
+				for (const [type, depth] of depthByType) {
+					this.writeEvent('r2_queue_depth', { blobs: [type], doubles: [total, depth] })
+				}
+				if (total >= R2_QUEUE_DEPTH_ALERT_THRESHOLD && !alerted) {
+					alerted = true
+					this.reportError(
+						new Error(
+							`R2 connection queue depth reached ${total} (>= ${R2_QUEUE_DEPTH_ALERT_THRESHOLD}) for file ${this.documentInfo.slug}`
+						)
+					)
+				}
+			})
+		}
+		return <T>(type: R2OperationType, task: () => Promise<T>): (() => Promise<T>) => {
+			depthByType.set(type, (depthByType.get(type) ?? 0) + 1)
+			if (totalDepth() < R2_QUEUE_DEPTH_METRIC_THRESHOLD) {
+				alerted = false
+			} else {
+				scheduleEmit()
+			}
+			return async () => {
+				try {
+					return await task()
+				} finally {
+					const depth = (depthByType.get(type) ?? 1) - 1
+					if (depth <= 0) depthByType.delete(type)
+					else depthByType.set(type, depth)
+				}
+			}
+		}
+	})()
+
+	// Submits an R2 operation to the shared connection budget (see r2Queue). Snapshot uploads run at a
+	// higher priority than asset copies so persistence isn't stuck behind a large association pass's
+	// backlog of copies — durability shouldn't wait on background asset work.
+	private addR2Operation<T>(type: R2OperationType, task: () => Promise<T>) {
+		return this.r2Queue.add(this.trackQueuedTask(type, task), {
+			priority: type === 'snapshot_upload' ? 1 : 0,
+		})
+	}
+
+	// Associates every asset in this (app) file with the file. Needed for cases like duplicating a
+	// file, copy-pasting images between files, and slurping legacy files; also migrates old-format
+	// asset URLs to tldrawusercontent.com. Only one pass runs at a time; concurrent calls are dropped
+	// because the running pass already drains the whole store (see associateFileAssets).
+	async maybeAssociateFileAssets() {
+		if (!this.documentInfo.isApp) return
+		if (!this.associateAssetsQueue.isEmpty()) return
+		await this.associateAssetsQueue.push(() => this.associateFileAssets())
+	}
+
+	private async associateFileAssets() {
+		// Keep going until there's nothing left to associate. Copying takes a while and more assets can
+		// arrive in the meantime, so the running pass keeps draining rather than relying on a later
+		// trigger to pick up the stragglers. This runs un-awaited from persist ticks, so a failed pass
+		// is reported and ends the drain rather than surfacing as an unhandled rejection.
+		while (true) {
+			let associated: number
+			try {
+				associated = await this.associatePendingAssets()
+			} catch (e) {
+				this.reportError(e)
+				return
+			}
+			if (!associated) return
+		}
+	}
+
+	// Associates every asset that isn't linked to this file yet: copies it to a new object owned by the
+	// file and repoints the asset at it (and migrates old-format URLs in place). Returns how many
+	// assets it associated — 0 means there's nothing left to do, or nothing it can make progress on
+	// (e.g. an asset whose source object is missing), which is what stops the loop above.
+	private async associatePendingAssets(): Promise<number> {
+		const slug = this.documentInfo.slug
+		const storage = await this.getStorage()
+		const userContentUrl = this.getUserContentUrl()
+
+		const {
+			result: { assetsToReplace, assetsToMigrate },
+		} = storage.transaction((txn) =>
+			collectAssetAssociationChanges(txn.values(), {
+				slug,
+				userContentUrl,
+				skipObjectNames: this.missingSourceObjects,
+			})
+		)
+
+		// Apply URL migrations (no R2 copy needed — same bucket, same object)
+		if (assetsToMigrate.length > 0) {
+			storage.transaction((txn) => {
+				for (const migration of assetsToMigrate) {
+					const assetRecord = txn.get(migration.assetId) as TLAsset | undefined
+					if (!assetRecord) continue
+					assetRecord.props.src = migration.newSrc
+					txn.set(migration.assetId, assetRecord)
+				}
+			})
+		}
+
+		if (assetsToReplace.length === 0) return 0
+
+		const rows: { objectName: string; fileId: string }[] = []
+		await Promise.allSettled(
+			assetsToReplace.map((asset) =>
+				this.addR2Operation('asset_copy', async () => {
+					try {
+						const currentAsset = await this.env.UPLOADS.get(asset.objectName)
+						if (!currentAsset) {
+							// Only a confirmed null (object genuinely absent) goes in the cache — a
+							// thrown error (rate limit, subrequest budget) must stay retryable
+							this.missingSourceObjects.add(asset.objectName)
+							return
+						}
+						await this.env.UPLOADS.put(asset.newObjectName, currentAsset.body, {
+							httpMetadata: currentAsset.httpMetadata,
+						})
+
+						storage.transaction((txn) => {
+							const assetRecord = txn.get(asset.assetId) as TLAsset | undefined
+							if (!assetRecord) return // extremely unlikely, not sure why this would happen
+							assetRecord.props.src = asset.newSrc
+							assetRecord.meta.fileId = slug
+							txn.set(asset.assetId, assetRecord)
+						})
+
+						rows.push({
+							objectName: asset.newObjectName,
+							fileId: slug,
+						})
+					} catch (e) {
+						this.reportError(e)
+					}
+				})
+			)
+		)
+
+		// Nothing copied, so there's no progress to be made.
+		if (rows.length === 0) return 0
+
+		await this.db
+			.insertInto('asset')
+			.values(rows)
+			.onConflict((oc) => {
+				return oc.column('objectName').doUpdateSet({ fileId: slug })
+			})
+			.execute()
+
+		return rows.length
+	}
+
+	protected async setRoomStorageUsedPercentage(roomSizeMB: number) {
+		const storage = await this.getStorage()
+		const percentage = Math.ceil((roomSizeMB / ROOM_SIZE_LIMIT_MB) * 100)
+		storage.transaction((txn) => {
+			const document = txn.get(TLDOCUMENT_ID) as TLDocument
+			const meta = document.meta
+			if (meta.storageUsedPercentage === percentage) return
+			// In some cases we don't want to update the document if it already has percentage set.
+			// Example for that is when we load the room. If it has a percentage set, we don't want to overwrite it.
+			txn.set(TLDOCUMENT_ID, { ...document, meta: { ...meta, storageUsedPercentage: percentage } })
+		})
+	}
+
+	broadcastPersistenceEvent(event: TLCustomServerEvent) {
+		this._room?.then((r) => {
+			for (const session of r.getSessions()) {
+				r.sendCustomMessage(session.sessionId, event)
+			}
+		})
+	}
+	persistenceBad = false
+
+	// Save the room to r2
+	async persistToDatabase(opts?: { throwOnFailure?: boolean }) {
+		await this.executionQueue
+			.push(async () => {
+				await retry(
+					async ({ attempt }) => {
+						if (attempt === PERSIST_RETRIES_NOTIFY_THRESHOLD && !this.persistenceBad) {
+							this.broadcastPersistenceEvent({ type: 'persistence_bad' })
+							this.persistenceBad = true
+						}
+						// check whether the worker was woken up to persist after having gone to sleep
+						if (!this._room) return
+						const slug = this.documentInfo.slug
+						const storage = await this.getStorage()
+						assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
+						// Object-lane records (comments) persist to Postgres via the outbox; the
+						// throttled persist just nudges a drain so pushes that failed earlier get
+						// retried. This must run BEFORE the clock early-return below: a quiet room
+						// (no new commits) would otherwise never retry a failed drain. Fire-and-forget:
+						// a Postgres outage must not fail the R2 document persist — the outbox keeps
+						// the pending work.
+						this.drainCommentOutbox()
+						if (this._lastPersistedClock === storage.getClock()) return
+						if (this._isRestoring) return
+
+						// The storage partitions object-lane records (comments) into their own store, so
+						// the document snapshot is pure-document by construction — no splitting needed.
+						const snapshot = storage.getSnapshot()
+						assert(snapshot.documentClock !== undefined, 'documentClock must be present')
+						this.maybeAssociateFileAssets()
+
+						const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
+						const snapshotFingerprint = getSnapshotFingerprint(snapshot)
+						const persistedFingerprint = await resolvePersistedFingerprint(
+							this._lastPersistedFingerprint,
+							this.r2.rooms,
+							key
+						)
+						this._lastPersistedFingerprint = persistedFingerprint
+						if (isSameFingerprint(persistedFingerprint, snapshotFingerprint)) {
+							// The clock moved but neither the document nor the schema did — a comment
+							// write, or a cold start re-checking work a previous incarnation already
+							// persisted. Uploading would store byte-identical content under a new
+							// history timestamp and re-render an unchanged thumbnail; skip both, but
+							// keep the rest of a persist's observable behavior.
+							this._lastPersistedClock = snapshot.documentClock
+							this.markPersistenceGood()
+							this.bumpFileUpdatedAt()
+							return
+						}
+						await this._uploadSnapshotToR2(snapshot, key)
+						this._lastPersistedFingerprint = snapshotFingerprint
+
+						this.logEvent({
+							type: 'persist_success',
+							attempts: attempt,
+							sharedState: this.getBoardRenderState(),
+						})
+						this._lastPersistedClock = snapshot.documentClock
+						// The board's content just changed, so its thumbnail is out of date. Push the render
+						// deadline out rather than rendering now: the useful thumbnail is of the settled
+						// board, and a persist mid-session says more edits are probably coming. Costs one
+						// alarm write per persist, not awaited here (see scheduleOgRender), so a slow or
+						// failed write cannot hold up a persist.
+						this.scheduleOgRender()
+						this.markPersistenceGood()
+
+						this.bumpFileUpdatedAt()
+					},
+					{
+						// throwOnFailure callers (publish) are awaited inside a 30s outbox effect
+						// timeout; the default 100 attempts (~200s) would blow past it, surfacing as a
+						// generic timeout with the real cause lost. Cap those callers' own retries well
+						// under it. Not a hard bound: a best-effort persist already queued ahead on the
+						// serial executionQueue can still push the wait past the timeout - the effect
+						// timeout covers that, and since the retried effect queues behind the same
+						// task and the clock check makes it a no-op, an overlap is harmless.
+						attempts: opts?.throwOnFailure ? PERSIST_RETRIES_MAX_THROWING : PERSIST_RETRIES_MAX,
+						waitDuration: 2000,
+					}
+				)
+			})
+			.catch((e) => {
+				this.logEvent({ type: 'room', name: 'fail_persist' })
+				this.reportError(e)
+				if (opts?.throwOnFailure) throw e
+			})
+	}
+
+	/**
+	 * Asks for this board's thumbnail to be re-rendered, because the content it depicts just changed.
+	 *
+	 * Called from `alarm()` when the debounce expires, so it runs once editing has settled or the max
+	 * wait is up. That debounce is the render rate control; there is no sampling or staleness gate on
+	 * top, because a persist means the saved content genuinely differs from what the cached thumbnail
+	 * shows. Downstream, the pending marker single-flights the ask and the consumer re-checks
+	 * `(board, version)` before spending a Browser Run slot — neither is a rate control either.
+	 */
+	private async requestOgRenderForEdit(firedAt: number) {
+		try {
+			// Two states skip, and neither is about privacy: a legacy room is not an app file and has no
+			// board identity to render, and a deleted one has nothing worth depicting. `shared`, `private`
+			// and `unknown` all proceed — every board gets a thumbnail, so that an owner-facing surface has
+			// one to show. Sharing is a condition of *serving*, re-applied by the OG route per request.
+			const state = this.getBoardRenderState()
+			if (state === 'legacy' || state === 'deleted') return
+
+			const slug = this.documentInfo.slug
+			const result = await enqueueOgImageRender(
+				this.env,
+				{ kind: 'shared_file', slug },
+				{ reason: 'edit', firedAt }
+			)
+			// No board identifier: for a shared file the slug is a capability, and a derived id is still a
+			// board identity in a log sink. The result alone is what this line is for.
+			this.log.debug('og render for edit', result)
+		} catch (e) {
+			// Reported, not thrown: this runs off the persist path and must never affect it.
+			this.reportError(e)
+		}
+	}
+
+	// Clears the "persistence bad" banner clients are showing. Also called when a persist skips
+	// its uploads: a skip is a successful persist, and the banner would otherwise stay up until
+	// the isolate dies on a board whose only remaining writes are comments.
+	private markPersistenceGood() {
+		if (!this.persistenceBad) return
+		this.broadcastPersistenceEvent({ type: 'persistence_good' })
+		this.persistenceBad = false
+	}
+
+	// Updates the file's updatedAt timestamp. Also called when a persist skips its uploads,
+	// because comment-only activity should still surface as file activity.
+	private bumpFileUpdatedAt() {
+		if (!this.documentInfo.isApp) return
+		// don't await on this because otherwise
+		// if this logic is invoked during another db transaction
+		// (e.g. when publishing a file)
+		// that transaction will deadlock
+		this.db
+			.updateTable('file')
+			.set({ updatedAt: new Date().getTime() })
+			.where('id', '=', this.documentInfo.slug)
+			.execute()
+			.catch((e) => {
+				this.logEvent({
+					type: 'room',
+					name: 'failed_persist_to_db',
+				})
+				this.reportError(e)
+			})
+	}
+
+	private async _uploadSnapshotToR2(snapshot: RoomSnapshot, key: string) {
+		const customMetadata = getSnapshotMetadata(snapshot)
+		// Upload to rooms bucket first
+		const roomSizeMB = await this._uploadSnapshotToBucket(
+			this.r2.rooms,
+			snapshot,
+			key,
+			customMetadata
+		)
+		// Update storage percentage
+		if (roomSizeMB !== null) {
+			await this.setRoomStorageUsedPercentage(roomSizeMB)
+		}
+
+		// Then upload to version cache. Nothing dedupes this the way the version check in
+		// persistToDatabase does, because nothing after this put can fail: a retry that got here
+		// has already set _lastPersistedFingerprint and takes the skip path instead.
+		const versionKey = `${key}/${new Date().toISOString()}`
+		await this._uploadSnapshotToBucket(this.r2.versionCache, snapshot, versionKey, customMetadata)
+	}
+
+	private async _uploadSnapshotToBucket(
+		bucket: R2Bucket,
+		snapshot: RoomSnapshot,
+		key: string,
+		customMetadata: Record<string, string>
+	): Promise<number | null> {
+		// Funnel through the shared connection budget so the upload can't contend with a concurrent
+		// asset-association pass (or the version-cache upload) and exhaust Cloudflare's connections.
+		const result = await this.addR2Operation('snapshot_upload', async () => {
+			try {
+				// Try multipart upload first, retrying transient connection drops before falling back.
+				// Only connection-type errors are worth retrying; anything else fails fast to the PUT
+				// fallback rather than sleeping between attempts.
+				return await retry(
+					() => this._uploadSnapshotToBucketMultipart(bucket, snapshot, key, customMetadata),
+					{
+						attempts: 3,
+						waitDuration: 500,
+						matchError: isTransientConnectionError,
+					}
+				)
+			} catch (multipartError) {
+				// Falling back to a simple PUT is the designed recovery path, so it's a breadcrumb
+				// rather than a captured exception — only a failure of the fallback itself is reported.
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				this.sentry?.addBreadcrumb({
+					message: `Multipart upload failed, falling back to simple PUT: ${multipartError}`,
+				})
+				try {
+					return await this._uploadSnapshotToBucketSimple(bucket, snapshot, key, customMetadata)
+				} catch (putError) {
+					this.reportError(putError)
+					throw putError
+				}
+			}
+		})
+		return result ?? null
+	}
+
+	private async _uploadSnapshotToBucketMultipart(
+		bucket: R2Bucket,
+		snapshot: RoomSnapshot,
+		key: string,
+		customMetadata: Record<string, string>
+	) {
+		const out = await bucket.createMultipartUpload(key, { customMetadata })
+
+		try {
+			// 5MB buffer
+			const fiveMB = 5 * MB
+			const buffer = new Uint8Array(fiveMB)
+			const parts: R2UploadedPart[] = []
+			let partNumber = 1
+			let offset = 0
+
+			const uploadBuffer = async (data: Uint8Array) => {
+				const part = await out.uploadPart(partNumber, data)
+				parts.push(part)
+				partNumber++
+			}
+
+			for (const chunk of generateSnapshotChunks(snapshot)) {
+				let remainingChunk = chunk
+
+				while (remainingChunk.byteLength > 0) {
+					const spaceLeft = fiveMB - offset
+					const chunkToAdd = remainingChunk.subarray(
+						0,
+						Math.min(spaceLeft, remainingChunk.byteLength)
+					)
+
+					buffer.set(chunkToAdd, offset)
+					offset += chunkToAdd.byteLength
+
+					// If buffer is full, upload it
+					if (offset >= fiveMB) {
+						await uploadBuffer(buffer.subarray(0, offset))
+						offset = 0
+					}
+
+					remainingChunk = remainingChunk.subarray(chunkToAdd.byteLength)
+				}
+			}
+			if (offset > 0) {
+				await uploadBuffer(buffer.subarray(0, offset))
+			}
+
+			const result = await out.complete(parts)
+			if (result) {
+				return result.size / MB
+			}
+			return null
+		} catch (e) {
+			await out.abort()
+			throw e
+		}
+	}
+
+	private async _uploadSnapshotToBucketSimple(
+		bucket: R2Bucket,
+		snapshot: RoomSnapshot,
+		key: string,
+		customMetadata: Record<string, string>
+	) {
+		const serialized = JSON.stringify(snapshot)
+		const result = await bucket.put(key, serialized, { customMetadata })
+		if (result) {
+			return result.size / MB
+		}
+
+		return null
+	}
+
+	/**
+	 * Durable outbox for comment persistence. Postgres is the sole durable store for comment
+	 * records; the DO's SQLite is the room's working copy. Each committed diff appends the touched
+	 * comment record ids (comment, thread, or reaction) here (same-task with the commit, so the output gate
+	 * flushes them together), and the drain pushes the records' current state to Postgres. The
+	 * drain itself also appends: when the author-cascade prune (below) empties a thread, the
+	 * pruned thread's id is outboxed so a follow-up drain deletes its Postgres row through this
+	 * same acked path.
+	 * Delivery is at-least-once: an entry's outbox row is only removed once its push to Postgres
+	 * has actually succeeded, so a row that fails (including its row-by-row retry) stays queued
+	 * and is retried on the next commit, the next throttled persist, or the drain kicked when
+	 * storage loads on DO wake (see getStorage). A row that keeps failing stays queued
+	 * indefinitely and keeps reporting via reportError on every drain — that's the visibility
+	 * mechanism for a stuck row. Two exceptions clear without a successful push: a comment whose
+	 * author's account was deleted (authorId FK violation — Postgres already cascaded the row
+	 * away, so the drain prunes the record from the room instead of retrying; see
+	 * drainCommentOutbox), and malformed/unknown outbox ids, where retrying can't help.
+	 */
+	private ensureCommentOutbox() {
+		this.ctx.storage.sql.exec(
+			'CREATE TABLE IF NOT EXISTS comment_outbox (seq INTEGER PRIMARY KEY AUTOINCREMENT, recordId TEXT NOT NULL)'
+		)
+	}
+
+	private enqueueCommentChanges(diff: TLSyncForwardDiff<TLRecord>) {
+		const ids: string[] = []
+		for (const put of Object.values(diff.puts)) {
+			const record = (Array.isArray(put) ? put[1] : put) as { typeName: string; id: string }
+			if (
+				record.typeName === 'comment' ||
+				record.typeName === 'comment-thread' ||
+				record.typeName === 'comment-reaction'
+			) {
+				ids.push(record.id)
+			}
+		}
+		for (const id of diff.deletes) {
+			if (isCommentId(id) || isCommentThreadId(id) || isCommentReactionId(id)) {
+				ids.push(id)
+			}
+		}
+		if (ids.length === 0) return
+		this.ensureCommentOutbox()
+		for (const id of ids) {
+			this.ctx.storage.sql.exec('INSERT INTO comment_outbox (recordId) VALUES (?)', id)
+		}
+		this.drainCommentOutbox()
+	}
+
+	/**
+	 * Push every outboxed record's current state to Postgres. The outbox stores only ids; whether
+	 * an id is an upsert or a delete is decided by its presence in the object lane at drain time
+	 * (see planCommentDrain), so multiple edits coalesce and a create-then-delete nets out to a
+	 * delete. Upserts are clock-guarded: a replayed push (same lastChangedClock) updates nothing,
+	 * producing no WAL entry and therefore no Zero replication churn.
+	 *
+	 * Each drain is bounded to the outbox high-water mark captured synchronously at SCHEDULE time,
+	 * not at execution time: entries enqueued while the drain sat in the queue are left for their
+	 * own drain (scheduled at enqueue, so its bound covers them). This is what lets the restore
+	 * handler wipe the lane and delete the file's Postgres rows without a stale queued drain
+	 * upserting — and clearing the outbox entry of — a comment committed after the wipe, which
+	 * the restore's fileId-wide delete would then remove from Postgres with no retry left.
+	 */
+	private drainCommentOutbox(): Promise<void> {
+		this.ensureCommentOutbox()
+		// sql.exec is synchronous, so the bound is captured before anything else can enqueue.
+		const drainBound = Number(
+			this.ctx.storage.sql
+				.exec('SELECT COALESCE(MAX(seq), 0) AS maxSeq FROM comment_outbox')
+				.toArray()[0].maxSeq
+		)
+		return this._objectPushQueue
+			.push(async () => {
+				const entries = this.ctx.storage.sql
+					.exec('SELECT seq, recordId FROM comment_outbox WHERE seq <= ? ORDER BY seq', drainBound)
+					.toArray() as { seq: number; recordId: string }[]
+				if (entries.length === 0) return
+
+				const storage = await this.getStorage()
+				assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
+				// Targeted reads, not a full snapshot: each lane read is a SELECT + JSON.parse, so
+				// snapshotting would make every drain O(all comments). Both reads run synchronously
+				// here, before any await, so `lane` keeps its snapshot semantics.
+				const lane = new Map(
+					storage
+						.getObjectsByIds(entries.map((e) => e.recordId))
+						.map((doc) => [doc.state.id as string, doc])
+				)
+				const fileId = this.documentInfo.slug
+
+				const {
+					threadUpserts,
+					commentUpserts,
+					reactionUpserts,
+					threadDeletes,
+					commentDeletes,
+					reactionDeletes,
+					unknownIds,
+				} = planCommentDrain(entries, lane, fileId)
+				// The prune predicate below asks `lane.has(threadId)`, and a parent thread needn't be
+				// outboxed itself — so fetch those too, still before any await.
+				const parentThreadIds = new Set<string>()
+				for (const row of commentUpserts) {
+					if (!lane.has(row.threadId)) parentThreadIds.add(row.threadId)
+				}
+				for (const doc of storage.getObjectsByIds(parentThreadIds)) {
+					lane.set(doc.state.id as string, doc)
+				}
+				for (const id of unknownIds) {
+					// enqueueCommentChanges only writes comment record ids, so an unknown
+					// id means a bug or a corrupted outbox row. Skip it — its entry still clears
+					// below (retrying can't help) — and report for visibility.
+					this.reportError(new Error(`comment outbox: unknown record id ${JSON.stringify(id)}`))
+				}
+
+				const insertThreadRows = (rows: DB['comment_thread'][]) =>
+					this.db
+						.insertInto('comment_thread')
+						.values(rows)
+						.onConflict((oc) =>
+							oc
+								.column('id')
+								.doUpdateSet((eb) => ({
+									pageId: eb.ref('excluded.pageId'),
+									anchor: eb.ref('excluded.anchor'),
+									shapeId: eb.ref('excluded.shapeId'),
+									resolvedAt: eb.ref('excluded.resolvedAt'),
+									resolvedBy: eb.ref('excluded.resolvedBy'),
+									isDeleted: eb.ref('excluded.isDeleted'),
+									meta: eb.ref('excluded.meta'),
+									lastChangedClock: eb.ref('excluded.lastChangedClock'),
+								}))
+								.whereRef('comment_thread.lastChangedClock', '<', 'excluded.lastChangedClock')
+						)
+						.execute()
+				// "createdAt" is deliberately absent from the update set: Postgres stamps it on first
+				// insert (migration 046) and the stamp must survive at-least-once replays and edits.
+				// stamp_comment_created_at.test.ts exercises this conflict shape — keep them in sync.
+				const insertCommentRows = (rows: DB['comment'][]) =>
+					this.db
+						.insertInto('comment')
+						.values(rows)
+						.onConflict((oc) =>
+							oc
+								.column('id')
+								.doUpdateSet((eb) => ({
+									threadId: eb.ref('excluded.threadId'),
+									pageId: eb.ref('excluded.pageId'),
+									body: eb.ref('excluded.body'),
+									editedAt: eb.ref('excluded.editedAt'),
+									isDeleted: eb.ref('excluded.isDeleted'),
+									// excluded.* has been through the BEFORE INSERT stamp trigger, which
+									// lifts updatedAt to the (server) attempt stamp — so this can never
+									// regress updatedAt below the row's createdAt
+									updatedAt: eb.ref('excluded.updatedAt'),
+									meta: eb.ref('excluded.meta'),
+									lastChangedClock: eb.ref('excluded.lastChangedClock'),
+								}))
+								.whereRef('comment.lastChangedClock', '<', 'excluded.lastChangedClock')
+						)
+						.execute()
+				// Re-reacting with a different emoji addresses the same record id (the id is derived
+				// from the comment + user pair), so it arrives here as a conflict on id — every
+				// mutable column has to be listed or the change would be silently dropped.
+				const insertReactionRows = (rows: DB['comment_reaction'][]) =>
+					this.db
+						.insertInto('comment_reaction')
+						.values(rows)
+						.onConflict((oc) =>
+							oc
+								.column('id')
+								.doUpdateSet((eb) => ({
+									commentId: eb.ref('excluded.commentId'),
+									threadId: eb.ref('excluded.threadId'),
+									pageId: eb.ref('excluded.pageId'),
+									emoji: eb.ref('excluded.emoji'),
+									createdAt: eb.ref('excluded.createdAt'),
+									meta: eb.ref('excluded.meta'),
+									lastChangedClock: eb.ref('excluded.lastChangedClock'),
+								}))
+								.whereRef('comment_reaction.lastChangedClock', '<', 'excluded.lastChangedClock')
+						)
+						.execute()
+
+				// Thread upserts before comment upserts (comment.threadId FK); comment deletes
+				// before thread deletes is not required (thread deletes cascade), but keep the
+				// batch → row-by-row fallback so one bad row doesn't drop the whole batch. Rows that fail both the
+				// batch insert and their individual retry are reported back (by record id) so the
+				// caller can keep their outbox entries queued instead of deleting them. Rows whose
+				// error matches `shouldPrune` are returned separately instead: they are not
+				// reported as failures and their outbox entries clear normally.
+				const runBatchWithFallback = async <R extends { id: string }>(
+					rows: R[],
+					insert: (rows: R[]) => Promise<unknown>,
+					// Called with the offending row on the row-by-row pass, and without one for the
+					// batch error (where it only decides whether to report — the per-row pass
+					// attributes the failure properly). Taking the row lets a predicate that can't
+					// judge an error in isolation — see the comment thread-FK case — look at what
+					// was actually being written.
+					shouldPrune?: (error: unknown, row?: R) => boolean
+				): Promise<{ failedIds: string[]; prunedIds: string[] }> => {
+					const failedIds: string[] = []
+					const prunedIds: string[] = []
+					if (rows.length === 0) return { failedIds, prunedIds }
+					try {
+						await insert(rows)
+						return { failedIds, prunedIds }
+					} catch (batchError) {
+						// A prunable batch error isn't a generic failure — the row-by-row pass below
+						// attributes it to the specific rows.
+						if (!shouldPrune?.(batchError)) {
+							this.reportError(batchError)
+						}
+						for (const row of rows) {
+							try {
+								await insert([row])
+							} catch (rowError) {
+								if (shouldPrune?.(rowError, row)) {
+									prunedIds.push(row.id)
+									continue
+								}
+								failedIds.push(row.id)
+								this.logEvent({ type: 'room', name: 'failed_persist_comments_to_db' })
+								this.reportError(rowError)
+							}
+						}
+						return { failedIds, prunedIds }
+					}
+				}
+				// The drain never hard-deletes comment-lane rows — the only hard deletes are
+				// Postgres-side cascades (user-account deletion via /admin, file deletion, version
+				// restore). Clients never hard-delete either (deletion is the isDeleted flag), so
+				// a lane-absent comment here is a stale outbox entry for a record a prune already
+				// removed from the lane; stamp its row soft-deleted. Idempotent, so at-least-once
+				// replays and already-stamped rows are no-ops.
+				// The stamped rows' thread ids feed the emptied-thread prune below: a thread whose
+				// last comment just went has no surface left and must not linger in the lane.
+				let deletedCommentThreadIds = new Set<string>()
+				if (commentDeletes.length > 0) {
+					const deletedRows = await this.db
+						.updateTable('comment')
+						.set({ isDeleted: true })
+						.where('id', 'in', commentDeletes)
+						.returning('threadId')
+						.execute()
+					deletedCommentThreadIds = new Set(deletedRows.map((row) => row.threadId))
+				}
+				const failedIds = new Set<string>()
+				// A thread upsert failing its file FK can never succeed on retry — the file is gone,
+				// or the room's slug was never a file row at all. Prune it like an author cascade
+				// rather than leaving the entry to fail on every drain for the life of the room.
+				const threadResult = await runBatchWithFallback(
+					threadUpserts,
+					insertThreadRows,
+					isCommentThreadFkViolation
+				)
+				for (const id of threadResult.failedIds) {
+					failedIds.add(id)
+				}
+				// A comment upsert failing the authorId FK means the author's user account was
+				// deleted: Postgres cascaded their comment rows away (ON DELETE CASCADE) while this
+				// warm room still holds the records. Retrying can never succeed, so mirror the
+				// cascade into the room instead: prune the records below and let their outbox
+				// entries clear normally (the Postgres row being absent is already the desired end
+				// state). Threads the prune leaves without any comments are pruned too — an
+				// emptied thread never renders (clients hide threads with no comments), so an
+				// author-cascade must not leave ghost records behind. Thread rows in
+				// Postgres are not touched here: comment_thread has no user FK (by design, so the
+				// cascade can't race the room), so the pruned thread ids are re-outboxed and a
+				// follow-up drain stamps the rows soft-deleted through the normal at-least-once
+				// acked path.
+				// Also prune a comment whose parent can never exist: its file is gone, or its thread
+				// was vetoed by the authorizer / forged by a client, so retrying is an unbounded
+				// loop rather than eventual consistency.
+				//
+				// A thread-FK failure alone doesn't prove that, though. Threads upsert before
+				// comments in this same drain, so a thread whose own upsert just failed
+				// transiently (timeout, serialization failure) also fails its comments' FK — and
+				// that thread is still queued to retry. Pruning there would delete a live comment
+				// moments before its parent lands, and the retry would then have nothing to attach.
+				// So only prune when the thread is absent from the room's lane, which is what
+				// "vetoed or never existed" actually looks like. `lane` is a snapshot taken at the
+				// top of the drain, so the later prunes below can't shift this decision.
+				const commentResult = await runBatchWithFallback(
+					commentUpserts,
+					insertCommentRows,
+					(error, row) => {
+						if (isCommentAuthorFkViolation(error) || isCommentFileFkViolation(error)) return true
+						if (!isCommentThreadIdFkViolation(error)) return false
+						// No row: the batch-level call, which only suppresses the duplicate report.
+						if (!row) return true
+						return !lane.has(row.threadId)
+					}
+				)
+				for (const id of commentResult.failedIds) {
+					failedIds.add(id)
+				}
+				// Reactions after comments (comment_reaction.commentId FK). A reaction whose comment
+				// or reacting user has since been deleted can never insert, so it prunes like an
+				// author-cascaded comment rather than retrying forever.
+				const reactionResult = await runBatchWithFallback(
+					reactionUpserts,
+					insertReactionRows,
+					isCommentReactionFkViolation
+				)
+				for (const id of reactionResult.failedIds) {
+					failedIds.add(id)
+				}
+				// A reaction pruned by an FK violation (its comment/thread/user was deleted and
+				// Postgres cascaded the row away) must also leave the warm room's SQLite, or it
+				// lingers as a ghost the way an author-cascaded comment would (see the comment prune
+				// below). Reactions have no dependent records, so this needs no thread-emptying pass.
+				if (reactionResult.prunedIds.length > 0) {
+					storage.transaction((txn) => {
+						for (const id of reactionResult.prunedIds) txn.delete(id as TLRecord['id'])
+					})
+				}
+				// Same for a thread pruned by its file FK: the file is gone, so Postgres has already
+				// cascaded the thread (and its comments) away. Without this the lane keeps records
+				// for a file that no longer exists, which is exactly the ghost state the reaction
+				// and comment prunes exist to avoid. Its comments fail `comment_file_id_fkey` in
+				// the same drain and prune through their own path, so no dependent sweep is needed
+				// here.
+				if (threadResult.prunedIds.length > 0) {
+					storage.transaction((txn) => {
+						for (const id of threadResult.prunedIds) txn.delete(id as TLRecord['id'])
+					})
+				}
+				// Un-reacting removes the record, so a lane-absent reaction is a real delete — unlike
+				// comments and threads, reactions have no soft-delete recovery story of their own.
+				if (reactionDeletes.length > 0) {
+					await this.db.deleteFrom('comment_reaction').where('id', 'in', reactionDeletes).execute()
+				}
+				// Lane-absent threads get the stamp treatment: stamp, never delete — a hard delete
+				// would FK-cascade any soft-deleted comment rows still hanging off the thread,
+				// destroying the recovery rows. Order vs the upserts doesn't matter here: an id
+				// can't be planned as both an upsert (lane-present) and a delete (lane-absent) in
+				// one drain.
+				if (threadDeletes.length > 0) {
+					await this.db
+						.updateTable('comment_thread')
+						.set({ isDeleted: true })
+						.where('id', 'in', threadDeletes)
+						.execute()
+				}
+
+				// Reconcile @-mention rows for every comment row that made it to Postgres, so the
+				// notifications query can filter "comments that mention me" server-side (mentions
+				// live inside the body JSON, out of ZQL's reach). The write is idempotent — delete
+				// rows the body no longer mentions, insert the rest with ON CONFLICT DO NOTHING —
+				// so clock-guarded no-op replays cause no WAL churn. A mention insert failing its
+				// user FK (mentioned account deleted, or a bogus id) is skipped for good; any other
+				// failure marks the comment failed so its outbox entry stays queued and the next
+				// drain retries the reconcile. Soft-deleted comments keep their mention rows; the
+				// rows are inert because every query filters the comment itself on isDeleted.
+				//
+				// On top of the idempotency, the reconciles share one multi-comment delete and one
+				// multi-row insert per drain instead of paying 1-2 sequential statements per comment.
+				const mentionReconciles = planMentionReconciles(
+					commentUpserts.filter(
+						(row) => !failedIds.has(row.id) && !commentResult.prunedIds.includes(row.id)
+					)
+				)
+				if (mentionReconciles.length > 0) {
+					const changedCommentIds = mentionReconciles.map((r) => r.commentId)
+					const desiredRows = mentionReconciles.flatMap(({ commentId, userIds }) =>
+						userIds.map((userId) => ({ commentId, userId }))
+					)
+					const mentionFailedIds = new Set<string>()
+					try {
+						// One statement drops every stale row across the batch: rows belonging to a
+						// reconciling comment whose desired set no longer contains them. Comments whose
+						// set emptied contribute no desired pair, so all their rows qualify.
+						let deleteStale = this.db
+							.deleteFrom('comment_mention')
+							.where('commentId', 'in', changedCommentIds)
+						if (desiredRows.length > 0) {
+							deleteStale = deleteStale.where((eb) =>
+								eb(
+									eb.refTuple('commentId', 'userId'),
+									'not in',
+									desiredRows.map((row) => eb.tuple(row.commentId, row.userId))
+								)
+							)
+						}
+						await deleteStale.execute()
+						if (desiredRows.length > 0) {
+							try {
+								await this.db
+									.insertInto('comment_mention')
+									.values(desiredRows)
+									.onConflict((oc) => oc.columns(['commentId', 'userId']).doNothing())
+									.execute()
+							} catch (batchError) {
+								if (!isCommentMentionFkViolation(batchError)) throw batchError
+								// One row's FK failure aborts the whole batch insert; retry row-by-row so
+								// the valid mentions land and only the FK-violating ones are skipped.
+								for (const row of desiredRows) {
+									try {
+										await this.db
+											.insertInto('comment_mention')
+											.values(row)
+											.onConflict((oc) => oc.columns(['commentId', 'userId']).doNothing())
+											.execute()
+									} catch (rowError) {
+										if (!isCommentMentionFkViolation(rowError)) {
+											// A non-FK row failure fails only its own comment — the rest of
+											// the batch keeps its at-least-once progress.
+											mentionFailedIds.add(row.commentId)
+											this.reportError(rowError)
+										}
+									}
+								}
+							}
+						}
+					} catch (error) {
+						// The shared delete (or a non-FK batch-insert error) failed: every comment in
+						// the batch retries on the next drain, exactly as the per-comment path did.
+						for (const commentId of changedCommentIds) {
+							mentionFailedIds.add(commentId)
+						}
+						this.reportError(error)
+					}
+					for (const commentId of mentionFailedIds) {
+						failedIds.add(commentId)
+						this.logEvent({ type: 'room', name: 'failed_persist_comments_to_db' })
+					}
+				}
+
+				let didPruneThreads = false
+				if (commentResult.prunedIds.length > 0) {
+					this.logEvent({ type: 'room', name: 'comment_author_deleted_prune' })
+				}
+				if (commentResult.prunedIds.length > 0 || deletedCommentThreadIds.size > 0) {
+					// Remove the author-cascade-pruned records from the room's storage so it stops
+					// carrying rows Postgres already cascaded away. Deleting through the shared
+					// storage handle is the sanctioned server-side mutation path: a live room
+					// subscribes to storage.onChange and broadcasts external transactions to its
+					// sessions, so connected clients see the records disappear; a closed room needs
+					// no broadcast, but the prune must still run — the warm DO SQLite outlives the
+					// room, and loadStorage short-circuits Postgres rehydration when SQLite is
+					// already initialized, so skipping it would keep the deleted author's comments
+					// alive forever. The delete does not re-enqueue outbox entries
+					// (onCommittedChanges only fires for client pushes), so this can't loop; a
+					// crash between here and the outbox clear below just replays the prune on the
+					// next drain (the ids are then lane-absent, taking the no-op Postgres delete
+					// path).
+					const { prunedThreadIds, prunedReactionIds } = storage.transaction((txn) => {
+						// Emptied-thread candidates: threads whose comments this drain stamped
+						// deleted, plus each cascade-pruned comment's threadId (collected, with the
+						// comment ids themselves, from the transaction's own reads before deleting it
+						// — prunedIds are comment ids, not thread ids). Never all lane threads: a
+						// brand-new thread whose first comment hasn't been pushed yet is also
+						// comment-less, and must survive.
+						const candidateThreadIds = new Set<string>(deletedCommentThreadIds)
+						const prunedCommentIds = new Set<string>()
+						for (const id of commentResult.prunedIds) {
+							const record = txn.get(id as TLRecord['id'])
+							if (record?.typeName === 'comment') {
+								candidateThreadIds.add(record.threadId)
+								prunedCommentIds.add(id)
+							}
+							txn.delete(id as TLRecord['id'])
+						}
+						// Threads left without any comments have no surface (clients hide them), so
+						// prune them rather than leaking a hidden record to every future session.
+						// The emptiness check runs on this transaction's own read surface, not the
+						// drain's earlier lane snapshot, so a reply committed after that snapshot
+						// keeps its thread alive.
+						const deletedThreadIds: string[] = []
+						for (const threadId of findEmptiedCommentThreads(candidateThreadIds, txn)) {
+							// A lane-absent thread was already pruned (soft-delete or an earlier
+							// drain); whatever pruned it owns its Postgres row.
+							if (txn.get(threadId as TLRecord['id']) === undefined) continue
+							txn.delete(threadId as TLRecord['id'])
+							deletedThreadIds.push(threadId)
+						}
+						// Reactions on a pruned comment must go too, or they ghost in the warm room
+						// pointing at a comment that no longer exists. Unlike threads we do NOT outbox
+						// these or issue a Postgres delete: comment_reaction.commentId is ON DELETE
+						// CASCADE, so Postgres already dropped the rows when the comment row went — this
+						// only catches the room's SQLite up.
+						const deletedReactionIds = findOrphanedReactions(prunedCommentIds, txn)
+						for (const id of deletedReactionIds) {
+							txn.delete(id as TLRecord['id'])
+						}
+						return { prunedThreadIds: deletedThreadIds, prunedReactionIds: deletedReactionIds }
+					}).result
+					if (prunedReactionIds.length > 0) {
+						this.logEvent({ type: 'room', name: 'comment_reaction_orphan_prune' })
+					}
+					if (prunedThreadIds.length > 0) {
+						this.logEvent({ type: 'room', name: 'comment_thread_emptied_prune' })
+						// Outbox the pruned thread ids instead of stamping their Postgres rows
+						// directly: the follow-up drain (kicked below, after this drain's
+						// bookkeeping) sees them lane-absent and stamps them soft-deleted through
+						// the normal crash-safe at-least-once path. These inserts get seqs above
+						// this drain's bound, so the outbox clear below can't remove them.
+						for (const id of prunedThreadIds) {
+							this.ctx.storage.sql.exec('INSERT INTO comment_outbox (recordId) VALUES (?)', id)
+						}
+						didPruneThreads = true
+					}
+				}
+
+				// Records whose soft-delete flag just reached Postgres are pruned from the room's
+				// lane: a thread takes its comments with it, a comment goes alone — and a thread
+				// left without any comments follows (see below). Postgres keeps the rows
+				// (recovery, and the Zero queries filter on isDeleted); the room and its clients
+				// drop the records for real — the warm DO SQLite outlives every reload, so without
+				// this prune a deleted record would keep syncing to new sessions (hidden only by
+				// client-side filtering) until the SQLite is lost. Lane deletes here don't
+				// re-enqueue outbox entries (onCommittedChanges only fires for client pushes), so
+				// the Postgres rows survive. A crash before this prune just leaves the flagged
+				// records in the lane — harmless (clients hide them) and cleaned up by the next
+				// drain that touches the record or the next cold load's filter.
+				const softDeletedThreadIds = threadUpserts
+					.filter((row) => row.isDeleted && !failedIds.has(row.id))
+					.map((row) => row.id)
+				const softDeletedCommentIds = commentUpserts
+					.filter(
+						(row) =>
+							row.isDeleted && !failedIds.has(row.id) && !commentResult.prunedIds.includes(row.id)
+					)
+					.map((row) => row.id)
+				if (softDeletedThreadIds.length > 0 || softDeletedCommentIds.length > 0) {
+					this.logEvent({ type: 'room', name: 'comment_soft_delete_prune' })
+					// Records this drain has NOT accounted for must survive the cascade sweep: a
+					// reply committed after this drain's bound (during the awaits above) has an
+					// outbox entry a later drain owns, and its row may not be in Postgres yet.
+					// Sweeping it from the lane would turn that entry into a no-op stamp of a row
+					// that was never inserted, losing the reply's recovery row. Left in the lane,
+					// the next drain upserts it — the stamped thread row still exists as its FK
+					// parent — and the cold load's thread filter keeps it out of future rooms.
+					const inFlightIds = new Set(
+						this.ctx.storage.sql
+							.exec('SELECT DISTINCT recordId FROM comment_outbox WHERE seq > ?', drainBound)
+							.toArray()
+							.map((row) => row.recordId as string)
+					)
+					const { emptiedThreadIds, orphanedReactionIds } = storage.transaction((txn) => {
+						const prunedThreadIds = new Set<string>()
+						for (const id of softDeletedThreadIds) {
+							if (txn.get(id as TLRecord['id']) === undefined) continue // already pruned
+							if (inFlightIds.has(id)) continue // updated mid-drain; the next drain re-prunes
+							txn.delete(id as TLRecord['id'])
+							prunedThreadIds.add(id)
+						}
+						// Each pruned comment's threadId (read before deleting it) is an
+						// emptied-thread candidate below. Candidates come only from threads that
+						// just lost a comment, so a brand-new thread awaiting its first comment is
+						// never touched — same protection as the author-cascade prune.
+						const candidateThreadIds = new Set<string>()
+						const prunedCommentIds = new Set<string>()
+						for (const id of softDeletedCommentIds) {
+							const record = txn.get(id as TLRecord['id']) as unknown as TLComment | undefined
+							if (record === undefined) continue // already pruned
+							if (inFlightIds.has(id)) continue // updated mid-drain; the next drain re-prunes
+							if (record.typeName === 'comment') {
+								candidateThreadIds.add(record.threadId)
+							}
+							txn.delete(id as TLRecord['id'])
+							prunedCommentIds.add(id)
+						}
+						if (prunedThreadIds.size > 0) {
+							// Materialize the id scan before deleting: comment ids are typeName-prefixed,
+							// so non-comment records are skipped without being read.
+							for (const key of [...txn.keys()]) {
+								if (!isCommentId(key)) continue
+								if (inFlightIds.has(key)) continue // committed mid-drain; a later drain owns it
+								const id = key as string as TLRecord['id']
+								const record = txn.get(id) as unknown as TLComment | undefined
+								if (record?.threadId !== undefined && prunedThreadIds.has(record.threadId)) {
+									txn.delete(id)
+									prunedCommentIds.add(id)
+								}
+							}
+						}
+						// A thread whose last live comment just stamped away has no surface left and
+						// nobody who could ever delete it (clients hide comment-less threads, menu
+						// included), so prune it here rather than leaking a hidden record to every
+						// future session. The emptiness check runs on this transaction's read
+						// surface: an in-flight reply, a failed upsert, or a stamped comment
+						// deferred above is still in the lane and keeps its thread alive — that
+						// drain re-prunes and re-checks, so the cleanup converges instead of racing.
+						const emptied: string[] = []
+						for (const threadId of findEmptiedCommentThreads(candidateThreadIds, txn)) {
+							// Lane-absent thread: already pruned (stamped above, or an earlier
+							// drain); whatever pruned it owns its Postgres row.
+							if (txn.get(threadId as TLRecord['id']) === undefined) continue
+							txn.delete(threadId as TLRecord['id'])
+							emptied.push(threadId)
+						}
+						// Reactions on a pruned comment leave the lane with it, or they ghost in the
+						// warm room pointing at a comment that's gone. Their Postgres rows stay put:
+						// the comment row still exists (soft-deleted, no cascade fired), the cold
+						// load only seeds reactions whose comment seeds, and if the comment is ever
+						// recovered its reactions come back with it.
+						const orphaned = findOrphanedReactions(prunedCommentIds, txn)
+						for (const id of orphaned) {
+							txn.delete(id as TLRecord['id'])
+						}
+						return { emptiedThreadIds: emptied, orphanedReactionIds: orphaned }
+					}).result
+					if (orphanedReactionIds.length > 0) {
+						this.logEvent({ type: 'room', name: 'comment_reaction_orphan_prune' })
+					}
+					if (emptiedThreadIds.length > 0) {
+						this.logEvent({ type: 'room', name: 'comment_thread_emptied_prune' })
+						// Re-outbox the emptied thread ids: the follow-up drain sees them lane-absent
+						// and stamps their rows soft-deleted through the normal crash-safe
+						// at-least-once path, so the rows stop re-seeding future rooms as live
+						// threads. These inserts get seqs above this drain's bound, so the outbox
+						// clear below can't remove them.
+						for (const id of emptiedThreadIds) {
+							this.ctx.storage.sql.exec('INSERT INTO comment_outbox (recordId) VALUES (?)', id)
+						}
+						didPruneThreads = true
+					}
+				}
+
+				// Keep entries queued for any record that failed to push (they'll be retried on the
+				// next drain); only the entries that made it to Postgres are removed. Only entries
+				// within this drain's bound are touched — later entries belong to their own drain.
+				const toClear = outboxEntriesToClear(entries, failedIds)
+				if (toClear.clearAll) {
+					this.ctx.storage.sql.exec('DELETE FROM comment_outbox WHERE seq <= ?', drainBound)
+				} else {
+					for (const seq of toClear.seqs) {
+						this.ctx.storage.sql.exec('DELETE FROM comment_outbox WHERE seq = ?', seq)
+					}
+				}
+
+				if (didPruneThreads) {
+					// Kick a follow-up drain for the thread ids outboxed by the prune above (their
+					// seqs are past this drain's bound, so this drain never touches them). Calling
+					// from inside the currently-running queue task is safe: ExecutionQueue.push only
+					// appends while a task is executing (run() early-returns on `running`), so the
+					// follow-up starts after this task returns — never synchronously re-entering it.
+					this.drainCommentOutbox()
+				}
+			})
+			.catch((e) => {
+				this.logEvent({ type: 'room', name: 'failed_persist_comments_to_db' })
+				this.reportError(e)
+			})
+	}
+
+	protected reportError(e: unknown, extras?: Record<string, unknown>) {
+		try {
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			this.sentry?.withScope((scope) => {
+				scope.setExtra('slug', this._documentInfo?.slug)
+				if (extras) scope.setExtras(extras)
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				this.sentry?.captureException(e)
+			})
+		} catch (_e) {
+			// Callers report from cleanup paths and from outside their own try blocks, so reporting
+			// must never be the thing that throws and skip the cleanup it was added to protect.
+		}
+		console.error(e)
+	}
+
+	async appFileRecordCreated(file: TlaFile) {
+		// Seed the cache for a cold DO but never clobber a fresher row, and never null it on
+		// failure: loadFromDatabase's createSource check reads it across an async gap, and a
+		// mid-flight null would seed a from-source duplicate as an empty room. Retries stay
+		// honest without a cache reset because getRoom() never caches a rejection.
+		if (!this._fileRecordCache) this._fileRecordCache = file
+
+		if (!this._documentInfo) {
+			this.setDocumentInfo({
+				version: CURRENT_DOCUMENT_INFO_VERSION,
+				slug: file.id,
+				isApp: true,
+				deleted: false,
+			})
+		}
+		try {
+			await this.reportIfEffectStalls(this.getRoom(), file, 'insert')
+		} catch (e) {
+			if (shouldSkipMissingRoomEffect(e, file)) {
+				console.error('appFileRecordCreated: room not found for deleted file, skipping', e)
+				return
+			}
+			throw e
+		}
+	}
+
+	async appFileRecordDidUpdate(file: TlaFile) {
+		if (!file) {
+			console.error('file record updated but no file found')
+			return
+		}
+		this._fileRecordCache = file
+		if (!this._documentInfo) {
+			this.setDocumentInfo({
+				version: CURRENT_DOCUMENT_INFO_VERSION,
+				slug: file.id,
+				isApp: true,
+				deleted: false,
+			})
+		}
+
+		try {
+			await this.reportIfEffectStalls(this.updateRoomForFileRecord(file), file, 'update')
+		} catch (e) {
+			if (shouldSkipMissingRoomEffect(e, file)) {
+				console.error('appFileRecordDidUpdate: room not found for deleted file, skipping', e)
+				return
+			}
+			throw e
+		}
+	}
+
+	private async updateRoomForFileRecord(file: TlaFile) {
+		const storage = await this.getStorage()
+		// if the app file record updated, it might mean that the file name changed
+		storage.transaction((txn) => {
+			const documentRecord = txn.get(TLDOCUMENT_ID) as TLDocument
+			if (documentRecord.name !== file.name) {
+				txn.set(TLDOCUMENT_ID, { ...documentRecord, name: file.name })
+			}
+		})
+
+		const room = await this.getRoom()
+
+		// if the app file record updated, it might mean that the sharing state was updated
+		// in which case we should kick people out or change their permissions
+		//
+		// Only `edit` links grant guests canvas write; anything else fails closed. A tier change
+		// flips `isReadonly`, and the reconnect refreshes the session state the comment
+		// authorizers gate on — so comparing the readonly lane alone covers both.
+		const roomIsReadOnlyForGuests = file.shared && file.sharedLinkType !== 'edit'
+
+		for (const session of room.getSessions()) {
+			if (file.isDeleted) {
+				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
+				continue
+			}
+
+			const canAccessFiles = async () => {
+				const role = await getRole(this.db, session.meta.userId, file.owningGroupId)
+				return can(role, 'accessFiles')
+			}
+
+			if (!file.shared) {
+				if (!(await canAccessFiles())) {
+					room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
+				}
+			} else if (session.isReadonly !== roomIsReadOnlyForGuests) {
+				if (!(await canAccessFiles())) {
+					// not passing a reason means they will try to reconnect
+					room.closeSession(session.sessionId)
+				}
+			}
+		}
+	}
+
+	async appFileRecordDidDelete({ id, publishedSlug }: Pick<TlaFile, 'id' | 'publishedSlug'>) {
+		if (this._documentInfo?.deleted) return
+
+		this._fileRecordCache = null
+
+		// prevent new connections while we clean everything up. Fall back to the argument for the
+		// slug (an app file's slug is its id): a never-initialized room has no documentInfo, and
+		// delete must stay terminal for any DO state instead of tripping the asserting getter.
+		this.setDocumentInfo({
+			version: CURRENT_DOCUMENT_INFO_VERSION,
+			slug: this._documentInfo?.slug ?? id,
+			isApp: true,
+			deleted: true,
+		})
+
+		await this.executionQueue.push(async () => {
+			if (this._room) {
+				const room = await this.getRoom()
+				for (const session of room.getSessions()) {
+					room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
+				}
+				room.close()
+			}
+			// setting _room to null will prevent any further persists from going through
+			this._room = null
+			// delete should be handled by the delete endpoint now
+
+			// A row from a partially-created file can lack a publishedSlug; there are no
+			// published artifacts to clean up in that case.
+			if (publishedSlug) {
+				// Delete published slug mapping
+				await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.delete(publishedSlug)
+
+				// remove published files
+				const publishedPrefixKey = getR2KeyForRoom({
+					slug: `${id}/${publishedSlug}`,
+					isApp: true,
+				})
+
+				const publishedHistory = await listAllObjectKeys(
+					this.env.ROOM_SNAPSHOTS,
+					publishedPrefixKey
+				)
+				if (publishedHistory.length > 0) {
+					await this.env.ROOM_SNAPSHOTS.delete(publishedHistory)
+				}
+			}
+
+			// remove edit history
+			const r2Key = getR2KeyForRoom({ slug: id, isApp: true })
+			const editHistory = await listAllObjectKeys(this.env.ROOMS_HISTORY_EPHEMERAL, r2Key)
+			if (editHistory.length > 0) {
+				await this.env.ROOMS_HISTORY_EPHEMERAL.delete(editHistory)
+			}
+
+			// remove main file
+			await this.env.ROOMS.delete(r2Key)
+
+			// The board's thumbnails go with it. Both keys, because they are kept for different reasons
+			// and neither reason survives a hard delete: the file-keyed image is deliberately *not*
+			// deleted when a board is unshared (it stays useful behind auth, and resharing makes it an
+			// immediate hit), and the published-slug one only goes when the board is unpublished. Nothing
+			// else would ever remove either — `og/…` keys carry no version, so each board owns exactly one
+			// object, in a bucket with no lifecycle rule to sweep it. The render token record is dropped
+			// for the same reason. MCP screenshots need no equivalent: their keys carry a content version
+			// and their bucket has an expiration rule.
+			await deleteBoardThumbnails(this.env, { fileId: id, publishedSlug })
+
+			// finally clear storage so we don't keep the data around
+			this.ctx.storage.deleteAll()
+		})
+	}
+
+	/**
+	 * @internal
+	 * Best-effort by default: a failed persist here just means callers fall back to the
+	 * last-persisted snapshot, as before. Pass `{ throwOnFailure: true }` only for callers that
+	 * must not act on stale data (e.g. publishSnapshot reads the R2 blob straight after this
+	 * resolves, so a swallowed failure there would publish a stale snapshot).
+	 */
+	async awaitPersist(opts?: { throwOnFailure?: boolean }) {
+		if (!this._documentInfo) return
+		await this.persistToDatabase(opts?.throwOnFailure ? { throwOnFailure: true } : undefined)
+	}
+
+	// Report-only watchdog for outbox effect RPCs: fires just under the drain's 30s effect
+	// timeout so Sentry gets the cause before the drain bumps the row as a bare timeout.
+	// The outbox owns retry semantics — this never rejects or cancels the work.
+	private async reportIfEffectStalls<T>(
+		work: Promise<T>,
+		file: TlaFile,
+		command: 'insert' | 'update'
+	): Promise<T> {
+		const timer = setTimeout(() => {
+			const bootStage = this._bootStage
+			this.reportError(
+				new FileEffectStallError(
+					file.id,
+					command,
+					bootStage?.stage ?? null,
+					bootStage ? Date.now() - bootStage.startedAt : null,
+					EFFECT_STALL_REPORT_MS
+				)
+			)
+		}, EFFECT_STALL_REPORT_MS)
+		try {
+			return await work
+		} finally {
+			clearTimeout(timer)
+		}
+	}
+
+	/**
+	 * The MCP server's cluster index cache (mcpClusterIndexStorage.ts), which lives here because it is
+	 * content derived from the room this object owns: it dies with the file, and needs no expiry.
+	 *
+	 * Storage-only — none of these boot the room. They run on a Worker's critical path, and the point
+	 * of the cache is to be cheaper than the browser render it replaces.
+	 */
+	// `CREATE TABLE IF NOT EXISTS` is a write, and a cheap one, but running it per call would make the
+	// read path a write path — which is what lets a request in flight during a hard delete put storage
+	// back into an object that has already been emptied. Once per instance, after the delete check.
+	private mcpClusterIndexReady = false
+	private ensureMcpClusterIndex() {
+		if (this.mcpClusterIndexReady) return
+		ensureMcpClusterIndexTable(this.ctx.storage.sql)
+		this.mcpClusterIndexReady = true
+	}
+
+	/**
+	 * One page's stored cluster index, or null when nothing was stored for this content version.
+	 *
+	 * Refuses when documentInfo is absent or deleted rather than reading: `appFileRecordDidDelete`
+	 * empties this object's storage, so a deleted object comes back from hibernation with null here.
+	 * Allowing that state to initialize the table would resurrect storage nothing ever collects.
+	 */
+	async getMcpClusterIndex(key: McpClusterIndexKey): Promise<string | null> {
+		if (!this._documentInfo || this._documentInfo.deleted) return null
+		this.ensureMcpClusterIndex()
+		return readMcpClusterIndexRow(this.ctx.storage.sql, key)
+	}
+
+	/**
+	 * Stores one page's cluster index, replacing whatever that page last had and dropping the rows for
+	 * pages the board no longer has.
+	 */
+	async putMcpClusterIndex(
+		key: McpClusterIndexKey,
+		payload: string,
+		livePageIds: string[]
+	): Promise<void> {
+		if (!this._documentInfo || this._documentInfo.deleted) return
+		this.ensureMcpClusterIndex()
+		pruneMcpClusterIndexRows(this.ctx.storage.sql, key.kind, livePageIds)
+		writeMcpClusterIndexRow(this.ctx.storage.sql, key, payload)
+	}
+
+	/**
+	 * Reports this object's stored identity and liveness without booting the room. Reads raw
+	 * storage so rooms with a stale documentInfo version still resolve; null for a
+	 * never-initialized object. `connectedSockets` counts hibernation-API sockets, so it is
+	 * accurate even while the room itself is not loaded.
+	 */
+	async __admin__getDocumentInfo() {
+		const info = (await this.storage.get('documentInfo')) as DocumentInfo | null
+		if (!info) return null
+		return {
+			slug: info.slug,
+			isApp: !!info.isApp,
+			deleted: !!info.deleted,
+			connectedSockets: this.ctx.getWebSockets().length,
+			roomLoaded: this._room !== null,
+			bootStage: this._bootStage?.stage ?? null,
+			bootStageAgeMs: this._bootStage ? Date.now() - this._bootStage.startedAt : null,
+		}
+	}
+
+	/**
+	 * Force-closes every connected session with CLIENT_TOO_OLD, which shipped clients treat as
+	 * terminal: they stop reconnecting and show a "please reload" screen. This is the admin drain
+	 * for rooms held awake around the clock by parked background tabs reconnect-looping on stale
+	 * bundles — clients that predate the background-tab fix can only be stopped from the server.
+	 *
+	 * Boots the room (a one-time cost per drain), because rejection must run the protocol-aware
+	 * path: legacy-protocol clients need an incompatibility_error message rather than a close
+	 * code, and a hibernated session must be resumed into the room first so presence removal is
+	 * broadcast and the leave is logged.
+	 */
+	async __admin__closeAllSessions() {
+		const sockets = this.ctx.getWebSockets()
+		if (sockets.length === 0) return { closedSockets: 0 }
+
+		// A room that can't boot (a hard-deleted legacy room with tabs still attached, a transient
+		// storage error) must not abort the drain — the raw close below suffices on its own for
+		// every non-legacy-protocol client.
+		let room: TLSocketRoom<TLRecord, SessionMeta> | null = null
+		if (this._documentInfo) {
+			try {
+				room = await this.getRoom()
+			} catch (e) {
+				this.log.debug('closeAllSessions: room failed to boot, falling back to raw closes', e)
+			}
+		}
+		for (const ws of sockets) {
+			const attachment = this.getSocketAttachment(ws)
+			const sessionId = attachment?.sessionId
+			// If the DO was hibernating, this session was never re-added to the room; resume it
+			// so closeSession can reject it with the session's negotiated protocol.
+			if (room && sessionId && attachment.snapshot && !room.getSessionSnapshot(sessionId)) {
+				room.handleSocketResume({
+					sessionId,
+					socket: ws,
+					snapshot: attachment.snapshot,
+					meta: attachment.meta,
+				})
+			}
+			// Drop the stored snapshot before closing: the close handshake queues a
+			// webSocketClose event, and handleWebSocketEnd would otherwise resume the
+			// just-rejected session into the room again (duplicate leave, possible room re-boot).
+			if (attachment?.snapshot) {
+				ws.serializeAttachment({ ...attachment, snapshot: undefined })
+			}
+			if (room && sessionId) {
+				room.closeSession(sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+			}
+			// Backstop for sockets the room never saw (mid-handshake, or the room didn't boot):
+			// close directly with the same terminal code. Closing twice is a no-op.
+			try {
+				ws.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+			} catch {
+				// an already-closed socket is fine
+			}
+		}
+		return { closedSockets: sockets.length }
+	}
+
+	async __admin__hardDeleteIfLegacy() {
+		if (!this._documentInfo || this.documentInfo.deleted || this.documentInfo.isApp) return false
+		this.setDocumentInfo({
+			version: CURRENT_DOCUMENT_INFO_VERSION,
+			slug: this.documentInfo.slug,
+			isApp: false,
+			deleted: true,
+		})
+		if (this._room) {
+			const room = await this.getRoom()
+			room.close()
+		}
+		const slug = this.documentInfo.slug
+		const roomKey = getR2KeyForRoom({ slug, isApp: false })
+
+		// remove edit history
+		const editHistory = await listAllObjectKeys(this.env.ROOMS_HISTORY_EPHEMERAL, roomKey)
+		if (editHistory.length > 0) {
+			await this.env.ROOMS_HISTORY_EPHEMERAL.delete(editHistory)
+		}
+
+		// remove main file
+		await this.env.ROOMS.delete(roomKey)
+
+		return true
+	}
+
+	async __admin__createLegacyRoom(id: string) {
+		this.setDocumentInfo({
+			version: CURRENT_DOCUMENT_INFO_VERSION,
+			slug: id,
+			isApp: false,
+			deleted: false,
+		})
+		const key = getR2KeyForRoom({ slug: id, isApp: false })
+		await this.r2.rooms.put(key, JSON.stringify(DEFAULT_INITIAL_SNAPSHOT))
+		await this.getRoom()
+	}
+}
+
+const PERSIST_RETRIES_NOTIFY_THRESHOLD = 10
+const PERSIST_RETRIES_MAX = 100
+// ~10 attempts * 2s = ~20s of own retries, sized for the 30s outbox effect timeout (see
+// persistToDatabase for why this is not a hard bound).
+const PERSIST_RETRIES_MAX_THROWING = 10
+// Both sized against the outbox drain's 30s EFFECT_TIMEOUT_MS: the persist wait must leave
+// room for the rest of the from-source boot, and the stall report must land before the
+// drain gives up on the attempt.
+const SOURCE_PERSIST_WAIT_TIMEOUT_MS = 10_000
+const EFFECT_STALL_REPORT_MS = 25_000

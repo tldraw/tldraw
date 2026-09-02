@@ -34,17 +34,17 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v6
         with:
+          persist-credentials: false
           submodules: true
           token: ${{ steps.generate_token.outputs.token }}
+
+      - name: Configure git credentials
+        run: git config --global url."https://x-access-token:${{ steps.generate_token.outputs.token }}@github.com/".insteadOf "https://github.com/"
 
       - uses: ./.github/actions/setup
 
       - name: Build types
         run: yarn build-types
-
-      - name: Get extension info from the marketplace
-        working-directory: 'apps/vscode/extension'
-        run: yarn get-info
 
       - name: Publish extension
         run: yarn tsx ./internal/scripts/publish-editor-extensions.ts
@@ -53,3 +53,16 @@ jobs:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
           TLDRAW_ENV: ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') }}
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
+
+      # Earlier steps run before checkout, so re-fetch the local action on failure.
+      - name: Check out Discord notify action
+        if: failure()
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: .github/actions/discord-fail-notify
+
+      - name: Notify Discord on failure
+        if: failure()
+        uses: ./.github/actions/discord-fail-notify
+        with:
+          webhook-url: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}

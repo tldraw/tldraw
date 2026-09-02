@@ -74,7 +74,7 @@ function cachedHashString(string: string) {
 		hashed = hashString(string)
 		if (stringHashCacheCount === STRING_HASH_CACHE_SIZE) {
 			stringHashCacheCount = 0
-			stringHashCache = {}
+			stringHashCache = Object.create(null)
 		}
 		stringHashCache[string] = hashed
 		stringHashCacheCount++
@@ -144,7 +144,9 @@ const symbolMap = Object.create(null)
 
 let _objHashUID = 0
 
-let stringHashCache: Record<string, number> = {}
+// Null-prototype so that keys named after `Object.prototype` members ('constructor', 'toString',
+// '__proto__', ...) miss the cache instead of returning the inherited member as their "hash".
+let stringHashCache: Record<string, number> = Object.create(null)
 let stringHashCacheCount = 0
 const STRING_HASH_CACHE_SIZE = 24_000
 
@@ -174,6 +176,12 @@ function SetRef(ref?: Ref): void {
 
 function arrCopy<I>(arr: Array<I>, offset = 0): Array<I> {
 	return arr.slice(offset)
+}
+
+// Key equality is SameValueZero, as in upstream Immutable.js and native `Map`: `NaN` equals `NaN`
+// and `0` equals `-0`.
+function is(a: unknown, b: unknown) {
+	return a === b || (a !== a && b !== b)
 }
 
 class OwnerID {}
@@ -273,6 +281,7 @@ export class ImmutableMap<K, V> {
 	 * console.log(map.get('missing', 'default')) // 'default'
 	 * ```
 	 */
+	get(k: K, notSetValue: V): V
 	get(k: K, notSetValue?: V): V {
 		return this._root ? this._root.get(0, undefined as any, k, notSetValue)! : notSetValue!
 	}
@@ -469,7 +478,7 @@ class ArrayMapNode<K, V> {
 	get(_shift: unknown, _keyHash: unknown, key: K, notSetValue?: V) {
 		const entries = this.entries
 		for (let ii = 0, len = entries.length; ii < len; ii++) {
-			if (Object.is(key, entries[ii][0])) {
+			if (is(key, entries[ii][0])) {
 				return entries[ii][1]
 			}
 		}
@@ -491,7 +500,7 @@ class ArrayMapNode<K, V> {
 		let idx = 0
 		const len = entries.length
 		for (; idx < len; idx++) {
-			if (Object.is(key, entries[idx][0])) {
+			if (is(key, entries[idx][0])) {
 				break
 			}
 		}
@@ -709,7 +718,7 @@ class HashCollisionNode<K, V> {
 	get(shift: number, keyHash: number, key: K, notSetValue?: V) {
 		const entries = this.entries
 		for (let ii = 0, len = entries.length; ii < len; ii++) {
-			if (Object.is(key, entries[ii][0])) {
+			if (is(key, entries[ii][0])) {
 				return entries[ii][1]
 			}
 		}
@@ -744,7 +753,7 @@ class HashCollisionNode<K, V> {
 		let idx = 0
 		const len = entries.length
 		for (; idx < len; idx++) {
-			if (Object.is(key, entries[idx][0])) {
+			if (is(key, entries[idx][0])) {
 				break
 			}
 		}
@@ -795,7 +804,7 @@ class ValueNode<K, V> {
 	) {}
 
 	get(shift: number, keyHash: number, key: K, notSetValue?: V) {
-		return Object.is(key, this.entry[0]) ? this.entry[1] : notSetValue
+		return is(key, this.entry[0]) ? this.entry[1] : notSetValue
 	}
 
 	update(
@@ -808,7 +817,7 @@ class ValueNode<K, V> {
 		didAlter?: Ref
 	) {
 		const removed = value === NOT_SET
-		const keyMatch = Object.is(key, this.entry[0])
+		const keyMatch = is(key, this.entry[0])
 		if (keyMatch ? value === this.entry[1] : removed) {
 			return this
 		}

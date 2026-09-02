@@ -1,21 +1,15 @@
-import { useEditor } from 'tldraw'
-
 import { memo, useLayoutEffect, useRef } from 'react'
+import { useEditor } from 'tldraw'
 import { WebGLCanvas } from '../WebGLCanvas'
-import { RainbowShaderManager } from './RainbowShaderManager'
 import { shaderConfig } from './config'
+import { RainbowShaderManager } from './RainbowShaderManager'
 
 export const RainbowRenderer = memo(() => {
 	const editor = useEditor()
 	const rCanvas = useRef<HTMLCanvasElement>(null)
-	const rShaderManager = useRef<RainbowShaderManager | null>(null)
 
 	useLayoutEffect(() => {
-		const canvas = rCanvas.current!
-		const manager = new RainbowShaderManager(editor, canvas, shaderConfig)
-		rShaderManager.current = manager
-
-		manager.refresh()
+		const manager = new RainbowShaderManager(editor, rCanvas.current!, shaderConfig)
 
 		const handlePointerMove = (e: PointerEvent) => manager.pointerMove(e.clientX, e.clientY)
 
@@ -24,7 +18,6 @@ export const RainbowRenderer = memo(() => {
 		return () => {
 			window.removeEventListener('pointermove', handlePointerMove)
 			manager.dispose()
-			rShaderManager.current = null
 		}
 	}, [editor])
 

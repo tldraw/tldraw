@@ -1,7 +1,7 @@
-import { assert } from '@tldraw/utils'
 import fs from 'fs'
-import { Octokit } from 'octokit'
 import path from 'path'
+import { assert } from '@tldraw/utils'
+import { Octokit } from 'octokit'
 
 const octokit = new Octokit({})
 

@@ -1,7 +1,7 @@
 import { IndexKey, JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { TLOpacityType, opacityValidator } from '../misc/TLOpacity'
 import { idValidator } from '../misc/id-validator'
+import { TLOpacityType, opacityValidator } from '../misc/TLOpacity'
 import { TLParentId, TLShapeId } from '../records/TLShape'
 
 /**

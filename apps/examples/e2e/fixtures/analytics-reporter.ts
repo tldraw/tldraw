@@ -35,6 +35,7 @@ export class PerformanceAnalyticsReporter {
 
 		try {
 			const payload = this.formatPayload(results, testContext)
+			// See https://eu.posthog.com/project/45972/insights/ZdpGyj1r
 			await this.sendToPostHog(payload)
 			// eslint-disable-next-line no-console
 			console.log(`Sent ${results.length} performance metrics to PostHog`)

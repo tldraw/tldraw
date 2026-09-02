@@ -11,9 +11,9 @@ import {
 	setOrClearCookieConsent,
 } from './state/cookie-consent-state'
 import { ThemeState } from './state/theme-state'
-import styles from './styles.css?inline'
 import { ConsentPreferences, CookieConsent } from './types'
 import { shouldRequireConsent } from './utils/consent-check'
+import styles from './styles.css?inline'
 
 function cookieConsentToPreferences(
 	consent: CookieConsent,

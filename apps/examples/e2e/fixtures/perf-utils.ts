@@ -395,6 +395,104 @@ export class PerformanceTestSuite {
 		return this.finalizeTestResult('canvas_zooming', metrics, expectMinFps)
 	}
 
+	async testTextShapeCreation(
+		options: InteractionTestOptions = {}
+	): Promise<PerformanceTestResult> {
+		const { warmupMs = 500, measureMs = 10000, expectMinFps } = options
+
+		const { metrics } = await this.fpsTracker.measureInteraction(
+			async () => {
+				const page = this.getPage()
+
+				// Repeatedly create text shapes and frames during the measurement
+				// window. Each cycle deletes the previous batch so text layouts
+				// can't be cached, forcing TextManager.measureText /
+				// measureTextSpans to run every time. The samples mix ASCII with
+				// emoji ZWJ sequences, flags, and accents so the grapheme
+				// segmenter path is exercised. See
+				// https://github.com/tldraw/tldraw/issues/9112.
+				await page.evaluate(() => {
+					const editor = (window as any).editor
+					const tldrawApi = (window as any).tldrawApi
+					if (!editor || !tldrawApi) return
+
+					const textSamples = [
+						'Performance text measurement',
+						'Lorem ipsum dolor sit amet, consectetur adipiscing',
+						'Hello 👨‍👩‍👧 family',
+						'Flag 🇫🇷 with accents café résumé',
+						'Multi-line\ntext content\nwith line breaks',
+						'Emoji 👍🏽 skin tone modifier 🎉 party',
+					]
+
+					// Seeded RNG for reproducible layouts.
+					let seed = 9112
+					const next = () => {
+						seed = (seed * 9301 + 49297) % 233280
+						return seed / 233280
+					}
+					const range = (min: number, max: number) => Math.floor(next() * (max - min + 1)) + min
+					const choice = <T>(arr: T[]): T => arr[range(0, arr.length - 1)]
+					const sizes = ['s', 'm', 'l', 'xl']
+
+					let batch = 0
+					const createInterval = setInterval(() => {
+						const prev = editor.getCurrentPageShapes()
+						if (prev.length) {
+							editor.deleteShapes(prev.map((s: any) => s.id))
+						}
+
+						const shapes: any[] = []
+						for (let i = 0; i < 25; i++) {
+							const sample = `${choice(textSamples)} ${i}`
+							shapes.push({
+								id: `shape:text-${batch}-${i}`,
+								type: 'text',
+								x: range(0, 1600),
+								y: range(0, 1000),
+								props: {
+									richText: tldrawApi.toRichText(sample),
+									size: choice(sizes),
+									font: 'draw',
+								},
+							})
+						}
+						// Frames whose names end in emoji/accents exercise the
+						// title measurement path from the original bug report.
+						for (let i = 0; i < 5; i++) {
+							shapes.push({
+								id: `shape:frame-${batch}-${i}`,
+								type: 'frame',
+								x: range(0, 1600),
+								y: range(0, 1000),
+								props: { w: 320, h: 220, name: `Frame ${choice(textSamples)}` },
+							})
+						}
+
+						editor.createShapes(shapes)
+						batch++
+					}, 100)
+
+					;(window as any).__textCreateInterval = createInterval
+				})
+			},
+			{ warmupMs, measureMs }
+		)
+
+		// Stop the creation interval and clean up.
+		const page = this.getPage()
+		await page.evaluate(() => {
+			const interval = (window as any).__textCreateInterval
+			if (interval) {
+				clearInterval(interval)
+				delete (window as any).__textCreateInterval
+			}
+		})
+		await page.keyboard.press('Escape')
+
+		return this.finalizeTestResult('create_text_shapes', metrics, expectMinFps)
+	}
+
 	async runFullPerformanceTest(): Promise<PerformanceTestResult[]> {
 		const results: PerformanceTestResult[] = []
 
@@ -409,6 +507,7 @@ export class PerformanceTestSuite {
 		results.push(await this.testCanvasPanning())
 		await this.setupHeavyBoard()
 		results.push(await this.testCanvasZooming())
+		results.push(await this.testTextShapeCreation())
 
 		return results
 	}
@@ -491,6 +590,7 @@ export class PerformanceTestSuite {
 			{ name: 'resize_shapes', testFn: () => this.testShapeResizing() },
 			{ name: 'canvas_panning', testFn: () => this.testCanvasPanning() },
 			{ name: 'canvas_zooming', testFn: () => this.testCanvasZooming() },
+			{ name: 'create_text_shapes', testFn: () => this.testTextShapeCreation() },
 		]
 
 		for (const { name, testFn } of interactions) {

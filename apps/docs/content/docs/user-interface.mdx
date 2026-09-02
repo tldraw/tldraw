@@ -20,18 +20,41 @@ accuracy: 9
 notes: 'Brief intro that links to sdk-features articles.'
 ---
 
-The `@tldraw/tldraw` package includes a complete user interface with menus, toolbars, keyboard shortcuts, and style panels. You can hide it entirely, listen to events, or customize individual components.
+The `tldraw` package includes a complete user interface with menus, toolbars, keyboard shortcuts, and style panels. You can hide it entirely, listen to events, or customize individual components.
+
+Each of those is a prop on `<Tldraw>`: `hideUi` hides everything, `components` replaces or removes individual pieces, and `onUiEvent` reports every UI interaction:
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw
+				hideUi={false}
+				components={{ PageMenu: null }}
+				onUiEvent={(name, data) => console.log(name, data)}
+			/>
+		</div>
+	)
+}
+```
 
 ## Learn more
 
-- [UI components](/sdk-features/ui-components) - Component architecture, overrides, and customization
-- [UI primitives](/sdk-features/ui-primitives) - Buttons, menus, dialogs for building custom interfaces
-- [Internationalization](/sdk-features/internationalization) - Translations and language support
+- [UI components](/sdk-features/ui-components) — Component architecture, overrides, and customization
+- [UI primitives](/sdk-features/ui-primitives) — Buttons, menus, dialogs for building custom interfaces
+- [Actions](/sdk-features/actions) — Add or override actions and keyboard shortcuts
+- [Styles](/sdk-features/styles) — The style panel and custom style properties
+- [Themes](/sdk-features/themes) — Color modes and custom color palettes
+- [Accessibility](/sdk-features/accessibility) — Keyboard navigation and screen reader support
+- [Internationalization](/sdk-features/internationalization) — Translations and language support
 
 ## Examples
 
-- [Hide UI](/examples/hide-ui) - Hide the entire default interface
-- [Custom UI](/examples/custom-ui) - Build a completely custom interface
-- [Hide UI components](/examples/ui-components-hidden) - Selectively hide specific components
-- [Action overrides](/examples/action-overrides) - Customize actions and shortcuts
-- [UI events](/examples/ui-events) - Track user interactions
+- [Hide UI](/examples/ui/hide-ui) — Hide the entire default interface
+- [Custom UI](/examples/ui/custom-ui) — Build a completely custom interface
+- [Hide UI components](/examples/ui/ui-components-hidden) — Selectively hide specific components
+- [Action overrides](/examples/ui/action-overrides) — Customize actions and shortcuts
+- [UI events](/examples/events/ui-events) — Track user interactions

@@ -1,9 +1,9 @@
 import { Box } from '../Box'
-import { Vec, VecLike } from '../Vec'
 import { intersectLineSegmentCircle } from '../intersect'
 import { PI2, getPointOnCircle } from '../utils'
-import { Geometry2d, Geometry2dOptions } from './Geometry2d'
+import { Vec, VecLike } from '../Vec'
 import { getVerticesCountForArcLength } from './geometry-constants'
+import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 
 /** @public */
 export class Circle2d extends Geometry2d {

@@ -13,27 +13,3 @@
 .inline {
 	display: inline-flex;
 }
-
-.iconWrapper {
-	width: 40px;
-	height: 40px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	color: inherit;
-	flex-shrink: 0;
-}
-
-.iconWrapper > .icon {
-	height: 15px;
-	width: 15px;
-}
-
-.iconWrapper[data-size='m'] {
-	width: 32px;
-}
-
-.iconWrapper[data-size='m'] > .icon {
-	height: 20px;
-	width: 20px;
-}

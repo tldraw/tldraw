@@ -4,13 +4,13 @@ import { StyleValuesForUi } from '../../../styles'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import {
 	TldrawUiPopover,
 	TldrawUiPopoverContent,
 	TldrawUiPopoverTrigger,
 } from '../primitives/TldrawUiPopover'
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
-import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { useStylePanelContext } from './StylePanelContext'
 
 /** @public */
@@ -112,6 +112,7 @@ function StylePanelDoubleDropdownPickerInlineInner<T extends string>(
 										type="icon"
 										key={item.value}
 										onClick={() => {
+											ctx.onHistoryMark('select style dropdown item')
 											onValueChange(styleA, item.value)
 											tlmenus.deleteOpenMenu(idA, editor.contextId)
 											setIsOpenA(false)
@@ -153,6 +154,7 @@ function StylePanelDoubleDropdownPickerInlineInner<T extends string>(
 										title={`${msg(labelB)} — ${msg(`${uiTypeB}-style.${item.value}` as TLUiTranslationKey)}`}
 										data-testid={`style.${uiTypeB}.${item.value}`}
 										onClick={() => {
+											ctx.onHistoryMark('select style dropdown item')
 											onValueChange(styleB, item.value)
 											tlmenus.deleteOpenMenu(idB, editor.contextId)
 											setIsOpenB(false)

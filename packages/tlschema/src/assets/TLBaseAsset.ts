@@ -68,7 +68,8 @@ export const assetIdValidator = idValidator<TLAssetId>('asset')
  * base properties (id, typeName, type, meta) and the type-specific props.
  *
  * @param type - The asset type identifier (e.g., 'image', 'video', 'bookmark')
- * @param props - The validator for the asset's type-specific properties
+ * @param props - A validator or per-key validator record for the asset's type-specific properties
+ * @param meta - An optional per-key validator record for the asset's meta properties
  * @returns A complete validator for the asset record type
  *
  * @example
@@ -83,45 +84,41 @@ export const assetIdValidator = idValidator<TLAssetId>('asset')
  *   description?: string
  * }>
  *
- * // Create validator for the custom asset
- * const customAssetValidator = createAssetValidator('custom', T.object({
+ * // Create validator using a per-key record (recommended)
+ * const customAssetValidator = createAssetValidator('custom', {
+ *   url: T.string,
+ *   title: T.string,
+ *   description: T.string.optional()
+ * })
+ *
+ * // Or using a T.object validator
+ * const customAssetValidator2 = createAssetValidator('custom', T.object({
  *   url: T.string,
  *   title: T.string,
  *   description: T.string.optional()
  * }))
- *
- * // Use the validator
- * const assetData = {
- *   id: 'asset:custom123',
- *   typeName: 'asset' as const,
- *   type: 'custom' as const,
- *   props: {
- *     url: 'https://example.com',
- *     title: 'My Custom Asset'
- *   },
- *   meta: {}
- * }
- *
- * const validatedAsset = customAssetValidator.validate(assetData)
  * ```
  *
  * @public
  */
-export function createAssetValidator<Type extends string, Props extends JsonObject>(
+export function createAssetValidator<
+	Type extends string,
+	Props extends JsonObject,
+	Meta extends JsonObject = JsonObject,
+>(
 	type: Type,
-	props: T.Validator<Props>
+	props?: T.Validator<Props> | { [K in keyof Props]: T.Validatable<Props[K]> },
+	meta?: { [K in keyof Meta]: T.Validatable<Meta[K]> }
 ) {
-	return T.object<{
-		id: TLAssetId
-		typeName: 'asset'
-		type: Type
-		props: Props
-		meta: JsonObject
-	}>({
+	// Determine if props is a Validator instance or a per-key record
+	const propsValidator =
+		props instanceof T.Validator ? props : props ? T.object(props) : (T.jsonValue as any)
+
+	return T.object<TLBaseAsset<Type, Props>>({
 		id: assetIdValidator,
 		typeName: T.literal('asset'),
 		type: T.literal(type),
-		props,
-		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
+		props: propsValidator,
+		meta: meta ? T.object(meta) : (T.jsonValue as T.ObjectValidator<JsonObject>),
 	})
 }

@@ -1,10 +1,11 @@
+import { computed } from '@tldraw/state'
 import { Store } from '@tldraw/store'
 import { annotateError, IndexKey, structuredClone } from '@tldraw/utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createTLSchema } from './createTLSchema'
 import { CameraRecordType } from './records/TLCamera'
 import { TLDOCUMENT_ID } from './records/TLDocument'
-import { TLINSTANCE_ID } from './records/TLInstance'
+import { createInstanceRecordType, TLINSTANCE_ID } from './records/TLInstance'
 import { PageRecordType, TLPageId } from './records/TLPage'
 import { InstancePageStateRecordType } from './records/TLPageState'
 import { TLPOINTER_ID } from './records/TLPointer'
@@ -330,6 +331,10 @@ describe('createIntegrityChecker', () => {
 			props: {
 				defaultName: 'Test Store',
 				assets: mockAssetStore,
+				users: {
+					currentUser: computed('currentUser', () => null),
+					resolve: () => computed('resolve', () => null),
+				},
 				onMount: vi.fn(),
 			},
 		})
@@ -432,6 +437,14 @@ describe('createIntegrityChecker', () => {
 			expect(instance).toBeDefined()
 			expect(instance!.currentPageId).toBeDefined()
 			expect(instance!.exportBackground).toBe(true)
+		})
+
+		it('should default exportBackground to true when the instance omits it', () => {
+			const instance = createInstanceRecordType(new Map()).create({
+				id: TLINSTANCE_ID,
+				currentPageId: 'page:whatever' as TLPageId,
+			})
+			expect(instance.exportBackground).toBe(true)
 		})
 
 		it('should update instance to reference valid page when current page is invalid', () => {

@@ -19,11 +19,11 @@ notes: Example link path may need verification. Could add more contractions for 
 
 The culling system optimizes rendering performance by hiding shapes that are outside the viewport.
 
-Culled shapes remain in the DOM but have their `display` property set to `none`, so they don't incur any rendering cost. The system uses incremental derivations to track visibility changes efficiently as the camera moves or shapes change. Performance stays consistent even with thousands of shapes on the canvas.
+Culled shapes stay in the DOM with `display: none`, so they cost nothing to render, and they stay in the store, so they can still be selected, hit-tested, and exported. The culling set is an incremental derivation that updates as the camera moves or shapes change. See [Performance](/sdk-features/performance) for how culling fits with the other rendering optimizations.
 
 ## Using the culling APIs
 
-The editor provides two methods for working with culled shapes:
+The editor exposes two sets of shape IDs. [Editor#getNotVisibleShapes](?) returns the shapes whose page bounds don't intersect the viewport and whose shape util allows culling. [Editor#getCulledShapes](?) removes the selected shapes and the shape being edited from that set, so users can always see what they're working with. Both are reactive, and `getCulledShapes()` returns the same `Set` instance while its contents are unchanged, so it's cheap to read in `track` components or `useValue`.
 
 ```tsx
 import { Tldraw } from 'tldraw'
@@ -34,10 +34,10 @@ export default function CullingExample() {
 		<div style={{ position: 'fixed', inset: 0 }}>
 			<Tldraw
 				onMount={(editor) => {
-					// Get shapes outside the viewport (before selection filtering)
+					// Get the IDs of shapes outside the viewport (before selection filtering)
 					const notVisible = editor.getNotVisibleShapes()
 
-					// Get shapes that should not render (excludes selected/editing shapes)
+					// Get the IDs of shapes that should not render (excludes selected/editing shapes)
 					const culled = editor.getCulledShapes()
 
 					console.log('Not visible:', notVisible.size)
@@ -49,19 +49,13 @@ export default function CullingExample() {
 }
 ```
 
-Use [Editor#getNotVisibleShapes](?) to get all shapes whose bounds don't intersect the viewport. Use [Editor#getCulledShapes](?) to get the final set of shapes that won't render. The difference between these is that `getCulledShapes` excludes selected shapes and the shape currently being edited, so users can always see what they're working with.
-
 ## How it works
 
-The culling system operates in two layers.
-
-The first layer identifies all shapes whose page bounds don't intersect with the viewport. This calculation iterates through every shape on the current page and performs a bounds collision check. The comparison is fast enough to run reactively.
-
-The second layer refines this set by removing shapes that should remain visible despite being outside the viewport. Selected shapes and the currently editing shape are never culled. This means users can scroll a shape partially or fully out of view while still seeing and interacting with it.
+The first layer queries the editor's spatial index for shapes whose page bounds intersect the viewport and marks everything else as not visible, skipping shapes whose util's `canCull` returns `false`. The second layer removes the selected shapes and the editing shape, so a user can scroll a shape partly or fully out of view while still seeing and interacting with it.
 
 ## Shape-level control
 
-Each shape type can opt out of culling by overriding the `canCull` method on its ShapeUtil. By default, `canCull` returns `true`, so most shapes participate in culling.
+A shape type opts out of culling by overriding [ShapeUtil#canCull](?). The default returns `true`. When your override returns `false`, the shape never enters the not-visible set, so it never gets `display: none`:
 
 ```tsx
 import { ShapeUtil, TLBaseShape, RecordProps, T, Rectangle2d } from 'tldraw'
@@ -97,20 +91,16 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 		return <div style={{ width: shape.props.w, height: shape.props.h }} />
 	}
 
-	indicator(shape: MyShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: MyShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 ```
 
-When `canCull` returns `false`, the culling system treats that shape as always visible regardless of its position.
-
-Common reasons to disable culling:
-
-- Shapes with visual effects (shadows, glows) that extend beyond their bounds
-- Shapes that measure their DOM content and need to stay rendered
-- Shapes with animations that should continue even when off-screen
+Shapes whose util overrides `canCull` are subscribed to individually inside the culling derivation, so a `canCull` that reads many props re-runs the derivation more often. Shapes using the default fast path don't pay this cost. Disable culling only for shapes that need it: visual effects that extend past the bounds, shapes that measure their DOM, or animations that should keep running off-screen. See [Performance](/sdk-features/performance#disable-culling-only-when-necessary) for guidance.
 
 ## Related examples
 
-- **[Size from DOM](/examples/shapes/size-from-dom)** - A shape that disables culling because it measures its DOM element to determine size.
+- [Size from DOM](/examples/shapes/tools/size-from-dom) - A shape that disables culling because it measures its DOM element to determine size.

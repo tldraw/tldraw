@@ -5,20 +5,28 @@
 ```ts
 
 import { Editor } from 'tldraw';
-import { Signal } from 'tldraw';
 import { TLAssetStore } from 'tldraw';
+import { TLObjectStoreAccess } from '@tldraw/sync-core';
 import { TLPersistentClientSocket } from '@tldraw/sync-core';
 import { TLPresenceStateInfo } from 'tldraw';
-import { TLPresenceUserInfo } from 'tldraw';
 import { TLStore } from 'tldraw';
 import { TLStoreSchemaOptions } from 'tldraw';
 import { TLStoreWithStatus } from 'tldraw';
+import { TLThemes } from 'tldraw';
+import { TLUser } from 'tldraw';
+import { TLUserStore } from 'tldraw';
 
 // @public
-export type RemoteTLStoreWithStatus = Exclude<TLStoreWithStatus, {
+export type RemoteTLStoreWithStatus = (Extract<TLStoreWithStatus, {
+    status: 'synced-remote';
+}> & {
+    readonly objectAccess: TLObjectStoreAccess;
+}) | Exclude<TLStoreWithStatus, {
     status: 'not-synced';
 } | {
     status: 'synced-local';
+} | {
+    status: 'synced-remote';
 }>;
 
 // @public
@@ -38,11 +46,11 @@ export interface UseSyncDemoOptions {
     // Warning: (ae-unresolved-inheritdoc-reference) The @inheritDoc reference could not be resolved: No member was found with name "getUserPresence"
     //
     // (undocumented)
-    getUserPresence?(store: TLStore, user: TLPresenceUserInfo): null | TLPresenceStateInfo;
+    getUserPresence?(store: TLStore, user: TLUser): null | TLPresenceStateInfo;
     // @internal (undocumented)
     host?: string;
     roomId: string;
-    userInfo?: Signal<TLPresenceUserInfo> | TLPresenceUserInfo;
+    users?: TLUserStore;
 }
 
 // @public
@@ -51,17 +59,18 @@ export type UseSyncOptions = UseSyncOptionsWithConnectFn | UseSyncOptionsWithUri
 // @public
 export interface UseSyncOptionsBase {
     assets: TLAssetStore;
-    getUserPresence?(store: TLStore, user: TLPresenceUserInfo): null | TLPresenceStateInfo;
+    getUserPresence?(store: TLStore, user: TLUser): null | TLPresenceStateInfo;
     onCustomMessageReceived?(data: any): void;
     // @internal (undocumented)
     onMount?(editor: Editor): void;
     // @internal
     roomId?: string;
+    themes?: Partial<TLThemes>;
     // @internal (undocumented)
     trackAnalyticsEvent?(name: string, data: {
         [key: string]: any;
     }): void;
-    userInfo?: Signal<TLPresenceUserInfo> | TLPresenceUserInfo;
+    users?: TLUserStore;
 }
 
 // @public (undocumented)

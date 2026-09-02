@@ -4,8 +4,8 @@ import { memo, useCallback, useEffect, useState } from 'react'
 import { useDialogs, useValue } from 'tldraw'
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
 import { F } from '../../utils/i18n'
-import styles from './dialogs.module.css'
 import { TlaManageCookiesDialog } from './TlaManageCookiesDialog'
+import styles from './dialogs.module.css'
 
 const MANAGE_COOKIES_DIALOG = 'manageCookiesDialog'
 

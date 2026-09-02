@@ -1,3 +1,4 @@
+import { useActions } from '../../context/actions'
 import { useCanRedo, useCanUndo } from '../../hooks/menu-hooks'
 import { AccessibilityMenu } from '../AccessibilityMenu'
 import { ColorSchemeMenu } from '../ColorSchemeMenu'
@@ -16,6 +17,7 @@ import {
 	RemoveFrameMenuItem,
 	SelectAllMenuItem,
 	ToggleAutoSizeMenuItem,
+	ToggleDebugModeItem,
 	ToggleDynamicSizeModeItem,
 	ToggleEdgeScrollingItem,
 	ToggleFocusModeItem,
@@ -53,6 +55,11 @@ export function DefaultMainMenuContent() {
 
 /** @public @react */
 export function ExportFileContentSubMenu() {
+	const actions = useActions()
+
+	// If a consumer has removed the export actions via `overrides`, don't render an empty submenu.
+	if (!actions['export-all-as-svg'] && !actions['export-all-as-png']) return null
+
 	return (
 		<TldrawUiMenuSubmenu id="export-all-as" label="context-menu.export-all-as" size="small">
 			<TldrawUiMenuGroup id="export-all-as-group">
@@ -162,16 +169,16 @@ export function PreferencesGroup() {
 					<ToggleEdgeScrollingItem />
 					<ToggleDynamicSizeModeItem />
 					<TogglePasteAtCursorItem />
+					<ToggleDebugModeItem />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="user-interface-submenus">
-					<ColorSchemeMenu />
 					<AccessibilityMenu />
 					<InputModeMenu />
+					<ColorSchemeMenu />
 				</TldrawUiMenuGroup>
 			</TldrawUiMenuSubmenu>
 			<LanguageMenu />
 			<KeyboardShortcutsMenuItem />
-			<TldrawUiMenuActionItem actionId="toggle-debug-mode" />
 		</TldrawUiMenuGroup>
 	)
 }

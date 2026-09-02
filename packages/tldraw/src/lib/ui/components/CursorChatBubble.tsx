@@ -65,10 +65,11 @@ function usePositionBubble(ref: RefObject<HTMLInputElement | null>) {
 			)
 		}
 
-		window.addEventListener('pointermove', positionChatBubble)
+		const win = editor.getContainerWindow()
+		win.addEventListener('pointermove', positionChatBubble)
 
 		return () => {
-			window.removeEventListener('pointermove', positionChatBubble)
+			win.removeEventListener('pointermove', positionChatBubble)
 		}
 	}, [ref, editor])
 }
@@ -112,7 +113,7 @@ const CursorChatInput = track(function CursorChatInput({
 		if (!elm) return
 
 		const textMeasurement = editor.textMeasure.measureText(value || placeholder, {
-			fontFamily: 'var(--font-body)',
+			fontFamily: 'inherit',
 			fontSize: 12,
 			fontWeight: '500',
 			fontStyle: 'normal',

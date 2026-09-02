@@ -100,6 +100,8 @@ export function createMigrationIds<
 	const ID extends string,
 	const Versions extends Record<string, number>,
 >(sequenceId: ID, versions: Versions): { [K in keyof Versions]: `${ID}/${Versions[K]}` } {
+	// Note: not objectMapFromEntries — `keyof Versions` is not narrowed to `string`, which that
+	// helper requires.
 	return Object.fromEntries(
 		objectMapEntries(versions).map(([key, version]) => [key, `${sequenceId}/${version}`] as const)
 	) as any
@@ -132,18 +134,12 @@ export function createRecordMigrationSequence(opts: {
 	return createMigrationSequence({
 		sequenceId,
 		retroactive: opts.retroactive ?? true,
-		sequence: opts.sequence.map((m) =>
-			'id' in m
-				? {
-						...m,
-						scope: 'record',
-						filter: (r: UnknownRecord) =>
-							r.typeName === opts.recordType &&
-							(m.filter?.(r) ?? true) &&
-							(opts.filter?.(r) ?? true),
-					}
-				: m
-		),
+		sequence: opts.sequence.map((m) => ({
+			...m,
+			scope: 'record',
+			filter: (r: UnknownRecord) =>
+				r.typeName === opts.recordType && (m.filter?.(r) ?? true) && (opts.filter?.(r) ?? true),
+		})),
 	})
 }
 
@@ -156,9 +152,9 @@ export function createRecordMigrationSequence(opts: {
  * @public
  */
 export interface LegacyMigration<Before = any, After = any> {
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	// eslint-disable-next-line tldraw/method-signature-style
 	up: (oldState: Before) => After
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	// eslint-disable-next-line tldraw/method-signature-style
 	down: (newState: After) => Before
 }
 
@@ -202,27 +198,27 @@ export type Migration = {
 } & (
 	| {
 			readonly scope: 'record'
-			// eslint-disable-next-line @typescript-eslint/method-signature-style
+			// eslint-disable-next-line tldraw/method-signature-style
 			readonly filter?: (record: UnknownRecord) => boolean
-			// eslint-disable-next-line @typescript-eslint/method-signature-style
+			// eslint-disable-next-line tldraw/method-signature-style
 			readonly up: (oldState: UnknownRecord) => void | UnknownRecord
-			// eslint-disable-next-line @typescript-eslint/method-signature-style
+			// eslint-disable-next-line tldraw/method-signature-style
 			readonly down?: (newState: UnknownRecord) => void | UnknownRecord
 	  }
 	| {
 			readonly scope: 'store'
-			// eslint-disable-next-line @typescript-eslint/method-signature-style
+			// eslint-disable-next-line tldraw/method-signature-style
 			readonly up: (
 				oldState: SerializedStore<UnknownRecord>
 			) => void | SerializedStore<UnknownRecord>
-			// eslint-disable-next-line @typescript-eslint/method-signature-style
+			// eslint-disable-next-line tldraw/method-signature-style
 			readonly down?: (
 				newState: SerializedStore<UnknownRecord>
 			) => void | SerializedStore<UnknownRecord>
 	  }
 	| {
 			readonly scope: 'storage'
-			// eslint-disable-next-line @typescript-eslint/method-signature-style
+			// eslint-disable-next-line tldraw/method-signature-style
 			readonly up: (storage: SynchronousRecordStorage<UnknownRecord>) => void
 			readonly down?: never
 	  }
@@ -364,11 +360,15 @@ export function sortMigrations(migrations: Migration[]): Migration[] {
 		// Explicit dependencies
 		if (m.dependsOn) {
 			for (const depId of m.dependsOn) {
-				if (byId.has(depId)) {
-					dependents.get(depId)!.add(m.id)
-					explicitDeps.get(m.id)!.add(depId)
-					inDegree.set(m.id, inDegree.get(m.id)! + 1)
-				}
+				if (!byId.has(depId)) continue
+				explicitDeps.get(m.id)!.add(depId)
+				// A dependency that is also the implicit predecessor, or that is listed twice, must
+				// only count once: the edge is only ever removed once, so a double-counted in-degree
+				// would leave the migration unprocessed and be reported as a circular dependency.
+				const dependentsOfDep = dependents.get(depId)!
+				if (dependentsOfDep.has(m.id)) continue
+				dependentsOfDep.add(m.id)
+				inDegree.set(m.id, inDegree.get(m.id)! + 1)
 			}
 		}
 	}

@@ -1,0 +1,43 @@
+.clipboard-events-panel {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 6px;
+	border: 1px solid #ccc;
+	box-shadow: none;
+	pointer-events: all;
+	font-size: 12px;
+	min-width: 220px;
+}
+
+.clipboard-events-controls {
+	display: flex;
+	gap: 12px;
+}
+
+.clipboard-events-controls label {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.clipboard-events-log {
+	max-height: 120px;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.clipboard-events-empty {
+	color: #666;
+	font-style: italic;
+}
+
+.clipboard-events-entry {
+	padding: 2px 4px;
+	border-radius: 4px;
+	background: #f5f5f5;
+}

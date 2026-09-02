@@ -1,8 +1,8 @@
 'use client'
 
-import { DocsSidebarMenu } from '@/components/docs/docs-sidebar-menu'
 import { usePathname } from 'next/navigation'
 import { UIEventHandler, useEffect, useRef } from 'react'
+import { DocsSidebarMenu } from '@/components/docs/docs-sidebar-menu'
 
 let scrollPosition = 0
 

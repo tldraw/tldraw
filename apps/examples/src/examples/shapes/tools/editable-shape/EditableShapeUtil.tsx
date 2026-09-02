@@ -27,12 +27,12 @@ export class EditableShapeUtil extends BaseBoxShapeUtil<IMyEditableShape> {
 	}
 
 	// [1]
-	override canEdit() {
+	override canEdit(shape: IMyEditableShape) {
 		return true
 	}
 
 	// [1b]
-	override canEditWhileLocked() {
+	override canEditWhileLocked(shape: IMyEditableShape) {
 		return true
 	}
 
@@ -80,14 +80,16 @@ export class EditableShapeUtil extends BaseBoxShapeUtil<IMyEditableShape> {
 					</button>
 				) : (
 					// [d] when not editing...
-					<p style={{ fontSize: 12 }}>Double Click to Edit</p>
+					<p style={{ fontSize: 12 }}>Double click to edit</p>
 				)}
 			</HTMLContainer>
 		)
 	}
 
-	indicator(shape: IMyEditableShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: IMyEditableShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 
 	// [3]
@@ -100,36 +102,31 @@ export class EditableShapeUtil extends BaseBoxShapeUtil<IMyEditableShape> {
 }
 
 /*
-
 This is our shape util, which defines how our shape renders and behaves. For
 more information on the shape util, check out the custom shape example.
 
 [1]
 We override the canEdit method to allow the shape to enter the editing state.
 
-	[1b] We override canEditWhileLocked to allow the shape to be edited even
-		when it is locked. This is useful for shapes that need to remain
-		interactive despite being locked in place, preventing accidental
-		movement while still allowing content changes.
+	[1b] canEditWhileLocked allows the shape to be edited even when it is locked.
+		This is useful for shapes that should stay put but remain interactive.
 
 [2]
-We want to conditionally render the component based on whether it is being
-edited or not.
+The component renders differently depending on whether the shape is being edited.
 
-	[a] We can check whether our shape is being edited by comparing the
-		editing shape id to the shape's id.
+	[a] Reading `getEditingShapeId()` inside the component is reactive, so the
+		shape re-renders when it enters or leaves the editing state.
 
-	[b] We want to allow pointer events when the shape is being edited,
-		and stop event propagation on pointer down. Check out the interactive
-		shape example for more information on this.
+	[b] While editing, we turn on pointer events and mark pointer-down events as
+		handled with `editor.markEventAsHandled` so the editor doesn't start a
+		drag or selection when the user clicks the button. Check out the
+		interactive shape example for more on this.
 
-	[c] We render a button to change the animal emoji when the shape is being
-		edited.
+	[c] The button cycles through the emojis with `editor.updateShape`.
 
-	[e]	We also render a message when the shape is not being edited.
+	[d] When not editing, we show a hint instead of the button.
 
 [3]
 The onEditEnd method is called when the shape exits the editing state. In this
-case we rotate the shape 360 degrees.
-
+case we spin the shape 360 degrees with `animateShape`.
 */

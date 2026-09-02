@@ -22,6 +22,9 @@ export function MaybeForceUserRefresh({ children }: { children: ReactNode }) {
 			>
 				{children}
 			</div>
+			{/* A custom overlay rather than TldrawUiDialog: it renders at the app-provider root
+			    to dim the whole app when the client is outdated — a context where the Radix-based
+			    dialog primitives and their UI-context hooks are not available. */}
 			{showModal ? (
 				<div className={styles.modal}>
 					<div className={styles.modalContent}>

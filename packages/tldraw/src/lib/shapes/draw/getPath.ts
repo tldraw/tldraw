@@ -109,7 +109,7 @@ export function getPointsFromDrawSegment(
 	scaleY: number,
 	points: Vec[] = []
 ) {
-	const _points = b64Vecs.decodePoints(segment.path)
+	const _points = b64Vecs.decodePoints(segment.path, segment.dim)
 
 	// Apply scale factors (used for lazy resize and flipping)
 	if (scaleX !== 1 || scaleY !== 1) {
@@ -162,5 +162,6 @@ export function getDrawShapeStrokeDashArray(
 		solid: `none`,
 		dotted: `${dotAdjustment} ${strokeWidth * 2}`,
 		dashed: `${strokeWidth * 2} ${strokeWidth * 2}`,
+		none: `none`,
 	}[shape.props.dash]
 }

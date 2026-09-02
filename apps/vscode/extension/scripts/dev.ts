@@ -1,5 +1,5 @@
-import esbuild from 'esbuild'
 import { join } from 'path'
+import esbuild from 'esbuild'
 import { logEnv } from './cli'
 import { copyEditor, removeDistDirectory } from './helpers'
 import { getDirname } from './path'

@@ -71,7 +71,7 @@ export interface CustomRecordInfo {
 	 * Called when creating new records to provide initial values for any properties
 	 * not explicitly provided during creation.
 	 */
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	// eslint-disable-next-line tldraw/method-signature-style
 	createDefaultProperties?: () => Record<string, unknown>
 }
 

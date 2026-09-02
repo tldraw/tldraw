@@ -17,6 +17,8 @@ export interface TLUiInputProps {
 	autoSelect?: boolean
 	children?: React.ReactNode
 	defaultValue?: string
+	/** Maximum number of characters the input will accept. */
+	maxLength?: number
 	placeholder?: string
 	onComplete?(value: string): void
 	onValueChange?(value: string): void
@@ -50,6 +52,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 			autoSelect = false,
 			autoFocus = false,
 			defaultValue,
+			maxLength,
 			placeholder,
 			onComplete,
 			onValueChange,
@@ -151,7 +154,8 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 		React.useEffect(() => {
 			if (!tlenv.isIos) return undefined
 
-			const visualViewport = window.visualViewport
+			const win = editor?.getContainerWindow() ?? window
+			const visualViewport = win.visualViewport
 			if (isFocused && shouldManuallyMaintainScrollPositionWhenFocused && visualViewport) {
 				const onViewportChange = () => {
 					rInputRef.current?.scrollIntoView({ block: 'center' })
@@ -195,6 +199,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 					className={classNames('tlui-input', className)}
 					type="text"
 					defaultValue={defaultValue}
+					maxLength={maxLength}
 					onKeyDownCapture={handleKeyDownCapture}
 					onChange={handleChange}
 					onFocus={handleFocus}

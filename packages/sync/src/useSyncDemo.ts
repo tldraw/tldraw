@@ -3,13 +3,13 @@ import {
 	AssetRecordType,
 	Editor,
 	MediaHelpers,
-	Signal,
 	TLAsset,
 	TLAssetStore,
 	TLPresenceStateInfo,
-	TLPresenceUserInfo,
 	TLStore,
 	TLStoreSchemaOptions,
+	TLUser,
+	TLUserStore,
 	clamp,
 	defaultBindingUtils,
 	defaultShapeUtils,
@@ -26,12 +26,12 @@ export interface UseSyncDemoOptions {
 	 * everyone using the demo server. Consider prefixing it with your company or project name.
 	 */
 	roomId: string
+
 	/**
-	 * A signal that contains the user information needed for multiplayer features.
-	 * This should be synchronized with the `userPreferences` configuration for the main `<Tldraw />` component.
+	 * User store for identity, presence and attribution.
 	 * If not provided, a default implementation based on localStorage will be used.
 	 */
-	userInfo?: TLPresenceUserInfo | Signal<TLPresenceUserInfo>
+	users?: TLUserStore
 
 	/** @internal */
 	host?: string
@@ -40,7 +40,7 @@ export interface UseSyncDemoOptions {
 	 * {@inheritdoc UseSyncOptions.getUserPresence}
 	 * @public
 	 */
-	getUserPresence?(store: TLStore, user: TLPresenceUserInfo): TLPresenceStateInfo | null
+	getUserPresence?(store: TLStore, user: TLUser): TLPresenceStateInfo | null
 }
 
 /**
@@ -187,10 +187,15 @@ function createDemoAssetStore(host: string): TLAssetStore {
 			const objectName = `${id}-${file.name}`.replace(/\W/g, '-')
 			const url = `${host}/uploads/${objectName}`
 
-			await fetch(url, {
+			const response = await fetch(url, {
 				method: 'POST',
 				body: file,
 			})
+			// a rejected upload (invalid name, duplicate, server error) resolves the fetch; without
+			// this the asset would point at a URL that was never stored
+			if (!response.ok) {
+				throw new Error(`Failed to upload asset (${response.status})`)
+			}
 
 			return { src: url }
 		},

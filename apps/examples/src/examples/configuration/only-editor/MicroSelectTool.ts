@@ -2,10 +2,10 @@ import { StateNode, TLClickEventInfo, TLPointerEventInfo, createShapeId } from '
 
 // There's a guide at the bottom of this file!
 
-//[1]
+// [1]
 export class MicroSelectTool extends StateNode {
 	static override id = 'select'
-	//[2]
+	// [2]
 	override onPointerDown(info: TLPointerEventInfo) {
 		const { editor } = this
 
@@ -31,7 +31,7 @@ export class MicroSelectTool extends StateNode {
 			}
 		}
 	}
-	//[3]
+	// [3]
 	override onDoubleClick(info: TLClickEventInfo) {
 		const { editor } = this
 
@@ -72,32 +72,21 @@ export class MicroSelectTool extends StateNode {
 	}
 }
 /*
-This is a very small example of a state node that implements a "select" tool. It
-doesn't implement any children states. 
-
-The state handles two events: onPointerDown [2] and onDoubleClick [2].
-
-When the user points down on the canvas, it deselects all shapes; and when
-they point a shape it selects that shape. When the user double clicks on the
-canvas, it creates a new shape; and when they double click on a shape, it
-deletes that shape.
+The smallest possible "select" tool: a single StateNode with no child states. It isn't used by
+the example; MiniSelectTool.ts is the version that's wired up.
 
 [1]
-This is where we define our state node by extending the StateNode class. Since 
-there are no children states We can give it an id and define methods we
-want to override to handle events.
+A tool is a StateNode with a static `id`. If this tool were registered in place of MiniSelectTool,
+the example's `initialState="select"` would start the editor in it. With no children, event
+handlers go directly on the tool.
 
+[2]
+Pointer events arrive with a `target` of 'canvas' or 'shape'. Custom shapes rendered with
+`pointerEvents: 'all'` report themselves as the target, but hits on the canvas can still land on
+a shape (for example when the pointer is inside a hollow shape), so we re-check with
+`getShapeAtPoint` and re-dispatch as a 'shape' event.
 
-[2] onPointerDown
-	The user clicked on something, let's figure out what it was. We can
-	access the editor via this.editor, and then use it to check if we hit
-	a shape. If we did then we call the onPointerDown method again with the
-	shape as the target, select the shape, and return. If we didn't hit a
-	shape then we deselect all shapes.
-
-[3] onDoubleClick
-	The user double clicked on something, let's do the same as above. If we 
-	hit a shape then we call the onDoubleClick method again with the shape as 
-	the target, delete it, and return. If we didn't hit a shape then we create
-	a new shape at the pointer's position.
+[3]
+Double-click fires once per phase ('down', 'up', 'settle-down', 'settle-up'); we only act on
+'up' so the shape is created or deleted once.
 */

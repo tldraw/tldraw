@@ -48,7 +48,7 @@ export class StyleTransferNodeDefinition extends NodeDefinition<StyleTransferNod
 	static validator = StyleTransferNode
 	title = 'Style transfer'
 	heading = 'Style transfer'
-	icon = (<StyleTransferIcon />)
+	icon = <StyleTransferIcon />
 	category = 'process'
 	resultKeys = ['lastResultUrl'] as const
 	getDefault(): StyleTransferNode {

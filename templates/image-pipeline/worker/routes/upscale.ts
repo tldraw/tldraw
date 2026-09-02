@@ -1,6 +1,6 @@
 import { IRequest } from 'itty-router'
-import type { UpscaleParams } from '../providers'
 import { getUpscaleProvider } from '../providers'
+import type { UpscaleParams } from '../providers'
 
 interface UpscaleRequest {
 	/** URL of the image to upscale */

@@ -1,5 +1,5 @@
-import { ExecutionQueue } from './ExecutionQueue'
 import { promiseWithResolve, sleep } from './control'
+import { ExecutionQueue } from './ExecutionQueue'
 
 const tick = () => Promise.resolve()
 

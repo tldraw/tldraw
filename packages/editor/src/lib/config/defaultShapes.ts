@@ -1,5 +1,5 @@
-import { TLShapeUtilConstructor } from '../editor/shapes/ShapeUtil'
 import { GroupShapeUtil } from '../editor/shapes/group/GroupShapeUtil'
+import { TLShapeUtilConstructor } from '../editor/shapes/ShapeUtil'
 
 /** @public */
 export type TLAnyShapeUtilConstructor = TLShapeUtilConstructor<any>

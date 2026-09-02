@@ -1,5 +1,91 @@
-import { DEFAULT_EMBED_DEFINITIONS } from '../../defaultEmbedDefinitions'
-import { getEmbedInfo, matchEmbedUrl, matchUrl } from './embeds'
+import {
+	DEFAULT_EMBED_DEFINITIONS,
+	embedShapePermissionDefaults,
+	unknownEmbedShapePermissionOverrides,
+} from '../../defaultEmbedDefinitions'
+import { getCorrectedEmbedSize, getEmbedInfo, matchEmbedUrl, matchUrl } from './embeds'
+
+const GOOGLE_MAPS_API_KEY = 'test-google-maps-api-key'
+const TEST_EMBED_CONFIG = { google_maps: { apiKey: GOOGLE_MAPS_API_KEY } }
+
+describe('embed sandbox permissions', () => {
+	function getSandboxString(permissions: Record<string, boolean | undefined>): string {
+		return Object.entries(permissions)
+			.filter(([, isEnabled]) => isEnabled)
+			.map(([perm]) => perm)
+			.join(' ')
+	}
+
+	test('known embeds get default permissions including allow-same-origin', () => {
+		const sandbox = getSandboxString(embedShapePermissionDefaults)
+		expect(sandbox).toContain('allow-same-origin')
+		expect(sandbox).toContain('allow-scripts')
+		expect(sandbox).toContain('allow-forms')
+		expect(sandbox).toContain('allow-popups')
+	})
+
+	test('unknown embeds get restricted permissions without allow-same-origin', () => {
+		const sandbox = getSandboxString({
+			...embedShapePermissionDefaults,
+			...unknownEmbedShapePermissionOverrides,
+		})
+		expect(sandbox).not.toContain('allow-same-origin')
+		expect(sandbox).not.toContain('allow-forms')
+		expect(sandbox).not.toContain('allow-popups')
+		expect(sandbox).toContain('allow-scripts')
+	})
+
+	test('known embed overrides still apply on top of defaults', () => {
+		const youtubeEmbed = DEFAULT_EMBED_DEFINITIONS.find((d) => d.type === 'youtube')!
+		const sandbox = getSandboxString({
+			...embedShapePermissionDefaults,
+			...youtubeEmbed.overridePermissions,
+		})
+		expect(sandbox).toContain('allow-same-origin')
+		expect(sandbox).toContain('allow-presentation')
+		expect(sandbox).toContain('allow-popups-to-escape-sandbox')
+	})
+
+	test('unknownEmbedShapePermissionOverrides disables the dangerous permission combination', () => {
+		expect(unknownEmbedShapePermissionOverrides['allow-same-origin']).toBe(false)
+		expect(unknownEmbedShapePermissionOverrides['allow-forms']).toBe(false)
+		expect(unknownEmbedShapePermissionOverrides['allow-popups']).toBe(false)
+	})
+})
+
+describe('getCorrectedEmbedSize', () => {
+	test('corrects to the resolved ratio while preserving the box area', () => {
+		const corrected = getCorrectedEmbedSize({ w: 640, h: 360, resolvedRatio: 1.5 })!
+		expect(corrected.w / corrected.h).toBeCloseTo(1.5)
+		// area is unchanged, so the box takes the same footprint as the default 16:9 box
+		expect(corrected.w * corrected.h).toBeCloseTo(640 * 360)
+	})
+
+	test('does not balloon a portrait ratio: area is preserved, not the width', () => {
+		// a 9:16 video: width-preserving would give 640×1138; area-preserving keeps the footprint
+		const corrected = getCorrectedEmbedSize({ w: 640, h: 360, resolvedRatio: 9 / 16 })!
+		expect(corrected.w / corrected.h).toBeCloseTo(9 / 16)
+		expect(corrected.w * corrected.h).toBeCloseTo(640 * 360)
+		// far shorter than the 1138px a width-preserving correction would have produced
+		expect(corrected.h).toBeLessThan(640 / (9 / 16))
+	})
+
+	test('returns null when the resolved ratio already matches (within epsilon)', () => {
+		expect(getCorrectedEmbedSize({ w: 640, h: 360, resolvedRatio: 640 / 360 })).toBeNull()
+	})
+
+	test('applies a new ratio regardless of the current ratio (e.g. after a url change)', () => {
+		// shape was already auto-corrected to 3:2; a new video resolves to 1:1
+		const corrected = getCorrectedEmbedSize({ w: 640, h: 640 / 1.5, resolvedRatio: 1 })!
+		expect(corrected.w / corrected.h).toBeCloseTo(1)
+		expect(corrected.w * corrected.h).toBeCloseTo(640 * (640 / 1.5))
+	})
+
+	test('returns null when there is no resolved ratio', () => {
+		expect(getCorrectedEmbedSize({ w: 640, h: 360, resolvedRatio: undefined })).toBeNull()
+		expect(getCorrectedEmbedSize({ w: 640, h: 360, resolvedRatio: 0 })).toBeNull()
+	})
+})
 
 interface MatchUrlTestMatchDef {
 	url: string
@@ -49,6 +135,15 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 	},
 	{
 		url: 'https://lite.tldraw.com/something',
+		match: false,
+	},
+	// hostname patterns are anchored: a lookalike host must not inherit the tldraw sandbox
+	{
+		url: 'https://tldraw.com.evil.io/r/choochoo',
+		match: false,
+	},
+	{
+		url: 'https://nottldraw.com/r/choochoo',
 		match: false,
 	},
 	// codesandbox
@@ -170,13 +265,38 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		url: 'https://www.figma.com/foobar',
 		match: false,
 	},
+	// canva
+	{
+		url: 'https://www.canva.com/design/DAFrLlkQu3Q/view',
+		match: true,
+		output: {
+			type: 'canva',
+			embedUrl: 'https://www.canva.com/design/DAFrLlkQu3Q/view?embed=',
+		},
+	},
+	{
+		url: 'https://www.canva.com/design/DAFrLlkQu3Q/some-slug',
+		match: true,
+		output: {
+			type: 'canva',
+			embedUrl: 'https://www.canva.com/design/DAFrLlkQu3Q/some-slug?embed=',
+		},
+	},
+	{
+		url: 'https://www.canva.com/design/DAFrLlkQu3Q',
+		match: false,
+	},
+	{
+		url: 'https://www.canva.com/templates',
+		match: false,
+	},
 	// google_maps
 	{
 		url: 'https://www.google.com/maps/@52.2449313,0.0813192,14z',
 		match: true,
 		output: {
 			type: 'google_maps',
-			embedUrl: `https://google.com/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14&maptype=roadmap`,
+			embedUrl: `https://google.com/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=52.2449313,0.0813192&zoom=14&maptype=roadmap`,
 		},
 	},
 	{
@@ -184,7 +304,7 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		match: true,
 		output: {
 			type: 'google_maps',
-			embedUrl: `https://google.co.uk/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14&maptype=roadmap`,
+			embedUrl: `https://google.co.uk/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=52.2449313,0.0813192&zoom=14&maptype=roadmap`,
 		},
 	},
 	{
@@ -192,7 +312,7 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		match: true,
 		output: {
 			type: 'google_maps',
-			embedUrl: `https://google.com/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=51.5041626,-0.2468738&zoom=14&maptype=roadmap`,
+			embedUrl: `https://google.com/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=51.5041626,-0.2468738&zoom=14&maptype=roadmap`,
 		},
 	},
 	{
@@ -208,7 +328,7 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		match: true,
 		output: {
 			type: 'google_maps',
-			embedUrl: `https://google.com/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=17.313261121327326&maptype=satellite`,
+			embedUrl: `https://google.com/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=52.2449313,0.0813192&zoom=17.313261121327326&maptype=satellite`,
 		},
 	},
 	{
@@ -216,7 +336,7 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		match: true,
 		output: {
 			type: 'google_maps',
-			embedUrl: `https://google.co.uk/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=51.5074,0.1278&zoom=16.984468114035085&maptype=satellite`,
+			embedUrl: `https://google.co.uk/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=51.5074,0.1278&zoom=16.984468114035085&maptype=satellite`,
 		},
 	},
 	{
@@ -507,9 +627,30 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 		embedUrl: 'https://www.figma.com/embed?foobar=baz',
 		match: false,
 	},
+	// canva
+	{
+		embedUrl: 'https://www.canva.com/design/DAFrLlkQu3Q/view?embed=',
+		match: true,
+		output: {
+			type: 'canva',
+			url: 'https://www.canva.com/design/DAFrLlkQu3Q/view',
+		},
+	},
+	{
+		embedUrl: 'https://www.canva.com/design/DAFrLlkQu3Q/some-slug?embed=',
+		match: true,
+		output: {
+			type: 'canva',
+			url: 'https://www.canva.com/design/DAFrLlkQu3Q/some-slug',
+		},
+	},
+	{
+		embedUrl: 'https://www.canva.com/templates',
+		match: false,
+	},
 	// google_maps
 	{
-		embedUrl: `https://google.com/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14`,
+		embedUrl: `https://google.com/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=52.2449313,0.0813192&zoom=14`,
 		match: true,
 		output: {
 			type: 'google_maps',
@@ -517,7 +658,7 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 		},
 	},
 	{
-		embedUrl: `https://google.com/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14&maptype=satellite`,
+		embedUrl: `https://google.com/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=52.2449313,0.0813192&zoom=14&maptype=satellite`,
 		match: true,
 		output: {
 			type: 'google_maps',
@@ -525,7 +666,7 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 		},
 	},
 	{
-		embedUrl: `https://google.co.uk/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=51.5074,0.1278&zoom=12&maptype=roadmap`,
+		embedUrl: `https://google.co.uk/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=51.5074,0.1278&zoom=12&maptype=roadmap`,
 		match: true,
 		output: {
 			type: 'google_maps',
@@ -533,8 +674,7 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 		},
 	},
 	{
-		embedUrl:
-			'https://google.com/maps/embed?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14',
+		embedUrl: 'https://google.com/maps/embed?key=KEY&center=52.2449313,0.0813192&zoom=14',
 		match: false,
 	},
 	// google_calendar
@@ -691,7 +831,7 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 
 for (const testDef of MATCH_URL_TEST_URLS) {
 	test(`matchUrl("${testDef.url}")`, () => {
-		const result = matchUrl(DEFAULT_EMBED_DEFINITIONS, testDef.url)
+		const result = matchUrl(DEFAULT_EMBED_DEFINITIONS, testDef.url, TEST_EMBED_CONFIG)
 		if (testDef.match) {
 			expect(result).toBeDefined()
 			expect(result?.definition.type).toBe(testDef.output.type)
@@ -702,7 +842,7 @@ for (const testDef of MATCH_URL_TEST_URLS) {
 	})
 
 	test(`getEmbedInfo("${testDef.url}")`, () => {
-		const result = getEmbedInfo(DEFAULT_EMBED_DEFINITIONS, testDef.url)
+		const result = getEmbedInfo(DEFAULT_EMBED_DEFINITIONS, testDef.url, TEST_EMBED_CONFIG)
 		if (testDef.match) {
 			expect(result).toBeDefined()
 			expect(result?.definition.type).toBe(testDef.output.type)

@@ -1,6 +1,9 @@
 import { StateNode, TLKeyboardEventInfo, TLPointerEventInfo } from '@tldraw/editor'
-import { updateHoveredShapeId } from '../../../tools/selection-logic/updateHoveredShapeId'
-import { startEditingShapeWithRichText } from '../../../tools/SelectTool/selectHelpers'
+import {
+	cancelUpdateHoveredShapeId,
+	updateHoveredShapeId,
+} from '../../../tools/selection-logic/updateHoveredShapeId'
+import { startEditingShape } from '../../../tools/SelectTool/selectHelpers'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
@@ -23,7 +26,7 @@ export class Idle extends StateNode {
 	}
 
 	override onExit() {
-		updateHoveredShapeId.cancel()
+		cancelUpdateHoveredShapeId(this.editor)
 	}
 
 	override onKeyDown(info: TLKeyboardEventInfo) {
@@ -31,7 +34,7 @@ export class Idle extends StateNode {
 			const onlySelectedShape = this.editor.getOnlySelectedShape()
 			if (!this.editor.canEditShape(onlySelectedShape)) return
 			this.editor.setCurrentTool('select')
-			startEditingShapeWithRichText(this.editor, onlySelectedShape.id, { info })
+			startEditingShape(this.editor, onlySelectedShape, { info })
 		}
 	}
 

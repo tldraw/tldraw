@@ -406,3 +406,19 @@ describe('getEfficientZoomLevel', () => {
 		})
 	})
 })
+
+describe('camera state on dispose', () => {
+	it('resets to idle when disposed while camera is moving', () => {
+		editor.setCamera({ x: 100, y: 100, z: 1 })
+		expect(editor.getCameraState()).toBe('moving')
+
+		editor.dispose()
+		expect(editor.getCameraState()).toBe('idle')
+	})
+
+	it('is a no-op when disposed while camera is already idle', () => {
+		expect(editor.getCameraState()).toBe('idle')
+		editor.dispose()
+		expect(editor.getCameraState()).toBe('idle')
+	})
+})

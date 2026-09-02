@@ -16,9 +16,10 @@ keywords:
   ]
 ---
 
-A shape with custom geometry.
+Give a custom shape non-rectangular geometry with `Polygon2d`, `Rectangle2d`, and `Group2d`.
 
 ---
 
-This example demonstrates how to create a shape with custom geometry in tldraw. The
-shape we're creating is a simple house shape with a door.
+A shape's `getGeometry` method returns the geometry the editor uses for hit testing, selection bounds, snapping, and arrow bindings. This example draws a house with a door and builds matching geometry from a `Polygon2d` for the body and a `Rectangle2d` for the door, combined in a `Group2d`.
+
+Try clicking just beside the roof: the pointer misses the shape because the geometry is a polygon, not the bounding box. Try binding an arrow to the shape to see it snap to the polygon's edges.

@@ -15,16 +15,12 @@ import {
 import { ExportPdfButton } from './ExportPdfButton'
 import { Pdf } from './PdfPicker'
 
-// TODO:
-// - prevent changing pages (create page, change page, move shapes to new page)
-// - prevent locked shape context menu
-// - inertial scrolling for constrained camera
-// - render pages on-demand instead of all at once.
 export function PdfEditor({ pdf }: { pdf: Pdf }) {
+	// [1]
 	const components = useMemo<TLComponents>(
 		() => ({
 			PageMenu: null,
-			Overlays: () => <PageOverlayScreen pdf={pdf} />,
+			OnTheCanvas: () => <PageOverlayScreen pdf={pdf} />,
 			SharePanel: () => <ExportPdfButton pdf={pdf} />,
 		}),
 		[pdf]
@@ -33,6 +29,7 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 	return (
 		<Tldraw
 			onMount={(editor) => {
+				// [2]
 				editor.createAssets(
 					pdf.pages.map((page) => ({
 						id: page.assetId,
@@ -69,14 +66,14 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 				const shapeIds = pdf.pages.map((page) => page.shapeId)
 				const shapeIdSet = new Set(shapeIds)
 
-				// Don't let the user unlock the pages
+				// [3]
 				editor.sideEffects.registerBeforeChangeHandler('shape', (prev, next) => {
 					if (!shapeIdSet.has(next.id)) return next
 					if (next.isLocked) return next
 					return { ...prev, isLocked: true }
 				})
 
-				// Make sure the shapes are below any of the other shapes
+				// [4]
 				function makeSureShapesAreAtBottom() {
 					const shapes = shapeIds.map((id) => editor.getShape(id)!).sort(sortByIndex)
 					const pageId = editor.getCurrentPageId()
@@ -107,7 +104,7 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 				editor.sideEffects.registerAfterCreateHandler('shape', makeSureShapesAreAtBottom)
 				editor.sideEffects.registerAfterChangeHandler('shape', makeSureShapesAreAtBottom)
 
-				// Constrain the camera to the bounds of the pages
+				// [5]
 				const targetBounds = pdf.pages.reduce(
 					(acc, page) => acc.union(page.bounds),
 					pdf.pages[0].bounds.clone()
@@ -129,7 +126,7 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 
 				let isMobile = editor.getViewportScreenBounds().width < 840
 
-				react('update camera', () => {
+				const stopReacting = react('update camera', () => {
 					const isMobileNow = editor.getViewportScreenBounds().width < 840
 					if (isMobileNow === isMobile) return
 					isMobile = isMobileNow
@@ -137,12 +134,15 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 				})
 
 				updateCameraBounds(isMobile)
+
+				return stopReacting
 			}}
 			components={components}
 		/>
 	)
 }
 
+// [6]
 const PageOverlayScreen = track(function PageOverlayScreen({ pdf }: { pdf: Pdf }) {
 	const editor = useEditor()
 
@@ -183,3 +183,32 @@ const PageOverlayScreen = track(function PageOverlayScreen({ pdf }: { pdf: Pdf }
 		</>
 	)
 })
+
+/*
+[1]
+The page menu is hidden because everything lives on one page. `OnTheCanvas` draws the dimmed
+area around the PDF pages and `SharePanel` is repurposed for the export button.
+
+[2]
+Each PDF page is rendered to a PNG in PdfPicker.tsx and placed on the canvas as a locked
+image shape backed by an image asset.
+
+[3]
+A before-change side effect rejects any update that would unlock a page image, so users
+can't accidentally move or delete a page.
+
+[4]
+Annotations must draw above the pages, so after any shape is created or changed we check
+that the page images still hold the lowest indexes and re-index them if not.
+
+[5]
+Camera constraints keep the viewport on the pages: `contain` prevents scrolling past the
+document, `fit-x-100` fits the width on load. The horizontal padding shrinks on narrow
+screens; the `react` callback re-applies the constraints when the viewport crosses that
+threshold. Returning its disposer from `onMount` stops it when the editor unmounts.
+
+[6]
+The overlay is an SVG in page space with an even-odd path: the viewport rectangle minus each
+visible page rectangle, filled with a translucent background color. Only pages that collide
+with the viewport are drawn.
+*/

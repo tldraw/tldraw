@@ -1,10 +1,10 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
+import { InstantSearch, useHits, useSearchBox } from 'react-instantsearch'
 import { SearchEntry, SearchIndexName, getSearchIndexName } from '@/utils/algolia'
 import { debounce } from '@/utils/debounce'
 import { searchClient } from '@/utils/search-api'
-import { useRouter } from 'next/navigation'
-import { InstantSearch, useHits, useSearchBox } from 'react-instantsearch'
 import SearchDialog from './SearchDialog'
 
 export function Search({ type, onClose }: { type: SearchIndexName; onClose(): void }) {

@@ -5,7 +5,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { ReactNode, memo, useCallback, useEffect, useRef } from 'react'
+import { ReactNode, memo, useEffect, useRef } from 'react'
 import { useRelevantStyles } from '../../hooks/useRelevantStyles'
 import { DefaultStylePanelContent } from './DefaultStylePanelContent'
 import { StylePanelContextProvider } from './StylePanelContext'
@@ -31,29 +31,38 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 
-	const handlePointerOut = useCallback(() => {
-		if (!isMobile) {
-			editor.updateInstanceState({ isChangingStyle: false })
-		}
-	}, [editor, isMobile])
-
 	const defaultStyles = useRelevantStyles()
 	if (styles === undefined) {
 		styles = defaultStyles
 	}
 
 	useEffect(() => {
+		const elm = ref.current as HTMLDivElement | null
+		if (!elm) return
+
+		function handlePointerMove(event: PointerEvent) {
+			// Mark the event as handled so the canvas's pointermove listener
+			// (on document.body) ignores it. We use markEventAsHandled instead
+			// of stopPropagation to avoid interfering with Radix UI's internal
+			// pointer capture handling, which breaks slider drags on Safari.
+			editor.markEventAsHandled(event)
+		}
+
 		function handleKeyDown(event: KeyboardEvent) {
-			if (event.key === 'Escape' && ref.current?.contains(document.activeElement)) {
+			if (
+				event.key === 'Escape' &&
+				ref.current?.contains(editor.getContainerDocument().activeElement)
+			) {
 				event.stopPropagation()
 				editor.getContainer().focus()
 			}
 		}
 
-		const stylePanelContainerEl = ref.current
-		stylePanelContainerEl?.addEventListener('keydown', handleKeyDown, { capture: true })
+		elm.addEventListener('pointermove', handlePointerMove)
+		elm.addEventListener('keydown', handleKeyDown, { capture: true })
 		return () => {
-			stylePanelContainerEl?.removeEventListener('keydown', handleKeyDown, { capture: true })
+			elm.removeEventListener('pointermove', handlePointerMove)
+			elm.removeEventListener('keydown', handleKeyDown, { capture: true })
 		}
 	}, [editor])
 
@@ -65,7 +74,6 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 				className={classNames('tlui-style-panel', { 'tlui-style-panel__wrapper': !isMobile })}
 				data-ismobile={isMobile}
 				data-enhanced-a11y-mode={enhancedA11yMode}
-				onPointerLeave={handlePointerOut}
 			>
 				<StylePanelContextProvider styles={styles}>
 					{children ?? <DefaultStylePanelContent />}

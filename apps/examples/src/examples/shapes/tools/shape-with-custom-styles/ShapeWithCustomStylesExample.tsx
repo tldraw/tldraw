@@ -5,6 +5,7 @@ import {
 	HTMLContainer,
 	StyleProp,
 	T,
+	TLComponents,
 	Tldraw,
 	TLShape,
 	useEditor,
@@ -23,6 +24,8 @@ declare module 'tldraw' {
 		}
 	}
 }
+
+// There's a guide at the bottom of this file!
 
 // [1]
 const myRatingStyle = StyleProp.defineEnum('example:rating', {
@@ -70,8 +73,10 @@ class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 		)
 	}
 
-	indicator(shape: IMyShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: IMyShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 
@@ -92,9 +97,12 @@ function CustomStylePanel() {
 						style={{ width: '100%', padding: 4 }}
 						value={rating.type === 'mixed' ? '' : rating.value}
 						onChange={(e) => {
-							editor.markHistoryStoppingPoint()
 							const value = myRatingStyle.validate(+e.currentTarget.value)
-							editor.setStyleForSelectedShapes(myRatingStyle, value)
+							editor.run(() => {
+								editor.markHistoryStoppingPoint()
+								editor.setStyleForSelectedShapes(myRatingStyle, value)
+								editor.setStyleForNextShapes(myRatingStyle, value)
+							})
 						}}
 					>
 						{rating.type === 'mixed' ? <option value="">Mixed</option> : null}
@@ -110,16 +118,20 @@ function CustomStylePanel() {
 	)
 }
 
-export default function ShapeWithTldrawStylesExample() {
+// [7]
+const shapeUtils = [MyShapeUtil]
+const components: TLComponents = {
+	StylePanel: CustomStylePanel,
+}
+
+export default function ShapeWithCustomStylesExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				// [7]
-				shapeUtils={[MyShapeUtil]}
-				components={{
-					StylePanel: CustomStylePanel,
-				}}
+				shapeUtils={shapeUtils}
+				components={components}
 				onMount={(editor) => {
+					// [8]
 					editor.createShape({ type: 'myshapewithcustomstyles', x: 100, y: 100 })
 					editor.selectAll()
 					editor.createShape({
@@ -135,44 +147,47 @@ export default function ShapeWithTldrawStylesExample() {
 }
 
 /*
-
-This file shows a custom shape that uses a user-created styles
-
-For more on custom shapes, see our Custom Shape example.
+This file shows a custom shape that uses a custom style. For more on custom
+shapes, see the custom shape example.
 
 [1]
-In this example, our custom shape will use a new style called "rating".
-We'll need to create the style so that we can pass it to the shape's props.
+Our custom shape uses a new style called "rating". We create it with
+StyleProp.defineEnum so that it has a fixed set of values and a default. The
+id ('example:rating') must be unique across all styles in the editor.
 
 [2]
-Here's we extract the type of the style's values. We use it below when
-we define the shape's props.
+Extract the type of the style's values so we can use it in the shape's props.
 
 [3]
-We pass the style to the shape's props.
+Pass the style as one of the shape's props. Any prop whose validator is a
+StyleProp is treated as a style: the editor tracks it across selections and
+shows it in the style panel.
 
 [4]
-Since this property uses one a style, whatever value we put here in the
-shape's default props will be overwritten by the editor's current value
-for that style, which will either be the default value or the most
-recent value the user has set. This is special behavior just for styles.
+Because this prop is a style, whatever value we put here in the default
+props is overwritten when a shape is created: the editor uses its "style for
+next shape" value instead, which is either the style's default value or the
+value the user most recently set. This is special behavior just for styles.
 
 [5]
-We can use the styles in the component just like any other prop.
+Inside the component we read the style just like any other prop.
 
 [6]
-Here we create a custom style panel that includes the default style panel
-and also a dropdown for the rating style. We use the useRelevantStyles hook
-to get the styles of the user's selected shapes, and the useEditor hook to
-set the style for the selected shapes. For more on customizing the style
-panel, see our custom style panel example.
+A custom style panel that renders the default style panel content plus a
+dropdown for the rating style. useRelevantStyles returns the styles shared by
+the selected shapes (or the current tool), and each entry is either a shared
+value or 'mixed'. editor.setStyleForSelectedShapes writes the new value to
+every selected shape, and editor.setStyleForNextShapes remembers it for shapes
+created afterwards, which is what the default style panel does too. For more
+on customizing the style panel, see the stroke size picker example.
 
 [7]
-We pass the custom shape util and custom components in as props.
+Define shapeUtils and components outside the React component so they aren't
+recreated on every render.
 
 [8]
-And for this example, we create two shapes: the first does not specify a
-rating, so it will use the editor's current style value (in this example,
-this will be the style's default value of 4). The second specifies a
-rating of 5, so it will use that value.
+We create two shapes. The first does not specify a rating, so it gets the
+editor's current value for the style, which is the style's default of 1 (not
+the 4 in getDefaultProps, see [4]). The second specifies a rating of 5, so it
+uses that value.
 */

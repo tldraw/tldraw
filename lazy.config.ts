@@ -24,7 +24,6 @@ const config = {
 			runsAfter: {
 				prebuild: {},
 				'refresh-assets': {},
-				'build-eslint-plugin': {},
 				'build-i18n': {},
 			},
 			workspaceOverrides: {
@@ -54,36 +53,27 @@ const config = {
 		},
 		dev: {
 			execution: 'independent',
-			runsAfter: { predev: {}, 'refresh-assets': {}, 'build-eslint-plugin': {}, 'build-i18n': {} },
+			runsAfter: { predev: {}, 'refresh-assets': {}, 'build-i18n': {} },
 			cache: 'none',
 			workspaceOverrides: {
 				'apps/vscode/*': { runsAfter: { build: { in: 'self-only' } } },
 			},
+		},
+		// predev/prebuild are the css-copy scripts. They write generated, gitignored files
+		// (tldraw.css, commenting.css, ...) that lazy doesn't track as outputs, so a cache hit
+		// would skip regenerating a file that's missing on disk and vite would fail to resolve it.
+		// They're a few file copies, so just always run them.
+		predev: {
+			cache: 'none',
+		},
+		prebuild: {
+			cache: 'none',
 		},
 		e2e: {
 			cache: 'none',
 		},
 		'e2e-x10': {
 			cache: 'none',
-		},
-		'build-eslint-plugin': {
-			execution: 'top-level',
-			baseCommand: 'cd internal/scripts/eslint && tsc -p tsconfig.json',
-			cache: {
-				inputs: [
-					'<rootDir>/internal/scripts/eslint/eslint-plugin.mts',
-					'<rootDir>/internal/scripts/eslint/tsconfig.json',
-				],
-			},
-		},
-		lint: {
-			execution: 'independent',
-			runsAfter: { 'build-eslint-plugin': {} },
-			cache: {
-				inputs: {
-					exclude: ['*.tsbuildinfo'],
-				},
-			},
 		},
 		context: {
 			execution: 'independent',
@@ -117,7 +107,6 @@ const config = {
 			},
 			runsAfter: {
 				'refresh-assets': {},
-				'build-eslint-plugin': {},
 				'maybe-clean-tsbuildinfo': {},
 			},
 		},

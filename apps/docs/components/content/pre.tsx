@@ -1,7 +1,7 @@
 'use client'
 
-import { cn } from '@/utils/cn'
 import { DetailedHTMLProps, HTMLAttributes, useRef } from 'react'
+import { cn } from '@/utils/cn'
 import { CopyButton } from './copy-button'
 
 export function Pre(props: DetailedHTMLProps<HTMLAttributes<HTMLPreElement>, HTMLPreElement>) {
