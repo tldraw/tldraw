@@ -2,7 +2,7 @@
 title: Next release
 description: Changes coming in the next release
 author: tldraw
-date: 09/01/2026
+date: 09/02/2026
 order: 0
 status: published
 last_version: v5.3.2
@@ -158,8 +158,6 @@ This release adds a `center` operation to `Editor.alignShapes`, a `tleditors` re
 - Fix background tabs repeatedly dropping and re-establishing their sync connection when the browser throttles timers. ([#9964](https://github.com/tldraw/tldraw/pull/9964))
 - Fix `useSyncDemo` creating assets for uploads the server rejected. ([#10109](https://github.com/tldraw/tldraw/pull/10109))
 - Fix `loadSnapshot` failing on better-sqlite3, and `NodeSqliteWrapper` getting stuck in a transaction when `COMMIT` fails. ([#10111](https://github.com/tldraw/tldraw/pull/10111), [#10113](https://github.com/tldraw/tldraw/pull/10113))
-- Fix license validation treating native apps served from custom protocols as development environments, and tighten wildcard host matching so `*.example.com` matches only that domain's subdomains. ([#10021](https://github.com/tldraw/tldraw/pull/10021), [#10053](https://github.com/tldraw/tldraw/pull/10053))
-- Fix license validation treating native apps served from Tauri's origins, `tauri://localhost` and `http://tauri.localhost`, as development environments. A Tauri app is now a production deployment, so it needs a license whose hosts match its origin. ([#10060](https://github.com/tldraw/tldraw/pull/10060))
 
 ### Signals and store
 
