@@ -4,6 +4,7 @@ import { ReactNode, memo, useCallback } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
+import { useMenuWheelPassThrough } from '../../hooks/useMenuWheelPassThrough'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
@@ -17,6 +18,7 @@ export interface TLUiZoomMenuProps {
 /** @public @react */
 export const DefaultZoomMenu = memo(function DefaultZoomMenu({ children }: TLUiZoomMenuProps) {
 	const container = useContainer()
+	const setMenuContent = useMenuWheelPassThrough()
 	const [isOpen, onOpenChange] = useMenuIsOpen('zoom menu')
 	const dir = useDirection()
 
@@ -30,6 +32,7 @@ export const DefaultZoomMenu = memo(function DefaultZoomMenu({ children }: TLUiZ
 			<ZoomTriggerButton />
 			<_DropdownMenu.Portal container={container}>
 				<_DropdownMenu.Content
+					ref={setMenuContent}
 					className="tlui-menu"
 					side="top"
 					align="start"
