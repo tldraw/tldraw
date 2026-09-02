@@ -1,13 +1,11 @@
 import { describe, expect, it } from 'vitest'
+import { MAX_CHAIN_AGE_MS, MAX_DELTAS_PER_CHAIN, SEGMENT_CAP } from './config'
 import { SnapshotFingerprint } from './snapshotUtils'
 import {
 	ChainState,
 	decideVersionWrite,
-	MAX_CHAIN_AGE_MS,
-	MAX_DELTAS_PER_CHAIN,
 	parseVersionKey,
 	readSegmentRef,
-	SEGMENT_CAP,
 	segmentCustomMetadata,
 	versionKey,
 } from './versionChain'

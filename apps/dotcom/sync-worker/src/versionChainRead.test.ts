@@ -1,8 +1,9 @@
 import { UnknownRecord } from '@tldraw/store'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { describe, expect, it } from 'vitest'
+import { SEGMENT_CAP } from './config'
 import { createFakeR2 } from './test/fakeR2'
-import { SEGMENT_CAP, segmentCustomMetadata, versionKey } from './versionChain'
+import { segmentCustomMetadata, versionKey } from './versionChain'
 import { decodeVersionBody, encodeVersionBody } from './versionChainCodec'
 import {
 	deleteAllVersions,
