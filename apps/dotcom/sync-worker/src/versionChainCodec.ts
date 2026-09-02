@@ -16,8 +16,12 @@ export async function encodeVersionBody(
  * The stamp is what decides, not a magic byte: legacy full copies and anything written before
  * compression landed are plain JSON, and both have to keep reading correctly forever.
  */
+export function isGzippedVersionBody(object: R2Object): boolean {
+	return object.customMetadata?.[ENCODING_METADATA_KEY] === 'gzip'
+}
+
 export async function decodeVersionBody(object: R2ObjectBody): Promise<unknown> {
-	if (object.customMetadata?.[ENCODING_METADATA_KEY] !== 'gzip') {
+	if (!isGzippedVersionBody(object)) {
 		return await object.json()
 	}
 	const bytes = await object.arrayBuffer()

@@ -6,8 +6,9 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 type R2ListOptionsWithInclude = R2ListOptions & {
 	include?: Array<'httpMetadata' | 'customMetadata'>
 }
+import { listAllObjectKeys } from './r2'
 import { parseVersionKey, readSegmentRef, SegmentBody } from './versionChain'
-import { decodeVersionBody } from './versionChainCodec'
+import { decodeVersionBody, isGzippedVersionBody } from './versionChainCodec'
 import { applySnapshotDelta, snapshotContentHash } from './versionDelta'
 
 /** One chain object and the versions it can produce. */
@@ -93,13 +94,18 @@ export async function reconstructVersion({
 	legacyBucket,
 	roomKey,
 	timestamp,
+	index,
 }: {
 	chainBucket: R2Bucket
 	legacyBucket: R2Bucket
 	roomKey: string
 	timestamp: string
+	/** A chain index the caller already loaded, so one request does not list the room twice. */
+	index?: ChainIndexEntry[]
 }): Promise<VersionReconstruction | null> {
-	const { entries, ops: listOps } = await loadChainIndex(chainBucket, roomKey)
+	const { entries, ops: listOps } = index
+		? { entries: index, ops: 0 }
+		: await loadChainIndex(chainBucket, roomKey)
 	const target = entries.find((entry) => entry.timestamps.includes(timestamp))
 
 	if (!target) {
@@ -124,10 +130,16 @@ export async function reconstructVersion({
 	}
 
 	const keyframeKey = target.keyframeKey!
-	const segments = entries.filter(
-		(entry) =>
-			entry.kind === 'segment' && entry.keyframeKey === keyframeKey && entry.key <= target.key
-	)
+	// By sequence, not by key: keys are wall-clock timestamps, and a DO re-created on a host whose
+	// clock runs behind can open a later segment under an earlier key.
+	const segments = entries
+		.filter(
+			(entry) =>
+				entry.kind === 'segment' &&
+				entry.keyframeKey === keyframeKey &&
+				entry.firstSeq! <= target.firstSeq!
+		)
+		.sort((a, b) => a.firstSeq! - b.firstSeq!)
 	assertContiguous(segments, target.key)
 
 	const [keyframeObject, segmentBodies] = await Promise.all([
@@ -160,8 +172,7 @@ export async function reconstructVersion({
 			snapshot = applySnapshotDelta(snapshot, delta)
 			deltaCount++
 			if (t === timestamp) {
-				// applyObjectDiff is lenient — a broken chain applies cleanly into a slightly wrong
-				// board. The recorded hash is what turns that into an error instead.
+				// See snapshotContentHash for why the recorded hash is checked here.
 				if (delta.hash !== snapshotContentHash(snapshot)) {
 					throw new Error(`version ${timestamp} reconstructed with a different content hash`)
 				}
@@ -195,15 +206,25 @@ export async function listVersionTimestamps({
 	legacyBucket,
 	roomKey,
 	prefix,
+	index,
+	limit,
 }: {
 	chainBucket: R2Bucket
 	legacyBucket: R2Bucket
 	roomKey: string
 	prefix: string
+	/** A chain index the caller already loaded; getRoomHistory probes many prefixes per request. */
+	index?: ChainIndexEntry[]
+	/**
+	 * Caps the legacy listing at the R2 level. Legacy histories are never pruned, so an uncapped
+	 * walk of a big room is hundreds of pages — and the callers that pass a limit only want to
+	 * know whether anything exists.
+	 */
+	limit?: number
 }): Promise<string[]> {
-	const [{ entries }, legacyKeys] = await Promise.all([
-		loadChainIndex(chainBucket, roomKey),
-		listKeys(legacyBucket, `${roomKey}/${prefix}`),
+	const [entries, legacyKeys] = await Promise.all([
+		index ?? loadChainIndex(chainBucket, roomKey).then((r) => r.entries),
+		listAllObjectKeys(legacyBucket, `${roomKey}/${prefix}`, limit),
 	])
 
 	const timestamps = new Set<string>()
@@ -218,18 +239,44 @@ export async function listVersionTimestamps({
 		timestamps.add(key.slice(key.lastIndexOf('/') + 1))
 	}
 
-	return [...timestamps].sort((a, b) => b.localeCompare(a))
+	const sorted = [...timestamps].sort((a, b) => b.localeCompare(a))
+	return limit === undefined ? sorted : sorted.slice(0, limit)
 }
 
-async function listKeys(bucket: R2Bucket, prefix: string): Promise<string[]> {
-	const keys: string[] = []
-	let cursor: string | undefined
-	do {
-		const page: R2Objects = await bucket.list({ prefix, cursor })
-		keys.push(...page.objects.map((o) => o.key))
-		cursor = page.truncated ? page.cursor : undefined
-	} while (cursor)
-	return keys
+/**
+ * The raw body of a version that exists as a whole object — a keyframe, or a legacy full copy —
+ * as a stream of JSON bytes, or null when the version lives inside a segment and needs a replay.
+ *
+ * The read routes hand this straight through: parsing a 25MB board into objects and serializing
+ * it again costs ~3x the body on a 128MB isolate, where streaming costs nothing. Only a real delta
+ * replay has to materialize a snapshot.
+ */
+export async function openWholeVersionStream({
+	chainBucket,
+	legacyBucket,
+	roomKey,
+	timestamp,
+	index,
+}: {
+	chainBucket: R2Bucket
+	legacyBucket: R2Bucket
+	roomKey: string
+	timestamp: string
+	index: ChainIndexEntry[]
+}): Promise<ReadableStream<Uint8Array> | null> {
+	const target = index.find((entry) => entry.timestamps.includes(timestamp))
+	if (target && target.kind !== 'keyframe') return null
+
+	const object = target
+		? await chainBucket.get(target.key)
+		: await legacyBucket.get(`${roomKey}/${timestamp}`)
+	if (!object) {
+		if (target) throw new Error(`version chain keyframe ${target.key} is missing`)
+		return null
+	}
+	return isGzippedVersionBody(object)
+		? object.body.pipeThrough(new DecompressionStream('gzip'))
+		: object.body
 }
 
 /**
@@ -249,7 +296,7 @@ export async function deleteAllVersions({
 		[chainBucket, legacyBucket].map(async (bucket) => {
 			// Trailing slash: a bare roomKey prefix also matches sibling rooms whose slug is a
 			// prefix of this one (deleting "abc" must not sweep "abcd").
-			const keys = await listKeys(bucket, `${roomKey}/`)
+			const keys = await listAllObjectKeys(bucket, `${roomKey}/`)
 			// Batched: one delete per key is an unbounded subrequest loop, and a room with a long
 			// pre-chain history would hit the per-request subrequest cap mid-sweep and leave
 			// objects behind. R2 accepts at most 1000 keys per delete call.
