@@ -15,7 +15,8 @@ export function createFakeR2(): R2Bucket {
 		key,
 		customMetadata: includeMetadata ? object.customMetadata : undefined,
 		size: object.body.byteLength,
-		body: object.body,
+		// A real ReadableStream, so code that pipes `body` through a transform works unchanged.
+		body: new Blob([object.body]).stream(),
 		text: async () => new TextDecoder().decode(object.body),
 		json: async () => JSON.parse(new TextDecoder().decode(object.body)),
 		arrayBuffer: async () =>

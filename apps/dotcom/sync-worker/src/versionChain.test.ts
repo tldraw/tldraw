@@ -24,6 +24,7 @@ function chain(partial: Partial<ChainState> = {}): ChainState {
 		keyframeBytes: 1_000_000,
 		deltaCount: 0,
 		headFingerprint: fingerprint,
+		headHash: 'h0',
 		openSegment: null,
 		...partial,
 	}
@@ -34,7 +35,9 @@ function decide(partial: Partial<ChainState> | null, overrides: Record<string, u
 		roomKey,
 		iso,
 		chain: partial === null ? null : chain(partial),
-		loadedFingerprint: fingerprint,
+		previousFingerprint: fingerprint,
+		previousHash: 'h0',
+		nextFingerprint: fingerprint,
 		deltaBytes: 10,
 		now,
 		...overrides,
@@ -46,16 +49,24 @@ describe('decideVersionWrite', () => {
 		expect(decide(null)).toEqual({ kind: 'keyframe', reason: 'no-chain' })
 	})
 
-	it('cuts a keyframe when the schema hash moved', () => {
+	it('cuts a keyframe when the incoming snapshot moved the schema hash', () => {
 		expect(
-			decide({}, { loadedFingerprint: { lastDocumentChangeClock: 10, schemaHash: 'different' } })
+			decide({}, { nextFingerprint: { lastDocumentChangeClock: 11, schemaHash: 'different' } })
 		).toEqual({ kind: 'keyframe', reason: 'schema-change' })
 	})
 
-	it('cuts a keyframe when the loaded state is not the chain head', () => {
+	it('cuts a keyframe when the diff base is not the chain head', () => {
 		expect(
-			decide({}, { loadedFingerprint: { lastDocumentChangeClock: 99, schemaHash: 'abc' } })
+			decide({}, { previousFingerprint: { lastDocumentChangeClock: 99, schemaHash: 'abc' } })
 		).toEqual({ kind: 'keyframe', reason: 'fingerprint-mismatch' })
+	})
+
+	it('cuts a keyframe when the diff base has the right fingerprint but different content', () => {
+		// Tombstone pruning is the known way to get here: clocks unmoved, tombstones rewritten.
+		expect(decide({}, { previousHash: 'different' })).toEqual({
+			kind: 'keyframe',
+			reason: 'content-mismatch',
+		})
 	})
 
 	it('cuts a keyframe at the delta count limit', () => {
@@ -72,10 +83,19 @@ describe('decideVersionWrite', () => {
 		})
 	})
 
-	it('cuts a keyframe when the delta is more than half the keyframe', () => {
-		expect(decide({ keyframeBytes: 1000 }, { deltaBytes: 501 })).toEqual({
+	it('cuts a keyframe when a large delta is more than half the keyframe', () => {
+		expect(decide({ keyframeBytes: 10_000 }, { deltaBytes: 5_001 })).toEqual({
 			kind: 'keyframe',
 			reason: 'delta-size',
+		})
+	})
+
+	it('never cuts a size keyframe for a small delta, whatever the ratio', () => {
+		expect(decide({ keyframeBytes: 100 }, { deltaBytes: 90 })).toEqual({
+			kind: 'delta',
+			seq: 1,
+			isNewSegment: true,
+			segment: { key: `${roomKey}/${iso}.s`, firstSeq: 1, count: 1 },
 		})
 	})
 

@@ -16,13 +16,22 @@ export function getR2KeyForSnapshot({
 	return getR2KeyForRoom({ slug, isApp })
 }
 
-export async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promise<string[]> {
+/**
+ * Every key under `prefix`, or the first `limit` of them. The limit is passed to R2 too, so a
+ * capped listing is a single page rather than a full walk sliced afterwards.
+ */
+export async function listAllObjectKeys(
+	bucket: R2Bucket,
+	prefix: string,
+	limit?: number
+): Promise<string[]> {
 	const keys: string[] = []
 	let cursor: string | undefined
 
 	do {
-		const result = await bucket.list({ prefix, cursor })
+		const result = await bucket.list({ prefix, cursor, limit: limit ?? 1000 })
 		keys.push(...result.objects.map((o) => o.key))
+		if (limit !== undefined && keys.length >= limit) return keys.slice(0, limit)
 		cursor = result.truncated ? result.cursor : undefined
 	} while (cursor)
 

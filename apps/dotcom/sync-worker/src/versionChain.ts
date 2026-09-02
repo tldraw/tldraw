@@ -17,6 +17,12 @@ export const MAX_DELTAS_PER_CHAIN = 64
 export const MAX_CHAIN_AGE_MS = 24 * 60 * 60 * 1000
 export const MAX_DELTA_SIZE_RATIO = 0.5
 /**
+ * The size rule only fires above this. Gzip's fixed overhead makes a tiny delta comparable to a
+ * tiny keyframe, so without a floor a near-empty board cuts a keyframe on every persist — and a
+ * sub-4KB delta is never the mass rewrite the rule exists to catch.
+ */
+export const MIN_SIZE_RULE_DELTA_BYTES = 4096
+/**
  * Deltas per segment object. Bounds three things at once: how much gets rewritten on each persist,
  * how many GETs a restore costs, and how many timestamps have to fit in R2 custom metadata. Much
  * above 32 and the metadata budget starts to bind.
@@ -50,12 +56,19 @@ export interface ChainState {
 	keyframeBytes: number
 	deltaCount: number
 	headFingerprint: SnapshotFingerprint
+	/**
+	 * Content hash of the chain head. The fingerprint alone is not a strong enough identity:
+	 * tombstone pruning rewrites tombstones without moving any clock, so a wake can seed a diff
+	 * base that passes the fingerprint check yet differs from what the chain encodes.
+	 */
+	headHash: string
 	openSegment: OpenSegment | null
 }
 
 export type KeyframeReason =
 	| 'no-chain'
 	| 'fingerprint-mismatch'
+	| 'content-mismatch'
 	| 'schema-change'
 	| 'delta-count'
 	| 'chain-age'
@@ -69,31 +82,46 @@ export function decideVersionWrite({
 	roomKey,
 	iso,
 	chain,
-	loadedFingerprint,
+	previousFingerprint,
+	previousHash,
+	nextFingerprint,
 	deltaBytes,
 	now,
 }: {
 	roomKey: string
 	iso: string
 	chain: ChainState | null
-	loadedFingerprint: SnapshotFingerprint
+	/** Fingerprint of the state this delta was diffed from — must be the chain head. */
+	previousFingerprint: SnapshotFingerprint
+	/** Content hash of that same state; catches divergence the fingerprint cannot see. */
+	previousHash: string
+	/** Fingerprint of the state about to be written — carries any schema change. */
+	nextFingerprint: SnapshotFingerprint
 	deltaBytes: number
 	now: number
 }): VersionWriteDecision {
 	if (!chain) return { kind: 'keyframe', reason: 'no-chain' }
-	// Checked before the fingerprint as a whole so the metric distinguishes a migration from a
-	// chain that lost track of its head — they call for different responses.
-	if (chain.headFingerprint.schemaHash !== loadedFingerprint.schemaHash) {
+	// Against NEXT, not previous: in an intact chain the head and the diff base are the same
+	// state, so a migration landing in this very persist is only visible on the next snapshot.
+	// Checked before the head check so the metric distinguishes a migration from a chain that
+	// lost track of its head — they call for different responses.
+	if (chain.headFingerprint.schemaHash !== nextFingerprint.schemaHash) {
 		return { kind: 'keyframe', reason: 'schema-change' }
 	}
-	if (!isSameFingerprint(chain.headFingerprint, loadedFingerprint)) {
+	if (!isSameFingerprint(chain.headFingerprint, previousFingerprint)) {
 		return { kind: 'keyframe', reason: 'fingerprint-mismatch' }
+	}
+	if (chain.headHash !== previousHash) {
+		return { kind: 'keyframe', reason: 'content-mismatch' }
 	}
 	if (chain.deltaCount >= MAX_DELTAS_PER_CHAIN) return { kind: 'keyframe', reason: 'delta-count' }
 	if (now - chain.keyframeAt > MAX_CHAIN_AGE_MS) return { kind: 'keyframe', reason: 'chain-age' }
 	// Stands in for a wipeAll signal, which persist has no access to, and also catches every other
 	// mass rewrite. A delta this large is not worth chaining from.
-	if (deltaBytes > chain.keyframeBytes * MAX_DELTA_SIZE_RATIO) {
+	if (
+		deltaBytes > MIN_SIZE_RULE_DELTA_BYTES &&
+		deltaBytes > chain.keyframeBytes * MAX_DELTA_SIZE_RATIO
+	) {
 		return { kind: 'keyframe', reason: 'delta-size' }
 	}
 
