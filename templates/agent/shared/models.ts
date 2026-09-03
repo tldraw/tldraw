@@ -10,8 +10,8 @@ export type AnthropicEffort = 'low' | 'medium' | 'high' | 'xhigh' | 'max'
 /** Reasoning effort passed to the OpenAI provider. */
 export type OpenAIReasoningEffort = 'none' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh' | 'max'
 
-/** Thinking level passed to the Google provider (Gemini 3). Thinking cannot be fully disabled. */
-export type GeminiThinkingLevel = 'minimal' | 'low' | 'medium' | 'high'
+/** Thinking level passed to the Google provider. */
+export type GeminiThinkingLevel = 'low' | 'medium' | 'high'
 
 interface BaseAgentModelDefinition {
 	name: AgentModelName
@@ -39,7 +39,6 @@ export interface AnthropicModelDefinition extends BaseAgentModelDefinition {
 
 export interface GoogleModelDefinition extends BaseAgentModelDefinition {
 	provider: 'google'
-	/** Gemini 3.8 Flash supports `low`, `medium`, and `high`. */
 	thinkingLevel: GeminiThinkingLevel
 }
 
