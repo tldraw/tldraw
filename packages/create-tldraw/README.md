@@ -8,13 +8,14 @@ A CLI tool for quickly scaffolding a new tldraw project. Inspired by `npm create
 $ npm create tldraw -- --help
 Usage: create-tldraw [OPTION]... [DIRECTORY]
 
-Create a new tldraw project.
+Create a new tldraw project from a starter kit.
 With no arguments, you'll be guided through an interactive setup.
+Pass . as the directory to create the project in the current directory.
 
 Options:
    -h, --help           Display this help message.
    -t, --template NAME  Use a specific template.
-   -o, --overwrite      Overwrite the target directory if it exists.
+   --no-telemetry       Disable anonymous usage tracking.
 
 Available starter kits:
  • basic                A minimal tldraw template with Vite, React, and TypeScript.
@@ -24,6 +25,14 @@ Available starter kits:
  • multiplayer          Real-time multiplayer for tldraw, built with Cloudflare Durable Objects.
  • workflow             Visual node-based builder for workflows.
 ```
+
+To scaffold into the current directory instead of a new folder, pass `.` as the directory:
+
+```
+$ npm create tldraw@latest .
+```
+
+If the directory already has files in it, you'll be asked whether to keep them, remove them (`.git` is always kept), or cancel.
 
 ## Development
 

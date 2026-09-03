@@ -1,7 +1,7 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { isDirEmpty } from './utils'
+import { emptyDir, isDirEmpty } from './utils'
 
 describe('isDirEmpty', () => {
 	let tempDir: string
@@ -27,5 +27,31 @@ describe('isDirEmpty', () => {
 		mkdirSync(join(dirPath, '.git'))
 
 		expect(isDirEmpty(dirPath)).toBe(true)
+	})
+})
+
+describe('emptyDir', () => {
+	let tempDir: string
+
+	beforeEach(() => {
+		tempDir = mkdtempSync(join(tmpdir(), 'create-tldraw-'))
+	})
+
+	afterEach(() => {
+		rmSync(tempDir, { recursive: true, force: true })
+	})
+
+	it('removes everything except .git', () => {
+		mkdirSync(join(tempDir, '.git'))
+		writeFileSync(join(tempDir, '.git', 'HEAD'), 'ref: refs/heads/main')
+		mkdirSync(join(tempDir, 'src'))
+		writeFileSync(join(tempDir, 'src', 'index.ts'), 'x')
+		writeFileSync(join(tempDir, 'README.md'), 'x')
+
+		emptyDir(tempDir)
+
+		expect(readdirSync(tempDir)).toEqual(['.git'])
+		expect(existsSync(join(tempDir, '.git', 'HEAD'))).toBe(true)
+		expect(isDirEmpty(tempDir)).toBe(true)
 	})
 })

@@ -1,14 +1,16 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { lstatSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { relative, resolve } from 'node:path'
 import process from 'node:process'
 import { Readable } from 'node:stream'
 import { parse as parseArgs } from '@bomb.sh/args'
-import { outro, spinner, text } from '@clack/prompts'
+import { outro, select, spinner, text } from '@clack/prompts'
 import picocolors from 'picocolors'
 import * as tar from 'tar'
 import { groupSelect, GroupSelectOption } from './group-select'
 import { Template, TEMPLATES } from './templates'
 import {
+	cancel,
+	emptyDir,
 	formatTargetDir,
 	getInstallCommand,
 	getPackageManager,
@@ -43,8 +45,9 @@ async function main() {
 	const template = await templatePicker(args.template, args['no-telemetry'])
 	const name = await namePicker(maybeTargetDir)
 
-	const requestedDir = maybeTargetDir ?? resolve(process.cwd(), name)
-	const targetDir = findAvailableDir(requestedDir)
+	const targetDir = maybeTargetDir
+		? await prepareRequestedDir(maybeTargetDir)
+		: findAvailableDir(resolve(process.cwd(), name))
 	mkdirSync(targetDir, { recursive: true })
 
 	await downloadTemplate(template, targetDir)
@@ -62,12 +65,6 @@ async function main() {
 
 	outro(doneMessage.join('\n'))
 }
-
-main().catch((err) => {
-	if (DEBUG) console.error(err)
-	outro(`it's bad`)
-	process.exit(1)
-})
 
 async function templatePicker(argOption?: string, noTelemetry?: boolean) {
 	let template: Template
@@ -141,6 +138,45 @@ async function namePicker(argOption?: string) {
 
 	if (!name.trim()) return defaultName
 	return pathToName(name)
+}
+
+// A directory the user named explicitly (e.g. `.`) must not be swapped for a suffixed sibling, so ask
+// what to do with its existing contents instead.
+async function prepareRequestedDir(targetDir: string): Promise<string> {
+	if (isDirEmpty(targetDir)) {
+		return targetDir
+	}
+
+	const displayName = relative(process.cwd(), targetDir) || '.'
+	if (!lstatSync(targetDir).isDirectory()) {
+		outro(`${displayName} exists and is not a directory.`)
+		process.exit(1)
+	}
+
+	const action = await handleCancel(
+		select({
+			message: picocolors.bold(
+				`${displayName === '.' ? 'The current directory' : displayName} is not empty. How would you like to proceed?`
+			),
+			options: [
+				{
+					value: 'ignore',
+					label: 'Ignore existing files and continue',
+					hint: 'template files overwrite any that conflict',
+				},
+				{
+					value: 'empty',
+					label: 'Remove existing files and continue',
+					hint: 'keeps .git',
+				},
+				{ value: 'cancel', label: 'Cancel' },
+			],
+		})
+	)
+
+	if (action === 'cancel') cancel()
+	if (action === 'empty') emptyDir(targetDir)
+	return targetDir
 }
 
 function findAvailableDir(targetDir: string): string {
@@ -249,6 +285,7 @@ function getHelp() {
 		'',
 		'Create a new tldraw project from a starter kit.',
 		"With no arguments, you'll be guided through an interactive setup.",
+		'Pass . as the directory to create the project in the current directory.',
 		'',
 		picocolors.bold('Options:'),
 		...formatRows(
@@ -261,3 +298,10 @@ function getHelp() {
 		'',
 	].join('\n')
 }
+
+// Runs last so every module-level const above is initialised before main() touches it synchronously.
+main().catch((err) => {
+	if (DEBUG) console.error(err)
+	outro(`it's bad`)
+	process.exit(1)
+})

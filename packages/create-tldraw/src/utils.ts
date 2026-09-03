@@ -1,5 +1,5 @@
-import { existsSync, lstatSync, readdirSync } from 'node:fs'
-import { basename, resolve } from 'node:path'
+import { existsSync, lstatSync, readdirSync, rmSync } from 'node:fs'
+import { basename, join, resolve } from 'node:path'
 import { isCancel, outro } from '@clack/prompts'
 
 export function nicelog(...args: unknown[]) {
@@ -19,6 +19,14 @@ export function isDirEmpty(path: string) {
 
 	const files = readdirSync(path)
 	return files.length === 0 || (files.length === 1 && files[0] === '.git')
+}
+
+// Keeps .git so scaffolding into a freshly initialised repo doesn't destroy its history.
+export function emptyDir(path: string) {
+	for (const file of readdirSync(path)) {
+		if (file === '.git') continue
+		rmSync(join(path, file), { recursive: true, force: true })
+	}
 }
 
 export function pathToName(path: string) {
@@ -41,7 +49,7 @@ function toValidPackageName(projectName: string) {
 		.replace(/[^a-z\d\-~]+/g, '-')
 }
 
-function cancel(): never {
+export function cancel(): never {
 	outro('Setup cancelled.\n   Try again or visit https://tldraw.dev/docs to learn more.')
 	process.exit(1)
 }
