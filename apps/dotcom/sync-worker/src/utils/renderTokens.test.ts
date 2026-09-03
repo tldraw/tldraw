@@ -581,15 +581,45 @@ describe('render page reach', () => {
 		)
 	})
 
-	it('stamps a public job, which has no minted record, at its per-board key', async () => {
+	it('stamps a public OG job, which has no minted record, at one per-board key', async () => {
 		const envWithBucket = makeEnvWithBucket()
 		const job = makeJob({ access: 'public', surface: 'og' })
 		const token = await mintThumbnailRenderToken(envWithBucket, job)
 		const since = Date.now()
 
 		await markRenderTokenServed(envWithBucket, job, token)
+		await markRenderTokenServed(envWithBucket, job, token)
 
 		expect(await wasRenderTokenServedSince(envWithBucket, job, token, since)).toBe('reached')
 		expect((envWithBucket.THUMBNAILS as any).store.size).toBe(1)
+	})
+
+	// The MCP tool mints `public` for published boards, and its keys are per capture: nothing ever
+	// overwrites them, so the capture's cleanup has to take the stamp with it or one object would
+	// be left behind per screenshot in a bucket that must never get a lifecycle rule.
+	it("deletes a public MCP capture's stamp with its cleanup", async () => {
+		const envWithBucket = makeEnvWithBucket()
+		const job = makeJob({ access: 'public', surface: 'mcp' })
+		const token = await mintThumbnailRenderToken(envWithBucket, job)
+		await markRenderTokenServed(envWithBucket, job, token)
+		expect((envWithBucket.THUMBNAILS as any).store.size).toBe(1)
+
+		await deleteMintedRenderToken(envWithBucket, job, token)
+
+		expect((envWithBucket.THUMBNAILS as any).store.size).toBe(0)
+	})
+
+	it('leaves the minted record untouched when stamping', async () => {
+		const envWithBucket = makeEnvWithBucket()
+		const job = makeJob({ access: 'render', surface: 'og' })
+		const token = await mintThumbnailRenderToken(envWithBucket, job)
+		await recordMintedRenderToken(envWithBucket, job, token)
+		const before = new Map((envWithBucket.THUMBNAILS as any).store)
+
+		await markRenderTokenServed(envWithBucket, job, token)
+
+		for (const [key, value] of before) {
+			expect((envWithBucket.THUMBNAILS as any).store.get(key)).toBe(value)
+		}
 	})
 })

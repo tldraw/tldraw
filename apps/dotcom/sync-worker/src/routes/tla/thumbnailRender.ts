@@ -318,7 +318,7 @@ export interface RenderContentSummary {
 	records: number
 	/** Shapes parented directly to the rendered page. */
 	pageShapes: number
-	/** Image and video assets on the board, the ones the page has to fetch. */
+	/** Image and video asset records in the document, whichever page uses them. */
 	mediaAssets: number
 	bboxWidth: number
 	bboxHeight: number
@@ -398,16 +398,9 @@ function writeBrowserRunSessionTelemetry(
 		durationMs: number
 		width: number
 		height: number
-		/**
-		 * Whether the render page fetched its snapshot during this session. `reached` on every session
-		 * that produced a capture; on a dead one it is what tells a browser that never ran the page from
-		 * a page that ran and stalled. See wasRenderTokenServedSince.
-		 */
+		/** `reached` on every session that produced a capture; see wasRenderTokenServedSince for the rest. */
 		page: RenderPageReach
-		/**
-		 * Browser wall clock billed (`X-Browser-Ms-Used`), 0 for sessions that died before a response
-		 * or ran on the local dev service. `durationMs - browserMsUsed` isolates queueing and transfer.
-		 */
+		/** See TimedCapture.browserMsUsed. */
 		browserMsUsed: number
 		content?: RenderContentSummary
 	}

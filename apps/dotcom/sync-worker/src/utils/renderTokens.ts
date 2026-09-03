@@ -300,11 +300,13 @@ export async function deleteMintedRenderToken(
 	job: ThumbnailRenderJob,
 	token: string
 ): Promise<void> {
-	if (renderJobAccess(job) !== 'render') return
 	if (!isPerCaptureRecordKey(job)) return
 	if (!env.THUMBNAILS) return
+	// Not gated on access like the write is: a `public` capture has no record, but it does leave a
+	// served stamp (markRenderTokenServed), and deleting a key that was never written costs nothing.
+	const key = await renderTokenRecordKey(job, token)
 	try {
-		await env.THUMBNAILS.delete(await renderTokenRecordKey(job, token))
+		await Promise.all([env.THUMBNAILS.delete(key), env.THUMBNAILS.delete(servedStampKey(key))])
 	} catch {
 		// Ignored — see above.
 	}
@@ -313,13 +315,20 @@ export async function deleteMintedRenderToken(
 /** How a session's render page fared, as far as the worker can tell from its own records. */
 export type RenderPageReach = 'reached' | 'unreached' | 'unknown'
 
+// The served stamp sits beside the record rather than on it, so that stamping never rewrites what
+// isMintedRenderToken checks: a late page from an abandoned OG session could otherwise overwrite the
+// per-board record a newer mint had just written, and 403 that newer render. Same prefix as the
+// record, so the board's hard-delete sweep and the per-capture delete both take it.
+function servedStampKey(recordKey: string) {
+	return `${recordKey}.served`
+}
+
 /**
- * Stamps the token's record with the moment the render page fetched its snapshot. Read back by
- * `wasRenderTokenServedSince` when a session dies, which is the only thing that separates a timeout
- * whose page never ran (Browser Run, script delivery) from one whose page ran and then stalled (fonts,
- * assets, the export). Rewrites the record with its hash intact so `isMintedRenderToken` keeps passing;
- * for a `public` job, which has no record, this creates one at the surface's per-board key, so it
- * overwrites in place and cannot accumulate. Best effort: this is telemetry.
+ * Stamps the moment the render page fetched its snapshot. Read back by `wasRenderTokenServedSince`
+ * when a session dies, which is the only thing that separates a timeout whose page never ran (Browser
+ * Run, script delivery) from one whose page ran and then stalled (fonts, assets, the export). The
+ * per-board OG key overwrites in place; a per-capture MCP key is deleted with its record. Best effort:
+ * this is telemetry.
  */
 export async function markRenderTokenServed(
 	env: Environment,
@@ -328,9 +337,13 @@ export async function markRenderTokenServed(
 ): Promise<void> {
 	if (!env.THUMBNAILS) return
 	try {
-		await env.THUMBNAILS.put(await renderTokenRecordKey(job, token), new Uint8Array(), {
-			customMetadata: { tokenHash: await sha256(token), servedAt: String(Date.now()) },
-		})
+		await env.THUMBNAILS.put(
+			servedStampKey(await renderTokenRecordKey(job, token)),
+			new Uint8Array(),
+			{
+				customMetadata: { servedAt: String(Date.now()) },
+			}
+		)
 	} catch {
 		// Telemetry only; the render must not fail over it.
 	}
@@ -352,8 +365,8 @@ export async function wasRenderTokenServedSince(
 ): Promise<RenderPageReach> {
 	if (!env.THUMBNAILS) return 'unknown'
 	try {
-		const record = await env.THUMBNAILS.head(await renderTokenRecordKey(job, token))
-		const servedAt = Number(record?.customMetadata?.servedAt)
+		const stamp = await env.THUMBNAILS.head(servedStampKey(await renderTokenRecordKey(job, token)))
+		const servedAt = Number(stamp?.customMetadata?.servedAt)
 		return Number.isFinite(servedAt) && servedAt >= since - RENDER_PAGE_REACH_SKEW_MS
 			? 'reached'
 			: 'unreached'

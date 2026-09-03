@@ -38,10 +38,10 @@ export async function getThumbnailSnapshot(
 	}
 
 	// The page has called home. Stamped here, before the read, so a session that later dies can be told
-	// apart from one whose page never ran at all (see wasRenderTokenServedSince). Off the page's path.
-	const served = markRenderTokenServed(env, job, token)
-	if (ctx) ctx.waitUntil(served)
-	else await served
+	// apart from one whose page never ran at all (see wasRenderTokenServedSince). Awaited rather than
+	// deferred: a page that errors the instant it has its snapshot ends the session, whose cleanup
+	// deletes the stamp — a deferred write could land after that and stay behind.
+	await markRenderTokenServed(env, job, token)
 
 	// Read under the gate the job was signed with, not a fixed one, so an MCP token stays confined to
 	// what the MCP tool could resolve — including a board that has gone private since it was minted.

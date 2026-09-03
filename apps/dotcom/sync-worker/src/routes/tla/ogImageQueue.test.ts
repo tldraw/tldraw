@@ -1206,10 +1206,17 @@ describe('handleOgImageRenderMessage', () => {
 				mode: 'screenshot',
 				outcome: 'browser_failed',
 				reason: 'crawler',
-				page: expect.any(String),
+				// The fake browser never fetches the snapshot, so the page never called home.
+				page: 'unreached',
 				durationMs: expect.any(Number),
 				browserMsUsed: 0,
-				content: expect.any(Array),
+				content: [
+					makeOnePageSnapshot().documents.length,
+					expect.any(Number),
+					expect.any(Number),
+					expect.any(Number),
+					expect.any(Number),
+				],
 			},
 		])
 
