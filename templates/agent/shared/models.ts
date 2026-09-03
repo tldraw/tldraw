@@ -8,7 +8,7 @@ export type AnthropicThinking = 'adaptive' | 'disabled'
 export type AnthropicEffort = 'low' | 'medium' | 'high' | 'xhigh' | 'max'
 
 /** Reasoning effort passed to the OpenAI provider. */
-export type OpenAIReasoningEffort = 'none' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh'
+export type OpenAIReasoningEffort = 'none' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh' | 'max'
 
 /** Thinking level passed to the Google provider (Gemini 3). Thinking cannot be fully disabled. */
 export type GeminiThinkingLevel = 'minimal' | 'low' | 'medium' | 'high'
@@ -39,10 +39,7 @@ export interface AnthropicModelDefinition extends BaseAgentModelDefinition {
 
 export interface GoogleModelDefinition extends BaseAgentModelDefinition {
 	provider: 'google'
-	/**
-	 * Thinking level (Gemini 3). Thinking can't be fully disabled — `minimal` is the floor,
-	 * and `gemini-3.7-flash` / `gemini-3.1-pro-preview` don't support `minimal`, so their floor is `low`.
-	 */
+	/** Gemini 3.8 Flash supports `low`, `medium`, and `high`. */
 	thinkingLevel: GeminiThinkingLevel
 }
 
@@ -58,7 +55,6 @@ export type AgentModelDefinition =
 
 export const AGENT_MODEL_DEFINITIONS = {
 	// Anthropic models
-	// sonnet 5 is recommended
 	'claude-opus-5': {
 		name: 'claude-opus-5',
 		id: 'claude-opus-5',
@@ -89,32 +85,13 @@ export const AGENT_MODEL_DEFINITIONS = {
 	},
 
 	// Google models
-	// gemini flash is fastest, and quite good
-	'gemini-3.7-flash': {
-		name: 'gemini-3.7-flash',
-		id: 'gemini-3.7-flash',
+	'gemini-3.8-flash': {
+		name: 'gemini-3.8-flash',
+		id: 'gemini-3.8-flash',
 		provider: 'google',
-		supportsPrefill: true,
-		supportsTemperature: true,
-		thinkingLevel: 'low', // minimal is not supported on 3.7 flash, so low is the floor
-	},
-
-	'gemini-3.1-pro-preview': {
-		name: 'gemini-3.1-pro-preview',
-		id: 'gemini-3.1-pro-preview',
-		provider: 'google',
-		supportsPrefill: true,
-		supportsTemperature: true,
-		thinkingLevel: 'low', // minimal is not supported on 3.1 pro, so low is the floor
-	},
-
-	'gemini-3.5-flash-lite': {
-		name: 'gemini-3.5-flash-lite',
-		id: 'gemini-3.5-flash-lite',
-		provider: 'google',
-		supportsPrefill: true,
-		supportsTemperature: true,
-		thinkingLevel: 'minimal',
+		supportsPrefill: false,
+		supportsTemperature: false,
+		thinkingLevel: 'low',
 	},
 
 	// OpenAI models
@@ -124,16 +101,25 @@ export const AGENT_MODEL_DEFINITIONS = {
 		provider: 'openai',
 		supportsPrefill: false,
 		supportsTemperature: false,
-		reasoningEffort: 'low',
+		reasoningEffort: 'medium',
+	},
+
+	'gpt-5.6-terra': {
+		name: 'gpt-5.6-terra',
+		id: 'gpt-5.6-terra',
+		provider: 'openai',
+		supportsPrefill: false,
+		supportsTemperature: false,
+		reasoningEffort: 'high',
 	},
 
 	'gpt-5.6-luna': {
 		name: 'gpt-5.6-luna',
 		id: 'gpt-5.6-luna',
 		provider: 'openai',
-		supportsPrefill: true,
+		supportsPrefill: false,
 		supportsTemperature: false,
-		reasoningEffort: 'none',
+		reasoningEffort: 'max',
 	},
 } as const
 
