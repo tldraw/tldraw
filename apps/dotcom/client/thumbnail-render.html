@@ -13,6 +13,12 @@
 				height: 100%;
 				overflow: hidden;
 			}
+			/* The app's license shows the "made with tldraw" mark on the canvas. editor.toImage never
+			   drew it, and a live capture rasterizes the DOM, so without this every live screenshot
+			   carries the mark the export path never had. */
+			.tl-watermark_SEE-LICENSE {
+				display: none;
+			}
 		</style>
 		<!-- Filled by scripts/build.ts with the same font preloads as index.html. -->
 		<!-- $PRELOADED_FONTS -->
