@@ -1,4 +1,4 @@
-import { lstatSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { relative, resolve } from 'node:path'
 import process from 'node:process'
 import { Readable } from 'node:stream'
@@ -42,12 +42,13 @@ async function main() {
 
 	const maybeTargetDir = args._[0] ? formatTargetDir(resolve(String(args._[0]))) : undefined
 
+	// Settle the directory before anything else so a cancel here doesn't waste a template pick.
+	if (maybeTargetDir) await prepareRequestedDir(maybeTargetDir)
+
 	const template = await templatePicker(args.template, args['no-telemetry'])
 	const name = await namePicker(maybeTargetDir)
 
-	const targetDir = maybeTargetDir
-		? await prepareRequestedDir(maybeTargetDir)
-		: findAvailableDir(resolve(process.cwd(), name))
+	const targetDir = maybeTargetDir ?? findAvailableDir(resolve(process.cwd(), name))
 	mkdirSync(targetDir, { recursive: true })
 
 	await downloadTemplate(template, targetDir)
@@ -142,13 +143,13 @@ async function namePicker(argOption?: string) {
 
 // A directory the user named explicitly (e.g. `.`) must not be swapped for a suffixed sibling, so ask
 // what to do with its existing contents instead.
-async function prepareRequestedDir(targetDir: string): Promise<string> {
-	if (isDirEmpty(targetDir)) {
-		return targetDir
-	}
+async function prepareRequestedDir(targetDir: string) {
+	if (isDirEmpty(targetDir)) return
 
-	const displayName = relative(process.cwd(), targetDir) || '.'
-	if (!lstatSync(targetDir).isDirectory()) {
+	// Show the full path for anything outside the cwd so "remove existing files" on `..` isn't a surprise.
+	const relativeName = relative(process.cwd(), targetDir)
+	const displayName = !relativeName ? '.' : relativeName.startsWith('..') ? targetDir : relativeName
+	if (!statSync(targetDir).isDirectory()) {
 		outro(`${displayName} exists and is not a directory.`)
 		process.exit(1)
 	}
@@ -176,7 +177,6 @@ async function prepareRequestedDir(targetDir: string): Promise<string> {
 
 	if (action === 'cancel') cancel()
 	if (action === 'empty') emptyDir(targetDir)
-	return targetDir
 }
 
 function findAvailableDir(targetDir: string): string {
@@ -299,7 +299,8 @@ function getHelp() {
 	].join('\n')
 }
 
-// Runs last so every module-level const above is initialised before main() touches it synchronously.
+// Runs last: with -t, templatePicker reaches TELEMETRY_URLS synchronously, so calling main() above
+// that declaration throws a temporal dead zone ReferenceError.
 main().catch((err) => {
 	if (DEBUG) console.error(err)
 	outro(`it's bad`)

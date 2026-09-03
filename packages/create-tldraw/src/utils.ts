@@ -1,4 +1,4 @@
-import { existsSync, lstatSync, readdirSync, rmSync } from 'node:fs'
+import { existsSync, readdirSync, rmSync, statSync } from 'node:fs'
 import { basename, join, resolve } from 'node:path'
 import { isCancel, outro } from '@clack/prompts'
 
@@ -13,7 +13,7 @@ export function isDirEmpty(path: string) {
 	}
 
 	// Existing files block the target path, so only directories should be inspected with readdirSync.
-	if (!lstatSync(path).isDirectory()) {
+	if (!statSync(path).isDirectory()) {
 		return false
 	}
 

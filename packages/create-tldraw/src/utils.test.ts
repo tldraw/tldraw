@@ -1,4 +1,12 @@
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
+import {
+	existsSync,
+	mkdirSync,
+	mkdtempSync,
+	readdirSync,
+	rmSync,
+	symlinkSync,
+	writeFileSync,
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { emptyDir, isDirEmpty } from './utils'
@@ -19,6 +27,14 @@ describe('isDirEmpty', () => {
 		writeFileSync(filePath, 'x')
 
 		expect(isDirEmpty(filePath)).toBe(false)
+	})
+
+	it('follows a symlink to an empty directory', () => {
+		const dirPath = join(tempDir, 'real')
+		mkdirSync(dirPath)
+		symlinkSync(dirPath, join(tempDir, 'link'))
+
+		expect(isDirEmpty(join(tempDir, 'link'))).toBe(true)
 	})
 
 	it('treats a directory containing only .git as empty', () => {
