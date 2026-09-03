@@ -265,8 +265,18 @@ export class Drawing extends StateNode {
 				// Connect dots
 
 				this.didJustShiftClickToExtendPreviousShapeLine = true
-				this.strokePieceIds = [shape.id]
-				this.strokeLengthBeforeCurrentPiece = 0
+
+				// Extending the last piece of a split stroke continues that stroke, so
+				// closing is still judged from where the stroke began rather than from
+				// the split point. Undo may have removed the other pieces since.
+				const isExtendingSplitStroke =
+					this.strokePieceIds.length > 1 &&
+					last(this.strokePieceIds) === shape.id &&
+					this.strokePieceIds.every((id) => this.editor.getShape(id))
+				if (!isExtendingSplitStroke) {
+					this.strokePieceIds = [shape.id]
+					this.strokeLengthBeforeCurrentPiece = 0
+				}
 
 				const prevSegment = last(shape.props.segments)
 				if (!prevSegment) throw Error('Expected a previous segment!')
@@ -829,7 +839,9 @@ export class Drawing extends StateNode {
 		const pieces: TLDrawShape[] = []
 		for (const id of this.strokePieceIds) {
 			const piece = this.editor.getShape<TLDrawShape>(id)
-			if (!piece) return false
+			// A collaborator may have deleted or locked a piece mid-stroke; updateShapes
+			// and deleteShapes would skip a locked one and leave the stroke torn
+			if (!piece || this.editor.isShapeOrAncestorLocked(piece)) return false
 			pieces.push(piece)
 		}
 

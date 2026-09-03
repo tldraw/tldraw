@@ -276,6 +276,42 @@ describe('Strokes split past maxPointsPerShape', () => {
 		}
 	})
 
+	it('Judges a shift-click extension of a split stroke from where the stroke began', () => {
+		drawLine(700)
+		editor.pointerMove(700, 200)
+		editor.pointerUp()
+		// Extend the last piece back onto the split point
+		editor.keyDown('Shift')
+		editor.pointerDown(600, 301)
+		editor.pointerUp()
+		editor.keyUp('Shift')
+		const shapes = editor.getCurrentPageShapes() as TLDrawShape[]
+		expect(shapes).toHaveLength(2)
+		for (const shape of shapes) {
+			expect(shape.props.isClosed).toBe(false)
+		}
+	})
+
+	it('Merges a split stroke that shift-click extensions close', () => {
+		drawLine(700)
+		editor.pointerUp()
+		editor.keyDown('Shift')
+		editor.pointerDown(700, 500)
+		editor.pointerUp()
+		editor.pointerDown(0, 300)
+		editor.pointerUp()
+		editor.keyUp('Shift')
+		const shapes = editor.getCurrentPageShapes() as TLDrawShape[]
+		expect(shapes).toHaveLength(1)
+		expect(shapes[0].props.isClosed).toBe(true)
+		expect(shapes[0].props.segments.map((segment) => segment.type)).toEqual([
+			'free',
+			'free',
+			'straight',
+			'straight',
+		])
+	})
+
 	it('Never merges highlight strokes', () => {
 		expect(drawLoop('highlight')).toHaveLength(3)
 	})
