@@ -1,0 +1,146 @@
+import { IRequest } from 'itty-router'
+import { describe, expect, it } from 'vitest'
+import { Environment } from '../../types'
+import {
+	ThumbnailRenderJob,
+	mintThumbnailRenderToken,
+	recordMintedRenderToken,
+} from '../../utils/renderTokens'
+import { putThumbnailRenderResult } from './putThumbnailRenderResult'
+import { makeFakeThumbnailsBucket, makeScreenshotTestEnv } from './screenshotTestHelpers'
+
+function makeRequest(body: unknown): IRequest {
+	return { json: async () => body } as unknown as IRequest
+}
+
+const JOB: ThumbnailRenderJob = {
+	v: 1,
+	kind: 'published',
+	slug: 'board',
+	version: 1,
+	access: 'public',
+	surface: 'mcp',
+	camera: 'content',
+	x: 0,
+	y: 0,
+	z: 1,
+	width: 1200,
+	height: 630,
+	theme: 'light',
+	exp: Date.now() + 60_000,
+}
+
+const TIMINGS = {
+	bootAt: 100,
+	dataAt: 150,
+	mountAt: 900,
+	settledAt: 1400,
+	exportedAt: 2100,
+}
+
+describe('the timing beacon', () => {
+	it('writes one datapoint per beacon, carrying the surface', async () => {
+		const env = makeScreenshotTestEnv() as unknown as Environment
+		const token = await mintThumbnailRenderToken(env, JOB)
+
+		const response = await putThumbnailRenderResult(makeRequest({ token, timings: TIMINGS }), env)
+
+		expect(response.status).toBe(200)
+		const calls = (env.MEASURE as any).writeDataPoint.mock.calls
+		expect(calls).toHaveLength(1)
+		const point = calls[0][0]
+		// writeDataPoint prefixes [eventName, workerName]; the beacon's own blobs follow.
+		expect(point.blobs[0]).toBe('render_page_timings')
+		expect(point.blobs.slice(2)).toEqual(['surface:mcp'])
+		expect(point.doubles).toEqual([100, 150, 900, 1400, 2100])
+	})
+
+	it('refuses a beacon whose token was not signed by us', async () => {
+		const env = makeScreenshotTestEnv() as unknown as Environment
+		const other = makeScreenshotTestEnv({
+			MCP_SCREENSHOT_TOKEN_SECRET: 'someone-elses-secret',
+		}) as unknown as Environment
+		const forged = await mintThumbnailRenderToken(other, JOB)
+
+		const response = await putThumbnailRenderResult(
+			makeRequest({ token: forged, timings: TIMINGS }),
+			env
+		)
+
+		expect(response.status).toBe(403)
+		expect((env.MEASURE as any).writeDataPoint).not.toHaveBeenCalled()
+	})
+
+	// The same bar as the snapshot route: an MCP render token's record is deleted when its capture
+	// ends, so a token copied out of a render URL cannot keep writing rows for the rest of its TTL.
+	it('refuses a signed token that was never minted, and accepts one that was', async () => {
+		// The record lives in THUMBNAILS; without the bucket bound the check trusts the signature.
+		const env = makeScreenshotTestEnv({
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		}) as unknown as Environment
+		const job: ThumbnailRenderJob = { ...JOB, access: 'render' }
+		const unrecorded = await mintThumbnailRenderToken(env, job)
+
+		const refused = await putThumbnailRenderResult(
+			makeRequest({ token: unrecorded, timings: TIMINGS }),
+			env
+		)
+		expect(refused.status).toBe(403)
+
+		const recordedJob = { ...job, exp: job.exp + 1 }
+		const recorded = await mintThumbnailRenderToken(env, recordedJob)
+		await recordMintedRenderToken(env, recordedJob, recorded)
+		const accepted = await putThumbnailRenderResult(
+			makeRequest({ token: recorded, timings: TIMINGS }),
+			env
+		)
+		expect(accepted.status).toBe(200)
+	})
+
+	it('refuses non-finite stamps rather than polluting the dataset', async () => {
+		const env = makeScreenshotTestEnv() as unknown as Environment
+		const token = await mintThumbnailRenderToken(env, JOB)
+
+		const response = await putThumbnailRenderResult(
+			makeRequest({ token, timings: { ...TIMINGS, settledAt: 'NaN' } }),
+			env
+		)
+
+		expect(response.status).toBe(400)
+		expect((env.MEASURE as any).writeDataPoint).not.toHaveBeenCalled()
+	})
+
+	// Valid JSON that is not an object: the endpoint is unauthenticated, so scanners send exactly
+	// this, and `'timings' in null` would escape as a worker 500 where a 400 is the answer.
+	it.each([null, 42, 'a string'])(
+		'refuses the non-object JSON body %j with a 400',
+		async (body) => {
+			const env = makeScreenshotTestEnv() as unknown as Environment
+			const response = await putThumbnailRenderResult(makeRequest(body), env)
+			expect(response.status).toBe(400)
+		}
+	)
+
+	it('refuses timings: null rather than destructuring it', async () => {
+		const env = makeScreenshotTestEnv() as unknown as Environment
+		const token = await mintThumbnailRenderToken(env, JOB)
+
+		const response = await putThumbnailRenderResult(makeRequest({ token, timings: null }), env)
+
+		expect(response.status).toBe(400)
+		expect((env.MEASURE as any).writeDataPoint).not.toHaveBeenCalled()
+	})
+
+	it('leaves the measure-result branch alone', async () => {
+		const env = makeScreenshotTestEnv() as unknown as Environment
+		const token = await mintThumbnailRenderToken(env, { ...JOB, mode: 'measure' })
+
+		const response = await putThumbnailRenderResult(
+			makeRequest({ token, bounds: { 'shape:a': { x: 0, y: 0, w: 10, h: 10 } } }),
+			env
+		)
+
+		expect(response.status).toBe(200)
+		expect(await response.json()).toEqual({ error: false, stored: 1 })
+	})
+})

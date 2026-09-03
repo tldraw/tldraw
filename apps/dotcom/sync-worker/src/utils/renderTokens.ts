@@ -1,3 +1,4 @@
+import { ThumbnailRenderParams } from '@tldraw/dotcom-shared'
 import {
 	Environment,
 	ThumbnailBoardAccess,
@@ -73,6 +74,8 @@ export interface ThumbnailRenderJob {
 	 * `measure` skips the export and POSTs the page's shape geometry back instead — the only way a
 	 * Worker can obtain bounds, since sizing a shape needs an editor and font metrics.
 	 */
+	/** `live`: the page prunes to `shapeIds`, settles, and lets the screenshot rasterize the canvas. */
+	capture?: 'live'
 	mode?: 'screenshot' | 'measure'
 	/** The viewport the render page sets directly when `camera` is omitted. */
 	x: number
@@ -168,6 +171,23 @@ export async function verifyThumbnailRenderToken(
  */
 export function renderJobAccess(job: Pick<ThumbnailRenderJob, 'access'>): ThumbnailBoardAccess {
 	return job.access ?? 'public'
+}
+
+/** The render parameters a job implies: what the snapshot route answers and the render page draws from. */
+export function renderParamsForJob(job: ThumbnailRenderJob): ThumbnailRenderParams {
+	return {
+		...(job.camera ? { camera: job.camera } : null),
+		...(job.pageId ? { pageId: job.pageId } : null),
+		...(job.shapeIds ? { shapeIds: job.shapeIds } : null),
+		...(job.capture ? { capture: job.capture } : null),
+		...(job.mode ? { mode: job.mode } : null),
+		x: job.x,
+		y: job.y,
+		z: job.z,
+		width: job.width,
+		height: job.height,
+		theme: job.theme,
+	}
 }
 
 /**

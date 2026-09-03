@@ -7,6 +7,7 @@ import {
 	ROOM_PREFIX,
 	SNAPSHOT_PREFIX,
 	SOCIAL_PREVIEW_BYPASS_PARAM,
+	THUMBNAIL_RENDER_PATH,
 } from '@tldraw/dotcom-shared'
 import { T } from '@tldraw/validate'
 import { config } from 'dotenv'
@@ -161,6 +162,14 @@ async function build() {
 
 	writeFileSync('.vercel/output/static/index.html', newIndex)
 
+	// The thumbnail render entry waits on these same faces during its settle phase, so it preloads
+	// them too — otherwise their fetch starts only after the SDK has booted and the editor mounted.
+	const thumbnailHtml = readFileSync('.vercel/output/static/thumbnail-render.html', 'utf8')
+	writeFileSync(
+		'.vercel/output/static/thumbnail-render.html',
+		thumbnailHtml.replace('<!-- $PRELOADED_FONTS -->', () => fontPreloads)
+	)
+
 	const multiplayerServerUrl = getMultiplayerServerURL() ?? 'http://localhost:8787'
 
 	// Includes the .js.map files: they're content-hashed like the chunks they describe, so they're
@@ -231,6 +240,17 @@ async function build() {
 						check: true,
 						src: '/',
 						dest: '/index.html',
+						headers: commonSecurityHeaders,
+					},
+					// The thumbnail render page is its own Vite entry, not an SPA route, so a Browser
+					// Run capture boots the SDK without the app shell. Rewritten here rather than
+					// served at its build filename so the URL the sync-worker renders
+					// (MCP_SCREENSHOT_RENDER_ORIGIN + THUMBNAIL_RENDER_PATH) never moves. Must come
+					// before the SPA fallback below, which would otherwise answer with index.html.
+					{
+						check: true,
+						src: `^${THUMBNAIL_RENDER_PATH}$`,
+						dest: '/thumbnail-render.html',
 						headers: commonSecurityHeaders,
 					},
 					// serve static files
