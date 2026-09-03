@@ -1,9 +1,13 @@
 import { IRequest } from 'itty-router'
 import { describe, expect, it } from 'vitest'
 import { Environment } from '../../types'
-import { ThumbnailRenderJob, mintThumbnailRenderToken } from '../../utils/renderTokens'
+import {
+	ThumbnailRenderJob,
+	mintThumbnailRenderToken,
+	recordMintedRenderToken,
+} from '../../utils/renderTokens'
 import { putThumbnailRenderResult } from './putThumbnailRenderResult'
-import { makeScreenshotTestEnv } from './screenshotTestHelpers'
+import { makeFakeThumbnailsBucket, makeScreenshotTestEnv } from './screenshotTestHelpers'
 
 function makeRequest(body: unknown): IRequest {
 	return { json: async () => body } as unknown as IRequest
@@ -66,6 +70,32 @@ describe('the timing beacon', () => {
 
 		expect(response.status).toBe(403)
 		expect((env.MEASURE as any).writeDataPoint).not.toHaveBeenCalled()
+	})
+
+	// The same bar as the snapshot route: an MCP render token's record is deleted when its capture
+	// ends, so a token copied out of a render URL cannot keep writing rows for the rest of its TTL.
+	it('refuses a signed token that was never minted, and accepts one that was', async () => {
+		// The record lives in THUMBNAILS; without the bucket bound the check trusts the signature.
+		const env = makeScreenshotTestEnv({
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		}) as unknown as Environment
+		const job: ThumbnailRenderJob = { ...JOB, access: 'render' }
+		const unrecorded = await mintThumbnailRenderToken(env, job)
+
+		const refused = await putThumbnailRenderResult(
+			makeRequest({ token: unrecorded, timings: TIMINGS }),
+			env
+		)
+		expect(refused.status).toBe(403)
+
+		const recordedJob = { ...job, exp: job.exp + 1 }
+		const recorded = await mintThumbnailRenderToken(env, recordedJob)
+		await recordMintedRenderToken(env, recordedJob, recorded)
+		const accepted = await putThumbnailRenderResult(
+			makeRequest({ token: recorded, timings: TIMINGS }),
+			env
+		)
+		expect(accepted.status).toBe(200)
 	})
 
 	it('refuses non-finite stamps rather than polluting the dataset', async () => {

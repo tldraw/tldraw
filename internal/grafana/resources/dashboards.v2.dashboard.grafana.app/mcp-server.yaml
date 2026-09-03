@@ -1126,7 +1126,7 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: 'Where the in-page time goes, from the render page timing beacon (render_page_timings): p50 per phase for this server (surface:mcp), split by how the page got its snapshot (source push vs fetch). Phases are deltas between performance.now() stamps — script boot, snapshot acquisition, editor mount, the settle wait for fonts and assets, and the export. Beacons only arrive from url-mode pages: an html-mode page has no network egress in Browser Run, so transport:inline renders are absent here by construction and the browser_run_session ledger is the complete instrument for that mode. The og surface beacons onto the same event.'
+        description: 'Where the in-page time goes, from the render page timing beacon (render_page_timings): p50 per phase for this server (surface:mcp), split by how the page got its snapshot (source push vs fetch). Phases are deltas between performance.now() stamps — script boot, snapshot acquisition, editor mount, the settle wait for fonts and assets, and the export. Html-mode (transport:inline) pages beacon too: they have no origin, so their request carries Origin null, and the result route is registered ahead of the origin allowlist in the worker for exactly that. The og surface beacons onto the same event.'
         id: 19
         links: []
         title: Render page phase timings

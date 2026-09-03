@@ -188,6 +188,8 @@ jobs:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SUPABASE_LITE_ANON_KEY: ${{ secrets.SUPABASE_LITE_ANON_KEY }}
           TLDRAW_LICENSE: ${{ secrets.TLDRAW_LICENSE }}
+          # Optional until minted: the thumbnail render page's own key (see getThumbnailRenderLicenseKey)
+          TLDRAW_RENDER_LICENSE: ${{ secrets.TLDRAW_RENDER_LICENSE }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
           VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}

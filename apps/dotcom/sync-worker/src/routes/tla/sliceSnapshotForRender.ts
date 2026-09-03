@@ -1,6 +1,15 @@
 import { SerializedSchema } from '@tldraw/store'
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { TLRecord } from '@tldraw/tlschema'
+import {
+	AssetRecordType,
+	TLRecord,
+	TLShape,
+	isBinding,
+	isBindingId,
+	isPageId,
+	isShape,
+	isShapeId,
+} from '@tldraw/tlschema'
 
 // Narrows a board's document records to just what one render actually draws, so a pushed snapshot
 // carries a cluster rather than the whole board. Pure: no env, no I/O, no editor.
@@ -9,32 +18,19 @@ import { TLRecord } from '@tldraw/tlschema'
 // slice that drops a record something surviving still points at renders a *plausible* image —
 // a board missing its arrows, a frame with no contents — which the pipeline would then cache as if
 // it were right. That is worse than any slower path, so the slice verifies its own closure and
-// throws rather than returning a set it cannot vouch for. Callers turn that into a fallback to the
+// returns nothing rather than a set it cannot vouch for. Callers turn that into a fallback to the
 // pull path, which sends everything and cannot be wrong this way.
 
-/** Thrown when the slice cannot vouch for its own output. Callers fall back to sending everything. */
-export class SnapshotSliceError extends Error {
-	constructor(message: string) {
-		super(message)
-		this.name = 'SnapshotSliceError'
-	}
-}
-
-function isShape(record: TLRecord) {
-	return record.typeName === 'shape'
-}
-
-// Every id a record points at, found by walking its values rather than by naming the fields that
-// hold them. An allowlist (`props.assetId`, `fromId`, `toId`) would be shorter and would silently
-// miss any shape type whose props reference a record some other way — including custom and embed
-// shapes, which this pipeline renders and which are exactly the content nobody tests a slice
-// against. Prefix-matching every string is broader than needed and that is the point: over-keeping
-// a record costs bytes, under-keeping one costs a wrong picture.
+// Every record id a value points at, found by walking the value rather than by naming the fields
+// that hold ids. An allowlist (`props.assetId`, `fromId`, `toId`) would silently miss any shape type
+// whose props reference a record some other way — custom and embed shapes included, which this
+// pipeline renders and which are exactly the content nobody tests a slice against. Over-keeping a
+// record costs bytes, under-keeping one costs a wrong picture.
 function collectReferencedIds(value: unknown, into: Set<string>) {
 	if (typeof value === 'string') {
-		// Record ids are `<typeName>:<uuid>`. Matching the prefixes we care about keeps ordinary
-		// strings (a shape's text, a bookmark's url) from being mistaken for references.
-		if (/^(shape|asset|binding|page):/.test(value)) into.add(value)
+		if (isShapeId(value) || isBindingId(value) || isPageId(value) || AssetRecordType.isId(value)) {
+			into.add(value)
+		}
 		return
 	}
 	if (Array.isArray(value)) {
@@ -50,41 +46,38 @@ function collectReferencedIds(value: unknown, into: Set<string>) {
  * Returns the records needed to render `pageId` — or, when `shapeIds` is given, just those shapes
  * and their descendants — closed over the bindings and assets they reference.
  *
- * Throws `SnapshotSliceError` if the result is not closed: if any surviving record references a
- * record that exists in `records` but did not make it into the slice. A reference that is already
- * dangling in the source is left alone, since sending everything would render it identically.
+ * Returns `null` when the slice cannot vouch for its output: a requested shape is not in the
+ * snapshot, or a surviving record references a record that exists in `records` but did not make it
+ * into the slice. A reference that is already dangling in the source is left alone, since sending
+ * everything would render it identically.
  */
 export function sliceSnapshotForRender(
 	records: TLRecord[],
 	{ pageId, shapeIds }: { pageId?: string; shapeIds?: string[] }
-): TLRecord[] {
+): TLRecord[] | null {
 	// Nothing to narrow to: the caller wants the whole board, which is what it already has.
 	if (!pageId && !shapeIds?.length) return records
 
 	const byId = new Map<string, TLRecord>()
 	for (const record of records) byId.set(record.id, record)
 
-	const childrenByParent = new Map<string, TLRecord[]>()
+	const childrenByParent = new Map<string, TLShape[]>()
 	for (const record of records) {
 		if (!isShape(record)) continue
-		const parentId = (record as { parentId?: string }).parentId
-		if (!parentId) continue
-		const siblings = childrenByParent.get(parentId)
+		const siblings = childrenByParent.get(record.parentId)
 		if (siblings) siblings.push(record)
-		else childrenByParent.set(parentId, [record])
+		else childrenByParent.set(record.parentId, [record])
 	}
 
 	// Roots: the named shapes, or every shape sitting directly on the page.
-	const roots: TLRecord[] = []
+	const roots: TLShape[] = []
 	if (shapeIds?.length) {
 		for (const id of shapeIds) {
 			const shape = byId.get(id)
 			// A requested shape that is gone is the caller's problem to report, not something to
 			// paper over by rendering the rest — the MCP tool would label the result with a cluster
 			// it did not draw. getThumbnailSnapshot refuses the same case with a 404.
-			if (!shape || !isShape(shape)) {
-				throw new SnapshotSliceError(`Requested shape ${id} is not in the snapshot`)
-			}
+			if (!isShape(shape)) return null
 			roots.push(shape)
 		}
 	} else if (pageId) {
@@ -92,7 +85,7 @@ export function sliceSnapshotForRender(
 	}
 
 	// Walk down: a frame or group without its children renders as an empty box.
-	const kept = new Map<string, TLRecord>()
+	const kept = new Map<string, TLShape>()
 	const queue = [...roots]
 	while (queue.length) {
 		const shape = queue.pop()!
@@ -104,32 +97,46 @@ export function sliceSnapshotForRender(
 
 	// Ancestors of the kept shapes, so a cluster inside a frame keeps the frame it is positioned
 	// against — shape coordinates are parent-relative, so dropping a parent moves its children.
-	for (const shape of [...kept.values()]) {
-		let parentId = (shape as { parentId?: string }).parentId
-		while (parentId && !kept.has(parentId)) {
+	const keepAncestors = (shape: TLShape) => {
+		let parentId: string = shape.parentId
+		while (!kept.has(parentId)) {
 			const parent = byId.get(parentId)
-			if (!parent || !isShape(parent)) break
+			if (!isShape(parent)) break
 			kept.set(parent.id, parent)
-			parentId = (parent as { parentId?: string }).parentId
+			parentId = parent.parentId
 		}
 	}
+	for (const shape of [...kept.values()]) keepAncestors(shape)
 
-	// Bindings: keep one only when both ends survive. A half-bound arrow is worse than no arrow —
-	// the editor would resolve the missing end to nothing and draw it somewhere arbitrary.
-	const bindings = records.filter((record) => {
-		if (record.typeName !== 'binding') return false
-		const { fromId, toId } = record as unknown as { fromId: string; toId: string }
-		return kept.has(fromId) && kept.has(toId)
-	})
+	// Bindings with at least one end in the slice, and whatever shape sits at the other end. An
+	// arrow's stored terminal is only refreshed when it is unbound in an editor, so an arrow whose
+	// binding is dropped draws to wherever its handle was last dropped, not to the shape it points
+	// at. Keeping the bound neighbour keeps the terminal honest: the export draws only the requested
+	// shapes regardless, and a live capture deletes the neighbour in the page, which is the unbind
+	// that moves the terminal. Bindings between two neighbours are not chased: nothing references a
+	// binding, so leaving them out cannot break the closure.
+	const bindings = records.filter(
+		(record) => isBinding(record) && (kept.has(record.fromId) || kept.has(record.toId))
+	)
+	for (const record of bindings) {
+		if (!isBinding(record)) continue
+		for (const id of [record.fromId, record.toId]) {
+			if (kept.has(id)) continue
+			const neighbour = byId.get(id)
+			if (!isShape(neighbour)) continue
+			kept.set(neighbour.id, neighbour)
+			keepAncestors(neighbour)
+		}
+	}
+	const keptBindings = new Set(bindings.map((record) => record.id))
 
 	// Assets referenced by anything kept so far.
 	const referenced = new Set<string>()
 	for (const record of [...kept.values(), ...bindings]) collectReferencedIds(record, referenced)
-	const keptBindings = new Set(bindings.map((record) => record.id))
 
 	// Everything the walk above did not decide gets KEPT, in source order. The types the slice
 	// reasons about are dropped-by-default and earned their way back in (shapes via the walk,
-	// bindings via both ends, assets via a reference); every other type is kept-by-default, because
+	// bindings via an end, assets via a reference); every other type is kept-by-default, because
 	// dropping a type this code has never heard of is exactly how a record that matters goes missing.
 	// The concrete case that proved it: `user` records carry note-shape attribution, and the shape's
 	// reference to one is a *bare* string (`textLastEditedBy`, no `user:` prefix) — invisible to the
@@ -158,15 +165,14 @@ export function sliceSnapshotForRender(
 		}
 	})
 
-	assertClosed(sliced, byId)
-	return sliced
+	return isClosed(sliced, byId) ? sliced : null
 }
 
 // Verifies the slice references nothing it dropped. Deliberately independent of the collection
 // above: it re-derives the references from the output rather than trusting the bookkeeping that
-// produced it, so a bug in that bookkeeping surfaces here as a thrown error instead of as a
-// quietly incomplete picture.
-function assertClosed(sliced: TLRecord[], sourceById: Map<string, TLRecord>) {
+// produced it, so a bug in that bookkeeping surfaces here as a refusal instead of as a quietly
+// incomplete picture.
+function isClosed(sliced: TLRecord[], sourceById: Map<string, TLRecord>) {
 	const slicedIds = new Set<string>(sliced.map((record) => record.id))
 	const referenced = new Set<string>()
 	for (const record of sliced) collectReferencedIds(record, referenced)
@@ -176,8 +182,9 @@ function assertClosed(sliced: TLRecord[], sourceById: Map<string, TLRecord>) {
 		// Absent from the source too: already dangling before the slice touched it, so sending
 		// everything would render exactly the same. Not ours to fail on.
 		if (!sourceById.has(id)) continue
-		throw new SnapshotSliceError(`Slice dropped ${id}, which a surviving record still references`)
+		return false
 	}
+	return true
 }
 
 /**
@@ -197,15 +204,8 @@ export function buildPushPayload(
 	if (!snapshot.schema || !snapshot.documents) return undefined
 
 	const records = snapshot.documents.map((d) => d.state) as TLRecord[]
-	try {
-		return {
-			records: sliceSnapshotForRender(records, { pageId, shapeIds }),
-			schema: snapshot.schema,
-		}
-	} catch (error) {
-		if (error instanceof SnapshotSliceError) return undefined
-		throw error
-	}
+	const sliced = sliceSnapshotForRender(records, { pageId, shapeIds })
+	return sliced ? { records: sliced, schema: snapshot.schema } : undefined
 }
 
 const SCRIPT_UNSAFE = /[<\u2028\u2029]/g

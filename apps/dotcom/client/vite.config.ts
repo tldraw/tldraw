@@ -127,6 +127,7 @@ export default defineConfig((env) => ({
 		// keep running whatever bundle they loaded, potentially for weeks.
 		'process.env.CLIENT_BUILD_TIMESTAMP': JSON.stringify(Date.now().toString()),
 		'process.env.TLDRAW_LICENSE': JSON.stringify(process.env.TLDRAW_LICENSE ?? ''),
+		'process.env.TLDRAW_RENDER_LICENSE': JSON.stringify(process.env.TLDRAW_RENDER_LICENSE ?? ''),
 		// Fall back to staging DSN for local develeopment, although you still need to
 		// modify the env check in 'sentry.client.config.ts' to get it reporting errors
 		'process.env.SENTRY_DSN': JSON.stringify(

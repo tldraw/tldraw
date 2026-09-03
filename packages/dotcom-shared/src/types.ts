@@ -198,17 +198,34 @@ export interface ThumbnailRenderTimingsRequestBody {
 	}
 }
 
+/**
+ * The snapshot route's response. `renderParams` cannot carry `capture`: this body is the whole
+ * board, and live capture rasterizes everything in the fitted viewport, which is only the requested
+ * picture when the records were sliced for the render. Enforced in the type so the route cannot
+ * compile a response that would put every neighbour into the frame.
+ */
 export type ThumbnailSnapshotResponseBody =
 	| {
 			error: false
 			records: TLRecord[]
 			schema: SerializedSchema
-			renderParams: ThumbnailRenderParams
+			renderParams: Omit<ThumbnailRenderParams, 'capture'>
 	  }
 	| {
 			error: true
 			message: string
 	  }
+
+/**
+ * What the worker pushes into the render page: the snapshot response shape, sliced for this render,
+ * which is the one form allowed to ask for live capture.
+ */
+export interface ThumbnailPushedSnapshot {
+	error: false
+	records: TLRecord[]
+	schema: SerializedSchema
+	renderParams: ThumbnailRenderParams
+}
 
 export const ZErrorCode = stringEnum(
 	'publish_failed',

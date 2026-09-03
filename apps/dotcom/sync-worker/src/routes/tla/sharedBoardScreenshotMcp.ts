@@ -1042,8 +1042,11 @@ async function renderShapeSetScreenshot(
 			// only — the OG surface keeps the export path's pixel-exact sizing. And only when a sliced
 			// payload is actually going with the render: against a fetched whole board, the live
 			// canvas would show every neighbour inside the fitted viewport, not the shapes asked for.
-			...(env.THUMBNAIL_RENDER_LIVE_CAPTURE === '1' && push ? { capture: 'live' as const } : null),
+			...(envFlagWord(env.THUMBNAIL_RENDER_LIVE_CAPTURE) === 'true' && push
+				? { capture: 'live' as const }
+				: null),
 			push,
+			ctx,
 		})
 
 		// The render is already paid for and the PNG in hand is what the caller asked for, so a failed
@@ -1052,17 +1055,14 @@ async function renderShapeSetScreenshot(
 		// can't act on it, but a cache that stops absorbing writes means every call re-renders. The page
 		// name is URI-encoded because R2 custom metadata is not reliably unicode-safe.
 		//
-		// Rides waitUntil so the caller is not held for an R2 round trip after a render they already
-		// waited seconds for; the catch is attached first, so the extended promise can never reject.
-		// Awaited only where there is no execution context to extend (unit tests), which also keeps
-		// cache-dependent assertions deterministic.
-		const cacheWrite = putThumbnailPng(
-			env.MCP_DATA_BUCKET,
-			cacheKey,
-			render.base64,
-			resolved.board.version,
-			{ pageName: encodeURIComponent(resolved.page.pageName) }
-		).catch((error) => {
+		// Awaited, not deferred to waitUntil: a caller that re-asks for the same cluster the moment
+		// the PNG lands must hit the cache, or it passes the limiters and spends a second browser
+		// session on an identical image. One R2 put is cheap next to the render it follows.
+		try {
+			await putThumbnailPng(env.MCP_DATA_BUCKET, cacheKey, render.base64, resolved.board.version, {
+				pageName: encodeURIComponent(resolved.page.pageName),
+			})
+		} catch (error) {
 			reportThumbnailError(error, {
 				ctx,
 				env,
@@ -1070,9 +1070,7 @@ async function renderShapeSetScreenshot(
 				surface: 'mcp_screenshot_cache_write',
 				extras: { boardId, page: describePageSelector(page), theme, ...extras },
 			})
-		})
-		if (ctx) ctx.waitUntil(cacheWrite)
-		else await cacheWrite
+		}
 
 		telemetry({ cacheStatus: 'miss' })
 		return toolPageResult(resolved.page.pageName, render.base64)

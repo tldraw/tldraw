@@ -7,8 +7,8 @@ import {
 	THUMBNAIL_RENDER_PUSH_PARAM,
 	THUMBNAIL_RENDER_CONFIG_GLOBAL,
 	THUMBNAIL_RENDER_TIMEOUT_MS,
+	ThumbnailPushedSnapshot,
 	ThumbnailRenderConfig,
-	ThumbnailSnapshotResponseBody,
 	getThumbnailScreenshotHtmlRequestBody,
 	getThumbnailScreenshotRequestBody,
 } from '@tldraw/dotcom-shared'
@@ -24,6 +24,7 @@ import {
 	ThumbnailBoardKind,
 	ThumbnailBoardRef,
 	ThumbnailRenderSurface,
+	envFlagWord,
 } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { arrayBufferToBase64, base64ToArrayBuffer } from '../../utils/base64'
@@ -229,7 +230,7 @@ async function fetchInlineRenderPage(env: Environment): Promise<string | null> {
 	}
 }
 
-function getInlineRenderPage(env: Environment): Promise<string | null> {
+function getInlineRenderPage(env: Environment, ctx?: ExecutionContext): Promise<string | null> {
 	const ttl = inlineRenderPageMissing
 		? INLINE_RENDER_PAGE_MISSING_TTL_MS
 		: INLINE_RENDER_PAGE_TTL_MS
@@ -240,16 +241,19 @@ function getInlineRenderPage(env: Environment): Promise<string | null> {
 			return result
 		})
 	} else if (Date.now() - inlineRenderPageFetchedAt > ttl) {
-		// The clock resets on the attempt, not on its outcome, so a refresh that fails — or is
-		// cancelled with the invocation it rode on — is retried one TTL later rather than once per
-		// render; a failed refresh keeps serving what we have, same as before.
+		// The clock resets on the attempt, not on its outcome, so a refresh that fails is retried one
+		// TTL later rather than once per render; a failed refresh keeps serving what we have, same as
+		// before. Extended with waitUntil where a context exists: a detached fetch is cancelled with
+		// the invocation it rode on, and under low traffic that repeats every TTL, leaving the isolate
+		// on a pre-deploy artifact indefinitely rather than for one TTL.
 		inlineRenderPageFetchedAt = Date.now()
-		void fetchInlineRenderPage(env).then((fresh) => {
+		const refresh = fetchInlineRenderPage(env).then((fresh) => {
 			if (fresh !== null) {
 				inlineRenderPagePromise = Promise.resolve(fresh)
 				inlineRenderPageMissing = false
 			}
 		})
+		ctx?.waitUntil(refresh)
 	}
 	return inlineRenderPagePromise
 }
@@ -265,7 +269,7 @@ export function resetInlineRenderPageForTests() {
 // Whether this deployment sends html-mode captures. Opt-in per deployment: unit tests must not
 // fetch the artifact over the network, and dev's local screenshot service only speaks url mode.
 function isInlineRenderEnabled(env: Environment) {
-	return env.THUMBNAIL_RENDER_INLINE === '1' && !env.LOCAL_SCREENSHOT_SERVICE_URL
+	return envFlagWord(env.THUMBNAIL_RENDER_INLINE) === 'true' && !env.LOCAL_SCREENSHOT_SERVICE_URL
 }
 
 // The one statement that plants the pushed snapshot, shared by every transport that carries it —
@@ -276,7 +280,6 @@ function buildPushScript(payloadLiteral: string) {
 	return `window.${THUMBNAIL_RENDER_GLOBAL}=${payloadLiteral}`
 }
 
-// Builds the <script> that plants the pushed snapshot and the page config as globals.
 function buildInlineGlobalsScript(payloadLiteral: string, config: ThumbnailRenderConfig) {
 	return (
 		`<script>${buildPushScript(payloadLiteral)};` +
@@ -328,6 +331,7 @@ export async function captureThumbnailScreenshot(
 		telemetry,
 		capture,
 		push,
+		ctx,
 	}: {
 		/** Which pipeline is asking. Signed into the job; namespaces the minted-token record. */
 		surface: ThumbnailRenderSurface
@@ -367,6 +371,8 @@ export async function captureThumbnailScreenshot(
 		 * back to the fetch (see renderThumbnailScreenshot).
 		 */
 		push?: { records: TLRecord[]; schema: SerializedSchema }
+		/** Extends the artifact cache's background refresh past this invocation; see getInlineRenderPage. */
+		ctx?: ExecutionContext
 	}
 ): Promise<{ base64: string; durationMs: number }> {
 	const job: ThumbnailRenderJob = {
@@ -394,10 +400,24 @@ export async function captureThumbnailScreenshot(
 	// Warm the once-per-isolate artifact fetch under the token mint's R2 write below, so a cold
 	// isolate's first render doesn't pay the two in sequence. getInlineRenderPage caches its promise
 	// and resolves null on failure, so this can neither throw nor waste the fetch.
-	if (push && isInlineRenderEnabled(env)) void getInlineRenderPage(env)
+	if (push && isInlineRenderEnabled(env)) void getInlineRenderPage(env, ctx)
 	// Minted even when the snapshot is pushed, because the pushed render still has to be able to fall
-	// back to fetching one (see renderThumbnailScreenshot). One R2 write, off the browser's path.
-	const token = await mintRecordedRenderToken(env, job)
+	// back to fetching one (see renderThumbnailScreenshot). Started before the payload is serialized:
+	// the mint is I/O (an HMAC sign and an R2 write) and the serialization is CPU over what can be
+	// tens of megabytes, so the two overlap instead of running back to back on the render's path.
+	const minting = mintRecordedRenderToken(env, job)
+	// The payload the snapshot route would have answered with, through the same builder that route
+	// uses so the two cannot drift. `capture` is the one addition: it rides only with the pushed
+	// slice, never on the fetch, and the response type refuses it (see ThumbnailSnapshotResponseBody).
+	const pushed: ThumbnailPushedSnapshot | undefined = push && {
+		error: false,
+		records: push.records,
+		schema: push.schema,
+		renderParams: { ...renderParamsForJob(job), ...(capture ? { capture } : null) },
+	}
+	// Serialized once: every transport that carries the payload embeds this same literal.
+	const payloadLiteral = pushed && toRenderScriptLiteral(pushed)
+	const token = await minting
 	try {
 		return await renderThumbnailScreenshot(
 			env,
@@ -409,21 +429,10 @@ export async function captureThumbnailScreenshot(
 					source: telemetry.source,
 					mode: 'screenshot',
 					reason: telemetry.reason,
-					capture: capture ?? 'export',
+					capture,
 				},
-				// The payload the snapshot route would have answered with, assembled here instead —
-				// through the same builder that route uses, so the two shapes cannot drift. `capture`
-				// is the one deliberate addition: it rides only with the pushed slice, never on the
-				// fetch (see renderParamsForJob).
-				push: push && {
-					error: false as const,
-					records: push.records,
-					schema: push.schema,
-					renderParams: {
-						...renderParamsForJob(job),
-						...(capture ? { capture } : null),
-					},
-				},
+				push: payloadLiteral ? { literal: payloadLiteral, live: capture === 'live' } : undefined,
+				ctx,
 			}
 		)
 	} finally {
@@ -443,12 +452,12 @@ export interface BrowserRunSessionContext {
 	/** The queue trigger, on sessions the queue runs. Request-path sessions have none. */
 	reason?: OgImageRenderReason
 	/**
-	 * The capture mode this render was asked for: in-page export, or the live canvas. Absent on
-	 * measures. What the page actually did can differ on a fallback — a render that fetched its
-	 * snapshot exports regardless (see renderParamsForJob); the page beacon's `source` blob is the
-	 * ground truth there.
+	 * `live` when the render was asked to rasterize the live canvas; absent means the page exports,
+	 * the same shape as `capture` everywhere else. What the page actually did can differ on a
+	 * fallback — a render that fetched its snapshot exports regardless (see renderParamsForJob); the
+	 * page beacon's `source` blob is the ground truth there.
 	 */
-	capture?: 'live' | 'export'
+	capture?: 'live'
 }
 
 // The Browser Run spend ledger: one datapoint per browser session actually created, written here at
@@ -504,8 +513,9 @@ function writeBrowserRunSessionTelemetry(
 			`outcome:${outcome}`,
 			`reason:${session.reason ?? 'none'}`,
 			`transport:${transport}`,
-			// Appended like transport: existing blob positions must not shift.
-			`capture:${session.capture ?? 'none'}`,
+			// Appended like transport: existing blob positions must not shift. `none` on measures,
+			// which draw nothing; a screenshot render exports unless it asked for live.
+			`capture:${session.mode === 'measure' ? 'none' : (session.capture ?? 'export')}`,
 		],
 		doubles: [width, height, durationMs, payloadChars, browserMsUsed],
 	})
@@ -519,11 +529,9 @@ type RenderTransport = 'inline' | 'push' | 'pull' | 'push_fallback'
 const RPC_MESSAGE_LIMIT_BYTES = 32 * 1024 * 1024
 const PUSH_PAYLOAD_BUDGET_BYTES = RPC_MESSAGE_LIMIT_BYTES - 1024 * 1024
 
-// Compared against a *character* count, which undercounts multi-byte text — so the headroom above
-// is doing real work here, and the capture's catch covers what slips past it. Exact byte counting
-// would mean encoding a copy of a payload that can already be tens of megabytes. Takes a length
-// rather than the string so the inline gate can sum its parts without building the combined
-// document first.
+// A *character* count, which undercounts multi-byte text; the headroom above and the capture's
+// oversize catch cover what slips past. Exact byte counting would mean encoding a copy of a payload
+// that can already be tens of megabytes.
 function isWithinRpcLimit(candidateLength: number) {
 	return candidateLength <= PUSH_PAYLOAD_BUDGET_BYTES
 }
@@ -548,11 +556,14 @@ async function renderThumbnailScreenshot(
 		height,
 		session,
 		push,
+		ctx,
 	}: {
 		width: number
 		height: number
 		session: BrowserRunSessionContext
-		push?: ThumbnailSnapshotResponseBody
+		/** The serialized pushed snapshot, and whether it asked for live capture. */
+		push?: { literal: string; live: boolean }
+		ctx?: ExecutionContext
 	}
 ): Promise<{ base64: string; durationMs: number }> {
 	// Built once and handed to whichever transport runs, so the wait strategy, capture target and
@@ -570,35 +581,34 @@ async function renderThumbnailScreenshot(
 		})
 	}
 
-	// The transport ladder, built once: every form this render could take, largest first, ending on
-	// the payload-free fetch. The up-front pick and the oversize retry both just advance through it,
-	// so the rung order and each rung's body are owned in exactly one place. Only the RPC size limit
-	// steps down a rung: it is the one failure that means "this board is too big for this transport"
-	// rather than "this render is broken", and it costs nothing when it happens — the throw is
-	// in-worker, before any browser session exists, so no Browser Run time is spent and no attempt
-	// is consumed. Anything else propagates, so a real bug cannot hide behind a silent downgrade to
-	// the old path. Rungs the size guard refuses are left out up front — that keeps the oversize
-	// case off the retry path, where the binding's own refusal is a generic Error we would have to
-	// string-match to recognise. Bodies build lazily so an unattempted rung costs nothing.
+	// The transport ladder: every form this render could take, largest first, ending on the
+	// payload-free fetch. The up-front pick and the oversize retry (captureSteppingDown) both just
+	// advance through it, so rung order and bodies are owned in one place. Rungs the size guard
+	// refuses are left out up front, which keeps the oversize case off the retry path where the
+	// binding's refusal is a generic Error we have to string-match. Bodies build lazily.
 	const rungs: {
 		transport: RenderTransport
-		/** Absent on the terminal rung, which injects nothing: it keeps the last measured value. */
-		payloadChars?: number
+		/** What the ledger records as injected; the terminal rung reports the last form refused. */
+		payloadChars: number
 		makeBody(): ThumbnailScreenshotRequestBody | ThumbnailScreenshotHtmlRequestBody
 	}[] = []
 	let transport: RenderTransport = 'pull'
 	let payloadChars = 0
-	// Serialized once: the same literal backs every transport that carries the payload (the inline
-	// globals and the url-mode push script), so a multi-megabyte snapshot pays JSON.stringify and
-	// escaping a single time per render instead of once per form.
-	const payloadLiteral = push ? toRenderScriptLiteral(push) : undefined
+	const payloadLiteral = push?.literal
+	const pushScriptLength = payloadLiteral ? buildPushScript('').length + payloadLiteral.length : 0
 
 	if (payloadLiteral) {
 		// Inline html first: the whole self-contained page rides in the request, so the browser
 		// navigates nowhere, fetches nothing, and there is no injection to race. Absent when the
 		// artifact is missing (a client not yet deployed with it) or the combined document would
 		// cross the RPC limit.
-		const artifact = isInlineRenderEnabled(env) ? await getInlineRenderPage(env) : null
+		//
+		// Live capture only. An html-mode page has no origin, so anything it fetches carries
+		// `Origin: null`, which the asset workers refuse — and the export path fetches every image
+		// asset to inline it into the SVG. The live canvas loads images through <img>, which sends
+		// no Origin, and never exports, so it is the one picture that page can draw correctly.
+		const artifact =
+			push!.live && isInlineRenderEnabled(env) ? await getInlineRenderPage(env, ctx) : null
 		if (artifact) {
 			const parsedRenderUrl = new URL(renderUrl)
 			const globalsScript = buildInlineGlobalsScript(payloadLiteral, {
@@ -623,24 +633,21 @@ async function renderThumbnailScreenshot(
 		}
 
 		// Sized by arithmetic too, so a render the inline rung serves never builds the script at all.
-		const pushScriptLength = buildPushScript('').length + payloadLiteral.length
 		if (isWithinRpcLimit(pushScriptLength)) {
 			rungs.push({
 				transport: 'push',
 				payloadChars: pushScriptLength,
 				makeBody: () => buildRequestBody(buildPushScript(payloadLiteral)),
 			})
-		} else if (rungs.length === 0) {
-			// No payload form fits at all: the ledger still records the refused form's size.
-			payloadChars = pushScriptLength
 		}
 	}
 
 	// The terminal rung: the plain fetch, with nothing injected. `push_fallback` when a payload was
 	// offered and could not be delivered, so the two ways of arriving here — refused up front and
-	// refused by the binding — land on one ledger value.
+	// refused by the binding — land on one ledger value, carrying the size of the form refused.
 	rungs.push({
 		transport: payloadLiteral ? 'push_fallback' : 'pull',
+		payloadChars: pushScriptLength,
 		makeBody: () => buildRequestBody(),
 	})
 
@@ -648,8 +655,7 @@ async function renderThumbnailScreenshot(
 	const nextBody = () => {
 		const rung = rungs[rungIndex++]
 		if (!rung) return null
-		transport = rung.transport
-		if (rung.payloadChars !== undefined) payloadChars = rung.payloadChars
+		;({ transport, payloadChars } = rung)
 		return rung.makeBody()
 	}
 
@@ -675,20 +681,18 @@ async function renderThumbnailScreenshot(
 		return session.mode === 'measure' ? capture : abandonAtRenderTimeout(capture, startedAt)
 	}
 
-	// Runs the capture, stepping down one rung each time the binding refuses the body for size. A
-	// loop rather than a chained catch, so a retry's own refusal (a payload that beat the character
-	// guard but lost to the binding's byte count) keeps stepping down instead of escaping half-way
-	// to the fetch that would have rendered it.
+	// Runs the capture, stepping down one rung each time the binding refuses the body for size.
+	// Only that refusal steps down: it means "too big for this transport", not "this render is
+	// broken", and it costs nothing — the throw is in-worker, before any browser session exists.
+	// Anything else propagates, so a real bug cannot hide behind a silent downgrade to the old
+	// path. A loop rather than a chained catch, so a retry's own refusal (a payload that beat the
+	// character guard but lost to the binding's byte count) keeps stepping down.
 	const captureSteppingDown = async (): Promise<TimedCapture> => {
 		let body = nextBody()!
 		for (;;) {
 			try {
 				return await runCapture(body)
 			} catch (error) {
-				// Backstop to the size guard on the rungs. That guard measures characters; the binding
-				// measures its own serialization of the entire body, so a payload sitting near the line
-				// can still be refused. Recovering costs nothing — the throw precedes any browser
-				// session — and not recovering would fail a board that renders perfectly well today.
 				if (!isRpcOversizeError(error)) throw error
 				const next = nextBody()
 				// Past the terminal rung there is no smaller form; the refusal is the render's failure.
@@ -764,6 +768,11 @@ interface TimedCapture {
 	browserMsUsed: number
 }
 
+// Both transports read the billing header through this, so the ledger column means one thing.
+function browserMsUsedOf(response: Response) {
+	return Number(response.headers.get('X-Browser-Ms-Used')) || 0
+}
+
 async function callBrowserRun(
 	env: Environment,
 	requestBody: ThumbnailScreenshotRequestBody | ThumbnailScreenshotHtmlRequestBody
@@ -799,11 +808,7 @@ async function callBrowserRun(
 			timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
 		})
 	})
-	return {
-		buffer,
-		durationMs: Date.now() - startedAt,
-		browserMsUsed: Number(response.headers.get('X-Browser-Ms-Used')) || 0,
-	}
+	return { buffer, durationMs: Date.now() - startedAt, browserMsUsed: browserMsUsedOf(response) }
 }
 
 // The request cannot cap its own total: `gotoOptions.timeout` and `waitForSelector.timeout` are
@@ -913,11 +918,7 @@ async function callLocalScreenshotService(
 		)
 	}
 	const buffer = await response.arrayBuffer()
-	return {
-		buffer,
-		durationMs: Date.now() - startedAt,
-		browserMsUsed: Number(response.headers.get('X-Browser-Ms-Used')) || 0,
-	}
+	return { buffer, durationMs: Date.now() - startedAt, browserMsUsed: browserMsUsedOf(response) }
 }
 
 // Writes one rendered PNG to a thumbnail cache, stamping the content version (so a stale version

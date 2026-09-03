@@ -89,12 +89,9 @@ export const thumbnailRenderCsp = serializeCsp({
 	'script-src': [...cspDirectives['script-src'], `'unsafe-inline'`],
 })
 
-export const cspDev = Object.keys(cspDirectives)
-	.filter((key) => key !== 'report-uri')
-	.map((directive) => {
-		const values = cspDirectives[directive]
-		// We allow data: urls for frame-src to allow debugging SVG embeds in dev.
-		if (directive === 'frame-src') return `${directive} ${[...values, 'data:'].join(' ')}`
-		return `${directive} ${values.join(' ')}`
-	})
-	.join('; ')
+const { 'report-uri': _reportUri, ...cspDirectivesWithoutReporting } = cspDirectives
+export const cspDev = serializeCsp({
+	...cspDirectivesWithoutReporting,
+	// We allow data: urls for frame-src to allow debugging SVG embeds in dev.
+	'frame-src': [...cspDirectives['frame-src'], 'data:'],
+})

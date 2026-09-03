@@ -121,8 +121,15 @@ async function build() {
 	await exec('../../../node_modules/.bin/vite', ['build', '--emptyOutDir'])
 	// Second pass: the thumbnail render entry as one self-contained file, for the sync-worker's
 	// html-mode captures (the whole page rides inside the Browser Run request; the browser fetches
-	// nothing). Assembled below once the assets exist.
+	// nothing). Emits only the artifact, into dist beside the main build's output.
 	await exec('../../../node_modules/.bin/vite', ['build', '--config', 'vite.inline.config.ts'])
+	// What the sync-worker's fetchInlineRenderPage validates before using the artifact, checked here
+	// because failing there would not error, just silently downgrade every html-mode capture to the
+	// url-mode push. The read itself is the check on the name: the worker fetches exactly this path.
+	const inlineArtifact = readFileSync(`dist${THUMBNAIL_RENDER_INLINE_PATH}`, 'utf8')
+	if (!inlineArtifact.includes('<head>') || !inlineArtifact.includes(THUMBNAIL_RENDER_GLOBAL)) {
+		throw new Error('inline render artifact would fail the sync-worker artifact validation')
+	}
 	await exec('yarn', ['run', '-T', 'sentry-cli', 'sourcemaps', 'inject', 'dist/assets'])
 	// Clear output static folder (in case we are running locally and have already built the app once before)
 	await exec('rm', ['-rf', '.vercel/output'])
@@ -284,54 +291,6 @@ async function build() {
 			2
 		)
 	)
-
-	// Assemble the self-contained render artifact from the inline pass: one JS chunk and one CSS
-	// file, spliced into the HTML with the sequences that would close an inline block early escaped.
-	// Served as a static file so the worker can fetch it once per isolate and cache it; it is not a
-	// page anyone navigates to.
-	const inlineHtmlSrc = readFileSync('dist-inline/thumbnail-render.html', 'utf8')
-	const inlineJsFile = readdirSync('dist-inline/assets').find(
-		(f) => f.startsWith('thumbnail-render-') && f.endsWith('.js')
-	)
-	const inlineCssFile = readdirSync('dist-inline/assets').find(
-		(f) => f.startsWith('style-') && f.endsWith('.css')
-	)
-	if (!inlineJsFile || !inlineCssFile) {
-		throw new Error('inline render build did not produce the expected single JS + CSS pair')
-	}
-	const inlineJs = readFileSync(`dist-inline/assets/${inlineJsFile}`, 'utf8')
-		.replaceAll('</script', '<\\/script')
-		.replaceAll('<!--', '<\\!--')
-	const inlineCss = readFileSync(`dist-inline/assets/${inlineCssFile}`, 'utf8').replaceAll(
-		'</style',
-		'<\\/style'
-	)
-	const scriptTagMatch = inlineHtmlSrc.match(
-		/<script type="module"[^>]*src="\/assets\/[^"]*"[^>]*><\/script>/
-	)
-	const linkTagMatch = inlineHtmlSrc.match(
-		/<link rel="stylesheet"[^>]*href="\/assets\/style-[^"]*"[^>]*\/?>/
-	)
-	if (!scriptTagMatch || !linkTagMatch) {
-		throw new Error('inline render html did not contain the expected script/style references')
-	}
-	// Replacer functions, not replacement strings: a multi-megabyte replacement is effectively
-	// guaranteed to contain `$&`/`$'` sequences, which String.replace would expand into chunks of
-	// the surrounding document.
-	const inlineArtifact = inlineHtmlSrc
-		.replace(linkTagMatch[0], () => `<style>${inlineCss}</style>`)
-		.replace(scriptTagMatch[0], () => `<script type="module">${inlineJs}</script>`)
-		// No preloads here: the artifact's fonts are data URIs inside its own CSS.
-		.replace('<!-- $PRELOADED_FONTS -->', '')
-	if (inlineArtifact.includes('/assets/')) {
-		throw new Error('inline render artifact still references /assets/ — it is not self-contained')
-	}
-	// What the sync-worker's fetchInlineRenderPage validates before using the artifact; failing its
-	// checks would not error, just silently downgrade every html-mode capture to the url-mode push.
-	if (!inlineArtifact.includes('<head>') || !inlineArtifact.includes(THUMBNAIL_RENDER_GLOBAL)) {
-		throw new Error('inline render artifact would fail the sync-worker artifact validation')
-	}
-	writeFileSync(`.vercel/output/static${THUMBNAIL_RENDER_INLINE_PATH}`, inlineArtifact)
 
 	await reportBundleSize('.vercel/output/static')
 }

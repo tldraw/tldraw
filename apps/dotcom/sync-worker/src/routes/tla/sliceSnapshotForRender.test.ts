@@ -1,10 +1,6 @@
 import { TLRecord } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
-import {
-	SnapshotSliceError,
-	sliceSnapshotForRender,
-	toRenderScriptLiteral,
-} from './sliceSnapshotForRender'
+import { sliceSnapshotForRender, toRenderScriptLiteral } from './sliceSnapshotForRender'
 
 // Minimal stand-ins: the slice reads typeName, id, parentId, fromId/toId and scans props for
 // references, so nothing here needs to be a valid tldraw record — only to carry those fields.
@@ -16,7 +12,7 @@ const binding = (id: string, fromId: string, toId: string) =>
 	({ id, typeName: 'binding', type: 'arrow', fromId, toId }) as unknown as TLRecord
 const asset = (id: string) => ({ id, typeName: 'asset', type: 'image' }) as unknown as TLRecord
 
-const ids = (records: TLRecord[]) => new Set(records.map((r) => r.id))
+const ids = (records: TLRecord[] | null) => new Set(records?.map((r) => r.id))
 
 describe('sliceSnapshotForRender', () => {
 	it('returns the records untouched when nothing narrows them', () => {
@@ -87,12 +83,17 @@ describe('sliceSnapshotForRender', () => {
 		expect(ids(sliced)).toContain('binding:1')
 	})
 
-	it('drops a binding whose other end was not requested, rather than stranding it', () => {
+	// An arrow's stored terminal is only refreshed when it is unbound in an editor, so dropping the
+	// binding would draw the arrow to wherever its handle was last dropped. The neighbour rides
+	// along (with its ancestors, for coordinates) so the terminal resolves against the real shape.
+	it('keeps a binding to a shape outside the request, and the shape it points at', () => {
 		const records = [
 			doc,
 			page('page:a'),
 			shape('shape:from', 'page:a'),
-			shape('shape:to', 'page:a'),
+			shape('shape:frame', 'page:a'),
+			shape('shape:to', 'shape:frame'),
+			shape('shape:unrelated', 'page:a'),
 			binding('binding:1', 'shape:from', 'shape:to'),
 		]
 
@@ -101,7 +102,29 @@ describe('sliceSnapshotForRender', () => {
 			shapeIds: ['shape:from'],
 		})
 
-		expect(ids(sliced)).toEqual(new Set(['document:document', 'page:a', 'shape:from']))
+		expect(ids(sliced)).toEqual(
+			new Set(['document:document', 'page:a', 'shape:from', 'shape:frame', 'shape:to', 'binding:1'])
+		)
+	})
+
+	it('does not chase bindings between two neighbours', () => {
+		const records = [
+			doc,
+			page('page:a'),
+			shape('shape:from', 'page:a'),
+			shape('shape:to', 'page:a'),
+			shape('shape:far', 'page:a'),
+			binding('binding:1', 'shape:from', 'shape:to'),
+			binding('binding:2', 'shape:to', 'shape:far'),
+		]
+
+		const sliced = sliceSnapshotForRender(records, {
+			pageId: 'page:a',
+			shapeIds: ['shape:from'],
+		})
+
+		expect(ids(sliced)).not.toContain('binding:2')
+		expect(ids(sliced)).not.toContain('shape:far')
 	})
 
 	it('keeps the asset an image shape references', () => {
@@ -130,22 +153,22 @@ describe('sliceSnapshotForRender', () => {
 		expect(ids(sliceSnapshotForRender(records, { pageId: 'page:a' }))).toContain('asset:deep')
 	})
 
-	it('throws rather than rendering a cluster it cannot assemble', () => {
+	it('refuses rather than rendering a cluster it cannot assemble', () => {
 		const records = [doc, page('page:a'), shape('shape:1', 'page:a')]
 
-		expect(() =>
+		expect(
 			sliceSnapshotForRender(records, { pageId: 'page:a', shapeIds: ['shape:missing'] })
-		).toThrow(SnapshotSliceError)
+		).toBeNull()
 	})
 
-	it('throws when a requested shape lives on a different page than the one being drawn', () => {
+	it('refuses when a requested shape lives on a different page than the one being drawn', () => {
 		const records = [doc, page('page:a'), page('page:b'), shape('shape:onB', 'page:b')]
 
-		// The shape survives but its parent page does not, so the slice is not closed. Failing here
+		// The shape survives but its parent page does not, so the slice is not closed. Refusing here
 		// sends the render down the pull path instead of drawing a shape with no page to sit on.
-		expect(() =>
+		expect(
 			sliceSnapshotForRender(records, { pageId: 'page:a', shapeIds: ['shape:onB'] })
-		).toThrow(SnapshotSliceError)
+		).toBeNull()
 	})
 
 	// The regression that proved keep-by-default: a note's attribution rides on a `user` record that
@@ -193,7 +216,7 @@ describe('sliceSnapshotForRender', () => {
 	it('leaves an already-dangling reference alone, since sending everything renders it the same', () => {
 		const records = [doc, page('page:a'), shape('shape:image', 'page:a', { assetId: 'asset:gone' })]
 
-		expect(() => sliceSnapshotForRender(records, { pageId: 'page:a' })).not.toThrow()
+		expect(sliceSnapshotForRender(records, { pageId: 'page:a' })).not.toBeNull()
 	})
 })
 

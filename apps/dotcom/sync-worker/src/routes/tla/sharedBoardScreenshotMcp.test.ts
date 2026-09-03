@@ -1,4 +1,4 @@
-import { THUMBNAIL_RENDER_GLOBAL } from '@tldraw/dotcom-shared'
+import { THUMBNAIL_RENDER_GLOBAL, THUMBNAIL_RENDER_CONFIG_GLOBAL } from '@tldraw/dotcom-shared'
 import { THUMBNAIL_RENDER_TIMEOUT_MS } from '@tldraw/dotcom-shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { MCP_PER_USER_RATE_LIMIT } from '../../config'
@@ -1234,7 +1234,7 @@ describe('shape screenshots', () => {
 
 	// With an execution context the write rides waitUntil, so the caller's response is not held for
 	// an R2 round trip after a render they already waited seconds for — and the write still lands.
-	it('writes the cache through waitUntil when an execution context exists', async () => {
+	it('awaits the cache write, so an immediate re-request for the same cluster hits the cache', async () => {
 		mockPublishedBoard()
 		const env = makeEnv()
 		const clusterId = await firstClusterId(env, 'user_wu_1', 'abc')
@@ -1256,14 +1256,13 @@ describe('shape screenshots', () => {
 		)
 
 		expect(result.isError).toBeUndefined()
-		expect(extended.length).toBeGreaterThan(0)
-		await Promise.all(extended)
+		// Landed before the response, with nothing deferred to the context for it.
 		const cachedKeys = [...(env.MCP_DATA_BUCKET as any).store.keys()].filter((key) =>
 			(key as string).startsWith('mcp/')
 		)
-		expect(cachedKeys).toHaveLength(1)
+		expect(cachedKeys.length).toBe(1)
+		expect(extended.length).toBe(0)
 	})
-
 	it('records the hashed account only on rate-limited rows', async () => {
 		mockPublishedBoard()
 		const successEnv = makeEnv()
@@ -1747,7 +1746,7 @@ describe('inline html captures', () => {
 			`<!doctype html><html><head><script>${THUMBNAIL_RENDER_GLOBAL}</script></head><body></body></html>`
 		)
 		mockPublishedBoard()
-		const env = makeEnv({ THUMBNAIL_RENDER_INLINE: '1' })
+		const env = makeEnv({ THUMBNAIL_RENDER_INLINE: 'true', THUMBNAIL_RENDER_LIVE_CAPTURE: 'true' })
 		const clusterId = await firstClusterId(env, 'user_inline_1', 'abc')
 
 		await callTool(
@@ -1764,8 +1763,38 @@ describe('inline html captures', () => {
 		// The payload and the page config both sit in <head>, before any page script runs.
 		const head = body.html!.slice(0, body.html!.indexOf('</head>'))
 		expect(head).toContain(`window.${THUMBNAIL_RENDER_GLOBAL}=`)
-		expect(head).toContain('__TLDRAW_RENDER_CONFIG__')
+		expect(head).toContain(`window.${THUMBNAIL_RENDER_CONFIG_GLOBAL}=`)
 		expect(head).toContain('"apiOrigin"')
+	})
+
+	// An html-mode page has no origin, and the export path fetches every image asset with an
+	// `Origin: null` the asset workers refuse. Only a live capture, which loads images through <img>
+	// and never exports, can draw correctly there — so without the live flag the inline rung is
+	// skipped even with the artifact available.
+	it('sends the url-mode push, not html, when live capture is off', async () => {
+		stubArtifactFetch(
+			`<!doctype html><html><head><script>${THUMBNAIL_RENDER_GLOBAL}</script></head><body></body></html>`
+		)
+		mockPublishedBoard()
+		const env = makeEnv({ THUMBNAIL_RENDER_INLINE: 'true' })
+		const clusterId = await firstClusterId(env, 'user_inline_nolive_1', 'abc')
+
+		await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'abc', clusterIds: [clusterId] },
+			env,
+			'user_inline_nolive_2'
+		)
+
+		const body = screenshotOf(env).mock.calls.at(-1)![1] as {
+			url?: string
+			html?: string
+			addScriptTag?: unknown
+		}
+		expect(body.html).toBeUndefined()
+		expect(body.url).toContain('push=1')
+		expect(body.addScriptTag).toBeTruthy()
+		expect(blobValuesOf(env, 'browser_run_session', 'transport').at(-1)).toBe('push')
 	})
 
 	it('falls back to the url-mode push when the artifact cannot be fetched', async () => {
@@ -1776,7 +1805,7 @@ describe('inline html captures', () => {
 			throw new Error(`unexpected fetch ${input}`)
 		})
 		mockPublishedBoard()
-		const env = makeEnv({ THUMBNAIL_RENDER_INLINE: '1' })
+		const env = makeEnv({ THUMBNAIL_RENDER_INLINE: 'true', THUMBNAIL_RENDER_LIVE_CAPTURE: 'true' })
 		const clusterId = await firstClusterId(env, 'user_inline_3', 'abc')
 
 		await callTool(
@@ -1804,7 +1833,7 @@ describe('inline html captures', () => {
 			throw new Error(`unexpected fetch ${input}`)
 		})
 		mockPublishedBoard()
-		const env = makeEnv({ THUMBNAIL_RENDER_INLINE: '1' })
+		const env = makeEnv({ THUMBNAIL_RENDER_INLINE: 'true', THUMBNAIL_RENDER_LIVE_CAPTURE: 'true' })
 		// Distinct boards per call, or the PNG cache would answer the second call with no capture.
 		const clusterId = await firstClusterId(env, 'user_negcache_1', 'abc')
 
@@ -1846,7 +1875,7 @@ describe('inline html captures', () => {
 			return realFetch(input, init)
 		})
 		mockPublishedBoard()
-		const env = makeEnv({ THUMBNAIL_RENDER_INLINE: '1' })
+		const env = makeEnv({ THUMBNAIL_RENDER_INLINE: 'true', THUMBNAIL_RENDER_LIVE_CAPTURE: 'true' })
 		// Distinct boards per call: the PNG cache would otherwise answer the later calls and no
 		// capture (and no artifact use) would happen at all.
 		const clusterId = await firstClusterId(env, 'user_swr_1', 'abc')
@@ -1892,7 +1921,7 @@ describe('inline html captures', () => {
 			`<!doctype html><html><head><script>${THUMBNAIL_RENDER_GLOBAL}</script></head><body></body></html>`
 		)
 		mockPublishedBoard()
-		const env = makeEnv({ THUMBNAIL_RENDER_INLINE: '1' })
+		const env = makeEnv({ THUMBNAIL_RENDER_INLINE: 'true', THUMBNAIL_RENDER_LIVE_CAPTURE: 'true' })
 		const measuring = (env as any).BROWSER
 		;(env as any).BROWSER = {
 			quickAction: vi.fn(async (action: string, body: any) => {
@@ -1944,7 +1973,7 @@ describe('live capture flag', () => {
 			throw new Error(`unexpected fetch ${input}`)
 		})
 		mockPublishedBoard()
-		const env = makeEnv({ THUMBNAIL_RENDER_INLINE: '1', THUMBNAIL_RENDER_LIVE_CAPTURE: '1' })
+		const env = makeEnv({ THUMBNAIL_RENDER_INLINE: 'true', THUMBNAIL_RENDER_LIVE_CAPTURE: 'true' })
 		const clusterId = await firstClusterId(env, 'user_live_1', 'abc')
 
 		await callTool(
@@ -1983,7 +2012,7 @@ describe('live capture flag', () => {
 	// re-derives its params from — does not.
 	it('keeps capture out of the signed job, so a fetch fallback exports', async () => {
 		mockPublishedBoard()
-		const env = makeEnv({ THUMBNAIL_RENDER_LIVE_CAPTURE: '1' })
+		const env = makeEnv({ THUMBNAIL_RENDER_LIVE_CAPTURE: 'true' })
 		const clusterId = await firstClusterId(env, 'user_live_5', 'abc')
 
 		await callTool(
