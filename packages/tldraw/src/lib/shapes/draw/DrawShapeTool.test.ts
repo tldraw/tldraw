@@ -1,5 +1,6 @@
-import { TLDrawShape } from '@tldraw/editor'
+import { TLDrawShape, Vec, last } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
+import { getPointsFromDrawSegments } from './getPath'
 import { Drawing } from './toolStates/Drawing'
 
 let editor: TestEditor
@@ -185,5 +186,108 @@ describe('Close threshold with zoom', () => {
 		const shape = shapes[shapes.length - 1]
 		// Highlight shapes don't have isClosed
 		expect((shape as any).props.isClosed).toBeUndefined()
+	})
+})
+
+describe('Strokes split past maxPointsPerShape', () => {
+	const center = { x: 300, y: 300 }
+	const radius = 200
+	// Enough to split the stroke into three shapes at the default cap of 600
+	const samples = 1500
+
+	function samplePoint(i: number) {
+		const angle = (i / samples) * Math.PI * 2
+		return new Vec(center.x + Math.cos(angle) * radius, center.y + Math.sin(angle) * radius)
+	}
+
+	// Draws around a circle so the stroke ends where it began
+	function drawLoop(tool: 'draw' | 'highlight' = 'draw') {
+		editor.setCurrentTool(tool)
+		const start = samplePoint(0)
+		editor.pointerDown(start.x, start.y)
+		for (let i = 1; i <= samples; i++) {
+			const point = samplePoint(i)
+			editor.pointerMove(point.x, point.y)
+		}
+		editor.pointerUp()
+		return editor.getCurrentPageShapes() as TLDrawShape[]
+	}
+
+	// Draws one page unit per point along y=300, so the stroke splits at x=600
+	function drawLine(length: number) {
+		editor.setCurrentTool('draw')
+		editor.pointerDown(0, 300)
+		for (let x = 1; x <= length; x++) {
+			editor.pointerMove(x, 300)
+		}
+	}
+
+	it('Keeps an open stroke split into several shapes', () => {
+		drawLine(samples)
+		editor.pointerUp()
+		const shapes = editor.getCurrentPageShapes() as TLDrawShape[]
+		expect(shapes).toHaveLength(3)
+		for (const shape of shapes) {
+			expect(shape.props).toMatchObject({ isClosed: false, isComplete: true })
+		}
+	})
+
+	it('Merges a split stroke back into one closed shape when it ends where it began', () => {
+		const shapes = drawLoop()
+		expect(shapes).toHaveLength(1)
+		const [shape] = shapes
+		expect(shape.props).toMatchObject({ isClosed: true, isComplete: true })
+
+		// The merged path visits every sampled point in order at its page position.
+		// Pieces meet at a shared point, so the path may repeat itself there.
+		const transform = editor.getShapePageTransform(shape)
+		const pagePoints = getPointsFromDrawSegments(shape.props.segments).map((point) =>
+			transform.applyToPoint(point)
+		)
+		expect(pagePoints.length).toBeGreaterThanOrEqual(samples + 1)
+		let j = 0
+		for (let i = 0; i <= samples; i++) {
+			const expected = samplePoint(i)
+			while (j < pagePoints.length - 1 && Vec.Dist(pagePoints[j], expected) > 0.5) j++
+			expect(Vec.Dist(pagePoints[j], expected), `sample ${i}`).toBeLessThan(0.5)
+		}
+	})
+
+	it('Undoes and redoes the merged stroke as one step', () => {
+		drawLoop()
+		editor.undo()
+		expect(editor.getCurrentPageShapes()).toHaveLength(0)
+		editor.redo()
+		const shapes = editor.getCurrentPageShapes() as TLDrawShape[]
+		expect(shapes).toHaveLength(1)
+		expect(shapes[0].props.isClosed).toBe(true)
+	})
+
+	it('Does not close a later piece that only returns to where the stroke split', () => {
+		drawLine(700)
+		editor.pointerMove(700, 200)
+		editor.pointerMove(600, 200)
+		editor.pointerMove(600, 300)
+		editor.pointerUp()
+		const shapes = editor.getCurrentPageShapes() as TLDrawShape[]
+		expect(shapes).toHaveLength(2)
+		for (const shape of shapes) {
+			expect(shape.props.isClosed).toBe(false)
+		}
+	})
+
+	it('Never merges highlight strokes', () => {
+		expect(drawLoop('highlight')).toHaveLength(3)
+	})
+
+	it('Extends the merged shape on a following shift-click', () => {
+		drawLoop()
+		editor.keyDown('Shift')
+		editor.pointerDown(600, 600)
+		editor.pointerUp()
+		editor.keyUp('Shift')
+		const shapes = editor.getCurrentPageShapes() as TLDrawShape[]
+		expect(shapes).toHaveLength(1)
+		expect(last(shapes[0].props.segments)?.type).toBe('straight')
 	})
 })

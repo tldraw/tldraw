@@ -7,6 +7,7 @@ import {
 	TLHighlightShape,
 	TLKeyboardEventInfo,
 	TLPointerEventInfo,
+	TLShapeId,
 	TLShapePartial,
 	DIM_2D,
 	Vec,
@@ -63,6 +64,12 @@ export class Drawing extends StateNode {
 	currentSegmentPoints: Vec[] = []
 
 	markId = null as null | string
+
+	// The shapes this stroke has been split across (past maxPointsPerShape), in
+	// drawing order, and the length of the pieces before the current one. A piece
+	// on its own can't tell whether the stroke as a whole has closed.
+	strokePieceIds: TLShapeId[] = []
+	strokeLengthBeforeCurrentPiece = 0
 
 	override onEnter(info: TLPointerEventInfo) {
 		this.markId = null
@@ -159,13 +166,38 @@ export class Drawing extends StateNode {
 	) {
 		if (!this.canClose()) return false
 
+		// A piece after a split can't see where the stroke started. Judged on its
+		// own it would close on the split point and fill only itself, so the whole
+		// stroke is judged instead when it completes.
+		if (this.strokePieceIds.length > 1) return false
+
+		const firstPoint = b64Vecs.decodeFirstPoint(segments[0].path, segments[0].dim)
+		const lastSegment = segments[segments.length - 1]
+		const lastPoint = b64Vecs.decodeLastPoint(lastSegment.path, lastSegment.dim)
+		if (firstPoint === null || lastPoint === null) return false
+
+		return this.getIsStrokeClosed(
+			firstPoint,
+			lastPoint,
+			this.currentLineLength,
+			size,
+			scale,
+			strokeWidth
+		)
+	}
+
+	private getIsStrokeClosed(
+		startPoint: VecModel,
+		endPoint: VecModel,
+		lineLength: number,
+		size: TLDefaultSizeStyle,
+		scale: number,
+		strokeWidth?: number
+	) {
 		if (strokeWidth === undefined) {
 			const theme = this.editor.getCurrentTheme()
 			strokeWidth = theme.strokeWidth * STROKE_SIZES[size]
 		}
-		const firstPoint = b64Vecs.decodeFirstPoint(segments[0].path, segments[0].dim)
-		const lastSegment = segments[segments.length - 1]
-		const lastPoint = b64Vecs.decodeLastPoint(lastSegment.path, lastSegment.dim)
 
 		const isDynamicResizingEnabled = this.editor.user.getIsDynamicResizeMode()
 
@@ -177,13 +209,7 @@ export class Drawing extends StateNode {
 				// 100 is low-zoom boost, 0.18 is the zoom knee, 3 controls falloff steepness
 				100 / (1 + Math.pow(this.zoomOnEnter / 0.18, 3))
 
-		return (
-			firstPoint !== null &&
-			lastPoint !== null &&
-			firstPoint !== lastPoint &&
-			this.currentLineLength > strokeWidth * 4 * scale &&
-			Vec.DistMin(firstPoint, lastPoint, threshold)
-		)
+		return lineLength > strokeWidth * 4 * scale && Vec.DistMin(startPoint, endPoint, threshold)
 	}
 
 	/**
@@ -239,6 +265,8 @@ export class Drawing extends StateNode {
 				// Connect dots
 
 				this.didJustShiftClickToExtendPreviousShapeLine = true
+				this.strokePieceIds = [shape.id]
+				this.strokeLengthBeforeCurrentPiece = 0
 
 				const prevSegment = last(shape.props.segments)
 				if (!prevSegment) throw Error('Expected a previous segment!')
@@ -317,6 +345,8 @@ export class Drawing extends StateNode {
 		}
 		this.currentLineLength = 0
 		this.initialShape = this.editor.getShape<DrawableShape>(id)
+		this.strokePieceIds = [id]
+		this.strokeLengthBeforeCurrentPiece = 0
 	}
 
 	private updateDrawingShape() {
@@ -687,7 +717,9 @@ export class Drawing extends StateNode {
 
 				this.editor.updateShapes([shapePartial])
 
-				// Set a maximum length for the lines array; after 200 points, complete the line.
+				// Past maxPointsPerShape, continue the stroke in a new shape: every move
+				// re-encodes and re-renders the whole shape, so an uncapped stroke slows
+				// down as it grows. complete() merges the pieces again if the stroke closes.
 				if (cachedPoints.length > this.util.options.maxPointsPerShape) {
 					this.editor.updateShapes([{ id, type: this.shapeType, props: { isComplete: true } }])
 
@@ -725,6 +757,8 @@ export class Drawing extends StateNode {
 					this.initialShape = structuredClone(shape)
 					this.mergeNextPoint = false
 					this.lastRecordedPoint = currentPagePoint.clone()
+					this.strokePieceIds.push(newShapeId)
+					this.strokeLengthBeforeCurrentPiece += this.currentLineLength
 					this.currentLineLength = 0
 				}
 
@@ -772,11 +806,91 @@ export class Drawing extends StateNode {
 	complete() {
 		const { initialShape } = this
 		if (!initialShape) return
-		this.editor.updateShapes([
-			{ id: initialShape.id, type: initialShape.type, props: { isComplete: true } },
-		])
+		if (!this.mergeStrokePiecesIfClosed()) {
+			this.editor.updateShapes([
+				{ id: initialShape.id, type: initialShape.type, props: { isComplete: true } },
+			])
+		}
 
 		this.parent.transition('idle')
+	}
+
+	/**
+	 * A stroke split past `maxPointsPerShape` is judged for closing as a whole once it
+	 * completes. If it closed, its pieces are merged back into the first one so the fill has
+	 * a single polygon to paint. Merging only now, rather than as soon as the stroke closes,
+	 * keeps the cost of each pointer move bounded by the cap.
+	 *
+	 * Returns whether the pieces were merged.
+	 */
+	private mergeStrokePiecesIfClosed(): boolean {
+		if (!this.canClose() || this.strokePieceIds.length < 2) return false
+
+		const pieces: TLDrawShape[] = []
+		for (const id of this.strokePieceIds) {
+			const piece = this.editor.getShape<TLDrawShape>(id)
+			if (!piece) return false
+			pieces.push(piece)
+		}
+
+		const first = pieces[0]
+		const lastPiece = pieces[pieces.length - 1]
+		const firstSegment = first.props.segments[0]
+		const lastSegment = last(lastPiece.props.segments)
+		if (!firstSegment || !lastSegment) return false
+		const startPoint = b64Vecs.decodeFirstPoint(firstSegment.path, firstSegment.dim)
+		const endPoint = b64Vecs.decodeLastPoint(lastSegment.path, lastSegment.dim)
+		if (!startPoint || !endPoint) return false
+
+		// Segment points are stored before scaleX/scaleY, so moving a point between
+		// pieces goes through page space with the scale applied and removed again.
+		const toPagePoint = (piece: TLDrawShape, point: VecModel) =>
+			this.editor.getShapePageTransform(piece).applyToPoint({
+				x: point.x * piece.props.scaleX,
+				y: point.y * piece.props.scaleY,
+				z: point.z,
+			})
+		const toPiecePoint = (piece: TLDrawShape, pagePoint: VecModel): VecModel => {
+			const point = this.editor.getPointInShapeSpace(piece, pagePoint)
+			return {
+				x: toFixed(point.x / piece.props.scaleX),
+				y: toFixed(point.y / piece.props.scaleY),
+				z: pagePoint.z,
+			}
+		}
+
+		const lineLength = this.strokeLengthBeforeCurrentPiece + this.currentLineLength
+		const isClosed = this.getIsStrokeClosed(
+			toPiecePoint(lastPiece, toPagePoint(first, startPoint)),
+			endPoint,
+			lineLength,
+			lastPiece.props.size,
+			lastPiece.props.scale
+		)
+		if (!isClosed) return false
+
+		const segments = [...first.props.segments]
+		for (let i = 1; i < pieces.length; i++) {
+			const piece = pieces[i]
+			for (const segment of piece.props.segments) {
+				const points = b64Vecs
+					.decodePoints(segment.path, segment.dim)
+					.map((point) => toPiecePoint(first, toPagePoint(piece, point)))
+				segments.push({ ...segment, path: b64Vecs.encodePoints(points, segment.dim) })
+			}
+		}
+
+		this.editor.updateShapes<TLDrawShape>([
+			{ id: first.id, type: first.type, props: { segments, isClosed: true } },
+		])
+		this.editor.deleteShapes(this.strokePieceIds.slice(1))
+
+		// A following shift-click should extend the merged shape, not a deleted piece
+		this.initialShape = this.editor.getShape<TLDrawShape>(first.id)
+		this.strokePieceIds = [first.id]
+		this.strokeLengthBeforeCurrentPiece = 0
+		this.currentLineLength = lineLength
+		return true
 	}
 
 	cancel() {

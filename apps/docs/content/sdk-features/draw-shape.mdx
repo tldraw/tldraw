@@ -73,6 +73,8 @@ The shape closes when:
 
 When a shape closes, the shape sets `isClosed` to true and fills according to its fill style. Highlight shapes don't support closing.
 
+A long stroke that the tool has split across several shapes (see `maxPointsPerShape` below) is judged as a whole when it completes. If it closed, the pieces are merged back into one shape so the fill covers the whole loop.
+
 ## Line snapping
 
 When drawing straight lines with Shift held, you can snap to previous segments in the current stroke. This helps create precise geometric constructions:
@@ -133,7 +135,7 @@ const ConfiguredDrawUtil = DrawShapeUtil.configure({
 })
 ```
 
-When a stroke exceeds the maximum point count, the draw tool completes the current shape and creates a new one at the current position. This prevents performance issues with very long strokes.
+When a stroke exceeds the maximum point count, the draw tool completes the current shape and creates a new one at the current position. This prevents performance issues with very long strokes. If a split stroke ends near where it began, the pieces are merged back into one closed shape when the pointer lifts, so a long loop can still be filled.
 
 ## Creating draw shapes programmatically
 
