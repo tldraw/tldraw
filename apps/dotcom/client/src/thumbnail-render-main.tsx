@@ -10,12 +10,10 @@ import {
 	setThumbnailError,
 } from './pages/thumbnail-render'
 
-// The dedicated entry for the thumbnail render page (see thumbnail-render.html). Everything the SPA
-// boots before its router — Sentry, Clerk and its CDN fetch, Helmet, the service worker — is
-// deliberately absent: a capture pays for this entry's load on every render, and none of that can
-// appear in the pixels. What must match the app exactly (the SDK build, tldraw.css, assetUrls,
-// embed shape utils, the license key) is imported by the page module itself.
-
+// Everything the SPA boots before its router — Sentry, Clerk and its CDN fetch, Helmet, the
+// service worker — is deliberately absent: a capture pays for this entry's load on every render,
+// and none of it can appear in the pixels.
+//
 // Every failure this page can have must end in a terminal marker: a page with neither
 // data-thumbnail-ready nor data-thumbnail-error burns the whole Browser Run timeout instead of
 // failing the capture in milliseconds. The SPA route this replaced sat under the router's error

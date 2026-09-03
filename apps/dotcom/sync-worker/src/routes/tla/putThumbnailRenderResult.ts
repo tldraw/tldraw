@@ -47,9 +47,7 @@ export async function putThumbnailRenderResult(
 				{ status: 400 }
 			)
 		}
-		// Minted, not merely signed, the same bar the snapshot route sets: a render token is deleted
-		// from the record once its capture ends, so this closes the window in which a token seen in a
-		// render URL could be replayed to write rows for the rest of its TTL.
+		// Minted, not merely signed — the same gate as the snapshot route (see isMintedRenderToken).
 		const job = await verifyThumbnailRenderToken(env, body.token)
 		if (!job || !(await isMintedRenderToken(env, job, body.token))) {
 			return Response.json({ error: true, message: 'Invalid render token' }, { status: 403 })

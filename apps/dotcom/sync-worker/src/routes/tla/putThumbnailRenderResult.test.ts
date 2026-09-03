@@ -71,8 +71,6 @@ describe('the timing beacon', () => {
 		expect((env.MEASURE as any).writeDataPoint).not.toHaveBeenCalled()
 	})
 
-	// The same bar as the snapshot route: an MCP render token's record is deleted when its capture
-	// ends, so a token copied out of a render URL cannot keep writing rows for the rest of its TTL.
 	it('refuses a signed token that was never minted, and accepts one that was', async () => {
 		// The record lives in THUMBNAILS; without the bucket bound the check trusts the signature.
 		const env = makeScreenshotTestEnv({
@@ -110,8 +108,6 @@ describe('the timing beacon', () => {
 		expect((env.MEASURE as any).writeDataPoint).not.toHaveBeenCalled()
 	})
 
-	// Valid JSON that is not an object: the endpoint is unauthenticated, so scanners send exactly
-	// this, and `'timings' in null` would escape as a worker 500 where a 400 is the answer.
 	it.each([null, 42, 'a string'])(
 		'refuses the non-object JSON body %j with a 400',
 		async (body) => {

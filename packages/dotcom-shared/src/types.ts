@@ -174,12 +174,12 @@ export interface ThumbnailShapeMeasurement {
 	text?: string
 }
 
-/** Body of POST /app/thumbnail-render/result — `shapeId -> measurement`, as the editor measured it. */
 /**
  * The render page's phase timings, POSTed to the result route as a fire-and-forget beacon once the
- * export completes. All values are `performance.now()` stamps (ms since navigation start), so the
+ * page is ready. All values are `performance.now()` stamps (ms since navigation start), so the
  * deltas between them are the phase costs a worker-side clock cannot see: script boot, snapshot
- * fetch, editor mount, the settle wait, and the export itself.
+ * fetch, editor mount, the settle wait, and the export itself (on a `live` capture there is no
+ * export, and `exportedAt` is the ready stamp).
  */
 export interface ThumbnailRenderTimingsRequestBody {
 	token: string
@@ -192,6 +192,7 @@ export interface ThumbnailRenderTimingsRequestBody {
 	}
 }
 
+/** Body of POST /app/thumbnail-render/result — `shapeId -> measurement`, as the editor measured it. */
 export interface ThumbnailRenderResultRequestBody {
 	token: string
 	bounds: Record<string, ThumbnailShapeMeasurement>

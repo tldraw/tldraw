@@ -242,11 +242,9 @@ async function build() {
 						dest: '/index.html',
 						headers: commonSecurityHeaders,
 					},
-					// The thumbnail render page is its own Vite entry, not an SPA route, so a Browser
-					// Run capture boots the SDK without the app shell. Rewritten here rather than
-					// served at its build filename so the URL the sync-worker renders
-					// (MCP_SCREENSHOT_RENDER_ORIGIN + THUMBNAIL_RENDER_PATH) never moves. Must come
-					// before the SPA fallback below, which would otherwise answer with index.html.
+					// The render page's own entry (see pages/thumbnail-render.tsx), rewritten so the URL
+					// the sync-worker renders never moves. Must come before the SPA fallback below,
+					// which would otherwise answer with index.html.
 					{
 						check: true,
 						src: `^${THUMBNAIL_RENDER_PATH}$`,

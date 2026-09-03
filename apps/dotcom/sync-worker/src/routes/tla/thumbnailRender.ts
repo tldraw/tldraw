@@ -330,11 +330,7 @@ function writeBrowserRunSessionTelemetry(
 		durationMs: number
 		width: number
 		height: number
-		/**
-		 * Browser wall clock billed (`X-Browser-Ms-Used`), 0 for sessions that died before a response
-		 * or ran on the local dev service. `durationMs - browserMsUsed` isolates queueing and
-		 * transfer, which is where most of this pipeline's variance lives.
-		 */
+		/** See TimedCapture.browserMsUsed; 0 for sessions that died before a response. */
 		browserMsUsed: number
 	}
 ) {

@@ -22,10 +22,9 @@ export const LOCAL_SCREENSHOT_PATH = '/__screenshot'
 // an allowlist the caller supplies is not an allowlist. Mirrors THUMBNAIL_RENDER_PATH.
 const RENDER_PATH = '/__thumbnail-render'
 
-// Serves the render page from its own entry in dev, mirroring the edge rewrite the deployed client
-// gets from scripts/build.ts. Registered before Vite's own middlewares, so the SPA HTML fallback
-// never sees the path — which also means a broken rewrite fails loudly here instead of silently
-// serving the app shell.
+// The dev counterpart of the edge rewrite in scripts/build.ts. Registered before Vite's own
+// middlewares, so the SPA HTML fallback never sees the path — a broken rewrite fails loudly here
+// instead of silently serving the app shell.
 export function thumbnailRenderEntryPlugin(): Plugin {
 	const rewrite = (url: string | undefined) =>
 		url === RENDER_PATH || url?.startsWith(`${RENDER_PATH}?`)

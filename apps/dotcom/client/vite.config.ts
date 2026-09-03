@@ -100,9 +100,7 @@ export default defineConfig((env) => ({
 		rollupOptions: {
 			input: {
 				index: fileURLToPath(new URL('./index.html', import.meta.url)),
-				// The thumbnail render page's own entry, so a Browser Run capture boots the SDK
-				// without the app shell. /__thumbnail-render is rewritten to it at the edge
-				// (scripts/build.ts) and in dev (thumbnailRenderEntryPlugin).
+				// See pages/thumbnail-render.tsx.
 				'thumbnail-render': fileURLToPath(new URL('./thumbnail-render.html', import.meta.url)),
 			},
 		},

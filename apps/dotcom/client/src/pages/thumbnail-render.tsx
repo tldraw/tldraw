@@ -377,12 +377,23 @@ function getRequestedShapeIds(editor: Editor, shapeIds: string[]): TLShapeId[] {
 // neighbour actually sat, which is why the neighbours are deleted rather than never loaded.
 function pruneToRequestedShapes(editor: Editor, requestedIds: TLShapeId[]) {
 	const keep = editor.getShapeAndDescendantIds(requestedIds)
-	const roots = requestedIds.filter((id) => {
-		const parentId = editor.getShape(id)?.parentId
-		return parentId !== undefined && !keep.has(parentId as TLShapeId)
-	})
-	editor.reparentShapes(roots, editor.getCurrentPageId())
-	editor.deleteShapes([...editor.getCurrentPageShapeIds()].filter((id) => !keep.has(id)))
+	const requested = new Set(requestedIds)
+	// Roots in page rendering order, reparented one at a time: each lands above the page's current
+	// children, so two roots from different parents keep the stacking the export would draw. A
+	// single reparentShapes call orders by the roots' own indices, which are only comparable
+	// between siblings.
+	const roots = editor
+		.getCurrentPageShapesSorted()
+		.filter((shape) => requested.has(shape.id) && !keep.has(shape.parentId as TLShapeId))
+	// Locked shapes are otherwise skipped by deleteShapes, and a locked background is exactly the
+	// kind of neighbour that must not end up in the picture.
+	editor.run(
+		() => {
+			for (const root of roots) editor.reparentShapes([root.id], editor.getCurrentPageId())
+			editor.deleteShapes([...editor.getCurrentPageShapeIds()].filter((id) => !keep.has(id)))
+		},
+		{ ignoreShapeLock: true }
+	)
 }
 
 // Like fitContentCamera, but framed on a subset of the page. Uses the same inset so a shapes
@@ -478,9 +489,7 @@ export function ThumbnailExportSignal({
 			}
 			const blob = await exportThumbnailImage(editor, theme, width, height, shapeIds)
 			if (cancelled) return
-			// Before onImage rather than after: the ready marker follows the image paint, and the
-			// screenshot (then the session's teardown) follows the marker — keepalive covers the
-			// race, but not starting one is better.
+			// Before onImage: the ready marker (and the session's teardown) follows the image paint.
 			sendTimingsBeacon(performance.now())
 			await onImage(blob)
 		})().catch((error) => {

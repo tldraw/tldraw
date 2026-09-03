@@ -70,12 +70,12 @@ export interface ThumbnailRenderJob {
 	 * fits the camera to their common bounds and draws only them. Omitted means the whole page.
 	 */
 	shapeIds?: string[]
+	/** `live`: the page prunes to `shapeIds`, settles, and lets the screenshot rasterize the canvas. */
+	capture?: 'live'
 	/**
 	 * `measure` skips the export and POSTs the page's shape geometry back instead — the only way a
 	 * Worker can obtain bounds, since sizing a shape needs an editor and font metrics.
 	 */
-	/** `live`: the page prunes to `shapeIds`, settles, and lets the screenshot rasterize the canvas. */
-	capture?: 'live'
 	mode?: 'screenshot' | 'measure'
 	/** The viewport the render page sets directly when `camera` is omitted. */
 	x: number
