@@ -10,3 +10,6 @@ mcp-deployed-server-plan.md
 prune-ids.txt
 prune-results.jsonl
 prune-dry-run.jsonl
+prune-list-cursor.txt
+prune-progress.json
+prune-ids-partial*.txt

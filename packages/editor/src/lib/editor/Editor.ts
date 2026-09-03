@@ -110,6 +110,7 @@ import {
 import {
 	DEFAULT_ANIMATION_OPTIONS,
 	DEFAULT_CAMERA_OPTIONS,
+	FRAME_MS_60HZ,
 	INTERNAL_POINTER_IDS,
 	LEFT_MOUSE_BUTTON,
 	MIDDLE_MOUSE_BUTTON,
@@ -2303,8 +2304,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const shapeIds = readingOrderShapes.map((shape) => shape.id)
 
 			const currentIndex = currentShapeId ? shapeIds.indexOf(currentShapeId) : -1
+			// With no current index, stepping from -1 makes 'prev' land one shape
+			// before the last; seed it from 0 so it wraps to the last shape. See #10559.
+			const startIndex = currentIndex === -1 && direction === 'prev' ? 0 : currentIndex
 			const adjacentIndex =
-				(currentIndex + (direction === 'next' ? 1 : -1) + shapeIds.length) % shapeIds.length
+				(startIndex + (direction === 'next' ? 1 : -1) + shapeIds.length) % shapeIds.length
 			adjacentShapeId = shapeIds[adjacentIndex]
 		} else {
 			if (!currentShapeId) return
@@ -4086,8 +4090,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				newCy += center.y / newCz - center.y / cz
 			}
 
-			// Apply friction
-			currentSpeed *= 1 - friction
+			// Apply friction per unit of elapsed time, not per tick, or a 120 Hz display decays twice as fast
+			currentSpeed *= (1 - friction) ** (elapsed / FRAME_MS_60HZ)
 			if (currentSpeed < speedThreshold) {
 				cancel()
 			} else {

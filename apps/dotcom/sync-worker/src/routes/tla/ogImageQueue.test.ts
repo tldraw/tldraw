@@ -24,6 +24,7 @@ import {
 } from './ogImageQueue'
 import {
 	blobsWithPrefix,
+	clusterIndexStoreOf,
 	failureBlobsOf,
 	makeBrowserBinding,
 	makeFakeQueue,
@@ -480,6 +481,10 @@ describe('handleOgImageRenderMessage', () => {
 		await handleOgImageRenderMessage(env, message)
 
 		expect(message.ack).toHaveBeenCalledTimes(1)
+		// The MCP cluster index is the only thing in this pipeline that reaches a durable object, and
+		// only from a tool call. The OG path shares the render token, the render page and the browser
+		// binding with it, and must not pick this up by accident.
+		expect(clusterIndexStoreOf(env).calls).toEqual({ get: 0, put: 0 })
 		const job = await verifyThumbnailRenderToken(env, tokenFromScreenshot(env))
 		expect(job).toMatchObject({
 			kind: 'published',

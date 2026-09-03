@@ -172,4 +172,17 @@ describe('CubicBezier2d.getSvgPathData', () => {
 		})
 		expect(b.getSvgPathData()).toBe('M 0.12, 0  C1.01, 2 3, 5 10, 10')
 	})
+
+	it('does not mutate the stored points', () => {
+		const start = new Vec(0.123, 0)
+		const cp1 = new Vec(1.006, 2)
+		const cp2 = new Vec(3, 4.999)
+		const end = new Vec(10, 10.005)
+		const b = new CubicBezier2d({ start, cp1, cp2, end })
+		b.getSvgPathData()
+		expect(start).toMatchObject({ x: 0.123, y: 0 })
+		expect(cp1).toMatchObject({ x: 1.006, y: 2 })
+		expect(cp2).toMatchObject({ x: 3, y: 4.999 })
+		expect(end).toMatchObject({ x: 10, y: 10.005 })
+	})
 })
