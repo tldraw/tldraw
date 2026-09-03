@@ -283,9 +283,17 @@ export function callerBlobsOf(env: Environment) {
 // Every browser_run_session datapoint, parsed for whole-object assertions: one entry per browser
 // session actually created, in creation order. `durationMs` is that session's own wall-clock —
 // request rows carry no durations at all under the split ledger.
-export function sessionsOf(
-	env: Environment
-): Array<{ source: string; mode: string; outcome: string; reason: string; durationMs: number }> {
+export function sessionsOf(env: Environment): Array<{
+	source: string
+	mode: string
+	outcome: string
+	reason: string
+	page: string
+	durationMs: number
+	browserMsUsed: number
+	/** records, page shapes, media assets, bbox width, bbox height */
+	content: number[]
+}> {
 	return datapointsOfEvent(env, 'browser_run_session').map((point) => {
 		const value = (prefix: string) =>
 			point.blobs.find((blob) => blob.startsWith(prefix))!.slice(prefix.length)
@@ -294,7 +302,10 @@ export function sessionsOf(
 			mode: value('mode:'),
 			outcome: value('outcome:'),
 			reason: value('reason:'),
+			page: value('page:'),
 			durationMs: point.doubles[2],
+			browserMsUsed: point.doubles[3],
+			content: point.doubles.slice(4, 9),
 		}
 	})
 }

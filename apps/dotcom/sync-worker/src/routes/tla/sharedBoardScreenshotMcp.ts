@@ -54,6 +54,7 @@ import {
 	putThumbnailPng,
 	resolveThumbnailBoard,
 	writeScreenshotTelemetry,
+	summarizeSnapshotContent,
 } from './thumbnailRender'
 import {
 	ThumbnailErrorSurface,
@@ -743,6 +744,7 @@ type ResolvedBoardPage =
 			ok: true
 			board: ResolvedThumbnailBoard
 			page: ResolvedPageOk
+			snapshot: import('@tldraw/sync-core').RoomSnapshot
 			snapshotVersion: string
 	  }
 	| { ok: false; reason: BoardToolFailureReason; result: ToolCallResult }
@@ -769,6 +771,7 @@ async function resolveBoardPage(
 		ok: true,
 		board: loaded.board,
 		page: pageResult,
+		snapshot: loaded.snapshot,
 		snapshotVersion: loaded.snapshotVersion,
 	}
 }
@@ -1100,6 +1103,7 @@ async function renderShapeSetScreenshot(
 			width: DEFAULT_THUMBNAIL_WIDTH,
 			height: DEFAULT_THUMBNAIL_HEIGHT,
 			telemetry: { source: 'mcp' },
+			content: summarizeSnapshotContent(resolved.snapshot, resolved.page.pageId),
 		})
 
 		// The render is already paid for and the PNG in hand is what the caller asked for, so a failed

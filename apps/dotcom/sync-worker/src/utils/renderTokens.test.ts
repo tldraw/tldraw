@@ -11,6 +11,8 @@ import {
 	mintThumbnailRenderToken,
 	recordMintedRenderToken,
 	verifyThumbnailRenderToken,
+	markRenderTokenServed,
+	wasRenderTokenServedSince,
 } from './renderTokens'
 
 const env = { MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret' } as Environment
@@ -534,5 +536,60 @@ describe('render token records', () => {
 		const stored = JSON.stringify([...(envWithBucket.THUMBNAILS as any).store])
 		expect(stored).not.toContain(token)
 		expect(stored).toContain('tokenHash')
+	})
+})
+
+describe('render page reach', () => {
+	function makeEnvWithBucket() {
+		return {
+			MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret',
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		} as unknown as Environment
+	}
+
+	it('is unknown with no bucket to ask', async () => {
+		const job = makeJob()
+		const token = await mintThumbnailRenderToken(env, job)
+		expect(await wasRenderTokenServedSince(env, job, token, 0)).toBe('unknown')
+	})
+
+	it('is unreached until the page has been served, then reached', async () => {
+		const envWithBucket = makeEnvWithBucket()
+		const job = makeJob({ access: 'render', surface: 'mcp' })
+		const token = await mintThumbnailRenderToken(envWithBucket, job)
+		await recordMintedRenderToken(envWithBucket, job, token)
+		const since = Date.now()
+
+		expect(await wasRenderTokenServedSince(envWithBucket, job, token, since)).toBe('unreached')
+		await markRenderTokenServed(envWithBucket, job, token)
+		expect(await wasRenderTokenServedSince(envWithBucket, job, token, since)).toBe('reached')
+		expect(await isMintedRenderToken(envWithBucket, job, token)).toBe(true)
+	})
+
+	// An OG record is keyed per board and outlives one capture, so a stamp left by an earlier render
+	// must not count for a later session.
+	it('does not count a stamp older than the session', async () => {
+		const envWithBucket = makeEnvWithBucket()
+		const job = makeJob({ access: 'render', surface: 'og' })
+		const token = await mintThumbnailRenderToken(envWithBucket, job)
+		await recordMintedRenderToken(envWithBucket, job, token)
+		await markRenderTokenServed(envWithBucket, job, token)
+
+		const laterSession = Date.now() + 60_000
+		expect(await wasRenderTokenServedSince(envWithBucket, job, token, laterSession)).toBe(
+			'unreached'
+		)
+	})
+
+	it('stamps a public job, which has no minted record, at its per-board key', async () => {
+		const envWithBucket = makeEnvWithBucket()
+		const job = makeJob({ access: 'public', surface: 'og' })
+		const token = await mintThumbnailRenderToken(envWithBucket, job)
+		const since = Date.now()
+
+		await markRenderTokenServed(envWithBucket, job, token)
+
+		expect(await wasRenderTokenServedSince(envWithBucket, job, token, since)).toBe('reached')
+		expect((envWithBucket.THUMBNAILS as any).store.size).toBe(1)
 	})
 })

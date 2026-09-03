@@ -21,6 +21,7 @@ import {
 	putThumbnailPng,
 	resolveThumbnailBoard,
 	writeScreenshotTelemetry,
+	summarizeSnapshotContent,
 } from './thumbnailRender'
 import { classifyScreenshotFailure, reportThumbnailError } from './thumbnailShared'
 
@@ -321,15 +322,17 @@ export async function handleOgImageRenderMessage(
 
 		// The render page exports the chosen page; the worker screenshots it through the BROWSER
 		// binding and writes the PNG to the cache key the OG route reads.
+		const pageId = pickOgImagePageId(snapshot)
 		const render = await captureThumbnailScreenshot(env, board, {
 			surface: 'og',
-			pageId: pickOgImagePageId(snapshot),
+			pageId,
 			theme: 'light',
 			width: DEFAULT_THUMBNAIL_WIDTH,
 			height: DEFAULT_THUMBNAIL_HEIGHT,
 			// `source` is the telemetry surface, not the render pipeline: these sessions belong to the
 			// queue's ledger even though the job is signed for the og pipeline.
 			telemetry: { source: 'queue', reason },
+			content: summarizeSnapshotContent(snapshot, pageId),
 		})
 		await putThumbnailPng(env.THUMBNAILS, cacheKey, render.base64, board.version)
 		await clearOgImagePendingMarker(env, boardRef)

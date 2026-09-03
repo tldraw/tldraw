@@ -310,6 +310,58 @@ export async function deleteMintedRenderToken(
 	}
 }
 
+/** How a session's render page fared, as far as the worker can tell from its own records. */
+export type RenderPageReach = 'reached' | 'unreached' | 'unknown'
+
+/**
+ * Stamps the token's record with the moment the render page fetched its snapshot. Read back by
+ * `wasRenderTokenServedSince` when a session dies, which is the only thing that separates a timeout
+ * whose page never ran (Browser Run, script delivery) from one whose page ran and then stalled (fonts,
+ * assets, the export). Rewrites the record with its hash intact so `isMintedRenderToken` keeps passing;
+ * for a `public` job, which has no record, this creates one at the surface's per-board key, so it
+ * overwrites in place and cannot accumulate. Best effort: this is telemetry.
+ */
+export async function markRenderTokenServed(
+	env: Environment,
+	job: ThumbnailRenderJob,
+	token: string
+): Promise<void> {
+	if (!env.THUMBNAILS) return
+	try {
+		await env.THUMBNAILS.put(await renderTokenRecordKey(job, token), new Uint8Array(), {
+			customMetadata: { tokenHash: await sha256(token), servedAt: String(Date.now()) },
+		})
+	} catch {
+		// Telemetry only; the render must not fail over it.
+	}
+}
+
+// Allowance for the stamp's clock against the session's, which run in different isolates.
+const RENDER_PAGE_REACH_SKEW_MS = 1_000
+
+/**
+ * Whether the render page for this job fetched its snapshot after `since` (the session's start, so a
+ * per-board OG record stamped by an earlier render does not count). `unknown` where there is no bucket
+ * to ask or the read failed.
+ */
+export async function wasRenderTokenServedSince(
+	env: Environment,
+	job: ThumbnailRenderJob,
+	token: string,
+	since: number
+): Promise<RenderPageReach> {
+	if (!env.THUMBNAILS) return 'unknown'
+	try {
+		const record = await env.THUMBNAILS.head(await renderTokenRecordKey(job, token))
+		const servedAt = Number(record?.customMetadata?.servedAt)
+		return Number.isFinite(servedAt) && servedAt >= since - RENDER_PAGE_REACH_SKEW_MS
+			? 'reached'
+			: 'unreached'
+	} catch {
+		return 'unknown'
+	}
+}
+
 /**
  * Whether this token is one we minted. Call only after `verifyThumbnailRenderToken` has accepted the
  * signature and expiry — the `job` argument is what that returns, so the key is derived from signed
