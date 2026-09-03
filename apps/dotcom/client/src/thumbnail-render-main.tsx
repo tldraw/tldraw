@@ -14,10 +14,12 @@ import {
 // service worker — is deliberately absent: a capture pays for this entry's load on every render,
 // and none of it can appear in the pixels.
 //
-// Every failure this page can have must end in a terminal marker: a page with neither
-// data-thumbnail-ready nor data-thumbnail-error burns the whole Browser Run timeout instead of
-// failing the capture in milliseconds. The SPA route this replaced sat under the router's error
-// boundary; this boundary and the window handlers below are what stand in for it.
+// A render failure must end in a terminal marker: a page with neither data-thumbnail-ready nor
+// data-thumbnail-error burns the whole Browser Run timeout instead of failing the capture in
+// milliseconds. The SPA route this replaced sat under the router's error boundary; this boundary
+// (and the ErrorFallback override inside <Tldraw>) stands in for it. Deliberately no window-level
+// error or unhandledrejection handler: those fire on benign noise — a ResizeObserver loop as the
+// editor mounts and the camera fits — and would fail a capture that was about to succeed.
 class ThumbnailRenderBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
 	state = { failed: false }
 	static getDerivedStateFromError() {
@@ -30,12 +32,6 @@ class ThumbnailRenderBoundary extends Component<{ children: ReactNode }, { faile
 		return this.state.failed ? null : this.props.children
 	}
 }
-
-window.addEventListener('error', (event) => setThumbnailError(event.message || 'Uncaught error'))
-window.addEventListener('unhandledrejection', (event) => {
-	const reason = event.reason
-	setThumbnailError(reason instanceof Error ? reason.message : String(reason))
-})
 
 const root = createRoot(document.getElementById('root')!)
 
