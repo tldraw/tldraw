@@ -1,0 +1,26 @@
+{{ define "tldraw.email.short" -}}
+{{ if eq .Labels.alertname "DatasourceNoData" }}No metrics: {{ .Labels.rulename }}{{ else if .Annotations.summary }}{{ .Annotations.summary }}{{ else }}{{ .Labels.alertname }}{{ end }}
+{{- end }}
+
+{{ define "tldraw.email.subject" -}}
+{{ if eq .Status "firing" }}🔴{{ else }}✅{{ end }} {{ if gt (len .Alerts) 1 }}[{{ len .Alerts }} alerts] {{ end }}{{ template "tldraw.email.short" (index .Alerts 0) }}
+{{- end }}
+
+{{ define "tldraw.email.alert" -}}
+{{ if eq .Labels.alertname "DatasourceNoData" -}}
+No metrics for {{ .Labels.rulename }} - the datasource returned no series. Usually the metrics source is down (for Zero rules: Fly.io metrics), not the alert condition itself.
+{{ else -}}
+{{ with .Labels.severity }}{{ . | toUpper }} · {{ end }}{{ template "tldraw.email.short" . }}
+{{ end -}}
+View: {{ .GeneratorURL }}
+Silence: {{ .SilenceURL }}
+{{- end }}
+
+{{ define "tldraw.email.message" -}}
+{{ range .Alerts.Firing }}FIRING · {{ template "tldraw.email.alert" . }}
+
+{{ end -}}
+{{ range .Alerts.Resolved }}RESOLVED · {{ template "tldraw.email.alert" . }}
+
+{{ end -}}
+{{- end }}

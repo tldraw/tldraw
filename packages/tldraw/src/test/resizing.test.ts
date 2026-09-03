@@ -3582,6 +3582,25 @@ describe('shapes that have do not resize', () => {
 		expect(editor.getShapePageBounds(noteBId)).toMatchObject({ x: 100, y: 110, w: 200, h: 200 })
 	})
 
+	it('are still translated if part of a selection when canResize is false', () => {
+		const bookmarkId = createShapeId('bookmark')
+		editor.createShapes([
+			box(ids.boxA, 0, 0, 200, 320),
+			{ id: bookmarkId, type: 'bookmark', x: 0, y: 0, props: { w: 200 } },
+		])
+
+		// a bookmark without an asset is 320 tall
+		expect(editor.getShapePageBounds(bookmarkId)).toMatchObject({ x: 0, y: 0, w: 200, h: 320 })
+
+		editor.select(ids.boxA, bookmarkId)
+
+		editor.resizeSelection({ scaleX: 2, scaleY: 2.1 }, 'bottom_right')
+
+		expect(editor.getShapePageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 400, h: 672 })
+		// the bookmark keeps its size but moves so its center scales with the selection
+		expect(editor.getShapePageBounds(bookmarkId)).toMatchObject({ x: 100, y: 176, w: 200, h: 320 })
+	})
+
 	it('can flip', () => {
 		const noteBId = createShapeId('noteB')
 		const noteCId = createShapeId('noteC')
@@ -3865,6 +3884,33 @@ it('uses the cross cursor when create resizing', () => {
 	editor.pointerMove(-120, -120)
 	expect(editor.getInstanceState().cursor.type).toBe('cross')
 	expect(editor.getInstanceState().cursor.rotation).toBe(0)
+})
+
+describe('When brushing from a selection handle with the accel key', () => {
+	it('resets the resize cursor when brushing starts from a resize handle', () => {
+		editor.select(ids.boxA)
+		editor.pointerDownOnHandle('bottom_right', { ctrlKey: true })
+		editor.expectToBeIn('select.brushing')
+		expect(editor.getInstanceState().cursor).toMatchObject({ type: 'default', rotation: 0 })
+
+		editor.pointerMoveBy(50, 50)
+		expect(editor.getInstanceState().cursor).toMatchObject({ type: 'default', rotation: 0 })
+
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getInstanceState().cursor).toMatchObject({ type: 'default', rotation: 0 })
+	})
+
+	it('resets the rotate cursor when brushing starts from a rotate handle', () => {
+		editor.select(ids.boxA)
+		editor.pointerDownOnHandle('top_right_rotate', { ctrlKey: true })
+		editor.expectToBeIn('select.brushing')
+		expect(editor.getInstanceState().cursor).toMatchObject({ type: 'default', rotation: 0 })
+
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getInstanceState().cursor).toMatchObject({ type: 'default', rotation: 0 })
+	})
 })
 
 describe('Resizing text from the right edge', () => {

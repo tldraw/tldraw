@@ -26,8 +26,11 @@ export function useTldrFileDrop() {
 			if (!tldrawFiles.length) {
 				return
 			}
-			app.uploadTldrFiles(tldrawFiles, (fileId) => {
-				navigate(routes.tlaFile(fileId))
+			app.uploadTldrFiles(tldrawFiles, {
+				source: 'file-drop',
+				onFirstFileUploaded: (fileId) => {
+					navigate(routes.tlaFile(fileId))
+				},
 			})
 		},
 		[app, auth, navigate, rejectTldrawOfflineFiles]

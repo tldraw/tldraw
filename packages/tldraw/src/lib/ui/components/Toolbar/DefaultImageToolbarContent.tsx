@@ -189,15 +189,20 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 
 	useEffect(() => {
 		function handleKeyDown(e: KeyboardEvent) {
-			if (isManipulating) {
-				if (e.key === 'Escape') {
-					editor.cancel()
-					onManipulatingEnd()
-				} else if (e.key === 'Enter') {
-					editor.complete()
-					onManipulatingEnd()
-				}
+			if (!isManipulating) return
+			if (e.key === 'Escape') {
+				editor.cancel()
+			} else if (e.key === 'Enter') {
+				editor.complete()
+			} else {
+				return
 			}
+			onManipulatingEnd()
+			// Otherwise the keydown bubbles to the container's handler, which cancels again
+			// against select.idle and clears the selection (#10405). Leaving crop mode also
+			// unmounts the slider, so refocus the container to keep shortcuts working.
+			e.stopPropagation()
+			editor.getContainer().focus()
 		}
 		const elm = sliderRef.current
 		if (elm) {

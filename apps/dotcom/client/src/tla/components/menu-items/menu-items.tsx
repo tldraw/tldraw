@@ -365,8 +365,11 @@ export function ImportFileActionItem() {
 					const tldrawFiles = rejectTldrawOfflineFiles(pickedFiles)
 					if (!tldrawFiles.length) return
 
-					app.uploadTldrFiles(tldrawFiles, (fileId) => {
-						navigate(routes.tlaFile(fileId), { state: { mode: 'create' } })
+					app.uploadTldrFiles(tldrawFiles, {
+						source: 'account-menu',
+						onFirstFileUploaded: (fileId) => {
+							navigate(routes.tlaFile(fileId), { state: { mode: 'create' } })
+						},
 					})
 				} catch {
 					// user cancelled

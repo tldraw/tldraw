@@ -122,6 +122,43 @@ describe('loadSnapshotIntoStorage', () => {
 		expect(storage.getClock()).toBe(5)
 	})
 
+	it('[SL3] does not delete while a key iterator is open (better-sqlite3 rejects that)', () => {
+		const extraPage = makePage('extra', 'Extra')
+		const storage = new InMemorySyncStorage<TLRecord>({
+			snapshot: makeContractSnapshot([...contractRecords, extraPage]),
+		})
+
+		storage.transaction((txn) => {
+			// better-sqlite3 throws on any write while a statement iterator is still open; mimic
+			// that so a delete issued from inside `for (const id of txn.keys())` fails loudly
+			let openIterators = 0
+			const guarded: typeof txn = Object.create(txn, {
+				keys: {
+					value: function* () {
+						openIterators++
+						try {
+							yield* Array.from(txn.keys())
+						} finally {
+							openIterators--
+						}
+					},
+				},
+				delete: {
+					value: (id: string) => {
+						if (openIterators > 0) {
+							throw new Error('This database connection is busy executing a query')
+						}
+						return txn.delete(id)
+					},
+				},
+			})
+			loadSnapshotIntoStorage(guarded, contractSchema, makeContractSnapshot(contractRecords))
+		})
+
+		expect(storage.documents.has(extraPage.id)).toBe(false)
+		expect(storage.tombstones.has(extraPage.id)).toBe(true)
+	})
+
 	it('[SL4] persists the snapshot schema and migrates loaded records to the current version', () => {
 		interface TestRecord extends BaseRecord<'test', RecordId<TestRecord>> {
 			value: number

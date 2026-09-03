@@ -67,6 +67,15 @@ deleted_classes = ["TLDrawDurableObject"]
 tag = "v11"
 new_sqlite_classes = ["TLFileEffectProcessor"]
 
+# v12 deletes the legacy sync engine's DO classes (their bindings were removed in the
+# previous deploy; delete-class must not share a deploy with binding removal). Their no-op
+# stub exports in worker.ts stay forever — staging/prod migration history references the
+# classes, so removing the exports breaks deploys (see #8124). NOT mirrored in the preview
+# list: preview workers deploy fresh and never created these classes (see below).
+[[migrations]]
+tag = "v12"
+deleted_classes = ["TLPostgresReplicator", "TLUserDurableObject", "TLStatsDurableObject"]
+
 # preview workers are fresh deploys, so CF rejects v10's delete-class for
 # TLDrawDurableObject (code 10074). skip v1 and v10 here; env-level migrations
 # fully replace the top-level list.

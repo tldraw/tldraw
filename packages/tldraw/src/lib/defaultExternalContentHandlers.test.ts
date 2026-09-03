@@ -9,6 +9,7 @@ import {
 import { TestEditor } from '../test/TestEditor'
 import { defaultAssetUtils } from './defaultAssetUtils'
 import {
+	defaultHandleExternalTextContent,
 	defaultHandleExternalUrlContent,
 	notifyIfFileNotAllowed,
 	registerDefaultExternalContentHandlers,
@@ -201,6 +202,21 @@ describe('defaultHandleExternalUrlContent', () => {
 		expect(addToast).not.toHaveBeenCalled()
 	})
 
+	it('selects the created bookmark', async () => {
+		editor = new TestEditor()
+		const { opts } = makeOpts()
+
+		await defaultHandleExternalUrlContent(
+			editor,
+			{ url: 'https://example.com', point: { x: 0, y: 0 } },
+			opts
+		)
+
+		const [bookmark] = editor.getCurrentPageShapes()
+		expect(bookmark.type).toBe('bookmark')
+		expect(editor.getSelectedShapeIds()).toEqual([bookmark.id])
+	})
+
 	it('shows a toast and logs the url for a url with an invalid protocol', async () => {
 		// Regression test for #8097: dragging content from a browser tab in Chrome
 		// with an ad blocker active supplies a DataTransfer url rewritten to
@@ -229,5 +245,32 @@ describe('defaultHandleExternalUrlContent', () => {
 		expect(consoleWarn).toHaveBeenCalledWith(expect.stringContaining('about:blank#blocked'))
 
 		consoleWarn.mockRestore()
+	})
+})
+
+describe('defaultHandleExternalTextContent', () => {
+	let editor: TestEditor
+
+	afterEach(() => {
+		editor?.dispose()
+	})
+
+	it('selects the created text shape', async () => {
+		editor = new TestEditor()
+
+		await defaultHandleExternalTextContent(editor, { text: 'hello', point: { x: 0, y: 0 } })
+
+		const [text] = editor.getCurrentPageShapes()
+		expect(text.type).toBe('text')
+		expect(editor.getSelectedShapeIds()).toEqual([text.id])
+	})
+
+	it('does not select anything when the page is full and no shape is created', async () => {
+		editor = new TestEditor({ options: { maxShapesPerPage: 0 } })
+
+		await defaultHandleExternalTextContent(editor, { text: 'hello', point: { x: 0, y: 0 } })
+
+		expect(editor.getCurrentPageShapes()).toEqual([])
+		expect(editor.getSelectedShapeIds()).toEqual([])
 	})
 })

@@ -14,14 +14,16 @@
 		"dev:tunnel": "yarn build && bash dev-tunnel.sh",
 		"deploy": "yarn build && wrangler deploy",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"prune:list": "tsx scripts/prune-sessions.ts list",
+		"prune:run": "tsx scripts/prune-sessions.ts prune",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"dependencies": {
 		"@modelcontextprotocol/ext-apps": "^1.0.0",
-		"@modelcontextprotocol/sdk": "1.26.0",
-		"agents": "patch:agents@npm%3A0.5.1#~/.yarn/patches/agents-npm-0.5.1-459a7d6fe3.patch",
+		"@modelcontextprotocol/sdk": "1.29.0",
+		"agents": "^0.19.0",
 		"zod": "^4.1.8"
 	},
 	"devDependencies": {
@@ -37,6 +39,7 @@
 		"typescript": "^5.8.3",
 		"vite": "^8.0.16",
 		"vite-plugin-singlefile": "^2.3.2",
+		"vitest": "^4.1.7",
 		"wrangler": "^4.75.0"
 	}
 }

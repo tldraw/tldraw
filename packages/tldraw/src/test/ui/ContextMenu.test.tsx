@@ -1,5 +1,6 @@
-import { act, fireEvent, screen } from '@testing-library/react'
-import { createShapeId, Editor, tlenvReactive } from '@tldraw/editor'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
+import { createShapeId, Editor, TldrawOptions, tlenvReactive } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TLComponents, Tldraw } from '../../lib/Tldraw'
 import { DefaultContextMenu } from '../../lib/ui/components/ContextMenu/DefaultContextMenu'
 import { TLUiOverrides } from '../../lib/ui/overrides'
@@ -7,6 +8,16 @@ import {
 	renderTldrawComponent,
 	renderTldrawComponentWithEditor,
 } from '../testutils/renderTldrawComponent'
+
+// The paste item only renders when the clipboard API exists at module load, so the
+// stub has to be in place before the menu modules are imported.
+const clipboard = vi.hoisted(() => {
+	const clipboard = { read: vi.fn(), write: vi.fn() }
+	Object.assign(navigator, { clipboard })
+	// @ts-expect-error jsdom has no ClipboardItem
+	window.ClipboardItem = class {}
+	return clipboard
+})
 
 it('opens on right-click', async () => {
 	await renderTldrawComponent(
@@ -165,6 +176,54 @@ it('right-click in a shape tool reveals shape actions (rightClickPanning off)', 
 	await screen.findByTestId('context-menu.cut')
 	await screen.findByTestId('context-menu.copy')
 	await screen.findByTestId('context-menu.delete')
+})
+
+it('pastes at the point where the menu was opened, not where the item was chosen', async () => {
+	// Regression for #10423: the pointer keeps moving (over the menu) between the
+	// right-click and choosing Paste, and the pasted content used to follow it.
+	const onClipboardPasteRaw = vi.fn<NonNullable<TldrawOptions['onClipboardPasteRaw']>>(() => false)
+	const { editor } = await renderTldrawComponentWithEditor(
+		(onMount) => <Tldraw options={{ onClipboardPasteRaw }} onMount={onMount} />,
+		{ waitForPatterns: false }
+	)
+	clipboard.read.mockResolvedValue([new window.ClipboardItem({})])
+
+	function movePointerTo(x: number, y: number) {
+		act(() => {
+			editor.dispatch({
+				type: 'pointer',
+				name: 'pointer_move',
+				target: 'canvas',
+				point: { x, y, z: 0.5 },
+				pointerId: 1,
+				button: 0,
+				isPen: false,
+				shiftKey: false,
+				altKey: false,
+				ctrlKey: false,
+				metaKey: false,
+				accelKey: false,
+			})
+			// pointer moves are batched until the next tick
+			editor.emit('tick', 16)
+		})
+	}
+
+	const canvas = await screen.findByTestId('canvas')
+	movePointerTo(100, 200)
+	fireEvent.contextMenu(canvas)
+	const pasteItem = await screen.findByTestId('context-menu.paste')
+
+	// travel down the menu before choosing the item
+	movePointerTo(300, 400)
+	expect(editor.inputs.getCurrentPagePoint()).toMatchObject({ x: 300, y: 400 })
+
+	fireEvent.click(pasteItem)
+	await waitFor(() => expect(onClipboardPasteRaw).toHaveBeenCalled())
+	expect(onClipboardPasteRaw.mock.calls[0][0]).toMatchObject({
+		source: 'clipboard-read',
+		point: { x: 100, y: 200 },
+	})
 })
 
 it('tunnels context menu', async () => {

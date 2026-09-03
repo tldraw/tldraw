@@ -626,3 +626,34 @@ describe('atomic operations (AO)', () => {
 		])
 	})
 })
+
+describe('remote attribution (AO)', () => {
+	it('[AO8] changes made by operationComplete handlers after a remote operation are attributed to user', () => {
+		store.put([book1, book2])
+		const log: string[] = []
+		store.addHistoryInterceptor((_entry, source) => log.push('history:' + source))
+		store.sideEffects.registerAfterChangeHandler('book', (_prev, _next, source) =>
+			log.push('afterChange:' + source)
+		)
+		let once = true
+		store.sideEffects.registerOperationCompleteHandler((source) => {
+			log.push('operationComplete:' + source)
+			if (once) {
+				once = false
+				store.put([{ ...book2, title: 'renamed' }])
+			}
+		})
+
+		store.mergeRemoteChanges(() => store.remove([book1Id]))
+
+		expect(log).toEqual([
+			'history:remote',
+			'operationComplete:remote',
+			'history:user',
+			'afterChange:user',
+			'operationComplete:user',
+			// the integrity check after the merge is its own (empty) user operation
+			'operationComplete:user',
+		])
+	})
+})
