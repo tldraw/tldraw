@@ -551,7 +551,7 @@ override getPart(request: AgentRequest, helpers: AgentHelpers): RandomShapePart 
 	const randomShape = shapes[Math.floor(Math.random() * shapes.length)]
 
 	// Convert the shape to the Focused format
-	const focusedShape = convertTldrawShapeToFocusedShape(randomShape, editor)
+	const focusedShape = convertTldrawShapeToFocusedShape(editor, randomShape)
 
 	// Normalize the shape's position
 	const offsetShape = helpers.applyOffsetToShape(focusedShape)
