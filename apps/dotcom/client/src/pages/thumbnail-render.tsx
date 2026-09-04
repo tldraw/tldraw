@@ -23,6 +23,7 @@ import {
 	fetch,
 	sleep,
 	useEditor,
+	TLAssetId,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { assetUrls } from '../utils/assetUrls'
@@ -357,7 +358,7 @@ export function ThumbnailExportSignal({
 			await Promise.race([
 				(async () => {
 					await waitForFonts()
-					await preloadImageAssets(editor, settleDeadline)
+					await preloadImageAssets(editor, settleDeadline, shapeIds)
 					await waitForEditorImages(editor, settleDeadline)
 				})(),
 				sleep(settleTimeoutMs),
@@ -526,18 +527,25 @@ async function waitForFonts() {
 	}
 }
 
-// Warm every image asset in the snapshot so the browser has the bytes before the shapes request
-// them. Failures resolve rather than reject: a broken asset should not block the capture.
-async function preloadImageAssets(editor: Editor, deadline: number) {
+// Warm the images the capture will draw, so the browser has the bytes before the shapes request
+// them. Only those: the store holds every asset on every page of the board, and the settle budget
+// is fixed, so a board with thousands of images elsewhere spent it fetching pictures the export
+// never shows and then timed out — production timeouts track the board's asset count, not the
+// page's. The drawn set is the export's own (see exportThumbnailImage): the requested shapes and
+// their descendants, or the page's shapes that survive culling at the camera fitted on mount.
+// Failures resolve rather than reject: a broken asset should not block the capture.
+async function preloadImageAssets(editor: Editor, deadline: number, requestedShapeIds?: string[]) {
+	const culled = editor.getCulledShapes()
+	const roots = requestedShapeIds?.length
+		? getRequestedShapeIds(editor, requestedShapeIds)
+		: [...editor.getCurrentPageShapeIds()].filter((id) => !culled.has(id))
 	const urls = new Set<string>()
-	for (const record of editor.store.allRecords()) {
-		if (record.typeName !== 'asset') continue
-		if (record.type === 'image' && record.props.src) {
-			urls.add(record.props.src)
-		}
-		if (record.type === 'bookmark' && record.props.image) {
-			urls.add(record.props.image)
-		}
+	for (const id of editor.getShapeAndDescendantIds(roots)) {
+		const props = editor.getShape(id)?.props as { assetId?: TLAssetId | null } | undefined
+		const asset = props?.assetId ? editor.getAsset(props.assetId) : undefined
+		if (!asset) continue
+		if (asset.type === 'image' && asset.props.src) urls.add(asset.props.src)
+		if (asset.type === 'bookmark' && asset.props.image) urls.add(asset.props.image)
 	}
 	await Promise.all([...urls].map((url) => preloadImage(url, deadline)))
 }
