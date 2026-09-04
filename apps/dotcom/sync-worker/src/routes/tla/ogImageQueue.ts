@@ -34,7 +34,7 @@ import { classifyScreenshotFailure, reportThumbnailError } from './thumbnailShar
 // This path has no cap of any kind, by design. What bounds it is the render debounce upstream in
 // TLFileDurableObject, which is per-board, so total spend scales with how many boards are edited at
 // once. See "Request limits" in browser-run-thumbnails.md for why, and why the only rate limiting in
-// the pipeline lives on the MCP endpoint instead (sharedBoardScreenshotMcp.ts).
+// the pipeline lives on the MCP endpoint instead (mcpServer.ts).
 
 // OG images render a single page as the unfurl preview. Pick the first page (in board order) that
 // has content, so a board whose first page is empty still gets a meaningful image; fall back to the

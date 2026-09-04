@@ -5,7 +5,7 @@ import { WorkerEntrypoint } from 'cloudflare:workers'
 import { AutoRouter, error, IRequest } from 'itty-router'
 import { Environment } from './types'
 
-const MODEL_ID = 'gemini-3-flash-preview'
+const MODEL_ID = 'gemini-3.7-flash'
 
 // Worker (handles AI requests directly)
 export default class extends WorkerEntrypoint<Environment> {
