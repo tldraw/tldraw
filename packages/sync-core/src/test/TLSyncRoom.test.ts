@@ -2306,6 +2306,54 @@ describe('26. Session lifecycle (SES)', () => {
 		expect(socket.__lastMessage).toEqual({ type: 'pong' })
 	})
 
+	it('[SES5] no session receives string-append ops while a client without append support is connected', () => {
+		vi.useFakeTimers()
+		const { room } = makeRoom()
+		const v8 = connectSession(room, 'v8', { protocolVersion: getTlsyncProtocolVersion() })
+		const v7 = connectSession(room, 'v7', { protocolVersion: 7 })
+		expect(room.getCanEmitStringAppend()).toBe(false)
+
+		const hasAppend = (msg: any) => JSON.stringify(msg).includes('"append"')
+
+		// a full put over an existing record whose only change is a string append
+		room.handleMessage('v8', {
+			type: 'push',
+			clientClock: 1,
+			diff: { [pageRecord.id]: ['put', { ...pageRecord, name: pageRecord.name + ' more' }] },
+		} as TLPushRequest<TLRecord>)
+		vi.advanceTimersByTime(DATA_MESSAGE_DEBOUNCE_INTERVAL + 1)
+		expect(sentDataMessages(v7)).toEqual([
+			{
+				type: 'patch',
+				diff: { [pageRecord.id]: ['patch', { name: ['put', pageRecord.name + ' more'] }] },
+				serverClock: 1,
+			},
+		])
+		expect(sentDataMessages(v8).some(hasAppend)).toBe(false)
+		clearSocket(v7)
+		clearSocket(v8)
+
+		// a patch whose recomputed broadcast would otherwise be an append
+		room.handleMessage('v8', {
+			type: 'push',
+			clientClock: 2,
+			diff: { [pageRecord.id]: ['patch', { name: ['put', pageRecord.name + ' more and more'] }] },
+		} as TLPushRequest<TLRecord>)
+		vi.advanceTimersByTime(DATA_MESSAGE_DEBOUNCE_INTERVAL + 1)
+		expect(sentDataMessages(v7)).toEqual([
+			{
+				type: 'patch',
+				diff: {
+					[pageRecord.id]: ['patch', { name: ['put', pageRecord.name + ' more and more'] }],
+				},
+				serverClock: 2,
+			},
+		])
+		expect(sentDataMessages(v8)).toEqual([
+			{ type: 'push_result', clientClock: 2, serverClock: 2, action: 'commit' },
+		])
+	})
+
 	it('[SES7] a message from an unknown session id logs a warning and is ignored', () => {
 		const warn = vi.fn()
 		const { room } = makeRoom({ log: { warn } })
