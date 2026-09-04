@@ -37,7 +37,11 @@ function ContextualToolbarInner({
 	textEditor: TiptapEditor
 }) {
 	const editor = useEditor()
-	const { isEditingLink, onEditLinkStart, onEditLinkClose } = useEditingLinkBehavior(textEditor)
+	const {
+		isEditingLink,
+		onEditLinkStart: startEditingLink,
+		onEditLinkClose,
+	} = useEditingLinkBehavior(textEditor)
 	const [currentSelection, setCurrentSelection] = useState<Range | null>(null)
 	const previousSelectionBounds = useRef<Box | undefined>(undefined)
 	const isMousingDown = useIsMousingDownOnTextEditor(textEditor)
@@ -47,6 +51,15 @@ function ContextualToolbarInner({
 		[editor]
 	)
 	const msg = useTranslation()
+
+	const onEditLinkStart = useCallback(() => {
+		// On touch the formatting toolbar never measures a selection, so a new link started from
+		// the Ctrl/Cmd+Shift+K shortcut would have nothing to anchor to: the link editor would stay
+		// at its hidden position while its input took focus and swallowed typing. Only an existing
+		// link (which anchors to the link mark) can open the editor there.
+		if (isCoarsePointer && !textEditor.isActive('link')) return
+		startEditingLink()
+	}, [isCoarsePointer, textEditor, startEditingLink])
 
 	const getSelectionBounds = useCallback(() => {
 		if (isEditingLink) {
