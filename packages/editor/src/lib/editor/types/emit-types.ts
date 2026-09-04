@@ -8,7 +8,7 @@ export interface TLEventMap {
 	mount: []
 	unmount: []
 	'max-shapes': [{ name: string; pageId: TLPageId; count: number }]
-	'unsupported-shapes': [{ types: string[]; count: number }]
+	'unsupported-shapes': [{ types: string[]; shapeCount: number }]
 	change: [HistoryEntry<TLRecord>]
 	update: []
 	crash: [{ error: unknown }]

@@ -1,11 +1,13 @@
-import { useEditor } from '@tldraw/editor'
+import { TLEventMapHandler, useEditor } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { useToasts } from '../context/toasts'
+import { useTranslation } from './useTranslation/useTranslation'
 
 /** @internal */
 export function useEditorEvents() {
 	const editor = useEditor()
 	const { addToast } = useToasts()
+	const msg = useTranslation()
 
 	useEffect(() => {
 		function handleMaxShapes({ name, count }: { name: string; pageId: string; count: number }) {
@@ -16,11 +18,13 @@ export function useEditorEvents() {
 			})
 		}
 
-		function handleUnsupportedShapes({ count }: { types: string[]; count: number }) {
-			const shapes = count === 1 ? '1 shape' : `${count} shapes`
+		const handleUnsupportedShapes: TLEventMapHandler<'unsupported-shapes'> = ({ shapeCount }) => {
 			addToast({
-				title: 'Some content could not be pasted',
-				description: `${shapes} used a type that this editor doesn't support, so the rest was pasted without ${count === 1 ? 'it' : 'them'}.`,
+				title: msg('toast.unsupported-shapes.title'),
+				description:
+					shapeCount === 1
+						? msg('toast.unsupported-shapes.desc-one')
+						: msg('toast.unsupported-shapes.desc-many').replace('{count}', String(shapeCount)),
 				severity: 'warning',
 			})
 		}
@@ -31,5 +35,5 @@ export function useEditorEvents() {
 			editor.removeListener('max-shapes', handleMaxShapes)
 			editor.removeListener('unsupported-shapes', handleUnsupportedShapes)
 		}
-	}, [editor, addToast])
+	}, [editor, addToast, msg])
 }
