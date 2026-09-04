@@ -305,16 +305,19 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				index = getIndexAbove(index)
 			}
 		} else if (endPoints.length > startPoints.length) {
-			// we'll need to converge points
+			// we'll need to converge points. The start points become the output's points, so they
+			// need fresh indices too: extra points cloned from the last start point would otherwise
+			// share its index and be dropped by linePointsToArray until the animation ends.
 			for (let i = 0; i < endPoints.length; i++) {
 				pointsToUseEnd[i] = { ...endPoints[i] }
 				if (startPoints[i] === undefined) {
 					pointsToUseStart[i] = {
 						...startPoints[startPoints.length - 1],
 						id: index,
+						index,
 					}
 				} else {
-					pointsToUseStart[i] = { ...startPoints[i], id: index }
+					pointsToUseStart[i] = { ...startPoints[i], id: index, index }
 				}
 				index = getIndexAbove(index)
 			}
