@@ -38,10 +38,15 @@ const TLDRAW_CANARIES = [
 // TldrawEditor uses useLocalStore, never the standalone store hook
 const EDITOR_CANARIES = ['packages/editor/src/lib/hooks/useTLStore.ts']
 
+// Serialized as a JS string literal so a repo path with backslashes or quotes stays a valid specifier
+function specifier(...segments: string[]) {
+	return JSON.stringify(join(REPO_ROOT, ...segments))
+}
+
 const ENTRIES: Entry[] = [
 	{
 		name: "import { Tldraw } from 'tldraw'",
-		source: `export { Tldraw } from '${REPO_ROOT}/packages/tldraw/src/index'`,
+		source: `export { Tldraw } from ${specifier('packages/tldraw/src/index')}`,
 		// Measured at 1,657,637 B when this check was added, and 1,738,900 B with every
 		// sideEffects declaration ignored, so the limit sits between the two. Bump it deliberately
 		// when the SDK legitimately grows; it exists to make growth visible, not to forbid it.
@@ -50,12 +55,12 @@ const ENTRIES: Entry[] = [
 	},
 	{
 		name: "import { TldrawEditor } from '@tldraw/editor'",
-		source: `export { TldrawEditor } from '${REPO_ROOT}/packages/editor/src/index'`,
+		source: `export { TldrawEditor } from ${specifier('packages/editor/src/index')}`,
 		mustNotInclude: EDITOR_CANARIES,
 	},
 	{
 		name: "export * from 'tldraw'",
-		source: `export * from '${REPO_ROOT}/packages/tldraw/src/index'`,
+		source: `export * from ${specifier('packages/tldraw/src/index')}`,
 		mustInclude: [...TLDRAW_CANARIES, ...EDITOR_CANARIES],
 	},
 ]
