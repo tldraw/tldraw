@@ -130,14 +130,13 @@ describe('current theme', () => {
 		expect(editor.getCurrentTheme()).toEqual(oceanTheme)
 	})
 
-	// Locks in current behaviour, see #10558.
-	it('setCurrentTheme warns about an unknown id but still sets it', () => {
+	it('setCurrentTheme warns about an unknown id and keeps the current theme', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 		try {
 			editor.setCurrentTheme('nope' as TLThemeId)
 			expect(warn).toHaveBeenCalledTimes(1)
 			expect(warn.mock.calls[0][0]).toContain("Theme 'nope' not found")
-			expect(editor.getCurrentThemeId()).toBe('nope')
+			expect(editor.getCurrentThemeId()).toBe('default')
 		} finally {
 			warn.mockRestore()
 		}
