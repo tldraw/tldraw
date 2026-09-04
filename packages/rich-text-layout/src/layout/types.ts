@@ -37,6 +37,11 @@ export interface Fragment {
 	style: ResolvedInlineStyle
 	kind: FragmentKind
 	source: FragmentSource
+	/**
+	 * Bidi embedding level (UAX #9). Fragments are stored in visual order; within an odd-level
+	 * fragment the text runs right-to-left, so logical offset 0 sits at `x + width`.
+	 */
+	level: number
 	/** Baseline offset relative to the line's baseline (positive moves down); sub/superscripts. */
 	baselineShift: number
 	/** Font ascent and descent of the fragment's font, in pixels: the inline box renderers paint. */
