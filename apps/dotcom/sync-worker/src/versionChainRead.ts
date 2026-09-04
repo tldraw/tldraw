@@ -1,4 +1,8 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
+import { listAllObjectKeys } from './r2'
+import { parseVersionKey, readSegmentRef, SegmentBody } from './versionChain'
+import { decodeVersionBody, isGzippedVersionBody } from './versionChainCodec'
+import { applySnapshotDelta, snapshotContentHash } from './versionDelta'
 
 // R2 has honored `include` on list() since compat date 2022-08-04 (this worker's is far past it),
 // but the repo's ambient workers-types entrypoint predates the option — declared locally, same
@@ -6,19 +10,29 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 type R2ListOptionsWithInclude = R2ListOptions & {
 	include?: Array<'httpMetadata' | 'customMetadata'>
 }
-import { listAllObjectKeys } from './r2'
-import { parseVersionKey, readSegmentRef, SegmentBody } from './versionChain'
-import { decodeVersionBody, isGzippedVersionBody } from './versionChainCodec'
-import { applySnapshotDelta, snapshotContentHash } from './versionDelta'
 
-/** One chain object and the versions it can produce. */
-export interface ChainIndexEntry {
+/** A keyframe object: one whole snapshot, and the single version it is. */
+export interface KeyframeIndexEntry {
+	kind: 'keyframe'
 	key: string
-	kind: 'keyframe' | 'segment'
 	timestamps: string[]
-	keyframeKey: string | null
-	firstSeq: number | null
 }
+
+/** A segment object: the deltas following `keyframeKey`, starting at sequence `firstSeq`. */
+export interface SegmentIndexEntry {
+	kind: 'segment'
+	key: string
+	timestamps: string[]
+	keyframeKey: string
+	firstSeq: number
+}
+
+/**
+ * One chain object and the versions it can produce. A union rather than one shape with nullable
+ * fields: only a segment has a keyframe to point back at, and the reader should not have to assert
+ * that away.
+ */
+export type ChainIndexEntry = KeyframeIndexEntry | SegmentIndexEntry
 
 export interface VersionReconstruction {
 	snapshot: RoomSnapshot
@@ -43,7 +57,8 @@ export async function loadChainIndex(
 	let ops = 0
 
 	do {
-		// Metadata makes pages shorter than `limit`, so `truncated` is the only safe stop condition.
+		// Including metadata makes R2 return shorter pages, so a short page does not mean the
+		// listing is done — `truncated` is the only safe stop condition.
 		const options: R2ListOptionsWithInclude = {
 			prefix: `${roomKey}/`,
 			cursor,
@@ -55,13 +70,7 @@ export async function loadChainIndex(
 			const parsed = parseVersionKey(object.key)
 			if (!parsed) continue
 			if (parsed.kind === 'keyframe') {
-				entries.push({
-					key: object.key,
-					kind: 'keyframe',
-					timestamps: [parsed.timestamp],
-					keyframeKey: null,
-					firstSeq: null,
-				})
+				entries.push({ kind: 'keyframe', key: object.key, timestamps: [parsed.timestamp] })
 				continue
 			}
 			const ref = readSegmentRef(object.customMetadata)
@@ -69,8 +78,8 @@ export async function loadChainIndex(
 			// surfaces as a sequence gap rather than as a silently short replay.
 			if (!ref) continue
 			entries.push({
-				key: object.key,
 				kind: 'segment',
+				key: object.key,
 				timestamps: ref.timestamps,
 				keyframeKey: ref.keyframeKey,
 				firstSeq: ref.firstSeq,
@@ -129,17 +138,17 @@ export async function reconstructVersion({
 		}
 	}
 
-	const keyframeKey = target.keyframeKey!
+	const keyframeKey = target.keyframeKey
 	// By sequence, not by key: keys are wall-clock timestamps, and a DO re-created on a host whose
 	// clock runs behind can open a later segment under an earlier key.
 	const segments = entries
 		.filter(
-			(entry) =>
+			(entry): entry is SegmentIndexEntry =>
 				entry.kind === 'segment' &&
 				entry.keyframeKey === keyframeKey &&
-				entry.firstSeq! <= target.firstSeq!
+				entry.firstSeq <= target.firstSeq
 		)
-		.sort((a, b) => a.firstSeq! - b.firstSeq!)
+		.sort((a, b) => a.firstSeq - b.firstSeq)
 	assertContiguous(segments, target.key)
 
 	const [keyframeObject, segmentBodies] = await Promise.all([
@@ -149,6 +158,11 @@ export async function reconstructVersion({
 				const object = await chainBucket.get(entry.key)
 				if (!object) throw new Error(`version chain sequence broke: ${entry.key} disappeared`)
 				const body = (await decodeVersionBody(object)) as SegmentBody
+				// Same reason applySnapshotDelta guards its own version: replaying a future segment
+				// format under today's rules would reconstruct quietly wrong rather than fail.
+				if (body.v !== 1) {
+					throw new Error(`unknown version segment format ${body.v} in ${entry.key}`)
+				}
 				const bodyTimestamps = body.deltas.map((d) => d.t)
 				// This GET can observe a NEWER copy of the open segment than the listing did — the
 				// durable object may have appended between the two reads — so extra trailing deltas
@@ -185,7 +199,7 @@ export async function reconstructVersion({
 }
 
 /** The chain must run unbroken from sequence 1, or the replay would silently skip versions. */
-function assertContiguous(segments: ChainIndexEntry[], targetKey: string) {
+function assertContiguous(segments: SegmentIndexEntry[], targetKey: string) {
 	let expected = 1
 	for (const segment of segments) {
 		if (segment.firstSeq !== expected) {
@@ -217,8 +231,13 @@ export async function listVersionTimestamps({
 	index?: ChainIndexEntry[]
 	/**
 	 * Caps the legacy listing at the R2 level. Legacy histories are never pruned, so an uncapped
-	 * walk of a big room is hundreds of pages — and the callers that pass a limit only want to
-	 * know whether anything exists.
+	 * walk of a big room is hundreds of pages.
+	 *
+	 * Not "the newest `limit` versions": R2 lists forward, so once the cap binds it is the *oldest*
+	 * legacy page that comes back, and newest-first holds only within that sample. A capped result
+	 * may therefore only answer whether anything exists, or — as `getRoomHistory` does — whether the
+	 * room holds fewer than `limit` versions, which is answerable because a short result means the
+	 * cap never bound.
 	 */
 	limit?: number
 }): Promise<string[]> {

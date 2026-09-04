@@ -181,8 +181,9 @@ export function readSegmentRef(
 	const keyframeKey = metadata?.[KEYFRAME_KEY_METADATA]
 	const rawFirstSeq = metadata?.[FIRST_SEQ_METADATA]
 	const rawTimestamps = metadata?.[TIMESTAMPS_METADATA]
-	if (!keyframeKey || rawFirstSeq === undefined || !rawTimestamps) return null
-	const firstSeq = Number(rawFirstSeq)
-	if (!Number.isFinite(firstSeq)) return null
-	return { keyframeKey, firstSeq, timestamps: rawTimestamps.split(',') }
+	if (!keyframeKey || !rawTimestamps) return null
+	// Matched rather than coerced: sequences start at 1, and `Number` would turn a truncated or
+	// absent value ('', ' ', '0x2') into a plausible-looking number and place the segment wrong.
+	if (!rawFirstSeq || !/^[1-9][0-9]*$/.test(rawFirstSeq)) return null
+	return { keyframeKey, firstSeq: Number(rawFirstSeq), timestamps: rawTimestamps.split(',') }
 }
