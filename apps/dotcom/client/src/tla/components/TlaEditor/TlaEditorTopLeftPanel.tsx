@@ -219,7 +219,8 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	const isOwner = useHasFileAdminRights(fileSlug)
 
 	const app = useApp()
-	const fileId = useCurrentFileId()!
+	// Undefined on legacy routes (/r, /ro, /v, /s): the file-bound actions have nothing to act on.
+	const fileId = useCurrentFileId()
 	const fileName = useValue(
 		'fileName',
 		// TODO(david): This is a temporary fix for allowing guests to see the file name.
@@ -229,7 +230,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 		() => {
 			// we need that backup file name for empty file names (the initial value for the name is empty)
 			return (
-				app.getFileName(fileId, false)?.trim() ||
+				app.getFileName(fileId ?? null, false)?.trim() ||
 				editor.getDocumentSettings().name ||
 				// rather than displaying the date for the project here, display Untitled project
 				intl.formatMessage(messages.untitledProject)
@@ -239,7 +240,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	)
 	const handleFileNameChange = useCallback(
 		(name: string) => {
-			if (isOwner) {
+			if (isOwner && fileId) {
 				setIsRenaming(false)
 				// only actually update the name if name is a value, otherwise keep the previous name
 				if (name) {
@@ -255,7 +256,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	const handleRenameAction = () => {
 		if (getIsCoarsePointer()) {
 			const newName = prompt(intl.formatMessage(sidebarMessages.renameFile), fileName)?.trim()
-			if (newName) {
+			if (newName && fileId) {
 				app.updateFile(fileId, { name: newName })
 			}
 		} else {
@@ -279,7 +280,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 			<span className={styles.topLeftPanelSeparator}>{separator}</span>
 			<DefaultPageMenu />
 			<TlaFileMenu
-				fileId={fileId}
+				fileId={fileId ?? ''}
 				workspaceId={null}
 				source="file-header"
 				onRenameAction={handleRenameAction}
@@ -296,15 +297,17 @@ export function TlaEditorTopLeftPanelSignedIn() {
 				}
 			>
 				<TldrawUiMenuGroup id="regular-stuff">
-					<TldrawUiMenuSubmenu id="file" label={fileSubmenuMsg}>
-						<FileItems
-							source="file-header"
-							fileId={fileId}
-							onRenameAction={handleRenameAction}
-							workspaceId={null}
-						/>
-						<ImportFileActionItem />
-					</TldrawUiMenuSubmenu>
+					{fileId && (
+						<TldrawUiMenuSubmenu id="file" label={fileSubmenuMsg}>
+							<FileItems
+								source="file-header"
+								fileId={fileId}
+								onRenameAction={handleRenameAction}
+								workspaceId={null}
+							/>
+							<ImportFileActionItem />
+						</TldrawUiMenuSubmenu>
+					)}
 					<EditSubmenu />
 					<TlaViewSubmenu />
 					<ExportFileContentSubMenu />
