@@ -51,16 +51,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ai-sdk/gateway@npm:2.0.95":
-  version: 2.0.95
-  resolution: "@ai-sdk/gateway@npm:2.0.95"
+"@ai-sdk/gateway@npm:4.0.70":
+  version: 4.0.70
+  resolution: "@ai-sdk/gateway@npm:4.0.70"
   dependencies:
-    "@ai-sdk/provider": "npm:2.0.3"
-    "@ai-sdk/provider-utils": "npm:3.0.25"
-    "@vercel/oidc": "npm:3.1.0"
+    "@ai-sdk/provider": "npm:4.0.9"
+    "@ai-sdk/provider-utils": "npm:5.0.34"
+    "@vercel/oidc": "npm:3.2.0"
   peerDependencies:
     zod: ^3.25.76 || ^4.1.8
-  checksum: 10/ea2afb94269a5d16fa122fa6c92a7b996ea44ee01643a8934b176a669d288c5d07c69da0a4c0aadfe77aa7ed7106d5c740f863fd2103c795347d82777e60cb5b
+  checksum: 10/ca0119cc631d0c58b37ee1242df5f92e3e777b2fb1617d9956a06224c6b4e0f21c647616ff2a550c6c3a59048397b340113840dcbfa28523b1ab1debe8c49df4
   languageName: node
   linkType: hard
 
@@ -115,6 +115,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ai-sdk/provider-utils@npm:5.0.34":
+  version: 5.0.34
+  resolution: "@ai-sdk/provider-utils@npm:5.0.34"
+  dependencies:
+    "@ai-sdk/provider": "npm:4.0.9"
+    "@standard-schema/spec": "npm:^1.1.0"
+    "@workflow/serde": "npm:4.1.0"
+    eventsource-parser: "npm:^3.0.8"
+    undici: "npm:^7.28.0"
+  peerDependencies:
+    zod: ^3.25.76 || ^4.1.8
+  checksum: 10/38b88c17f097901f077b6a956af8c43e7907c5ecbf94c8e0f4e88d855d6d124e62422b627159fbd59a219867f5c058284190a076d41e2a6170c8c913a6504628
+  languageName: node
+  linkType: hard
+
 "@ai-sdk/provider@npm:2.0.0":
   version: 2.0.0
   resolution: "@ai-sdk/provider@npm:2.0.0"
@@ -130,6 +145,15 @@ __metadata:
   dependencies:
     json-schema: "npm:^0.4.0"
   checksum: 10/98fa6f15d3437d47b32abadc8ca44aad9d8a212e80a6a60523528dc7a453584764cdf7455e0d92186b33d9a3b5a85746692c6ef28cd5051e5553b149030c235f
+  languageName: node
+  linkType: hard
+
+"@ai-sdk/provider@npm:4.0.9":
+  version: 4.0.9
+  resolution: "@ai-sdk/provider@npm:4.0.9"
+  dependencies:
+    json-schema: "npm:^0.4.0"
+  checksum: 10/1a91d0dba1718ef993ad0efe68fafa874baaaab841d8a23d9c1a800e52510c1301a88633bb79eac7dd1816420b1567e317d336fbdbf1c65150ba0666718e0df5
   languageName: node
   linkType: hard
 
@@ -14286,13 +14310,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vercel/oidc@npm:3.1.0":
-  version: 3.1.0
-  resolution: "@vercel/oidc@npm:3.1.0"
-  checksum: 10/2e7fe962a441bbc8b305639f8ab1830fb3c2bb51affa90ae84431af65a29c98343aa089d84dff3730013f0b3fb8dc67ad10fad97c4ce7fdf584510d79fa3919c
-  languageName: node
-  linkType: hard
-
 "@vercel/oidc@npm:3.2.0":
   version: 3.2.0
   resolution: "@vercel/oidc@npm:3.2.0"
@@ -15420,6 +15437,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@workflow/serde@npm:4.1.0":
+  version: 4.1.0
+  resolution: "@workflow/serde@npm:4.1.0"
+  checksum: 10/eb07267e28d75ca86e8bb4186326b25e6bc50b78d324abdf3fbd8723c33b157655c0e30261f8f4e5c7a0fc68bf1182f263d2dbd85aa43e3cbab5825c462e88a3
+  languageName: node
+  linkType: hard
+
 "@xmldom/xmldom@npm:^0.9.5":
   version: 0.9.10
   resolution: "@xmldom/xmldom@npm:0.9.10"
@@ -15719,17 +15743,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ai@npm:^5.0.194":
-  version: 5.0.194
-  resolution: "ai@npm:5.0.194"
+"ai@npm:^7.0.87":
+  version: 7.0.87
+  resolution: "ai@npm:7.0.87"
   dependencies:
-    "@ai-sdk/gateway": "npm:2.0.95"
-    "@ai-sdk/provider": "npm:2.0.3"
-    "@ai-sdk/provider-utils": "npm:3.0.25"
-    "@opentelemetry/api": "npm:1.9.0"
+    "@ai-sdk/gateway": "npm:4.0.70"
+    "@ai-sdk/provider": "npm:4.0.9"
+    "@ai-sdk/provider-utils": "npm:5.0.34"
   peerDependencies:
     zod: ^3.25.76 || ^4.1.8
-  checksum: 10/f7d8ec35fbdb1b8812283eba4083ed18146d1a72f699a6d9a0cc5229e7642876b909b59a59ffbb1641bfd51fcf300eafd52a6ebebc0994d5be98df4fe3290065
+  checksum: 10/3460bd21e6562d488047cd26eaea4426caf094513ce47cd33b79e81b70197285e2973875d246fc5c1afac7ab92b56c3ec4b1c27ee98e5a15fb9f86d4b00ca411
   languageName: node
   linkType: hard
 
@@ -18591,9 +18614,9 @@ __metadata:
   linkType: hard
 
 "deepmerge-ts@npm:^7.0.3":
-  version: 7.1.5
-  resolution: "deepmerge-ts@npm:7.1.5"
-  checksum: 10/f86d1a0b3b803cbae749ebaabf2c6db388abec57d77a4003829ecf987504f3c93b01d1ff86ef89a5d56e2b06d7402ea2a7502f0d044f19e036ada1f543e78d3d
+  version: 7.1.6
+  resolution: "deepmerge-ts@npm:7.1.6"
+  checksum: 10/0024e69c628768fb20577f740a98cd539aec6e09eb6df11ac3c2ce5674a7c2024504d35ffc409d0873a0be4d329660beef0d90f09228390be98ee60f82e3d858
   languageName: node
   linkType: hard
 
@@ -20245,10 +20268,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eventsource-parser@npm:^3.0.0, eventsource-parser@npm:^3.0.1, eventsource-parser@npm:^3.0.3, eventsource-parser@npm:^3.0.6":
-  version: 3.0.6
-  resolution: "eventsource-parser@npm:3.0.6"
-  checksum: 10/febf7058b9c2168ecbb33e92711a1646e06bd1568f60b6eb6a01a8bf9f8fcd29cc8320d57247059cacf657a296280159f21306d2e3ff33309a9552b2ef889387
+"eventsource-parser@npm:^3.0.0, eventsource-parser@npm:^3.0.1, eventsource-parser@npm:^3.0.3, eventsource-parser@npm:^3.0.6, eventsource-parser@npm:^3.0.8":
+  version: 3.1.1
+  resolution: "eventsource-parser@npm:3.1.1"
+  checksum: 10/4ed3fbd0ea5b7041c3d14e6ab686077bc1b93ce230839d50ca735a39754ee17be2402c02be9e6608b325aa7a1e151bfd341ce4c985cb0d0ac2898a0712ab4826
   languageName: node
   linkType: hard
 
@@ -31707,7 +31730,7 @@ __metadata:
     "@types/react-dom": "npm:^19.2.3"
     "@vitejs/plugin-react": "npm:^6.0.1"
     "@worker-tools/json-stream": "npm:^0.1.0-pre.12"
-    ai: "npm:^5.0.194"
+    ai: "npm:^7.0.87"
     best-effort-json-parser: "npm:^1.1.3"
     itty-router: "npm:^5.0.18"
     react: "npm:^19.2.1"
@@ -31731,7 +31754,7 @@ __metadata:
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     "@vitejs/plugin-react": "npm:^6.0.1"
-    ai: "npm:^5.0.194"
+    ai: "npm:^7.0.87"
     classnames: "npm:^2.5.1"
     itty-router: "npm:^5.0.18"
     radix-ui: "npm:^1.4.2"
@@ -31755,7 +31778,7 @@ __metadata:
     "@types/node": "npm:^22.15.31"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
-    ai: "npm:^5.0.194"
+    ai: "npm:^7.0.87"
     next: "npm:^16.3.0"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
@@ -32662,7 +32685,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici@npm:7.28.0, undici@npm:^7.16.0, undici@npm:^7.19.0, undici@npm:^7.25.0":
+"undici@npm:7.28.0":
   version: 7.28.0
   resolution: "undici@npm:7.28.0"
   checksum: 10/154423b280d623278a61decb437f8a7e581fb18b8c95556ef956b32a58cd668eadbb812d28e20678cb2dc545a566f35a3afc0962307ca801da30f4741117986d
@@ -32682,6 +32705,13 @@ __metadata:
   version: 6.27.0
   resolution: "undici@npm:6.27.0"
   checksum: 10/30c18cdb235edf4dd36f8aa3ace1ffaf44060289a7d62ad44c33180d2d74a224015d25574812f62ce9c625b5beb1b0b766495b650fedf356aca11eed7ce2c816
+  languageName: node
+  linkType: hard
+
+"undici@npm:^7.16.0, undici@npm:^7.19.0, undici@npm:^7.25.0, undici@npm:^7.28.0":
+  version: 7.29.0
+  resolution: "undici@npm:7.29.0"
+  checksum: 10/ca73639071bdcbc41e57be1800847fa18f86f8fbf7a5641ff9899f7bbb6f5cecdd593e225f5fd94e31703dcbfaea4a722a3b81cab90c5c4e2b406aec1ae55732
   languageName: node
   linkType: hard
 
