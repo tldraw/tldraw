@@ -5,6 +5,7 @@ import { Environment } from '../types'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
 import { requireAdminAccessToRequest } from '../utils/tla/getAuth'
 import { isTestFile } from '../utils/tla/isTestFile'
+import { loadChainIndex, openWholeVersionStream, reconstructVersion } from '../versionChainRead'
 
 // Get a snapshot of the room at a given point in time
 export async function getRoomHistorySnapshot(
@@ -24,18 +25,41 @@ export async function getRoomHistorySnapshot(
 	}
 
 	const timestamp = request.params.timestamp
+	const roomKey = getR2KeyForRoom({ slug: roomId, isApp })
 
-	const versionCacheBucket = env.ROOMS_HISTORY_EPHEMERAL
-
-	const result = await versionCacheBucket.get(
-		getR2KeyForRoom({ slug: roomId, isApp }) + '/' + timestamp
-	)
+	const buckets = { chainBucket: env.ROOMS_HISTORY, legacyBucket: env.ROOMS_HISTORY_EPHEMERAL }
+	let result
+	try {
+		const { entries: index } = await loadChainIndex(env.ROOMS_HISTORY, roomKey)
+		// Keyframes and legacy full copies stream straight through — parsing and re-serializing a
+		// 25MB board costs ~3x the body on a 128MB isolate. Only a delta replay materializes.
+		const whole = await openWholeVersionStream({ ...buckets, roomKey, timestamp, index })
+		if (whole) {
+			return new Response(whole, { headers: { 'content-type': 'application/json' } })
+		}
+		result = await reconstructVersion({ ...buckets, roomKey, timestamp, index })
+	} catch (error) {
+		// A broken chain must not take history down while the legacy full copies still exist.
+		// Serve the copy and let the error report — the verifier is how the chain gets fixed.
+		console.error(error)
+		const legacy = await env.ROOMS_HISTORY_EPHEMERAL.get(`${roomKey}/${timestamp}`)
+		if (!legacy) throw error
+		return new Response(legacy.body, {
+			headers: { 'content-type': 'application/json' },
+		})
+	}
 
 	if (!result) {
 		return new Response('Not found', { status: 404 })
 	}
 
-	return new Response(result.body, {
-		headers: { 'content-type': 'application/json' },
+	return new Response(JSON.stringify(result.snapshot), {
+		headers: {
+			'content-type': 'application/json',
+			// Replay cost is a product metric once history is user-facing: the segment cap is the
+			// lever, and this is what says whether it needs moving.
+			'x-version-chain-ops': String(result.ops),
+			'x-version-chain-depth': String(result.deltaCount),
+		},
 	})
 }

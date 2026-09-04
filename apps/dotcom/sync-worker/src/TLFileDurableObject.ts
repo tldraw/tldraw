@@ -114,7 +114,12 @@ import { isTestFile } from './utils/tla/isTestFile'
 import { ChainState, PendingDelta, SegmentBody } from './versionChain'
 import { decodeVersionBody } from './versionChainCodec'
 import { getVersionChainMode } from './versionChainConfig'
-import { deleteAllVersions, reconstructVersion } from './versionChainRead'
+import {
+	deleteAllVersions,
+	loadChainIndex,
+	openWholeVersionStream,
+	reconstructVersion,
+} from './versionChainRead'
 import { writeVersionChainEntry } from './versionChainWrite'
 import { snapshotContentHash } from './versionDelta'
 import { resolveWelcomeSnapshot } from './welcome/resolveWelcomeSnapshot'
@@ -148,7 +153,7 @@ type R2OperationType =
 	| 'asset_copy'
 	| 'snapshot_upload'
 	| 'version_chain_write'
-	| 'version_chain_verify'
+	| 'version_chain_read'
 
 // Transient R2 failures worth retrying — dropped connections and the connection-limit error the
 // shared budget exists to avoid. Anything else (a bad request, missing object, etc.) is permanent,
@@ -762,11 +767,53 @@ export class TLFileDurableObject extends DurableObject {
 			if (!timestamp) {
 				return new Response('Missing timestamp', { status: 400 })
 			}
-			const data = await this.r2.versionCache.get(`${roomKey}/${timestamp}`)
-			if (!data) {
-				return new Response('Version not found', { status: 400 })
+			// Reconstructs from the chain, falling back to the legacy full copy both when the chain
+			// has nothing for this version and when it is broken — an admin who can preview a version
+			// must be able to restore it while the full copies exist.
+			// Whole objects (keyframes, legacy copies) are read as text once — the same cost as the
+			// handler this replaces — and only a delta replay materializes a snapshot, which is then
+			// reused below rather than re-parsed. Parsing, re-serializing and parsing again a large
+			// board is what pushes a 128MB isolate over.
+			let dataText: string
+			let restored: RoomSnapshot | undefined
+			try {
+				// One R2 queue slot for the whole read: reconstruction fans out to the keyframe plus
+				// every segment, and beside a persist upload or asset copies that is over the
+				// connection budget the queue exists to hold.
+				const read = await this.addR2Operation(
+					'version_chain_read',
+					async (): Promise<{ text: string } | { snapshot: RoomSnapshot } | null> => {
+						const buckets = {
+							chainBucket: this.r2.versionChain,
+							legacyBucket: this.r2.versionCache,
+						}
+						const { entries: index } = await loadChainIndex(this.r2.versionChain, roomKey)
+						const whole = await openWholeVersionStream({ ...buckets, roomKey, timestamp, index })
+						if (whole) return { text: await new Response(whole).text() }
+						const reconstruction = await reconstructVersion({
+							...buckets,
+							roomKey,
+							timestamp,
+							index,
+						})
+						return reconstruction ? { snapshot: reconstruction.snapshot } : null
+					}
+				)
+				if (!read) {
+					return new Response('Version not found', { status: 400 })
+				}
+				if ('text' in read) {
+					dataText = read.text
+				} else {
+					restored = read.snapshot
+					dataText = JSON.stringify(restored)
+				}
+			} catch (error) {
+				const legacy = await this.r2.versionCache.get(`${roomKey}/${timestamp}`)
+				if (!legacy) throw error
+				this.reportError(error)
+				dataText = await legacy.text()
 			}
-			const dataText = await data.text()
 
 			// The put deliberately carries no version metadata, so null ("looked up, no usable
 			// stamp") is the truth about R2 and the next persist re-uploads and re-stamps.
@@ -819,7 +866,7 @@ export class TLFileDurableObject extends DurableObject {
 			// retries and let the dropped comments resurrect on the next fresh-SQLite load.
 			// follow-up: a durable wipe-marker recorded alongside the outbox would let the DO
 			// itself retry the fileId-wide delete, closing the dependence on caller retries.
-			const snapshot = JSON.parse(dataText) as RoomSnapshot
+			const snapshot = restored ?? (JSON.parse(dataText) as RoomSnapshot)
 
 			const storage = await this.getStorage()
 			storage.transaction((txn) => {
@@ -2093,7 +2140,7 @@ export class TLFileDurableObject extends DurableObject {
 			// One queue slot: reconstruction fans out to the keyframe plus every segment in
 			// parallel, and with one other R2 op alongside that is exactly the Worker's six
 			// simultaneous connections. Outside the queue it would contend with the persist.
-			const reconstruction = await this.addR2Operation('version_chain_verify', () =>
+			const reconstruction = await this.addR2Operation('version_chain_read', () =>
 				reconstructVersion({
 					chainBucket: this.r2.versionChain,
 					legacyBucket: this.r2.versionCache,
