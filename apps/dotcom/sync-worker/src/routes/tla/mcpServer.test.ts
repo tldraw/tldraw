@@ -1276,7 +1276,11 @@ describe('shape screenshots', () => {
 				mode: 'measure',
 				outcome: 'ok',
 				reason: 'none',
+				page: 'reached',
 				durationMs: expect.any(Number),
+				browserMsUsed: 0,
+				// A measure carries no content summary.
+				content: [0, 0, 0, 0, 0],
 			},
 		])
 	})
