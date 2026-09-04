@@ -125,7 +125,7 @@ export function createTldrawRichTextStyles(opts: {
 	lineHeight: number
 	colors?: TldrawRichTextColors
 }): StyleSheet {
-	const link = opts.colors?.link ?? '#2f80ed'
+	const link = opts.colors?.link ?? '#3182ed'
 	const highlight = opts.colors?.highlight ?? '#fddd00'
 	return [
 		nodeRule('paragraph', { marginTop: 0, marginBottom: 0, minHeight: '1lh' }),
