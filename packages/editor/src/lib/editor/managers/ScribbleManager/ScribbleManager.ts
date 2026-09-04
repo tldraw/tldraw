@@ -461,13 +461,15 @@ export class ScribbleManager {
 			}
 		}
 
-		// Remove faded-out items in individual fade mode. A scribble that has not
-		// received its first point yet is also empty but must stay, otherwise the
-		// session is dropped before the tool gets to add a point.
+		// Remove empty items in individual fade mode. A starting scribble that has
+		// not received its first point yet is also empty but must stay, otherwise
+		// the session is dropped before the tool gets to add a point. Empty items in
+		// any other state (completed or stopped before drawing) would keep the
+		// session alive forever, since the tick handlers never touch them again.
 		if (session.options.fadeMode === 'individual') {
 			for (let i = session.items.length - 1; i >= 0; i--) {
 				const { scribble } = session.items[i]
-				if (scribble.points.length === 0 && scribble.state === 'stopping') {
+				if (scribble.points.length === 0 && scribble.state !== 'starting') {
 					session.items.splice(i, 1)
 				}
 			}

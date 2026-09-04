@@ -370,6 +370,17 @@ describe('ScribbleManager', () => {
 
 				expect(() => editor.scribbles.addPoint(item.id, 0, 0)).not.toThrow()
 			})
+
+			it('removes a scribble that is completed before its first point', () => {
+				const sessionId = editor.scribbles.startSession({ selfConsume: false })
+				const item = editor.scribbles.addScribbleToSession(sessionId, {})
+
+				editor.scribbles.complete(item.id)
+				editor.scribbles.tick(16)
+
+				expect(editor.scribbles.isSessionActive(sessionId)).toBe(false)
+				expect(() => editor.scribbles.addPoint(item.id, 0, 0)).toThrow()
+			})
 		})
 	})
 
