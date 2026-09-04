@@ -24,6 +24,8 @@ import {
 	sleep,
 	useEditor,
 	TLAssetId,
+	TLBookmarkShape,
+	getResolvedBookmarkAssetId,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { assetUrls } from '../utils/assetUrls'
@@ -541,8 +543,14 @@ async function preloadImageAssets(editor: Editor, deadline: number, requestedSha
 		: [...editor.getCurrentPageShapeIds()].filter((id) => !culled.has(id))
 	const urls = new Set<string>()
 	for (const id of editor.getShapeAndDescendantIds(roots)) {
-		const props = editor.getShape(id)?.props as { assetId?: TLAssetId | null } | undefined
-		const asset = props?.assetId ? editor.getAsset(props.assetId) : undefined
+		const shape = editor.getShape(id)
+		if (!shape) continue
+		// A bookmark can show a preview through an asset it derives from its url rather than one it
+		// names, so it resolves the way its shape util does.
+		const assetId = editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark')
+			? getResolvedBookmarkAssetId(editor, shape)
+			: (shape.props as { assetId?: TLAssetId | null }).assetId
+		const asset = assetId ? editor.getAsset(assetId) : undefined
 		if (!asset) continue
 		if (asset.type === 'image' && asset.props.src) urls.add(asset.props.src)
 		if (asset.type === 'bookmark' && asset.props.image) urls.add(asset.props.image)
