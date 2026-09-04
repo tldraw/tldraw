@@ -16,8 +16,8 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 		)
 	}
 
-	// Inside the handler's own error shape: the generic 401 body from the router has no `message`,
-	// which the client shows as the toast description.
+	// Return our own 401 body: the router's generic one has no `message`, which the client shows
+	// as the toast description.
 	const auth = await getAuth(request, env)
 	if (!auth) {
 		return Response.json(
@@ -97,7 +97,7 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 			// Add user to the group. Two accepts racing past the membership check above (two tabs,
 			// two devices) would otherwise turn the second into a unique violation and a 500 for a
 			// join that succeeded.
-			await tx
+			const inserted = await tx
 				.insertInto('group_user')
 				.values({
 					groupId: workspace.id,
@@ -110,7 +110,17 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 					updatedAt: Date.now(),
 				})
 				.onConflict((oc) => oc.columns(['userId', 'groupId']).doNothing())
-				.execute()
+				.executeTakeFirst()
+
+			if (inserted.numInsertedOrUpdatedRows === 0n) {
+				return Response.json({
+					error: false,
+					message: 'You are already a member of this group',
+					workspaceId: workspace.id,
+					workspaceName: workspace.name,
+					alreadyMember: true,
+				} satisfies AcceptInviteResponseBody)
+			}
 
 			return Response.json({
 				error: false,
