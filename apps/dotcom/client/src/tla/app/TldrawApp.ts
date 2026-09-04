@@ -485,8 +485,8 @@ export class TldrawApp {
 
 	// Zero-level errors (socket down, client closed) carry prose, not a ZErrorCode.
 	showMutationRejectionToast = throttle((error: MutatorResultErrorDetails['error']) => {
-		const descriptor =
-			error.type === 'zero' ? this.messages.offline_error : this.getMessage(error.message as ZErrorCode)
+		const code = error.type === 'zero' ? ZErrorCode.offline_error : (error.message as ZErrorCode)
+		const descriptor = this.getMessage(code)
 		this.toasts?.addToast({
 			title: this.getIntl().formatMessage(this.messages.mutation_error_toast_title),
 			description: this.getIntl().formatMessage(descriptor),
