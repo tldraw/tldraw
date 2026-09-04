@@ -47,6 +47,9 @@ export interface Environment {
 
 	ROOMS: R2Bucket
 	ROOMS_HISTORY_EPHEMERAL: R2Bucket
+	// Delta chains. ROOMS_HISTORY_EPHEMERAL keeps every version written before cut-over, so both
+	// buckets stay on the read path until the standing history is compacted.
+	ROOMS_HISTORY: R2Bucket
 
 	ROOM_SNAPSHOTS: R2Bucket
 	SNAPSHOT_SLUG_TO_PARENT_SLUG: KVNamespace
@@ -75,6 +78,8 @@ export interface Environment {
 	ASSET_UPLOAD_ORIGIN: string | undefined
 	USER_CONTENT_URL: string | undefined
 	MULTIPLAYER_SERVER: string | undefined
+	VERSION_CHAIN_MODE: string | undefined
+	VERSION_CHAIN_ROLLOUT_PERCENT: string | undefined
 
 	HEALTH_CHECK_BEARER_TOKEN: string | undefined
 	HEALTH_CHECK_DB_SIZE_THRESHOLD_GB: string | undefined
@@ -211,6 +216,23 @@ export type TLServerEvent =
 			 * in the dataset distinguishes, since both emit the same `room_start`.
 			 */
 			resumedSockets: number
+	  }
+	| {
+			type: 'version_chain_write'
+			/** Which kind of object this persist wrote, and — for a keyframe — what forced it. */
+			wrote: 'keyframe' | 'delta'
+			reason: string
+			bytes: number
+			depth: number
+	  }
+	| {
+			/** A cadence keyframe retired a chain; did that chain reconstruct the state it claims? */
+			type: 'version_chain_verify'
+			ok: boolean
+	  }
+	| {
+			/** A chain write failed in dual mode and was swallowed so the persist could complete. */
+			type: 'version_chain_error'
 	  }
 	| {
 			type: 'send_message'

@@ -111,6 +111,12 @@ import { getAuth, requireAdminAccess, requireAdminAccessToRequest } from './util
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 import { getRole } from './utils/tla/getRole'
 import { isTestFile } from './utils/tla/isTestFile'
+import { ChainState, PendingDelta, SegmentBody } from './versionChain'
+import { decodeVersionBody } from './versionChainCodec'
+import { getVersionChainMode } from './versionChainConfig'
+import { deleteAllVersions, reconstructVersion } from './versionChainRead'
+import { writeVersionChainEntry } from './versionChainWrite'
+import { snapshotContentHash } from './versionDelta'
 import { resolveWelcomeSnapshot } from './welcome/resolveWelcomeSnapshot'
 
 const MAX_CONNECTIONS = 50
@@ -138,7 +144,11 @@ const R2_QUEUE_DEPTH_ALERT_THRESHOLD = 100
 
 // The kinds of R2 operation that share the connection budget, used to break queue depth down per
 // type in metrics.
-type R2OperationType = 'asset_copy' | 'snapshot_upload'
+type R2OperationType =
+	| 'asset_copy'
+	| 'snapshot_upload'
+	| 'version_chain_write'
+	| 'version_chain_verify'
 
 // Transient R2 failures worth retrying — dropped connections and the connection-limit error the
 // shared budget exists to avoid. Anything else (a bad request, missing object, etc.) is permanent,
@@ -271,6 +281,13 @@ export class TLFileDurableObject extends DurableObject {
 					storage.transaction((txn) => {
 						fileSyncSchema.migrateStorage(txn)
 					})
+					// R2 holds exactly what we just loaded, so the next persist diffs against it rather
+					// than cutting a keyframe every time the durable object wakes. Gated on the mode: this
+					// is a second decoded copy of the board pinned for the DO's lifetime, not worth paying
+					// for where chains are off.
+					if (getVersionChainMode(this.env, getR2KeyForRoom(this.documentInfo)) !== 'off') {
+						this._lastPersistedSnapshot = storage.getSnapshot?.() ?? null
+					}
 					// Drain any outbox entries stranded by a previous incarnation (e.g. a Postgres
 					// blip during the last-out drain). Retries are otherwise onChange-driven
 					// (triggerPersist), so a reopened room where users only view would never drain.
@@ -448,6 +465,7 @@ export class TLFileDurableObject extends DurableObject {
 	readonly r2: {
 		readonly rooms: R2Bucket
 		readonly versionCache: R2Bucket
+		readonly versionChain: R2Bucket
 	}
 
 	_documentInfo: DocumentInfo | null = null
@@ -500,6 +518,7 @@ export class TLFileDurableObject extends DurableObject {
 		this.r2 = {
 			rooms: env.ROOMS,
 			versionCache: env.ROOMS_HISTORY_EPHEMERAL,
+			versionChain: env.ROOMS_HISTORY,
 		}
 
 		// Respond to ping at the platform layer so the DO can hibernate
@@ -698,6 +717,40 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
+	// The snapshot R2 currently holds, so a persist can diff against it. Seeded from the document
+	// loaded on wake, which IS what R2 holds — without that, every cold start would cut a keyframe.
+	_lastPersistedSnapshot: RoomSnapshot | null = null
+	_versionChain: ChainState | null = null
+	_versionChainLoaded = false
+	// The open segment's deltas. Null means "not known here yet" — after an eviction they are
+	// refetched from the segment object in R2, which is the durable copy.
+	_pendingDeltas: PendingDelta[] | null = null
+	// The version key the chain head was written under, so a retried persist can put the legacy
+	// copy of the same content under the same key.
+	_versionChainHeadIso: string | null = null
+
+	private async getVersionChain(): Promise<ChainState | null> {
+		if (!this._versionChainLoaded) {
+			this._versionChain = ((await this.storage.get('versionChain')) as ChainState | null) ?? null
+			this._versionChainLoaded = true
+		}
+		return this._versionChain
+	}
+
+	private async getPendingDeltas(chain: ChainState | null): Promise<PendingDelta[] | null> {
+		if (!chain?.openSegment) return []
+		if (this._pendingDeltas) return this._pendingDeltas
+		// Cold start. Appending means rewriting the whole segment, so the deltas already in it have
+		// to come back — reading the object is cheaper and simpler than keeping a second copy of
+		// them in durable object storage, and it cannot drift from what R2 actually holds.
+		const object = await this.r2.versionChain.get(chain.openSegment.key)
+		// Null, not []: an open segment that vanished is a broken chain, and rewriting it from an
+		// empty buffer would silently erase the deltas its metadata still promises.
+		if (!object) return null
+		this._pendingDeltas = ((await decodeVersionBody(object)) as SegmentBody).deltas
+		return this._pendingDeltas
+	}
+
 	_isRestoring = false
 	async onRestore(req: IRequest) {
 		this._isRestoring = true
@@ -723,6 +776,15 @@ export class TLFileDurableObject extends DurableObject {
 			await this.executionQueue.push(async () => {
 				await this.r2.rooms.put(roomKey, dataText)
 				this._lastPersistedFingerprint = null
+				// The chain head no longer matches the rooms object. The fingerprint check would
+				// catch the stale chain on the next persist anyway; clearing here makes the next
+				// version an intentional keyframe rather than a recovered mistake.
+				this._lastPersistedSnapshot = null
+				this._versionChain = null
+				this._versionChainLoaded = true
+				this._pendingDeltas = null
+				this._versionChainHeadIso = null
+				await this.storage.delete('versionChain')
 			})
 
 			// Version snapshots only contain the drawing data. Restoring drops the file's comments
@@ -1254,6 +1316,21 @@ export class TLFileDurableObject extends DurableObject {
 				})
 				break
 			}
+			case 'version_chain_write': {
+				this.writeEvent(event.type, {
+					blobs: [event.wrote, event.reason],
+					doubles: [event.bytes, event.depth],
+				})
+				break
+			}
+			case 'version_chain_verify': {
+				this.writeEvent(event.type, { blobs: [event.ok ? 'ok' : 'fail'] })
+				break
+			}
+			case 'version_chain_error': {
+				this.writeEvent(event.type, {})
+				break
+			}
 			default: {
 				exhaustiveSwitchError(event)
 			}
@@ -1599,7 +1676,8 @@ export class TLFileDurableObject extends DurableObject {
 	// backlog of copies — durability shouldn't wait on background asset work.
 	private addR2Operation<T>(type: R2OperationType, task: () => Promise<T>) {
 		return this.r2Queue.add(this.trackQueuedTask(type, task), {
-			priority: type === 'snapshot_upload' ? 1 : 0,
+			// Both sit on the serial persist path; neither may wait behind an asset_copy backlog.
+			priority: type === 'snapshot_upload' || type === 'version_chain_write' ? 1 : 0,
 		})
 	}
 
@@ -1889,6 +1967,11 @@ export class TLFileDurableObject extends DurableObject {
 
 	private async _uploadSnapshotToR2(snapshot: RoomSnapshot, key: string) {
 		const customMetadata = getSnapshotMetadata(snapshot)
+		// Per attempt, not per persist: the retry loop re-reads the snapshot, so a retry may carry
+		// newer content that deserves its own version. When the chain already holds THIS content
+		// from an earlier attempt, _writeVersionChainEntry hands back the key it used, and the
+		// legacy copy lands under that same key — the two buckets must agree on when a version is.
+		let iso = new Date().toISOString()
 		// Upload to rooms bucket first
 		const roomSizeMB = await this._uploadSnapshotToBucket(
 			this.r2.rooms,
@@ -1901,11 +1984,131 @@ export class TLFileDurableObject extends DurableObject {
 			await this.setRoomStorageUsedPercentage(roomSizeMB)
 		}
 
-		// Then upload to version cache. Nothing dedupes this the way the version check in
-		// persistToDatabase does, because nothing after this put can fail: a retry that got here
-		// has already set _lastPersistedFingerprint and takes the skip path instead.
-		const versionKey = `${key}/${new Date().toISOString()}`
-		await this._uploadSnapshotToBucket(this.r2.versionCache, snapshot, versionKey, customMetadata)
+		const mode = getVersionChainMode(this.env, key)
+
+		if (mode === 'chain') {
+			iso = await this._writeVersionChainEntry(snapshot, key, iso)
+		} else if (mode === 'dual') {
+			// The bake is a shadow write. A non-transient chain failure here (corrupt segment, a
+			// 4xx, DO storage) must be a metric, not a failed persist — the outer retry would
+			// otherwise re-upload the rooms object 100 times, raise persistence_bad, and never
+			// reach the legacy write that dual mode exists to keep.
+			try {
+				iso = await this._writeVersionChainEntry(snapshot, key, iso)
+			} catch (error) {
+				this.logEvent({ type: 'version_chain_error' })
+				this.reportError(error)
+			}
+		}
+		// Dual-write keeps the legacy full copy so the verifier has something to compare
+		// reconstructions against on live traffic. Stage 3 of the rollout flips this to 'chain'.
+		// Nothing dedupes this write the way the version check in persistToDatabase does: a retry
+		// that got here has already set _lastPersistedFingerprint and takes the skip path instead
+		// (the chain write above carries its own re-entry guard for the same reason).
+		if (mode !== 'chain') {
+			await this._uploadSnapshotToBucket(
+				this.r2.versionCache,
+				snapshot,
+				`${key}/${iso}`,
+				customMetadata
+			)
+		}
+	}
+
+	/**
+	 * Writes this snapshot into the chain and returns the version key (ISO timestamp) it lives under
+	 * — `iso` when written now, or the key from an earlier attempt when the chain already holds
+	 * exactly this content.
+	 */
+	private async _writeVersionChainEntry(
+		snapshot: RoomSnapshot,
+		key: string,
+		iso: string
+	): Promise<string> {
+		let chain = await this.getVersionChain()
+		const fingerprint = getSnapshotFingerprint(snapshot)
+		// Re-entry guard: a dual-write persist that failed on the legacy upload retries this whole
+		// method with the chain already holding this exact version. Without it, every such retry
+		// appends a no-op delta at a fresh timestamp — the duplicate class #10571 exists to kill.
+		if (chain && isSameFingerprint(chain.headFingerprint, fingerprint)) {
+			return this._versionChainHeadIso ?? iso
+		}
+		let pending: PendingDelta[] = []
+		if (chain) {
+			const rehydrated = await this.getPendingDeltas(chain)
+			// The chain said a segment was open but R2 no longer has it. Appending would rewrite the
+			// segment without the deltas its metadata still promises, so start a fresh chain instead.
+			if (rehydrated === null) chain = null
+			else pending = rehydrated
+		}
+		// R2 persist flakiness is a known quantity (see the multipart/fallback machinery on the
+		// snapshot uploads). A chain write is one idempotent PUT for a fixed iso, so retrying the
+		// whole call is safe.
+		const result = await this.addR2Operation('version_chain_write', () =>
+			retry(
+				() =>
+					writeVersionChainEntry({
+						bucket: this.r2.versionChain,
+						roomKey: key,
+						iso,
+						chain,
+						pending,
+						previous: this._lastPersistedSnapshot,
+						next: snapshot,
+						now: Date.now(),
+					}),
+				{ attempts: 3, waitDuration: 500, matchError: isTransientConnectionError }
+			)
+		)
+		this._versionChain = result.chain
+		this._pendingDeltas = result.pending
+		this._versionChainHeadIso = iso
+		await this.storage.put('versionChain', result.chain)
+		const previous = this._lastPersistedSnapshot
+		this._lastPersistedSnapshot = snapshot
+		this.logEvent({
+			type: 'version_chain_write',
+			wrote: result.wrote,
+			reason: result.reason ?? '',
+			bytes: result.bytes,
+			depth: result.chain.deltaCount,
+		})
+		// A cadence keyframe retires a complete chain that should reproduce `previous` exactly.
+		// Prove it while both sides are cheap to compare — this keeps the bake's verification
+		// running for the life of the system, not just the rollout. Off the persist path, and a
+		// failure is a metric, never an error: the keyframe just cut already healed the chain.
+		if (
+			result.wrote === 'keyframe' &&
+			(result.reason === 'delta-count' || result.reason === 'chain-age') &&
+			previous &&
+			pending.length > 0
+		) {
+			this.ctx.waitUntil(this._verifyRetiredChain(pending[pending.length - 1].t, previous))
+		}
+		return iso
+	}
+
+	private async _verifyRetiredChain(lastDeltaTimestamp: string, expected: RoomSnapshot) {
+		try {
+			// One queue slot: reconstruction fans out to the keyframe plus every segment in
+			// parallel, and with one other R2 op alongside that is exactly the Worker's six
+			// simultaneous connections. Outside the queue it would contend with the persist.
+			const reconstruction = await this.addR2Operation('version_chain_verify', () =>
+				reconstructVersion({
+					chainBucket: this.r2.versionChain,
+					legacyBucket: this.r2.versionCache,
+					roomKey: getR2KeyForRoom(this.documentInfo),
+					timestamp: lastDeltaTimestamp,
+				})
+			)
+			const ok =
+				!!reconstruction &&
+				snapshotContentHash(reconstruction.snapshot) === snapshotContentHash(expected)
+			this.logEvent({ type: 'version_chain_verify', ok })
+		} catch (error) {
+			this.logEvent({ type: 'version_chain_verify', ok: false })
+			this.reportError(error)
+		}
 	}
 
 	private async _uploadSnapshotToBucket(
@@ -2831,10 +3034,11 @@ export class TLFileDurableObject extends DurableObject {
 
 			// remove edit history
 			const r2Key = getR2KeyForRoom({ slug: id, isApp: true })
-			const editHistory = await listAllObjectKeys(this.env.ROOMS_HISTORY_EPHEMERAL, r2Key)
-			if (editHistory.length > 0) {
-				await this.env.ROOMS_HISTORY_EPHEMERAL.delete(editHistory)
-			}
+			await deleteAllVersions({
+				chainBucket: this.env.ROOMS_HISTORY,
+				legacyBucket: this.env.ROOMS_HISTORY_EPHEMERAL,
+				roomKey: r2Key,
+			})
 
 			// remove main file
 			await this.env.ROOMS.delete(r2Key)
@@ -3033,10 +3237,11 @@ export class TLFileDurableObject extends DurableObject {
 		const roomKey = getR2KeyForRoom({ slug, isApp: false })
 
 		// remove edit history
-		const editHistory = await listAllObjectKeys(this.env.ROOMS_HISTORY_EPHEMERAL, roomKey)
-		if (editHistory.length > 0) {
-			await this.env.ROOMS_HISTORY_EPHEMERAL.delete(editHistory)
-		}
+		await deleteAllVersions({
+			chainBucket: this.env.ROOMS_HISTORY,
+			legacyBucket: this.env.ROOMS_HISTORY_EPHEMERAL,
+			roomKey,
+		})
 
 		// remove main file
 		await this.env.ROOMS.delete(roomKey)
