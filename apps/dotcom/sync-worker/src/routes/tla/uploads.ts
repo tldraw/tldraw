@@ -3,6 +3,7 @@ import { IRequest } from 'itty-router'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
 import { getAuth } from '../../utils/tla/getAuth'
+import { hasWriteAccessToFile } from '../../utils/tla/hasWriteAccessToFile'
 
 export async function upload(request: IRequest, env: Environment): Promise<Response> {
 	const { body, url, headers } = request
@@ -13,13 +14,14 @@ export async function upload(request: IRequest, env: Environment): Promise<Respo
 	if (!fileId) return Response.json({ error: 'File id is required' }, { status: 400 })
 
 	const db = createPostgresConnectionPool(env, 'sync-worker')
-	const fileExists = await db
-		.selectFrom('file')
-		.where('id', '=', fileId)
-		.selectAll()
-		.executeTakeFirst()
-	if (!fileExists) {
-		return Response.json({ error: 'Could not upload the file' }, { status: 400 })
+	let canWrite = false
+	try {
+		canWrite = await hasWriteAccessToFile(db, fileId, userId)
+	} finally {
+		await db.destroy()
+	}
+	if (!canWrite) {
+		return Response.json({ error: 'Could not upload the file' }, { status: 403 })
 	}
 
 	const objectName = request.params.objectName
@@ -29,7 +31,7 @@ export async function upload(request: IRequest, env: Environment): Promise<Respo
 		body,
 		headers,
 		bucket: env.UPLOADS,
-		objectName: request.params.objectName,
+		objectName,
 	})
 	if (res.status === 200) {
 		await env.QUEUE.send({ type: 'asset-upload', objectName, fileId, userId })

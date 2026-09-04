@@ -391,7 +391,7 @@ bucket_name = "dotcom-mcp-data"
 
 #################### Browser Rendering binding ####################
 # Drives the thumbnail render page through a Cloudflare-hosted headless browser (see
-# sharedBoardScreenshotMcp.ts). Chrome runs in Cloudflare's Browser Rendering fleet, not in this
+# mcpServer.ts). Chrome runs in Cloudflare's Browser Rendering fleet, not in this
 # worker's isolate. The dev binding is intentionally NOT marked `remote`: a remote binding makes
 # `wrangler dev` require a CLOUDFLARE_API_TOKEN, which the credential-free process-compose e2e stack
 # does not have, so it would fail to boot. Local dev therefore gets a non-functional local BROWSER
@@ -528,7 +528,7 @@ simple = { limit = 600, period = 60 }
 # in config.ts before changing this number.
 # A binding carries one `limit` applied per key, so per-account and per-board need separate bindings to
 # hold different numbers. `period` must be 10 or 60. Keep these in step with the fallback constants in
-# sharedBoardScreenshotMcp.ts, which are all that unit tests can see.
+# mcpServer.ts, which are all that unit tests can see.
 # The name is the odd one out in this family: it keeps MCP_SCREENSHOT_ because it is deployed and
 # counting. It keyed on client IP until the endpoint required authentication; renaming live state buys
 # nothing, and the key it counts is now the user id.

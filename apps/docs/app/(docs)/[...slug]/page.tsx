@@ -107,7 +107,7 @@ export default async function Page(props: { params: Promise<{ slug: string | str
 								className="mb-6"
 							/>
 						)}
-						<StarterKitEmbed id={content.article.embed ?? content.article.id} />
+						{content.article.embed && <StarterKitEmbed id={content.article.embed} />}
 					</div>
 					<div className="flex flex-col xl:flex-row gap-6 relative">
 						<DocsStarterSidebar article={content.article} />

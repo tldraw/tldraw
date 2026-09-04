@@ -18,6 +18,8 @@ export type TLAppUiEventSource =
 	| 'account-menu'
 	| 'top-bar'
 	| 'legacy-import-button'
+	| 'file-drop'
+	| 'import-url'
 	| 'new-page'
 	| 'app'
 	| 'cookie-settings'

@@ -258,7 +258,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}, 1000)
 
 	private scheduleFollowUpPrune() {
-		if (this.pruneTimer) return
+		// don't leave a stray timer on a room the host has already torn down
+		if (this._isClosed || this.pruneTimer) return
 		this.pruneTimer = setTimeout(this.pruneSessions, SESSION_REMOVAL_WAIT_TIME + 100)
 	}
 
@@ -273,11 +274,27 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * and stops background processes.
 	 */
 	close() {
+		this._isClosed = true
 		this.disposables.forEach((d) => d())
 		this.sessions.forEach((session) => {
-			session.socket.close()
+			this.clearDebounceTimer(session)
+			try {
+				session.socket.close()
+			} catch {
+				// noop, one bad socket must not leave the rest open
+			}
 		})
-		this._isClosed = true
+		// forgetting the sessions is what makes late socket close/error events no-ops, so
+		// nothing can emit session_removed / room_became_empty on a closed room
+		this.sessions.clear()
+	}
+
+	private clearDebounceTimer(session: RoomSession<R, SessionMeta>) {
+		if (session.state === RoomSessionState.Connected && session.debounceTimer !== null) {
+			clearTimeout(session.debounceTimer)
+			session.debounceTimer = null
+			session.outstandingDataMessages = []
+		}
 	}
 
 	/**
@@ -519,6 +536,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			// place, so sockets that defer serialization don't see an emptied array
 			const data = session.outstandingDataMessages
 			session.outstandingDataMessages = []
+			if (!session.socket.isOpen) {
+				// same as the immediate-send path: send() into a closed socket throws on
+				// some runtimes (Cloudflare), and here that would be from inside a timer
+				this.cancelSession(sessionId)
+				return
+			}
 			session.socket.sendMessage({ type: 'data', data })
 		}
 	}
@@ -532,6 +555,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 
 		this.sessions.delete(sessionId)
+		this.clearDebounceTimer(session)
 
 		try {
 			if (fatalReason) {
@@ -570,6 +594,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			return
 		}
 
+		this.clearDebounceTimer(session)
 		this.sessions.set(sessionId, {
 			state: RoomSessionState.AwaitingRemoval,
 			sessionId,
@@ -692,7 +717,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		objectAccess?: TLObjectStoreAccess
 	}) {
 		const { sessionId, socket, meta, isReadonly, objectAccess } = opts
+		// a connect racing close() would otherwise create a session nothing ever prunes
+		if (this._isClosed) {
+			socket.close()
+			return this
+		}
 		const existing = this.sessions.get(sessionId)
+		if (existing) this.clearDebounceTimer(existing)
 		this.sessions.set(sessionId, {
 			state: RoomSessionState.AwaitingConnectMessage,
 			sessionId,
@@ -740,6 +771,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			requiresLegacyRejection,
 			supportsStringAppend,
 		} = opts
+
+		if (this._isClosed) {
+			socket.close()
+			return
+		}
 
 		const migrations = this.schema.getMigrationsSince(serializedSchema)
 		const requiresDownMigrations = migrations.ok ? migrations.value.length > 0 : false

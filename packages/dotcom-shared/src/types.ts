@@ -12,12 +12,6 @@ export interface CreateRoomRequestBody {
 	snapshot: Snapshot
 }
 
-export interface CreateSnapshotRequestBody {
-	schema: SerializedSchema
-	snapshot: SerializedStore<TLRecord>
-	parent_slug?: string | undefined
-}
-
 export type CreateSnapshotResponseBody =
 	| {
 			error: false
@@ -339,10 +333,7 @@ export interface AdminFileAssetProblem {
 
 /** Response of the admin file-assets diagnostics endpoint. */
 export interface AdminFileAssetsResponseBody {
-	file: Pick<
-		TlaFile,
-		'id' | 'name' | 'ownerId' | 'owningGroupId' | 'isDeleted' | 'createSource'
-	> | null
+	file: Pick<TlaFile, 'id' | 'name' | 'owningGroupId' | 'isDeleted' | 'createSource'> | null
 	/** null exists = not checked (prefix needs slug translation) or the check failed */
 	source: { raw: string; exists: boolean | null } | null
 	shapes: {
@@ -379,7 +370,7 @@ export interface AdminFileAssetsResponseBody {
 export interface AdminFileStatsResponseBody {
 	/** null when no `file` row exists — legacy rooms have a snapshot but no row */
 	file: {
-		ownerType: 'user' | 'group' | 'none'
+		ownerType: 'group' | 'none'
 		createdAt: number
 		updatedAt: number
 		isDeleted: boolean

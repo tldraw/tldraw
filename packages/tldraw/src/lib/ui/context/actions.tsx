@@ -63,6 +63,15 @@ export type TLUiActionsContextType = Record<string, TLUiActionItem>
 /** @internal */
 export const ActionsContext = React.createContext<TLUiActionsContextType | null>(null)
 
+/**
+ * The page point the context menu opened at, or null while it is closed. The context menu
+ * writes it; actions that place content (paste) read it, since the pointer keeps moving
+ * over the menu after it opens (#10423).
+ *
+ * @internal
+ */
+export const ContextMenuPagePointContext = React.createContext<{ current: Vec | null } | null>(null)
+
 /** @public */
 export interface ActionsProviderProps {
 	overrides?(
@@ -108,6 +117,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const msg = useTranslation()
 
 	const defaultDocumentName = helpers.msg('document.default-name')
+
+	const rContextMenuPagePoint = React.useRef<Vec | null>(null)
 
 	// should this be a useMemo? looks like it doesn't actually deref any reactive values
 	const actions = React.useMemo<TLUiActionsContextType>(() => {
@@ -587,7 +598,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'frame-selection',
 				label: 'action.frame-selection',
-				kbd: 'cmd+alt+g',
+				kbd: 'cmd+alt+g,ctrl+alt+g',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -1051,14 +1062,16 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.paste',
 				kbd: 'cmd+v,ctrl+v',
 				onSelect(source) {
+					// Resolve the point before the clipboard read: the menu closes, and clears
+					// its point, before the read settles.
+					const point =
+						source === 'context-menu'
+							? (rContextMenuPagePoint.current ?? editor.inputs.getCurrentPagePoint())
+							: undefined
 					navigator.clipboard
 						?.read()
 						.then((clipboardItems) => {
-							helpers.paste(
-								clipboardItems,
-								source,
-								source === 'context-menu' ? editor.inputs.getCurrentPagePoint() : undefined
-							)
+							helpers.paste(clipboardItems, source, point)
 						})
 						.catch(() => {
 							helpers.addToast({
@@ -1480,6 +1493,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						}
 					}
 					if (updates.length > 0) {
+						editor.markHistoryStoppingPoint('unlock all')
 						editor.updateShapes(updates)
 					}
 				},
@@ -1977,7 +1991,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		components,
 	])
 
-	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>
+	return (
+		<ContextMenuPagePointContext.Provider value={rContextMenuPagePoint}>
+			<ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>
+		</ContextMenuPagePointContext.Provider>
+	)
 }
 
 /** @public */

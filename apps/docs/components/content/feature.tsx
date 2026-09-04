@@ -16,7 +16,8 @@ export function Feature({
 				<Icon icon={icon} className="h-5 w-5 text-zinc-900 dark:text-zinc-100" />
 				<h3 className="font-bold text-zinc-900 dark:text-zinc-100">{title}</h3>
 			</div>
-			<p className="leading-relaxed text-zinc-600 dark:text-zinc-400">{children}</p>
+			{/* MDX renders block children as their own `<p>`s, so this wrapper must not be a `<p>` — nested `<p>`s break hydration. */}
+			<div className="leading-relaxed text-zinc-600 dark:text-zinc-400">{children}</div>
 		</div>
 	)
 }
