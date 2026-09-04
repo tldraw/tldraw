@@ -7,7 +7,7 @@ Issues:
 
 tldraw.com can capture PNG thumbnails of public boards by taking a Cloudflare Browser Rendering `/screenshot` of a tldraw-owned render page, called straight through the `BROWSER` binding's `quickAction` Quick Actions method — no `@cloudflare/puppeteer` and no API token (requires `compatibility_date >= 2026-03-24`). There are two consumers, both served by the sync worker:
 
-- an MCP server at `POST /api/app/mcp` exposing a drill-down over four tools: `get_board_info` lists a board's pages (id, name, 0-based index, and whether each has content), `get_page_info` lists one page's clusters of shapes, `get_cluster_info` describes the shapes inside one cluster, and `get_cluster_screenshot` returns a content-fit PNG of one or more clusters. **It requires authentication** — see "Authentication on the MCP server"; and
+- an MCP server at `POST /api/app/mcp` exposing `search_boards`, which finds a caller's boards by name, and a drill-down over four more: `get_board_info` lists a board's pages (id, name, 0-based index, and whether each has content), `get_page_info` lists one page's clusters of shapes, `get_cluster_info` describes the shapes inside one cluster, and `get_cluster_screenshot` returns a content-fit PNG of one or more clusters. **It requires authentication** — see "Authentication on the MCP server"; and
 - a board OG image endpoint, `GET /api/app/social-preview/:prefix/:slug/image`, built for high-traffic paths (link unfurls, crawlers): it serves only from the R2 cache and delegates rendering to a queue consumer, so a request never waits on Browser Run. It lives under the `social-preview` route family alongside the crawler HTML that references it.
 
 Rendering runs through the Browser Rendering `/screenshot` Quick Action, invoked from the worker via the `BROWSER` binding's `quickAction` method (`env.BROWSER.quickAction('screenshot', …)`). Chrome runs in Cloudflare's Browser Rendering fleet, not in the worker isolate. The pipeline never hands the browser a user-provided URL: the worker resolves the board, mints a short-lived signed render job, and the screenshot only ever targets the internal render page with that token. **Rendering is not gated on public viewability — serving is.** A thumbnail is generated for every board, private ones included, so that an owner-facing surface has one to show; the OG image route re-applies the public gate on every request. See "Rendering every board" below for what that means for the render token. The MCP surface exposes page metadata, shape clusters — including their shape records, with rich text flattened to a plain string — and cluster screenshots: no arbitrary selectors or arbitrary URLs, and no board the authenticated caller could not already open in a browser.
@@ -122,7 +122,7 @@ The `MCP_SERVER_` prefix on two of the three is deliberate. Neither budget is ab
 
 Two things to know when changing any of these. The numbers live in **two places that must move together** — the constants in `config.ts` (`MCP_PER_USER_RATE_LIMIT` and friends) are only the isolate-local fallback for local dev and tests, and every deployed environment is governed by the Cloudflare binding in `wrangler.toml`, so editing one alone changes nothing where it matters. Unit tests run with no bindings at all, so they pin the fallback constants and can never catch a wrong or shared binding; `wrangler.toml` is the only place to check that. And `period` in those bindings [must be either 10 or 60 seconds](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/) — that restriction is on the window, not on `limit`, which is an unconstrained integer. All of these use `period = 60`.
 
-Only the calls that _can_ spend Browser Run are limited. `get_board_info` is not: it resolves a board and reads its snapshot, which is the same work the ordinary board routes already do for that caller, and it never clusters. The clustering tools are limited even though they read as "info" calls, and even though the cluster index means most of them spend nothing — the per-account budget is a ceiling on calls, and whether any given one turns into a render is not something the caller controls. The OG image route's per-board limit (`og-board:`) is gone too, along with the route's enqueue — see "OG images (queue-backed async rendering)" above.
+Only the calls that _can_ spend Browser Run are limited. `get_board_info` is not: it resolves a board and reads its snapshot, which is the same work the ordinary board routes already do for that caller, and it never clusters. `search_boards` is not either, though for a different reason — it spends no Browser Run, but its Postgres cost is not comparably cheap; see "MCP tools" below for what it actually does and why a dedicated limiter is deferred rather than added. The clustering tools are limited even though they read as "info" calls, and even though the cluster index means most of them spend nothing — the per-account budget is a ceiling on calls, and whether any given one turns into a render is not something the caller controls. The OG image route's per-board limit (`og-board:`) is gone too, along with the route's enqueue — see "OG images (queue-backed async rendering)" above.
 
 The Cloudflare rate limit bindings are declared in `wrangler.toml` for every environment. When a binding is absent (local dev, tests) the route falls back to an isolate-local guard with the same limits. Changing the global cap means moving the `MCP_SERVER_BROWSER_RATE_LIMITER` bindings in `wrangler.toml` (one per environment) and the isolate-local fallback constant `MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT` in `config.ts` together.
 
@@ -207,7 +207,7 @@ Only `persist_success` carries that index. The screenshot events deliberately ca
 
 The one-way-ness is also why `sharedState` has to be recorded at write time rather than recovered later: the dataset cannot be joined back to a file row. Postgres could not answer it anyway — it knows which files are shared, not which are being edited. See "Open questions".
 
-Bounded reason codes say _that_ a board stopped rendering, never _why_, and every one of these surfaces deliberately swallows its own errors (the OG route falls back to the default image, the snapshot route 404s, the MCP tools return a tool error, the queue retries or drops). So each swallow point also reports the underlying error to Sentry through `reportThumbnailError` (`thumbnailShared.ts`), tagged `thumbnail_surface` with a closed set of values: `og_route`, `og_queue`, `thumbnail_snapshot`, `mcp_board_info`, `mcp_screenshot`, `mcp_screenshot_cache_write`, `mcp_cluster_index_read`, `mcp_cluster_index_write`. The last three are never caller-visible failures — the tool answered — but each means a cache stopped absorbing what it exists to absorb, so the tools are back to spending Browser Run on every call. Reporting rides on the handler's `waitUntil` and is itself failure-proof — a missing Sentry env var must never turn a degraded-but-fine response into a 500.
+Bounded reason codes say _that_ a board stopped rendering, never _why_, and every one of these surfaces deliberately swallows its own errors (the OG route falls back to the default image, the snapshot route 404s, the MCP tools return a tool error, the queue retries or drops). So each swallow point also reports the underlying error to Sentry through `reportThumbnailError` (`thumbnailShared.ts`), tagged `thumbnail_surface` with a closed set of values: `og_route`, `og_queue`, `thumbnail_snapshot`, `mcp_board_info`, `mcp_screenshot`, `mcp_board_search`, `mcp_screenshot_cache_write`, `mcp_cluster_index_read`, `mcp_cluster_index_write`. The last three are never caller-visible failures — the tool answered — but each means a cache stopped absorbing what it exists to absorb, so the tools are back to spending Browser Run on every call. Reporting rides on the handler's `waitUntil` and is itself failure-proof — a missing Sentry env var must never turn a degraded-but-fine response into a 500.
 
 #### No board identifier leaves this pipeline
 
@@ -432,6 +432,12 @@ This is not Browser Run: different Chrome build, different flags, no billing hea
 ## MCP tools
 
 ```ts
+search_boards({
+ query?: string,  // words to match against board names, ANDed, case-insensitive. omit to list the newest boards
+ cursor?: string, // the nextCursor from a previous result. omit for the first page
+})
+// → { boardCount: number, nextCursor?: string, boards: { boardId: string, name: string, createdAt: string, updatedAt: string, source: 'owned' | 'workspace', workspaceName?: string }[] }
+
 get_board_info({
  boardId: string,
 })
@@ -458,6 +464,20 @@ get_cluster_screenshot({
 })
 // → text (page name) + a 1200x630 content-fit PNG of those clusters
 ```
+
+`search_boards` covers a narrower set than the other four: boards in the caller's own workspace, and boards owned by a workspace they can access files in. That is deliberately the scope `hasReadAccessToFile` admits minus its link-shared arm, and the relationship only runs one way — everything search returns must be a board the other tools will open, or a model finds a board and cannot interpret being refused it. A published or link-shared board stays reachable by id; it is simply not discoverable by name.
+
+It returns 20 boards to a page, ordered **newest-created first** — `file."createdAt"` descending, `file.id COLLATE "C"` descending to break ties — read from the `file` table alone, and pages with a keyset cursor rather than an offset, since an insert above the cursor shifts every later row and an offset would re-serve one board and skip another at the boundary.
+
+`createdAt` rather than the obvious-looking `updatedAt`, and this is the part worth not undoing: **a keyset cursor cannot survive a mutating sort key.** A row whose key changes can move from below the cursor (not yet served) to above it (already passed) and then appear on no page at all. `005_update_file_trigger.sql` bumps `file."updatedAt"` on any column change, so under `updatedAt` a board edited while an agent is paging silently vanishes from its results. `createdAt` is written once — by the `createFile` mutator, and it sits in `immutableColumns.file`, with no trigger touching it — so only inserts and deletes move the set, which is exactly what a keyset handles. `updatedAt` is still returned per board, because "when was this last changed" is a thing a model wants; it is simply not the order.
+
+Earlier revisions ordered by per-user recency, joining `file_state`. That join was the performance problem — a sort key reached through a left join and a `COALESCE` can never be index-ordered — and it is also the join that would have quietly widened the scope, since a `file_state` row exists for anyone who has opened a link-shared board. It is gone; don't reintroduce it.
+
+Search spends no Browser Run, so it is deliberately outside the rate limits below — but unlike `get_board_info`, that exemption is not because the work itself is cheap. It is now **index-bounded for the common case**: `file("owningGroupId", "createdAt" DESC)` (`050_file_search_index.sql`) serves the access filter and the ordering together, so a page for a caller in one workspace is read in index order and stops — `LIMIT 21` saves work, not just transfer. Nothing indexes `name ILIKE '%…%'`, so a search term is still a filter applied to rows the index scan walks past: cost then scales with how far down the caller's boards the matches sit, and a term matching nothing walks their whole set.
+
+**Why it took two edits, and what still sorts.** The index is usable only because the access predicate is a single equality, which it became when [#10391](https://github.com/tldraw/tldraw/pull/10391) removed the last user-owns-file paths. While the predicate was `file."ownerId" = :caller OR file."owningGroupId" IN (:groups)`, Postgres answered the top-level `OR` with a `BitmapOr`, whose output has no order, so the plan was a bitmap heap scan of everything in scope followed by a top-N sort whatever indexes existed. Measured on Postgres 16.14 against the real DDL and an 8000-board workspace, and re-measured after the merge: with the `OR` arm present the planner materialises ~8010 rows and top-N sorts them, and ignores this index entirely in favour of the existing `file_owning_group_id_idx`; with the arm gone and one workspace, the same query is an index scan plus incremental sort reading 22 rows for a 21-row page. **So don't reintroduce a top-level `OR` in the access predicate** — it silently un-indexes the ordering rather than failing anything. One caveat survives: a caller in more than one workspace produces `owningGroupId IN (...)`, and a btree scan driven by an array key is not order-preserving before Postgres 17 — production runs 16 — so that case still top-N sorts its whole in-scope set. The index deliberately stops at `createdAt` and leaves the `file.id COLLATE "C"` tiebreak to the incremental sort: the primary key already makes `id` unique, and ties on `createdAt` are rare.
+
+**No rate limiter, deliberately, for now.** The limiters on this server exist to bound Browser Run, and search spends none; adding one would bound Postgres, which nothing else here does. Revisit if `postgres_client_connect` volume from this surface becomes visible — that is the signal that the per-call pool, and the multi-workspace sort, are being driven hard enough to matter.
 
 Every tool accepts the id of a tldraw.com board the authenticated caller can see: the `:slug` of a file URL (`https://www.tldraw.com/f/:slug`) they own, can reach through its owning group, or that is shared via link — or the `:slug` of a published board URL (`https://www.tldraw.com/p/:slug`). The id is resolved as a file first and a published slug second. Deleted files and test files are refused, as is any board the caller has no access to; all of these answer the same "no board was found with this id" as an id that names nothing at all.
 
@@ -533,6 +553,7 @@ The pixels come from `editor.toImage` on the render page. The worker calls the B
 ```mermaid
 flowchart TB
     subgraph entry ["Entry points (sync worker)"]
+        SB["search_boards<br/>(POST /api/app/mcp — Postgres only, no browser)"]
         BI["get_board_info<br/>(POST /api/app/mcp — no browser)"]
         MCP["get_page_info / get_cluster_info /<br/>get_cluster_screenshot<br/>(POST /api/app/mcp — measure render + capture)"]
         OGR["GET /api/app/social-preview/:prefix/:slug/image<br/>(serves R2 cache only, never waits)"]
@@ -549,6 +570,7 @@ flowchart TB
     PUB -->|reason: publish| QC
     SPEC -->|reason: edit| QC
 
+    SB --> PG[("Postgres: file<br/>owned or workspace scope, newest created first")]
     BI --> GATE["Resolve board + share gate<br/>(published or link-shared only)"]
     MCP --> GATE
     QC --> GATE

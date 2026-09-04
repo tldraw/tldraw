@@ -32,18 +32,20 @@ export const MCP_PROTOCOL_VERSION = '2025-11-25'
 export const MCP_SERVER_INFO = {
 	name: 'tldraw-shared-board-screenshot',
 	title: 'tldraw board screenshots',
-	version: '3.0.0',
+	version: '3.1.0',
 }
 
 export const MCP_SERVER_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Drill down in order: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job.'
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards covers your own boards and your workspaces’ boards only — a published or link-shared board is still reachable by id.'
 
+export const SEARCH_BOARDS_TOOL_NAME = 'search_boards'
 export const BOARD_INFO_TOOL_NAME = 'get_board_info'
 export const PAGE_INFO_TOOL_NAME = 'get_page_info'
 export const CLUSTER_INFO_TOOL_NAME = 'get_cluster_info'
 export const CLUSTER_SCREENSHOT_TOOL_NAME = 'get_cluster_screenshot'
 
 export const TOOL_NAMES = [
+	SEARCH_BOARDS_TOOL_NAME,
 	BOARD_INFO_TOOL_NAME,
 	PAGE_INFO_TOOL_NAME,
 	CLUSTER_INFO_TOOL_NAME,
@@ -59,7 +61,7 @@ export const TOOL_NAMES = [
 // does not exist" would let anyone test file ids for existence. It also cannot name what would fix
 // it, since the caller may simply be signed in as the wrong account.
 export const BOARD_NOT_FOUND_MESSAGE =
-	'No board was found with this id, or this account does not have access to it. Boards you own, boards shared with you via link, and published boards are supported.'
+	'No board was found with this id, or this account does not have access to it. Boards in your own workspace, boards owned by a workspace you belong to, boards shared with you via link, and published boards are supported.'
 export const BOARD_EMPTY_MESSAGE = 'This board has no saved content yet.'
 
 // --- Reading a snapshot -------------------------------------------------------------------------
@@ -112,6 +114,120 @@ export function getShapesOnPage(snapshot: RoomSnapshot, pageId: string): TLShape
 }
 
 // --- Input parsing ------------------------------------------------------------------------------
+
+// One page of search results. Fixed rather than caller-settable: the cursor is how a caller reaches
+// more, and a page size that varies per call would have to be carried inside the cursor for the next
+// page to mean anything.
+export const BOARD_SEARCH_PAGE_SIZE = 20
+export const BOARD_SEARCH_MAX_QUERY_LENGTH = 200
+export const BOARD_SEARCH_MAX_TERMS = 8
+
+/**
+ * Where a page of search results ended: the sort key of its last row.
+ *
+ * Both halves are needed. `createdAt` is not unique — boards created in one batch share one — so
+ * `id` is the tiebreaker that makes "where the page ended" a single point rather than a range.
+ */
+export interface BoardSearchCursor {
+	/**
+	 * When the board was created. Immutable, which is what a keyset cursor needs; `searchBoards.ts`
+	 * says why, and mirrors this ordering in SQL.
+	 */
+	createdAt: number
+	id: string
+}
+
+// search_boards is the only tool with `required: []` — the other four all mandate boardId, which is
+// why `arguments` being wire-optional never mattered before. Its own description tells a model to
+// omit the query to list its newest boards, so a call with no `arguments` key at all is a legitimate
+// "list my newest boards", not a malformed one, and must not hit `requireArgumentsObject(undefined)`.
+export function parseSearchBoardsInput(input: unknown): {
+	terms: string[]
+	cursor: BoardSearchCursor | null
+} {
+	const value = requireArgumentsObject(input ?? {})
+	return { terms: parseSearchTerms(value.query), cursor: parseBoardSearchCursor(value.cursor) }
+}
+
+// Terms are ANDed, so "design system" finds "System design v2" whatever the order they were typed
+// in. A query of only whitespace means the same as no query: list the caller's newest boards.
+function parseSearchTerms(value: unknown): string[] {
+	if (value === undefined || value === null) return []
+	if (typeof value !== 'string') {
+		throw new Error('query must be a string')
+	}
+	if (value.length > BOARD_SEARCH_MAX_QUERY_LENGTH) {
+		throw new Error(`query must be ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters or fewer`)
+	}
+	const terms = value.split(/\s+/).filter((term) => term.length > 0)
+	// Each term becomes its own ILIKE, unindexable, over a scan that is already unbounded (see
+	// searchBoards.ts) — a query length limit alone does not bound term count, since whitespace is
+	// cheap. Thrown rather than truncated: silently dropping terms would change what was searched for
+	// without telling the caller.
+	if (terms.length > BOARD_SEARCH_MAX_TERMS) {
+		throw new Error(`query must be ${BOARD_SEARCH_MAX_TERMS} words or fewer`)
+	}
+	return terms
+}
+
+/**
+ * Reads back a cursor this server issued.
+ *
+ * Refuses anything it cannot decode rather than falling back to the first page: a model that has
+ * paged three times and is silently returned to the start sees its own last page repeating, with no
+ * signal that its cursor was the problem.
+ */
+function parseBoardSearchCursor(value: unknown): BoardSearchCursor | null {
+	if (value === undefined || value === null) return null
+	if (typeof value !== 'string') {
+		throw new Error('cursor must be a string: the nextCursor from a previous search_boards result')
+	}
+	const invalid = new Error(
+		'cursor is not valid. Omit it to start from the first page, or pass the nextCursor from a previous search_boards result.'
+	)
+	let decoded: string
+	try {
+		decoded = atob(value)
+	} catch {
+		throw invalid
+	}
+	// The encoder percent-escapes the id, so the first colon is the only unescaped one and separates
+	// the two halves.
+	const separator = decoded.indexOf(':')
+	if (separator === -1) throw invalid
+	const timestampPart = decoded.slice(0, separator)
+	// `Number()` accepts far more than a timestamp can legitimately be: '' -> 0, '1e3' -> 1000,
+	// ' 5' -> 5, '+5' -> 5, 'Infinity' -> Infinity. Requiring plain digits first catches all of
+	// these, including the empty-prefix forgery `btoa(":id")`, which would otherwise pass
+	// `Number.isSafeInteger(0) && 0 >= 0` and seek strictly below epoch — an empty page with no
+	// nextCursor, forever, and no signal that the cursor was the problem. `encodeBoardSearchCursor`
+	// only ever writes a non-negative safe integer's `toString()`, which is always plain digits, so
+	// this cannot reject a cursor this server minted.
+	if (!/^\d+$/.test(timestampPart)) throw invalid
+	const createdAt = Number(timestampPart)
+	let id: string
+	try {
+		id = decodeURIComponent(decoded.slice(separator + 1))
+	} catch {
+		throw invalid
+	}
+	// `Number.isSafeInteger`, not `Number.isInteger`: the latter accepts `1e300`, which binds as an
+	// out-of-range int8 and makes Postgres throw, so caller garbage would reach a model as "the board
+	// database could not be reached" rather than as a bad cursor.
+	if (!Number.isSafeInteger(createdAt) || id.length === 0) throw invalid
+	return { createdAt, id }
+}
+
+// Opaque on purpose: a model should only ever hand back a cursor it was given, which leaves the
+// encoding free to change without every client having to.
+//
+// The id is percent-escaped because `btoa` throws on anything outside Latin-1 and this runs inside
+// the route's `try`, so an id it choked on would be reported as a database failure. Real file ids
+// are URL-safe ASCII, which percent-encoding leaves byte for byte; harness fixture ids are arbitrary
+// strings, and this is what keeps them round-tripping.
+function encodeBoardSearchCursor(cursor: BoardSearchCursor): string {
+	return btoa(`${cursor.createdAt}:${encodeURIComponent(cursor.id)}`)
+}
 
 export function parseBoardInfoInput(input: unknown): { boardId: string } {
 	const value = requireArgumentsObject(input)
@@ -252,6 +368,85 @@ export function toolJsonResult(value: unknown): ToolResult {
 }
 
 // --- The tools ----------------------------------------------------------------------------------
+
+/** One board as the search query returns it, before it is shaped for the model. */
+export interface BoardSearchRow extends BoardSearchCursor {
+	name: string
+	/** When the board's row last changed, by anyone — not per-caller, and not the sort key. */
+	updatedAt: number
+	/**
+	 * The name of the workspace that owns the board. Only reported for boards outside the caller's
+	 * own workspace — see `getBoardSearchResults`.
+	 */
+	workspaceName: string
+	/** Whether the board lives in the caller's own personal workspace, rather than a shared one. */
+	isPersonal: boolean
+}
+
+/**
+ * The order search results come back in: newest-created board first, `id` descending to break the
+ * ties `createdAt` leaves.
+ *
+ * The single statement of that rule. `searchBoards.ts` mirrors it in SQL because Postgres does the
+ * real ordering, and the eval harness pages through fixtures with this one — if the two disagree,
+ * the harness stops being evidence about the deployed server. Ids compare by UTF-16 code unit here,
+ * which is why the SQL declares `COLLATE "C"`: an ICU or glibc collation orders the mixed case, `_`
+ * and `-` of a tldraw id differently, and the two mirrors would silently part company.
+ */
+export function compareBoardSearchOrder(a: BoardSearchCursor, b: BoardSearchCursor): number {
+	if (a.createdAt !== b.createdAt) return b.createdAt - a.createdAt
+	return a.id < b.id ? 1 : a.id > b.id ? -1 : 0
+}
+
+/**
+ * Whether a row belongs on a page after the one the cursor ended.
+ *
+ * Descending order means "after the cursor" is "sorts lower than the cursor", and the cursor's own
+ * row is excluded — reverse either and a caller is served the page it just read, forever.
+ */
+export function isAfterBoardSearchCursor(
+	row: BoardSearchCursor,
+	cursor: BoardSearchCursor
+): boolean {
+	return compareBoardSearchOrder(row, cursor) > 0
+}
+
+// tldraw.com renders a blank file name as "Untitled", so a result showing '' would name boards
+// differently from the app the caller found them in.
+const UNTITLED_BOARD_NAME = 'Untitled'
+
+/**
+ * One page of search results.
+ *
+ * Takes one row more than a page and reports the surplus as `nextCursor` rather than returning it —
+ * that is what lets the query answer "there is another page" without a second count. `nextCursor` is
+ * absent on the last page, so a caller never fetches an empty page to discover it had finished.
+ *
+ * An empty result is a normal result, never `isError`: a model treats `isError` as a failure to
+ * recover from and will retry a search that simply matched nothing.
+ */
+export function getBoardSearchResults(rows: BoardSearchRow[]): ToolResult {
+	const boards = rows.slice(0, BOARD_SEARCH_PAGE_SIZE)
+	const lastBoard = boards.at(-1)
+	const hasMore = rows.length > boards.length
+	return toolJsonResult({
+		boardCount: boards.length,
+		...(hasMore && lastBoard ? { nextCursor: encodeBoardSearchCursor(lastBoard) } : {}),
+		boards: boards.map((row) => ({
+			boardId: row.id,
+			name: row.name.trim() === '' ? UNTITLED_BOARD_NAME : row.name,
+			// The key the results are sorted by, so a model can see the order rather than guess at it.
+			createdAt: new Date(row.createdAt).toISOString(),
+			updatedAt: new Date(row.updatedAt).toISOString(),
+			source: row.isPersonal ? 'owned' : 'workspace',
+			// Only where it identifies something. On a personal board the workspace adds nothing
+			// `source: 'owned'` has not already said, so it would be noise on every row. The cost is
+			// that a caller who renamed their home workspace — `036_home_group_renameable.sql` made
+			// it renameable, with "My workspace" only as the default — will not see that name here.
+			...(row.isPersonal ? {} : { workspaceName: row.workspaceName }),
+		})),
+	})
+}
 
 export function getBoardInfo(snapshot: RoomSnapshot): ToolResult {
 	const pages = enumerateBoardPages(snapshot)
@@ -550,6 +745,7 @@ function toReadableShape(shape: TLShapeWithPlainText) {
 
 export function getToolDefinitions() {
 	return [
+		getSearchBoardsToolDefinition(),
 		getBoardInfoToolDefinition(),
 		getPageInfoToolDefinition(),
 		getClusterInfoToolDefinition(),
@@ -568,6 +764,32 @@ const READ_ONLY_ANNOTATIONS = {
 	idempotentHint: true,
 	openWorldHint: false,
 	destructiveHint: false,
+}
+
+function getSearchBoardsToolDefinition() {
+	return {
+		name: SEARCH_BOARDS_TOOL_NAME,
+		title: 'Search tldraw boards',
+		description: `Find tldraw.com boards by name: the boards in this account's own workspace, and the boards owned by the workspaces it belongs to. Every term in the query must appear somewhere in the board name, in any order, ignoring case. Search for the distinctive words, not a whole title: a query of more than ${BOARD_SEARCH_MAX_TERMS} words, or longer than ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters, is rejected. Omit the query to list your newest boards. Results are ordered newest-created first, reported per board as createdAt. updatedAt is a different thing: when the board itself last changed, by anyone — so an old board can have been edited today, and a board created today may never have been touched since. Returns up to ${BOARD_SEARCH_PAGE_SIZE} boards, each with a boardId that get_board_info and the other tools take. If the result carries a nextCursor there are more boards: call again with that cursor to get the next page. Matching no boards is a normal empty result, not an error.`,
+		inputSchema: {
+			type: 'object',
+			additionalProperties: false,
+			properties: {
+				query: {
+					type: 'string',
+					maxLength: BOARD_SEARCH_MAX_QUERY_LENGTH,
+					description: `Up to ${BOARD_SEARCH_MAX_TERMS} words to match against board names, at most ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters. Every word must appear in the name, in any order. Omit to list your newest boards.`,
+				},
+				cursor: {
+					type: 'string',
+					description:
+						'The nextCursor from a previous search_boards result, to get the next page. Omit for the first page. Keep the query the same across pages; changing it invalidates where you were.',
+				},
+			},
+			required: [],
+		},
+		annotations: READ_ONLY_ANNOTATIONS,
+	}
 }
 
 function getBoardInfoToolDefinition() {
