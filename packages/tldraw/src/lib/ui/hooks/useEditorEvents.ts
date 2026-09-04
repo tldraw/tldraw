@@ -16,9 +16,20 @@ export function useEditorEvents() {
 			})
 		}
 
+		function handleUnsupportedShapes({ count }: { types: string[]; count: number }) {
+			const shapes = count === 1 ? '1 shape' : `${count} shapes`
+			addToast({
+				title: 'Some content could not be pasted',
+				description: `${shapes} used a type that this editor doesn't support, so the rest was pasted without ${count === 1 ? 'it' : 'them'}.`,
+				severity: 'warning',
+			})
+		}
+
 		editor.addListener('max-shapes', handleMaxShapes)
+		editor.addListener('unsupported-shapes', handleUnsupportedShapes)
 		return () => {
 			editor.removeListener('max-shapes', handleMaxShapes)
+			editor.removeListener('unsupported-shapes', handleUnsupportedShapes)
 		}
 	}, [editor, addToast])
 }
