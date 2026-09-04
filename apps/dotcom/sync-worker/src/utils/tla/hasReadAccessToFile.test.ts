@@ -62,7 +62,7 @@ const granted = (id = 'file-1') => ({
 })
 const DENIED = { ok: false }
 
-// The read-side counterpart of requireWriteAccessToFile, and what the MCP server's per-user gate is
+// The read-side counterpart of hasWriteAccessToFile, and what the MCP server's per-user gate is
 // built on. It answers with a boolean rather than throwing a status error, because a caller that
 // supplies the file id must not be able to tell "no such file" from "not yours".
 describe('hasReadAccessToFile', () => {

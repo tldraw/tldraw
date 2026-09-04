@@ -5,6 +5,8 @@ import { getRole } from './getRole'
 /**
  * The write gate shared by both asset upload paths. Existence alone is not
  * enough: it would let anyone associate an object with someone else's file.
+ * Deleted files are refused too, and a missing file is indistinguishable from
+ * a forbidden one so callers cannot probe for ids.
  */
 export async function hasWriteAccessToFile(
 	db: Kysely<DB>,
