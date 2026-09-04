@@ -433,8 +433,8 @@ export class Idle extends StateNode {
 
 				const util = this.editor.getShapeUtil(shape)
 
-				// Allow playing videos and embeds
-				if (shape.type !== 'video' && shape.type !== 'embed' && this.editor.getIsReadonly()) break
+				// Shapes that opt into read-only editing (embeds, custom utils) still get their double click
+				if (this.editor.getIsReadonly() && !util.canEditInReadonly(shape)) break
 
 				if (util.onDoubleClick) {
 					// Call the shape's double click handler
