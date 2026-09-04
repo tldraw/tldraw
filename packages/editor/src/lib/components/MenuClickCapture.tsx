@@ -189,6 +189,45 @@ export function MenuClickCapture() {
 		[editor]
 	)
 
+	const handlePointerCancel = useCallback(
+		(e: PointerEvent) => {
+			const state = rPointerState.current
+			if (!state.isDown) {
+				// A right-click press was forwarded to the canvas, so let the canvas
+				// handler end it.
+				canvasEvents.onPointerCancel?.(e)
+				return
+			}
+
+			// The canvas's own cancel handler doesn't know about this element's pointer
+			// state, so without this the overlay stays mounted over the canvas and
+			// swallows the next interaction after the browser cancels a press.
+			if (editor.inputs.getIsPointing()) {
+				editor.interrupt()
+				editor.dispatch({
+					type: 'pointer',
+					target: 'canvas',
+					name: 'pointer_up',
+					...getPointerInfo(editor, e),
+					// pointercancel reports button -1
+					button: state.button,
+				})
+			} else {
+				editor.markEventAsHandled(e)
+			}
+
+			releasePointerCapture(e.currentTarget, e)
+			setIsPointing(false)
+			rPointerState.current = {
+				isDown: false,
+				isDragging: false,
+				button: 0,
+				start: new Vec(e.clientX, e.clientY),
+			}
+		},
+		[canvasEvents, editor]
+	)
+
 	return (
 		showElement && (
 			<div
@@ -198,6 +237,7 @@ export function MenuClickCapture() {
 				onPointerDown={handlePointerDown}
 				onPointerMove={handlePointerMove}
 				onPointerUp={handlePointerUp}
+				onPointerCancel={handlePointerCancel}
 				onContextMenu={(e) => {
 					e.preventDefault()
 					e.stopPropagation()
