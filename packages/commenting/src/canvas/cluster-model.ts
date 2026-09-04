@@ -342,6 +342,7 @@ export function revealThreadPin(
 	duration = 200
 ) {
 	if (thread.pageId !== editor.getCurrentPageId()) {
+		editor.markHistoryStoppingPoint('change-page')
 		editor.setCurrentPage(thread.pageId as any)
 	}
 
