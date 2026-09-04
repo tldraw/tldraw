@@ -220,8 +220,10 @@ const router = createRouter<Environment>()
 		if (!auth) {
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		}
+		// (db, mutatorContext, logLevel): mutators close over userId, so no context.
 		const processor = new PushProcessor(
 			zeroPostgresJS(schema, env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING),
+			undefined,
 			'debug'
 		)
 		const result = await processor.process(createMutators(auth.userId), req)
@@ -367,55 +369,59 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		// The pool is only needed for asset-upload messages, so create it lazily: OG image render
 		// batches should not open database connections they never use.
 		let db: ReturnType<typeof createPostgresConnectionPool> | undefined
-		for (const message of batch.messages) {
-			switch (message.body.type) {
-				case 'og-image-render':
-					try {
-						await handleOgImageRenderMessage(
-							this.env,
-							message as Message<OgImageRenderQueueMessage>,
-							this.ctx
-						)
-					} catch (e) {
-						// handleOgImageRenderMessage settles the message itself; this guards the batch loop
-						// against an unexpected throw escaping it, so one bad message can't abort processing
-						// of the rest of the batch. Retry is a no-op if the handler already settled.
-						//
-						// Reported on every delivery rather than on the last one. The handler already
-						// reports the render failures it catches, so anything reaching here escaped it
-						// entirely — a bug in the handler, not a failing render. Those are rare, and an
-						// escape that doesn't recur never reaches a final delivery anyway: the handler's
-						// own budget acks the message at attempts >= OG_MAX_RENDER_ATTEMPTS.
-						this.reportQueueFailure(message, e)
-						message.retry()
+		try {
+			for (const message of batch.messages) {
+				switch (message.body.type) {
+					case 'og-image-render':
+						try {
+							await handleOgImageRenderMessage(
+								this.env,
+								message as Message<OgImageRenderQueueMessage>,
+								this.ctx
+							)
+						} catch (e) {
+							// handleOgImageRenderMessage settles the message itself; this guards the batch loop
+							// against an unexpected throw escaping it, so one bad message can't abort processing
+							// of the rest of the batch. Retry is a no-op if the handler already settled.
+							//
+							// Reported on every delivery rather than on the last one. The handler already
+							// reports the render failures it catches, so anything reaching here escaped it
+							// entirely — a bug in the handler, not a failing render. Those are rare, and an
+							// escape that doesn't recur never reaches a final delivery anyway: the handler's
+							// own budget acks the message at attempts >= OG_MAX_RENDER_ATTEMPTS.
+							this.reportQueueFailure(message, e)
+							message.retry()
+						}
+						break
+					case 'asset-upload': {
+						const { objectName, fileId, userId } = message.body
+						try {
+							db ??= createPostgresConnectionPool(this.env, 'sync-worker-queue')
+							await db
+								.insertInto('asset')
+								.values({ objectName, fileId, userId })
+								.onConflict((oc) => oc.column('objectName').doNothing())
+								.execute()
+							message.ack()
+						} catch (e) {
+							this.reportQueueFailureOnFinalAttempt(message, e)
+							message.retry({
+								delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
+							})
+						}
+						break
 					}
-					break
-				case 'asset-upload': {
-					const { objectName, fileId, userId } = message.body
-					try {
-						db ??= createPostgresConnectionPool(this.env, 'sync-worker-queue')
-						await db
-							.insertInto('asset')
-							.values({ objectName, fileId, userId })
-							.onConflict((oc) => oc.column('objectName').doNothing())
-							.execute()
-						message.ack()
-					} catch (e) {
-						this.reportQueueFailureOnFinalAttempt(message, e)
-						message.retry({
-							delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
-						})
-					}
-					break
+					default:
+						// One shared queue carries every message type, so a newly added type that nobody
+						// handles here would otherwise fall through to whichever branch happens to be last
+						// and be mis-parsed as that type. This makes it a compile error instead. At runtime
+						// it only fires on deploy skew (a producer ahead of this consumer), where throwing
+						// is what we want: the batch is redelivered once the new consumer is live.
+						exhaustiveSwitchError(message.body, 'type')
 				}
-				default:
-					// One shared queue carries every message type, so a newly added type that nobody
-					// handles here would otherwise fall through to whichever branch happens to be last
-					// and be mis-parsed as that type. This makes it a compile error instead. At runtime
-					// it only fires on deploy skew (a producer ahead of this consumer), where throwing
-					// is what we want: the batch is redelivered once the new consumer is live.
-					exhaustiveSwitchError(message.body, 'type')
 			}
+		} finally {
+			await db?.destroy()
 		}
 	}
 }
