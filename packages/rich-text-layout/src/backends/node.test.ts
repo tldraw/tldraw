@@ -5,7 +5,7 @@ import { layoutPlainText } from '../layout/plainText'
 import { installMeasureContext } from '../measure/install'
 import { createNodeMeasureContext } from './node'
 
-const FONTS = join(__dirname, '../../../assets/fonts')
+const FONTS = join(__dirname, '../../../../assets/fonts')
 
 beforeAll(async () => {
 	const ctx = await createNodeMeasureContext({

@@ -114,7 +114,7 @@ const FONT_FILES: Record<string, { family: string; weight: string; style: string
 export function tldrawFontFiles() {
 	return Object.values(FONT_FILES).map((f) => ({
 		...f,
-		data: readFileSync(join(ROOT, 'packages/assets/fonts', f.file)),
+		data: readFileSync(join(ROOT, 'assets/fonts', f.file)),
 	}))
 }
 

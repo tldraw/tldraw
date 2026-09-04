@@ -201,6 +201,7 @@ export interface Fragment {
     descent: number;
     // (undocumented)
     kind: FragmentKind;
+    level: number;
     // (undocumented)
     source: FragmentSource;
     // (undocumented)
