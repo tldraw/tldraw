@@ -8,7 +8,7 @@ import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
 import { requireAdminAccessToRequest } from '../utils/tla/getAuth'
 import { SegmentBody } from '../versionChain'
 import { decodeVersionBody } from '../versionChainCodec'
-import { loadChainIndex } from '../versionChainRead'
+import { loadChainIndex, SegmentIndexEntry } from '../versionChainRead'
 import { applySnapshotDelta, snapshotContentHash } from '../versionDelta'
 
 export interface VerifyResult {
@@ -68,8 +68,11 @@ export async function verifyRoomVersions({
 	for (const keyframe of keyframes) {
 		if (checked >= limit) break
 		const segments = entries
-			.filter((entry) => entry.kind === 'segment' && entry.keyframeKey === keyframe.key)
-			.sort((a, b) => a.firstSeq! - b.firstSeq!)
+			.filter(
+				(entry): entry is SegmentIndexEntry =>
+					entry.kind === 'segment' && entry.keyframeKey === keyframe.key
+			)
+			.sort((a, b) => a.firstSeq - b.firstSeq)
 
 		let state: RoomSnapshot
 		try {
