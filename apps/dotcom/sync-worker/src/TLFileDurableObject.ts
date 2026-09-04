@@ -1174,6 +1174,31 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	/**
+	 * Seed the room from its `createSource` and merge in Postgres comments. `createSource` is
+	 * never cleared from the file record, so this re-runs whenever the R2 blob is missing,
+	 * including a from-source file that gained comments and then lost its DO SQLite before the
+	 * first throttled R2 persist; without the merge those comments would be orphaned (visible in
+	 * /comments, absent from the room). A fresh duplicate has zero rows and the merge is a no-op.
+	 */
+	private async loadFromCreateSource(
+		commentsPromise: Promise<CommentLoadResult> | null
+	): Promise<DBLoadResult> {
+		const createFromSourceTimer = this.timer()
+		const res = await this.handleFileCreateFromSource()
+		createFromSourceTimer.report('db_load_create_from_source')
+
+		if (commentsPromise) {
+			// Clone: loadCreateSourceData can return the shared DEFAULT_INITIAL_SNAPSHOT constant
+			// and the merge mutates top-level snapshot fields.
+			const snapshot: RoomSnapshot = { ...res.snapshot }
+			mergeCommentDocumentsIntoSnapshot(snapshot, await commentsPromise)
+			res.snapshot = snapshot
+		}
+
+		return res
+	}
+
+	/**
 	 * Resolve the seed content for a file's `createSource`, as a RoomSnapshot or its serialized
 	 * string. Returns undefined for an unknown source, which the caller turns into RoomNotFoundError.
 	 */
@@ -1265,27 +1290,8 @@ export class TLFileDurableObject extends DurableObject {
 			}
 
 			if (this._fileRecordCache?.createSource) {
-				const createFromSourceTimer = this.timer()
-				const res = await this.handleFileCreateFromSource()
-				createFromSourceTimer.report('db_load_create_from_source')
-
-				// `createSource` is never cleared from the file record, so this branch re-enters
-				// whenever the R2 blob is missing — including a from-source file that gained
-				// comments and then lost its DO SQLite before the first throttled R2 persist.
-				// Merge the Postgres comments back in like the other branches, or they'd be
-				// orphaned: visible in the app-level /comments view but absent from the room, and
-				// resurrected inconsistently later. For a genuinely fresh duplicate the query
-				// returns zero rows and the merge is a no-op. Clone the snapshot before merging:
-				// loadCreateSourceData can return the shared DEFAULT_INITIAL_SNAPSHOT module
-				// constant, and the merge mutates top-level snapshot fields.
-				if (commentsPromise) {
-					const snapshot: RoomSnapshot = { ...res.snapshot }
-					mergeCommentDocumentsIntoSnapshot(snapshot, await commentsPromise)
-					res.snapshot = snapshot
-				}
-
+				const res = await this.loadFromCreateSource(commentsPromise)
 				loadTimer.report('db_load_total')
-
 				return res
 			}
 
@@ -1293,8 +1299,8 @@ export class TLFileDurableObject extends DurableObject {
 				// finally check whether the file exists in the DB but not in R2 yet
 				const file = await this.getAppFileRecord()
 
-				loadTimer.report('db_load_total')
 				if (!file) {
+					loadTimer.report('db_load_total')
 					throw new RoomNotFoundError(slug)
 				}
 
@@ -1303,14 +1309,12 @@ export class TLFileDurableObject extends DurableObject {
 				// Seeding a from-source file with the empty default would persist an empty room,
 				// and the R2 blob then means `createSource` is never consulted again.
 				if (file.createSource) {
-					const res = await this.handleFileCreateFromSource()
-					if (commentsPromise) {
-						const snapshot: RoomSnapshot = { ...res.snapshot }
-						mergeCommentDocumentsIntoSnapshot(snapshot, await commentsPromise)
-						res.snapshot = snapshot
-					}
+					const res = await this.loadFromCreateSource(commentsPromise)
+					loadTimer.report('db_load_total')
 					return res
 				}
+
+				loadTimer.report('db_load_total')
 
 				// Comments can exist in Postgres before the first throttled R2 persist ever runs
 				// (e.g. DO SQLite lost right after commenting on a fresh file), so rehydrate them
