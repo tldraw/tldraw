@@ -212,7 +212,7 @@ export class Driver {
 			ctrlKey: inputs.getCtrlKey(),
 			altKey: inputs.getAltKey(),
 			metaKey: inputs.getMetaKey(),
-			accelKey: isAccelKey(inputs),
+			accelKey: inputs.getAccelKey(),
 		}
 	}
 

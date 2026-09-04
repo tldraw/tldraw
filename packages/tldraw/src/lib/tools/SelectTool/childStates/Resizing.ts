@@ -14,7 +14,6 @@ import {
 	VecLike,
 	areAnglesCompatible,
 	compact,
-	isAccelKey,
 	isShapeId,
 	kickoutOccludedShapes,
 	rotateSelectionHandle,
@@ -288,7 +287,7 @@ export class Resizing extends StateNode {
 		//                            │
 		//                   cursorHandleOffset.x
 
-		const isHoldingAccel = isAccelKey(editor.inputs)
+		const isHoldingAccel = this.editor.inputs.getAccelKey()
 
 		const currentPagePoint = editor.inputs
 			.getCurrentPagePoint()

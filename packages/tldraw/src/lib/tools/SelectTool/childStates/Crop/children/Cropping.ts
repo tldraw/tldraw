@@ -6,7 +6,6 @@ import {
 	StateNode,
 	TLPointerEventInfo,
 	Vec,
-	isAccelKey,
 	kickoutOccludedShapes,
 	rotateSelectionHandle,
 } from '@tldraw/editor'
@@ -93,7 +92,7 @@ export class Cropping extends StateNode {
 
 		const shiftKey = editor.inputs.getShiftKey()
 		const altKey = editor.inputs.getAltKey()
-		const isHoldingAccel = isAccelKey(editor.inputs)
+		const isHoldingAccel = editor.inputs.getAccelKey()
 
 		const currentPagePoint = editor.inputs.getCurrentPagePoint().clone().sub(cursorHandleOffset)
 		const originPagePoint = editor.inputs.getOriginPagePoint().clone().sub(cursorHandleOffset)

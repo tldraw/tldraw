@@ -104,13 +104,6 @@ export class InputsManager extends EditorManager {
 	getOriginPagePoint() {
 		return this._originPagePoint.get()
 	}
-	/**
-	 * @deprecated Use `getOriginPagePoint()` instead.
-	 */
-	// eslint-disable-next-line tldraw/no-setter-getter
-	get originPagePoint() {
-		return this.getOriginPagePoint()
-	}
 
 	private _originScreenPoint = atom<Vec>('originScreenPoint', new Vec())
 	/**
@@ -118,13 +111,6 @@ export class InputsManager extends EditorManager {
 	 */
 	getOriginScreenPoint() {
 		return this._originScreenPoint.get()
-	}
-	/**
-	 * @deprecated Use `getOriginScreenPoint()` instead.
-	 */
-	// eslint-disable-next-line tldraw/no-setter-getter
-	get originScreenPoint() {
-		return this.getOriginScreenPoint()
 	}
 
 	private _previousPagePoint = atom<Vec>('previousPagePoint', new Vec())
@@ -134,13 +120,6 @@ export class InputsManager extends EditorManager {
 	getPreviousPagePoint() {
 		return this._previousPagePoint.get()
 	}
-	/**
-	 * @deprecated Use `getPreviousPagePoint()` instead.
-	 */
-	// eslint-disable-next-line tldraw/no-setter-getter
-	get previousPagePoint() {
-		return this.getPreviousPagePoint()
-	}
 
 	private _previousScreenPoint = atom<Vec>('previousScreenPoint', new Vec())
 	/**
@@ -148,13 +127,6 @@ export class InputsManager extends EditorManager {
 	 */
 	getPreviousScreenPoint() {
 		return this._previousScreenPoint.get()
-	}
-	/**
-	 * @deprecated Use `getPreviousScreenPoint()` instead.
-	 */
-	// eslint-disable-next-line tldraw/no-setter-getter
-	get previousScreenPoint() {
-		return this.getPreviousScreenPoint()
 	}
 
 	private _currentPagePoint = atom<Vec>('currentPagePoint', new Vec())
@@ -164,13 +136,6 @@ export class InputsManager extends EditorManager {
 	getCurrentPagePoint() {
 		return this._currentPagePoint.get()
 	}
-	/**
-	 * @deprecated Use `getCurrentPagePoint()` instead.
-	 */
-	// eslint-disable-next-line tldraw/no-setter-getter
-	get currentPagePoint() {
-		return this.getCurrentPagePoint()
-	}
 
 	private _currentScreenPoint = atom<Vec>('currentScreenPoint', new Vec())
 	/**
@@ -179,13 +144,6 @@ export class InputsManager extends EditorManager {
 	getCurrentScreenPoint() {
 		return this._currentScreenPoint.get()
 	}
-	/**
-	 * @deprecated Use `getCurrentScreenPoint()` instead.
-	 */
-	// eslint-disable-next-line tldraw/no-setter-getter
-	get currentScreenPoint() {
-		return this.getCurrentScreenPoint()
-	}
 
 	private _pointerVelocity = atom<Vec>('pointerVelocity', new Vec())
 	/**
@@ -193,13 +151,6 @@ export class InputsManager extends EditorManager {
 	 */
 	getPointerVelocity() {
 		return this._pointerVelocity.get()
-	}
-	/**
-	 * @deprecated Use `getPointerVelocity()` instead.
-	 */
-	// eslint-disable-next-line tldraw/no-setter-getter
-	get pointerVelocity() {
-		return this.getPointerVelocity()
 	}
 
 	/**
@@ -230,17 +181,6 @@ export class InputsManager extends EditorManager {
 		return this._isPen.get()
 	}
 	/**
-	 * @deprecated Use `getIsPen()` instead.
-	 */
-	// eslint-disable-next-line tldraw/no-setter-getter
-	get isPen() {
-		return this.getIsPen()
-	}
-	// eslint-disable-next-line tldraw/no-setter-getter
-	set isPen(isPen: boolean) {
-		this.setIsPen(isPen)
-	}
-	/**
 	 * @param isPen - Whether the input is from a pen.
 	 */
 	setIsPen(isPen: boolean) {
@@ -253,17 +193,6 @@ export class InputsManager extends EditorManager {
 	 */
 	getShiftKey() {
 		return this._shiftKey.get()
-	}
-	/**
-	 * @deprecated Use `getShiftKey()` instead.
-	 */
-	// eslint-disable-next-line tldraw/no-setter-getter
-	get shiftKey() {
-		return this.getShiftKey()
-	}
-	// eslint-disable-next-line tldraw/no-setter-getter
-	set shiftKey(shiftKey: boolean) {
-		this.setShiftKey(shiftKey)
 	}
 	/**
 	 * @param shiftKey - Whether the shift key is pressed.
@@ -281,17 +210,6 @@ export class InputsManager extends EditorManager {
 		return this._metaKey.get()
 	}
 	/**
-	 * @deprecated Use `getMetaKey()` instead.
-	 */
-	// eslint-disable-next-line tldraw/no-setter-getter
-	get metaKey() {
-		return this.getMetaKey()
-	}
-	// eslint-disable-next-line tldraw/no-setter-getter
-	set metaKey(metaKey: boolean) {
-		this.setMetaKey(metaKey)
-	}
-	/**
 	 * @param metaKey - Whether the meta key is pressed.
 	 * @internal
 	 */
@@ -305,17 +223,6 @@ export class InputsManager extends EditorManager {
 	 */
 	getCtrlKey() {
 		return this._ctrlKey.get()
-	}
-	/**
-	 * @deprecated Use `getCtrlKey()` instead.
-	 */
-	// eslint-disable-next-line tldraw/no-setter-getter
-	get ctrlKey() {
-		return this.getCtrlKey()
-	}
-	// eslint-disable-next-line tldraw/no-setter-getter
-	set ctrlKey(ctrlKey: boolean) {
-		this.setCtrlKey(ctrlKey)
 	}
 	/**
 	 * @param ctrlKey - Whether the ctrl key is pressed.
@@ -333,17 +240,6 @@ export class InputsManager extends EditorManager {
 		return this._altKey.get()
 	}
 	/**
-	 * @deprecated Use `getAltKey()` instead.
-	 */
-	// eslint-disable-next-line tldraw/no-setter-getter
-	get altKey() {
-		return this.getAltKey()
-	}
-	// eslint-disable-next-line tldraw/no-setter-getter
-	set altKey(altKey: boolean) {
-		this.setAltKey(altKey)
-	}
-	/**
 	 * @param altKey - Whether the alt key is pressed.
 	 * @internal
 	 */
@@ -357,13 +253,6 @@ export class InputsManager extends EditorManager {
 	getAccelKey() {
 		return isAccelKey({ metaKey: this.getMetaKey(), ctrlKey: this.getCtrlKey() })
 	}
-	/**
-	 * @deprecated Use `getAccelKey()` instead.
-	 */
-	// eslint-disable-next-line tldraw/no-setter-getter
-	get accelKey() {
-		return this.getAccelKey()
-	}
 
 	private _isDragging = atom<boolean>('isDragging', false)
 	/**
@@ -371,17 +260,6 @@ export class InputsManager extends EditorManager {
 	 */
 	getIsDragging() {
 		return this._isDragging.get()
-	}
-	/**
-	 * Soon to be deprecated, use `getIsDragging()` instead.
-	 */
-	// eslint-disable-next-line tldraw/no-setter-getter
-	get isDragging() {
-		return this.getIsDragging()
-	}
-	// eslint-disable-next-line tldraw/no-setter-getter
-	set isDragging(isDragging: boolean) {
-		this.setIsDragging(isDragging)
 	}
 	/**
 	 * @param isDragging - Whether the user is dragging.
@@ -396,17 +274,6 @@ export class InputsManager extends EditorManager {
 	 */
 	getIsPointing() {
 		return this._isPointing.get()
-	}
-	/**
-	 * @deprecated Use `getIsPointing()` instead.
-	 */
-	// eslint-disable-next-line tldraw/no-setter-getter
-	get isPointing() {
-		return this.getIsPointing()
-	}
-	// eslint-disable-next-line tldraw/no-setter-getter
-	set isPointing(isPointing: boolean) {
-		this.setIsPointing(isPointing)
 	}
 	/**
 	 * @param isPointing - Whether the user is pointing.
@@ -436,17 +303,6 @@ export class InputsManager extends EditorManager {
 		return this._isPinching.get()
 	}
 	/**
-	 * @deprecated Use `getIsPinching()` instead.
-	 */
-	// eslint-disable-next-line tldraw/no-setter-getter
-	get isPinching() {
-		return this.getIsPinching()
-	}
-	// eslint-disable-next-line tldraw/no-setter-getter
-	set isPinching(isPinching: boolean) {
-		this.setIsPinching(isPinching)
-	}
-	/**
 	 * @param isPinching - Whether the user is pinching.
 	 * @internal
 	 */
@@ -460,17 +316,6 @@ export class InputsManager extends EditorManager {
 	 */
 	getIsEditing() {
 		return this._isEditing.get()
-	}
-	/**
-	 * @deprecated Use `getIsEditing()` instead.
-	 */
-	// eslint-disable-next-line tldraw/no-setter-getter
-	get isEditing() {
-		return this.getIsEditing()
-	}
-	// eslint-disable-next-line tldraw/no-setter-getter
-	set isEditing(isEditing: boolean) {
-		this.setIsEditing(isEditing)
 	}
 	/**
 	 * @param isEditing - Whether the user is editing.
@@ -487,17 +332,6 @@ export class InputsManager extends EditorManager {
 		return this._isPanning.get()
 	}
 	/**
-	 * @deprecated Use `getIsPanning()` instead.
-	 */
-	// eslint-disable-next-line tldraw/no-setter-getter
-	get isPanning() {
-		return this.getIsPanning()
-	}
-	// eslint-disable-next-line tldraw/no-setter-getter
-	set isPanning(isPanning: boolean) {
-		this.setIsPanning(isPanning)
-	}
-	/**
 	 * @param isPanning - Whether the user is panning.
 	 * @internal
 	 */
@@ -511,17 +345,6 @@ export class InputsManager extends EditorManager {
 	 */
 	getIsSpacebarPanning() {
 		return this._isSpacebarPanning.get()
-	}
-	/**
-	 * @deprecated Use `getIsSpacebarPanning()` instead.
-	 */
-	// eslint-disable-next-line tldraw/no-setter-getter
-	get isSpacebarPanning() {
-		return this.getIsSpacebarPanning()
-	}
-	// eslint-disable-next-line tldraw/no-setter-getter
-	set isSpacebarPanning(isSpacebarPanning: boolean) {
-		this.setIsSpacebarPanning(isSpacebarPanning)
 	}
 	/**
 	 * @param isSpacebarPanning - Whether the user is spacebar panning.

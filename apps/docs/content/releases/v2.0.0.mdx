@@ -101,7 +101,7 @@ class MyTool extends StateNode {
 	static id = 'my-tool'
 
 	onPointerDown(info) {
-		const point = this.editor.inputs.currentPagePoint
+		const point = this.editor.inputs.getCurrentPagePoint()
 		this.editor.createShape({ type: 'geo', x: point.x, y: point.y })
 	}
 }
