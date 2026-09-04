@@ -9181,24 +9181,58 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.emit('deleted-shapes', [...allShapeIdsToDelete])
 		this.emit('edit')
 		return this.run(() => {
-			// Batch survivors by their outermost deleted ancestor and insert them at its index so
-			// they keep their z-order among the ancestor's siblings.
-			const survivorsByAncestorId = new Map<TLShapeId, TLShapeId[]>()
-			for (const id of lockedDescendantIds) {
-				let ancestor = this.getShape(this.getShape(id)!.parentId as TLShapeId)!
-				while (isShapeId(ancestor.parentId) && allShapeIdsToDelete.has(ancestor.parentId)) {
-					ancestor = this.getShape(ancestor.parentId)!
-				}
-				const survivors = survivorsByAncestorId.get(ancestor.id)
-				if (survivors) {
-					survivors.push(id)
-				} else {
-					survivorsByAncestorId.set(ancestor.id, [id])
-				}
-			}
-			for (const [ancestorId, survivors] of survivorsByAncestorId) {
-				const ancestor = this.getShape(ancestorId)!
-				this.reparentShapes(survivors, ancestor.parentId, ancestor.index)
+			if (lockedDescendantIds.length) {
+				this.run(
+					() => {
+						// Drop bindings between a survivor's subtree and the shapes being deleted before
+						// reparenting anything. A binding util reacting to the survivor's ancestry change
+						// can otherwise move it back under a deleted ancestor (an arrow bound to two
+						// deleted siblings gets reparented to their common ancestor, the deleted frame)
+						// and the survivor is orphaned once that ancestor is removed.
+						const survivingIds = new Set(lockedDescendantIds)
+						for (const id of lockedDescendantIds) {
+							this.visitDescendants(id, (childId) => {
+								survivingIds.add(childId)
+							})
+						}
+						const bindingIdsToDelete: TLBindingId[] = []
+						for (const id of survivingIds) {
+							for (const binding of this.getBindingsInvolvingShape(id)) {
+								const otherId = binding.fromId === id ? binding.toId : binding.fromId
+								if (allShapeIdsToDelete.has(otherId)) bindingIdsToDelete.push(binding.id)
+							}
+						}
+						this.deleteBindings(bindingIdsToDelete, { isolateShapes: true })
+
+						// Batch survivors by their outermost deleted ancestor and insert them at its index so
+						// they keep their z-order among the ancestor's siblings.
+						const survivorsByAncestorId = new Map<TLShapeId, TLShapeId[]>()
+						for (const id of lockedDescendantIds) {
+							let ancestor = this.getShape(this.getShape(id)!.parentId as TLShapeId)!
+							while (isShapeId(ancestor.parentId) && allShapeIdsToDelete.has(ancestor.parentId)) {
+								ancestor = this.getShape(ancestor.parentId)!
+							}
+							const survivors = survivorsByAncestorId.get(ancestor.id)
+							if (survivors) {
+								survivors.push(id)
+							} else {
+								survivorsByAncestorId.set(ancestor.id, [id])
+							}
+						}
+						for (const [ancestorId, survivors] of survivorsByAncestorId) {
+							const ancestor = this.getShape(ancestorId)!
+							// Reparent one at a time, each above the previous one. `lockedDescendantIds` is
+							// in tree order, but `reparentShapes` sorts a batch by local index, which is
+							// meaningless across different intermediate parents.
+							let insertIndex = ancestor.index
+							for (const id of survivors) {
+								this.reparentShapes([id], ancestor.parentId, insertIndex)
+								insertIndex = this.getShape(id)!.index
+							}
+						}
+					},
+					{ ignoreShapeLock: true }
+				)
 			}
 
 			this.store.remove([...allShapeIdsToDelete])

@@ -1427,6 +1427,85 @@ describe('When deleting/removing a frame', () => {
 			expect(editor.getShape(lockedId)).toMatchObject({ parentId: frameId, x: 10, y: 20 })
 		})
 
+		it('keeps a locked arrow bound to deleted siblings on the page', () => {
+			const arrowId = createShapeId('arrow')
+			editor.createShape({
+				id: arrowId,
+				type: 'arrow',
+				parentId: frameId,
+				x: 0,
+				y: 0,
+				props: { start: { x: 20, y: 30 }, end: { x: 60, y: 60 } },
+			})
+			editor.createBindings([
+				{
+					fromId: arrowId,
+					toId: lockedId,
+					type: 'arrow',
+					props: {
+						terminal: 'start',
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isExact: false,
+						isPrecise: false,
+					},
+				},
+				{
+					fromId: arrowId,
+					toId: unlockedId,
+					type: 'arrow',
+					props: {
+						terminal: 'end',
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isExact: false,
+						isPrecise: false,
+					},
+				},
+			])
+			// Both bound shapes are unlocked so the frame takes them with it; only the arrow survives.
+			editor.updateShapes([
+				{ id: lockedId, type: 'geo', isLocked: false },
+				{ id: arrowId, type: 'arrow', isLocked: true },
+			])
+			expect(editor.getShape(arrowId)).toMatchObject({ parentId: frameId })
+
+			editor.deleteShape(frameId)
+
+			expect(editor.getShape(frameId)).toBeUndefined()
+			expect(editor.getShape(lockedId)).toBeUndefined()
+			expect(editor.getShape(unlockedId)).toBeUndefined()
+			expect(editor.getShape(arrowId)).toMatchObject({
+				parentId: editor.getCurrentPageId(),
+				isLocked: true,
+			})
+			expect(editor.getBindingsInvolvingShape(arrowId)).toEqual([])
+			expect(editor.getCurrentPageShapeIds().has(arrowId)).toBe(true)
+		})
+
+		it('keeps the relative z-order of locked descendants from different intermediate parents', () => {
+			const inner1Id = createShapeId('inner1')
+			const inner2Id = createShapeId('inner2')
+			const locked1Id = createShapeId('locked1')
+			const locked2Id = createShapeId('locked2')
+			// locked1 sits above an unlocked sibling in inner1, so its local index is higher than
+			// locked2's in inner2 even though locked2 is above it in the tree.
+			editor.createShapes([
+				{ id: inner1Id, type: 'frame', parentId: frameId, x: 0, y: 0, props: { w: 100, h: 100 } },
+				{ id: inner2Id, type: 'frame', parentId: frameId, x: 0, y: 0, props: { w: 100, h: 100 } },
+			])
+			editor.reparentShapes([unlockedId], inner1Id)
+			editor.createShapes([
+				{ id: locked1Id, type: 'geo', parentId: inner1Id, x: 0, y: 0, isLocked: true },
+				{ id: locked2Id, type: 'geo', parentId: inner2Id, x: 0, y: 0, isLocked: true },
+			])
+			expect(editor.getShape(locked1Id)!.index > editor.getShape(locked2Id)!.index).toBe(true)
+
+			editor.deleteShape(frameId)
+
+			const pageOrder = editor.getSortedChildIdsForParent(editor.getCurrentPageId())
+			expect(pageOrder.indexOf(lockedId)).toBeLessThan(pageOrder.indexOf(locked1Id))
+			expect(pageOrder.indexOf(locked1Id)).toBeLessThan(pageOrder.indexOf(locked2Id))
+		})
+
 		it('deletes locked children when shape locks are ignored', () => {
 			editor.run(() => editor.deleteShape(frameId), { ignoreShapeLock: true })
 
