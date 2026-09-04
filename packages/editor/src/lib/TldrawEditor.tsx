@@ -314,8 +314,11 @@ export const TldrawEditor = memo(function TldrawEditor({
 	// Merge deprecated props with options (options win). Nested option objects are
 	// identity-stabilised too: `options` is a dependency of the editor-creating effect, so an
 	// inline `options={{ camera: { ... } }}` would otherwise recreate the editor on every render.
+	// `text` needs the deep comparison as well: `<Tldraw>` builds a fresh `tipTapConfig` inside
+	// it whenever its own `options.text` is a new identity.
 	const camera = useDeepObjectIdentity(_options?.camera)
-	const text = useShallowObjectIdentity(_options?.text ?? _textOptions)
+	const gridSteps = useDeepObjectIdentity(_options?.gridSteps)
+	const text = useDeepObjectIdentity(_options?.text ?? _textOptions)
 	const mergedDeepLinks = _options?.deepLinks ?? _deepLinks
 	const deepLinkOptions = useDeepObjectIdentity(
 		mergedDeepLinks === true ? undefined : mergedDeepLinks
@@ -324,10 +327,11 @@ export const TldrawEditor = memo(function TldrawEditor({
 	const mergedOptions = useMemo(() => {
 		let result = _options
 		if (camera !== undefined) result = { ...result, camera }
+		if (gridSteps !== undefined) result = { ...result, gridSteps }
 		if (text !== undefined) result = { ...result, text }
 		if (deepLinks !== undefined) result = { ...result, deepLinks }
 		return result
-	}, [_options, camera, text, deepLinks])
+	}, [_options, camera, gridSteps, text, deepLinks])
 
 	// apply defaults. if you're using the bare @tldraw/editor package, we
 	// default these to the "tldraw zero" configuration. We have different

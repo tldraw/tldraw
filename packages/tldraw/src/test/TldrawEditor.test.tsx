@@ -20,6 +20,7 @@ import { StrictMode } from 'react'
 import { vi } from 'vitest'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { defaultTools } from '../lib/defaultTools'
+import { Tldraw } from '../lib/Tldraw'
 import { createDrawSegments } from '../lib/utils/test-helpers'
 import { defaultAddFontsFromNode, tipTapDefaultExtensions } from '../lib/utils/text/richText'
 import {
@@ -247,6 +248,67 @@ describe('<TldrawEditor />', () => {
 		expect(secondEditor.dispose).toHaveBeenCalledTimes(1)
 		expect(onMount).toHaveBeenCalledTimes(3)
 		expect(onMount.mock.lastCall![0].getCameraOptions().isLocked).toBe(false)
+	})
+
+	it('keeps the editor when re-rendered with equal inline gridSteps', async () => {
+		const onMount = vi.fn()
+		const gridSteps = () => [{ min: -1, mid: 0.15, step: 64 }]
+		const rendered = await renderTldrawComponent(
+			<TldrawEditor
+				tools={defaultTools}
+				initialState="select"
+				onMount={onMount}
+				options={{ gridSteps: gridSteps() }}
+			/>,
+			{ waitForPatterns: false }
+		)
+		const initialEditor = onMount.mock.lastCall![0]
+		vi.spyOn(initialEditor, 'dispose')
+		rendered.rerender(
+			<TldrawEditor
+				tools={defaultTools}
+				initialState="select"
+				onMount={onMount}
+				options={{ gridSteps: gridSteps() }}
+			/>
+		)
+		expect(initialEditor.dispose).not.toHaveBeenCalled()
+		expect(onMount).toHaveBeenCalledTimes(1)
+		// a real change still recreates the editor:
+		rendered.rerender(
+			<TldrawEditor
+				tools={defaultTools}
+				initialState="select"
+				onMount={onMount}
+				options={{ gridSteps: [{ min: -1, mid: 0.15, step: 32 }] }}
+			/>
+		)
+		await rendered.findAllByTestId('canvas')
+		expect(initialEditor.dispose).toHaveBeenCalledTimes(1)
+		expect(onMount).toHaveBeenCalledTimes(2)
+		expect(onMount.mock.lastCall![0].options.gridSteps).toEqual([{ min: -1, mid: 0.15, step: 32 }])
+	})
+
+	it('keeps the editor when <Tldraw /> is re-rendered with equal inline text options', async () => {
+		// <Tldraw> builds a fresh `tipTapConfig` from `options.text` each time that object changes
+		// identity, so a shallow comparison of `text` is not enough here.
+		const onMount = vi.fn()
+		const rendered = await renderTldrawComponent(
+			<Tldraw onMount={onMount} options={{ text: {} }} />,
+			{ waitForPatterns: true }
+		)
+		const initialEditor = onMount.mock.lastCall![0]
+		vi.spyOn(initialEditor, 'dispose')
+		rendered.rerender(<Tldraw onMount={onMount} options={{ text: {} }} />)
+		expect(initialEditor.dispose).not.toHaveBeenCalled()
+		expect(onMount).toHaveBeenCalledTimes(1)
+		// a real change still recreates the editor:
+		const addFontsFromNode = vi.fn(defaultAddFontsFromNode)
+		rendered.rerender(<Tldraw onMount={onMount} options={{ text: { addFontsFromNode } }} />)
+		await rendered.findAllByTestId('canvas')
+		expect(initialEditor.dispose).toHaveBeenCalledTimes(1)
+		expect(onMount).toHaveBeenCalledTimes(2)
+		expect(onMount.mock.lastCall![0].getTextOptions().addFontsFromNode).toBe(addFontsFromNode)
 	})
 
 	it('reflects mount state via getIsMounted and the mount/unmount events', async () => {
