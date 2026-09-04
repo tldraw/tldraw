@@ -30,12 +30,17 @@ export interface SnapshotDelta {
 }
 
 /**
- * Order-independent content hash of a snapshot's document lane. Reconstruction rebuilds
- * `documents` in a different order than `getSnapshot()` emits and `applyObjectDiff` can reorder
- * keys inside a record, so per-record canonical hashes are XOR-combined rather than hashed in
- * sequence. Exists because `applyObjectDiff` is lenient — an Append with a stale offset or a
- * Patch on a missing key is silently skipped — so a subtly broken chain applies cleanly; this
- * hash is what turns "slightly wrong board" into an error.
+ * Order-independent content hash of a snapshot. Reconstruction rebuilds `documents` in a different
+ * order than `getSnapshot()` emits and `applyObjectDiff` can reorder keys inside a record, so
+ * per-record canonical hashes are XOR-combined rather than hashed in sequence. Exists because
+ * `applyObjectDiff` is lenient — an Append with a stale offset or a Patch on a missing key is
+ * silently skipped — so a subtly broken chain applies cleanly; this hash is what turns "slightly
+ * wrong board" into an error.
+ *
+ * The room-level clocks are folded in as one labelled term rather than left out: they are optional
+ * on `SnapshotDelta`, and `tombstoneHistoryStartsAtClock` in particular decides how far back
+ * SQLiteSyncStorage believes deletions are tracked. Omitted from the hash, a delta that dropped one
+ * would replay as `undefined` and still verify.
  */
 export function snapshotContentHash(snapshot: RoomSnapshot): string {
 	let acc = 0n
@@ -45,6 +50,17 @@ export function snapshotContentHash(snapshot: RoomSnapshot): string {
 	for (const [id, clock] of Object.entries(snapshot.tombstones ?? {})) {
 		acc ^= BigInt('0x' + fnv1a64('tombstone:' + id + '@' + clock))
 	}
+	acc ^= BigInt(
+		'0x' +
+			fnv1a64(
+				'clocks:' +
+					canonicalJson({
+						clock: snapshot.clock,
+						documentClock: snapshot.documentClock,
+						tombstoneHistoryStartsAtClock: snapshot.tombstoneHistoryStartsAtClock,
+					})
+			)
+	)
 	return acc.toString(16)
 }
 
@@ -124,7 +140,10 @@ export function applySnapshotDelta(prev: RoomSnapshot, delta: SnapshotDelta): Ro
 				break
 			}
 			case RecordOpType.Remove:
-				documents.delete(id)
+				// Same reasoning as Patch: buildSnapshotDelta only emits a Remove for a record the
+				// previous state held, so one that deletes nothing means the base is not the state
+				// this delta was diffed from.
+				if (!documents.delete(id)) throw new Error(`version delta removes unknown record ${id}`)
 				break
 		}
 	}

@@ -331,6 +331,27 @@ describe('reconstructVersion', () => {
 	})
 })
 
+describe('reconstructVersion segment format', () => {
+	it('refuses a segment written in an unknown format', async () => {
+		const chainBucket = createFakeR2()
+		const legacyBucket = createFakeR2()
+		const versions = [snapshot(1, ['shape:a']), snapshot(2, ['shape:a', 'shape:b'])]
+		await seedChain(chainBucket, versions)
+
+		const segmentKey = versionKey(roomKey, isoAt(1), 'segment')
+		const existing = (await chainBucket.get(segmentKey))!
+		const body = (await decodeVersionBody(existing)) as any
+		const reencoded = await encodeVersionBody({ ...body, v: 2 })
+		await chainBucket.put(segmentKey, reencoded.body, {
+			customMetadata: { ...existing.customMetadata, ...reencoded.metadata },
+		})
+
+		await expect(
+			reconstructVersion({ chainBucket, legacyBucket, roomKey, timestamp: isoAt(1) })
+		).rejects.toThrow(/unknown version segment format/)
+	})
+})
+
 describe('reconstructVersion under clock skew', () => {
 	it('orders segments by sequence when a later segment has an earlier key', async () => {
 		const chainBucket = createFakeR2()
