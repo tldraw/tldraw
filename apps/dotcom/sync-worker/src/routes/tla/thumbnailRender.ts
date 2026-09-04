@@ -228,6 +228,7 @@ export async function captureThumbnailScreenshot(
 		width,
 		height,
 		telemetry,
+		capture,
 	}: {
 		/** Which pipeline is asking. Signed into the job; namespaces the minted-token record. */
 		surface: ThumbnailRenderSurface
@@ -250,6 +251,12 @@ export async function captureThumbnailScreenshot(
 		 * definition a screenshot render.
 		 */
 		telemetry: { source: BrowserRunSessionContext['source']; reason?: OgImageRenderReason }
+		/**
+		 * `live` skips the in-page export and lets the screenshot rasterize the live canvas, after the
+		 * page has pruned it to the requested shapes. Signed into the job so the render page reads it
+		 * with the rest of its parameters. See ThumbnailRenderParams.
+		 */
+		capture?: 'live'
 	}
 ): Promise<{ base64: string; durationMs: number }> {
 	const job: ThumbnailRenderJob = {
@@ -264,6 +271,7 @@ export async function captureThumbnailScreenshot(
 		camera: 'content',
 		...(pageId ? { pageId } : null),
 		...(shapeIds?.length ? { shapeIds } : null),
+		...(capture ? { capture } : null),
 		// Ignored while `camera` is 'content', which is what every surface mints; carried because the
 		// job type keeps the explicit-viewport path available (see ThumbnailRenderJob).
 		x: 0,
@@ -279,7 +287,7 @@ export async function captureThumbnailScreenshot(
 		return await runRenderSession(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
 			width,
 			height,
-			session: { source: telemetry.source, mode: 'screenshot', reason: telemetry.reason },
+			session: { source: telemetry.source, mode: 'screenshot', reason: telemetry.reason, capture },
 		})
 	} finally {
 		// The MCP surface keys its records by token, so nothing later overwrites this one and it has to
@@ -297,6 +305,8 @@ export interface BrowserRunSessionContext {
 	mode: 'measure' | 'screenshot'
 	/** The queue trigger, on sessions the queue runs. Request-path sessions have none. */
 	reason?: OgImageRenderReason
+	/** `live` when the render was asked to rasterize the live canvas; absent means the page exports. */
+	capture?: 'live'
 }
 
 // The Browser Run spend ledger: one datapoint per browser session actually created, written here at
@@ -313,12 +323,15 @@ function writeBrowserRunSessionTelemetry(
 		durationMs,
 		width,
 		height,
+		browserMsUsed,
 	}: {
 		/** `ok`, or the bounded browser failure code for a session that died. */
 		outcome: string
 		durationMs: number
 		width: number
 		height: number
+		/** See TimedCapture.browserMsUsed; 0 for sessions that died before a response. */
+		browserMsUsed: number
 	}
 ) {
 	writeDataPoint(undefined, env.MEASURE, env, 'browser_run_session', {
@@ -327,8 +340,11 @@ function writeBrowserRunSessionTelemetry(
 			`mode:${session.mode}`,
 			`outcome:${outcome}`,
 			`reason:${session.reason ?? 'none'}`,
+			// Appended: existing blob positions must not shift. `none` on measures, which draw
+			// nothing; a screenshot render exports unless it asked for live.
+			`capture:${session.mode === 'measure' ? 'none' : (session.capture ?? 'export')}`,
 		],
-		doubles: [width, height, durationMs],
+		doubles: [width, height, durationMs, browserMsUsed],
 	})
 }
 
@@ -383,6 +399,7 @@ async function runRenderSession(
 				durationMs: error.durationMs,
 				width,
 				height,
+				browserMsUsed: 0,
 			})
 		}
 		throw error
@@ -396,6 +413,7 @@ async function runRenderSession(
 			durationMs: timed.durationMs,
 			width,
 			height,
+			browserMsUsed: timed.browserMsUsed,
 		})
 		throw new Error('Render produced an empty screenshot')
 	}
@@ -405,6 +423,7 @@ async function runRenderSession(
 		durationMs: timed.durationMs,
 		width,
 		height,
+		browserMsUsed: timed.browserMsUsed,
 	})
 	return { base64: arrayBufferToBase64(buffer), durationMs: timed.durationMs }
 }
@@ -420,6 +439,17 @@ type ThumbnailScreenshotRequestBody = ReturnType<typeof getThumbnailScreenshotRe
 interface TimedCapture {
 	buffer: ArrayBuffer
 	durationMs: number
+	/**
+	 * Browser wall clock billed for the session (Browser Run's `X-Browser-Ms-Used`), or 0 where the
+	 * transport has none (the local dev service). `durationMs - browserMsUsed` is everything that
+	 * happened outside the browser — RPC, Browser Run queueing, response transfer.
+	 */
+	browserMsUsed: number
+}
+
+// Both transports read the billing header through this, so the ledger column means one thing.
+function browserMsUsedOf(response: Response) {
+	return Number(response.headers.get('X-Browser-Ms-Used')) || 0
 }
 
 async function callBrowserRun(
@@ -457,7 +487,7 @@ async function callBrowserRun(
 			timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
 		})
 	})
-	return { buffer, durationMs: Date.now() - startedAt }
+	return { buffer, durationMs: Date.now() - startedAt, browserMsUsed: browserMsUsedOf(response) }
 }
 
 // The request cannot cap its own total: `gotoOptions.timeout` and `waitForSelector.timeout` are
@@ -567,7 +597,7 @@ async function callLocalScreenshotService(
 		)
 	}
 	const buffer = await response.arrayBuffer()
-	return { buffer, durationMs: Date.now() - startedAt }
+	return { buffer, durationMs: Date.now() - startedAt, browserMsUsed: browserMsUsedOf(response) }
 }
 
 // Writes one rendered PNG to a thumbnail cache, stamping the content version (so a stale version

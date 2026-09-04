@@ -130,6 +130,11 @@ export interface Environment {
 	// Origin serving the client thumbnail render page (THUMBNAIL_RENDER_PATH). Set per
 	// environment in wrangler.toml.
 	MCP_SCREENSHOT_RENDER_ORIGIN: string | undefined
+	// 'true' opts MCP screenshots into live-canvas capture: the page prunes the canvas to the
+	// requested shapes, settles and fits, and the screenshotting browser rasterizes it instead of
+	// the page exporting itself. Skips the export phase, the expensive part on heavy boards, at the
+	// cost of the export path's pixel-exact sizing. Off everywhere it is unset.
+	THUMBNAIL_RENDER_LIVE_CAPTURE: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
 	// The MCP server's public URL, and the resource identifier it advertises in RFC 9728 protected

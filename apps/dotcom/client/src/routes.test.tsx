@@ -130,8 +130,10 @@ test('dev reset route exists only in development routing', () => {
 	)
 })
 
-test('the thumbnail render route is included in production routing', () => {
-	expect(spaRoutes.map((route) => route.reactRouterPattern)).toContain('/__thumbnail-render')
+test('the thumbnail render page is not an SPA route', () => {
+	// An SPA fallback for this path would mask a broken edge rewrite by quietly serving the app
+	// shell, and every capture would silently pay for it again.
+	expect(spaRoutes.map((route) => route.reactRouterPattern)).not.toContain('/__thumbnail-render')
 })
 
 test('all React routes match', () => {
