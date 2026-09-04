@@ -1,3 +1,12 @@
+import { RoomSnapshot } from '@tldraw/sync-core'
+
+// Shape of legacy snapshot objects in ROOM_SNAPSHOTS; nothing writes new ones since the
+// snapshot-link UI was removed, but existing objects are still read.
+export interface R2Snapshot {
+	parent_slug?: string
+	drawing: RoomSnapshot
+}
+
 export function getR2KeyForRoom({ slug, isApp }: { slug: string; isApp: boolean }) {
 	return `${isApp ? 'app_rooms' : 'public_rooms'}/${slug}`
 }
