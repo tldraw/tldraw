@@ -9864,7 +9864,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 					let transform = Mat.Identity()
 					let rotation = 0
 					let parentId: TLParentId = shape.parentId
-					while (unsupportedShapeIds.has(parentId)) {
+					// Content is arbitrary JSON off the clipboard, so the parent chain can be
+					// cyclic. Nothing upstream rejects that, and walking it unguarded hangs the
+					// whole thread — no error boundary, just a frozen tab.
+					const seenParentIds = new Set<string>()
+					while (unsupportedShapeIds.has(parentId) && !seenParentIds.has(parentId)) {
+						seenParentIds.add(parentId)
 						const dropped = sourceShapesById.get(parentId)!
 						transform = Mat.Compose(
 							Mat.Translate(dropped.x, dropped.y),
@@ -9874,6 +9879,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 						rotation += dropped.rotation
 						parentId = dropped.parentId
 					}
+
+					// A cycle leaves us on a dropped shape with no real ancestor to lift into,
+					// so treat the shape as top level rather than parenting it to a shape that
+					// will never exist.
+					if (unsupportedShapeIds.has(parentId)) parentId = currentPageId
 
 					// Nothing survived above it, so it's a root shape now — otherwise it's
 					// neither positioned nor selected with the rest of the paste.
