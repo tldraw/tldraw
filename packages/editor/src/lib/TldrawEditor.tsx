@@ -670,8 +670,10 @@ function TldrawEditorWithReadyStore({
 			function handleBlurOnPointerDown(e: PointerEvent) {
 				if (!editor) return
 				// The same pointerdown bubbles from the container to the body; blurring here would
-				// cancel the interaction the container listener just focused for.
-				if (container.contains(e.target as Node | null)) return
+				// cancel the interaction the container listener just focused for. Check the composed
+				// path rather than `e.target`: when the editor lives in a shadow DOM the target is
+				// retargeted to the shadow host by the time the event reaches the body.
+				if (e.composedPath().includes(container)) return
 				editor.blur()
 			}
 
