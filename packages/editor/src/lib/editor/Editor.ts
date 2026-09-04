@@ -9872,12 +9872,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 							shouldResolveToOriginal: true,
 						})
 						if (objectUrl) {
-							const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
-							assetWithDataUrl.props.src = await FileHelpers.blobToDataUrl(
-								await fetch(objectUrl).then((r) => r.blob())
-							)
-							assets.push(assetWithDataUrl)
-							return
+							// fetch resolves on 4xx/5xx, so without this check a 404 error page would be
+							// inlined as a data:text/html src
+							const response = await fetch(objectUrl)
+							if (response.ok) {
+								const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
+								assetWithDataUrl.props.src = await FileHelpers.blobToDataUrl(await response.blob())
+								assets.push(assetWithDataUrl)
+								return
+							}
 						}
 					} catch {
 						// keep the original asset
