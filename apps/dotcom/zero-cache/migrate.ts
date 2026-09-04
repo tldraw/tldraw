@@ -1,8 +1,9 @@
 /* eslint-disable no-console */
 import { existsSync, readFileSync, readdirSync } from 'fs'
 import { createServer } from 'http'
-import { Kysely, PostgresDialect, sql } from 'kysely'
+import { Kysely, PostgresDialect, Transaction, sql } from 'kysely'
 import pg from 'pg'
+import { isNoTransactionMigration, splitSqlStatements } from './migrationFile'
 
 const postgresConnectionString: string =
 	process.env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING ||
@@ -90,62 +91,134 @@ async function waitForPostgres() {
 	await sql.raw(init).execute(db)
 }
 
-async function migrate(summary: string[], dryRun: boolean) {
-	await db.transaction().execute(async (tx) => {
-		const appliedMigrations = await sql<{
-			filename: string
-		}>`SELECT filename FROM migrations.applied_migrations`.execute(tx)
-		const migrations = readdirSync(`./migrations`).sort()
-		if (migrations.length === 0) {
-			throw new Error('No migrations found')
-		}
+interface PlannedMigration {
+	filename: string
+	sql: string
+	noTransaction: boolean
+	alreadyApplied: boolean
+}
 
-		// check that all applied migrations exist
-		for (const appliedMigration of appliedMigrations.rows) {
-			if (!migrations.includes(appliedMigration.filename)) {
-				throw new Error(`Previously-applied migration ${appliedMigration.filename} not found`)
-			}
-		}
+/** Consecutive ordinary migrations share one transaction; a no-transaction one stands alone. */
+interface Segment {
+	noTransaction: boolean
+	steps: PlannedMigration[]
+}
 
-		// We hardcode the `zero_0` shard schema. If Zero is ever reconfigured with a
-		// different app id or shard, that name changes and our guards would silently
-		// stop firing, reverting us to full resets. Fail loudly if it drifts. (No rows
-		// means Zero hasn't booted yet, expected on a fresh database.)
-		const shardSchemas = await sql<{ nspname: string }>`
-			SELECT DISTINCT n.nspname FROM pg_proc p
-			JOIN pg_namespace n ON n.oid = p.pronamespace
-			WHERE p.proname = 'update_schemas'
-		`.execute(tx)
-		const schemaNames = shardSchemas.rows.map((r) => r.nspname)
-		if (schemaNames.length > 0 && !schemaNames.includes('zero_0')) {
+async function planMigrations(): Promise<PlannedMigration[]> {
+	const appliedMigrations = await sql<{
+		filename: string
+	}>`SELECT filename FROM migrations.applied_migrations`.execute(db)
+	const migrations = readdirSync(migrationsPath).sort()
+	if (migrations.length === 0) {
+		throw new Error('No migrations found')
+	}
+
+	// check that all applied migrations exist
+	for (const appliedMigration of appliedMigrations.rows) {
+		if (!migrations.includes(appliedMigration.filename)) {
+			throw new Error(`Previously-applied migration ${appliedMigration.filename} not found`)
+		}
+	}
+
+	// We hardcode the `zero_0` shard schema. If Zero is ever reconfigured with a
+	// different app id or shard, that name changes and our guards would silently
+	// stop firing, reverting us to full resets. Fail loudly if it drifts. (No rows
+	// means Zero hasn't booted yet, expected on a fresh database.)
+	const shardSchemas = await sql<{ nspname: string }>`
+		SELECT DISTINCT n.nspname FROM pg_proc p
+		JOIN pg_namespace n ON n.oid = p.pronamespace
+		WHERE p.proname = 'update_schemas'
+	`.execute(db)
+	const schemaNames = shardSchemas.rows.map((r) => r.nspname)
+	if (schemaNames.length > 0 && !schemaNames.includes('zero_0')) {
+		throw new Error(
+			`Expected Zero shard schema "zero_0" but found ${schemaNames.join(', ')}. Update the hardcoded schema name in migrate.ts and add a new migration to enable ddlDetection on the new schema.`
+		)
+	}
+
+	return migrations.map((migration) => {
+		const alreadyApplied = appliedMigrations.rows.some((m: any) => m.filename === migration)
+		const migrationSql = alreadyApplied
+			? ''
+			: readFileSync(`${migrationsPath}/${migration}`, 'utf8').toString()
+		if (migrationSql.match(/(BEGIN|COMMIT);/)) {
 			throw new Error(
-				`Expected Zero shard schema "zero_0" but found ${schemaNames.join(', ')}. Update the hardcoded schema name in migrate.ts and add a new migration to enable ddlDetection on the new schema.`
+				`Migration ${migration} contains a transaction block. The runner owns transactions: ordinary migrations already run inside one, and a "-- no-transaction" migration must not open one.`
 			)
 		}
+		return {
+			filename: migration,
+			sql: migrationSql,
+			noTransaction: isNoTransactionMigration(migrationSql),
+			alreadyApplied,
+		}
+	})
+}
 
-		let appliedNewMigration = false
-		for (const migration of migrations) {
-			if (appliedMigrations.rows.some((m: any) => m.filename === migration)) {
-				summary.push(`🏃 ${migration} already applied`)
-				continue
+function segmentMigrations(plan: PlannedMigration[]): Segment[] {
+	const segments: Segment[] = []
+	for (const step of plan) {
+		const last = segments[segments.length - 1]
+		const noTransaction = !step.alreadyApplied && step.noTransaction
+		if (last && !last.noTransaction && !noTransaction) {
+			last.steps.push(step)
+		} else {
+			segments.push({ noTransaction, steps: [step] })
+		}
+	}
+	return segments
+}
+
+async function applyMigration(
+	executor: Kysely<any> | Transaction<any>,
+	step: PlannedMigration,
+	summary: string[]
+) {
+	try {
+		if (step.noTransaction) {
+			for (const statement of splitSqlStatements(step.sql)) {
+				await sql.raw(statement).execute(executor)
 			}
+		} else {
+			await sql.raw(step.sql).execute(executor)
+		}
+		await sql`INSERT INTO migrations.applied_migrations (filename) VALUES (${step.filename})`.execute(
+			executor
+		)
+		summary.push(`✅ ${step.filename} applied`)
+	} catch (e) {
+		summary.push(`❌ ${step.filename} failed`)
+		throw e
+	}
+}
 
-			try {
-				const migrationSql = readFileSync(`${migrationsPath}/${migration}`, 'utf8').toString()
-				if (migrationSql.match(/(BEGIN|COMMIT);/)) {
-					throw new Error(
-						`Migration ${migration} contains a transaction block. Migrations run in transactions, so you don't need to include them in the migration file.`
-					)
-				}
-				await sql.raw(migrationSql).execute(tx)
-				await sql`INSERT INTO migrations.applied_migrations (filename) VALUES (${migration})`.execute(
-					tx
-				)
+// A no-transaction migration can't be rolled back, so applying it would make the dry
+// run permanent. Skipping it leaves a hole in what the dry run proves; say so rather
+// than let a green dry run imply the whole set was validated.
+function reportDryRunSkip(step: PlannedMigration, summary: string[]) {
+	console.warn(
+		`\n⚠️  DRY RUN DID NOT VALIDATE ${step.filename}\n` +
+			`   It is marked "-- no-transaction", so it runs outside a transaction and cannot be\n` +
+			`   rolled back. It was skipped entirely. A real migrate run will be the first time\n` +
+			`   this migration executes against this database.\n`
+	)
+	summary.push(`⚠️ ${step.filename} skipped (no-transaction, not validated by the dry run)`)
+}
+
+async function migrateDryRun(plan: PlannedMigration[], summary: string[]) {
+	// Ordinary migrations all go in one transaction, as they did before segments existed:
+	// rolling back between them would leave later ones running against a schema their
+	// predecessors never built.
+	await db.transaction().execute(async (tx) => {
+		let appliedNewMigration = false
+		for (const step of plan) {
+			if (step.alreadyApplied) {
+				summary.push(`🏃 ${step.filename} already applied`)
+			} else if (step.noTransaction) {
+				reportDryRunSkip(step, summary)
+			} else {
+				await applyMigration(tx, step, summary)
 				appliedNewMigration = true
-				summary.push(`✅ ${migration} applied`)
-			} catch (e) {
-				summary.push(`❌ ${migration} failed`)
-				throw e
 			}
 		}
 
@@ -154,10 +227,51 @@ async function migrate(summary: string[], dryRun: boolean) {
 			await sql.raw(notifyZeroOfSchemaChange).execute(tx)
 		}
 
-		if (dryRun) {
-			throw DRY_RUN_ROLLBACK
-		}
+		throw DRY_RUN_ROLLBACK
 	})
+}
+
+async function migrate(summary: string[], dryRun: boolean) {
+	const plan = await planMigrations()
+
+	if (dryRun) {
+		await migrateDryRun(plan, summary)
+		return
+	}
+
+	// Segments commit independently, so a failure part-way through leaves earlier
+	// segments applied. Each ledger row is written with its own migration, so the ledger
+	// still matches the schema and a re-run picks up where this one stopped.
+	let appliedNewMigration = false
+	for (const segment of segmentMigrations(plan)) {
+		if (segment.noTransaction) {
+			await applyMigration(db, segment.steps[0], summary)
+			appliedNewMigration = true
+			continue
+		}
+
+		if (segment.steps.every((step) => step.alreadyApplied)) {
+			for (const step of segment.steps) summary.push(`🏃 ${step.filename} already applied`)
+			continue
+		}
+
+		await db.transaction().execute(async (tx) => {
+			for (const step of segment.steps) {
+				if (step.alreadyApplied) {
+					summary.push(`🏃 ${step.filename} already applied`)
+					continue
+				}
+				await applyMigration(tx, step, summary)
+				appliedNewMigration = true
+			}
+		})
+	}
+
+	// Notify Zero once after all DDL has run (see notifyZeroOfSchemaChange).
+	if (appliedNewMigration) {
+		await sql.raw(notifyZeroOfSchemaChange).execute(db)
+	}
+
 	await db.destroy()
 }
 async function run() {
