@@ -124,7 +124,7 @@ export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
 
 /**
  * MCP rate limits: the only rate limiting anywhere in the thumbnail pipeline, applied in
- * sharedBoardScreenshotMcp.ts. The MCP endpoint is the one Browser Run-spending surface an outside
+ * mcpServer.ts. The MCP endpoint is the one Browser Run-spending surface an outside
  * caller can drive directly, so a rogue or looping agent is the threat being bounded, and only the
  * calls that actually spend Browser Run are limited — `get_board_info` does the same work the
  * ordinary board routes do for anyone. `search_boards` is exempt too, but not for that reason: it

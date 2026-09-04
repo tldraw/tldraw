@@ -14,6 +14,7 @@ import {
 	compareBoardSearchOrder,
 	getBoardInfo,
 	getBoardSearchResults,
+	clusterPage,
 	getClusterInfo,
 	getPageInfo,
 	handleMcpJsonRpc,
@@ -86,13 +87,14 @@ export function getEvalsFixtureScreenshotPlan(
 		const selector = { kind: 'id', id: page.id } as const
 		const resolved = resolvePage(snapshot, selector)
 		if (!resolved.ok) continue
-		const info = JSON.parse(textOf(getPageInfo(resolved, measurements))) as {
+		const clusters = clusterPage(resolved, measurements)
+		const info = JSON.parse(textOf(getPageInfo(resolved, clusters))) as {
 			clusters: Array<{ id: string }>
 		}
 		const clusterIds = info.clusters.map((cluster) => cluster.id)
 		const sets = [...clusterIds.map((id) => [id]), ...(clusterIds.length > 1 ? [clusterIds] : [])]
 		for (const set of sets) {
-			const picked = pickClusterShapes(resolved, measurements, set, selector)
+			const picked = pickClusterShapes(clusters, set, selector)
 			if (!picked.ok || picked.shapeIds.length === 0) continue
 			plan.push({ pageId: page.id, clusterIds: set, shapeIds: picked.shapeIds })
 		}
@@ -172,7 +174,9 @@ async function callFixtureTool(
 				const board = boards.get(boardId)
 				if (!board) return toolError(BOARD_NOT_FOUND_MESSAGE)
 				const resolved = resolvePage(board.snapshot, page)
-				return resolved.ok ? getPageInfo(resolved, board.measurements) : resolved.result
+				return resolved.ok
+					? getPageInfo(resolved, clusterPage(resolved, board.measurements))
+					: resolved.result
 			}
 			case CLUSTER_INFO_TOOL_NAME: {
 				const { boardId, page, clusterId } = parseClusterInfoInput(args)
@@ -180,7 +184,7 @@ async function callFixtureTool(
 				if (!board) return toolError(BOARD_NOT_FOUND_MESSAGE)
 				const resolved = resolvePage(board.snapshot, page)
 				return resolved.ok
-					? getClusterInfo(resolved, board.measurements, clusterId, page)
+					? getClusterInfo(resolved, clusterPage(resolved, board.measurements), clusterId, page)
 					: resolved.result
 			}
 			case CLUSTER_SCREENSHOT_TOOL_NAME: {
@@ -189,7 +193,11 @@ async function callFixtureTool(
 				if (!board) return toolError(BOARD_NOT_FOUND_MESSAGE)
 				const resolved = resolvePage(board.snapshot, page)
 				if (!resolved.ok) return resolved.result
-				const picked = pickClusterShapes(resolved, board.measurements, clusterIds, page)
+				const picked = pickClusterShapes(
+					clusterPage(resolved, board.measurements),
+					clusterIds,
+					page
+				)
 				if (!picked.ok) return picked.result
 				const png = board.shots[screenshotFileName(clusterIds, theme)]
 				return png

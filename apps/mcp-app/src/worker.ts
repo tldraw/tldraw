@@ -31,6 +31,23 @@ import { resolveMcpAppHostNameFromServerInfo } from './shared/utils'
 
 // --- Types ---
 
+/** Tables this app creates. Their absence is what proves a teardown wiped the session. */
+const APP_TABLES = ['checkpoints', 'meta', 'canvas_checkpoints']
+
+type WipeMode = 'sdk' | 'quiet' | 'raw'
+
+interface InspectResult {
+	id: string
+	bytes: number
+	tables: string[]
+	appTables: string[]
+	wiped: boolean
+	destroyPending: boolean
+	alarm: number | null
+	lastActivity: number | null
+	checkpointCount: number
+}
+
 export { CanvasStore }
 
 interface Env {
@@ -77,6 +94,20 @@ function corsResponse(response: Response): Response {
 		headers.set(key, value)
 	}
 	return new Response(response.body, { status: response.status, headers })
+}
+
+/** Grace period before the condemned object's alarm runs destroy(). destroy() ends in
+ * `ctx.abort("destroyed")`, which kills the isolate along with any RPC still returning
+ * from it: with no delay the caller sees `Error: destroyed` for a prune that in fact
+ * succeeded. Matches the SDK's own DESTROY_ALARM_DELAY_MS. */
+const DESTROY_ALARM_DELAY_MS = 1000
+
+/** Transient Durable Object faults: the object moved, was evicted, or the script redeployed. */
+function isRetryableDoError(err: unknown): boolean {
+	const message = err instanceof Error ? err.message : String(err)
+	return /Network connection lost|code was updated|internal error|overloaded|object has moved/i.test(
+		message
+	)
 }
 
 /** 401 unless the request carries the admin bearer token; null when it does. */
@@ -355,6 +386,99 @@ export class TldrawMCP extends McpAgent<Env> {
 	}
 
 	/**
+	 * Teardown without the SDK's trailing `ctx.abort("destroyed")`.
+	 *
+	 * Cloudflare reclaims an object only when "it shuts down [and] its storage is
+	 * empty". An abort is not a shutdown, so aborting straight after deleteAll()
+	 * appears to leave the object emptied but still enumerated — and still billed.
+	 * Skipping the abort means taking over its other job: severing connections, or a
+	 * client-held stream keeps the wiped instance alive.
+	 */
+	override async destroy() {
+		this.selfDestroyed = true
+		const abort = this.ctx.abort.bind(this.ctx)
+		this.ctx.abort = (reason?: string) => {
+			if (reason !== 'destroyed') abort(reason)
+		}
+		for (const conn of this.getConnections()) {
+			// close() throws synchronously on an already-closing socket; a throw here
+			// would wedge teardown before the storage wipe.
+			try {
+				conn.close(1000, 'Session closed')
+			} catch {
+				// already closing
+			}
+		}
+		await super.destroy()
+	}
+
+	/** True once this instance has torn itself down; it must not serve requests after. */
+	private selfDestroyed = false
+
+	override async fetch(request: Request) {
+		if (this.selfDestroyed) return new Response('Session destroyed', { status: 404 })
+		return super.fetch(request)
+	}
+
+	/**
+	 * Reports what a Durable Object actually holds, for confirming a teardown landed.
+	 *
+	 * Any RPC wakes the object and the Agent constructor recreates its own schema, so
+	 * SDK tables are always present here and `bytes` never returns to zero. The signal
+	 * that distinguishes wiped from intact is `appTables`: `checkpoints`/`meta` exist
+	 * only if this session's own data survived.
+	 */
+	async inspect(): Promise<InspectResult> {
+		const sql = this.ctx.storage.sql
+		const tables = sql
+			.exec(`SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name`)
+			.toArray()
+			.map((r) => String(r.name))
+		const appTables = tables.filter((t) => APP_TABLES.includes(t))
+		const stats = this.readPruneStats()
+		return {
+			id: this.ctx.id.toString(),
+			bytes: sql.databaseSize,
+			tables,
+			appTables,
+			wiped: appTables.length === 0,
+			destroyPending: (await this.ctx.storage.get('cf_agents_destroy_pending')) === true,
+			alarm: await this.ctx.storage.getAlarm(),
+			lastActivity: stats.lastActivity,
+			checkpointCount: stats.checkpointCount,
+		}
+	}
+
+	/**
+	 * Tears down immediately by the named strategy, so the teardown paths can be
+	 * compared against each other in production without a deploy per variant.
+	 *
+	 * - `sdk`: condemned via the destroy marker, exactly as the prune pass did, so the
+	 *   SDK's own destroy() — isolate abort included — runs from the alarm.
+	 * - `quiet`: destroy() with the abort defused, so the object shuts down normally.
+	 * - `raw`: deleteAlarm + deleteAll only, touching none of the SDK's teardown.
+	 *
+	 * `sdk` cannot destroy inline: the SDK's abort fires on a `setTimeout(0)` that
+	 * races this method's own response, so the caller would record an error for a wipe
+	 * that succeeded — the failure mode that made a production pass report 18,580
+	 * errors against 161 successes.
+	 */
+	async wipeNow(mode: WipeMode): Promise<{ id: string; mode: WipeMode; before: number }> {
+		const id = this.ctx.id.toString()
+		const before = this.ctx.storage.sql.databaseSize
+		if (mode === 'raw') {
+			await this.ctx.storage.deleteAlarm()
+			await this.ctx.storage.deleteAll()
+		} else if (mode === 'quiet') {
+			await this.destroy()
+		} else {
+			await this.ctx.storage.put('cf_agents_destroy_pending', true)
+			await this.ctx.storage.setAlarm(Date.now() + DESTROY_ALARM_DELAY_MS)
+		}
+		return { id, mode, before }
+	}
+
+	/**
 	 * Condemns this DO if it has been idle for `maxIdleMs`. Never calls destroy()
 	 * inline: it writes the SDK's own durable destroy marker and arms an immediate
 	 * alarm, and Agent.alarm() runs destroy() in a fresh invocation before any
@@ -369,7 +493,7 @@ export class TldrawMCP extends McpAgent<Env> {
 			// Marker without an alarm (setAlarm failed or the invocation died between the
 			// two writes) would otherwise be reported as condemned on every retry while
 			// the storage stays put. Re-arm; setAlarm is idempotent if one is pending.
-			await this.ctx.storage.setAlarm(Date.now())
+			await this.ctx.storage.setAlarm(Date.now() + DESTROY_ALARM_DELAY_MS)
 			return {
 				id,
 				idleMs: null,
@@ -384,7 +508,7 @@ export class TldrawMCP extends McpAgent<Env> {
 		if (action === 'destroy-scheduled') {
 			this.env.MCP_ANALYTICS?.writeDataPoint({ blobs: ['session_end', id], doubles: [Date.now()] })
 			await this.ctx.storage.put('cf_agents_destroy_pending', true)
-			await this.ctx.storage.setAlarm(Date.now())
+			await this.ctx.storage.setAlarm(Date.now() + DESTROY_ALARM_DELAY_MS)
 		}
 		return {
 			id,
@@ -506,23 +630,103 @@ export default {
 						{ status: 400 }
 					)
 				}
+				// Batch timings, because a client-side timeout says nothing about where the
+				// time went: whether wakes are uniformly slow or a few stragglers hold up
+				// the batch, and how much of it is the retry path.
+				const startedAt = Date.now()
+				const durations: number[] = []
+				let retries = 0
 				const results = await Promise.all(
 					ids.map(async (id) => {
+						const idStartedAt = Date.now()
 						// idFromString throws on malformed hex — keep it inside the per-id guard.
+						let lastError: unknown
+						for (let attempt = 0; attempt < 2; attempt++) {
+							if (attempt > 0) retries++
+							try {
+								const stub = env.MCP_OBJECT.get(env.MCP_OBJECT.idFromString(String(id)))
+								const result = await stub.pruneIfIdle(maxIdleMs, dryRun)
+								durations.push(Date.now() - idStartedAt)
+								return result
+							} catch (err) {
+								lastError = err
+								// `Network connection lost` and `code was updated` are routine at this
+								// fan-out; without a retry they land in the caller's ledger, which
+								// resumes by offset and so would never revisit them.
+								if (!isRetryableDoError(err)) break
+							}
+						}
+						durations.push(Date.now() - idStartedAt)
+						// The message round-trips to the script's JSONL, but Workers logs need a
+						// trace too so DO overload is distinguishable from a malformed id.
+						const name = lastError instanceof Error ? lastError.constructor.name : typeof lastError
+						const message = lastError instanceof Error ? lastError.message : String(lastError)
+						console.error('[admin/prune] id failed', String(id), name, message)
+						return { id: String(id), error: `${name}: ${message}` }
+					})
+				)
+				const sorted = durations.sort((a, b) => a - b)
+				const at = (q: number) => sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * q))]
+				console.warn(
+					`[admin/prune] ids=${ids.length} total=${Date.now() - startedAt}ms retries=${retries} errors=${results.filter((r: any) => r.error).length} p50=${at(0.5)}ms p95=${at(0.95)}ms max=${sorted[sorted.length - 1]}ms`
+				)
+				return Response.json(results)
+			}
+
+			// Ops diagnostics. Both take { ids: [...] } and fan out like /admin/prune, so a
+			// teardown can be inspected and re-run in production without a deploy per
+			// question. Same token, same 100-id cap.
+			if (url.pathname === '/admin/inspect' || url.pathname === '/admin/wipe') {
+				if (!env.MCP_PRUNE_ADMIN_TOKEN) return new Response('Not found', { status: 404 })
+				if (request.method !== 'POST') return new Response('Method not allowed', { status: 405 })
+				const denied = requireAdminToken(request, env)
+				if (denied) return denied
+				let body: { ids?: unknown; mode?: unknown }
+				try {
+					body = await request.json()
+				} catch {
+					return new Response('Bad request: invalid JSON', { status: 400 })
+				}
+				const ids = Array.isArray(body?.ids) ? body.ids : null
+				if (!ids || ids.length > ADMIN_PRUNE_MAX_IDS) {
+					return new Response(`Bad request: ids[] (max ${ADMIN_PRUNE_MAX_IDS}) required`, {
+						status: 400,
+					})
+				}
+				const wiping = url.pathname === '/admin/wipe'
+				const mode = body?.mode ?? 'quiet'
+				if (wiping && mode !== 'sdk' && mode !== 'quiet' && mode !== 'raw') {
+					return new Response('Bad request: mode must be sdk, quiet or raw', { status: 400 })
+				}
+				const results = await Promise.all(
+					ids.map(async (id) => {
 						try {
 							const stub = env.MCP_OBJECT.get(env.MCP_OBJECT.idFromString(String(id)))
-							return await stub.pruneIfIdle(maxIdleMs, dryRun)
+							return wiping ? await stub.wipeNow(mode as WipeMode) : await stub.inspect()
 						} catch (err) {
-							// The message round-trips to the script's JSONL, but Workers logs need a
-							// trace too so DO overload is distinguishable from a malformed id.
 							const name = err instanceof Error ? err.constructor.name : typeof err
 							const message = err instanceof Error ? err.message : String(err)
-							console.error('[admin/prune] id failed', String(id), name, message)
 							return { id: String(id), error: `${name}: ${message}` }
 						}
 					})
 				)
 				return Response.json(results)
+			}
+
+			// What is actually deployed, so a diagnosis is never based on a stale guess
+			// about which build is live.
+			if (url.pathname === '/admin/config') {
+				if (!env.MCP_PRUNE_ADMIN_TOKEN) return new Response('Not found', { status: 404 })
+				const denied = requireAdminToken(request, env)
+				if (denied) return denied
+				return Response.json({
+					idleTtlMs: idleTtlMs(env),
+					destroyAlarmDelayMs: DESTROY_ALARM_DELAY_MS,
+					maxCheckpoints: MAX_CHECKPOINTS,
+					adminPruneMaxIds: ADMIN_PRUNE_MAX_IDS,
+					destroyOverride: true,
+					isDev: env.MCP_IS_DEV === 'true',
+				})
 			}
 
 			// Dev helper for prune-integration.test.ts: map a session id to its DO id.

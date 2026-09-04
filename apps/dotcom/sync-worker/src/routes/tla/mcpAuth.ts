@@ -30,6 +30,35 @@ export const MCP_RESOURCE_PATH = '/api/app/mcp'
 export const MCP_PROTECTED_RESOURCE_METADATA_PATH = `/.well-known/oauth-protected-resource${MCP_RESOURCE_PATH}`
 
 /**
+ * The scopes a client should ask for, named in both the `WWW-Authenticate` challenge and the RFC
+ * 9728 metadata.
+ *
+ * Stated rather than left to the client, because a client that is told nothing guesses, and Claude's
+ * hosted connectors guess by requesting every scope the authorization server advertises. Clerk
+ * advertises six — `public_metadata` and `private_metadata` among them — and grants each client a
+ * subset, so an unstated scope list had Claude asking for two it was never granted and Clerk
+ * refusing the whole request with `invalid_scope`, before the consent screen and before any request
+ * reached this worker. Claude Code was unaffected only because it sends no `scope` at all and gets
+ * Clerk's configured defaults.
+ *
+ * What that cost, and the reason this is worth stating even though nothing here reads a scope: the
+ * only fix available from the dashboard was granting Claude the two metadata scopes, widening what
+ * its tokens can reach in Clerk to make an over-request legal. Naming the four here is what makes
+ * revoking them possible.
+ *
+ * The corollary to keep in view: a client asks for what it is offered, so anything added to this
+ * list — a custom tldraw scope, say — is requested by every client immediately and refused for every
+ * one not granted it on the authorization server first.
+ *
+ * These four are what the Clerk CIMD clients are granted. Narrower would serve: nothing here reads a
+ * scope, and `sub` — all this server takes from a token — rides on `openid` alone, with
+ * `offline_access` for the refresh token. `profile` and `email` are kept because they are what
+ * Clerk's defaults already hand Claude Code, and matching them keeps one behaviour across clients
+ * rather than two.
+ */
+export const MCP_SCOPES = ['openid', 'profile', 'email', 'offline_access'] as const
+
+/**
  * This server's own identifier: what RFC 9728 metadata advertises as the resource, and what the
  * `WWW-Authenticate` challenge points a client at.
  *
@@ -93,6 +122,7 @@ export function getMcpProtectedResourceMetadata(request: IRequest, env: Environm
 		{
 			resource: getMcpResourceUrl(request, env),
 			authorization_servers: [authorizationServer],
+			scopes_supported: MCP_SCOPES,
 			bearer_methods_supported: ['header'],
 			resource_documentation: 'https://tldraw.dev',
 		},
@@ -165,7 +195,10 @@ export function mcpUnauthorized(
 		MCP_PROTECTED_RESOURCE_METADATA_PATH,
 		getMcpResourceUrl(request, env)
 	).toString()
-	const params = [`resource_metadata="${metadataUrl}"`]
+	// `scope` before the error parameters because it is the one a first-contact client acts on: it is
+	// what Claude's hosted connectors read to decide what to ask Clerk for, and without it they ask
+	// for everything Clerk advertises. See MCP_SCOPES.
+	const params = [`resource_metadata="${metadataUrl}"`, `scope="${MCP_SCOPES.join(' ')}"`]
 	if (error) params.push(`error="${error}"`)
 	if (description) params.push(`error_description="${description}"`)
 
