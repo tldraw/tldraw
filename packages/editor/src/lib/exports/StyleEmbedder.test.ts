@@ -111,3 +111,74 @@ describe('ExportStyleCache reuse', () => {
 		expect(second.a.getAttribute('style')).toBe(original)
 	})
 })
+
+describe('ExportStyleCache self-checking', () => {
+	afterEach(() => {
+		for (const s of Array.from(document.head.querySelectorAll('style[data-test]'))) s.remove()
+	})
+
+	function styleSheet(css: string) {
+		const el = document.createElement('style')
+		el.setAttribute('data-test', 'true')
+		el.textContent = css
+		document.head.appendChild(el)
+	}
+
+	it('stays enabled when the key describes what it claims', () => {
+		const cache = new ExportStyleCache()
+		readTree(cache, tree().root)
+		expect(cache.disabled).toBe(false)
+		expect(cache.mismatches).toBe(0)
+		expect(cache.verified.size).toBeGreaterThan(0)
+	})
+
+	/**
+	 * The hole the key has by construction: a stylesheet selecting on position gives two elements
+	 * of identical tag, class and ancestry different styles, and the key cannot see the
+	 * difference. The check is what turns that from a wrong picture into a slow one.
+	 */
+	it('disables itself when a positional selector makes two same-shaped elements differ', () => {
+		styleSheet(
+			'.wrap > span { color: rgb(1, 2, 3) } .wrap > span:nth-child(2) { color: rgb(9, 8, 7) }'
+		)
+		const cache = new ExportStyleCache()
+		readTree(cache, tree().root)
+		expect(cache.disabled).toBe(true)
+		expect(cache.mismatches).toBe(1)
+	})
+
+	it('reads every element again once disabled, and never grows the cache', () => {
+		styleSheet(
+			'.wrap > span { color: rgb(1, 2, 3) } .wrap > span:nth-child(2) { color: rgb(9, 8, 7) }'
+		)
+		const cache = new ExportStyleCache()
+		readTree(cache, tree().root)
+		expect(cache.entries.size).toBe(0)
+
+		document.body.innerHTML = ''
+		readTree(cache, tree().root)
+		expect(cache.entries.size).toBe(0)
+		expect(cache.disabled).toBe(true)
+	})
+
+	it('gives a disabled cache the same styles as no cache at all', () => {
+		styleSheet(
+			'.wrap > span { color: rgb(1, 2, 3) } .wrap > span:nth-child(2) { color: rgb(9, 8, 7) }'
+		)
+		const poisoned = new ExportStyleCache()
+		const first = tree()
+		const a = readTree(poisoned, first.root)
+		a.embedder.embedStyles()
+		const withCache = [first.a, first.b].map((n) => n.getAttribute('style'))
+
+		document.body.innerHTML = ''
+		const second = tree()
+		document.body.appendChild(second.root)
+		const b = new StyleEmbedder(second.root)
+		b.readRootElementStyles(second.root)
+		b.embedStyles()
+		const withoutCache = [second.a, second.b].map((n) => n.getAttribute('style'))
+
+		expect(withCache).toStrictEqual(withoutCache)
+	})
+})

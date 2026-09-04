@@ -1808,10 +1808,16 @@ export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyo
 
 // @public
 export class ExportStyleCache {
+    disabled: boolean;
     // @internal
     readonly entries: Map<string, object>;
     // @internal
     readonly keys: WeakMap<Element, string>;
+    mismatches: number;
+    // @internal
+    reuseCount: number;
+    // @internal
+    readonly verified: Set<string>;
 }
 
 // @internal (undocumented)

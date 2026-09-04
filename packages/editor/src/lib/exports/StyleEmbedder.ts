@@ -32,11 +32,19 @@ interface ElementStyleInfo {
  * export has nothing to reuse and should leave this unset.
  *
  * Entries are keyed on what the caller can see: the element's tag, class and inline style, and
- * the same three for each of its ancestors. **That does not model a stylesheet which selects on
- * document structure** — `:nth-child`, sibling combinators, or attributes other than `class` and
- * `style` — so two elements the cache calls equal may genuinely differ, and the export takes the
- * first one's styles. Opt in where you know the markup, and hold a cache no longer than the run
- * of exports it serves: a stylesheet or theme change invalidates the whole thing.
+ * the same three for each of its ancestors. That does not model a stylesheet which selects on
+ * document structure — `:nth-child`, sibling combinators, or attributes other than `class` and
+ * `style` — so two elements this key calls equal can genuinely differ.
+ *
+ * Rather than ask callers to know that about their own markup, the cache checks itself: the first
+ * time a key is reused it is read fresh anyway and the two compared, and a slow sample keeps
+ * checking for as long as the cache lives. A disagreement sets {@link ExportStyleCache.disabled}
+ * and the cache answers nothing from then on, so a key that does not describe what it claimed
+ * costs the speed rather than the picture. {@link ExportStyleCache.mismatches} says whether that
+ * ever happened.
+ *
+ * Hold a cache no longer than the run of exports it serves: a stylesheet or theme change
+ * invalidates every entry, and the checking above samples rather than catching it immediately.
  *
  * @public
  */
@@ -55,7 +63,45 @@ export class ExportStyleCache {
 	 * @internal
 	 */
 	readonly keys = new WeakMap<Element, string>()
+
+	/**
+	 * Keys whose first reuse has been checked against a fresh read.
+	 *
+	 * @internal
+	 */
+	readonly verified = new Set<string>()
+
+	/** How many times a key has been reused, for the sampling rate below. @internal */
+	reuseCount = 0
+
+	/**
+	 * Set when a reused style did not match a fresh read of the same element.
+	 *
+	 * Once this is true the cache answers nothing for the rest of its life and every element is
+	 * read again, so a key that turns out not to describe what it claimed costs the speed rather
+	 * than the picture.
+	 */
+	disabled = false
+
+	/**
+	 * How many reuses turned out to be wrong. Zero on a cache that has done its job.
+	 *
+	 * Worth reporting if you are watching a fleet: this going non-zero means the key does not
+	 * model something a stylesheet is doing, and the exports that ran before the check caught it
+	 * were the last ones at risk.
+	 */
+	mismatches = 0
 }
+
+/**
+ * How often a reuse is checked against a fresh read, past the first for each key.
+ *
+ * Every key is checked the first time it is reused, which is the moment the cache first makes a
+ * claim about it. That alone would not notice a key that starts out honest and stops being so —
+ * a stylesheet selecting on position sees a different answer when an element's siblings change —
+ * so a slow sample runs for as long as the cache lives.
+ */
+const REUSE_CHECK_INTERVAL = 50
 
 /**
  * The cache key for an element: its own shape, and the shape of every ancestor.
@@ -78,6 +124,23 @@ function cacheKeyFor(
 	}|${respectDefaults ? 1 : 0}${skipInheritedParentStyles ? 1 : 0}`
 	cache.keys.set(element, key)
 	return key
+}
+
+/** Whether a reused set of styles says the same as a fresh read of the same element. */
+function styleInfoMatches(a: ElementStyleInfo, b: ElementStyleInfo) {
+	return (
+		stylesMatch(a.self, b.self) && stylesMatch(a.before, b.before) && stylesMatch(a.after, b.after)
+	)
+}
+
+function stylesMatch(a: Styles | undefined, b: Styles | undefined) {
+	if (!a || !b) return !a === !b
+	const keys = Object.keys(a)
+	if (keys.length !== Object.keys(b).length) return false
+	for (const key of keys) {
+		if (a[key] !== b[key]) return false
+	}
+	return true
 }
 
 // `fetchResources` rewrites url() values in place, so neither the cache nor its caller may hold
@@ -142,14 +205,21 @@ export class StyleEmbedder {
 			}
 		}
 
-		const cache = this.cache
+		const cache = this.cache && !this.cache.disabled ? this.cache : undefined
 		let key: string | undefined
+		let reused: ElementStyleInfo | undefined
 		if (cache) {
 			key = cacheKeyFor(cache, element, shouldRespectDefaults, shouldSkipInheritedParentStyles)
-			const hit = cache.entries.get(key)
+			const hit = cache.entries.get(key) as ElementStyleInfo | undefined
 			if (hit) {
-				this.styles.set(element, copyStyleInfo(hit as ElementStyleInfo))
-				return
+				cache.reuseCount++
+				const check = !cache.verified.has(key) || cache.reuseCount % REUSE_CHECK_INTERVAL === 0
+				if (!check) {
+					this.styles.set(element, copyStyleInfo(hit))
+					return
+				}
+				cache.verified.add(key)
+				reused = hit
 			}
 		}
 
@@ -158,7 +228,16 @@ export class StyleEmbedder {
 			before: styleFromPseudoElement(element, '::before'),
 			after: styleFromPseudoElement(element, '::after'),
 		}
-		if (cache && key !== undefined) cache.entries.set(key, copyStyleInfo(info))
+
+		if (cache && reused && !styleInfoMatches(reused, info)) {
+			// The key claimed two elements resolve the same and they do not. Everything this cache
+			// would say from here is suspect, so it stops saying anything.
+			cache.disabled = true
+			cache.mismatches++
+			cache.entries.clear()
+		} else if (cache && key !== undefined) {
+			cache.entries.set(key, copyStyleInfo(info))
+		}
 		this.styles.set(element, info)
 	}
 
