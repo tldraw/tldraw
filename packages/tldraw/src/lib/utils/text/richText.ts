@@ -4,14 +4,17 @@ import {
 	extensions,
 	generateHTML,
 	generateJSON,
-	generateText,
-	getText,
+	getSchema,
+	getTextBetween,
+	getTextSerializersFromSchema,
 	JSONContent,
+	Range,
 	TextSerializer,
 } from '@tiptap/core'
 import { Code } from '@tiptap/extension-code'
 import { Highlight } from '@tiptap/extension-highlight'
 import { Node } from '@tiptap/pm/model'
+import { EditorState } from '@tiptap/pm/state'
 import { StarterKit, type StarterKitOptions } from '@tiptap/starter-kit'
 import {
 	Editor,
@@ -177,32 +180,82 @@ function isListNode(node: Node) {
 // Without a serializer, tiptap's `getText` treats a list, each of its items, and each item's
 // paragraph as separate blocks, so the block separator lands three times between items and the
 // markers are lost. This renders one `- ` / `1. ` line per item (nested lists indented) instead.
+//
+// `range` is the selection being serialized, in document positions: blocks outside it are
+// skipped, blocks straddling its edges are cut to it, and a line only gets its marker when the
+// selection begins at or before the line's first character.
 function renderListToText(
 	list: Node,
+	listPos: number,
+	range: Range,
 	textSerializers: Record<string, TextSerializer>,
 	indent = ''
 ): string {
 	const isOrdered = list.type.name === 'orderedList'
 	const start: number = list.attrs.start ?? 1
 	const lines: string[] = []
-	list.forEach((item, _offset, index) => {
+	list.forEach((item, itemOffset, index) => {
 		const marker = isOrdered ? `${start + index}. ` : '- '
 		const continuation = ' '.repeat(marker.length)
-		item.forEach((child, _childOffset, childIndex) => {
+		const itemPos = listPos + 1 + itemOffset
+		item.forEach((child, childOffset, childIndex) => {
+			const childPos = itemPos + 1 + childOffset
+			if (childPos >= range.to || childPos + child.nodeSize <= range.from) return
 			if (isListNode(child)) {
-				lines.push(renderListToText(child, textSerializers, indent + continuation))
-			} else {
-				const prefix = childIndex === 0 ? marker : continuation
-				lines.push(indent + prefix + getText(child, { blockSeparator: '\n', textSerializers }))
+				lines.push(renderListToText(child, childPos, range, textSerializers, indent + continuation))
+				return
 			}
+			const contentStart = childPos + 1
+			const prefix =
+				range.from <= contentStart ? indent + (childIndex === 0 ? marker : continuation) : ''
+			const text = getTextBetween(
+				child,
+				{
+					from: Math.max(0, range.from - contentStart),
+					to: Math.min(child.content.size, range.to - contentStart),
+				},
+				{ blockSeparator: '\n', textSerializers }
+			)
+			lines.push(prefix + text)
 		})
 	})
 	return lines.join('\n')
 }
 
-const listTextSerializers: Record<string, TextSerializer> = {
-	bulletList: ({ node }) => renderListToText(node, listTextSerializers),
-	orderedList: ({ node }) => renderListToText(node, listTextSerializers),
+/**
+ * Renders plaintext from a range of a ProseMirror document, with list items marked the same way
+ * as {@link renderPlaintextFromRichText}. Used for the `text/plain` clipboard entry while editing,
+ * where the range is the current selection. The schema's own serializers (e.g. `hardBreak` ->
+ * `\n`) must reach the recursive list calls, so the list serializers are layered onto them rather
+ * than replacing them.
+ *
+ * @internal
+ */
+export function renderPlaintextFromRichTextRange(doc: Node, range: Range): string {
+	const textSerializers = getTextSerializersFromSchema(doc.type.schema)
+	const $from = doc.resolve(range.from)
+	// A selection inside one block is a run of text, not a list: copying a word (or a whole
+	// single item) out of a list item should paste as just that text, without a marker.
+	if ($from.parent.isTextblock && $from.sameParent(doc.resolve(range.to))) {
+		return getTextBetween(doc, range, { blockSeparator: '\n', textSerializers })
+	}
+	const list: TextSerializer = ({ node, pos, range }) =>
+		renderListToText(node, pos, range, textSerializers)
+	textSerializers.bulletList = list
+	textSerializers.orderedList = list
+	return getTextBetween(doc, range, { blockSeparator: '\n', textSerializers })
+}
+
+/**
+ * Renders plaintext for the selection of a rich text editor's state.
+ *
+ * @internal
+ */
+export function renderPlaintextFromRichTextSelection(state: EditorState): string {
+	const { doc, selection } = state
+	const from = Math.min(...selection.ranges.map((range) => range.$from.pos))
+	const to = Math.max(...selection.ranges.map((range) => range.$to.pos))
+	return renderPlaintextFromRichTextRange(doc, { from, to })
 }
 
 /**
@@ -219,10 +272,8 @@ export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText
 	return plainTextFromRichTextCache.get(richText, () => {
 		const tipTapExtensions =
 			editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
-		return generateText(richText as JSONContent, tipTapExtensions, {
-			blockSeparator: '\n',
-			textSerializers: listTextSerializers,
-		})
+		const doc = Node.fromJSON(getSchema(tipTapExtensions), richText as JSONContent)
+		return renderPlaintextFromRichTextRange(doc, { from: 0, to: doc.content.size })
 	})
 }
 

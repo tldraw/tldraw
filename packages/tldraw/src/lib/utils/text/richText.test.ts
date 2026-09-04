@@ -1,9 +1,12 @@
+import { getSchema } from '@tiptap/core'
+import { Node } from '@tiptap/pm/model'
 import { TLRichText, toRichText } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 import {
 	isEmptyRichText,
 	renderHtmlFromRichTextWithExtensions,
 	renderPlaintextFromRichText,
+	renderPlaintextFromRichTextRange,
 	renderRichTextFromHTML,
 	tipTapDefaultExtensions,
 } from './richText'
@@ -147,6 +150,68 @@ describe('renderPlaintextFromRichText', () => {
 				},
 			])
 		).toBe('- fruit\n  1. apple\n  2. pear\n- veg')
+	})
+
+	it('keeps a hard break inside a list item', () => {
+		expect(
+			plain([
+				{
+					type: 'bulletList',
+					content: [
+						listItem({
+							type: 'paragraph',
+							content: [text('before'), { type: 'hardBreak' }, text('after')],
+						}),
+						listItem(paragraph('next')),
+					],
+				},
+			])
+		).toBe('- before\nafter\n- next')
+	})
+
+	it('keeps a hard break pasted inside a list item', () => {
+		const richText = renderRichTextFromHTML(
+			editor,
+			'<ul><li>before<br>after</li><li>next</li></ul>'
+		)
+		expect(renderPlaintextFromRichText(editor, richText)).toBe('- before\nafter\n- next')
+	})
+})
+
+describe('renderPlaintextFromRichTextRange', () => {
+	// Positions: `Shopping` occupies 1-9, `eggs` 13-17 and `milk` 21-25.
+	const doc = Node.fromJSON(getSchema(tipTapDefaultExtensions), {
+		type: 'doc',
+		content: [
+			paragraph('Shopping'),
+			{
+				type: 'bulletList',
+				content: [listItem(paragraph('eggs')), listItem(paragraph('milk'))],
+			},
+		],
+	})
+	const between = (from: number, to: number) => renderPlaintextFromRichTextRange(doc, { from, to })
+
+	it('renders the whole document like renderPlaintextFromRichText', () => {
+		expect(between(0, doc.content.size)).toBe('Shopping\n- eggs\n- milk')
+	})
+
+	it('cuts the first and last lines to the selection', () => {
+		expect(between(5, 23)).toBe('ping\n- eggs\n- mi')
+	})
+
+	it('only marks an item when the selection starts at its beginning', () => {
+		expect(between(14, 25)).toBe('ggs\n- milk')
+		expect(between(13, 25)).toBe('- eggs\n- milk')
+	})
+
+	it('renders a selection inside a single item without a marker', () => {
+		expect(between(22, 24)).toBe('il')
+		expect(between(21, 25)).toBe('milk')
+	})
+
+	it('skips items outside the selection', () => {
+		expect(between(1, 17)).toBe('Shopping\n- eggs')
 	})
 })
 
