@@ -302,7 +302,7 @@ const TOOL_HANDLERS = new Map<
 	[CLUSTER_SCREENSHOT_TOOL_NAME, callClusterScreenshotTool],
 ])
 
-export async function sharedBoardScreenshotMcp(
+export async function mcpServer(
 	request: IRequest,
 	env: Environment,
 	ctx?: ExecutionContext

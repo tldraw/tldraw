@@ -39,12 +39,12 @@ import {
 } from './thumbnailShared'
 
 // The render-and-cache core shared by every Browser Run screenshot surface: the MCP screenshot
-// tool (sharedBoardScreenshotMcp.ts), the OG image route (getOgImage.ts), and the OG render queue
+// tool (mcpServer.ts), the OG image route (getOgImage.ts), and the OG render queue
 // consumer (ogImageQueue.ts). Owns board resolution, snapshot loading, page enumeration, the
 // Browser Rendering invocation, and the shared telemetry writer. The surfaces own their own protocol
 // handling, cache keys, and retry/backoff policies.
 //
-// Owns no rate limiting: the pipeline's only limiters live in sharedBoardScreenshotMcp.ts, so a new
+// Owns no rate limiting: the pipeline's only limiters live in mcpServer.ts, so a new
 // surface built on these helpers cannot pick one up by accident.
 
 // A board a screenshot surface has resolved. Whether it is *publicly viewable* depends on the access

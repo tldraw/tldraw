@@ -20,7 +20,7 @@ import { ResolvedThumbnailBoard } from './thumbnailRender'
 
 // The cluster index in isolation: what survives the round trip through storage, what is refused on
 // the way back, and the two limits that stop a cache from becoming a liability. The tool-level
-// behaviour it produces — which calls measure and which don't — is in sharedBoardScreenshotMcp.test.
+// behaviour it produces — which calls measure and which don't — is in mcpServer.test.
 
 function makeShape(id: string, x: number): TLShape {
 	return {
