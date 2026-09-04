@@ -73,6 +73,8 @@ import { updateLocalSessionState } from '../utils/local-session-state'
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
 
+const USER_PRELOAD_TIMEOUT_MS = 10_000
+
 let appId = 0
 
 /**
@@ -398,6 +400,7 @@ export class TldrawApp {
 	async preload() {
 		// Ensure user exists in DB before Zero can query
 		const token = await this.getToken()
+		let initError: Error | undefined
 		if (!token) {
 			throw new Error('No auth token available for init')
 		} else {
@@ -405,14 +408,31 @@ export class TldrawApp {
 				method: 'POST',
 				headers: { Authorization: `Bearer ${token}` },
 			})
-			if (!res.ok) console.error(`Init failed: ${res.status}`)
+			// A failed init only matters if the user row never shows up: returning users whose row
+			// already exists should still load through a transient worker error.
+			if (!res.ok) initError = new Error(`Init failed: ${res.status}`)
 		}
 		await this.z.preload(this.userQuery()).complete
 		await this.changesFlushed
-		await new Promise((resolve) => {
-			let unlisten = () => {}
-			unlisten = react('wait for user', () => this.user$.get() && resolve(unlisten()))
+		// Without a deadline, a user row that never arrives (failed init, stalled replication)
+		// hangs `create()` forever and the page stays blank for the whole session.
+		const userLoaded = promiseWithResolve<void>()
+		const stopWaiting = react('wait for user', () => {
+			if (this.user$.get()) userLoaded.resolve()
 		})
+		const timeout = setTimeout(
+			() =>
+				userLoaded.reject(
+					initError ?? new Error('Timed out waiting for the user record after init')
+				),
+			USER_PRELOAD_TIMEOUT_MS
+		)
+		try {
+			await userLoaded
+		} finally {
+			clearTimeout(timeout)
+			stopWaiting()
+		}
 		await Promise.all([
 			this.z.preload(this.fileStateQuery()).complete,
 			this.z.preload(this.workspaceMembershipsQuery()).complete,
@@ -1051,7 +1071,14 @@ export class TldrawApp {
 		)
 		// @ts-expect-error
 		window.app = app
-		await app.preload()
+		try {
+			await app.preload()
+		} catch (e) {
+			// Don't leave the half-built app's Zero connection and timers running behind the
+			// error page the caller shows for this.
+			app.dispose()
+			throw e
+		}
 		const user = app.getUser()
 		if (user.color === '___INIT___') {
 			app.updateUser({
