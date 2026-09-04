@@ -147,7 +147,7 @@ When a bug fix or improvement changes how a canvas interaction behaves — a dra
 
 `scripts/record-interaction.mjs` records a scripted interaction against the running examples app as a 16:9 MP4. It hides the tldraw chrome, injects a visible cursor (headless recordings have none), runs a scenario module, trims the setup frames, and transcodes with ffmpeg. `scripts/example-scenario.mjs` is a starting point; copy it to a scratch location and change the body to the interaction the PR affects. Do not commit scenarios.
 
-Run from the repo root with `yarn dev` serving the examples app:
+It needs ffmpeg on the path and a Playwright Chromium build. Install scripts are disabled in this repo, so the browser is not downloaded by `yarn install`; run `yarn playwright install chromium` once. Then, from the repo root with `yarn dev` serving the examples app:
 
 ```bash
 # After: the current branch
