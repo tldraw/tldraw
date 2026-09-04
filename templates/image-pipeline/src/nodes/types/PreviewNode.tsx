@@ -1,5 +1,4 @@
-import classNames from 'classnames'
-import { T, useEditor, useValue } from 'tldraw'
+import { T } from 'tldraw'
 import { PreviewIcon } from '../../components/icons/PreviewIcon'
 import {
 	NODE_HEADER_HEIGHT_PX,
@@ -7,9 +6,8 @@ import {
 	NODE_ROW_HEADER_GAP_PX,
 	NODE_ROW_HEIGHT_PX,
 } from '../../constants'
-import { Port, ShapePort } from '../../ports/Port'
+import { ShapePort } from '../../ports/Port'
 import { sleep } from '../../utils/sleep'
-import { getNodeInputPortValues } from '../nodePorts'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	ExecutionResult,
@@ -17,11 +15,11 @@ import {
 	InputValues,
 	NodeComponentProps,
 	NodeDefinition,
-	NodeImage,
-	NodePortLabel,
-	NodeRow,
+	NodeImagePreview,
+	NodePortRow,
 	STOP_EXECUTION,
 	updateNode,
+	useNodeInput,
 } from './shared'
 
 export type PreviewNode = T.TypeOf<typeof PreviewNode>
@@ -66,11 +64,8 @@ export class PreviewNodeDefinition extends NodeDefinition<PreviewNode> {
 		inputs: InputValues
 	): Promise<ExecutionResult> {
 		await sleep(200)
-		const imageUrl = inputs.image as string | null
-		updateNode<PreviewNode>(this.editor, shape, (n) => ({
-			...n,
-			lastImageUrl: imageUrl ?? null,
-		}))
+		const imageUrl = (inputs.image as string | null) ?? null
+		updateNode<PreviewNode>(this.editor, shape, (n) => ({ ...n, lastImageUrl: imageUrl }))
 		return {}
 	}
 	getOutputInfo(): InfoValues {
@@ -80,11 +75,7 @@ export class PreviewNodeDefinition extends NodeDefinition<PreviewNode> {
 }
 
 function PreviewNodeComponent({ shape, node }: NodeComponentProps<PreviewNode>) {
-	const editor = useEditor()
-	const imageInput = useValue('image input', () => getNodeInputPortValues(editor, shape.id).image, [
-		editor,
-		shape.id,
-	])
+	const imageInput = useNodeInput(shape.id, 'image')
 
 	const displayUrl =
 		imageInput && !imageInput.isOutOfDate && imageInput.value !== STOP_EXECUTION
@@ -93,28 +84,13 @@ function PreviewNodeComponent({ shape, node }: NodeComponentProps<PreviewNode>) 
 
 	return (
 		<>
-			<NodeRow>
-				<Port shapeId={shape.id} portId="image" />
-				<NodePortLabel dataType="image">Image</NodePortLabel>
-				{imageInput ? (
-					<span className="NodeRow-connected-value">connected</span>
-				) : (
-					<span className="NodeRow-disconnected">not connected</span>
-				)}
-			</NodeRow>
-			<div
-				className={classNames('NodeImagePreview', {
-					NodeImagePreview_loading: shape.props.isOutOfDate,
-				})}
-			>
-				{displayUrl ? (
-					<NodeImage src={displayUrl} alt="Preview" />
-				) : (
-					<div className="NodeImagePreview-empty">
-						<span>No image to preview</span>
-					</div>
-				)}
-			</div>
+			<NodePortRow shapeId={shape.id} portId="image" dataType="image" label="Image" />
+			<NodeImagePreview
+				src={displayUrl}
+				alt="Preview"
+				emptyText="No image to preview"
+				isLoading={shape.props.isOutOfDate}
+			/>
 		</>
 	)
 }

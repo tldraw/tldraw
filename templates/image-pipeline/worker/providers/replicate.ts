@@ -7,6 +7,18 @@ import type {
 	UpscaleResult,
 } from './types'
 
+const FLUX_MODELS: Record<string, string> = {
+	'flux-schnell': 'black-forest-labs/flux-schnell',
+	'flux-pro': 'black-forest-labs/flux-1.1-pro',
+	'flux-dev': 'black-forest-labs/flux-dev',
+}
+
+const GOOGLE_MODELS: Record<string, string> = {
+	'nano-banana-pro': 'google/nano-banana-pro',
+	'nano-banana': 'google/nano-banana',
+	'imagen-4-fast': 'google/imagen-4-fast',
+}
+
 /** Maps ControlNet mode IDs to Flux ControlNet model identifiers. */
 const CONTROLNET_MODELS: Record<string, string> = {
 	canny: 'black-forest-labs/flux-canny-dev',
@@ -16,14 +28,57 @@ const CONTROLNET_MODELS: Record<string, string> = {
 	segmentation: 'black-forest-labs/flux-depth-dev',
 }
 
+interface ReplicateOutput {
+	output?: string | string[]
+	seed?: number
+}
+
+/**
+ * Run a Replicate prediction synchronously (`Prefer: wait`) and return the parsed response.
+ * `target` is either an official model path (`owner/name`) or a `{ version }` hash.
+ */
+export async function replicatePredict(
+	target: string | { version: string },
+	input: Record<string, unknown>,
+	apiToken: string,
+	label = 'Replicate'
+): Promise<ReplicateOutput> {
+	const url =
+		typeof target === 'string'
+			? `https://api.replicate.com/v1/models/${target}/predictions`
+			: 'https://api.replicate.com/v1/predictions'
+	const response = await fetch(url, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${apiToken}`,
+			Prefer: 'wait',
+		},
+		body: JSON.stringify(typeof target === 'string' ? { input } : { ...target, input }),
+	})
+
+	if (!response.ok) {
+		const text = await response.text()
+		throw new Error(`${label} error ${response.status}: ${text}`)
+	}
+
+	return (await response.json()) as ReplicateOutput
+}
+
+export function firstOutput(data: ReplicateOutput): string | undefined {
+	return Array.isArray(data.output) ? data.output[0] : data.output
+}
+
+function requireApiToken(env: Env): string {
+	if (!env.REPLICATE_API_TOKEN) throw new Error('REPLICATE_API_TOKEN is not configured')
+	return env.REPLICATE_API_TOKEN
+}
+
 export const replicate: ImageProvider = {
 	name: 'replicate',
 
 	async generate(params: GenerateParams, env: Env): Promise<GenerateResult> {
-		const apiToken = env.REPLICATE_API_TOKEN
-		if (!apiToken) {
-			throw new Error('REPLICATE_API_TOKEN is not configured')
-		}
+		const apiToken = requireApiToken(env)
 
 		// Use a ControlNet model when ControlNet params are present
 		if (params.controlNetMode && params.referenceImageUrl) {
@@ -31,100 +86,45 @@ export const replicate: ImageProvider = {
 		}
 
 		// Google models (Nano Banana, Imagen)
-		if (
-			params.modelId === 'nano-banana-pro' ||
-			params.modelId === 'nano-banana' ||
-			params.modelId === 'imagen-4-fast'
-		) {
+		if (Object.hasOwn(GOOGLE_MODELS, params.modelId)) {
 			return generateWithGoogle(params, apiToken)
 		}
-
 		return generateWithFlux(params, apiToken)
 	},
 
 	async upscale(params: UpscaleParams, env: Env): Promise<UpscaleResult> {
-		const apiToken = env.REPLICATE_API_TOKEN
-		if (!apiToken) {
-			throw new Error('REPLICATE_API_TOKEN is not configured')
-		}
-
-		const response = await fetch(
-			'https://api.replicate.com/v1/models/nightmareai/real-esrgan/predictions',
-			{
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${apiToken}`,
-					Prefer: 'wait',
-				},
-				body: JSON.stringify({
-					input: {
-						image: params.imageUrl,
-						scale: params.scale,
-					},
-				}),
-			}
+		const data = await replicatePredict(
+			'nightmareai/real-esrgan',
+			{ image: params.imageUrl, scale: params.scale },
+			requireApiToken(env),
+			'Replicate upscale'
 		)
-
-		if (!response.ok) {
-			const text = await response.text()
-			throw new Error(`Replicate upscale error ${response.status}: ${text}`)
-		}
-
-		const data = (await response.json()) as { output: string }
-		return { imageUrl: data.output }
+		return { imageUrl: data.output as string }
 	},
 }
 
+function toGenerateResult(data: ReplicateOutput, params: GenerateParams): GenerateResult {
+	return { imageUrl: firstOutput(data)!, seed: data.seed ?? params.seed ?? 0 }
+}
+
 async function generateWithFlux(params: GenerateParams, apiToken: string): Promise<GenerateResult> {
-	const replicateModel =
-		params.modelId === 'flux-schnell'
-			? 'black-forest-labs/flux-schnell'
-			: params.modelId === 'flux-pro'
-				? 'black-forest-labs/flux-1.1-pro'
-				: 'black-forest-labs/flux-dev'
-
-	const response = await fetch(
-		`https://api.replicate.com/v1/models/${replicateModel}/predictions`,
+	const data = await replicatePredict(
+		FLUX_MODELS[params.modelId] ?? FLUX_MODELS['flux-dev'],
 		{
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${apiToken}`,
-				Prefer: 'wait',
-			},
-			body: JSON.stringify({
-				input: {
-					prompt: params.prompt,
-					num_inference_steps: params.steps ?? 20,
-					guidance: params.cfgScale ?? 7,
-					seed: params.seed ?? null,
-					aspect_ratio: '1:1',
-					// Flux Pro uses safety_tolerance (1=strictest), others use disable_safety_checker
-					...(params.modelId === 'flux-pro'
-						? { safety_tolerance: 1 }
-						: { disable_safety_checker: false }),
-					...(params.referenceImageUrl ? { image: params.referenceImageUrl } : {}),
-				},
-			}),
-		}
+			prompt: params.prompt,
+			num_inference_steps: params.steps ?? 20,
+			guidance: params.cfgScale ?? 7,
+			seed: params.seed ?? null,
+			aspect_ratio: '1:1',
+			// Flux Pro uses safety_tolerance (1=strictest), others use disable_safety_checker
+			...(params.modelId === 'flux-pro'
+				? { safety_tolerance: 1 }
+				: { disable_safety_checker: false }),
+			...(params.referenceImageUrl ? { image: params.referenceImageUrl } : {}),
+		},
+		apiToken
 	)
-
-	if (!response.ok) {
-		const text = await response.text()
-		throw new Error(`Replicate error ${response.status}: ${text}`)
-	}
-
-	const data = (await response.json()) as {
-		output: string | string[]
-		seed?: number
-	}
-
-	const imageUrl = Array.isArray(data.output) ? data.output[0] : data.output
-	return {
-		imageUrl,
-		seed: data.seed ?? params.seed ?? 0,
-	}
+	return toGenerateResult(data, params)
 }
 
 /**
@@ -134,47 +134,17 @@ async function generateWithGoogle(
 	params: GenerateParams,
 	apiToken: string
 ): Promise<GenerateResult> {
-	const modelMap: Record<string, string> = {
-		'nano-banana-pro': 'google/nano-banana-pro',
-		'nano-banana': 'google/nano-banana',
-		'imagen-4-fast': 'google/imagen-4-fast',
-	}
-	const replicateModel = modelMap[params.modelId] ?? 'google/nano-banana-pro'
-
-	const response = await fetch(
-		`https://api.replicate.com/v1/models/${replicateModel}/predictions`,
+	const data = await replicatePredict(
+		GOOGLE_MODELS[params.modelId],
 		{
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${apiToken}`,
-				Prefer: 'wait',
-			},
-			body: JSON.stringify({
-				input: {
-					prompt: params.prompt,
-					aspect_ratio: '1:1',
-					...(params.referenceImageUrl ? { image_input: [params.referenceImageUrl] } : {}),
-				},
-			}),
-		}
+			prompt: params.prompt,
+			aspect_ratio: '1:1',
+			...(params.referenceImageUrl ? { image_input: [params.referenceImageUrl] } : {}),
+		},
+		apiToken,
+		'Replicate Google model'
 	)
-
-	if (!response.ok) {
-		const text = await response.text()
-		throw new Error(`Replicate Google model error ${response.status}: ${text}`)
-	}
-
-	const data = (await response.json()) as {
-		output: string | string[]
-		seed?: number
-	}
-
-	const imageUrl = Array.isArray(data.output) ? data.output[0] : data.output
-	return {
-		imageUrl,
-		seed: data.seed ?? params.seed ?? 0,
-	}
+	return toGenerateResult(data, params)
 }
 
 /**
@@ -191,45 +161,24 @@ async function generateWithControlNet(
 
 	// Replicate accepts https URLs and data URIs directly.
 	// Only resolve R2 paths that Replicate can't access.
-	let imageInput = params.referenceImageUrl!
-	if (imageInput.startsWith('/api/images/')) {
-		const { dataUrl } = await resolveImage(imageInput, env)
-		imageInput = dataUrl
+	let controlImage = params.referenceImageUrl!
+	if (controlImage.startsWith('/api/images/')) {
+		controlImage = (await resolveImage(controlImage, env)).dataUrl
 	}
 
-	const response = await fetch(`https://api.replicate.com/v1/models/${model}/predictions`, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			Authorization: `Bearer ${apiToken}`,
-			Prefer: 'wait',
+	const data = await replicatePredict(
+		model,
+		{
+			control_image: controlImage,
+			prompt: params.prompt,
+			num_inference_steps: params.steps ?? 28,
+			guidance: params.cfgScale ?? 30,
+			...(params.seed != null ? { seed: params.seed } : {}),
+			output_format: 'png',
+			disable_safety_checker: false,
 		},
-		body: JSON.stringify({
-			input: {
-				control_image: imageInput,
-				prompt: params.prompt,
-				num_inference_steps: params.steps ?? 28,
-				guidance: params.cfgScale ?? 30,
-				...(params.seed != null ? { seed: params.seed } : {}),
-				output_format: 'png',
-				disable_safety_checker: false,
-			},
-		}),
-	})
-
-	if (!response.ok) {
-		const text = await response.text()
-		throw new Error(`Replicate ControlNet error ${response.status}: ${text}`)
-	}
-
-	const data = (await response.json()) as {
-		output: string | string[]
-		seed?: number
-	}
-
-	const imageUrl = Array.isArray(data.output) ? data.output[0] : data.output
-	return {
-		imageUrl,
-		seed: data.seed ?? params.seed ?? 0,
-	}
+		apiToken,
+		'Replicate ControlNet'
+	)
+	return toGenerateResult(data, params)
 }

@@ -1,5 +1,4 @@
-import classNames from 'classnames'
-import { T, useEditor, useValue } from 'tldraw'
+import { T, useEditor } from 'tldraw'
 import { apiStyleTransfer } from '../../api/pipelineApi'
 import { StyleTransferIcon } from '../../components/icons/StyleTransferIcon'
 import {
@@ -9,8 +8,7 @@ import {
 	NODE_ROW_HEIGHT_PX,
 	NODE_WIDTH_PX,
 } from '../../constants'
-import { Port, ShapePort } from '../../ports/Port'
-import { getNodeInputPortValues } from '../nodePorts'
+import { ShapePort } from '../../ports/Port'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	areAnyInputsOutOfDate,
@@ -19,11 +17,11 @@ import {
 	InputValues,
 	NodeComponentProps,
 	NodeDefinition,
-	NodeImage,
-	NodePlaceholder,
-	NodePortLabel,
-	NodeRow,
-	STOP_EXECUTION,
+	NodeImagePreview,
+	NodePortRow,
+	NodeSelectRow,
+	NodeSliderRow,
+	NodeTruncatedText,
 	updateNode,
 } from './shared'
 
@@ -134,120 +132,48 @@ export class StyleTransferNodeDefinition extends NodeDefinition<StyleTransferNod
 function StyleTransferNodeComponent({ shape, node }: NodeComponentProps<StyleTransferNode>) {
 	const editor = useEditor()
 
-	const styleInput = useValue('style input', () => getNodeInputPortValues(editor, shape.id).style, [
-		editor,
-		shape.id,
-	])
-	const contentInput = useValue(
-		'content input',
-		() => getNodeInputPortValues(editor, shape.id).content,
-		[editor, shape.id]
-	)
-	const promptInput = useValue(
-		'prompt input',
-		() => getNodeInputPortValues(editor, shape.id).prompt,
-		[editor, shape.id]
-	)
-
 	return (
 		<>
-			<NodeRow>
-				<Port shapeId={shape.id} portId="style" />
-				<NodePortLabel dataType="image">Style</NodePortLabel>
-				{styleInput ? (
-					<span className="NodeRow-connected-value">
-						{styleInput.isOutOfDate || styleInput.value === STOP_EXECUTION ? (
-							<NodePlaceholder />
-						) : (
-							'connected'
-						)}
-					</span>
-				) : (
-					<span className="NodeRow-disconnected">not connected</span>
-				)}
-			</NodeRow>
-			<NodeRow>
-				<Port shapeId={shape.id} portId="content" />
-				<NodePortLabel dataType="image">Content</NodePortLabel>
-				{contentInput ? (
-					<span className="NodeRow-connected-value">
-						{contentInput.isOutOfDate || contentInput.value === STOP_EXECUTION ? (
-							<NodePlaceholder />
-						) : (
-							'connected'
-						)}
-					</span>
-				) : (
-					<span className="NodeRow-disconnected">optional</span>
-				)}
-			</NodeRow>
-			<NodeRow>
-				<Port shapeId={shape.id} portId="prompt" />
-				<NodePortLabel dataType="text">Prompt</NodePortLabel>
-				{promptInput ? (
-					<span className="NodeRow-connected-value">
-						{promptInput.isOutOfDate || promptInput.value === STOP_EXECUTION ? (
-							<NodePlaceholder />
-						) : typeof promptInput.value === 'string' ? (
-							promptInput.value.slice(0, 15) + (promptInput.value.length > 15 ? '...' : '')
-						) : (
-							'connected'
-						)}
-					</span>
-				) : (
-					<span className="NodeRow-disconnected">optional</span>
-				)}
-			</NodeRow>
-			<NodeRow>
-				<span className="NodeInputRow-label">Model</span>
-				<select
-					value={node.model}
-					onChange={(e) =>
-						updateNode<StyleTransferNode>(editor, shape, (n) => ({
-							...n,
-							model: e.target.value,
-						}))
-					}
-				>
-					{STYLE_MODELS.map((m) => (
-						<option key={m.id} value={m.id}>
-							{m.label}
-						</option>
-					))}
-				</select>
-			</NodeRow>
-			<NodeRow className="NodeInputRow">
-				<span className="NodeInputRow-label">Strength</span>
-				<input
-					type="range"
-					min="0"
-					max="100"
-					value={node.strength}
-					onChange={(e) =>
-						updateNode<StyleTransferNode>(
-							editor,
-							shape,
-							(n) => ({ ...n, strength: Number(e.target.value) }),
-							false
-						)
-					}
-					onPointerDown={(e) => e.stopPropagation()}
-				/>
-				<span className="NodeRow-value">{node.strength}%</span>
-			</NodeRow>
-			<div
-				className={classNames('NodeImagePreview', {
-					NodeImagePreview_loading: shape.props.isOutOfDate,
-				})}
-			>
-				{node.lastResultUrl ? (
-					<NodeImage src={node.lastResultUrl} alt="Style transfer result" />
-				) : (
-					<div className="NodeImagePreview-empty">
-						<span>Connect a style image</span>
-					</div>
-				)}
-			</div>
+			<NodePortRow shapeId={shape.id} portId="style" dataType="image" label="Style" />
+			<NodePortRow
+				shapeId={shape.id}
+				portId="content"
+				dataType="image"
+				label="Content"
+				disconnectedLabel="optional"
+			/>
+			<NodePortRow
+				shapeId={shape.id}
+				portId="prompt"
+				dataType="text"
+				label="Prompt"
+				disconnectedLabel="optional"
+				renderValue={(input) =>
+					typeof input.value === 'string' ? <NodeTruncatedText text={input.value} /> : 'connected'
+				}
+			/>
+			<NodeSelectRow
+				label="Model"
+				value={node.model}
+				options={STYLE_MODELS}
+				onChange={(model) => updateNode<StyleTransferNode>(editor, shape, (n) => ({ ...n, model }))}
+			/>
+			<NodeSliderRow
+				label="Strength"
+				min={0}
+				max={100}
+				suffix="%"
+				value={node.strength}
+				onChange={(strength) =>
+					updateNode<StyleTransferNode>(editor, shape, (n) => ({ ...n, strength }), false)
+				}
+			/>
+			<NodeImagePreview
+				src={node.lastResultUrl}
+				alt="Style transfer result"
+				emptyText="Connect a style image"
+				isLoading={shape.props.isOutOfDate}
+			/>
 		</>
 	)
 }

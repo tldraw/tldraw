@@ -13,8 +13,9 @@ const CATEGORY_ORDER = ['input', 'process', 'output', 'utility']
 
 const DRAG_DISTANCE_SQ = 36 // 6px
 
-function createNodeAtCenter(editor: Editor, node: NodeType) {
+export function createNodeAtCenter(editor: Editor, node: NodeType) {
 	const shapeId = createShapeId()
+	editor.markHistoryStoppingPoint('create node')
 	editor.run(() => {
 		editor.createShape({
 			id: shapeId,
@@ -140,10 +141,9 @@ export function ImagePipelineSidebar({ editor }: { editor: Editor }) {
 	// Group definitions by category
 	const grouped: Record<string, (typeof defs)[keyof typeof defs][]> = {}
 	for (const def of Object.values(defs)) {
-		const cat = def.category
-		if (!grouped[cat]) grouped[cat] = []
 		if (def.hidden) continue
-		grouped[cat].push(def)
+		grouped[def.category] ??= []
+		grouped[def.category].push(def)
 	}
 
 	return (

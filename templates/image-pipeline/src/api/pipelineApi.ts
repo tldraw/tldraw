@@ -3,6 +3,25 @@
  * Each function corresponds to a worker endpoint.
  */
 
+async function postJson<Result>(path: string, body: unknown, failureMessage: string) {
+	try {
+		const response = await fetch(path, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(body),
+		})
+
+		if (!response.ok) {
+			const err = await response.json().catch(() => ({ error: response.statusText }))
+			throw new Error((err as { error?: string }).error ?? failureMessage)
+		}
+
+		return (await response.json()) as Result
+	} catch (e) {
+		throw new Error(`Backend unavailable: ${e instanceof Error ? e.message : e}`)
+	}
+}
+
 export interface GenerateParams {
 	model: string
 	prompt: string
@@ -24,23 +43,8 @@ export interface GenerateResult {
  * Call the /api/generate endpoint to create an AI-generated image.
  * Falls back to a local placeholder if the worker is not available.
  */
-export async function apiGenerate(params: GenerateParams): Promise<GenerateResult> {
-	try {
-		const response = await fetch('/api/generate', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(params),
-		})
-
-		if (!response.ok) {
-			const err = await response.json().catch(() => ({ error: response.statusText }))
-			throw new Error((err as { error?: string }).error ?? 'Generation failed')
-		}
-
-		return (await response.json()) as GenerateResult
-	} catch (e) {
-		throw new Error(`Backend unavailable: ${e instanceof Error ? e.message : e}`)
-	}
+export function apiGenerate(params: GenerateParams) {
+	return postJson<GenerateResult>('/api/generate', params, 'Generation failed')
 }
 
 export interface UpscaleParams {
@@ -56,23 +60,8 @@ export interface UpscaleResult {
 /**
  * Call the /api/upscale endpoint to upscale an image.
  */
-export async function apiUpscale(params: UpscaleParams): Promise<UpscaleResult> {
-	try {
-		const response = await fetch('/api/upscale', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(params),
-		})
-
-		if (!response.ok) {
-			const err = await response.json().catch(() => ({ error: response.statusText }))
-			throw new Error((err as { error?: string }).error ?? 'Upscale failed')
-		}
-
-		return (await response.json()) as UpscaleResult
-	} catch (e) {
-		throw new Error(`Backend unavailable: ${e instanceof Error ? e.message : e}`)
-	}
+export function apiUpscale(params: UpscaleParams) {
+	return postJson<UpscaleResult>('/api/upscale', params, 'Upscale failed')
 }
 
 export interface IPAdapterParams {
@@ -89,23 +78,8 @@ export interface IPAdapterResult {
 /**
  * Call the /api/ip-adapter endpoint to generate an image guided by a reference.
  */
-export async function apiIPAdapter(params: IPAdapterParams): Promise<IPAdapterResult> {
-	try {
-		const response = await fetch('/api/ip-adapter', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(params),
-		})
-
-		if (!response.ok) {
-			const err = await response.json().catch(() => ({ error: response.statusText }))
-			throw new Error((err as { error?: string }).error ?? 'IP-Adapter failed')
-		}
-
-		return (await response.json()) as IPAdapterResult
-	} catch (e) {
-		throw new Error(`Backend unavailable: ${e instanceof Error ? e.message : e}`)
-	}
+export function apiIPAdapter(params: IPAdapterParams) {
+	return postJson<IPAdapterResult>('/api/ip-adapter', params, 'IP-Adapter failed')
 }
 
 export interface StyleTransferParams {
@@ -123,23 +97,8 @@ export interface StyleTransferResult {
 /**
  * Call the /api/style-transfer endpoint to transfer style between images.
  */
-export async function apiStyleTransfer(params: StyleTransferParams): Promise<StyleTransferResult> {
-	try {
-		const response = await fetch('/api/style-transfer', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(params),
-		})
-
-		if (!response.ok) {
-			const err = await response.json().catch(() => ({ error: response.statusText }))
-			throw new Error((err as { error?: string }).error ?? 'Style transfer failed')
-		}
-
-		return (await response.json()) as StyleTransferResult
-	} catch (e) {
-		throw new Error(`Backend unavailable: ${e instanceof Error ? e.message : e}`)
-	}
+export function apiStyleTransfer(params: StyleTransferParams) {
+	return postJson<StyleTransferResult>('/api/style-transfer', params, 'Style transfer failed')
 }
 
 export interface GenerateTextParams {
@@ -155,27 +114,8 @@ export interface GenerateTextResult {
  * Call the /api/generate-text endpoint to generate text from a multimodal AI model.
  * Falls back to a local placeholder if the worker is not available.
  */
-export async function apiGenerateText(params: GenerateTextParams): Promise<GenerateTextResult> {
+export function apiGenerateText(params: GenerateTextParams) {
 	// Coerce input to string so the worker always receives a string
-	const coercedParams = {
-		...params,
-		input: params.input != null ? String(params.input) : undefined,
-	}
-	try {
-		const response = await fetch('/api/generate-text', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(coercedParams),
-		})
-
-		if (!response.ok) {
-			const err = await response.json().catch(() => ({ error: response.statusText }))
-			throw new Error((err as { error?: string }).error ?? 'Text generation failed')
-		}
-
-		return (await response.json()) as GenerateTextResult
-	} catch (e) {
-		throw new Error(`Backend unavailable: ${e instanceof Error ? e.message : e}`)
-	}
+	const body = { ...params, input: params.input != null ? String(params.input) : undefined }
+	return postJson<GenerateTextResult>('/api/generate-text', body, 'Text generation failed')
 }
-

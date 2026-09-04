@@ -9,7 +9,7 @@ import {
 	InfoValues,
 	NodeComponentProps,
 	NodeDefinition,
-	NodeRow,
+	NodeSelectRow,
 	updateNode,
 } from './shared'
 
@@ -36,6 +36,8 @@ const PROVIDERS: Record<string, { label: string; models: ModelInfo[] }> = {
 		],
 	},
 }
+
+const PROVIDER_OPTIONS = Object.entries(PROVIDERS).map(([id, p]) => ({ id, label: p.label }))
 
 export type ModelNode = T.TypeOf<typeof ModelNode>
 export const ModelNode = T.object({
@@ -90,51 +92,28 @@ export class ModelNodeDefinition extends NodeDefinition<ModelNode> {
 
 function ModelNodeComponent({ shape, node }: NodeComponentProps<ModelNode>) {
 	const editor = useEditor()
-	const provider = PROVIDERS[node.provider] ?? PROVIDERS['flux']
-	const models = provider.models
+	const provider = PROVIDERS[node.provider] ?? PROVIDERS.flux
 
 	return (
 		<>
-			<NodeRow>
-				<span className="NodeInputRow-label">Provider</span>
-				<select
-					value={node.provider}
-					onChange={(e) => {
-						const newProvider = e.target.value
-						const newModels = PROVIDERS[newProvider]?.models
-						const firstModel = newModels?.[0]?.id ?? ''
-						updateNode<ModelNode>(editor, shape, (n) => ({
-							...n,
-							provider: newProvider,
-							modelId: firstModel,
-						}))
-					}}
-				>
-					{Object.entries(PROVIDERS).map(([id, p]) => (
-						<option key={id} value={id}>
-							{p.label}
-						</option>
-					))}
-				</select>
-			</NodeRow>
-			<NodeRow>
-				<span className="NodeInputRow-label">Model</span>
-				<select
-					value={node.modelId}
-					onChange={(e) =>
-						updateNode<ModelNode>(editor, shape, (n) => ({
-							...n,
-							modelId: e.target.value,
-						}))
-					}
-				>
-					{models.map((m) => (
-						<option key={m.id} value={m.id}>
-							{m.label}
-						</option>
-					))}
-				</select>
-			</NodeRow>
+			<NodeSelectRow
+				label="Provider"
+				value={node.provider}
+				options={PROVIDER_OPTIONS}
+				onChange={(provider) =>
+					updateNode<ModelNode>(editor, shape, (n) => ({
+						...n,
+						provider,
+						modelId: PROVIDERS[provider]?.models[0]?.id ?? '',
+					}))
+				}
+			/>
+			<NodeSelectRow
+				label="Model"
+				value={node.modelId}
+				options={provider.models}
+				onChange={(modelId) => updateNode<ModelNode>(editor, shape, (n) => ({ ...n, modelId }))}
+			/>
 		</>
 	)
 }

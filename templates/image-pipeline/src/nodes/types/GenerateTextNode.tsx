@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { T, useEditor, useValue } from 'tldraw'
+import { T } from 'tldraw'
 import { apiGenerateText } from '../../api/pipelineApi'
 import { GenerateTextIcon } from '../../components/icons/GenerateTextIcon'
 import {
@@ -8,22 +8,18 @@ import {
 	NODE_ROW_HEIGHT_PX,
 	NODE_WIDTH_PX,
 } from '../../constants'
-import { Port, ShapePort } from '../../ports/Port'
-import { getNodeInputPortValues } from '../nodePorts'
+import { ShapePort } from '../../ports/Port'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	areAnyInputsOutOfDate,
-	coerceToText,
 	ExecutionResult,
-	getInput,
 	getInputText,
 	InfoValues,
 	InputValues,
 	NodeComponentProps,
 	NodeDefinition,
-	NodePlaceholder,
-	NodePortLabel,
-	NodeRow,
+	NodePortRow,
+	NodeTruncatedText,
 	updateNode,
 } from './shared'
 
@@ -53,7 +49,7 @@ export class GenerateTextNodeDefinition extends NodeDefinition<GenerateTextNode>
 		// input row (44) + prompt row (44) + result area (88 + 8 margin)
 		return NODE_ROW_HEIGHT_PX * 2 + 96
 	}
-	getPorts(_shape: NodeShape, _node: GenerateTextNode): Record<string, ShapePort> {
+	getPorts(): Record<string, ShapePort> {
 		const baseY = NODE_HEADER_HEIGHT_PX + NODE_ROW_HEADER_GAP_PX
 		return {
 			input: {
@@ -84,7 +80,7 @@ export class GenerateTextNodeDefinition extends NodeDefinition<GenerateTextNode>
 		_node: GenerateTextNode,
 		inputs: InputValues
 	): Promise<ExecutionResult> {
-		const input = coerceToText(getInput(inputs, 'input')) || undefined
+		const input = getInputText(inputs, 'input') || undefined
 		const prompt = getInputText(inputs, 'prompt', DEFAULT_PROMPT)
 
 		const result = await apiGenerateText({
@@ -112,56 +108,23 @@ export class GenerateTextNodeDefinition extends NodeDefinition<GenerateTextNode>
 }
 
 function GenerateTextNodeComponent({ shape, node }: NodeComponentProps<GenerateTextNode>) {
-	const editor = useEditor()
-
-	const inputPort = useValue('input port', () => getNodeInputPortValues(editor, shape.id).input, [
-		editor,
-		shape.id,
-	])
-	const promptPort = useValue(
-		'prompt port',
-		() => getNodeInputPortValues(editor, shape.id).prompt,
-		[editor, shape.id]
-	)
-
 	return (
 		<>
-			<NodeRow>
-				<Port shapeId={shape.id} portId="input" />
-				<NodePortLabel dataType="any">Input</NodePortLabel>
-				{inputPort ? (
-					<span className="NodeRow-connected-value">
-						{inputPort.isOutOfDate ? (
-							<NodePlaceholder />
-						) : (
-							<span title={String(inputPort.value)}>
-								{String(inputPort.value ?? '').slice(0, 20)}
-								{String(inputPort.value ?? '').length > 20 ? '...' : ''}
-							</span>
-						)}
-					</span>
-				) : (
-					<span className="NodeRow-disconnected">not connected</span>
-				)}
-			</NodeRow>
-			<NodeRow>
-				<Port shapeId={shape.id} portId="prompt" />
-				<NodePortLabel dataType="text">Prompt</NodePortLabel>
-				{promptPort ? (
-					<span className="NodeRow-connected-value">
-						{promptPort.isOutOfDate ? (
-							<NodePlaceholder />
-						) : (
-							<span title={String(promptPort.value)}>
-								{String(promptPort.value ?? '').slice(0, 20)}
-								{String(promptPort.value ?? '').length > 20 ? '...' : ''}
-							</span>
-						)}
-					</span>
-				) : (
-					<span className="NodeRow-disconnected">optional</span>
-				)}
-			</NodeRow>
+			<NodePortRow
+				shapeId={shape.id}
+				portId="input"
+				dataType="any"
+				label="Input"
+				renderValue={(input) => <NodeTruncatedText text={String(input.value ?? '')} />}
+			/>
+			<NodePortRow
+				shapeId={shape.id}
+				portId="prompt"
+				dataType="text"
+				label="Prompt"
+				disconnectedLabel="optional"
+				renderValue={(input) => <NodeTruncatedText text={String(input.value ?? '')} />}
+			/>
 			<div
 				className={classNames('GenerateTextNode-result', {
 					'GenerateTextNode-result_loading': shape.props.isOutOfDate,
