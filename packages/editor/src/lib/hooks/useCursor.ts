@@ -33,7 +33,8 @@ function getCursorCss(
 	)
 }
 
-const STATIC_CURSORS = [
+// Cursors that map straight to a prerendered `--tl-cursor-*` css variable rather than a runtime svg.
+const STATIC_CURSORS = new Set<TLCursorType>([
 	'default',
 	'pointer',
 	'cross',
@@ -47,11 +48,11 @@ const STATIC_CURSORS = [
 	'rotate',
 	'resize-edge',
 	'resize-corner',
-]
+])
 
 type CursorFunction = (rotation: number, flip: boolean, color: string) => string
 
-const CURSORS: Record<TLCursorType, CursorFunction> = {
+const DYNAMIC_CURSORS: Record<TLCursorType, CursorFunction> = {
 	none: () => 'none',
 	'ew-resize': (r, f, c) => getCursorCss(EDGE_SVG, r, 0, f, c),
 	'ns-resize': (r, f, c) => getCursorCss(EDGE_SVG, r, 90, f, c),
@@ -65,7 +66,8 @@ const CURSORS: Record<TLCursorType, CursorFunction> = {
 
 /** @public */
 export function getCursor(cursor: TLCursorType, rotation = 0, color = 'black') {
-	return CURSORS[cursor](radiansToDegrees(rotation), false, color)
+	if (STATIC_CURSORS.has(cursor)) return `var(--tl-cursor-${cursor})`
+	return DYNAMIC_CURSORS[cursor](radiansToDegrees(rotation), false, color)
 }
 
 export function useCursor() {
@@ -77,8 +79,9 @@ export function useCursor() {
 		() => {
 			const { type, rotation } = editor.getInstanceState().cursor
 
-			if (STATIC_CURSORS.includes(type)) {
-				container.style.setProperty('--tl-cursor', `var(--tl-cursor-${type})`)
+			// Static cursors don't need the theme colour, so skip reading it to avoid depending on it.
+			if (STATIC_CURSORS.has(type)) {
+				container.style.setProperty('--tl-cursor', getCursor(type))
 				return
 			}
 
