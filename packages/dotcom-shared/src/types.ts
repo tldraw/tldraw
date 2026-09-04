@@ -12,12 +12,6 @@ export interface CreateRoomRequestBody {
 	snapshot: Snapshot
 }
 
-export interface CreateSnapshotRequestBody {
-	schema: SerializedSchema
-	snapshot: SerializedStore<TLRecord>
-	parent_slug?: string | undefined
-}
-
 export type CreateSnapshotResponseBody =
 	| {
 			error: false
@@ -189,6 +183,7 @@ export const ZErrorCode = stringEnum(
 	'unpublish_failed',
 	'republish_failed',
 	'unknown_error',
+	'offline_error',
 	'client_too_old',
 	'forbidden',
 	'bad_request',

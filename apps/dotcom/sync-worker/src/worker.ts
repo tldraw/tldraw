@@ -9,7 +9,6 @@ import {
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
-	can,
 	createMutators,
 	queries,
 	schema,
@@ -30,7 +29,6 @@ import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
 import { healthCheckRoutes } from './healthCheckRoutes'
 import { createPostgresConnectionPool } from './postgres'
-import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
 import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
@@ -62,7 +60,7 @@ import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } 
 import { getFileEffectProcessor, getLogger } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, getZeroAuth, requireAuth } from './utils/tla/getAuth'
-import { getRole } from './utils/tla/getRole'
+import { hasWriteAccessToFile } from './utils/tla/hasWriteAccessToFile'
 export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLFileEffectProcessor } from './TLFileEffectProcessor'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
@@ -111,7 +109,6 @@ const router = createRouter<Environment>()
 	)
 	.all('*', preflight)
 	.all('*', blockUnknownOrigins)
-	.post('/snapshots', createRoomSnapshot)
 	.get('/snapshot/:roomId', getRoomSnapshot)
 	// Social preview metadata for board links. Vercel routes social crawlers (by user-agent) here so
 	// the unfurled link preview includes the board's name. See apps/dotcom/client/scripts/build.ts.
@@ -223,8 +220,10 @@ const router = createRouter<Environment>()
 		if (!auth) {
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		}
+		// (db, mutatorContext, logLevel): mutators close over userId, so no context.
 		const processor = new PushProcessor(
 			zeroPostgresJS(schema, env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING),
+			undefined,
 			'debug'
 		)
 		const result = await processor.process(createMutators(auth.userId), req)
@@ -313,13 +312,6 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 	): Promise<{ ok: true; userId: string | null } | { ok: false; error: string }> {
 		const db = createPostgresConnectionPool(this.env, 'sync-worker')
 		try {
-			const file = await db
-				.selectFrom('file')
-				.where('id', '=', fileId)
-				.select(['owningGroupId', 'shared', 'sharedLinkType'])
-				.executeTakeFirst()
-			if (!file) return { ok: false, error: 'File not found' }
-
 			let userId: string | null = null
 			if (authorizationHeader) {
 				const fakeReq = new Request('https://internal', {
@@ -328,19 +320,9 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				const auth = await getAuth(fakeReq, this.env)
 				userId = auth?.userId ?? null
 			}
-
-			const isSharedEdit = file.shared && file.sharedLinkType === 'edit'
-			if (isSharedEdit) {
-				// shared for editing
-			} else if (userId && file.owningGroupId) {
-				const role = await getRole(db, userId, file.owningGroupId)
-				if (!can(role, 'accessFiles')) {
-					return { ok: false, error: 'Forbidden' }
-				}
-			} else {
+			if (!(await hasWriteAccessToFile(db, fileId, userId))) {
 				return { ok: false, error: 'Forbidden' }
 			}
-
 			return { ok: true, userId }
 		} finally {
 			await db.destroy()
@@ -387,55 +369,59 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		// The pool is only needed for asset-upload messages, so create it lazily: OG image render
 		// batches should not open database connections they never use.
 		let db: ReturnType<typeof createPostgresConnectionPool> | undefined
-		for (const message of batch.messages) {
-			switch (message.body.type) {
-				case 'og-image-render':
-					try {
-						await handleOgImageRenderMessage(
-							this.env,
-							message as Message<OgImageRenderQueueMessage>,
-							this.ctx
-						)
-					} catch (e) {
-						// handleOgImageRenderMessage settles the message itself; this guards the batch loop
-						// against an unexpected throw escaping it, so one bad message can't abort processing
-						// of the rest of the batch. Retry is a no-op if the handler already settled.
-						//
-						// Reported on every delivery rather than on the last one. The handler already
-						// reports the render failures it catches, so anything reaching here escaped it
-						// entirely — a bug in the handler, not a failing render. Those are rare, and an
-						// escape that doesn't recur never reaches a final delivery anyway: the handler's
-						// own budget acks the message at attempts >= OG_MAX_RENDER_ATTEMPTS.
-						this.reportQueueFailure(message, e)
-						message.retry()
+		try {
+			for (const message of batch.messages) {
+				switch (message.body.type) {
+					case 'og-image-render':
+						try {
+							await handleOgImageRenderMessage(
+								this.env,
+								message as Message<OgImageRenderQueueMessage>,
+								this.ctx
+							)
+						} catch (e) {
+							// handleOgImageRenderMessage settles the message itself; this guards the batch loop
+							// against an unexpected throw escaping it, so one bad message can't abort processing
+							// of the rest of the batch. Retry is a no-op if the handler already settled.
+							//
+							// Reported on every delivery rather than on the last one. The handler already
+							// reports the render failures it catches, so anything reaching here escaped it
+							// entirely — a bug in the handler, not a failing render. Those are rare, and an
+							// escape that doesn't recur never reaches a final delivery anyway: the handler's
+							// own budget acks the message at attempts >= OG_MAX_RENDER_ATTEMPTS.
+							this.reportQueueFailure(message, e)
+							message.retry()
+						}
+						break
+					case 'asset-upload': {
+						const { objectName, fileId, userId } = message.body
+						try {
+							db ??= createPostgresConnectionPool(this.env, 'sync-worker-queue')
+							await db
+								.insertInto('asset')
+								.values({ objectName, fileId, userId })
+								.onConflict((oc) => oc.column('objectName').doNothing())
+								.execute()
+							message.ack()
+						} catch (e) {
+							this.reportQueueFailureOnFinalAttempt(message, e)
+							message.retry({
+								delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
+							})
+						}
+						break
 					}
-					break
-				case 'asset-upload': {
-					const { objectName, fileId, userId } = message.body
-					try {
-						db ??= createPostgresConnectionPool(this.env, 'sync-worker-queue')
-						await db
-							.insertInto('asset')
-							.values({ objectName, fileId, userId })
-							.onConflict((oc) => oc.column('objectName').doNothing())
-							.execute()
-						message.ack()
-					} catch (e) {
-						this.reportQueueFailureOnFinalAttempt(message, e)
-						message.retry({
-							delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
-						})
-					}
-					break
+					default:
+						// One shared queue carries every message type, so a newly added type that nobody
+						// handles here would otherwise fall through to whichever branch happens to be last
+						// and be mis-parsed as that type. This makes it a compile error instead. At runtime
+						// it only fires on deploy skew (a producer ahead of this consumer), where throwing
+						// is what we want: the batch is redelivered once the new consumer is live.
+						exhaustiveSwitchError(message.body, 'type')
 				}
-				default:
-					// One shared queue carries every message type, so a newly added type that nobody
-					// handles here would otherwise fall through to whichever branch happens to be last
-					// and be mis-parsed as that type. This makes it a compile error instead. At runtime
-					// it only fires on deploy skew (a producer ahead of this consumer), where throwing
-					// is what we want: the batch is redelivered once the new consumer is live.
-					exhaustiveSwitchError(message.body, 'type')
 			}
+		} finally {
+			await db?.destroy()
 		}
 	}
 }
