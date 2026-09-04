@@ -164,6 +164,71 @@ describe('buildSnapshotDelta / applySnapshotDelta', () => {
 		expect(snapshotContentHash(a)).not.toBe(snapshotContentHash(b))
 	})
 
+	it('round-trips nested records, not just numeric edits', () => {
+		// Boards carry free-form JSON in `meta` and rich text `content`; a delta that only survives
+		// flat numeric edits would still corrupt those.
+		const prev = snapshot({
+			documents: [
+				{
+					state: rec('shape:a', {
+						meta: { tags: ['one', 'two'], nested: { keep: true, drop: 1 } },
+						props: {
+							richText: { type: 'doc', content: [{ type: 'paragraph', attrs: { dir: null } }] },
+						},
+					}),
+					lastChangedClock: 1,
+				},
+			],
+		})
+		const next = snapshot({
+			clock: 2,
+			documentClock: 2,
+			documents: [
+				{
+					state: rec('shape:a', {
+						meta: { tags: ['one', 'three', 'four'], nested: { keep: true } },
+						props: {
+							richText: {
+								type: 'doc',
+								content: [
+									{ type: 'paragraph', attrs: { dir: 'ltr' } },
+									{ type: 'paragraph', content: [{ type: 'text', text: 'hi' }] },
+								],
+							},
+						},
+					}),
+					lastChangedClock: 2,
+				},
+			],
+		})
+
+		const delta = JSON.parse(JSON.stringify(buildSnapshotDelta(prev, next)))
+		const applied = applySnapshotDelta(prev, delta)
+
+		expect(applied).toEqual(next)
+		expect(snapshotContentHash(applied)).toBe(delta.hash)
+	})
+
+	it('refuses a removal of a record the base does not hold', () => {
+		const prev = snapshot({ documents: [{ state: rec('shape:a'), lastChangedClock: 1 }] })
+		const next = snapshot({ clock: 2, documentClock: 2, documents: [] })
+		const delta = buildSnapshotDelta(prev, next)
+
+		expect(() => applySnapshotDelta(snapshot(), delta)).toThrow(/removes unknown record/)
+	})
+
+	it('hash distinguishes the room clocks the documents do not carry', () => {
+		const base = snapshot({ documents: [{ state: rec('shape:a'), lastChangedClock: 1 }] })
+
+		expect(snapshotContentHash(snapshot({ ...base, clock: 2 }))).not.toBe(snapshotContentHash(base))
+		expect(snapshotContentHash(snapshot({ ...base, documentClock: 2 }))).not.toBe(
+			snapshotContentHash(base)
+		)
+		expect(
+			snapshotContentHash(snapshot({ ...base, tombstoneHistoryStartsAtClock: undefined }))
+		).not.toBe(snapshotContentHash(base))
+	})
+
 	it('refuses an unknown delta version', () => {
 		const prev = snapshot()
 		const delta = { ...buildSnapshotDelta(prev, snapshot({ clock: 2 })), v: 2 }

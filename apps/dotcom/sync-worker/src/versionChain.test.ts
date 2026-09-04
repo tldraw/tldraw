@@ -211,4 +211,12 @@ describe('segment metadata', () => {
 		expect(readSegmentRef({ keyframeKey: 'k' })).toBeNull()
 		expect(readSegmentRef({ keyframeKey: 'k', firstSeq: 'x', timestamps: 'a' })).toBeNull()
 	})
+
+	it('refuses a sequence that only coerces to a number', () => {
+		// Number('') is 0, which is finite — a truncated value must not read as sequence zero.
+		expect(readSegmentRef({ keyframeKey: 'k', firstSeq: '', timestamps: 'a' })).toBeNull()
+		expect(readSegmentRef({ keyframeKey: 'k', firstSeq: ' 2 ', timestamps: 'a' })).toBeNull()
+		expect(readSegmentRef({ keyframeKey: 'k', firstSeq: '0', timestamps: 'a' })).toBeNull()
+		expect(readSegmentRef({ keyframeKey: 'k', firstSeq: '0x2', timestamps: 'a' })).toBeNull()
+	})
 })
