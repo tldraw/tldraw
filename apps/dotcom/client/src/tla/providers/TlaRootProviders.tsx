@@ -1,5 +1,4 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
-import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import classNames from 'classnames'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
@@ -26,6 +25,7 @@ import {
 import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
 import { ErrorPage, RefreshErrorBoundary } from '../../components/ErrorPage/ErrorPage'
 import { SignedInAnalytics, SignedOutAnalytics, trackEvent } from '../../utils/analytics'
+import { assetUrls } from '../../utils/assetUrls'
 import { globalEditor } from '../../utils/globalEditor'
 import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
 import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
@@ -44,8 +44,6 @@ import {
 	resetLocalSessionStateButKeepTheme,
 	updateLocalSessionState,
 } from '../utils/local-session-state'
-
-const assetUrls = getAssetUrlsByImport()
 
 function getTextDirection(locale: string): 'ltr' | 'rtl' {
 	const [language] = locale.toLowerCase().split('-')
@@ -166,6 +164,9 @@ function IntlWrapper({ children, locale }: { children: ReactNode; locale: string
 	const [messages, setMessages] = useState(translationsEnJson)
 
 	useEffect(() => {
+		// Guard against a slower fetch for a previous locale landing after this one's and
+		// overwriting it, and against a missing/invalid locale file becoming an unhandled rejection.
+		let cancelled = false
 		async function fetchMessages() {
 			if (locale === 'en') {
 				setMessages(translationsEnJson)
@@ -173,13 +174,21 @@ function IntlWrapper({ children, locale }: { children: ReactNode; locale: string
 			}
 
 			const res = await fetch(`/tla/locales-compiled/${locale}.json`)
+			if (!res.ok) throw new Error(`Failed to load locale ${locale}: ${res.status}`)
 			const messages = await res.json()
+			if (cancelled) return
 			setMessages({
 				...translationsEnJson,
 				...messages,
 			})
 		}
-		fetchMessages()
+		fetchMessages().catch((e) => {
+			console.error(e)
+			if (!cancelled) setMessages(translationsEnJson)
+		})
+		return () => {
+			cancelled = true
+		}
 	}, [locale])
 
 	const defaultLocale = 'en'
