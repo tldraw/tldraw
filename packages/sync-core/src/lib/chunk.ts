@@ -40,10 +40,9 @@ export function chunk(msg: string, maxSafeMessageSize = MAX_SAFE_MESSAGE_SIZE) {
 			const prefix = `${chunkNumber}_`
 			let chunkSize = Math.max(Math.min(maxSafeMessageSize - prefix.length, offset), 1)
 			// Never split a surrogate pair across chunks: WebSocket.send converts each chunk to a
-			// USVString, turning a lone surrogate into U+FFFD, and the reassembled JSON would then
-			// carry corrupted text (e.g. an emoji becoming '\uFFFD\uFFFD') without any error.
-			// Shrink the chunk by one so the pair moves whole into the preceding chunk; when the
-			// chunk is already a single character, grow it by one instead (as CH3 already permits).
+			// USVString, turning a lone surrogate into U+FFFD, so the reassembled JSON silently
+			// carries corrupted text. Shrink by one so the pair moves whole into the preceding
+			// chunk; a single-character chunk grows by one instead (one over the CH3 bound, see CH9).
 			if (
 				chunkSize < offset &&
 				isLowSurrogate(msg.charCodeAt(offset - chunkSize)) &&
