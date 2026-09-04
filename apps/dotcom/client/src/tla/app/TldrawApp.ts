@@ -671,7 +671,7 @@ export class TldrawApp {
 		return mostRecent?.fileId ?? scopedFiles[0]?.fileId ?? null
 	}
 
-	private canCreateNewFile(workspaceId: string) {
+	private canCreateNewFile(workspaceId: string, count = 1) {
 		// Count only files the workspace actually owns — not guest files (shared files the
 		// user opened) or mislinked rows that getWorkspaceFilesSorted hides. Counting those
 		// would let the limit fire on files the user can neither see nor remove. createFile
@@ -682,7 +682,7 @@ export class TldrawApp {
 		const nonDeletedCount = membership.groupFiles.filter(
 			(gf) => gf.file && !gf.file.isDeleted && gf.file.owningGroupId === workspaceId
 		).length
-		return nonDeletedCount < this.config.maxNumberOfFiles
+		return nonDeletedCount + count <= this.config.maxNumberOfFiles
 	}
 
 	private showMaxFilesToast() {
@@ -1089,6 +1089,8 @@ export class TldrawApp {
 		return createIntl()!
 	}
 
+	// Explicit return type: inferring it (via createFile → getWorkspaceFilesSorted) is circular when
+	// uploadTldrFiles.test.ts is checked first, which turns getWorkspaceFilesSorted's result into any.
 	async uploadTldrFiles(
 		files: File[],
 		opts: {
@@ -1098,7 +1100,7 @@ export class TldrawApp {
 			workspaceId?: string
 			onUploadError?(): void
 		}
-	) {
+	): Promise<void> {
 		let { onFirstFileUploaded } = opts
 		const { source, workspaceId, onUploadError } = opts
 		const totalFiles = files.length
@@ -1106,7 +1108,9 @@ export class TldrawApp {
 		if (totalFiles === 0) return
 		// createFile runs this check too, but only after the snapshot and its assets are already
 		// uploaded — which would orphan a room in R2 and stack a generic error on the limit toast.
-		if (!this.canCreateNewFile(workspaceId ?? this.getHomeWorkspaceId())) {
+		// Check the whole batch: with one slot left, a two-file import would otherwise create the
+		// first file and then upload the second before createFile rejects it.
+		if (!this.canCreateNewFile(workspaceId ?? this.getHomeWorkspaceId(), totalFiles)) {
 			this.showMaxFilesToast()
 			onUploadError?.()
 			return
