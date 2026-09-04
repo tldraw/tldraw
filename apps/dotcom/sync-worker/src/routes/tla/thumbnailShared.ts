@@ -2,7 +2,7 @@ import { createSentry } from '@tldraw/worker-shared'
 import { Environment } from '../../types'
 
 // Leaf helpers shared by the board-reading and thumbnail/OG-image surfaces
-// (get{Published,SharedFile}, the render core in thumbnailRender.ts, sharedBoardScreenshotMcp.ts,
+// (get{Published,SharedFile}, the render core in thumbnailRender.ts, mcpServer.ts,
 // the OG route, and the OG queue consumer). This module imports nothing from those files so it can
 // be depended on from any of them without creating an import cycle.
 
