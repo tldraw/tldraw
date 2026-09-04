@@ -4166,7 +4166,8 @@ export interface TLEventMap {
     'stop-following': [];
     // (undocumented)
     'unsupported-shapes': [{
-        shapeCount: number;
+        droppedCount: number;
+        pastedCount: number;
         types: string[];
     }];
     // (undocumented)

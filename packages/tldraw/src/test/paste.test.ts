@@ -909,9 +909,9 @@ describe('When pasting content with unsupported shape types...', () => {
 		)
 
 		expect(handler).toHaveBeenCalledTimes(1)
-		const { types, shapeCount } = handler.mock.calls[0][0]
+		const { types, droppedCount } = handler.mock.calls[0][0]
 		expect([...types].sort()).toEqual(['animation-camera', 'some-other-shape'])
-		expect(shapeCount).toBe(2)
+		expect(droppedCount).toBe(2)
 	})
 
 	it('counts shapes, not types', () => {
@@ -934,7 +934,32 @@ describe('When pasting content with unsupported shape types...', () => {
 			)
 		)
 
-		expect(handler).toHaveBeenCalledWith({ types: ['animation-camera'], shapeCount: 2 })
+		expect(handler).toHaveBeenCalledWith({
+			types: ['animation-camera'],
+			droppedCount: 2,
+			pastedCount: 0,
+		})
+	})
+
+	it('reports how many shapes survived, so the UI can tell partial from nothing', () => {
+		const handler = vi.fn()
+		editor.addListener('unsupported-shapes', handler)
+		const known = createShapeId('known')
+		const unknown = createShapeId('unknown')
+		editor.createShapes([
+			{ id: known, type: 'geo', x: 0, y: 0, props: { w: 50, h: 50 } },
+			{ id: unknown, type: 'geo', x: 100, y: 0, props: { w: 50, h: 50 } },
+		])
+
+		editor.putContentOntoCurrentPage(
+			contentWithUnsupported([known, unknown], new Map([[unknown, 'animation-camera']]))
+		)
+
+		expect(handler).toHaveBeenCalledWith({
+			types: ['animation-camera'],
+			droppedCount: 1,
+			pastedCount: 1,
+		})
 	})
 
 	it('does not claim content was dropped when the paste never happened', () => {
