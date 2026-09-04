@@ -2010,6 +2010,50 @@ describe('25. Messaging and broadcast (RB)', () => {
 		expect(socketB.close).toHaveBeenCalled()
 	})
 
+	it('[RC7] close() forgets its sessions, and late socket close events emit no lifecycle events', () => {
+		vi.useFakeTimers()
+		const { room, socketA } = setupTwoSessions()
+		const removed = vi.fn()
+		const becameEmpty = vi.fn()
+		room.events.on('session_removed', removed)
+		room.events.on('room_became_empty', becameEmpty)
+
+		// b's socket closes before close(), a's closes after: both must stay silent
+		room.handleClose('b')
+		room.close()
+		expect(room.sessions.size).toBe(0)
+		room.handleClose('a')
+
+		vi.advanceTimersByTime(SESSION_REMOVAL_WAIT_TIME + 2001)
+		expect(removed).not.toHaveBeenCalled()
+		expect(becameEmpty).not.toHaveBeenCalled()
+		expect(socketA.sendMessage).not.toHaveBeenCalled()
+	})
+
+	it('[RC7] sessions added after close() are rejected and their sockets closed', () => {
+		const { room } = makeRoom()
+		room.close()
+
+		const late = makeSocket()
+		room.handleNewSession({ sessionId: 'late', socket: late, meta: undefined, isReadonly: false })
+		expect(late.close).toHaveBeenCalled()
+
+		const resumed = makeSocket()
+		room.handleResumedSession({
+			sessionId: 'resumed',
+			socket: resumed,
+			meta: undefined,
+			isReadonly: false,
+			serializedSchema: room.serializedSchema,
+			presenceId: null,
+			presenceRecord: null,
+			requiresLegacyRejection: false,
+			supportsStringAppend: true,
+		})
+		expect(resumed.close).toHaveBeenCalled()
+		expect(room.sessions.size).toBe(0)
+	})
+
 	it('[RB4] a per-session migration failure during broadcast rejects only the affected session', () => {
 		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 		try {
