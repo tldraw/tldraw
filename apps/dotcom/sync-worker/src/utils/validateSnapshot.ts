@@ -7,12 +7,16 @@ interface SnapshotRequestBody {
 	snapshot: SerializedStore<TLRecord>
 }
 
-const schema = createTLSchema()
+// Exported so callers persist the exact schema the records were migrated to.
+export const snapshotSchema = createTLSchema()
 export function validateSnapshot(
 	body: SnapshotRequestBody
 ): Result<SerializedStore<TLRecord>, string> {
 	// Migrate the snapshot using the provided schema
-	const migrationResult = schema.migrateStoreSnapshot({ store: body.snapshot, schema: body.schema })
+	const migrationResult = snapshotSchema.migrateStoreSnapshot({
+		store: body.snapshot,
+		schema: body.schema,
+	})
 
 	if (migrationResult.type === 'error') {
 		console.error('Migration error:', migrationResult.reason)
@@ -27,7 +31,7 @@ export function validateSnapshot(
 			}
 
 			// Get the corresponding record type from the provided schema
-			const recordType = schema.types[record.typeName]
+			const recordType = snapshotSchema.types[record.typeName]
 
 			// Throw if any records have missing record type definitions
 			if (!recordType) {
