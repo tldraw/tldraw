@@ -1,4 +1,4 @@
-import { QueryResultType, Zero } from '@rocicorp/zero'
+import { MutatorResultErrorDetails, QueryResultType, Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
 import {
 	AcceptInviteResponseBody,
@@ -441,6 +441,9 @@ export class TldrawApp {
 		unknown_error: {
 			defaultMessage: 'An unexpected error occurred.',
 		},
+		offline_error: {
+			defaultMessage: 'You appear to be offline. Check your connection and try again.',
+		},
 		forbidden: {
 			defaultMessage: 'You do not have the necessary permissions to perform this action.',
 		},
@@ -480,8 +483,10 @@ export class TldrawApp {
 		return msg
 	}
 
-	showMutationRejectionToast = throttle((errorCode: ZErrorCode) => {
-		const descriptor = this.getMessage(errorCode)
+	// Zero-level errors (socket down, client closed) carry prose, not a ZErrorCode.
+	showMutationRejectionToast = throttle((error: MutatorResultErrorDetails['error']) => {
+		const descriptor =
+			error.type === 'zero' ? this.messages.offline_error : this.getMessage(error.message as ZErrorCode)
 		this.toasts?.addToast({
 			title: this.getIntl().formatMessage(this.messages.mutation_error_toast_title),
 			description: this.getIntl().formatMessage(descriptor),
@@ -773,7 +778,7 @@ export class TldrawApp {
 			time: Date.now(),
 		}).client
 		if (res.type === 'error') {
-			this.showMutationRejectionToast(res.error.message as ZErrorCode)
+			this.showMutationRejectionToast(res.error)
 			return Result.err('mutation rejected')
 		}
 
@@ -950,7 +955,7 @@ export class TldrawApp {
 		// failures resolve with {type: 'error'} — so the result has to be checked, not caught.
 		const res = await this.z.mutate.removeFileFromWorkspace({ fileId, workspaceId }).client
 		if (res.type === 'error') {
-			this.showMutationRejectionToast(res.error.message as ZErrorCode)
+			this.showMutationRejectionToast(res.error)
 			return false
 		}
 		return true

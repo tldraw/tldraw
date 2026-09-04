@@ -1,6 +1,6 @@
 /* ---------------------- Menu ---------------------- */
 
-import { FILE_PREFIX, TlaFile, ZErrorCode } from '@tldraw/dotcom-shared'
+import { FILE_PREFIX, TlaFile } from '@tldraw/dotcom-shared'
 import { Fragment, ReactNode, useCallback, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -300,7 +300,7 @@ export function FileItems({
 													const id = uniqueId()
 													const createRes = await app.z.mutate.createWorkspace({ id, name }).client
 													if (createRes.type === 'error') {
-														app.showMutationRejectionToast(createRes.error.message as ZErrorCode)
+														app.showMutationRejectionToast(createRes.error)
 														return
 													}
 													trackEvent('create-workspace', { source })
@@ -310,7 +310,7 @@ export function FileItems({
 													}).client
 													if (moveRes.type === 'error') {
 														// the workspace was created; only the move failed
-														app.showMutationRejectionToast(moveRes.error.message as ZErrorCode)
+														app.showMutationRejectionToast(moveRes.error)
 													}
 												}}
 											/>
