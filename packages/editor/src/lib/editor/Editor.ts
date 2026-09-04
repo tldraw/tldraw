@@ -10245,12 +10245,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		})
 
-		// Only once the paste has landed: the max shapes check above returns early, and a
-		// "we left some out" message would be a lie when nothing was pasted at all.
+		// Only once the paste has landed: the max shapes check above returns early, and there's
+		// nothing to report about a paste that never happened. pastedCount separates "we left
+		// some out" from "none of this could be pasted", which read very differently.
 		if (unsupportedShapeTypes.length > 0) {
 			this.emit('unsupported-shapes', {
 				types: unsupportedShapeTypes,
-				shapeCount: unsupportedShapeIds.size,
+				droppedCount: unsupportedShapeIds.size,
+				pastedCount: newShapes.length,
 			})
 		}
 

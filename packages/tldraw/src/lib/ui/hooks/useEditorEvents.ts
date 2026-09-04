@@ -18,13 +18,30 @@ export function useEditorEvents() {
 			})
 		}
 
-		const handleUnsupportedShapes: TLEventMapHandler<'unsupported-shapes'> = ({ shapeCount }) => {
+		const handleUnsupportedShapes: TLEventMapHandler<'unsupported-shapes'> = ({
+			droppedCount,
+			pastedCount,
+		}) => {
+			// "some were left out" and "none of this could be pasted" are different enough
+			// outcomes that sharing one message would misdescribe one of them
+			if (pastedCount === 0) {
+				addToast({
+					title: msg('toast.unsupported-shapes.none.title'),
+					description: msg('toast.unsupported-shapes.none.desc'),
+					severity: 'warning',
+				})
+				return
+			}
+
 			addToast({
-				title: msg('toast.unsupported-shapes.title'),
+				title: msg('toast.unsupported-shapes.some.title'),
 				description:
-					shapeCount === 1
-						? msg('toast.unsupported-shapes.desc-one')
-						: msg('toast.unsupported-shapes.desc-many').replace('{count}', String(shapeCount)),
+					droppedCount === 1
+						? msg('toast.unsupported-shapes.some.desc-one')
+						: msg('toast.unsupported-shapes.some.desc-many').replace(
+								'{count}',
+								String(droppedCount)
+							),
 				severity: 'warning',
 			})
 		}
