@@ -808,6 +808,29 @@ describe('When pasting content with unsupported shape types...', () => {
 		expect({ x: pasted[0].x, y: pasted[0].y }).toEqual({ x: 110, y: 220 })
 	})
 
+	it('gives a lifted child an index of its own among its new siblings', () => {
+		const frame = createShapeId('frame')
+		const sibling = createShapeId('sibling')
+		const unknown = createShapeId('unknown')
+		const child = createShapeId('child')
+		editor.createShapes([
+			{ id: frame, type: 'frame', x: 0, y: 0, props: { w: 500, h: 500 } },
+			{ id: sibling, type: 'geo', x: 10, y: 10, parentId: frame, props: { w: 50, h: 50 } },
+			{ id: unknown, type: 'frame', x: 100, y: 100, parentId: frame, props: { w: 200, h: 200 } },
+			{ id: child, type: 'geo', x: 5, y: 5, parentId: unknown, props: { w: 50, h: 50 } },
+		])
+
+		editor.putContentOntoCurrentPage(
+			contentWithUnsupported([frame], new Map([[unknown, 'animation-camera']])),
+			{ preserveIds: true, preservePosition: true }
+		)
+
+		// the child was lifted out of a different sibling set, so it must not keep an index
+		// that collides with one already in use here
+		const indices = editor.getSortedChildIdsForParent(frame).map((id) => editor.getShape(id)!.index)
+		expect(new Set(indices).size).toBe(indices.length)
+	})
+
 	it('drops bindings that reference a dropped shape', () => {
 		const unknown = createShapeId('unknown')
 		const arrow = createShapeId('arrow')
