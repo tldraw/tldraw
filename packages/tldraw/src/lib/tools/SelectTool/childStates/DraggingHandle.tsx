@@ -288,7 +288,7 @@ export class DraggingHandle extends StateNode {
 		const { snaps } = editor
 		const currentPagePoint = editor.inputs.getCurrentPagePoint()
 		const shiftKey = editor.inputs.getShiftKey()
-		const ctrlKey = editor.inputs.getCtrlKey()
+		const accelKey = editor.inputs.getAccelKey()
 		const altKey = editor.inputs.getAltKey()
 		const pointerVelocity = editor.inputs.getPointerVelocity()
 
@@ -331,7 +331,7 @@ export class DraggingHandle extends StateNode {
 			canSnap = initialHandle.canSnap || initialHandle.snapType !== undefined
 		}
 
-		if (canSnap && (isSnapMode ? !ctrlKey : ctrlKey)) {
+		if (canSnap && (isSnapMode ? !accelKey : accelKey)) {
 			// We're snapping
 			const snap = snaps.handles.snapHandle({ currentShapeId: shapeId, handle: nextHandle })
 
