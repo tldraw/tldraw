@@ -119,6 +119,12 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 		const sw = (getDisplayValues(this, shape).strokeWidth + 1) * shape.props.scale
 
+		// No points yet (the default props have no segments): a dot at the origin, so geometry
+		// lookups don't throw on a shape created from its defaults.
+		if (points.length === 0) {
+			return new Circle2d({ x: -sw, y: -sw, radius: sw, isFilled: true })
+		}
+
 		// A dot
 		if (shape.props.segments.length === 1) {
 			const box = Box.FromPoints(points)
@@ -202,7 +208,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		const solidStrokePath =
 			strokePoints.length > 1
 				? getSvgPathFromStrokePoints(strokePoints, shape.props.isClosed)
-				: getDot(allPointsFromSegments[0], sw)
+				: getDot(allPointsFromSegments[0] ?? { x: 0, y: 0 }, sw)
 
 		return new Path2D(solidStrokePath)
 	}
@@ -367,7 +373,7 @@ function DrawShapeSvg({
 	const fill = isDot || shape.props.isClosed ? shape.props.fill : 'none'
 
 	const solidStrokePath = isDot
-		? getDot(allPointsFromSegments[0], 0)
+		? getDot(allPointsFromSegments[0] ?? { x: 0, y: 0 }, 0)
 		: getSvgPathFromStrokePoints(strokePoints, shape.props.isClosed && fill !== 'none')
 
 	return (
