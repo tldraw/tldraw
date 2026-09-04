@@ -51,6 +51,10 @@ export class TranslatingCrop extends StateNode {
 		this.cancel()
 	}
 
+	override onInterrupt() {
+		this.cancel()
+	}
+
 	override onKeyDown(info: TLKeyboardEventInfo) {
 		switch (info.key) {
 			case 'Alt':

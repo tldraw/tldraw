@@ -239,4 +239,31 @@ describe('Pinch ends an in-progress select tool gesture', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([])
 		editor.keyUp('Alt')
 	})
+
+	it('cancels a handle drag and restores the original handle position', () => {
+		const lineId = createShapeId('line1')
+		editor.createShapes([{ id: lineId, type: 'line', x: 0, y: 300 }])
+		const before = editor.getShape(lineId)!
+		editor.select(lineId)
+
+		const startHandle = editor.getShapeHandles(before)!.find((h) => h.id === 'a1')!
+		editor.pointerDown(before.x + startHandle.x, before.y + startHandle.y, {
+			target: 'handle',
+			shape: before,
+			handle: startHandle,
+		})
+		editor.pointerMove(50, 350)
+		editor.expectToBeIn('select.dragging_handle')
+		expect(editor.getShape(lineId)).not.toEqual(before)
+
+		pinchDuringDrag()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getShape(lineId)).toEqual(before)
+
+		// Lifting the remaining finger does not commit the stale handle position.
+		editor.pointerMove(80, 380)
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getShape(lineId)).toEqual(before)
+	})
 })

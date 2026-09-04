@@ -69,6 +69,10 @@ export class Cropping extends StateNode {
 		this.cancel()
 	}
 
+	override onInterrupt() {
+		this.cancel()
+	}
+
 	override onExit() {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.snaps.clearIndicators()
