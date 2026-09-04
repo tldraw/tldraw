@@ -36,7 +36,7 @@ export class FontEmbedder {
 
 		const fonts = parseCssFontFamilyValue(fontFamilyValue)
 		for (const font of fonts) {
-			if (this.foundFontNames.has(font)) return
+			if (this.foundFontNames.has(font)) continue
 			this.foundFontNames.add(font)
 
 			this.pendingPromises.push(
