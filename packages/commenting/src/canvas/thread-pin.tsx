@@ -33,6 +33,7 @@ import { openThreadId } from './state'
 import { ThreadPreview, useMarkerPreview } from './thread-preview'
 import {
 	anchorPagePoint,
+	anchorViewportPoint,
 	commentTargetShapeAt,
 	impreciseShapePinInset,
 	isBoxInInflatedViewport,
@@ -40,6 +41,7 @@ import {
 	REGION_PIN_CORNER,
 	regionAnchorPinCorner,
 	regionPinPoint,
+	regionWithPinAt,
 	shapeAnchorAt,
 } from './thread-state'
 import { POPOVER_OFFSET, ThreadPopover, ThreadView } from './thread-view'
@@ -107,7 +109,7 @@ export const ThreadPin = memo(function ThreadPin({
 	// A region resizes from its corners — every corner but the pin's own, which the pin owns.
 	const resizeHandles = useMemo(
 		() => REGION_CORNERS.filter((c) => c.x !== pinCorner.x || c.y !== pinCorner.y),
-		[pinCorner]
+		[pinCorner.x, pinCorner.y]
 	)
 	const dragRef = useRef<{
 		startX: number
@@ -165,13 +167,8 @@ export const ThreadPin = memo(function ThreadPin({
 		'pin point',
 		() => {
 			if (thread.pageId !== editor.getCurrentPageId()) return null
-			const pagePoint = anchorPagePoint(editor, thread.anchor)
-			if (!pagePoint) return null
-			const viewportPoint = editor.pageToViewport(pagePoint)
-			const inset = impreciseShapePinInset(editor, thread.anchor)
-			const point = inset
-				? { x: viewportPoint.x + inset.x, y: viewportPoint.y + inset.y }
-				: viewportPoint
+			const point = anchorViewportPoint(editor, thread.anchor)
+			if (!point) return null
 			// Off-screen pins (plus a pre-mount margin) unmount rather than re-render every camera frame. A
 			// region thread stays mounted while any part of its box is on screen, since the box renders here too.
 			if (!exemptFromCull) {
@@ -186,6 +183,9 @@ export const ThreadPin = memo(function ThreadPin({
 		[editor, thread.anchor, thread.pageId, exemptFromCull]
 	)
 	if (!point) return null
+
+	const toggleOpen = () =>
+		openThreadId.set(editor, openThreadId.get(editor) === thread.id ? null : thread.id)
 
 	const PinContent = options.components.PinContent
 	const threadAuthor = resolveAuthor(thread.createdBy)
@@ -247,28 +247,28 @@ export const ThreadPin = memo(function ThreadPin({
 			editor.setHintingShapes(hit ? [hit.id] : [])
 		}
 	}
-	// A cancelled pointer (touch gesture takeover, browser interruption) aborts the drag outright:
-	// no re-anchor commit, no click-toggle — the pin snaps back and the hint clears.
-	const cancelDrag = (e: ReactPointerEvent<HTMLButtonElement>) => {
+	// Release capture and take the drag record; null when no drag was in progress.
+	const takeDrag = (e: ReactPointerEvent<HTMLButtonElement>) => {
 		const drag = dragRef.current
 		dragRef.current = null
 		if (e.currentTarget.hasPointerCapture(e.pointerId)) {
 			e.currentTarget.releasePointerCapture(e.pointerId)
 		}
-		if (!drag) return
+		return drag
+	}
+	// A cancelled pointer (touch gesture takeover, browser interruption) aborts the drag outright:
+	// no re-anchor commit, no click-toggle — the pin snaps back and the hint clears.
+	const cancelDrag = (e: ReactPointerEvent<HTMLButtonElement>) => {
+		if (!takeDrag(e)) return
 		setDragPagePoint(null)
 		editor.setHintingShapes([])
 	}
 	const endDrag = (e: ReactPointerEvent<HTMLButtonElement>) => {
-		const drag = dragRef.current
-		dragRef.current = null
-		if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-			e.currentTarget.releasePointerCapture(e.pointerId)
-		}
+		const drag = takeDrag(e)
 		if (!drag) return
 		editor.setHintingShapes([])
 		if (!drag.moved) {
-			openThreadId.set(editor, openThreadId.get(editor) === thread.id ? null : thread.id)
+			toggleOpen()
 			return
 		}
 		const cursorPage = editor.screenToPage({ x: e.clientX, y: e.clientY })
@@ -276,12 +276,7 @@ export const ThreadPin = memo(function ThreadPin({
 		setDragPagePoint(null)
 		let anchor: TLCommentThread['anchor']
 		if (thread.anchor.type === 'region') {
-			// Translate so the pin (the region's pin corner) lands at the drop; size unchanged.
-			anchor = {
-				...thread.anchor,
-				x: pagePoint.x - pinCorner.x * thread.anchor.w,
-				y: pagePoint.y - pinCorner.y * thread.anchor.h,
-			}
+			anchor = regionWithPinAt(thread.anchor, pinCorner, pagePoint)
 		} else {
 			const hit = commentTargetShapeAt(editor, pagePoint)
 			anchor = hit
@@ -316,11 +311,7 @@ export const ThreadPin = memo(function ThreadPin({
 	const regionAnchor = thread.anchor.type === 'region' ? thread.anchor : undefined
 	const movedRegion =
 		regionAnchor && dragPagePoint
-			? {
-					...regionAnchor,
-					x: dragPagePoint.x - pinCorner.x * regionAnchor.w,
-					y: dragPagePoint.y - pinCorner.y * regionAnchor.h,
-				}
+			? regionWithPinAt(regionAnchor, pinCorner, dragPagePoint)
 			: regionAnchor
 	const regionBoxBounds = resizeBounds ?? movedRegion
 	const commitResize = (bounds: BoxModel) => {
@@ -374,8 +365,7 @@ export const ThreadPin = memo(function ThreadPin({
 					// from a drag), so only take keyboard-synthesised clicks here — those report
 					// `detail === 0` — or the thread would toggle twice per mouse click.
 					onClick={(e) => {
-						if (e.detail !== 0) return
-						openThreadId.set(editor, openThreadId.get(editor) === thread.id ? null : thread.id)
+						if (e.detail === 0) toggleOpen()
 					}}
 					onPointerEnter={previewHandlers.onPointerEnter}
 					onPointerLeave={previewHandlers.onPointerLeave}
