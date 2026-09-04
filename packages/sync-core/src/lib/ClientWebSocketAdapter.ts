@@ -93,8 +93,12 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 	close() {
 		this.isDisposed = true
 		this._reconnectManager.close()
+		// orphan the socket before closing it (as _closeSocket does) so its onclose can't run
+		// _handleDisconnect after disposal — that would notify listeners and schedule a reconnect
+		const ws = this._ws
+		this._ws = null
 		//  WebSocket.close() is idempotent
-		this._ws?.close()
+		ws?.close()
 	}
 
 	/**
@@ -239,8 +243,6 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 		this._ws = null
 		this._handleDisconnect('manual')
 	}
-
-	// TLPersistentClientSocket stuff
 
 	_connectionStatus: Atom<TLPersistentClientSocketStatus | 'initial'> = atom(
 		'websocket connection status',
@@ -516,18 +518,30 @@ export class ReconnectManager {
 	private scheduleAttempt() {
 		assert(this.state === 'pendingAttempt')
 		debug('scheduling a connection attempt')
-		Promise.resolve(this.getUri()).then((uri) => {
-			// this can happen if the promise gets resolved too late
-			if (this.state !== 'pendingAttempt' || this.isDisposed) return
-			assert(
-				this.socketAdapter._ws?.readyState !== WebSocket.OPEN,
-				'There should be no connection attempts while already connected'
-			)
+		Promise.resolve()
+			.then(() => this.getUri())
+			.then((uri) => {
+				// this can happen if the promise gets resolved too late
+				if (this.state !== 'pendingAttempt' || this.isDisposed) return
+				assert(
+					this.socketAdapter._ws?.readyState !== WebSocket.OPEN,
+					'There should be no connection attempts while already connected'
+				)
 
-			this.lastAttemptStart = Date.now()
-			this.socketAdapter._setNewSocket(new WebSocket(httpToWs(uri)))
-			this.state = 'pendingAttemptResult'
-		})
+				this.lastAttemptStart = Date.now()
+				this.socketAdapter._setNewSocket(new WebSocket(httpToWs(uri)))
+				this.state = 'pendingAttemptResult'
+			})
+			.catch((error) => {
+				// getUri is host code (often an auth-token fetch) and can reject or throw. Without
+				// this handler the manager would sit in 'pendingAttempt' with no timer and no
+				// socket, so nothing but a browser online/visibility hint could ever start another
+				// attempt. Treat it as a failed attempt and retry on the usual backoff instead.
+				if (this.state !== 'pendingAttempt' || this.isDisposed) return
+				console.error('Failed to get the websocket URI, retrying', error)
+				this.state = 'delay'
+				this.reconnectTimeout = setTimeout(() => this.disconnected(), this.intendedDelay)
+			})
 	}
 
 	private getMaxDelay() {
@@ -641,6 +655,7 @@ export class ReconnectManager {
 		debug('ReconnectManager.disconnected')
 		// This either means we're freshly disconnected, or the last connection attempt failed;
 		// either way, time to try again.
+		if (this.isDisposed) return
 
 		// Guard against delayed notifications and recheck synchronously
 		if (
