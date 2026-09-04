@@ -3,9 +3,19 @@
  * values yourself, or `undefined` to fall back to the default deep comparison for that pair. The
  * customizer is invoked for the root values first and then for every nested pair.
  *
+ * For nested pairs, `key` is the property name, array index or map key the values were found
+ * under, and `parent` / `otherParent` are the containers they came from. All three are `undefined`
+ * for the root pair, and `key` is also `undefined` when comparing set members or map keys.
+ *
  * @public
  */
-export type IsEqualCustomizer = (a: unknown, b: unknown) => boolean | undefined
+export type IsEqualCustomizer = (
+	a: unknown,
+	b: unknown,
+	key: PropertyKey | undefined,
+	parent: unknown,
+	otherParent: unknown
+) => boolean | undefined
 
 /**
  * Deep equality comparison of two values.
@@ -31,7 +41,7 @@ export type IsEqualCustomizer = (a: unknown, b: unknown) => boolean | undefined
  * @public
  */
 export function isEqual(a: unknown, b: unknown): boolean {
-	return baseIsEqual(a, b, undefined, undefined)
+	return baseIsEqual(a, b, undefined, undefined, undefined, undefined, undefined)
 }
 
 /**
@@ -40,7 +50,8 @@ export function isEqual(a: unknown, b: unknown): boolean {
  *
  * @param a - The first value
  * @param b - The second value
- * @param customizer - Decides equality for a pair, or returns `undefined` to use the default
+ * @param customizer - Decides equality for a pair, or returns `undefined` to use the default.
+ * Omitting it makes this the same as {@link isEqual}.
  * @returns True if the values are deeply equal
  *
  * @example
@@ -54,8 +65,8 @@ export function isEqual(a: unknown, b: unknown): boolean {
  *
  * @public
  */
-export function isEqualWith(a: unknown, b: unknown, customizer: IsEqualCustomizer): boolean {
-	return baseIsEqual(a, b, customizer, undefined)
+export function isEqualWith(a: unknown, b: unknown, customizer?: IsEqualCustomizer): boolean {
+	return baseIsEqual(a, b, undefined, undefined, undefined, customizer, undefined)
 }
 
 // Pairs of objects currently being compared further up the call stack. Re-encountering an object
@@ -66,11 +77,14 @@ type Stack = Map<object, object>
 function baseIsEqual(
 	a: unknown,
 	b: unknown,
+	key: PropertyKey | undefined,
+	parent: unknown,
+	otherParent: unknown,
 	customizer: IsEqualCustomizer | undefined,
 	stack: Stack | undefined
 ): boolean {
 	if (customizer) {
-		const result = customizer(a, b)
+		const result = customizer(a, b, key, parent, otherParent)
 		if (result !== undefined) return result
 	}
 
@@ -140,7 +154,7 @@ function compareObjects(
 	if (keysA.length !== Object.keys(b).length) return false
 	for (const key of keysA) {
 		if (!Object.prototype.hasOwnProperty.call(b, key)) return false
-		if (!baseIsEqual((a as any)[key], (b as any)[key], customizer, stack)) return false
+		if (!baseIsEqual((a as any)[key], (b as any)[key], key, a, b, customizer, stack)) return false
 	}
 	return true
 }
@@ -153,7 +167,7 @@ function compareArrays(
 ): boolean {
 	if (a.length !== b.length) return false
 	for (let i = 0; i < a.length; i++) {
-		if (!baseIsEqual(a[i], b[i], customizer, stack)) return false
+		if (!baseIsEqual(a[i], b[i], i, a, b, customizer, stack)) return false
 	}
 	return true
 }
@@ -173,9 +187,33 @@ function compareMaps(
 	stack: Stack
 ): boolean {
 	if (a.size !== b.size) return false
-	for (const [key, value] of a) {
-		if (!b.has(key)) return false
-		if (!baseIsEqual(value, b.get(key), customizer, stack)) return false
+	// A primitive key can only match itself, so it can be looked up directly. Object keys have to
+	// be matched by deep equality against the object-keyed entries of `b` that haven't already been
+	// claimed, the same as set members.
+	let unmatched: [unknown, unknown][] | undefined
+	outer: for (const [key, value] of a) {
+		if (typeof key !== 'object' || key === null) {
+			if (!b.has(key)) return false
+			// Map keys that aren't valid property keys (booleans, bigints) are not reported to the customizer
+			const reportedKey =
+				typeof key === 'string' || typeof key === 'number' || typeof key === 'symbol'
+					? key
+					: undefined
+			if (!baseIsEqual(value, b.get(key), reportedKey, a, b, customizer, stack)) return false
+			continue
+		}
+		unmatched ??= Array.from(b).filter(([other]) => typeof other === 'object' && other !== null)
+		for (let i = 0; i < unmatched.length; i++) {
+			const [otherKey, otherValue] = unmatched[i]
+			if (
+				baseIsEqual(key, otherKey, undefined, a, b, customizer, stack) &&
+				baseIsEqual(value, otherValue, undefined, a, b, customizer, stack)
+			) {
+				unmatched.splice(i, 1)
+				continue outer
+			}
+		}
+		return false
 	}
 	return true
 }
@@ -195,7 +233,7 @@ function compareSets(
 		if (typeof value !== 'object' || value === null) return false
 		unmatched ??= Array.from(b).filter((other) => !a.has(other))
 		for (let i = 0; i < unmatched.length; i++) {
-			if (baseIsEqual(value, unmatched[i], customizer, stack)) {
+			if (baseIsEqual(value, unmatched[i], undefined, a, b, customizer, stack)) {
 				unmatched.splice(i, 1)
 				continue outer
 			}
