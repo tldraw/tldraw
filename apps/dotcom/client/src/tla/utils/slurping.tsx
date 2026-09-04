@@ -104,6 +104,10 @@ export class Slurper {
 		try {
 			const data = await db.load({ sessionId: TAB_ID })
 			if (abortSignal.aborted) return
+			// Nothing local to restore on this device (opened elsewhere, storage cleared): loading a
+			// snapshot with no schema throws. Leave the slurp unfinished so the device that does hold
+			// the data still gets to run it.
+			if (!data.schema || data.records.length === 0) return
 			// Assets will be served from the local indexedDb while they are being uploaded
 			editor.loadSnapshot({
 				document: {
