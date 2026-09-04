@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/clerk-react'
-import { addBreadcrumb, captureException, withScope } from '@sentry/react'
+import { addBreadcrumb, captureException } from '@sentry/react'
 import { SubmitFeedbackRequestBody } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
@@ -101,11 +101,9 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 			}
 		} catch (e) {
 			// Keep the dialog (and the saved draft) so the text isn't lost on a failed send.
+			// Don't attach the draft to the report: it's unsent user text and shouldn't reach Sentry.
 			addBreadcrumb({ message: 'Failed to submit feedback' })
-			withScope((scope) => {
-				scope.setExtra('description', description)
-				captureException(e)
-			})
+			captureException(e)
 			toasts.addToast({
 				severity: 'error',
 				title: intl.formatMessage(messages.failed),
