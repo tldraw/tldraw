@@ -36,7 +36,8 @@ export function TlaDeleteFileDialog({
 	const handleDelete = async () => {
 		const token = await auth.getToken()
 		if (!token) throw new Error('No token')
-		if (!(await app.deleteOrForgetFile(fileId, workspaceId))) {
+		const deleted = await app.deleteOrForgetFile(fileId, workspaceId)
+		if (!deleted) {
 			onClose()
 			return
 		}
