@@ -19,13 +19,14 @@ export function useCanvasEvents() {
 	const events = useMemo(
 		function canvasEvents() {
 			let isSecondaryClickPointerDown = false
-			let pointerDownButton = 0
+			// The button each accepted press started with, by pointer id. pointercancel
+			// reports button -1, so the synthetic pointer_up needs the original.
+			const pointerDownButtons = new Map<number, number>()
 
 			function onPointerDown(e: React.PointerEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
 				const button = getPointerEventButton(e)
 				isSecondaryClickPointerDown = button === 2
-				pointerDownButton = button
 
 				// With right-click panning disabled, fire right_click on press and let the
 				// native contextmenu through so the menu opens at the pointer-down location.
@@ -47,6 +48,15 @@ export function useCanvasEvents() {
 
 				setPointerCapture(e.currentTarget, e)
 
+				// Only remember presses the editor will act on. A rejected palm in pen mode
+				// must not overwrite the button of the pen press it lands on top of, or the
+				// pen's pointercancel would release the wrong button and skip the
+				// stylus-eraser tool restore.
+				const isPenMode = editor.getInstanceState().isPenMode
+				if (!editor.inputs.getIsPinching() && !(isPenMode && e.pointerType !== 'pen')) {
+					pointerDownButtons.set(e.pointerId, button)
+				}
+
 				editor.dispatch({
 					type: 'pointer',
 					target: 'canvas',
@@ -58,6 +68,7 @@ export function useCanvasEvents() {
 
 			function onPointerUp(e: React.PointerEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
+				pointerDownButtons.delete(e.pointerId)
 				const button = isSecondaryClickPointerDown ? 2 : getPointerEventButton(e)
 				if (button !== 0 && button !== 1 && button !== 2 && button !== 5) return
 
@@ -95,14 +106,17 @@ export function useCanvasEvents() {
 
 			function onPointerCancel(e: React.PointerEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
+				const pointerDownButton = pointerDownButtons.get(e.pointerId)
+				pointerDownButtons.delete(e.pointerId)
 				// In pen mode a cancelled touch is usually a rejected palm, and the pen's own
 				// interaction must survive it.
 				if (editor.getInstanceState().isPenMode && e.pointerType !== 'pen') return
 
 				releasePointerCapture(e.currentTarget, e)
 
-				// Nothing to end if the press itself was filtered out (pen mode, unsupported button).
-				if (!editor.inputs.getIsPointing()) return
+				// Nothing to end if the press itself was filtered out (pen mode, unsupported
+				// button), or if this pointer never started an accepted press.
+				if (!editor.inputs.getIsPointing() || pointerDownButton === undefined) return
 
 				// The browser has taken the pointer (edge swipe, incoming call) and will never send
 				// pointerup, so end the gesture here or the tool stays stuck in its pointing or
@@ -113,8 +127,6 @@ export function useCanvasEvents() {
 					target: 'canvas',
 					name: 'pointer_up',
 					...getPointerInfo(editor, e),
-					// pointercancel reports button -1, which would leave the pressed button
-					// stuck in inputs.buttons
 					button: pointerDownButton,
 				})
 				isSecondaryClickPointerDown = false
