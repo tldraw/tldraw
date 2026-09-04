@@ -2983,6 +2983,19 @@ export class TLFileDurableObject extends DurableObject {
 				this.log.debug('closeAllSessions: room failed to boot, falling back to raw closes', e)
 			}
 		}
+		this.closeSockets(sockets, room, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+		return { closedSockets: sockets.length }
+	}
+
+	/**
+	 * Reject every socket the object holds with `reason`. Sockets the room never saw (mid-handshake,
+	 * room not booted) get a raw close with the same terminal code; closing twice is a no-op.
+	 */
+	private closeSockets(
+		sockets: WebSocket[],
+		room: TLSocketRoom<TLRecord, SessionMeta> | null,
+		reason: TLSyncErrorCloseEventReason
+	) {
 		for (const ws of sockets) {
 			const attachment = this.getSocketAttachment(ws)
 			const sessionId = attachment?.sessionId
@@ -3003,37 +3016,21 @@ export class TLFileDurableObject extends DurableObject {
 				ws.serializeAttachment({ ...attachment, snapshot: undefined })
 			}
 			if (room && sessionId) {
-				room.closeSession(sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+				room.closeSession(sessionId, reason)
 			}
-			// Backstop for sockets the room never saw (mid-handshake, or the room didn't boot):
-			// close directly with the same terminal code. Closing twice is a no-op.
 			try {
-				ws.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+				ws.close(TLSyncErrorCloseEventCode, reason)
 			} catch {
 				// an already-closed socket is fine
 			}
 		}
-		return { closedSockets: sockets.length }
 	}
 
-	// Close every socket, not just the room's: after hibernation the room may not be loaded. Drop
-	// resume snapshots first or the webSocketClose cascade re-boots a room on storage about to be wiped.
+	// Uses the room only if it is already loaded: booting one here would read storage the delete
+	// is about to wipe.
 	private async closeAllSocketsForDelete() {
 		const room = this._room ? await this._room.catch(() => null) : null
-		for (const ws of this.ctx.getWebSockets()) {
-			const attachment = this.getSocketAttachment(ws)
-			if (attachment?.snapshot) {
-				ws.serializeAttachment({ ...attachment, snapshot: undefined })
-			}
-			if (room && attachment?.sessionId) {
-				room.closeSession(attachment.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
-			}
-			try {
-				ws.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.NOT_FOUND)
-			} catch {
-				// an already-closed socket is fine
-			}
-		}
+		this.closeSockets(this.ctx.getWebSockets(), room, TLSyncErrorCloseEventReason.NOT_FOUND)
 		room?.close()
 	}
 
@@ -3045,18 +3042,22 @@ export class TLFileDurableObject extends DurableObject {
 			isApp: false,
 			deleted: true,
 		})
-		await this.closeAllSocketsForDelete()
-		// Without this the closing sessions' last-out persist re-uploads the snapshot to the keys
-		// deleted below.
-		this._room = null
-		const slug = this.documentInfo.slug
-		const roomKey = getR2KeyForRoom({ slug, isApp: false })
+		// Queued so an in-flight persist finishes before the R2 deletes rather than re-uploading
+		// the snapshot after them.
+		await this.executionQueue.push(async () => {
+			await this.closeAllSocketsForDelete()
+			// Without this the closing sessions' last-out persist re-uploads the snapshot to the keys
+			// deleted below.
+			this._room = null
+			const slug = this.documentInfo.slug
+			const roomKey = getR2KeyForRoom({ slug, isApp: false })
 
-		// remove edit history (trailing slash: see appFileRecordDidDelete)
-		await deleteAllObjectsWithPrefix(this.env.ROOMS_HISTORY_EPHEMERAL, `${roomKey}/`)
+			// remove edit history (trailing slash: see appFileRecordDidDelete)
+			await deleteAllObjectsWithPrefix(this.env.ROOMS_HISTORY_EPHEMERAL, `${roomKey}/`)
 
-		// remove main file
-		await this.env.ROOMS.delete(roomKey)
+			// remove main file
+			await this.env.ROOMS.delete(roomKey)
+		})
 
 		return true
 	}
