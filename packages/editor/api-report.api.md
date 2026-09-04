@@ -4153,6 +4153,11 @@ export interface TLEventMap {
     // (undocumented)
     'stop-following': [];
     // (undocumented)
+    'unsupported-shapes': [{
+        count: number;
+        types: string[];
+    }];
+    // (undocumented)
     change: [HistoryEntry<TLRecord>];
     // (undocumented)
     crash: [{

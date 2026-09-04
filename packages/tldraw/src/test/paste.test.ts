@@ -1,4 +1,15 @@
-import { TLFrameShape, TLGeoShape, approximately, createShapeId } from '@tldraw/editor'
+import {
+	IndexKey,
+	TLBinding,
+	TLBindingId,
+	TLContent,
+	TLFrameShape,
+	TLGeoShape,
+	TLShape,
+	TLShapeId,
+	approximately,
+	createShapeId,
+} from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -663,5 +674,199 @@ describe('When pasting into frames...', () => {
 		// The left and right shapes are far outside the frame → kicked out to page
 		expect(left.parentId).toBe(editor.getCurrentPageId())
 		expect(right.parentId).toBe(editor.getCurrentPageId())
+	})
+})
+
+describe('When pasting content with unsupported shape types...', () => {
+	// Content copied from another tldraw app can contain custom shapes that this
+	// editor has no shape util for. See https://github.com/tldraw/tldraw/issues/10127
+	function unsupportedShape(
+		id: TLShapeId,
+		partial: Partial<Omit<TLShape, 'type'>> & { type?: string } = {}
+	): TLShape {
+		return {
+			id,
+			typeName: 'shape',
+			type: 'animation-camera',
+			x: 0,
+			y: 0,
+			rotation: 0,
+			index: 'a1' as IndexKey,
+			parentId: editor.getCurrentPageId(),
+			isLocked: false,
+			opacity: 1,
+			meta: {},
+			props: { w: 100, h: 100 },
+			...partial,
+		} as TLShape
+	}
+
+	function contentOf(shapes: TLShape[], bindings: TLBinding[] = []): TLContent {
+		return {
+			shapes,
+			bindings,
+			assets: [],
+			rootShapeIds: shapes
+				.filter((s) => !shapes.some((other) => other.id === s.parentId))
+				.map((s) => s.id),
+			schema: editor.store.schema.serialize(),
+		}
+	}
+
+	beforeEach(() => {
+		// clear the page
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+	})
+
+	it('drops the unsupported shapes and pastes the rest', () => {
+		const knownId = createShapeId('known')
+		const unknownId = createShapeId('unknown')
+
+		editor.putContentOntoCurrentPage(
+			contentOf([
+				unsupportedShape(unknownId),
+				{
+					...unsupportedShape(knownId),
+					type: 'geo',
+					props: { w: 100, h: 100, geo: 'rectangle' },
+				} as TLShape,
+			]),
+			{ preserveIds: true, preservePosition: true }
+		)
+
+		expect(editor.getCurrentPageShapes().map((s) => s.type)).toEqual(['geo'])
+	})
+
+	it('does not crash when every shape is unsupported', () => {
+		editor.putContentOntoCurrentPage(contentOf([unsupportedShape(createShapeId('unknown'))]))
+
+		expect(editor.getCurrentPageShapes()).toEqual([])
+	})
+
+	it('lifts children of a dropped shape, keeping them where they were', () => {
+		const unknownId = createShapeId('unknown')
+		const childId = createShapeId('child')
+
+		editor.putContentOntoCurrentPage(
+			contentOf([
+				unsupportedShape(unknownId, { x: 100, y: 200 }),
+				{
+					...unsupportedShape(childId, { x: 10, y: 20, parentId: unknownId }),
+					type: 'geo',
+					props: { w: 50, h: 50, geo: 'rectangle' },
+				} as TLShape,
+			]),
+			{ preserveIds: true, preservePosition: true }
+		)
+
+		const child = editor.getShape(childId)!
+		expect(child.parentId).toBe(editor.getCurrentPageId())
+		// the dropped parent's offset is baked into the child
+		expect({ x: child.x, y: child.y }).toEqual({ x: 110, y: 220 })
+	})
+
+	it('lifts children into the nearest surviving ancestor, not all the way to the page', () => {
+		const frameId = createShapeId('frame')
+		const unknownId = createShapeId('unknown')
+		const childId = createShapeId('child')
+
+		editor.putContentOntoCurrentPage(
+			contentOf([
+				{
+					...unsupportedShape(frameId),
+					type: 'frame',
+					props: { w: 500, h: 500, name: '' },
+				} as TLShape,
+				unsupportedShape(unknownId, { x: 100, y: 100, parentId: frameId }),
+				{
+					...unsupportedShape(childId, { x: 10, y: 20, parentId: unknownId }),
+					type: 'geo',
+					props: { w: 50, h: 50, geo: 'rectangle' },
+				} as TLShape,
+			]),
+			{ preserveIds: true, preservePosition: true }
+		)
+
+		const child = editor.getShape(childId)!
+		expect(child.parentId).toBe(frameId)
+		expect({ x: child.x, y: child.y }).toEqual({ x: 110, y: 120 })
+	})
+
+	it("bakes a dropped shape's rotation into its children", () => {
+		const unknownId = createShapeId('unknown')
+		const childId = createShapeId('child')
+
+		editor.putContentOntoCurrentPage(
+			contentOf([
+				unsupportedShape(unknownId, { x: 100, y: 0, rotation: Math.PI / 2 }),
+				{
+					...unsupportedShape(childId, { x: 10, y: 0, parentId: unknownId }),
+					type: 'geo',
+					props: { w: 50, h: 50, geo: 'rectangle' },
+				} as TLShape,
+			]),
+			{ preserveIds: true, preservePosition: true }
+		)
+
+		const child = editor.getShape(childId)!
+		expect(child.x).toBeCloseTo(100)
+		expect(child.y).toBeCloseTo(10)
+		expect(child.rotation).toBeCloseTo(Math.PI / 2)
+	})
+
+	it('drops bindings that reference a dropped shape', () => {
+		const unknownId = createShapeId('unknown')
+		const arrowId = createShapeId('arrow')
+
+		editor.putContentOntoCurrentPage(
+			contentOf(
+				[
+					unsupportedShape(unknownId, { x: 200, y: 0 }),
+					{
+						...unsupportedShape(arrowId),
+						type: 'arrow',
+						props: { start: { x: 0, y: 0 }, end: { x: 100, y: 0 } },
+					} as TLShape,
+				],
+				[
+					{
+						id: 'binding:test' as TLBindingId,
+						typeName: 'binding',
+						type: 'arrow',
+						fromId: arrowId,
+						toId: unknownId,
+						meta: {},
+						props: {
+							terminal: 'end',
+							normalizedAnchor: { x: 0.5, y: 0.5 },
+							isExact: false,
+							isPrecise: false,
+							snap: 'none',
+						},
+					} as TLBinding,
+				]
+			),
+			{ preserveIds: true, preservePosition: true }
+		)
+
+		expect(editor.getShape(arrowId)).toBeDefined()
+		expect(editor.getBindingsFromShape(arrowId, 'arrow')).toEqual([])
+	})
+
+	it('emits an event so the UI can tell the user', () => {
+		const handler = vi.fn()
+		editor.addListener('unsupported-shapes', handler)
+
+		editor.putContentOntoCurrentPage(
+			contentOf([
+				unsupportedShape(createShapeId('a')),
+				unsupportedShape(createShapeId('b'), { type: 'some-other-shape' }),
+			])
+		)
+
+		expect(handler).toHaveBeenCalledWith({
+			types: ['animation-camera', 'some-other-shape'],
+			count: 2,
+		})
 	})
 })

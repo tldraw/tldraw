@@ -9784,8 +9784,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// We need to collect the migrated records
 		const assets: TLAsset[] = []
-		const shapes: TLShape[] = []
-		const bindings: TLBinding[] = []
+		let shapes: TLShape[] = []
+		let bindings: TLBinding[] = []
 		const users: TLUser[] = []
 
 		// Let's treat the content as a store, and then migrate that store.
@@ -9823,6 +9823,59 @@ export class Editor extends EventEmitter<TLEventMap> {
 					break
 				}
 			}
+		}
+
+		// Pasted content can carry custom shapes this editor has no util for. Creating one
+		// throws, so drop them instead — and lift their children to the nearest surviving
+		// ancestor, since dropping a container shouldn't destroy the contents we can create.
+		// See https://github.com/tldraw/tldraw/issues/10127
+		const unsupportedShapeIds = new Set(
+			shapes.filter((shape) => !this.hasShapeUtil(shape)).map((shape) => shape.id as string)
+		)
+
+		if (unsupportedShapeIds.size > 0) {
+			const sourceShapesById = new Map(shapes.map((shape) => [shape.id as string, shape]))
+
+			shapes = shapes
+				.filter((shape) => !unsupportedShapeIds.has(shape.id))
+				.map((shape) => {
+					if (!unsupportedShapeIds.has(shape.parentId)) return shape
+
+					// Without the dropped ancestors' transforms baked in, the shape would jump
+					// by their combined offset and rotation.
+					let transform = Mat.Identity()
+					let rotation = 0
+					let parentId: TLParentId = shape.parentId
+					while (unsupportedShapeIds.has(parentId)) {
+						const dropped = sourceShapesById.get(parentId)!
+						transform = Mat.Compose(
+							Mat.Translate(dropped.x, dropped.y),
+							Mat.Rotate(dropped.rotation),
+							transform
+						)
+						rotation += dropped.rotation
+						parentId = dropped.parentId
+					}
+
+					// Nothing survived above it, so it's a root shape now — otherwise it's
+					// neither positioned nor selected with the rest of the paste.
+					if (!sourceShapesById.has(parentId) && !rootShapeIds.includes(shape.id)) {
+						rootShapeIds.push(shape.id)
+					}
+
+					const { x, y } = Mat.applyToPoint(transform, shape)
+					return { ...shape, x, y, rotation: shape.rotation + rotation, parentId }
+				})
+
+			// A binding to a dropped shape has nothing to bind to, and would fail the
+			// assertExists below.
+			bindings = bindings.filter(
+				(binding) =>
+					!unsupportedShapeIds.has(binding.fromId) && !unsupportedShapeIds.has(binding.toId)
+			)
+
+			const types = new Set([...unsupportedShapeIds].map((id) => sourceShapesById.get(id)!.type))
+			this.emit('unsupported-shapes', { types: [...types], count: unsupportedShapeIds.size })
 		}
 
 		if (users.length > 0) {
