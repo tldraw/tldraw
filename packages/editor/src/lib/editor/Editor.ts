@@ -9852,6 +9852,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (unsupportedShapeIds.size > 0) {
 			const sourceShapesById = new Map(shapes.map((shape) => [shape.id as string, shape]))
+			const liftedShapeIds = new Set<string>()
 
 			shapes = shapes
 				.filter((shape) => !unsupportedShapeIds.has(shape.id))
@@ -9880,9 +9881,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 						rootShapeIds.push(shape.id)
 					}
 
+					liftedShapeIds.add(shape.id)
 					const { x, y } = Mat.applyToPoint(transform, shape)
 					return { ...shape, x, y, rotation: shape.rotation + rotation, parentId }
 				})
+
+			// A lifted shape's index came from the sibling set it was lifted out of, so
+			// keeping it can collide with a sibling in the set it lands in — leaving their
+			// z-order decided by array order rather than by the index.
+			if (liftedShapeIds.size > 0) {
+				const highestIndexByParent = new Map<TLParentId, IndexKey>()
+				for (const shape of shapes) {
+					if (liftedShapeIds.has(shape.id)) continue
+					const highest = highestIndexByParent.get(shape.parentId)
+					if (!highest || shape.index > highest) {
+						highestIndexByParent.set(shape.parentId, shape.index)
+					}
+				}
+				shapes = shapes.map((shape) => {
+					if (!liftedShapeIds.has(shape.id)) return shape
+					const index = getIndexAbove(highestIndexByParent.get(shape.parentId))
+					highestIndexByParent.set(shape.parentId, index)
+					return { ...shape, index }
+				})
+			}
 
 			unsupportedShapeTypes = [
 				...new Set([...unsupportedShapeIds].map((id) => sourceShapesById.get(id)!.type)),
