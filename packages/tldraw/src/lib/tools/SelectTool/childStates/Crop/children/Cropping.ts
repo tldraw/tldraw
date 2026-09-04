@@ -122,7 +122,9 @@ export class Cropping extends StateNode {
 			didSnap = true
 		}
 
-		const change = currentPagePoint.clone().sub(originPagePoint).rot(-shape.rotation)
+		// The crop lives in the shape's own space, so the page-space drag comes off by the shape's
+		// page rotation; its local rotation alone is wrong inside a rotated frame or group
+		const change = currentPagePoint.clone().sub(originPagePoint).rot(-selectionRotation)
 
 		const crop = shape.props.crop ?? getDefaultCrop()
 		const uncroppedSize = getUncroppedSize(shape.props, crop)
