@@ -14,6 +14,14 @@ interface LibraryInfo {
 	moduleSystem: 'esm' | 'cjs'
 }
 
+// Packages whose CJS build lowers `import()` to `require()`. A bare import() of an extensionless
+// relative path fails under Jest and other CJS loaders without a dynamic-import hook, which would
+// put <Tldraw persistenceKey /> straight into the error fallback. This is opt-in per package
+// because it is only correct for imports of our own modules: @tldraw/mermaid's `import('mermaid')`
+// must stay a native import() since mermaid is ESM-only and `require('mermaid')` throws
+// ERR_REQUIRE_ESM (#9100).
+const PACKAGES_LOWERING_DYNAMIC_IMPORT_IN_CJS = new Set(['@tldraw/editor', 'tldraw'])
+
 /** Prepares the package for publishing. the tarball in case it will be written to disk. */
 async function buildPackage({ sourcePackageDir }: { sourcePackageDir: string }) {
 	// this depends on `build-types` being run first, but we'll rely on turbo to
@@ -109,10 +117,10 @@ async function buildLibrary({
 		outdir,
 		format: info.moduleSystem,
 		outExtension: info.moduleSystem === 'esm' ? { '.js': '.mjs' } : undefined,
-		// Lower `import()` to `require()` in the CJS build. A bare import() of an extensionless
-		// path fails under Jest and other CJS loaders without a dynamic-import hook, which would
-		// put <Tldraw persistenceKey /> straight into the error fallback.
-		supported: info.moduleSystem === 'cjs' ? { 'dynamic-import': false } : undefined,
+		supported:
+			info.moduleSystem === 'cjs' && PACKAGES_LOWERING_DYNAMIC_IMPORT_IN_CJS.has(info.name)
+				? { 'dynamic-import': false }
+				: undefined,
 		bundle: false,
 		platform: 'neutral',
 		sourcemap: true,
