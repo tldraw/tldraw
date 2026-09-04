@@ -19,16 +19,15 @@ export class Brushing extends StateNode {
 	static override id = 'brushing'
 	static override trackPerformance = true
 
-	info = {} as TLPointerEventInfo & { target: 'canvas' }
-
 	initialSelectedShapeIds: TLShapeId[] = []
 	excludedShapeIds = new Set<TLShapeId>()
 	isWrapMode = false
 
 	viewportDidChange = false
+	// No-op until onEnter installs the reactor, so onExit can always call it
 	cleanupViewportChangeReactor() {
 		void null
-	} // cleanup function for the viewport reactor
+	}
 
 	override onEnter(info: TLPointerEventInfo & { target: 'canvas' }) {
 		const { editor } = this
@@ -68,7 +67,6 @@ export class Brushing extends StateNode {
 				.map((shape) => shape.id)
 		)
 
-		this.info = info
 		this.initialSelectedShapeIds = editor.getSelectedShapeIds().slice()
 		this.hitTestShapes()
 		isInitialCheck = false

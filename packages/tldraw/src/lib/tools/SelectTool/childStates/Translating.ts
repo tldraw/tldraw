@@ -346,12 +346,10 @@ export class Translating extends StateNode {
 			editor,
 			snapshot: { shapeSnapshots },
 		} = this
-		const movingShapes: TLShape[] = []
 
 		shapeSnapshots.forEach((shapeSnapshot) => {
 			const shape = editor.getShape(shapeSnapshot.shape.id)
 			if (!shape) return
-			movingShapes.push(shape)
 
 			const parentTransform = isPageId(shape.parentId)
 				? null
