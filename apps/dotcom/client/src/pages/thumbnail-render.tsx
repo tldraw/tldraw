@@ -25,7 +25,8 @@ import {
 	useEditor,
 	TLAssetId,
 	TLBookmarkShape,
-	getResolvedBookmarkAssetId,
+	AssetRecordType,
+	getHashForString,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { assetUrls } from '../utils/assetUrls'
@@ -545,11 +546,14 @@ async function preloadImageAssets(editor: Editor, deadline: number, requestedSha
 	for (const id of editor.getShapeAndDescendantIds(roots)) {
 		const shape = editor.getShape(id)
 		if (!shape) continue
-		// A bookmark can show a preview through an asset it derives from its url rather than one it
-		// names, so it resolves the way its shape util does.
-		const assetId = editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark')
-			? getResolvedBookmarkAssetId(editor, shape)
-			: (shape.props as { assetId?: TLAssetId | null }).assetId
+		// A bookmark with no assetId still shows the preview of the asset its url hashes to, which is
+		// how its shape util resolves one (getResolvedBookmarkAssetId in the SDK, not exported).
+		const named = (shape.props as { assetId?: TLAssetId | null }).assetId
+		const assetId =
+			named ??
+			(editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark') && shape.props.url
+				? AssetRecordType.createId(getHashForString(shape.props.url))
+				: null)
 		const asset = assetId ? editor.getAsset(assetId) : undefined
 		if (!asset) continue
 		if (asset.type === 'image' && asset.props.src) urls.add(asset.props.src)
