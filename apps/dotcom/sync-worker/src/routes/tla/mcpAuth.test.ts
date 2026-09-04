@@ -182,6 +182,7 @@ describe('getMcpProtectedResourceMetadata', () => {
 		expect(await response.json()).toMatchObject({
 			resource: RESOURCE,
 			authorization_servers: ['https://clerk.tldraw.com'],
+			scopes_supported: ['openid', 'profile', 'email', 'offline_access'],
 			bearer_methods_supported: ['header'],
 		})
 	})
@@ -235,8 +236,34 @@ describe('authenticateMcpRequest', () => {
 		const response = responseOf(result)
 		expect(response.status).toBe(401)
 		expect(response.headers.get('WWW-Authenticate')).toBe(
-			`Bearer resource_metadata="https://www.tldraw.com${MCP_PROTECTED_RESOURCE_METADATA_PATH}"`
+			`Bearer resource_metadata="https://www.tldraw.com${MCP_PROTECTED_RESOURCE_METADATA_PATH}", ` +
+				`scope="openid profile email offline_access"`
 		)
+	})
+
+	// The scope list is what stops a client guessing. Claude's hosted connectors request every scope
+	// the authorization server advertises when the challenge names none, and Clerk advertises scopes
+	// it grants each client only a subset of — so an unnamed list is refused with `invalid_scope` at
+	// the authorization server, before consent and before any request reaches this worker.
+	it('names the scopes a client should ask for', async () => {
+		const result = await authenticateMcpRequest(makeRequest(), makeEnv())
+
+		expect(responseOf(result).headers.get('WWW-Authenticate')).toContain(
+			'scope="openid profile email offline_access"'
+		)
+	})
+
+	// Two places state the scopes and a client may read either, so they cannot be allowed to drift:
+	// a client that asks for what the metadata advertises and a client that asks for what the
+	// challenge names have to end up asking for the same thing.
+	it('names the same scopes in the challenge and the metadata', async () => {
+		const result = await authenticateMcpRequest(makeRequest(), makeEnv())
+		const challenge = responseOf(result).headers.get('WWW-Authenticate') ?? ''
+		const metadata = (await getMcpProtectedResourceMetadata(makeRequest(), makeEnv()).json()) as {
+			scopes_supported: string[]
+		}
+
+		expect(challenge).toContain(`scope="${metadata.scopes_supported.join(' ')}"`)
 	})
 
 	it('accepts a valid token and returns its subject', async () => {
