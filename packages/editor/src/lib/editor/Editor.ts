@@ -5237,7 +5237,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.run(
 			() => {
-				this.store.props.assets.remove?.(ids)
+				// the asset store's remove is async; surface failures instead of leaving an unhandled rejection
+				Promise.resolve(this.store.props.assets.remove?.(ids)).catch((err) =>
+					console.error('Error while removing assets from the asset store:', err)
+				)
 				this.store.remove(ids)
 			},
 			{ history: 'ignore' }
