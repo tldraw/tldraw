@@ -19,8 +19,82 @@ interface ElementStyleInfo {
 	after: Styles | undefined
 }
 
+/**
+ * A cache of read element styles, shared between exports.
+ *
+ * Reading one element's styles means asking the browser for every CSS property it knows about,
+ * and an export reads every element inside every `<foreignObject>`. The answers repeat heavily:
+ * elements rendered from the same component resolve to the same styles, and a second export of
+ * the same page resolves to the same styles again. Pass one of these through
+ * {@link TLSvgExportOptions.styleCache} to reuse them.
+ *
+ * Only worth it when exporting repeatedly — rendering video frames, drawing thumbnails. A single
+ * export has nothing to reuse and should leave this unset.
+ *
+ * Entries are keyed on what the caller can see: the element's tag, class and inline style, and
+ * the same three for each of its ancestors. **That does not model a stylesheet which selects on
+ * document structure** — `:nth-child`, sibling combinators, or attributes other than `class` and
+ * `style` — so two elements the cache calls equal may genuinely differ, and the export takes the
+ * first one's styles. Opt in where you know the markup, and hold a cache no longer than the run
+ * of exports it serves: a stylesheet or theme change invalidates the whole thing.
+ *
+ * @public
+ */
+export class ExportStyleCache {
+	/**
+	 * Read styles, by key. Holds `object` rather than the style type so that this class stays
+	 * opaque to callers: creating one and handing it to an export is the whole of its API.
+	 *
+	 * @internal
+	 */
+	readonly entries = new Map<string, object>()
+
+	/**
+	 * The key given to each element, so a child's key can be built on its parent's.
+	 *
+	 * @internal
+	 */
+	readonly keys = new WeakMap<Element, string>()
+}
+
+/**
+ * The cache key for an element: its own shape, and the shape of every ancestor.
+ *
+ * Built on the parent's key rather than by walking upwards, so the chain costs one lookup — which
+ * works because an export reads a tree from the root down. An element whose parent has not been
+ * read yet keys as if it were a root, which is correct for the roots and conservative elsewhere:
+ * a wrong key can only collide with another element of identical shape and identical ancestry.
+ */
+function cacheKeyFor(
+	cache: ExportStyleCache,
+	element: Element,
+	respectDefaults: boolean,
+	skipInheritedParentStyles: boolean
+) {
+	const parent = element.parentElement
+	const parentKey = parent ? (cache.keys.get(parent) ?? '') : ''
+	const key = `${parentKey}»${element.tagName}|${element.getAttribute('class') ?? ''}|${
+		element.getAttribute('style') ?? ''
+	}|${respectDefaults ? 1 : 0}${skipInheritedParentStyles ? 1 : 0}`
+	cache.keys.set(element, key)
+	return key
+}
+
+// `fetchResources` rewrites url() values in place, so neither the cache nor its caller may hold
+// the other's object.
+function copyStyleInfo(info: ElementStyleInfo): ElementStyleInfo {
+	return {
+		self: { ...info.self },
+		before: info.before && { ...info.before },
+		after: info.after && { ...info.after },
+	}
+}
+
 export class StyleEmbedder {
-	constructor(private readonly root: Element) {}
+	constructor(
+		private readonly root: Element,
+		private readonly cache?: ExportStyleCache
+	) {}
 	private readonly styles = new Map<Element, ElementStyleInfo>()
 	readonly fonts = new FontEmbedder()
 
@@ -68,11 +142,23 @@ export class StyleEmbedder {
 			}
 		}
 
+		const cache = this.cache
+		let key: string | undefined
+		if (cache) {
+			key = cacheKeyFor(cache, element, shouldRespectDefaults, shouldSkipInheritedParentStyles)
+			const hit = cache.entries.get(key)
+			if (hit) {
+				this.styles.set(element, copyStyleInfo(hit as ElementStyleInfo))
+				return
+			}
+		}
+
 		const info: ElementStyleInfo = {
 			self: styleFromElement(element, { defaultStyles, parentStyles }),
 			before: styleFromPseudoElement(element, '::before'),
 			after: styleFromPseudoElement(element, '::after'),
 		}
+		if (cache && key !== undefined) cache.entries.set(key, copyStyleInfo(info))
 		this.styles.set(element, info)
 	}
 
