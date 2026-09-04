@@ -55,16 +55,7 @@ export class AgentTodoManager extends BaseAgentManager {
 	 * @returns The id of the todo item.
 	 */
 	push(id: TodoId, text: string) {
-		this.$todoList.update((todoItems) => {
-			return [
-				...todoItems,
-				{
-					id,
-					status: 'todo' as const,
-					text,
-				},
-			]
-		})
+		this.$todoList.update((todoItems) => [...todoItems, { id, status: 'todo' as const, text }])
 		return id
 	}
 
@@ -72,19 +63,12 @@ export class AgentTodoManager extends BaseAgentManager {
 	 * Update a todo item's status and optionally its text.
 	 * @param params - The update parameters
 	 */
-	update(params: { id: number; status: TodoItem['status']; text?: string }) {
-		const { id, status, text } = params
-		this.$todoList.update((todoItems) => {
-			const index = todoItems.findIndex((item) => item.id === id)
-			if (index !== -1) {
-				return [
-					...todoItems.slice(0, index),
-					{ ...todoItems[index], status, ...(text !== undefined && { text }) },
-					...todoItems.slice(index + 1),
-				]
-			}
-			return todoItems
-		})
+	update({ id, status, text }: { id: number; status: TodoItem['status']; text?: string }) {
+		this.$todoList.update((todoItems) =>
+			todoItems.map((item) =>
+				item.id === id ? { ...item, status, ...(text !== undefined && { text }) } : item
+			)
+		)
 	}
 
 	/**
@@ -93,17 +77,13 @@ export class AgentTodoManager extends BaseAgentManager {
 	 */
 	delete(ids: number[]) {
 		const idsSet = new Set(ids)
-		this.$todoList.update((todoItems) => {
-			return todoItems.filter((item) => !idsSet.has(item.id))
-		})
+		this.$todoList.update((todoItems) => todoItems.filter((item) => !idsSet.has(item.id)))
 	}
 
 	/**
 	 * Remove all completed todo items from the todo list.
 	 */
 	flush() {
-		this.$todoList.update((todoItems) => {
-			return todoItems.filter((item) => item.status !== 'done')
-		})
+		this.$todoList.update((todoItems) => todoItems.filter((item) => item.status !== 'done'))
 	}
 }

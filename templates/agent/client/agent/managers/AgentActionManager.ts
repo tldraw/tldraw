@@ -18,22 +18,9 @@ export class AgentActionManager extends BaseAgentManager {
 	 */
 	private agentActionUtils: Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
 
-	/**
-	 * The agent action util instance for the "unknown" action type.
-	 *
-	 * This is returned by the `getAgentActionUtil` method when the action type
-	 * isn't properly specified. This can happen if the model isn't finished
-	 * streaming yet or makes a mistake.
-	 */
-	unknownActionUtil: AgentActionUtil<AgentAction>
-
 	constructor(agent: TldrawAgent) {
 		super(agent)
-		this.agentActionUtils = getAgentActionUtilsRecordForMode(
-			this.agent,
-			agent.mode.getCurrentModeType()
-		)
-		this.unknownActionUtil = this.agentActionUtils.unknown
+		this.agentActionUtils = getAgentActionUtilsRecordForMode(agent, agent.mode.getCurrentModeType())
 	}
 
 	/**
@@ -53,7 +40,6 @@ export class AgentActionManager extends BaseAgentManager {
 	 */
 	rebuildUtilsForMode(mode: string): void {
 		this.agentActionUtils = getAgentActionUtilsRecordForMode(this.agent, mode)
-		this.unknownActionUtil = this.agentActionUtils.unknown
 	}
 
 	/**
@@ -63,8 +49,7 @@ export class AgentActionManager extends BaseAgentManager {
 	 * @returns The action util.
 	 */
 	getAgentActionUtil(type?: string) {
-		const utilType = this.getAgentActionUtilType(type)
-		return this.agentActionUtils[utilType]
+		return this.agentActionUtils[this.getAgentActionUtilType(type)]
 	}
 
 	/**
@@ -74,10 +59,8 @@ export class AgentActionManager extends BaseAgentManager {
 	 * @returns The action util type, or 'unknown' if not found.
 	 */
 	getAgentActionUtilType(type?: string): AgentAction['_type'] {
-		if (!type) return 'unknown'
-		const util = this.agentActionUtils[type as AgentAction['_type']]
-		if (!util) return 'unknown'
-		return type as AgentAction['_type']
+		if (type && type in this.agentActionUtils) return type as AgentAction['_type']
+		return 'unknown'
 	}
 
 	/**
@@ -107,7 +90,6 @@ export class AgentActionManager extends BaseAgentManager {
 		} catch (error) {
 			// always toast the error
 			this.agent.onError(error)
-			promise = null
 			throw error // you may not want to throw in productions
 		} finally {
 			this.agent.setIsActingOnEditor(false)
@@ -123,34 +105,26 @@ export class AgentActionManager extends BaseAgentManager {
 			}
 
 			this.agent.chat.update((historyItems) => {
-				// If there are no items, start off the chat history with the first item
-				if (historyItems.length === 0) return [historyItem]
-
 				// Find the last EXTERNAL prompt index (ignore prompts from 'self' which are internal state transitions)
 				const lastPromptIndex = historyItems.findLastIndex(
 					(item) => item.type === 'prompt' && item.promptSource !== 'self'
 				)
 
 				// If the last action is still in progress AND it's after the last external prompt, replace it
-				const lastActionHistoryItemIndex = historyItems.findLastIndex(
-					(item) => item.type === 'action'
-				)
-				const lastActionHistoryItem =
-					lastActionHistoryItemIndex !== -1 ? historyItems[lastActionHistoryItemIndex] : null
+				const lastActionIndex = historyItems.findLastIndex((item) => item.type === 'action')
+				const lastAction = lastActionIndex !== -1 ? historyItems[lastActionIndex] : null
 				if (
-					lastActionHistoryItem &&
-					lastActionHistoryItem.type === 'action' &&
-					!lastActionHistoryItem.action.complete &&
-					(lastPromptIndex === -1 || lastActionHistoryItemIndex > lastPromptIndex)
+					lastAction?.type === 'action' &&
+					!lastAction.action.complete &&
+					lastActionIndex > lastPromptIndex
 				) {
 					const newHistoryItems = [...historyItems]
 					// Replace the incomplete action with the complete one (timestamp already set above)
-					newHistoryItems[lastActionHistoryItemIndex] = historyItem
+					newHistoryItems[lastActionIndex] = historyItem
 					return newHistoryItems
-				} else {
-					// Otherwise, just add the new item to the end of the list
-					return [...historyItems, historyItem]
 				}
+				// Otherwise, just add the new item to the end of the list
+				return [...historyItems, historyItem]
 			})
 		}
 

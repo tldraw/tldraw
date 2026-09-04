@@ -8,11 +8,9 @@ export const AgentViewportBoundsPartUtil = registerPromptPartUtil(
 		static override type = 'agentViewportBounds' as const
 
 		override getPart(request: AgentRequest, helpers: AgentHelpers): AgentViewportBoundsPart {
-			const offsetAgentBounds = helpers.applyOffsetToBox(request.bounds)
-
 			return {
 				type: 'agentViewportBounds',
-				agentBounds: helpers.roundBox(offsetAgentBounds),
+				agentBounds: helpers.roundBox(helpers.applyOffsetToBox(request.bounds)),
 			}
 		}
 	}

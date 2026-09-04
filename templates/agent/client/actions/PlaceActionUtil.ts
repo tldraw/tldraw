@@ -43,93 +43,38 @@ export const PlaceActionUtil = registerActionUtil(
 
 			const bbA = editor.getShapePageBounds(shape)!
 			const bbR = editor.getShapePageBounds(referenceShape)!
-			if (side === 'top' && align === 'start') {
-				editor.updateShape({
-					id: shapeId,
-					type: shape.type,
-					x: bbR.minX + alignOffset,
-					y: bbR.minY - bbA.height - sideOffset,
-				})
-			} else if (side === 'top' && align === 'center') {
-				editor.updateShape({
-					id: shapeId,
-					type: shape.type,
-					x: bbR.midX - bbA.width / 2 + alignOffset,
-					y: bbR.minY - bbA.height - sideOffset,
-				})
-			} else if (side === 'top' && align === 'end') {
-				editor.updateShape({
-					id: shapeId,
-					type: shape.type,
-					x: bbR.maxX - bbA.width - alignOffset,
-					y: bbR.minY - bbA.height - sideOffset,
-				})
-			} else if (side === 'bottom' && align === 'start') {
-				editor.updateShape({
-					id: shapeId,
-					type: shape.type,
-					x: bbR.minX + alignOffset,
-					y: bbR.maxY + sideOffset,
-				})
-			} else if (side === 'bottom' && align === 'center') {
-				editor.updateShape({
-					id: shapeId,
-					type: shape.type,
-					x: bbR.midX - bbA.width / 2 + alignOffset,
-					y: bbR.maxY + sideOffset,
-				})
-			} else if (side === 'bottom' && align === 'end') {
-				editor.updateShape({
-					id: shapeId,
-					type: shape.type,
-					x: bbR.maxX - bbA.width - alignOffset,
-					y: bbR.maxY + sideOffset,
-				})
-				// LEFT SIDE (corrected)
-			} else if (side === 'left' && align === 'start') {
-				editor.updateShape({
-					id: shapeId,
-					type: shape.type,
-					x: bbR.minX - bbA.width - sideOffset,
-					y: bbR.minY + alignOffset,
-				})
-			} else if (side === 'left' && align === 'center') {
-				editor.updateShape({
-					id: shapeId,
-					type: shape.type,
-					x: bbR.minX - bbA.width - sideOffset,
-					y: bbR.midY - bbA.height / 2 + alignOffset,
-				})
-			} else if (side === 'left' && align === 'end') {
-				editor.updateShape({
-					id: shapeId,
-					type: shape.type,
-					x: bbR.minX - bbA.width - sideOffset,
-					y: bbR.maxY - bbA.height - alignOffset,
-				})
-				// RIGHT SIDE (corrected)
-			} else if (side === 'right' && align === 'start') {
-				editor.updateShape({
-					id: shapeId,
-					type: shape.type,
-					x: bbR.maxX + sideOffset,
-					y: bbR.minY + alignOffset,
-				})
-			} else if (side === 'right' && align === 'center') {
-				editor.updateShape({
-					id: shapeId,
-					type: shape.type,
-					x: bbR.maxX + sideOffset,
-					y: bbR.midY - bbA.height / 2 + alignOffset,
-				})
-			} else if (side === 'right' && align === 'end') {
-				editor.updateShape({
-					id: shapeId,
-					type: shape.type,
-					x: bbR.maxX + sideOffset,
-					y: bbR.maxY - bbA.height - alignOffset,
-				})
-			}
+
+			// Position along the reference shape's edge, in the axis parallel to that edge
+			const alignX = alignAlong(align, bbR.minX, bbR.midX, bbR.maxX, bbA.width, alignOffset)
+			const alignY = alignAlong(align, bbR.minY, bbR.midY, bbR.maxY, bbA.height, alignOffset)
+
+			const position = {
+				top: { x: alignX, y: bbR.minY - bbA.height - sideOffset },
+				bottom: { x: alignX, y: bbR.maxY + sideOffset },
+				left: { x: bbR.minX - bbA.width - sideOffset, y: alignY },
+				right: { x: bbR.maxX + sideOffset, y: alignY },
+			}[side]
+			if (!position) return
+
+			editor.updateShape({ id: shapeId, type: shape.type, ...position })
 		}
 	}
 )
+
+function alignAlong(
+	align: PlaceAction['align'],
+	min: number,
+	mid: number,
+	max: number,
+	size: number,
+	offset: number
+) {
+	switch (align) {
+		case 'start':
+			return min + offset
+		case 'center':
+			return mid - size / 2 + offset
+		case 'end':
+			return max - size - offset
+	}
+}
