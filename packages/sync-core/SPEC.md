@@ -217,7 +217,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **HS3** A connect message without a schema, with a schema the server cannot migrate from, or whose migrations include any non-record-scope or down-less migration, is rejected `CLIENT_TOO_OLD`.
 - **HS4** The connect response echoes `connectRequestId` and `isReadonly`, carries the server's schema and current clock, and `hydrationType: 'wipe_all'` when storage cannot produce an incremental diff since the client's `lastServerClock` (including when that clock is in the future), else `'wipe_presence'`.
 - **HS5** The connect response diff contains every _other_ session's presence record — the connecting session's own presence is excluded — plus the document changes since the client's `lastServerClock` (the full document set in the `wipe_all` case), all down-migrated when the client's schema is older.
-- **HS6** A successful handshake moves the session to `Connected`.
+- **HS6** A successful handshake moves the session to `Connected` — unless the session was removed while the handshake's transaction ran (RC5 force-reconnect), in which case it stays removed rather than being resurrected.
 
 ## 24. `TLSyncRoom` — push handling (RP)
 

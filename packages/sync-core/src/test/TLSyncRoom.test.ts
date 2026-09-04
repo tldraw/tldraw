@@ -1019,6 +1019,45 @@ describe('23. Connect handshake (HS)', () => {
 		expect(room.sessions.get('current-client-session')?.state).toBe(RoomSessionState.Connected)
 		expect(socket.__lastMessage?.type).toBe('connect')
 	})
+
+	it('[HS6] a session removed by a wipeAll during its own handshake stays removed', async () => {
+		const { room, storage } = makeRoom()
+		const socketA = connectSession(room, 'a')
+		const removed = vi.fn()
+		room.events.on('session_removed', removed)
+
+		// 'b' has opened its socket but not yet sent its connect message
+		const socketB = makeSocket()
+		room.handleNewSession({ sessionId: 'b', socket: socketB, meta: undefined, isReadonly: false })
+
+		// an external change makes an incremental diff impossible (RC5); the room hasn't seen
+		// it yet because the storage notifies on a microtask
+		const newPage = makePage('wipe_page', 'Wipe Page')
+		storage.transaction((txn) => {
+			txn.set(newPage.id, newPage)
+		})
+		storage.tombstoneHistoryStartsAtClock.set(storage.getClock())
+
+		// the handshake's own transaction runs broadcastChanges first, which force-reconnects
+		// everyone — including 'b' — before the connect response is assembled
+		room.handleMessage('b', {
+			type: 'connect',
+			connectRequestId: 'connect-b',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+		} satisfies TLConnectRequest)
+
+		expect(socketA.close).toHaveBeenCalled()
+		expect(socketB.close).toHaveBeenCalled()
+		// 'b' must not come back in Connected state on a socket that is already closed
+		expect(room.sessions.has('b')).toBe(false)
+		expect(socketB.sendMessage).not.toHaveBeenCalled()
+
+		await Promise.resolve()
+		await Promise.resolve()
+		expect(removed.mock.calls.map(([e]) => e.sessionId).sort()).toEqual(['a', 'b'])
+	})
 })
 
 describe('24. Push handling (RP)', () => {
