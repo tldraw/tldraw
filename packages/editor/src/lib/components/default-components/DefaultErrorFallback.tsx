@@ -220,7 +220,7 @@ My browser: ${navigator.userAgent}`
 									Reset data
 								</button>
 								<button className="tlui-button tl-error-boundary__refresh" onClick={refresh}>
-									Refresh Page
+									Refresh page
 								</button>
 							</div>
 						</div>

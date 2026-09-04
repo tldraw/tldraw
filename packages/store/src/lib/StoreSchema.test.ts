@@ -993,6 +993,51 @@ describe('migrateStorage (MA)', () => {
 		expect(storage.setCalls).toEqual([])
 	})
 
+	it('[MA7] removes non-document records without deleting during its own entries() iteration', () => {
+		// better-sqlite3 throws on any write while a statement iterator is still open, so a delete
+		// issued from inside `for (const [id] of storage.entries())` fails on that backend
+		const SessionRecordType = createRecordType<BaseRecord<'sess', RecordId<any>>>('sess', {
+			scope: 'session',
+		})
+		// the cleanup only runs when there is something to migrate
+		const migrations = [
+			createMigrationSequence({
+				sequenceId: 'foo',
+				sequence: [{ id: 'foo/1', scope: 'record', up: () => {} }],
+			}),
+		]
+		const schema = StoreSchema.create(
+			{ test: TestRecordType, sess: SessionRecordType },
+			{ migrations }
+		)
+		const doc = makeTestRecord({ schemaVersion: 2, sequences: {} })
+		const sess = SessionRecordType.create({})
+		const storage = makeStorage<any>(
+			[
+				[doc.id, doc],
+				[sess.id, sess],
+			],
+			schema.serializeEarliestVersion()
+		)
+		let openIterators = 0
+		storage.entries = function* () {
+			openIterators++
+			try {
+				yield* Array.from(storage.map.entries())
+			} finally {
+				openIterators--
+			}
+		}
+		storage.delete = (id) => {
+			if (openIterators > 0) throw new Error('This database connection is busy executing a query')
+			storage.map.delete(id)
+		}
+
+		schema.migrateStorage(storage as any)
+
+		expect([...storage.map.keys()]).toEqual([doc.id])
+	})
+
 	it('[MA4] storage-scope migrations receive the storage and may read and write records', () => {
 		// exercised end-to-end via Store.loadStoreSnapshot in Store.test.ts; here we check the
 		// storage object passed to the migrator is the one we provided

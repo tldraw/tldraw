@@ -79,7 +79,9 @@ const pixelFont: TLThemeFont = {
 	],
 }
 
-// Custom font — use a Google Font loaded via full URLs.
+// Custom font — use a Google Font loaded via full URLs. These versioned
+// gstatic URLs expire when Google revs the font; refresh them from
+// https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700 if they 404.
 const cursiveFont: TLThemeFont = {
 	fontFamily: "'Comic Neue', cursive",
 	icon: <div style={{ fontFamily: "'Comic Neue', cursive", fontSize: 16, lineHeight: 1 }}>Aa</div>,
@@ -87,7 +89,7 @@ const cursiveFont: TLThemeFont = {
 		{
 			family: 'Comic Neue',
 			src: {
-				url: 'https://fonts.gstatic.com/s/comicneue/v8/4UaErEJDsxBrF37olUeD_wHLwpteLwtHJlc.woff2',
+				url: 'https://fonts.gstatic.com/s/comicneue/v9/4UaHrEJDsxBrF37olUeD96rp57F2IwM.woff2',
 				format: 'woff2',
 			},
 			weight: 'normal',
@@ -96,7 +98,7 @@ const cursiveFont: TLThemeFont = {
 		{
 			family: 'Comic Neue',
 			src: {
-				url: 'https://fonts.gstatic.com/s/comicneue/v8/4UaFrEJDsxBrF37olUeD96_RTplUKylCNlcw_Q.woff2',
+				url: 'https://fonts.gstatic.com/s/comicneue/v9/4UaErEJDsxBrF37olUeD_xHM8pxULilENlY.woff2',
 				format: 'woff2',
 			},
 			weight: 'bold',
