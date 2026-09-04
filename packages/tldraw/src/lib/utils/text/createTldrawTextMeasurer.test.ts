@@ -172,4 +172,21 @@ describe('createTldrawTextMeasurer', () => {
 		expect(a.style.color).toBe('red')
 		expect(b.style.background).toBe('blue')
 	})
+
+	it('colours links with tldraw’s primary colour by default', () => {
+		const richText = {
+			type: 'doc',
+			content: [
+				{
+					type: 'paragraph',
+					content: [
+						{ type: 'text', text: 'a', marks: [{ type: 'link', attrs: { href: 'https://x.y' } }] },
+					],
+				},
+			],
+		}
+		const layout = measurer.layoutRichText(richText, { ...baseOpts, color: 'black' })
+		const [a] = layout.lines[0].fragments
+		expect(a.style.color).toBe('#3182ed')
+	})
 })
