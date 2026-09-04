@@ -109,7 +109,6 @@ export class TLLocalSyncClient {
 		this.persistenceKey = persistenceKey
 		this.sessionId = sessionId
 		this.db = new LocalIndexedDb(persistenceKey)
-		this.disposables.add(() => this.db.close())
 
 		this.serializedSchema = this.store.schema.serialize()
 		this.$sessionStateSnapshot = createSessionStateSnapshotSignal(this.store)
@@ -303,19 +302,35 @@ export class TLLocalSyncClient {
 
 	close() {
 		this.debug('closing')
-		// flush queued changes so edits made in the last PERSIST_THROTTLE_MS before unmount aren't
-		// lost. never before load (a full write then would wipe the db with an empty store), and
-		// only when something is queued: shouldDoFullDBWrite stays true until the first persist,
-		// so an unconditional flush would rewrite the whole document on every no-op close
-		if (this.didLoad && this.diffQueue.length > 0) this.persistIfNeeded()
 		this.didDispose = true
 		this.disposables.forEach((d) => d())
 		if (typeof window !== 'undefined' && (window as any).tlsync === this) {
 			delete (window as any).tlsync
 		}
+		this.flushAndCloseDb()
+	}
+
+	/**
+	 * Flush queued changes so edits made in the last PERSIST_THROTTLE_MS before unmount aren't lost,
+	 * then close the db. Never flushes before load (a full write then would wipe the db with an empty
+	 * store), and only when something is queued: shouldDoFullDBWrite stays true until the first
+	 * persist, so an unconditional flush would rewrite the whole document on every no-op close.
+	 */
+	private flushAndCloseDb() {
+		// A persist in flight can't be joined (persistIfNeeded bails while one is running) and,
+		// now that we're disposed, won't schedule a follow-up. Edits queued during that write
+		// would be lost if the db closed now, so wait for it and flush again.
+		if (this.persistPromise) {
+			this.persistPromise.then(() => this.flushAndCloseDb())
+			return
+		}
+		if (this.didLoad && this.diffQueue.length > 0) this.persistIfNeeded()
+		// the db waits for the transaction the flush just opened before actually closing
+		this.db.close()
 	}
 
 	private isPersisting = false
+	private persistPromise: Promise<void> | null = null
 	private didLastWriteError = false
 	// eslint-disable-next-line no-restricted-globals
 	private scheduledPersistTimeout: ReturnType<typeof setTimeout> | null = null
@@ -329,6 +344,9 @@ export class TLLocalSyncClient {
 	private schedulePersist() {
 		this.debug('schedulePersist', this.scheduledPersistTimeout)
 		if (this.scheduledPersistTimeout) return
+		// once closed, the db is closing (or closed): a persist that fires afterwards would fail
+		// and trigger the write-error reload
+		if (this.didDispose) return
 		// eslint-disable-next-line no-restricted-globals
 		this.scheduledPersistTimeout = setTimeout(
 			() => {
@@ -377,7 +395,7 @@ export class TLLocalSyncClient {
 
 		// if we're scheduled for a full write or if we have changes outstanding, let's persist them!
 		if (this.shouldDoFullDBWrite || this.diffQueue.length > 0) {
-			this.doPersist()
+			this.persistPromise = this.doPersist()
 		}
 	}
 
@@ -387,7 +405,6 @@ export class TLLocalSyncClient {
 	 */
 	private async doPersist() {
 		assert(!this.isPersisting, 'persist already in progress')
-		if (this.didDispose) return
 		this.isPersisting = true
 
 		this.debug('doPersist start')
@@ -433,6 +450,7 @@ export class TLLocalSyncClient {
 		}
 
 		this.isPersisting = false
+		this.persistPromise = null
 		this.debug('doPersist end')
 
 		// changes might have come in between when we started the persist and

@@ -248,6 +248,31 @@ test('closing the client persists changes that are still queued', async () => {
 	expect(client.db.storeSnapshot).toHaveBeenCalledTimes(1)
 })
 
+test('closing the client while a persist is in flight still persists edits queued during the write', async () => {
+	const idbOperationResult = promiseWithResolve<void>()
+	const { client, tick } = testClient()
+	client.db.storeSnapshot.mockImplementationOnce(() => idbOperationResult)
+	const closeDb = vi.spyOn(client.db, 'close')
+
+	await tick()
+	client.store.put([PageRecordType.create({ name: 'test', index: 'a0' as IndexKey })])
+	await tick()
+	expect(client.db.storeSnapshot).toHaveBeenCalledTimes(1)
+
+	// an edit made while the first write is still in flight, then unmount
+	const page = PageRecordType.create({ name: 'test2', index: 'a1' as IndexKey })
+	client.store.put([page])
+	client.close()
+	expect(client.db.storeChanges).not.toHaveBeenCalled()
+	expect(closeDb).not.toHaveBeenCalled()
+
+	idbOperationResult.resolve()
+	await tick()
+	expect(client.db.storeChanges).toHaveBeenCalledTimes(1)
+	expect(client.db.storeChanges.mock.calls[0][0].changes.added[page.id]).toEqual(page)
+	expect(closeDb).toHaveBeenCalledTimes(1)
+})
+
 test('closing the client with nothing queued does not write to the db', async () => {
 	const { client, tick } = testClient()
 	await tick()
