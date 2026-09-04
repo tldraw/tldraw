@@ -594,15 +594,28 @@ describe('render page reach', () => {
 		expect((envWithBucket.THUMBNAILS as any).store.size).toBe(1)
 	})
 
-	// The MCP tool mints `public` for published boards, and its keys are per capture: nothing ever
-	// overwrites them, so the capture's cleanup has to take the stamp with it or one object would
-	// be left behind per screenshot in a bucket that must never get a lifecycle rule.
-	it("deletes a public MCP capture's stamp with its cleanup", async () => {
+	// The MCP tool mints `public` for published boards. Those tokens have no record, so they stay
+	// valid after the capture's cleanup, and a page arriving late from the abandoned browser would
+	// recreate a per-capture stamp with nothing left to delete it — in a bucket that must never get a
+	// lifecycle rule. So they are never stamped, and their dead sessions read as unknown.
+	it('never stamps a public MCP capture, and reports it as unknown', async () => {
 		const envWithBucket = makeEnvWithBucket()
 		const job = makeJob({ access: 'public', surface: 'mcp' })
 		const token = await mintThumbnailRenderToken(envWithBucket, job)
+
 		await markRenderTokenServed(envWithBucket, job, token)
-		expect((envWithBucket.THUMBNAILS as any).store.size).toBe(1)
+
+		expect((envWithBucket.THUMBNAILS as any).store.size).toBe(0)
+		expect(await wasRenderTokenServedSince(envWithBucket, job, token, 0)).toBe('unknown')
+	})
+
+	it("deletes a render MCP capture's stamp with its record", async () => {
+		const envWithBucket = makeEnvWithBucket()
+		const job = makeJob({ access: 'render', surface: 'mcp' })
+		const token = await mintThumbnailRenderToken(envWithBucket, job)
+		await recordMintedRenderToken(envWithBucket, job, token)
+		await markRenderTokenServed(envWithBucket, job, token)
+		expect((envWithBucket.THUMBNAILS as any).store.size).toBe(2)
 
 		await deleteMintedRenderToken(envWithBucket, job, token)
 

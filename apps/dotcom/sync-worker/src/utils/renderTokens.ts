@@ -323,6 +323,15 @@ function servedStampKey(recordKey: string) {
 	return `${recordKey}.served`
 }
 
+// A stamp may only exist where something bounds it: a per-board key overwrites in place, and a
+// `render` per-capture key dies with its record — once the record is gone the token 403s, so a
+// late page cannot write again. A `public` per-capture token has no record and stays valid until it
+// expires, so a page arriving after the capture's cleanup would recreate the stamp with nothing left
+// to delete it. Those sessions report `unknown` instead.
+function canStampServed(job: Pick<ThumbnailRenderJob, 'access' | 'surface'>) {
+	return renderJobAccess(job) === 'render' || !isPerCaptureRecordKey(job)
+}
+
 /**
  * Stamps the moment the render page fetched its snapshot. Read back by `wasRenderTokenServedSince`
  * when a session dies, which is the only thing that separates a timeout whose page never ran (Browser
@@ -335,7 +344,7 @@ export async function markRenderTokenServed(
 	job: ThumbnailRenderJob,
 	token: string
 ): Promise<void> {
-	if (!env.THUMBNAILS) return
+	if (!env.THUMBNAILS || !canStampServed(job)) return
 	try {
 		await env.THUMBNAILS.put(
 			servedStampKey(await renderTokenRecordKey(job, token)),
@@ -363,7 +372,7 @@ export async function wasRenderTokenServedSince(
 	token: string,
 	since: number
 ): Promise<RenderPageReach> {
-	if (!env.THUMBNAILS) return 'unknown'
+	if (!env.THUMBNAILS || !canStampServed(job)) return 'unknown'
 	try {
 		const stamp = await env.THUMBNAILS.head(servedStampKey(await renderTokenRecordKey(job, token)))
 		const servedAt = Number(stamp?.customMetadata?.servedAt)
