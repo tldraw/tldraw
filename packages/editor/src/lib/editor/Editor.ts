@@ -1479,6 +1479,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return bindingUtil
 	}
 
+	/**
+	 * Returns true if the editor has a binding util for the given binding / binding type.
+	 *
+	 * @param binding - A binding, or a binding type.
+	 */
+	hasBindingUtil(binding: TLBinding | { type: string }): boolean
+	hasBindingUtil(type: TLBinding['type']): boolean
+	hasBindingUtil<T extends BindingUtil>(
+		type: T extends BindingUtil<infer R> ? R['type'] : string
+	): boolean
+	hasBindingUtil(arg: string | { type: string }): boolean {
+		const type = typeof arg === 'string' ? arg : arg.type
+		return hasOwnProperty(this.bindingUtils, type)
+	}
+
 	/* ------------------- Asset Utils ------------------ */
 
 	/**
@@ -9780,12 +9795,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// decide on a parent for the put shapes; if the parent is among the put shapes(?) then use its parent
 
 		const currentPageId = this.getCurrentPageId()
-		const { rootShapeIds } = content
+		// copied because we push to it below; content is caller-owned and gets reused
+		const rootShapeIds = [...content.rootShapeIds]
 
 		// We need to collect the migrated records
 		const assets: TLAsset[] = []
-		const shapes: TLShape[] = []
-		const bindings: TLBinding[] = []
+		let shapes: TLShape[] = []
+		let bindings: TLBinding[] = []
 		const users: TLUser[] = []
 
 		// Let's treat the content as a store, and then migrate that store.
@@ -9824,6 +9840,96 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 		}
+
+		// Pasted content can carry custom shapes this editor has no util for. Creating one
+		// throws, so drop them instead — and lift their children to the nearest surviving
+		// ancestor, since dropping a container shouldn't destroy the contents we can create.
+		// See https://github.com/tldraw/tldraw/issues/10127
+		const unsupportedShapeIds = new Set(
+			shapes.filter((shape) => !this.hasShapeUtil(shape)).map((shape) => shape.id as string)
+		)
+		let unsupportedShapeTypes: string[] = []
+
+		if (unsupportedShapeIds.size > 0) {
+			const sourceShapesById = new Map(shapes.map((shape) => [shape.id as string, shape]))
+			const liftedShapeIds = new Set<string>()
+
+			shapes = shapes
+				.filter((shape) => !unsupportedShapeIds.has(shape.id))
+				.map((shape) => {
+					if (!unsupportedShapeIds.has(shape.parentId)) return shape
+
+					// Without the dropped ancestors' transforms baked in, the shape would jump
+					// by their combined offset and rotation.
+					let transform = Mat.Identity()
+					let rotation = 0
+					let parentId: TLParentId = shape.parentId
+					// Content is arbitrary JSON off the clipboard, so the parent chain can be
+					// cyclic. Nothing upstream rejects that, and walking it unguarded hangs the
+					// whole thread — no error boundary, just a frozen tab.
+					const seenParentIds = new Set<string>()
+					while (unsupportedShapeIds.has(parentId) && !seenParentIds.has(parentId)) {
+						seenParentIds.add(parentId)
+						const dropped = sourceShapesById.get(parentId)!
+						transform = Mat.Compose(
+							Mat.Translate(dropped.x, dropped.y),
+							Mat.Rotate(dropped.rotation),
+							transform
+						)
+						rotation += dropped.rotation
+						parentId = dropped.parentId
+					}
+
+					// A cycle leaves us on a dropped shape with no real ancestor to lift into,
+					// so treat the shape as top level rather than parenting it to a shape that
+					// will never exist.
+					if (unsupportedShapeIds.has(parentId)) parentId = currentPageId
+
+					// Nothing survived above it, so it's a root shape now — otherwise it's
+					// neither positioned nor selected with the rest of the paste.
+					if (!sourceShapesById.has(parentId) && !rootShapeIds.includes(shape.id)) {
+						rootShapeIds.push(shape.id)
+					}
+
+					liftedShapeIds.add(shape.id)
+					const { x, y } = Mat.applyToPoint(transform, shape)
+					return { ...shape, x, y, rotation: shape.rotation + rotation, parentId }
+				})
+
+			// A lifted shape's index came from the sibling set it was lifted out of, so
+			// keeping it can collide with a sibling in the set it lands in — leaving their
+			// z-order decided by array order rather than by the index.
+			if (liftedShapeIds.size > 0) {
+				const highestIndexByParent = new Map<TLParentId, IndexKey>()
+				for (const shape of shapes) {
+					if (liftedShapeIds.has(shape.id)) continue
+					const highest = highestIndexByParent.get(shape.parentId)
+					if (!highest || shape.index > highest) {
+						highestIndexByParent.set(shape.parentId, shape.index)
+					}
+				}
+				shapes = shapes.map((shape) => {
+					if (!liftedShapeIds.has(shape.id)) return shape
+					const index = getIndexAbove(highestIndexByParent.get(shape.parentId))
+					highestIndexByParent.set(shape.parentId, index)
+					return { ...shape, index }
+				})
+			}
+
+			unsupportedShapeTypes = [
+				...new Set([...unsupportedShapeIds].map((id) => sourceShapesById.get(id)!.type)),
+			]
+		}
+
+		// Custom bindings travel with custom shapes, so a paste can carry binding types we have
+		// no util for; and a binding to a shape we just dropped would fail the assertExists
+		// below. The bound shapes still paste, just unlinked.
+		bindings = bindings.filter(
+			(binding) =>
+				this.hasBindingUtil(binding) &&
+				!unsupportedShapeIds.has(binding.fromId) &&
+				!unsupportedShapeIds.has(binding.toId)
+		)
 
 		if (users.length > 0) {
 			const existingUserIds = new Set(
@@ -10148,6 +10254,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 				kickoutOccludedShapes(this, shapesToKickout)
 			}
 		})
+
+		// Only once the paste has landed: the max shapes check above returns early, and there's
+		// nothing to report about a paste that never happened. pastedCount separates "we left
+		// some out" from "none of this could be pasted", which read very differently.
+		if (unsupportedShapeTypes.length > 0) {
+			this.emit('unsupported-shapes', {
+				types: unsupportedShapeTypes,
+				droppedCount: unsupportedShapeIds.size,
+				pastedCount: newShapes.length,
+			})
+		}
 
 		return this
 	}
