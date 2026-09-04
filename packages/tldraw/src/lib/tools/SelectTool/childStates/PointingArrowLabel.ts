@@ -148,7 +148,7 @@ export class PointingArrowLabel extends StateNode {
 	}
 
 	override onComplete() {
-		this.cancel()
+		this.complete()
 	}
 
 	override onInterrupt() {

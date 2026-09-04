@@ -16,10 +16,9 @@ export async function hasWriteAccessToFile(
 	const file = await db
 		.selectFrom('file')
 		.where('id', '=', fileId)
-		.select(['ownerId', 'owningGroupId', 'shared', 'sharedLinkType', 'isDeleted'])
+		.select(['owningGroupId', 'shared', 'sharedLinkType', 'isDeleted'])
 		.executeTakeFirst()
 	if (!file || file.isDeleted) return false
-	if (userId && file.ownerId === userId) return true
 	if (file.shared && file.sharedLinkType === 'edit') return true
 	if (userId && file.owningGroupId) {
 		return can(await getRole(db, userId, file.owningGroupId), 'accessFiles')

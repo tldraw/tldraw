@@ -16,12 +16,17 @@ export class Erasing extends StateNode {
 		this.info = info
 
 		const originPagePoint = this.editor.inputs.getOriginPagePoint()
+		const pressedShapeIds = new Set(this.editor.getErasingShapeIds())
 		this.excludedShapeIds = new Set(
 			this.editor
 				.getCurrentPageShapes()
 				.filter((shape) => {
 					//If the shape is locked, we shouldn't erase it
 					if (this.editor.isShapeOrAncestorLocked(shape)) return true
+					// A frame the press hit on its outline stays marked: a press just inside the outline
+					// is within the frame's bounds, so the containment check below would otherwise
+					// unmark it on the first move while a press just outside would erase it
+					if (this.editor.isShapeFrameLike(shape) && pressedShapeIds.has(shape.id)) return false
 					//If the shape is a group or frame-like, check we're inside it when we start erasing
 					if (this.editor.isShapeOfType(shape, 'group') || this.editor.isShapeFrameLike(shape)) {
 						const pointInShapeShape = this.editor.getPointInShapeSpace(shape, originPagePoint)

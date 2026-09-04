@@ -31,7 +31,7 @@ const components: TLComponents = {
 export default function EventBlockerExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw persistenceKey="example" components={components} />
+			<Tldraw persistenceKey="event-blocker-example" components={components} />
 		</div>
 	)
 }

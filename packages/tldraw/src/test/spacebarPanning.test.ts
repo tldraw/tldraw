@@ -80,3 +80,61 @@ it('When holding spacebar, pressing the arrow keys moves over by one viewport', 
 	expect(editor.getViewportPageBounds()).toEqual({ x: 1080, y: 720, w: 1080, h: 720 })
 	editor.keyUp(' ')
 })
+
+describe('When cancelling while spacebar is held', () => {
+	it('keeps panning through a cancel while the pointer is down', () => {
+		editor.keyDown(' ')
+		editor.pointerDown(0, 0)
+		editor.pointerMove(50, 50)
+		editor.expectCameraToBe(50, 50, 1)
+
+		editor.cancel()
+		expect(editor.inputs.getIsPanning()).toBe(true)
+		expect(editor.inputs.getIsSpacebarPanning()).toBe(true)
+		expect(editor.getInstanceState().cursor.type).toBe('grabbing')
+
+		editor.pointerMove(100, 100)
+		editor.expectCameraToBe(100, 100, 1)
+
+		editor.pointerUp(100, 100)
+		editor.keyUp(' ')
+		expect(editor.inputs.getIsPanning()).toBe(false)
+		expect(editor.getInstanceState().cursor.type).toBe('default')
+	})
+
+	it('keeps panning through a cancel while the pointer is up', () => {
+		editor.keyDown(' ')
+		editor.cancel()
+		expect(editor.inputs.getIsPanning()).toBe(true)
+		expect(editor.getInstanceState().cursor.type).toBe('grab')
+
+		editor.pointerDown(0, 0)
+		editor.pointerMove(100, 100)
+		editor.expectCameraToBe(100, 100, 1)
+		editor.pointerUp(100, 100)
+		editor.keyUp(' ')
+		expect(editor.inputs.getIsPanning()).toBe(false)
+	})
+
+	it('keeps panning through a complete while spacebar is held', () => {
+		editor.keyDown(' ')
+		editor.pointerDown(0, 0)
+		editor.complete()
+		expect(editor.inputs.getIsPanning()).toBe(true)
+		expect(editor.getInstanceState().cursor.type).toBe('grabbing')
+
+		editor.pointerMove(100, 100)
+		editor.expectCameraToBe(100, 100, 1)
+		editor.pointerUp(100, 100)
+		editor.keyUp(' ')
+		expect(editor.inputs.getIsPanning()).toBe(false)
+	})
+
+	it('still ends a middle mouse pan on cancel when spacebar is not held', () => {
+		editor.pointerDown(0, 0, { button: 1 })
+		expect(editor.inputs.getIsPanning()).toBe(true)
+		editor.cancel()
+		expect(editor.inputs.getIsPanning()).toBe(false)
+		expect(editor.getInstanceState().cursor.type).toBe('default')
+	})
+})

@@ -139,7 +139,7 @@ export function getStraightArrowInfo(
 			strokeOffsetA =
 				arrowSW / 2 +
 				('size' in startShapeInfo.shape.props
-					? (theme.strokeWidth * STROKE_SIZES[startShapeInfo.shape.props.size]) / 2
+					? (theme.strokeWidth * (STROKE_SIZES[startShapeInfo.shape.props.size] ?? 0)) / 2
 					: 0)
 			offsetA = (BOUND_ARROW_OFFSET + strokeOffsetA) * shape.props.scale
 			minLength += strokeOffsetA * shape.props.scale
@@ -156,7 +156,7 @@ export function getStraightArrowInfo(
 			strokeOffsetB =
 				arrowSW / 2 +
 				('size' in endShapeInfo.shape.props
-					? (theme.strokeWidth * STROKE_SIZES[endShapeInfo.shape.props.size]) / 2
+					? (theme.strokeWidth * (STROKE_SIZES[endShapeInfo.shape.props.size] ?? 0)) / 2
 					: 0)
 			offsetB = (BOUND_ARROW_OFFSET + strokeOffsetB) * shape.props.scale
 			minLength += strokeOffsetB * shape.props.scale

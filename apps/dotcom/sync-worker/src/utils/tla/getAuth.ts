@@ -129,8 +129,8 @@ export type SignedInAuth = ReturnType<
 > & { userId: string }
 
 /**
- * Whether a user may *view* a file: they own it, they can reach it through the group that owns it, or
- * it is shared via link — in which case `sharedLinkType` is irrelevant, since a link shared for
+ * Whether a user may *view* a file: they can reach it through the group that owns it, or it is
+ * shared via link — in which case `sharedLinkType` is irrelevant, since a link shared for
  * editing is also one that can be viewed.
  *
  * The read-side counterpart of `hasWriteAccessToFile`, which is the same three checks plus a
@@ -161,7 +161,7 @@ export async function hasReadAccessToFile(
 	try {
 		const file = await db
 			.selectFrom('file')
-			.select(['id', 'ownerId', 'owningGroupId', 'shared', 'isDeleted'])
+			.select(['id', 'owningGroupId', 'shared', 'isDeleted'])
 			.where('id', '=', fileId)
 			.executeTakeFirst()
 
@@ -170,7 +170,6 @@ export async function hasReadAccessToFile(
 			ok: true,
 			file: { id: file.id, shared: file.shared, isDeleted: false },
 		} as const
-		if (file.ownerId === userId) return granted
 		if (file.owningGroupId) {
 			const role = await getRole(db, userId, file.owningGroupId)
 			if (can(role, 'accessFiles')) return granted

@@ -29,7 +29,6 @@ import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
 import { healthCheckRoutes } from './healthCheckRoutes'
 import { createPostgresConnectionPool } from './postgres'
-import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
 import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
@@ -52,9 +51,9 @@ import {
 	mcpCorsPreflight,
 	withMcpCors,
 } from './routes/tla/mcpAuth'
+import { mcpServer } from './routes/tla/mcpServer'
 import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
 import { putThumbnailRenderResult } from './routes/tla/putThumbnailRenderResult'
-import { sharedBoardScreenshotMcp } from './routes/tla/sharedBoardScreenshotMcp'
 import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
 import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
@@ -85,6 +84,11 @@ const { preflight, corsify } = cors({
 
 const QUEUE_BASE_DELAY = 2
 
+// wrangler.toml sets max_retries = 10 on the queue consumer, and Queues delivers a message
+// max_retries + 1 times before writing it to the dead letter queue. `attempts` starts at 1 and
+// counts the delivery in progress, so this is the number it carries on its final delivery.
+const QUEUE_FINAL_ATTEMPT = 11
+
 const router = createRouter<Environment>()
 	// The MCP endpoint and its RFC 9728 discovery metadata are registered ahead of both the shared
 	// preflight and the origin check, and answer their own CORS instead — see MCP_CORS_HEADERS for why
@@ -95,9 +99,7 @@ const router = createRouter<Environment>()
 	.options('/app/mcp', mcpCorsPreflight)
 	.options(MCP_PROTECTED_RESOURCE_METADATA_PATH, mcpCorsPreflight)
 	// .all so MCP server can correctly respond to non-post requests with 405
-	.all('/app/mcp', async (req, env, ctx) =>
-		withMcpCors(await sharedBoardScreenshotMcp(req, env, ctx))
-	)
+	.all('/app/mcp', async (req, env, ctx) => withMcpCors(await mcpServer(req, env, ctx)))
 	// Registered at the origin rather than under /app, because RFC 9728 puts protected resource
 	// metadata at a well-known path derived from the resource's own path — a client looks for exactly
 	// this URL and nowhere else. The /api/* route pattern does not cover it, so wrangler.toml carries
@@ -107,7 +109,6 @@ const router = createRouter<Environment>()
 	)
 	.all('*', preflight)
 	.all('*', blockUnknownOrigins)
-	.post('/snapshots', createRoomSnapshot)
 	.get('/snapshot/:roomId', getRoomSnapshot)
 	// Social preview metadata for board links. Vercel routes social crawlers (by user-agent) here so
 	// the unfurled link preview includes the board's name. See apps/dotcom/client/scripts/build.ts.
@@ -331,6 +332,37 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		await this.env.QUEUE.send({ type: 'asset-upload', objectName, fileId, userId })
 	}
 
+	// Both branches of the queue loop swallow their errors so one bad message cannot abort the
+	// batch, which left their failures with no record anywhere.
+	// Both callers report immediately before settling the message, so a throw in here would skip
+	// the retry() that follows and silently drop the message instead of redelivering it.
+	private reportQueueFailure(message: Message<QueueMessage>, error: unknown) {
+		try {
+			const sentry = createSentry(this.ctx, this.env)
+			if (!sentry) {
+				console.error(`[queue] ${message.body.type} message failed`, error)
+				return
+			}
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			sentry.withScope((scope) => {
+				scope.setTag('queue_message_type', message.body.type)
+				scope.setExtras({ messageId: message.id, attempts: message.attempts })
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				sentry.captureException(error)
+			})
+		} catch (_e) {
+			console.error(`[queue] ${message.body.type} message failed`, error)
+		}
+	}
+
+	// asset-upload retries the same failing insert on every delivery, so reporting each one would
+	// file the same issue eleven times for a single message. Wait for the last delivery, which is
+	// the one that lands it in the dead letter queue.
+	private reportQueueFailureOnFinalAttempt(message: Message<QueueMessage>, error: unknown) {
+		if (message.attempts < QUEUE_FINAL_ATTEMPT) return
+		this.reportQueueFailure(message, error)
+	}
+
 	override async queue(batch: MessageBatch<QueueMessage>): Promise<void> {
 		// The pool is only needed for asset-upload messages, so create it lazily: OG image render
 		// batches should not open database connections they never use.
@@ -344,10 +376,17 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 							message as Message<OgImageRenderQueueMessage>,
 							this.ctx
 						)
-					} catch (_e) {
+					} catch (e) {
 						// handleOgImageRenderMessage settles the message itself; this guards the batch loop
 						// against an unexpected throw escaping it, so one bad message can't abort processing
 						// of the rest of the batch. Retry is a no-op if the handler already settled.
+						//
+						// Reported on every delivery rather than on the last one. The handler already
+						// reports the render failures it catches, so anything reaching here escaped it
+						// entirely — a bug in the handler, not a failing render. Those are rare, and an
+						// escape that doesn't recur never reaches a final delivery anyway: the handler's
+						// own budget acks the message at attempts >= OG_MAX_RENDER_ATTEMPTS.
+						this.reportQueueFailure(message, e)
 						message.retry()
 					}
 					break
@@ -361,7 +400,8 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 							.onConflict((oc) => oc.column('objectName').doNothing())
 							.execute()
 						message.ack()
-					} catch (_e) {
+					} catch (e) {
+						this.reportQueueFailureOnFinalAttempt(message, e)
 						message.retry({
 							delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
 						})

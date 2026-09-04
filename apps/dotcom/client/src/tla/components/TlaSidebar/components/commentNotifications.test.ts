@@ -40,7 +40,7 @@ function comment(overrides: Partial<CommentNotificationInput> = {}): CommentNoti
 		createdAt: at(0),
 		body: body('hello'),
 		read: undefined,
-		file: { ownerId: THIRD },
+		file: { owningGroupId: THIRD },
 		thread: { createdBy: OTHER },
 		...overrides,
 	}
@@ -53,7 +53,7 @@ describe('categorizeCommentNotifications', () => {
 
 	it("labels another user's comment on a board I own as owned-board", () => {
 		const result = categorizeCommentNotifications(
-			[comment({ file: { ownerId: ME }, thread: { createdBy: OTHER } })],
+			[comment({ file: { owningGroupId: ME }, thread: { createdBy: OTHER } })],
 			ME
 		)
 		expect(result).toHaveLength(1)
@@ -63,7 +63,7 @@ describe('categorizeCommentNotifications', () => {
 
 	it('excludes my own comments', () => {
 		const result = categorizeCommentNotifications(
-			[comment({ authorId: ME, file: { ownerId: ME }, body: body('hi ', [ME]) })],
+			[comment({ authorId: ME, file: { owningGroupId: ME }, body: body('hi ', [ME]) })],
 			ME
 		)
 		expect(result).toEqual([])
@@ -71,7 +71,7 @@ describe('categorizeCommentNotifications', () => {
 
 	it('labels a reply in a thread I started as reply', () => {
 		const result = categorizeCommentNotifications(
-			[comment({ thread: { createdBy: ME }, file: { ownerId: THIRD } })],
+			[comment({ thread: { createdBy: ME }, file: { owningGroupId: THIRD } })],
 			ME
 		)
 		expect(result.map((n) => n.primaryReason)).toEqual(['reply'])
@@ -83,7 +83,7 @@ describe('categorizeCommentNotifications', () => {
 			authorId: OTHER,
 			createdAt: at(10),
 			thread: { createdBy: OTHER, comments: [{ authorId: ME, createdAt: at(0) }] },
-			file: { ownerId: THIRD },
+			file: { owningGroupId: THIRD },
 		})
 		const result = categorizeCommentNotifications([theirReply], ME)
 		expect(result).toHaveLength(1)
@@ -98,13 +98,13 @@ describe('categorizeCommentNotifications', () => {
 			id: 'comment:b1',
 			createdAt: at(0),
 			thread,
-			file: { ownerId: THIRD },
+			file: { owningGroupId: THIRD },
 		})
 		const before2 = comment({
 			id: 'comment:b2',
 			createdAt: at(10),
 			thread,
-			file: { ownerId: THIRD },
+			file: { owningGroupId: THIRD },
 		})
 		expect(categorizeCommentNotifications([before1, before2], ME)).toEqual([])
 	})
@@ -122,13 +122,13 @@ describe('categorizeCommentNotifications', () => {
 			id: 'comment:pre',
 			createdAt: at(0),
 			thread,
-			file: { ownerId: THIRD },
+			file: { owningGroupId: THIRD },
 		})
 		const postJoin = comment({
 			id: 'comment:post',
 			createdAt: at(20),
 			thread,
-			file: { ownerId: THIRD },
+			file: { owningGroupId: THIRD },
 		})
 		const result = categorizeCommentNotifications([preJoin, postJoin], ME)
 		expect(result.map((n) => n.comment.id)).toEqual(['comment:post'])
@@ -139,7 +139,7 @@ describe('categorizeCommentNotifications', () => {
 		// A starts a thread, B replies right away: A's opening comment is context B already saw,
 		// not a reply to B, no matter how narrowly it predates B's join.
 		const thread = { createdBy: OTHER, comments: [{ authorId: ME, createdAt: at(0) + 5_000 }] }
-		const opener = comment({ createdAt: at(0), thread, file: { ownerId: THIRD } })
+		const opener = comment({ createdAt: at(0), thread, file: { owningGroupId: THIRD } })
 		expect(categorizeCommentNotifications([opener], ME)).toEqual([])
 	})
 
@@ -147,13 +147,13 @@ describe('categorizeCommentNotifications', () => {
 		// The gate is strict: same-instant means "not after me". Postgres stamps createdAt
 		// monotonically per thread (migration 046), so real replies can never tie with my join.
 		const thread = { createdBy: OTHER, comments: [{ authorId: ME, createdAt: at(10) }] }
-		const tied = comment({ createdAt: at(10), thread, file: { ownerId: THIRD } })
+		const tied = comment({ createdAt: at(10), thread, file: { owningGroupId: THIRD } })
 		expect(categorizeCommentNotifications([tied], ME)).toEqual([])
 	})
 
 	it('keeps a reply stamped just after my join', () => {
 		const thread = { createdBy: OTHER, comments: [{ authorId: ME, createdAt: at(10) }] }
-		const reply = comment({ createdAt: at(10) + 1, thread, file: { ownerId: THIRD } })
+		const reply = comment({ createdAt: at(10) + 1, thread, file: { owningGroupId: THIRD } })
 		const result = categorizeCommentNotifications([reply], ME)
 		expect(result.map((n) => n.primaryReason)).toEqual(['reply'])
 	})
@@ -161,7 +161,7 @@ describe('categorizeCommentNotifications', () => {
 	it("ignores others' comments in the thread relation when deriving my join time", () => {
 		// defense in depth: the query only syncs my own, but a foreign row must not count
 		const thread = { createdBy: OTHER, comments: [{ authorId: THIRD, createdAt: at(0) }] }
-		const theirs = comment({ createdAt: at(10), thread, file: { ownerId: THIRD } })
+		const theirs = comment({ createdAt: at(10), thread, file: { owningGroupId: THIRD } })
 		expect(categorizeCommentNotifications([theirs], ME)).toEqual([])
 	})
 
@@ -172,7 +172,7 @@ describe('categorizeCommentNotifications', () => {
 					createdAt: at(0),
 					body: body('hey ', [ME]),
 					thread: { createdBy: OTHER, comments: [{ authorId: ME, createdAt: at(10) }] },
-					file: { ownerId: THIRD },
+					file: { owningGroupId: THIRD },
 				}),
 			],
 			ME
@@ -185,7 +185,7 @@ describe('categorizeCommentNotifications', () => {
 
 	it('never labels reply when the thread relation is missing', () => {
 		const result = categorizeCommentNotifications(
-			[comment({ thread: null, file: { ownerId: ME } })],
+			[comment({ thread: null, file: { owningGroupId: ME } })],
 			ME
 		)
 		expect(result).toHaveLength(1)
@@ -198,7 +198,7 @@ describe('categorizeCommentNotifications', () => {
 				comment({
 					createdAt: at(0),
 					thread: { createdBy: OTHER, comments: [{ authorId: ME, createdAt: at(10) }] },
-					file: { ownerId: ME },
+					file: { owningGroupId: ME },
 				}),
 			],
 			ME
@@ -212,7 +212,7 @@ describe('categorizeCommentNotifications', () => {
 			[
 				comment({
 					body: body('hey ', [ME]),
-					file: { ownerId: THIRD },
+					file: { owningGroupId: THIRD },
 					thread: { createdBy: OTHER },
 				}),
 			],
@@ -226,7 +226,7 @@ describe('categorizeCommentNotifications', () => {
 		const result = categorizeCommentNotifications(
 			[
 				comment({
-					file: { ownerId: THIRD },
+					file: { owningGroupId: THIRD },
 					thread: { createdBy: OTHER },
 					body: body('hey ', [THIRD]),
 				}),
@@ -238,7 +238,13 @@ describe('categorizeCommentNotifications', () => {
 
 	it('tags multiple reasons with mention > reply > owned-board precedence', () => {
 		const result = categorizeCommentNotifications(
-			[comment({ file: { ownerId: ME }, thread: { createdBy: ME }, body: body('hey ', [ME]) })],
+			[
+				comment({
+					file: { owningGroupId: ME },
+					thread: { createdBy: ME },
+					body: body('hey ', [ME]),
+				}),
+			],
 			ME
 		)
 		expect(result).toHaveLength(1)
@@ -247,17 +253,17 @@ describe('categorizeCommentNotifications', () => {
 	})
 
 	it('sorts newest first', () => {
-		const older = comment({ id: 'comment:old', createdAt: at(0), file: { ownerId: ME } })
-		const newer = comment({ id: 'comment:new', createdAt: at(10), file: { ownerId: ME } })
+		const older = comment({ id: 'comment:old', createdAt: at(0), file: { owningGroupId: ME } })
+		const newer = comment({ id: 'comment:new', createdAt: at(10), file: { owningGroupId: ME } })
 		const result = categorizeCommentNotifications([older, newer], ME)
 		expect(result.map((n) => n.comment.id)).toEqual(['comment:new', 'comment:old'])
 	})
 
 	it('marks a comment notification unread until it has a read receipt', () => {
-		const unread = categorizeCommentNotifications([comment({ file: { ownerId: ME } })], ME)
+		const unread = categorizeCommentNotifications([comment({ file: { owningGroupId: ME } })], ME)
 		expect(unread[0].unread).toBe(true)
 		const read = categorizeCommentNotifications(
-			[comment({ file: { ownerId: ME }, read: { readAt: at(1) } })],
+			[comment({ file: { owningGroupId: ME }, read: { readAt: at(1) } })],
 			ME
 		)
 		expect(read[0].unread).toBe(false)
@@ -271,7 +277,7 @@ describe('buildReactionNotifications', () => {
 		return comment({
 			authorId: ME,
 			thread: { createdBy: ME },
-			file: { ownerId: THIRD },
+			file: { owningGroupId: THIRD },
 			reactions: [{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(10) }],
 			...overrides,
 		})
@@ -369,7 +375,7 @@ describe('buildReactionNotifications', () => {
 			ME
 		)
 		const replied = categorizeCommentNotifications(
-			[comment({ id: 'comment:replied', createdAt: at(10), file: { ownerId: ME } })],
+			[comment({ id: 'comment:replied', createdAt: at(10), file: { owningGroupId: ME } })],
 			ME
 		)
 		const result = mergeNotifications(replied, reacted)
@@ -381,13 +387,13 @@ describe('mergeNotifications', () => {
 	it('merges multiple feeds newest first', () => {
 		const a = categorizeCommentNotifications(
 			[
-				comment({ id: 'comment:a1', createdAt: at(0), file: { ownerId: ME } }),
-				comment({ id: 'comment:a2', createdAt: at(20), file: { ownerId: ME } }),
+				comment({ id: 'comment:a1', createdAt: at(0), file: { owningGroupId: ME } }),
+				comment({ id: 'comment:a2', createdAt: at(20), file: { owningGroupId: ME } }),
 			],
 			ME
 		)
 		const b = categorizeCommentNotifications(
-			[comment({ id: 'comment:b1', createdAt: at(10), file: { ownerId: ME } })],
+			[comment({ id: 'comment:b1', createdAt: at(10), file: { owningGroupId: ME } })],
 			ME
 		)
 		const result = mergeNotifications(a, b)

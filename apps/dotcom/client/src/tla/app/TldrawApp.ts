@@ -3,11 +3,11 @@ import { captureException } from '@sentry/react'
 import {
 	AcceptInviteResponseBody,
 	CreateFilesResponseBody,
-	CreateSnapshotRequestBody,
 	FILE_PREFIX,
 	LOCAL_FILE_PREFIX,
 	MAX_NUMBER_OF_FILES,
 	ROOM_PREFIX,
+	Snapshot,
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
 	TlaFileState,
@@ -64,7 +64,7 @@ import { trackEvent } from '../../utils/analytics'
 import { ZERO_SERVER } from '../../utils/config'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
-import { TLAppUiContextType } from '../utils/app-ui-events'
+import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
 import { getDateFormat } from '../utils/dates'
 import { FeatureFlags } from '../utils/FeatureFlagPoller'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
@@ -908,7 +908,6 @@ export class TldrawApp {
 	canUpdateFile(fileId: string): boolean {
 		const file = this.getFile(fileId)
 		if (!file) return false
-		if (file.ownerId) return file.ownerId === this.userId
 		if (file.owningGroupId) {
 			const role = this.getWorkspaceMembership(file.owningGroupId)?.role
 			return can(role, 'accessFiles')
@@ -940,7 +939,8 @@ export class TldrawApp {
 	}
 
 	/**
-	 * Remove a user's file states for a file and delete the file if the user is the owner of the file.
+	 * Remove the user's file state and the workspace's link to a file, deleting the file itself only
+	 * if that workspace is the one that owns it.
 	 */
 	async deleteOrForgetFile(fileId: string, workspaceId: string = this.getHomeWorkspaceId()) {
 		// Optimistic update, remove file and file states
@@ -1091,10 +1091,16 @@ export class TldrawApp {
 
 	async uploadTldrFiles(
 		files: File[],
-		onFirstFileUploaded?: (fileId: string) => void,
-		workspaceId?: string,
-		onUploadError?: () => void
+		opts: {
+			/** Where the import started; reported as the `create-file` source for each file. */
+			source: TLAppUiEventSource
+			onFirstFileUploaded?(fileId: string): void
+			workspaceId?: string
+			onUploadError?(): void
+		}
 	) {
+		let { onFirstFileUploaded } = opts
+		const { source, workspaceId, onUploadError } = opts
 		const totalFiles = files.length
 		let uploadedFiles = 0
 		if (totalFiles === 0) return
@@ -1173,6 +1179,8 @@ export class TldrawApp {
 				}),
 			})
 
+			this.trackEvent('create-file', { source })
+
 			if (onFirstFileUploaded) {
 				onFirstFileUploaded(res.value.fileId)
 				onFirstFileUploaded = undefined
@@ -1245,7 +1253,7 @@ export class TldrawApp {
 				{
 					schema: snapshot.schema,
 					snapshot: snapshot.store,
-				} satisfies CreateSnapshotRequestBody,
+				} satisfies Snapshot,
 			],
 		})
 
