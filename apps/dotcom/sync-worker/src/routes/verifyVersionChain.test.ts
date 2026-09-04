@@ -80,8 +80,36 @@ describe('verifyRoomVersions under clock skew', () => {
 		await put(20, 1, versions[0], versions[1])
 		await put(15, 2, versions[1], versions[2])
 
-		expect(await verifyRoomVersions({ chainBucket, legacyBucket, roomKey, limit: 10 })).toEqual({
+		expect(await verifyRoomVersions({ chainBucket, legacyBucket, roomKey, limit: 20 })).toEqual({
 			checked: 3,
+			replayed: 3,
+			// One listing, then a get and a legacy get for the keyframe and for each segment.
+			reads: 7,
+			mismatches: [],
+			errors: [],
+		})
+	})
+})
+
+describe('verifyRoomVersions after cut-over', () => {
+	it('stops on the read budget when no legacy copy answers', async () => {
+		const chainBucket = createFakeR2()
+		const legacyBucket = createFakeR2()
+		// Chain only, as the bucket looks once dual-write is off: nothing increments a comparison
+		// counter, so a budget keyed off one would walk all twenty chains.
+		for (let i = 0; i < 20; i++) {
+			const iso = `2026-09-01T00:00:${String(i).padStart(2, '0')}.000Z`
+			const kf = await encodeVersionBody(snapshot(i + 1, [`shape:${i}`]))
+			await chainBucket.put(versionKey(roomKey, iso, 'keyframe'), kf.body, {
+				customMetadata: kf.metadata,
+			})
+		}
+
+		// One listing, then two reads per keyframe: three keyframes fit, the fourth never starts.
+		expect(await verifyRoomVersions({ chainBucket, legacyBucket, roomKey, limit: 7 })).toEqual({
+			checked: 0,
+			replayed: 3,
+			reads: 7,
 			mismatches: [],
 			errors: [],
 		})
@@ -106,11 +134,12 @@ describe('verifyRoomVersions with a limit', () => {
 			await legacyBucket.put(`${roomKey}/${iso}`, JSON.stringify(legacy))
 		}
 
-		const limited = await verifyRoomVersions({ chainBucket, legacyBucket, roomKey, limit: 1 })
-		const full = await verifyRoomVersions({ chainBucket, legacyBucket, roomKey, limit: 10 })
+		// One listing plus the two reads the first keyframe costs, so the second never starts.
+		const limited = await verifyRoomVersions({ chainBucket, legacyBucket, roomKey, limit: 3 })
+		const full = await verifyRoomVersions({ chainBucket, legacyBucket, roomKey, limit: 20 })
 
 		// With budget for one version, the newest chain is the one that gets checked.
-		expect(limited).toEqual({ checked: 1, mismatches: [], errors: [] })
+		expect(limited).toEqual({ checked: 1, replayed: 1, reads: 3, mismatches: [], errors: [] })
 		expect(full.mismatches).toEqual(['2026-08-01T00:00:00.000Z'])
 	})
 })
@@ -124,8 +153,10 @@ describe('verifyRoomVersions', () => {
 			snapshot(2, ['shape:a', 'shape:b']),
 		])
 
-		expect(await verifyRoomVersions({ chainBucket, legacyBucket, roomKey, limit: 10 })).toEqual({
+		expect(await verifyRoomVersions({ chainBucket, legacyBucket, roomKey, limit: 20 })).toEqual({
 			checked: 2,
+			replayed: 2,
+			reads: 5,
 			mismatches: [],
 			errors: [],
 		})
@@ -143,7 +174,7 @@ describe('verifyRoomVersions', () => {
 			JSON.stringify(snapshot(2, ['shape:wrong']))
 		)
 
-		const result = await verifyRoomVersions({ chainBucket, legacyBucket, roomKey, limit: 10 })
+		const result = await verifyRoomVersions({ chainBucket, legacyBucket, roomKey, limit: 20 })
 
 		expect(result.mismatches).toEqual(['2026-09-01T00:00:01.000Z'])
 	})
