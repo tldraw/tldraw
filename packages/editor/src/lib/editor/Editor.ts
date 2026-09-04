@@ -8848,6 +8848,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const animations: ShapeAnimation[] = []
 
+		// Snapshot the lock override now: when this animation is started inside
+		// editor.run(..., { ignoreShapeLock: true }), run() restores the flag before any tick
+		// fires, so the final updateShapes below would refuse the locked shape and strand it
+		const ignoreShapeLock = this._shouldIgnoreShapeLock
+
 		let partial: TLShapePartial | null | undefined, result: ShapeAnimation
 		for (let i = 0, n = partials.length; i < n; i++) {
 			partial = partials[i]
@@ -8860,7 +8865,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// _updateShapes, which doesn't check locks, so a locked shape would otherwise be moved by
 			// every frame but the last and end up stranded at the penultimate one
 			const unlocks = shape.isLocked && Object.hasOwn(partial, 'isLocked') && !partial.isLocked
-			if (!this._shouldIgnoreShapeLock && !unlocks && this.isShapeOrAncestorLocked(shape)) {
+			if (!ignoreShapeLock && !unlocks && this.isShapeOrAncestorLocked(shape)) {
 				continue
 			}
 
@@ -8884,7 +8889,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				if (partialsToUpdate.length) {
 					// the regular update shapes also removes the shape from
 					// the animating shapes set
-					this.updateShapes(partialsToUpdate)
+					this.run(() => this.updateShapes(partialsToUpdate), { ignoreShapeLock })
 				}
 
 				this.off('tick', handleTick)

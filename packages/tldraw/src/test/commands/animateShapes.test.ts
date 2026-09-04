@@ -31,3 +31,20 @@ it('does not move locked shapes', () => {
 	editor.emit('tick', 60)
 	expect(editor.getShape(id)).toMatchObject({ x: 0, y: 0 })
 })
+
+it('moves a locked shape all the way when the lock is ignored', () => {
+	const id = createShapeId('box')
+	editor.createShape({ id, type: 'geo', x: 0, y: 0, isLocked: true })
+	editor.run(
+		() => {
+			editor.animateShapes([{ id, type: 'geo', x: 100, y: 100 }], { animation: { duration: 100 } })
+		},
+		{ ignoreShapeLock: true }
+	)
+	editor.emit('tick', 50)
+	expect(editor.getShape(id)).toMatchObject({ x: 50, y: 50 })
+	// run() has restored the lock setting by the time the final frame lands, so the final update
+	// must remember that this animation was allowed to move the locked shape
+	editor.emit('tick', 60)
+	expect(editor.getShape(id)).toMatchObject({ x: 100, y: 100, isLocked: true })
+})
