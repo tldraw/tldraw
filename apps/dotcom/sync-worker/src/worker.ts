@@ -9,7 +9,6 @@ import {
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
-	can,
 	createMutators,
 	queries,
 	schema,
@@ -61,7 +60,7 @@ import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } 
 import { getFileEffectProcessor, getLogger } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, getZeroAuth, requireAuth } from './utils/tla/getAuth'
-import { getRole } from './utils/tla/getRole'
+import { hasWriteAccessToFile } from './utils/tla/hasWriteAccessToFile'
 export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLFileEffectProcessor } from './TLFileEffectProcessor'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
@@ -311,13 +310,6 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 	): Promise<{ ok: true; userId: string | null } | { ok: false; error: string }> {
 		const db = createPostgresConnectionPool(this.env, 'sync-worker')
 		try {
-			const file = await db
-				.selectFrom('file')
-				.where('id', '=', fileId)
-				.select(['owningGroupId', 'shared', 'sharedLinkType'])
-				.executeTakeFirst()
-			if (!file) return { ok: false, error: 'File not found' }
-
 			let userId: string | null = null
 			if (authorizationHeader) {
 				const fakeReq = new Request('https://internal', {
@@ -326,19 +318,9 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				const auth = await getAuth(fakeReq, this.env)
 				userId = auth?.userId ?? null
 			}
-
-			const isSharedEdit = file.shared && file.sharedLinkType === 'edit'
-			if (isSharedEdit) {
-				// shared for editing
-			} else if (userId && file.owningGroupId) {
-				const role = await getRole(db, userId, file.owningGroupId)
-				if (!can(role, 'accessFiles')) {
-					return { ok: false, error: 'Forbidden' }
-				}
-			} else {
+			if (!(await hasWriteAccessToFile(db, fileId, userId))) {
 				return { ok: false, error: 'Forbidden' }
 			}
-
 			return { ok: true, userId }
 		} finally {
 			await db.destroy()
