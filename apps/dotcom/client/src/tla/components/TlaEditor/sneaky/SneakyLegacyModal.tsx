@@ -16,7 +16,7 @@ import { routes } from '../../../../routeDefs'
 import { trackEvent } from '../../../../utils/analytics'
 import { useMaybeApp } from '../../../hooks/useAppState'
 import { F } from '../../../utils/i18n'
-import { useGetFileName } from '../TlaEditorTopRightPanel'
+import { useGetFileName, useRoomInfo } from '../TlaEditorTopRightPanel'
 import styles from './sneaky-legacy-modal.module.css'
 
 function LegacyChangesModal({ onClose }: { onClose(): void }) {
@@ -24,12 +24,14 @@ function LegacyChangesModal({ onClose }: { onClose(): void }) {
 	const app = useMaybeApp()
 	const navigate = useNavigate()
 	const name = useGetFileName()
+	// From the route params, not the raw pathname: see useFileEditorOverrides.
+	const roomInfo = useRoomInfo()
 
 	const handleCopy = async () => {
-		if (!app) return
+		if (!app || !roomInfo) return
 		const res = await app.createFile({
 			name,
-			createSource: window.location.pathname.slice(1),
+			createSource: `${roomInfo.prefix}/${roomInfo.id}`,
 		})
 		onClose()
 		if (res?.ok) {
