@@ -1683,8 +1683,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.flatten-to-image',
 				kbd: 'shift+f',
 				onSelect: async (source) => {
+					if (!canApplySelectionAction()) return
 					const ids = editor.getSelectedShapeIds()
-					if (ids.length === 0) return
 
 					editor.markHistoryStoppingPoint('flattening to image')
 					trackEvent('flatten-to-image', { source })

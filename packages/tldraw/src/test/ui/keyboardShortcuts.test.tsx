@@ -435,4 +435,23 @@ describe('selection action shortcuts during a pointer gesture', () => {
 
 		flipShapes.mockRestore()
 	})
+
+	it('ignores flatten to image while translating', async () => {
+		const { editor } = await setupDraggingShape()
+		// Flatten runs asynchronously and would otherwise delete the dragged shape once its export
+		// resolves. Resolving undefined makes the real flatten a no-op while still showing whether the
+		// export pipeline was entered.
+		const getSvgString = vi.spyOn(editor, 'getSvgString').mockResolvedValue(undefined)
+
+		keydown(editor, { key: 'f', code: 'KeyF', shiftKey: true })
+		await act(async () => {})
+		expect(getSvgString).not.toHaveBeenCalled()
+
+		pointer(editor, 'pointer_up', 150, 150)
+		keydown(editor, { key: 'f', code: 'KeyF', shiftKey: true })
+		await act(async () => {})
+		expect(getSvgString).toHaveBeenCalledTimes(1)
+
+		getSvgString.mockRestore()
+	})
 })
