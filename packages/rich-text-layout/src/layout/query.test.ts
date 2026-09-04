@@ -93,4 +93,84 @@ describe('LayoutQuery', () => {
 			{ x: 0, y: 95, width: 10, height: 20 },
 		])
 	})
+
+	it('gives a collapsed range at a wrap boundary a single rect, on the line the caret uses', () => {
+		const wrap = { path: [0, 0], offset: 3 }
+		expect(query.rangeRects(wrap, wrap)).toEqual([{ x: 30, y: 5, width: 0, height: 20 }])
+		const mid = { path: [0, 1], offset: 1 }
+		expect(query.rangeRects(mid, mid)).toEqual([{ x: 30, y: 35, width: 0, height: 20 }])
+	})
+})
+
+function paragraph(text: string) {
+	return { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text }] }] }
+}
+
+describe('LayoutQuery with right-to-left text', () => {
+	it('maps offsets from the right edge of a right-to-left line', () => {
+		// 'שלום' is 40px wide, start-aligned to the right edge of a 100px line: x 60-100
+		const rtl = new LayoutQuery(
+			layoutDocument(paragraph('שלום'), {
+				rootStyle: { ...rootStyle, direction: 'auto', textAlign: 'start' },
+				userAgentStyles: null,
+				minWidth: 100,
+			})
+		)
+		expect(rtl.layout.lines[0].fragments[0].level).toBe(1)
+		expect(rtl.caretRect({ path: [0, 0], offset: 0 })).toMatchObject({ x: 100 })
+		expect(rtl.caretRect({ path: [0, 0], offset: 1 })).toMatchObject({ x: 90 })
+		expect(rtl.caretRect({ path: [0, 0], offset: 4 })).toMatchObject({ x: 60 })
+		expect(rtl.hitTest(100, 10)).toMatchObject({
+			position: { path: [0, 0], offset: 0 },
+			trailing: false,
+		})
+		expect(rtl.hitTest(84, 10)?.position).toEqual({ path: [0, 0], offset: 2 })
+		expect(rtl.hitTest(0, 10)).toMatchObject({
+			position: { path: [0, 0], offset: 4 },
+			trailing: true,
+		})
+		expect(rtl.rangeRects({ path: [0, 0], offset: 0 }, { path: [0, 0], offset: 2 })).toEqual([
+			{ x: 80, y: 5, width: 20, height: 20 },
+		])
+		expect(rtl.rangeRects({ path: [0, 0], offset: 3 }, { path: [0, 0], offset: 4 })).toEqual([
+			{ x: 60, y: 5, width: 10, height: 20 },
+		])
+	})
+
+	it('keeps each fragment of a mixed-direction line in its own direction', () => {
+		// visual order: 'ab' (0-20), ' ' (20-30), 'שלום' (30-70), ' ' (70-80), 'cd' (80-100)
+		const mixed = new LayoutQuery(
+			layoutDocument(paragraph('ab שלום cd'), {
+				rootStyle: { ...rootStyle, direction: 'ltr' },
+				userAgentStyles: null,
+			})
+		)
+		expect(mixed.layout.lines[0].fragments.map((f) => [f.text, f.x, f.level])).toEqual([
+			['ab', 0, 0],
+			[' ', 20, 0],
+			['שלום', 30, 1],
+			[' ', 70, 0],
+			['cd', 80, 0],
+		])
+		expect(mixed.caretRect({ path: [0, 0], offset: 1 })).toMatchObject({ x: 10 })
+		// the Hebrew run reads from the right: offset 4 is one character in from x 70
+		expect(mixed.caretRect({ path: [0, 0], offset: 4 })).toMatchObject({ x: 60 })
+		expect(mixed.caretRect({ path: [0, 0], offset: 6 })).toMatchObject({ x: 40 })
+		expect(mixed.caretRect({ path: [0, 0], offset: 9 })).toMatchObject({ x: 90 })
+		expect(mixed.hitTest(10, 10)?.position).toEqual({ path: [0, 0], offset: 1 })
+		expect(mixed.hitTest(40, 10)?.position).toEqual({ path: [0, 0], offset: 6 })
+		expect(mixed.hitTest(60, 10)?.position).toEqual({ path: [0, 0], offset: 4 })
+		expect(mixed.hitTest(90, 10)?.position).toEqual({ path: [0, 0], offset: 9 })
+		// a sub-range of the Hebrew run: logical 5-7 is the left half of the fragment
+		expect(mixed.rangeRects({ path: [0, 0], offset: 3 }, { path: [0, 0], offset: 5 })).toEqual([
+			{ x: 50, y: 5, width: 20, height: 20 },
+		])
+		expect(mixed.rangeRects({ path: [0, 0], offset: 5 }, { path: [0, 0], offset: 7 })).toEqual([
+			{ x: 30, y: 5, width: 20, height: 20 },
+		])
+		// a range spanning both directions covers the visual extent of everything selected
+		expect(mixed.rangeRects({ path: [0, 0], offset: 1 }, { path: [0, 0], offset: 8 })).toEqual([
+			{ x: 10, y: 5, width: 70, height: 20 },
+		])
+	})
 })

@@ -72,7 +72,11 @@ export class LayoutQuery {
 		this.measure = measure ?? getMeasureContext()
 	}
 
-	/** Grapheme boundaries of a fragment as text offsets and x positions relative to the fragment. */
+	/**
+	 * Grapheme boundaries of a fragment as text offsets and x positions relative to the fragment.
+	 * Right-to-left fragments (odd bidi level) are painted with logical offset 0 at their right
+	 * edge, so their xs run from `width` down to 0.
+	 */
 	private graphemes(fragment: Fragment) {
 		let cached = this.advances.get(fragment)
 		if (cached) return cached
@@ -93,6 +97,12 @@ export class LayoutQuery {
 		if (natural > 0 && Math.abs(natural - fragment.width) > 0.01) {
 			const k = fragment.width / natural
 			for (let i = 0; i < xs.length; i++) xs[i] *= k
+		} else if (natural === 0 && xs.length > 1) {
+			// A fragment whose text measures as nothing (a tab) still spans its advance.
+			for (let i = 0; i < xs.length; i++) xs[i] = (fragment.width * i) / (xs.length - 1)
+		}
+		if (fragment.level % 2 === 1) {
+			for (let i = 0; i < xs.length; i++) xs[i] = fragment.width - xs[i]
 		}
 		cached = { offsets, xs }
 		this.advances.set(fragment, cached)
@@ -168,12 +178,20 @@ export class LayoutQuery {
 
 	/**
 	 * Rectangles covering a document range, one per line. Marker fragments are never included;
-	 * an empty line inside the range contributes a zero-width rect at its start.
+	 * an empty line inside the range contributes a zero-width rect at its start, and a collapsed
+	 * range gives the single zero-width rect of its caret.
 	 */
 	rangeRects(anchor: DocPosition, head: DocPosition): Rect[] {
 		let from = anchor
 		let to = head
-		if (compareDocPositions(from, to) > 0) [from, to] = [to, from]
+		const order = compareDocPositions(from, to)
+		if (order > 0) [from, to] = [to, from]
+		if (order === 0) {
+			// A wrap offset belongs to both the end of one line and the start of the next; the
+			// caret rule picks one so the collapsed range doesn't get a rect on each line.
+			const caret = this.caretRect(from)
+			if (caret) return [{ x: caret.x, y: caret.y, width: 0, height: caret.height }]
+		}
 		const rects: Rect[] = []
 		this.layout.lines.forEach((line, lineIndex) => {
 			let left = Infinity
@@ -185,13 +203,16 @@ export class LayoutQuery {
 				const start: DocPosition = { path: f.source.path, offset: f.source.from }
 				const end: DocPosition = { path: f.source.path, offset: f.source.to }
 				if (compareDocPositions(end, from) < 0 || compareDocPositions(start, to) > 0) continue
-				const a =
-					compareDocPositions(from, start) > 0 ? this.xAt(f, from.offset - f.source.from) : 0
-				const b =
-					compareDocPositions(to, end) < 0 ? this.xAt(f, to.offset - f.source.from) : f.width
-				if (b <= a && f.text.length > 0 && !(from.offset === to.offset)) continue
-				left = Math.min(left, line.x + f.x + a)
-				right = Math.max(right, line.x + f.x + b)
+				// Logical offsets within the fragment, then their x positions: in a right-to-left
+				// fragment the end offset is the left edge, so the rect spans min..max of the two.
+				const fromOffset = compareDocPositions(from, start) > 0 ? from.offset - f.source.from : 0
+				const toOffset =
+					compareDocPositions(to, end) < 0 ? to.offset - f.source.from : f.text.length
+				if (toOffset <= fromOffset && f.text.length > 0 && !(from.offset === to.offset)) continue
+				const a = this.xAt(f, fromOffset)
+				const b = this.xAt(f, toOffset)
+				left = Math.min(left, line.x + f.x + Math.min(a, b))
+				right = Math.max(right, line.x + f.x + Math.max(a, b))
 				top = Math.min(top, line.y + line.baseline + f.baselineShift - f.ascent)
 				bottom = Math.max(bottom, line.y + line.baseline + f.baselineShift + f.descent)
 			}
