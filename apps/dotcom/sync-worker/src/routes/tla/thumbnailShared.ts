@@ -2,7 +2,7 @@ import { createSentry } from '@tldraw/worker-shared'
 import { Environment } from '../../types'
 
 // Leaf helpers shared by the board-reading and thumbnail/OG-image surfaces
-// (get{Published,SharedFile}, the render core in thumbnailRender.ts, sharedBoardScreenshotMcp.ts,
+// (get{Published,SharedFile}, the render core in thumbnailRender.ts, mcpServer.ts,
 // the OG route, and the OG queue consumer). This module imports nothing from those files so it can
 // be depended on from any of them without creating an import cycle.
 
@@ -109,6 +109,11 @@ export type ThumbnailErrorSurface =
 	// this never means "screenshots are broken" — it means the cache isn't absorbing them and every
 	// call is re-spending Browser Run.
 	| 'mcp_screenshot_cache_write'
+	// The cluster index cache in the file's Durable Object. Neither of these is ever a caller-visible
+	// failure — both fall back to measuring the page — but both mean the clustering tools are paying
+	// for a browser session per call again, which is the thing that cache exists to stop.
+	| 'mcp_cluster_index_read'
+	| 'mcp_cluster_index_write'
 
 // Every thumbnail/OG surface swallows its own errors — the OG route falls back to the default image,
 // the snapshot route 404s, the MCP tools return a tool error, the queue retries or drops. Right for

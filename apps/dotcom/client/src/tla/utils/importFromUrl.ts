@@ -31,12 +31,12 @@ export async function importFromUrl(
 		return new Promise<
 			{ ok: true; fileId: string } | { ok: false; error: string; toastAlreadyShown?: boolean }
 		>((resolve) => {
-			app.uploadTldrFiles(
-				[file],
-				(fileId) => resolve({ ok: true, fileId }),
-				undefined,
-				() => resolve({ ok: false, error: 'Upload failed', toastAlreadyShown: true })
-			)
+			app.uploadTldrFiles([file], {
+				source: 'import-url',
+				onFirstFileUploaded: (fileId) => resolve({ ok: true, fileId }),
+				onUploadError: () =>
+					resolve({ ok: false, error: 'Upload failed', toastAlreadyShown: true }),
+			})
 		})
 	} catch (e) {
 		return {

@@ -70,3 +70,18 @@ test.each(testCases)('works with $name', ({ deepLink, expected }) => {
 	expect(createDeepLinkString(deepLink)).toBe(expected)
 	expect(parseDeepLinkString(expected)).toEqual(deepLink)
 })
+
+describe('parseDeepLinkString', () => {
+	it('throws on a viewport link with non-numeric bounds', () => {
+		expect(() => parseDeepLinkString('vabc.def.ghi.jkl')).toThrow('Invalid deep link string')
+	})
+
+	it('throws on a viewport link with missing bounds', () => {
+		expect(() => parseDeepLinkString('v1.2')).toThrow('Invalid deep link string')
+		expect(() => parseDeepLinkString('v')).toThrow('Invalid deep link string')
+	})
+
+	it('throws on an unknown link type', () => {
+		expect(() => parseDeepLinkString('xabc')).toThrow('Invalid deep link string')
+	})
+})

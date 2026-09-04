@@ -112,6 +112,7 @@ function StylePanelDoubleDropdownPickerInlineInner<T extends string>(
 										type="icon"
 										key={item.value}
 										onClick={() => {
+											ctx.onHistoryMark('select style dropdown item')
 											onValueChange(styleA, item.value)
 											tlmenus.deleteOpenMenu(idA, editor.contextId)
 											setIsOpenA(false)
@@ -153,6 +154,7 @@ function StylePanelDoubleDropdownPickerInlineInner<T extends string>(
 										title={`${msg(labelB)} — ${msg(`${uiTypeB}-style.${item.value}` as TLUiTranslationKey)}`}
 										data-testid={`style.${uiTypeB}.${item.value}`}
 										onClick={() => {
+											ctx.onHistoryMark('select style dropdown item')
 											onValueChange(styleB, item.value)
 											tlmenus.deleteOpenMenu(idB, editor.contextId)
 											setIsOpenB(false)

@@ -209,7 +209,16 @@ export type TLServerEvent =
 				| 'comment_reaction_orphan_prune'
 				| 'room_empty'
 				| 'fail_persist'
-				| 'room_start'
+	  }
+	| {
+			type: 'room'
+			name: 'room_start'
+			/**
+			 * How many hibernated sockets this boot resumed. Zero means a cold boot, and anything
+			 * higher means the durable object woke with clients still attached — which nothing else
+			 * in the dataset distinguishes, since both emit the same `room_start`.
+			 */
+			resumedSockets: number
 	  }
 	| {
 			type: 'send_message'
@@ -255,6 +264,17 @@ export type ThumbnailBoardKind = 'published' | 'shared_file'
 export interface ThumbnailBoardRef {
 	kind: ThumbnailBoardKind
 	slug: string
+}
+
+/**
+ * Which page of which board a stored MCP cluster index belongs to. The object it is stored in is
+ * already the board's file, so this addresses a page within that. See mcpClusterIndexStorage.ts.
+ */
+export interface McpClusterIndexKey {
+	kind: ThumbnailBoardKind
+	pageId: string
+	/** The board's content version, so an index is only read back for the content it was built from. */
+	version: string
 }
 
 /**

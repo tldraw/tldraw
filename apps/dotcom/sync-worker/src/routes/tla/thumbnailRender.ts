@@ -29,11 +29,13 @@ import {
 import { writeDataPoint } from '../../utils/analytics'
 import { arrayBufferToBase64, base64ToArrayBuffer } from '../../utils/base64'
 import {
+	RenderPageReach,
 	ThumbnailRenderJob,
 	deleteMintedRenderToken,
 	mintThumbnailRenderToken,
 	recordMintedRenderToken,
 	renderParamsForJob,
+	wasRenderTokenServedSince,
 } from '../../utils/renderTokens'
 import { ShapeMeasurement } from './boardTools'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
@@ -51,12 +53,12 @@ import {
 } from './thumbnailShared'
 
 // The render-and-cache core shared by every Browser Run screenshot surface: the MCP screenshot
-// tool (sharedBoardScreenshotMcp.ts), the OG image route (getOgImage.ts), and the OG render queue
+// tool (mcpServer.ts), the OG image route (getOgImage.ts), and the OG render queue
 // consumer (ogImageQueue.ts). Owns board resolution, snapshot loading, page enumeration, the
 // Browser Rendering invocation, and the shared telemetry writer. The surfaces own their own protocol
 // handling, cache keys, and retry/backoff policies.
 //
-// Owns no rate limiting: the pipeline's only limiters live in sharedBoardScreenshotMcp.ts, so a new
+// Owns no rate limiting: the pipeline's only limiters live in mcpServer.ts, so a new
 // surface built on these helpers cannot pick one up by accident.
 
 // A board a screenshot surface has resolved. Whether it is *publicly viewable* depends on the access
@@ -65,6 +67,16 @@ import {
 // files), so it can key the thumbnail caches.
 export interface ResolvedThumbnailBoard extends ThumbnailBoardRef {
 	version: string | number
+	/**
+	 * The file this board's content belongs to: the slug itself for a shared file, and the parent file
+	 * a published slug resolves to for a published board.
+	 *
+	 * Carried because the file's Durable Object is addressed by it, and that object is where the MCP
+	 * server caches a page's cluster index (see mcpClusterIndex.ts). Kept off `ThumbnailBoardRef`,
+	 * which is the *identity* of a board and keys its caches: two kinds can share a file id, so a key
+	 * built from this would collide a published board's index with its file's.
+	 */
+	fileId: string
 	/**
 	 * The gate this board was resolved under, carried so a render cannot be minted under a weaker one
 	 * than the resolution used. `captureThumbnailScreenshot` signs it into the job, and the snapshot
@@ -119,7 +131,17 @@ export async function resolveThumbnailBoard(
 		// apply: an unpublished board has no published snapshot to render in the first place.
 		const publishedFile = await getPublishedFileInfo(env, slug)
 		if (!publishedFile?.published) return { ok: false, reason: 'not_found' }
-		return { ok: true, board: { kind, slug, version: publishedFile.lastPublished, access } }
+		return {
+			ok: true,
+			board: {
+				kind,
+				slug,
+				version: publishedFile.lastPublished,
+				access,
+				// The row this published slug resolved through, which is the file that owns the snapshot.
+				fileId: publishedFile.id,
+			},
+		}
 	}
 
 	const file = knownFile ?? (await getSharedFileInfo(env, slug))
@@ -130,7 +152,7 @@ export async function resolveThumbnailBoard(
 	const persisted = await env.ROOMS.head(getR2KeyForRoom({ slug, isApp: true }))
 	if (!persisted) return { ok: false, reason: 'board_empty' }
 
-	return { ok: true, board: { kind, slug, version: persisted.etag, access, file } }
+	return { ok: true, board: { kind, slug, version: persisted.etag, access, file, fileId: file.id } }
 }
 
 // Reads a resolved board's snapshot, keeping the two outcomes callers must tell apart distinct.
@@ -332,6 +354,7 @@ export async function captureThumbnailScreenshot(
 		capture,
 		push,
 		ctx,
+		content,
 	}: {
 		/** Which pipeline is asking. Signed into the job; namespaces the minted-token record. */
 		surface: ThumbnailRenderSurface
@@ -373,6 +396,8 @@ export async function captureThumbnailScreenshot(
 		push?: { records: TLRecord[]; schema: SerializedSchema }
 		/** Extends the artifact cache's background refresh past this invocation; see getInlineRenderPage. */
 		ctx?: ExecutionContext
+		/** What the board holds, for the ledger (see summarizeSnapshotContent). Never identifies it. */
+		content?: RenderContentSummary
 	}
 ): Promise<{ base64: string; durationMs: number }> {
 	const job: ThumbnailRenderJob = {
@@ -433,6 +458,8 @@ export async function captureThumbnailScreenshot(
 				},
 				push: payloadLiteral ? { literal: payloadLiteral, live: capture === 'live' } : undefined,
 				ctx,
+				content,
+				pageReached: (since) => wasRenderTokenServedSince(env, job, token, since),
 			}
 		)
 	} finally {
@@ -460,6 +487,75 @@ export interface BrowserRunSessionContext {
 	capture?: 'live'
 }
 
+/**
+ * What a board holds, as numbers, for the session ledger. Numbers only: doubles carry no cardinality,
+ * and none of these can identify a board (see "No board identifier leaves this pipeline" in
+ * browser-run-thumbnails.md). Sizes come straight off the records, so the box is the union of top-level
+ * shapes' positions and stored sizes — rotation ignored, sizeless shapes (draw strokes) counted as
+ * points. A proxy, not geometry; the question it answers is whether render time and failure track
+ * what is on the board, which a proxy resolves.
+ */
+export interface RenderContentSummary {
+	records: number
+	/** Shapes parented directly to the rendered page. */
+	pageShapes: number
+	/** Image and video asset records in the document, whichever page uses them. */
+	mediaAssets: number
+	bboxWidth: number
+	bboxHeight: number
+}
+
+const EMPTY_CONTENT_SUMMARY: RenderContentSummary = {
+	records: 0,
+	pageShapes: 0,
+	mediaAssets: 0,
+	bboxWidth: 0,
+	bboxHeight: 0,
+}
+
+export function summarizeSnapshotContent(
+	snapshot: RoomSnapshot,
+	pageId: string | undefined
+): RenderContentSummary {
+	let pageShapes = 0
+	let mediaAssets = 0
+	let minX = Infinity
+	let minY = Infinity
+	let maxX = -Infinity
+	let maxY = -Infinity
+	for (const { state } of snapshot.documents) {
+		const record = state as {
+			typeName?: string
+			type?: string
+			parentId?: string
+			x?: number
+			y?: number
+			props?: { w?: unknown; h?: unknown }
+		}
+		if (record.typeName === 'asset') {
+			if (record.type === 'image' || record.type === 'video') mediaAssets++
+			continue
+		}
+		if (record.typeName !== 'shape' || (pageId && record.parentId !== pageId)) continue
+		pageShapes++
+		const x = record.x ?? 0
+		const y = record.y ?? 0
+		const w = typeof record.props?.w === 'number' ? record.props.w : 0
+		const h = typeof record.props?.h === 'number' ? record.props.h : 0
+		minX = Math.min(minX, x)
+		minY = Math.min(minY, y)
+		maxX = Math.max(maxX, x + w)
+		maxY = Math.max(maxY, y + h)
+	}
+	return {
+		records: snapshot.documents.length,
+		pageShapes,
+		mediaAssets,
+		bboxWidth: pageShapes ? maxX - minX : 0,
+		bboxHeight: pageShapes ? maxY - minY : 0,
+	}
+}
+
 // The Browser Run spend ledger: one datapoint per browser session actually created, written here at
 // the choke point every session flows through rather than by each surface's own bookkeeping. This is
 // deliberately a separate event from `mcp_shared_board_screenshot`, which stays request-level: that
@@ -476,7 +572,9 @@ function writeBrowserRunSessionTelemetry(
 		height,
 		transport,
 		payloadChars,
+		page,
 		browserMsUsed,
+		content = EMPTY_CONTENT_SUMMARY,
 	}: {
 		/** `ok`, or the bounded browser failure code for a session that died. */
 		outcome: string
@@ -498,12 +596,11 @@ function writeBrowserRunSessionTelemetry(
 		 * which is what it is here for.
 		 */
 		payloadChars: number
-		/**
-		 * Browser wall clock billed (`X-Browser-Ms-Used`), 0 for sessions that died before a response
-		 * or ran on the local dev service. `durationMs - browserMsUsed` isolates queueing and
-		 * transfer, which is where most of this pipeline's variance lives.
-		 */
+		/** `reached` on every session that produced a capture; see wasRenderTokenServedSince for the rest. */
+		page: RenderPageReach
+		/** See TimedCapture.browserMsUsed. */
 		browserMsUsed: number
+		content?: RenderContentSummary
 	}
 ) {
 	writeDataPoint(undefined, env.MEASURE, env, 'browser_run_session', {
@@ -512,15 +609,26 @@ function writeBrowserRunSessionTelemetry(
 			`mode:${session.mode}`,
 			`outcome:${outcome}`,
 			`reason:${session.reason ?? 'none'}`,
+			// Appended: existing blob positions must not shift.
+			`page:${page}`,
 			`transport:${transport}`,
-			// Appended like transport: existing blob positions must not shift. `none` on measures,
-			// which draw nothing; a screenshot render exports unless it asked for live.
+			// `none` on measures, which draw nothing; a screenshot render exports unless it asked for live.
 			`capture:${session.mode === 'measure' ? 'none' : (session.capture ?? 'export')}`,
 		],
-		doubles: [width, height, durationMs, payloadChars, browserMsUsed],
+		doubles: [
+			width,
+			height,
+			durationMs,
+			browserMsUsed,
+			content.records,
+			content.pageShapes,
+			content.mediaAssets,
+			content.bboxWidth,
+			content.bboxHeight,
+			payloadChars,
+		],
 	})
 }
-
 type RenderTransport = 'inline' | 'push' | 'pull' | 'push_fallback'
 
 // The binding serializes the whole request body, not just the payload, so leave room for the rest of
@@ -557,6 +665,8 @@ async function renderThumbnailScreenshot(
 		session,
 		push,
 		ctx,
+		content,
+		pageReached,
 	}: {
 		width: number
 		height: number
@@ -564,6 +674,9 @@ async function renderThumbnailScreenshot(
 		/** The serialized pushed snapshot, and whether it asked for live capture. */
 		push?: { literal: string; live: boolean }
 		ctx?: ExecutionContext
+		content?: RenderContentSummary
+		/** Asked only for a session that died, with the session's start; see RenderPageReach. */
+		pageReached?(since: number): Promise<RenderPageReach>
 	}
 ): Promise<{ base64: string; durationMs: number }> {
 	// Built once and handed to whichever transport runs, so the wait strategy, capture target and
@@ -715,7 +828,9 @@ async function renderThumbnailScreenshot(
 				height,
 				transport,
 				payloadChars,
+				page: (await pageReached?.(startedAt)) ?? 'unknown',
 				browserMsUsed: 0,
+				content,
 			})
 		}
 		throw error
@@ -731,7 +846,9 @@ async function renderThumbnailScreenshot(
 			height,
 			transport,
 			payloadChars,
+			page: 'reached',
 			browserMsUsed: timed.browserMsUsed,
+			content,
 		})
 		throw new Error('Render produced an empty screenshot')
 	}
@@ -743,7 +860,9 @@ async function renderThumbnailScreenshot(
 		height,
 		transport,
 		payloadChars,
+		page: 'reached',
 		browserMsUsed: timed.browserMsUsed,
+		content,
 	})
 	return { base64: arrayBufferToBase64(buffer), durationMs: timed.durationMs }
 }
@@ -759,12 +878,7 @@ type ThumbnailScreenshotRequestBody = ReturnType<typeof getThumbnailScreenshotRe
 interface TimedCapture {
 	buffer: ArrayBuffer
 	durationMs: number
-	/**
-	 * Browser wall clock billed for the session (Browser Run's `X-Browser-Ms-Used`), or 0 where the
-	 * transport has none (the local dev service). `durationMs - browserMsUsed` is everything that
-	 * happened outside the browser — RPC, Browser Run queueing, response transfer — which is the
-	 * noise a push/pull comparison has to see past.
-	 */
+	/** Browser wall clock billed for the session, or 0 where the transport has none (local dev). */
 	browserMsUsed: number
 }
 
@@ -991,14 +1105,14 @@ export async function measurePageShapes(
 	const key = getRenderResultKey(token)
 
 	try {
-		// The screenshot is discarded — it is only how the browser session is driven, and how we know the
-		// page reached its terminal state. The answer arrives via the result endpoint.
+		// Awaited for the ready signal, not for the image it returns; see renderThumbnailScreenshot.
 		await renderThumbnailScreenshot(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
 			width: DEFAULT_THUMBNAIL_WIDTH,
 			height: DEFAULT_THUMBNAIL_HEIGHT,
 			// The measure runs only on the MCP surface today; `surface` names the render pipeline for the
 			// signed job, not the telemetry source, so this is stated rather than derived.
 			session: { source: 'mcp', mode: 'measure' },
+			pageReached: (since) => wasRenderTokenServedSince(env, job, token, since),
 		})
 
 		const stored = await env.THUMBNAILS.get(key)
@@ -1081,6 +1195,13 @@ export function writeScreenshotTelemetry(
 		 */
 		cacheStatus: 'hit' | 'stale' | 'miss' | 'none'
 		/**
+		 * What the MCP cluster index cache did, which decides whether the call ran a measure render.
+		 * Its own dimension rather than part of `cacheStatus`, which is the PNG cache: the two save
+		 * different things, and one blob mixing them would make either hit rate unreadable. `none` on
+		 * every OG row and on any MCP row that never reached the clustering step.
+		 */
+		clusterCacheStatus?: 'hit' | 'miss' | 'none'
+		/**
 		 * Hashed identity of whoever asked, for surfaces that have one. Recorded only on rate-limited
 		 * rows — see below.
 		 *
@@ -1116,6 +1237,8 @@ export function writeScreenshotTelemetry(
 			// follow-up concept at all, so a query for triggered renders can say `followup:false` and mean
 			// it, instead of sweeping up every og and mcp datapoint too.
 			`followup:${data.followUp ?? 'none'}`,
+			// Appended, like the two above, so nothing shifts. Only the MCP clustering tools ever set it.
+			`clusters:${data.clusterCacheStatus ?? 'none'}`,
 		],
 		doubles: [
 			DEFAULT_THUMBNAIL_WIDTH,

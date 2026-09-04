@@ -530,7 +530,10 @@ export class StoreQueries<R extends UnknownRecord> {
 				return prevValue
 			}
 		}
-		const cachedQuery = computed('ids_query:' + name, queryCreator, {
+		// Wrapped rather than passed straight through: a computed's derive function receives
+		// `(previousValue, lastComputedEpoch)`, which a queryCreator with optional parameters
+		// would otherwise misread.
+		const cachedQuery = computed('ids_query:' + name, () => queryCreator(), {
 			isEqual,
 		})
 

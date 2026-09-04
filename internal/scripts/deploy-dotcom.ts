@@ -55,7 +55,6 @@ const { previewId, sha } = getDeployInfo()
 const env = makeEnv([
 	'ANALYTICS_API_TOKEN',
 	'ANALYTICS_API_URL',
-	'ANTHROPIC_API_KEY',
 	'ASSET_UPLOAD_SENTRY_DSN',
 	'ASSET_UPLOAD',
 	'CLERK_SECRET_KEY',
@@ -302,7 +301,7 @@ const zeroVmSizes = {
 		rm: { cpus: 2, memory: '4gb', cpuKind: 'performance' },
 		vs: { cpus: 4, memory: '8gb', cpuKind: 'performance' },
 		volumeSize: '8gb',
-		vsMinMachines: 7,
+		vsMinMachines: 9,
 		killTimeout: '5m',
 	},
 	preview: { single: { cpus: 2, memory: '2gb' } },

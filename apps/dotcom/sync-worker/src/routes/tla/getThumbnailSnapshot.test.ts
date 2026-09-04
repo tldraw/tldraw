@@ -5,6 +5,8 @@ import {
 	ThumbnailRenderJob,
 	mintThumbnailRenderToken,
 	recordMintedRenderToken,
+	isMintedRenderToken,
+	wasRenderTokenServedSince,
 } from '../../utils/renderTokens'
 import { getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileRoomSnapshot } from './getSharedFile'
@@ -283,6 +285,26 @@ describe('getThumbnailSnapshot render token records', () => {
 		const response = await getThumbnailSnapshot(makeRequest(token), envWithBucket)
 
 		expect(response.status).toBe(200)
+	})
+
+	// What a dead session reads back to tell a page that ran from one that never did.
+	it('stamps the token record as served once the page fetches its snapshot', async () => {
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(snapshotOfOneShape())
+		const envWithBucket = makeEnvWithBucket()
+		const job = makeJob()
+		const token = await mintThumbnailRenderToken(envWithBucket, job)
+		await recordMintedRenderToken(envWithBucket, job, token)
+		const sessionStart = Date.now()
+		expect(await wasRenderTokenServedSince(envWithBucket, job, token, sessionStart)).toBe(
+			'unreached'
+		)
+
+		const response = await getThumbnailSnapshot(makeRequest(token), envWithBucket)
+
+		expect(response.status).toBe(200)
+		expect(await wasRenderTokenServedSince(envWithBucket, job, token, sessionStart)).toBe('reached')
+		// Stamping rewrites the record; the mint check must survive it.
+		expect(await isMintedRenderToken(envWithBucket, job, token)).toBe(true)
 	})
 
 	// The case a leaked MCP_SCREENSHOT_TOKEN_SECRET produces: signatures that verify, for any board,

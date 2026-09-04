@@ -78,7 +78,13 @@ export function createEmptyRecordsDiff<R extends UnknownRecord>(): RecordsDiff<R
  * @public
  */
 export function reverseRecordsDiff(diff: RecordsDiff<any>) {
-	const result: RecordsDiff<any> = { added: diff.removed, removed: diff.added, updated: {} }
+	// Copy the collections rather than aliasing them: callers squash into the reversed diff
+	// (`squashRecordDiffsMutable`), which would otherwise write through to the input.
+	const result: RecordsDiff<any> = {
+		added: { ...diff.removed },
+		removed: { ...diff.added },
+		updated: {},
+	}
 	for (const [from, to] of objectMapValues(diff.updated)) {
 		result.updated[from.id] = [to, from]
 	}
@@ -162,6 +168,14 @@ export function squashRecordDiffs<T extends UnknownRecord>(
 ): RecordsDiff<T> {
 	if (options?.mutateFirstDiff) {
 		const result = diffs[0]
+		if (!result) return createEmptyRecordsDiff()
+		// The squash mutates the target's `[from, to]` tuples in place, which is only safe when the
+		// target owns them. The first diff's tuples may be shared with other holders, so copy them.
+		for (const _id in result.updated) {
+			const id = _id as IdOf<T>
+			const [from, to] = result.updated[id]
+			result.updated[id] = [from, to]
+		}
 		squashRecordDiffsMutable(result, diffs, 1)
 		return result
 	}
@@ -180,6 +194,10 @@ export function squashRecordDiffs<T extends UnknownRecord>(
  * - Added records: If the record was previously removed, convert to an update; otherwise add it
  * - Updated records: Chain updates together, preserving the original 'from' state
  * - Removed records: If the record was added in this sequence, cancel both operations
+ *
+ * The target's `updated` tuples are mutated in place, so the target must own them: start from
+ * `createEmptyRecordsDiff()` (or a diff built by earlier squashes into it) rather than a diff whose
+ * tuples are shared with another holder.
  *
  * @param target - The diff to modify in-place (will be mutated)
  * @param diffs - Array of diffs to apply to the target

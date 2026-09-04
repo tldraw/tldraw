@@ -361,7 +361,7 @@ spec:
             transformations: []
         description: The raw clientInfo.name each caller reported, beside the User-Agent family
           it arrived with. This is where a client that currently lands in `other` gets identified
-          — add it to MCP_CLIENT_FAMILIES in sharedBoardScreenshotMcp.ts and it gets its own
+          — add it to MCP_CLIENT_FAMILIES in mcpServer.ts and it gets its own
           series in the panels above.
         id: 12
         links: []
@@ -870,24 +870,24 @@ spec:
                       formatAs: time_series
                       intervalFactor: 1
                       query: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob7, 11) as transport, sum(_sample_interval) as renders
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob8, 11) as transport, sum(_sample_interval) as renders
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'browser_run_session'
                         AND blob3 = 'source:mcp'
                         AND blob4 = 'mode:screenshot'
-                        AND blob7 != ''
+                        AND blob8 != ''
                         AND blob2 = '${environment}-tldraw-multiplayer'
                         GROUP BY date, transport
                         ORDER BY date ASC
                       rawQuery: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob7, 11) as transport, sum(_sample_interval) as renders
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob8, 11) as transport, sum(_sample_interval) as renders
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'browser_run_session'
                         AND blob3 = 'source:mcp'
                         AND blob4 = 'mode:screenshot'
-                        AND blob7 != ''
+                        AND blob8 != ''
                         AND blob2 = '${environment}-tldraw-multiplayer'
                         GROUP BY date, transport
                         ORDER BY date ASC
@@ -984,26 +984,26 @@ spec:
                       formatAs: time_series
                       intervalFactor: 1
                       query: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileWeighted(0.5, double3, _sample_interval) as total_p50, quantileWeighted(0.5, double5, _sample_interval) as browser_p50, quantileWeighted(0.95, double3, _sample_interval) as total_p95, quantileWeighted(0.95, double5, _sample_interval) as browser_p95
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileWeighted(0.5, double3, _sample_interval) as total_p50, quantileWeighted(0.5, double4, _sample_interval) as browser_p50, quantileWeighted(0.95, double3, _sample_interval) as total_p95, quantileWeighted(0.95, double4, _sample_interval) as browser_p95
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'browser_run_session'
                         AND blob3 = 'source:mcp'
                         AND blob4 = 'mode:screenshot'
                         AND blob5 = 'outcome:ok'
-                        AND double5 > 0
+                        AND double4 > 0
                         AND blob2 = '${environment}-tldraw-multiplayer'
                         GROUP BY date
                         ORDER BY date ASC
                       rawQuery: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileWeighted(0.5, double3, _sample_interval) as total_p50, quantileWeighted(0.5, double5, _sample_interval) as browser_p50, quantileWeighted(0.95, double3, _sample_interval) as total_p95, quantileWeighted(0.95, double5, _sample_interval) as browser_p95
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileWeighted(0.5, double3, _sample_interval) as total_p50, quantileWeighted(0.5, double4, _sample_interval) as browser_p50, quantileWeighted(0.95, double3, _sample_interval) as total_p95, quantileWeighted(0.95, double4, _sample_interval) as browser_p95
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'browser_run_session'
                         AND blob3 = 'source:mcp'
                         AND blob4 = 'mode:screenshot'
                         AND blob5 = 'outcome:ok'
-                        AND double5 > 0
+                        AND double4 > 0
                         AND blob2 = '${environment}-tldraw-multiplayer'
                         GROUP BY date
                         ORDER BY date ASC
@@ -1016,7 +1016,7 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: 'Total session wall clock (double3) against the browser wall clock Browser Run bills for it (double5, from the X-Browser-Ms-Used header), for successful cluster screenshots. The gap between the lines is everything outside the browser — RPC, Browser Run queueing, response transfer — which is where the pipeline variance lives. Sessions with no billed time recorded (failures, the local dev service, rows from before the field existed) are excluded by double5 > 0.'
+        description: 'Total session wall clock (double3) against the browser wall clock Browser Run bills for it (double4, from the X-Browser-Ms-Used header), for successful cluster screenshots. The gap between the lines is everything outside the browser — RPC, Browser Run queueing, response transfer — which is where the pipeline variance lives. Sessions with no billed time recorded (failures, the local dev service, rows from before the field existed) are excluded by double4 > 0.'
         id: 18
         links: []
         title: In-browser vs total session time
