@@ -1,5 +1,5 @@
 import { useAtom, useValue } from '@tldraw/state-react'
-import { TLShape, TLShapeId } from '@tldraw/tlschema'
+import { DefaultColorStyle, TLShape, TLShapeId } from '@tldraw/tlschema'
 import { TLFontFace } from '@tldraw/tlschema'
 import { hasOwnProperty, promiseWithResolve, uniqueId } from '@tldraw/utils'
 import {
@@ -466,7 +466,12 @@ function SvgExport({
 		// the frame-like shape's own util decides this - it may not be the default 'frame' util
 		const shape = editor.getShape(singleFrameShapeId)!
 		const { showColors } = editor.getShapeUtil(shape).options as { showColors?: boolean }
-		const color = showColors && 'color' in shape.props ? shape.props.color : null
+		// the color style may live under any prop key, so look it up through the style map and
+		// fall back to a literal `color` prop for frame-like shapes that don't use the style
+		const color = showColors
+			? (editor.getShapeStyleIfExists(shape, DefaultColorStyle) ??
+				('color' in shape.props ? shape.props.color : null))
+			: null
 		backgroundColor =
 			typeof color === 'string' ? getColorValue(colors, color, 'frameFill') : colors.solid
 	}

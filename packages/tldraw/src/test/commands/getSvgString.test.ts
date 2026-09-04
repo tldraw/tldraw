@@ -1,10 +1,12 @@
 import {
 	BaseBoxShapeUtil,
 	BaseFrameLikeShapeUtil,
+	DefaultColorStyle,
 	DefaultDashStyle,
 	RecordProps,
 	T,
 	TLBaseShape,
+	TLDefaultColorStyle,
 	createShapeId,
 	getColorValue,
 	toRichText,
@@ -182,9 +184,14 @@ it('waits for required fonts to load before measuring the export', async () => {
 // discriminated-union limit for TLShapePartial, so one more augmentation breaks typecheck.
 const BROKEN_EXPORT_TYPE = 'my-broken-export-shape'
 const FRAME_LIKE_TYPE = 'my-frame-like-shape'
+const COLORED_FRAME_LIKE_TYPE = 'my-colored-frame-like-shape'
 
 type MyBrokenExportShape = TLBaseShape<typeof BROKEN_EXPORT_TYPE, { w: number; h: number }>
 type MyFrameLikeShape = TLBaseShape<typeof FRAME_LIKE_TYPE, { w: number; h: number }>
+type MyColoredFrameLikeShape = TLBaseShape<
+	typeof COLORED_FRAME_LIKE_TYPE,
+	{ w: number; h: number; frameColor: TLDefaultColorStyle }
+>
 
 class BrokenExportShapeUtil extends BaseBoxShapeUtil<any> {
 	static override type = BROKEN_EXPORT_TYPE
@@ -208,6 +215,27 @@ class FrameLikeShapeUtil extends BaseFrameLikeShapeUtil<any> {
 	static override props: RecordProps<MyFrameLikeShape> = { w: T.number, h: T.number }
 	override getDefaultProps() {
 		return { w: 100, h: 100 }
+	}
+	override component() {
+		return null as any
+	}
+	override getIndicatorPath() {
+		return undefined
+	}
+}
+
+// The color style lives under `frameColor`, not `color`, so the export has to go through the
+// editor's style map to find it
+class ColoredFrameLikeShapeUtil extends BaseFrameLikeShapeUtil<any> {
+	static override type = COLORED_FRAME_LIKE_TYPE
+	static override props: RecordProps<MyColoredFrameLikeShape> = {
+		w: T.number,
+		h: T.number,
+		frameColor: DefaultColorStyle,
+	}
+	override options = { showColors: true }
+	override getDefaultProps() {
+		return { w: 100, h: 100, frameColor: 'black' as const }
 	}
 	override component() {
 		return null as any
@@ -261,4 +289,20 @@ it('takes a single frame-like export background from the shape util of that shap
 	// rather than a transparent one from reading the default frame util's options
 	const frameLikeSvg = parseSvg(await editor.getSvgString([frameLikeId], { background: true }))
 	expect(frameLikeSvg.style.backgroundColor).toBe(toCssColor(colors.solid))
+})
+
+it('reads a single frame-like export background from the color style under any prop key', async () => {
+	const editor = new TestEditor({ shapeUtils: [ColoredFrameLikeShapeUtil] })
+	const id = createShapeId('colored-frame-like')
+	editor.createShape({
+		id,
+		type: COLORED_FRAME_LIKE_TYPE,
+		x: 0,
+		y: 0,
+		props: { w: 100, h: 100, frameColor: 'red' },
+	} as any)
+	const colors = editor.getCurrentTheme().colors[editor.getColorMode()]
+
+	const svg = parseSvg(await editor.getSvgString([id], { background: true }))
+	expect(svg.style.backgroundColor).toBe(toCssColor(getColorValue(colors, 'red', 'frameFill')))
 })
