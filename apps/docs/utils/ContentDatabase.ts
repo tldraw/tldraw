@@ -118,16 +118,10 @@ export class ContentDatabase {
 			sectionIndex
 		)
 
-		// If there's no next, then get the LAST article from the prev section
+		// If there's no prev, then get the LAST article from the prev section
 		if (!prev) {
-			const { idx } = await db.get(
-				`SELECT idx FROM sections WHERE sections.id = ?`,
-				article.sectionId
-			)
-
-			const prevSection = await db.get(`SELECT id FROM sections WHERE sections.idx = ?`, idx - 1)
-			if (prevSection) {
-				const { id: prevSectionId } = prevSection
+			const prevSectionId = await this.getAdjacentSectionId(article.sectionId, -1)
+			if (prevSectionId) {
 				// get the article with the section id and the highest section index
 				prev = await db.get<Article>(
 					// here we only need certian info for the link
@@ -155,15 +149,8 @@ export class ContentDatabase {
 
 		// If there's no next, then get the FIRST article from the next section
 		if (!next) {
-			const { idx } = await db.get(
-				`SELECT idx FROM sections WHERE sections.id = ?`,
-				article.sectionId
-			)
-
-			const nextSection = await db.get(`SELECT id FROM sections WHERE sections.idx = ?`, idx + 1)
-
-			if (nextSection) {
-				const { id: nextSectionId } = nextSection
+			const nextSectionId = await this.getAdjacentSectionId(article.sectionId, 1)
+			if (nextSectionId) {
 				next = await db.get<Article>(
 					`SELECT id, title, categoryId, sectionId, path FROM articles
 					 	 WHERE articles.sectionId = ?
@@ -174,6 +161,30 @@ export class ContentDatabase {
 		}
 
 		return { prev: prev ?? null, next: next ?? null }
+	}
+
+	/**
+	 * The section the prev/next footer links cross into from the edge of `sectionId`, or null.
+	 * Sections only neighbor each other at consecutive idx values, so far-away idx (reference,
+	 * examples) stay self-contained. Hidden sections (release notes) are stepped over and never
+	 * link out themselves.
+	 */
+	private async getAdjacentSectionId(sectionId: string, direction: -1 | 1) {
+		const db = await this.getDb()
+		const section = await db.get<Pick<Section, 'id' | 'sidebar_behavior'> & { idx: number }>(
+			`SELECT id, idx, sidebar_behavior FROM sections WHERE id = ?`,
+			sectionId
+		)
+		if (!section || section.sidebar_behavior === 'hidden') return null
+
+		for (let idx = section.idx + direction; ; idx += direction) {
+			const neighbor = await db.get<Pick<Section, 'id' | 'sidebar_behavior'>>(
+				`SELECT id, sidebar_behavior FROM sections WHERE idx = ?`,
+				idx
+			)
+			if (!neighbor) return null
+			if (neighbor.sidebar_behavior !== 'hidden') return neighbor.id
+		}
 	}
 
 	// TODO(mime): make this more generic, not per docs area

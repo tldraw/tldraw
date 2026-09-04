@@ -25,11 +25,15 @@ const section: InputSection = {
 	sidebar_behavior: 'show-links',
 }
 
+// Prev/next footer links walk to the section at idx ± 1. Examples have their own sidebar and
+// must not neighbor the regular sections (0..n) or reference (999999).
+const EXAMPLES_SECTION_INDEX = 888888
+
 export async function generateExamplesContent(): Promise<GeneratedContent> {
 	const articles: Articles = {}
 
 	try {
-		const outputExamplesSection = generateSection(section, articles, 0)
+		const outputExamplesSection = generateSection(section, articles, EXAMPLES_SECTION_INDEX)
 		const contentComplete = { sections: [outputExamplesSection], articles }
 
 		return contentComplete
