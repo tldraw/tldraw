@@ -22,6 +22,7 @@ import { getSnapshotsTable } from '../utils/getSnapshotsTable'
 import { getSlug } from '../utils/roomOpenMode'
 import { cleanName, getDocumentNameFromSnapshot } from './getDocumentNameFromSnapshot'
 import { getPublishedRoomSnapshot } from './tla/getPublishedFile'
+import { isFileAnonymouslyViewable } from './tla/getSharedFile'
 import { resolveThumbnailBoard } from './tla/thumbnailRender'
 
 // These mirror the static social preview metadata in apps/dotcom/client/index.html. They are used
@@ -118,13 +119,15 @@ async function getTlaFileName(env: Environment, slug: string): Promise<string | 
 	try {
 		file = await db
 			.selectFrom('file')
-			.select(['name', 'shared'])
+			.select(['id', 'name', 'shared', 'isDeleted'])
 			.where('id', '=', slug)
 			.executeTakeFirst()
 	} finally {
 		await db.destroy()
 	}
-	if (!file || !file.shared) return null
+	// The same gate the OG image on this card goes through, so a trashed (or test) board can't keep
+	// unfurling its name after the room itself started answering not-found.
+	if (!file || !isFileAnonymouslyViewable(file)) return null
 
 	const name = cleanName(file.name)
 	if (name) return name
