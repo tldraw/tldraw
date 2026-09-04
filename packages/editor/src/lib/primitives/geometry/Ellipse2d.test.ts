@@ -223,13 +223,15 @@ describe('Ellipse2d.hitTestLineSegment', () => {
 describe('Ellipse2d.intersectLineSegment', () => {
 	it('returns both crossings of a horizontal line through the centre', () => {
 		const hits = ellipse().intersectLineSegment(new Vec(-10, 25), new Vec(110, 25))
-		expect(hits.length).toBe(2)
-		expect(hits.map((h) => h.y)).toEqual([25, 25])
+		// the rightmost crossing is at a shared vertex, so both edges meeting there report it
+		expect(hits.length).toBe(3)
+		expect(hits.map((h) => h.y)).toEqual([25, 25, 25])
 		const xs = hits.map((h) => h.x).sort((a, b) => a - b)
 		// the leftmost point is not a vertex, so the polygon edge sits slightly inside the ellipse
 		expect(xs[0]).toBeGreaterThanOrEqual(0)
 		expect(xs[0]).toBeLessThan(2)
 		expect(xs[1]).toBe(100)
+		expect(xs[2]).toBe(100)
 	})
 })
 
