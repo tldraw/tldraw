@@ -110,6 +110,7 @@ import {
 import {
 	DEFAULT_ANIMATION_OPTIONS,
 	DEFAULT_CAMERA_OPTIONS,
+	FRAME_MS_60HZ,
 	INTERNAL_POINTER_IDS,
 	LEFT_MOUSE_BUTTON,
 	MIDDLE_MOUSE_BUTTON,
@@ -2303,8 +2304,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const shapeIds = readingOrderShapes.map((shape) => shape.id)
 
 			const currentIndex = currentShapeId ? shapeIds.indexOf(currentShapeId) : -1
+			// With no current index, stepping from -1 makes 'prev' land one shape
+			// before the last; seed it from 0 so it wraps to the last shape. See #10559.
+			const startIndex = currentIndex === -1 && direction === 'prev' ? 0 : currentIndex
 			const adjacentIndex =
-				(currentIndex + (direction === 'next' ? 1 : -1) + shapeIds.length) % shapeIds.length
+				(startIndex + (direction === 'next' ? 1 : -1) + shapeIds.length) % shapeIds.length
 			adjacentShapeId = shapeIds[adjacentIndex]
 		} else {
 			if (!currentShapeId) return
@@ -3591,6 +3595,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { isLocked } = this._cameraOptions.__unsafe__getWithoutCapture()
 		if (isLocked && !opts?.force) return this
 
+		const _point = Vec.Cast(point)
+
+		// Reject non-finite values before anything else, so the call is a no-op rather than a
+		// partial one. An animated move writes the camera from a 'tick' listener, and a listener
+		// that throws stops TickManager scheduling the next frame, which kills every frame-driven
+		// behavior for the rest of the session instead of surfacing the error to the caller.
+		if (!Number.isFinite(_point.x) || !Number.isFinite(_point.y) || !Number.isFinite(_point.z)) {
+			throw Error(
+				`Editor.setCamera: expected finite values, got (${_point.x}, ${_point.y}, ${_point.z}).`
+			)
+		}
+
 		// Stop any camera animations
 		this.stopCameraAnimation()
 
@@ -3598,12 +3614,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (this.getInstanceState().followingUserId) {
 			this.stopFollowingUser()
 		}
-
-		const _point = Vec.Cast(point)
-
-		if (!Number.isFinite(_point.x)) _point.x = 0
-		if (!Number.isFinite(_point.y)) _point.y = 0
-		if (_point.z === undefined || !Number.isFinite(_point.z)) point.z = this.getZoomLevel()
 
 		const camera = this.getConstrainedCamera(_point, opts)
 
@@ -4086,8 +4096,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				newCy += center.y / newCz - center.y / cz
 			}
 
-			// Apply friction
-			currentSpeed *= 1 - friction
+			// Apply friction per unit of elapsed time, not per tick, or a 120 Hz display decays twice as fast
+			currentSpeed *= (1 - friction) ** (elapsed / FRAME_MS_60HZ)
 			if (currentSpeed < speedThreshold) {
 				cancel()
 			} else {
@@ -10996,7 +11006,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (info.name === 'cancel' || info.name === 'complete') {
 				this.inputs.setIsDragging(false)
 
-				if (this.inputs.getIsPanning()) {
+				// A pan owned by a held spacebar outlives the cancelled interaction;
+				// key_up ends it. Otherwise Escape mid-pan stops the camera until
+				// the user releases and re-presses Space (#10446).
+				if (this.inputs.getIsPanning() && !this.inputs.keys.has('Space')) {
 					this.inputs.setIsPanning(false)
 					this.inputs.setIsSpacebarPanning(false)
 					this.setCursor({ type: this._prevCursor, rotation: 0 })

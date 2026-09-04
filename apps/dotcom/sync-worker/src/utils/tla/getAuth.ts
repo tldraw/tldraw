@@ -128,66 +128,12 @@ export type SignedInAuth = ReturnType<
 	Extract<Awaited<ReturnType<ClerkClient['authenticateRequest']>>, { isSignedIn: true }>['toAuth']
 > & { userId: string }
 
-export async function requireWriteAccessToFile(
-	request: IRequest,
-	env: Environment,
-	roomId: string
-) {
-	const auth = await requireAuth(request, env)
-
-	const db = createPostgresConnectionPool(env, 'sync-worker/hasWriteAccessToFile')
-
-	try {
-		const file = await db
-			.selectFrom('file')
-			.select('ownerId')
-			.select('owningGroupId')
-			.select('shared')
-			.select('sharedLinkType')
-			.where('id', '=', roomId)
-			.executeTakeFirst()
-
-		if (!file) {
-			throw new StatusError(404, 'File not found')
-		}
-
-		// If the user is the owner of the file, they have write access
-		if (file.ownerId === auth.userId) {
-			return
-		}
-
-		// If the file is owned by a group, check the user can access its files
-		if (file.owningGroupId) {
-			const role = await getRole(db, auth.userId, file.owningGroupId)
-			if (can(role, 'accessFiles')) {
-				return
-			}
-		}
-
-		// If the file is not shared, the user does not have write access
-		if (!file.shared) {
-			throw new StatusError(403, 'File is not shared')
-		}
-
-		// If the file is shared but not for editing, deny access
-		if (file.sharedLinkType !== 'edit') {
-			throw new StatusError(403, 'File is shared but not for editing')
-		}
-
-		// file is shared and for editing, allow access
-		return
-	} finally {
-		// Ensure database connection is properly closed
-		await db.destroy()
-	}
-}
-
 /**
- * Whether a user may *view* a file: they own it, they can reach it through the group that owns it, or
- * it is shared via link — in which case `sharedLinkType` is irrelevant, since a link shared for
+ * Whether a user may *view* a file: they can reach it through the group that owns it, or it is
+ * shared via link — in which case `sharedLinkType` is irrelevant, since a link shared for
  * editing is also one that can be viewed.
  *
- * The read-side counterpart of `requireWriteAccessToFile`, which is the same three checks plus a
+ * The read-side counterpart of `requireWriteAccessToFile`, which is the same two checks plus a
  * `sharedLinkType === 'edit'` requirement. Kept as a separate function rather than a parameter on
  * that one, because the two differ in how they answer as well as what they ask: this returns a
  * boolean where that throws a `StatusError` naming the reason. A caller that must not reveal whether
@@ -217,7 +163,7 @@ export async function hasReadAccessToFile(
 	try {
 		const file = await db
 			.selectFrom('file')
-			.select(['id', 'ownerId', 'owningGroupId', 'shared', 'isDeleted'])
+			.select(['id', 'owningGroupId', 'shared', 'isDeleted'])
 			.where('id', '=', fileId)
 			.executeTakeFirst()
 
@@ -226,7 +172,6 @@ export async function hasReadAccessToFile(
 			ok: true,
 			file: { id: file.id, shared: file.shared, isDeleted: false },
 		} as const
-		if (file.ownerId === userId) return granted
 		if (file.owningGroupId) {
 			const role = await getRole(db, userId, file.owningGroupId)
 			if (can(role, 'accessFiles')) return granted

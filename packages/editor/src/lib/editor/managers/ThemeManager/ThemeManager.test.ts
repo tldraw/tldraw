@@ -78,16 +78,24 @@ describe('ThemeManager', () => {
 			expect(warn).not.toHaveBeenCalled()
 		})
 
-		// Locks in current behaviour, see #10558.
-		it('warns for an unknown theme id and leaves the current theme unresolved', () => {
+		it('warns and keeps the current theme when the id is not registered', () => {
 			const manager = createManager()
 			manager.setCurrentTheme('sunset')
 
 			expect(warn).toHaveBeenCalledWith(
 				"Theme 'sunset' not found. Available themes: default, ocean"
 			)
-			expect(manager.getCurrentThemeId()).toBe('sunset')
-			expect(manager.getCurrentTheme()).toBeUndefined()
+			expect(manager.getCurrentThemeId()).toBe('default')
+			expect(manager.getCurrentTheme()).toBe(DEFAULT_THEME)
+		})
+
+		it('keeps the previous theme rather than falling back to default', () => {
+			const manager = createManager()
+			manager.setCurrentTheme('ocean')
+			manager.setCurrentTheme('sunset')
+
+			expect(manager.getCurrentThemeId()).toBe('ocean')
+			expect(manager.getCurrentTheme()).toBe(oceanTheme)
 		})
 
 		it('is reactive', () => {

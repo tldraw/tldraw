@@ -73,6 +73,12 @@ import {
 } from './commentRows'
 import { PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
+import {
+	ensureMcpClusterIndexTable,
+	pruneMcpClusterIndexRows,
+	readMcpClusterIndexRow,
+	writeMcpClusterIndexRow,
+} from './mcpClusterIndexStorage'
 import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom, listAllObjectKeys } from './r2'
 import {
@@ -85,8 +91,15 @@ import {
 } from './roomEffectHelpers'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
-import { generateSnapshotChunks } from './snapshotUtils'
-import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
+import {
+	generateSnapshotChunks,
+	getSnapshotFingerprint,
+	getSnapshotMetadata,
+	isSameFingerprint,
+	resolvePersistedFingerprint,
+	SnapshotFingerprint,
+} from './snapshotUtils'
+import { Analytics, DBLoadResult, Environment, McpClusterIndexKey, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
@@ -375,19 +388,32 @@ export class TLFileDurableObject extends DurableObject {
 						authorizeRecord: authorizeFileRecord,
 					})
 
-					this.logEvent({ type: 'room', name: 'room_start' })
-					// Resume any sessions that survived hibernation
+					// Sessions that survived hibernation. Collected before the event so room_start can
+					// carry the count, and resumed after it so a resume that throws still leaves the
+					// boot counted — those are the boots the count exists to find.
+					const resumes: {
+						sessionId: string
+						socket: WebSocket
+						snapshot: SessionStateSnapshot
+						meta: SessionMeta
+					}[] = []
 					for (const ws of this.state.getWebSockets()) {
 						const attachment = ws.deserializeAttachment() as SocketAttachment | null
 						if (!attachment?.sessionId) continue
 						if (attachment.snapshot) {
-							room.handleSocketResume({
+							resumes.push({
 								sessionId: attachment.sessionId,
 								socket: ws,
 								snapshot: attachment.snapshot,
 								meta: attachment.meta,
 							})
 						}
+					}
+
+					this.logEvent({ type: 'room', name: 'room_start', resumedSockets: resumes.length })
+
+					for (const resume of resumes) {
+						room.handleSocketResume(resume)
 					}
 					// Also associate file assets after we load the room
 					setTimeout(this.maybeAssociateFileAssets.bind(this), PERSIST_INTERVAL_MS)
@@ -481,12 +507,21 @@ export class TLFileDurableObject extends DurableObject {
 			new WebSocketRequestResponsePair('{"type":"ping"}', '{"type":"pong"}')
 		)
 
+		// Nothing awaits this, so a storage failure here rejects into the void and takes the object
+		// down with it — the one path that only runs on a cold start, and so never ran at all while
+		// the file DO couldn't hibernate. Rethrown after reporting: the object genuinely cannot
+		// continue without documentInfo, and resetting it is the runtime's correct response.
 		state.blockConcurrencyWhile(async () => {
-			const existingDocumentInfo = (await this.storage.get('documentInfo')) as DocumentInfo | null
-			if (existingDocumentInfo?.version !== CURRENT_DOCUMENT_INFO_VERSION) {
-				this._documentInfo = null
-			} else {
-				this._documentInfo = existingDocumentInfo
+			try {
+				const existingDocumentInfo = (await this.storage.get('documentInfo')) as DocumentInfo | null
+				if (existingDocumentInfo?.version !== CURRENT_DOCUMENT_INFO_VERSION) {
+					this._documentInfo = null
+				} else {
+					this._documentInfo = existingDocumentInfo
+				}
+			} catch (e) {
+				this.reportError(e, { source: 'blockConcurrencyWhile' })
+				throw e
 			}
 		})
 	}
@@ -584,13 +619,16 @@ export class TLFileDurableObject extends DurableObject {
 		return ws.deserializeAttachment() as SocketAttachment | null
 	}
 
+	// The runtime discards whatever these handlers reject with, so anything that escapes them is
+	// invisible: getRoom() in particular can fail while loading the room from storage, which breaks
+	// the main sync path. Catch and report instead.
 	override async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
-		const attachment = this.getSocketAttachment(ws)
-		if (!attachment?.sessionId) return
-		if (!this._documentInfo) return
-
-		this.sessionIdToWs.set(attachment.sessionId, ws)
 		try {
+			const attachment = this.getSocketAttachment(ws)
+			if (!attachment?.sessionId) return
+			if (!this._documentInfo) return
+
+			this.sessionIdToWs.set(attachment.sessionId, ws)
 			const room = await this.getRoom()
 			room.handleSocketMessage(attachment.sessionId, message)
 		} catch (e) {
@@ -599,29 +637,40 @@ export class TLFileDurableObject extends DurableObject {
 				ws.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.NOT_FOUND)
 				return
 			}
-			throw e
+			// Report before closing, so a throw from close() can't cost us the Sentry event.
+			this.reportError(e, { source: 'webSocketMessage' })
+			// The message is lost either way, so the socket has to go: leaving it up would let the
+			// client carry on believing it is synced while its local state silently diverges. Closed
+			// without a code, though — TLSyncErrorCloseEventCode is fatal on the client, which tears
+			// the sync client down into an error state only a reload clears. What lands here is
+			// transient (a getRoom() that failed resuming from hibernation), so a codeless close
+			// reads as 'offline' and the reconnect manager reconnects and resyncs from scratch.
+			ws.close()
 		}
 	}
 
 	override async webSocketClose(ws: WebSocket) {
-		return this.handleWebSocketEnd(ws, 'handleSocketClose')
+		await this.handleWebSocketEnd(ws, 'handleSocketClose')
 	}
 
-	override async webSocketError(ws: WebSocket) {
-		return this.handleWebSocketEnd(ws, 'handleSocketError')
+	override async webSocketError(ws: WebSocket, error: unknown) {
+		// The socket failed rather than closing cleanly. That error was previously dropped on the
+		// floor, so a client whose connection kept breaking left no trace here at all.
+		this.reportError(error, { source: 'webSocketError' })
+		await this.handleWebSocketEnd(ws, 'handleSocketError')
 	}
 
 	private async handleWebSocketEnd(
 		ws: WebSocket,
 		method: 'handleSocketClose' | 'handleSocketError'
 	) {
-		const attachment = this.getSocketAttachment(ws)
-		if (!attachment?.sessionId) return
-
-		this.sessionIdToWs.delete(attachment.sessionId)
-		if (!this._documentInfo) return
-
 		try {
+			const attachment = this.getSocketAttachment(ws)
+			if (!attachment?.sessionId) return
+
+			this.sessionIdToWs.delete(attachment.sessionId)
+			if (!this._documentInfo) return
+
 			const room = await this.getRoom()
 
 			// If the DO was hibernating, this session was never re-added to the room.
@@ -642,7 +691,10 @@ export class TLFileDurableObject extends DurableObject {
 				console.error('handleWebSocketEnd: room not found, skipping', e)
 				return
 			}
-			throw e
+			// Both callers await this, so a failure here would otherwise reject their handler and
+			// vanish. Reported rather than rethrown: the socket is already gone either way, and the
+			// only thing lost is presence cleanup for other clients in the room.
+			this.reportError(e, { source: method })
 		}
 	}
 
@@ -663,7 +715,15 @@ export class TLFileDurableObject extends DurableObject {
 			}
 			const dataText = await data.text()
 
-			await this.r2.rooms.put(roomKey, dataText)
+			// The put deliberately carries no version metadata, so null ("looked up, no usable
+			// stamp") is the truth about R2 and the next persist re-uploads and re-stamps.
+			// Queued on executionQueue because a persist runs as one task there: an in-flight one,
+			// suspended mid-upload or at its version lookup, would otherwise resume after these
+			// lines and clobber both the null and the restored object.
+			await this.executionQueue.push(async () => {
+				await this.r2.rooms.put(roomKey, dataText)
+				this._lastPersistedFingerprint = null
+			})
 
 			// Version snapshots only contain the drawing data. Restoring drops the file's comments
 			// (product decision): loading the bare snapshot wipes the object lane, and the Postgres
@@ -857,9 +917,7 @@ export class TLFileDurableObject extends DurableObject {
 
 					// Check if user has owner access (directly or via group membership)
 					let hasOwnerAccess = false
-					if (file.ownerId && file.ownerId === auth?.userId) {
-						hasOwnerAccess = true
-					} else if (file.owningGroupId && auth?.userId) {
+					if (file.owningGroupId && auth?.userId) {
 						// Check the user can access the owning group's files
 						const groupCheckTimer = this.timer()
 						const role = await getRole(this.db, auth.userId, file.owningGroupId)
@@ -983,9 +1041,7 @@ export class TLFileDurableObject extends DurableObject {
 		}
 
 		let hasOwnerAccess = false
-		if (file.ownerId && file.ownerId === auth?.userId) {
-			hasOwnerAccess = true
-		} else if (file.owningGroupId && auth?.userId) {
+		if (file.owningGroupId && auth?.userId) {
 			const role = await getRole(this.db, auth.userId, file.owningGroupId)
 			if (can(role, 'accessFiles')) {
 				hasOwnerAccess = true
@@ -1114,16 +1170,24 @@ export class TLFileDurableObject extends DurableObject {
 			.catch((e) => this.reportError(e))
 	}
 
-	override async alarm() {
-		// One clock reading for the whole fire: the debounce decision and the pending marker's expiry
-		// both count from it (see `firedAt` on enqueueOgImageRender).
-		const firedAt = Date.now()
-		const result = this.ogRenderDebouncer.onAlarm(firedAt)
-		if (!result.render) {
-			await this.ctx.storage.setAlarm(result.reArmAt)
-			return
+	// Rethrown rather than swallowed, unlike the socket handlers: the runtime retries an alarm that
+	// rejects, and dropping the error here would silently cancel the OG render this alarm exists to
+	// perform. Reporting only adds the Sentry record it was missing.
+	override async alarm(alarmInfo?: AlarmInvocationInfo) {
+		try {
+			// One clock reading for the whole fire: the debounce decision and the pending marker's
+			// expiry both count from it (see `firedAt` on enqueueOgImageRender).
+			const firedAt = Date.now()
+			const result = this.ogRenderDebouncer.onAlarm(firedAt)
+			if (!result.render) {
+				await this.ctx.storage.setAlarm(result.reArmAt)
+				return
+			}
+			await this.requestOgRenderForEdit(firedAt)
+		} catch (e) {
+			this.reportError(e, { source: 'alarm', retryCount: alarmInfo?.retryCount ?? 0 })
+			throw e
 		}
-		await this.requestOgRenderForEdit(firedAt)
 	}
 
 	/**
@@ -1161,7 +1225,11 @@ export class TLFileDurableObject extends DurableObject {
 				break
 			}
 			case 'room': {
-				this.writeEvent(event.name, {})
+				if (event.name === 'room_start') {
+					this.writeEvent(event.name, { doubles: [event.resumedSockets] })
+				} else {
+					this.writeEvent(event.name, {})
+				}
 				break
 			}
 			case 'client': {
@@ -1439,6 +1507,15 @@ export class TLFileDurableObject extends DurableObject {
 
 	_lastPersistedClock: number | null = null
 
+	// Fingerprint of the snapshot known to be in the rooms bucket, read from its customMetadata so
+	// a cold start doesn't re-upload a board nobody edited. The clock guard above can't do this —
+	// it dies with the isolate, and object-lane (comment) writes bump it without changing the
+	// document snapshot.
+	//
+	// undefined means "not looked up yet" and null means "looked up, no usable stamp"; the two are
+	// distinct because the lookup must happen at most once (see resolvePersistedFingerprint).
+	_lastPersistedFingerprint: SnapshotFingerprint | null | undefined = undefined
+
 	// Serializes comment outbox drains (and the restore-path deletes) so they land in order.
 	// Separate from executionQueue (the R2/main-persist queue) since these pushes fire immediately
 	// on commit, not on the throttle.
@@ -1689,7 +1766,26 @@ export class TLFileDurableObject extends DurableObject {
 						this.maybeAssociateFileAssets()
 
 						const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
+						const snapshotFingerprint = getSnapshotFingerprint(snapshot)
+						const persistedFingerprint = await resolvePersistedFingerprint(
+							this._lastPersistedFingerprint,
+							this.r2.rooms,
+							key
+						)
+						this._lastPersistedFingerprint = persistedFingerprint
+						if (isSameFingerprint(persistedFingerprint, snapshotFingerprint)) {
+							// The clock moved but neither the document nor the schema did — a comment
+							// write, or a cold start re-checking work a previous incarnation already
+							// persisted. Uploading would store byte-identical content under a new
+							// history timestamp and re-render an unchanged thumbnail; skip both, but
+							// keep the rest of a persist's observable behavior.
+							this._lastPersistedClock = snapshot.documentClock
+							this.markPersistenceGood()
+							this.bumpFileUpdatedAt()
+							return
+						}
 						await this._uploadSnapshotToR2(snapshot, key)
+						this._lastPersistedFingerprint = snapshotFingerprint
 
 						this.logEvent({
 							type: 'persist_success',
@@ -1703,31 +1799,9 @@ export class TLFileDurableObject extends DurableObject {
 						// alarm write per persist, not awaited here (see scheduleOgRender), so a slow or
 						// failed write cannot hold up a persist.
 						this.scheduleOgRender()
-						// Store the clock in DO storage so we can compare against SQLite on next load.
-						if (this.persistenceBad) {
-							this.broadcastPersistenceEvent({ type: 'persistence_good' })
-							this.persistenceBad = false
-						}
+						this.markPersistenceGood()
 
-						// Update the updatedAt timestamp in the database
-						if (this.documentInfo.isApp) {
-							// don't await on this because otherwise
-							// if this logic is invoked during another db transaction
-							// (e.g. when publishing a file)
-							// that transaction will deadlock
-							this.db
-								.updateTable('file')
-								.set({ updatedAt: new Date().getTime() })
-								.where('id', '=', this.documentInfo.slug)
-								.execute()
-								.catch((e) => {
-									this.logEvent({
-										type: 'room',
-										name: 'failed_persist_to_db',
-									})
-									this.reportError(e)
-								})
-						}
+						this.bumpFileUpdatedAt()
 					},
 					{
 						// throwOnFailure callers (publish) are awaited inside a 30s outbox effect
@@ -1782,23 +1856,63 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
+	// Clears the "persistence bad" banner clients are showing. Also called when a persist skips
+	// its uploads: a skip is a successful persist, and the banner would otherwise stay up until
+	// the isolate dies on a board whose only remaining writes are comments.
+	private markPersistenceGood() {
+		if (!this.persistenceBad) return
+		this.broadcastPersistenceEvent({ type: 'persistence_good' })
+		this.persistenceBad = false
+	}
+
+	// Updates the file's updatedAt timestamp. Also called when a persist skips its uploads,
+	// because comment-only activity should still surface as file activity.
+	private bumpFileUpdatedAt() {
+		if (!this.documentInfo.isApp) return
+		// don't await on this because otherwise
+		// if this logic is invoked during another db transaction
+		// (e.g. when publishing a file)
+		// that transaction will deadlock
+		this.db
+			.updateTable('file')
+			.set({ updatedAt: new Date().getTime() })
+			.where('id', '=', this.documentInfo.slug)
+			.execute()
+			.catch((e) => {
+				this.logEvent({
+					type: 'room',
+					name: 'failed_persist_to_db',
+				})
+				this.reportError(e)
+			})
+	}
+
 	private async _uploadSnapshotToR2(snapshot: RoomSnapshot, key: string) {
+		const customMetadata = getSnapshotMetadata(snapshot)
 		// Upload to rooms bucket first
-		const roomSizeMB = await this._uploadSnapshotToBucket(this.r2.rooms, snapshot, key)
+		const roomSizeMB = await this._uploadSnapshotToBucket(
+			this.r2.rooms,
+			snapshot,
+			key,
+			customMetadata
+		)
 		// Update storage percentage
 		if (roomSizeMB !== null) {
 			await this.setRoomStorageUsedPercentage(roomSizeMB)
 		}
 
-		// Then upload to version cache
+		// Then upload to version cache. Nothing dedupes this the way the version check in
+		// persistToDatabase does, because nothing after this put can fail: a retry that got here
+		// has already set _lastPersistedFingerprint and takes the skip path instead.
 		const versionKey = `${key}/${new Date().toISOString()}`
-		await this._uploadSnapshotToBucket(this.r2.versionCache, snapshot, versionKey)
+		await this._uploadSnapshotToBucket(this.r2.versionCache, snapshot, versionKey, customMetadata)
 	}
 
 	private async _uploadSnapshotToBucket(
 		bucket: R2Bucket,
 		snapshot: RoomSnapshot,
-		key: string
+		key: string,
+		customMetadata: Record<string, string>
 	): Promise<number | null> {
 		// Funnel through the shared connection budget so the upload can't contend with a concurrent
 		// asset-association pass (or the version-cache upload) and exhaust Cloudflare's connections.
@@ -1807,11 +1921,14 @@ export class TLFileDurableObject extends DurableObject {
 				// Try multipart upload first, retrying transient connection drops before falling back.
 				// Only connection-type errors are worth retrying; anything else fails fast to the PUT
 				// fallback rather than sleeping between attempts.
-				return await retry(() => this._uploadSnapshotToBucketMultipart(bucket, snapshot, key), {
-					attempts: 3,
-					waitDuration: 500,
-					matchError: isTransientConnectionError,
-				})
+				return await retry(
+					() => this._uploadSnapshotToBucketMultipart(bucket, snapshot, key, customMetadata),
+					{
+						attempts: 3,
+						waitDuration: 500,
+						matchError: isTransientConnectionError,
+					}
+				)
 			} catch (multipartError) {
 				// Falling back to a simple PUT is the designed recovery path, so it's a breadcrumb
 				// rather than a captured exception — only a failure of the fallback itself is reported.
@@ -1820,7 +1937,7 @@ export class TLFileDurableObject extends DurableObject {
 					message: `Multipart upload failed, falling back to simple PUT: ${multipartError}`,
 				})
 				try {
-					return await this._uploadSnapshotToBucketSimple(bucket, snapshot, key)
+					return await this._uploadSnapshotToBucketSimple(bucket, snapshot, key, customMetadata)
 				} catch (putError) {
 					this.reportError(putError)
 					throw putError
@@ -1833,9 +1950,10 @@ export class TLFileDurableObject extends DurableObject {
 	private async _uploadSnapshotToBucketMultipart(
 		bucket: R2Bucket,
 		snapshot: RoomSnapshot,
-		key: string
+		key: string,
+		customMetadata: Record<string, string>
 	) {
-		const out = await bucket.createMultipartUpload(key)
+		const out = await bucket.createMultipartUpload(key, { customMetadata })
 
 		try {
 			// 5MB buffer
@@ -1891,10 +2009,11 @@ export class TLFileDurableObject extends DurableObject {
 	private async _uploadSnapshotToBucketSimple(
 		bucket: R2Bucket,
 		snapshot: RoomSnapshot,
-		key: string
+		key: string,
+		customMetadata: Record<string, string>
 	) {
 		const serialized = JSON.stringify(snapshot)
-		const result = await bucket.put(key, serialized)
+		const result = await bucket.put(key, serialized, { customMetadata })
 		if (result) {
 			return result.size / MB
 		}
@@ -2550,13 +2669,19 @@ export class TLFileDurableObject extends DurableObject {
 			})
 	}
 
-	protected reportError(e: unknown) {
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		this.sentry?.withScope((scope) => {
-			scope.setExtra('slug', this._documentInfo?.slug)
+	protected reportError(e: unknown, extras?: Record<string, unknown>) {
+		try {
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
-			this.sentry?.captureException(e)
-		})
+			this.sentry?.withScope((scope) => {
+				scope.setExtra('slug', this._documentInfo?.slug)
+				if (extras) scope.setExtras(extras)
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				this.sentry?.captureException(e)
+			})
+		} catch (_e) {
+			// Callers report from cleanup paths and from outside their own try blocks, so reporting
+			// must never be the thing that throws and skip the cleanup it was added to protect.
+		}
 		console.error(e)
 	}
 
@@ -2637,9 +2762,6 @@ export class TLFileDurableObject extends DurableObject {
 				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
 				continue
 			}
-			// allow the owner to stay connected
-			// Check if user owns the file directly
-			if (file.ownerId && session.meta.userId === file.ownerId) continue
 
 			const canAccessFiles = async () => {
 				const role = await getRole(this.db, session.meta.userId, file.owningGroupId)
@@ -2659,10 +2781,7 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
-	async appFileRecordDidDelete({
-		id,
-		publishedSlug,
-	}: Pick<TlaFile, 'id' | 'ownerId' | 'publishedSlug'>) {
+	async appFileRecordDidDelete({ id, publishedSlug }: Pick<TlaFile, 'id' | 'publishedSlug'>) {
 		if (this._documentInfo?.deleted) return
 
 		this._fileRecordCache = null
@@ -2772,6 +2891,51 @@ export class TLFileDurableObject extends DurableObject {
 		} finally {
 			clearTimeout(timer)
 		}
+	}
+
+	/**
+	 * The MCP server's cluster index cache (mcpClusterIndexStorage.ts), which lives here because it is
+	 * content derived from the room this object owns: it dies with the file, and needs no expiry.
+	 *
+	 * Storage-only — none of these boot the room. They run on a Worker's critical path, and the point
+	 * of the cache is to be cheaper than the browser render it replaces.
+	 */
+	// `CREATE TABLE IF NOT EXISTS` is a write, and a cheap one, but running it per call would make the
+	// read path a write path — which is what lets a request in flight during a hard delete put storage
+	// back into an object that has already been emptied. Once per instance, after the delete check.
+	private mcpClusterIndexReady = false
+	private ensureMcpClusterIndex() {
+		if (this.mcpClusterIndexReady) return
+		ensureMcpClusterIndexTable(this.ctx.storage.sql)
+		this.mcpClusterIndexReady = true
+	}
+
+	/**
+	 * One page's stored cluster index, or null when nothing was stored for this content version.
+	 *
+	 * Refuses when documentInfo is absent or deleted rather than reading: `appFileRecordDidDelete`
+	 * empties this object's storage, so a deleted object comes back from hibernation with null here.
+	 * Allowing that state to initialize the table would resurrect storage nothing ever collects.
+	 */
+	async getMcpClusterIndex(key: McpClusterIndexKey): Promise<string | null> {
+		if (!this._documentInfo || this._documentInfo.deleted) return null
+		this.ensureMcpClusterIndex()
+		return readMcpClusterIndexRow(this.ctx.storage.sql, key)
+	}
+
+	/**
+	 * Stores one page's cluster index, replacing whatever that page last had and dropping the rows for
+	 * pages the board no longer has.
+	 */
+	async putMcpClusterIndex(
+		key: McpClusterIndexKey,
+		payload: string,
+		livePageIds: string[]
+	): Promise<void> {
+		if (!this._documentInfo || this._documentInfo.deleted) return
+		this.ensureMcpClusterIndex()
+		pruneMcpClusterIndexRows(this.ctx.storage.sql, key.kind, livePageIds)
+		writeMcpClusterIndexRow(this.ctx.storage.sql, key, payload)
 	}
 
 	/**
