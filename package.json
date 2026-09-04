@@ -123,6 +123,7 @@
 		"lazyrepo": "0.0.0-alpha.27",
 		"license-report": "^6.7.1",
 		"lint-staged": "^15.4.3",
+		"octokit": "^3.2.1",
 		"open-cli": "^8.0.0",
 		"oxfmt": "^0.41.0",
 		"oxlint": "^1.66.0",

@@ -12004,7 +12004,6 @@ __metadata:
     next: "npm:^16.3.0"
     next-mdx-remote-client: "npm:^1.1.2"
     next-themes: "npm:^0.3.0"
-    octokit: "npm:^3.2.1"
     oxfmt: "npm:^0.41.0"
     patch-package: "npm:^8.0.0"
     postcss: "npm:^8.5.1"
@@ -12029,6 +12028,7 @@ __metadata:
     tldraw: "workspace:*"
     tsx: "npm:^4.19.2"
     typescript: "npm:^7.0.2"
+    vitest: "npm:^4.1.7"
     ws: "npm:^8.18.0"
   languageName: unknown
   linkType: soft
@@ -12203,6 +12203,7 @@ __metadata:
     license-report: "npm:^6.7.1"
     lint-staged: "npm:^15.4.3"
     mime: "npm:^4.0.6"
+    octokit: "npm:^3.2.1"
     open-cli: "npm:^8.0.0"
     oxfmt: "npm:^0.41.0"
     oxlint: "npm:^1.66.0"
