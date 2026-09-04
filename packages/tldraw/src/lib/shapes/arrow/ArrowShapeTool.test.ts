@@ -63,6 +63,28 @@ describe('When in the idle state', () => {
 		editor.cancel()
 		editor.expectToBeIn('select.idle')
 	})
+
+	it('drops the precise hint when hovering a new target', () => {
+		editor.setCurrentTool('arrow')
+		editor.inputs.setPointerVelocity(new Vec(1, 1))
+		editor.pointerMove(150, 150)
+		expect(getArrowTargetState(editor)).toMatchObject({ target: { id: ids.box1 }, isPrecise: false })
+
+		vi.advanceTimersByTime(1000)
+		expect(getArrowTargetState(editor)).toMatchObject({ target: { id: ids.box1 }, isPrecise: true })
+
+		// Moving quickly onto another target should publish an imprecise hint for it without
+		// waiting for another pointer event
+		editor.inputs.setPointerVelocity(new Vec(1, 1))
+		editor.pointerMove(320, 320)
+		expect(getArrowTargetState(editor)).toMatchObject({ target: { id: ids.box2 }, isPrecise: false })
+
+		editor.pointerDown(320, 320).pointerMove(330, 330)
+		const arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
+		expect(bindings(arrow.id)).toMatchObject({
+			start: { toId: ids.box2, props: { isPrecise: false } },
+		})
+	})
 })
 
 describe('When in the pointing state', () => {
