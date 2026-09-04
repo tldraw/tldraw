@@ -831,6 +831,33 @@ describe('When pasting content with unsupported shape types...', () => {
 		expect(new Set(indices).size).toBe(indices.length)
 	})
 
+	it('does not hang when the dropped shapes form a parent cycle', () => {
+		// clipboard content is arbitrary json — nothing upstream rejects a cyclic hierarchy
+		const outer = createShapeId('outer')
+		const inner = createShapeId('inner')
+		const child = createShapeId('child')
+		editor.createShapes([
+			{ id: outer, type: 'frame', x: 0, y: 0, props: { w: 300, h: 300 } },
+			{ id: inner, type: 'frame', x: 10, y: 10, parentId: outer, props: { w: 200, h: 200 } },
+			{ id: child, type: 'geo', x: 5, y: 5, parentId: inner, props: { w: 50, h: 50 } },
+		])
+		const content = contentWithUnsupported(
+			[outer],
+			new Map([
+				[outer, 'animation-camera'],
+				[inner, 'animation-camera'],
+			])
+		)
+		// close the loop: the two dropped shapes become each other's parent
+		;(content.shapes.find((s) => s.id === outer) as { parentId: string }).parentId = inner
+
+		editor.putContentOntoCurrentPage(content, { preserveIds: true, preservePosition: true })
+
+		// the child we can create still lands, at the top level
+		const pasted = editor.getShape(child)!
+		expect(pasted.parentId).toBe(editor.getCurrentPageId())
+	})
+
 	it('drops bindings that reference a dropped shape', () => {
 		const unknown = createShapeId('unknown')
 		const arrow = createShapeId('arrow')
