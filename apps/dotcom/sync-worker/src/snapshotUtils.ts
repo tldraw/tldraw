@@ -131,7 +131,7 @@ export function isSameFingerprint(
 // Object keys are sorted so that a serializer emitting the same schema in a different order can't
 // read as a change and re-upload every board. This is why `getHashForObject` from @tldraw/utils
 // isn't used here: it hashes `JSON.stringify` output directly, so key order changes the result.
-function canonicalJson(value: unknown): string {
+export function canonicalJson(value: unknown): string {
 	if (value === null || typeof value !== 'object') return JSON.stringify(value) ?? 'undefined'
 	if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`
 	return `{${Object.keys(value)
@@ -144,7 +144,7 @@ function canonicalJson(value: unknown): string {
 // collision here silently skips an upload that was owed; 64 bits makes that implausible. Staying
 // non-cryptographic is fine — this only answers "did the schema change?", and a false mismatch
 // costs one redundant upload rather than losing a migration.
-function fnv1a64(value: string): string {
+export function fnv1a64(value: string): string {
 	let h1 = 0x811c9dc5
 	let h2 = 0xc59d1c81
 	for (let i = 0; i < value.length; i++) {

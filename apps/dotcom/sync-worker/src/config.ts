@@ -166,6 +166,53 @@ export const MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT = 20
 export const MCP_RATE_LIMIT_WINDOW_MS = 60_000
 
 /**
+ * Version-chain tuning. The version cache stores a full keyframe, then deltas until one of these
+ * limits cuts the next keyframe. All three trade storage against restore latency, and the numbers
+ * come from the 2026-08-25 measurement over 16 production rooms (1,661 versions).
+ *
+ * Keyframe every 64 deltas: the measured knee. 16 gives up ~3.5x of storage for little latency
+ * gain; 256 buys ~15% more compression while quadrupling worst-case replay. Count matters because
+ * time alone fails hot boards — at the ~39s mean persist gap an active day is ~2,000 versions.
+ */
+export const MAX_DELTAS_PER_CHAIN = 64
+
+/**
+ * Keyframe at least daily. Time matters because count alone leaves a cold board's chain open
+ * indefinitely, so a single lost keyframe would strand an unbounded run of deltas.
+ */
+export const MAX_CHAIN_AGE_MS = 24 * 60 * 60 * 1000
+
+/**
+ * A delta larger than this fraction of its keyframe cuts a keyframe instead: it is a mass rewrite
+ * (a wipe, a paste of a whole board) and not worth chaining from. Compared compressed against
+ * compressed — a raw delta against a gzipped keyframe would trip on boards that simply compress well.
+ */
+export const MAX_DELTA_SIZE_RATIO = 0.5
+
+/**
+ * The size rule only fires above this. Gzip's fixed overhead makes a tiny delta comparable to a
+ * tiny keyframe, so without a floor a near-empty board cuts a keyframe on every persist — and a
+ * sub-4KB delta is never the mass rewrite the rule exists to catch.
+ */
+export const MIN_SIZE_RULE_DELTA_BYTES = 4096
+
+/**
+ * Deltas per segment object. Bounds three things at once: how much the durable object rewrites on
+ * each persist (~140KB worst case at this cap), how many GETs a restore costs (1 keyframe + 4
+ * segments at kf64), and how many ISO timestamps have to fit in the segment's R2 custom metadata
+ * (~400 bytes at 16). Much above 32 and the metadata budget starts to bind.
+ *
+ * Restore fetches the keyframe and every segment in parallel, and a Worker may have six
+ * connections waiting for headers at once; a seventh queues. `1 + MAX_DELTAS_PER_CHAIN /
+ * SEGMENT_CAP` must stay at or under six or restores start serializing — a test in
+ * versionChain.test.ts pins it.
+ */
+export const SEGMENT_CAP = 16
+
+/** Cloudflare's per-invocation ceiling on connections simultaneously waiting for headers. */
+export const WORKER_MAX_SIMULTANEOUS_CONNECTIONS = 6
+
+/**
  * The URL of the PostHog instance to use.
  */
 export const POSTHOG_URL = 'https://eu.i.posthog.com'
