@@ -43,13 +43,17 @@ async function main() {
 	const maybeTargetDir = args._[0] ? formatTargetDir(resolve(String(args._[0]))) : undefined
 
 	// Settle the directory before anything else so a cancel here doesn't waste a template pick.
-	if (maybeTargetDir) await prepareRequestedDir(maybeTargetDir)
+	const dirAction = maybeTargetDir ? await prepareRequestedDir(maybeTargetDir) : undefined
 
 	const template = await templatePicker(args.template, args['no-telemetry'])
 	const name = await namePicker(maybeTargetDir)
 
 	const targetDir = maybeTargetDir ?? findAvailableDir(resolve(process.cwd(), name))
 	mkdirSync(targetDir, { recursive: true })
+
+	// Only destroy existing files once every prompt has passed; a cancel or bad -t after the
+	// "remove" choice must leave the directory untouched.
+	if (dirAction === 'empty') emptyDir(targetDir)
 
 	await downloadTemplate(template, targetDir)
 	await renameTemplate(name, targetDir)
@@ -141,10 +145,13 @@ async function namePicker(argOption?: string) {
 	return pathToName(name)
 }
 
+type RequestedDirAction = 'ignore' | 'empty'
+
 // A directory the user named explicitly (e.g. `.`) must not be swapped for a suffixed sibling, so ask
-// what to do with its existing contents instead.
-async function prepareRequestedDir(targetDir: string) {
-	if (isDirEmpty(targetDir)) return
+// what to do with its existing contents instead. Returns the choice rather than acting on it so the
+// caller can defer any deletion until the rest of the setup has succeeded.
+async function prepareRequestedDir(targetDir: string): Promise<RequestedDirAction | undefined> {
+	if (isDirEmpty(targetDir)) return undefined
 
 	// Show the full path for anything outside the cwd so "remove existing files" on `..` isn't a surprise.
 	const relativeName = relative(process.cwd(), targetDir)
@@ -155,7 +162,7 @@ async function prepareRequestedDir(targetDir: string) {
 	}
 
 	const action = await handleCancel(
-		select({
+		select<RequestedDirAction | 'cancel'>({
 			message: picocolors.bold(
 				`${displayName === '.' ? 'The current directory' : displayName} is not empty. How would you like to proceed?`
 			),
@@ -176,7 +183,7 @@ async function prepareRequestedDir(targetDir: string) {
 	)
 
 	if (action === 'cancel') cancel()
-	if (action === 'empty') emptyDir(targetDir)
+	return action
 }
 
 function findAvailableDir(targetDir: string): string {
