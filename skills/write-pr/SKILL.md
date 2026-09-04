@@ -141,6 +141,56 @@ This PR fixes a bug where <symptom a user or developer would hit>.
 
 tldraw/tldraw#10117, #10118, and #10119 are worked examples of bug fixes in this shape.
 
+### Before and after recordings
+
+When a bug fix or improvement changes how a canvas interaction behaves — a drag, resize, rotate, crop, handle, or tool gesture that a reviewer would otherwise have to run locally to see — put a short recording in each of the Before and After sections. Prose describes the mechanism; the recordings show the symptom and its absence, and reviewers trust them more than a description of a jump or a jitter. Skip this for changes that are not visible on the canvas (data, API, docs, tooling).
+
+`scripts/record-interaction.mjs` records a scripted interaction against the running examples app as a 16:9 MP4. It hides the tldraw chrome, injects a visible cursor (headless recordings have none), runs a scenario module, trims the setup frames, and transcodes with ffmpeg. `scripts/example-scenario.mjs` is a starting point; copy it to a scratch location and change the body to the interaction the PR affects. Do not commit scenarios.
+
+Run from the repo root with `yarn dev` serving the examples app:
+
+```bash
+# After: the current branch
+node skills/write-pr/scripts/record-interaction.mjs <scenario.mjs> <scratch>/after.mp4
+
+# Before: main's versions of the files this branch modifies, hot-reloaded by vite
+git diff --name-only --diff-filter=M origin/main...HEAD | xargs git checkout origin/main --
+sleep 10
+node skills/write-pr/scripts/record-interaction.mjs <scenario.mjs> <scratch>/before.mp4
+git diff --name-only --diff-filter=M origin/main...HEAD | xargs git checkout HEAD --
+git status --porcelain   # must be empty before continuing
+```
+
+Restrict the checkout to modified files: checking out a whole directory from `main` also stages files that only exist there, and files added on this branch have no `main` version to restore. Only use this approach when the working tree is clean.
+
+Rules for the recordings themselves:
+
+- **Same scenario for both.** The two videos must differ only in the code under test, so the reviewer compares like with like. Record After first, confirm the scenario shows the behavior, then record Before.
+- **Make the symptom unmissable.** Pick inputs that exaggerate the bug — a large rotation, a long drag, a non-square shape. A 15 degree turn that shifts a shape by a few pixels reads as nothing at video scale.
+- **Check the frames before attaching.** Pull a contact sheet (`ffmpeg -i before.mp4 -vf "select='not(mod(n\,15))',scale=320:-1,tile=6x3" -frames:v 1 sheet.png`) and look at it. A Before recording that looks identical to After usually means the checkout did not take effect, not that the bug is subtle.
+- **No burned-in labels.** The `### Before` and `### After` headings already say which is which.
+- **Keep them short.** A few seconds of setup, the interaction, a beat at the end. Under ten seconds each.
+
+Attach with `gh pr create` or `gh pr edit` (gh 2.99 or later, run inside the repo, absolute paths). Reference each file in the body as the only content of its paragraph, directly under the heading it illustrates, and gh rewrites the reference to the uploaded asset:
+
+```bash
+gh pr edit <number> --body-file body.md --attach /abs/path/before.mp4 --attach /abs/path/after.mp4
+```
+
+```md
+### Before
+
+<mechanism>
+
+![Before](/abs/path/before.mp4)
+
+### After
+
+<behavior now>
+
+![After](/abs/path/after.mp4)
+```
+
 ### Change type
 
 - Tick exactly one type with `[x]`
