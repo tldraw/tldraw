@@ -3493,6 +3493,46 @@ describe('resizing a selection of mixed rotations', () => {
 		expect(centerAfter.x).toBeCloseTo(expectedCenter.x)
 		expect(centerAfter.y).toBeCloseTo(expectedCenter.y)
 	})
+
+	it('mirrors an unaligned child of an unaligned group when flipping', () => {
+		// The inner group is rotated 0.2 inside an outer group that is rotated 0.5, so the inner
+		// group's page rotation (0.7) and its child's page rotation (0.3 + 0.7 = 1.0) are both out of
+		// alignment with the selection axes. The inner group is committed before its child, so the
+		// child's new rotation must be computed against the inner group's *flipped* rotation.
+		const alignedId = createShapeId('aligned')
+		const innerAlignedId = createShapeId('innerAligned')
+		const unalignedId = createShapeId('unaligned')
+		editor.createShapes([
+			box(alignedId, 0, 0, 100, 50),
+			box(innerAlignedId, 200, 100, 100, 50),
+			{ ...box(unalignedId, 200, 0, 100, 50), rotation: 0.3 },
+		])
+		editor.groupShapes([innerAlignedId, unalignedId])
+		const innerGroupId = editor.getOnlySelectedShapeId()!
+		editor.rotateShapesBy([innerGroupId], 0.2)
+		editor.groupShapes([alignedId, innerGroupId])
+		const outerGroupId = editor.getOnlySelectedShapeId()!
+		editor.rotateShapesBy([outerGroupId], 0.5)
+		editor.select(outerGroupId)
+
+		expect(editor.getShapePageTransform(innerGroupId).rotation()).toBeCloseTo(0.7)
+		expect(editor.getShapePageTransform(unalignedId).rotation()).toBeCloseTo(1.0)
+
+		const selectionBounds = editor.getSelectionRotatedPageBounds()!
+		const centerBefore = editor.getShapePageBounds(unalignedId)!.center
+		const expectedCenter = Vec.RotWith(centerBefore, selectionBounds.point, -0.5)
+		expectedCenter.x = selectionBounds.point.x - (expectedCenter.x - selectionBounds.point.x)
+		expectedCenter.rotWith(selectionBounds.point, 0.5)
+
+		editor.resizeSelection({ scaleX: -1 }, 'right')
+
+		// each shape's page rotation is mirrored across the selection axis: r -> 2 * 0.5 - r
+		expect(editor.getShapePageTransform(innerGroupId).rotation()).toBeCloseTo(2 * 0.5 - 0.7)
+		expect(editor.getShapePageTransform(unalignedId).rotation()).toBeCloseTo(2 * 0.5 - 1.0)
+		const centerAfter = editor.getShapePageBounds(unalignedId)!.center
+		expect(centerAfter.x).toBeCloseTo(expectedCenter.x)
+		expect(centerAfter.y).toBeCloseTo(expectedCenter.y)
+	})
 })
 
 // describe('Icons', () => {

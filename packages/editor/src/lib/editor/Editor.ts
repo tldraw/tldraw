@@ -137,6 +137,7 @@ import {
 	areAnglesCompatible,
 	clamp,
 	pointInPolygon,
+	shortAngleDist,
 } from '../primitives/utils'
 import { Vec, VecLike } from '../primitives/Vec'
 import { areShapesContentEqual } from '../utils/areShapesContentEqual'
@@ -8429,15 +8430,29 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// to make sure the shape is mirrored correctly
 		if (Math.sign(scale.x) * Math.sign(scale.y) < 0) {
 			// Mirroring across an axis at angle `axisRot` maps a page rotation `pageRot` to
-			// `2 * axisRot - pageRot`. For a shape with local rotation `localRot` and parent page
-			// rotation `parentRot`:
+			// `2 * axisRot - pageRot`. For a shape with local rotation `localRot` whose parent had
+			// page rotation `parentRot` when the resize began:
 			// - pageRot = parentRot + localRot
 			// - newPageRot = 2 * axisRot - pageRot
-			// - newPageRot = parentRot + newLocalRot (parent hasn't changed)
-			// - Therefore: newLocalRot = 2 * axisRot - localRot - 2 * parentRot
+			// - newPageRot = (parentRot + parentDelta) + newLocalRot
+			// - Therefore: newLocalRot = 2 * axisRot - localRot - 2 * parentRot - parentDelta
+			// `parentDelta` is how far the parent has rotated since the resize began. Nested resizes
+			// commit ancestors before descendants, so an unaligned parent may itself have been
+			// flipped by the time its child gets here; reading the parent's current rotation as if
+			// it were the initial one would then double-count that flip.
 			const parentRotation = this.getShapeParentTransform(id).rotation()
+			// take the shortest arc so the stored rotation doesn't drift by 2π when the parent
+			// hasn't moved and the initial page rotation happens to be wrapped
+			const parentDelta = shortAngleDist(
+				Mat.Cast(options.initialPageTransform).rotation() - options.initialShape.rotation,
+				parentRotation
+			)
+			const initialParentRotation = parentRotation - parentDelta
 			const rotation =
-				2 * options.scaleAxisRotation - options.initialShape.rotation - 2 * parentRotation
+				2 * options.scaleAxisRotation -
+				options.initialShape.rotation -
+				2 * initialParentRotation -
+				parentDelta
 			this.updateShapes([{ id, type, rotation }])
 		}
 
