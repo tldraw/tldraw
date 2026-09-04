@@ -1,11 +1,10 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { notFound } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
-import { getR2KeyForSnapshot } from '../r2'
+import { getR2KeyForSnapshot, R2Snapshot } from '../r2'
 import { Environment } from '../types'
 import { createSupabaseClient, noSupabaseSorry } from '../utils/createSupabaseClient'
 import { getSnapshotsTable } from '../utils/getSnapshotsTable'
-import { R2Snapshot } from './createRoomSnapshot'
 
 function generateReponse(roomId: string, data: RoomSnapshot) {
 	return new Response(

@@ -3,11 +3,11 @@ import { captureException } from '@sentry/react'
 import {
 	AcceptInviteResponseBody,
 	CreateFilesResponseBody,
-	CreateSnapshotRequestBody,
 	FILE_PREFIX,
 	LOCAL_FILE_PREFIX,
 	MAX_NUMBER_OF_FILES,
 	ROOM_PREFIX,
+	Snapshot,
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
 	TlaFileState,
@@ -1253,7 +1253,7 @@ export class TldrawApp {
 				{
 					schema: snapshot.schema,
 					snapshot: snapshot.store,
-				} satisfies CreateSnapshotRequestBody,
+				} satisfies Snapshot,
 			],
 		})
 

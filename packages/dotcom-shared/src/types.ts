@@ -12,12 +12,6 @@ export interface CreateRoomRequestBody {
 	snapshot: Snapshot
 }
 
-export interface CreateSnapshotRequestBody {
-	schema: SerializedSchema
-	snapshot: SerializedStore<TLRecord>
-	parent_slug?: string | undefined
-}
-
 export type CreateSnapshotResponseBody =
 	| {
 			error: false
