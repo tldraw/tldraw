@@ -183,6 +183,7 @@ export const ZErrorCode = stringEnum(
 	'unpublish_failed',
 	'republish_failed',
 	'unknown_error',
+	'offline_error',
 	'client_too_old',
 	'forbidden',
 	'bad_request',

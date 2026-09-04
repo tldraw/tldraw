@@ -434,6 +434,9 @@
   "9bef626805": {
     "translation": "Delete file"
   },
+  "9c228b6834": {
+    "translation": "You appear to be offline. Check your connection and try again."
+  },
   "9ccb565b86": {
     "translation": "We're having trouble connecting to our authentication service. This is usually temporary. Please try refreshing the page."
   },

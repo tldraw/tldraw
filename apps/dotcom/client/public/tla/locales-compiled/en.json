@@ -1074,6 +1074,12 @@
       "value": "Delete file"
     }
   ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "You appear to be offline. Check your connection and try again."
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,

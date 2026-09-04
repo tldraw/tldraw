@@ -1,4 +1,3 @@
-import { ZErrorCode } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { ReactNode, useCallback } from 'react'
@@ -249,10 +248,9 @@ function useCreateWorkspaceDialog() {
 					onClose={onClose}
 					onCreate={async (name) => {
 						const id = uniqueId()
-						try {
-							await app.z.mutate.createWorkspace({ id, name }).client
-						} catch (e) {
-							app.showMutationRejectionToast((e as Error).message as ZErrorCode)
+						const createRes = await app.z.mutate.createWorkspace({ id, name }).client
+						if (createRes.type === 'error') {
+							app.showMutationRejectionToast(createRes.error)
 							return
 						}
 						trackEvent('create-workspace', { source: 'sidebar' })

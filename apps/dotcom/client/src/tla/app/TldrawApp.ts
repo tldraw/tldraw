@@ -1,4 +1,4 @@
-import { QueryResultType, Zero } from '@rocicorp/zero'
+import { MutatorResultErrorDetails, QueryResultType, Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
 import {
 	AcceptInviteResponseBody,
@@ -441,6 +441,9 @@ export class TldrawApp {
 		unknown_error: {
 			defaultMessage: 'An unexpected error occurred.',
 		},
+		offline_error: {
+			defaultMessage: 'You appear to be offline. Check your connection and try again.',
+		},
 		forbidden: {
 			defaultMessage: 'You do not have the necessary permissions to perform this action.',
 		},
@@ -480,8 +483,10 @@ export class TldrawApp {
 		return msg
 	}
 
-	showMutationRejectionToast = throttle((errorCode: ZErrorCode) => {
-		const descriptor = this.getMessage(errorCode)
+	// Zero-level errors (socket down, client closed) carry prose, not a ZErrorCode.
+	showMutationRejectionToast = throttle((error: MutatorResultErrorDetails['error']) => {
+		const code = error.type === 'zero' ? ZErrorCode.offline_error : (error.message as ZErrorCode)
+		const descriptor = this.getMessage(code)
 		this.toasts?.addToast({
 			title: this.getIntl().formatMessage(this.messages.mutation_error_toast_title),
 			description: this.getIntl().formatMessage(descriptor),
@@ -773,7 +778,7 @@ export class TldrawApp {
 			time: Date.now(),
 		}).client
 		if (res.type === 'error') {
-			this.showMutationRejectionToast(res.error.message as ZErrorCode)
+			this.showMutationRejectionToast(res.error)
 			return Result.err('mutation rejected')
 		}
 
@@ -942,9 +947,18 @@ export class TldrawApp {
 	 * Remove the user's file state and the workspace's link to a file, deleting the file itself only
 	 * if that workspace is the one that owns it.
 	 */
-	async deleteOrForgetFile(fileId: string, workspaceId: string = this.getHomeWorkspaceId()) {
-		// Optimistic update, remove file and file states
-		await this.z.mutate.removeFileFromWorkspace({ fileId, workspaceId }).client
+	async deleteOrForgetFile(
+		fileId: string,
+		workspaceId: string = this.getHomeWorkspaceId()
+	): Promise<boolean> {
+		// Optimistic update, remove file and file states. Zero mutator promises never reject —
+		// failures resolve with {type: 'error'} — so the result has to be checked, not caught.
+		const res = await this.z.mutate.removeFileFromWorkspace({ fileId, workspaceId }).client
+		if (res.type === 'error') {
+			this.showMutationRejectionToast(res.error)
+			return false
+		}
+		return true
 	}
 
 	setFileSharedLinkType(fileId: string, sharedLinkType: TlaFile['sharedLinkType'] | 'no-access') {
