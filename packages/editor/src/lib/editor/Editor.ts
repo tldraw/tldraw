@@ -2498,7 +2498,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private _selectShapesAndZoom(ids: TLShapeId[]) {
-		this.markHistoryStoppingPoint('selecting adjacent shape')
+		// setSelectedShapes is a no-op for an unchanged selection (Tab with a single shape,
+		// Ctrl+arrow with no neighbour); marking anyway would leave an empty stopping point
+		// that makes undo available with nothing to undo
+		const selectedShapeIds = this.getSelectedShapeIds()
+		const isSelectionChanging =
+			ids.length !== selectedShapeIds.length || ids.some((id) => !selectedShapeIds.includes(id))
+		if (isSelectionChanging) {
+			this.markHistoryStoppingPoint('selecting adjacent shape')
+		}
 		this.setSelectedShapes(ids)
 		this.zoomToSelectionIfOffscreen(256, {
 			animation: {

@@ -22,14 +22,10 @@ export class PointingCanvas extends StateNode {
 
 	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.getIsDragging()) {
-			// A brush from an empty selection has no mark yet, so its selection
-			// would merge into the previous history entry and undo would revert
-			// that edit too (#10412). Marking only here keeps a plain click on
-			// empty canvas out of the undo stack.
-			if (!this.didMark) {
-				this.editor.markHistoryStoppingPoint('brushing')
-			}
-			this.parent.transition('brushing', info)
+			// Brushing marks its own stopping point before its first selection change, unless the
+			// deselect above already placed one; a second mark would split a click-drag that
+			// starts from an existing selection into two undo steps
+			this.parent.transition('brushing', { ...info, didMarkHistory: this.didMark })
 		}
 	}
 

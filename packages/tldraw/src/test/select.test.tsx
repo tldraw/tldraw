@@ -226,6 +226,16 @@ describe('Selection changes while idle are their own undo step', () => {
 		expect(editor.getShape(ids.box2)).toBeDefined()
 	})
 
+	it('brushing that hits nothing does not make undo available', () => {
+		createBoxesWithNothingSelected()
+		editor.clearHistory()
+		expect(editor.getCanUndo()).toBe(false)
+
+		editor.pointerDown(700, 700).pointerMove(800, 800).pointerUp(800, 800)
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		expect(editor.getCanUndo()).toBe(false)
+	})
+
 	it('brushing from an existing selection is a single undo step', () => {
 		createBoxesWithNothingSelected()
 		editor.setSelectedShapes([ids.box2])
@@ -272,6 +282,18 @@ describe('Selection changes while idle are their own undo step', () => {
 		editor.undo()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		expect(editor.getShape(ids.box2)).toBeDefined()
+	})
+
+	it('Tab with a single shape does not make undo available', () => {
+		editor.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
+		editor.setSelectedShapes([ids.box1])
+		editor.setCurrentTool('select')
+		editor.clearHistory()
+		expect(editor.getCanUndo()).toBe(false)
+
+		editor.keyDown('Tab').keyUp('Tab')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		expect(editor.getCanUndo()).toBe(false)
 	})
 
 	it('Ctrl+arrow traversal', () => {
