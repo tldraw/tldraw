@@ -476,6 +476,9 @@ export const DEFAULT_TRANSLATION = {
 	'toast.error.export-fail.desc': 'Failed to export image',
 	'toast.error.copy-fail.title': 'Failed copy',
 	'toast.error.copy-fail.desc': 'Failed to copy image',
+	'toast.unsupported-shapes.title': 'Some shapes couldn’t be pasted',
+	'toast.unsupported-shapes.desc-one': '1 shape uses a type that isn’t supported here.',
+	'toast.unsupported-shapes.desc-many': '{count} shapes use a type that isn’t supported here.',
 	'context.pages.new-page': 'New page',
 	'vscode.file-open.desc':
 		'We’ve updated this document to work with the current version of tldraw. If you’d like to keep the original version (which will work on old.tldraw.com), click below to create a backup.',

@@ -1,14 +1,12 @@
 import {
-	IndexKey,
 	TLBinding,
 	TLBindingId,
-	TLContent,
 	TLFrameShape,
 	TLGeoShape,
-	TLShape,
 	TLShapeId,
 	approximately,
 	createShapeId,
+	structuredClone,
 } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
@@ -678,39 +676,18 @@ describe('When pasting into frames...', () => {
 })
 
 describe('When pasting content with unsupported shape types...', () => {
-	// Content copied from another tldraw app can contain custom shapes that this
-	// editor has no shape util for. See https://github.com/tldraw/tldraw/issues/10127
-	function unsupportedShape(
-		id: TLShapeId,
-		partial: Partial<Omit<TLShape, 'type'>> & { type?: string } = {}
-	): TLShape {
-		return {
-			id,
-			typeName: 'shape',
-			type: 'animation-camera',
-			x: 0,
-			y: 0,
-			rotation: 0,
-			index: 'a1' as IndexKey,
-			parentId: editor.getCurrentPageId(),
-			isLocked: false,
-			opacity: 1,
-			meta: {},
-			props: { w: 100, h: 100 },
-			...partial,
-		} as TLShape
-	}
+	// Content copied from another tldraw app can carry custom shapes and bindings that this
+	// editor has no util for. See https://github.com/tldraw/tldraw/issues/10127
 
-	function contentOf(shapes: TLShape[], bindings: TLBinding[] = []): TLContent {
-		return {
-			shapes,
-			bindings,
-			assets: [],
-			rootShapeIds: shapes
-				.filter((s) => !shapes.some((other) => other.id === s.parentId))
-				.map((s) => s.id),
-			schema: editor.store.schema.serialize(),
+	/** Copies the given shapes, then relabels some of them as types we have no util for. */
+	function contentWithUnsupported(ids: TLShapeId[], unsupported: Map<TLShapeId, string>) {
+		const content = structuredClone(editor.getContentFromCurrentPage(ids)!)
+		for (const shape of content.shapes) {
+			const type = unsupported.get(shape.id)
+			if (type) (shape as { type: string }).type = type
 		}
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+		return content
 	}
 
 	beforeEach(() => {
@@ -719,154 +696,247 @@ describe('When pasting content with unsupported shape types...', () => {
 	})
 
 	it('drops the unsupported shapes and pastes the rest', () => {
-		const knownId = createShapeId('known')
-		const unknownId = createShapeId('unknown')
+		const known = createShapeId('known')
+		const unknown = createShapeId('unknown')
+		editor.createShapes([
+			{ id: known, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+			{ id: unknown, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100 } },
+		])
 
 		editor.putContentOntoCurrentPage(
-			contentOf([
-				unsupportedShape(unknownId),
-				{
-					...unsupportedShape(knownId),
-					type: 'geo',
-					props: { w: 100, h: 100, geo: 'rectangle' },
-				} as TLShape,
-			]),
+			contentWithUnsupported([known, unknown], new Map([[unknown, 'animation-camera']])),
 			{ preserveIds: true, preservePosition: true }
 		)
 
-		expect(editor.getCurrentPageShapes().map((s) => s.type)).toEqual(['geo'])
+		expect(editor.getCurrentPageShapes().map((s) => s.id)).toEqual([known])
 	})
 
 	it('does not crash when every shape is unsupported', () => {
-		editor.putContentOntoCurrentPage(contentOf([unsupportedShape(createShapeId('unknown'))]))
+		const id = createShapeId('unknown')
+		editor.createShapes([{ id, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
+
+		editor.putContentOntoCurrentPage(
+			contentWithUnsupported([id], new Map([[id, 'animation-camera']]))
+		)
 
 		expect(editor.getCurrentPageShapes()).toEqual([])
 	})
 
 	it('lifts children of a dropped shape, keeping them where they were', () => {
-		const unknownId = createShapeId('unknown')
-		const childId = createShapeId('child')
+		const unknown = createShapeId('unknown')
+		const child = createShapeId('child')
+		editor.createShapes([
+			{ id: unknown, type: 'frame', x: 100, y: 200, props: { w: 300, h: 300 } },
+			{ id: child, type: 'geo', x: 10, y: 20, parentId: unknown, props: { w: 50, h: 50 } },
+		])
 
 		editor.putContentOntoCurrentPage(
-			contentOf([
-				unsupportedShape(unknownId, { x: 100, y: 200 }),
-				{
-					...unsupportedShape(childId, { x: 10, y: 20, parentId: unknownId }),
-					type: 'geo',
-					props: { w: 50, h: 50, geo: 'rectangle' },
-				} as TLShape,
-			]),
+			contentWithUnsupported([unknown], new Map([[unknown, 'animation-camera']])),
 			{ preserveIds: true, preservePosition: true }
 		)
 
-		const child = editor.getShape(childId)!
-		expect(child.parentId).toBe(editor.getCurrentPageId())
+		const pasted = editor.getShape(child)!
+		expect(pasted.parentId).toBe(editor.getCurrentPageId())
 		// the dropped parent's offset is baked into the child
-		expect({ x: child.x, y: child.y }).toEqual({ x: 110, y: 220 })
+		expect({ x: pasted.x, y: pasted.y }).toEqual({ x: 110, y: 220 })
 	})
 
 	it('lifts children into the nearest surviving ancestor, not all the way to the page', () => {
-		const frameId = createShapeId('frame')
-		const unknownId = createShapeId('unknown')
-		const childId = createShapeId('child')
+		const frame = createShapeId('frame')
+		const unknown = createShapeId('unknown')
+		const child = createShapeId('child')
+		editor.createShapes([
+			{ id: frame, type: 'frame', x: 0, y: 0, props: { w: 500, h: 500 } },
+			{ id: unknown, type: 'frame', x: 100, y: 100, parentId: frame, props: { w: 200, h: 200 } },
+			{ id: child, type: 'geo', x: 10, y: 20, parentId: unknown, props: { w: 50, h: 50 } },
+		])
 
 		editor.putContentOntoCurrentPage(
-			contentOf([
-				{
-					...unsupportedShape(frameId),
-					type: 'frame',
-					props: { w: 500, h: 500, name: '' },
-				} as TLShape,
-				unsupportedShape(unknownId, { x: 100, y: 100, parentId: frameId }),
-				{
-					...unsupportedShape(childId, { x: 10, y: 20, parentId: unknownId }),
-					type: 'geo',
-					props: { w: 50, h: 50, geo: 'rectangle' },
-				} as TLShape,
-			]),
+			contentWithUnsupported([frame], new Map([[unknown, 'animation-camera']])),
 			{ preserveIds: true, preservePosition: true }
 		)
 
-		const child = editor.getShape(childId)!
-		expect(child.parentId).toBe(frameId)
-		expect({ x: child.x, y: child.y }).toEqual({ x: 110, y: 120 })
+		const pasted = editor.getShape(child)!
+		expect(pasted.parentId).toBe(frame)
+		expect({ x: pasted.x, y: pasted.y }).toEqual({ x: 110, y: 120 })
 	})
 
 	it("bakes a dropped shape's rotation into its children", () => {
-		const unknownId = createShapeId('unknown')
-		const childId = createShapeId('child')
+		const unknown = createShapeId('unknown')
+		const child = createShapeId('child')
+		editor.createShapes([
+			{
+				id: unknown,
+				type: 'frame',
+				x: 100,
+				y: 0,
+				rotation: Math.PI / 2,
+				props: { w: 300, h: 300 },
+			},
+			{ id: child, type: 'geo', x: 10, y: 0, parentId: unknown, props: { w: 50, h: 50 } },
+		])
 
 		editor.putContentOntoCurrentPage(
-			contentOf([
-				unsupportedShape(unknownId, { x: 100, y: 0, rotation: Math.PI / 2 }),
-				{
-					...unsupportedShape(childId, { x: 10, y: 0, parentId: unknownId }),
-					type: 'geo',
-					props: { w: 50, h: 50, geo: 'rectangle' },
-				} as TLShape,
-			]),
+			contentWithUnsupported([unknown], new Map([[unknown, 'animation-camera']])),
 			{ preserveIds: true, preservePosition: true }
 		)
 
-		const child = editor.getShape(childId)!
-		expect(child.x).toBeCloseTo(100)
-		expect(child.y).toBeCloseTo(10)
-		expect(child.rotation).toBeCloseTo(Math.PI / 2)
+		const pasted = editor.getShape(child)!
+		expect(pasted.x).toBeCloseTo(100)
+		expect(pasted.y).toBeCloseTo(10)
+		expect(pasted.rotation).toBeCloseTo(Math.PI / 2)
+	})
+
+	it('selects and positions a lifted child like any other pasted shape', () => {
+		const unknown = createShapeId('unknown')
+		const child = createShapeId('child')
+		editor.createShapes([
+			{ id: unknown, type: 'frame', x: 100, y: 200, props: { w: 300, h: 300 } },
+			{ id: child, type: 'geo', x: 10, y: 20, parentId: unknown, props: { w: 50, h: 50 } },
+		])
+		const content = contentWithUnsupported([unknown], new Map([[unknown, 'animation-camera']]))
+
+		// the default paste path, rather than the preserveIds/preservePosition one
+		editor.putContentOntoCurrentPage(content, { select: true })
+
+		const pasted = editor.getCurrentPageShapes()
+		expect(pasted).toHaveLength(1)
+		// the lifted child is a root shape now, so it gets selected with the rest of the paste
+		expect(editor.getSelectedShapeIds()).toEqual([pasted[0].id])
+		expect(pasted[0].parentId).toBe(editor.getCurrentPageId())
+		// it overlaps the viewport at its lifted position, so the paste leaves it there
+		expect({ x: pasted[0].x, y: pasted[0].y }).toEqual({ x: 110, y: 220 })
 	})
 
 	it('drops bindings that reference a dropped shape', () => {
-		const unknownId = createShapeId('unknown')
-		const arrowId = createShapeId('arrow')
+		const unknown = createShapeId('unknown')
+		const arrow = createShapeId('arrow')
+		editor.createShapes([
+			{ id: unknown, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100 } },
+			{ id: arrow, type: 'arrow', x: 0, y: 0 },
+		])
+		editor.createBindings([
+			{
+				type: 'arrow',
+				fromId: arrow,
+				toId: unknown,
+				props: {
+					terminal: 'end',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: false,
+				},
+			},
+		])
 
 		editor.putContentOntoCurrentPage(
-			contentOf(
-				[
-					unsupportedShape(unknownId, { x: 200, y: 0 }),
-					{
-						...unsupportedShape(arrowId),
-						type: 'arrow',
-						props: { start: { x: 0, y: 0 }, end: { x: 100, y: 0 } },
-					} as TLShape,
-				],
-				[
-					{
-						id: 'binding:test' as TLBindingId,
-						typeName: 'binding',
-						type: 'arrow',
-						fromId: arrowId,
-						toId: unknownId,
-						meta: {},
-						props: {
-							terminal: 'end',
-							normalizedAnchor: { x: 0.5, y: 0.5 },
-							isExact: false,
-							isPrecise: false,
-							snap: 'none',
-						},
-					} as TLBinding,
-				]
-			),
+			contentWithUnsupported([arrow, unknown], new Map([[unknown, 'animation-camera']])),
 			{ preserveIds: true, preservePosition: true }
 		)
 
-		expect(editor.getShape(arrowId)).toBeDefined()
-		expect(editor.getBindingsFromShape(arrowId, 'arrow')).toEqual([])
+		expect(editor.getShape(arrow)).toBeDefined()
+		expect(editor.getBindingsFromShape(arrow, 'arrow')).toEqual([])
+	})
+
+	it('drops bindings whose own type has no util', () => {
+		const a = createShapeId('a')
+		const b = createShapeId('b')
+		editor.createShapes([
+			{ id: a, type: 'geo', x: 0, y: 0, props: { w: 50, h: 50 } },
+			{ id: b, type: 'geo', x: 100, y: 0, props: { w: 50, h: 50 } },
+		])
+		const content = structuredClone(editor.getContentFromCurrentPage([a, b])!)
+		content.bindings = [
+			{
+				id: 'binding:custom' as TLBindingId,
+				typeName: 'binding',
+				type: 'made-up',
+				fromId: a,
+				toId: b,
+				meta: {},
+				props: {},
+			} as unknown as TLBinding,
+		]
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+
+		editor.putContentOntoCurrentPage(content, { preserveIds: true, preservePosition: true })
+
+		// both shapes paste, just unlinked
+		expect(editor.getCurrentPageShapes()).toHaveLength(2)
 	})
 
 	it('emits an event so the UI can tell the user', () => {
 		const handler = vi.fn()
 		editor.addListener('unsupported-shapes', handler)
+		const a = createShapeId('a')
+		const b = createShapeId('b')
+		editor.createShapes([
+			{ id: a, type: 'geo', x: 0, y: 0, props: { w: 50, h: 50 } },
+			{ id: b, type: 'geo', x: 100, y: 0, props: { w: 50, h: 50 } },
+		])
 
 		editor.putContentOntoCurrentPage(
-			contentOf([
-				unsupportedShape(createShapeId('a')),
-				unsupportedShape(createShapeId('b'), { type: 'some-other-shape' }),
-			])
+			contentWithUnsupported(
+				[a, b],
+				new Map([
+					[a, 'animation-camera'],
+					[b, 'some-other-shape'],
+				])
+			)
 		)
 
-		expect(handler).toHaveBeenCalledWith({
-			types: ['animation-camera', 'some-other-shape'],
-			count: 2,
-		})
+		expect(handler).toHaveBeenCalledTimes(1)
+		const { types, shapeCount } = handler.mock.calls[0][0]
+		expect([...types].sort()).toEqual(['animation-camera', 'some-other-shape'])
+		expect(shapeCount).toBe(2)
+	})
+
+	it('counts shapes, not types', () => {
+		const handler = vi.fn()
+		editor.addListener('unsupported-shapes', handler)
+		const a = createShapeId('a')
+		const b = createShapeId('b')
+		editor.createShapes([
+			{ id: a, type: 'geo', x: 0, y: 0, props: { w: 50, h: 50 } },
+			{ id: b, type: 'geo', x: 100, y: 0, props: { w: 50, h: 50 } },
+		])
+
+		editor.putContentOntoCurrentPage(
+			contentWithUnsupported(
+				[a, b],
+				new Map([
+					[a, 'animation-camera'],
+					[b, 'animation-camera'],
+				])
+			)
+		)
+
+		expect(handler).toHaveBeenCalledWith({ types: ['animation-camera'], shapeCount: 2 })
+	})
+
+	it('does not claim content was dropped when the paste never happened', () => {
+		const handler = vi.fn()
+		editor.addListener('unsupported-shapes', handler)
+		editor.addListener('max-shapes', vi.fn())
+
+		const known = createShapeId('known')
+		const unknown = createShapeId('unknown')
+		editor.createShapes([
+			{ id: known, type: 'geo', x: 0, y: 0, props: { w: 50, h: 50 } },
+			{ id: unknown, type: 'geo', x: 100, y: 0, props: { w: 50, h: 50 } },
+		])
+		const content = contentWithUnsupported([known, unknown], new Map([[unknown, 'geo-x']]))
+
+		// a full page, so the paste bails on the max shapes check before creating anything
+		vi.spyOn(editor, 'getCurrentPageShapeIds').mockReturnValue(
+			new Set(
+				Array.from({ length: editor.options.maxShapesPerPage }, (_, i) => createShapeId(`f${i}`))
+			)
+		)
+
+		editor.putContentOntoCurrentPage(content)
+
+		expect(editor.getCurrentPageShapes()).toEqual([])
+		expect(handler).not.toHaveBeenCalled()
 	})
 })

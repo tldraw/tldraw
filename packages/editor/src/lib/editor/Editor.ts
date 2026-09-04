@@ -1479,6 +1479,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return bindingUtil
 	}
 
+	/**
+	 * Returns true if the editor has a binding util for the given binding / binding type.
+	 *
+	 * @param binding - A binding, or a binding type.
+	 */
+	hasBindingUtil(binding: TLBinding | { type: string }): boolean
+	hasBindingUtil(type: TLBinding['type']): boolean
+	hasBindingUtil<T extends BindingUtil>(
+		type: T extends BindingUtil<infer R> ? R['type'] : string
+	): boolean
+	hasBindingUtil(arg: string | { type: string }): boolean {
+		const type = typeof arg === 'string' ? arg : arg.type
+		return hasOwnProperty(this.bindingUtils, type)
+	}
+
 	/* ------------------- Asset Utils ------------------ */
 
 	/**
@@ -9780,7 +9795,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// decide on a parent for the put shapes; if the parent is among the put shapes(?) then use its parent
 
 		const currentPageId = this.getCurrentPageId()
-		const { rootShapeIds } = content
+		// copied because we push to it below; content is caller-owned and gets reused
+		const rootShapeIds = [...content.rootShapeIds]
 
 		// We need to collect the migrated records
 		const assets: TLAsset[] = []
@@ -9832,6 +9848,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const unsupportedShapeIds = new Set(
 			shapes.filter((shape) => !this.hasShapeUtil(shape)).map((shape) => shape.id as string)
 		)
+		let unsupportedShapeTypes: string[] = []
 
 		if (unsupportedShapeIds.size > 0) {
 			const sourceShapesById = new Map(shapes.map((shape) => [shape.id as string, shape]))
@@ -9867,16 +9884,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 					return { ...shape, x, y, rotation: shape.rotation + rotation, parentId }
 				})
 
-			// A binding to a dropped shape has nothing to bind to, and would fail the
-			// assertExists below.
-			bindings = bindings.filter(
-				(binding) =>
-					!unsupportedShapeIds.has(binding.fromId) && !unsupportedShapeIds.has(binding.toId)
-			)
-
-			const types = new Set([...unsupportedShapeIds].map((id) => sourceShapesById.get(id)!.type))
-			this.emit('unsupported-shapes', { types: [...types], count: unsupportedShapeIds.size })
+			unsupportedShapeTypes = [
+				...new Set([...unsupportedShapeIds].map((id) => sourceShapesById.get(id)!.type)),
+			]
 		}
+
+		// Custom bindings travel with custom shapes, so a paste can carry binding types we have
+		// no util for; and a binding to a shape we just dropped would fail the assertExists
+		// below. The bound shapes still paste, just unlinked.
+		bindings = bindings.filter(
+			(binding) =>
+				this.hasBindingUtil(binding) &&
+				!unsupportedShapeIds.has(binding.fromId) &&
+				!unsupportedShapeIds.has(binding.toId)
+		)
 
 		if (users.length > 0) {
 			const existingUserIds = new Set(
@@ -10201,6 +10222,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 				kickoutOccludedShapes(this, shapesToKickout)
 			}
 		})
+
+		// Only once the paste has landed: the max shapes check above returns early, and a
+		// "we left some out" message would be a lie when nothing was pasted at all.
+		if (unsupportedShapeTypes.length > 0) {
+			this.emit('unsupported-shapes', {
+				types: unsupportedShapeTypes,
+				shapeCount: unsupportedShapeIds.size,
+			})
+		}
 
 		return this
 	}

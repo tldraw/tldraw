@@ -1461,6 +1461,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     hasAssetUtil(arg: {
         type: string;
     } | string): boolean;
+    hasBindingUtil(binding: {
+        type: string;
+    } | TLBinding): boolean;
+    // (undocumented)
+    hasBindingUtil(type: TLBinding['type']): boolean;
+    // (undocumented)
+    hasBindingUtil<T extends BindingUtil>(type: T extends BindingUtil<infer R> ? R['type'] : string): boolean;
     // (undocumented)
     hasExternalAssetHandler(type: TLExternalAsset['type']): boolean;
     hasShapeUtil(shape: TLShape | TLShapePartial<TLShape>): boolean;
@@ -4154,7 +4161,7 @@ export interface TLEventMap {
     'stop-following': [];
     // (undocumented)
     'unsupported-shapes': [{
-        count: number;
+        shapeCount: number;
         types: string[];
     }];
     // (undocumented)
