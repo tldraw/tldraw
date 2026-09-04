@@ -2,20 +2,22 @@
 title: Next release
 description: Changes coming in the next release
 author: tldraw
-date: 09/02/2026
+date: 09/04/2026
 order: 0
 status: published
 last_version: v5.4.0
 ---
 
-So far this release is a set of fixes: camera coasting and edge scrolling now move at the same rate on high-refresh displays, rotated images stay put when a crop changes their size, and embed hostname matching no longer trusts lookalike hosts.
+So far this release is a set of fixes: tapping a toolbar tool with a stylus or trackpad no longer creates a shape, camera coasting and edge scrolling now move at the same rate on high-refresh displays, rotated images stay put when a crop changes their size, and embed hostname matching no longer trusts lookalike hosts.
 
 ## Bug fixes
 
+- Fix tapping a tool in the toolbar with a stylus, finger, or trackpad sometimes creating a shape instead of selecting the tool. Dragging a tool out of the toolbar now requires the pointer to leave the toolbar, so a tap or a slide along the toolbar no longer starts a drag. ([#10651](https://github.com/tldraw/tldraw/pull/10651))
 - Fix camera coasting after a fling, and edge scrolling, running roughly twice as fast on a 120 Hz display as on a 60 Hz one. Both now scale by the elapsed tick time, so motion per second is the same at any refresh rate. ([#10501](https://github.com/tldraw/tldraw/pull/10501))
 - Fix rotated images jumping on the canvas when their aspect ratio or crop zoom changed, or when the image was replaced. ([#10233](https://github.com/tldraw/tldraw/pull/10233))
 - Fix embed hostname matching trusting lookalike hosts such as `tldraw.com.evil.io`, which were rendered with the matched definition's relaxed iframe permissions. A host must now be the pattern itself or a subdomain of it. ([#10196](https://github.com/tldraw/tldraw/pull/10196))
 - Fix geometry hit tests, nearest-point, and length calculations losing precision after a shape's SVG path data was generated. `getSvgPathData` rounded the geometry's stored points to two decimals in place, and geometries are cached per shape, so every later calculation used the rounded points. ([#10600](https://github.com/tldraw/tldraw/pull/10600))
 - Fix keyboard shape navigation, and `Editor.selectAdjacentShape('prev')`, selecting the second-to-last shape instead of the last one when nothing is selected. ([#10601](https://github.com/tldraw/tldraw/pull/10601))
+- Fix `Editor.setCamera` silently coercing non-finite `x`, `y`, or `z` values to `0` or the current zoom, and mutating the point object it was passed. It now rejects non-finite values instead. ([#9903](https://github.com/tldraw/tldraw/pull/9903))
 - Fix `Editor.getCurrentTheme()` returning `undefined` after `setCurrentTheme()` was called with an unregistered theme id. The call is now rejected and the current theme is kept. ([#10602](https://github.com/tldraw/tldraw/pull/10602))
 - Fix `Group2d.transform` dropping its ignored children, resetting the `isInternal`, `excludeFromShapeBounds`, and `isEmptyLabel` flags, and discarding its `opts` argument. It now matches the base `Geometry2d.transform` signature. ([#10603](https://github.com/tldraw/tldraw/pull/10603))
