@@ -7,11 +7,11 @@ import { Environment } from './types'
 import { writeDataPoint } from './utils/analytics'
 
 const int8TypeId = 20
-
-const CONNECT_TIMEOUT_MS = 10_000
 pg.types.setTypeParser(int8TypeId, (val) => {
 	return parseInt(val, 10)
 })
+
+const CONNECT_TIMEOUT_MS = 10_000
 
 export function createPostgresConnectionPool(env: Environment, name: string, max: number = 1) {
 	class LoggingClient extends pg.Client {
@@ -124,7 +124,7 @@ export class TLPostgresPool implements PostgresPool {
 			application_name: 'user-do',
 			keepAlive: false,
 			// pg waits forever by default. Checkouts here are serialized behind one lock, so a
-			// single stalled dial would wedge every later query in this durable object — and its
+			// single stalled dial would wedge every later query in this durable object, and its
 			// teardown with them.
 			connectionTimeoutMillis: CONNECT_TIMEOUT_MS,
 		})

@@ -220,7 +220,7 @@ const router = createRouter<Environment>()
 		if (!auth) {
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		}
-		// 2nd arg is the mutator context (mutators close over userId instead); 3rd is the log level.
+		// (db, mutatorContext, logLevel): mutators close over userId, so no context.
 		const processor = new PushProcessor(
 			zeroPostgresJS(schema, env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING),
 			undefined,
