@@ -156,11 +156,34 @@ Env vars the scripts read (put them in your shell or a local `.env` you source; 
 Steps:
 
 1. Set the secret once on the worker: `npx wrangler secret put MCP_PRUNE_ADMIN_TOKEN` (needs a Cloudflare login with access to `tldraw-mcp-app`; any long random string, e.g. `openssl rand -hex 32`). It is a worker secret, not a GitHub Actions secret: `.github/workflows/deploy-mcp-app.yml` only runs `wrangler deploy` on pushes to `production`, and worker secrets survive deploys. The endpoint 404s until it exists.
-2. `yarn prune:list` → `prune-ids.txt`, one DO id per line for every object with stored data. Page-based walk of the CF API, resumable by re-running.
-3. `yarn prune:run --dry-run` → idle histogram, no writes. Results append to `prune-dry-run.jsonl`; re-running resumes from it and reports the whole file.
-4. Prune, staged: `yarn prune:run --max-idle 30d`, watch the storage graph, then `--max-idle 7d`. Below 7d needs `--force` (the endpoint enforces the same floor). Results append to `prune-results.jsonl`; re-running re-evaluates kept ids and skips only the ones already condemned. Exit code is non-zero if any id errored; auth/route errors abort on the first batch.
+2. `yarn prune:list` → `prune-ids.txt`, one DO id per line for every object with stored data. Takes hours at this scale; run it under `caffeinate -is`. Progress reports position in the id keyspace (ids are hashes, so they arrive sorted and uniformly distributed) with a projected total and ETA. The listing cursor is checkpointed to `prune-list-cursor.txt` after every page, so re-running the same command resumes where it stopped; `--restart` forces a fresh walk. If you ever lose the cursor, `tail -1 prune-ids.txt > prune-list-cursor.txt` rebuilds it (re-fetches at most one page).
+3. Smoke-test the round trip on a few ids before committing to a multi-hour run:
+   `yarn prune:run --dry-run --limit 1000`. Rows land in `prune-dry-run.jsonl`; check they carry `idleMs`, `checkpointCount`, `bytes` and a sensible `action`.
+4. Prune: `yarn prune:run --max-idle 7d`. 7d is the floor, so no `--force`, and it matches the TTL every live session already enforces. One pass, not a staged 30d-then-7d: changing the threshold invalidates the resume offset and re-walks everything, and the ledger gives you the idle distribution as it goes anyway.
+
+   Every result appends to `prune-results.jsonl` — that file is the ledger, with one row per attempt (`id`, `line`, `idleMs`, `checkpointCount`, `bytes`, `action`, or `error`). A line can appear more than once (a resume re-runs whatever was not committed, a sweep supersedes an error); the reported histogram is computed from the ledger at the end of a run, keeping only the last row for each line, so duplicates never inflate it. Progress is checkpointed to `prune-progress.json` as a line offset into `prune-ids.txt`, so a kill or crash resumes and re-does at most a few in-flight batches. The offset is keyed on the pass (`dryRun`, `maxIdleMs`) and the ids file's size, so regenerating or editing `prune-ids.txt` correctly starts over rather than silently skipping ids. Auth, route and validation failures abort the run on the first batch instead of burning through the file; per-id failures are logged as `{ id, error }` rows and set a non-zero exit code.
+
+   Expect roughly 400 ids/s at the default concurrency of 4; `--concurrency 16` or higher shortens a full pass considerably, since the ceiling is Durable Object wake latency rather than the worker.
+
+   Transient `Network connection lost` and `code was updated` faults are retried once inside the endpoint, but a fraction still lands as `{ id, error }` rows, and offset-based resume never revisits them. Sweep them at the end with `yarn prune:run --max-idle 7d --retry-errors`, which re-reads the ledger for ids whose latest row is an error and leaves the offset alone. Repeat until it reports zero. A sweep appends to the end of the ledger, so it only applies to the most recent pass; retrying an older one is refused, since its results would land outside that pass's region.
+
 5. Rotate `MCP_PRUNE_ADMIN_TOKEN` (`npx wrangler secret put MCP_PRUNE_ADMIN_TOKEN` with a new value, or `npx wrangler secret delete MCP_PRUNE_ADMIN_TOKEN`) after the prune; the route stays but it should not keep a live token between runs.
 
 To rehearse locally: `yarn dev` in another shell with `--var MCP_PRUNE_ADMIN_TOKEN:dev-token` added to the `wrangler dev` line (or run `npx wrangler dev --var MCP_PRUNE_ADMIN_TOKEN:dev-token --var MCP_IS_DEV:true`), then `MCP_WORKER_ORIGIN=http://localhost:8787 MCP_PRUNE_ADMIN_TOKEN=dev-token yarn prune:run --dry-run` against a hand-written `prune-ids.txt` (get ids from `GET /admin/do-id?session=<mcp-session-id>`, dev-only). `prune-integration.test.ts` does this end to end.
+
+### Ops endpoints
+
+All take the same `MCP_PRUNE_ADMIN_TOKEN` bearer and 404 when it is unset.
+
+| Route                 | Purpose                                                                                                                                                         |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /admin/prune`   | `{ ids, maxIdleMs, dryRun, force }` — condemn idle objects; the prune script's backend                                                                          |
+| `POST /admin/inspect` | `{ ids }` — what an object actually holds: `bytes`, `tables`, `appTables`, `wiped`, `destroyPending`, `alarm`                                                   |
+| `POST /admin/wipe`    | `{ ids, mode }` — tear down now by strategy: `sdk` (SDK destroy, isolate abort), `quiet` (abort defused, normal shutdown), `raw` (deleteAlarm + deleteAll only) |
+| `GET /admin/config`   | the constants and overrides actually deployed                                                                                                                   |
+
+`inspect` is the way to confirm a teardown landed. Any RPC wakes the object and the agents SDK's constructor recreates its own schema, so `bytes` never returns to zero and the SDK tables are always present — **`appTables` is the signal**: `checkpoints`/`meta` exist only if the session's own data survived. An intact object reports ~152 KB with three app tables; a wiped one reports ~120 KB with none.
+
+`wipe` exists so the teardown strategies can be compared in production without a deploy each: Cloudflare reclaims an object only when "it shuts down [and] its storage is empty", and an isolate abort is not a shutdown.
 
 Expect the `destroyed` error fingerprint in Workers observability to spike during a prune (one event per wiped DO — the SDK's teardown abort) and `session_start` to stay flat; if `session_start` during the run exceeds roughly 1% of condemns, stop the run: condemned DOs are being resurrected.

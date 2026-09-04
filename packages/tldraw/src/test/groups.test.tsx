@@ -13,10 +13,14 @@ import {
 	assert,
 	compact,
 	createShapeId,
+	Geometry2d,
+	Group2d,
+	TLGeometryOpts,
 	mockUniqueId,
 	sortByIndex,
 	toRichText,
 } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TestEditor } from './TestEditor'
 
@@ -31,6 +35,8 @@ const ids = {
 	boxE: createShapeId('boxE'),
 	boxF: createShapeId('boxF'),
 	boxX: createShapeId('boxX'),
+	boxY: createShapeId('boxY'),
+	boxZ: createShapeId('boxZ'),
 	lineA: createShapeId('lineA'),
 	groupA: createShapeId('groupA'),
 }
@@ -1156,6 +1162,64 @@ describe("when a group's children are deleted", () => {
 		expect(editor.getShape(groupBId)).toBeUndefined()
 		expect(editor.getShape(groupCId)).toBeUndefined()
 		expect(editor.getShape(groupAId)).not.toBeUndefined()
+	})
+
+	it('reports the extent of the children that still resolve', () => {
+		editor.createShapes([box(ids.boxX, 80, 0), box(ids.boxY, 100, 0), box(ids.boxZ, 120, 0)])
+		editor.select(ids.boxX, ids.boxY, ids.boxZ)
+		editor.groupShapes(editor.getSelectedShapeIds())
+		const groupId = onlySelectedId()
+		editor.selectNone()
+
+		const intact = editor.getShapeGeometry(groupId).bounds.width
+
+		// A child id that outlives its record: the children index still names it while the geometry
+		// cache answers nothing. `getShapeGeometry`'s signature hides this — it asserts non-undefined
+		// over a cache lookup that misses for a record the store no longer holds.
+		const realGetShapeGeometry = editor.getShapeGeometry.bind(editor)
+		const spy = vi
+			.spyOn(editor, 'getShapeGeometry')
+			.mockImplementation((shape: TLShape | TLShapeId, opts?: TLGeometryOpts) => {
+				const id = typeof shape === 'string' ? shape : shape.id
+				if (id === ids.boxZ) return undefined as unknown as Geometry2d
+				return realGetShapeGeometry(shape, opts)
+			})
+
+		try {
+			const geometry = editor
+				.getShapeUtil<TLGroupShape>('group')
+				.getGeometry(editor.getShape<TLGroupShape>(groupId)!)
+			// The two surviving boxes still bound the group; the missing one is skipped rather than
+			// taking the whole recompute down with it.
+			expect(geometry.bounds.width).toBeLessThan(intact)
+			expect(geometry).toBeInstanceOf(Group2d)
+		} finally {
+			spy.mockRestore()
+		}
+	})
+
+	it('falls back to a unit box when no child resolves', () => {
+		editor.createShapes([box(ids.boxX, 80, 0), box(ids.boxY, 100, 0)])
+		editor.select(ids.boxX, ids.boxY)
+		editor.groupShapes(editor.getSelectedShapeIds())
+		const groupId = onlySelectedId()
+		editor.selectNone()
+
+		const spy = vi
+			.spyOn(editor, 'getShapeGeometry')
+			.mockImplementation(() => undefined as unknown as Geometry2d)
+
+		try {
+			const geometry = editor
+				.getShapeUtil<TLGroupShape>('group')
+				.getGeometry(editor.getShape<TLGroupShape>(groupId)!)
+			// The same answer as a group with no children at all, rather than an empty `Group2d`
+			// whose bounds come back NaN and poison every measurement downstream.
+			expect(geometry.bounds.width).toBe(1)
+			expect(geometry.bounds.height).toBe(1)
+		} finally {
+			spy.mockRestore()
+		}
 	})
 
 	it('preserves the collapsed group z-index when reparenting the last child', () => {
