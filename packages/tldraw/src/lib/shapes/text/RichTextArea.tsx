@@ -16,7 +16,10 @@ import {
 	useUniqueSafeId,
 } from '@tldraw/editor'
 import React, { useLayoutEffect, useRef } from 'react'
-import { isEditingRichTextList } from '../../utils/text/richText'
+import {
+	isEditingRichTextList,
+	renderPlaintextFromRichTextSelection,
+} from '../../utils/text/richText'
 
 /** @public */
 export interface TextAreaProps {
@@ -179,17 +182,17 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 					return false
 				},
 				handleDoubleClick: (_view, _pos, event) => onDoubleClick(event),
+				// tiptap's core clipboardTextSerializer only knows the schema's serializers, so a
+				// copied list would lose its markers and gain blank lines. Use the same list-aware
+				// plaintext as `renderPlaintextFromRichText` so copying while editing matches
+				// copying the shape.
+				clipboardTextSerializer: (_slice, view) => renderPlaintextFromRichTextSelection(view.state),
 				...editorProps,
-			},
-			coreExtensionOptions: {
-				clipboardTextSerializer: {
-					blockSeparator: '\n',
-				},
 			},
 			// N.B. We disable the text direction in the core list here,
 			// but we add it back in again in our own extensions list so that
 			// people can omit/override it if they want to.
-			enableCoreExtensions: { textDirection: false },
+			enableCoreExtensions: { textDirection: false, clipboardTextSerializer: false },
 			textDirection: 'auto',
 			...restOfTipTapConfig,
 			content: rInitialRichText.current as JSONContent,
