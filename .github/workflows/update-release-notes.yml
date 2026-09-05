@@ -25,6 +25,14 @@ jobs:
     timeout-minutes: 30
     runs-on: ubuntu-latest
 
+    # The skill maintains the release notes pages and nothing else. Both the change
+    # check and the commit below are scoped to these, so a file the agent leaves
+    # anywhere else in the tree cannot ride along into the release notes commit.
+    env:
+      RELEASE_NOTES_PATHS: >-
+        apps/docs/content/releases
+        apps/docs/content/getting-started/releases.mdx
+
     steps:
       - name: Generate GH token
         id: generate_token
@@ -85,7 +93,7 @@ jobs:
       - name: Check for changes
         id: changes
         run: |
-          if [ -z "$(git status --porcelain)" ]; then
+          if [ -z "$(git status --porcelain -- $RELEASE_NOTES_PATHS)" ]; then
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
           else
             echo "has_changes=true" >> "$GITHUB_OUTPUT"
@@ -94,7 +102,7 @@ jobs:
       - name: Commit and push
         if: steps.changes.outputs.has_changes == 'true'
         run: |
-          git add -A
+          git add -- $RELEASE_NOTES_PATHS
           git commit -m "Update release notes"
           git push -u origin "${{ steps.branch.outputs.branch_name }}"
 
