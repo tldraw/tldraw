@@ -3,6 +3,7 @@ import classNames from 'classnames'
 import { Popover as _Popover } from 'radix-ui'
 import React from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
+import { useMenuWheelPassThrough } from '../../hooks/useMenuWheelPassThrough'
 import { useDirection } from '../../hooks/useTranslation/useTranslation'
 
 /** @public */
@@ -70,6 +71,14 @@ export function TldrawUiPopoverContent({
 	const container = useContainer()
 	const dir = useDirection()
 	const ref = React.useRef<HTMLDivElement>(null)
+	const passThroughRef = useMenuWheelPassThrough()
+	const setContent = React.useCallback(
+		(node: HTMLDivElement | null) => {
+			ref.current = node
+			passThroughRef(node)
+		},
+		[passThroughRef]
+	)
 
 	const handleOpenAutoFocus = React.useCallback(() => {
 		if (!autoFocusFirstButton) return
@@ -91,7 +100,7 @@ export function TldrawUiPopoverContent({
 				alignOffset={alignOffset}
 				collisionPadding={collisionPadding}
 				dir={dir}
-				ref={ref}
+				ref={setContent}
 				onOpenAutoFocus={handleOpenAutoFocus}
 				onEscapeKeyDown={(e) => disableEscapeKeyDown && e.preventDefault()}
 			>

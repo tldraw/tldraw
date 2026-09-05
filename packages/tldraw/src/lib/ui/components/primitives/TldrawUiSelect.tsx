@@ -3,6 +3,7 @@ import classNames from 'classnames'
 import { Select as _Select } from 'radix-ui'
 import * as React from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
+import { useMenuWheelPassThrough } from '../../hooks/useMenuWheelPassThrough'
 import { useDirection } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
 import { TldrawUiIcon } from './TldrawUiIcon'
@@ -155,10 +156,12 @@ export function TldrawUiSelectContent({
 	className,
 }: TLUiSelectContentProps) {
 	const container = useContainer()
+	const setContent = useMenuWheelPassThrough()
 
 	return (
 		<_Select.Portal container={container}>
 			<_Select.Content
+				ref={setContent}
 				className={classNames('tlui-menu tlui-select__content', className)}
 				position="popper"
 				side={side}

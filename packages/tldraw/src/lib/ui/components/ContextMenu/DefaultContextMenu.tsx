@@ -9,6 +9,7 @@ import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { ReactNode, memo, useCallback, useContext, useEffect, useRef } from 'react'
 import { ContextMenuPagePointContext } from '../../context/actions'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
+import { useMenuWheelPassThrough } from '../../hooks/useMenuWheelPassThrough'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultContextMenuContent } from './DefaultContextMenuContent'
@@ -138,6 +139,7 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	// override. If there's no menu content, then the user has set it to null,
 	// so skip rendering the menu.
 	const content = children ?? <DefaultContextMenuContent />
+	const setContextMenuContent = useMenuWheelPassThrough()
 
 	return (
 		<_ContextMenu.Root dir={dir} onOpenChange={handleOpenChange} modal={false}>
@@ -154,6 +156,7 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 			{isOpen && (
 				<_ContextMenu.Portal container={container}>
 					<_ContextMenu.Content
+						ref={setContextMenuContent}
 						className="tlui-menu tlui-scrollable"
 						data-testid="context-menu"
 						aria-label={msg('context-menu.title')}

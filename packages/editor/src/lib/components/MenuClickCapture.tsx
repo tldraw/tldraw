@@ -3,6 +3,7 @@ import { type PointerEvent, useCallback, useEffect, useRef, useState } from 'rea
 import { flushSync } from 'react-dom'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
+import { usePassThroughWheelEvents } from '../hooks/usePassThroughWheelEvents'
 import { Vec } from '../primitives/Vec'
 import { releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/getPointerInfo'
@@ -24,6 +25,11 @@ export function MenuClickCapture() {
 	const showElement = isMenuOpen || isPointing
 
 	const canvasEvents = useCanvasEvents()
+
+	// The overlay covers the canvas, so the canvas's own wheel listener never sees a wheel over it.
+	// Without this, panning and zooming die for as long as any menu is open.
+	const rCaptureElement = useRef<HTMLDivElement>(null)
+	usePassThroughWheelEvents(rCaptureElement)
 
 	const rPointerState = useRef({
 		isDown: false,
@@ -192,6 +198,7 @@ export function MenuClickCapture() {
 	return (
 		showElement && (
 			<div
+				ref={rCaptureElement}
 				className="tlui-menu-click-capture"
 				data-testid="menu-click-capture.content"
 				{...canvasEvents}
