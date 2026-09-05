@@ -722,6 +722,20 @@ export function ToggleDynamicSizeModeItem() {
 }
 
 /** @public @react */
+export function ToggleTextOutlineItem() {
+	const editor = useEditor()
+	const isTextOutlineEnabled = useValue(
+		'text outline',
+		() => editor.user.getIsTextOutlineEnabled(),
+		[editor]
+	)
+
+	return (
+		<TldrawUiMenuActionCheckboxItem actionId="toggle-text-outline" checked={isTextOutlineEnabled} />
+	)
+}
+
+/** @public @react */
 export function TogglePasteAtCursorItem() {
 	const editor = useEditor()
 	const pasteAtCursor = useValue('paste at cursor', () => editor.user.getIsPasteAtCursorMode(), [

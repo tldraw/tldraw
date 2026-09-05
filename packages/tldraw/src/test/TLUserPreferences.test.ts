@@ -17,6 +17,14 @@ describe('TLUserPreferences', () => {
 		expect(editor.user.getIsSnapMode()).toBe(true)
 	})
 
+	it('defaults text outlines to enabled and allows toggling them off', () => {
+		expect(editor.user.getIsTextOutlineEnabled()).toBe(true)
+
+		editor.user.updateUserPreferences({ isTextOutlineEnabled: false })
+
+		expect(editor.user.getIsTextOutlineEnabled()).toBe(false)
+	})
+
 	it('can be customized', () => {
 		const userPreferences = atom<TLUserPreferences>('userPreferences', {
 			animationSpeed: 1,
