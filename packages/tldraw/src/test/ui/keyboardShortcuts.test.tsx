@@ -341,3 +341,52 @@ describe('frame selection shortcut', () => {
 		expect(editor.getShape(b)?.parentId).toBe(frame!.id)
 	})
 })
+
+describe('the keyboard shortcuts preference', () => {
+	function createSelectedShape(editor: Editor) {
+		const id = createShapeId()
+		act(() => {
+			editor.createShape({ id, type: 'geo', x: 0, y: 0 })
+			editor.select(id)
+		})
+		return id
+	}
+
+	async function setupWithShortcutsOff() {
+		const { editor } = await setupFocusedEditor()
+		act(() => {
+			editor.user.updateUserPreferences({ areKeyboardShortcutsEnabled: false })
+		})
+		return { editor }
+	}
+
+	it('silences tool keys and action chords', async () => {
+		const { editor } = await setupWithShortcutsOff()
+		const id = createSelectedShape(editor)
+
+		keydown(editor, { key: 'r', code: 'KeyR' })
+		expect(editor.getCurrentToolId()).toBe('select')
+
+		keydown(editor, { key: 'd', code: 'KeyD', metaKey: true })
+		expect(editor.getCurrentPageShapeIds()).toEqual(new Set([id]))
+	})
+
+	it('keeps Delete working on a selection, like the keys the select tool handles itself', async () => {
+		const { editor } = await setupWithShortcutsOff()
+		const id = createSelectedShape(editor)
+
+		keydown(editor, { key: 'Delete', code: 'Delete' })
+		expect(editor.getCurrentPageShapeIds().has(id)).toBe(false)
+	})
+
+	it('still blocks Delete while a menu is open', async () => {
+		const { editor } = await setupWithShortcutsOff()
+		const id = createSelectedShape(editor)
+
+		act(() => {
+			editor.menus.addOpenMenu('test-menu')
+		})
+		keydown(editor, { key: 'Delete', code: 'Delete' })
+		expect(editor.getCurrentPageShapeIds().has(id)).toBe(true)
+	})
+})

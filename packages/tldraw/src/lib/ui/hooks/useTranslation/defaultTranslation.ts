@@ -373,7 +373,7 @@ export const DEFAULT_TRANSLATION = {
 	'people-menu.change-name': 'Change name',
 	'people-menu.avatar-color': 'Avatar color',
 	'people-menu.change-color': 'Change color',
-	'people-menu.follow': 'Following',
+	'people-menu.follow': 'Follow',
 	'people-menu.following': 'Following',
 	'people-menu.leading': 'Following you',
 	'people-menu.user': '(You)',
