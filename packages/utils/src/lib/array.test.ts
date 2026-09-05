@@ -8,6 +8,7 @@ import {
 	minBy,
 	partition,
 	rotateArray,
+	uniq,
 } from './array'
 
 describe('rotateArray', () => {
@@ -335,5 +336,32 @@ describe('mergeArraysAndReplaceDefaults', () => {
 			{ type: 'text', name: 'Custom Text' },
 			{ type: 'custom', name: 'Custom Shape' },
 		])
+	})
+})
+
+describe('uniq', () => {
+	it('removes duplicates keeping first occurrence', () => {
+		expect(uniq([1, 2, 2, 3, 1])).toEqual([1, 2, 3])
+		expect(uniq(['a', 'b', 'a'])).toEqual(['a', 'b'])
+		expect(uniq([])).toEqual([])
+	})
+
+	it('uses SameValueZero semantics', () => {
+		expect(uniq([NaN, NaN])).toEqual([NaN])
+		const obj = { a: 1 }
+		expect(uniq([obj, obj, { a: 1 }])).toEqual([obj, { a: 1 }])
+	})
+
+	it('returns a new array', () => {
+		const input = [1, 2]
+		const result = uniq(input)
+		expect(result).toEqual(input)
+		expect(result).not.toBe(input)
+	})
+
+	it('accepts array-likes and returns [] for null or undefined', () => {
+		expect(uniq({ length: 3, 0: 'a', 1: 'a', 2: 'b' })).toEqual(['a', 'b'])
+		expect(uniq(null)).toEqual([])
+		expect(uniq(undefined)).toEqual([])
 	})
 })

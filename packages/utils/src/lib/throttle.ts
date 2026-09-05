@@ -225,3 +225,140 @@ export function fpsThrottle(fn: { (): void; cancel?(): void }): {
 export function throttleToNextFrame(fn: () => void): () => void {
 	return defaultScheduler.throttleToNextFrame(fn)
 }
+
+/**
+ * A function returned by {@link throttle}.
+ *
+ * @public
+ */
+export interface ThrottledFunction<F extends (...args: any[]) => any> {
+	/**
+	 * Invoke the throttled function. Returns the result of the most recent invocation of the
+	 * wrapped function, or `undefined` if it has not been invoked yet.
+	 */
+	(...args: Parameters<F>): ReturnType<F> | undefined
+	/** Discard any pending trailing invocation and reset the throttle window. */
+	cancel(): void
+	/** Immediately run any pending trailing invocation and return its result. */
+	flush(): ReturnType<F> | undefined
+}
+
+/**
+ * Options for {@link throttle}.
+ *
+ * @public
+ */
+export interface ThrottleOptions {
+	/** Invoke on the leading edge of a window, i.e. immediately on the first call. Defaults to true. */
+	leading?: boolean
+	/**
+	 * Invoke on the trailing edge of a window, i.e. once more when the window ends if there were
+	 * calls during it. Defaults to true.
+	 */
+	trailing?: boolean
+}
+
+/**
+ * Create a throttled version of a function that runs at most once per `wait` milliseconds.
+ *
+ * By default the first call in a window runs immediately (leading edge) and further calls during
+ * the window are coalesced into a single call with the latest arguments that runs when the window
+ * ends (trailing edge), which then starts a new window. Either edge can be disabled with
+ * `options`. Use `cancel()` to drop a pending trailing call and `flush()` to run it right away.
+ *
+ * @param fn - The function to throttle
+ * @param wait - The minimum number of milliseconds between invocations
+ * @param options - Which edges of the window invoke the function
+ * @returns The throttled function, with `cancel` and `flush` methods
+ *
+ * @example
+ * ```ts
+ * const onScroll = throttle((y: number) => console.log(y), 100)
+ * window.addEventListener('scroll', () => onScroll(window.scrollY))
+ * // later
+ * onScroll.cancel()
+ *
+ * // Only ever run on the leading edge
+ * const stamp = throttle(() => markActive(), 1000, { trailing: false })
+ * ```
+ *
+ * @public
+ */
+export function throttle<F extends (...args: any[]) => any>(
+	fn: F,
+	wait: number,
+	options?: ThrottleOptions
+): ThrottledFunction<F> {
+	type Args = Parameters<F>
+	type Result = ReturnType<F>
+	const leading = options?.leading ?? true
+	const trailing = options?.trailing ?? true
+
+	let lastInvokeTime = -Infinity
+	// eslint-disable-next-line no-restricted-globals
+	let timeout: ReturnType<typeof setTimeout> | undefined
+	let pendingThis: unknown
+	let pendingArgs: Args | undefined
+	let result: Result | undefined
+
+	function invoke(thisArg: unknown, args: Args) {
+		pendingArgs = undefined
+		pendingThis = undefined
+		lastInvokeTime = Date.now()
+		result = fn.apply(thisArg, args)
+		return result
+	}
+
+	function onTimeout() {
+		timeout = undefined
+		if (pendingArgs) invoke(pendingThis, pendingArgs)
+	}
+
+	function schedule(thisArg: unknown, args: Args, delay: number) {
+		pendingThis = thisArg
+		pendingArgs = args
+		if (timeout === undefined) {
+			// It's up to the consumer of throttle to call `cancel`
+			// eslint-disable-next-line no-restricted-globals
+			timeout = setTimeout(onTimeout, delay)
+		}
+	}
+
+	const throttled = function (this: unknown, ...args: Args) {
+		const now = Date.now()
+		const elapsed = now - lastInvokeTime
+		// A wall clock that has been set backwards would otherwise stall the function for the size
+		// of the jump, so treat it as the window having passed
+		const remaining = elapsed < 0 ? 0 : wait - elapsed
+		if (remaining <= 0 && timeout === undefined) {
+			if (leading) return invoke(this, args)
+			// Without a leading edge the window still starts now, so the trailing call lands at
+			// `wait` rather than immediately
+			lastInvokeTime = now
+			if (trailing) schedule(this, args, wait)
+			return result
+		}
+		if (trailing) schedule(this, args, remaining)
+		return result
+	} as ThrottledFunction<F>
+
+	throttled.cancel = () => {
+		if (timeout !== undefined) {
+			clearTimeout(timeout)
+			timeout = undefined
+		}
+		pendingArgs = undefined
+		pendingThis = undefined
+		lastInvokeTime = -Infinity
+	}
+
+	throttled.flush = () => {
+		if (timeout !== undefined) {
+			clearTimeout(timeout)
+			onTimeout()
+		}
+		return result
+	}
+
+	return throttled
+}
