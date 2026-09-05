@@ -80,6 +80,7 @@ Code quality:
 - `yarn format` - format the repo
 - `yarn format-current` - format changed files
 - `yarn api-check` - validate public API reports
+- `yarn lazy check-bundle-size` - check SDK and worker bundle sizes
 
 ## Validation workflow
 

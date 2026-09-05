@@ -36,6 +36,12 @@
 	"types": "./.tsbuild/index.d.ts",
 	"style": "./editor.css",
 	"type": "module",
+	"sideEffects": [
+		"./src/index.ts",
+		"./dist-esm/index.mjs",
+		"./dist-cjs/index.js",
+		"**/*.css"
+	],
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [
 		"editor.css"
