@@ -9727,21 +9727,33 @@ export class Editor extends EventEmitter<TLEventMap> {
 					!asset.props.src?.startsWith('data:video') &&
 					!asset.props.src?.startsWith('http')
 				) {
-					const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
-					const objectUrl = await this.store.props.assets.resolve(asset, {
-						screenScale: 1,
-						steppedScreenScale: 1,
-						dpr: 1,
-						networkEffectiveType: null,
-						shouldResolveToOriginal: true,
-					})
-					assetWithDataUrl.props.src = await FileHelpers.blobToDataUrl(
-						await fetch(objectUrl!).then((r) => r.blob())
-					)
-					assets.push(assetWithDataUrl)
-				} else {
-					assets.push(asset)
+					// If the asset can't be inlined (unresolvable src, fetch failure), fall through and
+					// keep the original record; dropping it leaves the pasted shapes pointing at an
+					// asset that doesn't exist
+					try {
+						const objectUrl = await this.store.props.assets.resolve(asset, {
+							screenScale: 1,
+							steppedScreenScale: 1,
+							dpr: 1,
+							networkEffectiveType: null,
+							shouldResolveToOriginal: true,
+						})
+						if (objectUrl) {
+							// fetch resolves on 4xx/5xx, so without this check a 404 error page would be
+							// inlined as a data:text/html src
+							const response = await fetch(objectUrl)
+							if (response.ok) {
+								const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
+								assetWithDataUrl.props.src = await FileHelpers.blobToDataUrl(await response.blob())
+								assets.push(assetWithDataUrl)
+								return
+							}
+						}
+					} catch {
+						// keep the original asset
+					}
 				}
+				assets.push(asset)
 			})
 		)
 		content.assets = assets
