@@ -583,6 +583,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const deletedShapeIds = new Set<TLShapeId>()
 		const invalidParents = new Set<TLShapeId>()
 		const createdShapes = new Set<TLShapeId>()
+		// Shapes that a remote merge moved or reparented under a shape parent. A reparent is
+		// semantically atomic (change parentId AND re-express the coordinates in the new parent's
+		// space) but syncs field-by-field, so a concurrent merge can keep a shape's parentId from
+		// one client and its x/y from another - leaving the coordinates in the wrong frame of
+		// reference and flinging the shape far away. We can't detect that from the record alone, so
+		// after the merge settles we re-run the same geometric drop check that a local drag uses.
+		const remotelyMovedShapeIds = new Set<TLShapeId>()
 		let invalidBindingTypes = new Set<TLBinding['type']>()
 
 		this.disposables.add(
@@ -591,6 +598,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// and we want the next invocation of this handler to handle those separately
 				const deletedIds = deletedShapeIds.size ? new Set(deletedShapeIds) : null
 				deletedShapeIds.clear()
+
+				// captured and cleared up-front so the kickout's own reparenting (which re-enters this
+				// handler) doesn't reprocess these ids
+				const remotelyMovedIds = remotelyMovedShapeIds.size ? new Set(remotelyMovedShapeIds) : null
+				remotelyMovedShapeIds.clear()
 
 				if (deletedIds) {
 					const updates = compact(
@@ -638,6 +650,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 				}
 
+				if (remotelyMovedIds) {
+					// Re-run the drop check for shapes a remote merge moved: any that no longer sit
+					// inside their (still-existing) parent are kicked out and reparented to the page,
+					// which recomputes their coordinates so parentId and transform agree again. This
+					// reuses the same geometry a local drag uses, so every client reaches the same
+					// result from the same synced state and they converge.
+					const idsToCheck = [...remotelyMovedIds].filter((id) => {
+						const shape = this.getShape(id)
+						return shape && isShapeId(shape.parentId) && this.getShape(shape.parentId)
+					})
+					if (idsToCheck.length) {
+						kickoutOccludedShapes(this, idsToCheck)
+					}
+				}
+
 				this.emit('update')
 			})
 		)
@@ -651,7 +678,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							invalidParents.add(shape.parentId)
 						}
 					},
-					afterChange: (shapeBefore, shapeAfter) => {
+					afterChange: (shapeBefore, shapeAfter, source) => {
 						for (const binding of this.getBindingsInvolvingShape(shapeAfter)) {
 							invalidBindingTypes.add(binding.type)
 							if (binding.fromId === shapeAfter.id) {
@@ -726,6 +753,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						if (shapeAfter.parentId !== shapeBefore.parentId && isShapeId(shapeAfter.parentId)) {
 							invalidParents.add(shapeAfter.parentId)
+						}
+
+						// A remote merge that changed this shape's parent or position under a shape
+						// parent may have left its coordinates in the wrong frame of reference. Flag it
+						// so the operation-complete handler can re-run the drop check once the merge has
+						// settled. Local (user) moves are already reconciled by the interaction that
+						// made them, so we only do this for remote changes.
+						if (
+							source === 'remote' &&
+							isShapeId(shapeAfter.parentId) &&
+							(shapeBefore.parentId !== shapeAfter.parentId ||
+								shapeBefore.x !== shapeAfter.x ||
+								shapeBefore.y !== shapeAfter.y ||
+								shapeBefore.rotation !== shapeAfter.rotation)
+						) {
+							remotelyMovedShapeIds.add(shapeAfter.id)
 						}
 					},
 					beforeDelete: (shape) => {
