@@ -669,19 +669,24 @@ function TldrawEditorWithReadyStore({
 	useEffect(
 		function handleFocusOnPointerDownForPreserveFocusMode() {
 			if (!editor) return
+			const container = editor.getContainer()
 
 			function handleFocusOnPointerDown() {
 				if (!editor) return
 				editor.focus()
 			}
 
-			function handleBlurOnPointerDown() {
+			function handleBlurOnPointerDown(e: PointerEvent) {
 				if (!editor) return
+				// The same pointerdown bubbles from the container to the body; blurring here would
+				// cancel the interaction the container listener just focused for. Check the composed
+				// path rather than `e.target`: when the editor lives in a shadow DOM the target is
+				// retargeted to the shadow host by the time the event reaches the body.
+				if (e.composedPath().includes(container)) return
 				editor.blur()
 			}
 
 			if (autoFocus && noAutoFocus()) {
-				const container = editor.getContainer()
 				container.addEventListener('pointerdown', handleFocusOnPointerDown)
 				container.ownerDocument.body.addEventListener('pointerdown', handleBlurOnPointerDown)
 
