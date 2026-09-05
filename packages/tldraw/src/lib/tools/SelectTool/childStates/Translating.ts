@@ -163,6 +163,10 @@ export class Translating extends StateNode {
 		this.cancel()
 	}
 
+	override onInterrupt() {
+		this.cancel()
+	}
+
 	protected startCloning() {
 		if (this.isCreating) return
 		const shapeIds = Array.from(this.editor.getSelectedShapeIds())

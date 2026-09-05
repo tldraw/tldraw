@@ -205,6 +205,10 @@ export class DraggingHandle extends StateNode {
 		this.cancel()
 	}
 
+	override onInterrupt() {
+		this.cancel()
+	}
+
 	override onExit() {
 		this.parent.setCurrentToolIdMask(undefined)
 		clearArrowTargetState(this.editor)

@@ -137,3 +137,133 @@ describe('Pinch preserves the pre-gesture selection', () => {
 		expect(editor.getEditingShapeId()).toBe(ids.box1)
 	})
 })
+
+describe('Pinch ends an in-progress select tool gesture', () => {
+	// Drive a touch pinch that begins while a one-finger drag is still down: the
+	// second finger's pointer_down arrives first, then the pinch gesture.
+	function pinchDuringDrag() {
+		editor.pointerDown(300, 300)
+		editor.pinchStart(200, 200, editor.getZoomLevel(), 0, 0, 0)
+		editor.pinchTo(200, 200, 2, 0, 0, 0)
+		editor.pinchEnd(200, 200, 2, 0, 0, 0)
+	}
+
+	it('cancels a translate and leaves the shape where it started', () => {
+		editor.select(ids.box1)
+		editor.pointerMove(50, 50)
+		editor.pointerDown()
+		editor.pointerMove(100, 100)
+		editor.expectToBeIn('select.translating')
+		expect(editor.getShape(ids.box1)).toMatchObject({ x: 50, y: 50 })
+
+		pinchDuringDrag()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getShape(ids.box1)).toMatchObject({ x: 0, y: 0 })
+
+		// Lifting the remaining finger and moving again does not resume the drag.
+		editor.pointerMove(150, 150)
+		editor.pointerUp()
+		editor.pointerMove(200, 200)
+		editor.forceTick()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getShape(ids.box1)).toMatchObject({ x: 0, y: 0 })
+	})
+
+	it('cancels a resize and restores the original size', () => {
+		editor.select(ids.box1)
+		editor.pointerDown(100, 100, { target: 'selection', handle: 'bottom_right' })
+		editor.pointerMove(150, 150)
+		editor.expectToBeIn('select.resizing')
+		expect(editor.getShape(ids.box1)).toMatchObject({ props: { w: 150, h: 150 } })
+
+		pinchDuringDrag()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getShape(ids.box1)).toMatchObject({ x: 0, y: 0, props: { w: 100, h: 100 } })
+
+		editor.pointerMove(200, 200)
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getShape(ids.box1)).toMatchObject({ x: 0, y: 0, props: { w: 100, h: 100 } })
+	})
+
+	it('cancels a rotate and restores the original rotation', () => {
+		editor.select(ids.box1)
+		editor.pointerDown(100, 100, { target: 'selection', handle: 'bottom_right_rotate' })
+		editor.pointerMove(100, 0)
+		editor.expectToBeIn('select.rotating')
+		expect(editor.getShape(ids.box1)!.rotation).not.toBe(0)
+
+		pinchDuringDrag()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getShape(ids.box1)).toMatchObject({ x: 0, y: 0, rotation: 0 })
+
+		editor.pointerMove(0, 0)
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getShape(ids.box1)).toMatchObject({ x: 0, y: 0, rotation: 0 })
+	})
+
+	it('cancels a brush selection', () => {
+		editor.pointerDown(-50, -50)
+		editor.pointerMove(150, 150)
+		editor.expectToBeIn('select.brushing')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+
+		pinchDuringDrag()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		expect(editor.getInstanceState().brush).toBeNull()
+
+		// The remaining finger no longer brushes.
+		editor.pointerMove(350, 150)
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		expect(editor.getInstanceState().brush).toBeNull()
+	})
+
+	it('cancels a scribble selection', () => {
+		editor.keyDown('Alt')
+		editor.pointerDown(-50, -50)
+		editor.pointerMove(150, 150)
+		editor.expectToBeIn('select.scribble_brushing')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+
+		pinchDuringDrag()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getSelectedShapeIds()).toEqual([])
+
+		editor.pointerMove(250, 50)
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		editor.keyUp('Alt')
+	})
+
+	it('cancels a handle drag and restores the original handle position', () => {
+		const lineId = createShapeId('line1')
+		editor.createShapes([{ id: lineId, type: 'line', x: 0, y: 300 }])
+		const before = editor.getShape(lineId)!
+		editor.select(lineId)
+
+		const startHandle = editor.getShapeHandles(before)!.find((h) => h.id === 'a1')!
+		editor.pointerDown(before.x + startHandle.x, before.y + startHandle.y, {
+			target: 'handle',
+			shape: before,
+			handle: startHandle,
+		})
+		editor.pointerMove(50, 350)
+		editor.expectToBeIn('select.dragging_handle')
+		expect(editor.getShape(lineId)).not.toEqual(before)
+
+		pinchDuringDrag()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getShape(lineId)).toEqual(before)
+
+		// Lifting the remaining finger does not commit the stale handle position.
+		editor.pointerMove(80, 380)
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getShape(lineId)).toEqual(before)
+	})
+})

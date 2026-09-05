@@ -288,14 +288,15 @@ describe('When resizing', () => {
 		expect(editor.getCurrentPageShapes().length).toBe(0)
 	})
 
-	it('does not bails on interrupt while resizing', () => {
+	it('bails on interrupt while resizing and returns to text.idle', () => {
 		editor.setCurrentTool('text')
 		editor.pointerDown(0, 0)
 		vi.advanceTimersByTime(200)
 		editor.pointerMove(100, 100)
 		editor.expectToBeIn('select.resizing')
 		editor.interrupt()
-		expect(editor.getCurrentPageShapes().length).toBe(1)
+		editor.expectToBeIn('text.idle')
+		expect(editor.getCurrentPageShapes().length).toBe(0)
 	})
 
 	it('removes the pending text shape when another tool is selected mid-drag', () => {

@@ -136,6 +136,10 @@ export class Resizing extends StateNode {
 		this.cancel()
 	}
 
+	override onInterrupt() {
+		this.cancel()
+	}
+
 	private cancel() {
 		this.didFinish = true
 

@@ -1457,3 +1457,88 @@ describe('Leaving crop mode by switching tools', () => {
 		expect(editor.getCroppingShapeId()).toBe(null)
 	})
 })
+
+describe('Pinch ends an in-progress crop gesture', () => {
+	// Drive a touch pinch that begins while a one-finger drag is still down: the
+	// second finger's pointer_down arrives first, then the pinch gesture.
+	function pinchDuringDrag() {
+		editor.pointerDown(50, 50)
+		editor.pinchStart(200, 200, editor.getZoomLevel(), 0, 0, 0)
+		editor.pinchTo(200, 200, 2, 0, 0, 0)
+		editor.pinchEnd(200, 200, 2, 0, 0, 0)
+	}
+
+	it('cancels a crop resize and restores the original crop', () => {
+		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+
+		editor
+			.expectToBeIn('select.idle')
+			.select(ids.imageB)
+			.pointerDown(500, 600, {
+				target: 'selection',
+				handle: 'bottom_left',
+				ctrlKey: true,
+				accelKey: true,
+			})
+			.expectToBeIn('select.crop.pointing_crop_handle')
+			.pointerMove(510, 590)
+			.expectToBeIn('select.crop.cropping')
+
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
+
+		pinchDuringDrag()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getCroppingShapeId()).toBe(null)
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
+
+		// Lifting the remaining finger does not commit the stale crop.
+		editor.pointerMove(520, 580)
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
+	})
+
+	it('cancels a crop translate and restores the original crop', () => {
+		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+
+		editor
+			.expectToBeIn('select.idle')
+			.doubleClick(550, 550, ids.imageB)
+			.expectToBeIn('select.crop.idle')
+			.pointerDown(550, 550, { target: 'shape', shape: editor.getShape(ids.imageB) })
+			.expectToBeIn('select.crop.pointing_crop')
+			.pointerMove(250, 250)
+			.expectToBeIn('select.crop.translating_crop')
+
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
+
+		pinchDuringDrag()
+		editor.expectToBeIn('select.crop.idle')
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
+
+		editor.pointerMove(200, 200)
+		editor.pointerUp()
+		editor.expectToBeIn('select.crop.idle')
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
+	})
+
+	it('returns to crop idle from pointing_crop so the next drag does not translate the crop', () => {
+		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+
+		editor
+			.expectToBeIn('select.idle')
+			.doubleClick(550, 550, ids.imageB)
+			.expectToBeIn('select.crop.idle')
+			.pointerDown(550, 550, { target: 'shape', shape: editor.getShape(ids.imageB) })
+			.expectToBeIn('select.crop.pointing_crop')
+
+		pinchDuringDrag()
+		editor.expectToBeIn('select.crop.idle')
+
+		editor.pointerMove(250, 250)
+		editor.expectToBeIn('select.crop.idle')
+		editor.pointerUp()
+		editor.expectToBeIn('select.crop.idle')
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
+	})
+})
