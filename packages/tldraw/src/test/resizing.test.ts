@@ -3631,6 +3631,93 @@ describe('shapes that have do not resize', () => {
 	})
 })
 
+describe('resizing a group with shapes that do not resize', () => {
+	const boxId = createShapeId('box')
+	const bookmarkId = createShapeId('bookmark')
+	const groupId = createShapeId('groupA')
+
+	function setupGroup(w = 200, h = 320) {
+		editor.createShapes([
+			box(boxId, 0, 0, w, h),
+			// a bookmark without an asset is 320 tall
+			{ id: bookmarkId, type: 'bookmark', x: 0, y: 0, props: { w: 200 } },
+		])
+		editor.groupShapes([boxId, bookmarkId], { groupId })
+	}
+
+	it('keeps a non-resizable shape centered when resizing from the bottom right', () => {
+		setupGroup()
+		editor.select(groupId)
+		editor.resizeSelection({ scaleX: 2, scaleY: 2.1 }, 'bottom_right')
+
+		expect(editor.getShapePageBounds(boxId)).toMatchObject({ x: 0, y: 0, w: 400, h: 672 })
+		// same result as resizing the two shapes as an ungrouped selection
+		expect(editor.getShapePageBounds(bookmarkId)).toMatchObject({ x: 100, y: 176, w: 200, h: 320 })
+	})
+
+	it('keeps a non-resizable shape centered when resizing from the top left', () => {
+		setupGroup()
+		editor.select(groupId)
+		editor.resizeSelection({ scaleX: 2, scaleY: 2.1 }, 'top_left')
+
+		expect(editor.getShapePageBounds(boxId)).toMatchObject({ x: -200, y: -352, w: 400, h: 672 })
+		expect(editor.getShapePageBounds(bookmarkId)).toMatchObject({
+			x: -100,
+			y: -176,
+			w: 200,
+			h: 320,
+		})
+	})
+
+	it('scales the relative position of an off-center non-resizable shape', () => {
+		setupGroup(800, 640)
+		editor.select(groupId)
+		editor.resizeSelection({ scaleX: 2, scaleY: 2 }, 'bottom_right')
+
+		expect(editor.getShapePageBounds(boxId)).toMatchObject({ x: 0, y: 0, w: 1600, h: 1280 })
+		// the bookmark keeps its size while its center scales from (100, 160) to (200, 320)
+		expect(editor.getShapePageBounds(bookmarkId)).toMatchObject({ x: 100, y: 160, w: 200, h: 320 })
+	})
+
+	it('scales the relative position of a note', () => {
+		// unlike a bookmark, a note can resize but its onResize returns nothing in the default
+		// 'none' resize mode, so it is repositioned through a different branch
+		const noteId = createShapeId('noteA')
+		editor.createShapes([box(boxId, 0, 0, 400, 400), { id: noteId, type: 'note', x: 0, y: 0 }])
+		editor.groupShapes([boxId, noteId], { groupId })
+		editor.select(groupId)
+		editor.resizeSelection({ scaleX: 2, scaleY: 2 }, 'bottom_right')
+
+		expect(editor.getShapePageBounds(boxId)).toMatchObject({ x: 0, y: 0, w: 800, h: 800 })
+		expect(editor.getShapePageBounds(noteId)).toMatchObject({ x: 100, y: 100, w: 200, h: 200 })
+	})
+
+	it('keeps a non-resizable shape centered in nested groups', () => {
+		const outerBoxId = createShapeId('outerBox')
+		const outerGroupId = createShapeId('groupB')
+		setupGroup()
+		editor.createShapes([box(outerBoxId, 0, 0, 200, 320)])
+		editor.groupShapes([groupId, outerBoxId], { groupId: outerGroupId })
+		editor.select(outerGroupId)
+		editor.resizeSelection({ scaleX: 2, scaleY: 2 }, 'bottom_right')
+
+		expect(editor.getShapePageBounds(outerBoxId)).toMatchObject({ x: 0, y: 0, w: 400, h: 640 })
+		expect(editor.getShapePageBounds(bookmarkId)).toMatchObject({ x: 100, y: 160, w: 200, h: 320 })
+	})
+
+	it('moves a non-resizable shape with its group when flipping a selection that contains the group', () => {
+		const otherBoxId = createShapeId('otherBox')
+		setupGroup()
+		editor.createShapes([box(otherBoxId, 400, 0, 200, 320)])
+		editor.select(groupId, otherBoxId)
+		editor.flipShapes(editor.getSelectedShapeIds(), 'horizontal')
+
+		expect(editor.getShapePageBounds(otherBoxId)).toMatchObject({ x: 0, y: 0, w: 200, h: 320 })
+		expect(editor.getShapePageBounds(boxId)).toMatchObject({ x: 400, y: 0, w: 200, h: 320 })
+		expect(editor.getShapePageBounds(bookmarkId)).toMatchObject({ x: 400, y: 0, w: 200, h: 320 })
+	})
+})
+
 // describe('clicking the drag handle imprecisely', () => {
 //   it('does not prevent grid snapping', () => {
 //     // 0   10
