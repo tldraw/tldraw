@@ -801,7 +801,8 @@ input,
 
 .tl-rich-text ul,
 .tl-rich-text ol {
-	text-align: left;
+	/* `start`, not `left`: RTL list items need the marker on the right. */
+	text-align: start;
 	margin: 0;
 	padding-left: 1.625ch;
 	/* Some resets, like Tailwind, nix the list styling. */
