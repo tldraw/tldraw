@@ -171,7 +171,7 @@ import { PerformanceManager } from './managers/PerformanceManager/PerformanceMan
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
-import { TextManager } from './managers/TextManager/TextManager'
+import { TextManager, TLTextMeasurer } from './managers/TextManager/TextManager'
 import { ThemeManager, resolveThemes } from './managers/ThemeManager/ThemeManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
@@ -260,6 +260,12 @@ export interface TLEditorOptions {
 	autoFocus?: boolean
 	licenseKey?: string
 	fontAssetUrls?: { [key: string]: string | undefined }
+	/**
+	 * Replaces the DOM-backed text measurement used for shape geometry. When given, the editor
+	 * creates no hidden measurement elements, so it can run headlessly (for example in node with
+	 * `@tldraw/rich-text-layout`). Defaults to measuring with the DOM.
+	 */
+	textMeasurer?: TLTextMeasurer
 	/**
 	 * Should return a containing html element which has all the styles applied to the editor. If not
 	 * given, the body element will be used.
@@ -367,6 +373,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		fontAssetUrls,
 		themes,
 		initialTheme,
+		textMeasurer,
 	}: TLEditorOptions) {
 		super()
 
@@ -408,7 +415,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.user = new UserPreferencesManager(user ?? createTLCurrentUser(), colorScheme ?? 'light')
 		this.disposables.add(() => this.user.dispose())
 
-		this.textMeasure = new TextManager(this)
+		this.textMeasure = new TextManager(this, textMeasurer ?? null)
 		this.disposables.add(() => this.textMeasure.dispose())
 
 		this._themeManager = new ThemeManager(this, {

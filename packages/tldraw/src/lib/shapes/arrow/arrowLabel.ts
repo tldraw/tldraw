@@ -64,12 +64,12 @@ const labelSizeCache = createComputedCache(
 		let height = 0
 
 		const bodyGeom = getArrowBodyGeometry(editor, shape)
-		// We use 'i' as a default label to measure against as a minimum width.
-		const isEmpty = isEmptyRichText(shape.props.richText)
-		const html = renderHtmlFromRichTextForMeasurement(
-			editor,
-			isEmpty ? toRichText('i') : shape.props.richText
-		)
+		// We use 'i' as a default label to measure against as a minimum width. The same document
+		// must go to `richText` below, since a headless measurer lays that out instead of the html.
+		const richTextToMeasure = isEmptyRichText(shape.props.richText)
+			? toRichText('i')
+			: shape.props.richText
+		const html = renderHtmlFromRichTextForMeasurement(editor, richTextToMeasure)
 
 		const bodyBounds = bodyGeom.bounds
 
@@ -79,6 +79,7 @@ const labelSizeCache = createComputedCache(
 		// First we measure the text with no constraints
 		const { w, h } = editor.textMeasure.measureHtml(html, {
 			...TEXT_PROPS,
+			richText: richTextToMeasure,
 			lineHeight: dv.labelLineHeight,
 			fontFamily: dv.labelFontFamily,
 			fontSize,
@@ -110,6 +111,7 @@ const labelSizeCache = createComputedCache(
 		if (shouldSquish) {
 			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureHtml(html, {
 				...TEXT_PROPS,
+				richText: richTextToMeasure,
 				lineHeight: dv.labelLineHeight,
 				fontFamily: dv.labelFontFamily,
 				fontSize,

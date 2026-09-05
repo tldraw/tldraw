@@ -1,6 +1,17 @@
-import { HALF_PI, TLArrowShape, TLShapeId, createShapeId, toRichText } from '@tldraw/editor'
+import {
+	HALF_PI,
+	TLArrowShape,
+	TLMeasureTextOpts,
+	TLRichText,
+	TLShapeId,
+	TLTextMeasurer,
+	createShapeId,
+	toRichText,
+} from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from '../../../test/TestEditor'
+import { isEmptyRichText } from '../../utils/text/richText'
+import { getArrowLabelPosition } from './arrowLabel'
 import { getArrowInfo } from './getArrowInfo'
 import { createOrUpdateArrowBinding, getArrowBindings } from './shared'
 
@@ -358,6 +369,37 @@ describe('Arrow labels', () => {
 				richText: toRichText('New Label'),
 			},
 		})
+	})
+
+	it('measures an empty label being edited from the placeholder document with an injected measurer', () => {
+		// A headless measurer lays out `opts.richText` and ignores the html, so the placeholder
+		// used for the minimum width has to reach it as the document, not only as html.
+		const seen: TLRichText[] = []
+		const measure = (_html: string, opts: TLMeasureTextOpts) => {
+			if (opts.richText) seen.push(opts.richText)
+			const empty = !opts.richText || isEmptyRichText(opts.richText)
+			const w = empty ? 0 : opts.fontSize / 2
+			return { x: 0, y: 0, w, h: empty ? 0 : opts.fontSize, scrollWidth: w }
+		}
+		const textMeasurer: TLTextMeasurer = {
+			measureText: measure,
+			measureHtml: measure,
+			measureHtmlBatch: (requests) => requests.map(({ html, opts }) => measure(html, opts)),
+			measureTextSpans: () => [],
+		}
+		const headless = new TestEditor({ textMeasurer })
+		const id = createShapeId('empty-label')
+		headless.createShapes([
+			{ id, type: 'arrow', x: 0, y: 0, props: { start: { x: 0, y: 0 }, end: { x: 200, y: 0 } } },
+		])
+
+		const { box } = getArrowLabelPosition(headless, headless.getShape<TLArrowShape>(id)!, true)
+
+		expect(seen.length).toBeGreaterThan(0)
+		expect(seen.every((richText) => !isEmptyRichText(richText))).toBe(true)
+		expect(box.width).toBeGreaterThan(0)
+		expect(box.height).toBeGreaterThan(0)
+		headless.dispose()
 	})
 })
 

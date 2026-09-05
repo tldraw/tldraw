@@ -142,6 +142,35 @@ Disc, circle and square markers come out as shapes, not glyphs: Blink sizes and 
 - `drawLayout(layout, ctx)`: `fillText` per fragment.
 - `renderDom(layout, { createElement })`: absolutely positioned spans.
 
+## tldraw integration
+
+Two things, both opt-in:
+
+### Headless measurement
+
+```ts
+import { createNodeMeasureContext, installMeasureContext } from '@tldraw/rich-text-layout'
+import { createTldrawTextMeasurer, Editor } from 'tldraw'
+
+const measureContext = await createNodeMeasureContext({ fonts: tldrawFonts })
+await installMeasureContext(measureContext)
+
+const editor = new Editor({
+	...options,
+	textMeasurer: createTldrawTextMeasurer({ measureContext }),
+})
+```
+
+`TLEditorOptions.textMeasurer` replaces the DOM-backed `TextManager` methods (`measureText`, `measureHtml`, `measureHtmlBatch`, `measureTextSpans`). With it, the editor creates no hidden measurement elements, and text, geo, note and arrow labels and frame headings get real geometry in node. `createTldrawTextMeasurer` builds its stylesheet from the `.tl-rich-text` rules in `editor.css` (`pre-wrap`, `tab-size: 2`, `p { margin: 0; min-height: 1lh }`, list padding in `ch` with the 10/100-item gutters, heading margins and line height, `code` in `tldraw_mono`, link underline, `mark` background) on top of the user agent sheet. The four families must be registered under their CSS names (`tldraw_draw`, `tldraw_sans`, `tldraw_serif`, `tldraw_mono`); the woff2 files in `@tldraw/assets/fonts` load directly.
+
+### Native SVG text export
+
+```ts
+const { svg } = await editor.getSvgString(ids, { text: 'native' })
+```
+
+`text: 'native'` (default `'foreignObject'`) makes `RichTextSVG` emit `<text>`/`<tspan>` through this engine instead of an HTML island, so rasterizers without an HTML engine (resvg, Figma import, Inkscape) render the text. In a browser it lays out with a canvas measure context; with an injected `TldrawTextMeasurer` it reuses that, so headless exports use the same engine that sized the shapes. Fonts referenced by family name need to be resolvable by the rasterizer; resvg, for example, matches the family name inside the font file, so `tldraw_sans` has to be mapped to `IBM Plex Sans` and the woff2 decompressed to ttf (see `packages/tldraw/src/test/nativeTextExport.test.ts` for a complete node-to-PNG run whose output is committed as `__snapshots__/native-text-export.png`).
+
 ## Golden harness
 
 `yarn golden` (in this package) measures a corpus of plain strings across the four tldraw families, four sizes and bounded/unbounded widths in Chromium, using the exact element and styles tldraw's DOM `TextManager` uses, and compares with the engine. `yarn golden --rich` adds rich text documents through `createTldrawTextMeasurer`; `--pixels` rasterizes the native SVG with Chromium and resvg and compares against Chromium's `<foreignObject>` rendering. Results land in `golden/report.md`; Chromium measurements are cached under `golden/results/` and refreshed with `--refresh`.

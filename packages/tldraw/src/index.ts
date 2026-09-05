@@ -279,6 +279,10 @@ export {
 	type RichTextLabelProps,
 	type RichTextSVGProps,
 } from './lib/shapes/shared/RichTextLabel'
+export {
+	NativeRichTextSVG,
+	type NativeRichTextSVGProps,
+} from './lib/shapes/shared/NativeRichTextSVG'
 export { useEditablePlainText } from './lib/shapes/shared/useEditablePlainText'
 export { useEditableRichText } from './lib/shapes/shared/useEditableRichText'
 export {
@@ -843,6 +847,14 @@ export {
 	renderRichTextFromHTML,
 	tipTapDefaultExtensions,
 } from './lib/utils/text/richText'
+export {
+	createTldrawRichTextStyles,
+	createTldrawTextMeasurer,
+	type TldrawRichTextColors,
+	type TldrawRichTextLayoutOptions,
+	type TldrawTextMeasurer,
+	type TldrawTextMeasurerOptions,
+} from './lib/utils/text/createTldrawTextMeasurer'
 export { truncateStringWithEllipsis } from './lib/utils/text/text'
 export {
 	buildFromV1Document,
