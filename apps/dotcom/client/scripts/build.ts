@@ -7,6 +7,9 @@ import {
 	ROOM_PREFIX,
 	SNAPSHOT_PREFIX,
 	SOCIAL_PREVIEW_BYPASS_PARAM,
+	THUMBNAIL_RENDER_GLOBAL,
+	THUMBNAIL_RENDER_INLINE_PATH,
+	THUMBNAIL_RENDER_PATH,
 } from '@tldraw/dotcom-shared'
 import { T } from '@tldraw/validate'
 import { config } from 'dotenv'
@@ -14,7 +17,7 @@ import json5 from 'json5'
 import regexgen from 'regexgen'
 import { exec } from '../../../../internal/scripts/lib/exec'
 import { nicelog } from '../../../../internal/scripts/lib/nicelog'
-import { csp } from '../src/utils/csp'
+import { csp, thumbnailRenderCsp } from '../src/utils/csp'
 import { reportBundleSize } from './measure-bundle-size'
 import { getMultiplayerServerURL } from './multiplayer-server-url'
 import { Config } from './vercel-output-config'
@@ -116,6 +119,17 @@ async function build() {
 	await exec('yarn', ['test', 'src/routes.test.tsx'])
 	const spaRoutes = loadSpaRoutes()
 	await exec('../../../node_modules/.bin/vite', ['build', '--emptyOutDir'])
+	// Second pass: the thumbnail render entry as one self-contained file, for the sync-worker's
+	// html-mode captures (the whole page rides inside the Browser Run request; the browser fetches
+	// nothing). Emits only the artifact, into dist beside the main build's output.
+	await exec('../../../node_modules/.bin/vite', ['build', '--config', 'vite.inline.config.ts'])
+	// What the sync-worker's fetchInlineRenderPage validates before using the artifact, checked here
+	// because failing there would not error, just silently downgrade every html-mode capture to the
+	// url-mode push. The read itself is the check on the name: the worker fetches exactly this path.
+	const inlineArtifact = readFileSync(`dist${THUMBNAIL_RENDER_INLINE_PATH}`, 'utf8')
+	if (!inlineArtifact.includes('<head>') || !inlineArtifact.includes(THUMBNAIL_RENDER_GLOBAL)) {
+		throw new Error('inline render artifact would fail the sync-worker artifact validation')
+	}
 	await exec('yarn', ['run', '-T', 'sentry-cli', 'sourcemaps', 'inject', 'dist/assets'])
 	// Clear output static folder (in case we are running locally and have already built the app once before)
 	await exec('rm', ['-rf', '.vercel/output'])
@@ -160,6 +174,14 @@ async function build() {
 		.replace('<!-- $PRELOADED_SPRITES -->', spritePreload)
 
 	writeFileSync('.vercel/output/static/index.html', newIndex)
+
+	// The thumbnail render entry waits on these same faces during its settle phase, so it preloads
+	// them too — otherwise their fetch starts only after the SDK has booted and the editor mounted.
+	const thumbnailHtml = readFileSync('.vercel/output/static/thumbnail-render.html', 'utf8')
+	writeFileSync(
+		'.vercel/output/static/thumbnail-render.html',
+		thumbnailHtml.replace('<!-- $PRELOADED_FONTS -->', fontPreloads)
+	)
 
 	const multiplayerServerUrl = getMultiplayerServerURL() ?? 'http://localhost:8787'
 
@@ -232,6 +254,21 @@ async function build() {
 						src: '/',
 						dest: '/index.html',
 						headers: commonSecurityHeaders,
+					},
+					// the thumbnail render page is its own Vite entry, not an SPA route, so a Browser
+					// Run capture boots the SDK without the app shell. rewritten here rather than
+					// served at its build filename so the URL the sync-worker renders
+					// (MCP_SCREENSHOT_RENDER_ORIGIN + THUMBNAIL_RENDER_PATH) never moves. must come
+					// before the SPA fallback below, which would otherwise answer with index.html.
+					{
+						check: true,
+						src: `^${THUMBNAIL_RENDER_PATH}$`,
+						dest: '/thumbnail-render.html',
+						// The app headers, but with the render page's CSP: the app policy's script-src
+						// blocks the inline script Browser Run injects to push the snapshot in, which
+						// silently downgraded every push render to the token fetch. See
+						// thumbnailRenderCsp for why the relaxation is safe on this route.
+						headers: { ...commonSecurityHeaders, 'Content-Security-Policy': thumbnailRenderCsp },
 					},
 					// serve static files
 					{

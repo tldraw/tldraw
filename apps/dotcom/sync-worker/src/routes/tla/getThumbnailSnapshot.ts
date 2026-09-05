@@ -6,6 +6,7 @@ import {
 	isMintedRenderToken,
 	markRenderTokenServed,
 	renderJobAccess,
+	renderParamsForJob,
 	verifyThumbnailRenderToken,
 } from '../../utils/renderTokens'
 import { getPublishedRoomSnapshot } from './getPublishedFile'
@@ -98,18 +99,9 @@ export async function getThumbnailSnapshot(
 		error: false,
 		records: snapshot.documents.map((d) => d.state) as TLRecord[],
 		schema: snapshot.schema,
-		renderParams: {
-			...(job.camera ? { camera: job.camera } : null),
-			...(job.pageId ? { pageId: job.pageId } : null),
-			...(job.shapeIds ? { shapeIds: job.shapeIds } : null),
-			...(job.mode ? { mode: job.mode } : null),
-			x: job.x,
-			y: job.y,
-			z: job.z,
-			width: job.width,
-			height: job.height,
-			theme: job.theme,
-		},
+		// Never carries `capture`: this response is the whole board, and live capture is only correct
+		// against a payload sliced for the render — see renderParamsForJob.
+		renderParams: renderParamsForJob(job),
 	})
 }
 
