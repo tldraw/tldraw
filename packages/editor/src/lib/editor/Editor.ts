@@ -623,7 +623,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				if (invalidBindingTypes.size) {
 					const t = invalidBindingTypes
-					invalidBindingTypes = new Set()
+					invalidBindingTypes = new Set<TLBinding['type']>()
 					for (const type of t) {
 						const util = this.getBindingUtil(type)
 						util.onOperationComplete?.()
@@ -1777,7 +1777,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				},
 				extras: {
 					activeStateNode: this.root.getPath(),
-					selectedShapes: this.getSelectedShapes().map((s) => {
+					selectedShapes: this.getSelectedShapes().map((s): TLShape => {
 						const { props, ...rest } = s
 						const { text: _text, richText: _richText, ...restProps } = props as any
 						return {
