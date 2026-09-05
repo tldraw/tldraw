@@ -4140,6 +4140,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// If we're not on the same page, move to the page they're on
 			const isOnSamePage = presence.currentPageId === this.getCurrentPageId()
 			if (!isOnSamePage) {
+				this.markHistoryStoppingPoint('change-page')
 				this.setCurrentPage(presence.currentPageId)
 			}
 
