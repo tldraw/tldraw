@@ -20,6 +20,7 @@ import { StrictMode } from 'react'
 import { vi } from 'vitest'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { defaultTools } from '../lib/defaultTools'
+import { Tldraw } from '../lib/Tldraw'
 import { createDrawSegments } from '../lib/utils/test-helpers'
 import { defaultAddFontsFromNode, tipTapDefaultExtensions } from '../lib/utils/text/richText'
 import {
@@ -185,6 +186,144 @@ describe('<TldrawEditor />', () => {
 		expect(initialEditor.dispose).toHaveBeenCalledTimes(1)
 		expect(onMount).toHaveBeenCalledTimes(2)
 		expect(onMount.mock.lastCall![0].store).toBe(newStore)
+	})
+
+	it('keeps the editor when re-rendered with equal inline nested options', async () => {
+		const onMount = vi.fn()
+		const rendered = await renderTldrawComponent(
+			<TldrawEditor
+				tools={defaultTools}
+				initialState="select"
+				onMount={onMount}
+				options={{ camera: { isLocked: true }, deepLinks: { param: 'd' } }}
+			/>,
+			{ waitForPatterns: false }
+		)
+		const initialEditor = onMount.mock.lastCall![0]
+		vi.spyOn(initialEditor, 'dispose')
+		// a fresh options object with fresh (but equal) nested objects, as an inline literal gives:
+		rendered.rerender(
+			<TldrawEditor
+				tools={defaultTools}
+				initialState="select"
+				onMount={onMount}
+				options={{ camera: { isLocked: true }, deepLinks: { param: 'd' } }}
+			/>
+		)
+		expect(initialEditor.dispose).not.toHaveBeenCalled()
+		expect(onMount).toHaveBeenCalledTimes(1)
+		// deeper nesting (camera constraints, zoomSteps) is compared by value too:
+		const withConstraints = () => ({
+			camera: {
+				isLocked: true,
+				zoomSteps: [0.5, 1, 2],
+				constraints: {
+					bounds: { x: 0, y: 0, w: 100, h: 100 },
+					padding: { x: 0, y: 0 },
+					origin: { x: 0.5, y: 0.5 },
+					initialZoom: 'default' as const,
+					baseZoom: 'default' as const,
+					behavior: 'contain' as const,
+				},
+			},
+			deepLinks: { param: 'd' },
+		})
+		rendered.rerender(
+			<TldrawEditor
+				tools={defaultTools}
+				initialState="select"
+				onMount={onMount}
+				options={withConstraints()}
+			/>
+		)
+		await rendered.findAllByTestId('canvas')
+		expect(onMount).toHaveBeenCalledTimes(2)
+		const secondEditor = onMount.mock.lastCall![0]
+		vi.spyOn(secondEditor, 'dispose')
+		rendered.rerender(
+			<TldrawEditor
+				tools={defaultTools}
+				initialState="select"
+				onMount={onMount}
+				options={withConstraints()}
+			/>
+		)
+		expect(secondEditor.dispose).not.toHaveBeenCalled()
+		expect(onMount).toHaveBeenCalledTimes(2)
+		// a real change still recreates the editor:
+		rendered.rerender(
+			<TldrawEditor
+				tools={defaultTools}
+				initialState="select"
+				onMount={onMount}
+				options={{ camera: { isLocked: false }, deepLinks: { param: 'd' } }}
+			/>
+		)
+		await rendered.findAllByTestId('canvas')
+		expect(secondEditor.dispose).toHaveBeenCalledTimes(1)
+		expect(onMount).toHaveBeenCalledTimes(3)
+		expect(onMount.mock.lastCall![0].getCameraOptions().isLocked).toBe(false)
+	})
+
+	it('keeps the editor when re-rendered with equal inline gridSteps', async () => {
+		const onMount = vi.fn()
+		const gridSteps = () => [{ min: -1, mid: 0.15, step: 64 }]
+		const rendered = await renderTldrawComponent(
+			<TldrawEditor
+				tools={defaultTools}
+				initialState="select"
+				onMount={onMount}
+				options={{ gridSteps: gridSteps() }}
+			/>,
+			{ waitForPatterns: false }
+		)
+		const initialEditor = onMount.mock.lastCall![0]
+		vi.spyOn(initialEditor, 'dispose')
+		rendered.rerender(
+			<TldrawEditor
+				tools={defaultTools}
+				initialState="select"
+				onMount={onMount}
+				options={{ gridSteps: gridSteps() }}
+			/>
+		)
+		expect(initialEditor.dispose).not.toHaveBeenCalled()
+		expect(onMount).toHaveBeenCalledTimes(1)
+		// a real change still recreates the editor:
+		rendered.rerender(
+			<TldrawEditor
+				tools={defaultTools}
+				initialState="select"
+				onMount={onMount}
+				options={{ gridSteps: [{ min: -1, mid: 0.15, step: 32 }] }}
+			/>
+		)
+		await rendered.findAllByTestId('canvas')
+		expect(initialEditor.dispose).toHaveBeenCalledTimes(1)
+		expect(onMount).toHaveBeenCalledTimes(2)
+		expect(onMount.mock.lastCall![0].options.gridSteps).toEqual([{ min: -1, mid: 0.15, step: 32 }])
+	})
+
+	it('keeps the editor when <Tldraw /> is re-rendered with equal inline text options', async () => {
+		// <Tldraw> builds a fresh `tipTapConfig` from `options.text` each time that object changes
+		// identity, so a shallow comparison of `text` is not enough here.
+		const onMount = vi.fn()
+		const rendered = await renderTldrawComponent(
+			<Tldraw onMount={onMount} options={{ text: {} }} />,
+			{ waitForPatterns: true }
+		)
+		const initialEditor = onMount.mock.lastCall![0]
+		vi.spyOn(initialEditor, 'dispose')
+		rendered.rerender(<Tldraw onMount={onMount} options={{ text: {} }} />)
+		expect(initialEditor.dispose).not.toHaveBeenCalled()
+		expect(onMount).toHaveBeenCalledTimes(1)
+		// a real change still recreates the editor:
+		const addFontsFromNode = vi.fn(defaultAddFontsFromNode)
+		rendered.rerender(<Tldraw onMount={onMount} options={{ text: { addFontsFromNode } }} />)
+		await rendered.findAllByTestId('canvas')
+		expect(initialEditor.dispose).toHaveBeenCalledTimes(1)
+		expect(onMount).toHaveBeenCalledTimes(2)
+		expect(onMount.mock.lastCall![0].getTextOptions().addFontsFromNode).toBe(addFontsFromNode)
 	})
 
 	it('reflects mount state via getIsMounted and the mount/unmount events', async () => {
