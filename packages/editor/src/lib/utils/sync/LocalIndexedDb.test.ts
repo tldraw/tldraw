@@ -1,5 +1,5 @@
 import { createTLSchema } from '@tldraw/tlschema'
-import { openDB } from 'idb'
+import { deleteDB, openDB } from 'idb'
 import { vi } from 'vitest'
 import { hardReset } from './hardReset'
 import { getAllIndexDbNames, LocalIndexedDb } from './LocalIndexedDb'
@@ -238,5 +238,25 @@ describe('LocalIndexedDb', () => {
 		expect(
 			(await window.indexedDB.databases()).find((db) => db.name === 'TLDRAW_ASSET_STORE_v1test-0')
 		).toBeUndefined()
+	})
+
+	it('closes its connection so another tab can delete the database', async () => {
+		const db = new LocalIndexedDb('test-0')
+		await db.storeSnapshot({ schema, snapshot: {} })
+
+		// Simulates a hard reset from another tab. Without the blocking handler this never
+		// resolves because our open connection blocks the delete.
+		let timeout: ReturnType<typeof setTimeout>
+		const result = await Promise.race([
+			deleteDB('TLDRAW_DOCUMENT_v2test-0').then(() => 'deleted'),
+			new Promise<string>((resolve) => {
+				timeout = setTimeout(() => resolve('blocked'), 1000)
+			}),
+		])
+		clearTimeout(timeout!)
+		expect(result).toBe('deleted')
+
+		// the next write on the closed connection surfaces as an error rather than hanging
+		await expect(db.storeSnapshot({ schema, snapshot: {} })).rejects.toThrow()
 	})
 })
