@@ -126,6 +126,8 @@ export class PointingHandle extends StateNode {
 			const noteUtil = editor.getShapeUtil(shape) as NoteShapeUtil
 			const dv = getDisplayValues(noteUtil, shape)
 
+			// Translating bails to this mark on cancel; without it, Escape mid-drag leaves the new note behind
+			const markId = editor.markHistoryStoppingPoint('creating note from clone handle')
 			const nextNote = getNoteForAdjacentPosition(editor, shape, handle, true)
 			if (nextNote) {
 				// Center the shape on the current pointer
@@ -147,8 +149,8 @@ export class PointingHandle extends StateNode {
 						...this.info,
 						target: 'shape',
 						shape: editor.getShape(nextNote),
-						onInteractionEnd: 'note',
 						isCreating: true,
+						creatingMarkId: markId,
 						onCreate: () => {
 							// When we're done, start editing it
 							startEditingShapeWithRichText(editor, nextNote, { selectAll: true })
