@@ -14,7 +14,6 @@ import {
 	useColorMode,
 	useIsEditing,
 	useSvgExportContext,
-	useValue,
 } from '@tldraw/editor'
 import {
 	DEFAULT_EMBED_DEFINITIONS,
@@ -258,23 +257,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 		const embedInfo = this.getEmbedDefinition(url)
 
-		const isHoveringWhileEditingSameShape = useValue(
-			'is hovering',
-			() => {
-				const { editingShapeId, hoveredShapeId } = this.editor.getCurrentPageState()
-
-				if (editingShapeId && hoveredShapeId !== editingShapeId) {
-					const editingShape = this.editor.getShape(editingShapeId)
-					if (editingShape && this.editor.isShapeOfType(editingShape, 'embed')) {
-						return true
-					}
-				}
-
-				return false
-			},
-			[]
-		)
-
 		const pageRotation = this.editor.getShapePageTransform(shape)!.rotation()
 
 		if (svgExport) {
@@ -296,7 +278,9 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			)
 		}
 
-		const isInteractive = isEditing || isHoveringWhileEditingSameShape
+		// Only the embed being edited may take the pointer. Making sibling embeds
+		// interactive steals presses meant to select them (#10408).
+		const isInteractive = isEditing
 
 		// Prevent nested embedding of tldraw
 		const isIframe =
