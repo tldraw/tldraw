@@ -2,7 +2,7 @@ import { readFileSync } from 'fs'
 import { createRequire } from 'module'
 import { describe, expect, it } from 'vitest'
 
-// pruneIfIdle/expireIfIdle in worker.ts lean on these agents-SDK internals.
+// destroyIfIdle/expireIfIdle in worker.ts lean on these agents-SDK internals.
 // A bump that moves any of them must re-audit that code before shipping;
 // this file turns that into a failing test instead of a silent prod regression.
 const require = createRequire(import.meta.url)
