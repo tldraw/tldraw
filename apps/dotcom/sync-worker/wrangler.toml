@@ -154,6 +154,10 @@ LOCAL_SCREENSHOT_SERVICE_URL = "http://localhost:3000/__screenshot"
 [env.staging]
 name = "main-tldraw-multiplayer"
 workers_dev = false
+# Tail consumer: apps/dotcom/tail-worker. `tail_consumers` names a service that must already exist, so
+# deploy-dotcom.ts deploys `tail` before `multiplayer`. Preview has no entry — previews get no tail
+# consumer at all.
+tail_consumers = [{ service = "main-tldraw-multiplayer-tail" }]
 
 [env.staging.vars]
 HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "4"
@@ -167,6 +171,8 @@ MCP_SCREENSHOT_ENABLED = "true"
 [env.production]
 name = "tldraw-multiplayer"
 workers_dev = false
+# See the staging comment above.
+tail_consumers = [{ service = "tldraw-multiplayer-tail" }]
 
 [env.production.vars]
 HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "10"
@@ -654,3 +660,23 @@ run_worker_first = true
 directory = "assets"
 binding = "ASSETS"
 run_worker_first = true
+
+#################### Trace export ####################
+# Native OTLP export to Grafana Tempo. Config only, no code. Cloudflare doesn't support metrics export
+# and its log export is head-sampled and blind to outcome, which is why errors go through the tail
+# worker instead. The `grafana-traces` destination is created by hand in the Cloudflare dashboard
+# (Workers Observability → Destinations) — it cannot be expressed in wrangler, and the name must match
+# exactly. Production runs at 0.1%: automatic tracing emits a sub-span per platform call (R2, KV,
+# durable object, outbound fetch), so a traced invocation is nearer 10 observability events than 1, and
+# this is the single largest cost knob in the design. Preview gets no trace export.
+[env.staging.observability.traces]
+enabled = true
+destinations = ["grafana-traces"]
+head_sampling_rate = 1.0
+persist = false
+
+[env.production.observability.traces]
+enabled = true
+destinations = ["grafana-traces"]
+head_sampling_rate = 0.001
+persist = false
