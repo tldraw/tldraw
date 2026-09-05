@@ -9138,7 +9138,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	private _getUnlockedShapeIds(ids: TLShapeId[]): TLShapeId[] {
-		return ids.filter((id) => !this.getShape(id)?.isLocked)
+		// A child of a locked frame or group has `isLocked: false` but must be treated as
+		// locked, otherwise it could be deleted or duplicated while the UI shows it as locked
+		return ids.filter((id) => !this.isShapeOrAncestorLocked(id))
 	}
 
 	/**
