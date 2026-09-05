@@ -5107,7 +5107,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const freshPage = this.getPage(id) // get the most recent version of the page anyway
 		if (!freshPage) return this
 
-		const prevCamera = { ...this.getCamera() }
+		// Read the source page's own camera rather than getCamera(), which is the
+		// current page's and is wrong when duplicating a page that isn't being viewed
+		const prevCamera = {
+			...(this.store.get(CameraRecordType.createId(freshPage.id)) ?? this.getCamera()),
+		}
 		const content = this.getContentFromCurrentPage(this.getSortedChildIdsForParent(freshPage.id))
 
 		this.run(() => {
@@ -5122,8 +5126,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.setCamera(prevCamera)
 
 			if (content) {
-				// If we had content on the previous page, put it on the new page
-				return this.putContentOntoCurrentPage(content)
+				// Without preservePosition the paste rule recenters off-screen content
+				// in the viewport, so the copy's layout would not match the original
+				return this.putContentOntoCurrentPage(content, { preservePosition: true })
 			}
 		})
 
