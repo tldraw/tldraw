@@ -1,6 +1,7 @@
 import { useValue } from '@tldraw/state-react'
 import { useCallback, useEffect, useRef } from 'react'
 import { tlmenus } from '../globals/menus'
+import { useEvent } from './useEvent'
 
 /** @public */
 export function useGlobalMenuIsOpen(
@@ -27,6 +28,12 @@ export function useGlobalMenuIsOpen(
 
 	const isOpen = useValue('is menu open', () => tlmenus.getOpenMenus().includes(id), [id])
 
+	// Hosts usually pass an inline handler (`<Tldraw onUiEvent={(name, data) => ...} />`), which the
+	// events context hands straight on, so this arrives with a new identity on every render. The
+	// effect below tears the menu out of the registry when it re-runs and cannot put it back, so an
+	// unstable identity here closes open menus whenever the host re-renders for any reason.
+	const handleEvent = useEvent((eventName: string) => onEvent?.(eventName))
+
 	useEffect(() => {
 		// When the effect runs, if the menu is open then
 		// add it to the open menus list.
@@ -37,7 +44,7 @@ export function useGlobalMenuIsOpen(
 		// hook but it's necessary to handle the case where the
 		// this effect runs twice or re-runs.
 		if (rIsOpen.current) {
-			onEvent?.('open-menu')
+			handleEvent('open-menu')
 			tlmenus.addOpenMenu(id)
 		}
 
@@ -49,7 +56,7 @@ export function useGlobalMenuIsOpen(
 				// Close menu and all submenus when the parent is closed
 				tlmenus.getOpenMenus().forEach((menuId) => {
 					if (menuId.startsWith(id)) {
-						onEvent?.('close-menu')
+						handleEvent('close-menu')
 						tlmenus.deleteOpenMenu(menuId)
 					}
 				})
@@ -57,7 +64,7 @@ export function useGlobalMenuIsOpen(
 				rIsOpen.current = false
 			}
 		}
-	}, [id, onEvent])
+	}, [id, handleEvent])
 
 	return [isOpen, onOpenChange] as const
 }
