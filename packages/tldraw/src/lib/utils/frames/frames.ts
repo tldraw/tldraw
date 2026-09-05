@@ -1,6 +1,7 @@
 import {
 	Box,
 	Editor,
+	TLArrowBinding,
 	TLBaseBoxShape,
 	TLShape,
 	TLShapeId,
@@ -39,6 +40,24 @@ export function removeFrame(editor: Editor, ids: TLShapeId[]) {
 		})
 		editor.setSelectedShapes(allChildren)
 		editor.deleteShapes(ids)
+	})
+}
+
+/**
+ * The ids from `ids` that a new frame could actually hold. Locked shapes stay put, matching
+ * group, and an arrow bound to a shape outside the selection is skipped because the arrow
+ * binding util would reparent it straight back out of the frame.
+ *
+ * @internal
+ */
+export function getFrameableShapeIds(editor: Editor, ids: TLShapeId[]): TLShapeId[] {
+	const selected = new Set(ids)
+	return ids.filter((id) => {
+		const shape = editor.getShape(id)
+		if (!shape || shape.isLocked) return false
+		return editor
+			.getBindingsFromShape<TLArrowBinding>(shape, 'arrow')
+			.every((binding) => selected.has(binding.toId))
 	})
 }
 

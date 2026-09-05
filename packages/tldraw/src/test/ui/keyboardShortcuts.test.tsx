@@ -340,4 +340,126 @@ describe('frame selection shortcut', () => {
 		expect(editor.getShape(a)?.parentId).toBe(frame!.id)
 		expect(editor.getShape(b)?.parentId).toBe(frame!.id)
 	})
+
+	it('wraps a single selected shape in a frame', async () => {
+		const { editor } = await setupFocusedEditor()
+		const a = createShapeId()
+		act(() => {
+			editor.createShapes([{ id: a, type: 'geo', x: 0, y: 0 }])
+			editor.select(a)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
+
+		const frame = editor.getCurrentPageShapes().find((s) => editor.isShapeOfType(s, 'frame'))
+		expect(frame).toBeDefined()
+		expect(editor.getShape(a)?.parentId).toBe(frame!.id)
+		expect(editor.getSelectedShapeIds()).toEqual([frame!.id])
+	})
+
+	it('removes the frame when a single frame is selected', async () => {
+		const { editor } = await setupFocusedEditor()
+		const frameId = createShapeId()
+		const a = createShapeId()
+		act(() => {
+			editor.createShapes([
+				{ id: frameId, type: 'frame', x: 0, y: 0, props: { w: 200, h: 200 } },
+				{ id: a, type: 'geo', parentId: frameId, x: 10, y: 10 },
+			])
+			editor.select(frameId)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
+
+		expect(editor.getShape(frameId)).toBeUndefined()
+		expect(editor.getShape(a)?.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it('leaves locked shapes out of the frame and in place', async () => {
+		const { editor } = await setupFocusedEditor()
+		const locked = createShapeId()
+		const a = createShapeId()
+		act(() => {
+			editor.createShapes([
+				{ id: locked, type: 'geo', x: 0, y: 0, isLocked: true },
+				{ id: a, type: 'geo', x: 200, y: 200 },
+			])
+			editor.select(locked, a)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
+
+		const frame = editor.getCurrentPageShapes().find((s) => editor.isShapeOfType(s, 'frame'))
+		expect(frame).toBeDefined()
+		expect(editor.getShape(a)?.parentId).toBe(frame!.id)
+		expect(editor.getShape(locked)).toMatchObject({
+			parentId: editor.getCurrentPageId(),
+			x: 0,
+			y: 0,
+		})
+	})
+
+	it('does nothing for a lone arrow bound to a shape outside the selection', async () => {
+		const { editor } = await setupFocusedEditor()
+		const target = createShapeId()
+		const arrow = createShapeId()
+		act(() => {
+			editor.createShapes([
+				{ id: target, type: 'geo', x: 400, y: 400 },
+				{ id: arrow, type: 'arrow', x: 0, y: 0 },
+			])
+			editor.createBindings([
+				{
+					fromId: arrow,
+					toId: target,
+					type: 'arrow',
+					props: {
+						terminal: 'end',
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isExact: false,
+						isPrecise: false,
+					},
+				},
+			])
+			editor.select(arrow)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
+
+		expect(editor.getCurrentPageShapes().some((s) => editor.isShapeOfType(s, 'frame'))).toBe(false)
+		expect(editor.getShape(arrow)?.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it('frames an arrow together with the shape it is bound to', async () => {
+		const { editor } = await setupFocusedEditor()
+		const target = createShapeId()
+		const arrow = createShapeId()
+		act(() => {
+			editor.createShapes([
+				{ id: target, type: 'geo', x: 400, y: 400 },
+				{ id: arrow, type: 'arrow', x: 0, y: 0 },
+			])
+			editor.createBindings([
+				{
+					fromId: arrow,
+					toId: target,
+					type: 'arrow',
+					props: {
+						terminal: 'end',
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isExact: false,
+						isPrecise: false,
+					},
+				},
+			])
+			editor.select(arrow, target)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
+
+		const frame = editor.getCurrentPageShapes().find((s) => editor.isShapeOfType(s, 'frame'))
+		expect(frame).toBeDefined()
+		expect(editor.getShape(arrow)?.parentId).toBe(frame!.id)
+		expect(editor.getShape(target)?.parentId).toBe(frame!.id)
+	})
 })

@@ -27,7 +27,7 @@ import * as React from 'react'
 import { defaultHandleExternalTextContent } from '../../defaultExternalContentHandlers'
 import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
 import { downloadFile } from '../../utils/export/exportAs'
-import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
+import { fitFrameToContent, getFrameableShapeIds, removeFrame } from '../../utils/frames/frames'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
@@ -619,12 +619,14 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						return
 					}
 
-					const ids = editor.getSelectedShapeIds()
-					if (ids.length < 2) return
+					// Unlike group, a single shape can be framed, so there is no two-shape minimum.
+					const ids = getFrameableShapeIds(editor, editor.getSelectedShapeIds())
+					if (ids.length === 0) return
 
 					const shapes = compact(ids.map((id) => editor.getShape(id)))
-					const pageBounds = editor.getSelectionPageBounds()
-					if (!pageBounds) return
+					const pageBounds = Box.Common(
+						compact(shapes.map((shape) => editor.getShapePageBounds(shape)))
+					)
 
 					trackEvent('frame-selection', { source })
 					editor.markHistoryStoppingPoint('frame-selection')

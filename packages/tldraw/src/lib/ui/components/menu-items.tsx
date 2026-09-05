@@ -1,4 +1,5 @@
 import { TLPageId, useEditor, useValue } from '@tldraw/editor'
+import { getFrameableShapeIds } from '../../utils/frames/frames'
 import { supportsDownloadingOriginal, useActions } from '../context/actions'
 import { useUiEvents } from '../context/events'
 import { useToasts } from '../context/toasts'
@@ -105,7 +106,18 @@ export function UngroupMenuItem() {
 
 /** @public @react */
 export function FrameSelectionMenuItem() {
-	const shouldDisplay = useAllowGroup()
+	const editor = useEditor()
+	const shouldDisplay = useValue(
+		'allow frame selection',
+		() => {
+			const selectedShapes = editor.getSelectedShapes()
+			if (selectedShapes.length === 0) return false
+			// An all-frame selection would unframe instead; RemoveFrameMenuItem already covers that.
+			if (selectedShapes.every((shape) => editor.isShapeOfType(shape, 'frame'))) return false
+			return getFrameableShapeIds(editor, editor.getSelectedShapeIds()).length > 0
+		},
+		[editor]
+	)
 	if (!shouldDisplay) return null
 
 	return <TldrawUiMenuActionItem actionId="frame-selection" />
