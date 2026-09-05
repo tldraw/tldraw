@@ -531,7 +531,10 @@ export class Idle extends StateNode {
 					return
 				}
 
-				this.editor.selectNone()
+				if (selectedShapeIds.length > 0) {
+					this.editor.markHistoryStoppingPoint('selecting none')
+					this.editor.selectNone()
+				}
 				break
 			}
 			case 'shape': {
@@ -661,6 +664,7 @@ export class Idle extends StateNode {
 
 				// On enter, if every selected shape is a group, then select all of the children of the groups
 				if (selectedShapes.every((shape) => this.editor.isShapeOfType(shape, 'group'))) {
+					this.editor.markHistoryStoppingPoint('selecting group children')
 					this.editor.setSelectedShapes(
 						selectedShapes.flatMap((shape) => this.editor.getSortedChildIdsForParent(shape.id))
 					)
