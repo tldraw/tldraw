@@ -193,10 +193,9 @@ describe('Arc2d.hitTestLineSegment', () => {
 		expect(quarter().hitTestLineSegment(new Vec(1, 1), new Vec(2, 2))).toBe(false)
 	})
 
-	// Locks in current behaviour, see #10555.
-	it('hits crossings just beyond the end points (known quirk)', () => {
-		// (5, -8.66) is at -60°, off the quarter arc, but getPointInArcT clamps it to the start
-		expect(quarter().hitTestLineSegment(new Vec(5, -20), new Vec(5, 0))).toBe(true)
+	it('misses crossings just beyond the end points', () => {
+		// (5, -8.66) is at -60°, in the quarter arc's gap (#10555)
+		expect(quarter().hitTestLineSegment(new Vec(5, -20), new Vec(5, 0))).toBe(false)
 	})
 
 	it('checks both directions of the long arc', () => {
@@ -233,5 +232,29 @@ describe('Arc2d.getSvgPathData', () => {
 		arc.getSvgPathData()
 		expect(start).toMatchObject({ x: 10, y: 0 })
 		expect(end).toMatchObject({ x: 10 / Math.SQRT2, y: 10 / Math.SQRT2 })
+	})
+})
+
+describe('Arc2d.hitTestLineSegment with a margin', () => {
+	it('ignores circle intersections in the arc gap', () => {
+		expect(quarter().hitTestLineSegment(new Vec(-12, 0), new Vec(-8, 0))).toBe(false)
+		expect(quarter().hitTestLineSegment(new Vec(5, 5), new Vec(10, 10))).toBe(true)
+		// crossing exactly at an endpoint still counts
+		expect(quarter().hitTestLineSegment(new Vec(0, 12), new Vec(0, 8))).toBe(true)
+	})
+
+	it('honours the distance margin', () => {
+		const A = new Vec(8, 8)
+		const B = new Vec(12, 12)
+		expect(quarter().hitTestLineSegment(A, B)).toBe(false)
+		expect(quarter().hitTestLineSegment(A, B, 1)).toBe(false)
+		expect(quarter().hitTestLineSegment(A, B, 2)).toBe(true)
+	})
+
+	it('nearestPoint picks the angularly nearer endpoint for points in the gap', () => {
+		// 90 degrees behind the start but 180 degrees past the end
+		expect(quarter().nearestPoint(new Vec(0, -10))).toMatchObject({ x: 10, y: 0 })
+		// 180 degrees behind the start but 90 degrees past the end
+		expect(quarter().nearestPoint(new Vec(-10, 0))).toMatchObject({ x: 0, y: 10 })
 	})
 })
