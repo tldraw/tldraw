@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs'
+import { readFileSync, readdirSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import pg from 'pg'
@@ -8,14 +8,10 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 // guest file_state rows and guest home-group file links (group_file rows) when a
 // file is unshared (shared: true -> false).
 //
-// Regression coverage for: unsharing a group-owned file (ownerId NULL,
-// owningGroupId set) used to leave guest file_states behind, because the original
-// trigger keyed on `OLD."ownerId" != "userId"` and `NULL != x` is NULL in SQL.
-// Visiting a shared file also links it into the visitor's home group via a
-// group_file row (home group id == user id) — that link is what puts the file in
-// their recent files, and nothing cleaned it up either, so the file name lingered
-// in an ex-guest's recent files after access was revoked.
-// See migration 034_fix_unshare_group_file_cleanup.sql.
+// Visiting a shared file links it into the visitor's home group via a group_file
+// row (home group id == user id) — that link is what puts the file in their recent
+// files, so unshare has to remove it as well as the file_state, or the file name
+// lingers in an ex-guest's recent files after access is revoked.
 //
 // This talks to a real postgres (the trigger is plpgsql, so fakes can't exercise
 // it). It is opt-in: set ZERO_CACHE_TEST_POSTGRES_URL (local dev stack:
@@ -29,7 +25,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 // trusted to stick — and unqualified DDL like `DROP TABLE ... CASCADE` would then
 // run against `public`. So no statement here relies on session state: everything
 // the test owns is schema-qualified explicitly, and the statements that cannot be
-// qualified (the shipped migration SQL, executed verbatim, and the UPDATEs whose
+// qualified (the shipped function definition, executed verbatim, and the UPDATEs whose
 // trigger body resolves table names at execution time) run inside a transaction
 // with `SET LOCAL search_path` — a transaction is exactly the unit a
 // transaction-mode pooler pins to a single backend, and SET LOCAL expires with it.
@@ -37,25 +33,48 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 const DIRNAME = dirname(fileURLToPath(import.meta.url))
 const CONNECTION_STRING = process.env.ZERO_CACHE_TEST_POSTGRES_URL
 
-// The real, shipped function body. We load it from the migration file so the test
-// exercises exactly what runs in production rather than a hand-copied duplicate.
-const FIXED_FUNCTION_SQL = readFileSync(
-	join(DIRNAME, 'migrations', '034_fix_unshare_group_file_cleanup.sql'),
-	'utf8'
-)
+// The real, shipped function body, sliced out of whichever migration last defined it so the test
+// exercises production's function rather than a hand-copied duplicate. Found by scanning rather
+// than by filename: a hard-coded 034 kept this suite green against a body production no longer
+// ran once 050 redefined the function.
+function loadShippedFunction(name: string): string {
+	const dir = join(DIRNAME, 'migrations')
+	const header = new RegExp(`CREATE OR REPLACE FUNCTION (public\\.)?${name}\\(\\)`)
+	const migrationFile = readdirSync(dir)
+		.filter((f) => f.endsWith('.sql'))
+		.sort()
+		.filter((f) => header.test(readFileSync(join(dir, f), 'utf8')))
+		.at(-1)
+	if (!migrationFile) {
+		throw new Error(`no migration defines ${name}()`)
+	}
+	const migration = readFileSync(join(dir, migrationFile), 'utf8')
+	const start = migration.search(header)
+	// The body is dollar-quoted with whatever tag the migration chose ($$ early on, $function$
+	// in 050), and the statement ends at the first semicolon after the closing tag.
+	const tag = /AS\s+(\$[A-Za-z_]*\$)/.exec(migration.slice(start))
+	if (!tag) {
+		throw new Error(`could not find the body of ${name}() in ${migrationFile}`)
+	}
+	const close = migration.indexOf(tag[1], start + tag.index + tag[0].length)
+	const end = close === -1 ? -1 : migration.indexOf(';', close + tag[1].length)
+	if (end === -1) {
+		throw new Error(`could not find the end of ${name}() in ${migrationFile}`)
+	}
+	// Drop the `public.` qualifier: the migration targets public, while everything here lives
+	// in a throwaway schema pinned with SET LOCAL search_path. Left in place it would
+	// CREATE OR REPLACE the *production* function whenever this test runs against a shared
+	// database — the one way this suite could reach outside its own schema.
+	const sql = migration
+		.slice(start, end + 1)
+		.replace(header, `CREATE OR REPLACE FUNCTION ${name}()`)
+	if (sql.includes('public.')) {
+		throw new Error(`refusing to run ${name}(): a public. reference survived unqualifying`)
+	}
+	return sql
+}
 
-// The original (buggy) function body, kept here so we can prove the bug exists and
-// that the fix is what closes it.
-const BUGGY_FUNCTION_SQL = `
-CREATE OR REPLACE FUNCTION delete_file_states() RETURNS TRIGGER AS $$
-BEGIN
-  IF OLD.shared = TRUE AND NEW.shared = FALSE THEN
-    DELETE FROM file_state WHERE "fileId" = OLD.id AND OLD."ownerId" != "userId";
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-`
+const DELETE_FILE_STATES_SQL = loadShippedFunction('delete_file_states')
 
 const schemaName = `tldraw_test_${process.pid}`
 
@@ -75,11 +94,9 @@ CREATE TABLE "${schemaName}"."group_user" (
 );
 CREATE TABLE "${schemaName}"."file" (
   "id" TEXT PRIMARY KEY,
-  "ownerId" TEXT,
-  "owningGroupId" TEXT,
-  "shared" BOOLEAN NOT NULL,
-  -- mirror the production XOR invariant so the test seed stays realistic
-  CHECK (("ownerId" IS NULL) != ("owningGroupId" IS NULL))
+  -- NOT NULL mirrors production: since 050 every file belongs to a workspace
+  "owningGroupId" TEXT NOT NULL,
+  "shared" BOOLEAN NOT NULL
 );
 CREATE TABLE "${schemaName}"."file_state" (
   "userId" TEXT NOT NULL,
@@ -107,11 +124,10 @@ describeMaybe('delete_file_states trigger (unshare cleanup)', () => {
 	let client: pg.Client
 
 	// Runs statements inside one transaction with search_path pinned to the test
-	// schema. This is for SQL we execute verbatim (the shipped migration and the
-	// original buggy function) and for statements whose trigger body resolves
-	// unqualified table names at execution time. SET LOCAL scopes the setting to
-	// the transaction, so it works through transaction-mode poolers and cannot
-	// leak to or from other sessions.
+	// schema. This is for SQL we execute verbatim (the shipped function definition)
+	// and for statements whose trigger body resolves unqualified table names at
+	// execution time. SET LOCAL scopes the setting to the transaction, so it works
+	// through transaction-mode poolers and cannot leak to or from other sessions.
 	async function inTestSchema(...statements: string[]) {
 		await client.query('BEGIN')
 		try {
@@ -153,27 +169,22 @@ describeMaybe('delete_file_states trigger (unshare cleanup)', () => {
 	})
 
 	async function seed() {
-		// group g1 with an owner and a member; guest is NOT a member
+		// group g1 with two members; guest is NOT a member
 		await client.query(`INSERT INTO "${schemaName}"."group" ("id") VALUES ('g1')`)
 		await client.query(
 			`INSERT INTO "${schemaName}"."group_user" ("userId", "groupId") VALUES ('uOwner', 'g1'), ('uMember', 'g1')`
 		)
 
-		// group-owned shared file: ownerId NULL, owningGroupId set
 		await client.query(
-			`INSERT INTO "${schemaName}"."file" ("id", "ownerId", "owningGroupId", "shared") VALUES ('fGroup', NULL, 'g1', true)`
-		)
-		// legacy user-owned shared file: ownerId set, owningGroupId NULL
-		await client.query(
-			`INSERT INTO "${schemaName}"."file" ("id", "ownerId", "owningGroupId", "shared") VALUES ('fLegacy', 'uOwner', NULL, true)`
+			`INSERT INTO "${schemaName}"."file" ("id", "owningGroupId", "shared") VALUES ('fGroup', 'g1', true)`
 		)
 		// a shared file we will NOT unshare, as a control
 		await client.query(
-			`INSERT INTO "${schemaName}"."file" ("id", "ownerId", "owningGroupId", "shared") VALUES ('fControl', 'uOwner', NULL, true)`
+			`INSERT INTO "${schemaName}"."file" ("id", "owningGroupId", "shared") VALUES ('fControl', 'g1', true)`
 		)
 
 		// everyone has a file_state on every file
-		for (const fileId of ['fGroup', 'fLegacy', 'fControl']) {
+		for (const fileId of ['fGroup', 'fControl']) {
 			await client.query(
 				`INSERT INTO "${schemaName}"."file_state" ("userId", "fileId") VALUES ('uOwner', $1), ('uMember', $1), ('uGuest', $1)`,
 				[fileId]
@@ -187,8 +198,7 @@ describeMaybe('delete_file_states trigger (unshare cleanup)', () => {
 				('fGroup', 'g1'),
 				('fGroup', 'uMember'),
 				('fGroup', 'uGuest'),
-				('fLegacy', 'uOwner'),
-				('fLegacy', 'uGuest'),
+				('fControl', 'g1'),
 				('fControl', 'uGuest')`
 		)
 	}
@@ -218,63 +228,29 @@ describeMaybe('delete_file_states trigger (unshare cleanup)', () => {
 		return res.rows.map((r) => r.groupId)
 	}
 
-	describe('with the fixed function (migration 034)', () => {
-		beforeEach(async () => {
-			await inTestSchema(FIXED_FUNCTION_SQL)
-			await client.query(SCHEMA_SQL)
-			await seed()
-		})
-
-		it('removes the guest state but keeps group members when a group-owned file is unshared', async () => {
-			await unshare('fGroup')
-			// owner + member of the owning group keep access; guest is cleaned up
-			expect(await statesFor('fGroup')).toEqual(['uMember', 'uOwner'])
-		})
-
-		it('removes the guest file link but keeps the owning group row and member links', async () => {
-			await unshare('fGroup')
-			// the file still lives in its owning group, and the member keeps their
-			// home-group link (they retain access); the guest's link is cleaned up
-			// so the file stops showing in their recent files
-			expect(await linksFor('fGroup')).toEqual(['g1', 'uMember'])
-		})
-
-		it('removes the guest state but keeps the owner when a legacy file is unshared', async () => {
-			await unshare('fLegacy')
-			expect(await statesFor('fLegacy')).toEqual(['uOwner'])
-		})
-
-		it('removes the guest file link but keeps the owner link when a legacy file is unshared', async () => {
-			await unshare('fLegacy')
-			expect(await linksFor('fLegacy')).toEqual(['uOwner'])
-		})
-
-		it('leaves still-shared files untouched', async () => {
-			await unshare('fGroup')
-			expect(await statesFor('fControl')).toEqual(['uGuest', 'uMember', 'uOwner'])
-			expect(await linksFor('fControl')).toEqual(['uGuest'])
-		})
+	beforeEach(async () => {
+		await inTestSchema(DELETE_FILE_STATES_SQL)
+		await client.query(SCHEMA_SQL)
+		await seed()
 	})
 
-	describe('with the original buggy function (regression guard)', () => {
-		beforeEach(async () => {
-			await inTestSchema(BUGGY_FUNCTION_SQL)
-			await client.query(SCHEMA_SQL)
-			await seed()
-		})
+	it('removes the guest state but keeps group members when a group-owned file is unshared', async () => {
+		await unshare('fGroup')
+		// owner + member of the owning group keep access; guest is cleaned up
+		expect(await statesFor('fGroup')).toEqual(['uMember', 'uOwner'])
+	})
 
-		it('demonstrates the bug: group-owned guest state survives because ownerId is NULL', async () => {
-			await unshare('fGroup')
-			// NULL != "userId" is NULL, so the old DELETE matched nothing: the guest lingers
-			expect(await statesFor('fGroup')).toEqual(['uGuest', 'uMember', 'uOwner'])
-			// and the old function never touched group_file at all, so the guest's
-			// home-group link (their recent-files entry) survived too
-			expect(await linksFor('fGroup')).toEqual(['g1', 'uGuest', 'uMember'])
-		})
+	it('removes the guest file link but keeps the owning group row and member links', async () => {
+		await unshare('fGroup')
+		// the file still lives in its owning group, and the member keeps their
+		// home-group link (they retain access); the guest's link is cleaned up
+		// so the file stops showing in their recent files
+		expect(await linksFor('fGroup')).toEqual(['g1', 'uMember'])
+	})
 
-		it('still works for legacy files (so the regression is group-specific)', async () => {
-			await unshare('fLegacy')
-			expect(await statesFor('fLegacy')).toEqual(['uOwner'])
-		})
+	it('leaves still-shared files untouched', async () => {
+		await unshare('fGroup')
+		expect(await statesFor('fControl')).toEqual(['uGuest', 'uMember', 'uOwner'])
+		expect(await linksFor('fControl')).toEqual(['g1', 'uGuest'])
 	})
 })
