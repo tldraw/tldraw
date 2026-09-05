@@ -11,6 +11,11 @@ import {
 	useClusterModel,
 	zoomToClusterSplit,
 } from './cluster-model'
+import {
+	type CommentBaseCandidate,
+	type CommentRenderUnit,
+	resolveCommentRenderPlan,
+} from './comment-render-plan'
 import { getCommentRecord } from './comment-store'
 import { type CommentingContext } from './context'
 import { useCommentThreads } from './hooks'
@@ -39,23 +44,6 @@ import { ThreadStackPin } from './thread-stack'
  * @public
  */
 export type CanvasCommentsProps = CommentingContext
-
-/**
- * Which thread's pin a fade node should draw: its own thread for a single pin, `stackOwner` (when
- * still a member) for a coincident stack, null for neither. Never the open thread — the open-thread
- * render slot draws that one, and drawing it here too (which the fade-out window would otherwise
- * do) mounts its popover twice.
- * @internal
- */
-export function fadeNodeMarkerThreadId(
-	node: ClusterNode,
-	stackOwner: string | null,
-	openId: string | null
-): string | null {
-	const candidate =
-		node.count === 1 ? node.id : stackOwner && node.members.includes(stackOwner) ? stackOwner : null
-	return candidate === openId ? null : candidate
-}
 
 /**
  * A ready-to-use comments layer for a tldraw canvas: pins each thread at its anchor, opens a
@@ -133,7 +121,6 @@ function CanvasCommentsLayer(props: CommentingContext) {
 		},
 		[editor, threads]
 	)
-	const openThread = openId ? threadsById.get(openId) : null
 	const hidden = useValue('comments hidden', () => commentsHidden.get(editor), [editor])
 
 	useEffect(() => {
@@ -246,45 +233,51 @@ function CanvasCommentsLayer(props: CommentingContext) {
 	// The signal is read above so this stays mounted and its shortcut/Escape effects keep running.
 	if (hidden) return null
 
-	// The node's pin-stack group when every member shares one — a stack standing on its own, which
-	// renders as a cascading count-badge list rather than a zoom-to-split cluster badge. The group
-	// can include an open or orphan member the node's own leaves omit.
-	const stackGroupOf = (node: ClusterNode): readonly string[] | null => {
-		const group = pinStacks.get(node.members[0])
-		if (!group) return null
-		return node.members.every((id) => group.includes(id)) ? group : null
-	}
+	// The base layer under the open/held/orphan slots: fading cluster nodes when clustering is on,
+	// the plain thread list when it's off.
+	const base: CommentBaseCandidate[] = options.enableClustering
+		? fadeNodes.map(({ node, phase }) => ({ kind: 'node', node, phase }))
+		: threads.map((thread) => ({ kind: 'thread', threadId: thread.id }))
 
-	// Which threads are on screen this render. A stack renders once, owned by its first on-screen
-	// member — members arrive by different paths, so ownership can't be decided per-path.
-	const renderedThreadIds = new Set<string>()
-	if (options.enableClustering) {
-		for (const { node } of fadeNodes) {
-			if (node.count === 1) renderedThreadIds.add(node.id)
-			// A pure-stack node's members aren't count-1 leaves, so register them here for the owner
-			// logic to pick from.
-			else if (stackGroupOf(node)) for (const id of node.members) renderedThreadIds.add(id)
-		}
-		for (const thread of orphanThreads) renderedThreadIds.add(thread.id)
-		for (const thread of heldThreads) renderedThreadIds.add(thread.id)
-	} else {
-		for (const thread of threads) renderedThreadIds.add(thread.id)
-	}
-	if (openThread) renderedThreadIds.add(openThread.id)
+	// One flat, deduplicated draw list. Each thread/stack/badge is claimed by exactly one slot in
+	// priority order (open > held > orphan > base), so a thread that's a live candidate in several
+	// slots at once — as when it opens and its old cluster node lingers for the exit fade — is drawn
+	// once, by the highest-priority slot. No per-slot guard needed: duplicates can't occur.
+	const plan = resolveCommentRenderPlan({
+		openThreadId: openId,
+		heldThreadIds: options.enableClustering ? heldThreads.map((t) => t.id) : [],
+		orphanThreadIds: options.enableClustering ? orphanThreads.map((t) => t.id) : [],
+		base,
+		pinStacks,
+	})
 
-	// A coincident-stack member renders as the group's single count-badge stack (if it owns it)
-	// or not at all; everything else is an ordinary pin.
-	const renderThreadPin = (thread: TLCommentThread): ReactNode => {
-		const group = pinStacks.get(thread.id)
-		if (group) {
-			const owner = group.find((id) => renderedThreadIds.has(id))
-			if (owner !== thread.id) return null
-			const stackThreads = group
-				.map((id) => threadsById.get(id))
-				.filter((t): t is TLCommentThread => t !== undefined)
-			return <ThreadStackPin editor={editor} threads={stackThreads} {...props} />
+	const renderUnit = (unit: CommentRenderUnit): ReactNode => {
+		switch (unit.kind) {
+			case 'pin': {
+				const thread = threadsById.get(unit.threadId)
+				return thread ? <ThreadPin editor={editor} thread={thread} {...props} /> : null
+			}
+			case 'stack': {
+				const stackThreads = unit.group
+					.map((id) => threadsById.get(id))
+					.filter((t): t is TLCommentThread => t !== undefined)
+				return stackThreads.length ? (
+					<ThreadStackPin editor={editor} threads={stackThreads} {...props} />
+				) : null
+			}
+			case 'badge':
+				return (
+					<ClusterBadge
+						editor={editor}
+						node={unit.node}
+						onExpand={expandCluster}
+						onSelectThread={revealClusteredThread}
+						threadsById={threadsById}
+						currentUserId={props.currentUserId}
+						resolveAuthor={props.resolveAuthor}
+					/>
+				)
 		}
-		return <ThreadPin editor={editor} thread={thread} {...props} />
 	}
 
 	// Portalled rather than rendered into this component's slot: pins sit below the collaborator
@@ -297,57 +290,14 @@ function CanvasCommentsLayer(props: CommentingContext) {
 			    whole canvas, so a pin past its bottom/right edge inflates scrollHeight and the wheel
 			    hook's is-this-scrollable guard silently disables pass-through. */}
 			<div className="tlui-cmt-canvas-layer">
-				{options.enableClustering ? (
-					<>
-						{fadeNodes.map(({ node, phase }) => {
-							let content: ReactNode
-							const stackGroup = node.count > 1 ? stackGroupOf(node) : null
-							if (node.count === 1) {
-								const markerId = fadeNodeMarkerThreadId(node, null, openId)
-								const thread = markerId ? threadsById.get(markerId) : undefined
-								if (!thread) return null
-								content = renderThreadPin(thread)
-							} else if (stackGroup) {
-								// Routed through the stack's owner so the open/orphan/held slots stay deduped:
-								// when the owner is one of them, that slot draws the stack and this draws nothing.
-								const owner = stackGroup.find((id) => renderedThreadIds.has(id)) ?? null
-								const markerId = fadeNodeMarkerThreadId(node, owner, openId)
-								content = markerId ? renderThreadPin(threadsById.get(markerId)!) : null
-							} else {
-								content = (
-									<ClusterBadge
-										editor={editor}
-										node={node}
-										onExpand={expandCluster}
-										onSelectThread={revealClusteredThread}
-										threadsById={threadsById}
-										currentUserId={props.currentUserId}
-										resolveAuthor={props.resolveAuthor}
-									/>
-								)
-							}
-							return (
-								<div key={`cluster-fade:${node.id}`} className={clusterFadeClassName(phase)}>
-									{content}
-								</div>
-							)
-						})}
-						{orphanThreads.map((thread) => (
-							<Fragment key={thread.id}>{renderThreadPin(thread)}</Fragment>
-						))}
-						{heldThreads.map((thread) => (
-							<Fragment key={thread.id}>{renderThreadPin(thread)}</Fragment>
-						))}
-					</>
-				) : (
-					// Clustering off: every thread renders its own pin. The open thread is excluded and
-					// rendered once below, or it would mount a second, stacked pin.
-					threads
-						.filter((thread) => thread.id !== openId)
-						.map((thread) => <Fragment key={thread.id}>{renderThreadPin(thread)}</Fragment>)
-				)}
-				{openThread && (
-					<Fragment key={`open:${openThread.id}`}>{renderThreadPin(openThread)}</Fragment>
+				{plan.map((entry) =>
+					entry.phase === null ? (
+						<Fragment key={entry.key}>{renderUnit(entry.unit)}</Fragment>
+					) : (
+						<div key={entry.key} className={clusterFadeClassName(entry.phase)}>
+							{renderUnit(entry.unit)}
+						</div>
+					)
 				)}
 				<RegionDraftBox editor={editor} />
 				{/* Keep the region visible while composing — the drag draft is gone by now, and no thread
