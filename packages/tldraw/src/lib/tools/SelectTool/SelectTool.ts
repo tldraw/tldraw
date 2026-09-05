@@ -4,11 +4,13 @@ import { Cropping } from './childStates/Crop/children/Cropping'
 import { PointingCropHandle } from './childStates/Crop/children/PointingCropHandle'
 import { Crop } from './childStates/Crop/Crop'
 import { DraggingHandle } from './childStates/DraggingHandle'
+import { DraggingOverlay } from './childStates/DraggingOverlay'
 import { EditingShape } from './childStates/EditingShape'
 import { Idle } from './childStates/Idle'
 import { PointingArrowLabel } from './childStates/PointingArrowLabel'
 import { PointingCanvas } from './childStates/PointingCanvas'
 import { PointingHandle } from './childStates/PointingHandle'
+import { PointingOverlay } from './childStates/PointingOverlay'
 import { PointingResizeHandle } from './childStates/PointingResizeHandle'
 import { PointingRotateHandle } from './childStates/PointingRotateHandle'
 import { PointingSelection } from './childStates/PointingSelection'
@@ -45,6 +47,8 @@ export class SelectTool extends StateNode {
 			PointingArrowLabel,
 			PointingHandle,
 			DraggingHandle,
+			PointingOverlay,
+			DraggingOverlay,
 		]
 	}
 

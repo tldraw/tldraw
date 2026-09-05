@@ -140,6 +140,9 @@ import { TLNoteShape } from '@tldraw/editor';
 import { TLNoteShapeProps } from '@tldraw/editor';
 import { TLOpacityType } from '@tldraw/tlschema';
 import { TLOverlay } from '@tldraw/editor';
+import { TLOverlayDragInfo } from '@tldraw/editor';
+import { TLOverlayPointerDownRedirect } from '@tldraw/editor';
+import { TLOverlayPointerEventInfo } from '@tldraw/editor';
 import { TLPageId } from '@tldraw/editor';
 import { TLParentId } from '@tldraw/tlschema';
 import { TLPointerEventInfo } from '@tldraw/editor';
@@ -3414,7 +3417,19 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
     // (undocumented)
     getGeometry(overlay: TLSelectionForegroundOverlay): Geometry2d | null;
     // (undocumented)
+    static getOverlayForSelectionHandle(handle: TLSelectionHandle | undefined): null | TLSelectionForegroundOverlay;
+    // (undocumented)
+    getOverlayForSelectionHandle(handle: TLSelectionHandle | undefined): null | TLSelectionForegroundOverlay;
+    // (undocumented)
     getOverlays(): TLSelectionForegroundOverlay[];
+    // (undocumented)
+    getPointerDownRedirect(overlay: TLSelectionForegroundOverlay, info: TLPointerEventInfo & {
+        target: 'overlay';
+    }): TLOverlayPointerDownRedirect | void;
+    // (undocumented)
+    static getPointerDownRedirectForOverlay(editor: Editor, overlay: TLSelectionForegroundOverlay, info: TLPointerEventInfo & {
+        target: 'overlay';
+    }): TLOverlayPointerDownRedirect | void;
     // (undocumented)
     isActive(): boolean;
     // (undocumented)
@@ -3468,11 +3483,30 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
     // (undocumented)
     getCursor(_overlay: TLShapeHandleOverlay): TLCursorType | undefined;
     // (undocumented)
+    getDragStartRedirect(_overlay: TLShapeHandleOverlay, _initial: TLOverlayPointerEventInfo<TLShapeHandleOverlay>, current: TLPointerEventInfo): {
+        id: string;
+        info: TLPointerEventInfo;
+    } | undefined;
+    // (undocumented)
     getGeometry(overlay: TLShapeHandleOverlay): Geometry2d | null;
     // (undocumented)
     getOverlays(): TLShapeHandleOverlay[];
     // (undocumented)
+    getPointerDownRedirect(overlay: TLShapeHandleOverlay, info: TLOverlayPointerEventInfo<TLShapeHandleOverlay>): TLOverlayPointerDownRedirect | void;
+    // (undocumented)
     isActive(): boolean;
+    // (undocumented)
+    onClick(): false | undefined;
+    // (undocumented)
+    onDrag(): void;
+    // (undocumented)
+    onDragCancel(): void;
+    // (undocumented)
+    onDragEnd(): void;
+    // (undocumented)
+    onDragStart(overlay: TLShapeHandleOverlay, info: TLOverlayDragInfo<TLShapeHandleOverlay>): void;
+    // (undocumented)
+    onPointerDown(overlay: TLShapeHandleOverlay, info: TLOverlayPointerEventInfo<TLShapeHandleOverlay>): false | undefined;
     // (undocumented)
     options: {
         lineWidth: number;

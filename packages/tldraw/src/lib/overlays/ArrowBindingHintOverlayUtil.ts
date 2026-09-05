@@ -48,7 +48,9 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 		if (
 			!editor.isInAny(
 				'select.idle',
+				'select.pointing_overlay',
 				'select.pointing_handle',
+				'select.dragging_overlay',
 				'select.dragging_handle',
 				'select.translating',
 				'arrow.dragging'
