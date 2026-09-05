@@ -1395,3 +1395,9 @@ test('slideCamera coasts the same distance regardless of tick rate', () => {
 	expect(at60Hz).toBeGreaterThan(0)
 	expect(at120Hz / at60Hz).toBeCloseTo(1, 1)
 })
+
+test('keeps the current zoom when setCamera is called without a zoom', () => {
+	editor.setCamera({ x: 0, y: 0, z: 0.5 })
+	editor.setCamera({ x: 100, y: 100 })
+	expect(editor.getCamera()).toMatchObject({ x: 100, y: 100, z: 0.5 })
+})

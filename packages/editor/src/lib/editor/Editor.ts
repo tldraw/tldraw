@@ -3595,7 +3595,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { isLocked } = this._cameraOptions.__unsafe__getWithoutCapture()
 		if (isLocked && !opts?.force) return this
 
-		const _point = Vec.Cast(point)
+		// Resolve the zoom before building the Vec: Vec.Cast would default a missing z to 1,
+		// and a missing z should keep the current zoom level instead
+		const _point = new Vec(point.x, point.y, point.z ?? this.getZoomLevel())
 
 		// Reject non-finite values before anything else, so the call is a no-op rather than a
 		// partial one. An animated move writes the camera from a 'tick' listener, and a listener
