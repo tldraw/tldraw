@@ -67,7 +67,7 @@ Testing:
 
 - `yarn test` in a workspace - run tests in watch mode
 - `yarn test run` in a workspace - run tests once
-- `yarn test run --grep "pattern"` in a workspace - run matching tests
+- `yarn test run -t "pattern"` in a workspace - run tests whose names match
 - `yarn vitest` - run all tests across the repo; slow, avoid unless necessary
 - `yarn e2e` - run examples e2e tests
 - `yarn e2e-dotcom` - run tldraw.com e2e tests
@@ -83,7 +83,7 @@ Code quality:
 
 ## Validation workflow
 
-- For narrow package changes, run the relevant workspace test first, for example `cd packages/tldraw && yarn test run --grep "SelectTool"`.
+- For narrow package changes, run the relevant workspace test first, for example `cd packages/tldraw && yarn test run -t "SelectTool"`.
 - For changes that affect shared types, migrations, editor behavior, or cross-package contracts, run `yarn typecheck` from the repo root.
 - For public API changes, run `yarn api-check` and include intentional API report updates.
 - For asset changes, run `yarn refresh-assets` or `yarn typecheck` so generated assets stay current.
