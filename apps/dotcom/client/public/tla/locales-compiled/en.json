@@ -257,6 +257,12 @@
       "value": " commented on your board"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Could not submit feedback"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -273,6 +279,12 @@
     {
       "type": 0,
       "value": "Search..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Please try again."
     }
   ],
   "2de510be71": [
