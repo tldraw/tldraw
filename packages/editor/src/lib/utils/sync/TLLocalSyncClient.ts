@@ -9,6 +9,7 @@ import {
 	extractSessionStateFromLegacySnapshot,
 	loadSessionStateSnapshotIntoStore,
 } from '../../config/TLSessionStateSnapshot'
+import { refreshPage } from '../runtime'
 import { showCantReadFromIndexDbAlert, showCantWriteToIndexDbAlert } from './alerts'
 import { LocalIndexedDb } from './LocalIndexedDb'
 
@@ -108,7 +109,6 @@ export class TLLocalSyncClient {
 		this.persistenceKey = persistenceKey
 		this.sessionId = sessionId
 		this.db = new LocalIndexedDb(persistenceKey)
-		this.disposables.add(() => this.db.close())
 
 		this.serializedSchema = this.store.schema.serialize()
 		this.$sessionStateSnapshot = createSessionStateSnapshotSignal(this.store)
@@ -179,6 +179,64 @@ export class TLLocalSyncClient {
 		this.debug('connecting')
 		let data: UnpackPromise<ReturnType<LocalIndexedDb['load']>> | undefined
 
+		const handleMessage = (msg: Message) => {
+			// if their schema is earlier than ours, we need to tell them so they can refresh
+			// if their schema is later than ours, we need to refresh
+			const res = this.store.schema.getMigrationsSince(msg.schema)
+
+			if (!res.ok) {
+				// we are older, refresh
+				// but add a safety check to make sure we don't get in an infinite loop
+				const timeSinceInit = Date.now() - this.initTime
+				if (timeSinceInit < 5000) {
+					// This tab was just reloaded, but is out of date compared to other tabs.
+					// Not expecting this to ever happen. It should only happen if we roll back a release that incremented
+					// the schema version (which we should never do)
+					// Or maybe during development if you have multiple local tabs open running the app on prod mode and you
+					// check out an older commit. Dev server should be fine.
+					onLoadError(new Error('Schema mismatch, please close other tabs and reload the page'))
+					return
+				}
+				this.debug('reloading')
+				this.isReloading = true
+				refreshPage()
+				return
+			} else if (res.value.length > 0) {
+				// they are older, tell them to refresh and not write any more data
+				this.debug('telling them to reload')
+				this.channel.postMessage({ type: 'announce', schema: this.serializedSchema })
+				// schedule a full db write in case they wrote data anyway
+				this.shouldDoFullDBWrite = true
+				this.persistIfNeeded()
+				return
+			}
+			// otherwise, all good, same version :)
+			if (msg.type === 'diff') {
+				this.debug('applying diff')
+				transact(() => {
+					this.store.mergeRemoteChanges(() => {
+						this.store.applyDiff(msg.changes as any)
+					})
+				})
+			}
+		}
+
+		// Listen from the start and buffer until we've loaded: diffs other tabs broadcast while
+		// we're still reading from IndexedDB would otherwise be dropped, then erased by our first
+		// (full) db write.
+		let bufferedMessages: Message[] | null = []
+		this.channel.onmessage = ({ data }) => {
+			this.debug('got message', data)
+			if (bufferedMessages) {
+				bufferedMessages.push(data as Message)
+			} else {
+				handleMessage(data as Message)
+			}
+		}
+		this.disposables.add(() => {
+			this.channel.close()
+		})
+
 		try {
 			data = await this.db.load({ sessionId: this.sessionId })
 		} catch (error: any) {
@@ -224,55 +282,9 @@ export class TLLocalSyncClient {
 					})
 				}
 			}
-
-			this.channel.onmessage = ({ data }) => {
-				this.debug('got message', data)
-				const msg = data as Message
-				// if their schema is earlier than ours, we need to tell them so they can refresh
-				// if their schema is later than ours, we need to refresh
-				const res = this.store.schema.getMigrationsSince(msg.schema)
-
-				if (!res.ok) {
-					// we are older, refresh
-					// but add a safety check to make sure we don't get in an infinite loop
-					const timeSinceInit = Date.now() - this.initTime
-					if (timeSinceInit < 5000) {
-						// This tab was just reloaded, but is out of date compared to other tabs.
-						// Not expecting this to ever happen. It should only happen if we roll back a release that incremented
-						// the schema version (which we should never do)
-						// Or maybe during development if you have multiple local tabs open running the app on prod mode and you
-						// check out an older commit. Dev server should be fine.
-						onLoadError(new Error('Schema mismatch, please close other tabs and reload the page'))
-						return
-					}
-					this.debug('reloading')
-					this.isReloading = true
-					window?.location?.reload?.()
-					return
-				} else if (res.value.length > 0) {
-					// they are older, tell them to refresh and not write any more data
-					this.debug('telling them to reload')
-					this.channel.postMessage({ type: 'announce', schema: this.serializedSchema })
-					// schedule a full db write in case they wrote data anyway
-					this.shouldDoFullDBWrite = true
-					this.persistIfNeeded()
-					return
-				}
-				// otherwise, all good, same version :)
-				if (msg.type === 'diff') {
-					this.debug('applying diff')
-					transact(() => {
-						this.store.mergeRemoteChanges(() => {
-							this.store.applyDiff(msg.changes as any)
-						})
-					})
-				}
-			}
-			this.channel.postMessage({ type: 'announce', schema: this.serializedSchema })
-			this.disposables.add(() => {
-				this.channel.close()
-			})
 			this.didLoad = true
+
+			this.channel.postMessage({ type: 'announce', schema: this.serializedSchema })
 			onLoad(this)
 		} catch (e: any) {
 			this.debug('error loading data from store', e)
@@ -280,6 +292,12 @@ export class TLLocalSyncClient {
 			onLoadError(e)
 			return
 		}
+
+		// apply anything that arrived while we were loading. persists are throttled, so these
+		// changes still land before the first (full) db write
+		const messages = bufferedMessages
+		bufferedMessages = null
+		for (const msg of messages) handleMessage(msg)
 	}
 
 	close() {
@@ -289,9 +307,30 @@ export class TLLocalSyncClient {
 		if (typeof window !== 'undefined' && (window as any).tlsync === this) {
 			delete (window as any).tlsync
 		}
+		this.flushAndCloseDb()
+	}
+
+	/**
+	 * Flush queued changes so edits made in the last PERSIST_THROTTLE_MS before unmount aren't lost,
+	 * then close the db. Never flushes before load (a full write then would wipe the db with an empty
+	 * store), and only when something is queued: shouldDoFullDBWrite stays true until the first
+	 * persist, so an unconditional flush would rewrite the whole document on every no-op close.
+	 */
+	private flushAndCloseDb() {
+		// A persist in flight can't be joined (persistIfNeeded bails while one is running) and,
+		// now that we're disposed, won't schedule a follow-up. Edits queued during that write
+		// would be lost if the db closed now, so wait for it and flush again.
+		if (this.persistPromise) {
+			this.persistPromise.then(() => this.flushAndCloseDb())
+			return
+		}
+		if (this.didLoad && this.diffQueue.length > 0) this.persistIfNeeded()
+		// the db waits for the transaction the flush just opened before actually closing
+		this.db.close()
 	}
 
 	private isPersisting = false
+	private persistPromise: Promise<void> | null = null
 	private didLastWriteError = false
 	// eslint-disable-next-line no-restricted-globals
 	private scheduledPersistTimeout: ReturnType<typeof setTimeout> | null = null
@@ -305,6 +344,9 @@ export class TLLocalSyncClient {
 	private schedulePersist() {
 		this.debug('schedulePersist', this.scheduledPersistTimeout)
 		if (this.scheduledPersistTimeout) return
+		// once closed, the db is closing (or closed): a persist that fires afterwards would fail
+		// and trigger the write-error reload
+		if (this.didDispose) return
 		// eslint-disable-next-line no-restricted-globals
 		this.scheduledPersistTimeout = setTimeout(
 			() => {
@@ -353,7 +395,7 @@ export class TLLocalSyncClient {
 
 		// if we're scheduled for a full write or if we have changes outstanding, let's persist them!
 		if (this.shouldDoFullDBWrite || this.diffQueue.length > 0) {
-			this.doPersist()
+			this.persistPromise = this.doPersist()
 		}
 	}
 
@@ -363,7 +405,6 @@ export class TLLocalSyncClient {
 	 */
 	private async doPersist() {
 		assert(!this.isPersisting, 'persist already in progress')
-		if (this.didDispose) return
 		this.isPersisting = true
 
 		this.debug('doPersist start')
@@ -404,11 +445,12 @@ export class TLLocalSyncClient {
 			showCantWriteToIndexDbAlert()
 			if (typeof window !== 'undefined') {
 				// adios
-				window.location.reload()
+				refreshPage()
 			}
 		}
 
 		this.isPersisting = false
+		this.persistPromise = null
 		this.debug('doPersist end')
 
 		// changes might have come in between when we started the persist and

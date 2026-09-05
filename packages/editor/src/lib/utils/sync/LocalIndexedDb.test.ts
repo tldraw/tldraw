@@ -106,6 +106,17 @@ describe('LocalIndexedDb', () => {
 		})
 	})
 
+	it('commits a write that is still in flight when the db is closed', async () => {
+		const db = new LocalIndexedDb('test-0')
+		const write = db.storeSnapshot({ schema, snapshot: { 'shape:1': { id: 'shape:1' } } })
+		await db.close()
+		await write
+
+		const reopened = new LocalIndexedDb('test-0')
+		expect((await reopened.load())?.records).toEqual([{ id: 'shape:1' }])
+		await reopened.close()
+	})
+
 	describe('#storeChanges', () => {
 		it('allows merging changes into an existing store', async () => {
 			const db = new LocalIndexedDb('test-0')
