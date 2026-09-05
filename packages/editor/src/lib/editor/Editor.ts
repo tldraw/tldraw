@@ -2292,7 +2292,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			? this.getCurrentPageShapes().filter((shape) => shape.parentId === firstParentId)
 			: this.getCurrentPageShapes().filter((shape) => isPageId(shape.parentId))
 		const readingOrderShapes = isSelectedWithinContainer
-			? this._getShapesInReadingOrder(filteredShapes)
+			? this.getShapesInReadingOrder(filteredShapes)
 			: this.getCurrentPageShapesInReadingOrder()
 		const currentShapeId: TLShapeId | undefined =
 			selectedShapeIds.length === 1
@@ -2329,10 +2329,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getCurrentPageShapesInReadingOrder(): TLShape[] {
 		const shapes = this.getCurrentPageShapes().filter((shape) => isPageId(shape.parentId))
-		return this._getShapesInReadingOrder(shapes)
+		return this.getShapesInReadingOrder(shapes)
 	}
 
-	private _getShapesInReadingOrder(shapes: TLShape[]): TLShape[] {
+	/**
+	 * Sort the given shapes into reading order (left-to-right, top-to-bottom), dropping any that
+	 * can't be tabbed to. Use this for the children of a frame or group, which
+	 * {@link Editor.getCurrentPageShapesInReadingOrder} leaves out.
+	 *
+	 * @public
+	 */
+	getShapesInReadingOrder(shapes: TLShape[]): TLShape[] {
 		const SHALLOW_ANGLE = 20
 		const ROW_THRESHOLD = 100
 
@@ -2496,7 +2503,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const children = compact(
 			this.getSortedChildIdsForParent(selectedShape.id).map((id) => this.getShape(id))
 		)
-		const sortedChildren = this._getShapesInReadingOrder(children)
+		const sortedChildren = this.getShapesInReadingOrder(children)
 		if (sortedChildren.length === 0) return
 		this._selectShapesAndZoom([sortedChildren[0].id])
 	}
