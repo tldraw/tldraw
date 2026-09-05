@@ -288,9 +288,9 @@ function CanvasCommentsLayer(props: CommentingContext) {
 	}
 
 	// Portalled rather than rendered into this component's slot: pins sit below the collaborator
-	// cursors and popovers above the UI panels, and no single canvas layer spans both. The portal
-	// also fixes where the layer lands among the container's children, keeping it behind the UI's
-	// skip link in the tab order.
+	// cursors and popovers above the in-front content, and no single canvas layer spans both. The
+	// portal also fixes where the layer lands among the container's children, keeping it behind the
+	// UI's skip link in the tab order.
 	return (
 		<EditorPortal>
 			{/* Wheel pass-through lives on each interactive element, not this root: the root spans the
