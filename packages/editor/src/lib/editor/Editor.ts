@@ -2302,13 +2302,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let adjacentShapeId: TLShapeId
 		if (direction === 'next' || direction === 'prev') {
 			const shapeIds = readingOrderShapes.map((shape) => shape.id)
+			if (shapeIds.length === 0) return
 
 			const currentIndex = currentShapeId ? shapeIds.indexOf(currentShapeId) : -1
-			// With no current index, stepping from -1 makes 'prev' land one shape
-			// before the last; seed it from 0 so it wraps to the last shape. See #10559.
-			const startIndex = currentIndex === -1 && direction === 'prev' ? 0 : currentIndex
+			// With no current index (nothing selected, or the selected shape is not tabbable),
+			// stepping from -1 makes 'prev' land one shape before the last; go straight to the
+			// first or last shape instead. See #10559.
 			const adjacentIndex =
-				(startIndex + (direction === 'next' ? 1 : -1) + shapeIds.length) % shapeIds.length
+				currentIndex === -1
+					? direction === 'next'
+						? 0
+						: shapeIds.length - 1
+					: (currentIndex + (direction === 'next' ? 1 : -1) + shapeIds.length) % shapeIds.length
 			adjacentShapeId = shapeIds[adjacentIndex]
 		} else {
 			if (!currentShapeId) return
@@ -2450,8 +2455,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Ok, now score that subset of shapes.
 		const lowestScoringShape = minBy(shapesInDirection, ({ center }) => {
-			// Distance is the primary weighting factor.
-			const distance = Vec.Dist2(currentCenter, center)
+			// Distance is the primary weighting factor. Keep it linear so the off-axis, diagonal and
+			// angle penalties below are in the same units; squared distance swamps them all.
+			const distance = Vec.Dist(currentCenter, center)
 
 			// Distance along the primary axis.
 			const dirProp = ['left', 'right'].includes(direction) ? 'x' : 'y'
@@ -2461,9 +2467,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const offProp = ['left', 'right'].includes(direction) ? 'y' : 'x'
 			const offAxisDeviation = Math.abs(center[offProp] - currentCenter[offProp])
 
-			// Angle in degrees
-			const angle = Math.abs(Vec.Angle(currentCenter, center) * (180 / Math.PI))
-			const angleDeviation = Math.abs(angle - directionToAngle[direction])
+			// Angle in degrees, normalised to 0..360 so that 'up' (270) compares correctly
+			const angle = (Vec.Angle(currentCenter, center) * (180 / Math.PI) + 360) % 360
+			const rawAngleDeviation = Math.abs(angle - directionToAngle[direction])
+			const angleDeviation = Math.min(rawAngleDeviation, 360 - rawAngleDeviation)
 
 			// Calculate final score (lower is better).
 			// Weight factors to prioritize:
