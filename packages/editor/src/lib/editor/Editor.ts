@@ -3949,6 +3949,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		easing(t: number): number
 		start: Box
 		end: Box
+		opts: TLCameraMoveOptions
 	}
 
 	/** @internal */
@@ -3957,12 +3958,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this._viewportAnimation.elapsed += ms
 
-		const { elapsed, easing, duration, start, end } = this._viewportAnimation
+		const { elapsed, easing, duration, start, end, opts } = this._viewportAnimation
 
 		if (elapsed > duration) {
 			this.off('tick', this._animateViewport)
 			this._viewportAnimation = null
-			this._setCamera(new Vec(-end.x, -end.y, this.getViewportScreenBounds().width / end.width))
+			// Forward the caller's options, otherwise a forced move to a position outside the
+			// constraints animates there and then snaps back on this last frame
+			this._setCamera(
+				new Vec(-end.x, -end.y, this.getViewportScreenBounds().width / end.width),
+				opts
+			)
 			return
 		}
 
@@ -4016,6 +4022,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			easing,
 			start: viewportPageBounds.clone(),
 			end: targetViewportPage.clone(),
+			opts: rest,
 		}
 
 		// If we ever get a "stop-camera-animation" event, we stop
