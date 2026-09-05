@@ -2288,12 +2288,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			firstParentId &&
 			selectedShapeIds.every((shapeId) => this.getShape(shapeId)?.parentId === firstParentId) &&
 			!isPageId(firstParentId)
-		const filteredShapes = isSelectedWithinContainer
-			? this.getCurrentPageShapes().filter((shape) => shape.parentId === firstParentId)
-			: this.getCurrentPageShapes().filter((shape) => isPageId(shape.parentId))
-		const readingOrderShapes = isSelectedWithinContainer
-			? this._getShapesInReadingOrder(filteredShapes)
-			: this.getCurrentPageShapesInReadingOrder()
+		// Locked shapes (and children of locked containers) can't be selected by clicking or
+		// select all, so traversal skips them too
+		const filteredShapes = this.getCurrentPageShapes().filter(
+			(shape) =>
+				!this.isShapeOrAncestorLocked(shape) &&
+				(isSelectedWithinContainer ? shape.parentId === firstParentId : isPageId(shape.parentId))
+		)
+		const readingOrderShapes = this._getShapesInReadingOrder(filteredShapes)
 		const currentShapeId: TLShapeId | undefined =
 			selectedShapeIds.length === 1
 				? selectedShapeIds[0]
@@ -2302,6 +2304,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let adjacentShapeId: TLShapeId
 		if (direction === 'next' || direction === 'prev') {
 			const shapeIds = readingOrderShapes.map((shape) => shape.id)
+			// Every candidate can be filtered out (e.g. a locked shape is selected and nothing
+			// else is unlocked); indexing an empty list would hand getShape undefined
+			if (shapeIds.length === 0) return
 
 			const currentIndex = currentShapeId ? shapeIds.indexOf(currentShapeId) : -1
 			// With no current index, stepping from -1 makes 'prev' land one shape
