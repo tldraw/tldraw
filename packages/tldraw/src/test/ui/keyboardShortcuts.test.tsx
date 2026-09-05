@@ -1,5 +1,5 @@
 import { act } from '@testing-library/react'
-import { createShapeId, Editor } from '@tldraw/editor'
+import { Box, createShapeId, Editor } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { Tldraw } from '../../lib/Tldraw'
 import { DefaultKeyboardShortcutsDialogContent } from '../../lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
@@ -339,5 +339,119 @@ describe('frame selection shortcut', () => {
 		expect(frame).toBeDefined()
 		expect(editor.getShape(a)?.parentId).toBe(frame!.id)
 		expect(editor.getShape(b)?.parentId).toBe(frame!.id)
+	})
+})
+
+function pointer(
+	editor: Editor,
+	name: 'pointer_down' | 'pointer_move' | 'pointer_up',
+	x: number,
+	y: number
+) {
+	act(() => {
+		editor.dispatch({
+			type: 'pointer',
+			target: 'canvas',
+			name,
+			point: { x, y },
+			pointerId: 1,
+			button: 0,
+			isPen: false,
+			shiftKey: false,
+			altKey: false,
+			ctrlKey: false,
+			metaKey: false,
+			accelKey: false,
+		})
+		editor.emit('tick', 16)
+	})
+}
+
+// Regression tests for #10396: selection action shortcuts (delete, lock, align, ...) used to
+// run in the middle of a pointer gesture, e.g. deleting the very shape being dragged.
+describe('selection action shortcuts during a pointer gesture', () => {
+	async function setupDraggingShape() {
+		const { editor } = await setupFocusedEditor()
+		act(() => {
+			editor.updateViewportScreenBounds(new Box(0, 0, 1000, 800))
+		})
+
+		const id = createShapeId()
+		act(() => {
+			editor.createShape({ id, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+			editor.select(id)
+		})
+
+		// Press on the shape and drag it far enough to start translating.
+		pointer(editor, 'pointer_down', 50, 50)
+		pointer(editor, 'pointer_move', 150, 150)
+		expect(editor.getPath()).toBe('select.translating')
+
+		return { editor, id }
+	}
+
+	it('ignores delete while translating and applies it once the drag has ended', async () => {
+		const { editor, id } = await setupDraggingShape()
+
+		keydown(editor, { key: 'Delete', code: 'Delete' })
+		expect(editor.getShape(id)).toBeDefined()
+		expect(editor.getPath()).toBe('select.translating')
+
+		// The drag keeps following the pointer.
+		pointer(editor, 'pointer_move', 250, 250)
+		expect(editor.getShape(id)).toMatchObject({ x: 200, y: 200 })
+
+		pointer(editor, 'pointer_up', 250, 250)
+		expect(editor.getPath()).toBe('select.idle')
+
+		keydown(editor, { key: 'Delete', code: 'Delete' })
+		expect(editor.getShape(id)).toBeUndefined()
+	})
+
+	it('ignores toggle lock while translating', async () => {
+		const { editor, id } = await setupDraggingShape()
+
+		keydown(editor, { key: 'l', code: 'KeyL', shiftKey: true })
+		expect(editor.getShape(id)!.isLocked).toBe(false)
+
+		pointer(editor, 'pointer_move', 250, 250)
+		expect(editor.getShape(id)).toMatchObject({ x: 200, y: 200 })
+		pointer(editor, 'pointer_up', 250, 250)
+
+		keydown(editor, { key: 'l', code: 'KeyL', shiftKey: true })
+		expect(editor.getShape(id)!.isLocked).toBe(true)
+	})
+
+	it('ignores flip while translating so the drag does not leave a stray undo step', async () => {
+		const { editor } = await setupDraggingShape()
+		const flipShapes = vi.spyOn(editor, 'flipShapes')
+
+		keydown(editor, { key: 'h', code: 'KeyH', shiftKey: true })
+		expect(flipShapes).not.toHaveBeenCalled()
+
+		pointer(editor, 'pointer_up', 150, 150)
+		keydown(editor, { key: 'h', code: 'KeyH', shiftKey: true })
+		expect(flipShapes).toHaveBeenCalledTimes(1)
+
+		flipShapes.mockRestore()
+	})
+
+	it('ignores flatten to image while translating', async () => {
+		const { editor } = await setupDraggingShape()
+		// Flatten runs asynchronously and would otherwise delete the dragged shape once its export
+		// resolves. Resolving undefined makes the real flatten a no-op while still showing whether the
+		// export pipeline was entered.
+		const getSvgString = vi.spyOn(editor, 'getSvgString').mockResolvedValue(undefined)
+
+		keydown(editor, { key: 'f', code: 'KeyF', shiftKey: true })
+		await act(async () => {})
+		expect(getSvgString).not.toHaveBeenCalled()
+
+		pointer(editor, 'pointer_up', 150, 150)
+		keydown(editor, { key: 'f', code: 'KeyF', shiftKey: true })
+		await act(async () => {})
+		expect(getSvgString).toHaveBeenCalledTimes(1)
+
+		getSvgString.mockRestore()
 	})
 })
