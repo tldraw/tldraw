@@ -16,7 +16,6 @@
 		"next-env.d.ts",
 		"**/*.ts",
 		"**/*.tsx",
-		"content.d.ts",
 		".next/types/**/*.ts",
 		"watcher.ts",
 		"vitest.config.ts"
