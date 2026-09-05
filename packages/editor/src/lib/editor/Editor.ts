@@ -11495,9 +11495,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				break
 			}
 			case 'keyboard': {
-				// please, please
-				if (info.key === 'ShiftRight') info.key = 'ShiftLeft'
-				if (info.key === 'AltRight') info.key = 'AltLeft'
+				// Left and right modifier keys are the same key to us. `inputs.keys` stores
+				// `code`, so normalize that: a `ShiftRight` left as-is would never match the
+				// `ShiftLeft` that nudging checks or that `_releaseShiftKey` clears.
+				if (info.code === 'ShiftRight') info.code = 'ShiftLeft'
+				if (info.code === 'AltRight') info.code = 'AltLeft'
 				if (info.code === 'ControlRight') info.code = 'ControlLeft'
 				if (info.code === 'MetaRight') info.code = 'MetaLeft'
 
