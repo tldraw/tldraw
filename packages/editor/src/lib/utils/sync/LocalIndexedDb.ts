@@ -9,6 +9,9 @@ const STORE_PREFIX = 'TLDRAW_DOCUMENT_v2'
 const LEGACY_ASSET_STORE_PREFIX = 'TLDRAW_ASSET_STORE_v1'
 const dbNameIndexKey = 'TLDRAW_DB_NAME_INDEX_v2'
 
+/** How many session state rows (one per tab) to keep per document when pruning. */
+const MAX_SESSION_STATE_ROWS = 10
+
 /** @internal */
 export const Table = {
 	Records: 'records',
@@ -275,15 +278,18 @@ export class LocalIndexedDb {
 		})
 	}
 
-	async pruneSessions() {
+	/**
+	 * Drop all but the most recently updated session state rows. The row for `keepSessionId` is never
+	 * deleted: it may be an old row that this tab restored its state from and has not rewritten yet,
+	 * and deleting it would make a later reload fall back to another tab's session state.
+	 */
+	async pruneSessions({ keepSessionId }: { keepSessionId?: string } = {}) {
 		await this.tx('readwrite', [Table.SessionState], async (tx) => {
 			const sessionStateStore = tx.objectStore(Table.SessionState)
-			const all = (await sessionStateStore.getAll()).sort((a, b) => a.updatedAt - b.updatedAt)
-			if (all.length < 10) {
-				await tx.done
-				return
-			}
-			const toDelete = all.slice(0, all.length - 10)
+			const all = ((await sessionStateStore.getAll()) as SessionStateSnapshotRow[])
+				.filter((row) => row.id !== keepSessionId)
+				.sort((a, b) => a.updatedAt - b.updatedAt)
+			const toDelete = all.slice(0, Math.max(0, all.length - MAX_SESSION_STATE_ROWS))
 			for (const { id } of toDelete) {
 				await sessionStateStore.delete(id)
 			}
