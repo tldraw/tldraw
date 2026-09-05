@@ -576,6 +576,7 @@ export class Resizing extends StateNode {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.editor.snaps.clearIndicators()
+		this.editor.edgeScrollManager.reset()
 		setBatchLabelSizeCache(this.editor, null)
 		if (this.info.isCreating && this.editor.getHintingShapeIds().length > 0) {
 			this.editor.setHintingShapes([])
