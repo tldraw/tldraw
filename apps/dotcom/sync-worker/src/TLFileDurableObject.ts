@@ -752,7 +752,12 @@ export class TLFileDurableObject extends DurableObject {
 		// Null, not []: an open segment that vanished or cannot be decoded is a broken chain, and
 		// rewriting it from an empty buffer would silently erase the deltas its metadata still
 		// promises. The caller starts a fresh chain on null.
-		const deltas = await readOpenSegment(this.r2.versionChain, chain.openSegment.key)
+		const segmentKey = chain.openSegment.key
+		const deltas = await retry(() => readOpenSegment(this.r2.versionChain, segmentKey), {
+			attempts: 3,
+			waitDuration: 500,
+			matchError: isTransientConnectionError,
+		})
 		if (deltas) this._pendingDeltas = deltas
 		return deltas
 	}

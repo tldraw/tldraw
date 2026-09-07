@@ -121,20 +121,21 @@ export async function writeVersionChainEntry({
 
 /**
  * The deltas an open segment holds, for a durable object that lost its in-memory buffer, or null
- * when the object cannot be used as one: missing, unreadable, or not a v1 segment body.
+ * when the object cannot be used as one: missing, undecodable, or not a v1 segment body.
  *
- * Null for every failure, not just a missing object: appending means rewriting the segment from
- * this buffer, and a caller that throws instead leaves the chain pointing at a segment it can never
- * rehydrate, so every later persist fails the same way. Null lets the caller start a fresh chain,
- * which costs one keyframe.
+ * Null means the segment is unusable and the caller starts a fresh chain, which costs one keyframe.
+ * A failed `get` throws instead: the segment may be intact and only the network was not, and null
+ * here would silently discard it on every blip. The caller retries transient errors and lets a
+ * persistent failure fail the chain write, which has its own fallback. (A blip while reading the
+ * body still decodes as null — rare enough that the keyframe is fine.)
  */
 export async function readOpenSegment(
 	bucket: R2Bucket,
 	key: string
 ): Promise<PendingDelta[] | null> {
+	const object = await bucket.get(key)
+	if (!object) return null
 	try {
-		const object = await bucket.get(key)
-		if (!object) return null
 		const body = (await decodeVersionBody(object)) as Partial<SegmentBody> | null
 		if (body?.v !== 1 || !Array.isArray(body.deltas)) return null
 		return body.deltas

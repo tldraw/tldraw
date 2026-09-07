@@ -307,4 +307,16 @@ describe('readOpenSegment', () => {
 		expect(await readOpenSegment(bucket, `${roomKey}/future.s`)).toBeNull()
 		expect(await readOpenSegment(bucket, `${roomKey}/shape.s`)).toBeNull()
 	})
+
+	it('throws on a failed get instead of discarding the segment', async () => {
+		const bucket = {
+			get: async () => {
+				throw new Error('Network connection lost.')
+			},
+		} as unknown as R2Bucket
+
+		await expect(readOpenSegment(bucket, `${roomKey}/blip.s`)).rejects.toThrow(
+			'Network connection lost.'
+		)
+	})
 })
