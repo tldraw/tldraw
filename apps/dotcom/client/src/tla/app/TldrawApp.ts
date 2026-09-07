@@ -412,26 +412,25 @@ export class TldrawApp {
 			// already exists should still load through a transient worker error.
 			if (!res.ok) initError = new Error(`Init failed: ${res.status}`)
 		}
-		await this.z.preload(this.userQuery()).complete
-		await this.changesFlushed
-		// Without a deadline, a user row that never arrives (failed init, stalled replication)
-		// hangs `create()` forever and the page stays blank for the whole session.
-		const userLoaded = promiseWithResolve<void>()
-		const stopWaiting = react('wait for user', () => {
-			if (this.user$.get()) userLoaded.resolve()
-		})
+		// Zero's query can itself stall, so the deadline must cover it as well as the user row.
+		const timedOut = promiseWithResolve<never>()
+		let stopWaiting: (() => void) | undefined
 		const timeout = setTimeout(
 			() =>
-				userLoaded.reject(
-					initError ?? new Error('Timed out waiting for the user record after init')
-				),
+				timedOut.reject(initError ?? new Error('Timed out waiting for the user record after init')),
 			USER_PRELOAD_TIMEOUT_MS
 		)
 		try {
-			await userLoaded
+			await Promise.race([this.z.preload(this.userQuery()).complete, timedOut])
+			await Promise.race([this.changesFlushed, timedOut])
+			const userLoaded = promiseWithResolve<void>()
+			stopWaiting = react('wait for user', () => {
+				if (this.user$.get()) userLoaded.resolve()
+			})
+			await Promise.race([userLoaded, timedOut])
 		} finally {
 			clearTimeout(timeout)
-			stopWaiting()
+			stopWaiting?.()
 		}
 		await Promise.all([
 			this.z.preload(this.fileStateQuery()).complete,
