@@ -264,7 +264,7 @@ export class TldrawMCP extends McpAgent<Env> {
 		} catch (err) {
 			// console.error, not this.logger: the logger is dev-only and a silently
 			// unarmed expiry is the failure this branch exists to prevent.
-			console.error('[TldrawMCP] failed to arm idle expiry', String(err))
+			console.error('[TldrawMCP] failed to arm idle expiry', this.ctx.id.toString(), err)
 		}
 	}
 
@@ -426,7 +426,7 @@ export class TldrawMCP extends McpAgent<Env> {
 		} catch (err) {
 			// Must fall through to the re-arm; see the doc comment above.
 			failed = true
-			console.error('[TldrawMCP] expireIfIdle check failed', String(err))
+			console.error('[TldrawMCP] expireIfIdle check failed', this.ctx.id.toString(), err)
 		}
 		if (!kept) return
 		const next = nextExpiryTime({
@@ -438,7 +438,9 @@ export class TldrawMCP extends McpAgent<Env> {
 		try {
 			await this.schedule(new Date(next), 'expireIfIdle', null)
 		} catch (err) {
-			console.error('[TldrawMCP] failed to re-arm idle expiry', String(err))
+			// Without the id a failed re-arm is an object that silently stops expiring
+			// and cannot be traced back from the logs.
+			console.error('[TldrawMCP] failed to re-arm idle expiry', this.ctx.id.toString(), err)
 		}
 	}
 
