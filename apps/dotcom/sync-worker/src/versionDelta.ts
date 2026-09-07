@@ -16,9 +16,12 @@ import { canonicalJson, fnv1a64 } from './snapshotUtils'
  * that silently reverts on restore.
  *
  * `schema` is deliberately absent: a schema change cuts a keyframe, so no chain spans one.
+ *
+ * `v` covers the embedded `NetworkDiff` semantics and the content hash's inputs as well as this
+ * shape. v2: the hash canonicalizes exactly as `JSON.stringify` does (see `canonicalJson`).
  */
 export interface SnapshotDelta {
-	v: 1
+	v: 2
 	diff: NetworkDiff<UnknownRecord> | null
 	clocks: Record<string, number>
 	tombstones: { set: Record<string, number>; removed: string[] } | null
@@ -42,8 +45,9 @@ export interface SnapshotDelta {
  * SQLiteSyncStorage believes deletions are tracked. Omitted from the hash, a delta that dropped one
  * would replay as `undefined` and still verify.
  *
- * This is the hash persisted in every delta. Its inputs are part of the v1 format: changing them
- * makes every chain already written unreadable.
+ * This is the hash persisted in every delta. Its inputs are part of the envelope format: changing
+ * them makes every chain already written unreadable, so a change bumps `v`. v1 hashed with a
+ * canonicalizer that kept `undefined` properties, which JSON serialization drops.
  */
 export function snapshotContentHash(snapshot: RoomSnapshot): string {
 	return snapshotHashes(snapshot).content
@@ -120,7 +124,7 @@ export function buildSnapshotDelta(prev: RoomSnapshot, next: RoomSnapshot): Snap
 	const tombstones = Object.keys(set).length === 0 && removed.length === 0 ? null : { set, removed }
 
 	return {
-		v: 1,
+		v: 2,
 		diff: getNetworkDiff(recordsDiff),
 		clocks,
 		tombstones,
@@ -134,7 +138,7 @@ export function buildSnapshotDelta(prev: RoomSnapshot, next: RoomSnapshot): Snap
 export function applySnapshotDelta(prev: RoomSnapshot, delta: SnapshotDelta): RoomSnapshot {
 	// The diff codec has changed semantics before (diffRecord's legacyAppendMode); applying a
 	// future format with today's rules would corrupt quietly, which is worse than failing.
-	if (delta.v !== 1) throw new Error(`unknown snapshot delta version ${delta.v}`)
+	if (delta.v !== 2) throw new Error(`unsupported snapshot delta version ${delta.v}, expected 2`)
 	// The content hash would catch this too, as a mismatch; checked up front so a restore that
 	// would seed the storage clock from `undefined` fails with a reason.
 	if (typeof delta.documentClock !== 'number') {
