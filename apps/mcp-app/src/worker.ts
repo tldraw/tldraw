@@ -42,11 +42,11 @@ interface Env {
 	MCP_IS_DEV: string
 	WORKER_ORIGIN: string
 	MCP_ANALYTICS?: AnalyticsEngineDataset
-	/** Dev-only: shortens IDLE_TTL_MS (ms) for idle-expiry.test.ts. Ignored unless MCP_IS_DEV. */
 	IDLE_TTL_MS_OVERRIDE?: string
 }
 
-// Dev-only override so idle-expiry.test.ts can exercise expiry in seconds.
+// Gated on MCP_IS_DEV so no deployed env can shorten the TTL. idle-expiry.test.ts
+// needs it: the real TTL is seven days, and the test has to see an alarm fire.
 function idleTtlMs(env: Env): number {
 	const override = env.MCP_IS_DEV === 'true' ? Number(env.IDLE_TTL_MS_OVERRIDE) : NaN
 	return Number.isFinite(override) && override > 0 ? override : IDLE_TTL_MS
