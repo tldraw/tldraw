@@ -23,6 +23,7 @@ import {
 	MCP_SERVER_TITLE,
 	MCP_SERVER_VERSION,
 	MCP_SERVER_WEBSITE_URL,
+	nextExpiryTime,
 } from './shared/types'
 import type { MCP_APP_HOST_NAMES, PendingBootstrap, ServerDeps } from './shared/types'
 import { resolveMcpAppHostNameFromServerInfo } from './shared/utils'
@@ -427,13 +428,14 @@ export class TldrawMCP extends McpAgent<Env> {
 			console.error('[TldrawMCP] expireIfIdle check failed', String(err))
 		}
 		if (!kept) return
-		// After a failed check `lastActivity + ttl` is usually already in the past
-		// (legacy DO), so the 60s floor alone would retry every minute with no
-		// backoff for as long as storage keeps erroring. Back off to an hour.
-		const floorMs = failed ? 60 * 60_000 : 60_000
-		const next = (lastActivity ?? Date.now()) + idleTtlMs(this.env)
+		const next = nextExpiryTime({
+			failed,
+			lastActivity,
+			now: Date.now(),
+			ttlMs: idleTtlMs(this.env),
+		})
 		try {
-			await this.schedule(new Date(Math.max(next, Date.now() + floorMs)), 'expireIfIdle', null)
+			await this.schedule(new Date(next), 'expireIfIdle', null)
 		} catch (err) {
 			console.error('[TldrawMCP] failed to re-arm idle expiry', String(err))
 		}
