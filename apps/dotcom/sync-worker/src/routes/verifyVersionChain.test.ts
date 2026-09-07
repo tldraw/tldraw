@@ -144,6 +144,55 @@ describe('verifyRoomVersions with a limit', () => {
 	})
 })
 
+describe('verifyRoomVersions on a segment the read path rejects', () => {
+	const versions = [
+		snapshot(1, ['shape:a']),
+		snapshot(2, ['shape:a', 'shape:b']),
+		snapshot(3, ['shape:a', 'shape:b', 'shape:c']),
+	]
+
+	async function seedAndFindSegment() {
+		const chainBucket = createFakeR2()
+		const legacyBucket = createFakeR2()
+		await seedDualWrite(chainBucket, legacyBucket, versions)
+		const listing = await chainBucket.list({ prefix: `${roomKey}/` })
+		const segment = listing.objects.find((o) => o.key.endsWith('.s'))!
+		const object = (await chainBucket.get(segment.key))!
+		return { chainBucket, legacyBucket, segment, metadata: object.customMetadata! }
+	}
+
+	it('reports a body that does not begin with what its metadata lists', async () => {
+		const { chainBucket, legacyBucket, segment, metadata } = await seedAndFindSegment()
+		// Same first delta, then a version the listing never promised in place of the second.
+		const torn = await encodeVersionBody({
+			v: 1,
+			deltas: [
+				{ t: '2026-09-01T00:00:01.000Z', delta: buildSnapshotDelta(versions[0], versions[1]) },
+				{ t: '2026-09-01T00:00:09.000Z', delta: buildSnapshotDelta(versions[1], versions[2]) },
+			],
+		})
+		await chainBucket.put(segment.key, torn.body, { customMetadata: metadata })
+
+		const result = await verifyRoomVersions({ chainBucket, legacyBucket, roomKey, limit: 20 })
+
+		expect(result.errors.map((e) => e.message)).toEqual([
+			expect.stringMatching(/does not match its metadata/),
+		])
+	})
+
+	it('reports a segment written in an unknown format', async () => {
+		const { chainBucket, legacyBucket, segment, metadata } = await seedAndFindSegment()
+		const future = await encodeVersionBody({ v: 2, deltas: [] })
+		await chainBucket.put(segment.key, future.body, { customMetadata: metadata })
+
+		const result = await verifyRoomVersions({ chainBucket, legacyBucket, roomKey, limit: 20 })
+
+		expect(result.errors.map((e) => e.message)).toEqual([
+			expect.stringMatching(/unknown version segment format/),
+		])
+	})
+})
+
 describe('verifyRoomVersions', () => {
 	it('reports no mismatches when reconstruction matches the full copies', async () => {
 		const chainBucket = createFakeR2()

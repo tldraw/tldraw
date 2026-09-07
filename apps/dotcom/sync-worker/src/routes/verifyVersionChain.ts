@@ -6,9 +6,8 @@ import { canonicalJson } from '../snapshotUtils'
 import { Environment } from '../types'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
 import { requireAdminAccessToRequest } from '../utils/tla/getAuth'
-import { SegmentBody } from '../versionChain'
 import { decodeVersionBody } from '../versionChainCodec'
-import { loadChainIndex, SegmentIndexEntry } from '../versionChainRead'
+import { loadChainIndex, readSegmentDeltas, SegmentIndexEntry } from '../versionChainRead'
 import { applySnapshotDelta, snapshotContentHash } from '../versionDelta'
 
 export interface VerifyResult {
@@ -118,10 +117,9 @@ export async function verifyRoomVersions({
 					)
 				}
 				reads++
-				const object = await chainBucket.get(segment.key)
-				if (!object) throw new Error(`segment ${segment.key} disappeared`)
-				const body = (await decodeVersionBody(object)) as SegmentBody
-				for (const { t, delta } of body.deltas) {
+				// The same read as reconstruction, so a segment that verifies here also reads.
+				const deltas = await readSegmentDeltas(chainBucket, segment)
+				for (const { t, delta } of deltas) {
 					if (!withinBudget()) break
 					state = applySnapshotDelta(state, delta)
 					replayed++
