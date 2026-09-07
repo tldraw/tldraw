@@ -1,6 +1,6 @@
-import { tlenv, useContainer, useEditor, useReactor, useValue } from '@tldraw/editor'
+import { useContainer, useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
-import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import React, { ReactNode, useEffect, useMemo } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
 import { SkipToMainContent } from './components/A11y'
 import { TldrawUiButton } from './components/primitives/Button/TldrawUiButton'
@@ -127,43 +127,6 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 
 	useEditorEvents()
 
-	const rIsEditingAnything = useRef(false)
-	const rHidingTimeout = useRef(-1 as any)
-	const [hideToolbarWhileEditing, setHideToolbarWhileEditing] = useState(false)
-
-	useReactor(
-		'update hide toolbar while delayed',
-		() => {
-			const isMobileEnvironment = tlenv.isIos || tlenv.isAndroid
-			if (!isMobileEnvironment) return
-
-			const editingShape = editor.getEditingShapeId()
-			if (editingShape === null) {
-				if (rIsEditingAnything.current) {
-					rIsEditingAnything.current = false
-					clearTimeout(rHidingTimeout.current)
-					if (tlenv.isAndroid) {
-						// On Android, hide it after 150ms
-						rHidingTimeout.current = editor.timers.setTimeout(() => {
-							setHideToolbarWhileEditing(false)
-						}, 150)
-					} else {
-						// On iOS, just hide it immediately
-						setHideToolbarWhileEditing(false)
-					}
-				}
-				return
-			}
-
-			if (!rIsEditingAnything.current) {
-				rIsEditingAnything.current = true
-				clearTimeout(rHidingTimeout.current)
-				setHideToolbarWhileEditing(true)
-			}
-		},
-		[]
-	)
-
 	const { 'toggle-focus-mode': toggleFocus } = useActions()
 
 	const { breakpointsAbove, breakpointsBelow } = useMemo(() => {
@@ -190,9 +153,6 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 			// readers like VoiceOver and TalkBack that do not announce role="application". See
 			// https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/application_role
 			role="document"
-			// When the virtual keyboard is opening we want it to hide immediately.
-			// But when the virtual keyboard is closing we want to wait a bit before showing it again.
-			data-iseditinganything={hideToolbarWhileEditing}
 			data-breakpoint={breakpoint}
 			data-breakpoints-above={breakpointsAbove.join(' ')}
 			data-breakpoints-below={breakpointsBelow.join(' ')}
