@@ -111,8 +111,7 @@ import { getAuth, requireAdminAccess, requireAdminAccessToRequest } from './util
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 import { getRole } from './utils/tla/getRole'
 import { isTestFile } from './utils/tla/isTestFile'
-import { ChainState, PendingDelta, SegmentBody } from './versionChain'
-import { decodeVersionBody } from './versionChainCodec'
+import { ChainState, PendingDelta } from './versionChain'
 import { getVersionChainMode } from './versionChainConfig'
 import {
 	deleteAllVersions,
@@ -120,7 +119,7 @@ import {
 	openWholeVersionStream,
 	reconstructVersion,
 } from './versionChainRead'
-import { writeVersionChainEntry } from './versionChainWrite'
+import { readOpenSegment, writeVersionChainEntry } from './versionChainWrite'
 import { snapshotContentHash } from './versionDelta'
 import { resolveWelcomeSnapshot } from './welcome/resolveWelcomeSnapshot'
 
@@ -748,12 +747,12 @@ export class TLFileDurableObject extends DurableObject {
 		// Cold start. Appending means rewriting the whole segment, so the deltas already in it have
 		// to come back — reading the object is cheaper and simpler than keeping a second copy of
 		// them in durable object storage, and it cannot drift from what R2 actually holds.
-		const object = await this.r2.versionChain.get(chain.openSegment.key)
-		// Null, not []: an open segment that vanished is a broken chain, and rewriting it from an
-		// empty buffer would silently erase the deltas its metadata still promises.
-		if (!object) return null
-		this._pendingDeltas = ((await decodeVersionBody(object)) as SegmentBody).deltas
-		return this._pendingDeltas
+		// Null, not []: an open segment that vanished or cannot be decoded is a broken chain, and
+		// rewriting it from an empty buffer would silently erase the deltas its metadata still
+		// promises. The caller starts a fresh chain on null.
+		const deltas = await readOpenSegment(this.r2.versionChain, chain.openSegment.key)
+		if (deltas) this._pendingDeltas = deltas
+		return deltas
 	}
 
 	_isRestoring = false
@@ -2033,15 +2032,16 @@ export class TLFileDurableObject extends DurableObject {
 
 		const mode = getVersionChainMode(this.env, key)
 
-		if (mode === 'chain') {
-			iso = await this._writeVersionChainEntry(snapshot, key, iso)
-		} else if (mode === 'dual') {
-			// The bake is a shadow write. A non-transient chain failure here (corrupt segment, a
-			// 4xx, DO storage) must be a metric, not a failed persist — the outer retry would
-			// otherwise re-upload the rooms object 100 times, raise persistence_bad, and never
-			// reach the legacy write that dual mode exists to keep.
+		// A non-transient chain failure (corrupt segment, a 4xx, DO storage) must be a metric, not
+		// a failed persist: the outer retry would otherwise re-upload the rooms object 100 times,
+		// raise persistence_bad, and record no version at all. In dual mode the legacy write below
+		// runs regardless; in chain mode it runs as the fallback, so the version still exists as
+		// a full copy the read paths already know how to serve.
+		let chainWritten = false
+		if (mode !== 'off') {
 			try {
 				iso = await this._writeVersionChainEntry(snapshot, key, iso)
+				chainWritten = true
 			} catch (error) {
 				this.logEvent({ type: 'version_chain_error' })
 				this.reportError(error)
@@ -2052,7 +2052,7 @@ export class TLFileDurableObject extends DurableObject {
 		// Nothing dedupes this write the way the version check in persistToDatabase does: a retry
 		// that got here has already set _lastPersistedFingerprint and takes the skip path instead
 		// (the chain write above carries its own re-entry guard for the same reason).
-		if (mode !== 'chain') {
+		if (mode !== 'chain' || !chainWritten) {
 			await this._uploadSnapshotToBucket(
 				this.r2.versionCache,
 				snapshot,
@@ -2148,8 +2148,10 @@ export class TLFileDurableObject extends DurableObject {
 					timestamp: lastDeltaTimestamp,
 				})
 			)
+			// A legacy full copy is not the chain reading back; only a chain answer counts.
 			const ok =
 				!!reconstruction &&
+				reconstruction.source === 'chain' &&
 				snapshotContentHash(reconstruction.snapshot) === snapshotContentHash(expected)
 			this.logEvent({ type: 'version_chain_verify', ok })
 		} catch (error) {

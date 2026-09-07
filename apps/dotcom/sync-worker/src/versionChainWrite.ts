@@ -5,11 +5,12 @@ import {
 	decideVersionWrite,
 	KeyframeReason,
 	PendingDelta,
+	SegmentBody,
 	segmentCustomMetadata,
 	versionKey,
 } from './versionChain'
-import { encodeVersionBody } from './versionChainCodec'
-import { buildSnapshotDelta, snapshotContentHash } from './versionDelta'
+import { decodeVersionBody, encodeVersionBody } from './versionChainCodec'
+import { buildSnapshotDelta, snapshotHeadHash } from './versionDelta'
 
 export interface VersionChainWriteResult {
 	chain: ChainState
@@ -53,7 +54,7 @@ export async function writeVersionChainEntry({
 		previousFingerprint: previous ? getSnapshotFingerprint(previous) : nextFingerprint,
 		// The hash is what actually pins the diff base: tombstone pruning can change content
 		// without moving the fingerprint.
-		previousHash: previous ? snapshotContentHash(previous) : '',
+		previousHash: previous ? snapshotHeadHash(previous) : '',
 		nextFingerprint,
 		deltaBytes: encodedDelta?.body.byteLength ?? 0,
 		now,
@@ -76,7 +77,7 @@ export async function writeVersionChainEntry({
 				keyframeBytes: encoded.body.byteLength,
 				deltaCount: 0,
 				headFingerprint: nextFingerprint,
-				headHash: snapshotContentHash(next),
+				headHash: snapshotHeadHash(next),
 				openSegment: null,
 			},
 		}
@@ -112,8 +113,32 @@ export async function writeVersionChainEntry({
 			...chain!,
 			deltaCount: decision.seq,
 			headFingerprint: nextFingerprint,
-			headHash: delta!.hash,
+			headHash: snapshotHeadHash(next),
 			openSegment: decision.segment,
 		},
+	}
+}
+
+/**
+ * The deltas an open segment holds, for a durable object that lost its in-memory buffer, or null
+ * when the object cannot be used as one: missing, unreadable, or not a v1 segment body.
+ *
+ * Null for every failure, not just a missing object: appending means rewriting the segment from
+ * this buffer, and a caller that throws instead leaves the chain pointing at a segment it can never
+ * rehydrate, so every later persist fails the same way. Null lets the caller start a fresh chain,
+ * which costs one keyframe.
+ */
+export async function readOpenSegment(
+	bucket: R2Bucket,
+	key: string
+): Promise<PendingDelta[] | null> {
+	try {
+		const object = await bucket.get(key)
+		if (!object) return null
+		const body = (await decodeVersionBody(object)) as Partial<SegmentBody> | null
+		if (body?.v !== 1 || !Array.isArray(body.deltas)) return null
+		return body.deltas
+	} catch {
+		return null
 	}
 }

@@ -103,6 +103,7 @@ describe('reconstructVersion', () => {
 
 		expect(result?.snapshot).toEqual(versions[0])
 		expect(result?.deltaCount).toBe(0)
+		expect(result?.source).toBe('chain')
 	})
 
 	it('replays every version in a single segment', async () => {
@@ -188,6 +189,7 @@ describe('reconstructVersion', () => {
 		})
 
 		expect(result?.snapshot).toEqual(legacy)
+		expect(result?.source).toBe('legacy')
 	})
 
 	it('returns null when neither bucket has the version', async () => {
