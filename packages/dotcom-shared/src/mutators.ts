@@ -340,7 +340,6 @@ export function createMutators(userId: string) {
 			await tx.mutate.file_state.insert({
 				fileId,
 				userId,
-				isPinned: false,
 				lastEditAt: null,
 				lastVisitAt: null,
 				firstVisitAt: null,

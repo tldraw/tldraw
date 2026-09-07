@@ -11,8 +11,6 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { McpAgent } from 'agents/mcp'
 import { CanvasStore } from './canvas-store'
 import { Logger } from './logger'
-import { ADMIN_PRUNE_MAX_IDS, MIN_SAFE_IDLE_MS, decidePrune } from './prune'
-import type { PruneResult, PruneStats } from './prune'
 import { registerTools } from './register-tools'
 import { loadEditorApiSpecFromAssets, loadMethodMapFromAssets } from './shared/generated-data'
 import { PendingRequests } from './shared/pending-requests'
@@ -25,28 +23,12 @@ import {
 	MCP_SERVER_TITLE,
 	MCP_SERVER_VERSION,
 	MCP_SERVER_WEBSITE_URL,
+	nextExpiryTime,
 } from './shared/types'
 import type { MCP_APP_HOST_NAMES, PendingBootstrap, ServerDeps } from './shared/types'
 import { resolveMcpAppHostNameFromServerInfo } from './shared/utils'
 
 // --- Types ---
-
-/** Tables this app creates. Their absence is what proves a teardown wiped the session. */
-const APP_TABLES = ['checkpoints', 'meta', 'canvas_checkpoints']
-
-type WipeMode = 'sdk' | 'quiet' | 'raw'
-
-interface InspectResult {
-	id: string
-	bytes: number
-	tables: string[]
-	appTables: string[]
-	wiped: boolean
-	destroyPending: boolean
-	alarm: number | null
-	lastActivity: number | null
-	checkpointCount: number
-}
 
 export { CanvasStore }
 
@@ -57,16 +39,14 @@ interface Env {
 	LOADER: WorkerLoader
 	RATE_LIMITER: RateLimit
 	MCP_AUTH_TOKEN: string
-	/** Gates /admin/prune. Unset = endpoint is off (404). Set with `wrangler secret put MCP_PRUNE_ADMIN_TOKEN`. */
-	MCP_PRUNE_ADMIN_TOKEN?: string
 	MCP_IS_DEV: string
 	WORKER_ORIGIN: string
 	MCP_ANALYTICS?: AnalyticsEngineDataset
-	/** Dev-only: shortens IDLE_TTL_MS (ms) for prune-integration.test.ts. Ignored unless MCP_IS_DEV. */
 	IDLE_TTL_MS_OVERRIDE?: string
 }
 
-// Dev-only override so prune-integration.test.ts can exercise expiry in seconds.
+// Gated on MCP_IS_DEV so no deployed env can shorten the TTL. idle-expiry.test.ts
+// needs it: the real TTL is seven days, and the test has to see an alarm fire.
 function idleTtlMs(env: Env): number {
 	const override = env.MCP_IS_DEV === 'true' ? Number(env.IDLE_TTL_MS_OVERRIDE) : NaN
 	return Number.isFinite(override) && override > 0 ? override : IDLE_TTL_MS
@@ -96,31 +76,6 @@ function corsResponse(response: Response): Response {
 	return new Response(response.body, { status: response.status, headers })
 }
 
-/** Grace period before the condemned object's alarm runs destroy(). destroy() ends in
- * `ctx.abort("destroyed")`, which kills the isolate along with any RPC still returning
- * from it: with no delay the caller sees `Error: destroyed` for a prune that in fact
- * succeeded. Matches the SDK's own DESTROY_ALARM_DELAY_MS. */
-const DESTROY_ALARM_DELAY_MS = 1000
-
-/** Transient Durable Object faults: the object moved, was evicted, or the script redeployed. */
-function isRetryableDoError(err: unknown): boolean {
-	const message = err instanceof Error ? err.message : String(err)
-	return /Network connection lost|code was updated|internal error|overloaded|object has moved/i.test(
-		message
-	)
-}
-
-/** 401 unless the request carries the admin bearer token; null when it does. */
-function requireAdminToken(request: Request, env: Env): Response | null {
-	if (
-		!env.MCP_PRUNE_ADMIN_TOKEN ||
-		request.headers.get('Authorization') !== `Bearer ${env.MCP_PRUNE_ADMIN_TOKEN}`
-	) {
-		return new Response('Unauthorized', { status: 401 })
-	}
-	return null
-}
-
 // --- McpAgent Durable Object ---
 
 export class TldrawMCP extends McpAgent<Env> {
@@ -142,8 +97,9 @@ export class TldrawMCP extends McpAgent<Env> {
 	// making this the single noisiest thing the worker prints. Every call site
 	// uses `this.observability?.emit(...)`, so clearing it disables them all.
 	// Also load-bearing for teardown: destroy() calls _emit(), whose `name: this.name`
-	// argument is only skipped because the optional chain short-circuits; on the
-	// condemn alarm #_name is never hydrated.
+	// argument is only skipped because the optional chain short-circuits. On the
+	// destroy-marker alarm branch, which returns before partyserver's init runs,
+	// #_name is never hydrated and reading it throws.
 	override observability = undefined
 	// The SDK's default DurableObjectEventStore persists every outgoing message to DO storage
 	// (for Last-Event-ID replay) before writing it to the wire. SQLite-backed DO storage caps a
@@ -300,8 +256,8 @@ export class TldrawMCP extends McpAgent<Env> {
 		// Every DO that initializes gets its own expiry, including sessions that
 		// never save and junk DOs minted by stale-session probes. `idempotent`
 		// dedups on callback+payload across cold starts; without it the SDK warns
-		// on every wake and stacks rows. Failure here must not fail init — the
-		// admin prune endpoint is the backstop.
+		// on every wake and stacks rows. Failure here must not fail init — the next
+		// wake re-arms.
 		try {
 			await this.schedule(new Date(Date.now() + idleTtlMs(this.env)), 'expireIfIdle', null, {
 				idempotent: true,
@@ -309,7 +265,7 @@ export class TldrawMCP extends McpAgent<Env> {
 		} catch (err) {
 			// console.error, not this.logger: the logger is dev-only and a silently
 			// unarmed expiry is the failure this branch exists to prevent.
-			console.error('[TldrawMCP] failed to arm idle expiry', String(err))
+			console.error('[TldrawMCP] failed to arm idle expiry', this.ctx.id.toString(), err)
 		}
 	}
 
@@ -348,17 +304,18 @@ export class TldrawMCP extends McpAgent<Env> {
 	}
 
 	/**
-	 * Reads the activity signals without assuming init() ran: on a cold legacy
-	 * DO woken by a raw RPC, our tables may not exist, so every read tolerates
-	 * `no such table` and reports "never active".
+	 * The last time this session did anything, or null if it never did.
+	 *
+	 * Tolerating `no such table` is defensive: expiry callbacks run after init()
+	 * has created the tables, so a missing one means something unexpected, and
+	 * reporting "never active" is the conservative read.
 	 */
-	readPruneStats(): PruneStats {
+	readLastActivity(): number | null {
 		const sql = this.ctx.storage.sql
 		let lastActivity: number | null = null
-		let checkpointCount = 0
 		// Only a missing table means "never active". Any other storage error must
 		// propagate: swallowing it reads as null → infinitely idle → a live session
-		// gets condemned on a transient storage hiccup.
+		// gets destroyed on a transient storage hiccup.
 		const tableRows = (query: string) => {
 			try {
 				return sql.exec(query).toArray()
@@ -370,19 +327,18 @@ export class TldrawMCP extends McpAgent<Env> {
 		const meta = tableRows(`SELECT value FROM meta WHERE key = 'lastActivity'`)
 		if (meta.length > 0) {
 			const n = Number(meta[0].value)
-			// A corrupt value must fail toward keep, not toward condemn.
+			// A corrupt value must fail toward keep, not toward destroy.
 			lastActivity = Number.isFinite(n) ? n : null
 		}
-		const cp = tableRows(`SELECT COUNT(*) AS n, MAX(created_at) AS last FROM checkpoints`)
-		if (cp.length > 0) {
-			checkpointCount = Number(cp[0].n ?? 0)
-			// Legacy DOs predate the lastActivity key; the newest snapshot is the next best signal.
-			if (lastActivity === null && cp[0].last != null) {
+		// Legacy DOs predate the lastActivity key; the newest snapshot is the next best signal.
+		if (lastActivity === null) {
+			const cp = tableRows(`SELECT MAX(created_at) AS last FROM checkpoints`)
+			if (cp.length > 0 && cp[0].last != null) {
 				const n = Number(cp[0].last)
 				if (Number.isFinite(n)) lastActivity = n
 			}
 		}
-		return { lastActivity, checkpointCount }
+		return lastActivity
 	}
 
 	/**
@@ -421,102 +377,38 @@ export class TldrawMCP extends McpAgent<Env> {
 	}
 
 	/**
-	 * Reports what a Durable Object actually holds, for confirming a teardown landed.
+	 * Condemns this DO if it has been idle for `maxIdleMs`, and reports whether it
+	 * was kept. Never calls destroy() inline: it writes the SDK's own durable
+	 * destroy marker, and Agent.alarm() runs destroy() from its marker branch, which
+	 * returns before reaching the partyserver alarm body that runs onStart/init().
+	 * That keeps this path off `this.name`, unhydrated on that branch alone — an
+	 * ordinary schedule callback does go through init. The marker doubles as the
+	 * idempotency guard across evictions.
 	 *
-	 * Any RPC wakes the object and the Agent constructor recreates its own schema, so
-	 * SDK tables are always present here and `bytes` never returns to zero. The signal
-	 * that distinguishes wiped from intact is `appTables`: `checkpoints`/`meta` exist
-	 * only if this session's own data survived.
+	 * The setAlarm calls are a fallback. The SDK re-arms after every schedule
+	 * callback returns, and that path sees the marker and calls `setAlarm(now)`
+	 * itself, so any delay we asked for is overwritten — these writes only matter
+	 * if that re-arm never runs.
 	 */
-	async inspect(): Promise<InspectResult> {
-		const sql = this.ctx.storage.sql
-		const tables = sql
-			.exec(`SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name`)
-			.toArray()
-			.map((r) => String(r.name))
-		const appTables = tables.filter((t) => APP_TABLES.includes(t))
-		const stats = this.readPruneStats()
-		return {
-			id: this.ctx.id.toString(),
-			bytes: sql.databaseSize,
-			tables,
-			appTables,
-			wiped: appTables.length === 0,
-			destroyPending: (await this.ctx.storage.get('cf_agents_destroy_pending')) === true,
-			alarm: await this.ctx.storage.getAlarm(),
-			lastActivity: stats.lastActivity,
-			checkpointCount: stats.checkpointCount,
-		}
-	}
-
-	/**
-	 * Tears down immediately by the named strategy, so the teardown paths can be
-	 * compared against each other in production without a deploy per variant.
-	 *
-	 * - `sdk`: condemned via the destroy marker, exactly as the prune pass did, so the
-	 *   SDK's own destroy() — isolate abort included — runs from the alarm.
-	 * - `quiet`: destroy() with the abort defused, so the object shuts down normally.
-	 * - `raw`: deleteAlarm + deleteAll only, touching none of the SDK's teardown.
-	 *
-	 * `sdk` cannot destroy inline: the SDK's abort fires on a `setTimeout(0)` that
-	 * races this method's own response, so the caller would record an error for a wipe
-	 * that succeeded — the failure mode that made a production pass report 18,580
-	 * errors against 161 successes.
-	 */
-	async wipeNow(mode: WipeMode): Promise<{ id: string; mode: WipeMode; before: number }> {
-		const id = this.ctx.id.toString()
-		const before = this.ctx.storage.sql.databaseSize
-		if (mode === 'raw') {
-			await this.ctx.storage.deleteAlarm()
-			await this.ctx.storage.deleteAll()
-		} else if (mode === 'quiet') {
-			await this.destroy()
-		} else {
-			await this.ctx.storage.put('cf_agents_destroy_pending', true)
-			await this.ctx.storage.setAlarm(Date.now() + DESTROY_ALARM_DELAY_MS)
-		}
-		return { id, mode, before }
-	}
-
-	/**
-	 * Condemns this DO if it has been idle for `maxIdleMs`. Never calls destroy()
-	 * inline: it writes the SDK's own durable destroy marker and arms an immediate
-	 * alarm, and Agent.alarm() runs destroy() in a fresh invocation before any
-	 * onStart/init(). That keeps the prune path off `this.name`, which throws on
-	 * idFromString stubs. The marker doubles as the idempotency guard across
-	 * script retries and evictions.
-	 */
-	async pruneIfIdle(maxIdleMs: number, dryRun: boolean): Promise<PruneResult> {
-		const id = this.ctx.id.toString()
-		const bytes = this.ctx.storage.sql.databaseSize
+	async destroyIfIdle(maxIdleMs: number): Promise<{ kept: boolean }> {
 		if (await this.ctx.storage.get('cf_agents_destroy_pending')) {
 			// Marker without an alarm (setAlarm failed or the invocation died between the
-			// two writes) would otherwise be reported as condemned on every retry while
-			// the storage stays put. Re-arm; setAlarm is idempotent if one is pending.
-			await this.ctx.storage.setAlarm(Date.now() + DESTROY_ALARM_DELAY_MS)
-			return {
-				id,
-				idleMs: null,
-				checkpointCount: 0,
-				bytes,
-				action: 'destroy-scheduled',
-				note: 'already condemned',
-			}
+			// two writes) leaves the DO condemned but never torn down. Re-arm; setAlarm
+			// is idempotent if one is pending.
+			await this.ctx.storage.setAlarm(Date.now())
+			return { kept: false }
 		}
-		const stats = this.readPruneStats()
-		const { idleMs, action } = decidePrune(stats, Date.now(), maxIdleMs, dryRun)
-		if (action === 'destroy-scheduled') {
-			this.env.MCP_ANALYTICS?.writeDataPoint({ blobs: ['session_end', id], doubles: [Date.now()] })
-			await this.ctx.storage.put('cf_agents_destroy_pending', true)
-			await this.ctx.storage.setAlarm(Date.now() + DESTROY_ALARM_DELAY_MS)
-		}
-		return {
-			id,
-			idleMs: Number.isFinite(idleMs) ? idleMs : null,
-			checkpointCount: stats.checkpointCount,
-			bytes,
-			action,
-		}
+		const lastActivity = this.readLastActivity()
+		// A DO that never recorded activity is treated as maximally idle.
+		const idleMs = lastActivity === null ? Infinity : Date.now() - lastActivity
+		if (idleMs < maxIdleMs) return { kept: true }
+		this.env.MCP_ANALYTICS?.writeDataPoint({
+			blobs: ['session_end', this.ctx.id.toString()],
+			doubles: [Date.now()],
+		})
+		await this.ctx.storage.put('cf_agents_destroy_pending', true)
+		await this.ctx.storage.setAlarm(Date.now())
+		return { kept: false }
 	}
 
 	/**
@@ -533,28 +425,30 @@ export class TldrawMCP extends McpAgent<Env> {
 		let failed = false
 		let lastActivity: number | null = null
 		try {
-			const result = await this.pruneIfIdle(idleTtlMs(this.env), false)
-			kept = result.action === 'kept'
-			if (kept) lastActivity = this.readPruneStats().lastActivity
+			kept = (await this.destroyIfIdle(idleTtlMs(this.env))).kept
+			if (kept) lastActivity = this.readLastActivity()
 		} catch (err) {
 			// Must fall through to the re-arm; see the doc comment above.
 			failed = true
-			console.error('[TldrawMCP] expireIfIdle check failed', String(err))
+			console.error('[TldrawMCP] expireIfIdle check failed', this.ctx.id.toString(), err)
 		}
 		if (!kept) return
-		// After a failed check `lastActivity + ttl` is usually already in the past
-		// (legacy DO), so the 60s floor alone would retry every minute with no
-		// backoff for as long as storage keeps erroring. Back off to an hour.
-		const floorMs = failed ? 60 * 60_000 : 60_000
-		const next = (lastActivity ?? Date.now()) + idleTtlMs(this.env)
+		const next = nextExpiryTime({
+			failed,
+			lastActivity,
+			now: Date.now(),
+			ttlMs: idleTtlMs(this.env),
+		})
 		try {
-			await this.schedule(new Date(Math.max(next, Date.now() + floorMs)), 'expireIfIdle', null)
+			await this.schedule(new Date(next), 'expireIfIdle', null)
 		} catch (err) {
-			console.error('[TldrawMCP] failed to re-arm idle expiry', String(err))
+			// Without the id a failed re-arm is an object that silently stops expiring
+			// and cannot be traced back from the logs.
+			console.error('[TldrawMCP] failed to re-arm idle expiry', this.ctx.id.toString(), err)
 		}
 	}
 
-	/** Dev helper for prune-integration.test.ts: inspect the armed expiry schedule row(s). */
+	/** Dev helper for idle-expiry.test.ts: inspect the armed expiry schedule row(s). */
 	async listExpirySchedules(): Promise<Array<{ id: string; time: number }>> {
 		const schedules = await this.listSchedules()
 		return schedules
@@ -593,154 +487,15 @@ export default {
 				})
 			}
 
-			// Ops-only: prune idle session DOs by id. Sits above the MCP bearer gate
-			// and uses its own secret so the prune script needs exactly one token.
-			if (url.pathname === '/admin/prune') {
-				if (!env.MCP_PRUNE_ADMIN_TOKEN) return new Response('Not found', { status: 404 })
-				if (request.method !== 'POST') return new Response('Method not allowed', { status: 405 })
-				const denied = requireAdminToken(request, env)
-				if (denied) return denied
-				let body: { ids?: unknown; maxIdleMs?: unknown; dryRun?: unknown; force?: unknown }
-				try {
-					body = await request.json()
-				} catch {
-					return new Response('Bad request: invalid JSON', { status: 400 })
-				}
-				if (typeof body !== 'object' || body === null) {
-					return new Response('Bad request: JSON object required', { status: 400 })
-				}
-				const ids = Array.isArray(body.ids) ? body.ids : null
-				const maxIdleMs =
-					typeof body.maxIdleMs === 'number' && Number.isFinite(body.maxIdleMs)
-						? body.maxIdleMs
-						: null
-				// Strict boolean: a `"true"` string must not silently become a real run.
-				const dryRun = typeof body.dryRun === 'boolean' ? body.dryRun : null
-				if (!ids || maxIdleMs === null || dryRun === null || ids.length > ADMIN_PRUNE_MAX_IDS) {
-					return new Response(
-						`Bad request: ids[] (max ${ADMIN_PRUNE_MAX_IDS}), finite numeric maxIdleMs and boolean dryRun required`,
-						{ status: 400 }
-					)
-				}
-				// Server-side floor so a typo in a hand-rolled request cannot condemn live
-				// sessions; the script's own guard is only defence for the happy path.
-				if (!dryRun && maxIdleMs < MIN_SAFE_IDLE_MS && body.force !== true) {
-					return new Response(
-						`Bad request: maxIdleMs below ${MIN_SAFE_IDLE_MS}ms condemns live sessions; pass force: true`,
-						{ status: 400 }
-					)
-				}
-				// Batch timings, because a client-side timeout says nothing about where the
-				// time went: whether wakes are uniformly slow or a few stragglers hold up
-				// the batch, and how much of it is the retry path.
-				const startedAt = Date.now()
-				const durations: number[] = []
-				let retries = 0
-				const results = await Promise.all(
-					ids.map(async (id) => {
-						const idStartedAt = Date.now()
-						// idFromString throws on malformed hex — keep it inside the per-id guard.
-						let lastError: unknown
-						for (let attempt = 0; attempt < 2; attempt++) {
-							if (attempt > 0) retries++
-							try {
-								const stub = env.MCP_OBJECT.get(env.MCP_OBJECT.idFromString(String(id)))
-								const result = await stub.pruneIfIdle(maxIdleMs, dryRun)
-								durations.push(Date.now() - idStartedAt)
-								return result
-							} catch (err) {
-								lastError = err
-								// `Network connection lost` and `code was updated` are routine at this
-								// fan-out; without a retry they land in the caller's ledger, which
-								// resumes by offset and so would never revisit them.
-								if (!isRetryableDoError(err)) break
-							}
-						}
-						durations.push(Date.now() - idStartedAt)
-						// The message round-trips to the script's JSONL, but Workers logs need a
-						// trace too so DO overload is distinguishable from a malformed id.
-						const name = lastError instanceof Error ? lastError.constructor.name : typeof lastError
-						const message = lastError instanceof Error ? lastError.message : String(lastError)
-						console.error('[admin/prune] id failed', String(id), name, message)
-						return { id: String(id), error: `${name}: ${message}` }
-					})
-				)
-				const sorted = durations.sort((a, b) => a - b)
-				const at = (q: number) => sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * q))]
-				console.warn(
-					`[admin/prune] ids=${ids.length} total=${Date.now() - startedAt}ms retries=${retries} errors=${results.filter((r: any) => r.error).length} p50=${at(0.5)}ms p95=${at(0.95)}ms max=${sorted[sorted.length - 1]}ms`
-				)
-				return Response.json(results)
-			}
-
-			// Ops diagnostics. Both take { ids: [...] } and fan out like /admin/prune, so a
-			// teardown can be inspected and re-run in production without a deploy per
-			// question. Same token, same 100-id cap.
-			if (url.pathname === '/admin/inspect' || url.pathname === '/admin/wipe') {
-				if (!env.MCP_PRUNE_ADMIN_TOKEN) return new Response('Not found', { status: 404 })
-				if (request.method !== 'POST') return new Response('Method not allowed', { status: 405 })
-				const denied = requireAdminToken(request, env)
-				if (denied) return denied
-				let body: { ids?: unknown; mode?: unknown }
-				try {
-					body = await request.json()
-				} catch {
-					return new Response('Bad request: invalid JSON', { status: 400 })
-				}
-				const ids = Array.isArray(body?.ids) ? body.ids : null
-				if (!ids || ids.length > ADMIN_PRUNE_MAX_IDS) {
-					return new Response(`Bad request: ids[] (max ${ADMIN_PRUNE_MAX_IDS}) required`, {
-						status: 400,
-					})
-				}
-				const wiping = url.pathname === '/admin/wipe'
-				const mode = body?.mode ?? 'quiet'
-				if (wiping && mode !== 'sdk' && mode !== 'quiet' && mode !== 'raw') {
-					return new Response('Bad request: mode must be sdk, quiet or raw', { status: 400 })
-				}
-				const results = await Promise.all(
-					ids.map(async (id) => {
-						try {
-							const stub = env.MCP_OBJECT.get(env.MCP_OBJECT.idFromString(String(id)))
-							return wiping ? await stub.wipeNow(mode as WipeMode) : await stub.inspect()
-						} catch (err) {
-							const name = err instanceof Error ? err.constructor.name : typeof err
-							const message = err instanceof Error ? err.message : String(err)
-							return { id: String(id), error: `${name}: ${message}` }
-						}
-					})
-				)
-				return Response.json(results)
-			}
-
-			// What is actually deployed, so a diagnosis is never based on a stale guess
-			// about which build is live.
-			if (url.pathname === '/admin/config') {
-				if (!env.MCP_PRUNE_ADMIN_TOKEN) return new Response('Not found', { status: 404 })
-				const denied = requireAdminToken(request, env)
-				if (denied) return denied
-				return Response.json({
-					idleTtlMs: idleTtlMs(env),
-					destroyAlarmDelayMs: DESTROY_ALARM_DELAY_MS,
-					maxCheckpoints: MAX_CHECKPOINTS,
-					adminPruneMaxIds: ADMIN_PRUNE_MAX_IDS,
-					destroyOverride: true,
-					isDev: env.MCP_IS_DEV === 'true',
-				})
-			}
-
-			// Dev helper for prune-integration.test.ts: map a session id to its DO id.
+			// Dev-only: map an MCP session id to its TldrawMCP DO id, for poking at a
+			// session's object in the wrangler dev inspector.
 			if (url.pathname === '/admin/do-id' && env.MCP_IS_DEV === 'true') {
-				const denied = requireAdminToken(request, env)
-				if (denied) return denied
 				const session = url.searchParams.get('session') ?? ''
 				return new Response(env.MCP_OBJECT.idFromName(`streamable-http:${session}`).toString())
 			}
 
-			// Dev helper for prune-integration.test.ts: inspect a session's armed expiry schedule.
+			// Dev helper for idle-expiry.test.ts: inspect a session's armed expiry schedule.
 			if (url.pathname === '/admin/schedules' && env.MCP_IS_DEV === 'true') {
-				const denied = requireAdminToken(request, env)
-				if (denied) return denied
 				const session = url.searchParams.get('session') ?? ''
 				const stub = env.MCP_OBJECT.get(env.MCP_OBJECT.idFromName(`streamable-http:${session}`))
 				return Response.json(await stub.listExpirySchedules())

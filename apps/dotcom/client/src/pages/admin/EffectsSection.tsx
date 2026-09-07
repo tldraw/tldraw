@@ -179,7 +179,7 @@ function describeChange(row: AdminOutboxRow): string {
 	if (prev.sharedLinkType !== next.sharedLinkType) {
 		changes.push(`link type → ${next.sharedLinkType}`)
 	}
-	if (prev.ownerId !== next.ownerId || prev.owningGroupId !== next.owningGroupId) {
+	if (prev.owningGroupId !== next.owningGroupId) {
 		changes.push('ownership moved')
 	}
 	return changes.length ? changes.join(', ') : 'updated'
