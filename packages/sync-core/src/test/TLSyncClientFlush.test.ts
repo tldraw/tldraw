@@ -106,6 +106,20 @@ describe('TLSyncClient.flushChanges', () => {
 		expect(client.hasUnsyncedChanges()).toBe(false)
 	})
 
+	/*
+	 * Pins the contract rather than reproducing the failure: the store's listener is synchronous
+	 * under NODE_ENV=test, so the frame the change would otherwise wait for does not exist here and
+	 * this passes with or without the `_flushHistory` that makes it true in a browser. Kept because
+	 * the contract is the point — asking must account for a change the store has not handed over.
+	 */
+	it('reports the change an edit just made', async () => {
+		const { client, store, docId } = makeInstance()
+
+		store.update(docId, (doc) => ({ ...doc, text: 'edited' }))
+
+		expect(client.hasUnsyncedChanges()).toBe(true)
+	})
+
 	// Closing abandons the socket, so a caller waiting to read the change back must be told rather
 	// than left waiting on an ack that is never coming.
 	it('rejects a pending flush when the client closes', async () => {

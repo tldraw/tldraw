@@ -411,6 +411,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 * @public
 	 */
 	hasUnsyncedChanges(): boolean {
+		// The store hands changes over on a frame, so an edit made a moment ago is in neither queue
+		// yet and this would answer "nothing outstanding" for the very change a caller is asking
+		// about. `pushPresence` flushes for the same reason.
+		this.store._flushHistory()
 		return this.pendingPushRequests.length > 0 || !!this.unsentChanges.nextDiff
 	}
 
@@ -429,11 +433,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 * @public
 	 */
 	flushChanges(): Promise<void> {
-		// Hand the store's pending history over before asking whether anything is outstanding. A
-		// change made a moment ago is not in `unsentChanges` yet, so without this the answer is
-		// "nothing to send" for the very edit the caller is waiting on. `pushPresence` does the
-		// same, for the same reason.
-		this.store._flushHistory()
 		if (this.isSettled()) return Promise.resolve()
 		// Run the queued push now rather than on the frame the throttle would have chosen.
 		this.fpsScheduler.flushNow()
@@ -597,6 +596,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				// as "this client still owes the server something" forever.
 				this.unsentChanges.nextDiff = undefined
 				this.unsentChanges.nextPresence = undefined
+				// Dropping them can be what leaves nothing outstanding, and no ack is coming to
+				// settle anyone waiting on it.
+				this.resolveFlushWaiters()
 				return
 			}
 
