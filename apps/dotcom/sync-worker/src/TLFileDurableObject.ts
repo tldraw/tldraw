@@ -2122,17 +2122,16 @@ export class TLFileDurableObject extends DurableObject {
 
 	private async _verifyRetiredChain(lastDeltaTimestamp: string, expected: RoomSnapshot) {
 		try {
-			// One queue slot: reconstruction fans out to the keyframe plus every segment in
-			// parallel, and with one other R2 op alongside that is exactly the Worker's six
-			// simultaneous connections. Outside the queue it would contend with the persist.
-			const reconstruction = await this.addR2Operation('version_chain_verify', () =>
-				reconstructVersion({
-					chainBucket: this.r2.versionChain,
-					legacyBucket: this.r2.versionCache,
-					roomKey: getR2KeyForRoom(this.documentInfo),
-					timestamp: lastDeltaTimestamp,
-				})
-			)
+			// Each read is its own queued operation rather than the whole reconstruction holding one
+			// slot: a slot is sized for an asset copy's two connections, and reconstruction fans out to
+			// the keyframe plus every segment — five beside a copy is over the six.
+			const reconstruction = await reconstructVersion({
+				chainBucket: this.r2.versionChain,
+				legacyBucket: this.r2.versionCache,
+				roomKey: getR2KeyForRoom(this.documentInfo),
+				timestamp: lastDeltaTimestamp,
+				schedule: (read) => this.addR2Operation('version_chain_verify', read),
+			})
 			// A legacy full copy is not the chain reading back; only a chain answer counts. Compared on
 			// the head hash, not the envelope hash: `expected` may be the wake seed, whose documentClock a
 			// comment write moved past the clock the chain head was written at — a chain-age keyframe on
