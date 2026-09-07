@@ -180,15 +180,17 @@ describe('writeVersionChainEntry', () => {
 		}
 
 		// Eviction: chain state survives in DO storage, the in-memory buffer does not. The durable
-		// object rehydrates it from the open segment, which is what the DO wiring below does.
-		const rehydrated = pending
+		// object rehydrates it from the open segment, so read it back from the bucket rather than
+		// reusing the in-memory copy — otherwise this test never exercises the storage round trip.
+		const rehydrated = await readOpenSegment(bucket, chain!.openSegment!.key)
+		expect(rehydrated).not.toBeNull()
 
 		const afterWake = await writeVersionChainEntry({
 			bucket,
 			roomKey,
 			iso: isoAt(2),
 			chain: JSON.parse(JSON.stringify(chain)),
-			pending: rehydrated,
+			pending: rehydrated!,
 			previous: versions[1],
 			next: versions[2],
 			now: 2000,
