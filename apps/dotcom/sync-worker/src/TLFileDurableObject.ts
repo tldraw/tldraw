@@ -773,11 +773,13 @@ export class TLFileDurableObject extends DurableObject {
 		// rewriting it from an empty buffer would silently erase the deltas its metadata still
 		// promises. The caller starts a fresh chain on null.
 		const segmentKey = chain.openSegment.key
-		const deltas = await retry(() => readOpenSegment(this.r2.versionChain, segmentKey), {
-			attempts: 3,
-			waitDuration: 500,
-			matchError: isTransientConnectionError,
-		})
+		const deltas = await this.addR2Operation('version_chain_write', () =>
+			retry(() => readOpenSegment(this.r2.versionChain, segmentKey), {
+				attempts: 3,
+				waitDuration: 500,
+				matchError: isTransientConnectionError,
+			})
+		)
 		if (deltas) this._pendingDeltas = deltas
 		return deltas
 	}
