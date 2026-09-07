@@ -1,9 +1,9 @@
 import { Environment } from './types'
 import { hashToPercentage } from './utils/featureFlags'
 
-export type VersionChainMode = 'off' | 'dual' | 'chain'
+const MODES = ['off', 'dual', 'chain'] as const
 
-const MODES: VersionChainMode[] = ['off', 'dual', 'chain']
+export type VersionChainMode = (typeof MODES)[number]
 
 /**
  * How this room's versions get written: `off` legacy full copies only, `dual` both (the bake, where
