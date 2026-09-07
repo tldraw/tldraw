@@ -1,5 +1,5 @@
 import { IRequest } from 'itty-router'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Environment } from '../types'
 import { getMonthPrefix, getPreviousMonth, getRoomHistory } from './getRoomHistory'
 
@@ -44,6 +44,8 @@ async function listHistory(timestamps: string[], offset: string) {
 }
 
 describe('getRoomHistory', () => {
+	afterEach(() => vi.useRealTimers())
+
 	it('collects consecutive months once and excludes the pagination offset', async () => {
 		const timestamps = [
 			'2026-03-31T12:00:00.000Z',
@@ -56,3 +58,19 @@ describe('getRoomHistory', () => {
 		})
 	})
 })
+it.each(['!', 'not-a-date'])(
+	'uses now for scanning and filtering invalid offset %s',
+	async (offset) => {
+		vi.useFakeTimers()
+		vi.setSystemTime(new Date('2026-03-31T12:00:00Z'))
+		const timestamps = [
+			'2026-03-31T13:00:00.000Z',
+			'2026-03-30T10:00:00.000Z',
+			'2026-02-28T10:00:00.000Z',
+		]
+		await expect(listHistory(timestamps, offset)).resolves.toEqual({
+			timestamps: timestamps.slice(1),
+			hasMore: false,
+		})
+	}
+)
