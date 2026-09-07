@@ -1,7 +1,12 @@
 import { UnknownRecord } from '@tldraw/store'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { describe, expect, it } from 'vitest'
-import { applySnapshotDelta, buildSnapshotDelta, snapshotContentHash } from './versionDelta'
+import {
+	applySnapshotDelta,
+	buildSnapshotDelta,
+	snapshotContentHash,
+	snapshotHeadHash,
+} from './versionDelta'
 
 function rec(id: string, props: Record<string, unknown> = {}): UnknownRecord {
 	return { id, typeName: 'shape', ...props } as UnknownRecord
@@ -227,6 +232,39 @@ describe('buildSnapshotDelta / applySnapshotDelta', () => {
 		expect(
 			snapshotContentHash(snapshot({ ...base, tombstoneHistoryStartsAtClock: undefined }))
 		).not.toBe(snapshotContentHash(base))
+	})
+
+	it('head hash ignores documentClock and nothing else', () => {
+		const base = snapshot({ documents: [{ state: rec('shape:a'), lastChangedClock: 1 }] })
+
+		expect(snapshotHeadHash(snapshot({ ...base, documentClock: 2 }))).toBe(snapshotHeadHash(base))
+		expect(snapshotHeadHash(snapshot({ ...base, tombstones: { 'shape:b': 1 } }))).not.toBe(
+			snapshotHeadHash(base)
+		)
+		expect(snapshotHeadHash(snapshot({ ...base, tombstoneHistoryStartsAtClock: 1 }))).not.toBe(
+			snapshotHeadHash(base)
+		)
+	})
+
+	it('content hash catches a corrupted documentClock on replay', () => {
+		const prev = snapshot({ documents: [{ state: rec('shape:a'), lastChangedClock: 1 }] })
+		const next = snapshot({
+			documentClock: 2,
+			documents: [{ state: rec('shape:a', { x: 1 }), lastChangedClock: 2 }],
+		})
+		const delta = buildSnapshotDelta(prev, next)
+
+		const replayed = applySnapshotDelta(prev, { ...delta, documentClock: 0 })
+		expect(snapshotContentHash(replayed)).not.toBe(delta.hash)
+	})
+
+	it('refuses a delta that lost its documentClock', () => {
+		const prev = snapshot()
+		const delta = buildSnapshotDelta(prev, snapshot({ documentClock: 2 }))
+
+		expect(() => applySnapshotDelta(prev, { ...delta, documentClock: undefined })).toThrow(
+			/documentClock/
+		)
 	})
 
 	it('refuses an unknown delta version', () => {
