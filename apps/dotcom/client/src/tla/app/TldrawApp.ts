@@ -1089,8 +1089,6 @@ export class TldrawApp {
 		return createIntl()!
 	}
 
-	// Explicit return type: inferring it (via createFile → getWorkspaceFilesSorted) is circular when
-	// uploadTldrFiles.test.ts is checked first, which turns getWorkspaceFilesSorted's result into any.
 	async uploadTldrFiles(
 		files: File[],
 		opts: {
