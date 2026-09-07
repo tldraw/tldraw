@@ -303,9 +303,11 @@ export class TldrawMCP extends McpAgent<Env> {
 	}
 
 	/**
-	 * Reads the activity signals without assuming init() ran: on a cold legacy
-	 * DO woken by a raw RPC, our tables may not exist, so every read tolerates
-	 * `no such table` and reports "never active".
+	 * The last time this session did anything, or null if it never did.
+	 *
+	 * Tolerating `no such table` is defensive: expiry callbacks run after init()
+	 * has created the tables, so a missing one means something unexpected, and
+	 * reporting "never active" is the conservative read.
 	 */
 	readLastActivity(): number | null {
 		const sql = this.ctx.storage.sql
