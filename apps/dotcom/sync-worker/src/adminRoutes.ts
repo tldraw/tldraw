@@ -169,18 +169,10 @@ export const adminRoutes = createRouter<Environment>()
 				.leftJoin('group_file', 'group_file.fileId', 'file.id')
 				.where('file.isDeleted', '=', false)
 				.where((eb) =>
-					eb.or([
-						eb('file.ownerId', '=', userRow.id),
-						eb(
-							'group_file.groupId',
-							'in',
-							memberships.length ? memberships.map((m) => m.id) : ['']
-						),
-					])
+					eb('group_file.groupId', 'in', memberships.length ? memberships.map((m) => m.id) : [''])
 				)
-				// distinctOn dedupes before the limit is applied, so a file matching both the owner
-				// clause and multiple group memberships (join fanout) still only counts once against
-				// the 500 cap.
+				// distinctOn dedupes before the limit is applied, so a file matching multiple
+				// group memberships (join fanout) still only counts once against the 500 cap.
 				.distinctOn('file.id')
 				.orderBy('file.id')
 				.selectAll('file')
@@ -545,7 +537,6 @@ export const adminRoutes = createRouter<Environment>()
 			)
 			.where((eb) =>
 				eb.or([
-					eb('file.ownerId', '=', userRow.id),
 					eb('file.owningGroupId', '=', userRow.id),
 					eb(
 						'file.owningGroupId',
@@ -651,7 +642,7 @@ export const adminRoutes = createRouter<Environment>()
 		const file = await pg
 			.selectFrom('file')
 			.where('id', '=', slug)
-			.select(['id', 'name', 'ownerId', 'owningGroupId', 'isDeleted', 'createSource'])
+			.select(['id', 'name', 'owningGroupId', 'isDeleted', 'createSource'])
 			.executeTakeFirst()
 
 		const snapshot = await getFileSnapshot(env, slug, true)
@@ -842,7 +833,6 @@ export const adminRoutes = createRouter<Environment>()
 				.selectFrom('file')
 				.where('id', '=', slug)
 				.select([
-					'ownerId',
 					'owningGroupId',
 					'createdAt',
 					'updatedAt',
@@ -922,7 +912,7 @@ export const adminRoutes = createRouter<Environment>()
 		const stats: AdminFileStatsResponseBody = {
 			file: fileRow
 				? {
-						ownerType: fileRow.ownerId ? 'user' : fileRow.owningGroupId ? 'group' : 'none',
+						ownerType: fileRow.owningGroupId ? 'group' : 'none',
 						createdAt: fileRow.createdAt,
 						updatedAt: fileRow.updatedAt,
 						isDeleted: fileRow.isDeleted,

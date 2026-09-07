@@ -314,3 +314,30 @@ describe('shifted number-row shortcuts across keyboard layouts', () => {
 		expect(zoomOut).toHaveBeenCalledTimes(1)
 	})
 })
+
+// Regression test for #10422: frame-selection was the only cmd shortcut without a ctrl twin,
+// so Ctrl+Alt+G did nothing on Windows and Linux even though the shortcuts dialog listed it.
+describe('frame selection shortcut', () => {
+	it.each([
+		['cmd+alt+g (macOS)', { metaKey: true }],
+		['ctrl+alt+g (Windows / Linux)', { ctrlKey: true }],
+	])('wraps the selection in a frame on %s', async (_label, modifier) => {
+		const { editor } = await setupFocusedEditor()
+		const a = createShapeId()
+		const b = createShapeId()
+		act(() => {
+			editor.createShapes([
+				{ id: a, type: 'geo', x: 0, y: 0 },
+				{ id: b, type: 'geo', x: 200, y: 200 },
+			])
+			editor.select(a, b)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, ...modifier })
+
+		const frame = editor.getCurrentPageShapes().find((s) => editor.isShapeOfType(s, 'frame'))
+		expect(frame).toBeDefined()
+		expect(editor.getShape(a)?.parentId).toBe(frame!.id)
+		expect(editor.getShape(b)?.parentId).toBe(frame!.id)
+	})
+})

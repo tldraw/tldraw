@@ -21,6 +21,7 @@ import {
 	putThumbnailPng,
 	resolveThumbnailBoard,
 	writeScreenshotTelemetry,
+	summarizeSnapshotContent,
 } from './thumbnailRender'
 import { classifyScreenshotFailure, reportThumbnailError } from './thumbnailShared'
 
@@ -33,7 +34,7 @@ import { classifyScreenshotFailure, reportThumbnailError } from './thumbnailShar
 // This path has no cap of any kind, by design. What bounds it is the render debounce upstream in
 // TLFileDurableObject, which is per-board, so total spend scales with how many boards are edited at
 // once. See "Request limits" in browser-run-thumbnails.md for why, and why the only rate limiting in
-// the pipeline lives on the MCP endpoint instead (sharedBoardScreenshotMcp.ts).
+// the pipeline lives on the MCP endpoint instead (mcpServer.ts).
 
 // OG images render a single page as the unfurl preview. Pick the first page (in board order) that
 // has content, so a board whose first page is empty still gets a meaningful image; fall back to the
@@ -99,11 +100,22 @@ export async function enqueueOgImageRender(
 	{
 		reason,
 		followUp,
+		firedAt,
 	}: {
 		// Required rather than defaulted: every trigger knows why it is asking, and a default would put
 		// whichever one forgot to say into some other trigger's telemetry bucket.
 		reason: OgImageRenderReason
 		followUp?: boolean
+		/**
+		 * When the ask fired, for asks made by the file DO's debounce alarm. The marker's expiry is
+		 * stamped from it rather than from the moment the R2 write below lands: the alarm resets the
+		 * debouncer's window *before* this function's R2 round trip runs, so a persist can land in
+		 * between and start a new max-wait window earlier than the marker's write. Counting the TTL
+		 * from the fire keeps that window ending at or past the marker's expiry, which is what lets
+		 * OG_RENDER_MAX_WAIT_MS >= OG_PENDING_MARKER_TTL_MS hold by exact equality (both pinned in
+		 * ogImageQueue.test.ts). Callers that are not debounced fires omit it.
+		 */
+		firedAt?: number
 	}
 ): Promise<EnqueueOgImageResult> {
 	if (!env.THUMBNAILS || !env.QUEUE) return 'unavailable'
@@ -119,7 +131,7 @@ export async function enqueueOgImageRender(
 
 	await env.THUMBNAILS.put(pendingKey, new Uint8Array(), {
 		customMetadata: {
-			expiresAt: String(Date.now() + OG_PENDING_MARKER_TTL_MS),
+			expiresAt: String((firedAt ?? Date.now()) + OG_PENDING_MARKER_TTL_MS),
 		},
 	})
 
@@ -310,15 +322,17 @@ export async function handleOgImageRenderMessage(
 
 		// The render page exports the chosen page; the worker screenshots it through the BROWSER
 		// binding and writes the PNG to the cache key the OG route reads.
+		const pageId = pickOgImagePageId(snapshot)
 		const render = await captureThumbnailScreenshot(env, board, {
 			surface: 'og',
-			pageId: pickOgImagePageId(snapshot),
+			pageId,
 			theme: 'light',
 			width: DEFAULT_THUMBNAIL_WIDTH,
 			height: DEFAULT_THUMBNAIL_HEIGHT,
 			// `source` is the telemetry surface, not the render pipeline: these sessions belong to the
 			// queue's ledger even though the job is signed for the og pipeline.
 			telemetry: { source: 'queue', reason },
+			content: summarizeSnapshotContent(snapshot, pageId),
 		})
 		await putThumbnailPng(env.THUMBNAILS, cacheKey, render.base64, board.version)
 		await clearOgImagePendingMarker(env, boardRef)
@@ -372,6 +386,10 @@ export async function handleOgImageRenderMessage(
  * queue captures in production (measured 2026-08-11 via the `followup` telemetry blob): on a board
  * that settled, the follow-up merely relocated the render the debounced ask was about to do; on a
  * board still moving, it rendered a mid-edit state the next debounced render superseded.
+ *
+ * Both halves price the job ending in an image write, which a give-up never does — the asks its
+ * marker turned away deferred into nothing. A known residue, not a regression; see "the deferral
+ * stops at that give-up" in browser-run-thumbnails.md.
  *
  * Deliberately never chained. A published board republished without pause would otherwise find
  * itself stale on every follow-up and render continuously. One extra render per triggered render is

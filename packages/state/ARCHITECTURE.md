@@ -1,8 +1,8 @@
-# @tldraw/state Architecture
+# @tldraw/state architecture
 
 This document provides a machine-readable guide to the @tldraw/state package structure, optimized for AI agents and automated tools.
 
-## Package Overview
+## Package overview
 
 **Package Name**: @tldraw/state  
 **Purpose**: Reactive state management library using signals  
@@ -27,17 +27,20 @@ packages/state/
 │       ├── types.ts                # Core type definitions
 │       ├── constants.ts            # System constants
 │       ├── helpers.ts              # Utility functions
-│       ├── isSignal.ts            # Type guards
-│       ├── warnings.ts            # Development warnings
-│       └── __tests__/             # Test files
+│       ├── isSignal.ts             # Type guards
+│       ├── isComputed.ts           # Computed brand check (no import of Computed.ts)
+│       ├── localStorageAtom.ts     # Atom persisted to localStorage
+│       ├── warnings.ts             # Development warnings
+│       └── __tests__/              # Test files
 ├── DOCS.md                        # Human-readable documentation
 ├── README.md                      # Package introduction
-└── ARCHITECTURE.md               # This file
+├── SPEC.md                        # Behavior specification (rule IDs referenced by tests)
+└── ARCHITECTURE.md                # This file
 ```
 
-## Core Modules
+## Core modules
 
-### Primary API Modules
+### Primary API modules
 
 #### `Atom.ts`
 
@@ -57,10 +60,10 @@ packages/state/
 
 - **Exports**: `EffectScheduler`, `react()`, `reactor()`, `EffectSchedulerOptions`, `Reactor`
 - **Purpose**: Side effects and reaction management
-- **Key Classes**: `__EffectScheduler__`, `_Reactor`
+- **Key Classes**: `__EffectScheduler__` (`reactor()` returns a plain object wrapping one)
 - **Dependencies**: ArraySet, capture, helpers, transactions, types
 
-### Supporting Infrastructure
+### Supporting infrastructure
 
 #### `types.ts`
 
@@ -74,13 +77,15 @@ packages/state/
 - **Purpose**: Dependency tracking and debugging
 - **Key Classes**: `CaptureStackFrame`
 - **Role**: Manages parent-child relationships between signals
+- **Dependencies**: helpers, isComputed, types (deliberately not Computed.ts, to avoid a cycle)
 
 #### `transactions.ts`
 
 - **Exports**: `transact()`, `transaction()`, `deferAsyncEffects()`
-- **Purpose**: Batched updates with rollback capability
+- **Purpose**: Batched updates with rollback capability, the global epoch, and the reaction phase (`flushChanges`)
 - **Key Classes**: `Transaction`
 - **Role**: Ensures atomic state updates
+- **Dependencies**: Atom, constants, helpers, types
 
 #### `helpers.ts`
 
@@ -96,10 +101,10 @@ packages/state/
 
 #### `HistoryBuffer.ts`
 
-- **Purpose**: Change tracking for time-travel debugging
-- **Role**: Stores diffs for getDiffSince functionality
+- **Purpose**: Ring buffer of recent diffs
+- **Role**: Stores diffs for `getDiffSince`, so incremental computeds and effects can update from diffs
 
-## Export Mapping
+## Export mapping
 
 ```typescript
 // Core reactive primitives
@@ -109,9 +114,9 @@ react(name, fn, options?) -> () => void
 reactor(name, fn) -> Reactor<T>
 
 // Transaction management
-transact(fn) -> void
-transaction(fn) -> void
-deferAsyncEffects(fn) -> void
+transact(fn) -> T
+transaction(fn) -> T
+deferAsyncEffects(fn) -> Promise<T>
 
 // Debugging and utilities
 unsafe__withoutCapture(fn) -> T
@@ -127,9 +132,12 @@ withDiff(value, diff) -> WithDiff
 UNINITIALIZED -> symbol
 RESET_VALUE -> symbol
 EMPTY_ARRAY -> readonly array
+localStorageAtom(name, initialValue, options?) -> [Atom<T>, cleanup]
+EffectScheduler -> class (low-level effect runner)
+ArraySet -> class (internal)
 ```
 
-## Dependency Graph
+## Dependency graph
 
 ```
 index.ts
@@ -146,6 +154,7 @@ index.ts
 │   ├── capture.ts
 │   ├── constants.ts
 │   ├── helpers.ts
+│   ├── isComputed.ts
 │   ├── transactions.ts
 │   ├── types.ts
 │   └── warnings.ts
@@ -157,114 +166,121 @@ index.ts
 │   ├── transactions.ts
 │   └── types.ts
 ├── capture.ts
-│   ├── Computed.ts
 │   ├── helpers.ts
+│   ├── isComputed.ts
 │   └── types.ts
+├── isSignal.ts
+│   ├── Atom.ts
+│   └── Computed.ts
+├── localStorageAtom.ts
+│   ├── Atom.ts
+│   └── EffectScheduler.ts
 └── transactions.ts
     ├── Atom.ts
-    ├── EffectScheduler.ts
     ├── constants.ts
     ├── helpers.ts
     └── types.ts
 ```
 
-## Key Architectural Patterns
+Atom.ts and transactions.ts import each other; neither uses the other at module-evaluation time, which is what keeps the cycle harmless.
 
-### Signal Interface Pattern
+## Key architectural patterns
+
+### Signal interface pattern
 
 - All reactive values implement `Signal<Value, Diff>` interface
 - Unified API: `get()`, `getDiffSince()`, `__unsafe__getWithoutCapture()`
 - Polymorphic handling of atoms and computed values
 
-### Dependency Tracking Pattern
+### Dependency tracking pattern
 
 - `capture.ts` manages parent-child relationships
 - `Child` interface for dependents, `ArraySet<Child>` for parents
 - Automatic dependency detection via `maybeCaptureParent()`
 
-### Lazy Evaluation Pattern
+### Lazy evaluation pattern
 
 - Computed values only recalculate when dependencies change
 - `lastChangedEpoch` tracking for invalidation
-- `haveParentsChanged()` for efficient dirty checking
+- `haveParentsChanged()` for dirty checking (O(parents)); an actively-listening computed skips it when it has not been traversed by a flush since it was last checked and no transaction is open
 
-### Transaction Pattern
+### Transaction pattern
 
 - Nested transaction support with rollback
 - `initialAtomValues` map for restoration
 - Deferred effect scheduling until commit
 
-### History Tracking Pattern
+### History tracking pattern
 
-- Optional `HistoryBuffer` for change tracking
+- Optional `HistoryBuffer` for diff history
 - `computeDiff` functions for incremental updates
 - `RESET_VALUE` for uncomputable diffs
 
-## Performance Optimizations
+## Performance optimizations
 
-### Memory Management
+### Memory management
 
 - `ArraySet` for efficient parent-child tracking
 - `EMPTY_ARRAY` singleton for empty dependencies
 - Lazy history buffer allocation
 
-### Computation Efficiency
+### Computation efficiency
 
 - Epoch-based invalidation system
 - `unsafe__withoutCapture` for hot paths
 - Singleton pattern for global state
 
-### Effect Scheduling
+### Effect scheduling
 
 - Pluggable `scheduleEffect` for batching
 - `deferAsyncEffects` for transaction control
 - `isActivelyListening` state management
 
-## API Categories by Use Case
+## API categories by use case
 
-### Basic State Management
+### Basic state management
 
 - `atom()` - mutable state
 - `computed()` - derived state
 - `react()` - side effects
 
-### Advanced Control
+### Advanced control
 
 - `reactor()` - controllable reactions
 - `transact()` - batched updates
 - `@computed` - class-based computed properties
 
-### Performance & Debugging
+### Performance & debugging
 
 - `unsafe__withoutCapture()` - performance optimization
 - `whyAmIRunning()` - dependency debugging
-- History tracking options for undo/redo
+- History tracking options for incremental computation
 
-### Type Guards & Utilities
+### Type guards & utilities
 
 - `isSignal()`, `isAtom()`, `isUninitialized()`
 - `UNINITIALIZED`, `RESET_VALUE` constants
 - `withDiff()` for incremental computation
 
-## Integration Points
+## Integration points
 
-### External Dependencies
+### External dependencies
 
 - `@tldraw/utils`: `registerTldrawLibraryVersion()`, `assert()`
 
-### Related Packages
+### Related packages
 
 - `@tldraw/state-react`: React integration layer
 - `@tldraw/store`: Record storage using @tldraw/state
 - `@tldraw/editor`: Canvas editor using reactive state
 
-### Extension Points
+### Extension points
 
 - `AtomOptions.isEqual` - custom equality functions
 - `ComputeDiff` - custom diff computation
 - `EffectSchedulerOptions.scheduleEffect` - custom scheduling
 
-## File Navigation Guide for AI Agents
+## File navigation guide for AI agents
 
 **To understand signals**: Start with `types.ts` → `Atom.ts` → `Computed.ts`  
 **To understand reactivity**: Start with `EffectScheduler.ts` → `capture.ts`  

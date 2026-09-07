@@ -105,7 +105,7 @@ export class Arc2d extends Geometry2d {
 			_largeArcFlag: largeArcFlag,
 			_sweepFlag: sweepFlag,
 		} = this
-		return `${first ? `M${start.toFixed()}` : ``} A${radius} ${radius} 0 ${largeArcFlag} ${sweepFlag} ${end.toFixed()}`
+		return `${first ? `M${start}` : ``} A${radius} ${radius} 0 ${largeArcFlag} ${sweepFlag} ${end}`
 	}
 
 	override getLength() {

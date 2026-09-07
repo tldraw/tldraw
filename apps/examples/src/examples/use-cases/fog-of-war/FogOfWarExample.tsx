@@ -97,7 +97,7 @@ const components: TLComponents = {
 export default function FogOfWarExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw persistenceKey="example" components={components} />
+			<Tldraw persistenceKey="fog-of-war-example" components={components} />
 		</div>
 	)
 }

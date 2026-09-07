@@ -7,7 +7,10 @@ import {
 	TLPointerEventInfo,
 	Vec,
 } from '@tldraw/editor'
-import { updateArrowTargetState } from '../../../shapes/arrow/arrowTargetState'
+import {
+	clearArrowTargetState,
+	updateArrowTargetState,
+} from '../../../shapes/arrow/arrowTargetState'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 import {
 	getNoteAdjacentPositions,
@@ -55,6 +58,8 @@ export class PointingHandle extends StateNode {
 
 	override onExit() {
 		this.editor.setHintingShapes([])
+		// onEnter shows the arrow's binding target; a click without a drag would leave it showing
+		clearArrowTargetState(this.editor)
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 

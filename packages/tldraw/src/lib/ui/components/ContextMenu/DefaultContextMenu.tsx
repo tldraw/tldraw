@@ -6,7 +6,8 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
-import { ReactNode, memo, useCallback, useEffect, useRef } from 'react'
+import { ReactNode, memo, useCallback, useContext, useEffect, useRef } from 'react'
+import { ContextMenuPagePointContext } from '../../context/actions'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
@@ -77,9 +78,14 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 		if (Date.now() < suppressDismissUntilRef.current) e.preventDefault()
 	}, [])
 
+	const rContextMenuPagePoint = useContext(ContextMenuPagePointContext)
+
 	const cb = useCallback(
 		(isOpen: boolean) => {
 			const body = editor.getContainerDocument().body
+			if (rContextMenuPagePoint) {
+				rContextMenuPagePoint.current = isOpen ? editor.inputs.getCurrentPagePoint().clone() : null
+			}
 			if (!isOpen) {
 				const onlySelectedShape = editor.getOnlySelectedShape()
 
@@ -119,7 +125,7 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 				}
 			}
 		},
-		[editor, preventEscapeFromLosingShapeFocus]
+		[editor, preventEscapeFromLosingShapeFocus, rContextMenuPagePoint]
 	)
 
 	const container = useContainer()

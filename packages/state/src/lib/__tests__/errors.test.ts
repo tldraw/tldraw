@@ -36,6 +36,30 @@ describe('computed signals that throw (CE)', () => {
 		expect(b.get()).toBe(3)
 	})
 
+	it('[CE1] cache a throw from the very first computation too', () => {
+		let numComputations = 0
+		const a = atom('', 1)
+		const b = computed('', () => {
+			numComputations++
+			if (a.get() === 1) throw new Error('test')
+			return a.get()
+		})
+
+		expect(() => b.get()).toThrowErrorMatchingInlineSnapshot(`[Error: test]`)
+		expect(() => b.get()).toThrowErrorMatchingInlineSnapshot(`[Error: test]`)
+		expect(() => b.get()).toThrowErrorMatchingInlineSnapshot(`[Error: test]`)
+		expect(numComputations).toBe(1)
+
+		// an unrelated change doesn't re-run it either
+		atom('', 0).set(1)
+		expect(() => b.get()).toThrowErrorMatchingInlineSnapshot(`[Error: test]`)
+		expect(numComputations).toBe(1)
+
+		a.set(2)
+		expect(b.get()).toBe(2)
+		expect(numComputations).toBe(2)
+	})
+
 	it('[CE2] entering the error state notifies effects, but consecutive errors do not', () => {
 		const a = atom('', 1)
 		let numComputations = 0

@@ -29,12 +29,9 @@ export interface EffectSchedulerOptions {
 	 * 	}
 	 * }
 	 * const stop = react('set page title', () => {
-	 * 	document.title = doc.title,
-	 * }, scheduleEffect)
+	 * 	document.title = doc.title
+	 * }, { scheduleEffect })
 	 * ```
-	 *
-	 * @param execute - A function that will execute the effect.
-	 * @returns void
 	 */
 	// eslint-disable-next-line tldraw/method-signature-style
 	scheduleEffect?: (execute: () => void) => void
@@ -95,12 +92,16 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 		// bail out if no atoms have changed since the last time we ran this effect
 		if (this.lastReactedEpoch === getGlobalEpoch()) return
 
-		// bail out if we have parents and they have not changed since last time
-		if (this.parents.length && !haveParentsChanged(this)) {
+		// An effect that has run before (or captured parents before throwing) only needs to run
+		// again if one of those parents changed; that includes an effect that captured no parents at
+		// all. An effect that has never run always runs.
+		if (
+			(this.lastReactedEpoch !== GLOBAL_START_EPOCH || this.parents.length > 0) &&
+			!haveParentsChanged(this)
+		) {
 			this.lastReactedEpoch = getGlobalEpoch()
 			return
 		}
-		// if we don't have parents it's probably the first time this is running.
 		this.scheduleEffect()
 	}
 
@@ -133,7 +134,10 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	attach() {
 		this._isActivelyListening = true
 		for (let i = 0, n = this.parents.length; i < n; i++) {
-			attach(this.parents[i], this)
+			const parent = this.parents[i]
+			// a computed parent may have gone stale while nothing listened; see `attach` in helpers.ts
+			parent.__unsafe__getWithoutCapture(true)
+			attach(parent, this)
 		}
 	}
 

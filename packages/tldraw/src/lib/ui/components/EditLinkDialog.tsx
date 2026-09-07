@@ -47,8 +47,15 @@ export const EditLinkDialog = track(function EditLinkDialog({ onClose }: TLUiDia
 	const editor = useEditor()
 
 	const selectedShape = editor.getOnlySelectedShape()
+	const hasShapeWithUrl = isShapeWithUrl(selectedShape)
 
-	if (!isShapeWithUrl(selectedShape)) {
+	// The shape can be deleted or deselected from under the open dialog (a collaborator, or a
+	// keypress reaching the canvas). Returning null on its own would leave an empty dialog frame.
+	useEffect(() => {
+		if (!hasShapeWithUrl) onClose()
+	}, [hasShapeWithUrl, onClose])
+
+	if (!hasShapeWithUrl) {
 		return null
 	}
 

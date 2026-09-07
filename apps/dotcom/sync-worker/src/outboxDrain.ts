@@ -9,6 +9,14 @@ export const MAX_CONCURRENT_ENTITIES = 5
 // waiting on it and moves on; a timed-out effect is treated as a failure and retried later.
 export const EFFECT_TIMEOUT_MS = 30_000
 
+// Gates which failed attempts get reported (e.g. to Sentry): the first (immediate visibility)
+// and the one that parks the row (data loss). Every attempt in between is a retry-in-progress,
+// not new information, and under a sustained outage reporting all of them would burn the
+// Sentry rate limit and could crowd out the parking events that matter most.
+export function shouldReportEffectFailure(attempts: number): boolean {
+	return attempts === 0 || attempts + 1 >= MAX_ATTEMPTS
+}
+
 export interface OutboxDeps {
 	getBatch(): Promise<TlaEffectOutbox[]> // WHERE attempts < MAX_ATTEMPTS AND ("nextRetryAt" IS NULL OR "nextRetryAt" <= now()) ORDER BY id LIMIT 50
 	deleteRow(id: number): Promise<void>

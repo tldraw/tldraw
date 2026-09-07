@@ -56,13 +56,13 @@ export const queries = defineQueries({
 	 * Recent comments that concern the current user, for the app-level notifications feed. Someone
 	 * else's comment qualifies when it matches at least one of three categories:
 	 *
-	 * - it's on a file the user owns
+	 * - it's on a board in the user's own home workspace
 	 * - it's in a thread the user is a part of (started, or has commented in) and on a file they
 	 *   can still access — a reply
 	 * - it `@`-mentions the user (via the `comment_mention` rows the file's Durable Object
 	 *   extracts from the body, since mentions live inside rich-text JSON that ZQL can't reach),
 	 *   provided the user can access the file: they have a file_state for it, or it belongs to a
-	 *   workspace they're a member of. Ownership carries its own access evidence; replies and
+	 *   workspace they're a member of. A home board carries its own access evidence; replies and
 	 *   mentions need an explicit current-access gate because historical thread participation can
 	 *   outlive access to the file.
 	 *
@@ -90,8 +90,8 @@ export const queries = defineQueries({
 			.whereExists('file', (f) => f.where('isDeleted', '=', false))
 			.where(({ and, or, exists }) =>
 				or(
-					// on a board the user owns
-					exists('file', (f) => f.where('ownerId', '=', ctx.userId)),
+					// on a board in the user's own home workspace (home group id === user id)
+					exists('file', (f) => f.where('owningGroupId', '=', ctx.userId)),
 					// a reply: in a thread the user started or has commented in, on a file they
 					// can still access
 					and(
@@ -158,7 +158,7 @@ export const queries = defineQueries({
 	/**
 	 * The caller's own comments that someone else has reacted to, for the notifications feed's
 	 * "reacted to your comment" entries. Uses the same access building blocks as {@link comments}
-	 * (owner, file state, group membership). Ordering by reaction time is client-side:
+	 * (file state, group membership). Ordering by reaction time is client-side:
 	 * `buildReactionNotifications` stamps each entry with its newest foreign reaction and
 	 * `mergeNotifications` sorts on it.
 	 *
@@ -191,7 +191,6 @@ export const queries = defineQueries({
 			// having authored a comment doesn't outlive access to the board it's on
 			.where(({ or, exists }) =>
 				or(
-					exists('file', (f) => f.where('ownerId', '=', ctx.userId)),
 					exists('file', (f) =>
 						f.where(({ or, exists }) =>
 							or(

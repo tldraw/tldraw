@@ -153,6 +153,7 @@ export function useCanvasEvents() {
 				if (e.dataTransfer?.files?.length) {
 					const files = Array.from(e.dataTransfer.files)
 
+					editor.markHistoryStoppingPoint('drop')
 					await editor.putExternalContent({
 						type: 'files',
 						files,
@@ -163,6 +164,7 @@ export function useCanvasEvents() {
 
 				const url = e.dataTransfer.getData('url')
 				if (url) {
+					editor.markHistoryStoppingPoint('drop')
 					await editor.putExternalContent({
 						type: 'url',
 						url,

@@ -113,6 +113,7 @@ function DropdownHalf<T extends string>({
 	sideOffset: number
 	invertIcon?: boolean
 }) {
+	const ctx = useStylePanelContext()
 	const editor = useEditor()
 	const msg = useTranslation()
 	const [isOpen, setIsOpen] = React.useState(false)
@@ -150,6 +151,7 @@ function DropdownHalf<T extends string>({
 								data-testid={`style.${uiType}.${item.value}`}
 								title={`${msg(label)} — ${msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)}`}
 								onClick={() => {
+									ctx.onHistoryMark('select style dropdown item')
 									onValueChange(style, item.value)
 									tlmenus.deleteOpenMenu(id, editor.contextId)
 									setIsOpen(false)

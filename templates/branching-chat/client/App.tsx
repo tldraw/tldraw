@@ -44,12 +44,9 @@ const components: TLComponents = {
 		const editor = useEditor()
 		const shouldShowStylePanel = useValue(
 			'shouldShowStylePanel',
-			() => {
-				return (
-					!editor.isIn('select') ||
-					editor.getSelectedShapes().some((s) => s.type !== 'node' && s.type !== 'connection')
-				)
-			},
+			() =>
+				!editor.isIn('select') ||
+				editor.getSelectedShapes().some((s) => s.type !== 'node' && s.type !== 'connection'),
 			[editor]
 		)
 		if (!shouldShowStylePanel) return

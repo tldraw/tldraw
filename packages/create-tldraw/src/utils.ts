@@ -32,7 +32,7 @@ export function isValidPackageName(projectName: string) {
 	return /^(?:@[a-z\d\-*~][a-z\d\-*._~]*\/)?[a-z\d\-~][a-z\d\-._~]*$/.test(projectName)
 }
 
-export function toValidPackageName(projectName: string) {
+function toValidPackageName(projectName: string) {
 	return projectName
 		.trim()
 		.toLowerCase()
@@ -41,7 +41,7 @@ export function toValidPackageName(projectName: string) {
 		.replace(/[^a-z\d\-~]+/g, '-')
 }
 
-export function cancel(): never {
+function cancel(): never {
 	outro('Setup cancelled.\n   Try again or visit https://tldraw.dev/docs to learn more.')
 	process.exit(1)
 }
@@ -60,9 +60,7 @@ export function getPackageManager(): PackageManager {
 	const userAgent = process.env.npm_config_user_agent
 	if (!userAgent) return 'npm'
 
-	const pkgSpec = userAgent.split(' ')[0]
-	const pkgSpecArr = pkgSpec.split('/')
-	const manager = pkgSpecArr[0]
+	const manager = userAgent.split(' ')[0].split('/')[0]
 	if (manager === 'pnpm') return 'pnpm'
 	if (manager === 'yarn') return 'yarn'
 

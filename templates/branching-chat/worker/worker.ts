@@ -5,6 +5,8 @@ import { WorkerEntrypoint } from 'cloudflare:workers'
 import { AutoRouter, error, IRequest } from 'itty-router'
 import { Environment } from './types'
 
+const MODEL_ID = 'gemini-3.7-flash'
+
 // Worker (handles AI requests directly)
 export default class extends WorkerEntrypoint<Environment> {
 	private readonly router = AutoRouter<IRequest, [env: Environment, ctx: ExecutionContext]>({
@@ -21,9 +23,7 @@ export default class extends WorkerEntrypoint<Environment> {
 	}
 
 	private getModel(env: Environment) {
-		return createGoogleGenerativeAI({
-			apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY,
-		})
+		return createGoogleGenerativeAI({ apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY })(MODEL_ID)
 	}
 
 	// Generate a new response from the model
@@ -31,7 +31,7 @@ export default class extends WorkerEntrypoint<Environment> {
 		try {
 			const prompt = (await request.json()) as Array<ModelMessage>
 			const { text } = await generateText({
-				model: this.getModel(env)('gemini-3-flash-preview'),
+				model: this.getModel(env),
 				messages: prompt,
 			})
 
@@ -39,7 +39,7 @@ export default class extends WorkerEntrypoint<Environment> {
 			return new Response(text, {
 				headers: { 'Content-Type': 'application/json' },
 			})
-		} catch (error: any) {
+		} catch (error) {
 			console.error('AI response error:', error)
 			return new Response('An internal server error occurred.', {
 				status: 500,
@@ -53,7 +53,7 @@ export default class extends WorkerEntrypoint<Environment> {
 			const prompt = (await request.json()) as Array<ModelMessage>
 
 			const result = streamText({
-				model: this.getModel(env)('gemini-3-flash-preview'),
+				model: this.getModel(env),
 				messages: prompt,
 				experimental_transform: smoothStream(),
 			})

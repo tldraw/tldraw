@@ -1,4 +1,4 @@
-import { TLDrawShape, TLHighlightShape, last } from '@tldraw/editor'
+import { PageRecordType, TLDrawShape, TLHighlightShape, last } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { base64ToPoints } from '../lib/utils/test-helpers'
 import { TEST_DRAW_SHAPE_SCREEN_POINTS } from './drawing.data'
@@ -121,6 +121,39 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			expect(shape.props.segments[2].type).toBe('straight')
 		})
 
+		it('Switches segment types after the same screen distance regardless of zoom', () => {
+			// Without the zoom correction the threshold is 4 canvas units, which at 800% is
+			// 32 screen pixels of the stroke not following the pointer (#10392).
+			editor.setCamera({ x: 0, y: 0, z: 8 })
+			editor
+				.setCurrentTool(toolType)
+				.pointerDown(100, 100)
+				.pointerMove(120, 100)
+				.keyDown('Shift')
+				.pointerMove(125, 100)
+
+			let shape = editor.getCurrentPageShapes()[0] as DrawableShape
+			expect(shape.props.segments.map((s) => s.type)).toEqual(['free', 'straight'])
+
+			editor.keyUp('Shift').pointerMove(130, 100)
+
+			shape = editor.getCurrentPageShapes()[0] as DrawableShape
+			expect(shape.props.segments.map((s) => s.type)).toEqual(['free', 'straight', 'free'])
+		})
+
+		it('Does not switch segment types until the pointer has moved past the drag distance', () => {
+			editor.setCamera({ x: 0, y: 0, z: 8 })
+			editor
+				.setCurrentTool(toolType)
+				.pointerDown(100, 100)
+				.pointerMove(120, 100)
+				.keyDown('Shift')
+				.pointerMove(123, 100)
+
+			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
+			expect(shape.props.segments.map((s) => s.type)).toEqual(['free'])
+		})
+
 		it('Extends previously drawn line when shift is held', () => {
 			editor
 				.setCurrentTool(toolType)
@@ -161,6 +194,32 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			const shape2 = editor.getCurrentPageShapes()[1] as DrawableShape
 			expect(shape2.props.segments.length).toBe(1)
 			expect(shape2.props.segments[0].type).toBe('straight')
+		})
+
+		it('Does not extend previously drawn line after changing page', () => {
+			// regression for #10400: shift-clicking after a page change appended a
+			// segment to the shape on the old page instead of starting a new shape
+			const page1Id = editor.getCurrentPageId()
+			editor.setCurrentTool(toolType).pointerDown(10, 10).pointerMove(20, 20).pointerUp()
+
+			const shapeOnPage1 = editor.getCurrentPageShapes()[0] as DrawableShape
+			expect(shapeOnPage1.props.segments.length).toBe(1)
+
+			const page2Id = PageRecordType.createId()
+			editor.createPage({ id: page2Id, name: 'Page 2' })
+			editor.setCurrentPage(page2Id)
+			editor.keyDown('Shift').pointerDown(30, 30).pointerMove(40, 40).pointerUp()
+
+			expect(editor.getCurrentPageShapes()).toHaveLength(1)
+			const shapeOnPage2 = editor.getCurrentPageShapes()[0] as DrawableShape
+			expect(shapeOnPage2.id).not.toBe(shapeOnPage1.id)
+			expect(editor.isShapeInPage(shapeOnPage2, page2Id)).toBe(true)
+			expect(shapeOnPage2.props.segments.length).toBe(1)
+			expect(shapeOnPage2.props.segments[0].type).toBe('straight')
+
+			// The shape on the first page is untouched
+			expect(editor.getShape(shapeOnPage1.id)).toEqual(shapeOnPage1)
+			expect(editor.isShapeInPage(shapeOnPage1.id, page1Id)).toBe(true)
 		})
 
 		it('Snaps to 15 degree angle when shift is held', () => {

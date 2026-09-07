@@ -1,7 +1,7 @@
 import { vi } from 'vitest'
 import { atom } from '../Atom'
 import { computed } from '../Computed'
-import { react, reactor } from '../EffectScheduler'
+import { EffectScheduler, react, reactor } from '../EffectScheduler'
 import { transact, transaction } from '../transactions'
 
 // Tests for SPEC.md §10 (change propagation and the reaction phase).
@@ -275,5 +275,108 @@ describe('transactions during the reaction phase (P6)', () => {
 
 		expect(a.__unsafe__getWithoutCapture()).toBe(3)
 		expect(cChanged).toHaveBeenCalledTimes(2)
+	})
+
+	it('[P6][T2][P7] an actively-listening computed read inside a transaction during a reaction sees in-transaction values', () => {
+		// Regression: Computed's cache shortcut for actively-listening computeds ("not traversed this
+		// reaction, so unchanged") ignored that in-transaction changes are only traversed at commit,
+		// and served the pre-transaction value.
+		const a = atom('', 0)
+		const c = computed('', () => a.get() * 2)
+		react('listener', () => {
+			c.get()
+		})
+
+		const trigger = atom('', 0)
+		const seen: number[] = []
+		react('', () => {
+			if (trigger.get() === 0) return
+			transact(() => {
+				a.set(5)
+				seen.push(c.get())
+			})
+		})
+		trigger.set(1)
+
+		expect(seen).toEqual([10])
+		expect(c.get()).toBe(10)
+	})
+
+	it('[P6][T2] an incremental computed read inside a transaction during a reaction is not corrupted', () => {
+		// The stale read above also stamped the computed as checked at the current epoch, so an
+		// incremental computed would later ask for diffs since an epoch that skipped the change.
+		const log = atom<number[], number[]>('log', [], {
+			historyLength: 10,
+			computeDiff: (prev, next) => next.slice(prev.length),
+		})
+		const sum = computed<number>('sum', (prev, lastComputedEpoch) => {
+			if (typeof prev !== 'number') return log.get().reduce((a, b) => a + b, 0)
+			const diffs = log.getDiffSince(lastComputedEpoch)
+			if (typeof diffs === 'symbol') return log.get().reduce((a, b) => a + b, 0)
+			let s = prev
+			for (const diff of diffs) for (const n of diff) s += n
+			return s
+		})
+		react('listener', () => {
+			sum.get()
+		})
+
+		const trigger = atom('', 0)
+		const seen: number[] = []
+		let done = false
+		react('', () => {
+			if (trigger.get() === 0 || done) return
+			done = true
+			transact(() => {
+				log.update((l) => [...l, 10])
+				seen.push(sum.get())
+			})
+		})
+		trigger.set(1)
+		expect(seen).toEqual([10])
+
+		log.update((l) => [...l, 5])
+		expect(sum.get()).toBe(15)
+	})
+})
+
+describe('actively-listening computeds stay fresh (C2)', () => {
+	it('[C2][E6] a computed traversed for a deferred effect but not re-checked is not served stale', () => {
+		// Regression: with deferred scheduling (as in state-react), haveParentsChanged returns at the
+		// first changed parent, so a later computed parent is traversed but never re-checked; a read
+		// during a subsequent reaction then took the "not traversed this reaction" shortcut.
+		const a = atom('', 0)
+		const b = atom('', 0)
+		const c = computed('', () => a.get())
+		const deferred: (() => void)[] = []
+		const scheduler = new EffectScheduler(
+			'',
+			() => {
+				b.get()
+				c.get()
+			},
+			{ scheduleEffect: (execute) => deferred.push(execute) }
+		)
+		scheduler.attach()
+		scheduler.execute()
+
+		// b is checked first, changed, so c is traversed but not re-checked; the run is deferred
+		transact(() => {
+			b.set(1)
+			a.set(1)
+		})
+
+		const z = atom('', 0)
+		const seen: number[] = []
+		react('', () => {
+			if (z.get() > 0) seen.push(c.get())
+		})
+		z.set(1)
+
+		expect(seen).toEqual([1])
+		expect(c.get()).toBe(1)
+
+		deferred.forEach((execute) => execute())
+		expect(c.get()).toBe(1)
 	})
 })
