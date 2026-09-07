@@ -7,11 +7,11 @@ import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
 import { requireAdminAccessToRequest } from '../utils/tla/getAuth'
 import { isTestFile } from '../utils/tla/isTestFile'
 
-function getMonthPrefix(date: Date): string {
+export function getMonthPrefix(date: Date): string {
 	return date.toISOString().split('T')[0].substring(0, 7)
 }
 
-function getPreviousMonth(date: Date): Date {
+export function getPreviousMonth(date: Date): Date {
 	// Use day 1 to avoid overflowing shorter months and scanning the same month twice.
 	return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() - 1, 1))
 }
