@@ -67,8 +67,7 @@ describe('writeVersionChainEntry', () => {
 			now: 0,
 		})
 
-		expect(result.wrote).toBe('keyframe')
-		expect(result.reason).toBe('no-chain')
+		expect(result).toMatchObject({ wrote: 'keyframe', reason: 'no-chain' })
 		expect(result.chain.openSegment).toBeNull()
 		expect(result.pending).toEqual([])
 		expect(await bucket.head(`${roomKey}/${isoAt(0)}.k`)).not.toBeNull()
@@ -148,8 +147,7 @@ describe('writeVersionChainEntry', () => {
 			now: 1000,
 		})
 
-		expect(second.wrote).toBe('keyframe')
-		expect(second.reason).toBe('fingerprint-mismatch')
+		expect(second).toMatchObject({ wrote: 'keyframe', reason: 'fingerprint-mismatch' })
 		expect(second.pending).toEqual([])
 	})
 
@@ -282,8 +280,7 @@ describe('writeVersionChainEntry', () => {
 		})
 
 		// The chain head fingerprint is `before`'s, so the schema move is what the decision sees.
-		expect(second.wrote).toBe('keyframe')
-		expect(second.reason).toBe('schema-change')
+		expect(second).toMatchObject({ wrote: 'keyframe', reason: 'schema-change' })
 	})
 })
 

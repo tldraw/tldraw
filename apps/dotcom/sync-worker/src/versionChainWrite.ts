@@ -12,14 +12,16 @@ import {
 import { decodeVersionBody, encodeVersionBody } from './versionChainCodec'
 import { buildSnapshotDelta, chainHeadHash } from './versionDelta'
 
-export interface VersionChainWriteResult {
+interface VersionChainWriteResultBase {
 	chain: ChainState
 	/** The open segment's contents after this write — exactly what R2 now holds. */
 	pending: PendingDelta[]
-	wrote: 'keyframe' | 'delta'
-	reason?: KeyframeReason
 	bytes: number
 }
+
+export type VersionChainWriteResult =
+	| (VersionChainWriteResultBase & { wrote: 'keyframe'; reason: KeyframeReason })
+	| (VersionChainWriteResultBase & { wrote: 'delta' })
 
 export async function writeVersionChainEntry({
 	bucket,

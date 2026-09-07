@@ -5,6 +5,7 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 import type { TLFileDurableObject } from './TLFileDurableObject'
 import type { TLFileEffectProcessor } from './TLFileEffectProcessor'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
+import type { KeyframeReason } from './versionChain'
 
 // The Browser Rendering binding's Quick Actions method. Cloudflare exposes `env.BROWSER.quickAction`
 // so a Worker can call the Quick Actions endpoints (`screenshot`, `pdf`, …) straight through the
@@ -217,14 +218,12 @@ export type TLServerEvent =
 			 */
 			resumedSockets: number
 	  }
-	| {
+	// Discriminated on `wrote`: only a keyframe carries the reason that forced it.
+	| ({
 			type: 'version_chain_write'
-			/** Which kind of object this persist wrote, and — for a keyframe — what forced it. */
-			wrote: 'keyframe' | 'delta'
-			reason: string
 			bytes: number
 			depth: number
-	  }
+	  } & ({ wrote: 'keyframe'; reason: KeyframeReason } | { wrote: 'delta' }))
 	| {
 			/** A cadence keyframe retired a chain; did that chain reconstruct the state it claims? */
 			type: 'version_chain_verify'

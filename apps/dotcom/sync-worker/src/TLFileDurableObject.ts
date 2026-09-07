@@ -1337,8 +1337,10 @@ export class TLFileDurableObject extends DurableObject {
 				break
 			}
 			case 'version_chain_write': {
+				// '' rather than a shorter blobs array for deltas: the dataset's blob2 column keeps
+				// one meaning across both arms.
 				this.writeEvent(event.type, {
-					blobs: [event.wrote, event.reason],
+					blobs: [event.wrote, event.wrote === 'keyframe' ? event.reason : ''],
 					doubles: [event.bytes, event.depth],
 				})
 				break
@@ -2112,10 +2114,11 @@ export class TLFileDurableObject extends DurableObject {
 		this._lastPersistedSnapshot = snapshot
 		this.logEvent({
 			type: 'version_chain_write',
-			wrote: result.wrote,
-			reason: result.reason ?? '',
 			bytes: result.bytes,
 			depth: result.chain.deltaCount,
+			...(result.wrote === 'keyframe'
+				? { wrote: result.wrote, reason: result.reason }
+				: { wrote: result.wrote }),
 		})
 		// A cadence keyframe retires a complete chain that should reproduce `previous` exactly.
 		// Prove it while both sides are cheap to compare — this keeps the bake's verification
