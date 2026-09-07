@@ -5,7 +5,7 @@ import { SEGMENT_CAP } from './config'
 import { createFakeR2 } from './test/fakeR2'
 import { ChainState, PendingDelta } from './versionChain'
 import { reconstructVersion } from './versionChainRead'
-import { writeVersionChainEntry } from './versionChainWrite'
+import { readOpenSegment, writeVersionChainEntry } from './versionChainWrite'
 
 const roomKey = 'app_rooms/slug'
 
@@ -205,6 +205,49 @@ describe('writeVersionChainEntry', () => {
 		).toEqual(versions[2])
 	})
 
+	it('appends when only the shared clock moved between the head and the wake seed', async () => {
+		const bucket = createFakeR2()
+		const legacyBucket = createFakeR2()
+		const head = snapshot(1, ['shape:a'])
+		const first = await writeVersionChainEntry({
+			bucket,
+			roomKey,
+			iso: isoAt(0),
+			chain: null,
+			pending: [],
+			previous: null,
+			next: head,
+			now: 0,
+		})
+
+		// A comment write bumped the storage clock without touching a document, persist skipped
+		// it, and the durable object hibernated. The seed on wake carries the newer clock.
+		const seed = { ...head, documentClock: 5 }
+		const next = snapshot(6, ['shape:a', 'shape:b'])
+		const afterWake = await writeVersionChainEntry({
+			bucket,
+			roomKey,
+			iso: isoAt(1),
+			chain: first.chain,
+			pending: first.pending,
+			previous: seed,
+			next,
+			now: 1000,
+		})
+
+		expect(afterWake.wrote).toBe('delta')
+		expect(
+			(
+				await reconstructVersion({
+					chainBucket: bucket,
+					legacyBucket,
+					roomKey,
+					timestamp: isoAt(1),
+				})
+			)?.snapshot
+		).toEqual(next)
+	})
+
 	it('cuts a keyframe when the schema hash changes', async () => {
 		const bucket = createFakeR2()
 		const before = snapshot(1, ['shape:a'])
@@ -237,5 +280,29 @@ describe('writeVersionChainEntry', () => {
 		// The chain head fingerprint is `before`'s, so the schema move is what the decision sees.
 		expect(second.wrote).toBe('keyframe')
 		expect(second.reason).toBe('schema-change')
+	})
+})
+
+describe('readOpenSegment', () => {
+	it('returns the deltas the segment holds', async () => {
+		const bucket = createFakeR2()
+		const { chain, pending } = await persistAll(bucket, [
+			snapshot(1, ['shape:a']),
+			snapshot(2, ['shape:a', 'shape:b']),
+		])
+
+		expect(await readOpenSegment(bucket, chain!.openSegment!.key)).toEqual(pending)
+	})
+
+	it('returns null for a missing, unreadable or foreign segment', async () => {
+		const bucket = createFakeR2()
+		await bucket.put(`${roomKey}/garbage.s`, 'not json at all')
+		await bucket.put(`${roomKey}/future.s`, JSON.stringify({ v: 2, deltas: [] }))
+		await bucket.put(`${roomKey}/shape.s`, JSON.stringify({ v: 1 }))
+
+		expect(await readOpenSegment(bucket, `${roomKey}/missing.s`)).toBeNull()
+		expect(await readOpenSegment(bucket, `${roomKey}/garbage.s`)).toBeNull()
+		expect(await readOpenSegment(bucket, `${roomKey}/future.s`)).toBeNull()
+		expect(await readOpenSegment(bucket, `${roomKey}/shape.s`)).toBeNull()
 	})
 })
