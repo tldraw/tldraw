@@ -157,6 +157,9 @@ function isTransientConnectionError(error: unknown): boolean {
 	return /network|connection|closed|reset|timeout/i.test(message)
 }
 
+// Where the chain state lives in durable object storage; see getVersionChain.
+const VERSION_CHAIN_STORAGE_KEY = 'versionChain'
+
 // increment this any time you make a change to this type
 const CURRENT_DOCUMENT_INFO_VERSION = 3
 interface DocumentInfo {
@@ -737,7 +740,8 @@ export class TLFileDurableObject extends DurableObject {
 
 	private async getVersionChain(): Promise<ChainState | null> {
 		if (!this._versionChainLoaded) {
-			this._versionChain = ((await this.storage.get('versionChain')) as ChainState | null) ?? null
+			this._versionChain =
+				((await this.storage.get(VERSION_CHAIN_STORAGE_KEY)) as ChainState | null) ?? null
 			this._versionChainLoaded = true
 		}
 		return this._versionChain
@@ -795,7 +799,7 @@ export class TLFileDurableObject extends DurableObject {
 				this._versionChainLoaded = true
 				this._pendingDeltas = null
 				this._versionChainHeadIso = null
-				await this.storage.delete('versionChain')
+				await this.storage.delete(VERSION_CHAIN_STORAGE_KEY)
 			})
 
 			// Version snapshots only contain the drawing data. Restoring drops the file's comments
@@ -2109,7 +2113,7 @@ export class TLFileDurableObject extends DurableObject {
 		this._versionChain = result.chain
 		this._pendingDeltas = result.pending
 		this._versionChainHeadIso = iso
-		await this.storage.put('versionChain', result.chain)
+		await this.storage.put(VERSION_CHAIN_STORAGE_KEY, result.chain)
 		const previous = this._lastPersistedSnapshot
 		this._lastPersistedSnapshot = snapshot
 		this.logEvent({
