@@ -433,7 +433,11 @@ export function sequenceToBlueprint(
 	const activationStack = new Map<string, number[]>()
 	const activationSpans: ActivationSpan[] = []
 
-	let autonumberStart = 1
+	// Autonumbering is positional: an `autonumber` directive applies from where it
+	// appears onward, so a later `autonumber off` must not clear numbers already
+	// assigned above it. Resolve each event's label as we walk the messages.
+	const eventAutonumbers: (string | undefined)[] = []
+	let autonumber = 1
 	let autonumberStep = 1
 	let autonumberVisible = false
 
@@ -442,7 +446,7 @@ export function sequenceToBlueprint(
 		if (type === LINETYPE.AUTONUMBER) {
 			// `autonumber [start [step]]` / `autonumber off`; mermaid stores the options on `message`
 			if (typeof msg.message === 'object') {
-				autonumberStart = msg.message.start || autonumberStart
+				autonumber = msg.message.start || autonumber
 				autonumberStep = msg.message.step || autonumberStep
 				autonumberVisible = msg.message.visible
 			} else {
@@ -512,6 +516,12 @@ export function sequenceToBlueprint(
 			if (msg.to) frag.actorKeys.add(msg.to)
 		}
 		events.push(msg)
+
+		// Only signals consume a number; notes occupy a row but are never numbered.
+		// The counter advances even while numbering is off, matching mermaid.
+		const isSignal = isSignalMessage(msg.type)
+		eventAutonumbers.push(isSignal && autonumberVisible ? String(autonumber) : undefined)
+		if (isSignal) autonumber = Math.round((autonumber + autonumberStep) * 100) / 100
 	}
 
 	const layouts = layout.actorLayouts
@@ -717,7 +727,6 @@ export function sequenceToBlueprint(
 
 	// 5. Events: signals and notes
 	const pendingCreations = new Set(createdActors.keys())
-	let sequenceNumber = autonumberStart
 
 	for (let eventIndex = 0; eventIndex < events.length; eventIndex++) {
 		const msg = events[eventIndex]
@@ -752,9 +761,9 @@ export function sequenceToBlueprint(
 				...(isCreationMessage && { isExactEnd: false, isPreciseEnd: false }),
 			}
 
-			if (autonumberVisible) {
-				edge.decoration = { type: 'autonumber', value: String(sequenceNumber) }
-				sequenceNumber += autonumberStep
+			const autonumberLabel = eventAutonumbers[eventIndex]
+			if (autonumberLabel) {
+				edge.decoration = { type: 'autonumber', value: autonumberLabel }
 			}
 
 			edges.push(edge)

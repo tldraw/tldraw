@@ -586,6 +586,11 @@ describe('sequenceToBlueprint', () => {
 		return { type, from, to, message } as Message
 	}
 
+	/** An `autonumber` directive in the shape mermaid's parser produces. */
+	function autonumberMsg(opts: { start?: number; step?: number; visible: boolean }): Message {
+		return { type: LINETYPE.AUTONUMBER, message: opts } as unknown as Message
+	}
+
 	function noteMsg(from: string, message: string, placement: number, to?: string): Message {
 		return { type: LINETYPE.NOTE, from, to: to ?? from, message, placement } as unknown as Message
 	}
@@ -791,6 +796,66 @@ describe('sequenceToBlueprint', () => {
 		expect(bp.edges[0].decoration).toEqual({ type: 'autonumber', value: '1' })
 		expect(bp.edges[1].decoration).toEqual({ type: 'autonumber', value: '2' })
 		expect(bp.edges[2].decoration).toEqual({ type: 'autonumber', value: '3' })
+	})
+
+	it('honors autonumber start and step', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('Alice'), actor('Bob')])
+		const messages = [
+			autonumberMsg({ start: 10, step: 5, visible: true }),
+			msg(LINETYPE.SOLID, 'Alice', 'Bob', 'Hello'),
+			msg(LINETYPE.SOLID, 'Bob', 'Alice', 'Hi'),
+		]
+
+		const bp = sequenceToBlueprint(layout, actors, ['Alice', 'Bob'], messages)
+
+		expect(bp.edges.map((e) => e.decoration?.value)).toEqual(['10', '15'])
+	})
+
+	it('stops numbering at autonumber off without clearing earlier numbers', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('Alice'), actor('Bob')])
+		const messages = [
+			autonumberMsg({ visible: true }),
+			msg(LINETYPE.SOLID, 'Alice', 'Bob', 'one'),
+			msg(LINETYPE.SOLID, 'Bob', 'Alice', 'two'),
+			autonumberMsg({ visible: false }),
+			msg(LINETYPE.SOLID, 'Alice', 'Bob', 'three'),
+		]
+
+		const bp = sequenceToBlueprint(layout, actors, ['Alice', 'Bob'], messages)
+
+		expect(bp.edges.map((e) => e.decoration?.value)).toEqual(['1', '2', undefined])
+	})
+
+	it('numbers only the signals after a mid-diagram autonumber', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('Alice'), actor('Bob')])
+		const messages = [
+			msg(LINETYPE.SOLID, 'Alice', 'Bob', 'one'),
+			autonumberMsg({ start: 10, step: 1, visible: true }),
+			msg(LINETYPE.SOLID, 'Bob', 'Alice', 'two'),
+			msg(LINETYPE.SOLID, 'Alice', 'Bob', 'three'),
+		]
+
+		const bp = sequenceToBlueprint(layout, actors, ['Alice', 'Bob'], messages)
+
+		expect(bp.edges.map((e) => e.decoration?.value)).toEqual([undefined, '10', '11'])
+	})
+
+	it('does not let notes consume a sequence number', () => {
+		const layout = actorLayout([-150, 150], [{ x: 10, y: 50, w: 120, h: 40 }])
+		const actors = new Map([actor('Alice'), actor('Bob')])
+		const messages = [
+			autonumberMsg({ visible: true }),
+			msg(LINETYPE.SOLID, 'Alice', 'Bob', 'one'),
+			noteMsg('Alice', 'a note', PLACEMENT.OVER),
+			msg(LINETYPE.SOLID, 'Bob', 'Alice', 'two'),
+		]
+
+		const bp = sequenceToBlueprint(layout, actors, ['Alice', 'Bob'], messages)
+
+		expect(bp.edges.map((e) => e.decoration?.value)).toEqual(['1', '2'])
 	})
 
 	it('maps bidirectional arrows', () => {
