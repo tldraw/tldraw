@@ -34,7 +34,7 @@ export function defineLoader<T>(_loader: (args: LoaderFunctionArgs) => Promise<T
 		useMaybeData() {
 			const routeError = useRouteError()
 			const raw = useLoaderData()
-			if (routeError !== undefined) return undefined
+			if (routeError != null) return undefined
 			return unwrap(raw)
 		},
 	}
