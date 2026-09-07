@@ -1,6 +1,6 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { listAllObjectKeys } from './r2'
-import { parseVersionKey, readSegmentRef, SegmentBody } from './versionChain'
+import { parseVersionKey, PendingDelta, readSegmentRef, SegmentBody } from './versionChain'
 import { decodeVersionBody, isGzippedVersionBody } from './versionChainCodec'
 import { applySnapshotDelta, snapshotContentHash } from './versionDelta'
 
@@ -39,6 +39,11 @@ export interface VersionReconstruction {
 	/** Every R2 operation this reconstruction cost, listings included. */
 	ops: number
 	deltaCount: number
+	/**
+	 * Which bucket answered. A caller proving that a chain reads back must not accept a legacy
+	 * full copy as that proof.
+	 */
+	source: 'chain' | 'legacy'
 }
 
 /**
@@ -125,6 +130,7 @@ export async function reconstructVersion({
 			snapshot: (await decodeVersionBody(legacy)) as RoomSnapshot,
 			ops: listOps + 1,
 			deltaCount: 0,
+			source: 'legacy',
 		}
 	}
 
@@ -135,6 +141,7 @@ export async function reconstructVersion({
 			snapshot: (await decodeVersionBody(object)) as RoomSnapshot,
 			ops: listOps + 1,
 			deltaCount: 0,
+			source: 'chain',
 		}
 	}
 
@@ -153,36 +160,14 @@ export async function reconstructVersion({
 
 	const [keyframeObject, segmentBodies] = await Promise.all([
 		chainBucket.get(keyframeKey),
-		Promise.all(
-			segments.map(async (entry) => {
-				const object = await chainBucket.get(entry.key)
-				if (!object) throw new Error(`version chain sequence broke: ${entry.key} disappeared`)
-				const body = (await decodeVersionBody(object)) as SegmentBody
-				// Same reason applySnapshotDelta guards its own version: replaying a future segment
-				// format under today's rules would reconstruct quietly wrong rather than fail.
-				if (body.v !== 1) {
-					throw new Error(`unknown version segment format ${body.v} in ${entry.key}`)
-				}
-				const bodyTimestamps = body.deltas.map((d) => d.t)
-				// This GET can observe a NEWER copy of the open segment than the listing did — the
-				// durable object may have appended between the two reads — so extra trailing deltas
-				// are tolerated. The body must still begin with exactly what the listing promised;
-				// anything else is a torn or foreign write.
-				if (
-					bodyTimestamps.slice(0, entry.timestamps.length).join(',') !== entry.timestamps.join(',')
-				) {
-					throw new Error(`version segment ${entry.key} body does not match its metadata`)
-				}
-				return { v: body.v, deltas: body.deltas.slice(0, entry.timestamps.length) }
-			})
-		),
+		Promise.all(segments.map((entry) => readSegmentDeltas(chainBucket, entry))),
 	])
 	if (!keyframeObject) throw new Error(`version chain keyframe ${keyframeKey} is missing`)
 
 	let snapshot = (await decodeVersionBody(keyframeObject)) as RoomSnapshot
 	let deltaCount = 0
-	for (const body of segmentBodies) {
-		for (const { t, delta } of body.deltas) {
+	for (const deltas of segmentBodies) {
+		for (const { t, delta } of deltas) {
 			snapshot = applySnapshotDelta(snapshot, delta)
 			deltaCount++
 			if (t === timestamp) {
@@ -190,12 +175,39 @@ export async function reconstructVersion({
 				if (delta.hash !== snapshotContentHash(snapshot)) {
 					throw new Error(`version ${timestamp} reconstructed with a different content hash`)
 				}
-				return { snapshot, ops: listOps + 1 + segments.length, deltaCount }
+				return { snapshot, ops: listOps + 1 + segments.length, deltaCount, source: 'chain' }
 			}
 		}
 	}
 
 	throw new Error(`version ${timestamp} was indexed in ${target.key} but not found in its body`)
+}
+
+/**
+ * The deltas a listed segment holds, exactly as the listing described them. Shared by
+ * reconstruction and the verifier so that the verifier cannot pass a segment reads would reject.
+ */
+export async function readSegmentDeltas(
+	chainBucket: R2Bucket,
+	entry: SegmentIndexEntry
+): Promise<PendingDelta[]> {
+	const object = await chainBucket.get(entry.key)
+	if (!object) throw new Error(`version chain sequence broke: ${entry.key} disappeared`)
+	const body = (await decodeVersionBody(object)) as SegmentBody
+	// Same reason applySnapshotDelta guards its own version: replaying a future segment format
+	// under today's rules would reconstruct quietly wrong rather than fail.
+	if (body.v !== 1) {
+		throw new Error(`unknown version segment format ${body.v} in ${entry.key}`)
+	}
+	const bodyTimestamps = body.deltas.map((d) => d.t)
+	// This GET can observe a NEWER copy of the open segment than the listing did — the durable
+	// object may have appended between the two reads — so extra trailing deltas are tolerated. The
+	// body must still begin with exactly what the listing promised; anything else is a torn or
+	// foreign write.
+	if (bodyTimestamps.slice(0, entry.timestamps.length).join(',') !== entry.timestamps.join(',')) {
+		throw new Error(`version segment ${entry.key} body does not match its metadata`)
+	}
+	return body.deltas.slice(0, entry.timestamps.length)
 }
 
 /** The chain must run unbroken from sequence 1, or the replay would silently skip versions. */

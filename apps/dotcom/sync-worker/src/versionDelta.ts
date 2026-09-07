@@ -41,8 +41,27 @@ export interface SnapshotDelta {
  * on `SnapshotDelta`, and `tombstoneHistoryStartsAtClock` in particular decides how far back
  * SQLiteSyncStorage believes deletions are tracked. Omitted from the hash, a delta that dropped one
  * would replay as `undefined` and still verify.
+ *
+ * This is the hash persisted in every delta. Its inputs are part of the v1 format: changing them
+ * makes every chain already written unreadable.
  */
 export function snapshotContentHash(snapshot: RoomSnapshot): string {
+	return snapshotHashes(snapshot).content
+}
+
+/**
+ * The content hash with `documentClock` left out, for deciding whether a snapshot is the chain
+ * head. That clock is the storage clock shared with the object lane, so a comment write moves it
+ * without touching a document; persist skips that write on the fingerprint, and the snapshot seeded
+ * on the next wake then carries a clock the head never saw. Compared on the content hash, that cut
+ * a keyframe after every hibernation of a board with comments. Never persisted, so it can change
+ * shape freely.
+ */
+export function snapshotHeadHash(snapshot: RoomSnapshot): string {
+	return snapshotHashes(snapshot).head
+}
+
+function snapshotHashes(snapshot: RoomSnapshot): { content: string; head: string } {
 	let acc = 0n
 	for (const { state, lastChangedClock } of snapshot.documents) {
 		acc ^= BigInt('0x' + fnv1a64(canonicalJson(state) + '@' + lastChangedClock))
@@ -50,18 +69,16 @@ export function snapshotContentHash(snapshot: RoomSnapshot): string {
 	for (const [id, clock] of Object.entries(snapshot.tombstones ?? {})) {
 		acc ^= BigInt('0x' + fnv1a64('tombstone:' + id + '@' + clock))
 	}
-	acc ^= BigInt(
-		'0x' +
-			fnv1a64(
-				'clocks:' +
-					canonicalJson({
-						clock: snapshot.clock,
-						documentClock: snapshot.documentClock,
-						tombstoneHistoryStartsAtClock: snapshot.tombstoneHistoryStartsAtClock,
-					})
-			)
-	)
-	return acc.toString(16)
+	const clocksTerm = (clocks: Record<string, number | undefined>) =>
+		BigInt('0x' + fnv1a64('clocks:' + canonicalJson(clocks)))
+	const shared = {
+		clock: snapshot.clock,
+		tombstoneHistoryStartsAtClock: snapshot.tombstoneHistoryStartsAtClock,
+	}
+	return {
+		content: (acc ^ clocksTerm({ ...shared, documentClock: snapshot.documentClock })).toString(16),
+		head: (acc ^ clocksTerm(shared)).toString(16),
+	}
 }
 
 export function buildSnapshotDelta(prev: RoomSnapshot, next: RoomSnapshot): SnapshotDelta {
@@ -118,6 +135,11 @@ export function applySnapshotDelta(prev: RoomSnapshot, delta: SnapshotDelta): Ro
 	// The diff codec has changed semantics before (diffRecord's legacyAppendMode); applying a
 	// future format with today's rules would corrupt quietly, which is worse than failing.
 	if (delta.v !== 1) throw new Error(`unknown snapshot delta version ${delta.v}`)
+	// The content hash would catch this too, as a mismatch; checked up front so a restore that
+	// would seed the storage clock from `undefined` fails with a reason.
+	if (typeof delta.documentClock !== 'number') {
+		throw new Error('version delta is missing its documentClock')
+	}
 	// Keyed by plain string: the ids in a parsed delta lost their RecordId branding.
 	const documents = new Map<string, { state: UnknownRecord; lastChangedClock: number }>(
 		prev.documents.map((d) => [d.state.id as string, { ...d }])

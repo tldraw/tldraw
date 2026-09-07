@@ -48,7 +48,7 @@ export interface ChainState {
 	deltaCount: number
 	headFingerprint: SnapshotFingerprint
 	/**
-	 * Content hash of the chain head. The fingerprint alone is not a strong enough identity:
+	 * `snapshotHeadHash` of the chain head. The fingerprint alone is not a strong enough identity:
 	 * tombstone pruning rewrites tombstones without moving any clock, so a wake can seed a diff
 	 * base that passes the fingerprint check yet differs from what the chain encodes.
 	 */
