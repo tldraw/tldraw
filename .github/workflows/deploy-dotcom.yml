@@ -13,10 +13,10 @@ permissions: write-all
 env:
   CI: 1
   PRINT_GITHUB_ANNOTATIONS: 1
-  # Keyed on the event, not the ref: a pull_request event on an already-merged PR
-  # carries the base branch as github.ref, which turned a late dotcom-preview-please
-  # label into a staging deploy built from the merge commit (#10651).
-  TLDRAW_ENV: ${{ (github.event_name == 'pull_request' && 'preview') || (github.ref == 'refs/heads/production' && 'production') || 'staging' }}
+  # Keyed on the event, not github.ref: on a merged PR, github.ref is the base branch, so a
+  # late dotcom-preview-please label once redeployed staging from #10651's stale merge commit.
+  # Any other trigger leaves this empty and the deploy script refuses to run.
+  TLDRAW_ENV: ${{ (github.event_name == 'pull_request' && 'preview') || (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || '' }}
 
 defaults:
   run:
@@ -24,12 +24,12 @@ defaults:
 
 jobs:
   deploy:
-    name: Deploy dotcom to ${{ (github.event_name == 'pull_request' && 'preview') || (github.ref == 'refs/heads/production' && 'production') || 'staging' }}
+    name: Deploy dotcom to ${{ (github.event_name == 'pull_request' && 'preview') || (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || '' }}
     timeout-minutes: 15
     runs-on: ubuntu-latest-16-cores-arm-open
     environment: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/production') && 'deploy-production' || 'deploy-staging' }}
-    concurrency: dotcom-${{ github.ref == 'refs/heads/production' && 'deploy-production' || github.ref }}
-    # Labels can still be edited on a closed PR, which has no merge ref left to build.
+    concurrency: dotcom-${{ (github.event_name == 'pull_request' && format('pr-{0}', github.event.number)) || (github.ref == 'refs/heads/production' && 'deploy-production') || github.ref }}
+    # Closed PRs still take labels, and a closed PR's github.ref is its base branch.
     if: |
       github.event_name == 'push' ||
       (github.event_name == 'pull_request' &&
