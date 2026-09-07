@@ -97,8 +97,9 @@ export class TldrawMCP extends McpAgent<Env> {
 	// making this the single noisiest thing the worker prints. Every call site
 	// uses `this.observability?.emit(...)`, so clearing it disables them all.
 	// Also load-bearing for teardown: destroy() calls _emit(), whose `name: this.name`
-	// argument is only skipped because the optional chain short-circuits; on the
-	// condemn alarm #_name is never hydrated.
+	// argument is only skipped because the optional chain short-circuits. On the
+	// destroy-marker alarm branch, which returns before partyserver's init runs,
+	// #_name is never hydrated and reading it throws.
 	override observability = undefined
 	// The SDK's default DurableObjectEventStore persists every outgoing message to DO storage
 	// (for Last-Event-ID replay) before writing it to the wire. SQLite-backed DO storage caps a
@@ -378,10 +379,11 @@ export class TldrawMCP extends McpAgent<Env> {
 	/**
 	 * Condemns this DO if it has been idle for `maxIdleMs`, and reports whether it
 	 * was kept. Never calls destroy() inline: it writes the SDK's own durable
-	 * destroy marker, and Agent.alarm() runs destroy() in a fresh invocation before
-	 * any onStart/init(). That keeps this path off `this.name`, which is never
-	 * hydrated on an alarm invocation. The marker doubles as the idempotency guard
-	 * across evictions.
+	 * destroy marker, and Agent.alarm() runs destroy() from its marker branch, which
+	 * returns before reaching the partyserver alarm body that runs onStart/init().
+	 * That keeps this path off `this.name`, unhydrated on that branch alone — an
+	 * ordinary schedule callback does go through init. The marker doubles as the
+	 * idempotency guard across evictions.
 	 *
 	 * The setAlarm calls are a fallback. The SDK re-arms after every schedule
 	 * callback returns, and that path sees the marker and calls `setAlarm(now)`
