@@ -79,12 +79,6 @@ function corsResponse(response: Response): Response {
  * written from a live invocation, so the alarm has to land after that one returns. */
 const DESTROY_ALARM_DELAY_MS = 1000
 
-interface ActivityStats {
-	/** ms epoch of the last checkpoint save; null when the DO never saved. */
-	lastActivity: number | null
-	checkpointCount: number
-}
-
 // --- McpAgent Durable Object ---
 
 export class TldrawMCP extends McpAgent<Env> {
@@ -316,10 +310,9 @@ export class TldrawMCP extends McpAgent<Env> {
 	 * DO woken by a raw RPC, our tables may not exist, so every read tolerates
 	 * `no such table` and reports "never active".
 	 */
-	readActivityStats(): ActivityStats {
+	readLastActivity(): number | null {
 		const sql = this.ctx.storage.sql
 		let lastActivity: number | null = null
-		let checkpointCount = 0
 		// Only a missing table means "never active". Any other storage error must
 		// propagate: swallowing it reads as null → infinitely idle → a live session
 		// gets destroyed on a transient storage hiccup.
@@ -337,16 +330,15 @@ export class TldrawMCP extends McpAgent<Env> {
 			// A corrupt value must fail toward keep, not toward destroy.
 			lastActivity = Number.isFinite(n) ? n : null
 		}
-		const cp = tableRows(`SELECT COUNT(*) AS n, MAX(created_at) AS last FROM checkpoints`)
-		if (cp.length > 0) {
-			checkpointCount = Number(cp[0].n ?? 0)
-			// Legacy DOs predate the lastActivity key; the newest snapshot is the next best signal.
-			if (lastActivity === null && cp[0].last != null) {
+		// Legacy DOs predate the lastActivity key; the newest snapshot is the next best signal.
+		if (lastActivity === null) {
+			const cp = tableRows(`SELECT MAX(created_at) AS last FROM checkpoints`)
+			if (cp.length > 0 && cp[0].last != null) {
 				const n = Number(cp[0].last)
 				if (Number.isFinite(n)) lastActivity = n
 			}
 		}
-		return { lastActivity, checkpointCount }
+		return lastActivity
 	}
 
 	/**
@@ -400,7 +392,7 @@ export class TldrawMCP extends McpAgent<Env> {
 			await this.ctx.storage.setAlarm(Date.now() + DESTROY_ALARM_DELAY_MS)
 			return { kept: false }
 		}
-		const { lastActivity } = this.readActivityStats()
+		const lastActivity = this.readLastActivity()
 		// A DO that never recorded activity is treated as maximally idle.
 		const idleMs = lastActivity === null ? Infinity : Date.now() - lastActivity
 		if (idleMs < maxIdleMs) return { kept: true }
@@ -428,7 +420,7 @@ export class TldrawMCP extends McpAgent<Env> {
 		let lastActivity: number | null = null
 		try {
 			kept = (await this.destroyIfIdle(idleTtlMs(this.env))).kept
-			if (kept) lastActivity = this.readActivityStats().lastActivity
+			if (kept) lastActivity = this.readLastActivity()
 		} catch (err) {
 			// Must fall through to the re-arm; see the doc comment above.
 			failed = true
