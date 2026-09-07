@@ -16,7 +16,7 @@ function between(src: string, startMarker: string, endMarker: string): string {
 	return src.slice(start, end)
 }
 
-describe('agents SDK assumptions behind session pruning and expiry', () => {
+describe('agents SDK assumptions behind session idle expiry', () => {
 	it('schedule() gates its callback+payload dedup query behind the idempotent option', () => {
 		// schedule() itself delegates to _insertScheduleForOwner, which is where the
 		// idempotent check and its dedup query actually live.
