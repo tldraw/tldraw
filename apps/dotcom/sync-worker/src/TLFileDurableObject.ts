@@ -115,7 +115,7 @@ import { ChainState, PendingDelta } from './versionChain'
 import { getVersionChainMode } from './versionChainConfig'
 import { deleteAllVersions, reconstructVersion } from './versionChainRead'
 import { readOpenSegment, writeVersionChainEntry } from './versionChainWrite'
-import { snapshotContentHash } from './versionDelta'
+import { snapshotHeadHash } from './versionDelta'
 import { resolveWelcomeSnapshot } from './welcome/resolveWelcomeSnapshot'
 
 const MAX_CONNECTIONS = 50
@@ -2133,11 +2133,14 @@ export class TLFileDurableObject extends DurableObject {
 					timestamp: lastDeltaTimestamp,
 				})
 			)
-			// A legacy full copy is not the chain reading back; only a chain answer counts.
+			// A legacy full copy is not the chain reading back; only a chain answer counts. Compared on
+			// the head hash, not the content hash: `expected` may be the wake seed, whose documentClock a
+			// comment write moved past the clock the chain head was written at — a chain-age keyframe on
+			// an idle commented board is exactly that case, and it would fail here on a correct chain.
 			const ok =
 				!!reconstruction &&
 				reconstruction.source === 'chain' &&
-				snapshotContentHash(reconstruction.snapshot) === snapshotContentHash(expected)
+				snapshotHeadHash(reconstruction.snapshot) === snapshotHeadHash(expected)
 			this.logEvent({ type: 'version_chain_verify', ok })
 		} catch (error) {
 			this.logEvent({ type: 'version_chain_verify', ok: false })
