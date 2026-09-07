@@ -21,6 +21,7 @@ import {
 	putThumbnailPng,
 	resolveThumbnailBoard,
 	writeScreenshotTelemetry,
+	summarizeSnapshotContent,
 } from './thumbnailRender'
 import { classifyScreenshotFailure, reportThumbnailError } from './thumbnailShared'
 
@@ -33,7 +34,7 @@ import { classifyScreenshotFailure, reportThumbnailError } from './thumbnailShar
 // This path has no cap of any kind, by design. What bounds it is the render debounce upstream in
 // TLFileDurableObject, which is per-board, so total spend scales with how many boards are edited at
 // once. See "Request limits" in browser-run-thumbnails.md for why, and why the only rate limiting in
-// the pipeline lives on the MCP endpoint instead (sharedBoardScreenshotMcp.ts).
+// the pipeline lives on the MCP endpoint instead (mcpServer.ts).
 
 // OG images render a single page as the unfurl preview. Pick the first page (in board order) that
 // has content, so a board whose first page is empty still gets a meaningful image; fall back to the
@@ -321,15 +322,17 @@ export async function handleOgImageRenderMessage(
 
 		// The render page exports the chosen page; the worker screenshots it through the BROWSER
 		// binding and writes the PNG to the cache key the OG route reads.
+		const pageId = pickOgImagePageId(snapshot)
 		const render = await captureThumbnailScreenshot(env, board, {
 			surface: 'og',
-			pageId: pickOgImagePageId(snapshot),
+			pageId,
 			theme: 'light',
 			width: DEFAULT_THUMBNAIL_WIDTH,
 			height: DEFAULT_THUMBNAIL_HEIGHT,
 			// `source` is the telemetry surface, not the render pipeline: these sessions belong to the
 			// queue's ledger even though the job is signed for the og pipeline.
 			telemetry: { source: 'queue', reason },
+			content: summarizeSnapshotContent(snapshot, pageId),
 		})
 		await putThumbnailPng(env.THUMBNAILS, cacheKey, render.base64, board.version)
 		await clearOgImagePendingMarker(env, boardRef)

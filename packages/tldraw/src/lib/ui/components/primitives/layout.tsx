@@ -58,50 +58,42 @@ export interface TLUiLayoutProps extends HTMLAttributes<HTMLDivElement> {
 	asChild?: boolean
 }
 
+function createLayout(
+	displayName: string,
+	orientation: 'horizontal' | 'vertical',
+	layoutClassName: string
+) {
+	const Layout = forwardRef<HTMLDivElement, TLUiLayoutProps>(
+		({ asChild, className, tooltipSide, ...props }, ref) => {
+			const Component = asChild ? Slot.Root : 'div'
+			return (
+				<TldrawUiOrientationProvider orientation={orientation} tooltipSide={tooltipSide}>
+					<Component ref={ref} className={classNames(layoutClassName, className)} {...props} />
+				</TldrawUiOrientationProvider>
+			)
+		}
+	)
+	Layout.displayName = displayName
+	return Layout
+}
+
 /**
  * A row, usually of UI controls like buttons, select dropdown, checkboxes, etc.
  *
  * @public @react
  */
-export const TldrawUiRow = forwardRef<HTMLDivElement, TLUiLayoutProps>(
-	({ asChild, className, tooltipSide, ...props }, ref) => {
-		const Component = asChild ? Slot.Root : 'div'
-		return (
-			<TldrawUiOrientationProvider orientation="horizontal" tooltipSide={tooltipSide}>
-				<Component ref={ref} className={classNames('tlui-row', className)} {...props} />
-			</TldrawUiOrientationProvider>
-		)
-	}
-)
+export const TldrawUiRow = createLayout('TldrawUiRow', 'horizontal', 'tlui-row')
 
 /**
  * A column, usually of UI controls like buttons, select dropdown, checkboxes, etc.
  *
  * @public @react
  */
-export const TldrawUiColumn = forwardRef<HTMLDivElement, TLUiLayoutProps>(
-	({ asChild, className, tooltipSide, ...props }, ref) => {
-		const Component = asChild ? Slot.Root : 'div'
-		return (
-			<TldrawUiOrientationProvider orientation="vertical" tooltipSide={tooltipSide}>
-				<Component ref={ref} className={classNames('tlui-column', className)} {...props} />
-			</TldrawUiOrientationProvider>
-		)
-	}
-)
+export const TldrawUiColumn = createLayout('TldrawUiColumn', 'vertical', 'tlui-column')
 
 /**
  * A tight grid 4 elements wide, usually of UI controls like buttons, select dropdown, checkboxes,
  * etc.
  *
  * @public @react */
-export const TldrawUiGrid = forwardRef<HTMLDivElement, TLUiLayoutProps>(
-	({ asChild, className, tooltipSide, ...props }, ref) => {
-		const Component = asChild ? Slot.Root : 'div'
-		return (
-			<TldrawUiOrientationProvider orientation="horizontal" tooltipSide={tooltipSide}>
-				<Component ref={ref} className={classNames('tlui-grid', className)} {...props} />
-			</TldrawUiOrientationProvider>
-		)
-	}
-)
+export const TldrawUiGrid = createLayout('TldrawUiGrid', 'horizontal', 'tlui-grid')

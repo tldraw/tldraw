@@ -3595,6 +3595,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { isLocked } = this._cameraOptions.__unsafe__getWithoutCapture()
 		if (isLocked && !opts?.force) return this
 
+		const _point = Vec.Cast(point)
+
+		// Reject non-finite values before anything else, so the call is a no-op rather than a
+		// partial one. An animated move writes the camera from a 'tick' listener, and a listener
+		// that throws stops TickManager scheduling the next frame, which kills every frame-driven
+		// behavior for the rest of the session instead of surfacing the error to the caller.
+		if (!Number.isFinite(_point.x) || !Number.isFinite(_point.y) || !Number.isFinite(_point.z)) {
+			throw Error(
+				`Editor.setCamera: expected finite values, got (${_point.x}, ${_point.y}, ${_point.z}).`
+			)
+		}
+
 		// Stop any camera animations
 		this.stopCameraAnimation()
 
@@ -3602,12 +3614,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (this.getInstanceState().followingUserId) {
 			this.stopFollowingUser()
 		}
-
-		const _point = Vec.Cast(point)
-
-		if (!Number.isFinite(_point.x)) _point.x = 0
-		if (!Number.isFinite(_point.y)) _point.y = 0
-		if (_point.z === undefined || !Number.isFinite(_point.z)) point.z = this.getZoomLevel()
 
 		const camera = this.getConstrainedCamera(_point, opts)
 
@@ -4134,6 +4140,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// If we're not on the same page, move to the page they're on
 			const isOnSamePage = presence.currentPageId === this.getCurrentPageId()
 			if (!isOnSamePage) {
+				this.markHistoryStoppingPoint('change-page')
 				this.setCurrentPage(presence.currentPageId)
 			}
 
@@ -7431,8 +7438,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const shapesMovingTogether = [shape]
 			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
 
+			// Seed with bindings in both directions, otherwise an arrow visited before the shapes it
+			// binds ends up in a cluster of its own and the result depends on input order
 			this.collectShapesViaArrowBindings({
-				bindings: this.getBindingsToShape(shape.id, 'arrow'),
+				bindings: this.getBindingsInvolvingShape(shape.id, 'arrow'),
 				initialShapes: freshShapes,
 				resultShapes: shapesMovingTogether,
 				resultBounds: boundsOfShapesMovingTogether,
@@ -11489,9 +11498,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				break
 			}
 			case 'keyboard': {
-				// please, please
-				if (info.key === 'ShiftRight') info.key = 'ShiftLeft'
-				if (info.key === 'AltRight') info.key = 'AltLeft'
+				// Left and right modifier keys are the same key to us. `inputs.keys` stores
+				// `code`, so normalize that: a `ShiftRight` left as-is would never match the
+				// `ShiftLeft` that nudging checks or that `_releaseShiftKey` clears.
+				if (info.code === 'ShiftRight') info.code = 'ShiftLeft'
+				if (info.code === 'AltRight') info.code = 'AltLeft'
 				if (info.code === 'ControlRight') info.code = 'ControlLeft'
 				if (info.code === 'MetaRight') info.code = 'MetaLeft'
 

@@ -74,6 +74,9 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	// short grace window after open so the menu stays put until the user actually
 	// interacts again.
 	const suppressDismissUntilRef = useRef(0)
+	const suppressDismissDuringGrace = useCallback((e: Event) => {
+		if (Date.now() < suppressDismissUntilRef.current) e.preventDefault()
+	}, [])
 
 	const rContextMenuPagePoint = useContext(ContextMenuPagePointContext)
 
@@ -105,17 +108,12 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 
 					// Weird route: selecting locked shapes on long press
 					const selectedShapes = editor.getSelectedShapes()
-					const currentPagePoint = editor.inputs.getCurrentPagePoint()
-
 					// get all of the shapes under the current pointer
-					const shapesAtPoint = editor.getShapesAtPoint(currentPagePoint)
+					const shapesAtPoint = editor.getShapesAtPoint(editor.inputs.getCurrentPagePoint())
 
-					if (
-						// if there are no selected shapes
-						!editor.getSelectedShapes().length ||
-						// OR if none of the shapes at the point include the selected shape
-						!shapesAtPoint.some((s) => selectedShapes.includes(s))
-					) {
+					// if there are no selected shapes
+					// OR if none of the shapes at the point include the selected shape
+					if (!selectedShapes.length || !shapesAtPoint.some((s) => selectedShapes.includes(s))) {
 						// then are there any locked shapes under the current pointer?
 						const lockedShapes = shapesAtPoint.filter((s) => editor.isShapeOrAncestorLocked(s))
 
@@ -160,15 +158,9 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 						alignOffset={-4}
 						collisionPadding={4}
 						onContextMenu={preventDefault}
-						onPointerDownOutside={(e) => {
-							if (Date.now() < suppressDismissUntilRef.current) e.preventDefault()
-						}}
-						onInteractOutside={(e) => {
-							if (Date.now() < suppressDismissUntilRef.current) e.preventDefault()
-						}}
-						onFocusOutside={(e) => {
-							if (Date.now() < suppressDismissUntilRef.current) e.preventDefault()
-						}}
+						onPointerDownOutside={suppressDismissDuringGrace}
+						onInteractOutside={suppressDismissDuringGrace}
+						onFocusOutside={suppressDismissDuringGrace}
 					>
 						<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
 							{content}

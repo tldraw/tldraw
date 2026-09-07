@@ -80,7 +80,7 @@ import {
 	writeMcpClusterIndexRow,
 } from './mcpClusterIndexStorage'
 import { TLPostgresPool } from './postgres'
-import { getR2KeyForRoom, listAllObjectKeys } from './r2'
+import { deleteAllObjectsWithPrefix, getR2KeyForRoom } from './r2'
 import {
 	BootStage,
 	FileEffectStallError,
@@ -670,6 +670,9 @@ export class TLFileDurableObject extends DurableObject {
 
 			this.sessionIdToWs.delete(attachment.sessionId)
 			if (!this._documentInfo) return
+			// A deleted room has nothing left to broadcast, and booting one here would resume the
+			// just-closed sessions onto storage the delete is wiping.
+			if (this._documentInfo.deleted) return
 
 			const room = await this.getRoom()
 
@@ -936,6 +939,12 @@ export class TLFileDurableObject extends DurableObject {
 					if (!hasOwnerAccess && file.sharedLinkType !== 'edit') {
 						openMode = ROOM_OPEN_MODE.READ_ONLY
 					}
+				} else {
+					// No file row means every check above was skipped, so admitting the socket would
+					// open the room to anyone holding the id — the R2 blob and the DO's SQLite outlive
+					// the row through the whole hard-delete window (and forever if the delete effect
+					// parks). Fail closed, like onDownloadTldr.
+					return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 				}
 			} else {
 				// Legacy rooms are now read-only
@@ -972,7 +981,7 @@ export class TLFileDurableObject extends DurableObject {
 			getRoomTimer.report('on_request_get_room')
 
 			// Don't connect if we're already at max connections
-			if (room.getNumActiveSessions() > MAX_CONNECTIONS) {
+			if (room.getNumActiveSessions() >= MAX_CONNECTIONS) {
 				return closeSocket(TLSyncErrorCloseEventReason.ROOM_FULL)
 			}
 
@@ -1174,6 +1183,9 @@ export class TLFileDurableObject extends DurableObject {
 	// rejects, and dropping the error here would silently cancel the OG render this alarm exists to
 	// perform. Reporting only adds the Sentry record it was missing.
 	override async alarm(alarmInfo?: AlarmInvocationInfo) {
+		// A delete wipes documentInfo but not the pending og-render alarm, so this can fire on an
+		// object with nothing left to render.
+		if (!this._documentInfo || this._documentInfo.deleted) return
 		try {
 			// One clock reading for the whole fire: the debounce decision and the pending marker's
 			// expiry both count from it (see `firedAt` on enqueueOgImageRender).
@@ -1287,6 +1299,31 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	/**
+	 * Seed the room from its `createSource` and merge in Postgres comments. `createSource` is
+	 * never cleared from the file record, so this re-runs whenever the R2 blob is missing,
+	 * including a from-source file that gained comments and then lost its DO SQLite before the
+	 * first throttled R2 persist; without the merge those comments would be orphaned (visible in
+	 * /comments, absent from the room). A fresh duplicate has zero rows and the merge is a no-op.
+	 */
+	private async loadFromCreateSource(
+		commentsPromise: Promise<CommentLoadResult> | null
+	): Promise<DBLoadResult> {
+		const createFromSourceTimer = this.timer()
+		const res = await this.handleFileCreateFromSource()
+		createFromSourceTimer.report('db_load_create_from_source')
+
+		if (commentsPromise) {
+			// Clone: loadCreateSourceData can return the shared DEFAULT_INITIAL_SNAPSHOT constant
+			// and the merge mutates top-level snapshot fields.
+			const snapshot: RoomSnapshot = { ...res.snapshot }
+			mergeCommentDocumentsIntoSnapshot(snapshot, await commentsPromise)
+			res.snapshot = snapshot
+		}
+
+		return res
+	}
+
+	/**
 	 * Resolve the seed content for a file's `createSource`, as a RoomSnapshot or its serialized
 	 * string. Returns undefined for an unknown source, which the caller turns into RoomNotFoundError.
 	 */
@@ -1391,27 +1428,8 @@ export class TLFileDurableObject extends DurableObject {
 			}
 
 			if (this._fileRecordCache?.createSource) {
-				const createFromSourceTimer = this.timer()
-				const res = await this.handleFileCreateFromSource()
-				createFromSourceTimer.report('db_load_create_from_source')
-
-				// `createSource` is never cleared from the file record, so this branch re-enters
-				// whenever the R2 blob is missing — including a from-source file that gained
-				// comments and then lost its DO SQLite before the first throttled R2 persist.
-				// Merge the Postgres comments back in like the other branches, or they'd be
-				// orphaned: visible in the app-level /comments view but absent from the room, and
-				// resurrected inconsistently later. For a genuinely fresh duplicate the query
-				// returns zero rows and the merge is a no-op. Clone the snapshot before merging:
-				// loadCreateSourceData can return the shared DEFAULT_INITIAL_SNAPSHOT module
-				// constant, and the merge mutates top-level snapshot fields.
-				if (commentsPromise) {
-					const snapshot: RoomSnapshot = { ...res.snapshot }
-					mergeCommentDocumentsIntoSnapshot(snapshot, await commentsPromise)
-					res.snapshot = snapshot
-				}
-
+				const res = await this.loadFromCreateSource(commentsPromise)
 				loadTimer.report('db_load_total')
-
 				return res
 			}
 
@@ -1419,10 +1437,22 @@ export class TLFileDurableObject extends DurableObject {
 				// finally check whether the file exists in the DB but not in R2 yet
 				const file = await this.getAppFileRecord()
 
-				loadTimer.report('db_load_total')
 				if (!file) {
+					loadTimer.report('db_load_total')
 					throw new RoomNotFoundError(slug)
 				}
+
+				// The cache can still have been empty at the check above when the row only became
+				// visible on this second lookup (a connect that raced the createFile mutation).
+				// Seeding a from-source file with the empty default would persist an empty room,
+				// and the R2 blob then means `createSource` is never consulted again.
+				if (file.createSource) {
+					const res = await this.loadFromCreateSource(commentsPromise)
+					loadTimer.report('db_load_total')
+					return res
+				}
+
+				loadTimer.report('db_load_total')
 
 				// Comments can exist in Postgres before the first throttled R2 persist ever runs
 				// (e.g. DO SQLite lost right after commenting on a fresh file), so rehydrate them
@@ -1746,6 +1776,8 @@ export class TLFileDurableObject extends DurableObject {
 						}
 						// check whether the worker was woken up to persist after having gone to sleep
 						if (!this._room) return
+						// a deleted room's R2 keys are gone; persisting would resurrect them
+						if (this._documentInfo?.deleted) return
 						const slug = this.documentInfo.slug
 						const storage = await this.getStorage()
 						assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
@@ -2797,15 +2829,11 @@ export class TLFileDurableObject extends DurableObject {
 		})
 
 		await this.executionQueue.push(async () => {
-			if (this._room) {
-				const room = await this.getRoom()
-				for (const session of room.getSessions()) {
-					room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
-				}
-				room.close()
-			}
+			await this.closeAllSocketsForDelete()
 			// setting _room to null will prevent any further persists from going through
 			this._room = null
+			// The cached storage handle points at SQLite that deleteAll() drops below.
+			this._storage = null
 			// delete should be handled by the delete endpoint now
 
 			// A row from a partially-created file can lack a publishedSlug; there are no
@@ -2820,21 +2848,13 @@ export class TLFileDurableObject extends DurableObject {
 					isApp: true,
 				})
 
-				const publishedHistory = await listAllObjectKeys(
-					this.env.ROOM_SNAPSHOTS,
-					publishedPrefixKey
-				)
-				if (publishedHistory.length > 0) {
-					await this.env.ROOM_SNAPSHOTS.delete(publishedHistory)
-				}
+				await deleteAllObjectsWithPrefix(this.env.ROOM_SNAPSHOTS, publishedPrefixKey)
 			}
 
-			// remove edit history
+			// remove edit history. The trailing slash matters: history keys are `<roomKey>/<iso>`,
+			// and the bare key would also match every room whose slug starts with this one.
 			const r2Key = getR2KeyForRoom({ slug: id, isApp: true })
-			const editHistory = await listAllObjectKeys(this.env.ROOMS_HISTORY_EPHEMERAL, r2Key)
-			if (editHistory.length > 0) {
-				await this.env.ROOMS_HISTORY_EPHEMERAL.delete(editHistory)
-			}
+			await deleteAllObjectsWithPrefix(this.env.ROOMS_HISTORY_EPHEMERAL, `${r2Key}/`)
 
 			// remove main file
 			await this.env.ROOMS.delete(r2Key)
@@ -2849,8 +2869,11 @@ export class TLFileDurableObject extends DurableObject {
 			// and their bucket has an expiration rule.
 			await deleteBoardThumbnails(this.env, { fileId: id, publishedSlug })
 
-			// finally clear storage so we don't keep the data around
-			this.ctx.storage.deleteAll()
+			// finally clear storage so we don't keep the data around. deleteAll() leaves alarms
+			// alone, and a pending og-render alarm would fire on an object whose documentInfo it
+			// just erased.
+			await this.ctx.storage.deleteAlarm()
+			await this.ctx.storage.deleteAll()
 		})
 	}
 
@@ -2984,6 +3007,19 @@ export class TLFileDurableObject extends DurableObject {
 				this.log.debug('closeAllSessions: room failed to boot, falling back to raw closes', e)
 			}
 		}
+		this.closeSockets(sockets, room, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+		return { closedSockets: sockets.length }
+	}
+
+	/**
+	 * Reject every socket the object holds with `reason`. Sockets the room never saw (mid-handshake,
+	 * room not booted) get a raw close with the same terminal code; closing twice is a no-op.
+	 */
+	private closeSockets(
+		sockets: WebSocket[],
+		room: TLSocketRoom<TLRecord, SessionMeta> | null,
+		reason: TLSyncErrorCloseEventReason
+	) {
 		for (const ws of sockets) {
 			const attachment = this.getSocketAttachment(ws)
 			const sessionId = attachment?.sessionId
@@ -3004,17 +3040,22 @@ export class TLFileDurableObject extends DurableObject {
 				ws.serializeAttachment({ ...attachment, snapshot: undefined })
 			}
 			if (room && sessionId) {
-				room.closeSession(sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+				room.closeSession(sessionId, reason)
 			}
-			// Backstop for sockets the room never saw (mid-handshake, or the room didn't boot):
-			// close directly with the same terminal code. Closing twice is a no-op.
 			try {
-				ws.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+				ws.close(TLSyncErrorCloseEventCode, reason)
 			} catch {
 				// an already-closed socket is fine
 			}
 		}
-		return { closedSockets: sockets.length }
+	}
+
+	// Uses the room only if it is already loaded: booting one here would read storage the delete
+	// is about to wipe.
+	private async closeAllSocketsForDelete() {
+		const room = this._room ? await this._room.catch(() => null) : null
+		this.closeSockets(this.ctx.getWebSockets(), room, TLSyncErrorCloseEventReason.NOT_FOUND)
+		room?.close()
 	}
 
 	async __admin__hardDeleteIfLegacy() {
@@ -3025,21 +3066,22 @@ export class TLFileDurableObject extends DurableObject {
 			isApp: false,
 			deleted: true,
 		})
-		if (this._room) {
-			const room = await this.getRoom()
-			room.close()
-		}
-		const slug = this.documentInfo.slug
-		const roomKey = getR2KeyForRoom({ slug, isApp: false })
+		// Queued so an in-flight persist finishes before the R2 deletes rather than re-uploading
+		// the snapshot after them.
+		await this.executionQueue.push(async () => {
+			await this.closeAllSocketsForDelete()
+			// Without this the closing sessions' last-out persist re-uploads the snapshot to the keys
+			// deleted below.
+			this._room = null
+			const slug = this.documentInfo.slug
+			const roomKey = getR2KeyForRoom({ slug, isApp: false })
 
-		// remove edit history
-		const editHistory = await listAllObjectKeys(this.env.ROOMS_HISTORY_EPHEMERAL, roomKey)
-		if (editHistory.length > 0) {
-			await this.env.ROOMS_HISTORY_EPHEMERAL.delete(editHistory)
-		}
+			// remove edit history (trailing slash: see appFileRecordDidDelete)
+			await deleteAllObjectsWithPrefix(this.env.ROOMS_HISTORY_EPHEMERAL, `${roomKey}/`)
 
-		// remove main file
-		await this.env.ROOMS.delete(roomKey)
+			// remove main file
+			await this.env.ROOMS.delete(roomKey)
+		})
 
 		return true
 	}

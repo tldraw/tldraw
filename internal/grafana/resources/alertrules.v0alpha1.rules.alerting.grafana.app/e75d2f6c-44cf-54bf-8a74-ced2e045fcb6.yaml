@@ -14,8 +14,9 @@ metadata:
   namespace: stacks-890472
 spec:
   annotations:
-    description: 'Cost over the last 24h of ${{ $value | humanize }} is more than
-      1.5x the previous 24h.'
+    description: 'The last completed day cost ${{ $value | humanize }}, more than
+      1.5x the day before. The cost metric updates once a day at about 03:00 UTC,
+      so this describes yesterday.'
     summary: Anthropic API daily cost spike detected.
   execErrState: Ok
   expressions:
@@ -55,25 +56,12 @@ spec:
           uid: grafanacloud-prom
         expr: |
           (
-            (
-              sum(gen_ai_cost{job=~"integrations/anthropic/.*"})
-              -
-              sum(gen_ai_cost{job=~"integrations/anthropic/.*"} offset 1d)
-            ) / 100
+            sum(increase(gen_ai_cost{job=~"integrations/anthropic/.*"}[1d])) / 100
             >
-            1.5 *
-            (
-              sum(gen_ai_cost{job=~"integrations/anthropic/.*"} offset 1d)
-              -
-              sum(gen_ai_cost{job=~"integrations/anthropic/.*"} offset 2d)
-            ) / 100
+            1.5 * sum(increase(gen_ai_cost{job=~"integrations/anthropic/.*"}[1d] offset 1d)) / 100
           )
           and
-          (
-            sum(gen_ai_cost{job=~"integrations/anthropic/.*"})
-            -
-            sum(gen_ai_cost{job=~"integrations/anthropic/.*"} offset 1d)
-          ) / 100 > 50
+          sum(increase(gen_ai_cost{job=~"integrations/anthropic/.*"}[1d])) / 100 > 50
         instant: true
         intervalMs: 1000
         maxDataPoints: 43200
