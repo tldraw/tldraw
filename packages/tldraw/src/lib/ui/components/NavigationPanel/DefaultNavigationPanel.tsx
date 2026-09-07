@@ -32,6 +32,18 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 		return null
 	}
 
+	const isRtl = dir === 'rtl'
+	const minimapToggle = Minimap && (
+		<TldrawUiToolbarButton
+			type="icon"
+			data-testid="minimap.toggle-button"
+			title={msg('navigation-zone.toggle-minimap')}
+			onClick={toggleMinimap}
+		>
+			<TldrawUiButtonIcon small icon={collapsed !== isRtl ? 'chevron-right' : 'chevron-left'} />
+		</TldrawUiToolbarButton>
+	)
+
 	return (
 		<div ref={ref} className="tlui-navigation-panel">
 			<TldrawUiToolbar orientation="horizontal" label={msg('navigation-zone.title')}>
@@ -39,16 +51,7 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 					<ZoomMenu />
 				) : (
 					<>
-						{Minimap && dir === 'rtl' && (
-							<TldrawUiToolbarButton
-								type="icon"
-								data-testid="minimap.toggle-button"
-								title={msg('navigation-zone.toggle-minimap')}
-								onClick={toggleMinimap}
-							>
-								<TldrawUiButtonIcon small icon={collapsed ? 'chevron-left' : 'chevron-right'} />
-							</TldrawUiToolbarButton>
-						)}
+						{isRtl && minimapToggle}
 						{!collapsed && (
 							<TldrawUiToolbarButton
 								type="icon"
@@ -70,16 +73,7 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 								<TldrawUiButtonIcon small icon="plus" />
 							</TldrawUiToolbarButton>
 						)}
-						{Minimap && dir !== 'rtl' && (
-							<TldrawUiToolbarButton
-								type="icon"
-								data-testid="minimap.toggle-button"
-								title={msg('navigation-zone.toggle-minimap')}
-								onClick={toggleMinimap}
-							>
-								<TldrawUiButtonIcon small icon={collapsed ? 'chevron-right' : 'chevron-left'} />
-							</TldrawUiToolbarButton>
-						)}
+						{!isRtl && minimapToggle}
 					</>
 				)}
 			</TldrawUiToolbar>
