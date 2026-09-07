@@ -116,6 +116,8 @@ describe('writeVersionChainEntry', () => {
 
 		expect(chain!.openSegment!.key).toBe(`${roomKey}/${isoAt(SEGMENT_CAP + 1)}.s`)
 		expect(chain!.openSegment!.firstSeq).toBe(SEGMENT_CAP + 1)
+		// The size rule reads this back on the next append, so it has to be the object's real size.
+		expect(chain!.openSegment!.bytes).toBe((await bucket.get(chain!.openSegment!.key))!.size)
 		// The buffer resets with the new segment rather than growing without bound.
 		expect(pending).toHaveLength(1)
 		expect((await bucket.list({ prefix: roomKey })).objects).toHaveLength(3)

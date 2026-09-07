@@ -3,6 +3,7 @@ import {
 	MAX_CHAIN_AGE_MS,
 	MAX_DELTA_SIZE_RATIO,
 	MAX_DELTAS_PER_CHAIN,
+	MAX_SEGMENT_SIZE_RATIO,
 	MIN_SIZE_RULE_DELTA_BYTES,
 	SEGMENT_CAP,
 } from './config'
@@ -32,6 +33,11 @@ export interface OpenSegment {
 	key: string
 	firstSeq: number
 	count: number
+	/**
+	 * Encoded size of the segment object as last written, for the segment size rule. Absent on
+	 * chain state stored before the rule existed; the next append records it.
+	 */
+	bytes?: number
 }
 
 /**
@@ -77,6 +83,7 @@ export type KeyframeReason =
 	| 'delta-count'
 	| 'chain-age'
 	| 'delta-size'
+	| 'segment-size'
 
 export type VersionWriteDecision =
 	| { kind: 'keyframe'; reason: KeyframeReason }
@@ -131,6 +138,17 @@ export function decideVersionWrite({
 
 	const seq = chain.deltaCount + 1
 	const open = chain.openSegment
+	// Bounds the in-memory buffer: an open segment is rewritten whole on every append, so what it
+	// holds is what the durable object holds. A full segment is exempt — it is about to be left
+	// behind, not rewritten.
+	if (
+		open &&
+		open.count < SEGMENT_CAP &&
+		(open.bytes ?? 0) + deltaBytes > MIN_SIZE_RULE_DELTA_BYTES &&
+		(open.bytes ?? 0) + deltaBytes > chain.keyframeBytes * MAX_SEGMENT_SIZE_RATIO
+	) {
+		return { kind: 'keyframe', reason: 'segment-size' }
+	}
 	if (!open || open.count >= SEGMENT_CAP) {
 		// A full segment is finished by never being written to again — its key was its first
 		// delta's timestamp from the start, so there is nothing to rename or seal.

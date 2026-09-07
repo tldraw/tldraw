@@ -114,7 +114,7 @@ export async function writeVersionChainEntry({
 			deltaCount: decision.seq,
 			headFingerprint: nextFingerprint,
 			headHash: chainHeadHash(next),
-			openSegment: decision.segment,
+			openSegment: { ...decision.segment, bytes: encoded.body.byteLength },
 		},
 	}
 }

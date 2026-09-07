@@ -97,6 +97,40 @@ describe('decideVersionWrite', () => {
 		})
 	})
 
+	it('cuts a keyframe when the open segment would outgrow its keyframe', () => {
+		const openSegment = {
+			key: `${roomKey}/2026-09-01T00:00:01.000Z.s`,
+			firstSeq: 1,
+			count: 3,
+			bytes: 9_000,
+		}
+
+		expect(
+			decide({ deltaCount: 3, keyframeBytes: 10_000, openSegment }, { deltaBytes: 1_001 })
+		).toEqual({ kind: 'keyframe', reason: 'segment-size' })
+		expect(
+			decide({ deltaCount: 3, keyframeBytes: 10_000, openSegment }, { deltaBytes: 1_000 })
+		).toEqual({ kind: 'delta', seq: 4, isNewSegment: false, segment: { ...openSegment, count: 4 } })
+	})
+
+	it('never cuts a segment size keyframe for a tiny segment, whatever the ratio', () => {
+		const openSegment = {
+			key: `${roomKey}/2026-09-01T00:00:01.000Z.s`,
+			firstSeq: 1,
+			count: 3,
+			bytes: 3_000,
+		}
+
+		expect(decide({ deltaCount: 3, keyframeBytes: 100, openSegment }, { deltaBytes: 500 })).toEqual(
+			{
+				kind: 'delta',
+				seq: 4,
+				isNewSegment: false,
+				segment: { ...openSegment, count: 4 },
+			}
+		)
+	})
+
 	it('never cuts a size keyframe for a small delta, whatever the ratio', () => {
 		expect(decide({ keyframeBytes: 100 }, { deltaBytes: 90 })).toEqual({
 			kind: 'delta',

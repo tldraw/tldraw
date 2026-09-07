@@ -190,9 +190,18 @@ export const MAX_CHAIN_AGE_MS = 24 * 60 * 60 * 1000
 export const MAX_DELTA_SIZE_RATIO = 0.5
 
 /**
- * The size rule only fires above this. Gzip's fixed overhead makes a tiny delta comparable to a
+ * An open segment that would grow past this fraction of its keyframe cuts a keyframe instead. The
+ * delta rule above bounds one write; this bounds what accumulates: a run of edits each just under
+ * half the board packs up to `SEGMENT_CAP / 2` keyframes' worth into one segment, all of it decoded
+ * in the durable object's memory and re-serialized on every persist — past the isolate's 128MB on
+ * a board near the room size limit. A segment worth more than its keyframe is worth a keyframe.
+ */
+export const MAX_SEGMENT_SIZE_RATIO = 1
+
+/**
+ * The size rules only fire above this. Gzip's fixed overhead makes a tiny delta comparable to a
  * tiny keyframe, so without a floor a near-empty board cuts a keyframe on every persist — and a
- * sub-4KB delta is never the mass rewrite the rule exists to catch.
+ * sub-4KB delta or segment is never the mass rewrite or the memory hazard the rules exist to catch.
  */
 export const MIN_SIZE_RULE_DELTA_BYTES = 4096
 
