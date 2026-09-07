@@ -12,6 +12,7 @@ import {
 	WELCOME_CREATE_SOURCE,
 	TlaFileState,
 	TlaFileStatePartial,
+	TlaFlags,
 	TlaGroupFile,
 	TlaMutators,
 	TlaSchema,
@@ -21,6 +22,7 @@ import {
 	ZeroContext,
 	can,
 	createMutators,
+	parseFlags,
 	queries,
 	schema as zeroSchema,
 } from '@tldraw/dotcom-shared'
@@ -492,6 +494,18 @@ export class TldrawApp {
 
 	getUser() {
 		return assertExists(this.user$.get(), 'no user')
+	}
+
+	// Keep these helpers even when no per-user flags are active; future rollouts need
+	// reactive access to the flags stored on the user record.
+	@computed({ isEqual })
+	getUserFlags(): Set<TlaFlags> {
+		const user = this.getUser()
+		return new Set(parseFlags(user.flags)) as Set<TlaFlags>
+	}
+
+	hasFlag(flag: TlaFlags) {
+		return this.getUserFlags().has(flag)
 	}
 
 	/**
