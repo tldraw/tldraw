@@ -20,6 +20,7 @@ import { TLUserStore } from 'tldraw';
 export type RemoteTLStoreWithStatus = (Extract<TLStoreWithStatus, {
     status: 'synced-remote';
 }> & {
+    flushChanges(): Promise<void>;
     readonly objectAccess: TLObjectStoreAccess;
 }) | Exclude<TLStoreWithStatus, {
     status: 'not-synced';

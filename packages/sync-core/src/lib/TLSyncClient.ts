@@ -4,6 +4,7 @@ import {
 	RecordsDiff,
 	Store,
 	UnknownRecord,
+	isRecordsDiffEmpty,
 	reverseRecordsDiff,
 	squashRecordDiffsMutable,
 } from '@tldraw/store'
@@ -395,6 +396,52 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		added: {} as any,
 		updated: {} as any,
 		removed: {} as any,
+	}
+
+	private flushWaiters: Array<{ resolve(): void; reject(reason: Error): void }> = []
+
+	/**
+	 * Whether this client is holding document changes the server has not confirmed.
+	 *
+	 * Reversing `speculativeChanges` produces the server's state, so an empty one means the two
+	 * agree. It stays true across a reconnect, when pending pushes are re-sent rather than dropped.
+	 *
+	 * @public
+	 */
+	hasUnsyncedChanges(): boolean {
+		return !isRecordsDiffEmpty(this.speculativeChanges)
+	}
+
+	/**
+	 * Sends anything this client is holding, and resolves once the server has confirmed all of it.
+	 *
+	 * Pushes are throttled — to one per second while the session is the room's only one, and not at
+	 * all in a tab the browser has stopped giving animation frames to — so a change can be minutes
+	 * old and still be nowhere but this tab. Call this before anything that reads the document from
+	 * the server and expects to see what the user just did.
+	 *
+	 * Resolves immediately when there is nothing outstanding. Rejects if the client closes while
+	 * waiting. It does not time out: a disconnected client keeps its changes and pushes them on
+	 * reconnect, so a caller that cannot wait indefinitely should race this against its own timer.
+	 *
+	 * @public
+	 */
+	flushChanges(): Promise<void> {
+		if (!this.hasUnsyncedChanges()) return Promise.resolve()
+		// Run the queued push now rather than on the frame the throttle would have chosen.
+		this.fpsScheduler.flushNow()
+		if (!this.hasUnsyncedChanges()) return Promise.resolve()
+		return new Promise((resolve, reject) => {
+			this.flushWaiters.push({ resolve, reject })
+		})
+	}
+
+	/** Settles anyone waiting on `flushChanges`, once the server has confirmed everything. */
+	private resolveFlushWaiters() {
+		if (this.flushWaiters.length === 0 || this.hasUnsyncedChanges()) return
+		const waiters = this.flushWaiters
+		this.flushWaiters = []
+		for (const waiter of waiters) waiter.resolve()
 	}
 
 	private disposables: Array<() => void> = []
@@ -873,6 +920,11 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.disposables.forEach((dispose) => dispose())
 		this.sendUnsentChanges.cancel?.()
 		this.scheduleRebase.cancel?.()
+		const waiters = this.flushWaiters
+		this.flushWaiters = []
+		for (const waiter of waiters) {
+			waiter.reject(new Error('sync client closed with changes still unsent'))
+		}
 		if (typeof window !== 'undefined' && (window as any).tlsync === this) {
 			delete (window as any).tlsync
 		}
@@ -1014,6 +1066,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 					this.speculativeChanges = { added: {} as any, updated: {} as any, removed: {} as any }
 					this.resetConnection()
 				}
+				// The only point at which the server can have confirmed everything this client held.
+				this.resolveFlushWaiters()
 			})
 			this.lastServerClock = diffs.at(-1)?.serverClock ?? this.lastServerClock
 		} catch (e) {
