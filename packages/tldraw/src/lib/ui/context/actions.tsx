@@ -152,7 +152,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 			editor.run(() => {
 				const scaleOrigin = editor.getSelectionPageBounds()?.center
-				// Update each shape
+				// Re-reading the bounds after each resize would make the selection center drift.
 				for (const id of editor.getSelectedShapeIds()) {
 					editor.resizeShape(id, new Vec(scaleFactor, scaleFactor), { scaleOrigin })
 				}

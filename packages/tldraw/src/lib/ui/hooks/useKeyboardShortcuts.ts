@@ -456,10 +456,11 @@ export function getHotkeysStringFromKbd(kbd: string) {
 			const alt = kbd.includes('?')
 			const cmd = kbd.includes('$')
 
-			// remove the modifiers; the remaining string are the actual key
 			const k = kbd.replace(/[!?$]/g, '')
 
-			const mods = [shift && 'shift', alt && 'alt'].filter(Boolean)
+			const mods: string[] = []
+			if (shift) mods.push('shift')
+			if (alt) mods.push('alt')
 			const rest = [...mods, k].join('+')
 			return cmd ? `cmd+${rest},ctrl+${rest}` : rest
 		})
