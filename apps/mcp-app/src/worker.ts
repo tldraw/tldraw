@@ -76,10 +76,6 @@ function corsResponse(response: Response): Response {
 	return new Response(response.body, { status: response.status, headers })
 }
 
-/** Grace period before the condemned object's alarm runs destroy(). The marker is
- * written from a live invocation, so the alarm has to land after that one returns. */
-const DESTROY_ALARM_DELAY_MS = 1000
-
 // --- McpAgent Durable Object ---
 
 export class TldrawMCP extends McpAgent<Env> {
@@ -380,17 +376,22 @@ export class TldrawMCP extends McpAgent<Env> {
 	/**
 	 * Condemns this DO if it has been idle for `maxIdleMs`, and reports whether it
 	 * was kept. Never calls destroy() inline: it writes the SDK's own durable
-	 * destroy marker and arms an immediate alarm, and Agent.alarm() runs destroy()
-	 * in a fresh invocation before any onStart/init(). That keeps this path off
-	 * `this.name`, which is never hydrated on an alarm invocation. The marker
-	 * doubles as the idempotency guard across evictions.
+	 * destroy marker, and Agent.alarm() runs destroy() in a fresh invocation before
+	 * any onStart/init(). That keeps this path off `this.name`, which is never
+	 * hydrated on an alarm invocation. The marker doubles as the idempotency guard
+	 * across evictions.
+	 *
+	 * The setAlarm calls are a fallback. The SDK re-arms after every schedule
+	 * callback returns, and that path sees the marker and calls `setAlarm(now)`
+	 * itself, so any delay we asked for is overwritten — these writes only matter
+	 * if that re-arm never runs.
 	 */
 	async destroyIfIdle(maxIdleMs: number): Promise<{ kept: boolean }> {
 		if (await this.ctx.storage.get('cf_agents_destroy_pending')) {
 			// Marker without an alarm (setAlarm failed or the invocation died between the
 			// two writes) leaves the DO condemned but never torn down. Re-arm; setAlarm
 			// is idempotent if one is pending.
-			await this.ctx.storage.setAlarm(Date.now() + DESTROY_ALARM_DELAY_MS)
+			await this.ctx.storage.setAlarm(Date.now())
 			return { kept: false }
 		}
 		const lastActivity = this.readLastActivity()
@@ -402,7 +403,7 @@ export class TldrawMCP extends McpAgent<Env> {
 			doubles: [Date.now()],
 		})
 		await this.ctx.storage.put('cf_agents_destroy_pending', true)
-		await this.ctx.storage.setAlarm(Date.now() + DESTROY_ALARM_DELAY_MS)
+		await this.ctx.storage.setAlarm(Date.now())
 		return { kept: false }
 	}
 
