@@ -4,7 +4,6 @@ import {
 	RecordsDiff,
 	Store,
 	UnknownRecord,
-	isRecordsDiffEmpty,
 	reverseRecordsDiff,
 	squashRecordDiffsMutable,
 } from '@tldraw/store'
@@ -401,15 +400,18 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	private flushWaiters: Array<{ resolve(): void; reject(reason: Error): void }> = []
 
 	/**
-	 * Whether this client is holding document changes the server has not confirmed.
+	 * Whether this client is still holding changes it has to send, or has sent and not had
+	 * confirmed.
 	 *
-	 * Reversing `speculativeChanges` produces the server's state, so an empty one means the two
-	 * agree. It stays true across a reconnect, when pending pushes are re-sent rather than dropped.
+	 * Deliberately not `speculativeChanges`, which is the difference between this store and the
+	 * server's and can hold a record permanently — one the server declined, or that its schema
+	 * drops — leaving a diff that never empties however long anyone waits. What can be waited on is
+	 * the queue: everything sent has been acked and there is nothing left to send.
 	 *
 	 * @public
 	 */
 	hasUnsyncedChanges(): boolean {
-		return !isRecordsDiffEmpty(this.speculativeChanges)
+		return this.pendingPushRequests.length > 0 || !!this.unsentChanges.nextDiff
 	}
 
 	/**
@@ -427,18 +429,32 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 * @public
 	 */
 	flushChanges(): Promise<void> {
-		if (!this.hasUnsyncedChanges()) return Promise.resolve()
+		// Hand the store's pending history over before asking whether anything is outstanding. A
+		// change made a moment ago is not in `unsentChanges` yet, so without this the answer is
+		// "nothing to send" for the very edit the caller is waiting on. `pushPresence` does the
+		// same, for the same reason.
+		this.store._flushHistory()
+		if (this.isSettled()) return Promise.resolve()
 		// Run the queued push now rather than on the frame the throttle would have chosen.
 		this.fpsScheduler.flushNow()
-		if (!this.hasUnsyncedChanges()) return Promise.resolve()
+		if (this.isSettled()) return Promise.resolve()
 		return new Promise((resolve, reject) => {
 			this.flushWaiters.push({ resolve, reject })
 		})
 	}
 
+	/**
+	 * Connected, with nothing sent-but-unconfirmed and nothing left to send. Offline does not
+	 * qualify however empty the queue looks: changes made while offline sit in `speculativeChanges`
+	 * and are pushed on reconnect, so the server does not have them yet.
+	 */
+	private isSettled(): boolean {
+		return this.isConnectedToRoom && !this.hasUnsyncedChanges()
+	}
+
 	/** Settles anyone waiting on `flushChanges`, once the server has confirmed everything. */
 	private resolveFlushWaiters() {
-		if (this.flushWaiters.length === 0 || this.hasUnsyncedChanges()) return
+		if (this.flushWaiters.length === 0 || !this.isSettled()) return
 		const waiters = this.flushWaiters
 		this.flushWaiters = []
 		for (const waiter of waiters) waiter.resolve()
@@ -576,6 +592,11 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				: undefined
 
 			if (!diff && !presence) {
+				// Neither half survived conversion to a network diff, so neither is ever going to be
+				// sent. Leaving them queued leaves `unsentChanges` permanently non-empty, which reads
+				// as "this client still owes the server something" forever.
+				this.unsentChanges.nextDiff = undefined
+				this.unsentChanges.nextPresence = undefined
 				return
 			}
 
@@ -860,6 +881,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		})
 
 		this.lastServerClock = event.serverClock
+		this.resolveFlushWaiters()
 	}
 
 	private incomingDiffBuffer: TLSocketServerSentDataEvent<R>[] = []
@@ -1066,8 +1088,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 					this.speculativeChanges = { added: {} as any, updated: {} as any, removed: {} as any }
 					this.resetConnection()
 				}
-				// The only point at which the server can have confirmed everything this client held.
-				this.resolveFlushWaiters()
 			})
 			this.lastServerClock = diffs.at(-1)?.serverClock ?? this.lastServerClock
 		} catch (e) {
@@ -1075,5 +1095,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			this.store.ensureStoreIsUsable()
 			this.resetConnection()
 		}
+		this.resolveFlushWaiters()
 	}
 }
