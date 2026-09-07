@@ -444,7 +444,10 @@ export function sequenceToBlueprint(
 	for (const msg of messages) {
 		const type = msg.type ?? -1
 		if (type === LINETYPE.AUTONUMBER) {
-			// `autonumber [start [step]]` / `autonumber off`; mermaid stores the options on `message`
+			// `autonumber [start [step]]` / `autonumber off`; mermaid stores the options on
+			// `message`. Omitting `start` resumes the running counter rather than resetting
+			// to 1, so a bare `autonumber` part-way down a diagram continues the sequence
+			// from the signals above it. Matches mermaid.
 			if (typeof msg.message === 'object') {
 				autonumber = msg.message.start || autonumber
 				autonumberStep = msg.message.step || autonumberStep
