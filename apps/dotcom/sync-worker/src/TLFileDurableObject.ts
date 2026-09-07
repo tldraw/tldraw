@@ -2036,8 +2036,9 @@ export class TLFileDurableObject extends DurableObject {
 				this.reportError(error)
 			}
 		}
-		// Dual-write keeps the legacy full copy so the verifier has something to compare
-		// reconstructions against on live traffic. Stage 3 of the rollout flips this to 'chain'.
+		// Dual-write keeps the legacy full copy as the independent record the read-path verifier
+		// checks chain reconstructions against. (_verifyRetiredChain only compares against what this
+		// DO last persisted.) Stage 3 of the rollout flips this to 'chain'.
 		// Nothing dedupes this write the way the version check in persistToDatabase does: a retry
 		// that got here has already set _lastPersistedFingerprint and takes the skip path instead
 		// (the chain write above carries its own re-entry guard for the same reason).
