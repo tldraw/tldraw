@@ -280,8 +280,11 @@ export class TLFileDurableObject extends DurableObject {
 					storage.transaction((txn) => {
 						fileSyncSchema.migrateStorage(txn)
 					})
-					// R2 holds exactly what we just loaded, so the next persist diffs against it rather
-					// than cutting a keyframe every time the durable object wakes. Gated on the mode: this
+					// The next persist diffs against this rather than cutting a keyframe every time the
+					// durable object wakes. It is usually what R2 holds, but not always: a previous
+					// incarnation can die with edits SQLite has and R2 does not. That is safe because the
+					// seed is never trusted as the chain head — decideVersionWrite checks it against the
+					// head the chain recorded and cuts a keyframe when they differ. Gated on the mode: this
 					// is a second decoded copy of the board pinned for the DO's lifetime, not worth paying
 					// for where chains are off.
 					if (getVersionChainMode(this.env, getR2KeyForRoom(this.documentInfo)) !== 'off') {
@@ -719,8 +722,9 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
-	// The snapshot R2 currently holds, so a persist can diff against it. Seeded from the document
-	// loaded on wake, which IS what R2 holds — without that, every cold start would cut a keyframe.
+	// The snapshot the last persist wrote, so the next one can diff against it. Seeded on wake from
+	// the document just loaded so a cold start does not cut a keyframe; see getStorage for why that
+	// seed may be ahead of R2 and why that is safe.
 	_lastPersistedSnapshot: RoomSnapshot | null = null
 	_versionChain: ChainState | null = null
 	_versionChainLoaded = false
