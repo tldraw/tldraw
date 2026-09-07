@@ -1,3 +1,4 @@
+import { RoomSnapshot } from '@tldraw/sync-core'
 import {
 	MAX_CHAIN_AGE_MS,
 	MAX_DELTA_SIZE_RATIO,
@@ -5,8 +6,8 @@ import {
 	MIN_SIZE_RULE_DELTA_BYTES,
 	SEGMENT_CAP,
 } from './config'
-import { isSameFingerprint, SnapshotFingerprint } from './snapshotUtils'
-import { SnapshotDelta } from './versionDelta'
+import { getSnapshotFingerprint, isSameFingerprint, SnapshotFingerprint } from './snapshotUtils'
+import { chainHeadHash, SnapshotDelta } from './versionDelta'
 
 /** One version inside a segment: the timestamp it was persisted at, and the change it encodes. */
 export interface PendingDelta {
@@ -54,6 +55,18 @@ export interface ChainState {
 	 */
 	headHash: string
 	openSegment: OpenSegment | null
+}
+
+/**
+ * Whether `snapshot` is the state `chain` ends at. Both halves matter: the fingerprint is the cheap
+ * clock-and-schema check, and the head hash catches a tombstone prune, which rewrites content
+ * without moving any clock. The hash is only computed once the fingerprint already matches.
+ */
+export function isChainHead(chain: ChainState, snapshot: RoomSnapshot): boolean {
+	return (
+		isSameFingerprint(chain.headFingerprint, getSnapshotFingerprint(snapshot)) &&
+		chain.headHash === chainHeadHash(snapshot)
+	)
 }
 
 export type KeyframeReason =

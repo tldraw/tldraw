@@ -1,3 +1,5 @@
+import { UnknownRecord } from '@tldraw/store'
+import { RoomSnapshot } from '@tldraw/sync-core'
 import { describe, expect, it } from 'vitest'
 import {
 	MAX_CHAIN_AGE_MS,
@@ -5,15 +7,17 @@ import {
 	SEGMENT_CAP,
 	WORKER_MAX_SIMULTANEOUS_CONNECTIONS,
 } from './config'
-import { SnapshotFingerprint } from './snapshotUtils'
+import { getSnapshotFingerprint, SnapshotFingerprint } from './snapshotUtils'
 import {
 	ChainState,
 	decideVersionWrite,
+	isChainHead,
 	parseVersionKey,
 	readSegmentRef,
 	segmentCustomMetadata,
 	versionKey,
 } from './versionChain'
+import { chainHeadHash } from './versionDelta'
 
 const roomKey = 'app_rooms/slug'
 const fingerprint: SnapshotFingerprint = { lastDocumentChangeClock: 10, schemaHash: 'abc' }
@@ -135,6 +139,52 @@ describe('decideVersionWrite', () => {
 			isNewSegment: true,
 			segment: { key: `${roomKey}/${iso}.s`, firstSeq: SEGMENT_CAP + 1, count: 1 },
 		})
+	})
+})
+
+describe('isChainHead', () => {
+	function snapshot(partial: Partial<RoomSnapshot> = {}): RoomSnapshot {
+		return {
+			clock: 5,
+			documentClock: 5,
+			documents: [
+				{ state: { id: 'shape:a', typeName: 'shape' } as UnknownRecord, lastChangedClock: 5 },
+			],
+			tombstones: { 'shape:old': 3 },
+			tombstoneHistoryStartsAtClock: 0,
+			schema: { schemaVersion: 2, sequences: {} } as any,
+			...partial,
+		}
+	}
+	const head = snapshot()
+	const chainAtHead = chain({
+		headFingerprint: getSnapshotFingerprint(head),
+		headHash: chainHeadHash(head),
+	})
+
+	it('accepts the head itself and a head whose shared clock a comment write moved', () => {
+		expect(isChainHead(chainAtHead, head)).toBe(true)
+		expect(isChainHead(chainAtHead, snapshot({ documentClock: 9 }))).toBe(true)
+	})
+
+	it('rejects a tombstone prune, which keeps the fingerprint but not the content', () => {
+		const pruned = snapshot({ tombstones: {}, tombstoneHistoryStartsAtClock: 4 })
+
+		expect(getSnapshotFingerprint(pruned)).toEqual(getSnapshotFingerprint(head))
+		expect(isChainHead(chainAtHead, pruned)).toBe(false)
+	})
+
+	it('rejects a document change', () => {
+		const edited = snapshot({
+			documents: [
+				{
+					state: { id: 'shape:a', typeName: 'shape', x: 1 } as unknown as UnknownRecord,
+					lastChangedClock: 6,
+				},
+			],
+		})
+
+		expect(isChainHead(chainAtHead, edited)).toBe(false)
 	})
 })
 

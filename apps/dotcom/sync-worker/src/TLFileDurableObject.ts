@@ -111,7 +111,7 @@ import { getAuth, requireAdminAccess, requireAdminAccessToRequest } from './util
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 import { getRole } from './utils/tla/getRole'
 import { isTestFile } from './utils/tla/isTestFile'
-import { ChainState, PendingDelta } from './versionChain'
+import { ChainState, isChainHead, PendingDelta } from './versionChain'
 import { getVersionChainMode } from './versionChainConfig'
 import { deleteAllVersions, reconstructVersion } from './versionChainRead'
 import { readOpenSegment, writeVersionChainEntry } from './versionChainWrite'
@@ -2058,11 +2058,13 @@ export class TLFileDurableObject extends DurableObject {
 		iso: string
 	): Promise<string> {
 		let chain = await this.getVersionChain()
-		const fingerprint = getSnapshotFingerprint(snapshot)
 		// Re-entry guard: a dual-write persist that failed on the legacy upload retries this whole
 		// method with the chain already holding this exact version. Without it, every such retry
 		// appends a no-op delta at a fresh timestamp — the duplicate class #10571 exists to kill.
-		if (chain && isSameFingerprint(chain.headFingerprint, fingerprint)) {
+		// Head identity, not just the fingerprint: a tombstone prune between attempts keeps the
+		// fingerprint but changes content, and the legacy copy must not land under a key the chain
+		// holds other content at.
+		if (chain && isChainHead(chain, snapshot)) {
 			return this._versionChainHeadIso ?? iso
 		}
 		let pending: PendingDelta[] = []
