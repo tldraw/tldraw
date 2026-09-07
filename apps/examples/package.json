@@ -56,6 +56,7 @@
 		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/driver": "workspace:*",
 		"@tldraw/mermaid": "workspace:*",
+		"@tldraw/rich-text-layout": "workspace:*",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/sync": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
