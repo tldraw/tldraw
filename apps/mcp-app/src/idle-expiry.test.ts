@@ -4,8 +4,9 @@
  * The one assertion that matters most: after the expiry alarm fires on a kept
  * session, exactly one `expireIfIdle` schedule row remains, with a new id. The
  * SDK deletes the executing row after the callback returns, so a re-arm that
- * dedups would vanish with it and the DO would never expire. Nothing but this
- * test catches that regression on an `agents` bump.
+ * dedups would vanish with it and the DO would never expire. This test checks
+ * the outcome — our callback leaves a replacement row behind — while
+ * agents-canary.test.ts checks the SDK ordering that outcome depends on.
  */
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import {
@@ -89,7 +90,7 @@ describe('session DO idle expiry', () => {
 
 	test('a session that never saves is destroyed by its own expiry alarm', async () => {
 		// No checkpoint means no lastActivity, which reads as maximally idle: the
-		// first alarm condemns it, and the destroy alarm a second later wipes it.
+		// first alarm condemns it, and the subsequent destroy alarm wipes it.
 		const sessionId = await initSession(base(), 'idle-expiry')
 		await new Promise((res) => setTimeout(res, IDLE_TTL_MS + 5000))
 
