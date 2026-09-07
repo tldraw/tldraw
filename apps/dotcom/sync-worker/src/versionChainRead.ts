@@ -1,5 +1,5 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { listAllObjectKeys } from './r2'
+import { deleteAllObjectsWithPrefix, listAllObjectKeys } from './r2'
 import { parseVersionKey, PendingDelta, readSegmentRef, SegmentBody } from './versionChain'
 import { decodeVersionBody, isGzippedVersionBody } from './versionChainCodec'
 import { applySnapshotDelta, snapshotContentHash } from './versionDelta'
@@ -323,17 +323,9 @@ export async function deleteAllVersions({
 	legacyBucket: R2Bucket
 	roomKey: string
 }): Promise<void> {
+	// Trailing slash: a bare roomKey prefix also matches sibling rooms whose slug is a prefix of
+	// this one (deleting "abc" must not sweep "abcd").
 	await Promise.all(
-		[chainBucket, legacyBucket].map(async (bucket) => {
-			// Trailing slash: a bare roomKey prefix also matches sibling rooms whose slug is a
-			// prefix of this one (deleting "abc" must not sweep "abcd").
-			const keys = await listAllObjectKeys(bucket, `${roomKey}/`)
-			// Batched: one delete per key is an unbounded subrequest loop, and a room with a long
-			// pre-chain history would hit the per-request subrequest cap mid-sweep and leave
-			// objects behind. R2 accepts at most 1000 keys per delete call.
-			for (let i = 0; i < keys.length; i += 1000) {
-				await bucket.delete(keys.slice(i, i + 1000))
-			}
-		})
+		[chainBucket, legacyBucket].map((bucket) => deleteAllObjectsWithPrefix(bucket, `${roomKey}/`))
 	)
 }
