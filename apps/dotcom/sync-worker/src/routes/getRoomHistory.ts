@@ -12,8 +12,7 @@ function getMonthPrefix(date: Date): string {
 }
 
 function getPreviousMonth(date: Date): Date {
-	// Step by calendar month from the 1st: `setMonth(m - 1)` on the 29th–31st lands in the same
-	// month again (Mar 31 → "Feb 31" → Mar 3), so the month scan would fetch it twice.
+	// Use day 1 to avoid overflowing shorter months and scanning the same month twice.
 	return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() - 1, 1))
 }
 
@@ -97,8 +96,7 @@ export async function getRoomHistory(
 	const targetEntryCount = 1000
 
 	if (offset) {
-		// `new Date` never throws; an unparseable offset is an Invalid Date that would blow up in
-		// toISOString further down.
+		// Invalid dates would throw in toISOString when building the month prefix.
 		const parsed = new Date(offset)
 		currentMonth = Number.isNaN(parsed.getTime()) ? new Date() : parsed
 	} else {
