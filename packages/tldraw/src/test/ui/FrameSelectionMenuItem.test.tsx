@@ -86,4 +86,30 @@ describe('FrameSelectionMenuItem', () => {
 		act(() => editor.select(locked, a))
 		await findItem()
 	})
+
+	it('is hidden for an arrow bound to a selected locked shape', async () => {
+		const { editor, locked, a } = await setup()
+		const arrow = createShapeId()
+		act(() => {
+			editor.createShapes([{ id: arrow, type: 'arrow', x: 700, y: 300 }])
+			editor.createBindings([
+				{
+					fromId: arrow,
+					toId: locked,
+					type: 'arrow',
+					props: {
+						terminal: 'end',
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isExact: false,
+						isPrecise: false,
+					},
+				},
+			])
+			editor.select(a)
+		})
+		await findItem()
+
+		act(() => editor.select(locked, arrow))
+		await expectNoItem()
+	})
 })

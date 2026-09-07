@@ -624,9 +624,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) return
 
 					const shapes = compact(ids.map((id) => editor.getShape(id)))
-					const pageBounds = Box.Common(
-						compact(shapes.map((shape) => editor.getShapePageBounds(shape)))
-					)
+					const pageBounds = editor.getShapesPageBounds(ids)
+					if (!pageBounds) return
 
 					trackEvent('frame-selection', { source })
 					editor.markHistoryStoppingPoint('frame-selection')
