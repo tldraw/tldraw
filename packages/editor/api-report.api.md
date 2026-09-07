@@ -3788,6 +3788,7 @@ export interface TldrawEditorBaseProps {
     options?: Partial<TldrawOptions>;
     overlayUtils?: readonly TLAnyOverlayUtilConstructor[];
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
+    textMeasurer?: TLTextMeasurer;
     // @deprecated
     textOptions?: TLTextOptions;
     themes?: Partial<TLThemes>;

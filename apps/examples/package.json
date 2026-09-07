@@ -54,6 +54,7 @@
 		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/driver": "workspace:*",
 		"@tldraw/mermaid": "workspace:*",
+		"@tldraw/rich-text-layout": "workspace:*",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/sync": "workspace:*",
 		"ag-grid-community": "^32.3.3",

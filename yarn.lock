@@ -20434,6 +20434,7 @@ __metadata:
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/driver": "workspace:*"
     "@tldraw/mermaid": "workspace:*"
+    "@tldraw/rich-text-layout": "workspace:*"
     "@tldraw/state": "workspace:*"
     "@tldraw/sync": "workspace:*"
     "@types/d3-geo": "npm:^3.1.0"
