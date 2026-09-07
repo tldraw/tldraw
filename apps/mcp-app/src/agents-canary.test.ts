@@ -2,7 +2,7 @@ import { readFileSync } from 'fs'
 import { createRequire } from 'module'
 import { describe, expect, it } from 'vitest'
 
-// pruneIfIdle/expireIfIdle in worker.ts lean on these agents-SDK internals.
+// destroyIfIdle/expireIfIdle in worker.ts lean on these agents-SDK internals.
 // A bump that moves any of them must re-audit that code before shipping;
 // this file turns that into a failing test instead of a silent prod regression.
 const require = createRequire(import.meta.url)
@@ -16,7 +16,7 @@ function between(src: string, startMarker: string, endMarker: string): string {
 	return src.slice(start, end)
 }
 
-describe('agents SDK assumptions behind session pruning and expiry', () => {
+describe('agents SDK assumptions behind session idle expiry', () => {
 	it('schedule() gates its callback+payload dedup query behind the idempotent option', () => {
 		// schedule() itself delegates to _insertScheduleForOwner, which is where the
 		// idempotent check and its dedup query actually live.

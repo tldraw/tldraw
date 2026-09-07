@@ -19,7 +19,7 @@ import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
 //
 // Deliberately pure. It takes a room snapshot and a table of shape measurements — data — and returns
 // tool results. It knows nothing about Postgres, R2, Browser Rendering, rate limits, caching or
-// telemetry; sharedBoardScreenshotMcp.ts owns all of that and calls in here.
+// telemetry; mcpServer.ts owns all of that and calls in here.
 //
 // The split is what makes this server evaluable. The private eval harness sends checked-in board
 // fixtures to the local-only route in evalsLocalMcp.ts, which serves these exact functions. A run

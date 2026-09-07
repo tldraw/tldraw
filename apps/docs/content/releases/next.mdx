@@ -2,54 +2,20 @@
 title: Next release
 description: Changes coming in the next release
 author: tldraw
-date: 08/05/2026
+date: 09/02/2026
 order: 0
 status: published
-last_version: v5.3.2
+last_version: v5.4.0
 ---
 
-This release adds a `center` operation to `Editor.alignShapes`, a `tleditors` registry of mounted editors, `iterateGraphemes` to `@tldraw/utils`, and two new reactive methods on `AtomMap`. It also deprecates `useViewportHeight`, speeds up the signals and store layers, and fixes a batch of crashes and interaction bugs across dialogs, sync reconnection, undo, the frame loop, and keyboard shortcut tooltips.
-
-## API changes
-
-- 🔜 **`useViewportHeight()`** is deprecated. Read `window.visualViewport` directly instead. The hook returns only the visible viewport's bottom edge, and keeping a panel clear of the software keyboard generally needs the whole visible rectangle. ([#9826](https://github.com/tldraw/tldraw/pull/9826))
-- Add `'center'` as an `Editor.alignShapes` operation. It applies the existing `'center-horizontal'` and `'center-vertical'` operations together, so shapes center on both axes in one command. ([#9074](https://github.com/tldraw/tldraw/pull/9074))
-- Add `tleditors`, a reactive global registry of currently mounted editors. Use it to reach live editors from outside the React tree, for example from sidebar chrome or a keyboard shortcut handler. ([#9904](https://github.com/tldraw/tldraw/pull/9904))
-
-  ```tsx
-  import { tleditors, useValue } from 'tldraw'
-
-  const mounted = useValue('mounted editors', () => tleditors.getMounted(), [])
-  ```
-
-- Add `getOrInsert(key, defaultValue)` and `getOrInsertComputed(key, callback)` to `AtomMap`, matching the `Map` methods added in newer JavaScript runtimes. Both are reactive, and the callback only runs when the key is absent. ([#9752](https://github.com/tldraw/tldraw/pull/9752))
-- Add `isPage(record)` to `@tldraw/tlschema`, a type guard that narrows an unknown record to `TLPage`, matching the guards already exported for the other record types. ([#9774](https://github.com/tldraw/tldraw/pull/9774))
-- Add `iterateGraphemes(str)` to `@tldraw/utils`. It iterates a string's grapheme clusters, using `Intl.Segmenter` when it's available and falling back to code-point iteration when it isn't. ([#9896](https://github.com/tldraw/tldraw/pull/9896))
-- `EmojiPickerProps.onSelect` now receives the originating event as an optional second argument. Custom reaction palettes can forward it to opt into shift multi-select. ([#9999](https://github.com/tldraw/tldraw/pull/9999))
-
-## Improvements
-
-- Shift-click an emoji in a comment's reaction palette to add several reactions without the palette closing. A plain click still applies the reaction and closes the palette. ([#9999](https://github.com/tldraw/tldraw/pull/9999))
-- Reduce per-pointer-event allocations in `Group2d` and `Editor` hit-testing. ([#8600](https://github.com/tldraw/tldraw/pull/8600))
-- Speed up signal reads in `@tldraw/state`. Capturing a parent used to scan the capturing signal's parent set twice, once to check for the parent and again to add it. ([#9690](https://github.com/tldraw/tldraw/pull/9690))
-- Reduce the work and allocations in `@tldraw/store` history bookkeeping, so squashing record diffs and filtering query history no longer build intermediate copies on every tick. ([#9689](https://github.com/tldraw/tldraw/pull/9689), [#9869](https://github.com/tldraw/tldraw/pull/9869))
+So far this release is a set of fixes: camera coasting and edge scrolling now move at the same rate on high-refresh displays, rotated images stay put when a crop changes their size, and embed hostname matching no longer trusts lookalike hosts.
 
 ## Bug fixes
 
-- Fix the editor failing to load on older browsers that lack `Intl.Segmenter`, such as Firefox before 125. ([#9896](https://github.com/tldraw/tldraw/pull/9896))
-- Fix the frame loop stopping permanently when a `tick` or `frame` listener threw, which silently disabled camera animations, edge scrolling, and other frame-driven behavior for the rest of the session. ([#9946](https://github.com/tldraw/tldraw/pull/9946))
-- Fix a crash when computing a frame's geometry if its heading text couldn't be measured yet. ([#9496](https://github.com/tldraw/tldraw/pull/9496))
-- Fix undo after a cut also reverting the change made before it. ([#9920](https://github.com/tldraw/tldraw/pull/9920))
-- Fix small, slowly drawn loops sometimes failing to close, because dense input sampling made the stroke measure shorter than it was. ([#9930](https://github.com/tldraw/tldraw/pull/9930))
-- Fix modifier keys (Shift, Alt, Ctrl, Cmd) briefly being treated as held at the start of a new click or drag right after being released, which could momentarily affect snapping and other modifier-dependent behavior. ([#9523](https://github.com/tldraw/tldraw/pull/9523))
-- Fix **Flatten to image** producing different groupings depending on selection order, and not merging clusters that were only connected through a bridging shape. ([#8661](https://github.com/tldraw/tldraw/pull/8661))
-- Fix pasted links showing a broken preview image when the linked page has no Open Graph image. ([#9909](https://github.com/tldraw/tldraw/pull/9909))
-- Fix video shapes showing a floating spinner with no bounding box while their asset uploads or loads. They now show the same loading plate as image shapes. ([#9994](https://github.com/tldraw/tldraw/pull/9994))
-- Fix closing a stacked dialog by touch also closing the dialog beneath it. ([#10002](https://github.com/tldraw/tldraw/pull/10002))
-- Fix wheel event normalization passing through non-finite delta values. ([#9586](https://github.com/tldraw/tldraw/pull/9586))
-- Fix license validation treating native apps served from Tauri's origins, `tauri://localhost` and `http://tauri.localhost`, as development environments. A Tauri app is now a production deployment, so it needs a license whose hosts match its origin. ([#10060](https://github.com/tldraw/tldraw/pull/10060))
-- Fix the counterclockwise rotation tooltip not showing its comma key. ([#9772](https://github.com/tldraw/tldraw/pull/9772))
-- Fix the spacing around the cursor chat item in the context menu. ([#9921](https://github.com/tldraw/tldraw/pull/9921))
-- Fix the people menu's collaborator rows not lining up with your own row above them: the follow icon sat too close to the right edge, and collaborator names sat slightly left of your own. ([#9900](https://github.com/tldraw/tldraw/pull/9900))
-- Fix the comment thread popover briefly rendering with a doubled shadow the first time a thread is opened. ([#9886](https://github.com/tldraw/tldraw/pull/9886))
-- Fix background tabs repeatedly dropping and re-establishing their sync connection when the browser throttles timers. ([#9964](https://github.com/tldraw/tldraw/pull/9964))
+- Fix camera coasting after a fling, and edge scrolling, running roughly twice as fast on a 120 Hz display as on a 60 Hz one. Both now scale by the elapsed tick time, so motion per second is the same at any refresh rate. ([#10501](https://github.com/tldraw/tldraw/pull/10501))
+- Fix rotated images jumping on the canvas when their aspect ratio or crop zoom changed, or when the image was replaced. ([#10233](https://github.com/tldraw/tldraw/pull/10233))
+- Fix embed hostname matching trusting lookalike hosts such as `tldraw.com.evil.io`, which were rendered with the matched definition's relaxed iframe permissions. A host must now be the pattern itself or a subdomain of it. ([#10196](https://github.com/tldraw/tldraw/pull/10196))
+- Fix geometry hit tests, nearest-point, and length calculations losing precision after a shape's SVG path data was generated. `getSvgPathData` rounded the geometry's stored points to two decimals in place, and geometries are cached per shape, so every later calculation used the rounded points. ([#10600](https://github.com/tldraw/tldraw/pull/10600))
+- Fix keyboard shape navigation, and `Editor.selectAdjacentShape('prev')`, selecting the second-to-last shape instead of the last one when nothing is selected. ([#10601](https://github.com/tldraw/tldraw/pull/10601))
+- Fix `Editor.getCurrentTheme()` returning `undefined` after `setCurrentTheme()` was called with an unregistered theme id. The call is now rejected and the current theme is kept. ([#10602](https://github.com/tldraw/tldraw/pull/10602))
+- Fix `Group2d.transform` dropping its ignored children, resetting the `isInternal`, `excludeFromShapeBounds`, and `isEmptyLabel` flags, and discarding its `opts` argument. It now matches the base `Geometry2d.transform` signature. ([#10603](https://github.com/tldraw/tldraw/pull/10603))
