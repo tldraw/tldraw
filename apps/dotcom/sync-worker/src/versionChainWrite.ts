@@ -10,7 +10,7 @@ import {
 	versionKey,
 } from './versionChain'
 import { decodeVersionBody, encodeVersionBody } from './versionChainCodec'
-import { buildSnapshotDelta, snapshotHeadHash } from './versionDelta'
+import { buildSnapshotDelta, chainHeadHash } from './versionDelta'
 
 export interface VersionChainWriteResult {
 	chain: ChainState
@@ -54,7 +54,7 @@ export async function writeVersionChainEntry({
 		previousFingerprint: previous ? getSnapshotFingerprint(previous) : nextFingerprint,
 		// The hash is what actually pins the diff base: tombstone pruning can change content
 		// without moving the fingerprint.
-		previousHash: previous ? snapshotHeadHash(previous) : '',
+		previousHash: previous ? chainHeadHash(previous) : '',
 		nextFingerprint,
 		deltaBytes: encodedDelta?.body.byteLength ?? 0,
 		now,
@@ -77,7 +77,7 @@ export async function writeVersionChainEntry({
 				keyframeBytes: encoded.body.byteLength,
 				deltaCount: 0,
 				headFingerprint: nextFingerprint,
-				headHash: snapshotHeadHash(next),
+				headHash: chainHeadHash(next),
 				openSegment: null,
 			},
 		}
@@ -113,7 +113,7 @@ export async function writeVersionChainEntry({
 			...chain!,
 			deltaCount: decision.seq,
 			headFingerprint: nextFingerprint,
-			headHash: snapshotHeadHash(next),
+			headHash: chainHeadHash(next),
 			openSegment: decision.segment,
 		},
 	}

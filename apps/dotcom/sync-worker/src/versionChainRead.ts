@@ -2,7 +2,7 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 import { deleteAllObjectsWithPrefix, listAllObjectKeys } from './r2'
 import { parseVersionKey, PendingDelta, readSegmentRef, SegmentBody } from './versionChain'
 import { decodeVersionBody, isGzippedVersionBody } from './versionChainCodec'
-import { applySnapshotDelta, snapshotContentHash } from './versionDelta'
+import { applySnapshotDelta, versionEnvelopeHash } from './versionDelta'
 
 // R2 has honored `include` on list() since compat date 2022-08-04 (this worker's is far past it),
 // but the repo's ambient workers-types entrypoint predates the option — declared locally, same
@@ -171,9 +171,9 @@ export async function reconstructVersion({
 			snapshot = applySnapshotDelta(snapshot, delta)
 			deltaCount++
 			if (t === timestamp) {
-				// See snapshotContentHash for why the recorded hash is checked here.
-				if (delta.hash !== snapshotContentHash(snapshot)) {
-					throw new Error(`version ${timestamp} reconstructed with a different content hash`)
+				// See versionEnvelopeHash for why the recorded hash is checked here.
+				if (delta.hash !== versionEnvelopeHash(snapshot)) {
+					throw new Error(`version ${timestamp} reconstructed with a different envelope hash`)
 				}
 				return { snapshot, ops: listOps + 1 + segments.length, deltaCount, source: 'chain' }
 			}

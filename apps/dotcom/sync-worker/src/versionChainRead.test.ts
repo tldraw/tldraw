@@ -296,7 +296,7 @@ describe('reconstructVersion', () => {
 				roomKey,
 				timestamp: timestamps[1],
 			})
-		).rejects.toThrow(/content hash/)
+		).rejects.toThrow(/envelope hash/)
 	})
 
 	it('tolerates a segment body with more deltas than its listed metadata', async () => {

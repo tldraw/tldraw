@@ -48,7 +48,7 @@ export interface ChainState {
 	deltaCount: number
 	headFingerprint: SnapshotFingerprint
 	/**
-	 * `snapshotHeadHash` of the chain head. The fingerprint alone is not a strong enough identity:
+	 * `chainHeadHash` of the chain head. The fingerprint alone is not a strong enough identity:
 	 * tombstone pruning rewrites tombstones without moving any clock, so a wake can seed a diff
 	 * base that passes the fingerprint check yet differs from what the chain encodes.
 	 */
@@ -84,7 +84,7 @@ export function decideVersionWrite({
 	chain: ChainState | null
 	/** Fingerprint of the state this delta was diffed from — must be the chain head. */
 	previousFingerprint: SnapshotFingerprint
-	/** Content hash of that same state; catches divergence the fingerprint cannot see. */
+	/** Chain head hash of that same state; catches divergence the fingerprint cannot see. */
 	previousHash: string
 	/** Fingerprint of the state about to be written — carries any schema change. */
 	nextFingerprint: SnapshotFingerprint
