@@ -1,5 +1,5 @@
 import { act } from '@testing-library/react'
-import { createShapeId, Editor } from '@tldraw/editor'
+import { createShapeId, Editor, TLShapeId } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { Tldraw } from '../../lib/Tldraw'
 import { DefaultKeyboardShortcutsDialogContent } from '../../lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
@@ -318,6 +318,23 @@ describe('shifted number-row shortcuts across keyboard layouts', () => {
 // Regression test for #10422: frame-selection was the only cmd shortcut without a ctrl twin,
 // so Ctrl+Alt+G did nothing on Windows and Linux even though the shortcuts dialog listed it.
 describe('frame selection shortcut', () => {
+	function createArrowBoundTo(editor: Editor, arrow: TLShapeId, target: TLShapeId) {
+		editor.createShapes([{ id: arrow, type: 'arrow', x: 0, y: 0 }])
+		editor.createBindings([
+			{
+				fromId: arrow,
+				toId: target,
+				type: 'arrow',
+				props: {
+					terminal: 'end',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: false,
+				},
+			},
+		])
+	}
+
 	it.each([
 		['cmd+alt+g (macOS)', { metaKey: true }],
 		['ctrl+alt+g (Windows / Linux)', { ctrlKey: true }],
@@ -404,23 +421,8 @@ describe('frame selection shortcut', () => {
 		const target = createShapeId()
 		const arrow = createShapeId()
 		act(() => {
-			editor.createShapes([
-				{ id: target, type: 'geo', x: 400, y: 400 },
-				{ id: arrow, type: 'arrow', x: 0, y: 0 },
-			])
-			editor.createBindings([
-				{
-					fromId: arrow,
-					toId: target,
-					type: 'arrow',
-					props: {
-						terminal: 'end',
-						normalizedAnchor: { x: 0.5, y: 0.5 },
-						isExact: false,
-						isPrecise: false,
-					},
-				},
-			])
+			editor.createShapes([{ id: target, type: 'geo', x: 400, y: 400 }])
+			createArrowBoundTo(editor, arrow, target)
 			editor.select(arrow)
 		})
 
@@ -435,24 +437,8 @@ describe('frame selection shortcut', () => {
 		const target = createShapeId()
 		const arrow = createShapeId()
 		act(() => {
-			editor.createShapes([
-				{ id: target, type: 'geo', x: 400, y: 400 },
-				{ id: arrow, type: 'arrow', x: 0, y: 0 },
-			])
-			editor.createBindings([
-				{
-					fromId: arrow,
-					toId: target,
-					type: 'arrow',
-					props: {
-						terminal: 'end',
-						normalizedAnchor: { x: 0.5, y: 0.5 },
-						isExact: false,
-						isPrecise: false,
-					},
-				},
-			])
-			editor.updateShapes([{ id: target, type: 'geo', isLocked: true }])
+			editor.createShapes([{ id: target, type: 'geo', x: 400, y: 400, isLocked: true }])
+			createArrowBoundTo(editor, arrow, target)
 			editor.select(target, arrow)
 		})
 
@@ -467,23 +453,8 @@ describe('frame selection shortcut', () => {
 		const target = createShapeId()
 		const arrow = createShapeId()
 		act(() => {
-			editor.createShapes([
-				{ id: target, type: 'geo', x: 400, y: 400 },
-				{ id: arrow, type: 'arrow', x: 0, y: 0 },
-			])
-			editor.createBindings([
-				{
-					fromId: arrow,
-					toId: target,
-					type: 'arrow',
-					props: {
-						terminal: 'end',
-						normalizedAnchor: { x: 0.5, y: 0.5 },
-						isExact: false,
-						isPrecise: false,
-					},
-				},
-			])
+			editor.createShapes([{ id: target, type: 'geo', x: 400, y: 400 }])
+			createArrowBoundTo(editor, arrow, target)
 			editor.select(arrow, target)
 		})
 

@@ -1,7 +1,6 @@
 import {
 	Box,
 	Editor,
-	TLArrowBinding,
 	TLBaseBoxShape,
 	TLShape,
 	TLShapeId,
@@ -54,12 +53,10 @@ export function getFrameableShapeIds(editor: Editor, ids: TLShapeId[]): TLShapeI
 	const unlocked = compact(ids.map((id) => editor.getShape(id))).filter((shape) => !shape.isLocked)
 	// Check bound targets against the unlocked set rather than `ids`: a locked target stays out
 	// of the frame, so its arrow must too. Arrows can't bind to arrows, so one pass is enough.
-	const staying = new Set(unlocked.map((shape) => shape.id))
+	const unlockedIds = new Set(unlocked.map((shape) => shape.id))
 	return unlocked
 		.filter((shape) =>
-			editor
-				.getBindingsFromShape<TLArrowBinding>(shape, 'arrow')
-				.every((binding) => staying.has(binding.toId))
+			editor.getBindingsFromShape(shape, 'arrow').every((binding) => unlockedIds.has(binding.toId))
 		)
 		.map((shape) => shape.id)
 }
