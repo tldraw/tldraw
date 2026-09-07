@@ -267,10 +267,50 @@ describe('buildSnapshotDelta / applySnapshotDelta', () => {
 		)
 	})
 
-	it('refuses an unknown delta version', () => {
+	it('refuses a delta of any other version, older or newer', () => {
 		const prev = snapshot()
-		const delta = { ...buildSnapshotDelta(prev, snapshot({ clock: 2 })), v: 2 }
+		const delta = buildSnapshotDelta(prev, snapshot({ clock: 2 }))
 
-		expect(() => applySnapshotDelta(prev, delta as any)).toThrow(/version/)
+		expect(() => applySnapshotDelta(prev, { ...delta, v: 1 } as any)).toThrow(/version 1/)
+		expect(() => applySnapshotDelta(prev, { ...delta, v: 3 } as any)).toThrow(/version 3/)
+	})
+
+	it('hashes a live record and its decoded JSON identically', () => {
+		// A live record can carry keys set to undefined and sparse arrays; the keyframe and the
+		// delta both go through JSON.stringify, which drops them.
+		const live = snapshot({
+			clock: undefined,
+			documents: [
+				{
+					state: rec('shape:a', {
+						meta: { note: undefined, tags: Object.assign([1], { 2: 3 }) },
+						opacity: undefined,
+					}),
+					lastChangedClock: 1,
+				},
+			],
+		})
+		const decoded = JSON.parse(JSON.stringify(live))
+
+		expect(snapshotContentHash(live)).toBe(snapshotContentHash(decoded))
+		expect(snapshotHeadHash(live)).toBe(snapshotHeadHash(decoded))
+	})
+
+	it('verifies a delta built from live records against a replay over decoded JSON', () => {
+		const prev = snapshot({
+			documents: [{ state: rec('shape:a', { x: 1, ghost: undefined }), lastChangedClock: 1 }],
+		})
+		const next = snapshot({
+			documentClock: 2,
+			documents: [
+				{ state: rec('shape:a', { x: 2, ghost: undefined }), lastChangedClock: 2 },
+				{ state: rec('shape:b', { meta: { draft: undefined } }), lastChangedClock: 2 },
+			],
+		})
+		const delta = JSON.parse(JSON.stringify(buildSnapshotDelta(prev, next)))
+		const keyframe = JSON.parse(JSON.stringify(prev))
+
+		const replayed = applySnapshotDelta(keyframe, delta)
+		expect(snapshotContentHash(replayed)).toBe(delta.hash)
 	})
 })
