@@ -112,7 +112,11 @@ import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 import { getRole } from './utils/tla/getRole'
 import { isTestFile } from './utils/tla/isTestFile'
 import { ChainState, isChainHead, PendingDelta } from './versionChain'
-import { getVersionChainMode } from './versionChainConfig'
+import {
+	loadVersionChainRollout,
+	resolveVersionChainMode,
+	VersionChainRollout,
+} from './versionChainConfig'
 import { deleteAllVersions, reconstructVersion } from './versionChainRead'
 import { readOpenSegment, writeVersionChainEntry } from './versionChainWrite'
 import { chainHeadHash } from './versionDelta'
@@ -271,12 +275,14 @@ export class TLFileDurableObject extends DurableObject {
 		}
 		if (!this._storage) {
 			this.setBootStage('storage-load')
+			// Kicked off here so the KV read resolves alongside the room load instead of after it.
+			this.versionChainRollout()
 			const promise = retry(() => this.loadStorage(this.documentInfo.slug), {
 				// Allow RoomNotFoundError to bubble up since it means the room doesn't exist
 				// and there's no point in retrying.
 				matchError: (error) => !(error instanceof RoomNotFoundError),
 			})
-				.then((storage) => {
+				.then(async (storage) => {
 					storage.onChange(() => {
 						this.triggerPersist()
 					})
@@ -290,7 +296,8 @@ export class TLFileDurableObject extends DurableObject {
 					// head the chain recorded and cuts a keyframe when they differ. Gated on the mode: this
 					// is a second decoded copy of the board pinned for the DO's lifetime, not worth paying
 					// for where chains are off.
-					if (getVersionChainMode(this.env, getR2KeyForRoom(this.documentInfo)) !== 'off') {
+					const rollout = await this.versionChainRollout()
+					if (resolveVersionChainMode(rollout, getR2KeyForRoom(this.documentInfo)) !== 'off') {
 						this._lastPersistedSnapshot = storage.getSnapshot?.() ?? null
 					}
 					// Drain any outbox entries stranded by a previous incarnation (e.g. a Postgres
@@ -737,6 +744,15 @@ export class TLFileDurableObject extends DurableObject {
 	// The version key the chain head was written under, so a retried persist can put the legacy
 	// copy of the same content under the same key.
 	_versionChainHeadIso: string | null = null
+
+	_versionChainRollout: Promise<VersionChainRollout> | null = null
+
+	// One KV read per incarnation, by design: the rollout is config, not room state, and a KV flip
+	// landing as objects wake is the contract (see loadVersionChainRollout).
+	private versionChainRollout(): Promise<VersionChainRollout> {
+		this._versionChainRollout ??= loadVersionChainRollout(this.env)
+		return this._versionChainRollout
+	}
 
 	private async getVersionChain(): Promise<ChainState | null> {
 		if (!this._versionChainLoaded) {
@@ -2030,7 +2046,7 @@ export class TLFileDurableObject extends DurableObject {
 			await this.setRoomStorageUsedPercentage(roomSizeMB)
 		}
 
-		const mode = getVersionChainMode(this.env, key)
+		const mode = resolveVersionChainMode(await this.versionChainRollout(), key)
 
 		// A non-transient chain failure (corrupt segment, a 4xx, DO storage) must be a metric, not
 		// a failed persist: the outer retry would otherwise re-upload the rooms object 100 times,
