@@ -80,7 +80,7 @@ import {
 	writeMcpClusterIndexRow,
 } from './mcpClusterIndexStorage'
 import { TLPostgresPool } from './postgres'
-import { deleteAllObjectsWithPrefix, getR2KeyForRoom } from './r2'
+import { deleteAllObjectsWithPrefix, getR2KeyForRoom, R2ReadScheduler } from './r2'
 import {
 	BootStage,
 	FileEffectStallError,
@@ -121,7 +121,6 @@ import {
 	deleteAllVersions,
 	loadChainIndex,
 	openWholeVersionStream,
-	R2ReadScheduler,
 	reconstructVersion,
 } from './versionChainRead'
 import { readOpenSegment, writeVersionChainEntry } from './versionChainWrite'
@@ -159,6 +158,7 @@ type R2OperationType =
 	| 'version_chain_write'
 	| 'version_chain_read'
 	| 'version_chain_verify'
+	| 'version_chain_delete'
 
 // Transient R2 failures worth retrying — dropped connections and the connection-limit error the
 // shared budget exists to avoid. Anything else (a bad request, missing object, etc.) is permanent,
@@ -3170,10 +3170,14 @@ export class TLFileDurableObject extends DurableObject {
 
 			// remove edit history
 			const r2Key = getR2KeyForRoom({ slug: id, isApp: true })
+			// Each list page and delete batch is its own queued operation: the sweep runs both
+			// buckets concurrently, and unqueued beside two asset copies that is the whole
+			// six-connection budget.
 			await deleteAllVersions({
 				chainBucket: this.env.ROOMS_HISTORY,
 				legacyBucket: this.env.ROOMS_HISTORY_EPHEMERAL,
 				roomKey: r2Key,
+				schedule: (op) => this.addR2Operation('version_chain_delete', op),
 			})
 
 			// remove main file
@@ -3401,6 +3405,7 @@ export class TLFileDurableObject extends DurableObject {
 				chainBucket: this.env.ROOMS_HISTORY,
 				legacyBucket: this.env.ROOMS_HISTORY_EPHEMERAL,
 				roomKey,
+				schedule: (op) => this.addR2Operation('version_chain_delete', op),
 			})
 
 			// remove main file

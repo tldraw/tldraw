@@ -1,5 +1,5 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { deleteAllObjectsWithPrefix, listAllObjectKeys } from './r2'
+import { deleteAllObjectsWithPrefix, listAllObjectKeys, R2ReadScheduler, runInline } from './r2'
 import { parseVersionKey, PendingDelta, readSegmentRef, SegmentBody } from './versionChain'
 import { decodeVersionBody, isGzippedVersionBody } from './versionChainCodec'
 import { applySnapshotDelta, versionEnvelopeHash } from './versionDelta'
@@ -33,15 +33,6 @@ export interface SegmentIndexEntry {
  * that away.
  */
 export type ChainIndexEntry = KeyframeIndexEntry | SegmentIndexEntry
-
-/**
- * Runs one R2 read. Reads default to running inline; a caller inside a shared connection budget
- * (the durable object's R2 queue) passes its queue, so each read is one budgeted operation and the
- * fan-out never holds more connections than the budget allows.
- */
-export type R2ReadScheduler = <T>(read: () => Promise<T>) => Promise<T>
-
-const runInline: R2ReadScheduler = (read) => read()
 
 export interface VersionReconstruction {
 	snapshot: RoomSnapshot
@@ -332,14 +323,18 @@ export async function deleteAllVersions({
 	chainBucket,
 	legacyBucket,
 	roomKey,
+	schedule = runInline,
 }: {
 	chainBucket: R2Bucket
 	legacyBucket: R2Bucket
 	roomKey: string
+	schedule?: R2ReadScheduler
 }): Promise<void> {
 	// Trailing slash: a bare roomKey prefix also matches sibling rooms whose slug is a prefix of
 	// this one (deleting "abc" must not sweep "abcd").
 	await Promise.all(
-		[chainBucket, legacyBucket].map((bucket) => deleteAllObjectsWithPrefix(bucket, `${roomKey}/`))
+		[chainBucket, legacyBucket].map((bucket) =>
+			deleteAllObjectsWithPrefix(bucket, `${roomKey}/`, schedule)
+		)
 	)
 }

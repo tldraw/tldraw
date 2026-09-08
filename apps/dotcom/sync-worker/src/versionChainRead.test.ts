@@ -567,6 +567,45 @@ describe('deleteAllVersions', () => {
 		expect((await legacyBucket.list({ prefix: `${roomKey}/` })).objects).toHaveLength(0)
 		expect(deleteCalls).toBe(2)
 	})
+
+	it('runs every list page and delete batch through the scheduler', async () => {
+		const chainBucket = createFakeR2()
+		const legacyBucket = createFakeR2()
+		await chainBucket.put(`${roomKey}/2026-09-01T00:00:00.000Z.k`, '{}')
+		await legacyBucket.put(`${roomKey}/2026-08-01T00:00:00.000Z`, '{}')
+
+		// A bucket call outside a scheduled operation is a connection the caller's budget never saw.
+		let scheduledDepth = 0
+		let unscheduledCalls = 0
+		for (const bucket of [chainBucket, legacyBucket]) {
+			for (const method of ['list', 'delete'] as const) {
+				const original = (bucket[method] as any).bind(bucket)
+				;(bucket as any)[method] = (...args: unknown[]) => {
+					if (scheduledDepth === 0) unscheduledCalls++
+					return original(...args)
+				}
+			}
+		}
+		let scheduled = 0
+		const schedule = async <T>(op: () => Promise<T>) => {
+			scheduled++
+			scheduledDepth++
+			try {
+				return await op()
+			} finally {
+				scheduledDepth--
+			}
+		}
+
+		await deleteAllVersions({ chainBucket, legacyBucket, roomKey, schedule })
+
+		// One listing and one delete batch per bucket, each its own scheduled operation. Counters
+		// first: the verification lists below run outside the sweep on purpose.
+		expect(scheduled).toBe(4)
+		expect(unscheduledCalls).toBe(0)
+		expect((await chainBucket.list({ prefix: `${roomKey}/` })).objects).toHaveLength(0)
+		expect((await legacyBucket.list({ prefix: `${roomKey}/` })).objects).toHaveLength(0)
+	})
 })
 
 describe('listVersionTimestamps', () => {
