@@ -73,6 +73,21 @@ describe('type: viewport', () => {
 		expect(editor.getViewportPageBounds()).toMatchObject(bounds)
 	})
 
+	it('falls back to fitting the page content when the bounds are malformed', () => {
+		editor.createShapes([
+			{ id: createShapeId(), type: 'geo', x: 2000, y: 2000, props: { w: 100, h: 100 } },
+		])
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+		editor.navigateToDeepLink({ url: 'http://localhost/?d=vabc.def.ghi.jkl' })
+		warn.mockRestore()
+
+		expect(editor.getViewportPageBounds()).toMatchObject({
+			x: 2050 - editor.bounds.width / 2,
+			y: 2050 - editor.bounds.height / 2,
+		})
+		expect(editor.getZoomLevel()).toBe(1)
+	})
+
 	it('will not change the viewport if the specific page does not exist', () => {
 		const pageId = PageRecordType.createId('foo')
 

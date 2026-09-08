@@ -314,3 +314,72 @@ describe('shifted number-row shortcuts across keyboard layouts', () => {
 		expect(zoomOut).toHaveBeenCalledTimes(1)
 	})
 })
+
+// Regression test for #10422: frame-selection was the only cmd shortcut without a ctrl twin,
+// so Ctrl+Alt+G did nothing on Windows and Linux even though the shortcuts dialog listed it.
+describe('frame selection shortcut', () => {
+	it.each([
+		['cmd+alt+g (macOS)', { metaKey: true }],
+		['ctrl+alt+g (Windows / Linux)', { ctrlKey: true }],
+	])('wraps the selection in a frame on %s', async (_label, modifier) => {
+		const { editor } = await setupFocusedEditor()
+		const a = createShapeId()
+		const b = createShapeId()
+		act(() => {
+			editor.createShapes([
+				{ id: a, type: 'geo', x: 0, y: 0 },
+				{ id: b, type: 'geo', x: 200, y: 200 },
+			])
+			editor.select(a, b)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, ...modifier })
+
+		const frame = editor.getCurrentPageShapes().find((s) => editor.isShapeOfType(s, 'frame'))
+		expect(frame).toBeDefined()
+		expect(editor.getShape(a)?.parentId).toBe(frame!.id)
+		expect(editor.getShape(b)?.parentId).toBe(frame!.id)
+	})
+})
+
+describe('scale selection shortcuts', () => {
+	it.each([
+		['enlarge', '=', 'Equal', 1.1],
+		['shrink', '-', 'Minus', 1 / 1.1],
+	] as const)(
+		'%s scales every shape about the original selection center and undoes together',
+		async (_label, key, code, factor) => {
+			const { editor } = await setupFocusedEditor()
+			const a = createShapeId()
+			const b = createShapeId()
+			act(() => {
+				editor.createShapes([
+					{ id: a, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+					{ id: b, type: 'geo', x: 200, y: 200, props: { w: 100, h: 100 } },
+				])
+				editor.select(a, b)
+			})
+			const originalShapes = editor.getSelectedShapes()
+
+			keydown(editor, { key, code, metaKey: true, altKey: true, shiftKey: true })
+
+			expect([editor.getShape(a), editor.getShape(b)]).toMatchObject([
+				{
+					x: expect.closeTo(150 - 150 * factor),
+					y: expect.closeTo(150 - 150 * factor),
+					props: { w: expect.closeTo(100 * factor), h: expect.closeTo(100 * factor) },
+				},
+				{
+					x: expect.closeTo(150 + 50 * factor),
+					y: expect.closeTo(150 + 50 * factor),
+					props: { w: expect.closeTo(100 * factor), h: expect.closeTo(100 * factor) },
+				},
+			])
+
+			act(() => {
+				editor.undo()
+			})
+			expect(editor.getSelectedShapes()).toEqual(originalShapes)
+		}
+	)
+})

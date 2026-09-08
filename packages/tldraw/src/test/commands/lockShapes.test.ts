@@ -88,6 +88,17 @@ describe('Locking', () => {
 		// Locking deselects the shape
 		expect(editor.getSelectedShapeIds()).toEqual([])
 	})
+
+	it('Locks and deselects a mixed selection of locked and unlocked shapes', () => {
+		editor.run(() => editor.setSelectedShapes([ids.lockedShapeA, ids.unlockedShapeA]), {
+			ignoreShapeLock: true,
+		})
+		editor.toggleLock(editor.getSelectedShapeIds())
+		expect(
+			[ids.lockedShapeA, ids.unlockedShapeA].map((id) => editor.getShape(id)!.isLocked)
+		).toStrictEqual([true, true])
+		expect(editor.getSelectedShapeIds()).toEqual([])
+	})
 })
 
 describe('Locked shapes', () => {

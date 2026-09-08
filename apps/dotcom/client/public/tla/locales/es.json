@@ -434,6 +434,9 @@
   "9bef626805": {
     "translation": "Eliminar archivo"
   },
+  "9c228b6834": {
+    "translation": "Parece que no estás conectado. Comprueba tu conexión e inténtalo de nuevo."
+  },
   "9ccb565b86": {
     "translation": "Tenemos problemas para conectarnos a nuestro servicio de autenticación. Esto suele ser temporal. Intenta actualizar la página."
   },
