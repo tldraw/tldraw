@@ -1,3 +1,4 @@
+import { captureException } from '@sentry/react'
 import { CommentTool, commentToolOverrides } from '@tldraw/commenting'
 import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
@@ -17,7 +18,6 @@ import {
 	computed,
 	createSessionStateSnapshotSignal,
 	createUserId,
-	parseDeepLinkString,
 	react,
 	throttle,
 	tltime,
@@ -25,6 +25,7 @@ import {
 	useDialogs,
 	useEditor,
 	useEvent,
+	useToasts,
 	useValue,
 } from 'tldraw'
 import { SneakyMermaidHandler } from '../../../components/SneakyMermaidHandler/SneakyMermaidHandler'
@@ -45,6 +46,7 @@ import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawCurrentUser } from '../../hooks/useUser'
+import { defineMessages, useMsg } from '../../utils/i18n'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
 import { CommentsOnCanvas, SignInToComment, useAnonCommentToolOverrides } from './CommentsOnCanvas'
@@ -63,6 +65,12 @@ import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
+
+const messages = defineMessages({
+	slurpFailed: {
+		defaultMessage: 'Could not restore your local drawing. Try reloading this page.',
+	},
+})
 
 // Composing needs a signed-in author and an editable canvas. Signed-out visitors on an
 // editable canvas get a sign-in prompt where the composers would be; view-only sessions
@@ -112,6 +120,16 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const fileId = fileSlug
 
 	const setIsReady = useSetIsReady()
+	const { addToast } = useToasts()
+	const slurpFailedMsg = useMsg(messages.slurpFailed)
+	const showSlurpFailure = useEvent(() => {
+		addToast({
+			id: 'local-file-restore-failed',
+			severity: 'warning',
+			title: slurpFailedMsg,
+			keepOpen: true,
+		})
+	})
 
 	const dialogs = useDialogs()
 	// need to wrap this in a useEvent to prevent the context id from changing on us
@@ -159,22 +177,31 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 			const fileState = app.getFileState(fileId)
 			const deepLink = new URLSearchParams(window.location.search).get('d')
+			let sessionState: TLSessionStateSnapshot | null = null
 			if (fileState?.lastSessionState) {
-				const sessionState = JSON.parse(fileState.lastSessionState.trim() || 'null')
-				if (sessionState && deepLink) {
-					// When using a deep link, only load preferences (not camera/page states)
-					// since the deep link will control navigation
-					const { pageStates: _, currentPageId: _cpid, ...preferencesOnly } = sessionState
-					editor.loadSnapshot({ session: preferencesOnly }, { forceOverwriteSessionState: true })
-					editor.navigateToDeepLink(parseDeepLinkString(deepLink))
-				} else if (sessionState) {
-					// No deep link - load the full session state including camera position
-					editor.loadSnapshot({ session: sessionState }, { forceOverwriteSessionState: true })
-				} else if (deepLink) {
-					editor.navigateToDeepLink(parseDeepLinkString(deepLink))
+				try {
+					sessionState = JSON.parse(fileState.lastSessionState.trim() || 'null')
+				} catch (err) {
+					// A corrupt stored session state must not take the whole board down with it.
+					captureException(err, {
+						tags: { operation: 'parse-session-state' },
+						extra: { fileId },
+					})
 				}
-			} else if (deepLink) {
-				editor.navigateToDeepLink(parseDeepLinkString(deepLink))
+			}
+			if (sessionState && deepLink) {
+				// When using a deep link, only load preferences (not camera/page states)
+				// since the deep link will control navigation
+				const { pageStates: _, currentPageId: _cpid, ...preferencesOnly } = sessionState
+				editor.loadSnapshot({ session: preferencesOnly }, { forceOverwriteSessionState: true })
+			} else if (sessionState) {
+				// No deep link - load the full session state including camera position
+				editor.loadSnapshot({ session: sessionState }, { forceOverwriteSessionState: true })
+			}
+			if (deepLink) {
+				// Let the SDK parse the link: a malformed `?d=` then zooms to fit instead of
+				// throwing out of onMount and replacing the board with an error page.
+				editor.navigateToDeepLink()
 			}
 			const fileStateUpdater = new FileStateUpdater(app, fileId, editor)
 
@@ -186,7 +213,18 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				abortSignal: abortController.signal,
 				addDialog,
 				remountImageShapes,
-			}).then(setIsReady)
+			})
+				.catch((err) => {
+					// ReadyWrapper keeps the editor invisible and inert until setIsReady runs, so a
+					// failed slurp must not stop it from running.
+					console.error('Failed to slurp local file', err)
+					captureException(err, {
+						tags: { operation: 'slurp-local-file' },
+						extra: { fileId },
+					})
+					if (!abortController.signal.aborted) showSlurpFailure()
+				})
+				.then(setIsReady)
 
 			return () => {
 				cleanupPerf()
@@ -203,6 +241,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			fileId,
 			remountImageShapes,
 			setIsReady,
+			showSlurpFailure,
 		]
 	)
 

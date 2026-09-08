@@ -14,8 +14,10 @@ export function SneakySetDocumentTitle() {
 	const title = useValue(
 		'title',
 		() =>
-			((fileSlug ? app?.getFileName(fileSlug, false) : null) ??
-				editor?.getDocumentSettings().name) ||
+			// `||` not `??`: getFileName returns '' for a file the app doesn't know yet (first visit to
+			// a shared link), which must fall through to the document name like the top-left panel does.
+			(fileSlug ? app?.getFileName(fileSlug, false)?.trim() : null) ||
+			editor?.getDocumentSettings().name ||
 			// rather than displaying the date for the project here, display Untitled project
 			untitledProject,
 		[app, editor, fileSlug, untitledProject]
