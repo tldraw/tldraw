@@ -1,26 +1,49 @@
+import { FeatureFlagValue } from '@tldraw/dotcom-shared'
 import { Environment } from './types'
-import { hashToPercentage } from './utils/featureFlags'
+import { evaluateFlagForUser, getFeatureFlagValue } from './utils/featureFlags'
 
-export type VersionChainMode = 'off' | 'dual' | 'chain'
-
-const MODES: VersionChainMode[] = ['off', 'dual', 'chain']
+const MODES = ['off', 'dual', 'chain'] as const
 
 /**
- * How this room's versions get written: `off` legacy full copies only, `dual` both (the bake, where
+ * How versions get written: `off` legacy full copies only, `dual` both (the bake, where
  * reconstructions can be checked against the full copy), `chain` chains only.
- *
- * Rollout is a per-environment var and a hash of the room key rather than the KV feature flags:
- * those evaluate per user, and persist has no user and cannot afford a KV read per write.
  */
-export function getVersionChainMode(env: Environment, roomKey: string): VersionChainMode {
-	const mode = env.VERSION_CHAIN_MODE as VersionChainMode | undefined
-	if (!mode || !MODES.includes(mode) || mode === 'off') return 'off'
+export type VersionChainMode = (typeof MODES)[number]
 
-	const raw = env.VERSION_CHAIN_ROLLOUT_PERCENT
-	const percent = raw === undefined ? 100 : Number(raw)
-	if (!Number.isFinite(percent) || percent <= 0) return 'off'
-	if (percent >= 100) return mode
+/**
+ * The two flags the mode is derived from: `version_chain` (percentage, bucketed per room) decides
+ * whether a room is on chains at all, `version_chain_legacy_writes` (boolean) whether such a room
+ * also keeps writing legacy copies.
+ */
+export interface VersionChainRollout {
+	chain: FeatureFlagValue
+	legacyWrites: FeatureFlagValue
+}
 
-	// Same bucketing function as the KV feature flags, keyed by room instead of user.
-	return hashToPercentage(roomKey, '') < percent ? mode : 'off'
+/**
+ * The rollout in effect, from the feature flag KV (admin panel), falling back to the per-env
+ * defaults. Two KV reads — callers cache the result for the durable object's lifetime, so a flip
+ * lands as objects wake rather than instantly, and the reads never sit on the persist path.
+ */
+export async function loadVersionChainRollout(env: Environment): Promise<VersionChainRollout> {
+	const [chain, legacyWrites] = await Promise.all([
+		getFeatureFlagValue(env, 'version_chain'),
+		getFeatureFlagValue(env, 'version_chain_legacy_writes'),
+	])
+	return { chain, legacyWrites }
+}
+
+export function resolveVersionChainMode(
+	rollout: VersionChainRollout,
+	roomKey: string
+): VersionChainMode {
+	// The room key rides in the userId parameter: same deterministic bucketing, keyed per room
+	// because a persist has no user.
+	if (!evaluateFlagForUser(rollout.chain, 'version_chain', roomKey)) return 'off'
+	// The legacy flag is subordinate: a room outside the chain rollout writes legacy no matter what
+	// it says, so no combination of flag states leaves a room writing no versions at all. Disabling
+	// it is only meaningful once the chain flag covers the rooms it should protect.
+	return evaluateFlagForUser(rollout.legacyWrites, 'version_chain_legacy_writes', roomKey)
+		? 'dual'
+		: 'chain'
 }

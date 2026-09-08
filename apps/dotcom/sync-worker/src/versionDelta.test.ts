@@ -4,8 +4,8 @@ import { describe, expect, it } from 'vitest'
 import {
 	applySnapshotDelta,
 	buildSnapshotDelta,
-	snapshotContentHash,
-	snapshotHeadHash,
+	versionEnvelopeHash,
+	chainHeadHash,
 } from './versionDelta'
 
 function rec(id: string, props: Record<string, unknown> = {}): UnknownRecord {
@@ -159,14 +159,14 @@ describe('buildSnapshotDelta / applySnapshotDelta', () => {
 			documents: [...a.documents].reverse(),
 		})
 
-		expect(snapshotContentHash(a)).toBe(snapshotContentHash(b))
+		expect(versionEnvelopeHash(a)).toBe(versionEnvelopeHash(b))
 	})
 
 	it('hash distinguishes changed content', () => {
 		const a = snapshot({ documents: [{ state: rec('shape:a', { x: 1 }), lastChangedClock: 1 }] })
 		const b = snapshot({ documents: [{ state: rec('shape:a', { x: 2 }), lastChangedClock: 1 }] })
 
-		expect(snapshotContentHash(a)).not.toBe(snapshotContentHash(b))
+		expect(versionEnvelopeHash(a)).not.toBe(versionEnvelopeHash(b))
 	})
 
 	it('round-trips nested records, not just numeric edits', () => {
@@ -211,7 +211,7 @@ describe('buildSnapshotDelta / applySnapshotDelta', () => {
 		const applied = applySnapshotDelta(prev, delta)
 
 		expect(applied).toEqual(next)
-		expect(snapshotContentHash(applied)).toBe(delta.hash)
+		expect(versionEnvelopeHash(applied)).toBe(delta.hash)
 	})
 
 	it('refuses a removal of a record the base does not hold', () => {
@@ -225,28 +225,28 @@ describe('buildSnapshotDelta / applySnapshotDelta', () => {
 	it('hash distinguishes the room clocks the documents do not carry', () => {
 		const base = snapshot({ documents: [{ state: rec('shape:a'), lastChangedClock: 1 }] })
 
-		expect(snapshotContentHash(snapshot({ ...base, clock: 2 }))).not.toBe(snapshotContentHash(base))
-		expect(snapshotContentHash(snapshot({ ...base, documentClock: 2 }))).not.toBe(
-			snapshotContentHash(base)
+		expect(versionEnvelopeHash(snapshot({ ...base, clock: 2 }))).not.toBe(versionEnvelopeHash(base))
+		expect(versionEnvelopeHash(snapshot({ ...base, documentClock: 2 }))).not.toBe(
+			versionEnvelopeHash(base)
 		)
 		expect(
-			snapshotContentHash(snapshot({ ...base, tombstoneHistoryStartsAtClock: undefined }))
-		).not.toBe(snapshotContentHash(base))
+			versionEnvelopeHash(snapshot({ ...base, tombstoneHistoryStartsAtClock: undefined }))
+		).not.toBe(versionEnvelopeHash(base))
 	})
 
 	it('head hash ignores documentClock and nothing else', () => {
 		const base = snapshot({ documents: [{ state: rec('shape:a'), lastChangedClock: 1 }] })
 
-		expect(snapshotHeadHash(snapshot({ ...base, documentClock: 2 }))).toBe(snapshotHeadHash(base))
-		expect(snapshotHeadHash(snapshot({ ...base, tombstones: { 'shape:b': 1 } }))).not.toBe(
-			snapshotHeadHash(base)
+		expect(chainHeadHash(snapshot({ ...base, documentClock: 2 }))).toBe(chainHeadHash(base))
+		expect(chainHeadHash(snapshot({ ...base, tombstones: { 'shape:b': 1 } }))).not.toBe(
+			chainHeadHash(base)
 		)
-		expect(snapshotHeadHash(snapshot({ ...base, tombstoneHistoryStartsAtClock: 1 }))).not.toBe(
-			snapshotHeadHash(base)
+		expect(chainHeadHash(snapshot({ ...base, tombstoneHistoryStartsAtClock: 1 }))).not.toBe(
+			chainHeadHash(base)
 		)
 	})
 
-	it('content hash catches a corrupted documentClock on replay', () => {
+	it('envelope hash catches a corrupted documentClock on replay', () => {
 		const prev = snapshot({ documents: [{ state: rec('shape:a'), lastChangedClock: 1 }] })
 		const next = snapshot({
 			documentClock: 2,
@@ -255,7 +255,7 @@ describe('buildSnapshotDelta / applySnapshotDelta', () => {
 		const delta = buildSnapshotDelta(prev, next)
 
 		const replayed = applySnapshotDelta(prev, { ...delta, documentClock: 0 })
-		expect(snapshotContentHash(replayed)).not.toBe(delta.hash)
+		expect(versionEnvelopeHash(replayed)).not.toBe(delta.hash)
 	})
 
 	it('refuses a delta that lost its documentClock', () => {
@@ -292,8 +292,8 @@ describe('buildSnapshotDelta / applySnapshotDelta', () => {
 		})
 		const decoded = JSON.parse(JSON.stringify(live))
 
-		expect(snapshotContentHash(live)).toBe(snapshotContentHash(decoded))
-		expect(snapshotHeadHash(live)).toBe(snapshotHeadHash(decoded))
+		expect(versionEnvelopeHash(live)).toBe(versionEnvelopeHash(decoded))
+		expect(chainHeadHash(live)).toBe(chainHeadHash(decoded))
 	})
 
 	it('verifies a delta built from live records against a replay over decoded JSON', () => {
@@ -311,6 +311,6 @@ describe('buildSnapshotDelta / applySnapshotDelta', () => {
 		const keyframe = JSON.parse(JSON.stringify(prev))
 
 		const replayed = applySnapshotDelta(keyframe, delta)
-		expect(snapshotContentHash(replayed)).toBe(delta.hash)
+		expect(versionEnvelopeHash(replayed)).toBe(delta.hash)
 	})
 })

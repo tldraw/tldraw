@@ -1,12 +1,14 @@
+import { RoomSnapshot } from '@tldraw/sync-core'
 import {
 	MAX_CHAIN_AGE_MS,
 	MAX_DELTA_SIZE_RATIO,
 	MAX_DELTAS_PER_CHAIN,
+	MAX_SEGMENT_SIZE_RATIO,
 	MIN_SIZE_RULE_DELTA_BYTES,
 	SEGMENT_CAP,
 } from './config'
-import { isSameFingerprint, SnapshotFingerprint } from './snapshotUtils'
-import { SnapshotDelta } from './versionDelta'
+import { getSnapshotFingerprint, isSameFingerprint, SnapshotFingerprint } from './snapshotUtils'
+import { chainHeadHash, SnapshotDelta } from './versionDelta'
 
 /** One version inside a segment: the timestamp it was persisted at, and the change it encodes. */
 export interface PendingDelta {
@@ -31,6 +33,11 @@ export interface OpenSegment {
 	key: string
 	firstSeq: number
 	count: number
+	/**
+	 * Encoded size of the segment object as last written, for the segment size rule. Absent on
+	 * chain state stored before the rule existed; the next append records it.
+	 */
+	bytes?: number
 }
 
 /**
@@ -48,12 +55,24 @@ export interface ChainState {
 	deltaCount: number
 	headFingerprint: SnapshotFingerprint
 	/**
-	 * `snapshotHeadHash` of the chain head. The fingerprint alone is not a strong enough identity:
+	 * `chainHeadHash` of the chain head. The fingerprint alone is not a strong enough identity:
 	 * tombstone pruning rewrites tombstones without moving any clock, so a wake can seed a diff
 	 * base that passes the fingerprint check yet differs from what the chain encodes.
 	 */
 	headHash: string
 	openSegment: OpenSegment | null
+}
+
+/**
+ * Whether `snapshot` is the state `chain` ends at. Both halves matter: the fingerprint is the cheap
+ * clock-and-schema check, and the head hash catches a tombstone prune, which rewrites content
+ * without moving any clock. The hash is only computed once the fingerprint already matches.
+ */
+export function isChainHead(chain: ChainState, snapshot: RoomSnapshot): boolean {
+	return (
+		isSameFingerprint(chain.headFingerprint, getSnapshotFingerprint(snapshot)) &&
+		chain.headHash === chainHeadHash(snapshot)
+	)
 }
 
 export type KeyframeReason =
@@ -64,6 +83,10 @@ export type KeyframeReason =
 	| 'delta-count'
 	| 'chain-age'
 	| 'delta-size'
+	| 'segment-size'
+	// Caller-supplied via `noChainReason`: the chain was discarded because R2 no longer served its
+	// open segment, which would otherwise be indistinguishable from a brand-new room.
+	| 'segment-lost'
 
 export type VersionWriteDecision =
 	| { kind: 'keyframe'; reason: KeyframeReason }
@@ -73,6 +96,7 @@ export function decideVersionWrite({
 	roomKey,
 	iso,
 	chain,
+	noChainReason,
 	previousFingerprint,
 	previousHash,
 	nextFingerprint,
@@ -82,16 +106,18 @@ export function decideVersionWrite({
 	roomKey: string
 	iso: string
 	chain: ChainState | null
+	/** Reported when `chain` is null: a caller that discarded a broken chain names what broke it. */
+	noChainReason?: 'no-chain' | 'segment-lost'
 	/** Fingerprint of the state this delta was diffed from — must be the chain head. */
 	previousFingerprint: SnapshotFingerprint
-	/** Content hash of that same state; catches divergence the fingerprint cannot see. */
+	/** Chain head hash of that same state; catches divergence the fingerprint cannot see. */
 	previousHash: string
 	/** Fingerprint of the state about to be written — carries any schema change. */
 	nextFingerprint: SnapshotFingerprint
 	deltaBytes: number
 	now: number
 }): VersionWriteDecision {
-	if (!chain) return { kind: 'keyframe', reason: 'no-chain' }
+	if (!chain) return { kind: 'keyframe', reason: noChainReason ?? 'no-chain' }
 	// Against NEXT, not previous: in an intact chain the head and the diff base are the same
 	// state, so a migration landing in this very persist is only visible on the next snapshot.
 	// Checked before the head check so the metric distinguishes a migration from a chain that
@@ -118,6 +144,17 @@ export function decideVersionWrite({
 
 	const seq = chain.deltaCount + 1
 	const open = chain.openSegment
+	// Bounds the in-memory buffer: an open segment is rewritten whole on every append, so what it
+	// holds is what the durable object holds. A full segment is exempt — it is about to be left
+	// behind, not rewritten.
+	if (
+		open &&
+		open.count < SEGMENT_CAP &&
+		(open.bytes ?? 0) + deltaBytes > MIN_SIZE_RULE_DELTA_BYTES &&
+		(open.bytes ?? 0) + deltaBytes > chain.keyframeBytes * MAX_SEGMENT_SIZE_RATIO
+	) {
+		return { kind: 'keyframe', reason: 'segment-size' }
+	}
 	if (!open || open.count >= SEGMENT_CAP) {
 		// A full segment is finished by never being written to again — its key was its first
 		// delta's timestamp from the start, so there is nothing to rename or seal.

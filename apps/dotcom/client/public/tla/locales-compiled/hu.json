@@ -1070,6 +1070,12 @@
       "value": "Fájl törlése"
     }
   ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Úgy tűnik, offline állapotban vagy. Ellenőrizd a kapcsolatodat, és próbáld újra."
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,

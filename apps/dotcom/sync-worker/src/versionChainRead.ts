@@ -2,7 +2,7 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 import { deleteAllObjectsWithPrefix, listAllObjectKeys } from './r2'
 import { parseVersionKey, PendingDelta, readSegmentRef, SegmentBody } from './versionChain'
 import { decodeVersionBody, isGzippedVersionBody } from './versionChainCodec'
-import { applySnapshotDelta, snapshotContentHash } from './versionDelta'
+import { applySnapshotDelta, versionEnvelopeHash } from './versionDelta'
 
 // R2 has honored `include` on list() since compat date 2022-08-04 (this worker's is far past it),
 // but the repo's ambient workers-types entrypoint predates the option — declared locally, same
@@ -34,6 +34,15 @@ export interface SegmentIndexEntry {
  */
 export type ChainIndexEntry = KeyframeIndexEntry | SegmentIndexEntry
 
+/**
+ * Runs one R2 read. Reads default to running inline; a caller inside a shared connection budget
+ * (the durable object's R2 queue) passes its queue, so each read is one budgeted operation and the
+ * fan-out never holds more connections than the budget allows.
+ */
+export type R2ReadScheduler = <T>(read: () => Promise<T>) => Promise<T>
+
+const runInline: R2ReadScheduler = (read) => read()
+
 export interface VersionReconstruction {
 	snapshot: RoomSnapshot
 	/** Every R2 operation this reconstruction cost, listings included. */
@@ -55,7 +64,8 @@ export interface VersionReconstruction {
  */
 export async function loadChainIndex(
 	bucket: R2Bucket,
-	roomKey: string
+	roomKey: string,
+	schedule: R2ReadScheduler = runInline
 ): Promise<{ entries: ChainIndexEntry[]; ops: number }> {
 	const entries: ChainIndexEntry[] = []
 	let cursor: string | undefined
@@ -69,7 +79,7 @@ export async function loadChainIndex(
 			cursor,
 			include: ['customMetadata'],
 		}
-		const page: R2Objects = await bucket.list(options as R2ListOptions)
+		const page: R2Objects = await schedule(() => bucket.list(options as R2ListOptions))
 		ops++
 		for (const object of page.objects) {
 			const parsed = parseVersionKey(object.key)
@@ -109,6 +119,7 @@ export async function reconstructVersion({
 	roomKey,
 	timestamp,
 	index,
+	schedule = runInline,
 }: {
 	chainBucket: R2Bucket
 	legacyBucket: R2Bucket
@@ -116,15 +127,16 @@ export async function reconstructVersion({
 	timestamp: string
 	/** A chain index the caller already loaded, so one request does not list the room twice. */
 	index?: ChainIndexEntry[]
+	schedule?: R2ReadScheduler
 }): Promise<VersionReconstruction | null> {
 	const { entries, ops: listOps } = index
 		? { entries: index, ops: 0 }
-		: await loadChainIndex(chainBucket, roomKey)
+		: await loadChainIndex(chainBucket, roomKey, schedule)
 	const target = entries.find((entry) => entry.timestamps.includes(timestamp))
 
 	if (!target) {
 		// Everything written before cut-over lives only in the legacy bucket.
-		const legacy = await legacyBucket.get(`${roomKey}/${timestamp}`)
+		const legacy = await schedule(() => legacyBucket.get(`${roomKey}/${timestamp}`))
 		if (!legacy) return null
 		return {
 			snapshot: (await decodeVersionBody(legacy)) as RoomSnapshot,
@@ -135,7 +147,7 @@ export async function reconstructVersion({
 	}
 
 	if (target.kind === 'keyframe') {
-		const object = await chainBucket.get(target.key)
+		const object = await schedule(() => chainBucket.get(target.key))
 		if (!object) throw new Error(`version chain keyframe ${target.key} is missing`)
 		return {
 			snapshot: (await decodeVersionBody(object)) as RoomSnapshot,
@@ -159,8 +171,8 @@ export async function reconstructVersion({
 	assertContiguous(segments, target.key)
 
 	const [keyframeObject, segmentBodies] = await Promise.all([
-		chainBucket.get(keyframeKey),
-		Promise.all(segments.map((entry) => readSegmentDeltas(chainBucket, entry))),
+		schedule(() => chainBucket.get(keyframeKey)),
+		Promise.all(segments.map((entry) => schedule(() => readSegmentDeltas(chainBucket, entry)))),
 	])
 	if (!keyframeObject) throw new Error(`version chain keyframe ${keyframeKey} is missing`)
 
@@ -171,9 +183,9 @@ export async function reconstructVersion({
 			snapshot = applySnapshotDelta(snapshot, delta)
 			deltaCount++
 			if (t === timestamp) {
-				// See snapshotContentHash for why the recorded hash is checked here.
-				if (delta.hash !== snapshotContentHash(snapshot)) {
-					throw new Error(`version ${timestamp} reconstructed with a different content hash`)
+				// See versionEnvelopeHash for why the recorded hash is checked here.
+				if (delta.hash !== versionEnvelopeHash(snapshot)) {
+					throw new Error(`version ${timestamp} reconstructed with a different envelope hash`)
 				}
 				return { snapshot, ops: listOps + 1 + segments.length, deltaCount, source: 'chain' }
 			}

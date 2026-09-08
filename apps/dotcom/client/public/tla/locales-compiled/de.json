@@ -1066,6 +1066,12 @@
       "value": "Datei löschen"
     }
   ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Sie scheinen offline zu sein. Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,

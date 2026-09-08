@@ -105,6 +105,23 @@ describe('TLSelectTool.Idle', () => {
 		expect(editor.getShape<TLGeoShape>(ids.box1)!.props.geo).toBe('rectangle')
 		expect(editor.getOnlySelectedShapeId()).toBe(ids.box1)
 	})
+
+	it('Nudges by the large step with either Shift key held', () => {
+		const shape = editor.getShape(ids.box1)!
+		editor.select(shape.id)
+
+		editor.keyDown('Shift', { code: 'ShiftLeft' })
+		editor.keyDown('ArrowRight')
+		editor.keyUp('ArrowRight')
+		editor.keyUp('Shift', { code: 'ShiftLeft' })
+		expect(editor.getShape(shape.id)?.x).toBe(110)
+
+		editor.keyDown('Shift', { code: 'ShiftRight' })
+		editor.keyDown('ArrowRight')
+		editor.keyUp('ArrowRight')
+		editor.keyUp('Shift', { code: 'ShiftRight' })
+		expect(editor.getShape(shape.id)?.x).toBe(120)
+	})
 })
 
 // todo: turn on feature flag for these tests or remove them

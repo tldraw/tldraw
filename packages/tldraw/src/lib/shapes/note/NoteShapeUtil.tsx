@@ -32,7 +32,6 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { useCallback, useContext } from 'react'
-import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelpers'
 import { TldrawUiTooltip } from '../../ui/components/primitives/TldrawUiTooltip'
 import { TranslationsContext } from '../../ui/hooks/useTranslation/useTranslation'
 import {
@@ -54,7 +53,11 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
-import { CLONE_HANDLE_MARGIN, getNoteShapeForAdjacentPosition } from './noteHelpers'
+import {
+	CLONE_HANDLE_MARGIN,
+	getNoteShapeForAdjacentPosition,
+	startEditingAdjacentNote,
+} from './noteHelpers'
 
 const NOTE_SHAPE_HORIZONTAL_ALIGNS = Object.freeze({
 	start: 'start',
@@ -749,7 +752,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				})
 
 				if (newNote) {
-					startEditingShapeWithRichText(editor, newNote, { selectAll: true })
+					startEditingAdjacentNote(editor, newNote)
 				}
 			}
 		},

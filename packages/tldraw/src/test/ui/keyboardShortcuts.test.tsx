@@ -341,3 +341,45 @@ describe('frame selection shortcut', () => {
 		expect(editor.getShape(b)?.parentId).toBe(frame!.id)
 	})
 })
+
+describe('scale selection shortcuts', () => {
+	it.each([
+		['enlarge', '=', 'Equal', 1.1],
+		['shrink', '-', 'Minus', 1 / 1.1],
+	] as const)(
+		'%s scales every shape about the original selection center and undoes together',
+		async (_label, key, code, factor) => {
+			const { editor } = await setupFocusedEditor()
+			const a = createShapeId()
+			const b = createShapeId()
+			act(() => {
+				editor.createShapes([
+					{ id: a, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+					{ id: b, type: 'geo', x: 200, y: 200, props: { w: 100, h: 100 } },
+				])
+				editor.select(a, b)
+			})
+			const originalShapes = editor.getSelectedShapes()
+
+			keydown(editor, { key, code, metaKey: true, altKey: true, shiftKey: true })
+
+			expect([editor.getShape(a), editor.getShape(b)]).toMatchObject([
+				{
+					x: expect.closeTo(150 - 150 * factor),
+					y: expect.closeTo(150 - 150 * factor),
+					props: { w: expect.closeTo(100 * factor), h: expect.closeTo(100 * factor) },
+				},
+				{
+					x: expect.closeTo(150 + 50 * factor),
+					y: expect.closeTo(150 + 50 * factor),
+					props: { w: expect.closeTo(100 * factor), h: expect.closeTo(100 * factor) },
+				},
+			])
+
+			act(() => {
+				editor.undo()
+			})
+			expect(editor.getSelectedShapes()).toEqual(originalShapes)
+		}
+	)
+})

@@ -5,6 +5,7 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 import type { TLFileDurableObject } from './TLFileDurableObject'
 import type { TLFileEffectProcessor } from './TLFileEffectProcessor'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
+import type { KeyframeReason } from './versionChain'
 
 // The Browser Rendering binding's Quick Actions method. Cloudflare exposes `env.BROWSER.quickAction`
 // so a Worker can call the Quick Actions endpoints (`screenshot`, `pdf`, …) straight through the
@@ -78,8 +79,6 @@ export interface Environment {
 	ASSET_UPLOAD_ORIGIN: string | undefined
 	USER_CONTENT_URL: string | undefined
 	MULTIPLAYER_SERVER: string | undefined
-	VERSION_CHAIN_MODE: string | undefined
-	VERSION_CHAIN_ROLLOUT_PERCENT: string | undefined
 
 	HEALTH_CHECK_BEARER_TOKEN: string | undefined
 	HEALTH_CHECK_DB_SIZE_THRESHOLD_GB: string | undefined
@@ -217,19 +216,20 @@ export type TLServerEvent =
 			 */
 			resumedSockets: number
 	  }
-	| {
+	// Discriminated on `wrote`: only a keyframe carries the reason that forced it.
+	| ({
 			type: 'version_chain_write'
-			/** Which kind of object this persist wrote, and — for a keyframe — what forced it. */
-			wrote: 'keyframe' | 'delta'
-			reason: string
 			bytes: number
 			depth: number
-	  }
-	| {
+	  } & ({ wrote: 'keyframe'; reason: KeyframeReason } | { wrote: 'delta' }))
+	// Discriminated on `ok`: only a failure carries the reason it failed.
+	| ({
 			/** A cadence keyframe retired a chain; did that chain reconstruct the state it claims? */
 			type: 'version_chain_verify'
-			ok: boolean
-	  }
+	  } & (
+			| { ok: true }
+			| { ok: false; reason: 'missing' | 'legacy-fallback' | 'head-mismatch' | 'error' }
+	  ))
 	| {
 			/** A chain write failed in dual mode and was swallowed so the persist could complete. */
 			type: 'version_chain_error'

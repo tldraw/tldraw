@@ -17,7 +17,7 @@ import { canonicalJson, fnv1a64 } from './snapshotUtils'
  *
  * `schema` is deliberately absent: a schema change cuts a keyframe, so no chain spans one.
  *
- * `v` covers the embedded `NetworkDiff` semantics and the content hash's inputs as well as this
+ * `v` covers the embedded `NetworkDiff` semantics and the envelope hash's inputs as well as this
  * shape. v2: the hash canonicalizes exactly as `JSON.stringify` does (see `canonicalJson`).
  */
 export interface SnapshotDelta {
@@ -28,44 +28,45 @@ export interface SnapshotDelta {
 	tombstoneHistoryStartsAtClock?: number
 	clock?: number
 	documentClock?: number
-	// Content hash of the resulting snapshot — see snapshotContentHash for why it exists.
+	// Integrity hash of the snapshot this delta produces — see versionEnvelopeHash.
 	hash: string
 }
 
 /**
- * Order-independent content hash of a snapshot. Reconstruction rebuilds `documents` in a different
- * order than `getSnapshot()` emits and `applyObjectDiff` can reorder keys inside a record, so
- * per-record canonical hashes are XOR-combined rather than hashed in sequence. Exists because
- * `applyObjectDiff` is lenient — an Append with a stale offset or a Patch on a missing key is
- * silently skipped — so a subtly broken chain applies cleanly; this hash is what turns "slightly
- * wrong board" into an error.
+ * Integrity hash of the whole version envelope: every record, every tombstone, and every room-level
+ * clock a delta carries. Persisted in each delta and checked after replay, so its inputs are part
+ * of the envelope format — changing them makes every chain already written unreadable, so a change
+ * bumps `v`. (v1 hashed with a canonicalizer that kept `undefined` properties, which JSON
+ * serialization drops.)
+ *
+ * Exists because `applyObjectDiff` is lenient — an Append with a stale offset or a Patch on a
+ * missing key is silently skipped — so a subtly broken chain applies cleanly; this hash is what
+ * turns "slightly wrong board" into an error. Order-independent: reconstruction rebuilds `documents`
+ * in a different order than `getSnapshot()` emits and `applyObjectDiff` can reorder keys inside a
+ * record, so per-record canonical hashes are XOR-combined rather than hashed in sequence.
  *
  * The room-level clocks are folded in as one labelled term rather than left out: they are optional
  * on `SnapshotDelta`, and `tombstoneHistoryStartsAtClock` in particular decides how far back
  * SQLiteSyncStorage believes deletions are tracked. Omitted from the hash, a delta that dropped one
  * would replay as `undefined` and still verify.
- *
- * This is the hash persisted in every delta. Its inputs are part of the envelope format: changing
- * them makes every chain already written unreadable, so a change bumps `v`. v1 hashed with a
- * canonicalizer that kept `undefined` properties, which JSON serialization drops.
  */
-export function snapshotContentHash(snapshot: RoomSnapshot): string {
-	return snapshotHashes(snapshot).content
+export function versionEnvelopeHash(snapshot: RoomSnapshot): string {
+	return snapshotHashes(snapshot).envelope
 }
 
 /**
- * The content hash with `documentClock` left out, for deciding whether a snapshot is the chain
- * head. That clock is the storage clock shared with the object lane, so a comment write moves it
- * without touching a document; persist skips that write on the fingerprint, and the snapshot seeded
- * on the next wake then carries a clock the head never saw. Compared on the content hash, that cut
- * a keyframe after every hibernation of a board with comments. Never persisted, so it can change
+ * Identity of a snapshot as a chain head: the envelope hash with `documentClock` left out. That
+ * clock is the storage clock shared with the object lane, so a comment write moves it without
+ * touching a document; persist skips that write on the fingerprint, and the snapshot seeded on the
+ * next wake then carries a clock the head never saw. Compared on the envelope hash, that cut a
+ * keyframe after every hibernation of a board with comments. Never persisted, so it can change
  * shape freely.
  */
-export function snapshotHeadHash(snapshot: RoomSnapshot): string {
+export function chainHeadHash(snapshot: RoomSnapshot): string {
 	return snapshotHashes(snapshot).head
 }
 
-function snapshotHashes(snapshot: RoomSnapshot): { content: string; head: string } {
+function snapshotHashes(snapshot: RoomSnapshot): { envelope: string; head: string } {
 	let acc = 0n
 	for (const { state, lastChangedClock } of snapshot.documents) {
 		acc ^= BigInt('0x' + fnv1a64(canonicalJson(state) + '@' + lastChangedClock))
@@ -80,7 +81,7 @@ function snapshotHashes(snapshot: RoomSnapshot): { content: string; head: string
 		tombstoneHistoryStartsAtClock: snapshot.tombstoneHistoryStartsAtClock,
 	}
 	return {
-		content: (acc ^ clocksTerm({ ...shared, documentClock: snapshot.documentClock })).toString(16),
+		envelope: (acc ^ clocksTerm({ ...shared, documentClock: snapshot.documentClock })).toString(16),
 		head: (acc ^ clocksTerm(shared)).toString(16),
 	}
 }
@@ -131,7 +132,7 @@ export function buildSnapshotDelta(prev: RoomSnapshot, next: RoomSnapshot): Snap
 		tombstoneHistoryStartsAtClock: next.tombstoneHistoryStartsAtClock,
 		clock: next.clock,
 		documentClock: next.documentClock,
-		hash: snapshotContentHash(next),
+		hash: versionEnvelopeHash(next),
 	}
 }
 
@@ -139,7 +140,7 @@ export function applySnapshotDelta(prev: RoomSnapshot, delta: SnapshotDelta): Ro
 	// The diff codec has changed semantics before (diffRecord's legacyAppendMode); applying a
 	// future format with today's rules would corrupt quietly, which is worse than failing.
 	if (delta.v !== 2) throw new Error(`unsupported snapshot delta version ${delta.v}, expected 2`)
-	// The content hash would catch this too, as a mismatch; checked up front so a restore that
+	// The envelope hash would catch this too, as a mismatch; checked up front so a restore that
 	// would seed the storage clock from `undefined` fails with a reason.
 	if (typeof delta.documentClock !== 'number') {
 		throw new Error('version delta is missing its documentClock')

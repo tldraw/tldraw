@@ -155,6 +155,55 @@ describe('reconstructVersion', () => {
 		expect(last?.ops).toBe(6)
 	})
 
+	it('runs every R2 read through the scheduler, one operation each', async () => {
+		const chainBucket = createFakeR2()
+		const legacyBucket = createFakeR2()
+		const versions = [snapshot(1, ['shape:0'])]
+		for (let i = 1; i <= 10; i++) {
+			versions.push(
+				snapshot(
+					i + 1,
+					Array.from({ length: i + 1 }, (_, n) => `shape:${n}`)
+				)
+			)
+		}
+		const timestamps = await seedChain(chainBucket, versions, 3)
+
+		// A bucket call outside a scheduled read is a connection the caller's budget never saw.
+		let scheduledDepth = 0
+		let unscheduledCalls = 0
+		for (const method of ['get', 'list'] as const) {
+			const original = (chainBucket[method] as any).bind(chainBucket)
+			;(chainBucket as any)[method] = (...args: unknown[]) => {
+				if (scheduledDepth === 0) unscheduledCalls++
+				return original(...args)
+			}
+		}
+		let scheduled = 0
+		const schedule = async <T>(read: () => Promise<T>) => {
+			scheduled++
+			scheduledDepth++
+			try {
+				return await read()
+			} finally {
+				scheduledDepth--
+			}
+		}
+
+		const last = await reconstructVersion({
+			chainBucket,
+			legacyBucket,
+			roomKey,
+			timestamp: timestamps[timestamps.length - 1],
+			schedule,
+		})
+
+		expect(last?.snapshot).toEqual(versions[versions.length - 1])
+		// One listing, one keyframe and four segments, each its own scheduled operation.
+		expect(scheduled).toBe(6)
+		expect(unscheduledCalls).toBe(0)
+	})
+
 	it('reads a version in the middle of an open segment', async () => {
 		const chainBucket = createFakeR2()
 		const legacyBucket = createFakeR2()
@@ -296,7 +345,7 @@ describe('reconstructVersion', () => {
 				roomKey,
 				timestamp: timestamps[1],
 			})
-		).rejects.toThrow(/content hash/)
+		).rejects.toThrow(/envelope hash/)
 	})
 
 	it('tolerates a segment body with more deltas than its listed metadata', async () => {

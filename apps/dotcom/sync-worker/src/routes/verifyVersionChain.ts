@@ -8,7 +8,7 @@ import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
 import { requireAdminAccessToRequest } from '../utils/tla/getAuth'
 import { decodeVersionBody } from '../versionChainCodec'
 import { loadChainIndex, readSegmentDeltas, SegmentIndexEntry } from '../versionChainRead'
-import { applySnapshotDelta, snapshotContentHash } from '../versionDelta'
+import { applySnapshotDelta, versionEnvelopeHash } from '../versionDelta'
 
 export interface VerifyResult {
 	/** Versions compared against a legacy full copy. Zero once dual-write is off. */
@@ -124,8 +124,8 @@ export async function verifyRoomVersions({
 					state = applySnapshotDelta(state, delta)
 					replayed++
 					// Intra-chain check, independent of the legacy copies — after cut-over the
-					// recorded hash is the only witness (see snapshotContentHash).
-					if (delta.hash !== snapshotContentHash(state)) mismatches.add(t)
+					// recorded hash is the only witness (see versionEnvelopeHash).
+					if (delta.hash !== versionEnvelopeHash(state)) mismatches.add(t)
 					await compareToLegacy(state, t)
 				}
 				expectedSeq += segment.timestamps.length

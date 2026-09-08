@@ -15,6 +15,7 @@ import { getArrowBindings } from '../../../shapes/arrow/shared'
 import {
 	getNoteAdjacentPositions,
 	getNoteShapeForAdjacentPosition,
+	startEditingAdjacentNote,
 } from '../../../shapes/note/noteHelpers'
 import type { NoteShapeUtil } from '../../../shapes/note/NoteShapeUtil'
 import { getDisplayValues } from '../../../shapes/shared/getDisplayValues'
@@ -81,7 +82,7 @@ export class PointingHandle extends StateNode {
 			const { editor } = this
 			const nextNote = getNoteForAdjacentPosition(editor, shape, handle, false)
 			if (nextNote) {
-				startEditingShapeWithRichText(editor, nextNote, { selectAll: true })
+				startEditingAdjacentNote(editor, nextNote)
 				return
 			}
 		}

@@ -184,6 +184,7 @@ export function shapeAnchorAt(
 /** Open a thread and bring it into view — switch to its page if needed, then center its pin. @public */
 export function focusThread(editor: Editor, thread: TLCommentThread): void {
 	if (thread.pageId !== editor.getCurrentPageId()) {
+		editor.markHistoryStoppingPoint('change-page')
 		editor.setCurrentPage(thread.pageId as any)
 	}
 	openThreadId.set(editor, thread.id)

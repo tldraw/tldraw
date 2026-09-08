@@ -67,11 +67,28 @@ describe('writeVersionChainEntry', () => {
 			now: 0,
 		})
 
-		expect(result.wrote).toBe('keyframe')
-		expect(result.reason).toBe('no-chain')
+		expect(result).toMatchObject({ wrote: 'keyframe', reason: 'no-chain' })
 		expect(result.chain.openSegment).toBeNull()
 		expect(result.pending).toEqual([])
 		expect(await bucket.head(`${roomKey}/${isoAt(0)}.k`)).not.toBeNull()
+	})
+
+	it('carries the caller-named reason for a discarded chain', async () => {
+		const bucket = createFakeR2()
+
+		const result = await writeVersionChainEntry({
+			bucket,
+			roomKey,
+			iso: isoAt(0),
+			chain: null,
+			noChainReason: 'segment-lost',
+			pending: [],
+			previous: null,
+			next: snapshot(1, ['shape:a']),
+			now: 0,
+		})
+
+		expect(result).toMatchObject({ wrote: 'keyframe', reason: 'segment-lost' })
 	})
 
 	it('packs deltas into one segment object that reconstructs exactly', async () => {
@@ -116,6 +133,8 @@ describe('writeVersionChainEntry', () => {
 
 		expect(chain!.openSegment!.key).toBe(`${roomKey}/${isoAt(SEGMENT_CAP + 1)}.s`)
 		expect(chain!.openSegment!.firstSeq).toBe(SEGMENT_CAP + 1)
+		// The size rule reads this back on the next append, so it has to be the object's real size.
+		expect(chain!.openSegment!.bytes).toBe((await bucket.get(chain!.openSegment!.key))!.size)
 		// The buffer resets with the new segment rather than growing without bound.
 		expect(pending).toHaveLength(1)
 		expect((await bucket.list({ prefix: roomKey })).objects).toHaveLength(3)
@@ -146,8 +165,7 @@ describe('writeVersionChainEntry', () => {
 			now: 1000,
 		})
 
-		expect(second.wrote).toBe('keyframe')
-		expect(second.reason).toBe('fingerprint-mismatch')
+		expect(second).toMatchObject({ wrote: 'keyframe', reason: 'fingerprint-mismatch' })
 		expect(second.pending).toEqual([])
 	})
 
@@ -178,15 +196,17 @@ describe('writeVersionChainEntry', () => {
 		}
 
 		// Eviction: chain state survives in DO storage, the in-memory buffer does not. The durable
-		// object rehydrates it from the open segment, which is what the DO wiring below does.
-		const rehydrated = pending
+		// object rehydrates it from the open segment, so read it back from the bucket rather than
+		// reusing the in-memory copy — otherwise this test never exercises the storage round trip.
+		const rehydrated = await readOpenSegment(bucket, chain!.openSegment!.key)
+		expect(rehydrated).not.toBeNull()
 
 		const afterWake = await writeVersionChainEntry({
 			bucket,
 			roomKey,
 			iso: isoAt(2),
 			chain: JSON.parse(JSON.stringify(chain)),
-			pending: rehydrated,
+			pending: rehydrated!,
 			previous: versions[1],
 			next: versions[2],
 			now: 2000,
@@ -278,8 +298,7 @@ describe('writeVersionChainEntry', () => {
 		})
 
 		// The chain head fingerprint is `before`'s, so the schema move is what the decision sees.
-		expect(second.wrote).toBe('keyframe')
-		expect(second.reason).toBe('schema-change')
+		expect(second).toMatchObject({ wrote: 'keyframe', reason: 'schema-change' })
 	})
 })
 
@@ -304,5 +323,17 @@ describe('readOpenSegment', () => {
 		expect(await readOpenSegment(bucket, `${roomKey}/garbage.s`)).toBeNull()
 		expect(await readOpenSegment(bucket, `${roomKey}/future.s`)).toBeNull()
 		expect(await readOpenSegment(bucket, `${roomKey}/shape.s`)).toBeNull()
+	})
+
+	it('throws on a failed get instead of discarding the segment', async () => {
+		const bucket = {
+			get: async () => {
+				throw new Error('Network connection lost.')
+			},
+		} as unknown as R2Bucket
+
+		await expect(readOpenSegment(bucket, `${roomKey}/blip.s`)).rejects.toThrow(
+			'Network connection lost.'
+		)
 	})
 })
