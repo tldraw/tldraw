@@ -1368,7 +1368,9 @@ export class TLFileDurableObject extends DurableObject {
 				break
 			}
 			case 'version_chain_verify': {
-				this.writeEvent(event.type, { blobs: [event.ok ? 'ok' : 'fail'] })
+				this.writeEvent(event.type, {
+					blobs: [event.ok ? 'ok' : 'fail', event.ok ? '' : event.reason],
+				})
 				break
 			}
 			case 'version_chain_error': {
@@ -2183,13 +2185,20 @@ export class TLFileDurableObject extends DurableObject {
 			// the head hash, not the envelope hash: `expected` may be the wake seed, whose documentClock a
 			// comment write moved past the clock the chain head was written at — a chain-age keyframe on
 			// an idle commented board is exactly that case, and it would fail here on a correct chain.
-			const ok =
-				!!reconstruction &&
-				reconstruction.source === 'chain' &&
-				chainHeadHash(reconstruction.snapshot) === chainHeadHash(expected)
-			this.logEvent({ type: 'version_chain_verify', ok })
+			const reason = !reconstruction
+				? 'missing'
+				: reconstruction.source !== 'chain'
+					? 'legacy-fallback'
+					: chainHeadHash(reconstruction.snapshot) !== chainHeadHash(expected)
+						? 'head-mismatch'
+						: null
+			this.logEvent(
+				reason === null
+					? { type: 'version_chain_verify', ok: true }
+					: { type: 'version_chain_verify', ok: false, reason }
+			)
 		} catch (error) {
-			this.logEvent({ type: 'version_chain_verify', ok: false })
+			this.logEvent({ type: 'version_chain_verify', ok: false, reason: 'error' })
 			this.reportError(error)
 		}
 	}

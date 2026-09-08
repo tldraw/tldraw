@@ -222,11 +222,14 @@ export type TLServerEvent =
 			bytes: number
 			depth: number
 	  } & ({ wrote: 'keyframe'; reason: KeyframeReason } | { wrote: 'delta' }))
-	| {
+	// Discriminated on `ok`: only a failure carries the reason it failed.
+	| ({
 			/** A cadence keyframe retired a chain; did that chain reconstruct the state it claims? */
 			type: 'version_chain_verify'
-			ok: boolean
-	  }
+	  } & (
+			| { ok: true }
+			| { ok: false; reason: 'missing' | 'legacy-fallback' | 'head-mismatch' | 'error' }
+	  ))
 	| {
 			/** A chain write failed in dual mode and was swallowed so the persist could complete. */
 			type: 'version_chain_error'
