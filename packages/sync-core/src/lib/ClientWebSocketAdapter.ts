@@ -99,6 +99,7 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 		this._ws = null
 		//  WebSocket.close() is idempotent
 		ws?.close()
+		this._connectionStatus.set('offline')
 	}
 
 	/**
@@ -515,33 +516,33 @@ export class ReconnectManager {
 		}
 	}
 
-	private scheduleAttempt() {
+	private async scheduleAttempt() {
 		assert(this.state === 'pendingAttempt')
+		if (this.isDisposed) return
 		debug('scheduling a connection attempt')
-		Promise.resolve()
-			.then(() => this.getUri())
-			.then((uri) => {
-				// this can happen if the promise gets resolved too late
-				if (this.state !== 'pendingAttempt' || this.isDisposed) return
-				assert(
-					this.socketAdapter._ws?.readyState !== WebSocket.OPEN,
-					'There should be no connection attempts while already connected'
-				)
 
-				this.lastAttemptStart = Date.now()
-				this.socketAdapter._setNewSocket(new WebSocket(httpToWs(uri)))
-				this.state = 'pendingAttemptResult'
-			})
-			.catch((error) => {
-				// getUri is host code (often an auth-token fetch) and can reject or throw. Without
-				// this handler the manager would sit in 'pendingAttempt' with no timer and no
-				// socket, so nothing but a browser online/visibility hint could ever start another
-				// attempt. Treat it as a failed attempt and retry on the usual backoff instead.
-				if (this.state !== 'pendingAttempt' || this.isDisposed) return
-				console.error('Failed to get the websocket URI, retrying', error)
-				this.state = 'delay'
-				this.reconnectTimeout = setTimeout(() => this.disconnected(), this.intendedDelay)
-			})
+		let uri: string
+		try {
+			uri = await this.getUri()
+		} catch (error) {
+			// A failed auth-token fetch must retry instead of leaving us with no socket or timer.
+			if (this.state !== 'pendingAttempt' || this.isDisposed) return
+			console.error('Failed to get the websocket URI, retrying', error)
+			this.state = 'delay'
+			this.reconnectTimeout = setTimeout(() => this.disconnected(), this.intendedDelay)
+			return
+		}
+
+		// this can happen if the promise gets resolved too late
+		if (this.state !== 'pendingAttempt' || this.isDisposed) return
+		assert(
+			this.socketAdapter._ws?.readyState !== WebSocket.OPEN,
+			'There should be no connection attempts while already connected'
+		)
+
+		this.lastAttemptStart = Date.now()
+		this.socketAdapter._setNewSocket(new WebSocket(httpToWs(uri)))
+		this.state = 'pendingAttemptResult'
 	}
 
 	private getMaxDelay() {
