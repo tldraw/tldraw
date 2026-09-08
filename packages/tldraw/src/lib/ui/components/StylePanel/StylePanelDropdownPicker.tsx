@@ -128,7 +128,6 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 									}
 									isActive={valueInItems && icon === item.icon}
 									onClick={() => {
-										ctx.onHistoryMark('select style dropdown item')
 										onValueChange(style, item.value)
 										tlmenus.deleteOpenMenu(popoverId, editor.contextId)
 										setIsOpen(false)

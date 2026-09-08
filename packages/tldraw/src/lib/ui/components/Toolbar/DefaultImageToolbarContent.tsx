@@ -30,7 +30,7 @@ import {
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
 } from '../primitives/TldrawUiDropdownMenu'
-import { TldrawUiSlider } from '../primitives/TldrawUiSlider'
+import { TldrawUiSlider, TLUiSliderChangeInfo } from '../primitives/TldrawUiSlider'
 import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 
 /** @public */
@@ -78,8 +78,6 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 		setMaxZoom(crop ? Math.max(zoom, 1 - 1 / MAX_ZOOM) : MAX_ZOOM)
 	}, [crop, zoom, maxZoom])
 
-	const onHistoryMark = useCallback((id: string) => editor.markHistoryStoppingPoint(id), [editor])
-
 	// Apply an easing function to smooth out the zoom curve,
 	// otherwise the zoom slider has a cubic drag feel to it which feels off.
 	const easeZoom = useCallback((value: number, maxValue: number): number => {
@@ -94,7 +92,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 			: 0
 
 	const handleZoomChange = useCallback(
-		(value: number) => {
+		(value: number, { mark }: TLUiSliderChangeInfo) => {
 			editor.setCurrentTool('select.crop.idle')
 			// Convert the eased slider value back to the actual zoom value
 			const sliderPercent = value / 100
@@ -117,17 +115,22 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 
 			const change = getCroppedImageDataWhenZooming(zoom, imageShape, maxZoom)
 
-			editor.updateShape({
-				id: imageShape.id,
-				type: imageShape.type,
-				x: change.x,
-				y: change.y,
-				props: {
-					w: change.w,
-					h: change.h,
-					crop: change.crop,
+			editor.run(
+				() => {
+					editor.updateShape({
+						id: imageShape.id,
+						type: imageShape.type,
+						x: change.x,
+						y: change.y,
+						props: {
+							w: change.w,
+							h: change.h,
+							crop: change.crop,
+						},
+					} as TLShapePartial)
 				},
-			} as TLShapePartial)
+				{ mark: mark ? 'image zoom' : undefined }
+			)
 
 			trackEvent('set-style', { source: 'image-toolbar', id: 'zoom', value })
 		},
@@ -147,23 +150,25 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	const handleAspectRatioChange = (aspectRatio: ASPECT_RATIO_OPTION) => {
 		const imageShape = editor.getShape<TLImageShape>(imageShapeId)
 		if (!imageShape) return
-		editor.run(() => {
-			editor.setCurrentTool('select.crop.idle')
-			const change = getCroppedImageDataForAspectRatio(aspectRatio, imageShape)
-			editor.markHistoryStoppingPoint('aspect ratio')
-			editor.updateShape({
-				id: imageShapeId,
-				type: 'image',
-				x: change.x,
-				y: change.y,
-				props: {
-					crop: change.crop,
-					w: change.w,
-					h: change.h,
-				},
-			} as TLShapePartial)
-			kickoutOccludedShapes(editor, [imageShapeId])
-		})
+		editor.run(
+			() => {
+				editor.setCurrentTool('select.crop.idle')
+				const change = getCroppedImageDataForAspectRatio(aspectRatio, imageShape)
+				editor.updateShape({
+					id: imageShapeId,
+					type: 'image',
+					x: change.x,
+					y: change.y,
+					props: {
+						crop: change.crop,
+						w: change.w,
+						h: change.h,
+					},
+				} as TLShapePartial)
+				kickoutOccludedShapes(editor, [imageShapeId])
+			},
+			{ mark: 'aspect ratio' }
+		)
 	}
 
 	const altText = useValue(
@@ -223,7 +228,6 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 					value={displayValue}
 					label="tool.image-zoom"
 					onValueChange={handleZoomChange}
-					onHistoryMark={onHistoryMark}
 					min={0}
 					steps={100}
 					data-testid="tool.image-zoom"

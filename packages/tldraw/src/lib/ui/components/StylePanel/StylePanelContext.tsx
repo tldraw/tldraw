@@ -9,12 +9,26 @@ import { createContext, useCallback, useContext } from 'react'
 import { useUiEvents } from '../../context/events'
 
 /** @public */
+export interface StylePanelValueChangeOptions {
+	/**
+	 * Whether this change starts a new undo step. Defaults to `true`. Pass `false` while a gesture
+	 * is continuing (scrubbing across swatches, dragging a slider, a held key repeating) so the
+	 * change extends the step begun on pointer down or the first key press.
+	 */
+	mark?: boolean
+}
+
+/** @public */
 export interface StylePanelContext {
 	styles: ReadonlySharedStyleMap
 	enhancedA11yMode: boolean
+	/**
+	 * @deprecated `onValueChange` and `onOpacityChange` start their own undo step. Pass
+	 * `{ mark: false }` to them to extend the current step instead.
+	 */
 	onHistoryMark(id: string): void
-	onValueChange<T>(style: StyleProp<T>, value: T): void
-	onOpacityChange(opacity: number): void
+	onValueChange<T>(style: StyleProp<T>, value: T, opts?: StylePanelValueChangeOptions): void
+	onOpacityChange(opacity: number, opts?: StylePanelValueChangeOptions): void
 }
 const StylePanelContext = createContext<null | StylePanelContext>(null)
 
@@ -34,22 +48,25 @@ export function StylePanelContextProvider({ children, styles }: StylePanelContex
 		editor,
 	])
 	const onValueChange = useCallback(
-		function <T>(style: StyleProp<T>, value: T) {
+		function <T>(style: StyleProp<T>, value: T, opts?: StylePanelValueChangeOptions) {
 			// If the user is holding down the accelerator key (Ctrl on Windows/Linux, Cmd on Mac)
 			// while shapes are selected, interpret that as a wish to change the style for their
 			// current selected shapes but not for the next shapes.
 			const skipNextShapeStyle = unsafe__withoutCapture(
 				() => editor.getSelectedShapeIds().length > 0 && editor.inputs.getAccelKey()
 			)
-			editor.run(() => {
-				if (editor.isIn('select')) {
-					editor.setStyleForSelectedShapes(style, value)
-				}
-				if (!skipNextShapeStyle) {
-					editor.setStyleForNextShapes(style, value)
-				}
-				editor.updateInstanceState({ isChangingStyle: true })
-			})
+			editor.run(
+				() => {
+					if (editor.isIn('select')) {
+						editor.setStyleForSelectedShapes(style, value)
+					}
+					if (!skipNextShapeStyle) {
+						editor.setStyleForNextShapes(style, value)
+					}
+					editor.updateInstanceState({ isChangingStyle: true })
+				},
+				{ mark: opts?.mark === false ? undefined : `set style ${style.id}` }
+			)
 
 			trackEvent('set-style', { source: 'style-panel', id: style.id, value: value as string })
 		},
@@ -57,20 +74,23 @@ export function StylePanelContextProvider({ children, styles }: StylePanelContex
 	)
 
 	const onOpacityChange = useCallback(
-		function (opacity: number) {
+		function (opacity: number, opts?: StylePanelValueChangeOptions) {
 			const skipNextShapeStyle = unsafe__withoutCapture(
 				() => editor.getSelectedShapeIds().length > 0 && editor.inputs.getAccelKey()
 			)
 
-			editor.run(() => {
-				if (editor.isIn('select')) {
-					editor.setOpacityForSelectedShapes(opacity)
-				}
-				if (!skipNextShapeStyle) {
-					editor.setOpacityForNextShapes(opacity)
-				}
-				editor.updateInstanceState({ isChangingStyle: true })
-			})
+			editor.run(
+				() => {
+					if (editor.isIn('select')) {
+						editor.setOpacityForSelectedShapes(opacity)
+					}
+					if (!skipNextShapeStyle) {
+						editor.setOpacityForNextShapes(opacity)
+					}
+					editor.updateInstanceState({ isChangingStyle: true })
+				},
+				{ mark: opts?.mark === false ? undefined : 'set opacity' }
+			)
 
 			trackEvent('set-style', { source: 'style-panel', id: 'opacity', value: opacity })
 		},

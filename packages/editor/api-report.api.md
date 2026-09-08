@@ -2203,6 +2203,8 @@ export class HistoryManager<R extends UnknownRecord> {
     getNumRedos(): number;
     // (undocumented)
     getNumUndos(): number;
+    hasRedos(): boolean;
+    hasUndos(): boolean;
     // @internal (undocumented)
     _isInBatch: boolean;
     // @internal (undocumented)
@@ -4003,6 +4005,7 @@ export interface TLEditorOptions {
 export interface TLEditorRunOptions extends TLHistoryBatchOptions {
     // (undocumented)
     ignoreShapeLock?: boolean;
+    mark?: string;
 }
 
 // @public

@@ -40,7 +40,18 @@ When you undo, the manager reverses all changes back to the previous mark, moves
 
 ## Marks and stopping points
 
-Marks define where undo and redo operations stop. Create marks with [Editor#markHistoryStoppingPoint](?) at the start of user interactions so that complex operations can be undone in one step. The optional name only shows up in the mark id, which is useful for debugging.
+Marks define where undo and redo operations stop. A change made without a mark joins whatever undo step is already open, so forgetting one means undo also reverts the previous action. The simplest way to start a step is to run the action through [Editor#run](?) with a `mark`:
+
+```typescript
+editor.run(
+	() => {
+		editor.rotateShapesBy(editor.getSelectedShapeIds(), Math.PI / 4)
+	},
+	{ mark: 'rotate shapes' }
+)
+```
+
+When you need the mark's id, for example to roll a cancelled drag back with [bailToMark](#bailing), create it directly with [Editor#markHistoryStoppingPoint](?). The optional name only shows up in the mark id, which is useful for debugging.
 
 ```typescript
 const markId = editor.markHistoryStoppingPoint('rotate shapes')
@@ -49,6 +60,8 @@ editor.rotateShapesBy(editor.getSelectedShapeIds(), Math.PI / 4)
 ```
 
 Each mark has a unique identifier that you can use with [bailToMark](#bailing) or [squashToMark](#squashing). Creating a mark flushes pending changes onto the undo stack. It doesn't clear the redo stack; the next recorded change does that.
+
+Some entry points mark for you. Every UI action runs inside a marked `run`, and [Editor#putExternalContent](?) marks before it handles pasted or dropped content. In the style panel, `onValueChange` and `onOpacityChange` start a new step unless you pass `{ mark: false }` to extend the current one, which is how scrubbing across swatches or dragging the opacity slider stays a single step.
 
 ## Basic operations
 

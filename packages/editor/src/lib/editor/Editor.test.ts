@@ -916,6 +916,102 @@ describe('putExternalContent', () => {
 
 		expect(mockHandler).toHaveBeenCalledWith(info)
 	})
+
+	it('is its own undo step, so callers do not need to mark first', async () => {
+		const beforeId = createShapeId('before')
+		const putId = createShapeId('put')
+		editor.registerExternalContentHandler('text', () => {
+			editor.createShape({ id: putId, type: 'my-custom-shape' })
+		})
+
+		editor.createShape({ id: beforeId, type: 'my-custom-shape' })
+		await editor.putExternalContent({ type: 'text', text: 'hello' })
+		expect(editor.getShape(putId)).toBeDefined()
+
+		editor.undo()
+
+		expect(editor.getShape(putId)).toBeUndefined()
+		expect(editor.getShape(beforeId)).toBeDefined()
+	})
+})
+
+describe('run', () => {
+	const beforeId = createShapeId('before')
+	const afterId = createShapeId('after')
+
+	it('does not start a new undo step without a mark', () => {
+		editor.createShape({ id: beforeId, type: 'my-custom-shape' })
+		editor.run(() => editor.createShape({ id: afterId, type: 'my-custom-shape' }))
+
+		editor.undo()
+
+		expect(editor.getShape(afterId)).toBeUndefined()
+		expect(editor.getShape(beforeId)).toBeUndefined()
+	})
+
+	it('starts a new undo step with a mark', () => {
+		editor.createShape({ id: beforeId, type: 'my-custom-shape' })
+		editor.run(() => editor.createShape({ id: afterId, type: 'my-custom-shape' }), {
+			mark: 'create after',
+		})
+
+		editor.undo()
+
+		expect(editor.getShape(afterId)).toBeUndefined()
+		expect(editor.getShape(beforeId)).toBeDefined()
+	})
+
+	it('ignores the mark when history is ignored', () => {
+		editor.createShape({ id: beforeId, type: 'my-custom-shape' })
+		editor.run(() => editor.createShape({ id: afterId, type: 'my-custom-shape' }), {
+			mark: 'create after',
+			history: 'ignore',
+		})
+
+		editor.undo()
+
+		expect(editor.getShape(afterId)).toBeDefined()
+		expect(editor.getShape(beforeId)).toBeUndefined()
+	})
+
+	it('keeps the previous step intact when the function throws', () => {
+		editor.createShape({ id: beforeId, type: 'my-custom-shape' })
+
+		expect(() =>
+			editor.run(
+				() => {
+					throw new Error('boom')
+				},
+				{ mark: 'failed action' }
+			)
+		).toThrow('boom')
+
+		// the mark stays, so the next change is its own step and the first shape is
+		// still undoable after it
+		editor.createShape({ id: afterId, type: 'my-custom-shape' })
+		editor.undo()
+		expect(editor.getShape(afterId)).toBeUndefined()
+		expect(editor.getShape(beforeId)).toBeDefined()
+
+		editor.undo()
+		expect(editor.getShape(beforeId)).toBeUndefined()
+	})
+
+	it('only enables undo when there is a change to undo, not for a bare mark', () => {
+		expect(editor.getCanUndo()).toBe(false)
+
+		editor.run(() => {}, { mark: 'no-op action' })
+		expect(editor.getCanUndo()).toBe(false)
+
+		editor.run(() => editor.createShape({ id: afterId, type: 'my-custom-shape' }), {
+			mark: 'create after',
+		})
+		expect(editor.getCanUndo()).toBe(true)
+
+		editor.undo()
+		expect(editor.getCanUndo()).toBe(false)
+		expect(editor.getCanRedo()).toBe(true)
+	})
 })
 
 describe('replaceExternalContent', () => {

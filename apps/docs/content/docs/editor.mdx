@@ -80,7 +80,7 @@ See the [Signals](/sdk-features/signals) article for more on tldraw's reactive s
 
 ## Batching changes
 
-Each change to the editor happens within a transaction. You can batch multiple changes into a single transaction using the [Editor#run](?) method. Batching groups the changes into a single undo step and reduces overhead for persisting or distributing changes.
+Each change to the editor happens within a transaction. You can batch multiple changes into a single transaction using the [Editor#run](?) method. Batching reduces overhead for persisting or distributing changes.
 
 ```ts
 // myShapes is an array of shape partials, each with an id from createShapeId()
@@ -89,6 +89,18 @@ editor.run(() => {
 	editor.sendToBack(myShapes.map((shape) => shape.id))
 	editor.selectNone()
 })
+```
+
+A transaction is not an undo step on its own: changes made without a mark join whatever undo step is already open. When the function is a user action that should undo by itself, pass `mark` to start a new step first:
+
+```ts
+editor.run(
+	() => {
+		editor.createShapes(myShapes)
+		editor.selectNone()
+	},
+	{ mark: 'create shapes' }
+)
 ```
 
 The `run` method also accepts options to control history and locked shape behavior. Set `history` to `'ignore'` to leave undo/redo alone, or `'record-preserveRedoStack'` to record without clearing the redo stack:

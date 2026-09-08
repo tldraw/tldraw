@@ -3602,10 +3602,10 @@ export const StylePanelButtonPickerInline: <T extends string>(props: StylePanelB
 export interface StylePanelButtonPickerProps<T extends string> {
     // (undocumented)
     items: StyleValuesForUi<T>;
-    // (undocumented)
+    // @deprecated (undocumented)
     onHistoryMark?(id: string): void;
     // (undocumented)
-    onValueChange?(style: StyleProp<T>, value: T): void;
+    onValueChange?(style: StyleProp<T>, value: T, opts?: StylePanelValueChangeOptions): void;
     // (undocumented)
     style: StyleProp<T>;
     // (undocumented)
@@ -3623,12 +3623,12 @@ export function StylePanelColorPicker(): JSX.Element | null;
 export interface StylePanelContext {
     // (undocumented)
     enhancedA11yMode: boolean;
-    // (undocumented)
+    // @deprecated (undocumented)
     onHistoryMark(id: string): void;
     // (undocumented)
-    onOpacityChange(opacity: number): void;
+    onOpacityChange(opacity: number, opts?: StylePanelValueChangeOptions): void;
     // (undocumented)
-    onValueChange<T>(style: StyleProp<T>, value: T): void;
+    onValueChange<T>(style: StyleProp<T>, value: T, opts?: StylePanelValueChangeOptions): void;
     // (undocumented)
     styles: ReadonlySharedStyleMap;
 }
@@ -3753,6 +3753,11 @@ export interface StylePanelSubheadingProps {
 
 // @public (undocumented)
 export function StylePanelTextAlignPicker(): JSX.Element | null;
+
+// @public (undocumented)
+export interface StylePanelValueChangeOptions {
+    mark?: boolean;
+}
 
 // @public (undocumented)
 export type StyleValuesForUi<T> = readonly {
@@ -4596,6 +4601,7 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
     label?: {
         [key: string]: TransationKey;
     } | TransationKey;
+    mark?: boolean;
     // (undocumented)
     onSelect(source: TLUiEventSource): Promise<void> | void;
     // (undocumented)
@@ -5608,6 +5614,11 @@ export interface TLUiSelectValueProps {
 }
 
 // @public (undocumented)
+export interface TLUiSliderChangeInfo {
+    mark: boolean;
+}
+
+// @public (undocumented)
 export interface TLUiSliderProps {
     // (undocumented)
     'data-testid'?: string;
@@ -5617,10 +5628,10 @@ export interface TLUiSliderProps {
     label: string;
     // (undocumented)
     min?: number;
-    // (undocumented)
+    // @deprecated (undocumented)
     onHistoryMark?(id: string): void;
     // (undocumented)
-    onValueChange(value: number): void;
+    onValueChange(value: number, info: TLUiSliderChangeInfo): void;
     // (undocumented)
     steps: number;
     // (undocumented)

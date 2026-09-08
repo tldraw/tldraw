@@ -57,7 +57,7 @@ const STROKE_SIZE_PRESETS = [1, 2, 3, 4, 6, 8, 10, 12, 16, 20, 26, 32]
 
 // [4]
 function StrokeSizePicker() {
-	const { styles, onValueChange, onHistoryMark } = useStylePanelContext()
+	const { styles, onValueChange } = useStylePanelContext()
 	const strokeSize = styles.get(strokeSizeStyle)
 
 	// [5]
@@ -73,10 +73,7 @@ function StrokeSizePicker() {
 					className="stroke-size-picker__preset"
 					data-active={value === size}
 					title={`Stroke size ${size}`}
-					onClick={() => {
-						onHistoryMark('set stroke size')
-						onValueChange(strokeSizeStyle, size)
-					}}
+					onClick={() => onValueChange(strokeSizeStyle, size)}
 				>
 					<div
 						className="stroke-size-picker__dot"

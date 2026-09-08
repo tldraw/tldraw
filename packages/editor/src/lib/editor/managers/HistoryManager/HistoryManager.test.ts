@@ -576,6 +576,31 @@ describe('HistoryManager getters and utilities', () => {
 			expect(manager.getNumRedos()).toBe(2) // Undo moved 2 items to redo stack (pending + mark)
 		})
 
+		it('hasUndos and hasRedos ignore marks with nothing between them', () => {
+			expect(manager.hasUndos()).toBe(false)
+			expect(manager.hasRedos()).toBe(false)
+
+			manager._mark('mark1')
+			manager._mark('mark2')
+			expect(manager.getNumUndos()).toBe(2)
+			expect(manager.hasUndos()).toBe(false)
+
+			store.update(ids.a, (s) => ({ ...s, value: 1 }))
+			expect(manager.hasUndos()).toBe(true)
+
+			manager._mark('mark3')
+			expect(manager.hasUndos()).toBe(true)
+
+			manager.undo()
+			expect(manager.hasUndos()).toBe(false)
+			expect(manager.hasRedos()).toBe(true)
+
+			// only marks are left on the redo stack after redoing the diff
+			manager.redo()
+			expect(manager.hasUndos()).toBe(true)
+			expect(manager.hasRedos()).toBe(false)
+		})
+
 		it('should count correctly after clearing redo stack', () => {
 			store.update(ids.a, (s) => ({ ...s, value: 1 }))
 			manager.undo()

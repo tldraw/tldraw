@@ -17,8 +17,6 @@ export async function pasteUrl(
 	sources?: TLExternalContentSource[],
 	clipboardPasteSource: 'native-event' | 'clipboard-read' = 'native-event'
 ) {
-	editor.markHistoryStoppingPoint('paste')
-
 	return await putPastedExternalContent(
 		editor,
 		{

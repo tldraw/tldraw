@@ -21,7 +21,7 @@ import {
 	TldrawUiToolbarToggleGroup,
 	TldrawUiToolbarToggleItem,
 } from '../primitives/TldrawUiToolbar'
-import { useStylePanelContext } from './StylePanelContext'
+import { StylePanelValueChangeOptions, useStylePanelContext } from './StylePanelContext'
 import { StylePanelSubheading } from './StylePanelSubheading'
 
 /** @public */
@@ -31,7 +31,8 @@ export interface StylePanelButtonPickerProps<T extends string> {
 	style: StyleProp<T>
 	value: SharedStyle<T>
 	items: StyleValuesForUi<T>
-	onValueChange?(style: StyleProp<T>, value: T): void
+	onValueChange?(style: StyleProp<T>, value: T, opts?: StylePanelValueChangeOptions): void
+	/** @deprecated The context's `onValueChange` starts its own undo step. */
 	onHistoryMark?(id: string): void
 }
 
@@ -59,7 +60,8 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 		style,
 		value,
 		onValueChange = ctx.onValueChange,
-		onHistoryMark = ctx.onHistoryMark,
+		// oxlint-disable-next-line typescript/no-deprecated -- still honored for existing consumers
+		onHistoryMark,
 	} = props
 	const editor = useEditor()
 	const colors = useValue(
@@ -99,6 +101,7 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 			const { id } = e.currentTarget.dataset
 			if (value.type === 'shared' && value.value === id) return
 
+			// oxlint-disable-next-line typescript/no-deprecated
 			onHistoryMark?.('point picker item')
 			onValueChange(style, id as T)
 		}
@@ -106,6 +109,7 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 		const handleButtonPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
 			const { id } = e.currentTarget.dataset
 
+			// oxlint-disable-next-line typescript/no-deprecated
 			onHistoryMark?.('point picker item')
 			onValueChange(style, id as T)
 
@@ -118,8 +122,9 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 		const handleButtonPointerEnter = (e: React.PointerEvent<HTMLButtonElement>) => {
 			if (!rPointing.current) return
 
+			// Scrubbing continues the undo step begun on pointer down.
 			const { id } = e.currentTarget.dataset
-			onValueChange(style, id as T)
+			onValueChange(style, id as T, { mark: false })
 		}
 
 		const handleButtonPointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
@@ -131,7 +136,7 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 			const { id } = e.currentTarget.dataset
 			if (value.type === 'shared' && value.value === id) return
 
-			onValueChange(style, id as T)
+			onValueChange(style, id as T, { mark: false })
 		}
 
 		return {

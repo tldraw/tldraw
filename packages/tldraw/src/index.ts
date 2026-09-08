@@ -537,7 +537,11 @@ export {
 	type TLUiSelectTriggerProps,
 	type TLUiSelectValueProps,
 } from './lib/ui/components/primitives/TldrawUiSelect'
-export { TldrawUiSlider, type TLUiSliderProps } from './lib/ui/components/primitives/TldrawUiSlider'
+export {
+	TldrawUiSlider,
+	type TLUiSliderChangeInfo,
+	type TLUiSliderProps,
+} from './lib/ui/components/primitives/TldrawUiSlider'
 export {
 	TldrawUiToolbar,
 	TldrawUiToolbarButton,
@@ -617,6 +621,7 @@ export {
 	useStylePanelContext,
 	type StylePanelContext,
 	type StylePanelContextProviderProps,
+	type StylePanelValueChangeOptions,
 } from './lib/ui/components/StylePanel/StylePanelContext'
 export {
 	StylePanelDoubleDropdownPicker,

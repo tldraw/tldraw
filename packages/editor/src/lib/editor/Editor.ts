@@ -327,6 +327,15 @@ export interface TLEditorOptions {
  */
 export interface TLEditorRunOptions extends TLHistoryBatchOptions {
 	ignoreShapeLock?: boolean
+	/**
+	 * Start a new undo step before running. This is how a user action declares itself: without a
+	 * mark, changes are appended to whatever step is already open, so undo reverts them together
+	 * with the previous action. The name only shows up in the mark id, for debugging.
+	 *
+	 * Ignored when `history` is `'ignore'`. If you need the mark id for `bailToMark` or
+	 * `squashToMark`, call `markHistoryStoppingPoint` yourself instead.
+	 */
+	mark?: string
 }
 
 /** @public */
@@ -1562,7 +1571,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed canUndo(): boolean {
-		return this.history.getNumUndos() > 0
+		return this.history.hasUndos()
 	}
 
 	getCanUndo() {
@@ -1593,7 +1602,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed canRedo(): boolean {
-		return this.history.getNumRedos() > 0
+		return this.history.hasRedos()
 	}
 
 	getCanRedo() {
@@ -1702,12 +1711,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Run a function in a transaction with optional options for context.
-	 * You can use the options to change the way that history is treated
-	 * or allow changes to locked shapes.
+	 * You can use the options to start a new undo step, change the way that
+	 * history is treated, or allow changes to locked shapes.
+	 *
+	 * A transaction on its own is not an undo step: changes made without a mark
+	 * join whatever step is already open. Pass `mark` when the function is a
+	 * user action that should undo on its own.
 	 *
 	 * @example
 	 * ```ts
-	 * // updating with
+	 * // a user action that is its own undo step
+	 * editor.run(() => {
+	 * 	editor.updateShape({ ...myShape, x: 100 })
+	 * }, { mark: 'nudge shape' })
+	 *
+	 * // updating without recording history
 	 * editor.run(() => {
 	 * 	editor.updateShape({ ...myShape, x: 100 })
 	 * }, { history: "ignore" })
@@ -1730,6 +1748,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const previousIgnoreShapeLock = this._shouldIgnoreShapeLock
 		this._shouldIgnoreShapeLock = opts?.ignoreShapeLock ?? previousIgnoreShapeLock
 		try {
+			const mark = opts?.history === 'ignore' ? undefined : opts?.mark
+			// The mark goes outside the transaction on purpose. Marking inside it and then throwing
+			// would roll back the stacks atom but not the pending diff it had already flushed, losing
+			// the previous step. A stray mark from a failed fn is harmless: undo skips empty marks.
+			if (mark !== undefined) this.markHistoryStoppingPoint(mark)
 			this.history.batch(fn, opts)
 		} finally {
 			this._shouldIgnoreShapeLock = previousIgnoreShapeLock
@@ -9594,6 +9617,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Handle external content, such as files, urls, embeds, or plain text which has been put into the app, for example by pasting external text or dropping external images onto canvas.
 	 *
+	 * Putting content is always its own undo step: a mark is placed before the handler runs, so
+	 * callers (paste, drop, insert media, the embed dialog) don't need to mark themselves.
+	 *
 	 * @param info - Info about the external content.
 	 * @param opts - Options for handling external content, including force flag to bypass readonly checks.
 	 */
@@ -9603,11 +9629,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	): Promise<void> {
 		if (!opts.force && this.getIsReadonly()) return
 
+		this.markHistoryStoppingPoint(`put external content: ${info.type}`)
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
 
 	/**
-	 * Handle replacing external content.
+	 * Handle replacing external content. Like {@link Editor.putExternalContent}, this starts its
+	 * own undo step.
 	 *
 	 * @param info - Info about the external content.
 	 * @param opts - Options for handling external content, including force flag to bypass readonly checks.
@@ -9617,6 +9645,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts = {} as { force?: boolean }
 	): Promise<void> {
 		if (!opts.force && this.getIsReadonly()) return
+		this.markHistoryStoppingPoint(`replace external content: ${info.type}`)
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
 

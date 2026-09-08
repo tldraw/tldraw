@@ -33,11 +33,7 @@ export function onMovePage(
 	}
 
 	if (index !== pages[from].index) {
-		editor.markHistoryStoppingPoint('moving page')
-		editor.updatePage({
-			id: id as TLPageId,
-			index,
-		})
+		editor.run(() => editor.updatePage({ id: id as TLPageId, index }), { mark: 'moving page' })
 		trackEvent('move-page', { source: 'page-menu' })
 	}
 }

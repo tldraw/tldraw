@@ -493,11 +493,13 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			name = result || initialName
 		}
 
-		editor.run(() => {
-			editor.markHistoryStoppingPoint('creating page')
-			editor.createPage({ name, id: newPageId })
-			editor.setCurrentPage(newPageId)
-		})
+		editor.run(
+			() => {
+				editor.createPage({ name, id: newPageId })
+				editor.setCurrentPage(newPageId)
+			},
+			{ mark: 'creating page' }
+		)
 
 		if (!shouldUseWindowPrompt) {
 			startRenamingPage(newPageId, initialName)

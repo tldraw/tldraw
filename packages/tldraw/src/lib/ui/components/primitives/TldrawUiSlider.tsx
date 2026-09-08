@@ -1,6 +1,6 @@
 import { tltime } from '@tldraw/editor'
 import { Slider as _Slider } from 'radix-ui'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { hideAllTooltips, TldrawUiTooltip } from './TldrawUiTooltip'
@@ -17,13 +17,24 @@ const SLIDER_VALUE_KEYS = new Set([
 ])
 
 /** @public */
+export interface TLUiSliderChangeInfo {
+	/**
+	 * `true` when the change begins a gesture (a pointer down or a fresh key press), `false` when
+	 * it continues one (a drag, or a held key repeating). Start a new undo step when it is `true`
+	 * so a whole drag undoes as one step.
+	 */
+	mark: boolean
+}
+
+/** @public */
 export interface TLUiSliderProps {
 	min?: number
 	steps: number
 	value: number | null
 	label: string
 	title: string
-	onValueChange(value: number): void
+	onValueChange(value: number, info: TLUiSliderChangeInfo): void
+	/** @deprecated Use the `mark` flag passed to `onValueChange` instead. */
 	onHistoryMark?(id: string): void
 	'data-testid'?: string
 	ariaValueModifier?: number
@@ -32,6 +43,7 @@ export interface TLUiSliderProps {
 /** @public @react */
 export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(function Slider(
 	{
+		// oxlint-disable-next-line typescript/no-deprecated -- still honored for existing consumers
 		onHistoryMark,
 		title,
 		min,
@@ -56,15 +68,23 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 		setTabIndex(0)
 	}, [])
 
+	// Set on pointer down and on a fresh key press, consumed by the next value change. Radix
+	// reports drags and key repeats through the same onValueChange, so this is how the consumer
+	// tells the start of a gesture from its continuation.
+	const rNextChangeStartsGesture = useRef(false)
+
 	const handleValueChange = useCallback(
 		(value: number[]) => {
-			onValueChange(value[0])
+			onValueChange(value[0], { mark: rNextChangeStartsGesture.current })
+			rNextChangeStartsGesture.current = false
 		},
 		[onValueChange]
 	)
 
 	const handlePointerDown = useCallback(() => {
 		hideAllTooltips()
+		rNextChangeStartsGesture.current = true
+		// oxlint-disable-next-line typescript/no-deprecated
 		onHistoryMark?.('click slider')
 	}, [onHistoryMark])
 
@@ -93,13 +113,15 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 		}
 	}, [])
 
-	// Capture phase so the mark lands before Radix's bubble-phase onKeyDown changes the value;
+	// Capture phase so this runs before Radix's bubble-phase onKeyDown changes the value;
 	// otherwise keyboard changes squash into the preceding history entry and undo skips past them.
 	// Repeats from a held key are skipped so the run is one undo step, like a pointer drag.
 	const handleKeyDown = useCallback(
 		(event: React.KeyboardEvent) => {
 			handleKeyEvent(event)
 			if (SLIDER_VALUE_KEYS.has(event.key) && !event.repeat) {
+				rNextChangeStartsGesture.current = true
+				// oxlint-disable-next-line typescript/no-deprecated
 				onHistoryMark?.('keyboard slider')
 			}
 		},

@@ -42,7 +42,6 @@ export function useDefaultHelpers() {
 			document: editor.getContainerDocument(),
 		})
 		if (!files.length) return
-		editor.markHistoryStoppingPoint('insert media')
 		editor.putExternalContent({
 			type: 'files',
 			files,
@@ -64,8 +63,6 @@ export function useDefaultHelpers() {
 			const shape = editor.getOnlySelectedShape()
 			if (!shape || (isImage && shape.type !== 'image') || (!isImage && shape.type !== 'video'))
 				return
-
-			editor.markHistoryStoppingPoint('replace media')
 
 			const file = files[0]
 			editor.replaceExternalContent({

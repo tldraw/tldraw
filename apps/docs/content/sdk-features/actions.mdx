@@ -80,6 +80,7 @@ The [TLUiActionItem](?) interface defines what an action contains:
 | `readonlyOk`           | When `true`, the action works in readonly mode. Defaults to `false`                                                                                           |
 | `checkbox`             | When `true`, renders as a toggle with a checkmark indicator in menus                                                                                          |
 | `isRequiredA11yAction` | When `true`, the keyboard shortcut works even when shortcuts are normally disabled (e.g., while editing a shape). Used for accessibility actions              |
+| `mark`                 | Every action is its own undo step: `onSelect` runs inside [Editor#run](?) with a mark. Set to `false` for actions that walk the history stack, like undo      |
 | `onSelect`             | Handler called when the action is triggered. Receives a [TLUiEventSource](?) indicating the trigger origin (`'kbd'`, `'menu'`, `'toolbar'`, etc.)             |
 
 ## Accessing actions

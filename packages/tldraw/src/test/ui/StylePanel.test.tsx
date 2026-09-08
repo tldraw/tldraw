@@ -1,5 +1,5 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
-import { createShapeId, DefaultColorStyle, Editor, TLArrowShape } from '@tldraw/editor'
+import { createShapeId, DefaultColorStyle, Editor, TLArrowShape, TLGeoShape } from '@tldraw/editor'
 import { Tldraw } from '../../lib/Tldraw'
 import { renderTldrawComponentWithEditor } from '../testutils/renderTldrawComponent'
 
@@ -72,6 +72,37 @@ describe('StylePanel', () => {
 		})
 
 		expect(editor.getShape<TLArrowShape>(id)!.props.arrowheadEnd).toBe('arrow')
+		expect(editor.getSelectedShapeIds()).toEqual([id])
+	})
+
+	it('undoes a scrub across swatches as one step and a click as another', async () => {
+		const id = createShapeId()
+		act(() => {
+			editor.createShapes([{ id, type: 'geo', x: 0, y: 0 }]).selectNone()
+			editor.markHistoryStoppingPoint('before selecting')
+			editor.select(id)
+		})
+		const getColor = () => editor.getShape<TLGeoShape>(id)!.props.color
+
+		// pointer down on one swatch, then scrub over two more before releasing
+		fireEvent.pointerDown(await screen.findByTestId('style.color.red'))
+		fireEvent.pointerEnter(screen.getByTestId('style.color.green'))
+		fireEvent.pointerEnter(screen.getByTestId('style.color.blue'))
+		fireEvent.pointerUp(screen.getByTestId('style.color.blue'))
+		expect(getColor()).toBe('blue')
+
+		fireEvent.click(screen.getByTestId('style.color.orange'))
+		expect(getColor()).toBe('orange')
+
+		act(() => {
+			editor.undo()
+		})
+		expect(getColor()).toBe('blue')
+
+		act(() => {
+			editor.undo()
+		})
+		expect(getColor()).toBe('black')
 		expect(editor.getSelectedShapeIds()).toEqual([id])
 	})
 })

@@ -170,7 +170,6 @@ const handleText = (
 	} else if (isValidHttpURL(data)) {
 		pasteUrl(editor, data, point, sources, clipboardPasteSource)
 	} else if (isSvgText(data)) {
-		editor.markHistoryStoppingPoint('paste')
 		putPastedExternalContent(
 			editor,
 			{
@@ -182,7 +181,6 @@ const handleText = (
 			{ source: clipboardPasteSource, point }
 		)
 	} else {
-		editor.markHistoryStoppingPoint('paste')
 		putPastedExternalContent(
 			editor,
 			{
@@ -564,7 +562,6 @@ async function handleClipboardThings(
 	// Try to paste tldraw content
 	for (const result of results) {
 		if (result.type === 'tldraw') {
-			editor.markHistoryStoppingPoint('paste')
 			putPastedExternalContent(
 				editor,
 				{ type: 'tldraw', content: result.data, point },
@@ -577,7 +574,6 @@ async function handleClipboardThings(
 	// Try to paste excalidraw content
 	for (const result of results) {
 		if (result.type === 'excalidraw') {
-			editor.markHistoryStoppingPoint('paste')
 			putPastedExternalContent(
 				editor,
 				{ type: 'excalidraw', content: result.data, point },
@@ -596,7 +592,6 @@ async function handleClipboardThings(
 			// Check for iframe embeds in HTML before stripping content
 			const iframeInfo = extractIframeFromHtml(result.data)
 			if (iframeInfo) {
-				editor.markHistoryStoppingPoint('paste')
 				editor.putExternalContent({
 					type: 'embed',
 					url: iframeInfo.src,
@@ -642,7 +637,6 @@ async function handleClipboardThings(
 			if (results.some((r) => r.type === 'text' && r.subtype !== 'html')) {
 				const html = stripHtml(result.data) ?? ''
 				if (html) {
-					editor.markHistoryStoppingPoint('paste')
 					putPastedExternalContent(
 						editor,
 						{
@@ -664,7 +658,6 @@ async function handleClipboardThings(
 		if (result.type === 'text' && result.subtype === 'text') {
 			const iframeInfo = extractIframeFromHtml(result.data)
 			if (iframeInfo) {
-				editor.markHistoryStoppingPoint('paste')
 				editor.putExternalContent({
 					type: 'embed',
 					url: iframeInfo.src,
@@ -803,8 +796,7 @@ export function useMenuClipboardEvents() {
 
 			const didCopy = await handleNativeOrMenuCopy(editor, { operation: 'cut', source: 'menu' })
 			if (didCopy) {
-				editor.markHistoryStoppingPoint('cut')
-				editor.deleteShapes(editor.getSelectedShapeIds())
+				editor.run(() => editor.deleteShapes(editor.getSelectedShapeIds()), { mark: 'cut' })
 				trackEvent('cut', { source })
 			}
 		},
@@ -901,8 +893,7 @@ export function useNativeClipboardEvents() {
 
 			const didCopy = await handleNativeOrMenuCopy(editor, { operation: 'cut', source: 'native' })
 			if (didCopy) {
-				editor.markHistoryStoppingPoint('cut')
-				editor.deleteShapes(editor.getSelectedShapeIds())
+				editor.run(() => editor.deleteShapes(editor.getSelectedShapeIds()), { mark: 'cut' })
 				trackEvent('cut', { source: 'kbd' })
 			}
 		}
@@ -947,8 +938,10 @@ export function useNativeClipboardEvents() {
 					const point = editor.user.getIsPasteAtCursorMode()
 						? editor.inputs.getCurrentPagePoint()
 						: editor.getViewportPageBounds().center
-					editor.markHistoryStoppingPoint('paste')
-					defaultHandleExternalTextContent(editor, { text, point })
+					// Bypasses putExternalContent (and its mark) on purpose, so it marks itself.
+					editor.run(() => defaultHandleExternalTextContent(editor, { text, point }), {
+						mark: 'paste',
+					})
 					preventDefault(e)
 					trackEvent('paste', { source: 'kbd' })
 					return

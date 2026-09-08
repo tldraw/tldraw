@@ -1,11 +1,11 @@
 import { fireEvent, render } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { TldrawUiSlider } from './TldrawUiSlider'
+import { TldrawUiSlider, TLUiSliderChangeInfo } from './TldrawUiSlider'
 
 function renderSlider() {
 	const calls: string[] = []
-	const onValueChange = vi.fn((value: number) => {
-		calls.push(`change:${value}`)
+	const onValueChange = vi.fn((value: number, info: TLUiSliderChangeInfo) => {
+		calls.push(`change:${value}:${info.mark ? 'mark' : 'continue'}`)
 	})
 	const onHistoryMark = vi.fn((id: string) => {
 		calls.push(`mark:${id}`)
@@ -18,6 +18,7 @@ function renderSlider() {
 			label="style-panel.opacity"
 			title="Opacity"
 			onValueChange={onValueChange}
+			// oxlint-disable-next-line typescript/no-deprecated -- covers the compatibility path
 			onHistoryMark={onHistoryMark}
 		/>
 	)
@@ -30,48 +31,47 @@ describe('TldrawUiSlider', () => {
 		vi.clearAllMocks()
 	})
 
-	it('marks a history stopping point before a keyboard change', () => {
+	it('flags a keyboard change as the start of an undo step', () => {
 		const { thumb, calls } = renderSlider()
 
 		fireEvent.keyDown(thumb, { key: 'ArrowLeft' })
 
-		expect(calls).toEqual(['mark:keyboard slider', 'change:1'])
+		expect(calls).toEqual(['mark:keyboard slider', 'change:1:mark'])
 	})
 
 	it.each(['ArrowRight', 'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'])(
-		'marks a history stopping point for %s',
+		'flags the change for %s',
 		(key) => {
-			const { thumb, onHistoryMark, onValueChange } = renderSlider()
+			const { thumb, onValueChange } = renderSlider()
 
 			fireEvent.keyDown(thumb, { key })
 
-			expect(onHistoryMark).toHaveBeenCalledTimes(1)
 			expect(onValueChange).toHaveBeenCalledTimes(1)
+			expect(onValueChange.mock.calls[0][1]).toEqual({ mark: true })
 		}
 	)
 
-	it('marks once for a held key so the repeat run is a single undo step', () => {
-		const { thumb, onHistoryMark, onValueChange } = renderSlider()
+	it('flags only the first change of a held key so the repeat run is a single undo step', () => {
+		const { thumb, onValueChange } = renderSlider()
 
 		fireEvent.keyDown(thumb, { key: 'ArrowLeft' })
 		fireEvent.keyDown(thumb, { key: 'ArrowLeft', repeat: true })
 		fireEvent.keyDown(thumb, { key: 'ArrowLeft', repeat: true })
 
-		expect(onHistoryMark).toHaveBeenCalledTimes(1)
-		expect(onValueChange).toHaveBeenCalledTimes(3)
+		expect(onValueChange.mock.calls.map((call) => call[1].mark)).toEqual([true, false, false])
 	})
 
-	it('marks each separate key press', () => {
-		const { thumb, onHistoryMark } = renderSlider()
+	it('flags each separate key press', () => {
+		const { thumb, onValueChange } = renderSlider()
 
 		fireEvent.keyDown(thumb, { key: 'ArrowLeft' })
 		fireEvent.keyDown(thumb, { key: 'ArrowLeft' })
 		fireEvent.keyDown(thumb, { key: 'ArrowLeft' })
 
-		expect(onHistoryMark).toHaveBeenCalledTimes(3)
+		expect(onValueChange.mock.calls.map((call) => call[1].mark)).toEqual([true, true, true])
 	})
 
-	it('does not mark for keys that do not change the value', () => {
+	it('does not change the value for keys that do not move the slider', () => {
 		const { thumb, onHistoryMark, onValueChange } = renderSlider()
 
 		fireEvent.keyDown(thumb, { key: 'Tab' })
@@ -82,7 +82,7 @@ describe('TldrawUiSlider', () => {
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
-	it('still marks a history stopping point on pointer down', () => {
+	it('still calls the deprecated onHistoryMark on pointer down', () => {
 		const { getByTestId, onHistoryMark } = renderSlider()
 
 		fireEvent.pointerDown(getByTestId('slider'))

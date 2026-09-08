@@ -24,7 +24,7 @@ import { defaultGeoTypeDefinitions, GeoTypeDefinition } from '../../../shapes/ge
 import { getColorStyleItems, getFontStyleItems, STYLES } from '../../../styles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiSlider } from '../primitives/TldrawUiSlider'
+import { TldrawUiSlider, TLUiSliderChangeInfo } from '../primitives/TldrawUiSlider'
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 import { StylePanelButtonPicker, StylePanelButtonPickerInline } from './StylePanelButtonPicker'
 import { useStylePanelContext } from './StylePanelContext'
@@ -101,14 +101,14 @@ const tldrawSupportedOpacities = [0.1, 0.25, 0.5, 0.75, 1] as const
 /** @public @react */
 export function StylePanelOpacityPicker() {
 	const editor = useEditor()
-	const { onHistoryMark, onOpacityChange, enhancedA11yMode } = useStylePanelContext()
+	const { onOpacityChange, enhancedA11yMode } = useStylePanelContext()
 
 	const opacity = useValue('opacity', () => editor.getSharedOpacity(), [editor])
 	const msg = useTranslation()
 
 	const handleOpacityValueChange = React.useCallback(
-		(value: number) => {
-			onOpacityChange(tldrawSupportedOpacities[value])
+		(value: number, info: TLUiSliderChangeInfo) => {
+			onOpacityChange(tldrawSupportedOpacities[value], info)
 		},
 		[onOpacityChange]
 	)
@@ -136,7 +136,6 @@ export function StylePanelOpacityPicker() {
 				onValueChange={handleOpacityValueChange}
 				steps={tldrawSupportedOpacities.length - 1}
 				title={msg('style-panel.opacity')}
-				onHistoryMark={onHistoryMark}
 				ariaValueModifier={25}
 			/>
 		</>

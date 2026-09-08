@@ -83,6 +83,23 @@ export class HistoryManager<R extends UnknownRecord> {
 		return this.stacks.get().redos.length
 	}
 
+	/**
+	 * Whether undo would change anything. Unlike `getNumUndos`, marks alone don't count: an
+	 * action that marks a stopping point and then changes nothing (or only ephemeral state) must
+	 * not light up the undo button.
+	 */
+	hasUndos() {
+		if (!this.pendingDiff.isEmpty()) return true
+		return hasDiffEntry(this.stacks.get().undos)
+	}
+
+	/**
+	 * Whether redo would change anything. See `hasUndos` for why marks alone don't count.
+	 */
+	hasRedos() {
+		return hasDiffEntry(this.stacks.get().redos)
+	}
+
 	/** @internal */
 	private _isReplaying = false
 
@@ -417,6 +434,15 @@ class StackItem<T> {
 	push(head: T): Stack<T> {
 		return new StackItem(head, this)
 	}
+}
+
+function hasDiffEntry<R extends UnknownRecord>(stack: Stack<TLHistoryEntry<R>>) {
+	// Stops at the first diff, so this only walks the run of marks at the top of the stack.
+	while (stack.head) {
+		if (stack.head.type === 'diff') return true
+		stack = stack.tail
+	}
+	return false
 }
 
 function stackToArray<T>(stack: Stack<T>) {

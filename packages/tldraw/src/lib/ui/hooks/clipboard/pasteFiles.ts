@@ -20,8 +20,6 @@ export async function pasteFiles(
 		blob instanceof File ? blob : new File([blob], 'tldrawFile', { type: blob.type })
 	)
 
-	editor.markHistoryStoppingPoint('paste')
-
 	await putPastedExternalContent(
 		editor,
 		{

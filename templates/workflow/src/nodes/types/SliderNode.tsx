@@ -78,7 +78,6 @@ export function SliderNodeComponent({ shape, node }: NodeComponentProps<SliderNo
 					editor.setSelectedShapes([shape.id])
 					updateNode<SliderNode>(editor, shape, (node) => ({ ...node, value }))
 				}}
-				onHistoryMark={() => {}}
 			/>
 		</NodeRow>
 	)

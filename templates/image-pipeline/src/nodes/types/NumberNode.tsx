@@ -76,7 +76,6 @@ function NumberNodeComponent({ shape, node }: NodeComponentProps<NumberNode>) {
 					editor.setSelectedShapes([shape.id])
 					updateNode<NumberNode>(editor, shape, (node) => ({ ...node, value }), false)
 				}}
-				onHistoryMark={() => {}}
 			/>
 		</NodeRow>
 	)

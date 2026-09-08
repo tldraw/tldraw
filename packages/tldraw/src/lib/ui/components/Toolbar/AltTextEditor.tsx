@@ -33,14 +33,18 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 		trackEvent('set-alt-text', { source })
 		const shape = editor.getShape<ExtractShapeByProps<{ altText: string }>>(shapeId)
 		if (!shape) return
-		editor.markHistoryStoppingPoint('set alt text')
-		editor.updateShapes([
-			{
-				id: shape.id,
-				type: shape.type,
-				props: { altText },
+		editor.run(
+			() => {
+				editor.updateShapes([
+					{
+						id: shape.id,
+						type: shape.type,
+						props: { altText },
+					},
+				])
 			},
-		])
+			{ mark: 'set alt text' }
+		)
 		onClose()
 	}, [trackEvent, source, editor, shapeId, altText, onClose])
 
