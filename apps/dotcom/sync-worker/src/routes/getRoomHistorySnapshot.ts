@@ -53,7 +53,12 @@ export async function getRoomHistorySnapshot(
 		result = await reconstructVersion({ ...buckets, roomKey, timestamp, index })
 	} catch (error) {
 		// A broken chain must not take history down while the legacy full copies still exist.
-		// Serve the copy and report the error — the verifier is how the chain gets fixed.
+		// Serve the copy — the verifier is how the chain gets fixed.
+		const legacy = await env.ROOMS_HISTORY_EPHEMERAL.get(`${roomKey}/${timestamp}`)
+		if (!legacy) throw error
+		// Only the served fallback swallows the error, so only it has to report: a chain that
+		// stopped reconstructing would stay invisible for as long as the copies last. The rethrow
+		// above reaches the worker's catch-all, which reports it; capturing here too files it twice.
 		try {
 			// No ctx in unit tests, and createSentry throws when its env vars are unset; neither may
 			// turn the degraded-but-fine fallback into a 500.
@@ -67,8 +72,6 @@ export async function getRoomHistorySnapshot(
 		} catch {
 			console.error(error)
 		}
-		const legacy = await env.ROOMS_HISTORY_EPHEMERAL.get(`${roomKey}/${timestamp}`)
-		if (!legacy) throw error
 		return new Response(legacy.body, {
 			headers: { 'content-type': 'application/json' },
 		})

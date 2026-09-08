@@ -1,7 +1,7 @@
 import { UnknownRecord } from '@tldraw/store'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { IRequest } from 'itty-router'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createFakeR2 } from '../test/fakeR2'
 import { Environment } from '../types'
 import { segmentCustomMetadata, versionKey } from '../versionChain'
@@ -47,6 +47,8 @@ async function fetchSnapshot(env: Environment, timestamp: string, ctx?: Executio
 }
 
 describe('getRoomHistorySnapshot', () => {
+	beforeEach(() => captureException.mockClear())
+
 	it('counts the chain listing in x-version-chain-ops on both serve paths', async () => {
 		const chainBucket = createFakeR2()
 		const legacyBucket = createFakeR2()
@@ -114,5 +116,21 @@ describe('getRoomHistorySnapshot', () => {
 			body: await response.json(),
 		}).toEqual({ status: 200, ops: null, body: snapshot(3, ['shape:a']) })
 		expect(captureException).toHaveBeenCalledWith(boom)
+	})
+
+	it('rethrows without reporting when there is no legacy copy to serve', async () => {
+		const boom = new Error('chain listing failed')
+		const env = {
+			ROOMS_HISTORY: {
+				list: vi.fn(async () => {
+					throw boom
+				}),
+			},
+			ROOMS_HISTORY_EPHEMERAL: createFakeR2(),
+		} as unknown as Environment
+
+		// The worker's catch-all reports what escapes, so a capture here would file it twice.
+		await expect(fetchSnapshot(env, isoAt(4), {} as ExecutionContext)).rejects.toBe(boom)
+		expect(captureException).not.toHaveBeenCalled()
 	})
 })
