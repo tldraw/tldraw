@@ -123,12 +123,18 @@ export async function sweepVersionChains({
 		failures: [],
 	}
 
+	let stoppedOnBudget = false
 	for (const file of candidates) {
-		// The cursor advances even for rooms the sweep declines to read, so a run of test files
-		// cannot stall the walk at the same offset forever.
-		result.nextCursor = encodeCursor(file.updatedAt, file.id)
-		if (isTestFile(file.id)) continue
-		if (result.reads >= SWEEP_READ_BUDGET) break
+		if (isTestFile(file.id)) {
+			// A declined room still advances the cursor, or a page of test files parks the walk on the
+			// same offset forever.
+			result.nextCursor = encodeCursor(file.updatedAt, file.id)
+			continue
+		}
+		if (result.reads >= SWEEP_READ_BUDGET) {
+			stoppedOnBudget = true
+			break
+		}
 
 		const verify = await verifyRoomVersions({
 			chainBucket: env.ROOMS_HISTORY,
@@ -159,6 +165,11 @@ export async function sweepVersionChains({
 			})
 			console.error(`Version chain sweep failed. file=${file.id} reason=${reason} ${detail}`)
 		}
+
+		// Only once the room has been verified. Continuation excludes the cursor, so advancing past
+		// the room the budget stopped on would drop it from the sweep for good — never looked at,
+		// while the run still reports clean.
+		result.nextCursor = encodeCursor(file.updatedAt, file.id)
 	}
 
 	// The run itself is a datapoint: without it a sweep that stopped running, or one that only ever
@@ -167,8 +178,9 @@ export async function sweepVersionChains({
 		doubles: [result.swept, result.verified, result.failed, result.incomplete, result.reads],
 	})
 
-	// A short batch means the table ended; only then is the walk done.
-	if (candidates.length < rooms) result.nextCursor = null
+	// A short batch means the table ended, but only a batch that ran to completion is done: a budget
+	// break leaves rooms behind the cursor even on the last page.
+	if (candidates.length < rooms && !stoppedOnBudget) result.nextCursor = null
 	return result
 }
 

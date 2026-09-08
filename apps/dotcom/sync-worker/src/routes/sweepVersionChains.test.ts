@@ -9,6 +9,18 @@ import { sweepVersionChains } from './sweepVersionChains'
 
 const files = vi.hoisted(() => ({ rows: [] as Array<{ id: string; updatedAt: number }> }))
 const destroy = vi.hoisted(() => vi.fn())
+// Lets one test spend the whole read budget on a single room. Reaching 800 reads for real would
+// mean seeding ~800 versions; everything else runs the real verifier.
+const verifier = vi.hoisted(() => ({ stub: null as null | (() => Promise<any>) }))
+
+vi.mock('./verifyVersionChain', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('./verifyVersionChain')>()
+	return {
+		...actual,
+		verifyRoomVersions: async (args: any) =>
+			verifier.stub ? verifier.stub() : actual.verifyRoomVersions(args),
+	}
+})
 
 // The sweep's only Postgres use is one keyset page of the file table, so the pool is faked down to
 // the builder methods that page uses.
@@ -82,6 +94,7 @@ describe('sweepVersionChains', () => {
 	beforeEach(() => {
 		files.rows = []
 		destroy.mockClear()
+		verifier.stub = null
 	})
 
 	it('reports a healthy room as verified with no failures', async () => {
@@ -178,5 +191,62 @@ describe('sweepVersionChains', () => {
 
 		expect(first.swept).toBe(1)
 		expect(first.nextCursor).toBe('200_file1')
+	})
+
+	it('resumes at the room the read budget stopped on rather than past it', async () => {
+		const chainBucket = createFakeR2()
+		const legacyBucket = createFakeR2()
+		files.rows = [
+			{ id: 'file1', updatedAt: 300 },
+			{ id: 'file2', updatedAt: 200 },
+			{ id: 'file3', updatedAt: 100 },
+		]
+		verifier.stub = async () => ({
+			checked: 1,
+			replayed: 1,
+			reads: 900,
+			complete: true,
+			mismatches: [],
+			errors: [],
+		})
+
+		const result = await sweepVersionChains({
+			env: env(chainBucket, legacyBucket),
+			rooms: 3,
+			readsPerRoom: 50,
+		})
+
+		expect(result.swept).toBe(1)
+		// file2 was never looked at, and continuation excludes the cursor: pointing it at file2 would
+		// drop that room from the sweep for good.
+		expect(result.nextCursor).toBe('300_file1')
+	})
+
+	it('keeps the cursor when the budget stops the walk on the last page', async () => {
+		const chainBucket = createFakeR2()
+		const legacyBucket = createFakeR2()
+		files.rows = [
+			{ id: 'file1', updatedAt: 300 },
+			{ id: 'file2', updatedAt: 200 },
+		]
+		verifier.stub = async () => ({
+			checked: 1,
+			replayed: 1,
+			reads: 900,
+			complete: true,
+			mismatches: [],
+			errors: [],
+		})
+
+		const result = await sweepVersionChains({
+			env: env(chainBucket, legacyBucket),
+			rooms: 10,
+			readsPerRoom: 50,
+		})
+
+		// A short page usually means the walk is done, but the budget left file2 unswept, so
+		// reporting completion here would retire the sweep with a room it never read.
+		expect(result.swept).toBe(1)
+		expect(result.nextCursor).toBe('300_file1')
 	})
 })
