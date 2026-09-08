@@ -28,21 +28,26 @@ import { ForwardRefExoticComponent } from 'react';
 import { Geometry2d } from '@tldraw/editor';
 import { Geometry2dFilters } from '@tldraw/editor';
 import { Geometry2dOptions } from '@tldraw/editor';
+import { getSchema } from '@tiptap/core';
 import { Group2d } from '@tldraw/editor';
 import { HandleSnapGeometry } from '@tldraw/editor';
 import { HTMLAttributes } from 'react';
 import { IndexKey } from '@tldraw/utils';
 import { IndexKey as IndexKey_2 } from '@tldraw/editor';
+import { JSONContent } from '@tiptap/core';
 import { JsonObject } from '@tldraw/utils';
 import { JSX } from 'react/jsx-runtime';
 import { JSXElementConstructor } from 'react';
 import { LANGUAGES } from '@tldraw/editor';
+import { Mark } from '@tiptap/core';
 import { MatLike } from '@tldraw/editor';
 import { MemoExoticComponent } from 'react';
+import { mergeAttributes } from '@tiptap/core';
 import { MigrationFailureReason } from '@tldraw/editor';
 import { MigrationSequence } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
-import { Node as Node_2 } from '@tiptap/pm/model';
+import { Node as Node_2 } from '@tiptap/core';
+import { Node as Node_3 } from '@tiptap/pm/model';
 import { OverlayOptionsWithDisplayValues } from '@tldraw/editor';
 import { OverlayUtil } from '@tldraw/editor';
 import { PerfectDashTerminal } from '@tldraw/editor';
@@ -72,6 +77,10 @@ import { StateNode } from '@tldraw/editor';
 import { StyleProp } from '@tldraw/editor';
 import { SvgExportContext } from '@tldraw/editor';
 import { SVGProps } from 'react';
+import { TaskItem } from '@tiptap/extension-list';
+import { TaskItemOptions } from '@tiptap/extension-list';
+import { TaskList } from '@tiptap/extension-list';
+import { TaskListOptions } from '@tiptap/extension-list';
 import { TiptapEditor } from '@tldraw/editor';
 import { TLAnyBindingUtilConstructor } from '@tldraw/editor';
 import { TLAnyShapeUtilConstructor } from '@tldraw/editor';
@@ -1134,7 +1143,7 @@ export const DefaultActionsMenu: MemoExoticComponent<({ children, }: TLUiActions
 export function DefaultActionsMenuContent(): JSX.Element;
 
 // @public (undocumented)
-export function defaultAddFontsFromNode(node: Node_2, state: RichTextFontVisitorState, addFont: (font: TLFontFace_2) => void): RichTextFontVisitorState;
+export function defaultAddFontsFromNode(node: Node_3, state: RichTextFontVisitorState, addFont: (font: TLFontFace_2) => void): RichTextFontVisitorState;
 
 // @public (undocumented)
 export const defaultAssetUtils: readonly [typeof ImageAssetUtil, typeof VideoAssetUtil, typeof BookmarkAssetUtil];
@@ -1961,6 +1970,10 @@ export interface ExportAsOptions extends TLImageExportOptions {
 // @public (undocumented)
 export function ExportFileContentSubMenu(): JSX.Element | null;
 
+export { Extension }
+
+export { Extensions }
+
 // @public (undocumented)
 export function ExtrasGroup(): JSX.Element;
 
@@ -2394,6 +2407,8 @@ export function getPointsFromDrawSegment(segment: TLDrawShapeSegment, scaleX: nu
 // @public (undocumented)
 export function getPointsFromDrawSegments(segments: TLDrawShapeSegment[], scaleX?: number, scaleY?: number): Vec[];
 
+export { getSchema }
+
 // @public
 export function getStroke(points: VecLike[], options?: StrokeOptions): Vec[];
 
@@ -2622,6 +2637,8 @@ export interface ImageShapeUtilDisplayValues {
 // @public (undocumented)
 export function InputModeMenu(): JSX.Element;
 
+export { JSONContent }
+
 // @public (undocumented)
 export const KeyboardShiftEnterTweakExtension: Extension<any, any>;
 
@@ -2800,6 +2817,10 @@ export interface LineToPathBuilderCommand extends PathBuilderCommandBase {
 // @public (undocumented)
 export function LockGroup(): JSX.Element;
 
+export { Mark }
+
+export { mergeAttributes }
+
 // @public (undocumented)
 export function MiscMenuGroup(): JSX.Element;
 
@@ -2818,6 +2839,8 @@ export interface MoveToPathBuilderCommand extends PathBuilderCommandBase {
     // (undocumented)
     type: 'move';
 }
+
+export { Node_2 as Node }
 
 // @public (undocumented)
 export interface NonePathBuilderOpts extends BasePathBuilderOpts {
@@ -3759,6 +3782,14 @@ export type StyleValuesForUi<T> = readonly {
     readonly icon: string | TLUiIconJsx;
     readonly value: T;
 }[];
+
+export { TaskItem }
+
+export { TaskItemOptions }
+
+export { TaskList }
+
+export { TaskListOptions }
 
 // @public (undocumented)
 export interface TextAreaProps {
