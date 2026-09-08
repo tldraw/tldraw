@@ -236,6 +236,71 @@ describe('pointercancel on the menu click capture overlay', () => {
 		expect(editor.inputs.buttons.size).toBe(0)
 	})
 
+	it('ignores a cancel from a pointer it never tracked', async () => {
+		// A palm resting on the overlay beside a drawing pen: the overlay is full screen for
+		// the whole press, so the palm lands on it, and its cancel must not end the pen's stroke.
+		const { editor, pointerMove } = await setupScene()
+		editor.setCurrentTool('draw')
+
+		await act(async () => {
+			editor.menus.addOpenMenu('test-menu')
+		})
+		const overlay = () =>
+			document.querySelector('[data-testid="menu-click-capture.content"]') as HTMLElement | null
+
+		// The pen presses the overlay to dismiss the menu, then drags into a stroke.
+		await act(async () => {
+			overlay()!.dispatchEvent(pointerEvent('pointerdown', 250, 50, { pointerType: 'pen' }))
+		})
+		await act(async () => {
+			overlay()!.dispatchEvent(pointerEvent('pointermove', 300, 100, { pointerType: 'pen' }))
+		})
+		await pointerMove(320, 120, { pointerType: 'pen' })
+		expect(editor.isIn('draw.drawing')).toBe(true)
+
+		// The palm lands on the overlay and the OS rejects it.
+		await act(async () => {
+			overlay()!.dispatchEvent(pointerEvent('pointerdown', 700, 700, { pointerId: 2 }))
+			editor.emit('tick', 16)
+			overlay()!.dispatchEvent(pointerEvent('pointercancel', 700, 700, { pointerId: 2 }))
+			editor.emit('tick', 16)
+		})
+
+		expect(editor.isIn('draw.drawing')).toBe(true)
+		expect(editor.inputs.getIsPointing()).toBe(true)
+	})
+
+	it('does not let another pointer drag the tracked press past the threshold', async () => {
+		// The overlay defers the editor pointer_down until the press crosses the drag
+		// threshold, measured from the tracked press's start. A palm landing and sliding
+		// must not be what crosses it, or it replays a pointer_down the user never made.
+		const { editor } = await setupScene()
+
+		await act(async () => {
+			editor.menus.addOpenMenu('test-menu')
+		})
+		const overlay = () =>
+			document.querySelector('[data-testid="menu-click-capture.content"]') as HTMLElement | null
+
+		// The pen presses to dismiss the menu but stays put, well inside the threshold.
+		await act(async () => {
+			overlay()!.dispatchEvent(pointerEvent('pointerdown', 250, 50, { pointerType: 'pen' }))
+		})
+		expect(editor.inputs.getIsPointing()).toBe(false)
+
+		// The palm lands far away and slides.
+		await act(async () => {
+			overlay()!.dispatchEvent(pointerEvent('pointerdown', 700, 700, { pointerId: 2 }))
+			editor.emit('tick', 16)
+			overlay()!.dispatchEvent(pointerEvent('pointermove', 900, 900, { pointerId: 2 }))
+			editor.emit('tick', 16)
+		})
+
+		// No pointer_down was replayed, so the editor never started an interaction.
+		expect(editor.inputs.getIsPointing()).toBe(false)
+		expect(editor.isIn('select.idle')).toBe(true)
+	})
+
 	it('unmounts the overlay when a press is cancelled before it starts dragging', async () => {
 		const { editor } = await setupScene()
 
