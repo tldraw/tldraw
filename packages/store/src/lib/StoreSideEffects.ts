@@ -264,6 +264,7 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		if (handlers) {
 			let r = record
 			for (const handler of handlers) {
+				if (!isLive(this._beforeCreateHandlers[record.typeName], handlers, handler)) continue
 				r = handler(r, source)
 			}
 			return r
@@ -286,6 +287,7 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		const handlers = this._afterCreateHandlers[record.typeName] as StoreAfterCreateHandler<R>[]
 		if (handlers) {
 			for (const handler of handlers) {
+				if (!isLive(this._afterCreateHandlers[record.typeName], handlers, handler)) continue
 				handler(record, source)
 			}
 		}
@@ -308,6 +310,7 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		if (handlers) {
 			let r = next
 			for (const handler of handlers) {
+				if (!isLive(this._beforeChangeHandlers[next.typeName], handlers, handler)) continue
 				r = handler(prev, r, source)
 			}
 			return r
@@ -331,6 +334,7 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		const handlers = this._afterChangeHandlers[next.typeName] as StoreAfterChangeHandler<R>[]
 		if (handlers) {
 			for (const handler of handlers) {
+				if (!isLive(this._afterChangeHandlers[next.typeName], handlers, handler)) continue
 				handler(prev, next, source)
 			}
 		}
@@ -351,6 +355,7 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		const handlers = this._beforeDeleteHandlers[record.typeName] as StoreBeforeDeleteHandler<R>[]
 		if (handlers) {
 			for (const handler of handlers) {
+				if (!isLive(this._beforeDeleteHandlers[record.typeName], handlers, handler)) continue
 				if (handler(record, source) === false) {
 					return false
 				}
@@ -373,6 +378,7 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		const handlers = this._afterDeleteHandlers[record.typeName] as StoreAfterDeleteHandler<R>[]
 		if (handlers) {
 			for (const handler of handlers) {
+				if (!isLive(this._afterDeleteHandlers[record.typeName], handlers, handler)) continue
 				handler(record, source)
 			}
 		}
@@ -388,7 +394,9 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	handleOperationComplete(source: 'remote' | 'user') {
 		if (!this._isEnabled) return
 
-		for (const handler of this._operationCompleteHandlers) {
+		const handlers = this._operationCompleteHandlers
+		for (const handler of handlers) {
+			if (!isLive(this._operationCompleteHandlers, handlers, handler)) continue
 			handler(source)
 		}
 	}
@@ -675,6 +683,14 @@ export class StoreSideEffects<R extends UnknownRecord> {
 			this._operationCompleteHandlers = withoutFirst(this._operationCompleteHandlers, handler)
 		}
 	}
+}
+
+// Dispatch walks the array it looked up, so a removal during dispatch (which swaps in a new array)
+// would otherwise not take effect until the next event: a handler that cancels a later one would
+// still see it run once. Same contract as DOM EventTarget: removals apply immediately, additions
+// wait for the next dispatch. The identity check keeps the no-change case free.
+function isLive<H>(live: H[] | undefined, snapshot: H[], handler: H) {
+	return live === snapshot || (live !== undefined && live.includes(handler))
 }
 
 function withoutFirst<T>(array: T[], item: T): T[] {

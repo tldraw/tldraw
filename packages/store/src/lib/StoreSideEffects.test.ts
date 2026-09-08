@@ -654,4 +654,36 @@ describe('handler removal during dispatch (SE)', () => {
 		store.put([book1])
 		expect(calls).toEqual(['A', 'B'])
 	})
+
+	it('[SE1] a handler that removes a later handler suppresses it for the current event', () => {
+		const calls: string[] = []
+		let removeB = () => {}
+		store.sideEffects.registerAfterCreateHandler('book', () => {
+			calls.push('A')
+			removeB()
+		})
+		removeB = store.sideEffects.registerAfterCreateHandler('book', () => calls.push('B'))
+
+		store.put([book1])
+		expect(calls).toEqual(['A'])
+
+		store.put([book2])
+		expect(calls).toEqual(['A', 'A'])
+	})
+
+	it('[SE1] a handler registered during dispatch waits for the next event', () => {
+		const calls: string[] = []
+		store.sideEffects.registerAfterCreateHandler('book', () => {
+			calls.push('A')
+			if (calls.length === 1) {
+				store.sideEffects.registerAfterCreateHandler('book', () => calls.push('B'))
+			}
+		})
+
+		store.put([book1])
+		expect(calls).toEqual(['A'])
+
+		store.put([book2])
+		expect(calls).toEqual(['A', 'A', 'B'])
+	})
 })
