@@ -3,6 +3,7 @@ import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import pg from 'pg'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { isNoTransactionMigration, splitSqlStatements } from './migrationFile'
 
 // Focused integration test for the effect_outbox trigger (migrations 047, 048), the
 // generic transactional outbox that TLFileEffectProcessor (sync-worker) drains. The
@@ -68,11 +69,14 @@ describeMaybe('effect_outbox trigger (file changes + group-delete cascade)', () 
 		client = new pg.Client({ connectionString: url.toString() })
 		await client.connect()
 
-		// Apply the real migration chain, in order, verbatim.
+		// Apply the real migration chain, in order, the way migrate.ts does. A
+		// no-transaction migration goes statement by statement: sent as one string, pg
+		// would run it in an implicit transaction block, which CONCURRENTLY refuses.
 		for (const filename of MIGRATION_FILES) {
 			const sql = readFileSync(join(MIGRATIONS_DIR, filename), 'utf8')
+			const statements = isNoTransactionMigration(sql) ? splitSqlStatements(sql) : [sql]
 			try {
-				await client.query(sql)
+				for (const statement of statements) await client.query(statement)
 			} catch (err) {
 				throw new Error(`Migration ${filename} failed: ${(err as Error).message}`)
 			}
