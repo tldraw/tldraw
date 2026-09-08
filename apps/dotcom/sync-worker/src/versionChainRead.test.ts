@@ -492,6 +492,31 @@ describe('openWholeVersionStream', () => {
 		expect(JSON.parse(await text(legacyStream!))).toEqual(legacy)
 		expect(delta).toBeNull()
 	})
+
+	it('runs its get through the scheduler', async () => {
+		const chainBucket = createFakeR2()
+		const legacyBucket = createFakeR2()
+		const versions = [snapshot(1, ['shape:a'])]
+		const timestamps = await seedChain(chainBucket, versions)
+		const { entries: index } = await loadChainIndex(chainBucket, roomKey)
+
+		let scheduled = 0
+		const schedule = async <T>(read: () => Promise<T>) => {
+			scheduled++
+			return await read()
+		}
+		const stream = await openWholeVersionStream({
+			chainBucket,
+			legacyBucket,
+			roomKey,
+			timestamp: timestamps[0],
+			index,
+			schedule,
+		})
+
+		expect(JSON.parse(await text(stream!))).toEqual(versions[0])
+		expect(scheduled).toBe(1)
+	})
 })
 
 describe('listVersionTimestamps with a limit', () => {

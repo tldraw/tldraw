@@ -300,19 +300,21 @@ export async function openWholeVersionStream({
 	roomKey,
 	timestamp,
 	index,
+	schedule = runInline,
 }: {
 	chainBucket: R2Bucket
 	legacyBucket: R2Bucket
 	roomKey: string
 	timestamp: string
 	index: ChainIndexEntry[]
+	schedule?: R2ReadScheduler
 }): Promise<ReadableStream<Uint8Array> | null> {
 	const target = index.find((entry) => entry.timestamps.includes(timestamp))
 	if (target && target.kind !== 'keyframe') return null
 
 	const object = target
-		? await chainBucket.get(target.key)
-		: await legacyBucket.get(`${roomKey}/${timestamp}`)
+		? await schedule(() => chainBucket.get(target.key))
+		: await schedule(() => legacyBucket.get(`${roomKey}/${timestamp}`))
 	if (!object) {
 		if (target) throw new Error(`version chain keyframe ${target.key} is missing`)
 		return null

@@ -121,6 +121,7 @@ import {
 	deleteAllVersions,
 	loadChainIndex,
 	openWholeVersionStream,
+	R2ReadScheduler,
 	reconstructVersion,
 } from './versionChainRead'
 import { readOpenSegment, writeVersionChainEntry } from './versionChainWrite'
@@ -811,42 +812,40 @@ export class TLFileDurableObject extends DurableObject {
 			let dataText: string
 			let restored: RoomSnapshot | undefined
 			try {
-				// One R2 queue slot for the whole read: reconstruction fans out to the keyframe plus
-				// every segment, and beside a persist upload or asset copies that is over the
-				// connection budget the queue exists to hold.
-				const read = await this.addR2Operation('version_chain_read', () =>
-					retry(
-						async (): Promise<{ text: string } | { snapshot: RoomSnapshot } | null> => {
-							const buckets = {
-								chainBucket: this.r2.versionChain,
-								legacyBucket: this.r2.versionCache,
-							}
-							const { entries: index } = await loadChainIndex(this.r2.versionChain, roomKey)
-							const whole = await openWholeVersionStream({
-								...buckets,
-								roomKey,
-								timestamp,
-								index,
-							})
-							if (whole) return { text: await new Response(whole).text() }
-							const reconstruction = await reconstructVersion({
-								...buckets,
-								roomKey,
-								timestamp,
-								index,
-							})
-							return reconstruction ? { snapshot: reconstruction.snapshot } : null
-						},
-						{ attempts: 3, waitDuration: 500, matchError: isTransientConnectionError }
+				// Each read is its own queued operation rather than the whole restore holding one
+				// slot — a slot is sized for an asset copy's two connections, and reconstruction
+				// fans out to the keyframe plus every segment (see _verifyRetiredChain). Every read
+				// is one idempotent get or list, so each retries transient errors on its own.
+				const schedule: R2ReadScheduler = (read) =>
+					this.addR2Operation('version_chain_read', () =>
+						retry(read, { attempts: 3, waitDuration: 500, matchError: isTransientConnectionError })
 					)
-				)
-				if (!read) {
-					return new Response('Version not found', { status: 400 })
+				const buckets = {
+					chainBucket: this.r2.versionChain,
+					legacyBucket: this.r2.versionCache,
 				}
-				if ('text' in read) {
-					dataText = read.text
+				const { entries: index } = await loadChainIndex(this.r2.versionChain, roomKey, schedule)
+				const whole = await openWholeVersionStream({
+					...buckets,
+					roomKey,
+					timestamp,
+					index,
+					schedule,
+				})
+				if (whole) {
+					dataText = await new Response(whole).text()
 				} else {
-					restored = read.snapshot
+					const reconstruction = await reconstructVersion({
+						...buckets,
+						roomKey,
+						timestamp,
+						index,
+						schedule,
+					})
+					if (!reconstruction) {
+						return new Response('Version not found', { status: 400 })
+					}
+					restored = reconstruction.snapshot
 					dataText = JSON.stringify(restored)
 				}
 			} catch (error) {
