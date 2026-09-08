@@ -238,7 +238,7 @@ describe('28. TLSocketRoom (SR)', () => {
 					})
 				)
 
-				// the write was vetoed, and the host heard about it without passing a logger
+				// the authorizer threw, and the host heard about it without passing a logger
 				expect(room.getRecord(pageId)).toBeUndefined()
 				expect(consoleSpy).toHaveBeenCalledWith(
 					'record authorizer threw; rejecting the write',
