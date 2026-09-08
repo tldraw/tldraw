@@ -814,24 +814,31 @@ export class TLFileDurableObject extends DurableObject {
 				// One R2 queue slot for the whole read: reconstruction fans out to the keyframe plus
 				// every segment, and beside a persist upload or asset copies that is over the
 				// connection budget the queue exists to hold.
-				const read = await this.addR2Operation(
-					'version_chain_read',
-					async (): Promise<{ text: string } | { snapshot: RoomSnapshot } | null> => {
-						const buckets = {
-							chainBucket: this.r2.versionChain,
-							legacyBucket: this.r2.versionCache,
-						}
-						const { entries: index } = await loadChainIndex(this.r2.versionChain, roomKey)
-						const whole = await openWholeVersionStream({ ...buckets, roomKey, timestamp, index })
-						if (whole) return { text: await new Response(whole).text() }
-						const reconstruction = await reconstructVersion({
-							...buckets,
-							roomKey,
-							timestamp,
-							index,
-						})
-						return reconstruction ? { snapshot: reconstruction.snapshot } : null
-					}
+				const read = await this.addR2Operation('version_chain_read', () =>
+					retry(
+						async (): Promise<{ text: string } | { snapshot: RoomSnapshot } | null> => {
+							const buckets = {
+								chainBucket: this.r2.versionChain,
+								legacyBucket: this.r2.versionCache,
+							}
+							const { entries: index } = await loadChainIndex(this.r2.versionChain, roomKey)
+							const whole = await openWholeVersionStream({
+								...buckets,
+								roomKey,
+								timestamp,
+								index,
+							})
+							if (whole) return { text: await new Response(whole).text() }
+							const reconstruction = await reconstructVersion({
+								...buckets,
+								roomKey,
+								timestamp,
+								index,
+							})
+							return reconstruction ? { snapshot: reconstruction.snapshot } : null
+						},
+						{ attempts: 3, waitDuration: 500, matchError: isTransientConnectionError }
+					)
 				)
 				if (!read) {
 					return new Response('Version not found', { status: 400 })
