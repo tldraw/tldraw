@@ -1,12 +1,16 @@
 import { UnknownRecord } from '@tldraw/store'
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { describe, expect, it } from 'vitest'
+import { IRequest } from 'itty-router'
+import { describe, expect, it, vi } from 'vitest'
 import { createFakeR2 } from '../test/fakeR2'
+import { Environment } from '../types'
 import { ChainState, PendingDelta, segmentCustomMetadata, versionKey } from '../versionChain'
 import { encodeVersionBody } from '../versionChainCodec'
 import { writeVersionChainEntry } from '../versionChainWrite'
 import { buildSnapshotDelta } from '../versionDelta'
-import { verifyRoomVersions } from './verifyVersionChain'
+import { verifyRoomVersions, verifyVersionChainRoute } from './verifyVersionChain'
+
+vi.mock('../utils/tla/getAuth', () => ({ requireAdminAccessToRequest: vi.fn() }))
 
 const roomKey = 'app_rooms/slug'
 
@@ -359,5 +363,18 @@ describe('verifyRoomVersions', () => {
 		const result = await verifyRoomVersions({ chainBucket, legacyBucket, roomKey, limit: 20 })
 
 		expect(result.mismatches).toEqual(['2026-09-01T00:00:01.000Z'])
+	})
+})
+
+describe('verifyVersionChainRoute', () => {
+	it('skips test rooms without touching R2', async () => {
+		const list = vi.fn()
+		const response = await verifyVersionChainRoute(
+			{ params: { roomId: 'test_board' }, query: {} } as unknown as IRequest,
+			{ ROOMS_HISTORY: { list }, ROOMS_HISTORY_EPHEMERAL: { list } } as unknown as Environment,
+			true
+		)
+		expect(response.status).toBe(404)
+		expect(list).not.toHaveBeenCalled()
 	})
 })

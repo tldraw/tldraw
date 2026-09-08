@@ -6,6 +6,7 @@ import { canonicalJson } from '../snapshotUtils'
 import { Environment } from '../types'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
 import { requireAdminAccessToRequest } from '../utils/tla/getAuth'
+import { isTestFile } from '../utils/tla/isTestFile'
 import { decodeVersionBody } from '../versionChainCodec'
 import { loadChainIndex, readSegmentDeltas, SegmentIndexEntry } from '../versionChainRead'
 import { applySnapshotDelta, versionEnvelopeHash } from '../versionDelta'
@@ -208,6 +209,10 @@ export async function verifyVersionChainRoute(
 	if (isRoomIdTooLong(roomId)) return roomIdIsTooLong()
 
 	await requireAdminAccessToRequest(request, env)
+
+	if (isTestFile(roomId)) {
+		return new Response('Not found', { status: 404 })
+	}
 
 	// R2 reads, not versions: an unbounded run walks into the per-invocation subrequest cap mid-way
 	// and reports nothing. Capped below that limit rather than at it, to leave room for the reads
