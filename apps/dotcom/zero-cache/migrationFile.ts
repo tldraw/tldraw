@@ -1,7 +1,16 @@
-// A migration whose first line is `-- no-transaction` runs outside any transaction.
-// It exists for statements Postgres refuses inside one, such as CREATE INDEX
-// CONCURRENTLY. The marker lives in the SQL rather than the filename so it travels
-// with the statements it describes and leaves validateMigrationFilenames alone.
+// A migration whose first line is `-- no-transaction` runs outside any transaction, for
+// statements Postgres refuses inside one, such as CREATE INDEX CONCURRENTLY. The marker
+// follows sqlx and lives in the SQL because it describes how the statements execute.
+// Running unprotected has consequences the author has to plan for:
+//
+// - The dry run skips it, so the real migrate run is the first time it executes.
+// - A failed CREATE INDEX CONCURRENTLY leaves an INVALID index behind. A re-run with IF
+//   NOT EXISTS would keep it silently, so write the plain form, let the re-run fail on
+//   the leftover, and DROP INDEX it by hand. Not DROP INDEX CONCURRENTLY: Zero's
+//   ddl_command_start event trigger writes first, and Postgres then refuses the drop
+//   as "not the first action in the transaction".
+// - A multi-statement file that fails part-way has no ledger row, so the re-run starts
+//   it from the top. Keep to one statement per file unless the rest are safe to repeat.
 const NO_TRANSACTION_MARKER = /^--\s*no-transaction\s*$/
 
 export function isNoTransactionMigration(migrationSql: string): boolean {
@@ -12,47 +21,41 @@ export function isNoTransactionMigration(migrationSql: string): boolean {
 const DOLLAR_TAG = /^\$([A-Za-z_][A-Za-z0-9_]*)?\$/
 
 /**
- * Split a migration into individual statements on top-level semicolons, ignoring
- * semicolons inside comments, quoted strings, quoted identifiers, and dollar-quoted
- * bodies.
+ * Split a migration into statements on top-level semicolons, ignoring semicolons inside
+ * comments, strings, quoted identifiers, and dollar-quoted bodies. Comments stay attached
+ * to the statement that follows them; a trailing comment with no statement is dropped.
  *
- * Only no-transaction migrations are split. Postgres rejects CONCURRENTLY statements
- * sent as one multi-statement query — the driver's extended protocol allows a single
- * command per message, and the simple protocol would wrap them in an implicit
- * transaction, which is the one thing CONCURRENTLY cannot tolerate.
+ * Only no-transaction migrations are split. Sent as one multi-statement string, pg's
+ * simple protocol runs them in an implicit transaction block, which is the one thing
+ * CONCURRENTLY cannot tolerate.
  */
 export function splitSqlStatements(migrationSql: string): string[] {
 	const statements: string[] = []
-	let current = ''
+	let start = 0
 	let hasCode = false
 	let i = 0
 
-	const endStatement = () => {
-		if (hasCode) statements.push(current.trim())
-		current = ''
-		hasCode = false
+	// Advance past the token that ends with `terminator`, or to the end if it never closes.
+	const skipThrough = (terminator: string, from: number) => {
+		const close = migrationSql.indexOf(terminator, from)
+		i = close === -1 ? migrationSql.length : close + terminator.length
 	}
 
 	while (i < migrationSql.length) {
 		const char = migrationSql[i]
+		const next = migrationSql[i + 1]
+		const dollarTag = char === '$' ? migrationSql.slice(i).match(DOLLAR_TAG)?.[0] : undefined
 
-		if (char === '-' && migrationSql[i + 1] === '-') {
-			const end = migrationSql.indexOf('\n', i)
-			const stop = end === -1 ? migrationSql.length : end
-			current += migrationSql.slice(i, stop)
-			i = stop
-			continue
-		}
-
-		if (char === '/' && migrationSql[i + 1] === '*') {
+		if (char === '-' && next === '-') {
+			skipThrough('\n', i + 2)
+		} else if (char === '/' && next === '*') {
 			// Postgres block comments nest, so track depth rather than stopping at the first `*/`.
 			let depth = 0
-			const start = i
 			while (i < migrationSql.length) {
-				if (migrationSql[i] === '/' && migrationSql[i + 1] === '*') {
+				if (migrationSql.startsWith('/*', i)) {
 					depth++
 					i += 2
-				} else if (migrationSql[i] === '*' && migrationSql[i + 1] === '/') {
+				} else if (migrationSql.startsWith('*/', i)) {
 					depth--
 					i += 2
 					if (depth === 0) break
@@ -60,49 +63,24 @@ export function splitSqlStatements(migrationSql: string): string[] {
 					i++
 				}
 			}
-			current += migrationSql.slice(start, i)
-			continue
-		}
-
-		if (char === "'" || char === '"') {
-			const start = i
-			i++
-			while (i < migrationSql.length) {
-				if (migrationSql[i] === char) {
-					// A doubled quote is an escaped quote: close and immediately reopen.
-					i++
-					break
-				}
-				i++
-			}
-			current += migrationSql.slice(start, i)
+		} else if (char === "'" || char === '"') {
+			// A doubled quote reads as one string closing and another opening, so it needs no special case.
+			skipThrough(char, i + 1)
 			hasCode = true
-			continue
-		}
-
-		if (char === '$') {
-			const tag = migrationSql.slice(i).match(DOLLAR_TAG)
-			if (tag) {
-				const close = migrationSql.indexOf(tag[0], i + tag[0].length)
-				const stop = close === -1 ? migrationSql.length : close + tag[0].length
-				current += migrationSql.slice(i, stop)
-				i = stop
-				hasCode = true
-				continue
-			}
-		}
-
-		if (char === ';') {
-			endStatement()
+		} else if (dollarTag) {
+			skipThrough(dollarTag, i + dollarTag.length)
+			hasCode = true
+		} else if (char === ';') {
+			if (hasCode) statements.push(migrationSql.slice(start, i).trim())
+			start = i + 1
+			hasCode = false
 			i++
-			continue
+		} else {
+			if (!/\s/.test(char)) hasCode = true
+			i++
 		}
-
-		current += char
-		if (!/\s/.test(char)) hasCode = true
-		i++
 	}
 
-	endStatement()
+	if (hasCode) statements.push(migrationSql.slice(start).trim())
 	return statements
 }
