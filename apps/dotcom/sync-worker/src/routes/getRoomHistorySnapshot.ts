@@ -29,13 +29,25 @@ export async function getRoomHistorySnapshot(
 
 	const buckets = { chainBucket: env.ROOMS_HISTORY, legacyBucket: env.ROOMS_HISTORY_EPHEMERAL }
 	let result
+	let listOps = 0
 	try {
-		const { entries: index } = await loadChainIndex(env.ROOMS_HISTORY, roomKey)
+		const { entries: index, ops } = await loadChainIndex(env.ROOMS_HISTORY, roomKey)
+		// The listing is part of this request's R2 cost: reconstructVersion counts zero listing
+		// ops for a pre-loaded index, so leaving these out under-reports the header below.
+		listOps = ops
 		// Keyframes and legacy full copies stream straight through — parsing and re-serializing a
 		// 25MB board costs ~3x the body on a 128MB isolate. Only a delta replay materializes.
 		const whole = await openWholeVersionStream({ ...buckets, roomKey, timestamp, index })
 		if (whole) {
-			return new Response(whole, { headers: { 'content-type': 'application/json' } })
+			return new Response(whole, {
+				headers: {
+					'content-type': 'application/json',
+					// The listing plus the one whole-object get, so the metric reads the same
+					// across both serve paths.
+					'x-version-chain-ops': String(listOps + 1),
+					'x-version-chain-depth': '0',
+				},
+			})
 		}
 		result = await reconstructVersion({ ...buckets, roomKey, timestamp, index })
 	} catch (error) {
@@ -58,7 +70,7 @@ export async function getRoomHistorySnapshot(
 			'content-type': 'application/json',
 			// Replay cost is a product metric once history is user-facing: the segment cap is the
 			// lever, and this is what says whether it needs moving.
-			'x-version-chain-ops': String(result.ops),
+			'x-version-chain-ops': String(listOps + result.ops),
 			'x-version-chain-depth': String(result.deltaCount),
 		},
 	})
