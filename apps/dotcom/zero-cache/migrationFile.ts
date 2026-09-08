@@ -4,11 +4,11 @@
 // Running unprotected has consequences the author has to plan for:
 //
 // - The dry run skips it, so the real migrate run is the first time it executes.
-// - A failed CREATE INDEX CONCURRENTLY leaves an INVALID index behind. A re-run with IF
-//   NOT EXISTS would keep it silently, so write the plain form, let the re-run fail on
-//   the leftover, and DROP INDEX it by hand. Not DROP INDEX CONCURRENTLY: Zero's
-//   ddl_command_start event trigger writes first, and Postgres then refuses the drop
-//   as "not the first action in the transaction".
+// - A failed CREATE INDEX CONCURRENTLY leaves an INVALID index behind, and a re-run with
+//   IF NOT EXISTS would keep it silently. Put a plain DROP INDEX IF EXISTS ahead of the
+//   create: it takes no lock when the index is absent and clears the leftover on a retry.
+//   Not DROP INDEX CONCURRENTLY: Zero's ddl_command_start event trigger writes first, and
+//   Postgres then refuses the drop as not the first action in the transaction.
 // - A multi-statement file that fails part-way has no ledger row, so the re-run starts
 //   it from the top. Keep to one statement per file unless the rest are safe to repeat.
 const NO_TRANSACTION_MARKER = /^--\s*no-transaction\s*$/
