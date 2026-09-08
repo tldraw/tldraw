@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
 	Box,
 	Editor,
@@ -300,7 +300,7 @@ function ExportPreviewImage() {
 				if (seq !== rRenderSeq.current) return
 				const elm = ref.current
 				if (!elm) return
-				// We want to use an image element here so that a user can right click and copy / save / drag the qr code
+				// We want to use an image element here so that a user can right click and copy / save / drag the preview
 				elm.setAttribute('src', src)
 				const sizeElm = rImagePreviewSize.current
 				if (sizeElm) sizeElm.textContent = `${width.toFixed()}×${height.toFixed()}`
@@ -308,6 +308,9 @@ function ExportPreviewImage() {
 		},
 		[]
 	)
+
+	// A debounced export still pending at unmount would otherwise run against a gone element
+	useEffect(() => () => getEditorImageSlowly.cancel(), [])
 
 	return (
 		<div className={styles.fileShareMenuExportPreview}>
