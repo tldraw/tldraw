@@ -1,4 +1,4 @@
-import { notFound } from '@tldraw/worker-shared'
+import { createSentry, notFound } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
 import { getR2KeyForRoom } from '../r2'
 import { Environment } from '../types'
@@ -11,7 +11,8 @@ import { loadChainIndex, openWholeVersionStream, reconstructVersion } from '../v
 export async function getRoomHistorySnapshot(
 	request: IRequest,
 	env: Environment,
-	isApp: boolean
+	isApp: boolean,
+	ctx?: ExecutionContext
 ): Promise<Response> {
 	const roomId = request.params.roomId
 
@@ -52,8 +53,20 @@ export async function getRoomHistorySnapshot(
 		result = await reconstructVersion({ ...buckets, roomKey, timestamp, index })
 	} catch (error) {
 		// A broken chain must not take history down while the legacy full copies still exist.
-		// Serve the copy and let the error report — the verifier is how the chain gets fixed.
-		console.error(error)
+		// Serve the copy and report the error — the verifier is how the chain gets fixed.
+		try {
+			// No ctx in unit tests, and createSentry throws when its env vars are unset; neither may
+			// turn the degraded-but-fine fallback into a 500.
+			const sentry = ctx ? createSentry(ctx, env) : null
+			if (sentry) {
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				sentry.captureException(error)
+			} else {
+				console.error(error)
+			}
+		} catch {
+			console.error(error)
+		}
 		const legacy = await env.ROOMS_HISTORY_EPHEMERAL.get(`${roomKey}/${timestamp}`)
 		if (!legacy) throw error
 		return new Response(legacy.body, {

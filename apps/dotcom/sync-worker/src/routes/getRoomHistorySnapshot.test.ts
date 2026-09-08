@@ -11,6 +11,12 @@ import { getRoomHistorySnapshot } from './getRoomHistorySnapshot'
 
 vi.mock('../utils/tla/getAuth', () => ({ requireAdminAccessToRequest: vi.fn() }))
 
+const captureException = vi.fn()
+vi.mock('@tldraw/worker-shared', async (importOriginal) => ({
+	...(await importOriginal<typeof import('@tldraw/worker-shared')>()),
+	createSentry: vi.fn(() => ({ captureException })),
+}))
+
 const roomKey = 'app_rooms/board'
 
 function snapshot(clock: number, ids: string[]): RoomSnapshot {
@@ -31,11 +37,12 @@ function isoAt(i: number) {
 	return `2026-09-01T00:00:${String(i).padStart(2, '0')}.000Z`
 }
 
-async function fetchSnapshot(env: Environment, timestamp: string) {
+async function fetchSnapshot(env: Environment, timestamp: string, ctx?: ExecutionContext) {
 	return await getRoomHistorySnapshot(
 		{ params: { roomId: 'board', timestamp } } as unknown as IRequest,
 		env,
-		true
+		true,
+		ctx
 	)
 }
 
@@ -83,5 +90,29 @@ describe('getRoomHistorySnapshot', () => {
 			depth: replayed.headers.get('x-version-chain-depth'),
 		}).toEqual({ status: 200, ops: '3', depth: '1' })
 		expect(await replayed.json()).toEqual(versions[1])
+	})
+
+	it('serves the legacy copy and reports when the chain read throws', async () => {
+		const legacyBucket = createFakeR2()
+		const timestamp = isoAt(3)
+		await legacyBucket.put(`${roomKey}/${timestamp}`, JSON.stringify(snapshot(3, ['shape:a'])))
+		const boom = new Error('chain listing failed')
+		const env = {
+			ROOMS_HISTORY: {
+				list: vi.fn(async () => {
+					throw boom
+				}),
+			},
+			ROOMS_HISTORY_EPHEMERAL: legacyBucket,
+		} as unknown as Environment
+
+		const response = await fetchSnapshot(env, timestamp, {} as ExecutionContext)
+
+		expect({
+			status: response.status,
+			ops: response.headers.get('x-version-chain-ops'),
+			body: await response.json(),
+		}).toEqual({ status: 200, ops: null, body: snapshot(3, ['shape:a']) })
+		expect(captureException).toHaveBeenCalledWith(boom)
 	})
 })

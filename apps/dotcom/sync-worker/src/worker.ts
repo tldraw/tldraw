@@ -129,8 +129,8 @@ const router = createRouter<Environment>()
 	.get(`/${ROOM_PREFIX}/:roomId/history/verify`, (req, env) =>
 		verifyVersionChainRoute(req, env, false)
 	)
-	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, (req, env) =>
-		getRoomHistorySnapshot(req, env, false)
+	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, (req, env, ctx) =>
+		getRoomHistorySnapshot(req, env, false, ctx)
 	)
 
 	.get(`/${FILE_PREFIX}/:roomId/history`, (req, env) => getRoomHistory(req, env, true))
@@ -139,8 +139,8 @@ const router = createRouter<Environment>()
 	.get(`/${FILE_PREFIX}/:roomId/history/verify`, (req, env) =>
 		verifyVersionChainRoute(req, env, true)
 	)
-	.get(`/${FILE_PREFIX}/:roomId/history/:timestamp`, (req, env) =>
-		getRoomHistorySnapshot(req, env, true)
+	.get(`/${FILE_PREFIX}/:roomId/history/:timestamp`, (req, env, ctx) =>
+		getRoomHistorySnapshot(req, env, true, ctx)
 	)
 
 	.get('/readonly-slug/:roomId', getReadonlySlug)
