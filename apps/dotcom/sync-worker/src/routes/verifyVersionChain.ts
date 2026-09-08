@@ -85,6 +85,21 @@ export async function verifyRoomVersions({
 	const keyframes = entries
 		.filter((entry) => entry.kind === 'keyframe')
 		.sort((a, b) => b.key.localeCompare(a.key))
+
+	// A segment whose keyframe is not in the index belongs to no walk below, so without this a
+	// clean result would hide versions that 500 once the legacy copies are off. Judged against the
+	// index rather than what the walk claimed, and before the budget can stop anything: it costs no
+	// reads, and an early break must not misreport unwalked segments as orphans.
+	const keyframeKeys = new Set(keyframes.map((keyframe) => keyframe.key))
+	for (const entry of entries) {
+		if (entry.kind === 'segment' && !keyframeKeys.has(entry.keyframeKey)) {
+			errors.push({
+				timestamp: entry.timestamps[0],
+				message: `segment ${entry.key} references missing keyframe ${entry.keyframeKey}`,
+			})
+		}
+	}
+
 	for (const keyframe of keyframes) {
 		if (!withinBudget()) break
 		const segments = entries

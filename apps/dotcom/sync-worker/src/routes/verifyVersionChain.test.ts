@@ -193,6 +193,77 @@ describe('verifyRoomVersions on a segment the read path rejects', () => {
 	})
 })
 
+describe('verifyRoomVersions on an orphaned segment', () => {
+	it('reports a segment whose keyframe is not in the index', async () => {
+		const chainBucket = createFakeR2()
+		const legacyBucket = createFakeR2()
+		const versions = [snapshot(1, ['shape:a']), snapshot(2, ['shape:a', 'shape:b'])]
+		await seedDualWrite(chainBucket, legacyBucket, versions)
+		// A segment left behind by a chain whose keyframe object is gone.
+		const orphanIso = '2026-08-01T00:00:01.000Z'
+		const missingKeyframeKey = versionKey(roomKey, '2026-08-01T00:00:00.000Z', 'keyframe')
+		const encoded = await encodeVersionBody({
+			v: 1,
+			deltas: [{ t: orphanIso, delta: buildSnapshotDelta(versions[0], versions[1]) }],
+		})
+		await chainBucket.put(versionKey(roomKey, orphanIso, 'segment'), encoded.body, {
+			customMetadata: {
+				...encoded.metadata,
+				...segmentCustomMetadata({
+					keyframeKey: missingKeyframeKey,
+					firstSeq: 1,
+					timestamps: [orphanIso],
+				}),
+			},
+		})
+
+		const result = await verifyRoomVersions({ chainBucket, legacyBucket, roomKey, limit: 20 })
+
+		expect(result.errors).toEqual([
+			{
+				timestamp: orphanIso,
+				message: expect.stringMatching(/references missing keyframe/),
+			},
+		])
+		// The intact chain still verifies clean around the orphan.
+		expect(result.mismatches).toEqual([])
+		expect(result.checked).toBe(2)
+	})
+
+	it('reports the orphan even when the budget stops the walk', async () => {
+		const chainBucket = createFakeR2()
+		const legacyBucket = createFakeR2()
+		const orphanIso = '2026-08-01T00:00:01.000Z'
+		const encoded = await encodeVersionBody({
+			v: 1,
+			deltas: [
+				{
+					t: orphanIso,
+					delta: buildSnapshotDelta(snapshot(1, ['shape:a']), snapshot(2, ['shape:a', 'shape:b'])),
+				},
+			],
+		})
+		await chainBucket.put(versionKey(roomKey, orphanIso, 'segment'), encoded.body, {
+			customMetadata: {
+				...encoded.metadata,
+				...segmentCustomMetadata({
+					keyframeKey: versionKey(roomKey, '2026-08-01T00:00:00.000Z', 'keyframe'),
+					firstSeq: 1,
+					timestamps: [orphanIso],
+				}),
+			},
+		})
+
+		// The listing alone exhausts the budget; the orphan check costs no reads and still runs.
+		const result = await verifyRoomVersions({ chainBucket, legacyBucket, roomKey, limit: 1 })
+
+		expect(result.errors.map((e) => e.message)).toEqual([
+			expect.stringMatching(/references missing keyframe/),
+		])
+		expect(result.replayed).toBe(0)
+	})
+})
+
 describe('verifyRoomVersions', () => {
 	it('reports no mismatches when reconstruction matches the full copies', async () => {
 		const chainBucket = createFakeR2()
