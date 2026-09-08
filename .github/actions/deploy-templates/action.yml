@@ -5,9 +5,10 @@ description: >
   publish.yml (releases). Expects the repo to be checked out already; runs the setup action itself.
 
 # The cloudflare credentials are secrets on the deploy-production environment, so the job using
-# this action has to select that environment and pass them in. Only a job can select an environment
-# (a reusable-workflow `uses:` job can't), which is why this is a composite action rather than a
-# workflow_call workflow — see #10636.
+# this action has to select that environment and pass them in. This is a composite action rather
+# than a workflow_call workflow because a called workflow only ever sees the secrets its caller
+# hands it, and an `environment:` on a job inside the callee does not add that environment's
+# secrets to them — see #10636.
 inputs:
   license-key:
     description: tldraw license key the demos are built with (TEMPLATES_TLDRAW_LICENSE_KEY)
@@ -28,6 +29,11 @@ runs:
     # through their project references and so needs the declarations built first
     - name: Build types
       shell: bash
+      env:
+        # build-types pulls in refresh-assets, which rewrites the generated version files. in CI it
+        # exits 1 on any change to a committed asset instead of writing it, which would fail the
+        # deploy on a release ref whose generated files aren't already in sync.
+        ALLOW_REFRESH_ASSETS_CHANGES: 1
       run: yarn build-types
 
     - name: Deploy templates
