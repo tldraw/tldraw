@@ -85,6 +85,7 @@ describe('verifyRoomVersions under clock skew', () => {
 			replayed: 3,
 			// One listing, then a get and a legacy get for the keyframe and for each segment.
 			reads: 7,
+			complete: true,
 			mismatches: [],
 			errors: [],
 		})
@@ -110,6 +111,7 @@ describe('verifyRoomVersions after cut-over', () => {
 			checked: 0,
 			replayed: 3,
 			reads: 7,
+			complete: false,
 			mismatches: [],
 			errors: [],
 		})
@@ -139,8 +141,32 @@ describe('verifyRoomVersions with a limit', () => {
 		const full = await verifyRoomVersions({ chainBucket, legacyBucket, roomKey, limit: 20 })
 
 		// With budget for one version, the newest chain is the one that gets checked.
-		expect(limited).toEqual({ checked: 1, replayed: 1, reads: 3, mismatches: [], errors: [] })
+		expect(limited).toEqual({
+			checked: 1,
+			replayed: 1,
+			reads: 3,
+			complete: false,
+			mismatches: [],
+			errors: [],
+		})
 		expect(full.mismatches).toEqual(['2026-08-01T00:00:00.000Z'])
+	})
+
+	it('marks a run the listing alone exhausted as incomplete', async () => {
+		const chainBucket = createFakeR2()
+		const legacyBucket = createFakeR2()
+		await seedDualWrite(chainBucket, legacyBucket, [snapshot(1, ['shape:a'])])
+
+		// The listing spends the whole budget before the keyframe is read: nothing is verified, and
+		// `complete: false` is the only thing separating this result from a clean room.
+		expect(await verifyRoomVersions({ chainBucket, legacyBucket, roomKey, limit: 1 })).toEqual({
+			checked: 0,
+			replayed: 0,
+			reads: 1,
+			complete: false,
+			mismatches: [],
+			errors: [],
+		})
 	})
 })
 
@@ -277,6 +303,7 @@ describe('verifyRoomVersions', () => {
 			checked: 2,
 			replayed: 2,
 			reads: 5,
+			complete: true,
 			mismatches: [],
 			errors: [],
 		})

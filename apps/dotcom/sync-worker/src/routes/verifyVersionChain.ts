@@ -20,6 +20,12 @@ export interface VerifyResult {
 	 * evidence about the versions it reached and about nothing else.
 	 */
 	reads: number
+	/**
+	 * False when the read budget stopped the walk with index entries still unvisited. On a room
+	 * whose listing alone exhausts the budget, `mismatches` and `errors` come back empty having
+	 * verified nothing — this is what says that result is not a clean room.
+	 */
+	complete: boolean
 	mismatches: string[]
 	errors: Array<{ timestamp: string; message: string }>
 }
@@ -52,6 +58,9 @@ export async function verifyRoomVersions({
 	const errors: Array<{ timestamp: string; message: string }> = []
 	let checked = 0
 	let replayed = 0
+	// Flagged at the break sites, not derived from `reads >= limit` at the end: the budget may
+	// overshoot on the version in flight, and a run that replayed everything is complete even so.
+	let complete = true
 	// Seeded with the listing: those pages are subrequests too, and on a room with a long history
 	// they are a real share of the budget.
 	let reads = ops
@@ -101,7 +110,10 @@ export async function verifyRoomVersions({
 	}
 
 	for (const keyframe of keyframes) {
-		if (!withinBudget()) break
+		if (!withinBudget()) {
+			complete = false
+			break
+		}
 		const segments = entries
 			.filter(
 				(entry): entry is SegmentIndexEntry =>
@@ -124,7 +136,10 @@ export async function verifyRoomVersions({
 
 		let expectedSeq = 1
 		for (const segment of segments) {
-			if (!withinBudget()) break
+			if (!withinBudget()) {
+				complete = false
+				break
+			}
 			try {
 				if (segment.firstSeq !== expectedSeq) {
 					throw new Error(
@@ -135,7 +150,10 @@ export async function verifyRoomVersions({
 				// The same read as reconstruction, so a segment that verifies here also reads.
 				const deltas = await readSegmentDeltas(chainBucket, segment)
 				for (const { t, delta } of deltas) {
-					if (!withinBudget()) break
+					if (!withinBudget()) {
+						complete = false
+						break
+					}
 					state = applySnapshotDelta(state, delta)
 					replayed++
 					// Intra-chain check, independent of the legacy copies — after cut-over the
@@ -153,7 +171,7 @@ export async function verifyRoomVersions({
 		}
 	}
 
-	return { checked, replayed, reads, mismatches: [...mismatches], errors }
+	return { checked, replayed, reads, complete, mismatches: [...mismatches], errors }
 }
 
 /** Record order is unstable between persists, so compare content and not serialization order. */
