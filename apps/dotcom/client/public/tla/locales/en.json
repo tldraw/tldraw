@@ -209,6 +209,9 @@
   "545241e7dd": {
     "translation": "{count} unread"
   },
+  "550b25cc0c": {
+    "translation": "Could not restore your local drawing. Try reloading this page."
+  },
   "554a05155c": {
     "translation": "Still having trouble? <a>Report a problem</a>"
   },
