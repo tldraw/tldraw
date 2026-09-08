@@ -249,6 +249,12 @@
       "value": " panonuza yorum yaptı."
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Geri bildirim gönderilemedi."
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -265,6 +271,12 @@
     {
       "type": 0,
       "value": "Aramak..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Lütfen tekrar deneyin."
     }
   ],
   "2de510be71": [
@@ -489,6 +501,12 @@
     {
       "type": 0,
       "value": " okunmamış"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Yerel çiziminiz geri yüklenemedi. Lütfen bu sayfayı yeniden yüklemeyi deneyin."
     }
   ],
   "554a05155c": [

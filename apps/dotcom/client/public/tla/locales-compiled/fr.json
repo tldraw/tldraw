@@ -257,6 +257,12 @@
       "value": " a commenté votre tableau"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Impossible de soumettre les commentaires"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -273,6 +279,12 @@
     {
       "type": 0,
       "value": "Recherche..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Veuillez réessayer."
     }
   ],
   "2de510be71": [
@@ -501,6 +513,12 @@
     {
       "type": 0,
       "value": " non lu"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Impossible de restaurer votre dessin local. Veuillez recharger cette page."
     }
   ],
   "554a05155c": [

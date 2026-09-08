@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> ha commentato sulla tua bacheca"
   },
+  "28b2464e1f": {
+    "translation": "Impossibile inviare il feedback"
+  },
   "299cb00a7a": {
     "translation": "Caricamento non riuscito"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Ricerca..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Per favore, riprova."
   },
   "2de510be71": {
     "translation": "La rigenerazione sostituisce il link di invito corrente con uno nuovo. Chiunque utilizzi il vecchio link dovrà utilizzare quello nuovo per partecipare."
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} non letto"
+  },
+  "550b25cc0c": {
+    "translation": "Impossibile ripristinare il disegno locale. Prova a ricaricare questa pagina."
   },
   "554a05155c": {
     "translation": "Hai ancora problemi? <a>Segnala un problema</a>"

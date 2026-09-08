@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> heeft een reactie geplaatst op je forum"
   },
+  "28b2464e1f": {
+    "translation": "Feedback verzenden is niet mogelijk"
+  },
   "299cb00a7a": {
     "translation": "Uploaden mislukt"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Zoekopdracht..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Probeer het alstublieft opnieuw."
   },
   "2de510be71": {
     "translation": "Door de link opnieuw te genereren, wordt de huidige uitnodigingslink vervangen door een nieuwe. Iedereen die de oude link gebruikt, heeft de nieuwe link nodig om deel te nemen."
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} ongelezen"
+  },
+  "550b25cc0c": {
+    "translation": "Uw lokale tekening kon niet worden hersteld. Probeer deze pagina opnieuw te laden."
   },
   "554a05155c": {
     "translation": "Nog steeds problemen? <a>Meld een probleem</a>"
