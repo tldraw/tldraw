@@ -309,6 +309,41 @@ describe('verifyRoomVersions', () => {
 		})
 	})
 
+	it('keeps replaying the chain when a legacy read fails', async () => {
+		const chainBucket = createFakeR2()
+		const legacyBucket = createFakeR2()
+		await seedDualWrite(chainBucket, legacyBucket, [
+			snapshot(1, ['shape:a']),
+			snapshot(2, ['shape:a', 'shape:b']),
+		])
+		const flakyIso = '2026-09-01T00:00:00.000Z'
+		const flakyLegacy = {
+			...legacyBucket,
+			get: async (key: string) => {
+				if (key === `${roomKey}/${flakyIso}`) throw new Error('network connection lost')
+				return legacyBucket.get(key)
+			},
+		} as unknown as R2Bucket
+
+		// The failed read is an error naming the legacy side, not a broken chain: the replay
+		// carries on and the next version still gets compared.
+		expect(
+			await verifyRoomVersions({ chainBucket, legacyBucket: flakyLegacy, roomKey, limit: 20 })
+		).toEqual({
+			checked: 1,
+			replayed: 2,
+			reads: 5,
+			complete: true,
+			mismatches: [],
+			errors: [
+				{
+					timestamp: flakyIso,
+					message: expect.stringMatching(/^legacy copy read failed: network connection lost/),
+				},
+			],
+		})
+	})
+
 	it('names the timestamp when a reconstruction disagrees', async () => {
 		const chainBucket = createFakeR2()
 		const legacyBucket = createFakeR2()

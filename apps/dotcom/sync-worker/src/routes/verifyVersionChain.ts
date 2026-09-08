@@ -69,13 +69,21 @@ export async function verifyRoomVersions({
 	const withinBudget = () => reads < limit
 
 	const compareToLegacy = async (snapshot: RoomSnapshot, timestamp: string) => {
-		reads++
-		const legacyObject = await legacyBucket.get(`${roomKey}/${timestamp}`)
-		// Nothing to compare against for versions written before dual-write started, or for any
-		// version at all once it stops.
-		if (!legacyObject) return
+		let expected: RoomSnapshot
+		try {
+			reads++
+			const legacyObject = await legacyBucket.get(`${roomKey}/${timestamp}`)
+			// Nothing to compare against for versions written before dual-write started, or for any
+			// version at all once it stops.
+			if (!legacyObject) return
+			expected = (await decodeVersionBody(legacyObject)) as RoomSnapshot
+		} catch (e: any) {
+			// Caught here, not in the callers: their catches mark the chain broken and stop the
+			// replay, and a flaky legacy read is neither.
+			errors.push({ timestamp, message: `legacy copy read failed: ${String(e?.message ?? e)}` })
+			return
+		}
 		checked++
-		const expected = (await decodeVersionBody(legacyObject)) as RoomSnapshot
 		if (canonical(snapshot) !== canonical(expected)) mismatches.add(timestamp)
 	}
 
