@@ -17,9 +17,7 @@ function file(partial: Partial<TlaFile>): TlaFile {
 	return {
 		id: 'f1',
 		name: 'file',
-		ownerId: 'u1',
 		ownerName: '',
-		ownerAvatar: '',
 		thumbnail: '',
 		shared: true,
 		sharedLinkType: 'edit',

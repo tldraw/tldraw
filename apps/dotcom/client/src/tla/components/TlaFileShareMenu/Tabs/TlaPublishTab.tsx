@@ -69,7 +69,7 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 
 	const publishShareUrl = publishedSlug ? routes.tlaPublish(publishedSlug, { asUrl: true }) : null
 
-	const secondsSince = Math.min(0, Math.floor((Date.now() - file.lastPublished) / 1000))
+	const secondsSince = Math.min(0, Math.floor((file.lastPublished - Date.now()) / 1000))
 	const learnMoreUrl = 'https://tldraw.notion.site/Publishing-1283e4c324c08059a1a1d9ba9833ddc9'
 	return (
 		<TlaMenuTabsPage id="publish">
@@ -112,7 +112,6 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 								<F defaultMessage="Publish changes" />
 							</TlaButton>
 						)}
-						{/* todo: make this data actually true based on file.lastPublished */}
 						<TlaMenuDetail>
 							<F
 								defaultMessage="Last published <date></date>"

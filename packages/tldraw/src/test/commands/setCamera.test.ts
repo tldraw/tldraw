@@ -237,6 +237,56 @@ describe('Zoom clamping preserves the focal point', () => {
 	})
 })
 
+describe('Non-finite camera values', () => {
+	beforeEach(() => {
+		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS })
+	})
+
+	it('rejects a non-finite x', () => {
+		expect(() => editor.setCamera({ x: NaN, y: 0, z: 1 })).toThrow()
+	})
+
+	it('rejects a non-finite y', () => {
+		expect(() => editor.setCamera({ x: 0, y: Infinity, z: 1 })).toThrow()
+	})
+
+	it('rejects a non-finite z', () => {
+		expect(() => editor.setCamera({ x: 0, y: 0, z: NaN })).toThrow()
+	})
+
+	// Every internal camera mover passes a Vec, which Vec.Cast returns as-is.
+	it('rejects a non-finite Vec', () => {
+		expect(() => editor.setCamera(new Vec(NaN, 0, 1))).toThrow()
+	})
+
+	it('does not mutate the point it was given', () => {
+		const point = { x: 0, y: 0, z: NaN }
+		expect(() => editor.setCamera(point)).toThrow()
+		expect(point.z).toBeNaN()
+	})
+
+	it('leaves the camera untouched', () => {
+		const before = { ...editor.getCamera() }
+		expect(() => editor.setCamera({ x: NaN, y: 0, z: 1 })).toThrow()
+		expect(editor.getCamera()).toMatchObject(before)
+	})
+
+	it('throws at the call site when animated, rather than from a later tick', () => {
+		expect(() =>
+			editor.setCamera({ x: NaN, y: 0, z: 1 }, { animation: { duration: 100 } })
+		).toThrow()
+		expect(() => editor.forceTick()).not.toThrow()
+	})
+
+	it('does not stop an in-flight camera animation', () => {
+		editor.setCamera({ x: 100, y: 100, z: 1 }, { animation: { duration: 100 } })
+		expect(() => editor.setCamera({ x: NaN, y: 0, z: 1 })).toThrow()
+
+		editor.forceTick()
+		expect(editor.getCamera()).not.toMatchObject({ x: 0, y: 0, z: 1 })
+	})
+})
+
 it('Sets the camera options', () => {
 	const optionsA = { ...DEFAULT_CAMERA_OPTIONS, panSpeed: 2 }
 	editor.setCameraOptions(optionsA)
@@ -453,11 +503,13 @@ describe('CameraOptions.panSpeed', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 		// pointerMove calls forceTick() internally, so we don't need an extra forceTick() call
 		editor.pointerDown(shape.x, shape.y, shapeId).forceTick().pointerMove(-5000, -5000)
-		// At maximum speed and a zoom level of 1, the camera should move by 25px per tick if the screen
-		// is wider than 1000 pixels, or by 25 * 0.612px if it is smaller.
-		const newX = viewportScreenBounds.w < 1000 ? 25 * 0.612 : 25
-		const newY = viewportScreenBounds.h < 1000 ? 25 * 0.612 : 25
-		expect(editor.getCamera()).toMatchObject({ x: newX, y: newY, z: 1 })
+		// At maximum speed and a zoom level of 1, the camera should move by 25px per 60 Hz frame if the
+		// screen is wider than 1000 pixels, or by 25 * 0.612px if it is smaller. forceTick emits a 16ms
+		// tick, so scale the expectation to that.
+		const pxPerTick = 25 * (16 / (1000 / 60))
+		const newX = viewportScreenBounds.w < 1000 ? pxPerTick * 0.612 : pxPerTick
+		const newY = viewportScreenBounds.h < 1000 ? pxPerTick * 0.612 : pxPerTick
+		expect(editor.getCamera()).toCloselyMatchObject({ x: newX, y: newY, z: 1 })
 	})
 })
 
@@ -1324,4 +1376,22 @@ test('slideCamera zoom momentum survives a long frame', () => {
 	expect(z).toBeGreaterThan(0)
 	expect(z).toBeLessThan(1)
 	expect(Number.isFinite(x) && Number.isFinite(y)).toBe(true)
+})
+
+test('slideCamera coasts the same distance regardless of tick rate', () => {
+	editor.user.updateUserPreferences({ animationSpeed: 1 })
+
+	const coastFor = (ticksPerSecond: number) => {
+		editor.setCamera({ x: 0, y: 0, z: 1 })
+		editor.slideCamera({ speed: 1, direction: { x: 1, y: 0 } })
+		// two seconds of ticks at the given rate, more than enough for the slide to finish
+		for (let i = 0; i < ticksPerSecond * 2; i++) editor.emit('tick', 1000 / ticksPerSecond)
+		return editor.getCamera().x
+	}
+
+	const at60Hz = coastFor(60)
+	const at120Hz = coastFor(120)
+
+	expect(at60Hz).toBeGreaterThan(0)
+	expect(at120Hz / at60Hz).toBeCloseTo(1, 1)
 })

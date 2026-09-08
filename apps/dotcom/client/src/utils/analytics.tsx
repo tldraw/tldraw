@@ -213,9 +213,17 @@ function configurePosthog(options: AnalyticsOptions) {
 			})
 		}
 		posthog.opt_in_capturing()
-	} else if (currentOptionsPosthog?.optedIn) {
-		posthog.setPersonProperties({ analytics_consent: false })
-		posthog.opt_out_capturing()
+	} else if (cookieConsent.get()?.analytics === false) {
+		// Keyed on stored consent, not the previous options: a persisted PostHog opt-in would
+		// otherwise survive a reload with consent already off, and a first reject never engages
+		// cookieless_mode.
+		if (currentOptionsPosthog?.optedIn) {
+			posthog.setPersonProperties({ analytics_consent: false })
+		}
+		// An explicit opt-out is already persisted and opt_out_capturing emits its own $pageview.
+		if (posthog.get_explicit_consent_status() !== 'denied') {
+			posthog.opt_out_capturing()
+		}
 	}
 
 	currentOptionsPosthog = options

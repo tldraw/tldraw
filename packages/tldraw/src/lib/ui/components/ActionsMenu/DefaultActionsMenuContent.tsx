@@ -92,13 +92,12 @@ export function ReorderMenuItems() {
 }
 
 /** @public @react */
-
 export function ZoomOrRotateMenuItem() {
 	const breakpoint = useBreakpoint()
 	return breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM ? <ZoomTo100MenuItem /> : <RotateCCWMenuItem />
 }
-/** @public @react */
 
+/** @public @react */
 export function RotateCCWMenuItem() {
 	const oneSelected = useUnlockedSelectedShapesCount(1)
 	const isInSelectState = useIsInSelectState()
@@ -106,8 +105,8 @@ export function RotateCCWMenuItem() {
 
 	return <TldrawUiMenuActionItem actionId="rotate-ccw" disabled={!enabled} />
 }
-/** @public @react */
 
+/** @public @react */
 export function RotateCWMenuItem() {
 	const oneSelected = useUnlockedSelectedShapesCount(1)
 	const isInSelectState = useIsInSelectState()
@@ -115,8 +114,8 @@ export function RotateCWMenuItem() {
 
 	return <TldrawUiMenuActionItem actionId="rotate-cw" disabled={!enabled} />
 }
-/** @public @react */
 
+/** @public @react */
 export function EditLinkMenuItem() {
 	const showEditLink = useHasLinkShapeSelected()
 	const isInSelectState = useIsInSelectState()
@@ -124,15 +123,15 @@ export function EditLinkMenuItem() {
 
 	return <TldrawUiMenuActionItem actionId="edit-link" disabled={!enabled} />
 }
-/** @public @react */
 
+/** @public @react */
 export function GroupOrUngroupMenuItem() {
 	const allowGroup = useAllowGroup()
 	const allowUngroup = useAllowUngroup()
-	return allowGroup ? <GroupMenuItem /> : allowUngroup ? <UngroupMenuItem /> : <GroupMenuItem />
+	return !allowGroup && allowUngroup ? <UngroupMenuItem /> : <GroupMenuItem />
 }
-/** @public @react */
 
+/** @public @react */
 export function GroupMenuItem() {
 	const twoSelected = useUnlockedSelectedShapesCount(2)
 	const isInSelectState = useIsInSelectState()
@@ -140,8 +139,8 @@ export function GroupMenuItem() {
 
 	return <TldrawUiMenuActionItem actionId="group" disabled={!enabled} />
 }
-/** @public @react */
 
+/** @public @react */
 export function UngroupMenuItem() {
 	return <TldrawUiMenuActionItem actionId="ungroup" />
 }

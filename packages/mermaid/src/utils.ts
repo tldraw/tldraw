@@ -1,3 +1,5 @@
+import type { MermaidBlueprintEdge, MermaidBlueprintNode } from './blueprint'
+
 const BEND_SCALE = -1.8
 const MAX_ARROW_BEND = 200
 
@@ -41,6 +43,14 @@ export function sanitizeDiagramText(text: string): string {
 
 /** Scale factor applied to parsed SVG layout (nodes, clusters, edges). */
 export const LAYOUT_SCALE = 1.25
+
+export function dropDanglingEdges(
+	nodes: MermaidBlueprintNode[],
+	edges: MermaidBlueprintEdge[]
+): MermaidBlueprintEdge[] {
+	const nodeIds = new Set(nodes.map((n) => n.id))
+	return edges.filter((e) => nodeIds.has(e.startNodeId) && nodeIds.has(e.endNodeId))
+}
 
 /**
  * Order items top-down by parent relationship so parents are visited before children.

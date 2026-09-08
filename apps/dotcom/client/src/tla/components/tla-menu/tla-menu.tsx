@@ -77,7 +77,8 @@ export function TlaMenuControlInfoTooltip({
 					<a
 						onClick={onClick}
 						href={href}
-						target="_blank nofollow noreferrer"
+						target="_blank"
+						rel="noopener noreferrer nofollow"
 						className={styles.menuInfoTrigger}
 					>
 						<TldrawUiIcon label={helpMsg} icon="help-circle" small />

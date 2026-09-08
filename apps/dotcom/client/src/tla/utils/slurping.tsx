@@ -91,19 +91,24 @@ export class Slurper {
 			// doing its nasty business before we start the migration.
 			await sleep(50)
 			if (this.opts.abortSignal.aborted) return
-			await this.slurpDocumentData()
+			const didRestoreDocument = await this.slurpDocumentData()
+			if (!didRestoreDocument) return
 			if (this.opts.abortSignal.aborted) return
 		}
 		this.uploadLocalAssets() // no await, it can happen in the background
 	}
 
 	// get the records out of the local indexedDb and load them into the editor
-	private async slurpDocumentData() {
+	private async slurpDocumentData(): Promise<boolean> {
 		const { slurpPersistenceKey, editor, abortSignal } = this.opts
 		const db = new LocalIndexedDb(slurpPersistenceKey)
 		try {
 			const data = await db.load({ sessionId: TAB_ID })
-			if (abortSignal.aborted) return
+			if (abortSignal.aborted) return false
+			// Nothing local to restore on this device (opened elsewhere, storage cleared): loading a
+			// snapshot with no schema throws. Leave the slurp unfinished so the device that does hold
+			// the data still gets to run it.
+			if (!data.schema || data.records.length === 0) return false
 			// Assets will be served from the local indexedDb while they are being uploaded
 			editor.loadSnapshot({
 				document: {
@@ -117,6 +122,7 @@ export class Slurper {
 			// reset the persistence key so that if the user logs out they don't
 			// see the same content we already slurped
 			resetScratchPersistenceKey()
+			return true
 		} finally {
 			db.close()
 		}
