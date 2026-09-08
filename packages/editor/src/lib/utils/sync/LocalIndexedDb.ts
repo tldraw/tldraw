@@ -141,14 +141,10 @@ export class LocalIndexedDb {
 			assert(!this.isClosed, 'db is closed')
 			const db = await this.getDb()
 			const tx = db.transaction(names, mode)
-			// need to add a catch here early to prevent unhandled promise rejection
-			// during react-strict-mode where this tx.done promise can be rejected
-			// before we have a chance to await on it
-			const done = tx.done.catch((e: unknown) => {
-				if (!this.isClosed) {
-					throw e
-				}
-			})
+			// Commit failures may arrive before the callback finishes; observe them immediately
+			// while preserving the rejection for the await below.
+			const done = tx.done
+			done.catch(noop)
 			try {
 				return await cb(tx)
 			} finally {

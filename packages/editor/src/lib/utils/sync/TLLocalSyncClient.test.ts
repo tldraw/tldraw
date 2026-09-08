@@ -3,6 +3,7 @@ import { IndexKey, promiseWithResolve } from '@tldraw/utils'
 import { Mock, vi } from 'vitest'
 import { createTLStore } from '../../config/createTLStore'
 import { hardReset } from './hardReset'
+import { LocalIndexedDb } from './LocalIndexedDb'
 import { TLLocalSyncClient } from './TLLocalSyncClient'
 
 class BroadcastChannelMock {
@@ -302,4 +303,164 @@ test('closing the client before it has loaded does not write to the db', async (
 	await tick()
 	expect(client.db.storeSnapshot).not.toHaveBeenCalled()
 	expect(client.db.storeChanges).not.toHaveBeenCalled()
+})
+
+test('closing flushes changes that have not reached the next animation frame', async () => {
+	const { client, tick } = testClient()
+	await tick()
+	const page = PageRecordType.create({ name: 'last frame', index: 'a0' as IndexKey })
+	vi.stubGlobal('__FORCE_RAF_IN_TESTS__', true)
+	try {
+		client.store.put([page])
+		client.close()
+		expect(client.db.storeSnapshot).toHaveBeenCalledTimes(1)
+		expect(client.db.storeSnapshot.mock.calls[0][0].snapshot[page.id]).toEqual(page)
+	} finally {
+		vi.unstubAllGlobals()
+	}
+})
+
+test('buffered schema announcements cannot persist before the remaining buffered diffs', async () => {
+	const { client, channel, tick } = testClient()
+	const page = PageRecordType.create({ name: 'remote', index: 'a0' as IndexKey })
+	const schema = client.store.schema.serialize()
+	channel.onmessage?.({
+		data: {
+			type: 'announce',
+			schema: { ...schema, sequences: { ...schema.sequences, 'com.tldraw.page': 0 } },
+		},
+	} as MessageEvent)
+	channel.onmessage?.({
+		data: {
+			type: 'diff',
+			storeId: 'other-tab',
+			schema: client.serializedSchema,
+			changes: { added: { [page.id]: page }, updated: {}, removed: {} },
+		},
+	} as MessageEvent)
+	await tick()
+	expect(client.db.storeSnapshot).toHaveBeenCalledTimes(1)
+	expect(client.db.storeSnapshot.mock.calls[0][0].snapshot[page.id]).toEqual(page)
+	client.close()
+})
+
+test('closing before load cancels a persist scheduled by an early edit', async () => {
+	const load = promiseWithResolve<Awaited<ReturnType<LocalIndexedDb['load']>>>()
+	const loadMock = vi.spyOn(LocalIndexedDb.prototype, 'load').mockImplementationOnce(() => load)
+	try {
+		const { client, tick } = testClient()
+		client.store.put([PageRecordType.create({ name: 'early', index: 'a0' as IndexKey })])
+		client.close()
+		load.resolve({ records: [], schema: undefined, sessionStateSnapshot: undefined })
+		await tick()
+		expect(client.db.storeSnapshot).not.toHaveBeenCalled()
+		expect(client.db.storeChanges).not.toHaveBeenCalled()
+	} finally {
+		loadMock.mockRestore()
+	}
+})
+
+test.each(['close flush', 'in-flight write'] as const)(
+	'a failed %s after close logs the error without disrupting the current page',
+	async (when) => {
+		const { client, tick } = testClient()
+		await tick()
+		const write = promiseWithResolve<void>()
+		client.db.storeSnapshot.mockImplementationOnce(() => write)
+		const error = new Error('write failed')
+		const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const alert = vi.spyOn(window, 'alert').mockImplementation(() => {})
+		try {
+			client.store.put([PageRecordType.create({ name: 'last edit', index: 'a0' as IndexKey })])
+			if (when === 'in-flight write') await tick()
+			client.close()
+			write.reject(error)
+			await tick()
+			expect(log).toHaveBeenCalledWith('failed to store changes in indexed db', error)
+			expect(alert).not.toHaveBeenCalled()
+			expect(reloadMock).not.toHaveBeenCalled()
+		} finally {
+			log.mockRestore()
+			alert.mockRestore()
+		}
+	}
+)
+
+test('closing with no queued changes cancels a failed-write retry', async () => {
+	const { client, tick } = testClient()
+	await tick()
+	const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+	const alert = vi.spyOn(window, 'alert').mockImplementation(() => {})
+	try {
+		client.db.storeSnapshot.mockRejectedValueOnce(new Error('first write failed'))
+		client.store.put([PageRecordType.create({ name: 'retry', index: 'a0' as IndexKey })])
+		await tick()
+		expect(reloadMock).toHaveBeenCalledTimes(1)
+		client.close()
+		await vi.advanceTimersByTimeAsync(10_000)
+		expect(client.db.storeSnapshot).toHaveBeenCalledTimes(1)
+	} finally {
+		log.mockRestore()
+		alert.mockRestore()
+	}
+})
+
+test('a schema mismatch does not try to refresh without a window', async () => {
+	const { client, channel, tick } = testClient()
+	await tick()
+	vi.advanceTimersByTime(10_000)
+	vi.stubGlobal('window', undefined)
+	try {
+		expect(() =>
+			channel.onmessage?.({
+				data: {
+					type: 'announce',
+					schema: {
+						...client.serializedSchema,
+						schemaVersion: client.serializedSchema.schemaVersion + 1,
+					},
+				},
+			} as MessageEvent)
+		).not.toThrow()
+	} finally {
+		vi.unstubAllGlobals()
+		client.close()
+	}
+})
+
+test('onLoad can close the client without losing buffered remote changes', async () => {
+	const { client, channel, onLoad, tick } = testClient()
+	const page = PageRecordType.create({ name: 'remote', index: 'a0' as IndexKey })
+	channel.onmessage?.({
+		data: {
+			type: 'diff',
+			storeId: 'other-tab',
+			schema: client.serializedSchema,
+			changes: { added: { [page.id]: page }, updated: {}, removed: {} },
+		},
+	} as MessageEvent)
+	onLoad.mockImplementation(() => {
+		client.store.put([PageRecordType.create({ name: 'local', index: 'a1' as IndexKey })])
+		client.close()
+	})
+	await tick()
+	expect(client.db.storeSnapshot.mock.calls[0][0].snapshot[page.id]).toEqual(page)
+})
+
+test('a buffered newer schema reports a load error without announcing a successful load', async () => {
+	const { client, channel, onLoad, onLoadError, tick } = testClient()
+	channel.onmessage?.({
+		data: {
+			type: 'announce',
+			schema: {
+				...client.serializedSchema,
+				schemaVersion: client.serializedSchema.schemaVersion + 1,
+			},
+		},
+	} as MessageEvent)
+	await tick()
+	expect(onLoadError).toHaveBeenCalledTimes(1)
+	expect(onLoad).not.toHaveBeenCalled()
+	client.close()
+	expect(client.db.storeSnapshot).not.toHaveBeenCalled()
 })

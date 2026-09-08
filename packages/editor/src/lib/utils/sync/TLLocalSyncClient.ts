@@ -185,6 +185,7 @@ export class TLLocalSyncClient {
 			const res = this.store.schema.getMigrationsSince(msg.schema)
 
 			if (!res.ok) {
+				this.isReloading = true
 				// we are older, refresh
 				// but add a safety check to make sure we don't get in an infinite loop
 				const timeSinceInit = Date.now() - this.initTime
@@ -195,20 +196,19 @@ export class TLLocalSyncClient {
 					// Or maybe during development if you have multiple local tabs open running the app on prod mode and you
 					// check out an older commit. Dev server should be fine.
 					onLoadError(new Error('Schema mismatch, please close other tabs and reload the page'))
-					return
+					return false
 				}
 				this.debug('reloading')
-				this.isReloading = true
-				refreshPage()
-				return
+				if (typeof window !== 'undefined') refreshPage()
+				return false
 			} else if (res.value.length > 0) {
 				// they are older, tell them to refresh and not write any more data
 				this.debug('telling them to reload')
 				this.channel.postMessage({ type: 'announce', schema: this.serializedSchema })
 				// schedule a full db write in case they wrote data anyway
 				this.shouldDoFullDBWrite = true
-				this.persistIfNeeded()
-				return
+				this.schedulePersist()
+				return true
 			}
 			// otherwise, all good, same version :)
 			if (msg.type === 'diff') {
@@ -219,6 +219,7 @@ export class TLLocalSyncClient {
 					})
 				})
 			}
+			return true
 		}
 
 		// Listen from the start and buffer until we've loaded: diffs other tabs broadcast while
@@ -282,7 +283,15 @@ export class TLLocalSyncClient {
 					})
 				}
 			}
+			// Older-schema announcements schedule writes, so drain every diff before those writes
+			// or an onLoad callback that immediately closes the client can capture a snapshot.
+			const messages = bufferedMessages
+			bufferedMessages = null
+			for (const message of messages) {
+				if (!handleMessage(message)) return
+			}
 			this.didLoad = true
+			if (this.diffQueue.length > 0) this.schedulePersist()
 
 			this.channel.postMessage({ type: 'announce', schema: this.serializedSchema })
 			onLoad(this)
@@ -292,18 +301,19 @@ export class TLLocalSyncClient {
 			onLoadError(e)
 			return
 		}
-
-		// apply anything that arrived while we were loading. persists are throttled, so these
-		// changes still land before the first (full) db write
-		const messages = bufferedMessages
-		bufferedMessages = null
-		for (const msg of messages) handleMessage(msg)
 	}
 
 	close() {
+		if (this.didDispose) return
 		this.debug('closing')
 		this.didDispose = true
+		// Store listeners normally run on the next frame; collect the last edits before removal.
+		this.store._flushHistory()
 		this.disposables.forEach((d) => d())
+		if (this.scheduledPersistTimeout) {
+			clearTimeout(this.scheduledPersistTimeout)
+			this.scheduledPersistTimeout = null
+		}
 		if (typeof window !== 'undefined' && (window as any).tlsync === this) {
 			delete (window as any).tlsync
 		}
@@ -344,8 +354,7 @@ export class TLLocalSyncClient {
 	private schedulePersist() {
 		this.debug('schedulePersist', this.scheduledPersistTimeout)
 		if (this.scheduledPersistTimeout) return
-		// once closed, the db is closing (or closed): a persist that fires afterwards would fail
-		// and trigger the write-error reload
+		// A deferred persist would try to write to a database that is closing or already closed.
 		if (this.didDispose) return
 		// eslint-disable-next-line no-restricted-globals
 		this.scheduledPersistTimeout = setTimeout(
@@ -380,6 +389,8 @@ export class TLLocalSyncClient {
 			clearTimeout(this.scheduledPersistTimeout)
 			this.scheduledPersistTimeout = null
 		}
+
+		if (!this.didLoad) return
 
 		// if a persist is already in progress, we don't need to do anything -
 		// if there are still outstanding changes once it's finished, it'll
@@ -442,9 +453,8 @@ export class TLLocalSyncClient {
 			this.didLastWriteError = true
 			console.error('failed to store changes in indexed db', e)
 
-			showCantWriteToIndexDbAlert()
-			if (typeof window !== 'undefined') {
-				// adios
+			if (!this.didDispose && typeof window !== 'undefined') {
+				showCantWriteToIndexDbAlert()
 				refreshPage()
 			}
 		}
