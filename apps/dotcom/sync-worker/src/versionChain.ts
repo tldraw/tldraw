@@ -84,6 +84,9 @@ export type KeyframeReason =
 	| 'chain-age'
 	| 'delta-size'
 	| 'segment-size'
+	// Caller-supplied via `noChainReason`: the chain was discarded because R2 no longer served its
+	// open segment, which would otherwise be indistinguishable from a brand-new room.
+	| 'segment-lost'
 
 export type VersionWriteDecision =
 	| { kind: 'keyframe'; reason: KeyframeReason }
@@ -93,6 +96,7 @@ export function decideVersionWrite({
 	roomKey,
 	iso,
 	chain,
+	noChainReason,
 	previousFingerprint,
 	previousHash,
 	nextFingerprint,
@@ -102,6 +106,8 @@ export function decideVersionWrite({
 	roomKey: string
 	iso: string
 	chain: ChainState | null
+	/** Reported when `chain` is null: a caller that discarded a broken chain names what broke it. */
+	noChainReason?: 'no-chain' | 'segment-lost'
 	/** Fingerprint of the state this delta was diffed from — must be the chain head. */
 	previousFingerprint: SnapshotFingerprint
 	/** Chain head hash of that same state; catches divergence the fingerprint cannot see. */
@@ -111,7 +117,7 @@ export function decideVersionWrite({
 	deltaBytes: number
 	now: number
 }): VersionWriteDecision {
-	if (!chain) return { kind: 'keyframe', reason: 'no-chain' }
+	if (!chain) return { kind: 'keyframe', reason: noChainReason ?? 'no-chain' }
 	// Against NEXT, not previous: in an intact chain the head and the diff base are the same
 	// state, so a migration landing in this very persist is only visible on the next snapshot.
 	// Checked before the head check so the metric distinguishes a migration from a chain that

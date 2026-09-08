@@ -28,6 +28,7 @@ export async function writeVersionChainEntry({
 	roomKey,
 	iso,
 	chain,
+	noChainReason,
 	pending,
 	previous,
 	next,
@@ -37,6 +38,7 @@ export async function writeVersionChainEntry({
 	roomKey: string
 	iso: string
 	chain: ChainState | null
+	noChainReason?: 'no-chain' | 'segment-lost'
 	pending: PendingDelta[]
 	previous: RoomSnapshot | null
 	next: RoomSnapshot
@@ -53,6 +55,7 @@ export async function writeVersionChainEntry({
 		roomKey,
 		iso,
 		chain: previous && encodedDelta ? chain : null,
+		noChainReason,
 		previousFingerprint: previous ? getSnapshotFingerprint(previous) : nextFingerprint,
 		// The hash is what actually pins the diff base: tombstone pruning can change content
 		// without moving the fingerprint.

@@ -73,6 +73,24 @@ describe('writeVersionChainEntry', () => {
 		expect(await bucket.head(`${roomKey}/${isoAt(0)}.k`)).not.toBeNull()
 	})
 
+	it('carries the caller-named reason for a discarded chain', async () => {
+		const bucket = createFakeR2()
+
+		const result = await writeVersionChainEntry({
+			bucket,
+			roomKey,
+			iso: isoAt(0),
+			chain: null,
+			noChainReason: 'segment-lost',
+			pending: [],
+			previous: null,
+			next: snapshot(1, ['shape:a']),
+			now: 0,
+		})
+
+		expect(result).toMatchObject({ wrote: 'keyframe', reason: 'segment-lost' })
+	})
+
 	it('packs deltas into one segment object that reconstructs exactly', async () => {
 		const bucket = createFakeR2()
 		const legacyBucket = createFakeR2()

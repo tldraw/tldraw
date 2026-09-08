@@ -2102,12 +2102,21 @@ export class TLFileDurableObject extends DurableObject {
 			return this._versionChainHeadIso ?? iso
 		}
 		let pending: PendingDelta[] = []
+		let noChainReason: 'segment-lost' | undefined
 		if (chain) {
 			const rehydrated = await this.getPendingDeltas(chain)
 			// The chain said a segment was open but R2 no longer has it. Appending would rewrite the
 			// segment without the deltas its metadata still promises, so start a fresh chain instead.
-			if (rehydrated === null) chain = null
-			else pending = rehydrated
+			// The keys go to the log, not the metric: analytics blobs carry no R2 keys.
+			if (rehydrated === null) {
+				console.error(
+					`Version chain lost its open segment; cutting a keyframe. room=${key} segment=${chain.openSegment?.key}`
+				)
+				noChainReason = 'segment-lost'
+				chain = null
+			} else {
+				pending = rehydrated
+			}
 		}
 		// R2 persist flakiness is a known quantity (see the multipart/fallback machinery on the
 		// snapshot uploads). A chain write is one idempotent PUT for a fixed iso, so retrying the
@@ -2120,6 +2129,7 @@ export class TLFileDurableObject extends DurableObject {
 						roomKey: key,
 						iso,
 						chain,
+						noChainReason,
 						pending,
 						previous: this._lastPersistedSnapshot,
 						next: snapshot,

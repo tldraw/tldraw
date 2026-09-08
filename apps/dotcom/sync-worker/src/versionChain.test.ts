@@ -56,6 +56,13 @@ describe('decideVersionWrite', () => {
 		expect(decide(null)).toEqual({ kind: 'keyframe', reason: 'no-chain' })
 	})
 
+	it('reports the caller-named reason when a discarded chain left no chain', () => {
+		expect(decide(null, { noChainReason: 'segment-lost' })).toEqual({
+			kind: 'keyframe',
+			reason: 'segment-lost',
+		})
+	})
+
 	it('cuts a keyframe when the incoming snapshot moved the schema hash', () => {
 		expect(
 			decide({}, { nextFingerprint: { lastDocumentChangeClock: 11, schemaHash: 'different' } })
