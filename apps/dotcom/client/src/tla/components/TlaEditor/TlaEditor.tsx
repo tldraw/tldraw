@@ -163,8 +163,12 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			if (fileState?.lastSessionState) {
 				try {
 					sessionState = JSON.parse(fileState.lastSessionState.trim() || 'null')
-				} catch {
+				} catch (err) {
 					// A corrupt stored session state must not take the whole board down with it.
+					captureException(err, {
+						tags: { operation: 'parse-session-state' },
+						extra: { fileId },
+					})
 				}
 			}
 			if (sessionState && deepLink) {
