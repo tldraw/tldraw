@@ -36,8 +36,8 @@ export async function getRoomHistorySnapshot(
 		// The listing is part of this request's R2 cost: reconstructVersion counts zero listing
 		// ops for a pre-loaded index, so leaving these out under-reports the header below.
 		listOps = ops
-		// Keyframes and legacy full copies stream straight through — parsing and re-serializing a
-		// 25MB board costs ~3x the body on a 128MB isolate. Only a delta replay materializes.
+		// Keyframes and legacy full copies stream straight through — openWholeVersionStream states
+		// the parse-cost rationale. Only a delta replay materializes.
 		const whole = await openWholeVersionStream({ ...buckets, roomKey, timestamp, index })
 		if (whole) {
 			return new Response(whole, {

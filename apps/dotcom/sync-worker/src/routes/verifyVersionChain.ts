@@ -16,10 +16,7 @@ export interface VerifyResult {
 	checked: number
 	/** Versions replayed, whether or not a legacy copy existed to compare them against. */
 	replayed: number
-	/**
-	 * R2 reads spent, listing included. At the limit the run stopped early, so a clean result is
-	 * evidence about the versions it reached and about nothing else.
-	 */
+	/** R2 reads spent, listing included. */
 	reads: number
 	/**
 	 * False when the read budget stopped the walk with index entries still unvisited. On a room
