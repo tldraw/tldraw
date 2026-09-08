@@ -29,6 +29,7 @@ export function MenuClickCapture() {
 		isDown: false,
 		isDragging: false,
 		button: 0,
+		pointerId: -1,
 		start: new Vec(),
 	})
 
@@ -69,6 +70,11 @@ export function MenuClickCapture() {
 
 	const handlePointerDown = useCallback(
 		(e: PointerEvent) => {
+			// This overlay tracks a single press. A second pointer landing while one is active —
+			// a palm resting on the glass beside a pen — must not take over the gesture, or its
+			// own cancel would end the press it stole.
+			if (rPointerState.current.isDown) return
+
 			const button = getPointerEventButton(e)
 			if (button !== 0 && button !== 2) return
 
@@ -94,6 +100,7 @@ export function MenuClickCapture() {
 				isDown: true,
 				isDragging: false,
 				button,
+				pointerId: e.pointerId,
 				start: new Vec(e.clientX, e.clientY),
 			}
 
@@ -111,7 +118,7 @@ export function MenuClickCapture() {
 	const handlePointerMove = useCallback(
 		(e: PointerEvent) => {
 			const state = rPointerState.current
-			if (!state.isDown) return
+			if (!state.isDown || state.pointerId !== e.pointerId) return
 
 			// Left-click: wait for the drag threshold before forwarding anything, then
 			// replay pointerdown at the original start so the editor records the
@@ -144,15 +151,17 @@ export function MenuClickCapture() {
 
 	const handlePointerUp = useCallback(
 		(e: PointerEvent) => {
-			const isStaticRightClick =
-				rPointerState.current.button === 2 && !rPointerState.current.isDragging
+			const state = rPointerState.current
+			if (!state.isDown || state.pointerId !== e.pointerId) return
+
+			const isStaticRightClick = state.button === 2 && !state.isDragging
 
 			editor.dispatch({
 				type: 'pointer',
 				target: 'canvas',
 				name: 'pointer_up',
 				...getPointerInfo(editor, e),
-				button: rPointerState.current.button === 2 ? 2 : getPointerEventButton(e),
+				button: state.button === 2 ? 2 : getPointerEventButton(e),
 			})
 
 			if (isStaticRightClick && editor.options.rightClickPanning) {
@@ -183,6 +192,7 @@ export function MenuClickCapture() {
 				isDown: false,
 				isDragging: false,
 				button: 0,
+				pointerId: -1,
 				start: new Vec(e.clientX, e.clientY),
 			}
 		},
@@ -192,9 +202,9 @@ export function MenuClickCapture() {
 	const handlePointerCancel = useCallback(
 		(e: PointerEvent) => {
 			const state = rPointerState.current
-			if (!state.isDown) {
-				// A right-click press was forwarded to the canvas, so let the canvas
-				// handler end it.
+			if (!state.isDown || state.pointerId !== e.pointerId) {
+				// Either a right-click press that was forwarded to the canvas, or a pointer this
+				// overlay never tracked. Neither is ours to end, so let the canvas handler decide.
 				canvasEvents.onPointerCancel?.(e)
 				return
 			}
@@ -222,6 +232,7 @@ export function MenuClickCapture() {
 				isDown: false,
 				isDragging: false,
 				button: 0,
+				pointerId: -1,
 				start: new Vec(e.clientX, e.clientY),
 			}
 		},
