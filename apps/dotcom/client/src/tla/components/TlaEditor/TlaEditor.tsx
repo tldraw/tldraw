@@ -25,6 +25,7 @@ import {
 	useDialogs,
 	useEditor,
 	useEvent,
+	useToasts,
 	useValue,
 } from 'tldraw'
 import { SneakyMermaidHandler } from '../../../components/SneakyMermaidHandler/SneakyMermaidHandler'
@@ -45,6 +46,7 @@ import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawCurrentUser } from '../../hooks/useUser'
+import { defineMessages, useMsg } from '../../utils/i18n'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
 import { CommentsOnCanvas, SignInToComment, useAnonCommentToolOverrides } from './CommentsOnCanvas'
@@ -63,6 +65,12 @@ import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
+
+const messages = defineMessages({
+	slurpFailed: {
+		defaultMessage: 'Could not restore your local drawing. Try reloading this page.',
+	},
+})
 
 // Composing needs a signed-in author and an editable canvas. Signed-out visitors on an
 // editable canvas get a sign-in prompt where the composers would be; view-only sessions
@@ -112,6 +120,16 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const fileId = fileSlug
 
 	const setIsReady = useSetIsReady()
+	const { addToast } = useToasts()
+	const slurpFailedMsg = useMsg(messages.slurpFailed)
+	const showSlurpFailure = useEvent(() => {
+		addToast({
+			id: 'local-file-restore-failed',
+			severity: 'warning',
+			title: slurpFailedMsg,
+			keepOpen: true,
+		})
+	})
 
 	const dialogs = useDialogs()
 	// need to wrap this in a useEvent to prevent the context id from changing on us
@@ -200,7 +218,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 					// ReadyWrapper keeps the editor invisible and inert until setIsReady runs, so a
 					// failed slurp must not stop it from running.
 					console.error('Failed to slurp local file', err)
-					captureException(err)
+					captureException(err, {
+						tags: { operation: 'slurp-local-file' },
+						extra: { fileId },
+					})
+					if (!abortController.signal.aborted) showSlurpFailure()
 				})
 				.then(setIsReady)
 
@@ -219,6 +241,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			fileId,
 			remountImageShapes,
 			setIsReady,
+			showSlurpFailure,
 		]
 	)
 
