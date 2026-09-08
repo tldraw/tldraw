@@ -4,8 +4,9 @@ import { describe, expect, it } from 'vitest'
 import {
 	applySnapshotDelta,
 	buildSnapshotDelta,
-	versionEnvelopeHash,
 	chainHeadHash,
+	snapshotHashes,
+	versionEnvelopeHash,
 } from './versionDelta'
 
 function rec(id: string, props: Record<string, unknown> = {}): UnknownRecord {
@@ -232,6 +233,23 @@ describe('buildSnapshotDelta / applySnapshotDelta', () => {
 		expect(
 			versionEnvelopeHash(snapshot({ ...base, tombstoneHistoryStartsAtClock: undefined }))
 		).not.toBe(versionEnvelopeHash(base))
+	})
+
+	it('computes both hashes in one pass, and a delta takes the envelope hash as given', () => {
+		const prev = snapshot({ documents: [{ state: rec('shape:a'), lastChangedClock: 1 }] })
+		const next = snapshot({
+			clock: 2,
+			documentClock: 2,
+			documents: [{ state: rec('shape:a', { x: 1 }), lastChangedClock: 2 }],
+		})
+
+		expect(snapshotHashes(next)).toEqual({
+			envelope: versionEnvelopeHash(next),
+			head: chainHeadHash(next),
+		})
+		expect(buildSnapshotDelta(prev, next).hash).toBe(versionEnvelopeHash(next))
+		// Trusted, not checked: the caller computed it from the same snapshot in the same pass.
+		expect(buildSnapshotDelta(prev, next, { envelopeHash: 'as-given' }).hash).toBe('as-given')
 	})
 
 	it('head hash ignores documentClock and nothing else', () => {

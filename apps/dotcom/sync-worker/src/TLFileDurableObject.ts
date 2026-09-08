@@ -736,6 +736,10 @@ export class TLFileDurableObject extends DurableObject {
 	// the document just loaded so a cold start does not cut a keyframe; see getStorage for why that
 	// seed may be ahead of R2 and why that is safe.
 	_lastPersistedSnapshot: RoomSnapshot | null = null
+	// `chainHeadHash(_lastPersistedSnapshot)`, kept from the write that produced it so the next
+	// persist does not hash the whole board again just to check the diff base. Null when unknown
+	// (the wake seed); the write computes it once and then it is known.
+	_lastPersistedHeadHash: string | null = null
 	_versionChain: ChainState | null = null
 	_versionChainLoaded = false
 	// The open segment's deltas. Null means "not known here yet" — after an eviction they are
@@ -813,6 +817,7 @@ export class TLFileDurableObject extends DurableObject {
 				// catch the stale chain on the next persist anyway; clearing here makes the next
 				// version an intentional keyframe rather than a recovered mistake.
 				this._lastPersistedSnapshot = null
+				this._lastPersistedHeadHash = null
 				this._versionChain = null
 				this._versionChainLoaded = true
 				this._pendingDeltas = null
@@ -2134,6 +2139,7 @@ export class TLFileDurableObject extends DurableObject {
 						noChainReason,
 						pending,
 						previous: this._lastPersistedSnapshot,
+						previousHeadHash: this._lastPersistedHeadHash ?? undefined,
 						next: snapshot,
 						now: Date.now(),
 					}),
@@ -2146,6 +2152,7 @@ export class TLFileDurableObject extends DurableObject {
 		await this.storage.put(VERSION_CHAIN_STORAGE_KEY, result.chain)
 		const previous = this._lastPersistedSnapshot
 		this._lastPersistedSnapshot = snapshot
+		this._lastPersistedHeadHash = result.chain.headHash
 		this.logEvent({
 			type: 'version_chain_write',
 			bytes: result.bytes,

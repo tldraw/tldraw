@@ -54,6 +54,12 @@ export function versionEnvelopeHash(snapshot: RoomSnapshot): string {
 	return snapshotHashes(snapshot).envelope
 }
 
+/** Both hashes of a snapshot from one pass over its records; see each accessor for what it means. */
+export interface SnapshotHashes {
+	envelope: string
+	head: string
+}
+
 /**
  * Identity of a snapshot as a chain head: the envelope hash with `documentClock` left out. That
  * clock is the storage clock shared with the object lane, so a comment write moves it without
@@ -66,7 +72,12 @@ export function chainHeadHash(snapshot: RoomSnapshot): string {
 	return snapshotHashes(snapshot).head
 }
 
-function snapshotHashes(snapshot: RoomSnapshot): { envelope: string; head: string } {
+/**
+ * Computes `versionEnvelopeHash` and `chainHeadHash` together. Each walks every record through
+ * `canonicalJson`, which on a large board is the bulk of a persist's CPU, and a write needs both of
+ * the next snapshot — so callers on the persist path take this and read the pair.
+ */
+export function snapshotHashes(snapshot: RoomSnapshot): SnapshotHashes {
 	let acc = 0n
 	for (const { state, lastChangedClock } of snapshot.documents) {
 		acc ^= BigInt('0x' + fnv1a64(canonicalJson(state) + '@' + lastChangedClock))
@@ -86,7 +97,14 @@ function snapshotHashes(snapshot: RoomSnapshot): { envelope: string; head: strin
 	}
 }
 
-export function buildSnapshotDelta(prev: RoomSnapshot, next: RoomSnapshot): SnapshotDelta {
+export function buildSnapshotDelta(
+	prev: RoomSnapshot,
+	next: RoomSnapshot,
+	options?: {
+		/** `versionEnvelopeHash(next)`, when the caller already has it; computed here otherwise. */
+		envelopeHash?: string
+	}
+): SnapshotDelta {
 	const prevDocs = new Map(prev.documents.map((d) => [d.state.id, d]))
 	const nextDocs = new Map(next.documents.map((d) => [d.state.id, d]))
 
@@ -132,7 +150,7 @@ export function buildSnapshotDelta(prev: RoomSnapshot, next: RoomSnapshot): Snap
 		tombstoneHistoryStartsAtClock: next.tombstoneHistoryStartsAtClock,
 		clock: next.clock,
 		documentClock: next.documentClock,
-		hash: versionEnvelopeHash(next),
+		hash: options?.envelopeHash ?? versionEnvelopeHash(next),
 	}
 }
 

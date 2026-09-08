@@ -6,6 +6,7 @@ import { createFakeR2 } from './test/fakeR2'
 import { ChainState, PendingDelta } from './versionChain'
 import { reconstructVersion } from './versionChainRead'
 import { readOpenSegment, writeVersionChainEntry } from './versionChainWrite'
+import { chainHeadHash } from './versionDelta'
 
 const roomKey = 'app_rooms/slug'
 
@@ -138,6 +139,51 @@ describe('writeVersionChainEntry', () => {
 		// The buffer resets with the new segment rather than growing without bound.
 		expect(pending).toHaveLength(1)
 		expect((await bucket.list({ prefix: roomKey })).objects).toHaveLength(3)
+	})
+
+	it('trusts a supplied previous head hash instead of hashing the previous snapshot', async () => {
+		const bucket = createFakeR2()
+		const head = snapshot(1, ['shape:a'])
+		const first = await writeVersionChainEntry({
+			bucket,
+			roomKey,
+			iso: isoAt(0),
+			chain: null,
+			pending: [],
+			previous: null,
+			next: head,
+			now: 0,
+		})
+		expect(first.chain.headHash).toBe(chainHeadHash(head))
+
+		// The hash the last write handed back is the one the DO caches; it appends.
+		const appended = await writeVersionChainEntry({
+			bucket,
+			roomKey,
+			iso: isoAt(1),
+			chain: first.chain,
+			pending: first.pending,
+			previous: head,
+			previousHeadHash: first.chain.headHash,
+			next: snapshot(2, ['shape:a', 'shape:b']),
+			now: 1000,
+		})
+		expect(appended.wrote).toBe('delta')
+
+		// A wrong one is believed, and the write recovers with a keyframe rather than recomputing:
+		// the hash is the contract, so a caller that cached it wrong never gets a delta off it.
+		const mismatched = await writeVersionChainEntry({
+			bucket,
+			roomKey,
+			iso: isoAt(2),
+			chain: first.chain,
+			pending: first.pending,
+			previous: head,
+			previousHeadHash: 'not-the-head',
+			next: snapshot(2, ['shape:a', 'shape:b']),
+			now: 2000,
+		})
+		expect(mismatched).toMatchObject({ wrote: 'keyframe', reason: 'content-mismatch' })
 	})
 
 	it('cuts a fresh keyframe when the previous state is not the chain head', async () => {
