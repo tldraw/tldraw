@@ -14,9 +14,11 @@
 -- CREATE INDEX CONCURRENTLY that fails part-way leaves an INVALID index behind, and IF NOT EXISTS
 -- would then match it and do nothing, leaving an index the planner never uses. The ledger means
 -- this file only re-runs after a failure, so the DROP is a no-op on a clean first run and clears
--- the wreckage on a retry. DROP INDEX CONCURRENTLY rather than plain DROP because plain DROP takes
--- an ACCESS EXCLUSIVE lock on the table, the exact thing this migration avoids.
+-- the wreckage on a retry. Plain DROP, not DROP INDEX CONCURRENTLY: Zero's ddl_command_start event
+-- trigger writes before the statement runs, so Postgres refuses the concurrent drop as not the
+-- first action in the transaction. The plain form takes no lock at all when the index is absent,
+-- which is every run but a retry.
 
-DROP INDEX CONCURRENTLY IF EXISTS "file_owning_group_created_at_idx";
+DROP INDEX IF EXISTS "file_owning_group_created_at_idx";
 CREATE INDEX CONCURRENTLY IF NOT EXISTS "file_owning_group_created_at_idx"
   ON public."file" ("owningGroupId", "createdAt" DESC);
