@@ -2,14 +2,11 @@ import { describe, expect, it } from 'vitest'
 import { Environment } from './types'
 import { loadVersionChainRollout, resolveVersionChainMode } from './versionChainConfig'
 
-function env(partial: Partial<Environment>, kv?: string | null | Error): Environment {
+function env(tldrawEnv?: string, kv?: Record<string, string>): Environment {
 	return {
-		...partial,
+		TLDRAW_ENV: tldrawEnv,
 		FEATURE_FLAGS: {
-			get: async () => {
-				if (kv instanceof Error) throw kv
-				return kv ?? null
-			},
+			get: async (key: string) => kv?.[key] ?? null,
 		},
 	} as unknown as Environment
 }
@@ -19,40 +16,48 @@ async function mode(e: Environment, roomKey: string) {
 }
 
 describe('version chain rollout', () => {
-	it('is off when nothing is set', async () => {
-		expect(await mode(env({}), 'app_rooms/a')).toBe('off')
+	it('defaults to dual everywhere outside production', async () => {
+		expect(await mode(env('development'), 'app_rooms/a')).toBe('dual')
+		expect(await mode(env('staging'), 'app_rooms/a')).toBe('dual')
+		expect(await mode(env(undefined), 'app_rooms/a')).toBe('dual')
 	})
 
-	it('is off for an unrecognised env value', async () => {
-		expect(await mode(env({ VERSION_CHAIN_MODE: 'yes-please' }), 'app_rooms/a')).toBe('off')
+	it('defaults to off in production', async () => {
+		expect(await mode(env('production'), 'app_rooms/a')).toBe('off')
 	})
 
-	it('applies the env mode to every room at 100 percent', async () => {
-		const e = env({ VERSION_CHAIN_MODE: 'dual', VERSION_CHAIN_ROLLOUT_PERCENT: '100' })
+	it('is off when the chain flag is disabled', async () => {
+		const e = env('staging', { version_chain: '{"enabled":false}' })
 
-		expect(await mode(e, 'app_rooms/a')).toBe('dual')
-		expect(await mode(e, 'app_rooms/b')).toBe('dual')
+		expect(await mode(e, 'app_rooms/a')).toBe('off')
 	})
 
-	it('defaults to 100 percent when the percentage is unset', async () => {
-		expect(await mode(env({ VERSION_CHAIN_MODE: 'chain' }), 'app_rooms/a')).toBe('chain')
+	it('is chain when legacy writes are disabled for a room on chains', async () => {
+		const e = env('staging', { version_chain_legacy_writes: '{"enabled":false}' })
+
+		expect(await mode(e, 'app_rooms/a')).toBe('chain')
 	})
 
-	it('is off for every room at 0 percent', async () => {
-		const e = env({ VERSION_CHAIN_MODE: 'dual', VERSION_CHAIN_ROLLOUT_PERCENT: '0' })
+	it('never leaves a room writing nothing: outside the chain rollout, legacy always wins', async () => {
+		// The dangerous flag state — legacy writes disabled while the chain rollout does not cover the
+		// room — must degrade to legacy-only, not to no version writes at all.
+		const e = env('staging', {
+			version_chain: '{"enabled":true,"percentage":0}',
+			version_chain_legacy_writes: '{"enabled":false}',
+		})
 
 		expect(await mode(e, 'app_rooms/a')).toBe('off')
 	})
 
 	it('is stable for a given room', async () => {
-		const e = env({ VERSION_CHAIN_MODE: 'dual', VERSION_CHAIN_ROLLOUT_PERCENT: '50' })
+		const e = env('staging', { version_chain: '{"enabled":true,"percentage":50}' })
 
 		expect(await mode(e, 'app_rooms/a')).toBe(await mode(e, 'app_rooms/a'))
 	})
 
-	it('splits rooms across the threshold', async () => {
+	it('splits rooms across the percentage threshold', async () => {
 		const rollout = await loadVersionChainRollout(
-			env({ VERSION_CHAIN_MODE: 'dual', VERSION_CHAIN_ROLLOUT_PERCENT: '50' })
+			env('staging', { version_chain: '{"enabled":true,"percentage":50}' })
 		)
 		const rooms = Array.from({ length: 200 }, (_, i) => `app_rooms/room-${i}`)
 
@@ -62,33 +67,8 @@ describe('version chain rollout', () => {
 		expect(on).toBeLessThan(140)
 	})
 
-	it('lets the KV override turn the mode on without a deploy', async () => {
-		const e = env({}, '{"mode":"chain"}')
-
-		expect(await mode(e, 'app_rooms/a')).toBe('chain')
-	})
-
-	it('lets the KV override kill an env-enabled mode', async () => {
-		const e = env({ VERSION_CHAIN_MODE: 'dual' }, '{"mode":"off"}')
-
-		expect(await mode(e, 'app_rooms/a')).toBe('off')
-	})
-
-	it('applies the KV percentage', async () => {
-		const e = env({}, '{"mode":"dual","percent":0}')
-
-		expect(await mode(e, 'app_rooms/a')).toBe('off')
-	})
-
-	it('falls back to the env vars for a malformed override', async () => {
-		for (const kv of ['not json', '{"mode":"sideways"}', '{"mode":"dual","percent":"lots"}']) {
-			expect(await mode(env({ VERSION_CHAIN_MODE: 'dual' }, kv), 'app_rooms/a')).toBe('dual')
-			expect(await mode(env({}, kv), 'app_rooms/a')).toBe('off')
-		}
-	})
-
-	it('falls back to the env vars when the KV read throws', async () => {
-		const e = env({ VERSION_CHAIN_MODE: 'dual' }, new Error('KV is down'))
+	it('lets a stored flag turn production on without a deploy', async () => {
+		const e = env('production', { version_chain: '{"enabled":true,"percentage":100}' })
 
 		expect(await mode(e, 'app_rooms/a')).toBe('dual')
 	})

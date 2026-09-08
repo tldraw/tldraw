@@ -127,8 +127,6 @@ name = "dev-tldraw-multiplayer"
 compatibility_date = "2025-06-05"
 
 [env.dev.vars]
-VERSION_CHAIN_MODE = "dual"
-VERSION_CHAIN_ROLLOUT_PERCENT = "100"
 BOTCOM_POSTGRES_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6543/postgres"
 BOTCOM_POSTGRES_POOLED_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6432/postgres"
 TLDRAW_ENV = "development"
@@ -157,15 +155,7 @@ LOCAL_SCREENSHOT_SERVICE_URL = "http://localhost:3000/__screenshot"
 name = "main-tldraw-multiplayer"
 workers_dev = false
 
-# Previews get only script-injected vars by default; the chain mode rides in toml so a
-# preview deploy actually exercises the new write path.
-[env.preview.vars]
-VERSION_CHAIN_MODE = "dual"
-VERSION_CHAIN_ROLLOUT_PERCENT = "100"
-
 [env.staging.vars]
-VERSION_CHAIN_MODE = "dual"
-VERSION_CHAIN_ROLLOUT_PERCENT = "100"
 HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "4"
 HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "1024"
@@ -179,8 +169,6 @@ name = "tldraw-multiplayer"
 workers_dev = false
 
 [env.production.vars]
-VERSION_CHAIN_MODE = "off"
-VERSION_CHAIN_ROLLOUT_PERCENT = "0"
 HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "10"
 HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "2048"

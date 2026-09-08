@@ -79,8 +79,6 @@ export interface Environment {
 	ASSET_UPLOAD_ORIGIN: string | undefined
 	USER_CONTENT_URL: string | undefined
 	MULTIPLAYER_SERVER: string | undefined
-	VERSION_CHAIN_MODE: string | undefined
-	VERSION_CHAIN_ROLLOUT_PERCENT: string | undefined
 
 	HEALTH_CHECK_BEARER_TOKEN: string | undefined
 	HEALTH_CHECK_DB_SIZE_THRESHOLD_GB: string | undefined
