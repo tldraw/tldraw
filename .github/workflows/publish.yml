@@ -296,9 +296,11 @@ jobs:
     if: needs.publish.outputs.mode == 'new' || ((needs.publish.outputs.mode == 'patch' || needs.publish.outputs.mode == 'manual') && needs.publish.outputs.is_latest_version == 'true')
     needs: publish
     # CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID are secrets on this environment rather than on
-    # the repository. Only a job can select an environment — a reusable-workflow (`uses:`) job can't,
-    # which is how the v5.4.0 release ran this with both empty (#10636) — so the deploy runs here as
-    # a job of its own, sharing its steps with deploy-templates.yml through the composite action.
+    # the repository, and a job has to select the environment to see them. Calling deploy-templates.yml
+    # as a reusable workflow doesn't do it: a called workflow only ever sees the secrets its caller
+    # hands it, so the v5.4.0 release reached the deploy with both empty (#10636) even though the
+    # called job selected deploy-production itself. The deploy runs here as a job of its own instead,
+    # sharing its steps with deploy-templates.yml through the composite action.
     environment: deploy-production
     timeout-minutes: 60
     runs-on: ubuntu-latest-16-cores-arm-open
