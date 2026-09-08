@@ -1,15 +1,14 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { deleteAllObjectsWithPrefix, listAllObjectKeys, R2ReadScheduler, runInline } from './r2'
+import {
+	deleteAllObjectsWithPrefix,
+	listAllObjectKeys,
+	listAllObjects,
+	R2ReadScheduler,
+	runInline,
+} from './r2'
 import { parseVersionKey, PendingDelta, readSegmentRef, SegmentBody } from './versionChain'
 import { decodeVersionBody, isGzippedVersionBody } from './versionChainCodec'
 import { applySnapshotDelta, versionEnvelopeHash } from './versionDelta'
-
-// R2 has honored `include` on list() since compat date 2022-08-04 (this worker's is far past it),
-// but the repo's ambient workers-types entrypoint predates the option — declared locally, same
-// pattern as types.ts.
-type R2ListOptionsWithInclude = R2ListOptions & {
-	include?: Array<'httpMetadata' | 'customMetadata'>
-}
 
 /** A keyframe object: one whole snapshot, and the single version it is. */
 export interface KeyframeIndexEntry {
@@ -58,41 +57,27 @@ export async function loadChainIndex(
 	roomKey: string,
 	schedule: R2ReadScheduler = runInline
 ): Promise<{ entries: ChainIndexEntry[]; ops: number }> {
+	const { objects, ops } = await listAllObjects(bucket, `${roomKey}/`, schedule)
 	const entries: ChainIndexEntry[] = []
-	let cursor: string | undefined
-	let ops = 0
-
-	do {
-		// Including metadata makes R2 return shorter pages, so a short page does not mean the
-		// listing is done — `truncated` is the only safe stop condition.
-		const options: R2ListOptionsWithInclude = {
-			prefix: `${roomKey}/`,
-			cursor,
-			include: ['customMetadata'],
+	for (const object of objects) {
+		const parsed = parseVersionKey(object.key)
+		if (!parsed) continue
+		if (parsed.kind === 'keyframe') {
+			entries.push({ kind: 'keyframe', key: object.key, timestamps: [parsed.timestamp] })
+			continue
 		}
-		const page: R2Objects = await schedule(() => bucket.list(options as R2ListOptions))
-		ops++
-		for (const object of page.objects) {
-			const parsed = parseVersionKey(object.key)
-			if (!parsed) continue
-			if (parsed.kind === 'keyframe') {
-				entries.push({ kind: 'keyframe', key: object.key, timestamps: [parsed.timestamp] })
-				continue
-			}
-			const ref = readSegmentRef(object.customMetadata)
-			// A segment with no readable reference cannot be placed in a chain. Skipping it here
-			// surfaces as a sequence gap rather than as a silently short replay.
-			if (!ref) continue
-			entries.push({
-				kind: 'segment',
-				key: object.key,
-				timestamps: ref.timestamps,
-				keyframeKey: ref.keyframeKey,
-				firstSeq: ref.firstSeq,
-			})
-		}
-		cursor = page.truncated ? page.cursor : undefined
-	} while (cursor)
+		const ref = readSegmentRef(object.customMetadata)
+		// A segment with no readable reference cannot be placed in a chain. Skipping it here
+		// surfaces as a sequence gap rather than as a silently short replay.
+		if (!ref) continue
+		entries.push({
+			kind: 'segment',
+			key: object.key,
+			timestamps: ref.timestamps,
+			keyframeKey: ref.keyframeKey,
+			firstSeq: ref.firstSeq,
+		})
+	}
 
 	entries.sort((a, b) => a.key.localeCompare(b.key))
 	return { entries, ops }

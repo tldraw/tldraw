@@ -36,6 +36,39 @@ export function runInline<T>(read: () => Promise<T>): Promise<T> {
 	return read()
 }
 
+// R2 has honored `include` on list() since compat date 2022-08-04 (this worker's is far past it),
+// but the repo's ambient workers-types entrypoint predates the option — declared locally, same
+// pattern as types.ts.
+type R2ListOptionsWithInclude = R2ListOptions & {
+	include?: Array<'httpMetadata' | 'customMetadata'>
+}
+
+/**
+ * Every object under `prefix` with its custom metadata, plus the number of list calls the walk
+ * spent — callers inside a read budget account for the listing too.
+ */
+export async function listAllObjects(
+	bucket: R2Bucket,
+	prefix: string,
+	schedule: R2ReadScheduler = runInline
+): Promise<{ objects: R2Object[]; ops: number }> {
+	const objects: R2Object[] = []
+	let cursor: string | undefined
+	let ops = 0
+
+	do {
+		// Including metadata makes R2 return shorter pages, so a short page does not mean the
+		// listing is done — `truncated` is the only safe stop condition.
+		const options: R2ListOptionsWithInclude = { prefix, cursor, include: ['customMetadata'] }
+		const page = await schedule(() => bucket.list(options as R2ListOptions))
+		ops++
+		objects.push(...page.objects)
+		cursor = page.truncated ? page.cursor : undefined
+	} while (cursor)
+
+	return { objects, ops }
+}
+
 /**
  * Every key under `prefix`, or the first `limit` of them. The limit is passed to R2 too, so a
  * capped listing is a single page rather than a full walk sliced afterwards.
