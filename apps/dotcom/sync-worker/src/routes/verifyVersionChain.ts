@@ -48,7 +48,7 @@ export async function verifyRoomVersions({
 	roomKey: string
 	limit: number
 }): Promise<VerifyResult> {
-	const { entries, ops } = await loadChainIndex(chainBucket, roomKey)
+	const { entries, ops, rejected } = await loadChainIndex(chainBucket, roomKey)
 
 	// A set: a version can fail both the hash check and the legacy comparison, and it is one
 	// mismatch, not two.
@@ -113,6 +113,17 @@ export async function verifyRoomVersions({
 				message: `segment ${entry.key} references missing keyframe ${entry.keyframeKey}`,
 			})
 		}
+	}
+
+	// The same class as the orphans above, one step earlier: these never reached the index, so the
+	// check above cannot see them and the walk below never misses them. A rejected segment at the
+	// end of a chain leaves no sequence gap behind it, which is exactly how an unreadable tail
+	// passes as a clean room.
+	for (const object of rejected) {
+		errors.push({
+			timestamp: object.timestamp,
+			message: `segment ${object.key} has no readable chain reference`,
+		})
 	}
 
 	for (const keyframe of keyframes) {
