@@ -3892,7 +3892,7 @@ spec:
                       formatAs: time_series
                       intervalFactor: 1
                       query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, if(blob3 = 'ok', 'ok', concat('fail:', blob4))
+                        SECOND) as date, if(blob3 = 'ok', 'ok', concat(blob3, ':', blob4))
                         as result, count() as total
 
                         FROM 'MEASURE'
@@ -3907,7 +3907,7 @@ spec:
 
                         ORDER BY date ASC"
                       rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, if(blob3 = 'ok', 'ok', concat('fail:', blob4))
+                        SECOND) as date, if(blob3 = 'ok', 'ok', concat(blob3, ':', blob4))
                         as result, count() as total
 
                         FROM 'MEASURE'

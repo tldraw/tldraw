@@ -35,13 +35,16 @@ spec:
         # rawQuery must be the boolean, not a copy of the SQL. The dashboard panels
         # carry the SQL in both fields, but that shape reaches the plugin as
         # already-interpolated text and dies on "unsupported value type: $from".
+        # Matches 'fail' rather than negating 'ok': a check the durable object
+        # declined to run (outcome 'skipped') is not a failing chain, and on a
+        # board big enough to skip, a negated match would page on every retire.
         query: |-
           SELECT count() as fails
           FROM 'MEASURE'
           WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
           AND blob1 = 'version_chain_verify'
           AND blob2 = 'production-tldraw-multiplayer'
-          AND blob3 != 'ok'
+          AND blob3 = 'fail'
         rawQuery: true
         refId: A
         round: 0s
