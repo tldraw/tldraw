@@ -1,4 +1,4 @@
-import { computed, TextManager, toRichText } from '@tldraw/editor'
+import { computed, DomTextMeasurer, toRichText } from '@tldraw/editor'
 import * as layout from '@tldraw/rich-text-layout'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TestEditor } from '../../../test/TestEditor'
@@ -97,7 +97,7 @@ describe('default text measurement', () => {
 			{ html: '<p>你好</p>', opts: { ...opts, richText: toRichText('你好') } },
 			{ html: '<p>hello</p>', opts },
 		]
-		const batch = vi.spyOn(TextManager.prototype, 'measureHtmlBatch')
+		const batch = vi.spyOn(DomTextMeasurer.prototype, 'measureHtmlBatch')
 		expect(editor.textMeasure.measureHtmlBatch(requests).map((size) => size.w)).toEqual([
 			50, 123, 123, 50,
 		])
@@ -178,4 +178,39 @@ describe('default text measurement', () => {
 		expect(editor.textMeasure.injected).toBeNull()
 		expect(editor.textMeasure.measureHtml('<p>hello</p>', opts).w).toBe(123)
 	})
+})
+
+it('serializes HTML only for unsupported rich text and preserves mixed batch order', async () => {
+	createEditor()
+	await waitForNative()
+	const latinHtml = vi.fn(() => '<p>hello</p>')
+	const fallbackHtml = vi.fn(() => '<p>你好</p>')
+	const latin = { richText: toRichText('hello'), html: latinHtml }
+	const fallback = { richText: toRichText('你好'), html: fallbackHtml }
+	expect(editor.textMeasure.measureRichText(latin, opts).w).toBe(50)
+	const batch = vi.spyOn(DomTextMeasurer.prototype, 'measureHtmlBatch')
+	expect(
+		editor.textMeasure
+			.measureRichTextBatch([
+				{ request: latin, opts },
+				{ request: fallback, opts },
+				{ request: latin, opts },
+			])
+			.map(({ w }) => w)
+	).toEqual([50, 123, 50])
+	expect(latinHtml).not.toHaveBeenCalled()
+	expect(fallbackHtml).toHaveBeenCalledTimes(1)
+	expect(batch).toHaveBeenCalledTimes(1)
+	expect(batch.mock.calls[0][0]).toHaveLength(1)
+})
+
+it('releases owned measurement contexts after font changes and disposal', async () => {
+	const release = vi.spyOn(layout, 'releaseMeasureContext')
+	createEditor()
+	await waitForNative()
+	fonts.dispatchEvent(new Event('loadingdone'))
+	expect(release).toHaveBeenCalledTimes(1)
+	editor.textMeasure.measureHtml('', opts)
+	editor.dispose()
+	expect(release).toHaveBeenCalledTimes(3)
 })

@@ -228,3 +228,8 @@ export function defaultAddFontsFromNode(
 
 	return state
 }
+
+/** @internal */
+export function createRichTextMeasurementRequest(editor: Editor, richText: TLRichText) {
+	return { richText, html: () => renderHtmlFromRichTextForMeasurement(editor, richText) }
+}

@@ -17,9 +17,6 @@ class ShimContext2D {
 	letterSpacing = '0px'
 	measureText(text: string) {
 		shimCalls++
-		if (!current) {
-			throw new Error('@tldraw/rich-text-layout: no MeasureContext installed')
-		}
 		const { font, context } = resolveTaggedFont(this.font)
 		const width = context.measure(text, font).width
 		// pretext calibrates emoji widths by comparing canvas against a DOM span whenever a
@@ -58,7 +55,7 @@ function resolveTaggedFont(fontString: string): { font: FontSpec; context: Measu
 	let entry = taggedFontCache.get(fontString)
 	if (entry) return entry
 	const match = TAG_RE.exec(fontString)
-	const context = (match && contextsByTag.get(`${TAG_PREFIX}${match[1]}__`)) || current
+	const context = match ? contextsByTag.get(`${TAG_PREFIX}${match[1]}__`) : current
 	if (!context) throw new Error('@tldraw/rich-text-layout: no MeasureContext installed')
 	const font = parseFontString(match ? fontString.slice(0, match.index) : fontString)
 	entry = { font, context }
@@ -179,4 +176,23 @@ export function getPretext(): PretextModule {
  */
 export function isMeasureContextReady(): boolean {
 	return current !== null && pretext !== null && captured
+}
+
+/**
+ * Release an owned context after its last layout. Other installed contexts remain usable.
+ * @public
+ */
+export function releaseMeasureContext(ctx: MeasureContext): void {
+	const tag = tagsByContext.get(ctx)
+	if (tag) {
+		contextsByTag.delete(tag)
+		tagsByContext.delete(ctx)
+	}
+	// The initial canvas probe is untagged but also retains its measurement context.
+	for (const [key, entry] of taggedFontCache) {
+		if (entry.context === ctx) taggedFontCache.delete(key)
+	}
+	// Pretext has no per-context eviction; its cache contains widths, not owned contexts.
+	pretext?.clearCache()
+	if (current === ctx) current = null
 }

@@ -907,3 +907,8 @@ registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_VERSION,
 	(globalThis as any).TLDRAW_LIBRARY_MODULES
 )
+
+export {
+	setNativeTextExportMeasurer,
+	type TLNativeTextExportMeasurer,
+} from './lib/utils/text/NativeTextExportManager'

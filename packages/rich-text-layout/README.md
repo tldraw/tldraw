@@ -148,21 +148,24 @@ Disc, circle and square markers come out as shapes, not glyphs: Blink sizes and 
 
 Pass `textMeasurer="dom"` to force DOM measurement. An explicit `textMeasurer` instance or factory takes precedence over the default; factories receive the editor during construction and own one measurer per editor. Bare `Editor` and `<TldrawEditor>` instances continue to use DOM measurement unless a measurer is supplied.
 
+Rich-text callers use `editor.textMeasure.measureRichText({ richText, html: () => renderHtml(richText) }, opts)` or `measureRichTextBatch`. Pretext reads the source document without evaluating the HTML callback; DOM evaluates it only when needed. Existing HTML-only implementations remain compatible through the manager's adapter. Arbitrary HTML stays on the DOM backend; the explicit Pretext measurer rejects HTML without a source document rather than approximating its geometry.
+
+`DomTextMeasurer` and `createTldrawTextMeasurer` implement `TLTextMeasurer`. Instances supplied to an editor are disposed with it; use a factory when each editor needs its own resources. Measurement contexts supplied to the pure layout adapter remain caller-owned. Call `releaseMeasureContext(context)` after the final consumer finishes to release the engine's context registrations and caches.
+
 Headless measurement and native SVG export can also be configured explicitly:
 
 ### Headless measurement
 
 ```ts
 import { createNodeMeasureContext, installMeasureContext } from '@tldraw/rich-text-layout'
-import { createTldrawTextMeasurer, Editor } from 'tldraw'
+import { createTldrawTextMeasurer, setNativeTextExportMeasurer, Editor } from 'tldraw'
 
 const measureContext = await createNodeMeasureContext({ fonts: tldrawFonts })
 await installMeasureContext(measureContext)
 
-const editor = new Editor({
-	...options,
-	textMeasurer: createTldrawTextMeasurer({ measureContext }),
-})
+const measurer = createTldrawTextMeasurer({ measureContext })
+const editor = new Editor({ ...options, textMeasurer: measurer })
+setNativeTextExportMeasurer(editor, measurer)
 ```
 
 `TLEditorOptions.textMeasurer` replaces the DOM-backed `TextManager` methods (`measureText`, `measureHtml`, `measureHtmlBatch`, `measureTextSpans`). With it, the editor creates no hidden measurement elements, and text, geo, note and arrow labels and frame headings get real geometry in node. `createTldrawTextMeasurer` builds its stylesheet from the `.tl-rich-text` rules in `editor.css` (`pre-wrap`, `tab-size: 2`, `p { margin: 0; min-height: 1lh }`, list padding in `ch` with the 10/100-item gutters, heading margins and line height, `code` in `tldraw_mono`, link underline, `mark` background) on top of the user agent sheet. The four families must be registered under their CSS names (`tldraw_draw`, `tldraw_sans`, `tldraw_serif`, `tldraw_mono`); the woff2 files in `@tldraw/assets/fonts` load directly.
@@ -173,7 +176,7 @@ const editor = new Editor({
 const { svg } = await editor.getSvgString(ids, { text: 'native' })
 ```
 
-`text: 'native'` (default `'foreignObject'`) makes `RichTextSVG` emit `<text>`/`<tspan>` through this engine instead of an HTML island, so rasterizers without an HTML engine (resvg, Figma import, Inkscape) render the text. In a browser it lays out with a canvas measure context; with an injected `TldrawTextMeasurer` it reuses that, so headless exports use the same engine that sized the shapes. Fonts referenced by family name need to be resolvable by the rasterizer; resvg, for example, matches the family name inside the font file, so `tldraw_sans` has to be mapped to `IBM Plex Sans` and the woff2 decompressed to ttf (see `packages/tldraw/src/test/nativeTextExport.test.ts` for a complete node-to-PNG run whose output is committed as `__snapshots__/native-text-export.png`).
+`text: 'native'` (default `'foreignObject'`) makes `RichTextSVG` emit `<text>`/`<tspan>` through this engine instead of an HTML island, so rasterizers without an HTML engine (resvg, Figma import, Inkscape) render the text. In a browser it lays out with a canvas measure context; an explicit `setNativeTextExportMeasurer(editor, provider)` registration supplies its `layoutRichText` capability independently of the shape measurement backend. Register the same measurer for headless exports to use the engine that sized the shapes. The caller owns registered providers; browser-created export contexts are invalidated when fonts load and released when the editor is disposed. Fonts referenced by family name need to be resolvable by the rasterizer; resvg, for example, matches the family name inside the font file, so `tldraw_sans` has to be mapped to `IBM Plex Sans` and the woff2 decompressed to ttf (see `packages/tldraw/src/test/nativeTextExport.test.ts` for a complete node-to-PNG run whose output is committed as `__snapshots__/native-text-export.png`).
 
 ## Golden harness
 
@@ -218,7 +221,7 @@ Where this implementation departs from the brief, and why.
 - **Trailing whitespace**: in `pre-wrap`, trailing preserved spaces count toward max-content width (Chromium includes them) but not toward alignment or `LineBox.width` (they hang). In `normal` they collapse away.
 - **Margins**: the layout root is treated as a block formatting context (tldraw's measurement element has `contain: layout` and the label containers are inline-block or flex items), so the first top margin and last bottom margin are contained, siblings collapse to the larger margin, and a container with no padding collapses through to its first/last leaf.
 - **`opts.richText` rather than an HTML parser.** tldraw's call sites only had HTML. `TLMeasureTextOpts.richText` carries the source document alongside the HTML; the DOM measurer ignores it, the headless measurer lays it out directly and only falls back to tag-stripping when it's absent.
-- **Injection keeps `editor.textMeasure: TextManager`.** `TLEditorOptions.textMeasurer` is wrapped by `TextManager`, which delegates and skips creating DOM when one is injected. The public type of `editor.textMeasure` doesn't change, and `editor.textMeasure.injected` exposes the delegate for the export path.
+- **`TextManager` delegates to independent backends.** `DomTextMeasurer` owns hidden DOM elements; `createTldrawTextMeasurer` adapts the layout engine; the default selection policy combines browser Pretext initialization with DOM fallback. Export uses its own explicit layout provider and does not inspect the measurement backend.
 - **`TestEditor` now injects its character-count fake** through the option instead of monkey-patching; the full `tldraw` suite passed unchanged before and after the switch.
 - **`@tldraw/utils` is a dependency** because `check-packages` requires every published package to call `registerTldrawLibraryVersion`. It has no DOM or tldraw-schema coupling; the core still has a single layout dependency, pretext.
 - **The node backend is exported from the main entry** (`createNodeMeasureContext`, with a dynamic `import('@napi-rs/canvas')`) rather than a separate `backends/node` entry point: the repo's `prepack` rewrites `exports` to the root entry only. No `dependenciesMeta` entry was needed: `@napi-rs/canvas` ships prebuilt binaries as optional dependencies and has no install script.

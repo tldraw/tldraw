@@ -823,6 +823,30 @@ export const defaultUserStore: TLUserStore;
 export function degreesToRadians(d: number): number;
 
 // @public (undocumented)
+export class DomTextMeasurer extends EditorManager implements TLTextMeasurer {
+    constructor(editor: Editor);
+    measureElementTextNodeSpans(element: HTMLElement, { shouldTruncateToFirstLine }?: {
+        shouldTruncateToFirstLine?: boolean;
+    }): {
+        didTruncate: boolean;
+        spans: {
+            box: BoxModel;
+            text: string;
+        }[];
+    };
+    // (undocumented)
+    measureHtml(html: string, opts: TLMeasureTextOpts): TLMeasuredTextSize;
+    // (undocumented)
+    measureHtmlBatch(requests: BatchMeasurementRequest[]): TLMeasuredTextSize[];
+    // (undocumented)
+    measureText(textToMeasure: string, opts: TLMeasureTextOpts): TLMeasuredTextSize;
+    measureTextSpans(textToMeasure: string, opts: TLMeasureTextSpanOpts): {
+        box: BoxModel;
+        text: string;
+    }[];
+}
+
+// @public (undocumented)
 export const EASINGS: {
     readonly easeInCubic: (t: number) => number;
     readonly easeInExpo: (t: number) => number;
@@ -3391,7 +3415,7 @@ export const Table: {
 export class TextManager extends EditorManager {
     constructor(editor: Editor, injected?: null | TLTextMeasurer);
     readonly injected: null | TLTextMeasurer;
-    measureElementTextNodeSpans(element: HTMLElement, { shouldTruncateToFirstLine }?: {
+    measureElementTextNodeSpans(element: HTMLElement, opts?: {
         shouldTruncateToFirstLine?: boolean;
     }): {
         didTruncate: boolean;
@@ -3405,8 +3429,13 @@ export class TextManager extends EditorManager {
     // (undocumented)
     measureHtmlBatch(requests: BatchMeasurementRequest[]): TLMeasuredTextSize[];
     // (undocumented)
-    measureText(textToMeasure: string, opts: TLMeasureTextOpts): TLMeasuredTextSize;
-    measureTextSpans(textToMeasure: string, opts: TLMeasureTextSpanOpts): {
+    measureRichText(request: TLMeasureRichTextRequest, opts: TLMeasureTextOpts): TLMeasuredTextSize;
+    // (undocumented)
+    measureRichTextBatch(requests: TLBatchRichTextMeasurementRequest[]): TLMeasuredTextSize[];
+    // (undocumented)
+    measureText(text: string, opts: TLMeasureTextOpts): TLMeasuredTextSize;
+    // (undocumented)
+    measureTextSpans(text: string, opts: TLMeasureTextSpanOpts): {
         box: BoxModel;
         text: string;
     }[];
@@ -3507,6 +3536,14 @@ export interface TLBaseExternalContent {
     // (undocumented)
     point?: VecLike;
     sources?: TLExternalContentSource[];
+}
+
+// @public (undocumented)
+export interface TLBatchRichTextMeasurementRequest {
+    // (undocumented)
+    opts: TLMeasureTextOpts;
+    // (undocumented)
+    request: TLMeasureRichTextRequest;
 }
 
 // @public (undocumented)
@@ -4394,6 +4431,13 @@ export type TLMeasuredTextSize = BoxModel & {
 };
 
 // @public (undocumented)
+export interface TLMeasureRichTextRequest {
+    html: (() => string) | string;
+    // (undocumented)
+    richText: TLRichText;
+}
+
+// @public (undocumented)
 export interface TLMeasureTextOpts {
     // (undocumented)
     disableOverflowWrapBreaking?: boolean;
@@ -4883,6 +4927,8 @@ export interface TLTextMeasurer {
     dispose?(): void;
     measureHtml(html: string, opts: TLMeasureTextOpts): TLMeasuredTextSize;
     measureHtmlBatch(requests: BatchMeasurementRequest[]): TLMeasuredTextSize[];
+    measureRichText?(request: TLMeasureRichTextRequest, opts: TLMeasureTextOpts): TLMeasuredTextSize;
+    measureRichTextBatch?(requests: TLBatchRichTextMeasurementRequest[]): TLMeasuredTextSize[];
     measureText(text: string, opts: TLMeasureTextOpts): TLMeasuredTextSize;
     measureTextSpans(text: string, opts: TLMeasureTextSpanOpts): {
         box: BoxModel;

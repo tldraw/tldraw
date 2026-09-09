@@ -139,6 +139,8 @@ import { TLKeyboardEventInfo } from '@tldraw/editor';
 import { TLLineShape } from '@tldraw/editor';
 import { TLLineShapePoint } from '@tldraw/editor';
 import { TLLineShapeSplineStyle } from '@tldraw/tlschema';
+import { TLMeasuredTextSize } from '@tldraw/editor';
+import { TLMeasureRichTextRequest } from '@tldraw/editor';
 import { TLMeasureTextOpts } from '@tldraw/editor';
 import { TLNoteShape } from '@tldraw/editor';
 import { TLNoteShapeProps } from '@tldraw/editor';
@@ -3484,6 +3486,9 @@ export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
 export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
 
 // @public
+export function setNativeTextExportMeasurer(editor: Editor, measurer: TLNativeTextExportMeasurer): () => void;
+
+// @public
 export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
     // (undocumented)
     getCursor(_overlay: TLShapeHandleOverlay): TLCursorType | undefined;
@@ -4230,6 +4235,8 @@ export interface TldrawTextMeasurer extends TLTextMeasurer {
     layoutText(text: string, opts: TldrawRichTextLayoutOptions): TextLayout;
     // (undocumented)
     readonly measureContext: MeasureContext;
+    // (undocumented)
+    measureRichText(request: TLMeasureRichTextRequest, opts: TLMeasureTextOpts): TLMeasuredTextSize;
 }
 
 // @public
@@ -4531,6 +4538,9 @@ export interface TLExternalContentProps {
     maxAssetSize?: number;
     maxImageDimension?: number;
 }
+
+// @public
+export type TLNativeTextExportMeasurer = Pick<TldrawTextMeasurer, 'layoutRichText'>;
 
 // @public (undocumented)
 export interface TLScribbleOverlay extends TLOverlay {

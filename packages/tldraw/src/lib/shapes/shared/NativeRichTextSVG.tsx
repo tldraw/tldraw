@@ -1,16 +1,8 @@
-import { Editor, useEditor, useSvgExportContext } from '@tldraw/editor'
-import {
-	SvgNode,
-	createCanvasMeasureContext,
-	installMeasureContext,
-	renderSvgTree,
-} from '@tldraw/rich-text-layout'
+import { useEditor, useSvgExportContext } from '@tldraw/editor'
+import { SvgNode, renderSvgTree } from '@tldraw/rich-text-layout'
 import { createElement, useEffect, useState } from 'react'
 import { flushSync } from 'react-dom'
-import {
-	TldrawTextMeasurer,
-	createTldrawTextMeasurer,
-} from '../../utils/text/createTldrawTextMeasurer'
+import { TLNativeTextExportMeasurer } from '../../utils/text/NativeTextExportManager'
 import { isLegacyAlign } from './legacyProps'
 import type { RichTextSVGProps } from './RichTextLabel'
 
@@ -21,36 +13,7 @@ import type { RichTextSVGProps } from './RichTextLabel'
  */
 export type NativeRichTextSVGProps = RichTextSVGProps
 
-const measurers = new WeakMap<Editor, Promise<TldrawTextMeasurer>>()
-
-/**
- * The measurer used for native text export. A measurer injected into the editor is reused, so
- * headless exports lay text out with the same engine that sized the shapes. In a browser a
- * canvas-backed context is created on first use; the document's fonts are already loaded by the
- * time an export runs.
- *
- * @internal
- */
-export function getExportTextMeasurer(editor: Editor): Promise<TldrawTextMeasurer> {
-	let promise = measurers.get(editor)
-	if (!promise) {
-		promise = (async () => {
-			const injected = editor.textMeasure.injected
-			if (injected && 'layoutRichText' in injected) return injected as TldrawTextMeasurer
-			const canvas = editor.getContainerDocument().createElement('canvas')
-			const ctx = canvas.getContext('2d')
-			if (!ctx) throw new Error('Native text export needs a 2D canvas context')
-			const measureContext = createCanvasMeasureContext(ctx)
-			await installMeasureContext(measureContext)
-			return createTldrawTextMeasurer({
-				measureContext,
-				extensions: editor.getTextOptions().tipTapConfig?.extensions,
-			})
-		})()
-		measurers.set(editor, promise)
-	}
-	return promise
-}
+import { getExportTextMeasurer } from '../../utils/text/NativeTextExportManager'
 
 function svgNodeToJsx(node: SvgNode, key: number): React.ReactElement {
 	const props: Record<string, unknown> = { key }
@@ -82,7 +45,7 @@ function svgNodeToJsx(node: SvgNode, key: number): React.ReactElement {
  * @internal
  */
 export function layoutLabelForExport(
-	measurer: TldrawTextMeasurer,
+	measurer: TLNativeTextExportMeasurer,
 	props: NativeRichTextSVGProps,
 	colors: { link: string; highlight: string; background: string }
 ): SvgNode {
@@ -130,7 +93,7 @@ export function layoutLabelForExport(
 export function NativeRichTextSVG(props: NativeRichTextSVGProps) {
 	const editor = useEditor()
 	const exportContext = useSvgExportContext()
-	const [measurer, setMeasurer] = useState<TldrawTextMeasurer | null>(null)
+	const [measurer, setMeasurer] = useState<TLNativeTextExportMeasurer | null>(null)
 
 	useEffect(() => {
 		let cancelled = false

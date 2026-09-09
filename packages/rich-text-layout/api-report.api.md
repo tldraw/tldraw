@@ -444,6 +444,9 @@ export interface Rect {
 }
 
 // @public
+export function releaseMeasureContext(ctx: MeasureContext): void;
+
+// @public
 export function renderDom(layout: TextLayout, options: DomRenderOptions): DomElementLike;
 
 // @public
