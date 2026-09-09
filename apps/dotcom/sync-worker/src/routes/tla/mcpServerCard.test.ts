@@ -40,6 +40,15 @@ describe('getMcpServerCard', () => {
 		expect(card.title).toBe(MCP_SERVER_INFO.title)
 	})
 
+	// `Response.json` would have said `application/json`, and did until a preview deploy showed the
+	// AI Catalog entry pointing here declaring a type the URL did not return. A client that checks
+	// the two against each other refuses on that.
+	it('is served as a Server Card rather than as plain JSON', () => {
+		expect(getMcpServerCard(makeRequest(), makeEnv()).headers.get('content-type')).toBe(
+			'application/mcp-server-card+json'
+		)
+	})
+
 	// Both are schema constraints, and both are the kind of thing that only fails once the document is
 	// published and somebody else's validator rejects it.
 	it('satisfies the schema constraints on name and description', async () => {

@@ -45,9 +45,19 @@ const SERVER_CARD_SCHEMA_URL =
  */
 const SERVER_CARD_NAME = 'com.tldraw/board-screenshots'
 
+/**
+ * The media type a Server Card is served with, which is not `application/json`.
+ *
+ * Clients ask for this type by `Accept`, and the AI Catalog entry pointing here declares it — a
+ * catalog whose `type` disagrees with what the URL actually returns is the mismatch a strict client
+ * refuses on. `Response.json` would quietly make it `application/json`, so the card is serialised by
+ * hand.
+ */
+const SERVER_CARD_MEDIA_TYPE = 'application/mcp-server-card+json'
+
 export function getMcpServerCard(request: IRequest, env: Environment): Response {
-	return Response.json(
-		{
+	return new Response(
+		JSON.stringify({
 			$schema: SERVER_CARD_SCHEMA_URL,
 			name: SERVER_CARD_NAME,
 			version: MCP_SERVER_INFO.version,
@@ -67,7 +77,12 @@ export function getMcpServerCard(request: IRequest, env: Environment): Response 
 					supportedProtocolVersions: SUPPORTED_PROTOCOL_VERSIONS,
 				},
 			],
-		},
-		{ headers: { 'cache-control': 'public, max-age=3600' } }
+		}),
+		{
+			headers: {
+				'content-type': SERVER_CARD_MEDIA_TYPE,
+				'cache-control': 'public, max-age=3600',
+			},
+		}
 	)
 }
