@@ -1,22 +1,15 @@
-import { TldrawUiButton, useValue } from 'tldraw'
-import { useGlobalEditor } from '../../../../utils/globalEditor'
+import { TldrawUiButton } from 'tldraw'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { useMsg } from '../../../utils/i18n'
 import { getIsSidebarOpenMobile, toggleMobileSidebar } from '../../../utils/local-session-state'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
-import { messages } from './sidebar-shared'
+import { messages, useHideSidebarToggle } from './sidebar-shared'
 import styles from '../sidebar.module.css'
 
 export function TlaSidebarToggleMobile() {
 	const trackEvent = useTldrawAppUiEvents()
 	const toggleSidebarLbl = useMsg(messages.toggleSidebar)
-	const editor = useGlobalEditor()
-
-	const hideSidebarToggle = useValue(
-		'hideSidebarToggle',
-		() => !editor || editor.getInstanceState().isFocusMode,
-		[editor]
-	)
+	const hideSidebarToggle = useHideSidebarToggle()
 	if (hideSidebarToggle) return null
 
 	return (

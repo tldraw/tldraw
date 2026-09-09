@@ -174,23 +174,16 @@ const router = createRouter<Environment>()
 	.post('/app/invite/:token/accept', acceptInvite)
 	.all('/app/__test__/*', testRoutes.fetch)
 	.get('/app/__debug-tail', (req, env) => {
-		if (isDebugLogging(env)) {
-			// upgrade to websocket
-			if (req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
-				return getLogger(env).fetch(req)
-			}
+		// upgrade to websocket
+		if (isDebugLogging(env) && req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
+			return getLogger(env).fetch(req)
 		}
-
 		return new Response('Not Found', { status: 404 })
 	})
-	.post('/app/__debug-tail/clear', async (req, env) => {
-		if (isDebugLogging(env)) {
-			// upgrade to websocket
-			await getLogger(env).clear()
-			return new Response('ok')
-		}
-
-		return new Response('Not Found', { status: 404 })
+	.post('/app/__debug-tail/clear', async (_req, env) => {
+		if (!isDebugLogging(env)) return new Response('Not Found', { status: 404 })
+		await getLogger(env).clear()
+		return new Response('ok')
 	})
 	.post('/app/submit-feedback', submitFeedback)
 	.get('/app/feature-flags', getFeatureFlags)
