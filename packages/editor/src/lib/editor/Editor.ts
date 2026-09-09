@@ -9881,9 +9881,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 								assets.push(assetWithDataUrl)
 								return
 							}
+							console.warn(`Could not inline asset ${asset.id}: fetch returned ${response.status}`)
 						}
-					} catch {
-						// keep the original asset
+					} catch (err) {
+						console.warn(`Could not inline asset ${asset.id}`, err)
 					}
 				}
 				assets.push(asset)
