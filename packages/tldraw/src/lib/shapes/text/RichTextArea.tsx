@@ -288,7 +288,11 @@ function handleTab(editor: Editor, view: EditorView, event: KeyboardEvent) {
 		// Check if the current line or any of its parent nodes are part of a list
 		let isInList = false
 		state.doc.nodesBetween(lineStart, lineEnd, (node) => {
-			if (node.type.name === 'bulletList' || node.type.name === 'orderedList') {
+			if (
+				node.type.name === 'bulletList' ||
+				node.type.name === 'orderedList' ||
+				node.type.name === 'taskList'
+			) {
 				isInList = true
 				return false // Stop iteration
 			}
