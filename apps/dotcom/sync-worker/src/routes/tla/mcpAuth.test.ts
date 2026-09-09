@@ -11,6 +11,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import { Environment } from '../../types'
 import { isFeatureFlagEnabledForUser } from '../../utils/featureFlags'
 import {
+	MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH,
 	MCP_PROTECTED_RESOURCE_METADATA_PATH,
 	McpAuthResult,
 	authenticateMcpRequest,
@@ -185,6 +186,21 @@ describe('getMcpProtectedResourceMetadata', () => {
 			scopes_supported: ['openid', 'profile', 'email', 'offline_access'],
 			bearer_methods_supported: ['header'],
 		})
+	})
+
+	// The fallback URL clients try when the path-derived one 404s. Both paths answer with the same
+	// document on purpose: the resource stays the MCP endpoint rather than becoming the origin, which
+	// is not protected and which no token is ever minted for.
+	it('names the MCP endpoint, not the origin, on the path-less fallback URL', async () => {
+		expect(MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH).toBe(
+			'/.well-known/oauth-protected-resource'
+		)
+		expect(
+			MCP_PROTECTED_RESOURCE_METADATA_PATH.startsWith(MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH)
+		).toBe(true)
+
+		const response = getMcpProtectedResourceMetadata(makeRequest(), makeEnv())
+		expect(await response.json()).toMatchObject({ resource: RESOURCE })
 	})
 
 	// Advertising a resource with no authorization server would push the failure further along, into

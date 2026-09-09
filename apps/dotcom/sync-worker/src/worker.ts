@@ -46,12 +46,18 @@ import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
 import { initUser } from './routes/tla/initUser'
 import {
+	MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH,
 	MCP_PROTECTED_RESOURCE_METADATA_PATH,
 	getMcpProtectedResourceMetadata,
 	mcpCorsPreflight,
 	withMcpCors,
 } from './routes/tla/mcpAuth'
 import { mcpServer } from './routes/tla/mcpServer'
+import {
+	MCP_SERVER_CARD_PATH,
+	MCP_SERVER_CARD_WELL_KNOWN_PATH,
+	getMcpServerCard,
+} from './routes/tla/mcpServerCard'
 import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
 import { putThumbnailRenderResult } from './routes/tla/putThumbnailRenderResult'
 import { upload } from './routes/tla/uploads'
@@ -98,6 +104,9 @@ const router = createRouter<Environment>()
 	// `.options` before `.all` so the preflight is answered rather than dispatched into the handler.
 	.options('/app/mcp', mcpCorsPreflight)
 	.options(MCP_PROTECTED_RESOURCE_METADATA_PATH, mcpCorsPreflight)
+	.options(MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH, mcpCorsPreflight)
+	.options(MCP_SERVER_CARD_PATH, mcpCorsPreflight)
+	.options(MCP_SERVER_CARD_WELL_KNOWN_PATH, mcpCorsPreflight)
 	// .all so MCP server can correctly respond to non-post requests with 405
 	.all('/app/mcp', async (req, env, ctx) => withMcpCors(await mcpServer(req, env, ctx)))
 	// Registered at the origin rather than under /app, because RFC 9728 puts protected resource
@@ -107,6 +116,13 @@ const router = createRouter<Environment>()
 	.get(MCP_PROTECTED_RESOURCE_METADATA_PATH, (req, env) =>
 		withMcpCors(getMcpProtectedResourceMetadata(req, env))
 	)
+	.get(MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH, (req, env) =>
+		withMcpCors(getMcpProtectedResourceMetadata(req, env))
+	)
+	// Unauthenticated on purpose: a Server Card is what a client reads *before* it has a token, and
+	// it carries nothing the MCP endpoint's own 401 challenge doesn't already give away.
+	.get(MCP_SERVER_CARD_PATH, (req, env) => withMcpCors(getMcpServerCard(req, env)))
+	.get(MCP_SERVER_CARD_WELL_KNOWN_PATH, (req, env) => withMcpCors(getMcpServerCard(req, env)))
 	.all('*', preflight)
 	.all('*', blockUnknownOrigins)
 	.get('/snapshot/:roomId', getRoomSnapshot)

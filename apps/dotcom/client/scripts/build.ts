@@ -26,6 +26,18 @@ const commonSecurityHeaders = {
 	'Content-Security-Policy': csp,
 }
 
+// RFC 8288 links from the homepage to the discovery documents an agent would otherwise have to guess
+// at. Only the homepage carries these: an agent arriving anywhere else on tldraw.com is already
+// looking at a board, and repeating ~200 bytes on every SPA route and asset buys nothing.
+//
+// `api-catalog` (RFC 9727) and `service-doc` are IANA-registered relations. The AI Catalog has no
+// registered relation of its own, so it rides on `describedby` with its media type attached.
+const agentDiscoveryLinkHeader = [
+	'</.well-known/api-catalog>; rel="api-catalog"',
+	'</.well-known/ai-catalog.json>; rel="describedby"; type="application/ai-catalog+json"',
+	'<https://tldraw.dev>; rel="service-doc"; type="text/html"',
+].join(', ')
+
 // Regex fragments matched against the user-agent of requests to board URLs. Matching requests are
 // routed to the multiplayer worker, which renders the board name into the social preview metadata
 // for link-unfurling crawlers that don't run JavaScript and so never see the SPA's runtime title
@@ -201,6 +213,14 @@ async function build() {
 						dest: `${multiplayerServerUrl}/.well-known/oauth-protected-resource$1`,
 						check: true,
 					},
+					// The MCP Server Card's `.well-known` alias, for the same reason: the canonical
+					// card lives at /api/app/mcp/server-card, but scanners probe this path, and it
+					// sits outside the /api rewrite above.
+					{
+						src: '^/\\.well-known/mcp/(.*)$',
+						dest: `${multiplayerServerUrl}/.well-known/mcp/$1`,
+						check: true,
+					},
 					// route social/link-unfurling crawlers to the worker so board link previews
 					// include the board name. must come before the SPA routes below. set
 					// SOCIAL_PREVIEW_DISABLED=true to turn this off without a code change.
@@ -215,6 +235,14 @@ async function build() {
 						headers: {
 							'X-Content-Type-Options': 'nosniff',
 						},
+					},
+					// The catalogs are readable cross-origin because a browser-context agent is a
+					// normal consumer of them, and one that can't fetch a catalog is being
+					// advertised nothing. They carry only what this origin already publishes.
+					{
+						src: '^/\\.well-known/(api-catalog|ai-catalog\\.json)$',
+						continue: true,
+						headers: { 'Access-Control-Allow-Origin': '*' },
 					},
 					// cache static assets immutably. we match by extension to avoid exceeding
 					// Vercel's 4096-char route limit (see #8286).
@@ -231,7 +259,7 @@ async function build() {
 						check: true,
 						src: '/',
 						dest: '/index.html',
-						headers: commonSecurityHeaders,
+						headers: { ...commonSecurityHeaders, Link: agentDiscoveryLinkHeader },
 					},
 					// serve static files
 					{
@@ -248,7 +276,17 @@ async function build() {
 						headers: commonSecurityHeaders,
 					},
 				],
-				overrides: {},
+				// Vercel types static files from their extension, which has nothing useful to say
+				// about `api-catalog` (extensionless, as RFC 9727 requires) and would serve
+				// `auth.md` as a download rather than something an agent reads.
+				overrides: {
+					'.well-known/api-catalog': {
+						contentType:
+							'application/linkset+json; profile="https://www.rfc-editor.org/info/rfc9727"',
+					},
+					'.well-known/ai-catalog.json': { contentType: 'application/ai-catalog+json' },
+					'auth.md': { contentType: 'text/markdown; charset=utf-8' },
+				},
 			} satisfies Config,
 			null,
 			2
