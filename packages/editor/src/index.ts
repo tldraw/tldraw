@@ -144,6 +144,8 @@ export {
 	type TLMeasureTextOpts,
 	type TLMeasureTextSpanOpts,
 	type TLTextMeasurer,
+	type TLMeasureRichTextRequest,
+	type TLBatchRichTextMeasurementRequest,
 	type TLTextMeasurerFactory,
 } from './lib/editor/managers/TextManager/TextManager'
 export { DEFAULT_THEME } from './lib/editor/managers/ThemeManager/defaultThemes'
@@ -527,3 +529,5 @@ registerTldrawLibraryVersion(
 )
 
 export { getColorValue } from './lib/editor/managers/ThemeManager/defaultThemes'
+
+export { DomTextMeasurer } from './lib/editor/managers/TextManager/DomTextMeasurer'

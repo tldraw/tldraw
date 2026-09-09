@@ -1,7 +1,12 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { PMNode } from '../document/types'
 import { createFakeMeasureContext } from '../measure/fake'
-import { installMeasureContext } from '../measure/install'
+import {
+	getPretext,
+	installMeasureContext,
+	releaseMeasureContext,
+	pretextFontString,
+} from '../measure/install'
 import { markRule, nodeRule } from '../style/stylesheet'
 import { layoutDocument } from './document'
 
@@ -309,4 +314,35 @@ describe('layoutDocument', () => {
 		expect(layoutDocument(doc(p(t('abcd'))), { ...opts, measureContext: wide }).width).toBe(80)
 		expect(layoutDocument(doc(p(t('abcd'))), opts).width).toBe(40)
 	})
+})
+
+it('releases a context without invalidating layouts using another context', async () => {
+	const first = createFakeMeasureContext({ advance: 0.25 })
+	const second = createFakeMeasureContext({ advance: 0.75 })
+	await installMeasureContext(first)
+	const font = { family: 'Fake', size: 20, weight: '400', style: 'normal' } as const
+	const tag = pretextFontString(font, first)
+	const content = doc(p(t('hello')))
+	const expected = layoutDocument(content, { rootStyle, measureContext: second })
+	releaseMeasureContext(first)
+	expect(layoutDocument(content, { rootStyle, measureContext: second })).toEqual(expected)
+	expect(pretextFontString(font, first)).not.toBe(tag)
+	releaseMeasureContext(first)
+	releaseMeasureContext(second)
+	await installMeasureContext(fake)
+})
+
+it('releases untagged canvas measurements before installing another default context', async () => {
+	const first = createFakeMeasureContext({ advance: 0.25 })
+	const second = createFakeMeasureContext({ advance: 0.75 })
+	await installMeasureContext(first)
+	const pretext = getPretext()
+	const before = pretext.prepareWithSegments('hello', '20px Fake')
+	releaseMeasureContext(first)
+	await installMeasureContext(second)
+	const after = pretext.prepareWithSegments('hello', '20px Fake')
+	expect(before.widths).toEqual([25])
+	expect(after.widths).toEqual([75])
+	releaseMeasureContext(second)
+	await installMeasureContext(fake)
 })

@@ -9,6 +9,7 @@ import {
 	createTldrawTextMeasurer,
 	TldrawTextMeasurer,
 } from '../lib/utils/text/createTldrawTextMeasurer'
+import { setNativeTextExportMeasurer } from '../lib/utils/text/NativeTextExportManager'
 import { parseTldrawJsonFile, serializeTldrawJson } from '../lib/utils/tldr/file'
 import { TestEditor } from './TestEditor'
 
@@ -249,6 +250,7 @@ describe('native text export without a DOM layout engine', () => {
 			{ textMeasurer: measurer },
 			{ initialData: parsed.value.serialize() }
 		)
+		setNativeTextExportMeasurer(editor, measurer)
 		const shapes = editor.getCurrentPageShapesSorted()
 		expect(shapes.map((s) => s.type).sort()).toEqual(['arrow', 'frame', 'geo', 'note', 'text'])
 

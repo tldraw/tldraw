@@ -20,7 +20,7 @@ import {
 	pointInPolygon,
 	toRichText,
 } from '@tldraw/editor'
-import { isEmptyRichText, renderHtmlFromRichTextForMeasurement } from '../../utils/text/richText'
+import { isEmptyRichText, createRichTextMeasurementRequest } from '../../utils/text/richText'
 import { LABEL_TO_ARROW_PADDING, STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getDisplayValues } from '../shared/getDisplayValues'
 import type { ArrowShapeUtilDisplayValues } from './arrow-types'
@@ -69,7 +69,7 @@ const labelSizeCache = createComputedCache(
 		const richTextToMeasure = isEmptyRichText(shape.props.richText)
 			? toRichText('i')
 			: shape.props.richText
-		const html = renderHtmlFromRichTextForMeasurement(editor, richTextToMeasure)
+		const request = createRichTextMeasurementRequest(editor, richTextToMeasure)
 
 		const bodyBounds = bodyGeom.bounds
 
@@ -77,9 +77,8 @@ const labelSizeCache = createComputedCache(
 		const fontSize = dv.labelFontSize * shape.props.scale
 
 		// First we measure the text with no constraints
-		const { w, h } = editor.textMeasure.measureHtml(html, {
+		const { w, h } = editor.textMeasure.measureRichText(request, {
 			...TEXT_PROPS,
-			richText: richTextToMeasure,
 			lineHeight: dv.labelLineHeight,
 			fontFamily: dv.labelFontFamily,
 			fontSize,
@@ -109,9 +108,8 @@ const labelSizeCache = createComputedCache(
 		}
 
 		if (shouldSquish) {
-			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureHtml(html, {
+			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureRichText(request, {
 				...TEXT_PROPS,
-				richText: richTextToMeasure,
 				lineHeight: dv.labelLineHeight,
 				fontFamily: dv.labelFontFamily,
 				fontSize,

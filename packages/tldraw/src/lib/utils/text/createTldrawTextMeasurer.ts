@@ -5,6 +5,7 @@ import {
 	DefaultFontFamilies,
 	TLMeasuredTextSize,
 	TLMeasureTextOpts,
+	TLMeasureRichTextRequest,
 	TLMeasureTextSpanOpts,
 	TLRichText,
 	TLTextMeasurer,
@@ -73,6 +74,7 @@ export interface TldrawRichTextLayoutOptions extends TLMeasureTextOpts {
  * @public
  */
 export interface TldrawTextMeasurer extends TLTextMeasurer {
+	measureRichText(request: TLMeasureRichTextRequest, opts: TLMeasureTextOpts): TLMeasuredTextSize
 	readonly measureContext: MeasureContext
 	layoutRichText(richText: TLRichText, opts: TldrawRichTextLayoutOptions): TextLayout
 	layoutText(text: string, opts: TldrawRichTextLayoutOptions): TextLayout
@@ -262,19 +264,11 @@ export function createTldrawTextMeasurer(options: TldrawTextMeasurerOptions): Tl
 		})
 	}
 
-	function measureHtml(html: string, opts: TLMeasureTextOpts): TLMeasuredTextSize {
+	function measureHtml(_html: string, opts: TLMeasureTextOpts): TLMeasuredTextSize {
 		if (opts.richText) return toSize(layoutRichText(opts.richText, opts), opts)
-		// Without the source document all we can do is approximate the HTML as paragraphs of
-		// plain text. Every call site in tldraw passes `richText`.
-		const text = html
-			.replace(/<br\s*\/?>/g, '\n')
-			.replace(/<\/p>\s*<p[^>]*>/g, '\n')
-			.replace(/<[^>]+>/g, '')
-			.replace(/&lt;/g, '<')
-			.replace(/&gt;/g, '>')
-			.replace(/&amp;/g, '&')
-			.replace(/&nbsp;/g, ' ')
-		return toSize(layoutText(text, opts), opts)
+		throw new Error(
+			'Pretext cannot measure arbitrary HTML. Supply a rich text document or use the DOM measurer.'
+		)
 	}
 
 	return {
@@ -283,6 +277,9 @@ export function createTldrawTextMeasurer(options: TldrawTextMeasurerOptions): Tl
 		layoutText,
 		measureText(text, opts) {
 			return toSize(layoutText(text, opts), opts)
+		},
+		measureRichText(request, opts) {
+			return toSize(layoutRichText(request.richText, opts), opts)
 		},
 		measureHtml,
 		measureHtmlBatch(requests: BatchMeasurementRequest[]) {

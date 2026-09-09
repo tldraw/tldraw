@@ -1,6 +1,6 @@
 import { toRichText } from '@tldraw/editor'
 import { createFakeMeasureContext, installMeasureContext } from '@tldraw/rich-text-layout'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { createTldrawTextMeasurer, TldrawTextMeasurer } from './createTldrawTextMeasurer'
 
 // Deterministic advances: every grapheme is half the font size wide.
@@ -189,4 +189,24 @@ describe('createTldrawTextMeasurer', () => {
 		const [a] = layout.lines[0].fragments
 		expect(a.style.color).toBe('#3182ed')
 	})
+})
+
+it('measures source documents without evaluating their HTML representation', () => {
+	const html = vi.fn(() => {
+		throw new Error('HTML must not be needed')
+	})
+	expect(measurer.measureRichText({ richText: toRichText('hello'), html }, baseOpts)).toEqual({
+		x: 0,
+		y: 0,
+		w: 50,
+		h: 27,
+		scrollWidth: 0,
+	})
+	expect(html).not.toHaveBeenCalled()
+})
+
+it('rejects arbitrary HTML instead of silently approximating its geometry', () => {
+	expect(() => measurer.measureHtml('<table><tr><td>hello</td></tr></table>', baseOpts)).toThrow(
+		'Pretext cannot measure arbitrary HTML'
+	)
 })
