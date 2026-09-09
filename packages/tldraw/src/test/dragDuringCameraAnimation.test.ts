@@ -1,4 +1,5 @@
-import { InstancePresenceRecordType, createShapeId, createUserId } from '@tldraw/editor'
+import { Box, InstancePresenceRecordType, createShapeId, createUserId } from '@tldraw/editor'
+import { startEditingAdjacentNote } from '../lib/shapes/note/noteHelpers'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -52,6 +53,31 @@ describe('pointer held still while the camera animates', () => {
 		editor.pointerMove(70, 50).pointerUp()
 
 		expect(editor.getShape(id)).toMatchObject({ x: 20, y: 0 })
+	})
+})
+
+describe('clicking a note while the camera pans to an adjacent note (#10706)', () => {
+	it('moves editing into the clicked note instead of dragging it', () => {
+		editor.updateViewportScreenBounds(new Box(0, 0, 1000, 1000))
+		const a = createShapeId('a')
+		const b = createShapeId('b')
+		editor.createShapes([
+			{ id: a, type: 'note', x: 100, y: 100 },
+			{ id: b, type: 'note', x: 1500, y: 100 },
+		])
+
+		// What Tab does: edit the new note and pan to it, since it is off screen
+		startEditingAdjacentNote(editor, editor.getShape(b)!)
+		editor.expectToBeIn('select.editing_shape')
+		editor.forceTick(2)
+		expect(editor.getCameraState()).toBe('moving')
+
+		editor.pointerDown(200, 200)
+		editor.forceTick(5)
+		editor.pointerUp()
+
+		expect(editor.getEditingShapeId()).toBe(a)
+		expect(editor.getShape(a)).toMatchObject({ x: 100, y: 100 })
 	})
 })
 
