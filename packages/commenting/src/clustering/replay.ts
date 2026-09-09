@@ -336,10 +336,11 @@ interface HeapEntry {
 
 class EdgeMaxHeap {
 	private readonly items: HeapEntry[] = []
-	// Per-edge normalized (lo, hi) id pair for the z tie-break, precomputed once so comparisons
-	// allocate nothing. With coincident anchors every edge prices to the same z (+Infinity), so
-	// the tie-break runs on nearly every comparison of a rebuild — allocating the pair there
-	// churned millions of short-lived tuples.
+	// Per-edge (lo, hi) id pair for the z tie-break, precomputed once so comparisons allocate
+	// nothing. Relies on MstEdge's invariant that leaves[a].id < leaves[b].id; the heap does not
+	// re-normalize. With coincident anchors every edge prices to the same z (+Infinity), so the
+	// tie-break runs on nearly every comparison of a rebuild: allocating the pair there churned
+	// millions of short-lived tuples.
 	private readonly loIds: string[]
 	private readonly hiIds: string[]
 
