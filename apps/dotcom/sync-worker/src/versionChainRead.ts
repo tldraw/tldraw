@@ -1,15 +1,14 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { deleteAllObjectsWithPrefix, listAllObjectKeys } from './r2'
+import {
+	deleteAllObjectsWithPrefix,
+	listAllObjectKeys,
+	listAllObjects,
+	R2ReadScheduler,
+	runInline,
+} from './r2'
 import { parseVersionKey, PendingDelta, readSegmentRef, SegmentBody } from './versionChain'
 import { decodeVersionBody, isGzippedVersionBody } from './versionChainCodec'
 import { applySnapshotDelta, versionEnvelopeHash } from './versionDelta'
-
-// R2 has honored `include` on list() since compat date 2022-08-04 (this worker's is far past it),
-// but the repo's ambient workers-types entrypoint predates the option — declared locally, same
-// pattern as types.ts.
-type R2ListOptionsWithInclude = R2ListOptions & {
-	include?: Array<'httpMetadata' | 'customMetadata'>
-}
 
 /** A keyframe object: one whole snapshot, and the single version it is. */
 export interface KeyframeIndexEntry {
@@ -35,13 +34,13 @@ export interface SegmentIndexEntry {
 export type ChainIndexEntry = KeyframeIndexEntry | SegmentIndexEntry
 
 /**
- * Runs one R2 read. Reads default to running inline; a caller inside a shared connection budget
- * (the durable object's R2 queue) passes its queue, so each read is one budgeted operation and the
- * fan-out never holds more connections than the budget allows.
+ * A segment object R2 holds that carries no readable chain reference, so nothing can place it. The
+ * timestamp comes from its key, which names its first delta.
  */
-export type R2ReadScheduler = <T>(read: () => Promise<T>) => Promise<T>
-
-const runInline: R2ReadScheduler = (read) => read()
+export interface RejectedChainObject {
+	key: string
+	timestamp: string
+}
 
 export interface VersionReconstruction {
 	snapshot: RoomSnapshot
@@ -56,7 +55,8 @@ export interface VersionReconstruction {
 }
 
 /**
- * Every chain object for a room, in key order, with the versions each one holds.
+ * Every chain object for a room, in key order, with the versions each one holds, plus the segments
+ * that could not be placed at all — the verifier reports those, since nothing downstream can.
  *
  * A segment is keyed by its first delta only, so a version's timestamp does not say which object
  * holds it. Listing with `customMetadata` answers that for the whole room in one operation, without
@@ -66,45 +66,37 @@ export async function loadChainIndex(
 	bucket: R2Bucket,
 	roomKey: string,
 	schedule: R2ReadScheduler = runInline
-): Promise<{ entries: ChainIndexEntry[]; ops: number }> {
+): Promise<{ entries: ChainIndexEntry[]; ops: number; rejected: RejectedChainObject[] }> {
+	const { objects, ops } = await listAllObjects(bucket, `${roomKey}/`, schedule)
 	const entries: ChainIndexEntry[] = []
-	let cursor: string | undefined
-	let ops = 0
-
-	do {
-		// Including metadata makes R2 return shorter pages, so a short page does not mean the
-		// listing is done — `truncated` is the only safe stop condition.
-		const options: R2ListOptionsWithInclude = {
-			prefix: `${roomKey}/`,
-			cursor,
-			include: ['customMetadata'],
+	const rejected: RejectedChainObject[] = []
+	for (const object of objects) {
+		const parsed = parseVersionKey(object.key)
+		if (!parsed) continue
+		if (parsed.kind === 'keyframe') {
+			entries.push({ kind: 'keyframe', key: object.key, timestamps: [parsed.timestamp] })
+			continue
 		}
-		const page: R2Objects = await schedule(() => bucket.list(options as R2ListOptions))
-		ops++
-		for (const object of page.objects) {
-			const parsed = parseVersionKey(object.key)
-			if (!parsed) continue
-			if (parsed.kind === 'keyframe') {
-				entries.push({ kind: 'keyframe', key: object.key, timestamps: [parsed.timestamp] })
-				continue
-			}
-			const ref = readSegmentRef(object.customMetadata)
-			// A segment with no readable reference cannot be placed in a chain. Skipping it here
-			// surfaces as a sequence gap rather than as a silently short replay.
-			if (!ref) continue
-			entries.push({
-				kind: 'segment',
-				key: object.key,
-				timestamps: ref.timestamps,
-				keyframeKey: ref.keyframeKey,
-				firstSeq: ref.firstSeq,
-			})
+		const ref = readSegmentRef(object.customMetadata)
+		// A segment with no readable reference cannot be placed in a chain. Dropping it only shows
+		// up as a sequence gap when it sits mid-chain; a trailing one leaves the replay ending early
+		// and the verifier passing a chain whose tail is unreadable. Collected so it is reported
+		// outright instead.
+		if (!ref) {
+			rejected.push({ key: object.key, timestamp: parsed.timestamp })
+			continue
 		}
-		cursor = page.truncated ? page.cursor : undefined
-	} while (cursor)
+		entries.push({
+			kind: 'segment',
+			key: object.key,
+			timestamps: ref.timestamps,
+			keyframeKey: ref.keyframeKey,
+			firstSeq: ref.firstSeq,
+		})
+	}
 
 	entries.sort((a, b) => a.key.localeCompare(b.key))
-	return { entries, ops }
+	return { entries, ops, rejected }
 }
 
 /**
@@ -300,19 +292,21 @@ export async function openWholeVersionStream({
 	roomKey,
 	timestamp,
 	index,
+	schedule = runInline,
 }: {
 	chainBucket: R2Bucket
 	legacyBucket: R2Bucket
 	roomKey: string
 	timestamp: string
 	index: ChainIndexEntry[]
+	schedule?: R2ReadScheduler
 }): Promise<ReadableStream<Uint8Array> | null> {
 	const target = index.find((entry) => entry.timestamps.includes(timestamp))
 	if (target && target.kind !== 'keyframe') return null
 
 	const object = target
-		? await chainBucket.get(target.key)
-		: await legacyBucket.get(`${roomKey}/${timestamp}`)
+		? await schedule(() => chainBucket.get(target.key))
+		: await schedule(() => legacyBucket.get(`${roomKey}/${timestamp}`))
 	if (!object) {
 		if (target) throw new Error(`version chain keyframe ${target.key} is missing`)
 		return null
@@ -330,14 +324,18 @@ export async function deleteAllVersions({
 	chainBucket,
 	legacyBucket,
 	roomKey,
+	schedule = runInline,
 }: {
 	chainBucket: R2Bucket
 	legacyBucket: R2Bucket
 	roomKey: string
+	schedule?: R2ReadScheduler
 }): Promise<void> {
 	// Trailing slash: a bare roomKey prefix also matches sibling rooms whose slug is a prefix of
 	// this one (deleting "abc" must not sweep "abcd").
 	await Promise.all(
-		[chainBucket, legacyBucket].map((bucket) => deleteAllObjectsWithPrefix(bucket, `${roomKey}/`))
+		[chainBucket, legacyBucket].map((bucket) =>
+			deleteAllObjectsWithPrefix(bucket, `${roomKey}/`, schedule)
+		)
 	)
 }
