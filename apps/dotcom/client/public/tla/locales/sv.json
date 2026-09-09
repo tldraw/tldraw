@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> kommenterade på din anslagstavla"
   },
+  "28b2464e1f": {
+    "translation": "Kunde inte skicka feedback"
+  },
   "299cb00a7a": {
     "translation": "Uppladdningen misslyckades"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Söka..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Försök igen."
   },
   "2de510be71": {
     "translation": "Omgenereringen ersätter den nuvarande inbjudningslänken med en ny. Alla som använder den gamla länken behöver den nya för att gå med."
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} olästa"
+  },
+  "550b25cc0c": {
+    "translation": "Det gick inte att återställa din lokala ritning. Försök att ladda om den här sidan."
   },
   "554a05155c": {
     "translation": "Har du fortfarande problem? <a>Rapportera ett problem</a>"

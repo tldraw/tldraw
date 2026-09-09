@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> comentó en tu tablero"
   },
+  "28b2464e1f": {
+    "translation": "No se pudo enviar la retroalimentación."
+  },
   "299cb00a7a": {
     "translation": "Error al cargar"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Buscar..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Por favor, inténtalo de nuevo."
   },
   "2de510be71": {
     "translation": "Al regenerar el enlace, este se reemplaza por uno nuevo. Quienes utilicen el enlace antiguo necesitarán el nuevo para unirse."
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} no leído"
+  },
+  "550b25cc0c": {
+    "translation": "No se pudo restaurar el dibujo local. Intente recargar esta página."
   },
   "554a05155c": {
     "translation": "¿Aún tienes problemas? <a>Informar de un problema</a>"

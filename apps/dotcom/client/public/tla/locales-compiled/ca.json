@@ -253,6 +253,12 @@
       "value": " ha comentat al teu tauler"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "No s'han pogut enviar comentaris"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -269,6 +275,12 @@
     {
       "type": 0,
       "value": "Cerca..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Si us plau, torna-ho a intentar."
     }
   ],
   "2de510be71": [
@@ -497,6 +509,12 @@
     {
       "type": 0,
       "value": " sense llegir"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "No s'ha pogut restaurar el dibuix local. Prova de tornar a carregar aquesta pàgina."
     }
   ],
   "554a05155c": [

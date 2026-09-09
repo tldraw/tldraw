@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> telah mengulas di papan anda"
   },
+  "28b2464e1f": {
+    "translation": "Tidak dapat menghantar maklum balas"
+  },
   "299cb00a7a": {
     "translation": "Muat naik gagal"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Cari..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Sila cuba lagi."
   },
   "2de510be71": {
     "translation": "Penjanaan semula akan menggantikan pautan jemputan semasa dengan yang baharu. Sesiapa sahaja yang menggunakan pautan lama memerlukan pautan baharu untuk menyertai."
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} belum dibaca"
+  },
+  "550b25cc0c": {
+    "translation": "Tidak dapat memulihkan lukisan setempat anda. Cuba muat semula halaman ini."
   },
   "554a05155c": {
     "translation": "Masih menghadapi masalah? <a>Laporkan masalah</a>"

@@ -257,6 +257,12 @@
       "value": " okomentoval(a) vaši nástěnku"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Nepodařilo se odeslat zpětnou vazbu"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -273,6 +279,12 @@
     {
       "type": 0,
       "value": "Vyhledávání..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Zkuste to prosím znovu."
     }
   ],
   "2de510be71": [
@@ -501,6 +513,12 @@
     {
       "type": 0,
       "value": " nepřečtených"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Nepodařilo se obnovit váš lokální výkres. Zkuste znovu načíst tuto stránku."
     }
   ],
   "554a05155c": [

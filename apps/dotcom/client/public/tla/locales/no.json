@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> kommenterte på tavlen din"
   },
+  "28b2464e1f": {
+    "translation": "Kunne ikke sende inn tilbakemelding"
+  },
   "299cb00a7a": {
     "translation": "Opplasting mislyktes"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Søk..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Prøv igjen."
   },
   "2de510be71": {
     "translation": "Regenerering erstatter den nåværende invitasjonslenken med en ny. Alle som bruker den gamle lenken trenger den nye for å bli med."
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} ulest"
+  },
+  "550b25cc0c": {
+    "translation": "Kunne ikke gjenopprette den lokale tegningen. Prøv å laste inn denne siden på nytt."
   },
   "554a05155c": {
     "translation": "Har du fortsatt problemer? <a>Rapporter et problem</a>"

@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> 在您的白板上留言"
   },
+  "28b2464e1f": {
+    "translation": "無法提交回饋"
+  },
   "299cb00a7a": {
     "translation": "上傳失敗"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "搜尋..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "請重試。"
   },
   "2de510be71": {
     "translation": "重新產生邀請連結會將目前的邀請連結替換為新的連結。任何使用舊連結的人都需要使用新連結才能加入。"
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} 未讀"
+  },
+  "550b25cc0c": {
+    "translation": "無法復原您的本機繪圖。請嘗試重新載入此頁面。"
   },
   "554a05155c": {
     "translation": "仍然有問題？ <a>回報問題</a>"
