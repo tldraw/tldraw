@@ -31,7 +31,9 @@ async function waitFor<T>(probe: () => Promise<T | undefined>, what: string): Pr
 		const value = await probe()
 		if (value !== undefined) return value
 		if (Date.now() > deadline) throw new Error(`timed out after ${ALARM_DEADLINE_MS}ms: ${what}`)
-		await new Promise((res) => setTimeout(res, 500))
+		// 1s keeps a full deadline of polls under the worker's 30 req/min
+		// per-session rate limit.
+		await new Promise((res) => setTimeout(res, 1000))
 	}
 }
 
@@ -113,7 +115,8 @@ describe('session DO idle expiry', () => {
 				sessionId
 			)
 			await res.text()
-			return res.status === 200 ? undefined : res.status
+			// 429 is the rate limiter, not the DO: keep waiting
+			return res.status === 200 || res.status === 429 ? undefined : res.status
 		}, 'session destroyed after the expiry alarm')
 		expect(status).toBe(404)
 	}, 30_000)
