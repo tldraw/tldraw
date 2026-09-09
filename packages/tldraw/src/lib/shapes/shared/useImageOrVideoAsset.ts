@@ -79,13 +79,11 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 		}
 
 		if (!assetId) {
-			// The asset was removed from the shape: drop the previous asset/url rather than
-			// keep rendering it
+			// Asset removed from the shape: stop rendering it. Also forget the url, or re-attaching
+			// the same asset is skipped as "same url" in resolve()
 			if (assetIdChanged) {
-				// Forget the old url too, or re-attaching the same asset is treated as "same url"
-				// in resolve() and the image stays blank
 				previousUrl.current = null
-				setResult((prev) => ({ ...prev, asset: null, url: null }))
+				setResult({ asset: null, url: null })
 			}
 			return
 		}
