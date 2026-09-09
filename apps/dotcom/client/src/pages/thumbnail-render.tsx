@@ -2,17 +2,22 @@ import {
 	DEFAULT_THUMBNAIL_WIDTH,
 	MAX_THUMBNAIL_DIMENSION,
 	MIN_THUMBNAIL_DIMENSION,
+	THUMBNAIL_RENDER_CONFIG_GLOBAL,
+	THUMBNAIL_RENDER_GLOBAL,
+	THUMBNAIL_RENDER_PUSH_PARAM,
+	ThumbnailPushedSnapshot,
+	ThumbnailRenderConfig,
 	THUMBNAIL_SETTLE_TIMEOUT_MS,
 	ThumbnailRenderParams,
 	ThumbnailShapeMeasurement,
+	ThumbnailRenderTimingsRequestBody,
 	ThumbnailSnapshotResponseBody,
-	getLicenseKey,
+	getThumbnailRenderLicenseKey,
 } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	Box,
 	Editor,
-	FileHelpers,
 	Image,
 	SerializedSchema,
 	TLPageId,
@@ -26,16 +31,80 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { assetUrls } from '../utils/assetUrls'
-import { defineLoader } from '../utils/defineLoader'
 import { embedShapeUtils } from '../utils/embedShapeUtil'
+
+// The thumbnail render page: a real editor, loaded with one board's records, that exports itself
+// and displays the export for Browser Run to screenshot. Served as its own Vite entry
+// (thumbnail-render.html + thumbnail-render-main.tsx) rather than as an SPA route, so a capture
+// boots the SDK and nothing else — no router, no Clerk, no service worker. /__thumbnail-render is
+// rewritten to that entry at the edge (scripts/build.ts) and in dev
+// (vite-thumbnail-screenshot-plugin.ts), so the URL the sync-worker renders never moves.
 
 const THUMBNAIL_SNAPSHOT_ENDPOINT = '/api/app/thumbnail-render/snapshot'
 const THUMBNAIL_RESULT_ENDPOINT = '/api/app/thumbnail-render/result'
 
-type LoaderData =
+// Phase stamps for the timing beacon, module-scoped because the page renders exactly once. Each is
+// performance.now() at the moment the phase completed; the beacon ships them after the export so
+// the deltas — boot, acquire, mount, settle, export — can be read per render from telemetry
+// (`render_page_timings`). Worker-side timing can only see the session total; this is what ranks
+// the page's own phases against each other.
+const pageTimings: {
+	/** Authorises the beacon. Never set on the dev fixture page, which therefore sends none. */
+	token?: string
+	source?: 'push' | 'fetch'
+	bootAt?: number
+	dataAt?: number
+	mountAt?: number
+	settledAt?: number
+} = {}
+
+// Fire-and-forget: nothing waits on this, and `keepalive` lets the request outlive the page —
+// which it must, because the screenshot (and the session's teardown) follows the ready marker
+// almost immediately.
+function sendTimingsBeacon(exportedAt: number) {
+	const { token, source, bootAt, dataAt, mountAt, settledAt } = pageTimings
+	if (
+		!token ||
+		!source ||
+		bootAt === undefined ||
+		dataAt === undefined ||
+		mountAt === undefined ||
+		settledAt === undefined
+	) {
+		return
+	}
+	const body: ThumbnailRenderTimingsRequestBody = {
+		token,
+		timings: { source, bootAt, dataAt, mountAt, settledAt, exportedAt },
+	}
+	// Two delivery paths, matched to where the page runs. A url-mode page is same-origin and the
+	// plain fetch is proven; forcing it into no-cors mode turned out to stop delivery entirely. An
+	// html-mode page has no origin: a JSON fetch would need a CORS preflight the worker does not
+	// answer, so it uses sendBeacon (no preflight, queued by the browser, survives the teardown that
+	// follows the ready marker). Its request carries `Origin: null`, which the worker's origin
+	// allowlist would refuse — the result route is registered ahead of that guard for exactly this.
+	const payload = JSON.stringify(body)
+	if (window[THUMBNAIL_RENDER_CONFIG_GLOBAL]) {
+		try {
+			navigator.sendBeacon(apiUrl(THUMBNAIL_RESULT_ENDPOINT), payload)
+		} catch {
+			// diagnostic-only; a page that cannot report still renders
+		}
+	} else {
+		fetch(apiUrl(THUMBNAIL_RESULT_ENDPOINT), {
+			method: 'POST',
+			keepalive: true,
+			headers: { 'Content-Type': 'application/json' },
+			body: payload,
+		}).catch(() => {})
+	}
+}
+
+export type ThumbnailRenderData =
 	| {
 			ok: true
-			token: string
+			/** Absent on a pushed render, which never posts anything the token would authorise. */
+			token?: string
 			records: TLRecord[]
 			schema: SerializedSchema
 			renderParams: ThumbnailRenderParams
@@ -45,14 +114,97 @@ type LoaderData =
 			message: string
 	  }
 
-const { loader, useData } = defineLoader(async (args): Promise<LoaderData> => {
-	const token = new URL(args.request.url).searchParams.get('token')
+// Covers the gap between DOMContentLoaded and the injected tag executing; only a URL carrying
+// THUMBNAIL_RENDER_PUSH_PARAM waits at all, so a pull render never pays it.
+const PUSHED_SNAPSHOT_TIMEOUT_MS = 2_000
+
+declare global {
+	interface Window {
+		[THUMBNAIL_RENDER_GLOBAL]?: ThumbnailPushedSnapshot
+		[THUMBNAIL_RENDER_CONFIG_GLOBAL]?: ThumbnailRenderConfig
+	}
+}
+
+// An html-mode page has no origin, so relative requests cannot resolve; the spliced config carries
+// the API origin instead. A url-mode page has no config and keeps using relative paths.
+function apiUrl(path: string) {
+	const origin = window[THUMBNAIL_RENDER_CONFIG_GLOBAL]?.apiOrigin
+	return origin ? new URL(path, origin).toString() : path
+}
+
+// The worker injects the payload with the Quick Action's `addScriptTag`, which runs *after*
+// navigation — so at the moment the page first checks, the global may not be there yet. Reading it
+// once would miss every push and quietly fall back to the fetch, which looks exactly like push
+// working. So the page waits, through a one-shot setter on the global: the injected assignment
+// resolves this the instant it runs, with no polling interval to land inside.
+function awaitPushedSnapshot(timeoutMs: number): Promise<ThumbnailPushedSnapshot | null> {
+	return new Promise((resolve) => {
+		const settle = (value: ThumbnailPushedSnapshot | null) => {
+			clearTimeout(timer)
+			// Back to a plain property, holding whatever arrived, so later reads see a normal global.
+			Object.defineProperty(window, THUMBNAIL_RENDER_GLOBAL, {
+				configurable: true,
+				writable: true,
+				value: value ?? undefined,
+			})
+			resolve(value)
+		}
+		const timer = setTimeout(() => settle(null), timeoutMs)
+		Object.defineProperty(window, THUMBNAIL_RENDER_GLOBAL, {
+			configurable: true,
+			set: (value: ThumbnailPushedSnapshot) => settle(value),
+			get: () => undefined,
+		})
+	})
+}
+
+/**
+ * Resolves the records this render should draw, preferring a snapshot the worker pushed into the
+ * page over fetching one back out of it. The single acquisition path for every way the page is
+ * served, so the push-wait and the token fallback cannot drift.
+ */
+export async function acquireThumbnailRenderData(url: URL): Promise<ThumbnailRenderData> {
+	pageTimings.bootAt = performance.now()
+	const config = window[THUMBNAIL_RENDER_CONFIG_GLOBAL]
+	const token = config?.token ?? url.searchParams.get('token')
+	pageTimings.token = token ?? undefined
+
+	// A snapshot that is already here needs no waiting and no announcement — every html-mode render
+	// (the worker splices the payload into <head> ahead of any script) and a url-mode push whose
+	// injected tag won the race. Otherwise, only a render the worker announced a push for waits for
+	// one: a pull render must not pay that budget just to discover nobody is pushing — that would be
+	// flat added latency on every OG capture, and would make a push/pull comparison meaningless.
+	const pushed =
+		window[THUMBNAIL_RENDER_GLOBAL] ??
+		(url.searchParams.get(THUMBNAIL_RENDER_PUSH_PARAM) === '1'
+			? await awaitPushedSnapshot(PUSHED_SNAPSHOT_TIMEOUT_MS)
+			: null)
+	if (pushed) {
+		// Authoritative: the worker injected a snapshot it just read under the same gate the token
+		// would have been checked against, so there is nothing further to verify.
+		pageTimings.source = 'push'
+		pageTimings.dataAt = performance.now()
+		return {
+			ok: true,
+			records: pushed.records,
+			schema: pushed.schema,
+			renderParams: pushed.renderParams,
+		}
+	}
+	// An announced push whose injected tag never ran falls through to here; the token is what makes
+	// that recoverable — for a url-mode page. An html-mode page has no origin, so its fetch would
+	// carry `Origin: null` and be refused, and its payload is spliced into <head> before any script
+	// runs: a missing one is a broken splice, reported now rather than after a doomed round trip.
+	if (config) {
+		return { ok: false, message: 'Missing pushed snapshot' }
+	}
+
 	if (!token) {
 		return { ok: false, message: 'Missing render token' }
 	}
 
 	const result = await fetch(
-		`${THUMBNAIL_SNAPSHOT_ENDPOINT}?token=${encodeURIComponent(token)}`
+		apiUrl(`${THUMBNAIL_SNAPSHOT_ENDPOINT}?token=${encodeURIComponent(token)}`)
 	).catch(() => null)
 	if (!result?.ok) {
 		return { ok: false, message: `Could not load render job (${result?.status ?? 'network'})` }
@@ -63,6 +215,10 @@ const { loader, useData } = defineLoader(async (args): Promise<LoaderData> => {
 		return { ok: false, message: data.message }
 	}
 
+	pageTimings.source = 'fetch'
+	pageTimings.dataAt = performance.now()
+	// A fetched snapshot is the whole board and its type carries no `capture` (see
+	// ThumbnailSnapshotResponseBody), so this render exports as always.
 	return {
 		ok: true,
 		token,
@@ -70,12 +226,9 @@ const { loader, useData } = defineLoader(async (args): Promise<LoaderData> => {
 		schema: data.schema,
 		renderParams: data.renderParams,
 	}
-})
+}
 
-export { loader }
-
-export function Component() {
-	const data = useData()
+export function ThumbnailRenderView({ data }: { data: ThumbnailRenderData }) {
 	if (!data.ok) return <ThumbnailRenderError message={data.message} />
 	return (
 		<ThumbnailRenderPage
@@ -93,7 +246,7 @@ function ThumbnailRenderPage({
 	schema,
 	renderParams,
 }: {
-	token: string
+	token?: string
 	records: TLRecord[]
 	schema: SerializedSchema
 	renderParams: ThumbnailRenderParams
@@ -113,13 +266,16 @@ function ThumbnailRenderPage({
 	)
 
 	// Once the export is ready it's shown as a full-viewport <img>, so the worker's Browser Rendering
-	// screenshot captures the exact editor.toImage output rather than the live editor canvas.
-	const [dataUrl, setDataUrl] = useState<string | null>(null)
+	// screenshot captures the exact editor.toImage output rather than the live editor canvas. An
+	// object URL, not a data URL: blobToDataUrl base64-encodes the whole PNG on the main thread,
+	// which on a heavy board is megabytes of string work standing between the export and the ready
+	// marker. Never revoked — the page exists for exactly one render.
+	const [imageUrl, setImageUrl] = useState<string | null>(null)
 	const handleImage = useCallback(async (blob: Blob) => {
-		setDataUrl(await FileHelpers.blobToDataUrl(blob))
+		setImageUrl(URL.createObjectURL(blob))
 	}, [])
 
-	if (dataUrl) return <ThumbnailImage dataUrl={dataUrl} width={width} height={height} />
+	if (imageUrl) return <ThumbnailImage src={imageUrl} width={width} height={height} />
 
 	return (
 		<div
@@ -132,18 +288,24 @@ function ThumbnailRenderPage({
 		>
 			<Tldraw
 				hideUi
-				licenseKey={getLicenseKey()}
+				licenseKey={getThumbnailRenderLicenseKey()}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}
+				components={{ ErrorFallback: ThumbnailRenderCrash }}
 				snapshot={snapshot}
 				onMount={(editor) => {
+					pageTimings.mountAt = performance.now()
 					editor.user.updateUserPreferences({ colorScheme: theme })
-					editor.updateInstanceState({ isReadonly: true })
 					// Render the specific page the token asked for; without one, keep the page the
 					// snapshot opens to (used by OG images).
 					if (renderParams.pageId && editor.getPage(renderParams.pageId as TLPageId)) {
 						editor.setCurrentPage(renderParams.pageId as TLPageId)
 					}
+					// Before readonly, which the editor's own write guards honour.
+					if (renderParams.capture === 'live' && renderParams.shapeIds?.length) {
+						pruneToRequestedShapes(editor, getRequestedShapeIds(editor, renderParams.shapeIds))
+					}
+					editor.updateInstanceState({ isReadonly: true })
 					// `content` is what every surface asks for today; an explicit viewport is still honoured
 					// (see ThumbnailRenderParams) so the worker can start sending one without waiting on a
 					// separate client deploy to teach this page how to handle it. A shape set overrides
@@ -161,7 +323,11 @@ function ThumbnailRenderPage({
 				}}
 			>
 				{renderParams.mode === 'measure' ? (
-					<ThumbnailMeasureSignal token={token} />
+					token ? (
+						<ThumbnailMeasureSignal token={token} />
+					) : (
+						<ThumbnailMeasureUnauthorised />
+					)
 				) : (
 					<ThumbnailExportSignal
 						theme={theme}
@@ -169,6 +335,7 @@ function ThumbnailRenderPage({
 						height={height}
 						camera={renderParams.camera}
 						shapeIds={renderParams.shapeIds}
+						capture={renderParams.capture}
 						onImage={handleImage}
 					/>
 				)}
@@ -183,18 +350,18 @@ function ThumbnailRenderPage({
 // page is quiescent when the screenshot is taken. Also used by the dev fixture page
 // (dev-browser-run-thumbnail.tsx), so its ready/error markers stay identical to production's.
 export function ThumbnailImage({
-	dataUrl,
+	src,
 	width,
 	height,
 }: {
-	dataUrl: string
+	src: string
 	width: number
 	height: number
 }) {
 	return (
 		<img
 			ref={signalThumbnailReadyIfComplete}
-			src={dataUrl}
+			src={src}
 			alt=""
 			style={{ display: 'block', width, height }}
 			onLoad={signalThumbnailReady}
@@ -210,7 +377,7 @@ function signalThumbnailReady() {
 
 // Marks the terminal failure state on both <html> and <body>: the worker's screenshot wait resolves
 // on either marker, and success marks both, so failure does too.
-function setThumbnailError(message: string) {
+export function setThumbnailError(message: string) {
 	document.body.dataset.thumbnailError = message
 	document.documentElement.dataset.thumbnailError = message
 }
@@ -220,6 +387,24 @@ function setThumbnailError(message: string) {
 // signal readiness directly; otherwise onLoad handles it once decoding finishes.
 function signalThumbnailReadyIfComplete(img: HTMLImageElement | null) {
 	if (img?.complete && img.naturalWidth > 0) signalThumbnailReady()
+}
+
+// A measure's answer travels back under its token; a pushed measure would have none to post with.
+// Never expected — measures are pull-only — but the alternative is a page that never marks itself.
+function ThumbnailMeasureUnauthorised() {
+	useEffect(() => setThumbnailError('measure without a render token'), [])
+	return null
+}
+
+// Stands in for the SDK's crash screen inside <Tldraw>. Without it a throw during the editor's own
+// render — a snapshot at a schema this bundle cannot migrate, most plausibly while a worker isolate
+// serves a pre-deploy inline artifact — shows the SDK's fallback with neither marker set, and the
+// capture burns the whole Browser Run timeout instead of failing in milliseconds.
+function ThumbnailRenderCrash({ error }: { error: unknown }) {
+	useEffect(() => {
+		setThumbnailError(error instanceof Error ? error.message : String(error))
+	}, [error])
+	return null
 }
 
 function ThumbnailRenderError({ message }: { message: string }) {
@@ -299,6 +484,23 @@ function getRequestedShapeIds(editor: Editor, shapeIds: string[]): TLShapeId[] {
 	return shapeIds.filter((id): id is TLShapeId => Boolean(editor.getShape(id as TLShapeId)))
 }
 
+// Brings the live canvas to the picture the export draws: only the requested shapes and their
+// descendants. The pushed slice also carries their ancestors (coordinates are parent-relative) and
+// the shapes their arrows bind to (stored terminals are stale until an unbind), and a live capture
+// would rasterize all of it — a frame's fill, label and clipping across the cluster, a neighbour
+// at the edge of the viewport. Reparenting the roots to the page keeps their page position while
+// freeing them from any frame; deleting the rest is the unbind that moves each arrow's terminal to
+// where its neighbour actually sat.
+function pruneToRequestedShapes(editor: Editor, requestedIds: TLShapeId[]) {
+	const keep = editor.getShapeAndDescendantIds(requestedIds)
+	const roots = requestedIds.filter((id) => {
+		const parentId = editor.getShape(id)?.parentId
+		return parentId !== undefined && !keep.has(parentId as TLShapeId)
+	})
+	editor.reparentShapes(roots, editor.getCurrentPageId())
+	editor.deleteShapes([...editor.getCurrentPageShapeIds()].filter((id) => !keep.has(id)))
+}
+
 // Like fitContentCamera, but framed on a subset of the page. Uses the same inset so a shapes
 // screenshot and a page screenshot of the same board have matching margins. Run again before export
 // for the same reason content fits are: autosized text re-measures once web fonts load.
@@ -337,6 +539,7 @@ export function ThumbnailExportSignal({
 	camera,
 	shapeIds,
 	settleTimeoutMs = THUMBNAIL_SETTLE_TIMEOUT_MS,
+	capture,
 	onImage,
 }: {
 	theme: 'light' | 'dark'
@@ -345,6 +548,8 @@ export function ThumbnailExportSignal({
 	camera?: 'content'
 	shapeIds?: string[]
 	settleTimeoutMs?: number
+	/** `live`: signal ready after settle and fit, without exporting — see ThumbnailRenderParams. */
+	capture?: 'live'
 	onImage(blob: Blob): void | Promise<void>
 }) {
 	const editor = useEditor()
@@ -356,13 +561,15 @@ export function ThumbnailExportSignal({
 		;(async () => {
 			await Promise.race([
 				(async () => {
-					await waitForFonts()
-					await preloadImageAssets(editor, settleDeadline)
+					// Fonts and asset warming are independent, so they overlap; the editor's own <img>
+					// elements are watched last because they appear as the warmed assets resolve.
+					await Promise.all([waitForFonts(), preloadImageAssets(editor, settleDeadline)])
 					await waitForEditorImages(editor, settleDeadline)
 				})(),
 				sleep(settleTimeoutMs),
 			])
 			if (cancelled) return
+			pageTimings.settledAt = performance.now()
 			// Re-fit content now that fonts and assets have settled: autosized text re-measures after
 			// the web font loads, so the fit computed in onMount (before fonts) is stale and would clip.
 			if (shapeIds?.length) {
@@ -370,12 +577,31 @@ export function ThumbnailExportSignal({
 			} else if (camera === 'content') {
 				fitContentCamera(editor, width, height)
 			}
+			// Live capture: the settled, fitted canvas is the picture — the screenshotting browser
+			// rasterizes it, so the export (and the paint of its result) has nothing left to do.
+			// The beacon's exportedAt stamp doubles as ready here; the deltas still read correctly.
+			if (capture === 'live') {
+				// The re-fit above is a store write the canvas catches up with on a later commit, and
+				// shapes culled at the pre-fit camera have no DOM yet. Two animation frames guarantee a
+				// commit and a paint at the fitted camera land before the marker; without them the
+				// screenshot can race the paint and capture a mis-framed or incomplete canvas.
+				await nextAnimationFrame()
+				await nextAnimationFrame()
+				if (cancelled) return
+				sendTimingsBeacon(performance.now())
+				signalThumbnailReady()
+				return
+			}
 			const blob = await exportThumbnailImage(editor, theme, width, height, shapeIds)
 			if (cancelled) return
+			// Before onImage rather than after: the ready marker follows the image paint, and the
+			// screenshot (then the session's teardown) follows the marker — keepalive covers the
+			// race, but not starting one is better.
+			sendTimingsBeacon(performance.now())
 			await onImage(blob)
 		})().catch((error) => {
 			if (cancelled) return
-			// FileHelpers.blobToDataUrl rejects with the FileReader's ProgressEvent rather than an
+			// Some browser APIs reject with an Event (e.g. FileReader's ProgressEvent) rather than an
 			// Error; don't let that stringify to "[object ProgressEvent]" in the error marker.
 			if (error instanceof Event) {
 				setThumbnailError('Could not read thumbnail blob')
@@ -387,7 +613,7 @@ export function ThumbnailExportSignal({
 		return () => {
 			cancelled = true
 		}
-	}, [editor, theme, width, height, camera, shapeIds, settleTimeoutMs, onImage])
+	}, [editor, theme, width, height, camera, shapeIds, settleTimeoutMs, capture, onImage])
 
 	return null
 }
@@ -417,7 +643,7 @@ function ThumbnailMeasureSignal({ token }: { token: string }) {
 				const text = editor.getShapeUtil(shape).getText(shape)
 				bounds[id] = { x: box.x, y: box.y, w: box.w, h: box.h, ...(text ? { text } : null) }
 			}
-			await fetch(THUMBNAIL_RESULT_ENDPOINT, {
+			await fetch(apiUrl(THUMBNAIL_RESULT_ENDPOINT), {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ token, bounds }),
@@ -517,6 +743,10 @@ function makeBlankThumbnail(width: number, height: number, background: string): 
 	})
 }
 
+function nextAnimationFrame() {
+	return new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+}
+
 async function waitForFonts() {
 	if (!('fonts' in document)) return
 	try {
@@ -560,9 +790,13 @@ function preloadImage(url: string, deadline: number) {
 // mount. Wait until the set of images inside the editor is fully loaded and stable across a few
 // consecutive checks.
 async function waitForEditorImages(editor: Editor, deadline: number) {
+	// Every <img> the canvas creates is backed by an asset record, so a board with none has nothing
+	// to wait for — and the stability poll below would otherwise idle for several hundred ms.
+	if (editor.getAssets().length === 0) return
 	let stableChecks = 0
-	let lastCount = -1
-	while (Date.now() < deadline && stableChecks < 3) {
+	// Seeded from a real count, so the first check can already count toward stability.
+	let lastCount = editor.getContainer().querySelectorAll('img').length
+	while (Date.now() < deadline) {
 		const images = Array.from(editor.getContainer().querySelectorAll('img'))
 		if (images.every((img) => img.complete) && images.length === lastCount) {
 			stableChecks++
@@ -570,6 +804,8 @@ async function waitForEditorImages(editor: Editor, deadline: number) {
 			stableChecks = 0
 		}
 		lastCount = images.length
+		// Settled: don't pay one more poll interval just to notice.
+		if (stableChecks >= 3) return
 		await sleep(100)
 	}
 }

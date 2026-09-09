@@ -69,16 +69,29 @@ export const cspDirectives: { [key: string]: string[] } = {
 	'report-uri': [process.env.SENTRY_CSP_REPORT_URI ?? ``],
 }
 
-export const csp = Object.keys(cspDirectives)
-	.map((directive) => `${directive} ${cspDirectives[directive].join(' ')}`)
-	.join('; ')
+function serializeCsp(directives: { [key: string]: string[] }) {
+	return Object.keys(directives)
+		.map((directive) => `${directive} ${directives[directive].join(' ')}`)
+		.join('; ')
+}
 
-export const cspDev = Object.keys(cspDirectives)
-	.filter((key) => key !== 'report-uri')
-	.map((directive) => {
-		const values = cspDirectives[directive]
-		// We allow data: urls for frame-src to allow debugging SVG embeds in dev.
-		if (directive === 'frame-src') return `${directive} ${[...values, 'data:'].join(' ')}`
-		return `${directive} ${values.join(' ')}`
-	})
-	.join('; ')
+export const csp = serializeCsp(cspDirectives)
+
+// The thumbnail render page's CSP: the app policy plus inline script. The sync-worker pushes the
+// board snapshot into this page via Browser Run's addScriptTag, which injects an INLINE script —
+// under the app policy's script-src the browser silently blocks it and the page falls back to
+// fetching a snapshot with the render token, which is exactly the round trip push exists to remove.
+// The relaxation is confined to this one machine-facing route: the page renders worker-authored
+// content for a headless capture, and a human who wanders in gets an inert "missing token" page —
+// there is no user session or credential on this origin path for an inline script to reach.
+export const thumbnailRenderCsp = serializeCsp({
+	...cspDirectives,
+	'script-src': [...cspDirectives['script-src'], `'unsafe-inline'`],
+})
+
+const { 'report-uri': _reportUri, ...cspDirectivesWithoutReporting } = cspDirectives
+export const cspDev = serializeCsp({
+	...cspDirectivesWithoutReporting,
+	// We allow data: urls for frame-src to allow debugging SVG embeds in dev.
+	'frame-src': [...cspDirectives['frame-src'], 'data:'],
+})

@@ -136,6 +136,13 @@ export interface ThumbnailRenderParams {
 	 * drawn, so neighbouring shapes never leak into the frame. When omitted the whole page renders.
 	 */
 	shapeIds?: string[]
+	/**
+	 * `live` means: settle and fit as normal, then signal ready without running `editor.toImage` —
+	 * the screenshotting browser rasterizes the live canvas instead of the page rasterizing itself.
+	 * Skips the export phase (the expensive part on heavy boards) at the cost of the export path's
+	 * pixel-exact sizing, so only agent-facing surfaces opt in. Absent means export as always.
+	 */
+	capture?: 'live'
 	/** `measure` means: skip the export, POST the page's measured geometry back, then signal ready. */
 	mode?: 'screenshot' | 'measure'
 	x: number
@@ -166,17 +173,53 @@ export interface ThumbnailRenderResultRequestBody {
 	bounds: Record<string, ThumbnailShapeMeasurement>
 }
 
+/**
+ * The render page's phase timings, POSTed to the result route as a fire-and-forget beacon once the
+ * export completes. All values are `performance.now()` stamps (ms since navigation start), so the
+ * deltas between them are the phase costs a worker-side clock cannot see: script boot, snapshot
+ * acquisition, editor mount, the settle wait, and the export itself.
+ */
+export interface ThumbnailRenderTimingsRequestBody {
+	token: string
+	timings: {
+		/** How the page got its snapshot — what the transport blob claims, confirmed from the page. */
+		source: 'push' | 'fetch'
+		bootAt: number
+		dataAt: number
+		mountAt: number
+		settledAt: number
+		exportedAt: number
+	}
+}
+
+/**
+ * The snapshot route's response. `renderParams` cannot carry `capture`: this body is the whole
+ * board, and live capture rasterizes everything in the fitted viewport, which is only the requested
+ * picture when the records were sliced for the render. Enforced in the type so the route cannot
+ * compile a response that would put every neighbour into the frame.
+ */
 export type ThumbnailSnapshotResponseBody =
 	| {
 			error: false
 			records: TLRecord[]
 			schema: SerializedSchema
-			renderParams: ThumbnailRenderParams
+			renderParams: Omit<ThumbnailRenderParams, 'capture'>
 	  }
 	| {
 			error: true
 			message: string
 	  }
+
+/**
+ * What the worker pushes into the render page: the snapshot response shape, sliced for this render,
+ * which is the one form allowed to ask for live capture.
+ */
+export interface ThumbnailPushedSnapshot {
+	error: false
+	records: TLRecord[]
+	schema: SerializedSchema
+	renderParams: ThumbnailRenderParams
+}
 
 export const ZErrorCode = stringEnum(
 	'publish_failed',

@@ -5,7 +5,10 @@ import react from '@vitejs/plugin-react'
 import { config } from 'dotenv'
 import { defineConfig, Plugin } from 'vite'
 import { getMultiplayerServerURL } from './scripts/multiplayer-server-url'
-import { thumbnailScreenshotPlugin } from './scripts/vite-thumbnail-screenshot-plugin'
+import {
+	thumbnailRenderEntryPlugin,
+	thumbnailScreenshotPlugin,
+} from './scripts/vite-thumbnail-screenshot-plugin'
 import { zodLocalePlugin } from './scripts/vite-zod-locale-plugin.js'
 
 export { getMultiplayerServerURL }
@@ -64,6 +67,12 @@ function urlOrLocalFallback(mode: string, url: string | undefined, localFallback
 // https://vitejs.dev/config/
 export default defineConfig((env) => ({
 	plugins: [
+		// Ahead of spaFallbackPlugin, and the order is load-bearing: middleware registers in plugin
+		// order, so this rewrites the extensionless /__thumbnail-render to its .html entry before the
+		// preview server's SPA fallback can rewrite it to /index.html — which would leave every
+		// preview-server capture (including the e2e webServer) hanging on a page that never marks
+		// itself ready.
+		thumbnailRenderEntryPlugin(),
 		spaFallbackPlugin(),
 		thumbnailScreenshotPlugin(),
 		zodLocalePlugin(fileURLToPath(new URL('./scripts/zod-locales-shim.js', import.meta.url))),
@@ -87,6 +96,16 @@ export default defineConfig((env) => ({
 
 		// our svg icons break if we use data urls, so disable inline assets for now
 		assetsInlineLimit: 0,
+
+		rollupOptions: {
+			input: {
+				index: fileURLToPath(new URL('./index.html', import.meta.url)),
+				// The thumbnail render page's own entry, so a Browser Run capture boots the SDK
+				// without the app shell. /__thumbnail-render is rewritten to it at the edge
+				// (scripts/build.ts) and in dev (thumbnailRenderEntryPlugin).
+				'thumbnail-render': fileURLToPath(new URL('./thumbnail-render.html', import.meta.url)),
+			},
+		},
 	},
 	// add backwards-compatible support for NEXT_PUBLIC_ env vars
 	define: {
@@ -108,6 +127,7 @@ export default defineConfig((env) => ({
 		// keep running whatever bundle they loaded, potentially for weeks.
 		'process.env.CLIENT_BUILD_TIMESTAMP': JSON.stringify(Date.now().toString()),
 		'process.env.TLDRAW_LICENSE': JSON.stringify(process.env.TLDRAW_LICENSE ?? ''),
+		'process.env.TLDRAW_RENDER_LICENSE': JSON.stringify(process.env.TLDRAW_RENDER_LICENSE ?? ''),
 		// Fall back to staging DSN for local develeopment, although you still need to
 		// modify the env check in 'sentry.client.config.ts' to get it reporting errors
 		'process.env.SENTRY_DSN': JSON.stringify(

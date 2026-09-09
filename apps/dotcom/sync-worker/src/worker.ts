@@ -108,6 +108,13 @@ const router = createRouter<Environment>()
 		withMcpCors(getMcpProtectedResourceMetadata(req, env))
 	)
 	.all('*', preflight)
+	// Ahead of the origin guard: the render page's timing beacon is the one browser request this
+	// worker takes from a page with no origin. An html-mode capture (see THUMBNAIL_RENDER_INLINE)
+	// loads the page without navigating, so its requests carry `Origin: null`, which the allowlist
+	// rejects. The route is authenticated by the signed render token it carries, not by where it
+	// was sent from, so the guard adds nothing here and would silently drop every inline render's
+	// timings.
+	.post('/app/thumbnail-render/result', putThumbnailRenderResult)
 	.all('*', blockUnknownOrigins)
 	.get('/snapshot/:roomId', getRoomSnapshot)
 	// Social preview metadata for board links. Vercel routes social crawlers (by user-agent) here so
@@ -202,7 +209,6 @@ const router = createRouter<Environment>()
 	// getOgImage serves headers only for anything but GET.
 	.all('/app/social-preview/:prefix/:slug/image', getOgImage)
 	.get('/app/thumbnail-render/snapshot', getThumbnailSnapshot)
-	.post('/app/thumbnail-render/result', putThumbnailRenderResult)
 	// end app
 	.all('/ph/*', (req) => {
 		const url = new URL(req.url)

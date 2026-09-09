@@ -54,3 +54,14 @@ export const APP_ASSET_UPLOAD_ENDPOINT = '/api/app/uploads/'
  * @public
  */
 export const THUMBNAIL_RENDER_PATH = '/__thumbnail-render'
+
+/**
+ * The self-contained render artifact for html-mode captures, published by the client build
+ * (scripts/build.ts) and fetched by the sync worker, which splices a snapshot into it and sends
+ * the whole page inside the Browser Run request. Shared because a rename on either side would not
+ * error — the worker's fetch would miss and every html-mode capture would silently degrade to the
+ * url-mode push.
+ *
+ * @public
+ */
+export const THUMBNAIL_RENDER_INLINE_PATH = '/thumbnail-render-inline.html'

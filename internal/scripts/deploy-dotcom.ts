@@ -606,6 +606,10 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			...(previewId
 				? {
 						MCP_SCREENSHOT_RENDER_ORIGIN: `https://${previewId}-preview-deploy.tldraw.com`,
+						// Previews trial the html-mode capture (see THUMBNAIL_RENDER_INLINE in types.ts);
+						// staging and production stay on url mode until the spike settles.
+						THUMBNAIL_RENDER_INLINE: 'true',
+						THUMBNAIL_RENDER_LIVE_CAPTURE: 'true',
 						// Previews advertise and verify against their own public URL like every other
 						// deployed environment — the Host-derived fallback in getMcpResourceUrl is for
 						// local dev and tests only. Injected here because previews have no wrangler.toml

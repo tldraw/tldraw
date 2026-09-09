@@ -92,7 +92,7 @@ function ThumbnailPreview({
 		}
 	}, [dataUrl])
 
-	return <ThumbnailImage dataUrl={dataUrl} width={width} height={height} />
+	return <ThumbnailImage src={dataUrl} width={width} height={height} />
 }
 
 function getFixtureName(value: string | null): FixtureName {

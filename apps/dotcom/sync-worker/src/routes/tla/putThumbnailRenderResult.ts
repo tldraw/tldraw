@@ -1,7 +1,11 @@
-import { ThumbnailRenderResultRequestBody } from '@tldraw/dotcom-shared'
+import {
+	ThumbnailRenderResultRequestBody,
+	ThumbnailRenderTimingsRequestBody,
+} from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
-import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
+import { writeDataPoint } from '../../utils/analytics'
+import { isMintedRenderToken, verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { ShapeMeasurement } from './boardTools'
 import { putRenderResult } from './thumbnailRender'
 
@@ -17,11 +21,52 @@ export async function putThumbnailRenderResult(
 	request: IRequest,
 	env: Environment
 ): Promise<Response> {
-	let body: ThumbnailRenderResultRequestBody
+	let body: ThumbnailRenderResultRequestBody | ThumbnailRenderTimingsRequestBody
 	try {
-		body = (await request.json()) as ThumbnailRenderResultRequestBody
+		body = (await request.json()) as
+			| ThumbnailRenderResultRequestBody
+			| ThumbnailRenderTimingsRequestBody
 	} catch {
 		return Response.json({ error: true, message: 'Invalid JSON body' }, { status: 400 })
+	}
+
+	// `null`, numbers and strings are valid JSON too; refused as the caller's mistake here, where
+	// the `in` and property checks below would throw on them and escape as a worker 500.
+	if (!body || typeof body !== 'object') {
+		return Response.json({ error: true, message: 'Invalid JSON body' }, { status: 400 })
+	}
+
+	// The render page's phase-timing beacon, sharing this route because it shares the route's
+	// auth story: a signed token proves the POST comes from a render we asked for. Telemetry only —
+	// nothing downstream waits on it, so it is accepted for any valid token, screenshot or measure.
+	if ('timings' in body) {
+		// `typeof null` is 'object', and these timings get destructured below.
+		if (!body.token || !body.timings || typeof body.timings !== 'object') {
+			return Response.json(
+				{ error: true, message: 'token and timings are required' },
+				{ status: 400 }
+			)
+		}
+		// Minted, not merely signed, the same bar the snapshot route sets: a render token is deleted
+		// from the record once its capture ends, so this closes the window in which a token seen in a
+		// render URL could be replayed to write rows for the rest of its TTL.
+		const job = await verifyThumbnailRenderToken(env, body.token)
+		if (!job || !(await isMintedRenderToken(env, job, body.token))) {
+			return Response.json({ error: true, message: 'Invalid render token' }, { status: 403 })
+		}
+		const { source, bootAt, dataAt, mountAt, settledAt, exportedAt } = body.timings
+		const stamps = [bootAt, dataAt, mountAt, settledAt, exportedAt]
+		if (!stamps.every(Number.isFinite)) {
+			return Response.json({ error: true, message: 'timings must be finite' }, { status: 400 })
+		}
+		// One datapoint per completed export: where the in-browser time went. browser_run_session
+		// prices the whole session; this decomposes it into boot / acquire / mount / settle / export,
+		// which is what ranks the render page's optimisations against each other.
+		writeDataPoint(undefined, env.MEASURE, env, 'render_page_timings', {
+			blobs: [`surface:${job.surface ?? 'og'}`, `source:${source === 'push' ? 'push' : 'fetch'}`],
+			doubles: stamps,
+		})
+		return Response.json({ error: false })
 	}
 
 	if (!body?.token || !body.bounds || typeof body.bounds !== 'object') {

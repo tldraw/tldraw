@@ -138,6 +138,8 @@ export function makeMeasuringBrowserBinding(
 	> = {}
 ) {
 	return makeBrowserBinding(async (body: any) => {
+		// html-mode bodies carry the whole page and no url; nothing measure-shaped ever uses them.
+		if (!body.url) return new Response(new Uint8Array([1, 2, 3]), { status: 200 })
 		const token = new URL(body.url).searchParams.get('token')
 		const job = token
 			? JSON.parse(new TextDecoder().decode(base64UrlDecode(token.split('.')[0])))

@@ -45,6 +45,7 @@ import {
 } from './boardTools'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
 import { readPageClusters, writePageClusterIndex } from './mcpClusterIndex'
+import { buildPushPayload } from './sliceSnapshotForRender'
 import {
 	ResolveThumbnailBoardResult,
 	ResolvedThumbnailBoard,
@@ -740,6 +741,8 @@ async function loadBoardForTool(
 }
 
 type ResolvedBoardPage =
+	// `snapshot` is the one this resolution already read, carried so a screenshot can push those
+	// records into the render page instead of having it fetch the same board back out of the worker.
 	| {
 			ok: true
 			board: ResolvedThumbnailBoard
@@ -1095,6 +1098,14 @@ async function renderShapeSetScreenshot(
 			)
 		}
 
+		// Push the cluster rather than the board. This tool usually wants a handful of shapes out
+		// of a whole document, so the slice is most of the win here — and slicing is best-effort by
+		// design: it throws rather than hand over a set it cannot vouch for, and that lands us back
+		// on the fetch, which sends everything and cannot be wrong that way.
+		const push = buildPushPayload(resolved.snapshot, {
+			pageId: resolved.page.pageId,
+			shapeIds,
+		})
 		const render = await captureThumbnailScreenshot(env, resolved.board, {
 			surface: 'mcp',
 			pageId: resolved.page.pageId,
@@ -1103,6 +1114,16 @@ async function renderShapeSetScreenshot(
 			width: DEFAULT_THUMBNAIL_WIDTH,
 			height: DEFAULT_THUMBNAIL_HEIGHT,
 			telemetry: { source: 'mcp' },
+			// Preview trial (see THUMBNAIL_RENDER_LIVE_CAPTURE in types.ts): let the screenshot
+			// rasterize the live canvas instead of running editor.toImage in the page. Agent-facing
+			// only — the OG surface keeps the export path's pixel-exact sizing. And only when a sliced
+			// payload is actually going with the render: against a fetched whole board, the live
+			// canvas would show every neighbour inside the fitted viewport, not the shapes asked for.
+			...(envFlagWord(env.THUMBNAIL_RENDER_LIVE_CAPTURE) === 'true' && push
+				? { capture: 'live' as const }
+				: null),
+			push,
+			ctx,
 			content: summarizeSnapshotContent(resolved.snapshot, resolved.page.pageId),
 		})
 
@@ -1111,6 +1132,10 @@ async function renderShapeSetScreenshot(
 		// and burn the caller's rate-limit budget for nothing. Reported rather than raised: the caller
 		// can't act on it, but a cache that stops absorbing writes means every call re-renders. The page
 		// name is URI-encoded because R2 custom metadata is not reliably unicode-safe.
+		//
+		// Awaited, not deferred to waitUntil: a caller that re-asks for the same cluster the moment
+		// the PNG lands must hit the cache, or it passes the limiters and spends a second browser
+		// session on an identical image. One R2 put is cheap next to the render it follows.
 		try {
 			await putThumbnailPng(env.MCP_DATA_BUCKET, cacheKey, render.base64, resolved.board.version, {
 				pageName: encodeURIComponent(resolved.page.pageName),
