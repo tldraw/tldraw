@@ -32,8 +32,7 @@ import { TLAnyAssetUtilConstructor } from './config/defaultAssets'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { TLEditorSnapshot } from './config/TLEditorSnapshot'
-import { Editor } from './editor/Editor'
-import { TLTextMeasurer } from './editor/managers/TextManager/TextManager'
+import { Editor, TLEditorOptions } from './editor/Editor'
 import { resolveThemes } from './editor/managers/ThemeManager/ThemeManager'
 import { TLAnyOverlayUtilConstructor } from './editor/overlays/OverlayUtil'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
@@ -121,9 +120,10 @@ export type TldrawEditorProps = TldrawEditorBaseProps & TldrawEditorStoreProps
  */
 export interface TldrawEditorBaseProps {
 	/**
-	 * Overrides DOM text measurement. Keep this instance stable to avoid recreating the editor.
+	 * Overrides text measurement; use `'dom'` to force DOM measurement. Keep the instance or
+	 * factory stable to avoid recreating the editor.
 	 */
-	textMeasurer?: TLTextMeasurer
+	textMeasurer?: TLEditorOptions['textMeasurer']
 
 	/**
 	 * The component's children.

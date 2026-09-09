@@ -103,6 +103,14 @@ export interface TLTextMeasurer {
 	dispose?(): void
 }
 
+/**
+ * Creates a measurer owned by one editor. The factory runs during construction; defer access
+ * to other editor managers until a measurement is requested.
+ *
+ * @public
+ */
+export type TLTextMeasurerFactory = (editor: Editor) => TLTextMeasurer
+
 /** @public */
 export interface TLMeasureTextSpanOpts {
 	overflow: 'wrap' | 'truncate-ellipsis' | 'truncate-clip'
@@ -134,7 +142,7 @@ const initialDefaultStyles = Object.freeze({
 export class TextManager extends EditorManager {
 	private elm: HTMLDivElement | null = null
 	private poolElms: PoolItem[] = []
-	/** The measurer injected through `TLEditorOptions.textMeasurer`, or null when measuring with the DOM. */
+	/** The supplied measurer, or null when this manager owns DOM measurement. */
 	readonly injected: TLTextMeasurer | null
 
 	constructor(editor: Editor, injected: TLTextMeasurer | null = null) {

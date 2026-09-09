@@ -144,7 +144,11 @@ Disc, circle and square markers come out as shapes, not glyphs: Blink sizes and 
 
 ## tldraw integration
 
-Two things, both opt-in:
+`<Tldraw>` uses the native measurer by default, with DOM measurement during initialization, while fonts load, and for unsupported content or failed requests. Font-loading events invalidate cached measurements without recreating the editor. Custom rich text extensions and arbitrary measurement CSS use the DOM, as do scripts and emoji outside the supported Latin corpus.
+
+Pass `textMeasurer="dom"` to force DOM measurement. An explicit `textMeasurer` instance or factory takes precedence over the default; factories receive the editor during construction and own one measurer per editor. Bare `Editor` and `<TldrawEditor>` instances continue to use DOM measurement unless a measurer is supplied.
+
+Headless measurement and native SVG export can also be configured explicitly:
 
 ### Headless measurement
 

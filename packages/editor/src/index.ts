@@ -140,6 +140,7 @@ export {
 	type TLMeasureTextOpts,
 	type TLMeasureTextSpanOpts,
 	type TLTextMeasurer,
+	type TLTextMeasurerFactory,
 } from './lib/editor/managers/TextManager/TextManager'
 export { DEFAULT_THEME } from './lib/editor/managers/ThemeManager/defaultThemes'
 export { ThemeManager, resolveThemes } from './lib/editor/managers/ThemeManager/ThemeManager'

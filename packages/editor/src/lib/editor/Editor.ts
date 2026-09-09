@@ -170,7 +170,11 @@ import { PerformanceManager } from './managers/PerformanceManager/PerformanceMan
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
-import { TextManager, TLTextMeasurer } from './managers/TextManager/TextManager'
+import {
+	TextManager,
+	TLTextMeasurer,
+	TLTextMeasurerFactory,
+} from './managers/TextManager/TextManager'
 import { ThemeManager, resolveThemes } from './managers/ThemeManager/ThemeManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
@@ -260,11 +264,11 @@ export interface TLEditorOptions {
 	licenseKey?: string
 	fontAssetUrls?: { [key: string]: string | undefined }
 	/**
-	 * Replaces the DOM-backed text measurement used for shape geometry. When given, the editor
-	 * creates no hidden measurement elements, so it can run headlessly (for example in node with
-	 * `@tldraw/rich-text-layout`). Defaults to measuring with the DOM.
+	 * Replaces text measurement for shape geometry. A factory creates a separate measurer for
+	 * each editor. Use `'dom'` to force DOM measurement. A bare Editor defaults to the DOM;
+	 * the Tldraw component supplies a native measurer with DOM fallback.
 	 */
-	textMeasurer?: TLTextMeasurer
+	textMeasurer?: TLTextMeasurer | TLTextMeasurerFactory | 'dom'
 	/**
 	 * Should return a containing html element which has all the styles applied to the editor. If not
 	 * given, the body element will be used.
@@ -414,7 +418,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.user = new UserPreferencesManager(user ?? createTLCurrentUser(), colorScheme ?? 'light')
 		this.disposables.add(() => this.user.dispose())
 
-		this.textMeasure = new TextManager(this, textMeasurer ?? null)
+		this.textMeasure = new TextManager(
+			this,
+			typeof textMeasurer === 'function'
+				? textMeasurer(this)
+				: textMeasurer === 'dom'
+					? null
+					: (textMeasurer ?? null)
+		)
 		this.disposables.add(() => this.textMeasure.dispose())
 
 		this._themeManager = new ThemeManager(this, {

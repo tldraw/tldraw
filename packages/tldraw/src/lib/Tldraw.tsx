@@ -47,6 +47,7 @@ import {
 import { useMergedTranslationOverrides } from './ui/overrides'
 import { TldrawUi, TldrawUiInFrontOfTheCanvas, TldrawUiProps } from './ui/TldrawUi'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
+import { createDefaultTextMeasurer } from './utils/text/DefaultTextMeasurer'
 import { defaultAddFontsFromNode, tipTapDefaultExtensions } from './utils/text/richText'
 
 /**
@@ -284,6 +285,7 @@ export function Tldraw(props: TldrawProps) {
 				<TldrawEditor
 					initialState="select"
 					{...rest}
+					textMeasurer={rest.textMeasurer ?? createDefaultTextMeasurer}
 					components={componentsWithDefault}
 					shapeUtils={shapeUtilsWithDefaults}
 					bindingUtils={bindingUtilsWithDefaults}

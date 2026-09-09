@@ -5,12 +5,8 @@ import {
 	commentToolOverrides,
 } from '@tldraw/commenting'
 import { getLicenseKey } from '@tldraw/dotcom-shared'
-import { createCanvasMeasureContext, installMeasureContext } from '@tldraw/rich-text-layout'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import {
-	allDefaultFontFaces,
-	createTldrawTextMeasurer,
-	TldrawTextMeasurer,
 	commentSchemaRecords,
 	createTLSchema,
 	DefaultContextMenu,
@@ -65,15 +61,15 @@ const ContextMenu = track(() => {
 })
 
 function TextMeasurementToggle() {
-	const enabled = new URLSearchParams(window.location.search).get('textMeasurer') === 'native'
+	const enabled = new URLSearchParams(window.location.search).get('textMeasurer') !== 'dom'
 	return (
 		<TldrawUiMenuItem
 			id="native-text-measurement"
 			label={enabled ? 'Use DOM text measurement' : 'Use native text measurement'}
 			onSelect={() => {
 				const url = new URL(window.location.href)
-				if (enabled) url.searchParams.delete('textMeasurer')
-				else url.searchParams.set('textMeasurer', 'native')
+				if (enabled) url.searchParams.set('textMeasurer', 'dom')
+				else url.searchParams.delete('textMeasurer')
 				window.location.href = url.toString()
 			}}
 		/>
@@ -161,8 +157,7 @@ function afterChangeHandler(prev: any, next: any) {
 
 export default function Develop() {
 	const nativeTextMeasurement =
-		new URLSearchParams(window.location.search).get('textMeasurer') === 'native'
-	const [textMeasurer, setTextMeasurer] = useState<TldrawTextMeasurer>()
+		new URLSearchParams(window.location.search).get('textMeasurer') !== 'dom'
 	const performanceOverrides = usePerformance()
 	const debuggingOverrides = useDebugging()
 
@@ -174,29 +169,12 @@ export default function Develop() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				textMeasurer={textMeasurer}
+				textMeasurer={nativeTextMeasurement ? undefined : 'dom'}
 				licenseKey={getLicenseKey()}
 				overrides={[performanceOverrides, debuggingOverrides, commentToolOverrides]}
 				store={store}
 				tools={tools}
 				onMount={(editor) => {
-					let disposed = false
-					if (nativeTextMeasurement && !textMeasurer) {
-						// Loading first prevents the canvas backend from caching fallback font widths.
-						Promise.all(allDefaultFontFaces.map((font) => editor.fonts.ensureFontIsLoaded(font)))
-							.then(async () => {
-								if (disposed) return
-								const context = document.createElement('canvas').getContext('2d')
-								if (!context) throw new Error('Native text measurement needs a 2D canvas context')
-								const measureContext = createCanvasMeasureContext(context)
-								await installMeasureContext(measureContext)
-								if (disposed) return
-								setTextMeasurer(createTldrawTextMeasurer({ measureContext }))
-							})
-							.catch((error) => {
-								if (!disposed) editor.crash(error)
-							})
-					}
 					;(window as any).app = editor
 					;(window as any).editor = editor
 
@@ -218,7 +196,6 @@ export default function Develop() {
 					const perfAdapter = new PerformanceApiAdapter(editor.performance)
 
 					return () => {
-						disposed = true
 						dispose()
 						perfAdapter.dispose()
 					}

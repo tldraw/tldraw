@@ -10,7 +10,7 @@ Measure shape text with the rich text layout engine and export native SVG text.
 
 ---
 
-This example loads the bundled fonts and initializes pretext before mounting `Tldraw` with a `textMeasurer`. Text shapes, shape labels, notes, arrows, and frame headings use the injected measurer immediately.
+`Tldraw` uses pretext measurement by default once the engine and fonts are ready. DOM measurement handles startup, unsupported content, and initialization failures. Pass `textMeasurer="dom"` to force browser measurement, or supply your own measurer to override the default.
 
 Paste formatted text, edit labels, switch fonts, and resize shapes to try wrapping. The **Export native SVG** button exports the current page with `text: 'native'`, producing `<text>` and `<tspan>` elements for rich text labels. Regular export menu actions keep their defaults.
 
