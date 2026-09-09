@@ -3,7 +3,6 @@ import {
 	CommentAuthor,
 	commentToolOverrides,
 	commentTools,
-	putCommentRecords,
 } from '@tldraw/commenting'
 import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
@@ -13,8 +12,8 @@ import {
 	createCommentThread,
 	createTLSchema,
 	createTLStore,
-	Editor,
 	TLComponents,
+	TLRecord,
 	Tldraw,
 	toRichText,
 	VecLike,
@@ -40,14 +39,16 @@ const THREADS: { point: VecLike; by: string; text: string }[] = [
 ]
 
 export default function CommentClusteringExample() {
-	const store = useMemo(
-		() => createTLStore({ schema: createTLSchema({ records: commentSchemaRecords }) }),
-		[]
-	)
-
-	const handleMount = (editor: Editor) => {
-		const pageId = editor.getCurrentPageId()
-		for (const { point, by, text } of THREADS) {
+	// Seed the threads into the store before mount, so they're present when the cluster model first
+	// builds and render as clustered pins from the start — a board that opens with existing comments,
+	// rather than comments added after load (which show as loose orphan pins until the next zoom-out).
+	const store = useMemo(() => {
+		const store = createTLStore({ schema: createTLSchema({ records: commentSchemaRecords }) })
+		// Populate the default document + page now (the editor does this on mount), so the seeded
+		// comments can reference the real page id and are present when the cluster model first builds.
+		store.ensureStoreIsUsable()
+		const pageId = store.query.records('page').get()[0].id
+		const records = THREADS.flatMap(({ point, by, text }) => {
 			const thread = createCommentThread({
 				pageId,
 				anchor: { type: 'point', x: point.x, y: point.y },
@@ -59,9 +60,12 @@ export default function CommentClusteringExample() {
 				authorId: by,
 				body: toRichText(text),
 			})
-			putCommentRecords(editor, [thread, comment])
-		}
-	}
+			return [thread, comment]
+		})
+		// Comment records are registered through the schema but aren't in the core TLRecord union.
+		store.put(records as unknown as TLRecord[])
+		return store
+	}, [])
 
 	const components = useMemo<TLComponents>(
 		() => ({
@@ -78,7 +82,6 @@ export default function CommentClusteringExample() {
 				tools={commentTools}
 				overrides={[commentToolOverrides]}
 				components={components}
-				onMount={handleMount}
 			/>
 			<div className="comment-clustering__hint">Zoom out to cluster (⌘/ctrl-scroll or pinch)</div>
 		</div>
