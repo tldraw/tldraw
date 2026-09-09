@@ -71,7 +71,7 @@ import {
 	planCommentDrain,
 	planMentionReconciles,
 } from './commentRows'
-import { PERSIST_INTERVAL_MS } from './config'
+import { MAX_VERIFY_KEYFRAME_BYTES, PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
 import {
 	ensureMcpClusterIndexTable,
@@ -743,6 +743,10 @@ export class TLFileDurableObject extends DurableObject {
 	// the document just loaded so a cold start does not cut a keyframe; see getStorage for why that
 	// seed may be ahead of R2 and why that is safe.
 	_lastPersistedSnapshot: RoomSnapshot | null = null
+	// `chainHeadHash(_lastPersistedSnapshot)`, kept from the write that produced it so the next
+	// persist does not hash the whole board again just to check the diff base. Null when unknown
+	// (the wake seed); the write computes it once and then it is known.
+	_lastPersistedHeadHash: string | null = null
 	_versionChain: ChainState | null = null
 	_versionChainLoaded = false
 	// The open segment's deltas. Null means "not known here yet" — after an eviction they are
@@ -867,6 +871,7 @@ export class TLFileDurableObject extends DurableObject {
 				// catch the stale chain on the next persist anyway; clearing here makes the next
 				// version an intentional keyframe rather than a recovered mistake.
 				this._lastPersistedSnapshot = null
+				this._lastPersistedHeadHash = null
 				this._versionChain = null
 				this._versionChainLoaded = true
 				this._pendingDeltas = null
@@ -1423,7 +1428,8 @@ export class TLFileDurableObject extends DurableObject {
 			}
 			case 'version_chain_verify': {
 				this.writeEvent(event.type, {
-					blobs: [event.ok ? 'ok' : 'fail', event.ok ? '' : event.reason],
+					blobs: [event.outcome, event.outcome === 'ok' ? '' : event.reason],
+					doubles: event.outcome === 'skipped' ? [event.keyframeBytes] : [],
 				})
 				break
 			}
@@ -2188,6 +2194,7 @@ export class TLFileDurableObject extends DurableObject {
 						noChainReason,
 						pending,
 						previous: this._lastPersistedSnapshot,
+						previousHeadHash: this._lastPersistedHeadHash ?? undefined,
 						next: snapshot,
 						now: Date.now(),
 					}),
@@ -2200,6 +2207,7 @@ export class TLFileDurableObject extends DurableObject {
 		await this.storage.put(VERSION_CHAIN_STORAGE_KEY, result.chain)
 		const previous = this._lastPersistedSnapshot
 		this._lastPersistedSnapshot = snapshot
+		this._lastPersistedHeadHash = result.chain.headHash
 		this.logEvent({
 			type: 'version_chain_write',
 			bytes: result.bytes,
@@ -2215,10 +2223,23 @@ export class TLFileDurableObject extends DurableObject {
 		if (
 			result.wrote === 'keyframe' &&
 			(result.reason === 'delta-count' || result.reason === 'chain-age') &&
+			chain &&
 			previous &&
 			pending.length > 0
 		) {
-			this.ctx.waitUntil(this._verifyRetiredChain(pending[pending.length - 1].t, previous))
+			// Skipped, not deferred: reconstructing a big chain is the one thing on this path that can
+			// take the live room down with it (see MAX_VERIFY_KEYFRAME_BYTES), and there is no later
+			// moment where the object holds fewer copies of the board.
+			if (chain.keyframeBytes > MAX_VERIFY_KEYFRAME_BYTES) {
+				this.logEvent({
+					type: 'version_chain_verify',
+					outcome: 'skipped',
+					reason: 'keyframe-size',
+					keyframeBytes: chain.keyframeBytes,
+				})
+			} else {
+				this.ctx.waitUntil(this._verifyRetiredChain(pending[pending.length - 1].t, previous))
+			}
 		}
 		return iso
 	}
@@ -2248,11 +2269,11 @@ export class TLFileDurableObject extends DurableObject {
 						: null
 			this.logEvent(
 				reason === null
-					? { type: 'version_chain_verify', ok: true }
-					: { type: 'version_chain_verify', ok: false, reason }
+					? { type: 'version_chain_verify', outcome: 'ok' }
+					: { type: 'version_chain_verify', outcome: 'fail', reason }
 			)
 		} catch (error) {
-			this.logEvent({ type: 'version_chain_verify', ok: false, reason: 'error' })
+			this.logEvent({ type: 'version_chain_verify', outcome: 'fail', reason: 'error' })
 			this.reportError(error)
 		}
 	}

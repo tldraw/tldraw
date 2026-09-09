@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> 在您的白板上发表了评论"
   },
+  "28b2464e1f": {
+    "translation": "无法提交反馈"
+  },
   "299cb00a7a": {
     "translation": "上传失败"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "搜索..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "请重试。"
   },
   "2de510be71": {
     "translation": "重新生成邀请链接会将当前的邀请链接替换为新的链接。任何使用旧链接的人都需要使用新链接才能加入。"
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} 未读"
+  },
+  "550b25cc0c": {
+    "translation": "无法恢复您的本地绘图。请尝试重新加载此页面。"
   },
   "554a05155c": {
     "translation": "仍有问题？<a>报告问题</a>"

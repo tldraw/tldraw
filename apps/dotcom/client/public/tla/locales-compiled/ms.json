@@ -257,6 +257,12 @@
       "value": " telah mengulas di papan anda"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Tidak dapat menghantar maklum balas"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -273,6 +279,12 @@
     {
       "type": 0,
       "value": "Cari..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Sila cuba lagi."
     }
   ],
   "2de510be71": [
@@ -501,6 +513,12 @@
     {
       "type": 0,
       "value": " belum dibaca"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Tidak dapat memulihkan lukisan setempat anda. Cuba muat semula halaman ini."
     }
   ],
   "554a05155c": [

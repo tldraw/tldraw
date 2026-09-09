@@ -257,6 +257,12 @@
       "value": " sa iyong board"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Hindi makapagsumite ng feedback"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -273,6 +279,12 @@
     {
       "type": 0,
       "value": "Maghanap..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Pakisubukang muli."
     }
   ],
   "2de510be71": [
@@ -501,6 +513,12 @@
     {
       "type": 0,
       "value": " hindi pa nababasa"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Hindi maibalik ang iyong lokal na drawing. Subukang i-reload ang pahinang ito."
     }
   ],
   "554a05155c": [

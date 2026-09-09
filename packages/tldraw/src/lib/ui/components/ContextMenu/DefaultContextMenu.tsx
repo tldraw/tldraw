@@ -6,12 +6,29 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
-import { ReactNode, memo, useCallback, useContext, useEffect, useRef } from 'react'
+import {
+	ComponentProps,
+	ComponentType,
+	ReactNode,
+	memo,
+	useCallback,
+	useContext,
+	useEffect,
+	useRef,
+} from 'react'
 import { ContextMenuPagePointContext } from '../../context/actions'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultContextMenuContent } from './DefaultContextMenuContent'
+
+// Controlled `open`: tldraw can close the menu itself (MenuClickCapture's
+// clearOpenMenus), and radix >=2.3.0 only fires onOpenChange on real state
+// changes — a stale internal `open` would swallow every later right-click.
+// radix <2.3 ignores the prop and omits it from its types, hence the widening.
+const ContextMenuRoot = _ContextMenu.Root as ComponentType<
+	ComponentProps<typeof _ContextMenu.Root> & { open?: boolean }
+>
 
 /** @public */
 export interface TLUiContextMenuProps {
@@ -138,7 +155,7 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	const content = children ?? <DefaultContextMenuContent />
 
 	return (
-		<_ContextMenu.Root dir={dir} onOpenChange={handleOpenChange} modal={false}>
+		<ContextMenuRoot dir={dir} open={isOpen} onOpenChange={handleOpenChange} modal={false}>
 			<_ContextMenu.Trigger
 				// When suppressed, disabling the trigger stops Radix from opening the
 				// menu, but it also stops Radix from preventing the native contextmenu —
@@ -168,6 +185,6 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 					</_ContextMenu.Content>
 				</_ContextMenu.Portal>
 			)}
-		</_ContextMenu.Root>
+		</ContextMenuRoot>
 	)
 })

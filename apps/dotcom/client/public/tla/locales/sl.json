@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> je komentiral/a na vaši tabli"
   },
+  "28b2464e1f": {
+    "translation": "Povratnih informacij ni bilo mogoče poslati"
+  },
   "299cb00a7a": {
     "translation": "Nalaganje ni uspelo"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Iskanje ..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Prosim, poskusite znova."
   },
   "2de510be71": {
     "translation": "Z obnovo se trenutna povezava s povabilom nadomesti z novo. Vsakdo, ki uporablja staro povezavo, bo za pridružitev potreboval novo."
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} neprebranih"
+  },
+  "550b25cc0c": {
+    "translation": "Vaše lokalne risbe ni bilo mogoče obnoviti. Poskusite znova naložiti to stran."
   },
   "554a05155c": {
     "translation": "Še vedno imate težave? <a>Prijavite težavo</a>"

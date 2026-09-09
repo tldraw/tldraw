@@ -257,6 +257,12 @@
       "value": " kommenterade på din anslagstavla"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Kunde inte skicka feedback"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -273,6 +279,12 @@
     {
       "type": 0,
       "value": "Söka..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Försök igen."
     }
   ],
   "2de510be71": [
@@ -501,6 +513,12 @@
     {
       "type": 0,
       "value": " olästa"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Det gick inte att återställa din lokala ritning. Försök att ladda om den här sidan."
     }
   ],
   "554a05155c": [

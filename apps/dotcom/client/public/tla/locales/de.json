@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> hat Ihren Beitrag kommentiert"
   },
+  "28b2464e1f": {
+    "translation": "Feedback konnte nicht übermittelt werden"
+  },
   "299cb00a7a": {
     "translation": "Hochladen fehlgeschlagen"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Suchen..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Bitte versuchen Sie es erneut."
   },
   "2de510be71": {
     "translation": "Durch die Neugenerierung wird der aktuelle Einladungslink durch einen neuen ersetzt. Alle, die den alten Link verwenden, benötigen den neuen, um beitreten zu können."
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} ungelesen"
+  },
+  "550b25cc0c": {
+    "translation": "Ihre lokale Zeichnung konnte nicht wiederhergestellt werden. Versuchen Sie, diese Seite neu zu laden."
   },
   "554a05155c": {
     "translation": "Immer noch Probleme? <a>Problem melden</a>"

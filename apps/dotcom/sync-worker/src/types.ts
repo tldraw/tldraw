@@ -222,13 +222,16 @@ export type TLServerEvent =
 			bytes: number
 			depth: number
 	  } & ({ wrote: 'keyframe'; reason: KeyframeReason } | { wrote: 'delta' }))
-	// Discriminated on `ok`: only a failure carries the reason it failed.
+	// Discriminated on `outcome`: only a failure or a skip carries a reason.
 	| ({
 			/** A cadence keyframe retired a chain; did that chain reconstruct the state it claims? */
 			type: 'version_chain_verify'
 	  } & (
-			| { ok: true }
-			| { ok: false; reason: 'missing' | 'legacy-fallback' | 'head-mismatch' | 'error' }
+			| { outcome: 'ok' }
+			| { outcome: 'fail'; reason: 'missing' | 'legacy-fallback' | 'head-mismatch' | 'error' }
+			// Not a failure: the chain was left unchecked because reconstructing it here would risk
+			// the isolate's memory. Carries the keyframe size so the threshold can be tuned.
+			| { outcome: 'skipped'; reason: 'keyframe-size'; keyframeBytes: number }
 	  ))
 	| {
 			/** A chain write failed in dual mode and was swallowed so the persist could complete. */

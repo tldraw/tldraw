@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> commented on your board"
   },
+  "28b2464e1f": {
+    "translation": "Could not submit feedback"
+  },
   "299cb00a7a": {
     "translation": "Upload failed"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Search..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Please try again."
   },
   "2de510be71": {
     "translation": "Regenerating replaces the current invite link with a new one. Anyone using the old link will need the new one to join."
