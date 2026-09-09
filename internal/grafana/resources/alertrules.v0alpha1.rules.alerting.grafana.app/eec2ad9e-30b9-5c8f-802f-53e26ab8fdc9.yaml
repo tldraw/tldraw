@@ -14,8 +14,9 @@ metadata:
   namespace: stacks-890472
 spec:
   annotations:
-    description: 'Total daily cost of ${{ $value | humanize }} has exceeded the $1000
-      threshold. Current cost: ${{ $value }}.'
+    description: 'The last completed day cost ${{ $value | humanize }}, above the
+      $1000 threshold. The cost metric updates once a day at about 03:00 UTC, so
+      this describes yesterday.'
     summary: Anthropic API cost threshold exceeded.
   execErrState: Ok
   expressions:
@@ -54,7 +55,7 @@ spec:
           type: prometheus
           uid: grafanacloud-prom
         expr: |
-          sum(gen_ai_cost{job=~"integrations/anthropic/.*"}) / 100 > 1000
+          sum(increase(gen_ai_cost{job=~"integrations/anthropic/.*"}[1d])) / 100 > 1000
         instant: true
         intervalMs: 1000
         maxDataPoints: 43200
@@ -102,7 +103,7 @@ spec:
   labels:
     __converted_prometheus_rule__: 'true'
     severity: critical
-  missingSeriesEvalsToResolve: 1
+  missingSeriesEvalsToResolve: 10
   noDataState: Ok
   title: AnthropicHighCostThreshold
   trigger:

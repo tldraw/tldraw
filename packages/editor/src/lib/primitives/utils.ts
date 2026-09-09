@@ -189,7 +189,10 @@ export function snapAngle(r: number, segments: number): number {
  * @public
  */
 export function areAnglesCompatible(a: number, b: number) {
-	return a === b || approximately((a % (Math.PI / 2)) - (b % (Math.PI / 2)), 0)
+	// Reduce the difference, not each angle: a sign-preserving % on each made
+	// -PI/4 and PI/4 incompatible. A remainder just under PI/2 is a multiple too.
+	const d = Math.abs(a - b) % (Math.PI / 2)
+	return approximately(d, 0) || approximately(d, Math.PI / 2)
 }
 
 /**

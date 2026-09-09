@@ -257,6 +257,12 @@
       "value": " kommentoi taulasi"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Palautteen lähettäminen epäonnistui"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -273,6 +279,12 @@
     {
       "type": 0,
       "value": "Haku..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Yritä uudelleen."
     }
   ],
   "2de510be71": [
@@ -501,6 +513,12 @@
     {
       "type": 0,
       "value": " lukematon"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Paikallista piirrosta ei voitu palauttaa. Yritä ladata sivu uudelleen."
     }
   ],
   "554a05155c": [
@@ -1072,6 +1090,12 @@
     {
       "type": 0,
       "value": "Poista tiedosto"
+    }
+  ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Vaikuttaa siltä, ​​että olet offline-tilassa. Tarkista yhteytesi ja yritä uudelleen."
     }
   ],
   "9ccb565b86": [

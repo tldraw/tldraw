@@ -1,8 +1,15 @@
-import { createShapeId } from '@tldraw/editor'
+import { Box, createShapeId } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
+
+// The navigation logic only reads `center`, but selecting a shape also runs
+// zoomToSelectionIfOffscreen, which reads the whole box, so these mocks have to
+// return a complete one.
+function boundsAtCenter(center: { x: number; y: number }) {
+	return new Box(center.x - 50, center.y - 50, 100, 100)
+}
 
 const ids = {
 	box1: createShapeId('box1'),
@@ -124,9 +131,9 @@ describe('Shape navigation', () => {
 			// Return normal bounds for box1, null for box2 as if it's culled/not rendered
 			if (shape?.id === ids.box2) {
 				// Still return bounds, but pretend it was calculated even though shape is culled
-				return { x: 3000, y: 3000, w: 100, h: 100, center: { x: 3050, y: 3050 } } as any
+				return boundsAtCenter({ x: 3050, y: 3050 })
 			}
-			return { x: 0, y: 0, w: 100, h: 100, center: { x: 50, y: 50 } } as any
+			return boundsAtCenter({ x: 50, y: 50 })
 		})
 
 		// Select first shape
@@ -153,15 +160,15 @@ describe('Shape navigation', () => {
 			// Setup shape centers for the test
 			vi.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
 				if (shape?.id === ids.boxA) {
-					return { center: { x: 10, y: 110 } } as any
+					return boundsAtCenter({ x: 10, y: 110 })
 				}
 				if (shape?.id === ids.boxB) {
-					return { center: { x: 60, y: 110 } } as any
+					return boundsAtCenter({ x: 60, y: 110 })
 				}
 				if (shape?.id === ids.boxC) {
-					return { center: { x: 30, y: 100 } } as any
+					return boundsAtCenter({ x: 30, y: 100 })
 				}
-				return { center: { x: 0, y: 0 } } as any
+				return boundsAtCenter({ x: 0, y: 0 })
 			})
 
 			// Select box A
@@ -185,15 +192,15 @@ describe('Shape navigation', () => {
 			// Setup shape centers for the test
 			vi.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
 				if (shape?.id === ids.center) {
-					return { center: { x: 100, y: 100 } } as any
+					return boundsAtCenter({ x: 100, y: 100 })
 				}
 				if (shape?.id === ids.right45) {
-					return { center: { x: 150, y: 150 } } as any
+					return boundsAtCenter({ x: 150, y: 150 })
 				}
 				if (shape?.id === ids.right85) {
-					return { center: { x: 150, y: 105 } } as any
+					return boundsAtCenter({ x: 150, y: 105 })
 				}
-				return { center: { x: 0, y: 0 } } as any
+				return boundsAtCenter({ x: 0, y: 0 })
 			})
 
 			// Select center
@@ -221,12 +228,12 @@ describe('Shape navigation', () => {
 
 			// Setup shape centers
 			vi.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
-				if (shape?.id === ids.center) return { center: { x: 200, y: 200 } } as any
-				if (shape?.id === ids.right) return { center: { x: 300, y: 200 } } as any
-				if (shape?.id === ids.left) return { center: { x: 100, y: 200 } } as any
-				if (shape?.id === ids.up) return { center: { x: 200, y: 100 } } as any
-				if (shape?.id === ids.down) return { center: { x: 200, y: 300 } } as any
-				return { center: { x: 0, y: 0 } } as any
+				if (shape?.id === ids.center) return boundsAtCenter({ x: 200, y: 200 })
+				if (shape?.id === ids.right) return boundsAtCenter({ x: 300, y: 200 })
+				if (shape?.id === ids.left) return boundsAtCenter({ x: 100, y: 200 })
+				if (shape?.id === ids.up) return boundsAtCenter({ x: 200, y: 100 })
+				if (shape?.id === ids.down) return boundsAtCenter({ x: 200, y: 300 })
+				return boundsAtCenter({ x: 0, y: 0 })
 			})
 
 			// Select center
@@ -260,11 +267,11 @@ describe('Shape navigation', () => {
 
 			// Setup shape centers
 			vi.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
-				if (shape?.id === ids.center) return { center: { x: 200, y: 200 } } as any
-				if (shape?.id === ids.nearRight) return { center: { x: 250, y: 200 } } as any
-				if (shape?.id === ids.farRight) return { center: { x: 350, y: 200 } } as any
-				if (shape?.id === ids.offAxisRight) return { center: { x: 300, y: 220 } } as any
-				return { center: { x: 0, y: 0 } } as any
+				if (shape?.id === ids.center) return boundsAtCenter({ x: 200, y: 200 })
+				if (shape?.id === ids.nearRight) return boundsAtCenter({ x: 250, y: 200 })
+				if (shape?.id === ids.farRight) return boundsAtCenter({ x: 350, y: 200 })
+				if (shape?.id === ids.offAxisRight) return boundsAtCenter({ x: 300, y: 220 })
+				return boundsAtCenter({ x: 0, y: 0 })
 			})
 
 			// Select center
@@ -286,10 +293,10 @@ describe('Shape navigation', () => {
 
 			// Setup shape centers
 			vi.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
-				if (shape?.id === ids.box1) return { center: { x: 50, y: 50 } } as any
-				if (shape?.id === ids.box2) return { center: { x: 150, y: 50 } } as any
-				if (shape?.id === ids.box3) return { center: { x: 150, y: 150 } } as any
-				return { center: { x: 0, y: 0 } } as any
+				if (shape?.id === ids.box1) return boundsAtCenter({ x: 50, y: 50 })
+				if (shape?.id === ids.box2) return boundsAtCenter({ x: 150, y: 50 })
+				if (shape?.id === ids.box3) return boundsAtCenter({ x: 150, y: 150 })
+				return boundsAtCenter({ x: 0, y: 0 })
 			})
 
 			// Start with box3
@@ -495,7 +502,7 @@ describe('Shape navigation', () => {
 					[ids.box5]: { x: 365, y: 115 },
 				}
 				const pos = positions[shape?.id as keyof typeof positions]
-				return pos ? ({ center: pos } as any) : ({ center: { x: 0, y: 0 } } as any)
+				return boundsAtCenter(pos ?? { x: 0, y: 0 })
 			})
 
 			// Select a shape inside the frame
@@ -622,7 +629,7 @@ describe('Shape navigation', () => {
 					[ids.box5]: { x: 315, y: 65 },
 				}
 				const pos = positions[shape?.id as keyof typeof positions]
-				return pos ? ({ center: pos } as any) : ({ center: { x: 0, y: 0 } } as any)
+				return boundsAtCenter(pos ?? { x: 0, y: 0 })
 			})
 
 			// Select a shape inside the frame
@@ -957,6 +964,116 @@ describe('Shape navigation', () => {
 	})
 
 	// 7. Additional edge cases and regression tests
+	describe('locked shapes', () => {
+		it('skips locked shapes when navigating with next and prev', () => {
+			editor.createShapes([
+				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+				{ id: ids.box2, type: 'geo', x: 100, y: 0, isLocked: true },
+				{ id: ids.box3, type: 'geo', x: 200, y: 0 },
+			])
+
+			editor.select(ids.box1)
+
+			editor.selectAdjacentShape('next')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
+
+			editor.selectAdjacentShape('prev')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		})
+
+		it('skips locked shapes when navigating in a cardinal direction', () => {
+			editor.createShapes([
+				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+				{ id: ids.box2, type: 'geo', x: 100, y: 0, isLocked: true },
+				{ id: ids.box3, type: 'geo', x: 200, y: 0 },
+			])
+
+			editor.select(ids.box1)
+
+			editor.selectAdjacentShape('right')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
+
+			editor.selectAdjacentShape('left')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		})
+
+		it('keeps the current selection when every other shape is locked', () => {
+			editor.createShapes([
+				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+				{ id: ids.box2, type: 'geo', x: 100, y: 0, isLocked: true },
+			])
+
+			editor.select(ids.box1)
+
+			editor.selectAdjacentShape('next')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+
+			editor.selectAdjacentShape('right')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		})
+
+		it('keeps a selected locked shape when nothing else is selectable', () => {
+			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, isLocked: true }])
+
+			editor.setSelectedShapes([ids.box1])
+
+			expect(() => editor.selectAdjacentShape('next')).not.toThrow()
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+
+			expect(() => editor.selectAdjacentShape('right')).not.toThrow()
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		})
+
+		it('skips children of a locked frame when navigating with next and prev', () => {
+			editor.createShapes([
+				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+				{ id: ids.frame1, type: 'frame', x: 200, y: 0, props: { w: 200, h: 200 }, isLocked: true },
+				{ id: ids.box2, type: 'geo', x: 10, y: 10, parentId: ids.frame1 },
+				{ id: ids.box3, type: 'geo', x: 110, y: 10, parentId: ids.frame1 },
+			])
+
+			// A child of the locked frame is selected, e.g. programmatically; the other child is
+			// locked by its ancestor, so traversal has nowhere to go
+			editor.setSelectedShapes([ids.box2])
+
+			editor.selectAdjacentShape('next')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+
+			editor.selectAdjacentShape('prev')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+		})
+
+		it('skips children of a locked frame when navigating in a cardinal direction', () => {
+			editor.createShapes([
+				{ id: ids.frame1, type: 'frame', x: 0, y: 0, props: { w: 400, h: 200 }, isLocked: true },
+				{ id: ids.box1, type: 'geo', x: 10, y: 10, parentId: ids.frame1 },
+				{ id: ids.box2, type: 'geo', x: 200, y: 10, parentId: ids.frame1 },
+			])
+
+			editor.setSelectedShapes([ids.box1])
+
+			editor.selectAdjacentShape('right')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		})
+
+		it('skips locked shapes when navigating within a container', () => {
+			editor.createShapes([
+				{ id: ids.frame1, type: 'frame', x: 0, y: 0, props: { w: 400, h: 200 } },
+				{ id: ids.box1, type: 'geo', x: 10, y: 10, parentId: ids.frame1 },
+				{ id: ids.box2, type: 'geo', x: 120, y: 10, parentId: ids.frame1, isLocked: true },
+				{ id: ids.box3, type: 'geo', x: 230, y: 10, parentId: ids.frame1 },
+			])
+
+			editor.select(ids.box1)
+
+			editor.selectAdjacentShape('next')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
+
+			editor.selectAdjacentShape('left')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		})
+	})
+
 	describe('edge cases and regressions', () => {
 		it('cycles through all shapes when repeatedly tabbing', () => {
 			// Create several shapes with predefined IDs
@@ -996,6 +1113,39 @@ describe('Shape navigation', () => {
 			expect(editor.getSelectedShapeIds().length).toBeGreaterThan(0)
 		})
 
+		it('selects the first shape in reading order on next with no selection', () => {
+			// Create shapes left to right
+			editor.createShapes([
+				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+				{ id: ids.box2, type: 'geo', x: 100, y: 0 },
+				{ id: ids.box3, type: 'geo', x: 200, y: 0 },
+			])
+
+			// Start with no selection
+			editor.selectNone()
+
+			// Navigating forward should select the first shape
+			editor.selectAdjacentShape('next')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		})
+
+		// See #10559
+		it('selects the last shape in reading order on prev with no selection', () => {
+			// Create shapes left to right
+			editor.createShapes([
+				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+				{ id: ids.box2, type: 'geo', x: 100, y: 0 },
+				{ id: ids.box3, type: 'geo', x: 200, y: 0 },
+			])
+
+			// Start with no selection
+			editor.selectNone()
+
+			// Navigating backward should wrap to the last shape, not the second-to-last
+			editor.selectAdjacentShape('prev')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
+		})
+
 		it('navigates in row-wise reading order with complex layouts', () => {
 			// Create shapes in a grid-like pattern
 			editor.createShapes([
@@ -1008,12 +1158,12 @@ describe('Shape navigation', () => {
 
 			// Setup shape centers
 			vi.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
-				if (shape?.id === ids.row1Shape1) return { center: { x: 50, y: 50 } } as any
-				if (shape?.id === ids.row1Shape2) return { center: { x: 150, y: 50 } } as any
-				if (shape?.id === ids.row1Shape3) return { center: { x: 250, y: 50 } } as any
-				if (shape?.id === ids.row2Shape1) return { center: { x: 50, y: 150 } } as any
-				if (shape?.id === ids.row2Shape2) return { center: { x: 150, y: 150 } } as any
-				return { center: { x: 0, y: 0 } } as any
+				if (shape?.id === ids.row1Shape1) return boundsAtCenter({ x: 50, y: 50 })
+				if (shape?.id === ids.row1Shape2) return boundsAtCenter({ x: 150, y: 50 })
+				if (shape?.id === ids.row1Shape3) return boundsAtCenter({ x: 250, y: 50 })
+				if (shape?.id === ids.row2Shape1) return boundsAtCenter({ x: 50, y: 150 })
+				if (shape?.id === ids.row2Shape2) return boundsAtCenter({ x: 150, y: 150 })
+				return boundsAtCenter({ x: 0, y: 0 })
 			})
 
 			// Select first shape

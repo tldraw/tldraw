@@ -43,7 +43,7 @@ export function TlaFileShareMenu({
 
 	const hasAdminRights = useHasFileAdminRights(fileId)
 
-	const file = useValue('file', () => app?.getFile(fileId), [app])
+	const file = useValue('file', () => app?.getFile(fileId), [app, fileId])
 
 	const handleTabChange = useCallback(
 		(value: 'share' | 'export' | 'publish') => {

@@ -366,3 +366,65 @@ it('Puts the new shape into a rotated frame and keeps the source page rotation',
 	testNoteShapeFrameRotations(0.01, 0)
 	testNoteShapeFrameRotations(0.01, 0.01)
 })
+
+describe('Bringing the adjacent note on screen', () => {
+	beforeEach(() => {
+		editor.user.updateUserPreferences({ animationSpeed: 0 })
+	})
+
+	it('Pans to a new note created off screen by clicking the clone handle', () => {
+		// Fully on screen, with the slot to its right hanging off the edge of the 2000px viewport
+		editor.createShape({ type: 'note', x: 1700, y: 1000 })
+		const shape = editor.getLastCreatedShape()!
+		const viewportBefore = editor.getViewportPageBounds().clone()
+		expect(viewportBefore.contains(editor.getShapePageBounds(shape)!)).toBe(true)
+
+		const handle = editor.getShapeHandles(shape.id)![1]
+		editor
+			.select(shape.id)
+			.pointerDown(handle.x, handle.y, { target: 'handle', shape, handle })
+			.expectToBeIn('select.pointing_handle')
+			.pointerUp()
+
+		const newShape = editor.getLastCreatedShape()
+		expect(newShape.id).not.toBe(shape.id)
+		expect(editor.getSelectedShapeIds()).toEqual([newShape.id])
+		expect(viewportBefore.contains(editor.getShapePageBounds(newShape)!)).toBe(false)
+		expect(editor.getViewportPageBounds().contains(editor.getShapePageBounds(newShape)!)).toBe(true)
+	})
+
+	it('Pans to an existing off screen note reached by clicking the clone handle', () => {
+		editor.createShape({ type: 'note', x: 1920, y: 1000 })
+		const offscreenNote = editor.getLastCreatedShape()!
+		editor.createShape({ type: 'note', x: 1700, y: 1000 })
+		const shape = editor.getLastCreatedShape()!
+
+		const handle = editor.getShapeHandles(shape.id)![1]
+		editor
+			.select(shape.id)
+			.pointerDown(handle.x, handle.y, { target: 'handle', shape, handle })
+			.expectToBeIn('select.pointing_handle')
+			.pointerUp()
+
+		expect(editor.getSelectedShapeIds()).toEqual([offscreenNote.id])
+		expect(editor.getViewportPageBounds().contains(editor.getShapePageBounds(offscreenNote)!)).toBe(
+			true
+		)
+	})
+
+	it('Does not move the camera when the new note is already on screen', () => {
+		editor.createShape({ type: 'note', x: 1000, y: 1000 })
+		const shape = editor.getLastCreatedShape()!
+		const cameraBefore = { ...editor.getCamera() }
+
+		const handle = editor.getShapeHandles(shape.id)![1]
+		editor
+			.select(shape.id)
+			.pointerDown(handle.x, handle.y, { target: 'handle', shape, handle })
+			.expectToBeIn('select.pointing_handle')
+			.pointerUp()
+
+		expect(editor.getLastCreatedShape().id).not.toBe(shape.id)
+		expect(editor.getCamera()).toMatchObject(cameraBefore)
+	})
+})

@@ -48,3 +48,24 @@ export function startEditingShapeWithRichText(
 		editor.emit('select-all-text', { shapeId: shape.id })
 	}
 }
+
+/**
+ * Start editing any editable shape. Shapes with rich text go through
+ * `startEditingShapeWithRichText`; editable shapes without it (frame, video, embed) would
+ * make that helper throw, so they enter the editing state directly.
+ *
+ * @internal
+ */
+export function startEditingShape(
+	editor: Editor,
+	shape: TLShape,
+	options: { selectAll?: boolean; info?: TLEventInfo } = {}
+) {
+	if (!editor.canEditShape(shape)) return
+	if (hasRichText(shape)) {
+		startEditingShapeWithRichText(editor, shape, options)
+		return
+	}
+	editor.setEditingShape(shape)
+	editor.setCurrentTool('select.editing_shape', { ...options.info, target: 'shape', shape })
+}

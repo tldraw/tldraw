@@ -1,4 +1,12 @@
-import { TLShape, createShapeId, toRichText } from '@tldraw/editor'
+import {
+	BaseFrameLikeShapeUtil,
+	RecordProps,
+	T,
+	TLBaseShape,
+	TLShape,
+	createShapeId,
+	toRichText,
+} from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -210,5 +218,40 @@ describe('frames', () => {
 
 		expect(editor.getOnlySelectedShape()).toBe(frame)
 		expect(editor.getEditingShape()).toBe(frame)
+	})
+})
+
+// Not registered in TLGlobalShapePropsMap; see getSvgString.test.ts.
+const PLAIN_FRAME_TYPE = 'plain-frame'
+type PlainFrameShape = TLBaseShape<typeof PLAIN_FRAME_TYPE, { w: number; h: number }>
+
+describe('frame-like shapes with a plain geometry', () => {
+	// inherits BaseBoxShapeUtil's Rectangle2d geometry, which has no label children
+	class PlainFrameUtil extends BaseFrameLikeShapeUtil<any> {
+		static override type = PLAIN_FRAME_TYPE
+		static override props: RecordProps<PlainFrameShape> = { w: T.number, h: T.number }
+		getDefaultProps() {
+			return { w: 200, h: 200 }
+		}
+		component() {
+			return null
+		}
+		getIndicatorPath(): undefined {
+			return undefined
+		}
+	}
+
+	it('can be hit tested', () => {
+		editor = new TestEditor({ shapeUtils: [PlainFrameUtil] })
+		editor.createShape({
+			id: ids.frame1,
+			type: PLAIN_FRAME_TYPE,
+			x: 100,
+			y: 100,
+			props: { w: 200, h: 200 },
+		} as any)
+		expect(() => editor.getShapeAtPoint({ x: 150, y: 150 })).not.toThrow()
+		// just outside the edge, within the margin
+		expect(editor.getShapeAtPoint({ x: 98, y: 150 }, { margin: 4 })?.id).toBe(ids.frame1)
 	})
 })

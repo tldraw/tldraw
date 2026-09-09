@@ -17,9 +17,9 @@ The store provides:
 - **Side effects** - Lifecycle hooks for implementing business logic
 - **Queries** - Reactive indexes and filtering for efficient data access
 
-## 2. Core Concepts
+## 2. Core concepts
 
-### Records: The Foundation
+### Records: the foundation
 
 **Records** are immutable data objects that extend the `BaseRecord` interface. Every record has an `id` and a `typeName` that identifies its type:
 
@@ -34,7 +34,7 @@ interface Book extends BaseRecord<'book', RecordId<Book>> {
 }
 ```
 
-### Record Types: Factories for Records
+### Record types: factories for records
 
 A **RecordType** is a factory that creates and manages records of a specific type. You define how records are created, validated, and what their default properties are:
 
@@ -52,9 +52,9 @@ const Book = createRecordType<Book>('book', {
 
 // Create a new book
 
-## 2. Core Concepts
+## 2. Core concepts
 
-### Records: The Foundation
+### Records: the foundation
 
 **Records** are immutable data objects that extend the `BaseRecord` interface. Every record has an `id` and a `typeName` that identifies its type:
 
@@ -73,7 +73,7 @@ interface Book extends BaseRecord<'book', RecordId<Book>> {
 }
 ```
 
-### Record Types: Factories for Records
+### Record types: factories for records
 
 A **RecordType** is a factory that creates and manages records of a specific type. You define how records are created, validated, and what their default properties are:
 
@@ -100,9 +100,9 @@ const book = Book.create({
 // Results in: { id: 'book:abc123', typeName: 'book', title: '1984', authorId: 'author:xyz789', publishedYear: 2025, inStock: true }
 ```
 
-## 3. Basic Usage
+## 3. Basic usage
 
-### Creating and Storing Records
+### Creating and storing records
 
 You add records to the store using the `put` method:
 
@@ -123,7 +123,7 @@ store.put([orwell, huxley, ...books])
 
 > Tip: The `put` method handles both creating new records and updating existing ones. If a record with the same ID already exists, it will be updated.
 
-### Reading Records
+### Reading records
 
 You can read individual records or access all records of a type:
 
@@ -139,7 +139,7 @@ const allRecords = store.allRecords()
 const hasBook = store.has(books[0].id) // true
 ```
 
-### Updating Records
+### Updating records
 
 Use the `update` method to modify existing records:
 
@@ -153,7 +153,7 @@ store.update(book.id, (currentBook) => ({
 
 The update function receives the current record and returns a new record with your changes applied.
 
-### Removing Records
+### Removing records
 
 Remove records using their IDs:
 
@@ -165,9 +165,9 @@ store.remove([book.id])
 store.remove([book1.id, book2.id, book3.id])
 ```
 
-## 4. Reactive Queries and Indexing
+## 4. Reactive queries and indexing
 
-### Understanding Reactive Indexes
+### Understanding reactive indexes
 
 The store automatically maintains **reactive indexes** that allow efficient querying of your data. These indexes update automatically when records change:
 
@@ -183,7 +183,7 @@ console.log(orwellBooks) // Set<RecordId<Book>>
 
 The index returns a `Map` where keys are property values and values are `Set`s of record IDs that have that property value.
 
-### Reactive Queries with Computed Values
+### Reactive queries with computed values
 
 Combine indexes with computed values to create reactive queries:
 
@@ -210,7 +210,7 @@ const inStockBooksByAuthor = computed('inStockBooksByAuthor', () => {
 console.log(inStockBooksByAuthor.get()) // Map<RecordId<Author>, Book[]>
 ```
 
-### The Store: Your Reactive Database
+### The store: your reactive database
 
 The **Store** is the central container that manages all your records. It provides reactive access to data and automatically tracks changes:
 
@@ -230,9 +230,9 @@ const store = new Store({
 })
 ```
 
-## 3. Basic Usage
+## 3. Basic usage
 
-### Creating and Storing Records
+### Creating and storing records
 
 You add records to the store using the `put` method:
 
@@ -250,7 +250,7 @@ store.put(books)
 
 > Tip: The `put` method handles both creating new records and updating existing ones. If a record with the same ID already exists, it will be updated.
 
-### Reading Records
+### Reading records
 
 You can read individual records or access all records of a type:
 
@@ -266,7 +266,7 @@ const allRecords = store.allRecords()
 const hasBook = store.has(books[0].id) // true
 ```
 
-### Updating Records
+### Updating records
 
 Use the `update` method to modify existing records:
 
@@ -280,7 +280,7 @@ store.update(book.id, (currentBook) => ({
 
 The update function receives the current record and returns a new record with your changes applied.
 
-### Removing Records
+### Removing records
 
 Remove records using their IDs:
 
@@ -292,9 +292,9 @@ store.remove([book.id])
 store.remove([book1.id, book2.id, book3.id])
 ```
 
-## 4. Reactive Queries and Indexing
+## 4. Reactive queries and indexing
 
-### Understanding Reactive Indexes
+### Understanding reactive indexes
 
 The store automatically maintains **reactive indexes** that allow efficient querying of your data. These indexes update automatically when records change:
 
@@ -309,7 +309,7 @@ console.log(orwellBooks) // Set<RecordId<Book>>
 
 The index returns a `Map` where keys are property values and values are `Set`s of record IDs that have that property value.
 
-### Reactive Queries with Computed Values
+### Reactive queries with computed values
 
 Combine indexes with computed values to create reactive queries:
 
@@ -336,7 +336,7 @@ const inStockBooksByAuthor = computed('inStockBooksByAuthor', () => {
 console.log(inStockBooksByAuthor.get()) // Map<string, Book[]>
 ```
 
-### Filtering History for Specific Record Types
+### Filtering history for specific record types
 
 You can create reactive computations that track changes to specific record types:
 
@@ -358,9 +358,9 @@ const dispose = react('book-changes', () => {
 
 > Tip: The `filterHistory` method returns a `Computed` that tracks changes to records of a specific type. Use it with `react()` from `@tldraw/state` to respond to changes.
 
-## 5. Record Scopes and Persistence
+## 5. Record scopes and persistence
 
-### Understanding Record Scopes
+### Understanding record scopes
 
 Records have different **scopes** that determine how they're persisted and synchronized:
 
@@ -382,7 +382,7 @@ const PresenceRecord = createRecordType<PresenceData>('presence', {
 - **`session`** - Per-instance data that might be saved locally
 - **`presence`** - Temporary data that's shared but not saved
 
-### Serialization and Snapshots
+### Serialization and snapshots
 
 You can serialize the store's data for persistence:
 
@@ -400,9 +400,9 @@ store.loadStoreSnapshot(saved)
 
 > Note: The store automatically handles migrations when loading snapshots from older versions of your schema.
 
-## 6. Side Effects and Business Logic
+## 6. Side effects and business logic
 
-### Understanding Side Effects
+### Understanding side effects
 
 **Side effects** are hooks that let you implement business logic in response to record changes. They run automatically when records are created, updated, or deleted:
 
@@ -431,7 +431,7 @@ store.sideEffects.registerAfterDeleteHandler('book', (book, source) => {
 })
 ```
 
-### Change Sources
+### Change sources
 
 Side effects receive a `source` parameter that tells you where the change originated:
 
@@ -447,7 +447,7 @@ store.sideEffects.registerAfterCreateHandler('book', (book, source) => {
 })
 ```
 
-### Before Handlers: Validation and Transformation
+### Before handlers: validation and transformation
 
 **Before handlers** run before changes are applied and can validate or transform the data:
 
@@ -470,9 +470,9 @@ store.sideEffects.registerBeforeCreateHandler('book', (book, source) => {
 })
 ```
 
-## 7. Schema Evolution with Migrations
+## 7. Schema evolution with migrations
 
-### Creating Migration Sequences
+### Creating migration sequences
 
 As your application evolves, you'll need to update your data structure. **Migrations** handle this automatically:
 
@@ -527,7 +527,7 @@ const schema = StoreSchema.create(
 )
 ```
 
-### Migration Safety
+### Migration safety
 
 The store automatically applies migrations when loading data from older versions:
 
@@ -542,13 +542,13 @@ store.loadStoreSnapshot(oldSnapshot)
 
 > Tip: Always test your migrations thoroughly with real data before deploying to production.
 
-## 8. Advanced Topics
+## 8. Advanced topics
 
-### Transactional Operations
+### Transactional operations
 
 The store automatically ensures that related operations happen atomically. When you perform multiple operations in response to user actions or side effects, they are automatically grouped together for consistency and performance.
 
-### Custom Computed Caches
+### Custom computed caches
 
 Create **computed caches** for expensive derivations that should be memoized per record:
 
@@ -564,7 +564,7 @@ const analysis = expensiveBookData.get(book.id)
 
 The cache automatically updates when the underlying record changes and cleans up when records are deleted.
 
-### Extracting Changes
+### Extracting changes
 
 You can capture changes that occur within a function:
 
@@ -585,7 +585,7 @@ This is useful for implementing undo/redo systems or understanding what changed 
 
 The store provides several tools for understanding what's happening in your application.
 
-### Store Listeners
+### Store listeners
 
 Add listeners to react to changes in your store:
 
@@ -608,7 +608,7 @@ const removeDocumentListener = store.listen(
 )
 ```
 
-### Understanding Record Validation
+### Understanding record validation
 
 The store validates all records when they're created or updated. Validation errors provide detailed information:
 
@@ -625,7 +625,7 @@ try {
 
 ## 10. Integration
 
-### Framework Integration
+### Framework integration
 
 The store is framework-agnostic but integrates well with React through `@tldraw/state-react`:
 
@@ -647,7 +647,7 @@ const BookList = track(() => {
 
 The `track` function automatically subscribes the component to relevant store changes.
 
-### Persistence Strategies
+### Persistence strategies
 
 Implement different persistence strategies based on your needs:
 
@@ -685,9 +685,9 @@ store.mergeRemoteChanges(() => {
 
 Changes merged this way are marked with `source: 'remote'` so your side effects can handle them appropriately.
 
-## 11. Performance Considerations
+## 11. Performance considerations
 
-### Memory Management
+### Memory management
 
 The store uses several strategies to maintain good performance:
 
@@ -696,7 +696,7 @@ The store uses several strategies to maintain good performance:
 - **Efficient indexes** - Reactive indexes use incremental updates rather than full rebuilds
 - **Change batching** - Multiple changes are batched together before notifying listeners
 
-### Query Optimization
+### Query optimization
 
 For best performance with large datasets:
 
@@ -712,7 +712,7 @@ const book = store.unsafeGetWithoutCapture(bookId) // No reactive subscription
 const expensiveData = store.createComputedCache('expensive', computeExpensiveData)
 ```
 
-### Side Effect Performance
+### Side effect performance
 
 Keep side effects fast since they run synchronously:
 
@@ -728,9 +728,9 @@ store.sideEffects.registerAfterCreateHandler('book', (book) => {
 })
 ```
 
-## 12. Common Patterns
+## 12. Common patterns
 
-### Repository Pattern
+### Repository pattern
 
 Create typed repositories for cleaner APIs:
 
@@ -754,7 +754,7 @@ class BookRepository {
 }
 ```
 
-### State Machines with Records
+### State machines with records
 
 Use records to represent state machine states:
 
@@ -775,7 +775,7 @@ store.sideEffects.registerAfterChangeHandler('orderState', (prev, next) => {
 })
 ```
 
-### Computed Relationships
+### Computed relationships
 
 Model relationships between records using efficient queries:
 

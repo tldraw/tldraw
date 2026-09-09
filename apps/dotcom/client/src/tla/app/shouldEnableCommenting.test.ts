@@ -6,6 +6,8 @@ const FLAGS_OFF: FeatureFlags = {
 	rum_enabled: { enabled: false },
 	commenting_enabled: { enabled: false },
 	mcp_server_access: { enabled: false },
+	version_chain: { enabled: false },
+	version_chain_legacy_writes: { enabled: false },
 }
 
 const FLAGS_COMMENTING_ON: FeatureFlags = {

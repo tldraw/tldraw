@@ -7,11 +7,15 @@ import {
 	TLPointerEventInfo,
 	Vec,
 } from '@tldraw/editor'
-import { updateArrowTargetState } from '../../../shapes/arrow/arrowTargetState'
+import {
+	clearArrowTargetState,
+	updateArrowTargetState,
+} from '../../../shapes/arrow/arrowTargetState'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 import {
 	getNoteAdjacentPositions,
 	getNoteShapeForAdjacentPosition,
+	startEditingAdjacentNote,
 } from '../../../shapes/note/noteHelpers'
 import type { NoteShapeUtil } from '../../../shapes/note/NoteShapeUtil'
 import { getDisplayValues } from '../../../shapes/shared/getDisplayValues'
@@ -55,6 +59,8 @@ export class PointingHandle extends StateNode {
 
 	override onExit() {
 		this.editor.setHintingShapes([])
+		// onEnter shows the arrow's binding target; a click without a drag would leave it showing
+		clearArrowTargetState(this.editor)
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
@@ -76,7 +82,7 @@ export class PointingHandle extends StateNode {
 			const { editor } = this
 			const nextNote = getNoteForAdjacentPosition(editor, shape, handle, false)
 			if (nextNote) {
-				startEditingShapeWithRichText(editor, nextNote, { selectAll: true })
+				startEditingAdjacentNote(editor, nextNote)
 				return
 			}
 		}

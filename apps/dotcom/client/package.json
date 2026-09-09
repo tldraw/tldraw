@@ -39,6 +39,7 @@
 	"dependencies": {
 		"@clerk/clerk-react": "^5.53.3",
 		"@clerk/elements": "^0.23.74",
+		"@clerk/types": "^4.95.1",
 		"@rocicorp/zero": "1.9.0",
 		"@sentry/integrations": "^7.120.3",
 		"@sentry/react": "^7.120.3",
@@ -70,6 +71,7 @@
 		"@clerk/testing": "^1.4.15",
 		"@formatjs/cli": "^6.5.1",
 		"@formatjs/unplugin": "^1.1.0",
+		"@peculiar/webcrypto": "^1.5.0",
 		"@playwright/test": "^1.61.0",
 		"@sentry/cli": "^2.41.1",
 		"@tldraw/validate": "workspace:*",
