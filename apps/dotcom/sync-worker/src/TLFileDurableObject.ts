@@ -80,7 +80,7 @@ import {
 	writeMcpClusterIndexRow,
 } from './mcpClusterIndexStorage'
 import { TLPostgresPool } from './postgres'
-import { deleteAllObjectsWithPrefix, getR2KeyForRoom } from './r2'
+import { deleteAllObjectsWithPrefix, getR2KeyForRoom, R2ReadScheduler } from './r2'
 import {
 	BootStage,
 	FileEffectStallError,
@@ -117,7 +117,12 @@ import {
 	resolveVersionChainMode,
 	VersionChainRollout,
 } from './versionChainConfig'
-import { deleteAllVersions, reconstructVersion } from './versionChainRead'
+import {
+	deleteAllVersions,
+	loadChainIndex,
+	openWholeVersionStream,
+	reconstructVersion,
+} from './versionChainRead'
 import { readOpenSegment, writeVersionChainEntry } from './versionChainWrite'
 import { chainHeadHash } from './versionDelta'
 import { resolveWelcomeSnapshot } from './welcome/resolveWelcomeSnapshot'
@@ -151,7 +156,9 @@ type R2OperationType =
 	| 'asset_copy'
 	| 'snapshot_upload'
 	| 'version_chain_write'
+	| 'version_chain_read'
 	| 'version_chain_verify'
+	| 'version_chain_delete'
 
 // Transient R2 failures worth retrying — dropped connections and the connection-limit error the
 // shared budget exists to avoid. Anything else (a bad request, missing object, etc.) is permanent,
@@ -799,11 +806,58 @@ export class TLFileDurableObject extends DurableObject {
 			if (!timestamp) {
 				return new Response('Missing timestamp', { status: 400 })
 			}
-			const data = await this.r2.versionCache.get(`${roomKey}/${timestamp}`)
-			if (!data) {
-				return new Response('Version not found', { status: 400 })
+			// Reconstructs from the chain, falling back to the legacy full copy both when the chain
+			// has nothing for this version and when it is broken — an admin who can preview a version
+			// must be able to restore it while the full copies exist.
+			// Whole objects (keyframes, legacy copies) are read as text once — the same cost as the
+			// handler this replaces — and only a delta replay materializes a snapshot, which is then
+			// reused below rather than re-parsed. Parsing, re-serializing and parsing again a large
+			// board is what pushes a 128MB isolate over.
+			let dataText: string
+			let restored: RoomSnapshot | undefined
+			try {
+				// Each read is its own queued operation rather than the whole restore holding one
+				// slot — a slot is sized for an asset copy's two connections, and reconstruction
+				// fans out to the keyframe plus every segment (see _verifyRetiredChain). Every read
+				// is one idempotent get or list, so each retries transient errors on its own.
+				const schedule: R2ReadScheduler = (read) =>
+					this.addR2Operation('version_chain_read', () =>
+						retry(read, { attempts: 3, waitDuration: 500, matchError: isTransientConnectionError })
+					)
+				const buckets = {
+					chainBucket: this.r2.versionChain,
+					legacyBucket: this.r2.versionCache,
+				}
+				const { entries: index } = await loadChainIndex(this.r2.versionChain, roomKey, schedule)
+				const whole = await openWholeVersionStream({
+					...buckets,
+					roomKey,
+					timestamp,
+					index,
+					schedule,
+				})
+				if (whole) {
+					dataText = await new Response(whole).text()
+				} else {
+					const reconstruction = await reconstructVersion({
+						...buckets,
+						roomKey,
+						timestamp,
+						index,
+						schedule,
+					})
+					if (!reconstruction) {
+						return new Response('Version not found', { status: 400 })
+					}
+					restored = reconstruction.snapshot
+					dataText = JSON.stringify(restored)
+				}
+			} catch (error) {
+				const legacy = await this.r2.versionCache.get(`${roomKey}/${timestamp}`)
+				if (!legacy) throw error
+				this.reportError(error)
+				dataText = await legacy.text()
 			}
-			const dataText = await data.text()
 
 			// The put deliberately carries no version metadata, so null ("looked up, no usable
 			// stamp") is the truth about R2 and the next persist re-uploads and re-stamps.
@@ -857,7 +911,7 @@ export class TLFileDurableObject extends DurableObject {
 			// retries and let the dropped comments resurrect on the next fresh-SQLite load.
 			// follow-up: a durable wipe-marker recorded alongside the outbox would let the DO
 			// itself retry the fileId-wide delete, closing the dependence on caller retries.
-			const snapshot = JSON.parse(dataText) as RoomSnapshot
+			const snapshot = restored ?? (JSON.parse(dataText) as RoomSnapshot)
 
 			const storage = await this.getStorage()
 			storage.transaction((txn) => {
@@ -3137,10 +3191,14 @@ export class TLFileDurableObject extends DurableObject {
 
 			// remove edit history
 			const r2Key = getR2KeyForRoom({ slug: id, isApp: true })
+			// Each list page and delete batch is its own queued operation: the sweep runs both
+			// buckets concurrently, and unqueued beside two asset copies that is the whole
+			// six-connection budget.
 			await deleteAllVersions({
 				chainBucket: this.env.ROOMS_HISTORY,
 				legacyBucket: this.env.ROOMS_HISTORY_EPHEMERAL,
 				roomKey: r2Key,
+				schedule: (op) => this.addR2Operation('version_chain_delete', op),
 			})
 
 			// remove main file
@@ -3368,6 +3426,7 @@ export class TLFileDurableObject extends DurableObject {
 				chainBucket: this.env.ROOMS_HISTORY,
 				legacyBucket: this.env.ROOMS_HISTORY_EPHEMERAL,
 				roomKey,
+				schedule: (op) => this.addR2Operation('version_chain_delete', op),
 			})
 
 			// remove main file
