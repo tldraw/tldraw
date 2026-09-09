@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> skomentował Twoją tablicę"
   },
+  "28b2464e1f": {
+    "translation": "Nie udało się przesłać opinii"
+  },
   "299cb00a7a": {
     "translation": "Przesyłanie nie powiodło się"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Szukaj..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Spróbuj ponownie."
   },
   "2de510be71": {
     "translation": "Regeneracja zastępuje obecny link z zaproszeniem nowym. Każdy, kto korzysta ze starego linku, będzie potrzebował nowego, aby dołączyć."
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} nieprzeczytane"
+  },
+  "550b25cc0c": {
+    "translation": "Nie udało się przywrócić lokalnego rysunku. Spróbuj odświeżyć tę stronę."
   },
   "554a05155c": {
     "translation": "Nadal masz problem? <a>Zgłoś problem</a>"

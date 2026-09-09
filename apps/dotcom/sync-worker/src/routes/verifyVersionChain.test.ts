@@ -294,6 +294,112 @@ describe('verifyRoomVersions on an orphaned segment', () => {
 	})
 })
 
+describe('verifyRoomVersions on an unreadable segment', () => {
+	const iso = (s: number) => `2026-09-01T00:00:0${s}.000Z`
+	const versions = [
+		snapshot(1, ['shape:a']),
+		snapshot(2, ['shape:a', 'shape:b']),
+		snapshot(3, ['shape:a', 'shape:b', 'shape:c']),
+	]
+
+	/** A keyframe and two segments, where the one at `brokenSeq` has lost its chain reference. */
+	async function seedWithBrokenSegment(
+		chainBucket: R2Bucket,
+		legacyBucket: R2Bucket,
+		brokenSeq: 1 | 2
+	) {
+		const keyframeKey = versionKey(roomKey, iso(0), 'keyframe')
+		const kf = await encodeVersionBody(versions[0])
+		await chainBucket.put(keyframeKey, kf.body, { customMetadata: kf.metadata })
+		await legacyBucket.put(`${roomKey}/${iso(0)}`, JSON.stringify(versions[0]))
+
+		for (const firstSeq of [1, 2] as const) {
+			const encoded = await encodeVersionBody({
+				v: 1,
+				deltas: [
+					{
+						t: iso(firstSeq),
+						delta: buildSnapshotDelta(versions[firstSeq - 1], versions[firstSeq]),
+					},
+				],
+			})
+			// The broken one keeps its body metadata and loses the chain reference, the way a
+			// half-written custom metadata set would.
+			await chainBucket.put(versionKey(roomKey, iso(firstSeq), 'segment'), encoded.body, {
+				customMetadata:
+					firstSeq === brokenSeq
+						? encoded.metadata
+						: {
+								...encoded.metadata,
+								...segmentCustomMetadata({
+									keyframeKey,
+									firstSeq,
+									timestamps: [iso(firstSeq)],
+								}),
+							},
+			})
+			await legacyBucket.put(`${roomKey}/${iso(firstSeq)}`, JSON.stringify(versions[firstSeq]))
+		}
+	}
+
+	it('reports a trailing segment that leaves no sequence gap behind it', async () => {
+		const chainBucket = createFakeR2()
+		const legacyBucket = createFakeR2()
+		await seedWithBrokenSegment(chainBucket, legacyBucket, 2)
+
+		// Without the rejection report this is a clean room: the walk replays the keyframe and
+		// sequence 1, then simply ends, and nothing is left to trip the sequence check.
+		expect(await verifyRoomVersions({ chainBucket, legacyBucket, roomKey, limit: 20 })).toEqual({
+			checked: 2,
+			replayed: 2,
+			reads: 5,
+			complete: true,
+			mismatches: [],
+			errors: [
+				{
+					timestamp: iso(2),
+					message: expect.stringMatching(/has no readable chain reference/),
+				},
+			],
+		})
+	})
+
+	it('reports a mid-chain segment directly, not only as the gap it leaves', async () => {
+		const chainBucket = createFakeR2()
+		const legacyBucket = createFakeR2()
+		await seedWithBrokenSegment(chainBucket, legacyBucket, 1)
+
+		const result = await verifyRoomVersions({ chainBucket, legacyBucket, roomKey, limit: 20 })
+
+		expect(result.errors).toEqual([
+			{ timestamp: iso(1), message: expect.stringMatching(/has no readable chain reference/) },
+			{ timestamp: iso(2), message: expect.stringMatching(/expected at sequence 1, found 2/) },
+		])
+		expect(result.mismatches).toEqual([])
+	})
+
+	it('reports the segment even when the budget stops the walk', async () => {
+		const chainBucket = createFakeR2()
+		const legacyBucket = createFakeR2()
+		const encoded = await encodeVersionBody({
+			v: 1,
+			deltas: [{ t: iso(1), delta: buildSnapshotDelta(versions[0], versions[1]) }],
+		})
+		await chainBucket.put(versionKey(roomKey, iso(1), 'segment'), encoded.body, {
+			customMetadata: encoded.metadata,
+		})
+
+		// The listing alone exhausts the budget; reading the index is what found this, so it is
+		// reported whether or not the walk gets to run.
+		const result = await verifyRoomVersions({ chainBucket, legacyBucket, roomKey, limit: 1 })
+
+		expect(result.errors.map((e) => e.message)).toEqual([
+			expect.stringMatching(/has no readable chain reference/),
+		])
+		expect(result.replayed).toBe(0)
+	})
+})
+
 describe('verifyRoomVersions', () => {
 	it('reports no mismatches when reconstruction matches the full copies', async () => {
 		const chainBucket = createFakeR2()

@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> kommenterede på dit opslagstavle"
   },
+  "28b2464e1f": {
+    "translation": "Feedback kunne ikke indsendes"
+  },
   "299cb00a7a": {
     "translation": "Upload mislykkedes"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Søge..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Prøv venligst igen."
   },
   "2de510be71": {
     "translation": "Regenerering erstatter det nuværende invitationslink med et nyt. Alle, der bruger det gamle link, skal bruge det nye for at deltage."
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} ulæste"
+  },
+  "550b25cc0c": {
+    "translation": "Din lokale tegning kunne ikke gendannes. Prøv at genindlæse denne side."
   },
   "554a05155c": {
     "translation": "Har du stadig problemer? <a>Rapportér et problem</a>"

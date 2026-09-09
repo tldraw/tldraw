@@ -71,7 +71,7 @@ import {
 	planCommentDrain,
 	planMentionReconciles,
 } from './commentRows'
-import { PERSIST_INTERVAL_MS } from './config'
+import { MAX_VERIFY_KEYFRAME_BYTES, PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
 import {
 	ensureMcpClusterIndexTable,
@@ -246,6 +246,12 @@ const OBJECT_TYPES = [
 	'comment',
 	'comment-reaction',
 ] as const satisfies readonly (keyof typeof authorizeFileRecord)[]
+
+// The comment outbox (see drainCommentOutbox) only understands comment record ids; keep this
+// separate from OBJECT_TYPES so a future object-lane type doesn't get enqueued there.
+function isCommentRecordId(id: string) {
+	return isCommentId(id) || isCommentThreadId(id) || isCommentReactionId(id)
+}
 
 export class TLFileDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
@@ -476,10 +482,6 @@ export class TLFileDurableObject extends DurableObject {
 
 	// For analytics
 	measure: Analytics | undefined
-
-	// For error tracking
-	sentryDSN: string | undefined
-
 	readonly supabaseTable: string
 	readonly r2: {
 		readonly rooms: R2Bucket
@@ -519,8 +521,6 @@ export class TLFileDurableObject extends DurableObject {
 		return this._db
 	}
 
-	private readonly changeSource = 'TLFileDurableObject'
-
 	constructor(
 		private state: DurableObjectState,
 		override env: Environment
@@ -528,7 +528,6 @@ export class TLFileDurableObject extends DurableObject {
 		super(state, env)
 		this.id = state.id
 		this.storage = state.storage
-		this.sentryDSN = env.SENTRY_DSN
 		this.measure = env.MEASURE
 		this.sentry = createSentry(this.state, this.env)
 		this.log = new Logger(env, 'TLDrawDurableObject', this.sentry)
@@ -606,9 +605,9 @@ export class TLFileDurableObject extends DurableObject {
 	get documentInfo() {
 		return assertExists(this._documentInfo, 'documentInfo must be present')
 	}
-	setDocumentInfo(info: DocumentInfo) {
-		this._documentInfo = info
-		this.storage.put('documentInfo', info)
+	setDocumentInfo(info: Omit<DocumentInfo, 'version'>) {
+		this._documentInfo = { version: CURRENT_DOCUMENT_INFO_VERSION, ...info }
+		this.storage.put('documentInfo', this._documentInfo)
 	}
 	async extractDocumentInfoFromRequest(req: IRequest, roomOpenMode: RoomOpenMode) {
 		const slug = assertExists(
@@ -620,12 +619,7 @@ export class TLFileDurableObject extends DurableObject {
 		if (this._documentInfo) {
 			assert(this._documentInfo.slug === slug, 'slug must match')
 		} else {
-			this.setDocumentInfo({
-				version: CURRENT_DOCUMENT_INFO_VERSION,
-				slug,
-				isApp,
-				deleted: false,
-			})
+			this.setDocumentInfo({ slug, isApp, deleted: false })
 		}
 	}
 
@@ -743,6 +737,10 @@ export class TLFileDurableObject extends DurableObject {
 	// the document just loaded so a cold start does not cut a keyframe; see getStorage for why that
 	// seed may be ahead of R2 and why that is safe.
 	_lastPersistedSnapshot: RoomSnapshot | null = null
+	// `chainHeadHash(_lastPersistedSnapshot)`, kept from the write that produced it so the next
+	// persist does not hash the whole board again just to check the diff base. Null when unknown
+	// (the wake seed); the write computes it once and then it is known.
+	_lastPersistedHeadHash: string | null = null
 	_versionChain: ChainState | null = null
 	_versionChainLoaded = false
 	// The open segment's deltas. Null means "not known here yet" — after an eviction they are
@@ -867,6 +865,7 @@ export class TLFileDurableObject extends DurableObject {
 				// catch the stale chain on the next persist anyway; clearing here makes the next
 				// version an intentional keyframe rather than a recovered mistake.
 				this._lastPersistedSnapshot = null
+				this._lastPersistedHeadHash = null
 				this._versionChain = null
 				this._versionChainLoaded = true
 				this._pendingDeltas = null
@@ -1423,7 +1422,8 @@ export class TLFileDurableObject extends DurableObject {
 			}
 			case 'version_chain_verify': {
 				this.writeEvent(event.type, {
-					blobs: [event.ok ? 'ok' : 'fail', event.ok ? '' : event.reason],
+					blobs: [event.outcome, event.outcome === 'ok' ? '' : event.reason],
+					doubles: event.outcome === 'skipped' ? [event.keyframeBytes] : [],
 				})
 				break
 			}
@@ -2188,6 +2188,7 @@ export class TLFileDurableObject extends DurableObject {
 						noChainReason,
 						pending,
 						previous: this._lastPersistedSnapshot,
+						previousHeadHash: this._lastPersistedHeadHash ?? undefined,
 						next: snapshot,
 						now: Date.now(),
 					}),
@@ -2200,6 +2201,7 @@ export class TLFileDurableObject extends DurableObject {
 		await this.storage.put(VERSION_CHAIN_STORAGE_KEY, result.chain)
 		const previous = this._lastPersistedSnapshot
 		this._lastPersistedSnapshot = snapshot
+		this._lastPersistedHeadHash = result.chain.headHash
 		this.logEvent({
 			type: 'version_chain_write',
 			bytes: result.bytes,
@@ -2215,10 +2217,23 @@ export class TLFileDurableObject extends DurableObject {
 		if (
 			result.wrote === 'keyframe' &&
 			(result.reason === 'delta-count' || result.reason === 'chain-age') &&
+			chain &&
 			previous &&
 			pending.length > 0
 		) {
-			this.ctx.waitUntil(this._verifyRetiredChain(pending[pending.length - 1].t, previous))
+			// Skipped, not deferred: reconstructing a big chain is the one thing on this path that can
+			// take the live room down with it (see MAX_VERIFY_KEYFRAME_BYTES), and there is no later
+			// moment where the object holds fewer copies of the board.
+			if (chain.keyframeBytes > MAX_VERIFY_KEYFRAME_BYTES) {
+				this.logEvent({
+					type: 'version_chain_verify',
+					outcome: 'skipped',
+					reason: 'keyframe-size',
+					keyframeBytes: chain.keyframeBytes,
+				})
+			} else {
+				this.ctx.waitUntil(this._verifyRetiredChain(pending[pending.length - 1].t, previous))
+			}
 		}
 		return iso
 	}
@@ -2248,11 +2263,11 @@ export class TLFileDurableObject extends DurableObject {
 						: null
 			this.logEvent(
 				reason === null
-					? { type: 'version_chain_verify', ok: true }
-					: { type: 'version_chain_verify', ok: false, reason }
+					? { type: 'version_chain_verify', outcome: 'ok' }
+					: { type: 'version_chain_verify', outcome: 'fail', reason }
 			)
 		} catch (error) {
-			this.logEvent({ type: 'version_chain_verify', ok: false, reason: 'error' })
+			this.logEvent({ type: 'version_chain_verify', outcome: 'fail', reason: 'error' })
 			this.reportError(error)
 		}
 	}
@@ -2397,19 +2412,11 @@ export class TLFileDurableObject extends DurableObject {
 	private enqueueCommentChanges(diff: TLSyncForwardDiff<TLRecord>) {
 		const ids: string[] = []
 		for (const put of Object.values(diff.puts)) {
-			const record = (Array.isArray(put) ? put[1] : put) as { typeName: string; id: string }
-			if (
-				record.typeName === 'comment' ||
-				record.typeName === 'comment-thread' ||
-				record.typeName === 'comment-reaction'
-			) {
-				ids.push(record.id)
-			}
+			const record = (Array.isArray(put) ? put[1] : put) as { id: string }
+			if (isCommentRecordId(record.id)) ids.push(record.id)
 		}
 		for (const id of diff.deletes) {
-			if (isCommentId(id) || isCommentThreadId(id) || isCommentReactionId(id)) {
-				ids.push(id)
-			}
+			if (isCommentRecordId(id)) ids.push(id)
 		}
 		if (ids.length === 0) return
 		this.ensureCommentOutbox()
@@ -3042,12 +3049,7 @@ export class TLFileDurableObject extends DurableObject {
 		if (!this._fileRecordCache) this._fileRecordCache = file
 
 		if (!this._documentInfo) {
-			this.setDocumentInfo({
-				version: CURRENT_DOCUMENT_INFO_VERSION,
-				slug: file.id,
-				isApp: true,
-				deleted: false,
-			})
+			this.setDocumentInfo({ slug: file.id, isApp: true, deleted: false })
 		}
 		try {
 			await this.reportIfEffectStalls(this.getRoom(), file, 'insert')
@@ -3067,12 +3069,7 @@ export class TLFileDurableObject extends DurableObject {
 		}
 		this._fileRecordCache = file
 		if (!this._documentInfo) {
-			this.setDocumentInfo({
-				version: CURRENT_DOCUMENT_INFO_VERSION,
-				slug: file.id,
-				isApp: true,
-				deleted: false,
-			})
+			this.setDocumentInfo({ slug: file.id, isApp: true, deleted: false })
 		}
 
 		try {
@@ -3138,12 +3135,7 @@ export class TLFileDurableObject extends DurableObject {
 		// prevent new connections while we clean everything up. Fall back to the argument for the
 		// slug (an app file's slug is its id): a never-initialized room has no documentInfo, and
 		// delete must stay terminal for any DO state instead of tripping the asserting getter.
-		this.setDocumentInfo({
-			version: CURRENT_DOCUMENT_INFO_VERSION,
-			slug: this._documentInfo?.slug ?? id,
-			isApp: true,
-			deleted: true,
-		})
+		this.setDocumentInfo({ slug: this._documentInfo?.slug ?? id, isApp: true, deleted: true })
 
 		await this.executionQueue.push(async () => {
 			await this.closeAllSocketsForDelete()
@@ -3384,12 +3376,7 @@ export class TLFileDurableObject extends DurableObject {
 
 	async __admin__hardDeleteIfLegacy() {
 		if (!this._documentInfo || this.documentInfo.deleted || this.documentInfo.isApp) return false
-		this.setDocumentInfo({
-			version: CURRENT_DOCUMENT_INFO_VERSION,
-			slug: this.documentInfo.slug,
-			isApp: false,
-			deleted: true,
-		})
+		this.setDocumentInfo({ slug: this.documentInfo.slug, isApp: false, deleted: true })
 		// Queued so an in-flight persist finishes before the R2 deletes rather than re-uploading
 		// the snapshot after them.
 		await this.executionQueue.push(async () => {
@@ -3416,12 +3403,7 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	async __admin__createLegacyRoom(id: string) {
-		this.setDocumentInfo({
-			version: CURRENT_DOCUMENT_INFO_VERSION,
-			slug: id,
-			isApp: false,
-			deleted: false,
-		})
+		this.setDocumentInfo({ slug: id, isApp: false, deleted: false })
 		const key = getR2KeyForRoom({ slug: id, isApp: false })
 		await this.r2.rooms.put(key, JSON.stringify(DEFAULT_INITIAL_SNAPSHOT))
 		await this.getRoom()

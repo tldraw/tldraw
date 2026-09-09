@@ -6,6 +6,7 @@ import { createFakeR2 } from './test/fakeR2'
 import { ChainState, PendingDelta } from './versionChain'
 import { reconstructVersion } from './versionChainRead'
 import { readOpenSegment, writeVersionChainEntry } from './versionChainWrite'
+import { chainHeadHash, SNAPSHOT_DELTA_VERSION } from './versionDelta'
 
 const roomKey = 'app_rooms/slug'
 
@@ -138,6 +139,51 @@ describe('writeVersionChainEntry', () => {
 		// The buffer resets with the new segment rather than growing without bound.
 		expect(pending).toHaveLength(1)
 		expect((await bucket.list({ prefix: roomKey })).objects).toHaveLength(3)
+	})
+
+	it('trusts a supplied previous head hash instead of hashing the previous snapshot', async () => {
+		const bucket = createFakeR2()
+		const head = snapshot(1, ['shape:a'])
+		const first = await writeVersionChainEntry({
+			bucket,
+			roomKey,
+			iso: isoAt(0),
+			chain: null,
+			pending: [],
+			previous: null,
+			next: head,
+			now: 0,
+		})
+		expect(first.chain.headHash).toBe(chainHeadHash(head))
+
+		// The hash the last write handed back is the one the DO caches; it appends.
+		const appended = await writeVersionChainEntry({
+			bucket,
+			roomKey,
+			iso: isoAt(1),
+			chain: first.chain,
+			pending: first.pending,
+			previous: head,
+			previousHeadHash: first.chain.headHash,
+			next: snapshot(2, ['shape:a', 'shape:b']),
+			now: 1000,
+		})
+		expect(appended.wrote).toBe('delta')
+
+		// A wrong one is believed, and the write recovers with a keyframe rather than recomputing:
+		// the hash is the contract, so a caller that cached it wrong never gets a delta off it.
+		const mismatched = await writeVersionChainEntry({
+			bucket,
+			roomKey,
+			iso: isoAt(2),
+			chain: first.chain,
+			pending: first.pending,
+			previous: head,
+			previousHeadHash: 'not-the-head',
+			next: snapshot(2, ['shape:a', 'shape:b']),
+			now: 2000,
+		})
+		expect(mismatched).toMatchObject({ wrote: 'keyframe', reason: 'content-mismatch' })
 	})
 
 	it('cuts a fresh keyframe when the previous state is not the chain head', async () => {
@@ -300,6 +346,33 @@ describe('writeVersionChainEntry', () => {
 		// The chain head fingerprint is `before`'s, so the schema move is what the decision sees.
 		expect(second).toMatchObject({ wrote: 'keyframe', reason: 'schema-change' })
 	})
+
+	it('retires a chain rather than appending a delta of another format to its segment', async () => {
+		const bucket = createFakeR2()
+		const versions = [snapshot(1, ['shape:a']), snapshot(2, ['shape:a', 'shape:b'])]
+		const { chain, pending } = await persistAll(bucket, versions)
+		const segmentKey = chain!.openSegment!.key
+
+		const result = await writeVersionChainEntry({
+			bucket,
+			roomKey,
+			// The chain state a build that bumped the delta format finds in durable object storage.
+			chain: { ...chain!, deltaVersion: SNAPSHOT_DELTA_VERSION - 1 },
+			iso: isoAt(2),
+			pending,
+			previous: versions[1],
+			next: snapshot(3, ['shape:a', 'shape:b', 'shape:c']),
+			now: 2000,
+		})
+
+		expect(result).toMatchObject({ wrote: 'keyframe', reason: 'delta-format' })
+		expect(result.chain.deltaVersion).toBe(SNAPSHOT_DELTA_VERSION)
+		// The fresh chain has no open segment, and the old one still holds exactly what it did —
+		// the mixed segment this rule exists to prevent is the segment never being rewritten.
+		expect(result.chain.openSegment).toBeNull()
+		expect(result.pending).toEqual([])
+		expect(await readOpenSegment(bucket, segmentKey)).toEqual(pending)
+	})
 })
 
 describe('readOpenSegment', () => {
@@ -323,6 +396,22 @@ describe('readOpenSegment', () => {
 		expect(await readOpenSegment(bucket, `${roomKey}/garbage.s`)).toBeNull()
 		expect(await readOpenSegment(bucket, `${roomKey}/future.s`)).toBeNull()
 		expect(await readOpenSegment(bucket, `${roomKey}/shape.s`)).toBeNull()
+	})
+
+	it('returns deltas of another format rather than refusing them', async () => {
+		const bucket = createFakeR2()
+		const { chain, pending } = await persistAll(bucket, [
+			snapshot(1, ['shape:a']),
+			snapshot(2, ['shape:a', 'shape:b']),
+		])
+		const key = chain!.openSegment!.key
+		// Retiring a chain on a format bump is decideVersionWrite's job, and it names the reason
+		// `delta-format`. Nulling here would null the chain one step earlier and report every room
+		// the bump touched as `segment-lost` instead.
+		const stale = pending.map((d) => ({ ...d, delta: { ...d.delta, v: 1 } }))
+		await bucket.put(key, JSON.stringify({ v: 1, deltas: stale }))
+
+		expect(await readOpenSegment(bucket, key)).toEqual(stale)
 	})
 
 	it('throws on a failed get instead of discarding the segment', async () => {

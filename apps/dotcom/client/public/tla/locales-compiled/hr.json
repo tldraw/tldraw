@@ -253,6 +253,12 @@
       "value": " je komentirao/la vašu ploču"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Nije moguće poslati povratne informacije"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -269,6 +275,12 @@
     {
       "type": 0,
       "value": "Pretraživanje..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Pokušajte ponovno."
     }
   ],
   "2de510be71": [
@@ -497,6 +509,12 @@
     {
       "type": 0,
       "value": " nepročitano"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Nije moguće vratiti vaš lokalni crtež. Pokušajte ponovno učitati ovu stranicu."
     }
   ],
   "554a05155c": [

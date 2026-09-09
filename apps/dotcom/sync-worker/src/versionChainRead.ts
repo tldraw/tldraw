@@ -33,6 +33,15 @@ export interface SegmentIndexEntry {
  */
 export type ChainIndexEntry = KeyframeIndexEntry | SegmentIndexEntry
 
+/**
+ * A segment object R2 holds that carries no readable chain reference, so nothing can place it. The
+ * timestamp comes from its key, which names its first delta.
+ */
+export interface RejectedChainObject {
+	key: string
+	timestamp: string
+}
+
 export interface VersionReconstruction {
 	snapshot: RoomSnapshot
 	/** Every R2 operation this reconstruction cost, listings included. */
@@ -46,7 +55,8 @@ export interface VersionReconstruction {
 }
 
 /**
- * Every chain object for a room, in key order, with the versions each one holds.
+ * Every chain object for a room, in key order, with the versions each one holds, plus the segments
+ * that could not be placed at all — the verifier reports those, since nothing downstream can.
  *
  * A segment is keyed by its first delta only, so a version's timestamp does not say which object
  * holds it. Listing with `customMetadata` answers that for the whole room in one operation, without
@@ -56,9 +66,10 @@ export async function loadChainIndex(
 	bucket: R2Bucket,
 	roomKey: string,
 	schedule: R2ReadScheduler = runInline
-): Promise<{ entries: ChainIndexEntry[]; ops: number }> {
+): Promise<{ entries: ChainIndexEntry[]; ops: number; rejected: RejectedChainObject[] }> {
 	const { objects, ops } = await listAllObjects(bucket, `${roomKey}/`, schedule)
 	const entries: ChainIndexEntry[] = []
+	const rejected: RejectedChainObject[] = []
 	for (const object of objects) {
 		const parsed = parseVersionKey(object.key)
 		if (!parsed) continue
@@ -67,9 +78,14 @@ export async function loadChainIndex(
 			continue
 		}
 		const ref = readSegmentRef(object.customMetadata)
-		// A segment with no readable reference cannot be placed in a chain. Skipping it here
-		// surfaces as a sequence gap rather than as a silently short replay.
-		if (!ref) continue
+		// A segment with no readable reference cannot be placed in a chain. Dropping it only shows
+		// up as a sequence gap when it sits mid-chain; a trailing one leaves the replay ending early
+		// and the verifier passing a chain whose tail is unreadable. Collected so it is reported
+		// outright instead.
+		if (!ref) {
+			rejected.push({ key: object.key, timestamp: parsed.timestamp })
+			continue
+		}
 		entries.push({
 			kind: 'segment',
 			key: object.key,
@@ -80,7 +96,7 @@ export async function loadChainIndex(
 	}
 
 	entries.sort((a, b) => a.key.localeCompare(b.key))
-	return { entries, ops }
+	return { entries, ops, rejected }
 }
 
 /**

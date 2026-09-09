@@ -105,10 +105,7 @@ export function TlaSidebarLayout({
 		// regardless of whether we're in pointing or resizing, remove capture and the resizing attribute
 		event.currentTarget.releasePointerCapture(event.pointerId)
 
-		if (rResizeState.current.name === 'idle') {
-			// noop
-			return
-		}
+		if (rResizeState.current.name === 'idle') return
 
 		if (rResizeState.current.name === 'resizing') {
 			// we're done, go to idle

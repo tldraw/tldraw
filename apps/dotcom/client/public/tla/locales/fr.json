@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> a commenté votre tableau"
   },
+  "28b2464e1f": {
+    "translation": "Impossible de soumettre les commentaires"
+  },
   "299cb00a7a": {
     "translation": "Échec de l'importation"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Recherche..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Veuillez réessayer."
   },
   "2de510be71": {
     "translation": "La régénération remplace le lien d'invitation actuel par un nouveau. Toute personne utilisant l'ancien lien aura besoin du nouveau pour s'inscrire."
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} non lu"
+  },
+  "550b25cc0c": {
+    "translation": "Impossible de restaurer votre dessin local. Veuillez recharger cette page."
   },
   "554a05155c": {
     "translation": "Vous rencontrez toujours des problèmes ? <a>Signaler un problème</a>"

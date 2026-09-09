@@ -253,6 +253,12 @@
       "value": " ha commentato sulla tua bacheca"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Impossibile inviare il feedback"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -269,6 +275,12 @@
     {
       "type": 0,
       "value": "Ricerca..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Per favore, riprova."
     }
   ],
   "2de510be71": [
@@ -497,6 +509,12 @@
     {
       "type": 0,
       "value": " non letto"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Impossibile ripristinare il disegno locale. Prova a ricaricare questa pagina."
     }
   ],
   "554a05155c": [

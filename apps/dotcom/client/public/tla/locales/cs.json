@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> okomentoval(a) vaši nástěnku"
   },
+  "28b2464e1f": {
+    "translation": "Nepodařilo se odeslat zpětnou vazbu"
+  },
   "299cb00a7a": {
     "translation": "Nahrání se nezdařilo"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Vyhledávání..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Zkuste to prosím znovu."
   },
   "2de510be71": {
     "translation": "Regenerováním se aktuální odkaz s pozvánkou nahradí novým. Každý, kdo používá starý odkaz, bude k připojení potřebovat nový."
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} nepřečtených"
+  },
+  "550b25cc0c": {
+    "translation": "Nepodařilo se obnovit váš lokální výkres. Zkuste znovu načíst tuto stránku."
   },
   "554a05155c": {
     "translation": "Stále máte potíže? <a>Nahlásit problém</a>"

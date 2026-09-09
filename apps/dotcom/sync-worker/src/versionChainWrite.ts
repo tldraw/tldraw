@@ -10,7 +10,12 @@ import {
 	versionKey,
 } from './versionChain'
 import { decodeVersionBody, encodeVersionBody } from './versionChainCodec'
-import { buildSnapshotDelta, chainHeadHash } from './versionDelta'
+import {
+	buildSnapshotDelta,
+	chainHeadHash,
+	SNAPSHOT_DELTA_VERSION,
+	snapshotHashes,
+} from './versionDelta'
 
 interface VersionChainWriteResultBase {
 	chain: ChainState
@@ -31,6 +36,7 @@ export async function writeVersionChainEntry({
 	noChainReason,
 	pending,
 	previous,
+	previousHeadHash,
 	next,
 	now,
 }: {
@@ -41,13 +47,24 @@ export async function writeVersionChainEntry({
 	noChainReason?: 'no-chain' | 'segment-lost'
 	pending: PendingDelta[]
 	previous: RoomSnapshot | null
+	/**
+	 * `chainHeadHash(previous)`, when the caller kept it from the write that produced `previous`
+	 * (it is that write's `chain.headHash`); computed here otherwise. Trusted as given: a wrong value
+	 * cuts a content-mismatch keyframe, never a bad delta.
+	 */
+	previousHeadHash?: string
 	next: RoomSnapshot
 	now: number
 }): Promise<VersionChainWriteResult> {
 	const nextFingerprint = getSnapshotFingerprint(next)
 	const customMetadata = getSnapshotMetadata(next)
+	// One pass for both hashes of `next`: the delta records the envelope hash and the chain head
+	// records the head hash, and on a large board each pass is a canonicalization of every record.
+	const nextHashes = snapshotHashes(next)
 
-	const delta = previous ? buildSnapshotDelta(previous, next) : null
+	const delta = previous
+		? buildSnapshotDelta(previous, next, { envelopeHash: nextHashes.envelope })
+		: null
 	// Compressed on both sides of the size rule: comparing a raw delta against a compressed
 	// keyframe would trip the ratio on boards that simply compress well.
 	const encodedDelta = delta ? await encodeVersionBody(delta) : null
@@ -59,7 +76,7 @@ export async function writeVersionChainEntry({
 		previousFingerprint: previous ? getSnapshotFingerprint(previous) : nextFingerprint,
 		// The hash is what actually pins the diff base: tombstone pruning can change content
 		// without moving the fingerprint.
-		previousHash: previous ? chainHeadHash(previous) : '',
+		previousHash: previous ? (previousHeadHash ?? chainHeadHash(previous)) : '',
 		nextFingerprint,
 		deltaBytes: encodedDelta?.body.byteLength ?? 0,
 		now,
@@ -78,11 +95,12 @@ export async function writeVersionChainEntry({
 			pending: [],
 			chain: {
 				keyframeKey: key,
+				deltaVersion: SNAPSHOT_DELTA_VERSION,
 				keyframeAt: now,
 				keyframeBytes: encoded.body.byteLength,
 				deltaCount: 0,
 				headFingerprint: nextFingerprint,
-				headHash: chainHeadHash(next),
+				headHash: nextHashes.head,
 				openSegment: null,
 			},
 		}
@@ -118,7 +136,7 @@ export async function writeVersionChainEntry({
 			...chain!,
 			deltaCount: decision.seq,
 			headFingerprint: nextFingerprint,
-			headHash: chainHeadHash(next),
+			headHash: nextHashes.head,
 			openSegment: { ...decision.segment, bytes: encoded.body.byteLength },
 		},
 	}
@@ -127,6 +145,10 @@ export async function writeVersionChainEntry({
 /**
  * The deltas an open segment holds, for a durable object that lost its in-memory buffer, or null
  * when the object cannot be used as one: missing, undecodable, or not a v1 segment body.
+ *
+ * Deltas of a superseded format are returned rather than refused. `decideVersionWrite` retires such
+ * a chain with a `delta-format` keyframe; refusing here would null the chain first and report the
+ * whole bump as `segment-lost`, which is the per-room signal that reason has to stay.
  *
  * Null means the segment is unusable and the caller starts a fresh chain, which costs one keyframe.
  * A failed `get` throws instead: the segment may be intact and only the network was not, and null

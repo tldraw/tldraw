@@ -206,6 +206,21 @@ export const MAX_SEGMENT_SIZE_RATIO = 1
 export const MIN_SIZE_RULE_DELTA_BYTES = 4096
 
 /**
+ * A retired chain is only verified when its keyframe is at most this many (gzipped) bytes.
+ *
+ * Verification reconstructs the whole chain inside the live durable object: the keyframe decoded,
+ * every segment decoded, and the replayed snapshot, all held alongside the SQLite board, the live
+ * room, and the two persisted snapshots the write already keeps. That is four or five board-sized
+ * copies at once, and the segment size rule bounds only the open segment, not this. Gzip takes
+ * tldraw JSON down roughly 5-10x and the decoded objects are a few times the JSON again, so a 1MB
+ * keyframe is tens of MB per copy — comfortably inside the isolate's 128MB with room for the rest,
+ * where a keyframe near the 25MB room limit would not be. The chain itself is still cut and served
+ * as usual; only the check is skipped, and it says so (`version_chain_verify` with outcome
+ * `skipped`) so the threshold can be tuned against how many boards it excludes.
+ */
+export const MAX_VERIFY_KEYFRAME_BYTES = 1024 * 1024
+
+/**
  * Deltas per segment object. Bounds three things at once: how much the durable object rewrites on
  * each persist (~140KB worst case at this cap), how many GETs a restore costs (1 keyframe + 4
  * segments at kf64), and how many ISO timestamps have to fit in the segment's R2 custom metadata
