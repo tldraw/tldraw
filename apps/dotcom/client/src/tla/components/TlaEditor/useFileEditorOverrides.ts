@@ -13,6 +13,7 @@ import { useHandleUiEvents } from '../../../utils/analytics'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useIntl, useMsg } from '../../utils/i18n'
 import { editorMessages as messages } from './editor-messages'
+import { useRoomInfo } from './TlaEditorTopRightPanel'
 
 /** Triggers a GET to the app file download endpoint; browser shows download immediately with progress. */
 export function downloadAppFile(fileId: string) {
@@ -36,12 +37,17 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 	const intl = useIntl()
 	const navigate = useNavigate()
 	const trackEvent = useHandleUiEvents()
+	// Built from the route params rather than the raw pathname: a trailing slash (`/r/abc/`, which
+	// the router still matches) would otherwise produce a createSource the room can never resolve.
+	const roomInfo = useRoomInfo()
+	const copySource = roomInfo ? `${roomInfo.prefix}/${roomInfo.id}` : null
 
 	const getFileName = useCallback(
 		(editor: Editor) => {
 			const documentName =
-				((fileSlug ? app?.getFileName(fileSlug, false) : null) ??
-					editor?.getDocumentSettings().name) ||
+				// `||` not `??`: see SneakySetDocumentTitle
+				(fileSlug ? app?.getFileName(fileSlug, false)?.trim() : null) ||
+				editor?.getDocumentSettings().name ||
 				// rather than displaying the date for the project here, display Untitled project
 				untitledProject
 			const defaultName = saveFileNames.get(editor.store) || documentName
@@ -89,10 +95,11 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 					label: intl.formatMessage(messages.copyToMyfiles),
 					readonlyOk: true,
 					async onSelect() {
+						if (!copySource) return
 						const defaultName = getFileName(editor)
 						const res = await app?.createFile({
 							name: defaultName,
-							createSource: window.location.pathname.slice(1),
+							createSource: copySource,
 						})
 						if (res?.ok) {
 							const { fileId } = res.value
@@ -105,7 +112,7 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 				return actions
 			},
 		}
-	}, [app, fileSlug, getFileName, intl, navigate, trackEvent])
+	}, [app, copySource, fileSlug, getFileName, intl, navigate, trackEvent])
 
 	return overrides
 }

@@ -257,6 +257,12 @@
       "value": " commented on your board"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Could not submit feedback"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -273,6 +279,12 @@
     {
       "type": 0,
       "value": "Search..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Please try again."
     }
   ],
   "2de510be71": [
@@ -501,6 +513,12 @@
     {
       "type": 0,
       "value": " unread"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Could not restore your local drawing. Try reloading this page."
     }
   ],
   "554a05155c": [
@@ -1072,6 +1090,12 @@
     {
       "type": 0,
       "value": "Delete file"
+    }
+  ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "You appear to be offline. Check your connection and try again."
     }
   ],
   "9ccb565b86": [

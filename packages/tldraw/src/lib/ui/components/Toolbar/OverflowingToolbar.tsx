@@ -13,7 +13,6 @@ import { createContext, useEffect, useLayoutEffect, useRef, useState } from 'rea
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { areShortcutsDisabled } from '../../hooks/useKeyboardShortcuts'
-import { TLUiToolItem } from '../../hooks/useTools'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiColumn, TldrawUiRow } from '../primitives/layout'
@@ -292,71 +291,59 @@ export function OverflowingToolbar({
 
 	const Layout = orientation === 'horizontal' ? TldrawUiRow : TldrawUiColumn
 	return (
-		<>
-			<TldrawUiToolbar
-				orientation={orientation}
-				className={classNames('tlui-main-toolbar__tools', {
-					'tlui-main-toolbar__tools__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
-				})}
-				label={msg('tool-panel.title')}
-			>
-				<Layout id={`${id}_main`} ref={mainToolsRef}>
-					<TldrawUiMenuContextProvider type="toolbar" sourceId="toolbar">
-						{children}
-					</TldrawUiMenuContextProvider>
-				</Layout>
-				{shouldShowOverflow && (
-					<IsInOverflowContext.Provider value={true}>
-						<TldrawUiPopover id={popoverId} open={isOpen} onOpenChange={setIsOpen}>
-							<TldrawUiPopoverTrigger>
-								<TldrawUiToolbarButton
-									title={msg('tool-panel.more')}
-									type="tool"
-									className="tlui-main-toolbar__overflow"
-									data-testid="tools.more-button"
-								>
-									<TldrawUiButtonIcon
-										icon={orientation === 'horizontal' ? 'chevron-up' : 'chevron-right'}
-									/>
-								</TldrawUiToolbarButton>
-							</TldrawUiPopoverTrigger>
-							<TldrawUiPopoverContent
-								side={orientation === 'horizontal' ? 'top' : 'right'}
-								align={orientation === 'horizontal' ? 'center' : 'end'}
+		<TldrawUiToolbar
+			orientation={orientation}
+			className={classNames('tlui-main-toolbar__tools', {
+				'tlui-main-toolbar__tools__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
+			})}
+			label={msg('tool-panel.title')}
+		>
+			<Layout id={`${id}_main`} ref={mainToolsRef}>
+				<TldrawUiMenuContextProvider type="toolbar" sourceId="toolbar">
+					{children}
+				</TldrawUiMenuContextProvider>
+			</Layout>
+			{shouldShowOverflow && (
+				<IsInOverflowContext.Provider value={true}>
+					<TldrawUiPopover id={popoverId} open={isOpen} onOpenChange={setIsOpen}>
+						<TldrawUiPopoverTrigger>
+							<TldrawUiToolbarButton
+								title={msg('tool-panel.more')}
+								type="tool"
+								className="tlui-main-toolbar__overflow"
+								data-testid="tools.more-button"
 							>
-								<TldrawUiToolbar
-									orientation="grid"
-									className="tlui-main-toolbar__overflow-content"
-									ref={setOverflowTools}
-									data-testid="tools.more-content"
-									label={msg('tool-panel.more')}
-									id={`${id}_more`}
-									onClick={() => {
-										tlmenus.deleteOpenMenu(popoverId, editor.contextId)
-										setIsOpen(false)
-									}}
-								>
-									<TldrawUiMenuContextProvider type="toolbar-overflow" sourceId="toolbar">
-										{children}
-									</TldrawUiMenuContextProvider>
-								</TldrawUiToolbar>
-							</TldrawUiPopoverContent>
-						</TldrawUiPopover>
-					</IsInOverflowContext.Provider>
-				)}
-			</TldrawUiToolbar>
-		</>
+								<TldrawUiButtonIcon
+									icon={orientation === 'horizontal' ? 'chevron-up' : 'chevron-right'}
+								/>
+							</TldrawUiToolbarButton>
+						</TldrawUiPopoverTrigger>
+						<TldrawUiPopoverContent
+							side={orientation === 'horizontal' ? 'top' : 'right'}
+							align={orientation === 'horizontal' ? 'center' : 'end'}
+						>
+							<TldrawUiToolbar
+								orientation="grid"
+								className="tlui-main-toolbar__overflow-content"
+								ref={setOverflowTools}
+								data-testid="tools.more-content"
+								label={msg('tool-panel.more')}
+								id={`${id}_more`}
+								onClick={() => {
+									tlmenus.deleteOpenMenu(popoverId, editor.contextId)
+									setIsOpen(false)
+								}}
+							>
+								<TldrawUiMenuContextProvider type="toolbar-overflow" sourceId="toolbar">
+									{children}
+								</TldrawUiMenuContextProvider>
+							</TldrawUiToolbar>
+						</TldrawUiPopoverContent>
+					</TldrawUiPopover>
+				</IsInOverflowContext.Provider>
+			)}
+		</TldrawUiToolbar>
 	)
-}
-
-export function isActiveTLUiToolItem(
-	item: TLUiToolItem,
-	activeToolId: string | undefined,
-	geoState: string | null | undefined
-) {
-	return item.meta?.geo
-		? activeToolId === 'geo' && geoState === item.meta?.geo
-		: activeToolId === item.id
 }
 
 function findParentWithClassName(startingElement: HTMLElement, className: string): HTMLElement {
