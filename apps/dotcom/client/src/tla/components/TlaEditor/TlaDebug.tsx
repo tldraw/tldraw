@@ -26,9 +26,6 @@ export function A11yAudit() {
 						onContinue={() => onClose()}
 					/>
 				),
-				onClose: () => {
-					void null
-				},
 			})
 		})
 	}
@@ -36,7 +33,7 @@ export function A11yAudit() {
 	return <TldrawUiMenuItem id="a11y-audit" onSelect={runA11yAudit} label={'A11y audit'} />
 }
 
-export const A11yResultTable = memo(({ results }: { results: any }) => {
+const A11yResultTable = memo(({ results }: { results: any }) => {
 	const { violations, incomplete } = results
 	const allIssues = [
 		...violations.map((v: any) => ({ ...v, type: 'violation' })),
