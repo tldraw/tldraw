@@ -73,18 +73,17 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 		const assetIdChanged = previousAssetId.current !== assetId
 		previousAssetId.current = assetId
 
-		// Set flag to run immediately (skip debouncing) for the next resolution
 		if (assetIdChanged) {
+			// Resolve immediately (skip debouncing), and forget the old url: resolve() skips a url
+			// equal to the previous one, which would leave the state stale when a different asset
+			// resolves to the same url, or when the same asset is re-attached after being removed
 			shouldRunImmediately.current = true
+			previousUrl.current = null
 		}
 
 		if (!assetId) {
-			// Asset removed from the shape: stop rendering it. Also forget the url, or re-attaching
-			// the same asset is skipped as "same url" in resolve()
-			if (assetIdChanged) {
-				previousUrl.current = null
-				setResult({ asset: null, url: null })
-			}
+			// Asset removed from the shape: stop rendering it
+			if (assetIdChanged) setResult({ asset: null, url: null })
 			return
 		}
 
@@ -97,7 +96,11 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 			// Get the fresh asset
 			const asset = editor.getAsset<TLImageAsset | TLVideoAsset>(assetId)
 			if (!asset) {
-				// If the asset is deleted, such as when an upload fails, set the URL to null
+				// The asset record is gone (failed upload, deleted and later undone). Treat a record
+				// that comes back like a new asset: resolve it immediately, and forget the url or a
+				// record recreated with the same src is skipped as "same url" in resolve()
+				shouldRunImmediately.current = true
+				previousUrl.current = null
 				setResult((prev) => ({ ...prev, asset: null, url: null }))
 				return
 			}
