@@ -744,10 +744,12 @@ async function ensureFlyApp(appName: string, appsListOutput: string) {
 }
 
 // Most dotcom deploys don't touch zero-cache; see flyDeployGate.ts for why redeploying anyway
-// hurts. The gate compares this run's inputs to the stamp on the machines, not to the machines'
-// actual state, so a change made out of band (`fly secrets set`, `fly scale`) stays unreconciled
-// until an input changes. Set the ZERO_FORCE_DEPLOY variable on the GitHub environment to push a
-// deploy through regardless.
+// hurts. Staging and production only: a preview has no connected clients to bounce, and its zero
+// app can need rebuilding for reasons no input covers, like a reset preview database leaving the
+// replica stale. The gate compares this run's inputs to the stamp on the machines, not to the
+// machines' actual state, so a change made out of band (`fly secrets set`, `fly scale`) stays
+// unreconciled until an input changes. Set the ZERO_FORCE_DEPLOY variable on the GitHub
+// environment to push a deploy through regardless.
 async function deployFlyAppIfChanged({
 	appName,
 	configFile,
@@ -757,10 +759,10 @@ async function deployFlyAppIfChanged({
 	configFile: string
 	inputs: FlyDeployInputs
 }) {
+	const forced = env.ZERO_FORCE_DEPLOY === 'true' || !!previewId
 	const hash = hashFlyDeployInputs(inputs)
-	const deployedHash = await getDeployedInputHash(appName)
-	const forced = env.ZERO_FORCE_DEPLOY === 'true'
-	if (deployedHash === hash && !forced) {
+	const deployedHash = forced ? null : await getDeployedInputHash(appName)
+	if (deployedHash === hash) {
 		nicelog(`${appName}: deploy inputs unchanged (${hash.slice(0, 12)}), skipping fly deploy`)
 		await discord.message(`${appName}: deploy inputs unchanged, skipping fly deploy`)
 		return
