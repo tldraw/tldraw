@@ -28,7 +28,7 @@ import * as React from 'react'
 import { defaultHandleExternalTextContent } from '../../defaultExternalContentHandlers'
 import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
 import { downloadFile } from '../../utils/export/exportAs'
-import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
+import { fitFrameToContent, getFrameableShapeIds, removeFrame } from '../../utils/frames/frames'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
@@ -631,16 +631,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						return
 					}
 
-					const ids = editor.getSelectedShapeIds()
-					if (ids.length < 2) return
+					// Unlike group, a single shape can be framed, so there is no two-shape minimum.
+					const ids = getFrameableShapeIds(editor, editor.getSelectedShapeIds())
+					if (ids.length === 0) return
 
-					const pageBounds = editor.getSelectionPageBounds()
+					const shapes = compact(ids.map((id) => editor.getShape(id)))
+					const pageBounds = editor.getShapesPageBounds(ids)
 					if (!pageBounds) return
+					// Frame props reject zero dimensions, which a lone horizontal arrow or a dot has. The
+					// frame is fitted to its content with padding below, so a placeholder size is fine here.
+					const { w, h } = Box.ZeroFix(pageBounds)
 
 					trackEvent('frame-selection', { source })
 					editor.markHistoryStoppingPoint('frame-selection')
 
-					const parentId = editor.findCommonAncestor(selectedShapes) ?? editor.getCurrentPageId()
+					const parentId = editor.findCommonAncestor(shapes) ?? editor.getCurrentPageId()
 
 					const frameId = createShapeId()
 					const padding = 25 / editor.getZoomLevel()
@@ -653,10 +658,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 								parentId,
 								x: pageBounds.x,
 								y: pageBounds.y,
-								props: {
-									w: pageBounds.w,
-									h: pageBounds.h,
-								},
+								props: { w, h },
 							},
 						])
 						editor.reparentShapes(ids, frameId)
