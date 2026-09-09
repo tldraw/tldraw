@@ -153,6 +153,22 @@ describe('Locked shapes', () => {
 	})
 })
 
+describe('Children of locked shapes', () => {
+	it('Can be selected with select all', () => {
+		editor.select(ids.groupedBoxA)
+		editor.selectAll()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.groupedBoxA, ids.groupedBoxB])
+	})
+
+	it('Cannot be grouped, without throwing', () => {
+		const shapeCount = editor.getCurrentPageShapes().length
+
+		expect(() => editor.groupShapes([ids.groupedBoxA, ids.groupedBoxB])).not.toThrow()
+		expect(editor.getCurrentPageShapes().length).toBe(shapeCount)
+		expect(editor.getShape(ids.groupedBoxA)!.parentId).toBe(ids.lockedGroup)
+	})
+})
+
 describe('Unlocking', () => {
 	it('Can unlock shapes', () => {
 		editor.setSelectedShapes([ids.lockedShapeA, ids.lockedShapeB])

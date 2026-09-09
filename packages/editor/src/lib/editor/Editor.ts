@@ -2241,10 +2241,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			parentToSelectWithinId = this.getCurrentPageId()
 		}
 
-		// Select all the unlocked shapes within the parent
+		// Select all the unlocked shapes within the parent. Only the shape's own lock matters here:
+		// selecting inside a locked frame or group is allowed, mutating is not.
 		const ids = this.getSortedChildIdsForParent(parentToSelectWithinId)
 		if (ids.length <= 0) return this
-		this.setSelectedShapes(this._getUnlockedShapeIds(ids))
+		this.setSelectedShapes(ids.filter((id) => !this.getShape(id)?.isLocked))
 		return this
 	}
 
@@ -8968,6 +8969,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.getShape(id)
 			)
 		)
+		// Re-check after the lock filter: Box.Common of nothing is not a valid box and would throw
+		if (shapesToGroup.length <= 1) return this
+
 		const sortedShapeIds = shapesToGroup.sort(sortByIndex).map((s) => s.id)
 		const childBounds = compact(shapesToGroup.map((shape) => this.getShapePageBounds(shape)))
 		const pageBounds = Box.Common(childBounds)
