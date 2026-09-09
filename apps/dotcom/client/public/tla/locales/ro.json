@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> a comentat pe forumul tău"
   },
+  "28b2464e1f": {
+    "translation": "Nu s-a putut trimite feedback"
+  },
   "299cb00a7a": {
     "translation": "Încărcarea nu a reușit"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Căutare..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Vă rugăm să încercați din nou."
   },
   "2de510be71": {
     "translation": "Regenerarea înlocuiește linkul de invitație actual cu unul nou. Oricine folosește linkul vechi va avea nevoie de cel nou pentru a se alătura."
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} necitit"
+  },
+  "550b25cc0c": {
+    "translation": "Nu s-a putut restaura desenul local. Încercați să reîncărcați această pagină."
   },
   "554a05155c": {
     "translation": "Mai ai probleme? <a>Raportați o problemă</a>"
@@ -433,6 +442,9 @@
   },
   "9bef626805": {
     "translation": "Ștergeți fișierul"
+  },
+  "9c228b6834": {
+    "translation": "Se pare că ești offline. Verifică conexiunea și încearcă din nou."
   },
   "9ccb565b86": {
     "translation": "Întâmpinăm probleme la conectarea la serviciul nostru de autentificare. De obicei, aceasta este o problemă temporară. Vă rugăm să încercați să actualizați pagina."

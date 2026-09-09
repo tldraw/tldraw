@@ -1376,6 +1376,29 @@ for (const key of ['Shift', 'Control']) {
 			editor.pointerUp()
 			editor.expectToBeIn('select.idle')
 		})
+
+		it('does not remove a selected shape from the selection on pointer up when alt is also held', () => {
+			editor.select(ids.box1, ids.box3)
+			editor.keyDown(key)
+			editor.keyDown('Alt')
+			editor.pointerMove(450, 50) // inside of box 3
+			expect(editor.getHoveredShapeId()).toBe(ids.box3)
+			editor.pointerDown()
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box3])
+			editor.pointerUp()
+			// same as a plain click on a shape within the selection
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
+		})
+
+		it('does not add a selected shape to the selection on pointer up when alt is also held', () => {
+			editor.keyDown(key)
+			editor.keyDown('Alt')
+			editor.pointerMove(450, 50) // inside of box 3
+			expect(editor.getHoveredShapeId()).toBe(ids.box3)
+			editor.pointerDown()
+			editor.pointerUp()
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
+		})
 	})
 }
 
@@ -1792,6 +1815,33 @@ describe('scribble brushes to add to the selection', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
 	})
 
+	it('restores the prior selection when cancelled without shift', () => {
+		editor.select(ids.box2)
+		editor.pointerMove(-50, -50)
+		editor.keyDown('Alt')
+		// ctrl-press keeps the current selection and starts a brush on drag
+		editor.pointerDown(-50, -50, { target: 'canvas', accelKey: true })
+		editor.pointerMove(50, 50)
+		editor.expectToBeIn('select.scribble_brushing')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		editor.cancel()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+	})
+
+	it('restores the prior selection when cancelled with shift', () => {
+		editor.select(ids.box2)
+		editor.pointerMove(-50, -50)
+		editor.keyDown('Alt')
+		editor.keyDown('Shift')
+		editor.pointerDown(-50, -50, { target: 'canvas', accelKey: true })
+		editor.pointerMove(50, 50)
+		editor.expectToBeIn('select.scribble_brushing')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
+		editor.cancel()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+	})
+
 	it('selects when switching between moves', () => {
 		editor.ungroupShapes([ids.group1]) // ungroup boxes 3 and 4
 		editor.pointerMove(650, 0)
@@ -2074,6 +2124,9 @@ it('Ignores locked shapes when hovering', () => {
 })
 
 describe('Edge scrolling', () => {
+	// edgeScrollSpeed is px per 60 Hz frame; forceTick emits a 16ms tick
+	const pxPerTick = (editor: TestEditor) => editor.options.edgeScrollSpeed * (16 / (1000 / 60))
+
 	it('moves the camera correctly when delay and duration are zero', () => {
 		editor = new TestEditor({
 			options: {
@@ -2088,16 +2141,16 @@ describe('Edge scrolling', () => {
 		editor.pointerDown()
 		editor.pointerMove(0, 0)
 
-		expect(editor.getCamera()).toMatchObject({
-			x: editor.options.edgeScrollSpeed,
-			y: editor.options.edgeScrollSpeed,
+		expect(editor.getCamera()).toCloselyMatchObject({
+			x: pxPerTick(editor),
+			y: pxPerTick(editor),
 		})
 
 		editor.forceTick()
 
-		expect(editor.getCamera()).toMatchObject({
-			x: editor.options.edgeScrollSpeed * 2,
-			y: editor.options.edgeScrollSpeed * 2,
+		expect(editor.getCamera()).toCloselyMatchObject({
+			x: pxPerTick(editor) * 2,
+			y: pxPerTick(editor) * 2,
 		})
 	})
 
@@ -2116,16 +2169,16 @@ describe('Edge scrolling', () => {
 		editor.pointerMove(0, 0)
 
 		// one tick's length of delay
-		expect(editor.getCamera()).toMatchObject({
+		expect(editor.getCamera()).toCloselyMatchObject({
 			x: 0,
 			y: 0,
 		})
 
 		editor.forceTick()
 
-		expect(editor.getCamera()).toMatchObject({
-			x: editor.options.edgeScrollSpeed,
-			y: editor.options.edgeScrollSpeed,
+		expect(editor.getCamera()).toCloselyMatchObject({
+			x: pxPerTick(editor),
+			y: pxPerTick(editor),
 		})
 	})
 
@@ -2144,16 +2197,16 @@ describe('Edge scrolling', () => {
 		editor.pointerMove(0, 0)
 
 		// one tick's length of delay
-		expect(editor.getCamera()).toMatchObject({
-			x: editor.options.edgeScrollSpeed * 0.125,
-			y: editor.options.edgeScrollSpeed * 0.125,
+		expect(editor.getCamera()).toCloselyMatchObject({
+			x: pxPerTick(editor) * 0.125,
+			y: pxPerTick(editor) * 0.125,
 		})
 
 		editor.forceTick()
 
-		expect(editor.getCamera()).toMatchObject({
-			x: editor.options.edgeScrollSpeed * 1.125,
-			y: editor.options.edgeScrollSpeed * 1.125,
+		expect(editor.getCamera()).toCloselyMatchObject({
+			x: pxPerTick(editor) * 1.125,
+			y: pxPerTick(editor) * 1.125,
 		})
 	})
 })

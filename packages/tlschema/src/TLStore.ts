@@ -491,7 +491,6 @@ export function createIntegrityChecker(store: Store<TLRecord, TLStoreProps>): ()
 				store.schema.types.instance.create({
 					id: TLINSTANCE_ID,
 					currentPageId: getFirstPageId(),
-					exportBackground: true,
 				}),
 			])
 

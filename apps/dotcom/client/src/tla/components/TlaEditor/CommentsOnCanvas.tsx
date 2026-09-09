@@ -11,6 +11,7 @@ import { queries } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { TLUiOverrides, useDialogs, useEditor, useValue } from 'tldraw'
 import { routes } from '../../../routeDefs'
+import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useCommentTracking } from '../../hooks/useCommentTracking'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
@@ -61,34 +62,11 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		[app]
 	)
 
-	// This file's comments (denormalized author fields + the caller's read receipts) from Zero. A
-	// live view we own — resubscribed when the file changes and destroyed on unmount.
-	const [fileComments, setFileComments] = useState<FileComments>([])
-	useEffect(() => {
-		if (!app) return
-		const view = app.materializeQuery<FileComments>(queries.fileComments({ fileId }))
-		setFileComments(view.data)
-		const unlisten = view.addListener((data) => setFileComments(data))
-		return () => {
-			unlisten()
-			view.destroy()
-		}
-	}, [app, fileId])
-
-	// Everyone who has opened this file (identity denormalized onto their file_visitor row — see
-	// migration 044), so past viewers — not just workspace members — can be @-mentioned. Same
-	// live-view lifecycle as above.
-	const [fileVisitors, setFileVisitors] = useState<FileVisitors>([])
-	useEffect(() => {
-		if (!app) return
-		const view = app.materializeQuery<FileVisitors>(queries.fileVisitors({ fileId }))
-		setFileVisitors(view.data)
-		const unlisten = view.addListener((data) => setFileVisitors(data))
-		return () => {
-			unlisten()
-			view.destroy()
-		}
-	}, [app, fileId])
+	// This file's comments (denormalized author fields + the caller's read receipts), and everyone
+	// who has opened it (identity denormalized onto their file_visitor row — see migration 044) so
+	// past viewers — not just workspace members — can be @-mentioned.
+	const fileComments = useFileQuery<FileComments>(app, fileId, queries.fileComments)
+	const fileVisitors = useFileQuery<FileVisitors>(app, fileId, queries.fileVisitors)
 
 	const commentAuthors = useMemo(() => {
 		const authors = new Map<string, CommentAuthor>()
@@ -247,6 +225,27 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 			<CanvasCommentsSidebar {...commenting} />
 		</>
 	)
+}
+
+/** A live view of a Zero query scoped to one file, resubscribed when the file changes and
+ *  destroyed on unmount. */
+function useFileQuery<T extends readonly unknown[]>(
+	app: TldrawApp | null,
+	fileId: string,
+	query: (args: { fileId: string }) => unknown
+): T {
+	const [data, setData] = useState<T>([] as unknown as T)
+	useEffect(() => {
+		if (!app) return
+		const view = app.materializeQuery<T>(query({ fileId }))
+		setData(view.data)
+		const unlisten = view.addListener(setData)
+		return () => {
+			unlisten()
+			view.destroy()
+		}
+	}, [app, fileId, query])
+	return data
 }
 
 /** Value equality for the presence-author maps: same ids, each with the same name and color. */

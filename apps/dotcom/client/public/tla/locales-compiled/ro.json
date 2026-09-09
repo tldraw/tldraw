@@ -253,6 +253,12 @@
       "value": " a comentat pe forumul tău"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Nu s-a putut trimite feedback"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -269,6 +275,12 @@
     {
       "type": 0,
       "value": "Căutare..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Vă rugăm să încercați din nou."
     }
   ],
   "2de510be71": [
@@ -497,6 +509,12 @@
     {
       "type": 0,
       "value": " necitit"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Nu s-a putut restaura desenul local. Încercați să reîncărcați această pagină."
     }
   ],
   "554a05155c": [
@@ -1079,6 +1097,12 @@
     {
       "type": 0,
       "value": "Ștergeți fișierul"
+    }
+  ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Se pare că ești offline. Verifică conexiunea și încearcă din nou."
     }
   ],
   "9ccb565b86": [

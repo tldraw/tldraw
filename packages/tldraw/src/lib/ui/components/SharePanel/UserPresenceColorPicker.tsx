@@ -18,9 +18,6 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 	const rPointing = useRef(false)
 
 	const [isOpen, setIsOpen] = useState(false)
-	const handleOpenChange = useCallback((isOpen: boolean) => {
-		setIsOpen(isOpen)
-	}, [])
 
 	const value = editor.user.getColor()
 
@@ -84,12 +81,12 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 	}, [container, value, onValueChange])
 
 	return (
-		<_Popover.Root onOpenChange={handleOpenChange} open={isOpen}>
+		<_Popover.Root onOpenChange={setIsOpen} open={isOpen}>
 			<_Popover.Trigger dir={dir} asChild>
 				<TldrawUiButton
 					type="icon"
 					className="tlui-people-menu__user__color"
-					style={{ color: editor.user.getColor() }}
+					style={{ color: value }}
 					title={msg('people-menu.change-color')}
 				>
 					<TldrawUiButtonIcon icon="color" />

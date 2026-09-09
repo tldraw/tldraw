@@ -18,6 +18,8 @@ export type TLAppUiEventSource =
 	| 'account-menu'
 	| 'top-bar'
 	| 'legacy-import-button'
+	| 'file-drop'
+	| 'import-url'
 	| 'new-page'
 	| 'app'
 	| 'cookie-settings'
@@ -109,6 +111,5 @@ export const EventsContext = createContext<TLAppUiContextType>(defaultEventHandl
 
 /** @public */
 export function useTldrawAppUiEvents(): TLAppUiContextType {
-	const eventHandler = useContext(EventsContext)
-	return eventHandler
+	return useContext(EventsContext)
 }

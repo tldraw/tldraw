@@ -288,7 +288,7 @@ export class DraggingHandle extends StateNode {
 		const { snaps } = editor
 		const currentPagePoint = editor.inputs.getCurrentPagePoint()
 		const shiftKey = editor.inputs.getShiftKey()
-		const ctrlKey = editor.inputs.getCtrlKey()
+		const accelKey = editor.inputs.getAccelKey()
 		const altKey = editor.inputs.getAltKey()
 		const pointerVelocity = editor.inputs.getPointerVelocity()
 
@@ -331,15 +331,14 @@ export class DraggingHandle extends StateNode {
 			canSnap = initialHandle.canSnap || initialHandle.snapType !== undefined
 		}
 
-		if (canSnap && (isSnapMode ? !ctrlKey : ctrlKey)) {
+		if (canSnap && (isSnapMode ? !accelKey : accelKey)) {
 			// We're snapping
-			const pageTransform = editor.getShapePageTransform(shape.id)
-			if (!pageTransform) throw Error('Expected a page transform')
-
 			const snap = snaps.handles.snapHandle({ currentShapeId: shapeId, handle: nextHandle })
 
 			if (snap) {
-				snap.nudge.rot(-editor.getShapeParentTransform(shape)!.rotation())
+				// The nudge is in page space and `point` is in the shape's own space, so the shape's
+				// full page rotation (not just its parent's) has to come off
+				snap.nudge.rot(-editor.getShapePageTransform(shape.id).rotation())
 				point.add(snap.nudge)
 				nextHandle = { ...initialHandle, x: point.x, y: point.y }
 			}

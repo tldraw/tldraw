@@ -96,6 +96,21 @@ describe('<TldrawEditor />', () => {
 		)
 	})
 
+	it('runs the teardown returned by the store onMount option when unmounted', async () => {
+		const teardown = vi.fn()
+		const storeOnMount = vi.fn(() => teardown)
+		const store = createTLStore({ shapeUtils: [], bindingUtils: [], onMount: storeOnMount })
+		const rendered = await renderTldrawComponent(
+			<TldrawEditor store={store} tools={defaultTools} initialState="select" />,
+			{ waitForPatterns: false }
+		)
+		expect(storeOnMount).toHaveBeenCalledTimes(1)
+		expect(teardown).not.toHaveBeenCalled()
+
+		act(() => rendered.unmount())
+		expect(teardown).toHaveBeenCalledTimes(1)
+	})
+
 	it('throws if the store has different shapes to the ones passed in', async () => {
 		const spy = vi.spyOn(console, 'error').mockImplementation(noop)
 		// expect(() =>

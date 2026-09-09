@@ -1,4 +1,4 @@
-import { getPointInArcT } from './utils'
+import { areAnglesCompatible, getPointInArcT } from './utils'
 
 describe('getPointInArcT', () => {
 	it('should return 0 for the start of the arc', () => {
@@ -55,5 +55,14 @@ describe('getPointInArcT', () => {
 		const B = 2.2 // End angle
 		const P = 1.1 // Point angle, should be near the end
 		expect(getPointInArcT(mAB, A, B, P)).toBe(1)
+	})
+})
+
+describe('areAnglesCompatible', () => {
+	it('treats angles a multiple of PI/2 apart as compatible regardless of sign', () => {
+		expect(areAnglesCompatible(-Math.PI / 4, Math.PI / 4)).toBe(true)
+		expect(areAnglesCompatible(Math.PI / 2 - 1e-9, 0)).toBe(true)
+		expect(areAnglesCompatible(Math.PI, -Math.PI / 2)).toBe(true)
+		expect(areAnglesCompatible(0, Math.PI / 3)).toBe(false)
 	})
 })

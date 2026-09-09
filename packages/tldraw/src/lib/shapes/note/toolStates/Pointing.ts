@@ -115,7 +115,8 @@ export class Pointing extends StateNode {
 	}
 
 	override onComplete() {
-		this.complete()
+		// Not a release: see BaseBoxShapeTool's Pointing state for why this cancels.
+		this.cancel()
 	}
 
 	override onCancel() {
