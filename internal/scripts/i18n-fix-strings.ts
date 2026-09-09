@@ -578,7 +578,7 @@ const FIXES: StringFix[] = [
 		translations: {
 			de: {
 				value: 'Eine Ebene nach vorne',
-				note: 'Was the literal key name "action.bring-to-front", so the German reorder menu rendered a raw key instead of a label.',
+				note: 'Was "Eine Ebene nach Vorne" — "vorne" is an adverb here, so it takes no capital, and the sibling "Eine Ebene nach hinten" already writes it lowercase.',
 			},
 		},
 	},
