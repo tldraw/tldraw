@@ -1,4 +1,4 @@
-import { TLContent, createShapeId, structuredClone } from '@tldraw/editor'
+import { AssetRecordType, TLContent, createShapeId, structuredClone } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -36,6 +36,40 @@ describe('Migrations', () => {
 		// @ts-expect-error
 		withInvalidShapeModel.shapes[0].x = 'invalid'
 		expect(() => editor.putContentOntoCurrentPage(withInvalidShapeModel)).toThrow()
+	})
+})
+
+describe('Input content', () => {
+	it('is not mutated when it carries data url assets', () => {
+		const assetId = AssetRecordType.createId('imageAsset')
+		const imageId = createShapeId('image')
+		const src = 'data:image/png;base64,AAAA'
+		editor.createAssets([
+			{
+				type: 'image',
+				id: assetId,
+				typeName: 'asset',
+				props: { w: 100, h: 100, name: '', isAnimated: false, mimeType: 'image/png', src },
+				meta: {},
+			},
+		])
+		editor.createShape({
+			id: imageId,
+			type: 'image',
+			x: 0,
+			y: 0,
+			props: { w: 100, h: 100, assetId },
+		})
+		// the content holds the live records when no migration applies, so putting it into another
+		// editor must not write through to this editor's asset
+		const content = editor.getContentFromCurrentPage([imageId])!
+		const other = new TestEditor()
+		other.putContentOntoCurrentPage(content)
+
+		expect(content.assets[0].props.src).toBe(src)
+		expect(content.rootShapeIds).toEqual([imageId])
+		expect(editor.getAsset(assetId)!.props.src).toBe(src)
+		other.dispose()
 	})
 })
 

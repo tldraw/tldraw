@@ -97,51 +97,14 @@ export function useKeyboardShortcuts() {
 				editor.focus() // Focus if not already focused
 
 				editor.inputs.keys.add('Comma')
-
-				const { x, y, z } = editor.inputs.getCurrentPagePoint()
-				const screenpoints = editor.pageToScreen({ x, y })
-
-				const info: TLPointerEventInfo = {
-					type: 'pointer',
-					name: 'pointer_down',
-					point: { x: screenpoints.x, y: screenpoints.y, z },
-					shiftKey: e.shiftKey,
-					altKey: e.altKey,
-					ctrlKey: e.metaKey || e.ctrlKey,
-					metaKey: e.metaKey,
-					accelKey: isAccelKey(e),
-					pointerId: 0,
-					button: 0,
-					isPen: editor.getInstanceState().isPenMode,
-					target: 'canvas',
-				}
-
-				editor.dispatch(info)
+				dispatchCommaPointerEvent(editor, e, 'pointer_down')
 			},
 			(e) => {
 				if (areShortcutsDisabled(editor)) return
 				if (!editor.inputs.keys.has('Comma')) return
 
 				editor.inputs.keys.delete('Comma')
-
-				const { x, y, z } = editor.inputs.getCurrentPagePoint()
-				const screenPoint = editor.pageToScreen({ x, y })
-				const info: TLPointerEventInfo = {
-					type: 'pointer',
-					name: 'pointer_up',
-					point: { x: screenPoint.x, y: screenPoint.y, z },
-					shiftKey: e.shiftKey,
-					altKey: e.altKey,
-					ctrlKey: e.metaKey || e.ctrlKey,
-					metaKey: e.metaKey,
-					accelKey: isAccelKey(e),
-					pointerId: 0,
-					button: 0,
-					isPen: editor.getInstanceState().isPenMode,
-					target: 'canvas',
-				}
-
-				editor.dispatch(info)
+				dispatchCommaPointerEvent(editor, e, 'pointer_up')
 			}
 		)
 
@@ -208,6 +171,29 @@ export function useKeyboardShortcuts() {
 			body.removeEventListener('keyup', handleKeyUp)
 		}
 	}, [actions, tools, isReadonlyMode, editor, isFocused, commentingEnabled])
+}
+
+function dispatchCommaPointerEvent(
+	editor: Editor,
+	e: KeyboardEvent,
+	name: 'pointer_down' | 'pointer_up'
+) {
+	const { x, y, z } = editor.inputs.getCurrentPagePoint()
+	const screenPoint = editor.pageToScreen({ x, y })
+	editor.dispatch({
+		type: 'pointer',
+		name,
+		point: { x: screenPoint.x, y: screenPoint.y, z },
+		shiftKey: e.shiftKey,
+		altKey: e.altKey,
+		ctrlKey: e.metaKey || e.ctrlKey,
+		metaKey: e.metaKey,
+		accelKey: isAccelKey(e),
+		pointerId: 0,
+		button: 0,
+		isPen: editor.getInstanceState().isPenMode,
+		target: 'canvas',
+	} satisfies TLPointerEventInfo)
 }
 
 export function areShortcutsDisabled(editor: Editor) {
@@ -369,6 +355,9 @@ export function parseKbd(kbd: string): ParsedKbd[] {
 
 function parseShortcut(shortcut: string): ParsedKbd | null {
 	const parts = shortcut.split('+')
+	const keyPart = parts.pop()
+	if (!keyPart) return null
+
 	const result: ParsedKbd = {
 		key: '',
 		shift: false,
@@ -376,25 +365,14 @@ function parseShortcut(shortcut: string): ParsedKbd | null {
 		ctrl: false,
 		meta: false,
 	}
-
-	let keyPart = ''
-	for (let i = 0; i < parts.length; i++) {
-		const part = parts[i]
-		const isLast = i === parts.length - 1
-		if (!isLast) {
-			const modAlias = MODIFIER_ALIASES[part.toLowerCase()]
-			if (modAlias) result[modAlias] = true
-			// silently drop unknown leading parts
-		} else {
-			keyPart = part
-		}
+	for (const part of parts) {
+		const modAlias = MODIFIER_ALIASES[part.toLowerCase()]
+		if (modAlias) result[modAlias] = true
+		// silently drop unknown leading parts
 	}
 
-	if (!keyPart) return null
-
-	let key = keyPart.toLowerCase()
-	if (KEY_ALIASES[key]) key = KEY_ALIASES[key]
-	result.key = key
+	const key = keyPart.toLowerCase()
+	result.key = KEY_ALIASES[key] || key
 	return result
 }
 
@@ -474,34 +452,17 @@ function shouldSkipEvent(e: KeyboardEvent): boolean {
 export function getHotkeysStringFromKbd(kbd: string) {
 	return splitKbd(kbd.replace(/\s/g, ''))
 		.map((kbd) => {
-			let str = ''
-
 			const shift = kbd.includes('!')
 			const alt = kbd.includes('?')
 			const cmd = kbd.includes('$')
 
-			// remove the modifiers; the remaining string are the actual key
 			const k = kbd.replace(/[!?$]/g, '')
 
-			if (shift && alt && cmd) {
-				str = `cmd+shift+alt+${k},ctrl+shift+alt+${k}`
-			} else if (shift && cmd) {
-				str = `cmd+shift+${k},ctrl+shift+${k}`
-			} else if (alt && cmd) {
-				str = `cmd+alt+${k},ctrl+alt+${k}`
-			} else if (alt && shift) {
-				str = `shift+alt+${k}`
-			} else if (shift) {
-				str = `shift+${k}`
-			} else if (alt) {
-				str = `alt+${k}`
-			} else if (cmd) {
-				str = `cmd+${k},ctrl+${k}`
-			} else {
-				str = k
-			}
-
-			return str
+			const mods: string[] = []
+			if (shift) mods.push('shift')
+			if (alt) mods.push('alt')
+			const rest = [...mods, k].join('+')
+			return cmd ? `cmd+${rest},ctrl+${rest}` : rest
 		})
 		.join(',')
 }

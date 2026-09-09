@@ -274,10 +274,6 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				TLSocketServerSentEvent<TLRecord>
 			>
 		} else if (uri) {
-			if (connect) {
-				throw new Error('uri and connect cannot be used together')
-			}
-
 			socket = new ClientWebSocketAdapter(async () => {
 				const uriString = typeof uri === 'string' ? uri : await uri()
 
@@ -349,8 +345,10 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			didCancel: () => didCancel,
 			onLoad(client) {
 				track?.(MULTIPLAYER_EVENT_NAME, { name: 'load', roomId })
-				// Merge so we don't clobber objectAccess if onAfterConnect ran first.
-				setState((prev) => ({ ...prev, readyClient: client }))
+				// Keep objectAccess (onAfterConnect always runs first for this client) but drop the
+				// rest: an `error` left behind by a previous client (e.g. NOT_FOUND on the old uri)
+				// would otherwise keep the hook reporting status 'error' for the new, healthy room.
+				setState((prev) => ({ readyClient: client, objectAccess: prev?.objectAccess }))
 			},
 			onSyncError(reason) {
 				console.error('sync error', reason)

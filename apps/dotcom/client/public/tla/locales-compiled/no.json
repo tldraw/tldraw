@@ -257,6 +257,12 @@
       "value": " kommenterte på tavlen din"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Kunne ikke sende inn tilbakemelding"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -273,6 +279,12 @@
     {
       "type": 0,
       "value": "Søk..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Prøv igjen."
     }
   ],
   "2de510be71": [
@@ -501,6 +513,12 @@
     {
       "type": 0,
       "value": " ulest"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Kunne ikke gjenopprette den lokale tegningen. Prøv å laste inn denne siden på nytt."
     }
   ],
   "554a05155c": [
@@ -1072,6 +1090,12 @@
     {
       "type": 0,
       "value": "Slett fil"
+    }
+  ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Du ser ut til å være frakoblet. Sjekk forbindelsen din og prøv på nytt."
     }
   ],
   "9ccb565b86": [

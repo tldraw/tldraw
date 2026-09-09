@@ -2,14 +2,16 @@ import classNames from 'classnames'
 import { HTMLAttributes, useLayoutEffect, useRef } from 'react'
 import styles from './logo.module.css'
 
+const LOGO_MASK = `url(/tldraw_sidebar_logo.svg) center 100% / 100% no-repeat`
+
 export function TlaLogo(props: HTMLAttributes<HTMLDivElement>) {
 	const ref = useRef<HTMLDivElement>(null)
 
 	useLayoutEffect(() => {
 		if (!ref.current) return
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		ref.current.style.webkitMask = `url(/tldraw_sidebar_logo.svg) center 100% / 100% no-repeat`
-	}, [ref])
+		ref.current.style.webkitMask = LOGO_MASK
+	}, [])
 
 	return (
 		<span
@@ -17,7 +19,7 @@ export function TlaLogo(props: HTMLAttributes<HTMLDivElement>) {
 			ref={ref}
 			{...props}
 			style={{
-				mask: `url(/tldraw_sidebar_logo.svg) center 100% / 100% no-repeat`,
+				mask: LOGO_MASK,
 				...props.style,
 			}}
 			aria-label="tldraw"

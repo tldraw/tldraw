@@ -85,14 +85,9 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 			)
 
 			// Use tldraw's fractional indexing to place new group at the top
-			let index: IndexKey
-			if (!lowestIndexGroup.rows[0]) {
-				// First group gets 'a1'
-				index = 'a1' as IndexKey
-			} else {
-				// Generate a new index below the current lowest (to place at top)
-				index = getIndexBelow(lowestIndexGroup.rows[0].index as IndexKey)
-			}
+			const lowestIndex = lowestIndexGroup.rows[0]?.index as IndexKey | undefined
+			// Generate a new index below the current lowest (to place at top); first group gets 'a1'
+			const index = lowestIndex ? getIndexBelow(lowestIndex) : ('a1' as IndexKey)
 
 			// Add user to the group. Two accepts racing past the membership check above (two tabs,
 			// two devices) would otherwise turn the second into a unique violation and a 500 for a

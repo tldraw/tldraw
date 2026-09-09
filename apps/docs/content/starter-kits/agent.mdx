@@ -59,11 +59,7 @@ With its default configuration, the agent can perform the following actions:
 
 ### Architecture
 
-<img
-	src="/images/starter-kits/chart-agent.png"
-	alt="Flowchart showing how user input is processed by an agent, which gathers a canvas screenshot, analyzes shapes, and builds context. These feed into an AI model, which performs further shape analysis, updates the canvas, and produces results that go back to the user as feedback."
-	style={{ maxWidth: '400px', height: 'auto', display: 'block', margin: '0 auto' }}
-/>
+![Flowchart showing how user input is processed by an agent, which gathers a canvas screenshot, analyzes shapes, and builds context. These feed into an AI model, which performs further shape analysis, updates the canvas, and produces results that go back to the user as feedback.](/images/starter-kits/chart-agent.png)
 
 ### 1. User input
 
@@ -545,14 +541,14 @@ The system prompt is rebuilt for each step in the agentic loop depending on whic
 You can set an agent's model by calling `setModelName` on the `modelName` manager.
 
 ```tsx
-agent.modelName.setModelName('gemini-3-flash-preview')
+agent.modelName.setModelName('gemini-3.8-flash')
 ```
 
 To override an agent's model, specify a different model name with a request.
 
 ```tsx
 agent.prompt({
-	modelName: 'gemini-3-flash-preview',
+	modelName: 'gemini-3.8-flash',
 	message: 'Draw a diagram of a volcano.',
 })
 ```
@@ -561,7 +557,7 @@ You can conditionally override the model name by overriding the `getModelName()`
 
 ```tsx
 override getModelName(part: MyCustomPromptPart) {
-	return part.fastMode ? 'gemini-3-flash-preview' : 'claude-sonnet-4-5'
+	return part.fastMode ? 'gemini-3.8-flash' : 'claude-sonnet-5'
 }
 ```
 
@@ -570,10 +566,14 @@ override getModelName(part: MyCustomPromptPart) {
 To add support for a different model, add the model's definition to `AGENT_MODEL_DEFINITIONS` in the `shared/models.ts` file.
 
 ```tsx
-'claude-sonnet-4-5': {
-	name: 'claude-sonnet-4-5',
-	id: 'claude-sonnet-4-5',
+'claude-sonnet-5': {
+	name: 'claude-sonnet-5',
+	id: 'claude-sonnet-5',
 	provider: 'anthropic',
+	supportsPrefill: false,
+	supportsTemperature: false,
+	thinking: 'adaptive',
+	effort: 'low',
 }
 ```
 

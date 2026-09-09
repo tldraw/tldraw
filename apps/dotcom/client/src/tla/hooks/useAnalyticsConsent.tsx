@@ -7,7 +7,7 @@ import {
 	trackEvent,
 	useAnalyticsConsentValue,
 } from '../../utils/analytics'
-import { useMaybeApp } from '../hooks/useAppState'
+import { useMaybeApp } from './useAppState'
 
 /**
  * Custom hook to track analytics consent changes
@@ -25,14 +25,13 @@ export function useAnalyticsConsent() {
 
 	const updateConsent = useCallback(
 		(newConsent: boolean) => {
+			// Also update localStorage and atom to keep them in sync
+			setStoredAnalyticsConsent(newConsent)
 			if (isSignedIn && user && app) {
 				app.updateUser({ id: user.id, allowAnalyticsCookie: newConsent })
-				// Also update localStorage and atom to keep them in sync
-				setStoredAnalyticsConsent(newConsent)
 				// Immediately configure analytics
 				configureAnalytics(newConsent, { id: user.id, name: user.name, email: user.email })
 			} else {
-				setStoredAnalyticsConsent(newConsent)
 				// Immediately configure analytics for signed-out users
 				configureAnalytics(newConsent, undefined)
 			}

@@ -6,13 +6,14 @@ import {
 	debugFlags,
 	featureFlags,
 	hardResetEditor,
+	noop,
 	track,
 	uniqueId,
 	useEditor,
 } from '@tldraw/editor'
 import React from 'react'
 import { useDialogs } from '../../context/dialogs'
-import { useToasts } from '../../context/toasts'
+import { TLUiToastAction, useToasts } from '../../context/toasts'
 import { untranslated } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonCheck } from '../primitives/Button/TldrawUiButtonCheck'
@@ -35,6 +36,12 @@ export interface CustomDebugFlags {
 	customFeatureFlags?: Record<string, DebugFlag<boolean>>
 }
 
+const DEMO_TOAST_ACTIONS: TLUiToastAction[] = [
+	{ label: 'Primary', type: 'primary', onClick: noop },
+	{ label: 'Normal', type: 'normal', onClick: noop },
+	{ label: 'Danger', type: 'danger', onClick: noop },
+]
+
 /** @public @react */
 export function DefaultDebugMenuContent({
 	customDebugFlags,
@@ -48,7 +55,7 @@ export function DefaultDebugMenuContent({
 	return (
 		<>
 			<TldrawUiMenuGroup id="items">
-				<TldrawUiMenuItem id="hard-reset" onSelect={hardResetEditor} label={'Hard reset'} />
+				<TldrawUiMenuItem id="hard-reset" onSelect={hardResetEditor} label="Hard reset" />
 				<TldrawUiMenuItem
 					id="add-toast"
 					onSelect={() => {
@@ -65,29 +72,7 @@ export function DefaultDebugMenuContent({
 							description: 'Hey, attend to this thing over here. It might be important!',
 							keepOpen: true,
 							severity: 'info',
-							actions: [
-								{
-									label: 'Primary',
-									type: 'primary',
-									onClick: () => {
-										void null
-									},
-								},
-								{
-									label: 'Normal',
-									type: 'normal',
-									onClick: () => {
-										void null
-									},
-								},
-								{
-									label: 'Danger',
-									type: 'danger',
-									onClick: () => {
-										void null
-									},
-								},
-							],
+							actions: DEMO_TOAST_ACTIONS,
 						})
 						addToast({
 							id: uniqueId(),
@@ -95,29 +80,7 @@ export function DefaultDebugMenuContent({
 							description: 'Hey, attend to this thing over here. It might be important!',
 							keepOpen: true,
 							severity: 'warning',
-							actions: [
-								{
-									label: 'Primary',
-									type: 'primary',
-									onClick: () => {
-										void null
-									},
-								},
-								{
-									label: 'Normal',
-									type: 'normal',
-									onClick: () => {
-										void null
-									},
-								},
-								{
-									label: 'Danger',
-									type: 'danger',
-									onClick: () => {
-										void null
-									},
-								},
-							],
+							actions: DEMO_TOAST_ACTIONS,
 						})
 						addToast({
 							id: uniqueId(),
@@ -130,7 +93,7 @@ export function DefaultDebugMenuContent({
 				/>
 				<TldrawUiMenuItem
 					id="show-dialog"
-					label={'Show dialog'}
+					label="Show dialog"
 					onSelect={() => {
 						addDialog({
 							component: ({ onClose }) => (
@@ -140,20 +103,18 @@ export function DefaultDebugMenuContent({
 									onContinue={() => onClose()}
 								/>
 							),
-							onClose: () => {
-								void null
-							},
+							onClose: noop,
 						})
 					}}
 				/>
 				<TldrawUiMenuItem
 					id="create-shapes"
-					label={'Create 100 shapes'}
+					label="Create 100 shapes"
 					onSelect={() => createNShapes(editor, 100)}
 				/>
 				<TldrawUiMenuItem
 					id="count-nodes"
-					label={'Count shapes / nodes'}
+					label="Count shapes / nodes"
 					onSelect={() => {
 						const selectedShapes = editor.getSelectedShapes()
 						const shapes =
@@ -167,7 +128,7 @@ export function DefaultDebugMenuContent({
 					if (error) throw Error('oh no!')
 					return null
 				})()}
-				<TldrawUiMenuItem id="throw-error" onSelect={() => setError(true)} label={'Throw error'} />
+				<TldrawUiMenuItem id="throw-error" onSelect={() => setError(true)} label="Throw error" />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="flags">
 				<DebugFlags customDebugFlags={customDebugFlags} />
@@ -196,6 +157,7 @@ export function DebugFlags(props: DebugFlagsProps) {
 		</TldrawUiMenuSubmenu>
 	)
 }
+
 /** @public */
 export interface FeatureFlagsProps {
 	customFeatureFlags?: Record<string, DebugFlag<boolean>> | undefined
@@ -262,7 +224,7 @@ export function ExampleDialog({
 				<TldrawUiButton type="normal" onClick={onCancel}>
 					<TldrawUiButtonLabel>{cancel}</TldrawUiButtonLabel>
 				</TldrawUiButton>
-				<TldrawUiButton type="primary" onClick={async () => onContinue()}>
+				<TldrawUiButton type="primary" onClick={() => onContinue()}>
 					<TldrawUiButtonLabel>{confirm}</TldrawUiButtonLabel>
 				</TldrawUiButton>
 			</TldrawUiDialogFooter>

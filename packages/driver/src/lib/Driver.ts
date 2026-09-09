@@ -284,7 +284,7 @@ export class Driver {
 			...flags,
 			accelKey: flags.accelKey ?? isAccelKey(flags),
 			name,
-			code: KEY_CODES[key] ?? 'Key' + key[0].toUpperCase() + key.slice(1),
+			code: options.code ?? KEY_CODES[key] ?? 'Key' + key[0].toUpperCase() + key.slice(1),
 			type: 'keyboard',
 			key,
 		}

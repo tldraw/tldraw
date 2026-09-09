@@ -21,9 +21,7 @@ export function useSetIsReady() {
 export function ReadyWrapper({ children }: PropsWithChildren) {
 	const parent = useContext(ReadyContext)
 	const [isReady, _setIsReady] = React.useState(false)
-	const setIsReady = useCallback(async () => {
-		_setIsReady(true)
-	}, [])
+	const setIsReady = useCallback(() => _setIsReady(true), [])
 
 	if (!parent.isRoot) {
 		// already wrapped at a higher level

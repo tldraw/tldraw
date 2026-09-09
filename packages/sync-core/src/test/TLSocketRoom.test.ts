@@ -210,6 +210,45 @@ describe('28. TLSocketRoom (SR)', () => {
 			consoleSpy.mockRestore()
 		})
 
+		it('[SR3] the default logger also reaches TLSyncRoom, so authorizer failures are reported', () => {
+			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			try {
+				const room = new TLSocketRoom({
+					authorizeRecord: {
+						page: () => {
+							throw new Error('authorizer exploded')
+						},
+					},
+				})
+				const socket = createMockSocket()
+				connectSession(room, 'test-session', socket)
+
+				const pageId = PageRecordType.createId('new-page')
+				room.handleSocketMessage(
+					'test-session',
+					JSON.stringify({
+						type: 'push',
+						clientClock: 1,
+						diff: {
+							[pageId]: [
+								RecordOpType.Put,
+								PageRecordType.create({ id: pageId, name: 'New Page', index: 'a2' as any }),
+							],
+						},
+					})
+				)
+
+				// the authorizer threw, and the host heard about it without passing a logger
+				expect(room.getRecord(pageId)).toBeUndefined()
+				expect(consoleSpy).toHaveBeenCalledWith(
+					'record authorizer threw; rejecting the write',
+					expect.objectContaining({ message: 'authorizer exploded' })
+				)
+			} finally {
+				consoleSpy.mockRestore()
+			}
+		})
+
 		it('[SR3] uses custom logger when provided', () => {
 			const mockLog: TLSyncLog = {
 				warn: vi.fn(),

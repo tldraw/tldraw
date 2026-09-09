@@ -360,11 +360,15 @@ export function sortMigrations(migrations: Migration[]): Migration[] {
 		// Explicit dependencies
 		if (m.dependsOn) {
 			for (const depId of m.dependsOn) {
-				if (byId.has(depId)) {
-					dependents.get(depId)!.add(m.id)
-					explicitDeps.get(m.id)!.add(depId)
-					inDegree.set(m.id, inDegree.get(m.id)! + 1)
-				}
+				if (!byId.has(depId)) continue
+				explicitDeps.get(m.id)!.add(depId)
+				// A dependency that is also the implicit predecessor, or that is listed twice, must
+				// only count once: the edge is only ever removed once, so a double-counted in-degree
+				// would leave the migration unprocessed and be reported as a circular dependency.
+				const dependentsOfDep = dependents.get(depId)!
+				if (dependentsOfDep.has(m.id)) continue
+				dependentsOfDep.add(m.id)
+				inDegree.set(m.id, inDegree.get(m.id)! + 1)
 			}
 		}
 	}

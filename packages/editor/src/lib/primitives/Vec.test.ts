@@ -336,6 +336,16 @@ describe('Vec.Slope', () => {
 		expect(Vec.Slope(new Vec(0, 0), new Vec(50, 100))).toEqual(2)
 		expect(Vec.Slope(new Vec(0, 0), new Vec(-50, 100))).toEqual(-2)
 		expect(Vec.Slope(new Vec(123, 456), new Vec(789, 24))).toEqual(-0.6486486486486487)
+		// A.x happened to equal B.y here, which used to trip the vertical guard
+		expect(Vec.Slope(new Vec(1, 0), new Vec(0, 1))).toEqual(-1)
+		expect(Vec.Slope(new Vec(5, 0), new Vec(5, 10))).toBeNaN()
+	})
+})
+
+describe('Vec.cross', () => {
+	it('Matches the static Vec.Cross.', () => {
+		expect(Vec.Cross(new Vec(1, 2, 3), new Vec(4, 5, 6))).toMatchObject({ x: -3, y: 6 })
+		expect(new Vec(1, 2, 3).cross(new Vec(4, 5, 6))).toMatchObject({ x: -3, y: 6 })
 	})
 })
 

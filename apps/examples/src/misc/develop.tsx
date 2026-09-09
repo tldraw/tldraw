@@ -8,14 +8,11 @@ import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
 import {
 	commentSchemaRecords,
-	CommentToolbarItem,
 	createTLSchema,
 	DefaultContextMenu,
 	DefaultContextMenuContent,
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
-	DefaultToolbar,
-	DefaultToolbarContent,
 	Editor,
 	ExampleDialog,
 	PerformanceApiAdapter,
@@ -118,13 +115,6 @@ const components: TLComponents = {
 		</DefaultDebugMenu>
 	),
 	InFrontOfTheCanvas: Comments,
-	// The default toolbar doesn't include the comment tool, so add it here.
-	Toolbar: () => (
-		<DefaultToolbar>
-			<CommentToolbarItem />
-			<DefaultToolbarContent />
-		</DefaultToolbar>
-	),
 }
 
 // Dragging the comment tool out anchors a comment to a rectangular region; a click anchors a pin.
@@ -153,7 +143,9 @@ export default function Develop() {
 	const debuggingOverrides = useDebugging()
 
 	// The comment records live in the store alongside shapes, so the schema needs them registered
-	// before the persisted document loads.
+	// before the persisted document loads. That makes this schema newer than the default one, so
+	// no other example may share the 'example' persistence key: a newer-schema tab ignores an
+	// older tab's changes and overwrites the shared database with its own copy (#10514).
 	const schema = useMemo(() => createTLSchema({ records: commentSchemaRecords }), [])
 	const store = useLocalStore({ persistenceKey: 'example', schema })
 
