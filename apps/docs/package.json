@@ -33,7 +33,6 @@
 		"build": "yarn refresh-everything && yarn check-links --fail && next build",
 		"start": "yarn refresh-everything && next start",
 		"fetch-api-source": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/fetch-api-source.ts",
-		"fetch-releases": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/fetch-releases.ts",
 		"check-links": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/check-broken-links.ts",
 		"check-external-links": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/check-external-links.ts",
 		"create-api-markdown": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/create-api-markdown.ts",
