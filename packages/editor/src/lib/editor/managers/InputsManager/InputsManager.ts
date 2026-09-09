@@ -105,6 +105,13 @@ export class InputsManager extends EditorManager {
 		return this._originPagePoint.get()
 	}
 	/**
+	 * @deprecated Use `getOriginPagePoint()` instead.
+	 */
+	// eslint-disable-next-line tldraw/no-setter-getter
+	get originPagePoint() {
+		return this.getOriginPagePoint()
+	}
+	/**
 	 * Re-derive the pointer down's page position from its screen position under the current
 	 * camera. Used when the camera moves on its own (animation, follow, programmatic set) so that
 	 * the move isn't measured as pointer travel.
@@ -116,13 +123,6 @@ export class InputsManager extends EditorManager {
 		const { x: sx, y: sy } = this._originScreenPoint.__unsafe__getWithoutCapture()
 		const { z } = this._originPagePoint.__unsafe__getWithoutCapture()
 		this._originPagePoint.set(new Vec(sx / cz - cx, sy / cz - cy, z))
-	}
-	/**
-	 * @deprecated Use `getOriginPagePoint()` instead.
-	 */
-	// eslint-disable-next-line tldraw/no-setter-getter
-	get originPagePoint() {
-		return this.getOriginPagePoint()
 	}
 
 	private _originScreenPoint = atom<Vec>('originScreenPoint', new Vec())
