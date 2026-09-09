@@ -638,6 +638,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const shapes = compact(ids.map((id) => editor.getShape(id)))
 					const pageBounds = editor.getShapesPageBounds(ids)
 					if (!pageBounds) return
+					// Frame props reject zero dimensions, which a lone horizontal arrow or a dot has. The
+					// frame is fitted to its content with padding below, so a placeholder size is fine here.
+					const { w, h } = Box.ZeroFix(pageBounds)
 
 					trackEvent('frame-selection', { source })
 					editor.markHistoryStoppingPoint('frame-selection')
@@ -655,10 +658,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 								parentId,
 								x: pageBounds.x,
 								y: pageBounds.y,
-								props: {
-									w: pageBounds.w,
-									h: pageBounds.h,
-								},
+								props: { w, h },
 							},
 						])
 						editor.reparentShapes(ids, frameId)

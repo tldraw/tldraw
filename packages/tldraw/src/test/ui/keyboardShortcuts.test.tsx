@@ -374,6 +374,29 @@ describe('frame selection shortcut', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([frame!.id])
 	})
 
+	it('frames a single shape with no height, like a horizontal arrow', async () => {
+		const { editor } = await setupFocusedEditor()
+		const arrow = createShapeId()
+		act(() => {
+			editor.createShapes([
+				{
+					id: arrow,
+					type: 'arrow',
+					x: 0,
+					y: 0,
+					props: { start: { x: 0, y: 0 }, end: { x: 100, y: 0 } },
+				},
+			])
+			editor.select(arrow)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
+
+		const frame = editor.getCurrentPageShapes().find((s) => editor.isShapeOfType(s, 'frame'))
+		expect(frame).toBeDefined()
+		expect(editor.getShape(arrow)?.parentId).toBe(frame!.id)
+	})
+
 	it('removes the frame when a single frame is selected', async () => {
 		const { editor } = await setupFocusedEditor()
 		const frameId = createShapeId()
