@@ -398,21 +398,20 @@ describe('readOpenSegment', () => {
 		expect(await readOpenSegment(bucket, `${roomKey}/shape.s`)).toBeNull()
 	})
 
-	it('returns null for a segment holding deltas of another format', async () => {
+	it('returns deltas of another format rather than refusing them', async () => {
 		const bucket = createFakeR2()
 		const { chain, pending } = await persistAll(bucket, [
 			snapshot(1, ['shape:a']),
 			snapshot(2, ['shape:a', 'shape:b']),
 		])
 		const key = chain!.openSegment!.key
-		// Rewritten by hand at the current version first, so the second read's null is the delta
-		// version and not the hand-written body.
-		await bucket.put(key, JSON.stringify({ v: 1, deltas: pending }))
-		expect(await readOpenSegment(bucket, key)).toEqual(pending)
-
+		// Retiring a chain on a format bump is decideVersionWrite's job, and it names the reason
+		// `delta-format`. Nulling here would null the chain one step earlier and report every room
+		// the bump touched as `segment-lost` instead.
 		const stale = pending.map((d) => ({ ...d, delta: { ...d.delta, v: 1 } }))
 		await bucket.put(key, JSON.stringify({ v: 1, deltas: stale }))
-		expect(await readOpenSegment(bucket, key)).toBeNull()
+
+		expect(await readOpenSegment(bucket, key)).toEqual(stale)
 	})
 
 	it('throws on a failed get instead of discarding the segment', async () => {

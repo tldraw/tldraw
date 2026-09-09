@@ -144,8 +144,11 @@ export async function writeVersionChainEntry({
 
 /**
  * The deltas an open segment holds, for a durable object that lost its in-memory buffer, or null
- * when the object cannot be used as one: missing, undecodable, not a v1 segment body, or holding
- * deltas this build does not write.
+ * when the object cannot be used as one: missing, undecodable, or not a v1 segment body.
+ *
+ * Deltas of a superseded format are returned rather than refused. `decideVersionWrite` retires such
+ * a chain with a `delta-format` keyframe; refusing here would null the chain first and report the
+ * whole bump as `segment-lost`, which is the per-room signal that reason has to stay.
  *
  * Null means the segment is unusable and the caller starts a fresh chain, which costs one keyframe.
  * A failed `get` throws instead: the segment may be intact and only the network was not, and null
@@ -162,12 +165,6 @@ export async function readOpenSegment(
 	try {
 		const body = (await decodeVersionBody(object)) as Partial<SegmentBody> | null
 		if (body?.v !== 1 || !Array.isArray(body.deltas)) return null
-		// The `delta-format` keyframe rule is what a format bump is supposed to hit; this is the
-		// same check against what R2 actually holds rather than what the chain state claims, in the
-		// same spirit as the envelope check above. Appending rewrites the whole segment, so a
-		// new-format delta landing on top of old-format ones would cost every version from the
-		// segment's first delta to the next keyframe.
-		if (body.deltas.some((d) => d?.delta?.v !== SNAPSHOT_DELTA_VERSION)) return null
 		return body.deltas
 	} catch {
 		return null
