@@ -11346,6 +11346,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						inputs.setIsPointing(true)
 						inputs.setIsDragging(false)
 
+						// A camera still animating under a held pointer would shift the page
+						// point past the drag threshold and turn a click into a drag (#10706)
+						this.stopCameraAnimation()
+
 						// If pen mode is off, turn it on for direct-display pen input only (e.g. Apple
 						// Pencil on an iPad or a Surface Pen on a touchscreen). Indirect desktop tablet
 						// styluses still draw as pens, but should not auto-enable pen mode.
