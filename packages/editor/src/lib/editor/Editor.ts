@@ -2264,10 +2264,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			parentToSelectWithinId = this.getCurrentPageId()
 		}
 
-		// Select all the unlocked shapes within the parent
+		// Select all the unlocked shapes within the parent. Only the shape's own lock matters here:
+		// selecting inside a locked frame or group is allowed, mutating is not.
 		const ids = this.getSortedChildIdsForParent(parentToSelectWithinId)
 		if (ids.length <= 0) return this
-		this.setSelectedShapes(this._getUnlockedShapeIds(ids))
+		this.setSelectedShapes(ids.filter((id) => !this.getShape(id)?.isLocked))
 		return this
 	}
 
@@ -8806,6 +8807,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const animations: ShapeAnimation[] = []
 
+		// Snapshot the lock override now: when this animation is started inside
+		// editor.run(..., { ignoreShapeLock: true }), run() restores the flag before any tick
+		// fires, so the final updateShapes below would refuse the locked shape and strand it
+		const ignoreShapeLock = this._shouldIgnoreShapeLock
+
 		let partial: TLShapePartial | null | undefined, result: ShapeAnimation
 		for (let i = 0, n = partials.length; i < n; i++) {
 			partial = partials[i]
@@ -8813,6 +8819,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			const shape = this.getShape(partial.id)!
 			if (!shape) continue
+
+			// Apply the same lock rule as updateShapes up front: the intermediate frames go through
+			// _updateShapes, which doesn't check locks, so a locked shape would otherwise be moved by
+			// every frame but the last and end up stranded at the penultimate one
+			const unlocks = shape.isLocked && Object.hasOwn(partial, 'isLocked') && !partial.isLocked
+			if (!ignoreShapeLock && !unlocks && this.isShapeOrAncestorLocked(shape)) {
+				continue
+			}
 
 			result = {
 				start: structuredClone(shape),
@@ -8834,7 +8848,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				if (partialsToUpdate.length) {
 					// the regular update shapes also removes the shape from
 					// the animating shapes set
-					this.updateShapes(partialsToUpdate)
+					this.run(() => this.updateShapes(partialsToUpdate), { ignoreShapeLock })
 				}
 
 				this.off('tick', handleTick)
@@ -8913,6 +8927,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.getShape(id)
 			)
 		)
+		// Re-check after the lock filter: Box.Common of nothing is not a valid box and would throw
+		if (shapesToGroup.length <= 1) return this
+
 		const sortedShapeIds = shapesToGroup.sort(sortByIndex).map((s) => s.id)
 		const childBounds = compact(shapesToGroup.map((shape) => this.getShapePageBounds(shape)))
 		const pageBounds = Box.Common(childBounds)
@@ -9151,7 +9168,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	private _getUnlockedShapeIds(ids: TLShapeId[]): TLShapeId[] {
-		return ids.filter((id) => !this.getShape(id)?.isLocked)
+		// Match updateShapes, which also refuses shapes under a locked ancestor; otherwise a child
+		// of a locked frame can't be moved but can still be deleted or duplicated
+		return ids.filter((id) => !this.isShapeOrAncestorLocked(id))
 	}
 
 	/**
