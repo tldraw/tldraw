@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { AssetRecordType, Editor, EditorProvider, TLAssetId } from '@tldraw/editor'
 import { ReactNode } from 'react'
+import { vi } from 'vitest'
 import { renderTldrawComponentWithEditor } from '../../../test/testutils/renderTldrawComponent'
 import { Tldraw } from '../../Tldraw'
 import { useImageOrVideoAsset } from './useImageOrVideoAsset'
@@ -9,7 +10,7 @@ let editor: Editor
 const assetId = AssetRecordType.createId('image')
 const otherAssetId = AssetRecordType.createId('image2')
 
-function imageAsset(id: TLAssetId, w: number) {
+function imageAsset(id: TLAssetId, w: number, src = 'http://localhost/image.png') {
 	return {
 		id,
 		type: 'image' as const,
@@ -20,7 +21,7 @@ function imageAsset(id: TLAssetId, w: number) {
 			name: 'image.png',
 			isAnimated: false,
 			mimeType: 'image/png',
-			src: 'http://localhost/image.png',
+			src,
 		},
 		meta: {},
 	}
@@ -102,4 +103,23 @@ it('returns the new asset when switching to one that resolves to the same url', 
 		url: 'http://localhost/image.png',
 		asset: { id: otherAssetId, props: { w: 200 } },
 	})
+})
+
+it('shows the new asset, not the old one, when switching to an asset that has no url yet', async () => {
+	// Like the dotcom asset stores, resolve an asset without a src to null rather than ''
+	const resolve = editor.resolveAssetUrl.bind(editor)
+	vi.spyOn(editor, 'resolveAssetUrl').mockImplementation(
+		async (id, ctx) => (await resolve(id, ctx)) || null
+	)
+	editor.createAssets([imageAsset(otherAssetId, 200, '')])
+	const { result, rerender } = renderAssetHook(assetId)
+	await flush()
+	expect(result.current).toMatchObject({
+		url: 'http://localhost/image.png',
+		asset: { id: assetId },
+	})
+
+	rerender({ assetId: otherAssetId })
+	await flush()
+	expect(result.current).toMatchObject({ url: null, asset: { id: otherAssetId } })
 })

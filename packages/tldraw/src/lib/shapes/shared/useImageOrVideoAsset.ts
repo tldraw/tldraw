@@ -65,8 +65,10 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 	// Track whether we should run immediately (skip debouncing) for the next resolution
 	const shouldRunImmediately = useRef(false)
 
-	// The last URL that we've seen for the shape
-	const previousUrl = useRef<string | null>(null)
+	// The last url passed to setResult, or undefined once the asset changes or vanishes. resolve()
+	// skips a url equal to this one, so a plain null here would swallow a legitimate null result
+	// (an asset still uploading) and leave the previous asset on screen
+	const previousUrl = useRef<string | null | undefined>(undefined)
 
 	useEffect(() => {
 		// Check if the assetId changed (not just resolution/scale updates)
@@ -74,15 +76,13 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 		previousAssetId.current = assetId
 
 		if (assetIdChanged) {
-			// Resolve immediately (skip debouncing), and forget the old url: resolve() skips a url
-			// equal to the previous one, which would leave the state stale when a different asset
-			// resolves to the same url, or when the same asset is re-attached after being removed
+			// New asset: skip the debounce and drop the stale url (see previousUrl)
 			shouldRunImmediately.current = true
-			previousUrl.current = null
+			previousUrl.current = undefined
 		}
 
 		if (!assetId) {
-			// Asset removed from the shape: stop rendering it
+			// Asset detached: without this the last resolved url keeps rendering
 			if (assetIdChanged) setResult({ asset: null, url: null })
 			return
 		}
@@ -96,12 +96,13 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 			// Get the fresh asset
 			const asset = editor.getAsset<TLImageAsset | TLVideoAsset>(assetId)
 			if (!asset) {
-				// The asset record is gone (failed upload, deleted and later undone). Treat a record
-				// that comes back like a new asset: resolve it immediately, and forget the url or a
-				// record recreated with the same src is skipped as "same url" in resolve()
+				// Record gone (failed upload, deleted before undo): reset so a record that comes back
+				// with the same src resolves like a new asset
 				shouldRunImmediately.current = true
-				previousUrl.current = null
-				setResult((prev) => ({ ...prev, asset: null, url: null }))
+				previousUrl.current = undefined
+				setResult((prev) =>
+					prev.asset === null && prev.url === null ? prev : { asset: null, url: null }
+				)
 				return
 			}
 
