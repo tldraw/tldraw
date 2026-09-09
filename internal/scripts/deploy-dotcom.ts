@@ -307,6 +307,11 @@ const zeroVmSizes = {
 	preview: { single: { cpus: 2, memory: '2gb' } },
 } as const
 
+// flyctl's default --wait-timeout is 2m, counted from the start of the machine
+// update. A stop can legitimately take up to killTimeout (5m) before the new VM
+// even boots, so give the health-check wait room for a full stop + boot.
+const flyDeployWaitTimeout = '10m'
+
 const zeroConnectionLimits = {
 	staging: {
 		rm: { upstream: 1, cvr: 1, change: 3 },
@@ -864,9 +869,19 @@ async function deployZeroViaFlyIoMultiNode() {
 		],
 		{ pwd: zeroCacheFolder }
 	)
-	await exec('flyctl', ['deploy', '-a', flyioReplAppName, '-c', 'flyio-replication-manager.toml'], {
-		pwd: zeroCacheFolder,
-	})
+	await exec(
+		'flyctl',
+		[
+			'deploy',
+			'-a',
+			flyioReplAppName,
+			'-c',
+			'flyio-replication-manager.toml',
+			'--wait-timeout',
+			flyDeployWaitTimeout,
+		],
+		{ pwd: zeroCacheFolder }
+	)
 
 	// Deploy view syncer with reference to replication manager
 	const replManagerUri = `http://${flyioReplAppName}.internal:4849`
@@ -896,9 +911,19 @@ async function deployZeroViaFlyIoMultiNode() {
 		],
 		{ pwd: zeroCacheFolder }
 	)
-	await exec('flyctl', ['deploy', '-a', flyioAppName, '-c', 'flyio-view-syncer.toml'], {
-		pwd: zeroCacheFolder,
-	})
+	await exec(
+		'flyctl',
+		[
+			'deploy',
+			'-a',
+			flyioAppName,
+			'-c',
+			'flyio-view-syncer.toml',
+			'--wait-timeout',
+			flyDeployWaitTimeout,
+		],
+		{ pwd: zeroCacheFolder }
+	)
 	assert('vsMinMachines' in zeroVm, 'multi-node VM sizes required')
 	await exec(
 		'flyctl',
