@@ -221,7 +221,6 @@ test.describe('Focus', () => {
 		// the locator resolves it before clicking.
 		await page.waitForFunction(() => editor.getCameraState() === 'idle')
 
-		// Click back into the first note
 		await page.locator('.tl-shape').first().click()
 
 		await page.waitForTimeout(1000)
