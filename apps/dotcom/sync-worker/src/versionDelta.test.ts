@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	applySnapshotDelta,
 	buildSnapshotDelta,
+	SnapshotDelta,
 	versionEnvelopeHash,
 	chainHeadHash,
 } from './versionDelta'
@@ -312,5 +313,144 @@ describe('buildSnapshotDelta / applySnapshotDelta', () => {
 
 		const replayed = applySnapshotDelta(keyframe, delta)
 		expect(versionEnvelopeHash(replayed)).toBe(delta.hash)
+	})
+})
+/**
+ * A v2 delta exactly as chains already in R2 hold one, frozen as a literal rather than built here.
+ *
+ * Every other test in this file round-trips through the current build, so all of them keep passing
+ * when the format moves — which is how the diff codec, the hash inputs, or an `applyObjectDiff`
+ * change in `@tldraw/sync-core` can land without anyone bumping `SNAPSHOT_DELTA_VERSION` and every
+ * chain in R2 quietly starts replaying under rules it was not written for.
+ *
+ * When this fails, the format moved. Bump `SNAPSHOT_DELTA_VERSION` and re-pin this fixture at the
+ * new version; re-pinning alone, without the bump, is what it exists to prevent.
+ */
+describe('the v2 format, pinned', () => {
+	const schema = { schemaVersion: 2, sequences: { 'com.tldraw.shape': 1 } } as any
+	// The brand on `RecordId` is the only reason these literals need a cast at all.
+	const record = (state: object) => state as UnknownRecord
+	const steady = record({ id: 'shape:d', typeName: 'shape', x: 7 })
+
+	// Written out in full rather than through `snapshot()` and `rec()`: a pin that moves when a
+	// test helper moves is not a pin.
+	const base: RoomSnapshot = {
+		clock: 10,
+		documentClock: 10,
+		documents: [
+			{
+				state: record({
+					id: 'shape:a',
+					typeName: 'shape',
+					x: 1,
+					props: { text: 'hi', segments: [1, 2] },
+					meta: { tags: ['one'], nested: { keep: true, drop: 1 } },
+				}),
+				lastChangedClock: 4,
+			},
+			{ state: record({ id: 'shape:b', typeName: 'shape', x: 5 }), lastChangedClock: 6 },
+			// Clock moves in `next` while the content stays identical, so the delta carries a clock
+			// for it and no diff entry at all — the one path `applySnapshotDelta`'s trailing clocks
+			// loop exists for, and dead weight in a fixture without it.
+			{ state: steady, lastChangedClock: 7 },
+		],
+		tombstones: { 'shape:gone': 3, 'shape:older': 2 },
+		tombstoneHistoryStartsAtClock: 2,
+		schema,
+	}
+
+	const next: RoomSnapshot = {
+		clock: 12,
+		documentClock: 12,
+		documents: [
+			{
+				state: record({
+					id: 'shape:a',
+					typeName: 'shape',
+					x: 2,
+					props: { text: 'hi there', segments: [1, 2, 3] },
+					meta: { tags: ['one', 'two'], nested: { keep: true } },
+				}),
+				lastChangedClock: 11,
+			},
+			{ state: steady, lastChangedClock: 12 },
+			{ state: record({ id: 'shape:c', typeName: 'shape', x: 9 }), lastChangedClock: 12 },
+		],
+		tombstones: { 'shape:gone': 3, 'shape:b': 12 },
+		tombstoneHistoryStartsAtClock: 3,
+		schema,
+	}
+
+	// The append ops are the point of the string and array edits: `applyObjectDiff` has changed
+	// what an offset means before (diffRecord's legacyAppendMode), and that change is silent.
+	const delta: SnapshotDelta = {
+		v: 2,
+		diff: {
+			'shape:c': ['put', record({ id: 'shape:c', typeName: 'shape', x: 9 })],
+			'shape:a': [
+				'patch',
+				{
+					x: ['put', 2],
+					props: ['patch', { text: ['append', ' there', 2], segments: ['append', [3], 2] }],
+					meta: ['patch', { tags: ['append', ['two'], 1], nested: ['put', { keep: true }] }],
+				},
+			],
+			'shape:b': ['remove'],
+		},
+		clocks: { 'shape:a': 11, 'shape:d': 12, 'shape:c': 12 },
+		tombstones: { set: { 'shape:b': 12 }, removed: ['shape:older'] },
+		tombstoneHistoryStartsAtClock: 3,
+		clock: 12,
+		documentClock: 12,
+		hash: '75c37fef0c2b6587',
+	}
+
+	// The bytes a segment object holds, as text. `encodeVersionBody` only gzips this, and gzip
+	// output is a zlib-version detail rather than part of the format, so the JSON is what is pinned.
+	//
+	// Not redundant with the object pin below: `toEqual` reads `{ a: undefined }` and `{}` as the
+	// same object and the hash sorts keys before digesting, so a field that quietly turns undefined,
+	// or moves, changes what R2 stores while both of those stay green.
+	const stored =
+		'{"v":1,' +
+		'"deltas":[{"t":"2026-09-01T00:00:05.000Z","delta":{"v":2,' +
+		'"diff":{"shape:c":["put",{"id":"shape:c","typeName":"shape","x":9}],' +
+		'"shape:a":["patch",{"x":["put",2],"props":["patch",{"text":["append"," there",2],"segments":["append",[3],2]}],"meta":["patch",{"tags":["append",["two"],1],"nested":["put",{"keep":true}]}]}],' +
+		'"shape:b":["remove"]},' +
+		'"clocks":{"shape:a":11,"shape:d":12,"shape:c":12},' +
+		'"tombstones":{"set":{"shape:b":12},"removed":["shape:older"]},"tombstoneHistoryStartsAtClock":3,' +
+		'"clock":12,"documentClock":12,"hash":"75c37fef0c2b6587"}}]}'
+
+	it('serializes to the exact text a v2 segment holds', () => {
+		const segment = {
+			v: 1,
+			deltas: [{ t: '2026-09-01T00:00:05.000Z', delta: buildSnapshotDelta(base, next) }],
+		}
+
+		expect(JSON.stringify(segment)).toBe(stored)
+	})
+
+	it('replays that text, parsed as R2 hands it back', () => {
+		const [{ delta: parsed }] = JSON.parse(stored).deltas
+
+		expect(applySnapshotDelta(base, parsed)).toEqual(next)
+		expect(versionEnvelopeHash(applySnapshotDelta(base, parsed))).toBe(parsed.hash)
+	})
+
+	it('writes the delta v2 pins', () => {
+		expect(buildSnapshotDelta(base, next)).toEqual(delta)
+	})
+
+	it('replays the pinned delta, not just one it built itself', () => {
+		expect(applySnapshotDelta(base, delta)).toEqual(next)
+	})
+
+	it('hashes the pinned snapshots to the pinned digests', () => {
+		// A chain verifies against the hash recorded in the delta, so these strings are as much a
+		// part of the stored format as the delta body is.
+		expect(versionEnvelopeHash(base)).toBe('aab866b16f9ac1e1')
+		expect(versionEnvelopeHash(next)).toBe('75c37fef0c2b6587')
+		expect(chainHeadHash(base)).toBe('b584c037db4dc24f')
+		expect(chainHeadHash(next)).toBe('3d1266a3f7235c23')
 	})
 })
