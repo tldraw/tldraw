@@ -48,3 +48,25 @@ it('moves a locked shape all the way when the lock is ignored', () => {
 	editor.emit('tick', 60)
 	expect(editor.getShape(id)).toMatchObject({ x: 100, y: 100, isLocked: true })
 })
+
+it('does not move a child of a locked frame', () => {
+	const frameId = createShapeId('frame')
+	const id = createShapeId('box')
+	editor.createShape({ id: frameId, type: 'frame', x: 0, y: 0, isLocked: true })
+	editor.createShape({ id, type: 'geo', x: 0, y: 0, parentId: frameId })
+	editor.animateShapes([{ id, type: 'geo', x: 100, y: 100 }], { animation: { duration: 100 } })
+	editor.emit('tick', 50)
+	editor.emit('tick', 60)
+	expect(editor.getShape(id)).toMatchObject({ x: 0, y: 0 })
+})
+
+it('moves a locked shape when the animation unlocks it', () => {
+	const id = createShapeId('box')
+	editor.createShape({ id, type: 'geo', x: 0, y: 0, isLocked: true })
+	editor.animateShapes([{ id, type: 'geo', x: 100, y: 100, isLocked: false }], {
+		animation: { duration: 100 },
+	})
+	editor.emit('tick', 50)
+	editor.emit('tick', 60)
+	expect(editor.getShape(id)).toMatchObject({ x: 100, y: 100, isLocked: false })
+})
