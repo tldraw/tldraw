@@ -2357,6 +2357,8 @@ export class InputsManager extends EditorManager {
     // @internal
     updateFromEvent(info: TLPinchEventInfo | TLPointerEventInfo | TLWheelEventInfo): void;
     // @internal
+    updateOriginPagePointFromCamera(): void;
+    // @internal
     updatePointerVelocity(elapsed: number): void;
 }
 

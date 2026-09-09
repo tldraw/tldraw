@@ -3540,7 +3540,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	private _setCamera(point: VecLike, opts?: TLCameraMoveOptions): this {
+	private _setCamera(
+		point: VecLike,
+		opts?: TLCameraMoveOptions & {
+			/**
+			 * The camera moved because of the user's own wheel input. Only that kind of camera move
+			 * may push a held-still pointer past the drag threshold; an animation, follow, or
+			 * programmatic move re-anchors the pointer-down origin instead so a click stays a click.
+			 */
+			fromWheel?: boolean
+		}
+	): this {
 		const currentCamera = this.getCamera()
 
 		const { x, y, z } = this.getConstrainedCamera(point, opts)
@@ -3557,6 +3567,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				},
 				{ history: 'ignore' }
 			)
+
+			if (!opts?.fromWheel && this.inputs.getIsPointing() && !this.inputs.getIsDragging()) {
+				this.inputs.updateOriginPagePointFromCamera()
+			}
 
 			// Dispatch a new pointer move because the pointer's page will have changed
 			// (its screen position will compute to a new page position given the new camera position)
@@ -11251,6 +11265,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							const zoom = cz + finalDelta * zoomSpeed * cz
 							this._setCamera(new Vec(cx + x / zoom - x / cz, cy + y / zoom - y / cz, zoom), {
 								immediate: true,
+								fromWheel: true,
 							})
 							this.maybeTrackPerformance('Zooming')
 							this.performance._notifyCameraOperation('zooming')
@@ -11262,6 +11277,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							// Pan the camera based on the wheel delta
 							this._setCamera(new Vec(cx + (dx * panSpeed) / cz, cy + (dy * panSpeed) / cz, cz), {
 								immediate: true,
+								fromWheel: true,
 							})
 							this.maybeTrackPerformance('Panning')
 							this.performance._notifyCameraOperation('panning')

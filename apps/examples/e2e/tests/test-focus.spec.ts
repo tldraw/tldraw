@@ -1,6 +1,7 @@
 import test, { expect } from '@playwright/test'
 import { Editor } from 'tldraw'
 
+declare const editor: Editor
 declare const EDITOR_A: Editor
 declare const EDITOR_B: Editor
 declare const EDITOR_C: Editor
@@ -214,8 +215,14 @@ test.describe('Focus', () => {
 
 		// create new note next to it
 		await page.keyboard.press('Tab')
+		await expect(page.locator('.tl-shape')).toHaveCount(2)
 
-		await (await page.$('body'))?.click()
+		// Tab pans to the new note; let the camera settle so the click below isn't
+		// dispatched against a moving canvas.
+		await page.waitForFunction(() => editor.getCameraState() === 'idle')
+
+		// Click back into the first note
+		await page.locator('.tl-shape').first().click()
 
 		await page.waitForTimeout(1000)
 
