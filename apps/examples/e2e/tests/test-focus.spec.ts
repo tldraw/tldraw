@@ -212,6 +212,8 @@ test.describe('Focus', () => {
 		await (await page.$('body'))?.click()
 		await page.waitForSelector('.tl-shape')
 		await page.keyboard.type('test')
+		const firstNoteId = await page.evaluate(() => editor.getEditingShapeId())
+		const firstNote = page.locator(`.tl-shape[data-shape-id="${firstNoteId}"]`)
 
 		// create new note next to it
 		await page.keyboard.press('Tab')
@@ -221,14 +223,12 @@ test.describe('Focus', () => {
 		// the locator resolves it before clicking.
 		await page.waitForFunction(() => editor.getCameraState() === 'idle')
 
-		await page.locator('.tl-shape').first().click()
+		await firstNote.click()
 
 		await page.waitForTimeout(1000)
 
-		// First note's contenteditable should be focused.
-		expect(
-			await EditorA.evaluate(() => !!document.querySelector('.tl-shape div[contenteditable]:focus'))
-		).toBe(true)
+		// The first note, not the one Tab created, should be the focused one.
+		await expect(firstNote.locator('div[contenteditable]')).toBeFocused()
 	})
 
 	test('exits edit mode when dragging from text label with blurred input', async ({ page }) => {
