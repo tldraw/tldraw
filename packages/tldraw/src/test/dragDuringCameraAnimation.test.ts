@@ -79,6 +79,15 @@ describe('pointer held still while the camera moves for other reasons', () => {
 		expect(editor.inputs.getIsDragging()).toBe(false)
 	})
 
+	it('does not start a drag while the camera slides after a fling', () => {
+		editor.slideCamera({ speed: 5, direction: { x: 1, y: 1 }, friction: 0.01 })
+		editor.pointerDown(100, 100)
+		editor.forceTick(20)
+
+		expect(editor.getCamera()).not.toMatchObject({ x: 0, y: 0 })
+		expect(editor.inputs.getIsDragging()).toBe(false)
+	})
+
 	it('does not start a drag on an immediate camera jump', () => {
 		editor.pointerDown(100, 100)
 		editor.setCamera({ x: 500, y: 500, z: 1 }, { immediate: true })
