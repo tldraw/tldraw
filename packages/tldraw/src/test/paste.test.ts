@@ -1,4 +1,5 @@
 import {
+	TLArrowShape,
 	TLBinding,
 	TLBindingId,
 	TLFrameShape,
@@ -886,6 +887,45 @@ describe('When pasting content with unsupported shape types...', () => {
 
 		expect(editor.getShape(arrow)).toBeDefined()
 		expect(editor.getBindingsFromShape(arrow, 'arrow')).toEqual([])
+	})
+
+	it('leaves an arrow pointing where its dropped target was', () => {
+		const unknown = createShapeId('unknown')
+		const arrow = createShapeId('arrow')
+		editor.createShapes([
+			{ id: unknown, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100 } },
+			{ id: arrow, type: 'arrow', x: 0, y: 0, props: { end: { x: 250, y: 50 } } },
+		])
+		editor.createBindings([
+			{
+				type: 'arrow',
+				fromId: arrow,
+				toId: unknown,
+				props: {
+					terminal: 'end',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: false,
+				},
+			},
+		])
+		// a bound terminal renders from the binding, so props.end goes stale when the target moves
+		editor.updateShape({ id: unknown, type: 'geo', x: 600, y: 600 })
+
+		// copying the arrow on its own goes through onBeforeIsolateFromShape, which bakes the
+		// live terminal position into props.end; that's where the arrow should end up
+		const isolated = structuredClone(editor.getContentFromCurrentPage([arrow])!)
+		const expectedEnd = (isolated.shapes[0] as TLArrowShape).props.end
+
+		editor.putContentOntoCurrentPage(
+			contentWithUnsupported([arrow, unknown], new Map([[unknown, 'animation-camera']])),
+			{ preserveIds: true, preservePosition: true }
+		)
+
+		const pasted = editor.getShape<TLArrowShape>(arrow)!
+		expect(editor.getBindingsFromShape(arrow, 'arrow')).toEqual([])
+		expect(pasted.props.end.x).toBeCloseTo(expectedEnd.x)
+		expect(pasted.props.end.y).toBeCloseTo(expectedEnd.y)
 	})
 
 	it('drops bindings whose own type has no util', () => {
