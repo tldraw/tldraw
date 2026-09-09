@@ -26,6 +26,7 @@ import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
 import { ErrorPage, RefreshErrorBoundary } from '../../components/ErrorPage/ErrorPage'
 import { SignedInAnalytics, SignedOutAnalytics, trackEvent } from '../../utils/analytics'
 import { assetUrls } from '../../utils/assetUrls'
+import { reportError } from '../../utils/errorReporting'
 import { globalEditor } from '../../utils/globalEditor'
 import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
 import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
@@ -183,7 +184,7 @@ function IntlWrapper({ children, locale }: { children: ReactNode; locale: string
 			})
 		}
 		fetchMessages().catch((e) => {
-			console.error(e)
+			reportError(e)
 			if (!cancelled) setMessages(translationsEnJson)
 		})
 		return () => {
