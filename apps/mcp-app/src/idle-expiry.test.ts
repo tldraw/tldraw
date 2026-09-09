@@ -21,6 +21,20 @@ import {
 // (60s) still pushes the next one out, so we only assert the row survived.
 const IDLE_TTL_MS = 3000
 
+// Alarm delivery under wrangler dev is not tied to the schedule time: on a
+// loaded runner the condemn + destroy chain has landed 8s past the TTL (#10709).
+const ALARM_DEADLINE_MS = 20_000
+
+async function waitFor<T>(probe: () => Promise<T | undefined>, what: string): Promise<T> {
+	const deadline = Date.now() + ALARM_DEADLINE_MS
+	for (;;) {
+		const value = await probe()
+		if (value !== undefined) return value
+		if (Date.now() > deadline) throw new Error(`timed out after ${ALARM_DEADLINE_MS}ms: ${what}`)
+		await new Promise((res) => setTimeout(res, 500))
+	}
+}
+
 describe('session DO idle expiry', () => {
 	const port = 8700 + (process.pid % 500)
 	let server: WranglerDevHandle | null = null
@@ -78,27 +92,29 @@ describe('session DO idle expiry', () => {
 		const [first] = await schedules(sessionId)
 		expect(first).toBeDefined()
 
-		// the TTL alarm fires inside this wait; the session was active seconds ago
-		// so expireIfIdle keeps it and must re-arm
-		await new Promise((res) => setTimeout(res, IDLE_TTL_MS + 2500))
-
-		const rows = await schedules(sessionId)
-		expect(rows).toHaveLength(1)
-		expect(rows[0].id).not.toBe(first.id)
-		expect(rows[0].time).toBeGreaterThan(first.time)
+		// the TTL alarm fires during this wait; the session was active seconds ago
+		// so expireIfIdle keeps it and must re-arm. The old row is deleted only after
+		// the callback returns, so both rows are briefly visible: wait for exactly one.
+		const [replacement] = await waitFor(async () => {
+			const current = await schedules(sessionId)
+			return current.length === 1 && current[0].id !== first.id ? current : undefined
+		}, 'expiry row replaced after the first alarm fire')
+		expect(replacement.time).toBeGreaterThan(first.time)
 	}, 30_000)
 
 	test('a session that never saves is destroyed by its own expiry alarm', async () => {
 		// No checkpoint means no lastActivity, which reads as maximally idle: the
 		// first alarm condemns it, and the subsequent destroy alarm wipes it.
 		const sessionId = await initSession(base(), 'idle-expiry')
-		await new Promise((res) => setTimeout(res, IDLE_TTL_MS + 5000))
-
-		const after = await mcpPost(
-			base(),
-			{ jsonrpc: '2.0', id: 3, method: 'tools/list', params: {} },
-			sessionId
-		)
-		expect(after.status).toBe(404)
+		const status = await waitFor(async () => {
+			const res = await mcpPost(
+				base(),
+				{ jsonrpc: '2.0', id: 3, method: 'tools/list', params: {} },
+				sessionId
+			)
+			await res.text()
+			return res.status === 200 ? undefined : res.status
+		}, 'session destroyed after the expiry alarm')
+		expect(status).toBe(404)
 	}, 30_000)
 })
