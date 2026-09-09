@@ -573,6 +573,17 @@ const FIXES: StringFix[] = [
 	},
 	{
 		project: 'sdk',
+		key: 'action.bring-forward',
+		english: 'Bring forward',
+		translations: {
+			de: {
+				value: 'Eine Ebene nach vorne',
+				note: 'Was the literal key name "action.bring-to-front", so the German reorder menu rendered a raw key instead of a label.',
+			},
+		},
+	},
+	{
+		project: 'sdk',
 		key: 'action.copy-hovered-styles',
 		english: 'Copy hovered styles',
 		translations: {
