@@ -1,3 +1,4 @@
+import { Box } from './Box'
 import {
 	intersectCircleCircle,
 	intersectCirclePolygon,
@@ -6,7 +7,12 @@ import {
 	intersectLineSegmentLineSegment,
 	intersectLineSegmentPolygon,
 	intersectLineSegmentPolyline,
+	intersectPolygonBounds,
 	intersectPolygonPolygon,
+	intersectPolys,
+	linesIntersect,
+	polygonIntersectsPolyline,
+	polygonsIntersect,
 } from './intersect'
 import { Vec, VecLike } from './Vec'
 
@@ -942,5 +948,132 @@ describe('intersectPolygonPolygon', () => {
 		const polyB = [new Vec(1, 1), new Vec(2, 2), new Vec(3, 3)]
 		const result = intersectPolygonPolygon(polyA, polyB)
 		expect(result).toBeNull()
+	})
+})
+
+function sortedXY(points: VecLike[] | null) {
+	return (points ?? []).map(({ x, y }) => ({ x, y })).sort((a, b) => a.x - b.x || a.y - b.y)
+}
+
+const unitSquare = [new Vec(0, 0), new Vec(10, 0), new Vec(10, 10), new Vec(0, 10)]
+const offsetSquare = [new Vec(5, 5), new Vec(15, 5), new Vec(15, 15), new Vec(5, 15)]
+const farSquare = [new Vec(20, 20), new Vec(30, 20), new Vec(30, 30), new Vec(20, 30)]
+
+describe('intersectPolygonBounds', () => {
+	it('returns where the box edges cross the polygon', () => {
+		const result = intersectPolygonBounds(unitSquare, new Box(5, 5, 10, 10))
+		expect(sortedXY(result)).toEqual([
+			{ x: 5, y: 10 },
+			{ x: 10, y: 5 },
+		])
+	})
+
+	it('returns null when the box is fully inside the polygon', () => {
+		expect(intersectPolygonBounds(unitSquare, new Box(2, 2, 2, 2))).toBeNull()
+	})
+
+	it('returns null when the box is disjoint from the polygon', () => {
+		expect(intersectPolygonBounds(unitSquare, new Box(20, 20, 5, 5))).toBeNull()
+	})
+})
+
+describe('linesIntersect', () => {
+	it('is true for crossing segments', () => {
+		expect(linesIntersect({ x: 0, y: 0 }, { x: 10, y: 10 }, { x: 0, y: 10 }, { x: 10, y: 0 })).toBe(
+			true
+		)
+	})
+
+	it('is false for parallel and disjoint segments', () => {
+		expect(linesIntersect({ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 0, y: 5 }, { x: 10, y: 5 })).toBe(
+			false
+		)
+		expect(linesIntersect({ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 10, y: 10 }, { x: 11, y: 12 })).toBe(
+			false
+		)
+	})
+
+	it('is false for collinear overlapping segments', () => {
+		expect(linesIntersect({ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 5, y: 0 }, { x: 15, y: 0 })).toBe(
+			false
+		)
+	})
+
+	it('is true when one segment ends on the other', () => {
+		expect(linesIntersect({ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 5, y: 0 }, { x: 5, y: 10 })).toBe(
+			true
+		)
+	})
+})
+
+describe('intersectPolys', () => {
+	it('finds every crossing between two closed polygons', () => {
+		expect(sortedXY(intersectPolys(unitSquare, offsetSquare, true, true))).toEqual([
+			{ x: 5, y: 10 },
+			{ x: 10, y: 5 },
+		])
+	})
+
+	it('skips the closing edge of an open polyline', () => {
+		expect(sortedXY(intersectPolys(unitSquare, offsetSquare, false, false))).toEqual([
+			{ x: 10, y: 5 },
+		])
+		expect(sortedXY(intersectPolys(unitSquare, offsetSquare, true, false))).toEqual([
+			{ x: 10, y: 5 },
+		])
+		expect(sortedXY(intersectPolys(unitSquare, offsetSquare, false, true))).toEqual([
+			{ x: 5, y: 10 },
+			{ x: 10, y: 5 },
+		])
+	})
+
+	it('returns an empty array when nothing crosses', () => {
+		expect(intersectPolys(unitSquare, farSquare, true, true)).toEqual([])
+		expect(intersectPolys(unitSquare, [new Vec(2, 2), new Vec(8, 8)], true, false)).toEqual([])
+	})
+
+	it('dedupes a crossing shared by two adjacent edges', () => {
+		const diagonal = [new Vec(-5, 5), new Vec(15, 5)]
+		const result = intersectPolys(unitSquare, diagonal, true, false)
+		expect(sortedXY(result)).toEqual([
+			{ x: 0, y: 5 },
+			{ x: 10, y: 5 },
+		])
+	})
+})
+
+describe('polygonsIntersect', () => {
+	it('is true when polygon edges cross', () => {
+		expect(polygonsIntersect(unitSquare, offsetSquare)).toBe(true)
+	})
+
+	it('is false for disjoint polygons', () => {
+		expect(polygonsIntersect(unitSquare, farSquare)).toBe(false)
+	})
+
+	it('is false when one polygon is entirely inside the other', () => {
+		const inner = [new Vec(2, 2), new Vec(8, 2), new Vec(8, 8), new Vec(2, 8)]
+		expect(polygonsIntersect(unitSquare, inner)).toBe(false)
+		expect(polygonsIntersect(inner, unitSquare)).toBe(false)
+	})
+})
+
+describe('polygonIntersectsPolyline', () => {
+	it('is true when the polyline crosses a polygon edge', () => {
+		expect(
+			polygonIntersectsPolyline(unitSquare, [new Vec(5, 5), new Vec(5, 20), new Vec(30, 20)])
+		).toBe(true)
+	})
+
+	it('is false when the polyline stays inside the polygon', () => {
+		expect(polygonIntersectsPolyline(unitSquare, [new Vec(2, 2), new Vec(8, 8)])).toBe(false)
+	})
+
+	it('is false when the polyline stays outside the polygon', () => {
+		expect(polygonIntersectsPolyline(unitSquare, [new Vec(20, 20), new Vec(30, 30)])).toBe(false)
+	})
+
+	it('is false for a single-point polyline', () => {
+		expect(polygonIntersectsPolyline(unitSquare, [new Vec(5, 5)])).toBe(false)
 	})
 })

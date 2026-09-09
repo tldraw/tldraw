@@ -1,14 +1,7 @@
 import { act, render } from '@testing-library/react'
 import { BaseBoxShapeUtil, createShapeId, Editor, RecordProps, T, TLShape } from '../..'
 import { TldrawEditor } from '../TldrawEditor'
-
-const PERSISTENT_SHAPE_TYPE = 'test-persistent'
-
-declare module '@tldraw/tlschema' {
-	export interface TLGlobalShapePropsMap {
-		[PERSISTENT_SHAPE_TYPE]: { w: number; h: number }
-	}
-}
+import { TEST_BOX_TYPE as PERSISTENT_SHAPE_TYPE } from './testShapeTypes'
 
 type IPersistentShape = TLShape<typeof PERSISTENT_SHAPE_TYPE>
 

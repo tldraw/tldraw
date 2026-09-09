@@ -1,4 +1,11 @@
-import { Box, rotateSelectionHandle } from './Box'
+import {
+	Box,
+	flipSelectionHandleX,
+	flipSelectionHandleY,
+	isSelectionCorner,
+	rotateSelectionHandle,
+	SelectionHandle,
+} from './Box'
 import { Vec } from './Vec'
 
 describe('Box', () => {
@@ -765,5 +772,142 @@ describe('rotateSelectionHandle', () => {
 		expect(rotateSelectionHandle('top', Math.PI / 2)).toBe('right')
 		expect(rotateSelectionHandle('top', -Math.PI / 2)).toBe('left')
 		expect(rotateSelectionHandle('top_left', -Math.PI)).toBe('bottom_right')
+	})
+})
+
+describe('flipSelectionHandleY', () => {
+	it('swaps top and bottom handles and leaves side handles alone', () => {
+		const cases: Array<[SelectionHandle, SelectionHandle]> = [
+			['top', 'bottom'],
+			['bottom', 'top'],
+			['top_left', 'bottom_left'],
+			['top_right', 'bottom_right'],
+			['bottom_left', 'top_left'],
+			['bottom_right', 'top_right'],
+			['left', 'left'],
+			['right', 'right'],
+		]
+		for (const [input, expected] of cases) {
+			expect(flipSelectionHandleY(input)).toBe(expected)
+		}
+	})
+})
+
+describe('flipSelectionHandleX', () => {
+	it('swaps left and right handles and leaves top and bottom alone', () => {
+		const cases: Array<[SelectionHandle, SelectionHandle]> = [
+			['left', 'right'],
+			['right', 'left'],
+			['top_left', 'top_right'],
+			['top_right', 'top_left'],
+			['bottom_left', 'bottom_right'],
+			['bottom_right', 'bottom_left'],
+			['top', 'top'],
+			['bottom', 'bottom'],
+		]
+		for (const [input, expected] of cases) {
+			expect(flipSelectionHandleX(input)).toBe(expected)
+		}
+	})
+
+	it('flipping twice restores the original handle', () => {
+		const handles: SelectionHandle[] = [
+			'top',
+			'top_right',
+			'right',
+			'bottom_right',
+			'bottom',
+			'bottom_left',
+			'left',
+			'top_left',
+		]
+		for (const handle of handles) {
+			expect(flipSelectionHandleX(flipSelectionHandleX(handle))).toBe(handle)
+			expect(flipSelectionHandleY(flipSelectionHandleY(handle))).toBe(handle)
+		}
+	})
+})
+
+describe('isSelectionCorner', () => {
+	it('is true only for the four corner handles', () => {
+		expect(isSelectionCorner('top_left')).toBe(true)
+		expect(isSelectionCorner('top_right')).toBe(true)
+		expect(isSelectionCorner('bottom_right')).toBe(true)
+		expect(isSelectionCorner('bottom_left')).toBe(true)
+		expect(isSelectionCorner('top')).toBe(false)
+		expect(isSelectionCorner('left')).toBe(false)
+		expect(isSelectionCorner('top_left_rotate')).toBe(false)
+		expect(isSelectionCorner('')).toBe(false)
+	})
+})
+
+describe('Box.Resize with a locked aspect ratio', () => {
+	const wide = () => new Box(0, 0, 100, 50)
+
+	it('grows the height to match when a corner is dragged wider', () => {
+		expect(Box.Resize(wide(), 'bottom_right', 100, 0, true)).toEqual({
+			box: new Box(0, 0, 200, 100),
+			scaleX: 2,
+			scaleY: 2,
+		})
+		expect(Box.Resize(wide(), 'top_left', -100, 0, true).box).toEqual(new Box(-100, -50, 200, 100))
+		expect(Box.Resize(wide(), 'top_right', 100, 0, true).box).toEqual(new Box(0, -50, 200, 100))
+		expect(Box.Resize(wide(), 'bottom_left', -100, 0, true).box).toEqual(new Box(-100, 0, 200, 100))
+	})
+
+	it('grows the width to match when a corner is dragged taller', () => {
+		expect(Box.Resize(wide(), 'bottom_right', 0, 50, true).box).toEqual(new Box(0, 0, 200, 100))
+		expect(Box.Resize(wide(), 'top_left', 0, -50, true).box).toEqual(new Box(-100, -50, 200, 100))
+		expect(Box.Resize(wide(), 'top_right', 0, -50, true).box).toEqual(new Box(0, -50, 200, 100))
+		expect(Box.Resize(wide(), 'bottom_left', 0, 50, true).box).toEqual(new Box(-100, 0, 200, 100))
+	})
+
+	it('keeps the box centered horizontally when a top or bottom edge is dragged', () => {
+		expect(Box.Resize(wide(), 'bottom', 0, 50, true).box).toEqual(new Box(-50, 0, 200, 100))
+		expect(Box.Resize(wide(), 'top', 0, -50, true).box).toEqual(new Box(-50, -50, 200, 100))
+	})
+
+	it('keeps the box centered vertically when a left or right edge is dragged', () => {
+		expect(Box.Resize(wide(), 'right', 100, 0, true).box).toEqual(new Box(0, -25, 200, 100))
+		expect(Box.Resize(wide(), 'left', -100, 0, true).box).toEqual(new Box(-100, -25, 200, 100))
+	})
+
+	it('flips across the anchor and reports a negative scale', () => {
+		expect(Box.Resize(wide(), 'bottom_right', 100, -100, true)).toEqual({
+			box: new Box(0, -100, 200, 100),
+			scaleX: 2,
+			scaleY: -2,
+		})
+	})
+})
+
+describe('Box.Resize flipping', () => {
+	it('flips horizontally when an edge is dragged past the opposite edge', () => {
+		expect(Box.Resize(new Box(0, 0, 100, 50), 'right', -200, 0)).toEqual({
+			box: new Box(-100, 0, 100, 50),
+			scaleX: -1,
+			scaleY: 1,
+		})
+	})
+
+	it('flips vertically when a corner is dragged past the opposite edge', () => {
+		expect(Box.Resize(new Box(0, 0, 100, 50), 'bottom_right', 0, -100)).toEqual({
+			box: new Box(0, -50, 100, 50),
+			scaleX: 1,
+			scaleY: -1,
+		})
+	})
+
+	it('moves only the dragged edge for an unlocked edge drag', () => {
+		expect(Box.Resize(new Box(0, 0, 100, 50), 'left', 20, 0)).toEqual({
+			box: new Box(20, 0, 80, 50),
+			scaleX: 0.8,
+			scaleY: 1,
+		})
+		expect(Box.Resize(new Box(0, 0, 100, 50), 'top', 0, 10)).toEqual({
+			box: new Box(0, 10, 100, 40),
+			scaleX: 1,
+			scaleY: 0.8,
+		})
 	})
 })

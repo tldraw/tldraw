@@ -2,6 +2,7 @@ import { InstancePresenceRecordType, TLPOINTER_ID, createUserId } from '@tldraw/
 import { vi } from 'vitest'
 import { createTLStore } from '../../../config/createTLStore'
 import { TldrawOptions } from '../../../options'
+import { Vec } from '../../../primitives/Vec'
 import { Editor } from '../../Editor'
 import { StateNode } from '../../tools/StateNode'
 
@@ -253,5 +254,144 @@ describe('InputsManager', () => {
 		editor.emit('frame', 16)
 
 		expect(editor.inputs.getPointerVelocity()).toEqual(velocityBeforeDispose)
+	})
+
+	describe('state accessors', () => {
+		it('serialises the full input state', () => {
+			expect(editor.inputs.toJson()).toEqual({
+				originPagePoint: { x: 0, y: 0, z: 1 },
+				originScreenPoint: { x: 0, y: 0, z: 1 },
+				previousPagePoint: { x: 0, y: 0, z: 1 },
+				previousScreenPoint: { x: 0, y: 0, z: 1 },
+				currentPagePoint: { x: 0, y: 0, z: 1 },
+				currentScreenPoint: { x: 0, y: 0, z: 1 },
+				pointerVelocity: { x: 0, y: 0, z: 1 },
+				shiftKey: false,
+				metaKey: false,
+				ctrlKey: false,
+				altKey: false,
+				isPen: false,
+				isDragging: false,
+				isPointing: false,
+				isPinching: false,
+				isEditing: false,
+				isPanning: false,
+				isSpacebarPanning: false,
+				keys: [],
+				buttons: [],
+			})
+		})
+
+		it('reflects pressed keys, buttons and pointer velocity in the snapshot', () => {
+			editor.inputs.keys.add('a')
+			editor.inputs.keys.add('Shift')
+			editor.inputs.buttons.add(0)
+			editor.inputs.setPointerVelocity(new Vec(1.5, -2))
+
+			expect(editor.inputs.toJson()).toMatchObject({
+				keys: ['a', 'Shift'],
+				buttons: [0],
+				pointerVelocity: { x: 1.5, y: -2, z: 1 },
+			})
+			expect(editor.inputs.getPointerVelocity()).toEqual(new Vec(1.5, -2))
+			expect((editor.inputs as any).pointerVelocity).toBe(editor.inputs.getPointerVelocity())
+		})
+
+		it.each([
+			['isPen', 'setIsPen', 'getIsPen'],
+			['shiftKey', 'setShiftKey', 'getShiftKey'],
+			['metaKey', 'setMetaKey', 'getMetaKey'],
+			['ctrlKey', 'setCtrlKey', 'getCtrlKey'],
+			['altKey', 'setAltKey', 'getAltKey'],
+			['isDragging', 'setIsDragging', 'getIsDragging'],
+			['isPointing', 'setIsPointing', 'getIsPointing'],
+			['isPinching', 'setIsPinching', 'getIsPinching'],
+			['isEditing', 'setIsEditing', 'getIsEditing'],
+			['isPanning', 'setIsPanning', 'getIsPanning'],
+			['isSpacebarPanning', 'setIsSpacebarPanning', 'getIsSpacebarPanning'],
+		] as const)('exposes %s through the getter, setter and legacy property', (prop, set, get) => {
+			const inputs = editor.inputs as any
+			expect(inputs[get]()).toBe(false)
+			expect(inputs[prop]).toBe(false)
+
+			inputs[set](true)
+			expect(inputs[get]()).toBe(true)
+			expect(inputs[prop]).toBe(true)
+			expect(inputs.toJson()[prop]).toBe(true)
+
+			inputs[prop] = false
+			expect(inputs[get]()).toBe(false)
+		})
+
+		it('tracks right pointing separately from pointing', () => {
+			editor.inputs.setIsRightPointing(true)
+			expect(editor.inputs.getIsRightPointing()).toBe(true)
+			expect(editor.inputs.getIsPointing()).toBe(false)
+			editor.inputs.setIsRightPointing(false)
+			expect(editor.inputs.getIsRightPointing()).toBe(false)
+		})
+
+		it('derives the accelerator key from meta and ctrl', () => {
+			expect(editor.inputs.getAccelKey()).toBe(false)
+			editor.inputs.setMetaKey(true)
+			editor.inputs.setCtrlKey(true)
+			expect(editor.inputs.getAccelKey()).toBe(true)
+			expect((editor.inputs as any).accelKey).toBe(true)
+		})
+
+		it.each([
+			['originPagePoint', 'getOriginPagePoint'],
+			['originScreenPoint', 'getOriginScreenPoint'],
+			['previousPagePoint', 'getPreviousPagePoint'],
+			['previousScreenPoint', 'getPreviousScreenPoint'],
+			['currentPagePoint', 'getCurrentPagePoint'],
+			['currentScreenPoint', 'getCurrentScreenPoint'],
+		] as const)('returns the same point from %s and its getter', (prop, get) => {
+			const inputs = editor.inputs as any
+			expect(inputs[prop]).toBe(inputs[get]())
+			expect(inputs[prop]).toBeInstanceOf(Vec)
+		})
+
+		it('records origin and previous points from pointer events', () => {
+			editor.dispatch({
+				type: 'pointer',
+				name: 'pointer_down',
+				point: { x: 10, y: 20 },
+				pointerId: 1,
+				button: 0,
+				isPen: true,
+				target: 'canvas',
+				shiftKey: false,
+				altKey: false,
+				ctrlKey: false,
+				metaKey: false,
+				accelKey: false,
+			})
+			editor.dispatch({
+				type: 'pointer',
+				name: 'pointer_move',
+				point: { x: 30, y: 40 },
+				pointerId: 1,
+				button: 0,
+				isPen: false,
+				target: 'canvas',
+				shiftKey: false,
+				altKey: false,
+				ctrlKey: false,
+				metaKey: false,
+				accelKey: false,
+			})
+			// pointer moves are batched until the next tick
+			editor.emit('tick', 16)
+
+			expect(editor.inputs.toJson()).toMatchObject({
+				originScreenPoint: { x: 10, y: 20 },
+				originPagePoint: { x: 10, y: 20 },
+				previousScreenPoint: { x: 10, y: 20 },
+				currentScreenPoint: { x: 30, y: 40 },
+				currentPagePoint: { x: 30, y: 40 },
+				isPen: false,
+			})
+		})
 	})
 })
