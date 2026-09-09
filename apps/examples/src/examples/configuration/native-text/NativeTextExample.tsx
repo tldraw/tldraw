@@ -1,13 +1,8 @@
-import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
-import { createCanvasMeasureContext, installMeasureContext } from '@tldraw/rich-text-layout'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
-	allDefaultFontFaces,
-	createTldrawTextMeasurer,
 	downloadFile,
 	Editor,
 	Tldraw,
-	TldrawTextMeasurer,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
 	TLUiComponents,
@@ -15,30 +10,6 @@ import {
 	useEditor,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
-
-const assetUrls = getAssetUrlsByImport()
-let preparation: Promise<TldrawTextMeasurer> | undefined
-
-// [1]
-function prepareTextMeasurer() {
-	return (preparation ??= (async () => {
-		await Promise.all(
-			allDefaultFontFaces.map(async (font) => {
-				const url = assetUrls.fonts[font.src.url as keyof typeof assetUrls.fonts]
-				const face = new FontFace(font.family, `url(${JSON.stringify(url)})`, {
-					weight: font.weight,
-					style: font.style,
-				})
-				document.fonts.add(await face.load())
-			})
-		)
-		const context = document.createElement('canvas').getContext('2d')
-		if (!context) throw new Error('Native text measurement needs a 2D canvas context')
-		const measureContext = createCanvasMeasureContext(context)
-		await installMeasureContext(measureContext)
-		return createTldrawTextMeasurer({ measureContext })
-	})())
-}
 
 function ExportNativeSvg() {
 	const editor = useEditor()
@@ -50,7 +21,7 @@ function ExportNativeSvg() {
 				onClick={async () => {
 					setError(undefined)
 					try {
-						// [2]
+						// [1]
 						const result = await editor.getSvgString([...editor.getCurrentPageShapeIds()], {
 							text: 'native',
 							background: true,
@@ -118,48 +89,15 @@ function createSampleShapes(editor: Editor) {
 }
 
 export default function NativeTextExample() {
-	const [textMeasurer, setTextMeasurer] = useState<TldrawTextMeasurer>()
-	const [error, setError] = useState<string>()
-	useEffect(() => {
-		let cancelled = false
-		prepareTextMeasurer().then(
-			(measurer) => {
-				if (!cancelled) setTextMeasurer(measurer)
-			},
-			(error) => {
-				if (!cancelled) setError(String(error))
-			}
-		)
-		return () => {
-			cancelled = true
-		}
-	}, [])
-
 	return (
 		<div className="tldraw__editor">
-			{error ? (
-				<div role="alert">{error}</div>
-			) : textMeasurer ? (
-				<Tldraw
-					assetUrls={assetUrls}
-					textMeasurer={textMeasurer}
-					components={components}
-					onMount={createSampleShapes}
-				/>
-			) : (
-				<div role="status">Loading text engine and fonts…</div>
-			)}
+			<Tldraw components={components} onMount={createSampleShapes} />
 		</div>
 	)
 }
 
 /*
 [1]
-Load fonts and await installMeasureContext before mounting the editor. Otherwise the
-synchronous layout calls can run before pretext is ready or cache fallback font widths.
-The shared promise also keeps preparation stable across React Strict Mode mounts.
-
-[2]
-The export reuses the injected measurer and emits SVG text elements. Other export actions
-keep their default behavior. Rasterizers must have access to the fonts used by the SVG.
+Native SVG export is separate from the default measurement strategy. Rasterizers must
+have access to the fonts used by the SVG; the ordinary export menu keeps its defaults.
 */

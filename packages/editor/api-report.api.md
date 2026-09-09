@@ -3795,7 +3795,7 @@ export interface TldrawEditorBaseProps {
     options?: Partial<TldrawOptions>;
     overlayUtils?: readonly TLAnyOverlayUtilConstructor[];
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
-    textMeasurer?: TLTextMeasurer;
+    textMeasurer?: TLEditorOptions['textMeasurer'];
     // @deprecated
     textOptions?: TLTextOptions;
     themes?: Partial<TLThemes>;
@@ -4002,7 +4002,7 @@ export interface TLEditorOptions {
     overlayUtils?: readonly TLAnyOverlayUtilConstructor[];
     shapeUtils: readonly TLAnyShapeUtilConstructor[];
     store: TLStore;
-    textMeasurer?: TLTextMeasurer;
+    textMeasurer?: 'dom' | TLTextMeasurer | TLTextMeasurerFactory;
     // @deprecated
     textOptions?: TLTextOptions;
     themes?: Partial<TLThemes>;
@@ -4902,6 +4902,9 @@ export interface TLTextMeasurer {
         text: string;
     }[];
 }
+
+// @public
+export type TLTextMeasurerFactory = (editor: Editor) => TLTextMeasurer;
 
 // @public (undocumented)
 export interface TLTextOptions {
