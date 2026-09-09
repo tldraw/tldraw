@@ -182,7 +182,9 @@ function usePrefix() {
 }
 
 export function useRoomInfo() {
-	const id = useParams()['roomId'] as string
+	// Legacy routes name the param roomId; the publish route (/p/:fileSlug) names it fileSlug.
+	const { roomId, fileSlug } = useParams()
+	const id = roomId ?? fileSlug
 	const prefix = usePrefix()
 	if (!id || !prefix) return null
 	return { prefix, id }

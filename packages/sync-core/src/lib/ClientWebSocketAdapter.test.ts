@@ -1,4 +1,4 @@
-import { warnOnce } from '@tldraw/utils'
+import { promiseWithResolve, warnOnce } from '@tldraw/utils'
 import { TLRecord, sleep } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -527,6 +527,46 @@ describe('ClientWebSocketAdapter', () => {
 			adapter.close()
 			expect(() => adapter.close()).not.toThrow()
 		})
+
+		it('[CW9][RM5] closing immediately does not start another getUri call', async () => {
+			const getUri = vi.fn(() => 'ws://localhost:2233')
+			const testAdapter = new ClientWebSocketAdapter(getUri)
+			testAdapter.close()
+			const callsAtClose = getUri.mock.calls.length
+
+			await vi.advanceTimersByTimeAsync(INACTIVE_MAX_DELAY)
+
+			expect(getUri).toHaveBeenCalledTimes(callsAtClose)
+			expect(testAdapter._ws).toBeNull()
+		})
+
+		it('[CW9][RM5] close reports offline without notifying listeners or reconnecting', async () => {
+			let uriCallCount = 0
+			const testAdapter = new ClientWebSocketAdapter(() => {
+				uriCallCount++
+				return 'ws://localhost:2233'
+			})
+			const onStatusChange = vi.fn()
+			testAdapter.onStatusChange(onStatusChange)
+			await waitFor(() => testAdapter._ws?.readyState === WebSocket.OPEN)
+			const callsBeforeClose = uriCallCount
+			onStatusChange.mockClear()
+
+			testAdapter.close()
+			expect(testAdapter.connectionStatus).toBe('offline')
+			// let the socket's own close event land, then run out any (leaked) reconnect timer
+			vi.useRealTimers()
+			await sleep(50)
+			vi.useFakeTimers()
+			vi.advanceTimersByTime(INACTIVE_MAX_DELAY)
+			vi.useRealTimers()
+			await sleep(20)
+			vi.useFakeTimers()
+
+			expect(onStatusChange).not.toHaveBeenCalled()
+			expect(uriCallCount).toBe(callsBeforeClose)
+			expect(testAdapter._ws).toBeNull()
+		})
 	})
 
 	describe('orphaned sockets (CW10)', () => {
@@ -710,7 +750,7 @@ describe('ReconnectManager', () => {
 		// it's necessary to close the socket, as otherwise the websocket might stay half-open
 		connectedServerSocket.close()
 		wsServer.close()
-		await waitFor(() => adapter._ws?.readyState !== WebSocket.OPEN)
+		await waitFor(() => adapter.connectionStatus === 'offline')
 		expect(adapter._reconnectManager.intendedDelay).toBeGreaterThanOrEqual(INACTIVE_MIN_DELAY)
 
 		hiddenMock.mockReturnValue(false)
@@ -776,6 +816,32 @@ describe('ReconnectManager', () => {
 		expect(adapter._ws).toBeNull()
 	})
 
+	it.each(['throws', 'rejects'])(
+		'[RM1][CW1] getUri that %s is retried on the backoff instead of stranding the connection',
+		async (failure) => {
+			const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			let attempts = 0
+			const testAdapter = new ClientWebSocketAdapter(() => {
+				attempts++
+				if (attempts < 3) {
+					const error = new Error('token endpoint unavailable')
+					if (failure === 'throws') throw error
+					return Promise.reject(error)
+				}
+				return 'ws://localhost:2234'
+			})
+			try {
+				await waitFor(() => testAdapter._ws?.readyState === WebSocket.OPEN)
+				expect(attempts).toBe(3)
+				expect(consoleErrorSpy).toHaveBeenCalledTimes(2)
+				expect(testAdapter.connectionStatus).toBe('online')
+			} finally {
+				testAdapter.close()
+				consoleErrorSpy.mockRestore()
+			}
+		}
+	)
+
 	it('[RM5] close cancels timers and removes the reconnect event listeners', () => {
 		const testAdapter = new ClientWebSocketAdapter(() => 'ws://localhost:2234')
 		const manager = testAdapter._reconnectManager
@@ -792,5 +858,59 @@ describe('ReconnectManager', () => {
 
 		// closing again is safe
 		expect(() => manager.close()).not.toThrow()
+	})
+})
+
+describe('URI failure boundaries', () => {
+	it.each(['resolves', 'rejects'])('ignores getUri that %s after close', async (outcome) => {
+		const uri = promiseWithResolve<string>()
+		const getUri = vi.fn(() => uri)
+		const testAdapter = new ClientWebSocketAdapter(getUri)
+		const onStatusChange = vi.fn()
+		testAdapter.onStatusChange(onStatusChange)
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+		try {
+			await Promise.resolve()
+			testAdapter.close()
+			if (outcome === 'resolves') uri.resolve('ws://localhost:2234')
+			else uri.reject(new Error('token endpoint unavailable'))
+			await vi.advanceTimersByTimeAsync(INACTIVE_MAX_DELAY)
+
+			expect(getUri).toHaveBeenCalledTimes(1)
+			expect(testAdapter._ws).toBeNull()
+			expect(testAdapter.connectionStatus).toBe('offline')
+			expect(onStatusChange).not.toHaveBeenCalled()
+			expect(consoleError).not.toHaveBeenCalled()
+		} finally {
+			testAdapter.close()
+			consoleError.mockRestore()
+		}
+	})
+
+	it.each([
+		{ uri: 'not a URL', openSocket: false, error: 'Invalid URL' },
+		{
+			uri: 'ws://localhost:2234',
+			openSocket: true,
+			error: 'There should be no connection attempts while already connected',
+		},
+	])('does not treat $error as a getUri failure', async ({ uri, openSocket, error }) => {
+		let nextUri: string | Promise<string> = new Promise(() => {})
+		const testAdapter = new ClientWebSocketAdapter(() => nextUri)
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+		try {
+			await Promise.resolve()
+			nextUri = uri
+			if (openSocket) testAdapter._ws = mockSocket(WebSocket.OPEN)
+
+			const manager = testAdapter._reconnectManager as unknown as {
+				scheduleAttempt(): Promise<void>
+			}
+			await expect(manager.scheduleAttempt()).rejects.toThrow(error)
+			expect(consoleError).not.toHaveBeenCalled()
+		} finally {
+			testAdapter.close()
+			consoleError.mockRestore()
+		}
 	})
 })

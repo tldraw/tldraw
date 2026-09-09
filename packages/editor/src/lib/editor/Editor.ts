@@ -2288,12 +2288,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			firstParentId &&
 			selectedShapeIds.every((shapeId) => this.getShape(shapeId)?.parentId === firstParentId) &&
 			!isPageId(firstParentId)
-		const filteredShapes = isSelectedWithinContainer
-			? this.getCurrentPageShapes().filter((shape) => shape.parentId === firstParentId)
-			: this.getCurrentPageShapes().filter((shape) => isPageId(shape.parentId))
-		const readingOrderShapes = isSelectedWithinContainer
-			? this._getShapesInReadingOrder(filteredShapes)
-			: this.getCurrentPageShapesInReadingOrder()
+		// Locked shapes (and children of locked containers) can't be selected by clicking or
+		// select all, so traversal skips them too
+		const filteredShapes = this.getCurrentPageShapes().filter(
+			(shape) =>
+				!this.isShapeOrAncestorLocked(shape) &&
+				(isSelectedWithinContainer ? shape.parentId === firstParentId : isPageId(shape.parentId))
+		)
+		const readingOrderShapes = this._getShapesInReadingOrder(filteredShapes)
 		const currentShapeId: TLShapeId | undefined =
 			selectedShapeIds.length === 1
 				? selectedShapeIds[0]
@@ -2302,6 +2304,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let adjacentShapeId: TLShapeId
 		if (direction === 'next' || direction === 'prev') {
 			const shapeIds = readingOrderShapes.map((shape) => shape.id)
+			// Every candidate can be filtered out (e.g. a locked shape is selected and nothing
+			// else is unlocked); indexing an empty list would hand getShape undefined
+			if (shapeIds.length === 0) return
 
 			const currentIndex = currentShapeId ? shapeIds.indexOf(currentShapeId) : -1
 			// With no current index, stepping from -1 makes 'prev' land one shape
@@ -4142,6 +4147,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// If we're not on the same page, move to the page they're on
 			const isOnSamePage = presence.currentPageId === this.getCurrentPageId()
 			if (!isOnSamePage) {
+				this.markHistoryStoppingPoint('change-page')
 				this.setCurrentPage(presence.currentPageId)
 			}
 
@@ -7439,8 +7445,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const shapesMovingTogether = [shape]
 			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
 
+			// Seed with bindings in both directions, otherwise an arrow visited before the shapes it
+			// binds ends up in a cluster of its own and the result depends on input order
 			this.collectShapesViaArrowBindings({
-				bindings: this.getBindingsToShape(shape.id, 'arrow'),
+				bindings: this.getBindingsInvolvingShape(shape.id, 'arrow'),
 				initialShapes: freshShapes,
 				resultShapes: shapesMovingTogether,
 				resultBounds: boundsOfShapesMovingTogether,
@@ -9729,21 +9737,34 @@ export class Editor extends EventEmitter<TLEventMap> {
 					!asset.props.src?.startsWith('data:video') &&
 					!asset.props.src?.startsWith('http')
 				) {
-					const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
-					const objectUrl = await this.store.props.assets.resolve(asset, {
-						screenScale: 1,
-						steppedScreenScale: 1,
-						dpr: 1,
-						networkEffectiveType: null,
-						shouldResolveToOriginal: true,
-					})
-					assetWithDataUrl.props.src = await FileHelpers.blobToDataUrl(
-						await fetch(objectUrl!).then((r) => r.blob())
-					)
-					assets.push(assetWithDataUrl)
-				} else {
-					assets.push(asset)
+					// If the asset can't be inlined (unresolvable src, fetch failure), fall through and
+					// keep the original record; dropping it leaves the pasted shapes pointing at an
+					// asset that doesn't exist
+					try {
+						const objectUrl = await this.store.props.assets.resolve(asset, {
+							screenScale: 1,
+							steppedScreenScale: 1,
+							dpr: 1,
+							networkEffectiveType: null,
+							shouldResolveToOriginal: true,
+						})
+						if (objectUrl) {
+							// fetch resolves on 4xx/5xx, so without this check a 404 error page would be
+							// inlined as a data:text/html src
+							const response = await fetch(objectUrl)
+							if (response.ok) {
+								const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
+								assetWithDataUrl.props.src = await FileHelpers.blobToDataUrl(await response.blob())
+								assets.push(assetWithDataUrl)
+								return
+							}
+							console.warn(`Could not inline asset ${asset.id}: fetch returned ${response.status}`)
+						}
+					} catch (err) {
+						console.warn(`Could not inline asset ${asset.id}`, err)
+					}
 				}
+				assets.push(asset)
 			})
 		)
 		content.assets = assets
@@ -11497,9 +11518,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				break
 			}
 			case 'keyboard': {
-				// please, please
-				if (info.key === 'ShiftRight') info.key = 'ShiftLeft'
-				if (info.key === 'AltRight') info.key = 'AltLeft'
+				// Left and right modifier keys are the same key to us. `inputs.keys` stores
+				// `code`, so normalize that: a `ShiftRight` left as-is would never match the
+				// `ShiftLeft` that nudging checks or that `_releaseShiftKey` clears.
+				if (info.code === 'ShiftRight') info.code = 'ShiftLeft'
+				if (info.code === 'AltRight') info.code = 'AltLeft'
 				if (info.code === 'ControlRight') info.code = 'ControlLeft'
 				if (info.code === 'MetaRight') info.code = 'MetaLeft'
 

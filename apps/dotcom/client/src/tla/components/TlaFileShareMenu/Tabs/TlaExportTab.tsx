@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
 	Box,
 	Editor,
@@ -260,11 +260,14 @@ function ExportPreviewImage() {
 	const ref = useRef<HTMLImageElement>(null)
 
 	const rImagePreviewSize = useRef<HTMLDivElement>(null)
+	// useReactor discards the effect's return value, so there is no cleanup closure: without a
+	// sequence a slow earlier export lands after a quick later one.
+	const rRenderSeq = useRef(0)
 
 	useReactor(
 		'update preview',
 		() => {
-			let cancelled = false
+			const seq = ++rRenderSeq.current
 
 			const editor = globalEditor.get()
 			if (!editor) return
@@ -294,21 +297,20 @@ function ExportPreviewImage() {
 			const fn = shapes.length > 20 ? getEditorImageSlowly : getEditorImage
 
 			fn(editor, shapes, preferences, ({ src, width, height }) => {
-				if (cancelled) return
+				if (seq !== rRenderSeq.current) return
 				const elm = ref.current
 				if (!elm) return
-				// We want to use an image element here so that a user can right click and copy / save / drag the qr code
+				// We want to use an image element here so that a user can right click and copy / save / drag the preview
 				elm.setAttribute('src', src)
 				const sizeElm = rImagePreviewSize.current
 				if (sizeElm) sizeElm.textContent = `${width.toFixed()}×${height.toFixed()}`
 			})
-
-			return () => {
-				cancelled = true
-			}
 		},
 		[]
 	)
+
+	// A debounced export still pending at unmount would otherwise run against a gone element
+	useEffect(() => () => getEditorImageSlowly.cancel(), [])
 
 	return (
 		<div className={styles.fileShareMenuExportPreview}>
