@@ -1,4 +1,6 @@
 app = "__APP_NAME"
+# Bump this number to force a redeploy of this app when nothing else changed, for example after
+# the base image was re-tagged under the same version. See flyDeployGate.ts. deploy marker: 1
 primary_region = "fra"
 
 [build]
@@ -44,3 +46,6 @@ ZERO_QUERY_URL = "__ZERO_QUERY_URL"
 ZERO_ENABLE_CRUD_MUTATIONS = "false"
 ZERO_LAZY_STARTUP = 'true'
 DO_NOT_TRACK = '1'
+# Stamped by deploy-dotcom.ts with the hash of every input that shaped this deploy, so the next run
+# can tell whether the running machines already match and skip the deploy.
+TLDRAW_DEPLOY_INPUT_HASH = "__DEPLOY_INPUT_HASH"
