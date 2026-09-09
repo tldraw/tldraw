@@ -1,4 +1,4 @@
-# Authenticating an agent to tldraw.com
+# tldraw.com auth.md
 
 You are an agent. This page describes how to obtain a token for the one authenticated API tldraw.com exposes to agents: the MCP server at `https://www.tldraw.com/api/app/mcp`, which reads the pages, shape clusters and rendered screenshots of tldraw.com boards.
 
