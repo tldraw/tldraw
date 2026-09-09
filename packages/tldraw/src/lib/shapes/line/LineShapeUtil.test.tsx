@@ -365,6 +365,29 @@ describe('Misc', () => {
 		expect(Array.from(editor.getCurrentPageShapeIds().values()).length).toEqual(2)
 	})
 
+	it('duplicates a zero-length line without mutating the source', () => {
+		// onBeforeCreate nudges on create, so collapse the points afterwards
+		editor.updateShapes([
+			{
+				id,
+				type: 'line',
+				props: {
+					points: {
+						a1: { id: 'a1', index: 'a1' as IndexKey, x: 5, y: 5 },
+						a2: { id: 'a2', index: 'a2' as IndexKey, x: 5, y: 5 },
+					},
+				},
+			},
+		])
+		const before = structuredClone(getShape().props.points)
+
+		expect(() => editor.duplicateShapes([id])).not.toThrow()
+
+		expect(getShape().props.points).toEqual(before)
+		const duplicate = editor.getCurrentPageShapes().find((s) => s.id !== id) as TLLineShape
+		expect(duplicate.props.points.a2).toMatchObject({ x: 5.1, y: 5.1 })
+	})
+
 	it('deletes', () => {
 		editor.select(id)
 
