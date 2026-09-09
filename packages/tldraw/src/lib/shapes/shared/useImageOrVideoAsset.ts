@@ -89,6 +89,9 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 
 		let isCancelled = false
 		let cancelDebounceFn: (() => void) | undefined
+		// Bumped when the asset record disappears, so a resolution already in flight for the old
+		// record cannot put it back on screen
+		let generation = 0
 
 		const cleanupEffectScheduler = react('update state', () => {
 			if (!exportInfo && shapeId && editor.getCulledShapes().has(shapeId)) return
@@ -100,6 +103,8 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 				// with the same src resolves like a new asset
 				shouldRunImmediately.current = true
 				previousUrl.current = undefined
+				generation++
+				cancelDebounceFn?.()
 				setResult((prev) =>
 					prev.asset === null && prev.url === null ? prev : { asset: null, url: null }
 				)
@@ -125,8 +130,10 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 				? exportInfo.scale * (width / asset.props.w)
 				: editor.getEfficientZoomLevel() * (width / asset.props.w)
 
+			const resolveGeneration = generation
 			function resolve(asset: TLImageAsset | TLVideoAsset, url: string | null) {
 				if (isCancelled) return // don't update if the hook has remounted
+				if (resolveGeneration !== generation) return // the record was deleted meanwhile
 				if (previousUrl.current === url) return // don't update the state if the url is the same
 				didAlreadyResolve.current = true // mark that we've resolved our first image
 				previousUrl.current = url // keep the url around to compare with the next one

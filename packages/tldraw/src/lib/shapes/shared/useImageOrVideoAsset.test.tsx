@@ -123,3 +123,31 @@ it('shows the new asset, not the old one, when switching to an asset that has no
 	await flush()
 	expect(result.current).toMatchObject({ url: null, asset: { id: otherAssetId } })
 })
+
+it('ignores a resolution that was still in flight when the asset record was deleted', async () => {
+	const { result } = renderAssetHook(assetId)
+	await flush()
+	expect(result.current).toMatchObject({
+		url: 'http://localhost/image.png',
+		asset: { id: assetId },
+	})
+
+	let finishResolving!: (url: string) => void
+	vi.spyOn(editor, 'resolveAssetUrl').mockImplementation(
+		() => new Promise<string>((resolve) => (finishResolving = resolve))
+	)
+	// Zoom triggers a debounced re-resolution; drive the debounce with ticks until it fires
+	await act(async () => {
+		editor.setCamera({ x: 0, y: 0, z: 2 })
+		for (let i = 0; i < 40; i++) editor.emit('tick', 16)
+	})
+	expect(editor.resolveAssetUrl).toHaveBeenCalled()
+
+	await act(async () => editor.deleteAssets([assetId]))
+	await flush()
+	expect(result.current).toMatchObject({ url: null, asset: null })
+
+	await act(async () => finishResolving('http://localhost/image.png'))
+	await flush()
+	expect(result.current).toMatchObject({ url: null, asset: null })
+})
