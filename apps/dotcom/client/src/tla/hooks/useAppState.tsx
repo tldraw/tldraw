@@ -89,7 +89,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		})().catch((err) => {
 			if (didCancel) return
 			console.error('[AppState] Failed to initialize:', err)
-			captureException(err)
+			// Default grouping keys on the stack, which every preload timeout shares; the message
+			// carries the stalled stage or init status, so group on it.
+			captureException(err, {
+				fingerprint: ['{{ default }}', err instanceof Error ? err.message : String(err)],
+			})
 			setError(err)
 		})
 

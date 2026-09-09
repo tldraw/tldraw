@@ -10,14 +10,19 @@ const categoryLinks = [
 		caption: 'Quick start',
 		icon: RocketLaunchIcon,
 		href: '/quick-start',
+		// usePathname() is /getting-started/* on the server (prerendered path) and /quick-start
+		// etc. in the browser (rewrite); match both or hydration mismatches.
 		active: (pathname: string) =>
-			['/quick-start', '/installation', '/releases'].some((e) => pathname.startsWith(e)),
+			['/quick-start', '/installation', '/releases', '/getting-started'].some((e) =>
+				pathname.startsWith(e)
+			),
 	},
 	{
 		caption: 'Documentation',
 		icon: AcademicCapIcon,
 		href: '/docs/editor',
-		active: (pathname: string) => ['/docs', '/community'].some((e) => pathname.startsWith(e)),
+		active: (pathname: string) =>
+			['/docs', '/sdk-features', '/community'].some((e) => pathname.startsWith(e)),
 	},
 	{
 		caption: 'Reference',

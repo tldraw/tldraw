@@ -64,6 +64,7 @@ import { ZERO_SERVER } from '../../utils/config'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
+import { copyTextToClipboard } from '../utils/copy'
 import { getDateFormat } from '../utils/dates'
 import { FeatureFlags } from '../utils/FeatureFlagPoller'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
@@ -72,7 +73,7 @@ import { updateLocalSessionState } from '../utils/local-session-state'
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
 
-const USER_PRELOAD_TIMEOUT_MS = 10_000
+const USER_PRELOAD_TIMEOUT_MS = 30_000
 
 let appId = 0
 
@@ -388,16 +389,20 @@ export class TldrawApp {
 		// already exists should still load through a transient worker error.
 		const initError = res.ok ? undefined : new Error(`Init failed: ${res.status}`)
 		// Zero's query can itself stall, so the deadline must cover it as well as the user row.
+		// The stage is in the error so Sentry can tell a slow Zero sync from a row that never arrived.
+		let stage: 'zero query' | 'state flush' | 'user record' = 'zero query'
 		const timedOut = promiseWithResolve<never>()
 		let stopWaiting: (() => void) | undefined
 		const timeout = setTimeout(
 			() =>
-				timedOut.reject(initError ?? new Error('Timed out waiting for the user record after init')),
+				timedOut.reject(initError ?? new Error(`Timed out waiting for the ${stage} after init`)),
 			USER_PRELOAD_TIMEOUT_MS
 		)
 		try {
 			await Promise.race([this.z.preload(queries.user()).complete, timedOut])
+			stage = 'state flush'
 			await Promise.race([this.changesFlushed, timedOut])
+			stage = 'user record'
 			const userLoaded = promiseWithResolve<void>()
 			stopWaiting = react('wait for user', () => {
 				if (this.user$.get()) userLoaded.resolve()
@@ -1278,8 +1283,7 @@ export class TldrawApp {
 		const group = this.getWorkspaceMembership(workspaceId)?.group
 		if (!group?.inviteSecret) return false
 
-		const inviteText = `${location.origin}/invite/${group.inviteSecret}`
-		navigator.clipboard.writeText(inviteText)
+		copyTextToClipboard(routes.tlaInvite(group.inviteSecret, { asUrl: true }))
 
 		if (showToast) {
 			this.toasts?.addToast({
@@ -1297,13 +1301,15 @@ export class TldrawApp {
 			method: 'POST',
 		})
 
-		const payload = (await response.json()) as AcceptInviteResponseBody
+		// A gateway error page or the router's own 401 body isn't an AcceptInviteResponseBody;
+		// parsing it first would throw past the toast below.
+		const payload = (await response.json().catch(() => null)) as AcceptInviteResponseBody | null
 
-		if (payload.error || !response.ok) {
+		if (!payload || payload.error || !response.ok) {
 			this.toasts?.addToast({
 				severity: 'error',
 				title: 'Error accepting invite',
-				description: payload.message,
+				description: payload?.message ?? 'Please try again.',
 			})
 			this.navigate(routes.tlaRoot())
 			return
