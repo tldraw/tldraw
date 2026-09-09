@@ -41,6 +41,20 @@ describe('dockerfileCopySources', () => {
 		const dockerfile = ['FROM a AS build', 'COPY --from=build /out /out', 'COPY x /x'].join('\n')
 		expect(dockerfileCopySources(dockerfile)).toEqual(['x'])
 	})
+
+	it('follows a line continuation to the sources on the wrapped lines', () => {
+		const dockerfile = [
+			'FROM rocicorp/zero:1.0.0',
+			'COPY nginx.conf.template \\',
+			'     supervisord.conf \\',
+			'     start.sh /etc/',
+		].join('\n')
+		expect(dockerfileCopySources(dockerfile)).toEqual([
+			'nginx.conf.template',
+			'supervisord.conf',
+			'start.sh',
+		])
+	})
 })
 
 describe('hashFlyDeployInputs', () => {

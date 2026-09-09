@@ -55,7 +55,7 @@ function addPath(hash: Hash, contextDir: string, relativePath: string) {
 	} catch {
 		throw new Error(
 			`Dockerfile copies ${relativePath} but it does not exist in the build context ${contextDir}. ` +
-				`Only plain paths are supported: no globs, JSON-array COPY, URLs, or line continuations.`
+				`Only plain paths are supported: no globs, JSON-array COPY, or URLs.`
 		)
 	}
 	if (stat.isDirectory()) {
@@ -73,7 +73,7 @@ function addPath(hash: Hash, contextDir: string, relativePath: string) {
  */
 export function dockerfileCopySources(dockerfile: string): string[] {
 	const sources: string[] = []
-	for (const line of dockerfile.split('\n')) {
+	for (const line of joinContinuedLines(dockerfile)) {
 		const match = line.match(/^\s*(?:COPY|ADD)\s+(.*)$/i)
 		if (!match) continue
 		const tokens = match[1].trim().split(/\s+/)
@@ -85,6 +85,24 @@ export function dockerfileCopySources(dockerfile: string): string[] {
 		}
 	}
 	return sources
+}
+
+// A trailing `\` continues an instruction on the next physical line. Without joining them first,
+// the sources on the wrapped lines never reach the COPY match and escape the hash.
+function joinContinuedLines(dockerfile: string): string[] {
+	const lines: string[] = []
+	let continued = ''
+	for (const line of dockerfile.split('\n')) {
+		const trimmed = line.trimEnd()
+		if (trimmed.endsWith('\\')) {
+			continued += trimmed.slice(0, -1)
+			continue
+		}
+		lines.push(continued + line)
+		continued = ''
+	}
+	if (continued) lines.push(continued)
+	return lines
 }
 
 export function stampDeployInputHash(config: string, hash: string): string {
