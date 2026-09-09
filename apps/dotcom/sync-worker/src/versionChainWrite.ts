@@ -10,7 +10,12 @@ import {
 	versionKey,
 } from './versionChain'
 import { decodeVersionBody, encodeVersionBody } from './versionChainCodec'
-import { buildSnapshotDelta, chainHeadHash, snapshotHashes } from './versionDelta'
+import {
+	buildSnapshotDelta,
+	chainHeadHash,
+	SNAPSHOT_DELTA_VERSION,
+	snapshotHashes,
+} from './versionDelta'
 
 interface VersionChainWriteResultBase {
 	chain: ChainState
@@ -90,6 +95,7 @@ export async function writeVersionChainEntry({
 			pending: [],
 			chain: {
 				keyframeKey: key,
+				deltaVersion: SNAPSHOT_DELTA_VERSION,
 				keyframeAt: now,
 				keyframeBytes: encoded.body.byteLength,
 				deltaCount: 0,
@@ -139,6 +145,10 @@ export async function writeVersionChainEntry({
 /**
  * The deltas an open segment holds, for a durable object that lost its in-memory buffer, or null
  * when the object cannot be used as one: missing, undecodable, or not a v1 segment body.
+ *
+ * Deltas of a superseded format are returned rather than refused. `decideVersionWrite` retires such
+ * a chain with a `delta-format` keyframe; refusing here would null the chain first and report the
+ * whole bump as `segment-lost`, which is the per-room signal that reason has to stay.
  *
  * Null means the segment is unusable and the caller starts a fresh chain, which costs one keyframe.
  * A failed `get` throws instead: the segment may be intact and only the network was not, and null

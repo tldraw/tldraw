@@ -55,6 +55,7 @@ import { mcpServer } from './routes/tla/mcpServer'
 import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
 import { putThumbnailRenderResult } from './routes/tla/putThumbnailRenderResult'
 import { upload } from './routes/tla/uploads'
+import { verifyVersionChainRoute } from './routes/verifyVersionChain'
 import { testRoutes } from './testRoutes'
 import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
 import { getFileEffectProcessor, getLogger } from './utils/durableObjects'
@@ -124,13 +125,22 @@ const router = createRouter<Environment>()
 		joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_ONLY)
 	)
 	.get(`/${ROOM_PREFIX}/:roomId/history`, (req, env) => getRoomHistory(req, env, false))
-	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, (req, env) =>
-		getRoomHistorySnapshot(req, env, false)
+	// Legacy rooms dual-write chains too; without this the rollout gate has a blind spot.
+	.get(`/${ROOM_PREFIX}/:roomId/history/verify`, (req, env) =>
+		verifyVersionChainRoute(req, env, false)
+	)
+	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, (req, env, ctx) =>
+		getRoomHistorySnapshot(req, env, false, ctx)
 	)
 
 	.get(`/${FILE_PREFIX}/:roomId/history`, (req, env) => getRoomHistory(req, env, true))
-	.get(`/${FILE_PREFIX}/:roomId/history/:timestamp`, (req, env) =>
-		getRoomHistorySnapshot(req, env, true)
+	// Before the :timestamp route — itty-router matches in order, and `verify` would otherwise be
+	// read as a timestamp.
+	.get(`/${FILE_PREFIX}/:roomId/history/verify`, (req, env) =>
+		verifyVersionChainRoute(req, env, true)
+	)
+	.get(`/${FILE_PREFIX}/:roomId/history/:timestamp`, (req, env, ctx) =>
+		getRoomHistorySnapshot(req, env, true, ctx)
 	)
 
 	.get('/readonly-slug/:roomId', getReadonlySlug)

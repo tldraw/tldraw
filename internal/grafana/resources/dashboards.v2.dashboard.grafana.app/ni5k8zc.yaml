@@ -3616,6 +3616,597 @@ spec:
                 mode: multi
                 sort: desc
           version: 13.2.0-29854286369
+    panel-49:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
+                        SECOND) as date, blob3 as wrote, count() as total
+
+                        FROM 'MEASURE'
+
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+
+                        AND blob1 = 'version_chain_write'
+
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+
+                        GROUP BY date, wrote
+
+                        ORDER BY date ASC"
+                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
+                        SECOND) as date, blob3 as wrote, count() as total
+
+                        FROM 'MEASURE'
+
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+
+                        AND blob1 = 'version_chain_write'
+
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+
+                        GROUP BY date, wrote
+
+                        ORDER BY date ASC"
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: version_chain_write events split keyframe vs delta. A healthy
+          chain writes mostly deltas with an occasional keyframe.
+        id: 49
+        links: []
+        title: Version chain writes
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: bars
+                  fillOpacity: 80
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 0
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: normal
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-50:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
+                        SECOND) as date, blob4 as reason, count() as total
+
+                        FROM 'MEASURE'
+
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+
+                        AND blob1 = 'version_chain_write'
+
+                        AND blob3 = 'keyframe'
+
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+
+                        GROUP BY date, reason
+
+                        ORDER BY date ASC"
+                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
+                        SECOND) as date, blob4 as reason, count() as total
+
+                        FROM 'MEASURE'
+
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+
+                        AND blob1 = 'version_chain_write'
+
+                        AND blob3 = 'keyframe'
+
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+
+                        GROUP BY date, reason
+
+                        ORDER BY date ASC"
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: "Why keyframes were cut. 'segment-lost' is the lost-open-segment
+          recovery and 'fingerprint-mismatch' a dead-incarnation seed divergence —
+          spikes in either deserve a look."
+        id: 50
+        links: []
+        title: Keyframe reasons
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: bars
+                  fillOpacity: 80
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 0
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: normal
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-51:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
+                        SECOND) as date, if(blob3 = 'ok', 'ok', concat('fail:', blob4))
+                        as result, count() as total
+
+                        FROM 'MEASURE'
+
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+
+                        AND blob1 = 'version_chain_verify'
+
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+
+                        GROUP BY date, result
+
+                        ORDER BY date ASC"
+                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
+                        SECOND) as date, if(blob3 = 'ok', 'ok', concat('fail:', blob4))
+                        as result, count() as total
+
+                        FROM 'MEASURE'
+
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+
+                        AND blob1 = 'version_chain_verify'
+
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+
+                        GROUP BY date, result
+
+                        ORDER BY date ASC"
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: 'Retired-chain verification. Fail reasons: missing | legacy-fallback
+          | head-mismatch | error. Any fail means a reconstruction did not reproduce
+          the persisted state.'
+        id: 51
+        links: []
+        title: Verify results
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: bars
+                  fillOpacity: 80
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 0
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: normal
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-52:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: table
+                      formatAs: table
+                      intervalFactor: 1
+                      query: "SELECT count() as errors
+
+                        FROM 'MEASURE'
+
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+
+                        AND blob1 = 'version_chain_error'
+
+                        AND blob2 = '${environment}-tldraw-multiplayer'"
+                      rawQuery: "SELECT count() as errors
+
+                        FROM 'MEASURE'
+
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+
+                        AND blob1 = 'version_chain_error'
+
+                        AND blob2 = '${environment}-tldraw-multiplayer'"
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: Chain writes that failed and fell back to the legacy copy. Anything
+          above zero deserves a look.
+        id: 52
+        links: []
+        title: Chain write errors
+        vizConfig:
+          group: stat
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: thresholds
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                    - color: red
+                      value: 1
+                unit: short
+              overrides: []
+            options:
+              colorMode: value
+              graphMode: none
+              justifyMode: auto
+              orientation: auto
+              percentChangeColorMode: standard
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              showPercentChange: false
+              textMode: auto
+              wideLayout: true
+          version: 13.2.0-29854286369
+    panel-53:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
+                        SECOND) as date, blob3 as wrote, sum(double1) as bytes
+
+                        FROM 'MEASURE'
+
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+
+                        AND blob1 = 'version_chain_write'
+
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+
+                        GROUP BY date, wrote
+
+                        ORDER BY date ASC"
+                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
+                        SECOND) as date, blob3 as wrote, sum(double1) as bytes
+
+                        FROM 'MEASURE'
+
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+
+                        AND blob1 = 'version_chain_write'
+
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+
+                        GROUP BY date, wrote
+
+                        ORDER BY date ASC"
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: Encoded bytes uploaded to the chain bucket, split by write type
+          (double1 is the encoded body size).
+        id: 53
+        links: []
+        title: Chain bytes written
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: line
+                  fillOpacity: 30
+                  gradientMode: opacity
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1.5
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: normal
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: bytes
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
   layout:
     kind: GridLayout
     spec:
@@ -3908,6 +4499,51 @@ spec:
             width: 12
             x: 0
             y: 98
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-49
+            height: 8
+            width: 12
+            x: 0
+            y: 106
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-50
+            height: 8
+            width: 12
+            x: 12
+            y: 106
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-51
+            height: 8
+            width: 12
+            x: 0
+            y: 114
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-53
+            height: 8
+            width: 12
+            x: 12
+            y: 114
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-52
+            height: 4
+            width: 6
+            x: 0
+            y: 122
   links: []
   liveNow: false
   preload: false
