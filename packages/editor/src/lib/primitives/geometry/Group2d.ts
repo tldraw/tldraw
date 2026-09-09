@@ -1,8 +1,13 @@
 import { assert, invLerp, lerp } from '@tldraw/utils'
 import { Box } from '../Box'
-import { Mat } from '../Mat'
+import { MatModel } from '../Mat'
 import { Vec, VecLike } from '../Vec'
-import { Geometry2d, Geometry2dFilters, Geometry2dOptions } from './Geometry2d'
+import {
+	Geometry2d,
+	Geometry2dFilters,
+	Geometry2dOptions,
+	TransformedGeometry2dOptions,
+} from './Geometry2d'
 
 /** @public */
 export class Group2d extends Geometry2d {
@@ -226,12 +231,18 @@ export class Group2d extends Geometry2d {
 		return childTLength / totalLength
 	}
 
-	override transform(transform: Mat): Geometry2d {
+	override transform(transform: MatModel, opts?: TransformedGeometry2dOptions): Geometry2d {
+		// Each child's own transform preserves its `ignore` flag, so the constructor
+		// re-partitions ignored children back into `ignoredChildren` instead of dropping
+		// them (#10562).
 		return new Group2d({
-			children: this.children.map((c) => c.transform(transform)),
-			isLabel: this.isLabel,
-			debugColor: this.debugColor,
-			ignore: this.ignore,
+			children: [...this.children, ...this.ignoredChildren].map((c) => c.transform(transform)),
+			isLabel: opts?.isLabel ?? this.isLabel,
+			isEmptyLabel: this.isEmptyLabel,
+			isInternal: opts?.isInternal ?? this.isInternal,
+			debugColor: opts?.debugColor ?? this.debugColor,
+			ignore: opts?.ignore ?? this.ignore,
+			excludeFromShapeBounds: this.excludeFromShapeBounds,
 		})
 	}
 

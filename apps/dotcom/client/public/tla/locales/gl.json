@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> comentou no teu taboleiro"
   },
+  "28b2464e1f": {
+    "translation": "Non se puideron enviar os comentarios"
+  },
   "299cb00a7a": {
     "translation": "Produciuse un erro na carga"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Buscar..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Téntao de novo."
   },
   "2de510be71": {
     "translation": "Ao rexenerar, a ligazón de invitación actual substitúese por unha nova. Calquera persoa que use a ligazón antiga necesitará a nova para unirse."
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} sen ler"
+  },
+  "550b25cc0c": {
+    "translation": "Non se puido restaurar o debuxo local. Tenta recargar esta páxina."
   },
   "554a05155c": {
     "translation": "Aínda tes problemas? <a>Informar dun problema</a>"
@@ -433,6 +442,9 @@
   },
   "9bef626805": {
     "translation": "Eliminar ficheiro"
+  },
+  "9c228b6834": {
+    "translation": "Parece que estás desconectado. Comproba a túa conexión e téntao de novo."
   },
   "9ccb565b86": {
     "translation": "Temos problemas para conectar co noso servizo de autenticación. Isto adoita ser temporal. Tenta actualizar a páxina."

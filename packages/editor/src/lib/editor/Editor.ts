@@ -110,6 +110,7 @@ import {
 import {
 	DEFAULT_ANIMATION_OPTIONS,
 	DEFAULT_CAMERA_OPTIONS,
+	FRAME_MS_60HZ,
 	INTERNAL_POINTER_IDS,
 	LEFT_MOUSE_BUTTON,
 	MIDDLE_MOUSE_BUTTON,
@@ -2281,10 +2282,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			parentToSelectWithinId = this.getCurrentPageId()
 		}
 
-		// Select all the unlocked shapes within the parent
+		// Select all the unlocked shapes within the parent. Only the shape's own lock matters here:
+		// selecting inside a locked frame or group is allowed, mutating is not.
 		const ids = this.getSortedChildIdsForParent(parentToSelectWithinId)
 		if (ids.length <= 0) return this
-		this.setSelectedShapes(this._getUnlockedShapeIds(ids))
+		this.setSelectedShapes(ids.filter((id) => !this.getShape(id)?.isLocked))
 		return this
 	}
 
@@ -2305,12 +2307,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			firstParentId &&
 			selectedShapeIds.every((shapeId) => this.getShape(shapeId)?.parentId === firstParentId) &&
 			!isPageId(firstParentId)
-		const filteredShapes = isSelectedWithinContainer
-			? this.getCurrentPageShapes().filter((shape) => shape.parentId === firstParentId)
-			: this.getCurrentPageShapes().filter((shape) => isPageId(shape.parentId))
-		const readingOrderShapes = isSelectedWithinContainer
-			? this._getShapesInReadingOrder(filteredShapes)
-			: this.getCurrentPageShapesInReadingOrder()
+		// Locked shapes (and children of locked containers) can't be selected by clicking or
+		// select all, so traversal skips them too
+		const filteredShapes = this.getCurrentPageShapes().filter(
+			(shape) =>
+				!this.isShapeOrAncestorLocked(shape) &&
+				(isSelectedWithinContainer ? shape.parentId === firstParentId : isPageId(shape.parentId))
+		)
+		const readingOrderShapes = this._getShapesInReadingOrder(filteredShapes)
 		const currentShapeId: TLShapeId | undefined =
 			selectedShapeIds.length === 1
 				? selectedShapeIds[0]
@@ -2319,10 +2323,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let adjacentShapeId: TLShapeId
 		if (direction === 'next' || direction === 'prev') {
 			const shapeIds = readingOrderShapes.map((shape) => shape.id)
+			// Every candidate can be filtered out (e.g. a locked shape is selected and nothing
+			// else is unlocked); indexing an empty list would hand getShape undefined
+			if (shapeIds.length === 0) return
 
 			const currentIndex = currentShapeId ? shapeIds.indexOf(currentShapeId) : -1
+			// With no current index, stepping from -1 makes 'prev' land one shape
+			// before the last; seed it from 0 so it wraps to the last shape. See #10559.
+			const startIndex = currentIndex === -1 && direction === 'prev' ? 0 : currentIndex
 			const adjacentIndex =
-				(currentIndex + (direction === 'next' ? 1 : -1) + shapeIds.length) % shapeIds.length
+				(startIndex + (direction === 'next' ? 1 : -1) + shapeIds.length) % shapeIds.length
 			adjacentShapeId = shapeIds[adjacentIndex]
 		} else {
 			if (!currentShapeId) return
@@ -3609,6 +3619,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { isLocked } = this._cameraOptions.__unsafe__getWithoutCapture()
 		if (isLocked && !opts?.force) return this
 
+		// Resolve the zoom before building the Vec: Vec.Cast would default a missing z to 1,
+		// and a missing z should keep the current zoom level instead
+		const _point = new Vec(point.x, point.y, point.z ?? this.getZoomLevel())
+
+		// Reject non-finite values before anything else, so the call is a no-op rather than a
+		// partial one. An animated move writes the camera from a 'tick' listener, and a listener
+		// that throws stops TickManager scheduling the next frame, which kills every frame-driven
+		// behavior for the rest of the session instead of surfacing the error to the caller.
+		if (!Number.isFinite(_point.x) || !Number.isFinite(_point.y) || !Number.isFinite(_point.z)) {
+			throw Error(
+				`Editor.setCamera: expected finite values, got (${_point.x}, ${_point.y}, ${_point.z}).`
+			)
+		}
+
 		// Stop any camera animations
 		this.stopCameraAnimation()
 
@@ -3616,12 +3640,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (this.getInstanceState().followingUserId) {
 			this.stopFollowingUser()
 		}
-
-		const _point = Vec.Cast(point)
-
-		if (!Number.isFinite(_point.x)) _point.x = 0
-		if (!Number.isFinite(_point.y)) _point.y = 0
-		if (_point.z === undefined || !Number.isFinite(_point.z)) point.z = this.getZoomLevel()
 
 		const camera = this.getConstrainedCamera(_point, opts)
 
@@ -4104,8 +4122,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				newCy += center.y / newCz - center.y / cz
 			}
 
-			// Apply friction
-			currentSpeed *= 1 - friction
+			// Apply friction per unit of elapsed time, not per tick, or a 120 Hz display decays twice as fast
+			currentSpeed *= (1 - friction) ** (elapsed / FRAME_MS_60HZ)
 			if (currentSpeed < speedThreshold) {
 				cancel()
 			} else {
@@ -4148,6 +4166,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// If we're not on the same page, move to the page they're on
 			const isOnSamePage = presence.currentPageId === this.getCurrentPageId()
 			if (!isOnSamePage) {
+				this.markHistoryStoppingPoint('change-page')
 				this.setCurrentPage(presence.currentPageId)
 			}
 
@@ -5245,7 +5264,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.run(
 			() => {
-				this.store.props.assets.remove?.(ids)
+				// the asset store's remove is async; surface failures instead of leaving an unhandled rejection
+				Promise.resolve(this.store.props.assets.remove?.(ids)).catch((err) =>
+					console.error('Error while removing assets from the asset store:', err)
+				)
 				this.store.remove(ids)
 			},
 			{ history: 'ignore' }
@@ -7445,8 +7467,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const shapesMovingTogether = [shape]
 			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
 
+			// Seed with bindings in both directions, otherwise an arrow visited before the shapes it
+			// binds ends up in a cluster of its own and the result depends on input order
 			this.collectShapesViaArrowBindings({
-				bindings: this.getBindingsToShape(shape.id, 'arrow'),
+				bindings: this.getBindingsInvolvingShape(shape.id, 'arrow'),
 				initialShapes: freshShapes,
 				resultShapes: shapesMovingTogether,
 				resultBounds: boundsOfShapesMovingTogether,
@@ -8801,6 +8825,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const animations: ShapeAnimation[] = []
 
+		// Snapshot the lock override now: when this animation is started inside
+		// editor.run(..., { ignoreShapeLock: true }), run() restores the flag before any tick
+		// fires, so the final updateShapes below would refuse the locked shape and strand it
+		const ignoreShapeLock = this._shouldIgnoreShapeLock
+
 		let partial: TLShapePartial | null | undefined, result: ShapeAnimation
 		for (let i = 0, n = partials.length; i < n; i++) {
 			partial = partials[i]
@@ -8808,6 +8837,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			const shape = this.getShape(partial.id)!
 			if (!shape) continue
+
+			// Apply the same lock rule as updateShapes up front: the intermediate frames go through
+			// _updateShapes, which doesn't check locks, so a locked shape would otherwise be moved by
+			// every frame but the last and end up stranded at the penultimate one
+			const unlocks = shape.isLocked && Object.hasOwn(partial, 'isLocked') && !partial.isLocked
+			if (!ignoreShapeLock && !unlocks && this.isShapeOrAncestorLocked(shape)) {
+				continue
+			}
 
 			result = {
 				start: structuredClone(shape),
@@ -8829,7 +8866,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				if (partialsToUpdate.length) {
 					// the regular update shapes also removes the shape from
 					// the animating shapes set
-					this.updateShapes(partialsToUpdate)
+					this.run(() => this.updateShapes(partialsToUpdate), { ignoreShapeLock })
 				}
 
 				this.off('tick', handleTick)
@@ -8908,6 +8945,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.getShape(id)
 			)
 		)
+		// Re-check after the lock filter: Box.Common of nothing is not a valid box and would throw
+		if (shapesToGroup.length <= 1) return this
+
 		const sortedShapeIds = shapesToGroup.sort(sortByIndex).map((s) => s.id)
 		const childBounds = compact(shapesToGroup.map((shape) => this.getShapePageBounds(shape)))
 		const pageBounds = Box.Common(childBounds)
@@ -9146,7 +9186,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	private _getUnlockedShapeIds(ids: TLShapeId[]): TLShapeId[] {
-		return ids.filter((id) => !this.getShape(id)?.isLocked)
+		// Match updateShapes, which also refuses shapes under a locked ancestor; otherwise a child
+		// of a locked frame can't be moved but can still be deleted or duplicated
+		return ids.filter((id) => !this.isShapeOrAncestorLocked(id))
 	}
 
 	/**
@@ -9735,21 +9777,34 @@ export class Editor extends EventEmitter<TLEventMap> {
 					!asset.props.src?.startsWith('data:video') &&
 					!asset.props.src?.startsWith('http')
 				) {
-					const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
-					const objectUrl = await this.store.props.assets.resolve(asset, {
-						screenScale: 1,
-						steppedScreenScale: 1,
-						dpr: 1,
-						networkEffectiveType: null,
-						shouldResolveToOriginal: true,
-					})
-					assetWithDataUrl.props.src = await FileHelpers.blobToDataUrl(
-						await fetch(objectUrl!).then((r) => r.blob())
-					)
-					assets.push(assetWithDataUrl)
-				} else {
-					assets.push(asset)
+					// If the asset can't be inlined (unresolvable src, fetch failure), fall through and
+					// keep the original record; dropping it leaves the pasted shapes pointing at an
+					// asset that doesn't exist
+					try {
+						const objectUrl = await this.store.props.assets.resolve(asset, {
+							screenScale: 1,
+							steppedScreenScale: 1,
+							dpr: 1,
+							networkEffectiveType: null,
+							shouldResolveToOriginal: true,
+						})
+						if (objectUrl) {
+							// fetch resolves on 4xx/5xx, so without this check a 404 error page would be
+							// inlined as a data:text/html src
+							const response = await fetch(objectUrl)
+							if (response.ok) {
+								const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
+								assetWithDataUrl.props.src = await FileHelpers.blobToDataUrl(await response.blob())
+								assets.push(assetWithDataUrl)
+								return
+							}
+							console.warn(`Could not inline asset ${asset.id}: fetch returned ${response.status}`)
+						}
+					} catch (err) {
+						console.warn(`Could not inline asset ${asset.id}`, err)
+					}
 				}
+				assets.push(asset)
 			})
 		)
 		content.assets = assets
@@ -11014,7 +11069,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (info.name === 'cancel' || info.name === 'complete') {
 				this.inputs.setIsDragging(false)
 
-				if (this.inputs.getIsPanning()) {
+				// A pan owned by a held spacebar outlives the cancelled interaction;
+				// key_up ends it. Otherwise Escape mid-pan stops the camera until
+				// the user releases and re-presses Space (#10446).
+				if (this.inputs.getIsPanning() && !this.inputs.keys.has('Space')) {
 					this.inputs.setIsPanning(false)
 					this.inputs.setIsSpacebarPanning(false)
 					this.setCursor({ type: this._prevCursor, rotation: 0 })
@@ -11500,9 +11558,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				break
 			}
 			case 'keyboard': {
-				// please, please
-				if (info.key === 'ShiftRight') info.key = 'ShiftLeft'
-				if (info.key === 'AltRight') info.key = 'AltLeft'
+				// Left and right modifier keys are the same key to us. `inputs.keys` stores
+				// `code`, so normalize that: a `ShiftRight` left as-is would never match the
+				// `ShiftLeft` that nudging checks or that `_releaseShiftKey` clears.
+				if (info.code === 'ShiftRight') info.code = 'ShiftLeft'
+				if (info.code === 'AltRight') info.code = 'AltLeft'
 				if (info.code === 'ControlRight') info.code = 'ControlLeft'
 				if (info.code === 'MetaRight') info.code = 'MetaLeft'
 

@@ -105,6 +105,23 @@ describe('TLSelectTool.Idle', () => {
 		expect(editor.getShape<TLGeoShape>(ids.box1)!.props.geo).toBe('rectangle')
 		expect(editor.getOnlySelectedShapeId()).toBe(ids.box1)
 	})
+
+	it('Nudges by the large step with either Shift key held', () => {
+		const shape = editor.getShape(ids.box1)!
+		editor.select(shape.id)
+
+		editor.keyDown('Shift', { code: 'ShiftLeft' })
+		editor.keyDown('ArrowRight')
+		editor.keyUp('ArrowRight')
+		editor.keyUp('Shift', { code: 'ShiftLeft' })
+		expect(editor.getShape(shape.id)?.x).toBe(110)
+
+		editor.keyDown('Shift', { code: 'ShiftRight' })
+		editor.keyDown('ArrowRight')
+		editor.keyUp('ArrowRight')
+		editor.keyUp('Shift', { code: 'ShiftRight' })
+		expect(editor.getShape(shape.id)?.x).toBe(120)
+	})
 })
 
 // todo: turn on feature flag for these tests or remove them
@@ -547,6 +564,91 @@ describe('PointingLabel', () => {
 		editor.pointerMove(160, 100)
 		editor.expectToBeIn('select.pointing_arrow_label')
 		editor.cancel()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('Keeps the dragged label position on complete', () => {
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: {
+					richText: toRichText('Test Label'),
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 0 },
+				},
+			},
+		])
+		const shape = editor.getShape<TLArrowShape>(ids.arrow1)!
+		const initialLabelPosition = shape.props.labelPosition
+
+		editor.pointerDown(150, 100, {
+			target: 'shape',
+			shape,
+		})
+		editor.pointerMove(160, 100)
+		editor.expectToBeIn('select.pointing_arrow_label')
+		editor.pointerMove(190, 100)
+
+		const draggedLabelPosition = editor.getShape<TLArrowShape>(ids.arrow1)!.props.labelPosition
+		expect(draggedLabelPosition).not.toBe(initialLabelPosition)
+
+		// A menu opening or an undo keypress mid-drag completes the interaction
+		editor.complete()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getShape<TLArrowShape>(ids.arrow1)!.props.labelPosition).toBe(
+			draggedLabelPosition
+		)
+	})
+
+	it('returns to idle on pointer up when the arrow was deleted', () => {
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: {
+					richText: toRichText('Test Label'),
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 0 },
+				},
+			},
+		])
+		const shape = editor.getShape(ids.arrow1)!
+		editor.select(shape.id)
+		editor.pointerDown(150, 100, { target: 'shape', shape })
+		editor.pointerMove(160, 100)
+		editor.expectToBeIn('select.pointing_arrow_label')
+		editor.deleteShapes([ids.arrow1])
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('returns to idle on pointer up when the arrow cannot be edited', () => {
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: {
+					richText: toRichText('Test Label'),
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 0 },
+				},
+			},
+		])
+		const shape = editor.getShape(ids.arrow1)!
+		editor.select(shape.id)
+		editor.updateInstanceState({ isReadonly: true })
+		editor.setCurrentTool('hand').setCurrentTool('select')
+		editor.pointerDown(150, 100, { target: 'shape', shape })
+		editor.pointerMove(160, 100)
+		editor.expectToBeIn('select.pointing_arrow_label')
+		editor.pointerUp()
 		editor.expectToBeIn('select.idle')
 	})
 

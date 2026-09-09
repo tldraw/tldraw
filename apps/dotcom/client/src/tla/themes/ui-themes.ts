@@ -14,8 +14,6 @@ export interface UIThemeVariant {
 interface UITheme {
 	id: string
 	name: string
-	lightBackground: string
-	darkBackground: string
 	light: UIThemeVariant
 	dark: UIThemeVariant
 }
@@ -24,8 +22,6 @@ const THEMES: UITheme[] = [
 	{
 		id: 'solarized',
 		name: 'Solarized',
-		lightBackground: '#fdf6e3',
-		darkBackground: '#002b36',
 		light: {
 			tl: {
 				'tl-color-background': '#fdf6e3',
@@ -126,8 +122,6 @@ const THEMES: UITheme[] = [
 	{
 		id: 'dracula',
 		name: 'Dracula',
-		lightBackground: '#f8f8f2',
-		darkBackground: '#282a36',
 		light: {
 			tl: {
 				'tl-color-background': '#f8f8f2',
@@ -228,8 +222,6 @@ const THEMES: UITheme[] = [
 	{
 		id: 'nord',
 		name: 'Nord',
-		lightBackground: '#eceff4',
-		darkBackground: '#2e3440',
 		light: {
 			tl: {
 				'tl-color-background': '#eceff4',
@@ -330,8 +322,6 @@ const THEMES: UITheme[] = [
 	{
 		id: 'monokai',
 		name: 'Monokai',
-		lightBackground: '#fafafa',
-		darkBackground: '#272822',
 		light: {
 			tl: {
 				'tl-color-background': '#fafafa',
@@ -432,8 +422,6 @@ const THEMES: UITheme[] = [
 	{
 		id: 'gruvbox',
 		name: 'Gruvbox',
-		lightBackground: '#fbf1c7',
-		darkBackground: '#282828',
 		light: {
 			tl: {
 				'tl-color-background': '#fbf1c7',
@@ -534,8 +522,6 @@ const THEMES: UITheme[] = [
 	{
 		id: 'catppuccin',
 		name: 'Catppuccin',
-		lightBackground: '#eff1f5',
-		darkBackground: '#1e1e2e',
 		light: {
 			tl: {
 				'tl-color-background': '#eff1f5',
@@ -636,8 +622,6 @@ const THEMES: UITheme[] = [
 	{
 		id: 'one-dark',
 		name: 'One Dark',
-		lightBackground: '#fafafa',
-		darkBackground: '#282c34',
 		light: {
 			tl: {
 				'tl-color-background': '#fafafa',
@@ -738,8 +722,6 @@ const THEMES: UITheme[] = [
 	{
 		id: 'tokyo-night',
 		name: 'Tokyo Night',
-		lightBackground: '#d5d6db',
-		darkBackground: '#1a1b26',
 		light: {
 			tl: {
 				'tl-color-background': '#d5d6db',
@@ -840,8 +822,6 @@ const THEMES: UITheme[] = [
 	{
 		id: 'everforest',
 		name: 'Everforest',
-		lightBackground: '#fdf6e3',
-		darkBackground: '#2d353b',
 		light: {
 			tl: {
 				'tl-color-background': '#fdf6e3',
@@ -942,8 +922,6 @@ const THEMES: UITheme[] = [
 	{
 		id: 'github',
 		name: 'GitHub',
-		lightBackground: '#ffffff',
-		darkBackground: '#0d1117',
 		light: {
 			tl: {
 				'tl-color-background': '#ffffff',
@@ -1044,8 +1022,6 @@ const THEMES: UITheme[] = [
 	{
 		id: 'flexoki',
 		name: 'Flexoki',
-		lightBackground: '#fffcf0',
-		darkBackground: '#100f0f',
 		light: {
 			tl: {
 				'tl-color-background': '#fffcf0',
@@ -1146,8 +1122,6 @@ const THEMES: UITheme[] = [
 	{
 		id: 'night-owl',
 		name: 'Night Owl',
-		lightBackground: '#fbfbfb',
-		darkBackground: '#011627',
 		light: {
 			tl: {
 				'tl-color-background': '#fbfbfb',
@@ -1248,8 +1222,6 @@ const THEMES: UITheme[] = [
 	{
 		id: 'high-contrast',
 		name: 'High Contrast',
-		lightBackground: '#ffffff',
-		darkBackground: '#000000',
 		light: {
 			tl: {
 				'tl-color-background': '#ffffff',

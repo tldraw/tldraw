@@ -8,7 +8,7 @@ export default function ChangingDefaultColorsExample() {
 		<div className="tldraw__editor">
 			{/* [1] */}
 			<Tldraw
-				persistenceKey="example"
+				persistenceKey="changing-default-colors-example"
 				onMount={(editor) => {
 					const theme = editor.getTheme('default')!
 					editor.updateTheme({

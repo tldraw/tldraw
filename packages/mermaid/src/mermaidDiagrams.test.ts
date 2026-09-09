@@ -8,9 +8,15 @@ import {
 	resolveMermaidNodeRender,
 } from './defaultMermaidNodeRenderSpec'
 import { flowchartToBlueprint } from './flowchartDiagram'
-import { mindmapToBlueprint, type ParsedMindmapLayout } from './mindmapDiagram'
+import {
+	MERMAID_MINDMAP_NODE_TYPE,
+	mindmapToBlueprint,
+	type ParsedMindmapLayout,
+} from './mindmapDiagram'
 import {
 	countSequenceEvents,
+	LINETYPE,
+	PLACEMENT,
 	sequenceToBlueprint,
 	type ParsedSequenceLayout,
 } from './sequenceDiagram'
@@ -74,6 +80,20 @@ function flowEdge(start: string, end: string, opts: Partial<FlowEdge> = {}): Flo
 
 function subGraph(id: string, title: string, nodes: string[]): FlowSubGraph {
 	return { id, title, nodes } as FlowSubGraph
+}
+
+/** Two nodes A and B side by side joined by a straight SVG edge. */
+function twoNodeLayout() {
+	return diagramLayout(
+		[node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)],
+		[],
+		[
+			edge('A', 'B', [
+				[20, 0],
+				[180, 0],
+			]),
+		]
+	)
 }
 
 function findNode(bp: DiagramMermaidBlueprint, id: string) {
@@ -300,16 +320,7 @@ describe('flowchartToBlueprint', () => {
 	})
 
 	it('maps edge dash styles from stroke-dasharray', () => {
-		const layout = diagramLayout(
-			[node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)],
-			[],
-			[
-				edge('A', 'B', [
-					[20, 0],
-					[180, 0],
-				]),
-			]
-		)
+		const layout = twoNodeLayout()
 		const vertices = new Map([vertex('A'), vertex('B')])
 		const edges = [flowEdge('A', 'B', { style: ['stroke-dasharray: 4 3'] })]
 
@@ -318,16 +329,7 @@ describe('flowchartToBlueprint', () => {
 	})
 
 	it('maps dotted stroke to dotted dash', () => {
-		const layout = diagramLayout(
-			[node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)],
-			[],
-			[
-				edge('A', 'B', [
-					[20, 0],
-					[180, 0],
-				]),
-			]
-		)
+		const layout = twoNodeLayout()
 		const vertices = new Map([vertex('A'), vertex('B')])
 		const edges = [flowEdge('A', 'B', { stroke: 'dotted' })]
 
@@ -336,16 +338,7 @@ describe('flowchartToBlueprint', () => {
 	})
 
 	it('maps double_arrow edge type to bidirectional arrowheads', () => {
-		const layout = diagramLayout(
-			[node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)],
-			[],
-			[
-				edge('A', 'B', [
-					[20, 0],
-					[180, 0],
-				]),
-			]
-		)
+		const layout = twoNodeLayout()
 		const vertices = new Map([vertex('A'), vertex('B')])
 		const edges = [flowEdge('A', 'B', { type: 'double_arrow_point' })]
 
@@ -578,42 +571,6 @@ describe('stateToBlueprint', () => {
 // ---------------------------------------------------------------------------
 
 describe('sequenceToBlueprint', () => {
-	const LINETYPE = {
-		SOLID: 0,
-		DOTTED: 1,
-		NOTE: 2,
-		SOLID_CROSS: 3,
-		DOTTED_CROSS: 4,
-		SOLID_OPEN: 5,
-		DOTTED_OPEN: 6,
-		LOOP_START: 10,
-		LOOP_END: 11,
-		ALT_START: 12,
-		ALT_ELSE: 13,
-		ALT_END: 14,
-		OPT_START: 15,
-		OPT_END: 16,
-		ACTIVE_START: 17,
-		ACTIVE_END: 18,
-		PAR_START: 19,
-		PAR_AND: 20,
-		PAR_END: 21,
-		AUTONUMBER: 26,
-		CRITICAL_START: 27,
-		CRITICAL_OPTION: 28,
-		CRITICAL_END: 29,
-		BREAK_START: 30,
-		BREAK_END: 31,
-		BIDIRECTIONAL_SOLID: 33,
-		BIDIRECTIONAL_DOTTED: 34,
-	} as const
-
-	const PLACEMENT = {
-		LEFTOF: 0,
-		RIGHTOF: 1,
-		OVER: 2,
-	} as const
-
 	function actor(key: string, opts: Partial<Actor> = {}): [string, Actor] {
 		return [
 			key,
@@ -629,32 +586,26 @@ describe('sequenceToBlueprint', () => {
 		return { type, from, to, message } as Message
 	}
 
+	/** An `autonumber` directive in the shape mermaid's parser produces. */
+	function autonumberMsg(opts: { start?: number; step?: number; visible: boolean }): Message {
+		return { type: LINETYPE.AUTONUMBER, message: opts } as unknown as Message
+	}
+
 	function noteMsg(from: string, message: string, placement: number, to?: string): Message {
 		return { type: LINETYPE.NOTE, from, to: to ?? from, message, placement } as unknown as Message
 	}
 
-	function twoActorLayout(): ParsedSequenceLayout {
-		return {
-			actorLayouts: [
-				{ x: -150, y: -200, w: 100, h: 50, bottomY: 200 },
-				{ x: 150, y: -200, w: 100, h: 50, bottomY: 200 },
-			],
-			noteRects: [],
-		}
-	}
-
-	function threeActorLayout(
-		noteRects: { x: number; y: number; w: number; h: number }[] = []
+	function actorLayout(
+		xs: number[],
+		noteRects: ParsedSequenceLayout['noteRects'] = []
 	): ParsedSequenceLayout {
 		return {
-			actorLayouts: [
-				{ x: -300, y: -200, w: 100, h: 50, bottomY: 200 },
-				{ x: 0, y: -200, w: 100, h: 50, bottomY: 200 },
-				{ x: 300, y: -200, w: 100, h: 50, bottomY: 200 },
-			],
+			actorLayouts: xs.map((x) => ({ x, y: -200, w: 100, h: 50, bottomY: 200 })),
 			noteRects,
 		}
 	}
+	const twoActorLayout = () => actorLayout([-150, 150])
+	const threeActorLayout = () => actorLayout([-300, 0, 300])
 
 	it('creates top/bottom actor boxes and lifelines', () => {
 		const layout = twoActorLayout()
@@ -792,14 +743,7 @@ describe('sequenceToBlueprint', () => {
 	})
 
 	it('creates note nodes with yellow color and correct labels', () => {
-		const noteRect = { x: 10, y: 50, w: 120, h: 40 }
-		const layout: ParsedSequenceLayout = {
-			actorLayouts: [
-				{ x: -150, y: -200, w: 100, h: 50, bottomY: 200 },
-				{ x: 150, y: -200, w: 100, h: 50, bottomY: 200 },
-			],
-			noteRects: [noteRect],
-		}
+		const layout = actorLayout([-150, 150], [{ x: 10, y: 50, w: 120, h: 40 }])
 		const actors = new Map([actor('Alice'), actor('John')])
 		const messages = [
 			msg(LINETYPE.SOLID, 'Alice', 'John', 'Hello'),
@@ -854,6 +798,66 @@ describe('sequenceToBlueprint', () => {
 		expect(bp.edges[2].decoration).toEqual({ type: 'autonumber', value: '3' })
 	})
 
+	it('honors autonumber start and step', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('Alice'), actor('Bob')])
+		const messages = [
+			autonumberMsg({ start: 10, step: 5, visible: true }),
+			msg(LINETYPE.SOLID, 'Alice', 'Bob', 'Hello'),
+			msg(LINETYPE.SOLID, 'Bob', 'Alice', 'Hi'),
+		]
+
+		const bp = sequenceToBlueprint(layout, actors, ['Alice', 'Bob'], messages)
+
+		expect(bp.edges.map((e) => e.decoration?.value)).toEqual(['10', '15'])
+	})
+
+	it('stops numbering at autonumber off without clearing earlier numbers', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('Alice'), actor('Bob')])
+		const messages = [
+			autonumberMsg({ visible: true }),
+			msg(LINETYPE.SOLID, 'Alice', 'Bob', 'one'),
+			msg(LINETYPE.SOLID, 'Bob', 'Alice', 'two'),
+			autonumberMsg({ visible: false }),
+			msg(LINETYPE.SOLID, 'Alice', 'Bob', 'three'),
+		]
+
+		const bp = sequenceToBlueprint(layout, actors, ['Alice', 'Bob'], messages)
+
+		expect(bp.edges.map((e) => e.decoration?.value)).toEqual(['1', '2', undefined])
+	})
+
+	it('numbers only the signals after a mid-diagram autonumber', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('Alice'), actor('Bob')])
+		const messages = [
+			msg(LINETYPE.SOLID, 'Alice', 'Bob', 'one'),
+			autonumberMsg({ start: 10, step: 1, visible: true }),
+			msg(LINETYPE.SOLID, 'Bob', 'Alice', 'two'),
+			msg(LINETYPE.SOLID, 'Alice', 'Bob', 'three'),
+		]
+
+		const bp = sequenceToBlueprint(layout, actors, ['Alice', 'Bob'], messages)
+
+		expect(bp.edges.map((e) => e.decoration?.value)).toEqual([undefined, '10', '11'])
+	})
+
+	it('does not let notes consume a sequence number', () => {
+		const layout = actorLayout([-150, 150], [{ x: 10, y: 50, w: 120, h: 40 }])
+		const actors = new Map([actor('Alice'), actor('Bob')])
+		const messages = [
+			autonumberMsg({ visible: true }),
+			msg(LINETYPE.SOLID, 'Alice', 'Bob', 'one'),
+			noteMsg('Alice', 'a note', PLACEMENT.OVER),
+			msg(LINETYPE.SOLID, 'Bob', 'Alice', 'two'),
+		]
+
+		const bp = sequenceToBlueprint(layout, actors, ['Alice', 'Bob'], messages)
+
+		expect(bp.edges.map((e) => e.decoration?.value)).toEqual(['1', '2'])
+	})
+
 	it('maps bidirectional arrows', () => {
 		const layout = twoActorLayout()
 		const actors = new Map([actor('A'), actor('B')])
@@ -893,10 +897,7 @@ describe('sequenceToBlueprint', () => {
 	})
 
 	it('maps actor types to correct geo', () => {
-		const layout: ParsedSequenceLayout = {
-			actorLayouts: [{ x: 0, y: -200, w: 100, h: 50, bottomY: 200 }],
-			noteRects: [],
-		}
+		const layout = actorLayout([0])
 		const actors = new Map([actor('User', { type: 'actor' })])
 		const messages = [msg(LINETYPE.SOLID, 'User', 'User', 'think')]
 
@@ -913,11 +914,11 @@ describe('sequenceToBlueprint', () => {
 describe('countSequenceEvents', () => {
 	it('counts only signal and note messages', () => {
 		const messages = [
-			{ type: 0, from: 'A', to: 'B', message: 'Hello' },
-			{ type: 1, from: 'B', to: 'A', message: 'Hi' },
-			{ type: 10, message: 'loop' },
-			{ type: 11 },
-			{ type: 2, from: 'A', to: 'A', message: 'note' },
+			{ type: LINETYPE.SOLID, from: 'A', to: 'B', message: 'Hello' },
+			{ type: LINETYPE.DOTTED, from: 'B', to: 'A', message: 'Hi' },
+			{ type: LINETYPE.LOOP_START, message: 'loop' },
+			{ type: LINETYPE.LOOP_END },
+			{ type: LINETYPE.NOTE, from: 'A', to: 'A', message: 'note' },
 		] as unknown as Message[]
 
 		expect(countSequenceEvents(messages)).toBe(3)
@@ -925,13 +926,13 @@ describe('countSequenceEvents', () => {
 
 	it('skips autonumber, fragment, and activation control messages', () => {
 		const messages = [
-			{ type: 26 },
-			{ type: 12, message: 'alt' },
-			{ type: 13, message: 'else' },
-			{ type: 14 },
-			{ type: 17, from: 'A' },
-			{ type: 18, from: 'A' },
-			{ type: 0, from: 'A', to: 'B', message: 'real' },
+			{ type: LINETYPE.AUTONUMBER },
+			{ type: LINETYPE.ALT_START, message: 'alt' },
+			{ type: LINETYPE.ALT_ELSE, message: 'else' },
+			{ type: LINETYPE.ALT_END },
+			{ type: LINETYPE.ACTIVE_START, from: 'A' },
+			{ type: LINETYPE.ACTIVE_END, from: 'A' },
+			{ type: LINETYPE.SOLID, from: 'A', to: 'B', message: 'real' },
 		] as unknown as Message[]
 
 		expect(countSequenceEvents(messages)).toBe(1)
@@ -1084,7 +1085,7 @@ describe('mindmapToBlueprint', () => {
 	})
 
 	it('maps mindmap node types to correct geo shapes', () => {
-		const TYPES = { DEFAULT: 0, ROUNDED_RECT: 1, RECT: 2, CIRCLE: 3, CLOUD: 4, BANG: 5, HEXAGON: 6 }
+		const TYPES = MERMAID_MINDMAP_NODE_TYPE
 		const layout = mindmapLayout([
 			node('0', 0, 0, 100, 50),
 			node('1', -300, 100, 80, 40),
@@ -1118,12 +1119,13 @@ describe('mindmapToBlueprint', () => {
 	})
 
 	it('uses circle type to equalize width and height', () => {
-		const CIRCLE = 3
 		const layout = mindmapLayout([node('0', 0, 0, 100, 50), node('1', 200, 0, 60, 80)])
 		const tree = mindmapNode(0, 'Root', {
 			isRoot: true,
 			level: 0,
-			children: [mindmapNode(1, 'Round', { type: CIRCLE, level: 1, section: 0 })],
+			children: [
+				mindmapNode(1, 'Round', { type: MERMAID_MINDMAP_NODE_TYPE.CIRCLE, level: 1, section: 0 }),
+			],
 		})
 
 		const bp = mindmapToBlueprint(layout, tree, emptySvg)
