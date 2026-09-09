@@ -1,6 +1,4 @@
 app = "__APP_NAME"
-# Bump this number to force a redeploy of this app when nothing else changed, for example after
-# the base image was re-tagged under the same version. See flyDeployGate.ts. deploy marker: 1
 primary_region = "fra"
 kill_timeout = "__KILL_TIMEOUT"
 
@@ -54,6 +52,6 @@ OTEL_RESOURCE_ATTRIBUTES = "service.name=zero-vs,service.namespace=dotcom,deploy
 ZERO_LITESTREAM_CONFIG_PATH = "/etc/litestream.yml"
 ZERO_LITESTREAM_BACKUP_URL = "s3://__ZERO_R2_BUCKET_NAME/__BACKUP_PATH"
 ZERO_LITESTREAM_ENDPOINT = "__ZERO_R2_ENDPOINT"
-# Stamped by deploy-dotcom.ts with the hash of every input that shaped this deploy, so the next run
-# can tell whether the running machines already match and skip the deploy.
+# Read back by flyDeployGate.ts to skip a deploy whose inputs are unchanged. Bump the marker to
+# force one: marker 1
 TLDRAW_DEPLOY_INPUT_HASH = "__DEPLOY_INPUT_HASH"

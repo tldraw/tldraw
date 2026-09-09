@@ -102,6 +102,7 @@ const env = makeEnv([
 	'PLAIN_WORKSPACE_ID',
 	'DEPLOY_ZERO',
 	'ZERO_ADMIN_PASSWORD',
+	'ZERO_FORCE_DEPLOY',
 	'ZERO_R2_ENDPOINT',
 	'ZERO_R2_BUCKET_NAME',
 	'ZERO_R2_ACCESS_KEY_ID',
@@ -734,17 +735,19 @@ function renderFlyioToml(appName: string): string {
 		.replaceAll('__SINGLE_CHANGE_MAX_CONNS', String(zeroConns.single.change))
 }
 
-async function ensureFlyApp(appName: string, existingApps: string) {
-	if (existingApps.indexOf(appName) === -1) {
+async function ensureFlyApp(appName: string, appsListOutput: string) {
+	if (appsListOutput.indexOf(appName) === -1) {
 		await exec('flyctl', ['app', 'create', appName, '-o', 'tldraw-gb-ltd'], {
 			pwd: zeroCacheFolder,
 		})
 	}
 }
 
-// Deploys the app unless its running machines were produced by exactly these inputs. Every
-// `flyctl deploy` rebuilds the image and replaces every machine, which bounces every connected Zero
-// client, and most dotcom deploys don't touch zero-cache at all. See flyDeployGate.ts.
+// Most dotcom deploys don't touch zero-cache; see flyDeployGate.ts for why redeploying anyway
+// hurts. The gate compares this run's inputs to the stamp on the machines, not to the machines'
+// actual state, so a change made out of band (`fly secrets set`, `fly scale`) stays unreconciled
+// until an input changes. Set the ZERO_FORCE_DEPLOY variable on the GitHub environment to push a
+// deploy through regardless.
 async function deployFlyAppIfChanged({
 	appName,
 	configFile,
@@ -756,13 +759,14 @@ async function deployFlyAppIfChanged({
 }) {
 	const hash = hashFlyDeployInputs(inputs)
 	const deployedHash = await getDeployedInputHash(appName)
-	if (deployedHash === hash) {
+	const forced = env.ZERO_FORCE_DEPLOY === 'true'
+	if (deployedHash === hash && !forced) {
 		nicelog(`${appName}: deploy inputs unchanged (${hash.slice(0, 12)}), skipping fly deploy`)
 		await discord.message(`${appName}: deploy inputs unchanged, skipping fly deploy`)
 		return
 	}
 	nicelog(
-		`${appName}: deploy inputs changed (${deployedHash?.slice(0, 12) ?? 'none'} -> ${hash.slice(0, 12)})`
+		`${appName}: deploying (${deployedHash?.slice(0, 12) ?? 'no stamp'} -> ${hash.slice(0, 12)}${forced ? ', forced' : ''})`
 	)
 	fs.writeFileSync(
 		path.join(zeroCacheFolder, configFile),
@@ -770,7 +774,11 @@ async function deployFlyAppIfChanged({
 		'utf-8'
 	)
 	if (inputs.dockerfile) {
-		fs.writeFileSync(path.join(zeroCacheFolder, 'Dockerfile'), inputs.dockerfile.content, 'utf-8')
+		fs.writeFileSync(
+			path.join(inputs.dockerfile.contextDir, 'Dockerfile'),
+			inputs.dockerfile.content,
+			'utf-8'
+		)
 	}
 	await exec('flyctl', ['deploy', '-a', appName, '-c', configFile], { pwd: zeroCacheFolder })
 }
@@ -861,20 +869,6 @@ function renderDockerfile(): string {
 	return fs.readFileSync(dockerfileTemplate, 'utf-8').replace('__ZERO_VERSION', zeroVersion)
 }
 
-function zeroFlySecrets(): string[] {
-	return [
-		`ZERO_UPSTREAM_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
-		`ZERO_CVR_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
-		`ZERO_CHANGE_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
-		`ZERO_ADMIN_PASSWORD=${env.ZERO_ADMIN_PASSWORD}`,
-		// Zero uses the AWS SDK to talk to R2 (S3-compatible), so it expects AWS_* env vars
-		`AWS_ACCESS_KEY_ID=${env.ZERO_R2_ACCESS_KEY_ID}`,
-		`AWS_SECRET_ACCESS_KEY=${env.ZERO_R2_SECRET_ACCESS_KEY}`,
-		`OTEL_EXPORTER_OTLP_ENDPOINT=${env.ZERO_OTEL_EXPORTER_OTLP_ENDPOINT}`,
-		`OTEL_EXPORTER_OTLP_HEADERS=${env.ZERO_OTEL_EXPORTER_OTLP_HEADERS}`,
-	]
-}
-
 async function stageZeroFlySecrets(appName: string, secrets: string[]) {
 	await exec('flyctl', ['secrets', 'set', '--stage', ...secrets, '-a', appName], {
 		pwd: zeroCacheFolder,
@@ -888,7 +882,17 @@ async function deployZeroViaFlyIoMultiNode() {
 
 	const apps = await exec('flyctl', ['apps', 'list', '-o', 'tldraw-gb-ltd'])
 	const backupPath = previewId ?? env.TLDRAW_ENV
-	const secrets = zeroFlySecrets()
+	const secrets = [
+		`ZERO_UPSTREAM_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
+		`ZERO_CVR_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
+		`ZERO_CHANGE_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
+		`ZERO_ADMIN_PASSWORD=${env.ZERO_ADMIN_PASSWORD}`,
+		// Zero uses the AWS SDK to talk to R2 (S3-compatible), so it expects AWS_* env vars
+		`AWS_ACCESS_KEY_ID=${env.ZERO_R2_ACCESS_KEY_ID}`,
+		`AWS_SECRET_ACCESS_KEY=${env.ZERO_R2_SECRET_ACCESS_KEY}`,
+		`OTEL_EXPORTER_OTLP_ENDPOINT=${env.ZERO_OTEL_EXPORTER_OTLP_ENDPOINT}`,
+		`OTEL_EXPORTER_OTLP_HEADERS=${env.ZERO_OTEL_EXPORTER_OTLP_HEADERS}`,
+	]
 
 	// Deploy replication manager first
 	await ensureFlyApp(flyioReplAppName, apps)

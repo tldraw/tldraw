@@ -2,11 +2,10 @@
 import { mergeConfig } from 'vitest/config'
 import baseConfig from '../config/vitest/node-preset'
 
-// Node env; source lives at the package root, not `src/`, so widen the include.
+// Source lives at the package root, not `src/`, so the preset's include misses it.
 export default mergeConfig(baseConfig, {
 	test: {
 		environment: 'node',
 		include: ['**/*.test.ts'],
-		exclude: ['**/node_modules/**'],
 	},
 })

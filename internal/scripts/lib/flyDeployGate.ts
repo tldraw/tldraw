@@ -8,8 +8,8 @@ import { exec } from './exec'
 // hashes those inputs, stamps the hash into the app's [env], and reads it back from the running
 // machines on the next deploy so an unchanged app is left alone.
 //
-// Not covered: a base image re-tagged under the same version. Bump the marker comment in the
-// template to force a redeploy in that case.
+// Not covered: a base image re-tagged under the same version, or a newer apk package. Bump the
+// marker in the template, or set ZERO_FORCE_DEPLOY, to redeploy in that case.
 
 export const DEPLOY_INPUT_HASH_ENV = 'TLDRAW_DEPLOY_INPUT_HASH'
 export const DEPLOY_INPUT_HASH_PLACEHOLDER = '__DEPLOY_INPUT_HASH'
@@ -17,7 +17,7 @@ export const DEPLOY_INPUT_HASH_PLACEHOLDER = '__DEPLOY_INPUT_HASH'
 export interface FlyDeployInputs {
 	/** The rendered fly config, with DEPLOY_INPUT_HASH_PLACEHOLDER still in place. */
 	config: string
-	/** The rendered Dockerfile and its build context, for apps that build an image. */
+	/** COPY/ADD sources are resolved against contextDir and hashed too. */
 	dockerfile?: { content: string; contextDir: string }
 	/**
 	 * Every value passed to `flyctl secrets set --stage`. Staged secrets only take effect on the
@@ -54,7 +54,8 @@ function addPath(hash: Hash, contextDir: string, relativePath: string) {
 		stat = statSync(absolutePath)
 	} catch {
 		throw new Error(
-			`Dockerfile copies ${relativePath} but it does not exist in the build context ${contextDir}`
+			`Dockerfile copies ${relativePath} but it does not exist in the build context ${contextDir}. ` +
+				`Only plain paths are supported: no globs, JSON-array COPY, URLs, or line continuations.`
 		)
 	}
 	if (stat.isDirectory()) {
@@ -95,26 +96,42 @@ export function stampDeployInputHash(config: string, hash: string): string {
 	return config.replaceAll(DEPLOY_INPUT_HASH_PLACEHOLDER, hash)
 }
 
+interface FlyMachine {
+	state?: string
+	checks?: { status?: string }[]
+	config?: { env?: Record<string, string | undefined> }
+}
+
 /**
  * The hash the running machines were deployed with, or null when they don't all agree on one
  * (no machines yet, a deploy that predates the stamp, or a rollout that stopped half way), so
  * that the caller deploys and converges them.
+ *
+ * A machine only counts when it is started and its checks pass. A rolling update writes the new
+ * config, stamp included, before it waits on health, and a failed check does not revert it, so
+ * without this a rollout that failed on its last machine would be skipped on the retry.
  */
 export function parseDeployedInputHash(machineListJson: string): string | null {
-	const machines = JSON.parse(machineListJson) as {
-		config?: { env?: Record<string, string | undefined> }
-	}[]
+	const machines = (JSON.parse(machineListJson) ?? []) as FlyMachine[]
 	if (machines.length === 0) return null
-	const hashes = new Set(machines.map((machine) => machine.config?.env?.[DEPLOY_INPUT_HASH_ENV]))
+	const hashes = new Set<string | undefined>()
+	for (const machine of machines) {
+		const healthy =
+			machine.state === 'started' &&
+			(machine.checks ?? []).every((check) => check.status === 'passing')
+		hashes.add(healthy ? machine.config?.env?.[DEPLOY_INPUT_HASH_ENV] : undefined)
+	}
 	if (hashes.size !== 1) return null
 	const [hash] = hashes
 	return hash ?? null
 }
 
 export async function getDeployedInputHash(appName: string): Promise<string | null> {
-	const json = await exec('flyctl', ['machine', 'list', '-a', appName, '--json'], {
-		// The machine config echoes the app's [env]; keep it out of the deploy log.
-		processStdoutLine: () => {},
+	// Collected rather than logged: on the single-node app [env] holds ZERO_ADMIN_PASSWORD and the
+	// DB connection strings. Only stdout is parsed, so a flyctl warning on stderr can't break it.
+	const stdout: string[] = []
+	await exec('flyctl', ['machine', 'list', '-a', appName, '--json'], {
+		processStdoutLine: (line) => stdout.push(line),
 	})
-	return parseDeployedInputHash(json)
+	return parseDeployedInputHash(stdout.join('\n'))
 }

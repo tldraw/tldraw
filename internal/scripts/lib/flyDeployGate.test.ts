@@ -105,22 +105,43 @@ describe('stampDeployInputHash', () => {
 })
 
 describe('parseDeployedInputHash', () => {
-	const machine = (hash: string | undefined, state = 'started') => ({
-		id: 'm',
+	const machine = (
+		hash: string | undefined,
+		{ state = 'started', checks = ['passing'] }: { state?: string; checks?: string[] } = {}
+	) => ({
 		state,
+		checks: checks.map((status) => ({ name: 'keepalive', status })),
 		config: { env: hash === undefined ? {} : { [DEPLOY_INPUT_HASH_ENV]: hash } },
 	})
 
-	it('returns the hash when every machine carries the same one', () => {
+	it('returns the hash when every machine is healthy and carries the same one', () => {
 		expect(parseDeployedInputHash(JSON.stringify([machine('abc'), machine('abc')]))).toBe('abc')
 	})
 
 	it('returns null for an app with no machines', () => {
 		expect(parseDeployedInputHash('[]')).toBe(null)
+		expect(parseDeployedInputHash('null')).toBe(null)
 	})
 
-	it('returns null when machines disagree or predate the stamp, so the deploy converges them', () => {
+	it('returns null when machines predate the stamp, so the first deploy after the change runs', () => {
+		expect(parseDeployedInputHash(JSON.stringify([machine(undefined), machine(undefined)]))).toBe(
+			null
+		)
+	})
+
+	it('returns null when machines disagree, so the deploy converges them', () => {
 		expect(parseDeployedInputHash(JSON.stringify([machine('abc'), machine('def')]))).toBe(null)
 		expect(parseDeployedInputHash(JSON.stringify([machine('abc'), machine(undefined)]))).toBe(null)
+	})
+
+	it('does not trust a stamp on a machine that is stopped or failing its checks', () => {
+		expect(
+			parseDeployedInputHash(JSON.stringify([machine('abc'), machine('abc', { state: 'stopped' })]))
+		).toBe(null)
+		expect(
+			parseDeployedInputHash(
+				JSON.stringify([machine('abc'), machine('abc', { checks: ['passing', 'critical'] })])
+			)
+		).toBe(null)
 	})
 })
