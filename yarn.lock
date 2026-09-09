@@ -12026,7 +12026,6 @@ __metadata:
     sqlite3: "npm:^5.1.7"
     tailwind-merge: "npm:^2.6.0"
     tailwindcss: "npm:^3.4.17"
-    tldraw: "workspace:*"
     tsx: "npm:^4.19.2"
     typescript: "npm:^7.0.2"
     ws: "npm:^8.18.0"
