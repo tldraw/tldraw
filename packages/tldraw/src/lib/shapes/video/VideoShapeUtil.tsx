@@ -116,18 +116,21 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		const asset = this.editor.getAsset<TLAsset>(props.assetId)
 		if (!asset) return null
 
-		const src = await videoSvgExportCache
-			.get(asset, async () => {
-				const assetUrl = await ctx.resolveAssetUrl(asset.id, props.w)
-				if (!assetUrl) return null
-				const video = await MediaHelpers.loadVideo(assetUrl, this.editor.getContainerDocument())
-				return await MediaHelpers.getVideoFrameAsDataUrl(video, 0)
-			})
-			.catch((error) => {
-				// Don't memoize a failure: the next export should retry for this asset.
-				videoSvgExportCache.items.delete(asset)
-				throw error
-			})
+		const promise = videoSvgExportCache.get(asset, async () => {
+			const assetUrl = await ctx.resolveAssetUrl(asset.id, props.w)
+			if (!assetUrl) return null
+			const video = await MediaHelpers.loadVideo(assetUrl, this.editor.getContainerDocument())
+			return await MediaHelpers.getVideoFrameAsDataUrl(video, 0)
+		})
+		const src = await promise.catch((error) => {
+			// A failure must not stay memoized, or every later export of this asset fails too. Only
+			// evict our own entry: a concurrent export may have started a fresh one. Skip the video
+			// rather than rejecting: toSvg rejections are not caught by the exporter, which then
+			// waits out the export delay and emits an SVG with no shapes at all.
+			if (videoSvgExportCache.items.get(asset) === promise) videoSvgExportCache.items.delete(asset)
+			console.error(`Could not export video ${asset.id}`, error)
+			return null
+		})
 
 		if (!src) return null
 

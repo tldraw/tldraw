@@ -231,34 +231,34 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		const { w } = getUncroppedSize(shape.props, props.crop)
 
-		const src = await imageSvgExportCache
-			.get(asset, async () => {
-				let src = await ctx.resolveAssetUrl(asset.id, w)
-				if (!src) return null
-				if (
-					src.startsWith('blob:') ||
-					src.startsWith('http') ||
-					src.startsWith('/') ||
-					src.startsWith('./')
-				) {
-					// If it's a remote image, we need to fetch it and convert it to a data URI
-					src = (await getDataURIFromURL(src)) || ''
-				}
+		const promise = imageSvgExportCache.get(asset, async () => {
+			let src = await ctx.resolveAssetUrl(asset.id, w)
+			if (!src) return null
+			if (
+				src.startsWith('blob:') ||
+				src.startsWith('http') ||
+				src.startsWith('/') ||
+				src.startsWith('./')
+			) {
+				// If it's a remote image, we need to fetch it and convert it to a data URI
+				src = (await getDataURIFromURL(src)) || ''
+			}
 
-				// If it's animated then we need to get the first frame
-				if (getIsAnimated(this.editor, asset.id)) {
-					const { promise } = getFirstFrameOfAnimatedImage(src)
-					src = await promise
-				}
-				return src
-			})
-			.catch(() => {
-				// Don't memoize a failure (e.g. a CORS-blocked fetch): the next export should retry
-				// instead of failing forever for this asset. Skip the image rather than failing the
-				// whole export, as the unresolvable-url path above does.
-				imageSvgExportCache.items.delete(asset)
-				return null
-			})
+			// If it's animated then we need to get the first frame
+			if (getIsAnimated(this.editor, asset.id)) {
+				const { promise } = getFirstFrameOfAnimatedImage(src)
+				src = await promise
+			}
+			return src
+		})
+		const src = await promise.catch((error) => {
+			// A failure (e.g. a CORS-blocked fetch) must not stay memoized, or every later export of
+			// this asset fails too. Only evict our own entry: a concurrent export may have started a
+			// fresh one in the meantime. Skip the image rather than failing the whole export.
+			if (imageSvgExportCache.items.get(asset) === promise) imageSvgExportCache.items.delete(asset)
+			console.error(`Could not export image ${asset.id}`, error)
+			return null
+		})
 
 		if (!src) return null
 
@@ -643,7 +643,10 @@ function getFirstFrameOfAnimatedImage(url: string) {
 			ctx.drawImage(image, 0, 0)
 			resolve(canvas.toDataURL())
 		}
-		image.onerror = () => reject(new Error(`Could not load image: ${url}`))
+		image.onerror = () => {
+			if (cancelled) return
+			reject(new Error(`Could not load image: ${url}`))
+		}
 		image.crossOrigin = 'anonymous'
 		image.src = url
 	})
