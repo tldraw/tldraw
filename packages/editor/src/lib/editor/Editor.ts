@@ -2459,8 +2459,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Ok, now score that subset of shapes.
 		const lowestScoringShape = minBy(shapesInDirection, ({ center }) => {
-			// Distance is the primary weighting factor.
-			const distance = Vec.Dist2(currentCenter, center)
+			// Linear, not squared: the off-axis and diagonal penalties below are page units too, and
+			// squared distance swamps them, so a nearer diagonal shape beats an aligned one.
+			const distance = Vec.Dist(currentCenter, center)
 
 			// Distance along the primary axis.
 			const dirProp = ['left', 'right'].includes(direction) ? 'x' : 'y'
@@ -2470,9 +2471,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const offProp = ['left', 'right'].includes(direction) ? 'y' : 'x'
 			const offAxisDeviation = Math.abs(center[offProp] - currentCenter[offProp])
 
-			// Angle in degrees
-			const angle = Math.abs(Vec.Angle(currentCenter, center) * (180 / Math.PI))
-			const angleDeviation = Math.abs(angle - directionToAngle[direction])
+			// atan2 gives -180..180, so 'up' is -90; normalize to 0..360 to match 270, and wrap the
+			// deviation so that 350 is 10 away from 'right' (0), not 350.
+			const angle = (Vec.Angle(currentCenter, center) * (180 / Math.PI) + 360) % 360
+			const rawAngleDeviation = Math.abs(angle - directionToAngle[direction])
+			const angleDeviation = Math.min(rawAngleDeviation, 360 - rawAngleDeviation)
 
 			// Calculate final score (lower is better).
 			// Weight factors to prioritize:
