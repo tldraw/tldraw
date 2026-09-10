@@ -18,6 +18,8 @@ function fromScratch(bindingsQuery: Computed<TLBinding[], unknown>) {
 		} else {
 			bindingsForFromShape.push(binding)
 		}
+		// A binding from a shape to itself belongs in that shape's array once, not twice
+		if (toId === fromId) continue
 		const bindingsForToShape = shapesToBindings.get(toId)
 		if (!bindingsForToShape) {
 			shapesToBindings.set(toId, [binding])
@@ -83,6 +85,7 @@ export function bindingsIndex(editor: Editor): Computed<TLBindingsIndex> {
 
 		function addBinding(binding: TLBinding) {
 			ensureNewArray(binding.fromId).push(binding)
+			if (binding.toId === binding.fromId) return
 			ensureNewArray(binding.toId).push(binding)
 		}
 
