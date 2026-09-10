@@ -4,10 +4,11 @@ import { join } from 'path'
 import { promisify } from 'util'
 
 const execAsync = promisify(exec)
+const MAX_REGISTRY_PUBLISH_ATTEMPTS = 3
+const REGISTRY_PUBLISH_RETRY_DELAY_MS = 10_000
 
 async function publishWithRetry(command: string) {
-	const maxAttempts = 3
-	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+	for (let attempt = 1; attempt <= MAX_REGISTRY_PUBLISH_ATTEMPTS; attempt++) {
 		try {
 			await execAsync(command)
 			return
@@ -15,13 +16,16 @@ async function publishWithRetry(command: string) {
 			const error = err as Error & { stdout?: string; stderr?: string }
 			// Version conflicts need a new package version from the calling script.
 			if (
-				attempt === maxAttempts ||
+				attempt === MAX_REGISTRY_PUBLISH_ATTEMPTS ||
 				[error.message, error.stdout, error.stderr].some((text) => text?.includes('already exists'))
 			) {
 				throw err
 			}
-			console.error(`Publish attempt ${attempt}/${maxAttempts} failed; retrying in 10s...`, err)
-			await new Promise((resolve) => setTimeout(resolve, 10_000))
+			console.error(
+				`Publish attempt ${attempt}/${MAX_REGISTRY_PUBLISH_ATTEMPTS} failed; retrying in ${REGISTRY_PUBLISH_RETRY_DELAY_MS / 1000}s...`,
+				err
+			)
+			await new Promise((resolve) => setTimeout(resolve, REGISTRY_PUBLISH_RETRY_DELAY_MS))
 		}
 	}
 }

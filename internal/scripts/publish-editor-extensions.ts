@@ -11,8 +11,8 @@ const env = makeEnv(['VSCE_PAT', 'OVSX_PAT', 'TLDRAW_ENV'])
 
 const EXTENSION_DIR = 'apps/vscode/extension'
 const DISTRIBUTION_DIR = 'apps/vscode/extension/release'
-const MAX_RETRIES = 3
-const RETRY_DELAY_MS = 10_000
+const MAX_VERSION_CONFLICT_ATTEMPTS = 5
+const VERSION_CONFLICT_RETRY_DELAY_MS = 60_000
 
 function isVersionConflictError(err: unknown): boolean {
 	const message = err instanceof Error ? err.message : ''
@@ -101,7 +101,7 @@ async function main() {
 	// the same next version. The "already exists" rejection is authoritative, so on conflict
 	// bump past the rejected version locally instead of re-fetching the stale listing.
 	let conflictedVersion: string | undefined
-	for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+	for (let attempt = 1; attempt <= MAX_VERSION_CONFLICT_ATTEMPTS; attempt++) {
 		const version = await bumpVersion(conflictedVersion)
 
 		try {
@@ -117,12 +117,12 @@ async function main() {
 					return
 			}
 		} catch (err) {
-			if (isVersionConflictError(err) && attempt < MAX_RETRIES) {
+			if (isVersionConflictError(err) && attempt < MAX_VERSION_CONFLICT_ATTEMPTS) {
 				conflictedVersion = version
 				nicelog(
-					`Version ${version} already exists (attempt ${attempt}/${MAX_RETRIES}), bumping past it and retrying in ${RETRY_DELAY_MS / 1000}s...`
+					`Version ${version} already exists (attempt ${attempt}/${MAX_VERSION_CONFLICT_ATTEMPTS}), bumping past it and retrying in ${VERSION_CONFLICT_RETRY_DELAY_MS / 1000}s...`
 				)
-				await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS))
+				await new Promise((resolve) => setTimeout(resolve, VERSION_CONFLICT_RETRY_DELAY_MS))
 				continue
 			}
 			throw err
