@@ -1,6 +1,7 @@
 import { atom, promiseWithResolve } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { TldrawApp, ZeroLogBuffer } from './TldrawApp'
+import { TldrawApp } from './TldrawApp'
+import { ZeroLogBuffer } from './ZeroLogBuffer'
 
 function createAppStub({
 	queryComplete = Promise.resolve(),
