@@ -158,7 +158,7 @@ function ChatInner({
 				onDrop={handleDrop}
 			>
 				<div className="empty-chat-content">
-					<h1 className="empty-chat-title">How can I help?</h1>
+					<h1 className="empty-chat-title">What can I help with?</h1>
 					<div className="centered-input">
 						<ChatInput
 							onSendMessage={handleSendMessage}
