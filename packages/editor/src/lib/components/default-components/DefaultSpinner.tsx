@@ -1,7 +1,10 @@
 import classNames from 'classnames'
 
+/** @public */
+export type TLSpinnerProps = React.SVGProps<SVGSVGElement>
+
 /** @public @react */
-export function DefaultSpinner(props: React.SVGProps<SVGSVGElement>) {
+export function DefaultSpinner(props: TLSpinnerProps) {
 	return (
 		<svg
 			width={16}

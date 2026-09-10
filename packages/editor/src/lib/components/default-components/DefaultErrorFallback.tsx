@@ -13,13 +13,21 @@ import { ErrorBoundary } from '../ErrorBoundary'
 const BASE_ERROR_URL = 'https://github.com/tldraw/tldraw/issues/new'
 
 /** @public */
-export type TLErrorFallbackComponent = ComponentType<{ error: unknown; editor?: Editor }>
+export interface TLErrorFallbackProps {
+	/** The error that was caught. */
+	error: unknown
+	/**
+	 * The editor the error happened in, if there is one. When set, the fallback follows its dark
+	 * mode setting and tries to render its canvas behind the error dialog.
+	 */
+	editor?: Editor
+}
+
+/** @public */
+export type TLErrorFallbackComponent = ComponentType<TLErrorFallbackProps>
 
 /** @public @react */
-export const DefaultErrorFallback: TLErrorFallbackComponent = function DefaultErrorFallback({
-	error,
-	editor,
-}) {
+export function DefaultErrorFallback({ error, editor }: TLErrorFallbackProps) {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [shouldShowError, setShouldShowError] = useState(process.env.NODE_ENV === 'development')
 	const [didCopy, setDidCopy] = useState(false)

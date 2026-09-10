@@ -106,11 +106,7 @@ export interface TldrawEditorWithoutStoreProps extends TLStoreBaseOptions {
 /** @public */
 export type TldrawEditorStoreProps = TldrawEditorWithStoreProps | TldrawEditorWithoutStoreProps
 
-/**
- * Props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components.
- *
- * @public
- **/
+/** @public */
 export type TldrawEditorProps = TldrawEditorBaseProps & TldrawEditorStoreProps
 
 /**
@@ -284,7 +280,13 @@ const EMPTY_TOOLS_ARRAY = [] as const
 /** @internal */
 export const TL_CONTAINER_CLASS = 'tl-container'
 
-/** @public @react */
+/**
+ * The editor component without any of the default shapes, tools, or UI. It renders a canvas with
+ * the shape utils, binding utils, tools, and components you pass in; the `Tldraw` component in the
+ * `tldraw` package wraps it with those defaults.
+ *
+ * @public @react
+ */
 export const TldrawEditor = memo(function TldrawEditor({
 	store,
 	components,
