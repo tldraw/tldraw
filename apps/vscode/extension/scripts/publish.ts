@@ -14,7 +14,7 @@ async function publishWithRetry(command: string) {
 			return
 		} catch (err) {
 			const error = err as Error & { stdout?: string; stderr?: string }
-			// Version conflicts need a new package version from the calling script.
+			// Marketplace version conflicts need a new package version from the calling script.
 			if (
 				attempt === MAX_REGISTRY_PUBLISH_ATTEMPTS ||
 				[error.message, error.stdout, error.stderr].some((text) => text?.includes('already exists'))
@@ -52,8 +52,10 @@ async function publishToOpenVSX(preRelease: boolean) {
 	const vsixPath = getVsixPath()
 	// eslint-disable-next-line no-console
 	console.log('Publishing to Open VSX...')
-	// OVSX_PAT is read from environment variable by ovsx CLI
-	await publishWithRetry(`npx ovsx publish${preRelease ? ' --pre-release' : ''} ${vsixPath}`)
+	// An upload can succeed even if its response is lost; retrying must accept that version.
+	await publishWithRetry(
+		`npx ovsx publish --skip-duplicate${preRelease ? ' --pre-release' : ''} ${vsixPath}`
+	)
 	// eslint-disable-next-line no-console
 	console.log('Successfully published to Open VSX')
 }
