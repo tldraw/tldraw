@@ -1,5 +1,5 @@
 import { useValue } from '@tldraw/state-react'
-import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useMaybeEditor } from '../hooks/useEditor'
 import { LicenseManager } from './LicenseManager'
 
@@ -50,9 +50,19 @@ export function LicenseProvider({
 	// handed a manager that validated the old key.
 	const licenseManager = useMemo(() => new LicenseManager(licenseKey), [licenseKey])
 	const licenseState = useValue(licenseManager.state)
-	// The manager whose grace period ran out, so a new key starts with the editor shown again.
+	// The manager whose LICENSE_TIMEOUT elapsed; compared by identity so a new key un-gates the editor.
 	const [gatedManager, setGatedManager] = useState<LicenseManager | null>(null)
 	const showEditor = gatedManager !== licenseManager
+
+	// Dispose only the replaced manager, never on cleanup: strict mode re-runs effects with the
+	// same manager, and disposing it there would silence the live one.
+	const previousManager = useRef<LicenseManager | null>(null)
+	useEffect(() => {
+		if (previousManager.current && previousManager.current !== licenseManager) {
+			previousManager.current.dispose()
+		}
+		previousManager.current = licenseManager
+	}, [licenseManager])
 
 	// When license expires or no license in production, show for 5 seconds then hide
 	useEffect(() => {

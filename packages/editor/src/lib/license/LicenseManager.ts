@@ -128,6 +128,7 @@ export class LicenseManager {
 		...NO_FEATURES,
 	})
 	public verbose = true
+	private isDisposed = false
 
 	constructor(licenseKey: string | undefined, testPublicKey?: string) {
 		this.isTest = process.env.NODE_ENV === 'test'
@@ -145,6 +146,9 @@ export class LicenseManager {
 
 		this.getLicenseFromKey(licenseKey)
 			.then((result) => {
+				// replaced by a manager for a newer key: this one's messages, tracking ping and state
+				// would describe a key the app no longer uses
+				if (this.isDisposed) return
 				const licenseState = getLicenseState(
 					result,
 					(messages: string[]) => this.outputMessages(messages),
@@ -161,9 +165,15 @@ export class LicenseManager {
 				})
 			})
 			.catch((error) => {
+				if (this.isDisposed) return
 				console.error('License validation failed:', error)
 				this.state.set('unlicensed')
 			})
+	}
+
+	/** Ignore the pending validation: nothing is logged, tracked or set once the manager is replaced. */
+	dispose() {
+		this.isDisposed = true
 	}
 
 	/**
