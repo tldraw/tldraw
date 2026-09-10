@@ -6,6 +6,7 @@ import {
 	MeasureContext,
 } from '@tldraw/rich-text-layout'
 import { createTldrawTextMeasurer, TldrawTextMeasurer } from './createTldrawTextMeasurer'
+import { tipTapDefaultExtensions } from './richText'
 
 /**
  * The layout capability required by native SVG export, independent of shape measurement.
@@ -30,7 +31,8 @@ function getManager(editor: Editor) {
 
 /**
  * Supply the layout provider for native SVG text export. The caller owns the provider and its
- * fonts; export does not dispose it. Returns a function that removes this registration.
+ * fonts; export does not dispose it. The provider must handle any custom rich text extensions.
+ * Returns a function that removes this registration.
  * @public
  */
 export function setNativeTextExportMeasurer(
@@ -42,7 +44,7 @@ export function setNativeTextExportMeasurer(
 }
 
 /** @internal */
-export function getExportTextMeasurer(editor: Editor): Promise<TLNativeTextExportMeasurer> {
+export function getExportTextMeasurer(editor: Editor): Promise<TLNativeTextExportMeasurer | null> {
 	return getManager(editor).getMeasurer()
 }
 
@@ -80,9 +82,12 @@ class NativeTextExportManager extends EditorManager {
 			if (this.provider === registration) this.provider = undefined
 		}
 	}
-	getMeasurer(): Promise<TLNativeTextExportMeasurer> {
+	getMeasurer(): Promise<TLNativeTextExportMeasurer | null> {
 		if (this.disposed) return Promise.reject(new Error('Text export manager is disposed'))
 		if (this.provider) return Promise.resolve(this.provider.measurer)
+		const extensions = this.editor.getTextOptions().tipTapConfig?.extensions
+		// Node classification cannot reproduce custom extensions' HTML and CSS.
+		if (extensions && extensions !== tipTapDefaultExtensions) return Promise.resolve(null)
 		if (this.pending) return this.pending
 		const pending = this.createMeasurer().catch((error) => {
 			if (this.pending === pending) this.reset()

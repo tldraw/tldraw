@@ -10,8 +10,8 @@ import { FontMetrics } from '../measure/types'
 export interface LayoutProfile {
 	/**
 	 * Whether preserved trailing spaces (`white-space: pre-wrap`) count toward the max-content
-	 * width of a block. They hang past the line's end edge in every engine; Chromium still sizes
-	 * a `width: max-content` box to include them.
+	 * width of a block. Chromium includes them when sizing a `width: max-content` box, even
+	 * when they hang past the end edge at a soft wrap.
 	 */
 	trailingSpacesInMaxContent: boolean
 	/** Baseline shift for `vertical-align: sub`, as a fraction of the parent font size. */
@@ -28,6 +28,14 @@ export interface LayoutProfile {
 	 * Chromium keeps the fraction (see https://github.com/tldraw/tldraw/issues/8970).
 	 */
 	roundLineBoxes: boolean
+	/**
+	 * Whether an inline box's half-leading is floored to a whole pixel before it is added above
+	 * the ascent, with the remainder going below the descent (Blink's `CalculateLeadingSpace`).
+	 * A single-font line is still exactly `line-height` tall either way, but the baseline sits
+	 * up to half a pixel higher, and a line mixing fonts whose ascent + descent differ in parity
+	 * is up to a pixel shorter than the unfloored union of its boxes.
+	 */
+	floorHalfLeading: boolean
 	/**
 	 * Whether a line's width is the width of the whole shaped line (Chromium) or the sum of its
 	 * separately shaped words (WebKit). They differ for fonts with kerning or contextual
@@ -52,6 +60,7 @@ export const chromiumLayoutProfile: LayoutProfile = {
 	superscriptShift: 1 / 3,
 	normalLineHeight: (metrics) => metrics.ascent + metrics.descent,
 	roundLineBoxes: false,
+	floorHalfLeading: true,
 	shapeAcrossWordBoundaries: true,
 }
 
@@ -65,6 +74,8 @@ export const chromiumLayoutProfile: LayoutProfile = {
 export const webkitLayoutProfile: LayoutProfile = {
 	...chromiumLayoutProfile,
 	roundLineBoxes: true,
+	// Not measured against WebKit; its line boxes are rounded as a whole instead.
+	floorHalfLeading: false,
 	shapeAcrossWordBoundaries: false,
 }
 

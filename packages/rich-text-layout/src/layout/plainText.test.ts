@@ -86,7 +86,8 @@ describe('layoutPlainText', () => {
 	it('preserves multiple spaces in pre-wrap and counts trailing spaces in max-content width', () => {
 		const layout = layoutPlainText('a  b ', { style })
 		expect(layout.width).toBe(50)
-		expect(layout.lines[0].width).toBe(40)
+		// The trailing space ends the paragraph, so it stays in the line rather than hanging.
+		expect(layout.lines[0].width).toBe(50)
 	})
 
 	it('collapses whitespace in normal mode', () => {

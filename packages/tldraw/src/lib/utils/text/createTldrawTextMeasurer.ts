@@ -47,7 +47,8 @@ export interface TldrawTextMeasurerOptions {
 	measureContext: MeasureContext
 	/**
 	 * The editor's TipTap extensions, used to classify nodes outside the default set. Defaults to
-	 * the StarterKit node set tldraw ships.
+	 * the StarterKit node set tldraw ships. This only classifies nodes; it does not reproduce
+	 * custom HTML, CSS, marks, or node views.
 	 */
 	extensions?: Extensions
 	/** Colours used when the layout is rendered; measurement doesn't depend on them. */
@@ -182,6 +183,9 @@ function registryFromExtensions(extensions: Extensions | undefined): NodeRegistr
  * (`tldraw_draw`, `tldraw_sans`, `tldraw_serif`, `tldraw_mono`), and `installMeasureContext`
  * must have resolved before the editor measures anything.
  *
+ * Custom rich text extensions or CSS should use `textMeasurer="dom"` instead. This explicit
+ * headless measurer has no DOM fallback and only implements the built-in rich text styles.
+ *
  * @public
  */
 export function createTldrawTextMeasurer(options: TldrawTextMeasurerOptions): TldrawTextMeasurer {
@@ -295,6 +299,7 @@ export function createTldrawTextMeasurer(options: TldrawTextMeasurerOptions): Tl
 		opts: TLMeasureTextSpanOpts
 	): { text: string; box: BoxModel }[] {
 		if (text === '') return []
+		const normalizedText = normalizeTextForDom(text)
 		const truncate = opts.overflow === 'truncate-ellipsis' || opts.overflow === 'truncate-clip'
 		const elementWidth = Math.ceil(opts.width - opts.padding * 2)
 		const layoutOpts = (width: number): TldrawRichTextLayoutOptions => ({
@@ -330,6 +335,18 @@ export function createTldrawTextMeasurer(options: TldrawTextMeasurerOptions): Tl
 							h: m.ascent + m.descent,
 						},
 					})
+					// Layout consumes forced breaks; span callers still need their source characters.
+					if (normalizedText[f.source.to] === '\n') {
+						const last = spans[spans.length - 1]
+						if (f.kind === 'space') {
+							last.text += '\n'
+						} else {
+							spans.push({
+								text: '\n',
+								box: { ...last.box, x: last.box.x + last.box.w, w: 0 },
+							})
+						}
+					}
 				}
 			}
 			return spans

@@ -272,6 +272,7 @@ export function layoutPlainText(text: string, options?: PlainTextLayoutOptions):
 
 // @public
 export interface LayoutProfile {
+    floorHalfLeading: boolean;
     normalLineHeight(metrics: FontMetrics, fontSize: number): number;
     roundLineBoxes: boolean;
     shapeAcrossWordBoundaries: boolean;
