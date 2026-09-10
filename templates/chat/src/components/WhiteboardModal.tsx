@@ -77,7 +77,7 @@ export function WhiteboardModal({
 	const [error, setError] = useState<string | null>(null)
 	const saving = useRef(false)
 	const didAccept = useRef(false)
-	const pen = useRef<WhiteboardPen>({ color: '#ffffff', width: 4 })
+	const pen = useRef<WhiteboardPen>({ color: '#0d0d0d', width: 4 })
 
 	useEffect(() => {
 		const overflow = document.body.style.overflow
@@ -104,11 +104,10 @@ export function WhiteboardModal({
 		const wasReadonly = editor.getInstanceState().isReadonly
 		editor.updateInstanceState({ isReadonly: true })
 		try {
-			// A dark export background keeps white strokes visible in the attached image.
 			const image = await editor.toImageDataUrl(shapes, {
 				format: 'png',
 				background: true,
-				darkMode: true,
+				darkMode: false,
 				padding: 24,
 			})
 			didAccept.current = true
@@ -169,13 +168,13 @@ export function WhiteboardModal({
 					snapshot={initialSnapshot}
 					shapeUtils={whiteboardShapeUtils}
 					themes={whiteboardThemes}
-					colorScheme="dark"
+					colorScheme="light"
 					autoFocus
 					onMount={(editor) => {
 						setEditor(editor)
-						editor.user.updateUserPreferences({ colorScheme: 'dark' })
+						editor.user.updateUserPreferences({ colorScheme: 'light' })
 						editor.updateInstanceState({ isGridMode: false })
-						editor.setStyleForNextShapes(DefaultColorStyle, 'white')
+						editor.setStyleForNextShapes(DefaultColorStyle, 'black')
 						editor.getInitialMetaForShape = (shape) =>
 							supportsWhiteboardPen(shape)
 								? { strokeColor: pen.current.color, strokeWidth: pen.current.width }

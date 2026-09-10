@@ -10,6 +10,7 @@ import { useScrollToBottom } from '../hooks/useScrollToBottom'
 import { ChatInput } from './ChatInput'
 import { ImageClickTarget } from './ChatMessage'
 import { ClearChatIcon } from './ClearChatIcon'
+import { ComposerIcon } from './ComposerIcon'
 import { MessageList } from './MessageList'
 import { TldrawProviderMetadata, WhiteboardImage } from './WhiteboardModal'
 
@@ -158,7 +159,7 @@ function ChatInner({
 				onDrop={handleDrop}
 			>
 				<div className="empty-chat-content">
-					<h1 className="empty-chat-title">How can I help?</h1>
+					<h1 className="empty-chat-title">Where should we begin?</h1>
 					<div className="centered-input">
 						<ChatInput
 							onSendMessage={handleSendMessage}
@@ -167,6 +168,20 @@ function ChatInner({
 							state={chatInputState}
 							dispatch={chatInputDispatch}
 						/>
+					</div>
+					<div className="chat-suggestions" aria-hidden="true">
+						<div>
+							<ComposerIcon name="image" />
+							Create an image or sticker
+						</div>
+						<div>
+							<ComposerIcon name="write" />
+							Write or edit
+						</div>
+						<div>
+							<ComposerIcon name="web" />
+							Search the web
+						</div>
 					</div>
 				</div>
 			</div>

@@ -12,14 +12,14 @@ export const whiteboardThemes = {
 	default: {
 		...DEFAULT_THEME,
 		colors: {
-			light: { ...DEFAULT_THEME.colors.light, background: '#212121' },
-			dark: { ...DEFAULT_THEME.colors.dark, background: '#212121' },
+			light: { ...DEFAULT_THEME.colors.light, background: '#fcfcfc' },
+			dark: { ...DEFAULT_THEME.colors.dark, background: '#fcfcfc' },
 		},
 	},
 }
 
 export const whiteboardColors = [
-	['White', '#ffffff'],
+	['Black', '#0d0d0d'],
 	['Gray', '#737986'],
 	['Brown', '#98420c'],
 	['Red', '#e52329'],

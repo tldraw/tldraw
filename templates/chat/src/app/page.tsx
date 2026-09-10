@@ -4,7 +4,7 @@ import { Chat } from '../components/Chat'
 
 export default function Home() {
 	return (
-		<div className="app-shell tl-theme__dark">
+		<div className="app-shell tl-theme__light">
 			<AppChrome />
 			<main className="app-main">
 				<Chat />
