@@ -111,6 +111,11 @@ const env = makeEnv([
 	'ZERO_OTEL_EXPORTER_OTLP_HEADERS',
 ])
 
+assert(
+	env.ZERO_FORCE_DEPLOY === 'true' || env.ZERO_FORCE_DEPLOY === 'false',
+	'ZERO_FORCE_DEPLOY must be true or false'
+)
+
 // Multinode (flyio-multinode) is for staging + production, previews use single as it is faster / cheaper
 const deployZero =
 	env.DEPLOY_ZERO === 'false'
