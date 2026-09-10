@@ -105,7 +105,7 @@ export function WhiteboardModal({
 	const saving = useRef(false)
 	const didAccept = useRef(false)
 	const isDarkMode = useIsDarkMode()
-	const pen = useRef<WhiteboardPen>({ color: isDarkMode ? '#ffffff' : '#1d1d1d', width: 4 })
+	const pen = useRef<WhiteboardPen>({ color: isDarkMode ? '#ffffff' : '#0d0d0d', width: 4 })
 
 	useEffect(() => {
 		const overflow = document.body.style.overflow

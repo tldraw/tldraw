@@ -4,6 +4,12 @@
 
 :root {
 	color-scheme: dark;
+	--chat-bubble-text: var(--chat-text);
+	--chat-message-actions: var(--chat-secondary);
+	--chat-menu-active: var(--chat-hover);
+	--chat-menu-heading: var(--chat-secondary);
+	--sketch-surface-border: var(--sketch-panel-border);
+	--sketch-picker-border: var(--sketch-panel-border);
 	--chat-panel: #2c2c2c;
 	--chat-secondary: #b5b5b5;
 	--chat-action: #fff;
@@ -52,46 +58,52 @@
 @media (prefers-color-scheme: light) {
 	:root {
 		color-scheme: light;
+		--chat-menu-heading: #666;
+		--chat-menu-active: #f5f5f5;
+		--chat-message-actions: #6f6f6f;
+		--sketch-picker-border: #efefef;
+		--sketch-surface-border: #c7c7c7;
+		--chat-bubble-text: #fff;
 		--chat-panel: #fff;
 		--chat-secondary: #5d5d5d;
 		--chat-action: #000;
 		--chat-action-hover: #333;
-		--chat-background: #ffffff;
-		--chat-surface: #ffffff;
+		--chat-background: #fcfcfc;
+		--chat-surface: #f7f7f7;
 		--chat-surface-border: #e3e3e3;
-		--chat-surface-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-		--chat-bubble: #f4f4f4;
-		--chat-hover: #ececec;
-		--chat-border: #d9d9d9;
+		--chat-surface-shadow: 0 0 0 0 transparent;
+		--chat-bubble: #000;
+		--chat-hover: #efefef;
+		--chat-border: #efefef;
 		--chat-text: #0d0d0d;
 		--chat-muted: #8f8f8f;
-		--chat-link: #2f6fe4;
-		--chat-code-background: #f4f4f4;
+		--chat-link: #2964aa;
+		--chat-code-background: #fff;
 		--chat-popover-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-		--chat-rail-background: #f9f9f9;
-		--chat-rail-border: #e6e6e6;
-		--chat-rail-text: #5d5d5d;
+		--chat-rail-background: #fcfcfc;
+		--chat-rail-border: #efefef;
+		--chat-rail-text: #0d0d0d;
 		--chat-mode-switch-text: #8f8f8f;
 		--chat-mode-switch-active-background: #ffffff;
-		--sketch-overlay: rgb(245 245 245 / 98%);
+		--sketch-overlay: rgb(0 0 0 / 6%);
 		--sketch-background: #ffffff;
 		--sketch-panel: #ffffff;
-		--sketch-panel-border: #e0e0e0;
-		--sketch-panel-shadow: 0 8px 24px rgb(0 0 0 / 12%);
-		--sketch-tl-panel: #f4f4f4;
+		--sketch-panel-border: #e3e3e3;
+		--sketch-panel-shadow: 0 8px 24px rgb(0 0 0 / 20%);
+		--sketch-tl-panel: #fff;
 		--sketch-text: #0d0d0d;
-		--sketch-muted: #6e6e6e;
-		--sketch-disabled: #b0b0b0;
-		--sketch-hover: #e8e8e8;
-		--sketch-track: #c8c8c8;
+		--sketch-muted: #5d5d5d;
+		--sketch-disabled: #adadad;
+		--sketch-hover: #efefef;
+		--sketch-track: #d4d4d4;
 		--sketch-swatch-border: rgb(0 0 0 / 15%);
-		--sketch-accept-background: #0d0d0d;
+		--sketch-accept-background: #000;
 		--sketch-accept-text: #ffffff;
 		--sketch-accept-hover: #333333;
-		--sketch-accept-disabled-background: #e3e3e3;
-		--sketch-accept-disabled-text: #a8a8a8;
-		--sketch-error-background: #fde2e2;
-		--sketch-error-text: #7a1d1d;
+		--sketch-accept-disabled-background: #efefef;
+		--sketch-accept-disabled-text: #8f8f8f;
+		--sketch-error-background: #fce8e6;
+		--sketch-error-text: #a12622;
 	}
 }
 
@@ -333,7 +345,7 @@ textarea {
 
 .user-message .message-text {
 	background: var(--chat-bubble);
-	color: var(--chat-text);
+	color: var(--chat-bubble-text);
 	padding: 10px 16px;
 	line-height: 1.5;
 }
@@ -418,7 +430,7 @@ textarea {
 }
 
 .message-text code {
-	background: var(--chat-bubble);
+	background: var(--chat-surface);
 	padding: 2px 4px;
 	border-radius: 3px;
 	font-size: 13px;
@@ -460,7 +472,7 @@ textarea {
 	display: flex;
 	gap: 12px;
 	margin-top: 12px;
-	color: var(--chat-secondary);
+	color: var(--chat-message-actions);
 }
 
 .message-actions span {
@@ -681,7 +693,7 @@ textarea {
 }
 
 .composer-menu-item--active {
-	background: var(--chat-hover);
+	background: var(--chat-menu-active);
 }
 
 .composer-menu-icon {
@@ -724,7 +736,7 @@ textarea {
 }
 
 .composer-menu-heading {
-	color: var(--chat-secondary);
+	color: var(--chat-menu-heading);
 }
 
 .chat-suggestions {
@@ -909,7 +921,7 @@ textarea {
 	width: 100%;
 	height: 100%;
 	overflow: hidden;
-	border: 1px solid var(--sketch-panel-border);
+	border: 1px solid var(--sketch-surface-border);
 	border-radius: 26px;
 	background: var(--sketch-background);
 	box-shadow: 0 4px 12px rgb(0 0 0 / 6%);
@@ -1031,7 +1043,7 @@ textarea {
 	gap: 4px;
 	padding: 8px;
 	transform: translateX(-50%);
-	border: 1px solid var(--sketch-panel-border);
+	border: 1px solid var(--sketch-picker-border);
 	border-radius: 18px;
 	background: var(--sketch-panel);
 	box-shadow: var(--sketch-panel-shadow);

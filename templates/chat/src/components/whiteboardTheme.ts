@@ -12,7 +12,7 @@ export const whiteboardThemes = {
 	default: {
 		...DEFAULT_THEME,
 		colors: {
-			light: { ...DEFAULT_THEME.colors.light, background: '#ffffff' },
+			light: { ...DEFAULT_THEME.colors.light, background: '#fcfcfc' },
 			dark: { ...DEFAULT_THEME.colors.dark, background: '#212121' },
 		},
 	},
@@ -24,7 +24,7 @@ export function getWhiteboardColors(isDarkMode: boolean) {
 }
 
 const WHITE = ['White', '#ffffff'] as const
-const BLACK = ['Black', '#1d1d1d'] as const
+const BLACK = ['Black', '#0d0d0d'] as const
 
 const whiteboardColors = [
 	['Gray', '#737986'],
