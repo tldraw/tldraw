@@ -215,13 +215,11 @@ export function whyAmIRunning() {
 function captureAncestorEpochs(child: Child, ancestorEpochs: Map<Signal<any>, number>) {
 	for (let i = 0; i < child.parents.length; i++) {
 		const parent = child.parents[i]
-		const epoch = child.parentEpochs[i]
-		ancestorEpochs.set(parent, epoch)
+		ancestorEpochs.set(parent, child.parentEpochs[i])
 		if (isComputed(parent)) {
 			captureAncestorEpochs(parent as any, ancestorEpochs)
 		}
 	}
-	return ancestorEpochs
 }
 
 type ChangeTree = { [signalName: string]: ChangeTree } | null
@@ -235,9 +233,7 @@ function collectChangedAncestors(
 		if (!ancestorEpochs.has(parent)) {
 			continue
 		}
-		const prevEpoch = ancestorEpochs.get(parent)
-		const currentEpoch = parent.lastChangedEpoch
-		if (currentEpoch !== prevEpoch) {
+		if (parent.lastChangedEpoch !== ancestorEpochs.get(parent)) {
 			if (isComputed(parent)) {
 				changeTree[parent.name] = collectChangedAncestors(parent as any, ancestorEpochs)
 			} else {
