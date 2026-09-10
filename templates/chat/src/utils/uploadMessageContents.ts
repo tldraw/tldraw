@@ -2,24 +2,16 @@ import { FileUIPart, UIMessage } from 'ai'
 import { FileHelpers } from 'tldraw'
 
 interface UploadedMetadata {
-	uploadedUrl: string
+	provider: 'openai'
+	fileId: string
 	expiresAt: string
 }
 
 const UPLOAD_METADATA_KEY = 'tldraw_uploaded'
 
-/**
- * Vercel limits us to 4.5mb uploads. We upload files to Google GenAI to avoid this limitation.
- * There's two problems with that we need to work around though:
- * 1. Google will only store files for 24 hours.
- * 2. Google will host files privately - so we can't use them to display them in the UI.
- *
- * To work around these, we process the messages into two versions:
- * 1. The messages to send to the server - these have the file data URLs replaced with uploaded versions.
- * 2. The messages we use locally - these store the upload for re-use in `providerMetadata`, but keep the originals for display or when the uploads expire.
- */
+// File IDs keep images out of repeated chat requests. Keep the originals locally for
+// display, sketch editing, and uploading again after the files expire.
 export async function uploadMessageContents(messages: UIMessage[]) {
-	const now = new Date().toISOString()
 	const messagesToSend = []
 	const messagesToSave = []
 	const promises = []
@@ -31,11 +23,11 @@ export async function uploadMessageContents(messages: UIMessage[]) {
 		for (const part of message.parts) {
 			if (part.type === 'file' && part.url.startsWith('data:')) {
 				const metadata = getUploadedMetadata(part)
-				if (metadata && metadata.expiresAt > now) {
-					partsToSend.push({ ...part, url: metadata.uploadedUrl })
+				if (metadata) {
+					partsToSend.push({ ...getPartToSend(part), url: metadata.fileId })
 					partsToSave.push(part)
 				} else {
-					const partToSend = { ...part }
+					const partToSend = getPartToSend(part)
 					const partToSave = { ...part }
 
 					const promise = (async () => {
@@ -48,17 +40,25 @@ export async function uploadMessageContents(messages: UIMessage[]) {
 							},
 						})
 
-						const data: UploadedMetadata = await response.json()
-
-						partToSend.url = data.uploadedUrl
-						if (partToSend.providerMetadata) {
-							partToSend.providerMetadata = { ...partToSend.providerMetadata }
-							delete partToSend.providerMetadata[UPLOAD_METADATA_KEY]
-							delete partToSend.providerMetadata.tldraw
+						const data: unknown = await response.json().catch(() => null)
+						if (!response.ok) {
+							throw new Error(
+								data &&
+									typeof data === 'object' &&
+									'error' in data &&
+									typeof data.error === 'string'
+									? data.error
+									: 'Could not upload the image. Please try again.'
+							)
 						}
+						if (!isUploadedMetadata(data)) {
+							throw new Error('The image upload returned an invalid file. Please try again.')
+						}
+
+						partToSend.url = data.fileId
 						partToSave.providerMetadata = {
 							...partToSave.providerMetadata,
-							[UPLOAD_METADATA_KEY]: data as any,
+							[UPLOAD_METADATA_KEY]: { ...data },
 						}
 					})()
 
@@ -67,7 +67,7 @@ export async function uploadMessageContents(messages: UIMessage[]) {
 					partsToSave.push(partToSave)
 				}
 			} else {
-				partsToSend.push(part)
+				partsToSend.push(part.type === 'file' ? getPartToSend(part) : part)
 				partsToSave.push(part)
 			}
 		}
@@ -88,5 +88,28 @@ export async function uploadMessageContents(messages: UIMessage[]) {
 }
 
 function getUploadedMetadata(part: FileUIPart): UploadedMetadata | undefined {
-	return part.providerMetadata?.[UPLOAD_METADATA_KEY] as UploadedMetadata | undefined
+	const metadata = part.providerMetadata?.[UPLOAD_METADATA_KEY]
+	return isUploadedMetadata(metadata) ? metadata : undefined
+}
+
+function isUploadedMetadata(value: unknown): value is UploadedMetadata {
+	if (!value || typeof value !== 'object') return false
+	const metadata = value as Partial<UploadedMetadata>
+	return (
+		metadata.provider === 'openai' &&
+		typeof metadata.fileId === 'string' &&
+		metadata.fileId.startsWith('file-') &&
+		typeof metadata.expiresAt === 'string' &&
+		Date.parse(metadata.expiresAt) > Date.now()
+	)
+}
+
+function getPartToSend(part: FileUIPart): FileUIPart {
+	const partToSend = { ...part }
+	if (partToSend.providerMetadata) {
+		partToSend.providerMetadata = { ...partToSend.providerMetadata }
+		delete partToSend.providerMetadata[UPLOAD_METADATA_KEY]
+		delete partToSend.providerMetadata.tldraw
+	}
+	return partToSend
 }

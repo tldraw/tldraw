@@ -1,4 +1,4 @@
-import { google } from '@ai-sdk/google'
+import { openai } from '@ai-sdk/openai'
 import { convertToModelMessages, streamText, UIMessage } from 'ai'
 
 // Allow streaming responses up to 60 seconds
@@ -8,7 +8,7 @@ export async function POST(req: Request) {
 	const { messages }: { messages: UIMessage[] } = await req.json()
 
 	const result = streamText({
-		model: google('gemini-3.7-flash'),
+		model: openai.responses(process.env.OPENAI_MODEL || 'gpt-5.6-terra'),
 		system: [
 			"You're a friendly AI chatbot.",
 			'The user can send you images, sketches and diagrams using your built-in tldraw whiteboard.',
