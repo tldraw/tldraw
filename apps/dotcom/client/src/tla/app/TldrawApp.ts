@@ -442,7 +442,6 @@ export class TldrawApp {
 		// cmd-clicked tab would burn the deadline before it gets a chance. Only count visible time,
 		// and start over on return: Zero drops the socket after five minutes hidden, so whatever was
 		// left of the budget would cover a cold reconnect only by luck.
-		let remainingMs = USER_PRELOAD_TIMEOUT_MS
 		let timeout: ReturnType<typeof setTimeout> | undefined
 		let hiddenSince = 0
 		const resumeDeadline = () => {
@@ -450,9 +449,8 @@ export class TldrawApp {
 			if (hiddenSince) {
 				hiddenMs += Date.now() - hiddenSince
 				hiddenSince = 0
-				remainingMs = USER_PRELOAD_TIMEOUT_MS
 			}
-			timeout = setTimeout(fail, remainingMs)
+			timeout = setTimeout(fail, USER_PRELOAD_TIMEOUT_MS)
 		}
 		const pauseDeadline = () => {
 			if (timeout === undefined) return

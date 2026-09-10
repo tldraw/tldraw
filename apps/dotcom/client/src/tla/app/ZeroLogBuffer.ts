@@ -7,7 +7,7 @@ const ZERO_LOG_BUFFER_LINES = 40
 const ZERO_LOG_LINE_CHARS = 250
 
 /**
- * Keeps Zero's recent info-level log lines so a bootstrap timeout can carry them to Sentry: the
+ * Keeps Zero's recent log lines so a bootstrap timeout can carry them to Sentry: the
  * connection lifecycle is only logged at info, and the console sink would print all of it.
  * Warnings and errors still reach the console (and Sentry breadcrumbs) as before.
  */
