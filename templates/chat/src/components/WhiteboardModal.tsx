@@ -23,6 +23,7 @@ import {
 	useTranslation,
 	useValue,
 } from 'tldraw'
+import { useIsDarkMode } from '../hooks/useIsDarkMode'
 import { WhiteboardControls } from './WhiteboardControls'
 import {
 	supportsWhiteboardPen,
@@ -103,7 +104,8 @@ export function WhiteboardModal({
 	const [error, setError] = useState<string | null>(null)
 	const saving = useRef(false)
 	const didAccept = useRef(false)
-	const pen = useRef<WhiteboardPen>({ color: '#0d0d0d', width: 4 })
+	const isDarkMode = useIsDarkMode()
+	const pen = useRef<WhiteboardPen>({ color: isDarkMode ? '#ffffff' : '#1d1d1d', width: 4 })
 
 	useEffect(() => {
 		const overflow = document.body.style.overflow
@@ -135,10 +137,11 @@ export function WhiteboardModal({
 		const wasReadonly = editor.getInstanceState().isReadonly
 		editor.updateInstanceState({ isReadonly: true })
 		try {
+			// Export on the background the sketch was drawn on so the strokes stay visible.
 			const image = await editor.toImageDataUrl(shapes, {
 				format: 'png',
 				background: true,
-				darkMode: false,
+				darkMode: isDarkMode,
 				padding: 24,
 			})
 			didAccept.current = true
@@ -156,12 +159,12 @@ export function WhiteboardModal({
 			saving.current = false
 			setIsSaving(false)
 		}
-	}, [editor, imageId, imageName, onAccept, onCancel])
+	}, [editor, imageId, imageName, isDarkMode, onAccept, onCancel])
 
 	// The sticky chat footer would trap the overlay beneath the window chrome.
 	return createPortal(
 		<div
-			className="modal-overlay tl-theme__dark"
+			className={`modal-overlay ${isDarkMode ? 'tl-theme__dark' : 'tl-theme__light'}`}
 			onClick={(event) => {
 				if (event.target === event.currentTarget) void handleSave()
 			}}
@@ -203,13 +206,13 @@ export function WhiteboardModal({
 					licenseKey={process.env.NEXT_PUBLIC_TLDRAW_LICENSE_KEY}
 					shapeUtils={whiteboardShapeUtils}
 					themes={whiteboardThemes}
-					colorScheme="light"
+					colorScheme={isDarkMode ? 'dark' : 'light'}
 					autoFocus
 					onMount={(editor) => {
 						setEditor(editor)
-						editor.user.updateUserPreferences({ colorScheme: 'light' })
+						editor.user.updateUserPreferences({ colorScheme: isDarkMode ? 'dark' : 'light' })
 						editor.updateInstanceState({ isGridMode: false })
-						editor.setStyleForNextShapes(DefaultColorStyle, 'black')
+						editor.setStyleForNextShapes(DefaultColorStyle, isDarkMode ? 'white' : 'black')
 						editor.getInitialMetaForShape = (shape) =>
 							supportsWhiteboardPen(shape)
 								? { strokeColor: pen.current.color, strokeWidth: pen.current.width }
