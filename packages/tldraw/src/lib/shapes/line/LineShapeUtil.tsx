@@ -167,13 +167,23 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 			return point.x === firstPoint.x && point.y === firstPoint.y
 		})
 		if (allSame) {
+			// Copy rather than mutate: createShapes spreads the partial's props shallowly, so
+			// `points` is the caller's object — on duplicate, the frozen source record's.
 			const lastKey = pointKeys[pointKeys.length - 1]
-			points[lastKey] = {
-				...points[lastKey],
-				x: points[lastKey].x + 0.1,
-				y: points[lastKey].y + 0.1,
+			return {
+				...next,
+				props: {
+					...next.props,
+					points: {
+						...points,
+						[lastKey]: {
+							...points[lastKey],
+							x: points[lastKey].x + 0.1,
+							y: points[lastKey].y + 0.1,
+						},
+					},
+				},
 			}
-			return next
 		}
 		return
 	}
