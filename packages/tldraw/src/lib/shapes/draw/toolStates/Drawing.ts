@@ -180,7 +180,6 @@ export class Drawing extends StateNode {
 		return (
 			firstPoint !== null &&
 			lastPoint !== null &&
-			firstPoint !== lastPoint &&
 			this.currentLineLength > strokeWidth * 4 * scale &&
 			Vec.DistMin(firstPoint, lastPoint, threshold)
 		)
@@ -384,6 +383,8 @@ export class Drawing extends StateNode {
 
 						this.pagePointWhereCurrentSegmentChanged = Mat.applyToPoint(transform, prevLastPoint)
 					} else {
+						this.currentLineLength += Vec.Dist(newLastPoint, newPoint)
+
 						newSegment = this.makeSegment('straight', [newLastPoint, newPoint])
 					}
 
