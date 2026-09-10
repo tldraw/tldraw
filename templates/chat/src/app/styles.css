@@ -3,108 +3,19 @@
 @import '@tldraw/commenting/commenting.css';
 
 :root {
-	color-scheme: dark;
-	--chat-bubble-text: var(--chat-text);
-	--chat-message-actions: var(--chat-secondary);
-	--chat-menu-active: var(--chat-hover);
-	--chat-menu-heading: var(--chat-secondary);
-	--sketch-surface-border: var(--sketch-panel-border);
-	--sketch-picker-border: var(--sketch-panel-border);
-	--chat-panel: #2c2c2c;
-	--chat-secondary: #b5b5b5;
-	--chat-action: #fff;
-	--chat-action-hover: #ddd;
-	--chat-background: #212121;
-	--chat-surface: #2c2c2c;
-	--chat-surface-border: transparent;
-	--chat-surface-shadow: 0 0 0 0 transparent;
-	--chat-bubble: #2c2c2c;
-	--chat-hover: #383838;
-	--chat-border: #414141;
-	--chat-text: #f5f5f5;
-	--chat-muted: #aaa;
-	--chat-link: #8ab8ff;
-	--chat-accent: #0285ff;
-	--chat-accent-hover: #0070e0;
-	--chat-code-background: #171717;
-	--chat-popover-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-	--chat-rail-background: #171717;
-	--chat-rail-border: #303030;
-	--chat-rail-text: #e5e5e5;
-	--chat-mode-switch-text: #b5b5b5;
-	--chat-mode-switch-active-background: #2c2c2c;
-	--sketch-overlay: rgb(0 0 0 / 98%);
-	--sketch-background: #212121;
-	--sketch-panel: #1b1b1b;
-	--sketch-panel-border: #3b3b3b;
-	--sketch-panel-shadow: 0 8px 24px rgb(0 0 0 / 20%);
-	--sketch-tl-panel: #1c1c1c;
-	--sketch-text: #f5f5f5;
-	--sketch-muted: #c5c5c5;
-	--sketch-disabled: #727272;
-	--sketch-hover: #292929;
-	--sketch-track: #5b5b5b;
-	--sketch-swatch-border: rgb(255 255 255 / 28%);
-	--sketch-accept-background: #f5f5f5;
-	--sketch-accept-text: #212121;
-	--sketch-accept-hover: #ddd;
-	--sketch-accept-disabled-background: #414141;
-	--sketch-accept-disabled-text: #2b2b2b;
-	--sketch-error-background: #4d2525;
-	--sketch-error-text: #fff;
+	color-scheme: light;
+	--chat-background: #fcfcfc;
+	--chat-panel: #fff;
+	--chat-surface: #f7f7f7;
+	--chat-hover: #efefef;
+	--chat-border: #efefef;
+	--chat-text: #0d0d0d;
+	--chat-secondary: #5d5d5d;
+	--chat-muted: #8f8f8f;
+	--chat-link: #2964aa;
+	--chat-action: #000;
+	--chat-action-hover: #333;
 	background: var(--chat-background);
-}
-
-@media (prefers-color-scheme: light) {
-	:root {
-		color-scheme: light;
-		--chat-menu-heading: #666;
-		--chat-menu-active: #f5f5f5;
-		--chat-message-actions: #6f6f6f;
-		--sketch-picker-border: #efefef;
-		--sketch-surface-border: #c7c7c7;
-		--chat-bubble-text: #fff;
-		--chat-panel: #fff;
-		--chat-secondary: #5d5d5d;
-		--chat-action: #000;
-		--chat-action-hover: #333;
-		--chat-background: #fcfcfc;
-		--chat-surface: #f7f7f7;
-		--chat-surface-border: #e3e3e3;
-		--chat-surface-shadow: 0 0 0 0 transparent;
-		--chat-bubble: #000;
-		--chat-hover: #efefef;
-		--chat-border: #efefef;
-		--chat-text: #0d0d0d;
-		--chat-muted: #8f8f8f;
-		--chat-link: #2964aa;
-		--chat-code-background: #fff;
-		--chat-popover-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-		--chat-rail-background: #fcfcfc;
-		--chat-rail-border: #efefef;
-		--chat-rail-text: #0d0d0d;
-		--chat-mode-switch-text: #8f8f8f;
-		--chat-mode-switch-active-background: #ffffff;
-		--sketch-overlay: rgb(0 0 0 / 6%);
-		--sketch-background: #ffffff;
-		--sketch-panel: #ffffff;
-		--sketch-panel-border: #e3e3e3;
-		--sketch-panel-shadow: 0 8px 24px rgb(0 0 0 / 20%);
-		--sketch-tl-panel: #fff;
-		--sketch-text: #0d0d0d;
-		--sketch-muted: #5d5d5d;
-		--sketch-disabled: #adadad;
-		--sketch-hover: #efefef;
-		--sketch-track: #d4d4d4;
-		--sketch-swatch-border: rgb(0 0 0 / 15%);
-		--sketch-accept-background: #000;
-		--sketch-accept-text: #ffffff;
-		--sketch-accept-hover: #333333;
-		--sketch-accept-disabled-background: #efefef;
-		--sketch-accept-disabled-text: #8f8f8f;
-		--sketch-error-background: #fce8e6;
-		--sketch-error-text: #a12622;
-	}
 }
 
 * {
@@ -156,9 +67,9 @@ textarea {
 	flex-direction: column;
 	align-items: center;
 	width: var(--app-rail-width);
-	border-right: 1px solid var(--chat-rail-border);
-	background: var(--chat-rail-background);
-	color: var(--chat-rail-text);
+	border-right: 1px solid var(--chat-border);
+	background: var(--chat-background);
+	color: var(--chat-text);
 	user-select: none;
 }
 
@@ -344,8 +255,8 @@ textarea {
 }
 
 .user-message .message-text {
-	background: var(--chat-bubble);
-	color: var(--chat-bubble-text);
+	background: var(--chat-action);
+	color: var(--chat-panel);
 	padding: 10px 16px;
 	line-height: 1.5;
 }
@@ -419,7 +330,7 @@ textarea {
 }
 
 .message-text pre {
-	background: var(--chat-code-background);
+	background: var(--chat-panel);
 	border: 1px solid var(--chat-border);
 	border-radius: 16px;
 	padding: 16px;
@@ -472,7 +383,7 @@ textarea {
 	display: flex;
 	gap: 12px;
 	margin-top: 12px;
-	color: var(--chat-message-actions);
+	color: #6f6f6f;
 }
 
 .message-actions span {
@@ -693,7 +604,7 @@ textarea {
 }
 
 .composer-menu-item--active {
-	background: var(--chat-menu-active);
+	background: #f5f5f5;
 }
 
 .composer-menu-icon {
@@ -736,7 +647,7 @@ textarea {
 }
 
 .composer-menu-heading {
-	color: var(--chat-menu-heading);
+	color: #666;
 }
 
 .chat-suggestions {
@@ -809,7 +720,7 @@ textarea {
 
 .icon-button[type='submit']:not(:disabled) {
 	background: var(--chat-action);
-	color: var(--chat-panel);
+	color: white;
 }
 
 .icon-button[type='submit']:not(:disabled):hover {
@@ -853,7 +764,7 @@ textarea {
 
 .icon-button.composer-send--voice:disabled {
 	background: var(--chat-action);
-	color: var(--chat-panel);
+	color: white;
 }
 
 .chat-input-form .input-images {
@@ -883,9 +794,7 @@ textarea {
 }
 
 .chat-input-form:focus-within {
-	box-shadow:
-		var(--chat-surface-shadow),
-		0 0 0 1px var(--chat-border);
+	box-shadow: 0 0 0 1px var(--chat-border);
 }
 
 .icon-button:focus-visible,
@@ -912,7 +821,7 @@ textarea {
 	z-index: 1000;
 	display: flex;
 	padding: clamp(16px, 3.15vh, 50px) clamp(12px, 2vw, 32px) clamp(16px, 2.65vh, 42px);
-	background: var(--sketch-overlay);
+	background: rgb(0 0 0 / 6%);
 	backdrop-filter: blur(2px);
 }
 
@@ -921,16 +830,17 @@ textarea {
 	width: 100%;
 	height: 100%;
 	overflow: hidden;
-	border: 1px solid var(--sketch-surface-border);
+	border: 1px solid #c7c7c7;
 	border-radius: 26px;
-	background: var(--sketch-background);
+	background: var(--chat-panel);
 	box-shadow: 0 4px 12px rgb(0 0 0 / 6%);
+	color-scheme: light;
 	container-type: size;
 }
 
 .whiteboard-surface .tl-container {
-	--tl-color-background: var(--sketch-background);
-	--tl-color-panel: var(--sketch-tl-panel);
+	--tl-color-background: var(--chat-panel);
+	--tl-color-panel: var(--chat-panel);
 	position: absolute;
 	inset: 0;
 	/* Keep fixed popovers in the same coordinate space as their canvas anchors. */
@@ -946,7 +856,7 @@ textarea {
 	inset: 0;
 	z-index: 300;
 	pointer-events: none;
-	color: var(--sketch-text);
+	color: var(--chat-text);
 }
 
 .whiteboard-button {
@@ -978,7 +888,7 @@ textarea {
 
 .whiteboard-button:hover:not(:disabled),
 .whiteboard-button[aria-pressed='true'] {
-	background: var(--sketch-hover);
+	background: var(--chat-hover);
 }
 
 .whiteboard-button:focus-visible,
@@ -990,7 +900,7 @@ textarea {
 }
 
 .whiteboard-button:disabled {
-	color: var(--sketch-disabled);
+	color: #adadad;
 	cursor: default;
 }
 
@@ -998,7 +908,7 @@ textarea {
 	position: absolute;
 	top: 12px;
 	left: 12px;
-	color: var(--sketch-muted);
+	color: var(--chat-secondary);
 }
 
 .whiteboard-toolbar {
@@ -1009,9 +919,9 @@ textarea {
 	gap: 2px;
 	padding: 4px;
 	transform: translateX(-50%);
-	border: 1px solid var(--sketch-panel-border);
+	border: 1px solid #e3e3e3;
 	border-radius: 28px;
-	background: var(--sketch-panel);
+	background: var(--chat-panel);
 	box-shadow: 0 1px 3px rgb(0 0 0 / 16%);
 	pointer-events: auto;
 }
@@ -1043,10 +953,10 @@ textarea {
 	gap: 4px;
 	padding: 8px;
 	transform: translateX(-50%);
-	border: 1px solid var(--sketch-picker-border);
+	border: 1px solid var(--chat-border);
 	border-radius: 18px;
-	background: var(--sketch-panel);
-	box-shadow: var(--sketch-panel-shadow);
+	background: var(--chat-panel);
+	box-shadow: 0 8px 24px rgb(0 0 0 / 20%);
 }
 
 .whiteboard-sidebar {
@@ -1090,7 +1000,7 @@ textarea {
 	inset: 0;
 	width: 32px;
 	margin: 0 auto;
-	background: var(--sketch-track);
+	background: #d4d4d4;
 	clip-path: polygon(46.875% 0, 53.125% 0, 53.125% 100%, 46.875% 100%);
 	transition: clip-path 180ms ease;
 	pointer-events: none;
@@ -1187,7 +1097,7 @@ textarea {
 	height: 24px;
 	flex: 0 0 24px;
 	padding: 0;
-	border: 1px solid var(--sketch-swatch-border);
+	border: 1px solid rgb(0 0 0 / 15%);
 	border-radius: 50%;
 	background: var(--swatch-color);
 	cursor: pointer;
@@ -1231,17 +1141,17 @@ textarea {
 	position: absolute;
 	right: 12px;
 	bottom: 12px;
-	background: var(--sketch-accept-background);
-	color: var(--sketch-accept-text);
+	background: var(--chat-action);
+	color: var(--chat-panel);
 }
 
 .whiteboard-accept:disabled {
-	background: var(--sketch-accept-disabled-background);
-	color: var(--sketch-accept-disabled-text);
+	background: var(--chat-hover);
+	color: var(--chat-muted);
 }
 
 .whiteboard-accept:hover:not(:disabled) {
-	background: var(--sketch-accept-hover);
+	background: var(--chat-action-hover);
 }
 
 .whiteboard-error {
@@ -1251,8 +1161,8 @@ textarea {
 	max-width: calc(100% - 32px);
 	padding: 10px 14px;
 	border-radius: 12px;
-	background: var(--sketch-error-background);
-	color: var(--sketch-error-text);
+	background: #fce8e6;
+	color: #a12622;
 	font-size: 13px;
 }
 

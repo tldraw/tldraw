@@ -13,20 +13,13 @@ export const whiteboardThemes = {
 		...DEFAULT_THEME,
 		colors: {
 			light: { ...DEFAULT_THEME.colors.light, background: '#fcfcfc' },
-			dark: { ...DEFAULT_THEME.colors.dark, background: '#212121' },
+			dark: { ...DEFAULT_THEME.colors.dark, background: '#fcfcfc' },
 		},
 	},
 }
 
-/** The pen colors. The first swatch is the default and contrasts with the canvas background. */
-export function getWhiteboardColors(isDarkMode: boolean) {
-	return [isDarkMode ? WHITE : BLACK, ...whiteboardColors]
-}
-
-const WHITE = ['White', '#ffffff'] as const
-const BLACK = ['Black', '#0d0d0d'] as const
-
-const whiteboardColors = [
+export const whiteboardColors = [
+	['Black', '#0d0d0d'],
 	['Gray', '#737986'],
 	['Brown', '#98420c'],
 	['Red', '#e52329'],
