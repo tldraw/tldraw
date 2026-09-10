@@ -160,13 +160,19 @@ describe('ZeroLogBuffer', () => {
 
 		for (let i = 0; i < 70; i++) buffer.log('info', undefined, `line ${i}`)
 		buffer.log('warn', { wsid: 'w1' }, 'slow', { ms: 12 })
-		buffer.log('error', undefined, new Error('boom'))
+		buffer.log(
+			'error',
+			undefined,
+			Object.assign(new Error('boom'), { kind: 'TransformFailed', errorBody: { status: 401 } })
+		)
 
 		const lines = buffer.recent()
 		expect(lines).toHaveLength(60)
 		expect(lines[0]).toContain('info  line 12')
 		expect(lines.at(-2)).toContain('warn wsid=w1 slow {"ms":12}')
-		expect(lines.at(-1)).toContain('error  Error: boom')
+		expect(lines.at(-1)).toContain(
+			'error  Error: boom {"kind":"TransformFailed","errorBody":{"status":401}}'
+		)
 		expect(warn).toHaveBeenCalledWith({ wsid: 'w1' }, 'slow', { ms: 12 })
 		expect(error).toHaveBeenCalledWith(expect.any(Error))
 		expect(buffer.recent()).not.toBe(lines)

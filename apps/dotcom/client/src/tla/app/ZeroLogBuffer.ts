@@ -32,7 +32,11 @@ export class ZeroLogBuffer implements ZeroLogSink {
 }
 
 export function formatLogArg(arg: unknown): string {
-	if (arg instanceof Error) return `${arg.name}: ${arg.message}`
+	if (arg instanceof Error) {
+		// Zero's errors carry their kind and errorBody (http status, reason) as own properties.
+		const extra = Object.keys(arg).length ? ` ${formatLogArg({ ...arg })}` : ''
+		return `${arg.name}: ${arg.message}${extra}`
+	}
 	if (typeof arg === 'string') return arg
 	try {
 		return JSON.stringify(arg)
