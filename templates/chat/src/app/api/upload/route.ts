@@ -9,9 +9,15 @@ export async function POST(req: Request) {
 		return Response.json({ error: 'content-type is not set' }, { status: 400 })
 	}
 
-	const displayName = req.headers.get('x-file-name')
-	if (!displayName) {
+	const encodedFileName = req.headers.get('x-file-name')
+	if (!encodedFileName) {
 		return Response.json({ error: 'x-file-name is not set' }, { status: 400 })
+	}
+	let displayName: string
+	try {
+		displayName = decodeURIComponent(encodedFileName)
+	} catch {
+		return Response.json({ error: 'x-file-name is not valid URI encoding' }, { status: 400 })
 	}
 
 	const formData = new FormData()

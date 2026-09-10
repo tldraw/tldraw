@@ -2,6 +2,7 @@ import { type UIMessage } from '@ai-sdk/react'
 import { memo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { FileHelpers } from 'tldraw'
+import { ComposerIcon } from './ComposerIcon'
 import { TldrawProviderMetadata } from './WhiteboardModal'
 
 export type ImageClickTarget = TldrawProviderMetadata | { uploadedFile: File }
@@ -66,6 +67,15 @@ export const ChatMessage = memo(function ChatMessage({ message, onImageClick }: 
 
 				return null
 			})}
+			{message.role === 'assistant' && (
+				<div className="message-actions" aria-hidden="true">
+					{(['copy', 'feedback', 'share', 'retry', 'more'] as const).map((name) => (
+						<span key={name}>
+							<ComposerIcon name={name} />
+						</span>
+					))}
+				</div>
+			)}
 		</div>
 	)
 })

@@ -196,13 +196,24 @@ function ChatInner({
 			onDragLeave={handleDragLeave}
 			onDrop={handleDrop}
 		>
-			<div className="chat-header">
-				<button className="icon-button" onClick={handleClearChat} title="Clear chat">
-					<ClearChatIcon />
-				</button>
-			</div>
+			<header className="chat-header">
+				<span className="chat-share" aria-hidden="true">
+					<ComposerIcon name="share" />
+					Share
+				</span>
+				<details className="chat-options">
+					<summary className="icon-button" aria-label="Chat options">
+						<ComposerIcon name="more" />
+					</summary>
+					<button className="chat-clear" onClick={handleClearChat} disabled={status !== 'ready'}>
+						<ClearChatIcon />
+						Clear chat
+					</button>
+				</details>
+			</header>
 			<MessageList messages={chat.messages} onImageClick={handleImageClick} />
 			<div className="chat-footer">
+				<p className="chat-disclaimer">ChatGPT can make mistakes. Check important info.</p>
 				<ChatInput
 					onSendMessage={handleSendMessage}
 					waitingForResponse={status !== 'ready'}

@@ -15,8 +15,37 @@ export type ComposerIconName =
 	| 'voice'
 	| 'chevron'
 	| 'write'
+	| 'copy'
+	| 'feedback'
+	| 'share'
+	| 'retry'
+	| 'more'
 
 const paths: Record<ComposerIconName, ReactNode> = {
+	copy: (
+		<>
+			<rect x="3" y="8" width="13" height="14" rx="3" />
+			<path d="M8 8V5a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-3" />
+		</>
+	),
+	feedback: (
+		<>
+			<path d="M3 8h3v8H3zM6 15h6l2-7h-4l1-5-2-1-3 6M21 16h-3V8h3zM18 9h-3m3 7-3 6-2-1 1-5h-3" />
+		</>
+	),
+	share: <path d="M12 16V3m-5 5 5-5 5 5M4 13v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7" />,
+	retry: (
+		<>
+			<path d="M20 3v6h-6M4 21v-6h6M20 9a8 8 0 0 0-14-4M4 15a8 8 0 0 0 14 4" />
+		</>
+	),
+	more: (
+		<>
+			<circle cx="4" cy="12" r="1" fill="currentColor" />
+			<circle cx="12" cy="12" r="1" fill="currentColor" />
+			<circle cx="20" cy="12" r="1" fill="currentColor" />
+		</>
+	),
 	plus: <path d="M12 3v18M3 12h18" />,
 	attachment: (
 		<path d="M8 8v9a4 4 0 0 0 8 0V6a3 3 0 0 0-6 0v11a1 1 0 0 0 2 0V7M6 10v7a6 6 0 0 0 12 0V6" />

@@ -42,24 +42,6 @@ export function AppChrome() {
 				</div>
 				<span className="app-rail__profile">LU</span>
 			</aside>
-			<header className="app-topbar" aria-hidden="true">
-				<div className="app-mode-switch">
-					<span className="app-mode-switch__item app-mode-switch__item--active">Chat</span>
-					<span className="app-mode-switch__item">Work</span>
-				</div>
-				<span className="app-topbar__temporary-chat">
-					<svg
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth="1.7"
-						strokeLinecap="round"
-						strokeLinejoin="round"
-					>
-						<path d="M8 3a9 9 0 0 1 8 0M20 6a9 9 0 0 1 1 7M19 17a9 9 0 0 1-7 4M8 20l-5 1 1-5M3 12a9 9 0 0 1 1-6" />
-					</svg>
-				</span>
-			</header>
 		</>
 	)
 }

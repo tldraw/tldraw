@@ -1,5 +1,6 @@
 import { CSSProperties, RefObject, useRef, useState } from 'react'
 import { Editor, GeoShapeGeoStyle, TLShape, useEditor, useValue } from 'tldraw'
+import { WhiteboardStyleMenus } from './WhiteboardStyleMenus'
 import { supportsWhiteboardPen, whiteboardColors, WhiteboardPen } from './whiteboardTheme'
 
 interface WhiteboardControlsProps {
@@ -263,60 +264,65 @@ export function WhiteboardControls({
 					onClick={() => editor.redo()}
 				/>
 			</div>
-			<div className="whiteboard-thickness">
-				<input
-					type="range"
-					min="1"
-					max="32"
-					step="0.25"
-					value={state.width}
-					aria-label="Stroke thickness"
-					aria-orientation="vertical"
-					aria-valuetext={`${state.width} pixels`}
-					title="Stroke thickness"
-					onPointerDown={() => {
-						sliderGesture.current = true
-						editor.markHistoryStoppingPoint('change thickness')
-					}}
-					onPointerUp={() => {
-						sliderGesture.current = false
-					}}
-					onPointerCancel={() => {
-						sliderGesture.current = false
-					}}
-					onChange={(event) => {
-						if (!sliderGesture.current) editor.markHistoryStoppingPoint('change thickness')
-						updatePen({ width: Number(event.target.value) })
-					}}
-				/>
-			</div>
-			<div className="whiteboard-palette" role="group" aria-label="Stroke colors">
-				<label
-					className="whiteboard-color whiteboard-color--custom"
-					title="Custom color"
-					data-active={
-						state.color !== null && !whiteboardColors.some(([, hex]) => hex === state.color)
-					}
-				>
+			<div className="whiteboard-sidebar">
+				<div className="whiteboard-thickness">
 					<input
-						type="color"
-						aria-label="Custom color"
-						value={state.color ?? nextPen.color}
-						onInput={(event) => chooseColor(event.currentTarget.value)}
+						type="range"
+						min="1"
+						max="32"
+						step="0.25"
+						value={state.width}
+						aria-label="Stroke thickness"
+						aria-orientation="vertical"
+						aria-valuetext={`${state.width} pixels`}
+						title="Stroke thickness"
+						onPointerDown={() => {
+							sliderGesture.current = true
+							editor.markHistoryStoppingPoint('change thickness')
+						}}
+						onPointerUp={() => {
+							sliderGesture.current = false
+						}}
+						onPointerCancel={() => {
+							sliderGesture.current = false
+						}}
+						onChange={(event) => {
+							if (!sliderGesture.current) editor.markHistoryStoppingPoint('change thickness')
+							updatePen({ width: Number(event.target.value) })
+						}}
 					/>
-				</label>
-				{whiteboardColors.map(([name, hex]) => (
-					<button
-						key={name}
-						type="button"
-						className="whiteboard-color"
-						aria-label={name}
-						title={name}
-						aria-pressed={state.color === hex}
-						style={{ '--swatch-color': hex } as CSSProperties}
-						onClick={() => chooseColor(hex)}
-					/>
-				))}
+				</div>
+			</div>
+			<div className="whiteboard-bottom-controls">
+				<div className="whiteboard-palette" role="group" aria-label="Stroke colors">
+					<label
+						className="whiteboard-color whiteboard-color--custom"
+						title="Custom color"
+						data-active={
+							state.color !== null && !whiteboardColors.some(([, hex]) => hex === state.color)
+						}
+					>
+						<input
+							type="color"
+							aria-label="Custom color"
+							value={state.color ?? nextPen.color}
+							onInput={(event) => chooseColor(event.currentTarget.value)}
+						/>
+					</label>
+					{whiteboardColors.map(([name, hex]) => (
+						<button
+							key={name}
+							type="button"
+							className="whiteboard-color"
+							aria-label={name}
+							title={name}
+							aria-pressed={state.color === hex}
+							style={{ '--swatch-color': hex } as CSSProperties}
+							onClick={() => chooseColor(hex)}
+						/>
+					))}
+				</div>
+				<WhiteboardStyleMenus key={state.tool} />
 			</div>
 			{error && (
 				<p role="alert" className="whiteboard-error">

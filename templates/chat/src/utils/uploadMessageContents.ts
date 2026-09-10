@@ -36,7 +36,7 @@ export async function uploadMessageContents(messages: UIMessage[]) {
 							body: await FileHelpers.urlToBlob(part.url),
 							headers: {
 								'Content-Type': part.mediaType,
-								'x-file-name': part.filename || 'image.png',
+								'x-file-name': encodeURIComponent(part.filename || 'image.png'),
 							},
 						})
 
