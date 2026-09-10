@@ -20,7 +20,7 @@ Additive changes still need the backfill gate: the deploy does not wait for Zero
 
 | Change | Order here | Why |
 | --- | --- | --- |
-| Add column or table clients read | Migration alone; confirm the backfill done; code a deploy later | The deploy does not wait for the backfill |
+| Add column or table clients read | Migration alone; confirm the backfill done on every serving replica; code a deploy later | The deploy does not wait for the backfill |
 | Mass update of a published table | Not in a migration: batch it outside, or add a column and let the backfill carry it | One transaction replicates as one change-log write, and nothing behind it reaches clients until it is through |
 | Drop or rename column, drop table | Code that stops declaring it a release earlier; then migration | The consumers deploy after the migration in our pipeline |
 | CHECK, trigger, function, FK, server-only table | Any time | Zero does not see them |
@@ -29,7 +29,7 @@ Additive changes still need the backfill gate: the deploy does not wait for Zero
 
 Supabase does not deliver Postgres event triggers to Zero, so migration 032 turned on `ddlDetection` and `migrate.ts` calls `zero_0.update_schemas()` once after the last file. That works, with one consequence the docs do not mention: Zero's optimisation that adds a column with a simple constant default in place (`db/pg-to-lite.js` `mapPostgresToLiteDefault`) is gated on the change arriving through an event trigger tagged `ALTER TABLE`. The manual path carries no tag and takes the always-backfill branch (`services/change-source/pg/change-source.js`, `alwaysBackfill = ddlTag !== "ALTER TABLE"`). On production every column added to a published table is backfilled, whatever its default, and is invisible to clients and the sync-worker until that finishes on every replica. A query naming it meanwhile fails with `"<table>"."<column>" does not exist or is not one of the replicated columns`.
 
-The local dev stack and the throwaway test databases run Zero as superuser, so event triggers exist there and the optimised path applies. A column add looks instant locally and in tests, and backfills on staging, preview, and production.
+The local dev stack runs Zero as superuser, so event triggers exist there and the optimised path applies; the throwaway test databases have no Zero at all. A column add looks instant locally, and backfills on staging, preview, and production.
 
 Two rules follow:
 
@@ -58,10 +58,11 @@ Every DDL on a published table makes each view-syncer throw `ResetPipelinesSigna
 
 ## Backfill done-checks
 
-- Authoritative and scriptable: `SELECT * FROM "zero_0/cdc"."backfilling" WHERE "schema" = 'public'` on the upstream database returns no rows.
-- RM logs: `Finished streaming <N> rows` per table, and `Backfill completed: <source>` at INFO. The Fly apps log at WARN (`ZERO_LOG_LEVEL` in the Fly templates), so the table is the reliable check.
-- Each VS machine: `finished backfilling <table>`. This per-replica line is the visibility gate.
-- `pg_stat_activity` has no `backfill-stream` or `backfill-replication-session` sessions.
+Completion is per replica. The replication manager streams the backfill, writes a `backfill-completed` change into the change stream, and clears the upstream `backfilling` row; each view-syncer then applies that change to its own replica when it reaches it (`services/change-source/common/backfill-manager.js`, `services/replicator/change-processor.js`). A view-syncer that is behind still lacks the column after the upstream row is gone. So:
+
+- Necessary: `SELECT * FROM "zero_0/cdc"."backfilling" WHERE "schema" = 'public'` on the upstream database returns no rows.
+- Then sufficient: every serving replica has applied the completion. Replication lag (`zero_replication_total_lag_millisecond`) back at its baseline after the table empties, and, as Zero's docs suggest, a client observing the column on synced rows. Client connections are pinned to one view-syncer machine by the sticky-session cookie, so one client sees one replica; check from more than one, or wait until lag has been flat for a few minutes.
+- Not usable: the `Backfill completed` and `finished backfilling` log lines are INFO, and the Fly apps log at WARN (`ZERO_LOG_LEVEL` in the Fly templates).
 
 ## Signals
 

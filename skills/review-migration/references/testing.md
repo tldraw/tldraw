@@ -27,7 +27,7 @@ Set `ZERO_CACHE_TEST_POSTGRES_URL` and the three integration suites run; without
 cd apps/dotcom/zero-cache && ZERO_CACHE_TEST_POSTGRES_URL='postgresql://user:password@localhost:6543/postgres' yarn test run
 ```
 
-- `effect_outbox.test.ts` creates a throwaway database, applies the whole migration chain in filename order exactly as `migrate.ts` would, and exercises the outbox trigger and the group-delete cascade. Any new migration runs here for real. A migration that only works on a database with existing data (a guard `DO` block that raises on an empty table, say) will show up here.
+- `effect_outbox.test.ts` creates a throwaway database, applies the whole migration chain in filename order, one file per `client.query` so each commits on its own where the runner holds every pending file in one transaction, and exercises the outbox trigger and the group-delete cascade. Any new migration runs here for real. No Zero is attached to these databases, so the suites prove the SQL and the trigger bodies, not the runner's transaction and nothing about replication. A migration that only works on a database with existing data (a guard `DO` block that raises on an empty table, say) will show up here.
 - `delete_file_states.test.ts` and `stamp_comment_created_at.test.ts` test one trigger function each, loaded from whichever migration last defined it.
 
 Add a focused suite for any trigger or function the migration defines or changes, in the same shape as those two.
@@ -63,8 +63,8 @@ No deadlock here is evidence against writers, whose order is fixed by code. It s
 
 ## Staging, preview, and the dry run
 
-- **Local and test databases run Zero as superuser**, so Postgres event triggers exist and a column add takes Zero's in-place path. On Supabase (staging, preview, production) the change arrives through the manual `update_schemas()` hook and every column add backfills. Nothing local reproduces that window; size it from the production row count instead (see `zero.md`).
+- **The local dev stack runs Zero as superuser**, so Postgres event triggers exist there and a column add takes Zero's in-place path; the throwaway test databases have no Zero at all. On Supabase (staging, preview, production) the change arrives through the manual `update_schemas()` hook and every column add backfills. Nothing local reproduces that window; size it from the production row count instead (see `zero.md`).
 - **Staging** runs the migration on the push to `main`, in the same deploy workflow as production. Staging Zero has no connected clients, so it proves the SQL and the runner, not the lock behavior under traffic.
 - **Preview** (`dotcom-preview-please` label) creates a fresh Supabase branch and runs the entire chain from 000. A faithful rehearsal of a clean install; not of a migration against production data.
-- **Dry run** is part of every deploy: `migrate --dry-run` applies every pending file inside a transaction and rolls back, then the real run applies them. Both appear in the deploy log as `✅ NNN applied`, the first followed by `🧹 Rolling back dry run...`. Two separate transactions, so a green dry run does not mean the real run cannot deadlock. A `-- no-transaction` migration is skipped by the dry run.
+- **Dry run** is part of every deploy: `migrate --dry-run` applies every pending file inside a transaction and rolls back, then the real run applies them. Both appear in the deploy log as `✅ NNN applied`, the first followed by `🧹 Rolling back dry run...`. Two separate transactions, so a green dry run does not mean the real run cannot deadlock.
 - **Production** is the only place with live traffic. The deploy log has the runner output; `zero_sync_pipeline_resets_total{reason="schema-change"}` on `grafanacloud-prom` confirms the commit reached Zero.

@@ -18,10 +18,11 @@ The migration runs against production while every open tab is writing to it. Pos
 | Statement | Lock on the table | Blocks |
 | --- | --- | --- |
 | `ALTER TABLE ... ADD/DROP COLUMN`, `SET NOT NULL`, `ALTER TYPE`, `ADD/DROP CONSTRAINT`, `RENAME` | ACCESS EXCLUSIVE | everything, including SELECT |
-| `DROP TRIGGER`, `CREATE TRIGGER` | ACCESS EXCLUSIVE | everything |
+| `DROP TRIGGER` | ACCESS EXCLUSIVE | everything |
+| `CREATE TRIGGER`, `CREATE OR REPLACE TRIGGER` | SHARE ROW EXCLUSIVE | writes and other DDL; reads continue |
 | `DROP INDEX` | ACCESS EXCLUSIVE | everything |
 | `CREATE INDEX` | SHARE | INSERT, UPDATE, DELETE for the whole build |
-| `CREATE INDEX CONCURRENTLY` | SHARE UPDATE EXCLUSIVE | other DDL only; needs `-- no-transaction` |
+| `CREATE INDEX CONCURRENTLY` | SHARE UPDATE EXCLUSIVE | other DDL only; refused inside the runner's transaction until #10576 |
 | `ALTER TABLE ... ADD CONSTRAINT ... CHECK ... NOT VALID` | ACCESS EXCLUSIVE, milliseconds | everything, briefly |
 | `ALTER TABLE ... VALIDATE CONSTRAINT` | SHARE UPDATE EXCLUSIVE | other DDL only; scans the table |
 | `DROP CONSTRAINT` (foreign key) | ACCESS EXCLUSIVE on the referencing table, also locks the referenced table | both |
@@ -66,16 +67,16 @@ The window is milliseconds during lock acquisition, so it scales with traffic. O
 ## Expensive statements
 
 - `ALTER COLUMN ... SET NOT NULL` scans the whole table under ACCESS EXCLUSIVE. On a large table, add `CHECK (col IS NOT NULL) NOT VALID` in one release (milliseconds), `VALIDATE CONSTRAINT` in the next (scans under SHARE UPDATE EXCLUSIVE, blocks nothing), then `SET NOT NULL` and `DROP CONSTRAINT` in the third: Postgres 12+ uses the validated CHECK to skip the scan. The three cannot share a transaction because the NOT VALID add holds its lock through the VALIDATE scan and the runner puts every pending file in one transaction. Zero never sees a CHECK constraint, so the first two releases cause no pipeline reset.
-- `ADD COLUMN ... DEFAULT <volatile>` (`now()`, a function call) rewrites the table. A constant default is metadata-only in Postgres but may still be a Zero backfill (see `zero.md`).
+- `ADD COLUMN ... DEFAULT <volatile>` (`random()`, `clock_timestamp()`, `gen_random_uuid()`) rewrites the table. A constant or STABLE default (`now()` is STABLE) is metadata-only in Postgres but may still be a Zero backfill (see `zero.md`).
 - `ALTER COLUMN ... TYPE` rewrites the table unless the change is binary-compatible.
-- `CREATE INDEX` without `CONCURRENTLY` holds SHARE for the whole build, blocking every write to the table. Use the `-- no-transaction` marker and `CONCURRENTLY` on any table with live writers.
+- `CREATE INDEX` holds SHARE for the whole build, blocking every write to the table. `CONCURRENTLY` would avoid that but is refused inside a transaction block, and the runner wraps every file in one; #10576 adds the opt-out. Until then an index on a table with live writers is built out of band.
 - A backfill `UPDATE` or `INSERT ... SELECT` over a large table holds row locks on every row it touches until COMMIT and fires every row trigger. Check the current production row count before assuming a backfill is quick.
 
 Size against production, not the local dev stack: `SELECT count(*) FROM <table>` and `SELECT pg_size_pretty(pg_total_relation_size('<table>'))` on staging are a floor, production is the number that matters.
 
 ## DML inside a migration
 
-Row triggers fire per row, so a backfill on `file` runs `file_effect_outbox_fn` for every row it touches. That function skips no-op updates by comparing a fixed list of columns; a backfill that writes a column outside that list produces one `effect_outbox` row per file and the sync-worker's effect processor drains them all. Every changed row also replicates through Zero and reaches every client that syncs it.
+Row triggers fire per row, so a backfill on `file` runs `file_effect_outbox_fn` for every row it touches. That function compares a fixed list of columns and returns without an outbox row when none of them changed, so a backfill that writes only unlisted columns produces nothing, and one that touches a listed column produces one `effect_outbox` row per file for the sync-worker's effect processor to drain. Every changed row also replicates through Zero and reaches every client that syncs it.
 
 The replication side is the larger cost. A mass update of a published table commits as one transaction, and Zero writes it through its change log as one unit before anything after it can replicate: a full-table update of `group` in migration 036 took long enough to write through that no other write reached clients meanwhile. Batch large updates outside the migration so replication proceeds between batches, or add a column with a default and let Zero's backfill carry the value asynchronously (see `zero.md`). Either way, know the row count and the trigger list before it runs.
 
