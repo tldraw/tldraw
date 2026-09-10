@@ -4,7 +4,7 @@ import { createElement, useEffect, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { TLNativeTextExportMeasurer } from '../../utils/text/NativeTextExportManager'
 import { isLegacyAlign } from './legacyProps'
-import type { RichTextSVGProps } from './RichTextLabel'
+import { ForeignObjectRichTextSVG, RichTextSVGProps } from './RichTextLabel'
 
 /**
  * The same props as {@link RichTextSVG}.
@@ -86,14 +86,15 @@ export function layoutLabelForExport(
 
 /**
  * `<text>`/`<tspan>` rendering of a rich text label, used by `RichTextSVG` when an export asks
- * for `text: 'native'`.
+ * for `text: 'native'`. Custom extensions use HTML export unless an explicit layout provider
+ * handles their rendering.
  *
  * @public @react
  */
 export function NativeRichTextSVG(props: NativeRichTextSVGProps) {
 	const editor = useEditor()
 	const exportContext = useSvgExportContext()
-	const [measurer, setMeasurer] = useState<TLNativeTextExportMeasurer | null>(null)
+	const [measurer, setMeasurer] = useState<TLNativeTextExportMeasurer | null | undefined>(undefined)
 
 	useEffect(() => {
 		let cancelled = false
@@ -108,7 +109,8 @@ export function NativeRichTextSVG(props: NativeRichTextSVGProps) {
 		}
 	}, [editor, exportContext])
 
-	if (!measurer) return null
+	if (measurer === undefined) return null
+	if (measurer === null) return <ForeignObjectRichTextSVG {...props} />
 
 	const theme = editor.getCurrentTheme()
 	const colorMode = exportContext?.colorMode ?? editor.getColorMode()

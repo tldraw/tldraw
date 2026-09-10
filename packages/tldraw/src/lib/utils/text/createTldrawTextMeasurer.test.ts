@@ -139,6 +139,27 @@ describe('createTldrawTextMeasurer', () => {
 		expect(full).toEqual([{ text: 'short', box: { x: 0, y: 0, w: 25, h: 10 } }])
 	})
 
+	it('preserves forced newline spans and blank lines without adding width', () => {
+		const spans = measurer.measureTextSpans('ab\na \n\nb', {
+			...baseOpts,
+			fontSize: 10,
+			lineHeight: 1,
+			padding: 0,
+			width: 100,
+			height: 100,
+			overflow: 'wrap',
+			textAlign: 'start',
+		})
+		expect(spans).toEqual([
+			{ text: 'ab', box: { x: 0, y: 0, w: 10, h: 10 } },
+			{ text: '\n', box: { x: 10, y: 0, w: 0, h: 10 } },
+			{ text: 'a', box: { x: 0, y: 10, w: 5, h: 10 } },
+			{ text: ' \n', box: { x: 5, y: 10, w: 5, h: 10 } },
+			{ text: ' \n', box: { x: 0, y: 20, w: 5, h: 10 } },
+			{ text: 'b', box: { x: 0, y: 30, w: 5, h: 10 } },
+		])
+	})
+
 	it('reports scrollWidth for overflowing content', () => {
 		const size = measurer.measureText('abcdefghij', {
 			...baseOpts,

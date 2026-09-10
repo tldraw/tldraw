@@ -1,13 +1,17 @@
+import { Mark } from '@tiptap/core'
+import { createShapeId } from '@tldraw/editor'
 import * as layout from '@tldraw/rich-text-layout'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { TestEditor } from '../../../test/TestEditor'
 import { createTldrawTextMeasurer } from './createTldrawTextMeasurer'
 import { getExportTextMeasurer, setNativeTextExportMeasurer } from './NativeTextExportManager'
+import { tipTapDefaultExtensions } from './richText'
 
 let editor: TestEditor
 const originalFonts = document.fonts
 let fonts: EventTarget
 beforeEach(async () => {
+	vi.useRealTimers()
 	fonts = new EventTarget()
 	Object.defineProperty(document, 'fonts', { configurable: true, value: fonts })
 	await layout.installMeasureContext(layout.createFakeMeasureContext())
@@ -74,4 +78,48 @@ it('does not let removal of an older registration remove its replacement', async
 	setNativeTextExportMeasurer(editor, replacement)
 	remove()
 	expect(await getExportTextMeasurer(editor)).toBe(replacement)
+})
+
+it('uses HTML export for custom marks without initializing native layout', async () => {
+	const customMark = Mark.create({
+		name: 'customMark',
+		renderHTML: () => ['span', { 'data-custom-mark': 'true', style: 'font-size: 30px' }, 0],
+	})
+	vi.spyOn(editor, 'getTextOptions').mockReturnValue({
+		...editor.getTextOptions(),
+		tipTapConfig: { extensions: [...tipTapDefaultExtensions, customMark] },
+	})
+	const richText = {
+		type: 'doc',
+		content: [
+			{
+				type: 'paragraph',
+				content: [{ type: 'text', text: 'Custom text', marks: [{ type: 'customMark' }] }],
+			},
+		],
+	}
+	const id = createShapeId()
+	editor.createShape({ id, type: 'text', props: { richText } })
+	const canvas = vi.spyOn(HTMLCanvasElement.prototype, 'getContext')
+	canvas.mockClear()
+	expect(await getExportTextMeasurer(editor)).toBeNull()
+	vi.spyOn(editor.fonts, 'loadRequiredFontsForCurrentPage').mockResolvedValue()
+	vi.spyOn(editor.fonts, 'toEmbeddedCssDeclaration').mockResolvedValue('')
+	const result = await editor.getSvgString([id], { text: 'native' })
+	expect(result?.svg).toContain('<foreignObject')
+	expect(result?.svg).toContain('data-custom-mark="true"')
+	expect(result?.svg).not.toContain('data-native-text')
+	expect(canvas).not.toHaveBeenCalled()
+})
+
+it('allows an explicit provider for custom extensions and restores fallback when removed', async () => {
+	vi.spyOn(editor, 'getTextOptions').mockReturnValue({
+		...editor.getTextOptions(),
+		tipTapConfig: { extensions: [...tipTapDefaultExtensions] },
+	})
+	const provider = { layoutRichText: vi.fn() }
+	const remove = setNativeTextExportMeasurer(editor, provider)
+	expect(await getExportTextMeasurer(editor)).toBe(provider)
+	remove()
+	expect(await getExportTextMeasurer(editor)).toBeNull()
 })

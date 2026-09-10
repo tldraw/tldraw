@@ -2836,7 +2836,7 @@ export interface MoveToPathBuilderCommand extends PathBuilderCommandBase {
 }
 
 // @public
-export function NativeRichTextSVG(props: NativeRichTextSVGProps): ReactElement<unknown, JSXElementConstructor<any> | string> | null;
+export function NativeRichTextSVG(props: NativeRichTextSVGProps): JSX.Element | null;
 
 // @public
 export type NativeRichTextSVGProps = RichTextSVGProps;

@@ -70,7 +70,8 @@ export interface TLSvgExportOptions {
 	 *   canvas in browsers, but rasterizers without an HTML engine (resvg, Figma, Inkscape)
 	 *   render no text.
 	 * - `'native'` — lay the text out with `@tldraw/rich-text-layout` and emit `<text>`/`<tspan>`
-	 *   elements that any SVG renderer understands.
+	 *   elements that any SVG renderer understands. Custom rich text extensions fall back to
+	 *   `'foreignObject'` unless an explicit native text export provider is registered.
 	 */
 	text?: TLSvgExportTextMode
 }

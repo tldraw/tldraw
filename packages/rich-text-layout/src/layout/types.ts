@@ -67,7 +67,11 @@ export interface LineBox {
 	blockIndex: number
 	x: number
 	y: number
-	/** Advance width of the line's content, excluding trailing hanging whitespace. */
+	/**
+	 * Advance width of the line's content. Preserved trailing whitespace is excluded where it
+	 * hangs (at a soft wrap) and included where it does not (before a forced break or at the end
+	 * of the paragraph), as in Blink.
+	 */
 	width: number
 	height: number
 	/** Baseline offset from the top of the line box. */

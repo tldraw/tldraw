@@ -211,6 +211,8 @@ interface PreparedChunk {
 	prepared: PreparedTextWithSegments
 	segStart: number[]
 	graphemeOffsets: (number[] | null)[]
+	/** Segments whose per-grapheme break advances have been replaced by shaped-prefix advances. */
+	shapedPrefixes: Set<number>
 }
 
 // Prepared widths depend on the backend that measured them, so each context gets its own cache.
@@ -280,9 +282,10 @@ function prepareChunk(
 	}
 	segStart.push(offset)
 	const consistent = offset === chunk.text.length
+	const shapedPrefixes = new Set<number>()
 
 	if (consistent && signature !== null) {
-		patchMixedFonts(prepared, chunk, runs, dominant, segStart, measure)
+		patchMixedFonts(prepared, chunk, runs, dominant, segStart, measure, shapedPrefixes)
 	}
 	if (block.overflowWrap === 'normal' && block.wordBreak !== 'break-all') {
 		// pretext always falls back to grapheme breaks for overlong words; CSS only does with
@@ -299,6 +302,7 @@ function prepareChunk(
 		prepared,
 		segStart,
 		graphemeOffsets: prepared.segments.map(() => null),
+		shapedPrefixes,
 	}
 	if (preparedCache.size >= PREPARED_CACHE_LIMIT) {
 		const oldest = preparedCache.keys().next().value
@@ -332,7 +336,8 @@ function patchMixedFonts(
 	runs: InlineRun[],
 	dominant: number,
 	segStart: number[],
-	measure: MeasureContext
+	measure: MeasureContext,
+	shapedPrefixes: Set<number>
 ) {
 	const dominantFont = fontSpecToString(runs[dominant].style.font)
 	const ls = prepared.letterSpacing
@@ -355,14 +360,59 @@ function patchMixedFonts(
 		prepared.lineEndFitAdvances[i] = SPACE_KINDS.has(kind) ? 0 : width
 		prepared.lineEndPaintAdvances[i] = PAINTLESS_KINDS.has(kind) ? 0 : width
 		if (prepared.breakableFitAdvances[i] !== null) {
-			const advances: number[] = []
-			let offset = s
-			for (const g of graphemes(prepared.segments[i])) {
-				advances.push(measureRange(chunk, runs, offset, offset + g.length, measure, 0))
-				offset += g.length
-			}
-			prepared.breakableFitAdvances[i] = advances
+			prepared.breakableFitAdvances[i] = shapedPrefixAdvances(chunk, runs, s, e, measure)
+			shapedPrefixes.add(i)
 		}
+	}
+}
+
+const PICTOGRAPHIC = /\p{Extended_Pictographic}/u
+
+// Isolated grapheme widths lose kerning and move emergency breaks earlier than Blink.
+function shapedPrefixAdvances(
+	chunk: Chunk,
+	runs: InlineRun[],
+	s: number,
+	e: number,
+	measure: MeasureContext
+): number[] {
+	const advances: number[] = []
+	let offset = s
+	let prefixWidth = 0
+	for (const g of graphemes(chunk.text.slice(s, e))) {
+		offset += g.length
+		const width = measureRange(chunk, runs, s, offset, measure, 0)
+		advances.push(width - prefixWidth)
+		prefixWidth = width
+	}
+	return advances
+}
+
+// Only overlong segments need the extra prefix measurements; cache them across widths.
+function applyShapedPrefixAdvances(
+	pc: PreparedChunk,
+	chunk: Chunk,
+	runs: InlineRun[],
+	maxWidth: number,
+	measure: MeasureContext
+) {
+	const { prepared } = pc
+	// pretext already measures prefixes when letter spacing is on, and applies its own emoji
+	// width correction, which a raw prefix measurement would lose.
+	if (prepared.letterSpacing !== 0) return
+	for (let i = 0; i < prepared.segments.length; i++) {
+		if (prepared.breakableFitAdvances[i] === null || prepared.widths[i] <= maxWidth) continue
+		if (pc.shapedPrefixes.has(i)) continue
+		const text = prepared.segments[i]
+		if (PICTOGRAPHIC.test(text)) continue
+		pc.shapedPrefixes.add(i)
+		prepared.breakableFitAdvances[i] = shapedPrefixAdvances(
+			chunk,
+			runs,
+			pc.segStart[i],
+			pc.segStart[i + 1],
+			measure
+		)
 	}
 }
 
@@ -436,11 +486,18 @@ interface VerticalMetrics {
 function inlineBoxMetrics(
 	font: FontSpec,
 	lineHeight: number,
-	measure: MeasureContext
+	measure: MeasureContext,
+	profile: LayoutProfile
 ): VerticalMetrics {
 	const m = measure.metrics(font)
 	// CSS half-leading: the line-height is split evenly above the ascent and below the descent.
 	const half = (lineHeight - (m.ascent + m.descent)) / 2
+	if (profile.floorHalfLeading) {
+		// Blink floors the top half and gives the remainder to the bottom, so a mixed-font line
+		// whose fonts' ascent + descent differ in parity is a pixel shorter than the exact union.
+		const above = m.ascent + Math.floor(half)
+		return { above, below: lineHeight - above }
+	}
 	return { above: m.ascent + half, below: m.descent + half }
 }
 
@@ -475,7 +532,7 @@ export function layoutInline(
 	const direction: 'ltr' | 'rtl' =
 		block.direction === 'auto' ? detectDirection(fullText) : block.direction
 
-	const strut = inlineBoxMetrics(block.font, block.lineHeight, measure)
+	const strut = inlineBoxMetrics(block.font, block.lineHeight, measure, profile)
 	const lines: InlineLine[] = []
 	let maxContentWidth = 0
 
@@ -488,7 +545,7 @@ export function layoutInline(
 		let above = strut.above
 		let below = strut.below
 		for (const f of fragments) {
-			const m = inlineBoxMetrics(f.style.font, f.style.lineHeight, measure)
+			const m = inlineBoxMetrics(f.style.font, f.style.lineHeight, measure, profile)
 			above = Math.max(above, m.above - f.baselineShift)
 			below = Math.max(below, m.below + f.baselineShift)
 		}
@@ -559,10 +616,30 @@ export function layoutInline(
 			continue
 		}
 		const pc = prepareChunk(chunk, content.runs, block, measure)
+		if (maxWidth !== Infinity) {
+			applyShapedPrefixAdvances(pc, chunk, content.runs, maxWidth, measure)
+		}
 
 		let cursor: LayoutCursor = { segmentIndex: 0, graphemeIndex: 0 }
 		for (;;) {
-			const range = pretext.layoutNextLineRange(pc.prepared, cursor, maxWidth)
+			let prepared = pc.prepared
+			if (cursor.graphemeIndex > 0 && pc.shapedPrefixes.has(cursor.segmentIndex)) {
+				// Kerning cannot cross a line break. Reshape from this line's start without
+				// changing cached advances, which other layouts still need from the segment start.
+				const breakableFitAdvances = prepared.breakableFitAdvances.slice()
+				breakableFitAdvances[cursor.segmentIndex] = [
+					...breakableFitAdvances[cursor.segmentIndex]!.slice(0, cursor.graphemeIndex),
+					...shapedPrefixAdvances(
+						chunk,
+						content.runs,
+						cursorOffset(pc, cursor),
+						pc.segStart[cursor.segmentIndex + 1],
+						measure
+					),
+				]
+				prepared = { ...prepared, breakableFitAdvances }
+			}
+			const range = pretext.layoutNextLineRange(prepared, cursor, maxWidth)
 			if (!range) break
 			const from = cursorOffset(pc, range.start)
 			const to = cursorOffset(pc, range.end)
@@ -605,9 +682,13 @@ export function layoutInline(
 				x += width
 			}
 
-			// Trailing whitespace hangs: in `normal` mode it collapses away entirely, in
-			// `pre-wrap` it is preserved (it still counts toward max-content width) but takes no
-			// part in alignment or the line's reported width.
+			const endsChunk = to >= chunk.text.length
+
+			// Trailing whitespace: in `normal` mode it collapses away entirely. In `pre-wrap` it is
+			// preserved and hangs past the end edge at a soft wrap, taking no part in alignment or
+			// the line's reported width, but before a forced break or at the end of the paragraph
+			// Blink keeps it inside the line, which shifts a centred or end-aligned last line by
+			// the width of its trailing spaces. It counts toward max-content width either way.
 			let trailing = 0
 			if (block.whiteSpace === 'normal') {
 				while (fragments.length > 0 && fragments[fragments.length - 1].kind === 'space') {
@@ -620,11 +701,12 @@ export function layoutInline(
 					i--
 				}
 			}
-			const contentWidth = x - trailing
+			const hanging = endsChunk ? 0 : trailing
+			const contentWidth = x - hanging
 
 			// Mixed-direction lines: reorder fragments visually (UAX #9 L2) and re-run the x
-			// positions in visual order. Trailing whitespace hangs past the line's end edge,
-			// which for RTL lines is the left, so it ends up at negative x.
+			// positions in visual order. Hanging whitespace sits past the line's end edge, which
+			// for RTL lines is the left, so it ends up at negative x.
 			if (fragmentLevels.some((level) => level % 2 === 1)) {
 				const order = visualOrder(fragmentLevels)
 				const reordered = order.map((i) => fragments[i])
@@ -633,15 +715,14 @@ export function layoutInline(
 					f.x = vx
 					vx += f.width
 				}
-				if (direction === 'rtl' && trailing > 0) {
-					for (const f of reordered) f.x -= trailing
+				if (direction === 'rtl' && hanging > 0) {
+					for (const f of reordered) f.x -= hanging
 				}
 				fragments.splice(0, fragments.length, ...reordered)
 			}
 
-			const endsChunk = cursorOffset(pc, range.end) >= chunk.text.length
 			placeMarker(fragments)
-			lines.push(makeLine(fragments, contentWidth, trailing, endsChunk))
+			lines.push(makeLine(fragments, contentWidth, hanging, endsChunk))
 			// Max-content comes from whole-fragment measurements rather than pretext's per-segment
 			// sums: fonts with kerning or contextual alternates shape a word differently from the
 			// sum of its parts, and browsers measure the shaped run.

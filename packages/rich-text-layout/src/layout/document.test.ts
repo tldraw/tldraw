@@ -112,6 +112,163 @@ describe('layoutDocument', () => {
 		expect(layout.lines[0].baseline).toBe(27)
 	})
 
+	it('floors the half-leading like Blink, so a mixed-font line can be shorter than the union', () => {
+		// 20px root: 16 + 4 = 20 tall, 21px line → half-leading 0.5. A 19px run measures
+		// 15.2 + 3.8 = 19 → half-leading 1. Blink floors both (0 and 1): the root box is 16 above /
+		// 5 below, the run 16.2 above / 4.8 below, union 21.2. Unfloored, the root box is 16.5 /
+		// 4.5 and the union 21.3.
+		// tldraw hit this with inline code: IBM Plex Mono's rounded ascent + descent has the other
+		// parity from the body font's, so Chromium's lines with code were a pixel off the engine's.
+		const small = doc(p(t('a'), t('b', 'small')))
+		const opts = {
+			rootStyle: { ...rootStyle, lineHeight: '21px' },
+			userAgentStyles: null,
+			styles: [markRule('small', { fontSize: '19px' })],
+		} as const
+		const chromium = layoutDocument(small, opts)
+		expect(chromium.lines[0].height).toBeCloseTo(21.2)
+		expect(chromium.lines[0].baseline).toBeCloseTo(16.2)
+		const exact = layoutDocument(small, { ...opts, profile: { floorHalfLeading: false } })
+		expect(exact.lines[0].height).toBeCloseTo(21.3)
+		expect(exact.lines[0].baseline).toBeCloseTo(16.5)
+
+		// A single-font line is still exactly line-height tall; only the baseline moves.
+		const plain = layoutDocument(doc(p(t('a'))), opts)
+		expect(plain.lines[0].height).toBe(21)
+		expect(plain.lines[0].baseline).toBe(16)
+	})
+
+	it('breaks an overlong word where its shaped prefix stops fitting, not where grapheme sums do', () => {
+		// A font whose words are narrower than the sum of their graphemes: every grapheme is 10
+		// wide on its own, but each adjacent pair kerns by 4 (like Shantell Sans' contextual
+		// alternates). 'abcdefghij' is 64 wide shaped, 100 as a sum of graphemes.
+		const kerned = {
+			measure(text: string) {
+				const n = [...text].length
+				return { width: n === 0 ? 0 : 10 * n - 4 * (n - 1) }
+			},
+			metrics: fake.metrics,
+		}
+		const layout = layoutDocument(doc(p(t('abcdefghij'))), {
+			rootStyle: { ...rootStyle, overflowWrap: 'break-word' },
+			userAgentStyles: null,
+			maxWidth: 40,
+			measureContext: kerned,
+		})
+		// Blink fits 'abcdef' (6 graphemes, 40 wide); grapheme sums would stop after 'abcd'.
+		expect(layout.lines.map((l) => l.fragments.map((f) => f.text).join(''))).toEqual([
+			'abcdef',
+			'ghij',
+		])
+		expect(layout.lines[0].width).toBe(40)
+	})
+
+	it('reshapes continued words without changing cached advances for later layouts', () => {
+		const kerned = {
+			measure(text: string) {
+				const n = [...text].length
+				return { width: n === 0 ? 0 : 10 * n - 4 * (n - 1) }
+			},
+			metrics: fake.metrics,
+		}
+		const text = doc(p(t('abcdefghijklmnopqrst')))
+		for (const maxWidth of [42, 34, 42]) {
+			const layout = layoutDocument(text, {
+				rootStyle: { ...rootStyle, overflowWrap: 'break-word' },
+				userAgentStyles: null,
+				maxWidth,
+				measureContext: kerned,
+			})
+			expect(
+				layout.lines.map((line) => ({
+					text: line.fragments.map((fragment) => fragment.text).join(''),
+					width: line.width,
+				}))
+			).toEqual(
+				maxWidth === 42
+					? [
+							{ text: 'abcdef', width: 40 },
+							{ text: 'ghijkl', width: 40 },
+							{ text: 'mnopqr', width: 40 },
+							{ text: 'st', width: 16 },
+						]
+					: [
+							{ text: 'abcde', width: 34 },
+							{ text: 'fghij', width: 34 },
+							{ text: 'klmno', width: 34 },
+							{ text: 'pqrst', width: 34 },
+						]
+			)
+		}
+	})
+
+	it('breaks an overlong word that spans marks at its shaped prefix', () => {
+		const kerned = {
+			measure(text: string, font: { weight: string }) {
+				const n = [...text].length
+				const width = n === 0 ? 0 : 10 * n - 4 * (n - 1)
+				return { width: font.weight === 'bold' ? width * 1.5 : width }
+			},
+			metrics: fake.metrics,
+		}
+		const layout = layoutDocument(doc(p(t('abcde'), t('fghij', 'bold'))), {
+			rootStyle: { ...rootStyle, overflowWrap: 'break-word' },
+			userAgentStyles: null,
+			styles: [markRule('bold', { fontWeight: 'bold' })],
+			maxWidth: 40,
+			measureContext: kerned,
+		})
+		// 'abcde' is 28 wide; the bold 'f' adds 15 (43 > 40), so the break lands before it. The
+		// bold remainder is measured by prefix too: 'fgh' is 33, 'fghi' 42. Grapheme sums (15 each)
+		// would have stopped after 'fg'.
+		expect(layout.lines.map((l) => l.fragments.map((f) => f.text).join(''))).toEqual([
+			'abcde',
+			'fgh',
+			'ij',
+		])
+	})
+
+	it('hangs trailing spaces at soft wraps but aligns them at the end of a paragraph', () => {
+		const centered = { ...rootStyle, textAlign: 'center' } as const
+		// 'ab ' is 30 wide with its space; the last line keeps it, so the line centres at 35.
+		const last = layoutDocument(doc(p(t('ab '))), {
+			rootStyle: centered,
+			userAgentStyles: null,
+			maxWidth: 100,
+			minWidth: 100,
+		})
+		expect(last.lines[0]).toMatchObject({ x: 35, width: 30 })
+
+		// Before a hard break the spaces stay in the line as well.
+		const broken = layoutDocument(doc(p(t('a '), { type: 'hardBreak' }, t('b'))), {
+			rootStyle: centered,
+			userAgentStyles: null,
+			maxWidth: 100,
+			minWidth: 100,
+		})
+		expect(broken.lines.map((l) => [l.x, l.width])).toEqual([
+			[40, 20],
+			[45, 10],
+		])
+
+		// At a soft wrap the space hangs past the end edge: 'aaaa' is 40 wide and centres at 2.5
+		// in 45, with the space at 40..50.
+		const wrapped = layoutDocument(doc(p(t('aaaa bb'))), {
+			rootStyle: centered,
+			userAgentStyles: null,
+			maxWidth: 45,
+			minWidth: 45,
+		})
+		expect(wrapped.lines.map((l) => [l.x, l.width])).toEqual([
+			[2.5, 40],
+			[12.5, 20],
+		])
+		expect(wrapped.lines[0].fragments.map((f) => [f.text, f.x])).toEqual([
+			['aaaa', 0],
+			[' ', 40],
+		])
+	})
+
 	it('renders hard breaks, including doubled ones', () => {
 		const layout = layoutDocument(
 			doc(p(t('one'), { type: 'hardBreak' }, { type: 'hardBreak' }, t('three'))),

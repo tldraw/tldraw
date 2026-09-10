@@ -233,7 +233,8 @@ export function RichTextSVG(props: RichTextSVGProps) {
 	return <ForeignObjectRichTextSVG {...props} />
 }
 
-function ForeignObjectRichTextSVG({
+/** @internal */
+export function ForeignObjectRichTextSVG({
 	bounds,
 	richText,
 	fontSize,
