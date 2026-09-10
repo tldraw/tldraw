@@ -915,6 +915,42 @@ describe('When pasting content with unsupported shape types...', () => {
 		expect(editor.getCurrentPageShapes()).toHaveLength(2)
 	})
 
+	it('drops bindings that reference a shape missing from the content', () => {
+		const a = createShapeId('a')
+		const b = createShapeId('b')
+		const arrow = createShapeId('arrow')
+		editor.createShapes([
+			{ id: a, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+			{ id: b, type: 'geo', x: 300, y: 0, props: { w: 100, h: 100 } },
+			{ id: arrow, type: 'arrow', x: 0, y: 0 },
+		])
+		editor.createBindings([
+			{
+				type: 'arrow',
+				fromId: arrow,
+				toId: b,
+				props: {
+					terminal: 'end',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: false,
+				},
+			},
+		])
+
+		const content = structuredClone(editor.getContentFromCurrentPage([arrow, a, b])!)
+		// Content off the clipboard is arbitrary JSON: a binding can name a shape that isn't
+		// there at all, which our own copy would never produce but a foreign app's might.
+		content.shapes = content.shapes.filter((shape) => shape.id !== b)
+		content.rootShapeIds = content.rootShapeIds.filter((id) => id !== b)
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+
+		editor.putContentOntoCurrentPage(content, { preserveIds: true, preservePosition: true })
+
+		expect(editor.getShape(arrow)).toBeDefined()
+		expect(editor.getBindingsFromShape(arrow, 'arrow')).toEqual([])
+	})
+
 	it('emits an event so the UI can tell the user', () => {
 		const handler = vi.fn()
 		editor.addListener('unsupported-shapes', handler)

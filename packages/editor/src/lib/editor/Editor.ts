@@ -9922,13 +9922,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		// Custom bindings travel with custom shapes, so a paste can carry binding types we have
-		// no util for; and a binding to a shape we just dropped would fail the assertExists
-		// below. The bound shapes still paste, just unlinked.
+		// no util for; and a binding whose ends aren't both among the shapes we're about to
+		// create would fail the assertExists below — whether the shape was dropped just now or
+		// was never in the content. The bound shapes still paste, just unlinked.
+		const shapeIdsToCreate = new Set<string>(shapes.map((shape) => shape.id))
 		bindings = bindings.filter(
 			(binding) =>
 				this.hasBindingUtil(binding) &&
-				!unsupportedShapeIds.has(binding.fromId) &&
-				!unsupportedShapeIds.has(binding.toId)
+				shapeIdsToCreate.has(binding.fromId) &&
+				shapeIdsToCreate.has(binding.toId)
 		)
 
 		if (users.length > 0) {
