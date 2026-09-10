@@ -275,6 +275,22 @@ describe('TLSelectTool.PointingShape when the shape is deleted mid-click', () =>
 		editor.expectToBeIn('select.idle')
 	})
 
+	it('still moves the label on ctrl-drag over a live arrow label', () => {
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: { richText: toRichText('label'), start: { x: 0, y: 0 }, end: { x: 200, y: 0 } },
+			},
+		])
+		const shape = editor.getShape(ids.arrow1)!
+		editor.pointerDown(200, 100, { target: 'shape', shape, accelKey: true })
+		editor.pointerMove(220, 120, { accelKey: true })
+		editor.expectToBeIn('select.pointing_arrow_label')
+	})
+
 	it('still brushes on ctrl-drag when the pointed shape is deleted', () => {
 		const shape = editor.getShape(ids.box1)!
 		editor.pointerDown(150, 150, { target: 'shape', shape, accelKey: true })
