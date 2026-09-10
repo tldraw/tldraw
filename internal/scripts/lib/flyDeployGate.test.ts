@@ -148,6 +148,12 @@ describe('parseDeployedInputHash', () => {
 		expect(parseDeployedInputHash(JSON.stringify([machine('abc'), machine(undefined)]))).toBe(null)
 	})
 
+	it('does not trust a stamp on a machine that has not reported a check yet', () => {
+		const noChecks = { state: 'started', config: { env: { [DEPLOY_INPUT_HASH_ENV]: 'abc' } } }
+		expect(parseDeployedInputHash(JSON.stringify([noChecks]))).toBe(null)
+		expect(parseDeployedInputHash(JSON.stringify([machine('abc', { checks: [] })]))).toBe(null)
+	})
+
 	it('does not trust a stamp on a machine that is stopped or failing its checks', () => {
 		expect(
 			parseDeployedInputHash(JSON.stringify([machine('abc'), machine('abc', { state: 'stopped' })]))

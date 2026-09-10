@@ -125,18 +125,21 @@ interface FlyMachine {
  * (no machines yet, a deploy that predates the stamp, or a rollout that stopped half way), so
  * that the caller deploys and converges them.
  *
- * A machine only counts when it is started and its checks pass. A rolling update writes the new
- * config, stamp included, before it waits on health, and a failed check does not revert it, so
- * without this a rollout that failed on its last machine would be skipped on the retry.
+ * A machine only counts when it is started and its checks pass, and a machine that has reported no
+ * check yet does not count either. A rolling update writes the new config, stamp included, before
+ * it waits on health, and a failed check does not revert it, so without this a rollout that failed
+ * on its last machine would be skipped on the retry.
  */
 export function parseDeployedInputHash(machineListJson: string): string | null {
 	const machines = (JSON.parse(machineListJson) ?? []) as FlyMachine[]
 	if (machines.length === 0) return null
 	const hashes = new Set<string | undefined>()
 	for (const machine of machines) {
+		const checks = machine.checks ?? []
 		const healthy =
 			machine.state === 'started' &&
-			(machine.checks ?? []).every((check) => check.status === 'passing')
+			checks.length > 0 &&
+			checks.every((check) => check.status === 'passing')
 		hashes.add(healthy ? machine.config?.env?.[DEPLOY_INPUT_HASH_ENV] : undefined)
 	}
 	if (hashes.size !== 1) return null
