@@ -606,12 +606,13 @@ async function callSearchBoardsTool(
 	const input = parsed.input
 
 	// Not rate limited, for the same reason get_board_info is not: the limiters here bound Browser
-	// Run, and this call spends none. It is not index-bounded either — the ordering sorts the caller's
-	// whole in-scope set — so the revisit signal is `postgres_client_connect` volume from this
-	// surface. See "MCP tools" in browser-run-thumbnails.md.
+	// Run, and this call spends none. Paging is index-bounded (see searchBoards.ts) but matching is
+	// not — a query that matches nothing still reads every board the caller can see — so the revisit
+	// signal is `postgres_client_connect` volume from this surface. See "MCP tools" in
+	// browser-run-thumbnails.md.
 
 	try {
-		return getBoardSearchResults(await searchAccessibleBoards(env, userId, input))
+		return getBoardSearchResults(await searchAccessibleBoards(env, userId, input), input.terms)
 	} catch (error) {
 		// No `telemetry`: like get_board_info, this spends no Browser Run and so writes nothing to
 		// the screenshot ledger, which is the one that answers cache and refusal questions.

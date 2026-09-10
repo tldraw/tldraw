@@ -130,15 +130,31 @@ describe('searchAccessibleBoards', () => {
 		expect(fileQuery(queries).parameters.at(-1)).toBe(21)
 	})
 
-	// The sort key has to come from `file` alone. A key read through a join can never be
-	// index-ordered, so the join is what forced Postgres to materialise and sort the caller's whole
-	// candidate set on every page — and `file_state` is also the table that would quietly widen the
-	// scope to link-shared boards.
-	it('reads the whole query from the file table, joining nothing', async () => {
+	// The sort key has to come from `file` alone. A key read through a join to another table can
+	// never be index-ordered, so such a join is what forced Postgres to materialise and sort the
+	// caller's whole candidate set on every page — and `file_state` is also the table that would
+	// quietly widen the scope to link-shared boards. The one join left is the lateral over the
+	// caller's own workspace ids, which reads no table at all.
+	it('reads every row from the file table, joining no other table', async () => {
 		const { queries } = mockPool([HOME_MEMBERSHIP, []])
 		await searchAccessibleBoards(env, 'user-1', { terms: [], cursor: null })
 		expect(fileQuery(queries).sql).not.toContain('file_state')
-		expect(fileQuery(queries).sql).not.toContain('join')
+		expect(fileQuery(queries).sql).not.toContain('group_file')
+		expect(fileQuery(queries).sql.match(/join/g)).toEqual(['join'])
+	})
+
+	// The merge is what keeps the ordering index-served for a caller in more than one workspace:
+	// `"owningGroupId" = ANY(:groups)` is not the single equality the index needs, so it seq-scans
+	// every board in scope. Each arm has to take a whole page — take fewer and a workspace that owns
+	// the whole page cannot fill it.
+	it('takes a page from each workspace and merges them', async () => {
+		const { queries } = mockPool([[{ groupId: 'g1', role: 'member' }, HOME_MEMBERSHIP[0]], []])
+		await searchAccessibleBoards(env, 'user-1', { terms: [], cursor: null })
+		const { sql, parameters } = fileQuery(queries)
+		expect(sql).toContain('cross join lateral')
+		expect(sql).not.toContain('owningGroupId" in')
+		expect(parameters[0]).toEqual(['g1', 'user-1'])
+		expect(parameters.filter((value) => value === 21)).toHaveLength(2)
 	})
 
 	it('matches every term as an escaped, case-insensitive substring', async () => {
@@ -154,16 +170,16 @@ describe('searchAccessibleBoards', () => {
 	it('excludes deleted and test files in the query', async () => {
 		const { queries } = mockPool([HOME_MEMBERSHIP, []])
 		await searchAccessibleBoards(env, 'user-1', { terms: [], cursor: null })
-		expect(fileQuery(queries).sql).toContain('"file"."isDeleted" = $1')
-		expect(fileQuery(queries).sql).toContain('"file"."id" not like $2')
+		expect(fileQuery(queries).sql).toContain('"file"."isDeleted" = $2')
+		expect(fileQuery(queries).sql).toContain('"file"."id" not like $3')
 		expect(fileQuery(queries).parameters).toContain('test\\_%')
 	})
 
 	it('scopes to the workspaces the caller can access files in', async () => {
 		const { queries } = mockPool([[{ groupId: 'g1', role: 'member' }], []])
 		await searchAccessibleBoards(env, 'user-1', { terms: [], cursor: null })
-		expect(fileQuery(queries).sql).toContain('"file"."owningGroupId" in ($3)')
-		expect(fileQuery(queries).parameters).toContain('g1')
+		expect(fileQuery(queries).sql).toContain('"file"."owningGroupId" = "g"."groupId"')
+		expect(fileQuery(queries).parameters[0]).toEqual(['g1'])
 	})
 
 	// `hasReadAccessToFile` has no `ownerId` branch since #10391, and a legacy row carrying one would
@@ -184,25 +200,25 @@ describe('searchAccessibleBoards', () => {
 		expect(queries).toHaveLength(1)
 	})
 
-	// Descending order means the next page is strictly *below* the cursor, and the tie arm is what
+	// Descending order means the next page is strictly *below* the cursor, and the id half is what
 	// stops boards created in one batch, which share a createdAt, from being skipped or repeated
-	// across a page boundary.
-	it('seeks past the cursor rather than counting an offset', async () => {
+	// across a page boundary. It has to stay a row comparison: Postgres cannot match the equivalent
+	// `createdAt < :c or (createdAt = :c and id < :i)` to the index, so a late page walks every row
+	// above the cursor and discards it.
+	it('seeks past the cursor with a row comparison rather than counting an offset', async () => {
 		const { queries } = mockPool([HOME_MEMBERSHIP, []])
 		await searchAccessibleBoards(env, 'user-1', {
 			terms: [],
 			cursor: { createdAt: 1_700_000_000_000, id: 'board-9' },
 		})
-		expect(fileQuery(queries).sql).toContain(
-			'("file"."createdAt" < $4 or ("file"."createdAt" = $5 and file.id collate "C" < $6))'
-		)
+		expect(fileQuery(queries).sql).toContain('(file."createdAt", file.id collate "C") < ($4, $5)')
 		expect(fileQuery(queries).parameters).toContain('board-9')
 	})
 
 	it('adds no cursor predicate on the first page', async () => {
 		const { queries } = mockPool([HOME_MEMBERSHIP, []])
 		await searchAccessibleBoards(env, 'user-1', { terms: [], cursor: null })
-		expect(fileQuery(queries).sql).not.toContain('"file"."createdAt" <')
+		expect(fileQuery(queries).sql).not.toContain('file."createdAt", file.id')
 	})
 
 	// `compareBoardSearchOrder` compares ids by UTF-16 code unit, and a tldraw id is drawn from

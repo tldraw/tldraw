@@ -631,7 +631,7 @@ describe('search_boards', () => {
 	// The cursor a caller hands back must reach the query, or every page is page one.
 	it('passes a decoded cursor through to the query', async () => {
 		vi.mocked(searchAccessibleBoards).mockResolvedValue([])
-		await callTool('search_boards', { cursor: btoa('1700000000000:board-9') })
+		await callTool('search_boards', { cursor: btoa('1700000000000:board-9:') })
 		expect(searchAccessibleBoards).toHaveBeenCalledWith(expect.anything(), expect.any(String), {
 			terms: [],
 			cursor: { createdAt: 1_700_000_000_000, id: 'board-9' },

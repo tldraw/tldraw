@@ -87,11 +87,46 @@ describe('parseSearchBoardsInput', () => {
 	// The cursor is opaque so that its scheme can change; a model must only ever hand back one it
 	// was given.
 	it('round-trips a cursor from a previous result', () => {
-		const first = parsedJson(getBoardSearchResults(makePage(BOARD_SEARCH_PAGE_SIZE + 1)))
+		const first = parsedJson(getBoardSearchResults(makePage(BOARD_SEARCH_PAGE_SIZE + 1), []))
 		expect(parseSearchBoardsInput({ cursor: first.nextCursor }).cursor).toEqual({
 			createdAt: 1_700_000_000_000 - (BOARD_SEARCH_PAGE_SIZE - 1),
 			id: `board-${BOARD_SEARCH_PAGE_SIZE - 1}`,
 		})
+	})
+
+	// A cursor is a position in one query's results. Carried onto a different query it would point
+	// at row 20 of a set the model never saw the start of, with nothing in the result to say so.
+	it('continues a cursor only under the query that minted it', () => {
+		const page = parsedJson(getBoardSearchResults(makePage(BOARD_SEARCH_PAGE_SIZE + 1), ['design']))
+		expect(
+			parseSearchBoardsInput({ query: 'design', cursor: page.nextCursor }).cursor
+		).not.toBeNull()
+		expect(() => parseSearchBoardsInput({ query: 'roadmap', cursor: page.nextCursor })).toThrow(
+			'cursor is from a different query'
+		)
+		expect(() => parseSearchBoardsInput({ cursor: page.nextCursor })).toThrow(
+			'cursor is from a different query'
+		)
+	})
+
+	// Matching is `ilike` and terms are split on whitespace before they are ever compared, so
+	// neither case nor spacing changed which boards the cursor was pointing into.
+	it('treats a requery that differs only in case or spacing as the same query', () => {
+		const page = parsedJson(
+			getBoardSearchResults(makePage(BOARD_SEARCH_PAGE_SIZE + 1), ['Design', 'System'])
+		)
+		expect(
+			parseSearchBoardsInput({ query: '  design   system ', cursor: page.nextCursor }).cursor
+		).not.toBeNull()
+	})
+
+	// The other direction of the same rule: "list my newest boards" is a query too, and a cursor
+	// into it does not carry over to a search.
+	it('refuses a no-query cursor once a query is added', () => {
+		const page = parsedJson(getBoardSearchResults(makePage(BOARD_SEARCH_PAGE_SIZE + 1), []))
+		expect(() => parseSearchBoardsInput({ query: 'design', cursor: page.nextCursor })).toThrow(
+			'cursor is from a different query'
+		)
 	})
 
 	// Fixture board ids in the eval harness are arbitrary strings, and `btoa` throws outside Latin-1.
@@ -100,7 +135,7 @@ describe('parseSearchBoardsInput', () => {
 		// The cursor is minted from the last row *on* the page, so the odd id has to sit there.
 		const rows = makePage(BOARD_SEARCH_PAGE_SIZE + 1)
 		rows[BOARD_SEARCH_PAGE_SIZE - 1] = { ...rows[BOARD_SEARCH_PAGE_SIZE - 1], id: 'brädå:1' }
-		const result = parsedJson(getBoardSearchResults(rows))
+		const result = parsedJson(getBoardSearchResults(rows, []))
 		expect(parseSearchBoardsInput({ cursor: result.nextCursor }).cursor).toEqual({
 			createdAt: 1_700_000_000_000 - (BOARD_SEARCH_PAGE_SIZE - 1),
 			id: 'brädå:1',
@@ -193,7 +228,7 @@ describe('isAfterBoardSearchCursor', () => {
 
 describe('getBoardSearchResults', () => {
 	it('shapes a board for the model', () => {
-		const result = parsedJson(getBoardSearchResults([makeRow()]))
+		const result = parsedJson(getBoardSearchResults([makeRow()], []))
 		expect(result).toEqual({
 			boardCount: 1,
 			boards: [
@@ -211,21 +246,22 @@ describe('getBoardSearchResults', () => {
 	// "My workspace" on every row of the common case is noise; on a shared workspace's board it is
 	// the thing that identifies where the board lives.
 	it('names the workspace only on boards outside the caller’s own', () => {
-		const result = parsedJson(getBoardSearchResults([makeRow({ isPersonal: false })]))
+		const result = parsedJson(getBoardSearchResults([makeRow({ isPersonal: false })], []))
 		expect(result.boards[0]).toMatchObject({ source: 'workspace', workspaceName: 'Design' })
 	})
 
-	// tldraw.com renders a blank file name as "Untitled", so a result showing '' would name boards
-	// differently from the app the caller found them in.
-	it('falls back to Untitled for a blank name', () => {
-		const result = parsedJson(getBoardSearchResults([makeRow({ name: '  ' })]))
-		expect(result.boards[0].name).toBe('Untitled')
+	// An unnamed board is titled by its creation date on tldraw.com, in the viewer's locale and
+	// timezone. A stand-in title invented here would be one the caller never sees on their own
+	// screen, and one no query could match, since the column holds ''.
+	it('reports a blank name as blank rather than inventing one', () => {
+		const result = parsedJson(getBoardSearchResults([makeRow({ name: '  ' })], []))
+		expect(result.boards[0].name).toBe('')
 	})
 
 	// The query asks for one row more than a page so that "is there another page" needs no second
 	// count. The extra row must never be shown.
 	it('serves one page and a cursor from the surplus row', () => {
-		const result = parsedJson(getBoardSearchResults(makePage(BOARD_SEARCH_PAGE_SIZE + 1)))
+		const result = parsedJson(getBoardSearchResults(makePage(BOARD_SEARCH_PAGE_SIZE + 1), []))
 		expect(result.boardCount).toBe(BOARD_SEARCH_PAGE_SIZE)
 		expect(result.boards).toHaveLength(BOARD_SEARCH_PAGE_SIZE)
 		expect(result.nextCursor).toEqual(expect.any(String))
@@ -234,14 +270,14 @@ describe('getBoardSearchResults', () => {
 
 	// A cursor on the last page would have a model fetch an empty page to discover it had finished.
 	it('omits the cursor on the last page', () => {
-		const result = parsedJson(getBoardSearchResults(makePage(BOARD_SEARCH_PAGE_SIZE)))
+		const result = parsedJson(getBoardSearchResults(makePage(BOARD_SEARCH_PAGE_SIZE), []))
 		expect(result.boardCount).toBe(BOARD_SEARCH_PAGE_SIZE)
 		expect(result.nextCursor).toBeUndefined()
 	})
 
 	// An empty result is a normal result. Models treat isError as failure and retry it.
 	it('returns an empty result rather than an error', () => {
-		const result = getBoardSearchResults([])
+		const result = getBoardSearchResults([], [])
 		expect(result.isError).toBeUndefined()
 		expect(parsedJson(result)).toEqual({ boardCount: 0, boards: [] })
 	})

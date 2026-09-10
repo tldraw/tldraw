@@ -162,7 +162,7 @@ async function callFixtureTool(
 					)
 					.sort(compareBoardSearchOrder)
 					.filter((row) => !cursor || isAfterBoardSearchCursor(row, cursor))
-				return getBoardSearchResults(rows)
+				return getBoardSearchResults(rows, terms)
 			}
 			case BOARD_INFO_TOOL_NAME: {
 				const { boardId } = parseBoardInfoInput(args)

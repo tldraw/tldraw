@@ -146,7 +146,8 @@ export function parseSearchBoardsInput(input: unknown): {
 	cursor: BoardSearchCursor | null
 } {
 	const value = requireArgumentsObject(input ?? {})
-	return { terms: parseSearchTerms(value.query), cursor: parseBoardSearchCursor(value.cursor) }
+	const terms = parseSearchTerms(value.query)
+	return { terms, cursor: parseBoardSearchCursor(value.cursor, terms) }
 }
 
 // Terms are ANDed, so "design system" finds "System design v2" whatever the order they were typed
@@ -177,7 +178,7 @@ function parseSearchTerms(value: unknown): string[] {
  * paged three times and is silently returned to the start sees its own last page repeating, with no
  * signal that its cursor was the problem.
  */
-function parseBoardSearchCursor(value: unknown): BoardSearchCursor | null {
+function parseBoardSearchCursor(value: unknown, terms: string[]): BoardSearchCursor | null {
 	if (value === undefined || value === null) return null
 	if (typeof value !== 'string') {
 		throw new Error('cursor must be a string: the nextCursor from a previous search_boards result')
@@ -191,11 +192,11 @@ function parseBoardSearchCursor(value: unknown): BoardSearchCursor | null {
 	} catch {
 		throw invalid
 	}
-	// The encoder percent-escapes the id, so the first colon is the only unescaped one and separates
-	// the two halves.
-	const separator = decoded.indexOf(':')
-	if (separator === -1) throw invalid
-	const timestampPart = decoded.slice(0, separator)
+	// The encoder percent-escapes both the id and the query, and percent-escaping covers the colon,
+	// so these are the only three unescaped ones.
+	const parts = decoded.split(':')
+	if (parts.length !== 3) throw invalid
+	const [timestampPart, idPart, queryPart] = parts
 	// `Number()` accepts far more than a timestamp can legitimately be: '' -> 0, '1e3' -> 1000,
 	// ' 5' -> 5, '+5' -> 5, 'Infinity' -> Infinity. Requiring plain digits first catches all of
 	// these, including the empty-prefix forgery `btoa(":id")`, which would otherwise pass
@@ -206,10 +207,20 @@ function parseBoardSearchCursor(value: unknown): BoardSearchCursor | null {
 	if (!/^\d+$/.test(timestampPart)) throw invalid
 	const createdAt = Number(timestampPart)
 	let id: string
+	let query: string
 	try {
-		id = decodeURIComponent(decoded.slice(separator + 1))
+		id = decodeURIComponent(idPart)
+		query = decodeURIComponent(queryPart)
 	} catch {
 		throw invalid
+	}
+	// A cursor is a position in one query's results and means nothing in another's. Without this a
+	// model that pages, then narrows its query while passing the cursor on, silently continues from
+	// row 20 of a set it never saw the start of — and has no way to tell that is what happened.
+	if (query !== normalizeSearchQuery(terms)) {
+		throw new Error(
+			'cursor is from a different query. Repeat the query it came from, or omit the cursor to start this one from its first page.'
+		)
 	}
 	// `Number.isSafeInteger`, not `Number.isInteger`: the latter accepts `1e300`, which binds as an
 	// out-of-range int8 and makes Postgres throw, so caller garbage would reach a model as "the board
@@ -221,12 +232,22 @@ function parseBoardSearchCursor(value: unknown): BoardSearchCursor | null {
 // Opaque on purpose: a model should only ever hand back a cursor it was given, which leaves the
 // encoding free to change without every client having to.
 //
-// The id is percent-escaped because `btoa` throws on anything outside Latin-1 and this runs inside
-// the route's `try`, so an id it choked on would be reported as a database failure. Real file ids
-// are URL-safe ASCII, which percent-encoding leaves byte for byte; harness fixture ids are arbitrary
-// strings, and this is what keeps them round-tripping.
-function encodeBoardSearchCursor(cursor: BoardSearchCursor): string {
-	return btoa(`${cursor.createdAt}:${encodeURIComponent(cursor.id)}`)
+// The id and the query are percent-escaped because `btoa` throws on anything outside Latin-1 and
+// this runs inside the route's `try`, so anything it choked on would be reported as a database
+// failure. Real file ids are URL-safe ASCII, which percent-encoding leaves byte for byte; fixture
+// ids and search terms are arbitrary strings — a query in any non-Latin script would otherwise
+// throw here — and this is what keeps them round-tripping.
+function encodeBoardSearchCursor(cursor: BoardSearchCursor, terms: string[]): string {
+	return btoa(
+		`${cursor.createdAt}:${encodeURIComponent(cursor.id)}:${encodeURIComponent(normalizeSearchQuery(terms))}`
+	)
+}
+
+// What makes two searches "the same query" for the purposes of continuing a cursor. Lowercased
+// because the matching is `ilike`, so case never changed which boards the cursor was pointing into;
+// joined on single spaces because `parseSearchTerms` has already split the caller's whitespace away.
+function normalizeSearchQuery(terms: string[]): string {
+	return terms.map((term) => term.toLowerCase()).join(' ')
 }
 
 export function parseBoardInfoInput(input: unknown): { boardId: string } {
@@ -411,10 +432,6 @@ export function isAfterBoardSearchCursor(
 	return compareBoardSearchOrder(row, cursor) > 0
 }
 
-// tldraw.com renders a blank file name as "Untitled", so a result showing '' would name boards
-// differently from the app the caller found them in.
-const UNTITLED_BOARD_NAME = 'Untitled'
-
 /**
  * One page of search results.
  *
@@ -425,16 +442,21 @@ const UNTITLED_BOARD_NAME = 'Untitled'
  * An empty result is a normal result, never `isError`: a model treats `isError` as a failure to
  * recover from and will retry a search that simply matched nothing.
  */
-export function getBoardSearchResults(rows: BoardSearchRow[]): ToolResult {
+export function getBoardSearchResults(rows: BoardSearchRow[], terms: string[]): ToolResult {
 	const boards = rows.slice(0, BOARD_SEARCH_PAGE_SIZE)
 	const lastBoard = boards.at(-1)
 	const hasMore = rows.length > boards.length
 	return toolJsonResult({
 		boardCount: boards.length,
-		...(hasMore && lastBoard ? { nextCursor: encodeBoardSearchCursor(lastBoard) } : {}),
+		...(hasMore && lastBoard ? { nextCursor: encodeBoardSearchCursor(lastBoard, terms) } : {}),
 		boards: boards.map((row) => ({
 			boardId: row.id,
-			name: row.name.trim() === '' ? UNTITLED_BOARD_NAME : row.name,
+			// Reported blank rather than given a stand-in title. tldraw.com shows an unnamed board by
+			// its creation date, formatted in the viewer's locale and timezone — which this worker has
+			// neither of — so any name invented here is one the caller cannot see on their own screen,
+			// and one no query can match, since what the column holds is ''. Trimmed so that a name of
+			// only spaces reads as the absence it is.
+			name: row.name.trim(),
 			// The key the results are sorted by, so a model can see the order rather than guess at it.
 			createdAt: new Date(row.createdAt).toISOString(),
 			updatedAt: new Date(row.updatedAt).toISOString(),
@@ -776,7 +798,7 @@ function getSearchBoardsToolDefinition() {
 	return {
 		name: SEARCH_BOARDS_TOOL_NAME,
 		title: 'Search tldraw boards',
-		description: `Find tldraw.com boards by name: the boards in this account's own workspace, and the boards owned by the workspaces it belongs to. Every term in the query must appear somewhere in the board name, in any order, ignoring case. Search for the distinctive words, not a whole title: a query of more than ${BOARD_SEARCH_MAX_TERMS} words, or longer than ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters, is rejected. Omit the query to list your newest boards. Results are ordered newest-created first, reported per board as createdAt. updatedAt is a different thing: when the board itself last changed, by anyone — so an old board can have been edited today, and a board created today may never have been touched since. Returns up to ${BOARD_SEARCH_PAGE_SIZE} boards, each with a boardId that get_board_info and the other tools take. If the result carries a nextCursor there are more boards: call again with that cursor to get the next page. Matching no boards is a normal empty result, not an error.`,
+		description: `Find tldraw.com boards by name: the boards in this account's own workspace, and the boards owned by the workspaces it belongs to. Every term in the query must appear somewhere in the board name, in any order, ignoring case. Search for the distinctive words, not a whole title: a query of more than ${BOARD_SEARCH_MAX_TERMS} words, or longer than ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters, is rejected. Omit the query to list your newest boards. Results are ordered newest-created first, reported per board as createdAt. updatedAt is a different thing: when the board itself last changed, by anyone — so an old board can have been edited today, and a board created today may never have been touched since. Returns up to ${BOARD_SEARCH_PAGE_SIZE} boards, each with a boardId that get_board_info and the other tools take. If the result carries a nextCursor there are more boards: call again with the same query and that cursor to get the next page — a cursor only continues the query that produced it. A board with no name comes back with name empty: tldraw.com titles those by their creation date, so no name query can find them — reach them by listing with no query. Matching no boards is a normal empty result, not an error.`,
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
