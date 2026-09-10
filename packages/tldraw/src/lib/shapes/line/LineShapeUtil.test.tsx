@@ -462,9 +462,9 @@ describe('Line points: id-mapped object with a decoupled index', () => {
 		expect(vertexHandles).toHaveLength(2)
 	})
 
-	it('tolerates a line animation that transiently produces duplicate indices (#9397)', () => {
-		// animating to a different point count makes getInterpolatedProps emit duplicate
-		// indices each tick; reading handles must not throw while that is in the store.
+	it('keeps every point while animating to a line with more points (#9397)', () => {
+		// getInterpolatedProps used to clone extra start points with duplicate indices, which
+		// linePointsToArray collapsed, so the line lost points until the animation ended.
 		const id = createShapeId('line-animate')
 		editor.createShapes([
 			{
@@ -498,7 +498,7 @@ describe('Line points: id-mapped object with a decoupled index', () => {
 
 		for (let i = 0; i < 12; i++) {
 			editor.emit('tick', 16)
-			expect(() => editor.getShapeHandles(id)).not.toThrow()
+			expect(getHandlesFor(id).filter((h) => h.type === 'vertex')).toHaveLength(3)
 		}
 	})
 })
