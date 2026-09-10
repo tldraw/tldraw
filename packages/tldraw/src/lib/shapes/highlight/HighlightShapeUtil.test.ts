@@ -154,3 +154,35 @@ describe('HighlightShapeUtil dot detection', () => {
 		})
 	})
 })
+
+describe('HighlightShapeUtil getInterpolatedProps', () => {
+	const segments = createDrawSegments([
+		[
+			{ x: 0, y: 0, z: 0.5 },
+			{ x: 10, y: 10, z: 0.5 },
+		],
+	])
+
+	function createHighlightShape(id: string, props: Partial<TLHighlightShape['props']>) {
+		const shapeId = createShapeId(id)
+		editor.createShapes([{ id: shapeId, type: 'highlight', props: { segments, ...props } }])
+		return editor.getShape(shapeId) as TLHighlightShape
+	}
+
+	it('takes discrete props from the nearer shape', () => {
+		const start = createHighlightShape('start', { color: 'red', size: 's', scale: 1 })
+		const end = createHighlightShape('end', { color: 'blue', size: 'xl', scale: 3 })
+		const util = editor.getShapeUtil('highlight')
+
+		expect(util.getInterpolatedProps!(start, end, 0.25)).toMatchObject({
+			color: 'red',
+			size: 's',
+			scale: 1.5,
+		})
+		expect(util.getInterpolatedProps!(start, end, 0.75)).toMatchObject({
+			color: 'blue',
+			size: 'xl',
+			scale: 2.5,
+		})
+	})
+})
