@@ -18,7 +18,7 @@ Open `http://localhost:3000/` in your browser to see the app.
 This starter kit demonstrates how to build an AI chat application that uses tldraw to provide sketches and annotated image to the model. The app features:
 
 - Integrated whiteboard for providing visual context
-- Image annotation and markup
+- Image annotation, markup, and comment threads
 - Easy switching between text chat and visual canvas input
 
 Key interactions include:
@@ -27,6 +27,7 @@ Key interactions include:
 - Click the whiteboard button to open the tldraw canvas
 - Draw, sketch, and create diagrams to supplement conversations
 - Annotate images and visual content directly on the canvas
+- Select Comment in the sketch toolbar (or press C), then click the canvas to start a thread; comments are saved in the editable sketch
 
 ## Environment setup
 
@@ -40,6 +41,8 @@ Get your API key from the [OpenAI dashboard](https://platform.openai.com/api-key
 Chat uses the OpenAI Responses API with `gpt-5.6-terra` by default. Set `OPENAI_MODEL` to use another model that supports image inputs.
 Sketches and images are uploaded to OpenAI separately and expire after 24 hours; the original images and editable sketches remain in local chat history.
 You can also switch to a different provider using the [Vercel AI SDK](https://ai-sdk.dev/providers/ai-sdk-providers).
+
+Commenting is available in local development. For a deployed app, set `NEXT_PUBLIC_TLDRAW_LICENSE_KEY` to a tldraw license key that includes commenting.
 
 ## File structure
 

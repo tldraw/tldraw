@@ -31736,6 +31736,7 @@ __metadata:
   dependencies:
     "@ai-sdk/openai": "npm:^2.0.106"
     "@ai-sdk/react": "npm:^2.0.15"
+    "@tldraw/commenting": "workspace:*"
     "@types/node": "npm:^22.15.31"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"

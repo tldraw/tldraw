@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap');
 @import 'tldraw/tldraw.css';
+@import '@tldraw/commenting/commenting.css';
 
 :root {
 	color-scheme: light;
@@ -413,6 +414,7 @@ textarea {
 .drag-drop-indicator {
 	position: absolute;
 	inset: 0;
+	border-radius: inherit;
 	background: var(--chat-surface);
 	color: var(--chat-muted);
 	display: flex;
@@ -450,12 +452,14 @@ textarea {
 
 .input-container {
 	position: relative;
+	min-width: 0;
 }
+
 .input-images {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
-	padding-bottom: 8px;
+	padding: 4px 8px 12px;
 }
 
 .input-image {
@@ -702,6 +706,7 @@ textarea {
 	justify-content: center;
 	color: var(--chat-text);
 	position: relative;
+	flex-shrink: 0;
 }
 
 .icon-button svg {
@@ -751,9 +756,9 @@ textarea {
 	outline: none;
 	resize: none;
 	font-family: inherit;
-	line-height: 1.5;
+	line-height: 24px;
 	min-height: 24px;
-	max-height: 5lh;
+	max-height: 8lh;
 	overflow-y: auto;
 }
 
@@ -873,6 +878,12 @@ textarea {
 .whiteboard-button svg {
 	width: 20px;
 	height: 20px;
+}
+
+.whiteboard-button svg.whiteboard-cursor-icon {
+	width: 24px;
+	height: 24px;
+	transform: translate(1px, 1px);
 }
 
 .whiteboard-button:hover:not(:disabled),
@@ -1163,11 +1174,17 @@ textarea {
 	}
 }
 
-@container (max-width: 430px) {
+@container (max-width: 460px) {
 	.whiteboard-history {
 		top: 66px;
 		right: 10px;
 		gap: 0;
+	}
+}
+
+@container (max-width: 350px) {
+	.whiteboard-close {
+		top: 66px;
 	}
 }
 

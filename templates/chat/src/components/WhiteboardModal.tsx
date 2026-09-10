@@ -1,7 +1,16 @@
+import {
+	CanvasComments,
+	CommentTool,
+	commentToolOverrides,
+	getLiveCommentThreads,
+} from '@tldraw/commenting'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
+	commentSchemaRecords,
 	createShapeId,
+	createTLSchema,
+	createTLStore,
 	DefaultColorStyle,
 	Editor,
 	notifyIfFileNotAllowed,
@@ -12,6 +21,7 @@ import {
 	useEditor,
 	useToasts,
 	useTranslation,
+	useValue,
 } from 'tldraw'
 import { WhiteboardControls } from './WhiteboardControls'
 import {
@@ -50,7 +60,15 @@ const options: Partial<TldrawOptions> = {
 	maxFontsToLoadBeforeRender: 0,
 }
 
+const commentTools = [
+	CommentTool.configure({
+		canComment: ({ editor, currentUserId }) => !!currentUserId && !editor.getIsReadonly(),
+	}),
+]
+const commentOverrides = [commentToolOverrides]
+
 const components: TLComponents = {
+	InFrontOfTheCanvas: WhiteboardComments,
 	Toolbar: null,
 	StylePanel: null,
 	MenuPanel: null,
@@ -72,6 +90,13 @@ export function WhiteboardModal({
 	uploadedFile,
 	imageName,
 }: WhiteboardModalProps) {
+	const [store] = useState(() =>
+		createTLStore({
+			schema: createTLSchema({ records: commentSchemaRecords }),
+			snapshot: initialSnapshot,
+			themes: whiteboardThemes,
+		})
+	)
 	const [editor, setEditor] = useState<Editor | null>(null)
 	const [returnFocus] = useState(() => document.activeElement)
 	const [isSaving, setIsSaving] = useState(false)
@@ -95,6 +120,11 @@ export function WhiteboardModal({
 		editor.complete()
 		const shapes = editor.getCurrentPageShapes()
 		if (shapes.length === 0) {
+			// Native comment pins are not shapes, so they cannot produce an image attachment alone.
+			if (getLiveCommentThreads(editor).length > 0) {
+				setError('Add a drawing before attaching this sketch.')
+				return
+			}
 			onCancel()
 			return
 		}
@@ -167,7 +197,10 @@ export function WhiteboardModal({
 				<Tldraw
 					components={components}
 					options={options}
-					snapshot={initialSnapshot}
+					store={store}
+					tools={commentTools}
+					overrides={commentOverrides}
+					licenseKey={process.env.NEXT_PUBLIC_TLDRAW_LICENSE_KEY}
 					shapeUtils={whiteboardShapeUtils}
 					themes={whiteboardThemes}
 					colorScheme="light"
@@ -199,6 +232,24 @@ export function WhiteboardModal({
 		</div>,
 		document.body
 	)
+}
+
+function WhiteboardComments() {
+	const editor = useEditor()
+	const author = useValue(
+		'comment author',
+		() => ({
+			id: editor.user.getExternalId(),
+			name: editor.user.getName() || 'You',
+			color: editor.user.getColor(),
+		}),
+		[editor]
+	)
+	const resolveAuthor = useCallback(
+		(id: string) => (id === author.id ? author : undefined),
+		[author]
+	)
+	return <CanvasComments currentUserId={author.id} resolveAuthor={resolveAuthor} />
 }
 
 function InsideOfTldrawContext({ uploadedFile }: { uploadedFile?: File }) {

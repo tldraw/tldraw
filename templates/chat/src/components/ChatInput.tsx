@@ -89,15 +89,37 @@ export function ChatInput({
 		if (!disabled) textareaRef.current?.focus()
 	}, [disabled])
 
-	// Auto-resize textarea and scroll to bottom when content changes.
-	useLayoutEffect(() => {
-		if (textareaRef.current) {
-			// Reset height to auto to get the correct scrollHeight
-			textareaRef.current.style.height = 'auto'
-			// Set height based on scrollHeight, with max height for ~5 lines
-			textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+	const measureTextarea = useCallback(() => {
+		const textarea = textareaRef.current
+		if (!textarea) return
+		textarea.style.height = 'auto'
+		textarea.style.height = `${textarea.scrollHeight}px`
+	}, [])
+
+	useLayoutEffect(measureTextarea, [input, measureTextarea])
+
+	useEffect(() => {
+		const textarea = textareaRef.current
+		if (!textarea) return
+		let lastWidth = textarea.clientWidth
+		let frame = 0
+		const observer = new ResizeObserver(() => {
+			if (textarea.clientWidth === lastWidth) return
+			lastWidth = textarea.clientWidth
+			// Defer height changes to avoid a resize observer loop.
+			cancelAnimationFrame(frame)
+			frame = requestAnimationFrame(measureTextarea)
+		})
+		observer.observe(textarea)
+		return () => {
+			observer.disconnect()
+			cancelAnimationFrame(frame)
 		}
-	}, [input])
+	}, [measureTextarea])
+
+	useEffect(() => {
+		if (disabled) setMenuOpen(false)
+	}, [disabled])
 
 	// Scroll to bottom when images are added.
 	useLayoutEffect(() => {
