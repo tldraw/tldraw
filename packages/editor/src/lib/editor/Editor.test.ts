@@ -96,6 +96,26 @@ describe('updateShape', () => {
 	})
 })
 
+describe('setErasingShapes', () => {
+	it('sorts a copy of the ids rather than the array the caller passed in', () => {
+		const a = createShapeId('a')
+		const b = createShapeId('b')
+		editor.createShapes([
+			{ id: a, type: 'my-custom-shape', props: { w: 100, h: 100, text: undefined } },
+			{ id: b, type: 'my-custom-shape', props: { w: 100, h: 100, text: undefined } },
+		])
+
+		// the store freezes the arrays it owns, so sorting one in place throws
+		const ids = [b, a]
+		Object.freeze(ids)
+
+		editor.setErasingShapes(ids)
+
+		expect(ids).toEqual([b, a])
+		expect(editor.getErasingShapeIds()).toEqual([a, b])
+	})
+})
+
 describe('updateViewportScreenBounds', () => {
 	it('bails without crashing or updating bounds when the container document has no body', () => {
 		const documentSpy = vi
