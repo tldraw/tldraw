@@ -3,18 +3,15 @@
 import { ArrowLongLeftIcon, ArrowLongRightIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
 import { MouseEventHandler } from 'react'
-import { useFormStatus } from 'react-dom'
 import { track } from '@/app/analytics'
 import { Icon, IconName } from '@/components/common/icon'
 import { cn } from '@/utils/cn'
-import { Loader } from './loader'
 
 export function Button({
 	id,
 	href,
 	newTab,
 	onClick,
-	submit = false,
 	caption,
 	icon,
 	arrow,
@@ -22,13 +19,11 @@ export function Button({
 	size = 'base',
 	type = 'primary',
 	darkRingOffset,
-	loading,
 }: {
 	id?: string
 	href?: string
 	newTab?: boolean
 	onClick?: MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>
-	submit?: boolean
 	caption: string
 	icon?: IconName
 	arrow?: 'left' | 'right'
@@ -36,9 +31,7 @@ export function Button({
 	size?: 'xs' | 'sm' | 'base' | 'lg'
 	type?: 'primary' | 'secondary' | 'tertiary' | 'black'
 	darkRingOffset?: boolean
-	loading?: boolean
 }) {
-	const { pending } = useFormStatus()
 	const iconSizes = { xs: 'h-3', sm: 'h-3.5', base: 'h-4', lg: 'h-5' }
 	className = cn(
 		'relative overflow-hidden flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-zinc-900',
@@ -89,46 +82,6 @@ export function Button({
 				{icon && <Icon icon={icon} className={cn(iconSizes[size])} />}
 				<span className={spanClassName}>{caption}</span>
 				{arrow === 'right' && <ArrowLongRightIcon className={cn(iconSizes[size])} />}
-				{loading && (
-					<div
-						className={cn(
-							'absolute inset-0 flex items-center justify-center',
-							type === 'primary' && 'bg-blue-500',
-							type === 'black' && 'bg-black',
-							type === 'secondary' && 'bg-zinc-100'
-						)}
-					>
-						<Loader className="w-5" />
-					</div>
-				)}
-			</button>
-		)
-	if (submit)
-		return (
-			<button
-				type="submit"
-				disabled={pending}
-				className={className}
-				onClick={() => {
-					if (id) track('button', { id })
-				}}
-			>
-				{arrow === 'left' && <ArrowLongLeftIcon className={cn(iconSizes[size])} />}
-				{icon && <Icon icon={icon} className={cn(iconSizes[size])} />}
-				<span className={spanClassName}>{caption}</span>
-				{arrow === 'right' && <ArrowLongRightIcon className={cn(iconSizes[size])} />}
-				{(pending || loading) && (
-					<div
-						className={cn(
-							'absolute inset-0 flex items-center justify-center',
-							type === 'primary' && 'bg-blue-500',
-							type === 'black' && 'bg-black dark:bg-white',
-							type === 'secondary' && 'bg-zinc-100 dark:bg-zinc-800'
-						)}
-					>
-						<Loader className="w-5" />
-					</div>
-				)}
 			</button>
 		)
 	return null

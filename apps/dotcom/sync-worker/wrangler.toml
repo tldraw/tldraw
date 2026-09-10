@@ -301,6 +301,24 @@ bucket_name = "rooms-history-ephemeral-preview"
 binding = "ROOMS_HISTORY_EPHEMERAL"
 bucket_name = "rooms-history-ephemeral"
 
+#################### Rooms History chain bucket ####################
+[[env.dev.r2_buckets]]
+binding = "ROOMS_HISTORY"
+bucket_name = "rooms-history-preview"
+preview_bucket_name = "rooms-history-preview"
+
+[[env.preview.r2_buckets]]
+binding = "ROOMS_HISTORY"
+bucket_name = "rooms-history-preview"
+
+[[env.staging.r2_buckets]]
+binding = "ROOMS_HISTORY"
+bucket_name = "rooms-history-preview"
+
+[[env.production.r2_buckets]]
+binding = "ROOMS_HISTORY"
+bucket_name = "rooms-history"
+
 #################### Room snapshots bucket ####################
 # in dev, we write to the preview bucket and need a `preview_bucket_name`
 [[env.dev.r2_buckets]]

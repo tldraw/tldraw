@@ -222,7 +222,13 @@ export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persis
 
 /* ----------------------- Feature Flags ---------------------- */
 
-export const FEATURE_FLAG_KEYS = ['rum_enabled', 'commenting_enabled', 'mcp_server_access'] as const
+export const FEATURE_FLAG_KEYS = [
+	'rum_enabled',
+	'commenting_enabled',
+	'mcp_server_access',
+	'version_chain',
+	'version_chain_legacy_writes',
+] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 
 export type FeatureFlagValue = BooleanFeatureFlag | PercentageFeatureFlag | AllowlistFeatureFlag

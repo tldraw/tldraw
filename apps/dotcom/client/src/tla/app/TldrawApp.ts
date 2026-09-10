@@ -28,7 +28,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import {
 	Result,
-	assert,
+	compact,
 	fetch,
 	isEqual,
 	promiseWithResolve,
@@ -44,7 +44,6 @@ import {
 	Atom,
 	Signal,
 	TLDocument,
-	TLSessionStateSnapshot,
 	TLUiToastsContextType,
 	TLUserPreferences,
 	assertExists,
@@ -65,6 +64,7 @@ import { ZERO_SERVER } from '../../utils/config'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
+import { copyTextToClipboard } from '../utils/copy'
 import { getDateFormat } from '../utils/dates'
 import { FeatureFlags } from '../utils/FeatureFlagPoller'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
@@ -72,6 +72,8 @@ import { updateLocalSessionState } from '../utils/local-session-state'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
+
+const USER_PRELOAD_TIMEOUT_MS = 30_000
 
 let appId = 0
 
@@ -331,38 +333,18 @@ export class TldrawApp {
 		})
 		this.disposables.push(unsubscribe)
 
-		this.user$ = this.signalizeQuery('user signal', this.userQuery())
-		this.fileStates$ = this.signalizeQuery('file states signal', this.fileStateQuery())
+		this.user$ = this.signalizeQuery('user signal', queries.user())
+		this.fileStates$ = this.signalizeQuery('file states signal', queries.fileStates())
 		this.workspaceMemberships$ = this.signalizeQuery(
 			'workspace memberships signal',
-			this.workspaceMembershipsQuery()
+			queries.workspaceMemberships()
 		)
 		this.comments$ = this.isCommentingEnabled
-			? this.signalizeQuery('comments signal', this.commentsQuery())
+			? this.signalizeQuery('comments signal', queries.comments())
 			: null
 		this.reactions$ = this.isCommentingEnabled
-			? this.signalizeQuery('reactions signal', this.reactionsQuery())
+			? this.signalizeQuery('reactions signal', queries.reactions())
 			: null
-	}
-
-	private userQuery() {
-		return queries.user()
-	}
-
-	private fileStateQuery() {
-		return queries.fileStates()
-	}
-
-	private workspaceMembershipsQuery() {
-		return queries.workspaceMemberships()
-	}
-
-	private commentsQuery() {
-		return queries.comments()
-	}
-
-	private reactionsQuery() {
-		return queries.reactions()
 	}
 
 	/**
@@ -398,24 +380,41 @@ export class TldrawApp {
 	async preload() {
 		// Ensure user exists in DB before Zero can query
 		const token = await this.getToken()
-		if (!token) {
-			throw new Error('No auth token available for init')
-		} else {
-			const res = await fetch(`/api/app/${this.userId}/init`, {
-				method: 'POST',
-				headers: { Authorization: `Bearer ${token}` },
-			})
-			if (!res.ok) console.error(`Init failed: ${res.status}`)
-		}
-		await this.z.preload(this.userQuery()).complete
-		await this.changesFlushed
-		await new Promise((resolve) => {
-			let unlisten = () => {}
-			unlisten = react('wait for user', () => this.user$.get() && resolve(unlisten()))
+		if (!token) throw new Error('No auth token available for init')
+		const res = await fetch(`/api/app/${this.userId}/init`, {
+			method: 'POST',
+			headers: { Authorization: `Bearer ${token}` },
 		})
+		// A failed init only matters if the user row never shows up: returning users whose row
+		// already exists should still load through a transient worker error.
+		const initError = res.ok ? undefined : new Error(`Init failed: ${res.status}`)
+		// Zero's query can itself stall, so the deadline must cover it as well as the user row.
+		// The stage is in the error so Sentry can tell a slow Zero sync from a row that never arrived.
+		let stage: 'zero query' | 'state flush' | 'user record' = 'zero query'
+		const timedOut = promiseWithResolve<never>()
+		let stopWaiting: (() => void) | undefined
+		const timeout = setTimeout(
+			() =>
+				timedOut.reject(initError ?? new Error(`Timed out waiting for the ${stage} after init`)),
+			USER_PRELOAD_TIMEOUT_MS
+		)
+		try {
+			await Promise.race([this.z.preload(queries.user()).complete, timedOut])
+			stage = 'state flush'
+			await Promise.race([this.changesFlushed, timedOut])
+			stage = 'user record'
+			const userLoaded = promiseWithResolve<void>()
+			stopWaiting = react('wait for user', () => {
+				if (this.user$.get()) userLoaded.resolve()
+			})
+			await Promise.race([userLoaded, timedOut])
+		} finally {
+			clearTimeout(timeout)
+			stopWaiting?.()
+		}
 		await Promise.all([
-			this.z.preload(this.fileStateQuery()).complete,
-			this.z.preload(this.workspaceMembershipsQuery()).complete,
+			this.z.preload(queries.fileStates()).complete,
+			this.z.preload(queries.workspaceMemberships()).complete,
 		])
 	}
 
@@ -502,6 +501,8 @@ export class TldrawApp {
 		return assertExists(this.user$.get(), 'no user')
 	}
 
+	// Keep these helpers even when no per-user flags are active; future rollouts need
+	// reactive access to the flags stored on the user record.
 	@computed({ isEqual })
 	getUserFlags(): Set<TlaFlags> {
 		const user = this.getUser()
@@ -567,8 +568,7 @@ export class TldrawApp {
 		pinned.sort(sortByMaybeIndex)
 
 		for (const file of unpinned) {
-			const existing = retainedOrdering?.find((f) => f.fileId === file.fileId)
-			if (existing) continue
+			if (retainedOrdering.some((f) => f.fileId === file.fileId)) continue
 
 			// For new files, use current updatedAt
 			const state = this.getFileState(file.fileId)
@@ -589,11 +589,6 @@ export class TldrawApp {
 		return pinned
 			.map((f) => ({ fileId: f.fileId, isPinned: f.index !== null, date: f.file.updatedAt }))
 			.concat(nextOrdering.map((f) => ({ fileId: f.fileId, isPinned: false, date: f.date })))
-	}
-
-	// Clear workspace file ordering to refresh on expand (like recent files on page reload)
-	clearWorkspaceFileOrdering(workspaceId: string) {
-		this.lastWorkspaceFileOrderings.delete(workspaceId)
 	}
 
 	tlUser = createTLCurrentUser({
@@ -621,12 +616,7 @@ export class TldrawApp {
 	})
 
 	getUserOwnFiles() {
-		const fileStates = this.getUserFileStates()
-		const files: TlaFile[] = []
-		fileStates.forEach((f) => {
-			if (f.file) files.push(f.file)
-		})
-		return files
+		return compact(this.getUserFileStates().map((f) => f.file))
 	}
 
 	getUserFileStates() {
@@ -676,7 +666,7 @@ export class TldrawApp {
 		return mostRecent?.fileId ?? scopedFiles[0]?.fileId ?? null
 	}
 
-	private canCreateNewFile(workspaceId: string) {
+	private canCreateNewFile(workspaceId: string, count = 1) {
 		// Count only files the workspace actually owns — not guest files (shared files the
 		// user opened) or mislinked rows that getWorkspaceFilesSorted hides. Counting those
 		// would let the limit fire on files the user can neither see nor remove. createFile
@@ -687,7 +677,7 @@ export class TldrawApp {
 		const nonDeletedCount = membership.groupFiles.filter(
 			(gf) => gf.file && !gf.file.isDeleted && gf.file.owningGroupId === workspaceId
 		).length
-		return nonDeletedCount < this.config.maxNumberOfFiles
+		return nonDeletedCount + count <= this.config.maxNumberOfFiles
 	}
 
 	private showMaxFilesToast() {
@@ -845,7 +835,6 @@ export class TldrawApp {
 			// possibly a published file
 			return ''
 		}
-		assert(typeof file !== 'string', 'ok')
 
 		if (typeof file.name === 'undefined') {
 			captureException(new Error('file name is undefined somehow: ' + JSON.stringify(file)))
@@ -863,8 +852,8 @@ export class TldrawApp {
 		return
 	}
 
-	async slurpFile() {
-		return await this.createFile({
+	slurpFile() {
+		return this.createFile({
 			createSource: `${LOCAL_FILE_PREFIX}/${getScratchPersistenceKey()}`,
 		})
 	}
@@ -879,12 +868,6 @@ export class TldrawApp {
 		})
 	}
 
-	/**
-	 * Publish a file or re-publish changes.
-	 *
-	 * @param fileId - The file id to unpublish.
-	 * @returns A result indicating success or failure.
-	 */
 	publishFile(fileId: string) {
 		const file = this.getFile(fileId)
 		if (!file) throw Error(`No file with that id`)
@@ -903,11 +886,11 @@ export class TldrawApp {
 
 	getFile(fileId?: string): TlaFile | null {
 		if (!fileId) return null
-		return (
-			this.getWorkspaceMemberships()
-				.find((g) => g.groupFiles.some((gf) => gf.fileId === fileId))
-				?.groupFiles.find((gf) => gf.fileId === fileId)?.file ?? null
-		)
+		for (const membership of this.getWorkspaceMemberships()) {
+			const groupFile = membership.groupFiles.find((gf) => gf.fileId === fileId)
+			if (groupFile) return groupFile.file ?? null
+		}
+		return null
 	}
 
 	canUpdateFile(fileId: string): boolean {
@@ -924,12 +907,6 @@ export class TldrawApp {
 		return assertExists(this.getFile(fileId), 'no file with id ' + fileId)
 	}
 
-	/**
-	 * Unpublish a file.
-	 *
-	 * @param fileId - The file id to unpublish.
-	 * @returns A result indicating success or failure.
-	 */
 	unpublishFile(fileId: string) {
 		const file = this.requireFile(fileId)
 		if (!this.canUpdateFile(fileId)) throw Error('user cannot edit that file')
@@ -1006,31 +983,12 @@ export class TldrawApp {
 		this.z.mutate.comment.markManyRead({ commentIds, readAt: Date.now() })
 	}
 
-	markCommentUnread(commentId: string) {
-		this.z.mutate.comment.markUnread({ commentId })
-	}
-
 	updateFile(fileId: string, partial: Partial<TlaFile>) {
 		this.z.mutate.file.update({ id: fileId, ...partial })
 	}
 
 	async onFileEnter(fileId: string) {
 		this.z.mutate.onEnterFile({ fileId, time: Date.now() })
-	}
-
-	onFileEdit(fileId: string) {
-		this.updateFileState(fileId, { lastEditAt: Date.now() })
-	}
-
-	onFileSessionStateUpdate(fileId: string, sessionState: TLSessionStateSnapshot) {
-		this.updateFileState(fileId, {
-			lastSessionState: JSON.stringify(sessionState),
-			lastVisitAt: Date.now(),
-		})
-	}
-
-	onFileExit(fileId: string) {
-		this.updateFileState(fileId, { lastVisitAt: Date.now() })
 	}
 
 	static async create(opts: {
@@ -1065,7 +1023,14 @@ export class TldrawApp {
 		)
 		// @ts-expect-error
 		window.app = app
-		await app.preload()
+		try {
+			await app.preload()
+		} catch (e) {
+			// Don't leave the half-built app's Zero connection and timers running behind the
+			// error page the caller shows for this.
+			app.dispose()
+			throw e
+		}
 		const user = app.getUser()
 		if (user.color === '___INIT___') {
 			app.updateUser({
@@ -1112,12 +1077,21 @@ export class TldrawApp {
 			workspaceId?: string
 			onUploadError?(): void
 		}
-	) {
+	): Promise<void> {
 		let { onFirstFileUploaded } = opts
 		const { source, workspaceId, onUploadError } = opts
 		const totalFiles = files.length
 		let uploadedFiles = 0
 		if (totalFiles === 0) return
+		// createFile runs this check too, but only after the snapshot and its assets are already
+		// uploaded — which would orphan a room in R2 and stack a generic error on the limit toast.
+		// Check the whole batch: with one slot left, a two-file import would otherwise create the
+		// first file and then upload the second before createFile rejects it.
+		if (!this.canCreateNewFile(workspaceId ?? this.getHomeWorkspaceId(), totalFiles)) {
+			this.showMaxFilesToast()
+			onUploadError?.()
+			return
+		}
 
 		// this is only approx since we upload the files in pieces and they are base64 encoded
 		// in the json blob, so this will usually be a big overestimate. But that's fine because
@@ -1281,10 +1255,14 @@ export class TldrawApp {
 			throw Error(response.message)
 		}
 		const fileId = response.slugs[0]
+		// `||` not `??`: File.name is never nullish, so the document-name fallback was unreachable
+		// and a file called `.tldr` would reach createFile with an empty name (bad_request).
 		const name =
-			file.name?.replace(/\.tldr$/, '') ??
-			Object.values(snapshot.store).find((d): d is TLDocument => d.typeName === 'document')?.name ??
-			''
+			file.name.replace(/\.tldr$/, '').trim() ||
+			Object.values(snapshot.store)
+				.find((d): d is TLDocument => d.typeName === 'document')
+				?.name?.trim() ||
+			undefined
 
 		return this.createFile({ fileId, name, workspaceId })
 	}
@@ -1305,8 +1283,7 @@ export class TldrawApp {
 		const group = this.getWorkspaceMembership(workspaceId)?.group
 		if (!group?.inviteSecret) return false
 
-		const inviteText = `${location.origin}/invite/${group.inviteSecret}`
-		navigator.clipboard.writeText(inviteText)
+		copyTextToClipboard(routes.tlaInvite(group.inviteSecret, { asUrl: true }))
 
 		if (showToast) {
 			this.toasts?.addToast({
@@ -1324,13 +1301,15 @@ export class TldrawApp {
 			method: 'POST',
 		})
 
-		const payload = (await response.json()) as AcceptInviteResponseBody
+		// A gateway error page or the router's own 401 body isn't an AcceptInviteResponseBody;
+		// parsing it first would throw past the toast below.
+		const payload = (await response.json().catch(() => null)) as AcceptInviteResponseBody | null
 
-		if (payload.error || !response.ok) {
+		if (!payload || payload.error || !response.ok) {
 			this.toasts?.addToast({
 				severity: 'error',
 				title: 'Error accepting invite',
-				description: payload.message,
+				description: payload?.message ?? 'Please try again.',
 			})
 			this.navigate(routes.tlaRoot())
 			return

@@ -3,15 +3,11 @@ import { existsSync, readFileSync, readdirSync } from 'fs'
 import { createServer } from 'http'
 import { Kysely, PostgresDialect, sql } from 'kysely'
 import pg from 'pg'
-import { isNoTransactionMigration, splitSqlStatements } from './migrationFile'
+import { hasTransactionBlock, isNoTransactionMigration, splitSqlStatements } from './migrationFile'
 
-const postgresConnectionString: string =
+const postgresConnectionString =
 	process.env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING ||
 	'postgresql://user:password@127.0.0.1:6543/postgres'
-
-if (!postgresConnectionString) {
-	throw new Error('Missing BOTCOM_POSTGRES_POOLED_CONNECTION_STRING env var')
-}
 console.log('Using connection string:', postgresConnectionString)
 
 const migrationsPath = `./migrations`
@@ -29,7 +25,7 @@ CREATE TABLE IF NOT EXISTS migrations.applied_migrations (
 `
 
 /**
-INSERT INTO migrations.applied_migrations (filename) VALUES 
+INSERT INTO migrations.applied_migrations (filename) VALUES
 ('000_seed.sql'),
 ('001_replicator_boot.sql'),
 ('002_add_user_id.sql'),
@@ -137,7 +133,7 @@ async function planMigrations(summary: string[]): Promise<PendingMigration[]> {
 			continue
 		}
 		const migrationSql = readFileSync(`${migrationsPath}/${filename}`, 'utf8')
-		if (migrationSql.match(/(BEGIN|COMMIT);/)) {
+		if (hasTransactionBlock(migrationSql)) {
 			throw new Error(
 				`Migration ${filename} contains a transaction block. The runner owns transactions: ordinary migrations already run inside one, and a "-- no-transaction" migration must not open one.`
 			)
@@ -149,6 +145,15 @@ async function planMigrations(summary: string[]): Promise<PendingMigration[]> {
 		})
 	}
 	return pending
+}
+
+// DDL on a replicated table takes ACCESS EXCLUSIVE. Without a lock timeout, one long-running
+// reader makes the deploy hang while every room persist queues behind the waiting DDL. Failing
+// here aborts the deploy before Zero and the sync-worker roll, and a rerun picks up where it left
+// off. SET LOCAL is transaction-scoped, so it holds through a transaction-mode pooler, and it is a
+// no-op for a no-transaction migration run outside any transaction.
+async function setLockTimeout(executor: Kysely<any>) {
+	await sql`SET LOCAL lock_timeout = '10s'`.execute(executor)
 }
 
 async function applyMigration(executor: Kysely<any>, step: PendingMigration, summary: string[]) {
@@ -176,6 +181,7 @@ async function applyMigration(executor: Kysely<any>, step: PendingMigration, sum
 // the whole set was validated.
 async function dryRunMigrations(pending: PendingMigration[], summary: string[]) {
 	await db.transaction().execute(async (tx) => {
+		await setLockTimeout(tx)
 		for (const step of pending) {
 			if (step.noTransaction) {
 				console.warn(
@@ -226,6 +232,7 @@ async function migrate(summary: string[], dryRun: boolean) {
 			await applyMigration(db, group[0], summary)
 		} else {
 			await db.transaction().execute(async (tx) => {
+				await setLockTimeout(tx)
 				for (const step of group) await applyMigration(tx, step, summary)
 			})
 		}

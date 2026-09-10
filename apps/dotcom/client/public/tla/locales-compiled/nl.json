@@ -257,6 +257,12 @@
       "value": " heeft een reactie geplaatst op je forum"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Feedback verzenden is niet mogelijk"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -273,6 +279,12 @@
     {
       "type": 0,
       "value": "Zoekopdracht..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Probeer het alstublieft opnieuw."
     }
   ],
   "2de510be71": [
@@ -501,6 +513,12 @@
     {
       "type": 0,
       "value": " ongelezen"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Uw lokale tekening kon niet worden hersteld. Probeer deze pagina opnieuw te laden."
     }
   ],
   "554a05155c": [
@@ -1068,6 +1086,12 @@
     {
       "type": 0,
       "value": "Bestand verwijderen"
+    }
+  ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Je lijkt offline te zijn. Controleer je internetverbinding en probeer het opnieuw."
     }
   ],
   "9ccb565b86": [

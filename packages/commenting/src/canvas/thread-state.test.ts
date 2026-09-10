@@ -1,6 +1,7 @@
 import {
 	Box,
 	commentSchemaRecords,
+	createCommentThread,
 	createShapeId,
 	createTLSchema,
 	createTLStore,
@@ -8,6 +9,7 @@ import {
 	defaultShapeUtils,
 	defaultTools,
 	Editor,
+	PageRecordType,
 	TLShapeId,
 } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -16,6 +18,7 @@ import {
 	anchorPagePoint,
 	commentCenterScreenOffset,
 	commentTargetShapeAt,
+	focusThread,
 	impreciseShapePinInset,
 	IMPRECISE_PIN_INSET_PX,
 	isBoxInInflatedViewport,
@@ -256,5 +259,37 @@ describe('isBoxInInflatedViewport', () => {
 		expect(isBoxInInflatedViewport(editor, box)).toBe(false)
 		editor.setCamera({ x: -2000, y: 0, z: 1 })
 		expect(isBoxInInflatedViewport(editor, box)).toBe(true)
+	})
+})
+
+describe('focusThread', () => {
+	it('records a cross-page jump as its own undo step', () => {
+		const page1Id = editor.getCurrentPageId()
+		const page2Id = PageRecordType.createId()
+		const boxId = createShapeId()
+
+		// Set up the second page outside of history so the only undoable steps are the ones the
+		// test creates: one edit on page 1, then the jump to the thread on page 2.
+		editor.run(() => editor.createPage({ id: page2Id, name: 'Page 2' }), { history: 'ignore' })
+		editor.clearHistory()
+
+		editor.markHistoryStoppingPoint('create box')
+		editor.createShape({ id: boxId, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+
+		const thread = createCommentThread({
+			pageId: page2Id,
+			anchor: { type: 'point', x: 50, y: 50 },
+			createdBy: 'me',
+		})
+		focusThread(editor, thread)
+		expect(editor.getCurrentPageId()).toBe(page2Id)
+
+		// The first undo only takes us back to page 1; the edit made there is still intact.
+		editor.undo()
+		expect(editor.getCurrentPageId()).toBe(page1Id)
+		expect(editor.getShape(boxId)).toBeDefined()
+
+		editor.undo()
+		expect(editor.getShape(boxId)).toBeUndefined()
 	})
 })

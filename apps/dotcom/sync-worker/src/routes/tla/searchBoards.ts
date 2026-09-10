@@ -97,7 +97,7 @@ export async function searchAccessibleBoards(
 		}
 
 		const rows = await query
-			// `file_owning_group_created_at_idx` (`050_file_search_index.sql`) serves this ordering as
+			// `file_owning_group_created_at_idx` (`051_file_search_index.sql`) serves this ordering as
 			// well as the access filter, so a caller in one workspace reads a page and stops instead
 			// of top-N sorting everything they can see. It can only do that while the access predicate
 			// stays a single equality: a top-level `OR` there makes Postgres answer with a `BitmapOr`,

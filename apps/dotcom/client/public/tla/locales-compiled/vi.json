@@ -253,6 +253,12 @@
       "value": " đã bình luận trên diễn đàn của bạn"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Không thể gửi phản hồi"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -269,6 +275,12 @@
     {
       "type": 0,
       "value": "Tìm kiếm..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Vui lòng thử lại."
     }
   ],
   "2de510be71": [
@@ -497,6 +509,12 @@
     {
       "type": 0,
       "value": " chưa đọc"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Không thể khôi phục bản vẽ cục bộ của bạn. Hãy thử tải lại trang này."
     }
   ],
   "554a05155c": [
@@ -1060,6 +1078,12 @@
     {
       "type": 0,
       "value": "Xóa tệp"
+    }
+  ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Có vẻ như bạn đang ngoại tuyến. Hãy kiểm tra kết nối của mình và thử lại."
     }
   ],
   "9ccb565b86": [
