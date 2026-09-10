@@ -133,7 +133,9 @@ const fetchParsedCss = fetchCache(async (response: Response) => {
 /** @internal */
 export async function fetchCssFontFaces(
 	url: string,
-	// sheets that @import each other would otherwise await their own in-flight fetch forever
+	// the chain of sheets that imported this one: sheets that @import each other would otherwise
+	// await their own in-flight fetch forever. Each branch gets its own copy so a sheet imported by
+	// two siblings lands under both in source order, not under whichever fetch resolved first.
 	seen = new Set<string>()
 ): Promise<ParsedFontFace[]> {
 	if (seen.has(url)) return []
@@ -143,7 +145,7 @@ export async function fetchCssFontFaces(
 	if (!parsed) return []
 
 	const importedFontFaces = await Promise.all(
-		parsed.importUrls.map((importUrl) => fetchCssFontFaces(importUrl, seen))
+		parsed.importUrls.map((importUrl) => fetchCssFontFaces(importUrl, new Set(seen)))
 	)
 	return [...parsed.fontFaces, ...importedFontFaces.flat()]
 }

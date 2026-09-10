@@ -73,4 +73,27 @@ describe('fetchCssFontFaces', () => {
 		const fontFaces = await fetchCssFontFaces('https://example.com/a.css')
 		expect(fontFaces.map((f) => [...f.fontFamilies])).toEqual([['font a'], ['font b']])
 	})
+
+	it('keeps font order in source order when siblings import the same sheet', async () => {
+		const sheets: Record<string, string> = {
+			'https://example.com/root.css': `@import url(c.css); @import url(d.css);`,
+			'https://example.com/c.css': `@import url(e.css); @font-face { font-family: 'Font C'; src: url(c.woff2); }`,
+			'https://example.com/d.css': `@import url(e.css); @font-face { font-family: 'Font D'; src: url(d.woff2); }`,
+			'https://example.com/e.css': `@font-face { font-family: 'Font E'; src: url(e.woff2); }`,
+		}
+		vi.spyOn(window, 'fetch').mockImplementation(async (input) => {
+			const url = String(input)
+			// the first sibling resolves last, so the shared sheet is reached through the second first
+			if (url.endsWith('c.css')) await new Promise((resolve) => setTimeout(resolve, 20))
+			return { ok: true, url, text: async () => sheets[url] } as Response
+		})
+
+		const fontFaces = await fetchCssFontFaces('https://example.com/root.css')
+		expect(fontFaces.map((f) => [...f.fontFamilies][0])).toEqual([
+			'font c',
+			'font e',
+			'font d',
+			'font e',
+		])
+	})
 })
