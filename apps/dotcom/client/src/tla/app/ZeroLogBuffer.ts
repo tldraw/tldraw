@@ -31,7 +31,7 @@ export class ZeroLogBuffer implements ZeroLogSink {
 	}
 }
 
-function formatLogArg(arg: unknown): string {
+export function formatLogArg(arg: unknown): string {
 	if (arg instanceof Error) return `${arg.name}: ${arg.message}`
 	if (typeof arg === 'string') return arg
 	try {

@@ -69,7 +69,7 @@ import { getDateFormat } from '../utils/dates'
 import { FeatureFlags } from '../utils/FeatureFlagPoller'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
-import { ZeroLogBuffer } from './ZeroLogBuffer'
+import { ZeroLogBuffer, formatLogArg } from './ZeroLogBuffer'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
@@ -409,7 +409,7 @@ export class TldrawApp {
 				diagnostics: {
 					stage,
 					connection: connection.name,
-					connectionReason: connection.reason?.message,
+					connectionReason: 'reason' in connection ? formatLogArg(connection.reason) : undefined,
 					visibilityState: document.visibilityState,
 					hiddenMs,
 					online: navigator.onLine,
