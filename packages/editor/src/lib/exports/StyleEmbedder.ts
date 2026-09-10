@@ -94,13 +94,14 @@ export class StyleEmbedder {
 					promises.push(
 						(async () => {
 							// resolve every url first, then rewrite the value in one pass - replacing
-							// per-url from the original value would keep only the last replacement
+							// per-url from the original value would keep only whichever resolved last.
+							// The replacer callback keeps `$` in a data url's mime segment literal.
 							const dataUrls = await Promise.all(
 								urlMatches.map(({ url }) => resourceToDataUrl(url))
 							)
 							styles[property] = urlMatches.reduce(
 								(result, { original }, i) =>
-									result.replace(original, `url("${dataUrls[i] ?? 'data:'}")`),
+									result.replace(original, () => `url("${dataUrls[i] ?? 'data:'}")`),
 								value
 							)
 						})()

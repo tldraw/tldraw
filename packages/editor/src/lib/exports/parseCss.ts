@@ -2,7 +2,7 @@ import { safeParseUrl } from '@tldraw/utils'
 
 export interface ParsedFontFace {
 	fontFace: string
-	urls: { original: string; resolved: string | null; embedded?: Promise<string | null> }[]
+	urls: { original: string; resolved: string | null }[]
 	fontFamilies: Set<string>
 }
 

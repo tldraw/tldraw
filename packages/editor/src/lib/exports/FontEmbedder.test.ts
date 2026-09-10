@@ -1,4 +1,6 @@
-import { FontEmbedder } from './FontEmbedder'
+import { vi } from 'vitest'
+import { fetchCssFontFaces, FontEmbedder } from './FontEmbedder'
+import { parseCssFontFaces } from './parseCss'
 
 describe('FontEmbedder', () => {
 	let style: HTMLStyleElement
@@ -26,5 +28,49 @@ describe('FontEmbedder', () => {
 		const css = await embedder.createCss()
 		expect(css).toContain('Font A')
 		expect(css).toContain('Font B')
+	})
+
+	it('retries a failed font fetch on the next export', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+		// the parsed sheet is shared across exports through the fetch cache
+		const fontFaces = parseCssFontFaces(
+			`@font-face { font-family: 'Font A'; src: url(a.woff2); }`,
+			'https://example.com/fonts.css'
+		)
+		const blob = new Blob(['font'], { type: 'font/woff2' })
+		vi.spyOn(window, 'fetch')
+			.mockResolvedValueOnce({ ok: false } as Response)
+			.mockResolvedValue({ ok: true, blob: async () => blob } as Response)
+
+		const exportCss = async () => {
+			const embedder = new FontEmbedder()
+			embedder.startFindingDocumentFontFaces(document)
+			;(embedder as any).fontFacesPromise = Promise.resolve(fontFaces)
+			embedder.onFontFamilyValue(`'Font A'`)
+			return embedder.createCss()
+		}
+
+		expect(await exportCss()).toContain('url(a.woff2)')
+		expect(await exportCss()).toContain('data:font/woff2;base64,')
+	})
+})
+
+describe('fetchCssFontFaces', () => {
+	afterEach(() => {
+		vi.restoreAllMocks()
+	})
+
+	it('resolves when stylesheets @import each other', async () => {
+		const sheets: Record<string, string> = {
+			'https://example.com/a.css': `@import url(b.css); @font-face { font-family: 'Font A'; src: url(a.woff2); }`,
+			'https://example.com/b.css': `@import url(a.css); @font-face { font-family: 'Font B'; src: url(b.woff2); }`,
+		}
+		vi.spyOn(window, 'fetch').mockImplementation(async (input) => {
+			const url = String(input)
+			return { ok: true, url, text: async () => sheets[url] } as Response
+		})
+
+		const fontFaces = await fetchCssFontFaces('https://example.com/a.css')
+		expect(fontFaces.map((f) => [...f.fontFamilies])).toEqual([['font a'], ['font b']])
 	})
 })
