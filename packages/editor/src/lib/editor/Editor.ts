@@ -341,6 +341,11 @@ export interface TLRenderingShape {
 
 const RENDERING_SHAPES_SORT_CACHE_THRESHOLD = 100
 
+const AXIS = {
+	horizontal: { val: 'x', min: 'minX', max: 'maxX', dim: 'width' },
+	vertical: { val: 'y', min: 'minY', max: 'maxY', dim: 'height' },
+} as const
+
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
 	readonly id = uniqueId()
@@ -6994,6 +6999,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return workingShape
 	}
 
+	// Counter-rotates the page-space delta into the parent's space; without that a child of a rotated
+	// frame or group would move along its parent's axes instead of the page's.
+	// todo: a shape laid out together with its own parent moves twice, once with the parent and once
+	// on its own; the layout commands should skip shapes whose ancestors are also being laid out
+	private getChangesToTranslateShapeByPageDelta(shape: TLShape, pageDelta: VecLike): TLShape {
+		const localDelta = Vec.From(pageDelta).rot(-this.getShapeParentTransform(shape).rotation())
+		return this.getChangesToTranslateShape(shape, localDelta.add(shape))
+	}
+
 	/**
 	 * Move shapes by a delta.
 	 *
@@ -7013,10 +7027,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		for (const id of ids) {
 			const shape = this.getShape(id)!
-			const localDelta = Vec.From(offset)
-			localDelta.rot(-this.getShapeParentTransform(shape).rotation())
-
-			changes.push(this.getChangesToTranslateShape(shape, localDelta.add(shape)))
+			changes.push(this.getChangesToTranslateShapeByPageDelta(shape, offset))
 		}
 
 		this.updateShapes(changes)
@@ -7596,22 +7607,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const len = shapeClustersToStack.length
 		if ((_gap === 0 && len < 3) || len < 2) return this
 
-		let val: 'x' | 'y'
-		let min: 'minX' | 'minY'
-		let max: 'maxX' | 'maxY'
-		let dim: 'width' | 'height'
-
-		if (operation === 'horizontal') {
-			val = 'x'
-			min = 'minX'
-			max = 'maxX'
-			dim = 'width'
-		} else {
-			val = 'y'
-			min = 'minY'
-			max = 'maxY'
-			dim = 'height'
-		}
+		const { val, min, max, dim } = AXIS[operation]
 
 		let shapeGap: number = 0
 
@@ -7669,17 +7665,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			delta[val] = v + shapeGap - pageBounds[val]
 
 			for (const shape of shapes) {
-				const shapeDelta = delta.clone()
-
-				// If the shape has another shape as its parent, and if the parent has a rotation, we need to rotate the counter-rotate delta
-				// todo: ensure that the parent isn't being aligned together with its children
-				const parent = this.getShapeParent(shape)
-				if (parent) {
-					shapeDelta.rot(-this.getShapePageTransform(parent).rotation())
-				}
-
-				shapeDelta.add(shape) // add the shape's x and y to the delta
-				changes.push(this.getChangesToTranslateShape(shape, shapeDelta))
+				changes.push(this.getChangesToTranslateShapeByPageDelta(shape, delta))
 			}
 
 			v += pageBounds[dim] + shapeGap
@@ -7795,15 +7781,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const delta = Vec.Sub(nextPageBounds.point, pageBounds.point).add(centerDelta)
 
 			for (const shape of shapes) {
-				const shapeDelta = delta.clone()
-
-				const parent = this.getShapeParent(shape)
-				if (parent) {
-					shapeDelta.rot(-this.getShapeParentTransform(shape).rotation())
-				}
-
-				shapeDelta.add(shape)
-				changes.push(this.getChangesToTranslateShape(shape, shapeDelta))
+				changes.push(this.getChangesToTranslateShapeByPageDelta(shape, delta))
 			}
 		}
 
@@ -7883,17 +7861,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			for (const shape of shapes) {
-				const shapeDelta = delta.clone()
-
-				// If the shape has another shape as its parent, and if the parent has a rotation, we need to rotate the counter-rotate delta
-				// todo: ensure that the parent isn't being aligned together with its children
-				const parent = this.getShapeParent(shape)
-				if (parent) {
-					shapeDelta.rot(-this.getShapePageTransform(parent).rotation())
-				}
-
-				shapeDelta.add(shape) // add the shape's x and y to the delta
-				changes.push(this.getChangesToTranslateShape(shape, shapeDelta))
+				changes.push(this.getChangesToTranslateShapeByPageDelta(shape, delta))
 			}
 		})
 
@@ -7922,22 +7890,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (shapeClustersToDistribute.length < 3) return this
 
-		let val: 'x' | 'y'
-		let min: 'minX' | 'minY'
-		let max: 'maxX' | 'maxY'
-		let dim: 'width' | 'height'
-
-		if (operation === 'horizontal') {
-			val = 'x'
-			min = 'minX'
-			max = 'maxX'
-			dim = 'width'
-		} else {
-			val = 'y'
-			min = 'minY'
-			max = 'maxY'
-			dim = 'height'
-		}
+		const { val, min, max, dim } = AXIS[operation]
 		const changes: TLShapePartial[] = []
 
 		const first = shapeClustersToDistribute.sort((a, b) => a.pageBounds[min] - b.pageBounds[min])[0]
@@ -7980,17 +7933,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			for (const shape of shapes) {
-				const shapeDelta = delta.clone()
-
-				// If the shape has another shape as its parent, and if the parent has a rotation, we need to rotate the counter-rotate delta
-				// todo: ensure that the parent isn't being aligned together with its children
-				const parent = this.getShapeParent(shape)
-				if (parent) {
-					shapeDelta.rot(-this.getShapePageTransform(parent).rotation())
-				}
-
-				shapeDelta.add(shape) // add the shape's x and y to the delta
-				changes.push(this.getChangesToTranslateShape(shape, shapeDelta))
+				changes.push(this.getChangesToTranslateShapeByPageDelta(shape, delta))
 			}
 
 			v += pageBounds[dim] + gap
@@ -8026,24 +7969,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (shapeClustersToStretch.length < 2) return this
 
 		const commonBounds = Box.Common(allBounds)
-		let val: 'x' | 'y'
-		let min: 'minX' | 'minY'
-		let dim: 'width' | 'height'
-
-		if (operation === 'horizontal') {
-			val = 'x'
-			min = 'minX'
-			dim = 'width'
-		} else {
-			val = 'y'
-			min = 'minY'
-			dim = 'height'
-		}
+		const { val, min, dim } = AXIS[operation]
 
 		this.run(() => {
 			shapeClustersToStretch.forEach(({ shapes, pageBounds }) => {
-				const localOffset = new Vec()
-				localOffset[val] = commonBounds[min] - pageBounds[min]
+				const pageOffset = new Vec()
+				pageOffset[val] = commonBounds[min] - pageBounds[min]
 
 				const scaleOrigin = pageBounds.center.clone()
 				scaleOrigin[val] = commonBounds[min]
@@ -8053,11 +7984,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				for (const shape of shapes) {
 					// First translate
-					const shapeLocalOffset = localOffset.clone()
-					shapeLocalOffset.rot(-this.getShapeParentTransform(shape).rotation())
-					shapeLocalOffset.add(shape)
-					const changes = this.getChangesToTranslateShape(shape, shapeLocalOffset)
-					this.updateShape(changes)
+					this.updateShape(this.getChangesToTranslateShapeByPageDelta(shape, pageOffset))
 
 					// Then resize
 					this.resizeShape(shape.id, scale, {
@@ -8110,7 +8037,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const scale = new Vec(scaleX, scaleY)
 
 		shapeClusters.forEach(({ shapes, pageBounds }) => {
-			const localOffset = new Vec(
+			const pageOffset = new Vec(
 				targetBounds.minX -
 					commonBounds.minX +
 					(pageBounds.minX - commonBounds.minX) * (scaleX - 1),
@@ -8124,11 +8051,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			for (const shape of shapes) {
 				// First translate
-				const shapeLocalOffset = localOffset.clone()
-				shapeLocalOffset.rot(-this.getShapeParentTransform(shape).rotation())
-				shapeLocalOffset.add(shape)
-				const changes = this.getChangesToTranslateShape(shape, shapeLocalOffset)
-				this.updateShape(changes)
+				this.updateShape(this.getChangesToTranslateShapeByPageDelta(shape, pageOffset))
 
 				// Then resize
 				this.resizeShape(shape.id, scale, {
