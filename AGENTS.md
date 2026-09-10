@@ -89,6 +89,7 @@ Code quality:
 - For asset changes, run `yarn refresh-assets` or `yarn typecheck` so generated assets stay current.
 - For docs changes, run the narrow docs checks or docs build only when the change affects generated content, MDX behavior, or site structure.
 - For e2e behavior changes, run the smallest relevant e2e suite and update snapshots only when behavior intentionally changed.
+- For a new or changed tldraw.com migration under `apps/dotcom/zero-cache/migrations/`, review it with `skills/review-migration/` before opening the PR. Zero replication and live-traffic locks are not covered by tests.
 
 ## Architecture notes
 
