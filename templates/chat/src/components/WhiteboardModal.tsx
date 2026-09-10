@@ -400,7 +400,6 @@ export function WhiteboardModal({
 							colorScheme="light"
 							autoFocus
 							onMount={(editor) => {
-								;(window as any).__layerizeEditor = editor
 								setEditor(editor)
 								editor.user.updateUserPreferences({ colorScheme: 'light' })
 								editor.updateInstanceState({ isGridMode: false })

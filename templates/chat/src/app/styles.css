@@ -1636,3 +1636,9 @@ textarea {
 	padding: 8px 16px;
 	border-radius: 8px;
 }
+
+/* Keep the demo canvas free of SDK branding and the development license notice. */
+.whiteboard-surface [data-testid='tl-watermark-unlicensed'],
+.whiteboard-surface [data-testid='tl-watermark-licensed'] {
+	display: none;
+}
