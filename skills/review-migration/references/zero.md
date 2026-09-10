@@ -72,7 +72,7 @@ The client type can stay `.optional()` when a column becomes `NOT NULL`: tighten
 
 ## New tables and the backfill window
 
-A newly published table is invisible to view-syncers until Zero has backfilled it on the replication manager and on every view-syncer machine. A query that touches it in that window errors and can kill the client's Zero connection (Sentry symptom: `IDBNotFoundError: Expected IndexedDB not found: rep:zero-...`). All pending backfills share one queue, so an empty table can wait behind a large one.
+A newly published table is invisible to view-syncers until Zero has backfilled it on the replication manager and on every view-syncer machine. A query that touches it in that window errors and can kill the client's Zero connection. All pending backfills share one queue, so an empty table can wait behind a large one.
 
 When several new tables ship together (040 to 044 did, including a `file_visitor` backfilled from `file_state`), ship the migrations in one deploy, wait for the backfill, then ship the code a deploy later. Done-checks:
 
