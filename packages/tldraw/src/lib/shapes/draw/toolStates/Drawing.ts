@@ -189,7 +189,6 @@ export class Drawing extends StateNode {
 		return (
 			firstPoint !== null &&
 			lastPoint !== null &&
-			firstPoint !== lastPoint &&
 			this.currentLineLength > strokeWidth * 4 * scale &&
 			Vec.DistMin(firstPoint, lastPoint, threshold)
 		)
@@ -397,20 +396,23 @@ export class Drawing extends StateNode {
 
 						this.pagePointWhereCurrentSegmentChanged = Mat.applyToPoint(transform, prevLastPoint)
 					} else {
+						this.currentLineLength += Vec.Dist(newLastPoint, newPoint)
+
 						newSegment = this.makeSegment('straight', [newLastPoint, newPoint])
 					}
 
+					const nextSegments = [...segments, newSegment]
 					const shapePartial: TLShapePartial<DrawableShape> = {
 						id,
 						type: this.shapeType,
 						props: {
-							segments: [...segments, newSegment],
+							segments: nextSegments,
 						},
 					}
 
 					if (this.canClose()) {
 						;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
-							segments,
+							nextSegments,
 							size,
 							scale
 						)
@@ -637,7 +639,7 @@ export class Drawing extends StateNode {
 
 				if (this.canClose()) {
 					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
-						segments,
+						newSegments,
 						size,
 						scale
 					)

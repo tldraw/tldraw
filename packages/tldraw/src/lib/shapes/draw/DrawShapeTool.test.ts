@@ -171,6 +171,55 @@ describe('Close threshold with zoom', () => {
 		expect(shapeAtLowZoom.props.isClosed).toBe(true)
 	})
 
+	it('Closes on the straight segment that returns to the start, not one update later', () => {
+		const shift = { shiftKey: true }
+		editor.setCurrentTool('draw')
+		editor.pointerDown(100, 100, shift)
+		editor.pointerMove(200, 100, shift)
+		editor.pointerUp(200, 100, shift)
+		// shift-click extends the previous line with a new straight segment
+		editor.pointerDown(200, 100, shift)
+		editor.pointerMove(150, 180, shift)
+		editor.pointerUp(150, 180, shift)
+		editor.pointerDown(150, 180, shift)
+		editor.pointerMove(100, 100, shift)
+
+		const shapes = editor.getCurrentPageShapes() as TLDrawShape[]
+		expect(shapes).toHaveLength(1)
+		expect(shapes[0].props.isClosed).toBe(true)
+	})
+
+	it('Closes when the first straight segment after a free segment returns to the start', () => {
+		editor.setCurrentTool('draw')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(200, 100)
+		editor.pointerMove(150, 180)
+		editor.pointerMove(150, 140)
+		expect((editor.getCurrentPageShapes()[0] as TLDrawShape).props.isClosed).toBe(false)
+		// pressing shift starts a straight segment from here; the move that commits it lands on the start
+		editor.keyDown('Shift')
+		editor.pointerMove(100, 100, { shiftKey: true })
+
+		const shapes = editor.getCurrentPageShapes() as TLDrawShape[]
+		expect(shapes).toHaveLength(1)
+		expect(shapes[0].props.segments.map((s) => s.type)).toEqual(['free', 'straight'])
+		expect(shapes[0].props.isClosed).toBe(true)
+	})
+
+	it('Closes when the final straight segment pushes a short stroke over the minimum length', () => {
+		// size m stroke width is 3.5, so a stroke needs > 14 page units of length to close
+		editor.setCurrentTool('draw')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(108, 100)
+		expect((editor.getCurrentPageShapes()[0] as TLDrawShape).props.isClosed).toBe(false)
+		editor.keyDown('Shift')
+		editor.pointerMove(100, 100, { shiftKey: true })
+
+		const shape = editor.getCurrentPageShapes()[0] as TLDrawShape
+		expect(shape.props.segments.map((s) => s.type)).toEqual(['free', 'straight'])
+		expect(shape.props.isClosed).toBe(true)
+	})
+
 	it('Does not close highlight shapes regardless of zoom', () => {
 		editor.setCamera({ x: 0, y: 0, z: 0.1 })
 		editor.setCurrentTool('highlight')
