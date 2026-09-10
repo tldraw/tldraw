@@ -75,6 +75,47 @@ export const PUBLISH_ENDPOINT = `/api/app/publish`
 
 const USER_PRELOAD_TIMEOUT_MS = 30_000
 
+type ZeroLogSink = NonNullable<ConstructorParameters<typeof Zero>[0]['logSink']>
+type ZeroLogLevel = Parameters<ZeroLogSink['log']>[0]
+const ZERO_LOG_BUFFER_LINES = 60
+
+/**
+ * Keeps Zero's recent info-level log lines so a bootstrap timeout can carry them to Sentry: the
+ * connect/disconnect/poke lifecycle is only logged at info, and the console sink would print all of
+ * it. Warnings and errors still reach the console (and Sentry breadcrumbs) as before.
+ */
+export class ZeroLogBuffer implements ZeroLogSink {
+	private readonly lines: string[] = []
+
+	log(level: ZeroLogLevel, context: Record<string, unknown> | undefined, ...args: unknown[]) {
+		if (level === 'warn' || level === 'error') {
+			console[level](...(context ? [context] : []), ...args)
+		}
+		const ctx = context
+			? Object.entries(context)
+					.map(([k, v]) => `${k}=${String(v)}`)
+					.join(' ')
+			: ''
+		const line = `+${Math.round(performance.now())}ms ${level} ${ctx} ${args.map(formatLogArg).join(' ')}`
+		this.lines.push(line.slice(0, 400))
+		if (this.lines.length > ZERO_LOG_BUFFER_LINES) this.lines.shift()
+	}
+
+	recent(): string[] {
+		return this.lines.slice()
+	}
+}
+
+function formatLogArg(arg: unknown): string {
+	if (arg instanceof Error) return `${arg.name}: ${arg.message}`
+	if (typeof arg === 'string') return arg
+	try {
+		return JSON.stringify(arg)
+	} catch {
+		return String(arg)
+	}
+}
+
 let appId = 0
 
 /**
@@ -185,6 +226,7 @@ export class TldrawApp {
 
 	changes: Map<Atom<any, unknown>, any> = new Map()
 	changesFlushed = null as null | ReturnType<typeof promiseWithResolve>
+	private readonly zeroLog = new ZeroLogBuffer()
 
 	// Track new room creation timestamps and sources
 	private newRoomCreationStartTimes: Map<string, { startTime: number; source: string }> = new Map()
@@ -257,6 +299,8 @@ export class TldrawApp {
 			cacheURL: ZERO_SERVER,
 			mutators: createMutators(userId),
 			context: { userId } satisfies ZeroContext,
+			logLevel: 'info',
+			logSink: this.zeroLog,
 			onUpdateNeeded(reason) {
 				console.error('update needed', reason)
 				onClientTooOld()
@@ -393,11 +437,54 @@ export class TldrawApp {
 		let stage: 'zero query' | 'state flush' | 'user record' = 'zero query'
 		const timedOut = promiseWithResolve<never>()
 		let stopWaiting: (() => void) | undefined
-		const timeout = setTimeout(
-			() =>
-				timedOut.reject(initError ?? new Error(`Timed out waiting for the ${stage} after init`)),
-			USER_PRELOAD_TIMEOUT_MS
-		)
+		const initReturnedAt = Date.now()
+		let hiddenMs = 0
+		const fail = () => {
+			const connection = this.z.connection.state.current
+			const error =
+				initError ??
+				new Error(`Timed out waiting for the ${stage} after init (zero ${connection.name})`)
+			// ExtraErrorData picks these up as Sentry extras.
+			Object.assign(error, {
+				diagnostics: {
+					stage,
+					connection: connection.name,
+					connectionReason: connection.reason?.message,
+					visibilityState: document.visibilityState,
+					hiddenMs,
+					online: navigator.onLine,
+					msSinceNavigation: Math.round(performance.now()),
+					msSinceInit: Date.now() - initReturnedAt,
+					zeroLog: this.zeroLog.recent(),
+				},
+			})
+			timedOut.reject(error)
+		}
+		// Zero never opens its socket while the tab is hidden, so a background tab (session restore,
+		// cmd-click) would burn the whole deadline before getting a chance. Only count visible time.
+		let remainingMs = USER_PRELOAD_TIMEOUT_MS
+		let timeout: ReturnType<typeof setTimeout> | undefined
+		let runningSince = 0
+		let hiddenSince = 0
+		const resumeDeadline = () => {
+			if (timeout !== undefined) return
+			if (hiddenSince) hiddenMs += Date.now() - hiddenSince
+			hiddenSince = 0
+			runningSince = Date.now()
+			timeout = setTimeout(fail, remainingMs)
+		}
+		const pauseDeadline = () => {
+			if (timeout === undefined) return
+			clearTimeout(timeout)
+			timeout = undefined
+			remainingMs -= Date.now() - runningSince
+			hiddenSince = Date.now()
+		}
+		const onVisibilityChange = () =>
+			document.visibilityState === 'visible' ? resumeDeadline() : pauseDeadline()
+		document.addEventListener('visibilitychange', onVisibilityChange)
+		if (document.visibilityState === 'visible') resumeDeadline()
+		else hiddenSince = Date.now()
 		try {
 			await Promise.race([this.z.preload(queries.user()).complete, timedOut])
 			stage = 'state flush'
@@ -409,6 +496,7 @@ export class TldrawApp {
 			})
 			await Promise.race([userLoaded, timedOut])
 		} finally {
+			document.removeEventListener('visibilitychange', onVisibilityChange)
 			clearTimeout(timeout)
 			stopWaiting?.()
 		}
