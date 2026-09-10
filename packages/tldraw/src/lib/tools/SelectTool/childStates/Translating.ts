@@ -332,6 +332,8 @@ export class Translating extends StateNode {
 
 	@bind
 	private updateShapesIgnoringExternalChanges() {
+		this.rescueShapesWithDeletedParents()
+
 		// Otherwise the stale translation snapshot would overwrite an external change.
 		if (this.changeTracker.getAndClearChanged()) {
 			this.foldExternalChangesIntoSnapshot()
@@ -395,8 +397,42 @@ export class Translating extends StateNode {
 		}
 	}
 
+	// A shape's x/y are relative to its parent, so a parent that disappears mid-drag
+	// (a remote user or an undo deletes the frame we're dragging over) leaves the shape
+	// describing its position in a space that no longer exists. Nothing downstream can
+	// tell: `getShapePageTransform` falls back to the identity matrix for a missing
+	// parent, so the frame-local x/y get read as page coordinates and the shape jumps by
+	// the frame's offset. The snapshot still holds the parent's last transform, so use it
+	// to put the shape back on the page exactly where it was.
+	private rescueShapesWithDeletedParents() {
+		const { editor } = this
+
+		for (const shapeSnapshot of this.snapshot.shapeSnapshots) {
+			const shape = editor.getShape(shapeSnapshot.shape.id)
+			if (!shape || isPageId(shape.parentId) || editor.getShape(shape.parentId)) continue
+
+			// Inverse, because the snapshot stores the parent's transform already inverted
+			const parentPageTransform = shapeSnapshot.parentTransform
+				? Mat.From(Mat.Inverse(shapeSnapshot.parentTransform))
+				: Mat.Identity()
+			const pagePoint = parentPageTransform.applyToPoint(shape)
+
+			editor.reparentShapes([shape], editor.getCurrentPageId())
+			editor.updateShape({
+				id: shape.id,
+				type: shape.type,
+				x: pagePoint.x,
+				y: pagePoint.y,
+				rotation: shape.rotation + parentPageTransform.rotation(),
+			})
+			shapeSnapshot.parentTransform = null
+		}
+	}
+
 	@bind
 	protected updateParentTransforms() {
+		this.rescueShapesWithDeletedParents()
+
 		const {
 			editor,
 			snapshot: { shapeSnapshots },
