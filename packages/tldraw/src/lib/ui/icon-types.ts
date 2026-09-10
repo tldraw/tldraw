@@ -152,6 +152,7 @@ export type TLUiIconType =
 	| 'tool-note'
 	| 'tool-pencil'
 	| 'tool-pointer'
+	| 'tool-scissors'
 	| 'tool-screenshot'
 	| 'tool-text'
 	| 'trash'
@@ -318,6 +319,7 @@ export const iconTypes = [
 	'tool-note',
 	'tool-pencil',
 	'tool-pointer',
+	'tool-scissors',
 	'tool-screenshot',
 	'tool-text',
 	'trash',
