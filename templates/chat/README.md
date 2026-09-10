@@ -28,6 +28,7 @@ Key interactions include:
 - Draw, sketch, and create diagrams to supplement conversations
 - Annotate images and visual content directly on the canvas
 - Select Comment in the sketch toolbar (or press C), then click the canvas to start a thread; comments are saved in the editable sketch
+- Press S, then draw a loop around part of a sketch or image to cut it out as its own piece you can drag, duplicate, or copy
 
 ## Environment setup
 

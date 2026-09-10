@@ -26,6 +26,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { ComposerIcon } from './ComposerIcon'
+import { ExtractLassoOverlayUtil, ExtractTool, extractToolOverrides } from './ExtractTool'
 import { SendIcon } from './icons/SendIcon'
 import { XIcon } from './icons/XIcon'
 import { WhiteboardControls } from './WhiteboardControls'
@@ -68,12 +69,14 @@ const options: Partial<TldrawOptions> = {
 	maxFontsToLoadBeforeRender: 0,
 }
 
-const commentTools = [
+const whiteboardTools = [
 	CommentTool.configure({
 		canComment: ({ editor, currentUserId }) => !!currentUserId && !editor.getIsReadonly(),
 	}),
+	ExtractTool,
 ]
-const commentOverrides = [commentToolOverrides]
+const whiteboardOverrides = [commentToolOverrides, extractToolOverrides]
+const overlayUtils = [ExtractLassoOverlayUtil]
 
 const components: TLComponents = {
 	InFrontOfTheCanvas: WhiteboardComments,
@@ -345,8 +348,9 @@ export function WhiteboardModal({
 						components={components}
 						options={options}
 						store={store}
-						tools={commentTools}
-						overrides={commentOverrides}
+						tools={whiteboardTools}
+						overrides={whiteboardOverrides}
+						overlayUtils={overlayUtils}
 						licenseKey={process.env.NEXT_PUBLIC_TLDRAW_LICENSE_KEY}
 						shapeUtils={whiteboardShapeUtils}
 						themes={whiteboardThemes}
