@@ -12,6 +12,7 @@ export async function POST(req: Request) {
 		abortSignal: req.signal,
 		tools: {
 			image_generation: openai.tools.imageGeneration({
+				model: 'gpt-image-2.5-sunburst',
 				outputFormat: 'png',
 			}),
 		},
