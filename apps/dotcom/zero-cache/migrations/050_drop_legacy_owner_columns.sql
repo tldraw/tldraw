@@ -7,7 +7,8 @@
 -- Postgres tracks dependencies for indexes, foreign keys, check constraints and a trigger's
 -- `UPDATE OF` column list, so those drop or block on their own. It does NOT parse plpgsql
 -- bodies: a function still naming a dropped column survives the DDL and fails at runtime on
--- the next write. That is why the function work below is explicit, and comes first.
+-- the next write. That is why the function work below is explicit, and comes before the
+-- column drops.
 --
 -- The runner puts the whole migration in one transaction (migrate.ts). A transaction with any
 -- DDL on a replicated table resets every view-syncer pipeline and rehydrates connected clients,
@@ -15,14 +16,30 @@
 -- Deploy off-peak, and only after #10653 has shipped: a client whose schema still declares
 -- these columns is disconnected the moment they drop.
 
--- Fails before any DDL if a file still has no workspace, with a message that says so. Without
--- this the first thing to notice is the SET NOT NULL at the very end.
+-- Fails before any lock is taken if a file still has no workspace, with a message that says
+-- so. Without this the SET NOT NULL below fails with a bare "contains null values".
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM public."file" WHERE "owningGroupId" IS NULL) THEN
     RAISE EXCEPTION 'files without an owningGroupId remain; every file must belong to a workspace before the legacy owner columns can be dropped';
   END IF;
 END $$;
+
+-- Lock order. An app transaction that changes a user's name or avatar holds `user` and then
+-- writes `file` through update_file_owner_details_trigger, which is installed until this
+-- migration drops it, and every `file_state` writer reads `file` first. The DDL below takes
+-- ACCESS EXCLUSIVE on all three, and locks are held to the end of the transaction, so taking
+-- them in any other order than `user`, `file`, `file_state` can deadlock with a mutator that
+-- is mid-flight when the deploy runs. Statement order is not enough to guarantee that, so the
+-- first two are taken here explicitly. `file_state` is not: nothing needs it until after the
+-- scan below, and it stays writable until then.
+LOCK TABLE public."user", public."file" IN ACCESS EXCLUSIVE MODE;
+
+-- The one statement here that does real work: a full scan of `file`. It comes first so that
+-- `user` is held for the scan plus catalog writes rather than for the scan plus everything
+-- else, and `file_state` is not held for the scan at all. With the legacy model gone, every
+-- file belongs to a workspace.
+ALTER TABLE public."file" ALTER COLUMN "owningGroupId" SET NOT NULL;
 
 -- These exist only to maintain the legacy columns.
 
@@ -43,7 +60,7 @@ DROP FUNCTION IF EXISTS public.migrate_user_to_groups(text, text);
 
 -- Was two arms, one per ownership model. Only the group arm is reachable now, its
 -- `"ownerAvatar" = ''` assignment goes with the column, and its null check goes with the
--- NOT NULL constraint at the end of this migration: nothing writes `file` in between.
+-- NOT NULL constraint above.
 CREATE OR REPLACE FUNCTION public.set_file_owner_details()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -160,6 +177,3 @@ ALTER TABLE public."file" DROP COLUMN IF EXISTS "ownerId";
 ALTER TABLE public."file" DROP COLUMN IF EXISTS "ownerAvatar";
 ALTER TABLE public."file_state" DROP COLUMN IF EXISTS "isFileOwner";
 ALTER TABLE public."file_state" DROP COLUMN IF EXISTS "isPinned";
-
--- With the legacy model gone, every file belongs to a workspace.
-ALTER TABLE public."file" ALTER COLUMN "owningGroupId" SET NOT NULL;
