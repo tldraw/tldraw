@@ -86,6 +86,7 @@ export class DraggingHandle extends StateNode {
 
 		this.editor.setCursor({ type: isCreating ? 'cross' : 'grabbing', rotation: 0 })
 
+		// getShapeHandles is cached; don't sort it in place
 		const sortedHandles = handles.slice().sort(sortByIndex)
 		const index = sortedHandles.findIndex((h) => h.id === info.handle.id)
 

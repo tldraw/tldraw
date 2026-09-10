@@ -227,6 +227,12 @@ export class PointingShape extends StateNode {
 
 	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.getIsDragging()) {
+			// Brushing doesn't touch the shape, so it can go ahead even if the shape is gone
+			if (this.didCtrlOnEnter) {
+				this.parent.transition('brushing', info)
+				return
+			}
+
 			// The pointed shape may have been deleted since pointer down (remote user, undo)
 			if (!this.editor.getShape(this.hitShape.id)) {
 				this.parent.transition('idle', info)
@@ -239,11 +245,7 @@ export class PointingShape extends StateNode {
 				return
 			}
 
-			if (this.didCtrlOnEnter) {
-				this.parent.transition('brushing', info)
-			} else {
-				this.startTranslating(info)
-			}
+			this.startTranslating(info)
 		}
 	}
 

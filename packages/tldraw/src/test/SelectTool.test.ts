@@ -274,6 +274,17 @@ describe('TLSelectTool.PointingShape when the shape is deleted mid-click', () =>
 		editor.pointerUp()
 		editor.expectToBeIn('select.idle')
 	})
+
+	it('still brushes on ctrl-drag when the pointed shape is deleted', () => {
+		const shape = editor.getShape(ids.box1)!
+		editor.pointerDown(150, 150, { target: 'shape', shape, accelKey: true })
+		editor.expectToBeIn('select.pointing_shape')
+
+		editor.deleteShapes([ids.box1])
+
+		editor.pointerMove(200, 200, { accelKey: true })
+		editor.expectToBeIn('select.brushing')
+	})
 })
 
 describe('TLSelectTool.PointingHandle when the shape is deleted before dragging', () => {
@@ -297,6 +308,40 @@ describe('TLSelectTool.PointingHandle when the shape is deleted before dragging'
 		expect(editor.getInstanceState().cursor.type).toBe('default')
 		editor.pointerUp()
 		editor.expectToBeIn('select.idle')
+	})
+
+	it('does not clone a deleted note when its clone handle is dragged', () => {
+		const noteId = createShapeId('note1')
+		editor.createShapes([{ id: noteId, type: 'note', x: 100, y: 100 }])
+		editor.select(noteId)
+		const shape = editor.getShape(noteId)!
+		const handle = editor.getShapeHandles(shape)!.find((h) => h.id === 'right')!
+		editor.pointerDown(300, 200, { target: 'handle', shape, handle })
+		editor.expectToBeIn('select.pointing_handle')
+
+		editor.deleteShapes([noteId])
+
+		editor.pointerMove(350, 200)
+		editor.expectToBeIn('select.idle')
+		expect(editor.getCurrentPageShapes().filter((s) => s.type === 'note')).toHaveLength(0)
+		expect(editor.getSelectedShapeIds()).toEqual([])
+	})
+
+	it('does not clone a deleted note when its clone handle is clicked', () => {
+		const noteId = createShapeId('note1')
+		editor.createShapes([{ id: noteId, type: 'note', x: 100, y: 100 }])
+		editor.select(noteId)
+		const shape = editor.getShape(noteId)!
+		const handle = editor.getShapeHandles(shape)!.find((h) => h.id === 'right')!
+		editor.pointerDown(300, 200, { target: 'handle', shape, handle })
+		editor.expectToBeIn('select.pointing_handle')
+
+		editor.deleteShapes([noteId])
+
+		editor.pointerUp(300, 200)
+		editor.expectToBeIn('select.idle')
+		expect(editor.getCurrentPageShapes().filter((s) => s.type === 'note')).toHaveLength(0)
+		expect(editor.getEditingShapeId()).toBeNull()
 	})
 })
 
