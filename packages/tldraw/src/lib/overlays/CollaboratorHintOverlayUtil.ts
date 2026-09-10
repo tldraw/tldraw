@@ -1,4 +1,4 @@
-import { OverlayUtil, TLOverlay, Vec, clamp } from '@tldraw/editor'
+import { OverlayUtil, TLOverlay, Vec, clamp, isCursorInViewport } from '@tldraw/editor'
 
 /** @public */
 export interface TLCollaboratorHintOverlay extends TLOverlay {
@@ -38,7 +38,7 @@ export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintO
 		return this.editor.getVisibleCollaboratorsOnCurrentPage().some((presence) => {
 			const { cursor } = presence
 			if (!cursor) return false
-			return !this._isCursorInViewport(cursor, viewport, zoom)
+			return !isCursorInViewport(cursor, viewport, zoom)
 		})
 	}
 
@@ -50,7 +50,7 @@ export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintO
 		for (const presence of this.editor.getVisibleCollaboratorsOnCurrentPage()) {
 			const { cursor, color, userId } = presence
 			if (!cursor) continue
-			if (this._isCursorInViewport(cursor, viewport, zoom)) continue
+			if (isCursorInViewport(cursor, viewport, zoom)) continue
 
 			const pad = this.options.viewportPadding / zoom
 			const x = clamp(cursor.x, viewport.minX + pad, viewport.maxX - pad)
@@ -92,19 +92,5 @@ export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintO
 
 			ctx.restore()
 		}
-	}
-
-	/** @internal */
-	private _isCursorInViewport(
-		cursor: { x: number; y: number },
-		viewport: { minX: number; minY: number; maxX: number; maxY: number },
-		zoom: number
-	): boolean {
-		return !(
-			cursor.x < viewport.minX - 12 / zoom ||
-			cursor.y < viewport.minY - 16 / zoom ||
-			cursor.x > viewport.maxX - 12 / zoom ||
-			cursor.y > viewport.maxY - 16 / zoom
-		)
 	}
 }

@@ -1,12 +1,12 @@
 {
-  "1764571547": {
-    "translation": "Jeste li sigurni da želite izbrisati ovaj radni prostor? Ovu radnju nije moguće poništiti."
-  },
   "0095a9fa74": {
     "translation": "Izvoz"
   },
   "00b177e080": {
     "translation": "Prihvati pozivnicu"
+  },
+  "029f235f01": {
+    "translation": "Radimo na podršci za datoteke iz <a><strong>{appName}</strong></a>."
   },
   "03b3e13197": {
     "translation": "Povucite datoteku u bočnu traku na ovoj stranici. Ili odaberite opciju 'Uvezi datoteku' iz korisničkog izbornika."
@@ -16,6 +16,9 @@
   },
   "04a2dd56d6": {
     "translation": "Pozovi suigrače"
+  },
+  "05b2656486": {
+    "translation": "<name>{author}</name> vas je spomenuo/la"
   },
   "05f43078e9": {
     "translation": "Dosegli ste maksimalan broj radnih prostora. Morate izbrisati stare radne prostore prije nego što stvorite nove."
@@ -31,6 +34,9 @@
   },
   "08bd40c754": {
     "translation": "Račun"
+  },
+  "093ac7483a": {
+    "translation": "Još se ne mogu otvoriti datoteke {extension}"
   },
   "0a91f7fa87": {
     "translation": "Ova je datoteka dosegla ograničenje veličine i promjene se možda više neće moći spremiti. Uklonite dio sadržaja ili započnite novu datoteku."
@@ -62,6 +68,9 @@
   "13ddd375ad": {
     "translation": "Izvezi kao"
   },
+  "14b03eeeb5": {
+    "translation": "Opcije obavijesti"
+  },
   "181b90f889": {
     "translation": "Stvori datoteku"
   },
@@ -83,6 +92,12 @@
   "250ddea65c": {
     "translation": "O tldrawu"
   },
+  "2755e3ab39": {
+    "translation": "<name>{author}</name> je komentirao/la vašu ploču"
+  },
+  "28b2464e1f": {
+    "translation": "Nije moguće poslati povratne informacije"
+  },
   "299cb00a7a": {
     "translation": "Prijenos nije uspio"
   },
@@ -91,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Pretraživanje..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Pokušajte ponovno."
   },
   "2de510be71": {
     "translation": "Regeneriranjem se trenutna pozivnica zamjenjuje novom. Svatko tko koristi staru vezu trebat će novu za pridruživanje."
@@ -146,8 +164,14 @@
   "44db318ee5": {
     "translation": "Zatražite pomoć na Discordu"
   },
+  "454aad3b3c": {
+    "translation": "Jeste li sigurni da želite izbrisati <strong>{fileName}</strong>?"
+  },
   "46137245cd": {
     "translation": "Hvala što nam pomažete poboljšati tldraw!"
+  },
+  "46de2de6bb": {
+    "translation": "Prihvati uvjete korištenja"
   },
   "477df802ca": {
     "translation": "Za nastavak uređivanja kopirajte datoteku u svoje datoteke."
@@ -157,9 +181,6 @@
   },
   "47f493a590": {
     "translation": "Prikvači datoteku"
-  },
-  "4908687e50": {
-    "translation": "Jeste li sigurni da želite zaboraviti ovu datoteku?"
   },
   "49ee308734": {
     "translation": "Ime"
@@ -182,11 +203,20 @@
   "517bb809d9": {
     "translation": "Izbornik stranice"
   },
+  "53770fd374": {
+    "translation": "Nepročitano"
+  },
   "542248f0ba": {
     "translation": "Ova datoteka je sada samo za čitanje"
   },
   "54286b1d01": {
     "translation": "Dosegnuto je ograničenje broja suradnika"
+  },
+  "545241e7dd": {
+    "translation": "{count} nepročitano"
+  },
+  "550b25cc0c": {
+    "translation": "Nije moguće vratiti vaš lokalni crtež. Pokušajte ponovno učitati ovu stranicu."
   },
   "554a05155c": {
     "translation": "Još uvijek imate problema? <a>Prijavite problem</a>"
@@ -212,6 +242,9 @@
   "5bff3c9c88": {
     "translation": "Moj radni prostor"
   },
+  "5bffeebf03": {
+    "translation": "<name>{author}</name> reagirao je na vaš komentar"
+  },
   "5d04a002ea": {
     "translation": "Nije moguće povezivanje"
   },
@@ -224,8 +257,17 @@
   "5fb63579fc": {
     "translation": "Kopirati"
   },
+  "608e9d366e": {
+    "translation": "Sve ste pročitali."
+  },
+  "60a68c29d6": {
+    "translation": "Prijavite se za komentiranje"
+  },
   "61057a0c84": {
     "translation": "Kasnije"
+  },
+  "61fb03fd7b": {
+    "translation": "{count, plural, one {Netko je reagirao na tvoj komentar} few {# osobe reagirale su na tvoj komentar} other {# osoba reagiralo je na tvoj komentar}}"
   },
   "625fd29749": {
     "translation": "Starije"
@@ -277,6 +319,9 @@
   },
   "752b79f137": {
     "translation": "Dosegli ste maksimalan broj datoteka. Morate izbrisati stare datoteke prije stvaranja novih."
+  },
+  "7542d62aac": {
+    "translation": "Označi sve kao pročitano"
   },
   "7573b8110a": {
     "translation": "Nema pristupa"
@@ -332,6 +377,12 @@
   "815e116a2e": {
     "translation": "Imate li grešku, problem ili ideju za tldraw? Javite nam! Ispunite ovaj obrazac i po potrebi ćemo vam se javiti putem e-pošte. Također možete <discord>razgovarati s nama na Discordu</discord> ili <github>postaviti problem na GitHubu</github>."
   },
+  "81666c6e4a": {
+    "translation": "Jeste li sigurni da želite zaboraviti <strong>{fileName}</strong>?"
+  },
+  "8413c683b4": {
+    "translation": "Komentari"
+  },
   "858ba4765e": {
     "translation": "Član"
   },
@@ -365,6 +416,9 @@
   "904a830405": {
     "translation": "Preimenovati"
   },
+  "90646db02d": {
+    "translation": "Jeste li sigurni da želite izbrisati <strong>{workspaceName}</strong>? Ovu radnju nije moguće poništiti."
+  },
   "95aacd4d4a": {
     "translation": "Prijava putem Googlea"
   },
@@ -388,6 +442,9 @@
   },
   "9bef626805": {
     "translation": "Izbriši datoteku"
+  },
+  "9c228b6834": {
+    "translation": "Čini se da ste izvan mreže. Provjerite vezu i pokušajte ponovno."
   },
   "9ccb565b86": {
     "translation": "Imamo problema s povezivanjem s našom uslugom autentifikacije. To je obično privremeno. Pokušajte osvježiti stranicu."
@@ -419,6 +476,9 @@
   "a239905023": {
     "translation": "Izvoz slike"
   },
+  "a274f4d467": {
+    "translation": "Obavijesti"
+  },
   "a3debabee7": {
     "translation": "Politika kolačića"
   },
@@ -443,6 +503,9 @@
   "aac449eef6": {
     "translation": "Izradi radni prostor"
   },
+  "aaec8f7cde": {
+    "translation": "Netko"
+  },
   "ab0df9ba36": {
     "translation": "Dosegnuto je ograničenje datoteke"
   },
@@ -452,6 +515,12 @@
   },
   "b028909917": {
     "translation": "Gostujući korisnik"
+  },
+  "b03400e2db": {
+    "translation": "<name>{author}</name> je odgovorio/la"
+  },
+  "b1c94ca2fb": {
+    "translation": "Sve"
   },
   "b2326c3a34": {
     "translation": "Regenerirati"
@@ -492,9 +561,6 @@
   "c2276c9127": {
     "translation": "Saznajte više o dijeljenju."
   },
-  "c28aed8348": {
-    "translation": "Dopustite <cookies>analytics</cookies> kako biste nam pomogli poboljšati tldraw."
-  },
   "c303bd1095": {
     "translation": "Nije moguće objaviti datoteku."
   },
@@ -527,6 +593,9 @@
   },
   "cea291e45e": {
     "translation": "Saznajte više o objavljivanju."
+  },
+  "d0e3556476": {
+    "translation": "<name>{author}</name> i {count, plural, one {# other} other {# others}} reagirali su na vaš komentar"
   },
   "d3d2e61733": {
     "translation": "Zatvoriti"
@@ -573,6 +642,9 @@
   "e404559826": {
     "translation": "Uvjeti usluge"
   },
+  "e65b2dcb6f": {
+    "translation": "<name>{a}</name> i <name>{b}</name> reagirali su na vaš komentar"
+  },
   "e81c4e4f2b": {
     "translation": "ili"
   },
@@ -600,6 +672,9 @@
   "ede55d955f": {
     "translation": "Pročitajte našu <a>pravila o kolačićima</a> kako biste saznali više."
   },
+  "edec9387f9": {
+    "translation": "Ovaj komentar je izbrisan."
+  },
   "ef53538ae4": {
     "translation": "Članovi"
   },
@@ -618,8 +693,14 @@
   "f2a6c498fb": {
     "translation": "Izbrisati"
   },
+  "f476ba8646": {
+    "translation": "<name>{a}</name>, <name>{b}</name> i {count, plural, one {# other} other {# others}} reagirali su na vaš komentar"
+  },
   "f4f70727dc": {
     "translation": "Postavke"
+  },
+  "f5ddc8d9c1": {
+    "translation": "Za sada možete <a>izvesti kao datoteku {extension}</a> da biste je koristili ovdje."
   },
   "fa2ead697d": {
     "translation": "Pravila o privatnosti"
@@ -629,9 +710,6 @@
   },
   "fc9d47046b": {
     "translation": "Jeste li sigurni da želite napustiti ovaj radni prostor?"
-  },
-  "fd1be3efcf": {
-    "translation": "Jeste li sigurni da želite izbrisati ovu datoteku?"
   },
   "fed5ec05eb": {
     "translation": "Kopirana veza"

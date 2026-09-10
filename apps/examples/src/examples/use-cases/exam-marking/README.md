@@ -5,12 +5,15 @@ priority: 4
 keywords: [education, pdf, annotation, marking, scoring, grading, toolbar, ui overrides, widget]
 ---
 
-A tool for marking exams. It includes common pdf annotation tools, as well as a built in tool for marking individual questions and tallying the total score of the exam.
+Mark up an exam PDF with per-question score shapes and see the total tallied live.
 
 ---
 
-This example, built on top of the [pdf-editor](https://examples.tldraw.com/pdf-editor) example, shows how you might take a more tailored approach to building a pdf editor experience. It includes:
+This builds on the [pdf-editor](https://examples.tldraw.com/pdf-editor) example (a copy of it lives in the `pdf-editor` folder here) and adds:
 
-- A custom shape called `exam-mark` that allows you to add marks on a per question basis.
-- A custom tool to place the `exam-mark` shape.
-- A widget that shows the total exam score (the sum of all `exam-mark` scores in the document), useful if you wanted to export it the total score to a database.
+- An `exam-mark` custom shape: a small numeric input whose value is stored in the shape's `score` prop.
+- A `mark` tool that places an exam mark where you click, plus a select-tool override so double-clicking the canvas does the same.
+- A `SharePanel` widget that sums the scores of every `exam-mark` on the page with `useValue`, so it updates as marks are added, edited, or removed.
+- UI overrides that add the tool to the toolbar and the keyboard shortcuts dialog (shortcut `M`).
+
+Try it: open the example exam, click on a question to drop a mark, type a score, and watch the total change.

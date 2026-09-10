@@ -1,14 +1,14 @@
 import { type UIMessage } from '@ai-sdk/react'
 import { memo } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { FileHelpers, TLEditorSnapshot } from 'tldraw'
+import { FileHelpers } from 'tldraw'
 import { TldrawProviderMetadata } from './WhiteboardModal'
+
+export type ImageClickTarget = TldrawProviderMetadata | { uploadedFile: File }
 
 interface ChatMessageProps {
 	message: UIMessage
-	onImageClick: (
-		opts: { snapshot: TLEditorSnapshot; imageName: string } | { uploadedFile: File }
-	) => void
+	onImageClick: (opts: ImageClickTarget) => void
 }
 
 export const ChatMessage = memo(function ChatMessage({ message, onImageClick }: ChatMessageProps) {

@@ -2,13 +2,15 @@
 title: Drag and drop tray
 component: ./DragAndDropTrayExample.tsx
 priority: 2
-keywords: [drag, drop, tray, shapes, InFrontOfTheCanvas]
+keywords: [drag, drop, tray, shapes, InFrontOfTheCanvas, useAtom, useQuickReactor, screenToPage]
 ---
 
-Create a drag and drop tray to create shapes on the canvas.
+Drag items from a custom tray onto the canvas to create shapes.
 
 ---
 
-This example shows how to create a drag and drop tray with items that can be dragged onto the canvas to create shapes.
+The tray is a custom `InFrontOfTheCanvas` component that renders over the canvas. Each item tracks its own pointer events through a small state machine (`idle`, `pointing_item`, `dragging`) held in a `useAtom`. A drag only starts after the pointer moves more than 10px, so clicking an item does nothing.
 
-The tray is positioned as a fixed UI element using the `InFrontOfTheCanvas` component, and includes interactive items that can be dragged to create shapes on the canvas. The interaction can be cancelled by pressing the Escape key.
+On drop, `editor.screenToPage()` converts the pointer position to page space and `editor.createShape()` places the shape there. `useQuickReactor` positions the drag preview by writing to the DOM directly, avoiding a React render per pointer move.
+
+Try dragging an emoji from the tray on the left onto the canvas. Press Escape mid-drag to cancel.

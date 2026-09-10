@@ -59,6 +59,7 @@ export type AssetUrls = {
 		'chevrons-sw': string
 		'clipboard-copied': string
 		'clipboard-copy': string
+		closed: string
 		code: string
 		color: string
 		comment: string

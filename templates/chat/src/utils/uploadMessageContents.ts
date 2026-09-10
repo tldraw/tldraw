@@ -32,10 +32,7 @@ export async function uploadMessageContents(messages: UIMessage[]) {
 			if (part.type === 'file' && part.url.startsWith('data:')) {
 				const metadata = getUploadedMetadata(part)
 				if (metadata && metadata.expiresAt > now) {
-					partsToSend.push({
-						...part,
-						url: metadata.uploadedUrl,
-					})
+					partsToSend.push({ ...part, url: metadata.uploadedUrl })
 					partsToSave.push(part)
 				} else {
 					const partToSend = { ...part }
@@ -56,11 +53,13 @@ export async function uploadMessageContents(messages: UIMessage[]) {
 						partToSend.url = data.uploadedUrl
 						if (partToSend.providerMetadata) {
 							partToSend.providerMetadata = { ...partToSend.providerMetadata }
-							delete partToSend.providerMetadata.tldraw_uploaded
+							delete partToSend.providerMetadata[UPLOAD_METADATA_KEY]
 							delete partToSend.providerMetadata.tldraw
 						}
-						partToSave.providerMetadata = { ...partToSave.providerMetadata }
-						partToSave.providerMetadata.tldraw_uploaded = data as any
+						partToSave.providerMetadata = {
+							...partToSave.providerMetadata,
+							[UPLOAD_METADATA_KEY]: data as any,
+						}
 					})()
 
 					promises.push(promise)

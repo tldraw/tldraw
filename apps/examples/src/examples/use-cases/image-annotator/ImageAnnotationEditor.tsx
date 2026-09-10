@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
 	AssetRecordType,
 	Editor,
 	SVGContainer,
-	TLImageShape,
+	TLComponents,
 	TLShapeId,
 	Tldraw,
 	createShapeId,
@@ -12,10 +12,6 @@ import {
 } from 'tldraw'
 import { AnnotatorImage } from './types'
 
-// TODO:
-// - prevent changing pages (create page, change page, move shapes to new page)
-// - prevent locked shape context menu
-// - inertial scrolling for constrained camera
 export function ImageAnnotationEditor({
 	image,
 	onDone,
@@ -23,17 +19,19 @@ export function ImageAnnotationEditor({
 	image: AnnotatorImage
 	onDone(result: Blob): void
 }) {
-	const [imageShapeId, setImageShapeId] = useState<TLShapeId | null>(null)
-	const [editor, setEditor] = useState(null as Editor | null)
+	// [1]
+	const [imageShapeId] = useState(() => createShapeId())
+
+	const components = useMemo<TLComponents>(
+		() => ({
+			PageMenu: null,
+			InFrontOfTheCanvas: () => <ImageBoundsOverlay imageShapeId={imageShapeId} />,
+			SharePanel: () => <DoneButton imageShapeId={imageShapeId} onClick={onDone} />,
+		}),
+		[imageShapeId, onDone]
+	)
 
 	function onMount(editor: Editor) {
-		setEditor(editor)
-	}
-
-	useEffect(() => {
-		if (!editor) return
-
-		// Create the asset and image shape
 		const assetId = AssetRecordType.createId()
 		editor.createAssets([
 			{
@@ -51,9 +49,8 @@ export function ImageAnnotationEditor({
 				},
 			},
 		])
-		const shapeId = createShapeId()
 		editor.createShape({
-			id: shapeId,
+			id: imageShapeId,
 			type: 'image',
 			x: 0,
 			y: 0,
@@ -65,24 +62,18 @@ export function ImageAnnotationEditor({
 			},
 		})
 
-		// Make sure the shape is at the bottom of the page
+		// [2]
 		function makeSureShapeIsAtBottom() {
-			if (!editor) return
-
-			const shape = editor.getShape(shapeId)
+			const shape = editor.getShape(imageShapeId)
 			if (!shape) return
 
 			const pageId = editor.getCurrentPageId()
-
-			// The shape should always be the child of the current page
 			if (shape.parentId !== pageId) {
 				editor.moveShapesToPage([shape], pageId)
 			}
 
-			// The shape should always be at the bottom of the page's children
 			const siblings = editor.getSortedChildIdsForParent(pageId)
-			const currentBottomShape = editor.getShape(siblings[0])!
-			if (currentBottomShape.id !== shapeId) {
+			if (siblings[0] !== imageShapeId) {
 				editor.sendToBack([shape])
 			}
 		}
@@ -93,42 +84,22 @@ export function ImageAnnotationEditor({
 			'shape',
 			makeSureShapeIsAtBottom
 		)
-
 		const removeOnChange = editor.sideEffects.registerAfterChangeHandler(
 			'shape',
 			makeSureShapeIsAtBottom
 		)
 
-		// The shape should always be locked
-		const cleanupKeepShapeLocked = editor.sideEffects.registerBeforeChangeHandler(
+		// [3]
+		const removeKeepLocked = editor.sideEffects.registerBeforeChangeHandler(
 			'shape',
 			(prev, next) => {
-				if (next.id !== shapeId) return next
+				if (next.id !== imageShapeId) return next
 				if (next.isLocked) return next
 				return { ...prev, isLocked: true }
 			}
 		)
 
-		// Reset the history
-		editor.clearHistory()
-		setImageShapeId(shapeId)
-
-		return () => {
-			removeOnChange()
-			removeOnCreate()
-			cleanupKeepShapeLocked()
-		}
-	}, [image, editor])
-
-	useEffect(() => {
-		if (!editor) return
-		if (!imageShapeId) return
-
-		/**
-		 * We don't want the user to be able to scroll away from the image, or zoom it all the way out. This
-		 * component hooks into camera updates to keep the camera constrained - try uploading a very long,
-		 * thin image and seeing how the camera behaves.
-		 */
+		// [4]
 		editor.setCameraOptions({
 			constraints: {
 				initialZoom: 'default',
@@ -140,57 +111,42 @@ export function ImageAnnotationEditor({
 			},
 		})
 		editor.setCamera(editor.getCamera(), { reset: true })
-	}, [editor, imageShapeId, image])
 
-	return (
-		<Tldraw
-			onMount={onMount}
-			components={{
-				// we don't need pages for this use-case
-				PageMenu: null,
-				// grey-out the area outside of the image
-				InFrontOfTheCanvas: useCallback(() => {
-					if (!imageShapeId) return null
-					return <ImageBoundsOverlay imageShapeId={imageShapeId} />
-				}, [imageShapeId]),
-				// add a "done" button in the top right for when the user is ready to export
-				SharePanel: useCallback(() => {
-					if (!imageShapeId) return null
-					return <DoneButton imageShapeId={imageShapeId} onClick={onDone} />
-				}, [imageShapeId, onDone]),
-			}}
-		/>
-	)
+		// The image setup shouldn't be undoable
+		editor.clearHistory()
+
+		return () => {
+			removeOnCreate()
+			removeOnChange()
+			removeKeepLocked()
+		}
+	}
+
+	return <Tldraw onMount={onMount} components={components} />
 }
 
-/**
- * When we export, we'll only include the bounds of the image itself, so show an overlay on top of
- * the canvas to make it clear what will/won't be included. Check `image-annotator.css` for more on
- * how this works.
- */
+// [5]
 const ImageBoundsOverlay = track(function ImageBoundsOverlay({
 	imageShapeId,
 }: {
 	imageShapeId: TLShapeId
 }) {
 	const editor = useEditor()
-	const image = editor.getShape(imageShapeId) as TLImageShape
-	if (!image) return null
+	const imagePageBounds = editor.getShapePageBounds(imageShapeId)
+	if (!imagePageBounds) return null
 
-	const imagePageBounds = editor.getShapePageBounds(imageShapeId)!
 	const viewport = editor.getViewportScreenBounds()
 	const topLeft = editor.pageToViewport(imagePageBounds)
 	const bottomRight = editor.pageToViewport({ x: imagePageBounds.maxX, y: imagePageBounds.maxY })
 
 	const path = [
-		// start by tracing around the viewport itself:
+		// trace around the viewport
 		`M ${-10} ${-10}`,
 		`L ${viewport.maxX + 10} ${-10}`,
 		`L ${viewport.maxX + 10} ${viewport.maxY + 10}`,
 		`L ${-10} ${viewport.maxY + 10}`,
 		`Z`,
-
-		// then cut out a hole for the image:
+		// then cut out a hole for the image
 		`M ${topLeft.x} ${topLeft.y}`,
 		`L ${bottomRight.x} ${topLeft.y}`,
 		`L ${bottomRight.x} ${bottomRight.y}`,
@@ -217,6 +173,7 @@ function DoneButton({
 		<button
 			className="DoneButton"
 			onClick={async () => {
+				// [6]
 				const { blob } = await editor.toImage([...editor.getCurrentPageShapeIds()], {
 					format: 'png',
 					background: true,
@@ -232,3 +189,31 @@ function DoneButton({
 		</button>
 	)
 }
+
+/*
+[1]
+The image shape's id is decided up front so the overlay and done button can be given it
+before the editor exists. The parent remounts this component (via `key`) when a new image is
+chosen, so the id is stable for the life of one annotation session.
+
+[2]
+Annotations must draw on top of the image, so after any shape is created or changed we make
+sure the image is still the first child of the page (and still on the page at all).
+
+[3]
+A before-change side effect rejects any update that would unlock the image, so it can't be
+moved, deleted, or edited.
+
+[4]
+Camera constraints keep the image in view: `contain` stops you panning away from it and
+`fit-min-100` stops you zooming out past the point where it fills the viewport. Try a very
+long, thin image to see the behavior.
+
+[5]
+Only the image bounds are exported, so an even-odd SVG path in screen space dims everything
+outside the image. `track` re-renders it as the camera moves.
+
+[6]
+`editor.toImage` with `bounds` set to the image's page bounds crops the export to exactly the
+image, including any annotations that overlap it.
+*/

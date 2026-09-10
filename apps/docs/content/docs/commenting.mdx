@@ -1,0 +1,141 @@
+---
+title: Commenting
+status: published
+author: steveruizok
+date: 7/27/2026
+order: 7
+keywords:
+  - comment
+  - comments
+  - commenting
+  - thread
+  - annotation
+  - feedback
+  - review
+  - collaboration
+---
+
+In tldraw, a comment is a message pinned to a place on the canvas. Comments group into threads, one conversation per pin. Every comment records who wrote it, as an id your app resolves to a name.
+
+The `@tldraw/commenting` package works at two levels. `CanvasComments` is a comments layer you render in front of the canvas, and it handles the whole flow. Everything it's built from is exported too, so you can replace any part of it.
+
+Commenting is a licensed feature. It runs in development without a key. In production it needs a tldraw license that includes commenting.
+
+## Quick start
+
+Three pieces: register the comment record types, register the comment tool, and render the layer.
+
+```tsx
+import {
+	CanvasComments,
+	CommentAuthor,
+	commentToolOverrides,
+	commentTools,
+} from '@tldraw/commenting'
+import { useMemo } from 'react'
+import { commentSchemaRecords, createTLSchema, createTLStore, TLComponents, Tldraw } from 'tldraw'
+import '@tldraw/commenting/commenting.css'
+import 'tldraw/tldraw.css'
+
+const AUTHORS: Record<string, CommentAuthor> = { me: { name: 'You', color: '#EC5E41' } }
+const resolveAuthor = (id: string) => AUTHORS[id]
+
+const components: TLComponents = {
+	InFrontOfTheCanvas: () => <CanvasComments currentUserId="me" resolveAuthor={resolveAuthor} />,
+}
+
+export default function App() {
+	const store = useMemo(
+		() => createTLStore({ schema: createTLSchema({ records: commentSchemaRecords }) }),
+		[]
+	)
+
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw
+				licenseKey={YOUR_LICENSE_KEY}
+				store={store}
+				tools={commentTools}
+				overrides={[commentToolOverrides]}
+				components={components}
+			/>
+		</div>
+	)
+}
+```
+
+Pick the comment tool from Quick Actions, or press `C`, then click the canvas to start a thread.
+
+The layer's two required inputs are both about identity. `currentUserId` is the id stamped on whatever the user posts. `resolveAuthor` turns an author id into a name, plus an optional color and avatar image. Commenting reads no user directory of its own, so these are where you connect it to whatever your app already knows about its users. Together with the read-status and mention callbacks they make up the `CommentingContext`, which the sidebar takes too.
+
+## Comments are records
+
+Comment threads and comments are records in the editor's store, exactly like shapes. They aren't in the default schema, so you opt in by registering `commentSchemaRecords`. Once you have, comments persist and sync however your document already does. Adding a `persistenceKey` or a sync backend carries them along with no extra work.
+
+It also means you can read and write them yourself: query the store for threads, seed a document with review notes, or build a panel that does something the built-in sidebar doesn't. Comment records aren't part of the `TLRecord` union, so use the package's typed helpers and hooks rather than `editor.store` directly.
+
+```tsx
+import { useCommentThreads } from '@tldraw/commenting'
+import { useEditor } from 'tldraw'
+
+function OpenThreadCount() {
+	const editor = useEditor()
+	const threads = useCommentThreads(editor)
+	return <div>{threads.filter((thread) => !thread.resolved).length} open threads</div>
+}
+```
+
+## Anchors
+
+What pins a thread to the canvas is its anchor. A thread can anchor to a point on the page, to a shape it then follows as that shape moves and resizes, to a rectangular region, or to the page as a whole.
+
+Clicking empty canvas gives you a point anchor and clicking a shape gives you a shape anchor. Region anchors are off by default (`enableRegions`); with them on, dragging the tool out covers an area.
+
+Shape-anchored threads outlive their shape. Delete the shape and the thread converts to a point anchor where its pin last sat, so the conversation doesn't disappear along with the thing it was about.
+
+## What you get
+
+The comments layer covers the whole flow out of the box:
+
+| Feature      | Description                                                             |
+| ------------ | ----------------------------------------------------------------------- |
+| Threads      | Pins on the canvas, opening to replies, edit, resolve, and delete.      |
+| Shortcuts    | `C` picks the tool, `Shift+C` hides the pins, `Escape` closes a thread. |
+| Mentions     | `@`-mentions in composers, resolved against a roster you supply.        |
+| Reactions    | Emoji reactions on comments, with a pluggable palette.                  |
+| A sidebar    | A filterable list of threads beside the canvas.                         |
+| Clustering   | Nearby pins fold into count badges as you zoom out.                     |
+| Unread state | Pin badges and an unread filter, driven by your app's read data.        |
+
+Each of these has options, and each visible piece is a component slot you can replace. See [Commenting](/sdk-features/commenting) for the full guide.
+
+## Configuring
+
+Commenting options live on the tool. `CommentTool.configure()` returns a configured subclass to register, mirroring `ShapeUtil.configure`:
+
+```tsx
+import { CommentTool } from '@tldraw/commenting'
+
+const tools = [CommentTool.configure({ enableRegions: true })]
+```
+
+The option worth knowing about first is `history`. Comment writes default to `'ignore'`, which keeps them off the undo stack, and that default matters in a shared document: an undoable resolve would revert a thread a collaborator has since reopened. Deletes are never undoable, whatever `history` says. See [Comments and undo](/sdk-features/commenting#comments-and-undo).
+
+## Permissions
+
+`canComment` decides whether the viewer may participate, and the UI follows it: composers give way to a fallback slot and the action affordances hide. `canModifyComment` decides the writes that belong to someone in particular: editing a comment, deleting a comment, deleting a thread. Unset, only the comment's author may edit or delete it, and only the thread's creator may delete the thread. A callback widens that, say for a workspace admin who may remove anyone's comment, or narrows it.
+
+They're UI-level controls and nothing more. Comment records carry a client-supplied author id, so rules about who may post, edit, or delete belong on your sync server, which checks each incoming record against the session's identity.
+
+## Syncing
+
+Comments sync like the rest of your document, with one registration on each side. Pass `records: commentSchemaRecords` to your sync hook, and the same map to `createTLSchema` on the server.
+
+On the server you can go a step further and serve comments through the room's object-store lane. Lane records are gated by their own per-session permission rather than by `isReadonly`, which is how a viewer who can't edit the document can still comment. See [Syncing comments](/sdk-features/commenting#syncing-comments).
+
+## Related
+
+- [Commenting](/sdk-features/commenting) — The full guide: anchors, options, components, and sync
+- [Collaboration](/docs/collaboration) — Adding multiplayer to your project
+- [tldraw sync](/docs/sync) — Running a sync server
+- [Commenting example](/examples/collaboration/commenting) — The flow end to end

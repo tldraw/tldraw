@@ -2152,6 +2152,18 @@ describe('Add flipX, flipY to image shape', () => {
 	})
 })
 
+describe('Add flipX, flipY to geo shape', () => {
+	const { up, down } = getTestMigration(geoShapeVersions.AddFlipProps)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { flipX: false, flipY: false } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { flipX: false, flipY: false } })).toEqual({ props: {} })
+	})
+})
+
 describe('Add alt text to image shape', () => {
 	const { up, down } = getTestMigration(imageShapeVersions.AddAltText)
 

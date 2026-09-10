@@ -6,6 +6,7 @@ import ReactGA from 'react-ga4'
 import { useLocation } from 'react-router-dom'
 import { atom, getFromLocalStorage, react, setInLocalStorage, useValue, warnOnce } from 'tldraw'
 import { useApp } from '../tla/hooks/useAppState'
+import { useSignUpTracking } from '../tla/hooks/useSignUpTracking'
 import { getCurrentFlags, hasResolvedFlagsOnce } from '../tla/utils/FeatureFlagPoller'
 
 // Local storage key for cookie consent
@@ -173,16 +174,13 @@ function configurePosthog(options: AnalyticsOptions) {
 				Object.assign(props, flagProps)
 			}
 
-			const redactedProperties = filterProperties(props)
-			payload.properties = redactedProperties
+			payload.properties = filterProperties(props)
 
 			// $set
-			const redactedSet = filterProperties(payload.$set || {})
-			payload.$set = redactedSet
+			payload.$set = filterProperties(payload.$set || {})
 
 			// $set_once
-			const redactedSetOnce = filterProperties(payload.$set_once || {})
-			payload.$set_once = redactedSetOnce
+			payload.$set_once = filterProperties(payload.$set_once || {})
 
 			return payload
 		},
@@ -212,9 +210,17 @@ function configurePosthog(options: AnalyticsOptions) {
 			})
 		}
 		posthog.opt_in_capturing()
-	} else if (currentOptionsPosthog?.optedIn) {
-		posthog.setPersonProperties({ analytics_consent: false })
-		posthog.opt_out_capturing()
+	} else if (cookieConsent.get()?.analytics === false) {
+		// Keyed on stored consent, not the previous options: a persisted PostHog opt-in would
+		// otherwise survive a reload with consent already off, and a first reject never engages
+		// cookieless_mode.
+		if (currentOptionsPosthog?.optedIn) {
+			posthog.setPersonProperties({ analytics_consent: false })
+		}
+		// An explicit opt-out is already persisted and opt_out_capturing emits its own $pageview.
+		if (posthog.get_explicit_consent_status() !== 'denied') {
+			posthog.opt_out_capturing()
+		}
 	}
 
 	currentOptionsPosthog = options
@@ -311,6 +317,13 @@ export function trackEvent(name: string, data?: { [key: string]: any }) {
 		getGA4()?.event('page_view', data)
 	}
 
+	// Track new-account sign-ups in GA4 as well as PostHog. This is the conversion
+	// used to measure paid traffic (e.g. Google Ads) landing on tldraw.com. It is
+	// fired once per new account by useSignUpTracking, not on every login.
+	if (name === 'sign_up') {
+		getGA4()?.event('sign_up', data)
+	}
+
 	// Track watermark clicks in GA4
 	if (name === 'click-watermark' && data?.url) {
 		if (getGA4()) {
@@ -396,6 +409,7 @@ export function SignedInAnalytics() {
 	}, [user.allowAnalyticsCookie, user.email, user.id, user.name, app, storedConsent])
 
 	useTrackPageViews()
+	useSignUpTracking()
 
 	return null
 }

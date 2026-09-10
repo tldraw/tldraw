@@ -75,7 +75,7 @@ export async function blockUnknownOrigins(
 	if (!origin) return undefined
 
 	if (env.IS_LOCAL !== 'true' && !isAllowedOrigin(origin)) {
-		console.error('Attempting to connect from an invalid origin:', origin, env, request)
+		console.error('Attempting to connect from an invalid origin:', origin, request)
 		return new Response('Not allowed', { status: 403 })
 	}
 

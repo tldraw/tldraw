@@ -1,6 +1,4 @@
-import { OverlayUtil, TLOverlay } from 'tldraw'
-import { getStrokePoints } from 'tldraw'
-import { getSvgPathFromStrokePoints } from 'tldraw'
+import { getStrokePoints, getSvgPathFromStrokePoints, OverlayUtil, TLOverlay } from 'tldraw'
 import { LassoingState } from './LassoSelectTool'
 
 interface TLLassoOverlay extends TLOverlay {
@@ -17,8 +15,8 @@ export class LassoOverlayUtil extends OverlayUtil<TLLassoOverlay> {
 	}
 
 	override getOverlays(): TLLassoOverlay[] {
-		const lassoing = this.editor.getStateDescendant('lasso-select.lassoing') as LassoingState
-		const points = lassoing.points.get()
+		const lassoing = this.editor.getStateDescendant<LassoingState>('lasso-select.lassoing')
+		const points = lassoing?.points.get() ?? []
 		if (points.length === 0) return []
 
 		const smoothedPoints = getStrokePoints(points)

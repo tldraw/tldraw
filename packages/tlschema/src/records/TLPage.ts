@@ -4,6 +4,7 @@ import {
 	createRecordMigrationSequence,
 	createRecordType,
 	RecordId,
+	UnknownRecord,
 } from '@tldraw/store'
 import { IndexKey, JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
@@ -147,6 +148,28 @@ export const PageRecordType = createRecordType<TLPage>('page', {
 }).withDefaultProperties(() => ({
 	meta: {},
 }))
+
+/**
+ * Type guard to check if a record is a page.
+ *
+ * @param record - The record to check
+ * @returns True if the record is a page, false otherwise
+ *
+ * @example
+ * ```ts
+ * const record = store.get('page:abc123')
+
+ * if (isPage(record)) {
+ *   console.log(`Page name: ${record.name}`)
+ * }
+ * ```
+ *
+ * @public
+ */
+export function isPage(record?: UnknownRecord): record is TLPage {
+	if (!record) return false
+	return record.typeName === 'page'
+}
 
 /**
  * Type guard to check if a string is a valid TLPageId.

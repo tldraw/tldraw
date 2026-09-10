@@ -83,7 +83,7 @@ test.describe('signed in user on own file', () => {
 
 		// The second page should have the share button and not the error
 		await expect(newShareMenu.shareButton).toBeVisible()
-		await expect(newPage.getByTestId('tla-error-icon')).not.toBeVisible()
+		await expect(newPage.getByTestId('tla-error')).not.toBeVisible()
 
 		// Now unshare it it...
 		await page.getByTestId('shared-link-shared-switch').click()
@@ -94,7 +94,7 @@ test.describe('signed in user on own file', () => {
 
 		// The second page should have an error and not the share button
 		await expect(newShareMenu.shareButton).not.toBeVisible()
-		await expect(newPage.getByTestId('tla-error-icon')).toBeVisible()
+		await expect(newPage.getByTestId('tla-error')).toBeVisible()
 
 		// Now reshare it...
 		await page.getByTestId('shared-link-shared-switch').click()
@@ -105,7 +105,7 @@ test.describe('signed in user on own file', () => {
 
 		// The second page should have the share button and not the error again
 		await expect(newShareMenu.shareButton).toBeVisible()
-		await expect(newPage.getByTestId('tla-error-icon')).not.toBeVisible()
+		await expect(newPage.getByTestId('tla-error')).not.toBeVisible()
 
 		await newContext.close()
 	})

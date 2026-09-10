@@ -47,13 +47,16 @@ describe('HistoryBuffer', () => {
 		expect(buf.getChangesSince(0)).toEqual(RESET_VALUE)
 	})
 
-	it('[HB1] ignores undefined diffs', () => {
+	it('[HB1] treats an undefined diff like RESET_VALUE: it clears rather than leaving a gap', () => {
 		const buf = new HistoryBuffer<string>(3)
 		buf.pushEntry(0, 1, 'a')
 		buf.pushEntry(1, 2, undefined as any)
+		buf.pushEntry(2, 3, 'c')
 
-		expect(buf.getChangesSince(0)).toEqual(['a'])
-		expect(buf.getChangesSince(1)).toEqual([])
+		// if the undefined entry had been skipped, this would be ['a', 'c'] with the 1 -> 2 change missing
+		expect(buf.getChangesSince(0)).toEqual(RESET_VALUE)
+		expect(buf.getChangesSince(1)).toEqual(RESET_VALUE)
+		expect(buf.getChangesSince(2)).toEqual(['c'])
 	})
 
 	it('[HB1] will clear if you push RESET_VALUE', () => {

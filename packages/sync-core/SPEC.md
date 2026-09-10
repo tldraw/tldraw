@@ -58,7 +58,8 @@ Sections marked **internal** describe supporting machinery that has its own cont
 
 - **CH1** `chunk(msg, maxSize)` returns `[msg]` when `msg.length < maxSize` (strictly less — a message exactly at `maxSize` is chunked).
 - **CH2** Chunks are prefixed `<n>_` where `n` counts down the chunks remaining after this one; the first chunk carries the highest number and the start of the message, and concatenating the chunk bodies in order reconstructs the message.
-- **CH3** Each chunk's total length is at most `maxSize`, except that every chunk carries at least one character of content even when the prefix alone exceeds `maxSize`.
+- **CH3** Each chunk's total length is at most `maxSize`, except that every chunk carries at least one character of content even when the prefix alone exceeds `maxSize`, and except for CH9.
+- **CH9** A UTF-16 surrogate pair is never split across two chunks (`WebSocket.send` would turn each lone half into U+FFFD): the boundary moves by one character, shrinking the chunk when it has more than one character of content and otherwise growing it by one, so a chunk may exceed the CH3 bound by one character.
 - **CH4** `JsonChunkAssembler.handleMessage`: input starting with `{` while idle is parsed immediately and returned as `{ data, stringified }`. Invalid JSON in this case throws synchronously (callers treat a throw as a fatal session error).
 - **CH5** Input starting with `{` mid-sequence returns `{ error: 'Unexpected non-chunk message' }`; the partial sequence and the JSON message are both discarded and the assembler resets to idle.
 - **CH6** Chunk inputs accumulate, returning `null` until the final (`0_`) chunk arrives, then the joined body is JSON-parsed and returned; a parse failure is returned as `{ error }`. Either way the assembler resets to idle.
@@ -173,11 +174,12 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **CL6** With `hydrationType: 'wipe_all'`, all document records are additionally wiped before the server's diff is applied; speculative changes still re-apply on top afterwards.
 - **CL7** After connecting, `onAfterConnect` is called with `{ isReadonly }` from the connect message, and the current presence state (if any) is pushed.
 - **CL8** When the socket goes `'offline'`, the client resets: presence records are removed from the store, pending and unsent pushes are dropped, and the client waits to reconnect. When the socket reports `'error'`, `onSyncError(reason)` fires and the client closes permanently.
-- **CL9** While connected, a ping is sent every 5 seconds; if nothing has been heard from the server for 10 seconds, the client warns and restarts the socket.
+- **CL9** While connected, a ping is sent every 5 seconds; the client warns and restarts the socket only when nothing has been heard from the server for 10 seconds AND a ping has been outstanding and unanswered for at least 10 seconds (`PONG_TIMEOUT`). Staleness without an unanswered ping (e.g. a throttled hidden tab whose own ping loop stopped) never resets. In a throttled hidden tab a genuinely dead socket is therefore detected within about two 1-minute wakes rather than one.
 - **CL10** A `pong` (or any server message) refreshes the server-interaction timestamp.
 - **CL11** When `didCancel` is provided and returns true, the next event causes the client to close instead of processing.
 - **CL12** `close()` disposes all listeners and timers and removes the `window.tlsync` debugging reference (which construction installs).
 - **CL13** An `incompatibility_error` server message is legacy: it is logged as an error and otherwise ignored.
+- **CL14** The unanswered-ping marker advances only when the previous ping was answered — any server message received at or after its send time counts, per CL10 (oldest-outstanding semantics), so a half-open socket that still accepts sends cannot defer detection indefinitely. The marker clears on connection reset.
 
 ## 20. `TLSyncClient` — pushing changes (CP)
 
@@ -207,7 +209,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **RC4** Storage `onChange` notifications carrying a foreign transaction id make the room broadcast the new changes to all connected clients. The room's own transactions (id `'TLSyncRoom.txn'`) do not re-broadcast this way.
 - **RC5** If an external change leaves the storage unable to produce an incremental diff (`wipeAll`), the room closes every session so clients reconnect and re-hydrate.
 - **RC6** The idle timeout defaults to `SESSION_IDLE_TIMEOUT` (20s) and is configurable via `clientTimeout`. A finite positive timeout starts a periodic prune interval of `min(2000, timeout/4)` ms; `Infinity` or 0 disables the interval (pruning then only happens on message activity or via the follow-up prune scheduled when a socket close/error cancels a session, per SES2).
-- **RC7** `close()` closes every session's socket and stops background work; `isClosed()` reports it.
+- **RC7** `close()` marks the room closed, stops background work and pending per-session flush timers, closes every session's socket (a socket that throws on close does not stop the others) and forgets the sessions without emitting `session_removed`, so late socket close/error events for them are no-ops and cannot emit lifecycle events on a closed room. No prune timers are scheduled afterwards. A session added after `close()` (via `handleNewSession` or `handleResumedSession`) is rejected: its socket is closed and it is not stored. `isClosed()` reports it.
 
 ## 23. `TLSyncRoom` — connect handshake (HS)
 
@@ -238,7 +240,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 
 - **RB1** Data messages (`patch`, `push_result`) to a session are debounced: the first is sent immediately wrapped as `{ type: 'data', data: [msg] }`; messages within the following `DATA_MESSAGE_DEBOUNCE_INTERVAL` (1000/60 ms) are buffered and flushed together as one `data` message. The array handed to the socket is not mutated afterwards, so sockets may serialize lazily.
 - **RB2** Non-data messages flush any buffered data messages first, preserving order — except `pong`, which skips the flush.
-- **RB3** Sending to a session whose socket is closed cancels that session.
+- **RB3** Sending to a session whose socket is closed cancels that session — on the debounced flush path as well as the immediate one.
 - **RB4** Broadcasts are migrated per session (MG1); a migration failure rejects only the affected session, and the broadcast proceeds for the others.
 - **RB5** `sendCustomMessage` delivers `{ type: 'custom', data }` to a connected session; sending to an unknown or not-yet-connected session logs a warning and does nothing.
 
@@ -262,7 +264,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 
 - **SR1** Providing both `storage` and `initialSnapshot` throws. With neither, an `InMemorySyncStorage` seeded from `DEFAULT_INITIAL_SNAPSHOT` is created; `initialSnapshot` (deprecated) accepts both room and store snapshots.
 - **SR2** The deprecated `onDataChange` callback is wired to `storage.onChange` (fires on a microtask after document changes, including programmatic ones).
-- **SR3** `log` defaults to `{ error: console.error }` only when the `log` key is absent from the options object; an explicitly passed `log: undefined` leaves the room without a logger.
+- **SR3** `log` defaults to `{ error: console.error }` only when the `log` key is absent from the options object; an explicitly passed `log: undefined` leaves the room without a logger. The same logger is handed to the inner `TLSyncRoom`, so authorizer failures are logged under the default too.
 - **SR4** `handleSocketConnect` registers the session (readonly defaults to false), attaches `message`/`close`/`error` listeners when the socket supports `addEventListener`, and creates a chunk assembler for the session.
 - **SR5** `handleSocketMessage` assembles chunks (CH rules), then for each complete message: invokes `onAfterReceiveMessage`, forwards to the room, and runs a prune pass (after handling, so a session is never evicted by its own message). Assembly errors close the socket via the error path; a thrown exception rejects the session with `UNKNOWN_ERROR`.
 - **SR6** `handleSocketError` and `handleSocketClose` cancel the session (grace period applies per SES2) and clear any pending session-snapshot timer.

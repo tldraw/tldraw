@@ -1,12 +1,12 @@
 {
-  "1764571547": {
-    "translation": "Bu çalışma alanını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
-  },
   "0095a9fa74": {
     "translation": "Dışa aktar"
   },
   "00b177e080": {
     "translation": "Daveti kabul et"
+  },
+  "029f235f01": {
+    "translation": "<a><strong>{appName}</strong></a> adresinden gelen dosyalar için destek üzerinde çalışıyoruz."
   },
   "03b3e13197": {
     "translation": "Dosyayı bu sayfadaki kenar çubuğuna sürükleyin. Veya kullanıcı menüsünden 'Dosyayı içe aktar' seçeneğini seçin."
@@ -16,6 +16,9 @@
   },
   "04a2dd56d6": {
     "translation": "Takım arkadaşlarınızı davet edin"
+  },
+  "05b2656486": {
+    "translation": "<name>{author}</name> sizden bahsetti."
   },
   "05f43078e9": {
     "translation": "Maksimum çalışma alanı sayısına ulaştınız. Yeni çalışma alanları oluşturmadan önce eski çalışma alanlarını silmeniz gerekiyor."
@@ -31,6 +34,9 @@
   },
   "08bd40c754": {
     "translation": "Hesap"
+  },
+  "093ac7483a": {
+    "translation": "Henüz {extension} dosyaları açılamıyor."
   },
   "0a91f7fa87": {
     "translation": "Bu dosya boyut sınırına ulaştı ve değişiklikler artık kaydedilemeyebilir. İçeriğin bir kısmını kaldırın veya yeni bir dosya başlatın."
@@ -62,6 +68,9 @@
   "13ddd375ad": {
     "translation": "Dışa aktarma formatı"
   },
+  "14b03eeeb5": {
+    "translation": "Bildirim seçenekleri"
+  },
   "181b90f889": {
     "translation": "Dosya oluştur"
   },
@@ -83,6 +92,12 @@
   "250ddea65c": {
     "translation": "tldraw hakkında"
   },
+  "2755e3ab39": {
+    "translation": "<name>{author}</name> panonuza yorum yaptı."
+  },
+  "28b2464e1f": {
+    "translation": "Geri bildirim gönderilemedi."
+  },
   "299cb00a7a": {
     "translation": "Yüklenemedi"
   },
@@ -91,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Aramak..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Lütfen tekrar deneyin."
   },
   "2de510be71": {
     "translation": "Yeniden oluşturma işlemi, mevcut davet bağlantısını yeni bir bağlantıyla değiştirir. Eski bağlantıyı kullanan herkesin katılabilmesi için yeni bağlantıya ihtiyacı olacaktır."
@@ -146,8 +164,14 @@
   "44db318ee5": {
     "translation": "Discord'da yardım alın"
   },
+  "454aad3b3c": {
+    "translation": "<strong>{fileName}</strong> dosyasını silmek istediğinizden emin misiniz?"
+  },
   "46137245cd": {
     "translation": "Tldraw'ı geliştirmemize yardımcı olduğunuz için teşekkürler!"
+  },
+  "46de2de6bb": {
+    "translation": "Kullanım şartlarını kabul edin"
   },
   "477df802ca": {
     "translation": "Düzenlemeye devam etmek için lütfen dosyayı dosyalarınıza kopyalayın."
@@ -157,9 +181,6 @@
   },
   "47f493a590": {
     "translation": "Pin dosyası"
-  },
-  "4908687e50": {
-    "translation": "Bu dosyayı unutmak istediğinizden emin misiniz?"
   },
   "49ee308734": {
     "translation": "İsim"
@@ -182,11 +203,20 @@
   "517bb809d9": {
     "translation": "Sayfa menüsü"
   },
+  "53770fd374": {
+    "translation": "Okunmamış"
+  },
   "542248f0ba": {
     "translation": "Bu dosya artık salt okunur"
   },
   "54286b1d01": {
     "translation": "Ortak çalışan sınırına ulaşıldı"
+  },
+  "545241e7dd": {
+    "translation": "{count} okunmamış"
+  },
+  "550b25cc0c": {
+    "translation": "Yerel çiziminiz geri yüklenemedi. Lütfen bu sayfayı yeniden yüklemeyi deneyin."
   },
   "554a05155c": {
     "translation": "Hala sorun mu yaşıyorsunuz? <a>Bir sorun bildirin</a>"
@@ -212,6 +242,9 @@
   "5bff3c9c88": {
     "translation": "Çalışma alanım"
   },
+  "5bffeebf03": {
+    "translation": "<name>{author}</name> yorumunuza yanıt verdi."
+  },
   "5d04a002ea": {
     "translation": "Bağlantı kurulamadı."
   },
@@ -224,8 +257,17 @@
   "5fb63579fc": {
     "translation": "Kopyala"
   },
+  "608e9d366e": {
+    "translation": "Her şeyden haberdarsınız."
+  },
+  "60a68c29d6": {
+    "translation": "Yorum yapmak için giriş yapın"
+  },
   "61057a0c84": {
     "translation": "Daha sonra"
+  },
+  "61fb03fd7b": {
+    "translation": "{count, plural, one {Birisi yorumunuza yanıt verdi.} other {# Kişi yorumunuza tepki verdi}}"
   },
   "625fd29749": {
     "translation": "Daha eski"
@@ -277,6 +319,9 @@
   },
   "752b79f137": {
     "translation": "Maksimum dosya sayısına ulaştınız. Yeni dosyalar oluşturmadan önce eski dosyaları silmeniz gerekiyor."
+  },
+  "7542d62aac": {
+    "translation": "Tümünü okundu olarak işaretle"
   },
   "7573b8110a": {
     "translation": "Erişim yok"
@@ -332,6 +377,12 @@
   "815e116a2e": {
     "translation": "tldraw için bir hata, sorun veya fikriniz mi var? Bize bildirin! Bu formu doldurun ve gerekirse e-posta yoluyla takip edeceğiz. Ayrıca <discord>Discord'da bizimle sohbet edebilir</discord> veya <github>GitHub'da bir sorun gönderebilirsiniz</github>."
   },
+  "81666c6e4a": {
+    "translation": "<strong>{fileName}</strong>'i unutmak istediğinizden emin misiniz?"
+  },
+  "8413c683b4": {
+    "translation": "Yorumlar"
+  },
   "858ba4765e": {
     "translation": "Üye"
   },
@@ -365,6 +416,9 @@
   "904a830405": {
     "translation": "Yeniden Adlandır"
   },
+  "90646db02d": {
+    "translation": "<strong>{workspaceName}</strong> öğesini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+  },
   "95aacd4d4a": {
     "translation": "Google ile oturum açın"
   },
@@ -388,6 +442,9 @@
   },
   "9bef626805": {
     "translation": "Dosyayı sil"
+  },
+  "9c228b6834": {
+    "translation": "Çevrimdışı görünüyorsunuz. Bağlantınızı kontrol edin ve tekrar deneyin."
   },
   "9ccb565b86": {
     "translation": "Kimlik doğrulama servisimize bağlanmada sorun yaşıyoruz. Bu genellikle geçici bir durumdur. Lütfen sayfayı yenilemeyi deneyin."
@@ -419,6 +476,9 @@
   "a239905023": {
     "translation": "Resmi dışa aktar"
   },
+  "a274f4d467": {
+    "translation": "Bildirimler"
+  },
   "a3debabee7": {
     "translation": "Çerez politikası"
   },
@@ -443,6 +503,9 @@
   "aac449eef6": {
     "translation": "Çalışma alanı oluşturun"
   },
+  "aaec8f7cde": {
+    "translation": "Birisi"
+  },
   "ab0df9ba36": {
     "translation": "Dosya sınırına ulaşıldı"
   },
@@ -452,6 +515,12 @@
   },
   "b028909917": {
     "translation": "Misafir kullanıcı"
+  },
+  "b03400e2db": {
+    "translation": "<name>{author}</name> yanıtladı"
+  },
+  "b1c94ca2fb": {
+    "translation": "Tümü"
   },
   "b2326c3a34": {
     "translation": "Yeniden oluştur"
@@ -492,9 +561,6 @@
   "c2276c9127": {
     "translation": "Paylaşım hakkında daha fazla bilgi edinin."
   },
-  "c28aed8348": {
-    "translation": "Tldraw'ı geliştirmemize yardımcı olması için <cookies>analytics</cookies>'e izin verin."
-  },
   "c303bd1095": {
     "translation": "Bu dosya yayınlanamıyor."
   },
@@ -527,6 +593,9 @@
   },
   "cea291e45e": {
     "translation": "Yayınlama hakkında daha fazla bilgi edinin."
+  },
+  "d0e3556476": {
+    "translation": "<name>{author}</name> ve {count, plural, one {# other} other {# others}} yorumunuza tepki verdi."
   },
   "d3d2e61733": {
     "translation": "Kapat"
@@ -573,6 +642,9 @@
   "e404559826": {
     "translation": "Hizmet Şartları"
   },
+  "e65b2dcb6f": {
+    "translation": "<name>{a}</name> ve <name>{b}</name> yorumunuza yanıt verdi."
+  },
   "e81c4e4f2b": {
     "translation": "veya"
   },
@@ -600,6 +672,9 @@
   "ede55d955f": {
     "translation": "Daha fazla bilgi edinmek için <a>çerez politikamızı</a> okuyun."
   },
+  "edec9387f9": {
+    "translation": "Bu yorum silindi."
+  },
   "ef53538ae4": {
     "translation": "Üyeler"
   },
@@ -618,8 +693,14 @@
   "f2a6c498fb": {
     "translation": "Sil"
   },
+  "f476ba8646": {
+    "translation": "<name>{a}</name>, <name>{b}</name> ve {count, plural, one {# other} other {# others}} yorumunuza tepki verdi."
+  },
   "f4f70727dc": {
     "translation": "Ayarlar"
+  },
+  "f5ddc8d9c1": {
+    "translation": "Şimdilik, burada kullanmak için <a>{extension} dosyası olarak dışa aktarabilirsiniz</a>."
   },
   "fa2ead697d": {
     "translation": "Gizlilik Politikası"
@@ -629,9 +710,6 @@
   },
   "fc9d47046b": {
     "translation": "Bu çalışma alanından ayrılmak istediğinizden emin misiniz?"
-  },
-  "fd1be3efcf": {
-    "translation": "Bu dosyayı silmek istediğinizden emin misiniz?"
   },
   "fed5ec05eb": {
     "translation": "Bağlantı kopyalandı"

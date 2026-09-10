@@ -11,6 +11,32 @@
       "value": "Hyväksy kutsu"
     }
   ],
+  "029f235f01": [
+    {
+      "type": 0,
+      "value": "Työskentelemme parhaillaan tiedostojen tuen parissa sovelluksesta "
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": 1,
+              "value": "appName"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -31,6 +57,22 @@
     {
       "type": 0,
       "value": "Kutsu tiimikavereita"
+    }
+  ],
+  "05b2656486": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " mainitsi sinut"
     }
   ],
   "05f43078e9": [
@@ -61,6 +103,20 @@
     {
       "type": 0,
       "value": "Tili"
+    }
+  ],
+  "093ac7483a": [
+    {
+      "type": 0,
+      "value": "Tiedostoja "
+    },
+    {
+      "type": 1,
+      "value": "extension"
+    },
+    {
+      "type": 0,
+      "value": " ei voi vielä avata"
     }
   ],
   "0a91f7fa87": [
@@ -123,10 +179,10 @@
       "value": "Vie nimellä"
     }
   ],
-  "1764571547": [
+  "14b03eeeb5": [
     {
       "type": 0,
-      "value": "Haluatko varmasti poistaa tämän työtilan? Tätä toimintoa ei voi perua."
+      "value": "Ilmoitusasetukset"
     }
   ],
   "181b90f889": [
@@ -185,6 +241,28 @@
       "value": "Tietoja tldraw'sta"
     }
   ],
+  "2755e3ab39": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " kommentoi taulasi"
+    }
+  ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Palautteen lähettäminen epäonnistui"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -201,6 +279,12 @@
     {
       "type": 0,
       "value": "Haku..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Yritä uudelleen."
     }
   ],
   "2de510be71": [
@@ -311,10 +395,36 @@
       "value": "Hanki apua Discordissa"
     }
   ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Haluatko varmasti poistaa tiedoston "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Kiitos, että autat meitä parantamaan tldraw:ta!"
+    }
+  ],
+  "46de2de6bb": [
+    {
+      "type": 0,
+      "value": "Hyväksy käyttöehdot"
     }
   ],
   "477df802ca": [
@@ -333,12 +443,6 @@
     {
       "type": 0,
       "value": "Kiinnitä tiedosto"
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Haluatko varmasti unohtaa tämän tiedoston?"
     }
   ],
   "49ee308734": [
@@ -383,6 +487,12 @@
       "value": "Sivuvalikko"
     }
   ],
+  "53770fd374": [
+    {
+      "type": 0,
+      "value": "Lukematon"
+    }
+  ],
   "542248f0ba": [
     {
       "type": 0,
@@ -393,6 +503,22 @@
     {
       "type": 0,
       "value": "Yhteistyökumppanien raja saavutettu"
+    }
+  ],
+  "545241e7dd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " lukematon"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Paikallista piirrosta ei voitu palauttaa. Yritä ladata sivu uudelleen."
     }
   ],
   "554a05155c": [
@@ -453,6 +579,22 @@
       "value": "Työtilani"
     }
   ],
+  "5bffeebf03": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " reagoi kommenttiisi"
+    }
+  ],
   "5d04a002ea": [
     {
       "type": 0,
@@ -477,10 +619,51 @@
       "value": "Kopioida"
     }
   ],
+  "608e9d366e": [
+    {
+      "type": 0,
+      "value": "Olet ajan tasalla."
+    }
+  ],
+  "60a68c29d6": [
+    {
+      "type": 0,
+      "value": "Kirjaudu sisään kommentoidaksesi"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
       "value": "Myöhemmin"
+    }
+  ],
+  "61fb03fd7b": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Joku reagoi kommenttiisi"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " ihmistä reagoi kommenttiisi"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "625fd29749": [
@@ -583,6 +766,12 @@
     {
       "type": 0,
       "value": "Olet saavuttanut tiedostojen enimmäismäärän. Sinun on poistettava vanhat tiedostot ennen uusien luomista."
+    }
+  ],
+  "7542d62aac": [
+    {
+      "type": 0,
+      "value": "Merkitse kaikki luetuiksi"
     }
   ],
   "7573b8110a": [
@@ -721,6 +910,32 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Haluatko varmasti unohtaa tiedoston "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
+  "8413c683b4": [
+    {
+      "type": 0,
+      "value": "Kommentit"
+    }
+  ],
   "858ba4765e": [
     {
       "type": 0,
@@ -795,6 +1010,26 @@
       "value": "Nimeä uudelleen"
     }
   ],
+  "90646db02d": [
+    {
+      "type": 0,
+      "value": "Haluatko varmasti poistaa työtilan "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "? Tätä toimintoa ei voi perua."
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -855,6 +1090,12 @@
     {
       "type": 0,
       "value": "Poista tiedosto"
+    }
+  ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Vaikuttaa siltä, ​​että olet offline-tilassa. Tarkista yhteytesi ja yritä uudelleen."
     }
   ],
   "9ccb565b86": [
@@ -931,6 +1172,12 @@
       "value": "Vie kuva"
     }
   ],
+  "a274f4d467": [
+    {
+      "type": 0,
+      "value": "Ilmoitukset"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -979,6 +1226,12 @@
       "value": "Luo työtila"
     }
   ],
+  "aaec8f7cde": [
+    {
+      "type": 0,
+      "value": "Joku"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -1001,6 +1254,28 @@
     {
       "type": 0,
       "value": "Vieraskäyttäjä"
+    }
+  ],
+  "b03400e2db": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " vastasi"
+    }
+  ],
+  "b1c94ca2fb": [
+    {
+      "type": 0,
+      "value": "Kaikki"
     }
   ],
   "b2326c3a34": [
@@ -1121,26 +1396,6 @@
       "value": "Lisätietoja jakamisesta."
     }
   ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Salli "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": "-palvelun auttaa meitä parantamaan tldrawia."
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1205,6 +1460,56 @@
     {
       "type": 0,
       "value": "Lisätietoja julkaisemisesta."
+    }
+  ],
+  "d0e3556476": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ja "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reagoivat kommenttiisi"
     }
   ],
   "d3d2e61733": [
@@ -1325,6 +1630,36 @@
       "value": "Palveluehdot"
     }
   ],
+  "e65b2dcb6f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ja "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " reagoivat kommenttiisi"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1393,6 +1728,12 @@
       "value": "."
     }
   ],
+  "edec9387f9": [
+    {
+      "type": 0,
+      "value": "Tämä kommentti poistettiin."
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1429,10 +1770,98 @@
       "value": "Poistaa"
     }
   ],
+  "f476ba8646": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ja "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reagoivat kommenttiisi"
+    }
+  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "Asetukset"
+    }
+  ],
+  "f5ddc8d9c1": [
+    {
+      "type": 0,
+      "value": "Tällä hetkellä voit "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "viedä tiedostona "
+        },
+        {
+          "type": 1,
+          "value": "extension"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " käyttääksesi sitä täällä."
     }
   ],
   "fa2ead697d": [
@@ -1451,12 +1880,6 @@
     {
       "type": 0,
       "value": "Haluatko varmasti poistua tästä työtilasta?"
-    }
-  ],
-  "fd1be3efcf": [
-    {
-      "type": 0,
-      "value": "Haluatko varmasti poistaa tämän tiedoston?"
     }
   ],
   "fed5ec05eb": [

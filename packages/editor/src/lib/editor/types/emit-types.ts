@@ -6,6 +6,7 @@ import { TLEventInfo } from './event-types'
 export interface TLEventMap {
 	// Lifecycle / Internal
 	mount: []
+	unmount: []
 	'max-shapes': [{ name: string; pageId: TLPageId; count: number }]
 	change: [HistoryEntry<TLRecord>]
 	update: []

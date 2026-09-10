@@ -23,7 +23,6 @@ export default function ArrowBindingOptionsExample() {
 						},
 					})
 
-					// [2]
 					const arrow1Id = createShapeId()
 					editor.createShape({
 						id: arrow1Id,
@@ -47,7 +46,7 @@ export default function ArrowBindingOptionsExample() {
 						},
 					])
 
-					// [3]
+					// [2]
 					const shape2Id = createShapeId()
 					editor.createShape({
 						id: shape2Id,
@@ -62,7 +61,6 @@ export default function ArrowBindingOptionsExample() {
 						},
 					})
 
-					// [4]
 					const arrow2Id = createShapeId()
 					editor.createShape({
 						id: arrow2Id,
@@ -86,7 +84,7 @@ export default function ArrowBindingOptionsExample() {
 						},
 					])
 
-					// [5]
+					// [3]
 					const shape3Id = createShapeId()
 					editor.createShape({
 						id: shape3Id,
@@ -101,7 +99,6 @@ export default function ArrowBindingOptionsExample() {
 						},
 					})
 
-					// [6]
 					const arrow3Id = createShapeId()
 					editor.createShape({
 						id: arrow3Id,
@@ -125,7 +122,7 @@ export default function ArrowBindingOptionsExample() {
 						},
 					])
 
-					// [7]
+					// [4]
 					const shape4Id = createShapeId()
 					editor.createShape({
 						id: shape4Id,
@@ -171,41 +168,25 @@ export default function ArrowBindingOptionsExample() {
 }
 
 /*
+Each pair below creates a geo shape and an arrow, then binds the arrow's end terminal to the
+shape with `editor.createBindings`. The arrow's `end` prop is only a fallback position; once
+the binding exists, the arrow's endpoint is computed from the binding props.
+
 [1]
-Create the first shape demonstrating isPrecise: false. When isPrecise is false, the arrow
-always targets the center of the shape, regardless of the normalizedAnchor value provided.
+`isPrecise: false`. The `normalizedAnchor` of (0.25, 0.5) is ignored and the arrow aims at
+the shape's center, stopping at the edge. This is what you get when a user drags an arrow
+onto a shape without pausing to pick a specific point.
 
 [2]
-Create an arrow with isPrecise: false. Even though we specify normalizedAnchor at (0.25, 0.5)
-(left side of the shape), the arrow will point to the center because isPrecise is false.
-The arrow stops at the shape's edge.
+`isPrecise: true` with the same anchor. Now the arrow aims at the anchor position (a quarter
+of the way across, vertically centered), still stopping at the shape's edge because
+`isExact` is false.
 
 [3]
-Create the second shape demonstrating isPrecise: true. When isPrecise is true, the arrow
-respects the normalizedAnchor and targets the specified position within the shape.
+`isExact: true`. Instead of stopping at the edge, the arrow continues into the shape until it
+reaches the anchor point itself, here the exact center.
 
 [4]
-Create an arrow with isPrecise: true and the same normalizedAnchor at (0.25, 0.5). This time,
-the arrow will actually target the left side of the shape as specified by the anchor. The arrow
-still stops at the shape's edge (isExact: false).
-
-[5]
-Create the third shape demonstrating isExact: true. When isExact is true, the arrow passes
-through the shape to reach its exact target point instead of stopping at the edge.
-
-[6]
-Create an arrow with both isPrecise: true and isExact: true. The normalizedAnchor at (0.5, 0.5)
-targets the center of the shape, and isExact: true makes the arrow pass through the shape to
-reach that exact point. This is useful for diagrams where arrows need to cross through shapes.
-
-[7]
-Create the fourth shape demonstrating the combination of precise and exact targeting. The arrow
-targets the bottom-right quadrant (0.75, 0.75) and passes through the shape to that exact point.
-This shows fine-grained control over arrow positioning.
-
-Key takeaways:
-- isPrecise: false = arrow always points to center (default safe behavior)
-- isPrecise: true = arrow respects normalizedAnchor position
-- isExact: false = arrow stops at shape edge (default)
-- isExact: true = arrow passes through to exact target point
+Both flags together with an off-center anchor at (0.75, 0.75): the arrow enters the shape and
+ends at that exact point.
 */

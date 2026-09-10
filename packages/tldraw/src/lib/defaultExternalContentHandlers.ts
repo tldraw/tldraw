@@ -1,6 +1,7 @@
 import {
 	AssetRecordType,
 	Editor,
+	T,
 	TLAsset,
 	TLAssetId,
 	TLBookmarkAsset,
@@ -277,10 +278,10 @@ export async function defaultHandleExternalUrlAsset(
 			description:
 				doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content') ?? '',
 		}
-		if (!meta.image.startsWith('http')) {
+		if (meta.image && !meta.image.startsWith('http')) {
 			meta.image = new URL(meta.image, url).href
 		}
-		if (!meta.favicon.startsWith('http')) {
+		if (meta.favicon && !meta.favicon.startsWith('http')) {
 			meta.favicon = new URL(meta.favicon, url).href
 		}
 	} catch (error) {
@@ -423,7 +424,19 @@ export async function defaultHandleExternalFileContent(
 			})
 			continue
 		}
-		const assetInfo = await getAssetInfo(editor, sanitizedFile)
+		// An undecodable image rejects here; uncaught, it aborts the whole drop,
+		// including files that already succeeded, with no toast (#10438).
+		let assetInfo: TLAsset | null
+		try {
+			assetInfo = await getAssetInfo(editor, sanitizedFile)
+		} catch (error) {
+			toasts.addToast({
+				title: msg('assets.files.upload-failed'),
+				severity: 'error',
+			})
+			console.error(error)
+			continue
+		}
 		if (!assetInfo) continue
 		if (assetInfo.type === 'image') {
 			editor.createTemporaryAssetPreview(assetInfo.id, sanitizedFile)
@@ -553,22 +566,30 @@ export async function defaultHandleExternalTextContent(
 	const newPoint = maybeSnapToGrid(new Vec(p.x - w / 2, p.y - h / 2), editor)
 	const shapeId = createShapeId()
 
-	// Allow this to trigger the max shapes reached alert
-	editor.createShapes([
-		{
-			id: shapeId,
-			type: 'text',
-			x: newPoint.x,
-			y: newPoint.y,
-			props: {
-				richText: richTextToPaste,
-				// if the text has more than one line, align it to the left
-				textAlign: align,
-				autoSize,
-				w,
+	editor.run(() => {
+		// Allow this to trigger the max shapes reached alert
+		editor.createShapes([
+			{
+				id: shapeId,
+				type: 'text',
+				x: newPoint.x,
+				y: newPoint.y,
+				props: {
+					richText: richTextToPaste,
+					// if the text has more than one line, align it to the left
+					textAlign: align,
+					autoSize,
+					w,
+				},
 			},
-		},
-	])
+		])
+
+		// createShapes silently creates nothing when the page is full, so only
+		// select the shape if it actually exists
+		if (editor.getShape(shapeId)) {
+			editor.select(shapeId)
+		}
+	})
 }
 
 /** @public */
@@ -577,6 +598,22 @@ export async function defaultHandleExternalUrlContent(
 	{ point, url }: { point?: VecLike; url: string },
 	{ toasts, msg }: TLDefaultExternalContentHandlerOpts
 ) {
+	// Bookmark shapes validate their `url` prop with T.linkUrl, so a url we can't
+	// turn into a bookmark would throw a ValidationError and crash the editor
+	// (#8097) — e.g. Chrome with an ad blocker active rewrites dragged content
+	// urls to `about:blank#blocked`. This is a known, handled condition rather
+	// than a bug, so we tell the user with a toast and warn (not error) with the
+	// offending url as a local debugging breadcrumb — deliberately not reported
+	// to error tracking, where it would just be non-actionable noise.
+	if (!T.linkUrl.isValid(url)) {
+		console.warn(`Could not create a bookmark from an invalid url: ${JSON.stringify(url)}`)
+		toasts.addToast({
+			title: msg('assets.url.failed'),
+			severity: 'error',
+		})
+		return
+	}
+
 	// try to paste as an embed first
 	const embedUtil = editor.getShapeUtil('embed') as EmbedShapeUtil | undefined
 	const embedInfo = embedUtil?.getEmbedDefinition(url)
@@ -606,6 +643,8 @@ export async function defaultHandleExternalUrlContent(
 		})
 		return
 	}
+
+	editor.select(result.value.id)
 }
 
 /** @public */

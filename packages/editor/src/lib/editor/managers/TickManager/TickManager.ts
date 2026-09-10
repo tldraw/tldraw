@@ -41,9 +41,15 @@ export class TickManager extends EditorManager {
 		const elapsed = now - this.now
 		this.now = now
 
-		this.editor.emit('frame', elapsed)
-		this.editor.emit('tick', elapsed)
-		this.cancelRaf = throttleToNextFrame(this.tick)
+		// Schedule the next frame even if a listener throws. Otherwise a single throwing listener
+		// ends the loop for good, which silently stops every frame-driven behavior — camera
+		// animations, edge scrolling, pointer velocity, following — instead of failing once.
+		try {
+			this.editor.emit('frame', elapsed)
+			this.editor.emit('tick', elapsed)
+		} finally {
+			this.cancelRaf = throttleToNextFrame(this.tick)
+		}
 	}
 
 	dispose() {

@@ -81,7 +81,7 @@ jobs:
           path: apps/examples/playwright-report
           retention-days: 30
 
-      - uses: shallwefootball/s3-upload-action@master
+      - uses: shallwefootball/s3-upload-action@0d261a6f15b3b2e209dfebdecace4b100c04f95b # master
         # only upload if we have AWS credentials:
         env:
           HAS_AWS_KEY: ${{ secrets.AWS_S3_SECRET_KEY && '1' || '' }}

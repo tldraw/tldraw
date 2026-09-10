@@ -4,7 +4,6 @@ import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiRow } from '../primitives/layout'
 import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 
 /** @public */
@@ -38,7 +37,7 @@ export const DefaultPeopleMenuItem = track(function DefaultPeopleMenuItem({
 	if (!presence) return null
 
 	return (
-		<TldrawUiRow
+		<div
 			className="tlui-people-menu__item"
 			data-follow={youAreFollowingThem || theyAreFollowingYou}
 		>
@@ -70,6 +69,6 @@ export const DefaultPeopleMenuItem = track(function DefaultPeopleMenuItem({
 					icon={theyAreFollowingYou ? 'leading' : youAreFollowingThem ? 'following' : 'follow'}
 				/>
 			</TldrawUiButton>
-		</TldrawUiRow>
+		</div>
 	)
 })

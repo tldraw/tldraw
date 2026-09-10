@@ -14,10 +14,14 @@ keywords:
   ]
 ---
 
-Register a handler to run before shapes are deleted.
+Intercept shape deletions and cancel the ones you don't want to allow.
 
 ---
 
-You can intercept the creation of any record in the store. This example intercepts arrow creation to
-make sure each arrow has a label. You can do the same thing to change the props of any newly created
-shape.
+`editor.sideEffects.registerBeforeDeleteHandler` runs before a record is removed from the store.
+Return `false` to cancel the deletion; return nothing to let it proceed. In this example, red shapes
+can't be deleted but everything else can.
+
+Try selecting each text shape and pressing delete. The red one stays put, whether you delete it
+directly, select all and delete, or cut it. This only guards deletions: the user can still
+recolor the shape and then delete it.

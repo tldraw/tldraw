@@ -1,0 +1,22 @@
+.canvas-events {
+	display: flex;
+}
+
+.canvas-events__editor {
+	width: 50%;
+	height: 100vh;
+}
+
+.canvas-events__log {
+	width: 50%;
+	height: 100vh;
+	padding: 8px;
+	background: #eee;
+	border-left: solid 2px #333;
+	font-family: monospace;
+	font-size: 12px;
+	display: flex;
+	flex-direction: column-reverse;
+	overflow: auto;
+	white-space: pre-wrap;
+}

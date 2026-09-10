@@ -1,4 +1,4 @@
-# @tldraw/state Documentation
+# @tldraw/state documentation
 
 ## 1. Introduction
 
@@ -18,7 +18,7 @@ npm install @tldraw/state
 
 @tldraw/state is written in TypeScript and provides excellent type safety out of the box. No additional types package needed.
 
-### Quick Example
+### Quick example
 
 Here's a simple example to show how tldraw state works:
 
@@ -31,7 +31,7 @@ const greeting = computed('greeting', () => `Hello, ${name.get()}!`)
 
 // React to changes
 react('update page title', () => {
-	window.alert(greeting.get())
+	document.title = greeting.get()
 })
 
 // Update the state
@@ -39,7 +39,7 @@ name.set('tldraw state')
 // Page title automatically updates to "Hello, tldraw state!"
 ```
 
-In just a few lines, you've created reactive state that automatically alerts the user when it changes.
+In just a few lines, you've created reactive state that automatically updates the page when it changes.
 
 ## 2. Signals
 
@@ -50,11 +50,11 @@ In @tldraw/state, there are two types of signals:
 - An **Atom** is the basic type of signal that acts as a container for a single value.
 - A **Computed** is a signal that derives its value from several other signals (atoms or other computeds).
 
-### Atoms: The State Containers
+### Atoms: the state containers
 
 Atoms are the foundation of your application's state. They contain "raw" values that the rest of your application will use and react to.
 
-#### Creating Atoms
+#### Creating atoms
 
 You create an atom using the atom function. You must give it a name and an initial value.
 
@@ -67,7 +67,7 @@ const user = atom('user', { name: 'Alice', age: 30 })
 
 > Tip: The name is used for debugging purposes, specifically for the `whyAmIRunning` function described later in these docs.
 
-#### Reading an Atom's Value
+#### Reading an atom's value
 
 To get the current value of an atom, use its `.get()` method.
 
@@ -78,7 +78,7 @@ console.log(user.get().name) // 'Alice'
 
 > Tip: When you call `.get()` inside the function body of computed or a reaction, the library automatically **captures** that signal as a dependency.
 
-#### Updating an Atom's Value
+#### Updating an atom's value
 
 You can change an atom's value in two ways:
 
@@ -98,7 +98,7 @@ console.log(count.get()) // 2
 
 > Tip: If you try to set an atom to a value that is equal to its current value, the update will be skipped, and no reactions will be triggered.
 
-#### Atom Options
+#### Atom options
 
 You can pass an options object as the third argument to atom to customize its behavior.
 
@@ -112,13 +112,13 @@ const activeUser = atom('activeUser', { id: 1, name: 'Bob' }, { isEqual: (a, b) 
 activeUser.set({ id: 1, name: 'Robert' })
 ```
 
-- `historyLength` & `computeDiff`: These options are used for tracking changes over time. See the "History and Diffs" section for more details.
+- `historyLength` & `computeDiff`: These options are used for tracking changes over time. See the "History and diffs" section for more details.
 
-### Computeds: The Derived Values
+### Computeds: the derived values
 
 A Computed is a signal whose value is derived from other signals. You can use computed signals to create complex data models that automatically stay in sync.
 
-#### Creating Computeds
+#### Creating computeds
 
 You create a computed signal using the `computed` function. It takes a name and a function that calculates its value. Inside this function, you can `.get()` the value of other signals.
 
@@ -153,17 +153,17 @@ firstName.set('Sam')
 console.log(greeting.get()) // "Hello, Sam Doe!"
 ```
 
-#### Dependency Capture
+#### Dependency capture
 
 This automatic dependency tracking works through a process called **dependency capture**. When the `fullName` function runs, the library actively "listens" for any calls to `.get()`. Each signal that is "gotten" is automatically registered as a dependency of `fullName`. The list of dependencies is updated every time the function re-runs, so they can even change dynamically.
 
-#### Lazy Evaluation
+#### Lazy evaluation
 
 Computed signals are evaluated **lazily**. The calculation function only runs when you call `.get()` on the computed _and_ one of its captured signal dependencies has changed since the last time it was gotten. If nothing has changed, the computed returns its previous cached value.
 
-#### Using `@computed` as a Decorator
+#### Using `@computed` as a decorator
 
-For classes, you can use the `@computed` decorator to create a computed property from a getter method. This is a clean way to co-locate derived data with its related state.
+For classes, you can use the `@computed` decorator to create a computed property from a method. This is a clean way to co-locate derived data with its related state.
 
 ```ts
 class User {
@@ -191,11 +191,11 @@ const fullNameComputed = getComputedInstance(user, 'getFullName')
 console.log(fullNameComputed.get()) // "John Doe"
 ```
 
-## 3. Reactivity and Side Effects
+## 3. Reactivity and side effects
 
 Reading and deriving state is only half the story. The other half is performing actions, called _side effects_, that run when state changes. Side effects can be used for anything: updating the DOM, logging to the console, making a network request, and so on.
 
-### Simple Reactions with `react`
+### Simple reactions with `react`
 
 The easiest way to create a side effect is with the `react` function. You give it a name and a function to run. The library automatically **captures** which signals the function `.get()`s as dependencies and will re-run it whenever any of them change.
 
@@ -224,7 +224,7 @@ color.set('green')
 
 > Tip: The stop function is perfect for "fire-and-forget" effects, especially within UI components (e.g., in a useEffect hook in React).
 
-### Controlled Reactions with `reactor`
+### Controlled reactions with `reactor`
 
 For more control over the lifecycle of an effect, you can use `reactor`. It's similar to `react` but it doesn't start automatically. Instead, it returns a Reactor object with `.start()` and `.stop()` methods.
 
@@ -253,15 +253,15 @@ name.set('universe')
 
 > Tip: A reactor is useful when you have a long-lived effect that needs to be paused and resumed based on application logic.
 
-## 4. Advanced Topics
+## 4. Advanced topics
 
-### Transactions: Batching State Updates
+### Transactions: batching state updates
 
-When you update multiple atoms that are dependencies of the same reaction, you might cause the reaction to re-run multiple times. transacts solve this by batching all state changes into a single, atomic update, after which reactions will execute.
+When you update multiple atoms that are dependencies of the same reaction, you might cause the reaction to re-run multiple times. Transactions solve this by batching all state changes into a single, atomic update, after which reactions will execute.
 
 #### Using transact()
 
-The `transact` function takes a callback. All state updates inside this callback are queued. Reactions are only triggered _after_ the callback has finished executing successfully.
+The `transact` function takes a callback. All state updates inside this callback are queued. Reactions are only triggered _after_ the callback has finished executing — once, whether the transaction commits or (see below) is rolled back.
 
 ```ts
 const firstName = atom('firstName', 'John')
@@ -283,7 +283,7 @@ transact(() => {
 // Logs: "Hello, Jane Smith!"
 ```
 
-#### Aborting and Rolling Back
+#### Aborting and rolling back
 
 Transactions may be aborted. Aborting a transaction will restore previous values of all signals modified inside of the transaction.
 
@@ -293,7 +293,7 @@ Rollbacks also occur automatically if an error is thrown inside the transaction.
 const name = atom('name', 'Alice')
 
 try {
-	transact((rollback) => {
+	transaction(() => {
 		name.set('Bob')
 		throw new Error('Something went wrong')
 	})
@@ -304,12 +304,12 @@ try {
 console.log(name.get()) // "Alice"
 ```
 
-You can also abort a transaction manually by calling the `rollback` function, which is passed to the transaction callback.
+You can also abort a transaction manually by calling the `rollback` function, which `transaction` (but not `transact`) passes to its callback.
 
 ```ts
 const name = atom('name', 'Alice')
 
-transact((rollback) => {
+transaction((rollback) => {
 	name.set('Bob')
 	rollback() // Discard the change
 })
@@ -317,9 +317,9 @@ transact((rollback) => {
 console.log(name.get()) // "Alice"
 ```
 
-Aborting a transaction will _only_ restore the values of the signals that were modified inside of the transaction. Other types of data or parts of your application will not be affected.
+Aborting a transaction will _only_ restore the values of the signals that were modified inside of the transaction. Other types of data or parts of your application will not be affected. Reactions that depend on those signals still run once after the rollback, observing the restored values.
 
-#### Nested Transactions
+#### Nested transactions
 
 You can call `transact` inside of another transaction. A new transaction will only be created if there is not already one in progress.
 
@@ -343,9 +343,9 @@ console.log(firstName.get()) // "Jane"
 console.log(lastName.get()) // "Doe" // The change was rolled back
 ```
 
-### History and Diffs
+### History and diffs
 
-@tldraw/state can automatically track the history of changes to a signal, which is invaluable for features like undo/redo or creating sync engines.
+@tldraw/state can automatically track the history of changes to a signal, which lets dependents update incrementally instead of recomputing from scratch.
 
 To enable history, you must provide the `historyLength` option when creating an atom or computed.
 
@@ -359,14 +359,12 @@ const count = atom('count', 0, {
 
 The `historyLength` option defines the maximum number of diffs to keep in the history buffer. If you expect the atom to be part of an active effect subscription all the time, and to not change multiple times inside of a single transaction, you can set this to a relatively low number (e.g. 10). Otherwise, set this to a higher number based on your usage pattern and memory constraints.
 
-#### Retrieving Diffs
+#### Retrieving diffs
 
-Once history is enabled, you can use `getDiffSince(epoch)` to get an array of diffs that occurred since a specific point in time.
+Once history is enabled, you can use `getDiffSince(epoch)` to get an array of diffs that occurred since a specific point in time. Every signal exposes `lastChangedEpoch`, the epoch at which it last changed, which is the natural point to measure from.
 
 ```ts
-import { getGlobalEpoch } from '@tldraw/state'
-
-const startEpoch = getGlobalEpoch()
+const startEpoch = count.lastChangedEpoch
 
 count.set(5) // diff is 5
 count.set(12) // diff is 7
@@ -377,35 +375,35 @@ console.log(diffs) // [5, 7]
 
 If the library doesn't have enough history to compute the diffs, it will return the special `RESET_VALUE` symbol. This tells you that you need to re-compute the state from scratch instead of applying patches.
 
-### Computed Options
+### Computed options
 
-Similar to atoms, you can provide a `ComputedOptions` object as the second argument to the `computed` function.
+Similar to atoms, you can provide a `ComputedOptions` object as the third argument to the `computed` function.
 
 ```ts
-const fullName = computed('fullName', () => {
-	return (`${firstName.get()} ${lastName.get()}`, { isEqual: (a, b) => a === b })
+const fullName = computed('fullName', () => `${firstName.get()} ${lastName.get()}`, {
+	isEqual: (a, b) => a === b,
 })
 ```
 
-You also can pass in a `ComputedOptions` when used the `@computed` decorator.
+You also can pass in a `ComputedOptions` when using the `@computed` decorator.
 
 ```ts
 class Counter {
 	max = 100
-	count = atom<number>(0)
+	count = atom('count', 0)
 
 	@computed({ isEqual: (a, b) => a === b })
-	get remaining() {
+	getRemaining() {
 		return this.max - this.count.get()
 	}
 }
 ```
 
-### Incremental Computation
+### Incremental computation
 
 Computed signals can take advantage of diffs to compute a value incrementally.
 
-In addition to the options described for atoms, you can also provide a `computeDiff` function. This function is used to compute the diff between the previous and new values of the computed signal.
+In addition to the options described for atoms, you can also provide a `computeDiff` function. This function is used to compute the diff between the previous and new values of the computed signal. As with atoms, diffs are only recorded when `historyLength` is set.
 
 ```ts
 const count = atom('count', 0)
@@ -414,24 +412,28 @@ const double = computed(
 	(prevValue) => {
 		return count.get() * 2
 	},
-	{ computeDiff: (a, b) => b - a }
+	{ historyLength: 10, computeDiff: (a, b) => b - a }
 )
 ```
 
-You can use the `withDiff` helper to wrap the return value of a computed signal function, indicating that the diff should be used instead of calculating a new one with `AtomOptions.computeDiff`.
+You can use the `withDiff` helper to wrap the return value of a computed signal function, indicating that the diff should be used instead of calculating a new one with `ComputedOptions.computeDiff`.
 
 ```ts
 const count = atom('count', 0)
-const double = computed('double', (prevValue) => {
-	const nextValue = count.get() * 2
-	if (isUninitialized(prevValue)) {
-		return nextValue
-	}
-	return withDiff(nextValue, nextValue - prevValue)
-})
+const double = computed(
+	'double',
+	(prevValue) => {
+		const nextValue = count.get() * 2
+		if (isUninitialized(prevValue)) {
+			return nextValue
+		}
+		return withDiff(nextValue, nextValue - prevValue)
+	},
+	{ historyLength: 10 }
+)
 ```
 
-#### Handling the First Computed Run
+#### Handling the first computed run
 
 Sometimes you need to know if a computed function is running for the very first time. The function is called with the previous value, which will be the special symbol `UNINITIALIZED` on the first run. You can check for this using the `isUninitialized` helper. This is particularly useful for incremental computations.
 
@@ -481,7 +483,7 @@ const stop = react(
 )
 ```
 
-### Performance Optimization
+### Performance optimization
 
 While @tldraw/state is fast by default, there are tools for fine-tuning performance in demanding situations.
 
@@ -505,13 +507,13 @@ react('log important changes', () => {
 frequentlyChangingValue.set(1)
 ```
 
-### Type Guards and Utilities
+### Type guards and utilities
 
 The library exports several type guard functions to help you work with signals in TypeScript.
 
 - `isSignal(value)`: Returns true if the value is an atom or a computed.
 - `isAtom(value)`: Returns true if the value is an atom.
-- `isComputed(value)`: Returns true if the value is a computed.
+- `isUninitialized(value)`: Returns true if the value is the `UNINITIALIZED` symbol passed to a computed function on its first run.
 
 ## 5. Debugging
 
@@ -519,7 +521,7 @@ Because @tldraw/state manages a graph of dependencies, it can sometimes be trick
 
 ### whyAmIRunning()
 
-If you're ever confused about what caused an effect to run, you can call `whyAmIRunning()` at the beginning of its function. It will log a detailed, hierarchical tree to the console, showing you exactly which atom(s) changed and triggered the update.
+If you're ever confused about what caused an effect to run, you can call `whyAmIRunning()` at the beginning of its function. From the next run on, it will log a detailed, hierarchical tree to the console, showing you exactly which atom(s) changed and triggered the update.
 
 ```ts
 import { atom, computed, react, whyAmIRunning } from '@tldraw/state'
@@ -539,8 +541,7 @@ react('log details', () => {
 	console.log(`${greeting.get()} is ${age.get()} years old.`)
 })
 
-// On the first run, it logs:
-// Effect(log details) was executed manually.
+// Nothing is logged on the first run (the run that arms whyAmIRunning).
 
 age.set(43)
 
@@ -552,8 +553,8 @@ name.set('Alice')
 
 // When name is updated, it logs:
 // Effect(log details) is executing because:
-// ↳ Computed(greeting) changed
-// ↳ Atom(name) changed
+//  ↳ Computed(greeting) changed
+//    ↳ Atom(name) changed
 ```
 
 This makes it much easier to trace the flow of data and updates through your application.

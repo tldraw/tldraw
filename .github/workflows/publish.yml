@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      issues: write
+      pull-requests: write
 
     steps:
       - name: Remove the publish-packages label
@@ -226,23 +226,28 @@ jobs:
         id: version
         run: echo "value=$(jq -r .version ./packages/tldraw/package.json)" >> "$GITHUB_OUTPUT"
 
-      - name: Generate tldraw-desktop token
+      # Tell tldraw-internal to update its pinned SDK version. Fires only on a
+      # `next` publish — the prerelease channel the internal monorepo tracks.
+      # The tldraw-internal "Update tldraw" workflow listens for the
+      # `tldraw-release` repository_dispatch and resolves the latest `next`
+      # version itself, so the payload version is informational.
+      - name: Generate tldraw-internal token
         if: steps.publish_mode.outputs.mode == 'next'
-        id: generate_desktop_token
+        id: generate_internal_token
         uses: actions/create-github-app-token@v2
         with:
           app-id: ${{ vars.HUPPY_APP_ID }}
           private-key: ${{ secrets.HUPPY_PRIVATE_KEY }}
           owner: tldraw
-          repositories: tldraw-desktop
+          repositories: tldraw-internal
 
-      - name: Notify tldraw-desktop
+      - name: Notify tldraw-internal
         if: steps.publish_mode.outputs.mode == 'next'
         run: |
           curl -X POST \
             -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ steps.generate_desktop_token.outputs.token }}" \
-            https://api.github.com/repos/tldraw/tldraw-desktop/dispatches \
+            -H "Authorization: Bearer ${{ steps.generate_internal_token.outputs.token }}" \
+            https://api.github.com/repos/tldraw/tldraw-internal/dispatches \
             -d '{"event_type":"tldraw-release","client_payload":{"version":"${{ steps.version.outputs.value }}","tag":"next"}}'
 
       # Earlier steps run before checkout, so re-fetch the local action on failure.
@@ -266,7 +271,7 @@ jobs:
 
     permissions:
       contents: read
-      issues: write
+      pull-requests: write
 
     steps:
       - name: Tell user released version
@@ -285,3 +290,40 @@ jobs:
       HUPPY_APP_ID: ${{ vars.HUPPY_APP_ID }}
       DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
     needs: publish
+
+  deploy_templates:
+    name: Deploys the template demos with the new SDK version
+    if: needs.publish.outputs.mode == 'new' || ((needs.publish.outputs.mode == 'patch' || needs.publish.outputs.mode == 'manual') && needs.publish.outputs.is_latest_version == 'true')
+    needs: publish
+    # CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID are secrets on this environment rather than on
+    # the repository, and a job has to select the environment to see them. Calling deploy-templates.yml
+    # as a reusable workflow doesn't do it: a called workflow only ever sees the secrets its caller
+    # hands it, so the v5.4.0 release reached the deploy with both empty (#10636) even though the
+    # called job selected deploy-production itself. The deploy runs here as a job of its own instead,
+    # sharing its steps with deploy-templates.yml through the composite action.
+    environment: deploy-production
+    timeout-minutes: 60
+    runs-on: ubuntu-latest-16-cores-arm-open
+    # same group as deploy-templates.yml: a release deploy and a template-change deploy can otherwise
+    # race each other onto the same custom domains, and the loser silently wins.
+    concurrency:
+      group: deploy-templates
+      cancel-in-progress: false
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/deploy-templates
+        with:
+          license-key: ${{ secrets.TEMPLATES_TLDRAW_LICENSE_KEY }}
+          cloudflare-account-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Notify Discord on failure
+        if: failure()
+        uses: ./.github/actions/discord-fail-notify
+        with:
+          webhook-url: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}

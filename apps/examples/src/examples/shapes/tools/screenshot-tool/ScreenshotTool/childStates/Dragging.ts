@@ -65,7 +65,6 @@ export class ScreenshotDragging extends StateNode {
 		const { editor } = this
 		const box = this.screenshotBox.get()
 
-		// get all shapes contained by or intersecting the box
 		const shapes = editor.getCurrentPageShapes().filter((s) => {
 			const pageBounds = editor.getShapeMaskedPageBounds(s)
 			if (!pageBounds) return false
@@ -74,14 +73,12 @@ export class ScreenshotDragging extends StateNode {
 
 		if (shapes.length) {
 			if (editor.inputs.getCtrlKey()) {
-				// Copy the shapes to the clipboard
 				copyAs(
 					editor,
 					shapes.map((s) => s.id),
 					{ format: 'png', bounds: box }
 				)
 			} else {
-				// Export the shapes as a png
 				exportAs(
 					editor,
 					shapes.map((s) => s.id),
@@ -104,24 +101,21 @@ export class ScreenshotDragging extends StateNode {
 }
 
 /*
-[1] 
-This state has a reactive property (an Atom) called "screenshotBox". This is the box
-that the user is drawing on the screen as they drag their pointer. We use an Atom here
-so that our UI can subscribe to this property using `useValue` (see the ScreenshotBox
-component in ScreenshotToolExample).
+[1]
+The box the user is dragging out is stored in an atom so the UI can subscribe to it with
+`useValue` (see the ScreenshotBox component in ScreenshotToolExample.tsx). A plain field
+wouldn't trigger a re-render.
 
 [2]
-When the user enters this state, or when they move their pointer, we update the 
-screenshotBox property to be drawn between the place where the user started pointing
-and the place where their pointer is now. If the user is holding Shift, then we modify
-the dimensions of this box so that it is in a 16:9 aspect ratio.
+Recompute the box between the pointer-down origin and the current pointer on enter, on pointer
+move, and on key down/up so the modifiers apply immediately: shift locks the box to 16:9 and
+alt centers it on the origin at double size.
 
 [3]
-When the user makes a pointer up and stops dragging, we export the shapes contained by
-the screenshot box as a png. If the user is holding the ctrl key, we copy the shapes
-to the clipboard instead.
+On pointer up, export every shape whose (masked) page bounds overlap the box as a PNG
+cropped to the box, or copy it to the clipboard when ctrl is held. `exportAs` and `copyAs` are
+the same helpers the export menu uses.
 
 [4]
-When the user cancels (esc key) or makes a pointer up event, we transition back to the
-select tool.
+Cancel (escape) abandons the box and returns to the select tool.
 */

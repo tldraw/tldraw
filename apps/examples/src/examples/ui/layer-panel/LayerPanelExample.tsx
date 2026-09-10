@@ -4,7 +4,7 @@ import { ShapeList } from './ShapeList'
 import './layer-panel.css'
 import snapshot from './snapshot.json'
 
-// There's a guide a the bottom of this file!
+// There's a guide at the bottom of this file!
 
 const components: TLComponents = {
 	// [1]
@@ -39,17 +39,25 @@ export default function LayerPanelExample() {
 				getShapeVisibility={(s) =>
 					s.meta.force_show ? 'visible' : s.meta.hidden ? 'hidden' : 'inherit'
 				}
-				// this is just to provide some initial content, so visitors can see the layer panel in action
-				snapshot={snapshot as any as TLEditorSnapshot}
+				// Initial content so the panel has something to show.
+				snapshot={snapshot as unknown as TLEditorSnapshot}
 			/>
 		</div>
 	)
 }
 
 /*
-Guide:
+[1]
+The panel is an `InFrontOfTheCanvas` component. It reads the current page's top-level
+shape ids with `getSortedChildIdsForParent(pageId)` inside `useValue`, so it re-renders
+when shapes are added, removed, or reordered.
 
-1. Here we override the `InFrontOfTheCanvas` component with a custom component that renders a simple layer panel.
-2. We pass the root ids of the current page to the recursive ShapeList component. (see ShapeList.tsx)
-3. This is a function that determines whether a shape is hidden. We use this to hide shapes that have the `hidden` meta property set to true.
+[2]
+`ShapeList` (see ShapeList.tsx) recurses into groups and frames using the same
+`getSortedChildIdsForParent` call with a shape id as the parent.
+
+[3]
+`getShapeVisibility` decides whether a shape is hidden. The panel stores its choice in
+`shape.meta`: `hidden` hides a shape (and, via 'inherit', its children); `force_show`
+lets a child stay visible even when its parent is hidden.
 */

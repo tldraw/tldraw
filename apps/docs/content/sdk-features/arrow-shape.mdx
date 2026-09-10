@@ -13,7 +13,7 @@ status: draft
 date: 1/31/2026
 ---
 
-The arrow shape draws a connector between two points on the canvas. Arrows can bind to other shapes, so they stay attached when those shapes move. They support two routing modes (curved arcs and right-angled elbows), nine arrowhead styles, and rich text labels.
+The arrow shape draws a connector between two points on the canvas. Arrows can bind to other shapes, so they stay attached when those shapes move. Arrows route as curved arcs or right-angled elbows, take one of nine arrowhead styles at each end, and can carry a rich text label.
 
 ## Creating arrows
 
@@ -45,7 +45,26 @@ export default function App() {
 }
 ```
 
-See [TLArrowShape](?) for the full list of props.
+The full set of props on [TLArrowShape](?):
+
+| Property         | Type                         | Description                                           |
+| ---------------- | ---------------------------- | ----------------------------------------------------- |
+| `kind`           | `TLArrowShapeKind`           | Routing mode: `arc` (default) or `elbow`              |
+| `start`          | `VecModel`                   | Start terminal position, relative to the shape origin |
+| `end`            | `VecModel`                   | End terminal position                                 |
+| `bend`           | `number`                     | Curvature for arc arrows (`0` = straight)             |
+| `elbowMidPoint`  | `number`                     | Position (0–1) of the middle segment for elbow arrows |
+| `color`          | `TLDefaultColorStyle`        | Stroke color                                          |
+| `fill`           | `TLDefaultFillStyle`         | Fill style for arrowheads                             |
+| `dash`           | `TLDefaultDashStyle`         | Stroke pattern                                        |
+| `size`           | `TLDefaultSizeStyle`         | Stroke width preset                                   |
+| `arrowheadStart` | `TLArrowShapeArrowheadStyle` | Arrowhead at the start (default `none`)               |
+| `arrowheadEnd`   | `TLArrowShapeArrowheadStyle` | Arrowhead at the end (default `arrow`)                |
+| `richText`       | `TLRichText`                 | Optional text label                                   |
+| `labelPosition`  | `number`                     | Label position along the arrow (0 = start, 1 = end)   |
+| `labelColor`     | `TLDefaultColorStyle`        | Label text color                                      |
+| `font`           | `TLDefaultFontStyle`         | Font family for the label                             |
+| `scale`          | `number`                     | Scale factor applied to the shape                     |
 
 ## Binding arrows to shapes
 
@@ -80,7 +99,7 @@ Three binding props control where the arrow attaches. See [TLArrowBindingProps](
 | `isPrecise`        | When `true`, the arrow points at the `normalizedAnchor` position. When `false`, it points at the shape's center                                           |
 | `isExact`          | When `true`, the arrowhead travels all the way to the anchor point, entering the shape. When `false`, the arrow stops at the edge of the shape's geometry |
 
-When drawing with the arrow tool, users get imprecise center bindings by default. Hovering over a spot inside a shape for a moment, or holding the pointer still while dragging a terminal, switches to a precise binding at that spot.
+When drawing with the arrow tool, users get imprecise center bindings by default. Hovering over a spot inside a shape for a moment, pausing while dragging a terminal, or holding Alt switches to a precise binding at that spot. The `hoverPreciseTimeout` and `pointingPreciseTimeout` options control the delays, and holding Ctrl skips binding entirely (`shouldIgnoreTargets`).
 
 ## Routing: arc and elbow
 
@@ -88,7 +107,7 @@ The `kind` prop selects between the two routing modes. It's a style prop, so use
 
 Arc arrows (`kind: 'arc'`, the default) draw a straight line or a circular arc between their terminals. The `bend` prop is the perpendicular distance from the straight line to the arc's midpoint: `0` draws a straight line, positive and negative values curve to either side. Users adjust the bend by dragging the arrow's middle handle.
 
-Elbow arrows (`kind: 'elbow'`) route with right-angled segments, like connectors in a flowchart. The `elbowMidPoint` prop (0–1) positions the middle segment between the two ends. For elbow arrows, the binding's `snap` prop records what the terminal snapped to when drawn: `'center'`, `'edge-point'`, `'edge'`, or `'none'`.
+Elbow arrows (`kind: 'elbow'`) route with right-angled segments, like connectors in a flowchart. The `elbowMidPoint` prop (0–1) positions the middle segment between the two ends. The binding's `snap` prop records what the terminal snapped to when drawn: `'center'`, `'edge'`, `'edge-point'`, or `'none'`. The edge values are only produced for elbow arrows, which use them when routing.
 
 ## Arrowheads
 

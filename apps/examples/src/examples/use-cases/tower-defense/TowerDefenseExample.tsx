@@ -43,10 +43,8 @@ const overlayUtils: TLAnyOverlayUtilConstructor[] = [
 ]
 
 function pickTower(geo: TowerGeo) {
-	const cost = TOWER_STATS_BY_GEO[geo].cost
-	// Refuse to arm a tower the player can't afford so the preview / placement
-	// flow only kicks in when a click would actually result in a tower.
-	if (gold$.get() < cost) return
+	// Only arm a tower the player can afford, so the preview only shows when a click would place one
+	if (gold$.get() < TOWER_STATS_BY_GEO[geo].cost) return
 	placingTower$.set(geo)
 }
 
@@ -59,10 +57,8 @@ function restartGame(editor: Editor) {
 	resetGameState()
 	resetSpawnTimer()
 	placingTower$.set(null)
-	// Just nuke everything on the page — towers are the only thing the user
-	// can produce here, and starting fresh shouldn't leave any stragglers.
-	const allShapeIds = editor.getCurrentPageShapes().map((s) => s.id)
-	if (allShapeIds.length === 0) return
+	// Towers are locked shapes, so deleting them needs `ignoreShapeLock`
+	const allShapeIds = [...editor.getCurrentPageShapeIds()]
 	editor.run(() => editor.deleteShapes(allShapeIds), { ignoreShapeLock: true })
 }
 
@@ -71,14 +67,13 @@ function GameRunner() {
 
 	useEffect(() => {
 		const onTick = (elapsedMs: number) => {
-			// Clamp on tab-resume; tldraw emits a single big elapsed when the tab
-			// has been idle, which would otherwise teleport enemies.
+			// After a background tab resumes, `tick` reports one large elapsed value that would
+			// otherwise teleport every enemy down the path
 			const dt = Math.min(60, elapsedMs)
 			runGameTick(editor, dt)
 		}
 		editor.on('tick', onTick)
 
-		// Keyboard: 1/2/3 arm a tower, Esc selects, Space restarts.
 		const onKeyDown = (e: KeyboardEvent) => {
 			if (e.metaKey || e.ctrlKey || e.altKey) return
 			const target = e.target as HTMLElement | null
@@ -270,9 +265,7 @@ function onEditorMount(editor: Editor) {
 	editor.zoomToBounds(new Box(-300, 0, 1700, 700), { immediate: true })
 }
 
-// Disable the built-in double-click-to-create-text behavior — there's no text
-// shape in this example and a stray double-click while clearing enemies would
-// otherwise drop a text shape on the canvas.
+// Rapid clicks on enemies would otherwise create text shapes on double-click
 const tldrawOptions = { createTextOnCanvasDoubleClick: false }
 
 export default function TowerDefenseExample() {

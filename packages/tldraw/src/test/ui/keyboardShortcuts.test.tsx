@@ -1,5 +1,5 @@
 import { act } from '@testing-library/react'
-import { createShapeId, Editor } from '@tldraw/editor'
+import { createShapeId, Editor, TLShapeId } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { Tldraw } from '../../lib/Tldraw'
 import { DefaultKeyboardShortcutsDialogContent } from '../../lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
@@ -263,4 +263,271 @@ describe('keyboard shortcuts with a held key', () => {
 		keydown(editor, { key: 'z', code: 'KeyZ', metaKey: true, shiftKey: true })
 		expect(editor.getCurrentPageShapeIds().has(id)).toBe(true)
 	})
+})
+
+// Regression tests for shift+<digit> shortcuts across keyboard layouts. The physical number-row
+// keys are the same everywhere, but the shifted glyph varies by layout: US shift+2 is '@', British
+// PC and German '"'. German is the sharp case — it has no dedicated '=' key, so shift+0 produces
+// '=', which used to alias to the '=' zoom-in shortcut instead of zoom-to-100. Matching keys off
+// the physical Digit<N> code, so these work regardless of layout and never cross-fire.
+describe('shifted number-row shortcuts across keyboard layouts', () => {
+	it.each([
+		['US / Apple British', '@'],
+		['British PC / German', '"'],
+		// On AZERTY the number row is shifted, so shift+Digit2 already types '2'.
+		['AZERTY', '2'],
+	])('fires zoom-to-selection on shift+2 for a %s layout glyph', async (_layout, key) => {
+		const { editor } = await setupFocusedEditor()
+		const id = createShapeId()
+		act(() => {
+			editor.createShape({ id, type: 'geo', x: 0, y: 0 })
+			editor.select(id)
+		})
+		const zoomToSelection = vi.spyOn(editor, 'zoomToSelection').mockImplementation(() => editor)
+
+		keydown(editor, { key, code: 'Digit2', shiftKey: true })
+
+		expect(zoomToSelection).toHaveBeenCalledTimes(1)
+	})
+
+	it.each([
+		['US / UK', ')'],
+		// German has no '=' key; it sits on shift+0, so this press must still mean zoom-to-100.
+		['German', '='],
+	])('zooms to 100%% (never zoom-in) on shift+0 for a %s layout glyph', async (_layout, key) => {
+		const { editor } = await setupFocusedEditor()
+		const resetZoom = vi.spyOn(editor, 'resetZoom').mockImplementation(() => editor)
+		const zoomIn = vi.spyOn(editor, 'zoomIn').mockImplementation(() => editor)
+
+		keydown(editor, { key, code: 'Digit0', shiftKey: true })
+
+		expect(resetZoom).toHaveBeenCalledTimes(1)
+		expect(zoomIn).not.toHaveBeenCalled()
+	})
+
+	it('still fires zoom-out for an unshifted number-row symbol (AZERTY types - on Digit6)', async () => {
+		const { editor } = await setupFocusedEditor()
+		const zoomOut = vi.spyOn(editor, 'zoomOut').mockImplementation(() => editor)
+
+		keydown(editor, { key: '-', code: 'Digit6' })
+
+		expect(zoomOut).toHaveBeenCalledTimes(1)
+	})
+})
+
+// Regression test for #10422: frame-selection was the only cmd shortcut without a ctrl twin,
+// so Ctrl+Alt+G did nothing on Windows and Linux even though the shortcuts dialog listed it.
+describe('frame selection shortcut', () => {
+	function createArrowBoundTo(editor: Editor, arrow: TLShapeId, target: TLShapeId) {
+		editor.createShapes([{ id: arrow, type: 'arrow', x: 0, y: 0 }])
+		editor.createBindings([
+			{
+				fromId: arrow,
+				toId: target,
+				type: 'arrow',
+				props: {
+					terminal: 'end',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: false,
+				},
+			},
+		])
+	}
+
+	it.each([
+		['cmd+alt+g (macOS)', { metaKey: true }],
+		['ctrl+alt+g (Windows / Linux)', { ctrlKey: true }],
+	])('wraps the selection in a frame on %s', async (_label, modifier) => {
+		const { editor } = await setupFocusedEditor()
+		const a = createShapeId()
+		const b = createShapeId()
+		act(() => {
+			editor.createShapes([
+				{ id: a, type: 'geo', x: 0, y: 0 },
+				{ id: b, type: 'geo', x: 200, y: 200 },
+			])
+			editor.select(a, b)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, ...modifier })
+
+		const frame = editor.getCurrentPageShapes().find((s) => editor.isShapeOfType(s, 'frame'))
+		expect(frame).toBeDefined()
+		expect(editor.getShape(a)?.parentId).toBe(frame!.id)
+		expect(editor.getShape(b)?.parentId).toBe(frame!.id)
+	})
+
+	it('wraps a single selected shape in a frame', async () => {
+		const { editor } = await setupFocusedEditor()
+		const a = createShapeId()
+		act(() => {
+			editor.createShapes([{ id: a, type: 'geo', x: 0, y: 0 }])
+			editor.select(a)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
+
+		const frame = editor.getCurrentPageShapes().find((s) => editor.isShapeOfType(s, 'frame'))
+		expect(frame).toBeDefined()
+		expect(editor.getShape(a)?.parentId).toBe(frame!.id)
+		expect(editor.getSelectedShapeIds()).toEqual([frame!.id])
+	})
+
+	it('frames a single shape with no height, like a horizontal arrow', async () => {
+		const { editor } = await setupFocusedEditor()
+		const arrow = createShapeId()
+		act(() => {
+			editor.createShapes([
+				{
+					id: arrow,
+					type: 'arrow',
+					x: 0,
+					y: 0,
+					props: { start: { x: 0, y: 0 }, end: { x: 100, y: 0 } },
+				},
+			])
+			editor.select(arrow)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
+
+		const frame = editor.getCurrentPageShapes().find((s) => editor.isShapeOfType(s, 'frame'))
+		expect(frame).toBeDefined()
+		expect(editor.getShape(arrow)?.parentId).toBe(frame!.id)
+	})
+
+	it('removes the frame when a single frame is selected', async () => {
+		const { editor } = await setupFocusedEditor()
+		const frameId = createShapeId()
+		const a = createShapeId()
+		act(() => {
+			editor.createShapes([
+				{ id: frameId, type: 'frame', x: 0, y: 0, props: { w: 200, h: 200 } },
+				{ id: a, type: 'geo', parentId: frameId, x: 10, y: 10 },
+			])
+			editor.select(frameId)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
+
+		expect(editor.getShape(frameId)).toBeUndefined()
+		expect(editor.getShape(a)?.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it('leaves locked shapes out of the frame and in place', async () => {
+		const { editor } = await setupFocusedEditor()
+		const locked = createShapeId()
+		const a = createShapeId()
+		act(() => {
+			editor.createShapes([
+				{ id: locked, type: 'geo', x: 0, y: 0, isLocked: true },
+				{ id: a, type: 'geo', x: 200, y: 200 },
+			])
+			editor.select(locked, a)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
+
+		const frame = editor.getCurrentPageShapes().find((s) => editor.isShapeOfType(s, 'frame'))
+		expect(frame).toBeDefined()
+		expect(editor.getShape(a)?.parentId).toBe(frame!.id)
+		expect(editor.getShape(locked)).toMatchObject({
+			parentId: editor.getCurrentPageId(),
+			x: 0,
+			y: 0,
+		})
+	})
+
+	it('does nothing for a lone arrow bound to a shape outside the selection', async () => {
+		const { editor } = await setupFocusedEditor()
+		const target = createShapeId()
+		const arrow = createShapeId()
+		act(() => {
+			editor.createShapes([{ id: target, type: 'geo', x: 400, y: 400 }])
+			createArrowBoundTo(editor, arrow, target)
+			editor.select(arrow)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
+
+		expect(editor.getCurrentPageShapes().some((s) => editor.isShapeOfType(s, 'frame'))).toBe(false)
+		expect(editor.getShape(arrow)?.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it('does nothing for an arrow bound to a selected locked shape', async () => {
+		const { editor } = await setupFocusedEditor()
+		const target = createShapeId()
+		const arrow = createShapeId()
+		act(() => {
+			editor.createShapes([{ id: target, type: 'geo', x: 400, y: 400, isLocked: true }])
+			createArrowBoundTo(editor, arrow, target)
+			editor.select(target, arrow)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
+
+		expect(editor.getCurrentPageShapes().some((s) => editor.isShapeOfType(s, 'frame'))).toBe(false)
+		expect(editor.getShape(arrow)?.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it('frames an arrow together with the shape it is bound to', async () => {
+		const { editor } = await setupFocusedEditor()
+		const target = createShapeId()
+		const arrow = createShapeId()
+		act(() => {
+			editor.createShapes([{ id: target, type: 'geo', x: 400, y: 400 }])
+			createArrowBoundTo(editor, arrow, target)
+			editor.select(arrow, target)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
+
+		const frame = editor.getCurrentPageShapes().find((s) => editor.isShapeOfType(s, 'frame'))
+		expect(frame).toBeDefined()
+		expect(editor.getShape(arrow)?.parentId).toBe(frame!.id)
+		expect(editor.getShape(target)?.parentId).toBe(frame!.id)
+	})
+})
+
+describe('scale selection shortcuts', () => {
+	it.each([
+		['enlarge', '=', 'Equal', 1.1],
+		['shrink', '-', 'Minus', 1 / 1.1],
+	] as const)(
+		'%s scales every shape about the original selection center and undoes together',
+		async (_label, key, code, factor) => {
+			const { editor } = await setupFocusedEditor()
+			const a = createShapeId()
+			const b = createShapeId()
+			act(() => {
+				editor.createShapes([
+					{ id: a, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+					{ id: b, type: 'geo', x: 200, y: 200, props: { w: 100, h: 100 } },
+				])
+				editor.select(a, b)
+			})
+			const originalShapes = editor.getSelectedShapes()
+
+			keydown(editor, { key, code, metaKey: true, altKey: true, shiftKey: true })
+
+			expect([editor.getShape(a), editor.getShape(b)]).toMatchObject([
+				{
+					x: expect.closeTo(150 - 150 * factor),
+					y: expect.closeTo(150 - 150 * factor),
+					props: { w: expect.closeTo(100 * factor), h: expect.closeTo(100 * factor) },
+				},
+				{
+					x: expect.closeTo(150 + 50 * factor),
+					y: expect.closeTo(150 + 50 * factor),
+					props: { w: expect.closeTo(100 * factor), h: expect.closeTo(100 * factor) },
+				},
+			])
+
+			act(() => {
+				editor.undo()
+			})
+			expect(editor.getSelectedShapes()).toEqual(originalShapes)
+		}
+	)
 })

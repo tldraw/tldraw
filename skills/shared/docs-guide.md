@@ -2,7 +2,7 @@
 
 This document defines the rules and conventions for tldraw SDK documentation in `apps/docs/content/`.
 
-**Prerequisite**: Read the [writing guide](./writing-guide.md) first. This document builds on those foundations with docs-specific patterns.
+**Prerequisite**: Read the [voice and style guide](../../VOICE.md) first. This document builds on those foundations with docs-specific patterns.
 
 ## Document structure
 
@@ -228,4 +228,4 @@ When reviewing documentation, check:
 - [ ] **Links** — Are related concepts cross-referenced?
 - [ ] **Scannability** — Short paragraphs, clear headers?
 
-For voice and style, refer to the [writing guide](./writing-guide.md) checklist.
+For voice and style, refer to the [voice and style guide](../../VOICE.md) checklist.

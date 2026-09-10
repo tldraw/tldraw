@@ -27,17 +27,20 @@ import {
 	TldrawUiButtonLabel,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
+	TldrawUiToolbar,
 	TLUiContextMenuProps,
 	TLUiKeyboardShortcutsDialogProps,
 	TLUiStylePanelProps,
 	useEditor,
 	useIsToolSelected,
+	useTldrawUiComponents,
 	useTools,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-//[1]
+// There's a guide at the bottom of this file!
 
+// [1]
 function CustomActionsMenu() {
 	return (
 		<div style={{ backgroundColor: 'thistle' }}>
@@ -58,7 +61,7 @@ function CustomActionsMenu() {
 		</div>
 	)
 }
-//[2]
+// [2]
 function CustomContextMenu(props: TLUiContextMenuProps) {
 	return (
 		<DefaultContextMenu {...props}>
@@ -79,7 +82,7 @@ function CustomContextMenu(props: TLUiContextMenuProps) {
 		</DefaultContextMenu>
 	)
 }
-//[3]
+// [3]
 function CustomDebugMenu() {
 	return (
 		<div style={{ backgroundColor: 'thistle' }}>
@@ -102,7 +105,7 @@ function CustomDebugMenu() {
 		</div>
 	)
 }
-//[4]
+// [4]
 function CustomHelpMenu() {
 	return (
 		<DefaultHelpMenu>
@@ -123,7 +126,7 @@ function CustomHelpMenu() {
 		</DefaultHelpMenu>
 	)
 }
-//[5]
+// [5]
 function CustomKeyboardShortcutsDialog(props: TLUiKeyboardShortcutsDialogProps) {
 	return (
 		<DefaultKeyboardShortcutsDialog {...props}>
@@ -143,7 +146,7 @@ function CustomKeyboardShortcutsDialog(props: TLUiKeyboardShortcutsDialogProps) 
 		</DefaultKeyboardShortcutsDialog>
 	)
 }
-//[6]
+// [6]
 function CustomMainMenu() {
 	return (
 		<DefaultMainMenu>
@@ -164,11 +167,19 @@ function CustomMainMenu() {
 		</DefaultMainMenu>
 	)
 }
-//[7]
+// [7]
 function CustomNavigationPanel() {
-	return <div style={{ backgroundColor: 'thistle', padding: '14px' }}>here you are</div>
+	const { ZoomMenu } = useTldrawUiComponents()
+	return (
+		<div style={{ backgroundColor: 'thistle', padding: '14px' }}>
+			here you are
+			<TldrawUiToolbar orientation="horizontal" label="Navigation">
+				{ZoomMenu && <ZoomMenu />}
+			</TldrawUiToolbar>
+		</div>
+	)
 }
-//[8]
+// [8]
 function CustomPageMenu() {
 	return (
 		<div style={{ transform: 'rotate(3.14rad)', backgroundColor: 'thistle' }}>
@@ -176,7 +187,7 @@ function CustomPageMenu() {
 		</div>
 	)
 }
-//[9]
+// [9]
 function CustomQuickActions() {
 	return (
 		<DefaultQuickActions>
@@ -187,7 +198,7 @@ function CustomQuickActions() {
 		</DefaultQuickActions>
 	)
 }
-//[10]
+// [10]
 function CustomStylePanel(props: TLUiStylePanelProps) {
 	const editor = useEditor()
 
@@ -217,31 +228,32 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 		</DefaultStylePanel>
 	)
 }
-//[11]
+// [11]
 function CustomToolbar() {
 	const editor = useEditor()
 	const tools = useTools()
-	const isScreenshotSelected = useIsToolSelected(tools['rhombus-2'])
+	const isRhombusSelected = useIsToolSelected(tools['rhombus-2'])
 	return (
-		<div>
-			<DefaultToolbar>
-				<TldrawUiMenuItem {...tools['rhombus-2']} isSelected={isScreenshotSelected} />
-
-				<DefaultToolbarContent />
-				<TldrawUiButton
-					type="icon"
-					onClick={() => {
-						editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
-					}}
-					title="delete all"
-				>
-					🧨
-				</TldrawUiButton>
-			</DefaultToolbar>
-		</div>
+		<DefaultToolbar>
+			<TldrawUiMenuItem
+				{...tools['rhombus-2']}
+				label="geo-style.rhombus-2"
+				isSelected={isRhombusSelected}
+			/>
+			<DefaultToolbarContent />
+			<TldrawUiButton
+				type="icon"
+				onClick={() => {
+					editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+				}}
+				title="Delete all"
+			>
+				🧨
+			</TldrawUiButton>
+		</DefaultToolbar>
 	)
 }
-//[12]
+// [12]
 function CustomZoomMenu() {
 	return (
 		<DefaultZoomMenu>
@@ -277,7 +289,7 @@ const components: TLComponents = {
 	ZoomMenu: CustomZoomMenu,
 }
 
-export default function CustomActionsMenuExample() {
+export default function CustomMenusExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw components={components} />
@@ -286,63 +298,58 @@ export default function CustomActionsMenuExample() {
 }
 
 /*
-You can use the `components` prop to override tldraw's default menus. 
-You can provide a React component of your own, import our default 
-component and edit it, or return null to hide it completely. This 
-example demonstrates how to do this with every menu in tldraw.
+You can use the `components` prop to override tldraw's default menus. You can provide a React
+component of your own, import our default component and add to it, or return null to hide it
+completely. This example does this with every menu in tldraw. The thistle-colored areas mark the
+custom additions.
 
 [1]
-	The actions menu is a dropdown menu that can be found in the 
-	top-left of the tldraw component, or just above the toolbar on 
-	smaller screens. It contains actions related to editing shapes 
-	such as grouping, rotating or changing shape order. 
+The actions menu is a dropdown found in the top-left of the tldraw component, or just above the
+toolbar on smaller screens. It contains actions related to editing shapes such as grouping,
+rotating, or changing shape order.
 
 [2]
-	Create some shapes, select them and right click the selection to 
-	see the custom context menu.
+Create some shapes, select them, and right click the selection to see the custom context menu.
 
 [3]
-	The debug menu contains helpful menu items for debugging the tldraw 
-	component. To show the debug menu, turn on debug mode in the 
-	preferences.
-[4]
-	The help menu contains menu items to change the language of the
-	application, and to open the keyboard shortcuts dialog.
+The debug menu contains helpful menu items for debugging the tldraw component. To show it, turn
+on debug mode in the preferences.
 
+[4]
+The help menu contains menu items to change the language of the application and to open the
+keyboard shortcuts dialog.
 
 [5]
-	The keyboard shortcuts dialog is a modal that shows all the 
-	keyboard shortcuts available in tldraw. You can open it via the help
-	menu.
+The keyboard shortcuts dialog is a modal that lists all the keyboard shortcuts available in
+tldraw. You can open it via the help menu.
 
 [6]
-	The main menu contains important submenus: Edit, Shape, Preferences etc. 
-	To open the main menu, click the hamburger icon in the top left corner 
-	of the tldraw component.
+The main menu contains the Edit, Shape, and Preferences submenus, among others. To open it, click
+the hamburger icon in the top left corner of the tldraw component.
 
 [7]
-	The navigation panel is in the bottom left of the tldraw component at 
-	larger breakpoints. It contains zoom controls and a mini map.
+The navigation panel is in the bottom left of the tldraw component at larger breakpoints. It
+normally contains the zoom menu and a minimap. Replacing it drops the zoom menu too, so this one
+renders `ZoomMenu` from `useTldrawUiComponents` to keep [12] reachable. The zoom menu's trigger is a
+toolbar button, so it has to sit inside a `TldrawUiToolbar`.
 
 [8]
-	The page menu contains options for creating and editing pages. To open 
-	the page menu, click the page name in the top left of the tldraw component.
+The page menu contains options for creating and editing pages. To open it, click the page name in
+the top left of the tldraw component.
 
 [9]
-	The quick actions menu is a dropdown menu that appears in the Main Menu,
-	or above the toolbar on smaller screens.
+The quick actions menu appears next to the main menu, or above the toolbar on smaller screens.
 
 [10]
-	The style panel is a panel that appears on the right side of the tldraw
-	component. It contains options to change the style of shapes, such as
-	color, stroke width, and opacity.
+The style panel appears on the right side of the tldraw component. It contains options to change
+the style of shapes, such as color, stroke width, and opacity.
 
 [11]
-	The toolbar contains tools to create shapes, select shapes, and more.
+The toolbar contains the tools used to create and select shapes. Here we add the left-leaning
+rhombus geo shape at the front and a "delete all" button at the end. There is no `tool.rhombus-2`
+translation key, so the item reuses the style panel's `geo-style.rhombus-2` label.
 
 [12]
-	The zoom menu is in the bottom left of the tldraw component, the button 
-	to open it is labeled with a percentage indicating the editor's current 
-	zoom level.
-
- */
+The zoom menu is in the bottom left of the tldraw component. The button that opens it is labeled
+with a percentage indicating the editor's current zoom level.
+*/

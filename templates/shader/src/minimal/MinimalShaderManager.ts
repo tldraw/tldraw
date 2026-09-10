@@ -1,4 +1,4 @@
-import { Atom, Box, Editor, react, Vec } from 'tldraw'
+import { Atom, Editor, react, Vec } from 'tldraw'
 import { WebGLManager } from '../WebGLManager'
 import { ShaderManagerConfig } from './config'
 import FRAGMENT_SHADER from './fragment.glsl?raw'
@@ -33,8 +33,6 @@ export class MinimalShaderManager extends WebGLManager<ShaderManagerConfig> {
 			return
 		}
 
-		const isWebGL2 = this.gl instanceof WebGL2RenderingContext
-
 		const maxTextureSize = this.gl.getParameter(this.gl.MAX_TEXTURE_SIZE)
 
 		if (!maxTextureSize) {
@@ -42,29 +40,23 @@ export class MinimalShaderManager extends WebGLManager<ShaderManagerConfig> {
 			return
 		}
 
+		const gl = this.gl
 		const compileShader = (type: number, source: string): WebGLShader | null => {
-			if (!this.gl) {
-				console.error('No GL context')
-				return null
-			}
-
-			const shader = this.gl.createShader(type)
+			const shader = gl.createShader(type)
 			if (!shader) {
 				console.error('Failed to create shader - createShader returned null')
 				return null
 			}
 
-			this.gl.shaderSource(shader, source)
-			this.gl.compileShader(shader)
+			gl.shaderSource(shader, source)
+			gl.compileShader(shader)
 
-			const compileStatus = this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)
-			const shaderType = type === this.gl.VERTEX_SHADER ? 'VERTEX' : 'FRAGMENT'
-
-			if (compileStatus !== true) {
-				const log = this.gl.getShaderInfoLog(shader)
+			if (gl.getShaderParameter(shader, gl.COMPILE_STATUS) !== true) {
+				const shaderType = type === gl.VERTEX_SHADER ? 'VERTEX' : 'FRAGMENT'
+				const log = gl.getShaderInfoLog(shader)
 				console.error(`${shaderType} shader compile error:`, log || 'No error log available')
 				console.error('Shader source:', source)
-				this.gl.deleteShader(shader)
+				gl.deleteShader(shader)
 				return null
 			}
 
@@ -104,11 +96,8 @@ export class MinimalShaderManager extends WebGLManager<ShaderManagerConfig> {
 
 		this.positionBuffer = this.gl.createBuffer()
 
-		if (isWebGL2) {
-			const gl2 = this.gl as WebGL2RenderingContext
-			this.vao = gl2.createVertexArray()
-			gl2.bindVertexArray(this.vao)
-		}
+		this.vao = this.gl.createVertexArray()
+		this.gl.bindVertexArray(this.vao)
 
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer)
 		const positions = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1])
@@ -118,10 +107,7 @@ export class MinimalShaderManager extends WebGLManager<ShaderManagerConfig> {
 		this.gl.enableVertexAttribArray(a_position)
 		this.gl.vertexAttribPointer(a_position, 2, this.gl.FLOAT, false, 0, 0)
 
-		if (isWebGL2) {
-			const gl2 = this.gl as WebGL2RenderingContext
-			gl2.bindVertexArray(null)
-		}
+		this.gl.bindVertexArray(null)
 
 		this.disposables.add(react('dependencies', this.tick))
 
@@ -153,20 +139,14 @@ export class MinimalShaderManager extends WebGLManager<ShaderManagerConfig> {
 		this.gl.clearColor(0, 0, 0, 0)
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT)
 
-		if (this.vao && this.gl instanceof WebGL2RenderingContext) {
-			this.gl.bindVertexArray(this.vao)
-		}
-
+		this.gl.bindVertexArray(this.vao)
 		this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4)
-
-		if (this.vao && this.gl instanceof WebGL2RenderingContext) {
-			this.gl.bindVertexArray(null)
-		}
+		this.gl.bindVertexArray(null)
 	}
 
 	onDispose = (): void => {
 		if (this.gl) {
-			if (this.vao && this.gl instanceof WebGL2RenderingContext) {
+			if (this.vao) {
 				this.gl.deleteVertexArray(this.vao)
 				this.vao = null
 			}
@@ -186,25 +166,5 @@ export class MinimalShaderManager extends WebGLManager<ShaderManagerConfig> {
 		this.pointer.x = (x - vsb.x) / vsb.width
 		this.pointer.y = 1.0 - (y - vsb.y) / vsb.height
 		this.tick()
-	}
-
-	refresh = (): void => {
-		try {
-			this.tick()
-		} catch (e) {
-			console.log('Error refreshing geometries', e)
-		}
-	}
-
-	pageToCanvas = (
-		point: Vec,
-		camera: { x: number; y: number; z: number },
-		viewportScreenBounds: Box
-	): Vec => {
-		const screenX = (point.x + camera.x) * camera.z + viewportScreenBounds.x
-		const screenY = (point.y + camera.y) * camera.z + viewportScreenBounds.y
-		const canvasX = (screenX - viewportScreenBounds.x) / viewportScreenBounds.width
-		const canvasY = 1.0 - (screenY - viewportScreenBounds.y) / viewportScreenBounds.height
-		return new Vec(canvasX, canvasY)
 	}
 }

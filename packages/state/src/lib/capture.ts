@@ -24,10 +24,10 @@ const inst = singleton('capture', () => ({ stack: null as null | CaptureStackFra
  * @example
  * ```ts
  * const name = atom('name', 'Sam')
- * const time = atom('time', () => new Date().getTime())
+ * const time = atom('time', Date.now())
  *
  * setInterval(() => {
- *   time.set(new Date().getTime())
+ *   time.set(Date.now())
  * })
  *
  * react('log name changes', () => {
@@ -149,21 +149,20 @@ export function stopCapturingParents() {
  */
 export function maybeCaptureParent(p: Signal<any, any>) {
 	if (inst.stack) {
-		const wasCapturedAlready = inst.stack.child.parentSet.has(p)
-		// if the child didn't deref this parent last time it executed, then idx will be -1
-		// if the child did deref this parent last time but in a different order relative to other parents, then idx will be greater than stack.offset
-		// if the child did deref this parent last time in the same order, then idx will be the same as stack.offset
-		// if the child did deref this parent already during this capture session then 0 <= idx < stack.offset
-
-		if (wasCapturedAlready) {
+		// `add` returns false when the parent was already captured this run. In array mode both
+		// `has` and `add` scan with indexOf, so going straight to `add` halves the scans per
+		// captured parent.
+		if (!inst.stack.child.parentSet.add(p)) {
 			return
 		}
 
-		inst.stack.child.parentSet.add(p)
 		if (inst.stack.child.isActivelyListening) {
 			attach(p, inst.stack.child)
 		}
 
+		// Parents are recorded in deref order. If the slot at this offset held a different parent
+		// last run, that parent may have moved later in the order or been dropped; only
+		// stopCapturingParents can tell, so remember it for then.
 		if (inst.stack.offset < inst.stack.child.parents.length) {
 			const maybeRemovedParent = inst.stack.child.parents[inst.stack.offset]
 			if (maybeRemovedParent !== p) {
@@ -183,7 +182,8 @@ export function maybeCaptureParent(p: Signal<any, any>) {
 
 /**
  * A debugging tool that tells you why a computed signal or effect is running.
- * Call in the body of a computed signal or effect function.
+ * Call in the body of a computed signal or effect function. Nothing is logged for the run that
+ * calls it; from the next run on, each run logs the ancestors that changed.
  *
  * @example
  * ```ts
@@ -195,8 +195,8 @@ export function maybeCaptureParent(p: Signal<any, any>) {
  *
  * name.set('Alice')
  *
- * // 'greeting' is running because:
- * //     'name' changed => 'Alice'
+ * // Effect(greeting) is executing because:
+ * //  ↳ Atom(name) changed
  * ```
  *
  * @public

@@ -1,5 +1,5 @@
 import { captureException } from '@sentry/react'
-import { ROOM_OPEN_MODE } from '@tldraw/dotcom-shared'
+import { ROOM_OPEN_MODE, RoomOpenMode } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
 import { useParams, useRouteError } from 'react-router-dom'
 import { TlaLegacyFileEditor } from '../components/TlaEditor/TlaLegacyFileEditor'
@@ -21,52 +21,50 @@ Slurping a file (or whatever) should create a new file in the user's account
 with all of the data from the legacy shared room. The new copy should have no 
 relationship to the previous room, and the user should be able to edit it just
 like any other file.
+
+The read-only and old-read-only routes are the same page with a different room
+open mode, so they build their route exports from `defineLegacyRoomPage`.
 */
-
-export function ErrorBoundary() {
-	const error = useRouteError()
-	useEffect(() => {
-		captureException(error)
-	}, [error])
-	return <Component error={error} />
-}
-
-export function Component({ error }: { error?: unknown }) {
-	const { roomId } = useParams<{ roomId: string }>()
-	if (!roomId) throw Error('Room id not found')
-
-	const userId = useMaybeApp()?.userId
-
-	useEffect(() => {
-		if (error && userId) {
-			// force sidebar open
-			toggleSidebar(true)
-		}
-	}, [error, userId])
-
-	if (!userId) {
-		return (
-			// Override TlaEditor's internal ReadyWrapper. This prevents the anon layout chrome from rendering
-			// before the editor is ready.
-			<ReadyWrapper>
-				{error ? (
-					<TlaFileError error={error} />
-				) : (
-					<TlaAnonLayout>
-						<TlaLegacyFileEditor fileSlug={roomId} roomOpenMode={ROOM_OPEN_MODE.READ_WRITE} />
-					</TlaAnonLayout>
-				)}
-			</ReadyWrapper>
-		)
+export function defineLegacyRoomPage(roomOpenMode: RoomOpenMode) {
+	function ErrorBoundary() {
+		const error = useRouteError()
+		useEffect(() => {
+			captureException(error)
+		}, [error])
+		return <Component error={error} />
 	}
 
-	return (
-		<TlaSidebarLayout collapsible>
-			{error ? (
-				<TlaFileError error={error} />
-			) : (
-				<TlaLegacyFileEditor fileSlug={roomId} roomOpenMode={ROOM_OPEN_MODE.READ_WRITE} />
-			)}
-		</TlaSidebarLayout>
-	)
+	function Component({ error }: { error?: unknown }) {
+		const { roomId } = useParams<{ roomId: string }>()
+		if (!roomId) throw Error('Room id not found')
+
+		const userId = useMaybeApp()?.userId
+
+		useEffect(() => {
+			if (error && userId) {
+				// force sidebar open
+				toggleSidebar(true)
+			}
+		}, [error, userId])
+
+		const content = error ? (
+			<TlaFileError error={error} />
+		) : (
+			<TlaLegacyFileEditor fileSlug={roomId} roomOpenMode={roomOpenMode} />
+		)
+
+		if (!userId) {
+			return (
+				// Override TlaEditor's internal ReadyWrapper. This prevents the anon layout chrome from rendering
+				// before the editor is ready.
+				<ReadyWrapper>{error ? content : <TlaAnonLayout>{content}</TlaAnonLayout>}</ReadyWrapper>
+			)
+		}
+
+		return <TlaSidebarLayout collapsible>{content}</TlaSidebarLayout>
+	}
+
+	return { Component, ErrorBoundary }
 }
+
+export const { Component, ErrorBoundary } = defineLegacyRoomPage(ROOM_OPEN_MODE.READ_WRITE)

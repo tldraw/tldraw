@@ -6,6 +6,21 @@ import usTopology from 'us-atlas/states-10m.json'
 export const MAP_WIDTH = 975
 export const MAP_HEIGHT = 610
 
+export const STATE_COLORS = [
+	'#4e79a7',
+	'#f28e2b',
+	'#e15759',
+	'#76b7b2',
+	'#59a14f',
+	'#edc948',
+	'#b07aa1',
+	'#ff9da7',
+	'#9c755f',
+	'#bab0ac',
+	'#af7aa1',
+	'#d4a373',
+]
+
 const projection = geoAlbersUsa()
 	.scale(1300)
 	.translate([MAP_WIDTH / 2, MAP_HEIGHT / 2])

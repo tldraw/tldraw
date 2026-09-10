@@ -1,12 +1,12 @@
 {
-  "1764571547": {
-    "translation": "Seguro que queres eliminar este espazo de traballo? Esta acción non se pode desfacer."
-  },
   "0095a9fa74": {
     "translation": "Exportar"
   },
   "00b177e080": {
     "translation": "Aceptar a invitación"
+  },
+  "029f235f01": {
+    "translation": "Estamos a traballar na compatibilidade cos ficheiros de <a><strong>{appName}</strong></a>."
   },
   "03b3e13197": {
     "translation": "Arrastra o ficheiro á barra lateral desta páxina. Ou selecciona a opción \"Importar ficheiro\" no menú de usuario."
@@ -16,6 +16,9 @@
   },
   "04a2dd56d6": {
     "translation": "Convidar aos compañeiros de equipo"
+  },
+  "05b2656486": {
+    "translation": "<name>{author}</name> mencionoute"
   },
   "05f43078e9": {
     "translation": "Alcanzaches o número máximo de espazos de traballo. Debes eliminar os espazos de traballo antigos antes de crear outros novos."
@@ -31,6 +34,9 @@
   },
   "08bd40c754": {
     "translation": "Conta"
+  },
+  "093ac7483a": {
+    "translation": "Aínda non se poden abrir os ficheiros {extension}"
   },
   "0a91f7fa87": {
     "translation": "Este ficheiro alcanzou o seu límite de tamaño e é posible que os cambios xa non se garden. Elimina parte do contido ou comeza un ficheiro novo."
@@ -62,6 +68,9 @@
   "13ddd375ad": {
     "translation": "Exportar como"
   },
+  "14b03eeeb5": {
+    "translation": "Opcións de notificación"
+  },
   "181b90f889": {
     "translation": "Crear ficheiro"
   },
@@ -83,6 +92,12 @@
   "250ddea65c": {
     "translation": "Acerca de tldraw"
   },
+  "2755e3ab39": {
+    "translation": "<name>{author}</name> comentou no teu taboleiro"
+  },
+  "28b2464e1f": {
+    "translation": "Non se puideron enviar os comentarios"
+  },
   "299cb00a7a": {
     "translation": "Produciuse un erro na carga"
   },
@@ -91,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Buscar..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Téntao de novo."
   },
   "2de510be71": {
     "translation": "Ao rexenerar, a ligazón de invitación actual substitúese por unha nova. Calquera persoa que use a ligazón antiga necesitará a nova para unirse."
@@ -146,8 +164,14 @@
   "44db318ee5": {
     "translation": "Obtén axuda en Discord"
   },
+  "454aad3b3c": {
+    "translation": "Seguro que queres eliminar <strong>{fileName}</strong>?"
+  },
   "46137245cd": {
     "translation": "Grazas por axudarnos a mellorar tldraw!"
+  },
+  "46de2de6bb": {
+    "translation": "Aceptar as condicións de uso"
   },
   "477df802ca": {
     "translation": "Para continuar coa edición, copia o ficheiro nos teus ficheiros."
@@ -157,9 +181,6 @@
   },
   "47f493a590": {
     "translation": "Ficheiro fixado"
-  },
-  "4908687e50": {
-    "translation": "Estás seguro de que queres esquecer este ficheiro?"
   },
   "49ee308734": {
     "translation": "Nome"
@@ -182,11 +203,20 @@
   "517bb809d9": {
     "translation": "Menú da páxina"
   },
+  "53770fd374": {
+    "translation": "Sen ler"
+  },
   "542248f0ba": {
     "translation": "Este ficheiro agora é de só lectura"
   },
   "54286b1d01": {
     "translation": "Alcanzouse o límite de colaboradores"
+  },
+  "545241e7dd": {
+    "translation": "{count} sen ler"
+  },
+  "550b25cc0c": {
+    "translation": "Non se puido restaurar o debuxo local. Tenta recargar esta páxina."
   },
   "554a05155c": {
     "translation": "Aínda tes problemas? <a>Informar dun problema</a>"
@@ -212,6 +242,9 @@
   "5bff3c9c88": {
     "translation": "O meu espazo de traballo"
   },
+  "5bffeebf03": {
+    "translation": "<name>{author}</name> reaccionou ao teu comentario"
+  },
   "5d04a002ea": {
     "translation": "Non se pode conectar"
   },
@@ -224,8 +257,17 @@
   "5fb63579fc": {
     "translation": "Copiar"
   },
+  "608e9d366e": {
+    "translation": "Xa estás ao día."
+  },
+  "60a68c29d6": {
+    "translation": "Inicia sesión para comentar"
+  },
   "61057a0c84": {
     "translation": "Máis tarde"
+  },
+  "61fb03fd7b": {
+    "translation": "{count, plural, one {Alguén reaccionou ao teu comentario} other {# persoas reaccionaron ao teu comentario}}"
   },
   "625fd29749": {
     "translation": "Máis vello"
@@ -277,6 +319,9 @@
   },
   "752b79f137": {
     "translation": "Alcanzaches o número máximo de ficheiros. Debes eliminar ficheiros antigos antes de crear outros novos."
+  },
+  "7542d62aac": {
+    "translation": "Marcar todo como lido"
   },
   "7573b8110a": {
     "translation": "Sen acceso"
@@ -332,6 +377,12 @@
   "815e116a2e": {
     "translation": "Tes algún erro, problema ou idea para tldraw? Avísanos! Completa este formulario e poñerémonos en contacto connosco por correo electrónico se é necesario. Tamén podes <discord>chatear connosco en Discord</discord> ou <github>enviar un problema en GitHub</github>."
   },
+  "81666c6e4a": {
+    "translation": "Seguro que queres esquecer <strong>{fileName}</strong>?"
+  },
+  "8413c683b4": {
+    "translation": "Comentarios"
+  },
   "858ba4765e": {
     "translation": "Membro"
   },
@@ -365,6 +416,9 @@
   "904a830405": {
     "translation": "Cambiar o nome"
   },
+  "90646db02d": {
+    "translation": "Seguro que queres eliminar <strong>{workspaceName}</strong>? Esta acción non se pode desfacer."
+  },
   "95aacd4d4a": {
     "translation": "Iniciar sesión con Google"
   },
@@ -388,6 +442,9 @@
   },
   "9bef626805": {
     "translation": "Eliminar ficheiro"
+  },
+  "9c228b6834": {
+    "translation": "Parece que estás desconectado. Comproba a túa conexión e téntao de novo."
   },
   "9ccb565b86": {
     "translation": "Temos problemas para conectar co noso servizo de autenticación. Isto adoita ser temporal. Tenta actualizar a páxina."
@@ -419,6 +476,9 @@
   "a239905023": {
     "translation": "Exportar imaxe"
   },
+  "a274f4d467": {
+    "translation": "Notificacións"
+  },
   "a3debabee7": {
     "translation": "Política de cookies"
   },
@@ -443,6 +503,9 @@
   "aac449eef6": {
     "translation": "Crear espazo de traballo"
   },
+  "aaec8f7cde": {
+    "translation": "Alguén"
+  },
   "ab0df9ba36": {
     "translation": "Alcanzouse o límite de ficheiros"
   },
@@ -452,6 +515,12 @@
   },
   "b028909917": {
     "translation": "Usuario convidado"
+  },
+  "b03400e2db": {
+    "translation": "<name>{author}</name> respondeu"
+  },
+  "b1c94ca2fb": {
+    "translation": "Todo"
   },
   "b2326c3a34": {
     "translation": "Rexenerar"
@@ -492,9 +561,6 @@
   "c2276c9127": {
     "translation": "Obtén máis información sobre como compartir."
   },
-  "c28aed8348": {
-    "translation": "Permite que as <cookies>analytics</cookies> nos axuden a mellorar tldraw."
-  },
   "c303bd1095": {
     "translation": "Non se puido publicar o ficheiro."
   },
@@ -527,6 +593,9 @@
   },
   "cea291e45e": {
     "translation": "Máis información sobre a publicación."
+  },
+  "d0e3556476": {
+    "translation": "<name>{author}</name> e {count, plural, one {# other} other {# others}} reaccionaron ao teu comentario"
   },
   "d3d2e61733": {
     "translation": "Pechar"
@@ -573,6 +642,9 @@
   "e404559826": {
     "translation": "Condicións do servizo"
   },
+  "e65b2dcb6f": {
+    "translation": "<name>{a}</name> e <name>{b}</name> reaccionaron ao teu comentario"
+  },
   "e81c4e4f2b": {
     "translation": "ou"
   },
@@ -600,6 +672,9 @@
   "ede55d955f": {
     "translation": "Lea a nosa <a>política de cookies</a> para obter máis información."
   },
+  "edec9387f9": {
+    "translation": "Este comentario foi eliminado."
+  },
   "ef53538ae4": {
     "translation": "Membros"
   },
@@ -618,8 +693,14 @@
   "f2a6c498fb": {
     "translation": "Eliminar"
   },
+  "f476ba8646": {
+    "translation": "<name>{a}</name>, <name>{b}</name> e {count, plural, one {# other} other {# others}} reaccionaron ao teu comentario"
+  },
   "f4f70727dc": {
     "translation": "Configuración"
+  },
+  "f5ddc8d9c1": {
+    "translation": "Por agora, podes <a>exportalo como un ficheiro {extension}</a> para usalo aquí."
   },
   "fa2ead697d": {
     "translation": "Política de privacidade"
@@ -629,9 +710,6 @@
   },
   "fc9d47046b": {
     "translation": "Seguro que queres saír deste espazo de traballo?"
-  },
-  "fd1be3efcf": {
-    "translation": "Estás seguro de que queres eliminar este ficheiro?"
   },
   "fed5ec05eb": {
     "translation": "Ligazón copiada"

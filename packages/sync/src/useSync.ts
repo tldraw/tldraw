@@ -2,6 +2,7 @@ import { atom, transact } from '@tldraw/state'
 import {
 	ClientWebSocketAdapter,
 	TLCustomMessageHandler,
+	TLObjectStoreAccess,
 	TLPersistentClientSocket,
 	TLPresenceMode,
 	TLRemoteSyncError,
@@ -78,10 +79,19 @@ const defaultCustomMessageHandler: TLCustomMessageHandler = () => {}
  *
  * @public
  */
-export type RemoteTLStoreWithStatus = Exclude<
-	TLStoreWithStatus,
-	{ status: 'synced-local' } | { status: 'not-synced' }
->
+export type RemoteTLStoreWithStatus =
+	| Exclude<
+			TLStoreWithStatus,
+			{ status: 'synced-local' } | { status: 'not-synced' } | { status: 'synced-remote' }
+	  >
+	| (Extract<TLStoreWithStatus, { status: 'synced-remote' }> & {
+			/**
+			 * Write access for object-store lane record types (e.g. comments), as granted by the
+			 * server for this session. Independent of the canvas read-only state, so a session can
+			 * be allowed to comment without being allowed to edit. Defaults to `'write'`.
+			 */
+			readonly objectAccess: TLObjectStoreAccess
+	  })
 
 /**
  * Creates a reactive store synchronized with a multiplayer server for real-time collaboration.
@@ -170,6 +180,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	const [state, setState] = useRefState<{
 		readyClient?: TLSyncClient<TLRecord, TLStore>
 		error?: Error
+		objectAccess?: TLObjectStoreAccess
 	} | null>(null)
 	const {
 		uri,
@@ -263,10 +274,6 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				TLSocketServerSentEvent<TLRecord>
 			>
 		} else if (uri) {
-			if (connect) {
-				throw new Error('uri and connect cannot be used together')
-			}
-
 			socket = new ClientWebSocketAdapter(async () => {
 				const uriString = typeof uri === 'string' ? uri : await uri()
 
@@ -338,7 +345,10 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			didCancel: () => didCancel,
 			onLoad(client) {
 				track?.(MULTIPLAYER_EVENT_NAME, { name: 'load', roomId })
-				setState({ readyClient: client })
+				// Keep objectAccess (onAfterConnect always runs first for this client) but drop the
+				// rest: an `error` left behind by a previous client (e.g. NOT_FOUND on the old uri)
+				// would otherwise keep the hook reporting status 'error' for the new, healthy room.
+				setState((prev) => ({ readyClient: client, objectAccess: prev?.objectAccess }))
 			},
 			onSyncError(reason) {
 				console.error('sync error', reason)
@@ -364,7 +374,12 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				setState({ error: new TLRemoteSyncError(reason) })
 				socket.close()
 			},
-			onAfterConnect(_, { isReadonly }) {
+			onAfterConnect(_, { isReadonly, objectAccess }) {
+				// Object-lane (comment) write access is decided per session by the server and can
+				// change on reconnect (e.g. when the file's share tier changes), so surface it on
+				// the returned status for consumers that gate comment UI. This fires before the
+				// first onLoad, hence the merge in both directions.
+				setState((prev) => ({ ...prev, objectAccess }))
 				transact(() => {
 					syncMode.set(isReadonly ? 'readonly' : 'readwrite')
 					// if the server crashes and loses all data it can return an empty document
@@ -412,6 +427,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				status: 'synced-remote',
 				connectionStatus: connectionStatus === 'error' ? 'offline' : connectionStatus,
 				store: state.readyClient.store,
+				objectAccess: state.objectAccess ?? 'write',
 			}
 		},
 		[state]

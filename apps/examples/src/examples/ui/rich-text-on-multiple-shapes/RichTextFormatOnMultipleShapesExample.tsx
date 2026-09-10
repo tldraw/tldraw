@@ -21,10 +21,7 @@ function isShapeWithRichText(shape: TLShape | null | undefined): shape is ShapeW
 	return !!(shape && 'richText' in shape.props)
 }
 
-/**
- * Recursively processes rich text content to make all text nodes bold.
- * Preserves the structure of the document while adding bold marks to all text.
- */
+// [1]
 function makeAllTextBold(richText: TLRichText): TLRichText {
 	if (!richText || !richText.content) {
 		return richText
@@ -32,12 +29,10 @@ function makeAllTextBold(richText: TLRichText): TLRichText {
 
 	const processNode = (node: any): any => {
 		if (node.type === 'text') {
-			// Check if bold mark already exists
 			const hasBold = node.marks?.some((mark: any) => mark.type === 'bold')
 			if (hasBold) {
 				return node
 			}
-			// Add bold mark to text node
 			return {
 				...node,
 				marks: [...(node.marks || []), { type: 'bold' }],
@@ -45,7 +40,6 @@ function makeAllTextBold(richText: TLRichText): TLRichText {
 		}
 
 		if (node.content && Array.isArray(node.content)) {
-			// Recursively process child nodes
 			return {
 				...node,
 				content: node.content.map(processNode),
@@ -61,9 +55,6 @@ function makeAllTextBold(richText: TLRichText): TLRichText {
 	}
 }
 
-/**
- * Recursively checks if all text nodes in rich text have bold marks.
- */
 function isAllTextBold(richText: TLRichText): boolean {
 	if (!richText || !richText.content) {
 		return false
@@ -71,26 +62,20 @@ function isAllTextBold(richText: TLRichText): boolean {
 
 	const checkNode = (node: any): boolean => {
 		if (node.type === 'text') {
-			// If it's a text node, check if it has a bold mark
-			const hasBold = node.marks?.some((mark: any) => mark.type === 'bold')
-			return hasBold
+			return node.marks?.some((mark: any) => mark.type === 'bold') ?? false
 		}
 
 		if (node.content && Array.isArray(node.content)) {
-			// Recursively check child nodes
 			return node.content.every(checkNode)
 		}
 
-		// Non-text nodes without content are considered "bold" (they don't need bold)
+		// Leaf nodes without text (hard breaks, etc.) have nothing to bold
 		return true
 	}
 
 	return richText.content.every(checkNode)
 }
 
-/**
- * Removes bold marks from all text nodes in rich text.
- */
 function removeBoldFromAllText(richText: TLRichText): TLRichText {
 	if (!richText || !richText.content) {
 		return richText
@@ -98,7 +83,6 @@ function removeBoldFromAllText(richText: TLRichText): TLRichText {
 
 	const processNode = (node: any): any => {
 		if (node.type === 'text') {
-			// Remove bold marks from text node
 			const marks = node.marks?.filter((mark: any) => mark.type !== 'bold') || []
 			return {
 				...node,
@@ -107,7 +91,6 @@ function removeBoldFromAllText(richText: TLRichText): TLRichText {
 		}
 
 		if (node.content && Array.isArray(node.content)) {
-			// Recursively process child nodes
 			return {
 				...node,
 				content: node.content.map(processNode),
@@ -123,45 +106,37 @@ function removeBoldFromAllText(richText: TLRichText): TLRichText {
 	}
 }
 
+// [2]
 function CustomStylePanel(props: TLUiStylePanelProps) {
 	const editor = useEditor()
 
-	// Get currently selected shapes
-	const selectedShapes = useValue('selected shapes', () => editor.getSelectedShapes(), [editor])
-
-	// Filter to only shapes with rich text
-	const shapesWithRichText = selectedShapes.filter(isShapeWithRichText)
+	const shapesWithRichText = useValue(
+		'shapes with rich text',
+		() => editor.getSelectedShapes().filter(isShapeWithRichText),
+		[editor]
+	)
 	const hasRichTextSelection = shapesWithRichText.length > 0
 
-	// Check if all selected shapes with rich text have all their text bold
-	const allBold = useValue(
-		'all bold',
-		() => {
-			if (shapesWithRichText.length === 0) return false
-			return shapesWithRichText.every((shape) => {
-				const richText = shape.props.richText
-				return richText && isAllTextBold(richText)
-			})
-		},
-		[shapesWithRichText]
-	)
+	const allBold =
+		hasRichTextSelection && shapesWithRichText.every((shape) => isAllTextBold(shape.props.richText))
 
 	const handleToggleBold = () => {
 		if (!hasRichTextSelection) return
 
+		// [3]
 		editor.run(() => {
-			shapesWithRichText.forEach((shape) => {
-				const richText = shape.props.richText
-				if (!richText) return
-
-				const newRichText = allBold ? removeBoldFromAllText(richText) : makeAllTextBold(richText)
-
-				editor.updateShape({
+			editor.markHistoryStoppingPoint('toggle bold')
+			editor.updateShapes(
+				shapesWithRichText.map((shape) => ({
 					id: shape.id,
 					type: shape.type,
-					props: { richText: newRichText },
-				})
-			})
+					props: {
+						richText: allBold
+							? removeBoldFromAllText(shape.props.richText)
+							: makeAllTextBold(shape.props.richText),
+					},
+				}))
+			)
 		})
 	}
 
@@ -170,13 +145,13 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 			<div className="tlui-style-panel__section">
 				<TldrawUiButton
 					type="menu"
-					data-isactive={allBold}
+					isActive={allBold}
 					onClick={handleToggleBold}
 					title="Bold all text in selected shapes"
 					disabled={!hasRichTextSelection}
 				>
 					<TldrawUiButtonIcon icon="bold" />
-					<TldrawUiButtonLabel>Bold All Text</TldrawUiButtonLabel>
+					<TldrawUiButtonLabel>Bold all text</TldrawUiButtonLabel>
 				</TldrawUiButton>
 			</div>
 			<DefaultStylePanelContent />
@@ -195,3 +170,27 @@ export default function RichTextFormatOnMultipleShapesExample() {
 		</div>
 	)
 }
+
+/*
+This example adds a "Bold all text" toggle to the style panel that applies to
+every selected shape with rich text at once. Rich text in tldraw is a TipTap
+(ProseMirror) JSON document; each text node can carry a `marks` array such as
+`[{ type: 'bold' }]`. Here we walk that JSON directly. For a version that uses
+ProseMirror's Node API instead, see the "Text mass style updates" example.
+
+[1]
+The helpers recursively map over the document, adding or removing the bold mark
+on text nodes and leaving the structure untouched. `isAllTextBold` is the
+inverse check that decides whether the button should add or remove bold.
+
+[2]
+`ExtractShapeByProps<{ richText: TLRichText }>` narrows to any shape whose props
+include rich text (text, geo, note, arrow), so the panel works across shape
+types. Reading the selection inside `useValue` keeps the button state in sync
+as the selection or the shapes' text changes.
+
+[3]
+`editor.updateShapes` applies all the changes in one go, and the history stopping
+point makes the whole toggle a single undo step. Shapes are never mutated
+directly; we always pass a new `richText` object through the editor.
+*/

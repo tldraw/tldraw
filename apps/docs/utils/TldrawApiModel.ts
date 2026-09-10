@@ -151,6 +151,11 @@ export class TldrawApiModel extends ApiModel {
 				return null
 			}
 
+			const memoProps = this.getMemoComponentPropsToken(tokens)
+			if (memoProps !== undefined) {
+				return memoProps ? this.resolveToken(component, memoProps) : null
+			}
+
 			this.nonBlockingError(
 				component,
 				`Expected a simple props interface for react component. Got: ${component.variableTypeExcerpt.text}`
@@ -162,6 +167,45 @@ export class TldrawApiModel extends ApiModel {
 
 			return null
 		}
+	}
+
+	/**
+	 * TypeScript 7 doesn't resolve `memo(...)` components to
+	 * `NamedExoticComponent<SomeProps>` like TypeScript 5 did. Instead it keeps the wrapped
+	 * function's signature, e.g. `MemoExoticComponent<({ children }: SomeProps) => JSX.Element>`.
+	 *
+	 * Returns the props reference token, `null` if the component takes no props, or `undefined` if
+	 * this isn't a memo component we know how to read.
+	 */
+	private getMemoComponentPropsToken(
+		tokens: readonly ExcerptToken[]
+	): ExcerptToken | null | undefined {
+		const headIndex = tokens.findIndex(
+			(token) =>
+				token.kind === ExcerptTokenKind.Reference &&
+				(token.text === 'MemoExoticComponent' || token.text === 'React.MemoExoticComponent')
+		)
+		if (headIndex === -1) return undefined
+
+		const typeArgument = tokens[headIndex + 1]
+		if (!typeArgument?.text.startsWith('<(')) return undefined
+		// a memo component with no props, e.g. `MemoExoticComponent<() => JSX.Element>`
+		if (typeArgument.text.startsWith('<()')) return null
+
+		// walk back from the end of the parameter list to the reference it annotates. we can't take
+		// the first reference we find: renamed destructured properties are references too, as in
+		// `({ onKeyDown: handleKeyDown }: SomeProps)`, and they aren't annotated with `: `.
+		const closeIndex = tokens.findIndex((token, i) => i > headIndex && token.text.includes(') =>'))
+		if (closeIndex === -1) return undefined
+
+		for (let i = closeIndex - 1; i > headIndex; i--) {
+			const token = tokens[i]
+			if (token.kind !== ExcerptTokenKind.Reference) continue
+			if (!tokens[i - 1].text.endsWith(': ')) continue
+			return token
+		}
+
+		return undefined
 	}
 
 	isComponent(item: ApiItem): boolean {

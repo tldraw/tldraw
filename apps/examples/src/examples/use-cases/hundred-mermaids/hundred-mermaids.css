@@ -1,0 +1,12 @@
+.hundred-mermaids-panel {
+	position: fixed;
+	top: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	padding: 8px;
+	background: #eee;
+	border-radius: 0 0 8px 8px;
+	display: flex;
+	gap: 8px;
+	z-index: 1000;
+}

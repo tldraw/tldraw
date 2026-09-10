@@ -11,6 +11,28 @@
       "value": "Daveti kabul et"
     }
   ],
+  "029f235f01": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": 1,
+              "value": "appName"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " adresinden gelen dosyalar için destek üzerinde çalışıyoruz."
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -31,6 +53,22 @@
     {
       "type": 0,
       "value": "Takım arkadaşlarınızı davet edin"
+    }
+  ],
+  "05b2656486": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " sizden bahsetti."
     }
   ],
   "05f43078e9": [
@@ -61,6 +99,20 @@
     {
       "type": 0,
       "value": "Hesap"
+    }
+  ],
+  "093ac7483a": [
+    {
+      "type": 0,
+      "value": "Henüz "
+    },
+    {
+      "type": 1,
+      "value": "extension"
+    },
+    {
+      "type": 0,
+      "value": " dosyaları açılamıyor."
     }
   ],
   "0a91f7fa87": [
@@ -123,10 +175,10 @@
       "value": "Dışa aktarma formatı"
     }
   ],
-  "1764571547": [
+  "14b03eeeb5": [
     {
       "type": 0,
-      "value": "Bu çalışma alanını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+      "value": "Bildirim seçenekleri"
     }
   ],
   "181b90f889": [
@@ -181,6 +233,28 @@
       "value": "tldraw hakkında"
     }
   ],
+  "2755e3ab39": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " panonuza yorum yaptı."
+    }
+  ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Geri bildirim gönderilemedi."
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -197,6 +271,12 @@
     {
       "type": 0,
       "value": "Aramak..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Lütfen tekrar deneyin."
     }
   ],
   "2de510be71": [
@@ -307,10 +387,32 @@
       "value": "Discord'da yardım alın"
     }
   ],
+  "454aad3b3c": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " dosyasını silmek istediğinizden emin misiniz?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Tldraw'ı geliştirmemize yardımcı olduğunuz için teşekkürler!"
+    }
+  ],
+  "46de2de6bb": [
+    {
+      "type": 0,
+      "value": "Kullanım şartlarını kabul edin"
     }
   ],
   "477df802ca": [
@@ -329,12 +431,6 @@
     {
       "type": 0,
       "value": "Pin dosyası"
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Bu dosyayı unutmak istediğinizden emin misiniz?"
     }
   ],
   "49ee308734": [
@@ -379,6 +475,12 @@
       "value": "Sayfa menüsü"
     }
   ],
+  "53770fd374": [
+    {
+      "type": 0,
+      "value": "Okunmamış"
+    }
+  ],
   "542248f0ba": [
     {
       "type": 0,
@@ -389,6 +491,22 @@
     {
       "type": 0,
       "value": "Ortak çalışan sınırına ulaşıldı"
+    }
+  ],
+  "545241e7dd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " okunmamış"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Yerel çiziminiz geri yüklenemedi. Lütfen bu sayfayı yeniden yüklemeyi deneyin."
     }
   ],
   "554a05155c": [
@@ -449,6 +567,22 @@
       "value": "Çalışma alanım"
     }
   ],
+  "5bffeebf03": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " yorumunuza yanıt verdi."
+    }
+  ],
   "5d04a002ea": [
     {
       "type": 0,
@@ -473,10 +607,51 @@
       "value": "Kopyala"
     }
   ],
+  "608e9d366e": [
+    {
+      "type": 0,
+      "value": "Her şeyden haberdarsınız."
+    }
+  ],
+  "60a68c29d6": [
+    {
+      "type": 0,
+      "value": "Yorum yapmak için giriş yapın"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
       "value": "Daha sonra"
+    }
+  ],
+  "61fb03fd7b": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Birisi yorumunuza yanıt verdi."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " Kişi yorumunuza tepki verdi"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "625fd29749": [
@@ -579,6 +754,12 @@
     {
       "type": 0,
       "value": "Maksimum dosya sayısına ulaştınız. Yeni dosyalar oluşturmadan önce eski dosyaları silmeniz gerekiyor."
+    }
+  ],
+  "7542d62aac": [
+    {
+      "type": 0,
+      "value": "Tümünü okundu olarak işaretle"
     }
   ],
   "7573b8110a": [
@@ -717,6 +898,28 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "'i unutmak istediğinizden emin misiniz?"
+    }
+  ],
+  "8413c683b4": [
+    {
+      "type": 0,
+      "value": "Yorumlar"
+    }
+  ],
   "858ba4765e": [
     {
       "type": 0,
@@ -787,6 +990,22 @@
       "value": "Yeniden Adlandır"
     }
   ],
+  "90646db02d": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " öğesini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -847,6 +1066,12 @@
     {
       "type": 0,
       "value": "Dosyayı sil"
+    }
+  ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Çevrimdışı görünüyorsunuz. Bağlantınızı kontrol edin ve tekrar deneyin."
     }
   ],
   "9ccb565b86": [
@@ -919,6 +1144,12 @@
       "value": "Resmi dışa aktar"
     }
   ],
+  "a274f4d467": [
+    {
+      "type": 0,
+      "value": "Bildirimler"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -967,6 +1198,12 @@
       "value": "Çalışma alanı oluşturun"
     }
   ],
+  "aaec8f7cde": [
+    {
+      "type": 0,
+      "value": "Birisi"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -989,6 +1226,28 @@
     {
       "type": 0,
       "value": "Misafir kullanıcı"
+    }
+  ],
+  "b03400e2db": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " yanıtladı"
+    }
+  ],
+  "b1c94ca2fb": [
+    {
+      "type": 0,
+      "value": "Tümü"
     }
   ],
   "b2326c3a34": [
@@ -1105,26 +1364,6 @@
       "value": "Paylaşım hakkında daha fazla bilgi edinin."
     }
   ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Tldraw'ı geliştirmemize yardımcı olması için "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": "'e izin verin."
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1189,6 +1428,56 @@
     {
       "type": 0,
       "value": "Yayınlama hakkında daha fazla bilgi edinin."
+    }
+  ],
+  "d0e3556476": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ve "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " yorumunuza tepki verdi."
     }
   ],
   "d3d2e61733": [
@@ -1309,6 +1598,36 @@
       "value": "Hizmet Şartları"
     }
   ],
+  "e65b2dcb6f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ve "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " yorumunuza yanıt verdi."
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1377,6 +1696,12 @@
       "value": " okuyun."
     }
   ],
+  "edec9387f9": [
+    {
+      "type": 0,
+      "value": "Bu yorum silindi."
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1413,10 +1738,98 @@
       "value": "Sil"
     }
   ],
+  "f476ba8646": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ve "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " yorumunuza tepki verdi."
+    }
+  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "Ayarlar"
+    }
+  ],
+  "f5ddc8d9c1": [
+    {
+      "type": 0,
+      "value": "Şimdilik, burada kullanmak için "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "extension"
+        },
+        {
+          "type": 0,
+          "value": " dosyası olarak dışa aktarabilirsiniz"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "fa2ead697d": [
@@ -1435,12 +1848,6 @@
     {
       "type": 0,
       "value": "Bu çalışma alanından ayrılmak istediğinizden emin misiniz?"
-    }
-  ],
-  "fd1be3efcf": [
-    {
-      "type": 0,
-      "value": "Bu dosyayı silmek istediğinizden emin misiniz?"
     }
   ],
   "fed5ec05eb": [

@@ -1,0 +1,134 @@
+.comment-notifications {
+	position: absolute;
+	top: 60px;
+	left: 8px;
+	z-index: 1000;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 8px;
+	width: 320px;
+	pointer-events: all;
+}
+
+.comment-notifications__header {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding-left: 4px;
+}
+
+.comment-notifications__title {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--tl-color-text-1);
+}
+
+.comment-notifications__badge {
+	min-width: 18px;
+	padding: 0 5px;
+	border-radius: 9px;
+	background-color: var(--tl-color-selection-stroke);
+	color: #fff;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 18px;
+	text-align: center;
+	font-variant-numeric: tabular-nums;
+}
+
+.comment-notifications__header .tlui-button {
+	margin-left: auto;
+}
+
+.comment-notifications__empty {
+	margin: 0;
+	padding: 4px;
+	font-size: 12px;
+	line-height: 1.4;
+	color: var(--tl-color-text-3);
+}
+
+.comment-notifications__list {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	margin: 0;
+	padding: 0;
+	max-height: 260px;
+	overflow-y: auto;
+	list-style: none;
+}
+
+.comment-notifications__row {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	width: 100%;
+	padding: 6px;
+	border: none;
+	border-radius: var(--tl-radius-2);
+	background: none;
+	color: var(--tl-color-text-1);
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.comment-notifications__row:hover {
+	background-color: var(--tl-color-muted-2);
+}
+
+.comment-notifications__body {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	min-width: 0;
+	flex: 1;
+}
+
+.comment-notifications__meta {
+	font-size: 12px;
+	line-height: 1.3;
+	color: var(--tl-color-text-3);
+}
+
+.comment-notifications__meta b {
+	font-weight: 600;
+	color: var(--tl-color-text-1);
+}
+
+.comment-notifications__preview {
+	overflow: hidden;
+	font-size: 12px;
+	line-height: 1.3;
+	color: var(--tl-color-text-3);
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+/* Unread rows lead with the comment itself; read ones recede to a record of what happened. */
+.comment-notifications__row[data-unread='true'] .comment-notifications__preview {
+	color: var(--tl-color-text-1);
+}
+
+.comment-notifications__row[data-unread='false'] {
+	opacity: 0.7;
+}
+
+.comment-notifications__dot {
+	flex: none;
+	width: 8px;
+	height: 8px;
+	margin-top: 6px;
+	border-radius: 50%;
+	background-color: var(--tl-color-selection-stroke);
+}
+
+.comment-notifications__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	border-top: 1px solid var(--tl-color-divider);
+	padding-top: 6px;
+}

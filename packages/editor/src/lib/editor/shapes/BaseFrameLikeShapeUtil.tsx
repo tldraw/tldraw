@@ -5,7 +5,7 @@ import { BaseBoxShapeUtil, TLBaseBoxShape } from './BaseBoxShapeUtil'
 import { TLDragShapesInInfo, TLDragShapesOutInfo } from './ShapeUtil'
 
 /**
- * A base class for frame-like shapes — containers that clip their children,
+ * A base class for frame-like shapes — containers that clip their children except arrows,
  * require full-brush selection, block erasure from inside, and support
  * drag-and-drop reparenting.
  *
@@ -17,6 +17,7 @@ import { TLDragShapesInInfo, TLDragShapesOutInfo } from './ShapeUtil'
  * - `canReceiveNewChildrenOfType()` returns `true` unless the container is locked
  * - `canRemoveChildrenOfType()` returns `true` unless the container is locked
  * - `getClipPath()` returns the shape geometry's vertices
+ * - `shouldClipChild()` clips all children except arrows
  * - `onDragShapesIn()` reparents shapes into the frame (with index restoration)
  * - `onDragShapesOut()` reparents shapes back to the page
  *
@@ -69,6 +70,10 @@ export abstract class BaseFrameLikeShapeUtil<
 		return this.editor.getShapeGeometry(shape.id).vertices
 	}
 
+	override shouldClipChild(child: TLShape): boolean {
+		return child.type !== 'arrow'
+	}
+
 	override onDragShapesIn(
 		shape: Shape,
 		draggingShapes: TLShape[],
@@ -88,7 +93,11 @@ export abstract class BaseFrameLikeShapeUtil<
 			const currentChildren = compact(
 				editor.getSortedChildIdsForParent(shape).map((id) => editor.getShape(id))
 			)
-			if (previousChildren.every((s) => !currentChildren.find((c) => c.index === s.index))) {
+			if (
+				previousChildren.every(
+					(s) => !currentChildren.find((c) => c.index === initialIndices.get(s.id))
+				)
+			) {
 				canRestoreOriginalIndices = true
 			}
 		}

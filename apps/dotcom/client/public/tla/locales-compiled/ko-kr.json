@@ -11,6 +11,32 @@
       "value": "초대 수락"
     }
   ],
+  "029f235f01": [
+    {
+      "type": 0,
+      "value": "저희는 "
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": 1,
+              "value": "appName"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "에서 제공하는 파일에 대한 지원을 개발 중입니다."
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -31,6 +57,22 @@
     {
       "type": 0,
       "value": "팀원들을 초대하세요"
+    }
+  ],
+  "05b2656486": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 님이 당신을 언급했습니다."
     }
   ],
   "05f43078e9": [
@@ -61,6 +103,16 @@
     {
       "type": 0,
       "value": "계정"
+    }
+  ],
+  "093ac7483a": [
+    {
+      "type": 1,
+      "value": "extension"
+    },
+    {
+      "type": 0,
+      "value": " 파일을 아직 열 수 없습니다."
     }
   ],
   "0a91f7fa87": [
@@ -123,10 +175,10 @@
       "value": "내보내기 형식"
     }
   ],
-  "1764571547": [
+  "14b03eeeb5": [
     {
       "type": 0,
-      "value": "이 워크스페이스를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+      "value": "알림 옵션"
     }
   ],
   "181b90f889": [
@@ -181,6 +233,28 @@
       "value": "tldraw에 대하여"
     }
   ],
+  "2755e3ab39": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 님이 당신의 게시판에 댓글을 남겼습니다."
+    }
+  ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "피드백을 제출할 수 없습니다."
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -197,6 +271,12 @@
     {
       "type": 0,
       "value": "찾다..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "다시 시도해 주세요."
     }
   ],
   "2de510be71": [
@@ -307,10 +387,32 @@
       "value": "Discord에서 도움 받기"
     }
   ],
+  "454aad3b3c": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "을 정말로 삭제하시겠습니까?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "tldraw 개선에 도움을 주셔서 감사합니다!"
+    }
+  ],
+  "46de2de6bb": [
+    {
+      "type": 0,
+      "value": "이용약관에 동의합니다"
     }
   ],
   "477df802ca": [
@@ -329,12 +431,6 @@
     {
       "type": 0,
       "value": "핀 파일"
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "이 파일을 무시하시겠습니까?"
     }
   ],
   "49ee308734": [
@@ -379,6 +475,12 @@
       "value": "페이지 메뉴"
     }
   ],
+  "53770fd374": [
+    {
+      "type": 0,
+      "value": "읽지 않음"
+    }
+  ],
   "542248f0ba": [
     {
       "type": 0,
@@ -389,6 +491,22 @@
     {
       "type": 0,
       "value": "공동 작업자 정원 도달"
+    }
+  ],
+  "545241e7dd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 읽지 않음"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "로컬 도면을 복원할 수 없습니다. 페이지를 새로고침해 보세요."
     }
   ],
   "554a05155c": [
@@ -449,6 +567,22 @@
       "value": "내 작업 공간"
     }
   ],
+  "5bffeebf03": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "님이 귀하의 댓글에 반응을 남겼습니다."
+    }
+  ],
   "5d04a002ea": [
     {
       "type": 0,
@@ -473,10 +607,43 @@
       "value": "복사"
     }
   ],
+  "608e9d366e": [
+    {
+      "type": 0,
+      "value": "이제 모든 내용을 따라잡으셨군요."
+    }
+  ],
+  "60a68c29d6": [
+    {
+      "type": 0,
+      "value": "댓글을 남기려면 로그인하세요"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
       "value": "이후"
+    }
+  ],
+  "61fb03fd7b": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": "명이 당신의 댓글에 반응했습니다"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "625fd29749": [
@@ -579,6 +746,12 @@
     {
       "type": 0,
       "value": "최대 파일 수에 도달했습니다. 새 파일을 만들기 전에 이전 파일을 삭제해야 합니다."
+    }
+  ],
+  "7542d62aac": [
+    {
+      "type": 0,
+      "value": "모두 읽음으로 표시"
     }
   ],
   "7573b8110a": [
@@ -717,6 +890,32 @@
       "value": "하실 수도 있습니다."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "정말 "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " 파일을 무시하시겠습니까?"
+    }
+  ],
+  "8413c683b4": [
+    {
+      "type": 0,
+      "value": "댓글"
+    }
+  ],
   "858ba4765e": [
     {
       "type": 0,
@@ -787,6 +986,22 @@
       "value": "이름 바꾸기"
     }
   ],
+  "90646db02d": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -847,6 +1062,12 @@
     {
       "type": 0,
       "value": "파일 삭제"
+    }
+  ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "현재 연결이 끊긴 상태입니다. 연결 상태를 확인하고 다시 시도해 주세요."
     }
   ],
   "9ccb565b86": [
@@ -923,6 +1144,12 @@
       "value": "이미지 내보내기"
     }
   ],
+  "a274f4d467": [
+    {
+      "type": 0,
+      "value": "알림"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -971,6 +1198,12 @@
       "value": "작업 공간 생성"
     }
   ],
+  "aaec8f7cde": [
+    {
+      "type": 0,
+      "value": "누구"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -993,6 +1226,28 @@
     {
       "type": 0,
       "value": "게스트 사용자"
+    }
+  ],
+  "b03400e2db": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "님이 답글을 남겼습니다."
+    }
+  ],
+  "b1c94ca2fb": [
+    {
+      "type": 0,
+      "value": "모두"
     }
   ],
   "b2326c3a34": [
@@ -1101,22 +1356,6 @@
       "value": "공유에 대해 자세히 알아보세요."
     }
   ],
-  "c28aed8348": [
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": "를 허용하여 tldraw를 개선하세요."
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1181,6 +1420,56 @@
     {
       "type": 0,
       "value": "게시에 대해 자세히 알아보세요."
+    }
+  ],
+  "d0e3556476": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "님과 "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " 명"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " 명"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "이 회원님의 댓글에 반응했습니다."
     }
   ],
   "d3d2e61733": [
@@ -1301,6 +1590,36 @@
       "value": "서비스 약관"
     }
   ],
+  "e65b2dcb6f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "님과 "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "님이 댓글에 반응을 남겼습니다."
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1369,6 +1688,12 @@
       "value": "을 읽어보세요."
     }
   ],
+  "edec9387f9": [
+    {
+      "type": 0,
+      "value": "이 댓글은 삭제되었습니다."
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1405,10 +1730,98 @@
       "value": "삭제"
     }
   ],
+  "f476ba8646": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 및 "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 님이 귀하의 댓글에 반응했습니다."
+    }
+  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "설정"
+    }
+  ],
+  "f5ddc8d9c1": [
+    {
+      "type": 0,
+      "value": "지금은 "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "extension"
+        },
+        {
+          "type": 0,
+          "value": " 파일로 내보냄"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "을 사용하여 여기에서 사용할 수 있습니다."
     }
   ],
   "fa2ead697d": [
@@ -1427,12 +1840,6 @@
     {
       "type": 0,
       "value": "이 작업 공간을 나가시겠습니까?"
-    }
-  ],
-  "fd1be3efcf": [
-    {
-      "type": 0,
-      "value": "이 파일을 삭제하시겠습니까?"
     }
   ],
   "fed5ec05eb": [

@@ -14,9 +14,14 @@ keywords:
   ]
 ---
 
-Register a handler to run after shapes are deleted.
+Run a handler after shapes are deleted to remove frames that have become empty.
 
 ---
 
-You can register handlers to run after any record is deleted. In this example, we delete frames
-after the last shape inside them is deleted.
+`editor.sideEffects.registerAfterDeleteHandler` runs after a record has been removed from the
+store, which makes it a good place to clean up anything that depended on that record. In this
+example, deleting the last child of a frame deletes the frame too.
+
+Try deleting the shapes inside the frame one by one. Once the last one goes, the frame disappears
+with it. The handler also runs for the frame it just deleted, so nested frames cascade: emptying an
+inner frame can empty and delete its outer frame too.

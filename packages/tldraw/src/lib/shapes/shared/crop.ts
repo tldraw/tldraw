@@ -120,7 +120,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 			props: ShapeWithCrop['props']
 	  }
 	| undefined {
-	const { handle, change, crop, aspectRatioLocked } = info
+	const { handle, change, crop, aspectRatioLocked, isResizingFromCenter } = info
 	const { w, h } = info.uncroppedSize
 	const { minWidth = MIN_CROP_SIZE, minHeight = MIN_CROP_SIZE } = opts
 
@@ -140,27 +140,86 @@ export function getCropBox<T extends ShapeWithCrop>(
 	const targetRatio = prevCropBox.aspectRatio
 	const tempBox = prevCropBox.clone()
 
-	// Basic resizing logic based on the handles
+	// Which axes does the dragged handle move?
+	const movesLeft = handle === 'top_left' || handle === 'bottom_left' || handle === 'left'
+	const movesRight = handle === 'top_right' || handle === 'bottom_right' || handle === 'right'
+	const movesTop = handle === 'top_left' || handle === 'top_right' || handle === 'top'
+	const movesBottom = handle === 'bottom_left' || handle === 'bottom_right' || handle === 'bottom'
 
-	if (handle === 'top_left' || handle === 'bottom_left' || handle === 'left') {
-		tempBox.x = clamp(tempBox.x + change.x, 0, prevCropBox.maxX - minWidth)
-		tempBox.w = prevCropBox.maxX - tempBox.x
-	} else if (handle === 'top_right' || handle === 'bottom_right' || handle === 'right') {
-		const tempRight = clamp(tempBox.maxX + change.x, prevCropBox.x + minWidth, w)
-		tempBox.w = tempRight - tempBox.x
-	}
+	if (isResizingFromCenter) {
+		// Resizing from the center (alt/option): the crop center stays fixed and the
+		// opposite edge mirrors the dragged edge, so the crop grows/shrinks symmetrically.
+		const cx = prevCropBox.midX
+		const cy = prevCropBox.midY
 
-	if (handle === 'top_left' || handle === 'top_right' || handle === 'top') {
-		tempBox.y = clamp(tempBox.y + change.y, 0, prevCropBox.maxY - minHeight)
-		tempBox.h = prevCropBox.maxY - tempBox.y
-	} else if (handle === 'bottom_left' || handle === 'bottom_right' || handle === 'bottom') {
-		const tempBottom = clamp(tempBox.maxY + change.y, prevCropBox.y + minHeight, h)
-		tempBox.h = tempBottom - tempBox.y
+		// Desired half-extents from the dragged edge. Undragged axes keep their size.
+		let halfW = prevCropBox.w / 2
+		let halfH = prevCropBox.h / 2
+		if (movesLeft) halfW = cx - (prevCropBox.x + change.x)
+		else if (movesRight) halfW = prevCropBox.maxX + change.x - cx
+		if (movesTop) halfH = cy - (prevCropBox.y + change.y)
+		else if (movesBottom) halfH = prevCropBox.maxY + change.y - cy
+
+		if (aspectRatioLocked) {
+			// Keep the aspect ratio while staying centered. Pick the driving dimension,
+			// derive the other from the ratio, then clamp both at once so the ratio holds.
+			const isCorner = (movesLeft || movesRight) && (movesTop || movesBottom)
+			let drivingHalfW: number
+			if (isCorner) {
+				drivingHalfW = halfW / halfH > targetRatio ? halfW : halfH * targetRatio
+			} else if (movesLeft || movesRight) {
+				drivingHalfW = halfW
+			} else {
+				drivingHalfW = halfH * targetRatio
+			}
+
+			const minHalfW = Math.max(minWidth / 2, (minHeight / 2) * targetRatio)
+			const maxHalfW = Math.min(cx, w - cx, cy * targetRatio, (h - cy) * targetRatio)
+			if (maxHalfW < minHalfW) return
+
+			halfW = clamp(drivingHalfW, minHalfW, maxHalfW)
+			halfH = halfW / targetRatio
+		} else {
+			// Clamp each dragged axis independently against the image bounds and min size.
+			if (movesLeft || movesRight) {
+				const maxHalfW = Math.min(cx, w - cx)
+				if (maxHalfW < minWidth / 2) return
+				halfW = clamp(halfW, minWidth / 2, maxHalfW)
+			}
+			if (movesTop || movesBottom) {
+				const maxHalfH = Math.min(cy, h - cy)
+				if (maxHalfH < minHeight / 2) return
+				halfH = clamp(halfH, minHeight / 2, maxHalfH)
+			}
+		}
+
+		tempBox.x = cx - halfW
+		tempBox.y = cy - halfH
+		tempBox.w = halfW * 2
+		tempBox.h = halfH * 2
+	} else {
+		// Basic resizing logic based on the handles
+
+		if (movesLeft) {
+			tempBox.x = clamp(tempBox.x + change.x, 0, prevCropBox.maxX - minWidth)
+			tempBox.w = prevCropBox.maxX - tempBox.x
+		} else if (movesRight) {
+			const tempRight = clamp(tempBox.maxX + change.x, prevCropBox.x + minWidth, w)
+			tempBox.w = tempRight - tempBox.x
+		}
+
+		if (movesTop) {
+			tempBox.y = clamp(tempBox.y + change.y, 0, prevCropBox.maxY - minHeight)
+			tempBox.h = prevCropBox.maxY - tempBox.y
+		} else if (movesBottom) {
+			const tempBottom = clamp(tempBox.maxY + change.y, prevCropBox.y + minHeight, h)
+			tempBox.h = tempBottom - tempBox.y
+		}
 	}
 
 	// Aspect ratio locked resizing logic
 
-	if (aspectRatioLocked) {
+	if (aspectRatioLocked && !isResizingFromCenter) {
 		const isXLimiting = tempBox.aspectRatio > targetRatio
 
 		if (isXLimiting) {
@@ -383,7 +442,18 @@ interface CropChange {
 	y: number
 }
 
-// Base function for calculating crop changes
+/**
+ * Top-left position that keeps the image's visual centre where it is after its display size
+ * changes. The half-size delta is in the shape's own space, so it has to be rotated by the
+ * shape's rotation; a plain `center - newSize / 2` only holds for unrotated images.
+ */
+function getPositionKeepingCenter(imageShape: TLImageShape, newW: number, newH: number) {
+	const delta = new Vec((imageShape.props.w - newW) / 2, (imageShape.props.h - newH) / 2).rot(
+		imageShape.rotation
+	)
+	return { x: imageShape.x + delta.x, y: imageShape.y + delta.y }
+}
+
 function calculateCropChange(
 	imageShape: TLImageShape,
 	newCropWidth: number,
@@ -393,10 +463,6 @@ function calculateCropChange(
 ): CropChange {
 	const { w, h } = getUncroppedSize(imageShape.props, imageShape.props.crop ?? getDefaultCrop())
 	const currentCrop = imageShape.props.crop || getDefaultCrop()
-
-	// Calculate image and crop centers
-	const imageCenterX = imageShape.x + imageShape.props.w / 2
-	const imageCenterY = imageShape.y + imageShape.props.h / 2
 
 	let cropCenterX, cropCenterY
 	if (centerOnCurrentCrop) {
@@ -425,8 +491,7 @@ function calculateCropChange(
 		crop: newCrop,
 		w: croppedW,
 		h: croppedH,
-		x: imageCenterX - croppedW / 2,
-		y: imageCenterY - croppedH / 2,
+		...getPositionKeepingCenter(imageShape, croppedW, croppedH),
 	}
 }
 
@@ -467,10 +532,9 @@ export function getCroppedImageDataWhenZooming(
 	result.h *= scaleFactor
 
 	// Recenter
-	const imageCenterX = imageShape.x + imageShape.props.w / 2
-	const imageCenterY = imageShape.y + imageShape.props.h / 2
-	result.x = imageCenterX - result.w / 2
-	result.y = imageCenterY - result.h / 2
+	const { x, y } = getPositionKeepingCenter(imageShape, result.w, result.h)
+	result.x = x
+	result.y = y
 
 	return result
 }
@@ -492,7 +556,13 @@ export function getCroppedImageDataForReplacedImage(
 	let crop = defaultCrop
 	let newDisplayW = origDisplayW
 	let newDisplayH = origDisplayH
-	const isOriginalCrop = isEqual(imageShape.props.crop, defaultCrop)
+	// Compare the bounds, not the whole object: an explicit `isCircle: false` must still count
+	// as the original crop.
+	const isOriginalCrop =
+		!!imageShape.props.crop &&
+		isEqual(imageShape.props.crop.topLeft, defaultCrop.topLeft) &&
+		isEqual(imageShape.props.crop.bottomRight, defaultCrop.bottomRight) &&
+		!imageShape.props.crop.isCircle
 
 	if (isOriginalCrop) {
 		newDisplayW = origDisplayW
@@ -544,19 +614,11 @@ export function getCroppedImageDataForReplacedImage(
 		)
 	}
 
-	// Position so visual center stays put
-	const pageCenterX = imageShape.x + origDisplayW / 2
-	const pageCenterY = imageShape.y + origDisplayH / 2
-
-	const newX = pageCenterX - newDisplayW / 2
-	const newY = pageCenterY - newDisplayH / 2
-
 	return {
 		crop,
 		w: newDisplayW,
 		h: newDisplayH,
-		x: newX,
-		y: newY,
+		...getPositionKeepingCenter(imageShape, newDisplayW, newDisplayH),
 	}
 }
 
@@ -570,15 +632,12 @@ export function getCroppedImageDataForAspectRatio(
 	// If original aspect ratio is requested, use default crop
 	if (aspectRatioOption === 'original') {
 		const { w, h } = getUncroppedSize(imageShape.props, imageShape.props.crop ?? getDefaultCrop())
-		const imageCenterX = imageShape.x + imageShape.props.w / 2
-		const imageCenterY = imageShape.y + imageShape.props.h / 2
 
 		return {
 			crop: getDefaultCrop(),
 			w,
 			h,
-			x: imageCenterX - w / 2,
-			y: imageCenterY - h / 2,
+			...getPositionKeepingCenter(imageShape, w, h),
 		}
 	}
 
@@ -694,18 +753,10 @@ export function getCroppedImageDataForAspectRatio(
 	const newW = baseW * currentScale
 	const newH = baseH * currentScale
 
-	// Calculate the new top-left position (x, y) for the shape
-	// to keep the visual center of the cropped area fixed on the page.
-	const currentCenterXPage = imageShape.x + imageShape.props.w / 2
-	const currentCenterYPage = imageShape.y + imageShape.props.h / 2
-	const newX = currentCenterXPage - newW / 2
-	const newY = currentCenterYPage - newH / 2
-
 	return {
 		crop: newCrop,
 		w: newW,
 		h: newH,
-		x: newX,
-		y: newY,
+		...getPositionKeepingCenter(imageShape, newW, newH),
 	}
 }

@@ -1,5 +1,6 @@
 import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
+import './popup-shape.css'
 import { PopupShapeUtil } from './PopupShapeUtil'
 
 const customShapeUtils = [PopupShapeUtil]

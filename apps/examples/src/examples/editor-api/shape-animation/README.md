@@ -5,17 +5,10 @@ priority: 2
 keywords: [animate, animation, shape, easing, transition, movement, rotation, opacity]
 ---
 
-Animate shapes using `animateShape()` and `animateShapes()`.
+Animate a shape's position, rotation, and opacity with `animateShape()` and `animateShapes()`.
 
 ---
 
-This example demonstrates how to animate shapes using the editor's animation API. It shows:
+`editor.animateShape(partial, { animation })` interpolates a shape's `x`, `y`, `rotation`, and `opacity` from their current values to those in the partial over the given `duration`, using an easing function from `EASINGS` (or any `(t) => number`). `animateShapes()` does the same for many shapes at once. Shape props are also interpolated when the shape util implements `getInterpolatedProps`.
 
-- **Basic shape animation** - Animating a single shape's position using `animateShape()`
-- **Rotation animation** - Spinning a shape 360 degrees
-- **Opacity animation** - Fading shapes in and out
-- **Combined animations** - Animating multiple properties (position, rotation, opacity) simultaneously
-- **Multiple shape animation** - Animating all shapes at once with `animateShapes()`
-- **Different easing functions** - Using `EASINGS.easeInOutCubic`, `EASINGS.easeInOutQuad`, and `EASINGS.easeOutCubic`
-
-The animation system automatically interpolates between the current and target values of animated properties over the specified duration.
+Select one shape and try the position, rotation, fade, and combined buttons, or use "Animate multiple shapes" to scatter everything on the page.

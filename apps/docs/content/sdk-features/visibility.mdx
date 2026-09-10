@@ -13,11 +13,11 @@ keywords:
   - viewport
 ---
 
-The editor's visibility system determines which shapes are rendered on screen. It handles two separate concerns: **culling** (hiding off-screen shapes for performance) and **hidden shapes** (shapes your application explicitly hides).
+The editor's visibility system determines which shapes are rendered on screen. It handles two separate concerns: culling, which hides off-screen shapes for performance, and hidden shapes, which your application hides explicitly.
 
 ## Culling
 
-Culling is a performance optimization. Shapes outside the viewport are removed from the render output by setting `display: none` on their DOM elements. The shapes remain in the store and can still be selected, updated, or queried—they just don't render.
+Culling is a performance optimization. Shapes outside the viewport stay in the store and can still be selected, updated, or queried, but the editor sets `display: none` on their DOM elements. Selected shapes and the shape being edited are never culled. Return `false` from [ShapeUtil#canCull](?) to opt a shape out.
 
 You can get the set of culled shape IDs with [Editor#getCulledShapes](?):
 
@@ -25,40 +25,7 @@ You can get the set of culled shape IDs with [Editor#getCulledShapes](?):
 const culledIds = editor.getCulledShapes()
 ```
 
-Two kinds of shapes are never culled, even when off-screen:
-
-1. **Selected shapes** — the user might be dragging them back into view
-2. **The editing shape** — the user is actively working on it
-
-### How culling works
-
-The editor uses a spatial index (an R-tree) to quickly find which shapes are inside the viewport. Shapes outside the viewport are candidates for culling, but the final decision depends on [ShapeUtil#canCull](?):
-
-```ts
-class MyShapeUtil extends ShapeUtil<MyShape> {
-	override canCull(shape: MyShape): boolean {
-		return true // default behavior
-	}
-}
-```
-
-Return `false` from `canCull` to prevent a shape from being culled. You'd do this for shapes that need to keep running while off-screen—for example, shapes that measure their DOM content to determine their size:
-
-```ts
-class DynamicSizeShapeUtil extends ShapeUtil<DynamicSizeShape> {
-	override canCull() {
-		return false // keep rendering so we can measure DOM
-	}
-}
-```
-
-### Culling methods
-
-| Method                                          | Description                                                                   |
-| ----------------------------------------------- | ----------------------------------------------------------------------------- |
-| [Editor#getCulledShapes](?)                     | Returns the set of shape IDs that are currently culled.                       |
-| [Editor#getNotVisibleShapes](?)                 | Returns shape IDs outside the viewport (before selection filtering).          |
-| [Editor#getCurrentPageRenderingShapesSorted](?) | Returns shapes that will actually render (excludes culled and hidden shapes). |
+See [Culling](/sdk-features/culling) for how the spatial index decides what to cull and for the full set of culling methods.
 
 ## Hidden shapes
 
@@ -84,11 +51,13 @@ export default function App() {
 
 The function can return:
 
-| Return value               | Behavior                                                |
-| -------------------------- | ------------------------------------------------------- |
-| `'inherit'` or `undefined` | Shape is visible unless its parent is hidden (default). |
-| `'hidden'`                 | Shape is always hidden.                                 |
-| `'visible'`                | Shape is always visible, even if parent is hidden.      |
+| Return value                        | Behavior                                                |
+| ----------------------------------- | ------------------------------------------------------- |
+| `'inherit'`, `undefined`, or `null` | Shape is visible unless its parent is hidden (default). |
+| `'hidden'`                          | Shape is always hidden.                                 |
+| `'visible'`                         | Shape is always visible, even if parent is hidden.      |
+
+The same prop is available on [TldrawEditor](?) and as an [Editor](?) constructor option. The editor caches the result per shape, so keep the callback pure.
 
 Hidden shapes are still in the store. They're just excluded from:
 
@@ -96,6 +65,8 @@ Hidden shapes are still in the store. They're just excluded from:
 - Hit tests ([Editor#getShapeAtPoint](?), [Editor#getShapesAtPoint](?))
 - [Editor#getRenderingShapes](?) and [Editor#getCurrentPageRenderingShapesSorted](?)
 - Image exports and printing
+- [Editor#getCurrentPageBounds](?) and [Editor#zoomToFit](?)
+- Drop targets and automatic parenting of new shapes
 
 You can check if a shape is hidden with [Editor#isShapeHidden](?):
 
@@ -107,7 +78,7 @@ if (editor.isShapeHidden(shapeId)) {
 
 ### Preventing hidden shapes from being selected
 
-Hidden shapes can still be selected via keyboard shortcuts like select-all. If you want to prevent this, filter the selection when it changes:
+Hidden shapes can still be selected via keyboard shortcuts like select-all. If you want to prevent this, filter the [selection](/sdk-features/selection) when it changes:
 
 ```tsx
 import { react, Tldraw } from 'tldraw'
@@ -137,7 +108,7 @@ For examples using hidden shapes, see the [collaboration private content example
 
 ## Opacity
 
-Each shape has an `opacity` property (0 to 1) that controls its transparency. When shapes are nested, opacity multiplies down the hierarchy—a shape at 0.5 opacity inside a parent at 0.5 opacity renders at 0.25 opacity.
+Each shape has an `opacity` property (0 to 1) that controls its transparency. When shapes are nested, opacity multiplies down the hierarchy: a shape at 0.5 opacity inside a parent at 0.5 opacity renders at 0.25 opacity.
 
 The editor calculates the cumulative opacity for each shape and passes it to the rendering layer. You can access the computed opacity through [Editor#getRenderingShapes](?):
 
@@ -169,4 +140,4 @@ interface TLRenderingShape {
 
 The `index` and `backgroundIndex` values control z-ordering. The editor uses CSS z-index rather than DOM ordering to position shapes visually. This keeps the DOM stable (shapes stay in ID order) and avoids expensive reflows when z-order changes.
 
-For most use cases, you won't need to work with rendering shapes directly—the editor's canvas handles this. But if you're building custom rendering or need to understand which shapes are visible at what opacity, this is the API to use.
+For most use cases, you won't need to work with rendering shapes directly; the editor's canvas handles this. Use it if you're building custom rendering or need to know which shapes are visible at what opacity.

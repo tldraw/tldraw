@@ -11,6 +11,32 @@
       "value": "Accepteer de uitnodiging"
     }
   ],
+  "029f235f01": [
+    {
+      "type": 0,
+      "value": "We werken aan ondersteuning voor bestanden van "
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": 1,
+              "value": "appName"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -31,6 +57,22 @@
     {
       "type": 0,
       "value": "Nodig teamgenoten uit"
+    }
+  ],
+  "05b2656486": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " noemde je"
     }
   ],
   "05f43078e9": [
@@ -61,6 +103,20 @@
     {
       "type": 0,
       "value": "Rekening"
+    }
+  ],
+  "093ac7483a": [
+    {
+      "type": 0,
+      "value": "Kan "
+    },
+    {
+      "type": 1,
+      "value": "extension"
+    },
+    {
+      "type": 0,
+      "value": " bestanden nog niet openen."
     }
   ],
   "0a91f7fa87": [
@@ -123,10 +179,10 @@
       "value": "Exporteren als"
     }
   ],
-  "1764571547": [
+  "14b03eeeb5": [
     {
       "type": 0,
-      "value": "Weet je zeker dat je deze werkruimte wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
+      "value": "Meldingsopties"
     }
   ],
   "181b90f889": [
@@ -185,6 +241,28 @@
       "value": "Over tldraw"
     }
   ],
+  "2755e3ab39": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " heeft een reactie geplaatst op je forum"
+    }
+  ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Feedback verzenden is niet mogelijk"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -201,6 +279,12 @@
     {
       "type": 0,
       "value": "Zoekopdracht..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Probeer het alstublieft opnieuw."
     }
   ],
   "2de510be71": [
@@ -311,10 +395,36 @@
       "value": "Krijg hulp op Discord"
     }
   ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Weet je zeker dat je "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " wilt verwijderen?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Bedankt voor uw hulp bij het verbeteren van tldraw!"
+    }
+  ],
+  "46de2de6bb": [
+    {
+      "type": 0,
+      "value": "Gebruiksvoorwaarden accepteren"
     }
   ],
   "477df802ca": [
@@ -333,12 +443,6 @@
     {
       "type": 0,
       "value": "Pinbestand"
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Weet u zeker dat u dit bestand wilt vergeten?"
     }
   ],
   "49ee308734": [
@@ -383,6 +487,12 @@
       "value": "Paginamenu"
     }
   ],
+  "53770fd374": [
+    {
+      "type": 0,
+      "value": "Ongelezen"
+    }
+  ],
   "542248f0ba": [
     {
       "type": 0,
@@ -393,6 +503,22 @@
     {
       "type": 0,
       "value": "Limiet voor bijdragers bereikt"
+    }
+  ],
+  "545241e7dd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " ongelezen"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Uw lokale tekening kon niet worden hersteld. Probeer deze pagina opnieuw te laden."
     }
   ],
   "554a05155c": [
@@ -453,6 +579,22 @@
       "value": "Mijn werkplek"
     }
   ],
+  "5bffeebf03": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " reageerde op je reactie"
+    }
+  ],
   "5d04a002ea": [
     {
       "type": 0,
@@ -477,10 +619,51 @@
       "value": "Kopiëren"
     }
   ],
+  "608e9d366e": [
+    {
+      "type": 0,
+      "value": "Je bent helemaal bij."
+    }
+  ],
+  "60a68c29d6": [
+    {
+      "type": 0,
+      "value": "Meld u aan om te reageren"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
       "value": "Later"
+    }
+  ],
+  "61fb03fd7b": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Iemand heeft gereageerd op je reactie."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " mensen reageerden op je reactie"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "625fd29749": [
@@ -583,6 +766,12 @@
     {
       "type": 0,
       "value": "U hebt het maximum aantal bestanden bereikt. U moet oude bestanden verwijderen voordat u nieuwe bestanden maakt."
+    }
+  ],
+  "7542d62aac": [
+    {
+      "type": 0,
+      "value": "Markeer alles als gelezen"
     }
   ],
   "7573b8110a": [
@@ -721,6 +910,32 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Weet je zeker dat je "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " wilt vergeten?"
+    }
+  ],
+  "8413c683b4": [
+    {
+      "type": 0,
+      "value": "Opmerkingen"
+    }
+  ],
   "858ba4765e": [
     {
       "type": 0,
@@ -791,6 +1006,26 @@
       "value": "Hernoemen"
     }
   ],
+  "90646db02d": [
+    {
+      "type": 0,
+      "value": "Weet je zeker dat je "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -851,6 +1086,12 @@
     {
       "type": 0,
       "value": "Bestand verwijderen"
+    }
+  ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Je lijkt offline te zijn. Controleer je internetverbinding en probeer het opnieuw."
     }
   ],
   "9ccb565b86": [
@@ -927,6 +1168,12 @@
       "value": "Afbeelding exporteren"
     }
   ],
+  "a274f4d467": [
+    {
+      "type": 0,
+      "value": "Meldingen"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -975,6 +1222,12 @@
       "value": "Werkruimte creëren"
     }
   ],
+  "aaec8f7cde": [
+    {
+      "type": 0,
+      "value": "Iemand"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -997,6 +1250,28 @@
     {
       "type": 0,
       "value": "Gastgebruiker"
+    }
+  ],
+  "b03400e2db": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " antwoordde"
+    }
+  ],
+  "b1c94ca2fb": [
+    {
+      "type": 0,
+      "value": "Alle"
     }
   ],
   "b2326c3a34": [
@@ -1117,26 +1392,6 @@
       "value": "Meer informatie over delen."
     }
   ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Sta "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": " toe om ons te helpen tldraw te verbeteren."
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1201,6 +1456,56 @@
     {
       "type": 0,
       "value": "Meer informatie over publiceren."
+    }
+  ],
+  "d0e3556476": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " en "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reageerden op je reactie"
     }
   ],
   "d3d2e61733": [
@@ -1321,6 +1626,36 @@
       "value": "Servicevoorwaarden"
     }
   ],
+  "e65b2dcb6f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " en "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " reageerden op je reactie"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1389,6 +1724,12 @@
       "value": " voor meer informatie."
     }
   ],
+  "edec9387f9": [
+    {
+      "type": 0,
+      "value": "Deze reactie is verwijderd."
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1425,10 +1766,102 @@
       "value": "Verwijderen"
     }
   ],
+  "f476ba8646": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " en "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reageerden op je reactie"
+    }
+  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "Instellingen"
+    }
+  ],
+  "f5ddc8d9c1": [
+    {
+      "type": 0,
+      "value": "Voorlopig kun je het "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "exporteren als een "
+        },
+        {
+          "type": 1,
+          "value": "extension"
+        },
+        {
+          "type": 0,
+          "value": " bestand"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " om het hier te gebruiken."
     }
   ],
   "fa2ead697d": [
@@ -1447,12 +1880,6 @@
     {
       "type": 0,
       "value": "Weet je zeker dat je deze werkruimte wilt verlaten?"
-    }
-  ],
-  "fd1be3efcf": [
-    {
-      "type": 0,
-      "value": "Weet u zeker dat u dit bestand wilt verwijderen?"
     }
   ],
   "fed5ec05eb": [

@@ -1,0 +1,11 @@
+.comment-precision-panel {
+	position: absolute;
+	top: 60px;
+	left: 8px;
+	z-index: 1000;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	padding: 4px;
+	pointer-events: all;
+}

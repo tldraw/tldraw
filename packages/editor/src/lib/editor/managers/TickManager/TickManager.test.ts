@@ -142,6 +142,19 @@ describe('TickManager', () => {
 			expect(mockEmit).toHaveBeenCalledWith('frame', 0)
 			expect(mockEmit).toHaveBeenCalledWith('tick', 0)
 		})
+
+		it('should schedule the next frame even when a listener throws', () => {
+			const staleCancel = vi.fn()
+			tickManager.cancelRaf = staleCancel
+			mockEmit.mockImplementation(() => {
+				throw new Error('listener blew up')
+			})
+
+			// the error still reaches the caller, but the loop lives on
+			expect(() => tickManager.tick()).toThrow('listener blew up')
+			expect(mockRequestAnimationFrame).toHaveBeenCalled()
+			expect(tickManager.cancelRaf).not.toBe(staleCancel)
+		})
 	})
 
 	describe('dispose method', () => {

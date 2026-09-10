@@ -90,6 +90,10 @@ export interface TLGeoShapeProps {
 	growY: number
 	/** Scale factor applied to the shape */
 	scale: number
+	/** Whether to mirror the shape horizontally */
+	flipX: boolean
+	/** Whether to mirror the shape vertically */
+	flipY: boolean
 
 	/** Color style for text label */
 	labelColor: TLDefaultColorStyle
@@ -142,7 +146,9 @@ export interface TLGeoShapeProps {
  *     labelColor: 'black',
  *     url: '',
  *     growY: 0,
- *     scale: 1
+ *     scale: 1,
+ *     flipX: false,
+ *     flipY: false
  *   },
  *   meta: {}
  * }
@@ -170,6 +176,8 @@ export const geoShapeProps: RecordProps<TLGeoShape> = {
 	h: T.nonZeroNumber,
 	growY: T.positiveNumber,
 	scale: T.nonZeroNumber,
+	flipX: T.boolean,
+	flipY: T.boolean,
 
 	// Text properties
 	labelColor: DefaultLabelColorStyle,
@@ -194,6 +202,7 @@ const geoShapeVersions = createShapePropsMigrationIds('geo', {
 	AddScale: 9,
 	AddRichText: 10,
 	AddRichTextAttrs: 11,
+	AddFlipProps: 12,
 })
 
 /**
@@ -316,6 +325,17 @@ export const geoShapeMigrations = createShapePropsMigrationSequence({
 				if (props.richText && 'attrs' in props.richText) {
 					delete props.richText.attrs
 				}
+			},
+		},
+		{
+			id: geoShapeVersions.AddFlipProps,
+			up: (props) => {
+				props.flipX = false
+				props.flipY = false
+			},
+			down: (props) => {
+				delete props.flipX
+				delete props.flipY
 			},
 		},
 	],

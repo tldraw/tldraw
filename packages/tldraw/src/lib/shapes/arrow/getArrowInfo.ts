@@ -18,8 +18,9 @@ const arrowInfoCache = createComputedCache<Editor, TLArrowInfo, TLArrowShape>(
 	(editor: Editor, shape: TLArrowShape): TLArrowInfo => {
 		const bindings = getArrowBindings(editor, shape)
 		const util = editor.getShapeUtil(shape)
+		// A replacement arrow util may not carry display values; fall back to the theme width.
 		const sw =
-			'getDisplayValues' in util.options
+			'getDefaultDisplayValues' in util.options && 'getCustomDisplayValues' in util.options
 				? (getDisplayValues(util as any, shape) as { strokeWidth: number }).strokeWidth
 				: editor.getCurrentTheme().strokeWidth * STROKE_SIZES[shape.props.size]
 

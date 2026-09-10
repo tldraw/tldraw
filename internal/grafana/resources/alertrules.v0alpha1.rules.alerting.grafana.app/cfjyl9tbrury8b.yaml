@@ -1,0 +1,80 @@
+apiVersion: rules.alerting.grafana.app/v0alpha1
+kind: AlertRule
+metadata:
+  annotations:
+    grafana.app/folder: f6hsw6
+    grafana.com/provenance: ''
+    grafana.com/updateTimestamp: '2026-04-28T08:48:46Z'
+    grafana.com/updatedBy: ae5t47muqbegwf
+  labels:
+    grafana.app/folder: f6hsw6
+    grafana.com/group: zero-fly-alerts
+    grafana.com/group-index: '6'
+  name: cfjyl9tbrury8b
+  namespace: stacks-890472
+spec:
+  annotations:
+    description: |-
+      Fires when the 5-minute rolling count of logs with detected_level error or fatal is greater than zero for service_name matching zero-(rm|vs) and deployment_environment=staging.
+
+      Investigate in Grafana Explore (grafanacloud-tldraw-logs):
+
+      {service_name=~"zero-(rm|vs)", deployment_environment="staging"} | detected_level=~"error|fatal"
+
+      Typical causes include failed upstream connections, auth/sync failures, or crashes; use log fields (component, worker, status, message) to narrow the blast radius.
+    summary: 'Staging Zero: error/fatal logs in the last evaluation window.'
+  execErrState: Ok
+  expressions:
+    A:
+      datasourceUID: grafanacloud-logs
+      model:
+        datasource:
+          type: loki
+          uid: grafanacloud-logs
+        editorMode: code
+        expr: sum(count_over_time({service_name=~"zero-(rm|vs)", deployment_environment="staging"}
+          | detected_level=~"error|fatal" [5m]))
+        instant: true
+        intervalMs: 1000
+        maxDataPoints: 43200
+        queryType: instant
+        refId: A
+      queryType: instant
+      relativeTimeRange:
+        from: 10m0s
+        to: 0s
+    C:
+      model:
+        conditions:
+          - evaluator:
+              params:
+                - 0
+              type: gt
+            operator:
+              type: and
+            query:
+              params:
+                - C
+            reducer:
+              params: []
+              type: last
+            type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+      queryType: expression
+      source: true
+  for: 5m0s
+  labels:
+    service: zero
+    severity: warning
+  noDataState: Ok
+  paused: true
+  title: Zero error log (staging)
+  trigger:
+    interval: 1m

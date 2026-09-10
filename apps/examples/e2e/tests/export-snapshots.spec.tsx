@@ -211,6 +211,75 @@ const snapshots: Snapshots = {
 			),
 		])
 	),
+	// Directional geo shapes must mirror their geometry (not just their position) when flipped,
+	// and the label must stay upright/unmirrored (#9373). These rows lock in the mirrored path
+	// and the readable label for each flip combination across the SVG export.
+	'Geo flips': Object.fromEntries(
+		(
+			[
+				'rhombus',
+				'rhombus-2',
+				'trapezoid',
+				'triangle',
+				'arrow-right',
+				'arrow-left',
+				'arrow-up',
+				'arrow-down',
+			] as const
+		).map((geoStyle) => [
+			geoStyle,
+			{
+				none: (
+					<TL.geo
+						geo={geoStyle}
+						dash="solid"
+						fill="solid"
+						color="blue"
+						w={100}
+						h={100}
+						richText={toRichText('flip')}
+					/>
+				),
+				flipX: (
+					<TL.geo
+						geo={geoStyle}
+						dash="solid"
+						fill="solid"
+						color="blue"
+						w={100}
+						h={100}
+						flipX
+						richText={toRichText('flip')}
+					/>
+				),
+				flipY: (
+					<TL.geo
+						geo={geoStyle}
+						dash="solid"
+						fill="solid"
+						color="blue"
+						w={100}
+						h={100}
+						flipY
+						richText={toRichText('flip')}
+					/>
+				),
+				flipXY: (
+					<TL.geo
+						geo={geoStyle}
+						dash="solid"
+						fill="solid"
+						color="blue"
+						w={100}
+						h={100}
+						flipX
+						flipY
+						richText={toRichText('flip')}
+					/>
+				),
+			},
+		])
+	),
 	Frames: {
 		'': {
 			empty: <TL.frame w={100} h={100} />,

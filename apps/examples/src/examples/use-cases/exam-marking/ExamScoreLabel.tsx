@@ -1,9 +1,9 @@
 import { useEditor, useValue } from 'tldraw'
 
-// [1]
 export function ExamScoreLabel() {
 	const editor = useEditor()
 
+	// [1]
 	const score = useValue(
 		'score',
 		() => {
@@ -21,7 +21,6 @@ export function ExamScoreLabel() {
 		<div
 			style={{
 				background: 'var(--tl-color-panel)',
-
 				display: 'flex',
 				alignItems: 'center',
 				justifyContent: 'center',
@@ -40,14 +39,7 @@ export function ExamScoreLabel() {
 }
 
 /*
-
 [1]
-This is a simple widget that shows the total exam score. It's an example of how to use the editor instance to compute a value that depends on the shapes on the page.
-
-[a]
-We listen for changes to the document using the editor.store.listen method inside of a useEffect hook.
-
-[b]
-We define a function that calculates the score based on the shapes on the page. We filter all shapes on the current page to only include `exam-mark` shapes, and then access the score prop of each shape and add them all to get the total score.
-
+`useValue` re-runs this computation whenever a shape it read changes, so the total tracks
+every exam mark that is added, edited, or deleted with no manual subscription.
 */

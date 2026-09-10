@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import { DefaultStylePanel, Tldraw, TldrawUiButton, useLocalStorageState } from 'tldraw'
 import { FluidConfigPanel } from './fluid/FluidConfigPanel'
 import { FluidRenderer } from './fluid/FluidRenderer'
@@ -9,42 +8,40 @@ import { RainbowRenderer } from './rainbow/RainbowRenderer'
 import { ShadowControlPanel } from './shadow/ShadowControlPanel'
 import { ShadowRenderer } from './shadow/ShadowRenderer'
 
+const EXAMPLES = [
+	{ label: 'Fluid', value: 'fluid', ConfigPanel: FluidConfigPanel, Renderer: FluidRenderer },
+	{
+		label: 'Rainbow',
+		value: 'rainbow',
+		ConfigPanel: RainbowConfigPanel,
+		Renderer: RainbowRenderer,
+	},
+	{ label: 'Shadows', value: 'shadows', ConfigPanel: ShadowControlPanel, Renderer: ShadowRenderer },
+	{
+		label: 'Minimal',
+		value: 'minimal',
+		ConfigPanel: MinimalConfigPanel,
+		Renderer: MinimalRenderer,
+	},
+]
+
 function App() {
-	const options = [
-		{ label: 'Fluid', value: 'fluid' },
-		{ label: 'Rainbow', value: 'rainbow' },
-		{ label: 'Shadows', value: 'shadows' },
-		{ label: 'Minimal', value: 'minimal' },
-	]
-
 	const [selected, setSelected] = useLocalStorageState<string>('shader-selected', 'fluid')
-
-	const ConfigComponent = useMemo(() => {
-		if (selected === 'fluid') return FluidConfigPanel
-		if (selected === 'rainbow') return RainbowConfigPanel
-		if (selected === 'shadows') return ShadowControlPanel
-		if (selected === 'minimal') return MinimalConfigPanel
-	}, [selected])
-
-	const BackgroundComponent = useMemo(() => {
-		if (selected === 'fluid') return FluidRenderer
-		if (selected === 'rainbow') return RainbowRenderer
-		if (selected === 'shadows') return ShadowRenderer
-		if (selected === 'minimal') return MinimalRenderer
-	}, [selected])
+	const example = EXAMPLES.find((e) => e.value === selected)
+	const ConfigComponent = example?.ConfigPanel
 
 	return (
 		<div className="shader-app">
 			<Tldraw
 				persistenceKey="shader"
 				components={{
-					Background: BackgroundComponent,
+					Background: example?.Renderer,
 					StylePanel: () => {
 						return (
 							<div style={{ display: 'flex', flexDirection: 'row' }}>
 								{ConfigComponent && <ConfigComponent />}
 								<div className="tlui-menu shader-app__example-menu">
-									{options.map((option) => (
+									{EXAMPLES.map((option) => (
 										<TldrawUiButton
 											type="menu"
 											key={option.value}

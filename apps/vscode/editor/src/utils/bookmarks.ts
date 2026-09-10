@@ -41,10 +41,10 @@ export async function onCreateAssetFromUrl({ url }: TLUrlExternalContent): Promi
 				description:
 					doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content') ?? '',
 			}
-			if (!meta.image.startsWith('http')) {
+			if (meta.image && !meta.image.startsWith('http')) {
 				meta.image = new URL(meta.image, url).href
 			}
-			if (!meta.favicon.startsWith('http')) {
+			if (meta.favicon && !meta.favicon.startsWith('http')) {
 				meta.favicon = new URL(meta.favicon, url).href
 			}
 		} catch (error) {

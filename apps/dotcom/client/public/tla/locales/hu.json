@@ -1,12 +1,12 @@
 {
-  "1764571547": {
-    "translation": "Biztosan törölni szeretné ezt a munkaterületet? Ez a művelet nem vonható vissza."
-  },
   "0095a9fa74": {
     "translation": "Export"
   },
   "00b177e080": {
     "translation": "Meghívás elfogadása"
+  },
+  "029f235f01": {
+    "translation": "Dolgozunk a(z) <a><strong>{appName}</strong></a> alkalmazásból származó fájlok támogatásán."
   },
   "03b3e13197": {
     "translation": "Húzza a fájlt az oldal oldalsávjába. Vagy válassza a „Fájl importálása” opciót a felhasználói menüből."
@@ -16,6 +16,9 @@
   },
   "04a2dd56d6": {
     "translation": "Csapattársak meghívása"
+  },
+  "05b2656486": {
+    "translation": "<name>{author}</name> megemlített téged"
   },
   "05f43078e9": {
     "translation": "Elérte a munkaterületek maximális számát. Új munkaterületek létrehozása előtt törölnie kell a régieket."
@@ -31,6 +34,9 @@
   },
   "08bd40c754": {
     "translation": "Fiók"
+  },
+  "093ac7483a": {
+    "translation": "Még nem sikerült megnyitni a(z) {extension} fájlokat."
   },
   "0a91f7fa87": {
     "translation": "Ez a fájl elérte a méretkorlátját, és előfordulhat, hogy a módosítások már nem menthetők. Távolítson el néhány tartalmat, vagy hozzon létre egy új fájlt."
@@ -62,6 +68,9 @@
   "13ddd375ad": {
     "translation": "Exportálás másként"
   },
+  "14b03eeeb5": {
+    "translation": "Értesítési beállítások"
+  },
   "181b90f889": {
     "translation": "Fájl létrehozása"
   },
@@ -83,6 +92,12 @@
   "250ddea65c": {
     "translation": "A tldraw-ról"
   },
+  "2755e3ab39": {
+    "translation": "<name>{author}</name> hozzászólást fűzött a tábládhoz"
+  },
+  "28b2464e1f": {
+    "translation": "Nem sikerült elküldeni a visszajelzést"
+  },
   "299cb00a7a": {
     "translation": "A feltöltés sikertelen"
   },
@@ -91,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Keresés..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Kérjük, próbálja újra."
   },
   "2de510be71": {
     "translation": "Az újragenerálás a jelenlegi meghívólinket egy újra cseréli. Bárki, aki a régi linket használja, az újra lesz szüksége a csatlakozáshoz."
@@ -146,8 +164,14 @@
   "44db318ee5": {
     "translation": "Kérjen segítséget a Discordhoz"
   },
+  "454aad3b3c": {
+    "translation": "Biztosan törölni szeretnéd a(z) <strong>{fileName}</strong> fájlt?"
+  },
   "46137245cd": {
     "translation": "Köszönjük, hogy segít a tldraw fejlesztésében!"
+  },
+  "46de2de6bb": {
+    "translation": "Felhasználási feltételek elfogadása"
   },
   "477df802ca": {
     "translation": "A szerkesztés folytatásához másolja a fájlt a Fájlok mappába."
@@ -157,9 +181,6 @@
   },
   "47f493a590": {
     "translation": "Fájl rögzítése"
-  },
-  "4908687e50": {
-    "translation": "Biztosan elfelejti ezt a fájlt?"
   },
   "49ee308734": {
     "translation": "Név"
@@ -182,11 +203,20 @@
   "517bb809d9": {
     "translation": "Oldal menü"
   },
+  "53770fd374": {
+    "translation": "Nem olvasott"
+  },
   "542248f0ba": {
     "translation": "Ez a fájl mostantól írásvédett"
   },
   "54286b1d01": {
     "translation": "Elérte az együttműködők korlátját"
+  },
+  "545241e7dd": {
+    "translation": "{count} olvasatlan"
+  },
+  "550b25cc0c": {
+    "translation": "Nem sikerült visszaállítani a helyi rajzot. Próbálja meg újratölteni az oldalt."
   },
   "554a05155c": {
     "translation": "Még mindig gondja van? <a>Hibabejelentés</a>"
@@ -212,6 +242,9 @@
   "5bff3c9c88": {
     "translation": "A munkaterületem"
   },
+  "5bffeebf03": {
+    "translation": "<name>{author}</name> reagált a hozzászólásodra"
+  },
   "5d04a002ea": {
     "translation": "Sikertelen csatlakozás"
   },
@@ -224,8 +257,17 @@
   "5fb63579fc": {
     "translation": "Másolat"
   },
+  "608e9d366e": {
+    "translation": "Mindent elolvastál."
+  },
+  "60a68c29d6": {
+    "translation": "Jelentkezzen be a hozzászóláshoz"
+  },
   "61057a0c84": {
     "translation": "Később"
+  },
+  "61fb03fd7b": {
+    "translation": "{count, plural, one {Valaki reagált a hozzászólásodra} other {# ember reagált a hozzászólásodra}}"
   },
   "625fd29749": {
     "translation": "Régebbi"
@@ -277,6 +319,9 @@
   },
   "752b79f137": {
     "translation": "Elérte a fájlok maximális számát. Újak létrehozása előtt törölnie kell a régi fájlokat."
+  },
+  "7542d62aac": {
+    "translation": "Összes megjelölése olvasottként"
   },
   "7573b8110a": {
     "translation": "Nincs hozzáférés"
@@ -332,6 +377,12 @@
   "815e116a2e": {
     "translation": "Van hibád, problémád vagy ötleted a tldraw-val kapcsolatban? Tudasd velünk! Töltsd ki ezt az űrlapot, és szükség esetén e-mailben felvesszük veled a kapcsolatot. <discord>cseveghetsz velünk a Discordon</discord> vagy <github>beküldhetsz egy problémát a GitHubon</github>."
   },
+  "81666c6e4a": {
+    "translation": "Biztosan el szeretnéd felejteni a(z) <strong>{fileName}</strong> fájlt?"
+  },
+  "8413c683b4": {
+    "translation": "Hozzászólások"
+  },
   "858ba4765e": {
     "translation": "Tag"
   },
@@ -365,6 +416,9 @@
   "904a830405": {
     "translation": "Átnevezés"
   },
+  "90646db02d": {
+    "translation": "Biztosan törölni szeretné a(z) <strong>{workspaceName}</strong> munkaterületet? Ez a művelet nem vonható vissza."
+  },
   "95aacd4d4a": {
     "translation": "Bejelentkezés Google-fiókkal"
   },
@@ -388,6 +442,9 @@
   },
   "9bef626805": {
     "translation": "Fájl törlése"
+  },
+  "9c228b6834": {
+    "translation": "Úgy tűnik, offline állapotban vagy. Ellenőrizd a kapcsolatodat, és próbáld újra."
   },
   "9ccb565b86": {
     "translation": "Problémát tapasztalunk a hitelesítési szolgáltatásunkhoz való csatlakozás során. Ez általában átmeneti probléma. Kérjük, próbálja meg frissíteni az oldalt."
@@ -419,6 +476,9 @@
   "a239905023": {
     "translation": "Kép exportálása"
   },
+  "a274f4d467": {
+    "translation": "Értesítések"
+  },
   "a3debabee7": {
     "translation": "Cookie-szabályzat"
   },
@@ -443,6 +503,9 @@
   "aac449eef6": {
     "translation": "Munkaterület létrehozása"
   },
+  "aaec8f7cde": {
+    "translation": "Valaki"
+  },
   "ab0df9ba36": {
     "translation": "Elérte a fájlkorlátot"
   },
@@ -452,6 +515,12 @@
   },
   "b028909917": {
     "translation": "Vendégfelhasználó"
+  },
+  "b03400e2db": {
+    "translation": "<name>{author}</name> válaszolt"
+  },
+  "b1c94ca2fb": {
+    "translation": "Minden"
   },
   "b2326c3a34": {
     "translation": "Újragenerálás"
@@ -492,9 +561,6 @@
   "c2276c9127": {
     "translation": "További információ a megosztásról."
   },
-  "c28aed8348": {
-    "translation": "Engedélyezd az <cookies>analytics</cookies> használatát a tldraw fejlesztéséhez."
-  },
   "c303bd1095": {
     "translation": "Nem lehet közzétenni a fájlt."
   },
@@ -527,6 +593,9 @@
   },
   "cea291e45e": {
     "translation": "További információ a közzétételről."
+  },
+  "d0e3556476": {
+    "translation": "<name>{author}</name> és {count, plural, one {# other} other {# others}} reagált a hozzászólásodra"
   },
   "d3d2e61733": {
     "translation": "Közeli"
@@ -573,6 +642,9 @@
   "e404559826": {
     "translation": "Szolgáltatási feltételek"
   },
+  "e65b2dcb6f": {
+    "translation": "<name>{a}</name> és <name>{b}</name> reagáltak a hozzászólásodra"
+  },
   "e81c4e4f2b": {
     "translation": "vagy"
   },
@@ -600,6 +672,9 @@
   "ede55d955f": {
     "translation": "További információért olvassa el <a>süti szabályzatunkat</a>."
   },
+  "edec9387f9": {
+    "translation": "Ezt a hozzászólást törölték."
+  },
   "ef53538ae4": {
     "translation": "Tagok"
   },
@@ -618,8 +693,14 @@
   "f2a6c498fb": {
     "translation": "Töröl"
   },
+  "f476ba8646": {
+    "translation": "<name>{a}</name>, <name>{b}</name> és {count, plural, one {# other} other {# others}} reagált a hozzászólásodra"
+  },
   "f4f70727dc": {
     "translation": "Beállítások"
+  },
+  "f5ddc8d9c1": {
+    "translation": "Egyelőre <a>{extension} fájlként exportálhatod</a>, hogy itt használhasd."
   },
   "fa2ead697d": {
     "translation": "Adatvédelmi irányelvek"
@@ -629,9 +710,6 @@
   },
   "fc9d47046b": {
     "translation": "Biztosan el szeretné hagyni ezt a munkaterületet?"
-  },
-  "fd1be3efcf": {
-    "translation": "Biztosan törli ezt a fájlt?"
   },
   "fed5ec05eb": {
     "translation": "Link másolva"

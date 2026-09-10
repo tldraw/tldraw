@@ -1,6 +1,37 @@
 import { PathBuilder } from './PathBuilder'
 
 describe('PathBuilder', () => {
+	describe('transform', () => {
+		it('mirrors a path horizontally within a box while preserving command metadata', () => {
+			const path = new PathBuilder()
+				.moveTo(10, 0, { geometry: { isFilled: true } })
+				.lineTo(100, 0)
+				.lineTo(90, 80)
+				.close()
+
+			// mirror around the horizontal center of a 100-wide box: x' = 100 - x
+			const mirrored = path.transform({ a: -1, b: 0, c: 0, d: 1, e: 100, f: 0 })
+
+			expect(mirrored.toD()).toBe('M 90 0 L 0 0 L 10 80 Z')
+			// original is untouched
+			expect(path.toD()).toBe('M 10 0 L 100 0 L 90 80 Z')
+			// fill metadata carried over
+			const firstCommand = mirrored.commands[0]
+			expect(firstCommand.type).toBe('move')
+			if (firstCommand.type === 'move') {
+				expect(firstCommand.opts?.geometry).toEqual({ isFilled: true })
+			}
+		})
+
+		it('transforms bezier control points too', () => {
+			const path = new PathBuilder().moveTo(0, 0).cubicBezierTo(100, 0, 20, 40, 80, 40)
+
+			const mirrored = path.transform({ a: -1, b: 0, c: 0, d: 1, e: 100, f: 0 })
+
+			expect(mirrored.toD()).toBe('M 100 0 C 80 40 20 40 0 0')
+		})
+	})
+
 	describe('toSvg', () => {
 		it('should build an SVG path', () => {
 			const path = new PathBuilder()

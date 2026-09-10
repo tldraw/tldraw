@@ -13,7 +13,7 @@ export interface AtomOptions<Value, Diff> {
 	/**
 	 * The maximum number of diffs to keep in the history buffer.
 	 *
-	 * If you don't need to compute diffs, or if you will supply diffs manually via {@link Atom.set}, you can leave this as `undefined` and no history buffer will be created.
+	 * If you don't need diffs, leave this as `undefined` and no history buffer will be created. Diffs passed to {@link Atom.set} or produced by {@link AtomOptions.computeDiff} are only recorded when this is set.
 	 *
 	 * If you expect the value to be part of an active effect subscription all the time, and to not change multiple times inside of a single transaction, you can set this to a relatively low number (e.g. 10).
 	 *
@@ -87,34 +87,19 @@ class __Atom__<Value, Diff = unknown> implements Atom<Value, Diff> {
 		this.computeDiff = options.computeDiff
 	}
 
-	/**
-	 * Custom equality function for comparing values, or null to use default equality.
-	 * @internal
-	 */
+	/** @internal */
 	readonly isEqual: null | ((a: any, b: any) => boolean)
 
-	/**
-	 * Optional function to compute diffs between old and new values.
-	 * @internal
-	 */
+	/** @internal */
 	computeDiff?: ComputeDiff<Value, Diff>
 
-	/**
-	 * The global epoch when this atom was last changed.
-	 * @internal
-	 */
+	/** @internal */
 	lastChangedEpoch = getGlobalEpoch()
 
-	/**
-	 * Set of child signals that depend on this atom.
-	 * @internal
-	 */
+	/** @internal */
 	children = new ArraySet<Child>()
 
-	/**
-	 * Optional history buffer for tracking changes over time.
-	 * @internal
-	 */
+	/** @internal */
 	historyBuffer?: HistoryBuffer<Diff>
 
 	/**
@@ -163,22 +148,34 @@ class __Atom__<Value, Diff = unknown> implements Atom<Value, Diff> {
 			return this.current
 		}
 
-		// Tick forward the global epoch
+		// `computeDiff` is user code: run it before ticking the epoch, so that any signal it reads is
+		// checked against the epoch this write has not yet happened in. Reading a dependent computed
+		// after the tick would stamp it as checked at the new epoch while the atom was still being
+		// written, and it would then never see the change. Only `undefined` means "no diff
+		// supplied"; `null` can be a legitimate diff.
+		let historyDiff: Diff | RESET_VALUE | undefined
+		if (this.historyBuffer) {
+			historyDiff =
+				diff !== undefined
+					? diff
+					: this.computeDiff
+						? this.computeDiff(this.current, value, this.lastChangedEpoch, getGlobalEpoch() + 1)
+						: RESET_VALUE
+		}
+
+		// Tick forward the global epoch. This write belongs to that one epoch, so read it once and
+		// use it everywhere below — otherwise a `computeDiff` that touches other atoms could leave
+		// the history entry and `lastChangedEpoch` disagreeing.
 		advanceGlobalEpoch()
+		const epoch = getGlobalEpoch()
 
 		// Add the diff to the history buffer.
 		if (this.historyBuffer) {
-			this.historyBuffer.pushEntry(
-				this.lastChangedEpoch,
-				getGlobalEpoch(),
-				diff ??
-					this.computeDiff?.(this.current, value, this.lastChangedEpoch, getGlobalEpoch()) ??
-					RESET_VALUE
-			)
+			this.historyBuffer.pushEntry(this.lastChangedEpoch, epoch, historyDiff)
 		}
 
 		// Update the atom's record of the epoch when last changed.
-		this.lastChangedEpoch = getGlobalEpoch()
+		this.lastChangedEpoch = epoch
 
 		const oldValue = this.current
 		this.current = value
@@ -215,7 +212,6 @@ class __Atom__<Value, Diff = unknown> implements Atom<Value, Diff> {
 	getDiffSince(epoch: number): RESET_VALUE | Diff[] {
 		maybeCaptureParent(this)
 
-		// If no changes have occurred since the given epoch, return an empty array.
 		if (epoch >= this.lastChangedEpoch) {
 			return EMPTY_ARRAY
 		}

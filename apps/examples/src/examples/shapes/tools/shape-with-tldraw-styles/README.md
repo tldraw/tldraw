@@ -8,18 +8,18 @@ keywords:
     defaultsizestyle,
     defaultcolorstyle,
     style panel,
-    usedefaultcolortheme,
+    getcurrenttheme,
     getcolorvalue,
     shapeutil,
   ]
 ---
 
-Use the tldraw style panel with your custom shapes.
+Use tldraw's built-in size and color styles as props on a custom shape.
 
 ---
 
-The default tldraw UI will display UI for the styles of your selection or your current tool. For example, when you have two shapes selected that both have the tldraw's "size" style, the size selector will be displayed. If all of your selected shapes have the same value for this style, that value will be shown as selected in the panel. If they have different values, the panel will show the value as "mixed".
+The default style panel shows the styles shared by your selection or current tool. If all selected shapes have the same value for a style, that value is shown as selected; otherwise the panel shows it as "mixed". You get this for free on custom shapes by using tldraw's `StyleProp`s (here `DefaultSizeStyle` and `DefaultColorStyle`) as prop validators.
 
-You can use tldraw's default styles in your own shapes. This example shows how to do that.
+Select the shape and change the size and color in the style panel. The shape reads the color from the current theme with `editor.getCurrentTheme()` and `getColorValue`, so it also follows dark mode.
 
 To create your own custom styles, check the [custom styles example](https://tldraw.dev/examples/shape-with-custom-styles).

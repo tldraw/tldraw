@@ -1,28 +1,25 @@
 import { useEffect } from 'react'
-import { Tldraw } from 'tldraw'
-import { defaultHandleExternalTextContent, useEditor, useToasts } from 'tldraw'
+import { Tldraw, defaultHandleExternalTextContent, useEditor, useToasts } from 'tldraw'
+import 'tldraw/tldraw.css'
 
-export default function MermaidDiagrams() {
+export default function MermaidPastingExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw>
-				<SneakyMermaidHandler />
+				<MermaidPasteHandler />
 			</Tldraw>
 		</div>
 	)
 }
 
-export function SneakyMermaidHandler() {
+function MermaidPasteHandler() {
 	const editor = useEditor()
 	const { addToast } = useToasts()
 
 	useEffect(() => {
+		// [1]
 		editor.registerExternalContentHandler('text', async (content) => {
-			// when pasting html, the derived text is stripped and loses line breaks
-			// which make evaluating mermaid diagrams impossible. We look into the
-			// sources and see if there's some plain text alongside the html and if
-			// there are, we can use this to evaluate mermaid diagrams.
-
+			// [2]
 			const plainTextSource = content.sources?.find(
 				(s) => s.type === 'text' && s.subtype === 'text'
 			)
@@ -47,6 +44,7 @@ export function SneakyMermaidHandler() {
 			}
 
 			try {
+				// [3]
 				const onUnsupportedDiagram = async (svgString: string) => {
 					await editor.putExternalContent({
 						type: 'svg-text',
@@ -82,10 +80,8 @@ export function SneakyMermaidHandler() {
  * https://github.com/mermaid-js/mermaid/blob/277c4967f97405e9bb172c0a2f67f462a672b162/packages/mermaid/src/diagram-api/regexes.ts
  *
  * Strips YAML frontmatter, %%{...}%% directives, and %% comments, then tests for
- * a known diagram keyword at the start of the cleaned text.
- *
- * This file intentionally has zero imports so it can be loaded statically without
- * pulling in the heavy mermaid library.
+ * a known diagram keyword at the start of the cleaned text. It has no mermaid
+ * import so the heavy library is only loaded once a diagram is actually detected.
  */
 const FRONTMATTER_REGEX = /^-{3}\s*[\n\r]([\s\S]*?)[\n\r]-{3}\s*[\n\r]+/
 const DIAGRAM_KEYWORD_REGEX =
@@ -112,11 +108,28 @@ function stripMermaidBoilerplate(text: string): string {
 		.replace(/\s*%%.*\n/gm, '\n')
 }
 
-export function stripMarkdownMermaidFence(text: string): string {
+function stripMarkdownMermaidFence(text: string): string {
 	const match = text.match(MARKDOWN_MERMAID_FENCE_REGEX)
 	return match ? match[2] : text
 }
 
-export function simpleMermaidStringTest(text: string): boolean {
+function simpleMermaidStringTest(text: string): boolean {
 	return DIAGRAM_KEYWORD_REGEX.test(stripMermaidBoilerplate(stripMarkdownMermaidFence(text)))
 }
+
+/*
+[1]
+`registerExternalContentHandler('text', ...)` replaces the default handler for pasted text.
+Anything that doesn't look like Mermaid is passed on to `defaultHandleExternalTextContent`
+so ordinary text still pastes as a text shape.
+
+[2]
+When HTML is pasted, the derived `content.text` has its line breaks stripped, which makes
+Mermaid unparseable. The clipboard usually carries a plain-text source alongside the HTML,
+so we prefer that when it looks like a diagram.
+
+[3]
+`createMermaidDiagram` creates native shapes for flowcharts, state diagrams, sequence
+diagrams, and mind maps. For other diagram types it calls `onUnsupportedDiagram` with
+Mermaid's SVG, which we drop onto the canvas as an image via `putExternalContent`.
+*/

@@ -18,10 +18,10 @@ keywords:
 multiplayer: true
 ---
 
-Show and hide private content in a multiplayer session.
+Hide shapes from other users in a multiplayer session with `getShapeVisibility` and shape meta.
 
 ---
 
-This is a simple example of how to show and hide private content in a multiplayer session based on a simple
-data ownership model. Try it out by opening the example in two different tabs, toggling the private mode, and
-drawing some shapes.
+A store side effect stamps every new shape with the creator's id and a `private` flag, and `getShapeVisibility` hides shapes whose flag is set unless you own them. The shapes still sync; they're just not rendered for anyone else. Selecting your own private shapes offers to make them public.
+
+Open the example in two tabs, turn on private mode in one, and draw. Note this is client-side visibility only, not access control: a private shape is still in every client's store.

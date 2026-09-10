@@ -1,12 +1,12 @@
 {
-  "1764571547": {
-    "translation": "您確定要刪除此工作區嗎？此操作無法撤銷。"
-  },
   "0095a9fa74": {
     "translation": "匯出"
   },
   "00b177e080": {
     "translation": "接受邀請"
+  },
+  "029f235f01": {
+    "translation": "我們正在努力支援來自 <a><strong>{appName}</strong></a> 的檔案。"
   },
   "03b3e13197": {
     "translation": "將檔案拖曳到本頁面的側邊欄，或從使用者選單中選取「匯入檔案」。"
@@ -16,6 +16,9 @@
   },
   "04a2dd56d6": {
     "translation": "邀請隊友"
+  },
+  "05b2656486": {
+    "translation": "<name>{author}</name> 提到了你"
   },
   "05f43078e9": {
     "translation": "您已達到工作區數量上限。您需要先刪除舊工作區，才能建立新工作區。"
@@ -31,6 +34,9 @@
   },
   "08bd40c754": {
     "translation": "帳戶"
+  },
+  "093ac7483a": {
+    "translation": "尚無法開啟 {extension} 文件"
   },
   "0a91f7fa87": {
     "translation": "此文件已達到大小限制，更改可能無法儲存。請刪除部分內容或新建一個檔案。"
@@ -62,6 +68,9 @@
   "13ddd375ad": {
     "translation": "匯出為"
   },
+  "14b03eeeb5": {
+    "translation": "通知選項"
+  },
   "181b90f889": {
     "translation": "建立檔案"
   },
@@ -83,6 +92,12 @@
   "250ddea65c": {
     "translation": "關於tldraw"
   },
+  "2755e3ab39": {
+    "translation": "<name>{author}</name> 在您的白板上留言"
+  },
+  "28b2464e1f": {
+    "translation": "無法提交回饋"
+  },
   "299cb00a7a": {
     "translation": "上傳失敗"
   },
@@ -91,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "搜尋..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "請重試。"
   },
   "2de510be71": {
     "translation": "重新產生邀請連結會將目前的邀請連結替換為新的連結。任何使用舊連結的人都需要使用新連結才能加入。"
@@ -146,8 +164,14 @@
   "44db318ee5": {
     "translation": "在 Discord 上獲得協助"
   },
+  "454aad3b3c": {
+    "translation": "您確定要刪除<strong>{fileName}</strong>嗎？"
+  },
   "46137245cd": {
     "translation": "感謝您幫助我們改進 tldraw！"
+  },
+  "46de2de6bb": {
+    "translation": "接受使用條款"
   },
   "477df802ca": {
     "translation": "若要繼續編輯，請將文件複製到您的文件中。"
@@ -157,9 +181,6 @@
   },
   "47f493a590": {
     "translation": "針文件"
-  },
-  "4908687e50": {
-    "translation": "您確定要遺忘此檔案嗎？"
   },
   "49ee308734": {
     "translation": "姓名"
@@ -182,11 +203,20 @@
   "517bb809d9": {
     "translation": "頁面選單"
   },
+  "53770fd374": {
+    "translation": "未讀"
+  },
   "542248f0ba": {
     "translation": "此文件現在為唯讀。"
   },
   "54286b1d01": {
     "translation": "已達到協作者人數上限"
+  },
+  "545241e7dd": {
+    "translation": "{count} 未讀"
+  },
+  "550b25cc0c": {
+    "translation": "無法復原您的本機繪圖。請嘗試重新載入此頁面。"
   },
   "554a05155c": {
     "translation": "仍然有問題？ <a>回報問題</a>"
@@ -212,6 +242,9 @@
   "5bff3c9c88": {
     "translation": "我的工作區"
   },
+  "5bffeebf03": {
+    "translation": "<name>{author}</name> 對您的留言做出了回應"
+  },
   "5d04a002ea": {
     "translation": "無法連接"
   },
@@ -224,8 +257,17 @@
   "5fb63579fc": {
     "translation": "複製"
   },
+  "608e9d366e": {
+    "translation": "你已經全部跟上了。"
+  },
+  "60a68c29d6": {
+    "translation": "登入發表評論"
+  },
   "61057a0c84": {
     "translation": "稍後"
+  },
+  "61fb03fd7b": {
+    "translation": "{count, plural, other {# 人們對你的評論做出了回應}}"
   },
   "625fd29749": {
     "translation": "較舊的"
@@ -277,6 +319,9 @@
   },
   "752b79f137": {
     "translation": "您已達到最大文件數。您需要在建立新文件之前刪除舊文件。"
+  },
+  "7542d62aac": {
+    "translation": "全部標記為已讀"
   },
   "7573b8110a": {
     "translation": "無法存取"
@@ -332,6 +377,12 @@
   "815e116a2e": {
     "translation": "對於 tldraw 有錯誤、問題或想法嗎？讓我們知道！填寫此表格，如有需要，我們將透過電子郵件跟進。您也可以<discord>在 Discord 上與我們聊天</discord>或<github>在 GitHub 上提交問題</github>。"
   },
+  "81666c6e4a": {
+    "translation": "您確定要刪除<strong>{fileName}</strong>嗎？"
+  },
+  "8413c683b4": {
+    "translation": "評論"
+  },
   "858ba4765e": {
     "translation": "成員"
   },
@@ -365,6 +416,9 @@
   "904a830405": {
     "translation": "重新命名"
   },
+  "90646db02d": {
+    "translation": "您確定要刪除<strong>{workspaceName}</strong>嗎？此操作無法撤銷。"
+  },
   "95aacd4d4a": {
     "translation": "使用 Google 登入"
   },
@@ -388,6 +442,9 @@
   },
   "9bef626805": {
     "translation": "刪除檔案"
+  },
+  "9c228b6834": {
+    "translation": "您似乎已離線。請檢查您的網路連線並重試。"
   },
   "9ccb565b86": {
     "translation": "我們的身份驗證服務連線出現問題。這通常是暫時的。請嘗試刷新頁面。"
@@ -419,6 +476,9 @@
   "a239905023": {
     "translation": "匯出圖片"
   },
+  "a274f4d467": {
+    "translation": "通知"
+  },
   "a3debabee7": {
     "translation": "Cookie 政策"
   },
@@ -443,6 +503,9 @@
   "aac449eef6": {
     "translation": "建立工作區"
   },
+  "aaec8f7cde": {
+    "translation": "某人"
+  },
   "ab0df9ba36": {
     "translation": "已達到文件限制"
   },
@@ -452,6 +515,12 @@
   },
   "b028909917": {
     "translation": "來賓用戶"
+  },
+  "b03400e2db": {
+    "translation": "<name>{author}</name> 回复"
+  },
+  "b1c94ca2fb": {
+    "translation": "全部"
   },
   "b2326c3a34": {
     "translation": "再生"
@@ -492,9 +561,6 @@
   "c2276c9127": {
     "translation": "瞭解有關共享的更多資訊。"
   },
-  "c28aed8348": {
-    "translation": "允許使用 <cookies>analytics</cookies> 來幫助我們改進 tldraw。"
-  },
   "c303bd1095": {
     "translation": "無法發布此檔案。"
   },
@@ -527,6 +593,9 @@
   },
   "cea291e45e": {
     "translation": "瞭解有關發布的更多資訊。"
+  },
+  "d0e3556476": {
+    "translation": "<name>{author}</name> 和 {count, plural, one {# other} other {# others}} 對您的評論做出了回應"
   },
   "d3d2e61733": {
     "translation": "關閉"
@@ -573,6 +642,9 @@
   "e404559826": {
     "translation": "服務條款"
   },
+  "e65b2dcb6f": {
+    "translation": "<name>{a}</name> 和 <name>{b}</name> 對您的評論做出了回應"
+  },
   "e81c4e4f2b": {
     "translation": "或者"
   },
@@ -600,6 +672,9 @@
   "ede55d955f": {
     "translation": "請閱讀我們的<a>cookie 政策</a>以了解更多資訊。"
   },
+  "edec9387f9": {
+    "translation": "這則評論已被刪除。"
+  },
   "ef53538ae4": {
     "translation": "成員"
   },
@@ -618,8 +693,14 @@
   "f2a6c498fb": {
     "translation": "刪除"
   },
+  "f476ba8646": {
+    "translation": "<name>{a}</name>、<name>{b}</name> 和 {count, plural, one {# other} other {# others}} 對您的評論做出了回應"
+  },
   "f4f70727dc": {
     "translation": "設定"
+  },
+  "f5ddc8d9c1": {
+    "translation": "目前，您可以<a>匯出為 {extension} 檔案</a>以便在此處使用。"
   },
   "fa2ead697d": {
     "translation": "隱私權政策"
@@ -629,9 +710,6 @@
   },
   "fc9d47046b": {
     "translation": "您確定要離開此工作區嗎？"
-  },
-  "fd1be3efcf": {
-    "translation": "您確定要刪除此檔案嗎？"
   },
   "fed5ec05eb": {
     "translation": "已複製連結"

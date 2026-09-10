@@ -1,7 +1,7 @@
-import { Tldraw, TLUiOverrides } from 'tldraw'
+import { DEFAULT_CAMERA_OPTIONS, Tldraw, TLUiOverrides } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-const DEFAULT_CAMERA_STEPS = [0.05, 0.1, 0.25, 0.5, 1, 2, 4, 8]
+// There's a guide at the bottom of this file!
 
 const overrides: TLUiOverrides = {
 	actions(editor, actions) {
@@ -9,9 +9,10 @@ const overrides: TLUiOverrides = {
 			id: 'lock-camera-zoom',
 			kbd: 'shift+k',
 			onSelect() {
-				const isCameraZoomLockedAlready = editor.getCameraOptions().zoomSteps.length === 1
+				// [1]
+				const isLocked = editor.getCameraOptions().zoomSteps.length === 1
 				editor.setCameraOptions({
-					zoomSteps: isCameraZoomLockedAlready ? DEFAULT_CAMERA_STEPS : [editor.getZoomLevel()],
+					zoomSteps: isLocked ? DEFAULT_CAMERA_OPTIONS.zoomSteps : [editor.getZoomLevel()],
 				})
 			},
 		}
@@ -20,10 +21,18 @@ const overrides: TLUiOverrides = {
 	},
 }
 
-export default function BasicExample() {
+export default function LockCameraZoomExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw persistenceKey="example" overrides={overrides} />
+			<Tldraw persistenceKey="lock-camera-zoom-example" overrides={overrides} />
 		</div>
 	)
 }
+
+/*
+[1]
+The camera can only zoom to values in `zoomSteps` (or between the smallest and largest of them). With a
+single step equal to the current zoom, every zoom gesture, shortcut, and menu action is a no-op, so the
+zoom is effectively locked. Restoring the default steps unlocks it. We use `zoomSteps.length === 1` as
+the "is locked" flag so the same shortcut toggles both ways.
+*/

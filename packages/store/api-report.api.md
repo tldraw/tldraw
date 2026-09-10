@@ -29,6 +29,8 @@ export class AtomMap<K, V> implements Map<K, V> {
     get(key: K): undefined | V;
     // @internal
     getAtom(key: K): Atom<UNINITIALIZED | V> | undefined;
+    getOrInsert(key: K, defaultValue: V): V;
+    getOrInsertComputed(key: K, callback: (key: K) => V): V;
     has(key: K): boolean;
     keys(): Generator<K, undefined, unknown>;
     set(key: K, value: V): this;
@@ -106,7 +108,7 @@ export function createMigrationIds<const ID extends string, const Versions exten
 };
 
 // @public
-export function createMigrationSequence({ sequence, sequenceId, retroactive }: {
+export function createMigrationSequence({ sequence, sequenceId, retroactive, }: {
     retroactive?: boolean;
     sequence: Array<Migration | StandaloneDependsOn>;
     sequenceId: string;
@@ -211,12 +213,12 @@ export type Migration = {
 
 // @public (undocumented)
 export const MigrationFailureReason: {
-    readonly IncompatibleSubtype: "incompatible-subtype";
-    readonly MigrationError: "migration-error";
-    readonly TargetVersionTooNew: "target-version-too-new";
-    readonly TargetVersionTooOld: "target-version-too-old";
-    readonly UnknownType: "unknown-type";
-    readonly UnrecognizedSubtype: "unrecognized-subtype";
+    readonly IncompatibleSubtype: 'incompatible-subtype';
+    readonly MigrationError: 'migration-error';
+    readonly TargetVersionTooNew: 'target-version-too-new';
+    readonly TargetVersionTooOld: 'target-version-too-old';
+    readonly UnknownType: 'unknown-type';
+    readonly UnrecognizedSubtype: 'unrecognized-subtype';
 };
 
 // @public (undocumented)
@@ -373,7 +375,7 @@ export function squashRecordDiffs<T extends UnknownRecord>(diffs: RecordsDiff<T>
 }): RecordsDiff<T>;
 
 // @internal
-export function squashRecordDiffsMutable<T extends UnknownRecord>(target: RecordsDiff<T>, diffs: RecordsDiff<T>[]): void;
+export function squashRecordDiffsMutable<T extends UnknownRecord>(target: RecordsDiff<T>, diffs: RecordsDiff<T>[], fromIndex?: number): void;
 
 // @public
 export interface StandaloneDependsOn {
@@ -393,7 +395,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     addHistoryInterceptor(fn: (entry: HistoryEntry<R>, source: ChangeSource) => void): () => void;
     allRecords(): R[];
     // (undocumented)
-    applyDiff(diff: RecordsDiff<R>, { runCallbacks, ignoreEphemeralKeys }?: {
+    applyDiff(diff: RecordsDiff<R>, { runCallbacks, ignoreEphemeralKeys, }?: {
         ignoreEphemeralKeys?: boolean;
         runCallbacks?: boolean;
     }): void;

@@ -16,8 +16,16 @@ keywords:
   ]
 ---
 
-Prevent changes to a shape's properties.
+Reject changes to a shape's position, rotation, and size while still allowing style and text edits.
 
 ---
 
-You can use Editor's side effects API to prevent certain changes from occurring in a shape. In this example, we prevent any changes to the shape's position, rotation, or size.
+`editor.sideEffects.registerBeforeChangeHandler` sees every proposed shape change and returns the
+record that will be written. This example compares `prev` and `next` for geo rectangles and returns
+`prev` (cancelling the change) if `x`, `y`, `rotation`, `props.w`, or `props.h` would differ. Other
+changes pass through untouched.
+
+Try dragging, rotating, or resizing the rectangle: nothing happens. Now change its color or edit its
+label: that works. This is a finer-grained alternative to `isLocked`, which would also stop the shape
+being selected. A rejected change is silent, so consider giving the user some feedback if
+this is a real permission rule.

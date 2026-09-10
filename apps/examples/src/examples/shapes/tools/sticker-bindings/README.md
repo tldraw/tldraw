@@ -17,8 +17,10 @@ keywords:
 priority: 10
 ---
 
-A sticker shape, using bindings to attach shapes to one and other
+Stick a sticker shape onto other shapes with a custom binding that keeps it attached.
 
 ---
 
-This example shows how to use bindings to attach shapes together. In this case, we've created a sticker that can be stuck onto other shapes.
+Bindings are records that connect two shapes; a `BindingUtil` decides what happens when either side changes. Here a sticker dropped onto a shape creates a `sticker` binding storing where on the target it landed. `onAfterChangeToShape` moves the sticker as the target moves, resizes, or rotates, and `onBeforeDeleteToShape` deletes the sticker with its target.
+
+Draw a shape, pick the sticker tool (or press P), and drop a sticker on it. Then move or resize the shape and watch the sticker stay put. Drag the sticker off to unstick it.

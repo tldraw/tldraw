@@ -6,7 +6,8 @@
 // and ESLint if ever needed.
 
 import { existsSync, readdirSync, readFileSync } from 'fs'
-import { dirname, join, relative } from 'path'
+import { builtinModules } from 'module'
+import { dirname, join, relative, resolve } from 'path'
 import { fileURLToPath } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -31,6 +32,10 @@ const SKIPPED_DIR_NAMES = new Set([
 	'coverage',
 ])
 
+const NODE_BUILTINS = new Set(builtinModules)
+
+const packageJsonCache = new Map()
+
 let cachedClaudeAgentViolations = null
 let hasReportedClaudeAgentViolations = false
 
@@ -44,6 +49,62 @@ function normalizePath(filePath) {
 
 function shouldSkipDirectory(entryName) {
 	return SKIPPED_DIR_NAMES.has(entryName)
+}
+
+/**
+ * Walk up from a file to the package.json that owns it, stopping at the repo
+ * root. Returns null for files outside any workspace.
+ */
+function findOwningPackage(filePath) {
+	let dir = dirname(resolve(filePath))
+	const root = resolve(REPO_ROOT)
+
+	while (dir.startsWith(root)) {
+		if (packageJsonCache.has(dir)) {
+			const cached = packageJsonCache.get(dir)
+			if (cached) return cached
+		} else {
+			const packageJsonPath = join(dir, 'package.json')
+			if (existsSync(packageJsonPath)) {
+				let owner = null
+				try {
+					const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'))
+					owner = {
+						name: packageJson.name,
+						declared: new Set([
+							...Object.keys(packageJson.dependencies ?? {}),
+							...Object.keys(packageJson.peerDependencies ?? {}),
+							...Object.keys(packageJson.optionalDependencies ?? {}),
+							...Object.keys(packageJson.devDependencies ?? {}),
+						]),
+					}
+				} catch {
+					// An unreadable package.json is someone else's error to report.
+				}
+				packageJsonCache.set(dir, owner)
+				if (owner) return owner
+			} else {
+				packageJsonCache.set(dir, null)
+			}
+		}
+
+		const parent = dirname(dir)
+		if (parent === dir) break
+		dir = parent
+	}
+
+	return null
+}
+
+/** Strip a subpath off an import specifier, leaving the bare package name. */
+function getImportedPackageName(specifier) {
+	if (!specifier || specifier.startsWith('.') || specifier.startsWith('/')) return null
+	// `node:fs`, `cloudflare:workers`, `data:`, and friends are never packages.
+	if (specifier.includes(':')) return null
+	if (NODE_BUILTINS.has(specifier.split('/')[0])) return null
+
+	const parts = specifier.split('/')
+	return specifier.startsWith('@') ? parts.slice(0, 2).join('/') : parts[0]
 }
 
 function collectClaudeAgentViolations() {
@@ -362,6 +423,51 @@ const rules = {
 						node: node.source,
 						data: { path: importPath },
 					})
+				},
+			}
+		},
+	},
+
+	'no-undeclared-dependencies': {
+		meta: {
+			messages: {
+				undeclared:
+					"'{{name}}' is imported here but isn't declared in {{owner}}'s package.json. Yarn's hoisted node_modules resolves it anyway, but package managers with strict isolation (pnpm, Yarn PnP) can't.",
+			},
+			type: 'problem',
+			schema: [],
+		},
+		create(context) {
+			const owner = findOwningPackage(context.filename)
+			if (!owner) return {}
+
+			function check(node, specifier) {
+				if (typeof specifier !== 'string') return
+
+				const name = getImportedPackageName(specifier)
+				if (!name || name === owner.name) return
+				if (owner.declared.has(name)) return
+
+				context.report({ node, messageId: 'undeclared', data: { name, owner: owner.name } })
+			}
+
+			return {
+				ImportDeclaration(node) {
+					check(node.source, node.source.value)
+				},
+				ExportNamedDeclaration(node) {
+					if (node.source) check(node.source, node.source.value)
+				},
+				ExportAllDeclaration(node) {
+					check(node.source, node.source.value)
+				},
+				ImportExpression(node) {
+					if (node.source.type === 'Literal') check(node.source, node.source.value)
+				},
+				CallExpression(node) {
+					if (node.callee.type !== 'Identifier' || node.callee.name !== 'require') return
+					const arg = node.arguments[0]
+					if (arg?.type === 'Literal') check(arg, arg.value)
 				},
 			}
 		},

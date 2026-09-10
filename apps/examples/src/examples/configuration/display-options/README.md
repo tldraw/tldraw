@@ -1,15 +1,16 @@
 ---
 title: Display options
 component: ./DisplayOptionsExample.tsx
-category: configuration
 priority: 1
 keywords: [display, values, override, configure, colors, fonts, customize]
 ---
 
-Override the display values used when rendering shapes.
+Override the colors, fonts, and stroke widths a shape renders with, without changing its props.
 
 ---
 
-Shape utils have a `getCustomDisplayValues` option that lets you override the computed display values for any shape. Display values control visual properties like colors, fonts, sizing, and alignment.
+Built-in shape utils compute a set of display values (stroke color, fill color, label font, stroke width, and so on) from a shape's style props each time the shape renders. The `getCustomDisplayValues` option lets you override any of them: return a partial object and it is merged over the defaults.
 
-Use `ShapeUtil.configure()` to provide a `getCustomDisplayValues` function that returns partial overrides. These are merged on top of the default display values computed from the shape's props.
+This example configures `GeoShapeUtil` so that locked shapes are filled red, ellipses use a monospace label, and every geo shape has a 10px stroke. Try locking the rectangle (select it, then use the context menu) to see the fill change, or change the size style and notice that the stroke width stays the same.
+
+Because display values are computed at render time, they don't touch the document: unlocking the shape or opening the file elsewhere shows the normal styles.

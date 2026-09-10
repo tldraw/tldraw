@@ -5,20 +5,18 @@ priority: 3
 keywords:
   [
     indicators,
-    shapeindicator,
-    onthecanvas,
+    shape indicator,
+    overlay,
+    overlayutils,
+    shapeindicatoroverlayutil,
     getrenderingshapes,
-    useeditorcomponents,
-    defaultshapeindicators,
-    showall,
-    hideall,
   ]
 ---
 
-Change when shape indicators are shown and how they appear.
+Change when shape indicators are shown by replacing the shape indicator overlay util.
 
 ---
 
-This example shows how you can change when shape indicators are shown and how they appear.
+Shape indicators are the outlines drawn around a shape when you hover or select it. They're rendered by `ShapeIndicatorOverlayUtil`. Subclass it, override `getOverlays()` to return the ids you want outlined, and pass it in the `overlayUtils` prop. Because it shares the built-in util's `type`, it replaces the default rather than adding a second layer.
 
-Shape indicators are the lines that are drawn around the border of a shape when hovering over it. This examples makes them appear all of the time.
+This example outlines every rendered shape all of the time. Try adding shapes or zooming out; each visible shape, including the group's children, keeps its outline.

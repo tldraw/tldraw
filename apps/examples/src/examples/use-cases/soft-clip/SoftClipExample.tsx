@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import {
+	Editor,
 	TLComponents,
 	TLGeoShape,
 	TLShape,
@@ -22,6 +23,7 @@ function SoftClipOverlay({ opacity }: { opacity: number }) {
 	const editor = useEditor()
 	const pathRef = useRef<SVGPathElement>(null)
 
+	// [1]
 	useQuickReactor(
 		'soft clip overlay',
 		() => {
@@ -36,8 +38,7 @@ function SoftClipOverlay({ opacity }: { opacity: number }) {
 				return
 			}
 
-			// Outer subpath wraps the viewport; each clip shape adds an inner subpath.
-			// With fill-rule="evenodd" the inner subpaths punch holes in the dim layer.
+			// [2]
 			let d = `M0,0 L${vsb.w},0 L${vsb.w},${vsb.h} L0,${vsb.h} Z`
 
 			for (const shape of clipShapes) {
@@ -127,52 +128,49 @@ function SoftClipUI() {
 	)
 }
 
-function SetupDemoShapes() {
-	const editor = useEditor()
-	useEffect(() => {
-		if (editor.getCurrentPageShapeIds().size > 0) return
+function setupDemoShapes(editor: Editor) {
+	if (editor.getCurrentPageShapeIds().size > 0) return
 
-		const { center } = editor.getViewportPageBounds()
+	const { center } = editor.getViewportPageBounds()
 
-		editor.createShapes([
-			{
-				type: 'geo',
-				x: center.x - 280,
-				y: center.y - 200,
-				props: { geo: 'rectangle', w: 160, h: 110, color: 'blue', fill: 'semi' },
-			},
-			{
-				type: 'geo',
-				x: center.x + 80,
-				y: center.y - 220,
-				props: { geo: 'ellipse', w: 130, h: 130, color: 'yellow', fill: 'semi' },
-			},
-			{
-				type: 'geo',
-				x: center.x - 240,
-				y: center.y + 30,
-				props: { geo: 'triangle', w: 150, h: 140, color: 'green', fill: 'semi' },
-			},
-			{
-				type: 'geo',
-				x: center.x + 60,
-				y: center.y + 40,
-				props: { geo: 'star', w: 150, h: 140, color: 'violet', fill: 'semi' },
-			},
-		])
-
-		const clipId = createShapeId()
-		editor.createShape({
-			id: clipId,
+	editor.createShapes([
+		{
 			type: 'geo',
-			x: center.x - 180,
-			y: center.y - 180,
-			props: { geo: 'ellipse', w: 360, h: 360, color: 'black', fill: 'none' },
-			meta: { [SOFT_CLIP_META_KEY]: true },
-		})
-		editor.select(clipId)
-	}, [editor])
-	return null
+			x: center.x - 280,
+			y: center.y - 200,
+			props: { geo: 'rectangle', w: 160, h: 110, color: 'blue', fill: 'semi' },
+		},
+		{
+			type: 'geo',
+			x: center.x + 80,
+			y: center.y - 220,
+			props: { geo: 'ellipse', w: 130, h: 130, color: 'yellow', fill: 'semi' },
+		},
+		{
+			type: 'geo',
+			x: center.x - 240,
+			y: center.y + 30,
+			props: { geo: 'triangle', w: 150, h: 140, color: 'green', fill: 'semi' },
+		},
+		{
+			type: 'geo',
+			x: center.x + 60,
+			y: center.y + 40,
+			props: { geo: 'star', w: 150, h: 140, color: 'violet', fill: 'semi' },
+		},
+	])
+
+	// [3]
+	const clipId = createShapeId()
+	editor.createShape({
+		id: clipId,
+		type: 'geo',
+		x: center.x - 180,
+		y: center.y - 180,
+		props: { geo: 'ellipse', w: 360, h: 360, color: 'black', fill: 'none' },
+		meta: { [SOFT_CLIP_META_KEY]: true },
+	})
+	editor.select(clipId)
 }
 
 const components: TLComponents = {
@@ -182,9 +180,24 @@ const components: TLComponents = {
 export default function SoftClipExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw persistenceKey="soft-clip" components={components}>
-				<SetupDemoShapes />
-			</Tldraw>
+			<Tldraw persistenceKey="soft-clip" components={components} onMount={setupDemoShapes} />
 		</div>
 	)
 }
+
+/*
+[1]
+`useQuickReactor` re-runs synchronously whenever any of the signals it reads change (shapes,
+their geometry, the camera), and writes the path data straight to the DOM so the overlay
+never lags the canvas.
+
+[2]
+The first subpath is the whole viewport; each clip shape's vertices, transformed to screen
+space, add another subpath. With `fill-rule="evenodd"` the inner subpaths are holes, so the
+outside is dimmed and the inside is left alone.
+
+[3]
+Soft clipping is opted into per shape via `shape.meta.softClip`. Meta is free-form data
+stored on the record, so no custom shape util or schema change is needed and it persists
+with the document.
+*/

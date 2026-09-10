@@ -6,6 +6,7 @@ import {
 	TLEventMapHandler,
 	TLRecord,
 	Tldraw,
+	TldrawUiButton,
 	squashRecordDiffs,
 	useEditor,
 } from 'tldraw'
@@ -13,21 +14,21 @@ import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
 
+function emptyDiff(): RecordsDiff<TLRecord> {
+	return { added: {}, removed: {}, updated: {} }
+}
+
 function SaveButton() {
 	const editor = useEditor()
 	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
-	const rUnsavedChanges = useRef<RecordsDiff<TLRecord>>({ added: {}, removed: {}, updated: {} })
+	// [1]
+	const rUnsavedChanges = useRef<RecordsDiff<TLRecord>>(emptyDiff())
 
 	useEffect(() => {
-		// [1]
-		const handleDocumentChange: TLEventMapHandler<'change'> = (diff) => {
-			squashRecordDiffs([rUnsavedChanges.current, diff.changes], { mutateFirstDiff: true })
-			setHasUnsavedChanges(
-				!isPlainObjectEmpty(rUnsavedChanges.current.added) ||
-					!isPlainObjectEmpty(rUnsavedChanges.current.removed) ||
-					!isPlainObjectEmpty(rUnsavedChanges.current.updated)
-			)
+		const handleDocumentChange: TLEventMapHandler<'change'> = (entry) => {
+			squashRecordDiffs([rUnsavedChanges.current, entry.changes], { mutateFirstDiff: true })
+			setHasUnsavedChanges(!isDiffEmpty(rUnsavedChanges.current))
 		}
 
 		// [2]
@@ -36,57 +37,31 @@ function SaveButton() {
 
 	// [3]
 	const handleSave = useCallback(() => {
-		// The diff is the difference between the current document and the last saved document
-		const diff = rUnsavedChanges.current
-
-		// Maybe also get the current document / schema snapshot
-		const snapshot = editor.getSnapshot()
-
-		// Save everything somewhere...
-		saveChanges(diff, snapshot)
-
-		// Clear the unsaved changes state
+		saveChanges(rUnsavedChanges.current, editor.getSnapshot())
+		rUnsavedChanges.current = emptyDiff()
 		setHasUnsavedChanges(false)
-
-		// Reset the diff
-		rUnsavedChanges.current = {
-			added: {},
-			removed: {},
-			updated: {},
-		}
 	}, [editor])
 
 	return (
-		<button
-			onClick={handleSave}
-			disabled={!hasUnsavedChanges}
-			style={{
-				pointerEvents: 'all',
-				padding: '8px 16px',
-				marginTop: '6px',
-				backgroundColor: hasUnsavedChanges ? '#2d7d32' : '#ccc',
-				color: hasUnsavedChanges ? 'white' : '#666',
-				border: 'none',
-				borderRadius: '4px',
-				cursor: hasUnsavedChanges ? 'pointer' : 'not-allowed',
-				fontWeight: '500',
-			}}
-		>
-			{hasUnsavedChanges ? 'Save Changes' : 'No Changes'}
-		</button>
+		<div className="tlui-menu">
+			<TldrawUiButton type="normal" onClick={handleSave} disabled={!hasUnsavedChanges}>
+				{hasUnsavedChanges ? 'Save changes' : 'No changes'}
+			</TldrawUiButton>
+		</div>
 	)
 }
 
 function saveChanges(_diff: RecordsDiff<TLRecord>, _snapshot: TLEditorSnapshot) {
-	// todo: do something with the diff, or save the whole document snapshot somewhere
+	// Send the diff or the snapshot to your server here.
 }
 
-function isPlainObjectEmpty(obj: object) {
-	for (const key in obj) return false
+function isDiffEmpty(diff: RecordsDiff<TLRecord>) {
+	for (const key in diff.added) return false
+	for (const key in diff.removed) return false
+	for (const key in diff.updated) return false
 	return true
 }
 
-// [4]
 const components: TLComponents = {
 	TopPanel: SaveButton,
 }
@@ -100,31 +75,22 @@ export default function UnsavedChangesExample() {
 }
 
 /*
-This example shows how to track unsaved changes in a tldraw document using the store's 
-listen method with document scope, and how to accumulate a diff of all changes since 
-the last save.
-
 [1]
-We create a handler that will be called whenever there are changes to the document. 
-The handler receives a diff of the changes that occurred. We use `squashRecordDiffs` 
-to accumulate all changes since the last save into a single diff object. This gives 
-us a complete picture of what has changed without storing redundant intermediate states.
+Rather than a boolean "dirty" flag, we accumulate every change since the last save into a
+single `RecordsDiff`. `squashRecordDiffs` folds each new transaction into it, so a shape that
+was created and then deleted cancels out, and a shape edited ten times shows up as one update
+from its saved state to its current state. Because the squash mutates in place, this lives in
+a ref rather than React state; the boolean state is only there to re-render the button.
 
 [2]
-We listen to store changes with the 'document' scope, which means we only get notified 
-about changes to document content (shapes, pages, etc.) and not to instance data like 
-camera position or selected shapes. 
+`scope: 'document'` limits the listener to records that are part of the persisted document
+(shapes, pages, assets, bindings, the document record). Session state like the camera,
+selection, and current page still writes to the store but shouldn't count as unsaved work.
+`store.listen` returns its unsubscribe function, so it doubles as the effect's cleanup.
 
 [3]
-The save function demonstrates how you might handle saving in a real application. We 
-pass both the accumulated diff (showing exactly what changed since last save) and a 
-complete snapshot of the current document state to our save function. After saving, 
-we reset both the unsaved changes flag and the accumulated diff. In a real application, 
-you might send just the diff to minimize bandwidth, or save the full snapshot for 
-simpler server-side handling.
-
-[4]
-We define our component overrides outside of the React component to keep them static. 
-This prevents unnecessary re-renders and follows React best practices. The SaveButton 
-component is placed in the TopPanel to provide a prominent save interface.
+When saving, you have two things to send: the accumulated diff (small, and exactly what
+changed) or a full snapshot from `editor.getSnapshot()` (simpler to store and restore). Which
+you use depends on your backend. Either way, reset the diff afterwards so it starts tracking
+from the newly saved state.
 */

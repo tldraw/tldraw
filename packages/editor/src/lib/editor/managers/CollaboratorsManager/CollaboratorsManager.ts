@@ -1,6 +1,6 @@
 import { EMPTY_ARRAY, atom, computed } from '@tldraw/state'
 import type { TLInstancePresence } from '@tldraw/tlschema'
-import { maxBy } from '@tldraw/utils'
+import { areArraysShallowEqual } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
 
 /**
@@ -41,29 +41,34 @@ export class CollaboratorsManager {
 		}))
 	}
 
+	// These queries all derive fresh arrays with map/filter, so they compare results with
+	// shallow (element-identity) equality: a presence update that leaves a derived list's
+	// elements unchanged — e.g. a peer moving on another page — keeps the previous array's
+	// identity and doesn't invalidate downstream subscribers such as the cursor layer.
+
 	/**
 	 * Returns a list of presence records for all peer collaborators.
 	 * This will return the latest presence record for each connected user.
 	 */
-	@computed
+	@computed({ isEqual: areArraysShallowEqual })
 	getCollaborators(): TLInstancePresence[] {
 		const allPresenceRecords = this._getCollaboratorsQuery().get()
 		if (!allPresenceRecords.length) return EMPTY_ARRAY
-		const userIds = [...new Set(allPresenceRecords.map((c) => c.userId))].sort()
-		return userIds.map((id) => {
-			const latestPresence = maxBy(
-				allPresenceRecords.filter((c) => c.userId === id),
-				(p) => p.lastActivityTimestamp ?? 0
-			)
-			return latestPresence!
-		})
+		const latestByUserId = new Map<string, TLInstancePresence>()
+		for (const presence of allPresenceRecords) {
+			const latest = latestByUserId.get(presence.userId)
+			if (!latest || (presence.lastActivityTimestamp ?? 0) > (latest.lastActivityTimestamp ?? 0)) {
+				latestByUserId.set(presence.userId, presence)
+			}
+		}
+		return [...latestByUserId.keys()].sort().map((id) => latestByUserId.get(id)!)
 	}
 
 	/**
 	 * Returns a list of presence records for all peer collaborators on the current page.
 	 * This will return the latest presence record for each connected user.
 	 */
-	@computed
+	@computed({ isEqual: areArraysShallowEqual })
 	getCollaboratorsOnCurrentPage(): TLInstancePresence[] {
 		const currentPageId = this.editor.getCurrentPageId()
 		return this.getCollaborators().filter((c) => c.currentPageId === currentPageId)
@@ -76,7 +81,7 @@ export class CollaboratorsManager {
 	 * highlighted users. Re-evaluates on the visibility clock, so callers don't need to
 	 * drive their own activity timer.
 	 */
-	@computed
+	@computed({ isEqual: areArraysShallowEqual })
 	getVisibleCollaborators(): TLInstancePresence[] {
 		const { editor } = this
 		const { collaboratorInactiveTimeoutMs, collaboratorIdleTimeoutMs } = editor.options
@@ -121,7 +126,7 @@ export class CollaboratorsManager {
 	 * Returns a list of presence records for peer collaborators who should currently be
 	 * shown in the UI, filtered to those on the current page.
 	 */
-	@computed
+	@computed({ isEqual: areArraysShallowEqual })
 	getVisibleCollaboratorsOnCurrentPage(): TLInstancePresence[] {
 		const currentPageId = this.editor.getCurrentPageId()
 		return this.getVisibleCollaborators().filter((c) => c.currentPageId === currentPageId)

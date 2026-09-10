@@ -1,7 +1,6 @@
 import { execFile, execFileSync } from 'child_process'
 import path, { join } from 'path'
 import { REPO_ROOT, readJsonIfExists } from './lib/file'
-import { nicelog } from './lib/nicelog'
 import { getAllWorkspacePackages } from './lib/workspace'
 
 async function main() {
@@ -20,10 +19,9 @@ async function main() {
 	if (process.argv.includes('--preserveWatchOutput')) args.push('--preserveWatchOutput')
 	if (process.argv.includes('--extendedDiagnostics')) args.push('--extendedDiagnostics')
 
-	const compilerPath = join(REPO_ROOT, 'node_modules/.bin/tsgo')
-	nicelog(`Using tsgo for type checking`)
+	const compilerPath = join(REPO_ROOT, 'node_modules/.bin/tsc')
 
-	// tsgo currently struggles to resolve some workspace package imports on a fresh checkout
+	// tsc currently struggles to resolve some workspace package imports on a fresh checkout
 	// when all projects are passed in a single --build invocation. Building package
 	// workspaces first in topological order (leaves before dependents) produces the
 	// declaration outputs needed for the full graph.
@@ -107,7 +105,7 @@ async function main() {
 /**
  * Sort tsconfig files in topological order based on their `references` fields,
  * so that leaf packages (no dependencies) come first and dependents come after
- * all their dependencies. This is needed because tsgo --build doesn't always
+ * all their dependencies. This is needed because tsc --build doesn't always
  * resolve the reference graph correctly on a fresh checkout.
  */
 async function topoSortTsconfigs(tsconfigFiles: string[]): Promise<string[]> {

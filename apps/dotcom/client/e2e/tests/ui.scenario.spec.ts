@@ -41,7 +41,6 @@ test.describe('UI scenarios', () => {
 		await expect(submitInput).toBeFocused()
 		await submitInput.fill(submittedName)
 		await owner.page.keyboard.press('Enter')
-		await owner.waitForMutationResolution()
 
 		await expect(submitInput).not.toBeVisible()
 		await owner.sidebar.expectFileVisible(submittedName)
@@ -57,6 +56,15 @@ test.describe('UI scenarios', () => {
 
 		await scenario.createPersonalFile(owner, originalName)
 		await scenario.createRectangle(owner)
+		// Duplicating below copies the room's server-side persisted content (see
+		// TLFileDurableObject.handleFileCreateFromSource), which only reflects shapes that have
+		// round-tripped over the room's own sync websocket (independent of Zero/app mutations).
+		// expectShapesCount above only proves the shape rendered locally; give the push time to
+		// reach the server before duplicating, or the copy can race the still-in-flight change and
+		// silently omit the shape.
+		// TODO: replace with a condition-based wait — needs a __test__ route exposing the room DO's
+		// persisted doc state (no such signal exists today), a fixed timeout can still lose the race.
+		await owner.page.waitForTimeout(1000)
 
 		await owner.sidebar.renameFileByName(originalName, renamedName)
 		await owner.sidebar.expectFileVisible(renamedName)
@@ -81,7 +89,6 @@ test.describe('UI scenarios', () => {
 		await owner.deleteFileDialog.expectIsVisible()
 		await owner.deleteFileDialog.confirmDeletion()
 		await owner.deleteFileDialog.expectIsNotVisible()
-		await owner.waitForMutationResolution()
 
 		await owner.sidebar.expectFileNotVisible(duplicateName)
 		await owner.sidebar.expectFileVisible(renamedName)
@@ -128,7 +135,7 @@ test.describe('UI scenarios', () => {
 		const workspaceName = scenario.name('workspace nav')
 		const fileName = scenario.name('workspace movable file')
 
-		await scenario.ensureGroupsReady(owner)
+		await scenario.goToAndOpenSidebar(owner)
 		await scenario.createPersonalFile(owner, fileName)
 
 		await owner.sidebar.createWorkspace(workspaceName)
@@ -175,10 +182,13 @@ test.describe('UI scenarios', () => {
 		await owner.shareMenu.open()
 		await owner.shareMenu.unpublishFile()
 		await owner.page.keyboard.press('Escape')
-		await owner.waitForMutationResolution()
 
-		await visitor.page.goto(publishedUrl, { waitUntil: 'load' })
-		await expect(visitor.page.getByTestId('tla-error-icon')).toBeVisible()
+		// The unpublish applies optimistically; the visitor only sees it once the server has
+		// committed, so reload until the published page stops resolving.
+		await expect(async () => {
+			await visitor.page.goto(publishedUrl, { waitUntil: 'load' })
+			await expect(visitor.page.getByTestId('tla-error')).toBeVisible({ timeout: 3000 })
+		}).toPass({ timeout: 15000 })
 	})
 
 	test('missing files show not-found UI to signed-in and signed-out users', async ({
@@ -191,13 +201,13 @@ test.describe('UI scenarios', () => {
 		await expect(async () => {
 			await owner.errorPage.expectNotFoundVisible()
 		}).toPass()
-		await expect(owner.page.getByTestId('tla-error-icon')).toBeVisible()
+		await expect(owner.page.getByTestId('tla-error')).toBeVisible()
 
 		await visitor.page.goto(missingFileUrl, { waitUntil: 'load' })
 		await expect(async () => {
 			await visitor.errorPage.expectNotFoundVisible()
 		}).toPass()
-		await expect(visitor.page.getByTestId('tla-error-icon')).toBeVisible()
+		await expect(visitor.page.getByTestId('tla-error')).toBeVisible()
 	})
 
 	test('anonymous export downloads an image file', async ({ visitor }) => {
@@ -259,7 +269,6 @@ test.describe('UI scenarios', () => {
 		await ownerDialog.getByRole('tab', { name: 'Settings' }).click()
 		await ownerDialog.getByRole('button', { name: 'Regenerate invite link' }).click()
 		await owner.page.getByRole('button', { name: 'Regenerate', exact: true }).click()
-		await owner.waitForMutationResolution()
 
 		// Copy again (after the 1s copy-button guard) and poll until the new link lands.
 		await expect
@@ -292,7 +301,6 @@ test.describe('UI scenarios', () => {
 		// Leaving requires confirmation (the confirm button is just "Leave") and removes access.
 		await memberDialog.getByRole('button', { name: /Leave workspace/ }).click()
 		await member.page.getByRole('button', { name: 'Leave', exact: true }).click()
-		await member.waitForMutationResolution()
 		await member.sidebar.expectWorkspaceNotVisible(workspaceName)
 		await member.sidebar.expectFileNotVisible(fileName)
 	})
@@ -304,7 +312,7 @@ test.describe('UI scenarios', () => {
 		// Regression: the home workspace ("My workspace") used to render an empty dialog — the
 		// component returned null for it while the sidebar still opened the dialog, so the page
 		// just dimmed with no content. It's private: it can be renamed, but not shared or managed.
-		await scenario.ensureGroupsReady(owner)
+		await scenario.goToAndOpenSidebar(owner)
 		await owner.sidebar.switchToHomeWorkspace()
 		await owner.page.getByTestId('tla-sidebar-workspace-settings').click()
 
@@ -332,7 +340,7 @@ test.describe('UI scenarios', () => {
 		// Regression: the home workspace is renameable (the reason its settings dialog exists at
 		// all), so the rename must apply. Restore the name afterwards so later serial tests still
 		// see the original.
-		await scenario.ensureGroupsReady(owner)
+		await scenario.goToAndOpenSidebar(owner)
 		await owner.sidebar.switchToHomeWorkspace()
 		const originalName = await owner.page.getByTestId('tla-active-workspace-name').innerText()
 		const newName = scenario.name('home renamed')
@@ -341,14 +349,12 @@ test.describe('UI scenarios', () => {
 		const dialog = owner.page.getByRole('dialog', { name: 'Manage workspace' })
 		await dialog.getByPlaceholder('Workspace name').fill(newName)
 		await owner.page.getByRole('button', { name: 'Close' }).click()
-		await owner.waitForMutationResolution()
 		await owner.sidebar.expectActiveWorkspace(newName)
 
 		// Restore the original home workspace name.
 		await owner.page.getByTestId('tla-sidebar-workspace-settings').click()
 		await dialog.getByPlaceholder('Workspace name').fill(originalName)
 		await owner.page.getByRole('button', { name: 'Close' }).click()
-		await owner.waitForMutationResolution()
 		await owner.sidebar.expectActiveWorkspace(originalName)
 	})
 
@@ -356,7 +362,7 @@ test.describe('UI scenarios', () => {
 		const workspaceName = scenario.name('settings rename old')
 		const newWorkspaceName = scenario.name('settings rename new')
 
-		await scenario.ensureGroupsReady(owner)
+		await scenario.goToAndOpenSidebar(owner)
 		await owner.sidebar.createWorkspace(workspaceName)
 		await owner.sidebar.renameWorkspace(workspaceName, newWorkspaceName)
 

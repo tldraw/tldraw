@@ -21,7 +21,6 @@ export default function CustomConfigExample() {
 				tools={customTools}
 				// Pass in any overrides to the user interface
 				overrides={uiOverrides}
-				// Pass in the new Keybaord Shortcuts component
 				components={components}
 			/>
 		</div>
@@ -32,15 +31,13 @@ export default function CustomConfigExample() {
 Introduction:
 
 This example shows how to create a custom shape, and add your own icon for it to the toolbar.
-Check out CardShapeUtil.tsx and CardShapeTool.tsx to see how we define the shape util and tool. 
-Check out ui-overrides.ts for more info on how to add your icon to the toolbar.
+Check out CardShapeUtil.tsx and CardShapeTool.tsx to see how we define the shape util and tool.
+Check out ui-overrides.tsx for more info on how to add your icon to the toolbar.
 
-[1] 
-We define an array to hold the custom shape util and custom tool. It's important to do this outside of
-any React component so that this array doesn't get redefined on every render.
+[1]
+We define arrays to hold the custom shape util and custom tool. It's important to do this outside of
+any React component so that the arrays don't get redefined on every render.
 
 [2]
 Now we'll pass these arrays into the Tldraw component's props, along with our ui overrides.
-
-
 */

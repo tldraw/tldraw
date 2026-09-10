@@ -1,7 +1,8 @@
-import { useRef } from 'react'
-import { createShapeId, Tldraw, TldrawUiButton, useEditor } from 'tldraw'
+import { createShapeId, TLComponents, Tldraw, TldrawUiButton, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './align-and-distribute-shapes.css'
+
+// There's a guide at the bottom of this file!
 
 // [1]
 const ALIGN_OPERATIONS = [
@@ -11,13 +12,18 @@ const ALIGN_OPERATIONS = [
 	{ operation: 'top', label: 'Align top' },
 	{ operation: 'center-vertical', label: 'Align center V' },
 	{ operation: 'bottom', label: 'Align bottom' },
+	{ operation: 'center', label: 'Align center' },
 ] as const
 
-function ControlPanel({
-	originalPositions,
-}: {
-	originalPositions: React.RefObject<Map<string, { x: number; y: number }>>
-}) {
+const DISTRIBUTE_OPERATIONS = [
+	{ operation: 'horizontal', label: 'Distribute horizontal' },
+	{ operation: 'vertical', label: 'Distribute vertical' },
+] as const
+
+// Original positions of the demo shapes, captured on mount so "Reset positions" can restore them.
+const originalPositions = new Map<string, { x: number; y: number }>()
+
+function ControlPanel() {
 	const editor = useEditor()
 
 	return (
@@ -42,7 +48,7 @@ function ControlPanel({
 					type="normal"
 					key={operation}
 					onClick={() => {
-						// [4]
+						// [3]
 						const selectedIds = editor.getSelectedShapeIds()
 						if (selectedIds.length > 2) {
 							editor.distributeShapes(selectedIds, operation)
@@ -55,19 +61,13 @@ function ControlPanel({
 			<TldrawUiButton
 				type="normal"
 				onClick={() => {
-					const shapes = editor.getCurrentPageShapes()
-					editor.run(() => {
-						for (const shape of shapes) {
-							const originalPos = originalPositions.current?.get(shape.id)
-							if (originalPos) {
-								editor.updateShape({
-									...shape,
-									x: originalPos.x,
-									y: originalPos.y,
-								})
-							}
-						}
-					})
+					// [4]
+					editor.updateShapes(
+						editor.getCurrentPageShapes().flatMap((shape) => {
+							const originalPos = originalPositions.get(shape.id)
+							return originalPos ? [{ ...shape, ...originalPos }] : []
+						})
+					)
 				}}
 			>
 				Reset positions
@@ -76,15 +76,12 @@ function ControlPanel({
 	)
 }
 
-// [3]
-const DISTRIBUTE_OPERATIONS = [
-	{ operation: 'horizontal', label: 'Distribute horizontal' },
-	{ operation: 'vertical', label: 'Distribute vertical' },
-] as const
+// [5]
+const components: TLComponents = {
+	TopPanel: ControlPanel,
+}
 
-export default function RequestAlignAndDistributeShapesExample() {
-	const originalPositions = useRef(new Map<string, { x: number; y: number }>())
-
+export default function AlignAndDistributeShapesExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
@@ -95,68 +92,47 @@ export default function RequestAlignAndDistributeShapesExample() {
 							type: 'geo' as const,
 							x: 100,
 							y: 100,
-							props: {
-								w: 100,
-								h: 100,
-								color: 'blue' as const,
-							},
+							props: { w: 100, h: 100, color: 'blue' as const },
 						},
 						{
 							id: createShapeId(),
 							type: 'geo' as const,
 							x: 300,
 							y: 200,
-							props: {
-								w: 120,
-								h: 80,
-								color: 'red' as const,
-							},
+							props: { w: 120, h: 80, color: 'red' as const },
 						},
 						{
 							id: createShapeId(),
 							type: 'geo' as const,
 							x: 500,
 							y: 150,
-							props: {
-								w: 80,
-								h: 120,
-								color: 'green' as const,
-							},
+							props: { w: 80, h: 120, color: 'green' as const },
 						},
 						{
 							id: createShapeId(),
 							type: 'geo' as const,
 							x: 150,
 							y: 400,
-							props: {
-								w: 100,
-								h: 100,
-								color: 'violet' as const,
-							},
+							props: { w: 100, h: 100, color: 'violet' as const },
 						},
 						{
 							id: createShapeId(),
 							type: 'geo' as const,
 							x: 400,
 							y: 450,
-							props: {
-								w: 90,
-								h: 90,
-								color: 'orange' as const,
-							},
+							props: { w: 90, h: 90, color: 'orange' as const },
 						},
 					]
 
+					originalPositions.clear()
 					for (const shape of shapes) {
-						originalPositions.current.set(shape.id, { x: shape.x, y: shape.y })
+						originalPositions.set(shape.id, { x: shape.x, y: shape.y })
 					}
 
 					editor.createShapes(shapes)
 					editor.selectAll()
 				}}
-				components={{
-					TopPanel: () => <ControlPanel originalPositions={originalPositions} />,
-				}}
+				components={components}
 			/>
 		</div>
 	)
@@ -164,14 +140,22 @@ export default function RequestAlignAndDistributeShapesExample() {
 
 /*
 [1]
-Define an array of all align operations with their labels. This makes it easy to render buttons for each operation without repetition. The available operations are: left, center-horizontal, right (horizontal alignment), and top, center-vertical, bottom (vertical alignment).
+The operation names accepted by `editor.alignShapes` and `editor.distributeShapes`. Listing them
+in a typed array lets us render one button per operation.
 
 [2]
-The alignShapes method requires at least 2 shapes to be selected. It aligns the selected shapes based on the specified operation. The shapes parameter can be either shape IDs or shape objects.
+`alignShapes` moves the selected shapes so their edges (or centers) line up. It needs at least
+two shapes; with fewer there is nothing to align to.
 
 [3]
-Define an array of distribute operations. Distribution evenly spaces shapes along the specified axis: horizontal or vertical.
+`distributeShapes` keeps the outermost two shapes where they are and spaces the ones in between
+evenly, so it needs at least three shapes to do anything.
 
 [4]
-The distributeShapes method requires at least 3 shapes to be selected. It distributes shapes evenly along the horizontal or vertical axis, maintaining equal spacing between them.
+`updateShapes` applies all the position changes in one call, so a single undo restores every
+shape.
+
+[5]
+Define `components` at module level so the `TopPanel` component identity is stable across renders.
+Defining it inline would remount the panel every time the parent re-renders.
 */

@@ -1,9 +1,3 @@
-/* eslint-disable react-hooks/rules-of-hooks */
-/**
- * Mermaid flowchart → DAG pipeline demo: paste flowchart/graph source, apply to the canvas, run simulated steps.
- * - `blueprintRender.mapNodeToRenderSpec` maps each flowchart vertex to `flowchart-util` + `mermaidNodeId`.
- * - After import, graph and layer badges come from arrows + bindings (`extractFlowchartPipelineFromEditor`).
- */
 import { useCallback, useState } from 'react'
 import { TLComponents, Tldraw, TldrawUiButton, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -61,19 +55,13 @@ function TopPanel() {
 				return
 			}
 
-			const [{ createMermaidDiagram }, { default: mermaid }] = await Promise.all([
-				import('@tldraw/mermaid'),
-				import('mermaid'),
-			])
-			mermaid.initialize({
-				startOnLoad: false,
-				flowchart: { useMaxWidth: false, nodeSpacing: 80, rankSpacing: 80, padding: 20 },
-			})
+			// [1]
+			const { createMermaidDiagram } = await import('@tldraw/mermaid')
 
-			editor.selectAll()
-			editor.deleteShapes(editor.getSelectedShapes())
+			editor.deleteShapes([...editor.getCurrentPageShapeIds()])
 
 			try {
+				// [2]
 				await createMermaidDiagram(editor, mermaidText, {
 					blueprintRender: {
 						position: { x: 200, y: 400 },
@@ -92,6 +80,7 @@ function TopPanel() {
 				return
 			}
 
+			// [3]
 			const parsed = extractFlowchartPipelineFromEditor(editor)
 			if (!parsed.ok) {
 				pipelineStateAtom.set({
@@ -162,3 +151,19 @@ function TopPanel() {
 		</div>
 	)
 }
+
+/*
+[1]
+`@tldraw/mermaid` pulls in the (large) mermaid library, so it is imported lazily the first
+time the user applies a workflow rather than on page load.
+
+[2]
+`blueprintRender.mapNodeToRenderSpec` lets you decide which shape each parsed Mermaid node
+becomes. Our mapper (see mermaidPipelineBlueprint.ts) turns every flowchart vertex into a
+`flowchart-util` shape and stores the Mermaid node id in its props so we can find it later.
+
+[3]
+The pipeline graph is not read from the Mermaid text. Instead it is rebuilt from the arrows
+and arrow bindings that the import created on the canvas (see pipelineFromEditor.ts), so if
+you reconnect arrows by hand and apply again the pipeline follows the drawing.
+*/

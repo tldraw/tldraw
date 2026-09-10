@@ -18,10 +18,10 @@ keywords:
   ]
 ---
 
-A custom shape that has its own onClick interactions.
+A todo shape with a checkbox and text input that handle their own pointer events.
 
 ---
 
-By default the editor handles pointer events, but sometimes you want to handle interactions on your shape in your own ways, for example via a button. You can do this by using the css property `pointer events: all` and stopping event propagation. In this example we want our todo shape to have a checkbox so the user can mark them as done.
+By default the editor handles all pointer events on the canvas, so clicking a shape selects it and dragging moves it. To let part of a shape handle its own interactions, set `pointer-events: all` on the shape's `HTMLContainer` and call `stopPropagation()` on the events you want to keep from reaching the canvas.
 
-Check out my-interactive-shape-util.tsx to see how we create the shape.
+Try clicking the checkbox to toggle the todo and typing in the input. Once a todo is checked, the input becomes read-only and lets pointer events through, so clicking it selects the shape as usual. See `my-interactive-shape-util.tsx` for the shape.

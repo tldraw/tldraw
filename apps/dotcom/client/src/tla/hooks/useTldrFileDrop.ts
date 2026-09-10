@@ -3,6 +3,7 @@ import { DragEvent, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { tlmenus } from 'tldraw'
 import { routes } from '../../routeDefs'
+import { useRejectTldrawOfflineFiles } from '../utils/tldrawOfflineFiles'
 import { useApp } from './useAppState'
 
 export function useTldrFileDrop() {
@@ -10,25 +11,33 @@ export function useTldrFileDrop() {
 	const navigate = useNavigate()
 
 	const auth = useAuth()
+	const rejectTldrawOfflineFiles = useRejectTldrawOfflineFiles()
 
 	const onDrop = useCallback(
 		async (e: DragEvent) => {
+			// Read the file list before any await: the DataTransfer is neutered once the drop event
+			// finishes dispatching, so reading it after the token fetch finds it empty.
+			const droppedFiles = e.dataTransfer?.files ? Array.from(e.dataTransfer.files) : []
+			if (!droppedFiles.length) return
+
 			const token = await auth.getToken()
 			if (!token) {
 				return
 			}
 
-			if (!e.dataTransfer?.files?.length) return
-			const files = Array.from(e.dataTransfer.files)
+			const files = rejectTldrawOfflineFiles(droppedFiles)
 			const tldrawFiles = files.filter((file) => file.name.endsWith('.tldr'))
 			if (!tldrawFiles.length) {
 				return
 			}
-			app.uploadTldrFiles(tldrawFiles, (fileId) => {
-				navigate(routes.tlaFile(fileId))
+			app.uploadTldrFiles(tldrawFiles, {
+				source: 'file-drop',
+				onFirstFileUploaded: (fileId) => {
+					navigate(routes.tlaFile(fileId))
+				},
 			})
 		},
-		[app, auth, navigate]
+		[app, auth, navigate, rejectTldrawOfflineFiles]
 	)
 
 	const onDragOver = useCallback((e: DragEvent) => {

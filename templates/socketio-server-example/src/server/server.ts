@@ -74,10 +74,7 @@ io.on('connection', async (socket) => {
 		}
 
 		// and finally connect the socket to the room
-		room.handleSocketConnect({
-			sessionId: sessionId,
-			socket: socketAdapter,
-		})
+		room.handleSocketConnect({ sessionId, socket: socketAdapter })
 
 		// Handle tldraw sync messages
 		socket.on('tldraw-message', (message) => {

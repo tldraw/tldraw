@@ -21,7 +21,7 @@ export default function ScrollExample() {
 }
 
 /*
-This example shows how you can use the Tldraw component inside a scrollable container. 
-The component will still accept mousewheel events while "focused". Try turning off the
-autoFocus prop to see the difference.
+While the editor is focused it consumes wheel events to pan and zoom, so the page won't
+scroll when the pointer is over the canvas. Try turning off `autoFocus` to see the
+difference.
 */

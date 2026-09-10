@@ -8,9 +8,10 @@ const scenarioTestMatch = /.*\.scenario\.spec\.ts/
 const smokeTestMatch = /tests\/smoke\/.*\.spec\.ts/
 
 // Fail fast if the dev stack does not come up: not a single test runs until http://localhost:3000
-// responds, so a stuck server otherwise burns CI minutes. The dotcom server should boot well within
-// this. If a CI cold start ever legitimately needs longer, raise this (and the readiness budgets in
-// zero-cache/dev-env.ts) rather than reverting to a multi-minute stuck wait.
+// responds, so a stuck server otherwise burns CI minutes. process-compose brings up postgres ->
+// migrate -> zero-cache -> workers -> client (see apps/dotcom/process-compose.yaml); it should boot
+// well within this. If a CI cold start ever legitimately needs longer, raise this rather than
+// reverting to a multi-minute stuck wait.
 const CI_WEB_SERVER_TIMEOUT_MS = 180_000
 
 /**
@@ -30,7 +31,7 @@ export default defineConfig({
 	// Run files in parallel, but tests within a file in sequence. This is important for certain
 	// tests that use shared system resources like the clipboard, which should all be kept in the
 	// same file.
-	fullyParallel: process.env.STAGING_TESTS ? true : false,
+	fullyParallel: !!process.env.STAGING_TESTS,
 	/* Fail the build on CI if you accidentally left test.only in the source code. */
 	forbidOnly: !!process.env.CI,
 	/* Retry on CI only */

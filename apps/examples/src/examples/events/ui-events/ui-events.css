@@ -1,0 +1,26 @@
+.ui-events {
+	display: flex;
+}
+
+.ui-events__editor {
+	width: 60%;
+	height: 100vh;
+}
+
+.ui-events__log {
+	width: 40%;
+	height: 100vh;
+	padding: 8px;
+	background: #eee;
+	border-left: solid 2px #333;
+	font-family: monospace;
+	font-size: 12px;
+	overflow: auto;
+}
+
+.ui-events__log pre {
+	border-bottom: 1px solid #000;
+	margin-bottom: 0;
+	padding-bottom: 12px;
+	white-space: pre-wrap;
+}

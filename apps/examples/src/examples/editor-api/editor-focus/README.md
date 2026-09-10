@@ -5,14 +5,10 @@ priority: 2
 keywords: [focus, blur, autofocus, keyboard shortcuts, multiple editors, scrolling, instance state]
 ---
 
-Manually manage the editor's focus to enable or disable keyboard shortcuts.
+Control the editor's focus with `focus()`, `blur()`, and `autoFocus` to gate keyboard shortcuts and scroll capture.
 
 ---
 
-In this example, we drive the editor's focus in order to turn on and off keyboard shortcuts.
+The editor's focus decides whether its keyboard shortcuts respond and whether wheel events pan the canvas. It is related to, but not the same as, the browser's notion of focus (the document's [active element](https://developer.mozilla.org/en-US/docs/Web/API/Document/activeElement)). The browser's focus can't be relied on for this: iframes aren't descendants of their parents, and many menus are portalled elsewhere in the document, so checking whether the active element is inside the `Tldraw` element isn't reliable.
 
-The editor's focus is different from—but usually corresponds to—the browser's concept of "focus", which is related to the document's [active element](https://developer.mozilla.org/en-US/docs/Web/API/Document/activeElement).
-
-Unfortunately, the browser's focus cannot be relied on to determine whether the editor's keyboard shortcuts should work. While its possible to detect whether the document's active element is a descendant of the Tldraw component's own element, it's not 100% reliable. For example, iframes are not considered descendants of their parents, and many menus are portalled into different parts of the document tree.
-
-For these reasons, the responsibility falls to you, dear developer, to manage focus for your Tldraw editor, especially in cases where there are more than one editor on the same page.
+That leaves focus management to you, especially with more than one editor on a page. This example mounts the editor with `autoFocus={false}` and drives focus with `editor.focus()` and `editor.blur()` from a checkbox that stays in sync via `editor.getIsFocused()`. Try typing in the text input while the editor is focused (shortcuts shouldn't fire), and toggle the checkbox to see scrolling switch between the page and the canvas.

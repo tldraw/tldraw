@@ -1,4 +1,5 @@
 import { captureException } from '@sentry/react'
+import { THUMBNAIL_RENDER_PATH } from '@tldraw/dotcom-shared'
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { Suspense, lazy, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
@@ -74,7 +75,16 @@ export function createAppRouter({
 			}}
 		>
 			{includeDevRoutes && (
-				<Route path="/dev/reset-local-state" lazy={() => import('./pages/dev-reset-local-state')} />
+				<>
+					<Route
+						path="/dev/reset-local-state"
+						lazy={() => import('./pages/dev-reset-local-state')}
+					/>
+					<Route
+						path="/dev/browser-run-thumbnail"
+						lazy={() => import('./pages/dev-browser-run-thumbnail')}
+					/>
+				</>
 			)}
 			<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
 				<Route path={ROUTES.tlaRoot} lazy={() => import('./tla/pages/local')} />
@@ -88,19 +98,21 @@ export function createAppRouter({
 					/>
 					{/* File view */}
 					<Route path={ROUTES.tlaFile} lazy={() => import('./tla/pages/file')} />
-					<Route path={ROUTES.tlaFileHistory} lazy={() => import('./tla/pages/file-history')} />
-					<Route
-						path={ROUTES.tlaFileHistorySnapshot}
-						lazy={() => import('./tla/pages/file-history-snapshot')}
-					/>
-					<Route
-						path={ROUTES.tlaFilePierreHistory}
-						lazy={() => import('./tla/pages/file-pierre-history')}
-					/>
-					<Route
-						path={ROUTES.tlaFilePierreHistorySnapshot}
-						lazy={() => import('./tla/pages/file-pierre-history-snapshot')}
-					/>
+					<Route lazy={() => import('./tla/providers/RequireTldrawStaff')}>
+						<Route path={ROUTES.tlaFileHistory} lazy={() => import('./tla/pages/file-history')} />
+						<Route
+							path={ROUTES.tlaFileHistorySnapshot}
+							lazy={() => import('./tla/pages/file-history-snapshot')}
+						/>
+						<Route
+							path={ROUTES.tlaLegacyRoomHistory}
+							lazy={() => import('./tla/pages/legacy-history')}
+						/>
+						<Route
+							path={ROUTES.tlaLegacyRoomHistorySnapshot}
+							lazy={() => import('./tla/pages/legacy-history-snapshot')}
+						/>
+					</Route>
 
 					<Route path={ROUTES.tlaPublish} lazy={() => import('./tla/pages/publish')} />
 					<Route path={ROUTES.tlaImport} lazy={() => import('./tla/pages/import')} />
@@ -121,22 +133,17 @@ export function createAppRouter({
 						path={ROUTES.tlaLegacySnapshot}
 						lazy={() => import('./tla/pages/legacy-snapshot')}
 					/>
-					{/* Legacy history */}
-					<Route
-						path={ROUTES.tlaLegacyRoomHistory}
-						lazy={() => import('./tla/pages/legacy-history')}
-					/>
-					{/* Legacy history snapshot */}
-					<Route
-						path={ROUTES.tlaLegacyRoomHistorySnapshot}
-						lazy={() => import('./tla/pages/legacy-history-snapshot')}
-					/>
 					{/* Views that require login */}
 					<Route lazy={() => import('./tla/providers/RequireSignedInUser')}></Route>
+					{/* Two explicit routes, not one optional segment: the Vercel rewrite derived from
+					    a trailing optional param drops the optionality and 404s bare /admin */}
 					<Route path="/admin" lazy={() => import('./pages/admin')} />
+					<Route path="/admin/:section" lazy={() => import('./pages/admin')} />
 				</Route>
 			</Route>
 			<Route path="/__debug-tail" lazy={() => import('./tla/pages/worker-debug-tail')} />
+			{/* Renders a board for Browser Run thumbnail capture from a signed render token */}
+			<Route path={THUMBNAIL_RENDER_PATH} lazy={() => import('./pages/thumbnail-render')} />
 			<Route path="*" lazy={() => import('./pages/not-found')} />
 		</Route>
 	)

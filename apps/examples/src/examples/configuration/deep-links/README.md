@@ -15,31 +15,29 @@ keywords:
   ]
 ---
 
-Allow linking to specific parts of a tldraw canvas.
+Keep the camera position in the URL so links open at the same view.
 
 ---
 
-Deep Links are URLs which point to a specific part of a document. We provide a comprehensive set of tools to help you create and manage deep links in your application.
+Deep links are URLs that point to a specific part of a document: a viewport, a page, or a set of shapes. Try it here: create a shape, then pan or zoom. The `d` search param in the URL updates as you go, and opening that URL in a new tab returns to the same view.
 
 ## The `deepLinks` option
 
-The highest-level API for managing deep links is the `deepLinks` option on the `<Tldraw />` component's `options` prop. This option is designed for manipulating `window.location` to add a search param which tldraw can use to navigate to a specific part of the document.
+The simplest way to use deep links is the `deepLinks` key of the `Tldraw` component's `options` prop. It keeps `window.location` in sync with a search param that tldraw can navigate to, e.g. `https://my-app.com/document-name?d=v1234.-234.3.21`.
 
-e.g. `https://my-app.com/document-name?d=v1234.-234.3.21`
+Setting `deepLinks: true` enables the default behavior:
 
-If you set `deepLinks` to `true` e.g. `<Tldraw options={{ deepLinks: true }} />` the following default behavior will be enabled:
+1. When the editor initializes, before the initial render, it checks `window.location` for a search param called `d`. If found, it parses the value as a deep link and navigates there.
+2. 500 milliseconds after each camera or page change, it updates `window.location` with the latest `d` param.
 
-1. When the editor initializes, before the initial render, it will check the current `window.location` for a search param called `d`. If found, it will try to parse the value of this param as a deep link and navigate to that part of the document.
-2. 500 milliseconds after every time the editor finishes navigating to a new part of the document, it will update `window.location` to add the latest version of the `d` param.
-
-You can customize this behavior by passing a configuration object as the `deepLinks` option. e.g.
+You can customize this behavior by passing an options object instead:
 
 ```tsx
 <Tldraw
 	options={{
 		deepLinks: {
 			// change the param name to `page`
-			paramName: 'page',
+			param: 'page',
 			// only link to the current page
 			getTarget(editor) {
 				return { type: 'page', pageId: editor.getCurrentPageId() }
@@ -59,7 +57,7 @@ For full options see the [`TLDeepLinkOptions`](?) API reference.
 
 ## Handling deep links manually
 
-We expose the core functionality for managing deep links as a set of methods and utilities. This gives you more control e.g. if you prefer not to use search params in the URL.
+The same functionality is exposed as methods and utilities, which gives you more control if, for example, you prefer not to use search params in the URL.
 
 ### Creating a deep link
 
@@ -113,7 +111,7 @@ You can listen for deep link changes with the [`Editor#registerDeepLinkListener`
 ```tsx
 useEffect(() => {
 	const unlisten = editor.registerDeepLinkListener({
-		paramName: 'page',
+		param: 'page',
 		getTarget(editor) {
 			return { type: 'page', pageId: editor.getCurrentPageId() }
 		},
@@ -125,9 +123,5 @@ useEffect(() => {
 	return () => {
 		unlisten()
 	}
-}, [])
+}, [editor])
 ```
-
-### Trying deep links in this demo
-
-Create a shape on the canvas then pan or zoom. The `d` param in the URL updates as you go. Copy that URL into a new tab to return to the same view later.

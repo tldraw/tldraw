@@ -1,5 +1,5 @@
 import { BoxModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
-import { objectMapKeys } from '@tldraw/utils'
+import { iterateGraphemes, objectMapKeys } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
 import { EditorManager } from '../EditorManager'
 
@@ -94,10 +94,6 @@ export interface TLMeasureTextSpanOpts {
 
 const spaceCharacterRegex = /\s/
 
-// Iterate by grapheme cluster (e.g. emoji sequences, flags, accented letters)
-// rather than by code point, so a single glyph is measured as one unit.
-const graphemeSegmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' })
-
 const initialDefaultStyles = Object.freeze({
 	'overflow-wrap': 'break-word',
 	'word-break': 'auto',
@@ -183,6 +179,9 @@ export class TextManager extends EditorManager {
 			'font-weight': opts.fontWeight,
 			'font-size': opts.fontSize + 'px',
 			'line-height': `${resolveLineHeightPx(opts.fontSize, opts.lineHeight)}px`,
+			// Unitless multiplier consumed by the .tl-rich-text h1–h6 rule (see editor.css),
+			// so heading measurement matches on-canvas rendering.
+			'--tl-rich-text-heading-line-height': `${opts.lineHeight}`,
 			padding: opts.padding,
 			'max-width': opts.maxWidth ? opts.maxWidth + 'px' : undefined,
 			'min-width': opts.minWidth ? opts.minWidth + 'px' : undefined,
@@ -306,7 +305,7 @@ export class TextManager extends EditorManager {
 		for (const childNode of element.childNodes) {
 			if (childNode.nodeType !== Node.TEXT_NODE) continue
 
-			for (const { segment } of graphemeSegmenter.segment(childNode.textContent ?? '')) {
+			for (const segment of iterateGraphemes(childNode.textContent ?? '')) {
 				// place the range around the grapheme we're interested in
 				range.setStart(textNode, idx)
 				range.setEnd(textNode, idx + segment.length)
@@ -435,7 +434,8 @@ export class TextManager extends EditorManager {
 			if (opts.overflow === 'truncate-ellipsis' && didTruncate) {
 				// we need to measure the ellipsis to know how much space it takes up
 				elm.textContent = '…'
-				const ellipsisWidth = Math.ceil(this.measureElementTextNodeSpans(elm).spans[0].box.w)
+				const ellipsisSpan = this.measureElementTextNodeSpans(elm).spans[0]
+				const ellipsisWidth = ellipsisSpan ? Math.ceil(ellipsisSpan.box.w) : 0
 
 				// then, we need to subtract that space from the width we have and measure again:
 				elm.style.setProperty('width', `${elementWidth - ellipsisWidth}px`)
@@ -448,7 +448,12 @@ export class TextManager extends EditorManager {
 				// have to do this after measuring, not before, because adding the
 				// ellipsis changes how whitespace might be getting collapsed by the
 				// browser.
-				const lastSpan = truncatedSpans[truncatedSpans.length - 1]!
+				const lastSpan = truncatedSpans[truncatedSpans.length - 1]
+				// If nothing measurable remained, return the (possibly empty)
+				// spans as-is rather than dereferencing a missing last span.
+				if (!lastSpan) {
+					return truncatedSpans
+				}
 				truncatedSpans.push({
 					text: '…',
 					box: {

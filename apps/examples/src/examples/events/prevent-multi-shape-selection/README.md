@@ -14,8 +14,16 @@ keywords:
   ]
 ---
 
-This example demonstrates how to prevent users from selecting multiple shapes at once in tldraw.
+Limit the selection to a single shape by rewriting selection changes in a before-change handler.
 
 ---
 
-You can prevent multiple shape selection by registering a before-change handler for the `instance_page_state` type. This handler intercepts selection changes and ensures only one shape can be selected at a time.
+The current selection is stored on the `instance_page_state` record as `selectedShapeIds`. This
+example registers a `registerBeforeChangeHandler` for that record and, whenever an incoming change
+would select more than one shape, returns a copy with only the last id. Since every selection
+method writes to the same record, one handler covers shift-click, brush selection, select all, and
+`editor.select()` calls from your own code.
+
+Try creating a few shapes and shift-clicking or dragging a selection box over them: only one ends up
+selected. Rewriting the change instead of rejecting it (by returning `prev`) means the user's action
+still does something sensible.

@@ -11,8 +11,7 @@ export class BezierShapeHandleOverlayUtil extends ShapeHandleOverlayUtil {
 			return super.isActive()
 		}
 
-		const { isReadonly, isChangingStyle } = editor.getInstanceState()
-		if (isReadonly || isChangingStyle) return false
+		if (editor.getIsReadonly() || editor.getInstanceState().isChangingStyle) return false
 		if (!editor.getShapeHandles(onlySelectedShape)) return false
 
 		if (editor.isInAny('select.pointing_handle', 'select.dragging_handle')) return true

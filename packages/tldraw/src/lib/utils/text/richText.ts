@@ -10,7 +10,7 @@ import {
 import { Code } from '@tiptap/extension-code'
 import { Highlight } from '@tiptap/extension-highlight'
 import { Node } from '@tiptap/pm/model'
-import { StarterKit } from '@tiptap/starter-kit'
+import { StarterKit, type StarterKitOptions } from '@tiptap/starter-kit'
 import {
 	Editor,
 	getOwnProperty,
@@ -43,35 +43,72 @@ Code.config.excludes = undefined
 Highlight.config.priority = 1100
 
 /**
+ * Build tldraw's default TipTap extension set, optionally overriding the bundled `StarterKit`
+ * options. The one lever most consumers want is turning individual nodes off (e.g. comments use a
+ * headingless set via `getTipTapDefaultExtensions({ heading: false })`); because `StarterKit` is a
+ * single umbrella extension, its sub-extensions can only be disabled through its config, not by
+ * filtering the returned array.
+ *
+ * @public
+ */
+export function getTipTapDefaultExtensions(
+	starterKitOptions?: Partial<StarterKitOptions>
+): Extensions {
+	return [
+		StarterKit.configure({
+			blockquote: false,
+			codeBlock: false,
+			horizontalRule: false,
+			link: {
+				openOnClick: false,
+				autolink: true,
+			},
+			// Prevent trailing paragraph insertion after lists (fixes #7641)
+			trailingNode: {
+				notAfter: ['paragraph', 'bulletList', 'orderedList', 'listItem'],
+			},
+			...starterKitOptions,
+		}),
+		Highlight,
+		KeyboardShiftEnterTweakExtension,
+
+		// N.B. We disable the text direction core extension in RichTextArea,
+		// but we add it back in again here in our own extensions list so that
+		// people can omit/override it if they want to.
+		extensions.TextDirection.configure({ direction: 'auto' }),
+	]
+}
+
+/**
  * Default extensions for the TipTap editor.
  *
  * @public
  */
-export const tipTapDefaultExtensions: Extensions = [
-	StarterKit.configure({
-		blockquote: false,
-		codeBlock: false,
-		horizontalRule: false,
-		link: {
-			openOnClick: false,
-			autolink: true,
-		},
-		// Prevent trailing paragraph insertion after lists (fixes #7641)
-		trailingNode: {
-			notAfter: ['paragraph', 'bulletList', 'orderedList', 'listItem'],
-		},
-	}),
-	Highlight,
-	KeyboardShiftEnterTweakExtension,
-
-	// N.B. We disable the text direction core extension in RichTextArea,
-	// but we add it back in again here in our own extensions list so that
-	// people can omit/override it if they want to.
-	extensions.TextDirection.configure({ direction: 'auto' }),
-]
+export const tipTapDefaultExtensions: Extensions = getTipTapDefaultExtensions()
 
 // todo: bust this if the editor changes, too
 const htmlCache = new WeakCache<TLRichText, string>()
+
+/**
+ * Renders HTML from a rich text string using an explicit set of TipTap extensions, rather than the
+ * ones configured on an editor. Use this when rendering rich text outside of a shape's editor
+ * config (e.g. comments, which render through their own headingless extension set).
+ *
+ * @param richText - The rich text content.
+ * @param extensions - The TipTap extensions to render with.
+ *
+ * @public
+ */
+export function renderHtmlFromRichTextWithExtensions(
+	richText: TLRichText,
+	extensions: Extensions
+): string {
+	const html = generateHTML(richText as JSONContent, extensions)
+	// We replace empty paragraphs with a single line break to prevent the browser from collapsing
+	// them. The paragraph's attributes are kept: paragraphs render with a `dir` attribute, usually
+	// `auto` but `ltr` or `rtl` when the direction was set explicitly or parsed from pasted HTML.
+	return html.replace(/<p([^>]*)><\/p>/g, '<p$1><br /></p>')
+}
 
 /**
  * Renders HTML from a rich text string.
@@ -85,9 +122,7 @@ export function renderHtmlFromRichText(editor: Editor, richText: TLRichText) {
 	return htmlCache.get(richText, () => {
 		const tipTapExtensions =
 			editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
-		const html = generateHTML(richText as JSONContent, tipTapExtensions)
-		// We replace empty paragraphs with a single line break to prevent the browser from collapsing them.
-		return html.replaceAll('<p dir="auto"></p>', '<p><br /></p>') ?? ''
+		return renderHtmlFromRichTextWithExtensions(richText, tipTapExtensions)
 	})
 }
 

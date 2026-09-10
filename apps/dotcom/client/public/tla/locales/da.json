@@ -1,12 +1,12 @@
 {
-  "1764571547": {
-    "translation": "Er du sikker på, at du vil slette dette arbejdsområde? Denne handling kan ikke fortrydes."
-  },
   "0095a9fa74": {
     "translation": "Eksportere"
   },
   "00b177e080": {
     "translation": "Accepter invitationen"
+  },
+  "029f235f01": {
+    "translation": "Vi arbejder på understøttelse af filer fra <a><strong>{appName}</strong></a>."
   },
   "03b3e13197": {
     "translation": "Træk filen ind i sidebjælken på denne side. Eller vælg indstillingen 'Importer fil' fra brugermenuen."
@@ -16,6 +16,9 @@
   },
   "04a2dd56d6": {
     "translation": "Inviter holdkammerater"
+  },
+  "05b2656486": {
+    "translation": "<name>{author}</name> nævnte dig"
   },
   "05f43078e9": {
     "translation": "Du har nået det maksimale antal arbejdsområder. Du skal slette gamle arbejdsområder, før du opretter nye."
@@ -31,6 +34,9 @@
   },
   "08bd40c754": {
     "translation": "Konto"
+  },
+  "093ac7483a": {
+    "translation": "Kan ikke åbne {extension} filer endnu"
   },
   "0a91f7fa87": {
     "translation": "Denne fil har nået sin størrelsesgrænse, og ændringerne kan muligvis ikke længere gemmes. Fjern noget indhold, eller start en ny fil."
@@ -62,6 +68,9 @@
   "13ddd375ad": {
     "translation": "Eksporter som"
   },
+  "14b03eeeb5": {
+    "translation": "Meddelelsesmuligheder"
+  },
   "181b90f889": {
     "translation": "Opret fil"
   },
@@ -83,6 +92,12 @@
   "250ddea65c": {
     "translation": "Om tldraw"
   },
+  "2755e3ab39": {
+    "translation": "<name>{author}</name> kommenterede på dit opslagstavle"
+  },
+  "28b2464e1f": {
+    "translation": "Feedback kunne ikke indsendes"
+  },
   "299cb00a7a": {
     "translation": "Upload mislykkedes"
   },
@@ -91,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Søge..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Prøv venligst igen."
   },
   "2de510be71": {
     "translation": "Regenerering erstatter det nuværende invitationslink med et nyt. Alle, der bruger det gamle link, skal bruge det nye for at deltage."
@@ -146,8 +164,14 @@
   "44db318ee5": {
     "translation": "Få hjælp til Discord"
   },
+  "454aad3b3c": {
+    "translation": "Er du sikker på, at du vil slette <strong>{fileName}</strong>?"
+  },
   "46137245cd": {
     "translation": "Tak, fordi du hjælper os med at forbedre tldraw!"
+  },
+  "46de2de6bb": {
+    "translation": "Accepter brugsbetingelser"
   },
   "477df802ca": {
     "translation": "For at fortsætte redigeringen, kopier venligst filen til dine filer."
@@ -157,9 +181,6 @@
   },
   "47f493a590": {
     "translation": "Fastgør fil"
-  },
-  "4908687e50": {
-    "translation": "Er du sikker på, at du vil glemme denne fil?"
   },
   "49ee308734": {
     "translation": "Navn"
@@ -182,11 +203,20 @@
   "517bb809d9": {
     "translation": "Sidemenu"
   },
+  "53770fd374": {
+    "translation": "Ulæst"
+  },
   "542248f0ba": {
     "translation": "Denne fil er nu skrivebeskyttet"
   },
   "54286b1d01": {
     "translation": "Samarbejdsgrænsen er nået"
+  },
+  "545241e7dd": {
+    "translation": "{count} ulæste"
+  },
+  "550b25cc0c": {
+    "translation": "Din lokale tegning kunne ikke gendannes. Prøv at genindlæse denne side."
   },
   "554a05155c": {
     "translation": "Har du stadig problemer? <a>Rapportér et problem</a>"
@@ -212,6 +242,9 @@
   "5bff3c9c88": {
     "translation": "Mit arbejdsområde"
   },
+  "5bffeebf03": {
+    "translation": "<name>{author}</name> reagerede på din kommentar"
+  },
   "5d04a002ea": {
     "translation": "Kan ikke oprette forbindelse"
   },
@@ -224,8 +257,17 @@
   "5fb63579fc": {
     "translation": "Kopi"
   },
+  "608e9d366e": {
+    "translation": "Du er helt opdateret."
+  },
+  "60a68c29d6": {
+    "translation": "Log ind for at kommentere"
+  },
   "61057a0c84": {
     "translation": "Senere"
+  },
+  "61fb03fd7b": {
+    "translation": "{count, plural, one {Nogen reagerede på din kommentar} other {# personer reagerede på din kommentar}}"
   },
   "625fd29749": {
     "translation": "Ældre"
@@ -277,6 +319,9 @@
   },
   "752b79f137": {
     "translation": "Du har nået det maksimale antal filer. Du skal slette gamle filer, før du opretter nye."
+  },
+  "7542d62aac": {
+    "translation": "Markér alle som læst"
   },
   "7573b8110a": {
     "translation": "Ingen adgang"
@@ -332,6 +377,12 @@
   "815e116a2e": {
     "translation": "Har du en fejl, et problem eller en idé til tldraw? Fortæl os det! Udfyld denne formular, så følger vi op via e-mail, hvis det er nødvendigt. Du kan også <discord>chatte med os på Discord</discord> eller <github>indsende et problem på GitHub</github>."
   },
+  "81666c6e4a": {
+    "translation": "Er du sikker på, at du vil glemme <strong>{fileName}</strong>?"
+  },
+  "8413c683b4": {
+    "translation": "Kommentarer"
+  },
   "858ba4765e": {
     "translation": "Medlem"
   },
@@ -365,6 +416,9 @@
   "904a830405": {
     "translation": "Omdøb"
   },
+  "90646db02d": {
+    "translation": "Er du sikker på, at du vil slette <strong>{workspaceName}</strong>? Denne handling kan ikke fortrydes."
+  },
   "95aacd4d4a": {
     "translation": "Log ind med Google"
   },
@@ -388,6 +442,9 @@
   },
   "9bef626805": {
     "translation": "Slet fil"
+  },
+  "9c228b6834": {
+    "translation": "Du ser ud til at være offline. Tjek din forbindelse, og prøv igen."
   },
   "9ccb565b86": {
     "translation": "Vi har problemer med at oprette forbindelse til vores godkendelsestjeneste. Dette er normalt midlertidigt. Prøv at opdatere siden."
@@ -419,6 +476,9 @@
   "a239905023": {
     "translation": "Eksporter billede"
   },
+  "a274f4d467": {
+    "translation": "Notifikationer"
+  },
   "a3debabee7": {
     "translation": "Cookie politik"
   },
@@ -443,6 +503,9 @@
   "aac449eef6": {
     "translation": "Opret arbejdsområde"
   },
+  "aaec8f7cde": {
+    "translation": "Nogen"
+  },
   "ab0df9ba36": {
     "translation": "Filgrænsen er nået"
   },
@@ -452,6 +515,12 @@
   },
   "b028909917": {
     "translation": "Gæstebruger"
+  },
+  "b03400e2db": {
+    "translation": "<name>{author}</name> svarede"
+  },
+  "b1c94ca2fb": {
+    "translation": "Alle"
   },
   "b2326c3a34": {
     "translation": "Regenerer"
@@ -492,9 +561,6 @@
   "c2276c9127": {
     "translation": "Få mere at vide om deling."
   },
-  "c28aed8348": {
-    "translation": "Tillad <cookies>analyse</cookies> for at hjælpe os med at forbedre tldraw."
-  },
   "c303bd1095": {
     "translation": "Filen kunne ikke udgives."
   },
@@ -527,6 +593,9 @@
   },
   "cea291e45e": {
     "translation": "Få mere at vide om udgivelse."
+  },
+  "d0e3556476": {
+    "translation": "<name>{author}</name> og {count, plural, one {# other} other {# others}} reagerede på din kommentar"
   },
   "d3d2e61733": {
     "translation": "Tæt"
@@ -573,6 +642,9 @@
   "e404559826": {
     "translation": "Servicevilkår"
   },
+  "e65b2dcb6f": {
+    "translation": "<name>{a}</name> og <name>{b}</name> reagerede på din kommentar"
+  },
   "e81c4e4f2b": {
     "translation": "eller"
   },
@@ -600,6 +672,9 @@
   "ede55d955f": {
     "translation": "Læs vores <a>cookiepolitik</a> for at få mere at vide."
   },
+  "edec9387f9": {
+    "translation": "Denne kommentar blev slettet."
+  },
   "ef53538ae4": {
     "translation": "Medlemmer"
   },
@@ -618,8 +693,14 @@
   "f2a6c498fb": {
     "translation": "Slet"
   },
+  "f476ba8646": {
+    "translation": "<name>{a}</name>, <name>{b}</name> og {count, plural, one {# other} other {# others}} reagerede på din kommentar"
+  },
   "f4f70727dc": {
     "translation": "Indstillinger"
+  },
+  "f5ddc8d9c1": {
+    "translation": "Indtil videre kan du <a>eksportere som en {extension}-fil</a> for at bruge den her."
   },
   "fa2ead697d": {
     "translation": "Privatlivspolitik"
@@ -629,9 +710,6 @@
   },
   "fc9d47046b": {
     "translation": "Er du sikker på, at du vil forlade dette arbejdsområde?"
-  },
-  "fd1be3efcf": {
-    "translation": "Er du sikker på, at du vil slette denne fil?"
   },
   "fed5ec05eb": {
     "translation": "Kopieret link"

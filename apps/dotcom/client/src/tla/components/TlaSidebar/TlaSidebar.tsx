@@ -1,18 +1,20 @@
 import { memo, useCallback, useEffect } from 'react'
 import { tlmenus, useMaybeEditor } from 'tldraw'
 import { useActiveWorkspaceId } from '../../hooks/useActiveWorkspaceId'
+import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import {
 	getIsSidebarOpen,
+	toggleMobileSidebar,
 	toggleSidebar,
-	updateLocalSessionState,
 	useIsSidebarOpen,
 	useIsSidebarOpenMobile,
 } from '../../utils/local-session-state'
 import { TlaSidebarCreateFileButton } from './components/TlaSidebarCreateFileButton'
 import { TlaSidebarDotDevLink } from './components/TlaSidebarDotDevLink'
 import { TlaSidebarFeedbackButton } from './components/TlaSidebarFeedbackButton'
+import { TlaSidebarNotificationsButton } from './components/TlaSidebarNotificationsButton'
 import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
 import { TlaUserSettingsMenu } from './components/TlaSidebarUserSettingsMenu'
 import { TlaSidebarWorkspaceActions } from './components/TlaSidebarWorkspaceActions'
@@ -52,12 +54,13 @@ export const TlaSidebar = memo(function TlaSidebar() {
 		// thinking nothing is open.
 		if (editor) tlmenus.clearOpenMenus(editor.contextId)
 		tlmenus.deleteOpenMenu('sidebar-workspace-switcher')
-		updateLocalSessionState(() => ({ isSidebarOpenMobile: false }))
+		toggleMobileSidebar(false)
 	}, [editor])
 
 	const { onDrop, onDragOver, onDragEnter, onDragLeave } = useTldrFileDrop()
 
 	const activeWorkspaceId = useActiveWorkspaceId()
+	const commentingEnabled = useIsCommentingEnabled()
 
 	return (
 		<nav aria-hidden={!isSidebarOpen} style={{ visibility: isSidebarOpen ? 'visible' : 'hidden' }}>
@@ -79,7 +82,10 @@ export const TlaSidebar = memo(function TlaSidebar() {
 			>
 				<div className={styles.sidebarTopRow}>
 					<TlaSidebarWorkspaceLink />
-					<TlaSidebarCreateFileButton />
+					<div style={{ display: 'flex', alignItems: 'center' }}>
+						{commentingEnabled && <TlaSidebarNotificationsButton />}
+						<TlaSidebarCreateFileButton />
+					</div>
 				</div>
 				{/* The workspace switcher is fixed; only the file list below it scrolls. */}
 				<TlaSidebarWorkspaceSwitcher />

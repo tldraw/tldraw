@@ -1,47 +1,37 @@
-import { memo, useCallback, useEffect, useRef, useState } from 'react'
-import { Box, Editor, TLCameraOptions, TLComponents, Tldraw, track, useEditor } from 'tldraw'
+import { memo, useCallback, useRef, useState } from 'react'
+import { Editor, TLComponents, TLUiOverrides, Tldraw, TldrawOptions } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './education-canvas.css'
 
-// Fixed camera options to prevent zooming/panning
-const CAMERA_OPTIONS: Partial<TLCameraOptions> = {
-	isLocked: false,
-	constraints: {
-		initialZoom: 'fit-max',
-		baseZoom: 'fit-max',
-		bounds: {
-			x: 0,
-			y: 0,
-			w: 600,
-			h: 600,
+const GRID_SIZE = 600
+
+// [1]
+const options: Partial<TldrawOptions> = {
+	maxPages: 1,
+	camera: {
+		constraints: {
+			initialZoom: 'fit-max',
+			baseZoom: 'fit-max',
+			bounds: { x: 0, y: 0, w: GRID_SIZE, h: GRID_SIZE },
+			behavior: { x: 'contain', y: 'contain' },
+			padding: { x: 100, y: 100 },
+			origin: { x: 0.5, y: 0.5 },
 		},
-		behavior: { x: 'contain', y: 'contain' },
-		padding: { x: 100, y: 100 },
-		origin: { x: 0.5, y: 0.5 },
 	},
 }
 
-const CameraSetup = track(() => {
-	const editor = useEditor()
-
-	useEffect(() => {
-		if (!editor) return
-		editor.run(() => {
-			editor.zoomToBounds(new Box(0, 0, 600, 600), {
-				inset: 150,
-			})
-			editor.setCameraOptions(CAMERA_OPTIONS)
-			editor.setCamera(editor.getCamera(), {
-				immediate: true,
-			})
-			// editor.updateInstanceState({
-			// 	isGridMode: true,
-			// })
-		})
-	}, [editor])
-
-	return null
-})
+// [2]
+const overrides: TLUiOverrides = {
+	tools: (_editor, tools) => {
+		const allowedTools = ['select', 'hand', 'draw', 'eraser', 'line', 'text']
+		for (const key in tools) {
+			if (!allowedTools.includes(key)) {
+				delete tools[key]
+			}
+		}
+		return tools
+	},
+}
 
 const TICKS = 8
 
@@ -118,6 +108,7 @@ const CartesianGrid = memo(function CartesianGrid() {
 	)
 })
 
+// [3]
 const components: TLComponents = {
 	OnTheCanvas: CartesianGrid,
 }
@@ -135,21 +126,22 @@ export default function EducationCanvasExample() {
 	const rEditor = useRef<Editor | null>(null)
 	const handleMount = useCallback((editor: Editor) => {
 		rEditor.current = editor
+		// Camera options only set the constraints; a reset applies the initial zoom.
+		editor.setCamera(editor.getCamera(), { reset: true })
 	}, [])
 
-	const handleSubmit = useCallback(async () => {
-		// Normalize answers for comparison
+	const handleSubmit = useCallback(() => {
 		const normalizeAnswer = (answer: string) => {
 			return answer.toLowerCase().replace(/[^a-z0-9(),.-]/g, '')
 		}
 
-		// Check Part B - Area (accept 8, 8 square units, 8 units², etc.)
+		// Accept "8", "8 square units", "8 units²", and so on
 		const normalizedB = normalizeAnswer(answers.partB)
 		const isPartBCorrect =
 			normalizedB.includes('8') &&
 			(normalizedB.includes('square') || normalizedB.includes('unit') || normalizedB === '8')
 
-		// Check Part C - Coordinates (accept (0,7), (0, 7), 0,7, etc.)
+		// Accept "(0,7)", "(0, 7)", "0,7", and so on
 		const normalizedC = normalizeAnswer(answers.partC)
 		const isPartCCorrect =
 			normalizedC.includes('0') &&
@@ -172,27 +164,18 @@ export default function EducationCanvasExample() {
 			alert('Please check your answers and try again.')
 		}
 
-		// Do something with the answers
+		// [4]
 		const editor = rEditor.current
 		if (editor) {
-			// For example, get the canvas content and the answers and send it to the server.
-			// const result = {
-			// 	answers: {
-			// 		partA: await editor.toImage(editor.getCurrentPageShapes()),
-			// 		partB: answers.partB,
-			// 		partC: answers.partC,
-			// 	},
-			// }
-			// console.log(result)
+			// e.g. `await editor.toImage([...editor.getCurrentPageShapeIds()])` for part A
 		}
 	}, [answers])
 
 	return (
 		<div className="education-container">
-			{/* Question Panel - Left Half */}
 			<div className="question-panel">
 				<div className="question-content">
-					<h1 className="main-title">Mathematics - Geometry</h1>
+					<h1 className="main-title">Mathematics: geometry</h1>
 
 					<div className="question-card">
 						<h2 className="question-title">Question 1</h2>
@@ -244,12 +227,12 @@ export default function EducationCanvasExample() {
 						</div>
 
 						<button className="submit-button" onClick={handleSubmit}>
-							Submit Answers
+							Submit answers
 						</button>
 					</div>
 
 					<div className="instructions-card">
-						<h3 className="instructions-title">Instructions:</h3>
+						<h3 className="instructions-title">Instructions</h3>
 						<ul className="instructions-list">
 							<li>Use the drawing canvas on the right to sketch your solution</li>
 							<li>
@@ -266,33 +249,37 @@ export default function EducationCanvasExample() {
 				</div>
 			</div>
 
-			{/* Canvas Panel - Right Half */}
 			<div className="canvas-panel">
 				<div className="canvas-container">
 					<Tldraw
-						options={{ maxPages: 1 }}
+						options={options}
 						persistenceKey="education-canvas"
 						components={components}
+						overrides={overrides}
 						onMount={handleMount}
-						overrides={{
-							tools: (_editor, tools) => {
-								// These are the tool ids that are allowed to be used in the education canvas...
-								const allowedTools = ['select', 'hand', 'draw', 'eraser', 'line', 'text']
-								// Tools are keyed by their id, so we can delete off all the tools that are not in the allowedTools array
-								for (const key in tools) {
-									if (!allowedTools.includes(key)) {
-										delete tools[key]
-									}
-								}
-								// Return the mutated tools
-								return tools
-							},
-						}}
-					>
-						<CameraSetup />
-					</Tldraw>
+					/>
 				</div>
 			</div>
 		</div>
 	)
 }
+
+/*
+[1]
+Camera constraints keep the student on the 600x600 grid: `bounds` is the grid, `contain`
+stops panning away from it, and `fit-max` zooms so the whole grid fits with 100px padding.
+`maxPages: 1` removes the page menu so there is only one canvas to hand in.
+
+[2]
+The `tools` override receives every registered tool keyed by id. Deleting the ones we don't
+want removes them from the toolbar and keyboard shortcuts, leaving a small set suited to a
+worksheet.
+
+[3]
+The coordinate grid is a plain SVG rendered in the `OnTheCanvas` slot, so it sits in page
+space under the shapes and pans and zooms with the camera.
+
+[4]
+The editor ref is only used at submit time, so a ref set in `onMount` is enough. This is
+where you would export the drawing and post it along with the typed answers.
+*/

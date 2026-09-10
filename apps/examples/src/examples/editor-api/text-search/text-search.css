@@ -20,17 +20,6 @@
 	outline-offset: -1px;
 }
 
-.text-search-shape-label {
-	pointer-events: all;
-	position: absolute;
-	background: var(--tl-color-low);
-	padding: calc(12px * var(--tl-scale));
-	border-bottom-right-radius: calc(var(--tl-radius-4) * var(--tl-scale));
-	font-size: calc(12px * var(--tl-scale));
-	color: var(--tl-color-text);
-	white-space: nowrap;
-}
-
 .text-search-input {
 	border-radius: var(--tl-radius-2);
 	margin: 4px;

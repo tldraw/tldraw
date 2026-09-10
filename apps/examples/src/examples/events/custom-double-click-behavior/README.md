@@ -13,15 +13,25 @@ keywords:
     getStateDescendant,
     runtime,
     idle state,
+    createTextOnCanvasDoubleClick,
   ]
 ---
 
-Override the default double-click behavior by replacing the SelectTool's Idle state method at runtime.
+Replace what happens when the user double-clicks on empty canvas by patching the select tool's `Idle` state at runtime.
 
 ---
 
-This example shows how to customize the double-click behavior on canvas by overriding the SelectTool's Idle state's `handleDoubleClickOnCanvas` method from the `onMount` callback.
+By default, double-clicking on empty canvas creates a text shape and starts editing it. That
+behavior lives in the `handleDoubleClickOnCanvas` method of the select tool's `Idle` state. This
+example uses `editor.getStateDescendant('select.idle')` from `onMount` to grab that state and
+replace the method with one that shows an alert.
 
-The example demonstrates runtime method replacement, which is a powerful technique for customizing built-in tool behavior without creating entirely new tools. In this simplified version, double-clicking on the canvas shows an alert instead of creating a text shape, demonstrating the basic pattern for method override.
+Try double-clicking on the canvas. Double-clicking an editable shape still edits it as usual, but
+double-clicking a shape that can't be edited falls through to the same method, so it shows the
+alert too.
 
-This pattern is useful when you want to extend existing tool behavior, add conditional logic, or customize built-in interactions without forking the entire tool.
+**This example is hacky.** Patching a built-in state's method is a lightweight way to tweak one
+behavior without writing a whole custom tool, but `handleDoubleClickOnCanvas` is not public API and
+can be renamed or removed in any release. If you only want to disable the default, pass
+`options={{ createTextOnCanvasDoubleClick: false }}` to `<Tldraw>` instead. If you need different
+behavior, write a custom select tool.

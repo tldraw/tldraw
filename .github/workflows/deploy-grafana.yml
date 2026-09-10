@@ -1,0 +1,115 @@
+name: Deploy grafana resources
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    paths:
+      - 'internal/grafana/**'
+      - '.github/workflows/deploy-grafana.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'internal/grafana/**'
+      - '.github/workflows/deploy-grafana.yml'
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  GCX_VERSION: 1.0.0
+  GCX_SHA256: c88c65958d19d83dc3a192a2a5037e08307a9c776019f24249b89f369c9c4d41
+
+jobs:
+  deploy:
+    name: ${{ github.event_name == 'push' && 'Deploy grafana resources' || 'Validate grafana resources (dry run)' }}
+    # Validate and push both need the Grafana secrets, which fork PRs don't get.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    concurrency: grafana-deploy-${{ github.event_name == 'push' && 'main' || github.ref }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Install gcx
+        run: |
+          curl -fsSL -o gcx.tar.gz "https://github.com/grafana/gcx/releases/download/v${GCX_VERSION}/gcx_${GCX_VERSION}_linux_amd64.tar.gz"
+          echo "${GCX_SHA256}  gcx.tar.gz" | sha256sum -c -
+          tar xzf gcx.tar.gz gcx
+          sudo mv gcx /usr/local/bin/gcx
+          gcx --version
+
+      - name: Validate resources
+        run: gcx resources validate -p internal/grafana/resources
+        env:
+          GRAFANA_SERVER: ${{ secrets.GRAFANA_SERVER }}
+          GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN }}
+
+      - name: Dry run
+        if: github.event_name == 'pull_request'
+        run: gcx resources push -p internal/grafana/resources --dry-run --on-error abort
+        env:
+          GRAFANA_SERVER: ${{ secrets.GRAFANA_SERVER }}
+          GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN }}
+
+      # Everything except alert rules, folders first. Two orderings matter and neither is
+      # the alphabetical one this glob would otherwise give: folders have to exist before
+      # anything annotated into them, and alert rules go last (see the step below for why).
+      # A commit adding a folder and a dashboard inside it lands both in one push, so the
+      # folder cannot be assumed to already be there.
+      - name: Push resources
+        if: github.event_name == 'push'
+        run: |
+          shopt -s nullglob
+          for dir in internal/grafana/resources/*folders*/; do
+            gcx resources push -p "$dir" --on-error abort
+          done
+          for dir in internal/grafana/resources/*/; do
+            case "$dir" in *folders*|*alertrules*) continue ;; esac
+            gcx resources push -p "$dir" --on-error abort
+          done
+        env:
+          GRAFANA_SERVER: ${{ secrets.GRAFANA_SERVER }}
+          GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN }}
+
+      # Alert rules are the one resource type that can fail here having passed the PR
+      # dry run, because alerting has no server-side dry-run — the PR reports them as
+      # "skipped". A newly created rule carrying group labels is rejected outright
+      # ("cannot set group when creating a new rule"), so the first time any new rule
+      # lands, this step is where it surfaces. Kept last and separate so that failure
+      # costs the rule, not every dashboard in the tree. Still fails the job.
+      - name: Push alert rules
+        if: github.event_name == 'push'
+        run: |
+          shopt -s nullglob
+          for dir in internal/grafana/resources/*alertrules*/; do
+            gcx resources push -p "$dir" --on-error abort
+          done
+        env:
+          GRAFANA_SERVER: ${{ secrets.GRAFANA_SERVER }}
+          GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN }}
+
+      # Notification templates can't go through `gcx resources push` — gcx's discovery
+      # registry ignores the notifications.alerting.grafana.app API group entirely — so
+      # template files live in templates/ (not resources/) and go through the classic
+      # provisioning API. The PUT is idempotent and sets `api` provenance, which locks
+      # UI edits the same way provisioned resources are locked.
+      - name: Push notification templates
+        if: github.event_name == 'push'
+        run: |
+          shopt -s nullglob
+          for f in internal/grafana/templates/*.gotmpl; do
+            name=$(basename "$f" .gotmpl)
+            jq -Rs '{template: .}' "$f" | curl -fsS -X PUT \
+              "$GRAFANA_SERVER/api/v1/provisioning/templates/$name" \
+              -H "Authorization: Bearer $GRAFANA_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d @- > /dev/null
+          done
+        env:
+          GRAFANA_SERVER: ${{ secrets.GRAFANA_SERVER }}
+          GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN }}

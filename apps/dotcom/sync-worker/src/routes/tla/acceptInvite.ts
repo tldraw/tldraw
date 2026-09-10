@@ -1,10 +1,10 @@
-import { AcceptInviteResponseBody, userHasFlag } from '@tldraw/dotcom-shared'
+import { AcceptInviteResponseBody } from '@tldraw/dotcom-shared'
 import { getIndexBelow, IndexKey } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { sql } from 'kysely'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
-import { requireAuth } from '../../utils/tla/getAuth'
+import { getAuth } from '../../utils/tla/getAuth'
 import { getJoinableWorkspaceFromInvite } from '../../utils/tla/getJoinableWorkspaceFromInvite'
 
 export async function acceptInvite(request: IRequest, env: Environment): Promise<Response> {
@@ -16,7 +16,15 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 		)
 	}
 
-	const auth = await requireAuth(request, env)
+	// Return our own 401 body: the router's generic one has no `message`, which the client shows
+	// as the toast description.
+	const auth = await getAuth(request, env)
+	if (!auth) {
+		return Response.json(
+			{ error: true, message: 'Sign in to accept this invite' } satisfies AcceptInviteResponseBody,
+			{ status: 401 }
+		)
+	}
 	const db = createPostgresConnectionPool(env, 'acceptInvite')
 
 	try {
@@ -34,7 +42,6 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 				)
 			}
 
-			// Check if user is already a member of this group (with row lock to prevent race conditions)
 			const existingMember = await tx
 				.selectFrom('group_user')
 				.select('userId')
@@ -68,16 +75,6 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 					{ status: 404 }
 				)
 			}
-			if (!userHasFlag(user.flags, 'groups_backend')) {
-				return Response.json(
-					{
-						error: true,
-						message: 'User is not migrated to the groups model',
-					} satisfies AcceptInviteResponseBody,
-					{ status: 400 }
-				)
-			}
-
 			// Get the lowest index to place new group at the top
 			const lowestIndexGroup = await sql<{
 				index: string
@@ -88,17 +85,14 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 			)
 
 			// Use tldraw's fractional indexing to place new group at the top
-			let index: IndexKey
-			if (!lowestIndexGroup.rows[0]) {
-				// First group gets 'a1'
-				index = 'a1' as IndexKey
-			} else {
-				// Generate a new index below the current lowest (to place at top)
-				index = getIndexBelow(lowestIndexGroup.rows[0].index as IndexKey)
-			}
+			const lowestIndex = lowestIndexGroup.rows[0]?.index as IndexKey | undefined
+			// Generate a new index below the current lowest (to place at top); first group gets 'a1'
+			const index = lowestIndex ? getIndexBelow(lowestIndex) : ('a1' as IndexKey)
 
-			// Add user to the group
-			await tx
+			// Add user to the group. Two accepts racing past the membership check above (two tabs,
+			// two devices) would otherwise turn the second into a unique violation and a 500 for a
+			// join that succeeded.
+			const inserted = await tx
 				.insertInto('group_user')
 				.values({
 					groupId: workspace.id,
@@ -110,7 +104,18 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 					createdAt: Date.now(),
 					updatedAt: Date.now(),
 				})
-				.execute()
+				.onConflict((oc) => oc.columns(['userId', 'groupId']).doNothing())
+				.executeTakeFirst()
+
+			if (inserted.numInsertedOrUpdatedRows === 0n) {
+				return Response.json({
+					error: false,
+					message: 'You are already a member of this group',
+					workspaceId: workspace.id,
+					workspaceName: workspace.name,
+					alreadyMember: true,
+				} satisfies AcceptInviteResponseBody)
+			}
 
 			return Response.json({
 				error: false,

@@ -12,6 +12,8 @@ import {
 	getPerfectDashProps,
 	getVerticesCountForArcLength,
 	Group2d,
+	Mat,
+	MatLike,
 	modulate,
 	PerfectDashTerminal,
 	rng,
@@ -452,6 +454,48 @@ export class PathBuilder {
 		lastMoveTo.closeIdx = this.commands.length - 1
 		this.lastMoveTo = null
 		return this
+	}
+
+	/**
+	 * Return a new path with every point (including bezier control points) transformed by the given
+	 * affine matrix. Command metadata (fill, dash, close state, draw offsets, etc.) is preserved, so
+	 * this can be used to mirror, scale, translate, or otherwise transform a finished path while
+	 * keeping it renderable and hit-testable.
+	 *
+	 * @param mat - The affine matrix to apply to each point.
+	 */
+	transform(mat: MatLike): PathBuilder {
+		const next = new PathBuilder()
+		for (const command of this.commands) {
+			// Use applyToXY (returns plain numbers) rather than applyToPoint to avoid allocating a
+			// Vec per point. This keeps the transform allocation-light when many shapes are flipped.
+			const [x, y] = Mat.applyToXY(mat, command.x, command.y)
+			// info (tangents/length) is derived from the points, so drop any cached value
+			switch (command.type) {
+				case 'move':
+					next.commands.push({ ...command, x, y, _info: undefined })
+					break
+				case 'line':
+					next.commands.push({ ...command, x, y, _info: undefined })
+					break
+				case 'cubic': {
+					const [cp1x, cp1y] = Mat.applyToXY(mat, command.cp1.x, command.cp1.y)
+					const [cp2x, cp2y] = Mat.applyToXY(mat, command.cp2.x, command.cp2.y)
+					next.commands.push({
+						...command,
+						x,
+						y,
+						cp1: { x: cp1x, y: cp1y },
+						cp2: { x: cp2x, y: cp2y },
+						_info: undefined,
+					})
+					break
+				}
+				default:
+					exhaustiveSwitchError(command, 'type')
+			}
+		}
+		return next
 	}
 
 	toD(opts: PathBuilderToDOpts = {}) {

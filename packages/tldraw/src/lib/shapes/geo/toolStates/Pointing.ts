@@ -5,7 +5,6 @@ import {
 	TLPointerEventInfo,
 	Vec,
 	createShapeId,
-	cancelShapeCreationOnLongPress,
 	maybeSnapToGrid,
 } from '@tldraw/editor'
 import { GeoShapeUtil } from '../GeoShapeUtil'
@@ -19,7 +18,8 @@ export class Pointing extends StateNode {
 	}
 
 	override onLongPress() {
-		cancelShapeCreationOnLongPress(this.editor, () => this.cancel())
+		// On a touch (coarse pointer) long-press, cancel the pending shape so it leaves nothing behind.
+		if (this.editor.getInstanceState().isCoarsePointer) this.cancel()
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
@@ -70,7 +70,8 @@ export class Pointing extends StateNode {
 	}
 
 	override onComplete() {
-		this.complete()
+		// Not a release: see BaseBoxShapeTool's Pointing state for why this cancels.
+		this.cancel()
 	}
 
 	override onInterrupt() {

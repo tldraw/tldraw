@@ -74,6 +74,10 @@ export class IncrementalSetConstructor<T> {
 		if (numRemoved === 0 && numAdded === 0) {
 			return undefined
 		}
+		// An add/remove round trip leaves an empty set behind; drop it so that consumers can treat
+		// the presence of `added`/`removed` as "there are additions/removals".
+		if (numAdded === 0) delete this.diff!.added
+		if (numRemoved === 0) delete this.diff!.removed
 		return { value: this.nextValue!, diff: this.diff! }
 	}
 

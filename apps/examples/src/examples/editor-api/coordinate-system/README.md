@@ -20,22 +20,16 @@ keywords:
   ]
 ---
 
-Convert between screen, page, and viewport coordinate systems.
+Convert between screen, page, and viewport coordinates and position DOM elements over shapes.
 
 ---
 
-This example demonstrates how to work with tldraw's three coordinate systems:
+The editor uses three coordinate systems:
 
-- **Screen space**: Pixel coordinates relative to the browser window (from DOM events)
-- **Page space**: Coordinates in the infinite canvas space (where shapes live)
-- **Viewport space**: Coordinates relative to the editor container (useful for UI positioning)
+- **Screen space**: browser pixels, as reported by DOM events
+- **Viewport space**: pixels relative to the editor container, used to position DOM elements over the canvas
+- **Page space**: the infinite canvas that shapes live in
 
-The key transformation methods demonstrated are:
+`editor.screenToPage(point)`, `editor.pageToScreen(point)`, and `editor.pageToViewport(point)` convert between them, and `editor.getViewportScreenBounds()` and `editor.getViewportPageBounds()` describe the visible area in screen and page space.
 
-- `editor.screenToPage(point)` - Convert DOM event coordinates to canvas coordinates
-- `editor.pageToScreen(point)` - Position DOM elements relative to shapes
-- `editor.pageToViewport(point)` - Get coordinates relative to the editor container
-- `editor.getViewportScreenBounds()` - Get visible area bounds in screen coordinates
-- `editor.getViewportPageBounds()` - Get visible area bounds in page coordinates
-
-Move your mouse to see coordinates in all three systems. Pan and zoom the canvas to see how screen coordinates stay constant while page coordinates change. Create and select a shape to see a DOM overlay positioned using pageToScreen().
+Move the mouse to see the pointer position in all three systems, then pan and zoom to see how screen coordinates stay put while page coordinates change. Draw and select a shape to see a DOM label positioned above it with `pageToViewport`.

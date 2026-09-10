@@ -10,8 +10,7 @@ import { expect, test } from '../../fixtures/tla-test'
 // otherwise most recent (creating one if it's empty) — and creating a
 // workspace switches to it.
 test.describe('workspaces', () => {
-	test.beforeEach(async ({ database, editor }) => {
-		await database.migrateUser()
+	test.beforeEach(async ({ editor }) => {
 		await editor.isLoaded()
 		await editor.ensureSidebarOpen()
 	})
@@ -409,7 +408,6 @@ test.describe('workspaces', () => {
 			await deleteFileDialog.expectIsVisible()
 			await deleteFileDialog.confirmDeletion()
 			await deleteFileDialog.expectIsNotVisible()
-			await sidebar.mutationResolution()
 
 			// We should land on the workspace's remaining file, not jump to the home workspace.
 			await sidebar.expectFileNotVisible(file2)
@@ -423,7 +421,7 @@ test.describe('workspaces', () => {
 			await context.grantPermissions(['clipboard-read', 'clipboard-write'])
 		})
 
-		test('invite already member user to workspace', async ({ sidebar, browser, database }) => {
+		test('invite already member user to workspace', async ({ sidebar, browser }) => {
 			const workspaceName = getRandomName()
 			const fileName = getRandomName()
 			const homeFileName = getRandomName()
@@ -435,9 +433,6 @@ test.describe('workspaces', () => {
 			await sidebar.moveFileToWorkspace(fileName, workspaceName)
 
 			const inviteUrl = await sidebar.copyWorkspaceInviteLink(workspaceName)
-
-			// Migrate invitee to groups backend but not frontend (tests auto-enable)
-			await database.migrateUser(true)
 
 			const parallelIndex = test.info().parallelIndex
 			const { newSidebar, newEditor, newWorkspaceInviteDialog, newContext } = await openNewTab(
@@ -475,7 +470,6 @@ test.describe('workspaces', () => {
 		test('signing in through the invite dialog completes the workspace join', async ({
 			sidebar,
 			browser,
-			database,
 		}) => {
 			const workspaceName = getRandomName()
 			const fileName = getRandomName()
@@ -488,9 +482,6 @@ test.describe('workspaces', () => {
 			await sidebar.moveFileToWorkspace(fileName, workspaceName)
 
 			const inviteUrl = await sidebar.copyWorkspaceInviteLink(workspaceName)
-
-			// Migrate invitee to groups backend but not frontend (tests auto-enable)
-			await database.migrateUser(true)
 
 			const parallelIndex = test.info().parallelIndex
 			const { newPage, newSidebar, newEditor, newWorkspaceInviteDialog, newContext } =

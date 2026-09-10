@@ -11,6 +11,32 @@
       "value": "Aqbal martiqaadka"
     }
   ],
+  "029f235f01": [
+    {
+      "type": 0,
+      "value": "Waxaan ka shaqeyneynaa taageerada faylasha ka imanaya "
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": 1,
+              "value": "appName"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -31,6 +57,22 @@
     {
       "type": 0,
       "value": "Ku martiqaad asxaabta kooxda"
+    }
+  ],
+  "05b2656486": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ayaa ku soo sheegay"
     }
   ],
   "05f43078e9": [
@@ -61,6 +103,16 @@
     {
       "type": 0,
       "value": "Xisaab"
+    }
+  ],
+  "093ac7483a": [
+    {
+      "type": 0,
+      "value": "Weli ma furi karo faylasha "
+    },
+    {
+      "type": 1,
+      "value": "extension"
     }
   ],
   "0a91f7fa87": [
@@ -123,10 +175,10 @@
       "value": "Dhoofinta sida"
     }
   ],
-  "1764571547": [
+  "14b03eeeb5": [
     {
       "type": 0,
-      "value": "Ma hubtaa inaad rabto inaad tirtirto goobta shaqada? Tallaabadan lama celin karo."
+      "value": "Ikhtiyaarada ogeysiiska"
     }
   ],
   "181b90f889": [
@@ -185,6 +237,28 @@
       "value": "Ku saabsan tldraw"
     }
   ],
+  "2755e3ab39": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ayaa faallo ka bixiyay guddigaaga"
+    }
+  ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Ma soo gudbin karin jawaab celin"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -201,6 +275,12 @@
     {
       "type": 0,
       "value": "Raadi..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Fadlan isku day mar kale."
     }
   ],
   "2de510be71": [
@@ -311,10 +391,36 @@
       "value": "Caawimo ka hel Discord"
     }
   ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Ma hubtaa inaad rabto inaad tirtirto "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Waad ku mahadsan tahay inaad naga caawisay horumarinta tldraw!"
+    }
+  ],
+  "46de2de6bb": [
+    {
+      "type": 0,
+      "value": "Aqbal shuruudaha isticmaalka"
     }
   ],
   "477df802ca": [
@@ -333,12 +439,6 @@
     {
       "type": 0,
       "value": "Gal gal"
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Ma hubtaa inaad rabto inaad ilowdo faylkan?"
     }
   ],
   "49ee308734": [
@@ -383,6 +483,12 @@
       "value": "Liiska bogga"
     }
   ],
+  "53770fd374": [
+    {
+      "type": 0,
+      "value": "Aan la akhrin"
+    }
+  ],
   "542248f0ba": [
     {
       "type": 0,
@@ -393,6 +499,22 @@
     {
       "type": 0,
       "value": "Xadka wada shaqayntu waa la gaadhay"
+    }
+  ],
+  "545241e7dd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " lama akhrin"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Ma soo celin karin sawirkaaga maxalliga ah. Isku day inaad dib u soo celiso boggan."
     }
   ],
   "554a05155c": [
@@ -453,6 +575,22 @@
       "value": "Goobta shaqadayda"
     }
   ],
+  "5bffeebf03": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ayaa ka falceliyay faalladaada"
+    }
+  ],
   "5d04a002ea": [
     {
       "type": 0,
@@ -477,10 +615,51 @@
       "value": "Nuqul"
     }
   ],
+  "608e9d366e": [
+    {
+      "type": 0,
+      "value": "Wax cusub ma jiraan."
+    }
+  ],
+  "60a68c29d6": [
+    {
+      "type": 0,
+      "value": "Soo gal si aad faallo uga bixiso"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
       "value": "Ka dib"
+    }
+  ],
+  "61fb03fd7b": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Qof ayaa ka jawaabay faalladaada"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " dadku waxay ka jawaabeen faalladaada"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "625fd29749": [
@@ -583,6 +762,12 @@
     {
       "type": 0,
       "value": "Waxaad gaadhay tirada ugu badan ee faylasha Waxaad u baahan tahay inaad tirtirto faylal hore ka hor intaadan abuurin kuwo cusub."
+    }
+  ],
+  "7542d62aac": [
+    {
+      "type": 0,
+      "value": "Calaamadee dhammaan sidii la akhriyay"
     }
   ],
   "7573b8110a": [
@@ -721,6 +906,32 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Ma hubtaa inaad rabto inaad illowdo "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
+  "8413c683b4": [
+    {
+      "type": 0,
+      "value": "Faallooyinka"
+    }
+  ],
   "858ba4765e": [
     {
       "type": 0,
@@ -795,6 +1006,26 @@
       "value": "Magacaabista"
     }
   ],
+  "90646db02d": [
+    {
+      "type": 0,
+      "value": "Ma hubtaa inaad rabto inaad tirtirto "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "? Ficilkan lama celin karo."
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -855,6 +1086,12 @@
     {
       "type": 0,
       "value": "Tirtir faylka"
+    }
+  ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Waxaad u muuqataa inaad offline tahay. Hubi xiriirkaaga oo isku day mar kale."
     }
   ],
   "9ccb565b86": [
@@ -931,6 +1168,12 @@
       "value": "Dhoofinta sawirka"
     }
   ],
+  "a274f4d467": [
+    {
+      "type": 0,
+      "value": "Ogeysiisyada"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -979,6 +1222,12 @@
       "value": "Samee goobta shaqada"
     }
   ],
+  "aaec8f7cde": [
+    {
+      "type": 0,
+      "value": "Qof"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -1001,6 +1250,28 @@
     {
       "type": 0,
       "value": "Isticmaalaha martida"
+    }
+  ],
+  "b03400e2db": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ayaa ku jawaabay"
+    }
+  ],
+  "b1c94ca2fb": [
+    {
+      "type": 0,
+      "value": "Dhammaan"
     }
   ],
   "b2326c3a34": [
@@ -1121,26 +1392,6 @@
       "value": "Wax badan ka baro wadaagga"
     }
   ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Oggolow "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": " inay naga caawiyaan horumarinta tldraw."
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1205,6 +1456,56 @@
     {
       "type": 0,
       "value": "Wax badan ka baro daabacaadda"
+    }
+  ],
+  "d0e3556476": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " iyo "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " qof kale"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " dad kale"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " ayaa ka falceliyay faalladaada"
     }
   ],
   "d3d2e61733": [
@@ -1325,6 +1626,36 @@
       "value": "Shuruudaha adeegga"
     }
   ],
+  "e65b2dcb6f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " iyo "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ayaa ka falceliyay faalladaada"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1389,6 +1720,12 @@
       "value": "a"
     }
   ],
+  "edec9387f9": [
+    {
+      "type": 0,
+      "value": "Faalladan waa la tirtiray."
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1425,10 +1762,98 @@
       "value": "Tirtir"
     }
   ],
+  "f476ba8646": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " iyo "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " qof kale"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " dad kale"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " ayaa ka falceliyay faalladaada"
+    }
+  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "Dejinta"
+    }
+  ],
+  "f5ddc8d9c1": [
+    {
+      "type": 0,
+      "value": "Hadda, waxaad "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "dhoofin kartaa sida faylka "
+        },
+        {
+          "type": 1,
+          "value": "extension"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " si aad halkan ugu isticmaasho."
     }
   ],
   "fa2ead697d": [
@@ -1447,12 +1872,6 @@
     {
       "type": 0,
       "value": "Ma hubtaa inaad rabto inaad ka baxdo goobta shaqada?"
-    }
-  ],
-  "fd1be3efcf": [
-    {
-      "type": 0,
-      "value": "Ma hubtaa inaad rabto inaad tirtirto faylkan?"
     }
   ],
   "fed5ec05eb": [

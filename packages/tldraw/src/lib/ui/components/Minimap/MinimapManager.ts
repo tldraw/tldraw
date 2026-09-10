@@ -8,6 +8,7 @@ import {
 	bind,
 	clamp,
 	computed,
+	PI2,
 	react,
 	uniqueId,
 } from '@tldraw/editor'
@@ -140,16 +141,14 @@ export class MinimapManager {
 		const canvasScreenBounds = this.getCanvasScreenBounds()
 
 		// first offset the canvas position
-		let x = clientX - canvasScreenBounds.x
-		let y = clientY - canvasScreenBounds.y
-
 		// then multiply by the ratio between the page and screen bounds
-		x *= canvasPageBounds.width / canvasScreenBounds.width
-		y *= canvasPageBounds.height / canvasScreenBounds.height
-
 		// then add the canvas page bounds' offset
-		x += canvasPageBounds.minX
-		y += canvasPageBounds.minY
+		const x =
+			(clientX - canvasScreenBounds.x) * (canvasPageBounds.width / canvasScreenBounds.width) +
+			canvasPageBounds.minX
+		const y =
+			(clientY - canvasScreenBounds.y) * (canvasPageBounds.height / canvasScreenBounds.height) +
+			canvasPageBounds.minY
 
 		return new Vec(x, y, 1)
 	}
@@ -274,6 +273,17 @@ export class MinimapManager {
 			ctx.save()
 			util.renderMinimap(ctx, overlays, zoom)
 			ctx.restore()
+		}
+
+		// Collaborator cursors live on the DOM layer, not the overlay canvas, so the minimap draws
+		// their dots natively — including off-screen collaborators, which is the point of a minimap.
+		const dotRadius = 3 / zoom
+		for (const presence of editor.getVisibleCollaboratorsOnCurrentPage()) {
+			if (!presence.cursor) continue
+			ctx.beginPath()
+			ctx.arc(presence.cursor.x, presence.cursor.y, dotRadius, 0, PI2)
+			ctx.fillStyle = presence.color
+			ctx.fill()
 		}
 	}
 }

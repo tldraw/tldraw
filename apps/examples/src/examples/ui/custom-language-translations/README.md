@@ -16,14 +16,10 @@ keywords:
   ]
 ---
 
-Customize tldraw's translation strings and use them in custom components.
+Override tldraw's translation strings and read them in your own components with `useTranslation`.
 
 ---
 
-Apps often need to customize UI text to match their brand voice or terminology. This example demonstrates how to:
+Apps often need to customize UI text to match their brand voice or terminology. The `translations` override on the `overrides` prop maps a language code to translation keys and strings; you can replace existing keys (here "Duplicate" becomes "Make a copy" and "Delete" becomes "Remove") or add new ones, in as many languages as you like.
 
-- Override existing translation strings (e.g., changing "Duplicate" to "Make a copy")
-- Support multiple languages with custom terminology
-- Use the `useTranslation` hook in your own components to access translations
-
-The example creates a custom toolbar that uses translated strings via the `useTranslation` hook, and shows how to override those translations for multiple languages using the `overrides` prop on the `Tldraw` component.
+The `useTranslation` hook returns a `msg` function that looks up a key in the current language, so custom components render the same strings as tldraw's built-in menus. Right click a shape to see the overrides in the context menu, or switch the language to Spanish from the language submenu in the main menu.

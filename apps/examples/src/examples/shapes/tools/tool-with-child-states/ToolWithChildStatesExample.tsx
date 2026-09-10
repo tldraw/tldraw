@@ -2,8 +2,8 @@ import {
 	StateNode,
 	TLClickEventInfo,
 	TLPointerEventInfo,
-	TLShapePartial,
-	TLTextShape,
+	TLShape,
+	TLShapeId,
 	Tldraw,
 	createShapeId,
 	toRichText,
@@ -13,6 +13,7 @@ import 'tldraw/tldraw.css'
 // There's a guide at the bottom of this file!
 
 const OFFSET = -12
+const EMOJIS = ['❤️', '🔥', '👍', '👎', '😭', '🤣']
 
 // [1]
 class StickerTool extends StateNode {
@@ -26,11 +27,11 @@ class StickerTool extends StateNode {
 // [2]
 class Idle extends StateNode {
 	static override id = 'idle'
-	//[a]
+	// [a]
 	override onEnter() {
 		this.editor.setCursor({ type: 'cross' })
 	}
-	//[b]
+	// [b]
 	override onPointerDown(info: TLPointerEventInfo) {
 		const { editor } = this
 		switch (info.target) {
@@ -61,7 +62,7 @@ class Idle extends StateNode {
 			}
 		}
 	}
-	//[c]
+	// [c]
 	override onDoubleClick(info: TLClickEventInfo) {
 		const { editor } = this
 		if (info.phase !== 'up') return
@@ -93,18 +94,21 @@ class Idle extends StateNode {
 		}
 	}
 }
+
 // [3]
 class Pointing extends StateNode {
 	static override id = 'pointing'
-	private shape: TLTextShape | null = null
+	private shape: TLShape | null = null
 
-	override onEnter(info: { shape: TLTextShape | null }) {
+	// [a]
+	override onEnter(info: { shape: TLShape | null }) {
 		this.shape = info.shape
 	}
+	// [b]
 	override onPointerUp() {
 		this.parent.transition('idle')
 	}
-
+	// [c]
 	override onPointerMove() {
 		if (this.editor.inputs.getIsDragging()) {
 			this.parent.transition('dragging', { shape: this.shape })
@@ -115,47 +119,41 @@ class Pointing extends StateNode {
 // [4]
 class Dragging extends StateNode {
 	static override id = 'dragging'
-	// [a]
-	private shape: TLShapePartial | null = null
-	private emojiArray = ['❤️', '🔥', '👍', '👎', '😭', '🤣']
+	private shapeId: TLShapeId | null = null
 
-	// [b]
-	override onEnter(info: { shape: TLShapePartial }) {
+	// [a]
+	override onEnter(info: { shape: TLShape | null }) {
+		if (info.shape) {
+			this.shapeId = info.shape.id
+			return
+		}
 		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
-		const newShape: TLShapePartial<TLTextShape> = {
-			id: createShapeId(),
+		this.shapeId = createShapeId()
+		this.editor.createShape({
+			id: this.shapeId,
 			type: 'text',
 			x: currentPagePoint.x + OFFSET,
 			y: currentPagePoint.y + OFFSET,
 			props: { richText: toRichText('❤️') },
-		}
-		if (info.shape) {
-			this.shape = info.shape
-		} else {
-			this.editor.createShape(newShape)
-			this.shape = { ...newShape }
-		}
+		})
 	}
-	//[c]
+	// [b]
 	override onPointerUp() {
 		this.parent.transition('idle')
 	}
-	//[d]
-
+	// [c]
 	override onPointerMove() {
-		const { shape } = this
+		if (!this.shapeId) return
 		const originPagePoint = this.editor.inputs.getOriginPagePoint()
 		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 		const distance = originPagePoint.dist(currentPagePoint)
-		if (shape) {
-			this.editor.updateShape({
-				id: shape.id,
-				type: 'text',
-				props: {
-					richText: toRichText(this.emojiArray[Math.floor(distance / 20) % this.emojiArray.length]),
-				},
-			})
-		}
+		this.editor.updateShape({
+			id: this.shapeId,
+			type: 'text',
+			props: {
+				richText: toRichText(EMOJIS[Math.floor(distance / 20) % EMOJIS.length]),
+			},
+		})
 	}
 }
 
@@ -165,13 +163,9 @@ export default function ToolWithChildStatesExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				// Pass in the array of custom tool classes
 				tools={customTools}
-				// Set the initial state to the sticker tool
 				initialState="sticker"
-				// hide the ui
 				hideUi
-				// Put some helpful text on the canvas
 				onMount={(editor) => {
 					editor.createShape({
 						type: 'text',
@@ -192,74 +186,53 @@ export default function ToolWithChildStatesExample() {
 }
 
 /*
-Introduction:
-
-Tools are nodes in tldraw's state machine. They are responsible for handling user input.
-You can create custom tools by extending the `StateNode` class and overriding its
-methods. In this example we expand on the sticker tool from the custom tool example to
-show how to create a tool that can handle more complex interactions by using child states.
+Tools are nodes in tldraw's state machine and handle user input. A tool with a single state
+quickly turns into a tangle of flags once it has to tell clicks apart from drags. Child states
+solve that: each state handles the events that matter to it and transitions to the next. This
+example expands on the sticker tool from the custom tool example.
 
 [1]
-This is our custom tool. It has three child states: `Idle`, `Pointing`, and `Dragging`.
-We need to define the `id` and `initial` properties, the id is a unique string that
-identifies the tool to the editor, and the initial property is the initial state of the
-tool. We also need to define a `children` method that returns an array of the tool's
-child states.
+The tool declares its child states with `children()` and which one to start in with
+`initial`. Events are delivered to the current child state, not to the tool itself.
 
 [2]
-This is our Idle state. It is the initial state of the tool. It's job is to figure out
-what the user is trying to do and transition to the appropriate state. When transitioning
-between states we can use the second argument to pass data to the new state. It has three
-methods:
+Idle is the initial state. Its job is to work out what the user is trying to do and hand off
+to the right state. `this.parent.transition(id, info)` switches states; `info` is passed to
+the new state's `onEnter`.
 
-	[a] `onEnter`
-	When entering any state, the `onEnter` method is called. In this case, we set the cursor to
-	a crosshair.
+	[a] Set the cursor on entering. Every child state receives `onEnter`.
 
-	[b] `onPointerDown`
-	This method is called when the user presses the mouse button. The target parameter is always
-	the canvas, so we can use an editor method to check if we're over a shape, and call the
-	method again with the shape as the target. If we are over a shape, we transition to the
-	`pointing` state with the shape in the info object. If we're over a shape and holding the
-	shift key, we update the shape's text. If we're over the canvas, we transition to the
-	`pointing` state with a null shape in the info object.
+	[b] Because this tool has no shape-level hit testing of its own, the pointer event's
+	target is always 'canvas'. We use `editor.getShapeAtPoint` to check for a shape under
+	the pointer and re-dispatch the event with `target: 'shape'` so one switch handles both
+	cases. Shift-clicking a shape updates it in place; otherwise we go to Pointing.
 
-	[c] `onDoubleClick`
-	This method is called when the user double clicks the mouse button. We're using some similar
-	logic here to check if we're over a shape, and if we are, we delete it. If we're over the canvas,
-	we create a new shape.
+	[c] Double clicks arrive with a `phase`; we only act on 'up' so the action runs once.
+	Double-clicking empty canvas creates a sticker; double-clicking a sticker deletes it.
 
 [3]
-This is our `Pointing` state. It's a transitionary state, we use it to store the shape we're pointing
-at, and transition to the dragging state if the user starts dragging. It has three methods:
+Pointing is a transitional state between pointer down and either pointer up (a click) or a
+drag.
 
-	[a] `onEnter`
-	When entering this state, we store the shape we're pointing at by getting it from the info object.
+	[a] Remember which shape (if any) was under the pointer.
 
-	[b] `onPointerUp`
-	This method is called when the user releases the mouse button. We transition to the `idle` state.
+	[b] Pointer up without dragging means it was a click; go back to Idle.
 
-	[c] `onPointerMove`
-	This method is called when the user moves the mouse. If the user starts dragging, we transition to
-	the `dragging` state and pass the shape we're pointing at.
+	[c] `editor.inputs.getIsDragging()` becomes true once the pointer has moved past the drag
+	threshold, so we don't start dragging on a tiny wobble.
 
 [4]
-This is our `Dragging` state. It's responsible for creating and updating the shape that the user is
-dragging.
+Dragging updates the sticker while the pointer moves.
 
-	[a] `onEnter`
-	When entering this state, we create a new shape if we're not dragging an existing one. If we are,
-	we store the shape we're dragging.
+	[a] If we're dragging an existing sticker, keep its id. Otherwise create a new one at the
+	pointer. We store the id rather than the shape record so we always read fresh data.
 
-	[b] `onPointerUp`
-	This method is called when the user releases the mouse button. We transition to the `idle` state.
+	[b] Pointer up ends the drag; back to Idle.
 
-	[c] `onPointerMove`
-	This method is called when the user moves the mouse. We use the distance between the origin and
-	current mouse position to cycle through an array of emojis and update the shape's text.
+	[c] Cycle through the emojis based on how far the pointer has moved from where the drag
+	started (`getOriginPagePoint`).
 
 [5]
-We pass our custom tool to the `Tldraw` component as an array. We also set the initial state to our
-custom tool. For the purposes of this demo, we're also hiding the UI and adding some helpful text to
-the canvas.
+Pass the tool to `Tldraw` and start in it with `initialState`. For this demo we hide the UI
+and put some instructions on the canvas.
 */

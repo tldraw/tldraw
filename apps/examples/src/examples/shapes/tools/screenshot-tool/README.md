@@ -18,10 +18,12 @@ keywords:
   ]
 ---
 
-A custom tool that takes a screenshot of the canvas.
+A custom tool with child states that exports a dragged-out area of the canvas as a PNG.
 
 ---
 
-Tools are the parts of tldraw's state chart. Most interactions in tldraw are tools.
+Tools are `StateNode`s in tldraw's state chart, and this one has three child states: idle, pointing, and dragging. The dragging state keeps the box being drawn in an atom, which an `InFrontOfTheCanvas` component reads to draw the box over the canvas, and on pointer up it calls `exportAs` (or `copyAs` when ctrl is held) with `bounds` set to the box.
 
-This example shows how to create a custom tool that takes a screenshot of a specific area of the canvas.
+The example also shows the wiring a new tool needs: the `tools` prop, a `TLUiOverrides` entry so the UI knows the tool's label, icon, and shortcut, a custom icon via `assetUrls`, and a `Toolbar` override that adds the item.
+
+Try selecting the screenshot tool (or press J) and dragging over some shapes. Hold shift for a 16:9 box, alt to center it on the start point, and ctrl to copy to the clipboard instead of downloading.

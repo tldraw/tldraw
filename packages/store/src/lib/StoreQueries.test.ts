@@ -211,6 +211,30 @@ describe('filtered history (QH)', () => {
 			},
 		])
 	})
+
+	it('[QH2] squashes matching records while ignoring interleaved record types', () => {
+		const authorHistory = store.query.filterHistory('author')
+		authorHistory.get()
+
+		const lastChangedEpoch = authorHistory.lastChangedEpoch
+		const newAuthor = Author.create({ name: 'Stanley Briggs' })
+		const updatedNewAuthor = { ...newAuthor, age: 38 }
+
+		store.put([newAuthor])
+		store.put([updatedNewAuthor, { ...books.lotr, title: 'The Fellowship of the Ring' }])
+		store.put([{ ...authors.davidMitchellFunny, age: 38 }])
+		store.remove([authors.davidMitchellFunny.id])
+		store.remove([authors.tolkein.id])
+		store.put([authors.tolkein])
+
+		expect(authorHistory.getDiffSince(lastChangedEpoch)).toEqual([
+			{
+				added: { [newAuthor.id]: updatedNewAuthor },
+				updated: {},
+				removed: { [authors.davidMitchellFunny.id]: authors.davidMitchellFunny },
+			},
+		])
+	})
 })
 
 describe('indexes (QI)', () => {
@@ -775,5 +799,19 @@ describe('integration with reactive state (QI, QQ)', () => {
 
 		store.put([Book.create({ title: 'The Hobbit', authorId: authors.tolkein.id })])
 		expect(tolkeinBookCount.get()).toBe(2)
+	})
+})
+
+describe('queries across rolled-back transactions (QH, QQ)', () => {
+	it('[QQ2] the query creator is called without arguments', () => {
+		const args: unknown[][] = []
+		const ids = store.query.ids('book', (...rest: unknown[]) => {
+			args.push(rest)
+			return {}
+		})
+		ids.get()
+		store.put([Book.create({ title: 'Another', authorId: authors.bradbury.id })])
+		ids.get()
+		for (const call of args) expect(call).toEqual([])
 	})
 })

@@ -1,4 +1,5 @@
 import { registerAppResource, RESOURCE_MIME_TYPE } from '@modelcontextprotocol/ext-apps/server'
+import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { CallToolResult, ReadResourceResult } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod'
@@ -80,26 +81,27 @@ export function registerTools(
 
 	// --- exec (client-side code execution) ---
 
-	let currentExecCanvasId: string | null = null
-
 	registerExecTool(server, {
 		analytics,
 		log,
 		pendingRequests: opts.pendingRequests,
-		setCurrentExecCanvasId: (id) => {
-			currentExecCanvasId = id
-		},
+		getMcpSessionId: () => deps.getMcpSessionId(),
+		getClientHostName: () => opts.getClientHostName(),
+		waitExecResult: (execKey, timeoutMs, notBefore) =>
+			deps.waitExecResult(execKey, timeoutMs, notBefore),
 	})
 
 	// --- _exec_callback (app-only: widget resolves pending exec via callServerTool) ---
 
 	const execCallbackSchema = z.object({
 		channel: z.string(),
+		execKey: z.string().optional(),
 		result: z
 			.object({
 				success: z.boolean(),
 				result: z.unknown().optional(),
 				error: z.string().optional(),
+				canvasId: z.string().optional(),
 			})
 			.optional(),
 		error: z.string().optional(),
@@ -121,21 +123,37 @@ export function registerTools(
 		},
 		async ({
 			channel,
+			execKey,
 			result,
 			error,
 		}: z.infer<typeof execCallbackSchema>): Promise<CallToolResult> => {
+			log(
+				`[tldraw-mcp] _exec_callback received: channel=${channel}, execKey=${execKey ?? 'none'}, isError=${Boolean(error)}, mcpSessionId=${deps.getMcpSessionId()}, receivedAt=${Date.now()}`
+			)
 			const handled = error
 				? opts.pendingRequests.reject(channel, error)
 				: opts.pendingRequests.resolve(channel, result)
 
 			if (!handled) {
-				log(`[tldraw-mcp] Ignoring exec callback for non-pending channel "${channel}"`)
-				return { content: [{ type: 'text', text: JSON.stringify({ ok: false }) }] }
+				// No pending exec on this DO — the host routed the callback over a
+				// different session than the exec call. Forward the result to the
+				// exec:<execKey> rendezvous DO for the waiting exec to pick up.
+				const payload = error ? { success: false, error } : (result ?? null)
+				let forwarded = false
+				let delivered = false
+				if (execKey && payload) {
+					delivered = await deps.putExecResult(execKey, payload)
+					forwarded = true
+				}
+				log(
+					`[tldraw-mcp] exec callback for non-pending channel "${channel}": ${forwarded ? `forwarded to rendezvous execKey=${execKey} (delivered=${delivered})` : 'no execKey, dropped'}`
+				)
+				return {
+					content: [{ type: 'text', text: JSON.stringify({ ok: forwarded }) }],
+				}
 			}
 
-			const canvasId = currentExecCanvasId
-			currentExecCanvasId = null
-			return { content: [{ type: 'text', text: JSON.stringify({ ok: true, canvasId }) }] }
+			return { content: [{ type: 'text', text: JSON.stringify({ ok: true }) }] }
 		}
 	)
 
@@ -306,6 +324,56 @@ export function registerTools(
 
 	// --- canvas resource ---
 
+	const readCanvasResource = async (uri: string): Promise<ReadResourceResult> => {
+		analytics?.writeDataPoint({
+			blobs: ['resource_called', 'tldraw-canvas'],
+		})
+		let html = await deps.loadWidgetHtml()
+
+		const sid = deps.getSessionId()
+		const hostName = opts.getClientHostName()
+
+		const bootstrap: Record<string, unknown> = {
+			sessionId: sid,
+			isDev: opts.isDev,
+			workerOrigin: opts.workerOrigin,
+			mcpSessionId: deps.getMcpSessionId(),
+			methodMap: await deps.loadMethodMap(),
+		}
+
+		html = injectBootstrapData(html, bootstrap)
+
+		const domain = await getWidgetDomain(hostName, opts.isDev, opts.workerOrigin)
+
+		log(`[tldraw-mcp] Serving resource "${uri}" to "${hostName}" with domain: ${domain}`)
+
+		return {
+			contents: [
+				{
+					uri,
+					mimeType: RESOURCE_MIME_TYPE,
+					text: html,
+					_meta: {
+						ui: {
+							csp: {
+								resourceDomains: [
+									'https://cdn.tldraw.com',
+									'https://fonts.googleapis.com',
+									'https://fonts.gstatic.com',
+									...(opts.extraResourceDomains ?? []),
+									'blob:',
+								],
+								connectDomains: ['https://cdn.tldraw.com', ...(opts.extraConnectDomains ?? [])],
+							},
+							permissions: { clipboardWrite: {} },
+							...(domain ? { domain } : {}),
+						},
+					},
+				},
+			],
+		}
+	}
+
 	registerAppResource(
 		server,
 		'tldraw-canvas',
@@ -315,54 +383,22 @@ export function registerTools(
 			description: 'Interactive tldraw canvas.',
 			mimeType: RESOURCE_MIME_TYPE,
 		},
-		async (): Promise<ReadResourceResult> => {
-			analytics?.writeDataPoint({
-				blobs: ['resource_called', 'tldraw-canvas'],
-			})
-			let html = await deps.loadWidgetHtml()
+		async (): Promise<ReadResourceResult> => readCanvasResource(CANVAS_RESOURCE_URI)
+	)
 
-			const sid = deps.getSessionId()
-			const hostName = opts.getClientHostName()
-
-			const bootstrap: Record<string, unknown> = {
-				sessionId: sid,
-				isDev: opts.isDev,
-				workerOrigin: opts.workerOrigin,
-				mcpSessionId: deps.getMcpSessionId(),
-				methodMap: await deps.loadMethodMap(),
-			}
-
-			html = injectBootstrapData(html, bootstrap)
-
-			const domain = await getWidgetDomain(hostName, opts.isDev, opts.workerOrigin)
-
-			log(`[tldraw-mcp] Serving resource to "${hostName}" with domain: ${domain}`)
-
-			return {
-				contents: [
-					{
-						uri: CANVAS_RESOURCE_URI,
-						mimeType: RESOURCE_MIME_TYPE,
-						text: html,
-						_meta: {
-							ui: {
-								csp: {
-									resourceDomains: [
-										'https://cdn.tldraw.com',
-										'https://fonts.googleapis.com',
-										'https://fonts.gstatic.com',
-										...(opts.extraResourceDomains ?? []),
-										'blob:',
-									],
-									connectDomains: opts.extraConnectDomains ?? [],
-								},
-								permissions: { clipboardWrite: {} },
-								...(domain ? { domain } : {}),
-							},
-						},
-					},
-				],
-			}
-		}
+	// Hosts cache the widget resource URI durably
+	// (across connector re-adds and new chats), so a host may keep requesting a
+	// URI variant this server no longer advertises. Serve the widget for any
+	// ui://show-canvas/… URI instead of returning "resource not found" (-32602),
+	// which breaks widget rendering.
+	server.registerResource(
+		'tldraw-canvas-compat',
+		new ResourceTemplate('ui://show-canvas/{version}/mcp-app.html', { list: undefined }),
+		{
+			title: 'tldraw Canvas',
+			description: 'Interactive tldraw canvas (cached-URI compatibility).',
+			mimeType: RESOURCE_MIME_TYPE,
+		},
+		async (uri): Promise<ReadResourceResult> => readCanvasResource(uri.href)
 	)
 }

@@ -1,4 +1,5 @@
 import {
+	Editor,
 	exhaustiveSwitchError,
 	getPointerInfo,
 	preventDefault,
@@ -8,7 +9,7 @@ import {
 	VecModel,
 } from '@tldraw/editor'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiEventSource } from '../../../context/events'
 import { useReadonly } from '../../../hooks/useReadonly'
@@ -102,8 +103,6 @@ export function TldrawUiMenuItem<
 	const msg = useTranslation()
 	const dir = useDirection()
 
-	const [disableClicks, setDisableClicks] = useState(false)
-
 	const isReadonlyMode = useReadonly()
 	if (isReadonlyMode && !readonlyOk) return null
 
@@ -112,6 +111,7 @@ export function TldrawUiMenuItem<
 
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 	const titleStr = labelStr && kbdToUse ? `${labelStr} ${kbdToUse}` : labelStr
+	const testId = `${sourceId}.${id}`
 
 	switch (menuType) {
 		case 'menu': {
@@ -119,17 +119,11 @@ export function TldrawUiMenuItem<
 				<TldrawUiDropdownMenuItem>
 					<TldrawUiButton
 						type="menu"
-						data-testid={`${sourceId}.${id}`}
+						data-testid={testId}
 						disabled={disabled}
 						onClick={(e) => {
-							if (noClose) {
-								preventDefault(e)
-							}
-							if (disableClicks) {
-								setDisableClicks(false)
-							} else {
-								onSelect(sourceId)
-							}
+							if (noClose) preventDefault(e)
+							onSelect(sourceId)
 						}}
 					>
 						{iconLeft && <TldrawUiButtonIcon icon={iconLeft} small />}
@@ -148,7 +142,7 @@ export function TldrawUiMenuItem<
 					dir={dir}
 					draggable={false}
 					className="tlui-button tlui-button__menu"
-					data-testid={`${sourceId}.${id}`}
+					data-testid={testId}
 					onPointerUp={(e) => {
 						// Prevent right-click pointerup from triggering item selection.
 						// Radix calls click() on pointerup when the pointer wasn't pressed
@@ -160,11 +154,7 @@ export function TldrawUiMenuItem<
 					}}
 					onSelect={(e) => {
 						if (noClose) preventDefault(e)
-						if (disableClicks) {
-							setDisableClicks(false)
-						} else {
-							onSelect(sourceId)
-						}
+						onSelect(sourceId)
 					}}
 				>
 					<span className="tlui-button__label" draggable={false}>
@@ -180,7 +170,9 @@ export function TldrawUiMenuItem<
 		case 'icons': {
 			return (
 				<TldrawUiToolbarButton
-					data-testid={`${sourceId}.${id}`}
+					aria-pressed={isSelected === undefined ? undefined : isSelected ? 'true' : 'false'}
+					data-testid={testId}
+					isActive={isSelected}
 					type="icon"
 					title={titleStr}
 					disabled={disabled}
@@ -199,7 +191,7 @@ export function TldrawUiMenuItem<
 			}
 
 			return (
-				<div className="tlui-shortcuts-dialog__key-pair" data-testid={`${sourceId}.${id}`}>
+				<div className="tlui-shortcuts-dialog__key-pair" data-testid={testId}>
 					<div className="tlui-shortcuts-dialog__key-pair__key">{labelStr}</div>
 					<div className="tlui-shortcuts-dialog__key-pair__value">
 						<TldrawUiKbd visibleOnMobileLayout>{kbd}</TldrawUiKbd>
@@ -209,11 +201,7 @@ export function TldrawUiMenuItem<
 		}
 		case 'helper-buttons': {
 			return (
-				<TldrawUiButton
-					type="low"
-					data-testid={`${sourceId}.${id}`}
-					onClick={() => onSelect(sourceId)}
-				>
+				<TldrawUiButton type="low" data-testid={testId} onClick={() => onSelect(sourceId)}>
 					<TldrawUiButtonIcon icon={icon!} />
 					<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
 				</TldrawUiButton>
@@ -291,6 +279,31 @@ export function TldrawUiMenuItem<
 	}
 }
 
+/**
+ * Distance alone can't separate a drag from a tap: stylus, finger and trackpad taps move a few
+ * pixels, which used to spawn shapes (#6906, #7666). Leaving the toolbar is the intent signal;
+ * the distance threshold only guards presses that land right at its edge.
+ */
+function isDragOutOfToolbar(
+	editor: Editor,
+	e: React.PointerEvent<HTMLButtonElement>,
+	screenSpaceStart: VecModel,
+	toolbarRect: DOMRect
+) {
+	const { left, top, right, bottom } = toolbarRect
+	const { clientX: x, clientY: y } = e
+	if (x >= left && x <= right && y >= top && y <= bottom) return false
+
+	// Read the pointer type off the event rather than `isCoarsePointer`: the instance state flag
+	// is synced a frame after the first pointer down, so a pen tap right after mouse use would be
+	// judged with the mouse threshold.
+	const minDistanceSq =
+		e.pointerType === 'mouse'
+			? editor.options.uiDragDistanceSquared
+			: editor.options.uiCoarseDragDistanceSquared
+	return Vec.Dist2(screenSpaceStart, { x, y }) > minDistanceSq
+}
+
 function useDraggableEvents(
 	onDragStart: TLUiToolItem['onDragStart'],
 	onSelect: TLUiToolItem['onSelect']
@@ -304,6 +317,7 @@ function useDraggableEvents(
 			| {
 					name: 'pointing'
 					screenSpaceStart: VecModel
+					toolbarRect: DOMRect
 			  }
 			| {
 					name: 'dragging'
@@ -317,6 +331,11 @@ function useDraggableEvents(
 			state = {
 				name: 'pointing',
 				screenSpaceStart: { x: e.clientX, y: e.clientY },
+				// The overflow popover is its own .tlui-toolbar; a button outside any toolbar falls
+				// back to its own rect.
+				toolbarRect: (
+					e.currentTarget.closest('.tlui-toolbar') ?? e.currentTarget
+				).getBoundingClientRect(),
 			}
 
 			e.currentTarget.setPointerCapture(e.pointerId)
@@ -326,13 +345,7 @@ function useDraggableEvents(
 			if ((e as any).isSpecialRedispatchedEvent) return
 
 			if (state.name === 'pointing') {
-				const distanceSq = Vec.Dist2(state.screenSpaceStart, { x: e.clientX, y: e.clientY })
-				if (
-					distanceSq >
-					(editor.getInstanceState().isCoarsePointer
-						? editor.options.uiCoarseDragDistanceSquared
-						: editor.options.uiDragDistanceSquared)
-				) {
+				if (isDragOutOfToolbar(editor, e, state.screenSpaceStart, state.toolbarRect)) {
 					const screenSpaceStart = state.screenSpaceStart
 					state = {
 						name: 'dragging',
@@ -361,6 +374,16 @@ function useDraggableEvents(
 							name: 'pointer_move',
 							...getPointerInfo(editor, e),
 							point: screenSpaceStart,
+						})
+
+						// The shape was created at the press point, under the toolbar, and this event is
+						// already marked as handled so the canvas won't forward it. Move the shape to the
+						// pointer now, or it sits there until the next pointer move.
+						editor.dispatch({
+							type: 'pointer',
+							target: 'canvas',
+							name: 'pointer_move',
+							...getPointerInfo(editor, e),
 						})
 
 						hideAllTooltips()

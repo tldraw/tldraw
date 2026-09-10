@@ -11,6 +11,32 @@
       "value": "Sprejmi povabilo"
     }
   ],
+  "029f235f01": [
+    {
+      "type": 0,
+      "value": "Delamo na podpori za datoteke iz "
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": 1,
+              "value": "appName"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -31,6 +57,22 @@
     {
       "type": 0,
       "value": "Povabi soigralce"
+    }
+  ],
+  "05b2656486": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " vas je omenil"
     }
   ],
   "05f43078e9": [
@@ -61,6 +103,20 @@
     {
       "type": 0,
       "value": "Račun"
+    }
+  ],
+  "093ac7483a": [
+    {
+      "type": 0,
+      "value": "Datotek "
+    },
+    {
+      "type": 1,
+      "value": "extension"
+    },
+    {
+      "type": 0,
+      "value": " še ni mogoče odpreti"
     }
   ],
   "0a91f7fa87": [
@@ -123,10 +179,10 @@
       "value": "Izvozi kot"
     }
   ],
-  "1764571547": [
+  "14b03eeeb5": [
     {
       "type": 0,
-      "value": "Ali ste prepričani, da želite izbrisati ta delovni prostor? Tega dejanja ni mogoče razveljaviti."
+      "value": "Možnosti obveščanja"
     }
   ],
   "181b90f889": [
@@ -185,6 +241,28 @@
       "value": "O tldrawu"
     }
   ],
+  "2755e3ab39": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " je komentiral/a na vaši tabli"
+    }
+  ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Povratnih informacij ni bilo mogoče poslati"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -201,6 +279,12 @@
     {
       "type": 0,
       "value": "Iskanje ..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Prosim, poskusite znova."
     }
   ],
   "2de510be71": [
@@ -311,10 +395,36 @@
       "value": "Poiščite pomoč pri Discordu"
     }
   ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Ali ste prepričani, da želite izbrisati datoteko "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Hvala, ker nam pomagate izboljšati tldraw!"
+    }
+  ],
+  "46de2de6bb": [
+    {
+      "type": 0,
+      "value": "Sprejmi pogoje uporabe"
     }
   ],
   "477df802ca": [
@@ -333,12 +443,6 @@
     {
       "type": 0,
       "value": "Pripni datoteko"
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Ali ste prepričani, da želite pozabiti to datoteko?"
     }
   ],
   "49ee308734": [
@@ -383,6 +487,12 @@
       "value": "Meni strani"
     }
   ],
+  "53770fd374": [
+    {
+      "type": 0,
+      "value": "Neprebrano"
+    }
+  ],
   "542248f0ba": [
     {
       "type": 0,
@@ -393,6 +503,22 @@
     {
       "type": 0,
       "value": "Dosežena je omejitev sodelavcev"
+    }
+  ],
+  "545241e7dd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " neprebranih"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Vaše lokalne risbe ni bilo mogoče obnoviti. Poskusite znova naložiti to stran."
     }
   ],
   "554a05155c": [
@@ -453,6 +579,22 @@
       "value": "Moj delovni prostor"
     }
   ],
+  "5bffeebf03": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " se je odzval na vaš komentar"
+    }
+  ],
   "5d04a002ea": [
     {
       "type": 0,
@@ -477,10 +619,73 @@
       "value": "Kopiraj"
     }
   ],
+  "608e9d366e": [
+    {
+      "type": 0,
+      "value": "Vse ste prebrali."
+    }
+  ],
+  "60a68c29d6": [
+    {
+      "type": 0,
+      "value": "Prijavite se za komentiranje"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
       "value": "Kasneje"
+    }
+  ],
+  "61fb03fd7b": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " osebe so se odzvale na tvoj komentar"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Nekdo se je odzval na tvoj komentar"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " oseb se je odzvalo na tvoj komentar"
+            }
+          ]
+        },
+        "two": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " osebi sta se odzvali na tvoj komentar"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "625fd29749": [
@@ -583,6 +788,12 @@
     {
       "type": 0,
       "value": "Dosegli ste največje število datotek. Preden ustvarite nove, morate izbrisati stare datoteke."
+    }
+  ],
+  "7542d62aac": [
+    {
+      "type": 0,
+      "value": "Označi vse kot prebrano"
     }
   ],
   "7573b8110a": [
@@ -721,6 +932,32 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Ali ste prepričani, da želite pozabiti "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
+  "8413c683b4": [
+    {
+      "type": 0,
+      "value": "Komentarji"
+    }
+  ],
   "858ba4765e": [
     {
       "type": 0,
@@ -795,6 +1032,26 @@
       "value": "Preimenuj"
     }
   ],
+  "90646db02d": [
+    {
+      "type": 0,
+      "value": "Ali ste prepričani, da želite izbrisati "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "? Tega dejanja ni mogoče razveljaviti."
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -855,6 +1112,12 @@
     {
       "type": 0,
       "value": "Izbriši datoteko"
+    }
+  ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Zdi se, da nimate povezave. Preverite povezavo in poskusite znova."
     }
   ],
   "9ccb565b86": [
@@ -931,6 +1194,12 @@
       "value": "Izvozi sliko"
     }
   ],
+  "a274f4d467": [
+    {
+      "type": 0,
+      "value": "Obvestila"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -979,6 +1248,12 @@
       "value": "Ustvari delovni prostor"
     }
   ],
+  "aaec8f7cde": [
+    {
+      "type": 0,
+      "value": "Nekdo"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -1001,6 +1276,28 @@
     {
       "type": 0,
       "value": "Gostujoči uporabnik"
+    }
+  ],
+  "b03400e2db": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " je odgovoril"
+    }
+  ],
+  "b1c94ca2fb": [
+    {
+      "type": 0,
+      "value": "Vse"
     }
   ],
   "b2326c3a34": [
@@ -1129,26 +1426,6 @@
       "value": "Preberite več o skupni rabi."
     }
   ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Dovoli "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": ", da nam pomaga izboljšati tldraw."
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1213,6 +1490,56 @@
     {
       "type": 0,
       "value": "Preberite več o objavljanju."
+    }
+  ],
+  "d0e3556476": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " in "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " sta se odzvala na vaš komentar"
     }
   ],
   "d3d2e61733": [
@@ -1333,6 +1660,36 @@
       "value": "Pogoji storitve"
     }
   ],
+  "e65b2dcb6f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " in "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " sta se odzvala na vaš komentar."
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1401,6 +1758,12 @@
       "value": "."
     }
   ],
+  "edec9387f9": [
+    {
+      "type": 0,
+      "value": "Ta komentar je bil izbrisan."
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1437,10 +1800,98 @@
       "value": "Izbriši"
     }
   ],
+  "f476ba8646": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " in "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " so se odzvali na vaš komentar"
+    }
+  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "Nastavitve"
+    }
+  ],
+  "f5ddc8d9c1": [
+    {
+      "type": 0,
+      "value": "Zaenkrat lahko "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "izvozite kot datoteko "
+        },
+        {
+          "type": 1,
+          "value": "extension"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": ", da jo uporabite tukaj."
     }
   ],
   "fa2ead697d": [
@@ -1459,12 +1910,6 @@
     {
       "type": 0,
       "value": "Ali ste prepričani, da želite zapustiti ta delovni prostor?"
-    }
-  ],
-  "fd1be3efcf": [
-    {
-      "type": 0,
-      "value": "Ali ste prepričani, da želite izbrisati to datoteko?"
     }
   ],
   "fed5ec05eb": [

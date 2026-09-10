@@ -62,13 +62,33 @@ type Diff =
 			diff: string
 	  }
 
+// In the `tldraw` package these files are generated during publishing from the
+// docs content in `apps/docs/content` (see `generate-tldraw-package-docs.ts`),
+// not from SDK source. A docs-only change therefore alters them, which would
+// otherwise make this diff check report a package change and cut a spurious SDK
+// patch release. Ignore them for the `tldraw` package so that docs-only patches
+// don't trigger a new SDK version. Other packages ship a hand-authored DOCS.md
+// as real source, so we only skip these for `tldraw`.
+//
+// `generate-tldraw-package-docs.ts` writes these files to the package root, so
+// in the tarball they live at exactly `package/<name>` (tarball entry paths are
+// prefixed with `package/`). Match the full path rather than the basename so a
+// same-named file in some other folder still counts as a real change.
+const GENERATED_DOCS_FILES = new Set(['package/DOCS.md', 'package/RELEASE_NOTES.md'])
+const GENERATED_DOCS_PACKAGE = 'tldraw'
+
+function isGeneratedDocsFile(packageName: string, filePath: string) {
+	if (packageName !== GENERATED_DOCS_PACKAGE) return false
+	return GENERATED_DOCS_FILES.has(filePath)
+}
+
 function getManifestFirstDiff(
 	packageName: string,
 	a: Record<string, Buffer>,
 	b: Record<string, Buffer>
 ): Diff | null {
-	const aKeys = Object.keys(a)
-	const bKeys = Object.keys(b)
+	const aKeys = Object.keys(a).filter((key) => !isGeneratedDocsFile(packageName, key))
+	const bKeys = Object.keys(b).filter((key) => !isGeneratedDocsFile(packageName, key))
 	for (const key of aKeys) {
 		if (!bKeys.includes(key)) {
 			return { type: 'removed', packageName, filePath: key }

@@ -410,17 +410,35 @@ export function createFocusedEditorProxy(editor: Editor, methodMap: MethodMap): 
 							)
 							break
 						case 'ids-or-shapes':
+							// Models sometimes pass a single id where an array is expected.
 							convertedArgs[i] = convertIdsOrShapes(
-								arg as Array<string | TLShapeId | TLShape | FocusedShape>
+								Array.isArray(arg)
+									? (arg as Array<string | TLShapeId | TLShape | FocusedShape>)
+									: [arg as string | TLShapeId | TLShape | FocusedShape]
 							)
 							break
-						case 'spread-ids':
+						case 'spread-ids': {
+							// Models sometimes pass an array to variadic methods like
+							// `select(['a', 'b'])` — flatten instead of crashing.
+							const spread: unknown[] = []
 							for (let j = i; j < convertedArgs.length; j++) {
-								convertedArgs[j] = convertIdOrShape(
-									convertedArgs[j] as string | TLShapeId | TLShape | FocusedShape
-								)
+								const value = convertedArgs[j]
+								if (Array.isArray(value)) {
+									spread.push(
+										...value.map((v) =>
+											convertIdOrShape(v as string | TLShapeId | TLShape | FocusedShape)
+										)
+									)
+								} else {
+									spread.push(
+										convertIdOrShape(value as string | TLShapeId | TLShape | FocusedShape)
+									)
+								}
 							}
+							convertedArgs.length = i
+							convertedArgs.push(...spread)
 							break
+						}
 					}
 				}
 

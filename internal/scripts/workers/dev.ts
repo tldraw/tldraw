@@ -7,6 +7,7 @@ import { lock } from 'proper-lockfile'
 import stripAnsi from 'strip-ansi'
 import * as toml from 'toml'
 import { killProcessTree } from '../lib/kill-tree'
+import { WORKER_EXTERNAL_DEPS } from '../lib/worker-externals'
 
 const lockfileName = __dirname
 
@@ -122,25 +123,9 @@ class SizeReporter {
 			'--bundle',
 			'--minify',
 			'--watch',
-			'--external:cloudflare:*',
 			// need to list out node packages that are used in the worker.
-			// otherwise, if we user platform=node, the bundle size is not reported correctly
-			'--external:os',
-			'--external:node:os',
-			'--external:node:timers',
-			'--external:crypto',
-			'--external:stream',
-			'--external:net',
-			'--external:fs',
-			'--external:perf_hooks',
-			'--external:tls',
-			'--external:path',
-			'--external:node:path',
-			'--external:node:process',
-			'--external:node:child_process',
-			'--external:node:events',
-			'--external:dns',
-			'--external:node:util',
+			// otherwise, if we use platform=node, the bundle size is not reported correctly
+			...WORKER_EXTERNAL_DEPS.map((dep) => '--external:' + dep),
 			'--target=esnext',
 			'--format=esm',
 		])

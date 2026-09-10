@@ -223,7 +223,7 @@ Draw and highlight shape point data is now stored using a compact delta-encoded 
 <details>
 <summary>Breaking change details</summary>
 
-If you were reading or writing draw shape data programatically you might need to update your code to use the new format.
+If you were reading or writing draw shape data programmatically you might need to update your code to use the new format.
 
 - `TLDrawShapeSegment.points` renamed to `.path` and changed from `VecModel[]` to `string` (base64-encoded)
 - Added `scaleX` and `scaleY` properties to draw and highlight shapes

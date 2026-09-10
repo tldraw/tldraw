@@ -271,6 +271,12 @@
 			}
 		},
 		{
+			"files": ["packages/**/*"],
+			"rules": {
+				"tldraw/no-undeclared-dependencies": "error"
+			}
+		},
+		{
 			"files": ["packages/editor/**/*", "packages/tldraw/**/*", "packages/utils/**/*"],
 			"rules": {
 				"no-restricted-globals": [
@@ -405,6 +411,11 @@
 			"rules": {
 				"tldraw/no-export-star": "off"
 			}
+		},
+		{
+			"files": ["internal/scripts/process-compose-bin.cjs"],
+			"env": { "node": true },
+			"globals": { "fetch": "readonly" }
 		},
 		{
 			"files": ["apps/mcp-app/**/*"],

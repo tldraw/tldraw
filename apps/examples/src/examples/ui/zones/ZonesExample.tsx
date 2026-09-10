@@ -3,22 +3,8 @@ import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
 
-const components: TLComponents = {
-	SharePanel: CustomShareZone,
-	TopPanel: CustomTopZone,
-}
-
 // [1]
-export default function Example() {
-	return (
-		<div className="tldraw__editor">
-			<Tldraw components={components} />
-		</div>
-	)
-}
-
-// [2]
-function CustomTopZone() {
+function CustomTopPanel() {
 	return (
 		<div
 			style={{
@@ -29,13 +15,13 @@ function CustomTopZone() {
 				minWidth: '80px',
 			}}
 		>
-			<p>Top Zone</p>
+			<p>Top panel</p>
 		</div>
 	)
 }
 
-// [3]
-function CustomShareZone() {
+// [2]
+function CustomSharePanel() {
 	return (
 		<div
 			style={{
@@ -45,22 +31,33 @@ function CustomShareZone() {
 				minWidth: '80px',
 			}}
 		>
-			<p>Share Zone</p>
+			<p>Share panel</p>
+		</div>
+	)
+}
+
+const components: TLComponents = {
+	SharePanel: CustomSharePanel,
+	TopPanel: CustomTopPanel,
+}
+
+export default function ZonesExample() {
+	return (
+		<div className="tldraw__editor">
+			<Tldraw components={components} />
 		</div>
 	)
 }
 
 /*
-This example shows how to pass in a custom component to the share panel and top panel.
-The share panel is in the top right corner above the style menu, the top panel is in 
-the top center.
+The default UI leaves two slots empty for you to fill: `TopPanel` in the top
+center of the screen, and `SharePanel` in the top right, above the style panel.
+Both are set through the `components` prop like any other slot.
 
 [1]
-We pass in our custom components to the Tldraw topZone and shareZone props.
+Rendered in the top center. tldraw.com uses this slot for the document title.
 
 [2]
-This is the component that will be rendered in the top zone.
-
-[3]
-This is the component that will be rendered in the share zone.
+Rendered in the top right. tldraw.com uses this slot for the share button and
+collaborator avatars.
 */

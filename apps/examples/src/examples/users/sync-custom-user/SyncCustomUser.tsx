@@ -5,12 +5,15 @@ import {
 	computed,
 	createUserId,
 	Tldraw,
+	TldrawOptions,
 	TLUserPreferences,
 	TLUserStore,
 	UserRecordType,
 	useTldrawCurrentUser,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+
+// There's a guide at the bottom of this file!
 
 export default function SyncCustomUserExample({ roomId }: { roomId: string }) {
 	// [1]
@@ -48,28 +51,34 @@ export default function SyncCustomUserExample({ roomId }: { roomId: string }) {
 	// [5]
 	return (
 		<div className="tldraw__editor">
-			<Tldraw store={store} user={user} options={{ deepLinks: true }} />
+			<Tldraw store={store} user={user} options={options} />
 		</div>
 	)
 }
 
-/**
- * # Sync custom user
- *
- * This example demonstrates how to use the sync demo server with a custom user.
- *
- * You need access to two things to do this integration:
- *
- * - The user info
- * - A function to set the user info
- *
- * In this example we create an in-memory state for the user info, but in your system it's probably synchronized with a backend database somehow.
- *
- * 1. We get our user info and a function to set it from a `useState` hook. In your app this might come from a context provider or you might hook it up manually to your backend.
- * 2. We bridge React state to a reactive atom, then create a `TLUserStore` whose `currentUser` signal is derived from that atom.
- * 3. We use the `useSyncDemo` hook to create the multiplayer store, passing in the user store.
- * 4. We use the `useTldrawCurrentUser` hook to create a TLCurrentUser object, which allows the Editor to both read and update the user info and preferences.
- * 5. We render the `Tldraw` component with the multiplayer store and the user object.
- *
- * You can pass the same `users` store into the `useSync` hook if you're using your own server.
- */
+const options: Partial<TldrawOptions> = { deepLinks: true }
+
+/*
+To plug your own identity into tldraw sync you need two things: the current user's info,
+and a way to update it (so the editor's name and color controls can write back). Here
+that's plain React state; in your app it would be your auth system.
+
+[1]
+The user's preferences. `useState` stands in for your user context or backend.
+
+[2]
+`useSyncDemo` wants a `TLUserStore`, whose `currentUser` is a reactive signal rather
+than React state, so we bridge the two: an atom mirrors the state, and a computed
+derives a `TLUser` record from it.
+
+[3]
+Create the multiplayer store, passing the user store. `useSync` (for your own server)
+takes the same `users` option.
+
+[4]
+`useTldrawCurrentUser` turns the preferences and setter into the `TLCurrentUser` the
+editor reads and writes for the local user's name, color, and settings.
+
+[5]
+Render with the synced store and the user object.
+*/

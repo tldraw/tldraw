@@ -19,17 +19,16 @@ keywords:
   ]
 ---
 
-Create and configure text shapes programmatically.
+Create text shapes with `editor.createShape`, covering auto-size, fixed width, alignment, fonts, and rich text marks.
 
 ---
 
-This example demonstrates how to create text shapes programmatically with various configuration options:
+Text shapes store their content as rich text, so pass `toRichText('...')` for plain strings or build the document with marks for formatting like bold. The example creates five shapes on mount:
 
-- **Auto-sized text** - Text shapes that automatically adjust width to fit content (`autoSize: true`)
-- **Fixed-width text** - Text shapes with specified width that wrap content (`autoSize: false`, `w: number`)
-- **Text alignment** - Horizontal alignment: `start` (left), `middle` (center), `end` (right)
-- **Font styles** - Different fonts: `draw` (handdrawn), `sans`, `serif`, `mono`
-- **Sizes** - Font sizes: `s`, `m`, `l`, `xl`
-- **Rich text formatting** - Bold, italic, and other formatting using marks
+- Auto-sized text (`autoSize: true`) that grows to fit its content
+- Fixed-width text (`autoSize: false`, `w`) that wraps
+- Center-aligned text (`textAlign: 'middle'`)
+- Bold text using a `bold` mark
+- Monospace text (`font: 'mono'`)
 
-Text shapes use rich text format internally. Use `toRichText('your text')` to convert plain text strings. For formatting like bold or italic, construct the rich text document with marks as shown in the example.
+Double-click any of them to edit and see the same options in the style panel.

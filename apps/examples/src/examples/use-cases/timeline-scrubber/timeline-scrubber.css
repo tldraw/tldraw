@@ -12,10 +12,10 @@
 	align-items: center;
 	gap: 12px;
 	padding: 0 16px;
-	background: var(--color-panel);
-	border-top: 1px solid var(--color-muted-1);
+	background: var(--tl-color-panel);
+	border-bottom: 1px solid var(--tl-color-muted-1);
 	font-size: 12px;
-	color: var(--color-text-1);
+	color: var(--tl-color-text-1);
 }
 
 .timeline-scrubber-info {

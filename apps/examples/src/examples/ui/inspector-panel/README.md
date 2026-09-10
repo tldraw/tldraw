@@ -1,6 +1,7 @@
 ---
 title: Inspector panel
 component: ./InspectorPanelExample.tsx
+priority: 5
 keywords:
   [
     inspector,
@@ -14,19 +15,16 @@ keywords:
     shared styles,
     getselectedshapes,
     getbindingsinvolvingshape,
+    editorprovider,
   ]
 ---
 
-Display an inspector panel that shows the properties of the currently selected shape.
+Show the properties, shared styles, and bindings of the current selection in a side panel.
 
 ---
 
-This example demonstrates how to create an inspector panel that displays all properties of the currently selected shape. When a single shape is selected, the panel shows the shape's type, position, dimensions, and all custom properties. The panel updates reactively as you select different shapes or modify their properties.
+The panel is a plain React component rendered next to `<Tldraw>` rather than inside it. The editor instance is captured from `onMount` and passed to `EditorProvider`, which makes `useEditor()` and `useValue()` work outside the canvas.
 
-The inspector shows:
+With one shape selected it lists the shape's record fields and `props`, plus any bindings from `editor.getBindingsInvolvingShape()`. With several selected it shows `editor.getSharedStyles()`, marking styles that differ across the selection as mixed.
 
-- Basic shape properties (id, type, position, rotation, etc.)
-- Shape-specific props (dimensions, colors, styles, etc.)
-- Meta information and other attributes
-
-This is useful for debugging, educational purposes, or creating admin interfaces where you need to inspect shape data.
+Try selecting a shape, then drawing an arrow to it and selecting the arrow to see its binding. Select several shapes with different colors to see mixed styles.

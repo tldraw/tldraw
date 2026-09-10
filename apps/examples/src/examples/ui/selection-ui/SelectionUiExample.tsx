@@ -1,72 +1,57 @@
 import { TLComponents, Tldraw, Vec, intersectLineSegmentPolygon, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-const components: TLComponents = {
-	InFrontOfTheCanvas: () => {
-		const editor = useEditor()
+// There's a guide at the bottom of this file!
 
-		const info = useValue(
-			'selection bounds',
-			() => {
-				const screenBounds = editor.getViewportScreenBounds()
-				const rotation = editor.getSelectionRotation()
-				const rotatedScreenBounds = editor.getSelectionRotatedScreenBounds()
-				if (!rotatedScreenBounds) return
-				return {
-					// we really want the position within the
-					// tldraw component's bounds, not the screen itself
-					x: rotatedScreenBounds.x - screenBounds.x,
-					y: rotatedScreenBounds.y - screenBounds.y,
-					width: rotatedScreenBounds.width,
-					height: rotatedScreenBounds.height,
-					rotation: rotation,
-				}
-			},
-			[editor]
-		)
+// [1]
+function SelectionUi() {
+	const editor = useEditor()
 
-		if (!info) return
+	// [2]
+	const info = useValue(
+		'selection bounds',
+		() => {
+			const screenBounds = editor.getViewportScreenBounds()
+			const rotation = editor.getSelectionRotation()
+			const rotatedScreenBounds = editor.getSelectionRotatedScreenBounds()
+			if (!rotatedScreenBounds) return
+			return {
+				x: rotatedScreenBounds.x - screenBounds.x,
+				y: rotatedScreenBounds.y - screenBounds.y,
+				width: rotatedScreenBounds.width,
+				height: rotatedScreenBounds.height,
+				rotation,
+			}
+		},
+		[editor]
+	)
 
-		return (
-			<div
-				style={{
-					position: 'absolute',
-					top: 0,
-					left: 0,
-					transformOrigin: 'top left',
-					transform: `translate(${info.x}px, ${info.y}px) rotate(${info.rotation}rad)`,
-					pointerEvents: 'all',
-				}}
-				onPointerDown={editor.markEventAsHandled}
-			>
-				<DuplicateInDirectionButton y={-40} x={info.width / 2 - 16} rotation={-(Math.PI / 2)} />
-				<DuplicateInDirectionButton y={info.height / 2 - 16} x={info.width + 8} rotation={0} />
-				<DuplicateInDirectionButton
-					y={info.height + 8}
-					x={info.width / 2 - 16}
-					rotation={Math.PI / 3}
-				/>
-				<DuplicateInDirectionButton y={info.height / 2 - 16} x={-40} rotation={Math.PI} />
-			</div>
-		)
-	},
-}
+	if (!info) return null
 
-export default function BasicExample() {
 	return (
-		<div className="tldraw__editor">
-			<Tldraw persistenceKey="example" components={components} />
+		<div
+			style={{
+				position: 'absolute',
+				top: 0,
+				left: 0,
+				transformOrigin: 'top left',
+				transform: `translate(${info.x}px, ${info.y}px) rotate(${info.rotation}rad)`,
+				pointerEvents: 'all',
+			}}
+		>
+			<DuplicateInDirectionButton y={-40} x={info.width / 2 - 16} rotation={-Math.PI / 2} />
+			<DuplicateInDirectionButton y={info.height / 2 - 16} x={info.width + 8} rotation={0} />
+			<DuplicateInDirectionButton
+				y={info.height + 8}
+				x={info.width / 2 - 16}
+				rotation={Math.PI / 2}
+			/>
+			<DuplicateInDirectionButton y={info.height / 2 - 16} x={-40} rotation={Math.PI} />
 		</div>
 	)
 }
 
-/**
- * This button will duplicate the editor's current selected shapes in
- * a certain direction. Its rotation determines the appearance of the
- * button (its actual css rotation) as well as the direction in which
- * the duplicated shapes are offset from the original shapes. It's
- * zeroed to the right.
- */
+// [3]
 function DuplicateInDirectionButton({
 	x,
 	y,
@@ -84,21 +69,18 @@ function DuplicateInDirectionButton({
 				position: 'absolute',
 				width: 32,
 				height: 32,
-				pointerEvents: 'all',
 				transform: `translate(${x}px, ${y}px) rotate(${rotation}rad)`,
 			}}
-			onPointerDown={editor.markEventAsHandled}
 			onClick={() => {
 				const selectionRotation = editor.getSelectionRotation() ?? 0
-				const rotatedPageBounds = editor.getSelectionRotatedPageBounds()!
-				const selectionPageBounds = editor.getSelectionPageBounds()!
-				if (!(rotatedPageBounds && selectionPageBounds)) return
+				const rotatedPageBounds = editor.getSelectionRotatedPageBounds()
+				if (!rotatedPageBounds) return
 
-				editor.markHistoryStoppingPoint()
+				editor.markHistoryStoppingPoint('duplicate in direction')
 
 				const PADDING = 32
 
-				// Find an intersection with the page bounds
+				// [4]
 				const center = Vec.Rot(rotatedPageBounds.center, selectionRotation)
 				const int = intersectLineSegmentPolygon(
 					center,
@@ -110,13 +92,8 @@ function DuplicateInDirectionButton({
 				)
 				if (!int?.[0]) return
 
-				// Get the direction and distance to the intersection
 				const delta = Vec.Sub(int[0], center)
-				const dist = delta.len()
-				const dir = delta.uni()
-
-				// Get the offset for the duplicated shapes
-				const offset = dir.mul(dist * 2)
+				const offset = delta.uni().mul(delta.len() * 2)
 
 				editor.duplicateShapes(editor.getSelectedShapes(), offset)
 			}}
@@ -125,3 +102,44 @@ function DuplicateInDirectionButton({
 		</button>
 	)
 }
+
+const components: TLComponents = {
+	InFrontOfTheCanvas: SelectionUi,
+}
+
+export default function SelectionUiExample() {
+	return (
+		<div className="tldraw__editor">
+			<Tldraw persistenceKey="selection-ui-example" components={components} />
+		</div>
+	)
+}
+
+/*
+This example adds four "duplicate in this direction" buttons around the current
+selection, rendered in the InFrontOfTheCanvas slot.
+
+[1]
+InFrontOfTheCanvas renders in screen space above the canvas, so it doesn't
+scale with the camera. That makes it the right place for controls that should
+stay a fixed size while following the selection. The slot's wrapper has
+`pointer-events: none` and already marks pointer events as handled, so we only
+need to opt our container back in with `pointerEvents: 'all'`.
+
+[2]
+`getSelectionRotatedScreenBounds` gives the selection's bounds in screen space,
+already rotated to match the selection. Those coordinates are relative to the
+whole window, so we subtract the viewport's screen position to get coordinates
+relative to the tldraw component. Reading everything inside `useValue` keeps
+the buttons glued to the selection as it moves, rotates, or the camera pans.
+
+[3]
+Each button's `rotation` sets both its CSS rotation and the direction the copies
+are offset in, zeroed to the right.
+
+[4]
+To offset the copies by exactly one selection-width plus padding in the chosen
+direction, we cast a ray from the selection's center and find where it exits the
+padded, rotated selection bounds. Doubling that distance lands the duplicates
+just past the original in that direction.
+*/

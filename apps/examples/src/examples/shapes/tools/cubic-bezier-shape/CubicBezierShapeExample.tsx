@@ -83,8 +83,7 @@ export default function BezierCurveShapeExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				// [9]
-				components={{}}
+				// [1]
 				overlayUtils={customOverlays}
 				shapeUtils={customShapes}
 				onMount={(editor) => {
@@ -106,8 +105,7 @@ export default function BezierCurveShapeExample() {
 					editor.select(id)
 					startEditingBezierShape(editor, id)
 
-					// [10]
-					// Get state nodes with proper type safety
+					// [2]
 					const pointingHandleState =
 						editor.getStateDescendant<PointingHandleState>('select.pointing_handle')
 					const editingShapeState = editor.getStateDescendant<StateNode>('select.editing_shape')
@@ -119,7 +117,6 @@ export default function BezierCurveShapeExample() {
 						throw new Error('SelectTool editing_shape state not found')
 					}
 
-					// store original handlers with proper binding
 					const originalHandlers = {
 						pointingHandle: {
 							onPointerMove: pointingHandleState.onPointerMove?.bind(pointingHandleState),
@@ -257,7 +254,7 @@ export default function BezierCurveShapeExample() {
 					}
 				}}
 			>
-				{/* 11 */}
+				{/* [3] */}
 				<SneakyUndoRedoWhileEditing />
 			</Tldraw>
 		</div>
@@ -266,22 +263,29 @@ export default function BezierCurveShapeExample() {
 
 /*
 Introduction:
-This example demonstrates how to create a cubic bezier curve shape with interactive handles.
+This example creates a cubic bezier curve shape with draggable handles. The shape itself lives
+in CubicBezierShape.tsx; this file wires up the editor so the curve stays in its editing state
+while its handles are dragged.
 
-[9]
-Use a custom shape handle overlay to show handles for bezier curves when editing, pointing, or
-dragging handles while preserving the default behavior for other shapes.
+[1]
+The default shape handle overlay only shows handles in select.idle and select.pointing_handle.
+BezierShapeHandleOverlayUtil replaces it (same `type`, 'shape_handle') and also shows handles
+for bezier curves while they're being edited or while a handle is being dragged, so the handles
+don't disappear mid-interaction. Other shapes fall through to the default behaviour.
 
-[10]
-Override state node methods to enable three custom interactions:
-1. Meta + click on cp1/cp2 handles collapses them to their associated start/end points
-2. After dragging any handle, stay in editing mode (instead of returning to select.idle)
-3. Allow translating the curve while in editing mode by detecting drag and transitioning to select.translating
+[2]
+The select tool's child states normally return to select.idle after a handle drag, which would
+end editing. Rather than fork the whole select tool, we grab the state nodes with
+`getStateDescendant` and wrap their event handlers, delegating back to the originals for any
+shape that isn't a bezier curve. The wrapped handlers add three interactions:
+1. Cmd/ctrl + click on a cp1/cp2 handle collapses it onto its start/end point.
+2. After dragging any handle, return to select.editing_shape instead of select.idle.
+3. Dragging the curve itself while editing translates it, then returns to editing.
+Patching state nodes like this is a workaround, not a supported API: it depends on the select
+tool's internal state ids and event flow.
 
-[11]
-Add a sneaky undo/redo while editing. This is a hack to allow undo/redo while editing a shape.
-It's not a perfect solution, but it's a workaround for the fact that tldraw doesn't support
-undo/redo while editing a shape. Sometimes you gotta hack it.
-
-These overrides maintain the editing context, allowing fluid adjustments without losing handle visibility.
+[3]
+Undo/redo shortcuts are ignored while a shape is being edited, because for text shapes the text
+editor owns them. SneakyUndoRedoWhileEditing listens for cmd/ctrl+z at the window level and
+restores the editing shape afterwards. It's a hack, but a small one.
 */

@@ -148,6 +148,55 @@ type ExecHelpers = ReturnType<typeof createExecHelpers>
 
 const EXEC_TIMEOUT_MS = 10_000
 
+// Exec code runs with fetch/XHR/timers disabled as a lightweight sandbox. The
+// globals are captured ONCE here, before any exec can disable them, and a depth
+// counter tracks overlapping runs. This makes disable/restore re-entrancy safe:
+// hosts can start a second exec while an earlier one is still awaiting (e.g. a
+// debounced re-run firing during a slow canvas-state fetch), and without this a
+// second run would capture an already-`undefined` timer as its "original" and
+// restore that, permanently clobbering `window.setTimeout` for every later exec.
+const REAL_TIMERS = {
+	fetch: typeof window !== 'undefined' ? window.fetch : undefined,
+	XMLHttpRequest: typeof window !== 'undefined' ? window.XMLHttpRequest : undefined,
+	setInterval: typeof window !== 'undefined' ? window.setInterval : undefined,
+	setTimeout: typeof window !== 'undefined' ? window.setTimeout : undefined,
+}
+
+// Never invoke a captured timer as a method of the capture object: native
+// window functions brand-check `this`, so `REAL_TIMERS.setTimeout(...)`
+// throws "TypeError: Illegal invocation" in Chromium. That synchronous throw
+// rejects the exec timeout race immediately, so any exec code containing an
+// `await` loses the race and reports "Illegal invocation" while its shapes
+// keep appearing (fully synchronous scripts settle first, which is why this
+// only surfaces intermittently). Bind once at capture time for safe
+// invocation; the unbound originals above are only ever assigned back onto
+// window.
+const safeSetTimeout = REAL_TIMERS.setTimeout
+	? REAL_TIMERS.setTimeout.bind(window)
+	: (undefined as never)
+
+let execSandboxDepth = 0
+
+function enterExecSandbox() {
+	if (execSandboxDepth++ === 0) {
+		;(window as any).fetch = undefined
+		;(window as any).XMLHttpRequest = undefined
+		;(window as any).setInterval = undefined
+		;(window as any).setTimeout = undefined
+	}
+}
+
+function exitExecSandbox() {
+	// Only the outermost run restores, so an inner run finishing can't re-enable
+	// timers while an outer run is still executing sandboxed code.
+	if (execSandboxDepth > 0 && --execSandboxDepth === 0) {
+		window.fetch = REAL_TIMERS.fetch!
+		window.XMLHttpRequest = REAL_TIMERS.XMLHttpRequest!
+		window.setInterval = REAL_TIMERS.setInterval!
+		window.setTimeout = REAL_TIMERS.setTimeout!
+	}
+}
+
 function serializeResult(result: unknown) {
 	try {
 		return JSON.parse(JSON.stringify(result))
@@ -180,39 +229,40 @@ ${code}
 
 	const moduleUrl = URL.createObjectURL(new Blob([moduleSource], { type: 'text/javascript' }))
 	try {
-		return (await import(/* @vite-ignore */ moduleUrl)).default as (args: {
-			editor: Editor
-			helpers: ExecHelpers
-		}) => Promise<unknown>
+		return (await import(/* @vite-ignore */ moduleUrl)).default as ExecModule
 	} finally {
 		URL.revokeObjectURL(moduleUrl)
 	}
 }
 
+type ExecModule = (args: { editor: Editor; helpers: ExecHelpers }) => Promise<unknown>
+
 export async function executeCode(
 	editor: Editor,
-	code: string
+	code: string,
+	options?: {
+		/**
+		 * Test seam: the Blob-URL module loader cannot run under vitest (Node
+		 * cannot import blob: URLs), so tests inject a compiler here. Production
+		 * callers never pass this.
+		 */
+		loadModule?(code: string): Promise<ExecModule>
+	}
 ): Promise<{ success: boolean; result?: unknown; error?: string }> {
 	const focusedEditor = createFocusedEditorProxy(editor, getRequiredEmbeddedMethodMap())
 	const helpers = createExecHelpers(editor)
 
-	const originalFetch = window.fetch
-	const originalXHR = window.XMLHttpRequest
-	const originalSetInterval = window.setInterval
-	const originalSetTimeout = window.setTimeout
+	// Disable fetch, XMLHttpRequest, and timers while the exec code runs.
+	enterExecSandbox()
 
 	try {
-		// Disable fetch, XMLHttpRequest, and timers while the exec code runs
-		;(window as any).fetch = undefined
-		;(window as any).XMLHttpRequest = undefined
-		;(window as any).setInterval = undefined
-		;(window as any).setTimeout = undefined
-
-		const runExec = await loadExecModule(code)
+		const runExec = await (options?.loadModule ?? loadExecModule)(code)
 		const result = await Promise.race([
 			runExec({ editor: focusedEditor, helpers }),
 			new Promise((_, reject) =>
-				originalSetTimeout(
+				// Use the pristine, window-bound timer (not the sandboxed,
+				// possibly-undefined one).
+				safeSetTimeout(
 					() => reject(new Error(`Execution timed out after ${EXEC_TIMEOUT_MS}ms`)),
 					EXEC_TIMEOUT_MS
 				)
@@ -224,9 +274,6 @@ export async function executeCode(
 		const message = err instanceof Error ? err.message : String(err)
 		return { success: false, error: message }
 	} finally {
-		window.fetch = originalFetch
-		window.XMLHttpRequest = originalXHR
-		window.setInterval = originalSetInterval
-		window.setTimeout = originalSetTimeout
+		exitExecSandbox()
 	}
 }

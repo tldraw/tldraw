@@ -1,0 +1,1016 @@
+import { RoomSnapshot } from '@tldraw/sync-core'
+import {
+	createComment,
+	createCommentId,
+	createCommentReaction,
+	createCommentThread,
+	TLPageId,
+	TLRichText,
+	TLShapeId,
+} from '@tldraw/tlschema'
+import { describe, expect, it } from 'vitest'
+import {
+	CommentLoadResult,
+	CommentOutboxEntry,
+	commentRecordToRow,
+	findEmptiedCommentThreads,
+	findOrphanedReactions,
+	isCommentAuthorFkViolation,
+	isCommentFileFkViolation,
+	isCommentThreadIdFkViolation,
+	isCommentThreadFkViolation,
+	liveCommentDocuments,
+	mergeCommentDocumentsIntoSnapshot,
+	outboxEntriesToClear,
+	planCommentDrain,
+	rowsToSnapshotDocuments,
+	rowToCommentRecord,
+	rowToReactionRecord,
+	reactionRecordToRow,
+	isCommentMentionFkViolation,
+	isCommentReactionFkViolation,
+	planMentionReconciles,
+	rowToThreadRecord,
+	threadRecordToRow,
+} from './commentRows'
+
+const pageId = 'page:page1' as TLPageId
+const shapeId = 'shape:box1' as TLShapeId
+// minimal rich text doc; passes richTextValidator (which rowToCommentRecord now runs)
+const body = { type: 'doc', content: [] } as unknown as TLRichText
+
+function makeThread(anchor = { type: 'shape' as const, shapeId, x: 0.5, y: 0.5, isPrecise: true }) {
+	return createCommentThread({ pageId, anchor, createdBy: 'user1', now: 1000 })
+}
+
+describe('threadRecordToRow', () => {
+	it('resolved thread with shape anchor: resolvedAt/resolvedBy set, shapeId denormalized', () => {
+		const thread = { ...makeThread(), resolved: { at: 2000, by: 'user2' } }
+		const row = threadRecordToRow(thread, 'file1', 42)
+		expect(row).toEqual({
+			id: thread.id,
+			fileId: 'file1',
+			pageId,
+			anchor: thread.anchor,
+			shapeId,
+			resolvedAt: 2000,
+			resolvedBy: 'user2',
+			isDeleted: false,
+			createdBy: 'user1',
+			createdAt: 1000,
+			meta: thread.meta,
+			lastChangedClock: 42,
+		})
+	})
+
+	it('open thread with point anchor: shapeId/resolvedAt/resolvedBy all null', () => {
+		const thread = makeThread({ type: 'point', x: 10, y: 20 } as any)
+		const row = threadRecordToRow(thread, 'file1', 1)
+		expect(row.shapeId).toBeNull()
+		expect(row.resolvedAt).toBeNull()
+		expect(row.resolvedBy).toBeNull()
+	})
+
+	it('soft-deleted thread: isDeleted carried onto the row', () => {
+		const thread = { ...makeThread(), isDeleted: true }
+		const row = threadRecordToRow(thread, 'file1', 42)
+		expect(row.isDeleted).toBe(true)
+	})
+})
+
+describe('commentRecordToRow', () => {
+	it('editedAt null: updatedAt falls back to createdAt', () => {
+		const thread = makeThread()
+		const comment = createComment({
+			threadId: thread.id,
+			pageId,
+			authorId: 'user1',
+			body,
+			now: 1500,
+		})
+		const row = commentRecordToRow(comment, 'file1', 43)
+		expect(row).toEqual({
+			id: comment.id,
+			fileId: 'file1',
+			threadId: thread.id,
+			pageId,
+			authorId: 'user1',
+			// placeholders — a Postgres trigger stamps the real values on insert
+			authorName: '',
+			authorColor: '',
+			authorAvatar: '',
+			body: comment.body,
+			createdAt: 1500,
+			editedAt: null,
+			isDeleted: false,
+			updatedAt: 1500,
+			meta: comment.meta,
+			lastChangedClock: 43,
+		})
+	})
+
+	it('editedAt set: both editedAt and updatedAt carry the edited value', () => {
+		const thread = makeThread()
+		const comment = {
+			...createComment({
+				threadId: thread.id,
+				pageId,
+				authorId: 'user1',
+				body,
+				now: 1500,
+			}),
+			editedAt: 1600,
+		}
+		const row = commentRecordToRow(comment, 'file1', 44)
+		expect(row.editedAt).toBe(1600)
+		expect(row.updatedAt).toBe(1600)
+	})
+})
+
+describe('isCommentAuthorFkViolation', () => {
+	it('matches a pg foreign key violation on comment_author_id_fkey', () => {
+		// shape of node-postgres's DatabaseError for `insert ... violates foreign key constraint`
+		const error = Object.assign(new Error('violates foreign key constraint'), {
+			code: '23503',
+			constraint: 'comment_author_id_fkey',
+		})
+		expect(isCommentAuthorFkViolation(error)).toBe(true)
+	})
+
+	it('requires both the code and the constraint to match', () => {
+		expect(
+			isCommentAuthorFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_thread_id_fkey' })
+			)
+		).toBe(false)
+		expect(
+			isCommentAuthorFkViolation(
+				Object.assign(new Error(), { code: '23505', constraint: 'comment_author_id_fkey' })
+			)
+		).toBe(false)
+		expect(isCommentAuthorFkViolation(Object.assign(new Error(), { code: '23503' }))).toBe(false)
+	})
+
+	it('rejects non-object and empty errors', () => {
+		expect(isCommentAuthorFkViolation(null)).toBe(false)
+		expect(isCommentAuthorFkViolation(undefined)).toBe(false)
+		expect(isCommentAuthorFkViolation('23503')).toBe(false)
+		expect(isCommentAuthorFkViolation(new Error('connection refused'))).toBe(false)
+	})
+})
+
+describe('isCommentThreadFkViolation', () => {
+	it('matches a pg foreign key violation on comment_thread_file_id_fkey', () => {
+		expect(
+			isCommentThreadFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_thread_file_id_fkey' })
+			)
+		).toBe(true)
+	})
+
+	it('requires both the code and the constraint to match', () => {
+		expect(
+			isCommentThreadFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_author_id_fkey' })
+			)
+		).toBe(false)
+		expect(
+			isCommentThreadFkViolation(
+				Object.assign(new Error(), { code: '23505', constraint: 'comment_thread_file_id_fkey' })
+			)
+		).toBe(false)
+		expect(isCommentThreadFkViolation(null)).toBe(false)
+	})
+})
+
+describe('isCommentFileFkViolation', () => {
+	it('matches a pg foreign key violation on comment_file_id_fkey', () => {
+		expect(
+			isCommentFileFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_file_id_fkey' })
+			)
+		).toBe(true)
+	})
+
+	it('does not match the thread or author fkeys, which have their own semantics', () => {
+		expect(
+			isCommentFileFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_thread_id_fkey' })
+			)
+		).toBe(false)
+		expect(
+			isCommentFileFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_author_id_fkey' })
+			)
+		).toBe(false)
+		expect(
+			isCommentFileFkViolation(
+				Object.assign(new Error(), { code: '23505', constraint: 'comment_file_id_fkey' })
+			)
+		).toBe(false)
+		expect(isCommentFileFkViolation(undefined)).toBe(false)
+	})
+})
+
+describe('isCommentThreadIdFkViolation', () => {
+	it('matches a pg foreign key violation on comment_thread_id_fkey', () => {
+		expect(
+			isCommentThreadIdFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_thread_id_fkey' })
+			)
+		).toBe(true)
+	})
+
+	// Deliberately narrow: this one isn't sufficient to prune on its own, because a thread whose
+	// own upsert failed transiently this drain produces the same error as a thread that never
+	// existed. The caller disambiguates with the room's lane.
+	it('does not match the file or author fkeys', () => {
+		expect(
+			isCommentThreadIdFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_file_id_fkey' })
+			)
+		).toBe(false)
+		expect(
+			isCommentThreadIdFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_author_id_fkey' })
+			)
+		).toBe(false)
+		expect(
+			isCommentThreadIdFkViolation(
+				Object.assign(new Error(), { code: '23505', constraint: 'comment_thread_id_fkey' })
+			)
+		).toBe(false)
+		expect(isCommentThreadIdFkViolation(undefined)).toBe(false)
+	})
+})
+
+describe('isCommentMentionFkViolation', () => {
+	it('matches a pg foreign key violation on either comment_mention fkey', () => {
+		expect(
+			isCommentMentionFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_mention_user_id_fkey' })
+			)
+		).toBe(true)
+		expect(
+			isCommentMentionFkViolation(
+				Object.assign(new Error(), {
+					code: '23503',
+					constraint: 'comment_mention_comment_id_fkey',
+				})
+			)
+		).toBe(true)
+	})
+
+	it('requires both the code and a comment_mention constraint to match', () => {
+		expect(
+			isCommentMentionFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_author_id_fkey' })
+			)
+		).toBe(false)
+		expect(
+			isCommentMentionFkViolation(
+				Object.assign(new Error(), { code: '23505', constraint: 'comment_mention_user_id_fkey' })
+			)
+		).toBe(false)
+		expect(isCommentMentionFkViolation(null)).toBe(false)
+	})
+})
+
+describe('isCommentReactionFkViolation', () => {
+	it('matches a pg foreign key violation on any of the three comment_reaction fkeys', () => {
+		for (const constraint of [
+			'comment_reaction_comment_id_fkey',
+			'comment_reaction_thread_id_fkey',
+			'comment_reaction_user_id_fkey',
+		]) {
+			expect(
+				isCommentReactionFkViolation(Object.assign(new Error(), { code: '23503', constraint }))
+			).toBe(true)
+		}
+	})
+
+	it('requires both the code and a comment_reaction constraint to match', () => {
+		// the unique-constraint violation (23505) is deliberately NOT matched — a reaction can't
+		// insert twice for one (comment, user, emoji) once the authorizer pins the id to that triple
+		expect(
+			isCommentReactionFkViolation(
+				Object.assign(new Error(), {
+					code: '23505',
+					constraint: 'comment_reaction_comment_user_emoji_unique',
+				})
+			)
+		).toBe(false)
+		expect(
+			isCommentReactionFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_author_id_fkey' })
+			)
+		).toBe(false)
+		expect(isCommentReactionFkViolation(null)).toBe(false)
+	})
+})
+
+describe('planMentionReconciles', () => {
+	function makeCommentRow(bodyJson: unknown) {
+		const thread = makeThread()
+		const comment = createComment({
+			threadId: thread.id,
+			pageId,
+			authorId: 'user1',
+			body: bodyJson as TLRichText,
+			now: 1000,
+		})
+		return commentRecordToRow(comment, 'file1', 1)
+	}
+
+	it("extracts each comment's mentioned user ids, deduped", () => {
+		const row = makeCommentRow({
+			type: 'doc',
+			content: [
+				{
+					type: 'paragraph',
+					content: [
+						{ type: 'mention', attrs: { id: 'user_a', label: 'A' } },
+						{ type: 'text', text: ' and ' },
+						{ type: 'mention', attrs: { id: 'user_b', label: 'B' } },
+						{ type: 'mention', attrs: { id: 'user_a', label: 'A again' } },
+					],
+				},
+			],
+		})
+		expect(planMentionReconciles([row])).toEqual([
+			{ commentId: row.id, userIds: ['user_a', 'user_b'] },
+		])
+	})
+
+	it('plans an empty set for a body without mentions, so stale rows get deleted', () => {
+		const row = makeCommentRow({
+			type: 'doc',
+			content: [{ type: 'paragraph', content: [{ type: 'text', text: 'no mentions here' }] }],
+		})
+		expect(planMentionReconciles([row])).toEqual([{ commentId: row.id, userIds: [] }])
+	})
+
+	it('ignores mention nodes without a string id', () => {
+		const row = makeCommentRow({
+			type: 'doc',
+			content: [
+				{
+					type: 'paragraph',
+					content: [{ type: 'mention', attrs: { id: 123 } }, { type: 'mention' }],
+				},
+			],
+		})
+		expect(planMentionReconciles([row])).toEqual([{ commentId: row.id, userIds: [] }])
+	})
+
+	it('returns one plan per row', () => {
+		expect(planMentionReconciles([])).toEqual([])
+	})
+})
+
+describe('round-trip: record -> row -> rowTo*Record', () => {
+	it('resolved shape-anchored thread', () => {
+		const thread = { ...makeThread(), resolved: { at: 2000, by: 'user2' } }
+		const row = threadRecordToRow(thread, 'file1', 42)
+		expect(rowToThreadRecord(row)).toEqual(thread)
+	})
+
+	it('open point-anchored thread', () => {
+		const thread = makeThread({ type: 'point', x: 10, y: 20 } as any)
+		const row = threadRecordToRow(thread, 'file1', 1)
+		expect(rowToThreadRecord(row)).toEqual(thread)
+	})
+
+	it('soft-deleted thread', () => {
+		const thread = { ...makeThread(), isDeleted: true }
+		const row = threadRecordToRow(thread, 'file1', 42)
+		expect(rowToThreadRecord(row)).toEqual(thread)
+	})
+
+	it('soft-deleted comment', () => {
+		const thread = makeThread()
+		const comment = {
+			...createComment({ threadId: thread.id, pageId, authorId: 'user1', body, now: 1500 }),
+			isDeleted: true,
+		}
+		const row = commentRecordToRow(comment, 'file1', 43)
+		expect(rowToCommentRecord(row)).toEqual(comment)
+	})
+
+	it('unedited comment', () => {
+		const thread = makeThread()
+		const comment = createComment({
+			threadId: thread.id,
+			pageId,
+			authorId: 'user1',
+			body,
+			now: 1500,
+		})
+		const row = commentRecordToRow(comment, 'file1', 43)
+		expect(rowToCommentRecord(row)).toEqual(comment)
+	})
+
+	it('edited comment with non-empty meta', () => {
+		const thread = makeThread()
+		const comment = {
+			...createComment({
+				threadId: thread.id,
+				pageId,
+				authorId: 'user1',
+				body,
+				now: 1500,
+				meta: { pinned: true },
+			}),
+			editedAt: 1600,
+		}
+		const row = commentRecordToRow(comment, 'file1', 44)
+		expect(rowToCommentRecord(row)).toEqual(comment)
+	})
+
+	it('reaction', () => {
+		const thread = makeThread()
+		const reaction = createCommentReaction({
+			commentId: createCommentId('c1'),
+			threadId: thread.id,
+			pageId,
+			userId: 'user1',
+			emoji: '👍',
+			now: 1700,
+		})
+		const row = reactionRecordToRow(reaction, 'file1', 45)
+		expect(rowToReactionRecord(row)).toEqual(reaction)
+	})
+
+	it('clamps a future-dated reaction createdAt to server time', () => {
+		const thread = makeThread()
+		const reaction = createCommentReaction({
+			commentId: createCommentId('c1'),
+			threadId: thread.id,
+			pageId,
+			userId: 'user1',
+			emoji: '👍',
+			now: Date.now() + 60 * 60 * 1000,
+		})
+		const before = Date.now()
+		const row = reactionRecordToRow(reaction, 'file1', 45)
+		expect(row.createdAt).toBeGreaterThanOrEqual(before)
+		expect(row.createdAt).toBeLessThanOrEqual(Date.now())
+	})
+})
+
+describe('rehydration validation', () => {
+	it('rowToThreadRecord throws on a mangled anchor', () => {
+		const row = threadRecordToRow(makeThread(), 'file1', 42)
+		const corrupt = { ...row, anchor: { type: 'shape' } as any }
+		expect(() => rowToThreadRecord(corrupt)).toThrow()
+	})
+
+	it('rowToCommentRecord throws on a mangled body', () => {
+		const thread = makeThread()
+		const comment = createComment({
+			threadId: thread.id,
+			pageId,
+			authorId: 'user1',
+			body,
+			now: 1500,
+		})
+		const row = commentRecordToRow(comment, 'file1', 43)
+		const corrupt = { ...row, body: 'not rich text' as any }
+		expect(() => rowToCommentRecord(corrupt)).toThrow()
+	})
+})
+
+describe('rowsToSnapshotDocuments', () => {
+	it('round-trips records losslessly through rows', () => {
+		const thread = makeThread()
+		const comment = createComment({
+			threadId: thread.id,
+			pageId,
+			authorId: 'user1',
+			body,
+			now: 1500,
+		})
+		const threadRow = threadRecordToRow(thread, 'file1', 42)
+		const commentRow = commentRecordToRow(comment, 'file1', 43)
+		expect(rowsToSnapshotDocuments([threadRow], [commentRow])).toEqual([
+			{ state: thread, lastChangedClock: 42 },
+			{ state: comment, lastChangedClock: 43 },
+		])
+	})
+
+	it('coerces pg bigint-as-string clocks and timestamps to numbers', () => {
+		const thread = { ...makeThread(), resolved: { at: 2000, by: 'user2' } }
+		const comment = {
+			...createComment({
+				threadId: thread.id,
+				pageId,
+				authorId: 'user1',
+				body,
+				now: 1500,
+			}),
+			editedAt: 1600,
+		}
+		const threadRow = {
+			...threadRecordToRow(thread, 'file1', 42),
+			createdAt: '1000' as any,
+			resolvedAt: '2000' as any,
+			lastChangedClock: '42' as any,
+		}
+		const commentRow = {
+			...commentRecordToRow(comment, 'file1', 43),
+			createdAt: '1500' as any,
+			editedAt: '1600' as any,
+			lastChangedClock: '43' as any,
+		}
+		expect(rowsToSnapshotDocuments([threadRow], [commentRow])).toEqual([
+			{ state: thread, lastChangedClock: 42 },
+			{ state: comment, lastChangedClock: 43 },
+		])
+	})
+})
+
+describe('planCommentDrain', () => {
+	function makeComment(threadId: ReturnType<typeof makeThread>['id']) {
+		return createComment({ threadId, pageId, authorId: 'user1', body, now: 1500 })
+	}
+
+	function laneOf(...docs: { state: { id: string }; lastChangedClock: number }[]) {
+		return new Map(docs.map((doc) => [doc.state.id, doc]))
+	}
+
+	function entriesOf(...recordIds: string[]): CommentOutboxEntry[] {
+		return recordIds.map((recordId, i) => ({ seq: i + 1, recordId }))
+	}
+
+	it('classifies lane-present ids as upserts built via the row converters', () => {
+		const thread = makeThread()
+		const comment = makeComment(thread.id)
+		const lane = laneOf(
+			{ state: thread, lastChangedClock: 42 },
+			{ state: comment, lastChangedClock: 43 }
+		)
+		expect(planCommentDrain(entriesOf(thread.id, comment.id), lane, 'file1')).toEqual({
+			threadUpserts: [threadRecordToRow(thread, 'file1', 42)],
+			commentUpserts: [commentRecordToRow(comment, 'file1', 43)],
+			reactionUpserts: [],
+			threadDeletes: [],
+			commentDeletes: [],
+			reactionDeletes: [],
+			unknownIds: [],
+		})
+	})
+
+	it('routes reaction ids to the reaction buckets', () => {
+		const thread = makeThread()
+		const comment = makeComment(thread.id)
+		const reaction = createCommentReaction({
+			commentId: comment.id,
+			threadId: thread.id,
+			pageId,
+			userId: 'user1',
+			emoji: '👍',
+			now: 1700,
+		})
+		// present in the lane → upsert; absent → delete
+		const upsertPlan = planCommentDrain(
+			entriesOf(reaction.id),
+			laneOf({ state: reaction, lastChangedClock: 44 }),
+			'file1'
+		)
+		expect(upsertPlan.reactionUpserts).toEqual([reactionRecordToRow(reaction, 'file1', 44)])
+		expect(upsertPlan.reactionDeletes).toEqual([])
+
+		const deletePlan = planCommentDrain(entriesOf(reaction.id), new Map(), 'file1')
+		expect(deletePlan.reactionUpserts).toEqual([])
+		expect(deletePlan.reactionDeletes).toEqual([reaction.id])
+	})
+
+	it('coalesces duplicate entries for one id into a single write', () => {
+		const thread = makeThread()
+		const lane = laneOf({ state: thread, lastChangedClock: 42 })
+		const plan = planCommentDrain(entriesOf(thread.id, thread.id, thread.id), lane, 'file1')
+		expect(plan.threadUpserts).toEqual([threadRecordToRow(thread, 'file1', 42)])
+	})
+
+	it('nets a create-then-delete out to a delete when the id is absent from the lane', () => {
+		const thread = makeThread()
+		const comment = makeComment(thread.id)
+		const plan = planCommentDrain(
+			entriesOf(thread.id, comment.id, thread.id, comment.id),
+			new Map(),
+			'file1'
+		)
+		expect(plan).toEqual({
+			threadUpserts: [],
+			commentUpserts: [],
+			reactionUpserts: [],
+			threadDeletes: [thread.id],
+			commentDeletes: [comment.id],
+			reactionDeletes: [],
+			unknownIds: [],
+		})
+	})
+
+	it('only considers ids present in the entries, not everything in the lane', () => {
+		// the caller bounds entries to its drain's high-water mark; lane records outside the
+		// entries belong to a later drain and must not leak into this plan
+		const enqueued = makeThread()
+		const laterThread = makeThread()
+		const lane = laneOf(
+			{ state: enqueued, lastChangedClock: 1 },
+			{ state: laterThread, lastChangedClock: 2 }
+		)
+		const plan = planCommentDrain(entriesOf(enqueued.id), lane, 'file1')
+		expect(plan.threadUpserts).toEqual([threadRecordToRow(enqueued, 'file1', 1)])
+	})
+
+	it('separates unknown ids instead of misfiling them as upserts or deletes', () => {
+		const thread = makeThread()
+		const lane = laneOf({ state: thread, lastChangedClock: 42 })
+		const plan = planCommentDrain(entriesOf('shape:oops', thread.id), lane, 'file1')
+		expect(plan).toEqual({
+			threadUpserts: [threadRecordToRow(thread, 'file1', 42)],
+			commentUpserts: [],
+			reactionUpserts: [],
+			threadDeletes: [],
+			commentDeletes: [],
+			reactionDeletes: [],
+			unknownIds: ['shape:oops'],
+		})
+	})
+})
+
+describe('findEmptiedCommentThreads', () => {
+	function makeComment(threadId: ReturnType<typeof makeThread>['id']) {
+		return createComment({ threadId, pageId, authorId: 'user1', body, now: 1500 })
+	}
+
+	// mimics the prune transaction's read surface AFTER the pruned comments were deleted
+	function viewOf(...records: { id: string }[]) {
+		const map = new Map(records.map((r) => [r.id, r]))
+		return { keys: () => map.keys(), get: (id: string) => map.get(id) }
+	}
+
+	it('returns nothing (without scanning) when there are no candidate threads', () => {
+		const view = {
+			keys(): Iterable<string> {
+				throw new Error('should not scan')
+			},
+			get: () => undefined,
+		}
+		expect(findEmptiedCommentThreads(new Set(), view)).toEqual([])
+	})
+
+	it('returns a thread with no remaining comments', () => {
+		const thread = makeThread()
+		expect(findEmptiedCommentThreads(new Set([thread.id]), viewOf(thread))).toEqual([thread.id])
+	})
+
+	it('keeps a thread alive when a remaining comment references it', () => {
+		const emptied = makeThread()
+		const alive = makeThread()
+		const reply = makeComment(alive.id)
+		expect(
+			findEmptiedCommentThreads(new Set([emptied.id, alive.id]), viewOf(emptied, alive, reply))
+		).toEqual([emptied.id])
+	})
+
+	it('skips non-comment records without reading them', () => {
+		const thread = makeThread()
+		const view = {
+			keys: () => ['shape:box1', thread.id, 'document:document'],
+			get(id: string): unknown {
+				throw new Error(`should not read ${id}`)
+			},
+		}
+		expect(findEmptiedCommentThreads(new Set([thread.id]), view)).toEqual([thread.id])
+	})
+
+	it('stops scanning once every candidate thread is kept alive', () => {
+		const thread = makeThread()
+		const reply = makeComment(thread.id)
+		const straggler = makeComment(thread.id)
+		let yielded = 0
+		const map = new Map<string, { id: string }>([
+			[reply.id, reply],
+			[straggler.id, straggler],
+		])
+		const view = {
+			*keys() {
+				for (const id of map.keys()) {
+					yielded++
+					yield id
+				}
+			},
+			get: (id: string) => map.get(id),
+		}
+		expect(findEmptiedCommentThreads(new Set([thread.id]), view)).toEqual([])
+		expect(yielded).toBe(1)
+	})
+})
+
+describe('findOrphanedReactions', () => {
+	const threadId = makeThread().id
+	function makeReaction(
+		commentId: ReturnType<typeof createCommentId>,
+		emoji: string,
+		userId = 'user1'
+	) {
+		return createCommentReaction({ commentId, threadId, pageId, userId, emoji, now: 1500 })
+	}
+
+	// mimics the prune transaction's read surface, holding whatever records remain
+	function viewOf(...records: { id: string }[]) {
+		const map = new Map(records.map((r) => [r.id, r]))
+		return { keys: () => map.keys(), get: (id: string) => map.get(id) }
+	}
+
+	it('returns nothing (without scanning) when no comments were pruned', () => {
+		const view = {
+			keys(): Iterable<string> {
+				throw new Error('should not scan')
+			},
+			get: () => undefined,
+		}
+		expect(findOrphanedReactions(new Set(), view)).toEqual([])
+	})
+
+	it('returns every reaction on a pruned comment', () => {
+		const pruned = createCommentId()
+		const r1 = makeReaction(pruned, '👍', 'user1')
+		const r2 = makeReaction(pruned, '🎉', 'user2')
+		expect(findOrphanedReactions(new Set([pruned]), viewOf(r1, r2)).sort()).toEqual(
+			[r1.id, r2.id].sort()
+		)
+	})
+
+	it('keeps reactions whose comment survived', () => {
+		const pruned = createCommentId()
+		const alive = createCommentId()
+		const orphan = makeReaction(pruned, '👍')
+		const kept = makeReaction(alive, '👍')
+		expect(findOrphanedReactions(new Set([pruned]), viewOf(orphan, kept))).toEqual([orphan.id])
+	})
+
+	it('skips non-reaction records without reading them', () => {
+		const pruned = createCommentId()
+		const orphan = makeReaction(pruned, '👍')
+		const view = {
+			keys: () => ['shape:box1', 'comment:c1', 'comment-thread:t1', orphan.id],
+			get(id: string): unknown {
+				if (id !== orphan.id) throw new Error(`should not read ${id}`)
+				return orphan
+			},
+		}
+		expect(findOrphanedReactions(new Set([pruned]), view)).toEqual([orphan.id])
+	})
+})
+
+describe('outboxEntriesToClear', () => {
+	const entries: CommentOutboxEntry[] = [
+		{ seq: 1, recordId: 'comment:a' },
+		{ seq: 2, recordId: 'comment:b' },
+		{ seq: 3, recordId: 'comment:a' },
+	]
+
+	it('signals the bulk-clear fast path when nothing failed', () => {
+		expect(outboxEntriesToClear(entries, new Set())).toEqual({ clearAll: true, seqs: [] })
+	})
+
+	it('keeps every entry of a failed record queued, clearing only the rest', () => {
+		expect(outboxEntriesToClear(entries, new Set(['comment:a']))).toEqual({
+			clearAll: false,
+			seqs: [2],
+		})
+	})
+
+	it('clears entries for pruned records — pruned ids are not failed ids', () => {
+		// a pruned record (author FK cascade) is never added to failedIds, so its entries clear
+		// like a success; only the genuinely failed record's entries survive
+		expect(outboxEntriesToClear(entries, new Set(['comment:b']))).toEqual({
+			clearAll: false,
+			seqs: [1, 3],
+		})
+	})
+})
+
+describe('mergeCommentDocumentsIntoSnapshot', () => {
+	function makeDocs(...clocks: number[]): RoomSnapshot['documents'] {
+		return clocks.map((clock) => ({
+			state: makeThread(),
+			lastChangedClock: clock,
+		}))
+	}
+
+	function makeSnapshot(overrides: Partial<RoomSnapshot> = {}): RoomSnapshot {
+		return { documentClock: 10, documents: makeDocs(10), ...overrides }
+	}
+
+	// clockFloor 0 = "no dropped rows outran the documents"
+	function load(documents: RoomSnapshot['documents'], clockFloor = 0): CommentLoadResult {
+		return { documents, clockFloor }
+	}
+
+	it('merges docs and clamps documentClock up when a comment clock exceeds it', () => {
+		const snapshot = makeSnapshot({ documentClock: 10 })
+		const docs = makeDocs(5, 42)
+		mergeCommentDocumentsIntoSnapshot(snapshot, load(docs))
+		expect(snapshot.documentClock).toBe(42)
+		expect(snapshot.documents).toHaveLength(3)
+		expect(snapshot.documents.slice(1)).toEqual(docs)
+	})
+
+	it('leaves documentClock alone when all comment clocks are at or below it', () => {
+		const snapshot = makeSnapshot({ documentClock: 10 })
+		mergeCommentDocumentsIntoSnapshot(snapshot, load(makeDocs(3, 10)))
+		expect(snapshot.documentClock).toBe(10)
+		expect(snapshot.documents).toHaveLength(3)
+	})
+
+	it('no-ops on empty comment docs', () => {
+		const snapshot = makeSnapshot({ documentClock: 10 })
+		const documents = snapshot.documents
+		mergeCommentDocumentsIntoSnapshot(snapshot, load([]))
+		expect(snapshot.documentClock).toBe(10)
+		expect(snapshot.documents).toBe(documents)
+	})
+
+	it('clamps both clocks when a legacy snapshot has clock and documentClock below', () => {
+		const snapshot = makeSnapshot({ clock: 12, documentClock: 10 })
+		mergeCommentDocumentsIntoSnapshot(snapshot, load(makeDocs(42)))
+		expect(snapshot.documentClock).toBe(42)
+		expect(snapshot.clock).toBe(42)
+	})
+
+	it('does not lower the effective seed for a clock-only snapshot already above the comments', () => {
+		// SQLiteSyncStorage seeds from documentClock ?? clock; introducing a lower documentClock
+		// here would shadow the higher legacy clock and regress the seed
+		const snapshot = makeSnapshot({ clock: 100, documentClock: undefined })
+		mergeCommentDocumentsIntoSnapshot(snapshot, load(makeDocs(42)))
+		expect(snapshot.documentClock).toBeUndefined()
+		expect(snapshot.clock).toBe(100)
+	})
+
+	it('clamps documentClock but not a clock already above the comments', () => {
+		const snapshot = makeSnapshot({ clock: 100, documentClock: 10 })
+		mergeCommentDocumentsIntoSnapshot(snapshot, load(makeDocs(42)))
+		expect(snapshot.documentClock).toBe(42)
+		expect(snapshot.clock).toBe(100)
+	})
+
+	it('raises tombstoneHistoryStartsAtClock to maxClock when the clamp fires and it was lower', () => {
+		const snapshot = makeSnapshot({ documentClock: 10, tombstoneHistoryStartsAtClock: 5 })
+		mergeCommentDocumentsIntoSnapshot(snapshot, load(makeDocs(42)))
+		expect(snapshot.documentClock).toBe(42)
+		expect(snapshot.tombstoneHistoryStartsAtClock).toBe(42)
+	})
+
+	it('sets tombstoneHistoryStartsAtClock to maxClock when the clamp fires and it was undefined', () => {
+		const snapshot = makeSnapshot({ documentClock: 10, tombstoneHistoryStartsAtClock: undefined })
+		mergeCommentDocumentsIntoSnapshot(snapshot, load(makeDocs(42)))
+		expect(snapshot.documentClock).toBe(42)
+		expect(snapshot.tombstoneHistoryStartsAtClock).toBe(42)
+	})
+
+	it('leaves tombstoneHistoryStartsAtClock untouched when the clamp does not fire', () => {
+		const snapshot = makeSnapshot({ documentClock: 10, tombstoneHistoryStartsAtClock: 5 })
+		mergeCommentDocumentsIntoSnapshot(snapshot, load(makeDocs(3, 10)))
+		expect(snapshot.documentClock).toBe(10)
+		expect(snapshot.tombstoneHistoryStartsAtClock).toBe(5)
+	})
+
+	it('clamps on clockFloor alone when a dropped row outran every merged document', () => {
+		// a soft-deleted thread held the file's highest clock; its record was dropped from the load
+		const snapshot = makeSnapshot({ documentClock: 10 })
+		mergeCommentDocumentsIntoSnapshot(snapshot, load(makeDocs(5), 42))
+		expect(snapshot.documentClock).toBe(42)
+		expect(snapshot.tombstoneHistoryStartsAtClock).toBe(42)
+	})
+
+	it('clamps on clockFloor even when the load has no documents at all', () => {
+		// every thread in the file was soft-deleted; the clocks still must not regress
+		const snapshot = makeSnapshot({ documentClock: 10 })
+		const documents = snapshot.documents
+		mergeCommentDocumentsIntoSnapshot(snapshot, load([], 42))
+		expect(snapshot.documentClock).toBe(42)
+		expect(snapshot.documents).toBe(documents)
+	})
+})
+
+describe('liveCommentDocuments', () => {
+	function makeComment(threadId: string, now: number) {
+		return createComment({
+			threadId: threadId as ReturnType<typeof makeThread>['id'],
+			pageId,
+			authorId: 'user1',
+			body,
+			now,
+		})
+	}
+
+	function makeReaction(comment: ReturnType<typeof makeComment>, now: number) {
+		return createCommentReaction({
+			commentId: comment.id,
+			threadId: comment.threadId,
+			pageId,
+			userId: 'user1',
+			emoji: '👍',
+			now,
+		})
+	}
+
+	it('seeds reactions of seeded comments, drops the rest', () => {
+		const thread = makeThread()
+		const liveComment = makeComment(thread.id, 1500)
+		const deadComment = { ...makeComment(thread.id, 1600), isDeleted: true }
+		const keptReaction = makeReaction(liveComment, 1700)
+		// The dead comment's row persists (soft delete, no cascade), so its reaction rows do too —
+		// they must not re-enter the room ahead of a comment that never will.
+		const droppedReaction = makeReaction(deadComment, 1800)
+		const { documents } = liveCommentDocuments(
+			[threadRecordToRow(thread, 'file1', 1)],
+			[commentRecordToRow(liveComment, 'file1', 2), commentRecordToRow(deadComment, 'file1', 3)],
+			[
+				reactionRecordToRow(keptReaction, 'file1', 4),
+				reactionRecordToRow(droppedReaction, 'file1', 5),
+			]
+		)
+		expect(documents.map((d) => d.state.id).sort()).toEqual(
+			[thread.id, liveComment.id, keptReaction.id].sort()
+		)
+	})
+
+	it('clockFloor spans reaction rows, including dropped ones', () => {
+		const thread = { ...makeThread(), isDeleted: true }
+		const deadComment = { ...makeComment(thread.id, 1500), isDeleted: true }
+		const droppedReaction = makeReaction(deadComment, 1600)
+		const result = liveCommentDocuments(
+			[threadRecordToRow(thread, 'file1', 1)],
+			[commentRecordToRow(deadComment, 'file1', 2)],
+			[reactionRecordToRow(droppedReaction, 'file1', 99)]
+		)
+		expect(result.documents).toEqual([])
+		expect(result.clockFloor).toBe(99)
+	})
+
+	it('drops soft-deleted threads and their comments, keeping live ones', () => {
+		const live = makeThread()
+		const dead = { ...makeThread(), isDeleted: true }
+		const liveComment = makeComment(live.id, 1500)
+		const deadComment = makeComment(dead.id, 1600)
+		const { documents } = liveCommentDocuments(
+			[threadRecordToRow(live, 'file1', 1), threadRecordToRow(dead, 'file1', 2)],
+			[commentRecordToRow(liveComment, 'file1', 3), commentRecordToRow(deadComment, 'file1', 4)]
+		)
+		expect(documents.map((d) => d.state.id).sort()).toEqual([liveComment.id, live.id].sort())
+	})
+
+	it('drops soft-deleted comments of live threads, keeping the thread', () => {
+		const thread = makeThread()
+		const liveComment = makeComment(thread.id, 1500)
+		const deadComment = { ...makeComment(thread.id, 1600), isDeleted: true }
+		const { documents } = liveCommentDocuments(
+			[threadRecordToRow(thread, 'file1', 1)],
+			[commentRecordToRow(liveComment, 'file1', 2), commentRecordToRow(deadComment, 'file1', 3)]
+		)
+		expect(documents.map((d) => d.state.id).sort()).toEqual([liveComment.id, thread.id].sort())
+	})
+
+	it('drops a live thread whose comment rows are all soft-deleted', () => {
+		// The durable backstop for an emptied thread whose isDeleted stamp never landed (e.g. DO
+		// storage lost between the comment stamp and the follow-up drain): the thread row is still
+		// live in Postgres, but every comment it ever had is deleted — it must not re-seed rooms.
+		const emptied = makeThread()
+		const deadComment = { ...makeComment(emptied.id, 1500), isDeleted: true }
+		const result = liveCommentDocuments(
+			[threadRecordToRow(emptied, 'file1', 1)],
+			[commentRecordToRow(deadComment, 'file1', 2)]
+		)
+		expect(result.documents).toEqual([])
+		expect(result.clockFloor).toBe(2)
+	})
+
+	it('keeps a live thread with no comment rows at all', () => {
+		// A brand-new thread whose first comment hasn't drained yet has zero comment rows — it is
+		// not emptied, and dropping it would lose the thread the pending comment belongs to.
+		const fresh = makeThread()
+		const { documents } = liveCommentDocuments([threadRecordToRow(fresh, 'file1', 1)], [])
+		expect(documents.map((d) => d.state.id)).toEqual([fresh.id])
+	})
+
+	it('clockFloor spans all rows, including dropped ones', () => {
+		const live = makeThread()
+		const dead = { ...makeThread(), isDeleted: true }
+		const deadComment = { ...makeComment(dead.id, 1600), isDeleted: true }
+		const result = liveCommentDocuments(
+			[threadRecordToRow(live, 'file1', 7), threadRecordToRow(dead, 'file1', 42)],
+			[commentRecordToRow(deadComment, 'file1', 9)]
+		)
+		expect(result.clockFloor).toBe(42)
+		expect(result.documents.map((d) => d.state.id)).toEqual([live.id])
+	})
+
+	it('empty rows produce an empty, zero-floor load', () => {
+		expect(liveCommentDocuments([], [])).toEqual({ documents: [], clockFloor: 0 })
+	})
+})

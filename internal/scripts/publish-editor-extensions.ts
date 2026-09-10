@@ -34,8 +34,8 @@ async function fetchMarketplaceVersion(): Promise<string> {
 	return version
 }
 
-async function bumpVersion(): Promise<string> {
-	const currentVersion = await fetchMarketplaceVersion()
+async function bumpVersion(fromVersion?: string): Promise<string> {
+	const currentVersion = fromVersion ?? (await fetchMarketplaceVersion())
 	const semVer = parse(currentVersion)
 	if (!semVer) {
 		throw new Error(`Could not parse the published version: ${currentVersion}`)
@@ -97,10 +97,12 @@ async function main() {
 	await exec('yarn', ['lazy', 'run', 'build', '--filter=packages/*'])
 
 	// When two pushes to main happen in quick succession, the concurrency group serializes
-	// the runs but the marketplace API has propagation delay — both runs can compute the same
-	// next version. If publish fails with "already exists", re-fetch and retry.
+	// the runs but `vsce show` can lag a fresh publish by 10+ minutes, so both runs compute
+	// the same next version. The "already exists" rejection is authoritative, so on conflict
+	// bump past the rejected version locally instead of re-fetching the stale listing.
+	let conflictedVersion: string | undefined
 	for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-		const version = await bumpVersion()
+		const version = await bumpVersion(conflictedVersion)
 
 		try {
 			switch (env.TLDRAW_ENV) {
@@ -116,8 +118,9 @@ async function main() {
 			}
 		} catch (err) {
 			if (isVersionConflictError(err) && attempt < MAX_RETRIES) {
+				conflictedVersion = version
 				nicelog(
-					`Version conflict detected (attempt ${attempt}/${MAX_RETRIES}), retrying in ${RETRY_DELAY_MS / 1000}s...`
+					`Version ${version} already exists (attempt ${attempt}/${MAX_RETRIES}), bumping past it and retrying in ${RETRY_DELAY_MS / 1000}s...`
 				)
 				await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS))
 				continue

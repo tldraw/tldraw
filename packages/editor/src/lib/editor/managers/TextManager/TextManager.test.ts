@@ -420,6 +420,48 @@ describe('TextManager', () => {
 			expect(Array.isArray(result)).toBe(true)
 		})
 
+		it('should not throw when the truncated remeasure yields no spans', () => {
+			// The text truncates on the first pass, but once we narrow the width
+			// to make room for the ellipsis, nothing measurable remains (e.g. the
+			// measurement element can't be laid out). This must not crash.
+			vi.spyOn(textManager, 'measureElementTextNodeSpans')
+				.mockReturnValueOnce({
+					spans: [{ text: 'Hello Wo', box: { x: 0, y: 0, w: 80, h: 16 } }],
+					didTruncate: true,
+				})
+				.mockReturnValueOnce({
+					spans: [{ text: '…', box: { x: 0, y: 0, w: 10, h: 16 } }],
+					didTruncate: false,
+				})
+				.mockReturnValueOnce({
+					spans: [],
+					didTruncate: false,
+				})
+
+			const opts = { ...defaultOpts, overflow: 'truncate-ellipsis' as const }
+			let result: ReturnType<typeof textManager.measureTextSpans> | undefined
+			expect(() => (result = textManager.measureTextSpans('Hello World', opts))).not.toThrow()
+			expect(result).toEqual([])
+		})
+
+		it('should not throw when the ellipsis itself cannot be measured', () => {
+			// If measuring the ellipsis returns no spans, fall back to a zero width
+			// rather than dereferencing a missing span.
+			vi.spyOn(textManager, 'measureElementTextNodeSpans')
+				.mockReturnValueOnce({
+					spans: [{ text: 'Hello Wo', box: { x: 0, y: 0, w: 80, h: 16 } }],
+					didTruncate: true,
+				})
+				.mockReturnValueOnce({ spans: [], didTruncate: false })
+				.mockReturnValueOnce({
+					spans: [{ text: 'Hello Wo', box: { x: 0, y: 0, w: 80, h: 16 } }],
+					didTruncate: false,
+				})
+
+			const opts = { ...defaultOpts, overflow: 'truncate-ellipsis' as const }
+			expect(() => textManager.measureTextSpans('Hello World', opts)).not.toThrow()
+		})
+
 		it('should handle truncate-clip overflow', () => {
 			vi.spyOn(textManager, 'measureElementTextNodeSpans').mockReturnValue({
 				spans: [

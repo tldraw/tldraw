@@ -1,12 +1,12 @@
 {
-  "1764571547": {
-    "translation": "이 워크스페이스를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
-  },
   "0095a9fa74": {
     "translation": "내보내기"
   },
   "00b177e080": {
     "translation": "초대 수락"
+  },
+  "029f235f01": {
+    "translation": "저희는 <a><strong>{appName}</strong></a>에서 제공하는 파일에 대한 지원을 개발 중입니다."
   },
   "03b3e13197": {
     "translation": "이 페이지의 사이드바로 파일을 드래그하세요. 또는 사용자 메뉴에서 '파일 가져오기' 옵션을 선택합니다."
@@ -16,6 +16,9 @@
   },
   "04a2dd56d6": {
     "translation": "팀원들을 초대하세요"
+  },
+  "05b2656486": {
+    "translation": "<name>{author}</name> 님이 당신을 언급했습니다."
   },
   "05f43078e9": {
     "translation": "최대 작업 공간 개수에 도달했습니다. 새 작업 공간을 만들려면 기존 작업 공간을 삭제해야 합니다."
@@ -31,6 +34,9 @@
   },
   "08bd40c754": {
     "translation": "계정"
+  },
+  "093ac7483a": {
+    "translation": "{extension} 파일을 아직 열 수 없습니다."
   },
   "0a91f7fa87": {
     "translation": "이 파일은 크기 제한에 도달하여 변경 사항이 더 이상 저장되지 않을 수 있습니다. 일부 콘텐츠를 삭제하거나 새 파일을 시작하세요."
@@ -62,6 +68,9 @@
   "13ddd375ad": {
     "translation": "내보내기 형식"
   },
+  "14b03eeeb5": {
+    "translation": "알림 옵션"
+  },
   "181b90f889": {
     "translation": "파일 생성"
   },
@@ -83,6 +92,12 @@
   "250ddea65c": {
     "translation": "tldraw에 대하여"
   },
+  "2755e3ab39": {
+    "translation": "<name>{author}</name> 님이 당신의 게시판에 댓글을 남겼습니다."
+  },
+  "28b2464e1f": {
+    "translation": "피드백을 제출할 수 없습니다."
+  },
   "299cb00a7a": {
     "translation": "업로드 실패"
   },
@@ -91,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "찾다..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "다시 시도해 주세요."
   },
   "2de510be71": {
     "translation": "링크를 갱신하면 기존 초대 링크가 새 링크로 대체됩니다. 기존 링크를 사용하는 사용자는 가입하려면 새 링크가 필요합니다."
@@ -146,8 +164,14 @@
   "44db318ee5": {
     "translation": "Discord에서 도움 받기"
   },
+  "454aad3b3c": {
+    "translation": "<strong>{fileName}</strong>을 정말로 삭제하시겠습니까?"
+  },
   "46137245cd": {
     "translation": "tldraw 개선에 도움을 주셔서 감사합니다!"
+  },
+  "46de2de6bb": {
+    "translation": "이용약관에 동의합니다"
   },
   "477df802ca": {
     "translation": "편집을 계속하려면 파일을 파일로 복사하세요."
@@ -157,9 +181,6 @@
   },
   "47f493a590": {
     "translation": "핀 파일"
-  },
-  "4908687e50": {
-    "translation": "이 파일을 무시하시겠습니까?"
   },
   "49ee308734": {
     "translation": "이름"
@@ -182,11 +203,20 @@
   "517bb809d9": {
     "translation": "페이지 메뉴"
   },
+  "53770fd374": {
+    "translation": "읽지 않음"
+  },
   "542248f0ba": {
     "translation": "이 파일은 이제 읽기 전용입니다."
   },
   "54286b1d01": {
     "translation": "공동 작업자 정원 도달"
+  },
+  "545241e7dd": {
+    "translation": "{count} 읽지 않음"
+  },
+  "550b25cc0c": {
+    "translation": "로컬 도면을 복원할 수 없습니다. 페이지를 새로고침해 보세요."
   },
   "554a05155c": {
     "translation": "여전히 문제가 있습니까? <a>문제 보고</a>"
@@ -212,6 +242,9 @@
   "5bff3c9c88": {
     "translation": "내 작업 공간"
   },
+  "5bffeebf03": {
+    "translation": "<name>{author}</name>님이 귀하의 댓글에 반응을 남겼습니다."
+  },
   "5d04a002ea": {
     "translation": "연결할 수 없습니다"
   },
@@ -224,8 +257,17 @@
   "5fb63579fc": {
     "translation": "복사"
   },
+  "608e9d366e": {
+    "translation": "이제 모든 내용을 따라잡으셨군요."
+  },
+  "60a68c29d6": {
+    "translation": "댓글을 남기려면 로그인하세요"
+  },
   "61057a0c84": {
     "translation": "이후"
+  },
+  "61fb03fd7b": {
+    "translation": "{count, plural, other {#명이 당신의 댓글에 반응했습니다}}"
   },
   "625fd29749": {
     "translation": "이전"
@@ -277,6 +319,9 @@
   },
   "752b79f137": {
     "translation": "최대 파일 수에 도달했습니다. 새 파일을 만들기 전에 이전 파일을 삭제해야 합니다."
+  },
+  "7542d62aac": {
+    "translation": "모두 읽음으로 표시"
   },
   "7573b8110a": {
     "translation": "액세스 권한 없음"
@@ -332,6 +377,12 @@
   "815e116a2e": {
     "translation": "tldraw 관련 버그, 문제 또는 아이디어가 있으신가요? 알려주세요! 이 양식을 작성해 주시면 필요 시 이메일로 답변해 드리겠습니다. <discord>Discord에서 채팅</discord>하거나 <github>GitHub에서 문제를 제출</github>하실 수도 있습니다."
   },
+  "81666c6e4a": {
+    "translation": "정말 <strong>{fileName}</strong> 파일을 무시하시겠습니까?"
+  },
+  "8413c683b4": {
+    "translation": "댓글"
+  },
   "858ba4765e": {
     "translation": "회원"
   },
@@ -365,6 +416,9 @@
   "904a830405": {
     "translation": "이름 바꾸기"
   },
+  "90646db02d": {
+    "translation": "<strong>{workspaceName}</strong>을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+  },
   "95aacd4d4a": {
     "translation": "Google로 로그인"
   },
@@ -388,6 +442,9 @@
   },
   "9bef626805": {
     "translation": "파일 삭제"
+  },
+  "9c228b6834": {
+    "translation": "현재 연결이 끊긴 상태입니다. 연결 상태를 확인하고 다시 시도해 주세요."
   },
   "9ccb565b86": {
     "translation": "인증 서비스 연결에 문제가 발생했습니다. 이는 일시적인 현상입니다. 페이지를 새로고침해 주세요."
@@ -419,6 +476,9 @@
   "a239905023": {
     "translation": "이미지 내보내기"
   },
+  "a274f4d467": {
+    "translation": "알림"
+  },
   "a3debabee7": {
     "translation": "쿠키 정책"
   },
@@ -443,6 +503,9 @@
   "aac449eef6": {
     "translation": "작업 공간 생성"
   },
+  "aaec8f7cde": {
+    "translation": "누구"
+  },
   "ab0df9ba36": {
     "translation": "파일 제한에 도달했습니다"
   },
@@ -452,6 +515,12 @@
   },
   "b028909917": {
     "translation": "게스트 사용자"
+  },
+  "b03400e2db": {
+    "translation": "<name>{author}</name>님이 답글을 남겼습니다."
+  },
+  "b1c94ca2fb": {
+    "translation": "모두"
   },
   "b2326c3a34": {
     "translation": "재생성"
@@ -492,9 +561,6 @@
   "c2276c9127": {
     "translation": "공유에 대해 자세히 알아보세요."
   },
-  "c28aed8348": {
-    "translation": "<cookies>analytics</cookies>를 허용하여 tldraw를 개선하세요."
-  },
   "c303bd1095": {
     "translation": "이 파일을 게시할 수 없습니다."
   },
@@ -527,6 +593,9 @@
   },
   "cea291e45e": {
     "translation": "게시에 대해 자세히 알아보세요."
+  },
+  "d0e3556476": {
+    "translation": "<name>{author}</name>님과 {count, plural, one {# 명} other {# 명}}이 회원님의 댓글에 반응했습니다."
   },
   "d3d2e61733": {
     "translation": "닫기"
@@ -573,6 +642,9 @@
   "e404559826": {
     "translation": "서비스 약관"
   },
+  "e65b2dcb6f": {
+    "translation": "<name>{a}</name>님과 <name>{b}</name>님이 댓글에 반응을 남겼습니다."
+  },
   "e81c4e4f2b": {
     "translation": "또는"
   },
@@ -600,6 +672,9 @@
   "ede55d955f": {
     "translation": "자세한 내용을 알아보려면 <a>쿠키 정책</a>을 읽어보세요."
   },
+  "edec9387f9": {
+    "translation": "이 댓글은 삭제되었습니다."
+  },
   "ef53538ae4": {
     "translation": "회원들"
   },
@@ -618,8 +693,14 @@
   "f2a6c498fb": {
     "translation": "삭제"
   },
+  "f476ba8646": {
+    "translation": "<name>{a}</name>, <name>{b}</name> 및 {count, plural, one {# other} other {# others}} 님이 귀하의 댓글에 반응했습니다."
+  },
   "f4f70727dc": {
     "translation": "설정"
+  },
+  "f5ddc8d9c1": {
+    "translation": "지금은 <a>{extension} 파일로 내보냄</a>을 사용하여 여기에서 사용할 수 있습니다."
   },
   "fa2ead697d": {
     "translation": "개인정보 보호정책"
@@ -629,9 +710,6 @@
   },
   "fc9d47046b": {
     "translation": "이 작업 공간을 나가시겠습니까?"
-  },
-  "fd1be3efcf": {
-    "translation": "이 파일을 삭제하시겠습니까?"
   },
   "fed5ec05eb": {
     "translation": "복사된 링크"

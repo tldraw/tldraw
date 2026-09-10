@@ -5,14 +5,16 @@ import {
 	TLFrameShape,
 	TLTldrawExternalContent,
 } from 'tldraw'
+import 'tldraw/tldraw.css'
 
-// this example adds special behavior when pasting a single frame shape, matching the behavior of figma
+// There's a guide at the bottom of this file!
+
 export default function CustomPasteExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				onMount={(editor) => {
-					// on mount, override the default tldraw handler
+					// [1]
 					editor.registerExternalContentHandler('tldraw', (content) =>
 						handleCustomTldrawPaste(editor, content)
 					)
@@ -25,32 +27,28 @@ export default function CustomPasteExample() {
 const SPACING_BETWEEN_FRAMES = 50
 
 function handleCustomTldrawPaste(editor: Editor, { content, point }: TLTldrawExternalContent) {
-	// find the only shape in the pasted content
+	// [2]
 	const onlyCopiedShape =
 		content.rootShapeIds.length === 1
 			? content.shapes.find((shape) => shape.id === content.rootShapeIds[0])
 			: null
 
-	// make sure that the shape is a frame. if it is, retrieve the current version of that frame
-	// from the document.
 	const onlyCopiedFrame =
 		onlyCopiedShape?.type === 'frame' ? (onlyCopiedShape as TLFrameShape) : null
 
-	// we only want to use our special behavior if the frame (current & pasted) will be a direct
-	// descendant of the current page.
+	// only use the special behavior if the frame will be a direct child of the page (its
+	// parentId isn't a shape in the document)
 	const willPasteOnCurrentPage = onlyCopiedFrame
 		? !editor.getShape(onlyCopiedFrame.parentId)
 		: false
 
-	// if the paste is happening at a specific point, or we didn't copy a single frame that belongs
-	// to this page, fall back to the default paste behavior
+	// [3]
 	if (point || !onlyCopiedFrame || !willPasteOnCurrentPage) {
 		defaultHandleExternalTldrawContent(editor, { content, point })
 		return
 	}
 
-	// if we are pasting a single frame, and that frame is still in the document, we want to find a
-	// free space to the right of the frame to put this one.
+	// [4]
 	editor.putContentOntoCurrentPage(content, { select: true })
 	const newlyPastedFrame = editor.getOnlySelectedShape()
 	if (!newlyPastedFrame || !editor.isShapeOfType(newlyPastedFrame, 'frame')) return
@@ -79,9 +77,30 @@ function handleCustomTldrawPaste(editor: Editor, { content, point }: TLTldrawExt
 		targetPosition = sibling.bounds.maxX + SPACING_BETWEEN_FRAMES
 	}
 
-	// translate the pasted frame into position:
 	editor.nudgeShapes([newlyPastedFrame.id], {
 		x: targetPosition - pastedBounds.minX,
 		y: 0,
 	})
 }
+
+/*
+When you copy and paste a frame in Figma, the copy lands in free space to the right of
+the original instead of on top of it. This example adds that behavior to tldraw.
+
+[1]
+`registerExternalContentHandler` replaces the handler for a content type. `'tldraw'` is
+the type used for content copied from tldraw itself, so this intercepts every internal
+paste. `defaultHandleExternalTldrawContent` is the built-in handler, which we fall back
+to for anything we don't want to special-case.
+
+[2]
+Work out whether the clipboard holds exactly one root shape and that shape is a frame.
+
+[3]
+If the paste has an explicit `point` (for example, a paste from the context menu, which
+lands at the pointer), or it isn't a lone page-level frame, use the default behavior.
+
+[4]
+Paste with the default handler first, then walk the frame's siblings from left to right
+and slide the new frame past any that overlap it vertically, leaving a gap.
+*/

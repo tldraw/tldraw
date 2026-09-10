@@ -14,37 +14,30 @@ const tools = [SpeechBubbleTool]
 // [2]
 export default function CustomShapeWithHandles() {
 	return (
-		<div style={{ position: 'absolute', inset: 0 }}>
+		<div className="tldraw__editor">
 			<Tldraw
 				shapeUtils={shapeUtils}
 				tools={tools}
 				overrides={uiOverrides}
 				assetUrls={customAssetUrls}
 				components={components}
-				persistenceKey="whatever"
+				persistenceKey="speech-bubble-example"
 			/>
 		</div>
 	)
 }
 
 /*
-Introduction:
-
-This example shows how to create a custom shape using handles. You can use handles when you want
-user interaction to alter the geometry of a shape. In this example, we create a speech bubble shape
-with a handle on the tail so the user can alter its position and length. Most of the interesting stuff
-is in SpeechBubbleUtil.tsx and helpers.tsx. 
+Use handles when you want user interaction to alter the geometry of a shape. Here a speech bubble
+has a handle on the tail so the user can move it. Most of the interesting code is in
+SpeechBubbleUtil.tsx and helpers.tsx.
 
 [1]
-We define an array to hold the custom shape util and cusom tool. It's important to do this outside of
-any React component so that this array doesn't get redefined on every render. We'll pass this into the 
-Tldraw component's `shapeUtils` and `tools` props.
-
-Check out SpeechBubbleUtil.tsx and SpeechBubbleTool.tsx to see how we define the shape util and tool.
+The custom shape util and tool arrays are defined outside of any React component so they don't get
+redefined on every render. See SpeechBubbleUtil.tsx and SpeechBubbleTool.tsx for the definitions.
 
 [2]
-We pass the custom shape util and tool into the Tldraw component's `shapeUtils` and `tools` props.
-We also pass in the custom ui overrides and asset urls to make sure our icons render where we want them to. 
-Check out ui-overrides.ts for more details.
-
+We pass the shape util and tool into the Tldraw component's `shapeUtils` and `tools` props, plus the
+UI overrides, components, and asset urls that add the tool to the toolbar with its own icon. See
+ui-overrides.tsx for details.
 */

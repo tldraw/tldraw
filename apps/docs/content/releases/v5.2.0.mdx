@@ -1,0 +1,111 @@
+---
+title: v5.2.0
+description: Faster freehand ink, a frame selection action, SDK-wide performance improvements, and breaking changes to the collaborator user-id types and Node support
+author: tldraw
+date: 07/01/2026
+order: 0
+status: published
+keywords:
+  - changelog
+  - release
+  - v5.2
+  - v5.2.0
+  - freehand-ink
+  - frame-selection
+  - performance
+  - breaking-changes
+---
+
+[View on GitHub](https://github.com/tldraw/tldraw/releases/tag/v5.2.0)
+
+This release brings in performance improvements across tldraw. The freehand ink algorithm now computes strokes 2–3x faster, shape resizing is quicker, and editor load time is reduced. Multi-click handling was simplified to double-click only to support improved mobile gestures. Plus it's easier to add shapes to frames, and dozens of bugs were fixed.
+
+## What's new
+
+### Faster freehand ink ([#9154](https://github.com/tldraw/tldraw/pull/9154))
+
+We rewrote the freehand ink algorithm. Draw and highlighter strokes now compute about 2x faster (up to 3x for long strokes) and produce 57% smaller SVG path data, with no visible change to how strokes look. The rewrite removes two rarely-used stroke APIs; see the breaking changes in [API changes](#api-changes).
+
+### Frame selection ([#8151](https://github.com/tldraw/tldraw/pull/8151))
+
+A new "Frame selection" action wraps the selected shapes in a frame with `cmd+shift+f`. When a frame is selected, the same shortcut removes it.
+
+## API changes
+
+- 💥 Simplify multi-click handling to double-click only. `ClickManager` no longer tracks triple or quadruple clicks: the `triple_click` and `quadruple_click` events and the `onTripleClick` / `onQuadrupleClick` handlers have been removed, and `TLClickEventName` is now just `'double_click'`. ([#8897](https://github.com/tldraw/tldraw/pull/8897))
+- 💥 Move `ShapeIndicatorOverlayUtil` and `TLShapeIndicatorOverlay` from `@tldraw/editor` to `tldraw`. Both are still exported from `tldraw`; update any imports of these symbols that came directly from `@tldraw/editor`. ([#9018](https://github.com/tldraw/tldraw/pull/9018))
+- 💥 Drop support for the EOL Node 20. The minimum supported Node is now `>=22.12.0`, the first version with native `require()` of ES modules, so tldraw can depend on ESM-only packages. ([#9098](https://github.com/tldraw/tldraw/pull/9098))
+- 💥 Type the collaborator user-id APIs as `TLUserId` instead of `string`. `TLInstancePresence.userId` / `followingUserId`, `TLInstance.followingUserId` / `highlightedUserIds`, `Editor.startFollowingUser()`, `Editor.zoomToUser()`, `usePresence()`, `usePeerIds()`, and the people-menu prop types now use `TLUserId`. Runtime behavior is unchanged: `TLUserId` is a branded string, so cast plain strings at the call site, for example `editor.startFollowingUser(userId as TLUserId)`. ([#9002](https://github.com/tldraw/tldraw/pull/9002))
+- 💥 Remove `StrokePoint.vector` and `setStrokePointRadii` from the freehand stroke pipeline. The vector is derivable from consecutive points and radius/taper computation now happens inside `getStroke` and `svgInk`; nothing in the SDK consumed these outside the pipeline itself. ([#9154](https://github.com/tldraw/tldraw/pull/9154))
+- 💥 Remove the obsolete selection-background slot from `@tldraw/editor`: `DefaultSelectionBackground`, `TLSelectionBackgroundProps`, `TLEditorComponents.SelectionBackground`, and the `useTransform` helper. These were unused and have no replacement; remove any references to them. ([#9362](https://github.com/tldraw/tldraw/pull/9362))
+- Add an `embedConfig` option to `EmbedShapeUtil` for passing per-embed configuration such as API keys. The default Google Maps embed no longer reads `process.env.NEXT_PUBLIC_GC_API_KEY` — pass the key explicitly instead. ([#9068](https://github.com/tldraw/tldraw/pull/9068))
+
+  ```ts
+  EmbedShapeUtil.configure({
+  	embedConfig: { google_maps: { apiKey: '...' } },
+  })
+  ```
+
+- Add an `allowVideoAutoplay` option to `TldrawOptions`. When set to `false`, no video shape autoplays regardless of its per-shape `autoplay` prop — including pasted and restored shapes. Defaults to `true`. ([#8943](https://github.com/tldraw/tldraw/pull/8943))
+- Add `ShapeUtil.getContentElement` and `ShapeUtil.onReleaseContentElement`, an app-owned content element lifecycle that lets stateful shape content (such as cross-origin iframes) survive unmounting the editor. ([#9167](https://github.com/tldraw/tldraw/pull/9167))
+
+## Improvements
+
+- Open the context menu with a right-click from any tool, not just the select tool, and with a touch long-press while using the select tool. Long-pressing on a shape-creation tool no longer leaves a stray shape behind. ([#8948](https://github.com/tldraw/tldraw/pull/8948))
+- Add a `shift+q` shortcut that copies the styles of the hovered shape and applies them to the next shapes you create. ([#9028](https://github.com/tldraw/tldraw/pull/9028))
+- Add a double-tap-and-drag zoom gesture for touch devices. ([#7858](https://github.com/tldraw/tldraw/pull/7858))
+- As you drag out a frame, the frame tool now highlights the shapes it will enclose. ([#9102](https://github.com/tldraw/tldraw/pull/9102))
+- Pasted bookmarks now show an immediate loading placeholder with a spinner at the paste location, instead of waiting for metadata before appearing. ([#8663](https://github.com/tldraw/tldraw/pull/8663))
+- Add the missing keyboard shortcuts (copy as PNG, print, insert embed, highlight tool, frame selection, flatten, toggle locked, distribute horizontally/vertically) to the keyboard shortcuts dialog. ([#9285](https://github.com/tldraw/tldraw/pull/9285))
+- Make the selection corner rotate handles easier to grab. ([#9374](https://github.com/tldraw/tldraw/pull/9374))
+- Reduce the default indentation on rich-text lists so nested lists take up less horizontal space. ([#9287](https://github.com/tldraw/tldraw/pull/9287))
+- Hide the "back to content" button during the animation that pans back to the canvas when focusing it. ([#9278](https://github.com/tldraw/tldraw/pull/9278))
+- Remove the extraneous `title` tooltips on menu items. ([#9315](https://github.com/tldraw/tldraw/pull/9315))
+- `@tldraw/mermaid` now loads its ESM-only `mermaid` dependency lazily, so the package is requirable from CommonJS and mermaid only loads when a diagram is created. ([#9100](https://github.com/tldraw/tldraw/pull/9100))
+- Keep sync at full speed when the same multiplayer room is open in multiple tabs, windows, or devices — previously a room with no other users throttled network sync to once per second. ([#8988](https://github.com/tldraw/tldraw/pull/8988))
+- Include `DOCS.md` documentation in published npm packages, and a generated docs and release notes rollup in the `tldraw` package, so documentation is available when browsing package artifacts. ([#8503](https://github.com/tldraw/tldraw/pull/8503))
+- Shrink stored draw shape data for mouse, trackpad, and finger input by ~33% by omitting the redundant constant-pressure value from the encoded path. ([#8963](https://github.com/tldraw/tldraw/pull/8963))
+- Improve performance when resizing many shapes at once. ([#9153](https://github.com/tldraw/tldraw/pull/9153))
+- Improve change tracking and sync performance when many shapes change at once. ([#9151](https://github.com/tldraw/tldraw/pull/9151), [#9152](https://github.com/tldraw/tldraw/pull/9152))
+- Improve validation performance during high-frequency updates. ([#9150](https://github.com/tldraw/tldraw/pull/9150))
+- Speed up editor load by caching generated pattern fill defs and deduplicating icon preloads, so neither is rebuilt on every editor mount. ([#9345](https://github.com/tldraw/tldraw/pull/9345), [#9351](https://github.com/tldraw/tldraw/pull/9351))
+- Remove the `jittered-fractional-indexing` dependency and speed up index key generation and validation; newly generated index keys are slightly shorter. ([#9352](https://github.com/tldraw/tldraw/pull/9352))
+- Improve minimap rendering performance on large documents. ([#9355](https://github.com/tldraw/tldraw/pull/9355))
+
+## Bug fixes
+
+- Fix the fill style dropdown trigger showing a misleading tooltip for the currently selected fill. ([#9023](https://github.com/tldraw/tldraw/pull/9023))
+- Fix a two-finger pinch unintentionally changing the selection on touch devices. ([#9006](https://github.com/tldraw/tldraw/pull/9006))
+- Pasting content while dragging, translating, resizing, or rotating no longer steals selection from the shape being manipulated. ([#8976](https://github.com/tldraw/tldraw/pull/8976))
+- Fix a bug where pressing `Tab` while editing a list inside a note shape created a new note instead of indenting the list item. ([#8958](https://github.com/tldraw/tldraw/pull/8958))
+- Fix the viewport shifting slightly when zooming past the minimum or maximum zoom level. ([#8957](https://github.com/tldraw/tldraw/pull/8957))
+- Improve the contrast of disabled buttons and menu items in dark mode. ([#8931](https://github.com/tldraw/tldraw/pull/8931))
+- Fix `debounce(...).cancel()` leaving an awaited call hanging forever; it now rejects the pending promise. ([#8683](https://github.com/tldraw/tldraw/pull/8683))
+- Fix arrows jumping to incorrect positions after undoing or redoing shape deletions involving bindings. ([#8283](https://github.com/tldraw/tldraw/pull/8283))
+- Fix touch long-press on shape-creation tools so the context menu opens without leaving a stray shape behind. ([#8946](https://github.com/tldraw/tldraw/pull/8946))
+- Fix text labels drifting vertically between browsers (e.g. Chrome vs Safari) in multiplayer by snapping line-height to whole pixels. ([#8981](https://github.com/tldraw/tldraw/pull/8981))
+- Fix collaborators not appearing until they interact with the board, idle following peers not being hidden, the "following you" indicator not showing in the people menu, and a phantom cursor for your own other browser sessions. ([#9088](https://github.com/tldraw/tldraw/pull/9088), [#9002](https://github.com/tldraw/tldraw/pull/9002))
+- Fix releasing a modifier while still holding a shortcut key triggering the adjacent non-modifier shortcut. ([#9099](https://github.com/tldraw/tldraw/pull/9099))
+- Fix redo (`cmd+shift+z`) not firing after an undo (`cmd+z`) on macOS when cmd is kept held. ([#9139](https://github.com/tldraw/tldraw/pull/9139))
+- Fix releasing a fast right-click pan zooming the camera to the maximum zoom level. ([#9140](https://github.com/tldraw/tldraw/pull/9140))
+- Fix selection handles disappearing when pressing (but not yet dragging) a resize edge, resize corner, or rotate handle, and keep selection chrome consistent while pointing. ([#9179](https://github.com/tldraw/tldraw/pull/9179), [#9184](https://github.com/tldraw/tldraw/pull/9184))
+- Fix double-clicking an arrow handle no longer toggling the arrowhead on that end. ([#9180](https://github.com/tldraw/tldraw/pull/9180))
+- Fix the camera jumping when a one-finger hand-tool pan transitions into a two-finger pinch zoom. ([#9182](https://github.com/tldraw/tldraw/pull/9182))
+- Fix arrows becoming partially un-hoverable and un-clickable when bindings were created or updated without a shape change (e.g. `createBindings` after `createShapes`). ([#9183](https://github.com/tldraw/tldraw/pull/9183))
+- Fix camera state getting stuck at `moving` when the editor is disposed during camera movement (e.g. React strict mode with a shared store). ([#9201](https://github.com/tldraw/tldraw/pull/9201))
+- Fix the following indicator border being hidden beneath UI panels. ([#9210](https://github.com/tldraw/tldraw/pull/9210))
+- Fix the sync version-mismatch handshake reporting `CLIENT_TOO_OLD` when the server is the one running an older version; it now correctly reports `SERVER_TOO_OLD`. ([#9212](https://github.com/tldraw/tldraw/pull/9212))
+- Fix ctrl+click on macOS not selecting locked shapes or opening the context menu; it now behaves like a right-click. ([#9234](https://github.com/tldraw/tldraw/pull/9234))
+- Fix a crash that could occur when undo or redo restored an editing state for a shape that no longer exists. ([#9260](https://github.com/tldraw/tldraw/pull/9260))
+- Fix the line tool's minimum bend distance so it's measured in screen pixels. Shift-click now behaves the same at every zoom level. ([#9275](https://github.com/tldraw/tldraw/pull/9275))
+- Fix style scrubbing selecting the wrong option when you release the pointer over a different style section. ([#9280](https://github.com/tldraw/tldraw/pull/9280))
+- Fix empty rich text (an empty array) not being treated as an empty label. ([#9295](https://github.com/tldraw/tldraw/pull/9295))
+- Fix desktop graphics tablets (e.g. Wacom) incorrectly switching the editor into pen mode. Pen mode now auto-enables only for direct-display stylus input such as Apple Pencil on iPad or Surface Pen on a touchscreen. ([#9316](https://github.com/tldraw/tldraw/pull/9316))
+- Fix inconsistent easing when clicking the minimap to move the camera. ([#9355](https://github.com/tldraw/tldraw/pull/9355))
+- Fix sync clients crashing when a malformed WebSocket message is received. ([#9356](https://github.com/tldraw/tldraw/pull/9356))
+- Fix a crash when measuring viewport bounds after the editor document body is unavailable. ([#9357](https://github.com/tldraw/tldraw/pull/9357))
+- Fix highlighted rich text showing an outline in dark mode. ([#9358](https://github.com/tldraw/tldraw/pull/9358))
+- Fix text in exported images sometimes being sized with a fallback font when the export ran before the document's fonts had finished loading. ([#9372](https://github.com/tldraw/tldraw/pull/9372))
+- Fix a crash when a shape is deleted mid-click (e.g. by a remote user or an undo) while clicking on it. ([#9376](https://github.com/tldraw/tldraw/pull/9376))
+- Fix the license manager treating loopback hosts other than `localhost` (such as `127.0.0.1` and `::1`) as production environments. ([#9384](https://github.com/tldraw/tldraw/pull/9384))
+- Fix the crop of a grouped, cropped image shifting when the group is flipped by dragging a resize handle. ([#9395](https://github.com/tldraw/tldraw/pull/9395))

@@ -15,10 +15,10 @@ keywords:
   ]
 ---
 
-Change the selection color based on the types of shapes selected.
+Turn the selection red whenever every selected shape is a rectangle.
 
 ---
 
-This example shows how to change the selection color when the selection contains only rectangle geo shapes. The selection will appear red when all selected shapes are rectangles, and use the default blue color otherwise.
+Selection colors are part of the editor's theme (`selectionStroke` and `selectionFill` in `TLTheme`), so changing them means swapping the theme rather than overriding CSS variables. This example clones `DEFAULT_THEME` into a red variant, then uses `react` inside `onMount` to watch `editor.getSelectedShapes()` and call `editor.updateTheme` with either variant depending on the selection.
 
-The example uses the `react` function to listen for selection changes and updates the container's CSS class accordingly.
+Try selecting the two rectangles (red), then add the ellipse to the selection (back to blue).

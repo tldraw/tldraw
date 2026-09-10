@@ -1,0 +1,543 @@
+/* Intel design language (see tldraw-internal skills/intel-design). Light theme only. */
+.adminLayout {
+	--admin-bg: #fafafa;
+	--admin-surface: #ffffff;
+	--admin-border: #000000;
+	--admin-border-2: #d4d4d8;
+	--admin-text: #000000;
+	--admin-text-2: #5c5c61;
+	--admin-text-3: #818189;
+	--admin-red: #c0392b;
+	--admin-green: #2e7d32;
+	--admin-shadow: 2px 3px 0px 0px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.04);
+	--admin-hover: rgba(0, 0, 0, 0.05);
+
+	display: flex;
+	width: 100%;
+	height: 100vh;
+	overflow: hidden;
+	position: relative;
+	background: var(--admin-bg);
+	color: var(--admin-text);
+	font-family: Inter, system-ui, sans-serif;
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1.7;
+	-webkit-font-smoothing: antialiased;
+}
+
+/* Paper-grain noise overlay (same tile as the internal intel app) */
+.adminLayout::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	pointer-events: none;
+	opacity: 0.12;
+	image-rendering: pixelated;
+	background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0'/><feComponentTransfer><feFuncA type='linear' slope='1.62' intercept='-0.25'/></feComponentTransfer></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+	background-repeat: repeat;
+	background-size: 180px 180px;
+}
+
+.adminSidebar {
+	width: 200px;
+	flex: 0 0 auto;
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	z-index: 1;
+	margin: 8px 0 8px 8px;
+	padding: 8px;
+	background: var(--admin-surface);
+	border: 1px solid var(--admin-border);
+	border-radius: 2px;
+	box-shadow: var(--admin-shadow);
+}
+
+.adminSidebarTitle {
+	padding: 4px 8px 12px;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.adminSidebarItem {
+	display: flex;
+	align-items: center;
+	height: 32px;
+	padding: 0 8px;
+	border-radius: 4px;
+	color: inherit;
+	text-decoration: none;
+	position: relative;
+}
+
+.adminSidebarItem:hover {
+	background: var(--admin-hover);
+}
+
+.adminSidebarItemActive,
+.adminSidebarItemActive:hover {
+	background: var(--admin-hover);
+	font-weight: 600;
+}
+
+.adminMain {
+	flex: 1;
+	min-width: 0;
+	overflow-y: auto;
+	padding: 8px;
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+}
+
+.adminSection {
+	background: var(--admin-surface);
+	border: 1px solid var(--admin-border);
+	border-radius: 2px;
+	box-shadow: var(--admin-shadow);
+	padding: 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	width: 100%;
+	min-width: 0;
+	max-width: 1100px;
+}
+
+.sectionTitle {
+	font-size: 14px;
+	font-weight: 600;
+	margin: 0 0 8px;
+}
+
+.subTitle {
+	font-size: 12px;
+	font-weight: 600;
+	margin: 0 0 4px;
+}
+
+/* Controls: 32px grid, borderless buttons, hairline inputs */
+.btn {
+	height: 32px;
+	padding: 0 12px;
+	border: none;
+	border-radius: 4px;
+	background: transparent;
+	font: inherit;
+	font-weight: 550;
+	cursor: pointer;
+}
+
+.btn:hover:not(:disabled) {
+	background: var(--admin-hover);
+}
+
+.btn:disabled {
+	color: var(--admin-text-3);
+	cursor: default;
+}
+
+.btn:focus-visible {
+	outline: 1px solid var(--admin-border);
+	outline-offset: 1px;
+}
+
+.btnPrimary {
+	background: var(--admin-text);
+	color: var(--admin-surface);
+}
+
+.btnPrimary:hover:not(:disabled) {
+	background: #333333;
+}
+
+.btnSecondary {
+	background: transparent;
+}
+
+.btnDanger {
+	color: var(--admin-red);
+}
+
+.btnCompact {
+	height: 24px;
+	padding: 0 8px;
+}
+
+.searchContainer {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.searchInput {
+	height: 32px;
+	padding: 0 8px;
+	border: 1px solid var(--admin-border-2);
+	border-radius: 4px;
+	background: var(--admin-surface);
+	font: inherit;
+	flex: 1;
+}
+
+.searchInput:focus {
+	outline: 1px solid var(--admin-border);
+	outline-offset: -1px;
+}
+
+.searchInput:disabled {
+	color: var(--admin-text-3);
+	cursor: not-allowed;
+}
+
+.diagnosticsTable {
+	width: 100%;
+	border-collapse: collapse;
+	border: 1px solid var(--admin-border);
+}
+
+.diagnosticsTable th,
+.diagnosticsTable td {
+	border-bottom: 1px solid var(--admin-border-2);
+	padding: 0 8px;
+	height: 32px;
+	text-align: left;
+}
+
+.diagnosticsTable th {
+	font-weight: 600;
+}
+
+.diagnosticsTable tbody tr:nth-child(even) {
+	background: #f4f4f5;
+}
+
+.errorMessage {
+	color: var(--admin-red);
+	padding: 4px 8px;
+}
+
+.successMessage {
+	color: var(--admin-green);
+	padding: 4px 8px;
+}
+
+.userActions {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.userActionButton {
+	margin: 0;
+}
+
+.dataDisplay {
+	background: var(--admin-surface);
+	border: 1px solid var(--admin-border-2);
+	border-radius: 2px;
+	padding: 8px;
+	font-family: monospace;
+	font-size: 11px;
+	line-height: 1.4;
+	color: var(--admin-text);
+	white-space: pre;
+	overflow: auto;
+	overflow-x: auto;
+	max-width: 100%;
+	max-height: 400px;
+	user-select: text;
+}
+
+.fileOperations {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.fileOperation {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 8px 0;
+}
+
+.fileOperation + .fileOperation {
+	border-top: 1px solid var(--admin-border-2);
+}
+
+.fileOperation > button {
+	align-self: flex-start;
+}
+
+.downloadContainer {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.dangerZone {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 8px 0 8px 8px;
+	border-left: 2px solid var(--admin-red);
+}
+
+.deleteContainer {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.deleteButton {
+	margin: 0;
+}
+
+/* Progress log */
+.progressLog {
+	margin-top: 8px;
+	padding-top: 8px;
+	border-top: 1px solid var(--admin-border-2);
+}
+
+.progressLog h5 {
+	margin: 0 0 8px;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--admin-text);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.logContainer {
+	max-height: 200px;
+	overflow-y: auto;
+	overflow-x: auto;
+	max-width: 100%;
+	white-space: pre;
+	font-family: monospace;
+	font-size: 11px;
+	line-height: 1.4;
+	color: var(--admin-text);
+	background: var(--admin-surface);
+	border: 1px solid var(--admin-border-2);
+	border-radius: 2px;
+	padding: 8px;
+}
+
+.logEntry {
+	margin-bottom: 4px;
+	padding: 2px 0;
+	border-bottom: 1px solid var(--admin-border-2);
+}
+
+.logEntry:last-child {
+	border-bottom: none;
+	margin-bottom: 0;
+}
+
+/* Structured data display */
+.structuredData {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	min-width: 0;
+}
+
+.copyButton {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	z-index: 10;
+}
+
+/* User summary */
+.userSummary {
+	padding: 8px 0;
+}
+
+.summaryGrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 8px;
+}
+
+.summaryItem {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.fieldLabel {
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--admin-text-3);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.fieldValue {
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--admin-text);
+	word-break: break-word;
+}
+
+/* Feature flags */
+.featureFlagsNote {
+	margin-bottom: 8px;
+}
+
+.featureFlagsNote strong,
+.featureFlagLabel strong {
+	font-weight: 550;
+}
+
+.featureFlagsDescription {
+	color: var(--admin-text-3);
+}
+
+.featureFlagsContainer {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 8px;
+}
+
+.featureFlagItem {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+/* For flag variants whose editor needs the full row width (the allowlist textarea): header row on
+   top, editor stretched underneath, instead of everything competing inside one row. */
+.featureFlagItemColumn {
+	flex-direction: column;
+	align-items: stretch;
+}
+
+.featureFlagLabel {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	cursor: pointer;
+	min-width: 200px;
+}
+
+.featureFlagLabel button:disabled {
+	color: var(--admin-text-3);
+	cursor: not-allowed;
+}
+
+.featureFlagDisabled {
+	color: var(--admin-text-3);
+	cursor: not-allowed;
+}
+
+/* Release info */
+.adminReleaseMeta {
+	margin: 0;
+	font-size: 12px;
+	line-height: 1.4;
+	color: var(--admin-text-2);
+}
+
+.adminReleaseLabel {
+	font-weight: 600;
+	margin-right: 4px;
+}
+
+.adminReleaseValue {
+	font-family: monospace;
+	font-size: 11px;
+	font-weight: 500;
+	color: var(--admin-text);
+	word-break: break-all;
+}
+
+.tableScroll {
+	overflow-x: auto;
+}
+
+.fitTable {
+	width: 100%;
+}
+
+.fitTable th,
+.fitTable td {
+	white-space: nowrap;
+	padding-right: 24px;
+}
+
+.fitTable th:last-child,
+.fitTable td:last-child {
+	padding-right: 8px;
+}
+
+.fileIdCell {
+	max-width: 220px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-family: monospace;
+}
+
+.clickableRow {
+	cursor: pointer;
+}
+
+.clickableRow:hover {
+	background: var(--admin-hover);
+}
+
+.attemptsWarn {
+	color: var(--admin-red);
+	font-weight: 600;
+}
+
+.attemptsParked {
+	color: var(--admin-surface);
+	background: var(--admin-red);
+	padding: 1px 6px;
+	border-radius: 4px;
+}
+
+.outboxDetails {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	padding: 8px;
+	background: var(--admin-bg);
+	border: 1px solid var(--admin-border-2);
+}
+
+.outboxDetailsColumn {
+	flex: 1 1 240px;
+	min-width: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+	.searchContainer,
+	.downloadContainer,
+	.deleteContainer {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.userActions {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.summaryGrid {
+		grid-template-columns: 1fr;
+	}
+}

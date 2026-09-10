@@ -1,12 +1,12 @@
 {
-  "1764571547": {
-    "translation": "Sind Sie sicher, dass Sie diesen Arbeitsbereich löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
-  },
   "0095a9fa74": {
     "translation": "Exportieren"
   },
   "00b177e080": {
     "translation": "Einladung annehmen"
+  },
+  "029f235f01": {
+    "translation": "Wir arbeiten an der Unterstützung für Dateien von <a><strong>{appName}</strong></a>."
   },
   "03b3e13197": {
     "translation": "Ziehen Sie die Datei in die Seitenleiste auf dieser Seite. Oder wählen Sie im Benutzermenü Option „Datei importieren“."
@@ -16,6 +16,9 @@
   },
   "04a2dd56d6": {
     "translation": "Lade Teamkollegen ein"
+  },
+  "05b2656486": {
+    "translation": "<name>{author}</name> hat dich erwähnt"
   },
   "05f43078e9": {
     "translation": "Sie haben die maximale Anzahl an Arbeitsbereichen erreicht. Sie müssen alte Arbeitsbereiche löschen, bevor Sie neue erstellen können."
@@ -31,6 +34,9 @@
   },
   "08bd40c754": {
     "translation": "Konto"
+  },
+  "093ac7483a": {
+    "translation": "{extension}-Dateien können noch nicht geöffnet werden."
   },
   "0a91f7fa87": {
     "translation": "Diese Datei hat ihre maximale Größe erreicht, Änderungen werden möglicherweise nicht mehr gespeichert. Entfernen Sie einige Inhalte oder erstellen Sie eine neue Datei."
@@ -62,6 +68,9 @@
   "13ddd375ad": {
     "translation": "Exportieren als"
   },
+  "14b03eeeb5": {
+    "translation": "Benachrichtigungsoptionen"
+  },
   "181b90f889": {
     "translation": "Datei erstellen"
   },
@@ -83,6 +92,12 @@
   "250ddea65c": {
     "translation": "Über tldraw"
   },
+  "2755e3ab39": {
+    "translation": "<name>{author}</name> hat Ihren Beitrag kommentiert"
+  },
+  "28b2464e1f": {
+    "translation": "Feedback konnte nicht übermittelt werden"
+  },
   "299cb00a7a": {
     "translation": "Hochladen fehlgeschlagen"
   },
@@ -91,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Suchen..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Bitte versuchen Sie es erneut."
   },
   "2de510be71": {
     "translation": "Durch die Neugenerierung wird der aktuelle Einladungslink durch einen neuen ersetzt. Alle, die den alten Link verwenden, benötigen den neuen, um beitreten zu können."
@@ -146,8 +164,14 @@
   "44db318ee5": {
     "translation": "Holen Sie sich Hilfe auf Discord"
   },
+  "454aad3b3c": {
+    "translation": "Möchten Sie wirklich <strong>{fileName}</strong> löschen?"
+  },
   "46137245cd": {
     "translation": "Danke, dass Sie uns helfen, tldraw zu verbessern!"
+  },
+  "46de2de6bb": {
+    "translation": "Nutzungsbedingungen akzeptieren"
   },
   "477df802ca": {
     "translation": "Um die Bearbeitung fortzusetzen, kopieren Sie bitte die Datei in Ihren Dateien."
@@ -157,9 +181,6 @@
   },
   "47f493a590": {
     "translation": "Pin-Datei"
-  },
-  "4908687e50": {
-    "translation": "Möchten Sie diese Datei wirklich vergessen?"
   },
   "49ee308734": {
     "translation": "Name"
@@ -182,11 +203,20 @@
   "517bb809d9": {
     "translation": "Seitenmenü"
   },
+  "53770fd374": {
+    "translation": "Ungelesen"
+  },
   "542248f0ba": {
     "translation": "Diese Datei ist jetzt schreibgeschützt."
   },
   "54286b1d01": {
     "translation": "Limit für Mitwirkende erreicht"
+  },
+  "545241e7dd": {
+    "translation": "{count} ungelesen"
+  },
+  "550b25cc0c": {
+    "translation": "Ihre lokale Zeichnung konnte nicht wiederhergestellt werden. Versuchen Sie, diese Seite neu zu laden."
   },
   "554a05155c": {
     "translation": "Immer noch Probleme? <a>Problem melden</a>"
@@ -212,6 +242,9 @@
   "5bff3c9c88": {
     "translation": "Mein Arbeitsbereich"
   },
+  "5bffeebf03": {
+    "translation": "<name>{author}</name> hat auf Ihren Kommentar reagiert"
+  },
   "5d04a002ea": {
     "translation": "Verbindung nicht möglich"
   },
@@ -224,8 +257,17 @@
   "5fb63579fc": {
     "translation": "Kopieren"
   },
+  "608e9d366e": {
+    "translation": "Sie sind auf dem neuesten Stand."
+  },
+  "60a68c29d6": {
+    "translation": "Melden Sie sich an, um einen Kommentar zu hinterlassen."
+  },
   "61057a0c84": {
     "translation": "Später"
+  },
+  "61fb03fd7b": {
+    "translation": "{count, plural, one {Jemand hat auf deinen Kommentar reagiert.} other {# Personen haben auf deinen Kommentar reagiert}}"
   },
   "625fd29749": {
     "translation": "Älter"
@@ -277,6 +319,9 @@
   },
   "752b79f137": {
     "translation": "Sie haben die maximale Anzahl an Dateien erreicht. Sie müssen alte Dateien löschen, bevor Sie neue erstellen können."
+  },
+  "7542d62aac": {
+    "translation": "Alle als gelesen markieren"
   },
   "7573b8110a": {
     "translation": "Kein Zugriff"
@@ -332,6 +377,12 @@
   "815e116a2e": {
     "translation": "Haben Sie einen Fehler, ein Problem oder eine Idee für tldraw? Lassen Sie es uns wissen! Füllen Sie dieses Formular aus und wir melden uns bei Bedarf per E-Mail. Sie können auch <discord>mit uns auf Discord chatten</discord> oder <github>ein Problem auf GitHub melden</github>."
   },
+  "81666c6e4a": {
+    "translation": "Sind Sie sicher, dass Sie <strong>{fileName}</strong> vergessen möchten?"
+  },
+  "8413c683b4": {
+    "translation": "Kommentare"
+  },
   "858ba4765e": {
     "translation": "Mitglied"
   },
@@ -365,6 +416,9 @@
   "904a830405": {
     "translation": "Umbenennen"
   },
+  "90646db02d": {
+    "translation": "Möchten Sie <strong>{workspaceName}</strong> wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+  },
   "95aacd4d4a": {
     "translation": "Mit Google anmelden"
   },
@@ -388,6 +442,9 @@
   },
   "9bef626805": {
     "translation": "Datei löschen"
+  },
+  "9c228b6834": {
+    "translation": "Sie scheinen offline zu sein. Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
   },
   "9ccb565b86": {
     "translation": "Es gibt derzeit Probleme mit der Verbindung zu unserem Authentifizierungsdienst. Dies ist in der Regel nur vorübergehend. Bitte aktualisieren Sie die Seite."
@@ -419,6 +476,9 @@
   "a239905023": {
     "translation": "Bild exportieren"
   },
+  "a274f4d467": {
+    "translation": "Benachrichtigungen"
+  },
   "a3debabee7": {
     "translation": "Cookie-Richtlinie"
   },
@@ -443,6 +503,9 @@
   "aac449eef6": {
     "translation": "Arbeitsbereich erstellen"
   },
+  "aaec8f7cde": {
+    "translation": "Jemand"
+  },
   "ab0df9ba36": {
     "translation": "Dateilimit erreicht"
   },
@@ -452,6 +515,12 @@
   },
   "b028909917": {
     "translation": "Gastbenutzer"
+  },
+  "b03400e2db": {
+    "translation": "<name>{author}</name> antwortete"
+  },
+  "b1c94ca2fb": {
+    "translation": "Alle"
   },
   "b2326c3a34": {
     "translation": "Regenerieren"
@@ -492,9 +561,6 @@
   "c2276c9127": {
     "translation": "Erfahren Sie mehr über das Teilen."
   },
-  "c28aed8348": {
-    "translation": "Erlauben Sie uns, mithilfe von <cookies>analytics</cookies> tldraw zu verbessern."
-  },
   "c303bd1095": {
     "translation": "Diese Datei kann nicht veröffentlicht werden."
   },
@@ -527,6 +593,9 @@
   },
   "cea291e45e": {
     "translation": "Erfahren Sie mehr über das Veröffentlichen."
+  },
+  "d0e3556476": {
+    "translation": "<name>{author}</name> und {count, plural, one {# other} other {# others}} haben auf Ihren Kommentar reagiert"
   },
   "d3d2e61733": {
     "translation": "Schließen"
@@ -573,6 +642,9 @@
   "e404559826": {
     "translation": "Servicebedingungen"
   },
+  "e65b2dcb6f": {
+    "translation": "<name>{a}</name> und <name>{b}</name> haben auf Ihren Kommentar reagiert"
+  },
   "e81c4e4f2b": {
     "translation": "oder"
   },
@@ -600,6 +672,9 @@
   "ede55d955f": {
     "translation": "Lesen Sie unsere <a>Cookie-Richtlinie</a>, um mehr zu erfahren."
   },
+  "edec9387f9": {
+    "translation": "Dieser Kommentar wurde gelöscht."
+  },
   "ef53538ae4": {
     "translation": "Mitglieder"
   },
@@ -618,8 +693,14 @@
   "f2a6c498fb": {
     "translation": "Löschen"
   },
+  "f476ba8646": {
+    "translation": "<name>{a}</name>, <name>{b}</name> und {count, plural, one {# other} other {# others}} haben auf Ihren Kommentar reagiert"
+  },
   "f4f70727dc": {
     "translation": "Einstellungen"
+  },
+  "f5ddc8d9c1": {
+    "translation": "Fürs Erste können Sie <a>als {extension}-Datei exportieren</a>, um sie hier zu verwenden."
   },
   "fa2ead697d": {
     "translation": "Datenschutzrichtlinie"
@@ -629,9 +710,6 @@
   },
   "fc9d47046b": {
     "translation": "Möchten Sie diesen Arbeitsbereich wirklich verlassen?"
-  },
-  "fd1be3efcf": {
-    "translation": "Möchten Sie diese Datei wirklich löschen?"
   },
   "fed5ec05eb": {
     "translation": "Link kopiert"

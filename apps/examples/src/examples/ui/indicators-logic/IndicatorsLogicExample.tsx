@@ -53,16 +53,18 @@ export default function IndicatorsLogicExample() {
 }
 
 /*
+Shape indicators are the outlines drawn around hovered and selected shapes. They're
+painted by `ShapeIndicatorOverlayUtil`, an overlay util, so changing when they appear
+means replacing that util.
 
 [1]
-We subclass `ShapeIndicatorOverlayUtil` and override `getOverlays()` to
-return every shape currently being rendered on the canvas, instead of the
-default rule (selected / hovered only). Filter the list of ids if you only
-want indicators on specific shapes.
+Subclass `ShapeIndicatorOverlayUtil` and override `getOverlays()`. The default only lists
+selected, hovered, and hinted shapes; here we list every shape currently being rendered,
+so all of them get an outline all of the time. Filter the ids to indicate only some shapes.
+`render()` is inherited, so the outlines still look like the built-in ones.
 
 [2]
-Pass our custom util via the `overlayUtils` prop. Because it inherits the
-same `static type` as the built-in (`'shape_indicator'`), it replaces the
-default util rather than running alongside it.
-
+Pass the util via `overlayUtils`. It has the same `static type` (`'shape_indicator'`)
+as the built-in util, so it replaces it instead of running alongside it. Defining the
+array at module level keeps `<Tldraw>` from seeing a new array on every render.
 */

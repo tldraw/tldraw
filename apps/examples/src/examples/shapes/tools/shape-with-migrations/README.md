@@ -15,8 +15,10 @@ keywords:
   ]
 ---
 
-Migrate your shapes and their data between versions
+Migrate a custom shape's props between versions with a migration sequence.
 
 ---
 
-Sometimes you'll want to update the way a shape works in your application. When this happens there can be a risk of errors and bugs. For example, users with an old version of a shape in their documents might encounter errors when the editor tries to access a property that doesn't exist. This example shows how you can use our migrations system to preserve your users' data between versions. It uses a snapshot to load a document with a shape that is missing a "color" prop, and uses the migrations method of the shape util to update it.
+When you change a custom shape's props, documents saved with the old version still contain the old shape data. Migrations let the editor upgrade (or downgrade) that data as it loads, so old documents keep working. This example loads a snapshot containing a shape saved before it had a `color` prop; the shape util's `migrations` (built with `createShapePropsMigrationIds` and `createShapePropsMigrationSequence`) add the missing prop when the snapshot loads.
+
+Read the guide at the bottom of the example file for how the editor decides which migrations to run.

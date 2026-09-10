@@ -13,16 +13,13 @@ import { FluidManager } from './FluidManager'
 export const FluidRenderer = memo(() => {
 	const editor = useEditor()
 	const rCanvas = useRef<HTMLCanvasElement>(null)
-	const rFluidManager = useRef<FluidManager | null>(null)
 	const darkMode = useColorMode() === 'dark'
 
 	const config = useValue('config', () => fluidConfig.get(), [])
 
 	// Initialize FluidManager
 	useLayoutEffect(() => {
-		const canvas = rCanvas.current!
-		const manager = new FluidManager(canvas, editor, config)
-		rFluidManager.current = manager
+		const manager = new FluidManager(rCanvas.current!, editor, config)
 
 		// Initialize the WebGL context and start the animation loop
 		manager.initialize(darkMode)
@@ -54,12 +51,10 @@ export const FluidRenderer = memo(() => {
 
 			manager.handlePointerUp()
 			manager.dispose()
-			rFluidManager.current = null
 		}
 	}, [darkMode, editor, config])
 
-	const pixelate = config.pixelate ?? false
-	const canvasClassName = `shader-app__canvas${pixelate ? ' shader-app__canvas--pixelated' : ''}`
+	const canvasClassName = `shader-app__canvas${config.pixelate ? ' shader-app__canvas--pixelated' : ''}`
 
 	return <canvas ref={rCanvas} className={canvasClassName} />
 })

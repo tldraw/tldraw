@@ -24,14 +24,6 @@
 	opacity: 0.9;
 }
 
-.PdfEditor .PdfBgRenderer {
-	position: absolute;
-	pointer-events: none;
-}
-.PdfEditor .PdfBgRenderer img {
-	position: absolute;
-}
-
 .PdfEditor .PageOverlayScreen-screen {
 	pointer-events: none;
 	fill: var(--tl-color-background);
