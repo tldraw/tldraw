@@ -7,7 +7,7 @@
 		"email": "hello@tldraw.com"
 	},
 	"homepage": "https://tldraw.dev",
-	"license": "SEE LICENSE IN LICENSE.md",
+	"license": "MIT",
 	"tldraw_product": {
 		"stableId": "tldraw:sdk-core",
 		"name": "SDK",
