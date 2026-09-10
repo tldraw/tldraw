@@ -6,6 +6,9 @@
 	color-scheme: dark;
 	--chat-background: #212121;
 	--chat-surface: #2c2c2c;
+	--chat-surface-border: transparent;
+	--chat-surface-shadow: 0 0 0 0 transparent;
+	--chat-bubble: #2c2c2c;
 	--chat-hover: #383838;
 	--chat-border: #414141;
 	--chat-text: #f5f5f5;
@@ -13,7 +16,75 @@
 	--chat-link: #8ab8ff;
 	--chat-accent: #0285ff;
 	--chat-accent-hover: #0070e0;
+	--chat-code-background: var(--chat-code-background);
+	--chat-popover-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+	--chat-rail-background: var(--chat-rail-background);
+	--chat-rail-border: #303030;
+	--chat-rail-text: #e5e5e5;
+	--chat-mode-switch-text: #b5b5b5;
+	--chat-mode-switch-active-background: #2c2c2c;
+	--sketch-overlay: rgb(0 0 0 / 98%);
+	--sketch-background: #212121;
+	--sketch-panel: #1b1b1b;
+	--sketch-panel-border: #3b3b3b;
+	--sketch-panel-shadow: 0 8px 24px rgb(0 0 0 / 20%);
+	--sketch-tl-panel: #1c1c1c;
+	--sketch-text: #f5f5f5;
+	--sketch-muted: #c5c5c5;
+	--sketch-disabled: #727272;
+	--sketch-hover: #292929;
+	--sketch-track: #5b5b5b;
+	--sketch-swatch-border: rgb(255 255 255 / 28%);
+	--sketch-accept-background: #f5f5f5;
+	--sketch-accept-text: #212121;
+	--sketch-accept-hover: #ddd;
+	--sketch-accept-disabled-background: #414141;
+	--sketch-accept-disabled-text: #2b2b2b;
+	--sketch-error-background: #4d2525;
+	--sketch-error-text: #fff;
 	background: var(--chat-background);
+}
+
+@media (prefers-color-scheme: light) {
+	:root {
+		color-scheme: light;
+		--chat-background: #ffffff;
+		--chat-surface: #ffffff;
+		--chat-surface-border: #e3e3e3;
+		--chat-surface-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+		--chat-bubble: #f4f4f4;
+		--chat-hover: #ececec;
+		--chat-border: #d9d9d9;
+		--chat-text: #0d0d0d;
+		--chat-muted: #8f8f8f;
+		--chat-link: #2f6fe4;
+		--chat-code-background: #f4f4f4;
+		--chat-popover-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+		--chat-rail-background: #f9f9f9;
+		--chat-rail-border: #e6e6e6;
+		--chat-rail-text: #5d5d5d;
+		--chat-mode-switch-text: #8f8f8f;
+		--chat-mode-switch-active-background: #ffffff;
+		--sketch-overlay: rgb(245 245 245 / 98%);
+		--sketch-background: #ffffff;
+		--sketch-panel: #ffffff;
+		--sketch-panel-border: #e0e0e0;
+		--sketch-panel-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+		--sketch-tl-panel: #f4f4f4;
+		--sketch-text: #0d0d0d;
+		--sketch-muted: #6e6e6e;
+		--sketch-disabled: #b0b0b0;
+		--sketch-hover: #e8e8e8;
+		--sketch-track: #c8c8c8;
+		--sketch-swatch-border: rgb(0 0 0 / 15%);
+		--sketch-accept-background: #0d0d0d;
+		--sketch-accept-text: #ffffff;
+		--sketch-accept-hover: #333333;
+		--sketch-accept-disabled-background: #e3e3e3;
+		--sketch-accept-disabled-text: #a8a8a8;
+		--sketch-error-background: #fde2e2;
+		--sketch-error-text: #7a1d1d;
+	}
 }
 
 * {
@@ -48,9 +119,9 @@ body {
 	flex-direction: column;
 	align-items: center;
 	width: var(--app-rail-width);
-	border-right: 1px solid #303030;
-	background: #171717;
-	color: #e5e5e5;
+	border-right: 1px solid var(--chat-rail-border);
+	background: var(--chat-rail-background);
+	color: var(--chat-rail-text);
 	user-select: none;
 }
 
@@ -116,9 +187,9 @@ body {
 	display: flex;
 	width: 232px;
 	height: 36px;
-	border: 1px solid #303030;
+	border: 1px solid var(--chat-rail-border);
 	border-radius: 24px;
-	background: #171717;
+	background: var(--chat-rail-background);
 }
 
 .app-mode-switch__item {
@@ -126,14 +197,14 @@ body {
 	place-items: center;
 	flex: 1;
 	border-radius: inherit;
-	color: #b5b5b5;
+	color: var(--chat-mode-switch-text);
 	font-size: 14px;
 	font-weight: 500;
 }
 
 .app-mode-switch__item--active {
-	background: #2c2c2c;
-	color: #f5f5f5;
+	background: var(--chat-mode-switch-active-background);
+	color: var(--chat-text);
 }
 
 .app-topbar__temporary-chat {
@@ -143,7 +214,7 @@ body {
 	place-items: center;
 	width: 32px;
 	height: 32px;
-	color: #e5e5e5;
+	color: var(--chat-rail-text);
 }
 
 @media (max-width: 600px) {
@@ -236,7 +307,7 @@ body {
 }
 
 .user-message .message-text {
-	background: var(--chat-surface);
+	background: var(--chat-bubble);
 	color: var(--chat-text);
 	padding: 6px 16px;
 }
@@ -301,7 +372,7 @@ body {
 }
 
 .message-text pre {
-	background: #1b1b1b;
+	background: var(--chat-code-background);
 	border: 1px solid var(--chat-border);
 	border-radius: 6px;
 	padding: 8px;
@@ -311,7 +382,7 @@ body {
 }
 
 .message-text code {
-	background: var(--chat-surface);
+	background: var(--chat-bubble);
 	padding: 2px 4px;
 	border-radius: 3px;
 	font-size: 13px;
@@ -352,7 +423,9 @@ body {
 	align-items: center;
 	column-gap: 4px;
 	background: var(--chat-surface);
+	border: 1px solid var(--chat-surface-border);
 	border-radius: 28px;
+	box-shadow: var(--chat-surface-shadow);
 	padding: 12px 8px 8px;
 	position: relative;
 }
@@ -544,7 +617,7 @@ row instead. narrow screens have no room for that, so they always use the card. 
 	border-radius: 16px;
 	background: var(--chat-surface);
 	border: 1px solid var(--chat-border);
-	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+	box-shadow: var(--chat-popover-shadow);
 	z-index: 20;
 }
 
@@ -655,7 +728,9 @@ row instead. narrow screens have no room for that, so they always use the card. 
 }
 
 .chat-input-form:focus-within {
-	box-shadow: 0 0 0 1px var(--chat-border);
+	box-shadow:
+		var(--chat-surface-shadow),
+		0 0 0 1px var(--chat-border);
 }
 
 .icon-button:focus-visible,
@@ -683,7 +758,7 @@ row instead. narrow screens have no room for that, so they always use the card. 
 	z-index: 1000;
 	display: flex;
 	padding: clamp(16px, 3.15vh, 50px) clamp(12px, 2vw, 32px) clamp(16px, 2.65vh, 42px);
-	background: rgb(0 0 0 / 98%);
+	background: var(--sketch-overlay);
 	backdrop-filter: blur(10px);
 }
 
@@ -693,14 +768,13 @@ row instead. narrow screens have no room for that, so they always use the card. 
 	height: 100%;
 	overflow: hidden;
 	border-radius: 26px;
-	background: #212121;
-	color-scheme: dark;
+	background: var(--sketch-background);
 	container-type: size;
 }
 
 .whiteboard-surface .tl-container {
-	--tl-color-background: #212121;
-	--tl-color-panel: #1c1c1c;
+	--tl-color-background: var(--sketch-background);
+	--tl-color-panel: var(--sketch-tl-panel);
 	position: absolute;
 	inset: 0;
 }
@@ -714,7 +788,7 @@ row instead. narrow screens have no room for that, so they always use the card. 
 	inset: 0;
 	z-index: 300;
 	pointer-events: none;
-	color: #f5f5f5;
+	color: var(--sketch-text);
 }
 
 .whiteboard-button {
@@ -740,7 +814,7 @@ row instead. narrow screens have no room for that, so they always use the card. 
 
 .whiteboard-button:hover:not(:disabled),
 .whiteboard-button[aria-pressed='true'] {
-	background: #292929;
+	background: var(--sketch-hover);
 }
 
 .whiteboard-button:focus-visible,
@@ -752,7 +826,7 @@ row instead. narrow screens have no room for that, so they always use the card. 
 }
 
 .whiteboard-button:disabled {
-	color: #727272;
+	color: var(--sketch-disabled);
 	cursor: default;
 }
 
@@ -760,7 +834,7 @@ row instead. narrow screens have no room for that, so they always use the card. 
 	position: absolute;
 	top: 12px;
 	left: 12px;
-	color: #c5c5c5;
+	color: var(--sketch-muted);
 }
 
 .whiteboard-toolbar {
@@ -771,9 +845,9 @@ row instead. narrow screens have no room for that, so they always use the card. 
 	gap: 2px;
 	padding: 4px;
 	transform: translateX(-50%);
-	border: 1px solid #3b3b3b;
+	border: 1px solid var(--sketch-panel-border);
 	border-radius: 28px;
-	background: #1b1b1b;
+	background: var(--sketch-panel);
 	pointer-events: auto;
 }
 
@@ -803,10 +877,10 @@ row instead. narrow screens have no room for that, so they always use the card. 
 	gap: 4px;
 	padding: 8px;
 	transform: translateX(-50%);
-	border: 1px solid #3b3b3b;
+	border: 1px solid var(--sketch-panel-border);
 	border-radius: 18px;
-	background: #1b1b1b;
-	box-shadow: 0 8px 24px rgb(0 0 0 / 20%);
+	background: var(--sketch-panel);
+	box-shadow: var(--sketch-panel-shadow);
 }
 
 .whiteboard-thickness {
@@ -826,7 +900,7 @@ row instead. narrow screens have no room for that, so they always use the card. 
 	inset: 0;
 	width: 32px;
 	margin: 0 auto;
-	background: #5b5b5b;
+	background: var(--sketch-track);
 	clip-path: polygon(43.75% 0, 56.25% 0, 56.25% 100%, 43.75% 100%);
 	transition: clip-path 180ms ease;
 	pointer-events: none;
@@ -915,7 +989,7 @@ row instead. narrow screens have no room for that, so they always use the card. 
 	height: 24px;
 	flex: 0 0 24px;
 	padding: 0;
-	border: 1px solid rgb(255 255 255 / 28%);
+	border: 1px solid var(--sketch-swatch-border);
 	border-radius: 50%;
 	background: var(--swatch-color);
 	cursor: pointer;
@@ -959,17 +1033,17 @@ row instead. narrow screens have no room for that, so they always use the card. 
 	position: absolute;
 	right: 12px;
 	bottom: 12px;
-	background: #f5f5f5;
-	color: #212121;
+	background: var(--sketch-accept-background);
+	color: var(--sketch-accept-text);
 }
 
 .whiteboard-accept:disabled {
-	background: #414141;
-	color: #2b2b2b;
+	background: var(--sketch-accept-disabled-background);
+	color: var(--sketch-accept-disabled-text);
 }
 
 .whiteboard-accept:hover:not(:disabled) {
-	background: #ddd;
+	background: var(--sketch-accept-hover);
 }
 
 .whiteboard-error {
@@ -979,8 +1053,8 @@ row instead. narrow screens have no room for that, so they always use the card. 
 	max-width: calc(100% - 32px);
 	padding: 10px 14px;
 	border-radius: 12px;
-	background: #4d2525;
-	color: #fff;
+	background: var(--sketch-error-background);
+	color: var(--sketch-error-text);
 	font-size: 13px;
 }
 

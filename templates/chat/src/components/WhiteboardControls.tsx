@@ -1,7 +1,8 @@
 import { getLiveCommentThreads, useCommentingEnabled } from '@tldraw/commenting'
 import { CSSProperties, RefObject, useRef, useState } from 'react'
 import { Editor, GeoShapeGeoStyle, TLShape, useEditor, useValue } from 'tldraw'
-import { supportsWhiteboardPen, whiteboardColors, WhiteboardPen } from './whiteboardTheme'
+import { useIsDarkMode } from '../hooks/useIsDarkMode'
+import { getWhiteboardColors, supportsWhiteboardPen, WhiteboardPen } from './whiteboardTheme'
 
 interface WhiteboardControlsProps {
 	pen: RefObject<WhiteboardPen>
@@ -116,6 +117,7 @@ export function WhiteboardControls({
 }: WhiteboardControlsProps) {
 	const editor = useEditor()
 	const commentingEnabled = useCommentingEnabled()
+	const whiteboardColors = getWhiteboardColors(useIsDarkMode())
 	const [nextPen, setNextPen] = useState(pen.current)
 	const [showShapes, setShowShapes] = useState(false)
 	const sliderGesture = useRef(false)
