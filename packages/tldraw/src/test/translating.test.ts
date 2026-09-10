@@ -2421,6 +2421,27 @@ describe('when shapes disappear mid-drag', () => {
 		expect(editor.getShape(ids.box1)!.parentId).toBe(editor.getCurrentPageId())
 		expect(editor.getCurrentPageShapeIds().has(ids.box1)).toBe(true)
 	})
+
+	it('keeps the shape where it is when the drop target is deleted and the pointer lifts', () => {
+		editor.createShapes([
+			{ id: ids.frame1, type: 'frame', x: 500, y: 0, props: { w: 200, h: 200 } },
+			{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+		])
+		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.box1) })
+		editor.pointerMove(600, 100)
+		vi.advanceTimersByTime(300)
+		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.frame1)
+		expect(editor.getShapePageBounds(ids.box1)).toMatchObject({ x: 550, y: 50 })
+
+		editor.store.mergeRemoteChanges(() => editor.store.remove([ids.frame1]))
+
+		// No pointer move after the delete, so nothing re-runs moveShapesToPoint: the
+		// reparent onto the page has to preserve the shape's page position by itself.
+		editor.pointerUp(600, 100)
+
+		expect(editor.getShape(ids.box1)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getShapePageBounds(ids.box1)).toMatchObject({ x: 550, y: 50 })
+	})
 })
 
 it('preserves z-indexes when translating', () => {
