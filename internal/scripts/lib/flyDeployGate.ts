@@ -3,10 +3,10 @@ import { readdirSync, readFileSync, statSync } from 'fs'
 import path from 'path'
 import { exec } from './exec'
 
-// Every `flyctl deploy` builds a fresh image and replaces every machine, which bounces every
-// client connected to the app, even when nothing that shapes the app has changed. This gate
-// hashes those inputs, stamps the hash into the app's [env], and reads it back from the running
-// machines on the next deploy so an unchanged app is left alone.
+// Every `flyctl deploy` updates each machine in place, bouncing the clients connected to it, even
+// when nothing that shapes the app has changed. This gate stamps a hash of those inputs into the
+// app's [env] and reads it back from the running machines next time, so an unchanged app is left
+// alone. Only the view syncer builds an image; the rest run Zero's stock registry image.
 //
 // Not covered: a base image re-tagged under the same version, or a newer apk package. Bump the
 // marker in the template, or set ZERO_FORCE_DEPLOY, to redeploy in that case.
