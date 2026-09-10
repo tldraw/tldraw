@@ -7,6 +7,8 @@ export default defineConfig({
 	// the react plugin so JSX in `.tsx` files is transformed for tests.
 	plugins: [react()],
 	test: {
+		fsModuleCache: true,
+		pool: 'threads',
 		environment: 'jsdom',
 		setupFiles: ['./setupTests.js'],
 		globals: true,
