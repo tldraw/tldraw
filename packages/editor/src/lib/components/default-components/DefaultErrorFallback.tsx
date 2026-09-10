@@ -17,8 +17,8 @@ export interface TLErrorFallbackProps {
 	/** The error that was caught. */
 	error: unknown
 	/**
-	 * The editor the error happened in, if there is one. When set, the fallback follows its dark
-	 * mode setting and tries to render its canvas behind the error dialog.
+	 * Only set when the caller renders the fallback with an editor; the editor's own error
+	 * boundaries pass just `error`.
 	 */
 	editor?: Editor
 }

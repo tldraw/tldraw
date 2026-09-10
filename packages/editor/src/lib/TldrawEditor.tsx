@@ -281,9 +281,9 @@ const EMPTY_TOOLS_ARRAY = [] as const
 export const TL_CONTAINER_CLASS = 'tl-container'
 
 /**
- * The editor component without any of the default shapes, tools, or UI. It renders a canvas with
- * the shape utils, binding utils, tools, and components you pass in; the `Tldraw` component in the
- * `tldraw` package wraps it with those defaults.
+ * The editor component without any of the default shapes, tools, or UI. It renders the canvas, or
+ * your own children in its place, with the shape utils, binding utils, tools, and components you
+ * pass in; the `Tldraw` component in the `tldraw` package wraps it with those defaults.
  *
  * @public @react
  */
