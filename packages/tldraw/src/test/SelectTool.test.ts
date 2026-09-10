@@ -245,7 +245,7 @@ describe('TLSelectTool.PointingShape when the shape is deleted mid-click', () =>
 		editor.expectToBeIn('select.idle')
 	})
 
-	it('does not select a deleted shape when the drag starts', () => {
+	it('returns to idle without reselecting a deleted shape on pointer move', () => {
 		editor.select(ids.box1)
 		const shape = editor.getShape(ids.box1)!
 		editor.pointerDown(150, 150, { target: 'shape', shape })
@@ -254,6 +254,48 @@ describe('TLSelectTool.PointingShape when the shape is deleted mid-click', () =>
 
 		editor.pointerMove(200, 200)
 		expect(editor.getSelectedShapeIds()).toEqual([])
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('does not reselect a deleted shape when a long press starts translating', () => {
+		editor.select(ids.box1)
+		const shape = editor.getShape(ids.box1)!
+		editor.pointerDown(150, 150, { target: 'shape', shape })
+		editor.expectToBeIn('select.pointing_shape')
+
+		editor.deleteShapes([ids.box1])
+		editor.expectToBeIn('select.pointing_shape')
+
+		vi.advanceTimersByTime(editor.options.longPressDurationMs + 100)
+		editor.forceTick()
+
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		editor.expectToBeIn('select.idle')
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+	})
+})
+
+describe('TLSelectTool.PointingHandle when the shape is deleted before dragging', () => {
+	it('returns to idle without crashing when the pointed arrow is deleted', () => {
+		editor.createShape({ id: ids.arrow1, type: 'arrow', x: 100, y: 100 })
+		const shape = editor.getShape(ids.arrow1)!
+		const handle = editor.getShapeHandles(shape)!.find((handle) => handle.id === 'end')!
+		editor.select(shape.id).pointerDown(shape.x + handle.x, shape.y + handle.y, {
+			target: 'handle',
+			shape,
+			handle,
+		})
+		editor.expectToBeIn('select.pointing_handle')
+
+		editor.deleteShapes([shape.id])
+		editor.expectToBeIn('select.pointing_handle')
+
+		expect(() => editor.pointerMove(shape.x + handle.x + 50, shape.y + handle.y + 50)).not.toThrow()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		expect(editor.getInstanceState().cursor.type).toBe('default')
+		editor.pointerUp()
 		editor.expectToBeIn('select.idle')
 	})
 })
