@@ -33,13 +33,14 @@ export function ChatInput({
 	const formRef = useRef<HTMLFormElement>(null)
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const attachMenuRef = useRef<HTMLDivElement>(null)
+	const attachButtonRef = useRef<HTMLButtonElement>(null)
+	const attachPopoverRef = useRef<HTMLDivElement>(null)
 
 	// The composer starts as a single pill-shaped row. Once the text wraps onto a second line or an
 	// image is attached, it expands into a taller card with the controls on their own row.
 	const [isMultiline, setIsMultiline] = useState(false)
 	const isExpanded = isMultiline || images.length > 0
 
-	// The "+" button opens a small menu with the attachment options.
 	const [attachMenuOpen, setAttachMenuOpen] = useState(false)
 
 	useEffect(() => {
@@ -47,19 +48,24 @@ export function ChatInput({
 		if (!disabled) textareaRef.current?.focus()
 	}, [disabled])
 
-	// Auto-resize the textarea to fit its content and check whether it wraps onto more than one
-	// line.
+	// Auto-resize the textarea to fit its content and decide whether the composer should expand.
+	const hasImages = images.length > 0
 	const measureTextarea = useCallback(() => {
+		const form = formRef.current
 		const textarea = textareaRef.current
-		if (!textarea) return
-		// Reset height to auto to get the correct scrollHeight
+		if (!form || !textarea) return
 		textarea.style.height = 'auto'
-		// Set height based on scrollHeight. The max height is capped in css.
-		textarea.style.height = `${textarea.scrollHeight}px`
-		// An empty textarea never counts as multiline, even if its placeholder wraps.
+		// The textarea is narrower in the single-row layout than in the expanded one. Always
+		// measure wrapping against the single-row width, otherwise text that fits on one line in
+		// the wide layout but not the narrow one would flip the composer back and forth on each
+		// keystroke. An empty textarea never counts as multiline, even if its placeholder wraps.
+		form.classList.remove('chat-input-form--expanded')
 		const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight)
-		setIsMultiline(textarea.value !== '' && textarea.scrollHeight > lineHeight * 1.5)
-	}, [])
+		const multiline = textarea.value !== '' && textarea.scrollHeight > lineHeight * 1.5
+		form.classList.toggle('chat-input-form--expanded', multiline || hasImages)
+		textarea.style.height = `${textarea.scrollHeight}px`
+		setIsMultiline(multiline)
+	}, [hasImages])
 
 	useLayoutEffect(measureTextarea, [input, measureTextarea])
 
@@ -68,13 +74,20 @@ export function ChatInput({
 		const form = formRef.current
 		if (!form) return
 		let lastWidth = form.clientWidth
+		let frame = 0
 		const observer = new ResizeObserver(() => {
 			if (form.clientWidth === lastWidth) return
 			lastWidth = form.clientWidth
-			measureTextarea()
+			// Defer to the next frame: resizing the textarea inside the callback would resize the
+			// observed form and trigger a resize observer loop error.
+			cancelAnimationFrame(frame)
+			frame = requestAnimationFrame(measureTextarea)
 		})
 		observer.observe(form)
-		return () => observer.disconnect()
+		return () => {
+			observer.disconnect()
+			cancelAnimationFrame(frame)
+		}
 	}, [measureTextarea])
 
 	// Scroll to bottom when images are added.
@@ -82,16 +95,18 @@ export function ChatInput({
 		scrollToBottom('instant')
 	}, [images, scrollToBottom])
 
-	// Close the attachment menu when the user clicks outside it or presses escape.
+	// Close the attachment menu when the user clicks outside it or presses escape, and move focus
+	// into it when it opens.
 	useEffect(() => {
 		if (!attachMenuOpen) return
+		attachPopoverRef.current?.querySelector('button')?.focus()
 		const handlePointerDown = (e: PointerEvent) => {
 			if (!attachMenuRef.current?.contains(e.target as Node)) setAttachMenuOpen(false)
 		}
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (e.key === 'Escape') {
 				setAttachMenuOpen(false)
-				textareaRef.current?.focus()
+				attachButtonRef.current?.focus()
 			}
 		}
 		document.addEventListener('pointerdown', handlePointerDown)
@@ -101,6 +116,24 @@ export function ChatInput({
 			document.removeEventListener('keydown', handleKeyDown)
 		}
 	}, [attachMenuOpen])
+
+	// Close the menu if the input gets disabled underneath it, e.g. when an image is dragged over.
+	useEffect(() => {
+		if (disabled) setAttachMenuOpen(false)
+	}, [disabled])
+
+	// Close the menu when focus leaves it, and let the arrow keys move between its items.
+	const handleAttachMenuBlur = (e: React.FocusEvent) => {
+		if (!e.currentTarget.contains(e.relatedTarget as Node)) setAttachMenuOpen(false)
+	}
+	const handleAttachMenuKeyDown = (e: React.KeyboardEvent) => {
+		if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+		e.preventDefault()
+		const items = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>('[role=menuitem]'))
+		const index = items.indexOf(document.activeElement as HTMLButtonElement)
+		const next = e.key === 'ArrowDown' ? index + 1 : index - 1
+		items[(next + items.length) % items.length]?.focus()
+	}
 
 	// the user can only send a message if the input is not disabled and there are either images or
 	// text ready to send
@@ -142,7 +175,6 @@ export function ChatInput({
 		input.click()
 	}, [dispatch])
 
-	// when the user chooses to draw a sketch, we open the whiteboard modal.
 	const handleOpenWhiteboard = useCallback(() => {
 		setAttachMenuOpen(false)
 		dispatch({ type: 'openWhiteboard' })
@@ -207,21 +239,27 @@ export function ChatInput({
 
 			{/* the "+" button opens a menu with the attachment options: uploading an image or
 			drawing a sketch. */}
-			<div className="attach-menu" ref={attachMenuRef}>
+			<div className="attach-menu" ref={attachMenuRef} onBlur={handleAttachMenuBlur}>
 				<button
+					ref={attachButtonRef}
 					type="button"
 					aria-label="Add an attachment"
 					title="Add an attachment"
 					aria-haspopup="menu"
 					aria-expanded={attachMenuOpen}
-					className="icon-button attach-menu__trigger"
+					className="icon-button"
 					disabled={disabled}
 					onClick={() => setAttachMenuOpen((open) => !open)}
 				>
 					<PlusIcon />
 				</button>
 				{attachMenuOpen && (
-					<div className="attach-menu__popover" role="menu">
+					<div
+						className="attach-menu__popover"
+						role="menu"
+						ref={attachPopoverRef}
+						onKeyDown={handleAttachMenuKeyDown}
+					>
 						<button
 							type="button"
 							role="menuitem"
