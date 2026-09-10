@@ -1,18 +1,24 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	createShapeId,
+	DefaultColorStyle,
 	Editor,
 	notifyIfFileNotAllowed,
 	TLComponents,
 	Tldraw,
 	TldrawOptions,
-	TldrawUiButton,
-	TldrawUiRow,
 	TLEditorSnapshot,
 	useEditor,
 	useToasts,
 	useTranslation,
 } from 'tldraw'
+import { WhiteboardControls } from './WhiteboardControls'
+import {
+	supportsWhiteboardPen,
+	whiteboardShapeUtils,
+	whiteboardThemes,
+	WhiteboardPen,
+} from './whiteboardTheme'
 
 export interface TldrawProviderMetadata {
 	snapshot: TLEditorSnapshot
@@ -39,12 +45,22 @@ interface WhiteboardModalProps {
 }
 
 const options: Partial<TldrawOptions> = {
-	// disable the ability to create new pages:
 	maxPages: 1,
-	// make sure the action shortcuts are always in the top-right menu area, not on the toolbar:
-	actionShortcutsLocation: 'menu',
-	// disable font pre-loading to avoid the ui popping in after the modal appears:
 	maxFontsToLoadBeforeRender: 0,
+}
+
+const components: TLComponents = {
+	Toolbar: null,
+	StylePanel: null,
+	MenuPanel: null,
+	NavigationPanel: null,
+	HelpMenu: null,
+	HelperButtons: null,
+	TopPanel: null,
+	SharePanel: null,
+	QuickActions: null,
+	DebugPanel: null,
+	FollowingIndicator: null,
 }
 
 export function WhiteboardModal({
@@ -56,80 +72,129 @@ export function WhiteboardModal({
 	imageName,
 }: WhiteboardModalProps) {
 	const [editor, setEditor] = useState<Editor | null>(null)
+	const [returnFocus] = useState(() => document.activeElement)
+	const [isSaving, setIsSaving] = useState(false)
+	const [error, setError] = useState<string | null>(null)
+	const saving = useRef(false)
+	const didAccept = useRef(false)
+	const pen = useRef<WhiteboardPen>({ color: '#ffffff', width: 4 })
+
+	useEffect(() => {
+		const overflow = document.body.style.overflow
+		document.body.style.overflow = 'hidden'
+		return () => {
+			document.body.style.overflow = overflow
+			if (!didAccept.current && returnFocus instanceof HTMLElement && returnFocus.isConnected)
+				returnFocus.focus()
+		}
+	}, [returnFocus])
 
 	const handleSave = useCallback(async () => {
-		if (!editor) return
-
-		// if there are no shapes, we don't want to save the image:
+		if (!editor || saving.current) return
+		editor.complete()
 		const shapes = editor.getCurrentPageShapes()
 		if (shapes.length === 0) {
 			onCancel()
 			return
 		}
-
-		// when the user clicks save, we convert the current whiteboard to an image:
-		const image = await editor.toImageDataUrl(shapes, { format: 'png' })
-
-		// we also take a snapshot of the editor state, so we can still edit
-		// it if we open it up again later, and we pass the image data and the
-		// snapshot to the parent component, so it can add it to the chat input:
-		onAccept({
-			id: imageId ?? crypto.randomUUID(),
-			name: imageName ?? 'tldraw whiteboard.png',
-			snapshot: editor.getSnapshot(),
-			type: 'image/png',
-			...image,
-		})
-	}, [onCancel, onAccept, imageId, imageName, editor])
-
-	// components are used to override parts of the tldraw ui. they shouldn't change often, so it's
-	// important that we memoize them or define them outside the tldraw component.
-	const components = useMemo(
-		(): TLComponents => ({
-			// The "SharePanel" is in the top-right of the editor. Here we want it to show our save
-			// and cancel buttons:
-			SharePanel: () => (
-				<TldrawUiRow className="whiteboard-actions">
-					<TldrawUiButton type="normal" onClick={onCancel}>
-						Cancel
-					</TldrawUiButton>
-					<TldrawUiButton type="primary" onClick={handleSave}>
-						{imageId ? 'Save' : 'Add'}
-					</TldrawUiButton>
-				</TldrawUiRow>
-			),
-		}),
-		[onCancel, handleSave, imageId]
-	)
-
-	// when the user clicks outside the modal, we close it. we add their image to the chat input in
-	// case they wanted it - they can easily delete it if not.
-	const handleOverlayClick = (e: React.MouseEvent) => {
-		if (e.target === e.currentTarget) {
-			handleSave()
+		saving.current = true
+		setIsSaving(true)
+		setError(null)
+		const snapshot = editor.getSnapshot()
+		const wasReadonly = editor.getInstanceState().isReadonly
+		editor.updateInstanceState({ isReadonly: true })
+		try {
+			// A dark export background keeps white strokes visible in the attached image.
+			const image = await editor.toImageDataUrl(shapes, {
+				format: 'png',
+				background: true,
+				darkMode: true,
+				padding: 24,
+			})
+			didAccept.current = true
+			onAccept({
+				id: imageId ?? crypto.randomUUID(),
+				name: imageName ?? 'tldraw whiteboard.png',
+				snapshot,
+				type: 'image/png',
+				...image,
+			})
+		} catch {
+			setError('Could not attach the sketch. Please try again.')
+		} finally {
+			editor.updateInstanceState({ isReadonly: wasReadonly })
+			saving.current = false
+			setIsSaving(false)
 		}
-	}
+	}, [editor, imageId, imageName, onAccept, onCancel])
 
 	return (
-		<div className="modal-overlay" onClick={handleOverlayClick}>
-			<Tldraw
-				components={components}
-				forceMobile
-				options={options}
-				snapshot={initialSnapshot}
-				onMount={(editor) => {
-					setEditor(editor)
-
-					editor.user.updateUserPreferences({ colorScheme: 'light' })
-					editor.selectNone()
-					editor.zoomToSelection()
+		<div
+			className="modal-overlay"
+			onClick={(event) => {
+				if (event.target === event.currentTarget) void handleSave()
+			}}
+		>
+			<div
+				className="whiteboard-surface"
+				role="dialog"
+				aria-modal="true"
+				aria-label="Sketch whiteboard"
+				aria-busy={isSaving}
+				onKeyDown={(event) => {
+					if (event.key !== 'Tab') return
+					const focusable = [
+						...event.currentTarget.querySelectorAll<HTMLElement>(
+							'button:not(:disabled), input:not(:disabled), [tabindex="0"], [contenteditable="true"]'
+						),
+					].filter((element) => element.getClientRects().length > 0 && !element.closest('[inert]'))
+					const first = focusable[0]
+					const last = focusable[focusable.length - 1]
+					if (
+						event.shiftKey &&
+						(document.activeElement === first ||
+							!focusable.includes(document.activeElement as HTMLElement))
+					) {
+						event.preventDefault()
+						last?.focus()
+					} else if (!event.shiftKey && document.activeElement === last) {
+						event.preventDefault()
+						first?.focus()
+					}
 				}}
 			>
-				{/* if the user uploaded a file, we insert it in a special component. this means we
-				can use hooks that depend on tldraw's ui to do things like show a toast if
-				something goes wrong. */}
-				<InsideOfTldrawContext uploadedFile={uploadedFile} />
-			</Tldraw>
+				<Tldraw
+					components={components}
+					options={options}
+					snapshot={initialSnapshot}
+					shapeUtils={whiteboardShapeUtils}
+					themes={whiteboardThemes}
+					colorScheme="dark"
+					autoFocus
+					onMount={(editor) => {
+						setEditor(editor)
+						editor.user.updateUserPreferences({ colorScheme: 'dark' })
+						editor.updateInstanceState({ isGridMode: false })
+						editor.setStyleForNextShapes(DefaultColorStyle, 'white')
+						editor.getInitialMetaForShape = (shape) =>
+							supportsWhiteboardPen(shape)
+								? { strokeColor: pen.current.color, strokeWidth: pen.current.width }
+								: {}
+						editor.selectNone()
+						if (initialSnapshot) editor.zoomToFit({ animation: { duration: 0 } })
+						editor.setCurrentTool('draw')
+					}}
+				>
+					<InsideOfTldrawContext uploadedFile={uploadedFile} />
+					<WhiteboardControls
+						pen={pen}
+						onCancel={onCancel}
+						onAccept={handleSave}
+						isSaving={isSaving}
+						error={error}
+					/>
+				</Tldraw>
+			</div>
 		</div>
 	)
 }
@@ -146,26 +211,21 @@ function InsideOfTldrawContext({ uploadedFile }: { uploadedFile?: File }) {
 		if ((uploadedFile as any).didUpload) return
 		;(uploadedFile as any).didUpload = true
 		;(async () => {
-			// we check if the file is allowed to be uploaded:
 			if (!notifyIfFileNotAllowed(editor, uploadedFile, { toasts, msg })) return
 
-			// we get the asset for the uploaded file:
 			const asset = await editor.getAssetForExternalContent({
 				type: 'file',
 				file: uploadedFile,
 			})
 			if (!asset || asset.type !== 'image') return
 
-			// scale so the max dimension is 1000px:
 			const scale = Math.min(1000 / Math.max(asset.props.w, asset.props.h), 1)
 			const center = editor.getViewportPageBounds().center
 			const width = asset.props.w * scale
 			const height = asset.props.h * scale
 
-			// create an ID for the new shape so we can select it later:
 			const shapeId = createShapeId()
 
-			// create the shape, select it, make it fill the screen, and start cropping it:
 			editor
 				.createAssets([asset])
 				.createShape({
