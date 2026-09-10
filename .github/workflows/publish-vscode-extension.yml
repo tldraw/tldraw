@@ -14,7 +14,7 @@ jobs:
   publish:
     name: Publish VSCE/OVX
     environment: vsce publish
-    timeout-minutes: 15
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -45,6 +45,7 @@ jobs:
         run: yarn build-types
 
       - name: Publish extension
+        timeout-minutes: 10
         run: yarn tsx ./internal/scripts/publish-editor-extensions.ts
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}

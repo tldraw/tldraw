@@ -12,7 +12,7 @@ const env = makeEnv(['VSCE_PAT', 'OVSX_PAT', 'TLDRAW_ENV'])
 const EXTENSION_DIR = 'apps/vscode/extension'
 const DISTRIBUTION_DIR = 'apps/vscode/extension/release'
 const MAX_VERSION_CONFLICT_ATTEMPTS = 5
-const VERSION_CONFLICT_RETRY_DELAY_MS = 60_000
+const VERSION_CONFLICT_RETRY_DELAY_MS = 30_000
 
 function isVersionConflictError(err: unknown): boolean {
 	const message = err instanceof Error ? err.message : ''
