@@ -338,6 +338,49 @@ describe('TextManager', () => {
 			])
 		})
 
+		it('should stop measuring later text nodes once the first line is truncated', () => {
+			const starts: [unknown, number][] = []
+			let current: { textContent: string } | null = null
+			const RangeMock = global.Range as unknown as ReturnType<typeof vi.fn>
+			RangeMock.mockImplementationOnce(function () {
+				return {
+					setStart: vi.fn((node: { textContent: string }, offset: number) => {
+						current = node
+						starts.push([node, offset])
+					}),
+					setEnd: vi.fn(),
+					// the second node sits on a new line
+					getClientRects: vi.fn(() => {
+						const top = current?.textContent === 'cd' ? 16 : 0
+						return [{ width: 10, height: 16, left: 0, top, right: 10, bottom: top + 16 }]
+					}),
+				}
+			})
+
+			const first = { nodeType: 3, textContent: 'ab' }
+			const second = { nodeType: 3, textContent: 'cd' }
+			const third = { nodeType: 3, textContent: 'ef' }
+			const mockElementWithText = {
+				childNodes: [first, second, third],
+				getBoundingClientRect: () => ({ left: 0, top: 0 }),
+			}
+
+			const result = textManager.measureElementTextNodeSpans(mockElementWithText as any, {
+				shouldTruncateToFirstLine: true,
+			})
+
+			expect(result).toEqual({
+				spans: [{ box: { x: 0, y: 0, w: 10, h: 16 }, text: 'ab' }],
+				didTruncate: true,
+			})
+			// the third node must never be measured
+			expect(starts).toEqual([
+				[first, 0],
+				[first, 1],
+				[second, 0],
+			])
+		})
+
 		it('should handle truncation option', () => {
 			const mockTextNode = {
 				nodeType: 3, // TEXT_NODE
