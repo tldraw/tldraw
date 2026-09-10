@@ -137,8 +137,8 @@ export interface DeployedInputHash {
 }
 
 /**
- * The hash the running machines were deployed with, or null when they don't all agree on one, so
- * that the caller deploys and converges them.
+ * What the running machines were last deployed with, plus why the stamp is unusable when it is.
+ * See DeployedInputHash.
  *
  * A machine only counts when it is started and its checks pass, and a machine that has reported no
  * check yet does not count either. A rolling update writes the new config, stamp included, before
