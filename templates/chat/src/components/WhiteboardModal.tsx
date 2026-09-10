@@ -13,6 +13,8 @@ import {
 	createTLStore,
 	DefaultColorStyle,
 	Editor,
+	FileHelpers,
+	isEqual,
 	notifyIfFileNotAllowed,
 	TLComponents,
 	Tldraw,
@@ -111,12 +113,15 @@ export function WhiteboardModal({
 	const [instructions, setInstructions] = useState('')
 	const [ready, setReady] = useState(!uploadedFile)
 	const [editor, setEditor] = useState<Editor | null>(null)
+	const [baseline, setBaseline] = useState<TLEditorSnapshot | null>(null)
 	const [returnFocus] = useState(() => document.activeElement)
 	const [isSaving, setIsSaving] = useState(false)
+	const [notice, setNotice] = useState<string | null>(null)
+	const uploadInput = useRef<HTMLInputElement>(null)
 	const [error, setError] = useState<string | null>(null)
 	const saving = useRef(false)
 	const didAccept = useRef(false)
-	const pen = useRef<WhiteboardPen>({ color: '#0d0d0d', width: 4 })
+	const pen = useRef<WhiteboardPen>({ color: imageEditor ? '#e02020' : '#0d0d0d', width: 4 })
 
 	useEffect(() => {
 		const overflow = document.body.style.overflow
@@ -135,8 +140,39 @@ export function WhiteboardModal({
 		editor.setCurrentTool(mode === 'edit' ? 'hand' : markupTool)
 	}, [editor, mode, ready, imageEditor, markupTool])
 
+	useEffect(() => {
+		if (imageEditor && editor && ready && !baseline) setBaseline(editor.getSnapshot())
+	}, [imageEditor, editor, ready, baseline])
+
+	const hasMarkup = useValue(
+		'unsent image markup',
+		() => !!baseline && !isEqual(store.serialize('document'), baseline.document.store),
+		[store, baseline]
+	)
+	const canSend = ready && !waitingForResponse && !isSaving && (hasMarkup || !!instructions.trim())
+
+	function requestClose(destination: 'chat' | 'edit') {
+		if (saving.current) return
+		if (
+			imageEditor &&
+			(hasMarkup || instructions.trim()) &&
+			!window.confirm('Discard your unsent changes?')
+		)
+			return
+		if (destination === 'chat') {
+			onCancel()
+		} else {
+			if (editor && baseline) {
+				editor.loadSnapshot(baseline)
+				editor.clearHistory()
+			}
+			setInstructions('')
+			setMode('edit')
+		}
+	}
+
 	const handleSave = useCallback(
-		async (destination: 'attach' | 'send' = 'attach') => {
+		async (destination: 'attach' | 'send' | 'download' | 'share' = 'attach') => {
 			if (!editor || !ready || saving.current) return
 			editor.complete()
 			const shapes = editor.getCurrentPageShapes()
@@ -152,6 +188,7 @@ export function WhiteboardModal({
 			saving.current = true
 			setIsSaving(true)
 			setError(null)
+			setNotice(null)
 			const snapshot = editor.getSnapshot()
 			const wasReadonly = editor.getInstanceState().isReadonly
 			editor.updateInstanceState({ isReadonly: true })
@@ -162,6 +199,24 @@ export function WhiteboardModal({
 					darkMode: false,
 					padding: imageEditor ? 0 : 24,
 				})
+				if (destination === 'download') {
+					const link = document.createElement('a')
+					link.href = image.url
+					link.download = (imageName || 'image').replace(/\.[^.]+$/, '') + '.png'
+					link.click()
+					return
+				}
+				if (destination === 'share') {
+					const blob = await FileHelpers.urlToBlob(image.url)
+					const file = new File([blob], 'image.png', { type: 'image/png' })
+					if (navigator.canShare?.({ files: [file] })) {
+						await navigator.share({ files: [file], title: imageName || 'Image' })
+					} else {
+						await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+						setNotice('Image copied. Paste it to share.')
+					}
+					return
+				}
 				didAccept.current = true
 				const attachment: WhiteboardImage = {
 					id: imageId ?? crypto.randomUUID(),
@@ -173,8 +228,13 @@ export function WhiteboardModal({
 				if (destination === 'send' && onSendMessage)
 					onSendMessage(instructions.trim(), [attachment])
 				else onAccept(attachment)
-			} catch {
-				setError('Could not attach the sketch. Please try again.')
+			} catch (error) {
+				if (!(error instanceof DOMException && error.name === 'AbortError'))
+					setError(
+						destination === 'share'
+							? 'Could not share the image. Try downloading it instead.'
+							: 'Could not export the image. Please try again.'
+					)
 			} finally {
 				editor.updateInstanceState({ isReadonly: wasReadonly })
 				saving.current = false
@@ -215,8 +275,7 @@ export function WhiteboardModal({
 						!(event.target instanceof HTMLInputElement) &&
 						!(event.target instanceof HTMLTextAreaElement)
 					) {
-						if (imageEditor && mode === 'markup') setMode('edit')
-						else onCancel()
+						requestClose(imageEditor && mode === 'markup' ? 'edit' : 'chat')
 						return
 					}
 					if (event.key !== 'Tab') return
@@ -246,20 +305,39 @@ export function WhiteboardModal({
 							type="button"
 							className="icon-button"
 							aria-label="Close image editor"
-							onClick={onCancel}
+							onClick={() => requestClose('chat')}
 							disabled={isSaving}
 						>
 							<XIcon />
 						</button>
-						<span>{imageName || 'Generated image'}</span>
+						<span>
+							{imageName?.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ') || 'Generated image'}
+						</span>
 						<button
 							type="button"
-							className="image-editor-attach"
-							onClick={() => void handleSave()}
+							className="image-editor-share"
+							onClick={() => void handleSave('share')}
 							disabled={!ready || isSaving}
 						>
-							Attach to chat
+							Share
 						</button>
+						<button
+							type="button"
+							className="icon-button"
+							aria-label="Download image"
+							disabled={!ready || isSaving}
+							onClick={() => void handleSave('download')}
+						>
+							<ComposerIcon name="download" />
+						</button>
+						<details className="image-editor-more">
+							<summary className="icon-button" aria-label="Image options">
+								<ComposerIcon name="more" />
+							</summary>
+							<button type="button" disabled={!ready || isSaving} onClick={() => void handleSave()}>
+								Attach to chat
+							</button>
+						</details>
 					</header>
 				)}
 				<div className={imageEditor ? 'image-editor-canvas' : undefined}>
@@ -284,7 +362,10 @@ export function WhiteboardModal({
 									? { strokeColor: pen.current.color, strokeWidth: pen.current.width }
 									: {}
 							editor.selectNone()
-							if (initialSnapshot) editor.zoomToFit({ animation: { duration: 0 } })
+							if (initialSnapshot) {
+								if (imageEditor) fitImageToView(editor)
+								else editor.zoomToFit({ animation: { duration: 0 } })
+							}
 							editor.setCurrentTool(imageEditor ? 'hand' : 'draw')
 						}}
 					>
@@ -308,8 +389,8 @@ export function WhiteboardModal({
 							<WhiteboardControls
 								pen={pen}
 								imageEditor={imageEditor}
-								onCancel={imageEditor ? () => setMode('edit') : onCancel}
-								onAccept={imageEditor ? () => setMode('edit') : () => void handleSave()}
+								onCancel={() => requestClose(imageEditor ? 'edit' : 'chat')}
+								onAccept={() => void handleSave()}
 								isSaving={isSaving}
 								error={error}
 							/>
@@ -322,12 +403,45 @@ export function WhiteboardModal({
 						onSubmit={(event) => {
 							event.preventDefault()
 							event.stopPropagation()
-							if (ready && instructions.trim() && !waitingForResponse && !isSaving)
-								void handleSave('send')
+							if (canSend) void handleSave('send')
 						}}
 					>
 						{error && <p role="alert">{error}</p>}
+						{notice && <p role="status">{notice}</p>}
 						<div className="chat-input-row">
+							<button
+								type="button"
+								className="icon-button"
+								aria-label="Add image"
+								disabled={!ready || isSaving}
+								onClick={() => uploadInput.current?.click()}
+							>
+								<ComposerIcon name="plus" />
+							</button>
+							<input
+								ref={uploadInput}
+								type="file"
+								accept="image/*"
+								hidden
+								onChange={async (event) => {
+									const file = event.currentTarget.files?.[0]
+									event.currentTarget.value = ''
+									if (!file || !editor || saving.current) return
+									saving.current = true
+									setIsSaving(true)
+									const wasReadonly = editor.getIsReadonly()
+									editor.updateInstanceState({ isReadonly: false })
+									try {
+										await editor.putExternalContent({ type: 'files', files: [file] })
+									} catch {
+										setError('Could not add the image. Please try again.')
+									} finally {
+										editor.updateInstanceState({ isReadonly: wasReadonly })
+										saving.current = false
+										setIsSaving(false)
+									}
+								}}
+							/>
 							<input
 								className="chat-input"
 								aria-label="Image edit instructions"
@@ -336,11 +450,17 @@ export function WhiteboardModal({
 								onChange={(event) => setInstructions(event.target.value)}
 								disabled={isSaving}
 							/>
+							<span className="composer-effort" aria-hidden="true">
+								Medium <ComposerIcon name="chevron" />
+							</span>
+							<span className="icon-button composer-decoration" aria-hidden="true">
+								<ComposerIcon name="microphone" />
+							</span>
 							<button
 								type="submit"
 								className="icon-button composer-send"
 								aria-label="Send image edits"
-								disabled={!ready || !instructions.trim() || waitingForResponse || isSaving}
+								disabled={!canSend}
 							>
 								<SendIcon />
 							</button>
@@ -382,6 +502,11 @@ function ImageEditorNavigation({
 }) {
 	const editor = useEditor()
 	const zoom = useValue('image zoom', () => Math.round(editor.getZoomLevel() * 100), [editor])
+	useEffect(() => {
+		const observer = new ResizeObserver(() => fitImageToView(editor))
+		observer.observe(editor.getContainer())
+		return () => observer.disconnect()
+	}, [editor])
 	return (
 		<>
 			{mode === 'edit' && (
@@ -391,16 +516,19 @@ function ImageEditorNavigation({
 						Markup
 					</button>
 					<button type="button" onClick={() => onMarkup('comment')} disabled={!ready}>
-						<ComposerIcon name="write" />
+						<ComposerIcon name="comment" />
 						Comment
 					</button>
 					<button type="button" disabled title="Background removal is not available yet">
+						<ComposerIcon name="remove-background" />
 						Remove BG
 					</button>
 					<button type="button" disabled title="Image erasing is not available yet">
+						<ComposerIcon name="erase" />
 						Erase
 					</button>
 					<button type="button" disabled title="Image resizing is not available yet">
+						<ComposerIcon name="resize" />
 						Resize
 					</button>
 				</div>
@@ -409,7 +537,7 @@ function ImageEditorNavigation({
 				type="button"
 				className="image-editor-zoom"
 				title="Fit image to view"
-				onClick={() => editor.zoomToFit()}
+				onClick={() => fitImageToView(editor)}
 			>
 				{zoom}% <ComposerIcon name="chevron" />
 			</button>
@@ -480,7 +608,8 @@ function InsideOfTldrawContext({
 				.zoomToSelection()
 				.setCurrentTool(imageEditor ? 'hand' : 'select.crop')
 			if (imageEditor) {
-				editor.selectNone().zoomToFit()
+				editor.selectNone()
+				fitImageToView(editor)
 				editor.clearHistory()
 			}
 			onReady()
@@ -488,4 +617,18 @@ function InsideOfTldrawContext({
 	}, [uploadedFile, toasts, msg, editor, imageEditor, onReady, onError])
 
 	return null
+}
+
+function fitImageToView(editor: Editor) {
+	editor.updateViewportScreenBounds(editor.getContainer())
+	const bounds = editor.getCurrentPageBounds()
+	if (!bounds) return
+	const viewport = editor.getViewportScreenBounds()
+	editor.zoomToBounds(bounds, {
+		inset: Math.min(144, viewport.w * 0.28),
+		animation: { duration: 0 },
+	})
+	// Leave space below the floating toolbar without changing the image's page coordinates.
+	const camera = editor.getCamera()
+	editor.setCamera({ ...camera, y: camera.y + 24 / camera.z })
 }

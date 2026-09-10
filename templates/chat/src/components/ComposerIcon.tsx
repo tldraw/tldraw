@@ -1,6 +1,11 @@
 import { ReactNode } from 'react'
 
 export type ComposerIconName =
+	| 'download'
+	| 'comment'
+	| 'remove-background'
+	| 'erase'
+	| 'resize'
 	| 'plus'
 	| 'attachment'
 	| 'library'
@@ -22,6 +27,28 @@ export type ComposerIconName =
 	| 'more'
 
 const paths: Record<ComposerIconName, ReactNode> = {
+	download: <path d="M12 3v12m-5-5 5 5 5-5M4 15v5a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5" />,
+	comment: (
+		<>
+			<path d="M21 11a9 9 0 1 0-5 8l5 2-1-6a9 9 0 0 0 1-4Z" />
+			<path d="M8 11h8m-4-4v8" />
+		</>
+	),
+	'remove-background': (
+		<>
+			<rect x="3" y="3" width="18" height="18" rx="3" />
+			<path d="m3 10 7-7m-7 14 14-14m-10 18 14-14m-7 14 7-7" />
+			<ellipse cx="12" cy="12" rx="4" ry="6" fill="var(--chat-panel)" />
+		</>
+	),
+	erase: <path d="m4 12 8-8a2 2 0 0 1 3 0l5 5a2 2 0 0 1 0 3l-8 8H8l-4-4a3 3 0 0 1 0-4Zm3-3 9 9" />,
+	resize: (
+		<>
+			<rect x="5" y="7" width="12" height="12" rx="2" />
+			<path d="M16 3h5v5M8 23H3v-5" />
+		</>
+	),
+
 	copy: (
 		<>
 			<rect x="3" y="8" width="13" height="14" rx="3" />

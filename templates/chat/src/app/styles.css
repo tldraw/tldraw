@@ -3,6 +3,7 @@
 @import '@tldraw/commenting/commenting.css';
 
 :root {
+	--app-rail-width: 52px;
 	color-scheme: light;
 	--chat-background: #fcfcfc;
 	--chat-panel: #fff;
@@ -47,7 +48,6 @@ textarea {
 }
 
 .app-shell {
-	--app-rail-width: 52px;
 	--app-topbar-height: 52px;
 	--chat-content-width: 640px;
 	--chat-gutter: 24px;
@@ -119,8 +119,11 @@ textarea {
 }
 
 @media (max-width: 600px) {
-	.app-shell {
+	:root {
 		--app-rail-width: 44px;
+	}
+
+	.app-shell {
 		--chat-gutter: 16px;
 	}
 }
@@ -1266,8 +1269,8 @@ textarea {
 	display: flex;
 	align-items: center;
 	gap: 16px;
-	height: 64px;
-	padding: 0 20px;
+	height: 54px;
+	padding: 0 16px;
 	border-bottom: 1px solid var(--chat-border);
 }
 
@@ -1277,7 +1280,7 @@ textarea {
 	white-space: nowrap;
 }
 
-.image-editor-attach {
+.image-editor-share {
 	margin-left: auto;
 	flex-shrink: 0;
 	padding: 10px 18px;
@@ -1290,7 +1293,7 @@ textarea {
 
 .image-editor-canvas {
 	position: absolute;
-	inset: 64px 0 120px;
+	inset: 54px 0 100px;
 }
 
 .image-editor-toolbar,
@@ -1308,7 +1311,7 @@ textarea {
 }
 
 .image-editor-toolbar {
-	top: 12px;
+	top: 10px;
 	left: 50%;
 	transform: translateX(-50%);
 	max-width: calc(100% - 160px);
@@ -1316,6 +1319,7 @@ textarea {
 }
 
 .image-editor-toolbar button {
+	font-size: 16px;
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -1333,7 +1337,7 @@ textarea {
 }
 
 .image-editor-toolbar button:disabled,
-.image-editor-attach:disabled {
+.image-editor-share:disabled {
 	opacity: 0.4;
 	cursor: default;
 }
@@ -1345,22 +1349,27 @@ textarea {
 }
 
 .image-editor-zoom {
-	top: 12px;
+	top: 10px;
 	right: 16px;
 	padding: 12px 16px;
 	cursor: pointer;
 }
 
 .image-editor-composer {
+	padding: 9px;
+	border-radius: 36px;
+	box-shadow: 0 0 40px 12px rgb(0 0 0 / 3%);
 	position: absolute;
-	bottom: 28px;
+	bottom: 40px;
 	left: 50%;
 	transform: translateX(-50%);
-	width: min(780px, calc(100% - 48px));
+	width: min(872px, calc(100% - 48px));
 	margin: 0;
 }
 
 .image-editor-composer .chat-input {
+	font-size: 18px;
+	padding: 0 4px;
 	flex: 1;
 	min-width: 0;
 }
@@ -1385,5 +1394,210 @@ textarea {
 	.image-editor-zoom {
 		right: 8px;
 		padding: 12px 8px;
+	}
+}
+
+.image-editor-header .icon-button {
+	flex-shrink: 0;
+}
+
+.image-editor-more {
+	position: relative;
+}
+
+.image-editor-more summary {
+	list-style: none;
+}
+
+.image-editor-more summary::-webkit-details-marker {
+	display: none;
+}
+
+.image-editor-more > button {
+	position: absolute;
+	top: 44px;
+	right: 0;
+	z-index: 400;
+	padding: 12px 20px;
+	white-space: nowrap;
+	border: 1px solid var(--chat-border);
+	border-radius: 14px;
+	background: var(--chat-panel);
+	box-shadow: 0 4px 16px rgb(0 0 0 / 10%);
+	cursor: pointer;
+}
+
+.image-editor-composer .icon-button {
+	width: 40px;
+	height: 40px;
+	flex-shrink: 0;
+}
+
+.image-editor-composer .composer-send:disabled {
+	background: #a5a5a5;
+	color: white;
+	opacity: 1;
+}
+
+.whiteboard-controls--image .whiteboard-toolbar {
+	top: 10px;
+	align-items: center;
+	gap: 3px;
+	padding: 5px;
+	border-radius: 36px;
+	box-shadow: 0 2px 4px rgb(0 0 0 / 14%);
+}
+
+.whiteboard-controls--image .whiteboard-button {
+	width: 40px;
+	height: 40px;
+	flex-basis: 40px;
+}
+
+.whiteboard-controls--image .whiteboard-history {
+	position: static;
+	gap: 3px;
+	margin-left: 2px;
+	padding-left: 6px;
+	border-left: 1px solid #ddd;
+}
+
+.whiteboard-toolbar-separator {
+	width: 1px;
+	height: 24px;
+	margin: 0 4px;
+	background: #ddd;
+}
+
+.whiteboard-controls--image .whiteboard-sidebar {
+	left: 20px;
+	top: calc(50% + 40px);
+	padding: 18px 8px;
+	border: 1px solid #e3e3e3;
+	border-radius: 32px;
+	background: white;
+	box-shadow: 0 2px 4px rgb(0 0 0 / 14%);
+}
+
+.whiteboard-controls--image .whiteboard-thickness {
+	height: min(160px, 25cqh);
+}
+
+.whiteboard-controls--image .whiteboard-thickness::before {
+	width: 2px;
+	clip-path: none;
+}
+
+.whiteboard-controls--image .whiteboard-thickness input {
+	height: 100%;
+}
+
+.whiteboard-color-menu {
+	position: relative;
+}
+
+.whiteboard-color-menu > button .whiteboard-color {
+	box-shadow: 0 1px 3px rgb(0 0 0 / 16%);
+}
+
+.whiteboard-color-popover {
+	flex-direction: column;
+	position: absolute;
+	top: 52px;
+	left: 50%;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	max-width: calc(100vw - 80px);
+	padding: 18px;
+	transform: translateX(-50%);
+	border: 1px solid var(--chat-border);
+	border-radius: 20px;
+	background: white;
+	box-shadow: 0 4px 20px rgb(0 0 0 / 12%);
+}
+
+.whiteboard-color-popover .whiteboard-palette {
+	display: grid;
+	grid-template-columns: repeat(7, 24px);
+	gap: 12px;
+}
+
+@media (max-width: 700px) {
+	.whiteboard-controls--image .whiteboard-toolbar {
+		top: 68px;
+	}
+
+	.image-editor-toolbar {
+		left: 12px;
+		max-width: calc(100% - 118px);
+		transform: none;
+	}
+
+	.whiteboard-controls--image .whiteboard-sidebar {
+		left: 10px;
+	}
+
+	.image-editor-composer {
+		bottom: 20px;
+		width: calc(100% - 24px);
+	}
+
+	.image-editor-composer .chat-input {
+		font-size: 16px;
+	}
+}
+
+@media (max-width: 450px) {
+	.whiteboard-controls--image .whiteboard-toolbar {
+		gap: 0;
+		padding: 4px;
+	}
+
+	.whiteboard-controls--image .whiteboard-button {
+		width: 30px;
+		height: 34px;
+		flex-basis: 30px;
+	}
+
+	.whiteboard-controls--image .whiteboard-history {
+		gap: 0;
+		padding-left: 3px;
+	}
+
+	.whiteboard-toolbar-separator {
+		margin: 0 3px;
+	}
+
+	.image-editor-header {
+		gap: 4px;
+	}
+
+	.image-editor-header > span {
+		font-size: 14px;
+	}
+
+	.image-editor-share {
+		padding: 8px 12px;
+	}
+}
+
+.image-editor-canvas .tl-image {
+	box-shadow: 0 5px 16px rgb(0 0 0 / 8%);
+}
+
+.whiteboard-color-popover .whiteboard-style-trigger {
+	margin-left: 0;
+}
+
+@media (max-width: 450px) {
+	.whiteboard-color-popover .whiteboard-palette {
+		grid-template-columns: repeat(7, 20px);
+		gap: 10px;
+	}
+
+	.whiteboard-color-popover .whiteboard-color {
+		width: 20px;
+		height: 20px;
 	}
 }

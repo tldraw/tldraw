@@ -161,6 +161,7 @@ export function WhiteboardControls({
 	const commentingEnabled = useCommentingEnabled()
 	const [nextPen, setNextPen] = useState(pen.current)
 	const [showShapes, setShowShapes] = useState(false)
+	const [showColors, setShowColors] = useState(false)
 	const sliderGesture = useRef(false)
 	const state = useValue(
 		'whiteboard controls',
@@ -225,25 +226,75 @@ export function WhiteboardControls({
 		}
 	}
 
+	const palette = (
+		<div className="whiteboard-palette" role="group" aria-label="Stroke colors">
+			<label
+				className="whiteboard-color whiteboard-color--custom"
+				title="Custom color"
+				data-active={
+					state.color !== null && !whiteboardColors.some(([, hex]) => hex === state.color)
+				}
+			>
+				<input
+					type="color"
+					aria-label="Custom color"
+					value={state.color ?? nextPen.color}
+					onInput={(event) => chooseColor(event.currentTarget.value)}
+				/>
+			</label>
+			{whiteboardColors.map(([name, hex]) => (
+				<button
+					key={name}
+					type="button"
+					className="whiteboard-color"
+					aria-label={name}
+					title={name}
+					aria-pressed={state.color === hex}
+					style={{ '--swatch-color': hex } as CSSProperties}
+					onClick={() => chooseColor(hex)}
+				/>
+			))}
+		</div>
+	)
+	const history = (
+		<div className="whiteboard-history" role="group" aria-label="History">
+			<IconButton
+				label="Undo"
+				icon="undo"
+				disabled={!state.canUndo || isSaving}
+				onClick={() => editor.undo()}
+			/>
+			<IconButton
+				label="Redo"
+				icon="redo"
+				disabled={!state.canRedo || isSaving}
+				onClick={() => editor.redo()}
+			/>
+		</div>
+	)
+
 	return (
 		<div
-			className="whiteboard-controls"
+			className={`whiteboard-controls${imageEditor ? ' whiteboard-controls--image' : ''}`}
 			inert={isSaving}
 			onPointerDown={(event) => event.stopPropagation()}
 			onKeyDown={(event) => {
-				if (event.key === 'Escape' && showShapes) {
+				if (event.key === 'Escape' && (showShapes || showColors)) {
 					setShowShapes(false)
+					setShowColors(false)
 					event.stopPropagation()
 				}
 			}}
 		>
-			<IconButton
-				label={imageEditor ? 'Back to image editing' : 'Cancel sketch'}
-				icon="close"
-				onClick={onCancel}
-				className="whiteboard-close"
-				disabled={isSaving}
-			/>
+			{!imageEditor && (
+				<IconButton
+					label="Cancel sketch"
+					icon="close"
+					onClick={onCancel}
+					className="whiteboard-close"
+					disabled={isSaving}
+				/>
+			)}
 			<div className="whiteboard-toolbar" role="toolbar" aria-label="Drawing tools">
 				<IconButton
 					label="Select"
@@ -263,13 +314,15 @@ export function WhiteboardControls({
 					pressed={state.tool === 'text'}
 					onClick={() => chooseTool('text')}
 				/>
-				<IconButton
-					label="Comment"
-					icon="comment"
-					pressed={state.tool === 'comment'}
-					disabled={!commentingEnabled}
-					onClick={() => chooseTool('comment')}
-				/>
+				{(!imageEditor || state.tool === 'comment') && (
+					<IconButton
+						label="Comment"
+						icon="comment"
+						pressed={state.tool === 'comment'}
+						disabled={!commentingEnabled}
+						onClick={() => chooseTool('comment')}
+					/>
+				)}
 				<div
 					className="whiteboard-shapes"
 					onBlur={(event) => {
@@ -307,35 +360,66 @@ export function WhiteboardControls({
 						</div>
 					)}
 				</div>
-				<IconButton
-					label="Upload image or media"
-					icon="image"
-					onClick={() => {
-						setShowShapes(false)
-						tools.asset.onSelect('toolbar')
-					}}
-				/>
+				{!imageEditor && (
+					<IconButton
+						label="Upload image or media"
+						icon="image"
+						onClick={() => {
+							setShowShapes(false)
+							tools.asset.onSelect('toolbar')
+						}}
+					/>
+				)}
+				{imageEditor && (
+					<div
+						className="whiteboard-color-menu"
+						onBlur={(event) => {
+							if (!event.currentTarget.contains(event.relatedTarget)) setShowColors(false)
+						}}
+					>
+						<button
+							type="button"
+							className="whiteboard-button"
+							aria-label="Stroke color"
+							aria-expanded={showColors}
+							onClick={() => {
+								setShowColors(!showColors)
+								setShowShapes(false)
+							}}
+						>
+							<span
+								className="whiteboard-color"
+								style={{ '--swatch-color': state.color ?? nextPen.color } as CSSProperties}
+							/>
+						</button>
+						{showColors && (
+							<div className="whiteboard-color-popover">
+								{palette}
+								<WhiteboardStyleMenus key={state.tool} />
+							</div>
+						)}
+					</div>
+				)}
 				<IconButton
 					label="Eraser"
 					icon="eraser"
 					pressed={state.tool === 'eraser'}
 					onClick={() => chooseTool('eraser')}
 				/>
+				{imageEditor && (
+					<>
+						{history}
+						<span className="whiteboard-toolbar-separator" />
+						<IconButton
+							label="Back to image editing"
+							icon="close"
+							onClick={onCancel}
+							disabled={isSaving}
+						/>
+					</>
+				)}
 			</div>
-			<div className="whiteboard-history" role="group" aria-label="History">
-				<IconButton
-					label="Undo"
-					icon="undo"
-					disabled={!state.canUndo || isSaving}
-					onClick={() => editor.undo()}
-				/>
-				<IconButton
-					label="Redo"
-					icon="redo"
-					disabled={!state.canRedo || isSaving}
-					onClick={() => editor.redo()}
-				/>
-			</div>
+			{!imageEditor && history}
 			<div className="whiteboard-sidebar">
 				<div className="whiteboard-thickness">
 					<input
@@ -365,49 +449,26 @@ export function WhiteboardControls({
 					/>
 				</div>
 			</div>
-			<div className="whiteboard-bottom-controls">
-				<div className="whiteboard-palette" role="group" aria-label="Stroke colors">
-					<label
-						className="whiteboard-color whiteboard-color--custom"
-						title="Custom color"
-						data-active={
-							state.color !== null && !whiteboardColors.some(([, hex]) => hex === state.color)
-						}
-					>
-						<input
-							type="color"
-							aria-label="Custom color"
-							value={state.color ?? nextPen.color}
-							onInput={(event) => chooseColor(event.currentTarget.value)}
-						/>
-					</label>
-					{whiteboardColors.map(([name, hex]) => (
-						<button
-							key={name}
-							type="button"
-							className="whiteboard-color"
-							aria-label={name}
-							title={name}
-							aria-pressed={state.color === hex}
-							style={{ '--swatch-color': hex } as CSSProperties}
-							onClick={() => chooseColor(hex)}
-						/>
-					))}
+			{!imageEditor && (
+				<div className="whiteboard-bottom-controls">
+					{palette}
+					<WhiteboardStyleMenus key={state.tool} />
 				</div>
-				<WhiteboardStyleMenus key={state.tool} />
-			</div>
+			)}
 			{error && (
 				<p role="alert" className="whiteboard-error">
 					{error}
 				</p>
 			)}
-			<IconButton
-				label={imageEditor ? 'Done with markup' : isSaving ? 'Attaching sketch' : 'Attach sketch'}
-				icon="check"
-				className="whiteboard-accept"
-				disabled={!state.hasContent || isSaving}
-				onClick={onAccept}
-			/>
+			{!imageEditor && (
+				<IconButton
+					label={isSaving ? 'Attaching sketch' : 'Attach sketch'}
+					icon="check"
+					className="whiteboard-accept"
+					disabled={!state.hasContent || isSaving}
+					onClick={onAccept}
+				/>
+			)}
 		</div>
 	)
 }
