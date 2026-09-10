@@ -9,16 +9,6 @@ import type {
 	LeafScreenOffsets,
 } from './types'
 
-interface ResolvedClusterOptions {
-	Tc: number
-	Tu: number
-	eps: number
-	Dmax: number
-	minZoom: number
-	maxZoom: number
-	maxSplitZoom: number
-}
-
 /** @internal */
 export function computeClusterTable(
 	leaves: readonly LeafInput[],
@@ -35,20 +25,13 @@ export function computeClusterTable(
 		return { events: [], leaves: leafNodes }
 	}
 
-	const raw = cappedReplay(leaves, edges, { Tc: opts.Tc, Dmax: opts.Dmax }, screenOffsets)
-	const contracted = contract(raw, opts.eps)
-	const events = finalize(contracted, {
-		Tc: opts.Tc,
-		Tu: opts.Tu,
-		minZoom: opts.minZoom,
-		maxZoom: opts.maxZoom,
-		maxSplitZoom: opts.maxSplitZoom,
-	})
+	const raw = cappedReplay(leaves, edges, opts, screenOffsets)
+	const events = finalize(contract(raw, opts.eps), opts)
 
 	return { events, leaves: leafNodes }
 }
 
-function resolveOptions(options: ClusterOptions): ResolvedClusterOptions {
+function resolveOptions(options: ClusterOptions): Required<ClusterOptions> {
 	const Tc = options.Tc ?? 22
 	const Tu = options.Tu ?? 1.2 * Tc
 	const eps = options.eps ?? 0.7

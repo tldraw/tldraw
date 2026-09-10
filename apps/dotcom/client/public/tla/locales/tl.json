@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "Nagkomento si <name>{author}</name> sa iyong board"
   },
+  "28b2464e1f": {
+    "translation": "Hindi makapagsumite ng feedback"
+  },
   "299cb00a7a": {
     "translation": "Nabigo ang pag-upload"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Maghanap..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Pakisubukang muli."
   },
   "2de510be71": {
     "translation": "Ang muling pagbuo ay papalitan ang kasalukuyang link ng imbitasyon ng bago. Kakailanganin ng sinumang gumagamit ng lumang link ang bago para makasali."
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} hindi pa nababasa"
+  },
+  "550b25cc0c": {
+    "translation": "Hindi maibalik ang iyong lokal na drawing. Subukang i-reload ang pahinang ito."
   },
   "554a05155c": {
     "translation": "Nahihirapan pa rin? <a>Mag-ulat ng problema</a>"
@@ -433,6 +442,9 @@
   },
   "9bef626805": {
     "translation": "Tanggalin ang file"
+  },
+  "9c228b6834": {
+    "translation": "Mukhang offline ka. Suriin ang iyong koneksyon at subukang muli."
   },
   "9ccb565b86": {
     "translation": "Nagkakaproblema kami sa pagkonekta sa aming serbisyo ng pagpapatotoo. Karaniwan itong pansamantala lamang. Pakisubukang i-refresh ang pahina."

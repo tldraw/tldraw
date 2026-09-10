@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> ha comentat al teu tauler"
   },
+  "28b2464e1f": {
+    "translation": "No s'han pogut enviar comentaris"
+  },
   "299cb00a7a": {
     "translation": "La càrrega ha fallat"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Cerca..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Si us plau, torna-ho a intentar."
   },
   "2de510be71": {
     "translation": "La regeneració substitueix l'enllaç d'invitació actual per un de nou. Tothom qui utilitzi l'enllaç antic necessitarà el nou per unir-s'hi."
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} sense llegir"
+  },
+  "550b25cc0c": {
+    "translation": "No s'ha pogut restaurar el dibuix local. Prova de tornar a carregar aquesta pàgina."
   },
   "554a05155c": {
     "translation": "Encara tens problemes? <a>Informa d'un problema</a>"
@@ -433,6 +442,9 @@
   },
   "9bef626805": {
     "translation": "Esborra el fitxer"
+  },
+  "9c228b6834": {
+    "translation": "Sembla que no tens connexió. Comprova la connexió i torna-ho a provar."
   },
   "9ccb565b86": {
     "translation": "Tenim problemes per connectar-nos al nostre servei d'autenticació. Això sol ser temporal. Si us plau, proveu d'actualitzar la pàgina."

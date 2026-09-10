@@ -237,6 +237,56 @@ describe('Zoom clamping preserves the focal point', () => {
 	})
 })
 
+describe('Non-finite camera values', () => {
+	beforeEach(() => {
+		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS })
+	})
+
+	it('rejects a non-finite x', () => {
+		expect(() => editor.setCamera({ x: NaN, y: 0, z: 1 })).toThrow()
+	})
+
+	it('rejects a non-finite y', () => {
+		expect(() => editor.setCamera({ x: 0, y: Infinity, z: 1 })).toThrow()
+	})
+
+	it('rejects a non-finite z', () => {
+		expect(() => editor.setCamera({ x: 0, y: 0, z: NaN })).toThrow()
+	})
+
+	// Every internal camera mover passes a Vec, which Vec.Cast returns as-is.
+	it('rejects a non-finite Vec', () => {
+		expect(() => editor.setCamera(new Vec(NaN, 0, 1))).toThrow()
+	})
+
+	it('does not mutate the point it was given', () => {
+		const point = { x: 0, y: 0, z: NaN }
+		expect(() => editor.setCamera(point)).toThrow()
+		expect(point.z).toBeNaN()
+	})
+
+	it('leaves the camera untouched', () => {
+		const before = { ...editor.getCamera() }
+		expect(() => editor.setCamera({ x: NaN, y: 0, z: 1 })).toThrow()
+		expect(editor.getCamera()).toMatchObject(before)
+	})
+
+	it('throws at the call site when animated, rather than from a later tick', () => {
+		expect(() =>
+			editor.setCamera({ x: NaN, y: 0, z: 1 }, { animation: { duration: 100 } })
+		).toThrow()
+		expect(() => editor.forceTick()).not.toThrow()
+	})
+
+	it('does not stop an in-flight camera animation', () => {
+		editor.setCamera({ x: 100, y: 100, z: 1 }, { animation: { duration: 100 } })
+		expect(() => editor.setCamera({ x: NaN, y: 0, z: 1 })).toThrow()
+
+		editor.forceTick()
+		expect(editor.getCamera()).not.toMatchObject({ x: 0, y: 0, z: 1 })
+	})
+})
+
 it('Sets the camera options', () => {
 	const optionsA = { ...DEFAULT_CAMERA_OPTIONS, panSpeed: 2 }
 	editor.setCameraOptions(optionsA)
@@ -1344,4 +1394,10 @@ test('slideCamera coasts the same distance regardless of tick rate', () => {
 
 	expect(at60Hz).toBeGreaterThan(0)
 	expect(at120Hz / at60Hz).toBeCloseTo(1, 1)
+})
+
+test('keeps the current zoom when setCamera is called without a zoom', () => {
+	editor.setCamera({ x: 0, y: 0, z: 0.5 })
+	editor.setCamera({ x: 100, y: 100 })
+	expect(editor.getCamera()).toMatchObject({ x: 100, y: 100, z: 0.5 })
 })

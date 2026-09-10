@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> kommentoi taulasi"
   },
+  "28b2464e1f": {
+    "translation": "Palautteen lähettäminen epäonnistui"
+  },
   "299cb00a7a": {
     "translation": "Lataus epäonnistui"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Haku..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Yritä uudelleen."
   },
   "2de510be71": {
     "translation": "Uudelleenluonti korvaa nykyisen kutsulinkin uudella. Kaikki vanhaa linkkiä käyttävät tarvitsevat uuden liittyäkseen."
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} lukematon"
+  },
+  "550b25cc0c": {
+    "translation": "Paikallista piirrosta ei voitu palauttaa. Yritä ladata sivu uudelleen."
   },
   "554a05155c": {
     "translation": "Onko sinulla edelleen ongelmia? <a>Ilmoita ongelmasta</a>"
@@ -433,6 +442,9 @@
   },
   "9bef626805": {
     "translation": "Poista tiedosto"
+  },
+  "9c228b6834": {
+    "translation": "Vaikuttaa siltä, ​​että olet offline-tilassa. Tarkista yhteytesi ja yritä uudelleen."
   },
   "9ccb565b86": {
     "translation": "Meillä on ongelmia yhteyden muodostamisessa todennuspalveluumme. Tämä on yleensä väliaikaista. Yritä päivittää sivu."

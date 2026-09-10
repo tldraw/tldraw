@@ -33,12 +33,7 @@ export function TlaManageCookiesDialog() {
 				</TldrawUiDialogHeader>
 				<TldrawUiDialogBody className={styles.dialogBody}>
 					<p>
-						<F
-							defaultMessage="We use cookies to keep you logged in, to sync your files, and to collect analytics to help us improve tldraw."
-							values={{
-								a: (chunks) => <ExternalLink to={COOKIE_POLICY_URL}>{chunks}</ExternalLink>,
-							}}
-						/>
+						<F defaultMessage="We use cookies to keep you logged in, to sync your files, and to collect analytics to help us improve tldraw." />
 					</p>
 					<TlaMenuControlGroup>
 						<TlaMenuControl>

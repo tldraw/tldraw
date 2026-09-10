@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> ayaa faallo ka bixiyay guddigaaga"
   },
+  "28b2464e1f": {
+    "translation": "Ma soo gudbin karin jawaab celin"
+  },
   "299cb00a7a": {
     "translation": "Soo dejintu waa fashilantay"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Raadi..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Fadlan isku day mar kale."
   },
   "2de510be71": {
     "translation": "Dib-u-soo-nooleyntu waxay ku beddelaysaa xiriiriyaha casuumaadda ee hadda jira mid cusub. Qof kasta oo isticmaala xiriirkii hore wuxuu u baahan doonaa kan cusub si uu ugu biiro."
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} lama akhrin"
+  },
+  "550b25cc0c": {
+    "translation": "Ma soo celin karin sawirkaaga maxalliga ah. Isku day inaad dib u soo celiso boggan."
   },
   "554a05155c": {
     "translation": "Weli dhib baa haysta? <a>Ka warbixi dhibaato</a>"
@@ -433,6 +442,9 @@
   },
   "9bef626805": {
     "translation": "Tirtir faylka"
+  },
+  "9c228b6834": {
+    "translation": "Waxaad u muuqataa inaad offline tahay. Hubi xiriirkaaga oo isku day mar kale."
   },
   "9ccb565b86": {
     "translation": "Waxaan dhibaato kala kulannaa ku xidhnaanta adeeggayaga xaqiijinta. Tani badanaa waa ku meel gaar. Fadlan isku day inaad cusboonaysiiso bogga."

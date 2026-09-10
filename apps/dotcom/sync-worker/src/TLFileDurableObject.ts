@@ -71,7 +71,7 @@ import {
 	planCommentDrain,
 	planMentionReconciles,
 } from './commentRows'
-import { PERSIST_INTERVAL_MS } from './config'
+import { MAX_VERIFY_KEYFRAME_BYTES, PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
 import {
 	ensureMcpClusterIndexTable,
@@ -80,7 +80,7 @@ import {
 	writeMcpClusterIndexRow,
 } from './mcpClusterIndexStorage'
 import { TLPostgresPool } from './postgres'
-import { getR2KeyForRoom, listAllObjectKeys } from './r2'
+import { deleteAllObjectsWithPrefix, getR2KeyForRoom, R2ReadScheduler } from './r2'
 import {
 	BootStage,
 	FileEffectStallError,
@@ -111,6 +111,20 @@ import { getAuth, requireAdminAccess, requireAdminAccessToRequest } from './util
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 import { getRole } from './utils/tla/getRole'
 import { isTestFile } from './utils/tla/isTestFile'
+import { ChainState, isChainHead, PendingDelta } from './versionChain'
+import {
+	loadVersionChainRollout,
+	resolveVersionChainMode,
+	VersionChainRollout,
+} from './versionChainConfig'
+import {
+	deleteAllVersions,
+	loadChainIndex,
+	openWholeVersionStream,
+	reconstructVersion,
+} from './versionChainRead'
+import { readOpenSegment, writeVersionChainEntry } from './versionChainWrite'
+import { chainHeadHash } from './versionDelta'
 import { resolveWelcomeSnapshot } from './welcome/resolveWelcomeSnapshot'
 
 const MAX_CONNECTIONS = 50
@@ -138,7 +152,13 @@ const R2_QUEUE_DEPTH_ALERT_THRESHOLD = 100
 
 // The kinds of R2 operation that share the connection budget, used to break queue depth down per
 // type in metrics.
-type R2OperationType = 'asset_copy' | 'snapshot_upload'
+type R2OperationType =
+	| 'asset_copy'
+	| 'snapshot_upload'
+	| 'version_chain_write'
+	| 'version_chain_read'
+	| 'version_chain_verify'
+	| 'version_chain_delete'
 
 // Transient R2 failures worth retrying — dropped connections and the connection-limit error the
 // shared budget exists to avoid. Anything else (a bad request, missing object, etc.) is permanent,
@@ -147,6 +167,9 @@ function isTransientConnectionError(error: unknown): boolean {
 	const message = error instanceof Error ? error.message : String(error)
 	return /network|connection|closed|reset|timeout/i.test(message)
 }
+
+// Where the chain state lives in durable object storage; see getVersionChain.
+const VERSION_CHAIN_STORAGE_KEY = 'versionChain'
 
 // increment this any time you make a change to this type
 const CURRENT_DOCUMENT_INFO_VERSION = 3
@@ -224,6 +247,12 @@ const OBJECT_TYPES = [
 	'comment-reaction',
 ] as const satisfies readonly (keyof typeof authorizeFileRecord)[]
 
+// The comment outbox (see drainCommentOutbox) only understands comment record ids; keep this
+// separate from OBJECT_TYPES so a future object-lane type doesn't get enqueued there.
+function isCommentRecordId(id: string) {
+	return isCommentId(id) || isCommentThreadId(id) || isCommentReactionId(id)
+}
+
 export class TLFileDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
 	id: DurableObjectId
@@ -259,18 +288,31 @@ export class TLFileDurableObject extends DurableObject {
 		}
 		if (!this._storage) {
 			this.setBootStage('storage-load')
+			// Kicked off here so the KV read resolves alongside the room load instead of after it.
+			this.versionChainRollout()
 			const promise = retry(() => this.loadStorage(this.documentInfo.slug), {
 				// Allow RoomNotFoundError to bubble up since it means the room doesn't exist
 				// and there's no point in retrying.
 				matchError: (error) => !(error instanceof RoomNotFoundError),
 			})
-				.then((storage) => {
+				.then(async (storage) => {
 					storage.onChange(() => {
 						this.triggerPersist()
 					})
 					storage.transaction((txn) => {
 						fileSyncSchema.migrateStorage(txn)
 					})
+					// The next persist diffs against this rather than cutting a keyframe every time the
+					// durable object wakes. It is usually what R2 holds, but not always: a previous
+					// incarnation can die with edits SQLite has and R2 does not. That is safe because the
+					// seed is never trusted as the chain head — decideVersionWrite checks it against the
+					// head the chain recorded and cuts a keyframe when they differ. Gated on the mode: this
+					// is a second decoded copy of the board pinned for the DO's lifetime, not worth paying
+					// for where chains are off.
+					const rollout = await this.versionChainRollout()
+					if (resolveVersionChainMode(rollout, getR2KeyForRoom(this.documentInfo)) !== 'off') {
+						this._lastPersistedSnapshot = storage.getSnapshot?.() ?? null
+					}
 					// Drain any outbox entries stranded by a previous incarnation (e.g. a Postgres
 					// blip during the last-out drain). Retries are otherwise onChange-driven
 					// (triggerPersist), so a reopened room where users only view would never drain.
@@ -440,14 +482,11 @@ export class TLFileDurableObject extends DurableObject {
 
 	// For analytics
 	measure: Analytics | undefined
-
-	// For error tracking
-	sentryDSN: string | undefined
-
 	readonly supabaseTable: string
 	readonly r2: {
 		readonly rooms: R2Bucket
 		readonly versionCache: R2Bucket
+		readonly versionChain: R2Bucket
 	}
 
 	_documentInfo: DocumentInfo | null = null
@@ -482,8 +521,6 @@ export class TLFileDurableObject extends DurableObject {
 		return this._db
 	}
 
-	private readonly changeSource = 'TLFileDurableObject'
-
 	constructor(
 		private state: DurableObjectState,
 		override env: Environment
@@ -491,7 +528,6 @@ export class TLFileDurableObject extends DurableObject {
 		super(state, env)
 		this.id = state.id
 		this.storage = state.storage
-		this.sentryDSN = env.SENTRY_DSN
 		this.measure = env.MEASURE
 		this.sentry = createSentry(this.state, this.env)
 		this.log = new Logger(env, 'TLDrawDurableObject', this.sentry)
@@ -500,6 +536,7 @@ export class TLFileDurableObject extends DurableObject {
 		this.r2 = {
 			rooms: env.ROOMS,
 			versionCache: env.ROOMS_HISTORY_EPHEMERAL,
+			versionChain: env.ROOMS_HISTORY,
 		}
 
 		// Respond to ping at the platform layer so the DO can hibernate
@@ -568,9 +605,9 @@ export class TLFileDurableObject extends DurableObject {
 	get documentInfo() {
 		return assertExists(this._documentInfo, 'documentInfo must be present')
 	}
-	setDocumentInfo(info: DocumentInfo) {
-		this._documentInfo = info
-		this.storage.put('documentInfo', info)
+	setDocumentInfo(info: Omit<DocumentInfo, 'version'>) {
+		this._documentInfo = { version: CURRENT_DOCUMENT_INFO_VERSION, ...info }
+		this.storage.put('documentInfo', this._documentInfo)
 	}
 	async extractDocumentInfoFromRequest(req: IRequest, roomOpenMode: RoomOpenMode) {
 		const slug = assertExists(
@@ -582,12 +619,7 @@ export class TLFileDurableObject extends DurableObject {
 		if (this._documentInfo) {
 			assert(this._documentInfo.slug === slug, 'slug must match')
 		} else {
-			this.setDocumentInfo({
-				version: CURRENT_DOCUMENT_INFO_VERSION,
-				slug,
-				isApp,
-				deleted: false,
-			})
+			this.setDocumentInfo({ slug, isApp, deleted: false })
 		}
 	}
 
@@ -670,6 +702,9 @@ export class TLFileDurableObject extends DurableObject {
 
 			this.sessionIdToWs.delete(attachment.sessionId)
 			if (!this._documentInfo) return
+			// A deleted room has nothing left to broadcast, and booting one here would resume the
+			// just-closed sessions onto storage the delete is wiping.
+			if (this._documentInfo.deleted) return
 
 			const room = await this.getRoom()
 
@@ -698,6 +733,62 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
+	// The snapshot the last persist wrote, so the next one can diff against it. Seeded on wake from
+	// the document just loaded so a cold start does not cut a keyframe; see getStorage for why that
+	// seed may be ahead of R2 and why that is safe.
+	_lastPersistedSnapshot: RoomSnapshot | null = null
+	// `chainHeadHash(_lastPersistedSnapshot)`, kept from the write that produced it so the next
+	// persist does not hash the whole board again just to check the diff base. Null when unknown
+	// (the wake seed); the write computes it once and then it is known.
+	_lastPersistedHeadHash: string | null = null
+	_versionChain: ChainState | null = null
+	_versionChainLoaded = false
+	// The open segment's deltas. Null means "not known here yet" — after an eviction they are
+	// refetched from the segment object in R2, which is the durable copy.
+	_pendingDeltas: PendingDelta[] | null = null
+	// The version key the chain head was written under, so a retried persist can put the legacy
+	// copy of the same content under the same key.
+	_versionChainHeadIso: string | null = null
+
+	_versionChainRollout: Promise<VersionChainRollout> | null = null
+
+	// One KV read per incarnation, by design: the rollout is config, not room state, and a KV flip
+	// landing as objects wake is the contract (see loadVersionChainRollout).
+	private versionChainRollout(): Promise<VersionChainRollout> {
+		this._versionChainRollout ??= loadVersionChainRollout(this.env)
+		return this._versionChainRollout
+	}
+
+	private async getVersionChain(): Promise<ChainState | null> {
+		if (!this._versionChainLoaded) {
+			this._versionChain =
+				((await this.storage.get(VERSION_CHAIN_STORAGE_KEY)) as ChainState | null) ?? null
+			this._versionChainLoaded = true
+		}
+		return this._versionChain
+	}
+
+	private async getPendingDeltas(chain: ChainState | null): Promise<PendingDelta[] | null> {
+		if (!chain?.openSegment) return []
+		if (this._pendingDeltas) return this._pendingDeltas
+		// Cold start. Appending means rewriting the whole segment, so the deltas already in it have
+		// to come back — reading the object is cheaper and simpler than keeping a second copy of
+		// them in durable object storage, and it cannot drift from what R2 actually holds.
+		// Null, not []: an open segment that vanished or cannot be decoded is a broken chain, and
+		// rewriting it from an empty buffer would silently erase the deltas its metadata still
+		// promises. The caller starts a fresh chain on null.
+		const segmentKey = chain.openSegment.key
+		const deltas = await this.addR2Operation('version_chain_write', () =>
+			retry(() => readOpenSegment(this.r2.versionChain, segmentKey), {
+				attempts: 3,
+				waitDuration: 500,
+				matchError: isTransientConnectionError,
+			})
+		)
+		if (deltas) this._pendingDeltas = deltas
+		return deltas
+	}
+
 	_isRestoring = false
 	async onRestore(req: IRequest) {
 		this._isRestoring = true
@@ -709,11 +800,58 @@ export class TLFileDurableObject extends DurableObject {
 			if (!timestamp) {
 				return new Response('Missing timestamp', { status: 400 })
 			}
-			const data = await this.r2.versionCache.get(`${roomKey}/${timestamp}`)
-			if (!data) {
-				return new Response('Version not found', { status: 400 })
+			// Reconstructs from the chain, falling back to the legacy full copy both when the chain
+			// has nothing for this version and when it is broken — an admin who can preview a version
+			// must be able to restore it while the full copies exist.
+			// Whole objects (keyframes, legacy copies) are read as text once — the same cost as the
+			// handler this replaces — and only a delta replay materializes a snapshot, which is then
+			// reused below rather than re-parsed. Parsing, re-serializing and parsing again a large
+			// board is what pushes a 128MB isolate over.
+			let dataText: string
+			let restored: RoomSnapshot | undefined
+			try {
+				// Each read is its own queued operation rather than the whole restore holding one
+				// slot — a slot is sized for an asset copy's two connections, and reconstruction
+				// fans out to the keyframe plus every segment (see _verifyRetiredChain). Every read
+				// is one idempotent get or list, so each retries transient errors on its own.
+				const schedule: R2ReadScheduler = (read) =>
+					this.addR2Operation('version_chain_read', () =>
+						retry(read, { attempts: 3, waitDuration: 500, matchError: isTransientConnectionError })
+					)
+				const buckets = {
+					chainBucket: this.r2.versionChain,
+					legacyBucket: this.r2.versionCache,
+				}
+				const { entries: index } = await loadChainIndex(this.r2.versionChain, roomKey, schedule)
+				const whole = await openWholeVersionStream({
+					...buckets,
+					roomKey,
+					timestamp,
+					index,
+					schedule,
+				})
+				if (whole) {
+					dataText = await new Response(whole).text()
+				} else {
+					const reconstruction = await reconstructVersion({
+						...buckets,
+						roomKey,
+						timestamp,
+						index,
+						schedule,
+					})
+					if (!reconstruction) {
+						return new Response('Version not found', { status: 400 })
+					}
+					restored = reconstruction.snapshot
+					dataText = JSON.stringify(restored)
+				}
+			} catch (error) {
+				const legacy = await this.r2.versionCache.get(`${roomKey}/${timestamp}`)
+				if (!legacy) throw error
+				this.reportError(error)
+				dataText = await legacy.text()
 			}
-			const dataText = await data.text()
 
 			// The put deliberately carries no version metadata, so null ("looked up, no usable
 			// stamp") is the truth about R2 and the next persist re-uploads and re-stamps.
@@ -723,6 +861,16 @@ export class TLFileDurableObject extends DurableObject {
 			await this.executionQueue.push(async () => {
 				await this.r2.rooms.put(roomKey, dataText)
 				this._lastPersistedFingerprint = null
+				// The chain head no longer matches the rooms object. The fingerprint check would
+				// catch the stale chain on the next persist anyway; clearing here makes the next
+				// version an intentional keyframe rather than a recovered mistake.
+				this._lastPersistedSnapshot = null
+				this._lastPersistedHeadHash = null
+				this._versionChain = null
+				this._versionChainLoaded = true
+				this._pendingDeltas = null
+				this._versionChainHeadIso = null
+				await this.storage.delete(VERSION_CHAIN_STORAGE_KEY)
 			})
 
 			// Version snapshots only contain the drawing data. Restoring drops the file's comments
@@ -757,7 +905,7 @@ export class TLFileDurableObject extends DurableObject {
 			// retries and let the dropped comments resurrect on the next fresh-SQLite load.
 			// follow-up: a durable wipe-marker recorded alongside the outbox would let the DO
 			// itself retry the fileId-wide delete, closing the dependence on caller retries.
-			const snapshot = JSON.parse(dataText) as RoomSnapshot
+			const snapshot = restored ?? (JSON.parse(dataText) as RoomSnapshot)
 
 			const storage = await this.getStorage()
 			storage.transaction((txn) => {
@@ -936,6 +1084,12 @@ export class TLFileDurableObject extends DurableObject {
 					if (!hasOwnerAccess && file.sharedLinkType !== 'edit') {
 						openMode = ROOM_OPEN_MODE.READ_ONLY
 					}
+				} else {
+					// No file row means every check above was skipped, so admitting the socket would
+					// open the room to anyone holding the id — the R2 blob and the DO's SQLite outlive
+					// the row through the whole hard-delete window (and forever if the delete effect
+					// parks). Fail closed, like onDownloadTldr.
+					return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 				}
 			} else {
 				// Legacy rooms are now read-only
@@ -972,7 +1126,7 @@ export class TLFileDurableObject extends DurableObject {
 			getRoomTimer.report('on_request_get_room')
 
 			// Don't connect if we're already at max connections
-			if (room.getNumActiveSessions() > MAX_CONNECTIONS) {
+			if (room.getNumActiveSessions() >= MAX_CONNECTIONS) {
 				return closeSocket(TLSyncErrorCloseEventReason.ROOM_FULL)
 			}
 
@@ -1174,6 +1328,9 @@ export class TLFileDurableObject extends DurableObject {
 	// rejects, and dropping the error here would silently cancel the OG render this alarm exists to
 	// perform. Reporting only adds the Sentry record it was missing.
 	override async alarm(alarmInfo?: AlarmInvocationInfo) {
+		// A delete wipes documentInfo but not the pending og-render alarm, so this can fire on an
+		// object with nothing left to render.
+		if (!this._documentInfo || this._documentInfo.deleted) return
 		try {
 			// One clock reading for the whole fire: the debounce decision and the pending marker's
 			// expiry both count from it (see `firedAt` on enqueueOgImageRender).
@@ -1254,6 +1411,26 @@ export class TLFileDurableObject extends DurableObject {
 				})
 				break
 			}
+			case 'version_chain_write': {
+				// '' rather than a shorter blobs array for deltas: the dataset's blob2 column keeps
+				// one meaning across both arms.
+				this.writeEvent(event.type, {
+					blobs: [event.wrote, event.wrote === 'keyframe' ? event.reason : ''],
+					doubles: [event.bytes, event.depth],
+				})
+				break
+			}
+			case 'version_chain_verify': {
+				this.writeEvent(event.type, {
+					blobs: [event.outcome, event.outcome === 'ok' ? '' : event.reason],
+					doubles: event.outcome === 'skipped' ? [event.keyframeBytes] : [],
+				})
+				break
+			}
+			case 'version_chain_error': {
+				this.writeEvent(event.type, {})
+				break
+			}
 			default: {
 				exhaustiveSwitchError(event)
 			}
@@ -1284,6 +1461,31 @@ export class TLFileDurableObject extends DurableObject {
 			snapshot,
 			roomSizeMB: roomObject ? roomObject.size / MB : 0,
 		}
+	}
+
+	/**
+	 * Seed the room from its `createSource` and merge in Postgres comments. `createSource` is
+	 * never cleared from the file record, so this re-runs whenever the R2 blob is missing,
+	 * including a from-source file that gained comments and then lost its DO SQLite before the
+	 * first throttled R2 persist; without the merge those comments would be orphaned (visible in
+	 * /comments, absent from the room). A fresh duplicate has zero rows and the merge is a no-op.
+	 */
+	private async loadFromCreateSource(
+		commentsPromise: Promise<CommentLoadResult> | null
+	): Promise<DBLoadResult> {
+		const createFromSourceTimer = this.timer()
+		const res = await this.handleFileCreateFromSource()
+		createFromSourceTimer.report('db_load_create_from_source')
+
+		if (commentsPromise) {
+			// Clone: loadCreateSourceData can return the shared DEFAULT_INITIAL_SNAPSHOT constant
+			// and the merge mutates top-level snapshot fields.
+			const snapshot: RoomSnapshot = { ...res.snapshot }
+			mergeCommentDocumentsIntoSnapshot(snapshot, await commentsPromise)
+			res.snapshot = snapshot
+		}
+
+		return res
 	}
 
 	/**
@@ -1391,27 +1593,8 @@ export class TLFileDurableObject extends DurableObject {
 			}
 
 			if (this._fileRecordCache?.createSource) {
-				const createFromSourceTimer = this.timer()
-				const res = await this.handleFileCreateFromSource()
-				createFromSourceTimer.report('db_load_create_from_source')
-
-				// `createSource` is never cleared from the file record, so this branch re-enters
-				// whenever the R2 blob is missing — including a from-source file that gained
-				// comments and then lost its DO SQLite before the first throttled R2 persist.
-				// Merge the Postgres comments back in like the other branches, or they'd be
-				// orphaned: visible in the app-level /comments view but absent from the room, and
-				// resurrected inconsistently later. For a genuinely fresh duplicate the query
-				// returns zero rows and the merge is a no-op. Clone the snapshot before merging:
-				// loadCreateSourceData can return the shared DEFAULT_INITIAL_SNAPSHOT module
-				// constant, and the merge mutates top-level snapshot fields.
-				if (commentsPromise) {
-					const snapshot: RoomSnapshot = { ...res.snapshot }
-					mergeCommentDocumentsIntoSnapshot(snapshot, await commentsPromise)
-					res.snapshot = snapshot
-				}
-
+				const res = await this.loadFromCreateSource(commentsPromise)
 				loadTimer.report('db_load_total')
-
 				return res
 			}
 
@@ -1419,10 +1602,22 @@ export class TLFileDurableObject extends DurableObject {
 				// finally check whether the file exists in the DB but not in R2 yet
 				const file = await this.getAppFileRecord()
 
-				loadTimer.report('db_load_total')
 				if (!file) {
+					loadTimer.report('db_load_total')
 					throw new RoomNotFoundError(slug)
 				}
+
+				// The cache can still have been empty at the check above when the row only became
+				// visible on this second lookup (a connect that raced the createFile mutation).
+				// Seeding a from-source file with the empty default would persist an empty room,
+				// and the R2 blob then means `createSource` is never consulted again.
+				if (file.createSource) {
+					const res = await this.loadFromCreateSource(commentsPromise)
+					loadTimer.report('db_load_total')
+					return res
+				}
+
+				loadTimer.report('db_load_total')
 
 				// Comments can exist in Postgres before the first throttled R2 persist ever runs
 				// (e.g. DO SQLite lost right after commenting on a fresh file), so rehydrate them
@@ -1599,7 +1794,8 @@ export class TLFileDurableObject extends DurableObject {
 	// backlog of copies — durability shouldn't wait on background asset work.
 	private addR2Operation<T>(type: R2OperationType, task: () => Promise<T>) {
 		return this.r2Queue.add(this.trackQueuedTask(type, task), {
-			priority: type === 'snapshot_upload' ? 1 : 0,
+			// Both sit on the serial persist path; neither may wait behind an asset_copy backlog.
+			priority: type === 'snapshot_upload' || type === 'version_chain_write' ? 1 : 0,
 		})
 	}
 
@@ -1746,6 +1942,8 @@ export class TLFileDurableObject extends DurableObject {
 						}
 						// check whether the worker was woken up to persist after having gone to sleep
 						if (!this._room) return
+						// a deleted room's R2 keys are gone; persisting would resurrect them
+						if (this._documentInfo?.deleted) return
 						const slug = this.documentInfo.slug
 						const storage = await this.getStorage()
 						assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
@@ -1889,6 +2087,11 @@ export class TLFileDurableObject extends DurableObject {
 
 	private async _uploadSnapshotToR2(snapshot: RoomSnapshot, key: string) {
 		const customMetadata = getSnapshotMetadata(snapshot)
+		// Per attempt, not per persist: the retry loop re-reads the snapshot, so a retry may carry
+		// newer content that deserves its own version. When the chain already holds THIS content
+		// from an earlier attempt, _writeVersionChainEntry hands back the key it used, and the
+		// legacy copy lands under that same key — the two buckets must agree on when a version is.
+		let iso = new Date().toISOString()
 		// Upload to rooms bucket first
 		const roomSizeMB = await this._uploadSnapshotToBucket(
 			this.r2.rooms,
@@ -1901,11 +2104,172 @@ export class TLFileDurableObject extends DurableObject {
 			await this.setRoomStorageUsedPercentage(roomSizeMB)
 		}
 
-		// Then upload to version cache. Nothing dedupes this the way the version check in
-		// persistToDatabase does, because nothing after this put can fail: a retry that got here
-		// has already set _lastPersistedFingerprint and takes the skip path instead.
-		const versionKey = `${key}/${new Date().toISOString()}`
-		await this._uploadSnapshotToBucket(this.r2.versionCache, snapshot, versionKey, customMetadata)
+		const mode = resolveVersionChainMode(await this.versionChainRollout(), key)
+
+		// A non-transient chain failure (corrupt segment, a 4xx, DO storage) must be a metric, not
+		// a failed persist: the outer retry would otherwise re-upload the rooms object 100 times,
+		// raise persistence_bad, and record no version at all. In dual mode the legacy write below
+		// runs regardless; in chain mode it runs as the fallback, so the version still exists as
+		// a full copy the read paths already know how to serve.
+		let chainWritten = false
+		if (mode !== 'off') {
+			try {
+				iso = await this._writeVersionChainEntry(snapshot, key, iso)
+				chainWritten = true
+			} catch (error) {
+				this.logEvent({ type: 'version_chain_error' })
+				this.reportError(error)
+			}
+		}
+		// Dual-write keeps the legacy full copy as the independent record the read-path verifier
+		// checks chain reconstructions against. (_verifyRetiredChain only compares against what this
+		// DO last persisted.) Stage 3 of the rollout flips this to 'chain'.
+		// Nothing dedupes this write the way the version check in persistToDatabase does: a retry
+		// that got here has already set _lastPersistedFingerprint and takes the skip path instead
+		// (the chain write above carries its own re-entry guard for the same reason).
+		if (mode !== 'chain' || !chainWritten) {
+			await this._uploadSnapshotToBucket(
+				this.r2.versionCache,
+				snapshot,
+				`${key}/${iso}`,
+				customMetadata
+			)
+		}
+	}
+
+	/**
+	 * Writes this snapshot into the chain and returns the version key (ISO timestamp) it lives under
+	 * — `iso` when written now, or the key from an earlier attempt when the chain already holds
+	 * exactly this content.
+	 */
+	private async _writeVersionChainEntry(
+		snapshot: RoomSnapshot,
+		key: string,
+		iso: string
+	): Promise<string> {
+		let chain = await this.getVersionChain()
+		// Re-entry guard: a dual-write persist that failed on the legacy upload retries this whole
+		// method with the chain already holding this exact version. Without it, every such retry
+		// appends a no-op delta at a fresh timestamp — the duplicate class #10571 exists to kill.
+		// Head identity, not just the fingerprint: a tombstone prune between attempts keeps the
+		// fingerprint but changes content, and the legacy copy must not land under a key the chain
+		// holds other content at.
+		if (chain && isChainHead(chain, snapshot)) {
+			return this._versionChainHeadIso ?? iso
+		}
+		let pending: PendingDelta[] = []
+		let noChainReason: 'segment-lost' | undefined
+		if (chain) {
+			const rehydrated = await this.getPendingDeltas(chain)
+			// The chain said a segment was open but R2 no longer has it. Appending would rewrite the
+			// segment without the deltas its metadata still promises, so start a fresh chain instead.
+			// The keys go to the log, not the metric: analytics blobs carry no R2 keys.
+			if (rehydrated === null) {
+				console.error(
+					`Version chain lost its open segment; cutting a keyframe. room=${key} segment=${chain.openSegment?.key}`
+				)
+				noChainReason = 'segment-lost'
+				chain = null
+			} else {
+				pending = rehydrated
+			}
+		}
+		// R2 persist flakiness is a known quantity (see the multipart/fallback machinery on the
+		// snapshot uploads). A chain write is one idempotent PUT for a fixed iso, so retrying the
+		// whole call is safe.
+		const result = await this.addR2Operation('version_chain_write', () =>
+			retry(
+				() =>
+					writeVersionChainEntry({
+						bucket: this.r2.versionChain,
+						roomKey: key,
+						iso,
+						chain,
+						noChainReason,
+						pending,
+						previous: this._lastPersistedSnapshot,
+						previousHeadHash: this._lastPersistedHeadHash ?? undefined,
+						next: snapshot,
+						now: Date.now(),
+					}),
+				{ attempts: 3, waitDuration: 500, matchError: isTransientConnectionError }
+			)
+		)
+		this._versionChain = result.chain
+		this._pendingDeltas = result.pending
+		this._versionChainHeadIso = iso
+		await this.storage.put(VERSION_CHAIN_STORAGE_KEY, result.chain)
+		const previous = this._lastPersistedSnapshot
+		this._lastPersistedSnapshot = snapshot
+		this._lastPersistedHeadHash = result.chain.headHash
+		this.logEvent({
+			type: 'version_chain_write',
+			bytes: result.bytes,
+			depth: result.chain.deltaCount,
+			...(result.wrote === 'keyframe'
+				? { wrote: result.wrote, reason: result.reason }
+				: { wrote: result.wrote }),
+		})
+		// A cadence keyframe retires a complete chain that should reproduce `previous` exactly.
+		// Prove it while both sides are cheap to compare — this keeps the bake's verification
+		// running for the life of the system, not just the rollout. Off the persist path, and a
+		// failure is a metric, never an error: the keyframe just cut already healed the chain.
+		if (
+			result.wrote === 'keyframe' &&
+			(result.reason === 'delta-count' || result.reason === 'chain-age') &&
+			chain &&
+			previous &&
+			pending.length > 0
+		) {
+			// Skipped, not deferred: reconstructing a big chain is the one thing on this path that can
+			// take the live room down with it (see MAX_VERIFY_KEYFRAME_BYTES), and there is no later
+			// moment where the object holds fewer copies of the board.
+			if (chain.keyframeBytes > MAX_VERIFY_KEYFRAME_BYTES) {
+				this.logEvent({
+					type: 'version_chain_verify',
+					outcome: 'skipped',
+					reason: 'keyframe-size',
+					keyframeBytes: chain.keyframeBytes,
+				})
+			} else {
+				this.ctx.waitUntil(this._verifyRetiredChain(pending[pending.length - 1].t, previous))
+			}
+		}
+		return iso
+	}
+
+	private async _verifyRetiredChain(lastDeltaTimestamp: string, expected: RoomSnapshot) {
+		try {
+			// Each read is its own queued operation rather than the whole reconstruction holding one
+			// slot: a slot is sized for an asset copy's two connections, and reconstruction fans out to
+			// the keyframe plus every segment — five beside a copy is over the six.
+			const reconstruction = await reconstructVersion({
+				chainBucket: this.r2.versionChain,
+				legacyBucket: this.r2.versionCache,
+				roomKey: getR2KeyForRoom(this.documentInfo),
+				timestamp: lastDeltaTimestamp,
+				schedule: (read) => this.addR2Operation('version_chain_verify', read),
+			})
+			// A legacy full copy is not the chain reading back; only a chain answer counts. Compared on
+			// the head hash, not the envelope hash: `expected` may be the wake seed, whose documentClock a
+			// comment write moved past the clock the chain head was written at — a chain-age keyframe on
+			// an idle commented board is exactly that case, and it would fail here on a correct chain.
+			const reason = !reconstruction
+				? 'missing'
+				: reconstruction.source !== 'chain'
+					? 'legacy-fallback'
+					: chainHeadHash(reconstruction.snapshot) !== chainHeadHash(expected)
+						? 'head-mismatch'
+						: null
+			this.logEvent(
+				reason === null
+					? { type: 'version_chain_verify', outcome: 'ok' }
+					: { type: 'version_chain_verify', outcome: 'fail', reason }
+			)
+		} catch (error) {
+			this.logEvent({ type: 'version_chain_verify', outcome: 'fail', reason: 'error' })
+			this.reportError(error)
+		}
 	}
 
 	private async _uploadSnapshotToBucket(
@@ -2048,19 +2412,11 @@ export class TLFileDurableObject extends DurableObject {
 	private enqueueCommentChanges(diff: TLSyncForwardDiff<TLRecord>) {
 		const ids: string[] = []
 		for (const put of Object.values(diff.puts)) {
-			const record = (Array.isArray(put) ? put[1] : put) as { typeName: string; id: string }
-			if (
-				record.typeName === 'comment' ||
-				record.typeName === 'comment-thread' ||
-				record.typeName === 'comment-reaction'
-			) {
-				ids.push(record.id)
-			}
+			const record = (Array.isArray(put) ? put[1] : put) as { id: string }
+			if (isCommentRecordId(record.id)) ids.push(record.id)
 		}
 		for (const id of diff.deletes) {
-			if (isCommentId(id) || isCommentThreadId(id) || isCommentReactionId(id)) {
-				ids.push(id)
-			}
+			if (isCommentRecordId(id)) ids.push(id)
 		}
 		if (ids.length === 0) return
 		this.ensureCommentOutbox()
@@ -2693,12 +3049,7 @@ export class TLFileDurableObject extends DurableObject {
 		if (!this._fileRecordCache) this._fileRecordCache = file
 
 		if (!this._documentInfo) {
-			this.setDocumentInfo({
-				version: CURRENT_DOCUMENT_INFO_VERSION,
-				slug: file.id,
-				isApp: true,
-				deleted: false,
-			})
+			this.setDocumentInfo({ slug: file.id, isApp: true, deleted: false })
 		}
 		try {
 			await this.reportIfEffectStalls(this.getRoom(), file, 'insert')
@@ -2718,12 +3069,7 @@ export class TLFileDurableObject extends DurableObject {
 		}
 		this._fileRecordCache = file
 		if (!this._documentInfo) {
-			this.setDocumentInfo({
-				version: CURRENT_DOCUMENT_INFO_VERSION,
-				slug: file.id,
-				isApp: true,
-				deleted: false,
-			})
+			this.setDocumentInfo({ slug: file.id, isApp: true, deleted: false })
 		}
 
 		try {
@@ -2789,23 +3135,14 @@ export class TLFileDurableObject extends DurableObject {
 		// prevent new connections while we clean everything up. Fall back to the argument for the
 		// slug (an app file's slug is its id): a never-initialized room has no documentInfo, and
 		// delete must stay terminal for any DO state instead of tripping the asserting getter.
-		this.setDocumentInfo({
-			version: CURRENT_DOCUMENT_INFO_VERSION,
-			slug: this._documentInfo?.slug ?? id,
-			isApp: true,
-			deleted: true,
-		})
+		this.setDocumentInfo({ slug: this._documentInfo?.slug ?? id, isApp: true, deleted: true })
 
 		await this.executionQueue.push(async () => {
-			if (this._room) {
-				const room = await this.getRoom()
-				for (const session of room.getSessions()) {
-					room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
-				}
-				room.close()
-			}
+			await this.closeAllSocketsForDelete()
 			// setting _room to null will prevent any further persists from going through
 			this._room = null
+			// The cached storage handle points at SQLite that deleteAll() drops below.
+			this._storage = null
 			// delete should be handled by the delete endpoint now
 
 			// A row from a partially-created file can lack a publishedSlug; there are no
@@ -2820,21 +3157,20 @@ export class TLFileDurableObject extends DurableObject {
 					isApp: true,
 				})
 
-				const publishedHistory = await listAllObjectKeys(
-					this.env.ROOM_SNAPSHOTS,
-					publishedPrefixKey
-				)
-				if (publishedHistory.length > 0) {
-					await this.env.ROOM_SNAPSHOTS.delete(publishedHistory)
-				}
+				await deleteAllObjectsWithPrefix(this.env.ROOM_SNAPSHOTS, publishedPrefixKey)
 			}
 
 			// remove edit history
 			const r2Key = getR2KeyForRoom({ slug: id, isApp: true })
-			const editHistory = await listAllObjectKeys(this.env.ROOMS_HISTORY_EPHEMERAL, r2Key)
-			if (editHistory.length > 0) {
-				await this.env.ROOMS_HISTORY_EPHEMERAL.delete(editHistory)
-			}
+			// Each list page and delete batch is its own queued operation: the sweep runs both
+			// buckets concurrently, and unqueued beside two asset copies that is the whole
+			// six-connection budget.
+			await deleteAllVersions({
+				chainBucket: this.env.ROOMS_HISTORY,
+				legacyBucket: this.env.ROOMS_HISTORY_EPHEMERAL,
+				roomKey: r2Key,
+				schedule: (op) => this.addR2Operation('version_chain_delete', op),
+			})
 
 			// remove main file
 			await this.env.ROOMS.delete(r2Key)
@@ -2849,8 +3185,11 @@ export class TLFileDurableObject extends DurableObject {
 			// and their bucket has an expiration rule.
 			await deleteBoardThumbnails(this.env, { fileId: id, publishedSlug })
 
-			// finally clear storage so we don't keep the data around
-			this.ctx.storage.deleteAll()
+			// finally clear storage so we don't keep the data around. deleteAll() leaves alarms
+			// alone, and a pending og-render alarm would fire on an object whose documentInfo it
+			// just erased.
+			await this.ctx.storage.deleteAlarm()
+			await this.ctx.storage.deleteAll()
 		})
 	}
 
@@ -2984,6 +3323,19 @@ export class TLFileDurableObject extends DurableObject {
 				this.log.debug('closeAllSessions: room failed to boot, falling back to raw closes', e)
 			}
 		}
+		this.closeSockets(sockets, room, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+		return { closedSockets: sockets.length }
+	}
+
+	/**
+	 * Reject every socket the object holds with `reason`. Sockets the room never saw (mid-handshake,
+	 * room not booted) get a raw close with the same terminal code; closing twice is a no-op.
+	 */
+	private closeSockets(
+		sockets: WebSocket[],
+		room: TLSocketRoom<TLRecord, SessionMeta> | null,
+		reason: TLSyncErrorCloseEventReason
+	) {
 		for (const ws of sockets) {
 			const attachment = this.getSocketAttachment(ws)
 			const sessionId = attachment?.sessionId
@@ -3004,53 +3356,54 @@ export class TLFileDurableObject extends DurableObject {
 				ws.serializeAttachment({ ...attachment, snapshot: undefined })
 			}
 			if (room && sessionId) {
-				room.closeSession(sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+				room.closeSession(sessionId, reason)
 			}
-			// Backstop for sockets the room never saw (mid-handshake, or the room didn't boot):
-			// close directly with the same terminal code. Closing twice is a no-op.
 			try {
-				ws.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+				ws.close(TLSyncErrorCloseEventCode, reason)
 			} catch {
 				// an already-closed socket is fine
 			}
 		}
-		return { closedSockets: sockets.length }
+	}
+
+	// Uses the room only if it is already loaded: booting one here would read storage the delete
+	// is about to wipe.
+	private async closeAllSocketsForDelete() {
+		const room = this._room ? await this._room.catch(() => null) : null
+		this.closeSockets(this.ctx.getWebSockets(), room, TLSyncErrorCloseEventReason.NOT_FOUND)
+		room?.close()
 	}
 
 	async __admin__hardDeleteIfLegacy() {
 		if (!this._documentInfo || this.documentInfo.deleted || this.documentInfo.isApp) return false
-		this.setDocumentInfo({
-			version: CURRENT_DOCUMENT_INFO_VERSION,
-			slug: this.documentInfo.slug,
-			isApp: false,
-			deleted: true,
+		this.setDocumentInfo({ slug: this.documentInfo.slug, isApp: false, deleted: true })
+		// Queued so an in-flight persist finishes before the R2 deletes rather than re-uploading
+		// the snapshot after them.
+		await this.executionQueue.push(async () => {
+			await this.closeAllSocketsForDelete()
+			// Without this the closing sessions' last-out persist re-uploads the snapshot to the keys
+			// deleted below.
+			this._room = null
+			const slug = this.documentInfo.slug
+			const roomKey = getR2KeyForRoom({ slug, isApp: false })
+
+			// remove edit history
+			await deleteAllVersions({
+				chainBucket: this.env.ROOMS_HISTORY,
+				legacyBucket: this.env.ROOMS_HISTORY_EPHEMERAL,
+				roomKey,
+				schedule: (op) => this.addR2Operation('version_chain_delete', op),
+			})
+
+			// remove main file
+			await this.env.ROOMS.delete(roomKey)
 		})
-		if (this._room) {
-			const room = await this.getRoom()
-			room.close()
-		}
-		const slug = this.documentInfo.slug
-		const roomKey = getR2KeyForRoom({ slug, isApp: false })
-
-		// remove edit history
-		const editHistory = await listAllObjectKeys(this.env.ROOMS_HISTORY_EPHEMERAL, roomKey)
-		if (editHistory.length > 0) {
-			await this.env.ROOMS_HISTORY_EPHEMERAL.delete(editHistory)
-		}
-
-		// remove main file
-		await this.env.ROOMS.delete(roomKey)
 
 		return true
 	}
 
 	async __admin__createLegacyRoom(id: string) {
-		this.setDocumentInfo({
-			version: CURRENT_DOCUMENT_INFO_VERSION,
-			slug: id,
-			isApp: false,
-			deleted: false,
-		})
+		this.setDocumentInfo({ slug: id, isApp: false, deleted: false })
 		const key = getR2KeyForRoom({ slug: id, isApp: false })
 		await this.r2.rooms.put(key, JSON.stringify(DEFAULT_INITIAL_SNAPSHOT))
 		await this.getRoom()

@@ -253,6 +253,12 @@
       "value": " comentou no seu fórum"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Não foi possível enviar o feedback."
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -269,6 +275,12 @@
     {
       "type": 0,
       "value": "Procurar..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Por favor, tente novamente."
     }
   ],
   "2de510be71": [
@@ -497,6 +509,12 @@
     {
       "type": 0,
       "value": " não lido"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Não foi possível restaurar seu desenho local. Tente recarregar esta página."
     }
   ],
   "554a05155c": [
@@ -1068,6 +1086,12 @@
     {
       "type": 0,
       "value": "Excluir arquivo"
+    }
+  ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Parece que você está offline. Verifique sua conexão e tente novamente."
     }
   ],
   "9ccb565b86": [
