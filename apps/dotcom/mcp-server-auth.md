@@ -96,7 +96,7 @@ Cons: we operate an authorization server — a KV namespace, grant storage, toke
 
 The tools used to resolve a board through `resolveSharedBoardById`, which tried it as an anonymously-shared file and then as a published board. Both paths applied a **public-viewability** gate: published boards must be `published`, shared files must pass `isFileAnonymouslyViewable` (exists, not deleted, `shared` via link). The caller was irrelevant to that decision — the same board resolved the same way for everyone.
 
-That is now `resolveSharedBoardForUser`, and the gate is "can **this user** see this board": the user owns the file (`file.ownerId`), the file belongs to a group they can access (`getRole` + `can(role, 'accessFiles')`), or it is shared via link. That is `requireWriteAccessToFile` in `getAuth.ts` minus the `sharedLinkType === 'edit'` requirement; there was no read-access equivalent in the codebase, so `hasReadAccessToFile` was written next to it rather than inlined here.
+That is now `resolveSharedBoardForUser`, and the gate is "can **this user** see this board": the file belongs to a group they can access (`getRole` + `can(role, 'accessFiles')`), or it is shared via link. That is `requireWriteAccessToFile` in `getAuth.ts` minus the `sharedLinkType === 'edit'` requirement; there was no read-access equivalent in the codebase, so `hasReadAccessToFile` was written next to it rather than inlined here.
 
 ### The scope question this raised
 
