@@ -3,6 +3,7 @@ import { TLEditorSnapshot } from 'tldraw'
 import { WhiteboardImage } from '../components/WhiteboardModal'
 
 interface OpenWhiteboard {
+	imageEditor?: boolean
 	snapshot?: TLEditorSnapshot
 	id?: string
 	uploadedFile?: File
@@ -61,10 +62,10 @@ function chatInputReducer(state: ChatInputState, action: ChatInputAction): ChatI
 		case 'clear':
 			return initialState
 		case 'openWhiteboard': {
-			const { snapshot, id, uploadedFile, imageName } = action
+			const { snapshot, id, uploadedFile, imageName, imageEditor } = action
 			return {
 				...state,
-				openWhiteboard: { snapshot, id, uploadedFile, imageName },
+				openWhiteboard: { snapshot, id, uploadedFile, imageName, imageEditor },
 				isDragging: false,
 			}
 		}

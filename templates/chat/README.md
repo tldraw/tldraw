@@ -38,7 +38,8 @@ OPENAI_API_KEY=your_openai_api_key_here
 ```
 
 Get your API key from the [OpenAI dashboard](https://platform.openai.com/api-keys).
-Chat uses the OpenAI Responses API with `gpt-5.6-terra` by default. Set `OPENAI_MODEL` to use another model that supports image inputs.
+Chat uses the OpenAI Responses API with `gpt-5.6-terra` by default. Set `OPENAI_MODEL` to use another model that supports image inputs and the OpenAI image generation tool.
+Ask the chat to generate an image, or send `/random-cat` to generate a cat picture. Click response images to open the image editor, then choose Markup to annotate them. Image generation requires access to OpenAI’s image generation tool.
 Sketches and images are uploaded to OpenAI separately and expire after 24 hours; the original images and editable sketches remain in local chat history.
 You can also switch to a different provider using the [Vercel AI SDK](https://ai-sdk.dev/providers/ai-sdk-providers).
 

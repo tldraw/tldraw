@@ -1,10 +1,11 @@
 import { getLiveCommentThreads, useCommentingEnabled } from '@tldraw/commenting'
 import { CSSProperties, RefObject, useRef, useState } from 'react'
-import { Editor, GeoShapeGeoStyle, TLShape, useEditor, useValue } from 'tldraw'
+import { Editor, GeoShapeGeoStyle, TLShape, useEditor, useTools, useValue } from 'tldraw'
 import { WhiteboardStyleMenus } from './WhiteboardStyleMenus'
 import { supportsWhiteboardPen, whiteboardColors, WhiteboardPen } from './whiteboardTheme'
 
 interface WhiteboardControlsProps {
+	imageEditor?: boolean
 	pen: RefObject<WhiteboardPen>
 	onCancel: () => void
 	onAccept: () => void
@@ -47,6 +48,13 @@ const icons = {
 		<path d="M10.651 2.155a3.17 3.17 0 0 1 1.957 0c.402.13.745.362 1.095.659.344.292.738.687 1.225 1.174l1.01 1.01c.487.487.882.88 1.174 1.224.297.35.528.694.66 1.096.206.635.206 1.32 0 1.956-.132.402-.363.745-.66 1.096-.292.344-.687.737-1.174 1.224l-4.344 4.344c-.487.487-.88.882-1.224 1.174-.35.297-.694.528-1.096.66a3.17 3.17 0 0 1-1.956 0c-.402-.132-.746-.363-1.096-.66-.344-.292-.737-.687-1.224-1.174l-1.01-1.01c-.487-.487-.882-.881-1.174-1.225-.297-.35-.528-.693-.66-1.095a3.17 3.17 0 0 1 0-1.957c.132-.402.363-.745.66-1.095.292-.344.687-.738 1.174-1.225L8.33 3.988c.487-.487.88-.882 1.225-1.174.35-.297.693-.528 1.095-.66M4.928 9.27c-.502.503-.851.852-1.1 1.146-.244.287-.354.477-.408.645-.12.369-.12.766 0 1.135.054.168.164.358.408.645.249.294.598.643 1.1 1.146l1.01 1.01c.503.502.852.851 1.146 1.1.287.244.477.353.645.407.369.12.765.12 1.134 0 .169-.054.359-.163.646-.407.294-.249.642-.598 1.145-1.1l.034-.036-5.726-5.726zm7.269-5.851a1.84 1.84 0 0 0-1.135 0c-.168.054-.358.164-.645.408-.294.249-.643.598-1.146 1.1L5.903 8.295l5.726 5.726 3.369-3.367c.502-.503.851-.851 1.1-1.145.244-.287.353-.477.407-.646.12-.369.12-.765 0-1.134-.054-.168-.163-.358-.407-.645-.249-.294-.598-.643-1.1-1.146l-1.01-1.01c-.503-.502-.852-.851-1.146-1.1-.287-.244-.477-.354-.645-.408" />
 	),
 	close: <path d="m5 5 14 14M19 5 5 19" />,
+	image: (
+		<>
+			<rect x="3" y="3" width="18" height="18" rx="2" />
+			<circle cx="8" cy="8" r="1.5" />
+			<path d="m3 17 5-5 4 4 4-6 5 7" />
+		</>
+	),
 	undo: <path d="m8 3-5 5 5 5M3 8h11a7 7 0 0 1 0 14h-3" />,
 	redo: <path d="m16 3 5 5-5 5M21 8H10a7 7 0 0 0 0 14h3" />,
 	check: <path d="m4 13 6 6L21 4" />,
@@ -54,6 +62,8 @@ const icons = {
 	ellipse: <ellipse cx="12" cy="12" rx="9" ry="7" />,
 	triangle: <path d="m12 3 10 18H2L12 3Z" />,
 	diamond: <path d="m12 2 10 10-10 10L2 12 12 2Z" />,
+	star: <path d="m12 2 3 6.5 7 1-5 5 1 7-6-3.5L6 21l1-6.5-5-5 7-1L12 2Z" />,
+	hexagon: <path d="m7 3 h10 l5 9-5 9H7l-5-9 5-9Z" />,
 	line: <path d="m4 20 16-16" />,
 	arrow: <path d="m4 20 16-16M9 4h11v11" />,
 }
@@ -139,6 +149,7 @@ function getSelectedPenShapes(editor: Editor) {
 }
 
 export function WhiteboardControls({
+	imageEditor = false,
 	pen,
 	onCancel,
 	onAccept,
@@ -146,6 +157,7 @@ export function WhiteboardControls({
 	error,
 }: WhiteboardControlsProps) {
 	const editor = useEditor()
+	const tools = useTools()
 	const commentingEnabled = useCommentingEnabled()
 	const [nextPen, setNextPen] = useState(pen.current)
 	const [showShapes, setShowShapes] = useState(false)
@@ -203,7 +215,9 @@ export function WhiteboardControls({
 		editor.focus()
 	}
 
-	function chooseShape(shape: 'rectangle' | 'ellipse' | 'triangle' | 'diamond' | 'line' | 'arrow') {
+	function chooseShape(
+		shape: 'rectangle' | 'ellipse' | 'triangle' | 'diamond' | 'star' | 'hexagon' | 'line' | 'arrow'
+	) {
 		if (shape === 'line' || shape === 'arrow') chooseTool(shape)
 		else {
 			editor.setStyleForNextShapes(GeoShapeGeoStyle, shape)
@@ -224,7 +238,7 @@ export function WhiteboardControls({
 			}}
 		>
 			<IconButton
-				label="Cancel sketch"
+				label={imageEditor ? 'Back to image editing' : 'Cancel sketch'}
 				icon="close"
 				onClick={onCancel}
 				className="whiteboard-close"
@@ -271,19 +285,36 @@ export function WhiteboardControls({
 					/>
 					{showShapes && (
 						<div className="whiteboard-shape-picker" role="group" aria-label="Choose a shape">
-							{(['rectangle', 'ellipse', 'triangle', 'diamond', 'line', 'arrow'] as const).map(
-								(shape) => (
-									<IconButton
-										key={shape}
-										label={shape[0].toUpperCase() + shape.slice(1)}
-										icon={shape}
-										onClick={() => chooseShape(shape)}
-									/>
-								)
-							)}
+							{(
+								[
+									'rectangle',
+									'ellipse',
+									'triangle',
+									'diamond',
+									'star',
+									'hexagon',
+									'line',
+									'arrow',
+								] as const
+							).map((shape) => (
+								<IconButton
+									key={shape}
+									label={shape[0].toUpperCase() + shape.slice(1)}
+									icon={shape}
+									onClick={() => chooseShape(shape)}
+								/>
+							))}
 						</div>
 					)}
 				</div>
+				<IconButton
+					label="Upload image or media"
+					icon="image"
+					onClick={() => {
+						setShowShapes(false)
+						tools.asset.onSelect('toolbar')
+					}}
+				/>
 				<IconButton
 					label="Eraser"
 					icon="eraser"
@@ -371,7 +402,7 @@ export function WhiteboardControls({
 				</p>
 			)}
 			<IconButton
-				label={isSaving ? 'Attaching sketch' : 'Attach sketch'}
+				label={imageEditor ? 'Done with markup' : isSaving ? 'Attaching sketch' : 'Attach sketch'}
 				icon="check"
 				className="whiteboard-accept"
 				disabled={!state.hasContent || isSaving}

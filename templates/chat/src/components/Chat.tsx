@@ -107,8 +107,6 @@ function ChatInner({
 		scrollToBottom()
 	}, [chat.messages, scrollToBottom])
 
-	// when the user clicks on an image from chat history, we open the tldraw modal. here they can
-	// see a larger version of the image, but also annotate it and re-add it to the chat.
 	const handleImageClick = useCallback(
 		(opts: ImageClickTarget) => chatInputDispatch({ type: 'openWhiteboard', ...opts }),
 		[chatInputDispatch]

@@ -11,7 +11,7 @@ const composerItems: {
 	icon: ComposerIconName
 	label: string
 	description: string
-	action?: 'upload' | 'sketch'
+	action?: 'upload' | 'sketch' | 'image'
 }[] = [
 	{
 		icon: 'attachment',
@@ -24,7 +24,7 @@ const composerItems: {
 		label: 'Add from library',
 		description: 'Browse and search your files, including Google Drive',
 	},
-	{ icon: 'image', label: 'Create image', description: 'Visualize anything' },
+	{ icon: 'image', label: 'Create image', description: 'Visualize anything', action: 'image' },
 	{ icon: 'web', label: 'Web search', description: 'Find real-time news and info' },
 	{ icon: 'research', label: 'Deep research', description: 'Get a detailed report' },
 	{ icon: 'sketch', label: 'Sketch', description: 'Draw and attach an image', action: 'sketch' },
@@ -71,7 +71,10 @@ export function ChatInput({
 			setCaret(start)
 		}
 		closeMenu()
-		if (item.action === 'sketch') dispatch({ type: 'openWhiteboard' })
+		if (item.action === 'image') {
+			dispatch({ type: 'setInput', input: 'Create an image of ' })
+			textareaRef.current?.focus()
+		} else if (item.action === 'sketch') dispatch({ type: 'openWhiteboard' })
 		else handleImageUpload()
 	}
 
@@ -314,6 +317,9 @@ export function ChatInput({
 				{openWhiteboard && (
 					<WhiteboardModal
 						imageId={openWhiteboard.id}
+						imageEditor={openWhiteboard.imageEditor}
+						onSendMessage={onSendMessage}
+						waitingForResponse={waitingForResponse}
 						initialSnapshot={openWhiteboard.snapshot}
 						uploadedFile={openWhiteboard.uploadedFile}
 						imageName={openWhiteboard.imageName}
