@@ -39,6 +39,7 @@ describe('TldrawApp.preload', () => {
 	afterEach(() => {
 		vi.useRealTimers()
 		vi.unstubAllGlobals()
+		vi.restoreAllMocks()
 	})
 
 	it.each([undefined, { id: 'user:test' }])(
@@ -95,7 +96,7 @@ describe('TldrawApp.preload', () => {
 
 		expect(rejected).toHaveBeenCalledWith(
 			expect.objectContaining({
-				message: `Timed out waiting for the ${stage} after init (zero connecting)`,
+				message: `Timed out waiting for the ${stage} after init`,
 			})
 		)
 	})
@@ -120,7 +121,7 @@ describe('TldrawApp.preload', () => {
 		)
 	})
 
-	it('only counts visible time against the deadline', async () => {
+	it('only counts visible time and restarts the deadline on return from hidden', async () => {
 		vi.mocked(fetch).mockResolvedValue({ ok: true } as Response)
 		const rejected = vi.fn()
 		visibilityState = 'hidden'
@@ -130,19 +131,36 @@ describe('TldrawApp.preload', () => {
 		expect(rejected).not.toHaveBeenCalled()
 
 		setVisibility('visible')
-		await vi.advanceTimersByTimeAsync(10_000)
+		await vi.advanceTimersByTimeAsync(29_000)
 		setVisibility('hidden')
 		await vi.advanceTimersByTimeAsync(60_000)
 		expect(rejected).not.toHaveBeenCalled()
 
 		setVisibility('visible')
-		await vi.advanceTimersByTimeAsync(19_999)
+		await vi.advanceTimersByTimeAsync(29_999)
 		expect(rejected).not.toHaveBeenCalled()
 		await vi.advanceTimersByTimeAsync(1)
 
 		expect(rejected.mock.calls[0][0].diagnostics).toEqual(
 			expect.objectContaining({ hiddenMs: 120_000, visibilityState: 'visible' })
 		)
+		expect(vi.getTimerCount()).toBe(0)
+	})
+
+	it('settles without diagnostics when the caller aborts a hidden bootstrap', async () => {
+		vi.mocked(fetch).mockResolvedValue({ ok: true } as Response)
+		const rejected = vi.fn()
+		const abort = new AbortController()
+		visibilityState = 'hidden'
+		void createAppStub().preload(abort.signal).catch(rejected)
+
+		await vi.advanceTimersByTimeAsync(60_000)
+		expect(rejected).not.toHaveBeenCalled()
+		abort.abort()
+		await vi.advanceTimersByTimeAsync(0)
+
+		expect(rejected).toHaveBeenCalledWith(expect.objectContaining({ name: 'AbortError' }))
+		expect(rejected.mock.calls[0][0].diagnostics).toBeUndefined()
 		expect(vi.getTimerCount()).toBe(0)
 	})
 
@@ -153,28 +171,49 @@ describe('TldrawApp.preload', () => {
 })
 
 describe('ZeroLogBuffer', () => {
+	afterEach(() => {
+		vi.restoreAllMocks()
+	})
+
 	it('keeps the most recent lines and forwards warnings and errors to the console', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
 		const buffer = new ZeroLogBuffer()
 
-		for (let i = 0; i < 70; i++) buffer.log('info', undefined, `line ${i}`)
+		for (let i = 0; i < 50; i++) buffer.log('info', undefined, `line ${i}`)
 		buffer.log('warn', { wsid: 'w1' }, 'slow', { ms: 12 })
 		buffer.log(
 			'error',
 			undefined,
-			Object.assign(new Error('boom'), { kind: 'TransformFailed', errorBody: { status: 401 } })
+			Object.assign(new Error('boom'), {
+				kind: 'TransformFailed',
+				errorBody: { status: 401 },
+				cause: new Error('why'),
+			})
 		)
 
 		const lines = buffer.recent()
-		expect(lines).toHaveLength(60)
-		expect(lines[0]).toContain('info  line 12')
-		expect(lines.at(-2)).toContain('warn wsid=w1 slow {"ms":12}')
-		expect(lines.at(-1)).toContain(
-			'error  Error: boom {"kind":"TransformFailed","errorBody":{"status":401}}'
+		expect(lines).toHaveLength(40)
+		expect(lines[0]).toMatch(/^\+\d+ms info line 12$/)
+		expect(lines.at(-2)).toMatch(/ warn wsid=w1 slow {"ms":12}$/)
+		expect(lines.at(-1)).toMatch(
+			/ error Error: boom {"kind":"TransformFailed","errorBody":{"status":401}} \(cause: Error: why\)$/
 		)
 		expect(warn).toHaveBeenCalledWith({ wsid: 'w1' }, 'slow', { ms: 12 })
 		expect(error).toHaveBeenCalledWith(expect.any(Error))
 		expect(buffer.recent()).not.toBe(lines)
+	})
+
+	it('redacts tokens and truncates long lines', () => {
+		const buffer = new ZeroLogBuffer()
+		const jwt = 'eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VyXzEifQ.c2lnbmF0dXJl'
+		buffer.log('info', undefined, `["updateAuth",{"auth":"${jwt}"}]`)
+		buffer.log('info', undefined, 'x'.repeat(300))
+
+		const [auth, long] = buffer.recent()
+		expect(auth).toContain('"auth":"eyJ<redacted>.eyJ<redacted>.c2lnbmF0dXJl"')
+		expect(auth).not.toContain('eyJhbGci')
+		expect(long).toHaveLength(251)
+		expect(long.endsWith('…')).toBe(true)
 	})
 })

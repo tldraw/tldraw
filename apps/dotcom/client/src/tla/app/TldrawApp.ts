@@ -69,12 +69,28 @@ import { getDateFormat } from '../utils/dates'
 import { FeatureFlags } from '../utils/FeatureFlagPoller'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
-import { ZeroLogBuffer, formatLogArg } from './ZeroLogBuffer'
+import { ZeroLogBuffer, formatLogArg, redactTokens } from './ZeroLogBuffer'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
 
 const USER_PRELOAD_TIMEOUT_MS = 30_000
+
+export interface PreloadDiagnostics {
+	stage: string
+	connection: string
+	connectionReason: string | undefined
+	visibilityState: DocumentVisibilityState
+	hiddenMs: number
+	online: boolean
+	msSinceNavigation: number
+	msSinceInit: number
+	zeroLog: string[]
+}
+
+export function getPreloadDiagnostics(error: unknown): PreloadDiagnostics | undefined {
+	return (error as { diagnostics?: PreloadDiagnostics } | null)?.diagnostics
+}
 
 let appId = 0
 
@@ -381,7 +397,7 @@ export class TldrawApp {
 		}
 	}
 
-	async preload() {
+	async preload(signal?: AbortSignal) {
 		// Ensure user exists in DB before Zero can query
 		const token = await this.getToken()
 		if (!token) throw new Error('No auth token available for init')
@@ -400,44 +416,48 @@ export class TldrawApp {
 		const initReturnedAt = Date.now()
 		let hiddenMs = 0
 		const fail = () => {
-			const connection = this.z.connection.state.current
-			const error =
-				initError ??
-				new Error(`Timed out waiting for the ${stage} after init (zero ${connection.name})`)
-			// ExtraErrorData picks these up as Sentry extras.
-			Object.assign(error, {
-				diagnostics: {
-					stage,
-					connection: connection.name,
-					connectionReason: 'reason' in connection ? formatLogArg(connection.reason) : undefined,
-					visibilityState: document.visibilityState,
-					hiddenMs,
-					online: navigator.onLine,
-					msSinceNavigation: Math.round(performance.now()),
-					msSinceInit: Date.now() - initReturnedAt,
-					zeroLog: this.zeroLog.recent(),
-				},
-			})
-			timedOut.reject(error)
+			const error = initError ?? new Error(`Timed out waiting for the ${stage} after init`)
+			try {
+				const connection = this.z.connection.state.current
+				// Sentry's ExtraErrorData integration copies this onto the event.
+				Object.assign(error, {
+					diagnostics: {
+						stage,
+						connection: connection.name,
+						connectionReason:
+							'reason' in connection ? redactTokens(formatLogArg(connection.reason)) : undefined,
+						visibilityState: document.visibilityState,
+						hiddenMs,
+						online: navigator.onLine,
+						msSinceNavigation: Math.round(performance.now()),
+						msSinceInit: Date.now() - initReturnedAt,
+						zeroLog: this.zeroLog.recent(),
+					} satisfies PreloadDiagnostics,
+				})
+			} finally {
+				timedOut.reject(error)
+			}
 		}
-		// Zero never opens its socket while the tab is hidden, so a background tab (session restore,
-		// cmd-click) would burn the whole deadline before getting a chance. Only count visible time.
+		// Zero built in a hidden tab waits for visibility before connecting, so a restored or
+		// cmd-clicked tab would burn the deadline before it gets a chance. Only count visible time,
+		// and start over on return: Zero drops the socket after five minutes hidden, so whatever was
+		// left of the budget would cover a cold reconnect only by luck.
 		let remainingMs = USER_PRELOAD_TIMEOUT_MS
 		let timeout: ReturnType<typeof setTimeout> | undefined
-		let runningSince = 0
 		let hiddenSince = 0
 		const resumeDeadline = () => {
 			if (timeout !== undefined) return
-			if (hiddenSince) hiddenMs += Date.now() - hiddenSince
-			hiddenSince = 0
-			runningSince = Date.now()
+			if (hiddenSince) {
+				hiddenMs += Date.now() - hiddenSince
+				hiddenSince = 0
+				remainingMs = USER_PRELOAD_TIMEOUT_MS
+			}
 			timeout = setTimeout(fail, remainingMs)
 		}
 		const pauseDeadline = () => {
 			if (timeout === undefined) return
 			clearTimeout(timeout)
 			timeout = undefined
-			remainingMs -= Date.now() - runningSince
 			hiddenSince = Date.now()
 		}
 		const onVisibilityChange = () =>
@@ -445,6 +465,11 @@ export class TldrawApp {
 		document.addEventListener('visibilitychange', onVisibilityChange)
 		if (document.visibilityState === 'visible') resumeDeadline()
 		else hiddenSince = Date.now()
+		// A hidden tab can sit here indefinitely, so the caller needs a way to settle this and let
+		// create() dispose the half-built app when it gives up on it.
+		const onAbort = () => timedOut.reject(new DOMException('Bootstrap cancelled', 'AbortError'))
+		signal?.addEventListener('abort', onAbort)
+		if (signal?.aborted) onAbort()
 		try {
 			await Promise.race([this.z.preload(queries.user()).complete, timedOut])
 			stage = 'state flush'
@@ -456,6 +481,7 @@ export class TldrawApp {
 			})
 			await Promise.race([userLoaded, timedOut])
 		} finally {
+			signal?.removeEventListener('abort', onAbort)
 			document.removeEventListener('visibilitychange', onVisibilityChange)
 			clearTimeout(timeout)
 			stopWaiting?.()
@@ -1050,6 +1076,8 @@ export class TldrawApp {
 		onClientTooOld(): void
 		trackEvent: TLAppUiContextType
 		navigate: ReturnType<typeof useNavigate>
+		/** Settles a bootstrap the caller no longer wants, e.g. a tab that never became visible. */
+		signal?: AbortSignal
 	}) {
 		// This is an issue: we may have a user record but not in the store.
 		// Could be just old accounts since before the server had a version
@@ -1072,7 +1100,7 @@ export class TldrawApp {
 		// @ts-expect-error
 		window.app = app
 		try {
-			await app.preload()
+			await app.preload(opts.signal)
 		} catch (e) {
 			// Don't leave the half-built app's Zero connection and timers running behind the
 			// error page the caller shows for this.
