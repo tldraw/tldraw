@@ -119,7 +119,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 		const sw = (getDisplayValues(this, shape).strokeWidth + 1) * shape.props.scale
 
-		// No points yet (the default props have no segments): a dot at the origin, so geometry
+		// No decoded points (the default props have no segments): a dot at the origin, so geometry
 		// lookups don't throw on a shape created from its defaults.
 		if (points.length === 0) {
 			return new Circle2d({ x: -sw, y: -sw, radius: sw, isFilled: true })

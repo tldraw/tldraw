@@ -1,4 +1,4 @@
-import { createShapeId, TLHighlightShape } from '@tldraw/editor'
+import { Circle2d, createShapeId, TLHighlightShape } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 import { createDrawSegments, pointsToBase64 } from '../../utils/test-helpers'
 
@@ -25,6 +25,16 @@ describe('HighlightShapeUtil dot detection', () => {
 		])
 		return editor.getShape(shapeId) as TLHighlightShape
 	}
+
+	describe('empty segments', () => {
+		it('treats a shape created from its default props as a dot', () => {
+			editor.createShape({ id: shapeId, type: 'highlight' })
+			const shape = editor.getShape<TLHighlightShape>(shapeId)!
+			expect(shape.props.segments).toEqual([])
+			expect(editor.getShapeGeometry(shape)).toBeInstanceOf(Circle2d)
+			expect(editor.getShapeAtPoint({ x: 0, y: 0 })?.id).toBe(shapeId)
+		})
+	})
 
 	describe('getIsDot behavior via hideResizeHandles', () => {
 		it('treats a shape with one segment and zero points as a dot', () => {
