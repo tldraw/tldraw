@@ -65,7 +65,7 @@ Read `references/testing.md` for the suites and how to run them. Expect:
 
 - The transaction-block and filename checks pass (they run in CI without a database).
 - The migration has run against a real Postgres: the opt-in suites with `ZERO_CACHE_TEST_POSTGRES_URL` set (`effect_outbox.test.ts` applies the whole chain), and a trigger test for any function the migration defines.
-- `scripts/rehearse.sh <NNN>` output in the PR for anything that locks a hot table: which locks the migration holds and for how long, and whether a supplied concurrent transaction deadlocks it.
+- For anything that locks a hot table, a local rehearsal in the PR: which locks the migration holds during its expensive statement, and whether the app's write path that touches those tables in the opposite order deadlocks it (`references/testing.md` § Rehearsing locks and concurrency).
 - A preview deploy (`dotcom-preview-please`) if the migration is large: it runs the chain from scratch on a fresh Supabase branch.
 
 ## Deploy notes the PR body needs

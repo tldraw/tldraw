@@ -42,24 +42,24 @@ Three, chosen by what the migration SQL can be made to target:
 
 ## Rehearsing locks and concurrency
 
-`scripts/rehearse.sh` builds a scratch database from the chain up to the migration under review, applies it inside a transaction with a pause injected after a chosen statement, optionally races a concurrent transaction against it, and reports what `pg_locks` shows during the pause and whether either side deadlocked.
+Build a scratch database from the chain, run the migration inside a transaction with a pause after its lock statement, and race the app's write path against it. Ten minutes with the local dev stack; every step below is one `docker exec ... psql` call.
 
-```bash
-skills/review-migration/scripts/rehearse.sh 050
-skills/review-migration/scripts/rehearse.sh 050 --seed seed.sql --concurrent rename.sql
-skills/review-migration/scripts/rehearse.sh 050 --pause-after 'DROP TRIGGER IF EXISTS trigger_update_is_file_owner'
-skills/review-migration/scripts/rehearse.sh 051 --file /tmp/draft.sql --concurrent rename.sql
-```
+1. `CREATE DATABASE rehearse;` on the admin connection, then apply every migration below the one under review in filename order.
+2. Seed the rows the concurrent transaction needs (a `user` row for a rename, say).
+3. Copy the migration and insert `SELECT pg_sleep(3);` after the statement whose lock you want to watch: the `LOCK TABLE`, or the first `ALTER`/`DROP`. Wrap the copy in `BEGIN; SET LOCAL lock_timeout = '10s'; ... ROLLBACK;` and add, just before the sleep, a look at what is held:
 
-- `--file <file>`: run this file in place of the checked-in migration. The chain still stops at the first checked-in file numbered at or above `NNN`, so a draft can use the next free number before it exists.
-- `--seed <file>`: SQL run after the chain and before the migration, to create the rows the concurrent transaction needs.
-- `--concurrent <file>`: a transaction started 0.7s after the migration begins, while it is paused. Write it as the app would: `BEGIN; UPDATE public."user" SET name = 'x' WHERE id = 'u1'; ROLLBACK;`.
-- `--pause-after <regex>`: which statement to pause after. Default: the first `LOCK TABLE`, else the first `ALTER`/`DROP`.
-- `--url <postgres url>`: default is the local dev stack.
+   ```sql
+   SELECT c.relname, l.mode FROM pg_locks l JOIN pg_class c ON c.oid = l.relation
+   WHERE l.pid = pg_backend_pid() AND l.locktype = 'relation' AND c.relnamespace = 'public'::regnamespace
+     AND l.mode <> 'AccessShareLock';
+   ```
 
-The migration is rolled back at the end and the scratch database dropped. Read the output for `AccessExclusiveLock` rows against tables the migration should not be holding at that point, and for `deadlock detected` on either side. A deadlock here is a deadlock in production; no deadlock here is only evidence against writers, not readers (see `locks.md`).
+4. Start the copy in the background; 0.7s later start the concurrent transaction, written the way the app writes: `BEGIN; UPDATE public."user" SET name = 'x' WHERE id = 'u1'; ROLLBACK;`.
+5. Read both outputs. `deadlock detected` on either side is a deadlock in production. Locks held against tables the migration should not be holding at that point mean the statement order is wrong. `DROP DATABASE rehearse;` when done.
 
-To pick the concurrent transaction: look at the triggers on the tables the migration locks and at the mutators, and write the write path that touches those tables in the opposite order to the migration. For 050 that was a user rename, because a trigger on `user` wrote `file`.
+To pick the concurrent transaction: look at the triggers on the tables the migration locks and at the mutators, and write the write path that touches those tables in the opposite order to the migration. For 050 that was a user rename, because a trigger on `user` wrote `file`; with the shipped ordering both sides complete, and with the `LOCK TABLE` removed and the pause between the two trigger drops the migration side reports `deadlock detected`.
+
+No deadlock here is evidence against writers, whose order is fixed by code. It says nothing about readers (see `locks.md`).
 
 ## Staging, preview, and the dry run
 

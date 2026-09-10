@@ -87,4 +87,4 @@ Migration 050 (#10591, September 2026) dropped four legacy columns across `file`
 2. Staging applied it first time. Production's dry run applied it first time. Production's real run, five seconds later, deadlocked against a reader: `Process A waits for AccessExclusiveLock on relation X; Process B waits for AccessShareLock on relation Y`. The deploy aborted with nothing else rolled.
 3. `gh run rerun --failed` applied it in about nine seconds. One `schema-change` pipeline reset per client group, connected clients level through the deploy.
 
-`scripts/rehearse.sh` is the local reproduction of step 1, generalised.
+Step 1 is reproducible locally in a few minutes; `testing.md` has the recipe.
