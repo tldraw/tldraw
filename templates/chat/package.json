@@ -29,6 +29,7 @@
 	"dependencies": {
 		"@ai-sdk/openai": "^2.0.106",
 		"@ai-sdk/react": "^2.0.15",
+		"@tldraw/commenting": "workspace:*",
 		"@types/node": "^22.15.31",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",

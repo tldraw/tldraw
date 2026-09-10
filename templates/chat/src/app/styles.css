@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 @import 'tldraw/tldraw.css';
+@import '@tldraw/commenting/commenting.css';
 
 :root {
 	color-scheme: dark;
@@ -900,11 +901,17 @@ body {
 	}
 }
 
-@container (max-width: 430px) {
+@container (max-width: 460px) {
 	.whiteboard-history {
 		top: 66px;
 		right: 10px;
 		gap: 0;
+	}
+}
+
+@container (max-width: 350px) {
+	.whiteboard-close {
+		top: 66px;
 	}
 }
 

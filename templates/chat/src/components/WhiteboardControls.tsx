@@ -1,3 +1,4 @@
+import { getLiveCommentThreads, useCommentingEnabled } from '@tldraw/commenting'
 import { CSSProperties, RefObject, useRef, useState } from 'react'
 import { Editor, GeoShapeGeoStyle, TLShape, useEditor, useValue } from 'tldraw'
 import { supportsWhiteboardPen, whiteboardColors, WhiteboardPen } from './whiteboardTheme'
@@ -14,6 +15,7 @@ const icons = {
 	select: <path d="m5 4 15 6-7 3-3 7L5 4Z" />,
 	draw: <path d="M3 14C8 8 13 2 16 4c4 3-13 15-9 16 3 1 10-10 13-9 3 1-6 10-3 10 1 0 3-2 4-3" />,
 	text: <path d="M5 7V4h14v3M12 4v16M9 20h6" />,
+	comment: <path d="M21 11.5a9 9 0 0 1-13 8L3 21l1.5-5A9 9 0 1 1 21 11.5Z" />,
 	shapes: (
 		<>
 			<path d="M17 9a7 7 0 1 0-8 8" />
@@ -113,6 +115,7 @@ export function WhiteboardControls({
 	error,
 }: WhiteboardControlsProps) {
 	const editor = useEditor()
+	const commentingEnabled = useCommentingEnabled()
 	const [nextPen, setNextPen] = useState(pen.current)
 	const [showShapes, setShowShapes] = useState(false)
 	const sliderGesture = useRef(false)
@@ -125,7 +128,8 @@ export function WhiteboardControls({
 				tool: editor.getCurrentToolId(),
 				canUndo: editor.canUndo(),
 				canRedo: editor.canRedo(),
-				hasShapes: editor.getCurrentPageShapeIds().size > 0,
+				hasContent:
+					editor.getCurrentPageShapeIds().size > 0 || getLiveCommentThreads(editor).length > 0,
 				color:
 					first && selected.every((shape) => shape.meta.strokeColor === first.meta.strokeColor)
 						? typeof first.meta.strokeColor === 'string'
@@ -213,6 +217,13 @@ export function WhiteboardControls({
 					icon="text"
 					pressed={state.tool === 'text'}
 					onClick={() => chooseTool('text')}
+				/>
+				<IconButton
+					label="Comment"
+					icon="comment"
+					pressed={state.tool === 'comment'}
+					disabled={!commentingEnabled}
+					onClick={() => chooseTool('comment')}
 				/>
 				<div
 					className="whiteboard-shapes"
@@ -327,7 +338,7 @@ export function WhiteboardControls({
 				label={isSaving ? 'Attaching sketch' : 'Attach sketch'}
 				icon="check"
 				className="whiteboard-accept"
-				disabled={!state.hasShapes || isSaving}
+				disabled={!state.hasContent || isSaving}
 				onClick={onAccept}
 			/>
 		</div>
