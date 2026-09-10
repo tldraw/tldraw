@@ -96,8 +96,8 @@ test.describe('Cancelled pointers', () => {
 		await touch(cdp, 'touchMove', [[260, 360]])
 		await touch(cdp, 'touchCancel')
 
-		await touch(cdp, 'touchStart', [[600, 500]])
-		await touch(cdp, 'touchMove', [[660, 560]])
+		await touch(cdp, 'touchStart', [[160, 480]])
+		await touch(cdp, 'touchMove', [[220, 540]])
 		await touch(cdp, 'touchEnd')
 
 		// A draw tool left in its drawing state extends the cancelled shape instead of
@@ -121,7 +121,7 @@ test.describe('Cancelled pointers', () => {
 			await pen(cdp, 'mousePressed', 300, 300)
 			await pen(cdp, 'mouseMoved', 380, 400)
 
-			await touch(cdp, 'touchStart', [[700, 800]])
+			await touch(cdp, 'touchStart', [[160, 500]])
 			await touch(cdp, 'touchCancel')
 
 			expect(await getState(page)).toMatchObject({ path: 'draw.drawing', isPointing: true })
@@ -135,10 +135,14 @@ test.describe('Cancelled pointers', () => {
 			})
 
 			// The palm is accepted while pen mode is still off, so its button is recorded;
-			// the pen then turns pen mode on before the palm is cancelled.
-			await touch(cdp, 'touchStart', [[700, 800]])
+			// the pen then turns pen mode on before the palm is cancelled. The pen press
+			// only auto-enables pen mode on a touch device (isDirectDisplayPen reads
+			// tlenv.isTouchDevice, fixed at load), and the desktop project enables touch
+			// through CDP after the page has loaded, so set it here instead.
+			await touch(cdp, 'touchStart', [[160, 500]])
 			await pen(cdp, 'mousePressed', 300, 300)
 			await pen(cdp, 'mouseMoved', 380, 400)
+			await page.evaluate(() => editor.updateInstanceState({ isPenMode: true }))
 			await touch(cdp, 'touchCancel')
 
 			expect(await getState(page)).toMatchObject({ path: 'draw.drawing', isPointing: true })
