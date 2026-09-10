@@ -340,38 +340,30 @@ body {
 	max-width: 800px;
 	margin: 0 auto;
 }
+/* the composer is a card with the text on top and the controls on their own row below it. */
 .chat-input-form {
 	display: grid;
 	grid-template-columns: auto 1fr auto;
 	grid-template-areas:
 		'images images images'
-		'attach input actions';
+		'input input input'
+		'attach . actions';
 	align-items: center;
 	column-gap: 4px;
 	background: var(--chat-surface);
 	border-radius: 28px;
-	padding: 8px;
+	padding: 12px 8px 8px;
 	position: relative;
 }
 
-/* once the text wraps or an image is attached, the composer grows into a card with the text on
-top and the controls on their own row below it. */
-.chat-input-form--expanded {
-	grid-template-areas:
-		'images images images'
-		'input input input'
-		'attach . actions';
-	padding: 12px 8px 8px;
-}
-
-/* on narrow screens there is no room for the single-row layout, so always use the expanded one. */
-@media (max-width: 600px) {
-	.chat-input-form {
+/* while the text fits on one line and nothing is attached, it collapses into a single pill-shaped
+row instead. narrow screens have no room for that, so they always use the card. */
+@media (min-width: 601px) {
+	.chat-input-form:not(.chat-input-form--expanded) {
 		grid-template-areas:
 			'images images images'
-			'input input input'
-			'attach . actions';
-		padding: 12px 8px 8px;
+			'attach input actions';
+		padding: 8px;
 	}
 }
 
