@@ -29,7 +29,7 @@ Report findings as `file:line`, what breaks, and the fix. Then check the PR body
 
 ## Zero coupling
 
-Read `references/zero.md` for how a DDL statement reaches a client and the shipping-order table. The checks:
+Zero's own schema-change rules are at https://zero.rocicorp.dev/docs/schema#schema-changes; `references/zero.md` has only what is specific to tldraw.com: our deploy order, the manual `update_schemas()` path, what we publish, and how a failure surfaces. The checks:
 
 - **Published table?** Only tables in the `zero_data` publication reach clients. A new table that clients will read needs `ALTER PUBLICATION zero_data ADD TABLE`, a primary key, and a replica identity decision (see the reference). A server-only table must not be added.
 - **Column add.** On production every column added to a published table is backfilled: Zero re-streams the whole table and the column is invisible to clients and the sync-worker until that finishes on every replica (tens of minutes on a table of a million rows). The default makes no difference here: Zero's in-place optimisation for simple defaults only works on the event-trigger path, and Supabase delivers our schema changes through the manual `update_schemas()` hook. Locally it looks instant, which is the trap. Code that reads the column ships a deploy after the backfill is confirmed done, never in the same deploy as the migration.
