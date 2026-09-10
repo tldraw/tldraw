@@ -11,6 +11,8 @@
 	--chat-text: #f5f5f5;
 	--chat-muted: #aaa;
 	--chat-link: #8ab8ff;
+	--chat-accent: #0285ff;
+	--chat-accent-hover: #0070e0;
 	background: var(--chat-background);
 }
 
@@ -186,7 +188,7 @@ body {
 }
 
 .empty-chat-title {
-	font-size: 24px;
+	font-size: 28px;
 	font-weight: 500;
 	color: var(--chat-text);
 	margin-bottom: 32px;
@@ -340,18 +342,44 @@ body {
 	margin: 0 auto;
 }
 .chat-input-form {
-	display: flex;
-	flex-direction: column;
+	display: grid;
+	grid-template-columns: auto 1fr auto;
+	grid-template-areas:
+		'images images images'
+		'attach input actions';
+	align-items: center;
+	column-gap: 4px;
 	background: var(--chat-surface);
 	border-radius: 28px;
-	padding: 12px 16px;
-	overflow: clip;
+	padding: 8px;
 	position: relative;
+}
+
+/* once the text wraps or an image is attached, the composer grows into a card with the text on
+top and the controls on their own row below it. */
+.chat-input-form--expanded {
+	grid-template-areas:
+		'images images images'
+		'input input input'
+		'attach . actions';
+	padding: 12px 8px 8px;
+}
+
+/* on narrow screens there is no room for the single-row layout, so always use the expanded one. */
+@media (max-width: 600px) {
+	.chat-input-form {
+		grid-template-areas:
+			'images images images'
+			'input input input'
+			'attach . actions';
+		padding: 12px 8px 8px;
+	}
 }
 
 .drag-drop-indicator {
 	position: absolute;
 	inset: 0;
+	border-radius: inherit;
 	background: var(--chat-surface);
 	color: var(--chat-muted);
 	display: flex;
@@ -388,13 +416,17 @@ body {
 }
 
 .input-container {
+	grid-area: input;
 	position: relative;
+	min-width: 0;
 }
+
 .input-images {
+	grid-area: images;
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
-	padding-bottom: 8px;
+	padding: 4px 8px 12px;
 }
 
 .input-image {
@@ -470,48 +502,25 @@ body {
 	}
 }
 
-.chat-input-bottom {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin: 0 -6px;
-	margin-bottom: -4px;
-}
-
 .icon-button {
 	background: none;
 	border: none;
-	padding: 12px;
-	margin: 0 -2px;
+	width: 40px;
+	height: 40px;
+	padding: 0;
 	border-radius: 50%;
 	cursor: pointer;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: #d4d4d4;
+	color: var(--chat-text);
 	position: relative;
+	flex-shrink: 0;
 }
 
 .icon-button svg {
-	width: 18px;
-	height: 18px;
-}
-
-.icon-button[type='submit'] {
-	margin-left: auto;
-}
-
-.icon-button[type='submit']:not(:disabled) {
-	background: #3b82f6;
-	color: white;
-}
-
-.icon-button[type='submit']:not(:disabled):hover {
-	background: #3b82f6;
-}
-
-.icon-button[type='submit'] svg {
-	transform: scale(1.2);
+	width: 22px;
+	height: 22px;
 }
 
 .icon-button:hover:not(:disabled) {
@@ -524,21 +533,110 @@ body {
 	cursor: default;
 }
 
+.icon-button--decorative {
+	cursor: default;
+}
+
+/* the "+" button and its attachment menu */
+.attach-menu {
+	grid-area: attach;
+	position: relative;
+}
+
+.attach-menu__popover {
+	position: absolute;
+	bottom: calc(100% + 8px);
+	left: 0;
+	min-width: 200px;
+	padding: 6px;
+	border-radius: 16px;
+	background: var(--chat-surface);
+	border: 1px solid var(--chat-border);
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+	z-index: 20;
+}
+
+.attach-menu__item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	padding: 8px 10px;
+	border: none;
+	border-radius: 10px;
+	background: none;
+	color: var(--chat-text);
+	font: inherit;
+	font-size: 14px;
+	text-align: left;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.attach-menu__item svg {
+	width: 18px;
+	height: 18px;
+	flex-shrink: 0;
+}
+
+.attach-menu__item:hover {
+	background: var(--chat-hover);
+}
+
+/* the controls to the right of the input */
+.chat-input-actions {
+	grid-area: actions;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.model-picker {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	height: 40px;
+	padding: 0 6px 0 10px;
+	border-radius: 20px;
+	color: var(--chat-muted);
+	font-size: 14px;
+	white-space: nowrap;
+	cursor: default;
+}
+
+.model-picker:hover {
+	background: var(--chat-hover);
+}
+
+.send-button {
+	background: var(--chat-accent);
+	color: white;
+}
+
+.send-button:hover:not(:disabled) {
+	background: var(--chat-accent-hover);
+}
+
+.send-button svg {
+	width: 24px;
+	height: 24px;
+}
+
 .chat-input {
 	color: var(--chat-text);
 	caret-color: var(--chat-text);
+	display: block;
 	width: 100%;
-	margin-top: 4px;
-	padding: 0 4px;
+	padding: 0 8px;
 	border: none;
 	background: transparent;
-	font-size: 14px;
+	font-size: 16px;
 	outline: none;
 	resize: none;
 	font-family: inherit;
-	line-height: 1.5;
+	line-height: 24px;
 	min-height: 24px;
-	max-height: 5lh;
+	max-height: 8lh;
 	overflow-y: auto;
 }
 
@@ -549,7 +647,7 @@ body {
 .input-spinner {
 	position: absolute;
 	top: 50%;
-	left: 4px;
+	left: 8px;
 	transform: translateY(-50%);
 	display: flex;
 	align-items: center;
@@ -569,6 +667,7 @@ body {
 }
 
 .icon-button:focus-visible,
+.attach-menu__item:focus-visible,
 .input-image-edit:focus-visible,
 .input-image-remove:focus-visible {
 	outline: 2px solid var(--chat-link);
