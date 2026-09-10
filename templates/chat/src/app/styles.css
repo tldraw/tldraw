@@ -1601,3 +1601,38 @@ textarea {
 		height: 20px;
 	}
 }
+
+.image-context-menu {
+	position: fixed;
+	z-index: 10000;
+	padding: 4px;
+	min-width: 140px;
+	background: white;
+	color: #0d0d0d;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	box-shadow: 0 4px 16px #0002;
+}
+.image-context-menu button {
+	width: 100%;
+	padding: 8px 12px;
+	background: none;
+	border: none;
+	border-radius: 4px;
+	text-align: left;
+	cursor: pointer;
+}
+.image-context-menu button:hover,
+.image-context-menu button:focus {
+	background: #eee;
+}
+.layerize-notice {
+	position: absolute;
+	top: 16px;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 500;
+	background: white;
+	padding: 8px 16px;
+	border-radius: 8px;
+}

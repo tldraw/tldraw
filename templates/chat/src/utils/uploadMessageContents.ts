@@ -19,8 +19,17 @@ export async function uploadMessageContents(messages: UIMessage[]) {
 	for (const message of messages) {
 		const partsToSend = []
 		const partsToSave = []
+		const comments: string[] = []
+		let imageIndex = 0
 
 		for (const part of message.parts) {
+			if (part.type === 'file' && part.mediaType.startsWith('image/')) {
+				imageIndex++
+				const metadata = part.providerMetadata?.tldraw
+				if (metadata && typeof metadata.comments === 'string' && metadata.comments.trim()) {
+					comments.push(`Comments on attached image ${imageIndex}:\n${metadata.comments}`)
+				}
+			}
 			if (part.type === 'file' && part.url.startsWith('data:')) {
 				const metadata = getUploadedMetadata(part)
 				if (metadata) {
@@ -71,6 +80,9 @@ export async function uploadMessageContents(messages: UIMessage[]) {
 				partsToSave.push(part)
 			}
 		}
+
+		// Comments are model context, while the visible conversation keeps only the user's prompt.
+		if (comments.length) partsToSend.push({ type: 'text' as const, text: comments.join('\n\n') })
 
 		messagesToSend.push({
 			...message,

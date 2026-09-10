@@ -1,11 +1,13 @@
 import { type UIMessage } from '@ai-sdk/react'
-import { memo, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import ReactMarkdown from 'react-markdown'
 import { FileHelpers } from 'tldraw'
 import { ComposerIcon } from './ComposerIcon'
 import { TldrawProviderMetadata } from './WhiteboardModal'
 
 export type ImageClickTarget = (TldrawProviderMetadata | { uploadedFile: File }) & {
+	layerize?: boolean
 	imageEditor?: boolean
 	imageName?: string
 }
@@ -157,17 +159,38 @@ function MessageImage({
 	const [isOpening, setIsOpening] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 
-	async function openImage() {
+	const [menu, setMenu] = useState<{ x: number; y: number } | null>(null)
+	useEffect(() => {
+		if (!menu) return
+		const dismiss = () => setMenu(null)
+		const keydown = (event: KeyboardEvent) => {
+			if (event.key === 'Escape') dismiss()
+		}
+		window.addEventListener('pointerdown', dismiss)
+		window.addEventListener('keydown', keydown)
+		window.addEventListener('scroll', dismiss, true)
+		return () => {
+			window.removeEventListener('pointerdown', dismiss)
+			window.removeEventListener('keydown', keydown)
+			window.removeEventListener('scroll', dismiss, true)
+		}
+	}, [menu])
+	async function openImage(layerize = false) {
 		if (isOpening) return
 		setIsOpening(true)
 		setError(null)
 		try {
-			if (metadata) {
+			if (metadata && !layerize) {
 				onImageClick({ ...metadata, imageEditor })
 			} else {
 				const blob = await FileHelpers.urlToBlob(src)
 				const file = new File([blob], filename, { type: blob.type })
-				onImageClick({ uploadedFile: file, imageName: file.name, imageEditor })
+				onImageClick({
+					uploadedFile: file,
+					imageName: file.name,
+					imageEditor: imageEditor || layerize,
+					layerize,
+				})
 			}
 		} catch {
 			setError(
@@ -186,6 +209,13 @@ function MessageImage({
 				disabled={isOpening}
 				className="message message-image message-image-clickable"
 				onClick={() => void openImage()}
+				onContextMenu={(event) => {
+					event.preventDefault()
+					setMenu({
+						x: Math.min(event.clientX, window.innerWidth - 150),
+						y: Math.min(event.clientY, window.innerHeight - 50),
+					})
+				}}
 				type="button"
 			>
 				{(imageEditor || isOpening) && (
@@ -193,6 +223,28 @@ function MessageImage({
 				)}
 				<img src={src} alt={alt} className="message-image-content" />
 			</button>
+			{menu &&
+				createPortal(
+					<div
+						role="menu"
+						className="image-context-menu"
+						style={{ left: menu.x, top: menu.y }}
+						onPointerDown={(event) => event.stopPropagation()}
+					>
+						<button
+							type="button"
+							role="menuitem"
+							autoFocus
+							onClick={() => {
+								setMenu(null)
+								void openImage(true)
+							}}
+						>
+							Layerize
+						</button>
+					</div>,
+					document.body
+				)}
 			{error && <span role="alert">{error}</span>}
 		</>
 	)

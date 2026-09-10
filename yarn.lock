@@ -3329,6 +3329,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fal-ai/client@npm:^1.10.1":
+  version: 1.10.1
+  resolution: "@fal-ai/client@npm:1.10.1"
+  dependencies:
+    "@msgpack/msgpack": "npm:^3.0.0-beta2"
+    eventsource-parser: "npm:^1.1.2"
+    robot3: "npm:^0.4.1"
+  checksum: 10/be254f56dcd8b5c08852b3acc22f387b2fbf91ef5a53dee51866877ccb304e9a60ee5b775bf94bdcc8003a9f24e02d1e129212260083a481c00fa31f6c40efa1
+  languageName: node
+  linkType: hard
+
 "@fastify/ajv-compiler@npm:^4.0.5":
   version: 4.0.5
   resolution: "@fastify/ajv-compiler@npm:4.0.5"
@@ -5177,6 +5188,13 @@ __metadata:
     zod:
       optional: false
   checksum: 10/ff551b97e06b661f95fec8fd34e112c446e69894a84a9979cdac369fb5de27f0a1a5c1f4e2a1f270cc60f93e54c28a8059a94ca51c3d528d2670ade874b244f9
+  languageName: node
+  linkType: hard
+
+"@msgpack/msgpack@npm:^3.0.0-beta2":
+  version: 3.1.3
+  resolution: "@msgpack/msgpack@npm:3.1.3"
+  checksum: 10/cf597b7ed1fcedc2101b145885e7da591c5ed8aeba3a2579b99da8dd15ef13595c807f64f052da0a0dd74704097f6299fc2e2fb4165029a60a1d1df3843c03ce
   languageName: node
   linkType: hard
 
@@ -20230,6 +20248,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"eventsource-parser@npm:^1.1.2":
+  version: 1.1.2
+  resolution: "eventsource-parser@npm:1.1.2"
+  checksum: 10/14e94997dff896fb7bc85b29e89d6a62e747650d905b006249bcf48ba13efcbf3ee2b67948f4fa2638836b5a77ea079e25e941c0e41a720323e7867b1ebdda14
+  languageName: node
+  linkType: hard
+
 "eventsource-parser@npm:^3.0.0, eventsource-parser@npm:^3.0.1, eventsource-parser@npm:^3.0.3, eventsource-parser@npm:^3.0.6":
   version: 3.0.6
   resolution: "eventsource-parser@npm:3.0.6"
@@ -29571,6 +29596,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"robot3@npm:^0.4.1":
+  version: 0.4.1
+  resolution: "robot3@npm:0.4.1"
+  checksum: 10/bab48cf0be9c26caeca0bb11a0c7abac813db67dd76c406cfd9ac828562c1cf504ce3775f87b157eb33ac62cda4763421513ecc6f2780266d19cc0f9590eb3bf
+  languageName: node
+  linkType: hard
+
 "robust-predicates@npm:^3.0.2":
   version: 3.0.2
   resolution: "robust-predicates@npm:3.0.2"
@@ -31736,6 +31768,7 @@ __metadata:
   dependencies:
     "@ai-sdk/openai": "npm:^2.0.106"
     "@ai-sdk/react": "npm:^2.0.15"
+    "@fal-ai/client": "npm:^1.10.1"
     "@tldraw/commenting": "workspace:*"
     "@types/node": "npm:^22.15.31"
     "@types/react": "npm:^19.2.7"

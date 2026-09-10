@@ -44,6 +44,8 @@ Ask the chat to generate an image, or send `/random-cat` to generate a cat pictu
 Sketches and images are uploaded to OpenAI separately and expire after 24 hours; the original images and editable sketches remain in local chat history.
 You can also switch to a different provider using the [Vercel AI SDK](https://ai-sdk.dev/providers/ai-sdk-providers).
 
+Set `FAL_KEY` in the server environment to enable Layerize through [FAL Seedream](https://fal.ai/models/bytedance/seedream/v5/pro/layerize). Right-click an image in chat or on the canvas and choose Layerize. Once every layer has downloaded, the canvas replaces the original with separate image shapes in one undo step. The key stays on the server.
+
 Commenting is available in local development. For a deployed app, set `NEXT_PUBLIC_TLDRAW_LICENSE_KEY` to a tldraw license key that includes commenting.
 
 ## File structure

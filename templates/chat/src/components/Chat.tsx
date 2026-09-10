@@ -80,6 +80,7 @@ function ChatInner({
 
 			const parts: (TextUIPart | FileUIPart)[] = images.map((image): FileUIPart => {
 				const tldrawMetadata: TldrawProviderMetadata = {
+					comments: image.comments,
 					snapshot: image.snapshot,
 					imageName: image.name,
 				}

@@ -318,6 +318,7 @@ export function ChatInput({
 					<WhiteboardModal
 						imageId={openWhiteboard.id}
 						imageEditor={openWhiteboard.imageEditor}
+						layerize={openWhiteboard.layerize}
 						onSendMessage={onSendMessage}
 						waitingForResponse={waitingForResponse}
 						initialSnapshot={openWhiteboard.snapshot}

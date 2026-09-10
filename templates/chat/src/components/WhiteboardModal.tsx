@@ -25,10 +25,12 @@ import {
 	useTranslation,
 	useValue,
 } from 'tldraw'
+import { getWhiteboardComments } from '../utils/getWhiteboardComments'
 import { ComposerIcon } from './ComposerIcon'
 import { ExtractLassoOverlayUtil, ExtractTool, extractToolOverrides } from './ExtractTool'
 import { SendIcon } from './icons/SendIcon'
 import { XIcon } from './icons/XIcon'
+import { LayerizeContext, WhiteboardContextMenu } from './WhiteboardContextMenu'
 import { WhiteboardControls } from './WhiteboardControls'
 import {
 	supportsWhiteboardPen,
@@ -38,11 +40,13 @@ import {
 } from './whiteboardTheme'
 
 export interface TldrawProviderMetadata {
+	comments?: string
 	snapshot: TLEditorSnapshot
 	imageName: string
 }
 
 export interface WhiteboardImage {
+	comments?: string
 	id: string
 	name: string
 	url: string
@@ -53,6 +57,7 @@ export interface WhiteboardImage {
 }
 
 interface WhiteboardModalProps {
+	layerize?: boolean
 	imageEditor?: boolean
 	onSendMessage?: (text: string, images: WhiteboardImage[]) => void
 	waitingForResponse?: boolean
@@ -79,6 +84,7 @@ const whiteboardOverrides = [commentToolOverrides, extractToolOverrides]
 const overlayUtils = [ExtractLassoOverlayUtil]
 
 const components: TLComponents = {
+	ContextMenu: WhiteboardContextMenu,
 	InFrontOfTheCanvas: WhiteboardComments,
 	Toolbar: null,
 	StylePanel: null,
@@ -94,6 +100,7 @@ const components: TLComponents = {
 }
 
 export function WhiteboardModal({
+	layerize = false,
 	initialSnapshot,
 	imageEditor = false,
 	onSendMessage,
@@ -118,11 +125,13 @@ export function WhiteboardModal({
 	const [editor, setEditor] = useState<Editor | null>(null)
 	const [baseline, setBaseline] = useState<TLEditorSnapshot | null>(null)
 	const [returnFocus] = useState(() => document.activeElement)
+	const [isLayerizing, setIsLayerizing] = useState(false)
 	const [isSaving, setIsSaving] = useState(false)
 	const [notice, setNotice] = useState<string | null>(null)
 	const uploadInput = useRef<HTMLInputElement>(null)
 	const [error, setError] = useState<string | null>(null)
 	const saving = useRef(false)
+	const cancelLayerize = useRef<(() => void) | null>(null)
 	const didAccept = useRef(false)
 	const pen = useRef<WhiteboardPen>({ color: imageEditor ? '#e02020' : '#0d0d0d', width: 4 })
 
@@ -138,9 +147,14 @@ export function WhiteboardModal({
 
 	useEffect(() => {
 		if (!imageEditor || !editor || !ready) return
-		editor.complete().selectNone()
-		editor.updateInstanceState({ isReadonly: mode === 'edit' })
-		editor.setCurrentTool(mode === 'edit' ? 'hand' : markupTool)
+		editor.run(
+			() => {
+				editor.complete().selectNone()
+				editor.updateInstanceState({ isReadonly: mode === 'edit' })
+				editor.setCurrentTool(mode === 'edit' ? 'hand' : markupTool)
+			},
+			{ history: 'ignore' }
+		)
 	}, [editor, mode, ready, imageEditor, markupTool])
 
 	useEffect(() => {
@@ -152,7 +166,12 @@ export function WhiteboardModal({
 		() => !!baseline && !isEqual(store.serialize('document'), baseline.document.store),
 		[store, baseline]
 	)
-	const canSend = ready && !waitingForResponse && !isSaving && (hasMarkup || !!instructions.trim())
+	const canSend =
+		ready &&
+		!isLayerizing &&
+		!waitingForResponse &&
+		!isSaving &&
+		(hasMarkup || !!instructions.trim())
 
 	function requestClose(destination: 'chat' | 'edit') {
 		if (saving.current) return
@@ -162,6 +181,7 @@ export function WhiteboardModal({
 			!window.confirm('Discard your unsent changes?')
 		)
 			return
+		cancelLayerize.current?.()
 		if (destination === 'chat') {
 			onCancel()
 		} else {
@@ -176,7 +196,7 @@ export function WhiteboardModal({
 
 	const handleSave = useCallback(
 		async (destination: 'attach' | 'send' | 'download' | 'share' = 'attach') => {
-			if (!editor || !ready || saving.current) return
+			if (!editor || !ready || saving.current || isLayerizing) return
 			editor.complete()
 			const shapes = editor.getCurrentPageShapes()
 			if (shapes.length === 0) {
@@ -224,6 +244,7 @@ export function WhiteboardModal({
 				const attachment: WhiteboardImage = {
 					id: imageId ?? crypto.randomUUID(),
 					name: imageName ?? 'tldraw whiteboard.png',
+					comments: getWhiteboardComments(editor, imageEditor ? 0 : 24),
 					snapshot,
 					type: 'image/png',
 					...image,
@@ -254,6 +275,7 @@ export function WhiteboardModal({
 			instructions,
 			onSendMessage,
 			ready,
+			isLayerizing,
 		]
 	)
 
@@ -343,63 +365,86 @@ export function WhiteboardModal({
 						</details>
 					</header>
 				)}
+				{!imageEditor && notice && (
+					<p role="status" className="layerize-notice">
+						{notice}
+					</p>
+				)}
 				<div className={imageEditor ? 'image-editor-canvas' : undefined}>
-					<Tldraw
-						components={components}
-						options={options}
-						store={store}
-						tools={whiteboardTools}
-						overrides={whiteboardOverrides}
-						overlayUtils={overlayUtils}
-						licenseKey={process.env.NEXT_PUBLIC_TLDRAW_LICENSE_KEY}
-						shapeUtils={whiteboardShapeUtils}
-						themes={whiteboardThemes}
-						colorScheme="light"
-						autoFocus
-						onMount={(editor) => {
-							setEditor(editor)
-							editor.user.updateUserPreferences({ colorScheme: 'light' })
-							editor.updateInstanceState({ isGridMode: false })
-							editor.setStyleForNextShapes(DefaultColorStyle, 'black')
-							editor.getInitialMetaForShape = (shape) =>
-								supportsWhiteboardPen(shape)
-									? { strokeColor: pen.current.color, strokeWidth: pen.current.width }
-									: {}
-							editor.selectNone()
-							if (initialSnapshot) {
-								if (imageEditor) fitImageToView(editor)
-								else editor.zoomToFit({ animation: { duration: 0 } })
-							}
-							editor.setCurrentTool(imageEditor ? 'hand' : 'draw')
+					<LayerizeContext.Provider
+						value={{
+							cancel: cancelLayerize,
+							autoStart: layerize,
+							ready: ready && (!imageEditor || !!baseline),
+							onStatus: (busy, message) => {
+								setIsLayerizing(busy)
+								setNotice(busy ? message : null)
+								setError(busy ? null : message)
+							},
+							onComplete: () => {
+								setMarkupTool('select')
+								setMode('markup')
+							},
 						}}
 					>
-						<InsideOfTldrawContext
-							uploadedFile={uploadedFile}
-							imageEditor={imageEditor}
-							onReady={() => setReady(true)}
-							onError={() => setError('Could not load the image. Close this view and try again.')}
-						/>
-						{imageEditor && (
-							<ImageEditorNavigation
-								mode={mode}
-								onMarkup={(tool) => {
-									setMarkupTool(tool)
-									setMode('markup')
-								}}
-								ready={ready && !isSaving}
-							/>
-						)}
-						{mode === 'markup' && (
-							<WhiteboardControls
-								pen={pen}
+						<Tldraw
+							components={components}
+							options={options}
+							store={store}
+							tools={whiteboardTools}
+							overrides={whiteboardOverrides}
+							overlayUtils={overlayUtils}
+							licenseKey={process.env.NEXT_PUBLIC_TLDRAW_LICENSE_KEY}
+							shapeUtils={whiteboardShapeUtils}
+							themes={whiteboardThemes}
+							colorScheme="light"
+							autoFocus
+							onMount={(editor) => {
+								;(window as any).__layerizeEditor = editor
+								setEditor(editor)
+								editor.user.updateUserPreferences({ colorScheme: 'light' })
+								editor.updateInstanceState({ isGridMode: false })
+								editor.setStyleForNextShapes(DefaultColorStyle, 'black')
+								editor.getInitialMetaForShape = (shape) =>
+									supportsWhiteboardPen(shape)
+										? { strokeColor: pen.current.color, strokeWidth: pen.current.width }
+										: {}
+								editor.selectNone()
+								if (initialSnapshot) {
+									if (imageEditor) fitImageToView(editor)
+									else editor.zoomToFit({ animation: { duration: 0 } })
+								}
+								editor.setCurrentTool(imageEditor ? 'hand' : 'draw')
+							}}
+						>
+							<InsideOfTldrawContext
+								uploadedFile={uploadedFile}
 								imageEditor={imageEditor}
-								onCancel={() => requestClose(imageEditor ? 'edit' : 'chat')}
-								onAccept={() => void handleSave()}
-								isSaving={isSaving}
-								error={error}
+								onReady={() => setReady(true)}
+								onError={() => setError('Could not load the image. Close this view and try again.')}
 							/>
-						)}
-					</Tldraw>
+							{imageEditor && (
+								<ImageEditorNavigation
+									mode={mode}
+									onMarkup={(tool) => {
+										setMarkupTool(tool)
+										setMode('markup')
+									}}
+									ready={ready && !isSaving}
+								/>
+							)}
+							{mode === 'markup' && (
+								<WhiteboardControls
+									pen={pen}
+									imageEditor={imageEditor}
+									onCancel={() => requestClose(imageEditor ? 'edit' : 'chat')}
+									onAccept={() => void handleSave()}
+									isSaving={isSaving}
+									error={error}
+								/>
+							)}
+						</Tldraw>
+					</LayerizeContext.Provider>
 				</div>
 				{imageEditor && (
 					<form
