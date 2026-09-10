@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
 	createShapeId,
 	DefaultColorStyle,
@@ -127,9 +128,10 @@ export function WhiteboardModal({
 		}
 	}, [editor, imageId, imageName, onAccept, onCancel])
 
-	return (
+	// The sticky chat footer would trap the overlay beneath the window chrome.
+	return createPortal(
 		<div
-			className="modal-overlay"
+			className="modal-overlay tl-theme__dark"
 			onClick={(event) => {
 				if (event.target === event.currentTarget) void handleSave()
 			}}
@@ -194,7 +196,8 @@ export function WhiteboardModal({
 					/>
 				</Tldraw>
 			</div>
-		</div>
+		</div>,
+		document.body
 	)
 }
 

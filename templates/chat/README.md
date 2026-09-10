@@ -30,13 +30,15 @@ Key interactions include:
 
 ## Environment setup
 
-Create a `.env.local` file in the root directory and add your Google Generative API key:
+Create a `.env.local` file in the root directory and add your OpenAI API key:
 
 ```
-GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-Get your API key from [Google AI Studio](https://aistudio.google.com/apikey).
+Get your API key from the [OpenAI dashboard](https://platform.openai.com/api-keys).
+Chat uses the OpenAI Responses API with `gpt-5.6-terra` by default. Set `OPENAI_MODEL` to use another model that supports image inputs.
+Sketches and images are uploaded to OpenAI separately and expire after 24 hours; the original images and editable sketches remain in local chat history.
 You can also switch to a different provider using the [Vercel AI SDK](https://ai-sdk.dev/providers/ai-sdk-providers).
 
 ## File structure
