@@ -132,10 +132,9 @@ export class Drawing extends StateNode {
 					break
 				}
 				case 'starting_straight': {
-					// 'starting_straight' is entered from 'free' and from 'starting_free'. In the
-					// latter case the last segment is still the straight one we were leaving, so
-					// going to 'free' here would append free points to a straight segment and the
-					// stroke would stop updating; go back to 'starting_free' instead.
+					// Entered from 'starting_free' the last segment is still straight. A straight
+					// segment renders only its first two points, so writing free points into it
+					// freezes the stroke: go back to 'starting_free' instead of 'free'.
 					const shape =
 						this.initialShape && this.editor.getShape<DrawableShape>(this.initialShape.id)
 					if (shape && last(shape.props.segments)?.type === 'straight') {
