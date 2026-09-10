@@ -129,19 +129,27 @@ interface FlyMachine {
 	config?: { env?: Record<string, string | undefined> }
 }
 
+export interface DeployedInputHash {
+	/** The hash every running machine was deployed with, or null when the caller must deploy. */
+	hash: string | null
+	/** Why there is no usable hash, for the deploy log: a skipped deploy is hard to explain later. */
+	reason: 'stamped' | 'no-machines' | 'unstamped' | 'mixed' | 'unhealthy'
+}
+
 /**
- * The hash the running machines were deployed with, or null when they don't all agree on one
- * (no machines yet, a deploy that predates the stamp, or a rollout that stopped half way), so
+ * The hash the running machines were deployed with, or null when they don't all agree on one, so
  * that the caller deploys and converges them.
  *
  * A machine only counts when it is started and its checks pass, and a machine that has reported no
  * check yet does not count either. A rolling update writes the new config, stamp included, before
  * it waits on health, and a failed check does not revert it, so without this a rollout that failed
- * on its last machine would be skipped on the retry.
+ * on its last machine would be skipped on the retry. An unhealthy machine is reported as such
+ * rather than as a disagreement, so the log says a rollout is in flight instead of blaming the
+ * stamps.
  */
-export function parseDeployedInputHash(machineListJson: string): string | null {
+export function parseDeployedInputHash(machineListJson: string): DeployedInputHash {
 	const machines = (JSON.parse(machineListJson) ?? []) as FlyMachine[]
-	if (machines.length === 0) return null
+	if (machines.length === 0) return { hash: null, reason: 'no-machines' }
 	const hashes = new Set<string | undefined>()
 	for (const machine of machines) {
 		const checks = machine.checks ?? []
@@ -149,14 +157,16 @@ export function parseDeployedInputHash(machineListJson: string): string | null {
 			machine.state === 'started' &&
 			checks.length > 0 &&
 			checks.every((check) => check.status === 'passing')
-		hashes.add(healthy ? machine.config?.env?.[DEPLOY_INPUT_HASH_ENV] : undefined)
+		if (!healthy) return { hash: null, reason: 'unhealthy' }
+		hashes.add(machine.config?.env?.[DEPLOY_INPUT_HASH_ENV])
 	}
-	if (hashes.size !== 1) return null
+	if (hashes.size !== 1) return { hash: null, reason: 'mixed' }
 	const [hash] = hashes
-	return hash ?? null
+	if (hash === undefined) return { hash: null, reason: 'unstamped' }
+	return { hash, reason: 'stamped' }
 }
 
-export async function getDeployedInputHash(appName: string): Promise<string | null> {
+export async function getDeployedInputHash(appName: string): Promise<DeployedInputHash> {
 	// Collected rather than logged: on the single-node app [env] holds ZERO_ADMIN_PASSWORD and the
 	// DB connection strings. Only stdout is parsed, so a flyctl warning on stderr can't break it.
 	const stdout: string[] = []

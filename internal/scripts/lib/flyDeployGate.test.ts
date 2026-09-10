@@ -139,39 +139,54 @@ describe('parseDeployedInputHash', () => {
 	})
 
 	it('returns the hash when every machine is healthy and carries the same one', () => {
-		expect(parseDeployedInputHash(JSON.stringify([machine('abc'), machine('abc')]))).toBe('abc')
+		expect(parseDeployedInputHash(JSON.stringify([machine('abc'), machine('abc')]))).toEqual({
+			hash: 'abc',
+			reason: 'stamped',
+		})
 	})
 
 	it('returns null for an app with no machines', () => {
-		expect(parseDeployedInputHash('[]')).toBe(null)
-		expect(parseDeployedInputHash('null')).toBe(null)
+		expect(parseDeployedInputHash('[]')).toEqual({ hash: null, reason: 'no-machines' })
+		expect(parseDeployedInputHash('null')).toEqual({ hash: null, reason: 'no-machines' })
 	})
 
 	it('returns null when machines predate the stamp, so the first deploy after the change runs', () => {
-		expect(parseDeployedInputHash(JSON.stringify([machine(undefined), machine(undefined)]))).toBe(
-			null
-		)
+		expect(
+			parseDeployedInputHash(JSON.stringify([machine(undefined), machine(undefined)]))
+		).toEqual({ hash: null, reason: 'unstamped' })
 	})
 
 	it('returns null when machines disagree, so the deploy converges them', () => {
-		expect(parseDeployedInputHash(JSON.stringify([machine('abc'), machine('def')]))).toBe(null)
-		expect(parseDeployedInputHash(JSON.stringify([machine('abc'), machine(undefined)]))).toBe(null)
+		expect(parseDeployedInputHash(JSON.stringify([machine('abc'), machine('def')]))).toEqual({
+			hash: null,
+			reason: 'mixed',
+		})
+		expect(parseDeployedInputHash(JSON.stringify([machine('abc'), machine(undefined)]))).toEqual({
+			hash: null,
+			reason: 'mixed',
+		})
 	})
 
 	it('does not trust a stamp on a machine that has not reported a check yet', () => {
 		const noChecks = { state: 'started', config: { env: { [DEPLOY_INPUT_HASH_ENV]: 'abc' } } }
-		expect(parseDeployedInputHash(JSON.stringify([noChecks]))).toBe(null)
-		expect(parseDeployedInputHash(JSON.stringify([machine('abc', { checks: [] })]))).toBe(null)
+		expect(parseDeployedInputHash(JSON.stringify([noChecks]))).toEqual({
+			hash: null,
+			reason: 'unhealthy',
+		})
+		expect(parseDeployedInputHash(JSON.stringify([machine('abc', { checks: [] })]))).toEqual({
+			hash: null,
+			reason: 'unhealthy',
+		})
 	})
 
 	it('does not trust a stamp on a machine that is stopped or failing its checks', () => {
 		expect(
 			parseDeployedInputHash(JSON.stringify([machine('abc'), machine('abc', { state: 'stopped' })]))
-		).toBe(null)
+		).toEqual({ hash: null, reason: 'unhealthy' })
 		expect(
 			parseDeployedInputHash(
 				JSON.stringify([machine('abc'), machine('abc', { checks: ['passing', 'critical'] })])
 			)
-		).toBe(null)
+		).toEqual({ hash: null, reason: 'unhealthy' })
 	})
 })
