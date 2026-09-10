@@ -80,6 +80,14 @@ export function dockerfileCopySources(dockerfile: string): string[] {
 		// `--from` copies from another build stage, not from the context.
 		if (tokens.some((token) => token.startsWith('--from'))) continue
 		const operands = tokens.filter((token) => !token.startsWith('--'))
+		// Anything the whitespace split can't separate into sources and a destination, such as the
+		// JSON-array form, would otherwise contribute nothing to the hash and never be missed.
+		if (operands.length < 2) {
+			throw new Error(
+				`Dockerfile instruction \`${line.trim()}\` does not split into sources and a destination. ` +
+					`Only plain paths are supported: no JSON-array COPY.`
+			)
+		}
 		for (const source of operands.slice(0, -1)) {
 			if (!sources.includes(source)) sources.push(source)
 		}
@@ -87,12 +95,13 @@ export function dockerfileCopySources(dockerfile: string): string[] {
 	return sources
 }
 
-// A trailing `\` continues an instruction on the next physical line. Without joining them first,
-// the sources on the wrapped lines never reach the COPY match and escape the hash.
+// A trailing `\` continues an instruction on the next physical line; without joining them first the
+// wrapped sources never reach the COPY match. Comments are dropped first, as Docker does, or a `\`
+// ending one would swallow the instruction below it.
 function joinContinuedLines(dockerfile: string): string[] {
 	const lines: string[] = []
 	let continued = ''
-	for (const line of dockerfile.split('\n')) {
+	for (const line of dockerfile.split('\n').filter((line) => !/^\s*#/.test(line))) {
 		const trimmed = line.trimEnd()
 		if (trimmed.endsWith('\\')) {
 			continued += trimmed.slice(0, -1)

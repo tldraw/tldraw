@@ -55,6 +55,16 @@ describe('dockerfileCopySources', () => {
 			'start.sh',
 		])
 	})
+
+	it('does not let a trailing backslash in a comment swallow the next instruction', () => {
+		const dockerfile = ['FROM x', '# see foo \\', 'COPY start.sh /start.sh', 'COPY b /b'].join('\n')
+		expect(dockerfileCopySources(dockerfile)).toEqual(['start.sh', 'b'])
+	})
+
+	it('throws on an instruction it cannot split into sources and a destination', () => {
+		const dockerfile = ['FROM x', 'COPY ["a","/b"]'].join('\n')
+		expect(() => dockerfileCopySources(dockerfile)).toThrow(/only plain paths are supported/i)
+	})
 })
 
 describe('hashFlyDeployInputs', () => {
