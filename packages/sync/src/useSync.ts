@@ -49,6 +49,20 @@ const MULTIPLAYER_EVENT_NAME = 'multiplayer.client'
 
 const defaultCustomMessageHandler: TLCustomMessageHandler = () => {}
 
+// Keyed by `reason`, which is an arbitrary string off the server's close event, so a Map rather
+// than an object literal: a reason of 'constructor' or '__proto__' would find a prototype member.
+const SYNC_ERROR_EVENT_NAMES = new Map<string, string>([
+	[TLSyncErrorCloseEventReason.NOT_FOUND, 'room-not-found'],
+	[TLSyncErrorCloseEventReason.FORBIDDEN, 'forbidden'],
+	[TLSyncErrorCloseEventReason.NOT_AUTHENTICATED, 'not-authenticated'],
+	[TLSyncErrorCloseEventReason.RATE_LIMITED, 'rate-limited'],
+])
+
+// The socket reports 'error' but the collaboration status only knows 'offline'.
+function toCollaborationStatus(status: TLPersistentClientSocket['connectionStatus']) {
+	return status === 'error' ? 'offline' : status
+}
+
 /**
  * A store wrapper specifically for remote collaboration that excludes local-only states.
  * This type represents a tldraw store that is synchronized with a remote multiplayer server.
@@ -300,12 +314,12 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 
 		let didCancel = false
 
-		function getConnectionStatus() {
-			return socket.connectionStatus === 'error' ? 'offline' : socket.connectionStatus
-		}
-		const collaborationStatusSignal = atom('collaboration status', getConnectionStatus())
+		const collaborationStatusSignal = atom(
+			'collaboration status',
+			toCollaborationStatus(socket.connectionStatus)
+		)
 		const unsubscribeFromConnectionStatus = socket.onStatusChange(() => {
-			collaborationStatusSignal.set(getConnectionStatus())
+			collaborationStatusSignal.set(toCollaborationStatus(socket.connectionStatus))
 		})
 
 		const syncMode = atom('sync mode', 'readwrite' as 'readonly' | 'readwrite')
@@ -353,24 +367,10 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			onSyncError(reason) {
 				console.error('sync error', reason)
 
-				switch (reason) {
-					case TLSyncErrorCloseEventReason.NOT_FOUND:
-						track?.(MULTIPLAYER_EVENT_NAME, { name: 'room-not-found', roomId })
-						break
-					case TLSyncErrorCloseEventReason.FORBIDDEN:
-						track?.(MULTIPLAYER_EVENT_NAME, { name: 'forbidden', roomId })
-						break
-					case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED:
-						track?.(MULTIPLAYER_EVENT_NAME, { name: 'not-authenticated', roomId })
-						break
-					case TLSyncErrorCloseEventReason.RATE_LIMITED:
-						track?.(MULTIPLAYER_EVENT_NAME, { name: 'rate-limited', roomId })
-						break
-					default:
-						track?.(MULTIPLAYER_EVENT_NAME, { name: 'sync-error:' + reason, roomId })
-						break
-				}
-
+				track?.(MULTIPLAYER_EVENT_NAME, {
+					name: SYNC_ERROR_EVENT_NAMES.get(reason) ?? 'sync-error:' + reason,
+					roomId,
+				})
 				setState({ error: new TLRemoteSyncError(reason) })
 				socket.close()
 			},
@@ -422,10 +422,9 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			if (!state) return { status: 'loading' }
 			if (state.error) return { status: 'error', error: state.error }
 			if (!state.readyClient) return { status: 'loading' }
-			const connectionStatus = state.readyClient.socket.connectionStatus
 			return {
 				status: 'synced-remote',
-				connectionStatus: connectionStatus === 'error' ? 'offline' : connectionStatus,
+				connectionStatus: toCollaborationStatus(state.readyClient.socket.connectionStatus),
 				store: state.readyClient.store,
 				objectAccess: state.objectAccess ?? 'write',
 			}
