@@ -55,10 +55,10 @@ export function getHumanReadableAddress(url: string) {
  * Resolve the asset for a bookmark whose url just changed: the existing asset for the new url
  * if there is one, otherwise `null` while a new one is fetched in the background.
  *
- * Returns the shape to store rather than writing it. This runs inside `onBeforeUpdate`, where
- * a nested `updateShapes` is overwritten by the outer put and the old asset would stick.
+ * Must not write to the store: this runs inside `onBeforeUpdate`, where a nested `updateShapes`
+ * is overwritten by the outer put and the old asset would stick.
  */
-export function updateBookmarkAssetOnUrlChange(
+export function resolveBookmarkAssetForUrlChange(
 	editor: Editor,
 	shape: TLBookmarkShape
 ): TLBookmarkShape {

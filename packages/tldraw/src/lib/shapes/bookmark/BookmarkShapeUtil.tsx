@@ -29,7 +29,7 @@ import {
 	getHumanReadableAddress,
 	getResolvedBookmarkAssetId,
 	setBookmarkHeight,
-	updateBookmarkAssetOnUrlChange,
+	resolveBookmarkAssetForUrlChange,
 } from './bookmarks'
 
 /** @public */
@@ -122,7 +122,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 			if (!T.linkUrl.isValid(shape.props.url)) {
 				return { ...shape, props: { ...shape.props, url: prev.props.url } }
 			}
-			next = updateBookmarkAssetOnUrlChange(this.editor, shape)
+			next = resolveBookmarkAssetForUrlChange(this.editor, shape)
 		}
 
 		if (prev.props.assetId !== next.props.assetId) {
