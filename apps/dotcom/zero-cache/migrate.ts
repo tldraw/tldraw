@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS migrations.applied_migrations (
 `
 
 /**
-INSERT INTO migrations.applied_migrations (filename) VALUES 
+INSERT INTO migrations.applied_migrations (filename) VALUES
 ('000_seed.sql'),
 ('001_replicator_boot.sql'),
 ('002_add_user_id.sql'),
@@ -96,6 +96,18 @@ interface PendingMigration {
 	sql: string
 	noTransaction: boolean
 }
+
+// DDL on a replicated table takes ACCESS EXCLUSIVE. Without a lock timeout, one long-running
+// reader makes the deploy hang while every room persist queues behind the waiting DDL.
+// Failing here aborts the deploy before Zero and the sync-worker roll, and a rerun picks up
+// where it left off. SET LOCAL is transaction-scoped, so it holds through a
+// transaction-mode pooler; it must be re-issued in every transaction, not just the first.
+//
+// A no-transaction group runs without this guard: it has no transaction to scope SET LOCAL
+// to, and CREATE INDEX CONCURRENTLY itself only takes SHARE UPDATE EXCLUSIVE. The DROP INDEX
+// IF EXISTS ahead of it does take ACCESS EXCLUSIVE, so it can still queue behind a long-running
+// reader with no timeout.
+const setLockTimeout = `SET LOCAL lock_timeout = '10s'`
 
 async function planMigrations(summary: string[]): Promise<PendingMigration[]> {
 	const appliedMigrations = await sql<{
@@ -176,6 +188,7 @@ async function applyMigration(executor: Kysely<any>, step: PendingMigration, sum
 // the whole set was validated.
 async function dryRunMigrations(pending: PendingMigration[], summary: string[]) {
 	await db.transaction().execute(async (tx) => {
+		await sql.raw(setLockTimeout).execute(tx)
 		for (const step of pending) {
 			if (step.noTransaction) {
 				console.warn(
@@ -226,6 +239,7 @@ async function migrate(summary: string[], dryRun: boolean) {
 			await applyMigration(db, group[0], summary)
 		} else {
 			await db.transaction().execute(async (tx) => {
+				await sql.raw(setLockTimeout).execute(tx)
 				for (const step of group) await applyMigration(tx, step, summary)
 			})
 		}

@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> comentou no seu fórum"
   },
+  "28b2464e1f": {
+    "translation": "Não foi possível enviar o feedback."
+  },
   "299cb00a7a": {
     "translation": "Falha ao fazer upload"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Procurar..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Por favor, tente novamente."
   },
   "2de510be71": {
     "translation": "A regeneração substitui o link de convite atual por um novo. Qualquer pessoa que estiver usando o link antigo precisará do novo para participar."
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} não lido"
+  },
+  "550b25cc0c": {
+    "translation": "Não foi possível restaurar seu desenho local. Tente recarregar esta página."
   },
   "554a05155c": {
     "translation": "Ainda está com problemas? <a>Reportar um problema</a>"
@@ -433,6 +442,9 @@
   },
   "9bef626805": {
     "translation": "Excluir arquivo"
+  },
+  "9c228b6834": {
+    "translation": "Parece que você está offline. Verifique sua conexão e tente novamente."
   },
   "9ccb565b86": {
     "translation": "Estamos com dificuldades para conectar ao nosso serviço de autenticação. Isso geralmente é temporário. Por favor, tente atualizar a página."

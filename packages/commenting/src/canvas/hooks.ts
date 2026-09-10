@@ -30,7 +30,7 @@ export function useCommentThreads(editor: Editor): TLCommentThread[] {
  */
 const commentsByThread = new WeakCache<Editor, Computed<Map<TLCommentThreadId, TLComment[]>>>()
 
-/** Exported for tests; use {@link useThreadComments} to consume. @internal */
+/** Live comments grouped by thread id, cached per editor. @internal */
 export function getCommentsByThread(editor: Editor) {
 	return commentsByThread.get(editor, () =>
 		computed('comments by thread', (prev) => {

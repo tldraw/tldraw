@@ -264,7 +264,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 
 - **SR1** Providing both `storage` and `initialSnapshot` throws. With neither, an `InMemorySyncStorage` seeded from `DEFAULT_INITIAL_SNAPSHOT` is created; `initialSnapshot` (deprecated) accepts both room and store snapshots.
 - **SR2** The deprecated `onDataChange` callback is wired to `storage.onChange` (fires on a microtask after document changes, including programmatic ones).
-- **SR3** `log` defaults to `{ error: console.error }` only when the `log` key is absent from the options object; an explicitly passed `log: undefined` leaves the room without a logger.
+- **SR3** `log` defaults to `{ error: console.error }` only when the `log` key is absent from the options object; an explicitly passed `log: undefined` leaves the room without a logger. The same logger is handed to the inner `TLSyncRoom`, so authorizer failures are logged under the default too.
 - **SR4** `handleSocketConnect` registers the session (readonly defaults to false), attaches `message`/`close`/`error` listeners when the socket supports `addEventListener`, and creates a chunk assembler for the session.
 - **SR5** `handleSocketMessage` assembles chunks (CH rules), then for each complete message: invokes `onAfterReceiveMessage`, forwards to the room, and runs a prune pass (after handling, so a session is never evicted by its own message). Assembly errors close the socket via the error path; a thrown exception rejects the session with `UNKNOWN_ERROR`.
 - **SR6** `handleSocketError` and `handleSocketClose` cancel the session (grace period applies per SES2) and clear any pending session-snapshot timer.

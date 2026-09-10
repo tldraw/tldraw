@@ -22,7 +22,7 @@ export function writeDataPoint(
 			doubles,
 			indexes,
 		})
-	} catch (_e) {
+	} catch {
 		// // eslint-disable-next-line @typescript-eslint/no-deprecated
 		// sentry?.withScope((scope) => {
 		// 	scope.setExtra('name', name)

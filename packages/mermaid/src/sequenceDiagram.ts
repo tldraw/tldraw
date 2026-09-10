@@ -17,11 +17,7 @@ export interface SvgRect {
 	h: number
 }
 
-export interface ActorLayout {
-	x: number
-	y: number
-	w: number
-	h: number
+export interface ActorLayout extends SvgRect {
 	bottomY: number
 }
 
@@ -30,7 +26,7 @@ export interface ParsedSequenceLayout {
 	noteRects: SvgRect[]
 }
 
-const LINETYPE = {
+export const LINETYPE = {
 	SOLID: 0,
 	DOTTED: 1,
 	NOTE: 2,
@@ -84,13 +80,13 @@ const LINETYPE = {
 	CENTRAL_CONNECTION_DUAL: 61,
 } as const satisfies SequenceDB['LINETYPE']
 
-const PLACEMENT = {
+export const PLACEMENT = {
 	LEFTOF: 0,
 	RIGHTOF: 1,
 	OVER: 2,
 } as const satisfies SequenceDB['PLACEMENT']
 
-const signalTypes: number[] = [
+const SIGNAL_TYPES = new Set<number>([
 	LINETYPE.SOLID,
 	LINETYPE.DOTTED,
 	LINETYPE.SOLID_CROSS,
@@ -101,63 +97,59 @@ const signalTypes: number[] = [
 	LINETYPE.DOTTED_POINT,
 	LINETYPE.BIDIRECTIONAL_SOLID,
 	LINETYPE.BIDIRECTIONAL_DOTTED,
-]
+])
+
+const DOTTED_TYPES = new Set<number>([
+	LINETYPE.DOTTED,
+	LINETYPE.DOTTED_CROSS,
+	LINETYPE.DOTTED_OPEN,
+	LINETYPE.DOTTED_POINT,
+	LINETYPE.BIDIRECTIONAL_DOTTED,
+])
+
+const ARROWHEAD_BY_TYPE = new Map<number, TLArrowShapeArrowheadStyle>([
+	[LINETYPE.SOLID_CROSS, 'bar'],
+	[LINETYPE.DOTTED_CROSS, 'bar'],
+	[LINETYPE.SOLID_OPEN, 'none'],
+	[LINETYPE.DOTTED_OPEN, 'none'],
+])
+
+const FRAGMENT_START_KEYWORDS = new Map<number, string>([
+	[LINETYPE.LOOP_START, 'loop'],
+	[LINETYPE.ALT_START, 'alt'],
+	[LINETYPE.OPT_START, 'opt'],
+	[LINETYPE.PAR_START, 'par'],
+	[LINETYPE.RECT_START, 'rect'],
+	[LINETYPE.CRITICAL_START, 'critical'],
+	[LINETYPE.BREAK_START, 'break'],
+	[LINETYPE.PAR_OVER_START, 'par'],
+])
+
+const FRAGMENT_END_TYPES = new Set<number>([
+	LINETYPE.LOOP_END,
+	LINETYPE.ALT_END,
+	LINETYPE.OPT_END,
+	LINETYPE.PAR_END,
+	LINETYPE.RECT_END,
+	LINETYPE.CRITICAL_END,
+	LINETYPE.BREAK_END,
+])
+
+const FRAGMENT_SEPARATOR_KEYWORDS = new Map<number, string>([
+	[LINETYPE.ALT_ELSE, 'else'],
+	[LINETYPE.PAR_AND, 'and'],
+	[LINETYPE.CRITICAL_OPTION, 'option'],
+])
 
 function isSignalMessage(type: number | undefined): boolean {
-	if (type === undefined) return false
-	return signalTypes.includes(type)
+	return type !== undefined && SIGNAL_TYPES.has(type)
 }
 
-function isNoteMessage(type: number | undefined): boolean {
-	return type === LINETYPE.NOTE
-}
-
-function isActiveStart(type: number | undefined): boolean {
-	return type === LINETYPE.ACTIVE_START
-}
-
-function isActiveEnd(type: number | undefined): boolean {
-	return type === LINETYPE.ACTIVE_END
-}
-
-function isAutonumber(type: number | undefined): boolean {
-	return type === LINETYPE.AUTONUMBER
-}
-
-/** Returns the fragment keyword (e.g. "loop", "opt") if this message starts a combined fragment, or null. */
-function getFragmentStartKeyword(type: number | undefined): string | null {
-	if (type === undefined) return null
-	if (type === LINETYPE.LOOP_START) return 'loop'
-	if (type === LINETYPE.ALT_START) return 'alt'
-	if (type === LINETYPE.OPT_START) return 'opt'
-	if (type === LINETYPE.PAR_START) return 'par'
-	if (type === LINETYPE.RECT_START) return 'rect'
-	if (type === LINETYPE.CRITICAL_START) return 'critical'
-	if (type === LINETYPE.BREAK_START) return 'break'
-	if (type === LINETYPE.PAR_OVER_START) return 'par'
-	return null
-}
-
-function isFragmentEnd(type: number | undefined): boolean {
-	if (type === undefined) return false
-	const endTypes: number[] = [
-		LINETYPE.LOOP_END,
-		LINETYPE.ALT_END,
-		LINETYPE.OPT_END,
-		LINETYPE.PAR_END,
-		LINETYPE.RECT_END,
-		LINETYPE.CRITICAL_END,
-		LINETYPE.BREAK_END,
-	]
-	return endTypes.includes(type)
-}
-
-/** Returns a keyword if this message is a section separator within a combined fragment, or null. */
-function getFragmentSeparatorKeyword(type: number | undefined): string | null {
-	if (type === LINETYPE.ALT_ELSE) return 'else'
-	if (type === LINETYPE.PAR_AND) return 'and'
-	if (type === LINETYPE.CRITICAL_OPTION) return 'option'
-	return null
+/** Signals and notes are the only messages that occupy a row on the lifelines. */
+function isRenderableEvent(msg: Message): boolean {
+	return Boolean(
+		(isSignalMessage(msg.type) && msg.from && msg.to) || (msg.type === LINETYPE.NOTE && msg.from)
+	)
 }
 
 /** Map a Mermaid LINETYPE value to tldraw arrow props. */
@@ -165,29 +157,9 @@ function mapLineTypeToArrowProps(type: number): {
 	dash: TLDefaultDashStyle
 	arrowheadEnd: TLArrowShapeArrowheadStyle
 } {
-	switch (type) {
-		case LINETYPE.SOLID:
-			return { dash: 'solid', arrowheadEnd: 'arrow' }
-		case LINETYPE.DOTTED:
-			return { dash: 'dotted', arrowheadEnd: 'arrow' }
-		case LINETYPE.SOLID_CROSS:
-			return { dash: 'solid', arrowheadEnd: 'bar' }
-		case LINETYPE.DOTTED_CROSS:
-			return { dash: 'dotted', arrowheadEnd: 'bar' }
-		case LINETYPE.SOLID_OPEN:
-			return { dash: 'solid', arrowheadEnd: 'none' }
-		case LINETYPE.DOTTED_OPEN:
-			return { dash: 'dotted', arrowheadEnd: 'none' }
-		case LINETYPE.SOLID_POINT:
-			return { dash: 'solid', arrowheadEnd: 'arrow' }
-		case LINETYPE.DOTTED_POINT:
-			return { dash: 'dotted', arrowheadEnd: 'arrow' }
-		case LINETYPE.BIDIRECTIONAL_SOLID:
-			return { dash: 'solid', arrowheadEnd: 'arrow' }
-		case LINETYPE.BIDIRECTIONAL_DOTTED:
-			return { dash: 'dotted', arrowheadEnd: 'arrow' }
-		default:
-			return { dash: 'solid', arrowheadEnd: 'arrow' }
+	return {
+		dash: DOTTED_TYPES.has(type) ? 'dotted' : 'solid',
+		arrowheadEnd: ARROWHEAD_BY_TYPE.get(type) ?? 'arrow',
 	}
 }
 
@@ -360,7 +332,7 @@ function computeActorLayouts(root: Element, actorCount: number, eventCount: numb
 			const centerY = rect.y + rect.h / 2
 			rect.h = refHeight
 			rect.w = Math.max(rect.w, refWidth)
-			rect.y = refTopY !== undefined ? refTopY : centerY - refHeight / 2
+			rect.y = refTopY ?? centerY - refHeight / 2
 		}
 		for (const rect of bottom) {
 			if (!actorManSet.has(rect)) continue
@@ -423,18 +395,7 @@ function getMessageLabel(msg: Message): string | undefined {
 
 /** Count how many renderable events (signals + notes) a message list contains. */
 export function countSequenceEvents(messages: Message[]): number {
-	let count = 0
-	for (const msg of messages) {
-		if (isAutonumber(msg.type)) continue
-		if (getFragmentStartKeyword(msg.type)) continue
-		if (isFragmentEnd(msg.type)) continue
-		if (getFragmentSeparatorKeyword(msg.type)) continue
-		if (isActiveStart(msg.type) || isActiveEnd(msg.type)) continue
-		const isEvent =
-			(isSignalMessage(msg.type) && msg.from && msg.to) || (isNoteMessage(msg.type) && msg.from)
-		if (isEvent) count++
-	}
-	return count
+	return messages.filter(isRenderableEvent).length
 }
 
 /** Parse sequence-diagram SVG layout data for use by {@link sequenceToBlueprint}. */
@@ -462,6 +423,8 @@ export function sequenceToBlueprint(
 	destroyedActors: Map<string, number> = new Map()
 ): DiagramMermaidBlueprint {
 	const actorCount = actorKeys.length
+	if (actorCount === 0)
+		return { diagramKind: 'sequence', nodes: [], edges: [], lines: [], groups: [] }
 	const keyIndex = new Map(actorKeys.map((key, i) => [key, i]))
 
 	const fragments: FragmentSpan[] = []
@@ -470,19 +433,32 @@ export function sequenceToBlueprint(
 	const activationStack = new Map<string, number[]>()
 	const activationSpans: ActivationSpan[] = []
 
-	let autonumberStart = 0
-	let autonumberStep = 0
+	// Autonumbering is positional: an `autonumber` directive applies from where it
+	// appears onward, so a later `autonumber off` must not clear numbers already
+	// assigned above it. Resolve each event's label as we walk the messages.
+	const eventAutonumbers: (string | undefined)[] = []
+	let autonumber = 1
+	let autonumberStep = 1
 	let autonumberVisible = false
 
 	for (const msg of messages) {
-		if (isAutonumber(msg.type)) {
-			autonumberStart = 1
-			autonumberStep = 1
-			autonumberVisible = true
+		const type = msg.type ?? -1
+		if (type === LINETYPE.AUTONUMBER) {
+			// `autonumber [start [step]]` / `autonumber off`; mermaid stores the options on
+			// `message`. Omitting `start` resumes the running counter rather than resetting
+			// to 1, so a bare `autonumber` part-way down a diagram continues the sequence
+			// from the signals above it. Matches mermaid.
+			if (typeof msg.message === 'object') {
+				autonumber = msg.message.start || autonumber
+				autonumberStep = msg.message.step || autonumberStep
+				autonumberVisible = msg.message.visible
+			} else {
+				autonumberVisible = true
+			}
 			continue
 		}
 
-		const keyword = getFragmentStartKeyword(msg.type)
+		const keyword = FRAGMENT_START_KEYWORDS.get(type)
 		if (keyword) {
 			fragmentStack.push({
 				keyword,
@@ -493,13 +469,13 @@ export function sequenceToBlueprint(
 			continue
 		}
 
-		if (isFragmentEnd(msg.type)) {
+		if (FRAGMENT_END_TYPES.has(type)) {
 			const frag = fragmentStack.pop()
 			if (frag) fragments.push({ ...frag, lastEventIndex: events.length - 1 })
 			continue
 		}
 
-		if (getFragmentSeparatorKeyword(msg.type)) {
+		if (FRAGMENT_SEPARATOR_KEYWORDS.has(type)) {
 			const current = fragmentStack[fragmentStack.length - 1]
 			if (current) {
 				current.sections.push({
@@ -510,7 +486,7 @@ export function sequenceToBlueprint(
 			continue
 		}
 
-		if (isActiveStart(msg.type)) {
+		if (type === LINETYPE.ACTIVE_START) {
 			const key = msg.from ?? msg.to
 			if (key) {
 				if (!activationStack.has(key)) activationStack.set(key, [])
@@ -521,7 +497,7 @@ export function sequenceToBlueprint(
 			continue
 		}
 
-		if (isActiveEnd(msg.type)) {
+		if (type === LINETYPE.ACTIVE_END) {
 			const key = msg.from ?? msg.to
 			if (key) {
 				const startIdx = activationStack.get(key)?.pop()
@@ -536,15 +512,19 @@ export function sequenceToBlueprint(
 			continue
 		}
 
-		const isEvent =
-			(isSignalMessage(msg.type) && msg.from && msg.to) || (isNoteMessage(msg.type) && msg.from)
-		if (!isEvent) continue
+		if (!isRenderableEvent(msg)) continue
 
 		for (const frag of fragmentStack) {
 			if (msg.from) frag.actorKeys.add(msg.from)
 			if (msg.to) frag.actorKeys.add(msg.to)
 		}
 		events.push(msg)
+
+		// Only signals consume a number; notes occupy a row but are never numbered.
+		// The counter advances even while numbering is off, matching mermaid.
+		const isSignal = isSignalMessage(msg.type)
+		eventAutonumbers.push(isSignal && autonumberVisible ? String(autonumber) : undefined)
+		if (isSignal) autonumber = Math.round((autonumber + autonumberStep) * 100) / 100
 	}
 
 	const layouts = layout.actorLayouts
@@ -576,6 +556,7 @@ export function sequenceToBlueprint(
 	const { y: firstY, h: firstH, bottomY: firstBottomY } = layouts[0]
 	const lifelineTop = firstY + firstH
 	const eventStep = (firstBottomY - lifelineTop) / (events.length + 1)
+	const eventY = (eventIndex: number) => lifelineTop + eventStep * (eventIndex + 1)
 
 	// --- Z-order: lifelines -> activations -> fragments -> actor boxes -> notes/arrows ---
 
@@ -584,13 +565,10 @@ export function sequenceToBlueprint(
 		const key = actorKeys[i]
 		const { x, y, w, h, bottomY } = layouts[i]
 
-		const isCreated = creationEventIndex.has(key)
-		const isDestroyed = destructionEventIndex.has(key)
-		const eventY = isCreated ? lifelineTop + eventStep * (creationEventIndex.get(key)! + 1) : 0
-		const topY = isCreated ? eventY + h / 2 : y + h
-		const botY = isDestroyed
-			? lifelineTop + eventStep * (destructionEventIndex.get(key)! + 1)
-			: bottomY
+		const createdAt = creationEventIndex.get(key)
+		const destroyedAt = destructionEventIndex.get(key)
+		const topY = createdAt !== undefined ? eventY(createdAt) + h / 2 : y + h
+		const botY = destroyedAt !== undefined ? eventY(destroyedAt) : bottomY
 
 		const lifelineHeight = botY - topY
 		if (lifelineHeight > 0) {
@@ -624,16 +602,14 @@ export function sequenceToBlueprint(
 			if (sameParticipant && containsSpan && strictlyLarger) depth++
 		}
 
-		const layout = layouts[actorIdx]
-		const lifelineCenterX = layout.x + layout.w / 2
-		const boxTop = lifelineTop + eventStep * (span.startEventIndex + 1) - activationPad
-		const boxBottom = lifelineTop + eventStep * (span.endEventIndex + 1) + activationPad
+		const actorLayout = layouts[actorIdx]
+		const lifelineCenterX = actorLayout.x + actorLayout.w / 2
+		const boxTop = eventY(span.startEventIndex) - activationPad
+		const boxBottom = eventY(span.endEventIndex) + activationPad
 
-		const id = `activation-${span.origIdx}`
-		const kind = 'sequence_activation'
 		nodes.push({
-			id,
-			kind,
+			id: `activation-${span.origIdx}`,
+			kind: 'sequence_activation',
 			x: lifelineCenterX - ACTIVATION_BOX_WIDTH / 2 + depth * ACTIVATION_NEST_OFFSET,
 			y: boxTop,
 			w: ACTIVATION_BOX_WIDTH,
@@ -649,9 +625,8 @@ export function sequenceToBlueprint(
 		const fragment = fragments[fragmentIndex]
 		if (fragment.lastEventIndex < fragment.firstEventIndex) continue
 
-		const fragTop = lifelineTop + eventStep * (fragment.firstEventIndex + 1) - FRAGMENT_PADDING_TOP
-		const fragBottom =
-			lifelineTop + eventStep * (fragment.lastEventIndex + 1) + FRAGMENT_PADDING_BOTTOM
+		const fragTop = eventY(fragment.firstEventIndex) - FRAGMENT_PADDING_TOP
+		const fragBottom = eventY(fragment.lastEventIndex) + FRAGMENT_PADDING_BOTTOM
 		const indices = [...fragment.actorKeys].map((k) => keyIndex.get(k)!).filter((idx) => idx >= 0)
 		if (indices.length === 0) continue
 
@@ -663,28 +638,24 @@ export function sequenceToBlueprint(
 
 		const rgbColor =
 			fragment.keyword === 'rect' ? parseRgbToTldrawColor(fragment.sections[0].title) : null
-		const fragId = `fragment-${fragmentIndex}`
-		const fragKind = 'sequence_fragment'
+		const fragBox = {
+			id: `fragment-${fragmentIndex}`,
+			kind: 'sequence_fragment',
+			x: leftX,
+			y: fragTop,
+			w: fragW,
+			h: fragH,
+		}
 		if (rgbColor) {
 			nodes.push({
-				id: fragId,
-				kind: fragKind,
-				x: leftX,
-				y: fragTop,
-				w: fragW,
-				h: fragH,
+				...fragBox,
 				fill: rgbColor.hasAlpha ? 'semi' : 'solid',
 				color: rgbColor.color,
 				size: 's',
 			})
 		} else {
 			nodes.push({
-				id: fragId,
-				kind: fragKind,
-				x: leftX,
-				y: fragTop,
-				w: fragW,
-				h: fragH,
+				...fragBox,
 				dash: 'dashed',
 				fill: 'none',
 				color: 'light-blue',
@@ -709,11 +680,9 @@ export function sequenceToBlueprint(
 					size: 's',
 				})
 
-				const secId = `fragment-${fragmentIndex}-section-${s}`
-				const secKind = 'sequence_fragment_section'
 				nodes.push({
-					id: secId,
-					kind: secKind,
+					id: `fragment-${fragmentIndex}-section-${s}`,
+					kind: 'sequence_fragment_section',
 					x: leftX + FRAGMENT_SECTION_LABEL_PADDING,
 					y: sepY + FRAGMENT_SECTION_LABEL_PADDING,
 					w: fragW - FRAGMENT_SECTION_LABEL_PADDING * 2,
@@ -736,46 +705,31 @@ export function sequenceToBlueprint(
 		const actor = actors.get(key)
 		if (!actor) continue
 		const { x, y, w, h, bottomY } = layouts[i]
-		const isCreated = creationEventIndex.has(key)
-		const isDestroyed = destructionEventIndex.has(key)
-		const kind = actor.type
-		const label = actor.description || actor.name || key
 		const shared = {
-			kind,
-			label,
+			kind: actor.type,
+			label: actor.description || actor.name || key,
+			x,
+			w,
+			h,
 			align: 'middle' as const,
 			verticalAlign: 'middle' as const,
 			size: 's' as const,
 		}
 
-		const creationY = isCreated ? lifelineTop + eventStep * (creationEventIndex.get(key)! + 1) : 0
-		const topY = isCreated ? creationY - h / 2 : y
-		const topId = `actor-top-${key}`
+		const createdAt = creationEventIndex.get(key)
 		nodes.push({
-			id: topId,
-			x,
-			y: topY,
-			w,
-			h,
+			id: `actor-top-${key}`,
+			y: createdAt !== undefined ? eventY(createdAt) - h / 2 : y,
 			...shared,
 		})
 
-		if (!isDestroyed) {
-			const botId = `actor-bottom-${key}`
-			nodes.push({
-				id: botId,
-				x,
-				y: bottomY,
-				w,
-				h,
-				...shared,
-			})
+		if (!destructionEventIndex.has(key)) {
+			nodes.push({ id: `actor-bottom-${key}`, y: bottomY, ...shared })
 		}
 	}
 
 	// 5. Events: signals and notes
 	const pendingCreations = new Set(createdActors.keys())
-	let sequenceNumber = autonumberStart
 
 	for (let eventIndex = 0; eventIndex < events.length; eventIndex++) {
 		const msg = events[eventIndex]
@@ -810,14 +764,13 @@ export function sequenceToBlueprint(
 				...(isCreationMessage && { isExactEnd: false, isPreciseEnd: false }),
 			}
 
-			if (autonumberVisible) {
-				edge.decoration = { type: 'autonumber', value: String(sequenceNumber) }
-				sequenceNumber += autonumberStep
+			const autonumberLabel = eventAutonumbers[eventIndex]
+			if (autonumberLabel) {
+				edge.decoration = { type: 'autonumber', value: autonumberLabel }
 			}
 
 			edges.push(edge)
-		} else if (isNoteMessage(msg.type)) {
-			const eventY = lifelineTop + eventStep * (eventIndex + 1)
+		} else if (msg.type === LINETYPE.NOTE) {
 			const fromKey = msg.from!
 			const fromIdx = keyIndex.get(fromKey)
 			const toIdx = keyIndex.get(msg.to ?? fromKey)
@@ -850,13 +803,11 @@ export function sequenceToBlueprint(
 				noteX = fromCenterX - noteWidth / 2
 			}
 
-			const noteId = `note-${eventIndex}`
-			const noteKind = 'sequence_note'
 			nodes.push({
-				id: noteId,
-				kind: noteKind,
+				id: `note-${eventIndex}`,
+				kind: 'sequence_note',
 				x: noteX,
-				y: eventY - noteHeight / 2,
+				y: eventY(eventIndex) - noteHeight / 2,
 				w: noteWidth,
 				h: noteHeight,
 				fill: 'solid',

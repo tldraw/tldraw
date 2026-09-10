@@ -273,13 +273,16 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				})
 			)
 		}
+		// The default logger belongs to both layers: TLSyncRoom is where authorizer throws are
+		// logged, and a host that passes no `log` would otherwise never see them.
+		this.log = 'log' in opts ? opts.log : { error: console.error }
 		this.room = new TLSyncRoom<R, SessionMeta>({
 			onPresenceChange: opts.onPresenceChange,
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
 			authorizeRecord: opts.authorizeRecord,
 			schema: opts.schema ?? (createTLSchema() as any),
-			log: opts.log,
+			log: this.log,
 			storage,
 			clientTimeout: opts.clientTimeout,
 		})
@@ -295,7 +298,6 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				})
 			}
 		})
-		this.log = 'log' in opts ? opts.log : { error: console.error }
 	}
 
 	/**
@@ -854,12 +856,11 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		if (this.isClosed()) {
 			throw new Error('Cannot update store on a closed room')
 		}
+		// read through the transaction rather than getSnapshot(): the document snapshot excludes the
+		// object-store lane, which would make object-lane records invisible (and undeletable) here
+		const records = this.storage.transaction((txn) => Object.fromEntries(txn.entries())).result
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		const ctx = new StoreUpdateContext<R>(
-			// eslint-disable-next-line @typescript-eslint/no-deprecated
-			Object.fromEntries(this.getCurrentSnapshot().documents.map((d) => [d.state.id, d.state])),
-			this.room.schema
-		)
+		const ctx = new StoreUpdateContext<R>(records, this.room.schema)
 		try {
 			await updater(ctx)
 		} finally {

@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> đã bình luận trên diễn đàn của bạn"
   },
+  "28b2464e1f": {
+    "translation": "Không thể gửi phản hồi"
+  },
   "299cb00a7a": {
     "translation": "Tải lên thất bại"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Tìm kiếm..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Vui lòng thử lại."
   },
   "2de510be71": {
     "translation": "Quá trình tạo lại sẽ thay thế liên kết mời hiện tại bằng một liên kết mới. Bất kỳ ai đang sử dụng liên kết cũ sẽ cần liên kết mới để tham gia."
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} chưa đọc"
+  },
+  "550b25cc0c": {
+    "translation": "Không thể khôi phục bản vẽ cục bộ của bạn. Hãy thử tải lại trang này."
   },
   "554a05155c": {
     "translation": "Vẫn gặp sự cố? <a>Báo cáo sự cố</a>"
@@ -433,6 +442,9 @@
   },
   "9bef626805": {
     "translation": "Xóa tệp"
+  },
+  "9c228b6834": {
+    "translation": "Có vẻ như bạn đang ngoại tuyến. Hãy kiểm tra kết nối của mình và thử lại."
   },
   "9ccb565b86": {
     "translation": "Chúng tôi đang gặp sự cố khi kết nối với dịch vụ xác thực. Đây thường chỉ là sự cố tạm thời. Vui lòng thử làm mới trang."

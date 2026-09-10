@@ -75,9 +75,7 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 	useEffect(() => {
 		const timeout = tltime.setTimeout(
 			'set title and label',
-			() => {
-				setTitleAndLabel(title + ' — ' + msg(label as TLUiTranslationKey))
-			},
+			() => setTitleAndLabel(title + ' — ' + msg(label as TLUiTranslationKey)),
 			0
 		)
 		return () => clearTimeout(timeout)
