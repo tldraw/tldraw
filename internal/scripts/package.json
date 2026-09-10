@@ -45,12 +45,15 @@
 		"is-ci": "^3.0.1",
 		"kleur": "^4.1.5",
 		"lazyrepo": "0.0.0-alpha.27",
+		"oxfmt": "^0.41.0",
+		"purgecss": "^5.0.0",
 		"recast": "^0.22.0",
 		"rimraf": "^4.4.1",
 		"semver": "^7.6.3",
 		"svgo": "^3.3.3",
 		"typescript": "^7.0.2",
-		"vite": "^8.0.16"
+		"vite": "^8.0.16",
+		"vite-plugin-circular-dependency": "^0.5.0"
 	},
 	"scripts": {
 		"lint": "yarn run -T tsx lint.ts"
@@ -65,8 +68,11 @@
 		"@types/proper-lockfile": "^4.1.4",
 		"@types/tmp": "^0.2.6",
 		"diff": "^9.0.0",
+		"docx": "^9.5.1",
 		"ignore": "^5.3.2",
+		"json5": "^2.2.3",
 		"jszip": "^3.10.1",
+		"mime": "^4.0.6",
 		"minimist": "^1.2.8",
 		"nanoid": "^5.1.16",
 		"pg": "^8.16.3",
