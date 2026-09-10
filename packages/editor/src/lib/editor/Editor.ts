@@ -6916,9 +6916,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this._deleteBindings(bindings, { isolateShapes })
 	}
 
-	// Unguarded so that withIsolatedShapes can transiently isolate shapes (copy, duplicate)
-	// in readonly mode; the public deleteBindings is what readonly blocks.
-	/** @internal */
+	/**
+	 * Unguarded so that withIsolatedShapes can transiently isolate shapes for copy and export in
+	 * readonly mode; the public deleteBindings is what readonly blocks.
+	 *
+	 * @internal
+	 */
 	_deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes = false } = {}) {
 		const ids = bindings.map((binding) => (typeof binding === 'string' ? binding : binding.id))
 		if (isolateShapes) {
