@@ -11,7 +11,7 @@ The migration runs against production while every open tab is writing to it. Pos
 - Reader deadlocks and why the migration is the right victim
 - Expensive statements
 - DML inside a migration
-- The 050 story
+- Worked example: migration 050
 
 ## Which statement takes which lock
 
@@ -69,7 +69,7 @@ The window is milliseconds during lock acquisition, so it scales with traffic. O
 - `ADD COLUMN ... DEFAULT <volatile>` (`now()`, a function call) rewrites the table. A constant default is metadata-only in Postgres but may still be a Zero backfill (see `zero.md`).
 - `ALTER COLUMN ... TYPE` rewrites the table unless the change is binary-compatible.
 - `CREATE INDEX` without `CONCURRENTLY` holds SHARE for the whole build, blocking every write to the table. Use the `-- no-transaction` marker and `CONCURRENTLY` on any table with live writers.
-- A backfill `UPDATE` or `INSERT ... SELECT` over a large table holds row locks on every row it touches until COMMIT and fires every row trigger. Migration 044's `INSERT ... SELECT` over ~746k `file_state` rows was seconds; check the current count before assuming.
+- A backfill `UPDATE` or `INSERT ... SELECT` over a large table holds row locks on every row it touches until COMMIT and fires every row trigger. Check the current production row count before assuming a backfill is quick.
 
 Size against production, not the local dev stack: `SELECT count(*) FROM <table>` and `SELECT pg_size_pretty(pg_total_relation_size('<table>'))` on staging are a floor, production is the number that matters.
 
@@ -77,14 +77,8 @@ Size against production, not the local dev stack: `SELECT count(*) FROM <table>`
 
 Row triggers fire per row, so a backfill on `file` runs `file_effect_outbox_fn` for every row it touches. That function skips no-op updates by comparing a fixed list of columns; a backfill that writes a column outside that list produces one `effect_outbox` row per file and the sync-worker's effect processor drains them all. Every changed row also replicates through Zero and reaches every client that syncs it.
 
-The replication side is the larger cost. A mass update of a published table commits as one transaction, and Zero writes it through its change log as one unit before anything after it can replicate: migration 036's update of ~980k `group` rows took 15.5 minutes to write through and blocked every other write from reaching clients for that long (Rocicorp's report on the 2026-06-18 incident). Batch large updates outside the migration so replication proceeds between batches, or add a column with a default and let Zero's backfill carry the value asynchronously (see `zero.md`). Either way, know the row count and the trigger list before it runs.
+The replication side is the larger cost. A mass update of a published table commits as one transaction, and Zero writes it through its change log as one unit before anything after it can replicate: a full-table update of `group` in migration 036 took long enough to write through that no other write reached clients meanwhile. Batch large updates outside the migration so replication proceeds between batches, or add a column with a default and let Zero's backfill carry the value asynchronously (see `zero.md`). Either way, know the row count and the trigger list before it runs.
 
-## The 050 story
+## Worked example: migration 050
 
-Migration 050 (#10591, September 2026) dropped four legacy columns across `file` and `file_state`, dropped three triggers, redefined four functions, and set `file."owningGroupId"` NOT NULL. Three things went wrong or nearly did, in order:
-
-1. Review found the statement order took `file` (a `DROP TRIGGER` on it) before `user` (another `DROP TRIGGER`), while `update_file_owner_details_trigger` on `user` did `UPDATE "file"`. A user rename in flight held `user` and waited on `file`; the migration held `file` and waited on `user`. Reproduced locally with a `pg_sleep` between the two drops and a concurrent rename: `deadlock detected`. Fix: `LOCK TABLE public."user", public."file"` right after the guard check, matching the writer order, and the `SET NOT NULL` scan moved up so `file_state` was never held during it.
-2. Staging applied it first time. Production's dry run applied it first time. Production's real run, five seconds later, deadlocked against a reader: `Process A waits for AccessExclusiveLock on relation X; Process B waits for AccessShareLock on relation Y`. The deploy aborted with nothing else rolled.
-3. `gh run rerun --failed` applied it in about nine seconds. One `schema-change` pipeline reset per client group, connected clients level through the deploy.
-
-Step 1 is reproducible locally in a few minutes; `testing.md` has the recipe.
+Migration 050 dropped four legacy columns across `file` and `file_state`, dropped three triggers, redefined four functions, and set `file."owningGroupId"` NOT NULL. The first draft dropped the trigger on `file` before the trigger on `user`, while `update_file_owner_details_trigger` on `user` did `UPDATE "file"`: a user rename in flight holds `user` and waits on `file`, the migration holds `file` and waits on `user`. The recipe in `testing.md` reproduces it with a `pg_sleep` between the two drops and a concurrent rename. The shipped version takes `LOCK TABLE public."user", public."file"` right after the guard check, matching the writer order, and runs the `SET NOT NULL` scan before any trigger drop so `file_state` is never held during it. That removes the writer deadlock; a reader can still force a rerun, as above.
