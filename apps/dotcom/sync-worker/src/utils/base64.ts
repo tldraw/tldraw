@@ -4,7 +4,7 @@
 export function arrayBufferToBase64(buffer: ArrayBuffer): string {
 	const bytes = new Uint8Array(buffer)
 	// workerd (V8 14+) has the native encoder, which skips the intermediate binary string that
-	// matters when the .tldr download inlines multi-MB assets inside a memory-capped DO. Node 22
+	// matters when the .tldr download inlines multi-MB assets inside a memory-capped DO. Node < 25
 	// under vitest does not have it.
 	if (typeof bytes.toBase64 === 'function') return bytes.toBase64()
 	return btoa(bytesToBinaryString(bytes))
