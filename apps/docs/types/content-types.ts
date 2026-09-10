@@ -19,18 +19,6 @@ export interface InputGroup {
 	id: string
 }
 
-/* --------------------- Authors -------------------- */
-
-export type Authors = Author[]
-
-export interface Author {
-	id: string
-	name: string
-	image: string
-	email: string
-	twitter: string
-}
-
 /* ---------------------- Pages --------------------- */
 
 export interface ContentPage {
@@ -102,8 +90,8 @@ export interface Article extends ContentPage {
 	sectionId: string
 	/** The index of this article inside of the article's section. */
 	sectionIndex: number
-	/** The article's author details (optional). */
-	author: Author['id'][]
+	/** The article's author ids (optional). */
+	author: string[]
 	/** The article's author username (optional). */
 	authorId: string
 	/** The article's hero image (optional). */

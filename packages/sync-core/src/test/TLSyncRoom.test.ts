@@ -1949,6 +1949,111 @@ describe('25. Messaging and broadcast (RB)', () => {
 		expect(socketB.sendMessage).not.toHaveBeenCalled()
 	})
 
+	it('[RB3] a debounced flush into a socket that closed meanwhile cancels the session instead of sending', () => {
+		vi.useFakeTimers()
+		const { room, socketB } = setupTwoSessions()
+		const newPage = makePage('page_3', 'v1')
+
+		room.handleMessage('a', {
+			type: 'push',
+			clientClock: 1,
+			diff: { [newPage.id]: ['put', newPage] },
+		} as TLPushRequest<TLRecord>)
+		room.handleMessage('a', {
+			type: 'push',
+			clientClock: 2,
+			diff: { [newPage.id]: ['patch', { name: ['put', 'v2'] }] },
+		} as TLPushRequest<TLRecord>)
+		expect(socketB.sendMessage).toHaveBeenCalledTimes(1)
+
+		// the socket closes while the second message sits in the debounce buffer
+		socketB.isOpen = false
+		vi.advanceTimersByTime(DATA_MESSAGE_DEBOUNCE_INTERVAL + 1)
+
+		expect(socketB.sendMessage).toHaveBeenCalledTimes(1)
+		expect(room.sessions.get('b')?.state).toBe(RoomSessionState.AwaitingRemoval)
+	})
+
+	it('[RC7] close() drops pending debounced flushes so nothing is sent into closed sockets afterwards', () => {
+		vi.useFakeTimers()
+		const { room, socketB } = setupTwoSessions()
+		const newPage = makePage('page_3', 'v1')
+
+		room.handleMessage('a', {
+			type: 'push',
+			clientClock: 1,
+			diff: { [newPage.id]: ['put', newPage] },
+		} as TLPushRequest<TLRecord>)
+		room.handleMessage('a', {
+			type: 'push',
+			clientClock: 2,
+			diff: { [newPage.id]: ['patch', { name: ['put', 'v2'] }] },
+		} as TLPushRequest<TLRecord>)
+		expect(socketB.sendMessage).toHaveBeenCalledTimes(1)
+
+		room.close()
+		expect(room.isClosed()).toBe(true)
+		vi.advanceTimersByTime(DATA_MESSAGE_DEBOUNCE_INTERVAL + 1)
+
+		expect(socketB.sendMessage).toHaveBeenCalledTimes(1)
+		expect(socketB.close).toHaveBeenCalled()
+	})
+
+	it('[RC7] close() closes every socket even when one of them throws on close', () => {
+		const { room, socketA, socketB } = setupTwoSessions()
+		socketA.close.mockImplementationOnce(() => {
+			throw new Error('already closing')
+		})
+
+		expect(() => room.close()).not.toThrow()
+		expect(room.isClosed()).toBe(true)
+		expect(socketB.close).toHaveBeenCalled()
+	})
+
+	it('[RC7] close() forgets its sessions, and late socket close events emit no lifecycle events', () => {
+		vi.useFakeTimers()
+		const { room, socketA } = setupTwoSessions()
+		const removed = vi.fn()
+		const becameEmpty = vi.fn()
+		room.events.on('session_removed', removed)
+		room.events.on('room_became_empty', becameEmpty)
+
+		// b's socket closes before close(), a's closes after: both must stay silent
+		room.handleClose('b')
+		room.close()
+		expect(room.sessions.size).toBe(0)
+		room.handleClose('a')
+
+		vi.advanceTimersByTime(SESSION_REMOVAL_WAIT_TIME + 2001)
+		expect(removed).not.toHaveBeenCalled()
+		expect(becameEmpty).not.toHaveBeenCalled()
+		expect(socketA.sendMessage).not.toHaveBeenCalled()
+	})
+
+	it('[RC7] sessions added after close() are rejected and their sockets closed', () => {
+		const { room } = makeRoom()
+		room.close()
+
+		const late = makeSocket()
+		room.handleNewSession({ sessionId: 'late', socket: late, meta: undefined, isReadonly: false })
+		expect(late.close).toHaveBeenCalled()
+
+		const resumed = makeSocket()
+		room.handleResumedSession({
+			sessionId: 'resumed',
+			socket: resumed,
+			meta: undefined,
+			isReadonly: false,
+			serializedSchema: room.serializedSchema,
+			presenceId: null,
+			presenceRecord: null,
+			requiresLegacyRejection: false,
+			supportsStringAppend: true,
+		})
+		expect(resumed.close).toHaveBeenCalled()
+		expect(room.sessions.size).toBe(0)
+	})
+
 	it('[RB4] a per-session migration failure during broadcast rejects only the affected session', () => {
 		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 		try {

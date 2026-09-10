@@ -253,6 +253,12 @@
       "value": " comentou no teu taboleiro"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Non se puideron enviar os comentarios"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -269,6 +275,12 @@
     {
       "type": 0,
       "value": "Buscar..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Téntao de novo."
     }
   ],
   "2de510be71": [
@@ -497,6 +509,12 @@
     {
       "type": 0,
       "value": " sen ler"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Non se puido restaurar o debuxo local. Tenta recargar esta páxina."
     }
   ],
   "554a05155c": [
@@ -1068,6 +1086,12 @@
     {
       "type": 0,
       "value": "Eliminar ficheiro"
+    }
+  ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Parece que estás desconectado. Comproba a túa conexión e téntao de novo."
     }
   ],
   "9ccb565b86": [

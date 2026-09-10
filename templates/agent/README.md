@@ -551,7 +551,7 @@ override getPart(request: AgentRequest, helpers: AgentHelpers): RandomShapePart 
 	const randomShape = shapes[Math.floor(Math.random() * shapes.length)]
 
 	// Convert the shape to the Focused format
-	const focusedShape = convertTldrawShapeToFocusedShape(randomShape, editor)
+	const focusedShape = convertTldrawShapeToFocusedShape(editor, randomShape)
 
 	// Normalize the shape's position
 	const offsetShape = helpers.applyOffsetToShape(focusedShape)
@@ -577,7 +577,7 @@ The schema showing the actions the agent can output is also automatically added 
 Set an agent's model using the `setModelName` method on the `modelName` manager.
 
 ```ts
-agent.modelName.setModelName('gemini-3-flash-preview')
+agent.modelName.setModelName('gemini-3.8-flash')
 ```
 
 To change the logic for deciding which model to use for a request, you can edit `ModelNamePartUtil`.
@@ -587,10 +587,14 @@ To change the logic for deciding which model to use for a request, you can edit 
 Add the model's definition to `AGENT_MODEL_DEFINITIONS` in `shared/models.ts`.
 
 ```ts
-'claude-sonnet-4-5': {
-	name: 'claude-sonnet-4-5',
-	id: 'claude-sonnet-4-5',
+'claude-sonnet-5': {
+	name: 'claude-sonnet-5',
+	id: 'claude-sonnet-5',
 	provider: 'anthropic',
+	supportsPrefill: false,
+	supportsTemperature: false,
+	thinking: 'adaptive',
+	effort: 'low',
 }
 ```
 

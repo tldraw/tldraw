@@ -801,3 +801,17 @@ describe('integration with reactive state (QI, QQ)', () => {
 		expect(tolkeinBookCount.get()).toBe(2)
 	})
 })
+
+describe('queries across rolled-back transactions (QH, QQ)', () => {
+	it('[QQ2] the query creator is called without arguments', () => {
+		const args: unknown[][] = []
+		const ids = store.query.ids('book', (...rest: unknown[]) => {
+			args.push(rest)
+			return {}
+		})
+		ids.get()
+		store.put([Book.create({ title: 'Another', authorId: authors.bradbury.id })])
+		ids.get()
+		for (const call of args) expect(call).toEqual([])
+	})
+})

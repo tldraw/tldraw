@@ -41,6 +41,28 @@ it('duplicates a shape with an offset', () => {
 	expect(editor.getLastCreatedShape()).toMatchObject({ x: 10, y: 10 })
 })
 
+it('ignores ids of shapes that do not exist', () => {
+	editor.createShape({ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+	editor.duplicateShapes([ids.box1, createShapeId('nope')], { x: 10, y: 10 })
+	expect(editor.getCurrentPageShapes().length).toBe(2)
+	expect(editor.getLastCreatedShape()).toMatchObject({ x: 10, y: 10 })
+})
+
+it('offsets a duplicated descendant only once when its ancestor is also duplicated', () => {
+	editor.createShapes([
+		{ id: ids.box1, type: 'frame', x: 0, y: 0, props: { w: 500, h: 500 } },
+		{ id: ids.box2, type: 'geo', parentId: ids.box1, x: 50, y: 50, props: { w: 100, h: 100 } },
+	])
+	editor.duplicateShapes([ids.box1, ids.box2], { x: 1000, y: 0 })
+	const frameCopy = editor
+		.getCurrentPageShapes()
+		.find((s) => s.type === 'frame' && s.id !== ids.box1)!
+	const childCopy = editor.getSortedChildIdsForParent(frameCopy.id)
+	expect(childCopy).toHaveLength(1)
+	// the child follows its duplicated parent; it should not be offset a second time
+	expect(editor.getShapePageBounds(childCopy[0])).toMatchObject({ x: 1050, y: 50 })
+})
+
 it("doesn't duplicate locked shapes", () => {
 	editor
 		.createShape({ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })

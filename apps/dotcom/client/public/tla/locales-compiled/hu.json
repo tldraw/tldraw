@@ -257,6 +257,12 @@
       "value": " hozzászólást fűzött a tábládhoz"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Nem sikerült elküldeni a visszajelzést"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -273,6 +279,12 @@
     {
       "type": 0,
       "value": "Keresés..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Kérjük, próbálja újra."
     }
   ],
   "2de510be71": [
@@ -501,6 +513,12 @@
     {
       "type": 0,
       "value": " olvasatlan"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Nem sikerült visszaállítani a helyi rajzot. Próbálja meg újratölteni az oldalt."
     }
   ],
   "554a05155c": [
@@ -1068,6 +1086,12 @@
     {
       "type": 0,
       "value": "Fájl törlése"
+    }
+  ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Úgy tűnik, offline állapotban vagy. Ellenőrizd a kapcsolatodat, és próbáld újra."
     }
   ],
   "9ccb565b86": [

@@ -1,3 +1,12 @@
+import { RoomSnapshot } from '@tldraw/sync-core'
+
+// Shape of legacy snapshot objects in ROOM_SNAPSHOTS; nothing writes new ones since the
+// snapshot-link UI was removed, but existing objects are still read.
+export interface R2Snapshot {
+	parent_slug?: string
+	drawing: RoomSnapshot
+}
+
 export function getR2KeyForRoom({ slug, isApp }: { slug: string; isApp: boolean }) {
 	return `${isApp ? 'app_rooms' : 'public_rooms'}/${slug}`
 }
@@ -16,15 +25,87 @@ export function getR2KeyForSnapshot({
 	return getR2KeyForRoom({ slug, isApp })
 }
 
-export async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promise<string[]> {
+/**
+ * Runs one R2 operation. Operations default to running inline; a caller inside a shared connection
+ * budget (the durable object's R2 queue) passes its queue, so each operation is one budgeted slot
+ * and a fan-out never holds more connections than the budget allows.
+ */
+export type R2ReadScheduler = <T>(read: () => Promise<T>) => Promise<T>
+
+export function runInline<T>(read: () => Promise<T>): Promise<T> {
+	return read()
+}
+
+// R2 has honored `include` on list() since compat date 2022-08-04 (this worker's is far past it),
+// but the repo's ambient workers-types entrypoint predates the option — declared locally, same
+// pattern as types.ts.
+type R2ListOptionsWithInclude = R2ListOptions & {
+	include?: Array<'httpMetadata' | 'customMetadata'>
+}
+
+/**
+ * Every object under `prefix` with its custom metadata, plus the number of list calls the walk
+ * spent — callers inside a read budget account for the listing too.
+ */
+export async function listAllObjects(
+	bucket: R2Bucket,
+	prefix: string,
+	schedule: R2ReadScheduler = runInline
+): Promise<{ objects: R2Object[]; ops: number }> {
+	const objects: R2Object[] = []
+	let cursor: string | undefined
+	let ops = 0
+
+	do {
+		// Including metadata makes R2 return shorter pages, so a short page does not mean the
+		// listing is done — `truncated` is the only safe stop condition.
+		const options: R2ListOptionsWithInclude = { prefix, cursor, include: ['customMetadata'] }
+		const page = await schedule(() => bucket.list(options as R2ListOptions))
+		ops++
+		objects.push(...page.objects)
+		cursor = page.truncated ? page.cursor : undefined
+	} while (cursor)
+
+	return { objects, ops }
+}
+
+/**
+ * Every key under `prefix`, or the first `limit` of them. The limit is passed to R2 too, so a
+ * capped listing is a single page rather than a full walk sliced afterwards.
+ */
+export async function listAllObjectKeys(
+	bucket: R2Bucket,
+	prefix: string,
+	limit?: number,
+	schedule: R2ReadScheduler = runInline
+): Promise<string[]> {
 	const keys: string[] = []
 	let cursor: string | undefined
 
 	do {
-		const result = await bucket.list({ prefix, cursor })
+		const options = limit === undefined ? { prefix, cursor } : { prefix, cursor, limit }
+		const result = await schedule(() => bucket.list(options))
 		keys.push(...result.objects.map((o) => o.key))
+		if (limit !== undefined && keys.length >= limit) return keys.slice(0, limit)
 		cursor = result.truncated ? result.cursor : undefined
 	} while (cursor)
 
 	return keys
+}
+
+// R2 deletes at most 1000 keys per call, so deleting everything a `list` returned in one go
+// throws once a board has more history objects than that (one per persist) — and the cleanup
+// that called it is left half-done.
+const MAX_R2_DELETE_KEYS = 1000
+
+export async function deleteAllObjectsWithPrefix(
+	bucket: R2Bucket,
+	prefix: string,
+	schedule: R2ReadScheduler = runInline
+) {
+	const keys = await listAllObjectKeys(bucket, prefix, undefined, schedule)
+	for (let i = 0; i < keys.length; i += MAX_R2_DELETE_KEYS) {
+		const batch = keys.slice(i, i + MAX_R2_DELETE_KEYS)
+		await schedule(() => bucket.delete(batch))
+	}
 }

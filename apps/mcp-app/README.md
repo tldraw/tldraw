@@ -128,6 +128,10 @@ Because the hostname is stable per user, you only add the app in ChatGPT once â€
 
 Reconnecting the server after changes is the most reliable way to pick up new code, especially when the widget HTML changes.
 
+## Session storage lifecycle
+
+Each MCP session is a `TldrawMCP` Durable Object. It keeps up to `MAX_CHECKPOINTS` (50) canvas snapshots and destroys itself after `IDLE_TTL_MS` (7 days) without a checkpoint save â€” a schedule armed in `init()` and re-armed on every check.
+
 ## Contact
 
 Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw).

@@ -257,6 +257,12 @@
       "value": " comentó en tu tablero"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "No se pudo enviar la retroalimentación."
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -273,6 +279,12 @@
     {
       "type": 0,
       "value": "Buscar..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Por favor, inténtalo de nuevo."
     }
   ],
   "2de510be71": [
@@ -501,6 +513,12 @@
     {
       "type": 0,
       "value": " no leído"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "No se pudo restaurar el dibujo local. Intente recargar esta página."
     }
   ],
   "554a05155c": [
@@ -1072,6 +1090,12 @@
     {
       "type": 0,
       "value": "Eliminar archivo"
+    }
+  ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Parece que no estás conectado. Comprueba tu conexión e inténtalo de nuevo."
     }
   ],
   "9ccb565b86": [

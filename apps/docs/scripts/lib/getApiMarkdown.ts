@@ -303,7 +303,9 @@ function getItemTitle(item: ApiItem) {
 		return 'Constructor'
 	}
 
-	const name = item.displayName
+	// Escape square brackets so a name like `[Symbol.iterator]` followed by the
+	// `(\u00A0)` call parens below doesn't parse as a markdown link.
+	const name = item.displayName.replaceAll('[', '\\[').replaceAll(']', '\\]')
 	if (item.kind === ApiItemKind.Method || item.kind === ApiItemKind.Function) {
 		return `${name}(\u00A0)`
 	}
