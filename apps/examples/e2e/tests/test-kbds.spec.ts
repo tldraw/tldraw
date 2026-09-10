@@ -56,6 +56,7 @@ test.describe('Keyboard Shortcuts', () => {
 			['f', 'frame'],
 			['e', 'eraser'],
 			['k', 'laser'],
+			['s', 'scissors'],
 			['t', 'text'],
 		]
 

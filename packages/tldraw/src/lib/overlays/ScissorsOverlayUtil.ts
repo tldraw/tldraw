@@ -1,6 +1,4 @@
-import { OverlayUtil, TLOverlay } from '@tldraw/editor'
-import { getStrokePoints } from '../shapes/shared/freehand/getStrokePoints'
-import { getSvgPathFromStrokePoints } from '../shapes/shared/freehand/svg'
+import { getSvgPathFromPoints, OverlayUtil, TLOverlay } from '@tldraw/editor'
 import { Cutting } from '../tools/ScissorsTool/childStates/Cutting'
 
 /** @public */
@@ -27,8 +25,7 @@ export class ScissorsOverlayUtil extends OverlayUtil<TLScissorsOverlay> {
 		const cutting = this.editor.getStateDescendant<Cutting>('scissors.cutting')
 		const points = cutting?.points.get() ?? []
 		if (points.length < 2) return []
-		const svgPath = getSvgPathFromStrokePoints(getStrokePoints(points), true)
-		if (!svgPath) return []
+		const svgPath = getSvgPathFromPoints(points, true)
 		return [{ id: 'scissors', type: 'scissors', props: { svgPath } }]
 	}
 

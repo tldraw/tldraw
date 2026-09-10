@@ -1,11 +1,14 @@
 import {
 	b64Vecs,
 	Box,
+	clampToBrowserMaxCanvasSize,
 	createShapeId,
 	Editor,
+	getIndexAbove,
 	Image,
 	intersectLineSegmentPolygon,
 	pointInPolygon,
+	polygonsIntersect,
 	TLDrawShape,
 	TLImageShape,
 	TLShape,
@@ -16,7 +19,6 @@ import {
 } from '@tldraw/editor'
 import { getPointsFromDrawSegments } from '../../shapes/draw/getPath'
 
-/** @internal */
 export interface LassoCutResult {
 	/** Shapes that were cut out synchronously and are ready to select. */
 	ids: TLShapeId[]
@@ -32,13 +34,16 @@ interface SplitPolyline {
 /**
  * Split a polyline at every crossing of a closed polygon into the runs that fall inside and
  * outside it. Crossing points are shared by the adjoining runs so cut strokes stay visually joined.
- *
- * @internal
  */
-export function splitPolylineByPolygon(points: VecModel[], polygon: VecLike[]): SplitPolyline {
+export function splitPolylineByPolygon(
+	points: VecModel[],
+	polygon: VecLike[],
+	opts?: { closed?: boolean }
+): SplitPolyline {
 	const runs: VecModel[][] = []
 	if (points.length === 0) return { inside: [], outside: [] }
 
+	const isInside = points.map((p) => pointInPolygon(p, polygon))
 	let run: VecModel[] = [points[0]]
 	for (let i = 1; i < points.length; i++) {
 		const a = points[i - 1]
@@ -57,17 +62,29 @@ export function splitPolylineByPolygon(points: VecModel[], polygon: VecLike[]): 
 			run = [cut]
 		}
 		run.push(b)
+		// A vertex sitting exactly on the outline yields no strict crossing, so the side change
+		// between neighbouring vertices is the only signal that a cut belongs here.
+		if (crossings.length === 0 && isInside[i - 1] !== isInside[i]) {
+			runs.push(run)
+			run = [b]
+		}
 	}
 	if (run.length > 1) runs.push(run)
 
-	// Classify each run by the middle of one of its segments rather than by a vertex: the end
-	// vertices of a run are cut points that sit exactly on the outline.
-	const result: SplitPolyline = { inside: [], outside: [] }
-	for (const r of runs) {
+	const sideOf = (r: VecModel[]) => {
+		// Sample the middle of a segment rather than a vertex: run ends are cut points on the outline.
 		const k = Math.floor(r.length / 2)
-		const mid = Vec.Med(r[k - 1], r[k])
-		;(pointInPolygon(mid, polygon) ? result.inside : result.outside).push(r)
+		return pointInPolygon(Vec.Med(r[k - 1], r[k]), polygon)
 	}
+
+	// A closed stroke was opened at its first point, so rejoin the two runs that meet there.
+	if (opts?.closed && runs.length > 1 && sideOf(runs[0]) === sideOf(runs[runs.length - 1])) {
+		const first = runs.shift()!
+		runs[runs.length - 1] = [...runs[runs.length - 1], ...first.slice(1)]
+	}
+
+	const result: SplitPolyline = { inside: [], outside: [] }
+	for (const r of runs) (sideOf(r) ? result.inside : result.outside).push(r)
 	return result
 }
 
@@ -78,6 +95,8 @@ function getDrawShapePagePoints(editor: Editor, shape: TLDrawShape): VecModel[] 
 		shape.props.scaleY
 	)
 	if (shape.props.isClosed && local.length > 2) local.push(local[0].clone())
+	// The closing point is appended so the polyline covers the whole loop; the caller passes
+	// `closed` so the split can rejoin the runs on either side of it.
 	const transform = editor.getShapePageTransform(shape)
 	return local.map((p) => {
 		const { x, y } = transform.applyToPoint(p)
@@ -86,13 +105,16 @@ function getDrawShapePagePoints(editor: Editor, shape: TLDrawShape): VecModel[] 
 }
 
 function createDrawPiece(editor: Editor, source: TLDrawShape, pagePoints: VecModel[]): TLShapeId {
-	const origin = pagePoints[0]
-	const points = pagePoints.map((p) => ({ x: p.x - origin.x, y: p.y - origin.y, z: p.z ?? 0.5 }))
+	// Pieces stay in the source's frame or group, so work in its parent's space.
+	const local = pagePoints.map((p) => ({ ...editor.getPointInParentSpace(source, p), z: p.z }))
+	const origin = local[0]
+	const points = local.map((p) => ({ x: p.x - origin.x, y: p.y - origin.y, z: p.z ?? 0.5 }))
 	const id = createShapeId()
 	editor.createShape<TLDrawShape>({
 		id,
 		type: 'draw',
-		parentId: editor.getCurrentPageId(),
+		parentId: source.parentId,
+		index: source.index,
 		x: origin.x,
 		y: origin.y,
 		rotation: 0,
@@ -120,9 +142,32 @@ function isWholeShapeInside(editor: Editor, shape: TLShape, polygon: VecLike[]) 
 	return !!bounds && pointInPolygon(bounds.center, polygon)
 }
 
+/** Whether a polygon overlaps the rectangle from (0, 0) to (w, h), beyond bounding boxes touching. */
+function polygonOverlapsRect(polygon: VecLike[], w: number, h: number) {
+	const corners = [
+		{ x: 0, y: 0 },
+		{ x: w, y: 0 },
+		{ x: w, y: h },
+		{ x: 0, y: h },
+	]
+	return (
+		polygon.some((p) => p.x > 0 && p.x < w && p.y > 0 && p.y < h) ||
+		corners.some((c) => pointInPolygon(c, polygon)) ||
+		polygonsIntersect(polygon, corners)
+	)
+}
+
+/** Bitmap regions can only be cut out of a static raster; animations and vectors stay whole. */
+function canCutImageRegion(editor: Editor, shape: TLImageShape) {
+	const asset = shape.props.assetId ? editor.getAsset(shape.props.assetId) : null
+	if (!asset || asset.type !== 'image' || asset.props.isAnimated) return false
+	return !asset.props.mimeType?.includes('svg')
+}
+
 function loadImage(src: string) {
 	return new Promise<HTMLImageElement>((resolve, reject) => {
 		const image = Image()
+		// Without a CORS-clean load the canvas taints and toBlob throws.
 		image.crossOrigin = 'anonymous'
 		image.onload = () => resolve(image)
 		image.onerror = () => reject(new Error('Could not load image'))
@@ -156,9 +201,8 @@ async function cutImageRegion(
 	if (!src) return null
 
 	const local = polygon.map((p) => editor.getPointInShapeSpace(shape, p))
+	if (!polygonOverlapsRect(local, shape.props.w, shape.props.h)) return null
 	const localBounds = Box.FromPoints(local)
-	if (localBounds.maxX <= 0 || localBounds.maxY <= 0) return null
-	if (localBounds.minX >= shape.props.w || localBounds.minY >= shape.props.h) return null
 	const region = Box.FromPoints([
 		{ x: Math.max(0, localBounds.minX), y: Math.max(0, localBounds.minY) },
 		{ x: Math.min(shape.props.w, localBounds.maxX), y: Math.min(shape.props.h, localBounds.maxY) },
@@ -166,9 +210,19 @@ async function cutImageRegion(
 	if (region.w <= 0 || region.h <= 0) return null
 
 	const image = await loadImage(src)
-	if (editor.isDisposed || !editor.getShape(shape.id)) return null
+	if (editor.isDisposed) return null
+	// The shape may have been edited while the bitmap decoded.
+	const current = editor.getShape<TLImageShape>(shape.id)
+	if (!current || current.props.assetId !== asset.id) return null
+	shape = current
 
-	// Shape space maps onto the cropped part of the source bitmap.
+	// Shape space maps onto the cropped part of the source bitmap. Flips mirror shape space
+	// relative to the bitmap, so undo them before sampling.
+	const { flipX, flipY } = shape.props
+	const unflip = (p: VecLike) => ({
+		x: flipX ? shape.props.w - p.x : p.x,
+		y: flipY ? shape.props.h - p.y : p.y,
+	})
 	const crop = shape.props.crop
 	const cropMinX = (crop?.topLeft.x ?? 0) * image.naturalWidth
 	const cropMinY = (crop?.topLeft.y ?? 0) * image.naturalHeight
@@ -178,10 +232,10 @@ async function cutImageRegion(
 		x: cropMinX + (p.x / shape.props.w) * cropW,
 		y: cropMinY + (p.y / shape.props.h) * cropH,
 	})
-	const pixelPolygon = local.map(toPixel)
+	const pixelPolygon = local.map((p) => toPixel(unflip(p)))
 	const pixelRegion = Box.FromPoints([
-		toPixel({ x: region.minX, y: region.minY }),
-		toPixel({ x: region.maxX, y: region.maxY }),
+		toPixel(unflip({ x: region.minX, y: region.minY })),
+		toPixel(unflip({ x: region.maxX, y: region.maxY })),
 	])
 
 	function tracePolygon(ctx: CanvasRenderingContext2D) {
@@ -191,18 +245,28 @@ async function cutImageRegion(
 	}
 
 	const piece = document.createElement('canvas')
-	piece.width = Math.max(1, Math.round(pixelRegion.w))
-	piece.height = Math.max(1, Math.round(pixelRegion.h))
+	const [pieceW, pieceH] = clampToBrowserMaxCanvasSize(
+		Math.max(1, Math.round(pixelRegion.w)),
+		Math.max(1, Math.round(pixelRegion.h))
+	)
+	piece.width = pieceW
+	piece.height = pieceH
 	const pieceCtx = piece.getContext('2d')!
+	pieceCtx.scale(pieceW / Math.max(1, pixelRegion.w), pieceH / Math.max(1, pixelRegion.h))
 	pieceCtx.translate(-pixelRegion.minX, -pixelRegion.minY)
 	tracePolygon(pieceCtx)
 	pieceCtx.clip()
 	pieceCtx.drawImage(image, 0, 0)
 
 	const remainder = document.createElement('canvas')
-	remainder.width = image.naturalWidth
-	remainder.height = image.naturalHeight
+	const [remainderW, remainderH] = clampToBrowserMaxCanvasSize(
+		image.naturalWidth,
+		image.naturalHeight
+	)
+	remainder.width = remainderW
+	remainder.height = remainderH
 	const remainderCtx = remainder.getContext('2d')!
+	remainderCtx.scale(remainderW / image.naturalWidth, remainderH / image.naturalHeight)
 	remainderCtx.drawImage(image, 0, 0)
 	remainderCtx.globalCompositeOperation = 'destination-out'
 	tracePolygon(remainderCtx)
@@ -216,11 +280,13 @@ async function cutImageRegion(
 			editor.getAssetForExternalContent({ type: 'file', file })
 		),
 	])
-	if (editor.isDisposed || !editor.getShape(shape.id)) return null
-	if (!pieceAsset || !remainderAsset) return null
+	if (editor.isDisposed || !pieceAsset || !remainderAsset) return null
+	if (editor.getShape<TLImageShape>(shape.id)?.props.assetId !== asset.id) return null
 
-	const transform = editor.getShapePageTransform(shape)
-	const origin = transform.applyToPoint({ x: region.minX, y: region.minY })
+	const origin = editor.getPointInParentSpace(
+		shape,
+		editor.getShapePageTransform(shape).applyToPoint({ x: region.minX, y: region.minY })
+	)
 	const id = createShapeId()
 	editor.run(() => {
 		editor.createAssets([pieceAsset, remainderAsset])
@@ -232,13 +298,14 @@ async function cutImageRegion(
 		editor.createShape<TLImageShape>({
 			id,
 			type: 'image',
-			parentId: editor.getCurrentPageId(),
+			parentId: shape.parentId,
+			index: getIndexAbove(shape.index),
 			x: origin.x,
 			y: origin.y,
-			rotation: transform.rotation(),
+			rotation: shape.rotation,
 			opacity: shape.opacity,
 			meta: shape.meta,
-			props: { assetId: pieceAsset.id, w: region.w, h: region.h },
+			props: { assetId: pieceAsset.id, w: region.w, h: region.h, flipX, flipY },
 		})
 	})
 	return id
@@ -248,24 +315,25 @@ async function cutImageRegion(
  * Cut everything under a lasso free so it can be moved or copied on its own. Draw strokes are split
  * at the lasso outline, the lassoed region of an image becomes a new image shape, and every other
  * shape is taken whole when its centre lies inside the lasso.
- *
- * @internal
  */
 export function cutShapesWithLasso(editor: Editor, polygon: VecLike[]): LassoCutResult {
-	if (polygon.length < 3) return { ids: [], pending: null }
 	const ids: TLShapeId[] = []
 	const images: TLImageShape[] = []
+	const lassoBounds = Box.FromPoints(polygon)
 
 	editor.run(() => {
 		for (const shape of editor.getCurrentPageShapesSorted()) {
-			if (shape.isLocked || shape.type === 'group') continue
+			if (shape.type === 'group' || editor.isShapeOrAncestorLocked(shape)) continue
+			const bounds = editor.getShapePageBounds(shape)
+			if (!bounds || !bounds.collides(lassoBounds)) continue
 
 			if (editor.isShapeOfType<TLImageShape>(shape, 'image')) {
 				const corners = editor
 					.getShapePageTransform(shape)
 					.applyToPoints(editor.getShapeGeometry(shape).vertices)
 				if (corners.every((corner) => pointInPolygon(corner, polygon))) ids.push(shape.id)
-				else images.push(shape)
+				else if (canCutImageRegion(editor, shape)) images.push(shape)
+				else if (isWholeShapeInside(editor, shape, polygon)) ids.push(shape.id)
 				continue
 			}
 
@@ -280,7 +348,9 @@ export function cutShapesWithLasso(editor: Editor, polygon: VecLike[]): LassoCut
 				continue
 			}
 
-			const { inside, outside } = splitPolylineByPolygon(pagePoints, polygon)
+			const { inside, outside } = splitPolylineByPolygon(pagePoints, polygon, {
+				closed: shape.props.isClosed,
+			})
 			if (inside.length === 0) continue
 			if (outside.length === 0) {
 				ids.push(shape.id)

@@ -9,7 +9,7 @@ export class Cutting extends StateNode {
 	points = atom<VecModel[]>('scissors lasso points', [])
 
 	override onEnter() {
-		const { x, y } = this.editor.inputs.getCurrentPagePoint()
+		const { x, y } = this.editor.inputs.getCurrentPagePoint().toFixed()
 		this.points.set([{ x, y }])
 	}
 
@@ -37,16 +37,24 @@ export class Cutting extends StateNode {
 	private complete() {
 		const { editor } = this
 		const polygon = this.points.get()
-		this.points.set([])
 		this.parent.transition('idle')
 		if (polygon.length < 3) return
 
 		editor.markHistoryStoppingPoint('scissors cut')
+		const pageId = editor.getCurrentPageId()
 		const { ids, pending } = cutShapesWithLasso(editor, polygon)
 
 		const finish = (all: TLShapeId[]) => {
-			if (editor.isDisposed || all.length === 0) return
-			editor.setSelectedShapes(all)
+			// Image cuts resolve later; by then the user may have moved on, so don't yank them back.
+			if (editor.isDisposed || !editor.isIn('scissors') || editor.getCurrentPageId() !== pageId)
+				return
+			const taken = new Set(all.filter((id) => editor.getShape(id)))
+			// A frame taken whole already carries its children; selecting both moves them twice.
+			const selection = [...taken].filter(
+				(id) => !editor.getShapeAncestors(id).some((ancestor) => taken.has(ancestor.id))
+			)
+			if (selection.length === 0) return
+			editor.setSelectedShapes(selection)
 			editor.setCurrentTool('select')
 		}
 

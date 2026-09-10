@@ -1,4 +1,11 @@
-import { b64Vecs, createShapeId, TLDrawShape, TLGeoShape } from '@tldraw/editor'
+import {
+	b64Vecs,
+	createShapeId,
+	TLDrawShape,
+	TLGeoShape,
+	TLImageShape,
+	TLShape,
+} from '@tldraw/editor'
 import { splitPolylineByPolygon } from '../lib/tools/ScissorsTool/cutShapesWithLasso'
 import { TestEditor } from './TestEditor'
 
@@ -13,12 +20,12 @@ afterEach(() => {
 })
 
 function createStroke(
-	id = createShapeId(),
 	points = [
 		{ x: 0, y: 0 },
 		{ x: 300, y: 0 },
 	]
 ) {
+	const id = createShapeId()
 	editor.createShape<TLDrawShape>({
 		id,
 		type: 'draw',
@@ -39,6 +46,12 @@ function createStroke(
 		},
 	})
 	return id
+}
+
+/** Box exposes its edges as getters, which object matchers skip, so project the ones we assert. */
+function edges(shape: TLShape) {
+	const { minX, maxX, midY } = editor.getShapePageBounds(shape)!
+	return { minX, maxX, midY }
 }
 
 /** Lasso a square from (x0, y0) to (x1, y1) with the scissors tool. */
@@ -93,20 +106,15 @@ describe('ScissorsTool', () => {
 
 			const selected = editor.getSelectedShapes()
 			expect(selected).toHaveLength(1)
-			const bounds = editor.getShapePageBounds(selected[0])!
-			expect(bounds.minX).toBeCloseTo(100, 0)
-			expect(bounds.maxX).toBeCloseTo(200, 0)
-			expect(bounds.midY).toBeCloseTo(100, 0)
+			expect(edges(selected[0])).toCloselyMatchObject({ minX: 100, maxX: 200, midY: 100 }, 1)
 			editor.expectToBeIn('select.idle')
 
-			const remainderBounds = shapes
+			const remainders = shapes
 				.filter((shape) => shape.id !== selected[0].id)
-				.map((shape) => editor.getShapePageBounds(shape)!)
+				.map(edges)
 				.sort((a, b) => a.minX - b.minX)
-			expect(remainderBounds[0].minX).toBeCloseTo(0, 0)
-			expect(remainderBounds[0].maxX).toBeCloseTo(100, 0)
-			expect(remainderBounds[1].minX).toBeCloseTo(200, 0)
-			expect(remainderBounds[1].maxX).toBeCloseTo(300, 0)
+			expect(remainders[0]).toCloselyMatchObject({ minX: 0, maxX: 100 }, 1)
+			expect(remainders[1]).toCloselyMatchObject({ minX: 200, maxX: 300 }, 1)
 		})
 
 		it('keeps stroke styles and meta on the pieces', () => {
@@ -159,6 +167,38 @@ describe('ScissorsTool', () => {
 
 			expect(editor.getCurrentPageShapes().map((shape) => shape.id)).toEqual([id])
 		})
+
+		it("keeps pieces inside the stroke's frame", () => {
+			const frameId = createShapeId()
+			editor.createShape({ id: frameId, type: 'frame', x: 50, y: 50, props: { w: 400, h: 200 } })
+			const id = createStroke()
+			editor.reparentShapes([id], frameId)
+			lasso(100, 50, 200, 150)
+
+			expect(editor.getSortedChildIdsForParent(frameId)).toHaveLength(3)
+			expect(edges(editor.getSelectedShapes()[0])).toCloselyMatchObject(
+				{ minX: 100, maxX: 200, midY: 100 },
+				1
+			)
+		})
+
+		it('selects a frame taken whole without also selecting its children', () => {
+			const frameId = createShapeId()
+			editor.createShape({ id: frameId, type: 'frame', x: 50, y: 50, props: { w: 400, h: 200 } })
+			const id = createStroke()
+			editor.reparentShapes([id], frameId)
+			lasso(0, 0, 500, 300)
+
+			expect(editor.getSelectedShapeIds()).toEqual([frameId])
+		})
+
+		it('does not cut in a readonly editor', () => {
+			const id = createStroke()
+			editor.updateInstanceState({ isReadonly: true })
+			lasso(100, 50, 200, 150)
+
+			expect(editor.getCurrentPageShapes().map((shape) => shape.id)).toEqual([id])
+		})
 	})
 
 	describe('Other shapes', () => {
@@ -166,6 +206,21 @@ describe('ScissorsTool', () => {
 			const id = createShapeId()
 			editor.createShape<TLGeoShape>({ id, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } })
 			lasso(120, 120, 220, 220)
+
+			expect(editor.getSelectedShapeIds()).toEqual([id])
+			expect(editor.getCurrentPageShapes()).toHaveLength(1)
+		})
+
+		it('selects an image whole when every corner is inside the lasso', () => {
+			const id = createShapeId()
+			editor.createShape<TLImageShape>({
+				id,
+				type: 'image',
+				x: 100,
+				y: 100,
+				props: { w: 100, h: 50 },
+			})
+			lasso(50, 50, 250, 200)
 
 			expect(editor.getSelectedShapeIds()).toEqual([id])
 			expect(editor.getCurrentPageShapes()).toHaveLength(1)
@@ -224,6 +279,44 @@ describe('splitPolylineByPolygon', () => {
 			square
 		)
 		expect(inside[0][0].z).toBeCloseTo(0.5)
+	})
+
+	it('splits at a vertex that lies exactly on the outline', () => {
+		const { inside, outside } = splitPolylineByPolygon(
+			[
+				{ x: 0, y: 50 },
+				{ x: 100, y: 50 },
+				{ x: 150, y: 50 },
+			],
+			square
+		)
+		expect(inside).toEqual([
+			[
+				{ x: 100, y: 50 },
+				{ x: 150, y: 50 },
+			],
+		])
+		expect(outside).toEqual([
+			[
+				{ x: 0, y: 50 },
+				{ x: 100, y: 50 },
+			],
+		])
+	})
+
+	it('rejoins the two ends of a closed polyline when they fall on the same side', () => {
+		const loop = [
+			{ x: 0, y: 40 },
+			{ x: 150, y: 40 },
+			{ x: 150, y: 60 },
+			{ x: 0, y: 60 },
+			{ x: 0, y: 40 },
+		]
+		const { inside, outside } = splitPolylineByPolygon(loop, square, { closed: true })
+		expect(inside).toHaveLength(1)
+		expect(outside).toHaveLength(1)
+		expect(outside[0][0]).toEqual({ x: 100, y: 60, z: 0.5 })
+		expect(outside[0][outside[0].length - 1]).toEqual({ x: 100, y: 40, z: 0.5 })
 	})
 
 	it('classifies a polyline that never crosses', () => {
