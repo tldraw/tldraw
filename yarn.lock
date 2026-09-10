@@ -19373,14 +19373,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"es-module-lexer@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "es-module-lexer@npm:2.0.0"
-  checksum: 10/b075855289b5f40ee496f3d7525c5c501d029c3da15c22298a0030d625bf36d1da0768b26278f7f4bada2a602459b505888e20b77c414fba5da5619b0e84dbd1
-  languageName: node
-  linkType: hard
-
-"es-module-lexer@npm:^2.3.2":
+"es-module-lexer@npm:^2.0.0, es-module-lexer@npm:^2.3.2":
   version: 2.3.2
   resolution: "es-module-lexer@npm:2.3.2"
   checksum: 10/065246d6e2b2dfea3287650b5800a30326771e0d9d238570e81371d7ae8d53db239bccb2166e272926bba44917da7c66dd7407a5214d17b0af5269005b1fec52
@@ -26389,14 +26382,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"obug@npm:^2.1.1":
-  version: 2.1.1
-  resolution: "obug@npm:2.1.1"
-  checksum: 10/bdcf9213361786688019345f3452b95a1dc73710e4b403c82a1994b98bad6abc31b26cb72a482128c5fd53ea9daf6fbb7d0e0e7b2b7e9c8be6d779deeccee07f
-  languageName: node
-  linkType: hard
-
-"obug@npm:^2.1.4":
+"obug@npm:^2.1.1, obug@npm:^2.1.4":
   version: 2.2.1
   resolution: "obug@npm:2.2.1"
   checksum: 10/306f1bf423aafdd46bc4a99108ffa2a1f6f82b87b10f535ad9853b580d565612f7913a0e71542914fb88d8920b97d6313c36fc1eec858d08071fe2eea0a8aa12
@@ -27616,14 +27602,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"picomatch@npm:^4.0.2, picomatch@npm:^4.0.3, picomatch@npm:^4.0.4, picomatch@npm:^4.0.5":
-  version: 4.0.5
-  resolution: "picomatch@npm:4.0.5"
-  checksum: 10/8bad770af9dcdb7f94ad1a893adcbe08a97d75a18872f8fed37161d3124217471c402b3929f051532f795f4ff2e53dcebb1644df4c1a5f3a9c476fef3b9f8c51
-  languageName: node
-  linkType: hard
-
-"picomatch@npm:^4.0.7":
+"picomatch@npm:^4.0.2, picomatch@npm:^4.0.3, picomatch@npm:^4.0.4, picomatch@npm:^4.0.5, picomatch@npm:^4.0.7":
   version: 4.0.7
   resolution: "picomatch@npm:4.0.7"
   checksum: 10/66e1df34bc39c72fa3756be4069f7887ea3e35e94bba1c3f6167763007698cb04b8a0a365161d186fda6e9571a2d3efb606b2966eb6a7dea6252911224dc2f48
@@ -31592,17 +31571,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tinyexec@npm:1.3.0":
+"tinyexec@npm:1.3.0, tinyexec@npm:^1.0.1":
   version: 1.3.0
   resolution: "tinyexec@npm:1.3.0"
   checksum: 10/749a8c5aac2ffe3f04220b8966f414636c6c324d4ae88895dfffb2319db61cf1c01c5d7e8f0fb8ab747389ea0be1f0f80d850a9cce88a9d96cc5ebcb345db018
-  languageName: node
-  linkType: hard
-
-"tinyexec@npm:^1.0.1":
-  version: 1.2.3
-  resolution: "tinyexec@npm:1.2.3"
-  checksum: 10/067ba5a28221db1a147baf23ca443102afda0fab120067c28cc65f2629b629283b6faf00e47440b72c4bdda940763fa691918b9ebf547da9be7aa4b9a798a930
   languageName: node
   linkType: hard
 
@@ -31630,14 +31602,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tinyrainbow@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "tinyrainbow@npm:3.1.0"
-  checksum: 10/4c2c01dde1e5bb9a74973daaae141d4d733d246280b2f9a7f6a9e7dd8e940d48b2580a6086125278777897bc44635d6ccec5f9f563c2179dd2129f4542d0ec05
-  languageName: node
-  linkType: hard
-
-"tinyrainbow@npm:^3.1.1":
+"tinyrainbow@npm:^3.1.0, tinyrainbow@npm:^3.1.1":
   version: 3.1.1
   resolution: "tinyrainbow@npm:3.1.1"
   checksum: 10/6aa4aadf89cc8ecf8c227ef189616911292c4f0d2d5708b669b00375c5a8b43058115685f043034ffb11a8744c24650a30493525ff62134b436d94c84fa33ed5
