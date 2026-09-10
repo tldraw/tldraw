@@ -8953,8 +8953,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.getShape(id)
 			)
 		)
-		// Check the count after dropping locked / missing shapes, otherwise two locked ids get
-		// past this and Box.Common([]) throws below
+		// Re-check after the lock filter: Box.Common of nothing is not a valid box and would throw
 		if (shapesToGroup.length <= 1) return this
 
 		const sortedShapeIds = shapesToGroup.sort(sortByIndex).map((s) => s.id)
@@ -8969,6 +8968,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const parentId = this.findCommonAncestor(shapesToGroup) ?? this.getCurrentPageId()
 
+		// createShapes bails out when the page is full, so check first; otherwise the shapes get
+		// reparented into a group that was never created and vanish from the page
+		if (!this.canCreateShapes([groupId])) {
+			alertMaxShapes(this)
+			return this
+		}
+
 		// If the select tool is mid-interaction, cancel it (get back to idle) before grouping
 		if (this.isIn('select') && !this.isIn('select.idle')) {
 			this.cancel()
@@ -8980,13 +8986,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			.sort(sortByIndex)
 
 		const highestIndex = shapesWithRootParent[shapesWithRootParent.length - 1]?.index
-
-		// createShapes bails out when the page is full, so check first; otherwise the shapes get
-		// reparented into a group that was never created and vanish from the page
-		if (!this.canCreateShapes([groupId])) {
-			alertMaxShapes(this)
-			return this
-		}
 
 		this.run(() => {
 			this.createShapes([

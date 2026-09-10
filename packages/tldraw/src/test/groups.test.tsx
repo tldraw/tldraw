@@ -298,11 +298,15 @@ describe('creating groups', () => {
 		// e.g. importing content while drawing; the select tool gate belongs to the UI action
 		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 0)])
 		editor.setCurrentTool('draw')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(120, 120)
+		editor.expectToBeIn('draw.drawing')
 		editor.groupShapes([ids.boxA, ids.boxB])
 		const group = editor.getShape(ids.boxA)!.parentId
 		expect(editor.getShape(group)!.type).toBe('group')
 		expect(editor.getShape(ids.boxB)!.parentId).toBe(group)
-		expect(editor.getCurrentToolId()).toBe('draw')
+		// the in-progress interaction of a non-select tool is left alone
+		editor.expectToBeIn('draw.drawing')
 	})
 	it('does nothing when every shape is locked', () => {
 		editor.createShapes([
