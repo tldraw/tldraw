@@ -400,6 +400,45 @@ describe('TLSelectTool.PointingShape with a rotated multi-selection', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([a, b])
 		editor.pointerUp(145, 45)
 	})
+
+	it('drags the pointed shape when it is outside the rotated selection bounds', () => {
+		const a = createShapeId('a')
+		const b = createShapeId('b')
+		const c = createShapeId('c')
+		editor.deleteShapes([ids.box1]).createShapes([
+			{ id: a, type: 'geo', x: 200, y: 300, props: { w: 100, h: 100 } },
+			{ id: b, type: 'geo', x: 500, y: 300, props: { w: 100, h: 100 } },
+		])
+		editor.select(a, b)
+		editor.rotateShapesBy([a, b], Math.PI / 2)
+
+		// The box from getSelectionRotatedPageBounds is mixed-frame: its point is in page space
+		// but its width and height are in the rotated frame, so containsPoint on it tests page
+		// x 450..850, y 150..250 — clear of the real selection at x 350..450, y 150..550. Put an
+		// unselected shape at the centre of that phantom rect: pointing at it must not defer.
+		const phantom = editor.getSelectionRotatedPageBounds()!
+		editor.createShape({
+			id: c,
+			type: 'geo',
+			x: phantom.center.x - 30,
+			y: phantom.center.y - 30,
+			props: { w: 60, h: 60, fill: 'solid' },
+		})
+		editor.select(a, b)
+
+		const aBefore = editor.getShapePageBounds(a)!.x
+		const cBefore = editor.getShapePageBounds(c)!.x
+		const p = editor.getShapePageBounds(c)!.center
+		editor
+			.pointerMove(p.x, p.y)
+			.pointerDown()
+			.pointerMove(p.x + 100, p.y)
+			.pointerUp()
+
+		expect(editor.getSelectedShapeIds()).toEqual([c])
+		expect(editor.getShapePageBounds(c)!.x).toBeCloseTo(cBefore + 100)
+		expect(editor.getShapePageBounds(a)!.x).toBeCloseTo(aBefore)
+	})
 })
 
 describe('TLSelectTool.Translating', () => {
