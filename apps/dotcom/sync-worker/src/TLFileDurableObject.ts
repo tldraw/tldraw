@@ -267,6 +267,9 @@ export class TLFileDurableObject extends DurableObject {
 		// Postgres comment rows merged in; the storage routes those records into its objects
 		// partition.
 		const result = await this.loadFromDatabase(slug)
+		// Decoding a large board into SQLite is sync CPU; without this it runs under whichever
+		// network stage loadFromDatabase last set.
+		this.setBootStage('storage-load:sqlite-init')
 		const storage = new SQLiteSyncStorage<TLRecord>({
 			sql,
 			snapshot: result.snapshot,
@@ -298,6 +301,7 @@ export class TLFileDurableObject extends DurableObject {
 					storage.transaction((txn) => {
 						fileSyncSchema.migrateStorage(txn)
 					})
+					this.setBootStage('storage-load:kv-rollout')
 					// The next persist diffs against this rather than cutting a keyframe every time the
 					// durable object wakes. It is usually what R2 holds, but not always: a previous
 					// incarnation can die with edits SQLite has and R2 does not. That is safe because the
@@ -305,7 +309,6 @@ export class TLFileDurableObject extends DurableObject {
 					// head the chain recorded and cuts a keyframe when they differ. Gated on the mode: this
 					// is a second decoded copy of the board pinned for the DO's lifetime, not worth paying
 					// for where chains are off.
-					this.setBootStage('storage-load:kv-rollout')
 					const rollout = await this.versionChainRollout()
 					if (resolveVersionChainMode(rollout, getR2KeyForRoom(this.documentInfo)) !== 'off') {
 						this._lastPersistedSnapshot = storage.getSnapshot?.() ?? null
