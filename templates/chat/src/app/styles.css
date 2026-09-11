@@ -1281,6 +1281,7 @@ textarea {
 	top: 10px;
 	right: 16px;
 	padding: 12px 16px;
+	font-variant-numeric: tabular-nums;
 	cursor: pointer;
 }
 
