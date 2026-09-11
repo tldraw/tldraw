@@ -283,7 +283,7 @@ export class TLFileDurableObject extends DurableObject {
 			throw new Error('documentInfo must be present when accessing room')
 		}
 		if (!this._storage) {
-			this.setBootStage('storage-load')
+			this.setBootStage('storage-load:sqlite-init')
 			// Kicked off here so the KV read resolves alongside the room load instead of after it.
 			this.versionChainRollout()
 			const promise = retry(() => this.loadStorage(this.documentInfo.slug), {
@@ -305,6 +305,7 @@ export class TLFileDurableObject extends DurableObject {
 					// head the chain recorded and cuts a keyframe when they differ. Gated on the mode: this
 					// is a second decoded copy of the board pinned for the DO's lifetime, not worth paying
 					// for where chains are off.
+					this.setBootStage('storage-load:kv-rollout')
 					const rollout = await this.versionChainRollout()
 					if (resolveVersionChainMode(rollout, getR2KeyForRoom(this.documentInfo)) !== 'off') {
 						this._lastPersistedSnapshot = storage.getSnapshot?.() ?? null
@@ -1477,11 +1478,23 @@ export class TLFileDurableObject extends DurableObject {
 			// Clone: loadCreateSourceData can return the shared DEFAULT_INITIAL_SNAPSHOT constant
 			// and the merge mutates top-level snapshot fields.
 			const snapshot: RoomSnapshot = { ...res.snapshot }
-			mergeCommentDocumentsIntoSnapshot(snapshot, await commentsPromise)
+			mergeCommentDocumentsIntoSnapshot(snapshot, await this.awaitComments(commentsPromise))
 			res.snapshot = snapshot
 		}
 
 		return res
+	}
+
+	// The comments load is kicked off before the R2 fetch and only awaited at the merge points,
+	// so this is where a hung Postgres dial surfaces. The stage and timer are set here, at the
+	// await, rather than at the kickoff: until this point the load overlapped other work and a
+	// stall was attributed to whatever stage was awaiting alongside it (#10746).
+	private async awaitComments(commentsPromise: Promise<CommentLoadResult>) {
+		this.setBootStage('storage-load:comments')
+		const commentsTimer = this.timer()
+		const comments = await commentsPromise
+		commentsTimer.report('db_load_comments')
+		return comments
 	}
 
 	/**
@@ -1565,6 +1578,7 @@ export class TLFileDurableObject extends DurableObject {
 
 			// when loading, prefer to fetch documents from the bucket
 			const r2FetchTimer = this.timer()
+			this.setBootStage('storage-load:r2')
 			const roomFromBucket = await this.r2.rooms.get(key)
 			r2FetchTimer.report('db_load_r2_fetch')
 
@@ -1577,7 +1591,7 @@ export class TLFileDurableObject extends DurableObject {
 				// room open (bubbling like an R2 failure) — silently opening without comments would
 				// let the next persist treat them as deleted.
 				if (commentsPromise) {
-					mergeCommentDocumentsIntoSnapshot(snapshot, await commentsPromise)
+					mergeCommentDocumentsIntoSnapshot(snapshot, await this.awaitComments(commentsPromise))
 				}
 
 				loadTimer.report('db_load_total')
@@ -1596,6 +1610,7 @@ export class TLFileDurableObject extends DurableObject {
 
 			if (this.documentInfo.isApp) {
 				// finally check whether the file exists in the DB but not in R2 yet
+				this.setBootStage('storage-load:file-record')
 				const file = await this.getAppFileRecord()
 
 				if (!file) {
@@ -1613,14 +1628,15 @@ export class TLFileDurableObject extends DurableObject {
 					return res
 				}
 
-				loadTimer.report('db_load_total')
-
 				// Comments can exist in Postgres before the first throttled R2 persist ever runs
 				// (e.g. DO SQLite lost right after commenting on a fresh file), so rehydrate them
 				// here too. Clone the shared DEFAULT_INITIAL_SNAPSHOT constant — the merge reassigns
 				// `documents` and clamps clocks, and must not mutate the module-level object.
 				const snapshot: RoomSnapshot = { ...DEFAULT_INITIAL_SNAPSHOT }
-				mergeCommentDocumentsIntoSnapshot(snapshot, await assertExists(commentsPromise))
+				const comments = await this.awaitComments(assertExists(commentsPromise))
+				mergeCommentDocumentsIntoSnapshot(snapshot, comments)
+
+				loadTimer.report('db_load_total')
 
 				return {
 					snapshot,
@@ -1635,6 +1651,7 @@ export class TLFileDurableObject extends DurableObject {
 			}
 
 			const supabaseFetchTimer = this.timer()
+			this.setBootStage('storage-load:supabase')
 			const { data, error } = await supabaseClient
 				.from(this.supabaseTable)
 				.select('*')
