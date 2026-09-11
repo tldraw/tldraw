@@ -1,7 +1,7 @@
 import { Signal, transact } from '@tldraw/state'
 import { RecordsDiff, SerializedSchema, UnknownRecord, squashRecordDiffs } from '@tldraw/store'
 import { TLStore } from '@tldraw/tlschema'
-import { assert } from '@tldraw/utils'
+import { assert, noop } from '@tldraw/utils'
 import {
 	TAB_ID,
 	TLSessionStateSnapshot,
@@ -326,16 +326,19 @@ export class TLLocalSyncClient {
 		if (typeof window !== 'undefined' && (window as any).tlsync === this) {
 			delete (window as any).tlsync
 		}
-		// chain onto any earlier flush on this key so they stay ordered, and publish the result
-		// for the next client
-		const flush = Promise.allSettled([
-			pendingFlushes.get(this.persistenceKey),
-			this.flushAndCloseDb(),
-		]).then(() => {
-			if (pendingFlushes.get(this.persistenceKey) === flush) {
-				pendingFlushes.delete(this.persistenceKey)
-			}
-		})
+		// Flush right away when nothing else is flushing this key: close() runs during teardown,
+		// where a deferred write may never get the chance to run. When another client on the key is
+		// mid-flush, wait for it instead — both write to the same database, and our snapshot landing
+		// first would be overwritten by its delayed changes. connect() awaits this, so it must
+		// never reject.
+		const previous = pendingFlushes.get(this.persistenceKey)
+		const flush = (previous ? previous.then(() => this.flushAndCloseDb()) : this.flushAndCloseDb())
+			.catch(noop)
+			.then(() => {
+				if (pendingFlushes.get(this.persistenceKey) === flush) {
+					pendingFlushes.delete(this.persistenceKey)
+				}
+			})
 		pendingFlushes.set(this.persistenceKey, flush)
 	}
 

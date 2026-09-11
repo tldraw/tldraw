@@ -494,3 +494,47 @@ test('a client created on the same key while a closed client is still flushing w
 	expect(next.onLoad).toHaveBeenCalledTimes(1)
 	loadSpy.mockRestore()
 })
+
+test('two clients closing on the same key flush in order', async () => {
+	const writes: string[] = []
+	const inFlightWrite = promiseWithResolve<void>()
+
+	const a = testClient()
+	const b = testClient()
+	await a.tick()
+	await b.tick()
+	// a's first write is its full snapshot, and we hold it in flight
+	a.client.db.storeSnapshot.mockImplementation(() => {
+		writes.push('a')
+		return inFlightWrite
+	})
+	a.client.db.storeChanges.mockImplementation(() => {
+		writes.push('a')
+		return Promise.resolve()
+	})
+	b.client.db.storeSnapshot.mockImplementation(() => {
+		writes.push('b')
+		return Promise.resolve()
+	})
+	b.client.db.storeChanges.mockImplementation(() => {
+		writes.push('b')
+		return Promise.resolve()
+	})
+
+	a.client.store.put([PageRecordType.create({ name: 'a1', index: 'a0' as IndexKey })])
+	await a.tick()
+	expect(writes).toEqual(['a']) // in flight
+	a.client.store.put([PageRecordType.create({ name: 'a2', index: 'a1' as IndexKey })])
+	a.client.close()
+
+	b.client.store.put([PageRecordType.create({ name: 'b1', index: 'a2' as IndexKey })])
+	b.client.close()
+	await b.tick()
+	// b writes the whole store, so letting it land before a's queued changes would lose them
+	expect(writes).toEqual(['a'])
+
+	inFlightWrite.resolve()
+	await a.tick()
+	await b.tick()
+	expect(writes).toEqual(['a', 'a', 'b'])
+})
