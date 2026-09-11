@@ -23,13 +23,24 @@ export const MAX_LAST_ERROR_LENGTH = 500
 export function formatOutboxError(error: unknown): string {
 	let text: string
 	try {
-		text = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
+		text = describeError(error)
+		// One level of cause: pg and fetch errors put the useful part (ECONNREFUSED, the dial
+		// target) there, and for attempts 2..n this column is the only record of it.
+		if (error instanceof Error && error.cause !== undefined) {
+			text += ` (cause: ${describeError(error.cause)})`
+		}
 	} catch {
 		text = `[unformattable ${typeof error}]`
 	}
 	// Written in the same UPDATE as the attempts bump, so it must never be what fails it:
 	// PG TEXT rejects NUL bytes.
 	return text.replaceAll('\u0000', '').slice(0, MAX_LAST_ERROR_LENGTH)
+}
+
+function describeError(error: unknown): string {
+	if (error instanceof Error) return `${error.name}: ${error.message}`
+	if (typeof error === 'object' && error !== null) return JSON.stringify(error)
+	return String(error)
 }
 
 export interface OutboxDeps {
@@ -95,8 +106,10 @@ async function processWithTimeout(deps: OutboxDeps, row: TlaEffectOutbox): Promi
 		await deps.deleteRow(row.id)
 		return true
 	} catch (error) {
-		await deps.bumpAttempts(row, error)
+		// Report first: if the bump UPDATE itself fails (DB down), the effect's own error would
+		// otherwise never be reported with row context.
 		deps.onError(error, row)
+		await deps.bumpAttempts(row, error)
 		return false
 	} finally {
 		if (timer) clearTimeout(timer)

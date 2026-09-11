@@ -186,6 +186,22 @@ describe('drainOutbox', () => {
 		expect(deps.onError).toHaveBeenCalledTimes(1)
 		const err = (deps.onError as any).mock.calls[0][0]
 		expect(String(err)).toMatch(/timed out/i)
+		expect(formatOutboxError(deps.bumped[0].error)).toBe(
+			'EffectTimeoutError: effect for file:f1 (outbox 1) timed out after 5ms'
+		)
+	})
+
+	it('reports the effect error before bumping so a failing bump cannot hide it', async () => {
+		const deps = makeDeps([row({ id: 1 })])
+		const effectError = new Error('effect failed')
+		deps.process = async () => {
+			throw effectError
+		}
+		deps.bumpAttempts = async () => {
+			throw new Error('db down')
+		}
+		await expect(drainOutbox(deps)).rejects.toThrow('db down')
+		expect(deps.onError).toHaveBeenCalledWith(effectError, expect.objectContaining({ id: 1 }))
 	})
 
 	it('late resolution after a timeout does not double-delete or double-bump', async () => {
@@ -244,12 +260,25 @@ describe('formatOutboxError', () => {
 
 	it('stringifies non-Error values', () => {
 		expect(formatOutboxError('proxy request failed')).toBe('proxy request failed')
-		expect(formatOutboxError({ code: 42 })).toBe('[object Object]')
+		expect(formatOutboxError({ code: 42 })).toBe('{"code":42}')
 		expect(formatOutboxError(undefined)).toBe('undefined')
 	})
 
+	it('appends one level of cause', () => {
+		const inner = new Error('connect ECONNREFUSED', { cause: new Error('deeper') })
+		expect(formatOutboxError(new TypeError('fetch failed', { cause: inner }))).toBe(
+			'TypeError: fetch failed (cause: Error: connect ECONNREFUSED)'
+		)
+		expect(formatOutboxError(new Error('x', { cause: { code: 'ETIMEDOUT' } }))).toBe(
+			'Error: x (cause: {"code":"ETIMEDOUT"})'
+		)
+	})
+
 	it('never throws and strips NUL bytes so the attempts bump cannot fail on it', () => {
-		expect(formatOutboxError(Object.create(null))).toBe('[unformattable object]')
+		const circular: any = {}
+		circular.self = circular
+		expect(formatOutboxError(circular)).toBe('[unformattable object]')
+		expect(formatOutboxError(new Error('x', { cause: circular }))).toBe('[unformattable object]')
 		expect(formatOutboxError(new Error('a\0b'))).toBe('Error: ab')
 	})
 
