@@ -1,6 +1,7 @@
 import { createHash } from 'crypto'
-import { readFileSync } from 'fs'
+import { readFileSync, readdirSync } from 'fs'
 import { join } from 'path'
+import { create } from 'tar'
 
 // The skills tldraw publishes for agents to discover, per the Agent Skills Discovery RFC. Served
 // from this app but reached at tldraw.dev/.well-known/agent-skills/* through the dotdev proxy, the
@@ -21,9 +22,10 @@ export interface PublishedSkill {
 }
 
 /**
- * Keyed by the skill's name, which is also the route segment its `SKILL.md` is served under. Adding
- * a skill here means adding the matching `app/.well-known/agent-skills/<name>/SKILL.md/route.ts`;
- * {@link readPublishedSkill} fails the build if the two ever disagree.
+ * Keyed by the skill's name, which is also the route segment it is served under. Adding a skill here
+ * means adding `app/.well-known/agent-skills/<name>.tar.gz/route.ts` (what the index points at) and
+ * `app/.well-known/agent-skills/<name>/SKILL.md/route.ts` (readable form);
+ * {@link readPublishedSkill} fails the build if the name and the routes ever disagree.
  */
 export const PUBLISHED_SKILLS = {
 	'tldraw-migrate': { sourceDir: 'skills/tldraw-migrate' },
@@ -32,8 +34,18 @@ export const PUBLISHED_SKILLS = {
 export interface SkillDocument {
 	name: string
 	description: string
+	/** `SKILL.md` on its own, for reading. Not what the index publishes — see {@link archive}. */
 	markdown: string
-	/** `sha256:<hex>`, over the exact bytes served, as the index format requires. */
+	/**
+	 * The whole skill directory as a gzipped tarball, which is what an agent installs.
+	 *
+	 * `SKILL.md` alone is not installable: tldraw-migrate shells out to `detect-versions.mjs` and
+	 * `detect-target.mjs` in the first block an agent runs, and reads `fetch-release-notes.mjs` and
+	 * `type-errors.md` later. Publishing the markdown by itself hands over a skill that fails on its
+	 * first invocation, with nothing in the index hinting at why.
+	 */
+	archive: Buffer
+	/** `sha256:<hex>` over the archive bytes, as the index format requires. */
 	digest: string
 	url: string
 }
@@ -56,13 +68,40 @@ export function readPublishedSkill(key: keyof typeof PUBLISHED_SKILLS): SkillDoc
 		)
 	}
 
+	const archive = buildSkillArchive(sourceDir)
+
 	return {
 		name,
 		description,
 		markdown,
-		digest: `sha256:${createHash('sha256').update(markdown).digest('hex')}`,
-		url: `${AGENT_SKILLS_BASE_URL}/${name}/SKILL.md`,
+		archive,
+		digest: `sha256:${createHash('sha256').update(archive).digest('hex')}`,
+		url: `${AGENT_SKILLS_BASE_URL}/${name}.tar.gz`,
 	}
+}
+
+/**
+ * The skill directory as a `.tar.gz`, with its files at the archive root rather than under a wrapper
+ * directory — the layout the discovery RFC requires, and the one that makes `SKILL.md` land where an
+ * unpacking client looks for it.
+ *
+ * `portable: true` strips mtimes, uids and gids, so identical sources produce identical bytes. That
+ * is what stops the digest churning on every deploy and invalidating clients that cached it.
+ *
+ * Dotfiles are skipped: the only one is a `.gitignore` covering the `references/` cache the skill
+ * fetches at runtime, which means nothing outside this repo.
+ */
+function buildSkillArchive(sourceDir: string): Buffer {
+	const cwd = join(process.cwd(), '..', '..', sourceDir)
+	const entries = readdirSync(cwd)
+		.filter((f) => !f.startsWith('.'))
+		.sort()
+
+	// `sync: true` with no `file` returns a pack whose contents can be read straight out as a buffer.
+	const pack = create({ gzip: true, portable: true, cwd, sync: true }, entries) as unknown as {
+		read(): Buffer
+	}
+	return pack.read()
 }
 
 /**

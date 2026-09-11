@@ -13,9 +13,9 @@ export function GET() {
 		const skill = readPublishedSkill(key as keyof typeof PUBLISHED_SKILLS)
 		return {
 			name: skill.name,
-			// Single-file markdown; a skill that needs its helper scripts to run would have to be
-			// published as an `archive` instead.
-			type: 'skill-md',
+			// An archive rather than `skill-md`, because these skills run their own helper scripts.
+			// See `SkillDocument.archive`.
+			type: 'archive',
 			description: skill.description,
 			url: skill.url,
 			digest: skill.digest,

@@ -12026,6 +12026,7 @@ __metadata:
     sqlite3: "npm:^5.1.7"
     tailwind-merge: "npm:^2.6.0"
     tailwindcss: "npm:^3.4.17"
+    tar: "npm:^7.5.22"
     tldraw: "workspace:*"
     tsx: "npm:^4.19.2"
     typescript: "npm:^7.0.2"
@@ -31475,7 +31476,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tar@npm:^7.4.0, tar@npm:^7.5.11":
+"tar@npm:^7.4.0, tar@npm:^7.5.11, tar@npm:^7.5.22":
   version: 7.5.22
   resolution: "tar@npm:7.5.22"
   dependencies:

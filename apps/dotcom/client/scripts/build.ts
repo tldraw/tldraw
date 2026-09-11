@@ -236,11 +236,28 @@ async function build() {
 							'X-Content-Type-Options': 'nosniff',
 						},
 					},
-					// The catalogs are readable cross-origin because a browser-context agent is a
-					// normal consumer of them, and one that can't fetch a catalog is being
-					// advertised nothing. They carry only what this origin already publishes.
+					// RFC 9727 requires the catalog to answer a HEAD request with an api-catalog Link
+					// header, so that a client can find where the catalog really lives without
+					// fetching it. Ours is at the well-known path, so the link points at itself; a
+					// publisher serving the document elsewhere would point there instead.
+					//
+					// Vercel matches routes by path, not method, so this lands on GET too. Harmless,
+					// and the RFC's own example shows the relation on a GET response.
+					//
+					// The catalogs are also stated to be readable cross-origin — a browser-context
+					// agent is a normal consumer, and ARD requires it. Vercel already serves static
+					// files with `Access-Control-Allow-Origin: *`, but that is a platform default
+					// rather than something the spec lets us assume.
 					{
-						src: '^/\\.well-known/(api-catalog|ai-catalog\\.json)$',
+						src: '^/\\.well-known/api-catalog$',
+						continue: true,
+						headers: {
+							Link: '</.well-known/api-catalog>; rel="api-catalog"',
+							'Access-Control-Allow-Origin': '*',
+						},
+					},
+					{
+						src: '^/\\.well-known/ai-catalog\\.json$',
 						continue: true,
 						headers: { 'Access-Control-Allow-Origin': '*' },
 					},

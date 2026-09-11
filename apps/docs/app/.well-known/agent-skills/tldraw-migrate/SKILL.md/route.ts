@@ -2,8 +2,8 @@ import { readPublishedSkill } from '@/utils/agent-skills'
 
 export const dynamic = 'force-static'
 
-// Served verbatim from `skills/tldraw-migrate/SKILL.md`: the index publishes a digest over these
-// exact bytes, so anything that rewrote them here would invalidate it.
+// Served verbatim from `skills/tldraw-migrate/SKILL.md` so the instructions can be read without
+// unpacking anything. The index points at the archive instead — this file alone cannot run.
 export function GET() {
 	return new Response(readPublishedSkill('tldraw-migrate').markdown, {
 		headers: {
