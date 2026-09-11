@@ -20,6 +20,7 @@ import {
 	isCommentThreadIdFkViolation,
 	isCommentThreadFkViolation,
 	liveCommentDocuments,
+	loadCommentDocuments,
 	mergeCommentDocumentsIntoSnapshot,
 	outboxEntriesToClear,
 	planCommentDrain,
@@ -1012,5 +1013,94 @@ describe('liveCommentDocuments', () => {
 
 	it('empty rows produce an empty, zero-floor load', () => {
 		expect(liveCommentDocuments([], [])).toEqual({ documents: [], clockFloor: 0 })
+	})
+})
+
+describe('loadCommentDocuments', () => {
+	function makeFakeDb(rows: {
+		comment_thread: unknown[]
+		comment: unknown[]
+		comment_reaction: unknown[]
+	}) {
+		const outerSelects: string[] = []
+		const boundSelects: string[] = []
+		let connectionCount = 0
+		const makeSelectFrom = (log: string[]) => (table: keyof typeof rows) => {
+			log.push(table)
+			return {
+				where: () => ({ selectAll: () => ({ execute: async () => rows[table] }) }),
+			}
+		}
+		const boundDb = { selectFrom: makeSelectFrom(boundSelects) }
+		const db: any = {
+			selectFrom: makeSelectFrom(outerSelects),
+			connection: () => ({
+				execute: async (cb: (conn: any) => Promise<any>) => {
+					connectionCount++
+					return cb(boundDb)
+				},
+			}),
+		}
+		return {
+			db,
+			outerSelects,
+			boundSelects,
+			get connectionCount() {
+				return connectionCount
+			},
+		}
+	}
+
+	it('runs all three queries on one checked-out connection', async () => {
+		const fake = makeFakeDb({ comment_thread: [], comment: [], comment_reaction: [] })
+		await loadCommentDocuments(fake.db, 'file1')
+		expect(fake.connectionCount).toBe(1)
+		expect(fake.boundSelects.sort()).toEqual(['comment', 'comment_reaction', 'comment_thread'])
+		expect(fake.outerSelects).toEqual([])
+	})
+
+	it('returns the live documents and clock floor for the rows', async () => {
+		const thread = makeThread()
+		const comment = createComment({
+			threadId: thread.id,
+			pageId,
+			authorId: 'user1',
+			body,
+			now: 1500,
+		})
+		const reaction = createCommentReaction({
+			commentId: comment.id,
+			threadId: thread.id,
+			pageId,
+			userId: 'user1',
+			emoji: '👍',
+			now: 1700,
+		})
+		const deletedThread = { ...makeThread(), isDeleted: true }
+		const deletedThreadComment = createComment({
+			threadId: deletedThread.id,
+			pageId,
+			authorId: 'user1',
+			body,
+			now: 1600,
+		})
+		const threadRows = [
+			threadRecordToRow(thread, 'file1', 42),
+			threadRecordToRow(deletedThread, 'file1', 50),
+		]
+		const commentRows = [
+			commentRecordToRow(comment, 'file1', 43),
+			commentRecordToRow(deletedThreadComment, 'file1', 51),
+		]
+		const reactionRows = [reactionRecordToRow(reaction, 'file1', 45)]
+		const fake = makeFakeDb({
+			comment_thread: threadRows,
+			comment: commentRows,
+			comment_reaction: reactionRows,
+		})
+		const expected = liveCommentDocuments(threadRows, commentRows, reactionRows)
+		expect(await loadCommentDocuments(fake.db, 'file1')).toEqual(expected)
+		expect(expected.documents.map((d) => d.state.id)).toEqual([thread.id, comment.id, reaction.id])
+		expect(expected.clockFloor).toBe(51)
 	})
 })
