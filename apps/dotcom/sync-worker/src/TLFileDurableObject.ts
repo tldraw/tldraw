@@ -65,7 +65,7 @@ import {
 	isCommentReactionFkViolation,
 	isCommentThreadFkViolation,
 	isCommentThreadIdFkViolation,
-	liveCommentDocuments,
+	loadCommentDocuments,
 	mergeCommentDocumentsIntoSnapshot,
 	outboxEntriesToClear,
 	planCommentDrain,
@@ -1695,19 +1695,12 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	private async loadCommentsFromPostgres(): Promise<CommentLoadResult> {
-		const fileId = this.documentInfo.slug
 		// Timed here rather than at the merge-point await so the event is query latency, not the
 		// residual wait after the overlapping R2 fetch (which would read ~0 whenever R2 is slower).
 		const commentsTimer = this.timer()
-		const [threadRows, commentRows, reactionRows] = await Promise.all([
-			this.db.selectFrom('comment_thread').where('fileId', '=', fileId).selectAll().execute(),
-			this.db.selectFrom('comment').where('fileId', '=', fileId).selectAll().execute(),
-			this.db.selectFrom('comment_reaction').where('fileId', '=', fileId).selectAll().execute(),
-		])
+		const result = await loadCommentDocuments(this.db, this.documentInfo.slug)
 		commentsTimer.report('db_load_comments')
-		// Soft-deleted threads and their comments never re-enter a room, and neither do reactions
-		// whose comment doesn't; their rows stay in Postgres only (see liveCommentDocuments).
-		return liveCommentDocuments(threadRows, commentRows, reactionRows)
+		return result
 	}
 
 	timer() {
