@@ -64,7 +64,7 @@ export class BroadcastChannelMock {
 
 const BC = typeof BroadcastChannel === 'undefined' ? BroadcastChannelMock : BroadcastChannel
 
-// Flushes still running for closed clients, keyed by persistence key. See connect().
+// Flushes still running for closed clients, by key. See connect() and close().
 const pendingFlushes = new Map<string, Promise<void>>()
 
 /** @internal */
@@ -241,9 +241,8 @@ export class TLLocalSyncClient {
 			this.channel.close()
 		})
 
-		// A client that just closed on this key may still be flushing. Read after it lands, or our
-		// first (full) db write erases the edits it was writing — React strict mode and any remount
-		// construct the new client before the old one's flush resolves.
+		// our first write is a full snapshot, so it would erase whatever a client that just closed
+		// on this key is still flushing
 		await pendingFlushes.get(this.persistenceKey)
 		if (this.didDispose) return
 
@@ -326,11 +325,9 @@ export class TLLocalSyncClient {
 		if (typeof window !== 'undefined' && (window as any).tlsync === this) {
 			delete (window as any).tlsync
 		}
-		// Flush right away when nothing else is flushing this key: close() runs during teardown,
-		// where a deferred write may never get the chance to run. When another client on the key is
-		// mid-flush, wait for it instead — both write to the same database, and our snapshot landing
-		// first would be overwritten by its delayed changes. connect() awaits this, so it must
-		// never reject.
+		// flush now when the key is idle: close() runs during teardown, where a deferred write may
+		// never run. wait when it isn't, or our snapshot lands first and gets overwritten.
+		// connect() awaits this, so it must never reject
 		const previous = pendingFlushes.get(this.persistenceKey)
 		const flush = (previous ? previous.then(() => this.flushAndCloseDb()) : this.flushAndCloseDb())
 			.catch(noop)

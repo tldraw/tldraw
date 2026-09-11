@@ -476,12 +476,11 @@ test('a client created on the same key while a closed client is still flushing w
 	client.store.put([PageRecordType.create({ name: 'during write', index: 'a1' as IndexKey })])
 	client.close()
 
-	// remount on the same key while the old client is still waiting to flush its queue
+	// remount on the same key while the old client is still flushing
 	const loadSpy = vi.spyOn(LocalIndexedDb.prototype, 'load')
 	const next = testClient()
 	await tick()
-	// reading now would miss the queued edit, and the new client's first (full snapshot) write
-	// would then erase it
+	// reading now would miss the queued edit, then erase it on the first write
 	expect(loadSpy).not.toHaveBeenCalled()
 	expect(next.onLoad).not.toHaveBeenCalled()
 
@@ -503,7 +502,7 @@ test('two clients closing on the same key flush in order', async () => {
 	const b = testClient()
 	await a.tick()
 	await b.tick()
-	// a's first write is its full snapshot, and we hold it in flight
+	// hold a's first write in flight
 	a.client.db.storeSnapshot.mockImplementation(() => {
 		writes.push('a')
 		return inFlightWrite
@@ -530,7 +529,7 @@ test('two clients closing on the same key flush in order', async () => {
 	b.client.store.put([PageRecordType.create({ name: 'b1', index: 'a2' as IndexKey })])
 	b.client.close()
 	await b.tick()
-	// b writes the whole store, so letting it land before a's queued changes would lose them
+	// b's snapshot landing first would lose a's queued changes
 	expect(writes).toEqual(['a'])
 
 	inFlightWrite.resolve()
