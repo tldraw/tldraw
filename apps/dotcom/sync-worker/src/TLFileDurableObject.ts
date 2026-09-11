@@ -1505,6 +1505,7 @@ export class TLFileDurableObject extends DurableObject {
 		// A new workspace's first file: a fixed marker (no prefix/id) the worker resolves to the
 		// welcome template's content, or a committed default — see resolveWelcomeSnapshot.
 		if (createSource === WELCOME_CREATE_SOURCE) {
+			this.setBootStage('source-welcome')
 			return await resolveWelcomeSnapshot(this.env, (e) => this.reportError(e))
 		}
 
@@ -1543,14 +1544,19 @@ export class TLFileDurableObject extends DurableObject {
 				return text
 			}
 			case ROOM_PREFIX:
+				this.setBootStage('source-legacy')
 				return await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_WRITE)
 			case READ_ONLY_PREFIX:
+				this.setBootStage('source-legacy')
 				return await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_ONLY)
 			case READ_ONLY_LEGACY_PREFIX:
+				this.setBootStage('source-legacy')
 				return await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_ONLY_LEGACY)
 			case SNAPSHOT_PREFIX:
+				this.setBootStage('source-legacy')
 				return await getLegacyRoomData(this.env, id, 'snapshot')
 			case PUBLISH_PREFIX:
+				this.setBootStage('source-published')
 				return await getPublishedRoomSnapshot(this.env, id)
 			case LOCAL_FILE_PREFIX:
 				// create empty room, the client will populate it

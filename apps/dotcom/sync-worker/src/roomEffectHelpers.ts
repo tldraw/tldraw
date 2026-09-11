@@ -31,6 +31,9 @@ export type BootStage =
 	| 'storage-load:kv-rollout'
 	| 'source-await-persist'
 	| 'source-r2-fetch'
+	| 'source-welcome'
+	| 'source-legacy'
+	| 'source-published'
 	| 'source-r2-put'
 	| 'room-create'
 
