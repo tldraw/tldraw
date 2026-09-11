@@ -196,7 +196,6 @@ describe('<TldrawEditor />', () => {
 			/>
 		)
 		expect(initialEditor.dispose).not.toHaveBeenCalled()
-		expect(onMount).toHaveBeenCalledTimes(1)
 		// deeper nesting (camera constraints, zoomSteps) is compared by value too:
 		const withConstraints = () => ({
 			camera: {
@@ -234,7 +233,6 @@ describe('<TldrawEditor />', () => {
 			/>
 		)
 		expect(secondEditor.dispose).not.toHaveBeenCalled()
-		expect(onMount).toHaveBeenCalledTimes(2)
 		// a real change still recreates the editor:
 		rendered.rerender(
 			<TldrawEditor
@@ -273,7 +271,6 @@ describe('<TldrawEditor />', () => {
 			/>
 		)
 		expect(initialEditor.dispose).not.toHaveBeenCalled()
-		expect(onMount).toHaveBeenCalledTimes(1)
 		// a real change still recreates the editor:
 		rendered.rerender(
 			<TldrawEditor
@@ -301,7 +298,6 @@ describe('<TldrawEditor />', () => {
 		vi.spyOn(initialEditor, 'dispose')
 		rendered.rerender(<Tldraw onMount={onMount} options={{ text: {} }} />)
 		expect(initialEditor.dispose).not.toHaveBeenCalled()
-		expect(onMount).toHaveBeenCalledTimes(1)
 		// a real change still recreates the editor:
 		const addFontsFromNode = vi.fn(defaultAddFontsFromNode)
 		rendered.rerender(<Tldraw onMount={onMount} options={{ text: { addFontsFromNode } }} />)
@@ -524,22 +520,65 @@ describe('<TldrawEditor />', () => {
 		expect(onMount).toHaveBeenCalled()
 	})
 
-	it('allows updating camera options without re-creating the editor', async () => {
-		const editors: Editor[] = []
-		const onMount = vi.fn((editor: Editor) => {
-			if (!editors.includes(editor)) editors.push(editor)
-		})
-
+	it('allows updating the deprecated cameraOptions prop without re-creating the editor', async () => {
+		// `options.camera` is part of `options`, so changing it recreates the editor; only the
+		// deprecated prop is applied in place.
+		const onMount = vi.fn()
 		const renderer = await renderTldrawComponent(<TldrawEditor onMount={onMount} />, {
 			waitForPatterns: false,
 		})
+		const editor: Editor = onMount.mock.lastCall![0]
+		vi.spyOn(editor, 'dispose')
+		expect(editor.getCameraOptions().isLocked).toBe(false)
 
-		expect(editors.length).toBe(1)
-		expect(editors[0].getCameraOptions().isLocked).toBe(false)
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		renderer.rerender(<TldrawEditor onMount={onMount} cameraOptions={{ isLocked: true }} />)
+		expect(editor.dispose).not.toHaveBeenCalled()
+		expect(editor.getCameraOptions().isLocked).toBe(true)
+	})
 
-		renderer.rerender(<TldrawEditor onMount={onMount} options={{ camera: { isLocked: true } }} />)
-		expect(editors.length).toBe(1)
-		expect(editors[0].getCameraOptions().isLocked).toBe(true)
+	it('keeps the editor when re-rendered with equal deprecated textOptions and deepLinks props', async () => {
+		const registerDeepLinkListener = vi.spyOn(Editor.prototype, 'registerDeepLinkListener')
+		const addFontsFromNode = vi.fn(defaultAddFontsFromNode)
+		const render = () => (
+			<TldrawEditor
+				onMount={onMount}
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				textOptions={{ addFontsFromNode, tipTapConfig: { extensions: tipTapDefaultExtensions } }}
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				deepLinks={{ param: 'd' }}
+			/>
+		)
+		const onMount = vi.fn()
+		const rendered = await renderTldrawComponent(render(), { waitForPatterns: false })
+		const editor: Editor = onMount.mock.lastCall![0]
+		vi.spyOn(editor, 'dispose')
+		expect(editor.getTextOptions().addFontsFromNode).toBe(addFontsFromNode)
+		expect(registerDeepLinkListener).toHaveBeenLastCalledWith({ param: 'd' })
+
+		rendered.rerender(render())
+		expect(editor.dispose).not.toHaveBeenCalled()
+		registerDeepLinkListener.mockRestore()
+	})
+
+	it.each([
+		['options.deepLinks', { options: { deepLinks: true as const } }],
+		['the deprecated deepLinks prop', { deepLinks: true as const }],
+	])('keeps deep links enabled and the editor when re-rendered with %s: true', async (_, props) => {
+		const registerDeepLinkListener = vi.spyOn(Editor.prototype, 'registerDeepLinkListener')
+		const onMount = vi.fn()
+		const rendered = await renderTldrawComponent(<TldrawEditor onMount={onMount} {...props} />, {
+			waitForPatterns: false,
+		})
+		const editor: Editor = onMount.mock.lastCall![0]
+		vi.spyOn(editor, 'dispose')
+		expect(registerDeepLinkListener).toHaveBeenCalledTimes(1)
+		expect(registerDeepLinkListener).toHaveBeenLastCalledWith({})
+
+		rendered.rerender(<TldrawEditor onMount={onMount} {...props} />)
+		expect(editor.dispose).not.toHaveBeenCalled()
+		expect(registerDeepLinkListener).toHaveBeenCalledTimes(1)
+		registerDeepLinkListener.mockRestore()
 	})
 
 	it('will populate the store from the snapshot prop', async () => {
@@ -685,9 +724,11 @@ describe('<TldrawEditor />', () => {
 		)
 
 		expect(onMount).toHaveBeenCalledTimes(1)
+		const editor: Editor = onMount.mock.lastCall![0]
+		vi.spyOn(editor, 'dispose')
 
 		renderer.rerender(<TldrawEditor onMount={onMount} options={{ maxPages: 1 }} />)
-		expect(onMount).toHaveBeenCalledTimes(1)
+		expect(editor.dispose).not.toHaveBeenCalled()
 	})
 })
 

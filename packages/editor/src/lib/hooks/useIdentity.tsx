@@ -51,8 +51,9 @@ export function useShallowObjectIdentity<T extends object | null | undefined>(ob
 }
 
 /**
- * For small plain-data option objects that may nest (e.g. camera constraints), where a
- * shallow comparison would still see a fresh identity on every render.
+ * For small option objects that may nest (e.g. camera constraints), where a shallow comparison
+ * would still see a fresh identity on every render. Functions and class instances inside still
+ * compare by reference, so an inline callback or a fresh `Extension.configure()` counts as a change.
  *
  * @internal
  */

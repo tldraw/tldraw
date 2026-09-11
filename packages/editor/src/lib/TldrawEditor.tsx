@@ -311,11 +311,11 @@ export const TldrawEditor = memo(function TldrawEditor({
 	const ErrorFallback =
 		components?.ErrorFallback === undefined ? DefaultErrorFallback : components?.ErrorFallback
 
-	// Merge deprecated props with options (options win). Nested option objects are
-	// identity-stabilised too: `options` is a dependency of the editor-creating effect, so an
-	// inline `options={{ camera: { ... } }}` would otherwise recreate the editor on every render.
-	// `text` needs the deep comparison as well: `<Tldraw>` builds a fresh `tipTapConfig` inside
-	// it whenever its own `options.text` is a new identity.
+	// Merge deprecated props with options (options win). `options` is a dependency of the
+	// editor-creating effect, so it's shallow-stabilised below; the nested objects are
+	// deep-stabilised here first, or an inline `options={{ camera: { ... } }}` would still
+	// recreate the editor on every render. `text` needs the deep comparison as well: `<Tldraw>`
+	// builds a fresh `tipTapConfig` inside it whenever its own `options.text` is a new identity.
 	const camera = useDeepObjectIdentity(_options?.camera)
 	const gridSteps = useDeepObjectIdentity(_options?.gridSteps)
 	const text = useDeepObjectIdentity(_options?.text ?? _textOptions)
@@ -324,14 +324,11 @@ export const TldrawEditor = memo(function TldrawEditor({
 		mergedDeepLinks === true ? undefined : mergedDeepLinks
 	)
 	const deepLinks = mergedDeepLinks === true ? true : deepLinkOptions
-	const mergedOptions = useMemo(() => {
-		let result = _options
-		if (camera !== undefined) result = { ...result, camera }
-		if (gridSteps !== undefined) result = { ...result, gridSteps }
-		if (text !== undefined) result = { ...result, text }
-		if (deepLinks !== undefined) result = { ...result, deepLinks }
-		return result
-	}, [_options, camera, gridSteps, text, deepLinks])
+	let mergedOptions = _options
+	if (camera !== undefined) mergedOptions = { ...mergedOptions, camera }
+	if (gridSteps !== undefined) mergedOptions = { ...mergedOptions, gridSteps }
+	if (text !== undefined) mergedOptions = { ...mergedOptions, text }
+	if (deepLinks !== undefined) mergedOptions = { ...mergedOptions, deepLinks }
 
 	// apply defaults. if you're using the bare @tldraw/editor package, we
 	// default these to the "tldraw zero" configuration. We have different
