@@ -1,6 +1,6 @@
 import { createHash } from 'crypto'
-import { readFileSync, readdirSync } from 'fs'
-import { join } from 'path'
+import { existsSync, readFileSync, readdirSync } from 'fs'
+import { dirname, join } from 'path'
 import { create } from 'tar'
 
 // The skills tldraw publishes for agents to discover, per the Agent Skills Discovery RFC. Served
@@ -53,8 +53,8 @@ export interface SkillDocument {
 /** Reads from disk, so every route that calls it must stay `force-static`. */
 export function readPublishedSkill(key: keyof typeof PUBLISHED_SKILLS): SkillDocument {
 	const { sourceDir } = PUBLISHED_SKILLS[key]
-	// `next build` runs with the app as its working directory; the skills live two levels up.
-	const markdown = readFileSync(join(process.cwd(), '..', '..', sourceDir, 'SKILL.md'), 'utf8')
+	const skillDir = resolveSkillDir(sourceDir)
+	const markdown = readFileSync(join(skillDir, 'SKILL.md'), 'utf8')
 
 	const name = readFrontmatterField(markdown, 'name', sourceDir)
 	const description = readFrontmatterField(markdown, 'description', sourceDir)
@@ -85,23 +85,46 @@ export function readPublishedSkill(key: keyof typeof PUBLISHED_SKILLS): SkillDoc
  * directory — the layout the discovery RFC requires, and the one that makes `SKILL.md` land where an
  * unpacking client looks for it.
  *
- * `portable: true` strips mtimes, uids and gids, so identical sources produce identical bytes. That
- * is what stops the digest churning on every deploy and invalidating clients that cached it.
+ * `portable: true` strips uids and gids; `noMtime` is the one that matters, because `portable`
+ * deliberately keeps mtime and every CI checkout stamps a fresh one. Without it the digest changed
+ * on every deploy for byte-identical content, invalidating anything that had cached it.
  *
  * Dotfiles are skipped: the only one is a `.gitignore` covering the `references/` cache the skill
  * fetches at runtime, which means nothing outside this repo.
  */
 function buildSkillArchive(sourceDir: string): Buffer {
-	const cwd = join(process.cwd(), '..', '..', sourceDir)
+	const cwd = resolveSkillDir(sourceDir)
 	const entries = readdirSync(cwd)
 		.filter((f) => !f.startsWith('.'))
 		.sort()
 
 	// `sync: true` with no `file` returns a pack whose contents can be read straight out as a buffer.
-	const pack = create({ gzip: true, portable: true, cwd, sync: true }, entries) as unknown as {
+	const pack = create(
+		{ gzip: true, portable: true, noMtime: true, cwd, sync: true },
+		entries
+	) as unknown as {
 		read(): Buffer
 	}
 	return pack.read()
+}
+
+/**
+ * Locates a skill by walking up from the working directory until the path resolves.
+ *
+ * Which directory that starts from depends on the caller: `next build` runs in the app, while the
+ * root `vitest run` starts at the repo root. A fixed number of `..` segments is therefore right for
+ * one caller and wrong for the other — and when it was wrong it read from above the checkout
+ * entirely, so the failure was an ENOENT naming a path outside the repo rather than anything that
+ * pointed here.
+ */
+export function resolveSkillDir(sourceDir: string): string {
+	for (let dir = process.cwd(); ; dir = dirname(dir)) {
+		const candidate = join(dir, sourceDir)
+		if (existsSync(join(candidate, 'SKILL.md'))) return candidate
+		if (dirname(dir) === dir) {
+			throw new Error(`No ${sourceDir}/SKILL.md in any directory above ${process.cwd()}`)
+		}
+	}
 }
 
 /**
