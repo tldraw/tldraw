@@ -39,7 +39,8 @@ export function formatOutboxError(error: unknown): string {
 
 function describeError(error: unknown): string {
 	if (error instanceof Error) return `${error.name}: ${error.message}`
-	if (typeof error === 'object' && error !== null) return JSON.stringify(error)
+	// JSON.stringify returns undefined (not a string) when toJSON() returns undefined.
+	if (typeof error === 'object' && error !== null) return JSON.stringify(error) ?? String(error)
 	return String(error)
 }
 

@@ -278,6 +278,7 @@ describe('formatOutboxError', () => {
 		const circular: any = {}
 		circular.self = circular
 		expect(formatOutboxError(circular)).toBe('[unformattable object]')
+		expect(formatOutboxError({ toJSON: () => undefined })).toBe('[object Object]')
 		expect(formatOutboxError(new Error('x', { cause: circular }))).toBe('[unformattable object]')
 		expect(formatOutboxError(new Error('a\0b'))).toBe('Error: ab')
 	})
