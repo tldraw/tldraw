@@ -40,6 +40,7 @@ export function DefaultToolbarContent() {
 			<HighlightToolbarItem />
 			<LaserToolbarItem />
 			<FrameToolbarItem />
+			<MagicWandToolbarItem />
 		</>
 	)
 }
@@ -94,6 +95,11 @@ export function HandToolbarItem() {
 /** @public @react */
 export function DrawToolbarItem() {
 	return <ToolbarItem tool="draw" />
+}
+
+/** @public @react */
+export function MagicWandToolbarItem() {
+	return <ToolbarItem tool="magic-wand" />
 }
 
 /** @public @react */

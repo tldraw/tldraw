@@ -1,0 +1,1511 @@
+import { TLDrawShape, TLGeoShape, TLLineShape, createShapeId, sortByIndex } from '@tldraw/editor'
+import { TestEditor } from '../../../test/TestEditor'
+import { sweepMagicWandTransients } from './magicWandInk'
+
+let editor: TestEditor
+
+beforeEach(() => {
+	editor = new TestEditor()
+})
+afterEach(() => {
+	editor?.dispose()
+})
+
+function createBox(x: number, y: number, w = 40, h = 40) {
+	const id = createShapeId()
+	editor.createShape<TLGeoShape>({ id, type: 'geo', x, y, props: { w, h, geo: 'rectangle' } })
+	return id
+}
+
+/** Draws a closed square loop spanning roughly (100,100)–(200,200). */
+function drawLoopAround() {
+	editor.pointerDown(100, 100)
+	editor.pointerMove(200, 100)
+	editor.pointerMove(200, 200)
+	editor.pointerMove(100, 200)
+	editor.pointerMove(102, 100)
+	editor.pointerUp()
+}
+
+/** Scribbles back and forth across (cx, cy) so each sweep crosses it (pen left down). */
+function scribbleAcross(cx: number, cy: number, halfWidth = 35, sweeps = 5) {
+	editor.setCurrentTool('magic-wand')
+	editor.pointerDown(cx - halfWidth, cy - 6)
+	for (let i = 1; i <= sweeps; i++) {
+		editor.pointerMove(i % 2 ? cx + halfWidth : cx - halfWidth, cy - 6 + i * 3)
+	}
+}
+
+describe('MagicWandTool', () => {
+	it('is registered and enters its drawing state', () => {
+		editor.setCurrentTool('magic-wand')
+		editor.expectToBeIn('magic-wand.idle')
+		editor.pointerDown(50, 50)
+		editor.expectToBeIn('magic-wand.drawing')
+		editor.pointerUp(50, 50)
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('shows the in-progress stroke translucent via its real (synced) opacity', () => {
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(50, 50)
+		editor.pointerMove(60, 60)
+		const shape = editor.getCurrentPageShapes().at(-1)!
+		// The translucency is written to the shape record (history-ignored) so
+		// collaborators see the wet ink too, not just the local client.
+		expect(shape.opacity).toBe(0.5)
+		// While wet, the stroke carries its natural values so an abnormally ended
+		// session can be healed on the next load.
+		expect(shape.meta.magicWandRestore).toMatchObject({ opacity: 1 })
+	})
+
+	it('does not leave any shape at wet-ink opacity when cancelled', () => {
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(50, 50)
+		editor.pointerMove(60, 60)
+		editor.pointerMove(70, 70)
+		editor.cancel()
+
+		// The stroke is bailed away on cancel; nothing should stay translucent.
+		expect(editor.getCurrentPageShapes().every((s) => s.opacity === 1)).toBe(true)
+	})
+
+	it('tints the ink the selection colour and fills it while the stroke would lasso, and reverts', () => {
+		createBox(130, 130)
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(200, 100)
+		editor.pointerMove(200, 200)
+		editor.pointerMove(100, 200)
+
+		const inkId = editor.getCurrentPageShapes().find((s) => s.type === 'draw')!.id
+		// Open stroke so far: still the natural colour and fill.
+		expect(editor.getShape<TLDrawShape>(inkId)!.props.color).toBe('black')
+		expect(editor.getShape<TLDrawShape>(inkId)!.props.fill).toBe('none')
+
+		// Close the loop around the box: ink previews the selection colour, filled.
+		editor.pointerMove(102, 100)
+		editor.expectToBeIn('magic-wand.drawing')
+		expect(editor.getShape<TLDrawShape>(inkId)!.props.color).toBe('blue')
+		expect(editor.getShape<TLDrawShape>(inkId)!.props.fill).toBe('solid')
+
+		// Re-open the loop: ink reverts to its natural colour and fill.
+		editor.pointerMove(300, 100)
+		expect(editor.getShape<TLDrawShape>(inkId)!.props.color).toBe('black')
+		expect(editor.getShape<TLDrawShape>(inkId)!.props.fill).toBe('none')
+
+		editor.pointerUp()
+	})
+
+	it('previews which shapes would be lasso-selected with a hint, and reverts', () => {
+		const boxId = createBox(130, 130)
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(200, 100)
+		editor.pointerMove(200, 200)
+		editor.pointerMove(100, 200)
+		// Open stroke: nothing hinted yet.
+		expect(editor.getHintingShapeIds()).toEqual([])
+
+		// Close the loop around the box: it's hinted.
+		editor.pointerMove(102, 100)
+		expect(editor.getHintingShapeIds()).toEqual([boxId])
+
+		// Re-open the loop: hint cleared.
+		editor.pointerMove(300, 100)
+		expect(editor.getHintingShapeIds()).toEqual([])
+
+		editor.pointerUp()
+	})
+
+	it('clears the hint and selects the shapes on lasso completion', () => {
+		const boxId = createBox(130, 130)
+		editor.setCurrentTool('magic-wand')
+		drawLoopAround()
+
+		expect(editor.getHintingShapeIds()).toEqual([])
+		expect(editor.getSelectedShapeIds()).toEqual([boxId])
+	})
+
+	it('excludes a shape inside the lasso bounds but outside the loop', () => {
+		// A round loop: the corner of its bounding box is outside the loop itself.
+		// A shape tucked there sits in a uniform outside region (the boundary
+		// never passes through it) — the fast uniform-region path must say "out".
+		const cornerId = createBox(112, 112, 16, 16)
+		const centerId = createBox(190, 190, 20, 20)
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(290, 200)
+		for (let i = 1; i <= 24; i++) {
+			const t = (i / 24) * Math.PI * 2
+			editor.pointerMove(200 + 90 * Math.cos(t), 200 + 90 * Math.sin(t))
+		}
+		editor.pointerUp()
+
+		expect(editor.getSelectedShapeIds()).toEqual([centerId])
+		expect(editor.getShape(cornerId)).toBeTruthy()
+	})
+
+	it('lassos a dense freehand scribble via its thinned outline', () => {
+		// Hundreds of vertices: coverage samples a thinned outline, not every point.
+		editor.setCurrentTool('draw')
+		editor.pointerDown(130, 140)
+		for (let i = 1; i <= 300; i++) {
+			editor.pointerMove(130 + (i % 2 ? 40 : 0) + (i % 3), 140 + i * 0.1)
+		}
+		editor.pointerUp()
+		const scribbleId = editor.getCurrentPageShapes().at(-1)!.id
+
+		editor.setCurrentTool('magic-wand')
+		drawLoopAround()
+		expect(editor.getSelectedShapeIds()).toEqual([scribbleId])
+	})
+
+	it('does not lasso a dense scribble that is half outside the loop', () => {
+		editor.setCurrentTool('draw')
+		editor.pointerDown(150, 140)
+		for (let i = 1; i <= 300; i++) {
+			editor.pointerMove(150 + (i % 2 ? 100 : 0) + (i % 3), 140 + i * 0.1)
+		}
+		editor.pointerUp()
+
+		editor.setCurrentTool('magic-wand')
+		drawLoopAround() // loop spans 100–200; the scribble reaches to ~250
+		expect(editor.getSelectedShapeIds()).toEqual([])
+	})
+
+	it('draws a normal stroke when the loop does not encircle anything', () => {
+		editor.setCurrentTool('magic-wand')
+		const before = editor.getCurrentPageShapes().length
+		drawLoopAround()
+
+		// A draw shape was left behind, nothing is selected, still in the tool.
+		expect(editor.getCurrentPageShapes().length).toBe(before + 1)
+		expect(editor.getCurrentPageShapes().at(-1)!.type).toBe('draw')
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('lasso-selects a shape encircled by a closed stroke', () => {
+		const boxId = createBox(130, 130) // center ~(150,150), inside the loop
+
+		editor.setCurrentTool('magic-wand')
+		drawLoopAround()
+
+		// The stroke is discarded, the box is selected, and we hand off to select —
+		// but the magic wand stays the displayed (masked) tool.
+		expect(editor.getCurrentPageShapes()).toHaveLength(1)
+		expect(editor.getCurrentPageShapes()[0].id).toBe(boxId)
+		expect(editor.getSelectedShapeIds()).toEqual([boxId])
+		editor.expectToBeIn('select.idle')
+		expect(editor.getCurrentToolId()).toBe('magic-wand')
+	})
+
+	it('returns to the magic wand once the lasso selection is cleared', () => {
+		createBox(130, 130)
+		editor.setCurrentTool('magic-wand')
+		drawLoopAround()
+
+		// Masked over select with the box selected.
+		editor.expectToBeIn('select.idle')
+		expect(editor.getCurrentToolId()).toBe('magic-wand')
+
+		// Deselecting hands control back to the magic wand instead of staying in select.
+		editor.selectNone()
+		editor.expectToBeIn('magic-wand.idle')
+		expect(editor.getCurrentToolId()).toBe('magic-wand')
+		// The mask is cleared so a later plain select isn't masked.
+		expect(editor.getStateDescendant('select')!.getCurrentToolIdMask()).toBeUndefined()
+	})
+
+	it('keeps masking while the selection merely changes to another shape', () => {
+		createBox(130, 130)
+		const other = createBox(400, 400)
+		editor.setCurrentTool('magic-wand')
+		drawLoopAround()
+		expect(editor.getCurrentToolId()).toBe('magic-wand')
+
+		// Selecting a different shape (still a non-empty selection) stays masked.
+		editor.select(other)
+		editor.expectToBeIn('select.idle')
+		expect(editor.getCurrentToolId()).toBe('magic-wand')
+	})
+
+	it('stops masking when the user switches to another tool', () => {
+		createBox(130, 130)
+		editor.setCurrentTool('magic-wand')
+		drawLoopAround()
+		expect(editor.getCurrentToolId()).toBe('magic-wand')
+
+		// Switching tools clears the mask and does not bounce back to the magic wand.
+		editor.setCurrentTool('geo')
+		editor.expectToBeIn('geo.idle')
+		expect(editor.getCurrentToolId()).toBe('geo')
+		expect(editor.getStateDescendant('select')!.getCurrentToolIdMask()).toBeUndefined()
+	})
+
+	it('still lassos when a long stroke is split into multiple shapes', () => {
+		// Force the draw tool to split the stroke after just a few points.
+		;(editor.getShapeUtil('draw') as any).options.maxPointsPerShape = 2
+		const boxId = createBox(130, 130) // center ~(150,150), inside the loop
+
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(200, 100)
+		editor.pointerMove(200, 200)
+		editor.pointerMove(100, 200)
+		// The stroke should have split into more than one draw shape by now.
+		expect(editor.getCurrentPageShapes().filter((s) => s.type === 'draw').length).toBeGreaterThan(1)
+
+		editor.pointerMove(102, 100) // close the loop near the start
+		editor.pointerUp()
+
+		// Despite the split, the loop still lasso-selects the encircled box.
+		expect(editor.getSelectedShapeIds()).toEqual([boxId])
+		expect(editor.getCurrentPageShapes().some((s) => s.type === 'draw')).toBe(false)
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('lassos a natural loop that overshoots and crosses itself', () => {
+		const boxId = createBox(130, 130)
+
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(200, 100)
+		editor.pointerMove(200, 200)
+		editor.pointerMove(100, 200)
+		// The final leg crosses the top edge (~x=104) and keeps going ~30px.
+		editor.pointerMove(105, 90)
+		editor.pointerMove(108, 70)
+		editor.pointerUp()
+
+		expect(editor.getSelectedShapeIds()).toEqual([boxId])
+		expect(editor.getCurrentPageShapes().some((s) => s.type === 'draw')).toBe(false)
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('lassos a natural loop that stops short of closing', () => {
+		const boxId = createBox(130, 130)
+
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(200, 100)
+		editor.pointerMove(200, 200)
+		editor.pointerMove(100, 200)
+		editor.pointerMove(100, 125) // 3.75 sides — a 25px gap left open
+		editor.pointerUp()
+
+		expect(editor.getSelectedShapeIds()).toEqual([boxId])
+		expect(editor.getCurrentPageShapes().some((s) => s.type === 'draw')).toBe(false)
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('lassos a loop drawn with a lead-in tail, trimming the tail', () => {
+		const boxId = createBox(130, 130)
+		const outside = createBox(40, 30) // near the lead-in, but outside the loop
+
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(50, 40) // lead-in from outside the loop…
+		editor.pointerMove(100, 100) // …to the loop start
+		editor.pointerMove(200, 100)
+		editor.pointerMove(200, 200)
+		editor.pointerMove(100, 200)
+		editor.pointerMove(102, 105) // back near the loop start
+		editor.pointerUp()
+
+		// Only the encircled box is selected — the lead-in never counts as loop.
+		expect(editor.getSelectedShapeIds()).toEqual([boxId])
+		expect(editor.getShape(outside)).toBeTruthy()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('keeps the stroke as a drawing when it draws far past a closed loop', () => {
+		const boxId = createBox(130, 130)
+
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(200, 100)
+		editor.pointerMove(200, 200)
+		editor.pointerMove(100, 200)
+		editor.pointerMove(102, 100) // closed here…
+		editor.pointerMove(150, 60) // …but keeps drawing away
+		editor.pointerMove(280, 40)
+		editor.pointerUp()
+
+		// Not a lasso anymore: the stroke stays as a drawing, nothing selected.
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		expect(editor.getCurrentPageShapes().some((s) => s.type === 'draw')).toBe(true)
+		expect(editor.getShape(boxId)).toBeTruthy()
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('still lassos an overshot loop when the stroke is split into multiple shapes', () => {
+		;(editor.getShapeUtil('draw') as any).options.maxPointsPerShape = 2
+		const boxId = createBox(130, 130)
+
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(200, 100)
+		editor.pointerMove(200, 200)
+		editor.pointerMove(100, 200)
+		editor.pointerMove(105, 90) // cross the top edge and overshoot
+		expect(editor.getCurrentPageShapes().filter((s) => s.type === 'draw').length).toBeGreaterThan(1)
+		editor.pointerUp()
+
+		expect(editor.getSelectedShapeIds()).toEqual([boxId])
+		expect(editor.getCurrentPageShapes().some((s) => s.type === 'draw')).toBe(false)
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('lasso-selects multiple encircled shapes', () => {
+		const a = createBox(120, 120, 20, 20) // center ~(130,130)
+		const b = createBox(160, 160, 20, 20) // center ~(170,170)
+
+		editor.setCurrentTool('magic-wand')
+		drawLoopAround()
+
+		expect(new Set(editor.getSelectedShapeIds())).toEqual(new Set([a, b]))
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('does not lasso when the encircling stroke is left open', () => {
+		const boxId = createBox(130, 130)
+
+		editor.setCurrentTool('magic-wand')
+		// Same path but the endpoint stays far from the start: not a closed loop.
+		editor.pointerDown(100, 100)
+		editor.pointerMove(200, 100)
+		editor.pointerMove(200, 200)
+		editor.pointerMove(100, 200)
+		editor.pointerUp(100, 200)
+
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		expect(editor.getCurrentPageShapes().some((s) => s.type === 'draw')).toBe(true)
+		expect(editor.getShape(boxId)).toBeTruthy()
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('does not lasso a shape outside the loop', () => {
+		createBox(400, 400) // far away, center outside the loop
+
+		editor.setCurrentTool('magic-wand')
+		drawLoopAround()
+
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('does not lasso a big container the loop is drawn inside, only its inner shapes', () => {
+		// The big box's center (~250,250) is inside the loop, which the old
+		// center-based test wrongly selected. Its area is mostly outside the loop.
+		const big = createBox(50, 50, 400, 400)
+		const a = createBox(120, 120, 20, 20) // fully inside the loop
+		const b = createBox(160, 160, 20, 20) // fully inside the loop
+
+		editor.setCurrentTool('magic-wand')
+		drawLoopAround()
+
+		expect(new Set(editor.getSelectedShapeIds())).toEqual(new Set([a, b]))
+		expect(editor.getSelectedShapeIds()).not.toContain(big)
+	})
+
+	it('still lassos a shape with only a small bit clipped outside the loop', () => {
+		// Bottom ~1/6 pokes past the loop's bottom edge (y=200); a strict "fully
+		// enclosed" rule would reject it, but "mostly enclosed" keeps it.
+		const boxId = createBox(140, 165, 40, 40) // spans y 165–205
+
+		editor.setCurrentTool('magic-wand')
+		drawLoopAround()
+
+		expect(editor.getSelectedShapeIds()).toEqual([boxId])
+	})
+
+	it('does not lasso a shape that is mostly outside the loop', () => {
+		const boxId = createBox(140, 180, 40, 40) // ~half below the loop's bottom edge
+
+		editor.setCurrentTool('magic-wand')
+		drawLoopAround()
+
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		expect(editor.getShape(boxId)).toBeTruthy()
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('lassos a rotated shape that sits inside the loop', () => {
+		// Centered ~(150,150), rotated 45°; its axis-aligned bbox is bigger than the
+		// shape, so coverage must use the real (rotated) geometry, not bbox corners.
+		const id = createShapeId()
+		editor.createShape<TLGeoShape>({
+			id,
+			type: 'geo',
+			x: 150,
+			y: 122,
+			rotation: Math.PI / 4,
+			props: { w: 40, h: 40, geo: 'rectangle' },
+		})
+
+		editor.setCurrentTool('magic-wand')
+		drawLoopAround()
+
+		expect(editor.getSelectedShapeIds()).toEqual([id])
+	})
+
+	it('holds the lasso stroke closed across the close band so the fill does not flicker', () => {
+		createBox(130, 130) // center ~(150,150), inside the loop
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(200, 100)
+		editor.pointerMove(200, 200)
+		editor.pointerMove(100, 200)
+
+		const draw = () => editor.getCurrentPageShapes().find((s) => s.type === 'draw') as TLDrawShape
+
+		// Endpoint in the "close band": near enough that the lasso fill turns solid,
+		// but farther than the draw tool's own (smaller) close threshold. The stroke
+		// is held closed so the solid fill <path> stays mounted (no remount → no
+		// fade flicker).
+		editor.pointerMove(112, 100) // ~12px from the start
+		expect(draw().props.fill).toBe('solid')
+		expect(draw().props.isClosed).toBe(true)
+
+		// Wiggling in and out of that smaller threshold keeps isClosed steady while
+		// the fill stays solid (without the fix, isClosed would toggle here).
+		editor.pointerMove(104, 100) // ~4px
+		expect(draw().props.isClosed).toBe(true)
+		editor.pointerMove(113, 100) // ~13px
+		expect(draw().props.fill).toBe('solid')
+		expect(draw().props.isClosed).toBe(true)
+
+		editor.pointerUp()
+	})
+
+	it('scribbles over a shape to delete it, staying in the tool', () => {
+		const boxId = createBox(130, 130) // spans 130–170
+		scribbleAcross(150, 150)
+		editor.pointerUp()
+
+		expect(editor.getShape(boxId)).toBeUndefined()
+		// No real stroke left behind (the scribble is discarded), and no selection.
+		expect(
+			editor.getCurrentPageShapes().some((s) => s.type === 'draw' && !s.meta?.magicWandGhost)
+		).toBe(false)
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('tints the scribble ink red while it would delete', () => {
+		createBox(130, 130)
+		scribbleAcross(150, 150)
+		const ink = editor.getCurrentPageShapes().find((s) => s.type === 'draw') as TLDrawShape
+		expect(ink.props.color).toBe('red')
+		expect(ink.props.fill).toBe('none') // red stroke, not a filled region like the lasso
+		editor.pointerUp()
+	})
+
+	it('overlays scribbled shapes with a translucent-red "to be deleted" ghost', () => {
+		const boxId = createBox(130, 130)
+		scribbleAcross(150, 150) // pen left down, in delete mode
+
+		// A red ghost copy of the box covers it, and the original is still present
+		// (deletion happens on release).
+		const overlay = editor
+			.getCurrentPageShapes()
+			.find((s) => s.meta?.magicWandGhost && s.type === 'geo') as TLGeoShape
+		expect(overlay).toBeTruthy()
+		expect(overlay.props.color).toBe('red')
+		expect(editor.getShape(boxId)).toBeTruthy()
+
+		editor.pointerUp()
+	})
+
+	it('keeps delete overlays of draw-shape targets out of the gesture ink', () => {
+		// A draw-shape target (like handwriting): its delete overlay is also a
+		// draw shape, created mid-gesture — it must not join the gesture's stroke,
+		// or its outline would pollute the recognition polygon and tint writes.
+		editor.setCurrentTool('draw')
+		editor.pointerDown(150, 150)
+		editor.pointerMove(160, 155)
+		editor.pointerMove(152, 160)
+		editor.pointerUp()
+		const targetId = editor.getCurrentPageShapes().at(-1)!.id
+
+		editor.setCurrentTool('magic-wand')
+		scribbleAcross(155, 155) // pen left down, in delete mode
+
+		const overlay = editor.getCurrentPageShapes().find((s) => s.meta?.magicWandGhost) as TLDrawShape
+		expect(overlay?.type).toBe('draw')
+
+		// Grey-box check of the contract Bugbot flagged: the gesture's stroke set
+		// contains only its own ink — no ghost overlays, no pre-existing shapes.
+		const drawing = editor.getStateDescendant('magic-wand.drawing') as any
+		const strokePieces = drawing.getGestureStrokeShapes() as TLDrawShape[]
+		expect(strokePieces.length).toBeGreaterThan(0)
+		expect(strokePieces.some((s) => s.meta?.magicWandGhost)).toBe(false)
+		expect(strokePieces.some((s) => s.id === targetId)).toBe(false)
+
+		editor.pointerUp()
+		expect(editor.getShape(targetId)).toBeUndefined() // delete still lands
+	})
+
+	it('ignores a collaborator stroke that appears mid-gesture', () => {
+		const boxId = createBox(130, 130)
+
+		// Build a genuine closed-loop draw record around the box, then remove it —
+		// it will "arrive" mid-gesture through the remote sync path.
+		editor.setCurrentTool('draw')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(200, 100)
+		editor.pointerMove(200, 200)
+		editor.pointerMove(100, 200)
+		editor.pointerMove(101, 101)
+		editor.pointerUp()
+		const loop = editor.getCurrentPageShapes().find((s) => s.type === 'draw') as TLDrawShape
+		editor.deleteShapes([loop.id])
+
+		// Draw a short open dab starting near the loop's endpoint; the peer's loop
+		// lands mid-gesture. (Near, so that if the loop wrongly joined the gesture
+		// polygon it would read as a closed loop — the worst case.)
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(108, 104)
+		editor.pointerMove(114, 108)
+		editor.store.mergeRemoteChanges(() => {
+			editor.store.put([loop])
+		})
+		editor.pointerMove(120, 112)
+		editor.pointerUp(120, 112)
+
+		// The foreign closed loop must not be treated as this gesture's ink: no
+		// lasso fires, the box stays unselected, and both strokes survive.
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		expect(editor.getShape(boxId)).toBeTruthy()
+		expect(editor.getShape(loop.id)).toBeTruthy()
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('removes the delete overlays when the scribble is cancelled', () => {
+		const boxId = createBox(130, 130)
+		scribbleAcross(150, 150)
+		expect(editor.getCurrentPageShapes().some((s) => s.meta?.magicWandGhost)).toBe(true)
+
+		editor.cancel()
+
+		expect(editor.getCurrentPageShapes().some((s) => s.meta?.magicWandGhost)).toBe(false)
+		expect(editor.getShape(boxId)).toBeTruthy() // cancel doesn't delete
+	})
+
+	it('deletes every shape the scribble crosses', () => {
+		const a = createBox(120, 130, 20, 20) // x 120–140
+		const b = createBox(170, 130, 20, 20) // x 170–190
+		scribbleAcross(150, 140, 60, 7) // wide scribble crossing both
+		editor.pointerUp()
+
+		expect(editor.getShape(a)).toBeUndefined()
+		expect(editor.getShape(b)).toBeUndefined()
+	})
+
+	it('does not delete when scribbling over empty canvas', () => {
+		const boxId = createBox(400, 400) // far from the scribble
+		scribbleAcross(150, 150)
+		editor.pointerUp()
+
+		expect(editor.getShape(boxId)).toBeTruthy()
+		// On empty canvas the scribble is just a normal drawing.
+		expect(editor.getCurrentPageShapes().some((s) => s.type === 'draw')).toBe(true)
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('does not delete a shape crossed by a single straight line', () => {
+		const boxId = createBox(130, 130)
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(110, 150)
+		editor.pointerMove(150, 150)
+		editor.pointerMove(190, 150) // straight across, no reversals → not a scribble
+		editor.pointerUp()
+
+		expect(editor.getShape(boxId)).toBeTruthy()
+	})
+
+	it('undo restores scribble-deleted shapes', () => {
+		const boxId = createBox(130, 130)
+		scribbleAcross(150, 150)
+		editor.pointerUp()
+		expect(editor.getShape(boxId)).toBeUndefined()
+
+		editor.undo()
+		expect(editor.getShape(boxId)).toBeTruthy()
+	})
+})
+
+/** Shapes on the page that aren't transient magic-wand ghosts/previews. */
+function realShapes() {
+	return editor.getCurrentPageShapes().filter((s) => !s.meta?.magicWandGhost)
+}
+
+/** Draws a dense closed rectangle sketch (pen left down) from the given corners. */
+function drawRectSketch(
+	corners: Array<[number, number]>,
+	perEdge = 6,
+	eventOpts?: { isPen: boolean }
+) {
+	editor.setCurrentTool('magic-wand')
+	const [sx, sy] = corners[0]
+	editor.pointerDown(sx, sy, eventOpts)
+	let [px, py] = [sx, sy]
+	// Walk the corners, then back to ~2px from the start so the loop is closed.
+	const path: Array<[number, number]> = [...corners.slice(1), [sx + 2, sy]]
+	for (const [cx, cy] of path) {
+		for (let j = 1; j <= perEdge; j++) {
+			const t = j / perEdge
+			editor.pointerMove(px + (cx - px) * t, py + (cy - py) * t, eventOpts)
+		}
+		;[px, py] = [cx, cy]
+	}
+}
+
+function rotateAround(
+	[x, y]: [number, number],
+	[cx, cy]: [number, number],
+	angle: number
+): [number, number] {
+	const dx = x - cx
+	const dy = y - cy
+	return [
+		cx + dx * Math.cos(angle) - dy * Math.sin(angle),
+		cy + dx * Math.sin(angle) + dy * Math.cos(angle),
+	]
+}
+
+/** Draws a dense closed ellipse sketch (pen left down) around the given center. */
+function drawEllipseSketch(cx: number, cy: number, rx: number, ry: number, steps = 32) {
+	editor.setCurrentTool('magic-wand')
+	editor.pointerDown(cx + rx, cy)
+	for (let i = 1; i <= steps; i++) {
+		const t = (i / steps) * Math.PI * 2
+		editor.pointerMove(cx + rx * Math.cos(t), cy + ry * Math.sin(t))
+	}
+}
+
+/** Draws a near-straight open stroke (pen left down) from (x1,y1) to (x2,y2). */
+function drawLineSketch(
+	x1: number,
+	y1: number,
+	x2: number,
+	y2: number,
+	steps = 12,
+	eventOpts?: { isPen: boolean }
+) {
+	editor.setCurrentTool('magic-wand')
+	editor.pointerDown(x1, y1, eventOpts)
+	for (let i = 1; i <= steps; i++) {
+		const t = i / steps
+		editor.pointerMove(x1 + (x2 - x1) * t, y1 + (y2 - y1) * t, eventOpts)
+	}
+}
+
+/** The two page-space endpoints of a morphed line, ordered by point index. */
+function linePageEndpoints(line: TLLineShape) {
+	const [a, b] = Object.values(line.props.points).sort(sortByIndex)
+	return {
+		start: { x: line.x + a.x, y: line.y + a.y },
+		end: { x: line.x + b.x, y: line.y + b.y },
+	}
+}
+
+describe('MagicWandTool hold-to-morph', () => {
+	beforeEach(() => vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] }))
+	afterEach(() => vi.useRealTimers())
+
+	const square: Array<[number, number]> = [
+		[100, 100],
+		[200, 100],
+		[200, 200],
+		[100, 200],
+	]
+
+	it('morphs a held rectangle sketch into a geo rectangle, staying in the tool', () => {
+		drawRectSketch(square)
+
+		// Before the hold elapses: still a freehand stroke, no real geo yet.
+		vi.advanceTimersByTime(300)
+		expect(realShapes().some((s) => s.type === 'draw')).toBe(true)
+		expect(realShapes().some((s) => s.type === 'geo')).toBe(false)
+
+		// After the hold: the stroke morphs into one geo rectangle, selected.
+		vi.advanceTimersByTime(600)
+		const geos = realShapes().filter((s) => s.type === 'geo')
+		expect(geos).toHaveLength(1)
+		expect((geos[0] as TLGeoShape).props.geo).toBe('rectangle')
+		expect(editor.getSelectedShapeIds()).toEqual([geos[0].id])
+		expect(realShapes().some((s) => s.type === 'draw')).toBe(false)
+		// Still in the tuning state while the pointer is held; idle after release.
+		editor.expectToBeIn('magic-wand.morph-tuning')
+		editor.pointerUp()
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('does not morph while the pen keeps moving', () => {
+		drawRectSketch(square)
+		// Nudge the pen past the move tolerance before the hold elapses; the timer
+		// keeps resetting, so the morph never fires.
+		for (let i = 0; i < 6; i++) {
+			vi.advanceTimersByTime(300)
+			editor.pointerMove(i % 2 ? 100 : 130, 100)
+		}
+		expect(realShapes().some((s) => s.type === 'geo')).toBe(false)
+	})
+
+	it('morphs instead of lasso when held, even while encircling a shape', () => {
+		const boxId = createBox(130, 130) // center ~(150,150), inside the square
+		drawRectSketch(square)
+
+		vi.advanceTimersByTime(600) // hold past the morph threshold
+		// Morph wins: a new rectangle exists, box untouched, draw stroke gone.
+		const geos = realShapes().filter((s) => s.type === 'geo')
+		expect(geos.some((s) => s.id !== boxId)).toBe(true)
+		expect(realShapes().some((s) => s.type === 'draw')).toBe(false)
+		editor.expectToBeIn('magic-wand.morph-tuning')
+		editor.pointerUp()
+	})
+
+	it('lassos when the loop encircles a shape but is released before the hold', () => {
+		const boxId = createBox(130, 130)
+		drawRectSketch(square)
+
+		vi.advanceTimersByTime(300) // not yet at morph threshold
+		editor.pointerUp() // release early → lasso wins
+
+		expect(editor.getSelectedShapeIds()).toEqual([boxId])
+		expect(realShapes().some((s) => s.type === 'draw')).toBe(false)
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('carries the sketch style onto the morphed rectangle', () => {
+		drawRectSketch(square)
+		const stroke = realShapes().find((s) => s.type === 'draw') as TLDrawShape
+		const expected = {
+			color: stroke.props.color,
+			fill: stroke.props.fill,
+			dash: stroke.props.dash,
+			size: stroke.props.size,
+		}
+
+		vi.advanceTimersByTime(600)
+		const geo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		expect({
+			color: geo.props.color,
+			fill: geo.props.fill,
+			dash: geo.props.dash,
+			size: geo.props.size,
+		}).toEqual(expected)
+		// The draw defaults differ from geo defaults (e.g. fill 'none' vs 'solid'),
+		// so this confirms the style was actually carried over.
+		expect(geo.props.fill).toBe('none')
+	})
+
+	it('undo removes the morphed rectangle and redo re-creates it', () => {
+		drawRectSketch(square)
+		vi.advanceTimersByTime(600)
+		expect(realShapes().filter((s) => s.type === 'geo')).toHaveLength(1)
+
+		editor.undo()
+		expect(realShapes().filter((s) => s.type === 'geo')).toHaveLength(0)
+		expect(realShapes()).toHaveLength(0)
+
+		editor.redo()
+		expect(realShapes().filter((s) => s.type === 'geo')).toHaveLength(1)
+	})
+
+	it('morphs a rectangle sketch whose closing stroke overshoots and crosses', () => {
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(100, 100)
+		const path: Array<[number, number]> = [
+			[200, 100],
+			[200, 200],
+			[100, 200],
+			// The closing leg crosses the top edge (~x=128) and overshoots past it.
+			[130, 94],
+		]
+		let [px, py] = [100, 100]
+		for (const [cx, cy] of path) {
+			for (let j = 1; j <= 6; j++) {
+				editor.pointerMove(px + ((cx - px) * j) / 6, py + ((cy - py) * j) / 6)
+			}
+			;[px, py] = [cx, cy]
+		}
+
+		// Hold: the detected loop (overshoot trimmed) morphs into a geo rectangle.
+		vi.advanceTimersByTime(900)
+		const geos = realShapes().filter((s) => s.type === 'geo')
+		expect(geos).toHaveLength(1)
+		expect((geos[0] as TLGeoShape).props.geo).toBe('rectangle')
+		expect(realShapes().some((s) => s.type === 'draw')).toBe(false)
+		editor.pointerUp()
+	})
+
+	it('does not morph an open (un-closed) stroke', () => {
+		editor.setCurrentTool('magic-wand')
+		// Three sides only — endpoints stay far apart.
+		editor.pointerDown(100, 100)
+		for (const [cx, cy] of [
+			[200, 100],
+			[200, 200],
+			[100, 200],
+		] as Array<[number, number]>) {
+			for (let j = 1; j <= 6; j++)
+				editor.pointerMove(100 + ((cx - 100) * j) / 6, 100 + ((cy - 100) * j) / 6)
+		}
+		vi.advanceTimersByTime(600)
+		expect(realShapes().some((s) => s.type === 'geo')).toBe(false)
+		expect(realShapes().some((s) => s.type === 'draw')).toBe(true)
+	})
+
+	it('morphs a rotated rectangle sketch at the matching angle', () => {
+		const center: [number, number] = [150, 140]
+		const angle = Math.PI / 6
+		const rotated = [
+			[80, 100],
+			[220, 100],
+			[220, 180],
+			[80, 180],
+		].map((c) => rotateAround(c as [number, number], center, angle))
+
+		drawRectSketch(rotated)
+		vi.advanceTimersByTime(600)
+
+		const geo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		expect(geo).toBeTruthy()
+		expect(geo.props.geo).toBe('rectangle')
+		expect(Math.abs(Math.abs(geo.rotation) - angle)).toBeLessThan(0.2)
+	})
+
+	it('morphs a held circle sketch into a geo ellipse, staying in the tool', () => {
+		drawEllipseSketch(150, 150, 60, 60)
+
+		// Before the hold elapses: still a freehand stroke, no geo yet.
+		vi.advanceTimersByTime(300)
+		expect(realShapes().some((s) => s.type === 'geo')).toBe(false)
+
+		// After the hold: the stroke morphs into one geo ellipse, selected.
+		vi.advanceTimersByTime(600)
+		const geos = realShapes().filter((s) => s.type === 'geo')
+		expect(geos).toHaveLength(1)
+		expect((geos[0] as TLGeoShape).props.geo).toBe('ellipse')
+		expect(editor.getSelectedShapeIds()).toEqual([geos[0].id])
+		expect(realShapes().some((s) => s.type === 'draw')).toBe(false)
+		editor.expectToBeIn('magic-wand.morph-tuning')
+		editor.pointerUp()
+	})
+
+	it('drag-tunes a morphed ellipse about its center', () => {
+		drawEllipseSketch(150, 150, 60, 40)
+		vi.advanceTimersByTime(600)
+		editor.expectToBeIn('magic-wand.morph-tuning')
+
+		const id = realShapes().find((s) => s.type === 'geo')!.id
+		const w0 = editor.getShape<TLGeoShape>(id)!.props.w
+		const center0 = editor.getShapePageBounds(id)!.center.clone()
+
+		editor.pointerMove(-50, -50)
+		expect(editor.getShape<TLGeoShape>(id)!.props.w).toBeGreaterThan(w0)
+		const center1 = editor.getShapePageBounds(id)!.center
+		expect(center1.x).toBeCloseTo(center0.x, 1)
+		expect(center1.y).toBeCloseTo(center0.y, 1)
+
+		editor.pointerUp()
+	})
+
+	it('snaps a near-square sketch to a clean square (equal sides)', () => {
+		const nearSquare: Array<[number, number]> = [
+			[100, 100],
+			[210, 100],
+			[210, 200],
+			[100, 200],
+		] // 110 × 100, ratio 1.1 < 1.2
+		drawRectSketch(nearSquare)
+		vi.advanceTimersByTime(600)
+
+		const geo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		expect(geo.props.geo).toBe('rectangle')
+		expect(geo.props.w).toBeCloseTo(geo.props.h, 6)
+		editor.pointerUp()
+	})
+
+	it('keeps distinct sides for a clearly non-square sketch', () => {
+		const wide: Array<[number, number]> = [
+			[100, 100],
+			[280, 100],
+			[280, 200],
+			[100, 200],
+		] // 180 × 100, ratio 1.8 > 1.2
+		drawRectSketch(wide)
+		vi.advanceTimersByTime(600)
+
+		const geo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		expect(Math.abs(geo.props.w - geo.props.h)).toBeGreaterThan(40)
+		editor.pointerUp()
+	})
+
+	it('snaps a near-circular sketch to a clean circle (equal axes)', () => {
+		drawEllipseSketch(150, 150, 60, 66) // ratio 1.1 < 1.2
+		vi.advanceTimersByTime(600)
+
+		const geo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		expect(geo.props.geo).toBe('ellipse')
+		expect(geo.props.w).toBeCloseTo(geo.props.h, 6)
+		editor.pointerUp()
+	})
+
+	it('snaps a near-axis-aligned sketch to an axis-aligned rectangle', () => {
+		const center: [number, number] = [150, 150]
+		const angle = (5 * Math.PI) / 180 // within the snap zone
+		const tilted = square.map((c) => rotateAround(c, center, angle))
+
+		drawRectSketch(tilted)
+		vi.advanceTimersByTime(600)
+
+		const geo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		expect(geo).toBeTruthy()
+		expect(geo.rotation).toBe(0)
+		editor.pointerUp()
+	})
+
+	it('enters morph-tuning state after morph while pointer is held', () => {
+		drawRectSketch(square)
+		vi.advanceTimersByTime(600)
+		editor.expectToBeIn('magic-wand.morph-tuning')
+		editor.pointerUp()
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('drag after morph scales the rectangle about its center', () => {
+		drawRectSketch(square)
+		vi.advanceTimersByTime(600)
+		editor.expectToBeIn('magic-wand.morph-tuning')
+
+		const id = realShapes().find((s) => s.type === 'geo')!.id
+		const w0 = editor.getShape<TLGeoShape>(id)!.props.w
+		const center0 = editor.getShapePageBounds(id)!.center.clone()
+
+		// Drag the pointer farther from the center; the rectangle should scale up
+		// while its center stays put (it pivots about the center, not a corner).
+		editor.pointerMove(-50, -50)
+		expect(editor.getShape<TLGeoShape>(id)!.props.w).toBeGreaterThan(w0 * 1.5)
+		const center1 = editor.getShapePageBounds(id)!.center
+		expect(center1.x).toBeCloseTo(center0.x, 1)
+		expect(center1.y).toBeCloseTo(center0.y, 1)
+
+		editor.pointerUp()
+	})
+
+	it('does not jump the rectangle when the drag begins', () => {
+		// The sketch helper leaves the pen held at (102, 100) — the morph-time
+		// pointer. Moving to exactly that point must leave the shape unchanged.
+		drawRectSketch(square)
+		vi.advanceTimersByTime(600)
+
+		const before = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		const snap = {
+			x: before.x,
+			y: before.y,
+			rotation: before.rotation,
+			w: before.props.w,
+			h: before.props.h,
+		}
+
+		editor.pointerMove(102, 100)
+		const after = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		expect(after.x).toBeCloseTo(snap.x, 1)
+		expect(after.y).toBeCloseTo(snap.y, 1)
+		expect(after.rotation).toBeCloseTo(snap.rotation, 3)
+		expect(after.props.w).toBeCloseTo(snap.w, 1)
+		expect(after.props.h).toBeCloseTo(snap.h, 1)
+
+		editor.pointerUp()
+	})
+
+	it('snaps rotation to the nearest 15° while shift is held during tuning', () => {
+		drawRectSketch(square)
+		vi.advanceTimersByTime(600)
+		editor.expectToBeIn('magic-wand.morph-tuning')
+		const id = realShapes().find((s) => s.type === 'geo')!.id
+		const fifteen = Math.PI / 12
+
+		// Drag to an awkward angle with no shift: rotation lands off a 15° step.
+		editor.pointerMove(260, 230)
+		const free = editor.getShape<TLGeoShape>(id)!.rotation
+		const freeRemainder = Math.abs(free / fifteen - Math.round(free / fifteen))
+		expect(freeRemainder).toBeGreaterThan(0.05)
+
+		// Same pointer with shift held: rotation snaps to an exact 15° multiple.
+		editor.pointerMove(260, 230, { shiftKey: true })
+		const snapped = editor.getShape<TLGeoShape>(id)!.rotation
+		const snappedRemainder = Math.abs(snapped / fifteen - Math.round(snapped / fifteen))
+		expect(snappedRemainder).toBeLessThan(1e-6)
+
+		editor.pointerUp()
+	})
+
+	it('cancel during tuning removes the morphed rectangle', () => {
+		drawRectSketch(square)
+		vi.advanceTimersByTime(600)
+		editor.expectToBeIn('magic-wand.morph-tuning')
+
+		expect(realShapes().some((s) => s.type === 'geo')).toBe(true)
+		editor.cancel()
+		expect(realShapes().some((s) => s.type === 'geo')).toBe(false)
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('pointer-up during tuning commits the shape at the dragged position', () => {
+		drawRectSketch(square)
+		vi.advanceTimersByTime(600)
+
+		const geoBefore = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		editor.pointerMove(-50, -50)
+		editor.pointerUp()
+
+		const geoAfter = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		expect(geoAfter.props.w).toBeGreaterThan(geoBefore.props.w * 1.5)
+
+		// Undo should remove the shape entirely (one step for the whole morph+tune).
+		editor.undo()
+		expect(realShapes().some((s) => s.type === 'geo')).toBe(false)
+
+		// Redo should restore it at the tuned (dragged) position.
+		editor.redo()
+		const geoRedo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		expect(geoRedo.props.w).toBeCloseTo(geoAfter.props.w, 0)
+	})
+
+	it('morphs a held straight sketch into a line at the exact endpoints', () => {
+		drawLineSketch(100, 100, 300, 140)
+
+		// Before the hold elapses: still a freehand stroke, no line yet.
+		vi.advanceTimersByTime(300)
+		expect(realShapes().some((s) => s.type === 'line')).toBe(false)
+
+		// After the hold: the stroke morphs into one line, selected.
+		vi.advanceTimersByTime(300)
+		const lines = realShapes().filter((s) => s.type === 'line')
+		expect(lines).toHaveLength(1)
+		expect(realShapes().some((s) => s.type === 'draw')).toBe(false)
+		expect(editor.getSelectedShapeIds()).toEqual([lines[0].id])
+		// Pointer still held: the line is now fine-tunable.
+		editor.expectToBeIn('magic-wand.line-tuning')
+
+		// The line spans the exact freehand endpoints (not a fitted approximation).
+		const { start, end } = linePageEndpoints(lines[0] as TLLineShape)
+		expect(start.x).toBeCloseTo(100, 0)
+		expect(start.y).toBeCloseTo(100, 0)
+		expect(end.x).toBeCloseTo(300, 0)
+		expect(end.y).toBeCloseTo(140, 0)
+
+		editor.pointerUp()
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('carries the sketch style onto the morphed line', () => {
+		drawLineSketch(100, 100, 280, 100)
+		const stroke = realShapes().find((s) => s.type === 'draw') as TLDrawShape
+		const expected = {
+			color: stroke.props.color,
+			dash: stroke.props.dash,
+			size: stroke.props.size,
+		}
+		vi.advanceTimersByTime(600)
+		const line = realShapes().find((s) => s.type === 'line') as TLLineShape
+		expect({ color: line.props.color, dash: line.props.dash, size: line.props.size }).toEqual(
+			expected
+		)
+	})
+
+	it('does not morph a clearly curved open sketch into a line', () => {
+		editor.setCurrentTool('magic-wand')
+		// A pronounced arc: chord 200 wide, bowing up ~70 (sagitta well past straight).
+		editor.pointerDown(100, 200)
+		const steps = 16
+		for (let i = 1; i <= steps; i++) {
+			const t = i / steps
+			editor.pointerMove(100 + 200 * t, 200 - Math.sin(t * Math.PI) * 70)
+		}
+		vi.advanceTimersByTime(600)
+		expect(realShapes().some((s) => s.type === 'line')).toBe(false)
+		expect(realShapes().some((s) => s.type === 'draw')).toBe(true)
+	})
+
+	it('does not morph a straight sketch that ends in a sharp hook', () => {
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(100, 100)
+		for (let i = 1; i <= 12; i++) editor.pointerMove(100 + i * 15, 100) // straight body
+		for (const h of [8, 16, 24]) editor.pointerMove(280, 100 - h) // sharp upward hook
+		vi.advanceTimersByTime(600)
+		expect(realShapes().some((s) => s.type === 'line')).toBe(false)
+		expect(realShapes().some((s) => s.type === 'draw')).toBe(true)
+	})
+
+	it('undo removes the morphed line and redo re-creates it', () => {
+		drawLineSketch(100, 100, 300, 100)
+		vi.advanceTimersByTime(600)
+		expect(realShapes().filter((s) => s.type === 'line')).toHaveLength(1)
+
+		editor.undo()
+		expect(realShapes()).toHaveLength(0)
+
+		editor.redo()
+		expect(realShapes().filter((s) => s.type === 'line')).toHaveLength(1)
+	})
+
+	it('drag-tunes a morphed line by moving its end vertex, start fixed', () => {
+		drawLineSketch(100, 100, 300, 100)
+		vi.advanceTimersByTime(600)
+		editor.expectToBeIn('magic-wand.line-tuning')
+		const id = realShapes().find((s) => s.type === 'line')!.id
+
+		// Drag the pointer; the end follows it while the start stays put.
+		editor.pointerMove(300, 250)
+		const { start, end } = linePageEndpoints(editor.getShape<TLLineShape>(id)!)
+		expect(start.x).toBeCloseTo(100, 0)
+		expect(start.y).toBeCloseTo(100, 0)
+		expect(end.x).toBeCloseTo(300, 0)
+		expect(end.y).toBeCloseTo(250, 0)
+
+		editor.pointerUp()
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('does not jump the line end when the drag begins', () => {
+		drawLineSketch(100, 100, 300, 140)
+		vi.advanceTimersByTime(600)
+		const id = realShapes().find((s) => s.type === 'line')!.id
+		const before = linePageEndpoints(editor.getShape<TLLineShape>(id)!)
+
+		// Moving the pointer to exactly the morph-time pointer (the end) is a no-op.
+		editor.pointerMove(300, 140)
+		const after = linePageEndpoints(editor.getShape<TLLineShape>(id)!)
+		expect(after.end.x).toBeCloseTo(before.end.x, 1)
+		expect(after.end.y).toBeCloseTo(before.end.y, 1)
+
+		editor.pointerUp()
+	})
+
+	it('snaps the line angle to 15° while shift is held during tuning', () => {
+		drawLineSketch(100, 100, 300, 100)
+		vi.advanceTimersByTime(600)
+		const id = realShapes().find((s) => s.type === 'line')!.id
+		const fifteen = Math.PI / 12
+
+		// Drag to an awkward angle, no shift: not a 15° multiple.
+		editor.pointerMove(300, 180)
+		let ends = linePageEndpoints(editor.getShape<TLLineShape>(id)!)
+		const free = Math.atan2(ends.end.y - ends.start.y, ends.end.x - ends.start.x)
+		expect(Math.abs(free / fifteen - Math.round(free / fifteen))).toBeGreaterThan(0.05)
+
+		// Same pointer with shift held: the angle snaps to a 15° multiple.
+		editor.pointerMove(300, 180, { shiftKey: true })
+		ends = linePageEndpoints(editor.getShape<TLLineShape>(id)!)
+		const snapped = Math.atan2(ends.end.y - ends.start.y, ends.end.x - ends.start.x)
+		expect(Math.abs(snapped / fifteen - Math.round(snapped / fifteen))).toBeLessThan(1e-6)
+
+		editor.pointerUp()
+	})
+
+	it('cancel during line tuning removes the morphed line', () => {
+		drawLineSketch(100, 100, 300, 100)
+		vi.advanceTimersByTime(600)
+		editor.expectToBeIn('magic-wand.line-tuning')
+
+		expect(realShapes().some((s) => s.type === 'line')).toBe(true)
+		editor.cancel()
+		expect(realShapes().some((s) => s.type === 'line')).toBe(false)
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('pointer-up during line tuning commits the dragged end as one undo step', () => {
+		drawLineSketch(100, 100, 300, 100)
+		vi.advanceTimersByTime(600)
+		const id = realShapes().find((s) => s.type === 'line')!.id
+
+		editor.pointerMove(300, 250)
+		editor.pointerUp()
+		const after = linePageEndpoints(editor.getShape<TLLineShape>(id)!)
+		expect(after.end.y).toBeCloseTo(250, 0)
+
+		// Undo removes the whole morph+tune; redo restores the dragged position.
+		editor.undo()
+		expect(realShapes().some((s) => s.type === 'line')).toBe(false)
+		editor.redo()
+		const redo = linePageEndpoints(editor.getShape<TLLineShape>(id)!)
+		expect(redo.end.y).toBeCloseTo(250, 0)
+	})
+})
+
+describe('MagicWandTool wet ink drying', () => {
+	beforeEach(() =>
+		vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'requestAnimationFrame'] })
+	)
+	afterEach(() => vi.useRealTimers())
+
+	it('dries the ink back to its natural opacity after a plain draw, leaving history clean', () => {
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(50, 50)
+		editor.pointerMove(90, 60)
+		editor.pointerMove(130, 50)
+		const strokeId = editor.getCurrentPageShapes().at(-1)!.id
+		expect(editor.getShape(strokeId)!.opacity).toBe(0.5)
+		editor.pointerUp(130, 50)
+
+		// The dry tween runs on rAF; advance through the whole fade.
+		vi.advanceTimersByTime(1000)
+		expect(editor.getShape(strokeId)!.opacity).toBe(1)
+		expect(editor.getShape(strokeId)!.meta.magicWandRestore).toBeFalsy()
+
+		// The wet/dry writes are history-ignored: one undo removes the stroke, and
+		// redo restores it at its natural opacity, not the wet value — and untagged.
+		editor.undo()
+		expect(editor.getShape(strokeId)).toBeUndefined()
+		editor.redo()
+		expect(editor.getShape(strokeId)!.opacity).toBe(1)
+		expect(editor.getShape(strokeId)!.meta.magicWandRestore).toBeFalsy()
+	})
+})
+
+describe('MagicWandTool abnormal-termination healing', () => {
+	function seedIgnored(fn: () => void) {
+		editor.run(fn, { history: 'ignore' })
+	}
+
+	it('sweep deletes stranded (locked) ghost shapes', () => {
+		const ghostId = createShapeId()
+		seedIgnored(() => {
+			editor.createShape<TLGeoShape>({
+				id: ghostId,
+				type: 'geo',
+				x: 10,
+				y: 10,
+				isLocked: true,
+				opacity: 0.3,
+				meta: { magicWandGhost: true },
+				props: { w: 40, h: 40 },
+			})
+		})
+
+		sweepMagicWandTransients(editor)
+		expect(editor.getShape(ghostId)).toBeUndefined()
+
+		// The sweep is history-ignored: undo cannot bring the ghost back.
+		editor.undo()
+		expect(editor.getShape(ghostId)).toBeUndefined()
+	})
+
+	it('sweep restores a stroke frozen mid lasso preview', () => {
+		const strokeId = createShapeId()
+		seedIgnored(() => {
+			editor.createShape<TLDrawShape>({
+				id: strokeId,
+				type: 'draw',
+				x: 0,
+				y: 0,
+				opacity: 0.5,
+				meta: {
+					magicWandRestore: { opacity: 1, color: 'black', fill: 'none', isClosed: false },
+				},
+				props: { color: 'blue', fill: 'solid', isClosed: true },
+			})
+		})
+
+		sweepMagicWandTransients(editor)
+		const healed = editor.getShape<TLDrawShape>(strokeId)!
+		expect(healed.opacity).toBe(1)
+		expect(healed.props.color).toBe('black')
+		expect(healed.props.fill).toBe('none')
+		expect(healed.props.isClosed).toBe(false)
+		expect(healed.meta.magicWandRestore).toBeFalsy()
+	})
+
+	it('sweep finishes a morph target frozen mid fade-in', () => {
+		const geoId = createShapeId()
+		seedIgnored(() => {
+			editor.createShape<TLGeoShape>({
+				id: geoId,
+				type: 'geo',
+				x: 0,
+				y: 0,
+				opacity: 0.37,
+				meta: { magicWandRestore: { opacity: 1 } },
+				props: { w: 100, h: 60 },
+			})
+		})
+
+		sweepMagicWandTransients(editor)
+		const healed = editor.getShape<TLGeoShape>(geoId)!
+		expect(healed.opacity).toBe(1)
+		expect(healed.meta.magicWandRestore).toBeFalsy()
+	})
+
+	it('sweep leaves ordinary shapes alone', () => {
+		const boxId = createBox(10, 10)
+		editor.updateShape({ id: boxId, type: 'geo', opacity: 0.25 })
+
+		sweepMagicWandTransients(editor)
+		const box = editor.getShape(boxId)!
+		expect(box.opacity).toBe(0.25)
+	})
+
+	it('runs the sweep when the editor mounts', () => {
+		const ghostId = createShapeId()
+		seedIgnored(() => {
+			editor.createShape<TLGeoShape>({
+				id: ghostId,
+				type: 'geo',
+				x: 10,
+				y: 10,
+				meta: { magicWandGhost: true },
+				props: { w: 40, h: 40 },
+			})
+		})
+
+		editor.emit('mount')
+		expect(editor.getShape(ghostId)).toBeUndefined()
+	})
+
+	it('restores the natural ink when the tool is switched away mid lasso preview', () => {
+		createBox(130, 130)
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(200, 100)
+		editor.pointerMove(200, 200)
+		editor.pointerMove(100, 200)
+		// End in the "close band": near enough for the lasso to read the loop as
+		// closed (tint + solid fill), but outside the draw tool's own smaller close
+		// threshold — so `isClosed` is forced by keepLassoStrokeClosed, not natural.
+		editor.pointerMove(112, 100)
+
+		const wet = editor.getShape<TLDrawShape>(
+			editor.getCurrentPageShapes().find((s) => s.type === 'draw')!.id
+		)!
+		expect(wet.props.color).toBe('blue')
+		expect(wet.props.isClosed).toBe(true)
+
+		// Switch tools with the pointer still down: the stroke is kept, and every
+		// transient override (opacity, tint, fill, forced isClosed) is restored.
+		editor.setCurrentTool('select')
+		const kept = editor.getShape<TLDrawShape>(wet.id)!
+		expect(kept.opacity).toBe(1)
+		expect(kept.props.color).toBe('black')
+		expect(kept.props.fill).toBe('none')
+		expect(kept.props.isClosed).toBe(false)
+		expect(kept.meta.magicWandRestore).toBeFalsy()
+	})
+})
+
+describe('MagicWandTool pen tuning deadzone', () => {
+	beforeEach(() => vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] }))
+	afterEach(() => vi.useRealTimers())
+
+	const square: Array<[number, number]> = [
+		[100, 100],
+		[200, 100],
+		[200, 200],
+		[100, 200],
+	]
+	// drawRectSketch ends the stroke (and so the deadzone origin) at (102, 100);
+	// the morphed square's center is ~(150, 150).
+
+	function geoState(id: ReturnType<typeof createShapeId>) {
+		const s = editor.getShape<TLGeoShape>(id)!
+		return { x: s.x, y: s.y, rotation: s.rotation, w: s.props.w, h: s.props.h }
+	}
+
+	function morphSquareWithPen() {
+		drawRectSketch(square, 6, { isPen: true })
+		vi.advanceTimersByTime(900)
+		const geo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		expect(geo).toBeTruthy()
+		editor.expectToBeIn('magic-wand.morph-tuning')
+		return geo
+	}
+
+	it('pen wobble inside the deadzone does not tune, and release keeps the morph exact', () => {
+		const geo = morphSquareWithPen()
+		const before = geoState(geo.id)
+
+		editor.pointerMove(105, 103, { isPen: true }) // ~4px of wobble
+		editor.pointerMove(99, 102, { isPen: true })
+		expect(geoState(geo.id)).toEqual(before)
+
+		editor.pointerUp(99, 102, { isPen: true })
+		expect(geoState(geo.id)).toEqual(before)
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('leaving the deadzone makes the shape catch up and tune as if it never existed', () => {
+		const geo = morphSquareWithPen()
+		const before = geoState(geo.id)
+		const cx = before.x + before.w / 2
+		const cy = before.y + before.h / 2
+		const gripLen = Math.hypot(102 - cx, 100 - cy) // pointer position at morph time
+
+		// Wobble inside the deadzone (discarded), then exit 20px away: the shape
+		// catches up to the pen, measured against the morph-time grip.
+		editor.pointerMove(99, 103, { isPen: true })
+		editor.pointerMove(82, 100, { isPen: true })
+		const expectedScale = Math.hypot(82 - cx, 100 - cy) / gripLen
+		expect(geoState(geo.id).w).toBeCloseTo(before.w * expectedScale, 1)
+
+		// Back at exactly the morph-time grip point, the shape returns to its
+		// morph size: the wobble left no lasting pen-to-shape offset.
+		editor.pointerMove(102, 100, { isPen: true })
+		expect(geoState(geo.id).w).toBeCloseTo(before.w, 3)
+		expect(geoState(geo.id).rotation).toBeCloseTo(before.rotation, 3)
+
+		editor.pointerUp(102, 100, { isPen: true })
+		expect(geoState(geo.id).w).toBeCloseTo(before.w, 3)
+	})
+
+	it('a release that exits the deadzone without a prior move keeps the morph exact', () => {
+		const geo = morphSquareWithPen()
+		const before = geoState(geo.id)
+
+		// The pen lifts with a flick that lands outside the zone — still no tune.
+		editor.pointerUp(120, 100, { isPen: true })
+		expect(geoState(geo.id)).toEqual(before)
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('mouse input tunes immediately with no deadzone', () => {
+		drawRectSketch(square)
+		vi.advanceTimersByTime(900)
+		const geo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		const before = geoState(geo.id)
+
+		editor.pointerMove(106, 100) // 4px — inside what would be the pen deadzone
+		expect(geoState(geo.id).w).toBeLessThan(before.w)
+		editor.pointerUp()
+	})
+
+	it('guards line tuning, then puts the end exactly under the pen after exit', () => {
+		drawLineSketch(100, 100, 300, 120, 12, { isPen: true })
+		vi.advanceTimersByTime(900)
+		const line = realShapes().find((s) => s.type === 'line') as TLLineShape
+		editor.expectToBeIn('magic-wand.line-tuning')
+		const before = linePageEndpoints(line)
+
+		// Wobble inside the deadzone: the end vertex stays put.
+		editor.pointerMove(303, 122, { isPen: true })
+		expect(linePageEndpoints(editor.getShape<TLLineShape>(line.id)!)).toEqual(before)
+
+		// Exit 25px below: the end catches up to sit exactly under the pen tip —
+		// the wobble must not become a lasting pen-to-end offset.
+		editor.pointerMove(300, 145, { isPen: true })
+		let end = linePageEndpoints(editor.getShape<TLLineShape>(line.id)!).end
+		expect(end.x).toBeCloseTo(300, 4)
+		expect(end.y).toBeCloseTo(145, 4)
+
+		// And it keeps tracking the pen tip exactly from then on.
+		editor.pointerMove(280, 175, { isPen: true })
+		end = linePageEndpoints(editor.getShape<TLLineShape>(line.id)!).end
+		expect(end.x).toBeCloseTo(280, 4)
+		expect(end.y).toBeCloseTo(175, 4)
+
+		editor.pointerUp(280, 175, { isPen: true })
+	})
+})

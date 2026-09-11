@@ -246,6 +246,7 @@ export const DEFAULT_TRANSLATION = {
 	'tool.hexagon': 'Hexagon',
 	'tool.highlight': 'Highlight',
 	'tool.line': 'Line',
+	'tool.magic-wand': 'Magic wand',
 	'tool.octagon': 'Octagon',
 	'tool.oval': 'Oval',
 	'tool.pentagon': 'Pentagon',

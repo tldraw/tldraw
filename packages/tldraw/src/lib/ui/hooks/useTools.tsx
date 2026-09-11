@@ -326,6 +326,16 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					onToolSelect(source, this)
 				},
 			},
+			{
+				id: 'magic-wand',
+				label: 'tool.magic-wand',
+				icon: 'tool-magic-wand',
+				kbd: 'w',
+				onSelect(source) {
+					editor.setCurrentTool('magic-wand')
+					onToolSelect(source, this)
+				},
+			},
 		]
 
 		toolsArray.forEach((t) => (t.onSelect = t.onSelect.bind(t)))
