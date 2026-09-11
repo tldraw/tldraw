@@ -248,6 +248,11 @@ describe('formatOutboxError', () => {
 		expect(formatOutboxError(undefined)).toBe('undefined')
 	})
 
+	it('never throws and strips NUL bytes so the attempts bump cannot fail on it', () => {
+		expect(formatOutboxError(Object.create(null))).toBe('[unformattable object]')
+		expect(formatOutboxError(new Error('a\0b'))).toBe('Error: ab')
+	})
+
 	it('truncates to 500 chars', () => {
 		const out = formatOutboxError(new Error('x'.repeat(1000)))
 		expect(out).toHaveLength(500)

@@ -21,8 +21,15 @@ export function shouldReportEffectFailure(attempts: number): boolean {
 // response body, say) can't bloat the table.
 export const MAX_LAST_ERROR_LENGTH = 500
 export function formatOutboxError(error: unknown): string {
-	const text = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
-	return text.slice(0, MAX_LAST_ERROR_LENGTH)
+	let text: string
+	try {
+		text = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
+	} catch {
+		text = `[unformattable ${typeof error}]`
+	}
+	// Written in the same UPDATE as the attempts bump, so it must never be what fails it:
+	// PG TEXT rejects NUL bytes.
+	return text.replaceAll('\u0000', '').slice(0, MAX_LAST_ERROR_LENGTH)
 }
 
 export interface OutboxDeps {
