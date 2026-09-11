@@ -1485,14 +1485,11 @@ export class TLFileDurableObject extends DurableObject {
 		return res
 	}
 
-	// Stage and timer sit at the await, not the kickoff: the load overlaps the R2 fetch, so a
-	// hung Postgres dial was otherwise attributed to whichever stage awaited alongside it (#10746).
+	// The stage is set at the await, not the kickoff: the kickoff stage is overwritten by
+	// storage-load:r2 right after, so a hung Postgres dial would report as :r2 (#10746).
 	private async awaitComments(commentsPromise: Promise<CommentLoadResult>) {
 		this.setBootStage('storage-load:comments')
-		const commentsTimer = this.timer()
-		const comments = await commentsPromise
-		commentsTimer.report('db_load_comments')
-		return comments
+		return await commentsPromise
 	}
 
 	/**
@@ -1696,11 +1693,15 @@ export class TLFileDurableObject extends DurableObject {
 
 	private async loadCommentsFromPostgres(): Promise<CommentLoadResult> {
 		const fileId = this.documentInfo.slug
+		// Timed here rather than at the merge-point await so the event is query latency, not the
+		// residual wait after the overlapping R2 fetch (which would read ~0 whenever R2 is slower).
+		const commentsTimer = this.timer()
 		const [threadRows, commentRows, reactionRows] = await Promise.all([
 			this.db.selectFrom('comment_thread').where('fileId', '=', fileId).selectAll().execute(),
 			this.db.selectFrom('comment').where('fileId', '=', fileId).selectAll().execute(),
 			this.db.selectFrom('comment_reaction').where('fileId', '=', fileId).selectAll().execute(),
 		])
+		commentsTimer.report('db_load_comments')
 		// Soft-deleted threads and their comments never re-enter a room, and neither do reactions
 		// whose comment doesn't; their rows stay in Postgres only (see liveCommentDocuments).
 		return liveCommentDocuments(threadRows, commentRows, reactionRows)
