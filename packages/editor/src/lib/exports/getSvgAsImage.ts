@@ -145,7 +145,13 @@ function measureContentBounds(
 	// (extraPx * 2 >= w means declaredRight <= declaredLeft, producing zero/negative crop)
 	if (extraPx <= 0 || extraPx * 2 >= w || extraPx * 2 >= h) return null
 
-	const imageData = ctx.getImageData(0, 0, w, h)
+	let imageData: ImageData
+	try {
+		imageData = ctx.getImageData(0, 0, w, h)
+	} catch {
+		// a tainted or unallocatable canvas can't be measured; export untrimmed rather than fail
+		return null
+	}
 	const data = imageData.data
 
 	// Determine how to detect "empty" pixels.
@@ -302,9 +308,11 @@ export async function trimSvgToContent(
 
 	if (trimPadding <= 0) return null
 
-	// Render SVG to a temporary canvas at 1:1 pixel ratio
-	const canvasWidth = Math.floor(width)
-	const canvasHeight = Math.floor(height)
+	// Render SVG to a temporary canvas at 1:1 pixel ratio, clamped like the raster path so a
+	// large export doesn't exceed the browser's canvas limits
+	let [canvasWidth, canvasHeight] = clampToBrowserMaxCanvasSize(width, height)
+	canvasWidth = Math.floor(canvasWidth)
+	canvasHeight = Math.floor(canvasHeight)
 
 	if (canvasWidth <= 0 || canvasHeight <= 0) return null
 
@@ -313,7 +321,7 @@ export async function trimSvgToContent(
 	if (!canvas) return null
 
 	// Measure content bounds on the canvas
-	const trimPaddingPx = trimPadding * scale
+	const trimPaddingPx = trimPadding * scale * (canvasWidth / width)
 	const bounds = measureContentBounds(canvas, trimPaddingPx)
 	if (!bounds) return null
 

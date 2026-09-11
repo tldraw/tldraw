@@ -338,4 +338,24 @@ describe('Maximum shapes behavior', () => {
 			})
 		})
 	})
+
+	describe('groupShapes', () => {
+		it('does not reparent the shapes when the group itself cannot be created', () => {
+			const ids = Array.from({ length: 5 }, (_, i) => createShapeId(`shape-${i}`))
+			editor.createShapes(
+				ids.map((id, i) => ({ id, type: 'geo' as const, x: i * 50, y: 0, props: { w: 40, h: 40 } }))
+			)
+			const maxShapesHandler = vi.fn()
+			editor.addListener('max-shapes', maxShapesHandler)
+
+			editor.groupShapes([ids[0], ids[1]])
+
+			// the group record never existed, so the shapes must stay on the page rather than
+			// being parented to a missing id
+			expect(editor.getShape(ids[0])!.parentId).toBe(editor.getCurrentPageId())
+			expect(editor.getShape(ids[1])!.parentId).toBe(editor.getCurrentPageId())
+			expect(editor.getCurrentPageShapeIds().size).toBe(5)
+			expect(maxShapesHandler).toHaveBeenCalledTimes(1)
+		})
+	})
 })

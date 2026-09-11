@@ -224,6 +224,141 @@ describe('TLSelectTool.PointingShape when the shape is deleted mid-click', () =>
 		expect(() => editor.pointerUp(shape.x + 10, shape.y + 10)).not.toThrow()
 		editor.expectToBeIn('select.idle')
 	})
+
+	it('does not crash when dragging after a labelled arrow is deleted', () => {
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: { richText: toRichText('label'), start: { x: 0, y: 0 }, end: { x: 200, y: 0 } },
+			},
+		])
+		const shape = editor.getShape(ids.arrow1)!
+		editor.pointerDown(200, 100, { target: 'shape', shape })
+		editor.expectToBeIn('select.pointing_shape')
+
+		editor.deleteShapes([ids.arrow1])
+
+		expect(() => editor.pointerMove(220, 120)).not.toThrow()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('returns to idle without reselecting a deleted shape on pointer move', () => {
+		editor.select(ids.box1)
+		const shape = editor.getShape(ids.box1)!
+		editor.pointerDown(150, 150, { target: 'shape', shape })
+
+		editor.deleteShapes([ids.box1])
+
+		editor.pointerMove(200, 200)
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('does not reselect a deleted shape when a long press starts translating', () => {
+		editor.select(ids.box1)
+		const shape = editor.getShape(ids.box1)!
+		editor.pointerDown(150, 150, { target: 'shape', shape })
+		editor.expectToBeIn('select.pointing_shape')
+
+		editor.deleteShapes([ids.box1])
+		editor.expectToBeIn('select.pointing_shape')
+
+		vi.advanceTimersByTime(editor.options.longPressDurationMs + 100)
+		editor.forceTick()
+
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		editor.expectToBeIn('select.idle')
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('still moves the label on ctrl-drag over a live arrow label', () => {
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: { richText: toRichText('label'), start: { x: 0, y: 0 }, end: { x: 200, y: 0 } },
+			},
+		])
+		const shape = editor.getShape(ids.arrow1)!
+		editor.pointerDown(200, 100, { target: 'shape', shape, accelKey: true })
+		editor.pointerMove(220, 120, { accelKey: true })
+		editor.expectToBeIn('select.pointing_arrow_label')
+	})
+
+	it('still brushes on ctrl-drag when the pointed shape is deleted', () => {
+		const shape = editor.getShape(ids.box1)!
+		editor.pointerDown(150, 150, { target: 'shape', shape, accelKey: true })
+		editor.expectToBeIn('select.pointing_shape')
+
+		editor.deleteShapes([ids.box1])
+
+		editor.pointerMove(200, 200, { accelKey: true })
+		editor.expectToBeIn('select.brushing')
+	})
+})
+
+describe('TLSelectTool.PointingHandle when the shape is deleted before dragging', () => {
+	it('returns to idle without crashing when the pointed arrow is deleted', () => {
+		editor.createShape({ id: ids.arrow1, type: 'arrow', x: 100, y: 100 })
+		const shape = editor.getShape(ids.arrow1)!
+		const handle = editor.getShapeHandles(shape)!.find((handle) => handle.id === 'end')!
+		editor.select(shape.id).pointerDown(shape.x + handle.x, shape.y + handle.y, {
+			target: 'handle',
+			shape,
+			handle,
+		})
+		editor.expectToBeIn('select.pointing_handle')
+
+		editor.deleteShapes([shape.id])
+		editor.expectToBeIn('select.pointing_handle')
+
+		expect(() => editor.pointerMove(shape.x + handle.x + 50, shape.y + handle.y + 50)).not.toThrow()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		expect(editor.getInstanceState().cursor.type).toBe('default')
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('does not clone a deleted note when its clone handle is dragged', () => {
+		const noteId = createShapeId('note1')
+		editor.createShapes([{ id: noteId, type: 'note', x: 100, y: 100 }])
+		editor.select(noteId)
+		const shape = editor.getShape(noteId)!
+		const handle = editor.getShapeHandles(shape)!.find((h) => h.id === 'right')!
+		editor.pointerDown(300, 200, { target: 'handle', shape, handle })
+		editor.expectToBeIn('select.pointing_handle')
+
+		editor.deleteShapes([noteId])
+
+		editor.pointerMove(350, 200)
+		editor.expectToBeIn('select.idle')
+		expect(editor.getCurrentPageShapes().filter((s) => s.type === 'note')).toHaveLength(0)
+		expect(editor.getSelectedShapeIds()).toEqual([])
+	})
+
+	it('does not clone a deleted note when its clone handle is clicked', () => {
+		const noteId = createShapeId('note1')
+		editor.createShapes([{ id: noteId, type: 'note', x: 100, y: 100 }])
+		editor.select(noteId)
+		const shape = editor.getShape(noteId)!
+		const handle = editor.getShapeHandles(shape)!.find((h) => h.id === 'right')!
+		editor.pointerDown(300, 200, { target: 'handle', shape, handle })
+		editor.expectToBeIn('select.pointing_handle')
+
+		editor.deleteShapes([noteId])
+
+		editor.pointerUp(300, 200)
+		editor.expectToBeIn('select.idle')
+		expect(editor.getCurrentPageShapes().filter((s) => s.type === 'note')).toHaveLength(0)
+		expect(editor.getEditingShapeId()).toBeNull()
+	})
 })
 
 describe('TLSelectTool.Translating', () => {

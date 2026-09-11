@@ -75,9 +75,9 @@ export function attach(parent: Signal<any>, child: Child) {
  * @internal
  */
 export function equals(a: any, b: any): boolean {
-	const shallowEquals =
+	return (
 		a === b || Object.is(a, b) || Boolean(a && b && typeof a.equals === 'function' && a.equals(b))
-	return shallowEquals
+	)
 }
 
 /**

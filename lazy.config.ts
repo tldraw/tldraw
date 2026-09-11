@@ -42,7 +42,7 @@ const config = {
 							'api/**/*',
 							'components/**/*',
 							'public/**/*',
-							'scrips/**/*',
+							'scripts/**/*',
 							'styles/**/*',
 							'types/**/*',
 							'utils/**/*',

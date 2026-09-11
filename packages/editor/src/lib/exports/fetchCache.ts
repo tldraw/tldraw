@@ -18,6 +18,10 @@ export function fetchCache<T>(cb: (response: Response) => Promise<T>, init?: Req
 			}
 		})()
 		cache.set(url, promise)
+		// only keep successes, otherwise a transient failure poisons this url for the whole session
+		promise.then((result) => {
+			if (result === null && cache.get(url) === promise) cache.delete(url)
+		})
 		return promise
 	}
 }

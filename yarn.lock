@@ -12004,7 +12004,6 @@ __metadata:
     next: "npm:^16.3.0"
     next-mdx-remote-client: "npm:^1.1.2"
     next-themes: "npm:^0.3.0"
-    octokit: "npm:^3.2.1"
     oxfmt: "npm:^0.41.0"
     patch-package: "npm:^8.0.0"
     postcss: "npm:^8.5.1"
@@ -12028,6 +12027,7 @@ __metadata:
     tailwindcss: "npm:^3.4.17"
     tsx: "npm:^4.19.2"
     typescript: "npm:^7.0.2"
+    vitest: "npm:^4.1.7"
     ws: "npm:^8.18.0"
   languageName: unknown
   linkType: soft
@@ -12278,6 +12278,7 @@ __metadata:
     mime: "npm:^4.0.6"
     minimist: "npm:^1.2.8"
     nanoid: "npm:^5.1.16"
+    octokit: "npm:^3.2.1"
     oxfmt: "npm:^0.41.0"
     pg: "npm:^8.16.3"
     proper-lockfile: "npm:^4.1.2"

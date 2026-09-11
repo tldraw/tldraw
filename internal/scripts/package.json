@@ -75,6 +75,7 @@
 		"mime": "^4.0.6",
 		"minimist": "^1.2.8",
 		"nanoid": "^5.1.16",
+		"octokit": "^3.2.1",
 		"pg": "^8.16.3",
 		"proper-lockfile": "^4.1.2",
 		"strip-ansi": "^7.1.0",
