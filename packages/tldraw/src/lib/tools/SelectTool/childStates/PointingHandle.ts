@@ -7,11 +7,15 @@ import {
 	TLPointerEventInfo,
 	Vec,
 } from '@tldraw/editor'
-import { updateArrowTargetState } from '../../../shapes/arrow/arrowTargetState'
+import {
+	clearArrowTargetState,
+	updateArrowTargetState,
+} from '../../../shapes/arrow/arrowTargetState'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 import {
 	getNoteAdjacentPositions,
 	getNoteShapeForAdjacentPosition,
+	startEditingAdjacentNote,
 } from '../../../shapes/note/noteHelpers'
 import type { NoteShapeUtil } from '../../../shapes/note/NoteShapeUtil'
 import { getDisplayValues } from '../../../shapes/shared/getDisplayValues'
@@ -55,11 +59,20 @@ export class PointingHandle extends StateNode {
 
 	override onExit() {
 		this.editor.setHintingShapes([])
+		// onEnter shows the arrow's binding target; a click without a drag would leave it showing
+		clearArrowTargetState(this.editor)
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
 	override onPointerUp() {
 		const { shape, handle } = this.info
+
+		// The shape may have been deleted since pointer down (remote user, undo); the note
+		// branch below would clone a new note from the dead record
+		if (!this.editor.getShape(shape.id)) {
+			this.parent.transition('idle')
+			return
+		}
 
 		if (this.isDoubleClick) {
 			this.parent.transition('idle')
@@ -76,7 +89,7 @@ export class PointingHandle extends StateNode {
 			const { editor } = this
 			const nextNote = getNoteForAdjacentPosition(editor, shape, handle, false)
 			if (nextNote) {
-				startEditingShapeWithRichText(editor, nextNote, { selectAll: true })
+				startEditingAdjacentNote(editor, nextNote)
 				return
 			}
 		}
@@ -116,6 +129,11 @@ export class PointingHandle extends StateNode {
 		const { editor } = this
 		if (editor.getIsReadonly()) return
 		const { shape, handle } = this.info
+
+		if (!editor.getShape(shape.id)) {
+			this.parent.transition('idle')
+			return
+		}
 
 		if (editor.isShapeOfType(shape, 'note')) {
 			const noteUtil = editor.getShapeUtil(shape) as NoteShapeUtil

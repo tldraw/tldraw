@@ -756,6 +756,22 @@ stateDiagram-v2
     DB-->>API: Inserted
     API-->>User: 201 Created`,
 		`sequenceDiagram
+    autonumber 10 5
+    actor Customer
+    participant Gateway
+    participant Billing
+
+    Customer->>Gateway: Start checkout
+    Gateway->>Billing: Reserve funds
+    Billing-->>Gateway: Reserved
+    autonumber off
+    Gateway-->>Customer: Show confirmation step
+    Customer->>Gateway: Confirm
+    autonumber
+    Gateway->>Billing: Capture funds
+    Billing-->>Gateway: Captured
+    Gateway-->>Customer: Receipt`,
+		`sequenceDiagram
     participant Client
     participant TempSession
 

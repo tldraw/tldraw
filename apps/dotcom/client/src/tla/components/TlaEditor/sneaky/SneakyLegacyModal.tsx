@@ -1,7 +1,7 @@
 import { useAuth } from '@clerk/clerk-react'
 import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import {
 	TldrawUiButton,
 	TldrawUiButtonLabel,
@@ -16,7 +16,7 @@ import { routes } from '../../../../routeDefs'
 import { trackEvent } from '../../../../utils/analytics'
 import { useMaybeApp } from '../../../hooks/useAppState'
 import { F } from '../../../utils/i18n'
-import { useGetFileName } from '../TlaEditorTopRightPanel'
+import { useGetFileName, useRoomInfo } from '../TlaEditorTopRightPanel'
 import styles from './sneaky-legacy-modal.module.css'
 
 function LegacyChangesModal({ onClose }: { onClose(): void }) {
@@ -24,12 +24,14 @@ function LegacyChangesModal({ onClose }: { onClose(): void }) {
 	const app = useMaybeApp()
 	const navigate = useNavigate()
 	const name = useGetFileName()
+	// From the route params, not the raw pathname: see useFileEditorOverrides.
+	const roomInfo = useRoomInfo()
 
 	const handleCopy = async () => {
-		if (!app) return
+		if (!app || !roomInfo) return
 		const res = await app.createFile({
 			name,
-			createSource: window.location.pathname.slice(1),
+			createSource: `${roomInfo.prefix}/${roomInfo.id}`,
 		})
 		onClose()
 		if (res?.ok) {
@@ -78,13 +80,10 @@ export function SneakyLegacyModal() {
 	const { addDialog, removeDialog } = useDialogs()
 	const location = useLocation()
 	const { isSignedIn } = useAuth()
-	const [searchParams, setSearchParams] = useSearchParams()
-	const app = useMaybeApp()
 
+	// isSignedIn stays a dep so signing in re-shows the dialog with its copy button.
 	useEffect(() => {
-		if (!location.pathname.startsWith(`/${ROOM_PREFIX}/`)) {
-			return
-		}
+		if (!location.pathname.startsWith(`/${ROOM_PREFIX}/`)) return
 
 		const id = addDialog({
 			component: ({ onClose }) => <LegacyChangesModal onClose={onClose} />,
@@ -93,6 +92,6 @@ export function SneakyLegacyModal() {
 		return () => {
 			removeDialog(id)
 		}
-	}, [addDialog, removeDialog, location.pathname, searchParams, isSignedIn, setSearchParams, app])
+	}, [addDialog, removeDialog, location.pathname, isSignedIn])
 	return null
 }

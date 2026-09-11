@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> je komentirao/la vašu ploču"
   },
+  "28b2464e1f": {
+    "translation": "Nije moguće poslati povratne informacije"
+  },
   "299cb00a7a": {
     "translation": "Prijenos nije uspio"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Pretraživanje..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Pokušajte ponovno."
   },
   "2de510be71": {
     "translation": "Regeneriranjem se trenutna pozivnica zamjenjuje novom. Svatko tko koristi staru vezu trebat će novu za pridruživanje."
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} nepročitano"
+  },
+  "550b25cc0c": {
+    "translation": "Nije moguće vratiti vaš lokalni crtež. Pokušajte ponovno učitati ovu stranicu."
   },
   "554a05155c": {
     "translation": "Još uvijek imate problema? <a>Prijavite problem</a>"
@@ -433,6 +442,9 @@
   },
   "9bef626805": {
     "translation": "Izbriši datoteku"
+  },
+  "9c228b6834": {
+    "translation": "Čini se da ste izvan mreže. Provjerite vezu i pokušajte ponovno."
   },
   "9ccb565b86": {
     "translation": "Imamo problema s povezivanjem s našom uslugom autentifikacije. To je obično privremeno. Pokušajte osvježiti stranicu."

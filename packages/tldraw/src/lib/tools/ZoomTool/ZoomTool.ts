@@ -23,13 +23,14 @@ export class ZoomTool extends StateNode {
 	override onEnter(info: TLPointerEventInfo & { onInteractionEnd: string }) {
 		this.info = info
 		// onInteractionEnd is a path like 'select.idle', extract just the tool ID for the mask
+		// getCurrentToolId reads the mask off the current tool, so a mask on the parent is never seen
 		const toolId = info.onInteractionEnd?.split('.')[0]
-		this.parent.setCurrentToolIdMask(toolId)
+		this.setCurrentToolIdMask(toolId)
 		this.updateCursor()
 	}
 
 	override onExit() {
-		this.parent.setCurrentToolIdMask(undefined)
+		this.setCurrentToolIdMask(undefined)
 		this.editor.updateInstanceState({ zoomBrush: null, cursor: { type: 'default', rotation: 0 } })
 	}
 

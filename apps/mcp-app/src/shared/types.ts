@@ -101,6 +101,30 @@ export const CANVAS_RESOURCE_URI = 'ui://show-canvas/mcp-app.html'
 /** Must match `compatibility_date` in wrangler.toml. */
 export const WORKER_COMPATIBILITY_DATE = '2025-03-10'
 
-export const MAX_CHECKPOINTS = 200
+/** Snapshots retained per session. The widget only ever shows the latest; lowered from 200 purely for storage. */
+export const MAX_CHECKPOINTS = 50
+
+/** A session DO destroys itself after this long without a checkpoint save. */
+export const IDLE_TTL_MS = 7 * 24 * 60 * 60 * 1000
+
+/**
+ * When the next `expireIfIdle` alarm should fire. Split out of the DO so the
+ * failure branch is unit-testable.
+ *
+ * `failed` short-circuits: a check that threw has no usable `lastActivity`, so
+ * the normal `lastActivity + ttl` would schedule a full TTL out and swallow the
+ * backoff. Otherwise the floor keeps a legacy DO (whose `lastActivity + ttl` is
+ * already in the past) from re-firing in a tight loop.
+ */
+export function nextExpiryTime(args: {
+	failed: boolean
+	lastActivity: number | null
+	now: number
+	ttlMs: number
+}): number {
+	const { failed, lastActivity, now, ttlMs } = args
+	if (failed) return now + 60 * 60_000
+	return Math.max((lastActivity ?? now) + ttlMs, now + 60_000)
+}
 
 export type MCP_APP_HOST_NAMES = 'cursor' | 'vscode' | 'claude' | 'chatgpt'

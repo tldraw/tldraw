@@ -21,7 +21,8 @@ export class Logger {
 		if (!this.logger && !this.sentry) return
 		const msg = `[${this.prefix} ${new Date().toISOString()}]: ${args.map((a) => (typeof a === 'object' ? JSON.stringify(a) : a)).join(' ')}`
 		this.outgoing.push(msg)
-		this.processQueue()
+		// A failed debug RPC must not become an unhandled rejection in the caller.
+		this.processQueue().catch(() => {})
 	}
 
 	private async processQueue() {

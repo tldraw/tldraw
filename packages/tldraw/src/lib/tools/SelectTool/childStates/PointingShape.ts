@@ -63,7 +63,10 @@ export class PointingShape extends StateNode {
 		const focusedGroupId = this.editor.getFocusedGroupId()
 		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 
-		const additiveSelectionKey = info.shiftKey || info.accelKey
+		// Alt suppresses additive selection here as it does on enter and in
+		// selectOnCanvasPointerUp; otherwise shift+alt or ctrl+alt releasing over
+		// a selected shape would toggle it out of the selection.
+		const additiveSelectionKey = (info.shiftKey || info.accelKey) && !info.altKey
 
 		const hitShape =
 			this.editor.getShapeAtPoint(currentPagePoint, {
@@ -223,6 +226,13 @@ export class PointingShape extends StateNode {
 
 	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.getIsDragging()) {
+			// The pointed shape may have been deleted since pointer down (remote user, undo).
+			// Brushing never reads it, so a ctrl-drag can still go ahead.
+			if (!this.editor.getShape(this.hitShape.id)) {
+				this.parent.transition(this.didCtrlOnEnter ? 'brushing' : 'idle', info)
+				return
+			}
+
 			if (isOverArrowLabel(this.editor, this.hitShape)) {
 				// We're moving the label on a shape.
 				this.parent.transition('pointing_arrow_label', { ...info, shape: this.hitShape })
@@ -247,8 +257,13 @@ export class PointingShape extends StateNode {
 		// If we didn't select the shape on enter (e.g. because it has an onClick handler),
 		// and there's no current selection, select it now before transitioning to translating.
 		if (!this.didSelectOnEnter && !this.editor.getSelectedShapeIds().length) {
+			const shapeToSelect = this.editor.getShape(this.hitShapeForPointerUp.id)
+			if (!shapeToSelect) {
+				this.parent.transition('idle', info)
+				return
+			}
 			this.editor.markHistoryStoppingPoint('selecting shape')
-			this.editor.setSelectedShapes([this.hitShapeForPointerUp.id])
+			this.editor.setSelectedShapes([shapeToSelect.id])
 		}
 
 		// Re-focus the editor, just in case the text label of the shape has stolen focus

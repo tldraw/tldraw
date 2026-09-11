@@ -253,6 +253,12 @@
       "value": " skomentował Twoją tablicę"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Nie udało się przesłać opinii"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -269,6 +275,12 @@
     {
       "type": 0,
       "value": "Szukaj..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Spróbuj ponownie."
     }
   ],
   "2de510be71": [
@@ -497,6 +509,12 @@
     {
       "type": 0,
       "value": " nieprzeczytane"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Nie udało się przywrócić lokalnego rysunku. Spróbuj odświeżyć tę stronę."
     }
   ],
   "554a05155c": [
@@ -1090,6 +1108,12 @@
     {
       "type": 0,
       "value": "Usuń plik"
+    }
+  ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Wygląda na to, że jesteś offline. Sprawdź połączenie i spróbuj ponownie."
     }
   ],
   "9ccb565b86": [
