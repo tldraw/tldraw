@@ -65,23 +65,33 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 	// Track whether we should run immediately (skip debouncing) for the next resolution
 	const shouldRunImmediately = useRef(false)
 
-	// The last URL that we've seen for the shape
-	const previousUrl = useRef<string | null>(null)
+	// The last url passed to setResult, or undefined once the asset changes or vanishes. resolve()
+	// skips a url equal to this one, so a plain null here would swallow a legitimate null result
+	// (an asset still uploading) and leave the previous asset on screen
+	const previousUrl = useRef<string | null | undefined>(undefined)
 
 	useEffect(() => {
 		// Check if the assetId changed (not just resolution/scale updates)
 		const assetIdChanged = previousAssetId.current !== assetId
 		previousAssetId.current = assetId
 
-		// Set flag to run immediately (skip debouncing) for the next resolution
 		if (assetIdChanged) {
+			// New asset: skip the debounce and drop the stale url (see previousUrl)
 			shouldRunImmediately.current = true
+			previousUrl.current = undefined
 		}
 
-		if (!assetId) return
+		if (!assetId) {
+			// Asset detached: without this the last resolved url keeps rendering
+			if (assetIdChanged) setResult({ asset: null, url: null })
+			return
+		}
 
 		let isCancelled = false
 		let cancelDebounceFn: (() => void) | undefined
+		// Bumped when the asset record disappears, so a resolution already in flight for the old
+		// record cannot put it back on screen
+		let generation = 0
 
 		const cleanupEffectScheduler = react('update state', () => {
 			if (!exportInfo && shapeId && editor.getCulledShapes().has(shapeId)) return
@@ -89,8 +99,15 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 			// Get the fresh asset
 			const asset = editor.getAsset<TLImageAsset | TLVideoAsset>(assetId)
 			if (!asset) {
-				// If the asset is deleted, such as when an upload fails, set the URL to null
-				setResult((prev) => ({ ...prev, asset: null, url: null }))
+				// Record gone (failed upload, deleted before undo): reset so a record that comes back
+				// with the same src resolves like a new asset
+				shouldRunImmediately.current = true
+				previousUrl.current = undefined
+				generation++
+				cancelDebounceFn?.()
+				setResult((prev) =>
+					prev.asset === null && prev.url === null ? prev : { asset: null, url: null }
+				)
 				return
 			}
 
@@ -113,8 +130,10 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 				? exportInfo.scale * (width / asset.props.w)
 				: editor.getEfficientZoomLevel() * (width / asset.props.w)
 
+			const resolveGeneration = generation
 			function resolve(asset: TLImageAsset | TLVideoAsset, url: string | null) {
 				if (isCancelled) return // don't update if the hook has remounted
+				if (resolveGeneration !== generation) return // the record was deleted meanwhile
 				if (previousUrl.current === url) return // don't update the state if the url is the same
 				didAlreadyResolve.current = true // mark that we've resolved our first image
 				previousUrl.current = url // keep the url around to compare with the next one
