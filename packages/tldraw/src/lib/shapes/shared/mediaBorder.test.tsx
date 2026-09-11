@@ -132,6 +132,34 @@ describe('getMediaBorderSvg', () => {
 			expect(getDef(addExportDef, 'media-shadow-shape_abc').type).toBe('filter')
 		})
 
+		// A filter region sized as a share of the media (`x="-50%" width="200%"`) shrinks below
+		// the shadow's fixed ~12px reach once the media is under ~24px, cropping the shadow in
+		// exports while `box-shadow` still paints it in full on canvas.
+		it.each([
+			{ name: 'a banner-thin image', w: 400, h: 8 },
+			{ name: 'a sliver-narrow image', w: 6, h: 300 },
+			{ name: 'a large image', w: 1000, h: 800 },
+		])('pads the filter region in pixels, not proportionally: $name', ({ w, h }) => {
+			const { ctx, addExportDef } = makeCtx()
+			getMediaBorderSvg({
+				border: 'shadow',
+				w,
+				h,
+				isCircle: false,
+				rotation: 0,
+				idBase: 'shape:abc',
+				ctx,
+			})
+
+			expect(props(getDef(addExportDef, 'media-shadow-shape_abc'))).toMatchObject({
+				filterUnits: 'userSpaceOnUse',
+				x: -12,
+				y: -12,
+				width: w + 24,
+				height: h + 24,
+			})
+		})
+
 		it('keeps filter primitives as direct children (never wrapped in a `g`)', () => {
 			const { ctx, addExportDef } = makeCtx()
 			getMediaBorderSvg({
@@ -309,6 +337,25 @@ describe('getMediaBorderSvg', () => {
 			const [, knockout] = props(mask).children as ReactElement[]
 			expect(knockout.type).toBe('ellipse')
 			expect(props(knockout)).toMatchObject({ cx: 60, cy: 45, rx: 60, ry: 45, fill: 'black' })
+		})
+
+		// The mask crops whatever falls outside it, so it has to clear the shadow's reach even
+		// when the media itself is smaller than that.
+		it('extends the mask past the shadow on media thinner than the shadow reaches', () => {
+			const { ctx, addExportDef } = makeCtx()
+			getMediaBorderSvg({
+				border,
+				w: 400,
+				h: 8,
+				isCircle: false,
+				rotation: 0,
+				idBase: 'shape:abc',
+				ctx,
+			})
+
+			const [visible] = props(getDef(addExportDef, 'media-shadow-mask-shape_abc'))
+				.children as ReactElement[]
+			expect(props(visible)).toMatchObject({ x: -12, y: -12, width: 424, height: 32 })
 		})
 	})
 

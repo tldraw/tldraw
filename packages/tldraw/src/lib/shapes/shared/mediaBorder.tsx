@@ -20,6 +20,16 @@ const HARD_BOX_SHADOW = {
 	color: '#00000040',
 }
 
+// How far a shadow can paint beyond the media's edges: the furthest layer's offset plus three
+// standard deviations of its blur, past which the Gaussian has faded out. Fixed in pixels, so
+// any region sized to hold a shadow must be too — a region sized as a share of the media (a
+// `filter` at `x="-50%" width="200%"`, say) shrinks below this on media under ~24px and clips
+// the shadow, which `box-shadow` on canvas never does.
+const SHADOW_REACH = Math.max(
+	...ROTATING_BOX_SHADOWS.map((s) => Math.hypot(s.offsetX, s.offsetY) + (s.blur / 2) * 3),
+	Math.hypot(HARD_BOX_SHADOW.offsetX, HARD_BOX_SHADOW.offsetY)
+)
+
 /** @internal */
 export interface MediaBorderShape {
 	rotation: number
@@ -93,10 +103,12 @@ function safeIdFrom(prefix: string, idBase: string) {
 function maskShadow(shadow: ReactElement, opts: MediaBorderSvgOptions) {
 	const { w, h, isCircle, idBase, ctx } = opts
 	const maskId = safeIdFrom('media-shadow-mask', idBase)
-	// The soft shadow is confined to its filter region, half the media's size on
-	// each side; the hard shadow reaches at most its own diagonal offset.
-	const reach = Math.max(w, h) / 2 + Math.hypot(HARD_BOX_SHADOW.offsetX, HARD_BOX_SHADOW.offsetY)
-	const bounds = { x: -reach, y: -reach, width: w + reach * 2, height: h + reach * 2 }
+	const bounds = {
+		x: -SHADOW_REACH,
+		y: -SHADOW_REACH,
+		width: w + SHADOW_REACH * 2,
+		height: h + SHADOW_REACH * 2,
+	}
 	ctx.addExportDef({
 		key: maskId,
 		getElement: () => (
@@ -133,10 +145,11 @@ export function getMediaBorderSvg(opts: MediaBorderSvgOptions): {
 			getElement: () => (
 				<filter
 					id={filterId}
-					x="-50%"
-					y="-50%"
-					width="200%"
-					height="200%"
+					filterUnits="userSpaceOnUse"
+					x={-SHADOW_REACH}
+					y={-SHADOW_REACH}
+					width={w + SHADOW_REACH * 2}
+					height={h + SHADOW_REACH * 2}
 					colorInterpolationFilters="sRGB"
 				>
 					{ROTATING_BOX_SHADOWS.map((s, i) => {
