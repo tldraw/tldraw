@@ -896,6 +896,71 @@ describe('sequenceToBlueprint', () => {
 		expect(creationEdge.endNodeId).toBe('actor-top-JobRunner')
 	})
 
+	it('gives a destroyed actor a tombstone box on the destroying row', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('Client'), actor('TempSession')])
+		// `destroy TempSession` before the third message, which TempSession receives.
+		const destroyedActors = new Map([['TempSession', 2]])
+		const messages = [
+			msg(LINETYPE.SOLID, 'Client', 'TempSession', 'Start temporary session'),
+			msg(LINETYPE.DOTTED, 'TempSession', 'Client', 'Session active'),
+			msg(LINETYPE.SOLID, 'Client', 'TempSession', 'Close session'),
+		]
+
+		const bp = sequenceToBlueprint(
+			layout,
+			actors,
+			['Client', 'TempSession'],
+			messages,
+			new Map(),
+			destroyedActors
+		)
+
+		const tombstone = findNode(bp, 'actor-bottom-TempSession')!
+		expect(tombstone).toBeDefined()
+		// Centred on the third of three rows, above the surviving actor's bottom box.
+		expect(tombstone.y).toBeLessThan(findNode(bp, 'actor-bottom-Client')!.y)
+		expect(bp.groups).toContainEqual([
+			'actor-top-TempSession',
+			'lifeline-TempSession',
+			'actor-bottom-TempSession',
+		])
+
+		const lifeline = bp.lines!.find((l) => l.id === 'lifeline-TempSession')!
+		expect(lifeline.y + lifeline.endY).toBe(tombstone.y)
+
+		const destroyingEdge = bp.edges.find((e) => e.label === 'Close session')!
+		expect(destroyingEdge.endNodeId).toBe('actor-bottom-TempSession')
+	})
+
+	it('anchors messages per lifeline so shortened lifelines keep arrows level', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('Client'), actor('TempSession')])
+		const destroyedActors = new Map([['TempSession', 1]])
+		const messages = [
+			msg(LINETYPE.SOLID, 'Client', 'TempSession', 'Open'),
+			msg(LINETYPE.SOLID, 'Client', 'TempSession', 'Close'),
+		]
+
+		const bp = sequenceToBlueprint(
+			layout,
+			actors,
+			['Client', 'TempSession'],
+			messages,
+			new Map(),
+			destroyedActors
+		)
+
+		const client = bp.lines!.find((l) => l.id === 'lifeline-Client')!
+		const temp = bp.lines!.find((l) => l.id === 'lifeline-TempSession')!
+		const open = bp.edges.find((e) => e.label === 'Open')!
+		// The two lifelines end at different heights, so the same row has to resolve to a
+		// different fraction on each of them for the arrow to stay horizontal.
+		const startY = client.y + client.endY * open.anchorStartY!
+		const endY = temp.y + temp.endY * open.anchorEndY!
+		expect(endY).toBeCloseTo(startY)
+	})
+
 	it('maps actor types to correct geo', () => {
 		const layout = actorLayout([0])
 		const actors = new Map([actor('User', { type: 'actor' })])

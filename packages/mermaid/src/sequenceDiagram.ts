@@ -441,7 +441,13 @@ export function sequenceToBlueprint(
 	let autonumberStep = 1
 	let autonumberVisible = false
 
-	for (const msg of messages) {
+	// `createdActors`/`destroyedActors` key actors by their position in `messages`, which
+	// counts fragment and activation statements too, so we keep a translation to the
+	// renderable-event indices that the rows are laid out on.
+	const eventIndexByMessageIndex = new Map<number, number>()
+
+	for (let messageIndex = 0; messageIndex < messages.length; messageIndex++) {
+		const msg = messages[messageIndex]
 		const type = msg.type ?? -1
 		if (type === LINETYPE.AUTONUMBER) {
 			// `autonumber [start [step]]` / `autonumber off`; mermaid stores the options on
@@ -518,6 +524,7 @@ export function sequenceToBlueprint(
 			if (msg.from) frag.actorKeys.add(msg.from)
 			if (msg.to) frag.actorKeys.add(msg.to)
 		}
+		eventIndexByMessageIndex.set(messageIndex, events.length)
 		events.push(msg)
 
 		// Only signals consume a number; notes occupy a row but are never numbered.
@@ -529,21 +536,20 @@ export function sequenceToBlueprint(
 
 	const layouts = layout.actorLayouts
 
-	// Pre-compute lifecycle event indices for created/destroyed actors.
-	// We scan events for the first signal targeting each created actor
-	// and the first signal from each destroyed actor.
+	// Pre-compute lifecycle event rows for created/destroyed actors. A `destroy` applies to
+	// the next message either way round, so going by the recorded message rather than by the
+	// first event the actor sends is what keeps `Client->>Temp` from cutting Temp's lifeline
+	// at an earlier row where Temp happened to reply. An index with no renderable message
+	// after it (a trailing `destroy`) leaves the actor alive for the whole diagram.
 	const creationEventIndex = new Map<string, number>()
 	const destructionEventIndex = new Map<string, number>()
-	for (let i = 0; i < events.length; i++) {
-		const ev = events[i]
-		if (!isSignalMessage(ev.type)) continue
-
-		if (ev.to && createdActors.has(ev.to) && !creationEventIndex.has(ev.to)) {
-			creationEventIndex.set(ev.to, i)
-		}
-		if (ev.from && destroyedActors.has(ev.from) && !destructionEventIndex.has(ev.from)) {
-			destructionEventIndex.set(ev.from, i)
-		}
+	for (const [key, messageIndex] of createdActors) {
+		const eventIndex = eventIndexByMessageIndex.get(messageIndex)
+		if (eventIndex !== undefined) creationEventIndex.set(key, eventIndex)
+	}
+	for (const [key, messageIndex] of destroyedActors) {
+		const eventIndex = eventIndexByMessageIndex.get(messageIndex)
+		if (eventIndex !== undefined) destructionEventIndex.set(key, eventIndex)
 	}
 
 	// Build blueprint
@@ -561,19 +567,31 @@ export function sequenceToBlueprint(
 	// --- Z-order: lifelines -> activations -> fragments -> actor boxes -> notes/arrows ---
 
 	// 1. Lifelines (behind everything)
+	const lifelineSpans: { topY: number; botY: number }[] = []
 	for (let i = 0; i < actorCount; i++) {
 		const key = actorKeys[i]
 		const { x, y, w, h, bottomY } = layouts[i]
 
 		const createdAt = creationEventIndex.get(key)
 		const destroyedAt = destructionEventIndex.get(key)
+		// Lifecycle boxes are centered on their row, so the lifeline stops half a box short of it.
 		const topY = createdAt !== undefined ? eventY(createdAt) + h / 2 : y + h
-		const botY = destroyedAt !== undefined ? eventY(destroyedAt) : bottomY
+		const botY = destroyedAt !== undefined ? eventY(destroyedAt) - h / 2 : bottomY
 
+		lifelineSpans.push({ topY, botY })
 		const lifelineHeight = botY - topY
 		if (lifelineHeight > 0) {
 			lines.push({ id: `lifeline-${key}`, x: x + w / 2, y: topY, endY: lifelineHeight })
 		}
+	}
+
+	// Arrow terminals bind at a fraction of the shape they land on. Created and destroyed
+	// participants have shorter lifelines than the rest, so a row resolves to a different
+	// fraction on each one; sharing a single fraction tilts every arrow that touches them.
+	const anchorOnLifeline = (actorIndex: number, y: number) => {
+		const { topY, botY } = lifelineSpans[actorIndex]
+		if (botY <= topY) return 0.5
+		return Math.min(1, Math.max(0, (y - topY) / (botY - topY)))
 	}
 
 	// 2. Activation boxes (just after lifelines)
@@ -723,45 +741,62 @@ export function sequenceToBlueprint(
 			...shared,
 		})
 
-		if (!destructionEventIndex.has(key)) {
-			nodes.push({ id: `actor-bottom-${key}`, y: bottomY, ...shared })
-		}
+		// A destroyed participant still gets a bottom box; mermaid draws it as a tombstone on
+		// the destroying row instead of at the foot of the diagram.
+		const destroyedAt = destructionEventIndex.get(key)
+		nodes.push({
+			id: `actor-bottom-${key}`,
+			y: destroyedAt !== undefined ? eventY(destroyedAt) - h / 2 : bottomY,
+			...shared,
+		})
 	}
 
 	// 5. Events: signals and notes
-	const pendingCreations = new Set(createdActors.keys())
-
 	for (let eventIndex = 0; eventIndex < events.length; eventIndex++) {
 		const msg = events[eventIndex]
-		const anchor = (eventIndex + 1) / (events.length + 1)
 
 		if (isSignalMessage(msg.type)) {
 			const fromKey = msg.from!
 			const toKey = msg.to!
-			if (!keyIndex.has(fromKey) || !keyIndex.has(toKey)) continue
-
-			const isCreationMessage = pendingCreations.has(toKey)
-			if (isCreationMessage) pendingCreations.delete(toKey)
+			const fromIdx = keyIndex.get(fromKey)
+			const toIdx = keyIndex.get(toKey)
+			if (fromIdx === undefined || toIdx === undefined) continue
 
 			const msgType = msg.type ?? LINETYPE.SOLID
 			const { dash, arrowheadEnd } = mapLineTypeToArrowProps(msgType)
 			const isSelf = fromKey === toKey
 			const bidir = !isSelf && isBidirectional(msgType)
 
+			// A lifecycle row has no lifeline to point at, so the message terminates on the box
+			// that opens or closes there, the way mermaid draws it.
+			const startsOnBox = !isSelf && destructionEventIndex.get(fromKey) === eventIndex
+			const endsOnTopBox = !isSelf && creationEventIndex.get(toKey) === eventIndex
+			const endsOnBottomBox = !isSelf && destructionEventIndex.get(toKey) === eventIndex
+			const endsOnBox = endsOnTopBox || endsOnBottomBox
+
+			const rowY = eventY(eventIndex)
+			const startAnchor = anchorOnLifeline(fromIdx, rowY)
+			const endAnchor = anchorOnLifeline(toIdx, rowY)
+
 			const edge: MermaidBlueprintEdge = {
-				startNodeId: `lifeline-${fromKey}`,
-				endNodeId: isCreationMessage ? `actor-top-${toKey}` : `lifeline-${toKey}`,
+				startNodeId: startsOnBox ? `actor-bottom-${fromKey}` : `lifeline-${fromKey}`,
+				endNodeId: endsOnTopBox
+					? `actor-top-${toKey}`
+					: endsOnBottomBox
+						? `actor-bottom-${toKey}`
+						: `lifeline-${toKey}`,
 				label: getMessageLabel(msg),
 				bend: isSelf ? SELF_MSG_BEND : 0,
 				dash,
 				arrowheadEnd,
 				arrowheadStart: bidir ? 'arrow' : 'none',
 				size: 's',
-				anchorStartY: isSelf ? anchor - SELF_MSG_Y_OFFSET : anchor,
-				anchorEndY: isCreationMessage ? 0.5 : isSelf ? anchor + SELF_MSG_Y_OFFSET : anchor,
-				isExact: true,
-				isPrecise: true,
-				...(isCreationMessage && { isExactEnd: false, isPreciseEnd: false }),
+				anchorStartY: startsOnBox ? 0.5 : isSelf ? startAnchor - SELF_MSG_Y_OFFSET : startAnchor,
+				anchorEndY: endsOnBox ? 0.5 : isSelf ? endAnchor + SELF_MSG_Y_OFFSET : endAnchor,
+				isExact: !startsOnBox,
+				isPrecise: !startsOnBox,
+				isExactEnd: !endsOnBox,
+				isPreciseEnd: !endsOnBox,
 			}
 
 			const autonumberLabel = eventAutonumbers[eventIndex]
@@ -826,12 +861,6 @@ export function sequenceToBlueprint(
 		nodes,
 		edges,
 		lines,
-		groups: actorKeys.map((key) => {
-			const group = [`actor-top-${key}`, `lifeline-${key}`]
-			if (!destructionEventIndex.has(key)) {
-				group.push(`actor-bottom-${key}`)
-			}
-			return group
-		}),
+		groups: actorKeys.map((key) => [`actor-top-${key}`, `lifeline-${key}`, `actor-bottom-${key}`]),
 	}
 }
