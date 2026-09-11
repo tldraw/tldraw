@@ -464,3 +464,33 @@ test('a buffered newer schema reports a load error without announcing a successf
 	client.close()
 	expect(client.db.storeSnapshot).not.toHaveBeenCalled()
 })
+
+test('a client created on the same key while a closed client is still flushing waits for that flush', async () => {
+	const inFlightWrite = promiseWithResolve<void>()
+	const { client, tick } = testClient()
+	client.db.storeSnapshot.mockImplementationOnce(() => inFlightWrite)
+	await tick()
+	client.store.put([PageRecordType.create({ name: 'first', index: 'a0' as IndexKey })])
+	await tick()
+	expect(client.db.storeSnapshot).toHaveBeenCalledTimes(1) // still in flight
+	client.store.put([PageRecordType.create({ name: 'during write', index: 'a1' as IndexKey })])
+	client.close()
+
+	// remount on the same key while the old client is still waiting to flush its queue
+	const loadSpy = vi.spyOn(LocalIndexedDb.prototype, 'load')
+	const next = testClient()
+	await tick()
+	// reading now would miss the queued edit, and the new client's first (full snapshot) write
+	// would then erase it
+	expect(loadSpy).not.toHaveBeenCalled()
+	expect(next.onLoad).not.toHaveBeenCalled()
+
+	inFlightWrite.resolve()
+	await tick()
+	expect(client.db.storeChanges).toHaveBeenCalledTimes(1)
+	for (let i = 0; i < 20; i++) await Promise.resolve()
+	await next.tick()
+	expect(loadSpy).toHaveBeenCalledTimes(1)
+	expect(next.onLoad).toHaveBeenCalledTimes(1)
+	loadSpy.mockRestore()
+})
