@@ -168,20 +168,6 @@ function ChatInner({
 							dispatch={chatInputDispatch}
 						/>
 					</div>
-					<div className="chat-suggestions" aria-hidden="true">
-						<div>
-							<ComposerIcon name="image" />
-							Create an image or sticker
-						</div>
-						<div>
-							<ComposerIcon name="write" />
-							Write or edit
-						</div>
-						<div>
-							<ComposerIcon name="web" />
-							Search the web
-						</div>
-					</div>
 				</div>
 			</div>
 		)
@@ -212,7 +198,6 @@ function ChatInner({
 			</header>
 			<MessageList messages={chat.messages} onImageClick={handleImageClick} />
 			<div className="chat-footer">
-				<p className="chat-disclaimer">ChatGPT can make mistakes. Check important info.</p>
 				<ChatInput
 					onSendMessage={handleSendMessage}
 					waitingForResponse={status !== 'ready'}

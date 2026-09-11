@@ -48,7 +48,7 @@ export const ChatMessage = memo(function ChatMessage({ message, onImageClick }: 
 					}
 					if (part.state !== 'output-available') {
 						return (
-							<p key={index} role="status" className="thinking-text">
+							<p key={index} role="status" className="thinking-text image-generation-status">
 								Creating image…
 							</p>
 						)

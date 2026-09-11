@@ -56,7 +56,6 @@ textarea {
 
 .app-main {
 	margin-left: var(--app-rail-width);
-	padding-top: var(--app-topbar-height);
 }
 
 .app-rail {
@@ -130,7 +129,8 @@ textarea {
 .chat-container {
 	max-width: calc(var(--chat-content-width) + 2 * var(--chat-gutter));
 	margin: 0 auto;
-	min-height: calc(100svh - var(--app-topbar-height));
+	min-height: 100svh;
+	padding-top: var(--app-topbar-height);
 	display: flex;
 	flex-direction: column;
 }
@@ -191,7 +191,7 @@ textarea {
 }
 
 .empty-chat-container {
-	min-height: calc(100svh - var(--app-topbar-height));
+	min-height: 100svh;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -228,6 +228,38 @@ textarea {
 	color: var(--chat-muted);
 	font-size: 16px;
 }
+
+.image-generation-status {
+	color: var(--chat-secondary);
+	background-image: linear-gradient(
+		110deg,
+		var(--chat-secondary) 35%,
+		var(--chat-text) 50%,
+		var(--chat-secondary) 65%
+	);
+	background-size: 250% 100%;
+	background-clip: text;
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	animation: image-generation-shimmer 2s linear infinite;
+}
+
+@keyframes image-generation-shimmer {
+	from {
+		background-position: 200% 0;
+	}
+	to {
+		background-position: -200% 0;
+	}
+}
+
+@media (prefers-reduced-motion: reduce), (forced-colors: active) {
+	.image-generation-status {
+		animation: none;
+		background-image: none;
+		-webkit-text-fill-color: currentColor;
+	}
+}
 .message-group {
 	display: flex;
 	flex-direction: column;
@@ -237,6 +269,7 @@ textarea {
 }
 
 .message-group.user-message {
+	gap: 12px;
 	max-width: 70%;
 	align-self: flex-end;
 	align-items: flex-end;
@@ -383,13 +416,6 @@ textarea {
 .chat-footer > * {
 	max-width: var(--chat-content-width);
 	margin: 0 auto;
-}
-.chat-footer .chat-disclaimer {
-	margin-bottom: 14px;
-	color: var(--chat-muted);
-	font-size: 12px;
-	line-height: 18px;
-	text-align: center;
 }
 
 .message-actions {
@@ -553,6 +579,24 @@ textarea {
 	text-align: left;
 }
 
+.chat-composer-hint {
+	display: flex;
+	justify-content: center;
+	align-items: flex-start;
+	gap: 12px;
+	margin: 20px 16px 0;
+	color: var(--chat-muted);
+	font-size: 14px;
+	line-height: 20px;
+	text-align: center;
+}
+
+.chat-composer-hint svg {
+	width: 20px;
+	height: 20px;
+	flex-shrink: 0;
+}
+
 .chat-input-row {
 	display: flex;
 	align-items: center;
@@ -582,126 +626,10 @@ textarea {
 	pointer-events: none;
 }
 
-.composer-menu {
-	margin-top: 6px;
-	padding: 8px;
-	border: 1px solid var(--chat-border);
-	border-radius: 22px;
-	background: var(--chat-panel);
-	box-shadow: 0 2px 16px rgb(0 0 0 / 4%);
-	font-size: 14px;
-}
-
-.chat-footer .composer-menu {
-	position: absolute;
-	bottom: calc(100% + 6px);
-	left: 0;
-	right: 0;
-	max-height: min(560px, 65svh);
-	overflow-y: auto;
-}
-
-.composer-menu-item {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	min-height: 36px;
-	padding: 8px;
-	border-radius: 12px;
-	line-height: 20px;
-	cursor: pointer;
-}
-
-.composer-menu-item[aria-disabled='true'] {
-	cursor: default;
-}
-
-.composer-menu-item--active {
-	background: #f5f5f5;
-}
-
-.composer-menu-icon {
-	display: flex;
-	flex: 0 0 20px;
-}
-
-.composer-menu-icon svg {
-	width: 18px;
-	height: 18px;
-}
-
-.composer-menu-icon--image,
-.composer-menu-icon--web {
-	color: #62c9f5;
-}
-
-.composer-menu-icon--research {
-	color: #3584e4;
-}
-
-.composer-menu-label {
-	white-space: nowrap;
-}
-
-.composer-menu-description,
-.composer-menu-hint {
-	color: var(--chat-muted);
-}
-
-.composer-menu-description {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.composer-menu-hint,
-.composer-menu-heading {
-	padding: 12px 8px 8px;
-}
-
-.composer-menu-heading {
-	color: #666;
-}
-
-.chat-suggestions {
-	display: grid;
-	gap: 28px;
-	margin: 36px 20px 0;
-	text-align: left;
-	color: var(--chat-muted);
-}
-
-.chat-suggestions > div {
-	display: flex;
-	align-items: center;
-	gap: 20px;
-}
-
-.chat-suggestions svg {
-	width: 18px;
-	height: 18px;
-}
-
-.empty-chat-content:has(.composer-menu) .chat-suggestions {
-	display: none;
-}
-
 @media (max-width: 600px) {
 	.composer-effort,
 	.chat-input-row .composer-decoration {
 		display: none;
-	}
-
-	.composer-menu-item {
-		gap: 8px;
-	}
-
-	.composer-menu-description {
-		font-size: 12px;
-	}
-
-	.composer-menu-hint {
-		font-size: 12px;
 	}
 }
 
@@ -1238,6 +1166,7 @@ textarea {
 
 .message-image-clickable {
 	position: relative;
+	isolation: isolate;
 }
 
 .message-image-edit {
