@@ -17,6 +17,14 @@ export function shouldReportEffectFailure(attempts: number): boolean {
 	return attempts === 0 || attempts + 1 >= MAX_ATTEMPTS
 }
 
+// Row-stored form of a failed attempt's error. Capped so a runaway message (a stringified
+// response body, say) can't bloat the table.
+export const MAX_LAST_ERROR_LENGTH = 500
+export function formatOutboxError(error: unknown): string {
+	const text = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
+	return text.slice(0, MAX_LAST_ERROR_LENGTH)
+}
+
 export interface OutboxDeps {
 	getBatch(): Promise<TlaEffectOutbox[]> // WHERE attempts < MAX_ATTEMPTS AND ("nextRetryAt" IS NULL OR "nextRetryAt" <= now()) ORDER BY id LIMIT 50
 	deleteRow(id: number): Promise<void>
@@ -24,7 +32,8 @@ export interface OutboxDeps {
 	// The implementation must both back off the failed row AND defer its later same-entity
 	// siblings (see the drainOutbox comment) so per-entity ordering holds across drains, not just
 	// within one.
-	bumpAttempts(row: TlaEffectOutbox): Promise<void>
+	// `error` is stored on the row as lastError (see migration 051 for why).
+	bumpAttempts(row: TlaEffectOutbox, error: unknown): Promise<void>
 	deleteParkedRowsOlderThan(days: number): Promise<void>
 	process(row: TlaEffectOutbox): Promise<void> // dispatches by tableName (wired in the DO)
 	onError(error: unknown, row: TlaEffectOutbox): void
@@ -79,7 +88,7 @@ async function processWithTimeout(deps: OutboxDeps, row: TlaEffectOutbox): Promi
 		await deps.deleteRow(row.id)
 		return true
 	} catch (error) {
-		await deps.bumpAttempts(row)
+		await deps.bumpAttempts(row, error)
 		deps.onError(error, row)
 		return false
 	} finally {

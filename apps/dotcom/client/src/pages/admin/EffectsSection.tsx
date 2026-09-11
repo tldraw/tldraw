@@ -106,6 +106,7 @@ export function EffectsSection() {
 								<th>Attempts</th>
 								<th>Age</th>
 								<th>Next retry</th>
+								<th>Last error</th>
 								<th>Actions</th>
 							</tr>
 						</thead>
@@ -131,6 +132,11 @@ export function EffectsSection() {
 			)}
 		</section>
 	)
+}
+
+function truncate(text: string | null, max: number): string {
+	if (!text) return ''
+	return text.length > max ? `${text.slice(0, max)}…` : text
 }
 
 // Human-readable summary of what a row's effect represents, diffing the same columns
@@ -196,6 +202,7 @@ function OutboxRowView({
 				</td>
 				<td>{row.ageSeconds}s</td>
 				<td>{row.nextRetryAt ? new Date(row.nextRetryAt).toLocaleString() : 'n/a'}</td>
+				<td title={row.lastError ?? undefined}>{truncate(row.lastError, 60)}</td>
 				<td onClick={(e) => e.stopPropagation()}>
 					<AdminButton
 						onClick={onRetry}
@@ -217,7 +224,7 @@ function OutboxRowView({
 			</tr>
 			{expanded && (
 				<tr>
-					<td colSpan={8}>
+					<td colSpan={9}>
 						<div className={styles.outboxDetails}>
 							<div className={styles.outboxDetailsColumn}>
 								<div className={styles.fieldLabel}>Payload</div>

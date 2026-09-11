@@ -5,6 +5,7 @@ import {
 	OutboxDeps,
 	computeNextAlarm,
 	drainOutbox,
+	formatOutboxError,
 	shouldReportEffectFailure,
 } from './outboxDrain'
 
@@ -19,18 +20,19 @@ function row(partial: Partial<TlaEffectOutbox>): TlaEffectOutbox {
 		attempts: 0,
 		createdAt: new Date(0),
 		nextRetryAt: null,
+		lastError: null,
 		...partial,
 	}
 }
 
 interface TestDeps extends OutboxDeps {
 	calls: string[]
-	bumped: Array<{ id: number; attempts: number }>
+	bumped: Array<{ id: number; attempts: number; error: unknown }>
 }
 
 function makeDeps(rows: TlaEffectOutbox[], timeoutMs = 30_000): TestDeps {
 	const calls: string[] = []
-	const bumped: Array<{ id: number; attempts: number }> = []
+	const bumped: Array<{ id: number; attempts: number; error: unknown }> = []
 	let batch = rows
 	return {
 		calls,
@@ -44,9 +46,9 @@ function makeDeps(rows: TlaEffectOutbox[], timeoutMs = 30_000): TestDeps {
 		deleteRow: async (id) => {
 			calls.push(`deleteRow:${id}`)
 		},
-		bumpAttempts: async (r) => {
+		bumpAttempts: async (r, error) => {
 			calls.push(`bump:${r.id}`)
-			bumped.push({ id: r.id, attempts: r.attempts })
+			bumped.push({ id: r.id, attempts: r.attempts, error })
 		},
 		deleteParkedRowsOlderThan: async () => {},
 		process: async (r) => {
@@ -204,13 +206,14 @@ describe('drainOutbox', () => {
 		expect(deps.calls.filter((c) => c === 'bump:1')).toHaveLength(1)
 	})
 
-	it('passes the row current attempts to bumpAttempts so backoff can be scheduled', async () => {
+	it('passes the row current attempts and the error to bumpAttempts', async () => {
 		const deps = makeDeps([row({ id: 7, attempts: 3 })])
+		const error = new Error('fail')
 		deps.process = async () => {
-			throw new Error('fail')
+			throw error
 		}
 		await drainOutbox(deps)
-		expect(deps.bumped).toEqual([{ id: 7, attempts: 3 }])
+		expect(deps.bumped).toEqual([{ id: 7, attempts: 3, error }])
 	})
 
 	it('passes the FULL failed row to bumpAttempts so the impl can defer later siblings', async () => {
@@ -231,6 +234,24 @@ describe('drainOutbox', () => {
 		// the later sibling (id 6) is NOT processed this drain — the DO's sibling deferral keeps it
 		// out of the next drain too, but here we only assert the in-drain skip.
 		expect(deps.calls).not.toContain('process:6')
+	})
+})
+
+describe('formatOutboxError', () => {
+	it('formats an Error as name: message', () => {
+		expect(formatOutboxError(new TypeError('cannot connect'))).toBe('TypeError: cannot connect')
+	})
+
+	it('stringifies non-Error values', () => {
+		expect(formatOutboxError('proxy request failed')).toBe('proxy request failed')
+		expect(formatOutboxError({ code: 42 })).toBe('[object Object]')
+		expect(formatOutboxError(undefined)).toBe('undefined')
+	})
+
+	it('truncates to 500 chars', () => {
+		const out = formatOutboxError(new Error('x'.repeat(1000)))
+		expect(out).toHaveLength(500)
+		expect(out.startsWith('Error: xxx')).toBe(true)
 	})
 })
 

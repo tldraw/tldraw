@@ -443,6 +443,8 @@ export interface TlaEffectOutbox {
 	attempts: number
 	createdAt: Date
 	nextRetryAt: Date | null
+	/** Latest failed attempt's error text; survives an admin retry. */
+	lastError: string | null
 }
 
 /**
