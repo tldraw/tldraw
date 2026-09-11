@@ -1,10 +1,11 @@
-import { getSchema, JSONContent } from '@tiptap/core'
 import { Fragment, Node, Schema } from '@tiptap/pm/model'
 import {
 	DefaultStylePanel,
 	DefaultStylePanelContent,
 	Editor,
 	ExtractShapeByProps,
+	getSchema,
+	JSONContent,
 	tipTapDefaultExtensions,
 	TLComponents,
 	Tldraw,
