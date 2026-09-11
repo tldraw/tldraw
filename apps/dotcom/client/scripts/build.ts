@@ -30,11 +30,13 @@ const commonSecurityHeaders = {
 // at. Only the homepage carries these: an agent arriving anywhere else on tldraw.com is already
 // looking at a board, and repeating ~200 bytes on every SPA route and asset buys nothing.
 //
-// `api-catalog` (RFC 9727) and `service-doc` are IANA-registered relations. The AI Catalog has no
-// registered relation of its own, so it rides on `describedby` with its media type attached.
+// `api-catalog` (RFC 9727), `ai-catalog` and `service-doc` are all registered relations, and the
+// specific one matters: the AI Catalog spec has agents check for `rel="ai-catalog"` first and only
+// *optionally* fall back to the well-known path, so a catalog advertised under any other relation is
+// one a conformant client never sees.
 const agentDiscoveryLinkHeader = [
 	'</.well-known/api-catalog>; rel="api-catalog"',
-	'</.well-known/ai-catalog.json>; rel="describedby"; type="application/ai-catalog+json"',
+	'</.well-known/ai-catalog.json>; rel="ai-catalog"; type="application/ai-catalog+json"',
 	'<https://tldraw.dev>; rel="service-doc"; type="text/html"',
 ].join(', ')
 
