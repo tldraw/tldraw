@@ -361,6 +361,95 @@ describe('TLSelectTool.PointingHandle when the shape is deleted before dragging'
 	})
 })
 
+describe('TLSelectTool.PointingShape with selectLockedShapes', () => {
+	let editor: TestEditor
+
+	beforeEach(() => {
+		editor = new TestEditor({ options: { selectLockedShapes: true } })
+	})
+
+	it('keeps a selected locked shape selected when clicking it over another shape', () => {
+		const behind = createShapeId('behind')
+		const locked = createShapeId('locked')
+		editor.createShapes([
+			{ id: behind, type: 'geo', x: 0, y: 0, props: { w: 300, h: 300, fill: 'solid' } },
+			{
+				id: locked,
+				type: 'geo',
+				x: 100,
+				y: 100,
+				props: { w: 100, h: 100, fill: 'solid' },
+				isLocked: true,
+			},
+		])
+		editor.select(locked)
+		editor.pointerDown(150, 150).pointerUp(150, 150)
+		expect(editor.getSelectedShapeIds()).toEqual([locked])
+	})
+})
+
+describe('TLSelectTool.PointingShape with a rotated multi-selection', () => {
+	const a = createShapeId('a')
+	const b = createShapeId('b')
+	const c = createShapeId('c')
+
+	// Two boxes rotated 90 degrees as a group end up stacked, with the selection box standing
+	// on end at page x 350..450, y 150..550.
+	function setupRotatedPair() {
+		editor.deleteShapes([ids.box1]).createShapes([
+			{ id: a, type: 'geo', x: 200, y: 300, props: { w: 100, h: 100 } },
+			{ id: b, type: 'geo', x: 500, y: 300, props: { w: 100, h: 100 } },
+		])
+		editor.select(a, b)
+		editor.rotateShapesBy([a, b], Math.PI / 2)
+	}
+
+	function dragC() {
+		const aBefore = editor.getShapePageBounds(a)!.x
+		const cBefore = editor.getShapePageBounds(c)!.x
+		const p = editor.getShapePageBounds(c)!.center
+		editor
+			.pointerMove(p.x, p.y)
+			.pointerDown()
+			.pointerMove(p.x + 100, p.y)
+			.pointerUp()
+		return {
+			selection: [...editor.getSelectedShapeIds()],
+			pairMovedBy: Math.round(editor.getShapePageBounds(a)!.x - aBefore),
+			cMovedBy: Math.round(editor.getShapePageBounds(c)!.x - cBefore),
+		}
+	}
+
+	it('drags the selection when the pointed shape is inside the rotated bounds', () => {
+		setupRotatedPair()
+		// in the gap between a and b, inside the selection box
+		editor.createShape({
+			id: c,
+			type: 'geo',
+			x: 375,
+			y: 325,
+			props: { w: 50, h: 50, fill: 'solid' },
+		})
+		expect(dragC()).toEqual({ selection: [a, b], pairMovedBy: 100, cMovedBy: 0 })
+	})
+
+	it('drags the pointed shape when it is outside the rotated bounds', () => {
+		setupRotatedPair()
+		// getSelectionRotatedPageBounds returns the selection box with its rotation not yet
+		// applied, which for a 90 degree rotation does not overlap the box above. A shape here
+		// is outside the selection, however much the old containsPoint check disagreed.
+		const unrotated = editor.getSelectionRotatedPageBounds()!
+		editor.createShape({
+			id: c,
+			type: 'geo',
+			x: unrotated.center.x - 30,
+			y: unrotated.center.y - 30,
+			props: { w: 60, h: 60, fill: 'solid' },
+		})
+		expect(dragC()).toEqual({ selection: [c], pairMovedBy: 0, cMovedBy: 100 })
+	})
+})
+
 describe('TLSelectTool.Translating', () => {
 	it('Enters from pointing and exits to idle', () => {
 		const shape = editor.getShape(ids.box1)
