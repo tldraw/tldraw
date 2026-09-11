@@ -994,30 +994,58 @@ describe('sequenceToBlueprint', () => {
 		expect(bye.anchorEndY).toBeCloseTo(bye.anchorStartY!)
 	})
 
-	it('keeps a lifeline for a participant created and destroyed on the same row', () => {
+	it('keeps a lifeline for a participant created and destroyed a row apart', () => {
 		const layout = twoActorLayout()
 		const actors = new Map([actor('Alice'), actor('Tmp')])
-		// `create participant Tmp` then `destroy Tmp` around one message: both lifecycle boxes
-		// want the same row, so the lifeline has no room between them.
-		const messages = [msg(LINETYPE.SOLID, 'Alice', 'Tmp', 'hi')]
+		// Ten rows packs them closer together than an actor box is tall, so Tmp's two boxes
+		// meet and the lifeline between them has nowhere to go.
+		const messages = Array.from({ length: 10 }, (_, i) =>
+			msg(LINETYPE.SOLID, 'Alice', 'Tmp', `m${i}`)
+		)
 
 		const bp = sequenceToBlueprint(
 			layout,
 			actors,
 			['Alice', 'Tmp'],
 			messages,
-			new Map([['Tmp', 0]]),
-			new Map([['Tmp', 0]])
+			new Map([['Tmp', 3]]),
+			new Map([['Tmp', 4]])
 		)
 
 		// An absent lifeline shape would take every arrow bound to it down with it.
 		const lifeline = bp.lines!.find((l) => l.id === 'lifeline-Tmp')!
 		expect(lifeline).toBeDefined()
 		expect(lifeline.endY).toBeGreaterThan(0)
+		// The bottom box is pushed down with it, so it still caps the lifeline.
+		expect(lifeline.y + lifeline.endY).toBe(findNode(bp, 'actor-bottom-Tmp')!.y)
 
-		const edge = bp.edges.find((e) => e.label === 'hi')!
-		expect(edge.anchorStartY).toBeGreaterThanOrEqual(0)
-		expect(edge.anchorStartY).toBeLessThanOrEqual(1)
+		for (const edge of bp.edges) {
+			expect(edge.anchorEndY).toBeGreaterThanOrEqual(0)
+			expect(edge.anchorEndY).toBeLessThanOrEqual(1)
+		}
+	})
+
+	it('resolves one lifecycle per message, the way mermaid does', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('A'), actor('B')])
+		// `create participant B` and `destroy A` both land on the same message. Mermaid
+		// resolves the three lifecycle cases as one exclusive chain, so the creation wins
+		// and A keeps its lifeline to the foot of the diagram.
+		const messages = [msg(LINETYPE.SOLID, 'A', 'B', 'bye')]
+
+		const bp = sequenceToBlueprint(
+			layout,
+			actors,
+			['A', 'B'],
+			messages,
+			new Map([['B', 0]]),
+			new Map([['A', 0]])
+		)
+
+		const edge = bp.edges[0]
+		expect(edge.endNodeId).toBe('actor-top-B')
+		expect(edge.startNodeId).toBe('lifeline-A')
+		expect(findNode(bp, 'actor-bottom-A')!.y).toBe(twoActorLayout().actorLayouts[0].bottomY)
 	})
 
 	it('maps actor types to correct geo', () => {
