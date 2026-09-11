@@ -742,6 +742,27 @@ describe('sequenceToBlueprint', () => {
 		expect(sectionLabel!.label).toBe('[Credentials invalid]')
 	})
 
+	it('sizes a multi-line note from its longest line', () => {
+		// Mermaid's own rect is narrow enough that the text estimate decides the width.
+		const widthOf = (message: string) => {
+			const layout = actorLayout([-150, 150], [{ x: 10, y: 50, w: 40, h: 40 }])
+			const actors = new Map([actor('Alice'), actor('John')])
+			const bp = sequenceToBlueprint(
+				layout,
+				actors,
+				['Alice', 'John'],
+				[noteMsg('Alice', message, PLACEMENT.RIGHTOF)]
+			)
+			return bp.nodes.find((n) => n.id.startsWith('note-'))!.w
+		}
+
+		// Same longest line, split three ways: measuring the whole label instead would size
+		// the second note as though all three lines ran end to end.
+		expect(widthOf('short<br/>the longest line in the note<br/>tiny')).toBe(
+			widthOf('the longest line in the note')
+		)
+	})
+
 	it('creates note nodes with yellow color and correct labels', () => {
 		const layout = actorLayout([-150, 150], [{ x: 10, y: 50, w: 120, h: 40 }])
 		const actors = new Map([actor('Alice'), actor('John')])

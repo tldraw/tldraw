@@ -176,10 +176,13 @@ const FALLBACK_EVENT_SPACING = 80
 const FALLBACK_NOTE_WIDTH = 120
 const FALLBACK_NOTE_HEIGHT = 50
 const NOTE_PADDING = 5
-// tldraw's hand-drawn font is wider than Mermaid's default, so we estimate
-// the minimum note width from the label text to prevent wrapping.
+// tldraw's hand-drawn font is wider than Mermaid's default, so we estimate the minimum note
+// width from the label text to prevent wrapping. Mermaid breaks notes on `<br/>`, and the
+// estimate is a single line's worth: measuring the whole label would size a three-line note
+// as though it ran on one line.
 const NOTE_CHAR_WIDTH = 11
 const NOTE_TEXT_PADDING = 40
+const NOTE_LINE_BREAK = /<br\s*\/?>|\n/i
 const FRAGMENT_PADDING_X = 30
 const FRAGMENT_PADDING_TOP = 50
 const FRAGMENT_PADDING_BOTTOM = 25
@@ -786,7 +789,10 @@ export function sequenceToBlueprint(
 
 			const svgNote = svgNoteRects[svgNoteIndex++]
 			const noteHeight = svgNote?.h ?? FALLBACK_NOTE_HEIGHT
-			const textWidth = label ? label.length * NOTE_CHAR_WIDTH + NOTE_TEXT_PADDING : 0
+			const longestLine = label
+				? Math.max(...label.split(NOTE_LINE_BREAK).map((line) => line.trim().length))
+				: 0
+			const textWidth = longestLine ? longestLine * NOTE_CHAR_WIDTH + NOTE_TEXT_PADDING : 0
 			const baseWidth = Math.max(svgNote?.w ?? FALLBACK_NOTE_WIDTH, textWidth)
 			const noteWidth = isSpanning
 				? Math.max(baseWidth, Math.abs(toCenterX - fromCenterX) + NOTE_PADDING)
