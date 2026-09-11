@@ -1485,10 +1485,8 @@ export class TLFileDurableObject extends DurableObject {
 		return res
 	}
 
-	// The comments load is kicked off before the R2 fetch and only awaited at the merge points,
-	// so this is where a hung Postgres dial surfaces. The stage and timer are set here, at the
-	// await, rather than at the kickoff: until this point the load overlapped other work and a
-	// stall was attributed to whatever stage was awaiting alongside it (#10746).
+	// Stage and timer sit at the await, not the kickoff: the load overlaps the R2 fetch, so a
+	// hung Postgres dial was otherwise attributed to whichever stage awaited alongside it (#10746).
 	private async awaitComments(commentsPromise: Promise<CommentLoadResult>) {
 		this.setBootStage('storage-load:comments')
 		const commentsTimer = this.timer()
