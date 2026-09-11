@@ -131,8 +131,7 @@ export class LocalIndexedDb {
 		try {
 			;(await this.getDb()).close()
 		} catch {
-			// the database never opened, so there is nothing to close — but the instance must
-			// still be released, or hardReset() would abort on it before deleting anything
+			// never opened. still release the instance, or hardReset() aborts on it
 		}
 		LocalIndexedDb.connectedInstances.delete(this)
 	}
@@ -157,16 +156,13 @@ export class LocalIndexedDb {
 			try {
 				return await cb(tx)
 			} finally {
-				// Always let the transaction finish, even when close() has been called meanwhile:
-				// close() waits for pending transactions before closing the database, and aborting
-				// here would roll back a write (e.g. the last persist before unmount) whose promise
-				// then resolved as if it had succeeded.
+				// close() waits for pending transactions, so never abort here: that would roll
+				// back the write while its promise still resolved as success
 				await done
 			}
 		})()
 		this.pendingTransactionSet.add(txPromise)
-		// `.finally` would return a promise that rejects alongside txPromise and that nobody
-		// handles, surfacing every failed write as an unhandled rejection on top of the real one
+		// not `.finally`: the promise it returns rejects too, and nobody handles it
 		const untrack = () => this.pendingTransactionSet.delete(txPromise)
 		txPromise.then(untrack, untrack)
 		return txPromise
@@ -216,8 +212,7 @@ export class LocalIndexedDb {
 			const schemaStore = tx.objectStore(Table.Schema)
 			const sessionStateStore = tx.objectStore(Table.SessionState)
 
-			// issue every request up front and settle them together: awaiting each one would
-			// serialize the writes on the request's success event (see the idb readme)
+			// issue up front, settle together: awaiting each one serializes the writes
 			const requests: Promise<unknown>[] = []
 			for (const [id, record] of Object.entries(changes.added)) {
 				requests.push(recordsStore.put(record, id))

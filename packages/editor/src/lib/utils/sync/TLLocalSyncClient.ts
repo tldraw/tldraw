@@ -63,9 +63,8 @@ export class BroadcastChannelMock {
 
 const BC = typeof BroadcastChannel === 'undefined' ? BroadcastChannelMock : BroadcastChannel
 
-// Flushes still running for a closed client, by persistence key. A client that mounts on the
-// same key right after (remount, StrictMode) must not read IndexedDB before that flush has landed:
-// its first persist is a full-snapshot write, so anything it did not read would be erased.
+// Flushes still running for closed clients, by persistence key. A client remounting on the same
+// key must wait for one: its first persist is a full snapshot, so what it read too early is erased.
 const pendingFlushes = new Map<string, Promise<void>>()
 
 /** @internal */
@@ -161,10 +160,8 @@ export class TLLocalSyncClient {
 		this.debug('connecting')
 		let data: UnpackPromise<ReturnType<LocalIndexedDb['load']>> | undefined
 
-		// Listen from the start and hold messages until we have loaded. A diff another tab
-		// broadcasts while our load is in flight may not be in what we read (that tab persists on
-		// a throttle), and our first persist is a full snapshot write — so if we missed it here it
-		// would be erased from IndexedDB for good. Re-applying one we did read is a no-op.
+		// hold messages until we've loaded: a diff broadcast during the load may not be in what we
+		// read, and our first persist would erase it. re-applying one we did read is a no-op.
 		const messagesReceivedWhileLoading: MessageEvent[] = []
 		this.channel.onmessage = (event) => {
 			messagesReceivedWhileLoading.push(event)
@@ -243,8 +240,7 @@ export class TLLocalSyncClient {
 						// Or maybe during development if you have multiple local tabs open running the app on prod mode and you
 						// check out an older commit. Dev server should be fine.
 						//
-						// Either way this tab must stop writing: persisting its older schema over the
-						// newer tab's records would corrupt the next load.
+						// either way, stop writing: our older schema would overwrite the newer tab's records
 						this.isReloading = true
 						onLoadError(new Error('Schema mismatch, please close other tabs and reload the page'))
 						return
@@ -276,8 +272,7 @@ export class TLLocalSyncClient {
 			for (const event of messagesReceivedWhileLoading) {
 				handleMessage(event)
 			}
-			// a held-back message may have found us out of date (onLoadError already reported it, or
-			// the page is reloading); don't report a successful load on top of that
+			// a held-back message may have already reported an error; don't report a load over it
 			if (this.isReloading) return
 			this.channel.postMessage({ type: 'announce', schema: this.serializedSchema })
 			onLoad(this)
@@ -312,12 +307,11 @@ export class TLLocalSyncClient {
 	}
 
 	/**
-	 * Write out whatever is still queued instead of throwing it away — the persist throttle means
-	 * the last few hundred milliseconds of edits before an unmount are usually still pending — and
-	 * only then close the database.
+	 * Write out what the persist throttle still has queued — the last few hundred milliseconds of
+	 * edits before an unmount — and only then close the database.
 	 */
 	private async flushAndCloseDb() {
-		// let a write that is already in flight finish first; edits made during it are queued
+		// let an in-flight write finish first; edits made during it are queued
 		if (this.currentPersist) await this.currentPersist
 		if (
 			this.didLoad &&
@@ -379,8 +373,7 @@ export class TLLocalSyncClient {
 			this.scheduledPersistTimeout = null
 		}
 
-		// until the initial load has merged what IndexedDB holds, the store is not the source of
-		// truth: writing it out now (the first write is a full snapshot) would wipe the saved document
+		// before the load merges what IndexedDB holds, a full-snapshot write wipes the saved document
 		if (!this.didLoad) return
 
 		// if a persist is already in progress, we don't need to do anything -
@@ -454,8 +447,7 @@ export class TLLocalSyncClient {
 			this.didLastWriteError = true
 			console.error('failed to store changes in indexed db', e)
 
-			// the final flush after close() must not alert or reload: the component is unmounting,
-			// and its user is no longer looking at this document
+			// the flush after close() must not alert or reload: we're unmounting
 			if (this.didDispose) return
 			showCantWriteToIndexDbAlert()
 			if (typeof window !== 'undefined') {
