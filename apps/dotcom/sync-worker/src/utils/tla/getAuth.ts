@@ -108,8 +108,8 @@ export async function getZeroAuth(
 				secretKey: env.CLERK_SECRET_KEY,
 				// holds the token to the same origin allowlist as a session token. The template stamps
 				// `azp` as a default claim, and since @clerk/backend 3.11 a token without one is rejected
-				// outright when `authorizedParties` is set, so this is a real origin check — but it says
-				// nothing about *which* template minted the token; the `purpose` check below is what gates.
+				// outright when `authorizedParties` is set — but this says nothing about *which* template
+				// minted the token; the `purpose` check below is what gates.
 				authorizedParties: getAuthorizedParties(env),
 			})
 			if (claims.purpose !== ZERO_TOKEN_PURPOSE) {
