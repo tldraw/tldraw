@@ -67,10 +67,11 @@ export class SpatialIndexManager {
 		const bindingHistory = this.editor.store.query.filterHistory('binding')
 
 		return computed<number>('spatialIndex', (_prevValue, lastComputedEpoch) => {
-			// These four reads are the computed's only tracked dependencies. A
-			// shape's page bounds derive from shape and binding records plus, for
-			// text, the font load state (measured text resizes when its font swaps
-			// in), so the histories and the font load epoch cover all invalidation.
+			// These four reads are the computed's only tracked dependencies: shape
+			// and binding record changes, plus font loads (measured text resizes
+			// when its font swaps in). Theme changes that resize shapes without a
+			// record diff (e.g. `updateTheme({ fontSize })`) are not tracked, so
+			// the index stays stale for those until the next rebuild.
 			// The rebuild/update paths below run without capture to avoid
 			// registering a dependency per checked shape on every update (and
 			// ~page-size dependencies on every rebuild).

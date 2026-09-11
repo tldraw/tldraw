@@ -93,4 +93,20 @@ describe('shapeIdsInCurrentPage', () => {
 		editor.reparentShapes([frameId], editor.getPages()[0].id)
 		expect(new Set(editor.getCurrentPageShapeIds())).toEqual(new Set([]))
 	})
+
+	it('includes a shape created and then reparented into an on-page frame before the next read', () => {
+		const frameId = createShapeId('frame')
+		editor.createShapes([
+			{ type: 'frame', id: frameId },
+			{ type: 'geo', id: ids.box2 },
+		])
+		expect(new Set(editor.getCurrentPageShapeIds())).toEqual(new Set([frameId, ids.box2]))
+
+		// separate puts give separate history entries, so the create and the reparent land in
+		// different diffs of the same recompute
+		const template = editor.getShape(ids.box2)!
+		editor.store.put([{ ...template, id: ids.box1 }])
+		editor.store.put([{ ...template, id: ids.box1, parentId: frameId }])
+		expect(new Set(editor.getCurrentPageShapeIds())).toEqual(new Set([frameId, ids.box1, ids.box2]))
+	})
 })

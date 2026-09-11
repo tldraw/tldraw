@@ -68,9 +68,13 @@ export function deriveShapeIdsInCurrentPage(store: TLStore, getCurrentPageId: ()
 			prevValue
 		) as IncrementalSetConstructor<TLShapeId>
 
+		const addedIds = new Set<TLShapeId>()
+
 		for (const changes of diff) {
 			for (const record of Object.values(changes.added)) {
-				if (isShape(record) && isShapeInPage(store, currentPageId, record)) {
+				if (!isShape(record)) continue
+				addedIds.add(record.id)
+				if (isShapeInPage(store, currentPageId, record)) {
 					builder.add(record.id)
 				}
 			}
@@ -79,8 +83,14 @@ export function deriveShapeIdsInCurrentPage(store: TLStore, getCurrentPageId: ()
 				if (isShape(to)) {
 					const inPage = isShapeInPage(store, currentPageId, to)
 					// A reparent that moves a shape onto or off this page takes its descendants
-					// with it, but they are not in the diff; rebuild so they don't keep stale membership
-					if (isShape(from) && from.parentId !== to.parentId && inPage !== prevValue.has(to.id)) {
+					// with it, but they are not in the diff; rebuild so they don't keep stale membership.
+					// A shape created in this diff has no pre-existing descendants, so it can't go stale.
+					if (
+						isShape(from) &&
+						from.parentId !== to.parentId &&
+						!addedIds.has(to.id) &&
+						inPage !== prevValue.has(to.id)
+					) {
 						return fromScratch()
 					}
 					if (inPage) {
