@@ -5,7 +5,7 @@ import {
 	TlaFile,
 } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useState } from 'react'
-import { fetch } from 'tldraw'
+import { fetch, truncateStringWithEllipsis } from 'tldraw'
 import { AdminButton } from './AdminButton'
 import { getResponseError } from './shared'
 import styles from './admin.module.css'
@@ -106,6 +106,7 @@ export function EffectsSection() {
 								<th>Attempts</th>
 								<th>Age</th>
 								<th>Next retry</th>
+								<th>Last error</th>
 								<th>Actions</th>
 							</tr>
 						</thead>
@@ -196,6 +197,9 @@ function OutboxRowView({
 				</td>
 				<td>{row.ageSeconds}s</td>
 				<td>{row.nextRetryAt ? new Date(row.nextRetryAt).toLocaleString() : 'n/a'}</td>
+				<td title={row.lastError ?? undefined}>
+					{row.lastError ? truncateStringWithEllipsis(row.lastError, 60) : ''}
+				</td>
 				<td onClick={(e) => e.stopPropagation()}>
 					<AdminButton
 						onClick={onRetry}
@@ -217,7 +221,7 @@ function OutboxRowView({
 			</tr>
 			{expanded && (
 				<tr>
-					<td colSpan={8}>
+					<td colSpan={9}>
 						<div className={styles.outboxDetails}>
 							<div className={styles.outboxDetailsColumn}>
 								<div className={styles.fieldLabel}>Payload</div>

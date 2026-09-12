@@ -124,11 +124,13 @@ describeMaybe('effect_outbox trigger (file changes + group-delete cascade)', () 
 		prevPayload: any
 		attempts: number
 		nextRetryAt: string | null
+		lastError: string | null
 	}
 
 	async function outboxRows(entityId: string): Promise<OutboxRow[]> {
 		const res = await client.query<OutboxRow>(
-			`SELECT "tableName", "entityId", command, payload, "prevPayload", attempts, "nextRetryAt"
+			`SELECT "tableName", "entityId", command, payload, "prevPayload", attempts, "nextRetryAt",
+			        "lastError"
 			 FROM effect_outbox WHERE "entityId" = $1 ORDER BY id`,
 			[entityId]
 		)
@@ -227,5 +229,32 @@ describeMaybe('effect_outbox trigger (file changes + group-delete cascade)', () 
 		expect(rows).toHaveLength(1)
 		expect(rows[0].attempts).toBe(0)
 		expect(rows[0].nextRetryAt).toBeNull()
+	})
+
+	it('new rows start with lastError IS NULL and a failed attempt can record it (051 applied)', async () => {
+		await seedUser('u1')
+		await seedFile('f1')
+		expect((await outboxRows('f1'))[0].lastError).toBeNull()
+
+		// The same statement shape the DO's bumpAttempts issues: attempts + 1 and lastError in one
+		// UPDATE. A later attempt overwrites; an admin retry (attempts = 0) leaves it in place.
+		const bump = (error: string) =>
+			client.query(
+				`UPDATE effect_outbox SET attempts = attempts + 1, "lastError" = $2 WHERE "entityId" = $1`,
+				['f1', error]
+			)
+		await bump('EffectTimeoutError: timed out after 30000ms')
+		await bump('Error: proxy request failed')
+		let [row] = await outboxRows('f1')
+		expect(row.attempts).toBe(2)
+		expect(row.lastError).toBe('Error: proxy request failed')
+
+		await client.query(
+			`UPDATE effect_outbox SET attempts = 0, "nextRetryAt" = NULL WHERE "entityId" = $1`,
+			['f1']
+		)
+		;[row] = await outboxRows('f1')
+		expect(row.attempts).toBe(0)
+		expect(row.lastError).toBe('Error: proxy request failed')
 	})
 })
