@@ -1360,7 +1360,7 @@ textarea {
 .image-editor-composer .icon-button {
 	width: 40px;
 	height: 40px;
-	flex-shrink: 0;
+	flex: 0 0 40px;
 }
 
 .image-editor-composer .composer-send:disabled {
