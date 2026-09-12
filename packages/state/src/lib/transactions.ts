@@ -17,13 +17,8 @@ class Transaction {
 
 	initialAtomValues = new Map<_Atom, any>()
 
-	// eslint-disable-next-line tldraw/no-setter-getter
-	get isRoot() {
-		return this.parent === null
-	}
-
 	commit() {
-		if (this.isRoot) {
+		if (this.parent === null) {
 			// For root transactions, flush changed atoms
 			flushChanges(this.initialAtomValues.keys())
 			return

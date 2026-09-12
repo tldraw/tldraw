@@ -241,10 +241,8 @@ export class DomTextMeasurer extends EditorManager implements TLTextMeasurer {
 		const offsetX = -elmBounds.left
 		const offsetY = -elmBounds.top
 
-		// we measure by creating a range that spans each character in the elements text node
+		// we measure by creating a range that spans each character in the elements text nodes
 		const range = new Range()
-		const textNode = element.childNodes[0]
-		let idx = 0
 
 		let currentSpan = null
 		let prevCharWasSpaceCharacter = null
@@ -252,12 +250,15 @@ export class DomTextMeasurer extends EditorManager implements TLTextMeasurer {
 		let prevCharLeftForRTLTest = 0
 		let didTruncate = false
 		for (const childNode of element.childNodes) {
+			if (didTruncate) break
 			if (childNode.nodeType !== Node.TEXT_NODE) continue
 
+			// offsets are per text node, or the range would index past the node's end
+			let idx = 0
 			for (const segment of iterateGraphemes(childNode.textContent ?? '')) {
 				// place the range around the grapheme we're interested in
-				range.setStart(textNode, idx)
-				range.setEnd(textNode, idx + segment.length)
+				range.setStart(childNode, idx)
+				range.setEnd(childNode, idx + segment.length)
 				// measure the range. some browsers return multiple rects for the
 				// first char in a new line - one for the line break, and one for
 				// the character itself. we're only interested in the character.

@@ -181,9 +181,12 @@ export class DragAndDropManager {
 				return
 			}
 
-			if (this.prevDraggingOverShape) {
-				const util = editor.getShapeUtil(this.prevDraggingOverShape)
-				const prevDraggingOverShape = this.editor.getShape(this.prevDraggingOverShape)!
+			// The previous target may have been deleted mid-drag, in which case there is nothing to drag out of
+			const prevDraggingOverShape = this.prevDraggingOverShape
+				? this.editor.getShape(this.prevDraggingOverShape.id)
+				: undefined
+			if (prevDraggingOverShape) {
+				const util = editor.getShapeUtil(prevDraggingOverShape)
 				const removableShapes = getRemovableShapesForTarget(
 					editor,
 					prevDraggingOverShape,
