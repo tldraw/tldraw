@@ -135,10 +135,14 @@ function buildChunks(
 	}
 
 	const collapsed = whiteSpace === 'normal' ? chunks.map(collapseChunk) : chunks
-	return wordBreak === 'break-all' ? collapsed.map(injectBreakOpportunities) : collapsed
+	if (wordBreak === 'break-all') return collapsed.map(injectBreakOpportunities)
+	return collapsed.map((chunk) =>
+		PICTOGRAPH_BLOCK.test(chunk.text) ? injectPictographBreaks(chunk) : chunk
+	)
 }
 
 const SYNTHETIC_BREAK = '\u200B'
+const SPACE_GRAPHEME = /^[ \t\n]$/
 
 /**
  * `word-break: break-all` allows a break between any two graphemes. pretext has no such mode,
@@ -147,14 +151,46 @@ const SYNTHETIC_BREAK = '\u200B'
  * stripped again when fragments are built.
  */
 function injectBreakOpportunities(chunk: Chunk): Chunk {
+	return injectBreaks(
+		chunk,
+		(prev, g) => !SPACE_GRAPHEME.test(g) && !SPACE_GRAPHEME.test(prev) && g !== SYNTHETIC_BREAK
+	)
+}
+
+const PICTOGRAPH_BLOCK = /[\u{1F000}-\u{1FAFF}]/u
+const PICTOGRAPH_GRAPHEME = /^[\u{1F000}-\u{1FAFF}]/u
+const EMOJI_PRESENTATION = /\p{Emoji_Presentation}/u
+// The assigned text-default pictographs in the block that Chromium 149 does not break around
+// (Line_Break AL). Probed for every code point, bare and with U+FE0F, between two letters.
+const UNBREAKABLE_PICTOGRAPH = /^[\u{1F170}\u{1F171}\u{1F17E}\u{1F17F}\u{1F549}]/u
+const LETTER_OR_DIGIT_GRAPHEME = /^[\p{L}\p{N}]/u
+
+/**
+ * Pictographs in U+1F000\u2013U+1FAFF are almost all Line_Break=ID, so browsers break between them and
+ * adjacent letters, digits or other pictographs. pretext only splits pictographs with
+ * Emoji_Presentation and glues text-default ones (\uD83C\uDF27\uFE0F, \uD83C\uDFF7\uFE0F, \uD83D\uDD4A\uFE0F) into the neighbouring word like a
+ * symbol, which made `rain\uD83C\uDF27\uFE0Fdrops` one unbreakable run. Punctuation neighbours are left to
+ * pretext, which already keeps `(\uD83D\uDE00)` and `\uD83D\uDE00!` together as Blink does.
+ */
+function injectPictographBreaks(chunk: Chunk): Chunk {
+	const glued = (g: string) =>
+		PICTOGRAPH_GRAPHEME.test(g) && !EMOJI_PRESENTATION.test(g) && !UNBREAKABLE_PICTOGRAPH.test(g)
+	const breakable = (g: string) => LETTER_OR_DIGIT_GRAPHEME.test(g) || PICTOGRAPH_GRAPHEME.test(g)
+	const result = injectBreaks(
+		chunk,
+		(prev, g) => (glued(prev) && breakable(g)) || (glued(g) && breakable(prev))
+	)
+	return result.text.length === chunk.text.length ? chunk : result
+}
+
+function injectBreaks(chunk: Chunk, breakBefore: (prev: string, g: string) => boolean): Chunk {
 	const text: string[] = []
 	const runOf: number[] = []
 	const srcOff: number[] = []
 	let prev: string | null = null
 	let i = 0
 	for (const g of graphemes(chunk.text)) {
-		const isSpace = /^[ \t\n]$/.test(g)
-		if (prev !== null && !isSpace && !/^[ \t\n]$/.test(prev) && g !== SYNTHETIC_BREAK) {
+		if (prev !== null && breakBefore(prev, g)) {
 			text.push(SYNTHETIC_BREAK)
 			runOf.push(chunk.runOf[i])
 			srcOff.push(chunk.srcOff[i])

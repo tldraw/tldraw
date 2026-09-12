@@ -96,6 +96,21 @@ describe('layoutPlainText', () => {
 		expect(layout.lines[0].fragments.map((f) => f.text)).toEqual(['a', ' ', 'b'])
 	})
 
+	it('breaks around text-default pictographs glued to words', () => {
+		// 🌧️ has no Emoji_Presentation, so pretext would glue it into one 100px word
+		const layout = layoutPlainText('rain🌧️drops', { style, maxWidth: 60 })
+		expect(layout.lines.map((l) => l.fragments.map((f) => f.text).join(''))).toEqual([
+			'rain🌧️',
+			'drops',
+		])
+		expect(layout.lines[1].fragments[0].source).toMatchObject({ from: 7, to: 12 })
+	})
+
+	it('keeps pictographs that Chromium treats as letters glued', () => {
+		const layout = layoutPlainText('rain🅰️drops', { style, maxWidth: 60 })
+		expect(layout.lines).toHaveLength(1)
+	})
+
 	it('skips a tab stop that is less than half a space away', () => {
 		// 'm' is 18px, so the next 20px stop is 2px away: under half a 10px space
 		const measureContext = createFakeMeasureContext({ advance: 0.5, advances: { m: 0.9 } })
