@@ -10,6 +10,10 @@ last_version: v5.4.1
 
 So far this release is a set of fixes. Shapes now keep changes made by other commands while they are being dragged, resized, rotated, or cropped; tapping a toolbar tool with a stylus, finger, or trackpad no longer creates a shape; local persistence no longer drops edits at unmount; and there is a batch of sync fixes. `Editor.setCamera` now rejects non-finite values instead of quietly coercing them.
 
+## New features
+
+- Add a scissors tool (S) that cuts the geometry inside a drawn loop free so it can be moved or copied. Draw strokes are split at the loop, the lassoed region of an image becomes its own image shape with a transparent hole left in the original, and other shapes are taken whole when their centre lies inside. ([#10744](https://github.com/tldraw/tldraw/pull/10744))
+
 ## API changes
 
 - 💥 **`Editor.setCamera`** now throws on a non-finite `x`, `y`, or `z` instead of silently coercing it to `0` or the current zoom level, and no longer mutates the point object passed to it. ([#9903](https://github.com/tldraw/tldraw/pull/9903))

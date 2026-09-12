@@ -307,6 +307,16 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				},
 			},
 			{
+				id: 'scissors',
+				label: 'tool.scissors',
+				icon: 'tool-scissors',
+				kbd: 's',
+				onSelect(source) {
+					editor.setCurrentTool('scissors')
+					onToolSelect(source, this)
+				},
+			},
+			{
 				id: 'embed',
 				label: 'tool.embed',
 				icon: 'dot',

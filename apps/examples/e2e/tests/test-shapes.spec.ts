@@ -57,7 +57,7 @@ const draggableShapeCreators = [
 	{ tool: 'check-box', shape: 'geo' },
 ]
 
-const otherTools = [{ tool: 'select' }, { tool: 'eraser' }, { tool: 'laser' }]
+const otherTools = [{ tool: 'select' }, { tool: 'eraser' }, { tool: 'laser' }, { tool: 'scissors' }]
 
 test.describe('Shape Tools', () => {
 	test.beforeEach(setupOrReset)

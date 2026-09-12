@@ -260,6 +260,7 @@ export const DEFAULT_TRANSLATION = {
 	'tool.frame': 'Frame',
 	'tool.note': 'Note',
 	'tool.laser': 'Laser',
+	'tool.scissors': 'Scissors',
 	'tool.embed': 'Embed',
 	'tool.text': 'Text',
 	'tool.pointer-down': 'Pointer down',
