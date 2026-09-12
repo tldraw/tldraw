@@ -273,11 +273,11 @@ export {
 	type ShapeOptionsWithDisplayValues,
 } from './lib/shapes/shared/getDisplayValues'
 export { PlainTextLabel, type PlainTextLabelProps } from './lib/shapes/shared/PlainTextLabel'
+export { type RichTextSVGProps } from './lib/shapes/shared/ForeignObjectRichTextSVG'
 export {
 	RichTextLabel,
 	RichTextSVG,
 	type RichTextLabelProps,
-	type RichTextSVGProps,
 } from './lib/shapes/shared/RichTextLabel'
 export {
 	NativeRichTextSVG,

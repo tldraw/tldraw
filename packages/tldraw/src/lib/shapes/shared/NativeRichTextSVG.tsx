@@ -2,9 +2,12 @@ import { useEditor, useSvgExportContext } from '@tldraw/editor'
 import { SvgNode, renderSvgTree } from '@tldraw/rich-text-layout'
 import { createElement, useEffect, useState } from 'react'
 import { flushSync } from 'react-dom'
-import { TLNativeTextExportMeasurer } from '../../utils/text/NativeTextExportManager'
+import {
+	TLNativeTextExportMeasurer,
+	getExportTextMeasurer,
+} from '../../utils/text/NativeTextExportManager'
+import { ForeignObjectRichTextSVG, RichTextSVGProps } from './ForeignObjectRichTextSVG'
 import { isLegacyAlign } from './legacyProps'
-import { ForeignObjectRichTextSVG, RichTextSVGProps } from './RichTextLabel'
 
 /**
  * The same props as {@link RichTextSVG}.
@@ -12,8 +15,6 @@ import { ForeignObjectRichTextSVG, RichTextSVGProps } from './RichTextLabel'
  * @public
  */
 export type NativeRichTextSVGProps = RichTextSVGProps
-
-import { getExportTextMeasurer } from '../../utils/text/NativeTextExportManager'
 
 function svgNodeToJsx(node: SvgNode, key: number): React.ReactElement {
 	const props: Record<string, unknown> = { key }
