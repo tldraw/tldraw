@@ -186,32 +186,34 @@ With custom extensions, `text: 'native'` falls back to HTML `<foreignObject>` ex
 
 `yarn golden` (in this package) measures a corpus of plain strings across the four tldraw families, four sizes and bounded/unbounded widths in Chromium, using the exact element and styles tldraw's DOM `TextManager` uses, and compares with the engine. `yarn golden --rich` adds rich text documents through `createTldrawTextMeasurer`; `--pixels` rasterizes the native SVG with Chromium and resvg and compares against Chromium's `<foreignObject>` rendering. Results land in `golden/report.md`; Chromium measurements are cached under `golden/results/` and refreshed with `--refresh`.
 
-### Drift (macOS, Chromium 140, engine with mac system fonts as fallbacks)
+### Drift (macOS, Chromium 149, engine with mac system fonts as fallbacks)
 
 Plain text, 1120 cases (35 strings × 4 families × 4 sizes × bounded/unbounded), tldraw's fonts plus mac system fonts as fallbacks:
 
-| group                                                                                                        | max dw      | p95 dw | max dh          | line mismatches |
-| ------------------------------------------------------------------------------------------------------------ | ----------- | ------ | --------------- | --------------- |
-| Latin, punctuation, numbers, URLs, tabs, spaces, combining marks, Vietnamese, German (27 strings × 32 cases) | 0.17px      | 0.05px | 49px (one line) | 2               |
-| emoji (Apple Color Emoji fallback)                                                                           | 12px        |        | 0               | 0               |
-| arabic, hebrew, korean, mixed direction with the sans and draw primaries                                     | 0px         |        | 0               | 0               |
-| arabic, hebrew, korean with the serif and mono primaries                                                     | up to 203px |        | 59px            | 7               |
-| chinese, japanese, thai                                                                                      | up to 95px  |        | 59px            | 18              |
+| group                                                                                                        | max dw      | p95 dw | max dh | line mismatches |
+| ------------------------------------------------------------------------------------------------------------ | ----------- | ------ | ------ | --------------- |
+| Latin, punctuation, numbers, URLs, tabs, spaces, combining marks, Vietnamese, German (27 strings × 32 cases) | 0.31px      | 0.04px | 0      | 0               |
+| emoji (Apple Color Emoji fallback)                                                                           | 12px        |        | 0      | 0               |
+| arabic, hebrew, korean, mixed direction with the sans and draw primaries                                     | ≤0.06px     |        | 0      | 0               |
+| arabic, hebrew, korean, mixed direction with the serif and mono primaries                                    | up to 203px |        | 59px   | 7               |
+| chinese, japanese, thai                                                                                      | up to 95px  |        | 59px   | 18              |
 
-Rich text, 296 cases (paragraphs, marks, hard breaks, headings h1–h6, bullet/ordered/nested lists, code, links, highlights, mixed runs): max 0.9px width and 1.6px height drift and no line-count mismatches outside the CJK/RTL/emoji documents. See `golden/report.md` for the full tables and the worst cases.
+Rich text, 334 cases (paragraphs, marks, hard breaks, tabs, headings h1–h6, bullet/ordered/nested lists, code, links, highlights, mixed runs): max 0.84px width and 0.9px height drift outside the CJK/RTL/emoji documents, which drift in width only, and no line-count mismatches. See `golden/report.md` for the full tables and the worst cases.
 
-The two Latin line mismatches were `paragraph/draw/36/200` and `longWords/draw/36/200`: the draw font (Shantell Sans) has contextual alternates, so a word's advance is not the sum of its parts, and pretext's grapheme-sum advances broke an overlong word one grapheme early. Words that have to be broken inside are now measured by shaped prefix (see Decisions), which matches Blink's break offset for the corpus documents that hit it.
+Latin text has no line-count mismatches. The last two, `paragraph/draw/36/200` and `longWords/draw/36/200`, came from the draw font (Shantell Sans): it has contextual alternates, so a word's advance is not the sum of its parts, and pretext's grapheme-sum advances broke an overlong word one grapheme early. Words that have to be broken inside are now measured by shaped prefix (see Decisions), which matches Blink's break offset.
+
+The fallback-script drift above is specific to the node backend's fallback faces. Through a browser canvas (`createCanvasMeasureContext` in Chromium 149), the same 35 strings laid out as rich text match Chromium's DOM measurement for every script, including Chinese, Korean, Arabic, Hebrew, Thai and emoji, except Japanese at max-content width (up to 2.6px, 0.4%); no case differs in height.
 
 ### Native SVG pixel diff
 
-Share of pixels (luminance difference over 48/255) that differ from Chromium's `<foreignObject>` rendering of the same box, over 272 rich documents in the sans and draw fonts:
+Share of pixels (luminance difference over 48/255) that differ from Chromium's `<foreignObject>` rendering of the same box, over 310 rich documents in the sans and draw fonts:
 
-| rasterizer of the native SVG | median | p95  | max   |
-| ---------------------------- | ------ | ---- | ----- |
-| Chromium                     | 0.17%  | 6.2% | 9.0%  |
-| resvg                        | 4.5%   | 9.5% | 12.7% |
+| rasterizer of the native SVG | median | p95   | max   |
+| ---------------------------- | ------ | ----- | ----- |
+| Chromium                     | 0.21%  | 11.5% | 14.0% |
+| resvg                        | 4.5%   | 7.9%  | 11.1% |
 
-The worst cases are lists in the draw font (Chromium draws bullets as shapes and spaces the `1.` counters slightly differently from the glyph markers the engine emits), `strike` in resvg (line-through thickness and position), and long draw-font headings (Shantell Sans contextual alternates are shaped per `<tspan>` in SVG but per line in HTML). Glyph placement itself agrees to within a pixel.
+The worst cases in both rasterizers are ordered lists in the draw font (`tenItems`, `numbered`, `numberedStart`, 9–11%), where Chromium spaces the `1.` counters slightly differently from the glyph markers the engine emits. resvg also differs on long draw-font headings (Shantell Sans contextual alternates are shaped per `<tspan>` in SVG but per line in HTML) and on `link` (underline thickness and position). Glyph placement itself agrees to within a pixel.
 
 ## Decisions
 
@@ -221,7 +223,7 @@ Where this implementation departs from the brief, and why.
 - **Hard breaks are split outside pretext.** Chunks are split on `hardBreak` and literal newlines before prepare, so `white-space: normal` can still honour hard breaks (pretext's `normal` mode collapses newlines) and doubled breaks produce empty lines like `<br><br>`.
 - **Overlong words break at shaped prefixes.** pretext's `overflow-wrap: break-word` advances are single-grapheme measurements, and in fonts with kerning or contextual alternates their sum overshoots the shaped word by several pixels per word (`(enforcement` in Shantell Sans at 26px: 184px summed, 178px shaped), so the emergency break landed a grapheme earlier than Blink, which breaks where the shaped run stops fitting. For the segments that are wider than the line, the advances are replaced with differences between shaped prefixes, measured once per chunk; segments that fit keep pretext's arrays, so ordinary paragraphs pay nothing.
 - **`word-break: break-all`** is implemented by interleaving zero-width spaces between graphemes before prepare (pretext treats them as free break opportunities) and stripping them from fragments. `overflow-wrap: normal` nulls pretext's per-grapheme advances so overlong words overflow instead of breaking.
-- **Tab stops** are `tab-size × space advance` of the block font, patched onto the prepared text (pretext hard-codes eight spaces). Plain-text measurement in tldraw uses the UA default of 8 because `tab-size: 2` only applies inside `.tl-rich-text`.
+- **Tab stops** are `tab-size × space advance` of the block font, patched onto the prepared text (pretext hard-codes eight spaces). As in Blink, a tab whose next stop is less than half a space away advances to the stop after it; at tldraw's `tab-size: 2`, the golden `tabs` document in the draw font hits this. pretext's line-fit pass doesn't know this rule, so a line whose tabs hit it can fit a word that Blink would wrap. Plain-text measurement in tldraw uses the UA default of 8 because `tab-size: 2` only applies inside `.tl-rich-text`.
 - **Max-content width comes from whole-fragment measurements**, not pretext's per-segment sums: fonts with kerning or contextual alternates shape a word differently from the sum of its pieces, and browsers measure the shaped run. This took the hyphen/URL cases from 9px of drift to 0.03px.
 - **Trailing whitespace**: in `pre-wrap`, trailing preserved spaces count toward max-content width (Chromium includes them). At a soft wrap they hang, taking no part in alignment or `LineBox.width`; before a forced break or at the end of the paragraph Blink keeps them in the line, so a centred or end-aligned last line ending in a space sits half a space or a space further left, and the engine does the same. In `normal` they collapse away.
 - **Margins**: the layout root is treated as a block formatting context (tldraw's measurement element has `contain: layout` and the label containers are inline-block or flex items), so the first top margin and last bottom margin are contained, siblings collapse to the larger margin, and a container with no padding collapses through to its first/last leaf.

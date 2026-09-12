@@ -1,6 +1,6 @@
 # Golden drift report
 
-Generated 2026-08-25T15:43:58.885Z
+Generated 2026-09-12T12:59:36.274Z
 
 ## Plain text
 
@@ -8,8 +8,8 @@ Cases: 1120
 
 | group | cases | max dw | p95 dw | max dh | p95 dh | line mismatches |
 | ----- | ----- | ------ | ------ | ------ | ------ | --------------- |
-| all   | 1120  | 202.82 | 19.41  | 59.00  | 0.00   | 27              |
-| draw  | 280   | 93.16  | 0.13   | 59.00  | 0.00   | 6               |
+| all   | 1120  | 202.82 | 19.41  | 59.00  | 0.00   | 25              |
+| draw  | 280   | 93.16  | 0.13   | 59.00  | 0.00   | 4               |
 | mono  | 280   | 202.82 | 41.34  | 59.00  | 0.00   | 10              |
 | sans  | 280   | 93.16  | 0.16   | 59.00  | 0.00   | 4               |
 | serif | 280   | 115.58 | 36.18  | 59.00  | 0.00   | 7               |
@@ -29,9 +29,8 @@ Cases: 1120
 | japanese/mono/44/auto  | 702.13×59.00 (1)   | 608.96×59.00 (1)   | -93.16  | 0.00 |
 | korean/serif/44/auto   | 689.98×59.00 (1)   | 601.53×59.00 (1)   | -88.45  | 0.00 |
 
-### Line-count mismatches (27)
+### Line-count mismatches (25)
 
-- paragraph/draw/36/200: chrome 29, engine 30
 - japanese/draw/36/200: chrome 4, engine 3
 - japanese/sans/36/200: chrome 4, engine 3
 - japanese/serif/36/200: chrome 4, engine 3
@@ -55,7 +54,6 @@ Cases: 1120
 - hebrew/serif/36/200: chrome 2, engine 3
 - hebrew/serif/44/200: chrome 3, engine 4
 - hebrew/mono/44/200: chrome 5, engine 4
-- longWords/draw/36/200: chrome 6, engine 7
 - thai/mono/24/200: chrome 3, engine 2
 - thai/mono/44/200: chrome 5, engine 4
 
@@ -65,7 +63,7 @@ Cases: 1120
 
 | group           | cases | max dw | p95 dw | max dh | p95 dh | line mismatches |
 | --------------- | ----- | ------ | ------ | ------ | ------ | --------------- |
-| all             | 1120  | 202.82 | 19.41  | 59.00  | 0.00   | 27              |
+| all             | 1120  | 202.82 | 19.41  | 59.00  | 0.00   | 25              |
 | arabic          | 32    | 202.82 | 165.94 | 59.00  | 49.00  | 3               |
 | caps            | 32    | 0.02   | 0.02   | 0.00   | 0.00   | 0               |
 | chinese         | 32    | 73.42  | 73.42  | 59.00  | 59.00  | 12              |
@@ -79,14 +77,14 @@ Cases: 1120
 | korean          | 32    | 88.45  | 72.38  | 0.00   | 0.00   | 0               |
 | leadingSpaces   | 32    | 0.03   | 0.03   | 0.00   | 0.00   | 0               |
 | longWord        | 32    | 0.02   | 0.02   | 0.00   | 0.00   | 0               |
-| longWords       | 32    | 0.02   | 0.01   | 49.00  | 0.00   | 1               |
+| longWords       | 32    | 0.02   | 0.01   | 0.00   | 0.00   | 0               |
 | manyWords       | 32    | 0.31   | 0.17   | 0.00   | 0.00   | 0               |
 | mixedDirection  | 32    | 51.61  | 42.23  | 0.00   | 0.00   | 0               |
 | multiLine       | 32    | 0.02   | 0.02   | 0.00   | 0.00   | 0               |
 | nbsp            | 32    | 0.01   | 0.01   | 0.00   | 0.00   | 0               |
 | numbers         | 32    | 0.02   | 0.02   | 0.00   | 0.00   | 0               |
 | pangram         | 32    | 0.05   | 0.05   | 0.00   | 0.00   | 0               |
-| paragraph       | 32    | 0.17   | 0.16   | 49.00  | 0.00   | 1               |
+| paragraph       | 32    | 0.17   | 0.16   | 0.00   | 0.00   | 0               |
 | punctuation     | 32    | 0.05   | 0.04   | 0.00   | 0.00   | 0               |
 | repeatedSpaces  | 32    | 0.02   | 0.02   | 0.00   | 0.00   | 0               |
 | short           | 32    | 0.02   | 0.02   | 0.00   | 0.00   | 0               |
@@ -117,9 +115,8 @@ Cases: 1120
 | japanese/mono/44/auto  | 702.13×59.00 (1)   | 608.96×59.00 (1)   | -93.16  | 0.00 |
 | korean/serif/44/auto   | 689.98×59.00 (1)   | 601.53×59.00 (1)   | -88.45  | 0.00 |
 
-### Line-count mismatches (27)
+### Line-count mismatches (25)
 
-- paragraph/draw/36/200: chrome 29, engine 30
 - japanese/draw/36/200: chrome 4, engine 3
 - japanese/sans/36/200: chrome 4, engine 3
 - japanese/serif/36/200: chrome 4, engine 3
@@ -143,19 +140,18 @@ Cases: 1120
 - hebrew/serif/36/200: chrome 2, engine 3
 - hebrew/serif/44/200: chrome 3, engine 4
 - hebrew/mono/44/200: chrome 5, engine 4
-- longWords/draw/36/200: chrome 6, engine 7
 - thai/mono/24/200: chrome 3, engine 2
 - thai/mono/44/200: chrome 5, engine 4
 
 ## Rich text
 
-Cases: 326
+Cases: 334
 
 | group | cases | max dw | p95 dw | max dh | p95 dh | line mismatches |
 | ----- | ----- | ------ | ------ | ------ | ------ | --------------- |
-| all   | 326   | 47.90  | 0.44   | 1.60   | 0.16   | 0               |
-| draw  | 148   | 47.90  | 0.65   | 1.60   | 0.40   | 0               |
-| sans  | 178   | 47.90  | 0.12   | 0.19   | 0.03   | 0               |
+| all   | 334   | 47.90  | 0.44   | 0.90   | 0.12   | 0               |
+| draw  | 152   | 47.90  | 0.65   | 0.90   | 0.24   | 0               |
+| sans  | 182   | 47.90  | 0.09   | 0.19   | 0.03   | 0               |
 
 ### Worst 10 cases
 
@@ -174,20 +170,20 @@ Cases: 326
 
 ## Rich text by document
 
-Cases: 326
+Cases: 334
 
 | group                | cases | max dw | p95 dw | max dh | p95 dh | line mismatches |
 | -------------------- | ----- | ------ | ------ | ------ | ------ | --------------- |
-| all                  | 326   | 47.90  | 0.44   | 1.60   | 0.16   | 0               |
+| all                  | 334   | 47.90  | 0.44   | 0.90   | 0.12   | 0               |
 | boldHeading          | 8     | 0.04   | 0.04   | 0.04   | 0.04   | 0               |
 | boldItalic           | 8     | 0.04   | 0.04   | 0.00   | 0.00   | 0               |
 | boldMidWord          | 14    | 0.05   | 0.05   | 0.00   | 0.00   | 0               |
 | boldWord             | 8     | 0.03   | 0.03   | 0.00   | 0.00   | 0               |
 | bullets              | 8     | 0.42   | 0.42   | 0.00   | 0.00   | 0               |
 | cjkBold              | 8     | 47.90  | 47.90  | 0.00   | 0.00   | 0               |
-| code                 | 8     | 0.04   | 0.04   | 0.80   | 0.80   | 0               |
-| codeInHeading        | 8     | 0.04   | 0.04   | 0.21   | 0.21   | 0               |
-| codeOnly             | 8     | 0.01   | 0.01   | 0.40   | 0.40   | 0               |
+| code                 | 8     | 0.04   | 0.04   | 0.36   | 0.36   | 0               |
+| codeInHeading        | 8     | 0.04   | 0.04   | 0.63   | 0.63   | 0               |
+| codeOnly             | 8     | 0.01   | 0.01   | 0.36   | 0.36   | 0               |
 | doubleHardBreak      | 8     | 0.01   | 0.01   | 0.00   | 0.00   | 0               |
 | emojiBold            | 8     | 0.04   | 0.04   | 0.00   | 0.00   | 0               |
 | emptyDoc             | 8     | 0.00   | 0.00   | 0.00   | 0.00   | 0               |
@@ -203,8 +199,8 @@ Cases: 326
 | link                 | 8     | 0.03   | 0.03   | 0.00   | 0.00   | 0               |
 | listThenPara         | 8     | 0.02   | 0.02   | 0.00   | 0.00   | 0               |
 | listWrap             | 14    | 0.45   | 0.45   | 0.00   | 0.00   | 0               |
-| longCode             | 8     | 0.01   | 0.01   | 1.60   | 1.60   | 0               |
-| multiLineMixed       | 14    | 0.12   | 0.12   | 0.40   | 0.40   | 0               |
+| longCode             | 8     | 0.01   | 0.01   | 0.90   | 0.90   | 0               |
+| multiLineMixed       | 14    | 0.12   | 0.12   | 0.18   | 0.18   | 0               |
 | nestedBullets        | 8     | 0.84   | 0.84   | 0.00   | 0.00   | 0               |
 | numbered             | 8     | 0.42   | 0.42   | 0.00   | 0.00   | 0               |
 | numberedStart        | 8     | 0.42   | 0.42   | 0.00   | 0.00   | 0               |
@@ -213,6 +209,7 @@ Cases: 326
 | rtlBold              | 8     | 18.13  | 18.13  | 0.00   | 0.00   | 0               |
 | spacesAroundMarks    | 8     | 0.03   | 0.03   | 0.00   | 0.00   | 0               |
 | strike               | 8     | 0.03   | 0.03   | 0.00   | 0.00   | 0               |
+| tabs                 | 8     | 0.09   | 0.09   | 0.00   | 0.00   | 0               |
 | tenItems             | 8     | 0.65   | 0.65   | 0.00   | 0.00   | 0               |
 | trailingHardBreak    | 8     | 0.02   | 0.02   | 0.00   | 0.00   | 0               |
 | twoParas             | 8     | 0.02   | 0.02   | 0.00   | 0.00   | 0               |
@@ -234,24 +231,24 @@ Cases: 326
 
 ## Native SVG pixel diff
 
-Cases: 302. Differing pixels as a share of the box, luminance threshold 48/255.
+Cases: 310. Differing pixels as a share of the box, luminance threshold 48/255.
 
-| renderer                                     | max    | p95   | median |
-| -------------------------------------------- | ------ | ----- | ------ |
-| Chromium (native svg vs foreignObject)       | 6.29%  | 4.68% | 0.16%  |
-| resvg (native svg vs Chromium foreignObject) | 12.65% | 8.78% | 4.42%  |
+| renderer                                     | max    | p95    | median |
+| -------------------------------------------- | ------ | ------ | ------ |
+| Chromium (native svg vs foreignObject)       | 13.96% | 11.54% | 0.21%  |
+| resvg (native svg vs Chromium foreignObject) | 11.14% | 7.85%  | 4.48%  |
 
 ### Worst 10 (resvg)
 
 | case                       | size     | chromium | resvg  |
 | -------------------------- | -------- | -------- | ------ |
-| tenItems/draw/24/auto      | 133×320  | 5.25%    | 12.65% |
-| tenItems/draw/24/200       | 133×320  | 5.25%    | 12.65% |
-| strike/draw/24/auto        | 267×32   | 1.12%    | 11.68% |
-| headingWrap/draw/36/auto   | 2582×113 | 1.81%    | 11.26% |
-| numbered/draw/24/auto      | 113×96   | 4.68%    | 11.06% |
-| numbered/draw/24/200       | 113×96   | 4.68%    | 11.06% |
-| numberedStart/draw/24/auto | 109×96   | 4.28%    | 10.53% |
-| numberedStart/draw/24/200  | 109×96   | 4.28%    | 10.53% |
-| listWrap/draw/24/auto      | 835×32   | 5.39%    | 9.64%  |
-| headingWrap/sans/36/auto   | 2164×113 | 2.28%    | 9.60%  |
+| tenItems/draw/24/auto      | 133×320  | 11.45%   | 11.14% |
+| tenItems/draw/24/200       | 133×320  | 11.45%   | 11.14% |
+| headingWrap/draw/36/auto   | 2582×113 | 0.00%    | 10.86% |
+| link/sans/24/auto          | 246×32   | 2.74%    | 9.88%  |
+| numbered/draw/24/auto      | 113×96   | 11.32%   | 9.24%  |
+| numbered/draw/24/200       | 113×96   | 11.32%   | 9.24%  |
+| headingWrap/sans/36/auto   | 2164×113 | 0.04%    | 9.04%  |
+| numberedStart/draw/24/auto | 109×96   | 10.14%   | 8.98%  |
+| numberedStart/draw/24/200  | 109×96   | 10.14%   | 8.98%  |
+| tenItems/draw/36/auto      | 200×490  | 5.88%    | 8.91%  |
