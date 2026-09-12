@@ -191,6 +191,7 @@ export const RICH_DOCS: Record<string, any> = {
 	emojiBold: doc(p(t('Hello 😀 '), t('world 👋', 'bold'))),
 	spacesAroundMarks: doc(p(t('a '), t(' b ', 'bold'), t(' c'))),
 	longCode: doc(p(t('averyveryverylongidentifierthatwillnotfit', 'code'))),
+	tabs: doc(p(t('a\tb\tc')), p(t('key\tvalue')), p(t('\tindented\tline'))),
 }
 
 export function richCorpus(): RichCase[] {
