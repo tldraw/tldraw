@@ -16,7 +16,7 @@ import { TestEditor } from './TestEditor'
 // Headless end to end: a real editor measures shape geometry with the rich text layout engine
 // instead of the DOM, exports native <text> SVG, and resvg rasterizes it without a browser.
 
-const FONTS = join(__dirname, '../../../assets/fonts')
+const FONTS = join(__dirname, '../../../../assets/fonts')
 const FIXTURE = join(__dirname, '__fixtures__/native-text-export.tldr')
 const SNAPSHOT = join(__dirname, '__snapshots__/native-text-export.png')
 
