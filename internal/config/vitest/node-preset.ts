@@ -19,6 +19,12 @@ export default defineConfig({
 	test: {
 		globals: true,
 		environment: 'jsdom',
+		// Persist transformed modules to node_modules/.vitest-cache so reruns skip re-transforming.
+		// Only helps a warm cache: a cold run (fresh clone, cleared node_modules) pays full price.
+		fsModuleCache: true,
+		// Worker threads start much faster than forked processes. Projects needing real process
+		// isolation (e.g. sync-worker, which passes node flags via execArgv) override this.
+		pool: 'threads',
 		setupFiles: [path.resolve(__dirname, './setup.ts')],
 		include: ['src/**/*.{test,spec}.{js,ts,jsx,tsx}'],
 		exclude: [

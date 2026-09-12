@@ -73,24 +73,38 @@ describe('ClientWebSocketAdapter', () => {
 		connectedServerSocket = socket
 	})
 
+	// Bound per test on an OS-assigned port. A fixed port raced against the previous test's
+	// server, which closes asynchronously, and intermittently failed with EADDRINUSE.
+	let port: number
+
 	let consoleWarnSpy: ReturnType<typeof vi.spyOn>
-	beforeEach(() => {
+	beforeEach(async () => {
 		consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-		adapter = new ClientWebSocketAdapter(() => 'ws://localhost:2233')
-		wsServer = new WebSocketServer({ port: 2233 })
+		wsServer = new WebSocketServer({ port: 0 })
+		// Attach before the adapter exists: the server is already listening by the time the
+		// adapter is constructed, so a handler added afterwards can miss the first connection.
 		wsServer.on('connection', connectMock as any)
+		await new Promise<void>((resolve, reject) => {
+			wsServer.once('listening', resolve)
+			wsServer.once('error', reject)
+		})
+		port = (wsServer.address() as { port: number }).port
+		adapter = new ClientWebSocketAdapter(() => `ws://localhost:${port}`)
 	})
 
 	afterEach(() => {
 		consoleWarnSpy.mockRestore()
 		adapter.close()
+		// Not awaited: the next test binds its own OS-assigned port, so a server still closing
+		// here can't collide with it. Awaiting would deliver in-flight messages to the socket
+		// adapter.close() just orphaned.
 		wsServer.close()
 		connectMock.mockClear()
 	})
 
 	describe('connection and initial state (CW1, CW2)', () => {
 		it('[CW2] starts with connectionStatus offline while the internal status is initial', () => {
-			const newAdapter = new ClientWebSocketAdapter(() => 'ws://localhost:2233')
+			const newAdapter = new ClientWebSocketAdapter(() => `ws://localhost:${port}`)
 			try {
 				expect(newAdapter._connectionStatus.get()).toBe('initial')
 				expect(newAdapter.connectionStatus).toBe('offline')
@@ -113,7 +127,7 @@ describe('ClientWebSocketAdapter', () => {
 			let uriCallCount = 0
 			const dynamicAdapter = new ClientWebSocketAdapter(() => {
 				uriCallCount++
-				return `ws://localhost:2233?attempt=${uriCallCount}`
+				return `ws://localhost:${port}?attempt=${uriCallCount}`
 			})
 			try {
 				await waitFor(() => dynamicAdapter._ws?.readyState === WebSocket.OPEN)
@@ -143,7 +157,7 @@ describe('ClientWebSocketAdapter', () => {
 				// no socket can be created until the promise resolves
 				expect(asyncAdapter._ws).toBeNull()
 
-				resolveUri!('ws://localhost:2233')
+				resolveUri!(`ws://localhost:${port}`)
 
 				await waitFor(() => asyncAdapter._ws?.readyState === WebSocket.OPEN)
 				expect(asyncAdapter.connectionStatus).toBe('online')
@@ -301,7 +315,7 @@ describe('ClientWebSocketAdapter', () => {
 
 	describe('URI conversion (CW1)', () => {
 		it('[CW1] converts http URIs to ws and connects', async () => {
-			const httpAdapter = new ClientWebSocketAdapter(() => 'http://localhost:2233')
+			const httpAdapter = new ClientWebSocketAdapter(() => `http://localhost:${port}`)
 			try {
 				await waitFor(() => httpAdapter._ws?.readyState === WebSocket.OPEN)
 				expect(httpAdapter._ws!.url).toMatch(/^ws:\/\//)
@@ -312,7 +326,7 @@ describe('ClientWebSocketAdapter', () => {
 		})
 
 		it('[CW1] converts https URIs to wss', async () => {
-			const httpsAdapter = new ClientWebSocketAdapter(() => 'https://localhost:2233')
+			const httpsAdapter = new ClientWebSocketAdapter(() => `https://localhost:${port}`)
 			try {
 				await waitFor(() => httpsAdapter._ws !== null)
 				expect(httpsAdapter._ws!.url).toMatch(/^wss:\/\//)
@@ -529,7 +543,7 @@ describe('ClientWebSocketAdapter', () => {
 		})
 
 		it('[CW9][RM5] closing immediately does not start another getUri call', async () => {
-			const getUri = vi.fn(() => 'ws://localhost:2233')
+			const getUri = vi.fn(() => `ws://localhost:${port}`)
 			const testAdapter = new ClientWebSocketAdapter(getUri)
 			testAdapter.close()
 			const callsAtClose = getUri.mock.calls.length
@@ -544,7 +558,7 @@ describe('ClientWebSocketAdapter', () => {
 			let uriCallCount = 0
 			const testAdapter = new ClientWebSocketAdapter(() => {
 				uriCallCount++
-				return 'ws://localhost:2233'
+				return `ws://localhost:${port}`
 			})
 			const onStatusChange = vi.fn()
 			testAdapter.onStatusChange(onStatusChange)
@@ -606,17 +620,26 @@ describe('ReconnectManager', () => {
 		connectedServerSocket = socket
 	})
 
+	// See the note on the other suite's port: bound per test on an OS-assigned port.
+	let port: number
+
 	let consoleWarnSpy: ReturnType<typeof vi.spyOn>
-	beforeEach(() => {
+	beforeEach(async () => {
 		consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-		adapter = new ClientWebSocketAdapter(() => 'ws://localhost:2234')
-		wsServer = new WebSocketServer({ port: 2234 })
+		wsServer = new WebSocketServer({ port: 0 })
 		wsServer.on('connection', connectMock as any)
+		await new Promise<void>((resolve, reject) => {
+			wsServer.once('listening', resolve)
+			wsServer.once('error', reject)
+		})
+		port = (wsServer.address() as { port: number }).port
+		adapter = new ClientWebSocketAdapter(() => `ws://localhost:${port}`)
 	})
 
 	afterEach(() => {
 		consoleWarnSpy.mockRestore()
 		adapter.close()
+		// Not awaited - see the note on the other suite's teardown.
 		wsServer.close()
 		connectMock.mockClear()
 	})
@@ -631,7 +654,7 @@ describe('ReconnectManager', () => {
 	})
 
 	it('[RM1] reconnection delays back off exponentially, bounded by the active delays', () => {
-		const testAdapter = new ClientWebSocketAdapter(() => 'ws://localhost:2234')
+		const testAdapter = new ClientWebSocketAdapter(() => `ws://localhost:${port}`)
 		try {
 			const manager = testAdapter._reconnectManager
 			// make every disconnected() call take the "attempt now" branch
@@ -656,7 +679,7 @@ describe('ReconnectManager', () => {
 
 	it('[RM1] uses the inactive delay bounds when the tab is hidden', () => {
 		const hiddenMock = vi.spyOn(document, 'hidden', 'get').mockReturnValue(true)
-		const testAdapter = new ClientWebSocketAdapter(() => 'ws://localhost:2234')
+		const testAdapter = new ClientWebSocketAdapter(() => `ws://localhost:${port}`)
 		try {
 			const manager = testAdapter._reconnectManager
 			;(manager as any).lastAttemptStart = Date.now() - 1_000_000
@@ -828,7 +851,7 @@ describe('ReconnectManager', () => {
 					if (failure === 'throws') throw error
 					return Promise.reject(error)
 				}
-				return 'ws://localhost:2234'
+				return `ws://localhost:${port}`
 			})
 			try {
 				await waitFor(() => testAdapter._ws?.readyState === WebSocket.OPEN)
@@ -843,7 +866,7 @@ describe('ReconnectManager', () => {
 	)
 
 	it('[RM5] close cancels timers and removes the reconnect event listeners', () => {
-		const testAdapter = new ClientWebSocketAdapter(() => 'ws://localhost:2234')
+		const testAdapter = new ClientWebSocketAdapter(() => `ws://localhost:${port}`)
 		const manager = testAdapter._reconnectManager
 
 		testAdapter.close()
@@ -862,6 +885,10 @@ describe('ReconnectManager', () => {
 })
 
 describe('URI failure boundaries', () => {
+	// These tests never open a real socket - the adapter is closed first, or the socket is a
+	// mock - so the URI only has to parse. No server, hence no port to bind.
+	const UNUSED_URI = 'ws://localhost:1'
+
 	it.each(['resolves', 'rejects'])('ignores getUri that %s after close', async (outcome) => {
 		const uri = promiseWithResolve<string>()
 		const getUri = vi.fn(() => uri)
@@ -872,7 +899,7 @@ describe('URI failure boundaries', () => {
 		try {
 			await Promise.resolve()
 			testAdapter.close()
-			if (outcome === 'resolves') uri.resolve('ws://localhost:2234')
+			if (outcome === 'resolves') uri.resolve(UNUSED_URI)
 			else uri.reject(new Error('token endpoint unavailable'))
 			await vi.advanceTimersByTimeAsync(INACTIVE_MAX_DELAY)
 
@@ -890,7 +917,7 @@ describe('URI failure boundaries', () => {
 	it.each([
 		{ uri: 'not a URL', openSocket: false, error: 'Invalid URL' },
 		{
-			uri: 'ws://localhost:2234',
+			uri: UNUSED_URI,
 			openSocket: true,
 			error: 'There should be no connection attempts while already connected',
 		},
