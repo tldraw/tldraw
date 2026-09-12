@@ -2188,6 +2188,18 @@ describe('Add alt text to video shape', () => {
 	})
 })
 
+describe('Add border to image shape', () => {
+	const { up, down } = getTestMigration(imageShapeVersions.AddBorder)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { border: 'none' } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { border: 'shadow' } })).toEqual({ props: {} })
+	})
+})
+
 describe('Make video asset file size optional', () => {
 	const { up, down } = getTestMigration(videoAssetVersions.MakeFileSizeOptional)
 
