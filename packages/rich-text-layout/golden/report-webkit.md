@@ -1,6 +1,6 @@
 # Golden drift report
 
-Generated 2026-08-25T13:34:12.495Z
+Generated 2026-09-12T12:59:36.274Z
 
 ## Plain text
 
@@ -8,8 +8,8 @@ Cases: 1120
 
 | group | cases | max dw | p95 dw | max dh | p95 dh | line mismatches |
 | ----- | ----- | ------ | ------ | ------ | ------ | --------------- |
-| all   | 1120  | 202.82 | 28.14  | 59.00  | 0.00   | 42              |
-| draw  | 280   | 95.71  | 21.45  | 59.00  | 0.00   | 10              |
+| all   | 1120  | 202.82 | 28.14  | 59.00  | 0.00   | 40              |
+| draw  | 280   | 95.71  | 21.45  | 59.00  | 0.00   | 8               |
 | mono  | 280   | 202.82 | 41.34  | 59.00  | 0.00   | 13              |
 | sans  | 280   | 95.71  | 0.85   | 59.00  | 0.00   | 8               |
 | serif | 280   | 115.58 | 36.18  | 59.00  | 0.00   | 11              |
@@ -29,9 +29,8 @@ Cases: 1120
 | hebrew/serif/36/auto   | 358.70×49.00 (1)   | 453.24×49.00 (1)   | 94.54   | 0.00 |
 | arabic/draw/44/auto    | 623.14×59.00 (1)   | 532.74×59.00 (1)   | -90.40  | 0.00 |
 
-### Line-count mismatches (42)
+### Line-count mismatches (40)
 
-- paragraph/draw/36/200: chrome 29, engine 30
 - url/draw/18/200: chrome 4, engine 3
 - url/draw/24/200: chrome 6, engine 5
 - url/sans/18/200: chrome 4, engine 3
@@ -70,7 +69,8 @@ Cases: 1120
 - hebrew/serif/44/200: chrome 3, engine 4
 - hebrew/mono/44/200: chrome 5, engine 4
 - mixedDirection/draw/18/200: chrome 2, engine 1
-- longWords/draw/36/200: chrome 6, engine 7
+- thai/mono/24/200: chrome 3, engine 2
+- thai/mono/44/200: chrome 5, engine 4
 
 ## Plain text by case
 
@@ -78,7 +78,7 @@ Cases: 1120
 
 | group           | cases | max dw | p95 dw | max dh | p95 dh | line mismatches |
 | --------------- | ----- | ------ | ------ | ------ | ------ | --------------- |
-| all             | 1120  | 202.82 | 28.14  | 59.00  | 0.00   | 42              |
+| all             | 1120  | 202.82 | 28.14  | 59.00  | 0.00   | 40              |
 | arabic          | 32    | 202.82 | 165.94 | 59.00  | 59.00  | 4               |
 | caps            | 32    | 0.02   | 0.02   | 0.00   | 0.00   | 0               |
 | chinese         | 32    | 72.92  | 72.92  | 59.00  | 59.00  | 12              |
@@ -92,14 +92,14 @@ Cases: 1120
 | korean          | 32    | 88.45  | 72.38  | 0.00   | 0.00   | 0               |
 | leadingSpaces   | 32    | 0.02   | 0.02   | 0.00   | 0.00   | 0               |
 | longWord        | 32    | 0.02   | 0.02   | 0.00   | 0.00   | 0               |
-| longWords       | 32    | 0.02   | 0.01   | 49.00  | 0.00   | 1               |
+| longWords       | 32    | 0.02   | 0.01   | 0.00   | 0.00   | 0               |
 | manyWords       | 32    | 0.31   | 0.17   | 0.00   | 0.00   | 0               |
 | mixedDirection  | 32    | 51.57  | 42.19  | 24.00  | 0.00   | 1               |
 | multiLine       | 32    | 0.02   | 0.02   | 0.00   | 0.00   | 0               |
 | nbsp            | 32    | 0.02   | 0.01   | 0.00   | 0.00   | 0               |
 | numbers         | 32    | 0.02   | 0.02   | 0.00   | 0.00   | 0               |
 | pangram         | 32    | 0.05   | 0.05   | 0.00   | 0.00   | 0               |
-| paragraph       | 32    | 0.17   | 0.16   | 49.00  | 0.00   | 1               |
+| paragraph       | 32    | 0.17   | 0.16   | 0.00   | 0.00   | 0               |
 | punctuation     | 32    | 0.05   | 0.04   | 0.00   | 0.00   | 0               |
 | repeatedSpaces  | 32    | 0.02   | 0.02   | 0.00   | 0.00   | 0               |
 | short           | 32    | 0.02   | 0.02   | 0.00   | 0.00   | 0               |
@@ -130,9 +130,8 @@ Cases: 1120
 | hebrew/serif/36/auto   | 358.70×49.00 (1)   | 453.24×49.00 (1)   | 94.54   | 0.00 |
 | arabic/draw/44/auto    | 623.14×59.00 (1)   | 532.74×59.00 (1)   | -90.40  | 0.00 |
 
-### Line-count mismatches (42)
+### Line-count mismatches (40)
 
-- paragraph/draw/36/200: chrome 29, engine 30
 - url/draw/18/200: chrome 4, engine 3
 - url/draw/24/200: chrome 6, engine 5
 - url/sans/18/200: chrome 4, engine 3
@@ -171,4 +170,5 @@ Cases: 1120
 - hebrew/serif/44/200: chrome 3, engine 4
 - hebrew/mono/44/200: chrome 5, engine 4
 - mixedDirection/draw/18/200: chrome 2, engine 1
-- longWords/draw/36/200: chrome 6, engine 7
+- thai/mono/24/200: chrome 3, engine 2
+- thai/mono/44/200: chrome 5, engine 4
