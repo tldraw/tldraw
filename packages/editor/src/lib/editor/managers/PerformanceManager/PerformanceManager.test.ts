@@ -94,6 +94,85 @@ describe('PerformanceManager', () => {
 		})
 	})
 
+	describe('dispose()', () => {
+		it('removes every lazily attached editor listener', () => {
+			const editor = createMockEditor()
+			const pm = new PerformanceManager(editor)
+			pm.on('interaction-end', vi.fn())
+			pm.on('shapes-created', vi.fn())
+			pm.on('shapes-updated', vi.fn())
+			pm.on('shapes-deleted', vi.fn())
+			expect(editor._listeners['frame']).toHaveLength(1)
+			expect(editor._listeners['created-shapes']).toHaveLength(1)
+			expect(editor._listeners['edited-shapes']).toHaveLength(1)
+			expect(editor._listeners['deleted-shapes']).toHaveLength(1)
+
+			pm.dispose()
+
+			expect(editor._listeners).toEqual({
+				frame: [],
+				'created-shapes': [],
+				'edited-shapes': [],
+				'deleted-shapes': [],
+			})
+		})
+
+		it('disconnects the LoAF observer', () => {
+			const origPO = globalThis.PerformanceObserver
+			const mockDisconnect = vi.fn()
+			globalThis.PerformanceObserver = class MockPO {
+				constructor(_cb: any) {}
+				observe() {}
+				disconnect = mockDisconnect
+				static supportedEntryTypes = ['long-animation-frame']
+			} as any
+
+			const editor = createMockEditor()
+			const pm = new PerformanceManager(editor)
+			pm.on('interaction-end', vi.fn())
+			expect(mockDisconnect).not.toHaveBeenCalled()
+
+			pm.dispose()
+			expect(mockDisconnect).toHaveBeenCalledTimes(1)
+
+			globalThis.PerformanceObserver = origPO
+		})
+
+		it('does not tear down a listener that was already detached', () => {
+			const editor = createMockEditor()
+			const off = vi.spyOn(editor, 'off')
+			const pm = new PerformanceManager(editor)
+			pm.on('shapes-created', vi.fn())()
+			expect(off).toHaveBeenCalledTimes(1)
+
+			pm.dispose()
+			expect(off).toHaveBeenCalledTimes(1)
+		})
+
+		it('makes a stale unsubscribe a no-op after dispose', () => {
+			const editor = createMockEditor()
+			const off = vi.spyOn(editor, 'off')
+			const pm = new PerformanceManager(editor)
+			const unsub = pm.on('interaction-end', vi.fn())
+
+			pm.dispose()
+			expect(off).toHaveBeenCalledTimes(1)
+			unsub()
+			expect(off).toHaveBeenCalledTimes(1)
+		})
+
+		it('attaches again for a subscriber added after dispose', () => {
+			const editor = createMockEditor()
+			const pm = new PerformanceManager(editor)
+			pm.on('shapes-created', vi.fn())
+			pm.dispose()
+			expect(editor._listeners['created-shapes']).toHaveLength(0)
+
+			pm.on('shapes-created', vi.fn())
+			expect(editor._listeners['created-shapes']).toHaveLength(1)
+		})
+	})
+
 	describe('interaction tracking', () => {
 		it('emits interaction-start when notified', () => {
 			const editor = createMockEditor()
