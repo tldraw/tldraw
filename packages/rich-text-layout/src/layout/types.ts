@@ -25,8 +25,8 @@ export interface FragmentSource {
 export type FragmentKind = 'text' | 'marker' | 'tab' | 'space'
 
 /**
- * A run of text on one line sharing a single style. `x` is relative to the layout's left edge,
- * like `LineBox.x`.
+ * A run of text on one line sharing a single style. `x` is relative to the line box's left edge,
+ * so a fragment starts at `LineBox.x + x` in layout coordinates.
  *
  * @public
  */

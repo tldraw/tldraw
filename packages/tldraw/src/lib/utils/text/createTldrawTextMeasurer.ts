@@ -240,10 +240,10 @@ export function createTldrawTextMeasurer(options: TldrawTextMeasurerOptions): Tl
 	function toSize(layout: TextLayout, opts: TLMeasureTextOpts): TLMeasuredTextSize {
 		let scrollWidth = 0
 		if (opts.measureScrollWidth) {
+			// Line widths exclude spaces hanging at a soft wrap, which Blink leaves out of
+			// scrollWidth. Counting them made notes shrink text that fit (scrollWidth !== w).
 			let right = layout.width
-			for (const line of layout.lines) {
-				for (const f of line.fragments) right = Math.max(right, line.x + f.x + f.width)
-			}
+			for (const line of layout.lines) right = Math.max(right, line.x + line.width)
 			scrollWidth = Math.round(right)
 		}
 		return { x: 0, y: 0, w: layout.width, h: layout.height, scrollWidth }

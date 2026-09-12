@@ -171,6 +171,17 @@ describe('createTldrawTextMeasurer', () => {
 		expect(size.scrollWidth).toBe(100)
 	})
 
+	it('leaves spaces hanging at a soft wrap out of scrollWidth', () => {
+		// 'aaa bbb' is 70px and fits; its trailing space would end at 80px
+		const size = measurer.measureText('aaa bbb ccc', {
+			...baseOpts,
+			maxWidth: 75,
+			disableOverflowWrapBreaking: true,
+			measureScrollWidth: true,
+		})
+		expect(size).toMatchObject({ w: 75, scrollWidth: 75 })
+	})
+
 	it('writes the label colour and per-layout colours into fragments', () => {
 		const richText = {
 			type: 'doc',
