@@ -23,9 +23,17 @@ export function shouldSkipMissingRoomEffect(error: unknown, file: TlaFile): bool
 // a null stage means the boot settled and the stall is in post-boot work (e.g. the
 // per-session permission refresh).
 export type BootStage =
-	| 'storage-load'
+	| 'storage-load:sqlite-init'
+	| 'storage-load:r2'
+	| 'storage-load:file-record'
+	| 'storage-load:comments'
+	| 'storage-load:supabase'
+	| 'storage-load:kv-rollout'
 	| 'source-await-persist'
 	| 'source-r2-fetch'
+	| 'source-welcome'
+	| 'source-legacy'
+	| 'source-published'
 	| 'source-r2-put'
 	| 'room-create'
 

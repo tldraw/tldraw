@@ -57,6 +57,8 @@ interface ResolvedDoRoom {
 	deleted: boolean
 	connectedSockets: number
 	roomLoaded: boolean
+	bootStage: string | null
+	bootStageAgeMs: number | null
 }
 
 interface ResolvedDoHistory {
@@ -245,7 +247,11 @@ function ResolveDoId() {
 					<div>
 						{history ? <b>{activityVerdict(match, history)}</b> : null} · {match.connectedSockets}{' '}
 						socket{match.connectedSockets === 1 ? '' : 's'} connected · room{' '}
-						{match.roomLoaded ? 'loaded in memory' : 'not loaded (hibernated or idle)'}
+						{match.bootStage !== null
+							? `booting: ${match.bootStage} for ${Math.round((match.bootStageAgeMs ?? 0) / 1000)}s`
+							: match.roomLoaded
+								? 'loaded in memory'
+								: 'not loaded (hibernated or idle)'}
 					</div>
 					{history && (
 						<div>
