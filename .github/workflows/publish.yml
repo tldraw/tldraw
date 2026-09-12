@@ -171,6 +171,7 @@ jobs:
           private_key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
 
       - name: Check out code
+        id: checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -250,9 +251,9 @@ jobs:
             https://api.github.com/repos/tldraw/tldraw-internal/dispatches \
             -d '{"event_type":"tldraw-release","client_payload":{"version":"${{ steps.version.outputs.value }}","tag":"next"}}'
 
-      # Earlier steps run before checkout, so re-fetch the local action on failure.
+      # Preserve the setup action for post-job cleanup when checkout already succeeded.
       - name: Check out Discord notify action
-        if: failure()
+        if: failure() && steps.checkout.outcome != 'success'
         uses: actions/checkout@v6
         with:
           sparse-checkout: .github/actions/discord-fail-notify
