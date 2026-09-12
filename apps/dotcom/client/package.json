@@ -68,7 +68,7 @@
 		"tldraw": "workspace:*"
 	},
 	"devDependencies": {
-		"@clerk/testing": "^1.4.15",
+		"@clerk/testing": "^2.2.33",
 		"@formatjs/cli": "^6.5.1",
 		"@formatjs/unplugin": "^1.1.0",
 		"@peculiar/webcrypto": "^1.5.0",
