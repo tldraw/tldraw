@@ -59,14 +59,25 @@ export interface LengthContext {
 	lineHeight: number
 }
 
+const LENGTH = /^(-?\d*\.?\d+)(px|em|ch|lh)?$/
+// Style rules are resolved for every block of every layout, but name only a handful of lengths.
+const parsedLengths = new Map<string, { n: number; unit: string | undefined } | null>()
+const PARSED_LENGTH_LIMIT = 1000
+
 /** @internal */
 export function resolveLength(value: Length | undefined, ctx: LengthContext, fallback = 0): number {
 	if (value === undefined) return fallback
 	if (typeof value === 'number') return value
-	const match = /^(-?\d*\.?\d+)(px|em|ch|lh)?$/.exec(value.trim())
-	if (!match) return fallback
-	const n = parseFloat(match[1])
-	switch (match[2]) {
+	let parsed = parsedLengths.get(value)
+	if (parsed === undefined) {
+		const match = LENGTH.exec(value.trim())
+		parsed = match ? { n: parseFloat(match[1]), unit: match[2] } : null
+		if (parsedLengths.size >= PARSED_LENGTH_LIMIT) parsedLengths.clear()
+		parsedLengths.set(value, parsed)
+	}
+	if (!parsed) return fallback
+	const { n } = parsed
+	switch (parsed.unit) {
 		case 'em':
 			return n * ctx.fontSize
 		case 'ch':
@@ -83,7 +94,7 @@ function resolveFontSize(value: FontSizeValue | undefined, parentSize: number, c
 	// CSS `smaller`/`larger` step the size by the browser's 1.2 ratio.
 	if (value === 'smaller') return parentSize / 1.2
 	if (value === 'larger') return parentSize * 1.2
-	return resolveLength(value, { ...ctx, fontSize: parentSize }, parentSize)
+	return resolveLength(value, ctx, parentSize)
 }
 
 function resolveFontWeight(value: FontWeightValue | undefined, parent: string): string {
@@ -116,13 +127,34 @@ function lineHeightPx(
 	return inherit.kind === 'factor' ? inherit.value * font.size : inherit.value
 }
 
+// Specs are interned: font strings and measurement state are cached per spec object, and a fresh
+// object for every resolved style missed those caches on every layout.
+const fontSpecs = new Map<string, Map<number, Map<string, Map<string, FontSpec>>>>()
+let fontSpecCount = 0
+const FONT_SPEC_LIMIT = 1000
+
 function fontSpec(
 	family: string,
 	size: number,
 	weight: string,
 	style: ResolvedBlockStyle['fontStyle']
 ): FontSpec {
-	return { family, size, weight, style }
+	const existing = fontSpecs.get(family)?.get(size)?.get(weight)?.get(style)
+	if (existing) return existing
+	if (fontSpecCount >= FONT_SPEC_LIMIT) {
+		fontSpecs.clear()
+		fontSpecCount = 0
+	}
+	const spec = { family, size, weight, style }
+	let bySize = fontSpecs.get(family)
+	if (!bySize) fontSpecs.set(family, (bySize = new Map()))
+	let byWeight = bySize.get(size)
+	if (!byWeight) bySize.set(size, (byWeight = new Map()))
+	let byStyle = byWeight.get(weight)
+	if (!byStyle) byWeight.set(weight, (byStyle = new Map()))
+	byStyle.set(style, spec)
+	fontSpecCount++
+	return spec
 }
 
 /** @internal */
@@ -214,7 +246,9 @@ export function createStyleResolver(
 				: parent.lineHeightInherit
 		const parentCtx: LengthContext = {
 			fontSize: parentSize,
-			zeroAdvance: measure.metrics(parentFont).zeroAdvance,
+			get zeroAdvance() {
+				return measure.metrics(parentFont).zeroAdvance
+			},
 			lineHeight: lineHeightPx(parentLineHeightInherit, parentFont, measure, profile),
 		}
 		const fontSize = resolveFontSize(decl.fontSize, parentSize, parentCtx)
@@ -227,7 +261,9 @@ export function createStyleResolver(
 		const lineHeight = lineHeightPx(lineHeightInherit, font, measure, profile)
 		const ownCtx: LengthContext = {
 			fontSize,
-			zeroAdvance: measure.metrics(font).zeroAdvance,
+			get zeroAdvance() {
+				return measure.metrics(font).zeroAdvance
+			},
 			lineHeight,
 		}
 
@@ -287,10 +323,13 @@ export function createStyleResolver(
 		let lineHeightInherit = block.lineHeightInherit
 
 		const apply = (decl: StyleDeclaration) => {
+			const font = fontSpec(fontFamily, fontSize, fontWeight, fontStyle)
 			const lengthCtx: LengthContext = {
 				fontSize,
-				zeroAdvance: measure.metrics(fontSpec(fontFamily, fontSize, fontWeight, fontStyle))
-					.zeroAdvance,
+				// Only `ch` lengths need the zero advance; most declarations have none.
+				get zeroAdvance() {
+					return measure.metrics(font).zeroAdvance
+				},
 				lineHeight: base.lineHeight,
 			}
 			if (decl.fontFamily !== undefined) fontFamily = decl.fontFamily
