@@ -1,5 +1,6 @@
 import { createComputedCache } from '@tldraw/store'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
+import { areShapesContentEqual } from '../../utils/areShapesContentEqual'
 import type { Editor } from '../Editor'
 
 const indicatorPathCache = createComputedCache(
@@ -9,9 +10,7 @@ const indicatorPathCache = createComputedCache(
 		return util.getIndicatorPath(shape)
 	},
 	{
-		areRecordsEqual(a, b) {
-			return a.props === b.props
-		},
+		areRecordsEqual: areShapesContentEqual,
 	}
 )
 

@@ -57,7 +57,8 @@ const arrowInfoCache = createComputedCache<Editor, TLArrowInfo, TLArrowShape>(
 		}
 	},
 	{
-		areRecordsEqual: (a, b) => a.props === b.props,
+		// Custom display values can read stroke width from metadata, which changes binding offsets.
+		areRecordsEqual: (a, b) => a.props === b.props && a.meta === b.meta,
 		areResultsEqual: isEqualAllowingForFloatingPointErrors,
 	}
 )

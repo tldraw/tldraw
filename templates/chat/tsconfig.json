@@ -43,6 +43,9 @@
   ],
   "references": [
     {
+      "path": "../../packages/commenting"
+    },
+    {
       "path": "../../packages/tldraw"
     }
   ]
