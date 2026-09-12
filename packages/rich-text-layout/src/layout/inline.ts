@@ -476,11 +476,14 @@ function fragmentKind(kind: string): FragmentKind {
 	return 'text'
 }
 
-function tabAdvance(x: number, tabStop: number) {
+// Blink skips to the following stop when the next one is under half a space away (verified in
+// Chromium 149); without that, tabs after short words at `tab-size: 2` came out a stop too narrow.
+function tabAdvance(x: number, tabStop: number, spaceWidth: number) {
 	if (tabStop <= 0) return 0
 	const remainder = x % tabStop
 	if (Math.abs(remainder) <= 1e-6) return tabStop
-	return tabStop - remainder
+	const advance = tabStop - remainder
+	return advance < spaceWidth / 2 ? advance + tabStop : advance
 }
 
 interface VerticalMetrics {
@@ -668,7 +671,11 @@ export function layoutInline(
 				if (text.length === 0) continue
 				let width: number
 				if (piece.kind === 'tab') {
-					width = tabAdvance(x, pc.prepared.tabStopAdvance)
+					width = tabAdvance(
+						x,
+						pc.prepared.tabStopAdvance,
+						measure.measure(' ', run.style.font).width
+					)
 				} else {
 					width = measure.measure(text, run.style.font).width
 					if (run.style.letterSpacing !== 0)

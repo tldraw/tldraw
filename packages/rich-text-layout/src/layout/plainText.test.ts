@@ -96,6 +96,17 @@ describe('layoutPlainText', () => {
 		expect(layout.lines[0].fragments.map((f) => f.text)).toEqual(['a', ' ', 'b'])
 	})
 
+	it('skips a tab stop that is less than half a space away', () => {
+		// 'm' is 18px, so the next 20px stop is 2px away: under half a 10px space
+		const measureContext = createFakeMeasureContext({ advance: 0.5, advances: { m: 0.9 } })
+		const layout = layoutPlainText('m\tb', { style: { ...style, tabSize: 2 }, measureContext })
+		expect(layout.lines[0].fragments.map((f) => [f.text, f.x, f.width])).toEqual([
+			['m', 0, 18],
+			['\t', 18, 22],
+			['b', 40, 10],
+		])
+	})
+
 	it('advances tabs to the next tab stop', () => {
 		const layout = layoutPlainText('\ta', { style: { ...style, tabSize: 2 } })
 		// tab stop = 2 spaces = 20px, then 'a'
