@@ -238,15 +238,19 @@ function prepareChunk(
 
 	// The run with the most characters lends its font to pretext; other runs' segments are
 	// re-measured afterwards. Single-font paragraphs (the common case) need no patching.
-	const counts = new Map<number, number>()
-	for (const r of chunk.runOf) counts.set(r, (counts.get(r) ?? 0) + 1)
-	let dominant = chunk.runOf.length > 0 ? chunk.runOf[0] : 0
+	// Run indices never decrease within a chunk, so each run's characters are contiguous.
+	const { runOf } = chunk
+	let dominant = runOf.length > 0 ? runOf[0] : 0
 	let best = -1
-	for (const [r, n] of counts) {
-		if (n > best) {
-			best = n
+	for (let i = 0; i < runOf.length; ) {
+		const r = runOf[i]
+		let j = i + 1
+		while (j < runOf.length && runOf[j] === r) j++
+		if (j - i > best) {
+			best = j - i
 			dominant = r
 		}
+		i = j
 	}
 	const dominantRun = runs[dominant] ?? null
 	const dominantFont: FontSpec = dominantRun ? dominantRun.style.font : block.font
@@ -339,7 +343,8 @@ function patchMixedFonts(
 	measure: MeasureContext,
 	shapedPrefixes: Set<number>
 ) {
-	const dominantFont = fontSpecToString(runs[dominant].style.font)
+	const runFonts = runs.map((run) => fontSpecToString(run.style.font))
+	const dominantFont = runFonts[dominant]
 	const ls = prepared.letterSpacing
 	for (let i = 0; i < prepared.segments.length; i++) {
 		const s = segStart[i]
@@ -348,7 +353,7 @@ function patchMixedFonts(
 		if (kind === 'tab' || kind === 'soft-hyphen' || kind === 'hard-break') continue
 		let needsPatch = false
 		for (let c = s; c < e; c++) {
-			if (fontSpecToString(runs[chunk.runOf[c]].style.font) !== dominantFont) {
+			if (runFonts[chunk.runOf[c]] !== dominantFont) {
 				needsPatch = true
 				break
 			}
@@ -645,7 +650,14 @@ export function layoutInline(
 			const to = cursorOffset(pc, range.end)
 			if (to <= from) break
 
-			const pieces = piecesForRange(pc, chunk, from, to, direction === 'rtl' ? 1 : 0)
+			const pieces = piecesForRange(
+				pc,
+				chunk,
+				from,
+				to,
+				range.start.segmentIndex,
+				direction === 'rtl' ? 1 : 0
+			)
 			const fragments: Fragment[] = []
 			const fragmentLevels: number[] = []
 			let x = 0
@@ -662,6 +674,7 @@ export function layoutInline(
 					if (run.style.letterSpacing !== 0)
 						width += run.style.letterSpacing * graphemes(text).length
 				}
+				const metrics = measure.metrics(run.style.font)
 				fragmentLevels.push(piece.level)
 				fragments.push({
 					x,
@@ -676,8 +689,8 @@ export function layoutInline(
 					},
 					level: piece.level,
 					baselineShift: baselineShiftFor(run.style, block.fontSize, profile),
-					ascent: measure.metrics(run.style.font).ascent,
-					descent: measure.metrics(run.style.font).descent,
+					ascent: metrics.ascent,
+					descent: metrics.descent,
 				})
 				x += width
 			}
@@ -757,11 +770,13 @@ function piecesForRange(
 	chunk: Chunk,
 	from: number,
 	to: number,
+	startSegment: number,
 	baseLevel: number
 ): Piece[] {
 	const pieces: Piece[] = []
 	const { segments, kinds } = pc.prepared
-	for (let i = 0; i < segments.length; i++) {
+	// Starting at the line's first segment keeps long paragraphs linear rather than quadratic.
+	for (let i = Math.min(startSegment, segments.length); i < segments.length; i++) {
 		const s = Math.max(pc.segStart[i], from)
 		const e = Math.min(pc.segStart[i + 1], to)
 		if (e <= s) {

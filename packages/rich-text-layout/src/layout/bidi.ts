@@ -4,7 +4,7 @@
 // as LTR.
 const RTL_SCRIPT =
 	/[\p{Script=Hebrew}\p{Script=Arabic}\p{Script=Syriac}\p{Script=Thaana}\p{Script=Nko}\p{Script=Samaritan}\p{Script=Mandaic}\p{Script=Adlam}]/u
-const STRONG_LTR = /\p{L}/u
+const FIRST_STRONG = new RegExp(`${RTL_SCRIPT.source}|\\p{L}`, 'u')
 
 /**
  * Paragraph direction from the first strong character, defaulting to `ltr` when there is none.
@@ -12,9 +12,6 @@ const STRONG_LTR = /\p{L}/u
  * @public
  */
 export function detectDirection(text: string): 'ltr' | 'rtl' {
-	for (const ch of text) {
-		if (RTL_SCRIPT.test(ch)) return 'rtl'
-		if (STRONG_LTR.test(ch)) return 'ltr'
-	}
-	return 'ltr'
+	const match = FIRST_STRONG.exec(text)
+	return match !== null && RTL_SCRIPT.test(match[0]) ? 'rtl' : 'ltr'
 }

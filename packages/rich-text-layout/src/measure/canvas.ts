@@ -21,6 +21,13 @@ export interface CanvasTextContextLike {
 const ZERO_WIDTH = /[\u200B\u2060\uFEFF]/
 const ZERO_WIDTH_ALL = /[\u200B\u2060\uFEFF]/g
 
+interface FontState {
+	/** The value assigned to `ctx.font`, fallback families included. */
+	font: string
+	widths: Map<string, number>
+	metrics: FontMetrics | null
+}
+
 /** @public */
 export interface CanvasMeasureContextOptions {
 	/**
@@ -41,55 +48,61 @@ export function createCanvasMeasureContext(
 	ctx: CanvasTextContextLike,
 	options: CanvasMeasureContextOptions = {}
 ): MeasureContext {
-	const metricsCache = new Map<string, FontMetrics>()
-	const widthCache = new Map<string, Map<string, number>>()
 	const fallback = (options.fallbackFamilies ?? [])
 		.map((family) => (family.includes(' ') ? `"${family}"` : family))
 		.join(', ')
+	const states = new Map<string, FontState>()
+	const statesBySpec = new WeakMap<FontSpec, FontState>()
 	let currentFont = ''
 
-	function setFont(font: FontSpec) {
+	function stateFor(font: FontSpec): FontState {
+		let state = statesBySpec.get(font)
+		if (state) return state
 		const str = fontSpecToString(font)
-		if (str !== currentFont) {
+		state = states.get(str)
+		if (!state) {
 			// Fallback families go after the declared ones so skia can pick glyphs from them
 			// without changing which font draws the characters the primary font covers.
-			ctx.font = fallback ? `${str}, ${fallback}` : str
-			currentFont = str
+			state = { font: fallback ? `${str}, ${fallback}` : str, widths: new Map(), metrics: null }
+			states.set(str, state)
 		}
-		return str
+		statesBySpec.set(font, state)
+		return state
+	}
+
+	// Assigning `font` makes the browser parse the shorthand, so cache hits never touch it.
+	function measureText(state: FontState, text: string) {
+		if (state.font !== currentFont) {
+			ctx.font = state.font
+			currentFont = state.font
+		}
+		return ctx.measureText(text)
 	}
 
 	return {
 		measure(text, font) {
-			const str = setFont(font)
-			let cache = widthCache.get(str)
-			if (!cache) {
-				cache = new Map()
-				widthCache.set(str, cache)
-			}
-			let width = cache.get(text)
+			const state = stateFor(font)
+			let width = state.widths.get(text)
 			if (width === undefined) {
 				// Browsers give zero-width spaces and word joiners no advance even when the font
 				// has no glyph for them; skia measures the font's .notdef box instead.
 				const measurable = ZERO_WIDTH.test(text) ? text.replace(ZERO_WIDTH_ALL, '') : text
-				width = measurable.length === 0 ? 0 : ctx.measureText(measurable).width
-				cache.set(text, width)
+				width = measurable.length === 0 ? 0 : measureText(state, measurable).width
+				state.widths.set(text, width)
 			}
 			return { width }
 		},
 		metrics(font) {
-			const str = setFont(font)
-			let metrics = metricsCache.get(str)
-			if (!metrics) {
-				const m = ctx.measureText('Hg')
+			const state = stateFor(font)
+			if (!state.metrics) {
+				const m = measureText(state, 'Hg')
 				// Fall back to typical Latin proportions when the implementation lacks font
 				// bounding box support (older browsers).
 				const ascent = m.fontBoundingBoxAscent ?? font.size * 0.9
 				const descent = m.fontBoundingBoxDescent ?? font.size * 0.25
-				metrics = { ascent, descent, zeroAdvance: ctx.measureText('0').width }
-				metricsCache.set(str, metrics)
+				state.metrics = { ascent, descent, zeroAdvance: measureText(state, '0').width }
 			}
-			return metrics
+			return state.metrics
 		},
 	}
 }

@@ -65,6 +65,8 @@ export function layoutDocument(doc: PMNode, options: LayoutOptions = {}): TextLa
 		}
 		const result = layoutLeaf(b, Infinity, measure, resolver, profile)
 		maxContent = Math.max(maxContent, result.maxContentWidth + b.inset)
+		b.lines = result.lines
+		b.direction = result.direction
 	}
 	if (!isEmpty) measureMaxContent(tree)
 
@@ -72,23 +74,18 @@ export function layoutDocument(doc: PMNode, options: LayoutOptions = {}): TextLa
 	const wraps = maxContent > contentMax
 	const contentWidth = Math.max(wraps ? contentMax : maxContent, minWidth - padding * 2, 0)
 
-	// Pass 2: lay lines out at the final width.
+	// Pass 2: lay lines out at the final width. A layout that doesn't wrap keeps pass 1's lines,
+	// which were laid out at the same infinite width.
 	const layoutLeaves = (b: LaidOutBlock) => {
 		if (b.children.length > 0) {
 			for (const child of b.children) layoutLeaves(child)
 			return
 		}
-		const result = layoutLeaf(
-			b,
-			wraps ? contentWidth - b.inset : Infinity,
-			measure,
-			resolver,
-			profile
-		)
+		const result = layoutLeaf(b, contentWidth - b.inset, measure, resolver, profile)
 		b.lines = result.lines
 		b.direction = result.direction
 	}
-	if (!isEmpty) layoutLeaves(tree)
+	if (!isEmpty && wraps) layoutLeaves(tree)
 
 	// Pass 3: stack vertically with margin collapsing, then emit boxes.
 	const blocks: BlockBox[] = []
