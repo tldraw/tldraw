@@ -1,5 +1,4 @@
 import {
-	Editor,
 	StateNode,
 	TLAdjacentDirection,
 	TLClickEventInfo,
@@ -7,11 +6,9 @@ import {
 	TLPointerEventInfo,
 	TLShape,
 	Vec,
-	VecLike,
 	createShapeId,
 	debugFlags,
 	kickoutOccludedShapes,
-	pointInPolygon,
 	toRichText,
 	unsafe__withoutCapture,
 } from '@tldraw/editor'
@@ -22,7 +19,11 @@ import {
 	cancelUpdateHoveredShapeId,
 	updateHoveredShapeId,
 } from '../../selection-logic/updateHoveredShapeId'
-import { hasRichText, startEditingShapeWithRichText } from '../selectHelpers'
+import {
+	hasRichText,
+	isPointInRotatedSelectionBounds,
+	startEditingShapeWithRichText,
+} from '../selectHelpers'
 
 const SKIPPED_KEYS_FOR_AUTO_EDITING = [
 	'Delete',
@@ -321,6 +322,8 @@ export class Idle extends StateNode {
 							this.editor.getShapeAtPoint(currentPagePoint, {
 								margin: this.editor.getHitTestMargin(),
 								hitInside: false,
+								hitLocked: this.editor.options.selectLockedShapes,
+								renderingOnly: true,
 							}))
 
 				if (hitShape) {
@@ -433,13 +436,14 @@ export class Idle extends StateNode {
 
 				const util = this.editor.getShapeUtil(shape)
 
-				// Allow playing videos and embeds
-				if (shape.type !== 'video' && shape.type !== 'embed' && this.editor.getIsReadonly()) break
+				// Shapes that opt into read-only editing (embeds, custom utils) still get their double click
+				if (this.editor.getIsReadonly() && !util.canEditInReadonly(shape)) break
 
 				if (util.onDoubleClick) {
 					// Call the shape's double click handler
 					const change = util.onDoubleClick?.(shape)
 					if (change) {
+						this.editor.markHistoryStoppingPoint('double click shape')
 						this.editor.updateShapes([change])
 						return
 					}
@@ -472,6 +476,7 @@ export class Idle extends StateNode {
 				const changes = util.onDoubleClickHandle?.(shape, handle)
 
 				if (changes) {
+					this.editor.markHistoryStoppingPoint('double click handle')
 					this.editor.updateShapes([changes])
 				} else {
 					// If the shape's double click handler has not created a change,
@@ -589,7 +594,7 @@ export class Idle extends StateNode {
 					}
 					return
 				}
-				this.nudgeSelectedShapes(false)
+				this.nudgeSelectedShapes(info, false)
 				return
 			}
 		}
@@ -635,7 +640,7 @@ export class Idle extends StateNode {
 					)
 					return
 				}
-				this.nudgeSelectedShapes(true)
+				this.nudgeSelectedShapes(info, true)
 				break
 			}
 			case 'Tab': {
@@ -754,12 +759,17 @@ export class Idle extends StateNode {
 		startEditingShapeWithRichText(this.editor, id, { info })
 	}
 
-	private nudgeSelectedShapes(ephemeral = false) {
+	private nudgeSelectedShapes(info: TLKeyboardEventInfo, ephemeral = false) {
 		const {
 			editor: {
 				inputs: { keys },
 			},
 		} = this
+
+		// Space+arrow pages the camera and Alt+arrow is the change-page shortcut; both
+		// events still reach this state, so without this guard the selection also
+		// moves one unit (#10397)
+		if (info.altKey || this.editor.inputs.getIsSpacebarPanning()) return
 
 		// We want to use the "actual" shift key state,
 		// not the one that's in the editor.inputs.shiftKey,
@@ -799,16 +809,3 @@ export class Idle extends StateNode {
 export const MAJOR_NUDGE_FACTOR = 10
 export const MINOR_NUDGE_FACTOR = 1
 export const GRID_INCREMENT = 5
-
-function isPointInRotatedSelectionBounds(editor: Editor, point: VecLike) {
-	const selectionBounds = editor.getSelectionRotatedPageBounds()
-	if (!selectionBounds) return false
-
-	const selectionRotation = editor.getSelectionRotation()
-	if (!selectionRotation) return selectionBounds.containsPoint(point)
-
-	return pointInPolygon(
-		point,
-		selectionBounds.corners.map((c) => Vec.RotWith(c, selectionBounds.point, selectionRotation))
-	)
-}

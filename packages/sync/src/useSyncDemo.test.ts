@@ -120,6 +120,19 @@ describe('useSyncDemo', () => {
 			)
 			expect(result).toEqual({ src: 'https://demo.server.com/uploads/unique-123-test-file-jpg' })
 		})
+
+		it('should reject the upload when the server responds with an error status', async () => {
+			useSyncDemo({ roomId: 'test-room', host: 'https://demo.server.com' })
+
+			const useSyncCall = vi.mocked(useSync).mock.calls[0][0]
+			const assetStore = useSyncCall.assets
+			const file = new File(['test content'], 'test-file.jpg')
+
+			// a rejected upload resolves the fetch; the asset must not point at a URL that was never stored
+			vi.mocked(mockFetch).mockResolvedValueOnce(new Response(null, { status: 409 }))
+
+			await expect(assetStore.upload({} as TLAsset, file)).rejects.toThrow('409')
+		})
 	})
 
 	describe('bookmark asset creation', () => {

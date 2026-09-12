@@ -1,9 +1,12 @@
-import { TLRichText, toRichText } from '@tldraw/editor'
+import { Editor as TextEditor, Extensions, JSONContent } from '@tiptap/core'
+import { Editor, TLRichText, toRichText } from '@tldraw/editor'
 import {
+	isEditingRichTextList,
 	isEmptyRichText,
 	renderHtmlFromRichTextWithExtensions,
 	tipTapDefaultExtensions,
 } from './richText'
+import { TaskItem, TaskList } from './tiptap'
 
 const render = (content: TLRichText['content']) =>
 	renderHtmlFromRichTextWithExtensions(
@@ -83,5 +86,47 @@ describe('isEmptyRichText', () => {
 			],
 		}
 		expect(isEmptyRichText(richText)).toBe(false)
+	})
+})
+
+describe('isEditingRichTextList', () => {
+	const editingWith = (extensions: Extensions, content: JSONContent) => {
+		const textEditor = new TextEditor({ extensions, content })
+		return { getRichTextEditor: () => textEditor } as unknown as Editor
+	}
+
+	const listItem = (type: string, itemType: string): JSONContent => ({
+		type,
+		content: [
+			{ type: itemType, content: [{ type: 'paragraph', content: [{ type: 'text', text: 'a' }] }] },
+		],
+	})
+
+	it('is false in a plain paragraph', () => {
+		const editor = editingWith(tipTapDefaultExtensions, toRichText('a') as JSONContent)
+		expect(isEditingRichTextList(editor)).toBe(false)
+	})
+
+	it('is true in the default lists', () => {
+		for (const [list, item] of [
+			['bulletList', 'listItem'],
+			['orderedList', 'listItem'],
+		]) {
+			const editor = editingWith(tipTapDefaultExtensions, {
+				type: 'doc',
+				content: [listItem(list, item)],
+			})
+			expect(isEditingRichTextList(editor)).toBe(true)
+		}
+	})
+
+	it('is true in a task list, whose items bind Tab themselves', () => {
+		// Without this, our Tab handler runs alongside TaskItem's and one keypress both indents the
+		// text and nests the item.
+		const editor = editingWith([...tipTapDefaultExtensions, TaskList, TaskItem], {
+			type: 'doc',
+			content: [listItem('taskList', 'taskItem')],
+		})
+		expect(isEditingRichTextList(editor)).toBe(true)
 	})
 })

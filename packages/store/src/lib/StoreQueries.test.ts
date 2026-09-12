@@ -803,6 +803,18 @@ describe('integration with reactive state (QI, QQ)', () => {
 })
 
 describe('queries across rolled-back transactions (QH, QQ)', () => {
+	it('[QQ2] the query creator is called without arguments', () => {
+		const args: unknown[][] = []
+		const ids = store.query.ids('book', (...rest: unknown[]) => {
+			args.push(rest)
+			return {}
+		})
+		ids.get()
+		store.put([Book.create({ title: 'Another', authorId: authors.bradbury.id })])
+		ids.get()
+		for (const call of args) expect(call).toEqual([])
+	})
+
 	it('[QH4] a query read during a transaction that rolls back is correct afterwards', () => {
 		const bookIds = store.query.ids('book')
 		const booksByAuthor = store.query.index('book', 'authorId')

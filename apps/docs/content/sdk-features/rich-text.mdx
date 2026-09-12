@@ -106,8 +106,7 @@ const extensions = getTipTapDefaultExtensions({ heading: false })
 You can add custom TipTap extensions through the `text` field of the `options` prop on the Tldraw component ([TLTextOptions](?)):
 
 ```tsx
-import { Mark, mergeAttributes } from '@tiptap/core'
-import { Tldraw, tipTapDefaultExtensions } from 'tldraw'
+import { Mark, Tldraw, mergeAttributes, tipTapDefaultExtensions } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 const CustomMark = Mark.create({
@@ -146,6 +145,26 @@ export default function App() {
 ```
 
 The `extensions` array replaces the default list entirely, so spread `tipTapDefaultExtensions` (or the result of `getTipTapDefaultExtensions`) to keep tldraw's defaults. Passing `[StarterKit, CustomMark]` alone drops highlighting and text direction, and StarterKit's default link config opens links on click while editing.
+
+### Importing TipTap
+
+Import TipTap's building blocks from `tldraw` rather than installing `@tiptap/*` alongside it. tldraw re-exports `Node`, `Mark`, `Extension`, `mergeAttributes`, `getSchema`, the `Extensions` and `JSONContent` types, and the `TaskList` and `TaskItem` extensions from the copy it bundles. Installing your own copy can resolve to a second `@tiptap/core` and ProseMirror, and ProseMirror throws when a schema is built from nodes belonging to two different instances.
+
+Task lists aren't part of the default extension set. Add them yourself, along with styles for the checkboxes, which tldraw doesn't provide:
+
+```tsx
+import { TaskItem, TaskList, tipTapDefaultExtensions } from 'tldraw'
+
+const options = {
+	text: {
+		tipTapConfig: {
+			extensions: [...tipTapDefaultExtensions, TaskList, TaskItem.configure({ nested: true })],
+		},
+	},
+}
+```
+
+Extensions tldraw doesn't re-export still need their own package. Install them at the same TipTap version tldraw depends on so your package manager dedupes `@tiptap/core` down to a single copy.
 
 ### Rich text toolbar
 
@@ -255,7 +274,7 @@ The chain API lets you compose multiple operations. Each command returns a chain
 For operations outside the editing context, you can manipulate the rich text JSON directly. `TLRichText.content` is typed as `unknown[]`, so cast to TipTap's `JSONContent` when walking the tree:
 
 ```typescript
-import { JSONContent } from '@tiptap/core'
+import { JSONContent } from 'tldraw'
 
 function makeAllTextBold(richText: TLRichText): TLRichText {
 	const content = (richText.content as JSONContent[]).map((paragraph) => {

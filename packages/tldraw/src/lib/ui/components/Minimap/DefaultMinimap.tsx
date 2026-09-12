@@ -3,12 +3,11 @@ import {
 	TLPointerEventInfo,
 	Vec,
 	getPointerInfo,
-	isAccelKey,
-	normalizeWheel,
 	setPointerCapture,
 	useContainer,
 	useColorMode,
 	useEditor,
+	usePassThroughWheelEvents,
 	useValue,
 } from '@tldraw/editor'
 import * as React from 'react'
@@ -25,6 +24,9 @@ export function DefaultMinimap() {
 	const editor = useEditor()
 	const container = useContainer()
 	const msg = useTranslation()
+
+	const rMinimap = React.useRef<HTMLDivElement>(null)
+	usePassThroughWheelEvents(rMinimap)
 
 	const rCanvas = React.useRef<HTMLCanvasElement>(null!)
 	const rPointing = React.useRef(false)
@@ -177,25 +179,6 @@ export function DefaultMinimap() {
 		[editor]
 	)
 
-	const onWheel = React.useCallback(
-		(e: React.WheelEvent<HTMLCanvasElement>) => {
-			const offset = normalizeWheel(e)
-
-			editor.dispatch({
-				type: 'wheel',
-				name: 'wheel',
-				delta: offset,
-				point: new Vec(e.clientX, e.clientY),
-				shiftKey: e.shiftKey,
-				altKey: e.altKey,
-				ctrlKey: e.metaKey || e.ctrlKey,
-				metaKey: e.metaKey,
-				accelKey: isAccelKey(e),
-			})
-		},
-		[editor]
-	)
-
 	const colorMode = useColorMode()
 	const currentThemeId = useValue('current theme id', () => editor.getCurrentThemeId(), [editor])
 
@@ -209,7 +192,7 @@ export function DefaultMinimap() {
 	}, [colorMode, currentThemeId, editor])
 
 	return (
-		<div className="tlui-minimap">
+		<div ref={rMinimap} className="tlui-minimap">
 			<canvas
 				ref={rCanvas}
 				role="img"
@@ -219,7 +202,6 @@ export function DefaultMinimap() {
 				onDoubleClick={onDoubleClick}
 				onPointerMove={onPointerMove}
 				onPointerDown={onPointerDown}
-				onWheelCapture={onWheel}
 			/>
 		</div>
 	)

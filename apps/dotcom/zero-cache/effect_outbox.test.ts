@@ -24,7 +24,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 // points at a real local dev stack whose `public` schema holds real dev data, this suite
 // instead creates a throwaway database with CREATE DATABASE, and drops it in afterAll.
 //
-// Owning a whole database also means the REAL migration chain (000 → 048) can run
+// Owning a whole database also means the REAL migration chain (000 onward) can run
 // verbatim, exactly like migrate.ts applies it. Every trigger involved — the outbox
 // trigger, the group-delete cascade, the updatedAt bumper (005), the owner-details
 // denormalizers — is the shipped one, not a test copy, so a behavior change in any
@@ -93,6 +93,8 @@ describeMaybe('effect_outbox trigger (file changes + group-delete cascade)', () 
 		await client.query(`TRUNCATE "user", "file", "group", effect_outbox CASCADE`)
 	})
 
+	// Also creates the user's home workspace, mirroring production, where a home group's id is
+	// the user's own id. `file."owningGroupId"` is NOT NULL since 050, so every file needs one.
 	async function seedUser(id: string) {
 		await client.query(
 			`INSERT INTO "user" ("id", "name", "email", "avatar", "color", "exportFormat", "exportTheme",
@@ -100,20 +102,17 @@ describeMaybe('effect_outbox trigger (file changes + group-delete cascade)', () 
 			 VALUES ($1, $1, $1, '', '', 'png', 'auto', false, false, 0, 0, '')`,
 			[id]
 		)
+		await client.query(`INSERT INTO "group" ("id", "name") VALUES ($1, $1)`, [id])
 	}
 
-	async function seedFile(
-		id: string,
-		overrides: { ownerId?: string | null; owningGroupId?: string | null } = {}
-	) {
-		const ownerId = overrides.ownerId !== undefined ? overrides.ownerId : 'u1'
-		const owningGroupId = overrides.owningGroupId !== undefined ? overrides.owningGroupId : null
+	async function seedFile(id: string, overrides: { owningGroupId?: string } = {}) {
+		const owningGroupId = overrides.owningGroupId ?? 'u1'
 		await client.query(
-			`INSERT INTO "file" ("id", "name", "ownerId", "owningGroupId", "thumbnail", "shared",
+			`INSERT INTO "file" ("id", "name", "owningGroupId", "thumbnail", "shared",
 			   "sharedLinkType", "published", "lastPublished", "publishedSlug", "createdAt",
 			   "updatedAt", "isEmpty")
-			 VALUES ($1, $1, $2, $3, '', false, 'view', false, 0, $1, 0, 0, false)`,
-			[id, ownerId, owningGroupId]
+			 VALUES ($1, $1, $2, '', false, 'view', false, 0, $1, 0, 0, false)`,
+			[id, owningGroupId]
 		)
 	}
 
@@ -184,7 +183,7 @@ describeMaybe('effect_outbox trigger (file changes + group-delete cascade)', () 
 		expect(updateRow.prevPayload.lastPublished).toBe(0)
 		expect(updateRow.prevPayload.id).toBe('f1')
 		expect(updateRow.prevPayload.name).toBe('f1')
-		expect(updateRow.prevPayload.ownerId).toBe('u1')
+		expect(updateRow.prevPayload.owningGroupId).toBe('u1')
 	})
 
 	it('file DELETE produces a delete row with the OLD row as payload and no prevPayload', async () => {
@@ -204,7 +203,7 @@ describeMaybe('effect_outbox trigger (file changes + group-delete cascade)', () 
 	it('deleting a group cascades to a soft-delete update on its files, and the outbox trigger fires for it', async () => {
 		await seedUser('u1')
 		await client.query(`INSERT INTO "group" ("id", "name") VALUES ('g1', 'g1')`)
-		await seedFile('fGroup', { ownerId: null, owningGroupId: 'g1' })
+		await seedFile('fGroup', { owningGroupId: 'g1' })
 
 		// The real cleanup_deleted_group_trigger (023_groups.sql) fires inside this
 		// UPDATE and soft-deletes fGroup, which in turn must fire

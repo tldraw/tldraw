@@ -257,6 +257,12 @@
       "value": " je komentiral/a na vaši tabli"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Povratnih informacij ni bilo mogoče poslati"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -273,6 +279,12 @@
     {
       "type": 0,
       "value": "Iskanje ..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Prosim, poskusite znova."
     }
   ],
   "2de510be71": [
@@ -501,6 +513,12 @@
     {
       "type": 0,
       "value": " neprebranih"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Vaše lokalne risbe ni bilo mogoče obnoviti. Poskusite znova naložiti to stran."
     }
   ],
   "554a05155c": [
@@ -1094,6 +1112,12 @@
     {
       "type": 0,
       "value": "Izbriši datoteko"
+    }
+  ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Zdi se, da nimate povezave. Preverite povezavo in poskusite znova."
     }
   ],
   "9ccb565b86": [

@@ -63,6 +63,7 @@
 		"ignore": "^5.3.2",
 		"jszip": "^3.10.1",
 		"minimist": "^1.2.8",
+		"octokit": "^3.2.1",
 		"proper-lockfile": "^4.1.2",
 		"tar": "^7.5.11",
 		"tmp": "^0.2.3",

@@ -95,6 +95,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> berkomentar di papan Anda"
   },
+  "28b2464e1f": {
+    "translation": "Tidak dapat mengirimkan umpan balik."
+  },
   "299cb00a7a": {
     "translation": "Pengunggahan gagal"
   },
@@ -103,6 +106,9 @@
   },
   "2a37324bb4": {
     "translation": "Mencari..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Silakan coba lagi."
   },
   "2de510be71": {
     "translation": "Proses pembuatan ulang tautan undangan akan menggantinya dengan yang baru. Siapa pun yang menggunakan tautan lama perlu menggunakan tautan baru untuk bergabung."
@@ -208,6 +214,9 @@
   },
   "545241e7dd": {
     "translation": "{count} belum dibaca"
+  },
+  "550b25cc0c": {
+    "translation": "Gambar lokal Anda tidak dapat dipulihkan. Coba muat ulang halaman ini."
   },
   "554a05155c": {
     "translation": "Masih mengalami masalah? <a>Laporkan masalah</a>"
@@ -433,6 +442,9 @@
   },
   "9bef626805": {
     "translation": "Hapus file"
+  },
+  "9c228b6834": {
+    "translation": "Anda tampaknya sedang offline. Periksa koneksi Anda dan coba lagi."
   },
   "9ccb565b86": {
     "translation": "Kami mengalami masalah saat terhubung ke layanan otentikasi kami. Ini biasanya bersifat sementara. Silakan coba menyegarkan halaman."

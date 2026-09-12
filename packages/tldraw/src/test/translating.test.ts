@@ -142,6 +142,9 @@ describe('When translating...', () => {
 			.expectShapeToMatch({ id: ids.box1, x: 60, y: 60 })
 	})
 
+	// edgeScrollSpeed is 25px per 60 Hz frame; forceTick emits a 16ms tick
+	const edgeScrollPxPerTick = 25 * (16 / (1000 / 60))
+
 	it('translates a single shape near the top left edge', () => {
 		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
 		editor.pointerDown(50, 50, ids.box1).pointerMove(0, 50) // [-50, 0]
@@ -151,7 +154,7 @@ describe('When translating...', () => {
 		editor.forceTick()
 		editor
 			// The change is bigger than expected because the camera moves
-			.expectShapeToMatch({ id: ids.box1, x: -65, y: 10 })
+			.expectShapeToMatch({ id: ids.box1, x: -40 - edgeScrollPxPerTick, y: 10 })
 			// We'll continue moving in the x position, but now we'll also move in the y position.
 			// The speed in the y position is smaller since we are further away from the edge.
 			.pointerMove(0, 25)
@@ -175,16 +178,27 @@ describe('When translating...', () => {
 		editor.forceTick()
 		editor
 			// The change is bigger than expected because the camera moves
-			.expectShapeToMatch({ id: ids.box1, x: 1115, y: 10 })
+			.expectShapeToMatch({ id: ids.box1, x: 1040 + edgeScrollPxPerTick * 3, y: 10 })
 			.pointerMove(1080, 800)
 
+		// The viewport is shorter than 1000px, so vertical scrolling runs at 0.612x, and the pointer
+		// is only 75% of the way into the edge zone
+		const edgeScrollPyPerTick = edgeScrollPxPerTick * 0.612 * 0.75
 		editor.forceTick()
 		editor.forceTick()
 		editor.forceTick()
 		editor
-			.expectShapeToMatch({ id: ids.box1, x: 1215, y: 805.9 })
+			.expectShapeToMatch({
+				id: ids.box1,
+				x: 1040 + edgeScrollPxPerTick * 7,
+				y: 760 + edgeScrollPyPerTick * 4,
+			})
 			.pointerUp()
-			.expectShapeToMatch({ id: ids.box1, x: 1240, y: 821.2 })
+			.expectShapeToMatch({
+				id: ids.box1,
+				x: 1040 + edgeScrollPxPerTick * 8,
+				y: 760 + edgeScrollPyPerTick * 4 + edgeScrollPxPerTick * 0.612,
+			})
 	})
 
 	it('translates multiple shapes', () => {
@@ -2305,6 +2319,131 @@ describe('cancelling a translate operation', () => {
 	})
 })
 
+describe('cloning mid-drag', () => {
+	it('reparents the clone, not the original, when alt is pressed during the drag', () => {
+		editor.createShapes([
+			{ id: ids.frame1, type: 'frame', x: 500, y: 0, props: { w: 200, h: 200 } },
+			{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+		])
+		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.box1) })
+		editor.pointerMove(60, 60)
+		editor.expectToBeIn('select.translating')
+		editor.keyDown('Alt')
+		editor.pointerMove(600, 100)
+		vi.advanceTimersByTime(300)
+		editor.pointerUp(600, 100)
+
+		const original = editor.getShape(ids.box1)!
+		expect(original.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getShapePageBounds(original)).toMatchObject({ x: 0, y: 0 })
+
+		const clone = editor.getCurrentPageShapes().find((s) => s.type === 'geo' && s.id !== ids.box1)!
+		expect(clone.parentId).toBe(ids.frame1)
+	})
+
+	it('reparents the original when alt is released during the drag', () => {
+		editor.createShapes([
+			{ id: ids.frame1, type: 'frame', x: 500, y: 0, props: { w: 200, h: 200 } },
+			{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+		])
+		editor.keyDown('Alt')
+		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.box1) })
+		editor.pointerMove(60, 60)
+		editor.expectToBeIn('select.translating')
+		editor.keyUp('Alt')
+		vi.advanceTimersByTime(250) // the alt key is released on a timer
+		editor.pointerMove(600, 100)
+		vi.advanceTimersByTime(300)
+		editor.pointerUp(600, 100)
+
+		expect(editor.getCurrentPageShapes().filter((s) => s.type === 'geo')).toHaveLength(1)
+		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.frame1)
+	})
+})
+
+describe('when shapes disappear mid-drag', () => {
+	it('does not crash when a bound arrow being translated is deleted', () => {
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+			{
+				id: ids.lineA,
+				type: 'arrow',
+				x: 200,
+				y: 200,
+				props: { start: { x: 0, y: 0 }, end: { x: 100, y: 100 } },
+			},
+		])
+		editor.createBindings([
+			{
+				fromId: ids.lineA,
+				toId: ids.box1,
+				type: 'arrow',
+				props: {
+					terminal: 'start',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: false,
+					snap: 'none',
+				},
+			},
+		])
+		editor.select(ids.lineA)
+		editor.pointerDown(250, 250, { target: 'shape', shape: editor.getShape(ids.lineA) })
+		editor.pointerMove(260, 260)
+		editor.expectToBeIn('select.translating')
+
+		editor.store.mergeRemoteChanges(() => editor.store.remove([ids.lineA]))
+
+		expect(() => editor.pointerMove(270, 270)).not.toThrow()
+		expect(() => editor.pointerUp(270, 270)).not.toThrow()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('does not crash when the drop target is deleted', () => {
+		editor.createShapes([
+			{ id: ids.frame1, type: 'frame', x: 500, y: 0, props: { w: 200, h: 200 } },
+			{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+		])
+		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.box1) })
+		editor.pointerMove(600, 100)
+		vi.advanceTimersByTime(300)
+		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.frame1)
+
+		editor.store.mergeRemoteChanges(() => editor.store.remove([ids.frame1]))
+
+		expect(() => {
+			editor.pointerMove(610, 110)
+			vi.advanceTimersByTime(300)
+			editor.pointerUp(610, 110)
+		}).not.toThrow()
+		editor.expectToBeIn('select.idle')
+		// The dragged shape shouldn't be left orphaned under the deleted frame
+		expect(editor.getShape(ids.box1)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getCurrentPageShapeIds().has(ids.box1)).toBe(true)
+	})
+
+	it('keeps the shape where it is when the drop target is deleted and the pointer lifts', () => {
+		editor.createShapes([
+			{ id: ids.frame1, type: 'frame', x: 500, y: 0, props: { w: 200, h: 200 } },
+			{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+		])
+		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.box1) })
+		editor.pointerMove(600, 100)
+		vi.advanceTimersByTime(300)
+		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.frame1)
+		expect(editor.getShapePageBounds(ids.box1)).toMatchObject({ x: 550, y: 50 })
+
+		editor.store.mergeRemoteChanges(() => editor.store.remove([ids.frame1]))
+
+		// No pointer move after the delete, so nothing re-runs moveShapesToPoint: the
+		// reparent onto the page has to preserve the shape's page position by itself.
+		editor.pointerUp(600, 100)
+
+		expect(editor.getShape(ids.box1)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getShapePageBounds(ids.box1)).toMatchObject({ x: 550, y: 50 })
+	})
+})
+
 it('preserves z-indexes when translating', () => {
 	editor.createShape({ type: 'geo', x: 0, y: 0, props: { w: 200, h: 200 } })
 	editor.createShape({ type: 'geo', x: 100, y: 100, props: { w: 200, h: 200 } })
@@ -2323,4 +2462,47 @@ it('preserves z-indexes when translating', () => {
 	const ordered2 = editor.getCurrentPageShapesSorted().map((s) => s.id)
 	expect(ordered2.indexOf(box1.id)).toBe(0)
 	expect(ordered2.indexOf(box2.id)).toBe(1)
+})
+
+describe('When moving shapes are changed externally mid-translation...', () => {
+	it('keeps an external rotation applied during the drag', () => {
+		editor.createShapes([box(ids.box1, 0, 0, 100, 100)])
+
+		editor.pointerDown(50, 50, ids.box1).pointerMove(150, 50)
+		editor.expectToBeIn('select.translating')
+		editor.expectShapeToMatch({ id: ids.box1, x: 100, y: 0 })
+
+		// Rotate the shape from outside the interaction, as a keyboard shortcut
+		// bound to `rotateShapesBy` would
+		editor.rotateShapesBy([ids.box1], Math.PI / 2)
+		const rotated = editor.getShape(ids.box1)!
+		expect(rotated.rotation).toBe(Math.PI / 2)
+		expect(rotated.x).not.toBeCloseTo(100, 6)
+
+		// An update without pointer movement must not stomp the rotated position
+		editor.pointerMove(150, 50)
+		let current = editor.getShape(ids.box1)!
+		expect(current.x).toBeCloseTo(rotated.x, 6)
+		expect(current.y).toBeCloseTo(rotated.y, 6)
+		expect(current.rotation).toBe(Math.PI / 2)
+
+		// Continuing the drag moves the shape from its rotated position
+		editor.pointerMove(150, 150).pointerUp()
+		current = editor.getShape(ids.box1)!
+		expect(current.x).toBeCloseTo(rotated.x, 6)
+		expect(current.y).toBeCloseTo(rotated.y + 100, 6)
+		expect(current.rotation).toBe(Math.PI / 2)
+	})
+
+	it('keeps an external position change applied during the drag', () => {
+		editor.createShapes([box(ids.box1, 0, 0, 100, 100)])
+
+		editor.pointerDown(50, 50, ids.box1).pointerMove(150, 50)
+		editor.expectShapeToMatch({ id: ids.box1, x: 100, y: 0 })
+
+		editor.nudgeShapes([ids.box1], { x: 0, y: 20 })
+
+		editor.pointerMove(250, 50).pointerUp()
+		editor.expectShapeToMatch({ id: ids.box1, x: 200, y: 20 })
+	})
 })

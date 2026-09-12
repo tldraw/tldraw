@@ -1212,6 +1212,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes }?: {
         isolateShapes?: boolean | undefined;
     }): this;
+    // @internal
+    _deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes }?: {
+        isolateShapes?: boolean | undefined;
+    }): this;
     deletePage(page: TLPage | TLPageId): this;
     deleteShape(id: TLShapeId): this;
     // (undocumented)
@@ -2105,7 +2109,7 @@ export class Group2d extends Geometry2d {
     // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
-    transform(transform: Mat): Geometry2d;
+    transform(transform: MatModel, opts?: TransformedGeometry2dOptions): Geometry2d;
     // (undocumented)
     uninterpolateAlongEdge(point: VecLike, filters?: Geometry2dFilters): number;
 }
@@ -2288,6 +2292,7 @@ export class InputsManager extends EditorManager {
     get isSpacebarPanning(): boolean;
     set isSpacebarPanning(isSpacebarPanning: boolean);
     readonly keys: AtomSet<string>;
+    markActivity(): void;
     // @deprecated (undocumented)
     get metaKey(): boolean;
     set metaKey(metaKey: boolean);
@@ -2445,6 +2450,7 @@ export class LicenseManager {
     constructor(licenseKey: string | undefined, testPublicKey?: string);
     // (undocumented)
     static className: string;
+    dispose(): void;
     // (undocumented)
     featureFlags: Atom<Record<LicenseFeatureName, boolean>, unknown>;
     // (undocumented)

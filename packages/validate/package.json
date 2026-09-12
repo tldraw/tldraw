@@ -1,13 +1,13 @@
 {
 	"name": "@tldraw/validate",
 	"description": "A runtime validation library by tldraw.",
-	"version": "5.3.2",
+	"version": "5.4.2",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
 	},
 	"homepage": "https://tldraw.dev",
-	"license": "SEE LICENSE IN LICENSE.md",
+	"license": "MIT",
 	"tldraw_product": {
 		"stableId": "tldraw:sdk-core",
 		"name": "SDK",
