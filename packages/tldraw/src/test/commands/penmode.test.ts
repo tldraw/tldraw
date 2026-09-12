@@ -1,4 +1,4 @@
-import { TLDrawShape, Vec } from '@tldraw/editor'
+import { TLDrawShape, Vec, createShapeId } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -121,5 +121,34 @@ describe('forgiving palm touches when entering pen mode', () => {
 		const bounds = editor.getShapePageBounds(shape.id)!
 		expect(bounds.minX).toBeGreaterThan(200)
 		expect(bounds.minY).toBeGreaterThan(200)
+	})
+})
+
+describe('palm touches while in pen mode', () => {
+	it('ignores a palm touch without disturbing the pen drag in progress', () => {
+		const id = createShapeId('box')
+		editor.createShapes([
+			{ id, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100, fill: 'solid' } },
+		])
+		editor.updateInstanceState({ isPenMode: true })
+
+		const pen = { target: 'canvas', isPen: true } as const
+		const palm = { target: 'canvas', isPen: false } as const
+
+		editor.pointerDown(150, 150, pen)
+		editor.pointerMove(170, 170, pen)
+		editor.expectToBeIn('select.translating')
+
+		// A palm lands and lifts while the pen is still down. It must be ignored before it
+		// can reset the drag origin or clear the pen's pointing state.
+		editor.pointerDown(600, 600, palm)
+		editor.pointerUp(600, 600, palm)
+		expect(editor.inputs.getIsPointing()).toBe(true)
+		expect(editor.inputs.getOriginPagePoint()).toMatchObject({ x: 150, y: 150 })
+
+		editor.pointerMove(200, 200, pen)
+		editor.expectShapeToMatch({ id, x: 150, y: 150 })
+		editor.pointerUp(200, 200, pen)
+		editor.expectToBeIn('select.idle')
 	})
 })
