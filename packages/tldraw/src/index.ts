@@ -273,12 +273,16 @@ export {
 	type ShapeOptionsWithDisplayValues,
 } from './lib/shapes/shared/getDisplayValues'
 export { PlainTextLabel, type PlainTextLabelProps } from './lib/shapes/shared/PlainTextLabel'
+export { type RichTextSVGProps } from './lib/shapes/shared/ForeignObjectRichTextSVG'
 export {
 	RichTextLabel,
 	RichTextSVG,
 	type RichTextLabelProps,
-	type RichTextSVGProps,
 } from './lib/shapes/shared/RichTextLabel'
+export {
+	NativeRichTextSVG,
+	type NativeRichTextSVGProps,
+} from './lib/shapes/shared/NativeRichTextSVG'
 export { useEditablePlainText } from './lib/shapes/shared/useEditablePlainText'
 export { useEditableRichText } from './lib/shapes/shared/useEditableRichText'
 export {
@@ -843,6 +847,14 @@ export {
 	renderRichTextFromHTML,
 	tipTapDefaultExtensions,
 } from './lib/utils/text/richText'
+export {
+	createTldrawRichTextStyles,
+	createTldrawTextMeasurer,
+	type TldrawRichTextColors,
+	type TldrawRichTextLayoutOptions,
+	type TldrawTextMeasurer,
+	type TldrawTextMeasurerOptions,
+} from './lib/utils/text/createTldrawTextMeasurer'
 export { truncateStringWithEllipsis } from './lib/utils/text/text'
 export {
 	Extension,
@@ -908,3 +920,8 @@ registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_VERSION,
 	(globalThis as any).TLDRAW_LIBRARY_MODULES
 )
+
+export {
+	setNativeTextExportMeasurer,
+	type TLNativeTextExportMeasurer,
+} from './lib/utils/text/NativeTextExportManager'

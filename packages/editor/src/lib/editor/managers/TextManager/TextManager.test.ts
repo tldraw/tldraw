@@ -1,5 +1,6 @@
 import { vi } from 'vitest'
 import { Editor } from '../../Editor'
+import { DomTextMeasurer } from './DomTextMeasurer'
 import { TextManager, TLMeasureTextSpanOpts } from './TextManager'
 
 // Create a simple mock DOM environment
@@ -99,17 +100,17 @@ global.Range = vi.fn(function () {
 	}
 }) as any
 
-describe('TextManager', () => {
-	let textManager: TextManager
+describe('DomTextMeasurer', () => {
+	let textManager: DomTextMeasurer
 
 	beforeEach(() => {
 		vi.clearAllMocks()
-		textManager = new TextManager(mockEditor)
+		textManager = new DomTextMeasurer(mockEditor)
 	})
 
 	describe('constructor', () => {
-		it('should create a TextManager instance', () => {
-			expect(textManager).toBeInstanceOf(TextManager)
+		it('should create a DomTextMeasurer instance', () => {
+			expect(textManager).toBeInstanceOf(DomTextMeasurer)
 		})
 	})
 
@@ -620,4 +621,97 @@ describe('TextManager', () => {
 			expect(Array.isArray(result)).toBe(true)
 		})
 	})
+})
+
+describe('injected measurer', () => {
+	it('delegates every method and creates no measurement elements', () => {
+		const box = { x: 0, y: 0, w: 10, h: 20, scrollWidth: 0 }
+		const delegate = {
+			measureText: vi.fn(() => box),
+			measureHtml: vi.fn(() => box),
+			measureHtmlBatch: vi.fn(() => [box, box]),
+			measureTextSpans: vi.fn(() => [{ text: 'a', box }]),
+			dispose: vi.fn(),
+		}
+		const appendChild = vi.fn()
+		const editor = {
+			getContainer: vi.fn(() => ({ appendChild })),
+			getContainerDocument: vi.fn(() => mockDocument),
+		} as any
+		const manager = new TextManager(editor, delegate)
+		expect(appendChild).not.toHaveBeenCalled()
+
+		const opts = {
+			fontStyle: 'normal',
+			fontWeight: 'normal',
+			fontFamily: 'Arial',
+			fontSize: 16,
+			lineHeight: 1.35,
+			maxWidth: null,
+			padding: '0px',
+		}
+		expect(manager.measureText('a', opts)).toBe(box)
+		expect(manager.measureHtml('<p>a</p>', opts)).toBe(box)
+		expect(
+			manager.measureHtmlBatch([
+				{ html: 'a', opts },
+				{ html: 'b', opts },
+			])
+		).toHaveLength(2)
+		expect(
+			manager.measureTextSpans('a', {
+				...opts,
+				overflow: 'wrap',
+				width: 100,
+				height: 20,
+				padding: 0,
+				textAlign: 'start',
+			})
+		).toEqual([{ text: 'a', box }])
+		expect(delegate.measureText).toHaveBeenCalledWith('a', opts)
+
+		manager.dispose()
+		expect(delegate.dispose).toHaveBeenCalled()
+	})
+})
+
+it('adapts rich text requests to an existing HTML backend in one batch', () => {
+	const size = { x: 0, y: 0, w: 10, h: 20, scrollWidth: 0 }
+	const delegate = {
+		measureText: vi.fn(() => size),
+		measureHtml: vi.fn(() => size),
+		measureHtmlBatch: vi.fn(() => [size, size]),
+		measureTextSpans: vi.fn(() => []),
+		dispose: vi.fn(),
+	}
+	const manager = new TextManager(mockEditor, delegate)
+	const richText = { type: 'doc', content: [] }
+	const html = vi.fn(() => '<p></p>')
+	const opts = {
+		fontStyle: 'normal',
+		fontWeight: 'normal',
+		fontFamily: 'Arial',
+		fontSize: 16,
+		lineHeight: 1.35,
+		maxWidth: null,
+		padding: '0px',
+	}
+	try {
+		expect(manager.measureRichText({ richText, html }, opts)).toEqual(size)
+		expect(delegate.measureHtml).toHaveBeenCalledWith('<p></p>', { ...opts, richText })
+		expect(
+			manager.measureRichTextBatch([
+				{ request: { richText, html }, opts },
+				{ request: { richText, html }, opts },
+			])
+		).toEqual([size, size])
+		expect(delegate.measureHtmlBatch).toHaveBeenCalledTimes(1)
+		expect(delegate.measureHtmlBatch).toHaveBeenCalledWith([
+			{ html: '<p></p>', opts: { ...opts, richText } },
+			{ html: '<p></p>', opts: { ...opts, richText } },
+		])
+	} finally {
+		manager.dispose()
+	}
+	expect(delegate.dispose).toHaveBeenCalledTimes(1)
 })

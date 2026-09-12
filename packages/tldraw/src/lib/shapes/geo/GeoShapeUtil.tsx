@@ -37,7 +37,7 @@ import {
 } from '@tldraw/editor'
 import {
 	isEmptyRichText,
-	renderHtmlFromRichTextForMeasurement,
+	createRichTextMeasurementRequest,
 	renderPlaintextFromRichText,
 } from '../../utils/text/richText'
 import {
@@ -826,9 +826,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	private measureUnscaledLabelSize(shape: TLGeoShape) {
 		const dv = getDisplayValues(this, shape)
 
-		const html = renderHtmlFromRichTextForMeasurement(this.editor, shape.props.richText)
+		const request = createRichTextMeasurementRequest(this.editor, shape.props.richText)
 
-		const textSize = this.editor.textMeasure.measureHtml(html, {
+		const textSize = this.editor.textMeasure.measureRichText(request, {
 			...TEXT_PROPS,
 			fontFamily: dv.labelFontFamily,
 			fontSize: dv.labelFontSize,
@@ -882,11 +882,11 @@ function getBatchLabelSizeCache(editor: Editor) {
 function getGeoLabelMeasurementRequest(
 	editor: Editor,
 	shape: TLGeoShape
-): { html: string; opts: TLMeasureTextOpts } {
+): { request: ReturnType<typeof createRichTextMeasurementRequest>; opts: TLMeasureTextOpts } {
 	const { richText, font, size, w } = shape.props
 	const theme = editor.getCurrentTheme()
 	const minWidth = MIN_WIDTHS[size]
-	const html = renderHtmlFromRichTextForMeasurement(editor, richText)
+	const request = createRichTextMeasurementRequest(editor, richText)
 	const opts: TLMeasureTextOpts = {
 		...TEXT_PROPS,
 		fontFamily: getFontFamily(theme, font),
@@ -902,7 +902,7 @@ function getGeoLabelMeasurementRequest(
 			Math.ceil(w / shape.props.scale - LABEL_PADDING * 2)
 		),
 	}
-	return { html, opts }
+	return { request, opts }
 }
 
 /**
@@ -937,7 +937,11 @@ export function batchMeasureGeoLabels(
 	selectionRotation: number,
 	isAspectRatioLocked: boolean
 ) {
-	const requests: Array<{ id: TLShapeId; html: string; opts: TLMeasureTextOpts }> = []
+	const requests: Array<{
+		id: TLShapeId
+		request: ReturnType<typeof createRichTextMeasurementRequest>
+		opts: TLMeasureTextOpts
+	}> = []
 
 	for (const [id, snapshot] of shapeSnapshots) {
 		// Only process geo shapes with non-empty text labels
@@ -977,15 +981,15 @@ export function batchMeasureGeoLabels(
 			},
 		} as TLGeoShape
 
-		const { html, opts } = getGeoLabelMeasurementRequest(editor, tempShape)
-		requests.push({ id, html, opts })
+		const { request, opts } = getGeoLabelMeasurementRequest(editor, tempShape)
+		requests.push({ id, request, opts })
 	}
 
 	if (requests.length === 0) return
 
 	// Batch measure all labels in one DOM pass
-	const results = editor.textMeasure.measureHtmlBatch(
-		requests.map(({ html, opts }) => ({ html, opts }))
+	const results = editor.textMeasure.measureRichTextBatch(
+		requests.map(({ request, opts }) => ({ request, opts }))
 	)
 
 	// Build the cache map with label sizes (adding padding)

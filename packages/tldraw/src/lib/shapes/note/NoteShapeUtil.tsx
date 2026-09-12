@@ -37,7 +37,7 @@ import { TranslationsContext } from '../../ui/hooks/useTranslation/useTranslatio
 import {
 	isEditingRichTextList,
 	isEmptyRichText,
-	renderHtmlFromRichTextForMeasurement,
+	createRichTextMeasurementRequest,
 	renderPlaintextFromRichText,
 } from '../../utils/text/richText'
 import { isRightToLeftLanguage } from '../../utils/text/text'
@@ -643,8 +643,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		// We slightly make the font smaller if the text is too big for the note, width-wise.
 		do {
 			fontSizeAdjustment = Math.min(unadjustedFontSize, unadjustedFontSize - iterations)
-			const html = renderHtmlFromRichTextForMeasurement(this.editor, richText)
-			const nextTextSize = this.editor.textMeasure.measureHtml(html, {
+			const request = createRichTextMeasurementRequest(this.editor, richText)
+			const nextTextSize = this.editor.textMeasure.measureRichText(request, {
 				...TEXT_PROPS,
 				lineHeight: dv.labelLineHeight,
 				fontFamily: dv.labelFontFamily,
@@ -660,8 +660,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			if (fontSizeAdjustment <= 14) {
 				// Too small, just rely now on CSS `overflow-wrap: break-word`
 				// We need to recalculate the text measurement here with break-word enabled.
-				const html = renderHtmlFromRichTextForMeasurement(this.editor, richText)
-				const nextTextSizeWithOverflowBreak = this.editor.textMeasure.measureHtml(html, {
+				const request = createRichTextMeasurementRequest(this.editor, richText)
+				const nextTextSizeWithOverflowBreak = this.editor.textMeasure.measureRichText(request, {
 					...TEXT_PROPS,
 					lineHeight: dv.labelLineHeight,
 					fontFamily: dv.labelFontFamily,
