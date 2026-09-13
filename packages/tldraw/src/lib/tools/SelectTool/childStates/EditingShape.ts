@@ -17,6 +17,11 @@ import {
 
 interface EditingShapeInfo {
 	isCreatingTextWhileToolLocked?: boolean
+	/**
+	 * The mark from the creation of the shape we're about to edit, when editing began as part of
+	 * creating it. Lets us drop the whole creation if the shape doesn't survive the edit.
+	 */
+	creatingMarkId?: string
 }
 
 export class EditingShape extends StateNode {
@@ -50,8 +55,18 @@ export class EditingShape extends StateNode {
 	}
 
 	override onExit() {
-		const hadEditingShape = !!this.editor.getEditingShapeId()
+		const editingShapeId = this.editor.getEditingShapeId()
+		const hadEditingShape = !!editingShapeId
 		this.editor.setEditingShape(null)
+
+		// A shape util can delete its own shape when the edit ends with nothing in it, as the text
+		// shape does. That leaves the mark from the shape's creation with only the selection change
+		// after it, so undo stops there and appears to do nothing. Bail to the mark instead, which
+		// drops the abandoned creation from history entirely.
+		const { creatingMarkId } = this.info
+		if (creatingMarkId && editingShapeId && !this.editor.getShape(editingShapeId)) {
+			this.editor.bailToMark(creatingMarkId)
+		}
 
 		cancelUpdateHoveredShapeId(this.editor)
 
