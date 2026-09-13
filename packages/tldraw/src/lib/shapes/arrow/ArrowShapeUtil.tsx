@@ -42,6 +42,7 @@ import {
 	toDomPrecision,
 	toRichText,
 	track,
+	useColorMode,
 	useEditor,
 	useIsEditing,
 	useSharedSafeId,
@@ -820,7 +821,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	component(shape: TLArrowShape) {
 		const { editor } = this
-		const dv = getDisplayValues(this, shape)
+		const colorMode = useColorMode()
+		const dv = getDisplayValues(this, shape, colorMode)
 
 		const isSelected = useValue(
 			'is selected',
