@@ -78,6 +78,7 @@ describe('SnapManager', () => {
 			getShapePageBounds: vi.fn(),
 			isShapeOfType: vi.fn(),
 			isShapeFrameLike: vi.fn(() => false),
+			isShapeHidden: vi.fn(() => false),
 		} as any
 
 		editor.getShapeUtil.mockReturnValue({
@@ -332,6 +333,18 @@ describe('SnapManager', () => {
 			editor.getShapeUtil.mockReturnValue({
 				canSnap: vi.fn(() => false),
 			} as any)
+
+			const result = snapManager.getSnappableShapes()
+			expect(result.has(shapeId)).toBe(false)
+		})
+
+		it('should exclude hidden shapes', () => {
+			const shapeId = createShapeId('shape1')
+
+			editor.getSortedChildIdsForParent.mockReturnValue([shapeId])
+			editor.getShape.mockReturnValue(createMockShape(shapeId) as any)
+			editor.getShapePageBounds.mockReturnValue(new Box(10, 10, 50, 50))
+			editor.isShapeHidden.mockReturnValue(true)
 
 			const result = snapManager.getSnappableShapes()
 			expect(result.has(shapeId)).toBe(false)
