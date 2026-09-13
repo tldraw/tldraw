@@ -5,6 +5,7 @@ import { Tldraw } from '../../lib/Tldraw'
 import { DefaultKeyboardShortcutsDialogContent } from '../../lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
 import { TldrawUiMenuContextProvider } from '../../lib/ui/components/primitives/menus/TldrawUiMenuContext'
 import { useActions } from '../../lib/ui/context/actions'
+import { useDialogs } from '../../lib/ui/context/dialogs'
 import {
 	getHotkeysStringFromKbd,
 	ParsedKbd,
@@ -147,6 +148,61 @@ describe('default keyboard shortcuts', () => {
 			.filter((id) => !idsInDialog.has(id) && !NOT_IN_SHORTCUTS_DIALOG.has(id))
 
 		expect(missing).toEqual([])
+	})
+})
+
+describe('keyboard shortcuts dialog with shortcuts turned off', () => {
+	// Opens the real dialog through the action, so the header/body primitives get the Radix
+	// dialog context they need. The open dialog is registered in the global `tlmenus`, which
+	// survives unmount, so each test closes it again to avoid disabling later tests' shortcuts.
+	let clearDialogs: (() => void) | null = null
+	function OpenShortcutsDialog() {
+		const dialogs = useDialogs()
+		const actions = useActions()
+		useEffect(() => {
+			clearDialogs = dialogs.clearDialogs
+			actions['open-kbd-shortcuts'].onSelect('kbd')
+		}, [dialogs, actions])
+		return null
+	}
+
+	afterEach(() => {
+		act(() => clearDialogs?.())
+		clearDialogs = null
+	})
+
+	async function renderDialog() {
+		const { editor, rendered } = await renderTldrawComponentWithEditor(
+			(onMount) => (
+				<Tldraw onMount={onMount}>
+					<OpenShortcutsDialog />
+				</Tldraw>
+			),
+			{ waitForPatterns: false }
+		)
+		await rendered.findByTestId('kbd.select')
+		return { editor, rendered }
+	}
+
+	it('shows no notice while shortcuts are enabled', async () => {
+		const { rendered } = await renderDialog()
+		expect(rendered.queryByTestId('kbd.disabled-notice')).toBeNull()
+	})
+
+	it('shows a notice that shortcuts are turned off, and hides it again when they are re-enabled', async () => {
+		const { editor, rendered } = await renderDialog()
+
+		act(() => {
+			editor.user.updateUserPreferences({ areKeyboardShortcutsEnabled: false })
+		})
+		expect(rendered.getByTestId('kbd.disabled-notice')).toBeTruthy()
+		// The shortcut rows still render so the user can see what the preference turns back on.
+		expect(rendered.getByTestId('kbd.select')).toBeTruthy()
+
+		act(() => {
+			editor.user.updateUserPreferences({ areKeyboardShortcutsEnabled: true })
+		})
+		expect(rendered.queryByTestId('kbd.disabled-notice')).toBeNull()
 	})
 })
 

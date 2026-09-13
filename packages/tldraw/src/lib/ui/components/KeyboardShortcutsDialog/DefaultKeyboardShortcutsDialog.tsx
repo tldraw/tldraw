@@ -1,3 +1,4 @@
+import { useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import { ReactNode, memo } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
@@ -22,8 +23,14 @@ export type TLUiKeyboardShortcutsDialogProps = TLUiDialogProps & {
 export const DefaultKeyboardShortcutsDialog = memo(function DefaultKeyboardShortcutsDialog({
 	children,
 }: TLUiKeyboardShortcutsDialogProps) {
+	const editor = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
+	const areKeyboardShortcutsEnabled = useValue(
+		'areKeyboardShortcutsEnabled',
+		() => editor.user.getAreKeyboardShortcutsEnabled(),
+		[editor]
+	)
 
 	const content = children ?? <DefaultKeyboardShortcutsDialogContent />
 
@@ -33,6 +40,15 @@ export const DefaultKeyboardShortcutsDialog = memo(function DefaultKeyboardShort
 				<TldrawUiDialogTitle>{msg('shortcuts-dialog.title')}</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
+			{!areKeyboardShortcutsEnabled && (
+				<div
+					className="tlui-shortcuts-dialog__disabled-notice"
+					data-testid="kbd.disabled-notice"
+					role="status"
+				>
+					{msg('shortcuts-dialog.disabled-notice')}
+				</div>
+			)}
 			<TldrawUiDialogBody
 				className={classNames('tlui-shortcuts-dialog__body', {
 					'tlui-shortcuts-dialog__body__mobile': breakpoint <= PORTRAIT_BREAKPOINT.MOBILE_XS,
