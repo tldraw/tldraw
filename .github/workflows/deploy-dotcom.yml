@@ -148,6 +148,9 @@ jobs:
         env:
           RELEASE_COMMIT_HASH: ${{ github.sha }}
           GH_TOKEN: ${{ github.token }}
+          # Set this variable to "true" on the GitHub environment to redeploy zero-cache even when its
+          # inputs are unchanged (see internal/scripts/lib/flyDeployGate.ts), then clear it.
+          ZERO_FORCE_DEPLOY: ${{ vars.ZERO_FORCE_DEPLOY || 'false' }}
 
           APP_ORIGIN: ${{ vars.APP_ORIGIN }}
           ASSET_UPLOAD: ${{ vars.ASSET_UPLOAD }}

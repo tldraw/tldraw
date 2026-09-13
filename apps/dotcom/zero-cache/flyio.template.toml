@@ -44,3 +44,6 @@ ZERO_QUERY_URL = "__ZERO_QUERY_URL"
 ZERO_ENABLE_CRUD_MUTATIONS = "false"
 ZERO_LAZY_STARTUP = 'true'
 DO_NOT_TRACK = '1'
+# Read back by flyDeployGate.ts to skip a deploy whose inputs are unchanged. Bump the marker to
+# force one: marker 1
+TLDRAW_DEPLOY_INPUT_HASH = "__DEPLOY_INPUT_HASH"
