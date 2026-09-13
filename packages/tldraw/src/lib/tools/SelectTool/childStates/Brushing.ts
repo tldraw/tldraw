@@ -24,16 +24,18 @@ export class Brushing extends StateNode {
 	initialSelectedShapeIds: TLShapeId[] = []
 	excludedShapeIds = new Set<TLShapeId>()
 	isWrapMode = false
+	private didMarkHistory = false
 
 	viewportDidChange = false
 	cleanupViewportChangeReactor() {
 		void null
 	} // cleanup function for the viewport reactor
 
-	override onEnter(info: TLPointerEventInfo & { target: 'canvas' }) {
+	override onEnter(info: TLPointerEventInfo & { target: 'canvas'; didMarkHistory?: boolean }) {
 		const { editor } = this
 		const altKey = editor.inputs.getAltKey()
 
+		this.didMarkHistory = info.didMarkHistory ?? false
 		this.isWrapMode = editor.user.getIsWrapMode()
 
 		// Accel-pressing a resize or rotate handle brushes instead of resizing or rotating,
@@ -174,10 +176,7 @@ export class Brushing extends StateNode {
 				editor.updateInstanceState({ brush: { ...brush.toJson() } })
 			}
 
-			const current = editor.getSelectedShapeIds()
-			if (current.length !== results.size || current.some((id) => !results.has(id))) {
-				editor.setSelectedShapes(Array.from(results))
-			}
+			this.selectBrushedShapes(results)
 			return
 		}
 
@@ -232,10 +231,22 @@ export class Brushing extends StateNode {
 			editor.updateInstanceState({ brush: { ...brush.toJson() } })
 		}
 
+		this.selectBrushedShapes(results)
+	}
+
+	private selectBrushedShapes(results: Set<TLShapeId>) {
+		const { editor } = this
 		const current = editor.getSelectedShapeIds()
-		if (current.length !== results.size || current.some((id) => !results.has(id))) {
-			editor.setSelectedShapes(Array.from(results))
+		if (current.length === results.size && current.every((id) => results.has(id))) return
+
+		// Without a stopping point the brush selection merges into the previous history entry
+		// and undo reverts that edit too (#10412). Marking here, right before the first real
+		// selection change, keeps a brush that hits nothing out of the undo stack.
+		if (!this.didMarkHistory) {
+			editor.markHistoryStoppingPoint('brushing')
+			this.didMarkHistory = true
 		}
+		editor.setSelectedShapes(Array.from(results))
 	}
 
 	override onInterrupt() {
