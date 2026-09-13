@@ -115,6 +115,8 @@ export const DEFAULT_TRANSLATION = {
 	'action.toggle-focus-mode': 'Toggle focus mode',
 	'action.toggle-dynamic-size-mode.menu': 'Dynamic size',
 	'action.toggle-dynamic-size-mode': 'Toggle dynamic size',
+	'action.toggle-text-outline.menu': 'Text outline',
+	'action.toggle-text-outline': 'Toggle text outline',
 	'action.toggle-grid.menu': 'Show grid',
 	'action.toggle-grid': 'Toggle grid',
 	'action.toggle-lock': 'Toggle locked',

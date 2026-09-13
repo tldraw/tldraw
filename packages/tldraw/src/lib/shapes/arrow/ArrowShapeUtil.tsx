@@ -870,7 +870,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						}
 						isSelected={isSelected}
 						padding={0}
-						showTextOutline={this.options.showTextOutline}
+						showTextOutline={
+							this.options.showTextOutline && this.editor.user.getIsTextOutlineEnabled()
+						}
 						style={{
 							transform: `translate(${labelPosition.box.center.x}px, ${labelPosition.box.center.y}px)${shape.props.scale !== 1 ? ` scale(${shape.props.scale})` : ''}`,
 						}}
@@ -1026,7 +1028,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 							.box.clone()
 							.expandBy(-dv.labelPadding * shape.props.scale)}
 						padding={0}
-						showTextOutline={this.options.showTextOutline}
+						showTextOutline={
+							this.options.showTextOutline && this.editor.user.getIsTextOutlineEnabled()
+						}
 					/>
 				)}
 			</g>

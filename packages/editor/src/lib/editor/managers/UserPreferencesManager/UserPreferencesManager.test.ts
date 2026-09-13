@@ -33,6 +33,7 @@ describe('UserPreferencesManager', () => {
 		isPasteAtCursorMode: false,
 		inputMode: null,
 		isZoomDirectionInverted: false,
+		isTextOutlineEnabled: true,
 		...overrides,
 	})
 
@@ -238,6 +239,7 @@ describe('UserPreferencesManager', () => {
 				isDynamicResizeMode: mockUserPreferences.isDynamicSizeMode,
 				inputMode: mockUserPreferences.inputMode,
 				isZoomDirectionInverted: mockUserPreferences.isZoomDirectionInverted,
+				isTextOutlineEnabled: mockUserPreferences.isTextOutlineEnabled,
 			})
 		})
 
