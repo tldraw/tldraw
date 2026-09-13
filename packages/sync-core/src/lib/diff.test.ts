@@ -39,6 +39,42 @@ describe('computing diffs (D)', () => {
 			expect(patch).toEqual({ c: [ValueOpType.Put, 3] })
 			expect(applyObjectDiff(a, patch!)).toEqual(b)
 		})
+
+		it('[D2] treats a key whose value is undefined as absent', () => {
+			// undefined does not survive JSON, so `['put', undefined]` would arrive as
+			// `['put', null]` and fail validators that only accept the key being missing
+			const present = { a: 1, props: { foo: 'x' } }
+			const explicitlyUndefined = { a: 1, props: { foo: undefined } }
+			const absent = { a: 1, props: {} }
+
+			expect(diffRecord(present, explicitlyUndefined)).toEqual({
+				props: [ValueOpType.Patch, { foo: [ValueOpType.Delete] }],
+			})
+			expect(diffRecord(explicitlyUndefined, present)).toEqual({
+				props: [ValueOpType.Patch, { foo: [ValueOpType.Put, 'x'] }],
+			})
+			expect(diffRecord(absent, explicitlyUndefined)).toBeNull()
+			expect(diffRecord(explicitlyUndefined, absent)).toBeNull()
+			expect(diffRecord({ a: undefined }, { a: undefined })).toBeNull()
+		})
+
+		it('[D2] only considers own keys, not Object.prototype members', () => {
+			const withCtor = { meta: { constructor: 1, toString: 2 } }
+			const without = { meta: {} }
+
+			expect(diffRecord(withCtor, without)).toEqual({
+				meta: [
+					ValueOpType.Patch,
+					{ constructor: [ValueOpType.Delete], toString: [ValueOpType.Delete] },
+				],
+			})
+			expect(diffRecord(without, withCtor)).toEqual({
+				meta: [
+					ValueOpType.Patch,
+					{ constructor: [ValueOpType.Put, 1], toString: [ValueOpType.Put, 2] },
+				],
+			})
+		})
 	})
 
 	describe('top-level keys vs props/meta (D3)', () => {
@@ -102,7 +138,8 @@ describe('computing diffs (D)', () => {
 
 			const diff = diffRecord(prev, next)
 			expect(diff).toBeTruthy()
-			expect(diff!.optional).toEqual([ValueOpType.Put, undefined])
+			// undefined is not representable on the wire, so it reads as the key being absent (D2)
+			expect(diff!.optional).toEqual([ValueOpType.Delete])
 			expect(diff!.nullable).toEqual([ValueOpType.Put, 'value'])
 		})
 	})
@@ -377,6 +414,25 @@ describe('computing diffs (D)', () => {
 			expect(diffRecord(prev, next)).toEqual({
 				arr: [ValueOpType.Patch, { '0': [ValueOpType.Put, null] }],
 			})
+		})
+
+		it('[D6] puts a changed index when an item switches between array and object', () => {
+			// index deletes and named puts don't apply cleanly across shapes, so a patch would
+			// leave the receiver with a sparse array / an object where an array is expected
+			const arrayItem = { meta: { items: [[1, 2]] } }
+			const objectItem = { meta: { items: [{ x: 1 }] } }
+
+			const toObject = diffRecord(arrayItem, objectItem)!
+			expect(toObject).toEqual({
+				meta: [
+					ValueOpType.Patch,
+					{ items: [ValueOpType.Patch, { '0': [ValueOpType.Put, { x: 1 }] }] },
+				],
+			})
+			expect(applyObjectDiff(arrayItem, toObject)).toEqual(objectItem)
+
+			const toArray = diffRecord(objectItem, arrayItem)!
+			expect(applyObjectDiff(objectItem, toArray)).toEqual(arrayItem)
 		})
 	})
 
@@ -746,6 +802,30 @@ describe('applying diffs (AD)', () => {
 			const diff: ObjectDiff = { b: [ValueOpType.Delete] }
 
 			expect(applyObjectDiff(obj, diff)).toBe(obj)
+		})
+
+		it('[AD5] deleting an inherited key has no effect', () => {
+			const obj = { a: 1 }
+			// `toString` collides with Object.prototype's own member in the literal's type, hence the cast
+			const diff = { toString: [ValueOpType.Delete] } as unknown as ObjectDiff
+
+			expect(applyObjectDiff(obj, diff)).toBe(obj)
+		})
+	})
+
+	describe('untrusted keys (AD8)', () => {
+		it('[AD8] ignores __proto__ keys instead of changing the prototype', () => {
+			// JSON.parse produces '__proto__' as an own key, so a peer can put it in a diff
+			const obj = { a: 1, props: { b: 2 } }
+			const diff: ObjectDiff = JSON.parse(
+				'{"__proto__":["put",{"isAdmin":true}],"props":["patch",{"__proto__":["put",{"polluted":1}]}]}'
+			)
+
+			const result: any = applyObjectDiff(obj, diff)
+			expect(result).toBe(obj)
+			expect(Object.getPrototypeOf(result)).toBe(Object.prototype)
+			expect(result.isAdmin).toBeUndefined()
+			expect(result.props.polluted).toBeUndefined()
 		})
 	})
 
