@@ -1,8 +1,6 @@
 import { DurableObject } from 'cloudflare:workers'
 import { AutoRouter, error } from 'itty-router'
-import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
-import { Streaming } from '../../shared/types/Streaming'
 import { Environment } from '../environment'
 import { AgentService } from './AgentService'
 
@@ -37,16 +35,12 @@ export class AgentDurableObject extends DurableObject<Environment> {
 		const { readable, writable } = new TransformStream()
 		const writer = writable.getWriter()
 
-		const response: { changes: Streaming<AgentAction>[] } = { changes: [] }
-
 		;(async () => {
 			try {
 				const prompt = (await request.json()) as AgentPrompt
 
 				for await (const change of this.service.stream(prompt)) {
-					response.changes.push(change)
-					const data = `data: ${JSON.stringify(change)}\n\n`
-					await writer.write(encoder.encode(data))
+					await writer.write(encoder.encode(`data: ${JSON.stringify(change)}\n\n`))
 					await writer.ready
 				}
 				await writer.close()

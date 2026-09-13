@@ -1,4 +1,3 @@
-import { structuredClone } from 'tldraw'
 import { convertTldrawIdToSimpleId } from '../../shared/format/convertTldrawShapeToFocusedShape'
 import { SelectedShapesPart } from '../../shared/schema/PromptPartDefinitions'
 import { AgentRequest } from '../../shared/types/AgentRequest'
@@ -9,13 +8,9 @@ export const SelectedShapesPartUtil = registerPromptPartUtil(
 		static override type = 'selectedShapes' as const
 
 		override getPart(_request: AgentRequest): SelectedShapesPart {
-			const { editor } = this
-
-			const userSelectedShapes = editor.getSelectedShapes().map((v) => structuredClone(v)) ?? []
-
 			return {
 				type: 'selectedShapes',
-				shapeIds: userSelectedShapes.map((shape) => convertTldrawIdToSimpleId(shape.id)),
+				shapeIds: this.editor.getSelectedShapeIds().map(convertTldrawIdToSimpleId),
 			}
 		}
 	}

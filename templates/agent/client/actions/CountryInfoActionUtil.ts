@@ -34,8 +34,5 @@ export async function fetchCountryInfo(code: string) {
 	}
 
 	const json = await response.json()
-	if (Array.isArray(json)) {
-		return json[0] as JsonValue
-	}
-	return json as JsonValue
+	return (Array.isArray(json) ? json[0] : json) as JsonValue
 }

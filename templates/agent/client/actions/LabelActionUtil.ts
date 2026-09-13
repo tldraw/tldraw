@@ -1,4 +1,4 @@
-import { TLRichText, TLShape, TLShapeId, toRichText } from 'tldraw'
+import { assert, TLRichText, TLShape, TLShapeId, toRichText } from 'tldraw'
 import { LabelAction } from '../../shared/schema/AgentActionSchemas'
 import { Streaming } from '../../shared/types/Streaming'
 import { AgentHelpers } from '../AgentHelpers'
@@ -8,14 +8,6 @@ type ShapeWithRichText = Extract<TLShape, { props: { richText: TLRichText } }>
 
 function isShapeWithRichText(shape: TLShape | null | undefined): shape is ShapeWithRichText {
 	return !!(shape && 'richText' in shape.props)
-}
-
-function assertShapeWithRichText(
-	shape: TLShape | null | undefined
-): asserts shape is ShapeWithRichText {
-	if (!isShapeWithRichText(shape)) {
-		throw new Error('Shape is not a valid ShapeWithRichText')
-	}
 }
 
 export const LabelActionUtil = registerActionUtil(
@@ -33,13 +25,9 @@ export const LabelActionUtil = registerActionUtil(
 			if (!action.complete) return action
 
 			const shapeId = helpers.ensureShapeIdExists(action.shapeId)
-			if (!shapeId) {
-				return null
-			}
+			if (!shapeId) return null
 			const shape = this.editor.getShape(`shape:${shapeId}` as TLShapeId)
-			if (!shape) {
-				return null
-			}
+			if (!shape) return null
 			if (!isShapeWithRichText(shape)) {
 				console.warn(`Shape type "${shape.type}" does not support richText labels`)
 				return null
@@ -54,7 +42,7 @@ export const LabelActionUtil = registerActionUtil(
 
 			const shapeId = `shape:${action.shapeId}` as TLShapeId
 			const shape = editor.getShape(shapeId)
-			assertShapeWithRichText(shape)
+			assert(isShapeWithRichText(shape), 'Shape is not a valid ShapeWithRichText')
 
 			editor.updateShape({
 				id: shapeId,

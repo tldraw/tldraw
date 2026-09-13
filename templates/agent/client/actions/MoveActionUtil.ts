@@ -38,7 +38,7 @@ export const MoveActionUtil = registerActionUtil(
 			const { editor } = this
 
 			// Translate the position back to the chat's position
-			const { x, y } = helpers.removeOffsetFromVec({ x: action.x, y: action.y })
+			const moveTarget = Vec.From(helpers.removeOffsetFromVec({ x: action.x, y: action.y }))
 
 			const shapeId = `shape:${action.shapeId}` as TLShapeId
 			const shape = editor.getShape(shapeId)
@@ -47,75 +47,12 @@ export const MoveActionUtil = registerActionUtil(
 			const shapeBounds = editor.getShapePageBounds(shapeId)
 			if (!shapeBounds) return
 
-			const moveTarget = new Vec(x, y)
-			const shapeOrigin = new Vec(shape.x, shape.y)
-			const shapeBoundsOrigin = new Vec(shapeBounds.minX, shapeBounds.minY)
-
-			// Calculate the offset from the shape bounds origin to the shape origin
-			const shapeOriginDelta = shapeOrigin.sub(shapeBoundsOrigin)
-
-			// Adjust the target position based on the anchor point
-			const boundsWidth = shapeBounds.w
-			const boundsHeight = shapeBounds.h
-
-			// Calculate the anchor point offset from the bounds origin
-			let anchorOffsetX = 0
-			let anchorOffsetY = 0
-
-			switch (action.anchor) {
-				case 'top-left': {
-					anchorOffsetX = 0
-					anchorOffsetY = 0
-					break
-				}
-				case 'top-center': {
-					anchorOffsetX = boundsWidth / 2
-					anchorOffsetY = 0
-					break
-				}
-				case 'top-right': {
-					anchorOffsetX = boundsWidth
-					anchorOffsetY = 0
-					break
-				}
-				case 'bottom-left': {
-					anchorOffsetX = 0
-					anchorOffsetY = boundsHeight
-					break
-				}
-				case 'bottom-center': {
-					anchorOffsetX = boundsWidth / 2
-					anchorOffsetY = boundsHeight
-					break
-				}
-				case 'bottom-right': {
-					anchorOffsetX = boundsWidth
-					anchorOffsetY = boundsHeight
-					break
-				}
-				case 'center-left': {
-					anchorOffsetX = 0
-					anchorOffsetY = boundsHeight / 2
-					break
-				}
-				case 'center-right': {
-					anchorOffsetX = boundsWidth
-					anchorOffsetY = boundsHeight / 2
-					break
-				}
-				case 'center': {
-					anchorOffsetX = boundsWidth / 2
-					anchorOffsetY = boundsHeight / 2
-					break
-				}
-			}
-
-			// Adjust the target to account for the anchor point
-			// The target x,y should be where the anchor point is positioned
-			// So we subtract the anchor offset to get the bounds origin position
-			const adjustedTarget = moveTarget.sub(new Vec(anchorOffsetX, anchorOffsetY))
-
-			const newTarget = adjustedTarget.add(shapeOriginDelta)
+			// The target is where the anchor point should end up, so shift back to the bounds
+			// origin, then from the bounds origin to the shape origin.
+			const [anchorX, anchorY] = ANCHOR_OFFSETS[action.anchor]
+			const anchorOffset = new Vec(shapeBounds.w * anchorX, shapeBounds.h * anchorY)
+			const shapeOriginDelta = new Vec(shape.x, shape.y).sub(shapeBounds.point)
+			const newTarget = moveTarget.sub(anchorOffset).add(shapeOriginDelta)
 
 			editor.updateShape({
 				id: shapeId,
@@ -126,3 +63,16 @@ export const MoveActionUtil = registerActionUtil(
 		}
 	}
 )
+
+// Anchor position as a fraction of the shape's bounds
+const ANCHOR_OFFSETS: Record<MoveAction['anchor'], [number, number]> = {
+	'top-left': [0, 0],
+	'top-center': [0.5, 0],
+	'top-right': [1, 0],
+	'center-left': [0, 0.5],
+	center: [0.5, 0.5],
+	'center-right': [1, 0.5],
+	'bottom-left': [0, 1],
+	'bottom-center': [0.5, 1],
+	'bottom-right': [1, 1],
+}

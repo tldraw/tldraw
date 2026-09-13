@@ -14,15 +14,9 @@ export function ChatHistoryPrompt({
 
 	const showTags = selectedShapes.length > 0 || contextItems.length > 0
 
-	// Display the user-facing message if available, otherwise fall back to the agent-facing message
-	const displayMessage = userFacingMessage ?? agentFacingMessage
-
-	// Get the CSS class modifier based on the prompt source
-	const sourceClass = `chat-history-prompt-${promptSource}`
-
 	return (
 		<div className="chat-history-prompt-container">
-			<div className={`chat-history-prompt ${sourceClass}`}>
+			<div className={`chat-history-prompt chat-history-prompt-${promptSource}`}>
 				{showTags && (
 					<div className="prompt-tags">
 						{selectedShapes.length > 0 && <SelectionTag />}
@@ -31,7 +25,9 @@ export function ChatHistoryPrompt({
 						))}
 					</div>
 				)}
-				<span className="chat-history-prompt-content">{displayMessage}</span>
+				<span className="chat-history-prompt-content">
+					{userFacingMessage ?? agentFacingMessage}
+				</span>
 			</div>
 		</div>
 	)

@@ -66,7 +66,7 @@ export function TldrawViewer({
 			<TldrawUiContextProvider>
 				<TldrawEditor
 					autoFocus={false}
-					components={components ?? {}}
+					components={components}
 					onMount={setEditor}
 					shapeUtils={defaultShapeUtils}
 					bindingUtils={defaultBindingUtils}
