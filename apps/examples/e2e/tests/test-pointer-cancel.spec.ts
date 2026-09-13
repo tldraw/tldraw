@@ -62,7 +62,11 @@ test.describe('Cancelled pointers', () => {
 
 		await touch(cdp, 'touchStart', [[200, 300]])
 		await touch(cdp, 'touchMove', [[340, 420]])
-		expect(await getState(page)).toMatchObject({ path: 'select.brushing', isPointing: true })
+		// Pointer moves are queued until the next tick, so the transition into brushing
+		// lands a frame after the CDP call resolves.
+		await expect
+			.poll(() => getState(page))
+			.toMatchObject({ path: 'select.brushing', isPointing: true })
 
 		await touch(cdp, 'touchCancel')
 
