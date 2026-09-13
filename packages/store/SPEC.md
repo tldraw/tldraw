@@ -101,6 +101,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **CC3** `areRecordsEqual` controls which record changes invalidate the cache: when the old and new record are "equal", `derive` does not re-run. `areResultsEqual` controls change propagation: an "equal" result keeps the previous value object.
 - **CC4** The standalone `createComputedCache(name, derive)` works with any `StoreObject` (a store or `{ store }`), keeping a separate cache per context object, and passes the context to `derive`.
 - **CC5** `store.createCache(create)` is the low-level form: `create(id, recordSignal)` returns the signal to cache; `get(id)` on a missing record returns `undefined` without calling `create`.
+- **CC6** `derive`, `areRecordsEqual`, and `areResultsEqual` are never called for a deleted record, and a reader of `get(id)` is re-run when the record is deleted and again if a record with that id is later created — even when `derive` returned the same value before and after.
 
 ## 11. Queries: filtered history (QH)
 

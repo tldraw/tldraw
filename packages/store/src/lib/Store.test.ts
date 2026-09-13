@@ -765,3 +765,63 @@ describe('integrity (IC)', () => {
 		store.dispose()
 	})
 })
+
+describe('computed caches after deletion (CC)', () => {
+	let store: Store<LibraryType>
+	beforeEach(() => {
+		store = new Store({ props: {}, schema: schema() })
+	})
+	afterEach(() => {
+		store.dispose()
+	})
+
+	it('[CC6] derive and areRecordsEqual are never called with a deleted record', () => {
+		const author = Author.create({ name: 'A' })
+		store.put([author])
+		const deriveArgs: unknown[] = []
+		const equalArgs: unknown[] = []
+		const cache = store.createComputedCache(
+			'names',
+			(record: Author) => {
+				deriveArgs.push(record)
+				return record.name
+			},
+			{
+				areRecordsEqual: (a, b) => {
+					equalArgs.push(a, b)
+					return a.name === b.name
+				},
+			}
+		)
+		const seen: (string | undefined)[] = []
+		react('reader', () => seen.push(cache.get(author.id)))
+		expect(seen).toEqual(['A'])
+
+		store.remove([author.id])
+		expect(seen).toEqual(['A', undefined])
+
+		// and the record can come back with the same id
+		store.put([{ ...author, name: 'B' }])
+		expect(seen).toEqual(['A', undefined, 'B'])
+
+		for (const arg of [...deriveArgs, ...equalArgs]) {
+			expect(typeof arg).toBe('object')
+		}
+	})
+
+	it('[CC6] a reader sees a re-created record even when derive gave the same value before deletion', () => {
+		const author = Author.create({ name: 'Short' })
+		store.put([author])
+		// returns undefined for the live record, which is also what a deleted record yields
+		const cache = store.createComputedCache('long-names', (record: Author) =>
+			record.name.length > 10 ? record.name : undefined
+		)
+		const seen: (string | undefined)[] = []
+		react('reader', () => seen.push(cache.get(author.id)))
+		expect(seen).toEqual([undefined])
+
+		store.remove([author.id])
+		store.put([{ ...author, name: 'A much longer name' }])
+		expect(seen.at(-1)).toBe('A much longer name')
+	})
+})

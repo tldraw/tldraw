@@ -1,4 +1,13 @@
-import { Atom, Reactor, Signal, atom, computed, reactor, transact } from '@tldraw/state'
+import {
+	Atom,
+	Reactor,
+	Signal,
+	atom,
+	computed,
+	isUninitialized,
+	reactor,
+	transact,
+} from '@tldraw/state'
 import {
 	WeakCache,
 	assert,
@@ -19,6 +28,10 @@ import { RecordScope } from './RecordType'
 import { StoreQueries } from './StoreQueries'
 import { SerializedSchema, StoreSchema } from './StoreSchema'
 import { StoreSideEffects } from './StoreSideEffects'
+
+// The value of a cached computed whose record has been deleted (see `createComputedCache`). It never
+// reaches callers: `get` resolves the record's atom first, and there is none for a deleted id.
+const DELETED_RECORD = Symbol('deleted record')
 
 /**
  * Extracts the record type from a record ID type.
@@ -1106,6 +1119,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * signal for the underlying record. Return a signal (usually a computed) for the cached value.
 	 * For simple derivations, use {@link Store.createComputedCache}. This function is useful if you
 	 * need more precise control over intermediate values.
+	 *
+	 * After the record is deleted the record signal holds `UNINITIALIZED` rather than a record, and
+	 * a signal that a reader still depends on can be re-derived once more in that state; guard with
+	 * `isUninitialized` when your derivation cannot tolerate it. {@link Store.createComputedCache}
+	 * handles this for you.
 	 */
 	createCache<Result, Record extends R = R>(
 		create: (id: IdOf<Record>, recordSignal: Signal<R>) => Signal<Result>
@@ -1133,18 +1151,33 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		derive: (record: Record) => Result | undefined,
 		opts?: CreateComputedCacheOpts<Result, Record>
 	): ComputedCache<Result, Record> {
+		const areRecordsEqual = opts?.areRecordsEqual
+		const areResultsEqual = opts?.areResultsEqual
 		return this.createCache((id, record) => {
-			const recordSignal = opts?.areRecordsEqual
-				? computed(`${name}:${id}:isEqual`, () => record.get(), { isEqual: opts.areRecordsEqual })
+			const recordSignal = areRecordsEqual
+				? computed(`${name}:${id}:isEqual`, () => record.get(), {
+						// a deleted record's atom holds UNINITIALIZED, which user code must not see
+						isEqual: (a, b) =>
+							isUninitialized(a) || isUninitialized(b) ? a === b : areRecordsEqual(a, b),
+					})
 				: record
 
 			return computed<Result | undefined>(
 				name + ':' + id,
 				() => {
-					return derive(recordSignal.get() as Record)
+					// The computed can be re-derived after its record is deleted (e.g. by a reaction
+					// checking whether its parents changed), when the atom holds UNINITIALIZED. Return
+					// DELETED_RECORD rather than undefined: it never equals a real result, so a reader
+					// re-runs, looks the id up again, and so sees the record if it comes back.
+					const value = recordSignal.get()
+					if (isUninitialized(value)) return DELETED_RECORD as any
+					return derive(value as Record)
 				},
 				{
-					isEqual: opts?.areResultsEqual,
+					isEqual: areResultsEqual
+						? (a, b) =>
+								a === DELETED_RECORD || b === DELETED_RECORD ? a === b : areResultsEqual(a, b)
+						: undefined,
 				}
 			)
 		})
