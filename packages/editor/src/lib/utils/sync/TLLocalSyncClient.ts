@@ -295,6 +295,12 @@ export class TLLocalSyncClient {
 
 			this.channel.postMessage({ type: 'announce', schema: this.serializedSchema })
 			onLoad(this)
+
+			// Session state rows accumulate one per tab, so trim them on load. Pruning is best-effort
+			// and must never turn a successful load into a failure.
+			this.db.pruneSessions({ keepSessionId: this.sessionId }).catch((e: unknown) => {
+				this.debug('failed to prune session state rows', e)
+			})
 		} catch (e: any) {
 			this.debug('error loading data from store', e)
 			if (this.didDispose) return
