@@ -170,11 +170,9 @@ describe('Stadium2d.hitTestLineSegment', () => {
 		expect(wideFilled().hitTestLineSegment(new Vec(45, 2), new Vec(55, 2))).toBe(false)
 	})
 
-	// Locks in current behaviour, see #10555.
-	it('hits an interior segment that crosses the far side of an arc circle (known quirk)', () => {
-		// (50, 25) is on the left arc's circle but opposite the arc itself; Arc2d clamps points on
-		// the complementary arc to the nearest end point, so the crossing counts as a hit
-		expect(wideFilled().hitTestLineSegment(new Vec(30, 25), new Vec(70, 25))).toBe(true)
+	it('misses an interior segment that crosses the far side of an arc circle', () => {
+		// (50, 25) is on the left arc's circle but opposite the arc itself (#10555)
+		expect(wideFilled().hitTestLineSegment(new Vec(30, 25), new Vec(70, 25))).toBe(false)
 	})
 })
 
@@ -189,5 +187,17 @@ describe('Stadium2d.getSvgPathData', () => {
 		expect(tall().getSvgPathData()).toBe(
 			'M0, 25 A25 25 0 1 1 50, 25  L50, 75  A25 25 0 1 1 0, 75  L0, 25 Z'
 		)
+	})
+})
+
+describe('Stadium2d.hitTestLineSegment with a margin', () => {
+	it('honours the distance margin', () => {
+		const stadium = new Stadium2d({ width: 200, height: 100, isFilled: false })
+		// alongside the straight top edge
+		expect(stadium.hitTestLineSegment(new Vec(80, -5), new Vec(120, -5))).toBe(false)
+		expect(stadium.hitTestLineSegment(new Vec(80, -5), new Vec(120, -5), 10)).toBe(true)
+		// alongside the left cap
+		expect(stadium.hitTestLineSegment(new Vec(-5, 40), new Vec(-5, 60))).toBe(false)
+		expect(stadium.hitTestLineSegment(new Vec(-5, 40), new Vec(-5, 60), 10)).toBe(true)
 	})
 })
