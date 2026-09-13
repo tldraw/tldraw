@@ -30,6 +30,18 @@ export const MCP_RESOURCE_PATH = '/api/app/mcp'
 export const MCP_PROTECTED_RESOURCE_METADATA_PATH = `/.well-known/oauth-protected-resource${MCP_RESOURCE_PATH}`
 
 /**
+ * The path-less form of the above, which the MCP authorization spec tells clients to fall back to
+ * when the path-derived URL 404s.
+ *
+ * Served because clients actually do this, not because the origin is itself a protected resource:
+ * `www.tldraw.com` is a web app, and the only OAuth-protected thing on it is the MCP server. Both
+ * URLs therefore answer with the same document, whose `resource` stays `MCP_RESOURCE_PATH` — a
+ * client that fell back to this path was asking about that resource anyway, and pointing it at the
+ * origin instead would advertise a resource no token is ever minted for.
+ */
+export const MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH = '/.well-known/oauth-protected-resource'
+
+/**
  * The scopes a client should ask for, named in both the `WWW-Authenticate` challenge and the RFC
  * 9728 metadata.
  *

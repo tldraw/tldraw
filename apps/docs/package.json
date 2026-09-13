@@ -106,6 +106,7 @@
 		"postinstall-postinstall": "^2.1.0",
 		"sharp": "^0.35.3",
 		"tailwindcss": "^3.4.17",
+		"tar": "^7.5.11",
 		"tsx": "^4.19.2",
 		"typescript": "^7.0.2",
 		"vitest": "^4.1.7",

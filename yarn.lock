@@ -12025,6 +12025,7 @@ __metadata:
     sqlite3: "npm:^5.1.7"
     tailwind-merge: "npm:^2.6.0"
     tailwindcss: "npm:^3.4.17"
+    tar: "npm:^7.5.11"
     tsx: "npm:^4.19.2"
     typescript: "npm:^7.0.2"
     vitest: "npm:^4.1.7"
