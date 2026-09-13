@@ -4,6 +4,7 @@ import {
 	TLCancelEventInfo,
 	TLCompleteEventInfo,
 	tlenv,
+	TLEventInfo,
 	TLPointerEventInfo,
 	TLShape,
 } from '@tldraw/editor'
@@ -50,14 +51,21 @@ export class EditingShape extends StateNode {
 	}
 
 	override onExit() {
-		const hadEditingShape = !!this.editor.getEditingShapeId()
 		this.editor.setEditingShape(null)
-
 		cancelUpdateHoveredShapeId(this.editor)
-
-		if (this.info.isCreatingTextWhileToolLocked && hadEditingShape) {
+		if (this.info.isCreatingTextWhileToolLocked) {
 			this.parent.setCurrentToolIdMask(undefined)
+		}
+	}
+
+	// Switching tools from onExit would re-route the state chart in the middle of the transition
+	// that is exiting this state (the select tool's idle gets entered under an inactive select
+	// tool and clobbers the text tool's cursor), so the tool-lock return happens here instead.
+	private leave(info: TLEventInfo) {
+		if (this.info.isCreatingTextWhileToolLocked) {
 			this.editor.setCurrentTool('text', {})
+		} else {
+			this.parent.transition('idle', info)
 		}
 	}
 
@@ -181,7 +189,7 @@ export class EditingShape extends StateNode {
 		}
 
 		// still here? Cancel editing and transition back to select idle
-		this.parent.transition('idle', info)
+		this.leave(info)
 		// then feed the pointer down event back into the state chart as if it happened in that state
 		this.editor.root.handleEvent(info)
 	}
@@ -230,11 +238,11 @@ export class EditingShape extends StateNode {
 
 	override onComplete(info: TLCompleteEventInfo) {
 		this.editor.getContainer().focus()
-		this.parent.transition('idle', info)
+		this.leave(info)
 	}
 
 	override onCancel(info: TLCancelEventInfo) {
 		this.editor.getContainer().focus()
-		this.parent.transition('idle', info)
+		this.leave(info)
 	}
 }
