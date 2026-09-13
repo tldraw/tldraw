@@ -108,9 +108,11 @@ export function getStraightArrowInfo(
 	) {
 		if (endShapeInfo.didIntersect && !startShapeInfo.didIntersect) {
 			// ...and if only the end shape intersected, then make it
-			// a short arrow ending at the end shape intersection.
+			// a short arrow ending at the end shape intersection. The start
+			// sits MIN_ARROW_LENGTH before it along the arrow's direction;
+			// adding would put it past the intersection, inside the end shape.
 			if (startShapeInfo.isClosed) {
-				a.setTo(b.clone().add(uAB.clone().mul(MIN_ARROW_LENGTH * shape.props.scale)))
+				a.setTo(b.clone().sub(uAB.clone().mul(MIN_ARROW_LENGTH * shape.props.scale)))
 			}
 		} else if (!endShapeInfo.didIntersect) {
 			// ...and if only the end shape intersected, or if neither
