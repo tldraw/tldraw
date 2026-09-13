@@ -3892,7 +3892,7 @@ spec:
                       formatAs: time_series
                       intervalFactor: 1
                       query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, if(blob3 = 'ok', 'ok', concat('fail:', blob4))
+                        SECOND) as date, if(blob3 = 'ok', 'ok', concat(blob3, ':', blob4))
                         as result, count() as total
 
                         FROM 'MEASURE'
@@ -3907,7 +3907,7 @@ spec:
 
                         ORDER BY date ASC"
                       rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, if(blob3 = 'ok', 'ok', concat('fail:', blob4))
+                        SECOND) as date, if(blob3 = 'ok', 'ok', concat(blob3, ':', blob4))
                         as result, count() as total
 
                         FROM 'MEASURE'
@@ -4208,342 +4208,390 @@ spec:
                 sort: desc
           version: 13.2.0-29854286369
   layout:
-    kind: GridLayout
+    kind: RowsLayout
     spec:
-      items:
-        - kind: GridLayoutItem
+      rows:
+        - kind: RowsLayoutRow
           spec:
-            element:
-              kind: ElementReference
-              name: panel-2
-            height: 4
-            width: 12
-            x: 0
-            y: 0
-        - kind: GridLayoutItem
+            collapse: false
+            layout:
+              kind: GridLayout
+              spec:
+                items:
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-2
+                      height: 4
+                      width: 12
+                      x: 0
+                      y: 0
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-5
+                      height: 4
+                      width: 12
+                      x: 12
+                      y: 0
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-7
+                      height: 9
+                      width: 12
+                      x: 0
+                      y: 4
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-8
+                      height: 9
+                      width: 12
+                      x: 12
+                      y: 4
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-9
+                      height: 8
+                      width: 8
+                      x: 0
+                      y: 13
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-10
+                      height: 8
+                      width: 8
+                      x: 8
+                      y: 13
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-11
+                      height: 8
+                      width: 8
+                      x: 16
+                      y: 13
+            title: Rooms and sync
+        - kind: RowsLayoutRow
           spec:
-            element:
-              kind: ElementReference
-              name: panel-5
-            height: 4
-            width: 12
-            x: 12
-            y: 0
-        - kind: GridLayoutItem
+            collapse: false
+            layout:
+              kind: GridLayout
+              spec:
+                items:
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-12
+                      height: 9
+                      width: 12
+                      x: 0
+                      y: 0
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-13
+                      height: 9
+                      width: 12
+                      x: 12
+                      y: 0
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-14
+                      height: 8
+                      width: 12
+                      x: 0
+                      y: 9
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-15
+                      height: 8
+                      width: 12
+                      x: 12
+                      y: 9
+            title: Room and connect latency
+        - kind: RowsLayoutRow
           spec:
-            element:
-              kind: ElementReference
-              name: panel-7
-            height: 9
-            width: 12
-            x: 0
-            y: 4
-        - kind: GridLayoutItem
+            collapse: true
+            layout:
+              kind: GridLayout
+              spec:
+                items:
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-49
+                      height: 8
+                      width: 12
+                      x: 0
+                      y: 0
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-50
+                      height: 8
+                      width: 12
+                      x: 12
+                      y: 0
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-51
+                      height: 8
+                      width: 12
+                      x: 0
+                      y: 8
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-53
+                      height: 8
+                      width: 12
+                      x: 12
+                      y: 8
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-52
+                      height: 4
+                      width: 6
+                      x: 0
+                      y: 16
+            title: Version chains
+        - kind: RowsLayoutRow
           spec:
-            element:
-              kind: ElementReference
-              name: panel-8
-            height: 9
-            width: 12
-            x: 12
-            y: 4
-        - kind: GridLayoutItem
+            collapse: true
+            layout:
+              kind: GridLayout
+              spec:
+                items:
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-25
+                      height: 8
+                      width: 12
+                      x: 0
+                      y: 0
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-26
+                      height: 8
+                      width: 12
+                      x: 12
+                      y: 0
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-48
+                      height: 8
+                      width: 12
+                      x: 0
+                      y: 8
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-43
+                      height: 8
+                      width: 12
+                      x: 12
+                      y: 8
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-42
+                      height: 8
+                      width: 12
+                      x: 0
+                      y: 16
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-46
+                      height: 8
+                      width: 12
+                      x: 12
+                      y: 16
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-44
+                      height: 8
+                      width: 12
+                      x: 0
+                      y: 24
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-47
+                      height: 8
+                      width: 12
+                      x: 12
+                      y: 24
+            title: Postgres connections
+        - kind: RowsLayoutRow
           spec:
-            element:
-              kind: ElementReference
-              name: panel-9
-            height: 8
-            width: 8
-            x: 0
-            y: 13
-        - kind: GridLayoutItem
+            collapse: true
+            layout:
+              kind: GridLayout
+              spec:
+                items:
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-33
+                      height: 4
+                      width: 6
+                      x: 0
+                      y: 0
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-34
+                      height: 4
+                      width: 6
+                      x: 6
+                      y: 0
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-35
+                      height: 4
+                      width: 6
+                      x: 12
+                      y: 0
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-36
+                      height: 4
+                      width: 6
+                      x: 18
+                      y: 0
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-37
+                      height: 8
+                      width: 8
+                      x: 0
+                      y: 4
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-38
+                      height: 8
+                      width: 8
+                      x: 8
+                      y: 4
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-39
+                      height: 8
+                      width: 8
+                      x: 16
+                      y: 4
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-40
+                      height: 8
+                      width: 12
+                      x: 0
+                      y: 12
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-41
+                      height: 8
+                      width: 12
+                      x: 12
+                      y: 12
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-45
+                      height: 8
+                      width: 24
+                      x: 0
+                      y: 20
+            title: Screenshots and OG images
+        - kind: RowsLayoutRow
           spec:
-            element:
-              kind: ElementReference
-              name: panel-10
-            height: 8
-            width: 8
-            x: 8
-            y: 13
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-11
-            height: 8
-            width: 8
-            x: 16
-            y: 13
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-12
-            height: 9
-            width: 12
-            x: 0
-            y: 21
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-13
-            height: 9
-            width: 12
-            x: 12
-            y: 21
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-14
-            height: 8
-            width: 12
-            x: 0
-            y: 30
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-15
-            height: 8
-            width: 12
-            x: 12
-            y: 30
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-25
-            height: 8
-            width: 12
-            x: 0
-            y: 38
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-26
-            height: 8
-            width: 12
-            x: 12
-            y: 38
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-27
-            height: 8
-            width: 12
-            x: 0
-            y: 46
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-28
-            height: 8
-            width: 6
-            x: 12
-            y: 46
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-29
-            height: 8
-            width: 6
-            x: 18
-            y: 46
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-33
-            height: 4
-            width: 6
-            x: 0
-            y: 54
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-34
-            height: 4
-            width: 6
-            x: 6
-            y: 54
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-35
-            height: 4
-            width: 6
-            x: 12
-            y: 54
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-36
-            height: 4
-            width: 6
-            x: 18
-            y: 54
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-37
-            height: 8
-            width: 8
-            x: 0
-            y: 58
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-38
-            height: 8
-            width: 8
-            x: 8
-            y: 58
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-39
-            height: 8
-            width: 8
-            x: 16
-            y: 58
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-40
-            height: 8
-            width: 12
-            x: 0
-            y: 66
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-41
-            height: 8
-            width: 12
-            x: 12
-            y: 66
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-42
-            height: 8
-            width: 12
-            x: 0
-            y: 74
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-43
-            height: 8
-            width: 12
-            x: 0
-            y: 90
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-44
-            height: 8
-            width: 12
-            x: 0
-            y: 82
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-45
-            height: 8
-            width: 12
-            x: 12
-            y: 90
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-46
-            height: 8
-            width: 12
-            x: 12
-            y: 74
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-47
-            height: 8
-            width: 12
-            x: 12
-            y: 82
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-48
-            height: 8
-            width: 12
-            x: 0
-            y: 98
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-49
-            height: 8
-            width: 12
-            x: 0
-            y: 106
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-50
-            height: 8
-            width: 12
-            x: 12
-            y: 106
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-51
-            height: 8
-            width: 12
-            x: 0
-            y: 114
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-53
-            height: 8
-            width: 12
-            x: 12
-            y: 114
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-52
-            height: 4
-            width: 6
-            x: 0
-            y: 122
+            collapse: true
+            layout:
+              kind: GridLayout
+              spec:
+                items:
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-27
+                      height: 8
+                      width: 12
+                      x: 0
+                      y: 0
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-28
+                      height: 8
+                      width: 6
+                      x: 12
+                      y: 0
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-29
+                      height: 8
+                      width: 6
+                      x: 18
+                      y: 0
+            title: Demo server (bemo)
   links: []
   liveNow: false
   preload: false
