@@ -7,7 +7,7 @@ import {
 	RESET_VALUE,
 	withDiff,
 } from '@tldraw/state'
-import { areArraysShallowEqual, isEqual, objectMapValues } from '@tldraw/utils'
+import { areArraysShallowEqual, isEqual } from '@tldraw/utils'
 import { AtomMap } from './AtomMap'
 import { IdOf, UnknownRecord } from './BaseRecord'
 import { executeQuery, objectMatchesQuery, QueryExpression } from './executeQuery'
@@ -316,25 +316,24 @@ export class StoreQueries<R extends UnknownRecord> {
 
 				const setConstructors = new Map<any, IncrementalSetConstructor<IdOf<S>>>()
 
-				const add = (value: any, id: IdOf<S>) => {
+				const setConstructorFor = (value: any) => {
 					let setConstructor = setConstructors.get(value)
-					if (!setConstructor)
+					if (!setConstructor) {
 						setConstructor = new IncrementalSetConstructor<IdOf<S>>(
 							prevValue.get(value) ?? new Set()
 						)
-					setConstructor.add(id)
-					setConstructors.set(value, setConstructor)
+						setConstructors.set(value, setConstructor)
+					}
+					return setConstructor
 				}
+				const add = (value: any, id: IdOf<S>) => setConstructorFor(value).add(id)
+				const remove = (value: any, id: IdOf<S>) => setConstructorFor(value).remove(id)
 
-				const remove = (value: any, id: IdOf<S>) => {
-					let set = setConstructors.get(value)
-					if (!set) set = new IncrementalSetConstructor<IdOf<S>>(prevValue.get(value) ?? new Set())
-					set.remove(id)
-					setConstructors.set(value, set)
-				}
-
+				// for-in rather than objectMapValues: this runs per frame while dragging, and an
+				// allocation per diff per index adds up (see the note in RecordsDiff.ts)
 				for (const changes of history) {
-					for (const record of objectMapValues(changes.added)) {
+					for (const id in changes.added) {
+						const record = changes.added[id as IdOf<R>]
 						if (record.typeName === typeName) {
 							const value = getPropertyValue(record as S)
 							if (value !== undefined) {
@@ -342,7 +341,8 @@ export class StoreQueries<R extends UnknownRecord> {
 							}
 						}
 					}
-					for (const [from, to] of objectMapValues(changes.updated)) {
+					for (const id in changes.updated) {
+						const [from, to] = changes.updated[id as IdOf<R>]
 						if (to.typeName === typeName) {
 							const prev = getPropertyValue(from as S)
 							const next = getPropertyValue(to as S)
@@ -356,7 +356,8 @@ export class StoreQueries<R extends UnknownRecord> {
 							}
 						}
 					}
-					for (const record of objectMapValues(changes.removed)) {
+					for (const id in changes.removed) {
+						const record = changes.removed[id as IdOf<R>]
 						if (record.typeName === typeName) {
 							const value = getPropertyValue(record as S)
 							if (value !== undefined) {
@@ -556,17 +557,18 @@ export class StoreQueries<R extends UnknownRecord> {
 					return fromScratchWithDiff(prevValue)
 				}
 
-				const setConstructor = new IncrementalSetConstructor<IdOf<S>>(
-					prevValue
-				) as IncrementalSetConstructor<IdOf<S>>
+				const setConstructor = new IncrementalSetConstructor<IdOf<S>>(prevValue)
 
+				// for-in rather than objectMapValues: see the index derive above
 				for (const changes of history) {
-					for (const added of objectMapValues(changes.added)) {
+					for (const id in changes.added) {
+						const added = changes.added[id as IdOf<R>]
 						if (added.typeName === typeName && objectMatchesQuery(query, added)) {
 							setConstructor.add(added.id)
 						}
 					}
-					for (const [_, updated] of objectMapValues(changes.updated)) {
+					for (const id in changes.updated) {
+						const updated = changes.updated[id as IdOf<R>][1]
 						if (updated.typeName === typeName) {
 							if (objectMatchesQuery(query, updated)) {
 								setConstructor.add(updated.id)
@@ -575,7 +577,8 @@ export class StoreQueries<R extends UnknownRecord> {
 							}
 						}
 					}
-					for (const removed of objectMapValues(changes.removed)) {
+					for (const id in changes.removed) {
+						const removed = changes.removed[id as IdOf<R>]
 						if (removed.typeName === typeName) {
 							setConstructor.remove(removed.id)
 						}
