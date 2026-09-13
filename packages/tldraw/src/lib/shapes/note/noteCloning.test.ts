@@ -230,6 +230,34 @@ it('Creates an adjacent note when dragging the clone handle', () => {
 	editor.expectToBeIn('select.editing_shape')
 })
 
+it('Removes the new note and stays in the select tool when cancelling a clone handle drag', () => {
+	editor.createShape({ type: 'note', x: 1000, y: 1000 })
+	const shape = editor.getLastCreatedShape()!
+	const handle = editor.getShapeHandles(shape.id)![1]
+
+	editor
+		.select(shape.id)
+		.pointerDown(handle.x, handle.y, {
+			target: 'handle',
+			shape,
+			handle,
+		})
+		.expectToBeIn('select.pointing_handle')
+		.pointerMove(handle.x + 30, handle.y + 30)
+		.forceTick()
+		.expectToBeIn('select.translating')
+
+	const newShape = editor.getLastCreatedShape()
+	expect(newShape.id).not.toBe(shape.id)
+
+	editor.cancel()
+
+	expect(editor.getShape(newShape.id)).toBeUndefined()
+	expect(editor.getCurrentPageShapeIds()).toEqual(new Set([shape.id]))
+	expect(editor.getCurrentToolId()).toBe('select')
+	editor.expectToBeIn('select.idle')
+})
+
 describe('Clone handles and attribution', () => {
 	function createNoteWithAttribution() {
 		editor.createShape({ type: 'note', x: 1000, y: 1000 })
