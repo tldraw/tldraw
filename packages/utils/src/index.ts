@@ -1,9 +1,5 @@
 import { registerTldrawLibraryVersion } from './lib/version'
 
-export { default as isEqual } from 'lodash.isequal'
-export { default as isEqualWith } from 'lodash.isequalwith'
-export { default as throttle } from 'lodash.throttle'
-export { default as uniq } from 'lodash.uniq'
 export {
 	areArraysShallowEqual,
 	compact,
@@ -14,6 +10,7 @@ export {
 	minBy,
 	partition,
 	rotateArray,
+	uniq,
 } from './lib/array'
 export { bind } from './lib/bind'
 export { WeakCache } from './lib/cache'
@@ -34,6 +31,7 @@ export { FileHelpers } from './lib/file'
 export { noop, omitFromStackTrace } from './lib/function'
 export { getHashForBuffer, getHashForObject, getHashForString, lns } from './lib/hash'
 export { mockUniqueId, restoreUniqueId, uniqueId } from './lib/id'
+export { isEqual, isEqualWith, type IsEqualCustomizer } from './lib/isEqual'
 export { getFirstFromIterable } from './lib/iterable'
 export { LruCache } from './lib/LruCache'
 export type { JsonArray, JsonObject, JsonPrimitive, JsonValue } from './lib/json-value'
@@ -93,7 +91,14 @@ export {
 } from './lib/storage'
 export { getFirstCharacter, iterateGraphemes } from './lib/string'
 export { stringEnum } from './lib/stringEnum'
-export { FpsScheduler, fpsThrottle, throttleToNextFrame } from './lib/throttle'
+export {
+	FpsScheduler,
+	fpsThrottle,
+	throttle,
+	throttleToNextFrame,
+	type ThrottledFunction,
+	type ThrottleOptions,
+} from './lib/throttle'
 export { Timers } from './lib/timers'
 export {
 	type Awaitable,
