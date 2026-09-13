@@ -1770,4 +1770,102 @@ describe('TLSyncClient', () => {
 			}).not.toThrow()
 		})
 	})
+
+	describe('21a. flush (CF)', () => {
+		// flush exists for pages that get no frames, so these tests run with the real
+		// frame-throttled paths (not the test shortcut) and requestAnimationFrame dead: nothing
+		// sends or settles unless flush does it without a frame.
+		beforeEach(() => {
+			;(globalThis as any).__FORCE_RAF_IN_TESTS__ = true
+			vi.stubGlobal('requestAnimationFrame', () => 0)
+			vi.stubGlobal('cancelAnimationFrame', () => {})
+		})
+
+		afterEach(() => {
+			client?.close()
+			client = undefined as any
+			delete (globalThis as any).__FORCE_RAF_IN_TESTS__
+			vi.unstubAllGlobals()
+		})
+
+		function commitFor(push: TLPushRequest<TestRecord>) {
+			socket.mockServerMessage({
+				type: 'data',
+				data: [
+					{ type: 'push_result', clientClock: push.clientClock, serverClock: 2, action: 'commit' },
+				],
+			})
+		}
+
+		it('[CF1, CF2, CF6] sends and settles without a single frame', async () => {
+			connectClient()
+
+			store.put([makePage('No Frames Page')])
+			// the throttled path is starved: nothing has been sent
+			expect(getSentPushes()).toHaveLength(0)
+
+			const flushed = client.flush()
+			const pushes = getSentPushes()
+			expect(pushes).toHaveLength(1)
+
+			commitFor(pushes[0])
+			await expect(flushed).resolves.toBeUndefined()
+		})
+
+		it('[CF3] resolves immediately when nothing is unsettled', async () => {
+			connectClient()
+			await expect(client.flush()).resolves.toBeUndefined()
+		})
+
+		it('[CF2] is not starved by edits made after the call', async () => {
+			connectClient()
+
+			store.put([makePage('First', 'a1')])
+			const flushed = client.flush()
+			const firstPush = getSentPushes()[0]
+			expect(firstPush).toBeDefined()
+
+			// a later edit lands while the flush is in flight and is never settled
+			store.put([makePage('Second', 'a2')])
+
+			commitFor(firstPush)
+			await expect(flushed).resolves.toBeUndefined()
+		})
+
+		it('[CF4] rejects when the store is possibly corrupted', async () => {
+			connectClient()
+			store.markAsPossiblyCorrupted()
+			await expect(client.flush()).rejects.toThrow('possibly corrupted')
+		})
+
+		it('[CF4] rejects when disconnected with changes still unsent', async () => {
+			connectClient()
+			socket.mockConnectionStatus('offline')
+
+			store.put([makePage('Offline Page')])
+			await expect(client.flush()).rejects.toThrow('not connected')
+		})
+
+		it('[CF5] a connection reset rejects the in-flight flush instead of hanging or lying', async () => {
+			connectClient()
+
+			store.put([makePage('Doomed Page')])
+			const flushed = client.flush()
+			expect(getSentPushes()).toHaveLength(1)
+
+			socket.mockConnectionStatus('offline')
+			await expect(flushed).rejects.toThrow('connection was reset')
+		})
+
+		it('[CF5] closing the client rejects the in-flight flush', async () => {
+			connectClient()
+
+			store.put([makePage('Closing Page')])
+			const flushed = client.flush()
+			expect(getSentPushes()).toHaveLength(1)
+
+			client.close()
+			await expect(flushed).rejects.toThrow('closed before')
+		})
+	})
 })
