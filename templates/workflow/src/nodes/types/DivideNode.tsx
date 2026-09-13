@@ -1,13 +1,7 @@
-import { T, useEditor } from 'tldraw'
+import { sleep, T, useEditor } from 'tldraw'
 import { DivideIcon } from '../../components/icons/DivideIcon'
-import {
-	NODE_HEADER_HEIGHT_PX,
-	NODE_ROW_HEADER_GAP_PX,
-	NODE_ROW_HEIGHT_PX,
-	NODE_WIDTH_PX,
-} from '../../constants'
+import { NODE_ROW_HEIGHT_PX } from '../../constants'
 import { ShapePort } from '../../ports/Port'
-import { sleep } from '../../utils/sleep'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	areAnyInputsOutOfDate,
@@ -17,6 +11,8 @@ import {
 	NodeComponentProps,
 	NodeDefinition,
 	NodeInputRow,
+	outputPort,
+	rowPort,
 	updateNode,
 } from './shared'
 
@@ -50,28 +46,9 @@ export class DivideNodeDefinition extends NodeDefinition<DivideNode> {
 	}
 	getPorts(_shape: NodeShape, _node: DivideNode): Record<string, ShapePort> {
 		return {
-			output: {
-				id: 'output',
-				x: NODE_WIDTH_PX,
-				y: NODE_HEADER_HEIGHT_PX / 2,
-				terminal: 'start',
-			},
-			dividend: {
-				id: 'dividend',
-				x: 0,
-				y: NODE_HEADER_HEIGHT_PX + NODE_ROW_HEADER_GAP_PX + NODE_ROW_HEIGHT_PX / 2,
-				terminal: 'end',
-			},
-			divisor: {
-				id: 'divisor',
-				x: 0,
-				y:
-					NODE_HEADER_HEIGHT_PX +
-					NODE_ROW_HEADER_GAP_PX +
-					NODE_ROW_HEIGHT_PX +
-					NODE_ROW_HEIGHT_PX / 2,
-				terminal: 'end',
-			},
+			output: outputPort,
+			dividend: rowPort('dividend', 0),
+			divisor: rowPort('divisor', 1),
 		}
 	}
 	async execute(shape: NodeShape, node: DivideNode, inputs: InputValues): Promise<ExecutionResult> {

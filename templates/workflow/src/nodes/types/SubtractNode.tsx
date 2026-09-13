@@ -1,13 +1,7 @@
-import { T, useEditor } from 'tldraw'
+import { sleep, T, useEditor } from 'tldraw'
 import { SubtractIcon } from '../../components/icons/SubtractIcon'
-import {
-	NODE_HEADER_HEIGHT_PX,
-	NODE_ROW_HEADER_GAP_PX,
-	NODE_ROW_HEIGHT_PX,
-	NODE_WIDTH_PX,
-} from '../../constants'
+import { NODE_ROW_HEIGHT_PX } from '../../constants'
 import { ShapePort } from '../../ports/Port'
-import { sleep } from '../../utils/sleep'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	areAnyInputsOutOfDate,
@@ -17,6 +11,8 @@ import {
 	NodeComponentProps,
 	NodeDefinition,
 	NodeInputRow,
+	outputPort,
+	rowPort,
 	updateNode,
 } from './shared'
 
@@ -50,28 +46,9 @@ export class SubtractNodeDefinition extends NodeDefinition<SubtractNode> {
 	}
 	getPorts(_shape: NodeShape, _node: SubtractNode): Record<string, ShapePort> {
 		return {
-			output: {
-				id: 'output',
-				x: NODE_WIDTH_PX,
-				y: NODE_HEADER_HEIGHT_PX / 2,
-				terminal: 'start',
-			},
-			minuend: {
-				id: 'minuend',
-				x: 0,
-				y: NODE_HEADER_HEIGHT_PX + NODE_ROW_HEADER_GAP_PX + NODE_ROW_HEIGHT_PX / 2,
-				terminal: 'end',
-			},
-			subtrahend: {
-				id: 'subtrahend',
-				x: 0,
-				y:
-					NODE_HEADER_HEIGHT_PX +
-					NODE_ROW_HEADER_GAP_PX +
-					NODE_ROW_HEIGHT_PX +
-					NODE_ROW_HEIGHT_PX / 2,
-				terminal: 'end',
-			},
+			output: outputPort,
+			minuend: rowPort('minuend', 0),
+			subtrahend: rowPort('subtrahend', 1),
 		}
 	}
 	async execute(

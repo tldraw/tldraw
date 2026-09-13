@@ -23,18 +23,12 @@ export async function startExecution(editor: Editor, startingNodeIds: Set<TLShap
 	const graph = new ExecutionGraph(editor, startingNodeIds)
 	executionState.update(editor, (state) => {
 		state.runningGraph?.stop()
-		return {
-			...state,
-			runningGraph: graph,
-		}
+		return { ...state, runningGraph: graph }
 	})
 	try {
 		await graph.execute()
 	} finally {
-		executionState.update(editor, (state) => ({
-			...state,
-			runningGraph: null,
-		}))
+		executionState.update(editor, (state) => ({ ...state, runningGraph: null }))
 	}
 }
 
