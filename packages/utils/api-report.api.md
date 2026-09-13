@@ -128,6 +128,7 @@ export function filterEntries<Key extends string, Value>(object: {
 // @public
 export class FpsScheduler {
     constructor(targetFps?: number);
+    flushNow(): void;
     fpsThrottle(fn: {
         (): void;
         cancel?(): void;
