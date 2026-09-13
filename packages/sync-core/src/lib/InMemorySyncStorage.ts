@@ -153,11 +153,15 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 		onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown
 	} = {}) {
 		this.objectTypes = new Set(objectTypes ?? [])
-		const maxClockValue = Math.max(
-			0,
-			...Object.values(snapshot.tombstones ?? {}),
-			...Object.values(snapshot.documents.map((d) => d.lastChangedClock))
-		)
+		// a loop rather than `Math.max(0, ...clocks)`: spreading a large room's clocks as call
+		// arguments overflows the stack at roughly 100k+ records/tombstones
+		let maxClockValue = 0
+		for (const clock of Object.values(snapshot.tombstones ?? {})) {
+			if (clock > maxClockValue) maxClockValue = clock
+		}
+		for (const doc of snapshot.documents) {
+			if (doc.lastChangedClock > maxClockValue) maxClockValue = doc.lastChangedClock
+		}
 		// route snapshot entries into their partitions (a seed snapshot may carry object-lane
 		// records merged in, e.g. loaded from a separate persistence lane)
 		const toEntry = (
