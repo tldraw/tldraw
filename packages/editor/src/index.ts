@@ -289,6 +289,7 @@ export {
 } from './lib/editor/types/SvgExportContext'
 export { getOwnerDocument, getOwnerWindow } from './lib/exports/domUtils'
 export { getSvgAsImage } from './lib/exports/getSvgAsImage'
+export { ExportStyleCache } from './lib/exports/StyleEmbedder'
 export { tlenv, tlenvReactive } from './lib/globals/environment'
 export { tleditors } from './lib/globals/editors'
 export { tlmenus } from './lib/globals/menus'
