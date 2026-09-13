@@ -27,6 +27,12 @@
 	"types": "./.tsbuild/index.d.ts",
 	"style": "./mentions.css",
 	"type": "module",
+	"sideEffects": [
+		"./src/index.ts",
+		"./dist-esm/index.mjs",
+		"./dist-cjs/index.js",
+		"**/*.css"
+	],
 	"files": [
 		"mentions.css"
 	],
