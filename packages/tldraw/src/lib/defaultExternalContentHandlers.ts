@@ -34,7 +34,6 @@ import { getCroppedImageDataForReplacedImage } from './shapes/shared/crop'
 import { FONT_SIZES, TEXT_PROPS, getFontFamily } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
-import { putExcalidrawContent } from './utils/excalidraw/putExcalidrawContent'
 import { renderHtmlFromRichTextForMeasurement, renderRichTextFromHTML } from './utils/text/richText'
 import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
 
@@ -706,6 +705,7 @@ export async function defaultHandleExternalExcalidrawContent(
 	editor: Editor,
 	{ point, content }: { point?: VecLike; content: any }
 ) {
+	const { putExcalidrawContent } = await import('./utils/excalidraw/putExcalidrawContent')
 	editor.run(() => {
 		putExcalidrawContent(editor, content, point)
 	})

@@ -1,5 +1,3 @@
-import { hardReset } from './sync/hardReset'
-
 /** @public */
 export const runtime: {
 	openWindow(url: string, target: string, allowReferrer?: boolean): void
@@ -13,6 +11,8 @@ export const runtime: {
 		window.location.reload()
 	},
 	async hardReset() {
+		// Only reached from the error fallback, so don't make every consumer ship the IndexedDB code
+		const { hardReset } = await import('./sync/hardReset')
 		return await hardReset({ shouldReload: true })
 	},
 }
@@ -44,5 +44,10 @@ export function refreshPage() {
 
 /** @public */
 export function hardResetEditor() {
-	runtime.hardReset()
+	runtime.hardReset().catch((err) => {
+		// The reset code is loaded on demand; if that load fails (the user is likely already on
+		// the error fallback, possibly offline) at least get them a fresh page.
+		console.error(err)
+		runtime.refreshPage()
+	})
 }
