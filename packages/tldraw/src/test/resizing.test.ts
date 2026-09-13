@@ -3462,6 +3462,77 @@ describe('resizing a selection of mixed rotations', () => {
 		editor.pointerDownOnHandle('bottom_right').pointerMove(100, 25)
 		expect(roundedPageBounds(ids.boxA, 0.5)).toMatchObject({ x: 0, y: 0, w: 20, h: 20 })
 	})
+
+	it('mirrors an unaligned shape across the rotated selection axis when flipping', () => {
+		// C is rotated 0.3 inside a group that is then rotated by 0.5, so C's page rotation (0.8)
+		// is out of alignment with the selection axes and takes the unaligned resize path
+		const alignedId = createShapeId('aligned')
+		const unalignedId = createShapeId('unaligned')
+		editor.createShapes([
+			box(alignedId, 0, 0, 100, 50),
+			{ ...box(unalignedId, 200, 0, 100, 50), rotation: 0.3 },
+		])
+		editor.groupShapes([alignedId, unalignedId])
+		const groupId = editor.getOnlySelectedShapeId()!
+		editor.rotateShapesBy([groupId], 0.5)
+		editor.select(groupId)
+
+		const selectionBounds = editor.getSelectionRotatedPageBounds()!
+		const centerBefore = editor.getShapePageBounds(unalignedId)!.center
+		// mirror across the selection's left edge, which is where the right handle ends up
+		const expectedCenter = Vec.RotWith(centerBefore, selectionBounds.point, -0.5)
+		expectedCenter.x = selectionBounds.point.x - (expectedCenter.x - selectionBounds.point.x)
+		expectedCenter.rotWith(selectionBounds.point, 0.5)
+
+		editor.resizeSelection({ scaleX: -1 }, 'right')
+
+		// a flip across an axis at angle θ maps a page rotation r to 2θ - r; negating the rotation
+		// (as if θ were 0) leaves the shape off by 2θ
+		expect(editor.getShapePageTransform(unalignedId).rotation()).toBeCloseTo(2 * 0.5 - 0.8)
+		const centerAfter = editor.getShapePageBounds(unalignedId)!.center
+		expect(centerAfter.x).toBeCloseTo(expectedCenter.x)
+		expect(centerAfter.y).toBeCloseTo(expectedCenter.y)
+	})
+
+	it('mirrors an unaligned child of an unaligned group when flipping', () => {
+		// The inner group is rotated 0.2 inside an outer group that is rotated 0.5, so the inner
+		// group's page rotation (0.7) and its child's page rotation (0.3 + 0.7 = 1.0) are both out of
+		// alignment with the selection axes. The inner group is committed before its child, so the
+		// child's new rotation must be computed against the inner group's *flipped* rotation.
+		const alignedId = createShapeId('aligned')
+		const innerAlignedId = createShapeId('innerAligned')
+		const unalignedId = createShapeId('unaligned')
+		editor.createShapes([
+			box(alignedId, 0, 0, 100, 50),
+			box(innerAlignedId, 200, 100, 100, 50),
+			{ ...box(unalignedId, 200, 0, 100, 50), rotation: 0.3 },
+		])
+		editor.groupShapes([innerAlignedId, unalignedId])
+		const innerGroupId = editor.getOnlySelectedShapeId()!
+		editor.rotateShapesBy([innerGroupId], 0.2)
+		editor.groupShapes([alignedId, innerGroupId])
+		const outerGroupId = editor.getOnlySelectedShapeId()!
+		editor.rotateShapesBy([outerGroupId], 0.5)
+		editor.select(outerGroupId)
+
+		expect(editor.getShapePageTransform(innerGroupId).rotation()).toBeCloseTo(0.7)
+		expect(editor.getShapePageTransform(unalignedId).rotation()).toBeCloseTo(1.0)
+
+		const selectionBounds = editor.getSelectionRotatedPageBounds()!
+		const centerBefore = editor.getShapePageBounds(unalignedId)!.center
+		const expectedCenter = Vec.RotWith(centerBefore, selectionBounds.point, -0.5)
+		expectedCenter.x = selectionBounds.point.x - (expectedCenter.x - selectionBounds.point.x)
+		expectedCenter.rotWith(selectionBounds.point, 0.5)
+
+		editor.resizeSelection({ scaleX: -1 }, 'right')
+
+		// each shape's page rotation is mirrored across the selection axis: r -> 2 * 0.5 - r
+		expect(editor.getShapePageTransform(innerGroupId).rotation()).toBeCloseTo(2 * 0.5 - 0.7)
+		expect(editor.getShapePageTransform(unalignedId).rotation()).toBeCloseTo(2 * 0.5 - 1.0)
+		const centerAfter = editor.getShapePageBounds(unalignedId)!.center
+		expect(centerAfter.x).toBeCloseTo(expectedCenter.x)
+		expect(centerAfter.y).toBeCloseTo(expectedCenter.y)
+	})
 })
 
 // describe('Icons', () => {

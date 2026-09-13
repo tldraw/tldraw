@@ -1,4 +1,11 @@
-import { createShapeId, TLFrameShape, TLGeoShape, TLGroupShape, TLLineShape } from '@tldraw/editor'
+import {
+	createShapeId,
+	TLFrameShape,
+	TLGeoShape,
+	TLGroupShape,
+	TLLineShape,
+	Vec,
+} from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
@@ -243,6 +250,56 @@ describe('When interacting with a shape...', () => {
 
 		// Should have called end once now
 		expect(calls).toEqual(['start', 'change', 'change', 'end'])
+	})
+
+	it('Fires resizing events once for an unaligned shape in a rotated selection', () => {
+		const util = editor.getShapeUtil<TLGeoShape>('geo')
+
+		const calls: string[] = []
+
+		util.onResizeStart = () => {
+			calls.push('start')
+		}
+
+		util.onResize = () => {
+			calls.push('change')
+		}
+
+		util.onResizeEnd = () => {
+			calls.push('end')
+		}
+
+		// The geo shape is rotated inside a group that is then rotated, so its page rotation is out
+		// of alignment with the selection and it takes the unaligned resize path
+		const unalignedId = createShapeId('unaligned')
+		const noteId = createShapeId('note')
+		editor.createShapes([
+			{ id: unalignedId, type: 'geo', x: 500, y: 500, rotation: 0.3, props: { w: 100, h: 50 } },
+			{ id: noteId, type: 'note', x: 700, y: 500 },
+		])
+		editor.groupShapes([unalignedId, noteId])
+		const groupId = editor.getOnlySelectedShapeId()!
+		editor.rotateShapesBy([groupId], 0.5)
+		editor.select(groupId)
+
+		const handlePoint = editor.getSelectionRotatedPageBounds()!.getHandlePoint('bottom_right')
+		const start = Vec.RotWith(handlePoint, editor.getSelectionRotatedPageBounds()!.point, 0.5)
+
+		editor.pointerDown(start.x, start.y, { target: 'selection', handle: 'bottom_right' })
+		editor.expectToBeIn('select.pointing_resize_handle')
+		expect(calls).toEqual([])
+
+		editor.pointerMove(start.x - 50, start.y - 50)
+		editor.expectToBeIn('select.resizing')
+		expect(calls).toEqual(['start', 'change'])
+
+		editor.pointerMove(start.x - 60, start.y - 50)
+		editor.pointerMove(start.x - 70, start.y - 60)
+		expect(calls).toEqual(['start', 'change', 'change', 'change'])
+
+		editor.pointerUp(start.x - 70, start.y - 60)
+		editor.expectToBeIn('select.idle')
+		expect(calls).toEqual(['start', 'change', 'change', 'change', 'end'])
 	})
 
 	it('Fires resizing cancel events', () => {
