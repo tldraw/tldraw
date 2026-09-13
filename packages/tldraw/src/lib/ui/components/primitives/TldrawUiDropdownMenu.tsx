@@ -3,6 +3,7 @@ import classNames from 'classnames'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { ReactNode } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
+import { useMenuWheelPassThrough } from '../../hooks/useMenuWheelPassThrough'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from './Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './Button/TldrawUiButtonIcon'
@@ -84,9 +85,12 @@ export function TldrawUiDropdownMenuContent({
 }: TLUiDropdownMenuContentProps) {
 	const container = useContainer()
 
+	const setContent = useMenuWheelPassThrough()
+
 	return (
 		<_DropdownMenu.Portal container={container}>
 			<_DropdownMenu.Content
+				ref={setContent}
 				className={classNames('tlui-menu', className)}
 				side={side}
 				sideOffset={sideOffset}
@@ -167,9 +171,11 @@ export function TldrawUiDropdownMenuSubContent({
 	children,
 }: TLUiDropdownMenuSubContentProps) {
 	const container = useContainer()
+	const setContent = useMenuWheelPassThrough()
 	return (
 		<_DropdownMenu.Portal container={container}>
 			<_DropdownMenu.SubContent
+				ref={setContent}
 				data-testid={id}
 				className="tlui-menu tlui-menu__submenu__content"
 				alignOffset={alignOffset}
