@@ -1,0 +1,51 @@
+main = "src/worker.ts"
+# Matches the sync worker's top-level date so both sit on the same runtime. This worker is never run
+# through `wrangler dev` — a tail consumer has no local story — so the pinned-workerd caveat that
+# forces the sync worker's dev env back to an older date does not apply here.
+compatibility_date = "2026-03-24"
+workers_dev = false
+
+[[analytics_engine_datasets]]
+binding = "TAIL"
+
+#################### Environment names ####################
+# dev should never actually get deployed anywhere
+[env.dev]
+name = "dev-tldraw-multiplayer-tail"
+
+# staging is the same as a preview on main:
+[env.staging]
+name = "main-tldraw-multiplayer-tail"
+
+# production gets the proper name
+[env.production]
+name = "tldraw-multiplayer-tail"
+
+#################### Analytics engine ####################
+# A dataset of its own, not MEASURE. Analytics Engine samples per dataset, so folding ~38M invocation
+# rows a day into MEASURE would inflate `_sample_interval` across every dashboard already built on it.
+[[env.dev.analytics_engine_datasets]]
+binding = "TAIL"
+
+[[env.staging.analytics_engine_datasets]]
+binding = "TAIL"
+
+[[env.production.analytics_engine_datasets]]
+binding = "TAIL"
+
+#################### Durable objects ####################
+# Cross-script binding onto the sync worker's own TLDR_DOC namespace — this worker never creates or
+# deletes instances of the class, so it needs no migrations block, only the other script's name. Used
+# solely so idFromName can convert a slug embedded in an error message into its durable object id
+# before the message reaches Loki or Analytics Engine: idFromName is a local, I/O-free computation, and
+# the id it produces equals the durableObjectId every err row already indexes on. Staging and
+# production only — script_name must match the `name` in apps/dotcom/sync-worker/wrangler.toml.
+[[env.staging.durable_objects.bindings]]
+name = "TLDR_DOC"
+class_name = "TLFileDurableObject"
+script_name = "main-tldraw-multiplayer"
+
+[[env.production.durable_objects.bindings]]
+name = "TLDR_DOC"
+class_name = "TLFileDurableObject"
+script_name = "tldraw-multiplayer"
