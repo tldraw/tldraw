@@ -23,11 +23,13 @@ describe('Migrations', () => {
 		expect(() => editor.putContentOntoCurrentPage(clipboardContent)).not.toThrow()
 	})
 
-	it('Throws error if any shape is invalid due to wrong type', () => {
+	it('Drops shapes whose type has no shape util rather than throwing', () => {
 		const withInvalidShapeType = structuredClone(clipboardContent)
 		// @ts-expect-error
 		withInvalidShapeType.shapes[0].type = 'invalid'
-		expect(() => editor.putContentOntoCurrentPage(withInvalidShapeType)).toThrow()
+		expect(() => editor.putContentOntoCurrentPage(withInvalidShapeType)).not.toThrow()
+		expect(editor.getCurrentPageShapes().length).toBe(withInvalidShapeType.shapes.length - 1)
+		expect(editor.getCurrentPageShapes().some((s) => (s.type as string) === 'invalid')).toBe(false)
 	})
 
 	// we temporarily disabled validations
