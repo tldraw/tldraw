@@ -4,7 +4,11 @@ export class PointingCrop extends StateNode {
 	static override id = 'pointing_crop'
 
 	override onCancel() {
-		this.editor.setCurrentTool('select.crop.idle', {})
+		this.cancel()
+	}
+
+	override onInterrupt() {
+		this.cancel()
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
@@ -32,6 +36,10 @@ export class PointingCrop extends StateNode {
 
 		this.parent.transition('idle')
 		this.parent.getCurrent()?.handleEvent(info)
+	}
+
+	private cancel() {
+		this.editor.setCurrentTool('select.crop.idle', {})
 	}
 
 	startDragging(info: TLPointerEventInfo) {

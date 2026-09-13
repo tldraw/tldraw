@@ -71,6 +71,10 @@ export class ScribbleBrushing extends StateNode {
 		this.cancel()
 	}
 
+	override onInterrupt() {
+		this.cancel()
+	}
+
 	override onComplete() {
 		this.complete()
 	}

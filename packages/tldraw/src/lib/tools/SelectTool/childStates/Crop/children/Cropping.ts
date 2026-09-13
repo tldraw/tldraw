@@ -77,6 +77,10 @@ export class Cropping extends StateNode {
 		this.cancel()
 	}
 
+	override onInterrupt() {
+		this.cancel()
+	}
+
 	override onExit() {
 		this.changeTracker.stop()
 		this.parent.setCurrentToolIdMask(undefined)
