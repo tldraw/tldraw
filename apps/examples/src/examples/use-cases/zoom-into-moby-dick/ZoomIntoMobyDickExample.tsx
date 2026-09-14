@@ -1,51 +1,53 @@
-import { TLComponents, Tldraw } from 'tldraw'
+import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { bookBounds, nominalFonts } from './book'
-import { BookLayer } from './BookLayer'
-import { openingZoom } from './layout'
-import './zoom-into-moby-dick.css'
+import { type Corpus } from '../../../semantic-zoom/layout'
+import '../../../semantic-zoom/semantic-zoom.css'
+import { createSemanticZoom } from '../../../semantic-zoom/SemanticZoom'
+import { ECHOES } from './links'
+import { book } from './summaries'
+
+interface Chapter {
+	n: number
+	text: string
+}
 
 // [1]
-const components: TLComponents = {
-	OnTheCanvas: BookLayer,
+const mobyDick: Corpus = {
+	root: book,
+	links: ECHOES,
+	tintDepth: 1,
+	async loadDetail() {
+		const chapters = (await import('./chapters.json')).default as Chapter[]
+		return Object.fromEntries(chapters.map((chapter) => [String(chapter.n), chapter.text]))
+	},
 }
 
 // [2]
-const options = {
-	camera: {
-		zoomSteps: [0.25, 0.5, 1, 2, 4, 8, 16, 32, 64, 128],
-	},
-}
+const { components, options, onMount } = createSemanticZoom(mobyDick, {
+	divePathTo: 'chapter-94',
+})
 
 export default function ZoomIntoMobyDickExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw
-				components={components}
-				options={options}
-				onMount={(editor) => {
-					// [3]
-					editor.zoomToBounds(bookBounds, { targetZoom: openingZoom(nominalFonts) })
-				}}
-			/>
+			<Tldraw components={components} options={options} onMount={onMount} />
 		</div>
 	)
 }
 
 /*
 [1]
-`OnTheCanvas` renders inside the layer that carries the camera transform, so the
-book can be positioned in page coordinates and pans and zooms for free. It is
-not in the store: 200,000 words of Melville have no business being records with
-migrations and undo history, and keeping them out means every tldraw tool still
-works normally on top of the text.
+The corpus is the only Moby-Dick-specific thing here: a tree of summaries, a
+list of cross-references, and a function that fetches the real text. Everything
+that makes the zoom work lives in `src/semantic-zoom` and has never heard of
+Melville — see the "Zoom into the tldraw SDK" example for the same code over a
+codebase instead of a novel.
+
+`loadDetail` is only called when someone zooms in far enough to need it, so the
+1.2MB of chapters never loads for a visitor who just reads the summary.
 
 [2]
-Reading the whole book takes roughly 90x of zoom, from the one-sentence summary
-down to the set type of a chapter. The default zoom steps top out at 8x, so the
-range has to be widened — the camera clamps to the first and last step.
-
-[3]
-Open on the most zoomed-out view that still has something to read: the whole
-book as a single sentence, just before the six act summaries fade up under it.
+`createSemanticZoom` lays the corpus out once, at module scope, and returns the
+editor wiring. The layout is a pure function of content that never changes, so
+computing it a second time would only duplicate work.
 */

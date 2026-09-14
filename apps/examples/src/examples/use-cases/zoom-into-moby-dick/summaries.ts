@@ -1,4 +1,5 @@
-import { type BookNode } from './layout'
+import { type ZoomNode } from '../../../semantic-zoom/layout'
+import { CHAPTER_CHARS } from './chapterLengths'
 
 /**
  * Four ways of saying the same book, each roughly five times longer than the one
@@ -665,7 +666,7 @@ const CHAPTERS: Array<[title: string, summary: string]> = [
 	],
 ]
 
-export const book: BookNode = {
+export const book: ZoomNode = {
 	id: 'book',
 	text: WHOLE_BOOK,
 	children: ACTS.map((act, actIndex) => ({
@@ -681,7 +682,8 @@ export const book: BookNode = {
 					id: `chapter-${n}`,
 					title: n === CHAPTERS.length ? title : `${n}. ${title}`,
 					text: summary,
-					chapter: n,
+					detailKey: String(n),
+					weight: CHAPTER_CHARS[n - 1],
 				}
 			}),
 		})),

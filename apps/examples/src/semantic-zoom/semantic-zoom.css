@@ -1,0 +1,275 @@
+.sz-layer {
+	position: absolute;
+	top: 0;
+	left: 0;
+	/* The text is scenery: with any drawing tool selected every pointer goes
+	   straight through to the canvas, so the whole work stays annotatable. */
+	pointer-events: none;
+	color: var(--tl-color-text);
+	font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+}
+
+.sz-layer--interactive .sz-node {
+	pointer-events: auto;
+	cursor: zoom-in;
+}
+
+.sz-node {
+	position: absolute;
+	top: 0;
+	left: 0;
+	transform-origin: 0 0;
+	line-height: 1.45;
+	overflow: hidden;
+	column-gap: 2.5em;
+	column-fill: auto;
+	/* Nodes only ever change opacity, so let the compositor keep them on a layer. */
+	will-change: opacity;
+}
+
+.sz-node p {
+	margin: 0;
+}
+
+.sz-node p + p {
+	text-indent: 1.4em;
+}
+
+/* The summary levels are short enough to sit as a single block in their cell. */
+.sz-node--depth-0,
+.sz-node--depth-1 {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	text-wrap: balance;
+}
+
+.sz-node--depth-0 {
+	font-style: italic;
+	letter-spacing: -0.01em;
+}
+
+/*
+ * Hyphenation only on the deepest text, where the columns are narrow enough
+ * that a ragged edge otherwise opens up holes.
+ */
+.sz-node--depth-4,
+.sz-node--depth-5 {
+	hyphens: auto;
+}
+
+.sz-node--depth-5 {
+	opacity: 0.92;
+}
+
+.sz-title {
+	column-span: all;
+	margin: 0 0 0.6em;
+	font-size: 1em;
+	font-weight: 400;
+	font-variant-caps: small-caps;
+	letter-spacing: 0.06em;
+	border-bottom: 0.06em solid var(--tl-color-divider);
+	padding-bottom: 0.3em;
+}
+
+/* A search hit is marked where it sits on the map, so the answer is a place. */
+.sz-node--match {
+	background: color-mix(in srgb, var(--tl-color-selected) 14%, transparent);
+	box-shadow: 0 0 0 0.35em color-mix(in srgb, var(--tl-color-selected) 14%, transparent);
+	border-radius: 0.2em;
+}
+
+/*
+ * Hairlines on the shared edge between sibling cells. Sized in page units so
+ * they thicken with the camera like the text, and carrying the opacity of the
+ * level they divide so they arrive and leave with it.
+ */
+.sz-rule {
+	position: absolute;
+	top: 0;
+	left: 0;
+	transform-origin: 0 0;
+	background: var(--tl-color-divider);
+	will-change: opacity;
+}
+
+/* Cross-references between distant parts of the work. */
+.sz-links {
+	position: absolute;
+	overflow: visible;
+	pointer-events: none;
+	opacity: var(--link-opacity, 1);
+}
+
+.sz-link {
+	fill: none;
+	stroke: var(--tl-color-text);
+	stroke-opacity: 0.28;
+	stroke-width: 1.4;
+	stroke-linecap: round;
+	vector-effect: non-scaling-stroke;
+	stroke-dasharray: 7 6;
+}
+
+.sz-hide-links .sz-links {
+	display: none;
+}
+
+/* --- controls, outside the camera transform --- */
+
+.sz-controls {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	max-width: min(680px, 92vw);
+	pointer-events: none;
+}
+
+.sz-controls > * {
+	pointer-events: all;
+}
+
+.sz-bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	padding: 4px 6px;
+	border-radius: 9px;
+	background: var(--tl-color-panel);
+	box-shadow: var(--tl-shadow-2);
+}
+
+.sz-search {
+	width: 190px;
+	min-width: 120px;
+	height: 32px;
+	padding: 0 10px;
+	border: none;
+	border-radius: 7px;
+	background: var(--tl-color-muted-2);
+	color: var(--tl-color-text);
+	font-size: 12px;
+	font-family: inherit;
+}
+
+.sz-search:focus-visible {
+	outline: 2px solid var(--tl-color-focus);
+}
+
+.sz-hits {
+	width: 100%;
+	max-height: 40vh;
+	margin: 0;
+	padding: 4px;
+	overflow-y: auto;
+	list-style: none;
+	border-radius: 9px;
+	background: var(--tl-color-panel);
+	box-shadow: var(--tl-shadow-2);
+}
+
+.sz-hits button {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	width: 100%;
+	padding: 5px 8px;
+	border: none;
+	border-radius: 6px;
+	background: none;
+	color: var(--tl-color-text);
+	font: inherit;
+	font-size: 11px;
+	text-align: left;
+	cursor: pointer;
+}
+
+.sz-hits button:hover {
+	background: var(--tl-color-muted-2);
+}
+
+.sz-hit-where {
+	font-weight: 600;
+}
+
+.sz-hit-text {
+	color: var(--tl-color-text-1);
+	opacity: 0.75;
+}
+
+.sz-hits-more {
+	padding: 4px 8px;
+	color: var(--tl-color-text-1);
+	font-size: 11px;
+	opacity: 0.7;
+}
+
+.sz-crumbs {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	padding: 3px 8px;
+	border-radius: 8px;
+	background: var(--tl-color-panel);
+	box-shadow: var(--tl-shadow-1);
+	font-size: 11px;
+}
+
+.sz-crumb {
+	max-width: 210px;
+	padding: 2px 3px;
+	overflow: hidden;
+	border: none;
+	background: none;
+	color: var(--tl-color-text-1);
+	font: inherit;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	cursor: pointer;
+}
+
+.sz-crumb:last-child {
+	color: var(--tl-color-text);
+	font-weight: 600;
+}
+
+.sz-crumb:hover {
+	text-decoration: underline;
+}
+
+.sz-crumb-sep {
+	margin: 0 5px 0 0;
+	opacity: 0.45;
+}
+
+/* Each top-level part of the work keeps one hue all the way down, so you can
+   still tell where you are at the bottom of the zoom. */
+.sz-tint-0 .sz-title {
+	border-color: #4c6ef5;
+}
+.sz-tint-1 .sz-title {
+	border-color: #0ca678;
+}
+.sz-tint-2 .sz-title {
+	border-color: #f08c00;
+}
+.sz-tint-3 .sz-title {
+	border-color: #ae3ec9;
+}
+.sz-tint-4 .sz-title {
+	border-color: #e03131;
+}
+.sz-tint-5 .sz-title {
+	border-color: #1098ad;
+}
+.sz-tint-6 .sz-title {
+	border-color: #d6336c;
+}
+.sz-tint-7 .sz-title {
+	border-color: #5c940d;
+}
