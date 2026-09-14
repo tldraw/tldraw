@@ -11,7 +11,10 @@ export interface ZoomNode {
 	id: string
 	/** What this node says at its own scale. */
 	text: string
+	/** A heading drawn above the text on the canvas. */
 	title?: string
+	/** A short name for the breadcrumb and search results, where the prose is too long to serve. */
+	label?: string
 	/** Set on leaves that have a longer body of text to unfold inside them. */
 	detailKey?: string
 	children?: ZoomNode[]
@@ -49,6 +52,7 @@ export interface PlacedNode {
 	rect: Rect
 	text: string
 	title?: string
+	label?: string
 	detailKey?: string
 	/** Font size in page units. Screen size is this times the camera zoom. */
 	fontSize: number
@@ -77,9 +81,26 @@ const RULE_WEIGHT = 0.1
 // few percent off just means slightly looser or tighter text.
 const CHAR_ASPECT = 0.5
 const LINE_HEIGHT = 1.45
-/** Fraction of a rect that wrapped text can actually cover. Tuned by eye. */
-const FILL = 0.62
+/**
+ * Fraction of a rect that wrapped text can actually cover, ramping with how
+ * much text there is. A few lines waste a lot of their box to line-break slack
+ * and a short last line; pages of prose pack far tighter. One number for both
+ * fails at each end: tuned for summaries it leaves a long chapter in the top
+ * two thirds of its box, and at high zoom the empty third fills the screen;
+ * tuned for chapters it sets a two-paragraph one so large that a single word
+ * overruns the box. Keyed on length rather than level because the shortest
+ * chapters are shorter than some summaries.
+ */
+const SPARSE_FILL = 0.62
+const DENSE_FILL = 0.8
+const SPARSE_CHARS = 500
+const DENSE_CHARS = 3000
 const TARGET_MEASURE = 68
+
+function fillFor(chars: number) {
+	const t = Math.min(1, Math.max(0, (chars - SPARSE_CHARS) / (DENSE_CHARS - SPARSE_CHARS)))
+	return SPARSE_FILL + t * (DENSE_FILL - SPARSE_FILL)
+}
 
 function inset(r: Rect, amount: number): Rect {
 	return { x: r.x + amount, y: r.y + amount, w: r.w - amount * 2, h: r.h - amount * 2 }
@@ -93,7 +114,9 @@ export function fitText(rect: Rect, charCount: number) {
 	// An empty node would give an infinite font size, which reaches the handoff
 	// thresholds as a zero and pins every level below it on at all zooms.
 	const chars = Math.max(1, charCount)
-	const fontSize = Math.sqrt((FILL * rect.w * rect.h) / (chars * CHAR_ASPECT * LINE_HEIGHT))
+	const fontSize = Math.sqrt(
+		(fillFor(chars) * rect.w * rect.h) / (chars * CHAR_ASPECT * LINE_HEIGHT)
+	)
 	const columns = Math.max(
 		1,
 		Math.min(12, Math.round(rect.w / (TARGET_MEASURE * CHAR_ASPECT * fontSize)))
@@ -187,6 +210,7 @@ export function layoutCorpus(corpus: Corpus): Layout {
 			rect,
 			text: node.text,
 			title: node.title,
+			label: node.label,
 			detailKey: node.detailKey,
 			fontSize,
 			columns,

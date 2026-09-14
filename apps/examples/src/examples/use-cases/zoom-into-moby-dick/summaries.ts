@@ -13,7 +13,16 @@ import { type ZoomNode } from './layout'
 const WHOLE_BOOK =
 	'Ishmael goes to sea on a whaler whose captain hunts the white whale that maimed him, and the whale kills them all but one.'
 
-/** Six sentences that read, in order, as a single paragraph. */
+/** Six sentences that read, in order, as a single paragraph, each with a short name for the breadcrumb. */
+const ACT_LABELS = [
+	'Ashore',
+	'The captain',
+	'First hunts',
+	'The whale in pieces',
+	'Omens',
+	'The chase',
+]
+
 const ACTS = [
 	'Ishmael, restless and poor, goes down to New Bedford for a whaleship, shares a bed with the tattooed harpooneer Queequeg, and sails out of Nantucket on Christmas Day aboard the Pequod.',
 	'Her captain stays below until he appears on one ivory leg, nails a gold doubloon to the mast, and swears the whole crew to hunt one particular white whale.',
@@ -24,94 +33,112 @@ const ACTS = [
 ]
 
 /** Three per act, eighteen in all: about a page of prose when read together. */
-const SECTIONS: Array<{ from: number; to: number; text: string }> = [
+const SECTIONS: Array<{ from: number; to: number; label: string; text: string }> = [
 	{
 		from: 1,
+		label: 'A drizzly November',
 		to: 6,
 		text: 'Whenever it is a damp, drizzly November in his soul, Ishmael goes to sea, and this time as a whaleman. He tramps a frozen New Bedford, fetches up at the Spouter-Inn, and finds that the only bed left belongs to a tattooed cannibal who turns out to be the best companion he could have asked for.',
 	},
 	{
 		from: 7,
+		label: 'The chapel',
 		to: 13,
 		text: 'In the Whaleman’s Chapel he reads the tablets of men the sea kept, and hears Father Mapple preach Jonah from a pulpit shaped like a ship’s bow. He and Queequeg become bosom friends, talk in the dark, and take the packet for Nantucket, where Queequeg saves the life of a man who had mocked him.',
 	},
 	{
 		from: 14,
+		label: 'Nantucket',
 		to: 22,
 		text: 'On Nantucket, that heap of sand whose people overran the watery world, Queequeg’s idol chooses their ship. Ishmael signs aboard the Pequod, trimmed in whalebone, from Quaker owners who haggle over his lay and speak strangely of her captain. A beggar called Elijah hints at doom, and they sail on Christmas Day.',
 	},
 	{
 		from: 23,
+		label: 'Knights and squires',
 		to: 27,
 		text: 'Before the captain appears the book pauses to bury Bulkington, who would rather perish in the howling infinite than take the safety of land, and to argue that whaling is an honorable and world-opening trade. Then the mates: earnest Starbuck, easy Stubb, pugnacious Flask, and their three harpooneers.',
 	},
 	{
 		from: 28,
+		label: 'Ahab appears',
 		to: 35,
 		text: 'Ahab comes up at last, a bronze man with a livid scar and a leg of whale ivory socketed into the deck. He paces at night, throws away his pipe because it no longer soothes him, and keeps his table like a ceremony. Ishmael digresses on classifying whales and on the dreaminess of masthead watch.',
 	},
 	{
 		from: 36,
+		label: 'The oath',
 		to: 47,
 		text: 'On the quarter-deck Ahab nails a doubloon to the mast and binds the crew, over crossed lances and grog, to hunt the white whale that took his leg. Starbuck objects that vengeance on a dumb brute is blasphemy, and obeys anyway. Ishmael gives the legend of Moby Dick, and why whiteness appals above all colours.',
 	},
 	{
 		from: 48,
+		label: 'The first lowering',
 		to: 54,
 		text: 'The first lowering brings Ahab’s own hidden boat crew on deck under the shadowy Fedallah, and leaves Ishmael floating all night unnoticed. Ships are spoken and gams held, a spirit-spout leads them round the Cape, and the Town-Ho’s story is told, in which Moby Dick settles a shipboard quarrel by killing the tyrant.',
 	},
 	{
 		from: 55,
+		label: 'Brit and squid',
 		to: 60,
 		text: 'A long look at how badly whales have been drawn, how well, and where their shape turns up in teeth, wood, mountains and stars. Then the sea itself: meadows of brit, a vast white squid that frightens Starbuck worse than the whale would, and the whale-line coiled round every man in the boat.',
 	},
 	{
 		from: 61,
+		label: 'Cutting in',
 		to: 73,
 		text: 'Stubb kills a whale and eats a steak of it by lantern-light while sharks feed below. The blubber comes off in a spiral, the carcass is cast to the birds, the head is hung at the side for Ahab to interrogate. A mad prophet aboard the Jeroboam forbids the hunt, and Queequeg and Ishmael work tied together by a single rope.',
 	},
 	{
 		from: 74,
+		label: 'The two heads',
 		to: 80,
 		text: 'The two heads hang opposite one another and are read against each other, Stoic against Platonian. The battering brow, the great tun of spermaceti, Tashtego’s fall into the sinking head and Queequeg’s delivery of him, and the wrinkled forehead Ishmael tries and fails to read like a face.',
 	},
 	{
 		from: 81,
+		label: 'The grand armada',
 		to: 92,
 		text: 'Whaling is given ancient ancestors and Jonah a straight-faced defense. A German ship races them for a blind old bull with a stone lance already in him. In the Straits of Sunda the boats are drawn into the calm centre of a vast herd, among nursing cows, and Stubb tricks a French ship out of a fortune in ambergris.',
 	},
 	{
 		from: 93,
+		label: 'The castaway',
 		to: 105,
 		text: 'Little Pip jumps from the boat, is left alone on the immense sea, and comes back mad and wise. Ishmael, squeezing spermaceti back to fluid, feels a loving squeeze of universal good will and lowers his idea of happiness to the hearth. Then the try-works blaze at midnight, and he warns against staring too long into the fire.',
 	},
 	{
 		from: 106,
+		label: 'The coffin',
 		to: 110,
 		text: 'Ahab’s ivory leg had already wounded him once; a new one is made, and he quarrels with the carpenter over who owns his body. The casks are leaking, and when Starbuck presses him Ahab levels a musket, and is told to beware of Ahab. Queequeg, sick to death, has a coffin built and then decides to live.',
 	},
 	{
 		from: 111,
+		label: 'The forge',
 		to: 119,
 		text: 'In the Pacific, Perth the blacksmith forges Ahab a harpoon from racehorse nail-stubbs, tempered in the harpooneers’ blood and baptized in the devil’s name. A homeward ship heavy with oil invites them to rejoice and is refused. Fedallah prophesies two hearses and a death by hemp, and Ahab smashes the quadrant underfoot.',
 	},
 	{
 		from: 120,
+		label: 'The candles',
 		to: 127,
 		text: 'A typhoon sets the mastheads burning, and Ahab seizes the lightning links to defy the fire as his father and his foe. Starbuck stands outside the cabin with a loaded musket and cannot fire it. The compasses reverse and Ahab makes his own needle; the log-line parts; and Queequeg’s coffin is caulked into a life-buoy.',
 	},
 	{
 		from: 128,
+		label: 'The Rachel',
 		to: 130,
 		text: 'The Rachel has lost a boat with her captain’s son aboard, and he begs Ahab for two days of searching. Ahab hears only that she has met the white whale, and sails on. He orders Pip below, afraid the boy’s love will cure him of his purpose, and a sea-hawk carries off his hat.',
 	},
 	{
 		from: 131,
+		label: 'The symphony',
 		to: 132,
 		text: 'The Delight is burying a man Moby Dick killed, and her captain says the harpoon that can kill him is not yet forged. Next day, on a gentle blue sea, Ahab weeps into the water, tells Starbuck of forty years of whaling and of the young wife and child he left behind, and then turns away from him to Fedallah.',
 	},
 	{
 		from: 133,
+		label: 'Three days',
 		to: 136,
 		text: 'Ahab raises the whale himself and chases him three days. Boats are stove, Fedallah is carried off by the line, the ivory leg snaps. On the third day Moby Dick rises with Fedallah lashed to his back, staves the Pequod, and the running line takes Ahab by the neck as the ship goes down. Ishmael, thrown clear, floats on a coffin until the Rachel finds him.',
 	},
@@ -670,9 +697,11 @@ export const book: ZoomNode = {
 	text: WHOLE_BOOK,
 	children: ACTS.map((act, actIndex) => ({
 		id: `act-${actIndex}`,
+		label: ACT_LABELS[actIndex],
 		text: act,
 		children: SECTIONS.slice(actIndex * 3, actIndex * 3 + 3).map((section, sectionIndex) => ({
 			id: `section-${actIndex}-${sectionIndex}`,
+			label: section.label,
 			text: section.text,
 			children: Array.from({ length: section.to - section.from + 1 }, (_, i) => {
 				const n = section.from + i

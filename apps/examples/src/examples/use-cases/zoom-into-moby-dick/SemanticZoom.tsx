@@ -14,7 +14,7 @@ function search(layout: Layout, query: string): Hit[] {
 	if (needle.length < 2) return []
 	const hits: Hit[] = []
 	for (const node of layout.nodes) {
-		const haystack = `${node.title ?? ''} ${node.text}`
+		const haystack = `${node.label ?? ''} ${node.title ?? ''} ${node.text}`
 		const at = haystack.toLowerCase().indexOf(needle)
 		if (at === -1) continue
 		const from = Math.max(0, at - 30)
@@ -112,7 +112,7 @@ function Breadcrumb({ layout }: { layout: Layout }) {
 					onClick={() => goToNode(editor, layout, node)}
 				>
 					{i > 0 && <span className="sz-crumb-sep">›</span>}
-					{node.title ?? shorten(node.text)}
+					{node.label ?? node.title ?? shorten(node.text)}
 				</button>
 			))}
 		</div>
@@ -159,7 +159,9 @@ function Controls({
 					{hits.slice(0, 10).map((hit) => (
 						<li key={hit.node.id}>
 							<button onClick={() => goToNode(editor, layout, hit.node)}>
-								<span className="sz-hit-where">{hit.node.title ?? `level ${hit.node.depth}`}</span>
+								<span className="sz-hit-where">
+									{hit.node.label ?? hit.node.title ?? `level ${hit.node.depth}`}
+								</span>
 								<span className="sz-hit-text">{hit.preview}</span>
 							</button>
 						</li>
