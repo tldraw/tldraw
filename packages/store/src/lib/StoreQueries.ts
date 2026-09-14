@@ -168,10 +168,12 @@ export class StoreQueries<R extends UnknownRecord> {
 	 * // Track changes to book records only
 	 * const bookHistory = store.query.filterHistory('book')
 	 *
-	 * // React to book changes
-	 * react('book-changes', () => {
-	 *   bookHistory.get()
-	 *   console.log('Books changed')
+	 * // Log the books added since the last run
+	 * react('book-changes', (lastReactedEpoch) => {
+	 *   const diffs = bookHistory.getDiffSince(lastReactedEpoch)
+	 *   // no diffs to give, e.g. on the first run: rebuild anything derived from scratch
+	 *   if (diffs === RESET_VALUE) return
+	 *   for (const diff of diffs) console.log('Added:', Object.keys(diff.added))
 	 * })
 	 * ```
 	 *
