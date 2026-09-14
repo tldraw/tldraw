@@ -1,21 +1,13 @@
 import { Editor, TLExternalContentSource, TLShapeId, VecLike } from '@tldraw/editor'
+import { getSelectedLinkShape } from '../../../utils/shapes/shapes'
 import { putPastedExternalContent } from './putPastedContent'
 
-/**
- * The selected shape a pasted link should be attached to. Embeds are excluded because their `url`
- * is the embedded content's source rather than a link decorating the shape.
- */
 function getLinkTargetShapeId(editor: Editor, url: string): TLShapeId | undefined {
 	// `new URL()` tolerates line breaks, so a `text/uri-list` holding several urls would otherwise
 	// be written to the shape verbatim.
 	if (/\s/.test(url)) return undefined
 
-	const shape = editor.getOnlySelectedShape()
-	if (!shape || shape.type === 'embed') return undefined
-	if (!('url' in shape.props) || typeof shape.props.url !== 'string') return undefined
-	if (editor.isShapeOrAncestorLocked(shape)) return undefined
-
-	return shape.id
+	return getSelectedLinkShape(editor)?.id
 }
 
 /**
@@ -35,6 +27,10 @@ export async function pasteUrl(
 	sources?: TLExternalContentSource[],
 	clipboardPasteSource: 'native-event' | 'clipboard-read' = 'native-event'
 ) {
+	// A `text/uri-list` terminates each url with a line break, and some apps leave one on a copied
+	// plain text url too. `new URL()` accepts them, so they would otherwise reach the shape.
+	const trimmedUrl = url.trim()
+
 	editor.markHistoryStoppingPoint('paste')
 
 	return await putPastedExternalContent(
@@ -42,9 +38,9 @@ export async function pasteUrl(
 		{
 			type: 'url',
 			point,
-			url,
+			url: trimmedUrl,
 			sources,
-			shapeId: getLinkTargetShapeId(editor, url),
+			shapeId: getLinkTargetShapeId(editor, trimmedUrl),
 		},
 		{ source: clipboardPasteSource, point }
 	)

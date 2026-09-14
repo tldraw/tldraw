@@ -673,6 +673,19 @@ describe('pasting a link onto the selected shape', () => {
 		expect(pastedShapeId(spy)).toBeUndefined()
 	})
 
+	it('aims the link at the selected shape when the url has a trailing line break', async () => {
+		const spy = mockPutExternalContent()
+		const id = createShapeId()
+		createGeo(id)
+		editor.select(id)
+
+		// A uri-list terminates every url with a line break, including a single one.
+		await pasteText(`${URL}\r\n`, 'text/uri-list')
+
+		expect(pastedShapeId(spy)).toBe(id)
+		expect(spy.mock.calls[0][0]).toMatchObject({ url: URL })
+	})
+
 	it('aims at nothing when the clipboard holds several urls', async () => {
 		const spy = mockPutExternalContent()
 		const id = createShapeId()
