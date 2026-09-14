@@ -43,18 +43,22 @@ export function goToWhole(editor: Editor, layout: Layout, durationMs = 600) {
 	goToRect(editor, layout.bounds, openingZoom(layout.nominals), durationMs)
 }
 
-/** Set an exact zoom, holding a screen point still. */
-export function setZoom(editor: Editor, zoom: number, screenPoint?: { x: number; y: number }) {
-	const point = screenPoint ?? editor.getViewportScreenCenter()
-	const camera = editor.getCamera()
-	editor.setCamera(
-		{
-			x: camera.x + (point.x / zoom - point.x) - (point.x / camera.z - point.x),
-			y: camera.y + (point.y / zoom - point.y) - (point.y / camera.z - point.y),
-			z: zoom,
-		},
-		{ immediate: true }
-	)
+/**
+ * Set an exact zoom, keeping the middle of the screen where it is.
+ *
+ * Almost. Cells are separated by gutters, and a gutter is empty at every level,
+ * so holding a point in one while zooming in walks the camera down a corridor
+ * of blank canvas — and the camera starts in exactly such a spot, the middle of
+ * the work being the corner of four cells. The held point is first nudged into
+ * the nearest cell, which moves it at most half a gutter and is invisible when
+ * it is already over text.
+ */
+export function zoomAtCentre(editor: Editor, layout: Layout, zoom: number) {
+	const centre = editor.getViewportPageBounds().center
+	const cell = nodesContaining(layout, centre.x, centre.y).at(-1)?.rect
+	const x = cell ? Math.min(Math.max(centre.x, cell.x), cell.x + cell.w) : centre.x
+	const y = cell ? Math.min(Math.max(centre.y, cell.y), cell.y + cell.h) : centre.y
+	goToRect(editor, { x, y, w: 0, h: 0 }, zoom, 0)
 }
 
 /**

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { atom, Editor, TLComponents, TldrawUiButton, useEditor, useValue } from 'tldraw'
 import { ContentLayer } from './ContentLayer'
 import { type Corpus, type Layout, layoutCorpus, levelOpacities, type PlacedNode } from './layout'
-import { goToNode, goToWhole, nodesContaining, setZoom, zoomRange } from './navigation'
+import { goToNode, goToWhole, nodesContaining, zoomAtCentre, zoomRange } from './navigation'
 
 /** Where a search hit was found, and enough context to show it in the list. */
 interface Hit {
@@ -64,7 +64,9 @@ function ZoomSlider({ layout }: { layout: Layout }) {
 				max={1}
 				step={0.001}
 				value={position}
-				onChange={(e) => setZoom(editor, min * Math.exp(span * e.currentTarget.valueAsNumber))}
+				onChange={(e) =>
+					zoomAtCentre(editor, layout, min * Math.exp(span * e.currentTarget.valueAsNumber))
+				}
 			/>
 			<span className="sz-zoom-end">detail</span>
 		</label>

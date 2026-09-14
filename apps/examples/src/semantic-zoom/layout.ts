@@ -39,10 +39,7 @@ export interface Rect {
 export interface PlacedNode {
 	id: string
 	depth: number
-	/** The whole cell. Children tile this exactly, leaving no gaps to fall into. */
 	rect: Rect
-	/** Where the text sits, inset from the cell so neighbours are not crowded. */
-	textRect: Rect
 	text: string
 	title?: string
 	detailKey?: string
@@ -64,16 +61,11 @@ export const ROOT_WIDTH = 1000
 
 const TARGET_ASPECT = 1.35
 
-/**
- * Cells tile their parent exactly and the breathing room is taken *inside* each
- * cell instead of between them. Gaps between cells would be self-similar: zoom
- * into one and you fall through every level at once, landing on blank canvas
- * with nothing to read and no way to tell where you are.
- */
-const TEXT_PAD = 0.05
+const PADDING = 0.04
+const GUTTER = 0.06
 
-/** Hairline width as a fraction of the parent's shorter side. */
-const RULE_WEIGHT = 0.0015
+/** Hairline width as a fraction of the gutter it sits in. */
+const RULE_WEIGHT = 0.1
 
 // Rough metrics for the body face: mean glyph advance as a fraction of font
 // size, and line box height. Only used to guess a fitting font size, so being a
@@ -86,10 +78,6 @@ const TARGET_MEASURE = 68
 
 function inset(r: Rect, amount: number): Rect {
 	return { x: r.x + amount, y: r.y + amount, w: r.w - amount * 2, h: r.h - amount * 2 }
-}
-
-function textRectOf(rect: Rect): Rect {
-	return inset(rect, TEXT_PAD * Math.min(rect.w, rect.h))
 }
 
 /**
@@ -106,33 +94,16 @@ export function fitText(rect: Rect, charCount: number) {
 	return { fontSize, columns }
 }
 
-/**
- * Tile `count` equal cells into `rect` as a plain grid, in reading order, with
- * the column count chosen to bring cells closest to `TARGET_ASPECT`.
- *
- * A treemap was tried here and taken out again. Even with every cell the same
- * area, packing greedily into strips gives rows with different counts and
- * different heights, and that irregularity is what makes a page hard to read
- * your way around: there is no row to follow and no column to scan. A grid is
- * duller and much easier to navigate.
- *
- * Cells meet exactly rather than being separated by gutters. A gutter is
- * self-similar — aim at one and you fall through every level at once onto blank
- * canvas — so the breathing room is taken inside each cell instead.
- */
-function gridTiling(rect: Rect, count: number): { rects: Rect[]; separators: Rect[] } {
+/** Tile `count` cells into `rect`, choosing the column count that best matches TARGET_ASPECT. */
+function subdivide(rect: Rect, count: number): { rects: Rect[]; separators: Rect[] } {
+	const inner = inset(rect, PADDING * Math.min(rect.w, rect.h))
+
 	let cols = 1
 	let bestScore = Infinity
 	for (let c = 1; c <= count; c++) {
 		const rows = Math.ceil(count / c)
-		const aspect = rect.w / c / (rect.h / rows)
-		// Prefer column counts that come out even. A short last row has to be
-		// either stretched, which makes those cells bigger than their siblings, or
-		// centred, which leaves dead space at both ends of the row — and cells of
-		// different sizes get different type sizes, so the level stops arriving
-		// all at once.
-		const shortfall = (rows * c - count) / c
-		const score = Math.abs(Math.log(aspect / TARGET_ASPECT)) + shortfall * 0.6
+		const aspect = inner.w / c / (inner.h / rows)
+		const score = Math.abs(Math.log(aspect / TARGET_ASPECT))
 		if (score < bestScore) {
 			bestScore = score
 			cols = c
@@ -140,33 +111,49 @@ function gridTiling(rect: Rect, count: number): { rects: Rect[]; separators: Rec
 	}
 
 	const rows = Math.ceil(count / cols)
-	const rule = RULE_WEIGHT * Math.min(rect.w, rect.h)
-	const rects: Rect[] = []
-	const separators: Rect[] = []
+	const gutter = GUTTER * Math.min(inner.w / cols, inner.h / rows)
+	const cellW = (inner.w - gutter * (cols - 1)) / cols
+	const cellH = (inner.h - gutter * (rows - 1)) / rows
 
+	const rects: Rect[] = []
 	for (let i = 0; i < count; i++) {
 		const row = Math.floor(i / cols)
 		const col = i % cols
-		// A short final row spreads to fill the width. Leaving it centred, as an
-		// earlier version did, puts dead space at both ends of the last row.
+		// Centre a short final row rather than leaving it hanging to the left.
 		const inRow = Math.min(cols, count - row * cols)
-		const x = rect.x + (rect.w * col) / inRow
-		const y = rect.y + (rect.h * row) / rows
-		// Measure the far edge from the parent rather than adding widths, so
-		// rounding never opens a seam between the last cell and its container.
-		const w = rect.x + (rect.w * (col + 1)) / inRow - x
-		const h = rect.y + (rect.h * (row + 1)) / rows - y
-		rects.push({ x, y, w, h })
-		if (col > 0) separators.push({ x: x - rule / 2, y, w: rule, h })
+		const rowWidth = inRow * cellW + (inRow - 1) * gutter
+		rects.push({
+			x: inner.x + (inner.w - rowWidth) / 2 + col * (cellW + gutter),
+			y: inner.y + row * (cellH + gutter),
+			w: cellW,
+			h: cellH,
+		})
 	}
 
-	for (let row = 1; row < rows; row++) {
-		separators.push({
-			x: rect.x,
-			y: rect.y + (rect.h * row) / rows - rule / 2,
-			w: rect.w,
-			h: rule,
-		})
+	// Rule only where two cells actually abut, so a short centred final row does
+	// not get a line hanging off the end of it.
+	const weight = gutter * RULE_WEIGHT
+	const separators: Rect[] = []
+	for (let i = 0; i < count; i++) {
+		const cell = rects[i]
+		const rightNeighbour = i % cols < cols - 1 ? rects[i + 1] : undefined
+		if (rightNeighbour) {
+			separators.push({
+				x: (cell.x + cell.w + rightNeighbour.x - weight) / 2,
+				y: cell.y,
+				w: weight,
+				h: cell.h,
+			})
+		}
+		const belowNeighbour = rects[i + cols]
+		if (belowNeighbour) {
+			separators.push({
+				x: cell.x,
+				y: (cell.y + cell.h + belowNeighbour.y - weight) / 2,
+				w: cell.w,
+				h: weight,
+			})
+		}
 	}
 
 	return { rects, separators }
@@ -179,10 +166,8 @@ export interface Layout {
 	/** Leaves that have a longer body of text waiting behind them. */
 	leaves: PlacedNode[]
 	bounds: Rect
-	/** Nominal font size per level, including the detail levels. */
+	/** Nominal font size per level, including the detail level. */
 	nominals: number[]
-	/** Characters of detail text shown at the excerpt level. */
-	excerptChars: number
 	hasDetail: boolean
 }
 
@@ -191,13 +176,11 @@ export function layoutCorpus(corpus: Corpus): Layout {
 	const separators: Separator[] = []
 
 	function walk(node: ZoomNode, rect: Rect, depth: number) {
-		const textRect = textRectOf(rect)
-		const { fontSize, columns } = fitText(textRect, node.text.length)
+		const { fontSize, columns } = fitText(rect, node.text.length)
 		nodes.push({
 			id: node.id,
 			depth,
 			rect,
-			textRect,
 			text: node.text,
 			title: node.title,
 			detailKey: node.detailKey,
@@ -210,7 +193,7 @@ export function layoutCorpus(corpus: Corpus): Layout {
 			// behind them was tried and taken out again: it makes the map lopsided
 			// in a way that reads as meaningful before you know the rule, and the
 			// levels then arrive raggedly, since font size follows cell size.
-			const split = gridTiling(rect, node.children.length)
+			const split = subdivide(rect, node.children.length)
 			for (const line of split.separators) separators.push({ ...line, depth: depth + 1 })
 			node.children.forEach((child, i) => walk(child, split.rects[i], depth + 1))
 		}
@@ -225,20 +208,14 @@ export function layoutCorpus(corpus: Corpus): Layout {
 	const hasDetail = leaves.length > 0 && !!corpus.loadDetail
 
 	const nominals = medianFontPerDepth(nodes)
-	let excerptChars = 0
 	if (hasDetail) {
 		// `weight` already means "how much source material is in here", so the
 		// typical leaf weight is the typical length of the detail text.
 		const detailChars = median(leaves.map((leaf) => leaf.weight ?? 0)) || 1
-		const summaryChars = median(leaves.map((leaf) => leaf.text.length))
-		// Put the excerpt at the geometric mean of the two, which splits the jump
-		// into two equal steps in log space — one boundary instead of one chasm.
-		excerptChars = Math.round(Math.sqrt(summaryChars * detailChars))
-		nominals.push(median(leaves.map((leaf) => fitText(leaf.textRect, excerptChars).fontSize)))
-		nominals.push(median(leaves.map((leaf) => fitText(leaf.textRect, detailChars).fontSize)))
+		nominals.push(median(leaves.map((leaf) => fitText(detailRect(leaf), detailChars).fontSize)))
 	}
 
-	return { nodes, separators, byId, leaves, bounds, nominals, excerptChars, hasDetail }
+	return { nodes, separators, byId, leaves, bounds, nominals, hasDetail }
 }
 
 function median(values: number[]) {
@@ -254,28 +231,15 @@ function medianFontPerDepth(placed: PlacedNode[]): number[] {
 	return byDepth.map(median)
 }
 
-/** The excerpt and full-text levels that live inside one leaf's rect. */
-export function detailNodes(leaf: PlacedNode, text: string, excerptChars: number): PlacedNode[] {
-	const excerpt = clipToSentence(text, excerptChars)
-	return [excerpt, text].map((body, i) => {
-		const { fontSize, columns } = fitText(leaf.textRect, body.length)
-		return {
-			...leaf,
-			id: `${leaf.id}:detail-${i}`,
-			depth: leaf.depth + 1 + i,
-			text: body,
-			fontSize,
-			columns,
-		}
-	})
+/** The full text, which lives inside its leaf's own rect. */
+export function detailNode(leaf: PlacedNode, text: string): PlacedNode {
+	const rect = detailRect(leaf)
+	const { fontSize, columns } = fitText(rect, text.length)
+	return { ...leaf, id: `${leaf.id}:detail`, depth: leaf.depth + 1, rect, text, fontSize, columns }
 }
 
-/** Trim to roughly `limit` characters, ending on a sentence so it reads as prose. */
-function clipToSentence(text: string, limit: number) {
-	if (text.length <= limit) return text
-	const window = text.slice(0, Math.min(text.length, Math.round(limit * 1.25)))
-	const stop = Math.max(window.lastIndexOf('. '), window.lastIndexOf('.”'), window.lastIndexOf('!'))
-	return stop > limit * 0.5 ? window.slice(0, stop + 1) : window.slice(0, limit)
+function detailRect(leaf: PlacedNode): Rect {
+	return inset(leaf.rect, PADDING * Math.min(leaf.rect.w, leaf.rect.h))
 }
 
 /**
@@ -324,7 +288,7 @@ export function levelOpacities(nominals: number[], zoom: number): number[] {
 
 /** Zoom at which the detail text starts to matter, so it can be fetched in time. */
 export function detailZoom(nominals: number[]) {
-	return handoffZoom(nominals, Math.max(0, nominals.length - 3)) / FADE
+	return handoffZoom(nominals, Math.max(0, nominals.length - 2)) / FADE
 }
 
 /**

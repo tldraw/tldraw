@@ -11,8 +11,8 @@ Semantic zoom over a whole novel: one sentence zooms out to the whole book and i
 ---
 
 Fully zoomed out, the canvas holds a single sentence summarising _Moby Dick_. Zoom in and it becomes a
-paragraph, then a page, then a chapter-by-chapter outline, then the opening of a chapter, then the book
-itself — about 208,000 words of it. Zooming into one corner of the paragraph opens that part of the story
+paragraph, then a page, then a chapter-by-chapter outline, then the book itself — about 208,000 words
+of it. Zooming into one corner of the paragraph opens that part of the story
 rather than the next level of the book as a whole.
 
 ### The tree does the work
@@ -24,10 +24,6 @@ Instead the work is a tree, and every node's children subdivide its rectangle. T
 1000-unit square; its six children each own part of that square; their children own parts of those, down
 to 136 chapters. Drilling into a passage then falls out for free, because the passage's children are
 simply the nodes that grow first when you zoom there.
-
-Cells tile their parent **exactly**, and the breathing room between them is taken inside each cell rather
-than between them. Gaps would be self-similar: aim at one and you fall through every level at once,
-landing on blank canvas with nothing to read and no way to tell where you are.
 
 ### Handing off between levels
 
@@ -41,11 +37,6 @@ chapter summaries reached 110px before the full text took over, most of an octav
 happened but text getting larger. Giving entry and exit independent pixel thresholds capped the size but
 pulled the two boundaries apart, so the book sentence and the act summaries sat on top of one another at
 full strength instead of crossfading.
-
-The jump from a chapter summary to 8,000 characters of Melville is still the widest gap in the range, so
-an **excerpt level** sits between them, holding the chapter's opening paragraphs. Its length isn't
-guessed: it is the geometric mean of the summary and the full text, which is the length that splits one
-chasm into two equal steps.
 
 ### Finding your way
 

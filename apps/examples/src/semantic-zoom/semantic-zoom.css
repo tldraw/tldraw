@@ -53,12 +53,8 @@
  * Hyphenation only on the deepest text, where the columns are narrow enough
  * that a ragged edge otherwise opens up holes.
  */
-.sz-node--depth-4,
-.sz-node--depth-5 {
+.sz-node--depth-4 {
 	hyphens: auto;
-}
-
-.sz-node--depth-5 {
 	opacity: 0.92;
 }
 

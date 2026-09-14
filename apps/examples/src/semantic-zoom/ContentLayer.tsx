@@ -2,7 +2,7 @@ import { type CSSProperties, useEffect, useLayoutEffect, useMemo, useState } fro
 import { react, useEditor, useValue } from 'tldraw'
 import {
 	type Corpus,
-	detailNodes,
+	detailNode,
 	detailZoom,
 	type Layout,
 	levelOpacities,
@@ -63,9 +63,9 @@ function NodeView({
 		<div
 			className={`sz-node sz-node--depth-${node.depth}` + (matched ? ' sz-node--match' : '')}
 			style={{
-				transform: `translate(${node.textRect.x}px, ${node.textRect.y}px) scale(${scale})`,
-				width: node.textRect.w / scale,
-				height: node.textRect.h / scale,
+				transform: `translate(${node.rect.x}px, ${node.rect.y}px) scale(${scale})`,
+				width: node.rect.w / scale,
+				height: node.rect.h / scale,
 				fontSize: LOGICAL_FONT,
 				columnCount: node.columns,
 				opacity: `var(--lod-${node.depth})`,
@@ -142,7 +142,7 @@ export function ContentLayer({
 			.filter((leaf) => wanted.has(leaf.id))
 			.flatMap((leaf) => {
 				const text = detail[leaf.detailKey!]
-				return text ? detailNodes(leaf, text, layout.excerptChars) : []
+				return text ? [detailNode(leaf, text)] : []
 			})
 	}, [detail, visibleLeafIds, layout])
 
