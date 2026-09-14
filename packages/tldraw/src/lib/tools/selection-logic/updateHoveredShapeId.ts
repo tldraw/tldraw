@@ -1,4 +1,4 @@
-import { Editor, TLShape, TLShapeId, throttle } from '@tldraw/editor'
+import { Editor, TLShape, TLShapeId, VecLike, throttle } from '@tldraw/editor'
 
 /*
 Perf optimization: Skip hover updates while panning.
@@ -21,8 +21,17 @@ the camera stops.
 // Track per-editor state for hover updates during camera movement
 const hoverLockedEditors = new WeakMap<Editor, boolean>()
 
-function getShapeToHover(editor: Editor): TLShapeId | null {
-	const hitShape = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint(), {
+/**
+ * The shape that hovering at `point` would highlight, taking groups and the focused group into
+ * account.
+ *
+ * @internal
+ */
+export function getShapeToHover(
+	editor: Editor,
+	point: VecLike = editor.inputs.getCurrentPagePoint()
+): TLShapeId | null {
+	const hitShape = editor.getShapeAtPoint(point, {
 		hitInside: false,
 		hitLabels: false,
 		hitLocked: editor.options.selectLockedShapes,

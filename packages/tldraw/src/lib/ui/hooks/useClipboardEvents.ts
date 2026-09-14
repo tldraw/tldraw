@@ -21,7 +21,7 @@ import { defaultHandleExternalTextContent } from '../../defaultExternalContentHa
 import { TLDRAW_CUSTOM_PNG_MIME_TYPE, getCanonicalClipboardReadType } from '../../utils/clipboard'
 import { TLUiEventSource, useUiEvents } from '../context/events'
 import { pasteFiles } from './clipboard/pasteFiles'
-import { pasteUrl } from './clipboard/pasteUrl'
+import { pasteUrl, pasteUrls } from './clipboard/pasteUrl'
 import { putPastedExternalContent } from './clipboard/putPastedContent'
 
 export { putPastedExternalContent } from './clipboard/putPastedContent'
@@ -164,8 +164,10 @@ const handleText = (
 ) => {
 	const validUrlList = getValidHttpURLList(data)
 	if (validUrlList) {
-		for (const url of validUrlList) {
-			pasteUrl(editor, url, point, sources, clipboardPasteSource)
+		if (validUrlList.length === 1) {
+			pasteUrl(editor, validUrlList[0], point, sources, clipboardPasteSource)
+		} else {
+			pasteUrls(editor, validUrlList, point, sources, clipboardPasteSource)
 		}
 	} else if (isValidHttpURL(data)) {
 		pasteUrl(editor, data, point, sources, clipboardPasteSource)

@@ -1,4 +1,10 @@
-import { TLExternalContent, TLFilesExternalContent } from '@tldraw/editor'
+import {
+	TLExternalContent,
+	TLFilesExternalContent,
+	TLGeoShape,
+	TLShapeId,
+	createShapeId,
+} from '@tldraw/editor'
 import { vi } from 'vitest'
 import {
 	handlePasteFromClipboardApi,
@@ -540,5 +546,106 @@ describe('sources in external content handlers and callbacks', () => {
 		})
 
 		expect(spy).not.toHaveBeenCalled()
+	})
+})
+
+describe('pasting a link over a shape', () => {
+	const URL = 'https://example.com/'
+
+	function createGeo(id: TLShapeId, isLocked = false) {
+		editor.createShape<TLGeoShape>({
+			id,
+			type: 'geo',
+			x: 100,
+			y: 100,
+			isLocked,
+			props: { w: 200, h: 200, fill: 'solid' },
+		})
+	}
+
+	async function pasteText(text: string) {
+		await handlePasteFromClipboardApi({
+			editor,
+			clipboardItems: [makeClipboardItem({ 'text/plain': text })],
+			clipboardPasteSource: 'clipboard-read',
+		})
+	}
+
+	it('sets the link on the shape under the pointer instead of creating a bookmark', async () => {
+		const spy = mockPutExternalContent()
+		const id = createShapeId()
+		createGeo(id)
+		editor.pointerMove(200, 200)
+
+		await pasteText(URL)
+
+		expect(spy).not.toHaveBeenCalled()
+		expect(editor.getShape<TLGeoShape>(id)!.props.url).toBe(URL)
+	})
+
+	it('replaces a link the shape already has', async () => {
+		mockPutExternalContent()
+		const id = createShapeId()
+		createGeo(id)
+		editor.updateShape<TLGeoShape>({ id, type: 'geo', props: { url: 'https://tldraw.dev/' } })
+		editor.pointerMove(200, 200)
+
+		await pasteText(URL)
+
+		expect(editor.getShape<TLGeoShape>(id)!.props.url).toBe(URL)
+	})
+
+	it('creates a bookmark when the pointer is not over a shape', async () => {
+		const spy = mockPutExternalContent()
+		createGeo(createShapeId())
+		editor.pointerMove(500, 500)
+
+		await pasteText(URL)
+
+		expect(spy).toHaveBeenCalledTimes(1)
+		expect(spy.mock.calls[0][0]).toMatchObject({ type: 'url', url: URL })
+	})
+
+	it('creates a bookmark when the shape under the pointer is locked', async () => {
+		const spy = mockPutExternalContent()
+		const id = createShapeId()
+		createGeo(id, true)
+		editor.pointerMove(200, 200)
+
+		await pasteText(URL)
+
+		expect(spy).toHaveBeenCalledTimes(1)
+		expect(editor.getShape<TLGeoShape>(id)!.props.url).toBe('')
+	})
+
+	it('creates a bookmark when the shape under the pointer is an embed', async () => {
+		const spy = mockPutExternalContent()
+		const id = createShapeId()
+		const embedUrl = 'https://www.youtube.com/embed/dQw4w9WgXcQ'
+		editor.createShape({
+			id,
+			type: 'embed',
+			x: 100,
+			y: 100,
+			props: { w: 200, h: 200, url: embedUrl },
+		})
+		editor.pointerMove(200, 200)
+
+		await pasteText(URL)
+
+		expect(spy).toHaveBeenCalledTimes(1)
+		expect(editor.getShape(id)!.props).toMatchObject({ url: embedUrl })
+	})
+
+	it('creates bookmarks when several links are pasted at once', async () => {
+		const spy = mockPutExternalContent()
+		const id = createShapeId()
+		createGeo(id)
+		editor.pointerMove(200, 200)
+
+		await pasteText(`${URL} https://tldraw.dev/`)
+
+		expect(spy).toHaveBeenCalledTimes(2)
+		expect(editor.getShape<TLGeoShape>(id)!.props.url).toBe('')
 	})
 })
