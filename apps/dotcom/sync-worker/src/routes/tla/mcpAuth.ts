@@ -264,10 +264,11 @@ export async function authenticateMcpRequest(
 	//
 	// Not @clerk/backend's `verifyToken`, which verifies Clerk *session* tokens and refuses an OAuth
 	// access token on its header alone: `Invalid JWT type "at+jwt". Expected "JWT"`. RFC 9068 requires
-	// `at+jwt` of an access token. The SDK does accept one via `authenticateRequest` with
-	// `acceptsToken: 'oauth_token'`, but that path is a Clerk Backend API round-trip per request
-	// (`idPOAuthAccessToken.verify`), not a local signature check, so this resource server keeps its
-	// own JWKS check like any other's (#10005).
+	// `at+jwt` of an access token. Since v3 the SDK verifies these locally too, via
+	// `authenticateRequest` with `acceptsToken: 'oauth_token'`, against a JWKS it fetches from the
+	// Backend API with the secret key. This check stays explicit because it pins `iss` to the same
+	// authorization server the discovery metadata advertises and reads that server's public JWKS, so
+	// the instance clients are sent to and the instance whose tokens we accept cannot drift (#10005).
 	//
 	// `typ` is load-bearing rather than pedantry, and is the only thing separating an OAuth access token
 	// from a Clerk *session* JWT. Clerk stamps no `aud` on either, so nothing here can tell them apart
