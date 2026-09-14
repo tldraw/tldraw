@@ -1,0 +1,69 @@
+.mdz-layer {
+	position: absolute;
+	top: 0;
+	left: 0;
+	/* The book is scenery: every tldraw tool still works on top of it. */
+	pointer-events: none;
+	color: var(--tl-color-text);
+	font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+}
+
+.mdz-node {
+	position: absolute;
+	top: 0;
+	left: 0;
+	transform-origin: 0 0;
+	line-height: 1.45;
+	overflow: hidden;
+	column-gap: 2.5em;
+	column-fill: auto;
+	/* Nodes only ever change opacity, so let the compositor keep them on a layer. */
+	will-change: opacity;
+}
+
+.mdz-node p {
+	margin: 0;
+}
+
+.mdz-node p + p {
+	text-indent: 1.4em;
+}
+
+/* The summary levels are short enough to centre and read as a single block. */
+.mdz-node--depth-0,
+.mdz-node--depth-1 {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	text-align: center;
+	text-wrap: balance;
+}
+
+.mdz-node--depth-0 {
+	font-style: italic;
+	letter-spacing: -0.01em;
+}
+
+/* From the page summary down it reads as set text rather than as a caption. */
+.mdz-node--depth-2,
+.mdz-node--depth-3,
+.mdz-node--depth-4 {
+	text-align: justify;
+	hyphens: auto;
+}
+
+.mdz-node--depth-4 {
+	opacity: 0.92;
+}
+
+.mdz-title {
+	column-span: all;
+	margin: 0 0 0.6em;
+	font-size: 1em;
+	font-weight: 400;
+	font-variant-caps: small-caps;
+	letter-spacing: 0.06em;
+	text-align: center;
+	border-bottom: 0.06em solid var(--tl-color-divider);
+	padding-bottom: 0.3em;
+}
