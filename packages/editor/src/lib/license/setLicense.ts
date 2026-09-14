@@ -54,6 +54,10 @@ const licenseManagersByKey = new Map<string, LicenseManager>()
  * (or a test file with several hundred) must not repeat it per editor, and an editor must not end
  * up on a different manager from the React tree above it.
  *
+ * A manager lives for the life of the page. Nothing disposes one on the page's behalf: with several
+ * consumers per key, "this key is finished with" isn't knowable without refcounting them, and a
+ * manager disposed out from under a live consumer leaves it pending forever.
+ *
  * @internal
  */
 export function getSharedLicenseManager(licenseKey: string | undefined): LicenseManager {
@@ -66,20 +70,6 @@ export function getSharedLicenseManager(licenseKey: string | undefined): License
 		licenseManagersByKey.set(cacheKey, licenseManager)
 	}
 	return licenseManager
-}
-
-/**
- * Drop a shared manager and silence its pending validation, for a key the page has moved off. The
- * cache must let go of it too, or a later editor on that key would be handed a dead manager whose
- * state never resolves.
- *
- * @internal
- */
-export function disposeSharedLicenseManager(licenseManager: LicenseManager): void {
-	for (const [cacheKey, cached] of licenseManagersByKey) {
-		if (cached === licenseManager) licenseManagersByKey.delete(cacheKey)
-	}
-	licenseManager.dispose()
 }
 
 /** @internal */

@@ -57,23 +57,26 @@ describe('LicenseProvider', () => {
 		expect(managers.at(-1)).not.toBe(expired)
 	})
 
-	it('ignores the validation result of a manager replaced by a new key', async () => {
+	// A manager for a replaced key is no longer disposed: it's shared, so this provider can't know
+	// whether another consumer still holds it. What matters is that its result lands on itself and
+	// can't move what the provider now reports.
+	it("keeps the two keys' managers independent when the key changes", async () => {
 		const resolvers: ((result: LicenseFromKeyResult) => void)[] = []
 		vi.spyOn(LicenseManager.prototype, 'getLicenseFromKey').mockImplementation(
 			() => new Promise((resolve) => resolvers.push(resolve))
 		)
-		const track = vi.spyOn(LicenseManager.prototype as any, 'maybeTrack')
 
 		const rendered = await act(async () => render(renderWithKey(undefined)))
-		const orphan = managers.at(-1)!
+		const replaced = managers.at(-1)!
 		await act(async () => rendered.rerender(renderWithKey('real-key')))
-		expect(managers.at(-1)).not.toBe(orphan)
+		const current = managers.at(-1)!
+		expect(current).not.toBe(replaced)
 
 		await act(async () => resolvers[0](NO_KEY))
-		expect(orphan.state.get()).toBe('pending')
-		expect(track).not.toHaveBeenCalled()
+		expect(replaced.state.get()).toBe('unlicensed')
+		expect(current.state.get()).toBe('pending')
 
 		await act(async () => resolvers[1](NO_KEY))
-		expect(managers.at(-1)!.state.get()).toBe('unlicensed')
+		expect(current.state.get()).toBe('unlicensed')
 	})
 })
