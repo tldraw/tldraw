@@ -45,6 +45,9 @@ const WRAPPING_PAIRS = [
  * The pairs the selection gets wrapped in, keyed by the character you type: with `hello` selected,
  * typing `(` gives `(hello)` and typing `¡` gives `¡hello!`.
  *
+ * Either half of a pair wraps in the whole pair. `¡` and `¿` are out of reach on most keyboard
+ * layouts, so typing the `!` or `?` that closes them has to work too.
+ *
  * A straight quote wraps in the curly pair, because {@link https://tiptap.dev/docs/editor/extensions/functionality/typography | Typography}
  * turns a typed `"` into `“` or `”` anyway. Pass your own `pairs` to {@link WrapSelectionExtension}
  * to wrap in straight quotes instead, or to add pairs of your own.
@@ -52,6 +55,10 @@ const WRAPPING_PAIRS = [
  * @public
  */
 export const defaultWrappingPairs: Record<string, readonly [string, string]> = {
+	// Closing characters first, so an opening one wins any character the two sides share, and in
+	// reverse so that of two pairs closed by the same character — `”` closes `“ ”` and `„ ”` — the
+	// one listed first wins.
+	...Object.fromEntries([...WRAPPING_PAIRS].reverse().map((pair) => [pair[1], pair])),
 	...Object.fromEntries(WRAPPING_PAIRS.map((pair) => [pair[0], pair])),
 	'"': ['“', '”'],
 	"'": ['‘', '’'],
@@ -146,8 +153,8 @@ function getWrapSelectionTransaction(
 
 /**
  * Wraps the selected text in a pair of matching characters instead of replacing it: select `hello`,
- * press `¡`, and you get `¡hello!`. See {@link defaultWrappingPairs} for the pairs, which can be
- * replaced or extended through the extension's `pairs` option.
+ * press `¡` or `!`, and you get `¡hello!`. See {@link defaultWrappingPairs} for the pairs, which
+ * can be replaced or extended through the extension's `pairs` option.
  *
  * @public
  */

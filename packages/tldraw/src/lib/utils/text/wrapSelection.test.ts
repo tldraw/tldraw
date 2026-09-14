@@ -72,9 +72,23 @@ describe('WrapSelectionExtension', () => {
 		expect(selectedText).toBe('hello')
 	})
 
-	it('replaces the selection as usual for a character with no pair', () => {
+	it('wraps in the whole pair when the closing character is typed', () => {
+		// `¡` and `¿` are out of reach on most layouts, so `!` and `?` have to wrap too.
+		expect(typeCharacter('<p>hello</p>', selectHello, '!').html).toBe('<p dir="auto">¡hello!</p>')
+		expect(typeCharacter('<p>hello</p>', selectHello, '?').html).toBe('<p dir="auto">¿hello?</p>')
+		expect(typeCharacter('<p>hello</p>', selectHello, ')').html).toBe('<p dir="auto">(hello)</p>')
+		expect(typeCharacter('<p>hello</p>', selectHello, '»').html).toBe('<p dir="auto">«hello»</p>')
+	})
+
+	it('picks the first pair when two are closed by the same character', () => {
+		// `”` closes both `“ ”` and the Polish `„ ”`.
+		expect(typeCharacter('<p>hello</p>', selectHello, '”').html).toBe('<p dir="auto">“hello”</p>')
+		expect(typeCharacter('<p>hello</p>', selectHello, '’').html).toBe('<p dir="auto">‘hello’</p>')
+	})
+
+	it('replaces the selection as usual for a character in no pair', () => {
 		expect(typeCharacter('<p>hello</p>', selectHello, 'a').html).toBe('<p dir="auto">a</p>')
-		expect(typeCharacter('<p>hello</p>', selectHello, ')').html).toBe('<p dir="auto">)</p>')
+		expect(typeCharacter('<p>hello</p>', selectHello, '@').html).toBe('<p dir="auto">@</p>')
 	})
 
 	it('types the character as itself when nothing is selected', () => {
