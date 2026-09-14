@@ -76,27 +76,15 @@ export function Component({ error: _error }: { error?: unknown }) {
 		}
 	}, [error, userId])
 
+	const content = error ? (
+		<TlaFileError error={error} />
+	) : (
+		<TlaLegacySnapshotEditor fileSlug={roomId} snapshot={snapshot} />
+	)
+
 	if (!userId) {
-		return (
-			<ReadyWrapper>
-				{error ? (
-					<TlaFileError error={error} />
-				) : (
-					<TlaAnonLayout>
-						<TlaLegacySnapshotEditor fileSlug={roomId} snapshot={snapshot} />
-					</TlaAnonLayout>
-				)}
-			</ReadyWrapper>
-		)
+		return <ReadyWrapper>{error ? content : <TlaAnonLayout>{content}</TlaAnonLayout>}</ReadyWrapper>
 	}
 
-	return (
-		<TlaSidebarLayout collapsible>
-			{error ? (
-				<TlaFileError error={error} />
-			) : (
-				<TlaLegacySnapshotEditor fileSlug={roomId} snapshot={snapshot} />
-			)}
-		</TlaSidebarLayout>
-	)
+	return <TlaSidebarLayout collapsible>{content}</TlaSidebarLayout>
 }

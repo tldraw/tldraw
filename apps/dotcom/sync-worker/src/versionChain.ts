@@ -8,7 +8,7 @@ import {
 	SEGMENT_CAP,
 } from './config'
 import { getSnapshotFingerprint, isSameFingerprint, SnapshotFingerprint } from './snapshotUtils'
-import { chainHeadHash, SnapshotDelta } from './versionDelta'
+import { chainHeadHash, SNAPSHOT_DELTA_VERSION, SnapshotDelta } from './versionDelta'
 
 /** One version inside a segment: the timestamp it was persisted at, and the change it encodes. */
 export interface PendingDelta {
@@ -60,6 +60,12 @@ export interface ChainState {
 	 * base that passes the fingerprint check yet differs from what the chain encodes.
 	 */
 	headHash: string
+	/**
+	 * The delta format the chain's deltas are written in. Absent on chain state stored before this
+	 * field existed, which reads as a bumped format and retires the chain — one keyframe per live
+	 * room, once.
+	 */
+	deltaVersion?: number
 	openSegment: OpenSegment | null
 }
 
@@ -80,6 +86,10 @@ export type KeyframeReason =
 	| 'fingerprint-mismatch'
 	| 'content-mismatch'
 	| 'schema-change'
+	// This build writes a delta format the chain's existing deltas are not in. Appending would
+	// leave the open segment holding both, unreplayable from its first delta with no segment-lost
+	// keyframe to heal it, so the chain is retired instead. See SNAPSHOT_DELTA_VERSION.
+	| 'delta-format'
 	| 'delta-count'
 	| 'chain-age'
 	| 'delta-size'
@@ -118,6 +128,13 @@ export function decideVersionWrite({
 	now: number
 }): VersionWriteDecision {
 	if (!chain) return { kind: 'keyframe', reason: noChainReason ?? 'no-chain' }
+	// First, and on any difference rather than only an older version: a rollback puts a chain of
+	// newer deltas in front of a build that cannot write them, which is the same hazard. A format
+	// bump moves every room at once, so reporting it as one of the per-room reasons below would
+	// bury the deploy that caused it.
+	if (chain.deltaVersion !== SNAPSHOT_DELTA_VERSION) {
+		return { kind: 'keyframe', reason: 'delta-format' }
+	}
 	// Against NEXT, not previous: in an intact chain the head and the diff base are the same
 	// state, so a migration landing in this very persist is only visible on the next snapshot.
 	// Checked before the head check so the metric distinguishes a migration from a chain that

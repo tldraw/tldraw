@@ -17,7 +17,7 @@ import {
 	segmentCustomMetadata,
 	versionKey,
 } from './versionChain'
-import { chainHeadHash } from './versionDelta'
+import { chainHeadHash, SNAPSHOT_DELTA_VERSION } from './versionDelta'
 
 const roomKey = 'app_rooms/slug'
 const fingerprint: SnapshotFingerprint = { lastDocumentChangeClock: 10, schemaHash: 'abc' }
@@ -32,6 +32,7 @@ function chain(partial: Partial<ChainState> = {}): ChainState {
 		deltaCount: 0,
 		headFingerprint: fingerprint,
 		headHash: 'h0',
+		deltaVersion: SNAPSHOT_DELTA_VERSION,
 		openSegment: null,
 		...partial,
 	}
@@ -61,6 +62,29 @@ describe('decideVersionWrite', () => {
 			kind: 'keyframe',
 			reason: 'segment-lost',
 		})
+	})
+
+	it('retires a chain whose deltas are in another format, newer or older', () => {
+		// Older: this build was rolled back past a format bump and cannot write what the chain holds.
+		expect(decide({ deltaVersion: SNAPSHOT_DELTA_VERSION + 1 })).toEqual({
+			kind: 'keyframe',
+			reason: 'delta-format',
+		})
+		expect(decide({ deltaVersion: SNAPSHOT_DELTA_VERSION - 1 })).toEqual({
+			kind: 'keyframe',
+			reason: 'delta-format',
+		})
+	})
+
+	it('retires a chain stored before the format was recorded', () => {
+		// Reported ahead of the schema change it also carries: a format bump moves every room at
+		// once, and the metric has to show that rather than a plausible per-room cause.
+		expect(
+			decide(
+				{ deltaVersion: undefined },
+				{ nextFingerprint: { lastDocumentChangeClock: 11, schemaHash: 'different' } }
+			)
+		).toEqual({ kind: 'keyframe', reason: 'delta-format' })
 	})
 
 	it('cuts a keyframe when the incoming snapshot moved the schema hash', () => {

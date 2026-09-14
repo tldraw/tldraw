@@ -21,14 +21,19 @@ import { JsonObject } from '@tldraw/utils'
  * in `postgres.ts` ever goes away.
  */
 
+// A Postgres foreign-key violation (SQLSTATE 23503) on one of the named constraints.
+function isFkViolation(error: unknown, constraints: readonly string[]): boolean {
+	if (typeof error !== 'object' || error === null) return false
+	const { code, constraint } = error as { code?: unknown; constraint?: unknown }
+	return code === '23503' && typeof constraint === 'string' && constraints.includes(constraint)
+}
+
 /**
  * The author's user row is gone — deleting a user cascades their comment rows away, so a warm room
  * is still holding records for a deleted author. Retrying can't succeed; the caller prunes.
  */
 export function isCommentAuthorFkViolation(error: unknown): boolean {
-	if (typeof error !== 'object' || error === null) return false
-	const { code, constraint } = error as { code?: unknown; constraint?: unknown }
-	return code === '23503' && constraint === 'comment_author_id_fkey'
+	return isFkViolation(error, ['comment_author_id_fkey'])
 }
 
 /**
@@ -36,16 +41,12 @@ export function isCommentAuthorFkViolation(error: unknown): boolean {
  * room whose slug was never a `file` row. Neither can succeed on retry, so the caller prunes.
  */
 export function isCommentThreadFkViolation(error: unknown): boolean {
-	if (typeof error !== 'object' || error === null) return false
-	const { code, constraint } = error as { code?: unknown; constraint?: unknown }
-	return code === '23503' && constraint === 'comment_thread_file_id_fkey'
+	return isFkViolation(error, ['comment_thread_file_id_fkey'])
 }
 
 /** The comment's file row is gone, cascading every comment row with it. The caller prunes. */
 export function isCommentFileFkViolation(error: unknown): boolean {
-	if (typeof error !== 'object' || error === null) return false
-	const { code, constraint } = error as { code?: unknown; constraint?: unknown }
-	return code === '23503' && constraint === 'comment_file_id_fkey'
+	return isFkViolation(error, ['comment_file_id_fkey'])
 }
 
 /**
@@ -55,9 +56,7 @@ export function isCommentFileFkViolation(error: unknown): boolean {
  * The caller only prunes when the threadId is also absent from the room's lane.
  */
 export function isCommentThreadIdFkViolation(error: unknown): boolean {
-	if (typeof error !== 'object' || error === null) return false
-	const { code, constraint } = error as { code?: unknown; constraint?: unknown }
-	return code === '23503' && constraint === 'comment_thread_id_fkey'
+	return isFkViolation(error, ['comment_thread_id_fkey'])
 }
 
 /**
@@ -65,13 +64,7 @@ export function isCommentThreadIdFkViolation(error: unknown): boolean {
  * comment was deleted between its upsert and the mention write. The caller skips the row.
  */
 export function isCommentMentionFkViolation(error: unknown): boolean {
-	if (typeof error !== 'object' || error === null) return false
-	const { code, constraint } = error as { code?: unknown; constraint?: unknown }
-	return (
-		code === '23503' &&
-		(constraint === 'comment_mention_user_id_fkey' ||
-			constraint === 'comment_mention_comment_id_fkey')
-	)
+	return isFkViolation(error, ['comment_mention_user_id_fkey', 'comment_mention_comment_id_fkey'])
 }
 
 /**
@@ -79,14 +72,11 @@ export function isCommentMentionFkViolation(error: unknown): boolean {
  * caller prunes.
  */
 export function isCommentReactionFkViolation(error: unknown): boolean {
-	if (typeof error !== 'object' || error === null) return false
-	const { code, constraint } = error as { code?: unknown; constraint?: unknown }
-	return (
-		code === '23503' &&
-		(constraint === 'comment_reaction_comment_id_fkey' ||
-			constraint === 'comment_reaction_thread_id_fkey' ||
-			constraint === 'comment_reaction_user_id_fkey')
-	)
+	return isFkViolation(error, [
+		'comment_reaction_comment_id_fkey',
+		'comment_reaction_thread_id_fkey',
+		'comment_reaction_user_id_fkey',
+	])
 }
 
 /** One comment's desired `comment_mention` rows: the full set its body currently mentions. */

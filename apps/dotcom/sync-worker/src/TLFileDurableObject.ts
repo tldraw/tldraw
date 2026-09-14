@@ -80,7 +80,7 @@ import {
 	writeMcpClusterIndexRow,
 } from './mcpClusterIndexStorage'
 import { TLPostgresPool } from './postgres'
-import { deleteAllObjectsWithPrefix, getR2KeyForRoom } from './r2'
+import { deleteAllObjectsWithPrefix, getR2KeyForRoom, R2ReadScheduler } from './r2'
 import {
 	BootStage,
 	FileEffectStallError,
@@ -101,6 +101,7 @@ import {
 } from './snapshotUtils'
 import { Analytics, DBLoadResult, Environment, McpClusterIndexKey, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
+import { arrayBufferToBase64 } from './utils/base64'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
 import { OgRenderDebouncer } from './utils/ogRenderDebounce'
@@ -117,7 +118,12 @@ import {
 	resolveVersionChainMode,
 	VersionChainRollout,
 } from './versionChainConfig'
-import { deleteAllVersions, reconstructVersion } from './versionChainRead'
+import {
+	deleteAllVersions,
+	loadChainIndex,
+	openWholeVersionStream,
+	reconstructVersion,
+} from './versionChainRead'
 import { readOpenSegment, writeVersionChainEntry } from './versionChainWrite'
 import { chainHeadHash } from './versionDelta'
 import { resolveWelcomeSnapshot } from './welcome/resolveWelcomeSnapshot'
@@ -151,7 +157,9 @@ type R2OperationType =
 	| 'asset_copy'
 	| 'snapshot_upload'
 	| 'version_chain_write'
+	| 'version_chain_read'
 	| 'version_chain_verify'
+	| 'version_chain_delete'
 
 // Transient R2 failures worth retrying — dropped connections and the connection-limit error the
 // shared budget exists to avoid. Anything else (a bad request, missing object, etc.) is permanent,
@@ -216,11 +224,6 @@ function pruneUnusedAssetsForTldr(records: TLRecord[]): TLRecord[] {
 	return records.filter((r) => r.typeName !== 'asset' || usedAssets.has(r.id as TLAssetId))
 }
 
-function arrayBufferToBase64(ab: ArrayBuffer): string {
-	const bytes = new Uint8Array(ab)
-	return bytes.toBase64!()
-}
-
 const MB = 1024 * 1024
 
 // The schema for a file room. Includes the opt-in `comment` record type so comment records sync
@@ -239,6 +242,12 @@ const OBJECT_TYPES = [
 	'comment',
 	'comment-reaction',
 ] as const satisfies readonly (keyof typeof authorizeFileRecord)[]
+
+// The comment outbox (see drainCommentOutbox) only understands comment record ids; keep this
+// separate from OBJECT_TYPES so a future object-lane type doesn't get enqueued there.
+function isCommentRecordId(id: string) {
+	return isCommentId(id) || isCommentThreadId(id) || isCommentReactionId(id)
+}
 
 export class TLFileDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
@@ -469,10 +478,6 @@ export class TLFileDurableObject extends DurableObject {
 
 	// For analytics
 	measure: Analytics | undefined
-
-	// For error tracking
-	sentryDSN: string | undefined
-
 	readonly supabaseTable: string
 	readonly r2: {
 		readonly rooms: R2Bucket
@@ -512,8 +517,6 @@ export class TLFileDurableObject extends DurableObject {
 		return this._db
 	}
 
-	private readonly changeSource = 'TLFileDurableObject'
-
 	constructor(
 		private state: DurableObjectState,
 		override env: Environment
@@ -521,7 +524,6 @@ export class TLFileDurableObject extends DurableObject {
 		super(state, env)
 		this.id = state.id
 		this.storage = state.storage
-		this.sentryDSN = env.SENTRY_DSN
 		this.measure = env.MEASURE
 		this.sentry = createSentry(this.state, this.env)
 		this.log = new Logger(env, 'TLDrawDurableObject', this.sentry)
@@ -599,9 +601,9 @@ export class TLFileDurableObject extends DurableObject {
 	get documentInfo() {
 		return assertExists(this._documentInfo, 'documentInfo must be present')
 	}
-	setDocumentInfo(info: DocumentInfo) {
-		this._documentInfo = info
-		this.storage.put('documentInfo', info)
+	setDocumentInfo(info: Omit<DocumentInfo, 'version'>) {
+		this._documentInfo = { version: CURRENT_DOCUMENT_INFO_VERSION, ...info }
+		this.storage.put('documentInfo', this._documentInfo)
 	}
 	async extractDocumentInfoFromRequest(req: IRequest, roomOpenMode: RoomOpenMode) {
 		const slug = assertExists(
@@ -613,12 +615,7 @@ export class TLFileDurableObject extends DurableObject {
 		if (this._documentInfo) {
 			assert(this._documentInfo.slug === slug, 'slug must match')
 		} else {
-			this.setDocumentInfo({
-				version: CURRENT_DOCUMENT_INFO_VERSION,
-				slug,
-				isApp,
-				deleted: false,
-			})
+			this.setDocumentInfo({ slug, isApp, deleted: false })
 		}
 	}
 
@@ -799,11 +796,58 @@ export class TLFileDurableObject extends DurableObject {
 			if (!timestamp) {
 				return new Response('Missing timestamp', { status: 400 })
 			}
-			const data = await this.r2.versionCache.get(`${roomKey}/${timestamp}`)
-			if (!data) {
-				return new Response('Version not found', { status: 400 })
+			// Reconstructs from the chain, falling back to the legacy full copy both when the chain
+			// has nothing for this version and when it is broken — an admin who can preview a version
+			// must be able to restore it while the full copies exist.
+			// Whole objects (keyframes, legacy copies) are read as text once — the same cost as the
+			// handler this replaces — and only a delta replay materializes a snapshot, which is then
+			// reused below rather than re-parsed. Parsing, re-serializing and parsing again a large
+			// board is what pushes a 128MB isolate over.
+			let dataText: string
+			let restored: RoomSnapshot | undefined
+			try {
+				// Each read is its own queued operation rather than the whole restore holding one
+				// slot — a slot is sized for an asset copy's two connections, and reconstruction
+				// fans out to the keyframe plus every segment (see _verifyRetiredChain). Every read
+				// is one idempotent get or list, so each retries transient errors on its own.
+				const schedule: R2ReadScheduler = (read) =>
+					this.addR2Operation('version_chain_read', () =>
+						retry(read, { attempts: 3, waitDuration: 500, matchError: isTransientConnectionError })
+					)
+				const buckets = {
+					chainBucket: this.r2.versionChain,
+					legacyBucket: this.r2.versionCache,
+				}
+				const { entries: index } = await loadChainIndex(this.r2.versionChain, roomKey, schedule)
+				const whole = await openWholeVersionStream({
+					...buckets,
+					roomKey,
+					timestamp,
+					index,
+					schedule,
+				})
+				if (whole) {
+					dataText = await new Response(whole).text()
+				} else {
+					const reconstruction = await reconstructVersion({
+						...buckets,
+						roomKey,
+						timestamp,
+						index,
+						schedule,
+					})
+					if (!reconstruction) {
+						return new Response('Version not found', { status: 400 })
+					}
+					restored = reconstruction.snapshot
+					dataText = JSON.stringify(restored)
+				}
+			} catch (error) {
+				const legacy = await this.r2.versionCache.get(`${roomKey}/${timestamp}`)
+				if (!legacy) throw error
+				this.reportError(error)
+				dataText = await legacy.text()
 			}
-			const dataText = await data.text()
 
 			// The put deliberately carries no version metadata, so null ("looked up, no usable
 			// stamp") is the truth about R2 and the next persist re-uploads and re-stamps.
@@ -857,7 +901,7 @@ export class TLFileDurableObject extends DurableObject {
 			// retries and let the dropped comments resurrect on the next fresh-SQLite load.
 			// follow-up: a durable wipe-marker recorded alongside the outbox would let the DO
 			// itself retry the fileId-wide delete, closing the dependence on caller retries.
-			const snapshot = JSON.parse(dataText) as RoomSnapshot
+			const snapshot = restored ?? (JSON.parse(dataText) as RoomSnapshot)
 
 			const storage = await this.getStorage()
 			storage.transaction((txn) => {
@@ -2364,19 +2408,11 @@ export class TLFileDurableObject extends DurableObject {
 	private enqueueCommentChanges(diff: TLSyncForwardDiff<TLRecord>) {
 		const ids: string[] = []
 		for (const put of Object.values(diff.puts)) {
-			const record = (Array.isArray(put) ? put[1] : put) as { typeName: string; id: string }
-			if (
-				record.typeName === 'comment' ||
-				record.typeName === 'comment-thread' ||
-				record.typeName === 'comment-reaction'
-			) {
-				ids.push(record.id)
-			}
+			const record = (Array.isArray(put) ? put[1] : put) as { id: string }
+			if (isCommentRecordId(record.id)) ids.push(record.id)
 		}
 		for (const id of diff.deletes) {
-			if (isCommentId(id) || isCommentThreadId(id) || isCommentReactionId(id)) {
-				ids.push(id)
-			}
+			if (isCommentRecordId(id)) ids.push(id)
 		}
 		if (ids.length === 0) return
 		this.ensureCommentOutbox()
@@ -3009,12 +3045,7 @@ export class TLFileDurableObject extends DurableObject {
 		if (!this._fileRecordCache) this._fileRecordCache = file
 
 		if (!this._documentInfo) {
-			this.setDocumentInfo({
-				version: CURRENT_DOCUMENT_INFO_VERSION,
-				slug: file.id,
-				isApp: true,
-				deleted: false,
-			})
+			this.setDocumentInfo({ slug: file.id, isApp: true, deleted: false })
 		}
 		try {
 			await this.reportIfEffectStalls(this.getRoom(), file, 'insert')
@@ -3034,12 +3065,7 @@ export class TLFileDurableObject extends DurableObject {
 		}
 		this._fileRecordCache = file
 		if (!this._documentInfo) {
-			this.setDocumentInfo({
-				version: CURRENT_DOCUMENT_INFO_VERSION,
-				slug: file.id,
-				isApp: true,
-				deleted: false,
-			})
+			this.setDocumentInfo({ slug: file.id, isApp: true, deleted: false })
 		}
 
 		try {
@@ -3105,12 +3131,7 @@ export class TLFileDurableObject extends DurableObject {
 		// prevent new connections while we clean everything up. Fall back to the argument for the
 		// slug (an app file's slug is its id): a never-initialized room has no documentInfo, and
 		// delete must stay terminal for any DO state instead of tripping the asserting getter.
-		this.setDocumentInfo({
-			version: CURRENT_DOCUMENT_INFO_VERSION,
-			slug: this._documentInfo?.slug ?? id,
-			isApp: true,
-			deleted: true,
-		})
+		this.setDocumentInfo({ slug: this._documentInfo?.slug ?? id, isApp: true, deleted: true })
 
 		await this.executionQueue.push(async () => {
 			await this.closeAllSocketsForDelete()
@@ -3137,10 +3158,14 @@ export class TLFileDurableObject extends DurableObject {
 
 			// remove edit history
 			const r2Key = getR2KeyForRoom({ slug: id, isApp: true })
+			// Each list page and delete batch is its own queued operation: the sweep runs both
+			// buckets concurrently, and unqueued beside two asset copies that is the whole
+			// six-connection budget.
 			await deleteAllVersions({
 				chainBucket: this.env.ROOMS_HISTORY,
 				legacyBucket: this.env.ROOMS_HISTORY_EPHEMERAL,
 				roomKey: r2Key,
+				schedule: (op) => this.addR2Operation('version_chain_delete', op),
 			})
 
 			// remove main file
@@ -3347,12 +3372,7 @@ export class TLFileDurableObject extends DurableObject {
 
 	async __admin__hardDeleteIfLegacy() {
 		if (!this._documentInfo || this.documentInfo.deleted || this.documentInfo.isApp) return false
-		this.setDocumentInfo({
-			version: CURRENT_DOCUMENT_INFO_VERSION,
-			slug: this.documentInfo.slug,
-			isApp: false,
-			deleted: true,
-		})
+		this.setDocumentInfo({ slug: this.documentInfo.slug, isApp: false, deleted: true })
 		// Queued so an in-flight persist finishes before the R2 deletes rather than re-uploading
 		// the snapshot after them.
 		await this.executionQueue.push(async () => {
@@ -3368,6 +3388,7 @@ export class TLFileDurableObject extends DurableObject {
 				chainBucket: this.env.ROOMS_HISTORY,
 				legacyBucket: this.env.ROOMS_HISTORY_EPHEMERAL,
 				roomKey,
+				schedule: (op) => this.addR2Operation('version_chain_delete', op),
 			})
 
 			// remove main file
@@ -3378,12 +3399,7 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	async __admin__createLegacyRoom(id: string) {
-		this.setDocumentInfo({
-			version: CURRENT_DOCUMENT_INFO_VERSION,
-			slug: id,
-			isApp: false,
-			deleted: false,
-		})
+		this.setDocumentInfo({ slug: id, isApp: false, deleted: false })
 		const key = getR2KeyForRoom({ slug: id, isApp: false })
 		await this.r2.rooms.put(key, JSON.stringify(DEFAULT_INITIAL_SNAPSHOT))
 		await this.getRoom()

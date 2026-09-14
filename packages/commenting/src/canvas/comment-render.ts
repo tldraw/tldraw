@@ -1,4 +1,4 @@
-import { generateText, JSONContent } from '@tiptap/core'
+import { type Extensions, generateText, JSONContent } from '@tiptap/core'
 import { type CommentAuthor, createMentionExtension } from '@tldraw/mentions'
 import { renderHtmlFromRichTextWithExtensions, TLRichText } from 'tldraw'
 import { commentTipTapExtensions, isCommentEmpty } from '../ui/comment-extensions'
@@ -41,6 +41,31 @@ function hasMention(node: JSONContent): boolean {
 }
 
 const htmlCache = new WeakMap<TLRichText, string>()
+const textCache = new WeakMap<TLRichText, string>()
+
+/**
+ * Render a body through the comment extension set, memoized by body identity in `cache` unless the
+ * body carries a mention (see {@link hasMention}), in which case the mention extension resolving
+ * `resolveName` is added and nothing is cached.
+ */
+function renderWithCommentExtensions(
+	cache: WeakMap<TLRichText, string>,
+	richText: TLRichText,
+	resolveName: ((id: string) => string | undefined) | undefined,
+	render: (doc: JSONContent, extensions: Extensions) => string
+): string {
+	const mentions = hasMention(richText as JSONContent)
+	if (!mentions) {
+		const cached = cache.get(richText)
+		if (cached !== undefined) return cached
+	}
+	const extensions = mentions
+		? [...commentTipTapExtensions, createMentionExtension({ resolveName })]
+		: commentTipTapExtensions
+	const result = render(demoteHeadings(richText as JSONContent), extensions)
+	if (!mentions) cache.set(richText, result)
+	return result
+}
 
 /**
  * Render a comment body to HTML through the limited comment extension set (no headings), so a body
@@ -52,23 +77,10 @@ export function renderCommentHtml(
 	richText: TLRichText,
 	resolveName?: (id: string) => string | undefined
 ): string {
-	const mentions = hasMention(richText as JSONContent)
-	if (!mentions) {
-		const cached = htmlCache.get(richText)
-		if (cached !== undefined) return cached
-	}
-	const extensions = mentions
-		? [...commentTipTapExtensions, createMentionExtension({ resolveName })]
-		: commentTipTapExtensions
-	const html = renderHtmlFromRichTextWithExtensions(
-		demoteHeadings(richText as JSONContent) as TLRichText,
-		extensions
+	return renderWithCommentExtensions(htmlCache, richText, resolveName, (doc, extensions) =>
+		renderHtmlFromRichTextWithExtensions(doc as TLRichText, extensions)
 	)
-	if (!mentions) htmlCache.set(richText, html)
-	return html
 }
-
-const textCache = new WeakMap<TLRichText, string>()
 
 /**
  * Flatten a comment body to plaintext through the limited comment extension set — paragraphs and
@@ -80,17 +92,7 @@ export function renderCommentPlaintext(
 	resolveName?: (id: string) => string | undefined
 ): string {
 	if (isCommentEmpty(richText)) return ''
-	const mentions = hasMention(richText as JSONContent)
-	if (!mentions) {
-		const cached = textCache.get(richText)
-		if (cached !== undefined) return cached
-	}
-	const extensions = mentions
-		? [...commentTipTapExtensions, createMentionExtension({ resolveName })]
-		: commentTipTapExtensions
-	const text = generateText(demoteHeadings(richText as JSONContent), extensions, {
-		blockSeparator: '\n',
-	})
-	if (!mentions) textCache.set(richText, text)
-	return text
+	return renderWithCommentExtensions(textCache, richText, resolveName, (doc, extensions) =>
+		generateText(doc, extensions, { blockSeparator: '\n' })
+	)
 }

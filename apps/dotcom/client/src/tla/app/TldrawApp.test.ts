@@ -34,7 +34,7 @@ describe('TldrawApp.preload', () => {
 			const rejected = vi.fn()
 			void app.preload().catch(rejected)
 
-			await vi.advanceTimersByTimeAsync(10_000)
+			await vi.advanceTimersByTimeAsync(30_000)
 
 			expect(rejected).toHaveBeenCalledWith(new Error('Init failed: 503'))
 			expect(vi.getTimerCount()).toBe(0)
@@ -46,7 +46,7 @@ describe('TldrawApp.preload', () => {
 		const rejected = vi.fn()
 		void app.preload().catch(rejected)
 
-		await vi.advanceTimersByTimeAsync(10_000)
+		await vi.advanceTimersByTimeAsync(30_000)
 
 		expect(rejected).toHaveBeenCalledWith(new Error('Init failed: 503'))
 	})
@@ -56,7 +56,7 @@ describe('TldrawApp.preload', () => {
 		const rejected = vi.fn()
 		void createAppStub({ queryComplete }).preload().catch(rejected)
 
-		await vi.advanceTimersByTimeAsync(9_000)
+		await vi.advanceTimersByTimeAsync(29_000)
 		queryComplete.resolve()
 		await vi.advanceTimersByTimeAsync(999)
 		expect(rejected).not.toHaveBeenCalled()
@@ -66,15 +66,19 @@ describe('TldrawApp.preload', () => {
 		expect(vi.getTimerCount()).toBe(0)
 	})
 
-	it('times out a missing user after a successful init', async () => {
+	it.each([
+		['zero query', { queryComplete: promiseWithResolve<void>() }],
+		['state flush', { changesFlushed: promiseWithResolve<void>() }],
+		['user record', {}],
+	])('names the stalled %s stage after a successful init', async (stage, stub) => {
 		vi.mocked(fetch).mockResolvedValue({ ok: true } as Response)
 		const rejected = vi.fn()
-		void createAppStub().preload().catch(rejected)
+		void createAppStub(stub).preload().catch(rejected)
 
-		await vi.advanceTimersByTimeAsync(10_000)
+		await vi.advanceTimersByTimeAsync(30_000)
 
 		expect(rejected).toHaveBeenCalledWith(
-			new Error('Timed out waiting for the user record after init')
+			new Error(`Timed out waiting for the ${stage} after init`)
 		)
 	})
 

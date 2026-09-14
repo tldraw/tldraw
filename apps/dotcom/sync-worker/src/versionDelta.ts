@@ -9,6 +9,17 @@ import {
 import { canonicalJson, fnv1a64 } from './snapshotUtils'
 
 /**
+ * The delta format this build writes and can replay. Bumping it invalidates every chain already
+ * written, so a bump has to cut keyframes: chains record the format they hold, and one that does
+ * not match is retired by `decideVersionWrite` rather than appended to.
+ *
+ * A format change has to arrive here rather than slip past, so `versionDelta.test.ts` pins a frozen
+ * v2 delta and its hashes: the semantics cannot move — here, or in `@tldraw/sync-core`'s diff codec
+ * underneath — without failing that test.
+ */
+export const SNAPSHOT_DELTA_VERSION = 2
+
+/**
  * One version of a board expressed as a change from the previous one.
  *
  * `getNetworkDiff` only covers `documents[].state`, so everything else a `RoomSnapshot` carries —
@@ -21,7 +32,7 @@ import { canonicalJson, fnv1a64 } from './snapshotUtils'
  * shape. v2: the hash canonicalizes exactly as `JSON.stringify` does (see `canonicalJson`).
  */
 export interface SnapshotDelta {
-	v: 2
+	v: typeof SNAPSHOT_DELTA_VERSION
 	diff: NetworkDiff<UnknownRecord> | null
 	clocks: Record<string, number>
 	tombstones: { set: Record<string, number>; removed: string[] } | null
@@ -143,7 +154,7 @@ export function buildSnapshotDelta(
 	const tombstones = Object.keys(set).length === 0 && removed.length === 0 ? null : { set, removed }
 
 	return {
-		v: 2,
+		v: SNAPSHOT_DELTA_VERSION,
 		diff: getNetworkDiff(recordsDiff),
 		clocks,
 		tombstones,
@@ -157,7 +168,11 @@ export function buildSnapshotDelta(
 export function applySnapshotDelta(prev: RoomSnapshot, delta: SnapshotDelta): RoomSnapshot {
 	// The diff codec has changed semantics before (diffRecord's legacyAppendMode); applying a
 	// future format with today's rules would corrupt quietly, which is worse than failing.
-	if (delta.v !== 2) throw new Error(`unsupported snapshot delta version ${delta.v}, expected 2`)
+	if (delta.v !== SNAPSHOT_DELTA_VERSION) {
+		throw new Error(
+			`unsupported snapshot delta version ${delta.v}, expected ${SNAPSHOT_DELTA_VERSION}`
+		)
+	}
 	// The envelope hash would catch this too, as a mismatch; checked up front so a restore that
 	// would seed the storage clock from `undefined` fails with a reason.
 	if (typeof delta.documentClock !== 'number') {
