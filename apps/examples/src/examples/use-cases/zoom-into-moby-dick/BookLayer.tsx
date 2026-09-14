@@ -1,6 +1,6 @@
 import { type CSSProperties, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { react, useEditor, useValue } from 'tldraw'
-import { nominalFonts, placedNodes } from './book'
+import { nominalFonts, placedNodes, separators } from './book'
 import { chapterTextZoom, layoutChapterText, levelOpacities, type PlacedNode } from './layout'
 
 /** Font size every node is laid out at before its own transform scales it. */
@@ -117,6 +117,19 @@ export function BookLayer() {
 
 	return (
 		<div className="mdz-layer">
+			{separators.map((rule, i) => (
+				<div
+					key={i}
+					className="mdz-rule"
+					style={{
+						transform: `translate(${rule.x}px, ${rule.y}px)`,
+						width: rule.w,
+						height: rule.h,
+						opacity: `var(--lod-${rule.depth})`,
+						visibility: `var(--lod-${rule.depth}-vis)` as CSSProperties['visibility'],
+					}}
+				/>
+			))}
 			{placedNodes.map((node) => (
 				<NodeView key={node.id} node={node} />
 			))}

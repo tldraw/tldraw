@@ -29,13 +29,12 @@
 	text-indent: 1.4em;
 }
 
-/* The summary levels are short enough to centre and read as a single block. */
+/* The summary levels are short enough to sit as a single block in their cell. */
 .mdz-node--depth-0,
 .mdz-node--depth-1 {
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
-	text-align: center;
 	text-wrap: balance;
 }
 
@@ -44,15 +43,13 @@
 	letter-spacing: -0.01em;
 }
 
-/* From the page summary down it reads as set text rather than as a caption. */
-.mdz-node--depth-2,
-.mdz-node--depth-3,
+/*
+ * Hyphenation only on the full chapter text, where the columns are narrow
+ * enough that a ragged edge otherwise opens up holes. The summary levels are
+ * set wide, so they can rag freely.
+ */
 .mdz-node--depth-4 {
-	text-align: justify;
 	hyphens: auto;
-}
-
-.mdz-node--depth-4 {
 	opacity: 0.92;
 }
 
@@ -63,7 +60,20 @@
 	font-weight: 400;
 	font-variant-caps: small-caps;
 	letter-spacing: 0.06em;
-	text-align: center;
 	border-bottom: 0.06em solid var(--tl-color-divider);
 	padding-bottom: 0.3em;
+}
+
+/*
+ * Hairlines in the gutters between sibling cells. Sized in page units so they
+ * thicken with the camera like everything else, and carrying the opacity of the
+ * level they divide so they arrive and leave with it.
+ */
+.mdz-rule {
+	position: absolute;
+	top: 0;
+	left: 0;
+	transform-origin: 0 0;
+	background: var(--tl-color-divider);
+	will-change: opacity;
 }

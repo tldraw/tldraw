@@ -67,8 +67,17 @@ export function fitText(rect: Rect, charCount: number) {
 	return { fontSize, columns }
 }
 
+/** A hairline drawn in the gutter between two sibling cells. */
+export interface Separator extends Rect {
+	/** Depth of the children it divides, so it fades in and out with them. */
+	depth: number
+}
+
+/** Hairline width as a fraction of the gutter it sits in. */
+const RULE_WEIGHT = 0.1
+
 /** Tile `count` cells into `rect`, choosing the column count that best matches TARGET_ASPECT. */
-function subdivide(rect: Rect, count: number): Rect[] {
+function subdivide(rect: Rect, count: number): { rects: Rect[]; separators: Rect[] } {
 	const inner = inset(rect, PADDING * Math.min(rect.w, rect.h))
 
 	let cols = 1
@@ -102,15 +111,43 @@ function subdivide(rect: Rect, count: number): Rect[] {
 			h: cellH,
 		})
 	}
-	return rects
+
+	// Rule only where two cells actually abut, so a short centred final row does
+	// not get a line hanging off the end of it.
+	const weight = gutter * RULE_WEIGHT
+	const separators: Rect[] = []
+	for (let i = 0; i < count; i++) {
+		const cell = rects[i]
+		const rightNeighbour = i % cols < cols - 1 ? rects[i + 1] : undefined
+		if (rightNeighbour) {
+			separators.push({
+				x: (cell.x + cell.w + rightNeighbour.x - weight) / 2,
+				y: cell.y,
+				w: weight,
+				h: cell.h,
+			})
+		}
+		const belowNeighbour = rects[i + cols]
+		if (belowNeighbour) {
+			separators.push({
+				x: cell.x,
+				y: (cell.y + cell.h + belowNeighbour.y - weight) / 2,
+				w: cell.w,
+				h: weight,
+			})
+		}
+	}
+
+	return { rects, separators }
 }
 
-export function layoutBook(root: BookNode): PlacedNode[] {
-	const placed: PlacedNode[] = []
+export function layoutBook(root: BookNode): { nodes: PlacedNode[]; separators: Separator[] } {
+	const nodes: PlacedNode[] = []
+	const separators: Separator[] = []
 
 	function walk(node: BookNode, rect: Rect, depth: number) {
 		const { fontSize, columns } = fitText(rect, node.text.length)
-		placed.push({
+		nodes.push({
 			id: node.id,
 			depth,
 			rect,
@@ -121,14 +158,15 @@ export function layoutBook(root: BookNode): PlacedNode[] {
 			columns,
 		})
 		if (node.children?.length) {
-			const rects = subdivide(rect, node.children.length)
-			node.children.forEach((child, i) => walk(child, rects[i], depth + 1))
+			const split = subdivide(rect, node.children.length)
+			for (const line of split.separators) separators.push({ ...line, depth: depth + 1 })
+			node.children.forEach((child, i) => walk(child, split.rects[i], depth + 1))
 		}
 	}
 
 	const height = ROOT_WIDTH / TARGET_ASPECT
 	walk(root, { x: -ROOT_WIDTH / 2, y: -height / 2, w: ROOT_WIDTH, h: height }, 0)
-	return placed
+	return { nodes, separators }
 }
 
 function chapterTextRect(summary: PlacedNode): Rect {
