@@ -107,67 +107,67 @@ export function fitText(rect: Rect, charCount: number) {
 }
 
 /**
- * Lay `weights` into `rect` as horizontal strips, in order, with each cell's
- * area proportional to its weight.
+ * Tile `count` equal cells into `rect` as a plain grid, in reading order, with
+ * the column count chosen to bring cells closest to `TARGET_ASPECT`.
  *
- * The familiar squarified treemap sorts by size to get squarer cells, which is
- * exactly what this cannot do: a node's position on the canvas is its position
- * in the text, and sorting would scramble it. Strips keep reading order — left
- * to right, then down — and recover most of the shape by choosing where to
- * break each row.
+ * A treemap was tried here and taken out again. Even with every cell the same
+ * area, packing greedily into strips gives rows with different counts and
+ * different heights, and that irregularity is what makes a page hard to read
+ * your way around: there is no row to follow and no column to scan. A grid is
+ * duller and much easier to navigate.
+ *
+ * Cells meet exactly rather than being separated by gutters. A gutter is
+ * self-similar — aim at one and you fall through every level at once onto blank
+ * canvas — so the breathing room is taken inside each cell instead.
  */
-function stripTreemap(rect: Rect, weights: number[]): { rects: Rect[]; separators: Rect[] } {
-	const total = weights.reduce((sum, w) => sum + w, 0)
-	const areaPerWeight = (rect.w * rect.h) / total
-
-	/** Mean distance from the target aspect, in log space, for one candidate strip. */
-	const badness = (strip: number[]) => {
-		const height = (strip.reduce((sum, i) => sum + weights[i], 0) * areaPerWeight) / rect.w
-		let sum = 0
-		for (const i of strip) {
-			const width = (weights[i] * areaPerWeight) / height
-			sum += Math.abs(Math.log(width / height / TARGET_ASPECT))
-		}
-		return sum / strip.length
-	}
-
-	const strips: number[][] = []
-	let current: number[] = []
-	for (let i = 0; i < weights.length; i++) {
-		if (current.length === 0) {
-			current = [i]
-		} else if (badness([...current, i]) <= badness(current)) {
-			current.push(i)
-		} else {
-			strips.push(current)
-			current = [i]
+function gridTiling(rect: Rect, count: number): { rects: Rect[]; separators: Rect[] } {
+	let cols = 1
+	let bestScore = Infinity
+	for (let c = 1; c <= count; c++) {
+		const rows = Math.ceil(count / c)
+		const aspect = rect.w / c / (rect.h / rows)
+		// Prefer column counts that come out even. A short last row has to be
+		// either stretched, which makes those cells bigger than their siblings, or
+		// centred, which leaves dead space at both ends of the row — and cells of
+		// different sizes get different type sizes, so the level stops arriving
+		// all at once.
+		const shortfall = (rows * c - count) / c
+		const score = Math.abs(Math.log(aspect / TARGET_ASPECT)) + shortfall * 0.6
+		if (score < bestScore) {
+			bestScore = score
+			cols = c
 		}
 	}
-	if (current.length) strips.push(current)
 
+	const rows = Math.ceil(count / cols)
+	const rule = RULE_WEIGHT * Math.min(rect.w, rect.h)
 	const rects: Rect[] = []
 	const separators: Rect[] = []
-	const rule = RULE_WEIGHT * Math.min(rect.w, rect.h)
 
-	let y = rect.y
-	strips.forEach((strip, stripIndex) => {
-		const isLastStrip = stripIndex === strips.length - 1
-		const area = strip.reduce((sum, i) => sum + weights[i], 0) * areaPerWeight
-		// Snap the final strip and the final cell of each strip to the parent's
-		// edge, so rounding never opens a seam between a cell and its container.
-		const h = isLastStrip ? rect.y + rect.h - y : area / rect.w
+	for (let i = 0; i < count; i++) {
+		const row = Math.floor(i / cols)
+		const col = i % cols
+		// A short final row spreads to fill the width. Leaving it centred, as an
+		// earlier version did, puts dead space at both ends of the last row.
+		const inRow = Math.min(cols, count - row * cols)
+		const x = rect.x + (rect.w * col) / inRow
+		const y = rect.y + (rect.h * row) / rows
+		// Measure the far edge from the parent rather than adding widths, so
+		// rounding never opens a seam between the last cell and its container.
+		const w = rect.x + (rect.w * (col + 1)) / inRow - x
+		const h = rect.y + (rect.h * (row + 1)) / rows - y
+		rects.push({ x, y, w, h })
+		if (col > 0) separators.push({ x: x - rule / 2, y, w: rule, h })
+	}
 
-		let x = rect.x
-		strip.forEach((index, k) => {
-			const w = k === strip.length - 1 ? rect.x + rect.w - x : (weights[index] * areaPerWeight) / h
-			rects[index] = { x, y, w, h }
-			if (k > 0) separators.push({ x: x - rule / 2, y, w: rule, h })
-			x += w
+	for (let row = 1; row < rows; row++) {
+		separators.push({
+			x: rect.x,
+			y: rect.y + (rect.h * row) / rows - rule / 2,
+			w: rect.w,
+			h: rule,
 		})
-
-		if (stripIndex > 0) separators.push({ x: rect.x, y: y - rule / 2, w: rect.w, h: rule })
-		y += h
-	})
+	}
 
 	return { rects, separators }
 }
@@ -210,10 +210,7 @@ export function layoutCorpus(corpus: Corpus): Layout {
 			// behind them was tried and taken out again: it makes the map lopsided
 			// in a way that reads as meaningful before you know the rule, and the
 			// levels then arrive raggedly, since font size follows cell size.
-			const split = stripTreemap(
-				rect,
-				node.children.map(() => 1)
-			)
+			const split = gridTiling(rect, node.children.length)
 			for (const line of split.separators) separators.push({ ...line, depth: depth + 1 })
 			node.children.forEach((child, i) => walk(child, split.rects[i], depth + 1))
 		}

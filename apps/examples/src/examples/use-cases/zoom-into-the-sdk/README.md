@@ -2,7 +2,7 @@
 title: Zoom into the tldraw SDK
 component: ./ZoomIntoTheSdkExample.tsx
 priority: 3
-keywords: [semantic zoom, level of detail, lod, codebase, architecture, map, treemap, overview]
+keywords: [semantic zoom, level of detail, lod, codebase, architecture, map, overview]
 ---
 
 The SDK's own source at four levels of zoom, using the same semantic zoom component as the Moby Dick example.

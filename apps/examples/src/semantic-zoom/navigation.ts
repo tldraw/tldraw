@@ -75,11 +75,29 @@ export function zoomRange(layout: Layout): [min: number, max: number] {
 	]
 }
 
-/** The chain of nodes containing a page point, outermost first. */
+/**
+ * The chain of nodes at a page point, one per level, outermost first.
+ *
+ * Takes the nearest node at each level rather than testing containment. Cells
+ * meet exactly, so a point on a shared edge — which is where the camera starts,
+ * the middle of the work being the corner of four cells — lands a rounding
+ * error outside every one of them, and a containment test drops whole levels
+ * out of the trail.
+ */
 export function nodesContaining(layout: Layout, x: number, y: number): PlacedNode[] {
-	return layout.nodes
-		.filter(
-			({ rect }) => x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h
-		)
-		.sort((a, b) => a.depth - b.depth)
+	const nearest: PlacedNode[] = []
+	const distances: number[] = []
+
+	for (const node of layout.nodes) {
+		const { rect } = node
+		const dx = Math.max(rect.x - x, 0, x - (rect.x + rect.w))
+		const dy = Math.max(rect.y - y, 0, y - (rect.y + rect.h))
+		const distance = Math.hypot(dx, dy)
+		if (distances[node.depth] === undefined || distance < distances[node.depth]) {
+			distances[node.depth] = distance
+			nearest[node.depth] = node
+		}
+	}
+
+	return nearest.filter(Boolean)
 }
