@@ -26,31 +26,19 @@ const WRAPPING_PAIRS = [
 	['[', ']'],
 	['{', '}'],
 	['<', '>'],
-	['⟨', '⟩'],
-	['⟦', '⟧'],
 	// CJK
 	['「', '」'], // corner quotes
 	['『', '』'], // nested corner quotes
-	['〈', '〉'],
 	['《', '》'], // title marks
-	['〔', '〕'], // tortoise shell
-	['〘', '〙'],
 	['【', '】'], // lenticular
-	['〖', '〗'],
 	// Fullwidth forms, used alongside CJK text
 	['（', '）'],
 	['［', '］'],
 	['｛', '｝'],
 	['＜', '＞'],
-	['｟', '｠'],
-	// Editorial and epigraphic brackets, for quoted or partially legible source text
-	['⁅', '⁆'],
-	['⸢', '⸣'],
-	['⸤', '⸥'],
-	// Spanish, and the inverted interrobang
+	// Spanish
 	['¡', '!'],
 	['¿', '?'],
-	['⸘', '‽'],
 ] as const
 
 /**
