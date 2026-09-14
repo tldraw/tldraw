@@ -896,6 +896,158 @@ describe('sequenceToBlueprint', () => {
 		expect(creationEdge.endNodeId).toBe('actor-top-JobRunner')
 	})
 
+	it('gives a destroyed actor a tombstone box on the destroying row', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('Client'), actor('TempSession')])
+		const messages = [
+			{ type: LINETYPE.LOOP_START, message: 'retry' } as unknown as Message,
+			msg(LINETYPE.SOLID, 'Client', 'TempSession', 'Start temporary session'),
+			{ type: LINETYPE.LOOP_END } as unknown as Message,
+			msg(LINETYPE.DOTTED, 'TempSession', 'Client', 'Session active'),
+			msg(LINETYPE.SOLID, 'Client', 'TempSession', 'Close session'),
+		]
+		// mermaid indexes `destroy` by statement, fragments included: statement 4 is the third
+		// row, which TempSession receives.
+		const destroyedActors = new Map([['TempSession', 4]])
+
+		const bp = sequenceToBlueprint(
+			layout,
+			actors,
+			['Client', 'TempSession'],
+			messages,
+			new Map(),
+			destroyedActors
+		)
+
+		const tombstone = findNode(bp, 'actor-bottom-TempSession')!
+		expect(tombstone).toBeDefined()
+		// Centred on the third of three rows, above the surviving actor's bottom box.
+		expect(tombstone.y).toBeLessThan(findNode(bp, 'actor-bottom-Client')!.y)
+		expect(bp.groups).toContainEqual([
+			'actor-top-TempSession',
+			'lifeline-TempSession',
+			'actor-bottom-TempSession',
+		])
+
+		const lifeline = bp.lines!.find((l) => l.id === 'lifeline-TempSession')!
+		expect(lifeline.y + lifeline.endY).toBe(tombstone.y)
+
+		const destroyingEdge = bp.edges.find((e) => e.label === 'Close session')!
+		expect(destroyingEdge.endNodeId).toBe('actor-bottom-TempSession')
+	})
+
+	it('anchors messages per lifeline so shortened lifelines keep arrows level', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('Client'), actor('TempSession')])
+		// `destroy TempSession` before the second message, which TempSession sends.
+		const destroyedActors = new Map([['TempSession', 1]])
+		const messages = [
+			msg(LINETYPE.SOLID, 'Client', 'TempSession', 'Open'),
+			msg(LINETYPE.SOLID, 'TempSession', 'Client', 'Close'),
+		]
+
+		const bp = sequenceToBlueprint(
+			layout,
+			actors,
+			['Client', 'TempSession'],
+			messages,
+			new Map(),
+			destroyedActors
+		)
+
+		const client = bp.lines!.find((l) => l.id === 'lifeline-Client')!
+		const temp = bp.lines!.find((l) => l.id === 'lifeline-TempSession')!
+		const open = bp.edges.find((e) => e.label === 'Open')!
+		// The two lifelines end at different heights, so the same row has to resolve to a
+		// different fraction on each of them for the arrow to stay horizontal.
+		const startY = client.y + client.endY * open.anchorStartY!
+		const endY = temp.y + temp.endY * open.anchorEndY!
+		expect(endY).toBeCloseTo(startY)
+
+		expect(bp.edges.find((e) => e.label === 'Close')!.startNodeId).toBe('actor-bottom-TempSession')
+	})
+
+	it('ignores a destroy whose next statement is a note, as mermaid does', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('Alice'), actor('Bob')])
+		// mermaid only applies create/destroy from its signal branch, so a `destroy` recorded
+		// against a note is one it renders as though the keyword were not there.
+		const destroyedActors = new Map([['Bob', 1]])
+		const messages = [
+			msg(LINETYPE.SOLID, 'Alice', 'Bob', 'hi'),
+			noteMsg('Bob', 'cleanup', PLACEMENT.OVER),
+			msg(LINETYPE.SOLID, 'Alice', 'Bob', 'bye'),
+		]
+
+		const bp = sequenceToBlueprint(
+			layout,
+			actors,
+			['Alice', 'Bob'],
+			messages,
+			new Map(),
+			destroyedActors
+		)
+
+		expect(findNode(bp, 'actor-bottom-Bob')!.y).toBe(findNode(bp, 'actor-bottom-Alice')!.y)
+		const bye = bp.edges.find((e) => e.label === 'bye')!
+		expect(bye.endNodeId).toBe('lifeline-Bob')
+		expect(bye.anchorEndY).toBeCloseTo(bye.anchorStartY!)
+	})
+
+	it('keeps a lifeline for a participant created and destroyed a row apart', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('Alice'), actor('Tmp')])
+		// Ten rows packs them closer together than an actor box is tall, so Tmp's two boxes
+		// meet and the lifeline between them has nowhere to go.
+		const messages = Array.from({ length: 10 }, (_, i) =>
+			msg(LINETYPE.SOLID, 'Alice', 'Tmp', `m${i}`)
+		)
+
+		const bp = sequenceToBlueprint(
+			layout,
+			actors,
+			['Alice', 'Tmp'],
+			messages,
+			new Map([['Tmp', 3]]),
+			new Map([['Tmp', 4]])
+		)
+
+		// An absent lifeline shape would take every arrow bound to it down with it.
+		const lifeline = bp.lines!.find((l) => l.id === 'lifeline-Tmp')!
+		expect(lifeline).toBeDefined()
+		expect(lifeline.endY).toBeGreaterThan(0)
+		// The bottom box is pushed down with it, so it still caps the lifeline.
+		expect(lifeline.y + lifeline.endY).toBe(findNode(bp, 'actor-bottom-Tmp')!.y)
+
+		for (const edge of bp.edges) {
+			expect(edge.anchorEndY).toBeGreaterThanOrEqual(0)
+			expect(edge.anchorEndY).toBeLessThanOrEqual(1)
+		}
+	})
+
+	it('resolves one lifecycle per message, the way mermaid does', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('A'), actor('B')])
+		// `create participant B` and `destroy A` both land on the same message. Mermaid
+		// resolves the three lifecycle cases as one exclusive chain, so the creation wins
+		// and A keeps its lifeline to the foot of the diagram.
+		const messages = [msg(LINETYPE.SOLID, 'A', 'B', 'bye')]
+
+		const bp = sequenceToBlueprint(
+			layout,
+			actors,
+			['A', 'B'],
+			messages,
+			new Map([['B', 0]]),
+			new Map([['A', 0]])
+		)
+
+		const edge = bp.edges[0]
+		expect(edge.endNodeId).toBe('actor-top-B')
+		expect(edge.startNodeId).toBe('lifeline-A')
+		expect(findNode(bp, 'actor-bottom-A')!.y).toBe(twoActorLayout().actorLayouts[0].bottomY)
+	})
+
 	it('maps actor types to correct geo', () => {
 		const layout = actorLayout([0])
 		const actors = new Map([actor('User', { type: 'actor' })])
