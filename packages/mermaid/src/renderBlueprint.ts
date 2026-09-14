@@ -1,4 +1,14 @@
-import { createShapeId, Editor, IndexKey, TLLineShape, TLShapeId, toRichText, Vec } from 'tldraw'
+import {
+	createShapeId,
+	Editor,
+	IndexKey,
+	TLDefaultSizeStyle,
+	TLLineShape,
+	TLShapeId,
+	TLTextShape,
+	toRichText,
+	Vec,
+} from 'tldraw'
 import type {
 	DiagramMermaidBlueprint,
 	MermaidBlueprintEdge,
@@ -101,7 +111,10 @@ export function renderBlueprint(
 	const arrowIds: TLShapeId[] = []
 	for (const edge of edges) {
 		const arrowId = createArrowFromEdge(editor, edge, shapeIds)
-		if (arrowId) arrowIds.push(arrowId)
+		if (!arrowId) continue
+		arrowIds.push(arrowId)
+		const labelId = createDetachedEdgeLabel(editor, edge, { x: offsetX, y: offsetY })
+		if (labelId) arrowIds.push(labelId)
 	}
 
 	// Create sub-groups and track which shape IDs are consumed by a group
@@ -191,7 +204,7 @@ function createArrowFromEdge(
 		arrowheadEnd: edge.arrowheadEnd ?? ('arrow' as const),
 		...(edge.arrowheadStart && { arrowheadStart: edge.arrowheadStart }),
 		color: edge.color ?? ('black' as const),
-		...(labelText && { richText: toRichText(sanitizeDiagramText(labelText)) }),
+		...(labelText && !edge.labelBounds && { richText: toRichText(sanitizeDiagramText(labelText)) }),
 	}
 
 	let origin: { x: number; y: number }
@@ -199,20 +212,31 @@ function createArrowFromEdge(
 	let end: ArrowTerminal
 	let bend = edge.bend
 
-	if (edge.anchorStartY !== undefined || edge.anchorEndY !== undefined) {
-		const startAnchorY = edge.anchorStartY ?? 0.5
-		const endAnchorY = edge.anchorEndY ?? 0.5
+	if (
+		edge.anchorStartX !== undefined ||
+		edge.anchorStartY !== undefined ||
+		edge.anchorEndX !== undefined ||
+		edge.anchorEndY !== undefined
+	) {
+		const startAnchor = { x: edge.anchorStartX ?? 0.5, y: edge.anchorStartY ?? 0.5 }
+		const endAnchor = { x: edge.anchorEndX ?? 0.5, y: edge.anchorEndY ?? 0.5 }
 		const isExact = edge.isExact ?? true
 		const isPrecise = edge.isPrecise ?? true
 		start = {
-			point: { x: startBounds.midX, y: startBounds.y + startBounds.h * startAnchorY },
-			anchor: { x: 0.5, y: startAnchorY },
+			point: {
+				x: startBounds.x + startBounds.w * startAnchor.x,
+				y: startBounds.y + startBounds.h * startAnchor.y,
+			},
+			anchor: startAnchor,
 			isExact,
 			isPrecise,
 		}
 		end = {
-			point: { x: endBounds.midX, y: endBounds.y + endBounds.h * endAnchorY },
-			anchor: { x: 0.5, y: endAnchorY },
+			point: {
+				x: endBounds.x + endBounds.w * endAnchor.x,
+				y: endBounds.y + endBounds.h * endAnchor.y,
+			},
+			anchor: endAnchor,
 			isExact: edge.isExactEnd ?? isExact,
 			isPrecise: edge.isPreciseEnd ?? isPrecise,
 		}
@@ -263,6 +287,49 @@ function createArrowFromEdge(
 		])
 	})
 	return arrowId
+}
+
+// Arrow labels are set smaller than text at the same size style, so a detached label picks the
+// text size that matches the arrow labels around it.
+const TEXT_SIZE_FOR_ARROW_LABEL: Record<TLDefaultSizeStyle, TLDefaultSizeStyle> = {
+	s: 's',
+	m: 's',
+	l: 'm',
+	xl: 'm',
+}
+
+function createDetachedEdgeLabel(
+	editor: Editor,
+	edge: MermaidBlueprintEdge,
+	offset: { x: number; y: number }
+): TLShapeId | undefined {
+	const bounds = edge.labelBounds
+	const text = edge.label && sanitizeDiagramText(edge.label)
+	if (!bounds || !text) return undefined
+
+	const id = createShapeId()
+	const x = offset.x + bounds.x
+	const y = offset.y + bounds.y
+	editor.createShape<TLTextShape>({
+		id,
+		type: 'text',
+		x,
+		y,
+		props: {
+			richText: toRichText(text),
+			w: bounds.w,
+			autoSize: false,
+			textAlign: 'middle',
+			size: TEXT_SIZE_FOR_ARROW_LABEL[edge.size ?? 's'],
+			color: edge.color ?? 'black',
+		},
+	})
+	// The box was measured in mermaid's font, so our text rarely fills its height.
+	const textBounds = editor.getShapePageBounds(id)
+	if (textBounds) {
+		editor.updateShape({ id, type: 'text', y: y + (bounds.h - textBounds.h) / 2 })
+	}
+	return id
 }
 
 function makeArrowBinding(

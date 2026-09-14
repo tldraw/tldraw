@@ -7,12 +7,9 @@ const MAX_ARROW_BEND = 200
  * Extrapolate a bend value for tldraw arrows from Mermaid edge path waypoints.
  * Uses perpendicular distance from chord to mid-points, scaled and clamped.
  */
-export function getArrowBend(edgeData: { points: { x: number; y: number }[] }) {
-	const points = edgeData.points
-
-	if (points.length < 2) {
-		return 0
-	}
+/** Signed perpendicular distance from an edge's chord to its farthest routing point. */
+function getEdgeSagitta(points: { x: number; y: number }[]) {
+	if (points.length < 2) return 0
 
 	const start = points[0]
 	const end = points[points.length - 1]
@@ -29,9 +26,21 @@ export function getArrowBend(edgeData: { points: { x: number; y: number }[] }) {
 			maxDistance = distance
 		}
 	}
+	return maxDistance
+}
 
-	const bend = maxDistance * BEND_SCALE
+export function getArrowBend(edgeData: { points: { x: number; y: number }[] }) {
+	const bend = getEdgeSagitta(edgeData.points) * BEND_SCALE
 	return Math.max(-MAX_ARROW_BEND, Math.min(MAX_ARROW_BEND, bend))
+}
+
+/**
+ * A self-loop's bend at mermaid's own depth. The amplification in {@link getArrowBend} suits a
+ * line between two shapes, but on a loop it roughly doubles the loop into the space mermaid set
+ * aside for its label.
+ */
+export function getSelfLoopBend(edgeData: { points: { x: number; y: number }[] }) {
+	return getEdgeSagitta(edgeData.points) * Math.sign(BEND_SCALE)
 }
 
 /** Normalize HTML line breaks to newlines, decode HTML entities, and trim. */

@@ -64,8 +64,10 @@ export const MERMAID_MINDMAP_NODE_TYPE: {
 
 // @public (undocumented)
 export interface MermaidBlueprintEdge {
+    anchorEndX?: number;
     // (undocumented)
     anchorEndY?: number;
+    anchorStartX?: number;
     // (undocumented)
     anchorStartY?: number;
     // (undocumented)
@@ -95,6 +97,12 @@ export interface MermaidBlueprintEdge {
     isPreciseEnd?: boolean;
     // (undocumented)
     label?: string;
+    labelBounds?: {
+        h: number;
+        w: number;
+        x: number;
+        y: number;
+    };
     // (undocumented)
     size?: TLDefaultSizeStyle;
     // (undocumented)
