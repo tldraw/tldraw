@@ -616,7 +616,7 @@ export async function defaultHandleExternalUrlContent(
 	}
 
 	// A url aimed at a shape decorates that shape: no bookmark, and no embed even when the url is
-	// one we could embed, since the user pointed at something that already exists.
+	// one we could embed, since the user aimed it at something that already exists.
 	if (shapeId) {
 		const shape = editor.getShape(shapeId)
 		if (shape && 'url' in shape.props && typeof shape.props.url === 'string') {

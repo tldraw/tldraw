@@ -75,7 +75,7 @@ export interface TLUrlExternalContent extends TLBaseExternalContent {
 	url: string
 	/**
 	 * A shape to set the url on, instead of creating a bookmark or an embed. The shape must have a
-	 * `url` prop; the clipboard sets this when a link is pasted over a shape that can hold one.
+	 * `url` prop; the clipboard sets this when a link is pasted with one such shape selected.
 	 */
 	shapeId?: TLShapeId
 }

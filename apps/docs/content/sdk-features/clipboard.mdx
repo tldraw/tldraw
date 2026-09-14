@@ -85,7 +85,7 @@ Cut combines copy and delete. The editor first copies the selected shapes to the
 
 ### Pasting a link onto a shape
 
-A url on the clipboard normally becomes a bookmark or an embed. When the paste is aimed at a shape that can hold a link — a geo, note, image, video, or bookmark shape under the pointer, or under the point a context menu paste supplies — the url becomes that shape's link instead, and nothing is created. Embed shapes are excluded, since their `url` is the embedded content's source.
+A url on the clipboard normally becomes a bookmark or an embed. When a single shape that can hold a link is selected — a geo, note, image, video, or bookmark shape — the url becomes that shape's link instead, and nothing is created. Embed shapes are excluded, since their `url` is the embedded content's source.
 
 The clipboard signals this by setting `shapeId` on the `url` external content, so a custom `url` handler can take over or ignore it:
 

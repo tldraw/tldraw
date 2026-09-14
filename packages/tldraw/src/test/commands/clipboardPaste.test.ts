@@ -550,17 +550,17 @@ describe('sources in external content handlers and callbacks', () => {
 	})
 })
 
-describe('pasting a link over a shape', () => {
+describe('pasting a link onto the selected shape', () => {
 	const URL = 'https://example.com/'
 
-	function createGeo(id: TLShapeId, props?: Partial<TLGeoShape['props']>, isLocked = false) {
+	function createGeo(id: TLShapeId, isLocked = false) {
 		editor.createShape<TLGeoShape>({
 			id,
 			type: 'geo',
 			x: 100,
 			y: 100,
 			isLocked,
-			props: { w: 200, h: 200, ...props },
+			props: { w: 200, h: 200 },
 		})
 	}
 
@@ -572,38 +572,50 @@ describe('pasting a link over a shape', () => {
 		return (content as TLUrlExternalContent).shapeId
 	}
 
-	/** A keyboard paste: the pointer is on the canvas, so the shape under it is the target. */
 	async function pasteText(text: string, type = 'text/plain') {
 		await handlePasteFromClipboardApi({
 			editor,
 			clipboardItems: [makeClipboardItem({ [type]: text })],
-			clipboardPasteSource: 'native-event',
+			clipboardPasteSource: 'clipboard-read',
 		})
 	}
 
-	it('aims the link at the shape under the pointer', async () => {
+	it('aims the link at the selected shape', async () => {
 		const spy = mockPutExternalContent()
 		const id = createShapeId()
 		createGeo(id)
-		editor.pointerMove(200, 200)
+		editor.select(id)
 
 		await pasteText(URL)
 
 		expect(pastedShapeId(spy)).toBe(id)
 	})
 
-	it('aims the link at a filled shape and at an empty one alike', async () => {
+	it('reaches the link through the uri-list and html clipboard types too', async () => {
 		const spy = mockPutExternalContent()
 		const id = createShapeId()
-		createGeo(id, { fill: 'solid' })
-		editor.pointerMove(200, 200)
+		createGeo(id)
+		editor.select(id)
 
-		await pasteText(URL)
+		await pasteText(URL, 'text/uri-list')
+		expect(pastedShapeId(spy)).toBe(id)
 
+		spy.mockClear()
+		await pasteText(`<a href="${URL}">Example</a>`, 'text/html')
 		expect(pastedShapeId(spy)).toBe(id)
 	})
 
-	it('aims the link at a shape inside a group', async () => {
+	it('aims at nothing when no shape is selected', async () => {
+		const spy = mockPutExternalContent()
+		createGeo(createShapeId())
+		editor.selectNone()
+
+		await pasteText(URL)
+
+		expect(pastedShapeId(spy)).toBeUndefined()
+	})
+
+	it('aims at nothing when several shapes are selected', async () => {
 		const spy = mockPutExternalContent()
 		const id = createShapeId()
 		const other = createShapeId()
@@ -615,128 +627,65 @@ describe('pasting a link over a shape', () => {
 			y: 100,
 			props: { w: 200, h: 200 },
 		})
-		editor.groupShapes([id, other])
-		editor.selectNone()
-		editor.pointerMove(200, 200)
-
-		await pasteText(URL)
-
-		expect(pastedShapeId(spy)).toBe(id)
-	})
-
-	it('reaches the link through the uri-list and html clipboard types too', async () => {
-		const spy = mockPutExternalContent()
-		const id = createShapeId()
-		createGeo(id)
-		editor.pointerMove(200, 200)
-
-		await pasteText(URL, 'text/uri-list')
-		expect(pastedShapeId(spy)).toBe(id)
-
-		spy.mockClear()
-		await pasteText(`<a href="${URL}">Example</a>`, 'text/html')
-		expect(pastedShapeId(spy)).toBe(id)
-	})
-
-	it('uses an explicit paste point rather than the pointer', async () => {
-		const spy = mockPutExternalContent()
-		const id = createShapeId()
-		createGeo(id)
-		editor.pointerMove(700, 700)
-
-		await handlePasteFromClipboardApi({
-			editor,
-			clipboardItems: [makeClipboardItem({ 'text/plain': URL })],
-			point: { x: 200, y: 200 },
-			clipboardPasteSource: 'clipboard-read',
-		})
-
-		expect(pastedShapeId(spy)).toBe(id)
-	})
-
-	it('ignores the pointer for a menu paste, which happens with the pointer on the menu', async () => {
-		const spy = mockPutExternalContent()
-		createGeo(createShapeId())
-		editor.pointerMove(200, 200)
-
-		await handlePasteFromClipboardApi({
-			editor,
-			clipboardItems: [makeClipboardItem({ 'text/plain': URL })],
-			clipboardPasteSource: 'clipboard-read',
-		})
-
-		expect(pastedShapeId(spy)).toBeUndefined()
-	})
-
-	it('aims at nothing when the pointer is not over a shape', async () => {
-		const spy = mockPutExternalContent()
-		createGeo(createShapeId())
-		editor.pointerMove(700, 700)
+		editor.select(id, other)
 
 		await pasteText(URL)
 
 		expect(pastedShapeId(spy)).toBeUndefined()
 	})
 
-	it('aims at nothing when the shape under the pointer is an embed', async () => {
+	it('aims at nothing when the selected shape is an embed', async () => {
 		const spy = mockPutExternalContent()
+		const id = createShapeId()
 		editor.createShape({
-			id: createShapeId(),
+			id,
 			type: 'embed',
 			x: 100,
 			y: 100,
 			props: { w: 200, h: 200, url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
 		})
-		editor.pointerMove(200, 200)
+		editor.select(id)
 
 		await pasteText(URL)
 
 		expect(pastedShapeId(spy)).toBeUndefined()
 	})
 
-	it('aims at nothing when the shape under the pointer is locked', async () => {
+	it('aims at nothing when the selected shape cannot hold a link', async () => {
 		const spy = mockPutExternalContent()
-		createGeo(createShapeId(), undefined, true)
-		editor.pointerMove(200, 200)
+		const id = createShapeId()
+		editor.createShape({ id, type: 'frame', x: 100, y: 100 })
+		editor.select(id)
 
 		await pasteText(URL)
 
 		expect(pastedShapeId(spy)).toBeUndefined()
 	})
 
-	it('does not let a locked shape pass the link to the shape behind it', async () => {
+	it('aims at nothing when the selected shape is locked', async () => {
 		const spy = mockPutExternalContent()
-		createGeo(createShapeId())
-		createGeo(createShapeId(), undefined, true)
-		editor.pointerMove(200, 200)
+		const id = createShapeId()
+		createGeo(id, true)
+		editor.setSelectedShapes([id])
 
 		await pasteText(URL)
 
 		expect(pastedShapeId(spy)).toBeUndefined()
 	})
 
-	it('aims at nothing when the url is one a shape could not hold', async () => {
+	it('aims at nothing when the clipboard holds several urls', async () => {
 		const spy = mockPutExternalContent()
-		createGeo(createShapeId())
-		editor.pointerMove(200, 200)
+		const id = createShapeId()
+		createGeo(id)
+		editor.select(id)
 
-		// A uri-list comes off the clipboard unchecked: copying a file in the OS file manager puts
-		// a file:// url there, and copying several links puts one url per line.
-		await pasteText('file:///Users/tldraw/notes.txt', 'text/uri-list')
+		// Copying several links puts one url per line on a uri-list, and `new URL()` accepts the
+		// whole thing, so the list would otherwise be written to the shape verbatim.
+		await pasteText(`${URL}\nhttps://tldraw.dev/`, 'text/uri-list')
 		expect(pastedShapeId(spy)).toBeUndefined()
 
 		spy.mockClear()
-		await pasteText(`${URL}\nhttps://tldraw.dev/`, 'text/uri-list')
-		expect(pastedShapeId(spy)).toBeUndefined()
-	})
-
-	it('creates bookmarks when several links are pasted at once', async () => {
-		const spy = mockPutExternalContent()
-		createGeo(createShapeId())
-		editor.pointerMove(200, 200)
-
 		await pasteText(`${URL} https://tldraw.dev/`)
-
 		expect(spy).toHaveBeenCalledTimes(2)
 		expect(spy.mock.calls.map((call) => (call[0] as TLUrlExternalContent).shapeId)).toEqual([
 			undefined,
@@ -750,8 +699,9 @@ describe('pasting a link over a shape', () => {
 			options: { onBeforePasteFromClipboard: () => ({ type: 'text', text: 'hello' }) },
 		})
 		const spy = mockPutExternalContent()
-		createGeo(createShapeId())
-		editor.pointerMove(200, 200)
+		const id = createShapeId()
+		createGeo(id)
+		editor.select(id)
 
 		await pasteText(URL)
 
