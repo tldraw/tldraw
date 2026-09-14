@@ -29,13 +29,13 @@ export function goToRect(editor: Editor, rect: Rect, zoom: number, durationMs = 
 }
 
 /** Put a node on screen at the zoom where its own level is the one being read. */
-export function goToNode(editor: Editor, layout: Layout, node: PlacedNode, durationMs = 600) {
-	goToRect(editor, node.rect, bandZoom(layout.nominals, node.depth), durationMs)
+export function goToNode(editor: Editor, layout: Layout, node: PlacedNode) {
+	goToRect(editor, node.rect, bandZoom(layout.nominals, node.depth))
 }
 
 /** Open a node: settle at the zoom where its children are the level being read. */
-export function openNode(editor: Editor, layout: Layout, node: PlacedNode, durationMs = 600) {
-	goToRect(editor, node.rect, bandZoom(layout.nominals, node.depth + 1), durationMs)
+export function openNode(editor: Editor, layout: Layout, node: PlacedNode) {
+	goToRect(editor, node.rect, bandZoom(layout.nominals, node.depth + 1))
 }
 
 /** Pull all the way back to the whole work as a single line. */
@@ -46,12 +46,9 @@ export function goToWhole(editor: Editor, layout: Layout, durationMs = 600) {
 /**
  * Set an exact zoom, keeping the middle of the screen where it is.
  *
- * Almost. Cells are separated by gutters, and a gutter is empty at every level,
- * so holding a point in one while zooming in walks the camera down a corridor
- * of blank canvas — and the camera starts in exactly such a spot, the middle of
- * the work being the corner of four cells. The held point is first nudged into
- * the nearest cell, which moves it at most half a gutter and is invisible when
- * it is already over text.
+ * Almost: a gutter is empty at every level, so holding a point in one while
+ * zooming in walks the camera down a corridor of blank canvas. The held point
+ * is nudged into the nearest cell first, which moves it at most half a gutter.
  */
 export function zoomAtCentre(editor: Editor, layout: Layout, zoom: number) {
 	const centre = editor.getViewportPageBounds().center

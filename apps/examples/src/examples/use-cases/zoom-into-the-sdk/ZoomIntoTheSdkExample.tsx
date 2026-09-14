@@ -24,10 +24,6 @@ export default function ZoomIntoTheSdkExample() {
 [1]
 The same component as the "Zoom into Moby Dick" example, over a codebase instead
 of a novel. The corpus here is smaller in every way — four levels rather than
-six, and no `loadDetail`, because there is no deeper body of text to fetch — and
+five, and no `loadDetail`, because there is no deeper body of text to fetch — and
 that needs no flag: a corpus without detail simply has two fewer levels.
-
-Cell area is proportional to the real line count of the source each node stands
-for, so the shape of the map is the shape of the repository. The translations
-being the single largest block is not an error.
 */

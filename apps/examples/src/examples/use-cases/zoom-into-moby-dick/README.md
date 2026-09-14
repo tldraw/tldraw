@@ -21,7 +21,7 @@ The obvious implementation reads `editor.getZoomLevel()` and swaps a shape's tex
 the second half of the behaviour, because there is no "this" to zoom into.
 
 Instead the work is a tree, and every node's children subdivide its rectangle. The root sentence owns a
-1000-unit square; its six children each own part of that square; their children own parts of those, down
+1000-unit rect; its six children each own part of that rect; their children own parts of those, down
 to 136 chapters. Drilling into a passage then falls out for free, because the passage's children are
 simply the nodes that grow first when you zoom there.
 
@@ -68,6 +68,6 @@ history, and keeping them out of it means every tldraw tool still works normally
 
 ### Reusing it
 
-Nothing in `src/semantic-zoom` knows it is looking at a novel. It takes a tree of strings, an optional
-list of cross-references and an optional loader for deeper text. See "Zoom into the tldraw SDK" for the
-same component over a codebase, with four levels instead of six and no deep text at all.
+Nothing in `src/semantic-zoom` knows it is looking at a novel. It takes a tree of strings and an optional
+loader for deeper text. See "Zoom into the tldraw SDK" for the same component over a codebase, with four
+levels instead of five and no deep text at all.

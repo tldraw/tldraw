@@ -1,5 +1,5 @@
 import { type CSSProperties, useEffect, useLayoutEffect, useMemo, useState } from 'react'
-import { react, useEditor, useValue } from 'tldraw'
+import { Box, react, useEditor, useValue } from 'tldraw'
 import {
 	type Corpus,
 	detailNode,
@@ -24,7 +24,6 @@ const LOGICAL_FONT = 16
 const RULE_GAMMA = 2.6
 
 /**
- * Writes one opacity per level onto the editor container as a CSS variable.
  * Every node at a depth shares that depth's opacity, so the crossfade costs one
  * style write per camera frame instead of a React render per node.
  */
@@ -52,16 +51,22 @@ function useLevelOfDetail(nominals: number[]) {
 function NodeView({
 	node,
 	matched,
+	isDetail,
 	onSelect,
 }: {
 	node: PlacedNode
 	matched: boolean
+	isDetail?: boolean
 	onSelect?(node: PlacedNode): void
 }) {
 	const scale = node.fontSize / LOGICAL_FONT
 	return (
 		<div
-			className={`sz-node sz-node--depth-${node.depth}` + (matched ? ' sz-node--match' : '')}
+			className={
+				`sz-node sz-node--depth-${node.depth}` +
+				(isDetail ? ' sz-node--detail' : '') +
+				(matched ? ' sz-node--match' : '')
+			}
 			style={{
 				transform: `translate(${node.rect.x}px, ${node.rect.y}px) scale(${scale})`,
 				width: node.rect.w / scale,
@@ -122,13 +127,7 @@ export function ContentLayer({
 			if (editor.getZoomLevel() < loadZoom) return ''
 			const viewport = editor.getViewportPageBounds()
 			return layout.leaves
-				.filter(
-					({ rect }) =>
-						rect.x < viewport.maxX &&
-						rect.x + rect.w > viewport.minX &&
-						rect.y < viewport.maxY &&
-						rect.y + rect.h > viewport.minY
-				)
+				.filter((leaf) => viewport.collides(Box.From(leaf.rect)))
 				.map((leaf) => leaf.id)
 				.join(',')
 		},
@@ -146,17 +145,9 @@ export function ContentLayer({
 			})
 	}, [detail, visibleLeafIds, layout])
 
-	// Clicking text navigates, but only while the select tool is active. With any
-	// drawing tool the layer stops taking pointers, so the whole work stays a
-	// surface you can annotate rather than a wall of buttons.
 	const isSelecting = useValue('is selecting', () => editor.getCurrentToolId() === 'select', [
 		editor,
 	])
-	// A click means "open this", so it settles where the node's *children* are
-	// the level being read. Settling on the node's own level would be a no-op on
-	// the very node the reader is already looking at, which is the one they just
-	// clicked; fitting the cell to the viewport would stop part-way through the
-	// change, because box size and type size are different measures.
 	const onSelect = isSelecting ? (node: PlacedNode) => openNode(editor, layout, node) : undefined
 
 	return (
@@ -178,7 +169,7 @@ export function ContentLayer({
 				<NodeView key={node.id} node={node} matched={matches.has(node.id)} onSelect={onSelect} />
 			))}
 			{detailLevels.map((node) => (
-				<NodeView key={node.id} node={node} matched={false} />
+				<NodeView key={node.id} node={node} matched={false} isDetail />
 			))}
 		</div>
 	)

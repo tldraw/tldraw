@@ -1,5 +1,4 @@
 import { type ZoomNode } from '../../../semantic-zoom/layout'
-import { CHAPTER_CHARS } from './chapterLengths'
 
 /**
  * Four ways of saying the same book, each roughly five times longer than the one
@@ -683,7 +682,6 @@ export const book: ZoomNode = {
 					title: n === CHAPTERS.length ? title : `${n}. ${title}`,
 					text: summary,
 					detailKey: String(n),
-					weight: CHAPTER_CHARS[n - 1],
 				}
 			}),
 		})),

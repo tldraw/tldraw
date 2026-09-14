@@ -13,6 +13,9 @@ interface Chapter {
 // [1]
 const mobyDick: Corpus = {
 	root: book,
+	// Median chapter, in characters. The deepest level is sized from this before
+	// any of the text has been fetched.
+	detailChars: 6768,
 	async loadDetail() {
 		const chapters = (await import('./chapters.json')).default as Chapter[]
 		return Object.fromEntries(chapters.map((chapter) => [String(chapter.n), chapter.text]))

@@ -50,10 +50,11 @@
 }
 
 /*
- * Hyphenation only on the deepest text, where the columns are narrow enough
- * that a ragged edge otherwise opens up holes.
+ * Hyphenation only on the source text, whose columns are narrow enough that a
+ * ragged edge opens up holes. Keyed on the role rather than on a depth number,
+ * which differs from one corpus to the next.
  */
-.sz-node--depth-4 {
+.sz-node--detail {
 	hyphens: auto;
 	opacity: 0.92;
 }
@@ -69,7 +70,6 @@
 	padding-bottom: 0.3em;
 }
 
-/* A search hit is marked where it sits on the map, so the answer is a place. */
 .sz-node--match {
 	background: color-mix(in srgb, var(--tl-color-selected) 14%, transparent);
 	box-shadow: 0 0 0 0.35em color-mix(in srgb, var(--tl-color-selected) 14%, transparent);

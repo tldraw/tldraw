@@ -4,7 +4,6 @@ import { ContentLayer } from './ContentLayer'
 import { type Corpus, type Layout, layoutCorpus, levelOpacities, type PlacedNode } from './layout'
 import { goToNode, goToWhole, nodesContaining, zoomAtCentre, zoomRange } from './navigation'
 
-/** Where a search hit was found, and enough context to show it in the list. */
 interface Hit {
 	node: PlacedNode
 	preview: string
@@ -121,8 +120,7 @@ function Controls({
 	const [query, setQuery] = useState('')
 
 	const hits = useMemo(() => search(layout, query), [layout, query])
-	// Publishing the highlight set is a side effect on another component's state,
-	// so it has to happen after this render rather than during it.
+	// Another component's signal: cannot be set during this one's render.
 	useEffect(() => {
 		matches.set(new Set(hits.map((hit) => hit.node.id)))
 	}, [hits, matches])
@@ -183,7 +181,6 @@ export function createSemanticZoom(corpus: Corpus) {
 	}
 
 	return {
-		layout,
 		components,
 		options: {
 			camera: {

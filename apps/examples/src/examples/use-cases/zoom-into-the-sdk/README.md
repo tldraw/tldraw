@@ -17,5 +17,5 @@ The point of this example is that it shares every line of its implementation wit
 or codebases; both examples just hand it a tree.
 
 This corpus is the smaller of the two, which is what makes the comparison useful. It has four levels
-instead of six and no `loadDetail`, because unlike a novel there is no longer body of text waiting behind
+instead of five and no `loadDetail`, because unlike a novel there is no longer body of text waiting behind
 each leaf — and that needs no special casing. A corpus without detail simply has two fewer levels.

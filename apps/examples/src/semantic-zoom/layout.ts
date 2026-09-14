@@ -12,12 +12,6 @@ export interface ZoomNode {
 	/** What this node says at its own scale. */
 	text: string
 	title?: string
-	/**
-	 * How much source material is behind this node. Only used to judge how long
-	 * the detail text is, so the excerpt and full-text levels can be sized before
-	 * that text has been fetched.
-	 */
-	weight?: number
 	/** Set on leaves that have a longer body of text to unfold inside them. */
 	detailKey?: string
 	children?: ZoomNode[]
@@ -27,6 +21,12 @@ export interface Corpus {
 	root: ZoomNode
 	/** Loads the long text for every `detailKey`. Called once, on demand. */
 	loadDetail?(): Promise<Record<string, string>>
+	/**
+	 * Roughly how long one piece of detail text is. The deepest level has to be
+	 * sized before any of it has been fetched, and its font size is what decides
+	 * the zoom it appears at.
+	 */
+	detailChars?: number
 }
 
 export interface Rect {
@@ -43,8 +43,6 @@ export interface PlacedNode {
 	text: string
 	title?: string
 	detailKey?: string
-	/** Carried through for sizing the detail levels. */
-	weight?: number
 	/** Font size in page units. Screen size is this times the camera zoom. */
 	fontSize: number
 	columns: number
@@ -81,9 +79,8 @@ function inset(r: Rect, amount: number): Rect {
 }
 
 /**
- * Pick a font size whose glyphs cover `FILL` of the rect, then split into as
- * many columns as it takes to keep the measure near `TARGET_MEASURE`. A long
- * chapter ends up as a dense multi-column page; a one-line summary ends up huge.
+ * Fits text to a rect by area, so a long chapter comes out as a dense
+ * multi-column page and a one-line summary comes out huge.
  */
 export function fitText(rect: Rect, charCount: number) {
 	const fontSize = Math.sqrt((FILL * rect.w * rect.h) / (charCount * CHAR_ASPECT * LINE_HEIGHT))
@@ -94,7 +91,6 @@ export function fitText(rect: Rect, charCount: number) {
 	return { fontSize, columns }
 }
 
-/** Tile `count` cells into `rect`, choosing the column count that best matches TARGET_ASPECT. */
 function subdivide(rect: Rect, count: number): { rects: Rect[]; separators: Rect[] } {
 	const inner = inset(rect, PADDING * Math.min(rect.w, rect.h))
 
@@ -162,13 +158,11 @@ function subdivide(rect: Rect, count: number): { rects: Rect[]; separators: Rect
 export interface Layout {
 	nodes: PlacedNode[]
 	separators: Separator[]
-	byId: Map<string, PlacedNode>
 	/** Leaves that have a longer body of text waiting behind them. */
 	leaves: PlacedNode[]
 	bounds: Rect
 	/** Nominal font size per level, including the detail level. */
 	nominals: number[]
-	hasDetail: boolean
 }
 
 export function layoutCorpus(corpus: Corpus): Layout {
@@ -184,7 +178,6 @@ export function layoutCorpus(corpus: Corpus): Layout {
 			text: node.text,
 			title: node.title,
 			detailKey: node.detailKey,
-			weight: node.weight,
 			fontSize,
 			columns,
 		})
@@ -203,19 +196,16 @@ export function layoutCorpus(corpus: Corpus): Layout {
 	const bounds = { x: -ROOT_WIDTH / 2, y: -height / 2, w: ROOT_WIDTH, h: height }
 	walk(corpus.root, bounds, 0)
 
-	const byId = new Map(nodes.map((node) => [node.id, node]))
 	const leaves = nodes.filter((node) => node.detailKey !== undefined)
 	const hasDetail = leaves.length > 0 && !!corpus.loadDetail
 
 	const nominals = medianFontPerDepth(nodes)
 	if (hasDetail) {
-		// `weight` already means "how much source material is in here", so the
-		// typical leaf weight is the typical length of the detail text.
-		const detailChars = median(leaves.map((leaf) => leaf.weight ?? 0)) || 1
-		nominals.push(median(leaves.map((leaf) => fitText(detailRect(leaf), detailChars).fontSize)))
+		const chars = corpus.detailChars ?? 4000
+		nominals.push(median(leaves.map((leaf) => fitText(detailRect(leaf), chars).fontSize)))
 	}
 
-	return { nodes, separators, byId, leaves, bounds, nominals, hasDetail }
+	return { nodes, separators, leaves, bounds, nominals }
 }
 
 function median(values: number[]) {
