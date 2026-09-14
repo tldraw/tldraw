@@ -202,7 +202,7 @@ export default function App() {
 
 ## Embed-on-paste behavior
 
-By default, pasting a URL from a supported service creates an embed shape. Set `embedOnPaste: false` in the embed definition to create a bookmark instead.
+By default, pasting a URL from a supported service creates an embed shape. Set `embedOnPaste: false` in the embed definition to create a bookmark instead. Pasting over a shape that can hold a link sets that shape's link rather than creating either.
 
 The tldraw embed definition sets `embedOnPaste: false`, so pasting a tldraw.com URL creates a bookmark. Separately, embed shapes refuse to render a nested tldraw canvas when the page itself is running inside an iframe, which prevents infinite nesting.
 

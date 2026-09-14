@@ -3,6 +3,7 @@ import {
 	TLFilesExternalContent,
 	TLGeoShape,
 	TLShapeId,
+	TLUrlExternalContent,
 	createShapeId,
 } from '@tldraw/editor'
 import { vi } from 'vitest'
@@ -552,26 +553,35 @@ describe('sources in external content handlers and callbacks', () => {
 describe('pasting a link over a shape', () => {
 	const URL = 'https://example.com/'
 
-	function createGeo(id: TLShapeId, isLocked = false) {
+	function createGeo(id: TLShapeId, props?: Partial<TLGeoShape['props']>, isLocked = false) {
 		editor.createShape<TLGeoShape>({
 			id,
 			type: 'geo',
 			x: 100,
 			y: 100,
 			isLocked,
-			props: { w: 200, h: 200, fill: 'solid' },
+			props: { w: 200, h: 200, ...props },
 		})
 	}
 
-	async function pasteText(text: string) {
+	/** The shape the paste aimed its link at, as handed to the url content handler. */
+	function pastedShapeId(spy: ReturnType<typeof mockPutExternalContent>) {
+		expect(spy).toHaveBeenCalledTimes(1)
+		const content = spy.mock.calls[0][0]
+		expect(content).toMatchObject({ type: 'url' })
+		return (content as TLUrlExternalContent).shapeId
+	}
+
+	/** A keyboard paste: the pointer is on the canvas, so the shape under it is the target. */
+	async function pasteText(text: string, type = 'text/plain') {
 		await handlePasteFromClipboardApi({
 			editor,
-			clipboardItems: [makeClipboardItem({ 'text/plain': text })],
-			clipboardPasteSource: 'clipboard-read',
+			clipboardItems: [makeClipboardItem({ [type]: text })],
+			clipboardPasteSource: 'native-event',
 		})
 	}
 
-	it('sets the link on the shape under the pointer instead of creating a bookmark', async () => {
+	it('aims the link at the shape under the pointer', async () => {
 		const spy = mockPutExternalContent()
 		const id = createShapeId()
 		createGeo(id)
@@ -579,73 +589,173 @@ describe('pasting a link over a shape', () => {
 
 		await pasteText(URL)
 
-		expect(spy).not.toHaveBeenCalled()
-		expect(editor.getShape<TLGeoShape>(id)!.props.url).toBe(URL)
+		expect(pastedShapeId(spy)).toBe(id)
 	})
 
-	it('replaces a link the shape already has', async () => {
-		mockPutExternalContent()
+	it('aims the link at a filled shape and at an empty one alike', async () => {
+		const spy = mockPutExternalContent()
 		const id = createShapeId()
-		createGeo(id)
-		editor.updateShape<TLGeoShape>({ id, type: 'geo', props: { url: 'https://tldraw.dev/' } })
+		createGeo(id, { fill: 'solid' })
 		editor.pointerMove(200, 200)
 
 		await pasteText(URL)
 
-		expect(editor.getShape<TLGeoShape>(id)!.props.url).toBe(URL)
+		expect(pastedShapeId(spy)).toBe(id)
 	})
 
-	it('creates a bookmark when the pointer is not over a shape', async () => {
+	it('aims the link at a shape inside a group', async () => {
+		const spy = mockPutExternalContent()
+		const id = createShapeId()
+		const other = createShapeId()
+		createGeo(id)
+		editor.createShape<TLGeoShape>({
+			id: other,
+			type: 'geo',
+			x: 400,
+			y: 100,
+			props: { w: 200, h: 200 },
+		})
+		editor.groupShapes([id, other])
+		editor.selectNone()
+		editor.pointerMove(200, 200)
+
+		await pasteText(URL)
+
+		expect(pastedShapeId(spy)).toBe(id)
+	})
+
+	it('reaches the link through the uri-list and html clipboard types too', async () => {
+		const spy = mockPutExternalContent()
+		const id = createShapeId()
+		createGeo(id)
+		editor.pointerMove(200, 200)
+
+		await pasteText(URL, 'text/uri-list')
+		expect(pastedShapeId(spy)).toBe(id)
+
+		spy.mockClear()
+		await pasteText(`<a href="${URL}">Example</a>`, 'text/html')
+		expect(pastedShapeId(spy)).toBe(id)
+	})
+
+	it('uses an explicit paste point rather than the pointer', async () => {
+		const spy = mockPutExternalContent()
+		const id = createShapeId()
+		createGeo(id)
+		editor.pointerMove(700, 700)
+
+		await handlePasteFromClipboardApi({
+			editor,
+			clipboardItems: [makeClipboardItem({ 'text/plain': URL })],
+			point: { x: 200, y: 200 },
+			clipboardPasteSource: 'clipboard-read',
+		})
+
+		expect(pastedShapeId(spy)).toBe(id)
+	})
+
+	it('ignores the pointer for a menu paste, which happens with the pointer on the menu', async () => {
 		const spy = mockPutExternalContent()
 		createGeo(createShapeId())
-		editor.pointerMove(500, 500)
-
-		await pasteText(URL)
-
-		expect(spy).toHaveBeenCalledTimes(1)
-		expect(spy.mock.calls[0][0]).toMatchObject({ type: 'url', url: URL })
-	})
-
-	it('creates a bookmark when the shape under the pointer is locked', async () => {
-		const spy = mockPutExternalContent()
-		const id = createShapeId()
-		createGeo(id, true)
 		editor.pointerMove(200, 200)
 
-		await pasteText(URL)
+		await handlePasteFromClipboardApi({
+			editor,
+			clipboardItems: [makeClipboardItem({ 'text/plain': URL })],
+			clipboardPasteSource: 'clipboard-read',
+		})
 
-		expect(spy).toHaveBeenCalledTimes(1)
-		expect(editor.getShape<TLGeoShape>(id)!.props.url).toBe('')
+		expect(pastedShapeId(spy)).toBeUndefined()
 	})
 
-	it('creates a bookmark when the shape under the pointer is an embed', async () => {
+	it('aims at nothing when the pointer is not over a shape', async () => {
 		const spy = mockPutExternalContent()
-		const id = createShapeId()
-		const embedUrl = 'https://www.youtube.com/embed/dQw4w9WgXcQ'
+		createGeo(createShapeId())
+		editor.pointerMove(700, 700)
+
+		await pasteText(URL)
+
+		expect(pastedShapeId(spy)).toBeUndefined()
+	})
+
+	it('aims at nothing when the shape under the pointer is an embed', async () => {
+		const spy = mockPutExternalContent()
 		editor.createShape({
-			id,
+			id: createShapeId(),
 			type: 'embed',
 			x: 100,
 			y: 100,
-			props: { w: 200, h: 200, url: embedUrl },
+			props: { w: 200, h: 200, url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
 		})
 		editor.pointerMove(200, 200)
 
 		await pasteText(URL)
 
-		expect(spy).toHaveBeenCalledTimes(1)
-		expect(editor.getShape(id)!.props).toMatchObject({ url: embedUrl })
+		expect(pastedShapeId(spy)).toBeUndefined()
+	})
+
+	it('aims at nothing when the shape under the pointer is locked', async () => {
+		const spy = mockPutExternalContent()
+		createGeo(createShapeId(), undefined, true)
+		editor.pointerMove(200, 200)
+
+		await pasteText(URL)
+
+		expect(pastedShapeId(spy)).toBeUndefined()
+	})
+
+	it('does not let a locked shape pass the link to the shape behind it', async () => {
+		const spy = mockPutExternalContent()
+		createGeo(createShapeId())
+		createGeo(createShapeId(), undefined, true)
+		editor.pointerMove(200, 200)
+
+		await pasteText(URL)
+
+		expect(pastedShapeId(spy)).toBeUndefined()
+	})
+
+	it('aims at nothing when the url is one a shape could not hold', async () => {
+		const spy = mockPutExternalContent()
+		createGeo(createShapeId())
+		editor.pointerMove(200, 200)
+
+		// A uri-list comes off the clipboard unchecked: copying a file in the OS file manager puts
+		// a file:// url there, and copying several links puts one url per line.
+		await pasteText('file:///Users/tldraw/notes.txt', 'text/uri-list')
+		expect(pastedShapeId(spy)).toBeUndefined()
+
+		spy.mockClear()
+		await pasteText(`${URL}\nhttps://tldraw.dev/`, 'text/uri-list')
+		expect(pastedShapeId(spy)).toBeUndefined()
 	})
 
 	it('creates bookmarks when several links are pasted at once', async () => {
 		const spy = mockPutExternalContent()
-		const id = createShapeId()
-		createGeo(id)
+		createGeo(createShapeId())
 		editor.pointerMove(200, 200)
 
 		await pasteText(`${URL} https://tldraw.dev/`)
 
 		expect(spy).toHaveBeenCalledTimes(2)
-		expect(editor.getShape<TLGeoShape>(id)!.props.url).toBe('')
+		expect(spy.mock.calls.map((call) => (call[0] as TLUrlExternalContent).shapeId)).toEqual([
+			undefined,
+			undefined,
+		])
+	})
+
+	it('leaves content that onBeforePasteFromClipboard replaced alone', async () => {
+		editor.dispose()
+		editor = new TestEditor({
+			options: { onBeforePasteFromClipboard: () => ({ type: 'text', text: 'hello' }) },
+		})
+		const spy = mockPutExternalContent()
+		createGeo(createShapeId())
+		editor.pointerMove(200, 200)
+
+		await pasteText(URL)
+
+		expect(spy).toHaveBeenCalledTimes(1)
+		expect(spy.mock.calls[0][0]).toEqual({ type: 'text', text: 'hello' })
 	})
 })

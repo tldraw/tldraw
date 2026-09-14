@@ -1,29 +1,41 @@
-import { Editor, ExtractShapeByProps, TLExternalContentSource, VecLike } from '@tldraw/editor'
-import { getShapeToHover } from '../../../tools/selection-logic/updateHoveredShapeId'
-import { putPastedExternalContent, resolvePastedExternalContent } from './putPastedContent'
-
-type ShapeWithUrl = ExtractShapeByProps<{ url: string }>
+import { Editor, T, TLExternalContentSource, TLShapeId, VecLike } from '@tldraw/editor'
+import { putPastedExternalContent } from './putPastedContent'
 
 /**
- * The shape a pasted link should be attached to: the shape the user sees hovered, when it can hold
- * a link. Embeds are excluded because their `url` is the embedded content's source rather than a
- * link decorating the shape.
+ * A link we can write onto a shape. Shape `url` props are validated with `T.linkUrl`, so writing
+ * one we can't turn into a link would throw and crash the editor (#8097) — e.g. the `file://` url
+ * of a copied file. `new URL()` also tolerates line breaks, so a `text/uri-list` holding several
+ * urls would otherwise be written to the shape verbatim. Both fall through to the bookmark path,
+ * which reports what it can't handle with a toast.
  */
-function getLinkTargetShape(editor: Editor, point: VecLike): ShapeWithUrl | undefined {
-	const hoveredShapeId = getShapeToHover(editor, point)
-	if (!hoveredShapeId) return undefined
+function isAttachableLink(url: string) {
+	return !/\s/.test(url) && T.linkUrl.isValid(url)
+}
 
-	const shape = editor.getShape(hoveredShapeId)
+/**
+ * The shape a link pasted at `point` should be attached to. Embeds are excluded because their
+ * `url` is the embedded content's source rather than a link decorating the shape.
+ */
+function getLinkTargetShapeId(editor: Editor, point: VecLike): TLShapeId | undefined {
+	const shape = editor.getShapeAtPoint(point, {
+		hitInside: true,
+		// A locked shape shouldn't pass the link through to whatever sits behind it: hit it here
+		// and reject it below.
+		hitLocked: true,
+		margin: editor.getHitTestMargin(),
+		renderingOnly: true,
+	})
+
 	if (!shape || shape.type === 'embed') return undefined
 	if (!('url' in shape.props) || typeof shape.props.url !== 'string') return undefined
 	if (editor.isShapeOrAncestorLocked(shape)) return undefined
 
-	return shape as ShapeWithUrl
+	return shape.id
 }
 
 /**
  * When the clipboard has plain text that is a valid URL, create a bookmark shape and insert it into
- * the scene — or, when the pointer is over a shape that can hold a link, set that shape's link
+ * the scene — or, when the paste is aimed at a shape that can hold a link, set that shape's link
  * instead.
  *
  * @param editor - The editor instance.
@@ -38,56 +50,26 @@ export async function pasteUrl(
 	sources?: TLExternalContentSource[],
 	clipboardPasteSource: 'native-event' | 'clipboard-read' = 'native-event'
 ) {
+	// A keyboard paste happens with the pointer wherever the user left it on the canvas, so the
+	// shape under it is the one they aimed at. A menu paste happens with the pointer on the menu
+	// item, so only the point the menu itself supplies (where the user right-clicked) counts.
+	const targetPoint =
+		point ?? (clipboardPasteSource === 'native-event' ? editor.inputs.getCurrentPagePoint() : null)
+
+	const shapeId =
+		targetPoint && isAttachableLink(url) ? getLinkTargetShapeId(editor, targetPoint) : undefined
+
 	editor.markHistoryStoppingPoint('paste')
 
-	const content = await resolvePastedExternalContent(
+	return await putPastedExternalContent(
 		editor,
 		{
 			type: 'url',
 			point,
 			url,
 			sources,
+			shapeId,
 		},
 		{ source: clipboardPasteSource, point }
 	)
-	if (!content) return
-
-	if (content.type === 'url') {
-		const target = getLinkTargetShape(editor, point ?? editor.inputs.getCurrentPagePoint())
-		if (target) {
-			editor.updateShapes([{ id: target.id, type: target.type, props: { url: content.url } }])
-			return
-		}
-	}
-
-	return await editor.putExternalContent(content)
-}
-
-/**
- * Paste several URLs at once. These always become bookmarks: a shape can only hold one link, so
- * there's no sensible way to attach a list of them to the shape under the pointer.
- *
- * @internal
- */
-export function pasteUrls(
-	editor: Editor,
-	urls: string[],
-	point?: VecLike,
-	sources?: TLExternalContentSource[],
-	clipboardPasteSource: 'native-event' | 'clipboard-read' = 'native-event'
-) {
-	editor.markHistoryStoppingPoint('paste')
-
-	for (const url of urls) {
-		putPastedExternalContent(
-			editor,
-			{
-				type: 'url',
-				point,
-				url,
-				sources,
-			},
-			{ source: clipboardPasteSource, point }
-		)
-	}
 }

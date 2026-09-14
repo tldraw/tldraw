@@ -21,7 +21,7 @@ import { defaultHandleExternalTextContent } from '../../defaultExternalContentHa
 import { TLDRAW_CUSTOM_PNG_MIME_TYPE, getCanonicalClipboardReadType } from '../../utils/clipboard'
 import { TLUiEventSource, useUiEvents } from '../context/events'
 import { pasteFiles } from './clipboard/pasteFiles'
-import { pasteUrl, pasteUrls } from './clipboard/pasteUrl'
+import { pasteUrl } from './clipboard/pasteUrl'
 import { putPastedExternalContent } from './clipboard/putPastedContent'
 
 export { putPastedExternalContent } from './clipboard/putPastedContent'
@@ -167,7 +167,15 @@ const handleText = (
 		if (validUrlList.length === 1) {
 			pasteUrl(editor, validUrlList[0], point, sources, clipboardPasteSource)
 		} else {
-			pasteUrls(editor, validUrlList, point, sources, clipboardPasteSource)
+			// A shape can only hold one link, so several links at once always become bookmarks.
+			editor.markHistoryStoppingPoint('paste')
+			for (const url of validUrlList) {
+				putPastedExternalContent(
+					editor,
+					{ type: 'url', point, url, sources },
+					{ source: clipboardPasteSource, point }
+				)
+			}
 		}
 	} else if (isValidHttpURL(data)) {
 		pasteUrl(editor, data, point, sources, clipboardPasteSource)

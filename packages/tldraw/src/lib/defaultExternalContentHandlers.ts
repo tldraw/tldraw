@@ -1,6 +1,7 @@
 import {
 	AssetRecordType,
 	Editor,
+	ExtractShapeByProps,
 	T,
 	TLAsset,
 	TLAssetId,
@@ -595,7 +596,7 @@ export async function defaultHandleExternalTextContent(
 /** @public */
 export async function defaultHandleExternalUrlContent(
 	editor: Editor,
-	{ point, url }: { point?: VecLike; url: string },
+	{ point, url, shapeId }: { point?: VecLike; url: string; shapeId?: TLShapeId },
 	{ toasts, msg }: TLDefaultExternalContentHandlerOpts
 ) {
 	// Bookmark shapes validate their `url` prop with T.linkUrl, so a url we can't
@@ -612,6 +613,18 @@ export async function defaultHandleExternalUrlContent(
 			severity: 'error',
 		})
 		return
+	}
+
+	// A url aimed at a shape decorates that shape: no bookmark, and no embed even when the url is
+	// one we could embed, since the user pointed at something that already exists.
+	if (shapeId) {
+		const shape = editor.getShape(shapeId)
+		if (shape && 'url' in shape.props && typeof shape.props.url === 'string') {
+			const shapeWithUrl = shape as ExtractShapeByProps<{ url: string }>
+			editor.updateShapes([{ id: shapeWithUrl.id, type: shapeWithUrl.type, props: { url } }])
+			editor.select(shapeWithUrl.id)
+			return
+		}
 	}
 
 	// try to paste as an embed first
