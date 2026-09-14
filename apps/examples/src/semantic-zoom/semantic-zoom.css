@@ -82,8 +82,9 @@
 
 /*
  * Hairlines on the shared edge between sibling cells. Sized in page units so
- * they thicken with the camera like the text, and carrying the opacity of the
- * level they divide so they arrive and leave with it.
+ * they thicken with the camera like the text, and held back until their level
+ * is most of the way in — a hairline reads as present at an opacity where text
+ * still reads as absent, so sharing one number makes the grid snap in early.
  */
 .sz-rule {
 	position: absolute;
@@ -92,28 +93,6 @@
 	transform-origin: 0 0;
 	background: var(--tl-color-divider);
 	will-change: opacity;
-}
-
-/* Cross-references between distant parts of the work. */
-.sz-links {
-	position: absolute;
-	overflow: visible;
-	pointer-events: none;
-	opacity: var(--link-opacity, 1);
-}
-
-.sz-link {
-	fill: none;
-	stroke: var(--tl-color-text);
-	stroke-opacity: 0.28;
-	stroke-width: 1.4;
-	stroke-linecap: round;
-	vector-effect: non-scaling-stroke;
-	stroke-dasharray: 7 6;
-}
-
-.sz-hide-links .sz-links {
-	display: none;
 }
 
 /* --- controls, outside the camera transform --- */
@@ -143,9 +122,29 @@
 	box-shadow: var(--tl-shadow-2);
 }
 
+.sz-zoom {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 0 6px;
+}
+
+.sz-zoom-end {
+	color: var(--tl-color-text-1);
+	font-size: 10px;
+	opacity: 0.6;
+	user-select: none;
+}
+
+.sz-zoom input[type='range'] {
+	width: 150px;
+	accent-color: var(--tl-color-selected);
+	cursor: ew-resize;
+}
+
 .sz-search {
-	width: 190px;
-	min-width: 120px;
+	width: 170px;
+	min-width: 110px;
 	height: 32px;
 	padding: 0 10px;
 	border: none;
@@ -245,31 +244,4 @@
 .sz-crumb-sep {
 	margin: 0 5px 0 0;
 	opacity: 0.45;
-}
-
-/* Each top-level part of the work keeps one hue all the way down, so you can
-   still tell where you are at the bottom of the zoom. */
-.sz-tint-0 .sz-title {
-	border-color: #4c6ef5;
-}
-.sz-tint-1 .sz-title {
-	border-color: #0ca678;
-}
-.sz-tint-2 .sz-title {
-	border-color: #f08c00;
-}
-.sz-tint-3 .sz-title {
-	border-color: #ae3ec9;
-}
-.sz-tint-4 .sz-title {
-	border-color: #e03131;
-}
-.sz-tint-5 .sz-title {
-	border-color: #1098ad;
-}
-.sz-tint-6 .sz-title {
-	border-color: #d6336c;
-}
-.sz-tint-7 .sz-title {
-	border-color: #5c940d;
 }

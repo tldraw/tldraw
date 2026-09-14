@@ -3,7 +3,6 @@ import 'tldraw/tldraw.css'
 import { type Corpus } from '../../../semantic-zoom/layout'
 import '../../../semantic-zoom/semantic-zoom.css'
 import { createSemanticZoom } from '../../../semantic-zoom/SemanticZoom'
-import { ECHOES } from './links'
 import { book } from './summaries'
 
 interface Chapter {
@@ -14,8 +13,6 @@ interface Chapter {
 // [1]
 const mobyDick: Corpus = {
 	root: book,
-	links: ECHOES,
-	tintDepth: 1,
 	async loadDetail() {
 		const chapters = (await import('./chapters.json')).default as Chapter[]
 		return Object.fromEntries(chapters.map((chapter) => [String(chapter.n), chapter.text]))
@@ -23,9 +20,7 @@ const mobyDick: Corpus = {
 }
 
 // [2]
-const { components, options, onMount } = createSemanticZoom(mobyDick, {
-	divePathTo: 'chapter-94',
-})
+const { components, options, onMount } = createSemanticZoom(mobyDick)
 
 export default function ZoomIntoMobyDickExample() {
 	return (
@@ -37,11 +32,10 @@ export default function ZoomIntoMobyDickExample() {
 
 /*
 [1]
-The corpus is the only Moby-Dick-specific thing here: a tree of summaries, a
-list of cross-references, and a function that fetches the real text. Everything
-that makes the zoom work lives in `src/semantic-zoom` and has never heard of
-Melville — see the "Zoom into the tldraw SDK" example for the same code over a
-codebase instead of a novel.
+The corpus is the only Moby-Dick-specific thing here: a tree of summaries and a
+function that fetches the real text. Everything that makes the zoom work lives
+in `src/semantic-zoom` and has never heard of Melville — see the "Zoom into the
+tldraw SDK" example for the same code over a codebase instead of a novel.
 
 `loadDetail` is only called when someone zooms in far enough to need it, so the
 1.2MB of chapters never loads for a visitor who just reads the summary.

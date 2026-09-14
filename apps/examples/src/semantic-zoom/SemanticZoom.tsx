@@ -1,15 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { atom, Editor, TLComponents, TldrawUiButton, useEditor, useValue } from 'tldraw'
 import { ContentLayer } from './ContentLayer'
-import {
-	type Corpus,
-	type Layout,
-	layoutCorpus,
-	levelOpacities,
-	openingZoom,
-	type PlacedNode,
-} from './layout'
-import { frameRect, goToNode, nodesContaining, runGuidedDive, suggestDivePath } from './navigation'
+import { type Corpus, type Layout, layoutCorpus, levelOpacities, type PlacedNode } from './layout'
+import { goToNode, goToWhole, nodesContaining, setZoom, zoomRange } from './navigation'
 
 /** Where a search hit was found, and enough context to show it in the list. */
 interface Hit {
@@ -42,6 +35,42 @@ function shorten(text: string, words = 5) {
 	return parts.slice(0, words).join(' ') + (parts.length > words ? '…' : '')
 }
 
+/**
+ * A zoom control for a range no wheel makes obvious. Reading a whole work takes
+ * a couple of hundred times magnification, so the slider is logarithmic: each
+ * equal step along it is an equal multiple of zoom, which makes the levels come
+ * past at an even rate rather than all bunched at one end.
+ */
+function ZoomSlider({ layout }: { layout: Layout }) {
+	const editor = useEditor()
+	const [min, max] = useMemo(() => zoomRange(layout), [layout])
+	const span = Math.log(max / min)
+
+	const position = useValue(
+		'zoom position',
+		() => {
+			const zoom = editor.getZoomLevel()
+			return Math.min(1, Math.max(0, Math.log(zoom / min) / span))
+		},
+		[editor, min, span]
+	)
+
+	return (
+		<label className="sz-zoom" title="Zoom">
+			<span className="sz-zoom-end">whole</span>
+			<input
+				type="range"
+				min={0}
+				max={1}
+				step={0.001}
+				value={position}
+				onChange={(e) => setZoom(editor, min * Math.exp(span * e.currentTarget.valueAsNumber))}
+			/>
+			<span className="sz-zoom-end">detail</span>
+		</label>
+	)
+}
+
 function Breadcrumb({ layout }: { layout: Layout }) {
 	const editor = useEditor()
 	const trail = useValue(
@@ -50,8 +79,8 @@ function Breadcrumb({ layout }: { layout: Layout }) {
 			const { x, y } = editor.getViewportPageBounds().center
 			const chain = nodesContaining(layout, x, y)
 			// Stop at the level actually being read. The chain always runs to a
-			// leaf, so without this the whole-book view claims to be showing
-			// whichever chapter happens to sit under the middle of the screen.
+			// leaf, so without this the whole-work view claims to be showing
+			// whichever leaf happens to sit under the middle of the screen.
 			const opacities = levelOpacities(layout.nominals, editor.getZoomLevel())
 			let deepest = 0
 			opacities.forEach((opacity, depth) => {
@@ -79,80 +108,29 @@ function Breadcrumb({ layout }: { layout: Layout }) {
 	)
 }
 
-function LinkToggle() {
-	const editor = useEditor()
-	const [on, setOn] = useState(true)
-	useEffect(() => {
-		editor.getContainer().classList.toggle('sz-hide-links', !on)
-	}, [editor, on])
-	return (
-		<TldrawUiButton type="normal" onClick={() => setOn((v) => !v)}>
-			{on ? 'Hide echoes' : 'Show echoes'}
-		</TldrawUiButton>
-	)
-}
-
 function Controls({
 	layout,
-	corpus,
-	divePath,
 	matches,
 }: {
 	layout: Layout
-	corpus: Corpus
-	divePath: string[]
 	matches: ReturnType<typeof atom<ReadonlySet<string>>>
 }) {
 	const editor = useEditor()
 	const [query, setQuery] = useState('')
-	const [touring, setTouring] = useState(false)
-	const cancelled = useRef(false)
 
 	const hits = useMemo(() => search(layout, query), [layout, query])
+	// Publishing the highlight set is a side effect on another component's state,
+	// so it has to happen after this render rather than during it.
 	useEffect(() => {
 		matches.set(new Set(hits.map((hit) => hit.node.id)))
 	}, [hits, matches])
 
-	const stopTour = useCallback(() => {
-		cancelled.current = true
-		setTouring(false)
-	}, [])
-
-	// Any deliberate camera input from the reader ends the tour immediately —
-	// nothing is worse than a demo that fights you for the wheel.
-	useEffect(() => {
-		if (!touring) return
-		const container = editor.getContainer()
-		const opts = { capture: true, passive: true } as const
-		container.addEventListener('wheel', stopTour, opts)
-		container.addEventListener('pointerdown', stopTour, opts)
-		return () => {
-			container.removeEventListener('wheel', stopTour, opts)
-			container.removeEventListener('pointerdown', stopTour, opts)
-		}
-	}, [touring, editor, stopTour])
-
 	return (
 		<div className="sz-controls">
 			<div className="sz-bar">
-				<TldrawUiButton
-					type="normal"
-					onClick={() => {
-						if (touring) {
-							stopTour()
-							return
-						}
-						cancelled.current = false
-						setTouring(true)
-						runGuidedDive(editor, layout, divePath, () => cancelled.current).finally(() =>
-							setTouring(false)
-						)
-					}}
-				>
-					{touring ? 'Stop tour' : 'Guided tour'}
-				</TldrawUiButton>
-				<TldrawUiButton type="normal" onClick={() => frameRect(editor, layout.bounds)}>
-					Zoom all the way out
+				<ZoomSlider layout={layout} />
+				<TldrawUiButton type="normal" onClick={() => goToWhole(editor, layout)}>
+					Whole thing
 				</TldrawUiButton>
 				<input
 					className="sz-search"
@@ -160,7 +138,6 @@ function Controls({
 					placeholder="Search every level…"
 					onChange={(e) => setQuery(e.currentTarget.value)}
 				/>
-				{corpus.links?.length ? <LinkToggle /> : null}
 			</div>
 			{hits.length > 0 && (
 				<ul className="sz-hits">
@@ -185,9 +162,8 @@ function Controls({
  * layout — a pure function of content that never changes — is computed a single
  * time and shared by the canvas layer, the camera and the search index.
  */
-export function createSemanticZoom(corpus: Corpus, opts?: { divePathTo?: string }) {
+export function createSemanticZoom(corpus: Corpus) {
 	const layout = layoutCorpus(corpus)
-	const divePath = suggestDivePath(layout, opts?.divePathTo)
 
 	// The canvas layer lives inside the camera transform and the controls live
 	// outside it, so they occupy different component slots and cannot share React
@@ -200,7 +176,7 @@ export function createSemanticZoom(corpus: Corpus, opts?: { divePathTo?: string 
 			return <ContentLayer layout={layout} corpus={corpus} matches={highlighted} />
 		},
 		TopPanel: function SemanticZoomControls() {
-			return <Controls layout={layout} corpus={corpus} divePath={divePath} matches={matches} />
+			return <Controls layout={layout} matches={matches} />
 		},
 	}
 
@@ -215,7 +191,7 @@ export function createSemanticZoom(corpus: Corpus, opts?: { divePathTo?: string 
 			},
 		},
 		onMount(editor: Editor) {
-			editor.zoomToBounds(layout.bounds, { targetZoom: openingZoom(layout.nominals) })
+			goToWhole(editor, layout, 0)
 		},
 	}
 }

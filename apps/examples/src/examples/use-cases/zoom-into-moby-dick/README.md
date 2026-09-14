@@ -3,18 +3,7 @@ title: Zoom into Moby Dick
 component: ./ZoomIntoMobyDickExample.tsx
 priority: 2
 keywords:
-  [
-    semantic zoom,
-    level of detail,
-    lod,
-    camera,
-    zoom steps,
-    text,
-    reading,
-    summary,
-    deep zoom,
-    treemap,
-  ]
+  [semantic zoom, level of detail, lod, camera, zoom steps, text, reading, summary, deep zoom]
 ---
 
 Semantic zoom over a whole novel: one sentence zooms out to the whole book and in to Melville's own text.
@@ -40,24 +29,6 @@ Cells tile their parent **exactly**, and the breathing room between them is take
 than between them. Gaps would be self-similar: aim at one and you fall through every level at once,
 landing on blank canvas with nothing to read and no way to tell where you are.
 
-### The map is the book
-
-Cell area is proportional to how much of Melville is inside it, so the layout shows the novel's real
-pacing — the long anatomical digressions swelling in the middle, the three Chase chapters as solid
-blocks at the end, "Midnight Aloft" as a sliver.
-
-Not _exactly_ proportional, though. The longest chapter is 183 times the shortest, and because font size
-goes as the square root of area, mapping that straight through would spread one level's type over a 13x
-range: some cards would still be specks while their neighbours were already unreadable, and the level
-would stop arriving all at once. Compressing the weights to `area ∝ length^0.35` keeps areas varying
-about 7x while holding type to 2.4x.
-
-| exponent            | cell area spread | type spread |
-| ------------------- | ---------------- | ----------- |
-| 0 (all cells equal) | 1.1x             | 1.23x       |
-| 0.35 (used here)    | 6.7x             | 2.41x       |
-| 1 (true proportion) | 187x             | 12.71x      |
-
 ### Handing off between levels
 
 A level takes over when its **parent's** text has grown to `HANDOFF_PX` on screen, and hands on when its
@@ -80,8 +51,8 @@ chasm into two equal steps.
 
 Zooming by hand is not the only way in, and for most visitors it isn't the first.
 
-- **Guided tour** flies down through every level once and then hands back control. Any wheel or pointer
-  input cancels it immediately.
+- **The zoom slider** spans the whole range in one control, logarithmically, so each equal step along it
+  is an equal multiple of zoom and the levels come past at an even rate.
 - **Clicking any passage** frames it, which reveals its children — but only while the select tool is
   active. Pick up the draw tool and the layer stops taking pointer events, so the whole book stays a
   surface you can annotate.
@@ -89,9 +60,6 @@ Zooming by hand is not the only way in, and for most visitors it isn't the first
   are actually reading, not at the leaf under the centre of the screen.
 - **Search** runs over every level at once and marks hits where they sit on the map, so "where does
   Queequeg appear" gets a spatial answer.
-- **Echoes** draw the novel's foreshadowing as arcs: the coffin built in chapter 110 becomes the
-  life-buoy in 126 and the thing Ishmael floats away on in the epilogue. They fade out once you are
-  inside a passage, where an arc to somewhere off-screen is just a line across the page.
 
 ### Cost
 

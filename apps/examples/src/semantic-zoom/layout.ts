@@ -12,28 +12,21 @@ export interface ZoomNode {
 	/** What this node says at its own scale. */
 	text: string
 	title?: string
-	/** How much source material is inside this node. Sizes its cell. */
+	/**
+	 * How much source material is behind this node. Only used to judge how long
+	 * the detail text is, so the excerpt and full-text levels can be sized before
+	 * that text has been fetched.
+	 */
 	weight?: number
 	/** Set on leaves that have a longer body of text to unfold inside them. */
 	detailKey?: string
 	children?: ZoomNode[]
 }
 
-/** A relationship between two nodes, drawn across the canvas. */
-export interface ZoomLink {
-	from: string
-	to: string
-	label: string
-}
-
 export interface Corpus {
 	root: ZoomNode
-	/** Cross-references drawn between nodes once the map is wide enough to see. */
-	links?: ZoomLink[]
 	/** Loads the long text for every `detailKey`. Called once, on demand. */
 	loadDetail?(): Promise<Record<string, string>>
-	/** Depth whose nodes give their descendants a shared tint. */
-	tintDepth?: number
 }
 
 export interface Rect {
@@ -53,10 +46,8 @@ export interface PlacedNode {
 	text: string
 	title?: string
 	detailKey?: string
-	/** Raw, uncompressed content weight, carried through for sizing the detail levels. */
+	/** Carried through for sizing the detail levels. */
 	weight?: number
-	/** Index of the ancestor at the corpus's tint depth, if it has one. */
-	tint?: number
 	/** Font size in page units. Screen size is this times the camera zoom. */
 	fontSize: number
 	columns: number
@@ -93,30 +84,12 @@ const LINE_HEIGHT = 1.45
 const FILL = 0.62
 const TARGET_MEASURE = 68
 
-/**
- * How hard cell area tracks content length. At 0 every sibling is the same size;
- * at 1 a cell is exactly proportional to the words inside it.
- *
- * Full proportionality is too strong to use. Melville's longest chapter is 183x
- * his shortest, and since font size goes as the square root of area, a straight
- * mapping spreads one level's type over a 13x range — some cards are still
- * specks while their neighbours are already unreadably large, and the level
- * stops arriving all at once. Compressing keeps the proportions legible while
- * holding the type close enough together that a crossfade still reads as one
- * event: at 0.35 the areas still vary about 7x but the type only 2.4x.
- */
-const WEIGHT_EXPONENT = 0.35
-
 function inset(r: Rect, amount: number): Rect {
 	return { x: r.x + amount, y: r.y + amount, w: r.w - amount * 2, h: r.h - amount * 2 }
 }
 
 function textRectOf(rect: Rect): Rect {
 	return inset(rect, TEXT_PAD * Math.min(rect.w, rect.h))
-}
-
-export function rectCentre(r: Rect) {
-	return { x: r.x + r.w / 2, y: r.y + r.h / 2 }
 }
 
 /**
@@ -199,12 +172,6 @@ function stripTreemap(rect: Rect, weights: number[]): { rects: Rect[]; separator
 	return { rects, separators }
 }
 
-/** Compressed content weight of a node, summed up from its leaves. */
-function weigh(node: ZoomNode): number {
-	if (node.children?.length) return node.children.reduce((sum, child) => sum + weigh(child), 0)
-	return Math.pow(Math.max(1, node.weight ?? 1), WEIGHT_EXPONENT)
-}
-
 export interface Layout {
 	nodes: PlacedNode[]
 	separators: Separator[]
@@ -223,7 +190,7 @@ export function layoutCorpus(corpus: Corpus): Layout {
 	const nodes: PlacedNode[] = []
 	const separators: Separator[] = []
 
-	function walk(node: ZoomNode, rect: Rect, depth: number, tint: number | undefined) {
+	function walk(node: ZoomNode, rect: Rect, depth: number) {
 		const textRect = textRectOf(rect)
 		const { fontSize, columns } = fitText(textRect, node.text.length)
 		nodes.push({
@@ -235,22 +202,26 @@ export function layoutCorpus(corpus: Corpus): Layout {
 			title: node.title,
 			detailKey: node.detailKey,
 			weight: node.weight,
-			tint,
 			fontSize,
 			columns,
 		})
 		if (node.children?.length) {
-			const split = stripTreemap(rect, node.children.map(weigh))
-			for (const line of split.separators) separators.push({ ...line, depth: depth + 1 })
-			node.children.forEach((child, i) =>
-				walk(child, split.rects[i], depth + 1, depth + 1 === corpus.tintDepth ? i : tint)
+			// Every sibling gets the same area. Sizing cells by how much text is
+			// behind them was tried and taken out again: it makes the map lopsided
+			// in a way that reads as meaningful before you know the rule, and the
+			// levels then arrive raggedly, since font size follows cell size.
+			const split = stripTreemap(
+				rect,
+				node.children.map(() => 1)
 			)
+			for (const line of split.separators) separators.push({ ...line, depth: depth + 1 })
+			node.children.forEach((child, i) => walk(child, split.rects[i], depth + 1))
 		}
 	}
 
 	const height = ROOT_WIDTH / TARGET_ASPECT
 	const bounds = { x: -ROOT_WIDTH / 2, y: -height / 2, w: ROOT_WIDTH, h: height }
-	walk(corpus.root, bounds, 0, corpus.tintDepth === 0 ? 0 : undefined)
+	walk(corpus.root, bounds, 0)
 
 	const byId = new Map(nodes.map((node) => [node.id, node]))
 	const leaves = nodes.filter((node) => node.detailKey !== undefined)
@@ -360,9 +331,26 @@ export function detailZoom(nominals: number[]) {
 }
 
 /**
+ * A comfortable zoom for reading one level: the middle of the span it owns.
+ *
+ * Navigation has to be expressed in these terms rather than in geometry. Fitting
+ * a cell to the viewport picks a zoom from how big the box is, while the levels
+ * change over on how big the *type* is, and the two do not coincide — framing a
+ * cell lands part-way through a crossfade, with its own text half gone and its
+ * children half arrived.
+ */
+export function bandZoom(nominals: number[], depth: number) {
+	const level = Math.min(Math.max(depth, 0), nominals.length - 1)
+	const from =
+		level === 0 ? handoffZoom(nominals, 0) / (FADE * FADE) : handoffZoom(nominals, level - 1)
+	const to = level < nominals.length - 1 ? handoffZoom(nominals, level) : from * 4
+	return Math.sqrt(from * to)
+}
+
+/**
  * The most zoomed-out view that still has something to read: the root text at
  * full strength, just before the next level starts to fade up.
  */
 export function openingZoom(nominals: number[]) {
-	return handoffZoom(nominals, 0) / FADE
+	return bandZoom(nominals, 0)
 }
