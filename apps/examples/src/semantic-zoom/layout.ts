@@ -17,6 +17,13 @@ export interface ZoomNode {
 	children?: ZoomNode[]
 }
 
+/**
+ * Levels have to get denser with depth: a node's children should hold several
+ * times more text between them than the node itself does. That is what makes
+ * each level's type smaller than its parent's, which is the only thing the
+ * handoffs are keyed on. Children that say about as much as their parent give
+ * that level a zoom span of nothing, and it is skipped over silently.
+ */
 export interface Corpus {
 	root: ZoomNode
 	/** Loads the long text for every `detailKey`. Called once, on demand. */
@@ -83,7 +90,10 @@ function inset(r: Rect, amount: number): Rect {
  * multi-column page and a one-line summary comes out huge.
  */
 export function fitText(rect: Rect, charCount: number) {
-	const fontSize = Math.sqrt((FILL * rect.w * rect.h) / (charCount * CHAR_ASPECT * LINE_HEIGHT))
+	// An empty node would give an infinite font size, which reaches the handoff
+	// thresholds as a zero and pins every level below it on at all zooms.
+	const chars = Math.max(1, charCount)
+	const fontSize = Math.sqrt((FILL * rect.w * rect.h) / (chars * CHAR_ASPECT * LINE_HEIGHT))
 	const columns = Math.max(
 		1,
 		Math.min(12, Math.round(rect.w / (TARGET_MEASURE * CHAR_ASPECT * fontSize)))

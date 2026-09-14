@@ -111,9 +111,12 @@ export function ContentLayer({
 	useEffect(() => {
 		if (!isDeep || detail || !corpus.loadDetail) return
 		let cancelled = false
-		corpus.loadDetail().then((loaded) => {
-			if (!cancelled) setDetail(loaded)
-		})
+		corpus.loadDetail().then(
+			(loaded) => {
+				if (!cancelled) setDetail(loaded)
+			},
+			(error) => console.error('could not load the detail text', error)
+		)
 		return () => {
 			cancelled = true
 		}

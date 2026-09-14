@@ -74,7 +74,9 @@ function ZoomSlider({ layout }: { layout: Layout }) {
 
 function Breadcrumb({ layout }: { layout: Layout }) {
 	const editor = useEditor()
-	const trail = useValue(
+	// Joined into a string because a fresh array every camera frame would
+	// re-render the trail on every pan, identical or not.
+	const trailIds = useValue(
 		'breadcrumb',
 		() => {
 			const { x, y } = editor.getViewportPageBounds().center
@@ -87,9 +89,17 @@ function Breadcrumb({ layout }: { layout: Layout }) {
 			opacities.forEach((opacity, depth) => {
 				if (opacity > 0.5) deepest = depth
 			})
-			return chain.filter((node) => node.depth <= deepest)
+			return chain
+				.filter((node) => node.depth <= deepest)
+				.map((node) => node.id)
+				.join('\t')
 		},
 		[editor, layout]
+	)
+	const byId = useMemo(() => new Map(layout.nodes.map((node) => [node.id, node])), [layout])
+	const trail = useMemo(
+		() => (trailIds ? trailIds.split('\t').map((id) => byId.get(id)!) : []),
+		[trailIds, byId]
 	)
 	if (trail.length <= 1) return null
 	return (
@@ -120,9 +130,14 @@ function Controls({
 	const [query, setQuery] = useState('')
 
 	const hits = useMemo(() => search(layout, query), [layout, query])
-	// Another component's signal: cannot be set during this one's render.
+	// Another component's signal: cannot be set during this one's render. Only
+	// publish when the set actually changed, or every keystroke re-renders every
+	// node on the canvas — including the ones that matched before and still do.
 	useEffect(() => {
-		matches.set(new Set(hits.map((hit) => hit.node.id)))
+		const ids = new Set(hits.map((hit) => hit.node.id))
+		const current = matches.get()
+		if (ids.size === current.size && [...ids].every((id) => current.has(id))) return
+		matches.set(ids)
 	}, [hits, matches])
 
 	return (

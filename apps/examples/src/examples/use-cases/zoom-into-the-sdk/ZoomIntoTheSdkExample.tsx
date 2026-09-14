@@ -25,5 +25,5 @@ export default function ZoomIntoTheSdkExample() {
 The same component as the "Zoom into Moby Dick" example, over a codebase instead
 of a novel. The corpus here is smaller in every way — four levels rather than
 five, and no `loadDetail`, because there is no deeper body of text to fetch — and
-that needs no flag: a corpus without detail simply has two fewer levels.
+that needs no flag: a corpus without detail simply has one fewer level.
 */
