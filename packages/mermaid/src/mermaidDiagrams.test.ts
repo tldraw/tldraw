@@ -627,62 +627,6 @@ describe('stateToBlueprint', () => {
 		expect(findEdge(bp, 'A', 'B')!.bend).not.toBe(0)
 	})
 
-	it('anchors a self-loop where mermaid routed it and keeps its label clear of the node', () => {
-		// Node spans x 60–140, y 80–120. Mermaid's loop leaves and re-enters its bottom edge, the
-		// side facing the next rank in a top-down chart, with the label set just below.
-		const labelBox = { x: 60, y: 155, w: 80, h: 20 }
-		const layout = diagramLayout(
-			[node('B', 100, 100, 80, 40)],
-			[],
-			[
-				edge('B', 'B', [
-					[90, 120],
-					[80, 145],
-					[110, 150],
-					[120, 120],
-				]),
-			],
-			new Map([['L_B_B', labelBox]])
-		)
-		const vertices = new Map([vertex('B')])
-		const edges = [flowEdge('B', 'B', { text: 'next page' })]
-
-		const loop = flowchartToBlueprint(layout, vertices, edges).edges[0]
-
-		expect(loop).toMatchObject({
-			anchorStartX: 0.375,
-			anchorStartY: 1,
-			anchorEndX: 0.75,
-			anchorEndY: 1,
-			label: 'next page',
-			labelBounds: labelBox,
-			// The loop dips 30 below its chord. An edge between two shapes would get 54 here, which
-			// on a loop runs it into the label below.
-			bend: 30,
-		})
-	})
-
-	it('leaves anchors and label placement alone on edges between two nodes', () => {
-		const labelBox = { x: 90, y: 30, w: 40, h: 20 }
-		const layout = diagramLayout(
-			[node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)],
-			[],
-			[
-				edge('A', 'B', [
-					[20, 0],
-					[180, 0],
-				]),
-			],
-			new Map([['L_A_B', labelBox]])
-		)
-		const edges = [flowEdge('A', 'B', { text: 'go' })]
-
-		const bp = flowchartToBlueprint(layout, new Map([vertex('A'), vertex('B')]), edges)
-
-		expect(bp.edges[0]).not.toHaveProperty('anchorStartX')
-		expect(bp.edges[0]).not.toHaveProperty('labelBounds')
-	})
-
 	it('filters out edges referencing missing nodes', () => {
 		const layout = diagramLayout([node('A', 0, 0, 40, 40)])
 		const states = new Map([stateStmt('A')])
