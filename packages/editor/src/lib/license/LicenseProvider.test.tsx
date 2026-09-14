@@ -2,6 +2,7 @@ import { act, render } from '@testing-library/react'
 import { vi } from 'vitest'
 import { LicenseFromKeyResult, LicenseManager } from './LicenseManager'
 import { LICENSE_TIMEOUT, LicenseProvider, useLicenseContext } from './LicenseProvider'
+import { resetLicenseForTest } from './setLicense'
 
 const NO_KEY: LicenseFromKeyResult = { isLicenseParseable: false, reason: 'no-key-provided' }
 
@@ -21,6 +22,8 @@ describe('LicenseProvider', () => {
 		managers.length = 0
 	})
 	afterEach(() => {
+		// Managers are shared per key, so a test would otherwise be handed the previous test's.
+		resetLicenseForTest()
 		vi.restoreAllMocks()
 		vi.useRealTimers()
 	})

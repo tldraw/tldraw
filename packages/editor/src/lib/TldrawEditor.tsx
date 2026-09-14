@@ -51,7 +51,7 @@ import { useLocalStore } from './hooks/useLocalStore'
 import { useRefState } from './hooks/useRefState'
 import { useStateAttribute } from './hooks/useStateAttribute'
 import { useZoomCss } from './hooks/useZoomCss'
-import { LicenseProvider, useLicenseContext } from './license/LicenseProvider'
+import { LicenseProvider } from './license/LicenseProvider'
 import { Watermark } from './license/Watermark'
 import { TldrawOptions } from './options'
 import { TLDeepLinkOptions } from './utils/deepLinks'
@@ -512,7 +512,6 @@ function TldrawEditorWithReadyStore({
 >) {
 	const { ErrorFallback } = useEditorComponents()
 	const container = useContainer()
-	const licenseManager = useLicenseContext()
 
 	const [editor, setEditor] = useRefState<Editor | null>(null)
 
@@ -579,7 +578,6 @@ function TldrawEditorWithReadyStore({
 				themes: themes,
 				initialTheme: initialTheme,
 			})
-			editor.licenseManager = licenseManager
 
 			editor.updateViewportScreenBounds(canvasRef.current ?? container)
 
@@ -615,7 +613,6 @@ function TldrawEditorWithReadyStore({
 			user,
 			setEditor,
 			licenseKey,
-			licenseManager,
 			getShapeVisibility,
 			assetUrls,
 		]

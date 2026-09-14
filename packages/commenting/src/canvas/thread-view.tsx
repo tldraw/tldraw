@@ -398,6 +398,8 @@ export const ThreadView = memo(function ThreadView({
 			put([comment])
 			return comment
 		})
+		// The write was refused (unlicensed): keep the draft, don't tell the host.
+		if (!comment) return
 		setReply(EMPTY_COMMENT)
 		clearCommentDraft(replyDraftSlot(thread.id))
 		// The host's callback is its own operation, not part of the post's history scope. It runs

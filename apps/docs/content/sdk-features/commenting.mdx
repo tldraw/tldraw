@@ -83,8 +83,10 @@ Mount the layer through the `InFrontOfTheCanvas` component slot so it sits above
 
 <Callout type="warning">
 	Without a license key that includes commenting, every commenting component renders nothing in
-	production. The feature is fully enabled in development, so a missing key shows up as a blank
-	canvas after you deploy. See [License key](/sdk-features/license-key).
+	production, the comment tool hands itself back to select, and comment records aren't written. The
+	feature is fully enabled in development, so a missing key shows up as a blank canvas after you
+	deploy — each refused action warns once in the console saying so. See [License
+	key](/sdk-features/license-key).
 </Callout>
 
 ## Placing comments

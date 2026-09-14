@@ -2,6 +2,11 @@ import { useValue } from '@tldraw/state-react'
 import { createContext, ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useMaybeEditor } from '../hooks/useEditor'
 import { LicenseManager } from './LicenseManager'
+import {
+	disposeSharedLicenseManager,
+	getDefaultLicenseKey,
+	getSharedLicenseManager,
+} from './setLicense'
 
 /** @internal */
 export const LicenseContext = createContext<LicenseManager | null>(null)
@@ -28,7 +33,12 @@ export function useLicenseContext(): LicenseManager {
 export function useMaybeLicenseManager(): LicenseManager | null {
 	const licenseManager = useContext(LicenseContext)
 	const editor = useMaybeEditor()
-	return licenseManager ?? editor?.licenseManager ?? null
+	// Reactive: resolving through the editor reads the key `setLicense()` sets, and a plain call
+	// here would leave gated UI on the old manager while the imperative surfaces moved to the new one.
+	return useValue('licenseManager', () => licenseManager ?? editor?.getLicenseManager() ?? null, [
+		licenseManager,
+		editor,
+	])
 }
 
 function shouldHideEditorAfterDelay(licenseState: string): boolean {
@@ -40,15 +50,24 @@ export const LICENSE_TIMEOUT = 5000
 
 /** @internal */
 export function LicenseProvider({
-	licenseKey = getLicenseKeyFromEnv() ?? undefined,
+	licenseKey,
 	children,
 }: {
 	licenseKey?: string
 	children: ReactNode
 }) {
+	// Falls back reactively, so a `setLicense()` call that lands after mount still reaches the
+	// provider rather than leaving React and the imperative surfaces on different licenses.
+	const defaultLicenseKey = useValue('defaultLicenseKey', () => getDefaultLicenseKey(), [])
+	const resolvedLicenseKey = licenseKey ?? defaultLicenseKey
 	// Keyed on the license key: the editor is recreated when the key changes, and must not be
 	// handed a manager that validated the old key.
-	const licenseManager = useMemo(() => new LicenseManager(licenseKey), [licenseKey])
+	// Shared rather than owned, so the editor below resolves this very manager instead of minting a
+	// second one for the same key and validating it twice.
+	const licenseManager = useMemo(
+		() => getSharedLicenseManager(resolvedLicenseKey),
+		[resolvedLicenseKey]
+	)
 	const licenseState = useValue(licenseManager.state)
 	// The manager whose LICENSE_TIMEOUT elapsed; compared by identity so a new key un-gates the editor.
 	const [gatedManager, setGatedManager] = useState<LicenseManager | null>(null)
@@ -59,7 +78,7 @@ export function LicenseProvider({
 	const previousManager = useRef<LicenseManager | null>(null)
 	useEffect(() => {
 		if (previousManager.current && previousManager.current !== licenseManager) {
-			previousManager.current.dispose()
+			disposeSharedLicenseManager(previousManager.current)
 		}
 		previousManager.current = licenseManager
 	}, [licenseManager])
@@ -87,43 +106,4 @@ export function LicenseProvider({
 // Renders as a hidden div that can be detected by tests
 function LicenseGate() {
 	return <div data-testid="tl-license-expired" style={{ display: 'none' }} />
-}
-
-let envLicenseKey: string | undefined | null = undefined
-function getLicenseKeyFromEnv() {
-	if (envLicenseKey !== undefined) {
-		return envLicenseKey
-	}
-	// it's important here that we write out the full process.env.WHATEVER expression instead of
-	// doing something like process.env[someVariable]. This is because most bundlers do something
-	// like a find-replace inject environment variables, and so won't pick up on dynamic ones. It
-	// also means we can't do checks like `process.env && process.env.WHATEVER`, which is why we use
-	// the `getEnv` try/catch approach.
-
-	// framework-specific prefixes borrowed from the ones vercel uses, but trimmed down to just the
-	// react-y ones: https://vercel.com/docs/environment-variables/framework-environment-variables
-	envLicenseKey =
-		getEnv(() => process.env.TLDRAW_LICENSE_KEY) ||
-		getEnv(() => process.env.NEXT_PUBLIC_TLDRAW_LICENSE_KEY) ||
-		getEnv(() => process.env.REACT_APP_TLDRAW_LICENSE_KEY) ||
-		getEnv(() => process.env.GATSBY_TLDRAW_LICENSE_KEY) ||
-		getEnv(() => process.env.VITE_TLDRAW_LICENSE_KEY) ||
-		getEnv(() => process.env.PUBLIC_TLDRAW_LICENSE_KEY) ||
-		getEnv(() => (import.meta as any).env.TLDRAW_LICENSE_KEY) ||
-		getEnv(() => (import.meta as any).env.NEXT_PUBLIC_TLDRAW_LICENSE_KEY) ||
-		getEnv(() => (import.meta as any).env.REACT_APP_TLDRAW_LICENSE_KEY) ||
-		getEnv(() => (import.meta as any).env.GATSBY_TLDRAW_LICENSE_KEY) ||
-		getEnv(() => (import.meta as any).env.VITE_TLDRAW_LICENSE_KEY) ||
-		getEnv(() => (import.meta as any).env.PUBLIC_TLDRAW_LICENSE_KEY) ||
-		null
-
-	return envLicenseKey
-}
-
-function getEnv(cb: () => string | undefined) {
-	try {
-		return cb()
-	} catch {
-		return undefined
-	}
 }
