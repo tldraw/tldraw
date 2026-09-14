@@ -815,8 +815,7 @@ describe('queries across rolled-back transactions (QH, QQ)', () => {
 		for (const call of args) expect(call).toEqual([])
 	})
 
-	// Puts a book, calls `read` while it is visible, then rolls the transaction back. `read` stands
-	// in for a side effect that queries the store mid-operation.
+	// `read` stands in for a side effect that queries the store mid-operation.
 	function readDuringRolledBackPut(read: () => void) {
 		const phantom = Book.create({ title: 'Phantom', authorId: authors.tolkein.id })
 		expect(() =>
