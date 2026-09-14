@@ -170,8 +170,8 @@ export class StoreQueries<R extends UnknownRecord> {
 	 *
 	 * // React to book changes
 	 * react('book-changes', () => {
-	 *   const currentEpoch = bookHistory.get()
-	 *   console.log('Books updated at epoch:', currentEpoch)
+	 *   bookHistory.get()
+	 *   console.log('Books changed')
 	 * })
 	 * ```
 	 *
