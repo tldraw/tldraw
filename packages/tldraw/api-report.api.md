@@ -6639,7 +6639,7 @@ export function ViewSubmenu(): JSX.Element;
 // @public
 export const WrapSelectionExtension: Extension<WrapSelectionOptions, any>;
 
-// @public (undocumented)
+// @public
 export interface WrapSelectionOptions {
     pairs: Record<string, readonly [string, string]>;
 }
