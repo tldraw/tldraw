@@ -104,9 +104,10 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 
 ## 11. Queries: filtered history (QH)
 
-- **QH1** `store.query.filterHistory(typeName)` returns a computed epoch whose history diffs contain only records of that type; it is cached per type name.
+- **QH1** `store.query.filterHistory(typeName)` returns a computed change counter whose history diffs contain only records of that type; it is cached per type name.
 - **QH2** Within a flush window the diff is squashed per D3 semantics (add+remove cancels, add+update folds into the add, update+update collapses, update+remove removes the oldest `from`).
-- **QH3** Changes to other record types produce no observable change for downstream consumers of the filtered history.
+- **QH3** Changes to other record types produce no observable change for downstream consumers of the filtered history, except that a reset (QH4) may report a change for every type.
+- **QH4** The filtered history's value strictly increases on every relevant change or reset, so indexes and queries that were read during a transaction that later rolled back are rebuilt rather than left stale. A rolled-back transaction that changed the store causes a reset. The value is not the store's history counter and can be ahead of it after a reset.
 
 ## 12. Queries: indexes (QI)
 
