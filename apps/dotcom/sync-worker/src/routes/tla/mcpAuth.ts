@@ -1,7 +1,7 @@
 import { IRequest } from 'itty-router'
-import { JWTPayload, createRemoteJWKSet, jwtVerify } from 'jose'
 import { Environment } from '../../types'
 import { isFeatureFlagEnabledForUser } from '../../utils/featureFlags'
+import { getClerkClient } from '../../utils/tla/getAuth'
 
 // The OAuth 2.1 resource-server half of the board screenshot MCP server: discovery metadata, bearer
 // token verification, and the feature flag gate that decides which authenticated users are let in.
@@ -80,8 +80,9 @@ export function getMcpResourceUrl(request: Request, env: Environment): string {
  * The Clerk instance acting as our authorization server, derived from the publishable key rather
  * than configured separately.
  *
- * Derived deliberately: the same key drives token verification, so the authorization server we point
- * clients at and the one whose tokens we accept cannot drift apart. Two vars could, and the symptom
+ * Derived deliberately: the instance it names is the one whose secret key verifies tokens, so the
+ * authorization server we point clients at and the one whose tokens we accept cannot drift apart
+ * without the two Clerk keys themselves disagreeing. Two vars could drift on their own, and the symptom
  * would be every client completing a sign-in and then being refused — with nothing in our logs
  * distinguishing it from a bad token.
  *
@@ -259,65 +260,45 @@ export async function authenticateMcpRequest(
 		return { ok: false, reason: 'no_token', response: mcpUnauthorized(request, env) }
 	}
 
-	// Verified against the Clerk instance's published signing keys — signature, issuer, lifetime and
-	// token type.
-	//
-	// Not @clerk/backend's `verifyToken`, which verifies Clerk *session* tokens and refuses an OAuth
-	// access token on its header alone: `Invalid JWT type "at+jwt". Expected "JWT"`. RFC 9068 requires
-	// `at+jwt` of an access token. Since v3 the SDK verifies these locally too, via
-	// `authenticateRequest` with `acceptsToken: 'oauth_token'`, against a JWKS it fetches from the
-	// Backend API with the secret key. This check stays explicit because it pins `iss` to the same
-	// authorization server the discovery metadata advertises and reads that server's public JWKS, so
-	// the instance clients are sent to and the instance whose tokens we accept cannot drift (#10005).
+	// Verified by @clerk/backend against the Clerk instance the secret key names: signature (against a
+	// JWKS the SDK fetches from the Backend API once and caches), `sub`, lifetime and token type. Not
+	// `verifyToken`, which is for *session* tokens and refuses an access token on its header alone;
+	// `acceptsToken: 'oauth_token'` is the path that expects RFC 9068's `at+jwt`.
 	//
 	// `typ` is load-bearing rather than pedantry, and is the only thing separating an OAuth access token
 	// from a Clerk *session* JWT. Clerk stamps no `aud` on either, so nothing here can tell them apart
 	// by audience, and a session token — `typ: JWT` — would otherwise be a valid bearer token. That
 	// would make an ordinary tldraw.com website credential enough to drive this server, and the consent
-	// step an agent walks the user through decoration.
-	const issuer = getMcpAuthorizationServer(env)
-	if (!issuer) {
-		// Nothing to verify against. This is our misconfiguration rather than a bad token, so it is
-		// logged as one — but the caller is told only what every other refusal tells it, since naming
-		// the difference would describe our deployment to someone guessing at it.
-		console.error(
-			'MCP token verification is unconfigured: no authorization server to verify against'
-		)
+	// step an agent walks the user through decoration. The SDK answers one with `token-type-mismatch`.
+	//
+	// No `iss` check, where the jose verifier this replaced pinned one: the key set is the accepting
+	// instance's own, so a token any other issuer signed fails on signature, and the authorization
+	// server clients are sent to is derived from the same instance's publishable key.
+	if (!env.CLERK_SECRET_KEY || !getMcpAuthorizationServer(env)) {
+		// Nothing to verify against, or nothing a client could have been sent to. This is our
+		// misconfiguration rather than a bad token, so it is logged as one — but the caller is told only
+		// what every other refusal tells it, since naming the difference would describe our deployment
+		// to someone guessing at it.
+		console.error('MCP token verification is unconfigured: no Clerk instance to verify against')
 		return invalidToken('unconfigured')
 	}
 
-	let payload: JWTPayload
-	try {
-		;({ payload } = await jwtVerify(token, getClerkJwks(issuer), {
-			issuer,
-			typ: 'at+jwt',
-			// jose enforces only the claims it is told to require, so an access token minted without an
-			// `exp` would verify here and then never expire. Clerk stamps one on every token today, which
-			// is exactly what makes this the kind of thing to state rather than rely on.
-			requiredClaims: ['exp'],
-			// What @clerk/backend allowed by default, kept so swapping the verifier does not quietly
-			// start refusing tokens on a worker whose clock runs a second or two fast.
-			clockTolerance: 5,
-		}))
-	} catch (error) {
+	const state = await getClerkClient(env).authenticateRequest(
+		// The SDK parses `Authorization` itself and only strips an exact `Bearer ` prefix; handing it the
+		// token getBearerToken already accepted keeps a lowercase or padded scheme working, and keeps the
+		// body and every other header out of its hands.
+		new Request(request.url, { headers: { authorization: `Bearer ${token}` } }),
+		{ acceptsToken: 'oauth_token' }
+	)
+	if (!state.isAuthenticated) {
 		// The reason a token failed is not the caller's business — an expired token and one minted for
 		// somebody else's resource answer the same thing — but a client does need to know it should
 		// re-authenticate rather than give up, which is what `invalid_token` says.
 		//
-		// The message only, never the error object: jose hangs the decoded `payload` off its errors, so
-		// logging the error logs `sub`, `client_id`, `scope` and `jti` — every one of the things the
-		// response above is careful not to disclose, written to a log with a wider audience than the
-		// caller.
-		console.error(
-			'MCP token verification failed:',
-			error instanceof Error ? error.message : String(error)
-		)
-		return invalidToken('invalid_token')
-	}
-	// The try ends with verification: nothing below throws, and a future check that does should not
-	// be swallowed and reported as a verification failure.
-
-	if (!payload.sub) {
+		// The SDK's reason and message only, never the token or its decoded payload: `sub`, `client_id`,
+		// `scope` and `jti` are every one of the things the response above is careful not to disclose,
+		// written to a log with a wider audience than the caller.
+		console.error('MCP token verification failed:', state.reason, state.message)
 		return invalidToken('invalid_token')
 	}
 
@@ -341,7 +322,7 @@ export async function authenticateMcpRequest(
 	// allowlist here would be the belt to that setting's braces if we ever want one — the claim is on
 	// every token.
 
-	const userId = payload.sub
+	const userId = state.toAuth().userId
 
 	if (!(await isFeatureFlagEnabledForUser(env, 'mcp_server_access', userId))) {
 		// Deliberately not a 404. The endpoint's existence is already public — it is in the discovery
@@ -361,28 +342,6 @@ export async function authenticateMcpRequest(
 	}
 
 	return { ok: true, userId }
-}
-
-/**
- * The Clerk instance's public signing keys, one key set per issuer, held at module scope.
- *
- * `createRemoteJWKSet` caches the keys it fetches and goes back to Clerk only when a token names a
- * key it has not seen, which is what makes Clerk's key rotation survivable without a deploy. That
- * only holds if the key set outlives the request: built per call it would fetch JWKS on every single
- * MCP request, adding a round trip to Clerk in front of each one.
- *
- * Keyed by issuer because a preview, staging and production worker each authenticate against a
- * different Clerk instance, and the same module is deployed to all three.
- */
-const clerkJwksByIssuer = new Map<string, ReturnType<typeof createRemoteJWKSet>>()
-
-function getClerkJwks(issuer: string) {
-	const existing = clerkJwksByIssuer.get(issuer)
-	if (existing) return existing
-
-	const jwks = createRemoteJWKSet(new URL('/.well-known/jwks.json', issuer))
-	clerkJwksByIssuer.set(issuer, jwks)
-	return jwks
 }
 
 /**
