@@ -1,8 +1,8 @@
 import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { type Corpus } from '../../../semantic-zoom/layout'
-import '../../../semantic-zoom/semantic-zoom.css'
-import { createSemanticZoom } from '../../../semantic-zoom/SemanticZoom'
+import { type Corpus } from './layout'
+import './zoom-into-moby-dick.css'
+import { createSemanticZoom } from './SemanticZoom'
 import { book } from './summaries'
 
 interface Chapter {
@@ -36,9 +36,9 @@ export default function ZoomIntoMobyDickExample() {
 /*
 [1]
 The corpus is the only Moby-Dick-specific thing here: a tree of summaries and a
-function that fetches the real text. Everything that makes the zoom work lives
-in `src/semantic-zoom` and has never heard of Melville — see the "Zoom into the
-tldraw SDK" example for the same code over a codebase instead of a novel.
+function that fetches the real text. Everything that makes the zoom work — the
+layout, the level of detail, the navigation — takes that tree and has never
+heard of Melville.
 
 `loadDetail` is only called when someone zooms in far enough to need it, so the
 1.2MB of chapters never loads for a visitor who just reads the summary.

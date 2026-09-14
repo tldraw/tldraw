@@ -68,6 +68,7 @@ history, and keeping them out of it means every tldraw tool still works normally
 
 ### Reusing it
 
-Nothing in `src/semantic-zoom` knows it is looking at a novel. It takes a tree of strings and an optional
-loader for deeper text. See "Zoom into the tldraw SDK" for the same component over a codebase, with four
-levels instead of five and no deep text at all.
+Only `summaries.ts` knows this is a novel. `layout.ts`, `ContentLayer.tsx` and `SemanticZoom.tsx` take a
+tree of strings and an optional loader for deeper text, so the same code renders a codebase, a spec or a
+contract — the one thing a corpus has to get right is that each level says several times more than the
+one above it, since that is what makes its type smaller and its handoff land.

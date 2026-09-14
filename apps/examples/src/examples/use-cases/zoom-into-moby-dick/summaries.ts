@@ -1,4 +1,4 @@
-import { type ZoomNode } from '../../../semantic-zoom/layout'
+import { type ZoomNode } from './layout'
 
 /**
  * Four ways of saying the same book, each roughly five times longer than the one
