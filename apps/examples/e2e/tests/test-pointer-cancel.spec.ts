@@ -56,11 +56,17 @@ test.describe('Cancelled pointers', () => {
 
 	test('ends a select drag', async ({ page }) => {
 		const cdp = await startTouchSession(page)
-		await page.evaluate(() => editor.setCurrentTool('select'))
+		await page.evaluate(() => {
+			editor.setCurrentTool('select')
+		})
 
 		await touch(cdp, 'touchStart', [[200, 300]])
 		await touch(cdp, 'touchMove', [[340, 420]])
-		expect(await getState(page)).toMatchObject({ path: 'select.brushing', isPointing: true })
+		// Pointer moves are queued until the next tick, so the transition into brushing
+		// lands a frame after the CDP call resolves.
+		await expect
+			.poll(() => getState(page))
+			.toMatchObject({ path: 'select.brushing', isPointing: true })
 
 		await touch(cdp, 'touchCancel')
 
@@ -75,7 +81,9 @@ test.describe('Cancelled pointers', () => {
 
 	test('ends a draw stroke', async ({ page }) => {
 		const cdp = await startTouchSession(page)
-		await page.evaluate(() => editor.setCurrentTool('draw'))
+		await page.evaluate(() => {
+			editor.setCurrentTool('draw')
+		})
 
 		await touch(cdp, 'touchStart', [[300, 300]])
 		await touch(cdp, 'touchMove', [[380, 400]])
@@ -90,7 +98,9 @@ test.describe('Cancelled pointers', () => {
 		page,
 	}) => {
 		const cdp = await startTouchSession(page)
-		await page.evaluate(() => editor.setCurrentTool('draw'))
+		await page.evaluate(() => {
+			editor.setCurrentTool('draw')
+		})
 
 		await touch(cdp, 'touchStart', [[200, 300]])
 		await touch(cdp, 'touchMove', [[260, 360]])
@@ -142,7 +152,9 @@ test.describe('Cancelled pointers', () => {
 			await touch(cdp, 'touchStart', [[160, 500]])
 			await pen(cdp, 'mousePressed', 300, 300)
 			await pen(cdp, 'mouseMoved', 380, 400)
-			await page.evaluate(() => editor.updateInstanceState({ isPenMode: true }))
+			await page.evaluate(() => {
+				editor.updateInstanceState({ isPenMode: true })
+			})
 			await touch(cdp, 'touchCancel')
 
 			expect(await getState(page)).toMatchObject({ path: 'draw.drawing', isPointing: true })
