@@ -22,9 +22,12 @@
  * @public
  */
 export class Timers {
-	private timeouts = new Map<string, number[]>()
-	private intervals = new Map<string, number[]>()
-	private rafs = new Map<string, number[]>()
+	// Ids are dropped as soon as a timer fires or is cleared through this class, so a
+	// long-lived context (the editor creates two timeouts per pointer down) does not
+	// accumulate stale ids that `dispose` would otherwise have to clear one by one.
+	private timeouts = new Map<string, Set<number>>()
+	private intervals = new Map<string, Set<number>>()
+	private rafs = new Map<string, Set<number>>()
 
 	/**
 	 * Creates a new Timers instance with bound methods for safe callback usage.
@@ -39,6 +42,9 @@ export class Timers {
 		this.setTimeout = this.setTimeout.bind(this)
 		this.setInterval = this.setInterval.bind(this)
 		this.requestAnimationFrame = this.requestAnimationFrame.bind(this)
+		this.clearTimeout = this.clearTimeout.bind(this)
+		this.clearInterval = this.clearInterval.bind(this)
+		this.cancelAnimationFrame = this.cancelAnimationFrame.bind(this)
 		this.dispose = this.dispose.bind(this)
 	}
 
@@ -58,9 +64,18 @@ export class Timers {
 	 * @public
 	 */
 	setTimeout(contextId: string, handler: TimerHandler, timeout?: number, ...args: any[]): number {
-		const id = window.setTimeout(handler, timeout, args)
-		const current = this.timeouts.get(contextId) ?? []
-		this.timeouts.set(contextId, [...current, id])
+		const ids = getOrCreateSet(this.timeouts, contextId)
+		// A string handler is evaluated by the browser, so it cannot be wrapped and stays
+		// tracked until it is cleared or the context is disposed.
+		const wrapped =
+			typeof handler === 'function'
+				? (...handlerArgs: any[]) => {
+						ids.delete(id)
+						handler(...handlerArgs)
+					}
+				: handler
+		const id = window.setTimeout(wrapped, timeout, args)
+		ids.add(id)
 		return id
 	}
 
@@ -81,8 +96,7 @@ export class Timers {
 	 */
 	setInterval(contextId: string, handler: TimerHandler, timeout?: number, ...args: any[]): number {
 		const id = window.setInterval(handler, timeout, args)
-		const current = this.intervals.get(contextId) ?? []
-		this.intervals.set(contextId, [...current, id])
+		getOrCreateSet(this.intervals, contextId).add(id)
 		return id
 	}
 
@@ -100,10 +114,69 @@ export class Timers {
 	 * @public
 	 */
 	requestAnimationFrame(contextId: string, callback: FrameRequestCallback): number {
-		const id = window.requestAnimationFrame(callback)
-		const current = this.rafs.get(contextId) ?? []
-		this.rafs.set(contextId, [...current, id])
+		const ids = getOrCreateSet(this.rafs, contextId)
+		const id = window.requestAnimationFrame((time) => {
+			ids.delete(id)
+			callback(time)
+		})
+		ids.add(id)
 		return id
+	}
+
+	/**
+	 * Clears a timeout created with {@link Timers.setTimeout} and stops tracking it.
+	 * Prefer this over the global `clearTimeout` for ids that came from this instance,
+	 * otherwise the id stays tracked until its context is disposed.
+	 * @param contextId - The context identifier the timeout was created under.
+	 * @param id - The timer ID returned by `setTimeout`. Ignored when undefined.
+	 * @example
+	 * ```ts
+	 * const timers = new Timers()
+	 * const id = timers.setTimeout('autosave', () => save(), 5000)
+	 * timers.clearTimeout('autosave', id)
+	 * ```
+	 * @public
+	 */
+	clearTimeout(contextId: string, id: number | undefined): void {
+		if (id === undefined) return
+		clearTimeout(id)
+		this.timeouts.get(contextId)?.delete(id)
+	}
+
+	/**
+	 * Clears an interval created with {@link Timers.setInterval} and stops tracking it.
+	 * @param contextId - The context identifier the interval was created under.
+	 * @param id - The interval ID returned by `setInterval`. Ignored when undefined.
+	 * @example
+	 * ```ts
+	 * const timers = new Timers()
+	 * const id = timers.setInterval('refresh', () => updateData(), 1000)
+	 * timers.clearInterval('refresh', id)
+	 * ```
+	 * @public
+	 */
+	clearInterval(contextId: string, id: number | undefined): void {
+		if (id === undefined) return
+		clearInterval(id)
+		this.intervals.get(contextId)?.delete(id)
+	}
+
+	/**
+	 * Cancels an animation frame requested with {@link Timers.requestAnimationFrame} and stops tracking it.
+	 * @param contextId - The context identifier the animation frame was requested under.
+	 * @param id - The request ID returned by `requestAnimationFrame`. Ignored when undefined.
+	 * @example
+	 * ```ts
+	 * const timers = new Timers()
+	 * const id = timers.requestAnimationFrame('render', () => draw())
+	 * timers.cancelAnimationFrame('render', id)
+	 * ```
+	 * @public
+	 */
+	cancelAnimationFrame(contextId: string, id: number | undefined): void {
+		if (id === undefined) return
+		cancelAnimationFrame(id)
+		this.rafs.get(contextId)?.delete(id)
 	}
 
 	/**
@@ -148,7 +221,12 @@ export class Timers {
 	 * @public
 	 */
 	disposeAll() {
-		for (const contextId of this.timeouts.keys()) {
+		const contextIds = new Set([
+			...this.timeouts.keys(),
+			...this.intervals.keys(),
+			...this.rafs.keys(),
+		])
+		for (const contextId of contextIds) {
 			this.dispose(contextId)
 		}
 	}
@@ -157,16 +235,19 @@ export class Timers {
 	 * Returns an object with timer methods bound to a specific context.
 	 * Convenient for getting context-specific timer functions without repeatedly passing the contextId.
 	 * @param contextId - The context identifier to bind the returned methods to.
-	 * @returns An object with setTimeout, setInterval, requestAnimationFrame, and dispose methods bound to the context.
+	 * @returns An object with setTimeout, setInterval, requestAnimationFrame, the matching clear methods, and dispose bound to the context.
 	 * @example
 	 * ```ts
 	 * const timers = new Timers()
 	 * const uiTimers = timers.forContext('ui')
 	 *
 	 * // These are equivalent to calling timers.setTimeout('ui', ...)
-	 * uiTimers.setTimeout(() => console.log('timeout'), 1000)
+	 * const id = uiTimers.setTimeout(() => console.log('timeout'), 1000)
 	 * uiTimers.setInterval(() => console.log('interval'), 500)
 	 * uiTimers.requestAnimationFrame(() => console.log('frame'))
+	 *
+	 * // Clear a single timer
+	 * uiTimers.clearTimeout(id)
 	 *
 	 * // Dispose only this context
 	 * uiTimers.dispose()
@@ -181,7 +262,19 @@ export class Timers {
 				this.setInterval(contextId, handler, timeout, args),
 			requestAnimationFrame: (callback: FrameRequestCallback) =>
 				this.requestAnimationFrame(contextId, callback),
+			clearTimeout: (id: number | undefined) => this.clearTimeout(contextId, id),
+			clearInterval: (id: number | undefined) => this.clearInterval(contextId, id),
+			cancelAnimationFrame: (id: number | undefined) => this.cancelAnimationFrame(contextId, id),
 			dispose: () => this.dispose(contextId),
 		}
 	}
+}
+
+function getOrCreateSet(map: Map<string, Set<number>>, contextId: string): Set<number> {
+	let set = map.get(contextId)
+	if (!set) {
+		set = new Set()
+		map.set(contextId, set)
+	}
+	return set
 }
