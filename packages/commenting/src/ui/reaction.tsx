@@ -99,8 +99,9 @@ export function DefaultReactionTooltip({ reactors, children }: ReactionTooltipPr
 /**
  * The default reactor sentence naming who reacted — up to three names spelled out, then "and N
  * others" (e.g. "You reacted", "You and Bo reacted", "You, Bo and Ada reacted", "You, Bo, Ada and 2
- * others reacted"). The wording lives in the `comments.reacted-*` translation strings so each locale
- * controls the grammar. Exported so a custom `ReactionTooltip` can reuse it inside its own box.
+ * others reacted"). The wording lives in the `comments.reacted` translation string, whose ICU
+ * plural picks the phrasing, so each locale controls both the grammar and how it counts. Exported
+ * so a custom `ReactionTooltip` can reuse it inside its own box.
  * @public @react
  */
 export function DefaultReactionTooltipContent({ reactors }: { reactors: ReactionReactor[] }) {
@@ -110,14 +111,15 @@ export function DefaultReactionTooltipContent({ reactors }: { reactors: Reaction
 	)
 	if (names.length === 0) return null
 	const [a, b, c] = names
-	const others = names.length - 3
-	const key =
-		names.length <= 3
-			? `comments.reacted-${names.length}`
-			: others === 1
-				? 'comments.reacted-more-one'
-				: 'comments.reacted-more'
-	// Single pass, so a substituted name containing a placeholder can't be re-substituted.
-	const vars: Record<string, string | undefined> = { a, b, c, count: String(others) }
-	return <>{msg(key).replace(/\{(a|b|c|count)\}/g, (_, k) => vars[k] ?? '')}</>
+	return (
+		<>
+			{msg('comments.reacted', {
+				count: names.length,
+				others: names.length - 3,
+				a,
+				b,
+				c,
+			})}
+		</>
+	)
 }

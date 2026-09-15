@@ -91,7 +91,7 @@ export interface CommentingComponents {
 	/**
 	 * The hover affordance naming who reacted with an emoji. Receives the reactors and the pill (as
 	 * `children`) and owns the whole thing — box, size, shape, position. For a wording change,
-	 * translate the `comments.reacted-*` strings instead.
+	 * translate the `comments.reacted` string instead.
 	 */
 	ReactionTooltip?: ComponentType<ReactionTooltipProps>
 	/**

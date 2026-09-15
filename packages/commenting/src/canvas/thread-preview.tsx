@@ -277,7 +277,7 @@ export function ThreadPreview({
 					})}
 					{overflow > 0 && (
 						<div className="tlui-cmt-preview-more">
-							{msg('comments.preview-more').replace('{count}', String(overflow))}
+							{msg('comments.preview-more', { count: overflow })}
 						</div>
 					)}
 				</div>

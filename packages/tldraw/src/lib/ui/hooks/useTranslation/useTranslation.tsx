@@ -1,3 +1,4 @@
+import { IntlErrorCode, type OnErrorFn, createIntl, createIntlCache } from '@formatjs/intl'
 import { warnOnce } from '@tldraw/editor'
 import * as React from 'react'
 import { useAssetUrls } from '../../context/asset-urls'
@@ -97,13 +98,39 @@ export function TldrawUiTranslationProvider({
 }
 
 /**
+ * Values substituted into a message's ICU placeholders.
+ *
+ * @public
+ */
+export type TLUiTranslationValues = Record<
+	string,
+	string | number | bigint | boolean | Date | null | undefined
+>
+
+// One cache for every intl instance we create, as formatjs recommends, so that repeated
+// provider mounts don't leak a formatter cache each.
+const intlCache = createIntlCache()
+
+// Returning the key verbatim for an unknown id is documented behaviour: apps pass their own keys
+// and plain text through `msg()`. Only surface errors that mean a message is actually malformed.
+const onTranslationError: OnErrorFn = (error) => {
+	if (error.code === IntlErrorCode.MISSING_TRANSLATION) return
+	if (process.env.NODE_ENV !== 'production') console.error(error)
+}
+
+/**
  * Returns a function to translate a translation key into a string based on the current translation.
+ *
+ * Messages are {@link https://unicode-org.github.io/icu/userguide/format_parse/messages/ | ICU
+ * MessageFormat}, so a message can pluralise or select on the values you pass it. Unknown keys are
+ * returned as-is.
  *
  * @example
  *
  * ```ts
  * const msg = useTranslation()
  * const label = msg('style-panel.styles')
+ * const selected = msg('a11y.multiple-shapes', { num: 5 })
  * ```
  *
  * @public
@@ -120,11 +147,34 @@ export function useTranslation() {
 		}
 	}, [translation?.messages])
 
+	const intl = React.useMemo(
+		() =>
+			createIntl(
+				{
+					locale: translation?.locale ?? 'en',
+					defaultLocale: 'en',
+					messages,
+					onError: onTranslationError,
+				},
+				intlCache
+			),
+		[translation?.locale, messages]
+	)
+
 	return React.useCallback(
-		function msg(id?: Exclude<string, TLUiTranslationKey> | string) {
-			return messages[id as TLUiTranslationKey] ?? id
+		function msg(
+			id?: Exclude<string, TLUiTranslationKey> | string,
+			values?: TLUiTranslationValues
+		): string {
+			// `formatMessage` needs an id. Callers pass optional labels straight through, so keep the
+			// nullish passthrough this has always had rather than substituting an empty string.
+			if (!id) return id as string
+			// No `defaultMessage`: the SDK's catalog is authored, not extracted, so the English text
+			// lives only in main.json. Inlining it here would be a second copy free to drift.
+			// eslint-disable-next-line tldraw/enforce-default-message
+			return intl.formatMessage({ id }, values)
 		},
-		[messages]
+		[intl]
 	)
 }
 
