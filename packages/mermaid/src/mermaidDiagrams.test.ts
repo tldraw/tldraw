@@ -696,11 +696,14 @@ describe('sequenceToBlueprint', () => {
 
 	function actorLayout(
 		xs: number[],
-		noteRects: ParsedSequenceLayout['noteRects'] = []
+		noteRects: ParsedSequenceLayout['noteRects'] = [],
+		measured: Partial<Pick<ParsedSequenceLayout, 'rowYs' | 'fragmentFrames'>> = {}
 	): ParsedSequenceLayout {
 		return {
 			actorLayouts: xs.map((x) => ({ x, y: -200, w: 100, h: 50, bottomY: 200 })),
 			noteRects,
+			rowYs: measured.rowYs ?? new Map(),
+			fragmentFrames: measured.fragmentFrames ?? new Map(),
 		}
 	}
 	const twoActorLayout = () => actorLayout([-150, 150])
@@ -1184,6 +1187,117 @@ describe('sequenceToBlueprint', () => {
 		expect(edge.endNodeId).toBe('actor-top-B')
 		expect(edge.startNodeId).toBe('lifeline-A')
 		expect(findNode(bp, 'actor-bottom-A')!.y).toBe(twoActorLayout().actorLayouts[0].bottomY)
+	})
+
+	describe('rows measured from mermaid', () => {
+		/** Where an edge meets the lifelines it is bound to. */
+		function edgeYs(bp: DiagramMermaidBlueprint, label: string) {
+			const edge = bp.edges.find((e) => e.label === label)!
+			const lineY = (id: string, anchor: number) => {
+				const line = bp.lines!.find((l) => l.id === id)!
+				return line.y + line.endY * anchor
+			}
+			return [lineY(edge.startNodeId, edge.anchorStartY!), lineY(edge.endNodeId, edge.anchorEndY!)]
+		}
+
+		it('gives a tall note the room mermaid gave it', () => {
+			const layout = actorLayout([-150, 150], [{ x: 0, y: 0, w: 120, h: 150 }], {
+				rowYs: new Map([
+					[0, -110],
+					[1, 0],
+					[2, 110],
+				]),
+			})
+			const actors = new Map([actor('Alice'), actor('Bob')])
+			const messages = [
+				msg(LINETYPE.SOLID, 'Alice', 'Bob', 'first'),
+				noteMsg('Bob', 'a<br/>tall<br/>note', PLACEMENT.RIGHTOF),
+				msg(LINETYPE.SOLID, 'Bob', 'Alice', 'second'),
+			]
+
+			const bp = sequenceToBlueprint(layout, actors, ['Alice', 'Bob'], messages)
+
+			const note = bp.nodes.find((n) => n.id.startsWith('note-'))!
+			expect({ y: note.y, h: note.h }).toEqual({ y: -75, h: 150 })
+			// Evenly spaced rows would put both arrows inside the note's 150px.
+			edgeYs(bp, 'first').forEach((y) => expect(y).toBeCloseTo(-110))
+			edgeYs(bp, 'second').forEach((y) => expect(y).toBeCloseTo(110))
+		})
+
+		it("keeps a created and destroyed participant's boxes apart", () => {
+			const layout = actorLayout([-150, 150], [], {
+				// Mermaid pushes the rows after a lifecycle box down by half the box's height.
+				rowYs: new Map([
+					[0, -140],
+					[1, -130],
+					[2, -120],
+					[3, -80],
+					[4, 20],
+					[5, 120],
+				]),
+			})
+			const actors = new Map([actor('Alice'), actor('Tmp')])
+			const messages = Array.from({ length: 6 }, (_, i) =>
+				msg(LINETYPE.SOLID, 'Alice', 'Tmp', `m${i}`)
+			)
+
+			const bp = sequenceToBlueprint(
+				layout,
+				actors,
+				['Alice', 'Tmp'],
+				messages,
+				new Map([['Tmp', 3]]),
+				new Map([['Tmp', 4]])
+			)
+
+			// Boxes are 50px tall, centred on their rows.
+			expect(findNode(bp, 'actor-top-Tmp')!.y).toBe(-105)
+			expect(findNode(bp, 'actor-bottom-Tmp')!.y).toBe(-5)
+			const lifeline = bp.lines!.find((l) => l.id === 'lifeline-Tmp')!
+			expect({ y: lifeline.y, endY: lifeline.endY }).toEqual({ y: -55, endY: 50 })
+		})
+
+		it("draws a fragment's frame and sections where mermaid did", () => {
+			const layout = actorLayout([-150, 150], [], {
+				rowYs: new Map([
+					[0, -120],
+					[2, 0],
+					[4, 120],
+				]),
+				// Keyed by the statement that closes the fragment.
+				fragmentFrames: new Map([[5, { top: -100, bottom: 140, sectionYs: [60] }]]),
+			})
+			const actors = new Map([actor('User'), actor('App')])
+			const messages = [
+				msg(LINETYPE.SOLID, 'User', 'App', 'Sign in'),
+				{ type: LINETYPE.ALT_START, message: 'a title long enough to wrap' } as unknown as Message,
+				msg(LINETYPE.DOTTED, 'App', 'User', 'Welcome'),
+				{ type: LINETYPE.ALT_ELSE, message: 'Invalid' } as unknown as Message,
+				msg(LINETYPE.DOTTED, 'App', 'User', 'Error'),
+				{ type: LINETYPE.ALT_END } as unknown as Message,
+			]
+
+			const bp = sequenceToBlueprint(layout, actors, ['User', 'App'], messages)
+
+			const fragment = findNode(bp, 'fragment-0')!
+			expect({ y: fragment.y, h: fragment.h }).toEqual({ y: -100, h: 240 })
+			expect(bp.lines!.find((l) => l.id === 'fragment-0-sep-1')!.y).toBe(60)
+			expect(findNode(bp, 'fragment-0-section-1')!.y).toBeGreaterThan(60)
+		})
+
+		it('spaces every row evenly when mermaid did not draw one of them', () => {
+			const partlyMeasured = actorLayout([-150, 150], [], { rowYs: new Map([[0, -140]]) })
+			const actors = new Map([actor('Alice'), actor('Bob')])
+			const messages = [
+				msg(LINETYPE.SOLID, 'Alice', 'Bob', 'one'),
+				msg(LINETYPE.SOLID, 'Bob', 'Alice', 'two'),
+			]
+
+			const bp = sequenceToBlueprint(partlyMeasured, actors, ['Alice', 'Bob'], messages)
+			const even = sequenceToBlueprint(twoActorLayout(), actors, ['Alice', 'Bob'], messages)
+
+			expect(bp.edges).toEqual(even.edges)
+		})
 	})
 
 	it('maps actor types to correct geo', () => {
