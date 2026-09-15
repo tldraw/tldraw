@@ -1,0 +1,213 @@
+/* This panel lives outside the tldraw container, so the theme variables
+   aren't inherited here — each use provides a fallback value. */
+.perf-panel {
+	position: absolute;
+	top: 60px;
+	left: 8px;
+	z-index: var(--tl-layer-panels, 300);
+	display: flex;
+	flex-direction: column;
+	width: 248px;
+	padding: 12px 14px;
+	border-radius: 10px;
+	background: var(--tl-color-panel, #fcfcfc);
+	box-shadow: var(--tl-shadow-2, 0 1px 3px rgba(0, 0, 0, 0.2));
+	color: var(--tl-color-text-1, #2e2e2e);
+	font-size: 12px;
+	pointer-events: all;
+}
+
+/* the last zoom gesture's frame stats, the headline metric */
+.perf-panel__gesture {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding-bottom: 10px;
+}
+
+.perf-panel__gesture-label {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--tl-color-text-3, #9fa1a3);
+}
+
+.perf-panel__gesture-stats {
+	display: flex;
+	align-items: baseline;
+	gap: 4px;
+}
+
+.perf-panel__gesture-stats b {
+	font-size: 28px;
+	line-height: 1;
+	font-variant-numeric: tabular-nums;
+	color: #2f9e44;
+}
+
+.perf-panel__gesture-fps--low {
+	color: #c92a2a;
+}
+
+.perf-panel__gesture-stats span {
+	font-size: 12px;
+	color: var(--tl-color-text-3, #9fa1a3);
+}
+
+.perf-panel__gesture-p95 {
+	margin-left: auto;
+	font-variant-numeric: tabular-nums;
+}
+
+.perf-panel__gesture-empty {
+	font-size: 13px;
+	color: var(--tl-color-text-3, #9fa1a3);
+}
+
+/* a divided section within the card */
+.perf-section {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 10px 0;
+	border-top: 1px solid var(--tl-color-divider, #e8e8e8);
+}
+
+.perf-section:last-child {
+	padding-bottom: 0;
+}
+
+.perf-section__title {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--tl-color-text-3, #9fa1a3);
+}
+
+.perf-section__head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+}
+
+.perf-section__count {
+	font-variant-numeric: tabular-nums;
+	color: var(--tl-color-text-1, #2e2e2e);
+}
+
+.perf-section__count--at-limit {
+	color: #c92a2a;
+	font-weight: 600;
+}
+
+/* the live vs efficient re-render comparison */
+.perf-compare {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 6px;
+}
+
+.perf-metric {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+	padding: 8px 4px;
+	border-radius: 8px;
+	background: var(--tl-color-low, #f5f5f5);
+	text-align: center;
+}
+
+.perf-metric--accent {
+	background: #ebfbee;
+}
+
+.perf-metric__label {
+	font-size: 11px;
+	color: var(--tl-color-text-3, #9fa1a3);
+}
+
+.perf-metric__count {
+	font-size: 24px;
+	line-height: 1.1;
+	font-variant-numeric: tabular-nums;
+	color: var(--tl-color-text-1, #2e2e2e);
+}
+
+.perf-metric--accent .perf-metric__count {
+	color: #2f9e44;
+}
+
+.perf-reset {
+	align-self: flex-start;
+	padding: 0;
+	border: none;
+	background: none;
+	font: inherit;
+	font-size: 11px;
+	color: var(--tl-color-text-3, #9fa1a3);
+	cursor: pointer;
+}
+
+.perf-reset:hover {
+	color: var(--tl-color-text-1, #2e2e2e);
+}
+
+/* shapes / limit progress bar */
+.perf-bar {
+	height: 6px;
+	border-radius: 3px;
+	overflow: hidden;
+	background: var(--tl-color-low, #f0f0f0);
+}
+
+.perf-bar__fill {
+	height: 100%;
+	border-radius: 3px;
+	background: var(--tl-color-selected, #4263eb);
+	transition: width 0.15s ease;
+}
+
+.perf-bar__fill--at-limit {
+	background: #c92a2a;
+}
+
+.perf-row {
+	display: flex;
+	gap: 4px;
+}
+
+.perf-warning {
+	font-size: 11px;
+	font-weight: 600;
+	color: #c92a2a;
+	background: #ffe3e3;
+	padding: 4px 8px;
+	border-radius: 4px;
+}
+
+/* option controls */
+.perf-opt {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.perf-opt--slider {
+	flex-direction: column;
+	align-items: stretch;
+	gap: 3px;
+}
+
+.perf-opt--slider span {
+	display: flex;
+	justify-content: space-between;
+	color: var(--tl-color-text-2, #6f6f6f);
+}
+
+.perf-opt--slider b {
+	font-variant-numeric: tabular-nums;
+	color: var(--tl-color-text-1, #2e2e2e);
+}
