@@ -514,3 +514,60 @@ describe('listeners: dispose (H)', () => {
 		}
 	})
 })
+
+describe('listeners: removing a listener (H)', () => {
+	const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve))
+
+	beforeEach(() => {
+		// @ts-expect-error - test-only escape hatch
+		globalThis.__FORCE_RAF_IN_TESTS__ = true
+		return () => {
+			// @ts-expect-error - test-only escape hatch
+			globalThis.__FORCE_RAF_IN_TESTS__ = false
+		}
+	})
+
+	it('[H14] the remover delivers pending change-sets before removing the listener', async () => {
+		const listener = vi.fn()
+		const removeListener = store.listen(listener)
+		store.put([tolkein()])
+		expect(listener).not.toHaveBeenCalled()
+
+		removeListener()
+		expect(listener).toHaveBeenCalledTimes(1)
+
+		store.put([hobbit()])
+		await nextFrame()
+		expect(listener).toHaveBeenCalledTimes(1)
+	})
+
+	it('[H14] the listener is removed even when a listener throws during that flush', async () => {
+		const listener = vi.fn(() => {
+			throw new Error('listener failed')
+		})
+		const removeListener = store.listen(listener)
+		store.put([tolkein()])
+
+		expect(removeListener).toThrow('listener failed')
+
+		store.put([hobbit()])
+		await nextFrame()
+		expect(listener).toHaveBeenCalledTimes(1)
+	})
+
+	it('[H14] a listener that writes and then removes itself mid-flush does not reorder the others', async () => {
+		const received: string[][] = []
+		const removeWriter = store.listen(() => {
+			store.put([hobbit()])
+			removeWriter()
+		})
+		store.listen(({ changes }) => received.push(Object.keys(changes.added)))
+
+		const author = tolkein()
+		store.put([author])
+		await nextFrame()
+		await nextFrame()
+
+		expect(received).toEqual([[author.id], [hobbit().id]])
+	})
+})
