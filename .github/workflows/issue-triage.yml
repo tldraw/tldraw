@@ -10,6 +10,9 @@ on:
         required: true
         type: number
 
+permissions:
+  contents: read
+
 jobs:
   triage:
     runs-on: ubuntu-latest
@@ -21,7 +24,7 @@ jobs:
       ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           fetch-depth: 1
 
@@ -40,7 +43,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Triage Issue with Claude
-        uses: anthropics/claude-code-action@v1
+        uses: anthropics/claude-code-action@bf38e86e58df9ebf3420326d019f955bb3be64dd # v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prompt: |

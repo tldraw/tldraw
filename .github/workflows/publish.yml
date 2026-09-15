@@ -56,7 +56,7 @@ jobs:
 
     steps:
       - name: Remove the publish-packages label
-        uses: actions-ecosystem/action-remove-labels@v1
+        uses: actions-ecosystem/action-remove-labels@2ce5d41b4b6aa8503e285553f75ed56e0a40bae0 # v1
         with:
           labels: publish-packages
 
@@ -171,7 +171,7 @@ jobs:
           private_key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
 
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           fetch-depth: 0
           persist-credentials: ${{ steps.publish_mode.outputs.use_huppy != 'true' }}
@@ -234,7 +234,7 @@ jobs:
       - name: Generate tldraw-internal token
         if: steps.publish_mode.outputs.mode == 'next'
         id: generate_internal_token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
         with:
           app-id: ${{ vars.HUPPY_APP_ID }}
           private-key: ${{ secrets.HUPPY_PRIVATE_KEY }}
@@ -253,7 +253,7 @@ jobs:
       # Earlier steps run before checkout, so re-fetch the local action on failure.
       - name: Check out Discord notify action
         if: failure()
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           sparse-checkout: .github/actions/discord-fail-notify
 
@@ -275,7 +275,7 @@ jobs:
 
     steps:
       - name: Tell user released version
-        uses: actions-ecosystem/action-create-comment@v1
+        uses: actions-ecosystem/action-create-comment@e23bc59fbff7aac7f9044bd66c2dc0fe1286f80b # v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           body: |
@@ -312,7 +312,7 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
 

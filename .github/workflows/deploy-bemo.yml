@@ -16,6 +16,12 @@ defaults:
   run:
     shell: bash
 
+permissions:
+  contents: read
+  # createGithubDeployment (internal/scripts/lib/deploy.ts) registers the deployment that
+  # renders the 'View Deployment' button on the PR.
+  deployments: write
+
 jobs:
   deploy:
     name: Deploy bemo to ${{ (github.ref == 'refs/heads/bemo-production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview'  }}
@@ -26,14 +32,14 @@ jobs:
 
     steps:
       # - name: Notify initial start
-      #   uses: MineBartekSA/discord-webhook@v2
+      #   uses: MineBartekSA/discord-webhook@c9d90dcd484776f25f84354cc0438887af563575 # v2
       #   if: github.ref == 'refs/heads/bemo-production'
       #   with:
       #     webhook: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
       #     content: 'Preparing ${{ env.TLDRAW_ENV }} bemo deploy: ${{ github.event.head_commit.message }} by ${{ github.event.head_commit.author.name }}'
 
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           submodules: true
 

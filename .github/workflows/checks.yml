@@ -14,6 +14,11 @@ defaults:
   run:
     shell: bash
 
+permissions:
+  contents: read
+  # update-pr-template reads the repo's label list (octo.issues.listLabelsForRepo).
+  issues: read
+
 jobs:
   test:
     name: 'Tests & checks'
@@ -22,7 +27,7 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - uses: ./.github/actions/setup
 
@@ -39,7 +44,7 @@ jobs:
         run: yarn check-circular-deps
 
       - name: Restore build tool caches
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: |
             .lazy
@@ -74,7 +79,7 @@ jobs:
       # restore is safe - unmatched modules are just re-transformed. Keyed on yarn.lock so
       # one entry is reused across commits instead of saving a new copy on every run.
       - name: Restore vitest module cache
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: node_modules/.vitest-cache
           key: vitest-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
@@ -90,12 +95,12 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - uses: ./.github/actions/setup
 
       - name: Restore build tool caches
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: |
             .lazy

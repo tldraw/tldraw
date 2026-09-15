@@ -19,6 +19,9 @@ defaults:
   run:
     shell: bash
 
+permissions:
+  contents: read
+
 jobs:
   update-release-notes:
     name: 'Update release notes with Claude Code'
@@ -34,7 +37,7 @@ jobs:
           private_key: ${{ secrets.HUPPY_PRIVATE_KEY }}
 
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
           fetch-depth: 0
