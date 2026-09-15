@@ -1638,6 +1638,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     readonly textMeasure: TextManager;
     readonly timers: {
+        cancelAnimationFrame: (id: number | undefined) => void;
+        clearInterval: (id: number | undefined) => void;
+        clearTimeout: (id: number | undefined) => void;
         dispose: () => void;
         requestAnimationFrame: (callback: FrameRequestCallback) => number;
         setInterval: (handler: TimerHandler, timeout?: number, ...args: any[]) => number;
