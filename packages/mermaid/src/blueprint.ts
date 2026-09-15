@@ -106,12 +106,6 @@ export interface MermaidBlueprintEdge {
 	/** Where the arrow meets its end shape, as a 0–1 fraction of that shape's width. Defaults to the center. */
 	anchorEndX?: number
 	anchorEndY?: number
-	/**
-	 * Page-space box to set the label in as standalone text, instead of on the arrow. An arrow label
-	 * is centered on the arrow and wrapped to its length, which suits a line between two shapes but
-	 * lands a short self-loop's text on top of the shape it loops on.
-	 */
-	labelBounds?: { x: number; y: number; w: number; h: number }
 	isExact?: boolean
 	isPrecise?: boolean
 	isExactEnd?: boolean

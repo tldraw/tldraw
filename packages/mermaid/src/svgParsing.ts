@@ -296,10 +296,13 @@ export function claimNearestEdge(
 	return svgEdges[bestIndex]
 }
 
+/** How far either side of its middle a top or bottom self-loop's ends sit, as a fraction of the edge. */
+const SELF_LOOP_EDGE_SPREAD = 0.4
+
 /**
- * Where a self-loop leaves and re-enters its node, and the box mermaid set its label in. Mermaid
- * loops out of the side facing the next rank (the bottom of a top-down chart, the right of a
- * left-to-right one) with the label just beyond; anywhere else, loop and text land on the node.
+ * Where a self-loop leaves and re-enters its node, and how far out it reaches. Mermaid loops out of
+ * the side facing the next rank (the bottom of a top-down chart, the right of a left-to-right one)
+ * with the label just beyond; anywhere else, loop and label land on the node.
  */
 export function getSelfLoopEdgeLayout(
 	svgEdge: ParsedEdge,
@@ -315,13 +318,24 @@ export function getSelfLoopEdgeLayout(
 	})
 	const start = toAnchor(svgEdge.points[0])
 	const end = toAnchor(svgEdge.points[svgEdge.points.length - 1])
+	// tldraw wraps an arrow's label to the arrow's width less 64px whenever it is wider than tall,
+	// as a loop on the top or bottom edge always is. Spread its ends across that edge to give the
+	// label room; the chord stays on the same line, so where the label lands is unchanged.
+	if (start.y === end.y && (start.y === 0 || start.y === 1)) {
+		const middle = (start.x + end.x) / 2
+		const halfSpan = Math.min(SELF_LOOP_EDGE_SPREAD, middle, 1 - middle)
+		const direction = Math.sign(end.x - start.x) || 1
+		start.x = middle - halfSpan * direction
+		end.x = middle + halfSpan * direction
+	}
+	const label = edgeLabels.get(svgEdge.id)
+	const labelCenter = label && { x: label.x + label.w / 2, y: label.y + label.h / 2 }
 	return {
-		bend: getSelfLoopBend(svgEdge),
+		bend: getSelfLoopBend(svgEdge, labelCenter),
 		anchorStartX: start.x,
 		anchorStartY: start.y,
 		anchorEndX: end.x,
 		anchorEndY: end.y,
-		labelBounds: edgeLabels.get(svgEdge.id),
 	}
 }
 

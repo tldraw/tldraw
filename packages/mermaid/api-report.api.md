@@ -97,12 +97,6 @@ export interface MermaidBlueprintEdge {
     isPreciseEnd?: boolean;
     // (undocumented)
     label?: string;
-    labelBounds?: {
-        h: number;
-        w: number;
-        x: number;
-        y: number;
-    };
     // (undocumented)
     size?: TLDefaultSizeStyle;
     // (undocumented)
