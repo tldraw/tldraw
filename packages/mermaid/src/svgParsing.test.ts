@@ -1,5 +1,6 @@
+import type { SequenceDB } from 'mermaid/dist/diagrams/sequence/sequenceDb.d.ts'
 import { parseFlowchartLayout } from './flowchartDiagram'
-import { parseSequenceLayout } from './sequenceDiagram'
+import { countSequenceEvents, LINETYPE, parseSequenceLayout } from './sequenceDiagram'
 import { parseStateDiagramLayout } from './stateDiagram'
 
 function svgFromString(markup: string): SVGSVGElement {
@@ -176,5 +177,65 @@ describe('sequence row parsing', () => {
 		// Halfway between the header and the footer before stretching, and after it too.
 		const headerBottom = actorLayouts[0].y + 65
 		expect(rowYs.get(0)).toBeCloseTo((headerBottom + actorLayouts[0].bottomY) / 2)
+	})
+
+	it("reads every row and frame from the installed mermaid's own rendering", async () => {
+		// The markup above is built by hand to match mermaid's. If a mermaid upgrade changes it, those
+		// tests stay green while rows stop being read and every diagram falls back to even spacing.
+		const svgPrototype = SVGElement.prototype as any
+		// jsdom lays out no text; mermaid only needs some size for it to render.
+		svgPrototype.getBBox = function () {
+			return { x: 0, y: 0, width: (this.textContent ?? '').length * 8, height: 16 }
+		}
+		svgPrototype.getComputedTextLength = function () {
+			return (this.textContent ?? '').length * 8
+		}
+		try {
+			const mermaid = (await import('mermaid')).default
+			mermaid.initialize({ startOnLoad: false })
+			const source = `sequenceDiagram
+    participant A
+    participant B
+    A->>B: Hello
+    loop Every minute
+        B->>B: Tick
+        alt Healthy
+            B-->>A: Fine
+        else Failing
+            Note over A,B: Retry<br/>with backoff
+            A->>B: Again
+        end
+    end
+    B-->>A: Done`
+			const { svg } = await mermaid.render('sequence-rows', source)
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			const db = (await mermaid.mermaidAPI.getDiagramFromText(source)).db as SequenceDB
+			const messages = db.getMessages()
+
+			const { rowYs, fragmentFrames } = parseSequenceLayout(
+				svgFromString(svg),
+				db.getActorKeys().length,
+				countSequenceEvents(messages)
+			)
+
+			// Messages, the self-message and the note all get a row: a single missing one sends the
+			// whole diagram back to even spacing.
+			const rowTypes: number[] = [LINETYPE.SOLID, LINETYPE.DOTTED, LINETYPE.NOTE]
+			const eventIndices = messages.flatMap((m, i) => (rowTypes.includes(m.type!) ? [i] : []))
+			expect([...rowYs.keys()].sort((a, b) => a - b)).toEqual(eventIndices)
+			const ys = eventIndices.map((i) => rowYs.get(i)!)
+			expect(ys.every((y, i) => i === 0 || y > ys[i - 1])).toBe(true)
+
+			const loop = fragmentFrames.get(messages.findIndex((m) => m.type === LINETYPE.LOOP_END))!
+			const alt = fragmentFrames.get(messages.findIndex((m) => m.type === LINETYPE.ALT_END))!
+			expect(fragmentFrames.size).toBe(2)
+			expect(loop.sectionYs).toEqual([])
+			expect(alt.sectionYs).toHaveLength(1)
+			expect(alt.top).toBeGreaterThan(loop.top)
+			expect(alt.bottom).toBeLessThan(loop.bottom)
+		} finally {
+			delete svgPrototype.getBBox
+			delete svgPrototype.getComputedTextLength
+		}
 	})
 })
