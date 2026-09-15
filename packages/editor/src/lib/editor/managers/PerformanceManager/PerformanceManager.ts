@@ -158,7 +158,7 @@ export class PerformanceManager {
 
 	/** @internal */
 	dispose() {
-		if (this.activeCamera?.timeout) clearTimeout(this.activeCamera.timeout)
+		if (this.activeCamera?.timeout) this.editor.timers.clearTimeout(this.activeCamera.timeout)
 		this.activeInteraction = null
 		this.activeCamera = null
 		this.frameCleanup?.()
@@ -259,7 +259,7 @@ export class PerformanceManager {
 		if (this.activeCamera) {
 			// Extend existing camera session
 			if (this.activeCamera.timeout) {
-				clearTimeout(this.activeCamera.timeout)
+				this.editor.timers.clearTimeout(this.activeCamera.timeout)
 			}
 			// If type changed, end old and start new
 			if (this.activeCamera.type !== type) {
@@ -313,7 +313,7 @@ export class PerformanceManager {
 		const camera = this.activeCamera
 		if (!camera) return
 		this.activeCamera = null
-		if (camera.timeout) clearTimeout(camera.timeout)
+		if (camera.timeout) this.editor.timers.clearTimeout(camera.timeout)
 
 		if (this.emitter.listenerCount('camera-end') === 0) return
 
