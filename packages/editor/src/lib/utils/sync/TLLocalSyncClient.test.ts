@@ -464,3 +464,76 @@ test('a buffered newer schema reports a load error without announcing a successf
 	client.close()
 	expect(client.db.storeSnapshot).not.toHaveBeenCalled()
 })
+
+test('a client created on the same key while a closed client is still flushing waits for that flush', async () => {
+	const inFlightWrite = promiseWithResolve<void>()
+	const { client, tick } = testClient()
+	client.db.storeSnapshot.mockImplementationOnce(() => inFlightWrite)
+	await tick()
+	client.store.put([PageRecordType.create({ name: 'first', index: 'a0' as IndexKey })])
+	await tick()
+	expect(client.db.storeSnapshot).toHaveBeenCalledTimes(1) // still in flight
+	client.store.put([PageRecordType.create({ name: 'during write', index: 'a1' as IndexKey })])
+	client.close()
+
+	// remount on the same key while the old client is still flushing
+	const loadSpy = vi.spyOn(LocalIndexedDb.prototype, 'load')
+	const next = testClient()
+	await tick()
+	// reading now would miss the queued edit, then erase it on the first write
+	expect(loadSpy).not.toHaveBeenCalled()
+	expect(next.onLoad).not.toHaveBeenCalled()
+
+	inFlightWrite.resolve()
+	await tick()
+	expect(client.db.storeChanges).toHaveBeenCalledTimes(1)
+	for (let i = 0; i < 20; i++) await Promise.resolve()
+	await next.tick()
+	expect(loadSpy).toHaveBeenCalledTimes(1)
+	expect(next.onLoad).toHaveBeenCalledTimes(1)
+	loadSpy.mockRestore()
+})
+
+test('two clients closing on the same key flush in order', async () => {
+	const writes: string[] = []
+	const inFlightWrite = promiseWithResolve<void>()
+
+	const a = testClient()
+	const b = testClient()
+	await a.tick()
+	await b.tick()
+	// hold a's first write in flight
+	a.client.db.storeSnapshot.mockImplementation(() => {
+		writes.push('a')
+		return inFlightWrite
+	})
+	a.client.db.storeChanges.mockImplementation(() => {
+		writes.push('a')
+		return Promise.resolve()
+	})
+	b.client.db.storeSnapshot.mockImplementation(() => {
+		writes.push('b')
+		return Promise.resolve()
+	})
+	b.client.db.storeChanges.mockImplementation(() => {
+		writes.push('b')
+		return Promise.resolve()
+	})
+
+	a.client.store.put([PageRecordType.create({ name: 'a1', index: 'a0' as IndexKey })])
+	await a.tick()
+	expect(writes).toEqual(['a']) // in flight
+	a.client.store.put([PageRecordType.create({ name: 'a2', index: 'a1' as IndexKey })])
+	a.client.close()
+
+	b.client.store.put([PageRecordType.create({ name: 'b1', index: 'a2' as IndexKey })])
+	b.client.close()
+	await b.tick()
+	// b's snapshot landing first would lose a's queued changes
+	expect(writes).toEqual(['a'])
+
+	inFlightWrite.resolve()
+	await a.tick()
+	await b.tick()
+	expect(writes).toEqual(['a', 'a', 'b'])
+})
