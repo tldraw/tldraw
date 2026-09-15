@@ -1,3 +1,4 @@
+import { DB } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import {
 	createComment,
@@ -8,6 +9,13 @@ import {
 	TLRichText,
 	TLShapeId,
 } from '@tldraw/tlschema'
+import {
+	DummyDriver,
+	Kysely,
+	PostgresAdapter,
+	PostgresIntrospector,
+	PostgresQueryCompiler,
+} from 'kysely'
 import { describe, expect, it } from 'vitest'
 import {
 	CommentLoadResult,
@@ -32,6 +40,9 @@ import {
 	planMentionReconciles,
 	rowToThreadRecord,
 	threadRecordToRow,
+	upsertCommentReactionRows,
+	upsertCommentRows,
+	upsertCommentThreadRows,
 } from './commentRows'
 
 const pageId = 'page:page1' as TLPageId
@@ -1012,5 +1023,54 @@ describe('liveCommentDocuments', () => {
 
 	it('empty rows produce an empty, zero-floor load', () => {
 		expect(liveCommentDocuments([], [])).toEqual({ documents: [], clockFloor: 0 })
+	})
+})
+
+// Compiles queries without connecting; only the SQL text is under test here.
+const compileOnlyDb = new Kysely<DB>({
+	dialect: {
+		createAdapter: () => new PostgresAdapter(),
+		createDriver: () => new DummyDriver(),
+		createIntrospector: (db) => new PostgresIntrospector(db),
+		createQueryCompiler: () => new PostgresQueryCompiler(),
+	},
+})
+
+describe('comment upsert file scoping', () => {
+	const thread = makeThread()
+	const comment = createComment({
+		threadId: thread.id,
+		pageId,
+		authorId: 'user1',
+		body,
+		now: 1000,
+	})
+	const reaction = createCommentReaction({
+		commentId: comment.id,
+		threadId: thread.id,
+		pageId,
+		userId: 'user1',
+		emoji: '👍',
+		now: 1000,
+	})
+
+	// A record id is only addressable from the room that owns it, so a row already in Postgres
+	// under a different fileId belongs to another file. The conflict target has to be the primary
+	// key, so the ownership check has to sit in the DO UPDATE predicate — a client that learned
+	// another file's record ids could otherwise push records under them and have this drain
+	// rewrite that file's rows. The lastChangedClock guard does not cover this on its own: a
+	// forged record simply carries a higher clock.
+	it.each([
+		[
+			'comment_thread',
+			upsertCommentThreadRows(compileOnlyDb, [threadRecordToRow(thread, 'file1', 1)]),
+		],
+		['comment', upsertCommentRows(compileOnlyDb, [commentRecordToRow(comment, 'file1', 1)])],
+		[
+			'comment_reaction',
+			upsertCommentReactionRows(compileOnlyDb, [reactionRecordToRow(reaction, 'file1', 1)]),
+		],
+	])('%s upsert only updates a row whose fileId matches', (table, query) => {
+		expect(query.compile().sql).toContain(`"${table}"."fileId" = "excluded"."fileId"`)
 	})
 })

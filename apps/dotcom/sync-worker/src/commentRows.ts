@@ -13,6 +13,7 @@ import {
 	isCommentThreadId,
 } from '@tldraw/tlschema'
 import { JsonObject } from '@tldraw/utils'
+import { Kysely } from 'kysely'
 
 /**
  * Conversions between the room's comment records and their Postgres rows. Postgres is the sole
@@ -366,6 +367,99 @@ export function planCommentDrain(
 		}
 	}
 	return plan
+}
+
+/**
+ * The drain's three comment upserts, as query builders.
+ *
+ * Every one conflicts on the primary key and is guarded on `fileId`. A comment record id is only
+ * addressable from the room that owns it, so a Postgres row carrying that id under a different
+ * `fileId` is a row this room has no business writing — without the guard, a client that learned
+ * another file's record ids could push records under them and have that file's drain overwrite the
+ * original rows. The conflict target has to be the primary key (it's the unique index the upsert
+ * needs), so the ownership check rides along in the update predicate instead: a mismatch updates
+ * nothing rather than rewriting the row. The `lastChangedClock` guard alone doesn't cover this — a
+ * forged record just carries a higher clock.
+ *
+ * They live here rather than inline in the drain so the guard can be asserted against the compiled
+ * SQL without a database (see commentRows.test.ts).
+ */
+export function upsertCommentThreadRows(db: Kysely<DB>, rows: DB['comment_thread'][]) {
+	return db
+		.insertInto('comment_thread')
+		.values(rows)
+		.onConflict((oc) =>
+			oc
+				.column('id')
+				.doUpdateSet((eb) => ({
+					pageId: eb.ref('excluded.pageId'),
+					anchor: eb.ref('excluded.anchor'),
+					shapeId: eb.ref('excluded.shapeId'),
+					resolvedAt: eb.ref('excluded.resolvedAt'),
+					resolvedBy: eb.ref('excluded.resolvedBy'),
+					isDeleted: eb.ref('excluded.isDeleted'),
+					meta: eb.ref('excluded.meta'),
+					lastChangedClock: eb.ref('excluded.lastChangedClock'),
+				}))
+				.whereRef('comment_thread.fileId', '=', 'excluded.fileId')
+				.whereRef('comment_thread.lastChangedClock', '<', 'excluded.lastChangedClock')
+		)
+}
+
+/**
+ * "createdAt" is deliberately absent from the update set: Postgres stamps it on first insert
+ * (migration 046) and the stamp must survive at-least-once replays and edits.
+ * stamp_comment_created_at.test.ts exercises this conflict shape — keep them in sync.
+ */
+export function upsertCommentRows(db: Kysely<DB>, rows: DB['comment'][]) {
+	return db
+		.insertInto('comment')
+		.values(rows)
+		.onConflict((oc) =>
+			oc
+				.column('id')
+				.doUpdateSet((eb) => ({
+					threadId: eb.ref('excluded.threadId'),
+					pageId: eb.ref('excluded.pageId'),
+					body: eb.ref('excluded.body'),
+					editedAt: eb.ref('excluded.editedAt'),
+					isDeleted: eb.ref('excluded.isDeleted'),
+					// excluded.* has been through the BEFORE INSERT stamp trigger, which
+					// lifts updatedAt to the (server) attempt stamp — so this can never
+					// regress updatedAt below the row's createdAt
+					updatedAt: eb.ref('excluded.updatedAt'),
+					meta: eb.ref('excluded.meta'),
+					lastChangedClock: eb.ref('excluded.lastChangedClock'),
+				}))
+				.whereRef('comment.fileId', '=', 'excluded.fileId')
+				.whereRef('comment.lastChangedClock', '<', 'excluded.lastChangedClock')
+		)
+}
+
+/**
+ * Re-reacting with a different emoji addresses the same record id (the id is derived from the
+ * comment + user pair), so it arrives here as a conflict on id — every mutable column has to be
+ * listed or the change would be silently dropped.
+ */
+export function upsertCommentReactionRows(db: Kysely<DB>, rows: DB['comment_reaction'][]) {
+	return db
+		.insertInto('comment_reaction')
+		.values(rows)
+		.onConflict((oc) =>
+			oc
+				.column('id')
+				.doUpdateSet((eb) => ({
+					commentId: eb.ref('excluded.commentId'),
+					threadId: eb.ref('excluded.threadId'),
+					pageId: eb.ref('excluded.pageId'),
+					emoji: eb.ref('excluded.emoji'),
+					createdAt: eb.ref('excluded.createdAt'),
+					meta: eb.ref('excluded.meta'),
+					lastChangedClock: eb.ref('excluded.lastChangedClock'),
+				}))
+				.whereRef('comment_reaction.fileId', '=', 'excluded.fileId')
+				.whereRef('comment_reaction.lastChangedClock', '<', 'excluded.lastChangedClock')
+		)
 }
 
 /**
