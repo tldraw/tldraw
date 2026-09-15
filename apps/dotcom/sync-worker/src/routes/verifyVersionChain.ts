@@ -25,7 +25,13 @@ export interface VerifyResult {
 	 */
 	complete: boolean
 	mismatches: string[]
+	/** Chain faults only: a version that cannot be reconstructed from what is in the bucket. */
 	errors: Array<{ timestamp: string; message: string }>
+	/**
+	 * Versions the legacy comparison could not check. Not chain faults: a legacy copy that will not
+	 * read says nothing about the chain, and counting it as one would page on R2 flakes.
+	 */
+	legacyReadFailures: Array<{ timestamp: string; message: string }>
 }
 
 /**
@@ -54,6 +60,7 @@ export async function verifyRoomVersions({
 	// mismatch, not two.
 	const mismatches = new Set<string>()
 	const errors: Array<{ timestamp: string; message: string }> = []
+	const legacyReadFailures: Array<{ timestamp: string; message: string }> = []
 	let checked = 0
 	let replayed = 0
 	// Flagged at the break sites, not derived from `reads >= limit` at the end: the budget may
@@ -78,7 +85,10 @@ export async function verifyRoomVersions({
 		} catch (e: any) {
 			// Caught here, not in the callers: their catches mark the chain broken and stop the
 			// replay, and a flaky legacy read is neither.
-			errors.push({ timestamp, message: `legacy copy read failed: ${String(e?.message ?? e)}` })
+			legacyReadFailures.push({
+				timestamp,
+				message: `legacy copy read failed: ${String(e?.message ?? e)}`,
+			})
 			return
 		}
 		checked++
@@ -188,7 +198,15 @@ export async function verifyRoomVersions({
 		}
 	}
 
-	return { checked, replayed, reads, complete, mismatches: [...mismatches], errors }
+	return {
+		checked,
+		replayed,
+		reads,
+		complete,
+		mismatches: [...mismatches],
+		errors,
+		legacyReadFailures,
+	}
 }
 
 /** Record order is unstable between persists, so compare content and not serialization order. */
