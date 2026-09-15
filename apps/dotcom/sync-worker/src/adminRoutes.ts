@@ -23,6 +23,7 @@ import { summarizeSnapshotDocuments } from './fileStats'
 import { MAX_ATTEMPTS } from './outboxDrain'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
+import { sweepVersionChainsRoute } from './routes/sweepVersionChains'
 import { getFileSnapshot, returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
 import { undeleteFile } from './undeleteFile'
@@ -183,6 +184,8 @@ export const adminRoutes = createRouter<Environment>()
 			await db.destroy()
 		}
 	})
+	// Batched and resumable rather than a whole-fleet run: see sweepVersionChains for the budget.
+	.get('/app/admin/version-chain/sweep', (req, env) => sweepVersionChainsRoute(req, env))
 	.get('/app/admin/outbox', async (res, env) => {
 		const db = createPostgresConnectionPool(env, '/app/admin/outbox')
 		try {
