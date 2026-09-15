@@ -568,6 +568,7 @@ describe('planCommentDrain', () => {
 			commentDeletes: [],
 			reactionDeletes: [],
 			unknownIds: [],
+			orphanedReactionIds: [],
 		})
 	})
 
@@ -585,15 +586,40 @@ describe('planCommentDrain', () => {
 		// present in the lane → upsert; absent → delete
 		const upsertPlan = planCommentDrain(
 			entriesOf(reaction.id),
-			laneOf({ state: reaction, lastChangedClock: 44 }),
+			laneOf({ state: reaction, lastChangedClock: 44 }, { state: comment, lastChangedClock: 43 }),
 			'file1'
 		)
 		expect(upsertPlan.reactionUpserts).toEqual([reactionRecordToRow(reaction, 'file1', 44)])
 		expect(upsertPlan.reactionDeletes).toEqual([])
+		expect(upsertPlan.orphanedReactionIds).toEqual([])
 
 		const deletePlan = planCommentDrain(entriesOf(reaction.id), new Map(), 'file1')
 		expect(deletePlan.reactionUpserts).toEqual([])
 		expect(deletePlan.reactionDeletes).toEqual([reaction.id])
+	})
+
+	it('refuses a reaction whose parent comment is absent from the lane', () => {
+		// The id is derived from (comment, user, emoji), so a forged commentId still mints a unique
+		// id: the row lands as a plain insert and never meets the upserts' fileId conflict guard.
+		// Unchecked, it would carry this file's fileId while naming another file's comment — and
+		// comment_reaction is joined to a comment by commentId, so it would surface over there.
+		const foreignComment = makeComment(makeThread().id)
+		const reaction = createCommentReaction({
+			commentId: foreignComment.id,
+			threadId: makeThread().id,
+			pageId,
+			userId: 'user1',
+			emoji: '👍',
+			now: 1700,
+		})
+		const plan = planCommentDrain(
+			entriesOf(reaction.id),
+			laneOf({ state: reaction, lastChangedClock: 44 }),
+			'file1'
+		)
+		expect(plan.reactionUpserts).toEqual([])
+		expect(plan.reactionDeletes).toEqual([])
+		expect(plan.orphanedReactionIds).toEqual([reaction.id])
 	})
 
 	it('coalesces duplicate entries for one id into a single write', () => {
@@ -619,6 +645,7 @@ describe('planCommentDrain', () => {
 			commentDeletes: [comment.id],
 			reactionDeletes: [],
 			unknownIds: [],
+			orphanedReactionIds: [],
 		})
 	})
 
@@ -647,6 +674,7 @@ describe('planCommentDrain', () => {
 			commentDeletes: [],
 			reactionDeletes: [],
 			unknownIds: ['shape:oops'],
+			orphanedReactionIds: [],
 		})
 	})
 })

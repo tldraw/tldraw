@@ -38,6 +38,7 @@ import {
 	TLAsset,
 	TLAssetId,
 	TLComment,
+	TLCommentReaction,
 	TLDOCUMENT_ID,
 	TLDocument,
 	TLRecord,
@@ -2522,6 +2523,18 @@ export class TLFileDurableObject extends DurableObject {
 						.map((doc) => [doc.state.id as string, doc])
 				)
 				const fileId = this.documentInfo.slug
+				// planCommentDrain checks each outboxed reaction's parent comment against the lane, and
+				// a parent needn't be outboxed itself (reacting doesn't touch the comment) — so fetch
+				// those too, still before any await.
+				const parentCommentIds = new Set<string>()
+				for (const doc of lane.values()) {
+					if (!isCommentReactionId(doc.state.id as string)) continue
+					const { commentId } = doc.state as TLCommentReaction
+					if (commentId && !lane.has(commentId)) parentCommentIds.add(commentId)
+				}
+				for (const doc of storage.getObjectsByIds(parentCommentIds)) {
+					lane.set(doc.state.id as string, doc)
+				}
 
 				const {
 					threadUpserts,
@@ -2531,6 +2544,7 @@ export class TLFileDurableObject extends DurableObject {
 					commentDeletes,
 					reactionDeletes,
 					unknownIds,
+					orphanedReactionIds,
 				} = planCommentDrain(entries, lane, fileId)
 				// The prune predicate below asks `lane.has(threadId)`, and a parent thread needn't be
 				// outboxed itself — so fetch those too, still before any await.
@@ -2540,6 +2554,17 @@ export class TLFileDurableObject extends DurableObject {
 				}
 				for (const doc of storage.getObjectsByIds(parentThreadIds)) {
 					lane.set(doc.state.id as string, doc)
+				}
+				if (orphanedReactionIds.length > 0) {
+					// The parent comment isn't in this room, so the reaction can never render here — and
+					// must not reach Postgres under this file's id, because comment_reaction is joined to
+					// a comment by commentId, so the row would surface on whichever file does own that
+					// comment. Prune it from the lane the way an FK-violating reaction prunes below; its
+					// outbox entry clears normally, since neither a deleted parent nor a forged one
+					// resolves on a retry.
+					storage.transaction((txn) => {
+						for (const id of orphanedReactionIds) txn.delete(id as TLRecord['id'])
+					})
 				}
 				for (const id of unknownIds) {
 					// enqueueCommentChanges only writes comment record ids, so an unknown
@@ -2737,61 +2762,71 @@ export class TLFileDurableObject extends DurableObject {
 				//
 				// On top of the idempotency, the reconciles share one multi-comment delete and one
 				// multi-row insert per drain instead of paying 1-2 sequential statements per comment.
-				const mentionReconciles = await this.keepOwnedMentionReconciles(
-					planMentionReconciles(
-						commentUpserts.filter(
-							(row) => !failedIds.has(row.id) && !commentResult.prunedIds.includes(row.id)
-						)
-					),
-					fileId
-				)
-				if (mentionReconciles.length > 0) {
-					const changedCommentIds = mentionReconciles.map((r) => r.commentId)
-					const desiredRows = mentionReconciles.flatMap(({ commentId, userIds }) =>
-						userIds.map((userId) => ({ commentId, userId }))
+				const plannedReconciles = planMentionReconciles(
+					commentUpserts.filter(
+						(row) => !failedIds.has(row.id) && !commentResult.prunedIds.includes(row.id)
 					)
+				)
+				if (plannedReconciles.length > 0) {
+					// What the catch below marks failed. Resolving ownership is itself fallible, so this
+					// has to name every planned comment, not just the ones that turn out to be ours.
+					const changedCommentIds = plannedReconciles.map((r) => r.commentId)
 					const mentionFailedIds = new Set<string>()
 					try {
-						// One statement drops every stale row across the batch: rows belonging to a
-						// reconciling comment whose desired set no longer contains them. Comments whose
-						// set emptied contribute no desired pair, so all their rows qualify.
-						let deleteStale = this.db
-							.deleteFrom('comment_mention')
-							.where('commentId', 'in', changedCommentIds)
-						if (desiredRows.length > 0) {
-							deleteStale = deleteStale.where((eb) =>
-								eb(
-									eb.refTuple('commentId', 'userId'),
-									'not in',
-									desiredRows.map((row) => eb.tuple(row.commentId, row.userId))
+						// Inside the try: a transient failure here fails these comments and lets the next
+						// drain retry them. Outside it, it would throw past the prunes, the emptied-thread
+						// re-outboxing and the outbox clear below, stranding a whole drain's bookkeeping
+						// over one record's worth of trouble.
+						const mentionReconciles = await this.keepOwnedMentionReconciles(
+							plannedReconciles,
+							fileId
+						)
+						const ownedCommentIds = mentionReconciles.map((r) => r.commentId)
+						const desiredRows = mentionReconciles.flatMap(({ commentId, userIds }) =>
+							userIds.map((userId) => ({ commentId, userId }))
+						)
+						if (ownedCommentIds.length > 0) {
+							// One statement drops every stale row across the batch: rows belonging to a
+							// reconciling comment whose desired set no longer contains them. Comments whose
+							// set emptied contribute no desired pair, so all their rows qualify.
+							let deleteStale = this.db
+								.deleteFrom('comment_mention')
+								.where('commentId', 'in', ownedCommentIds)
+							if (desiredRows.length > 0) {
+								deleteStale = deleteStale.where((eb) =>
+									eb(
+										eb.refTuple('commentId', 'userId'),
+										'not in',
+										desiredRows.map((row) => eb.tuple(row.commentId, row.userId))
+									)
 								)
-							)
-						}
-						await deleteStale.execute()
-						if (desiredRows.length > 0) {
-							try {
-								await this.db
-									.insertInto('comment_mention')
-									.values(desiredRows)
-									.onConflict((oc) => oc.columns(['commentId', 'userId']).doNothing())
-									.execute()
-							} catch (batchError) {
-								if (!isCommentMentionFkViolation(batchError)) throw batchError
-								// One row's FK failure aborts the whole batch insert; retry row-by-row so
-								// the valid mentions land and only the FK-violating ones are skipped.
-								for (const row of desiredRows) {
-									try {
-										await this.db
-											.insertInto('comment_mention')
-											.values(row)
-											.onConflict((oc) => oc.columns(['commentId', 'userId']).doNothing())
-											.execute()
-									} catch (rowError) {
-										if (!isCommentMentionFkViolation(rowError)) {
-											// A non-FK row failure fails only its own comment — the rest of
-											// the batch keeps its at-least-once progress.
-											mentionFailedIds.add(row.commentId)
-											this.reportError(rowError)
+							}
+							await deleteStale.execute()
+							if (desiredRows.length > 0) {
+								try {
+									await this.db
+										.insertInto('comment_mention')
+										.values(desiredRows)
+										.onConflict((oc) => oc.columns(['commentId', 'userId']).doNothing())
+										.execute()
+								} catch (batchError) {
+									if (!isCommentMentionFkViolation(batchError)) throw batchError
+									// One row's FK failure aborts the whole batch insert; retry row-by-row so
+									// the valid mentions land and only the FK-violating ones are skipped.
+									for (const row of desiredRows) {
+										try {
+											await this.db
+												.insertInto('comment_mention')
+												.values(row)
+												.onConflict((oc) => oc.columns(['commentId', 'userId']).doNothing())
+												.execute()
+										} catch (rowError) {
+											if (!isCommentMentionFkViolation(rowError)) {
+												// A non-FK row failure fails only its own comment — the rest of
+												// the batch keeps its at-least-once progress.
+												mentionFailedIds.add(row.commentId)
+												this.reportError(rowError)
+											}
 										}
 									}
 								}

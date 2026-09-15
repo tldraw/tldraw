@@ -314,12 +314,24 @@ export interface CommentDrainPlan {
 	reactionDeletes: string[]
 	/** Ids of no known comment record type — a bug or a corrupted outbox row. */
 	unknownIds: string[]
+	/**
+	 * Reactions naming a parent comment this room doesn't have. A reaction is the one comment record
+	 * keyed to a parent it doesn't own — its id is derived from (comment, user, emoji), so a forged
+	 * `commentId` still mints a unique id and lands as a plain insert, where the upserts' `fileId`
+	 * conflict guard never fires. These prune rather than retry: the parent is either gone (a
+	 * reaction racing its comment's deletion) or was never here, and neither resolves on a retry.
+	 */
+	orphanedReactionIds: string[]
 }
 
 /**
  * The pure planning half of the comment outbox drain (see drainCommentOutbox). The outbox stores
  * only ids; upsert-vs-delete is decided by presence in the object `lane` at plan time, so multiple
  * entries for one record coalesce into a single write and a create-then-prune nets out to a delete.
+ *
+ * `lane` must already carry the parent comment of every outboxed reaction — a reaction's parent is
+ * usually not outboxed alongside it, and an absent parent is read here as a foreign or orphaned
+ * `commentId` (see `orphanedReactionIds`). The caller seeds them.
  */
 export function planCommentDrain(
 	entries: CommentOutboxEntry[],
@@ -334,6 +346,7 @@ export function planCommentDrain(
 		commentDeletes: [],
 		reactionDeletes: [],
 		unknownIds: [],
+		orphanedReactionIds: [],
 	}
 	const pendingIds = new Set(entries.map((e) => e.recordId))
 	for (const id of pendingIds) {
@@ -348,9 +361,12 @@ export function planCommentDrain(
 			}
 		} else if (isCommentReactionId(id)) {
 			if (doc) {
-				plan.reactionUpserts.push(
-					reactionRecordToRow(doc.state as TLCommentReaction, fileId, doc.lastChangedClock)
-				)
+				const reaction = doc.state as TLCommentReaction
+				if (lane.has(reaction.commentId)) {
+					plan.reactionUpserts.push(reactionRecordToRow(reaction, fileId, doc.lastChangedClock))
+				} else {
+					plan.orphanedReactionIds.push(id)
+				}
 			} else {
 				plan.reactionDeletes.push(id)
 			}
@@ -408,8 +424,9 @@ export function upsertCommentThreadRows(db: Kysely<DB>, rows: DB['comment_thread
 
 /**
  * "createdAt" is deliberately absent from the update set: Postgres stamps it on first insert
- * (migration 046) and the stamp must survive at-least-once replays and edits.
- * stamp_comment_created_at.test.ts exercises this conflict shape — keep them in sync.
+ * (migration 046) and the stamp must survive at-least-once replays and edits. The trigger side of
+ * that is covered by zero-cache/stamp_comment_created_at.test.ts, against a fixture table with no
+ * fileId column — so it exercises the createdAt behavior, not this builder's ownership guard.
  */
 export function upsertCommentRows(db: Kysely<DB>, rows: DB['comment'][]) {
 	return db
@@ -437,9 +454,11 @@ export function upsertCommentRows(db: Kysely<DB>, rows: DB['comment'][]) {
 }
 
 /**
- * Re-reacting with a different emoji addresses the same record id (the id is derived from the
- * comment + user pair), so it arrives here as a conflict on id — every mutable column has to be
- * listed or the change would be silently dropped.
+ * A reaction's id is derived from its whole (comment, user, emoji) triple, so reacting with a
+ * different emoji mints a different id and arrives as a plain insert — a conflict here is a replay
+ * of the same triple, not an edit. The update set still lists every mutable column so a replay
+ * carrying a corrected denormalized field (pageId follows its thread between pages) lands rather
+ * than being silently dropped.
  */
 export function upsertCommentReactionRows(db: Kysely<DB>, rows: DB['comment_reaction'][]) {
 	return db
