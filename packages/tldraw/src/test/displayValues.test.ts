@@ -1,5 +1,7 @@
-import { TLNoteShape, TLTheme, createShapeId } from '@tldraw/editor'
+import { TLNoteShape, TLTheme, createShapeId, strokeShapeIndicators } from '@tldraw/editor'
 import { ArrowShapeUtil } from '../lib/shapes/arrow/ArrowShapeUtil'
+import { getArrowInfo } from '../lib/shapes/arrow/getArrowInfo'
+import { createOrUpdateArrowBinding } from '../lib/shapes/arrow/shared'
 import { DrawShapeUtil } from '../lib/shapes/draw/DrawShapeUtil'
 import { FrameShapeUtil } from '../lib/shapes/frame/FrameShapeUtil'
 import { GeoShapeUtil } from '../lib/shapes/geo/GeoShapeUtil'
@@ -180,6 +182,73 @@ describe('highlight shape colors', () => {
 })
 
 describe('arrow strokeWidth from display values', () => {
+	it('refreshes the selection indicator when metadata changes stroke width', () => {
+		editor.dispose()
+		editor = new TestEditor({
+			shapeUtils: [
+				ArrowShapeUtil.configure({
+					getCustomDisplayValues: (_editor, shape) => ({
+						strokeWidth: Number(shape.meta.strokeWidth),
+					}),
+				}),
+			],
+		})
+		editor.createShape({
+			id: arrowId,
+			type: 'arrow',
+			props: { end: { x: 400, y: -300 }, dash: 'dashed' },
+			meta: { strokeWidth: 4 },
+		})
+		const util = editor.getShapeUtil('arrow')
+		const indicator = vi.spyOn(util, 'getIndicatorPath')
+		const ctx = document.createElement('canvas').getContext('2d')!
+		try {
+			strokeShapeIndicators(editor, ctx, [arrowId])
+			for (const strokeWidth of [1, 32, 4]) {
+				editor.updateShape({ id: arrowId, type: 'arrow', meta: { strokeWidth } })
+				strokeShapeIndicators(editor, ctx, [arrowId])
+				expect(indicator).toHaveBeenLastCalledWith(editor.getShape(arrowId))
+			}
+		} finally {
+			indicator.mockRestore()
+		}
+	})
+
+	it('updates bound arrow geometry when metadata changes stroke width', () => {
+		editor.dispose()
+		editor = new TestEditor({
+			shapeUtils: [
+				ArrowShapeUtil.configure({
+					getCustomDisplayValues: (_editor, shape) => ({
+						strokeWidth: Number(shape.meta.strokeWidth),
+					}),
+				}),
+			],
+		})
+		editor.createShapes([
+			{ id: geoId, type: 'geo', x: 400, y: 0, props: { w: 100, h: 100 } },
+			{
+				id: arrowId,
+				type: 'arrow',
+				props: { start: { x: 0, y: 50 }, end: { x: 450, y: 50 } },
+				meta: { strokeWidth: 4 },
+			},
+		])
+		createOrUpdateArrowBinding(editor, arrowId, geoId, {
+			terminal: 'end',
+			normalizedAnchor: { x: 0.5, y: 0.5 },
+			isExact: false,
+			isPrecise: true,
+			snap: 'none',
+		})
+		const before = getArrowInfo(editor, arrowId)!
+		const beforeBounds = editor.getShapeGeometry(arrowId).bounds.clone()
+		editor.updateShape({ id: arrowId, type: 'arrow', meta: { strokeWidth: 32 } })
+		const after = getArrowInfo(editor, arrowId)!
+		expect(after.end.point.x).toBeCloseTo(before.end.point.x - 14)
+		expect(editor.getShapeGeometry(arrowId).bounds.maxX).toBeCloseTo(beforeBounds.maxX - 14)
+	})
+
 	it('uses display values for strokeWidth', () => {
 		editor.createShapes([
 			{ id: geoId, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },

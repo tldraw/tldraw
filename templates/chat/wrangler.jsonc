@@ -1,0 +1,18 @@
+{
+	"$schema": "../../node_modules/wrangler/config-schema.json",
+	"name": "tldraw-chat-app-example",
+	"main": ".open-next/worker.js",
+	"compatibility_date": "2026-08-31",
+	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	"services": [
+		{
+			"binding": "WORKER_SELF_REFERENCE",
+			"service": "tldraw-chat-app-example"
+		}
+	],
+	"observability": { "enabled": true }
+}

@@ -10,6 +10,7 @@ import { useScrollToBottom } from '../hooks/useScrollToBottom'
 import { ChatInput } from './ChatInput'
 import { ImageClickTarget } from './ChatMessage'
 import { ClearChatIcon } from './ClearChatIcon'
+import { ComposerIcon } from './ComposerIcon'
 import { MessageList } from './MessageList'
 import { TldrawProviderMetadata, WhiteboardImage } from './WhiteboardModal'
 
@@ -79,6 +80,7 @@ function ChatInner({
 
 			const parts: (TextUIPart | FileUIPart)[] = images.map((image): FileUIPart => {
 				const tldrawMetadata: TldrawProviderMetadata = {
+					comments: image.comments,
 					snapshot: image.snapshot,
 					imageName: image.name,
 				}
@@ -106,8 +108,6 @@ function ChatInner({
 		scrollToBottom()
 	}, [chat.messages, scrollToBottom])
 
-	// when the user clicks on an image from chat history, we open the tldraw modal. here they can
-	// see a larger version of the image, but also annotate it and re-add it to the chat.
 	const handleImageClick = useCallback(
 		(opts: ImageClickTarget) => chatInputDispatch({ type: 'openWhiteboard', ...opts }),
 		[chatInputDispatch]
@@ -158,7 +158,7 @@ function ChatInner({
 				onDrop={handleDrop}
 			>
 				<div className="empty-chat-content">
-					<h1 className="empty-chat-title">How can I help?</h1>
+					<h1 className="empty-chat-title">Where should we begin?</h1>
 					<div className="centered-input">
 						<ChatInput
 							onSendMessage={handleSendMessage}
@@ -181,11 +181,21 @@ function ChatInner({
 			onDragLeave={handleDragLeave}
 			onDrop={handleDrop}
 		>
-			<div className="chat-header">
-				<button className="icon-button" onClick={handleClearChat} title="Clear chat">
-					<ClearChatIcon />
-				</button>
-			</div>
+			<header className="chat-header">
+				<span className="chat-share" aria-hidden="true">
+					<ComposerIcon name="share" />
+					Share
+				</span>
+				<details className="chat-options">
+					<summary className="icon-button" aria-label="Chat options">
+						<ComposerIcon name="more" />
+					</summary>
+					<button className="chat-clear" onClick={handleClearChat} disabled={status !== 'ready'}>
+						<ClearChatIcon />
+						Clear chat
+					</button>
+				</details>
+			</header>
 			<MessageList messages={chat.messages} onImageClick={handleImageClick} />
 			<div className="chat-footer">
 				<ChatInput

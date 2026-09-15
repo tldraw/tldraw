@@ -23,23 +23,31 @@
 	"scripts": {
 		"dev": "next dev -H 0.0.0.0",
 		"build": "next build",
+		"build:cloudflare": "opennextjs-cloudflare build",
+		"deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+		"preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
 		"start": "next start",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
-		"@ai-sdk/google": "^2.0.74",
+		"@ai-sdk/openai": "^2.0.106",
 		"@ai-sdk/react": "^2.0.15",
-		"@google/genai": "^1.17.0",
+		"@fal-ai/client": "^1.10.1",
+		"@tldraw/commenting": "workspace:*",
 		"@types/node": "^22.15.31",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"ai": "^5.0.194",
-		"next": "^16.3.0",
+		"next": "^16.3.3",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"react-markdown": "^10.1.0",
 		"tldraw": "workspace:*",
 		"typescript": "^5.8.3",
 		"zod": "^4.1.8"
+	},
+	"devDependencies": {
+		"@opennextjs/cloudflare": "^1.20.6",
+		"wrangler": "^4.128.0"
 	}
 }
