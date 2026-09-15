@@ -3,6 +3,7 @@ import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { sql } from 'kysely'
 import { FileEffectDeps, processFileEffect } from './fileEffects'
+import { GroupUserEffectDeps, processGroupUserEffect } from './groupUserEffects'
 import {
 	EFFECT_TIMEOUT_MS,
 	MAX_ATTEMPTS,
@@ -115,10 +116,41 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 				),
 			unpublish: (file) => unpublishSnapshot(this.env, file),
 		}
+		const groupUserDeps: GroupUserEffectDeps = {
+			isStillMember: async (userId, groupId) =>
+				!!(await db
+					.selectFrom('group_user')
+					.select('userId')
+					.where('userId', '=', userId)
+					.where('groupId', '=', groupId)
+					.executeTakeFirst()),
+			// Files in the group this user has opened. file_state is the record of that, and a live
+			// session implies a row — the client writes one when the file opens.
+			getCandidateFileIds: async (userId, groupId, limit) =>
+				(
+					await db
+						.selectFrom('file_state')
+						.innerJoin('group_file', 'group_file.fileId', 'file_state.fileId')
+						.select('file_state.fileId')
+						.where('file_state.userId', '=', userId)
+						.where('group_file.groupId', '=', groupId)
+						.orderBy('file_state.lastVisitAt', 'desc')
+						.limit(limit)
+						.execute()
+				).map((row) => row.fileId),
+			revokeSessions: (fileId, userId) =>
+				getRoomDurableObject(this.env, fileId).revokeSessionsForUser(userId),
+			reportCapHit: (userId, groupId) =>
+				this.captureException(new Error('membership revoke fan-out hit its cap'), {
+					userId,
+					groupId,
+				}),
+		}
 		// One handler per source table. Future effect sources (e.g. notifications)
 		// register here alongside their trigger.
 		const handlers: Record<string, (row: TlaEffectOutbox) => Promise<void>> = {
 			file: (row) => processFileEffect(fileDeps, row),
+			group_user: (row) => processGroupUserEffect(groupUserDeps, row),
 		}
 		try {
 			await drainOutbox({
