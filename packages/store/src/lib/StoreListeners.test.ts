@@ -541,18 +541,25 @@ describe('listeners: removing a listener (H)', () => {
 		expect(listener).toHaveBeenCalledTimes(1)
 	})
 
-	it('[H14] the listener is removed even when a listener throws during that flush', async () => {
+	it('[H14] the remover logs a listener error from its flush instead of throwing it', async () => {
+		const error = new Error('listener failed')
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
 		const listener = vi.fn(() => {
-			throw new Error('listener failed')
+			throw error
 		})
-		const removeListener = store.listen(listener)
-		store.put([tolkein()])
+		try {
+			const removeListener = store.listen(listener)
+			store.put([tolkein()])
 
-		expect(removeListener).toThrow('listener failed')
+			expect(removeListener).not.toThrow()
+			expect(consoleError).toHaveBeenCalledWith(error)
 
-		store.put([hobbit()])
-		await nextFrame()
-		expect(listener).toHaveBeenCalledTimes(1)
+			store.put([hobbit()])
+			await nextFrame()
+			expect(listener).toHaveBeenCalledTimes(1)
+		} finally {
+			consoleError.mockRestore()
+		}
 	})
 
 	it('[H14] a listener that writes and then removes itself mid-flush does not reorder the others', async () => {

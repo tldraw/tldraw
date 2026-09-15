@@ -1013,17 +1013,22 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		this.listeners.add(listener)
 
 		return () => {
-			try {
-				// Flush so this listener's history ends at exactly now, but not from inside a flush:
-				// the other listeners would then receive changes made during that flush before the
-				// entry they are still being handed.
-				if (!this.isFlushingHistory) this._flushHistory()
-			} finally {
-				this.listeners.delete(listener)
-
-				if (this.listeners.size === 0) {
-					this.historyReactor.stop()
+			// Flush so this listener's history ends at exactly now, but not from inside a flush:
+			// the other listeners would then receive changes made during that flush before the
+			// entry they are still being handed.
+			if (!this.isFlushingHistory) {
+				try {
+					this._flushHistory()
+				} catch (error) {
+					// Removers run in teardown loops (Editor.dispose, TLSyncClient.close); throwing here
+					// would skip the cleanups that follow.
+					console.error(error)
 				}
+			}
+			this.listeners.delete(listener)
+
+			if (this.listeners.size === 0) {
+				this.historyReactor.stop()
 			}
 		}
 	}
