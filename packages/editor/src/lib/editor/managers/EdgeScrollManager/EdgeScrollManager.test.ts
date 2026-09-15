@@ -418,4 +418,32 @@ describe('EdgeScrollManager', () => {
 			expect(editor.setCamera).not.toHaveBeenCalled()
 		})
 	})
+
+	describe('reset', () => {
+		it('clears the scrolling flag', () => {
+			mockInputs.setCurrentScreenPoint(new Vec(5, 300))
+			edgeScrollManager.updateEdgeScrolling(16)
+			expect(edgeScrollManager.getIsEdgeScrolling()).toBe(true)
+
+			edgeScrollManager.reset()
+			expect(edgeScrollManager.getIsEdgeScrolling()).toBe(false)
+		})
+
+		it('makes the next gesture wait for the delay again when it starts in the edge zone', () => {
+			// First gesture ends inside the edge zone, past the delay
+			mockInputs.setCurrentScreenPoint(new Vec(5, 300))
+			edgeScrollManager.updateEdgeScrolling(300)
+			expect(editor.setCamera).toHaveBeenCalled()
+
+			edgeScrollManager.reset()
+			editor.setCamera.mockClear()
+
+			// Next gesture starts in the zone: still inside the delay, so no scroll yet
+			edgeScrollManager.updateEdgeScrolling(16)
+			expect(editor.setCamera).not.toHaveBeenCalled()
+
+			edgeScrollManager.updateEdgeScrolling(200)
+			expect(editor.setCamera).toHaveBeenCalled()
+		})
+	})
 })
