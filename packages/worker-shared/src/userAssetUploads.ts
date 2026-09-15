@@ -1,8 +1,37 @@
-import { retry } from '@tldraw/utils'
+import { DEFAULT_SUPPORTED_MEDIA_TYPES, retry } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { notFound } from './errors'
 
 export const MAX_R2_OBJECT_NAME_BYTES = 1024
+
+// These objects are served back from the app's own origin, so the Content-Type an upload arrives
+// with decides what kind of document lives at that URL. The uploader picks it, which means without
+// a check here an upload is a way to publish arbitrary content under a tldraw domain.
+//
+// Only the media types the editor can actually place on a canvas are stored and served as-is.
+// Everything else is stored as an opaque download: the type is replaced and the GET below marks it
+// `content-disposition: attachment`, so a browser saves it instead of rendering it.
+const INLINE_CONTENT_TYPES: ReadonlySet<string> = new Set(DEFAULT_SUPPORTED_MEDIA_TYPES)
+const DOWNLOAD_CONTENT_TYPE = 'application/octet-stream'
+
+// R2 has no size limit of its own and the upload routes are open, so the body is bounded here.
+// Comfortably above DEFAULT_MAX_ASSET_SIZE (10MB), which is what the editor allows a user to place.
+export const MAX_UPLOAD_SIZE_BYTES = 50 * 1024 * 1024
+
+// A media type without its parameters (charset, codecs), so a type can't be smuggled past
+// INLINE_CONTENT_TYPES by appending one.
+function contentTypeEssence(contentType: string | null): string {
+	return (contentType ?? '').split(';')[0].trim().toLowerCase()
+}
+
+/**
+ * The stored content type for an upload: the declared one when the editor can render it, and an
+ * opaque download type otherwise.
+ */
+function storedContentType(declared: string | null): string {
+	const essence = contentTypeEssence(declared)
+	return INLINE_CONTENT_TYPES.has(essence) ? essence : DOWNLOAD_CONTENT_TYPE
+}
 
 function isTransientWorkerError(error: unknown): boolean {
 	const msg = String(error)
@@ -99,8 +128,18 @@ export async function handleUserAssetUpload({
 		// Buffer body so retries can re-send (ReadableStream is single-use)
 		const buffer = body ? await new Response(body).arrayBuffer() : null
 
+		if (buffer && buffer.byteLength > MAX_UPLOAD_SIZE_BYTES) {
+			return Response.json({ error: 'Asset too large' }, { status: 413 })
+		}
+
+		// Only the content type is carried over, and only after storedContentType has vetted it.
+		// Passing the request's headers straight through let the uploader set contentDisposition,
+		// contentEncoding and cacheControl on an object this worker serves from its own origin.
 		const object = await retry(
-			() => bucket.put(objectName, buffer, { httpMetadata: headers }),
+			() =>
+				bucket.put(objectName, buffer, {
+					httpMetadata: { contentType: storedContentType(headers.get('content-type')) },
+				}),
 			TRANSIENT_RETRY_OPTIONS
 		)
 
@@ -191,6 +230,13 @@ export async function handleUserAssetGet({
 	// This is critical when assets are served from the same origin as the app.
 	headers.set('content-security-policy', "default-src 'none'")
 	headers.set('x-content-type-options', 'nosniff')
+
+	// Uploads predating storedContentType carry whatever type they were sent with, so the check has
+	// to happen on the way out as well as the way in. A non-media type is served as a download, not
+	// as a document rendered under this origin.
+	if (!INLINE_CONTENT_TYPES.has(contentTypeEssence(headers.get('content-type')))) {
+		headers.set('content-disposition', 'attachment')
+	}
 
 	// cloudflare doesn't set the content-range header automatically in writeHttpMetadata, so we
 	// need to do it ourselves.
