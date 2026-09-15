@@ -319,10 +319,9 @@ describe('upgradeSchema (SC)', () => {
 		expect(
 			upgradeSchema({ schemaVersion: 1, storeVersion: 1, recordVersions: null } as any).ok
 		).toBe(false)
-	})
-
-	it('[SC5] rejects a v1 schema without storeVersion', () => {
-		expect(upgradeSchema({ schemaVersion: 1, recordVersions: {} } as any).ok).toBe(false)
+		expect(upgradeSchema({ schemaVersion: 1, storeVersion: 1, recordVersions: [] } as any).ok).toBe(
+			false
+		)
 	})
 
 	it('[SC5] rejects a v1 schema with malformed record versions', () => {

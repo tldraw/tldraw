@@ -215,7 +215,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 
 - **HS1** `handleNewSession` registers the session in `AwaitingConnectMessage` state and assigns a presence id; a session re-registered under the same id keeps its previous presence id.
 - **HS2** Protocol negotiation accepts versions 5 through 8: 5 and 6 are accepted with `requiresLegacyRejection` (6's close protocol), 8 natively. Every version below 8 — including 7 — is accepted with `supportsStringAppend: false`. Anything below 5 (or missing) is rejected `CLIENT_TOO_OLD`; anything above 8 is rejected `SERVER_TOO_OLD`.
-- **HS3** A connect message without a schema, with a schema the server cannot migrate from, or whose migrations include any non-record-scope or down-less migration, is rejected `CLIENT_TOO_OLD`.
+- **HS3** A connect message without a schema, with a schema the server cannot migrate from (including a malformed v1 schema with no `recordVersions`), or whose migrations include any non-record-scope or down-less migration, is rejected `CLIENT_TOO_OLD`.
 - **HS4** The connect response echoes `connectRequestId` and `isReadonly`, carries the server's schema and current clock, and `hydrationType: 'wipe_all'` when storage cannot produce an incremental diff since the client's `lastServerClock` (including when that clock is in the future), else `'wipe_presence'`.
 - **HS5** The connect response diff contains every _other_ session's presence record — the connecting session's own presence is excluded — plus the document changes since the client's `lastServerClock` (the full document set in the `wipe_all` case), all down-migrated when the client's schema is older.
 - **HS6** A successful handshake moves the session to `Connected`.

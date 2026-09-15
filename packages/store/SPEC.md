@@ -139,7 +139,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **SC2** `serialize()` returns `{ schemaVersion: 2, sequences }` mapping each sequence id to the version of its last migration (0 for an empty sequence).
 - **SC3** `serializeEarliestVersion()` maps every sequence to version 0.
 - **SC4** `getType(typeName)` returns the RecordType and throws for unknown type names.
-- **SC5** `upgradeSchema` converts a v1 serialized schema to v2: `storeVersion` becomes `com.tldraw.store`, each record version becomes `com.tldraw.<typeName>`, and each subtype version becomes `com.tldraw.<typeName>.<subType>`. v2 schemas pass through unchanged; schema versions other than 1 or 2 produce an error result.
+- **SC5** `upgradeSchema` converts a v1 serialized schema to v2: `storeVersion` becomes `com.tldraw.store`, each record version becomes `com.tldraw.<typeName>`, and each subtype version becomes `com.tldraw.<typeName>.<subType>`. v2 schemas pass through unchanged; schema versions other than 1 or 2, and v1 schemas whose `recordVersions`, record entries, or `subTypeVersions` are missing or malformed, produce an error result rather than throwing.
 
 ## 16. Migrations: authoring (M)
 
