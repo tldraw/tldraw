@@ -5,8 +5,9 @@ import 'vitest'
 import { createAppRouter } from './routes'
 
 declare module 'vitest' {
-	interface Assertion<T = any> {
-		toMatchAny(regexes: string[]): T
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	interface Assertion<R extends void | Promise<void> = void, T = unknown> {
+		toMatchAny(regexes: string[]): R
 	}
 	interface AsymmetricMatchersContaining {
 		toMatchAny(regexes: string[]): any

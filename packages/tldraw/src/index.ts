@@ -845,6 +845,19 @@ export {
 } from './lib/utils/text/richText'
 export { truncateStringWithEllipsis } from './lib/utils/text/text'
 export {
+	Extension,
+	getSchema,
+	Mark,
+	mergeAttributes,
+	Node,
+	TaskItem,
+	TaskList,
+	type Extensions,
+	type JSONContent,
+	type TaskItemOptions,
+	type TaskListOptions,
+} from './lib/utils/text/tiptap'
+export {
 	buildFromV1Document,
 	TLV1AlignStyle,
 	TLV1AssetType,

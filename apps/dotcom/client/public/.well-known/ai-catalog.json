@@ -1,0 +1,22 @@
+{
+	"specVersion": "1.0",
+	"host": {
+		"displayName": "tldraw",
+		"identifier": "did:web:tldraw.com",
+		"documentationUrl": "https://tldraw.dev"
+	},
+	"entries": [
+		{
+			"identifier": "urn:air:tldraw.com:mcp:board-screenshots",
+			"displayName": "tldraw board screenshots",
+			"type": "application/mcp-server-card+json",
+			"url": "https://www.tldraw.com/api/app/mcp/server-card",
+			"description": "Read the pages, shape clusters and rendered screenshots of tldraw.com boards you have access to. Requires a signed-in tldraw.com account over OAuth 2.1.",
+			"representativeQueries": [
+				"show me what is on this tldraw board",
+				"screenshot the flowchart on page 2 of this tldraw board",
+				"what shapes are in the top-left cluster of this board"
+			]
+		}
+	]
+}

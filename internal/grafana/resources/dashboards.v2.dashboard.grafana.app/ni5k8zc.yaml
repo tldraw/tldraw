@@ -1084,7 +1084,8 @@ spec:
 
                         AND blob1 IN ('create_from_source_fetch_total', 'create_from_source_r2_put',
                         'create_from_source_await_persist', 'create_from_source_r2_fetch',
-                        'db_load_r2_fetch', 'db_load_supabase_fetch', 'db_load_create_from_source')
+                        'db_load_r2_fetch', 'db_load_supabase_fetch', 'db_load_create_from_source',
+                        'db_load_comments')
 
                         AND blob2 = '${environment}-tldraw-multiplayer'
 
@@ -1100,7 +1101,8 @@ spec:
 
                         AND blob1 IN ('create_from_source_fetch_total', 'create_from_source_r2_put',
                         'create_from_source_await_persist', 'create_from_source_r2_fetch',
-                        'db_load_r2_fetch', 'db_load_supabase_fetch', 'db_load_create_from_source')
+                        'db_load_r2_fetch', 'db_load_supabase_fetch', 'db_load_create_from_source',
+                        'db_load_comments')
 
                         AND blob2 = '${environment}-tldraw-multiplayer'
 
@@ -1213,7 +1215,7 @@ spec:
                         AND blob1 IN ('on_request_total', 'on_request_auth', 'on_request_rate_limit',
                         'on_request_group_check', 'on_request_get_room', 'get_file_record',
                         'get_file_record_error', 'db_load_total', 'db_load_total_error',
-                        'db_load_r2_fetch', 'db_load_supabase_fetch', 'db_load_create_from_source',
+                        'db_load_r2_fetch', 'db_load_supabase_fetch', 'db_load_create_from_source', 'db_load_comments',
                         'create_from_source_fetch_total', 'create_from_source_r2_put',
                         'create_from_source_await_persist', 'create_from_source_r2_fetch')
 
@@ -1231,7 +1233,7 @@ spec:
                         AND blob1 IN ('on_request_total', 'on_request_auth', 'on_request_rate_limit',
                         'on_request_group_check', 'on_request_get_room', 'get_file_record',
                         'get_file_record_error', 'db_load_total', 'db_load_total_error',
-                        'db_load_r2_fetch', 'db_load_supabase_fetch', 'db_load_create_from_source',
+                        'db_load_r2_fetch', 'db_load_supabase_fetch', 'db_load_create_from_source', 'db_load_comments',
                         'create_from_source_fetch_total', 'create_from_source_r2_put',
                         'create_from_source_await_persist', 'create_from_source_r2_fetch')
 
