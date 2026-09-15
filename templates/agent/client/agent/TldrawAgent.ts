@@ -11,7 +11,6 @@ import { PromptPart } from '../../shared/types/PromptPart'
 import { Streaming } from '../../shared/types/Streaming'
 import { TodoItem } from '../../shared/types/TodoItem'
 import { AgentHelpers } from '../AgentHelpers'
-import { getModeNode } from '../modes/AgentModeChart'
 import { AgentModeType } from '../modes/AgentModeDefinitions'
 import { getPromptPartUtilsRecord, PromptPartUtil } from '../parts/PromptPartUtil'
 import { AgentActionManager } from './managers/AgentActionManager'
@@ -113,16 +112,6 @@ export class TldrawAgent {
 	promptPartUtils: Record<PromptPart['type'], PromptPartUtil<PromptPart>>
 
 	/**
-	 * Get a prompt part util for a specific part type.
-	 *
-	 * @param type - The type of part to get the util for.
-	 * @returns The part util.
-	 */
-	getPromptPartUtil(type: PromptPart['type']) {
-		return this.promptPartUtils[type]
-	}
-
-	/**
 	 * Create a new tldraw agent.
 	 */
 	constructor({ editor, id, onError }: TldrawAgentOptions) {
@@ -177,24 +166,12 @@ export class TldrawAgent {
 	 * @param state - The persisted state to load.
 	 */
 	loadState(state: PersistedAgentState) {
-		if (state.chatHistory) {
-			this.chat.setHistory(state.chatHistory)
-		}
-		if (state.chatOrigin) {
-			this.chatOrigin.setOrigin(state.chatOrigin)
-		}
-		if (state.todoList) {
-			this.todos.setTodos(state.todoList)
-		}
-		if (state.contextItems) {
-			this.context.setItems(state.contextItems)
-		}
-		if (state.modelName) {
-			this.modelName.setModelName(state.modelName)
-		}
-		if (state.debugFlags) {
-			this.debug.setDebugFlags(state.debugFlags)
-		}
+		if (state.chatHistory) this.chat.setHistory(state.chatHistory)
+		if (state.chatOrigin) this.chatOrigin.setOrigin(state.chatOrigin)
+		if (state.todoList) this.todos.setTodos(state.todoList)
+		if (state.contextItems) this.context.setItems(state.contextItems)
+		if (state.modelName) this.modelName.setModelName(state.modelName)
+		if (state.debugFlags) this.debug.setDebugFlags(state.debugFlags)
 	}
 
 	/**
@@ -253,9 +230,6 @@ export class TldrawAgent {
 	 * @returns The fully assembled prompt.
 	 */
 	async preparePrompt(request: AgentRequest, helpers: AgentHelpers): Promise<AgentPrompt> {
-		const { promptPartUtils } = this
-		const transformedParts: PromptPart[] = []
-
 		// Get available prompt part types from the current mode
 		const modeDefinition = this.mode.getCurrentModeDefinition()
 		if (!modeDefinition.active) {
@@ -264,14 +238,12 @@ export class TldrawAgent {
 			)
 		}
 
-		const availablePromptPartTypes = modeDefinition.parts
-
-		for (const promptPartType of availablePromptPartTypes) {
-			const util = promptPartUtils[promptPartType]
+		const transformedParts: PromptPart[] = []
+		for (const promptPartType of modeDefinition.parts) {
+			const util = this.promptPartUtils[promptPartType]
 			if (!util) throw new Error(`Prompt part util not found for part type: ${promptPartType}`)
 			const part = await util.getPart(structuredClone(request), helpers)
-			if (!part) continue
-			transformedParts.push(part)
+			if (part) transformedParts.push(part)
 		}
 
 		return Object.fromEntries(transformedParts.map((part) => [part.type, part])) as AgentPrompt
@@ -314,8 +286,7 @@ export class TldrawAgent {
 		this.requests.setIsPrompting(true)
 
 		const request = this.requests.getFullRequestFromInput(input)
-		const startingNode = this.mode.getCurrentModeNode()
-		startingNode.onPromptStart?.(this, request)
+		this.mode.getCurrentModeNode().onPromptStart?.(this, request)
 
 		// Submit the request to the agent.
 		try {
@@ -329,24 +300,18 @@ export class TldrawAgent {
 
 		let modeChanged = true
 		while (!this.requests.getScheduledRequest() && modeChanged) {
-			modeChanged = false
 			const currentModeType = this.mode.getCurrentModeType()
-			const currentModeNode = this.mode.getCurrentModeNode()
-			currentModeNode.onPromptEnd?.(this, request) // in case onPromptEnd switches modes
-			const newModeType = this.mode.getCurrentModeType()
-			if (newModeType !== currentModeType) {
-				modeChanged = true
-			}
+			this.mode.getCurrentModeNode().onPromptEnd?.(this, request) // in case onPromptEnd switches modes
+			modeChanged = this.mode.getCurrentModeType() !== currentModeType
 		}
 
 		// If there's still no scheduled request, quit
 		const scheduledRequest = this.requests.getScheduledRequest()
-		const eventualModeType = this.mode.getCurrentModeType()
-		const eventualModeDefinition = this.mode.getCurrentModeDefinition()
 		if (!scheduledRequest) {
+			const eventualModeDefinition = this.mode.getCurrentModeDefinition()
 			if (eventualModeDefinition.active) {
 				throw new Error(
-					`Agent is not allowed to become inactive during the active mode: ${eventualModeType}`
+					`Agent is not allowed to become inactive during the active mode: ${eventualModeDefinition.type}`
 				)
 			}
 			this.requests.setIsPrompting(false)
@@ -356,11 +321,7 @@ export class TldrawAgent {
 
 		// If there *is* a scheduled request...
 		// Add the scheduled request to chat history
-		const resolvedData = await Promise.all(scheduledRequest.data)
-		this.chat.push({
-			type: 'continuation',
-			data: resolvedData,
-		})
+		this.chat.push({ type: 'continuation', data: await Promise.all(scheduledRequest.data) })
 
 		// Handle the scheduled request and clear it
 		this.requests.clearScheduledRequest()
@@ -392,13 +353,10 @@ export class TldrawAgent {
 
 		// Call an external helper function to request the agent
 		const { promise, cancel } = this.requestAgentActions(request)
-
 		this.requests.setCancelFn(cancel)
 
-		const results = await promise
+		await promise
 		this.requests.clearActiveRequest()
-
-		return results
 	}
 
 	/**
@@ -435,16 +393,15 @@ export class TldrawAgent {
 		}
 
 		const newRequest = this.requests.getPartialRequestFromInput(input)
-
 		this._schedule({
 			// Append to properties where possible
 			agentMessages: [...scheduledRequest.agentMessages, ...(newRequest.agentMessages ?? [])],
 			userMessages: [...scheduledRequest.userMessages, ...(newRequest.userMessages ?? [])],
 			data: [...scheduledRequest.data, ...(newRequest.data ?? [])],
+			contextItems: [...scheduledRequest.contextItems, ...(newRequest.contextItems ?? [])],
 
 			// Override specific properties
 			bounds: newRequest.bounds ?? scheduledRequest.bounds,
-			contextItems: [...scheduledRequest.contextItems, ...(newRequest.contextItems ?? [])],
 			source: newRequest.source ?? scheduledRequest.source ?? 'self',
 		})
 	}
@@ -465,28 +422,14 @@ export class TldrawAgent {
 	 * })
 	 * ```
 	 *
-	 * @example
-	 * ```tsx
-	 * // Cancel the scheduled request
-	 * agent.setScheduledRequest(null)
-	 * ```
-	 *
-	 * @param input - What to set the scheduled request to, or null to cancel
-	 * the scheduled request.
+	 * @param input - What to set the scheduled request to.
 	 */
-	private _schedule(input: AgentInput | null) {
-		if (input === null) {
-			this.requests.clearScheduledRequest()
-			return
-		}
-
+	private _schedule(input: AgentInput) {
 		const partialRequest = this.requests.getPartialRequestFromInput(input)
-		partialRequest.source = partialRequest.source ?? 'self' // when scheduling, we want the default source to be 'self' if none is provided
+		partialRequest.source ??= 'self' // when scheduling, we want the default source to be 'self' if none is provided
 		const request = this.requests.getFullRequestFromInput(partialRequest)
 
-		const isCurrentlyActive = this.requests.isGenerating()
-
-		if (isCurrentlyActive) {
+		if (this.requests.isGenerating()) {
 			this.requests.setScheduledRequest(request)
 		} else {
 			this.prompt(request)
@@ -514,16 +457,13 @@ export class TldrawAgent {
 	 */
 	cancel() {
 		const activeRequest = this.requests.getActiveRequest()
-
 		if (activeRequest) {
-			const modeType = this.mode.getCurrentModeType()
-			const modeNode = getModeNode(modeType)
-			modeNode.onPromptCancel?.(this, activeRequest)
+			this.mode.getCurrentModeNode().onPromptCancel?.(this, activeRequest)
 
 			const newModeDefinition = this.mode.getCurrentModeDefinition()
 			if (newModeDefinition.active) {
 				throw new Error(
-					`Agent is not allowed to become inactive during the active mode: ${this.mode.getCurrentModeType()}`
+					`Agent is not allowed to become inactive during the active mode: ${newModeDefinition.type}`
 				)
 			}
 		}
@@ -567,15 +507,14 @@ export class TldrawAgent {
 			agentFacingMessage: request.agentMessages.join('\n'),
 			userFacingMessage: request.userMessages.length > 0 ? request.userMessages.join('\n') : null,
 			contextItems: structuredClone(request.contextItems),
-			selectedShapes: this.editor
+			selectedShapes: editor
 				.getSelectedShapes()
-				.map((shape) => convertTldrawShapeToFocusedShape(this.editor, structuredClone(shape))),
+				.map((shape) => convertTldrawShapeToFocusedShape(editor, structuredClone(shape))),
 		}
 		this.chat.push(promptHistoryItem)
 
 		let cancelled = false
 		const controller = new AbortController()
-		const signal = controller.signal
 		const helpers = new AgentHelpers(this)
 
 		const modeDefinition = this.mode.getCurrentModeDefinition()
@@ -593,7 +532,7 @@ export class TldrawAgent {
 			let incompleteDiff: RecordsDiff<TLRecord> | null = null
 			const actionPromises: Promise<void>[] = []
 			try {
-				for await (const action of this.streamAgentActions({ prompt, signal })) {
+				for await (const action of this.streamAgentActions({ prompt, signal: controller.signal })) {
 					if (cancelled) break
 
 					// Set acting flag BEFORE editor.run so user action tracker ignores all changes
@@ -603,12 +542,9 @@ export class TldrawAgent {
 						editor.run(
 							() => {
 								const actionUtilType = this.actions.getAgentActionUtilType(action._type)
-								const actionUtil = this.actions.getAgentActionUtil(action._type)
 
 								// If the action is not in the mode's available actions, skip it
-								if (!availableActions.includes(actionUtilType)) {
-									return
-								}
+								if (!availableActions.includes(actionUtilType)) return
 
 								// If there was a diff from an incomplete action, revert it so that we can reapply the action
 								// This must happen BEFORE sanitize so we're working with clean state
@@ -620,18 +556,15 @@ export class TldrawAgent {
 									incompleteDiff = null
 								}
 
+								const actionUtil = this.actions.getAgentActionUtil(action._type)
+
 								// Sanitize the agent's action
 								const transformedAction = actionUtil.sanitizeAction(action, helpers)
-								if (!transformedAction) {
-									return
-								}
+								if (!transformedAction) return
 
 								// Apply the action to the app and editor
 								const { diff, promise } = this.actions.act(transformedAction, helpers)
-
-								if (promise) {
-									actionPromises.push(promise)
-								}
+								if (promise) actionPromises.push(promise)
 
 								// Track shapes from diff for both complete and incomplete actions
 								this.lints.trackShapesFromDiff(diff)
@@ -644,10 +577,7 @@ export class TldrawAgent {
 									incompleteDiff = diff
 								}
 							},
-							{
-								ignoreShapeLock: true,
-								history: 'ignore',
-							}
+							{ ignoreShapeLock: true, history: 'ignore' }
 						)
 					} finally {
 						this.setIsActingOnEditor(false)
@@ -686,15 +616,11 @@ export class TldrawAgent {
 		const res = await fetch('/stream', {
 			method: 'POST',
 			body: JSON.stringify(prompt),
-			headers: {
-				'Content-Type': 'application/json',
-			},
+			headers: { 'Content-Type': 'application/json' },
 			signal,
 		})
 
-		if (!res.body) {
-			throw Error('No body in response')
-		}
+		if (!res.body) throw Error('No body in response')
 
 		const reader = res.body.getReader()
 		const decoder = new TextDecoder()
@@ -711,21 +637,12 @@ export class TldrawAgent {
 
 				for (const action of actions) {
 					const match = action.match(/^data: (.+)$/m)
-					if (match) {
-						try {
-							const data = JSON.parse(match[1])
+					if (!match) continue
+					const data = JSON.parse(match[1])
 
-							// If the response contains an error, throw it
-							if ('error' in data) {
-								throw new Error(data.error)
-							}
-
-							const agentAction: Streaming<AgentAction> = data
-							yield agentAction
-						} catch (err: any) {
-							throw new Error(err.message)
-						}
-					}
+					// If the response contains an error, throw it
+					if ('error' in data) throw new Error(data.error)
+					yield data as Streaming<AgentAction>
 				}
 			}
 		} finally {

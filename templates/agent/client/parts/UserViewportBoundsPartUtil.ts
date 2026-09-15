@@ -8,11 +8,10 @@ export const UserViewportBoundsPartUtil = registerPromptPartUtil(
 
 		override getPart(_request: unknown, helpers: AgentHelpers): UserViewportBoundsPart {
 			const userBounds = this.editor.getViewportPageBounds()
-			const offsetUserBounds = helpers.applyOffsetToBox(userBounds)
 
 			return {
 				type: 'userViewportBounds',
-				userBounds: helpers.roundBox(offsetUserBounds),
+				userBounds: helpers.roundBox(helpers.applyOffsetToBox(userBounds)),
 			}
 		}
 	}

@@ -41,49 +41,23 @@ export class AgentUserActionTracker extends BaseAgentManager {
 	 */
 	startRecording() {
 		const { editor } = this.agent
-		const cleanUpCreate = editor.sideEffects.registerAfterCreateHandler(
-			'shape',
-			(shape, source) => {
-				if (source !== 'user') return
-				if (this.agent.getIsActingOnEditor()) return
-				const change = {
-					added: { [shape.id]: shape },
-					updated: {},
-					removed: {},
-				}
-				this.$userActionHistory.update((prev) => [...prev, change])
-				return
-			}
-		)
 
-		const cleanUpDelete = editor.sideEffects.registerAfterDeleteHandler(
-			'shape',
-			(shape, source) => {
-				if (source !== 'user') return
-				if (this.agent.getIsActingOnEditor()) return
-				const change = {
-					added: {},
-					updated: {},
-					removed: { [shape.id]: shape },
-				}
-				this.$userActionHistory.update((prev) => [...prev, change])
-				return
-			}
-		)
+		const record = (change: RecordsDiff<TLRecord>, source: 'user' | 'remote') => {
+			if (source !== 'user') return
+			if (this.agent.getIsActingOnEditor()) return
+			this.$userActionHistory.update((prev) => [...prev, change])
+		}
 
+		const cleanUpCreate = editor.sideEffects.registerAfterCreateHandler('shape', (shape, source) =>
+			record({ added: { [shape.id]: shape }, updated: {}, removed: {} }, source)
+		)
+		const cleanUpDelete = editor.sideEffects.registerAfterDeleteHandler('shape', (shape, source) =>
+			record({ added: {}, updated: {}, removed: { [shape.id]: shape } }, source)
+		)
 		const cleanUpChange = editor.sideEffects.registerAfterChangeHandler(
 			'shape',
-			(prev, next, source) => {
-				if (source !== 'user') return
-				if (this.agent.getIsActingOnEditor()) return
-				const change: RecordsDiff<TLRecord> = {
-					added: {},
-					updated: { [prev.id]: [prev, next] },
-					removed: {},
-				}
-				this.$userActionHistory.update((prev) => [...prev, change])
-				return
-			}
+			(prev, next, source) =>
+				record({ added: {}, updated: { [prev.id]: [prev, next] }, removed: {} }, source)
 		)
 
 		const cleanUp = () => {
@@ -91,7 +65,6 @@ export class AgentUserActionTracker extends BaseAgentManager {
 			cleanUpDelete()
 			cleanUpChange()
 		}
-
 		this.stopRecordingFn = cleanUp
 		return cleanUp
 	}

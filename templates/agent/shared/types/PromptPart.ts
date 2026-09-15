@@ -78,7 +78,6 @@ function isPromptPartDefinition(value: unknown): value is PromptPartDefinition<B
 	return (
 		typeof value === 'object' &&
 		value !== null &&
-		typeof value !== 'function' &&
 		'type' in value &&
 		typeof (value as PromptPartDefinition<BasePromptPart>).type === 'string'
 	)
@@ -86,11 +85,9 @@ function isPromptPartDefinition(value: unknown): value is PromptPartDefinition<B
 
 /** Build lookup object from all exported definitions */
 const definitionsByType: Record<string, PromptPartDefinition<BasePromptPart>> = Object.fromEntries(
-	(
-		Object.values(AllDefinitions).filter(
-			isPromptPartDefinition
-		) as PromptPartDefinition<BasePromptPart>[]
-	).map((def) => [def.type, def])
+	Object.values(AllDefinitions)
+		.filter(isPromptPartDefinition)
+		.map((def) => [def.type, def])
 )
 
 /**
