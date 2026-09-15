@@ -155,6 +155,12 @@ export type SerializedSchema = SerializedSchemaV1 | SerializedSchemaV2
 export function upgradeSchema(schema: SerializedSchema): Result<SerializedSchemaV2, string> {
 	if (schema.schemaVersion > 2 || schema.schemaVersion < 1) return Result.err('Bad schema version')
 	if (schema.schemaVersion === 2) return Result.ok(schema as SerializedSchemaV2)
+	// A v1 schema comes from persisted data or a remote client, so the type gives no guarantee
+	// about its shape. Object.entries throws on a missing recordVersions, which sync would surface
+	// as an unknown error instead of a version-mismatch rejection (#10105).
+	if (typeof schema.storeVersion !== 'number' || !isObject(schema.recordVersions)) {
+		return Result.err('Bad v1 schema')
+	}
 	const result: SerializedSchemaV2 = {
 		schemaVersion: 2,
 		sequences: {
@@ -163,14 +169,22 @@ export function upgradeSchema(schema: SerializedSchema): Result<SerializedSchema
 	}
 
 	for (const [typeName, recordVersion] of Object.entries(schema.recordVersions)) {
+		if (!isObject(recordVersion) || typeof recordVersion.version !== 'number') {
+			return Result.err('Bad v1 schema')
+		}
 		result.sequences[`com.tldraw.${typeName}`] = recordVersion.version
 		if ('subTypeKey' in recordVersion) {
+			if (!isObject(recordVersion.subTypeVersions)) return Result.err('Bad v1 schema')
 			for (const [subType, version] of Object.entries(recordVersion.subTypeVersions)) {
 				result.sequences[`com.tldraw.${typeName}.${subType}`] = version
 			}
 		}
 	}
 	return Result.ok(result)
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null
 }
 
 /**

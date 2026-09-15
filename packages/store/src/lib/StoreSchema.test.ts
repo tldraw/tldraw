@@ -313,6 +313,35 @@ describe('upgradeSchema (SC)', () => {
 		expect(upgradeSchema({ schemaVersion: 3 } as any).ok).toBe(false)
 		expect(upgradeSchema({ schemaVersion: 0 } as any).ok).toBe(false)
 	})
+
+	it('[SC5] rejects a v1 schema without recordVersions instead of throwing', () => {
+		expect(upgradeSchema({ schemaVersion: 1, storeVersion: 1 } as any).ok).toBe(false)
+		expect(
+			upgradeSchema({ schemaVersion: 1, storeVersion: 1, recordVersions: null } as any).ok
+		).toBe(false)
+	})
+
+	it('[SC5] rejects a v1 schema without storeVersion', () => {
+		expect(upgradeSchema({ schemaVersion: 1, recordVersions: {} } as any).ok).toBe(false)
+	})
+
+	it('[SC5] rejects a v1 schema with malformed record versions', () => {
+		expect(
+			upgradeSchema({ schemaVersion: 1, storeVersion: 1, recordVersions: { book: null } } as any).ok
+		).toBe(false)
+		expect(
+			upgradeSchema({ schemaVersion: 1, storeVersion: 1, recordVersions: { book: {} } } as any).ok
+		).toBe(false)
+	})
+
+	it('[SC5] rejects a v1 schema with a subTypeKey but no subTypeVersions', () => {
+		const v1 = {
+			schemaVersion: 1,
+			storeVersion: 1,
+			recordVersions: { shape: { version: 1, subTypeKey: 'type' } },
+		}
+		expect(upgradeSchema(v1 as any).ok).toBe(false)
+	})
 })
 
 const mockSequence = ({
