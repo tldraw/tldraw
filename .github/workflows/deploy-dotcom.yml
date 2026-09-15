@@ -8,7 +8,11 @@ on:
       - main
       - production
 
-permissions: write-all
+permissions:
+  contents: read
+  # createGithubDeployment (internal/scripts/lib/deploy.ts) registers the deployment that
+  # renders the 'View Deployment' button on the PR.
+  deployments: write
 
 env:
   CI: 1
@@ -62,7 +66,7 @@ jobs:
 
       - name: Install Supabase CLI
         if: github.event_name == 'pull_request'
-        uses: supabase/setup-cli@v1
+        uses: supabase/setup-cli@ab058987d8d6c725971f6cf9d0b5c98467e30bd1 # v1
         with:
           # Pinned: v2.112.0 rejects the Management API's own timestamps, which
           # breaks `branches get` and `branches delete`. See supabase/cli#6115.
