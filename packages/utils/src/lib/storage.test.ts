@@ -13,35 +13,26 @@ import {
 } from './storage'
 
 describe('storage', () => {
-	// Store original implementations
-	const originalLocalStorage = global.localStorage
-	const originalSessionStorage = global.sessionStorage
+	// Stub the Window accessors rather than assigning to `global.localStorage`: jsdom defines
+	// these as getters that assignment can't overwrite, and each read returns a fresh wrapper,
+	// so a spy on one instance wouldn't be seen by the next read.
+	function stubStorage(name: 'localStorage' | 'sessionStorage') {
+		const mock = {
+			getItem: vi.fn(),
+			setItem: vi.fn(),
+			removeItem: vi.fn(),
+			clear: vi.fn(),
+		}
+		vi.spyOn(window, name, 'get').mockReturnValue(mock as any)
+	}
 
 	beforeEach(() => {
-		// Mock localStorage
-		const localStorageMock = {
-			getItem: vi.fn(),
-			setItem: vi.fn(),
-			removeItem: vi.fn(),
-			clear: vi.fn(),
-		}
-		global.localStorage = localStorageMock as any
-
-		// Mock sessionStorage
-		const sessionStorageMock = {
-			getItem: vi.fn(),
-			setItem: vi.fn(),
-			removeItem: vi.fn(),
-			clear: vi.fn(),
-		}
-		global.sessionStorage = sessionStorageMock as any
+		stubStorage('localStorage')
+		stubStorage('sessionStorage')
 	})
 
 	afterEach(() => {
-		// Restore original implementations
-		global.localStorage = originalLocalStorage
-		global.sessionStorage = originalSessionStorage
-		vi.clearAllMocks()
+		vi.restoreAllMocks()
 	})
 
 	describe('getFromLocalStorage', () => {
