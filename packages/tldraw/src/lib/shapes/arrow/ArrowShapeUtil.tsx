@@ -37,7 +37,6 @@ import {
 	invLerp,
 	lerp,
 	mapObjectMapValues,
-	maybeSnapToGrid,
 	structuredClone,
 	toDomPrecision,
 	toRichText,
@@ -60,6 +59,7 @@ import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
 import { getThemeFontFaces } from '../shared/defaultFonts'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { getDisplayValues } from '../shared/getDisplayValues'
+import { maybeSnapHandleToGrid } from '../shared/maybeSnapHandleToGrid'
 import { PathBuilder } from '../shared/PathBuilder'
 import { PatternFill } from '../shared/PatternFill'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
@@ -518,7 +518,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		if (!targetInfo) {
 			// todo: maybe double check that this isn't equal to the other handle too?
 			removeArrowBinding(this.editor, shape, handleId)
-			const newPoint = maybeSnapToGrid(new Vec(handle.x, handle.y), this.editor)
+			const newPoint = maybeSnapHandleToGrid(new Vec(handle.x, handle.y), this.editor)
 			update.props![handleId] = {
 				x: newPoint.x,
 				y: newPoint.y,
