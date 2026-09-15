@@ -9,6 +9,7 @@ import {
 	MCP_PER_BOARD_RATE_LIMIT,
 	MCP_PER_USER_RATE_LIMIT,
 	MCP_RATE_LIMIT_WINDOW_MS,
+	MCP_SEARCH_PER_USER_RATE_LIMIT,
 } from '../../config'
 import { Environment, envFlagWord } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
@@ -131,6 +132,16 @@ const RATE_LIMIT_FALLBACK = new Map<string, { count: number; resetAt: number }>(
  */
 function perUserRateLimitKey(userId: string) {
 	return `user:${userId}`
+}
+
+/**
+ * The `search_boards` budget's key. A separate binding, not a separate prefix: `isRateLimited`'s
+ * `mcp-shared-board-screenshot:` prefix is what the deployed buckets count against and cannot move,
+ * so what keeps this budget apart from the Browser Run one is the binding it is checked against, not
+ * the string. The `search:` segment only keeps the two readable in a dump.
+ */
+function searchRateLimitKey(userId: string) {
+	return `search:${userId}`
 }
 
 async function isGlobalBrowserRunRateLimited(env: Environment): Promise<boolean> {
@@ -605,11 +616,13 @@ async function callSearchBoardsTool(
 	if (!parsed.ok) return parsed.result
 	const input = parsed.input
 
-	// Not rate limited, for the same reason get_board_info is not: the limiters here bound Browser
-	// Run, and this call spends none. Paging is index-bounded (see searchBoards.ts) but matching is
-	// not — a query that matches nothing still reads every board the caller can see — so the revisit
-	// signal is `postgres_client_connect` volume from this surface. See "MCP tools" in
+	// Its own budget, not the Browser Run one: this call spends no Browser Run, and counting it
+	// against that limiter would make the per-account number config.ts documents untrue. What it does
+	// spend is Postgres, and paging is index-bounded (see searchBoards.ts) while matching is not — a
+	// query that matches nothing still reads every board the caller can see. See "MCP tools" in
 	// browser-run-thumbnails.md.
+	const refusal = await checkSearchRateLimit(env, userId, mcpTelemetryWriter(env))
+	if (refusal) return refusal
 
 	try {
 		return getBoardSearchResults(await searchAccessibleBoards(env, userId, input), input.terms)
@@ -879,6 +892,40 @@ async function checkPerUserRateLimit(
 	return toolError(
 		`Rate limited. Requests are limited to about ${MCP_PER_USER_RATE_LIMIT} per minute per account.`,
 		'rate_limited_user'
+	)
+}
+
+/**
+ * The per-caller ceiling on `search_boards`, which the Browser Run budget deliberately does not
+ * cover: search spends no Browser Run, and counting it there would make the number config.ts
+ * documents untrue again.
+ *
+ * The refusal is written to the screenshot ledger even though a successful search is not. That
+ * ledger is the one panel answering "who is being turned away", and a limit nobody can see firing
+ * is the mistake `checkPerUserRateLimit` already documents having made once; its own reason code so
+ * the two budgets stay legible apart.
+ */
+async function checkSearchRateLimit(
+	env: Environment,
+	userId: string,
+	telemetry: McpTelemetryWriter
+): Promise<ToolCallResult | undefined> {
+	if (
+		!(await isRateLimited(env.MCP_SERVER_SEARCH_RATE_LIMITER, searchRateLimitKey(userId), {
+			fallbackLimit: MCP_SEARCH_PER_USER_RATE_LIMIT,
+		}))
+	) {
+		return undefined
+	}
+	telemetry({
+		cacheStatus: 'none',
+		rateLimitAllowed: false,
+		failureReason: 'rate_limited_search',
+		callerHash: await sha256(userId),
+	})
+	return toolError(
+		`Rate limited. Searches are limited to about ${MCP_SEARCH_PER_USER_RATE_LIMIT} per minute per account.`,
+		'rate_limited_search'
 	)
 }
 

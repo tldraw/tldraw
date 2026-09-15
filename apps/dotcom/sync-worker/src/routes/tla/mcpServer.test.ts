@@ -1,6 +1,6 @@
 import { THUMBNAIL_RENDER_TIMEOUT_MS } from '@tldraw/dotcom-shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { MCP_PER_USER_RATE_LIMIT } from '../../config'
+import { MCP_PER_USER_RATE_LIMIT, MCP_SEARCH_PER_USER_RATE_LIMIT } from '../../config'
 import { Environment } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
@@ -1181,6 +1181,42 @@ describe('rate limits', () => {
 		// The per-user message specifically, so this can't pass on the global cap firing instead.
 		expect(blocked.content[0].text).toContain('per minute per account')
 		expect(failureBlobsOf(env)).toContain('failure:rate_limited_user')
+	})
+
+	// Search has its own budget because it bounds Postgres, not Browser Run. Pins the configured
+	// number rather than merely that something eventually refuses, and stops one call past it so a
+	// pass cannot be some other limiter firing — search is checked against a binding of its own.
+	it(`allows ${MCP_SEARCH_PER_USER_RATE_LIMIT} searches per account per minute, then rate limits`, async () => {
+		vi.mocked(searchAccessibleBoards).mockResolvedValue([])
+		const env = makeEnv()
+
+		const results = []
+		for (let i = 0; i <= MCP_SEARCH_PER_USER_RATE_LIMIT; i++) {
+			results.push(await callTool('search_boards', {}, env, 'user_search'))
+		}
+
+		expect(results.slice(0, MCP_SEARCH_PER_USER_RATE_LIMIT).map((r) => r.isError)).toEqual(
+			Array(MCP_SEARCH_PER_USER_RATE_LIMIT).fill(undefined)
+		)
+		const blocked = results[MCP_SEARCH_PER_USER_RATE_LIMIT]
+		expect(blocked.isError).toBe(true)
+		// The search message specifically, so this cannot pass on the Browser Run budget firing.
+		expect(blocked.content[0].text).toContain('Searches are limited')
+		// A limit nobody can see firing is the failure this ledger row exists to prevent.
+		expect(failureBlobsOf(env)).toContain('failure:rate_limited_search')
+	})
+
+	// Both halves matter: without the noisy caller actually being refused, the quiet one succeeding
+	// says nothing, since a search nobody limits succeeds for everybody.
+	it('gives each account its own search budget', async () => {
+		vi.mocked(searchAccessibleBoards).mockResolvedValue([])
+		const env = makeEnv()
+		let noisy
+		for (let i = 0; i <= MCP_SEARCH_PER_USER_RATE_LIMIT; i++) {
+			noisy = await callTool('search_boards', {}, env, 'user_search_noisy')
+		}
+		expect(noisy?.isError).toBe(true)
+		expect((await callTool('search_boards', {}, env, 'user_search_quiet')).isError).toBeUndefined()
 	})
 
 	// The point of re-keying off IP: a second account gets its own budget, and one account

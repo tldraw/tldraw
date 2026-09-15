@@ -626,6 +626,34 @@ type = "ratelimit"
 namespace_id = "1012"
 simple = { limit = 20, period = 60 }
 
+# MCP server per-account `search_boards` guard. Bounds Postgres rather than Browser Run, which search
+# never spends, so it is a separate budget from MCP_SCREENSHOT_RATE_LIMITER and a much larger number:
+# paging is what spends it, at a fixed 20 boards a page — see MCP_SEARCH_PER_USER_RATE_LIMIT in
+# config.ts before changing this.
+[[env.dev.unsafe.bindings]]
+name = "MCP_SERVER_SEARCH_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1017"
+simple = { limit = 60, period = 60 }
+
+[[env.preview.unsafe.bindings]]
+name = "MCP_SERVER_SEARCH_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1018"
+simple = { limit = 60, period = 60 }
+
+[[env.staging.unsafe.bindings]]
+name = "MCP_SERVER_SEARCH_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1019"
+simple = { limit = 60, period = 60 }
+
+[[env.production.unsafe.bindings]]
+name = "MCP_SERVER_SEARCH_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1020"
+simple = { limit = 60, period = 60 }
+
 #################### Queues ####################
 [[env.dev.queues.producers]]
 queue = "tldraw-multiplayer-queue-dev"
