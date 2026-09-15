@@ -76,3 +76,42 @@ describe('layout parsing tolerates mermaid >= 11.15 prefixed ids', () => {
 		expect(layout.edges.map((e) => [e.start, e.end])).toEqual([['A', 'B']])
 	})
 })
+
+describe('edge label parsing', () => {
+	// Mermaid's markup: the label group is translated to its box's top-left corner, inside an
+	// `edgeLabel` group translated to the label's centre. Edges without text get an empty group.
+	function labelMarkup(dataId: string, center: [number, number], size: [number, number]) {
+		const [w, h] = size
+		return `<g class="edgeLabel" transform="translate(${center[0]}, ${center[1]})">
+			<g class="label" data-id="${dataId}" transform="translate(${-w / 2}, ${-h / 2})">
+				<foreignObject width="${w}" height="${h}"></foreignObject>
+			</g>
+		</g>`
+	}
+
+	it("keys each label's box by the data-id it shares with its path", () => {
+		const svg = svgFromString(`
+			<svg id="mermaid-0">
+				<g class="edgeLabels" transform="translate(10, 20)">
+					${labelMarkup('L_B_B_0', [100, 200], [80, 40])}
+					<g class="edgeLabel"><g class="label" data-id="L_A_B_0" transform="translate(0, 0)">
+						<foreignObject width="0" height="0"></foreignObject>
+					</g></g>
+				</g>
+				${nodeMarkup('mermaid-0-flowchart-B-0')}
+				${edgeMarkup('L_B_B_0', [
+					[40, 60],
+					[70, 60],
+				])}
+			</svg>
+		`)
+		const layout = parseFlowchartLayout(svg)
+
+		expect(layout.edges[0].id).toBe('L_B_B_0')
+		// Scaled with the rest of the layout, so the box stays put relative to its loop.
+		const scale = layout.edges[0].points[0].x / 40
+		expect(layout.edgeLabels).toEqual(
+			new Map([['L_B_B_0', { x: 70 * scale, y: 200 * scale, w: 80 * scale, h: 40 * scale }]])
+		)
+	})
+})
