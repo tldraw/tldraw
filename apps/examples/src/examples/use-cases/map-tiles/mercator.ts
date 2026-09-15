@@ -56,8 +56,10 @@ export function pageToLngLat(x: number, y: number) {
  * band needs a zoom past `MAX_MAP_ZOOM`, which is what makes that last step sharp instead of soft.
  */
 export function getMapZoom(cameraZoom: number, devicePixelRatio = 1) {
+	// Round up rather than to nearest on the ratio: a 1.5x screen rounds to no extra level and
+	// stretches 256 tile pixels over 384, which is the blur this is here to avoid.
 	return clamp(
-		Math.round(BASE_MAP_ZOOM + Math.log2(cameraZoom) + Math.log2(devicePixelRatio)),
+		Math.round(BASE_MAP_ZOOM + Math.log2(cameraZoom)) + Math.ceil(Math.log2(devicePixelRatio)),
 		MIN_MAP_ZOOM,
 		MAX_TILE_ZOOM
 	)

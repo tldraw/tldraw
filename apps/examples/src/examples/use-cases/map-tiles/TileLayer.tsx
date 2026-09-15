@@ -7,6 +7,26 @@ function getTileUrl(z: number, x: number, y: number) {
 	return `https://tile.openstreetmap.org/${z}/${x}/${y}.png`
 }
 
+function renderTiles(mapZoom: number, minX: number, minY: number, maxX: number, maxY: number) {
+	const tileSize = getTilePageSize(mapZoom)
+	const elements = []
+	for (let x = minX; x <= maxX; x++) {
+		for (let y = minY; y <= maxY; y++) {
+			elements.push(
+				<img
+					key={`${mapZoom}/${x}/${y}`}
+					className="map-tile"
+					src={getTileUrl(mapZoom, x, y)}
+					alt=""
+					draggable={false}
+					style={{ left: x * tileSize, top: y * tileSize, width: tileSize, height: tileSize }}
+				/>
+			)
+		}
+	}
+	return elements
+}
+
 export function TileLayer() {
 	const editor = useEditor()
 
@@ -32,28 +52,10 @@ export function TileLayer() {
 	// [4]
 	const tiles = useMemo(() => {
 		const [mapZoom, minX, minY, maxX, maxY] = visibleTiles.split(',').map(Number)
-		const tileSize = getTilePageSize(mapZoom)
-		const elements = []
-		for (let x = minX; x <= maxX; x++) {
-			for (let y = minY; y <= maxY; y++) {
-				elements.push(
-					<img
-						key={`${mapZoom}/${x}/${y}`}
-						className="map-tile"
-						src={getTileUrl(mapZoom, x, y)}
-						alt=""
-						draggable={false}
-						style={{
-							left: x * tileSize,
-							top: y * tileSize,
-							width: tileSize,
-							height: tileSize,
-						}}
-					/>
-				)
-			}
-		}
-		return elements
+		// [5]
+		const underlay =
+			mapZoom > 0 ? renderTiles(mapZoom - 1, minX >> 1, minY >> 1, maxX >> 1, maxY >> 1) : []
+		return [...underlay, ...renderTiles(mapZoom, minX, minY, maxX, maxY)]
 	}, [visibleTiles])
 
 	return <>{tiles}</>
@@ -77,4 +79,11 @@ it scrolls into view, so a fast pan trails an empty strip for as long as the fet
 
 [4]
 Tiles are positioned in page space, so nothing here needs to know where the camera is.
+
+[5]
+Crossing a zoom level changes every tile's key, so React swaps the whole grid at once and the
+canvas is bare until the new images decode. Painting the next level out underneath first means
+there is always something behind the gap: those tiles cover four times the area, and you were
+just looking at them, so they come from cache and appear instantly. The sharp tiles land on top
+as they arrive. This is what a map library means by keeping a parent layer.
 */
