@@ -110,6 +110,17 @@ export type RemoteTLStoreWithStatus =
 			 * be allowed to comment without being allowed to edit. Defaults to `'write'`.
 			 */
 			readonly objectAccess: TLObjectStoreAccess
+			/**
+			 * Sends whatever this client is still holding and resolves once the server has confirmed
+			 * it. Resolves immediately when there is nothing outstanding, and rejects if the client
+			 * closes first.
+			 *
+			 * Pushes are throttled, heavily so in a session that is the room's only one, so a change
+			 * can be seconds old and still be nowhere but this tab. Await this before anything that
+			 * reads the document from the server and expects to see what the user just did — taking
+			 * a server-side snapshot, exporting, handing a link to a reader.
+			 */
+			flushChanges(): Promise<void>
 	  })
 
 /**
@@ -411,6 +422,9 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				connectionStatus: toCollaborationStatus(state.readyClient.socket.connectionStatus),
 				store: state.readyClient.store,
 				objectAccess: state.objectAccess ?? 'write',
+				// Bound to the client rather than passed as a method reference, so a caller holding
+				// this across a reconnect flushes the client that is live when they call it.
+				flushChanges: () => state.readyClient!.flushChanges(),
 			}
 		},
 		[state]

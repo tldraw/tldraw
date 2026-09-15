@@ -665,6 +665,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
         store: S;
     });
     close(): void;
+    flushChanges(): Promise<void>;
+    hasUnsyncedChanges(): boolean;
     // @internal (undocumented)
     isConnectedToRoom: boolean;
     // @internal (undocumented)

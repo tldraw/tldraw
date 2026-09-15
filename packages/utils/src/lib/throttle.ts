@@ -38,6 +38,31 @@ export class FpsScheduler {
 		this.lastFlushTime = -this.targetTimePerFrame
 	}
 
+	/**
+	 * Runs everything currently queued, now, instead of on the frame the target rate would have
+	 * picked. Synchronous: once this returns, every function queued at the moment of the call has
+	 * run.
+	 *
+	 * The queue drains on an animation frame, so work can sit in it for as long as the target rate
+	 * says — and indefinitely in a tab the browser has stopped giving frames to. This is for a
+	 * caller that cannot continue until the queued work is done, such as one about to depend on a
+	 * change having been sent.
+	 *
+	 * @public
+	 */
+	flushNow() {
+		if (this.frameRaf !== undefined) {
+			cancelAnimationFrame(this.frameRaf)
+			this.frameRaf = undefined
+		}
+		if (this.flushRaf !== undefined) {
+			cancelAnimationFrame(this.flushRaf)
+			this.flushRaf = undefined
+		}
+		this.lastFlushTime = Date.now()
+		this.flush()
+	}
+
 	private flush() {
 		const queue = this.fpsQueue.splice(0, this.fpsQueue.length)
 		for (const fn of queue) {
