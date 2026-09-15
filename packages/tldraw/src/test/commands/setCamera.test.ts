@@ -1401,3 +1401,16 @@ test('keeps the current zoom when setCamera is called without a zoom', () => {
 	editor.setCamera({ x: 100, y: 100 })
 	expect(editor.getCamera()).toMatchObject({ x: 100, y: 100, z: 0.5 })
 })
+
+test('a forced animated camera move ends at the forced position', () => {
+	editor.user.updateUserPreferences({ animationSpeed: 1 })
+	editor.setCameraOptions({
+		...DEFAULT_CAMERA_OPTIONS,
+		constraints: { ...DEFAULT_CONSTRAINTS, behavior: 'contain' },
+	})
+	editor.setCamera({ x: -5000, y: -5000, z: 1 }, { force: true, animation: { duration: 100 } })
+	editor.emit('tick', 50)
+	editor.emit('tick', 100)
+	// the final frame must not re-apply the constraints that `force` bypassed
+	expect(editor.getCamera()).toMatchObject({ x: -5000, y: -5000, z: 1 })
+})

@@ -1,6 +1,37 @@
 import { existsSync, readdirSync, rmSync, statSync } from 'node:fs'
 import { basename, join, resolve } from 'node:path'
+import { parse as parseArgs } from '@bomb.sh/args'
 import { isCancel, outro } from '@clack/prompts'
+
+export interface CliArgs {
+	help: boolean
+	template?: string
+	telemetry: boolean
+	targetDir?: string
+}
+
+export function parseCliArgs(argv: string[]): CliArgs {
+	const args = parseArgs(argv, {
+		alias: {
+			h: 'help',
+			t: 'template',
+		},
+		// The parser reports `--no-telemetry` as `telemetry: false`, never as a `no-telemetry` key.
+		// It still has to be listed as a boolean: otherwise `--no-telemetry my-app` treats the
+		// directory as the flag's value and swallows it.
+		boolean: ['help', 'telemetry', 'no-telemetry'],
+		string: ['template'],
+		default: { telemetry: true },
+	})
+
+	return {
+		help: !!args.help,
+		template: args.template ? String(args.template) : undefined,
+		telemetry: args.telemetry !== false,
+		// Bare arguments are coerced, so a directory like `2026` arrives as a number.
+		targetDir: args._[0] === undefined ? undefined : String(args._[0]),
+	}
+}
 
 export function nicelog(...args: unknown[]) {
 	// eslint-disable-next-line no-console

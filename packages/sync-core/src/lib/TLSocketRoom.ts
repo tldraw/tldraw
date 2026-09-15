@@ -909,7 +909,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * The client will attempt to reconnect automatically unless a fatal reason is provided.
 	 *
 	 * @param sessionId - Session identifier to remove
-	 * @param fatalReason - Optional fatal error reason that prevents reconnection
+	 * @param fatalReason - Optional fatal error reason that prevents reconnection. WebSocket close
+	 * reasons are capped at 123 UTF-8 bytes, so a longer reason is truncated and ends with `... (+N bytes)`.
 	 *
 	 * @example
 	 * ```ts

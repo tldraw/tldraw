@@ -85,6 +85,8 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **H8** `addHistoryInterceptor(fn)` calls `fn(entry, source)` synchronously for every change-set as it happens and returns a remover.
 - **H9** `applyDiff(diff)` puts the `added` and `updated` records and removes the `removed` ids. `runCallbacks: false` disables side effects for the application (AO3). Applying a diff and then its `reverseRecordsDiff` (D2) restores the prior state.
 - **H10** `applyDiff` with `ignoreEphemeralKeys: true` ignores changes to keys in the type's `ephemeralKeySet` when applying updates to existing records: non-ephemeral changed keys are merged onto the stored record (including the removal of a non-ephemeral key that the update leaves out), and an update touching only ephemeral keys is dropped. Updates for records that don't exist are applied in full, as are records in `added`.
+- **H12** `dispose()` delivers any pending change-sets to the attached listeners and then cancels the scheduled flush; it does not remove listeners.
+- **H13** A listener that throws does not prevent the other listeners from receiving the same flush; the first error is rethrown once every listener has been called.
 
 ## 9. Validation (V)
 
@@ -104,9 +106,10 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 
 ## 11. Queries: filtered history (QH)
 
-- **QH1** `store.query.filterHistory(typeName)` returns a computed epoch whose history diffs contain only records of that type; it is cached per type name.
+- **QH1** `store.query.filterHistory(typeName)` returns a computed change counter whose history diffs contain only records of that type; it is cached per type name.
 - **QH2** Within a flush window the diff is squashed per D3 semantics (add+remove cancels, add+update folds into the add, update+update collapses, update+remove removes the oldest `from`).
-- **QH3** Changes to other record types produce no observable change for downstream consumers of the filtered history.
+- **QH3** Changes to other record types produce no observable change for downstream consumers of the filtered history, except that a reset (QH4) may report a change for every type.
+- **QH4** The filtered history's value strictly increases on every relevant change or reset, so indexes and queries that were read during a transaction that later rolled back are rebuilt rather than left stale. A rolled-back transaction that changed the store causes a reset. The value is not the store's history counter and can be ahead of it after a reset.
 
 ## 12. Queries: indexes (QI)
 
