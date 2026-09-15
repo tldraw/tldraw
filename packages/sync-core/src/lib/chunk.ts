@@ -13,13 +13,29 @@ const MAX_SAFE_MESSAGE_SIZE = MAX_CLIENT_SENT_MESSAGE_SIZE_BYTES / MAX_BYTES_PER
 // protocol obliges a sender to ever send the last chunk, so without a ceiling a single connection
 // can make the receiver hold an arbitrarily large buffer for as long as the socket stays open.
 //
-// 32MB is far above anything chunk() produces for a real document push and small enough that a
-// room holding one partial assembly per session stays well inside a Durable Object's memory
-// budget. The character cap is the real bound; the chunk-count cap only rejects an absurd declared
-// count on arrival instead of waiting for the bytes to accumulate, and is loose enough not to
-// constrain a sender that chunks more finely than the default.
-export const MAX_ASSEMBLED_MESSAGE_SIZE = 32 * 1024 * 1024
+// The cap counts UTF-16 code units, which is what a JS string costs in memory: 16M of them is the
+// 32MB of retained string data a room can afford to hold per session and stay inside a Durable
+// Object's 128MB instance limit with room for the document itself. It is far above anything
+// chunk() produces for a real document push. The character cap is the real bound; the chunk-count
+// cap only rejects an absurd declared count on arrival instead of waiting for the characters to
+// accumulate, and is loose enough not to constrain a sender that chunks more finely than the
+// default.
+export const MAX_ASSEMBLED_MESSAGE_CHARS = 16 * 1024 * 1024
 export const MAX_CHUNK_COUNT = 100_000
+
+/**
+ * Thrown when a message would exceed MAX_ASSEMBLED_MESSAGE_CHARS, on either side of the wire.
+ * Distinct from the other assembly errors because it is fatal: retrying sends the same
+ * oversized message, so the session is rejected rather than reset.
+ *
+ * @internal
+ */
+export class MessageTooLargeError extends Error {
+	constructor(chars: number) {
+		super(`Message too large: ${chars} characters, max ${MAX_ASSEMBLED_MESSAGE_CHARS}`)
+		this.name = 'MessageTooLargeError'
+	}
+}
 
 /**
  * Splits a string into smaller chunks suitable for transmission over WebSockets.
@@ -125,7 +141,7 @@ export class JsonChunkAssembler {
 	 * @returns Result object with data/stringified on success, error object on failure, or null for incomplete chunks
 	 * 	- `\{ data: object, stringified: string \}` - Successfully parsed complete message
 	 * 	- `\{ error: Error \}` - Parse error, invalid chunk sequence, or a message exceeding
-	 * 	  MAX_ASSEMBLED_MESSAGE_SIZE / MAX_CHUNK_COUNT
+	 * 	  MAX_ASSEMBLED_MESSAGE_CHARS / MAX_CHUNK_COUNT
 	 * 	- `null` - Chunk received but more chunks expected
 	 *
 	 * @example
@@ -177,10 +193,11 @@ export class JsonChunkAssembler {
 					return { error: new Error(`Chunks received in wrong order`) }
 				}
 			}
-			if (this.state.charsReceived > MAX_ASSEMBLED_MESSAGE_SIZE) {
+			if (this.state.charsReceived > MAX_ASSEMBLED_MESSAGE_CHARS) {
 				// Drop what was buffered rather than keeping it until the socket closes.
+				const charsReceived = this.state.charsReceived
 				this.state = 'idle'
-				return { error: new Error(`Assembled message too large`) }
+				return { error: new MessageTooLargeError(charsReceived) }
 			}
 			if (this.state.chunksReceived.length === this.state.totalChunks) {
 				try {

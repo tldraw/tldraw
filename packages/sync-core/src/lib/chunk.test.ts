@@ -1,5 +1,11 @@
 import { assert } from 'tldraw'
-import { JsonChunkAssembler, MAX_ASSEMBLED_MESSAGE_SIZE, MAX_CHUNK_COUNT, chunk } from './chunk'
+import {
+	JsonChunkAssembler,
+	MAX_ASSEMBLED_MESSAGE_CHARS,
+	MAX_CHUNK_COUNT,
+	MessageTooLargeError,
+	chunk,
+} from './chunk'
 
 describe('chunk (CH1–CH3)', () => {
 	describe('size boundary (CH1)', () => {
@@ -409,7 +415,9 @@ describe('JsonChunkAssembler (CH4–CH8)', () => {
 			const unchunker = new JsonChunkAssembler()
 
 			const result = unchunker.handleMessage(`${MAX_CHUNK_COUNT}_{"a":`)
-			expect(result).toMatchObject({ error: expect.any(Error) })
+			expect(result).toMatchObject({
+				error: expect.objectContaining({ message: `Too many chunks: ${MAX_CHUNK_COUNT + 1}` }),
+			})
 			expect(unchunker.state).toBe('idle')
 		})
 
@@ -420,12 +428,12 @@ describe('JsonChunkAssembler (CH4–CH8)', () => {
 			expect(unchunker.state).not.toBe('idle')
 		})
 
-		it('[CH10] rejects an assembly once its accumulated bodies pass MAX_ASSEMBLED_MESSAGE_SIZE', () => {
+		it('[CH10] rejects an assembly once its accumulated bodies pass MAX_ASSEMBLED_MESSAGE_CHARS', () => {
 			const unchunker = new JsonChunkAssembler()
 			// A chunk stream that never sends its final chunk. Before CH10 this accumulated
 			// without limit for as long as the sender kept sending.
 			const body = 'x'.repeat(1024 * 1024)
-			const chunksNeeded = Math.ceil(MAX_ASSEMBLED_MESSAGE_SIZE / body.length) + 1
+			const chunksNeeded = Math.ceil(MAX_ASSEMBLED_MESSAGE_CHARS / body.length) + 1
 
 			let result = null
 			for (let i = 0; i < chunksNeeded; i++) {
@@ -433,14 +441,14 @@ describe('JsonChunkAssembler (CH4–CH8)', () => {
 				if (result) break
 			}
 
-			expect(result).toMatchObject({ error: expect.any(Error) })
+			expect(result).toMatchObject({ error: expect.any(MessageTooLargeError) })
 			expect(unchunker.state).toBe('idle')
 		})
 
 		it('[CH10] leaves the assembler usable after rejecting an oversized assembly', () => {
 			const unchunker = new JsonChunkAssembler()
 			const body = 'x'.repeat(1024 * 1024)
-			const chunksNeeded = Math.ceil(MAX_ASSEMBLED_MESSAGE_SIZE / body.length) + 1
+			const chunksNeeded = Math.ceil(MAX_ASSEMBLED_MESSAGE_CHARS / body.length) + 1
 			for (let i = 0; i < chunksNeeded; i++) {
 				if (unchunker.handleMessage(`${chunksNeeded - i}_${body}`)) break
 			}

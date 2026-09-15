@@ -1,7 +1,7 @@
 import type { SerializedSchema, StoreSchema, UnknownRecord } from '@tldraw/store'
 import { createTLSchema, TLInstancePresence, TLStoreSnapshot } from '@tldraw/tlschema'
 import { getOwnProperty, hasOwnProperty, isEqual, structuredClone } from '@tldraw/utils'
-import { JsonChunkAssembler } from './chunk'
+import { JsonChunkAssembler, MessageTooLargeError } from './chunk'
 import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './InMemorySyncStorage'
 import { TLObjectStoreAccess, TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
@@ -477,6 +477,11 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				})
 				this.room.pruneSessions()
 				this.scheduleDebouncedSnapshot(sessionId)
+			} else if (res.error instanceof MessageTooLargeError) {
+				this.log?.error?.('Error assembling message', res.error)
+				// Resetting the connection would have the client reconnect and re-send the same
+				// oversized message, so reject the session instead and let the client surface it.
+				this.room.rejectSession(sessionId, TLSyncErrorCloseEventReason.MESSAGE_TOO_LARGE)
 			} else {
 				this.log?.error?.('Error assembling message', res.error)
 				// close the socket to reset the connection
