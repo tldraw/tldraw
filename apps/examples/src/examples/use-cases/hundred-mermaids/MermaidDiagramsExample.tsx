@@ -80,6 +80,7 @@ function TopPanel() {
 			import('@tldraw/mermaid'),
 			import('mermaid'),
 		])
+		mermaid.initialize(MERMAID_CONFIG)
 
 		const offscreen = document.createElement('div')
 		offscreen.style.cssText = 'position:absolute;left:-9999px;top:-9999px;overflow:hidden'
@@ -184,7 +185,8 @@ function TopPanel() {
 [1]
 Mermaid's `useMaxWidth` makes rendered SVGs stretch to their container. We turn it off so
 the SVG we render for comparison has an intrinsic size we can read back. `createMermaidDiagram`
-merges `mermaidConfig` over its own defaults and calls `mermaid.initialize` for us.
+only applies `mermaidConfig` while it converts, so we also pass it to `mermaid.initialize` for our
+own renders.
 
 [2]
 Both `@tldraw/mermaid` and mermaid itself are large, so they are loaded on first click rather
