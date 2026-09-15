@@ -307,8 +307,6 @@ export class TLLocalSyncClient {
 		if (this.didDispose) return
 		this.debug('closing')
 		this.didDispose = true
-		// Store listeners normally run on the next frame; collect the last edits before removal.
-		this.store._flushHistory()
 		this.disposables.forEach((d) => d())
 		if (this.scheduledPersistTimeout) {
 			clearTimeout(this.scheduledPersistTimeout)
