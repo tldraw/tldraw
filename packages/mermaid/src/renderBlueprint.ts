@@ -187,7 +187,9 @@ function createArrowFromEdge(
 
 	const baseProps = {
 		dash: edge.dash ?? ('solid' as const),
-		size: edge.size ?? ('s' as const),
+		// Match the node default: an arrow's size also sets its label font, so a smaller edge labels
+		// itself in smaller text than the boxes it joins.
+		size: edge.size ?? ('m' as const),
 		arrowheadEnd: edge.arrowheadEnd ?? ('arrow' as const),
 		...(edge.arrowheadStart && { arrowheadStart: edge.arrowheadStart }),
 		color: edge.color ?? ('black' as const),

@@ -404,6 +404,23 @@ describe('flowchartToBlueprint', () => {
 		expect(bp.edges[0].dash).toBe('dotted')
 	})
 
+	it('sizes edges like their nodes, heavier only when thick or styled 2px or wider', () => {
+		const layout = twoNodeLayout()
+		const vertices = new Map([vertex('A'), vertex('B')])
+		const blueprint = (opts: Partial<FlowEdge> = {}) =>
+			flowchartToBlueprint(layout, vertices, [flowEdge('A', 'B', opts)])
+		const edgeSize = (opts: Partial<FlowEdge>) => blueprint(opts).edges[0].size
+
+		expect({
+			node: findNode(blueprint(), 'A')!.size,
+			normal: edgeSize({}),
+			thick: edgeSize({ stroke: 'thick' }),
+			'0.5px': edgeSize({ style: ['stroke-width: 0.5px'] }),
+			'1px': edgeSize({ style: ['stroke-width: 1px'] }),
+			'2px': edgeSize({ style: ['stroke-width: 2px'] }),
+		}).toEqual({ node: 'm', normal: 'm', thick: 'l', '0.5px': 's', '1px': 'm', '2px': 'l' })
+	})
+
 	it('maps double_arrow edge type to bidirectional arrowheads', () => {
 		const layout = twoNodeLayout()
 		const vertices = new Map([vertex('A'), vertex('B')])
