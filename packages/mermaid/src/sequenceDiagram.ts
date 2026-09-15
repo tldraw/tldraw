@@ -588,6 +588,7 @@ export function sequenceToBlueprint(
 	})
 
 	// --- Z-order: participant boxes -> lifelines -> activations -> fragments -> actor boxes -> notes/arrows ---
+	// Lines render beneath every node, so nodes that would cover them are marked `background`.
 
 	// 0. Participant boxes (behind everything)
 	nodes.push(
@@ -688,6 +689,7 @@ export function sequenceToBlueprint(
 				fill: rgbColor.hasAlpha ? 'semi' : 'solid',
 				color: rgbColor.color,
 				size: 's',
+				background: true,
 			})
 		} else {
 			nodes.push({
@@ -946,6 +948,7 @@ function getParticipantBoxNodes(
 			align: 'middle',
 			verticalAlign: 'start',
 			label: box.name,
+			background: true,
 		}
 	})
 }

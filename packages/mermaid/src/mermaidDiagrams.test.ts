@@ -841,6 +841,24 @@ describe('sequenceToBlueprint', () => {
 		expect(sectionLabel!.label).toBe('[Credentials invalid]')
 	})
 
+	it('draws a colored rect fragment as a background so it does not hide the lifelines it spans', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('User'), actor('App')])
+		const messages = [
+			{ type: LINETYPE.RECT_START, message: 'rgb(200, 150, 255)' } as unknown as Message,
+			msg(LINETYPE.SOLID, 'User', 'App', 'Sign in'),
+			{ type: LINETYPE.RECT_END } as unknown as Message,
+		]
+
+		const bp = sequenceToBlueprint(layout, actors, ['User', 'App'], messages)
+
+		expect(findNode(bp, 'fragment-0')).toMatchObject({
+			fill: 'solid',
+			color: 'violet',
+			background: true,
+		})
+	})
+
 	it('sizes a multi-line note from its longest line', () => {
 		// Mermaid's own rect is narrow enough that the text estimate decides the width.
 		const widthOf = (message: string) => {
@@ -1213,6 +1231,7 @@ describe('sequenceToBlueprint', () => {
 				size: 's',
 				align: 'middle',
 				verticalAlign: 'start',
+				background: true,
 			}
 			expect(boxNodes(bp)).toEqual([
 				{

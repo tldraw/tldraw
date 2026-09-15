@@ -79,9 +79,11 @@ export function renderBlueprint(
 		})
 	}
 
+	const backgroundIds: TLShapeId[] = []
 	for (const node of ordered) {
 		const shapeId = createShapeId()
 		shapeIds.set(node.id, shapeId)
+		if (node.background) backgroundIds.push(shapeId)
 
 		const parent = node.parentId ? nodeById.get(node.parentId) : undefined
 		const parentShapeId = node.parentId ? shapeIds.get(node.parentId) : undefined
@@ -97,6 +99,9 @@ export function renderBlueprint(
 			render: resolveMermaidNodeRender(diagramKind, node, mapper),
 		})
 	}
+
+	// One call, so the background nodes keep the blueprint's order among themselves.
+	if (backgroundIds.length > 0) editor.sendToBack(backgroundIds)
 
 	const arrowIds: TLShapeId[] = []
 	for (const edge of edges) {
