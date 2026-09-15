@@ -416,7 +416,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							isSelected={isOnlySelected}
 							labelColor={dv.labelColor}
 							wrap
-							showTextOutline={this.options.showTextOutline}
+							showTextOutline={
+								this.options.showTextOutline && this.editor.user.getIsTextOutlineEnabled()
+							}
 							style={
 								shape.props.scale !== 1
 									? {
@@ -481,7 +483,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					verticalAlign={dv.labelVerticalAlign}
 					labelColor={dv.labelColor}
 					padding={dv.labelPadding}
-					showTextOutline={this.options.showTextOutline}
+					showTextOutline={
+						this.options.showTextOutline && this.editor.user.getIsTextOutlineEnabled()
+					}
 					bounds={bounds}
 					richText={richText}
 				/>

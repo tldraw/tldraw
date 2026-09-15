@@ -184,7 +184,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				isSelected={isSelected}
 				textWidth={width}
 				textHeight={height}
-				showTextOutline={this.options.showTextOutline}
+				showTextOutline={this.options.showTextOutline && this.editor.user.getIsTextOutlineEnabled()}
 				style={{
 					transform: `scale(${scale})`,
 					transformOrigin: 'top left',
@@ -231,7 +231,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				labelColor={dv.color}
 				bounds={exportBounds}
 				padding={inkMargin}
-				showTextOutline={this.options.showTextOutline}
+				showTextOutline={this.options.showTextOutline && this.editor.user.getIsTextOutlineEnabled()}
 			/>
 		)
 	}
