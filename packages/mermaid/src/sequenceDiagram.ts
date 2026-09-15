@@ -1,6 +1,6 @@
 import { invLerp } from '@tldraw/utils'
 import type { SequenceDB } from 'mermaid/dist/diagrams/sequence/sequenceDb.d.ts'
-import type { Actor, Message } from 'mermaid/dist/diagrams/sequence/types.js'
+import type { Actor, Box, Message } from 'mermaid/dist/diagrams/sequence/types.js'
 import { clamp, TLArrowShapeArrowheadStyle, TLDefaultDashStyle } from 'tldraw'
 import type {
 	DiagramMermaidBlueprint,
@@ -587,9 +587,21 @@ export function sequenceToBlueprint(
 		return { topBoxY, lifelineTopY, bottomBoxY }
 	})
 
-	// --- Z-order: lifelines -> activations -> fragments -> actor boxes -> notes/arrows ---
+	// --- Z-order: participant boxes -> lifelines -> activations -> fragments -> actor boxes -> notes/arrows ---
+	// Lines render beneath every node, so nodes that would cover them are marked `background`.
 
-	// 1. Lifelines (behind everything)
+	// 0. Participant boxes (behind everything)
+	nodes.push(
+		...getParticipantBoxNodes(
+			actors,
+			actorKeys,
+			layouts,
+			Math.min(...layouts.map((l) => l.y)),
+			Math.max(...lifecycles.map((l, i) => l.bottomBoxY + layouts[i].h))
+		)
+	)
+
+	// 1. Lifelines
 	for (let i = 0; i < actorCount; i++) {
 		const { x, w } = layouts[i]
 		const { lifelineTopY, bottomBoxY } = lifecycles[i]
@@ -677,6 +689,7 @@ export function sequenceToBlueprint(
 				fill: rgbColor.hasAlpha ? 'semi' : 'solid',
 				color: rgbColor.color,
 				size: 's',
+				background: true,
 			})
 		} else {
 			nodes.push({
@@ -881,4 +894,61 @@ export function sequenceToBlueprint(
 		lines,
 		groups: actorKeys.map((key) => [`actor-top-${key}`, `lifeline-${key}`, `actor-bottom-${key}`]),
 	}
+}
+
+const BOX_PADDING_X = 40
+const BOX_PADDING_Y = 20
+const BOX_LABEL_HEIGHT = 40
+
+/**
+ * Like mermaid, every box leaves room above the header row for a label once any box has one, so the
+ * boxes stay level and no label sits on an actor.
+ */
+function getParticipantBoxNodes(
+	actors: Map<string, Actor>,
+	actorKeys: string[],
+	layouts: ActorLayout[],
+	top: number,
+	bottom: number
+): MermaidBlueprintNode[] {
+	const participantIndicesByBox = new Map<Box, number[]>()
+	for (let i = 0; i < actorKeys.length; i++) {
+		const box = actors.get(actorKeys[i])?.box
+		if (!box) continue
+		const indices = participantIndicesByBox.get(box)
+		if (indices) indices.push(i)
+		else participantIndicesByBox.set(box, [i])
+	}
+
+	const hasLabels = [...participantIndicesByBox.keys()].some((box) => box.name)
+	const boxTop = top - BOX_PADDING_Y - (hasLabels ? BOX_LABEL_HEIGHT : 0)
+	const boxBottom = bottom + BOX_PADDING_Y
+	const gapAfter = (i: number) =>
+		i >= 0 && i + 1 < layouts.length ? layouts[i + 1].x - (layouts[i].x + layouts[i].w) : Infinity
+
+	return [...participantIndicesByBox].map(([box, indices], boxIndex) => {
+		const first = indices[0]
+		const last = indices[indices.length - 1]
+		// Taking at most a third of the gap on each side keeps two neighboring boxes apart, and keeps
+		// a box off the participant beside it.
+		const left = layouts[first].x - Math.min(BOX_PADDING_X, gapAfter(first - 1) / 3)
+		const right = layouts[last].x + layouts[last].w + Math.min(BOX_PADDING_X, gapAfter(last) / 3)
+		const color = parseRgbToTldrawColor(box.fill)
+		return {
+			id: `box-${boxIndex}`,
+			kind: 'sequence_box',
+			x: left,
+			y: boxTop,
+			w: right - left,
+			h: boxBottom - boxTop,
+			...(color
+				? { fill: color.hasAlpha ? 'semi' : 'solid', color: color.color }
+				: { fill: 'none', color: 'grey' }),
+			size: 's',
+			align: 'middle',
+			verticalAlign: 'start',
+			label: box.name,
+			background: true,
+		}
+	})
 }

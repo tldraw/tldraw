@@ -127,6 +127,7 @@ export interface MermaidBlueprintLineNode {
 export interface MermaidBlueprintNode {
     // (undocumented)
     align?: TLDefaultHorizontalAlignStyle;
+    background?: boolean;
     // (undocumented)
     color?: TLDefaultColorStyle;
     // (undocumented)

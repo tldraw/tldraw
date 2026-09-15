@@ -1,6 +1,7 @@
 import type { FlowEdge, FlowSubGraph, FlowVertex } from 'mermaid/dist/diagrams/flowchart/types.js'
 import type { MindmapNode } from 'mermaid/dist/diagrams/mindmap/mindmapTypes.js'
-import type { Actor, Message } from 'mermaid/dist/diagrams/sequence/types.js'
+import type { SequenceDB } from 'mermaid/dist/diagrams/sequence/sequenceDb.d.ts'
+import type { Actor, Box, Message } from 'mermaid/dist/diagrams/sequence/types.js'
 import type { StateStmt } from 'mermaid/dist/diagrams/state/stateDb.d.ts'
 import type { DiagramMermaidBlueprint, MermaidBlueprintNode, MermaidDiagramKind } from './blueprint'
 import {
@@ -840,6 +841,24 @@ describe('sequenceToBlueprint', () => {
 		expect(sectionLabel!.label).toBe('[Credentials invalid]')
 	})
 
+	it('draws a colored rect fragment as a background so it does not hide the lifelines it spans', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('User'), actor('App')])
+		const messages = [
+			{ type: LINETYPE.RECT_START, message: 'rgb(200, 150, 255)' } as unknown as Message,
+			msg(LINETYPE.SOLID, 'User', 'App', 'Sign in'),
+			{ type: LINETYPE.RECT_END } as unknown as Message,
+		]
+
+		const bp = sequenceToBlueprint(layout, actors, ['User', 'App'], messages)
+
+		expect(findNode(bp, 'fragment-0')).toMatchObject({
+			fill: 'solid',
+			color: 'violet',
+			background: true,
+		})
+	})
+
 	it('sizes a multi-line note from its longest line', () => {
 		// Mermaid's own rect is narrow enough that the text estimate decides the width.
 		const widthOf = (message: string) => {
@@ -1175,6 +1194,150 @@ describe('sequenceToBlueprint', () => {
 		const bp = sequenceToBlueprint(layout, actors, ['User'], messages)
 
 		expectNodeGeo(findNode(bp, 'actor-top-User')!, 'ellipse', 'sequence')
+	})
+
+	describe('participant boxes', () => {
+		function participantBox(opts: Partial<Box> = {}): Box {
+			return { name: '', wrap: false, fill: 'transparent', actorKeys: [], ...opts }
+		}
+
+		function boxed(key: string, box: Box): [string, Actor] {
+			const [, a] = actor(key)
+			return [key, { ...a, box }]
+		}
+
+		const boxNodes = (bp: DiagramMermaidBlueprint) =>
+			bp.nodes.filter((n) => n.kind === 'sequence_box')
+
+		it('draws a box behind the participants it groups, with its label and color', () => {
+			// Participants are 100 wide, 200 apart, with a header row at -200 and a footer row at 200.
+			const layout = actorLayout([-450, -150, 150, 450])
+			const frontend = participantBox({ name: 'Frontend', fill: 'Purple' })
+			const backend = participantBox({ name: 'Backend' })
+			const actors = new Map([
+				boxed('A', frontend),
+				boxed('B', frontend),
+				boxed('C', backend),
+				actor('D'),
+			])
+			const messages = [msg(LINETYPE.SOLID, 'A', 'D', 'Hi')]
+
+			const bp = sequenceToBlueprint(layout, actors, ['A', 'B', 'C', 'D'], messages)
+
+			const shared = {
+				kind: 'sequence_box',
+				y: -260,
+				h: 530,
+				size: 's',
+				align: 'middle',
+				verticalAlign: 'start',
+				background: true,
+			}
+			expect(boxNodes(bp)).toEqual([
+				{
+					...shared,
+					id: 'box-0',
+					x: -490,
+					w: 480,
+					fill: 'solid',
+					color: 'violet',
+					label: 'Frontend',
+				},
+				{ ...shared, id: 'box-1', x: 110, w: 180, fill: 'none', color: 'grey', label: 'Backend' },
+			])
+			expect(bp.nodes.slice(0, 2)).toEqual(boxNodes(bp))
+			expectNodeGeo(boxNodes(bp)[0], 'rectangle', 'sequence')
+		})
+
+		it('maps the colors mermaid accepts for a box', () => {
+			const colorOf = (fill: string) => {
+				const actors = new Map([boxed('A', participantBox({ fill }))])
+				const bp = sequenceToBlueprint(actorLayout([0]), actors, ['A'], [])
+				const { fill: fillStyle, color } = boxNodes(bp)[0]
+				return { fill: fillStyle, color }
+			}
+
+			expect(colorOf('Aqua')).toEqual({ fill: 'solid', color: 'light-blue' })
+			expect(colorOf('rgb(0, 128, 0)')).toEqual({ fill: 'solid', color: 'green' })
+			expect(colorOf('rgba(255, 0, 0, 0.3)')).toEqual({ fill: 'semi', color: 'red' })
+			expect(colorOf('transparent')).toEqual({ fill: 'none', color: 'grey' })
+		})
+
+		it('reserves room for a label only when some box has one', () => {
+			const actors = new Map([boxed('A', participantBox())])
+			const bp = sequenceToBlueprint(actorLayout([0]), actors, ['A'], [])
+
+			expect(boxNodes(bp)[0].y).toBe(-220)
+		})
+
+		it('keeps neighboring boxes apart when participants are close together', () => {
+			const layout = actorLayout([0, 130])
+			const actors = new Map([boxed('A', participantBox()), boxed('B', participantBox())])
+
+			const bp = sequenceToBlueprint(layout, actors, ['A', 'B'], [])
+
+			const [left, right] = boxNodes(bp)
+			expect(left.x + left.w).toBe(110)
+			expect(right.x).toBe(120)
+		})
+
+		it('draws one box per box statement mermaid parses', async () => {
+			// Participants are grouped by the `Box` object mermaid's parser shares between them, which
+			// the tests above build by hand. Parsing real source catches a parser that stops sharing it
+			// (one box per participant) as well as grouping by name (same-named boxes merged).
+			const mermaid = (await import('mermaid')).default
+			// Registers mermaid's diagram types, as a conversion does before parsing.
+			mermaid.initialize({ startOnLoad: false })
+			const convert = async (source: string) => {
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				const db = (await mermaid.mermaidAPI.getDiagramFromText(source)).db as SequenceDB
+				const actorKeys = db.getActorKeys()
+				const bp = sequenceToBlueprint(
+					actorLayout(actorKeys.map((_, i) => i * 300)),
+					db.getActors(),
+					actorKeys,
+					db.getMessages()
+				)
+				return boxNodes(bp).map((box) => [
+					box.label,
+					actorKeys.filter((key) => {
+						const top = findNode(bp, `actor-top-${key}`)!
+						return top.x >= box.x && top.x + top.w <= box.x + box.w
+					}),
+				])
+			}
+
+			// No box colors here: mermaid only splits a color off the label with the browser's CSS
+			// parser, and jsdom's rejects mixed-case names, so `box Aqua Frontend` reads as one label.
+			expect(
+				await convert(`sequenceDiagram
+    box Frontend
+        participant A
+        participant B
+    end
+    box Backend
+        participant C
+    end
+    participant D
+    A->>D: hi`)
+			).toEqual([
+				['Frontend', ['A', 'B']],
+				['Backend', ['C']],
+			])
+
+			expect(
+				await convert(`sequenceDiagram
+    box Team
+        participant A
+    end
+    box Team
+        participant B
+    end`)
+			).toEqual([
+				['Team', ['A']],
+				['Team', ['B']],
+			])
+		})
 	})
 })
 
