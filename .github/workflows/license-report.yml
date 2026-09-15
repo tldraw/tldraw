@@ -29,7 +29,7 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           # `pull_request` checks out a detached merge commit, which we can't push back to.

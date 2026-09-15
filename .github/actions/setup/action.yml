@@ -7,17 +7,19 @@ runs:
     # see https://github.com/actions/setup-node/issues/899 for one of the reasons why this
     # needs to be done before action/setup-node
     - name: Enable corepack
-      run: npm i -g corepack
+      # Pinned: an unpinned global install pulls whatever corepack published most recently into
+      # every job, including the deploys, with no review step in between.
+      run: npm i -g corepack@0.36.0
       shell: bash
 
     - name: Setup Node.js Environment
       id: setup-node
-      uses: actions/setup-node@v6
+      uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
       with:
         node-version: 24.17.0
 
     - name: Restore node_modules cache
-      uses: actions/cache@v5
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
       id: node-modules-cache
       with:
         path: |

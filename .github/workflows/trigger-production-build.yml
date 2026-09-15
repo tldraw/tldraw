@@ -18,6 +18,9 @@ defaults:
 env:
   TARGET: ${{ github.event.inputs.target }}
 
+permissions:
+  contents: read
+
 jobs:
   trigger:
     name: ${{ github.event_name == 'workflow_dispatch' && 'Manual trigger' || 'Hotfix' }}
@@ -27,12 +30,12 @@ jobs:
     steps:
       - name: Generate a token
         id: generate_token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
         with:
           app-id: ${{ vars.HUPPY_APP_ID }}
           private-key: ${{ secrets.HUPPY_PRIVATE_KEY }}
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
           token: ${{ steps.generate_token.outputs.token }}

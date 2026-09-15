@@ -8,7 +8,11 @@ on:
       - main
       - production
 
-permissions: write-all
+permissions:
+  contents: read
+  # createGithubDeployment (internal/scripts/lib/deploy.ts) registers the deployment that
+  # renders the 'View Deployment' button on the PR.
+  deployments: write
 
 env:
   CI: 1
@@ -32,14 +36,14 @@ jobs:
 
     steps:
       # - name: Notify initial start
-      #   uses: MineBartekSA/discord-webhook@v2
+      #   uses: MineBartekSA/discord-webhook@c9d90dcd484776f25f84354cc0438887af563575 # v2
       #   if: github.ref == 'refs/heads/production'
       #   with:
       #     webhook: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
       #     content: 'Preparing ${{ env.TLDRAW_ENV }} dotcom deploy: ${{ github.event.head_commit.message }} by ${{ github.event.head_commit.author.name }}'
 
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         env:
           # Abort a stalled fetch so checkout's retry kicks in instead of hanging until the job timeout
           GIT_HTTP_LOW_SPEED_LIMIT: 1000
@@ -62,7 +66,7 @@ jobs:
 
       - name: Install Supabase CLI
         if: github.event_name == 'pull_request'
-        uses: supabase/setup-cli@v1
+        uses: supabase/setup-cli@ab058987d8d6c725971f6cf9d0b5c98467e30bd1 # v1
         with:
           # Pinned: v2.112.0 rejects the Management API's own timestamps, which
           # breaks `branches get` and `branches delete`. See supabase/cli#6115.

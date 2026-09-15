@@ -25,6 +25,9 @@ defaults:
   run:
     shell: bash
 
+permissions:
+  contents: read
+
 jobs:
   update_snapshots:
     name: 'Run'
@@ -40,12 +43,12 @@ jobs:
 
     steps:
       - name: Remove the update-snapshots label
-        uses: actions-ecosystem/action-remove-labels@v1
+        uses: actions-ecosystem/action-remove-labels@2ce5d41b4b6aa8503e285553f75ed56e0a40bae0 # v1
         with:
           labels: update-snapshots
 
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           fetch-depth: 5
           token: ${{ secrets.GITHUB_TOKEN }}

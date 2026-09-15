@@ -8,6 +8,9 @@ defaults:
   run:
     shell: bash
 
+permissions:
+  contents: read
+
 jobs:
   close-issues:
     runs-on: ubuntu-latest
@@ -15,7 +18,7 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: actions/stale@v10
+      - uses: actions/stale@1e223db275d687790206a7acac4d1a11bd6fe629 # v10
         with:
           days-before-issue-stale: 150
           days-before-issue-close: 30

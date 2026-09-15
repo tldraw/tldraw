@@ -44,6 +44,9 @@ concurrency:
   group: e2e-device-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   ios:
     name: iOS Safari
@@ -55,7 +58,7 @@ jobs:
     timeout-minutes: 40
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Run our setup
         uses: ./.github/actions/setup
@@ -77,7 +80,7 @@ jobs:
         # DerivedData keyed on the Xcode version so iterating on test fixes reuses
         # the prebuilt WDA instead of rebuilding. Bump the trailing -vN to bust.
         id: wda-cache
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ${{ runner.temp }}/wda-derived
           key: wda-${{ runner.os }}-xcode-${{ steps.xcode.outputs.version }}-v1
@@ -140,7 +143,7 @@ jobs:
     timeout-minutes: 40
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Run our setup
         uses: ./.github/actions/setup
@@ -168,7 +171,7 @@ jobs:
         run: npx --yes wait-on "http://localhost:$EXAMPLES_PORT/end-to-end" -t 120000
 
       - name: Run device tests on emulator
-        uses: reactivecircus/android-emulator-runner@v2
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2
         with:
           api-level: 34
           arch: x86_64
