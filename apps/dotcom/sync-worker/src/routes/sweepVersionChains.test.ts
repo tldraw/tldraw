@@ -157,6 +157,33 @@ describe('sweepVersionChains', () => {
 		])
 	})
 
+	it('does not fail a room whose legacy copy cannot be read', async () => {
+		const chainBucket = createFakeR2()
+		const legacyBucket = createFakeR2()
+		await seedChain(chainBucket, legacyBucket, 'app_rooms/file1', versions)
+		// Corrupt one full copy: the comparison for that version cannot run, but the chain itself
+		// replays and hashes clean.
+		await legacyBucket.put('app_rooms/file1/2026-09-01T00:00:01.000Z', 'not json')
+		files.rows = [{ id: 'file1', updatedAt: 100 }]
+		const measure = { writeDataPoint: vi.fn() }
+
+		const result = await sweepVersionChains({
+			env: { ...env(chainBucket, legacyBucket), MEASURE: measure } as unknown as Environment,
+			rooms: 10,
+			readsPerRoom: 50,
+		})
+
+		// A legacy object that will not read is not a broken chain, so it must not count as a failure
+		// or emit the `fail` datapoint the verify-failures alert pages on.
+		expect(result.failed).toBe(0)
+		expect(result.failures).toEqual([])
+		expect(result.legacyReadFailures).toBe(1)
+		const verifyPoints = measure.writeDataPoint.mock.calls
+			.map(([point]) => point.blobs)
+			.filter((blobs) => blobs[0] === 'version_chain_verify')
+		expect(verifyPoints).toEqual([])
+	})
+
 	it('skips test files without reading R2 and still advances the cursor past them', async () => {
 		const legacyBucket = createFakeR2()
 		const list = vi.fn()
@@ -208,6 +235,7 @@ describe('sweepVersionChains', () => {
 			complete: true,
 			mismatches: [],
 			errors: [],
+			legacyReadFailures: [],
 		})
 
 		const result = await sweepVersionChains({
@@ -236,6 +264,7 @@ describe('sweepVersionChains', () => {
 			complete: true,
 			mismatches: [],
 			errors: [],
+			legacyReadFailures: [],
 		})
 
 		const result = await sweepVersionChains({
