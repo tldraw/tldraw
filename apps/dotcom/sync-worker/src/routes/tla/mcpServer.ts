@@ -621,10 +621,13 @@ async function callSearchBoardsTool(
 	// spend is Postgres, and paging is index-bounded (see searchBoards.ts) while matching is not — a
 	// query that matches nothing still reads every board the caller can see. See "MCP tools" in
 	// browser-run-thumbnails.md.
-	const refusal = await checkSearchRateLimit(env, userId, mcpTelemetryWriter(env))
-	if (refusal) return refusal
-
 	try {
+		// Inside the try for the reason spelled out on callPageInfoTool: a limiter that *throws* is a
+		// binding outage, not a caller over budget, and outside the try it escapes as a 500 the client
+		// cannot parse as MCP.
+		const refusal = await checkSearchRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (refusal) return refusal
+
 		return getBoardSearchResults(await searchAccessibleBoards(env, userId, input), input.terms)
 	} catch (error) {
 		// No `telemetry`: like get_board_info, this spends no Browser Run and so writes nothing to
@@ -638,8 +641,10 @@ async function callSearchBoardsTool(
 			// shape of the call is what is diagnostic here, not its content.
 			extras: { termCount: input.terms.length, paged: input.cursor !== null },
 			summary: 'Could not search boards',
-			// Every failure here is a Postgres one. The classifier reads render failures, so a pool
-			// timeout would otherwise be recorded as `browser_timeout`.
+			// Near enough every failure here is a Postgres one, and the classifier reads render
+			// failures, so a pool timeout would otherwise be recorded as `browser_timeout`. The
+			// exception is a limiter binding outage, which lands here as a board lookup error too —
+			// as it does on every other tool on this server, which is where to fix it if it matters.
 			recordAs: () => 'board_lookup_error',
 		})
 	}

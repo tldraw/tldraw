@@ -1907,6 +1907,24 @@ describe('protocol telemetry', () => {
 		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'reason')).toContain('rate_limited_user')
 	})
 
+	// The same failure on the search budget, which has its own binding and so is not covered by the
+	// clustering-tool case below. Its check was outside the handler's try when the limiter landed,
+	// which is exactly the shape that case was written for.
+	it('turns a failing search rate limiter into a structured error rather than a 500', async () => {
+		vi.mocked(searchAccessibleBoards).mockResolvedValue([])
+		const env = makeEnv({
+			MCP_SERVER_SEARCH_RATE_LIMITER: {
+				limit: async () => {
+					throw new Error('limiter unavailable')
+				},
+			},
+		})
+
+		const result = await callTool('search_boards', {}, env, 'user_search_limiter')
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('Could not search boards')
+	})
+
 	// A limiter binding that rejects is an outage on our side, not a caller mistake. The rate limit
 	// check used to sit outside the handler's try, so that rejection escaped and reached the client as
 	// an unparseable 500 — the one failure on this route that did not come back as MCP. Now it is
