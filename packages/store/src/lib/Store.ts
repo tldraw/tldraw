@@ -519,6 +519,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		// If we have accumulated history, flush it and update listeners
 		if (this.historyAccumulator.hasChanges()) {
 			const entries = this.historyAccumulator.flush()
+			const errors: unknown[] = []
 			for (const { changes, source } of entries) {
 				// Filtered diffs are computed at most once per scope per entry, and shared by every
 				// listener watching that scope.
@@ -527,18 +528,25 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					if (filters.source !== 'all' && filters.source !== source) {
 						continue
 					}
-					if (filters.scope === 'all') {
-						onHistory({ changes, source })
-						continue
+					let listenerChanges = changes
+					if (filters.scope !== 'all') {
+						if (!scopedChanges.has(filters.scope)) {
+							scopedChanges.set(filters.scope, this.filterChangesByScope(changes, filters.scope))
+						}
+						const filtered = scopedChanges.get(filters.scope)
+						if (!filtered) continue
+						listenerChanges = filtered
 					}
-					if (!scopedChanges.has(filters.scope)) {
-						scopedChanges.set(filters.scope, this.filterChangesByScope(changes, filters.scope))
+					// The entries are already dequeued, so a listener that throws must not stop the others
+					// (e.g. a sync client) from receiving them: deliver to all, then rethrow the first error.
+					try {
+						onHistory({ changes: listenerChanges, source })
+					} catch (error) {
+						errors.push(error)
 					}
-					const filtered = scopedChanges.get(filters.scope)
-					if (!filtered) continue
-					onHistory({ changes: filtered, source })
 				}
 			}
+			if (errors.length > 0) throw errors[0]
 		}
 	}
 
