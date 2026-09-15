@@ -70,6 +70,7 @@ export {
 	type BrushOverlayUtilOptions,
 	type TLBrushOverlay,
 } from './lib/overlays/BrushOverlayUtil'
+export { ScissorsOverlayUtil, type TLScissorsOverlay } from './lib/overlays/ScissorsOverlayUtil'
 export { ZoomBrushOverlayUtil, type TLZoomBrushOverlay } from './lib/overlays/ZoomBrushOverlayUtil'
 export { ScribbleOverlayUtil, type TLScribbleOverlay } from './lib/overlays/ScribbleOverlayUtil'
 export {
@@ -304,6 +305,7 @@ export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
 export { EraserTool } from './lib/tools/EraserTool/EraserTool'
 export { HandTool } from './lib/tools/HandTool/HandTool'
 export { LaserTool } from './lib/tools/LaserTool/LaserTool'
+export { ScissorsTool } from './lib/tools/ScissorsTool/ScissorsTool'
 export { getHitShapeOnCanvasPointerDown } from './lib/tools/selection-logic/getHitShapeOnCanvasPointerDown'
 export { SelectTool } from './lib/tools/SelectTool/SelectTool'
 export { ZoomTool } from './lib/tools/ZoomTool/ZoomTool'
@@ -673,6 +675,7 @@ export {
 	HexagonToolbarItem,
 	HighlightToolbarItem,
 	LaserToolbarItem,
+	ScissorsToolbarItem,
 	LineToolbarItem,
 	NoteToolbarItem,
 	OvalToolbarItem,

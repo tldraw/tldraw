@@ -104,6 +104,7 @@ describe('on a coarse pointer (touch long-press)', () => {
 		'draw',
 		'highlight',
 		'laser',
+		'scissors',
 		'hand',
 		'zoom',
 	])('does not open the menu in the %s tool', async (tool) => {
