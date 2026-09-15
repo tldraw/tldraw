@@ -1,3 +1,5 @@
+import { isEqual } from '@tldraw/utils'
+import type { Mermaid, MermaidConfig } from 'mermaid'
 import type { FlowDB } from 'mermaid/dist/diagrams/flowchart/flowDb.d.ts'
 import type { FlowEdge, FlowSubGraph, FlowVertex } from 'mermaid/dist/diagrams/flowchart/types.js'
 import type { MindmapDB } from 'mermaid/dist/diagrams/mindmap/mindmapDb.d.ts'
@@ -62,7 +64,7 @@ export async function createMermaidDiagram(
 	// mermaid in when @tldraw/mermaid is merely imported.
 	const mermaid = (await import('mermaid')).default
 
-	mermaid.initialize({
+	const restoreHostConfig = await applyMermaidConfig(mermaid, {
 		...MERMAID_CONFIG,
 		...(options.mermaidConfig ?? {}),
 		flowchart: { ...MERMAID_CONFIG.flowchart, ...options.mermaidConfig?.flowchart },
@@ -77,6 +79,87 @@ export async function createMermaidDiagram(
 		secure: [...(options.mermaidConfig?.secure ?? []), 'fontSize'],
 	})
 
+	try {
+		await convertMermaidDiagram(mermaid, editor, text, options, restoreHostConfig)
+	} finally {
+		restoreHostConfig()
+	}
+}
+
+let mermaidConfigLock = Promise.resolve()
+
+/**
+ * Mermaid has one page-wide config, so ours is only applied for the length of a conversion and the
+ * host app's is put back afterwards. Conversions take turns: otherwise one finishing would restore
+ * the host's config while another is still laying out.
+ */
+async function applyMermaidConfig(mermaid: Mermaid, config: MermaidConfig) {
+	const previousLock = mermaidConfigLock
+	let unlock!: () => void
+	mermaidConfigLock = new Promise((resolve) => (unlock = resolve))
+	await previousLock
+
+	let hostConfig: MermaidConfig | undefined
+	let restored = false
+	const restoreHostConfig = () => {
+		if (restored) return
+		restored = true
+		try {
+			if (hostConfig) mermaid.initialize(hostConfig)
+		} finally {
+			unlock()
+		}
+	}
+
+	try {
+		hostConfig = getHostConfig(mermaid)
+		// Throws on theme variables mermaid can't parse as colors, for example.
+		mermaid.initialize(config)
+	} catch (e) {
+		restoreHostConfig()
+		throw e
+	}
+	return restoreHostConfig
+}
+
+/**
+ * Mermaid exposes the config the host's `initialize` produced, not what it passed. Re-initializing
+ * with all of it would pin every default as if the host had chosen it: a `layout` of `dagre`, for
+ * one, overrides the layout a mindmap or `flowchart-elk` diagram asks for. So keep only what
+ * differs from a bare `initialize` with the same theme, which the theme variables derive from.
+ */
+function getHostConfig(mermaid: Mermaid): MermaidConfig {
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
+	const { getSiteConfig } = mermaid.mermaidAPI
+	const siteConfig = getSiteConfig()
+	mermaid.initialize({ theme: siteConfig.theme })
+	return { theme: siteConfig.theme, ...diffConfig(siteConfig, getSiteConfig()) }
+}
+
+function diffConfig(config: Record<string, any>, base: Record<string, any>) {
+	const diff: Record<string, any> = {}
+	for (const [key, value] of Object.entries(config)) {
+		if (isPlainObject(value) && isPlainObject(base[key])) {
+			const nested = diffConfig(value, base[key])
+			if (Object.keys(nested).length) diff[key] = nested
+		} else if (!isEqual(value, base[key])) {
+			diff[key] = value
+		}
+	}
+	return diff
+}
+
+function isPlainObject(value: unknown): value is Record<string, any> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+async function convertMermaidDiagram(
+	mermaid: Mermaid,
+	editor: Editor,
+	text: string,
+	options: MermaidDiagramOptions,
+	restoreHostConfig: () => void
+) {
 	const parsedResult = await mermaid.parse(text, { suppressErrors: true })
 
 	if (!parsedResult) {
@@ -162,6 +245,8 @@ export async function createMermaidDiagram(
 			}
 			default:
 				if (options.onUnsupportedDiagram) {
+					// The callback may render with mermaid itself, or start another conversion.
+					restoreHostConfig()
 					await options.onUnsupportedDiagram(parsedSvg)
 				} else {
 					throw new MermaidDiagramError(parsedResult.diagramType, 'unsupported')

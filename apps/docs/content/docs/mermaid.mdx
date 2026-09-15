@@ -43,7 +43,7 @@ await createMermaidDiagram(
 )
 ```
 
-By default the diagram is centered on the viewport, or on the pointer when the user's paste-at-cursor preference is on. Pass a `blueprintRender.position` to place it at a specific page point, and set `centerOnPosition: false` to anchor its top-left corner instead of its center. The finished diagram is a single group. Pass `mermaidConfig` to override Mermaid's layout settings, such as node spacing or font size.
+By default the diagram is centered on the viewport, or on the pointer when the user's paste-at-cursor preference is on. Pass a `blueprintRender.position` to place it at a specific page point, and set `centerOnPosition: false` to anchor its top-left corner instead of its center. The finished diagram is a single group. Pass `mermaidConfig` to override Mermaid's layout settings, such as node spacing or font size. It only applies while the diagram converts, so any Mermaid configuration your app sets for its own diagrams is left as it was.
 
 ## Supported diagram types
 
