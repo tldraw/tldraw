@@ -45,3 +45,6 @@ OTEL_TRACES_EXPORTER = "none"
 DO_NOT_TRACK = "1"
 OTEL_NODE_RESOURCE_DETECTORS = "env,host,os"
 OTEL_RESOURCE_ATTRIBUTES = "service.name=zero-rm,service.namespace=dotcom,deployment.environment=__TLDRAW_ENV,service.version=__ZERO_VERSION"
+# Read back by flyDeployGate.ts to skip a deploy whose inputs are unchanged. Bump the marker to
+# force one: marker 1
+TLDRAW_DEPLOY_INPUT_HASH = "__DEPLOY_INPUT_HASH"

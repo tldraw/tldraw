@@ -12279,6 +12279,7 @@ __metadata:
     tmp: "npm:^0.2.3"
     toml: "npm:^3.0.0"
     typescript: "npm:^7.0.2"
+    vitest: "npm:^4.1.7"
   bin:
     process-compose: ./process-compose-bin.cjs
   languageName: unknown
