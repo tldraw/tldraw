@@ -48,9 +48,30 @@ describe('blockUnknownOrigins', () => {
 	// arrives with no Origin but with the user's cookies. Sec-Fetch-Site is what distinguishes it
 	// from a request the user started themselves.
 	it('blocks a cross-site navigation that carries no origin', async () => {
-		const response = await blockUnknownOrigins(request({ 'sec-fetch-site': 'cross-site' }), env)
+		const response = await blockUnknownOrigins(
+			request({ 'sec-fetch-site': 'cross-site', 'sec-fetch-mode': 'navigate' }),
+			env
+		)
 		expect(response?.status).toBe(403)
 	})
+
+	// Browsers omit Origin on no-cors subresource loads too, which is how these workers serve
+	// public assets: an <img> with no crossorigin attribute is indistinguishable from a link click
+	// by Sec-Fetch-Site alone.
+	it.each(['no-cors', 'cors'])(
+		'allows a cross-site %s subresource that carries no origin',
+		async (secFetchMode) => {
+			expect(
+				await blockUnknownOrigins(
+					request(
+						{ 'sec-fetch-site': 'cross-site', 'sec-fetch-mode': secFetchMode },
+						'https://tldrawusercontent.com/some-asset'
+					),
+					env
+				)
+			).toBeUndefined()
+		}
+	)
 
 	it.each(['none', 'same-site'])(
 		'allows a %s request that carries no origin',
@@ -77,7 +98,10 @@ describe('blockUnknownOrigins', () => {
 
 	it('allows anything when running locally', async () => {
 		expect(
-			await blockUnknownOrigins(request({ 'sec-fetch-site': 'cross-site' }), { IS_LOCAL: 'true' })
+			await blockUnknownOrigins(
+				request({ 'sec-fetch-site': 'cross-site', 'sec-fetch-mode': 'navigate' }),
+				{ IS_LOCAL: 'true' }
+			)
 		).toBeUndefined()
 	})
 })
