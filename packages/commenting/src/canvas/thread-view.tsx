@@ -568,10 +568,9 @@ export const ThreadView = memo(function ThreadView({
 			comments={cards}
 			resolvedBanner={
 				thread.resolved
-					? msg('comments.resolved-by').replace(
-							'{name}',
-							resolveAuthor(thread.resolved.by)?.name ?? UNKNOWN_AUTHOR
-						)
+					? msg('comments.resolved-by', {
+							name: resolveAuthor(thread.resolved.by)?.name ?? UNKNOWN_AUTHOR,
+						})
 					: undefined
 			}
 			composer={

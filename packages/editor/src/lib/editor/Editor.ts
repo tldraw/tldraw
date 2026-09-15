@@ -107,6 +107,7 @@ import {
 	getSnapshot,
 	loadSnapshot,
 } from '../config/TLEditorSnapshot'
+import { TLI18nAdapter, defaultI18n } from '../config/TLI18n'
 import {
 	DEFAULT_ANIMATION_OPTIONS,
 	DEFAULT_CAMERA_OPTIONS,
@@ -265,6 +266,11 @@ export interface TLEditorOptions {
 	 * given, the body element will be used.
 	 */
 	getContainer(): HTMLElement
+
+	/**
+	 * An i18n adapter for translating strings.
+	 */
+	i18n?: TLI18nAdapter
 	/**
 	 * Provides a way to hide shapes.
 	 *
@@ -372,9 +378,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		fontAssetUrls,
 		themes,
 		initialTheme,
+		i18n,
 	}: TLEditorOptions) {
 		super()
 
+		this.i18n = i18n ?? defaultI18n
 		this._getShapeVisibility = getShapeVisibility
 
 		// Merge deprecated textOptions prop with options.text
@@ -1016,6 +1024,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	licenseManager?: LicenseManager
 
 	readonly contextId = uniqueId()
+
+	/**
+	 * The i18n adapter for translating strings.
+	 *
+	 * @public
+	 */
+	readonly i18n: TLI18nAdapter
 
 	/**
 	 * The editor's store

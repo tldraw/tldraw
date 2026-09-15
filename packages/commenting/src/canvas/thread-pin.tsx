@@ -194,9 +194,9 @@ export const ThreadPin = memo(function ThreadPin({
 	) : (
 		<Avatar author={threadAuthor ?? UNKNOWN_COMMENT_AUTHOR} />
 	)
-	const pinLabel = msg(
-		thread.resolved ? 'comments.pin-label-resolved' : 'comments.pin-label'
-	).replace('{name}', threadAuthor?.name ?? UNKNOWN_AUTHOR)
+	const pinLabel = msg(thread.resolved ? 'comments.pin-label-resolved' : 'comments.pin-label', {
+		name: threadAuthor?.name ?? UNKNOWN_AUTHOR,
+	})
 
 	// Drag the marker to move the thread: position is overridden locally while dragging, then re-anchored
 	// on drop. A region translates keeping its size; a barely-moved pointer is a click.

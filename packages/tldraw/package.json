@@ -58,6 +58,7 @@
 		"tldraw.css"
 	],
 	"dependencies": {
+		"@formatjs/intl": "^4.1.2",
 		"@tiptap/core": "^3.12.1",
 		"@tiptap/extension-code": "^3.12.1",
 		"@tiptap/extension-highlight": "^3.12.1",

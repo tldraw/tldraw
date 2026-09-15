@@ -1,3 +1,4 @@
+import { createIntl } from '@formatjs/intl'
 import { createShapeId, toRichText } from '@tldraw/editor'
 import { Mock, vi } from 'vitest'
 import { generateShapeAnnouncementMessage } from '../lib/ui/components/A11y'
@@ -10,17 +11,22 @@ describe('A11y Shape Announcements', () => {
 	beforeEach(() => {
 		editor = new TestEditor()
 
-		// Create a simple translation mock
-		mockTranslate = vi.fn((key) => {
-			if (key === 'a11y.multiple-shapes') return '{num} shapes selected'
-			if (key === 'a11y.shape') return 'Shape'
-			if (key === 'a11y.text') return 'Text'
-			if (key === 'a11y.shape-index') return '{num} of {total}'
-			if (key === 'a11y.shape-image') return 'image'
-			if (key === 'a11y.shape-video') return 'video'
-			if (key.startsWith('geo-style.')) return key.split('.')[1]
-			if (key.startsWith('tool.')) return key.split('.')[1]
-			return key
+		// Formats through real ICU like `useTranslation` does, so a malformed message here fails the
+		// test rather than announcing its own placeholders.
+		const intl = createIntl({ locale: 'en', defaultLocale: 'en', messages: {} })
+		mockTranslate = vi.fn((key: string, values?: Record<string, unknown>) => {
+			let defaultMessage = key
+			if (key === 'a11y.multiple-shapes') defaultMessage = '{num} shapes selected'
+			else if (key === 'a11y.shape') defaultMessage = 'Shape'
+			else if (key === 'a11y.text') defaultMessage = 'Text'
+			else if (key === 'a11y.shape-index') defaultMessage = '{num} of {total}'
+			else if (key === 'a11y.shape-image') defaultMessage = 'image'
+			else if (key === 'a11y.shape-video') defaultMessage = 'video'
+			else if (key.startsWith('geo-style.')) defaultMessage = key.split('.')[1]
+			else if (key.startsWith('tool.')) defaultMessage = key.split('.')[1]
+			// The message is chosen above, so it can't be the literal the rule wants here.
+			// eslint-disable-next-line tldraw/enforce-default-message
+			return intl.formatMessage({ id: key, defaultMessage }, values as any)
 		})
 	})
 
