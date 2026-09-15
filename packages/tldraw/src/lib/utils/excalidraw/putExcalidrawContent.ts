@@ -401,9 +401,9 @@ const strokeWidthsToSizes: Record<number, TLDefaultSizeStyle> = {
 	4: 'xl',
 }
 
-// Excalidraw's UI only offers preset stroke widths, but files edited by hand
-// or by other tools can carry any number. Snap those to the nearest size so
-// the pasted shape always passes validation (#10129).
+// Stroke widths outside Excalidraw's presets (hand-edited files, other tools)
+// would otherwise map to an undefined size and fail store validation (#10129).
+// Snap them to the nearest preset instead.
 function getSizeFromStrokeWidth(strokeWidth: number): TLDefaultSizeStyle {
 	const size = strokeWidthsToSizes[strokeWidth]
 	if (size) {
