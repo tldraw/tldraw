@@ -78,6 +78,90 @@ test.describe('Rich text behaviour', () => {
 		}
 	})
 
+	test('ticking a task item writes the checked state back to the shape', async ({
+		page,
+		richTextToolbar,
+		isMobile,
+	}) => {
+		// TODO: the mobile e2e test doesn't have the virtual keyboard at the moment.
+		if (isMobile) return
+
+		await richTextToolbar.clickTool(richTextToolbar.tools.taskList)
+		await sleep(33)
+
+		// The static render is separate HTML from the editor's, and it's the one that has to carry
+		// the checkbox once we leave edit mode.
+		for (const root of ['[data-testid="rich-text-area"]', '.tl-rich-text']) {
+			await expect(page.locator(`${root} ul[data-type="taskList"]`).first()).toHaveCount(1)
+		}
+
+		// Only the editing copy takes clicks: it's the one with a node view behind it.
+		await page.locator('.ProseMirror ul[data-type="taskList"] > li > label').first().click()
+		await sleep(150)
+
+		const checked = await page.evaluate(
+			() => (editor.getEditingShape()!.props as any).richText.content[0].content[0].attrs.checked
+		)
+		expect(checked).toBe(true)
+
+		// A done item is struck through, and the checkbox reads as clickable.
+		const item = page.locator('.ProseMirror ul[data-type="taskList"] > li').first()
+		await expect(item.locator('> div > p').first()).toHaveCSS(
+			'text-decoration-line',
+			'line-through'
+		)
+		await expect(item.locator('> label')).toHaveCSS('cursor', 'pointer')
+	})
+
+	test('a done item does not strike through its sub-items', async ({ page, isMobile }) => {
+		// TODO: the mobile e2e test doesn't have the virtual keyboard at the moment.
+		if (isMobile) return
+
+		// Sub-items carry their own checked state, so a done parent must not decide it for them.
+		await page.keyboard.type('[x] parent')
+		await page.keyboard.press('Enter')
+		await page.keyboard.press('Tab')
+		await page.keyboard.type('child')
+		await sleep(150)
+
+		const parent = page.locator('.ProseMirror ul[data-type="taskList"] > li').first()
+		await expect(parent.locator('> div > p').first()).toHaveCSS(
+			'text-decoration-line',
+			'line-through'
+		)
+		await expect(parent.locator('ul[data-type="taskList"] > li > div > p').first()).toHaveCSS(
+			'text-decoration-line',
+			'none'
+		)
+	})
+
+	test('cmd+enter ticks the task item instead of finishing the edit', async ({
+		page,
+		isMobile,
+	}) => {
+		// TODO: the mobile e2e test doesn't have the virtual keyboard at the moment.
+		if (isMobile) return
+
+		await page.keyboard.type('[ ] a task')
+		await sleep(150)
+
+		const checked = () =>
+			page.evaluate(
+				() => (editor.getEditingShape()!.props as any).richText.content[0].content[0].attrs.checked
+			)
+		const isEditing = () => page.evaluate(() => !!editor.getEditingShapeId())
+
+		await page.keyboard.press('Meta+Enter')
+		await sleep(200)
+		// The same chord normally finishes the edit, so the shape handler has to stand down here.
+		expect(await isEditing()).toBe(true)
+		expect(await checked()).toBe(true)
+
+		await page.keyboard.press('Meta+Enter')
+		await sleep(200)
+		expect(await checked()).toBe(false)
+	})
+
 	test('adding and removing a link', async ({ page, toolbar, richTextToolbar, isMobile }) => {
 		// TODO: the mobile e2e test doesn't have the virtual keyboard at the moment.
 		if (isMobile) return

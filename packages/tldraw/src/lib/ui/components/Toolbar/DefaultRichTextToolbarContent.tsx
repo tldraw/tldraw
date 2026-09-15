@@ -101,6 +101,12 @@ export function DefaultRichTextToolbarContent({
 				},
 			},
 			{
+				name: 'taskList',
+				onSelect() {
+					handleOp('taskList', 'toggleTaskList')
+				},
+			},
+			{
 				name: 'highlight',
 				onSelect() {
 					handleOp('bulletList', 'toggleHighlight')

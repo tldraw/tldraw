@@ -90,7 +90,7 @@ TipTap handles the rich text editing experience. The editor appears when users d
 
 ### Default extensions
 
-[tipTapDefaultExtensions](?) is TipTap's StarterKit plus tldraw's customizations: the `Highlight` mark, a Shift+Enter tweak, and automatic text direction for right-to-left languages. StarterKit is configured to disable blockquotes, code blocks, and horizontal rules; headings, lists, links, and the standard marks stay on. Links don't open on click during editing, which prevents accidental navigation.
+[tipTapDefaultExtensions](?) is TipTap's StarterKit plus tldraw's customizations: the `Highlight` mark, `TaskList` and `TaskItem` for checkbox lists, a Shift+Enter tweak, and automatic text direction for right-to-left languages. StarterKit is configured to disable blockquotes, code blocks, and horizontal rules; headings, lists, links, and the standard marks stay on. Links don't open on click during editing, which prevents accidental navigation.
 
 To tweak StarterKit without losing tldraw's extensions, build the list with [getTipTapDefaultExtensions](?), which accepts StarterKit options:
 
@@ -99,6 +99,22 @@ import { getTipTapDefaultExtensions } from 'tldraw'
 
 // The default set, minus headings
 const extensions = getTipTapDefaultExtensions({ heading: false })
+```
+
+### Task lists
+
+Typing `[ ] ` or `[x] ` at the start of a line turns it into a task list, as does the checklist button in the rich text toolbar (cmd/ctrl+shift+9). Tab and Shift+Tab nest and un-nest items.
+
+Checkboxes are only clickable while the shape is being edited. Outside of edit mode the text is static HTML, so a click there would tick the box without ever reaching the shape.
+
+`TaskList` and `TaskItem` aren't part of StarterKit, so unlike headings or lists you turn them off by filtering them out of the extension list rather than through StarterKit options:
+
+```tsx
+import { tipTapDefaultExtensions } from 'tldraw'
+
+const extensions = tipTapDefaultExtensions.filter(
+	(extension) => extension.name !== 'taskList' && extension.name !== 'taskItem'
+)
 ```
 
 ### Custom extensions
@@ -149,20 +165,6 @@ The `extensions` array replaces the default list entirely, so spread `tipTapDefa
 ### Importing TipTap
 
 Import TipTap's building blocks from `tldraw` rather than installing `@tiptap/*` alongside it. tldraw re-exports `Node`, `Mark`, `Extension`, `mergeAttributes`, `getSchema`, the `Extensions` and `JSONContent` types, and the `TaskList` and `TaskItem` extensions from the copy it bundles. Installing your own copy can resolve to a second `@tiptap/core` and ProseMirror, and ProseMirror throws when a schema is built from nodes belonging to two different instances.
-
-Task lists aren't part of the default extension set. Add them yourself, along with styles for the checkboxes, which tldraw doesn't provide:
-
-```tsx
-import { TaskItem, TaskList, tipTapDefaultExtensions } from 'tldraw'
-
-const options = {
-	text: {
-		tipTapConfig: {
-			extensions: [...tipTapDefaultExtensions, TaskList, TaskItem.configure({ nested: true })],
-		},
-	},
-}
-```
 
 Extensions tldraw doesn't re-export still need their own package. Install them at the same TipTap version tldraw depends on so your package manager dedupes `@tiptap/core` down to a single copy.
 

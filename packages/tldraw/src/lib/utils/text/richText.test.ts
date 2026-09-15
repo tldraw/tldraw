@@ -6,7 +6,6 @@ import {
 	renderHtmlFromRichTextWithExtensions,
 	tipTapDefaultExtensions,
 } from './richText'
-import { TaskItem, TaskList } from './tiptap'
 
 const render = (content: TLRichText['content']) =>
 	renderHtmlFromRichTextWithExtensions(
@@ -34,6 +33,31 @@ describe('renderHtmlFromRichTextWithExtensions', () => {
 	it('leaves paragraphs with content alone', () => {
 		expect(render([{ type: 'paragraph', content: [{ type: 'text', text: 'hello' }] }])).toBe(
 			'<p dir="auto">hello</p>'
+		)
+	})
+
+	it('renders a task item as a labelled checkbox next to its content', () => {
+		// The static render has no ProseMirror node view behind it, so this markup is what the
+		// checkbox CSS in editor.css has to hang off.
+		expect(
+			render([
+				{
+					type: 'taskList',
+					content: [
+						{
+							type: 'taskItem',
+							attrs: { checked: true },
+							content: [{ type: 'paragraph', content: [{ type: 'text', text: 'ship it' }] }],
+						},
+					],
+				},
+			])
+		).toBe(
+			'<ul dir="auto" data-type="taskList">' +
+				'<li dir="auto" data-checked="true" data-type="taskItem">' +
+				'<label><input type="checkbox" checked="checked"><span></span></label>' +
+				'<div><p dir="auto">ship it</p></div>' +
+				'</li></ul>'
 		)
 	})
 
@@ -108,9 +132,12 @@ describe('isEditingRichTextList', () => {
 	})
 
 	it('is true in the default lists', () => {
+		// Task lists are in here because TaskItem binds Tab itself. Without this, our Tab handler
+		// runs alongside it and one keypress both indents the text and nests the item.
 		for (const [list, item] of [
 			['bulletList', 'listItem'],
 			['orderedList', 'listItem'],
+			['taskList', 'taskItem'],
 		]) {
 			const editor = editingWith(tipTapDefaultExtensions, {
 				type: 'doc',
@@ -119,14 +146,102 @@ describe('isEditingRichTextList', () => {
 			expect(isEditingRichTextList(editor)).toBe(true)
 		}
 	})
+})
 
-	it('is true in a task list, whose items bind Tab themselves', () => {
-		// Without this, our Tab handler runs alongside TaskItem's and one keypress both indents the
-		// text and nests the item.
-		const editor = editingWith([...tipTapDefaultExtensions, TaskList, TaskItem], {
-			type: 'doc',
-			content: [listItem('taskList', 'taskItem')],
+describe('TaskItemToggleExtension', () => {
+	const task = (text: string, checked: boolean, nested?: JSONContent): JSONContent => ({
+		type: 'taskItem',
+		attrs: { checked },
+		content: [
+			{ type: 'paragraph', content: [{ type: 'text', text }] },
+			...(nested ? [{ type: 'taskList', content: [nested] }] : []),
+		],
+	})
+
+	// doc > taskList > [ parent > taskList > [ child ], sibling ]
+	const doc = (): JSONContent => ({
+		type: 'doc',
+		content: [
+			{
+				type: 'taskList',
+				content: [task('parent', false, task('child', false)), task('sibling', false)],
+			},
+		],
+	})
+
+	const checkedStates = (textEditor: TextEditor) => {
+		const states: [string, boolean][] = []
+		textEditor.state.doc.descendants((node) => {
+			if (node.type.name === 'taskItem') {
+				states.push([node.firstChild!.textContent, node.attrs.checked])
+			}
+			return true
 		})
-		expect(isEditingRichTextList(editor)).toBe(true)
+		return states
+	}
+
+	// The position of a text offset inside the item whose paragraph starts with `text`.
+	const posIn = (textEditor: TextEditor, text: string) => {
+		let found = -1
+		textEditor.state.doc.descendants((node, pos) => {
+			if (found === -1 && node.isTextblock && node.textContent === text) found = pos + 1
+			return found === -1
+		})
+		return found
+	}
+
+	const toggleAt = (textEditor: TextEditor, from: number, to = from) => {
+		textEditor.commands.setTextSelection({ from, to })
+		textEditor.commands.keyboardShortcut('Mod-Enter')
+	}
+
+	it('toggles only the innermost item the cursor sits in', () => {
+		// A cursor in a nested item is also "between" its parent item, which must not tick too.
+		const textEditor = new TextEditor({ extensions: tipTapDefaultExtensions, content: doc() })
+		toggleAt(textEditor, posIn(textEditor, 'child'))
+		expect(checkedStates(textEditor)).toEqual([
+			['parent', false],
+			['child', true],
+			['sibling', false],
+		])
+	})
+
+	it('toggles back on a second press', () => {
+		const textEditor = new TextEditor({ extensions: tipTapDefaultExtensions, content: doc() })
+		const pos = posIn(textEditor, 'sibling')
+		toggleAt(textEditor, pos)
+		expect(checkedStates(textEditor)).toContainEqual(['sibling', true])
+		toggleAt(textEditor, posIn(textEditor, 'sibling'))
+		expect(checkedStates(textEditor)).toContainEqual(['sibling', false])
+	})
+
+	it('takes every item in the selection to the first one’s new state', () => {
+		// Otherwise one press would invert each item separately rather than reading as one toggle.
+		const textEditor = new TextEditor({ extensions: tipTapDefaultExtensions, content: doc() })
+		toggleAt(textEditor, posIn(textEditor, 'child'))
+		toggleAt(textEditor, 1, textEditor.state.doc.content.size - 1)
+		expect(checkedStates(textEditor)).toEqual([
+			['parent', true],
+			['child', true],
+			['sibling', true],
+		])
+	})
+
+	it('ticks nothing when the cursor is outside every task item', () => {
+		// The extension has to decline here rather than reach for the nearest item: tldraw's
+		// shape-level handlers own Cmd+Enter outside a task list, finishing the edit or adding the
+		// next note.
+		const withParagraph = doc()
+		withParagraph.content!.unshift(toRichText('intro').content[0] as JSONContent)
+		const textEditor = new TextEditor({
+			extensions: tipTapDefaultExtensions,
+			content: withParagraph,
+		})
+		toggleAt(textEditor, posIn(textEditor, 'intro'))
+		expect(checkedStates(textEditor)).toEqual([
+			['parent', false],
+			['child', false],
+			['sibling', false],
+		])
 	})
 })

@@ -36,6 +36,7 @@ import { TldrawUiTooltip } from '../../ui/components/primitives/TldrawUiTooltip'
 import { TranslationsContext } from '../../ui/hooks/useTranslation/useTranslation'
 import {
 	isEditingRichTextList,
+	isEditingRichTextTaskItem,
 	isEmptyRichText,
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,
@@ -705,6 +706,12 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				// creating a new note. Prevent default so Tab doesn't move focus out
 				// of the editor when the item can't be indented (e.g. the first item).
 				e.preventDefault()
+				return
+			}
+
+			if (isCmdEnter && isEditingRichTextTaskItem(editor)) {
+				// In a task item the same chord ticks the item off, which the rich text editor's own
+				// keymap does after this runs. Don't spawn the next note as well.
 				return
 			}
 

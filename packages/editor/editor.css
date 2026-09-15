@@ -816,6 +816,89 @@ input,
 	padding-left: 3.625ch;
 }
 
+/**
+ * Task lists. TipTap's TaskItem renders each item as
+ * `<li><label><input type="checkbox"><span></span></label><div>…</div></li>`.
+ *
+ * The `<input>` is the hit target only — it's laid over the label at zero opacity, and the visible
+ * box is the `<span>` beside it. Form controls aren't rendered when an SVG is loaded as an image,
+ * so an exported PNG would otherwise come back with the checkboxes missing. Everything is sized in
+ * `em` and drawn in `currentColor` so a checkbox tracks the font size and color of the shape it
+ * lives in.
+ */
+.tl-rich-text ul[data-type='taskList'] {
+	padding-left: 0;
+	list-style: none;
+}
+
+.tl-rich-text ul[data-type='taskList'] > li {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.6ch;
+}
+
+.tl-rich-text ul[data-type='taskList'] > li > label {
+	/* Center the box on the first line of the item rather than on the whole item. */
+	display: flex;
+	align-items: center;
+	height: 1lh;
+	position: relative;
+	flex: 0 0 auto;
+	user-select: none;
+	/**
+	 * Outside of edit mode the rich text is static HTML with no ProseMirror node view behind it, so
+	 * a checkbox click would toggle the input without ever reaching the shape and then snap back on
+	 * the next render. Only the editing copy takes clicks; elsewhere they fall through to the canvas.
+	 */
+	pointer-events: none;
+}
+
+.tl-rich-text .ProseMirror ul[data-type='taskList'] > li > label {
+	pointer-events: auto;
+	/* On the label, not the input: the span paints over the input, so it's what the pointer hits. */
+	cursor: pointer;
+}
+
+.tl-rich-text ul[data-type='taskList'] > li > label > input[type='checkbox'] {
+	position: absolute;
+	inset: 0;
+	margin: 0;
+	opacity: 0;
+}
+
+.tl-rich-text ul[data-type='taskList'] > li > label > span {
+	position: relative;
+	display: block;
+	box-sizing: border-box;
+	width: 0.8em;
+	height: 0.8em;
+	border: 0.09em solid currentColor;
+	border-radius: 0.2em;
+}
+
+.tl-rich-text ul[data-type='taskList'] > li > label > input:checked + span::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background-color: currentColor;
+	/* tldraw's own check icon, so a checked box matches the check marks in the UI. */
+	mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath d='M22.9339 7.45369C23.5118 7.83148 23.6739 8.60615 23.2961 9.18396L14.7961 22.184C14.5958 22.4903 14.2712 22.6935 13.9082 22.7398C13.5451 22.7862 13.1799 22.6711 12.909 22.4248L7.40905 17.4248C6.89822 16.9604 6.86058 16.1699 7.32496 15.6591C7.78935 15.1482 8.57991 15.1106 9.09073 15.575L13.506 19.5888L21.2037 7.81584C21.5815 7.23803 22.3561 7.07589 22.9339 7.45369Z'/%3E%3C/svg%3E");
+	/* The icon carries a lot of padding inside its viewBox; scale past it so the check reads. */
+	mask-size: 140%;
+	mask-position: center;
+	mask-repeat: no-repeat;
+}
+
+/**
+ * Only the item's own paragraphs, not the whole content div: a nested task list lives in there too,
+ * and its children carry their own checked state. `text-decoration` can't be undone by a descendant
+ * once it's set on an ancestor, so striking the div through would strike its sub-items as well.
+ */
+.tl-rich-text ul[data-type='taskList'] > li[data-checked='true'] > div > p {
+	opacity: 0.6;
+	text-decoration: line-through;
+}
+
 .tl-rich-text h1,
 .tl-rich-text h2,
 .tl-rich-text h3,
