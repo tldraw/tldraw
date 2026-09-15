@@ -25,9 +25,12 @@ export function SkipToMainContent() {
 		(e: MouseEvent | KeyboardEvent) => {
 			editor.markEventAsHandled(e)
 			button.current?.blur()
-			const shapes = editor.getCurrentPageShapesInReadingOrder()
-			if (!shapes.length) return
-			editor.setSelectedShapes([shapes[0].id])
+			// Locked shapes can't be selected by clicking or select all, so skip them here too
+			const firstShape = editor
+				.getCurrentPageShapesInReadingOrder()
+				.find((shape) => !editor.isShapeOrAncestorLocked(shape))
+			if (!firstShape) return
+			editor.setSelectedShapes([firstShape.id])
 			suppressBackToContent(editor, editor.options.animationMediumMs)
 			editor.zoomToSelectionIfOffscreen(256, {
 				animation: {
