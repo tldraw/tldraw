@@ -12055,6 +12055,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@tldraw/dotcom-tail-worker@workspace:apps/dotcom/tail-worker":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/dotcom-tail-worker@workspace:apps/dotcom/tail-worker"
+  dependencies:
+    "@cloudflare/workers-types": "npm:^4.20260302.0"
+    lazyrepo: "npm:0.0.0-alpha.27"
+    typescript: "npm:^7.0.2"
+    vitest: "npm:^4.1.7"
+    wrangler: "npm:^4.75.0"
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/dotcom-worker@workspace:apps/dotcom/sync-worker":
   version: 0.0.0-use.local
   resolution: "@tldraw/dotcom-worker@workspace:apps/dotcom/sync-worker"
