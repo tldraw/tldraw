@@ -9,7 +9,8 @@ import {
 } from '@tiptap/core'
 import { Code } from '@tiptap/extension-code'
 import { Highlight } from '@tiptap/extension-highlight'
-import { Node } from '@tiptap/pm/model'
+import { TaskItem, TaskList } from '@tiptap/extension-list'
+import { Node, type Node as ProseMirrorNode } from '@tiptap/pm/model'
 import { StarterKit, type StarterKitOptions } from '@tiptap/starter-kit'
 import {
 	Editor,
@@ -32,6 +33,51 @@ export const KeyboardShiftEnterTweakExtension = Extension.create({
 	},
 })
 
+/**
+ * Cmd/Ctrl+Enter ticks the task item the cursor sits in, or every item the selection touches. They
+ * all take the first item's new state, so one press reads as a single toggle rather than inverting
+ * each item separately.
+ *
+ * The shape-level handlers bind Cmd+Enter too (finishing the edit, adding the next note) and run
+ * ahead of this, so they stand down when the selection is in a task item.
+ *
+ * @public
+ */
+export const TaskItemToggleExtension = Extension.create({
+	name: 'taskItemToggleHandler',
+	addKeyboardShortcuts() {
+		return {
+			'Mod-Enter': ({ editor }) =>
+				editor.commands.command(({ tr, state, dispatch }) => {
+					// Keyed by position so an item is only collected once. We look up from each
+					// textblock rather than collecting every taskItem in the range: a cursor inside a
+					// nested item is also "between" its parent item, which shouldn't tick as well.
+					const items = new Map<number, ProseMirrorNode>()
+					state.doc.nodesBetween(state.selection.from, state.selection.to, (node, pos) => {
+						if (!node.isTextblock) return true
+						const $pos = state.doc.resolve(pos)
+						for (let depth = $pos.depth; depth > 0; depth--) {
+							if ($pos.node(depth).type.name === 'taskItem') {
+								items.set($pos.before(depth), $pos.node(depth))
+								break
+							}
+						}
+						return false
+					})
+
+					if (items.size === 0) return false
+					if (!dispatch) return true
+
+					const checked = !items.values().next().value!.attrs.checked
+					for (const [pos, node] of items) {
+						tr.setNodeMarkup(pos, undefined, { ...node.attrs, checked })
+					}
+					return true
+				}),
+		}
+	},
+})
+
 // We change the default Code to override what's in the StarterKit.
 // It allows for other attributes/extensions.
 // @ts-ignore this is fine.
@@ -47,7 +93,8 @@ Highlight.config.priority = 1100
  * options. The one lever most consumers want is turning individual nodes off (e.g. comments use a
  * headingless set via `getTipTapDefaultExtensions({ heading: false })`); because `StarterKit` is a
  * single umbrella extension, its sub-extensions can only be disabled through its config, not by
- * filtering the returned array.
+ * filtering the returned array. Extensions outside the kit — `TaskList` and `TaskItem` among them —
+ * can be filtered out of the result by name.
  *
  * @public
  */
@@ -65,11 +112,14 @@ export function getTipTapDefaultExtensions(
 			},
 			// Prevent trailing paragraph insertion after lists (fixes #7641)
 			trailingNode: {
-				notAfter: ['paragraph', 'bulletList', 'orderedList', 'listItem'],
+				notAfter: ['paragraph', 'bulletList', 'orderedList', 'listItem', 'taskList', 'taskItem'],
 			},
 			...starterKitOptions,
 		}),
 		Highlight,
+		TaskList,
+		TaskItem.configure({ nested: true }),
+		TaskItemToggleExtension,
 		KeyboardShiftEnterTweakExtension,
 
 		// N.B. We disable the text direction core extension in RichTextArea,
@@ -157,11 +207,9 @@ export function isEmptyRichText(richText: TLRichText) {
 }
 
 /**
- * Whether the editor's active rich text selection is inside a list.
- *
- * `taskList` isn't in the default extension set, but when it is added its list items bind Tab and
- * Shift-Tab themselves. Leaving it out here lets our own Tab handling run alongside TipTap's, so a
- * single keypress both indents the text and nests the item.
+ * Whether the editor's active rich text selection is inside a list. When it is, our Tab handler
+ * bows out so TipTap's own Tab bindings can nest and un-nest the item instead of inserting a tab
+ * character into the line.
  *
  * @internal
  */
@@ -172,6 +220,17 @@ export function isEditingRichTextList(editor: Editor) {
 		textEditor?.isActive('orderedList') ||
 		textEditor?.isActive('taskList')
 	)
+}
+
+/**
+ * Whether the editor's active rich text selection is inside a task item. Shape-level Cmd+Enter
+ * handlers run ahead of TipTap's keymap, so they check this and stand down to let
+ * {@link TaskItemToggleExtension} tick the item instead.
+ *
+ * @internal
+ */
+export function isEditingRichTextTaskItem(editor: Editor) {
+	return !!editor.getRichTextEditor()?.isActive('taskItem')
 }
 
 /**

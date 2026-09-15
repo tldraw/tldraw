@@ -122,6 +122,18 @@ export function DefaultKeyboardShortcutsDialogContent() {
 					kbd="cmd+shift+8"
 					onSelect={noop}
 				/>
+				<TldrawUiMenuItem
+					id="text-tasklist"
+					label="tool.rich-text-taskList"
+					kbd="cmd+shift+9"
+					onSelect={noop}
+				/>
+				<TldrawUiMenuItem
+					id="text-taskitem-toggle"
+					label="tool.rich-text-taskItem-toggle"
+					kbd="cmd+enter"
+					onSelect={noop}
+				/>
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.a11y" id="a11y">
 				<TldrawUiMenuItem
