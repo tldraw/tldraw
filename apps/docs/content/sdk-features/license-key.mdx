@@ -66,6 +66,28 @@ The SDK also checks for license keys in common environment variables. If you set
 
 The SDK checks both `process.env` and `import.meta.env` versions of each variable.
 
+### Setting the key imperatively
+
+Not everything that needs a license renders. Tools, store writes, and an editor created directly with `new Editor()` have no React tree to read a prop from. Call [setLicense](?) to set the key for the page instead:
+
+```ts
+import { setLicense } from 'tldraw'
+
+setLicense({ licenseKey: 'tldraw-abc123...' })
+```
+
+It doesn't replace the prop — it's the fallback for anything that wasn't given one. A key passed to `<Tldraw />`, `<TldrawEditor />` or `new Editor()` wins over the one set here, so editors on the same page can hold different licenses. It applies to editors that already exist, so it doesn't matter whether it runs before or after the editor mounts.
+
+To ask what the license grants from outside React, use [Editor#isLicensedFeatureEnabled](?):
+
+```ts
+if (editor.isLicensedFeatureEnabled('commenting')) {
+	// ...
+}
+```
+
+Validation is asynchronous, so this is `false` for the first moments of a licensed editor's life. Inside a component or a signal it recomputes when the answer arrives; the React equivalent is `useCommentingEnabled`.
+
 ## License types
 
 | Type       | Watermark | Duration | Purpose                           |

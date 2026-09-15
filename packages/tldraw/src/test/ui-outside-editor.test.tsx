@@ -17,7 +17,7 @@ describe('default UI mounted outside <Tldraw />', () => {
 			{ waitForPatterns: true }
 		)
 
-		expect(editor.licenseManager).toBeDefined()
+		expect(editor.getLicenseManager()).toBeDefined()
 
 		let commentingEnabled: boolean | undefined
 		function CommentingProbe() {
