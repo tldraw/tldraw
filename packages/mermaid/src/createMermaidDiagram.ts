@@ -1,5 +1,3 @@
-import { isEqual } from '@tldraw/utils'
-import type { Mermaid, MermaidConfig } from 'mermaid'
 import type { FlowDB } from 'mermaid/dist/diagrams/flowchart/flowDb.d.ts'
 import type { FlowEdge, FlowSubGraph, FlowVertex } from 'mermaid/dist/diagrams/flowchart/types.js'
 import type { MindmapDB } from 'mermaid/dist/diagrams/mindmap/mindmapDb.d.ts'
@@ -30,7 +28,6 @@ export class MermaidDiagramError extends Error {
 const FONT_INFLATE = 1.4
 
 const MERMAID_CONFIG = {
-	startOnLoad: false,
 	flowchart: { nodeSpacing: 80, rankSpacing: 80, padding: 20 },
 	state: { nodeSpacing: 80, rankSpacing: 80, padding: 20 },
 	mindmap: { padding: 20 },
@@ -64,7 +61,7 @@ export async function createMermaidDiagram(
 	// mermaid in when @tldraw/mermaid is merely imported.
 	const mermaid = (await import('mermaid')).default
 
-	const restoreHostConfig = await applyMermaidConfig(mermaid, {
+	const config = {
 		...MERMAID_CONFIG,
 		...(options.mermaidConfig ?? {}),
 		flowchart: { ...MERMAID_CONFIG.flowchart, ...options.mermaidConfig?.flowchart },
@@ -72,95 +69,14 @@ export async function createMermaidDiagram(
 		mindmap: { ...MERMAID_CONFIG.mindmap, ...options.mermaidConfig?.mindmap },
 		sequence: { ...MERMAID_CONFIG.sequence, ...options.mermaidConfig?.sequence },
 		themeVariables: { ...MERMAID_CONFIG.themeVariables, ...options.mermaidConfig?.themeVariables },
-		// A diagram's own `%%{init}%%` or frontmatter config outranks `initialize`, so one that sets
-		// `fontSize` undoes FONT_INFLATE: every box is measured small while tldraw still draws its
-		// wider face, and labels break mid-word. Mermaid strips `secure` keys from in-diagram config
-		// at any depth, and keeps its own defaults alongside the ones listed here.
-		secure: [...(options.mermaidConfig?.secure ?? []), 'fontSize'],
-	})
-
-	try {
-		await convertMermaidDiagram(mermaid, editor, text, options, restoreHostConfig)
-	} finally {
-		restoreHostConfig()
 	}
-}
+	// Mermaid keeps one config for the whole page, so `mermaid.initialize` would replace the host
+	// app's own. A directive applies to this diagram alone, and going last it also outranks the
+	// diagram's own `%%{init}%%` or frontmatter, which could otherwise shrink FONT_INFLATE's font
+	// size and leave labels breaking mid-word.
+	const configuredText = `${text}\n%%{init: ${JSON.stringify(config)}}%%`
 
-let mermaidConfigLock = Promise.resolve()
-
-/**
- * Mermaid has one page-wide config, so ours is only applied for the length of a conversion and the
- * host app's is put back afterwards. Conversions take turns: otherwise one finishing would restore
- * the host's config while another is still laying out.
- */
-async function applyMermaidConfig(mermaid: Mermaid, config: MermaidConfig) {
-	const previousLock = mermaidConfigLock
-	let unlock!: () => void
-	mermaidConfigLock = new Promise((resolve) => (unlock = resolve))
-	await previousLock
-
-	let hostConfig: MermaidConfig | undefined
-	let restored = false
-	const restoreHostConfig = () => {
-		if (restored) return
-		restored = true
-		try {
-			if (hostConfig) mermaid.initialize(hostConfig)
-		} finally {
-			unlock()
-		}
-	}
-
-	try {
-		hostConfig = getHostConfig(mermaid)
-		// Throws on theme variables mermaid can't parse as colors, for example.
-		mermaid.initialize(config)
-	} catch (e) {
-		restoreHostConfig()
-		throw e
-	}
-	return restoreHostConfig
-}
-
-/**
- * Mermaid exposes the config the host's `initialize` produced, not what it passed. Re-initializing
- * with all of it would pin every default as if the host had chosen it: a `layout` of `dagre`, for
- * one, overrides the layout a mindmap or `flowchart-elk` diagram asks for. So keep only what
- * differs from a bare `initialize` with the same theme, which the theme variables derive from.
- */
-function getHostConfig(mermaid: Mermaid): MermaidConfig {
-	// eslint-disable-next-line @typescript-eslint/no-deprecated
-	const { getSiteConfig } = mermaid.mermaidAPI
-	const siteConfig = getSiteConfig()
-	mermaid.initialize({ theme: siteConfig.theme })
-	return { theme: siteConfig.theme, ...diffConfig(siteConfig, getSiteConfig()) }
-}
-
-function diffConfig(config: Record<string, any>, base: Record<string, any>) {
-	const diff: Record<string, any> = {}
-	for (const [key, value] of Object.entries(config)) {
-		if (isPlainObject(value) && isPlainObject(base[key])) {
-			const nested = diffConfig(value, base[key])
-			if (Object.keys(nested).length) diff[key] = nested
-		} else if (!isEqual(value, base[key])) {
-			diff[key] = value
-		}
-	}
-	return diff
-}
-
-function isPlainObject(value: unknown): value is Record<string, any> {
-	return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
-async function convertMermaidDiagram(
-	mermaid: Mermaid,
-	editor: Editor,
-	text: string,
-	options: MermaidDiagramOptions,
-	restoreHostConfig: () => void
-) {
-	const parsedResult = await mermaid.parse(text, { suppressErrors: true })
+	const parsedResult = await mermaid.parse(configuredText, { suppressErrors: true })
 
 	if (!parsedResult) {
 		throw new MermaidDiagramError('not a mermaid diagram', 'parse')
@@ -176,7 +92,9 @@ async function convertMermaidDiagram(
 	document.body.appendChild(offscreen)
 
 	try {
-		const parsedSvg = (await mermaid.render(`mermaid-${nextMermaidId++}`, text, offscreen)).svg
+		const parsedSvg = (
+			await mermaid.render(`mermaid-${nextMermaidId++}`, configuredText, offscreen)
+		).svg
 
 		// Reuse the live SVG that mermaid.render() already mounted into the
 		// offscreen container.  This avoids a second DOM mount and ensures
@@ -193,7 +111,7 @@ async function convertMermaidDiagram(
 		}
 
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		const diagramResult = await mermaid.mermaidAPI.getDiagramFromText(text)
+		const diagramResult = await mermaid.mermaidAPI.getDiagramFromText(configuredText)
 
 		let blueprint
 		switch (parsedResult.diagramType) {
@@ -245,8 +163,6 @@ async function convertMermaidDiagram(
 			}
 			default:
 				if (options.onUnsupportedDiagram) {
-					// The callback may render with mermaid itself, or start another conversion.
-					restoreHostConfig()
 					await options.onUnsupportedDiagram(parsedSvg)
 				} else {
 					throw new MermaidDiagramError(parsedResult.diagramType, 'unsupported')
