@@ -2340,6 +2340,31 @@ describe('26. Session lifecycle (SES)', () => {
 		expect(room.sessions.size).toBe(0)
 	})
 
+	it('[SES4] a reason longer than 123 UTF-8 bytes is truncated on a code-point boundary with a dropped-bytes suffix', () => {
+		const { room } = makeRoom()
+
+		const exact = connectSession(room, 'exact')
+		room.rejectSession('exact', 'x'.repeat(123))
+		expect(exact.close).toHaveBeenCalledWith(TLSyncErrorCloseEventCode, 'x'.repeat(123))
+
+		// '... (+200 bytes)' reserves 16 bytes, leaving 107 for the reason
+		const ascii = connectSession(room, 'ascii')
+		room.rejectSession('ascii', 'x'.repeat(200))
+		expect(ascii.close).toHaveBeenCalledWith(
+			TLSyncErrorCloseEventCode,
+			'x'.repeat(107) + '... (+93 bytes)'
+		)
+
+		// 161 bytes in, 107 to fill: 1 + 26 × 4 = 105, and a 27th 4-byte character is dropped whole
+		const emoji = connectSession(room, 'emoji')
+		room.rejectSession('emoji', 'x' + '\u{1F600}'.repeat(40))
+		expect(emoji.close).toHaveBeenCalledWith(
+			TLSyncErrorCloseEventCode,
+			'x' + '\u{1F600}'.repeat(26) + '... (+56 bytes)'
+		)
+		expect(room.sessions.size).toBe(0)
+	})
+
 	it('[HS2][SES5] sets supportsStringAppend to false for protocol version 7', () => {
 		const { room } = makeRoom()
 		connectSession(room, 'v7-session', { protocolVersion: 7 })
