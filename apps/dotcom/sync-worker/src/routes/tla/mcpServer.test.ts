@@ -1,6 +1,6 @@
 import { THUMBNAIL_RENDER_TIMEOUT_MS } from '@tldraw/dotcom-shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { MCP_PER_USER_RATE_LIMIT } from '../../config'
+import { MCP_PER_USER_RATE_LIMIT, MCP_SEARCH_PER_USER_RATE_LIMIT } from '../../config'
 import { Environment } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
@@ -36,6 +36,7 @@ import {
 	screenshotOf,
 	sessionsOf,
 } from './screenshotTestHelpers'
+import { searchAccessibleBoards } from './searchBoards'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
@@ -72,6 +73,8 @@ function denyReadAccess() {
 // flag handling that produces that verdict is covered in mcpAuth.test.ts. The user id is read back
 // off the request so a test can act as more than one caller — which the per-user rate limit needs.
 vi.mock('./mcpAuth', () => ({ authenticateMcpRequest: vi.fn() }))
+
+vi.mock('./searchBoards', () => ({ searchAccessibleBoards: vi.fn() }))
 
 beforeEach(() => {
 	vi.mocked(authenticateMcpRequest).mockImplementation(async (request: any) => ({
@@ -315,6 +318,7 @@ describe('MCP server', () => {
 			await mcpServer(makeRpcRequest('tools/list', undefined, { userId: 'user_1' }), makeEnv())
 		)
 		expect(result.tools.map((tool: any) => tool.name)).toEqual([
+			'search_boards',
 			'get_board_info',
 			'get_page_info',
 			'get_cluster_info',
@@ -507,7 +511,7 @@ describe('protocol versions', () => {
 		expect(modern).toMatchObject({
 			resultType: 'complete',
 			cacheScope: 'public',
-			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.0.0' } },
+			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.1.0' } },
 		})
 		expect(modern.ttlMs).toBeGreaterThan(0)
 
@@ -594,6 +598,98 @@ describe('modern request headers', () => {
 	})
 })
 
+describe('search_boards', () => {
+	const ROW = {
+		id: 'board-1',
+		name: 'Roadmap',
+		createdAt: 1_700_000_000_000,
+		updatedAt: 1_700_000_500_000,
+		workspaceName: 'My workspace',
+		isPersonal: true,
+	}
+
+	it('returns matching boards for the calling account', async () => {
+		vi.mocked(searchAccessibleBoards).mockResolvedValue([ROW])
+		const result = await callTool('search_boards', { query: 'road' }, makeEnv(), 'user_abc')
+		expect(searchAccessibleBoards).toHaveBeenCalledWith(expect.anything(), 'user_abc', {
+			terms: ['road'],
+			cursor: null,
+		})
+		expect(JSON.parse(result.content[0].text)).toMatchObject({
+			boardCount: 1,
+			boards: [
+				{
+					boardId: 'board-1',
+					name: 'Roadmap',
+					source: 'owned',
+					createdAt: '2023-11-14T22:13:20.000Z',
+				},
+			],
+		})
+	})
+
+	// The cursor a caller hands back must reach the query, or every page is page one.
+	it('passes a decoded cursor through to the query', async () => {
+		vi.mocked(searchAccessibleBoards).mockResolvedValue([])
+		await callTool('search_boards', { cursor: btoa('1700000000000:board-9:') })
+		expect(searchAccessibleBoards).toHaveBeenCalledWith(expect.anything(), expect.any(String), {
+			terms: [],
+			cursor: { createdAt: 1_700_000_000_000, id: 'board-9' },
+		})
+	})
+
+	it('refuses a malformed cursor with a message that says what to do', async () => {
+		const result = await callTool('search_boards', { cursor: 'not-a-cursor' })
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('cursor is not valid')
+	})
+
+	// Matching nothing is a normal answer. Flagged as an error, a model retries it.
+	it('answers an empty search without isError', async () => {
+		vi.mocked(searchAccessibleBoards).mockResolvedValue([])
+		const result = await callTool('search_boards', { query: 'nothing' })
+		expect(result.isError).toBeUndefined()
+		expect(JSON.parse(result.content[0].text).boardCount).toBe(0)
+	})
+
+	// The limiters on this server bound Browser Run, and this tool spends none — counting it
+	// against them would make the documented per-account number untrue again.
+	it('does not consume the Browser Run rate limit budget', async () => {
+		vi.mocked(searchAccessibleBoards).mockResolvedValue([])
+		const limit = vi.fn(async () => ({ success: true }))
+		const env = makeEnv({ MCP_SCREENSHOT_RATE_LIMITER: { limit } })
+		await callTool('search_boards', {}, env)
+		expect(limit).not.toHaveBeenCalled()
+	})
+
+	// The wire-legal call a model makes by following the tool's own description literally: MCP's
+	// `arguments` is optional, and this is the only tool with `required: []`, so a real client can
+	// send `params: {name: "search_boards"}` with no `arguments` key at all. Built with
+	// makeRpcRequest, not makeToolCall/callTool, because those always supply an `arguments` key —
+	// which is exactly why this case was missed before.
+	it('answers a tools/call with no arguments key at all, rather than erroring', async () => {
+		vi.mocked(searchAccessibleBoards).mockResolvedValue([ROW])
+		const request = makeRpcRequest('tools/call', { name: 'search_boards' }, { userId: 'user_abc' })
+		const result = await rpcResult(await mcpServer(request, makeEnv()))
+		expect(result.isError).toBeUndefined()
+		expect(searchAccessibleBoards).toHaveBeenCalledWith(expect.anything(), 'user_abc', {
+			terms: [],
+			cursor: null,
+		})
+	})
+
+	// The failure classifier reads render failures; this tool starts none, and a pool timeout would
+	// otherwise be recorded as a browser timeout.
+	it('reports a database failure as a lookup error', async () => {
+		vi.mocked(searchAccessibleBoards).mockRejectedValue(new Error('connection refused'))
+		const result = await callTool('search_boards', {})
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toBe(
+			'Could not search boards: the board database could not be reached.'
+		)
+	})
+})
+
 describe('get_board_info', () => {
 	it('returns the board name, page count, and stable page ids as well as indexes', async () => {
 		mockPublishedBoard()
@@ -670,6 +766,21 @@ describe('get_board_info', () => {
 			"Could not read board info: the board's saved content could not be read."
 		)
 		expect(result.content[0].text).not.toContain('no saved content')
+	})
+
+	// The two failure tests above both go through BoardSnapshotReadError, which `recordAs` passes
+	// through unchanged — so nothing else here pins the other half of the narrowing. This tool starts
+	// no render, and the classifier defaults anything it does not recognise to a render failure.
+	it('reports a raw board lookup failure as a database error, not a render one', async () => {
+		vi.mocked(hasReadAccessToFile).mockRejectedValueOnce(
+			new Error('connect ECONNREFUSED 10.0.0.5:5432')
+		)
+
+		const result = await callTool('get_board_info', { boardId: 'abc' }, undefined, 'user_5')
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toBe(
+			'Could not read board info: the board database could not be reached.'
+		)
 	})
 
 	it('errors for a shared file with no saved content', async () => {
@@ -1070,6 +1181,42 @@ describe('rate limits', () => {
 		// The per-user message specifically, so this can't pass on the global cap firing instead.
 		expect(blocked.content[0].text).toContain('per minute per account')
 		expect(failureBlobsOf(env)).toContain('failure:rate_limited_user')
+	})
+
+	// Search has its own budget because it bounds Postgres, not Browser Run. Pins the configured
+	// number rather than merely that something eventually refuses, and stops one call past it so a
+	// pass cannot be some other limiter firing — search is checked against a binding of its own.
+	it(`allows ${MCP_SEARCH_PER_USER_RATE_LIMIT} searches per account per minute, then rate limits`, async () => {
+		vi.mocked(searchAccessibleBoards).mockResolvedValue([])
+		const env = makeEnv()
+
+		const results = []
+		for (let i = 0; i <= MCP_SEARCH_PER_USER_RATE_LIMIT; i++) {
+			results.push(await callTool('search_boards', {}, env, 'user_search'))
+		}
+
+		expect(results.slice(0, MCP_SEARCH_PER_USER_RATE_LIMIT).map((r) => r.isError)).toEqual(
+			Array(MCP_SEARCH_PER_USER_RATE_LIMIT).fill(undefined)
+		)
+		const blocked = results[MCP_SEARCH_PER_USER_RATE_LIMIT]
+		expect(blocked.isError).toBe(true)
+		// The search message specifically, so this cannot pass on the Browser Run budget firing.
+		expect(blocked.content[0].text).toContain('Searches are limited')
+		// A limit nobody can see firing is the failure this ledger row exists to prevent.
+		expect(failureBlobsOf(env)).toContain('failure:rate_limited_search')
+	})
+
+	// Both halves matter: without the noisy caller actually being refused, the quiet one succeeding
+	// says nothing, since a search nobody limits succeeds for everybody.
+	it('gives each account its own search budget', async () => {
+		vi.mocked(searchAccessibleBoards).mockResolvedValue([])
+		const env = makeEnv()
+		let noisy
+		for (let i = 0; i <= MCP_SEARCH_PER_USER_RATE_LIMIT; i++) {
+			noisy = await callTool('search_boards', {}, env, 'user_search_noisy')
+		}
+		expect(noisy?.isError).toBe(true)
+		expect((await callTool('search_boards', {}, env, 'user_search_quiet')).isError).toBeUndefined()
 	})
 
 	// The point of re-keying off IP: a second account gets its own budget, and one account

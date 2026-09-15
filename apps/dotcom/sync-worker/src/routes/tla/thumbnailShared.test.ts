@@ -4,6 +4,7 @@ import {
 	BoardSnapshotReadError,
 	BrowserRenderError,
 	classifyScreenshotFailure,
+	describeThumbnailFailure,
 	reportThumbnailError,
 } from './thumbnailShared'
 
@@ -78,6 +79,17 @@ describe('classifyScreenshotFailure', () => {
 			'empty_render'
 		)
 		expect(classifyScreenshotFailure(new Error('something else entirely'))).toBe('render_error')
+	})
+})
+
+describe('describeThumbnailFailure', () => {
+	// 'the render failed' is nonsense for a tool that starts no render — search_boards and
+	// get_board_info both fail this way when Postgres does, and both prefix it with their own
+	// summary ("Could not search boards: …").
+	it('describes a board lookup failure without mentioning rendering', () => {
+		expect(describeThumbnailFailure('board_lookup_error')).toBe(
+			'the board database could not be reached'
+		)
 	})
 })
 
