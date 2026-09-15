@@ -3771,6 +3771,9 @@ export { TaskItem }
 
 export { TaskItemOptions }
 
+// @public
+export const TaskItemToggleExtension: Extension<any, any>;
+
 export { TaskList }
 
 export { TaskListOptions }

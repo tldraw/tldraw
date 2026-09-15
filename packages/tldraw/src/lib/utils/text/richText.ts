@@ -39,7 +39,7 @@ export const KeyboardShiftEnterTweakExtension = Extension.create({
  * each item separately.
  *
  * The shape-level handlers bind Cmd+Enter too (finishing the edit, adding the next note) and run
- * ahead of this, so they defer via {@link isEditingRichTextTaskItem}.
+ * ahead of this, so they stand down when the selection is in a task item.
  *
  * @public
  */

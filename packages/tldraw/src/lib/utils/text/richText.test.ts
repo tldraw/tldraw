@@ -180,7 +180,7 @@ describe('TaskItemToggleExtension', () => {
 		return states
 	}
 
-	// The position of a text offset inside the item whose paragraph starts with `text`.
+	// A cursor position just inside the textblock whose content is exactly `text`.
 	const posIn = (textEditor: TextEditor, text: string) => {
 		let found = -1
 		textEditor.state.doc.descendants((node, pos) => {

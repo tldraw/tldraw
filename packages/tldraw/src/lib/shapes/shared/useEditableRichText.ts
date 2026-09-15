@@ -34,8 +34,7 @@ export function useEditableRichText(
 		(e: KeyboardEvent) => {
 			if (editor.getEditingShapeId() !== shapeId) return
 			if (e.key === 'Enter' && isAccelKey(e)) {
-				// In a task item the same chord ticks the item off, which the rich text editor's own
-				// keymap does after this runs. Completing here would tear the editor down first.
+				// Cmd+Enter ticks the item off instead; completing would tear the editor down first.
 				if (isEditingRichTextTaskItem(editor)) return
 				editor.complete()
 			}

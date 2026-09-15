@@ -104,7 +104,6 @@ test.describe('Rich text behaviour', () => {
 		)
 		expect(checked).toBe(true)
 
-		// A done item is struck through, and the checkbox reads as clickable.
 		const item = page.locator('.ProseMirror ul[data-type="taskList"] > li').first()
 		await expect(item.locator('> div > p').first()).toHaveCSS(
 			'text-decoration-line',

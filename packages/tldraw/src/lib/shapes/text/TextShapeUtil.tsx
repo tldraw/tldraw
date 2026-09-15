@@ -398,9 +398,7 @@ function useTextShapeKeydownHandler(id: TLShapeId) {
 
 			switch (e.key) {
 				case 'Enter': {
-					// In a task item the same chord ticks the item off, which the rich text editor's
-					// own keymap does after this runs. Completing here would tear the editor down
-					// first.
+					// Cmd+Enter ticks the item off instead; completing would tear the editor down first.
 					if ((e.ctrlKey || e.metaKey) && !isEditingRichTextTaskItem(editor)) {
 						editor.complete()
 					}
