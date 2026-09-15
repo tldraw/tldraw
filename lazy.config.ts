@@ -133,6 +133,14 @@ const config = {
 				outputs: ['<rootDir>/apps/dotcom/client/public/tla/locales-compiled/*.json'],
 			},
 		},
+		'check-bundle-size': {
+			execution: 'independent',
+			// Every bundle check pulls in SDK package sources, so a change in packages/* must
+			// invalidate the cache even though it lives outside the checking workspace.
+			cache: {
+				inputs: ['src/**/*', '<rootDir>/packages/*/src/**/*', '<rootDir>/packages/*/package.json'],
+			},
+		},
 		'api-check': {
 			execution: 'top-level',
 			baseCommand: `tsx <rootDir>/internal/scripts/api-check.ts`,
