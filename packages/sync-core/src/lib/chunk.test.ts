@@ -1,5 +1,5 @@
 import { assert } from 'tldraw'
-import { JsonChunkAssembler, chunk } from './chunk'
+import { JsonChunkAssembler, MAX_ASSEMBLED_MESSAGE_SIZE, MAX_CHUNK_COUNT, chunk } from './chunk'
 
 describe('chunk (CH1–CH3)', () => {
 	describe('size boundary (CH1)', () => {
@@ -401,6 +401,51 @@ describe('JsonChunkAssembler (CH4–CH8)', () => {
 			expect(unchunker.handleMessage(chunks[chunks.length - 1])).toMatchObject({
 				data: { text: 'hello\u2028world\u2029end' },
 			})
+		})
+	})
+
+	describe('assembly bounds (CH10)', () => {
+		it('[CH10] rejects a first chunk declaring more than MAX_CHUNK_COUNT chunks', () => {
+			const unchunker = new JsonChunkAssembler()
+
+			const result = unchunker.handleMessage(`${MAX_CHUNK_COUNT}_{"a":`)
+			expect(result).toMatchObject({ error: expect.any(Error) })
+			expect(unchunker.state).toBe('idle')
+		})
+
+		it('[CH10] accepts a declared count at the limit', () => {
+			const unchunker = new JsonChunkAssembler()
+
+			expect(unchunker.handleMessage(`${MAX_CHUNK_COUNT - 1}_{"a":`)).toBeNull()
+			expect(unchunker.state).not.toBe('idle')
+		})
+
+		it('[CH10] rejects an assembly once its accumulated bodies pass MAX_ASSEMBLED_MESSAGE_SIZE', () => {
+			const unchunker = new JsonChunkAssembler()
+			// A chunk stream that never sends its final chunk. Before CH10 this accumulated
+			// without limit for as long as the sender kept sending.
+			const body = 'x'.repeat(1024 * 1024)
+			const chunksNeeded = Math.ceil(MAX_ASSEMBLED_MESSAGE_SIZE / body.length) + 1
+
+			let result = null
+			for (let i = 0; i < chunksNeeded; i++) {
+				result = unchunker.handleMessage(`${chunksNeeded - i}_${body}`)
+				if (result) break
+			}
+
+			expect(result).toMatchObject({ error: expect.any(Error) })
+			expect(unchunker.state).toBe('idle')
+		})
+
+		it('[CH10] leaves the assembler usable after rejecting an oversized assembly', () => {
+			const unchunker = new JsonChunkAssembler()
+			const body = 'x'.repeat(1024 * 1024)
+			const chunksNeeded = Math.ceil(MAX_ASSEMBLED_MESSAGE_SIZE / body.length) + 1
+			for (let i = 0; i < chunksNeeded; i++) {
+				if (unchunker.handleMessage(`${chunksNeeded - i}_${body}`)) break
+			}
+
+			expect(unchunker.handleMessage('{"test": true}')).toMatchObject({ data: { test: true } })
 		})
 	})
 })

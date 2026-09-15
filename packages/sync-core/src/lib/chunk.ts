@@ -8,6 +8,19 @@ const MAX_BYTES_PER_CHAR = 4
 // in the (admittedly impossible) worst case, the max size is 1/4 of a megabyte
 const MAX_SAFE_MESSAGE_SIZE = MAX_CLIENT_SENT_MESSAGE_SIZE_BYTES / MAX_BYTES_PER_CHAR
 
+// JsonChunkAssembler holds every chunk of a message until the last one arrives, and the sender
+// decides how many that is — the count is just a prefix on the first chunk. Nothing in the
+// protocol obliges a sender to ever send the last chunk, so without a ceiling a single connection
+// can make the receiver hold an arbitrarily large buffer for as long as the socket stays open.
+//
+// 32MB is far above anything chunk() produces for a real document push and small enough that a
+// room holding one partial assembly per session stays well inside a Durable Object's memory
+// budget. The character cap is the real bound; the chunk-count cap only rejects an absurd declared
+// count on arrival instead of waiting for the bytes to accumulate, and is loose enough not to
+// constrain a sender that chunks more finely than the default.
+export const MAX_ASSEMBLED_MESSAGE_SIZE = 32 * 1024 * 1024
+export const MAX_CHUNK_COUNT = 100_000
+
 /**
  * Splits a string into smaller chunks suitable for transmission over WebSockets.
  * This function ensures messages don't exceed size limits imposed by platforms like Cloudflare Workers (1MB max).
@@ -100,6 +113,7 @@ export class JsonChunkAssembler {
 		| {
 				chunksReceived: string[]
 				totalChunks: number
+				charsReceived: number
 		  } = 'idle'
 
 	/**
@@ -110,7 +124,8 @@ export class JsonChunkAssembler {
 	 * @param msg - The message to process, either JSON or chunk format
 	 * @returns Result object with data/stringified on success, error object on failure, or null for incomplete chunks
 	 * 	- `\{ data: object, stringified: string \}` - Successfully parsed complete message
-	 * 	- `\{ error: Error \}` - Parse error or invalid chunk sequence
+	 * 	- `\{ error: Error \}` - Parse error, invalid chunk sequence, or a message exceeding
+	 * 	  MAX_ASSEMBLED_MESSAGE_SIZE / MAX_CHUNK_COUNT
 	 * 	- `null` - Chunk received but more chunks expected
 	 *
 	 * @example
@@ -144,16 +159,28 @@ export class JsonChunkAssembler {
 			const data = match[2]
 
 			if (this.state === 'idle') {
+				const totalChunks = numChunksRemaining + 1
+				if (totalChunks > MAX_CHUNK_COUNT) {
+					// Nothing has been buffered yet, so the state is already idle.
+					return { error: new Error(`Too many chunks: ${totalChunks}`) }
+				}
 				this.state = {
 					chunksReceived: [data],
-					totalChunks: numChunksRemaining + 1,
+					totalChunks,
+					charsReceived: data.length,
 				}
 			} else {
 				this.state.chunksReceived.push(data)
+				this.state.charsReceived += data.length
 				if (numChunksRemaining !== this.state.totalChunks - this.state.chunksReceived.length) {
 					this.state = 'idle'
 					return { error: new Error(`Chunks received in wrong order`) }
 				}
+			}
+			if (this.state.charsReceived > MAX_ASSEMBLED_MESSAGE_SIZE) {
+				// Drop what was buffered rather than keeping it until the socket closes.
+				this.state = 'idle'
+				return { error: new Error(`Assembled message too large`) }
 			}
 			if (this.state.chunksReceived.length === this.state.totalChunks) {
 				try {

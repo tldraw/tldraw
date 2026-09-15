@@ -154,6 +154,7 @@ export class JsonChunkAssembler {
         error: Error;
     } | null;
     state: 'idle' | {
+        charsReceived: number;
         chunksReceived: string[];
         totalChunks: number;
     };

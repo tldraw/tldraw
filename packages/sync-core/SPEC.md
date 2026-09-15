@@ -65,6 +65,7 @@ Sections marked **internal** describe supporting machinery that has its own cont
 - **CH6** Chunk inputs accumulate, returning `null` until the final (`0_`) chunk arrives, then the joined body is JSON-parsed and returned; a parse failure is returned as `{ error }`. Either way the assembler resets to idle.
 - **CH7** A chunk whose countdown number is inconsistent with its position returns `{ error: 'Chunks received in wrong order' }`. A non-JSON, non-chunk message returns an `Invalid chunk` error. Both reset to idle.
 - **CH8** Chunk bodies may contain any character, including line terminators like U+2028/U+2029 (the chunk regex uses dot-all).
+- **CH10** A partial assembly is bounded. A first chunk declaring more than `MAX_CHUNK_COUNT` chunks is rejected before anything is buffered, and an assembly whose accumulated bodies exceed `MAX_ASSEMBLED_MESSAGE_SIZE` characters is rejected as soon as the limit is passed. Both return `{ error }`, discard what was buffered, and reset to idle. The sender chooses the chunk count, and nothing obliges it to send the final chunk, so without these bounds one connection can hold an arbitrarily large receiver-side buffer open for the life of the socket.
 
 ## 8. `interval` (IN)
 
