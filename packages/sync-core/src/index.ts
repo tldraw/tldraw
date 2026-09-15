@@ -54,6 +54,8 @@ export {
 	type TLSyncLog,
 } from './lib/TLSocketRoom'
 export {
+	COLLABORATIVE_SYNC_FPS,
+	SOLO_SYNC_FPS,
 	TLSyncClient,
 	TLSyncErrorCloseEventCode,
 	TLSyncErrorCloseEventReason,
