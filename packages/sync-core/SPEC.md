@@ -201,6 +201,30 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **CR6** Applying a network diff is value-aware: a `put` equal to the stored record is a no-op for listeners, a `patch` for a missing record is skipped, and a `remove` of a missing record is skipped.
 - **CR7** `custom` events invoke `onCustomMessageReceived(data)` with `this` bound to null.
 
+## 21a. `TLSyncClient` — flush (CF)
+
+`flush()` exists because both the sending and the receiving side of the client ride the network
+throttle, which is frame-scheduled — a client whose page gets no frames (a minimized or occluded
+window, a background tab) neither sends its pushes nor processes their results. Callers that need
+a durability guarantee (a desktop save barrier) must be able to get one without a frame.
+
+- **CF1** `flush()` first delivers the store's batched listener notifications, then sends any
+  unsent changes immediately — neither step waits for the network throttle.
+- **CF2** The returned promise covers exactly the changes that existed at the moment of the call:
+  it resolves once the server has settled every push in flight at call time (through the client
+  clock captured at the call). Edits made after the call are not waited for, so a busy client can
+  never starve a flush; they may still ride along in the same push.
+- **CF3** A flush with nothing unsettled resolves immediately.
+- **CF4** A flush rejects immediately, naming the reason, when the store is possibly corrupted
+  (the silent push stop of CP7 must not read as "settled") or when the client is not connected and
+  changes remain unsent.
+- **CF5** A connection reset rejects every in-flight flush: its pending pushes were dropped and
+  their results will never arrive. The changes themselves are not lost (CL5 re-pushes them after
+  reconnect); the caller retries the flush. Closing the client rejects in-flight flushes the same
+  way.
+- **CF6** While a flush is waiting, incoming server events are processed immediately instead of on
+  the throttle, so settlement is frame-independent end to end.
+
 ## 22. `TLSyncRoom` — construction (RC)
 
 - **RC1** The room serializes its schema with a JSON round-trip (so it contains no `undefined` values).
