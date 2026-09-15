@@ -7,6 +7,9 @@ function getTileUrl(z: number, x: number, y: number) {
 	return `https://tile.openstreetmap.org/${z}/${x}/${y}.png`
 }
 
+/** How many zoom levels of fallback to keep painted under the sharp tiles. See [5]. */
+const UNDERLAY_DEPTH = 3
+
 function renderTiles(mapZoom: number, minX: number, minY: number, maxX: number, maxY: number) {
 	const tileSize = getTilePageSize(mapZoom)
 	const elements = []
@@ -52,10 +55,25 @@ export function TileLayer() {
 	// [4]
 	const tiles = useMemo(() => {
 		const [mapZoom, minX, minY, maxX, maxY] = visibleTiles.split(',').map(Number)
+		const elements = []
 		// [5]
-		const underlay =
-			mapZoom > 0 ? renderTiles(mapZoom - 1, minX >> 1, minY >> 1, maxX >> 1, maxY >> 1) : []
-		return [...underlay, ...renderTiles(mapZoom, minX, minY, maxX, maxY)]
+		for (let depth = UNDERLAY_DEPTH; depth >= 1; depth--) {
+			const zoom = mapZoom - depth
+			if (zoom < 0) continue
+			// [6]
+			const last = 2 ** zoom - 1
+			elements.push(
+				...renderTiles(
+					zoom,
+					clamp((minX >> depth) - 1, 0, last),
+					clamp((minY >> depth) - 1, 0, last),
+					clamp((maxX >> depth) + 1, 0, last),
+					clamp((maxY >> depth) + 1, 0, last)
+				)
+			)
+		}
+		elements.push(...renderTiles(mapZoom, minX, minY, maxX, maxY))
+		return elements
 	}, [visibleTiles])
 
 	return <>{tiles}</>
@@ -82,8 +100,22 @@ Tiles are positioned in page space, so nothing here needs to know where the came
 
 [5]
 Crossing a zoom level changes every tile's key, so React swaps the whole grid at once and the
-canvas is bare until the new images decode. Painting the next level out underneath first means
-there is always something behind the gap: those tiles cover four times the area, and you were
-just looking at them, so they come from cache and appear instantly. The sharp tiles land on top
-as they arrive. This is what a map library means by keeping a parent layer.
+canvas is bare until the new images decode. Painting coarser levels underneath first means there
+is always something behind the gap, and they land instantly because they were already on screen
+a moment ago.
+
+Depth matters more than it looks. One level is enough for a click-by-click zoom, but a trackpad
+pinch crosses several levels before any of them finish loading, and then the single fallback is
+as blank as the layer it was covering. Three levels back the sharp tiles with progressively
+coarser ones, so a fast sweep or a flick pan always lands on something already loaded.
+
+This roughly triples the tiles fetched for a view. The coarse levels hold few tiles each but
+never drop below the margin ring in [6], so they cost more than their quarter-per-level share
+suggests. Lower `UNDERLAY_DEPTH` to trade smoothness back for requests.
+
+[6]
+Each level gets its own ring of margin rather than inheriting the sharp layer's. Halving the
+range at every step rounds that one-tile border away, which leaves the coarse layers ending at
+the same edge as the layer they are meant to be covering for - exactly where a flick pan is
+heading. A ring here is cheap: these levels hold a quarter as many tiles each.
 */
