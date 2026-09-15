@@ -46,6 +46,7 @@ import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawCurrentUser } from '../../hooks/useUser'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { defineMessages, useMsg } from '../../utils/i18n'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
@@ -115,6 +116,7 @@ export function TlaEditor(props: TlaEditorProps) {
 
 function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const handleUiEvent = useHandleUiEvents()
+	const trackAppEvent = useTldrawAppUiEvents()
 	const app = useMaybeApp()
 
 	const fileId = fileSlug
@@ -171,6 +173,9 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
 
 			if (!app) {
+				// Anonymous visitors can't own files, so landing on /f/:fileSlug means they
+				// followed a share link.
+				trackAppEvent('open-share-link', { source: 'app', isAnonymous: true })
 				setIsReady()
 				return
 			}
@@ -237,6 +242,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			trackRoomLoaded,
 			trackNewRoomCreation,
 			trackPerformance,
+			trackAppEvent,
 			app,
 			fileId,
 			remountImageShapes,
@@ -316,6 +322,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			)
 		} else {
 			// If there's not a file state yet (i.e. if we're visiting this for the first time) then do an enter
+			// A file the user's workspace owns also has no firstVisitAt on its first open, so the
+			// ownership check is what separates "opened a share link" from "opened my new file".
+			if (!app.canUpdateFile(fileId)) {
+				trackAppEvent('open-share-link', { source: 'app', isAnonymous: false })
+			}
 			app.onFileEnter(fileId)
 			didEnter = true
 		}
@@ -326,7 +337,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				app.updateFileState(fileId, { lastVisitAt: Date.now() })
 			}
 		}
-	}, [app, fileId, store.status])
+	}, [app, fileId, store.status, trackAppEvent])
 
 	const overrides = useFileEditorOverrides({ fileSlug })
 	const extraDragIconOverrides = useExtraDragIconOverrides()
