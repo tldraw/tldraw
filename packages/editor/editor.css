@@ -864,6 +864,15 @@ input,
 	inset: 0;
 	margin: 0;
 	opacity: 0;
+	/* The UA sheet gives form controls their own cursor, and this one is the pointer's target. */
+	cursor: inherit;
+	/**
+	 * Above the span, so the pointer lands on the input rather than on the box drawn over it.
+	 * TaskItem's node view cancels mousedown on the input to stop a click starting a text
+	 * selection; letting the span take the hit instead defeats that, and a multi-click then
+	 * selects the whole item and pops the rich text toolbar up over a checkbox.
+	 */
+	z-index: 1;
 }
 
 .tl-rich-text ul[data-type='taskList'] > li > label > span {

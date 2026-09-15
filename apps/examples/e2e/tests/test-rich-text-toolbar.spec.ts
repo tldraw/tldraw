@@ -109,7 +109,34 @@ test.describe('Rich text behaviour', () => {
 			'text-decoration-line',
 			'line-through'
 		)
-		await expect(item.locator('> label')).toHaveCSS('cursor', 'pointer')
+		// The input is what the pointer lands on, so it's the one that has to read as clickable.
+		await expect(item.locator('> label > input')).toHaveCSS('cursor', 'pointer')
+	})
+
+	test('multi-clicking a checkbox does not select the item or show the toolbar', async ({
+		page,
+		richTextToolbar,
+		isMobile,
+	}) => {
+		// TODO: the mobile e2e test doesn't have the virtual keyboard at the moment.
+		if (isMobile) return
+
+		await page.keyboard.type('[ ] a task')
+		await sleep(150)
+
+		const checkbox = page.locator('.ProseMirror ul[data-type="taskList"] > li > label > input')
+		const boundingBox = (await checkbox.boundingBox())!
+		const x = boundingBox.x + boundingBox.width / 2
+		const y = boundingBox.y + boundingBox.height / 2
+
+		// TaskItem's node view cancels mousedown on the input to stop a click starting a text
+		// selection. Anything painted over the input takes the hit instead and defeats that, and a
+		// triple click then selects the whole item and pops the toolbar up over a checkbox.
+		await page.mouse.click(x, y, { clickCount: 3 })
+		await sleep(300)
+
+		await expect(richTextToolbar.container).toHaveAttribute('data-visible', 'false')
+		expect(await page.evaluate(() => editor.getRichTextEditor()!.state.selection.empty)).toBe(true)
 	})
 
 	test('a done item does not strike through its sub-items', async ({ page, isMobile }) => {
