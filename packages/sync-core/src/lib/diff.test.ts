@@ -474,6 +474,82 @@ describe('computing diffs (D)', () => {
 		})
 	})
 
+	describe('array-ness changes (D8)', () => {
+		it('[D8] puts an array item that changed from object to array, and round-trips', () => {
+			const prev = { meta: { items: [{ value: 1 }] } }
+			const next = { meta: { items: [[1]] } }
+
+			const diff = diffRecord(prev, next)
+			expect(diff).toEqual({
+				meta: [ValueOpType.Patch, { items: [ValueOpType.Patch, { '0': [ValueOpType.Put, [1]] }] }],
+			})
+			expect(applyObjectDiff(prev, diff!)).toEqual(next)
+		})
+
+		it('[D8] puts an array item that changed from array to object, and round-trips', () => {
+			const prev = { meta: { items: [[1]] } }
+			const next = { meta: { items: [{ value: 1 }] } }
+
+			const diff = diffRecord(prev, next)
+			expect(diff).toEqual({
+				meta: [
+					ValueOpType.Patch,
+					{ items: [ValueOpType.Patch, { '0': [ValueOpType.Put, { value: 1 }] }] },
+				],
+			})
+			expect(applyObjectDiff(prev, diff!)).toEqual(next)
+		})
+
+		it('[D8] puts props wholesale when it changed from object to array, and round-trips', () => {
+			const prev = { id: 'test:1', props: { a: 1 } }
+			const next = { id: 'test:1', props: [1] }
+
+			const diff = diffRecord(prev, next)
+			expect(diff).toEqual({ props: [ValueOpType.Put, [1]] })
+			expect(applyObjectDiff(prev, diff!)).toEqual(next)
+		})
+
+		it('[D8] puts meta wholesale when it changed from array to object, and round-trips', () => {
+			const prev = { id: 'test:1', meta: [1] }
+			const next = { id: 'test:1', meta: { a: 1 } }
+
+			const diff = diffRecord(prev, next)
+			expect(diff).toEqual({ meta: [ValueOpType.Put, { a: 1 }] })
+			expect(applyObjectDiff(prev, diff!)).toEqual(next)
+		})
+
+		it('[D3] [D8] puts a top-level value whose array-ness changed, and round-trips', () => {
+			const prev = { id: 'test:1', value: { a: 1 } }
+			const next = { id: 'test:1', value: [1] }
+
+			const diff = diffRecord(prev, next)
+			expect(diff).toEqual({ value: [ValueOpType.Put, [1]] })
+			expect(applyObjectDiff(prev, diff!)).toEqual(next)
+		})
+
+		it('[D8] round-trips nested rich-text-like content where a child flips container type', () => {
+			const prev = {
+				props: {
+					richText: {
+						type: 'doc',
+						content: [{ type: 'paragraph', attrs: { extra: { a: 1 } }, content: [] }],
+					},
+				},
+			}
+			const next = {
+				props: {
+					richText: {
+						type: 'doc',
+						content: [{ type: 'paragraph', attrs: { extra: [1] }, content: [] }],
+					},
+				},
+			}
+
+			const diff = diffRecord(prev, next)
+			expect(applyObjectDiff(prev, diff!)).toEqual(next)
+		})
+	})
+
 	describe('complex scenarios', () => {
 		it('[D3] [D4] [D5] handles shape-like record updates', () => {
 			const prev = {
