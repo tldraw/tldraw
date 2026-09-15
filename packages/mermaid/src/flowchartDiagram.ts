@@ -167,7 +167,7 @@ export function flowchartToBlueprint(
 			arrowheadEnd,
 			arrowheadStart: edge.type?.includes('double_arrow') ? arrowheadEnd : undefined,
 			dash: cssOverrides.dashOverride ?? (edge.stroke === 'dotted' ? 'dotted' : 'solid'),
-			size: cssOverrides.sizeOverride ?? (edge.stroke === 'thick' ? 'l' : 's'),
+			size: cssOverrides.sizeOverride ?? (edge.stroke === 'thick' ? 'l' : 'm'),
 			color: cssOverrides.color,
 		})
 	}
