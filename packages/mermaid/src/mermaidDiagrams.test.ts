@@ -36,18 +36,20 @@ function cluster(id: string, x: number, y: number, w: number, h: number): Parsed
 }
 
 function edge(start: string, end: string, points: [number, number][]): ParsedEdge {
-	return { start, end, points: points.map(([x, y]) => ({ x, y })) }
+	return { id: `L_${start}_${end}`, start, end, points: points.map(([x, y]) => ({ x, y })) }
 }
 
 function diagramLayout(
 	nodes: ParsedNode[],
 	clusters: ParsedCluster[] = [],
-	edges: ParsedEdge[] = []
+	edges: ParsedEdge[] = [],
+	edgeLabels: ParsedDiagramLayout['edgeLabels'] = new Map()
 ): ParsedDiagramLayout {
 	return {
 		nodes: new Map(nodes.map((n) => [n.id, n])),
 		clusters: new Map(clusters.map((c) => [c.id, c])),
 		edges,
+		edgeLabels,
 	}
 }
 
@@ -278,6 +280,71 @@ describe('flowchartToBlueprint', () => {
 		expect(bp.edges[0].bend).not.toBe(0)
 	})
 
+	it('loops out of the side mermaid routed it and reaches out to its label', () => {
+		// Node spans x 60–140, y 80–120. Mermaid's loop leaves and re-enters its bottom edge, the
+		// side facing the next rank in a top-down chart, and dips 30 below it; its label is centred
+		// 45 below that edge.
+		const loopPoints: [number, number][] = [
+			[90, 120],
+			[80, 145],
+			[110, 150],
+			[120, 120],
+		]
+		const nodes = [node('B', 100, 100, 80, 40)]
+		const vertices = new Map([vertex('B')])
+		const edges = [flowEdge('B', 'B', { text: 'next page' })]
+
+		const withLabel = flowchartToBlueprint(
+			diagramLayout(
+				nodes,
+				[],
+				[edge('B', 'B', loopPoints)],
+				new Map([['L_B_B', { x: 60, y: 155, w: 80, h: 20 }]])
+			),
+			vertices,
+			edges
+		).edges[0]
+
+		// The label stays on the arrow. tldraw centres it on the middle of the arc, so the loop
+		// reaches the label's centre rather than stopping at mermaid's depth.
+		expect(withLabel.label).toBe('next page')
+		expect(withLabel.bend).toBe(45)
+		// A loop on a top or bottom edge is wider than tall, which is when tldraw wraps its label to
+		// the arrow's width; its ends spread across the edge to give the label room.
+		expect(withLabel.anchorStartY).toBe(1)
+		expect(withLabel.anchorEndY).toBe(1)
+		expect(withLabel.anchorStartX).toBeCloseTo(0.1625)
+		expect(withLabel.anchorEndX).toBeCloseTo(0.9625)
+
+		const withoutLabel = flowchartToBlueprint(
+			diagramLayout(nodes, [], [edge('B', 'B', loopPoints)]),
+			vertices,
+			edges
+		).edges[0]
+		// An edge between two shapes would get 54 here, which on a loop is needlessly deep.
+		expect(withoutLabel.bend).toBe(30)
+	})
+
+	it('leaves anchors alone on edges between two nodes', () => {
+		const labelBox = { x: 90, y: 30, w: 40, h: 20 }
+		const layout = diagramLayout(
+			[node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)],
+			[],
+			[
+				edge('A', 'B', [
+					[20, 0],
+					[180, 0],
+				]),
+			],
+			new Map([['L_A_B', labelBox]])
+		)
+		const edges = [flowEdge('A', 'B', { text: 'go' })]
+
+		const bp = flowchartToBlueprint(layout, new Map([vertex('A'), vertex('B')]), edges)
+
+		expect(bp.edges[0]).not.toHaveProperty('anchorStartX')
+	})
+
 	it('filters out edges referencing missing nodes', () => {
 		const layout = diagramLayout([node('A', 0, 0, 40, 40)])
 		const vertices = new Map([vertex('A')])
@@ -415,6 +482,37 @@ describe('stateToBlueprint', () => {
 		expectNodeGeo(findNode(bp, 'Still')!, 'rectangle', 'state')
 		expect(findNode(bp, 'Moving')!.label).toBe('Moving')
 		expect(findEdge(bp, 'Still', 'Moving')!.label).toBe('go')
+	})
+
+	it('loops out of the right edge of a left-to-right diagram, ends unspread', () => {
+		// Mermaid loops out of the right edge (x 140), 25 deep, with its label centred 60 beyond it.
+		const layout = diagramLayout(
+			[node('Review', 100, 100, 80, 40)],
+			[],
+			[
+				edge('Review', 'Review', [
+					[140, 85],
+					[165, 100],
+					[140, 115],
+				]),
+			],
+			new Map([['L_Review_Review', { x: 150, y: 90, w: 100, h: 20 }]])
+		)
+		const states = new Map([stateStmt('Review')])
+		const relations = [{ id1: 'Review', id2: 'Review', relationTitle: 'request more changes' }]
+
+		const loop = stateToBlueprint(layout, states, relations).edges[0]
+
+		// A loop on a side edge is taller than wide, so tldraw gives its label the full 16em cap and
+		// its ends stay where mermaid put them.
+		expect(loop).toMatchObject({
+			anchorStartX: 1,
+			anchorStartY: 0.125,
+			anchorEndX: 1,
+			anchorEndY: 0.875,
+			bend: -60,
+			label: 'request more changes',
+		})
 	})
 
 	it('maps start/end pseudo-states to ellipses', () => {

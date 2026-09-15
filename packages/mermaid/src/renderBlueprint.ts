@@ -199,20 +199,31 @@ function createArrowFromEdge(
 	let end: ArrowTerminal
 	let bend = edge.bend
 
-	if (edge.anchorStartY !== undefined || edge.anchorEndY !== undefined) {
-		const startAnchorY = edge.anchorStartY ?? 0.5
-		const endAnchorY = edge.anchorEndY ?? 0.5
+	if (
+		edge.anchorStartX !== undefined ||
+		edge.anchorStartY !== undefined ||
+		edge.anchorEndX !== undefined ||
+		edge.anchorEndY !== undefined
+	) {
+		const startAnchor = { x: edge.anchorStartX ?? 0.5, y: edge.anchorStartY ?? 0.5 }
+		const endAnchor = { x: edge.anchorEndX ?? 0.5, y: edge.anchorEndY ?? 0.5 }
 		const isExact = edge.isExact ?? true
 		const isPrecise = edge.isPrecise ?? true
 		start = {
-			point: { x: startBounds.midX, y: startBounds.y + startBounds.h * startAnchorY },
-			anchor: { x: 0.5, y: startAnchorY },
+			point: {
+				x: startBounds.x + startBounds.w * startAnchor.x,
+				y: startBounds.y + startBounds.h * startAnchor.y,
+			},
+			anchor: startAnchor,
 			isExact,
 			isPrecise,
 		}
 		end = {
-			point: { x: endBounds.midX, y: endBounds.y + endBounds.h * endAnchorY },
-			anchor: { x: 0.5, y: endAnchorY },
+			point: {
+				x: endBounds.x + endBounds.w * endAnchor.x,
+				y: endBounds.y + endBounds.h * endAnchor.y,
+			},
+			anchor: endAnchor,
 			isExact: edge.isExactEnd ?? isExact,
 			isPrecise: edge.isPreciseEnd ?? isPrecise,
 		}

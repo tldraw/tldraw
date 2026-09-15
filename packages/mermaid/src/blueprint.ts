@@ -100,7 +100,11 @@ export interface MermaidBlueprintEdge {
 	dash?: TLDefaultDashStyle
 	size?: TLDefaultSizeStyle
 	color?: TLDefaultColorStyle
+	/** Where the arrow meets its start shape, as a 0–1 fraction of that shape's width. Defaults to the center. */
+	anchorStartX?: number
 	anchorStartY?: number
+	/** Where the arrow meets its end shape, as a 0–1 fraction of that shape's width. Defaults to the center. */
+	anchorEndX?: number
 	anchorEndY?: number
 	isExact?: boolean
 	isPrecise?: boolean
