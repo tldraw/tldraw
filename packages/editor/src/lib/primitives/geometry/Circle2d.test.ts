@@ -204,4 +204,17 @@ describe('Circle2d.hitTestLineSegment', () => {
 			}).hitTestLineSegment(new Vec(0, 2), new Vec(20, 2), 1)
 		).toBe(true)
 	})
+
+	it('hits a segment lying within the margin band without crossing it', () => {
+		const circle = new Circle2d({ radius: 50, isFilled: false })
+		expect(circle.hitTestLineSegment(new Vec(50, -5), new Vec(60, -5), 10)).toBe(true)
+		expect(circle.hitTestLineSegment(new Vec(50, -5), new Vec(60, -5), 2)).toBe(false)
+	})
+
+	it('hits a segment entirely inside a filled circle only', () => {
+		const A = new Vec(40, 50)
+		const B = new Vec(60, 50)
+		expect(new Circle2d({ radius: 50, isFilled: true }).hitTestLineSegment(A, B)).toBe(true)
+		expect(new Circle2d({ radius: 50, isFilled: false }).hitTestLineSegment(A, B)).toBe(false)
+	})
 })
