@@ -961,25 +961,57 @@ describe('sequenceToBlueprint', () => {
 		})
 	})
 
-	it('sizes a multi-line note from its longest line', () => {
-		// Mermaid's own rect is narrow enough that the text estimate decides the width.
-		const widthOf = (message: string) => {
-			const layout = actorLayout([-150, 150], [{ x: 10, y: 50, w: 40, h: 40 }])
+	// Stands in for tldraw's text measurement, which jsdom can't do.
+	const measureWidths =
+		(widths: Record<string, number>) =>
+		(label: string): number =>
+			widths[label] ?? 0
+
+	it("widens a note to fit its label in tldraw's font, against its lifeline", () => {
+		const noteOf = (width: number) => {
+			const layout = actorLayout([-150, 150], [{ x: 10, y: 50, w: 120, h: 40 }])
 			const actors = new Map([actor('Alice'), actor('John')])
 			const bp = sequenceToBlueprint(
 				layout,
 				actors,
 				['Alice', 'John'],
-				[noteMsg('Alice', message, PLACEMENT.RIGHTOF)]
+				[noteMsg('Alice', 'A note', PLACEMENT.RIGHTOF)],
+				new Map(),
+				new Map(),
+				measureWidths({ 'A note': width })
 			)
-			return bp.nodes.find((n) => n.id.startsWith('note-'))!.w
+			const { x, w } = bp.nodes.find((n) => n.id.startsWith('note-'))!
+			return { x, w }
 		}
 
-		// Same longest line, split three ways: measuring the whole label instead would size
-		// the second note as though all three lines ran end to end.
-		expect(widthOf('short<br/>the longest line in the note<br/>tiny')).toBe(
-			widthOf('the longest line in the note')
+		// Alice's lifeline is at -100; a right-of note starts just past it however wide it grows.
+		expect(noteOf(400)).toEqual({ x: -95, w: 400 })
+		expect(noteOf(80)).toEqual({ x: -95, w: 120 })
+	})
+
+	it("widens an actor to fit its label in tldraw's font, keeping the gaps beside it", () => {
+		const layout = actorLayout([-300, 0, 300])
+		const actors = new Map([actor('A'), actor('Long name'), actor('C')])
+		const bp = sequenceToBlueprint(
+			layout,
+			actors,
+			['A', 'Long name', 'C'],
+			[msg(LINETYPE.SOLID, 'A', 'C', 'Hi')],
+			new Map(),
+			new Map(),
+			measureWidths({ 'Long name': 300 })
 		)
+
+		const boxes = ['A', 'Long name', 'C'].map((key) => {
+			const { x, w } = findNode(bp, `actor-top-${key}`)!
+			return { x, w }
+		})
+		// Each box was 100 wide with 200 between neighbors.
+		expect(boxes).toEqual([
+			{ x: -300, w: 100 },
+			{ x: 0, w: 300 },
+			{ x: 500, w: 100 },
+		])
 	})
 
 	it('creates note nodes with yellow color and correct labels', () => {
