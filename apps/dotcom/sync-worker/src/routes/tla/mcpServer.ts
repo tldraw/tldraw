@@ -65,6 +65,7 @@ import {
 	ThumbnailErrorSurface,
 	classifyScreenshotFailure,
 	describeThumbnailFailure,
+	RateLimiterUnavailableError,
 	reportThumbnailError,
 } from './thumbnailShared'
 
@@ -159,8 +160,14 @@ async function isRateLimited(
 	// counted against, so changing it resets every configured bucket.
 	const rateLimitKey = `mcp-shared-board-screenshot:${key}`
 	if (limiter) {
-		const { success } = await limiter.limit({ key: rateLimitKey })
-		return !success
+		try {
+			const { success } = await limiter.limit({ key: rateLimitKey })
+			return !success
+		} catch (error) {
+			// Tagged rather than left raw, so the tools' catch blocks record a binding outage as itself
+			// instead of as whatever their own failures usually are — see toolFailure.
+			throw new RateLimiterUnavailableError(error)
+		}
 	}
 
 	// Isolate-local fallback for local dev and tests; deployments configure the Cloudflare rate
@@ -641,10 +648,9 @@ async function callSearchBoardsTool(
 			// shape of the call is what is diagnostic here, not its content.
 			extras: { termCount: input.terms.length, paged: input.cursor !== null },
 			summary: 'Could not search boards',
-			// Near enough every failure here is a Postgres one, and the classifier reads render
-			// failures, so a pool timeout would otherwise be recorded as `browser_timeout`. The
-			// exception is a limiter binding outage, which lands here as a board lookup error too —
-			// as it does on every other tool on this server, which is where to fix it if it matters.
+			// Every failure this can narrow is a Postgres one, and the classifier reads render
+			// failures, so a pool timeout would otherwise be recorded as `browser_timeout`. A limiter
+			// outage never reaches here — toolFailure keeps that reason as itself.
 			recordAs: () => 'board_lookup_error',
 		})
 	}
@@ -1375,7 +1381,15 @@ function toolFailure(
 ): ToolCallResult {
 	reportThumbnailError(error, { ctx, env, request, surface, extras })
 	const failureReason = classifyScreenshotFailure(error)
-	const recorded = recordAs ? recordAs(failureReason) : failureReason
+	// `recordAs` exists to correct the classifier's reading of a tool's *own* failures, and a limiter
+	// binding outage is nobody's own: left to it, every tool would file one as the thing it usually
+	// fails at — a board lookup — and send a dashboard reader to a database that is fine.
+	const recorded =
+		failureReason === 'rate_limiter_unavailable'
+			? failureReason
+			: recordAs
+				? recordAs(failureReason)
+				: failureReason
 	telemetry?.({ cacheStatus, clusterCacheStatus, failureReason: recorded })
 	return toolError(`${summary}: ${describeThumbnailFailure(recorded)}.`, recorded)
 }

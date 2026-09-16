@@ -1922,7 +1922,11 @@ describe('protocol telemetry', () => {
 
 		const result = await callTool('search_boards', {}, env, 'user_search_limiter')
 		expect(result.isError).toBe(true)
-		expect(result.content[0].text).toContain('Could not search boards')
+		// The tool's own prefix, and the limiter clause rather than the board-database one its
+		// `recordAs` would otherwise impose on every failure it sees.
+		expect(result.content[0].text).toBe(
+			'Could not search boards: a rate limit could not be checked.'
+		)
 	})
 
 	// A limiter binding that rejects is an outage on our side, not a caller mistake. The rate limit
@@ -1944,6 +1948,36 @@ describe('protocol telemetry', () => {
 
 		expect(result.isError).toBe(true)
 		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'outcome')).toEqual(['error'])
+		// Recorded as itself, not as the board lookup this tool's `recordAs` turns its own failures
+		// into: a binding outage is nobody's own failure, and filing it as a database one sends a
+		// dashboard reader to a subsystem that is fine.
+		expect(result.content[0].text).toContain('a rate limit could not be checked')
+		expect(failureBlobsOf(env)).toContain('failure:rate_limiter_unavailable')
+	})
+
+	// The same outage on the per-board and global bindings, which the screenshot tool consults
+	// instead. One path per binding, because the tagging happens once in isRateLimited and the tools
+	// differ only in which limiter they reach for.
+	it('reports a failing board limiter as a limiter outage too', async () => {
+		mockPublishedBoard()
+		const env = makeEnv({
+			MCP_SERVER_BOARD_RATE_LIMITER: {
+				limit: async () => {
+					throw new Error('limiter unavailable')
+				},
+			},
+		})
+		const clusterId = await firstClusterId(env, 'user_helper', 'board-0')
+
+		const result = await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'board-0', clusterIds: [clusterId] },
+			env,
+			'user_board_limiter'
+		)
+
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('a rate limit could not be checked')
 	})
 
 	// The tool name comes straight off the wire, so the lookup must not resolve inherited names. A

@@ -4,6 +4,7 @@ import {
 	BoardSnapshotReadError,
 	BrowserRenderError,
 	classifyScreenshotFailure,
+	RateLimiterUnavailableError,
 	describeThumbnailFailure,
 	reportThumbnailError,
 } from './thumbnailShared'
@@ -34,6 +35,17 @@ describe('BrowserRenderError', () => {
 })
 
 describe('classifyScreenshotFailure', () => {
+	// Matched by type and first: a binding outage means the work was never attempted, so every other
+	// reason here would name a subsystem that is fine.
+	it('names a rate limiter outage as itself', () => {
+		expect(classifyScreenshotFailure(new RateLimiterUnavailableError(new Error('down')))).toBe(
+			'rate_limiter_unavailable'
+		)
+		expect(describeThumbnailFailure('rate_limiter_unavailable')).toBe(
+			'a rate limit could not be checked'
+		)
+	})
+
 	// 422 is Cloudflare's answer to a crashed page, an out-of-memory render, and every one of its
 	// timers expiring alike, so the status can't split them and the response body has to.
 	it('reads the timer out of the response body', () => {
