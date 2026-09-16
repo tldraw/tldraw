@@ -75,7 +75,14 @@ const KNOWN_PROBLEMS: KnownProblem[] = [
 	{
 		// Listed as a known limitation in #10773.
 		reason: 'A self-loop on the top or bottom of a narrow state node gets too little label width',
-		findings: [midWordBreak('state', 21, 'type character', 'charac/ter')],
+		findings: [midWordBreak('state', 21, 'type character', 'chara/cter')],
+	},
+	{
+		// Mermaid lays edge labels out for a smaller font than the node size they are drawn at, so a
+		// label near a composite state's edge can reach past it. Accepted in #10804, which drew them at
+		// the node size so they read at the same size as the nodes.
+		reason: 'An edge label near a composite state reaches past its edge',
+		findings: [overlap('state', 19, 'manager rejects', 'Review')],
 	},
 	{
 		reason:
