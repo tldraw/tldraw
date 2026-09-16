@@ -30,7 +30,6 @@ function missingText(diagram: DiagramType, index: number, text: string): Finding
 
 interface KnownProblem {
 	reason: string
-	issue?: number
 	findings: Finding[]
 }
 
@@ -40,8 +39,9 @@ interface KnownProblem {
 // is a pixel from colliding.
 const KNOWN_PROBLEMS: KnownProblem[] = [
 	{
+		// Not a bug: a label is part of its arrow, so a self-message's sits on its loop. Placing it
+		// above the loop, as mermaid does, would mean detaching it. Closed as intended in #10796.
 		reason: 'Sequence self-message labels are centered on their loop, over the lifeline',
-		issue: 10796,
 		findings: [
 			overlap('sequence', 6, 'Recompute backoff', 'line'),
 			overlap('sequence', 9, 'Recalculate cache', 'line'),
