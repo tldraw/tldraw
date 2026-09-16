@@ -72,7 +72,9 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 					const etag = cachedResponse.headers.get('etag')
 					if (ifNoneMatch && etag) {
 						const parsedEtag = parseEtag(etag)
-						for (const tag of ifNoneMatch.split(', ')) {
+						// An unparseable etag matches nothing; without this, two unparseable tags
+						// compare equal as `null === null` and every request gets a 304.
+						for (const tag of parsedEtag === null ? [] : ifNoneMatch.split(', ')) {
 							if (parseEtag(tag) === parsedEtag) {
 								return new Response(null, { status: 304 })
 							}
@@ -138,6 +140,6 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 }
 
 function parseEtag(etag: string) {
-	const match = etag.match(/^(?:W\/)"(.*)"$/)
+	const match = etag.match(/^(?:W\/)?"(.*)"$/)
 	return match ? match[1] : null
 }

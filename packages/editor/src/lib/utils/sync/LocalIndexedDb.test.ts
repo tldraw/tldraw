@@ -106,6 +106,34 @@ describe('LocalIndexedDb', () => {
 		})
 	})
 
+	it('commits a write that is still in flight when the db is closed', async () => {
+		const db = new LocalIndexedDb('test-0')
+		const write = db.storeSnapshot({ schema, snapshot: { 'shape:1': { id: 'shape:1' } } })
+		await db.close()
+		await write
+
+		const reopened = new LocalIndexedDb('test-0')
+		expect((await reopened.load())?.records).toEqual([{ id: 'shape:1' }])
+		await reopened.close()
+	})
+
+	it('rejects a transaction that aborts after its requests succeeded while closing', async () => {
+		const db = new LocalIndexedDb('test-0')
+		let closing: Promise<void> | undefined
+		// A commit can fail after every request succeeded, so the request promises cannot report it.
+		// @ts-expect-error Exercise the transaction boundary directly to inject a commit failure.
+		const write = db.tx('readwrite', ['records'], async (tx) => {
+			await tx.objectStore('records').put({ id: 'shape:1' }, 'shape:1')
+			closing = db.close()
+			tx.abort()
+		})
+		try {
+			await expect(write).rejects.toMatchObject({ name: 'AbortError' })
+		} finally {
+			await closing
+		}
+	})
+
 	describe('#storeChanges', () => {
 		it('allows merging changes into an existing store', async () => {
 			const db = new LocalIndexedDb('test-0')

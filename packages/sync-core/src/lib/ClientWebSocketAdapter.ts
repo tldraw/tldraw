@@ -1,7 +1,7 @@
 import { atom, Atom } from '@tldraw/state'
 import { TLRecord } from '@tldraw/tlschema'
 import { assert, warnOnce } from '@tldraw/utils'
-import { chunk } from './chunk'
+import { chunk, MAX_ASSEMBLED_MESSAGE_CHARS } from './chunk'
 import { TLSocketClientSentEvent, TLSocketServerSentEvent } from './protocol'
 import {
 	TLPersistentClientSocket,
@@ -93,8 +93,13 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 	close() {
 		this.isDisposed = true
 		this._reconnectManager.close()
+		// orphan the socket before closing it (as _closeSocket does) so its onclose can't run
+		// _handleDisconnect after disposal — that would notify listeners and schedule a reconnect
+		const ws = this._ws
+		this._ws = null
 		//  WebSocket.close() is idempotent
-		this._ws?.close()
+		ws?.close()
+		this._connectionStatus.set('offline')
 	}
 
 	/**
@@ -240,8 +245,6 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 		this._handleDisconnect('manual')
 	}
 
-	// TLPersistentClientSocket stuff
-
 	_connectionStatus: Atom<TLPersistentClientSocketStatus | 'initial'> = atom(
 		'websocket connection status',
 		'initial'
@@ -277,7 +280,20 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 
 		if (!this._ws) return
 		if (this.connectionStatus === 'online') {
-			const chunks = chunk(JSON.stringify(msg))
+			const stringified = JSON.stringify(msg)
+			// The server rejects a session whose assembled message exceeds this, so sending would
+			// only earn a close and a reconnect that re-sends the same message. Fail here the way
+			// the server would, so onSyncError runs once instead of the client looping forever.
+			if (stringified.length > MAX_ASSEMBLED_MESSAGE_CHARS) {
+				this._handleDisconnect(
+					'closed',
+					TLSyncErrorCloseEventCode,
+					true,
+					TLSyncErrorCloseEventReason.MESSAGE_TOO_LARGE
+				)
+				return
+			}
+			const chunks = chunk(stringified)
 			for (const part of chunks) {
 				this._ws.send(part)
 			}
@@ -513,21 +529,33 @@ export class ReconnectManager {
 		}
 	}
 
-	private scheduleAttempt() {
+	private async scheduleAttempt() {
 		assert(this.state === 'pendingAttempt')
+		if (this.isDisposed) return
 		debug('scheduling a connection attempt')
-		Promise.resolve(this.getUri()).then((uri) => {
-			// this can happen if the promise gets resolved too late
-			if (this.state !== 'pendingAttempt' || this.isDisposed) return
-			assert(
-				this.socketAdapter._ws?.readyState !== WebSocket.OPEN,
-				'There should be no connection attempts while already connected'
-			)
 
-			this.lastAttemptStart = Date.now()
-			this.socketAdapter._setNewSocket(new WebSocket(httpToWs(uri)))
-			this.state = 'pendingAttemptResult'
-		})
+		let uri: string
+		try {
+			uri = await this.getUri()
+		} catch (error) {
+			// A failed auth-token fetch must retry instead of leaving us with no socket or timer.
+			if (this.state !== 'pendingAttempt' || this.isDisposed) return
+			console.error('Failed to get the websocket URI, retrying', error)
+			this.state = 'delay'
+			this.reconnectTimeout = setTimeout(() => this.disconnected(), this.intendedDelay)
+			return
+		}
+
+		// this can happen if the promise gets resolved too late
+		if (this.state !== 'pendingAttempt' || this.isDisposed) return
+		assert(
+			this.socketAdapter._ws?.readyState !== WebSocket.OPEN,
+			'There should be no connection attempts while already connected'
+		)
+
+		this.lastAttemptStart = Date.now()
+		this.socketAdapter._setNewSocket(new WebSocket(httpToWs(uri)))
+		this.state = 'pendingAttemptResult'
 	}
 
 	private getMaxDelay() {
@@ -641,6 +669,7 @@ export class ReconnectManager {
 		debug('ReconnectManager.disconnected')
 		// This either means we're freshly disconnected, or the last connection attempt failed;
 		// either way, time to try again.
+		if (this.isDisposed) return
 
 		// Guard against delayed notifications and recheck synchronously
 		if (

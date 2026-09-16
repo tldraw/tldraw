@@ -25,6 +25,12 @@ function validateUrl(url: string) {
 	return { isValid: false, hasProtocol: false }
 }
 
+function getUrlInputState(url: string) {
+	const { isValid, hasProtocol } = validateUrl(url)
+	const safe = isValid ? (hasProtocol ? url : 'https://' + url) : 'https://'
+	return { actual: url, safe, valid: isValid }
+}
+
 type ShapeWithUrl = ExtractShapeByProps<{ url: string }>
 
 function isShapeWithUrl(shape: TLShape | null | undefined): shape is ShapeWithUrl {
@@ -72,42 +78,14 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 	const rInitialValue = useRef(selectedShape.props.url)
 
 	const [urlInputState, setUrlInputState] = useState(() => {
-		const urlValidResult = validateUrl(selectedShape.props.url)
-
-		const initialValue =
-			urlValidResult.isValid === true
-				? urlValidResult.hasProtocol
-					? selectedShape.props.url
-					: 'https://' + selectedShape.props.url
-				: 'https://'
-
-		return {
-			actual: initialValue,
-			safe: initialValue,
-			valid: true,
-		}
+		const { safe } = getUrlInputState(selectedShape.props.url)
+		return { actual: safe, safe, valid: true }
 	})
 
 	const handleChange = useCallback((rawValue: string) => {
 		// Just auto-correct double https:// from a bad paste.
-		const fixedRawValue = rawValue.replace(/https?:\/\/(https?:\/\/)/, (_match, arg1) => {
-			return arg1
-		})
-
-		const urlValidResult = validateUrl(fixedRawValue)
-
-		const safeValue =
-			urlValidResult.isValid === true
-				? urlValidResult.hasProtocol
-					? fixedRawValue
-					: 'https://' + fixedRawValue
-				: 'https://'
-
-		setUrlInputState({
-			actual: fixedRawValue,
-			safe: safeValue,
-			valid: urlValidResult.isValid,
-		})
+		const fixedRawValue = rawValue.replace(/https?:\/\/(https?:\/\/)/, '$1')
+		setUrlInputState(getUrlInputState(fixedRawValue))
 	}, [])
 
 	const handleClear = useCallback(() => {
@@ -126,18 +104,15 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 		if (!onlySelectedShape) return
 		assertShapeWithUrl(onlySelectedShape)
 
-		// ? URL is a magic value
-		if (onlySelectedShape && 'url' in onlySelectedShape.props) {
-			// Here would be a good place to validate the next shape—would setting the empty
-			if (onlySelectedShape.props.url !== urlInputState.safe) {
-				editor.updateShapes([
-					{
-						id: onlySelectedShape.id,
-						type: onlySelectedShape.type,
-						props: { url: urlInputState.safe },
-					},
-				])
-			}
+		// Here would be a good place to validate the next shape—would setting the empty
+		if (onlySelectedShape.props.url !== urlInputState.safe) {
+			editor.updateShapes([
+				{
+					id: onlySelectedShape.id,
+					type: onlySelectedShape.type,
+					props: { url: urlInputState.safe },
+				},
+			])
 		}
 		onClose()
 	}, [editor, onClose, urlInputState])
@@ -181,7 +156,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 					<TldrawUiButtonLabel>{msg('edit-link-dialog.cancel')}</TldrawUiButtonLabel>
 				</TldrawUiButton>
 				{isRemoving ? (
-					<TldrawUiButton type={'danger'} onTouchEnd={handleClear} onClick={handleClear}>
+					<TldrawUiButton type="danger" onTouchEnd={handleClear} onClick={handleClear}>
 						<TldrawUiButtonLabel>{msg('edit-link-dialog.clear')}</TldrawUiButtonLabel>
 					</TldrawUiButton>
 				) : (

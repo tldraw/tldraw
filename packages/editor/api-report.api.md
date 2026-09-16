@@ -1212,6 +1212,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes }?: {
         isolateShapes?: boolean | undefined;
     }): this;
+    // @internal
+    _deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes }?: {
+        isolateShapes?: boolean | undefined;
+    }): this;
     deletePage(page: TLPage | TLPageId): this;
     deleteShape(id: TLShapeId): this;
     // (undocumented)
@@ -2446,6 +2450,7 @@ export class LicenseManager {
     constructor(licenseKey: string | undefined, testPublicKey?: string);
     // (undocumented)
     static className: string;
+    dispose(): void;
     // (undocumented)
     featureFlags: Atom<Record<LicenseFeatureName, boolean>, unknown>;
     // (undocumented)

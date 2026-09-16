@@ -5,6 +5,7 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 import type { TLFileDurableObject } from './TLFileDurableObject'
 import type { TLFileEffectProcessor } from './TLFileEffectProcessor'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
+import type { KeyframeReason } from './versionChain'
 
 // The Browser Rendering binding's Quick Actions method. Cloudflare exposes `env.BROWSER.quickAction`
 // so a Worker can call the Quick Actions endpoints (`screenshot`, `pdf`, …) straight through the
@@ -47,6 +48,9 @@ export interface Environment {
 
 	ROOMS: R2Bucket
 	ROOMS_HISTORY_EPHEMERAL: R2Bucket
+	// Delta chains. ROOMS_HISTORY_EPHEMERAL keeps every version written before cut-over, so both
+	// buckets stay on the read path until the standing history is compacted.
+	ROOMS_HISTORY: R2Bucket
 
 	ROOM_SNAPSHOTS: R2Bucket
 	SNAPSHOT_SLUG_TO_PARENT_SLUG: KVNamespace
@@ -211,6 +215,27 @@ export type TLServerEvent =
 			 * in the dataset distinguishes, since both emit the same `room_start`.
 			 */
 			resumedSockets: number
+	  }
+	// Discriminated on `wrote`: only a keyframe carries the reason that forced it.
+	| ({
+			type: 'version_chain_write'
+			bytes: number
+			depth: number
+	  } & ({ wrote: 'keyframe'; reason: KeyframeReason } | { wrote: 'delta' }))
+	// Discriminated on `outcome`: only a failure or a skip carries a reason.
+	| ({
+			/** A cadence keyframe retired a chain; did that chain reconstruct the state it claims? */
+			type: 'version_chain_verify'
+	  } & (
+			| { outcome: 'ok' }
+			| { outcome: 'fail'; reason: 'missing' | 'legacy-fallback' | 'head-mismatch' | 'error' }
+			// Not a failure: the chain was left unchecked because reconstructing it here would risk
+			// the isolate's memory. Carries the keyframe size so the threshold can be tuned.
+			| { outcome: 'skipped'; reason: 'keyframe-size'; keyframeBytes: number }
+	  ))
+	| {
+			/** A chain write failed in dual mode and was swallowed so the persist could complete. */
+			type: 'version_chain_error'
 	  }
 	| {
 			type: 'send_message'

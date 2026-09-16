@@ -756,6 +756,22 @@ stateDiagram-v2
     DB-->>API: Inserted
     API-->>User: 201 Created`,
 		`sequenceDiagram
+    autonumber 10 5
+    actor Customer
+    participant Gateway
+    participant Billing
+
+    Customer->>Gateway: Start checkout
+    Gateway->>Billing: Reserve funds
+    Billing-->>Gateway: Reserved
+    autonumber off
+    Gateway-->>Customer: Show confirmation step
+    Customer->>Gateway: Confirm
+    autonumber
+    Gateway->>Billing: Capture funds
+    Billing-->>Gateway: Captured
+    Gateway-->>Customer: Receipt`,
+		`sequenceDiagram
     participant Client
     participant TempSession
 
@@ -1023,6 +1039,27 @@ sequenceDiagram
     Worker->>Worker: parse chunk 2
     Worker->>Worker: parse chunk 3 with a suspiciously long status label for layout testing
     deactivate Worker`,
+		`sequenceDiagram
+    actor User
+    box Aqua Frontend
+        participant Web as Web app
+        participant SW as Service worker
+    end
+    box Backend
+        participant API
+        participant DB as Database
+    end
+
+    User->>Web: Open dashboard
+    Web->>SW: fetch /dashboard
+    SW->>API: GET /dashboard
+    loop Each widget
+        API->>DB: Load widget
+        DB-->>API: Rows
+    end
+    API-->>SW: 200 OK
+    SW-->>Web: Cached response
+    Web-->>User: Render`,
 	],
 	[
 		`mindmap

@@ -200,3 +200,12 @@ jobs:
           ZERO_R2_SECRET_ACCESS_KEY: ${{ secrets.ZERO_R2_SECRET_ACCESS_KEY }}
           ZERO_OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.ZERO_OTEL_EXPORTER_OTLP_ENDPOINT }}
           ZERO_OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.ZERO_OTEL_EXPORTER_OTLP_HEADERS }}
+
+      # The deploy script posts its own "Deploy failed" message, but a job timeout
+      # kills it without running that handler, so cover the cancelled case here.
+      - name: Notify Discord on cancelled deploy
+        if: cancelled() && github.event_name == 'push'
+        uses: ./.github/actions/discord-fail-notify
+        with:
+          webhook-url: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
+          status: was cancelled (job timeout?)

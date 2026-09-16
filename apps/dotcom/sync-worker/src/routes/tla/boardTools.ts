@@ -19,7 +19,7 @@ import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
 //
 // Deliberately pure. It takes a room snapshot and a table of shape measurements — data — and returns
 // tool results. It knows nothing about Postgres, R2, Browser Rendering, rate limits, caching or
-// telemetry; sharedBoardScreenshotMcp.ts owns all of that and calls in here.
+// telemetry; mcpServer.ts owns all of that and calls in here.
 //
 // The split is what makes this server evaluable. The private eval harness sends checked-in board
 // fixtures to the local-only route in evalsLocalMcp.ts, which serves these exact functions. A run
@@ -563,6 +563,12 @@ const BOARD_ID_PROPERTY = {
 		'The id of a tldraw.com board: the :slug of a file URL (https://www.tldraw.com/f/:slug) you own or that was shared with you, or of a published board URL (https://www.tldraw.com/p/:slug).',
 }
 
+const PAGE_PROPERTY = {
+	type: ['number', 'string'],
+	description: 'The page id or 0-based index from get_board_info. Defaults to 0, the first page.',
+	default: 0,
+}
+
 const READ_ONLY_ANNOTATIONS = {
 	readOnlyHint: true,
 	idempotentHint: true,
@@ -599,12 +605,7 @@ function getPageInfoToolDefinition() {
 			additionalProperties: false,
 			properties: {
 				boardId: BOARD_ID_PROPERTY,
-				page: {
-					type: ['number', 'string'],
-					description:
-						'The page id or 0-based index from get_board_info. Defaults to 0, the first page.',
-					default: 0,
-				},
+				page: PAGE_PROPERTY,
 			},
 			required: ['boardId'],
 		},
@@ -623,12 +624,7 @@ function getClusterInfoToolDefinition() {
 			additionalProperties: false,
 			properties: {
 				boardId: BOARD_ID_PROPERTY,
-				page: {
-					type: ['number', 'string'],
-					description:
-						'The page id or 0-based index from get_board_info. Defaults to 0, the first page.',
-					default: 0,
-				},
+				page: PAGE_PROPERTY,
 				clusterId: {
 					type: 'string',
 					description: 'The id of the cluster to get info for.',

@@ -21,7 +21,7 @@ export function kbd(str: string) {
 			// If the string contains [[Tab]], we don't split these up
 			// as they're meant to be atomic.
 			.split(/(\[\[[^\]]+\]\])/g)
-			.map((s) =>
+			.flatMap((s) =>
 				s.startsWith('[[')
 					? s.replace(/[[\]]/g, '')
 					: s
@@ -35,8 +35,7 @@ export function kbd(str: string) {
 							.replace(/!/g, '⇧')
 							.match(/__CTRL__|__ALT__|./g) || []
 			)
-			.flat()
-			.map((sub, index) => {
+			.flatMap((sub, index) => {
 				if (sub[0] === '+') return []
 
 				let modifiedKey
@@ -49,7 +48,6 @@ export function kbd(str: string) {
 				}
 				return tlenv.isDarwin || !index ? modifiedKey : ['+', modifiedKey]
 			})
-			.flat()
 	)
 }
 
