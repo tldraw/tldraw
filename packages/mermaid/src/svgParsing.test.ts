@@ -184,7 +184,7 @@ describe('sequence row parsing', () => {
 		// participant's top box on its creation row, both mid-diagram. Measuring the header-to-footer
 		// gap from one of those reports a far shorter diagram than mermaid drew, and the stretch that
 		// compensates then leaves every surviving lifeline too long.
-		function lifelineLengths(topYs: number[], bottomYs: number[]) {
+		function layoutFor(topYs: number[], bottomYs: number[]) {
 			const actors = topYs
 				.map(
 					(topY, i) =>
@@ -198,7 +198,10 @@ describe('sequence row parsing', () => {
 					<line data-et="message" data-id="i0" x1="75" y1="182.5" x2="275" y2="182.5" />
 				</svg>
 			`)
-			return parseSequenceLayout(svg, 3, 1).actorLayouts.map((l) => l.bottomY - (l.y + l.h))
+			return parseSequenceLayout(svg, 3, 1)
+		}
+		function lifelineLengths(topYs: number[], bottomYs: number[]) {
+			return layoutFor(topYs, bottomYs).actorLayouts.map((l) => l.bottomY - (l.y + l.h))
 		}
 
 		// 500 - 65 clears MIN_VERTICAL_GAP, so nothing is stretched and each lifeline runs the
@@ -211,6 +214,13 @@ describe('sequence row parsing', () => {
 
 		// A participant created on row 150 starts late, and again the others are untouched.
 		expect(lifelineLengths([0, 150, 0], [500, 500, 500])).toEqual([full, 500 - 150 - 65 - 10, full])
+
+		// 300 - 65 falls short of MIN_VERTICAL_GAP, so this one is stretched. The mid-diagram boxes
+		// take the same share of that stretch as the row they sit on, which is the message at 182.5.
+		const destroyed = layoutFor([0, 0, 0], [300, 182.5, 300])
+		expect(destroyed.actorLayouts[1].bottomY).toBeCloseTo(destroyed.rowYs.get(0)!)
+		const created = layoutFor([0, 182.5, 0], [300, 300, 300])
+		expect(created.actorLayouts[1].y).toBeCloseTo(created.rowYs.get(0)!)
 	})
 
 	it("reads every row and frame from the installed mermaid's own rendering", async () => {

@@ -392,10 +392,8 @@ function computeActorLayouts(
 		const totalSpan = xCenters.length > 1 ? xCenters[xCenters.length - 1] : 0
 
 		// A created participant's top box and a destroyed one's bottom box sit mid-diagram, so
-		// neither marks a row edge. Mermaid assigns every surviving participant the same footer
-		// `stopy` in one pass, so taking the outermost box of each row skips the mid-diagram ones.
-		// Measuring the gap from a mid-diagram box instead reports the diagram as far shorter than
-		// it is, inflating the stretch below and leaving the whole diagram too tall.
+		// neither marks a row edge. Measuring the gap from one reports the diagram as far shorter
+		// than it is, inflating the stretch below and leaving the whole diagram too tall.
 		const headerBottom = Math.min(...top.map((r) => r.y + r.h))
 		const footerTop = Math.max(...bottom.map((r) => r.y))
 		const yStretch = Math.max(0, MIN_VERTICAL_GAP - (footerTop - headerBottom))
@@ -415,10 +413,12 @@ function computeActorLayouts(
 			const h = topRect.h + ACTOR_PADDING_HEIGHT
 			return {
 				x: xCenters[i] - totalSpan / 2 - w / 2,
-				y: originY + topRect.y,
+				// Through `toLayoutY` so a created or destroyed participant's mid-diagram box takes
+				// the same share of the stretch as the row it sits on, rather than all of it or none.
+				y: toLayoutY(topRect.y),
 				w,
 				h,
-				bottomY: originY + bottom[i].y + yStretch,
+				bottomY: toLayoutY(bottom[i].y),
 			}
 		})
 		return { actorLayouts, toLayoutY }
