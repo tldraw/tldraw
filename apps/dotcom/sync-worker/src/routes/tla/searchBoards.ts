@@ -123,7 +123,7 @@ export async function searchAccessibleBoards(
 
 				return (
 					arm
-						// `file_owning_group_created_at_idx` (`051_file_search_index.sql`) serves this
+						// `file_owning_group_created_at_idx` (`052_file_search_index.sql`) serves this
 						// ordering and the access filter together, so each arm reads its page and stops
 						// instead of top-N sorting a whole workspace. What no index here helps is the
 						// `ilike '%term%'` above: a query matching nothing still reads every board in scope.
