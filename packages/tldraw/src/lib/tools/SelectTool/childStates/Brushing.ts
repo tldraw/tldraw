@@ -2,7 +2,6 @@ import {
 	Box,
 	Mat,
 	StateNode,
-	TLCancelEventInfo,
 	TLKeyboardEventInfo,
 	TLPageId,
 	TLPointerEventInfo,
@@ -99,9 +98,12 @@ export class Brushing extends StateNode {
 		this.complete()
 	}
 
-	override onCancel(info: TLCancelEventInfo) {
-		this.editor.setSelectedShapes(this.initialSelectedShapeIds)
-		this.parent.transition('idle', info)
+	override onCancel() {
+		this.cancel()
+	}
+
+	override onInterrupt() {
+		this.cancel()
 	}
 
 	override onKeyDown(info: TLKeyboardEventInfo) {
@@ -118,6 +120,11 @@ export class Brushing extends StateNode {
 
 	private complete() {
 		this.hitTestShapes()
+		this.parent.transition('idle')
+	}
+
+	private cancel() {
+		this.editor.setSelectedShapes(this.initialSelectedShapeIds)
 		this.parent.transition('idle')
 	}
 
@@ -236,10 +243,6 @@ export class Brushing extends StateNode {
 		if (current.length !== results.size || current.some((id) => !results.has(id))) {
 			editor.setSelectedShapes(Array.from(results))
 		}
-	}
-
-	override onInterrupt() {
-		this.editor.updateInstanceState({ brush: null })
 	}
 
 	private handleHit(
