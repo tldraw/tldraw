@@ -142,6 +142,11 @@ describe('parseSearchBoardsInput', () => {
 		})
 	})
 
+	// Every fixture below carries the trailing `:` that makes it a three-field cursor. Without it the
+	// field-count check refuses them first, and the guard each case names is never reached — which is
+	// what happened when the cursor grew its query field and these were not revisited: deleting the
+	// timestamp validation outright left all of them green.
+	//
 	// Nothing downstream can act on a malformed cursor, and silently starting from the first page
 	// would look to a model like the last page repeating itself.
 	it('refuses a cursor it did not issue', () => {
@@ -150,25 +155,25 @@ describe('parseSearchBoardsInput', () => {
 			'cursor is not valid'
 		)
 		expect(() => parseSearchBoardsInput({ cursor: 12 })).toThrow('cursor must be a string')
-		expect(() => parseSearchBoardsInput({ cursor: btoa('1:%zz') })).toThrow('cursor is not valid')
+		expect(() => parseSearchBoardsInput({ cursor: btoa('1:%zz:') })).toThrow('cursor is not valid')
 	})
 
 	// `Number.isInteger` admits 1e300, which binds as an out-of-range int8 and makes Postgres throw:
 	// caller garbage would reach a model as "the board database could not be reached".
 	it('refuses a sort key no timestamp could be', () => {
-		expect(() => parseSearchBoardsInput({ cursor: btoa('1e300:board-1') })).toThrow(
+		expect(() => parseSearchBoardsInput({ cursor: btoa('1e300:board-1:') })).toThrow(
 			'cursor is not valid'
 		)
-		expect(() => parseSearchBoardsInput({ cursor: btoa('-1:board-1') })).toThrow(
+		expect(() => parseSearchBoardsInput({ cursor: btoa('-1:board-1:') })).toThrow(
 			'cursor is not valid'
 		)
 	})
 
-	// `Number('')` is 0, which passes `Number.isSafeInteger(0)`: the forged cursor `btoa(":id")`
+	// `Number('')` is 0, which passes `Number.isSafeInteger(0)`: the forged cursor `btoa(":id:")`
 	// would otherwise decode to `{createdAt: 0, id: 'id'}` and seek strictly below epoch forever,
 	// with no signal to the model that its cursor was the problem.
 	it('refuses a cursor with an empty timestamp half', () => {
-		expect(() => parseSearchBoardsInput({ cursor: btoa(':board-1') })).toThrow(
+		expect(() => parseSearchBoardsInput({ cursor: btoa(':board-1:') })).toThrow(
 			'cursor is not valid'
 		)
 	})
@@ -178,7 +183,7 @@ describe('parseSearchBoardsInput', () => {
 	it.each(['1e3', ' 5', '+5', 'Infinity'])(
 		'refuses a timestamp half of %j, which Number() would otherwise accept',
 		(timestampPart) => {
-			expect(() => parseSearchBoardsInput({ cursor: btoa(`${timestampPart}:board-1`) })).toThrow(
+			expect(() => parseSearchBoardsInput({ cursor: btoa(`${timestampPart}:board-1:`) })).toThrow(
 				'cursor is not valid'
 			)
 		}
