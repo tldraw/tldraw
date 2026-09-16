@@ -574,7 +574,11 @@ export const adminRoutes = createRouter<Environment>()
 
 		return new Response('User deleted', { status: 200 })
 	})
-	.get('/app/admin/delete_user_sse', async (res, env) => {
+	// POST, not GET: this permanently deletes a user and authenticates with the session cookie, so
+	// it must not be reachable by navigating to a URL. A link anywhere the admin's browser will
+	// follow — including one placed on a board, which is same-origin with this route — would
+	// otherwise be enough to trigger it.
+	.post('/app/admin/delete_user_sse', async (res, env) => {
 		const q = res.query['q']
 		if (typeof q !== 'string') {
 			return new Response('Missing query param', { status: 400 })

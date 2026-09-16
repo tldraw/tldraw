@@ -1,6 +1,7 @@
 import type { FlowEdge, FlowSubGraph, FlowVertex } from 'mermaid/dist/diagrams/flowchart/types.js'
 import type { MindmapNode } from 'mermaid/dist/diagrams/mindmap/mindmapTypes.js'
-import type { Actor, Message } from 'mermaid/dist/diagrams/sequence/types.js'
+import type { SequenceDB } from 'mermaid/dist/diagrams/sequence/sequenceDb.d.ts'
+import type { Actor, Box, Message } from 'mermaid/dist/diagrams/sequence/types.js'
 import type { StateStmt } from 'mermaid/dist/diagrams/state/stateDb.d.ts'
 import type { DiagramMermaidBlueprint, MermaidBlueprintNode, MermaidDiagramKind } from './blueprint'
 import {
@@ -712,11 +713,14 @@ describe('sequenceToBlueprint', () => {
 
 	function actorLayout(
 		xs: number[],
-		noteRects: ParsedSequenceLayout['noteRects'] = []
+		noteRects: ParsedSequenceLayout['noteRects'] = [],
+		measured: Partial<Pick<ParsedSequenceLayout, 'rowYs' | 'fragmentFrames'>> = {}
 	): ParsedSequenceLayout {
 		return {
 			actorLayouts: xs.map((x) => ({ x, y: -200, w: 100, h: 50, bottomY: 200 })),
 			noteRects,
+			rowYs: measured.rowYs ?? new Map(),
+			fragmentFrames: measured.fragmentFrames ?? new Map(),
 		}
 	}
 	const twoActorLayout = () => actorLayout([-150, 150])
@@ -855,6 +859,24 @@ describe('sequenceToBlueprint', () => {
 		const sectionLabel = findNode(bp, 'fragment-0-section-1')
 		expect(sectionLabel).toBeDefined()
 		expect(sectionLabel!.label).toBe('[Credentials invalid]')
+	})
+
+	it('draws a colored rect fragment as a background so it does not hide the lifelines it spans', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('User'), actor('App')])
+		const messages = [
+			{ type: LINETYPE.RECT_START, message: 'rgb(200, 150, 255)' } as unknown as Message,
+			msg(LINETYPE.SOLID, 'User', 'App', 'Sign in'),
+			{ type: LINETYPE.RECT_END } as unknown as Message,
+		]
+
+		const bp = sequenceToBlueprint(layout, actors, ['User', 'App'], messages)
+
+		expect(findNode(bp, 'fragment-0')).toMatchObject({
+			fill: 'solid',
+			color: 'violet',
+			background: true,
+		})
 	})
 
 	it('sizes a multi-line note from its longest line', () => {
@@ -1184,6 +1206,117 @@ describe('sequenceToBlueprint', () => {
 		expect(findNode(bp, 'actor-bottom-A')!.y).toBe(twoActorLayout().actorLayouts[0].bottomY)
 	})
 
+	describe('rows measured from mermaid', () => {
+		/** Where an edge meets the lifelines it is bound to. */
+		function edgeYs(bp: DiagramMermaidBlueprint, label: string) {
+			const edge = bp.edges.find((e) => e.label === label)!
+			const lineY = (id: string, anchor: number) => {
+				const line = bp.lines!.find((l) => l.id === id)!
+				return line.y + line.endY * anchor
+			}
+			return [lineY(edge.startNodeId, edge.anchorStartY!), lineY(edge.endNodeId, edge.anchorEndY!)]
+		}
+
+		it('gives a tall note the room mermaid gave it', () => {
+			const layout = actorLayout([-150, 150], [{ x: 0, y: 0, w: 120, h: 150 }], {
+				rowYs: new Map([
+					[0, -110],
+					[1, 0],
+					[2, 110],
+				]),
+			})
+			const actors = new Map([actor('Alice'), actor('Bob')])
+			const messages = [
+				msg(LINETYPE.SOLID, 'Alice', 'Bob', 'first'),
+				noteMsg('Bob', 'a<br/>tall<br/>note', PLACEMENT.RIGHTOF),
+				msg(LINETYPE.SOLID, 'Bob', 'Alice', 'second'),
+			]
+
+			const bp = sequenceToBlueprint(layout, actors, ['Alice', 'Bob'], messages)
+
+			const note = bp.nodes.find((n) => n.id.startsWith('note-'))!
+			expect({ y: note.y, h: note.h }).toEqual({ y: -75, h: 150 })
+			// Evenly spaced rows would put both arrows inside the note's 150px.
+			edgeYs(bp, 'first').forEach((y) => expect(y).toBeCloseTo(-110))
+			edgeYs(bp, 'second').forEach((y) => expect(y).toBeCloseTo(110))
+		})
+
+		it("keeps a created and destroyed participant's boxes apart", () => {
+			const layout = actorLayout([-150, 150], [], {
+				// Mermaid pushes the rows after a lifecycle box down by half the box's height.
+				rowYs: new Map([
+					[0, -140],
+					[1, -130],
+					[2, -120],
+					[3, -80],
+					[4, 20],
+					[5, 120],
+				]),
+			})
+			const actors = new Map([actor('Alice'), actor('Tmp')])
+			const messages = Array.from({ length: 6 }, (_, i) =>
+				msg(LINETYPE.SOLID, 'Alice', 'Tmp', `m${i}`)
+			)
+
+			const bp = sequenceToBlueprint(
+				layout,
+				actors,
+				['Alice', 'Tmp'],
+				messages,
+				new Map([['Tmp', 3]]),
+				new Map([['Tmp', 4]])
+			)
+
+			// Boxes are 50px tall, centred on their rows.
+			expect(findNode(bp, 'actor-top-Tmp')!.y).toBe(-105)
+			expect(findNode(bp, 'actor-bottom-Tmp')!.y).toBe(-5)
+			const lifeline = bp.lines!.find((l) => l.id === 'lifeline-Tmp')!
+			expect({ y: lifeline.y, endY: lifeline.endY }).toEqual({ y: -55, endY: 50 })
+		})
+
+		it("draws a fragment's frame and sections where mermaid did", () => {
+			const layout = actorLayout([-150, 150], [], {
+				rowYs: new Map([
+					[0, -120],
+					[2, 0],
+					[4, 120],
+				]),
+				// Keyed by the statement that closes the fragment.
+				fragmentFrames: new Map([[5, { top: -100, bottom: 140, sectionYs: [60] }]]),
+			})
+			const actors = new Map([actor('User'), actor('App')])
+			const messages = [
+				msg(LINETYPE.SOLID, 'User', 'App', 'Sign in'),
+				{ type: LINETYPE.ALT_START, message: 'a title long enough to wrap' } as unknown as Message,
+				msg(LINETYPE.DOTTED, 'App', 'User', 'Welcome'),
+				{ type: LINETYPE.ALT_ELSE, message: 'Invalid' } as unknown as Message,
+				msg(LINETYPE.DOTTED, 'App', 'User', 'Error'),
+				{ type: LINETYPE.ALT_END } as unknown as Message,
+			]
+
+			const bp = sequenceToBlueprint(layout, actors, ['User', 'App'], messages)
+
+			const fragment = findNode(bp, 'fragment-0')!
+			expect({ y: fragment.y, h: fragment.h }).toEqual({ y: -100, h: 240 })
+			expect(bp.lines!.find((l) => l.id === 'fragment-0-sep-1')!.y).toBe(60)
+			expect(findNode(bp, 'fragment-0-section-1')!.y).toBeGreaterThan(60)
+		})
+
+		it('spaces every row evenly when mermaid did not draw one of them', () => {
+			const partlyMeasured = actorLayout([-150, 150], [], { rowYs: new Map([[0, -140]]) })
+			const actors = new Map([actor('Alice'), actor('Bob')])
+			const messages = [
+				msg(LINETYPE.SOLID, 'Alice', 'Bob', 'one'),
+				msg(LINETYPE.SOLID, 'Bob', 'Alice', 'two'),
+			]
+
+			const bp = sequenceToBlueprint(partlyMeasured, actors, ['Alice', 'Bob'], messages)
+			const even = sequenceToBlueprint(twoActorLayout(), actors, ['Alice', 'Bob'], messages)
+
+			expect(bp.edges).toEqual(even.edges)
+		})
+	})
+
 	it('maps actor types to correct geo', () => {
 		const layout = actorLayout([0])
 		const actors = new Map([actor('User', { type: 'actor' })])
@@ -1192,6 +1325,150 @@ describe('sequenceToBlueprint', () => {
 		const bp = sequenceToBlueprint(layout, actors, ['User'], messages)
 
 		expectNodeGeo(findNode(bp, 'actor-top-User')!, 'ellipse', 'sequence')
+	})
+
+	describe('participant boxes', () => {
+		function participantBox(opts: Partial<Box> = {}): Box {
+			return { name: '', wrap: false, fill: 'transparent', actorKeys: [], ...opts }
+		}
+
+		function boxed(key: string, box: Box): [string, Actor] {
+			const [, a] = actor(key)
+			return [key, { ...a, box }]
+		}
+
+		const boxNodes = (bp: DiagramMermaidBlueprint) =>
+			bp.nodes.filter((n) => n.kind === 'sequence_box')
+
+		it('draws a box behind the participants it groups, with its label and color', () => {
+			// Participants are 100 wide, 200 apart, with a header row at -200 and a footer row at 200.
+			const layout = actorLayout([-450, -150, 150, 450])
+			const frontend = participantBox({ name: 'Frontend', fill: 'Purple' })
+			const backend = participantBox({ name: 'Backend' })
+			const actors = new Map([
+				boxed('A', frontend),
+				boxed('B', frontend),
+				boxed('C', backend),
+				actor('D'),
+			])
+			const messages = [msg(LINETYPE.SOLID, 'A', 'D', 'Hi')]
+
+			const bp = sequenceToBlueprint(layout, actors, ['A', 'B', 'C', 'D'], messages)
+
+			const shared = {
+				kind: 'sequence_box',
+				y: -260,
+				h: 530,
+				size: 's',
+				align: 'middle',
+				verticalAlign: 'start',
+				background: true,
+			}
+			expect(boxNodes(bp)).toEqual([
+				{
+					...shared,
+					id: 'box-0',
+					x: -490,
+					w: 480,
+					fill: 'solid',
+					color: 'violet',
+					label: 'Frontend',
+				},
+				{ ...shared, id: 'box-1', x: 110, w: 180, fill: 'none', color: 'grey', label: 'Backend' },
+			])
+			expect(bp.nodes.slice(0, 2)).toEqual(boxNodes(bp))
+			expectNodeGeo(boxNodes(bp)[0], 'rectangle', 'sequence')
+		})
+
+		it('maps the colors mermaid accepts for a box', () => {
+			const colorOf = (fill: string) => {
+				const actors = new Map([boxed('A', participantBox({ fill }))])
+				const bp = sequenceToBlueprint(actorLayout([0]), actors, ['A'], [])
+				const { fill: fillStyle, color } = boxNodes(bp)[0]
+				return { fill: fillStyle, color }
+			}
+
+			expect(colorOf('Aqua')).toEqual({ fill: 'solid', color: 'light-blue' })
+			expect(colorOf('rgb(0, 128, 0)')).toEqual({ fill: 'solid', color: 'green' })
+			expect(colorOf('rgba(255, 0, 0, 0.3)')).toEqual({ fill: 'semi', color: 'red' })
+			expect(colorOf('transparent')).toEqual({ fill: 'none', color: 'grey' })
+		})
+
+		it('reserves room for a label only when some box has one', () => {
+			const actors = new Map([boxed('A', participantBox())])
+			const bp = sequenceToBlueprint(actorLayout([0]), actors, ['A'], [])
+
+			expect(boxNodes(bp)[0].y).toBe(-220)
+		})
+
+		it('keeps neighboring boxes apart when participants are close together', () => {
+			const layout = actorLayout([0, 130])
+			const actors = new Map([boxed('A', participantBox()), boxed('B', participantBox())])
+
+			const bp = sequenceToBlueprint(layout, actors, ['A', 'B'], [])
+
+			const [left, right] = boxNodes(bp)
+			expect(left.x + left.w).toBe(110)
+			expect(right.x).toBe(120)
+		})
+
+		it('draws one box per box statement mermaid parses', async () => {
+			// Participants are grouped by the `Box` object mermaid's parser shares between them, which
+			// the tests above build by hand. Parsing real source catches a parser that stops sharing it
+			// (one box per participant) as well as grouping by name (same-named boxes merged).
+			const mermaid = (await import('mermaid')).default
+			// Registers mermaid's diagram types, as a conversion does before parsing.
+			mermaid.initialize({ startOnLoad: false })
+			const convert = async (source: string) => {
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				const db = (await mermaid.mermaidAPI.getDiagramFromText(source)).db as SequenceDB
+				const actorKeys = db.getActorKeys()
+				const bp = sequenceToBlueprint(
+					actorLayout(actorKeys.map((_, i) => i * 300)),
+					db.getActors(),
+					actorKeys,
+					db.getMessages()
+				)
+				return boxNodes(bp).map((box) => [
+					box.label,
+					actorKeys.filter((key) => {
+						const top = findNode(bp, `actor-top-${key}`)!
+						return top.x >= box.x && top.x + top.w <= box.x + box.w
+					}),
+				])
+			}
+
+			// No box colors here: mermaid only splits a color off the label with the browser's CSS
+			// parser, and jsdom's rejects mixed-case names, so `box Aqua Frontend` reads as one label.
+			expect(
+				await convert(`sequenceDiagram
+    box Frontend
+        participant A
+        participant B
+    end
+    box Backend
+        participant C
+    end
+    participant D
+    A->>D: hi`)
+			).toEqual([
+				['Frontend', ['A', 'B']],
+				['Backend', ['C']],
+			])
+
+			expect(
+				await convert(`sequenceDiagram
+    box Team
+        participant A
+    end
+    box Team
+        participant B
+    end`)
+			).toEqual([
+				['Team', ['A']],
+				['Team', ['B']],
+			])
+		})
 	})
 })
 

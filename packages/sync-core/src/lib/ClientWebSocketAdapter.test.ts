@@ -12,6 +12,7 @@ vi.mock('@tldraw/utils', async (importOriginal) => {
 // NOTE: setupVitest.js replaces the global WebSocket with the 'ws' package's WebSocket,
 // matching the WebSocketServer the tests connect to.
 import { WebSocketServer, WebSocket as WsWebSocket } from 'ws'
+import { MAX_ASSEMBLED_MESSAGE_CHARS } from './chunk'
 import {
 	ACTIVE_MAX_DELAY,
 	ACTIVE_MIN_DELAY,
@@ -398,6 +399,32 @@ describe('ClientWebSocketAdapter', () => {
 			expect(consoleWarnSpy).toHaveBeenCalledWith(
 				expect.stringContaining('Tried to send message while')
 			)
+		})
+
+		it('[CW6] refuses to send a message the server would reject as too large', async () => {
+			const onMessage = vi.fn()
+			connectMock.mockImplementationOnce((ws: any) => {
+				ws.on('message', onMessage)
+			})
+			await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+
+			const onStatusChange = vi.fn()
+			adapter.onStatusChange(onStatusChange)
+
+			const message = {
+				...connectMessage(),
+				largeData: 'x'.repeat(MAX_ASSEMBLED_MESSAGE_CHARS),
+			} as any
+			adapter.sendMessage(message)
+
+			// nothing goes on the wire: sending would only earn a close and a reconnect that
+			// re-sends the same message
+			expect(onMessage).not.toHaveBeenCalled()
+			expect(adapter.connectionStatus).toBe('error')
+			expect(onStatusChange).toHaveBeenCalledWith({
+				status: 'error',
+				reason: TLSyncErrorCloseEventReason.MESSAGE_TOO_LARGE,
+			})
 		})
 
 		it('[CW6] silently drops the message when there is no socket', async () => {

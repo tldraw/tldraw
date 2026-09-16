@@ -21,6 +21,7 @@ function mockEditor() {
 		run: vi.fn((fn) => fn()),
 		createBindings: vi.fn(),
 		groupShapes: vi.fn(),
+		sendToBack: vi.fn(),
 	}
 	return editor as any
 }
@@ -75,5 +76,26 @@ describe('renderBlueprint', () => {
 			['geo', 'm'],
 			['arrow', 'm'],
 		])
+	})
+
+	it('sends background nodes behind the lines, keeping their own order', () => {
+		const editor = mockEditor()
+		const blueprint: DiagramMermaidBlueprint = {
+			diagramKind: 'sequence',
+			nodes: [
+				{ id: 'box', kind: 'sequence_box', x: 0, y: 0, w: 200, h: 200, background: true },
+				{ id: 'rect', kind: 'sequence_fragment', x: 10, y: 50, w: 180, h: 50, background: true },
+				{ id: 'actor', kind: 'participant', x: 50, y: 0, w: 100, h: 40 },
+			],
+			edges: [],
+			lines: [{ id: 'lifeline', x: 100, y: 40, endY: 160 }],
+		}
+
+		renderBlueprint(editor, blueprint, { position: { x: 0, y: 0 }, centerOnPosition: false })
+
+		// Creation order is z-order, so the line sits beneath every node until the background nodes move.
+		const created = editor.createShape.mock.calls.map(([shape]: any) => shape)
+		expect(created.map((shape: any) => shape.type)).toEqual(['line', 'geo', 'geo', 'geo'])
+		expect(editor.sendToBack).toHaveBeenCalledExactlyOnceWith([created[1].id, created[2].id])
 	})
 })
