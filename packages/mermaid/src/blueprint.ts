@@ -87,6 +87,12 @@ export interface MermaidBlueprintNode {
 	size?: TLDefaultSizeStyle
 	align?: TLDefaultHorizontalAlignStyle
 	verticalAlign?: TLDefaultVerticalAlignStyle
+	/**
+	 * Draw this node beneath the blueprint's lines as well as its other nodes. Lines are otherwise
+	 * drawn beneath every node, so a filled node that spans them, such as a sequence diagram's
+	 * participant box, would hide them.
+	 */
+	background?: boolean
 }
 
 /** @public */

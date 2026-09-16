@@ -32,6 +32,10 @@ export function Component({ error }: { error?: unknown }) {
 		}
 	}, [error, userId])
 
+	// The embed search param hides the sidebar, and tells share-link tracking this is a host-page
+	// view rather than a link follow, so it has to reach the editor on the anonymous path too.
+	const isEmbed = !!new URLSearchParams(window.location.search).get('embed')
+
 	if (!userId) {
 		return (
 			// Override TlaEditor's internal ReadyWrapper. This prevents the anon layout chrome from rendering
@@ -39,15 +43,12 @@ export function Component({ error }: { error?: unknown }) {
 			<ReadyWrapper>
 				{errorElem ?? (
 					<TlaAnonLayout>
-						<TlaEditor fileSlug={fileSlug} deepLinks />
+						<TlaEditor fileSlug={fileSlug} deepLinks isEmbed={isEmbed} />
 					</TlaAnonLayout>
 				)}
 			</ReadyWrapper>
 		)
 	}
-
-	// use a search param to hide the sidebar completely
-	const isEmbed = !!new URLSearchParams(window.location.search).get('embed')
 
 	return (
 		<TlaSidebarLayout collapsible isEmbed={isEmbed}>
