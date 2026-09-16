@@ -63,7 +63,7 @@ describe('layout parsing tolerates mermaid >= 11.15 prefixed ids', () => {
 		expect(layout.edges).toHaveLength(1)
 	})
 
-	it('splits an edge id at the underscore that names two of the diagram\'s nodes', () => {
+	it("splits an edge id at the underscore that names two of the diagram's nodes", () => {
 		// `L_my_node_other_node_0` could start at `my` or `my_node`; only the nodes say which. Getting
 		// it wrong leaves the edge without usable ids, and parallel edges back on proximity (#10794).
 		const svg = svgFromString(`
