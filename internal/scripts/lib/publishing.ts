@@ -189,9 +189,12 @@ export async function publish(distTag?: string) {
 						}
 					)
 				} catch (e) {
+					// A retry after a publish that actually landed is rejected as "published",
+					// or as "staged" (409) while npm is still processing the first attempt.
+					const lowerOutput = output.toLowerCase()
 					if (
-						output.includes('cannot publish over the previously published versions') ||
-						output.includes('You cannot publish over the previously published versions')
+						lowerOutput.includes('cannot publish over the previously published versions') ||
+						lowerOutput.includes('cannot publish over previously staged version')
 					) {
 						nicelog(
 							`[publish] ${packageDetails.name}@${packageDetails.version} already published, skipping`
@@ -210,28 +213,34 @@ export async function publish(distTag?: string) {
 				numAttempts: 5,
 			}
 		)
-
-		await retry(
-			async ({ attempt, total }) => {
-				nicelog('Waiting for package to be published... attempt', attempt, 'of', total)
-				// fetch the new package directly from the npm registry
-				const newVersion = packageDetails.version
-
-				const url = `https://registry.npmjs.org/${packageDetails.name}/${newVersion}`
-				nicelog('looking for package at url: ', url)
-				const res = await fetch(url, {
-					method: 'HEAD',
-				})
-				if (res.status >= 400) {
-					throw new Error(`Package not found: ${res.status}`)
-				}
-			},
-			{
-				delay: 10000,
-				numAttempts: 50,
-			}
-		)
 	}
+
+	// npm can take several minutes before a published version is readable. Checking all
+	// packages in parallel after publishing waits for the slowest one rather than the
+	// sum of every package's delay. This must still cover every package: the `next`
+	// publish dispatches tldraw-internal, which resolves the newest `tldraw` right away.
+	await Promise.all(
+		publishOrder.map((packageDetails) =>
+			retry(
+				async ({ attempt, total }) => {
+					const url = `https://registry.npmjs.org/${packageDetails.name}/${packageDetails.version}`
+					const res = await fetch(url, { method: 'HEAD' })
+					if (res.status >= 400) {
+						nicelog(
+							`[verify] ${packageDetails.name}@${packageDetails.version} not readable yet (${res.status}), attempt ${attempt + 1} of ${total}`
+						)
+						throw new Error(`Package not found: ${url} (${res.status})`)
+					}
+					nicelog(`[verify] ${packageDetails.name}@${packageDetails.version} is readable`)
+				},
+				{
+					delay: 10_000,
+					// 15 minutes; the slowest package took over 8 minutes in September 2026.
+					numAttempts: 90,
+				}
+			)
+		)
+	)
 }
 
 function retry(
