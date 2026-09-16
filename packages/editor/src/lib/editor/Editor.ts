@@ -9790,7 +9790,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (unsupportedShapeIds.size > 0) {
 			const sourceShapesById = new Map(shapes.map((shape) => [shape.id as string, shape]))
-			const liftedShapeIds = new Set<string>()
+			// The index each lifted shape had within the dropped subtree, outermost dropped
+			// ancestor first, so lifted shapes can be restacked in the order they were drawn in.
+			const liftedIndexPaths = new Map<string, IndexKey[]>()
 
 			shapes = shapes
 				.filter((shape) => !unsupportedShapeIds.has(shape.id))
@@ -9802,6 +9804,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					let transform = Mat.Identity()
 					let rotation = 0
 					let parentId: TLParentId = shape.parentId
+					const indexPath: IndexKey[] = [shape.index]
 					// Content is arbitrary JSON off the clipboard, so the parent chain can be
 					// cyclic. Nothing upstream rejects that, and walking it unguarded hangs the
 					// whole thread — no error boundary, just a frozen tab.
@@ -9816,6 +9819,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						)
 						rotation += dropped.rotation
 						parentId = dropped.parentId
+						indexPath.unshift(dropped.index)
 					}
 
 					// A cycle leaves us on a dropped shape with no real ancestor to lift into,
@@ -9829,7 +9833,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						rootShapeIds.push(shape.id)
 					}
 
-					liftedShapeIds.add(shape.id)
+					liftedIndexPaths.set(shape.id, indexPath)
 					const { x, y } = Mat.applyToPoint(transform, shape)
 					return { ...shape, x, y, rotation: shape.rotation + rotation, parentId }
 				})
@@ -9837,21 +9841,39 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// A lifted shape's index came from the sibling set it was lifted out of, so
 			// keeping it can collide with a sibling in the set it lands in — leaving their
 			// z-order decided by array order rather than by the index.
-			if (liftedShapeIds.size > 0) {
+			if (liftedIndexPaths.size > 0) {
 				const highestIndexByParent = new Map<TLParentId, IndexKey>()
 				for (const shape of shapes) {
-					if (liftedShapeIds.has(shape.id)) continue
+					if (liftedIndexPaths.has(shape.id)) continue
 					const highest = highestIndexByParent.get(shape.parentId)
 					if (!highest || shape.index > highest) {
 						highestIndexByParent.set(shape.parentId, shape.index)
 					}
 				}
-				shapes = shapes.map((shape) => {
-					if (!liftedShapeIds.has(shape.id)) return shape
-					const index = getIndexAbove(highestIndexByParent.get(shape.parentId))
-					highestIndexByParent.set(shape.parentId, index)
-					return { ...shape, index }
-				})
+
+				// Stack them by where they sat in the dropped subtree rather than by their
+				// position in the content array: content is arbitrary JSON off the clipboard
+				// and doesn't have to list siblings in z-order, so array order would restack
+				// them arbitrarily.
+				const liftedInOrder = shapes
+					.filter((shape) => liftedIndexPaths.has(shape.id))
+					.sort((a, b) =>
+						compareIndexPaths(liftedIndexPaths.get(a.id)!, liftedIndexPaths.get(b.id)!)
+					)
+					.map((shape) => {
+						const index = getIndexAbove(highestIndexByParent.get(shape.parentId))
+						highestIndexByParent.set(shape.parentId, index)
+						return { ...shape, index }
+					})
+
+				// They take each other's places in the array as well, because a shape lifted all
+				// the way to the page is re-indexed in array order further down — which would
+				// otherwise undo the stacking we just gave it. No lifted shape is an ancestor of
+				// another, so reordering them among themselves can't put a child before a parent.
+				let nextLifted = 0
+				shapes = shapes.map((shape) =>
+					liftedIndexPaths.has(shape.id) ? liftedInOrder[nextLifted++] : shape
+				)
 			}
 
 			unsupportedShapeTypes = [
@@ -11707,6 +11729,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
 	const name = editor.getPage(pageId)!.name
 	editor.emit('max-shapes', { name, pageId, count: editor.options.maxShapesPerPage })
+}
+
+/**
+ * Order two shapes by their indices within a subtree, outermost ancestor first, so that a shape
+ * lifted out of a container stays below the contents of any container that sat above it. Where
+ * one path runs out, the shallower shape goes first: it sat at that level itself.
+ */
+function compareIndexPaths(a: IndexKey[], b: IndexKey[]) {
+	for (let i = 0; i < Math.min(a.length, b.length); i++) {
+		if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1
+	}
+	return a.length - b.length
 }
 
 function applyPartialToRecordWithProps<

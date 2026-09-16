@@ -831,6 +831,44 @@ describe('When pasting content with unsupported shape types...', () => {
 		expect(new Set(indices).size).toBe(indices.length)
 	})
 
+	it('stacks lifted siblings by their old index, not by the order the content lists them', () => {
+		const frame = createShapeId('frame')
+		const unknown = createShapeId('unknown')
+		const below = createShapeId('below')
+		const above = createShapeId('above')
+		editor.createShapes([
+			{ id: frame, type: 'frame', x: 0, y: 0, props: { w: 500, h: 500 } },
+			{ id: unknown, type: 'frame', x: 100, y: 100, parentId: frame, props: { w: 200, h: 200 } },
+			{ id: below, type: 'geo', x: 5, y: 5, parentId: unknown, props: { w: 50, h: 50 } },
+			{ id: above, type: 'geo', x: 10, y: 10, parentId: unknown, props: { w: 50, h: 50 } },
+		])
+		const content = contentWithUnsupported([frame], new Map([[unknown, 'animation-camera']]))
+		// clipboard content is arbitrary json: nothing says its shapes arrive in z-order
+		content.shapes.reverse()
+
+		editor.putContentOntoCurrentPage(content, { preserveIds: true, preservePosition: true })
+
+		expect(editor.getSortedChildIdsForParent(frame)).toEqual([below, above])
+	})
+
+	it('stacks siblings lifted to the page by their old index too', () => {
+		const unknown = createShapeId('unknown')
+		const below = createShapeId('below')
+		const above = createShapeId('above')
+		editor.createShapes([
+			{ id: unknown, type: 'frame', x: 100, y: 100, props: { w: 200, h: 200 } },
+			{ id: below, type: 'geo', x: 5, y: 5, parentId: unknown, props: { w: 50, h: 50 } },
+			{ id: above, type: 'geo', x: 10, y: 10, parentId: unknown, props: { w: 50, h: 50 } },
+		])
+		const content = contentWithUnsupported([unknown], new Map([[unknown, 'animation-camera']]))
+		content.shapes.reverse()
+
+		editor.putContentOntoCurrentPage(content, { preserveIds: true, preservePosition: true })
+
+		// these land on the page, where root shapes are given fresh indices in array order
+		expect(editor.getSortedChildIdsForParent(editor.getCurrentPageId())).toEqual([below, above])
+	})
+
 	it('does not hang when the dropped shapes form a parent cycle', () => {
 		// clipboard content is arbitrary json — nothing upstream rejects a cyclic hierarchy
 		const outer = createShapeId('outer')
