@@ -98,8 +98,10 @@ export function parseCssStyles(styles: string[] | undefined): ParsedCssOverrides
 	if (strokeWidth) {
 		const pixels = parseFloat(strokeWidth)
 		if (Number.isFinite(pixels)) {
-			if (pixels <= 1) result.sizeOverride = 's'
-			else if (pixels <= 2) result.sizeOverride = 'm'
+			// Mermaid's unstyled edge is 1px, drawn at 'm'. A lower cut-off would draw
+			// `stroke-width:1px` thinner than no style at all.
+			if (pixels < 1) result.sizeOverride = 's'
+			else if (pixels < 2) result.sizeOverride = 'm'
 			else result.sizeOverride = 'l'
 		}
 	}
