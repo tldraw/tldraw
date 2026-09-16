@@ -391,16 +391,16 @@ function computeActorLayouts(
 		const xCenters = svgCenters.map((c) => (c - svgCenters[0]) * scale)
 		const totalSpan = xCenters.length > 1 ? xCenters[xCenters.length - 1] : 0
 
-		const topRowBottom = Math.max(...top.map((r) => r.y + r.h))
-		const bottomRowTop = Math.min(...bottom.map((r) => r.y))
-		const yStretch = Math.max(0, MIN_VERTICAL_GAP - (bottomRowTop - topRowBottom))
+		// A created participant's top box and a destroyed one's bottom box sit mid-diagram, so
+		// neither marks a row edge. Measuring the gap from one reports the diagram as far shorter
+		// than it is, inflating the stretch below and leaving the whole diagram too tall.
+		const headerBottom = Math.min(...top.map((r) => r.y + r.h))
+		const footerTop = Math.max(...bottom.map((r) => r.y))
+		const yStretch = Math.max(0, MIN_VERTICAL_GAP - (footerTop - headerBottom))
 		const topMinY = Math.min(...top.map((r) => r.y))
 		const bottomMaxY = Math.max(...bottom.map((r) => r.y + r.h))
 		const originY = -(bottomMaxY + yStretch + topMinY) / 2
-		// The stretch pushes the footer down, so spread it over the rows between the header and the
-		// footer. A created or destroyed participant's box sits mid-diagram, so it can't mark either.
-		const headerBottom = Math.min(...top.map((r) => r.y + r.h))
-		const footerTop = Math.max(...bottom.map((r) => r.y))
+		// The stretch pushes the footer down, so spread it over the rows between header and footer.
 		const toLayoutY = (svgY: number) =>
 			originY +
 			svgY +
@@ -413,10 +413,12 @@ function computeActorLayouts(
 			const h = topRect.h + ACTOR_PADDING_HEIGHT
 			return {
 				x: xCenters[i] - totalSpan / 2 - w / 2,
-				y: originY + topRect.y,
+				// Through `toLayoutY` so a created or destroyed participant's mid-diagram box takes
+				// the same share of the stretch as the row it sits on, rather than all of it or none.
+				y: toLayoutY(topRect.y),
 				w,
 				h,
-				bottomY: originY + bottom[i].y + yStretch,
+				bottomY: toLayoutY(bottom[i].y),
 			}
 		})
 		return { actorLayouts, toLayoutY }
