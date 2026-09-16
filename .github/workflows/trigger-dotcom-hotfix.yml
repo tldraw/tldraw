@@ -1,11 +1,19 @@
 name: Trigger dotcom hotfix
 
+# pull_request_target rather than push/pull_request, for the same reason as
+# trigger-sdk-hotfix.yml: release-notes PRs squash-merge with `[skip ci]` in the title, which
+# suppresses the push-to-main run entirely, and the `labeled` event fires before the merge so the
+# `merged == true` gate rejects it. Neither path ever reached the script. GitHub's skip-ci markers
+# do not apply to pull_request_target. `closed` replaces the old push trigger (which ran on every
+# merge to main just to check labels), and `labeled` allows re-triggering by re-adding the label to
+# an already-merged PR. Secrets exposure is safe here: the job only runs for merged PRs carrying a
+# maintainer-applied hotfix label, checkout uses the trusted base branch, and the only PR-derived
+# code the script builds is the PR's already-merged commit from main.
 on:
-  push:
+  pull_request_target:
+    types: [closed, labeled]
     branches:
       - main
-  pull_request:
-    types: [labeled]
 
 defaults:
   run:
@@ -23,10 +31,11 @@ jobs:
     concurrency: dotcom-hotfix
     environment: npm deploy
     if: |
-      github.event_name == 'push' ||
-      (github.event_name == 'pull_request' && 
-       github.event.pull_request.merged == true && 
-       github.event.label.name == 'dotcom-hotfix-please')
+      github.event.pull_request.merged == true &&
+      ((github.event.action == 'closed' &&
+        contains(github.event.pull_request.labels.*.name, 'dotcom-hotfix-please')) ||
+       (github.event.action == 'labeled' &&
+        github.event.label.name == 'dotcom-hotfix-please'))
 
     steps:
       - name: Generate a token
