@@ -35,7 +35,9 @@ interface KnownProblem {
 }
 
 // Problems that exist today. An entry that stops being found fails the check too, so the list
-// shrinks as they are fixed.
+// shrinks as they are fixed. Like the e2e snapshots, it matches chromium on Linux, where CI runs:
+// text metrics differ by a pixel elsewhere, so a local run on macOS can disagree on an entry that
+// is a pixel from colliding.
 const KNOWN_PROBLEMS: KnownProblem[] = [
 	{
 		reason: 'Sequence self-message labels are centered on their loop, over the lifeline',
@@ -90,17 +92,12 @@ const KNOWN_PROBLEMS: KnownProblem[] = [
 	},
 	{
 		reason: 'A note in an `option` section is drawn over the section title',
-		findings: [overlap('sequence', 24, '[Payment failed]', 'Stop flow before inventory mutation')],
+		findings: [overlap('sequence', 24, 'Stop flow before inventory mutation', '[Payment failed]')],
 	},
 	{
 		reason:
 			"A section title's box is taller than its text, so a frame nested right under it starts inside the box",
 		findings: [overlap('sequence', 22, 'opt [New device detected]', '[Optional alert]')],
-	},
-	{
-		reason:
-			"A message on a frame's last row wraps where mermaid's stays on one line, and the second line leaves the frame",
-		findings: [overlap('sequence', 24, '23  Show unavailable message', 'alt [Product available]')],
 	},
 	{
 		// Not a conversion bug: inside a composite state, mermaid ignores a `<<fork>>` or `<<join>>`
