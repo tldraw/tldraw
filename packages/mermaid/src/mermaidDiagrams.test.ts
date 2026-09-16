@@ -8,7 +8,7 @@ import {
 	defaultMermaidNodeRenderSpec,
 	resolveMermaidNodeRender,
 } from './defaultMermaidNodeRenderSpec'
-import { flowchartToBlueprint } from './flowchartDiagram'
+import { flowchartToBlueprint, parseFlowchartLayout } from './flowchartDiagram'
 import {
 	MERMAID_MINDMAP_NODE_TYPE,
 	mindmapToBlueprint,
@@ -133,6 +133,88 @@ function expectResolvedRender(
 // ---------------------------------------------------------------------------
 
 describe('flowchartToBlueprint', () => {
+	it('gives each edge between the same two nodes the path mermaid drew for it', () => {
+		// Mermaid fans parallel edges out and draws them in source order. Their ends all sit on the
+		// same two nodes, so matching by proximity gave the first edge the middle path, whose ends lie
+		// nearest both centers, and pushed the rest along (#10794).
+		const layout = diagramLayout(
+			[node('A', 20, 20, 40, 40), node('B', 220, 20, 40, 40)],
+			[],
+			[
+				edge('A', 'B', [
+					[40, 2],
+					[120, -30],
+					[200, 2],
+				]),
+				edge('A', 'B', [
+					[40, 20],
+					[120, 20],
+					[200, 20],
+				]),
+				edge('A', 'B', [
+					[40, 38],
+					[120, 70],
+					[200, 38],
+				]),
+			]
+		)
+		const vertices = new Map([vertex('A'), vertex('B')])
+
+		const bp = flowchartToBlueprint(layout, vertices, [
+			flowEdge('A', 'B', { text: 'one' }),
+			flowEdge('A', 'B', { text: 'two' }),
+			flowEdge('A', 'B', { text: 'three' }),
+		])
+
+		const bends = bp.edges.map((e) => Math.round(e.bend ?? 0))
+		expect(bends[1]).toBeCloseTo(0)
+		expect(bends[0]).toBeLessThan(0)
+		expect(bends[2]).toBeCloseTo(-bends[0])
+	})
+
+	it('names each path after the nodes it joins, in source order, in the installed mermaid', async () => {
+		// What the test above relies on to claim the right path. A mermaid upgrade that renames paths
+		// or reorders them leaves that test green while every parallel edge takes someone else's curve
+		// again, because the ids stop matching and claiming falls back to proximity.
+		const svgPrototype = SVGElement.prototype as any
+		// jsdom lays out no text; mermaid only needs some size for it to render.
+		svgPrototype.getBBox = function () {
+			return { x: 0, y: 0, width: (this.textContent ?? '').length * 8, height: 16 }
+		}
+		svgPrototype.getComputedTextLength = function () {
+			return (this.textContent ?? '').length * 8
+		}
+		try {
+			const mermaid = (await import('mermaid')).default
+			mermaid.initialize({ startOnLoad: false })
+			const source = `flowchart LR
+    A -->|one| B
+    A -->|two| B
+    A -->|three| B`
+			// The id shape a conversion renders with: mermaid prefixes every element id with it, and
+			// the parsers only strip a `mermaid-<n>-` prefix.
+			const { svg } = await mermaid.render('mermaid-0', source)
+			const container = document.createElement('div')
+			container.innerHTML = svg
+
+			const layout = parseFlowchartLayout(container.querySelector('svg')!)
+
+			expect(layout.edges.map((e) => [e.start, e.end])).toEqual([
+				['A', 'B'],
+				['A', 'B'],
+				['A', 'B'],
+			])
+			// Each path's label names the edge it was drawn for, so labels in path order are source order.
+			const labelledInPathOrder = layout.edges.map(
+				(e) => container.querySelector(`.edgeLabel .label[data-id="${e.id}"]`)?.textContent
+			)
+			expect(labelledInPathOrder).toEqual(['one', 'two', 'three'])
+		} finally {
+			delete svgPrototype.getBBox
+			delete svgPrototype.getComputedTextLength
+		}
+	})
+
 	it('maps nodes with correct id, label, default geo render spec, and positions', () => {
 		const layout = diagramLayout([node('A', 100, 50, 80, 40), node('B', 100, 150, 60, 60)])
 		const vertices = new Map([

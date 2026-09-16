@@ -63,6 +63,69 @@ describe('layout parsing tolerates mermaid >= 11.15 prefixed ids', () => {
 		expect(layout.edges).toHaveLength(1)
 	})
 
+	it("splits an edge id at the underscore that names two of the diagram's nodes", () => {
+		// `L_my_node_other_node_0` could start at `my` or `my_node`; only the nodes say which. Getting
+		// it wrong leaves the edge without usable ids, and parallel edges back on proximity (#10794).
+		const svg = svgFromString(`
+			<svg id="mermaid-0">
+				${nodeMarkup('mermaid-0-flowchart-my_node-0')}
+				${nodeMarkup('mermaid-0-flowchart-other_node-1')}
+				${edgeMarkup('L_my_node_other_node_0', [
+					[0, 0],
+					[100, 0],
+				])}
+			</svg>
+		`)
+		const layout = parseFlowchartLayout(svg)
+		expect(layout.edges.map((e) => [e.start, e.end])).toEqual([['my_node', 'other_node']])
+	})
+
+	it('splits an ambiguous edge id by which pair of nodes the path runs between', () => {
+		// With all four of these nodes, `L_a_b_c_0` could join `a` to `b_c` or `a_b` to `c`. Picking
+		// whichever comes first hands the path to the wrong edge, the mix-up this matching exists to
+		// avoid (#10794).
+		const positioned = (domId: string, x: number, y: number) =>
+			`<g class="node" id="${domId}" transform="translate(${x},${y})"><rect width="80" height="40" /></g>`
+		const svg = svgFromString(`
+			<svg id="mermaid-0">
+				${positioned('mermaid-0-flowchart-a-0', 0, 0)}
+				${positioned('mermaid-0-flowchart-b_c-1', 300, 0)}
+				${positioned('mermaid-0-flowchart-a_b-2', 0, 200)}
+				${positioned('mermaid-0-flowchart-c-3', 300, 200)}
+				${edgeMarkup('L_a_b_c_0', [
+					[20, 200],
+					[280, 200],
+				])}
+			</svg>
+		`)
+		const layout = parseFlowchartLayout(svg)
+		expect(layout.edges.map((e) => [e.start, e.end])).toEqual([['a_b', 'c']])
+	})
+
+	it('splits an edge id onto a subgraph, which an edge can end on too', () => {
+		// Mermaid links subgraphs as well as nodes (`L_A_grp_0`), so a split naming one is as real as a
+		// split naming two nodes. Skipping them hands the path to whichever pair of nodes also splits
+		// the id, which is the mix-up this matching exists to avoid (#10794).
+		const positioned = (domId: string, x: number, y: number) =>
+			`<g class="node" id="${domId}" transform="translate(${x},${y})"><rect width="80" height="40" /></g>`
+		const svg = svgFromString(`
+			<svg id="mermaid-0">
+				<g class="cluster" id="mermaid-0-a_b" transform="translate(0,0)">
+					<rect x="0" y="180" width="80" height="40" />
+				</g>
+				${positioned('mermaid-0-flowchart-a-0', 0, 0)}
+				${positioned('mermaid-0-flowchart-b_c-1', 300, 0)}
+				${positioned('mermaid-0-flowchart-c-2', 300, 200)}
+				${edgeMarkup('L_a_b_c_0', [
+					[40, 200],
+					[280, 200],
+				])}
+			</svg>
+		`)
+		const layout = parseFlowchartLayout(svg)
+		expect(layout.edges.map((e) => [e.start, e.end])).toEqual([['a_b', 'c']])
+	})
+
 	it('still parses bare ids from older mermaid versions', () => {
 		const svg = svgFromString(`
 			<svg>
