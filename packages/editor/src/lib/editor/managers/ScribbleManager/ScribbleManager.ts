@@ -402,9 +402,7 @@ export class ScribbleManager {
 
 	// ==================== PRIVATE HELPERS ====================
 
-	// Called on every pointer move and laser tick, so keep one pending timer per
-	// session and re-arm it only when it fires early. Otherwise every call leaves a
-	// timer id behind in editor.timers for the editor's lifetime.
+	// Called every laser frame. A new timer per call would leak its id in editor.timers.
 	private resetIdleTimeout(session: Session): void {
 		session.idleDeadline = Date.now() + session.options.idleTimeoutMs
 		if (session.idleTimeoutHandle === undefined) {
@@ -461,18 +459,11 @@ export class ScribbleManager {
 			}
 		}
 
-		// Remove empty items in individual fade mode. A starting scribble that has
-		// not received its first point yet is also empty but must stay, otherwise
-		// the session is dropped before the tool gets to add a point. Empty items in
-		// any other state (completed or stopped before drawing) would keep the
-		// session alive forever, since the tick handlers never touch them again.
+		// Keep starting scribbles with no point yet, or addPoint can't find them (#7681).
 		if (session.options.fadeMode === 'individual') {
-			for (let i = session.items.length - 1; i >= 0; i--) {
-				const { scribble } = session.items[i]
-				if (scribble.points.length === 0 && scribble.state !== 'starting') {
-					session.items.splice(i, 1)
-				}
-			}
+			session.items = session.items.filter(
+				({ scribble }) => scribble.points.length > 0 || scribble.state === 'starting'
+			)
 		}
 	}
 

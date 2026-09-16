@@ -361,14 +361,18 @@ describe('ScribbleManager', () => {
 				expect(editor.scribbles.isSessionActive(sessionId)).toBe(false)
 			})
 
-			it('keeps a scribble that has not received its first point yet', () => {
-				// An empty starting scribble used to be spliced on the first tick, dropping
-				// the session before the tool could add a point
+			it('draws a scribble whose first point arrives frames after it was added', () => {
 				const item = editor.scribbles.addScribble({})
+				for (let i = 0; i < 10; i++) {
+					editor.scribbles.tick(16)
+				}
 
+				editor.scribbles.addPoint(item.id, 10, 10)
 				editor.scribbles.tick(16)
 
-				expect(() => editor.scribbles.addPoint(item.id, 0, 0)).not.toThrow()
+				expect(editor.getInstanceState().scribbles).toMatchObject([
+					{ id: item.id, state: 'starting', points: [{ x: 10, y: 10, z: 0.5 }] },
+				])
 			})
 
 			it('removes a scribble that is completed before its first point', () => {
