@@ -100,30 +100,31 @@ export function startCapturingParents(child: Child) {
 export function stopCapturingParents() {
 	const frame = inst.stack!
 	inst.stack = frame.below
+	const { child, offset, maybeRemoved } = frame
 
-	if (frame.offset < frame.child.parents.length) {
-		for (let i = frame.offset; i < frame.child.parents.length; i++) {
-			const maybeRemovedParent = frame.child.parents[i]
-			if (!frame.child.parentSet.has(maybeRemovedParent)) {
-				detach(maybeRemovedParent, frame.child)
+	if (offset < child.parents.length) {
+		for (let i = offset; i < child.parents.length; i++) {
+			const maybeRemovedParent = child.parents[i]
+			if (!child.parentSet.has(maybeRemovedParent)) {
+				detach(maybeRemovedParent, child)
 			}
 		}
 
-		frame.child.parents.length = frame.offset
-		frame.child.parentEpochs.length = frame.offset
+		child.parents.length = offset
+		child.parentEpochs.length = offset
 	}
 
-	if (frame.maybeRemoved) {
-		for (let i = 0; i < frame.maybeRemoved.length; i++) {
-			const maybeRemovedParent = frame.maybeRemoved[i]
-			if (!frame.child.parentSet.has(maybeRemovedParent)) {
-				detach(maybeRemovedParent, frame.child)
+	if (maybeRemoved) {
+		for (let i = 0; i < maybeRemoved.length; i++) {
+			const maybeRemovedParent = maybeRemoved[i]
+			if (!child.parentSet.has(maybeRemovedParent)) {
+				detach(maybeRemovedParent, child)
 			}
 		}
 	}
 
-	if (frame.child.__debug_ancestor_epochs__) {
-		captureAncestorEpochs(frame.child, frame.child.__debug_ancestor_epochs__)
+	if (child.__debug_ancestor_epochs__) {
+		captureAncestorEpochs(child, child.__debug_ancestor_epochs__)
 	}
 }
 
@@ -148,36 +149,38 @@ export function stopCapturingParents() {
  * @internal
  */
 export function maybeCaptureParent(p: Signal<any, any>) {
-	if (inst.stack) {
-		// `add` returns false when the parent was already captured this run. In array mode both
-		// `has` and `add` scan with indexOf, so going straight to `add` halves the scans per
-		// captured parent.
-		if (!inst.stack.child.parentSet.add(p)) {
-			return
-		}
+	const stack = inst.stack
+	if (!stack) return
+	const { child } = stack
 
-		if (inst.stack.child.isActivelyListening) {
-			attach(p, inst.stack.child)
-		}
+	// `add` returns false when the parent was already captured this run. In array mode both
+	// `has` and `add` scan with indexOf, so going straight to `add` halves the scans per
+	// captured parent.
+	if (!child.parentSet.add(p)) {
+		return
+	}
 
-		// Parents are recorded in deref order. If the slot at this offset held a different parent
-		// last run, that parent may have moved later in the order or been dropped; only
-		// stopCapturingParents can tell, so remember it for then.
-		if (inst.stack.offset < inst.stack.child.parents.length) {
-			const maybeRemovedParent = inst.stack.child.parents[inst.stack.offset]
-			if (maybeRemovedParent !== p) {
-				if (!inst.stack.maybeRemoved) {
-					inst.stack.maybeRemoved = [maybeRemovedParent]
-				} else {
-					inst.stack.maybeRemoved.push(maybeRemovedParent)
-				}
+	if (child.isActivelyListening) {
+		attach(p, child)
+	}
+
+	// Parents are recorded in deref order. If the slot at this offset held a different parent
+	// last run, that parent may have moved later in the order or been dropped; only
+	// stopCapturingParents can tell, so remember it for then.
+	if (stack.offset < child.parents.length) {
+		const maybeRemovedParent = child.parents[stack.offset]
+		if (maybeRemovedParent !== p) {
+			if (!stack.maybeRemoved) {
+				stack.maybeRemoved = [maybeRemovedParent]
+			} else {
+				stack.maybeRemoved.push(maybeRemovedParent)
 			}
 		}
-
-		inst.stack.child.parents[inst.stack.offset] = p
-		inst.stack.child.parentEpochs[inst.stack.offset] = p.lastChangedEpoch
-		inst.stack.offset++
 	}
+
+	child.parents[stack.offset] = p
+	child.parentEpochs[stack.offset] = p.lastChangedEpoch
+	stack.offset++
 }
 
 /**
@@ -212,13 +215,11 @@ export function whyAmIRunning() {
 function captureAncestorEpochs(child: Child, ancestorEpochs: Map<Signal<any>, number>) {
 	for (let i = 0; i < child.parents.length; i++) {
 		const parent = child.parents[i]
-		const epoch = child.parentEpochs[i]
-		ancestorEpochs.set(parent, epoch)
+		ancestorEpochs.set(parent, child.parentEpochs[i])
 		if (isComputed(parent)) {
 			captureAncestorEpochs(parent as any, ancestorEpochs)
 		}
 	}
-	return ancestorEpochs
 }
 
 type ChangeTree = { [signalName: string]: ChangeTree } | null
@@ -232,9 +233,7 @@ function collectChangedAncestors(
 		if (!ancestorEpochs.has(parent)) {
 			continue
 		}
-		const prevEpoch = ancestorEpochs.get(parent)
-		const currentEpoch = parent.lastChangedEpoch
-		if (currentEpoch !== prevEpoch) {
+		if (parent.lastChangedEpoch !== ancestorEpochs.get(parent)) {
 			if (isComputed(parent)) {
 				changeTree[parent.name] = collectChangedAncestors(parent as any, ancestorEpochs)
 			} else {

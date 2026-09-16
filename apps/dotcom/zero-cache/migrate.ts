@@ -5,13 +5,9 @@ import { Kysely, PostgresDialect, sql } from 'kysely'
 import pg from 'pg'
 import { hasTransactionBlock } from './migrationSql'
 
-const postgresConnectionString: string =
+const postgresConnectionString =
 	process.env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING ||
 	'postgresql://user:password@127.0.0.1:6543/postgres'
-
-if (!postgresConnectionString) {
-	throw new Error('Missing BOTCOM_POSTGRES_POOLED_CONNECTION_STRING env var')
-}
 console.log('Using connection string:', postgresConnectionString)
 
 const migrationsPath = `./migrations`
@@ -91,12 +87,12 @@ async function waitForPostgres() {
 	await sql.raw(init).execute(db)
 }
 
-async function migrate(summary: string[], dryRun: boolean) {
+async function migrate(summary: string[]) {
 	await db.transaction().execute(async (tx) => {
 		const appliedMigrations = await sql<{
 			filename: string
 		}>`SELECT filename FROM migrations.applied_migrations`.execute(tx)
-		const migrations = readdirSync(`./migrations`).sort()
+		const migrations = readdirSync(migrationsPath).sort()
 		if (migrations.length === 0) {
 			throw new Error('No migrations found')
 		}
@@ -133,7 +129,7 @@ async function migrate(summary: string[], dryRun: boolean) {
 
 		let appliedNewMigration = false
 		for (const migration of migrations) {
-			if (appliedMigrations.rows.some((m: any) => m.filename === migration)) {
+			if (appliedMigrations.rows.some((m) => m.filename === migration)) {
 				summary.push(`🏃 ${migration} already applied`)
 				continue
 			}
@@ -178,7 +174,7 @@ async function run() {
 
 	const summary: string[] = []
 	try {
-		await migrate(summary, dryRun)
+		await migrate(summary)
 		console.log(summary.join('\n'))
 		// need to do this to close the db connection
 		if (shouldSignalSuccess) {

@@ -33,6 +33,12 @@ export function getCommentRecord(editor: Editor, id: string): TLCommentRecord | 
 	return undefined
 }
 
+/** Read one comment thread by id, or `undefined` if the id isn't a present thread. @internal */
+export function getCommentThread(editor: Editor, id: string): TLCommentThread | undefined {
+	const record = getCommentRecord(editor, id)
+	return record?.typeName === 'comment-thread' ? record : undefined
+}
+
 /**
  * Every comment thread in the store, **including soft-deleted and emptied ones** awaiting the
  * server's prune, which nothing renders. For the set the UI shows, use {@link getLiveCommentThreads}.
@@ -41,8 +47,7 @@ export function getCommentRecord(editor: Editor, id: string): TLCommentRecord | 
  * @public
  */
 export function getCommentThreads(editor: Editor): TLCommentThread[] {
-	const typeName = 'comment-thread' as TLRecord['typeName']
-	return editor.store.query.records(typeName).get() as unknown as TLCommentThread[]
+	return queryCommentRecords<TLCommentThread>(editor, 'comment-thread')
 }
 
 /**
@@ -53,8 +58,7 @@ export function getCommentThreads(editor: Editor): TLCommentThread[] {
  * @public
  */
 export function getComments(editor: Editor): TLComment[] {
-	const typeName = 'comment' as TLRecord['typeName']
-	return editor.store.query.records(typeName).get() as unknown as TLComment[]
+	return queryCommentRecords<TLComment>(editor, 'comment')
 }
 
 /**
@@ -85,6 +89,12 @@ export function getLiveCommentThreads(editor: Editor): TLCommentThread[] {
 
 /** All comment reactions currently in the store (non-reactive; wrap in `useValue` to react). @public */
 export function getCommentReactions(editor: Editor): TLCommentReaction[] {
-	const typeName = 'comment-reaction' as TLRecord['typeName']
-	return editor.store.query.records(typeName).get() as unknown as TLCommentReaction[]
+	return queryCommentRecords<TLCommentReaction>(editor, 'comment-reaction')
+}
+
+function queryCommentRecords<T extends TLCommentRecord>(
+	editor: Editor,
+	typeName: T['typeName']
+): T[] {
+	return editor.store.query.records(typeName as TLRecord['typeName']).get() as unknown as T[]
 }

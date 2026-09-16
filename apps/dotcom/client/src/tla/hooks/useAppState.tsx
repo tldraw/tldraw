@@ -28,12 +28,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	const [error, setError] = useState<unknown>(null)
 	const auth = useAuth()
 	const { user, isLoaded } = useClerkUser()
-
-	useEffect(() => {
-		if (!auth.isSignedIn || !user || !isLoaded) {
-			return
-		}
-	})
 	const trackEvent = useTldrawAppUiEvents()
 
 	if (!auth.isSignedIn || !user || !isLoaded) {

@@ -22,6 +22,7 @@ const packagesOurTypesCanDependOn = [
 // We pin to the workspace's resolved versions to avoid installing broken releases.
 const pinnedPackages = [
 	'@tiptap/core',
+	'@tiptap/extension-list',
 	'@tiptap/extension-mention',
 	'@tiptap/pm',
 	'@tiptap/react',

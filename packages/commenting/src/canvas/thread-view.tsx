@@ -53,6 +53,68 @@ import { openThreadId } from './state'
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
+/** The "⋯" dropdown used for both a comment's and the thread's actions. */
+function MoreOptionsMenu({
+	id,
+	moreFor,
+	children,
+}: {
+	id: string
+	/** The comment whose ⋯ button this is, so `startEdit` can find it again to return focus. */
+	moreFor?: string
+	children: ReactNode
+}) {
+	const msg = useTranslation()
+	return (
+		<TldrawUiDropdownMenuRoot id={id}>
+			<TldrawUiDropdownMenuTrigger>
+				<TldrawUiButton
+					type="icon"
+					tooltip={msg('comments.more-options')}
+					title={msg('comments.more-options')}
+					className="tlui-cmt-thread__action"
+					data-cmt-more-for={moreFor}
+				>
+					<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
+				</TldrawUiButton>
+			</TldrawUiDropdownMenuTrigger>
+			<TldrawUiDropdownMenuContent
+				className="tlui-cmt-menu"
+				side="bottom"
+				align="start"
+				alignOffset={0}
+				sideOffset={4}
+			>
+				<TldrawUiDropdownMenuGroup>{children}</TldrawUiDropdownMenuGroup>
+			</TldrawUiDropdownMenuContent>
+		</TldrawUiDropdownMenuRoot>
+	)
+}
+
+function MenuItem({
+	label,
+	danger,
+	noClose,
+	onClick,
+}: {
+	label: string
+	danger?: boolean
+	noClose?: boolean
+	onClick(): void
+}) {
+	return (
+		<TldrawUiDropdownMenuItem noClose={noClose}>
+			<button
+				type="button"
+				className={danger ? 'tlui-cmt-menu-item tlui-cmt-menu-item--danger' : 'tlui-cmt-menu-item'}
+				onClick={onClick}
+			>
+				<span>{label}</span>
+			</button>
+		</TldrawUiDropdownMenuItem>
+	)
+}
+
 /**
  * A name-only view of an author resolver, for the mention/rich-text paths. Stable identity, so
  * `CommentBody`'s memoized render doesn't recompute on every render of its host.
@@ -352,9 +414,7 @@ export const ThreadView = memo(function ThreadView({
 	// No `currentUserId` check: unlike a resolve, a delete stamps nothing on the record, so who may
 	// make it is `canModifyComment`'s call alone (which withholds it from an unidentified viewer by
 	// default).
-	const removeThread = () => {
-		deleteThread(editor, thread)
-	}
+	const removeThread = () => deleteThread(editor, thread)
 
 	const ThreadActions = options.components.ThreadActions
 	// The host's URL for this thread. Its presence is what puts "copy link" in the header menu.
@@ -428,55 +488,21 @@ export const ThreadView = memo(function ThreadView({
 					canComment && (
 						<>
 							{(permissions?.edit || permissions?.delete) && (
-								<TldrawUiDropdownMenuRoot id={`comment-actions-${comment.id}`}>
-									<TldrawUiDropdownMenuTrigger>
-										<TldrawUiButton
-											type="icon"
-											tooltip={msg('comments.more-options')}
-											title={msg('comments.more-options')}
-											className="tlui-cmt-thread__action"
-											data-cmt-more-for={comment.id}
-										>
-											<TldrawUiIcon
-												icon="dots-vertical"
-												label={msg('comments.more-options')}
-												small
-											/>
-										</TldrawUiButton>
-									</TldrawUiDropdownMenuTrigger>
-									<TldrawUiDropdownMenuContent
-										className="tlui-cmt-menu"
-										side="bottom"
-										align="start"
-										alignOffset={0}
-										sideOffset={4}
-									>
-										<TldrawUiDropdownMenuGroup>
-											{permissions?.edit && (
-												<TldrawUiDropdownMenuItem>
-													<button
-														type="button"
-														className="tlui-cmt-menu-item"
-														onClick={() => startEdit(comment, { fromMoreMenu: true })}
-													>
-														<span>{msg('comments.edit')}</span>
-													</button>
-												</TldrawUiDropdownMenuItem>
-											)}
-											{permissions?.delete && (
-												<TldrawUiDropdownMenuItem>
-													<button
-														type="button"
-														className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
-														onClick={() => deleteComment(editor, comment)}
-													>
-														<span>{msg('action.delete')}</span>
-													</button>
-												</TldrawUiDropdownMenuItem>
-											)}
-										</TldrawUiDropdownMenuGroup>
-									</TldrawUiDropdownMenuContent>
-								</TldrawUiDropdownMenuRoot>
+								<MoreOptionsMenu id={`comment-actions-${comment.id}`} moreFor={comment.id}>
+									{permissions?.edit && (
+										<MenuItem
+											label={msg('comments.edit')}
+											onClick={() => startEdit(comment, { fromMoreMenu: true })}
+										/>
+									)}
+									{permissions?.delete && (
+										<MenuItem
+											label={msg('action.delete')}
+											danger
+											onClick={() => deleteComment(editor, comment)}
+										/>
+									)}
+								</MoreOptionsMenu>
 							)}
 							{/* Last so react is always the rightmost pill. */}
 							<CommentReactionPicker comment={comment} currentUserId={currentUserId} />
@@ -495,49 +521,21 @@ export const ThreadView = memo(function ThreadView({
 			{/* Host verbs — assign, link a ticket — sit ahead of the built-in actions. */}
 			{ThreadActions && <ThreadActions thread={thread} comments={comments} />}
 			{(threadHref !== undefined || canDeleteThread) && (
-				<TldrawUiDropdownMenuRoot id={`comment-thread-actions-${thread.id}`}>
-					<TldrawUiDropdownMenuTrigger>
-						<TldrawUiButton
-							type="icon"
-							tooltip={msg('comments.more-options')}
-							title={msg('comments.more-options')}
-							className="tlui-cmt-thread__action"
-						>
-							<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
-						</TldrawUiButton>
-					</TldrawUiDropdownMenuTrigger>
-					<TldrawUiDropdownMenuContent
-						className="tlui-cmt-menu"
-						side="bottom"
-						align="start"
-						alignOffset={0}
-						sideOffset={4}
-					>
-						<TldrawUiDropdownMenuGroup>
-							{/* A link is a read affordance: offered to anyone who can see the thread,
-							    including a viewer who can't comment. `noClose` keeps the menu up so the
-							    item can confirm the copy in place. */}
-							{threadHref !== undefined && (
-								<TldrawUiDropdownMenuItem noClose>
-									<button type="button" className="tlui-cmt-menu-item" onClick={copyThreadLink}>
-										<span>{msg(linkCopied ? 'comments.link-copied' : 'comments.copy-link')}</span>
-									</button>
-								</TldrawUiDropdownMenuItem>
-							)}
-							{canDeleteThread && (
-								<TldrawUiDropdownMenuItem>
-									<button
-										type="button"
-										className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
-										onClick={removeThread}
-									>
-										<span>{msg('comments.delete')}</span>
-									</button>
-								</TldrawUiDropdownMenuItem>
-							)}
-						</TldrawUiDropdownMenuGroup>
-					</TldrawUiDropdownMenuContent>
-				</TldrawUiDropdownMenuRoot>
+				<MoreOptionsMenu id={`comment-thread-actions-${thread.id}`}>
+					{/* A link is a read affordance: offered to anyone who can see the thread,
+					    including a viewer who can't comment. `noClose` keeps the menu up so the
+					    item can confirm the copy in place. */}
+					{threadHref !== undefined && (
+						<MenuItem
+							label={msg(linkCopied ? 'comments.link-copied' : 'comments.copy-link')}
+							noClose
+							onClick={copyThreadLink}
+						/>
+					)}
+					{canDeleteThread && (
+						<MenuItem label={msg('comments.delete')} danger onClick={removeThread} />
+					)}
+				</MoreOptionsMenu>
 			)}
 			{canComment && currentUserId && (
 				<TldrawUiButton

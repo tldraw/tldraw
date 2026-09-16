@@ -70,6 +70,16 @@ jobs:
           yarn build-i18n 
           git diff --exit-code --quiet ./apps/dotcom/client/public/tla/locales/ ./apps/dotcom/client/public/tla/locales-compiled/ || (echo "Please run yarn build-i18n and commit the changes" && exit 1)
 
+      # vitest's fsModuleCache (~54MB gzipped). Entries are content-hashed, so a stale
+      # restore is safe - unmatched modules are just re-transformed. Keyed on yarn.lock so
+      # one entry is reused across commits instead of saving a new copy on every run.
+      - name: Restore vitest module cache
+        uses: actions/cache@v5
+        with:
+          path: node_modules/.vitest-cache
+          key: vitest-cache-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: vitest-cache-${{ runner.os }}-
+
       - name: Test
         run: yarn test-ci
 

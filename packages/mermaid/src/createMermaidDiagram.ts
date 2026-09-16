@@ -70,6 +70,11 @@ export async function createMermaidDiagram(
 		mindmap: { ...MERMAID_CONFIG.mindmap, ...options.mermaidConfig?.mindmap },
 		sequence: { ...MERMAID_CONFIG.sequence, ...options.mermaidConfig?.sequence },
 		themeVariables: { ...MERMAID_CONFIG.themeVariables, ...options.mermaidConfig?.themeVariables },
+		// A diagram's own `%%{init}%%` or frontmatter config outranks `initialize`, so one that sets
+		// `fontSize` undoes FONT_INFLATE: every box is measured small while tldraw still draws its
+		// wider face, and labels break mid-word. Mermaid strips `secure` keys from in-diagram config
+		// at any depth, and keeps its own defaults alongside the ones listed here.
+		secure: [...(options.mermaidConfig?.secure ?? []), 'fontSize'],
 	})
 
 	const parsedResult = await mermaid.parse(text, { suppressErrors: true })

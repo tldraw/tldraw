@@ -47,7 +47,7 @@ Empty names render as `Frame` so unnamed frames still get a label. The shape's `
 
 Frames clip their children to the frame's rectangle during rendering. A shape that extends past the frame edge is rendered up to the boundary and then cut off. Clipping doesn't change the child's geometry or its own bounds, but hit testing respects the mask: you can't click the clipped-off part of a shape, and [Editor#getShapeMaskedPageBounds](?) returns only the visible portion. Arrows are exempt from clipping so connectors can leave a frame.
 
-The [BaseFrameLikeShapeUtil](?) base class implements clipping via `getClipPath` and the arrow exemption via `shouldClipChild`. If you need clipping for a custom container shape, see the [Frames](/sdk-features/shapes#frames) section in the Shapes guide.
+The [BaseFrameLikeShapeUtil](?) base class implements clipping via `getClipPath` and the arrow exemption via `shouldClipChild`. If you need clipping for a custom container shape, see the [Frames](/sdk-features/shapes#Frames) section in the Shapes guide.
 
 ## Shape properties
 
@@ -139,8 +139,8 @@ Reach for a frame when you want a labeled, bounded region: a slide, a screen, an
 
 ## Related articles
 
-- [Shapes](/sdk-features/shapes#frames) — How to build your own container shape with `BaseFrameLikeShapeUtil`
-- [Default shapes](/sdk-features/default-shapes#frame) — Overview of all built-in shapes
+- [Shapes](/sdk-features/shapes#Frames) — How to build your own container shape with `BaseFrameLikeShapeUtil`
+- [Default shapes](/sdk-features/default-shapes#Frame) — Overview of all built-in shapes
 - [Shape clipping](/sdk-features/shape-clipping) — How custom shapes can clip their children
 - [Image export](/sdk-features/image-export) — Exporting frames and selections as images
 - [Parenting](/sdk-features/parenting) — How shapes are nested inside containers

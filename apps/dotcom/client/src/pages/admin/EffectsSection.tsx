@@ -5,8 +5,9 @@ import {
 	TlaFile,
 } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useState } from 'react'
-import { fetch } from 'tldraw'
+import { fetch, truncateStringWithEllipsis } from 'tldraw'
 import { AdminButton } from './AdminButton'
+import { getResponseError } from './shared'
 import styles from './admin.module.css'
 
 export function EffectsSection() {
@@ -25,12 +26,9 @@ export function EffectsSection() {
 				fetch('/api/app/admin/outbox'),
 				fetch('/api/app/admin/outbox/rows'),
 			])
-			if (!statsRes.ok) {
-				setError(statsRes.statusText + ': ' + (await statsRes.text()))
-				return
-			}
-			if (!rowsRes.ok) {
-				setError(rowsRes.statusText + ': ' + (await rowsRes.text()))
+			const failed = [statsRes, rowsRes].find((res) => !res.ok)
+			if (failed) {
+				setError(await getResponseError(failed))
 				return
 			}
 			const statsData = (await statsRes.json()) as AdminOutboxStatsResponseBody
@@ -48,12 +46,13 @@ export function EffectsSection() {
 		load()
 	}, [load])
 
-	const retryRow = useCallback(
-		async (id: number) => {
+	const runRowAction = useCallback(
+		async (id: number, action: 'retry' | 'delete') => {
+			const label = action === 'retry' ? 'Retry' : 'Delete'
 			setBusyId(id)
 			setError(null)
 			try {
-				const res = await fetch(`/api/app/admin/outbox/${id}/retry`, { method: 'POST' })
+				const res = await fetch(`/api/app/admin/outbox/${id}/${action}`, { method: 'POST' })
 				if (!res.ok) {
 					if (res.status === 404) {
 						// A concurrent drain already consumed the row; refresh to show its current state.
@@ -62,40 +61,12 @@ export function EffectsSection() {
 						return
 					}
 					const text = await res.text().catch(() => '')
-					setError(`Retry failed: ${res.status} ${text}`)
+					setError(`${label} failed: ${res.status} ${text}`)
 					return
 				}
 				await load()
 			} catch (err) {
-				setError(err instanceof Error ? `Retry failed: ${err.message}` : 'Retry failed')
-			} finally {
-				setBusyId(null)
-			}
-		},
-		[load]
-	)
-
-	const deleteRow = useCallback(
-		async (id: number) => {
-			if (!window.confirm(`Delete outbox row ${id}? This cannot be undone.`)) return
-			setBusyId(id)
-			setError(null)
-			try {
-				const res = await fetch(`/api/app/admin/outbox/${id}/delete`, { method: 'POST' })
-				if (!res.ok) {
-					if (res.status === 404) {
-						// A concurrent drain already consumed the row; refresh to show its current state.
-						await load()
-						setError('Row already gone - refreshed')
-						return
-					}
-					const text = await res.text().catch(() => '')
-					setError(`Delete failed: ${res.status} ${text}`)
-					return
-				}
-				await load()
-			} catch (err) {
-				setError(err instanceof Error ? `Delete failed: ${err.message}` : 'Delete failed')
+				setError(err instanceof Error ? `${label} failed: ${err.message}` : `${label} failed`)
 			} finally {
 				setBusyId(null)
 			}
@@ -135,6 +106,7 @@ export function EffectsSection() {
 								<th>Attempts</th>
 								<th>Age</th>
 								<th>Next retry</th>
+								<th>Last error</th>
 								<th>Actions</th>
 							</tr>
 						</thead>
@@ -146,8 +118,12 @@ export function EffectsSection() {
 									expanded={expandedId === row.id}
 									busy={busyId === row.id}
 									onToggle={() => setExpandedId((prev) => (prev === row.id ? null : row.id))}
-									onRetry={() => retryRow(row.id)}
-									onDelete={() => deleteRow(row.id)}
+									onRetry={() => runRowAction(row.id, 'retry')}
+									onDelete={() => {
+										if (!window.confirm(`Delete outbox row ${row.id}? This cannot be undone.`))
+											return
+										runRowAction(row.id, 'delete')
+									}}
 								/>
 							))}
 						</tbody>
@@ -221,6 +197,9 @@ function OutboxRowView({
 				</td>
 				<td>{row.ageSeconds}s</td>
 				<td>{row.nextRetryAt ? new Date(row.nextRetryAt).toLocaleString() : 'n/a'}</td>
+				<td title={row.lastError ?? undefined}>
+					{row.lastError ? truncateStringWithEllipsis(row.lastError, 60) : ''}
+				</td>
 				<td onClick={(e) => e.stopPropagation()}>
 					<AdminButton
 						onClick={onRetry}
@@ -242,7 +221,7 @@ function OutboxRowView({
 			</tr>
 			{expanded && (
 				<tr>
-					<td colSpan={8}>
+					<td colSpan={9}>
 						<div className={styles.outboxDetails}>
 							<div className={styles.outboxDetailsColumn}>
 								<div className={styles.fieldLabel}>Payload</div>

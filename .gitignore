@@ -38,6 +38,9 @@ dist-ssr
 
 coverage
 
+# vitest reports, attachments and blob output
+.vitest
+
 **/*.env
 **/*.tsbuildinfo
 

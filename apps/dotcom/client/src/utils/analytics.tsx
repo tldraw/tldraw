@@ -174,16 +174,13 @@ function configurePosthog(options: AnalyticsOptions) {
 				Object.assign(props, flagProps)
 			}
 
-			const redactedProperties = filterProperties(props)
-			payload.properties = redactedProperties
+			payload.properties = filterProperties(props)
 
 			// $set
-			const redactedSet = filterProperties(payload.$set || {})
-			payload.$set = redactedSet
+			payload.$set = filterProperties(payload.$set || {})
 
 			// $set_once
-			const redactedSetOnce = filterProperties(payload.$set_once || {})
-			payload.$set_once = redactedSetOnce
+			payload.$set_once = filterProperties(payload.$set_once || {})
 
 			return payload
 		},

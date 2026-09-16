@@ -1,7 +1,7 @@
 import { atom, Atom } from '@tldraw/state'
 import { TLRecord } from '@tldraw/tlschema'
 import { assert, warnOnce } from '@tldraw/utils'
-import { chunk } from './chunk'
+import { chunk, MAX_ASSEMBLED_MESSAGE_CHARS } from './chunk'
 import { TLSocketClientSentEvent, TLSocketServerSentEvent } from './protocol'
 import {
 	TLPersistentClientSocket,
@@ -280,7 +280,20 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 
 		if (!this._ws) return
 		if (this.connectionStatus === 'online') {
-			const chunks = chunk(JSON.stringify(msg))
+			const stringified = JSON.stringify(msg)
+			// The server rejects a session whose assembled message exceeds this, so sending would
+			// only earn a close and a reconnect that re-sends the same message. Fail here the way
+			// the server would, so onSyncError runs once instead of the client looping forever.
+			if (stringified.length > MAX_ASSEMBLED_MESSAGE_CHARS) {
+				this._handleDisconnect(
+					'closed',
+					TLSyncErrorCloseEventCode,
+					true,
+					TLSyncErrorCloseEventReason.MESSAGE_TOO_LARGE
+				)
+				return
+			}
+			const chunks = chunk(stringified)
 			for (const part of chunks) {
 				this._ws.send(part)
 			}
