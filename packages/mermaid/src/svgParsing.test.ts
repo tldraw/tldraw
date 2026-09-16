@@ -102,6 +102,30 @@ describe('layout parsing tolerates mermaid >= 11.15 prefixed ids', () => {
 		expect(layout.edges.map((e) => [e.start, e.end])).toEqual([['a_b', 'c']])
 	})
 
+	it('splits an edge id onto a subgraph, which an edge can end on too', () => {
+		// Mermaid links subgraphs as well as nodes (`L_A_grp_0`), so a split naming one is as real as a
+		// split naming two nodes. Skipping them hands the path to whichever pair of nodes also splits
+		// the id, which is the mix-up this matching exists to avoid (#10794).
+		const positioned = (domId: string, x: number, y: number) =>
+			`<g class="node" id="${domId}" transform="translate(${x},${y})"><rect width="80" height="40" /></g>`
+		const svg = svgFromString(`
+			<svg id="mermaid-0">
+				<g class="cluster" id="mermaid-0-a_b" transform="translate(0,0)">
+					<rect x="0" y="180" width="80" height="40" />
+				</g>
+				${positioned('mermaid-0-flowchart-a-0', 0, 0)}
+				${positioned('mermaid-0-flowchart-b_c-1', 300, 0)}
+				${positioned('mermaid-0-flowchart-c-2', 300, 200)}
+				${edgeMarkup('L_a_b_c_0', [
+					[40, 200],
+					[280, 200],
+				])}
+			</svg>
+		`)
+		const layout = parseFlowchartLayout(svg)
+		expect(layout.edges.map((e) => [e.start, e.end])).toEqual([['a_b', 'c']])
+	})
+
 	it('still parses bare ids from older mermaid versions', () => {
 		const svg = svgFromString(`
 			<svg>
