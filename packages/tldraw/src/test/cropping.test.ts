@@ -1499,4 +1499,44 @@ describe('Cropping an image inside a rotated parent', () => {
 			bottomRight: { x: 0.75, y: 1 },
 		})
 	})
+
+	it('nudges the crop along the on-screen axis when the page rotation comes from a frame', () => {
+		const frameId = createShapeId('frame')
+		const imageId = createShapeId('image')
+		editor.createShapes([
+			{
+				id: frameId,
+				type: 'frame',
+				x: 500,
+				y: 100,
+				rotation: Math.PI / 2,
+				props: { w: 400, h: 400 },
+			},
+			{
+				id: imageId,
+				type: 'image',
+				parentId: frameId,
+				x: 50,
+				y: 50,
+				props: {
+					...imageProps,
+					w: 200,
+					h: 100,
+					crop: { topLeft: { x: 0.25, y: 0.25 }, bottomRight: { x: 0.75, y: 0.75 } },
+				},
+			},
+		])
+		editor.select(imageId)
+		editor.setCurrentTool('select.crop.idle')
+		editor.expectToBeIn('select.crop.idle')
+
+		// Down on screen is the image's +x axis inside a frame rotated 90°
+		editor.keyDown('ArrowDown')
+		editor.keyUp('ArrowDown')
+
+		expect(editor.getShape<TLImageShape>(imageId)!.props.crop).toCloselyMatchObject({
+			topLeft: { x: 0.2525, y: 0.25 },
+			bottomRight: { x: 0.7525, y: 0.75 },
+		})
+	})
 })
