@@ -25,9 +25,11 @@ import {
 	parseDomId,
 	parseEdgeLabelsFromSvg,
 	type ParsedDiagramLayout,
+	type ParsedNode,
 	parseNodesFromSvg,
 	scaleLayout,
 	stripDiagramIdPrefix,
+	type Vec2,
 } from './svgParsing'
 import { dropDanglingEdges, getArrowBend, LAYOUT_SCALE, orderTopDown } from './utils'
 
@@ -59,22 +61,39 @@ function buildHierarchy(subGraphs: FlowSubGraph[]) {
 
 /**
  * Split mermaid's edge id, `L_<start>_<end>_<n>`, back into the two node ids it joins. Node ids can
- * contain underscores themselves, which makes the split ambiguous: `L_my_node_other_node_0` could
- * start at `my` or at `my_node`. Only the diagram's own nodes can say which, so prefer a split that
- * names two of them, and take the last underscore when it names none — right whenever the end
- * node's id has no underscore, and matched by proximity instead when it doesn't.
+ * contain underscores themselves, so the split is ambiguous: `L_a_b_c_0` joins `a` to `b_c` in a
+ * diagram with those nodes, and `a_b` to `c` in one with those. A diagram with all four settles it
+ * the only way left, by which pair the path was actually drawn between.
  */
-function parseEdgeId(dataId: string, nodes: Map<string, unknown>) {
+function parseEdgeId(dataId: string, points: Vec2[], nodes: Map<string, ParsedNode>) {
 	const match = dataId.match(/(?:^|-)L_(.+)_\d+$/)
 	if (!match) return null
 
 	const joined = match[1]
+	const last = points[points.length - 1]
+	let best: { start: string; end: string } | undefined
+	let bestDistance = Infinity
 	for (let at = joined.indexOf('_'); at > 0; at = joined.indexOf('_', at + 1)) {
 		const start = joined.slice(0, at)
 		const end = joined.slice(at + 1)
-		if (nodes.has(start) && nodes.has(end)) return { start, end }
-	}
+		const startNode = nodes.get(start)
+		const endNode = nodes.get(end)
+		if (!startNode || !endNode) continue
 
+		const distance = last
+			? Math.hypot(points[0].x - startNode.center.x, points[0].y - startNode.center.y) +
+				Math.hypot(last.x - endNode.center.x, last.y - endNode.center.y)
+			: 0
+		if (distance < bestDistance) {
+			bestDistance = distance
+			best = { start, end }
+		}
+	}
+	if (best) return best
+
+	// An id naming no pair of the diagram's nodes, such as an edge to a node mermaid didn't draw.
+	// Splitting at the last underscore is right whenever the end node's id has none, and leaves the
+	// edge to be matched by proximity when it isn't.
 	const at = joined.lastIndexOf('_')
 	return at > 0 ? { start: joined.slice(0, at), end: joined.slice(at + 1) } : null
 }
@@ -83,7 +102,9 @@ function parseEdgeId(dataId: string, nodes: Map<string, unknown>) {
 export function parseFlowchartLayout(root: Element): ParsedDiagramLayout {
 	const nodes = parseNodesFromSvg(root, '.node', (domId) => parseDomId(domId, NODE_ID))
 	const clusters = parseClustersFromSvg(root, '.cluster', stripDiagramIdPrefix)
-	const edges = parseAllEdgePointsFromSvg(root, (dataId) => parseEdgeId(dataId, nodes))
+	const edges = parseAllEdgePointsFromSvg(root, (dataId, points) =>
+		parseEdgeId(dataId, points, nodes)
+	)
 	const layout = { nodes, clusters, edges, edgeLabels: parseEdgeLabelsFromSvg(root) }
 	scaleLayout(layout, LAYOUT_SCALE)
 	return layout

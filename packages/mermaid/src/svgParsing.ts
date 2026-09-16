@@ -48,7 +48,7 @@ export interface ParsedDiagramLayout {
 }
 
 type NodeIdParser = (domId: string) => string
-type EdgeIdParser = (dataId: string) => { start: string; end: string } | null
+type EdgeIdParser = (dataId: string, points: Vec2[]) => { start: string; end: string } | null
 
 // Mermaid >= 11.15 prefixes every rendered element id with the diagram id
 // (`mermaid-0-flowchart-A-0` instead of `flowchart-A-0`); older versions do not.
@@ -197,8 +197,6 @@ export function parseAllEdgePointsFromSvg(root: Element, parser: EdgeIdParser): 
 		const dataId = path.getAttribute('data-id') || path.getAttribute('id') || ''
 		const dataPoints = path.getAttribute('data-points')
 		if (!dataPoints) continue
-		const parsed = parser(dataId)
-		if (!parsed) continue
 		try {
 			const points = JSON.parse(atob(dataPoints))
 			const ancestor = getAccumulatedTranslate(path as Element)
@@ -206,6 +204,9 @@ export function parseAllEdgePointsFromSvg(root: Element, parser: EdgeIdParser): 
 				point.x += ancestor.x
 				point.y += ancestor.y
 			}
+			// Parsed after the points, which an id parser may need to place an ambiguous id.
+			const parsed = parser(dataId, points)
+			if (!parsed) continue
 			out.push({ id: dataId, start: parsed.start, end: parsed.end, points })
 		} catch {
 			/* ignore malformed data */

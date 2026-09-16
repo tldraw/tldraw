@@ -80,6 +80,28 @@ describe('layout parsing tolerates mermaid >= 11.15 prefixed ids', () => {
 		expect(layout.edges.map((e) => [e.start, e.end])).toEqual([['my_node', 'other_node']])
 	})
 
+	it('splits an ambiguous edge id by which pair of nodes the path runs between', () => {
+		// With all four of these nodes, `L_a_b_c_0` could join `a` to `b_c` or `a_b` to `c`. Picking
+		// whichever comes first hands the path to the wrong edge, the mix-up this matching exists to
+		// avoid (#10794).
+		const positioned = (domId: string, x: number, y: number) =>
+			`<g class="node" id="${domId}" transform="translate(${x},${y})"><rect width="80" height="40" /></g>`
+		const svg = svgFromString(`
+			<svg id="mermaid-0">
+				${positioned('mermaid-0-flowchart-a-0', 0, 0)}
+				${positioned('mermaid-0-flowchart-b_c-1', 300, 0)}
+				${positioned('mermaid-0-flowchart-a_b-2', 0, 200)}
+				${positioned('mermaid-0-flowchart-c-3', 300, 200)}
+				${edgeMarkup('L_a_b_c_0', [
+					[20, 200],
+					[280, 200],
+				])}
+			</svg>
+		`)
+		const layout = parseFlowchartLayout(svg)
+		expect(layout.edges.map((e) => [e.start, e.end])).toEqual([['a_b', 'c']])
+	})
+
 	it('still parses bare ids from older mermaid versions', () => {
 		const svg = svgFromString(`
 			<svg>
