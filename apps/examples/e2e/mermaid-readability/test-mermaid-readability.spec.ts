@@ -47,7 +47,6 @@ const KNOWN_PROBLEMS: KnownProblem[] = [
 			overlap('sequence', 24, '9  Apply discount rules', 'line'),
 			overlap('sequence', 24, '9  Apply discount rules', 'rectangle with no text'),
 			overlap('sequence', 24, '9  Apply discount rules', 'opt [Customer included coupon]'),
-			overlap('sequence', 24, 'opt [Customer included coupon]', '9  Apply discount rules'),
 			overlap('sequence', 25, 'Recompute eviction policy', 'line'),
 			overlap('sequence', 28, 'Retry parsing malformed input', 'line'),
 			overlap('sequence', 28, 'Retry parsing malformed input', 'rectangle with no text'),
@@ -91,10 +90,17 @@ const KNOWN_PROBLEMS: KnownProblem[] = [
 	},
 	{
 		reason: 'A note in an `option` section is drawn over the section title',
-		findings: [
-			overlap('sequence', 24, '[Payment failed]', 'Stop flow before inventory mutation'),
-			overlap('sequence', 24, 'Stop flow before inventory mutation', '[Payment failed]'),
-		],
+		findings: [overlap('sequence', 24, '[Payment failed]', 'Stop flow before inventory mutation')],
+	},
+	{
+		reason:
+			"A section title's box is taller than its text, so a frame nested right under it starts inside the box",
+		findings: [overlap('sequence', 22, 'opt [New device detected]', '[Optional alert]')],
+	},
+	{
+		reason:
+			"A message on a frame's last row wraps where mermaid's stays on one line, and the second line leaves the frame",
+		findings: [overlap('sequence', 24, '23  Show unavailable message', 'alt [Product available]')],
 	},
 	{
 		// Not a conversion bug: inside a composite state, mermaid ignores a `<<fork>>` or `<<join>>`

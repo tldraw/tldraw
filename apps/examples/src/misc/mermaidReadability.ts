@@ -156,7 +156,10 @@ function findMidWordBreaks(element: Element) {
 /**
  * Includes the label's own shape outline, which catches text spilling out of it. Lines only count
  * when the arrow is bound to them: lifelines cross message and frame labels in mermaid's own
- * rendering too.
+ * rendering too. Nor do participant boxes count for other shapes' labels: a message between two
+ * boxes has to cross an edge, and mermaid draws it the same. The boxes are the only geo shapes
+ * that wholly contain a line starting at the header row: a frame contains its own section
+ * separators, and a lifeline that `create` started part way down.
  */
 function findOverlaps(editor: Editor, shapes: TLShape[], lines: Map<TLShapeId, Box[]>) {
 	const findings: MermaidReadabilityFinding[] = []
@@ -165,6 +168,22 @@ function findOverlaps(editor: Editor, shapes: TLShape[], lines: Map<TLShapeId, B
 		shapes
 			.filter((shape) => shape.type === 'geo' || shape.type === 'line')
 			.map((shape) => [shape.id, getPageOutline(editor, shape)])
+	)
+	const lineBounds = shapes
+		.filter((shape) => shape.type === 'line')
+		.map((shape) => editor.getShapePageBounds(shape)!)
+	const headerY = Math.min(...lineBounds.map((bounds) => bounds.minY))
+	const participantBoxes = new Set(
+		shapes
+			.filter(
+				(shape) =>
+					shape.type === 'geo' &&
+					lineBounds.some(
+						(bounds) =>
+							bounds.minY === headerY && editor.getShapePageBounds(shape)!.contains(bounds)
+					)
+			)
+			.map((shape) => shape.id)
 	)
 
 	for (const shape of shapes) {
@@ -177,7 +196,10 @@ function findOverlaps(editor: Editor, shapes: TLShape[], lines: Map<TLShapeId, B
 
 		for (const other of shapes) {
 			const outline =
-				other.type === 'geo' || boundIds.includes(other.id) ? outlines.get(other.id) : undefined
+				(other.type === 'geo' && (other.id === shape.id || !participantBoxes.has(other.id))) ||
+				boundIds.includes(other.id)
+					? outlines.get(other.id)
+					: undefined
 			const otherGlyphs = other.id === shape.id ? undefined : glyphs.get(other.id)
 			const overlaps = labelGlyphs.some(
 				(box) =>
