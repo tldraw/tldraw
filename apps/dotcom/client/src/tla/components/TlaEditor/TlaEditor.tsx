@@ -259,9 +259,11 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		return multiplayerAssetStore({ getFileId: () => fileId, getToken: getUserToken })
 	}, [fileId, getUserToken])
 
-	const users: TLUserStore | undefined = useMemo(() => {
+	const users: TLUserStore = useMemo(() => {
 		const prefs = app?.tlUser.userPreferences
-		if (!prefs) return undefined
+		// Signed out, attribute nothing: useSync's default store would stamp the local preferences id,
+		// which authorizeFileRecord rejects for a guest session, rolling back note edits and duplicates.
+		if (!prefs) return { currentUser: computed('currentUser', () => null) }
 		const currentUser = computed('currentUser', () => {
 			const p = prefs.get()
 			return UserRecordType.create({
