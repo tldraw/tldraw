@@ -65,21 +65,30 @@ export function registerDefaultSideEffects(editor: Editor) {
 							// then create the shape with a flag that will let it know to
 							// go back to the text tool once the edit is complete.
 							const shape = editor.getEditingShape()
-							if (
-								shape &&
+							const isCreatingShape =
+								!!shape &&
 								shape.type === 'text' &&
-								editor.isInAny('text.pointing', 'select.resizing') &&
-								editor.getInstanceState().isToolLocked
-							) {
+								editor.isInAny('text.pointing', 'select.resizing')
+							// The creating tool leaves a mark named after the shape. Carrying it into
+							// the editing state lets that state drop the whole creation if the shape
+							// doesn't survive the edit. Only look while the shape is being created:
+							// the mark stays on the undo stack afterwards, so editing an old text
+							// shape would otherwise find it and bail over everything done since.
+							const creatingMarkId = isCreatingShape
+								? (editor.getMarkIdMatching(`creating_text:${shape.id}`) ?? undefined)
+								: undefined
+							if (isCreatingShape && editor.getInstanceState().isToolLocked) {
 								editor.setCurrentTool('select.editing_shape', {
 									target: 'shape',
 									shape: shape,
 									isCreatingTextWhileToolLocked: true,
+									creatingMarkId,
 								})
 							} else {
 								editor.setCurrentTool('select.editing_shape', {
 									target: 'shape',
 									shape: shape,
+									creatingMarkId,
 								})
 							}
 						}
