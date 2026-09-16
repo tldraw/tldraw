@@ -1060,6 +1060,22 @@ sequenceDiagram
     API-->>SW: 200 OK
     SW-->>Web: Cached response
     Web-->>User: Render`,
+		`sequenceDiagram
+    participant C as Customer
+    box Services
+        participant S as Somewhat Overengineered Backend Service
+        participant Q as Fulfilment Queue Worker
+    end
+    participant DB as Database
+
+    C->>S: Place order
+    Note right of S: MMMMMMMMMMMMMMMMMMMMMMM
+    S->>Q: Enqueue fulfilment
+    Note over Q,DB: Retries with exponential backoff, capped at five attempts
+    Q->>DB: Write order
+    DB-->>Q: OK
+    Q-->>S: Done
+    S-->>C: Order confirmed`,
 	],
 	[
 		`mindmap
