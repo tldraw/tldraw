@@ -1,4 +1,5 @@
 import {
+	IndexKey,
 	TLBinding,
 	TLBindingId,
 	TLFrameShape,
@@ -867,6 +868,42 @@ describe('When pasting content with unsupported shape types...', () => {
 
 		// these land on the page, where root shapes are given fresh indices in array order
 		expect(editor.getSortedChildIdsForParent(editor.getCurrentPageId())).toEqual([below, above])
+	})
+
+	it('keeps a shape lifted to the page below a frame it sat below, when another lift lands inside that frame', () => {
+		const pageUnknown = createShapeId('pageUnknown')
+		const pageChild = createShapeId('pageChild')
+		const frame = createShapeId('frame')
+		const frameUnknown = createShapeId('frameUnknown')
+		const frameChild = createShapeId('frameChild')
+		editor.createShapes([
+			{ id: pageUnknown, type: 'frame', x: 0, y: 0, props: { w: 200, h: 200 } },
+			{
+				id: pageChild,
+				type: 'geo',
+				x: 5,
+				y: 5,
+				index: 'a5' as IndexKey,
+				parentId: pageUnknown,
+				props: { w: 50, h: 50 },
+			},
+			{ id: frame, type: 'frame', x: 300, y: 0, props: { w: 500, h: 500 } },
+			{ id: frameUnknown, type: 'frame', x: 10, y: 10, parentId: frame, props: { w: 200, h: 200 } },
+			{ id: frameChild, type: 'geo', x: 5, y: 5, parentId: frameUnknown, props: { w: 50, h: 50 } },
+		])
+		const content = contentWithUnsupported(
+			[pageUnknown, frame],
+			new Map([
+				[pageUnknown, 'animation-camera'],
+				[frameUnknown, 'animation-camera'],
+			])
+		)
+
+		editor.putContentOntoCurrentPage(content, { preserveIds: true, preservePosition: true })
+
+		// the two lifts land under different parents, so their old indices can't be compared
+		expect(editor.getSortedChildIdsForParent(editor.getCurrentPageId())).toEqual([pageChild, frame])
+		expect(editor.getSortedChildIdsForParent(frame)).toEqual([frameChild])
 	})
 
 	it('does not hang when the dropped shapes form a parent cycle', () => {

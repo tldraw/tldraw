@@ -9854,26 +9854,43 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// Stack them by where they sat in the dropped subtree rather than by their
 				// position in the content array: content is arbitrary JSON off the clipboard
 				// and doesn't have to list siblings in z-order, so array order would restack
-				// them arbitrarily.
-				const liftedInOrder = shapes
-					.filter((shape) => liftedIndexPaths.has(shape.id))
-					.sort((a, b) =>
+				// them arbitrarily. Only shapes landing under the same parent can be compared:
+				// a path starts in its destination's child space, so mixing destinations would
+				// shuffle shapes across parents. Everything headed for the page is one group,
+				// because it's all re-indexed together further down.
+				const liftedByDestination = new Map<string, TLShape[]>()
+				const destinationOf = (shape: TLShape) =>
+					sourceShapesById.has(shape.parentId) ? shape.parentId : currentPageId
+				for (const shape of shapes) {
+					if (!liftedIndexPaths.has(shape.id)) continue
+					const group = liftedByDestination.get(destinationOf(shape))
+					if (group) group.push(shape)
+					else liftedByDestination.set(destinationOf(shape), [shape])
+				}
+				for (const group of liftedByDestination.values()) {
+					group.sort((a, b) =>
 						compareIndexPaths(liftedIndexPaths.get(a.id)!, liftedIndexPaths.get(b.id)!)
 					)
-					.map((shape) => {
-						const index = getIndexAbove(highestIndexByParent.get(shape.parentId))
-						highestIndexByParent.set(shape.parentId, index)
-						return { ...shape, index }
-					})
+					for (let i = 0; i < group.length; i++) {
+						const index = getIndexAbove(highestIndexByParent.get(group[i].parentId))
+						highestIndexByParent.set(group[i].parentId, index)
+						group[i] = { ...group[i], index }
+					}
+				}
 
 				// They take each other's places in the array as well, because a shape lifted all
 				// the way to the page is re-indexed in array order further down — which would
-				// otherwise undo the stacking we just gave it. No lifted shape is an ancestor of
-				// another, so reordering them among themselves can't put a child before a parent.
-				let nextLifted = 0
-				shapes = shapes.map((shape) =>
-					liftedIndexPaths.has(shape.id) ? liftedInOrder[nextLifted++] : shape
-				)
+				// otherwise undo the stacking we just gave it. Swapping only within a group keeps
+				// every shape after its parent, and page-bound shapes in their slots among the
+				// surviving roots.
+				const nextInGroup = new Map<string, number>()
+				shapes = shapes.map((shape) => {
+					if (!liftedIndexPaths.has(shape.id)) return shape
+					const destination = destinationOf(shape)
+					const next = nextInGroup.get(destination) ?? 0
+					nextInGroup.set(destination, next + 1)
+					return liftedByDestination.get(destination)![next]
+				})
 			}
 
 			unsupportedShapeTypes = [
