@@ -227,10 +227,18 @@ export function isEditingRichTextList(editor: Editor) {
  * handlers run ahead of TipTap's keymap, so they check this and stand down to let
  * {@link TaskItemToggleExtension} tick the item instead.
  *
+ * The extension has to actually be installed for that to be true. Filtering it out of the set while
+ * keeping task lists is a reasonable thing to want — it's how you get Cmd+Enter back to finishing
+ * the edit — and standing down for a keymap that isn't there would leave the chord doing nothing.
+ *
  * @internal
  */
 export function isEditingRichTextTaskItem(editor: Editor) {
-	return !!editor.getRichTextEditor()?.isActive('taskItem')
+	const textEditor = editor.getRichTextEditor()
+	if (!textEditor?.isActive('taskItem')) return false
+	return textEditor.extensionManager.extensions.some(
+		(extension) => extension.name === TaskItemToggleExtension.name
+	)
 }
 
 /**

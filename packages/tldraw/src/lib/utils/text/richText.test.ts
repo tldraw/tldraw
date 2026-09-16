@@ -2,8 +2,10 @@ import { Editor as TextEditor, Extensions, JSONContent } from '@tiptap/core'
 import { Editor, TLRichText, toRichText } from '@tldraw/editor'
 import {
 	isEditingRichTextList,
+	isEditingRichTextTaskItem,
 	isEmptyRichText,
 	renderHtmlFromRichTextWithExtensions,
+	TaskItemToggleExtension,
 	tipTapDefaultExtensions,
 } from './richText'
 
@@ -145,6 +147,47 @@ describe('isEditingRichTextList', () => {
 			})
 			expect(isEditingRichTextList(editor)).toBe(true)
 		}
+	})
+})
+
+describe('isEditingRichTextTaskItem', () => {
+	const editingWith = (extensions: Extensions, content: JSONContent) => {
+		const textEditor = new TextEditor({ extensions, content })
+		return { getRichTextEditor: () => textEditor } as unknown as Editor
+	}
+
+	const taskDoc: JSONContent = {
+		type: 'doc',
+		content: [
+			{
+				type: 'taskList',
+				content: [
+					{
+						type: 'taskItem',
+						attrs: { checked: false },
+						content: [{ type: 'paragraph', content: [{ type: 'text', text: 'a' }] }],
+					},
+				],
+			},
+		],
+	}
+
+	it('is true in a task item with the defaults', () => {
+		expect(isEditingRichTextTaskItem(editingWith(tipTapDefaultExtensions, taskDoc))).toBe(true)
+	})
+
+	it('is false in a plain paragraph', () => {
+		const editor = editingWith(tipTapDefaultExtensions, toRichText('a') as JSONContent)
+		expect(isEditingRichTextTaskItem(editor)).toBe(false)
+	})
+
+	it('is false when the toggle extension has been filtered out', () => {
+		// Otherwise the shape handlers stand down for a keymap that isn't installed, and Cmd+Enter
+		// neither ticks the item nor does what it used to.
+		const withoutToggle = tipTapDefaultExtensions.filter(
+			(extension) => extension.name !== TaskItemToggleExtension.name
+		)
+		expect(isEditingRichTextTaskItem(editingWith(withoutToggle, taskDoc))).toBe(false)
 	})
 })
 
