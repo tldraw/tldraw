@@ -391,16 +391,18 @@ function computeActorLayouts(
 		const xCenters = svgCenters.map((c) => (c - svgCenters[0]) * scale)
 		const totalSpan = xCenters.length > 1 ? xCenters[xCenters.length - 1] : 0
 
-		const topRowBottom = Math.max(...top.map((r) => r.y + r.h))
-		const bottomRowTop = Math.min(...bottom.map((r) => r.y))
-		const yStretch = Math.max(0, MIN_VERTICAL_GAP - (bottomRowTop - topRowBottom))
+		// A created participant's top box and a destroyed one's bottom box sit mid-diagram, so
+		// neither marks a row edge. Mermaid assigns every surviving participant the same footer
+		// `stopy` in one pass, so taking the outermost box of each row skips the mid-diagram ones.
+		// Measuring the gap from a mid-diagram box instead reports the diagram as far shorter than
+		// it is, inflating the stretch below and leaving the whole diagram too tall.
+		const headerBottom = Math.min(...top.map((r) => r.y + r.h))
+		const footerTop = Math.max(...bottom.map((r) => r.y))
+		const yStretch = Math.max(0, MIN_VERTICAL_GAP - (footerTop - headerBottom))
 		const topMinY = Math.min(...top.map((r) => r.y))
 		const bottomMaxY = Math.max(...bottom.map((r) => r.y + r.h))
 		const originY = -(bottomMaxY + yStretch + topMinY) / 2
-		// The stretch pushes the footer down, so spread it over the rows between the header and the
-		// footer. A created or destroyed participant's box sits mid-diagram, so it can't mark either.
-		const headerBottom = Math.min(...top.map((r) => r.y + r.h))
-		const footerTop = Math.max(...bottom.map((r) => r.y))
+		// The stretch pushes the footer down, so spread it over the rows between header and footer.
 		const toLayoutY = (svgY: number) =>
 			originY +
 			svgY +

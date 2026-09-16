@@ -179,6 +179,40 @@ describe('sequence row parsing', () => {
 		expect(rowYs.get(0)).toBeCloseTo((headerBottom + actorLayouts[0].bottomY) / 2)
 	})
 
+	it('measures the diagram past a created or destroyed participant', () => {
+		// mermaid draws a destroyed participant's bottom box on its destruction row and a created
+		// participant's top box on its creation row, both mid-diagram. Measuring the header-to-footer
+		// gap from one of those reports a far shorter diagram than mermaid drew, and the stretch that
+		// compensates then leaves every surviving lifeline too long.
+		function lifelineLengths(topYs: number[], bottomYs: number[]) {
+			const actors = topYs
+				.map(
+					(topY, i) =>
+						`<rect class="actor actor-top" x="${i * 200}" y="${topY}" width="150" height="65" />
+						<rect class="actor actor-bottom" x="${i * 200}" y="${bottomYs[i]}" width="150" height="65" />`
+				)
+				.join('')
+			const svg = svgFromString(`
+				<svg>
+					${actors}
+					<line data-et="message" data-id="i0" x1="75" y1="182.5" x2="275" y2="182.5" />
+				</svg>
+			`)
+			return parseSequenceLayout(svg, 3, 1).actorLayouts.map((l) => l.bottomY - (l.y + l.h))
+		}
+
+		// 500 - 65 clears MIN_VERTICAL_GAP, so nothing is stretched and each lifeline runs the
+		// diagram's full height less the header box and its padding.
+		const full = 500 - 65 - 10
+		expect(lifelineLengths([0, 0, 0], [500, 500, 500])).toEqual([full, full, full])
+
+		// A participant destroyed on row 150 keeps its own short lifeline; the others are untouched.
+		expect(lifelineLengths([0, 0, 0], [500, 150, 500])).toEqual([full, 150 - 65 - 10, full])
+
+		// A participant created on row 150 starts late, and again the others are untouched.
+		expect(lifelineLengths([0, 150, 0], [500, 500, 500])).toEqual([full, 500 - 150 - 65 - 10, full])
+	})
+
 	it("reads every row and frame from the installed mermaid's own rendering", async () => {
 		// The markup above is built by hand to match mermaid's. If a mermaid upgrade changes it, those
 		// tests stay green while rows stop being read and every diagram falls back to even spacing.
