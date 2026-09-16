@@ -7,7 +7,7 @@ import type {
 import { buildClassDefColorMap, type ParsedNodeColors, toNodeColorProps } from './colors'
 import {
 	buildNodeCentersFromSvg,
-	claimNearestEdge,
+	claimEdge,
 	getSelfLoopEdgeLayout,
 	parseAllEdgePointsFromSvg,
 	parseClustersFromSvg,
@@ -365,12 +365,12 @@ export function stateToBlueprint(
 
 	const claimed = new Set<number>()
 	for (const edge of allEdges) {
-		const svgEdge = claimNearestEdge(
-			svgEdges,
-			claimed,
-			nodeCenters.get(edge.id1),
-			nodeCenters.get(edge.id2)
-		)
+		const svgEdge = claimEdge(svgEdges, claimed, {
+			startId: edge.id1,
+			endId: edge.id2,
+			startCenter: nodeCenters.get(edge.id1),
+			endCenter: nodeCenters.get(edge.id2),
+		})
 		const svgNode = svgNodes.get(edge.id1)
 		const selfLoop =
 			edge.id1 === edge.id2 && svgEdge && svgNode

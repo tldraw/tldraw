@@ -63,6 +63,23 @@ describe('layout parsing tolerates mermaid >= 11.15 prefixed ids', () => {
 		expect(layout.edges).toHaveLength(1)
 	})
 
+	it('splits an edge id at the underscore that names two of the diagram\'s nodes', () => {
+		// `L_my_node_other_node_0` could start at `my` or `my_node`; only the nodes say which. Getting
+		// it wrong leaves the edge without usable ids, and parallel edges back on proximity (#10794).
+		const svg = svgFromString(`
+			<svg id="mermaid-0">
+				${nodeMarkup('mermaid-0-flowchart-my_node-0')}
+				${nodeMarkup('mermaid-0-flowchart-other_node-1')}
+				${edgeMarkup('L_my_node_other_node_0', [
+					[0, 0],
+					[100, 0],
+				])}
+			</svg>
+		`)
+		const layout = parseFlowchartLayout(svg)
+		expect(layout.edges.map((e) => [e.start, e.end])).toEqual([['my_node', 'other_node']])
+	})
+
 	it('still parses bare ids from older mermaid versions', () => {
 		const svg = svgFromString(`
 			<svg>
