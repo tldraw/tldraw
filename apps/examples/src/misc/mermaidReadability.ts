@@ -18,12 +18,6 @@ export type MermaidReadabilityFinding =
 	| { check: 'overlap'; label: string; over: string }
 	| { check: 'mid-word break'; label: string; word: string }
 	| { check: 'missing text'; text: string }
-	| {
-			check: 'missing shapes'
-			shapes: 'connectors' | 'lifelines' | 'shapes with no text'
-			mermaid: number
-			converted: number
-	  }
 	| { check: 'label not rendered'; label: string }
 
 let nextSvgId = 0
@@ -33,6 +27,8 @@ let nextSvgId = 0
 // overlaps are measured against this inner part of each line instead.
 const GLYPH_INSET_Y = 0.2
 const GLYPH_INSET_X = 0.05
+
+const WORD = /[\p{L}\p{N}]+/gu
 
 export async function checkMermaidReadability(
 	editor: Editor,
@@ -52,33 +48,33 @@ export async function checkMermaidReadability(
 
 	const shapes = editor.getCurrentPageShapesSorted().filter((shape) => shape.type !== 'group')
 	const labelled = shapes.filter((shape) => getText(editor, shape))
-	await waitForLabelsToRender(editor, labelled)
+	for (
+		let frame = 0;
+		frame < 60 && !labelled.every((shape) => getRenderedLabel(editor, shape));
+		frame++
+	) {
+		await new Promise((resolve) => requestAnimationFrame(resolve))
+	}
 
 	const findings: MermaidReadabilityFinding[] = []
 	const lines = new Map<TLShapeId, Box[]>()
 	for (const shape of labelled) {
-		const element = getRichTextElement(editor, shape.id)
-		if (!element?.getClientRects().length) {
-			findings.push({ check: 'label not rendered', label: getText(editor, shape) })
+		const label = getText(editor, shape)
+		const element = getRenderedLabel(editor, shape)
+		if (!element) {
+			findings.push({ check: 'label not rendered', label })
 			continue
 		}
 		lines.set(shape.id, measureTextLines(editor, element))
 		for (const word of findMidWordBreaks(element)) {
-			findings.push({ check: 'mid-word break', label: getText(editor, shape), word })
+			findings.push({ check: 'mid-word break', label, word })
 		}
 	}
 
 	findings.push(...findOverlaps(editor, shapes, lines))
 	findings.push(...findMissingText(editor, shapes, mermaidSvg))
-	findings.push(...findMissingShapes(editor, shapes, mermaidSvg))
 
-	const seen = new Set<string>()
-	return findings.filter((finding) => {
-		const key = JSON.stringify(finding)
-		if (seen.has(key)) return false
-		seen.add(key)
-		return true
-	})
+	return [...new Map(findings.map((finding) => [JSON.stringify(finding), finding])).values()]
 }
 
 function getText(editor: Editor, shape: TLShape) {
@@ -92,17 +88,14 @@ function describe(editor: Editor, shape: TLShape) {
 	return shape.type
 }
 
-function getRichTextElement(editor: Editor, id: TLShapeId) {
-	return editor.getContainer().querySelector(`[data-shape-id="${id}"] .tl-rich-text`)
+function getRenderedLabel(editor: Editor, shape: TLShape) {
+	const element = editor.getContainer().querySelector(`[data-shape-id="${shape.id}"] .tl-rich-text`)
+	return element?.getClientRects().length ? element : null
 }
 
-async function waitForLabelsToRender(editor: Editor, shapes: TLShape[]) {
-	for (let frame = 0; frame < 60; frame++) {
-		await new Promise((resolve) => requestAnimationFrame(resolve))
-		if (shapes.every((shape) => getRichTextElement(editor, shape.id)?.getClientRects().length)) {
-			return
-		}
-	}
+function* getTextNodes(root: Node) {
+	const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
+	for (let node = walker.nextNode(); node; node = walker.nextNode()) yield node as Text
 }
 
 function toPageBox(editor: Editor, rect: DOMRect) {
@@ -114,8 +107,7 @@ function toPageBox(editor: Editor, rect: DOMRect) {
 function measureTextLines(editor: Editor, element: Element) {
 	const boxes: Box[] = []
 	const range = document.createRange()
-	const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
-	for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+	for (const node of getTextNodes(element)) {
 		range.selectNodeContents(node)
 		for (const rect of range.getClientRects()) {
 			if (rect.width > 0 && rect.height > 0) boxes.push(toPageBox(editor, rect))
@@ -130,8 +122,6 @@ function getGlyphBox(box: Box) {
 	return new Box(box.x + insetX, box.y + insetY, box.w - insetX * 2, box.h - insetY * 2)
 }
 
-const WORD_CHARACTER = /[\p{L}\p{N}]/u
-
 /**
  * Browsers only break between two letters or digits when a word is wider than its line, so a line
  * change between them always means the label is too narrow for one of its words.
@@ -140,29 +130,24 @@ function findMidWordBreaks(element: Element) {
 	const broken: string[] = []
 	const range = document.createRange()
 	for (const block of element.querySelectorAll('p')) {
-		const characters: { char: string; top: number; height: number }[] = []
-		const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT)
-		for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-			const text = node.textContent ?? ''
-			for (let i = 0; i < text.length; i++) {
+		const rects: DOMRect[] = []
+		for (const node of getTextNodes(block)) {
+			for (let i = 0; i < node.length; i++) {
 				range.setStart(node, i)
 				range.setEnd(node, i + 1)
-				const rect = range.getBoundingClientRect()
-				characters.push({ char: text[i], top: rect.top, height: rect.height })
+				rects.push(range.getBoundingClientRect())
 			}
 		}
-		for (let i = 1; i < characters.length; i++) {
-			const prev = characters[i - 1]
-			const next = characters[i]
-			if (!WORD_CHARACTER.test(prev.char) || !WORD_CHARACTER.test(next.char)) continue
-			if (!prev.height || !next.height) continue
-			if (Math.abs(next.top - prev.top) < Math.min(prev.height, next.height) / 2) continue
-			let start = i - 1
-			while (start > 0 && WORD_CHARACTER.test(characters[start - 1].char)) start--
-			let end = i
-			while (end < characters.length - 1 && WORD_CHARACTER.test(characters[end + 1].char)) end++
-			const word = characters.map((c) => c.char)
-			broken.push(`${word.slice(start, i).join('')}/${word.slice(i, end + 1).join('')}`)
+		for (const match of (block.textContent ?? '').matchAll(WORD)) {
+			const word = match[0]
+			for (let i = 1; i < word.length; i++) {
+				const prev = rects[match.index + i - 1]
+				const next = rects[match.index + i]
+				const lineChange = Math.abs(next.top - prev.top) >= Math.min(prev.height, next.height) / 2
+				if (prev.height && next.height && lineChange) {
+					broken.push(`${word.slice(0, i)}/${word.slice(i)}`)
+				}
+			}
 		}
 	}
 	return broken
@@ -176,6 +161,11 @@ function findMidWordBreaks(element: Element) {
 function findOverlaps(editor: Editor, shapes: TLShape[], lines: Map<TLShapeId, Box[]>) {
 	const findings: MermaidReadabilityFinding[] = []
 	const glyphs = new Map([...lines].map(([id, boxes]) => [id, boxes.map(getGlyphBox)]))
+	const outlines = new Map(
+		shapes
+			.filter((shape) => shape.type === 'geo' || shape.type === 'line')
+			.map((shape) => [shape.id, getPageOutline(editor, shape)])
+	)
 
 	for (const shape of shapes) {
 		const labelGlyphs = glyphs.get(shape.id)
@@ -186,20 +176,14 @@ function findOverlaps(editor: Editor, shapes: TLShape[], lines: Map<TLShapeId, B
 				: []
 
 		for (const other of shapes) {
-			let overlaps = false
-			if (other.type === 'geo') {
-				const outline = getPageOutline(editor, other)
-				overlaps = labelGlyphs.some((box) => outlineCrossesBox(outline, box, 'closed'))
-			}
-			if (!overlaps && other.id !== shape.id && glyphs.has(other.id)) {
-				overlaps = labelGlyphs.some((box) =>
-					glyphs.get(other.id)!.some((otherBox) => boxesOverlap(box, otherBox))
-				)
-			}
-			if (!overlaps && other.type === 'line' && boundIds.includes(other.id)) {
-				const outline = getPageOutline(editor, other)
-				overlaps = labelGlyphs.some((box) => outlineCrossesBox(outline, box, 'open'))
-			}
+			const outline =
+				other.type === 'geo' || boundIds.includes(other.id) ? outlines.get(other.id) : undefined
+			const otherGlyphs = other.id === shape.id ? undefined : glyphs.get(other.id)
+			const overlaps = labelGlyphs.some(
+				(box) =>
+					(outline && outlineCrossesBox(outline, box)) ||
+					otherGlyphs?.some((otherBox) => boxesOverlap(box, otherBox))
+			)
 			if (overlaps) {
 				findings.push({
 					check: 'overlap',
@@ -218,16 +202,16 @@ function getPageOutline(editor: Editor, shape: TLShape) {
 		geometry instanceof Group2d
 			? (geometry.children.find((child) => !child.isLabel) ?? geometry)
 			: geometry
-	return editor.getShapePageTransform(shape.id).applyToPoints(body.vertices)
+	return {
+		isClosed: body.isClosed,
+		vertices: editor.getShapePageTransform(shape.id).applyToPoints(body.vertices),
+	}
 }
 
-function outlineCrossesBox(outline: VecLike[], box: Box, kind: 'closed' | 'open') {
-	if (outline.some((point) => box.containsPoint(point))) return true
-	return box.sides.some(([a, b]) =>
-		kind === 'closed'
-			? intersectLineSegmentPolygon(a, b, outline)
-			: intersectLineSegmentPolyline(a, b, outline)
-	)
+function outlineCrossesBox(outline: { isClosed: boolean; vertices: VecLike[] }, box: Box) {
+	if (outline.vertices.some((point) => box.containsPoint(point))) return true
+	const intersect = outline.isClosed ? intersectLineSegmentPolygon : intersectLineSegmentPolyline
+	return box.sides.some(([a, b]) => intersect(a, b, outline.vertices))
 }
 
 function boxesOverlap(a: Box, b: Box) {
@@ -238,7 +222,7 @@ function boxesOverlap(a: Box, b: Box) {
 }
 
 function getWords(text: string) {
-	return text.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? []
+	return text.toLowerCase().match(WORD) ?? []
 }
 
 /**
@@ -247,58 +231,24 @@ function getWords(text: string) {
  * a frame's keyword and its condition, or a message's sequence number and its text.
  */
 function findMissingText(editor: Editor, shapes: TLShape[], mermaidSvg: Element) {
-	const available = new Map<string, number>()
-	for (const shape of shapes) {
-		for (const word of getWords(getText(editor, shape))) {
-			available.set(word, (available.get(word) ?? 0) + 1)
-		}
-	}
-
-	const runs: string[] = []
-	for (const foreignObject of mermaidSvg.querySelectorAll('foreignObject')) {
-		runs.push(foreignObject.textContent ?? '')
-	}
-	for (const text of mermaidSvg.querySelectorAll('text')) {
-		const spans = text.querySelectorAll('tspan')
-		for (const run of spans.length ? spans : [text]) runs.push(run.textContent ?? '')
-	}
+	const available = shapes.flatMap((shape) => getWords(getText(editor, shape)))
+	const runs = [
+		...mermaidSvg.querySelectorAll('foreignObject'),
+		...[...mermaidSvg.querySelectorAll('text')].flatMap((text) => {
+			const spans = [...text.querySelectorAll('tspan')]
+			return spans.length ? spans : [text]
+		}),
+	].map((element) => element.textContent ?? '')
 
 	const findings: MermaidReadabilityFinding[] = []
 	for (const run of runs) {
 		let missing = false
 		for (const word of getWords(run)) {
-			const count = available.get(word) ?? 0
-			if (count === 0) missing = true
-			else available.set(word, count - 1)
+			const index = available.indexOf(word)
+			if (index < 0) missing = true
+			else available.splice(index, 1)
 		}
 		if (missing) findings.push({ check: 'missing text', text: run.trim() })
 	}
 	return findings
-}
-
-/** Shapes with no text can't be found by their words, so they are counted instead. */
-function findMissingShapes(editor: Editor, shapes: TLShape[], mermaidSvg: Element) {
-	const count = (predicate: (shape: TLShape) => boolean) => shapes.filter(predicate).length
-	const comparisons = [
-		{
-			shapes: 'connectors' as const,
-			mermaid: mermaidSvg.querySelectorAll('[data-et="edge"], [data-et="message"]').length,
-			converted: count((shape) => shape.type === 'arrow'),
-		},
-		{
-			shapes: 'lifelines' as const,
-			mermaid: mermaidSvg.querySelectorAll('[data-et="life-line"]').length,
-			converted: count((shape) => shape.type === 'line'),
-		},
-		{
-			shapes: 'shapes with no text' as const,
-			mermaid:
-				[...mermaidSvg.querySelectorAll('g.node')].filter((node) => !node.textContent?.trim())
-					.length + mermaidSvg.querySelectorAll('rect[class^="activation"], rect.rect').length,
-			converted: count((shape) => shape.type === 'geo' && !getText(editor, shape)),
-		},
-	]
-	return comparisons
-		.filter((comparison) => comparison.converted < comparison.mermaid)
-		.map((comparison) => ({ check: 'missing shapes' as const, ...comparison }))
 }

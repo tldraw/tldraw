@@ -5,8 +5,9 @@ import test from '../fixtures/fixtures'
 import { setupPage } from '../shared-e2e'
 
 // Converts every diagram in the "Hundreds of Mermaid diagrams" example and compares the result with
-// mermaid's own rendering (see `src/misc/mermaidReadability.ts`). Not part of `yarn e2e`; run it with
-// `yarn e2e-mermaid-readability` from `apps/examples`.
+// mermaid's own rendering (see `src/misc/mermaidReadability.ts`). Not part of `yarn e2e`: CI runs it
+// only when mermaid conversion changes (`.github/workflows/playwright-mermaid.yml`), and locally it
+// is `yarn e2e-mermaid-readability` from `apps/examples`.
 
 // `mermaids.ts` groups its definitions by diagram type, in this order.
 const DIAGRAM_TYPES = ['flowchart', 'state', 'sequence', 'mindmap'] as const
@@ -14,6 +15,18 @@ type DiagramType = (typeof DIAGRAM_TYPES)[number]
 
 // `index` is the diagram's position within its group in `mermaids.ts`.
 type Finding = { diagram: DiagramType; index: number } & MermaidReadabilityFinding
+
+function overlap(diagram: DiagramType, index: number, label: string, over: string): Finding {
+	return { diagram, index, check: 'overlap', label, over }
+}
+
+function midWordBreak(diagram: DiagramType, index: number, label: string, word: string): Finding {
+	return { diagram, index, check: 'mid-word break', label, word }
+}
+
+function missingText(diagram: DiagramType, index: number, text: string): Finding {
+	return { diagram, index, check: 'missing text', text }
+}
 
 interface KnownProblem {
 	reason: string
@@ -28,99 +41,40 @@ const KNOWN_PROBLEMS: KnownProblem[] = [
 		reason: 'Sequence self-message labels are centered on their loop, over the lifeline',
 		issue: 10796,
 		findings: [
-			{ diagram: 'sequence', index: 6, check: 'overlap', label: 'Recompute backoff', over: 'line' },
-			{ diagram: 'sequence', index: 9, check: 'overlap', label: 'Recalculate cache', over: 'line' },
-			{
-				diagram: 'sequence',
-				index: 11,
-				check: 'overlap',
-				label: 'Apply discount',
-				over: 'opt [Promo code provided]',
-			},
-			{
-				diagram: 'sequence',
-				index: 24,
-				check: 'overlap',
-				label: '9  Apply discount rules',
-				over: 'line',
-			},
-			{
-				diagram: 'sequence',
-				index: 24,
-				check: 'overlap',
-				label: '9  Apply discount rules',
-				over: 'rectangle with no text',
-			},
-			{
-				diagram: 'sequence',
-				index: 24,
-				check: 'overlap',
-				label: '9  Apply discount rules',
-				over: 'opt [Customer included coupon]',
-			},
-			{
-				diagram: 'sequence',
-				index: 24,
-				check: 'overlap',
-				label: 'opt [Customer included coupon]',
-				over: '9  Apply discount rules',
-			},
-			{
-				diagram: 'sequence',
-				index: 25,
-				check: 'overlap',
-				label: 'Recompute eviction policy',
-				over: 'line',
-			},
-			{
-				diagram: 'sequence',
-				index: 28,
-				check: 'overlap',
-				label: 'Retry parsing malformed input',
-				over: 'line',
-			},
-			{
-				diagram: 'sequence',
-				index: 28,
-				check: 'overlap',
-				label: 'Retry parsing malformed input',
-				over: 'rectangle with no text',
-			},
-			{
-				diagram: 'sequence',
-				index: 29,
-				check: 'overlap',
-				label: 'perform an unusually long internal bookkeeping step with a very wide label',
-				over: 'line',
-			},
-			{
-				diagram: 'sequence',
-				index: 32,
-				check: 'overlap',
-				label: 'parse chunk 3 with a suspiciously long status label for layout testing',
-				over: 'line',
-			},
-			{
-				diagram: 'sequence',
-				index: 32,
-				check: 'overlap',
-				label: 'parse chunk 3 with a suspiciously long status label for layout testing',
-				over: 'rectangle with no text',
-			},
+			overlap('sequence', 6, 'Recompute backoff', 'line'),
+			overlap('sequence', 9, 'Recalculate cache', 'line'),
+			overlap('sequence', 11, 'Apply discount', 'opt [Promo code provided]'),
+			overlap('sequence', 24, '9  Apply discount rules', 'line'),
+			overlap('sequence', 24, '9  Apply discount rules', 'rectangle with no text'),
+			overlap('sequence', 24, '9  Apply discount rules', 'opt [Customer included coupon]'),
+			overlap('sequence', 24, 'opt [Customer included coupon]', '9  Apply discount rules'),
+			overlap('sequence', 25, 'Recompute eviction policy', 'line'),
+			overlap('sequence', 28, 'Retry parsing malformed input', 'line'),
+			overlap('sequence', 28, 'Retry parsing malformed input', 'rectangle with no text'),
+			overlap(
+				'sequence',
+				29,
+				'perform an unusually long internal bookkeeping step with a very wide label',
+				'line'
+			),
+			overlap(
+				'sequence',
+				32,
+				'parse chunk 3 with a suspiciously long status label for layout testing',
+				'line'
+			),
+			overlap(
+				'sequence',
+				32,
+				'parse chunk 3 with a suspiciously long status label for layout testing',
+				'rectangle with no text'
+			),
 		],
 	},
 	{
 		// Listed as a known limitation in #10773.
 		reason: 'A self-loop on the top or bottom of a narrow state node gets too little label width',
-		findings: [
-			{
-				diagram: 'state',
-				index: 21,
-				check: 'mid-word break',
-				label: 'type character',
-				word: 'charac/ter',
-			},
-		],
+		findings: [midWordBreak('state', 21, 'type character', 'charac/ter')],
 	},
 	{
 		reason:
@@ -133,31 +87,13 @@ const KNOWN_PROBLEMS: KnownProblem[] = [
 			'[Payment failed]',
 			'par [Notify customer]',
 			'[Track analytics]',
-		].map((label) => ({
-			diagram: 'sequence' as const,
-			index: 24,
-			check: 'overlap' as const,
-			label,
-			over: 'rectangle with no text',
-		})),
+		].map((label) => overlap('sequence', 24, label, 'rectangle with no text')),
 	},
 	{
 		reason: 'A note in an `option` section is drawn over the section title',
 		findings: [
-			{
-				diagram: 'sequence',
-				index: 24,
-				check: 'overlap',
-				label: '[Payment failed]',
-				over: 'Stop flow before inventory mutation',
-			},
-			{
-				diagram: 'sequence',
-				index: 24,
-				check: 'overlap',
-				label: 'Stop flow before inventory mutation',
-				over: '[Payment failed]',
-			},
+			overlap('sequence', 24, '[Payment failed]', 'Stop flow before inventory mutation'),
+			overlap('sequence', 24, 'Stop flow before inventory mutation', '[Payment failed]'),
 		],
 	},
 	{
@@ -166,16 +102,16 @@ const KNOWN_PROBLEMS: KnownProblem[] = [
 		// the bar the source asks for.
 		reason: 'Mermaid draws these forks and joins as named states',
 		findings: [
-			{ diagram: 'state', index: 11, check: 'missing text', text: 'Fork' },
-			{ diagram: 'state', index: 11, check: 'missing text', text: 'Join' },
-			{ diagram: 'state', index: 20, check: 'missing text', text: 'F' },
-			{ diagram: 'state', index: 20, check: 'missing text', text: 'J' },
+			missingText('state', 11, 'Fork'),
+			missingText('state', 11, 'Join'),
+			missingText('state', 20, 'F'),
+			missingText('state', 20, 'J'),
 		],
 	},
 ]
 
 function getKey(finding: Finding) {
-	return JSON.stringify(Object.entries(finding).sort(([a], [b]) => a.localeCompare(b)))
+	return JSON.stringify(finding, Object.keys(finding).sort())
 }
 
 test.describe('Mermaid readability', () => {
@@ -186,13 +122,19 @@ test.describe('Mermaid readability', () => {
 			test.setTimeout(120_000)
 			await setupPage(page)
 			await api.preloadFonts()
+			// A font that fails to load is swapped for a system one, whose metrics wrap text
+			// differently. That would surface below as breaks and overlaps, not as a font problem.
+			const failedFonts = await page.evaluate(() => [
+				...new Set(
+					[...document.fonts].filter((font) => font.status === 'error').map((font) => font.family)
+				),
+			])
+			expect(failedFonts).toEqual([])
 
 			const found: Finding[] = []
-			const definitions = mermaidDefinitions[group]
-			for (let index = 0; index < definitions.length; index++) {
-				for (const finding of await api.checkMermaidReadability(definitions[index])) {
-					found.push({ diagram, index, ...finding })
-				}
+			for (const [index, definition] of mermaidDefinitions[group].entries()) {
+				const findings = await api.checkMermaidReadability(definition)
+				found.push(...findings.map((finding) => ({ diagram, index, ...finding })))
 			}
 
 			const known = KNOWN_PROBLEMS.flatMap((problem) => problem.findings).filter(
