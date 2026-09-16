@@ -191,6 +191,17 @@ pattern = "staging.tldraw.com/api/*"
 zone_name = "tldraw.com"
 pattern = "staging.tldraw.com/.well-known/oauth-protected-resource/*"
 
+# The same path without the trailing slash, which the pattern above does not match. Clients fall back
+# to the bare URL when the path-derived one 404s, so without this the fallback lands on the SPA.
+[[env.staging.routes]]
+zone_name = "tldraw.com"
+pattern = "staging.tldraw.com/.well-known/oauth-protected-resource"
+
+# The MCP Server Card's `.well-known` alias, outside /api/* for the same reason as the metadata above.
+[[env.staging.routes]]
+zone_name = "tldraw.com"
+pattern = "staging.tldraw.com/.well-known/mcp/*"
+
 [[env.staging.routes]]
 custom_domain = true
 pattern = "staging-sync.tldraw.xyz"
@@ -203,6 +214,14 @@ pattern = "www.tldraw.com/api/*"
 [[env.production.routes]]
 zone_name = "tldraw.com"
 pattern = "www.tldraw.com/.well-known/oauth-protected-resource/*"
+
+[[env.production.routes]]
+zone_name = "tldraw.com"
+pattern = "www.tldraw.com/.well-known/oauth-protected-resource"
+
+[[env.production.routes]]
+zone_name = "tldraw.com"
+pattern = "www.tldraw.com/.well-known/mcp/*"
 
 [[env.production.routes]]
 custom_domain = true

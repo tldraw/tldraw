@@ -1,4 +1,4 @@
-import { act } from '@testing-library/react'
+import { act, screen } from '@testing-library/react'
 import { createShapeId, Editor, TLShapeId } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { Tldraw } from '../../lib/Tldraw'
@@ -164,19 +164,24 @@ async function setupFocusedEditor() {
 	return { editor }
 }
 
-function keydown(editor: Editor, init: KeyboardEventInit) {
-	act(() => {
-		editor
-			.getContainerDocument()
-			.body.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, ...init }))
-	})
+// The UI's shortcut listeners sit on the body, the editor's own on the container. Pass a target
+// inside the container to reach both.
+function keydown(editor: Editor, init: KeyboardEventInit, target?: Element) {
+	dispatchKey(editor, 'keydown', init, target)
 }
 
-function keyup(editor: Editor, init: KeyboardEventInit) {
+function keyup(editor: Editor, init: KeyboardEventInit, target?: Element) {
+	dispatchKey(editor, 'keyup', init, target)
+}
+
+function dispatchKey(
+	editor: Editor,
+	type: 'keydown' | 'keyup',
+	init: KeyboardEventInit,
+	target: Element = editor.getContainerDocument().body
+) {
 	act(() => {
-		editor
-			.getContainerDocument()
-			.body.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, ...init }))
+		target.dispatchEvent(new KeyboardEvent(type, { bubbles: true, ...init }))
 	})
 }
 
@@ -262,6 +267,33 @@ describe('keyboard shortcuts with a held key', () => {
 		// trigger redo rather than being blocked by the stale undo registration on `KeyZ`.
 		keydown(editor, { key: 'z', code: 'KeyZ', metaKey: true, shiftKey: true })
 		expect(editor.getCurrentPageShapeIds().has(id)).toBe(true)
+	})
+
+	it('leaves the zoom tool when z is released', async () => {
+		const { editor } = await setupFocusedEditor()
+		editor.setCurrentTool('draw')
+
+		keydown(editor, { key: 'z', code: 'KeyZ' }, editor.getContainer())
+		expect(editor.getPath()).toBe('zoom.idle')
+		keyup(editor, { key: 'z', code: 'KeyZ' }, editor.getContainer())
+		expect(editor.getPath()).toBe('draw.idle')
+	})
+
+	// The shortcut fires whatever holds focus; the editor's key events don't follow it there
+	it('leaves the zoom tool when z is released after a toolbar click', async () => {
+		const { editor } = await setupFocusedEditor()
+		const drawButton = screen.getByTestId('tools.draw')
+		act(() => {
+			drawButton.focus()
+			drawButton.click()
+		})
+		expect(editor.getCurrentToolId()).toBe('draw')
+		expect(editor.getContainerDocument().activeElement).toBe(drawButton)
+
+		keydown(editor, { key: 'z', code: 'KeyZ' }, drawButton)
+		expect(editor.getPath()).toBe('zoom.idle')
+		keyup(editor, { key: 'z', code: 'KeyZ' }, drawButton)
+		expect(editor.getPath()).toBe('draw.idle')
 	})
 })
 

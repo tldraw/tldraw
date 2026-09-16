@@ -1,6 +1,7 @@
 import type { FlowEdge, FlowSubGraph, FlowVertex } from 'mermaid/dist/diagrams/flowchart/types.js'
 import type { MindmapNode } from 'mermaid/dist/diagrams/mindmap/mindmapTypes.js'
-import type { Actor, Message } from 'mermaid/dist/diagrams/sequence/types.js'
+import type { SequenceDB } from 'mermaid/dist/diagrams/sequence/sequenceDb.d.ts'
+import type { Actor, Box, Message } from 'mermaid/dist/diagrams/sequence/types.js'
 import type { StateStmt } from 'mermaid/dist/diagrams/state/stateDb.d.ts'
 import type { DiagramMermaidBlueprint, MermaidBlueprintNode, MermaidDiagramKind } from './blueprint'
 import {
@@ -36,18 +37,20 @@ function cluster(id: string, x: number, y: number, w: number, h: number): Parsed
 }
 
 function edge(start: string, end: string, points: [number, number][]): ParsedEdge {
-	return { start, end, points: points.map(([x, y]) => ({ x, y })) }
+	return { id: `L_${start}_${end}`, start, end, points: points.map(([x, y]) => ({ x, y })) }
 }
 
 function diagramLayout(
 	nodes: ParsedNode[],
 	clusters: ParsedCluster[] = [],
-	edges: ParsedEdge[] = []
+	edges: ParsedEdge[] = [],
+	edgeLabels: ParsedDiagramLayout['edgeLabels'] = new Map()
 ): ParsedDiagramLayout {
 	return {
 		nodes: new Map(nodes.map((n) => [n.id, n])),
 		clusters: new Map(clusters.map((c) => [c.id, c])),
 		edges,
+		edgeLabels,
 	}
 }
 
@@ -278,6 +281,71 @@ describe('flowchartToBlueprint', () => {
 		expect(bp.edges[0].bend).not.toBe(0)
 	})
 
+	it('loops out of the side mermaid routed it and reaches out to its label', () => {
+		// Node spans x 60–140, y 80–120. Mermaid's loop leaves and re-enters its bottom edge, the
+		// side facing the next rank in a top-down chart, and dips 30 below it; its label is centred
+		// 45 below that edge.
+		const loopPoints: [number, number][] = [
+			[90, 120],
+			[80, 145],
+			[110, 150],
+			[120, 120],
+		]
+		const nodes = [node('B', 100, 100, 80, 40)]
+		const vertices = new Map([vertex('B')])
+		const edges = [flowEdge('B', 'B', { text: 'next page' })]
+
+		const withLabel = flowchartToBlueprint(
+			diagramLayout(
+				nodes,
+				[],
+				[edge('B', 'B', loopPoints)],
+				new Map([['L_B_B', { x: 60, y: 155, w: 80, h: 20 }]])
+			),
+			vertices,
+			edges
+		).edges[0]
+
+		// The label stays on the arrow. tldraw centres it on the middle of the arc, so the loop
+		// reaches the label's centre rather than stopping at mermaid's depth.
+		expect(withLabel.label).toBe('next page')
+		expect(withLabel.bend).toBe(45)
+		// A loop on a top or bottom edge is wider than tall, which is when tldraw wraps its label to
+		// the arrow's width; its ends spread across the edge to give the label room.
+		expect(withLabel.anchorStartY).toBe(1)
+		expect(withLabel.anchorEndY).toBe(1)
+		expect(withLabel.anchorStartX).toBeCloseTo(0.1625)
+		expect(withLabel.anchorEndX).toBeCloseTo(0.9625)
+
+		const withoutLabel = flowchartToBlueprint(
+			diagramLayout(nodes, [], [edge('B', 'B', loopPoints)]),
+			vertices,
+			edges
+		).edges[0]
+		// An edge between two shapes would get 54 here, which on a loop is needlessly deep.
+		expect(withoutLabel.bend).toBe(30)
+	})
+
+	it('leaves anchors alone on edges between two nodes', () => {
+		const labelBox = { x: 90, y: 30, w: 40, h: 20 }
+		const layout = diagramLayout(
+			[node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)],
+			[],
+			[
+				edge('A', 'B', [
+					[20, 0],
+					[180, 0],
+				]),
+			],
+			new Map([['L_A_B', labelBox]])
+		)
+		const edges = [flowEdge('A', 'B', { text: 'go' })]
+
+		const bp = flowchartToBlueprint(layout, new Map([vertex('A'), vertex('B')]), edges)
+
+		expect(bp.edges[0]).not.toHaveProperty('anchorStartX')
+	})
+
 	it('filters out edges referencing missing nodes', () => {
 		const layout = diagramLayout([node('A', 0, 0, 40, 40)])
 		const vertices = new Map([vertex('A')])
@@ -415,6 +483,37 @@ describe('stateToBlueprint', () => {
 		expectNodeGeo(findNode(bp, 'Still')!, 'rectangle', 'state')
 		expect(findNode(bp, 'Moving')!.label).toBe('Moving')
 		expect(findEdge(bp, 'Still', 'Moving')!.label).toBe('go')
+	})
+
+	it('loops out of the right edge of a left-to-right diagram, ends unspread', () => {
+		// Mermaid loops out of the right edge (x 140), 25 deep, with its label centred 60 beyond it.
+		const layout = diagramLayout(
+			[node('Review', 100, 100, 80, 40)],
+			[],
+			[
+				edge('Review', 'Review', [
+					[140, 85],
+					[165, 100],
+					[140, 115],
+				]),
+			],
+			new Map([['L_Review_Review', { x: 150, y: 90, w: 100, h: 20 }]])
+		)
+		const states = new Map([stateStmt('Review')])
+		const relations = [{ id1: 'Review', id2: 'Review', relationTitle: 'request more changes' }]
+
+		const loop = stateToBlueprint(layout, states, relations).edges[0]
+
+		// A loop on a side edge is taller than wide, so tldraw gives its label the full 16em cap and
+		// its ends stay where mermaid put them.
+		expect(loop).toMatchObject({
+			anchorStartX: 1,
+			anchorStartY: 0.125,
+			anchorEndX: 1,
+			anchorEndY: 0.875,
+			bend: -60,
+			label: 'request more changes',
+		})
 	})
 
 	it('maps start/end pseudo-states to ellipses', () => {
@@ -597,11 +696,14 @@ describe('sequenceToBlueprint', () => {
 
 	function actorLayout(
 		xs: number[],
-		noteRects: ParsedSequenceLayout['noteRects'] = []
+		noteRects: ParsedSequenceLayout['noteRects'] = [],
+		measured: Partial<Pick<ParsedSequenceLayout, 'rowYs' | 'fragmentFrames'>> = {}
 	): ParsedSequenceLayout {
 		return {
 			actorLayouts: xs.map((x) => ({ x, y: -200, w: 100, h: 50, bottomY: 200 })),
 			noteRects,
+			rowYs: measured.rowYs ?? new Map(),
+			fragmentFrames: measured.fragmentFrames ?? new Map(),
 		}
 	}
 	const twoActorLayout = () => actorLayout([-150, 150])
@@ -740,6 +842,45 @@ describe('sequenceToBlueprint', () => {
 		const sectionLabel = findNode(bp, 'fragment-0-section-1')
 		expect(sectionLabel).toBeDefined()
 		expect(sectionLabel!.label).toBe('[Credentials invalid]')
+	})
+
+	it('draws a colored rect fragment as a background so it does not hide the lifelines it spans', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('User'), actor('App')])
+		const messages = [
+			{ type: LINETYPE.RECT_START, message: 'rgb(200, 150, 255)' } as unknown as Message,
+			msg(LINETYPE.SOLID, 'User', 'App', 'Sign in'),
+			{ type: LINETYPE.RECT_END } as unknown as Message,
+		]
+
+		const bp = sequenceToBlueprint(layout, actors, ['User', 'App'], messages)
+
+		expect(findNode(bp, 'fragment-0')).toMatchObject({
+			fill: 'solid',
+			color: 'violet',
+			background: true,
+		})
+	})
+
+	it('sizes a multi-line note from its longest line', () => {
+		// Mermaid's own rect is narrow enough that the text estimate decides the width.
+		const widthOf = (message: string) => {
+			const layout = actorLayout([-150, 150], [{ x: 10, y: 50, w: 40, h: 40 }])
+			const actors = new Map([actor('Alice'), actor('John')])
+			const bp = sequenceToBlueprint(
+				layout,
+				actors,
+				['Alice', 'John'],
+				[noteMsg('Alice', message, PLACEMENT.RIGHTOF)]
+			)
+			return bp.nodes.find((n) => n.id.startsWith('note-'))!.w
+		}
+
+		// Same longest line, split three ways: measuring the whole label instead would size
+		// the second note as though all three lines ran end to end.
+		expect(widthOf('short<br/>the longest line in the note<br/>tiny')).toBe(
+			widthOf('the longest line in the note')
+		)
 	})
 
 	it('creates note nodes with yellow color and correct labels', () => {
@@ -896,6 +1037,269 @@ describe('sequenceToBlueprint', () => {
 		expect(creationEdge.endNodeId).toBe('actor-top-JobRunner')
 	})
 
+	it('gives a destroyed actor a tombstone box on the destroying row', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('Client'), actor('TempSession')])
+		const messages = [
+			{ type: LINETYPE.LOOP_START, message: 'retry' } as unknown as Message,
+			msg(LINETYPE.SOLID, 'Client', 'TempSession', 'Start temporary session'),
+			{ type: LINETYPE.LOOP_END } as unknown as Message,
+			msg(LINETYPE.DOTTED, 'TempSession', 'Client', 'Session active'),
+			msg(LINETYPE.SOLID, 'Client', 'TempSession', 'Close session'),
+		]
+		// mermaid indexes `destroy` by statement, fragments included: statement 4 is the third
+		// row, which TempSession receives.
+		const destroyedActors = new Map([['TempSession', 4]])
+
+		const bp = sequenceToBlueprint(
+			layout,
+			actors,
+			['Client', 'TempSession'],
+			messages,
+			new Map(),
+			destroyedActors
+		)
+
+		const tombstone = findNode(bp, 'actor-bottom-TempSession')!
+		expect(tombstone).toBeDefined()
+		// Centred on the third of three rows, above the surviving actor's bottom box.
+		expect(tombstone.y).toBeLessThan(findNode(bp, 'actor-bottom-Client')!.y)
+		expect(bp.groups).toContainEqual([
+			'actor-top-TempSession',
+			'lifeline-TempSession',
+			'actor-bottom-TempSession',
+		])
+
+		const lifeline = bp.lines!.find((l) => l.id === 'lifeline-TempSession')!
+		expect(lifeline.y + lifeline.endY).toBe(tombstone.y)
+
+		const destroyingEdge = bp.edges.find((e) => e.label === 'Close session')!
+		expect(destroyingEdge.endNodeId).toBe('actor-bottom-TempSession')
+	})
+
+	it('anchors messages per lifeline so shortened lifelines keep arrows level', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('Client'), actor('TempSession')])
+		// `destroy TempSession` before the second message, which TempSession sends.
+		const destroyedActors = new Map([['TempSession', 1]])
+		const messages = [
+			msg(LINETYPE.SOLID, 'Client', 'TempSession', 'Open'),
+			msg(LINETYPE.SOLID, 'TempSession', 'Client', 'Close'),
+		]
+
+		const bp = sequenceToBlueprint(
+			layout,
+			actors,
+			['Client', 'TempSession'],
+			messages,
+			new Map(),
+			destroyedActors
+		)
+
+		const client = bp.lines!.find((l) => l.id === 'lifeline-Client')!
+		const temp = bp.lines!.find((l) => l.id === 'lifeline-TempSession')!
+		const open = bp.edges.find((e) => e.label === 'Open')!
+		// The two lifelines end at different heights, so the same row has to resolve to a
+		// different fraction on each of them for the arrow to stay horizontal.
+		const startY = client.y + client.endY * open.anchorStartY!
+		const endY = temp.y + temp.endY * open.anchorEndY!
+		expect(endY).toBeCloseTo(startY)
+
+		expect(bp.edges.find((e) => e.label === 'Close')!.startNodeId).toBe('actor-bottom-TempSession')
+	})
+
+	it('ignores a destroy whose next statement is a note, as mermaid does', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('Alice'), actor('Bob')])
+		// mermaid only applies create/destroy from its signal branch, so a `destroy` recorded
+		// against a note is one it renders as though the keyword were not there.
+		const destroyedActors = new Map([['Bob', 1]])
+		const messages = [
+			msg(LINETYPE.SOLID, 'Alice', 'Bob', 'hi'),
+			noteMsg('Bob', 'cleanup', PLACEMENT.OVER),
+			msg(LINETYPE.SOLID, 'Alice', 'Bob', 'bye'),
+		]
+
+		const bp = sequenceToBlueprint(
+			layout,
+			actors,
+			['Alice', 'Bob'],
+			messages,
+			new Map(),
+			destroyedActors
+		)
+
+		expect(findNode(bp, 'actor-bottom-Bob')!.y).toBe(findNode(bp, 'actor-bottom-Alice')!.y)
+		const bye = bp.edges.find((e) => e.label === 'bye')!
+		expect(bye.endNodeId).toBe('lifeline-Bob')
+		expect(bye.anchorEndY).toBeCloseTo(bye.anchorStartY!)
+	})
+
+	it('keeps a lifeline for a participant created and destroyed a row apart', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('Alice'), actor('Tmp')])
+		// Ten rows packs them closer together than an actor box is tall, so Tmp's two boxes
+		// meet and the lifeline between them has nowhere to go.
+		const messages = Array.from({ length: 10 }, (_, i) =>
+			msg(LINETYPE.SOLID, 'Alice', 'Tmp', `m${i}`)
+		)
+
+		const bp = sequenceToBlueprint(
+			layout,
+			actors,
+			['Alice', 'Tmp'],
+			messages,
+			new Map([['Tmp', 3]]),
+			new Map([['Tmp', 4]])
+		)
+
+		// An absent lifeline shape would take every arrow bound to it down with it.
+		const lifeline = bp.lines!.find((l) => l.id === 'lifeline-Tmp')!
+		expect(lifeline).toBeDefined()
+		expect(lifeline.endY).toBeGreaterThan(0)
+		// The bottom box is pushed down with it, so it still caps the lifeline.
+		expect(lifeline.y + lifeline.endY).toBe(findNode(bp, 'actor-bottom-Tmp')!.y)
+
+		for (const edge of bp.edges) {
+			expect(edge.anchorEndY).toBeGreaterThanOrEqual(0)
+			expect(edge.anchorEndY).toBeLessThanOrEqual(1)
+		}
+	})
+
+	it('resolves one lifecycle per message, the way mermaid does', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('A'), actor('B')])
+		// `create participant B` and `destroy A` both land on the same message. Mermaid
+		// resolves the three lifecycle cases as one exclusive chain, so the creation wins
+		// and A keeps its lifeline to the foot of the diagram.
+		const messages = [msg(LINETYPE.SOLID, 'A', 'B', 'bye')]
+
+		const bp = sequenceToBlueprint(
+			layout,
+			actors,
+			['A', 'B'],
+			messages,
+			new Map([['B', 0]]),
+			new Map([['A', 0]])
+		)
+
+		const edge = bp.edges[0]
+		expect(edge.endNodeId).toBe('actor-top-B')
+		expect(edge.startNodeId).toBe('lifeline-A')
+		expect(findNode(bp, 'actor-bottom-A')!.y).toBe(twoActorLayout().actorLayouts[0].bottomY)
+	})
+
+	describe('rows measured from mermaid', () => {
+		/** Where an edge meets the lifelines it is bound to. */
+		function edgeYs(bp: DiagramMermaidBlueprint, label: string) {
+			const edge = bp.edges.find((e) => e.label === label)!
+			const lineY = (id: string, anchor: number) => {
+				const line = bp.lines!.find((l) => l.id === id)!
+				return line.y + line.endY * anchor
+			}
+			return [lineY(edge.startNodeId, edge.anchorStartY!), lineY(edge.endNodeId, edge.anchorEndY!)]
+		}
+
+		it('gives a tall note the room mermaid gave it', () => {
+			const layout = actorLayout([-150, 150], [{ x: 0, y: 0, w: 120, h: 150 }], {
+				rowYs: new Map([
+					[0, -110],
+					[1, 0],
+					[2, 110],
+				]),
+			})
+			const actors = new Map([actor('Alice'), actor('Bob')])
+			const messages = [
+				msg(LINETYPE.SOLID, 'Alice', 'Bob', 'first'),
+				noteMsg('Bob', 'a<br/>tall<br/>note', PLACEMENT.RIGHTOF),
+				msg(LINETYPE.SOLID, 'Bob', 'Alice', 'second'),
+			]
+
+			const bp = sequenceToBlueprint(layout, actors, ['Alice', 'Bob'], messages)
+
+			const note = bp.nodes.find((n) => n.id.startsWith('note-'))!
+			expect({ y: note.y, h: note.h }).toEqual({ y: -75, h: 150 })
+			// Evenly spaced rows would put both arrows inside the note's 150px.
+			edgeYs(bp, 'first').forEach((y) => expect(y).toBeCloseTo(-110))
+			edgeYs(bp, 'second').forEach((y) => expect(y).toBeCloseTo(110))
+		})
+
+		it("keeps a created and destroyed participant's boxes apart", () => {
+			const layout = actorLayout([-150, 150], [], {
+				// Mermaid pushes the rows after a lifecycle box down by half the box's height.
+				rowYs: new Map([
+					[0, -140],
+					[1, -130],
+					[2, -120],
+					[3, -80],
+					[4, 20],
+					[5, 120],
+				]),
+			})
+			const actors = new Map([actor('Alice'), actor('Tmp')])
+			const messages = Array.from({ length: 6 }, (_, i) =>
+				msg(LINETYPE.SOLID, 'Alice', 'Tmp', `m${i}`)
+			)
+
+			const bp = sequenceToBlueprint(
+				layout,
+				actors,
+				['Alice', 'Tmp'],
+				messages,
+				new Map([['Tmp', 3]]),
+				new Map([['Tmp', 4]])
+			)
+
+			// Boxes are 50px tall, centred on their rows.
+			expect(findNode(bp, 'actor-top-Tmp')!.y).toBe(-105)
+			expect(findNode(bp, 'actor-bottom-Tmp')!.y).toBe(-5)
+			const lifeline = bp.lines!.find((l) => l.id === 'lifeline-Tmp')!
+			expect({ y: lifeline.y, endY: lifeline.endY }).toEqual({ y: -55, endY: 50 })
+		})
+
+		it("draws a fragment's frame and sections where mermaid did", () => {
+			const layout = actorLayout([-150, 150], [], {
+				rowYs: new Map([
+					[0, -120],
+					[2, 0],
+					[4, 120],
+				]),
+				// Keyed by the statement that closes the fragment.
+				fragmentFrames: new Map([[5, { top: -100, bottom: 140, sectionYs: [60] }]]),
+			})
+			const actors = new Map([actor('User'), actor('App')])
+			const messages = [
+				msg(LINETYPE.SOLID, 'User', 'App', 'Sign in'),
+				{ type: LINETYPE.ALT_START, message: 'a title long enough to wrap' } as unknown as Message,
+				msg(LINETYPE.DOTTED, 'App', 'User', 'Welcome'),
+				{ type: LINETYPE.ALT_ELSE, message: 'Invalid' } as unknown as Message,
+				msg(LINETYPE.DOTTED, 'App', 'User', 'Error'),
+				{ type: LINETYPE.ALT_END } as unknown as Message,
+			]
+
+			const bp = sequenceToBlueprint(layout, actors, ['User', 'App'], messages)
+
+			const fragment = findNode(bp, 'fragment-0')!
+			expect({ y: fragment.y, h: fragment.h }).toEqual({ y: -100, h: 240 })
+			expect(bp.lines!.find((l) => l.id === 'fragment-0-sep-1')!.y).toBe(60)
+			expect(findNode(bp, 'fragment-0-section-1')!.y).toBeGreaterThan(60)
+		})
+
+		it('spaces every row evenly when mermaid did not draw one of them', () => {
+			const partlyMeasured = actorLayout([-150, 150], [], { rowYs: new Map([[0, -140]]) })
+			const actors = new Map([actor('Alice'), actor('Bob')])
+			const messages = [
+				msg(LINETYPE.SOLID, 'Alice', 'Bob', 'one'),
+				msg(LINETYPE.SOLID, 'Bob', 'Alice', 'two'),
+			]
+
+			const bp = sequenceToBlueprint(partlyMeasured, actors, ['Alice', 'Bob'], messages)
+			const even = sequenceToBlueprint(twoActorLayout(), actors, ['Alice', 'Bob'], messages)
+
+			expect(bp.edges).toEqual(even.edges)
+		})
+	})
+
 	it('maps actor types to correct geo', () => {
 		const layout = actorLayout([0])
 		const actors = new Map([actor('User', { type: 'actor' })])
@@ -904,6 +1308,150 @@ describe('sequenceToBlueprint', () => {
 		const bp = sequenceToBlueprint(layout, actors, ['User'], messages)
 
 		expectNodeGeo(findNode(bp, 'actor-top-User')!, 'ellipse', 'sequence')
+	})
+
+	describe('participant boxes', () => {
+		function participantBox(opts: Partial<Box> = {}): Box {
+			return { name: '', wrap: false, fill: 'transparent', actorKeys: [], ...opts }
+		}
+
+		function boxed(key: string, box: Box): [string, Actor] {
+			const [, a] = actor(key)
+			return [key, { ...a, box }]
+		}
+
+		const boxNodes = (bp: DiagramMermaidBlueprint) =>
+			bp.nodes.filter((n) => n.kind === 'sequence_box')
+
+		it('draws a box behind the participants it groups, with its label and color', () => {
+			// Participants are 100 wide, 200 apart, with a header row at -200 and a footer row at 200.
+			const layout = actorLayout([-450, -150, 150, 450])
+			const frontend = participantBox({ name: 'Frontend', fill: 'Purple' })
+			const backend = participantBox({ name: 'Backend' })
+			const actors = new Map([
+				boxed('A', frontend),
+				boxed('B', frontend),
+				boxed('C', backend),
+				actor('D'),
+			])
+			const messages = [msg(LINETYPE.SOLID, 'A', 'D', 'Hi')]
+
+			const bp = sequenceToBlueprint(layout, actors, ['A', 'B', 'C', 'D'], messages)
+
+			const shared = {
+				kind: 'sequence_box',
+				y: -260,
+				h: 530,
+				size: 's',
+				align: 'middle',
+				verticalAlign: 'start',
+				background: true,
+			}
+			expect(boxNodes(bp)).toEqual([
+				{
+					...shared,
+					id: 'box-0',
+					x: -490,
+					w: 480,
+					fill: 'solid',
+					color: 'violet',
+					label: 'Frontend',
+				},
+				{ ...shared, id: 'box-1', x: 110, w: 180, fill: 'none', color: 'grey', label: 'Backend' },
+			])
+			expect(bp.nodes.slice(0, 2)).toEqual(boxNodes(bp))
+			expectNodeGeo(boxNodes(bp)[0], 'rectangle', 'sequence')
+		})
+
+		it('maps the colors mermaid accepts for a box', () => {
+			const colorOf = (fill: string) => {
+				const actors = new Map([boxed('A', participantBox({ fill }))])
+				const bp = sequenceToBlueprint(actorLayout([0]), actors, ['A'], [])
+				const { fill: fillStyle, color } = boxNodes(bp)[0]
+				return { fill: fillStyle, color }
+			}
+
+			expect(colorOf('Aqua')).toEqual({ fill: 'solid', color: 'light-blue' })
+			expect(colorOf('rgb(0, 128, 0)')).toEqual({ fill: 'solid', color: 'green' })
+			expect(colorOf('rgba(255, 0, 0, 0.3)')).toEqual({ fill: 'semi', color: 'red' })
+			expect(colorOf('transparent')).toEqual({ fill: 'none', color: 'grey' })
+		})
+
+		it('reserves room for a label only when some box has one', () => {
+			const actors = new Map([boxed('A', participantBox())])
+			const bp = sequenceToBlueprint(actorLayout([0]), actors, ['A'], [])
+
+			expect(boxNodes(bp)[0].y).toBe(-220)
+		})
+
+		it('keeps neighboring boxes apart when participants are close together', () => {
+			const layout = actorLayout([0, 130])
+			const actors = new Map([boxed('A', participantBox()), boxed('B', participantBox())])
+
+			const bp = sequenceToBlueprint(layout, actors, ['A', 'B'], [])
+
+			const [left, right] = boxNodes(bp)
+			expect(left.x + left.w).toBe(110)
+			expect(right.x).toBe(120)
+		})
+
+		it('draws one box per box statement mermaid parses', async () => {
+			// Participants are grouped by the `Box` object mermaid's parser shares between them, which
+			// the tests above build by hand. Parsing real source catches a parser that stops sharing it
+			// (one box per participant) as well as grouping by name (same-named boxes merged).
+			const mermaid = (await import('mermaid')).default
+			// Registers mermaid's diagram types, as a conversion does before parsing.
+			mermaid.initialize({ startOnLoad: false })
+			const convert = async (source: string) => {
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				const db = (await mermaid.mermaidAPI.getDiagramFromText(source)).db as SequenceDB
+				const actorKeys = db.getActorKeys()
+				const bp = sequenceToBlueprint(
+					actorLayout(actorKeys.map((_, i) => i * 300)),
+					db.getActors(),
+					actorKeys,
+					db.getMessages()
+				)
+				return boxNodes(bp).map((box) => [
+					box.label,
+					actorKeys.filter((key) => {
+						const top = findNode(bp, `actor-top-${key}`)!
+						return top.x >= box.x && top.x + top.w <= box.x + box.w
+					}),
+				])
+			}
+
+			// No box colors here: mermaid only splits a color off the label with the browser's CSS
+			// parser, and jsdom's rejects mixed-case names, so `box Aqua Frontend` reads as one label.
+			expect(
+				await convert(`sequenceDiagram
+    box Frontend
+        participant A
+        participant B
+    end
+    box Backend
+        participant C
+    end
+    participant D
+    A->>D: hi`)
+			).toEqual([
+				['Frontend', ['A', 'B']],
+				['Backend', ['C']],
+			])
+
+			expect(
+				await convert(`sequenceDiagram
+    box Team
+        participant A
+    end
+    box Team
+        participant B
+    end`)
+			).toEqual([
+				['Team', ['A']],
+				['Team', ['B']],
+			])
+		})
 	})
 })
 

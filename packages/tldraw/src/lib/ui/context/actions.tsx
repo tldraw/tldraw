@@ -432,10 +432,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (editor.root.getCurrent()?.id === 'zoom') return
 
 					trackEvent('zoom-tool', { source })
-					editor.setCurrentTool('zoom', {
-						onInteractionEnd: path,
-						maskAs: 'zoom',
-					})
+					// The editor ignores keys while a button holds focus, so zoom would never see the
+					// Z key up that exits it. editor.focus() won't help: the button is already inside
+					// the container, so the editor reads as focused.
+					editor.getContainer().focus()
+					editor.setCurrentTool('zoom', { onInteractionEnd: path })
 				},
 			},
 			{

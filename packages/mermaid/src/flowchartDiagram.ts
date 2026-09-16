@@ -18,16 +18,18 @@ import {
 } from './colors'
 import {
 	buildNodeCentersFromSvg,
-	claimNearestEdgeBend,
+	claimNearestEdge,
+	getSelfLoopEdgeLayout,
 	parseAllEdgePointsFromSvg,
 	parseClustersFromSvg,
 	parseDomId,
+	parseEdgeLabelsFromSvg,
 	type ParsedDiagramLayout,
 	parseNodesFromSvg,
 	scaleLayout,
 	stripDiagramIdPrefix,
 } from './svgParsing'
-import { dropDanglingEdges, LAYOUT_SCALE, orderTopDown } from './utils'
+import { dropDanglingEdges, getArrowBend, LAYOUT_SCALE, orderTopDown } from './utils'
 
 function mapEdgeTypeToArrowhead(type: string | undefined): TLArrowShapeArrowheadStyle {
 	if (type?.includes('circle')) return 'dot'
@@ -63,8 +65,9 @@ export function parseFlowchartLayout(root: Element): ParsedDiagramLayout {
 		const match = dataId.match(/(?:^|-)L_(.+)_([^_]+)_\d+$/)
 		return match ? { start: match[1], end: match[2] } : null
 	})
-	scaleLayout(nodes, clusters, edges, LAYOUT_SCALE)
-	return { nodes, clusters, edges }
+	const layout = { nodes, clusters, edges, edgeLabels: parseEdgeLabelsFromSvg(root) }
+	scaleLayout(layout, LAYOUT_SCALE)
+	return layout
 }
 
 /** Convert a parsed Mermaid flowchart into a tldraw blueprint of nodes and edges. */
@@ -141,12 +144,17 @@ export function flowchartToBlueprint(
 	// Edges: match DB edges to SVG edges by proximity, compute bends
 	const claimed = new Set<number>()
 	for (const edge of edges) {
-		const bend = claimNearestEdgeBend(
+		const svgEdge = claimNearestEdge(
 			svgEdges,
 			claimed,
 			nodeCenters.get(edge.start),
 			nodeCenters.get(edge.end)
 		)
+		const svgNode = svgNodes.get(edge.start)
+		const selfLoop =
+			edge.start === edge.end && svgEdge && svgNode
+				? getSelfLoopEdgeLayout(svgEdge, svgNode, layout.edgeLabels)
+				: undefined
 		const cssOverrides = parseCssStyles(edge.style)
 		const arrowheadEnd = mapEdgeTypeToArrowhead(edge.type)
 
@@ -154,7 +162,8 @@ export function flowchartToBlueprint(
 			startNodeId: edge.start,
 			endNodeId: edge.end,
 			label: edge.text,
-			bend,
+			bend: svgEdge ? getArrowBend(svgEdge) : 0,
+			...selfLoop,
 			arrowheadEnd,
 			arrowheadStart: edge.type?.includes('double_arrow') ? arrowheadEnd : undefined,
 			dash: cssOverrides.dashOverride ?? (edge.stroke === 'dotted' ? 'dotted' : 'solid'),

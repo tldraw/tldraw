@@ -38,6 +38,7 @@ import {
 	TLAsset,
 	TLAssetId,
 	TLComment,
+	TLCommentReaction,
 	TLDOCUMENT_ID,
 	TLDocument,
 	TLRecord,
@@ -70,6 +71,9 @@ import {
 	outboxEntriesToClear,
 	planCommentDrain,
 	planMentionReconciles,
+	upsertCommentReactionRows,
+	upsertCommentRows,
+	upsertCommentThreadRows,
 } from './commentRows'
 import { MAX_VERIFY_KEYFRAME_BYTES, PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
@@ -101,6 +105,7 @@ import {
 } from './snapshotUtils'
 import { Analytics, DBLoadResult, Environment, McpClusterIndexKey, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
+import { arrayBufferToBase64 } from './utils/base64'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
 import { OgRenderDebouncer } from './utils/ogRenderDebounce'
@@ -223,11 +228,6 @@ function pruneUnusedAssetsForTldr(records: TLRecord[]): TLRecord[] {
 	return records.filter((r) => r.typeName !== 'asset' || usedAssets.has(r.id as TLAssetId))
 }
 
-function arrayBufferToBase64(ab: ArrayBuffer): string {
-	const bytes = new Uint8Array(ab)
-	return bytes.toBase64!()
-}
-
 const MB = 1024 * 1024
 
 // The schema for a file room. Includes the opt-in `comment` record type so comment records sync
@@ -271,6 +271,9 @@ export class TLFileDurableObject extends DurableObject {
 		// Postgres comment rows merged in; the storage routes those records into its objects
 		// partition.
 		const result = await this.loadFromDatabase(slug)
+		// Decoding a large board into SQLite is sync CPU; without this it runs under whichever
+		// network stage loadFromDatabase last set.
+		this.setBootStage('storage-load:sqlite-init')
 		const storage = new SQLiteSyncStorage<TLRecord>({
 			sql,
 			snapshot: result.snapshot,
@@ -287,7 +290,7 @@ export class TLFileDurableObject extends DurableObject {
 			throw new Error('documentInfo must be present when accessing room')
 		}
 		if (!this._storage) {
-			this.setBootStage('storage-load')
+			this.setBootStage('storage-load:sqlite-init')
 			// Kicked off here so the KV read resolves alongside the room load instead of after it.
 			this.versionChainRollout()
 			const promise = retry(() => this.loadStorage(this.documentInfo.slug), {
@@ -302,6 +305,7 @@ export class TLFileDurableObject extends DurableObject {
 					storage.transaction((txn) => {
 						fileSyncSchema.migrateStorage(txn)
 					})
+					this.setBootStage('storage-load:kv-rollout')
 					// The next persist diffs against this rather than cutting a keyframe every time the
 					// durable object wakes. It is usually what R2 holds, but not always: a previous
 					// incarnation can die with edits SQLite has and R2 does not. That is safe because the
@@ -1481,11 +1485,18 @@ export class TLFileDurableObject extends DurableObject {
 			// Clone: loadCreateSourceData can return the shared DEFAULT_INITIAL_SNAPSHOT constant
 			// and the merge mutates top-level snapshot fields.
 			const snapshot: RoomSnapshot = { ...res.snapshot }
-			mergeCommentDocumentsIntoSnapshot(snapshot, await commentsPromise)
+			mergeCommentDocumentsIntoSnapshot(snapshot, await this.awaitComments(commentsPromise))
 			res.snapshot = snapshot
 		}
 
 		return res
+	}
+
+	// The stage is set at the await, not the kickoff: the kickoff stage is overwritten by
+	// storage-load:r2 right after, so a hung Postgres dial would report as :r2 (#10746).
+	private async awaitComments(commentsPromise: Promise<CommentLoadResult>) {
+		this.setBootStage('storage-load:comments')
+		return await commentsPromise
 	}
 
 	/**
@@ -1498,6 +1509,7 @@ export class TLFileDurableObject extends DurableObject {
 		// A new workspace's first file: a fixed marker (no prefix/id) the worker resolves to the
 		// welcome template's content, or a committed default — see resolveWelcomeSnapshot.
 		if (createSource === WELCOME_CREATE_SOURCE) {
+			this.setBootStage('source-welcome')
 			return await resolveWelcomeSnapshot(this.env, (e) => this.reportError(e))
 		}
 
@@ -1536,14 +1548,19 @@ export class TLFileDurableObject extends DurableObject {
 				return text
 			}
 			case ROOM_PREFIX:
+				this.setBootStage('source-legacy')
 				return await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_WRITE)
 			case READ_ONLY_PREFIX:
+				this.setBootStage('source-legacy')
 				return await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_ONLY)
 			case READ_ONLY_LEGACY_PREFIX:
+				this.setBootStage('source-legacy')
 				return await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_ONLY_LEGACY)
 			case SNAPSHOT_PREFIX:
+				this.setBootStage('source-legacy')
 				return await getLegacyRoomData(this.env, id, 'snapshot')
 			case PUBLISH_PREFIX:
+				this.setBootStage('source-published')
 				return await getPublishedRoomSnapshot(this.env, id)
 			case LOCAL_FILE_PREFIX:
 				// create empty room, the client will populate it
@@ -1569,6 +1586,7 @@ export class TLFileDurableObject extends DurableObject {
 
 			// when loading, prefer to fetch documents from the bucket
 			const r2FetchTimer = this.timer()
+			this.setBootStage('storage-load:r2')
 			const roomFromBucket = await this.r2.rooms.get(key)
 			r2FetchTimer.report('db_load_r2_fetch')
 
@@ -1581,7 +1599,7 @@ export class TLFileDurableObject extends DurableObject {
 				// room open (bubbling like an R2 failure) — silently opening without comments would
 				// let the next persist treat them as deleted.
 				if (commentsPromise) {
-					mergeCommentDocumentsIntoSnapshot(snapshot, await commentsPromise)
+					mergeCommentDocumentsIntoSnapshot(snapshot, await this.awaitComments(commentsPromise))
 				}
 
 				loadTimer.report('db_load_total')
@@ -1600,6 +1618,7 @@ export class TLFileDurableObject extends DurableObject {
 
 			if (this.documentInfo.isApp) {
 				// finally check whether the file exists in the DB but not in R2 yet
+				this.setBootStage('storage-load:file-record')
 				const file = await this.getAppFileRecord()
 
 				if (!file) {
@@ -1617,14 +1636,15 @@ export class TLFileDurableObject extends DurableObject {
 					return res
 				}
 
-				loadTimer.report('db_load_total')
-
 				// Comments can exist in Postgres before the first throttled R2 persist ever runs
 				// (e.g. DO SQLite lost right after commenting on a fresh file), so rehydrate them
 				// here too. Clone the shared DEFAULT_INITIAL_SNAPSHOT constant — the merge reassigns
 				// `documents` and clamps clocks, and must not mutate the module-level object.
 				const snapshot: RoomSnapshot = { ...DEFAULT_INITIAL_SNAPSHOT }
-				mergeCommentDocumentsIntoSnapshot(snapshot, await assertExists(commentsPromise))
+				const comments = await this.awaitComments(assertExists(commentsPromise))
+				mergeCommentDocumentsIntoSnapshot(snapshot, comments)
+
+				loadTimer.report('db_load_total')
 
 				return {
 					snapshot,
@@ -1639,6 +1659,7 @@ export class TLFileDurableObject extends DurableObject {
 			}
 
 			const supabaseFetchTimer = this.timer()
+			this.setBootStage('storage-load:supabase')
 			const { data, error } = await supabaseClient
 				.from(this.supabaseTable)
 				.select('*')
@@ -1679,11 +1700,15 @@ export class TLFileDurableObject extends DurableObject {
 
 	private async loadCommentsFromPostgres(): Promise<CommentLoadResult> {
 		const fileId = this.documentInfo.slug
+		// Timed here rather than at the merge-point await so the event is query latency, not the
+		// residual wait after the overlapping R2 fetch (which would read ~0 whenever R2 is slower).
+		const commentsTimer = this.timer()
 		const [threadRows, commentRows, reactionRows] = await Promise.all([
 			this.db.selectFrom('comment_thread').where('fileId', '=', fileId).selectAll().execute(),
 			this.db.selectFrom('comment').where('fileId', '=', fileId).selectAll().execute(),
 			this.db.selectFrom('comment_reaction').where('fileId', '=', fileId).selectAll().execute(),
 		])
+		commentsTimer.report('db_load_comments')
 		// Soft-deleted threads and their comments never re-enter a room, and neither do reactions
 		// whose comment doesn't; their rows stay in Postgres only (see liveCommentDocuments).
 		return liveCommentDocuments(threadRows, commentRows, reactionRows)
@@ -2427,6 +2452,38 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	/**
+	 * Of a drain's planned mention reconciles, the ones whose comment this file actually owns.
+	 *
+	 * The comment upserts are fileId-guarded, so a record pushed under an id Postgres attributes to
+	 * another file updates nothing — but it does so without erroring, so it still arrives here as a
+	 * reconcile target. comment_mention is keyed on commentId alone, so reconciling one of those
+	 * would rewrite the owning file's mention rows: the very thing the guard prevented on the comment
+	 * row itself. A clock-guarded no-op replay still owns its comment, so filtering here can't strand
+	 * a reconcile that an earlier crashed drain left undone.
+	 */
+	private async keepOwnedMentionReconciles<T extends { commentId: string }>(
+		reconciles: T[],
+		fileId: string
+	): Promise<T[]> {
+		if (reconciles.length === 0) return reconciles
+		const owned = new Set(
+			(
+				await this.db
+					.selectFrom('comment')
+					.select('id')
+					.where(
+						'id',
+						'in',
+						reconciles.map((r) => r.commentId)
+					)
+					.where('fileId', '=', fileId)
+					.execute()
+			).map((row) => row.id)
+		)
+		return reconciles.filter((r) => owned.has(r.commentId))
+	}
+
+	/**
 	 * Push every outboxed record's current state to Postgres. The outbox stores only ids; whether
 	 * an id is an upsert or a delete is decided by its presence in the object lane at drain time
 	 * (see planCommentDrain), so multiple edits coalesce and a create-then-delete nets out to a
@@ -2466,6 +2523,18 @@ export class TLFileDurableObject extends DurableObject {
 						.map((doc) => [doc.state.id as string, doc])
 				)
 				const fileId = this.documentInfo.slug
+				// planCommentDrain checks each outboxed reaction's parent comment against the lane, and
+				// a parent needn't be outboxed itself (reacting doesn't touch the comment) — so fetch
+				// those too, still before any await.
+				const parentCommentIds = new Set<string>()
+				for (const doc of lane.values()) {
+					if (!isCommentReactionId(doc.state.id as string)) continue
+					const { commentId } = doc.state as TLCommentReaction
+					if (commentId && !lane.has(commentId)) parentCommentIds.add(commentId)
+				}
+				for (const doc of storage.getObjectsByIds(parentCommentIds)) {
+					lane.set(doc.state.id as string, doc)
+				}
 
 				const {
 					threadUpserts,
@@ -2475,6 +2544,7 @@ export class TLFileDurableObject extends DurableObject {
 					commentDeletes,
 					reactionDeletes,
 					unknownIds,
+					orphanedReactionIds,
 				} = planCommentDrain(entries, lane, fileId)
 				// The prune predicate below asks `lane.has(threadId)`, and a parent thread needn't be
 				// outboxed itself — so fetch those too, still before any await.
@@ -2485,6 +2555,17 @@ export class TLFileDurableObject extends DurableObject {
 				for (const doc of storage.getObjectsByIds(parentThreadIds)) {
 					lane.set(doc.state.id as string, doc)
 				}
+				if (orphanedReactionIds.length > 0) {
+					// The parent comment isn't in this room, so the reaction can never render here — and
+					// must not reach Postgres under this file's id, because comment_reaction is joined to
+					// a comment by commentId, so the row would surface on whichever file does own that
+					// comment. Prune it from the lane the way an FK-violating reaction prunes below; its
+					// outbox entry clears normally, since neither a deleted parent nor a forged one
+					// resolves on a retry.
+					storage.transaction((txn) => {
+						for (const id of orphanedReactionIds) txn.delete(id as TLRecord['id'])
+					})
+				}
 				for (const id of unknownIds) {
 					// enqueueCommentChanges only writes comment record ids, so an unknown
 					// id means a bug or a corrupted outbox row. Skip it — its entry still clears
@@ -2492,74 +2573,14 @@ export class TLFileDurableObject extends DurableObject {
 					this.reportError(new Error(`comment outbox: unknown record id ${JSON.stringify(id)}`))
 				}
 
+				// The upsert builders live in commentRows.ts, where the fileId conflict guard they all
+				// carry is documented and unit-tested against the compiled SQL.
 				const insertThreadRows = (rows: DB['comment_thread'][]) =>
-					this.db
-						.insertInto('comment_thread')
-						.values(rows)
-						.onConflict((oc) =>
-							oc
-								.column('id')
-								.doUpdateSet((eb) => ({
-									pageId: eb.ref('excluded.pageId'),
-									anchor: eb.ref('excluded.anchor'),
-									shapeId: eb.ref('excluded.shapeId'),
-									resolvedAt: eb.ref('excluded.resolvedAt'),
-									resolvedBy: eb.ref('excluded.resolvedBy'),
-									isDeleted: eb.ref('excluded.isDeleted'),
-									meta: eb.ref('excluded.meta'),
-									lastChangedClock: eb.ref('excluded.lastChangedClock'),
-								}))
-								.whereRef('comment_thread.lastChangedClock', '<', 'excluded.lastChangedClock')
-						)
-						.execute()
-				// "createdAt" is deliberately absent from the update set: Postgres stamps it on first
-				// insert (migration 046) and the stamp must survive at-least-once replays and edits.
-				// stamp_comment_created_at.test.ts exercises this conflict shape — keep them in sync.
+					upsertCommentThreadRows(this.db, rows).execute()
 				const insertCommentRows = (rows: DB['comment'][]) =>
-					this.db
-						.insertInto('comment')
-						.values(rows)
-						.onConflict((oc) =>
-							oc
-								.column('id')
-								.doUpdateSet((eb) => ({
-									threadId: eb.ref('excluded.threadId'),
-									pageId: eb.ref('excluded.pageId'),
-									body: eb.ref('excluded.body'),
-									editedAt: eb.ref('excluded.editedAt'),
-									isDeleted: eb.ref('excluded.isDeleted'),
-									// excluded.* has been through the BEFORE INSERT stamp trigger, which
-									// lifts updatedAt to the (server) attempt stamp — so this can never
-									// regress updatedAt below the row's createdAt
-									updatedAt: eb.ref('excluded.updatedAt'),
-									meta: eb.ref('excluded.meta'),
-									lastChangedClock: eb.ref('excluded.lastChangedClock'),
-								}))
-								.whereRef('comment.lastChangedClock', '<', 'excluded.lastChangedClock')
-						)
-						.execute()
-				// Re-reacting with a different emoji addresses the same record id (the id is derived
-				// from the comment + user pair), so it arrives here as a conflict on id — every
-				// mutable column has to be listed or the change would be silently dropped.
+					upsertCommentRows(this.db, rows).execute()
 				const insertReactionRows = (rows: DB['comment_reaction'][]) =>
-					this.db
-						.insertInto('comment_reaction')
-						.values(rows)
-						.onConflict((oc) =>
-							oc
-								.column('id')
-								.doUpdateSet((eb) => ({
-									commentId: eb.ref('excluded.commentId'),
-									threadId: eb.ref('excluded.threadId'),
-									pageId: eb.ref('excluded.pageId'),
-									emoji: eb.ref('excluded.emoji'),
-									createdAt: eb.ref('excluded.createdAt'),
-									meta: eb.ref('excluded.meta'),
-									lastChangedClock: eb.ref('excluded.lastChangedClock'),
-								}))
-								.whereRef('comment_reaction.lastChangedClock', '<', 'excluded.lastChangedClock')
-						)
-						.execute()
+					upsertCommentReactionRows(this.db, rows).execute()
 
 				// Thread upserts before comment upserts (comment.threadId FK); comment deletes
 				// before thread deletes is not required (thread deletes cascade), but keep the
@@ -2620,6 +2641,7 @@ export class TLFileDurableObject extends DurableObject {
 						.updateTable('comment')
 						.set({ isDeleted: true })
 						.where('id', 'in', commentDeletes)
+						.where('fileId', '=', fileId)
 						.returning('threadId')
 						.execute()
 					deletedCommentThreadIds = new Set(deletedRows.map((row) => row.threadId))
@@ -2708,7 +2730,11 @@ export class TLFileDurableObject extends DurableObject {
 				// Un-reacting removes the record, so a lane-absent reaction is a real delete — unlike
 				// comments and threads, reactions have no soft-delete recovery story of their own.
 				if (reactionDeletes.length > 0) {
-					await this.db.deleteFrom('comment_reaction').where('id', 'in', reactionDeletes).execute()
+					await this.db
+						.deleteFrom('comment_reaction')
+						.where('id', 'in', reactionDeletes)
+						.where('fileId', '=', fileId)
+						.execute()
 				}
 				// Lane-absent threads get the stamp treatment: stamp, never delete — a hard delete
 				// would FK-cascade any soft-deleted comment rows still hanging off the thread,
@@ -2720,6 +2746,7 @@ export class TLFileDurableObject extends DurableObject {
 						.updateTable('comment_thread')
 						.set({ isDeleted: true })
 						.where('id', 'in', threadDeletes)
+						.where('fileId', '=', fileId)
 						.execute()
 				}
 
@@ -2735,58 +2762,71 @@ export class TLFileDurableObject extends DurableObject {
 				//
 				// On top of the idempotency, the reconciles share one multi-comment delete and one
 				// multi-row insert per drain instead of paying 1-2 sequential statements per comment.
-				const mentionReconciles = planMentionReconciles(
+				const plannedReconciles = planMentionReconciles(
 					commentUpserts.filter(
 						(row) => !failedIds.has(row.id) && !commentResult.prunedIds.includes(row.id)
 					)
 				)
-				if (mentionReconciles.length > 0) {
-					const changedCommentIds = mentionReconciles.map((r) => r.commentId)
-					const desiredRows = mentionReconciles.flatMap(({ commentId, userIds }) =>
-						userIds.map((userId) => ({ commentId, userId }))
-					)
+				if (plannedReconciles.length > 0) {
+					// What the catch below marks failed. Resolving ownership is itself fallible, so this
+					// has to name every planned comment, not just the ones that turn out to be ours.
+					const changedCommentIds = plannedReconciles.map((r) => r.commentId)
 					const mentionFailedIds = new Set<string>()
 					try {
-						// One statement drops every stale row across the batch: rows belonging to a
-						// reconciling comment whose desired set no longer contains them. Comments whose
-						// set emptied contribute no desired pair, so all their rows qualify.
-						let deleteStale = this.db
-							.deleteFrom('comment_mention')
-							.where('commentId', 'in', changedCommentIds)
-						if (desiredRows.length > 0) {
-							deleteStale = deleteStale.where((eb) =>
-								eb(
-									eb.refTuple('commentId', 'userId'),
-									'not in',
-									desiredRows.map((row) => eb.tuple(row.commentId, row.userId))
+						// Inside the try: a transient failure here fails these comments and lets the next
+						// drain retry them. Outside it, it would throw past the prunes, the emptied-thread
+						// re-outboxing and the outbox clear below, stranding a whole drain's bookkeeping
+						// over one record's worth of trouble.
+						const mentionReconciles = await this.keepOwnedMentionReconciles(
+							plannedReconciles,
+							fileId
+						)
+						const ownedCommentIds = mentionReconciles.map((r) => r.commentId)
+						const desiredRows = mentionReconciles.flatMap(({ commentId, userIds }) =>
+							userIds.map((userId) => ({ commentId, userId }))
+						)
+						if (ownedCommentIds.length > 0) {
+							// One statement drops every stale row across the batch: rows belonging to a
+							// reconciling comment whose desired set no longer contains them. Comments whose
+							// set emptied contribute no desired pair, so all their rows qualify.
+							let deleteStale = this.db
+								.deleteFrom('comment_mention')
+								.where('commentId', 'in', ownedCommentIds)
+							if (desiredRows.length > 0) {
+								deleteStale = deleteStale.where((eb) =>
+									eb(
+										eb.refTuple('commentId', 'userId'),
+										'not in',
+										desiredRows.map((row) => eb.tuple(row.commentId, row.userId))
+									)
 								)
-							)
-						}
-						await deleteStale.execute()
-						if (desiredRows.length > 0) {
-							try {
-								await this.db
-									.insertInto('comment_mention')
-									.values(desiredRows)
-									.onConflict((oc) => oc.columns(['commentId', 'userId']).doNothing())
-									.execute()
-							} catch (batchError) {
-								if (!isCommentMentionFkViolation(batchError)) throw batchError
-								// One row's FK failure aborts the whole batch insert; retry row-by-row so
-								// the valid mentions land and only the FK-violating ones are skipped.
-								for (const row of desiredRows) {
-									try {
-										await this.db
-											.insertInto('comment_mention')
-											.values(row)
-											.onConflict((oc) => oc.columns(['commentId', 'userId']).doNothing())
-											.execute()
-									} catch (rowError) {
-										if (!isCommentMentionFkViolation(rowError)) {
-											// A non-FK row failure fails only its own comment — the rest of
-											// the batch keeps its at-least-once progress.
-											mentionFailedIds.add(row.commentId)
-											this.reportError(rowError)
+							}
+							await deleteStale.execute()
+							if (desiredRows.length > 0) {
+								try {
+									await this.db
+										.insertInto('comment_mention')
+										.values(desiredRows)
+										.onConflict((oc) => oc.columns(['commentId', 'userId']).doNothing())
+										.execute()
+								} catch (batchError) {
+									if (!isCommentMentionFkViolation(batchError)) throw batchError
+									// One row's FK failure aborts the whole batch insert; retry row-by-row so
+									// the valid mentions land and only the FK-violating ones are skipped.
+									for (const row of desiredRows) {
+										try {
+											await this.db
+												.insertInto('comment_mention')
+												.values(row)
+												.onConflict((oc) => oc.columns(['commentId', 'userId']).doNothing())
+												.execute()
+										} catch (rowError) {
+											if (!isCommentMentionFkViolation(rowError)) {
+												// A non-FK row failure fails only its own comment — the rest of
+												// the batch keeps its at-least-once progress.
+												mentionFailedIds.add(row.commentId)
+												this.reportError(rowError)
+											}
 										}
 									}
 								}
