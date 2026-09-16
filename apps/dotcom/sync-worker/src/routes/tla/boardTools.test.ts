@@ -178,6 +178,23 @@ describe('parseSearchBoardsInput', () => {
 		)
 	})
 
+	// The digit check admits any run of digits, including one past MAX_SAFE_INTEGER. That binds as an
+	// out-of-range int8 and makes Postgres throw, so caller garbage would reach a model as "the board
+	// database could not be reached" rather than as a bad cursor. This is the case
+	// `Number.isSafeInteger` is there for: `1e300` is refused a line earlier, for not being digits.
+	it('refuses an all-digit timestamp too large to be a safe integer', () => {
+		expect(() => parseSearchBoardsInput({ cursor: btoa('99999999999999999999:board-1:') })).toThrow(
+			'cursor is not valid'
+		)
+	})
+
+	// The id half is what makes "where the page ended" a single point rather than a range. Empty, the
+	// cursor would seek on createdAt alone, and every board sharing that timestamp would be re-served
+	// or skipped at the boundary.
+	it('refuses a cursor with an empty id half', () => {
+		expect(() => parseSearchBoardsInput({ cursor: btoa('1::') })).toThrow('cursor is not valid')
+	})
+
 	// Every other string form `Number()` coerces to a finite value but a plain-digit timestamp
 	// never is.
 	it.each(['1e3', ' 5', '+5', 'Infinity'])(

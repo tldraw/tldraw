@@ -222,9 +222,11 @@ function parseBoardSearchCursor(value: unknown, terms: string[]): BoardSearchCur
 			'cursor is from a different query. Repeat the query it came from, or omit the cursor to start this one from its first page.'
 		)
 	}
-	// `Number.isSafeInteger`, not `Number.isInteger`: the latter accepts `1e300`, which binds as an
-	// out-of-range int8 and makes Postgres throw, so caller garbage would reach a model as "the board
-	// database could not be reached" rather than as a bad cursor.
+	// `Number.isSafeInteger`, not `Number.isInteger`: an all-digit timestamp past MAX_SAFE_INTEGER
+	// passes the check above, then binds as an out-of-range int8 and makes Postgres throw, so caller
+	// garbage would reach a model as "the board database could not be reached" rather than as a bad
+	// cursor. An empty id is refused here too: it would seek on `createdAt` alone, re-serving or
+	// skipping every board that shares it.
 	if (!Number.isSafeInteger(createdAt) || id.length === 0) throw invalid
 	return { createdAt, id }
 }
