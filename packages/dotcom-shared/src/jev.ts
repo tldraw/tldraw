@@ -142,7 +142,7 @@ export function getJevChoices(): Record<string, string> {
 				.map((value) => [`style:${style}:${value}`, `Set next-shape ${style} to ${value}`])
 		),
 	])
-	console.warn('jev choiced', jevChoices)
+	console.warn('jev choices', jevChoices)
 	return jevChoices
 }
 
