@@ -602,6 +602,8 @@ describe('search_boards', () => {
 	const ROW = {
 		id: 'board-1',
 		name: 'Roadmap',
+		// A board the caller made: arrival and creation are the same moment.
+		arrivedAt: 1_700_000_000_000,
 		createdAt: 1_700_000_000_000,
 		updatedAt: 1_700_000_500_000,
 		workspaceName: 'My workspace',
@@ -634,7 +636,7 @@ describe('search_boards', () => {
 		await callTool('search_boards', { cursor: btoa('1700000000000:board-9:') })
 		expect(searchAccessibleBoards).toHaveBeenCalledWith(expect.anything(), expect.any(String), {
 			terms: [],
-			cursor: { createdAt: 1_700_000_000_000, id: 'board-9' },
+			cursor: { arrivedAt: 1_700_000_000_000, id: 'board-9' },
 		})
 	})
 

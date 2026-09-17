@@ -125,15 +125,16 @@ export const BOARD_SEARCH_MAX_TERMS = 8
 /**
  * Where a page of search results ended: the sort key of its last row.
  *
- * Both halves are needed. `createdAt` is not unique — boards created in one batch share one — so
+ * Both halves are needed. `arrivedAt` is not unique — boards created in one batch share one — so
  * `id` is the tiebreaker that makes "where the page ended" a single point rather than a range.
  */
 export interface BoardSearchCursor {
 	/**
-	 * When the board was created. Immutable, which is what a keyset cursor needs; `searchBoards.ts`
-	 * says why, and mirrors this ordering in SQL.
+	 * When the board entered this caller's list: created in one of their workspaces, moved into one,
+	 * or opened by them through a share link. Immutable whichever way it arrived, which is what a
+	 * keyset cursor needs; `searchBoards.ts` says why, and reads it from a different column per case.
 	 */
-	createdAt: number
+	arrivedAt: number
 	id: string
 }
 
@@ -205,7 +206,7 @@ function parseBoardSearchCursor(value: unknown, terms: string[]): BoardSearchCur
 	// only ever writes a non-negative safe integer's `toString()`, which is always plain digits, so
 	// this cannot reject a cursor this server minted.
 	if (!/^\d+$/.test(timestampPart)) throw invalid
-	const createdAt = Number(timestampPart)
+	const arrivedAt = Number(timestampPart)
 	let id: string
 	let query: string
 	try {
@@ -225,10 +226,10 @@ function parseBoardSearchCursor(value: unknown, terms: string[]): BoardSearchCur
 	// `Number.isSafeInteger`, not `Number.isInteger`: an all-digit timestamp past MAX_SAFE_INTEGER
 	// passes the check above, then binds as an out-of-range int8 and makes Postgres throw, so caller
 	// garbage would reach a model as "the board database could not be reached" rather than as a bad
-	// cursor. An empty id is refused here too: it would seek on `createdAt` alone, re-serving or
+	// cursor. An empty id is refused here too: it would seek on `arrivedAt` alone, re-serving or
 	// skipping every board that shares it.
-	if (!Number.isSafeInteger(createdAt) || id.length === 0) throw invalid
-	return { createdAt, id }
+	if (!Number.isSafeInteger(arrivedAt) || id.length === 0) throw invalid
+	return { arrivedAt, id }
 }
 
 // Opaque on purpose: a model should only ever hand back a cursor it was given, which leaves the
@@ -241,7 +242,7 @@ function parseBoardSearchCursor(value: unknown, terms: string[]): BoardSearchCur
 // throw here — and this is what keeps them round-tripping.
 function encodeBoardSearchCursor(cursor: BoardSearchCursor, terms: string[]): string {
 	return btoa(
-		`${cursor.createdAt}:${encodeURIComponent(cursor.id)}:${encodeURIComponent(normalizeSearchQuery(terms))}`
+		`${cursor.arrivedAt}:${encodeURIComponent(cursor.id)}:${encodeURIComponent(normalizeSearchQuery(terms))}`
 	)
 }
 
@@ -395,6 +396,8 @@ export function toolJsonResult(value: unknown): ToolResult {
 /** One board as the search query returns it, before it is shaped for the model. */
 export interface BoardSearchRow extends BoardSearchCursor {
 	name: string
+	/** When the board itself was made. Reported to the model, but never the sort key — see `arrivedAt`. */
+	createdAt: number
 	/** When the board's row last changed, by anyone — not per-caller, and not the sort key. */
 	updatedAt: number
 	/**
@@ -407,8 +410,12 @@ export interface BoardSearchRow extends BoardSearchCursor {
 }
 
 /**
- * The order search results come back in: newest-created board first, `id` descending to break the
- * ties `createdAt` leaves.
+ * The order search results come back in: most recently arrived board first, `id` descending to break
+ * the ties `arrivedAt` leaves.
+ *
+ * "Arrived", not "created", so a board somebody shared with you this morning leads the list rather
+ * than sorting by when its owner happened to make it — which for a long-lived board buries it under
+ * everything you have made since.
  *
  * The single statement of that rule. `searchBoards.ts` mirrors it in SQL because Postgres does the
  * real ordering, and the eval harness pages through fixtures with this one — if the two disagree,
@@ -417,7 +424,7 @@ export interface BoardSearchRow extends BoardSearchCursor {
  * and `-` of a tldraw id differently, and the two mirrors would silently part company.
  */
 export function compareBoardSearchOrder(a: BoardSearchCursor, b: BoardSearchCursor): number {
-	if (a.createdAt !== b.createdAt) return b.createdAt - a.createdAt
+	if (a.arrivedAt !== b.arrivedAt) return b.arrivedAt - a.arrivedAt
 	return a.id < b.id ? 1 : a.id > b.id ? -1 : 0
 }
 
@@ -460,6 +467,8 @@ export function getBoardSearchResults(rows: BoardSearchRow[], terms: string[]): 
 			// only spaces reads as the absence it is.
 			name: row.name.trim(),
 			// The key the results are sorted by, so a model can see the order rather than guess at it.
+			// Equal to createdAt for a board this account made, and later for one it was shared.
+			addedAt: new Date(row.arrivedAt).toISOString(),
 			createdAt: new Date(row.createdAt).toISOString(),
 			updatedAt: new Date(row.updatedAt).toISOString(),
 			source: row.isPersonal ? 'owned' : 'workspace',
@@ -800,7 +809,7 @@ function getSearchBoardsToolDefinition() {
 	return {
 		name: SEARCH_BOARDS_TOOL_NAME,
 		title: 'Search tldraw boards',
-		description: `Find tldraw.com boards by name: the boards in this account's own workspace, and the boards owned by the workspaces it belongs to. Every term in the query must appear somewhere in the board name, in any order, ignoring case. Search for the distinctive words, not a whole title: a query of more than ${BOARD_SEARCH_MAX_TERMS} words, or longer than ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters, is rejected. Omit the query to list your newest boards. Results are ordered newest-created first, reported per board as createdAt. updatedAt is a different thing: when the board itself last changed, by anyone — so an old board can have been edited today, and a board created today may never have been touched since. Returns up to ${BOARD_SEARCH_PAGE_SIZE} boards, each with a boardId that get_board_info and the other tools take. If the result carries a nextCursor there are more boards: call again with the same query and that cursor to get the next page — a cursor only continues the query that produced it. A board with no name comes back with name empty: tldraw.com titles those by their creation date, so no name query can find them — reach them by listing with no query. Matching no boards is a normal empty result, not an error.`,
+		description: `Find tldraw.com boards by name: the boards in this account's own workspace, the boards owned by the workspaces it belongs to, and the boards shared with it by link that it has opened. Every term in the query must appear somewhere in the board name, in any order, ignoring case. Search for the distinctive words, not a whole title: a query of more than ${BOARD_SEARCH_MAX_TERMS} words, or longer than ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters, is rejected. Omit the query to list the boards that reached you most recently. Results are ordered by addedAt — when a board joined this account's boards, which is when it was created for its own boards and when the share link was first opened for shared ones — so a board shared this morning leads the list however old it is. createdAt is when the board itself was made, and updatedAt when it last changed, by anyone: an old board can have been edited today, and a board created today may never have been touched since. Returns up to ${BOARD_SEARCH_PAGE_SIZE} boards, each with a boardId that get_board_info and the other tools take. If the result carries a nextCursor there are more boards: call again with the same query and that cursor to get the next page — a cursor only continues the query that produced it. A board with no name comes back with name empty: tldraw.com titles those by their creation date, so no name query can find them — reach them by listing with no query. Matching no boards is a normal empty result, not an error.`,
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,

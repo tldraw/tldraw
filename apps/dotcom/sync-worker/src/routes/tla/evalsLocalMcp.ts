@@ -152,6 +152,10 @@ async function callFixtureTool(
 					.map(([id, board], index) => ({
 						id,
 						name: getDocumentNameFromSnapshot(board.snapshot) ?? '',
+						// A fixture session is the caller's own account, so every board arrived by being
+						// made here — the two timestamps are the same value, exactly as `createFile` writes
+						// them in production.
+						arrivedAt: fixtureTimestamp(index),
 						createdAt: fixtureTimestamp(index),
 						updatedAt: fixtureTimestamp(index),
 						workspaceName: '',

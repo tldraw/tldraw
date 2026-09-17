@@ -19,6 +19,8 @@ function makeRow(overrides: Partial<BoardSearchRow> = {}): BoardSearchRow {
 	return {
 		id: 'board-1',
 		name: 'Roadmap',
+		// A board the caller made: arrival and creation are the same moment.
+		arrivedAt: 1_700_000_000_000,
 		createdAt: 1_700_000_000_000,
 		updatedAt: 1_700_000_500_000,
 		workspaceName: 'Design',
@@ -29,7 +31,11 @@ function makeRow(overrides: Partial<BoardSearchRow> = {}): BoardSearchRow {
 
 function makePage(count: number): BoardSearchRow[] {
 	return Array.from({ length: count }, (_, index) =>
-		makeRow({ id: `board-${index}`, createdAt: 1_700_000_000_000 - index })
+		makeRow({
+			id: `board-${index}`,
+			arrivedAt: 1_700_000_000_000 - index,
+			createdAt: 1_700_000_000_000 - index,
+		})
 	)
 }
 
@@ -89,7 +95,7 @@ describe('parseSearchBoardsInput', () => {
 	it('round-trips a cursor from a previous result', () => {
 		const first = parsedJson(getBoardSearchResults(makePage(BOARD_SEARCH_PAGE_SIZE + 1), []))
 		expect(parseSearchBoardsInput({ cursor: first.nextCursor }).cursor).toEqual({
-			createdAt: 1_700_000_000_000 - (BOARD_SEARCH_PAGE_SIZE - 1),
+			arrivedAt: 1_700_000_000_000 - (BOARD_SEARCH_PAGE_SIZE - 1),
 			id: `board-${BOARD_SEARCH_PAGE_SIZE - 1}`,
 		})
 	})
@@ -137,7 +143,7 @@ describe('parseSearchBoardsInput', () => {
 		rows[BOARD_SEARCH_PAGE_SIZE - 1] = { ...rows[BOARD_SEARCH_PAGE_SIZE - 1], id: 'brädå:1' }
 		const result = parsedJson(getBoardSearchResults(rows, []))
 		expect(parseSearchBoardsInput({ cursor: result.nextCursor }).cursor).toEqual({
-			createdAt: 1_700_000_000_000 - (BOARD_SEARCH_PAGE_SIZE - 1),
+			arrivedAt: 1_700_000_000_000 - (BOARD_SEARCH_PAGE_SIZE - 1),
 			id: 'brädå:1',
 		})
 	})
@@ -212,7 +218,7 @@ describe('parseSearchBoardsInput', () => {
 describe('compareBoardSearchOrder', () => {
 	it('puts the newest-created board first', () => {
 		expect(
-			compareBoardSearchOrder({ createdAt: 2, id: 'a' }, { createdAt: 1, id: 'a' })
+			compareBoardSearchOrder({ arrivedAt: 2, id: 'a' }, { arrivedAt: 1, id: 'a' })
 		).toBeLessThan(0)
 	})
 
@@ -220,31 +226,40 @@ describe('compareBoardSearchOrder', () => {
 	// say where a page ended inside that group.
 	it('breaks a tie on id, descending', () => {
 		expect(
-			compareBoardSearchOrder({ createdAt: 0, id: 'b' }, { createdAt: 0, id: 'a' })
+			compareBoardSearchOrder({ arrivedAt: 0, id: 'b' }, { arrivedAt: 0, id: 'a' })
 		).toBeLessThan(0)
-		expect(compareBoardSearchOrder({ createdAt: 0, id: 'a' }, { createdAt: 0, id: 'a' })).toBe(0)
+		expect(compareBoardSearchOrder({ arrivedAt: 0, id: 'a' }, { arrivedAt: 0, id: 'a' })).toBe(0)
 	})
 
 	it('sorts an older board after a newer one whatever their ids', () => {
 		expect(
-			compareBoardSearchOrder({ createdAt: 0, id: 'z' }, { createdAt: 1, id: 'a' })
+			compareBoardSearchOrder({ arrivedAt: 0, id: 'z' }, { arrivedAt: 1, id: 'a' })
 		).toBeGreaterThan(0)
 	})
 })
 
 describe('isAfterBoardSearchCursor', () => {
 	it('accepts only rows that sort after the cursor', () => {
-		const cursor = { createdAt: 10, id: 'm' }
-		expect(isAfterBoardSearchCursor({ createdAt: 9, id: 'z' }, cursor)).toBe(true)
-		expect(isAfterBoardSearchCursor({ createdAt: 11, id: 'a' }, cursor)).toBe(false)
+		const cursor = { arrivedAt: 10, id: 'm' }
+		expect(isAfterBoardSearchCursor({ arrivedAt: 9, id: 'z' }, cursor)).toBe(true)
+		expect(isAfterBoardSearchCursor({ arrivedAt: 11, id: 'a' }, cursor)).toBe(false)
+	})
+
+	// The point of ordering on arrival rather than creation: a board somebody shared with you this
+	// morning leads the list, however long ago its owner made it. Under a createdAt sort it would land
+	// below everything you have made since, which for a long-lived board is the bottom of the page.
+	it('puts a recently shared old board above a board made earlier today', () => {
+		const sharedThisMorning = { arrivedAt: 1_700_000_000_000, id: 'shared' }
+		const mineFromLastWeek = { arrivedAt: 1_699_000_000_000, id: 'mine' }
+		expect(compareBoardSearchOrder(sharedThisMorning, mineFromLastWeek)).toBeLessThan(0)
 	})
 
 	// Descending order means "after" is "less than". Reversed, a page returns itself forever.
 	it('excludes the cursor row itself and takes the tie on id', () => {
-		const cursor = { createdAt: 10, id: 'm' }
+		const cursor = { arrivedAt: 10, id: 'm' }
 		expect(isAfterBoardSearchCursor(cursor, cursor)).toBe(false)
-		expect(isAfterBoardSearchCursor({ createdAt: 10, id: 'l' }, cursor)).toBe(true)
-		expect(isAfterBoardSearchCursor({ createdAt: 10, id: 'n' }, cursor)).toBe(false)
+		expect(isAfterBoardSearchCursor({ arrivedAt: 10, id: 'l' }, cursor)).toBe(true)
+		expect(isAfterBoardSearchCursor({ arrivedAt: 10, id: 'n' }, cursor)).toBe(false)
 	})
 })
 
@@ -257,6 +272,8 @@ describe('getBoardSearchResults', () => {
 				{
 					boardId: 'board-1',
 					name: 'Roadmap',
+					// Same instant for a board the caller made; they diverge only for a shared one.
+					addedAt: '2023-11-14T22:13:20.000Z',
 					createdAt: '2023-11-14T22:13:20.000Z',
 					updatedAt: '2023-11-14T22:21:40.000Z',
 					source: 'owned',

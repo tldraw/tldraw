@@ -10,6 +10,7 @@ import {
 } from 'kysely'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Environment } from '../../types'
+import { BOARD_SEARCH_PAGE_SIZE } from './boardTools'
 
 vi.mock('../../postgres', () => ({ createPostgresConnectionPool: vi.fn() }))
 
@@ -60,9 +61,14 @@ function mockPool(resultSets: unknown[][]) {
 	return { queries }
 }
 
-/** The file query is the second one; the first is the workspace-membership lookup. */
+/** The workspace read is the second query; the first is the workspace-membership lookup. */
 function fileQuery(queries: CompiledQuery[]) {
 	return queries[1]
+}
+
+/** The link-shared read, issued after the workspace one and merged with it. */
+function sharedQuery(queries: CompiledQuery[]) {
+	return queries[2]
 }
 
 /** The caller's home group: its id is their user id, which is what makes a board theirs. */
@@ -154,7 +160,8 @@ describe('searchAccessibleBoards', () => {
 		expect(sql).toContain('cross join lateral')
 		expect(sql).not.toContain('owningGroupId" in')
 		expect(parameters[0]).toEqual(['g1', 'user-1'])
-		expect(parameters.filter((value) => value === 21)).toHaveLength(2)
+		// One limit, on the arm. The outer limit the SQL used to carry is now the JS merge's slice.
+		expect(parameters.filter((value) => value === 21)).toHaveLength(1)
 	})
 
 	it('matches every term as an escaped, case-insensitive substring', async () => {
@@ -209,16 +216,16 @@ describe('searchAccessibleBoards', () => {
 		const { queries } = mockPool([HOME_MEMBERSHIP, []])
 		await searchAccessibleBoards(env, 'user-1', {
 			terms: [],
-			cursor: { createdAt: 1_700_000_000_000, id: 'board-9' },
+			cursor: { arrivedAt: 1_700_000_000_000, id: 'board-9' },
 		})
-		expect(fileQuery(queries).sql).toContain('(file."createdAt", file.id collate "C") < ($4, $5)')
+		expect(fileQuery(queries).sql).toContain('("file"."createdAt", file.id collate "C") < ($4, $5)')
 		expect(fileQuery(queries).parameters).toContain('board-9')
 	})
 
 	it('adds no cursor predicate on the first page', async () => {
 		const { queries } = mockPool([HOME_MEMBERSHIP, []])
 		await searchAccessibleBoards(env, 'user-1', { terms: [], cursor: null })
-		expect(fileQuery(queries).sql).not.toContain('file."createdAt", file.id')
+		expect(fileQuery(queries).sql).not.toContain('collate "C") < ')
 	})
 
 	// `compareBoardSearchOrder` compares ids by UTF-16 code unit, and a tldraw id is drawn from
@@ -228,7 +235,7 @@ describe('searchAccessibleBoards', () => {
 		const { queries } = mockPool([HOME_MEMBERSHIP, []])
 		await searchAccessibleBoards(env, 'user-1', {
 			terms: [],
-			cursor: { createdAt: 1, id: 'board-9' },
+			cursor: { arrivedAt: 1, id: 'board-9' },
 		})
 		const sql = fileQuery(queries).sql
 		expect(sql.match(/file\.id collate "C"/g)).toHaveLength(2)
@@ -243,6 +250,8 @@ describe('searchAccessibleBoards', () => {
 			{
 				id: 'board-1',
 				name: 'Roadmap',
+				// A workspace board arrives when it is made, so the two are the same instant here.
+				arrivedAt: 1_699_999_000_000,
 				createdAt: 1_699_999_000_000,
 				updatedAt: 1_700_000_000_000,
 				workspaceName: 'My workspace',
@@ -254,15 +263,106 @@ describe('searchAccessibleBoards', () => {
 	// A board is the caller's own when its owning group is their home group, whose id is their user
 	// id. `getBoardSearchResults` reports the workspace name only for the boards that are not.
 	it('marks a board personal when its owning group is the caller', async () => {
+		// Distinct timestamps rather than a tie: the rows are merged through compareBoardSearchOrder
+		// now, which breaks a tie on id *descending* — so two rows sharing one would come back
+		// board-2 first, which is what the database would return too.
 		mockPool([
 			HOME_MEMBERSHIP,
-			[FILE_ROW, { ...FILE_ROW, id: 'board-2', owningGroupId: 'group-9' }],
+			[
+				FILE_ROW,
+				{ ...FILE_ROW, id: 'board-2', createdAt: '1699998000000', owningGroupId: 'group-9' },
+			],
 		])
 		const rows = await searchAccessibleBoards(env, 'user-1', { terms: [], cursor: null })
 		expect(rows.map((row) => ({ id: row.id, isPersonal: row.isPersonal }))).toEqual([
 			{ id: 'board-1', isPersonal: true },
 			{ id: 'board-2', isPersonal: false },
 		])
+	})
+
+	// Opening a link-shared board writes a group_file row into the opener's *home* group while the
+	// file stays owned elsewhere, so the caller's own id is the whole of this read's access predicate.
+	it("reads link-shared boards through the caller's home group", async () => {
+		const { queries } = mockPool([HOME_MEMBERSHIP, [], []])
+		await searchAccessibleBoards(env, 'user-1', { terms: [], cursor: null })
+		const { sql, parameters } = sharedQuery(queries)
+		expect(sql).toContain('"group_file"')
+		expect(sql).toContain('"group_file"."groupId" = ')
+		expect(sql).toContain('"file"."shared" = ')
+		expect(parameters).toContain('user-1')
+	})
+
+	// Those boards pass hasReadAccessToFile on `shared` alone, so they are the caller's to find. One
+	// whose workspace they belong to arrives through the workspace read instead, and a mislinked home
+	// row for it would otherwise put the same board on the page twice.
+	it('excludes shared boards owned by a workspace the caller is already in', async () => {
+		const { queries } = mockPool([[{ groupId: 'g1', role: 'member' }], [], []])
+		await searchAccessibleBoards(env, 'user-1', { terms: [], cursor: null })
+		expect(sharedQuery(queries).sql).toContain('"file"."owningGroupId" not in')
+	})
+
+	// The columns `053_group_file_created_at_index.sql` indexes. Sorting or seeking on file.createdAt
+	// here would have no ordered access path at all, since the access key is on the other table.
+	it('sorts and seeks the shared read on the link time, not the file time', async () => {
+		const { queries } = mockPool([HOME_MEMBERSHIP, [], []])
+		await searchAccessibleBoards(env, 'user-1', {
+			terms: [],
+			cursor: { arrivedAt: 1_700_000_000_000, id: 'board-9' },
+		})
+		const { sql } = sharedQuery(queries)
+		expect(sql).toContain('("group_file"."createdAt", group_file."fileId" collate "C") < ')
+		expect(sql).toContain('order by "group_file"."createdAt" desc')
+		expect(sql).not.toContain('order by "file"."createdAt"')
+	})
+
+	// The same filters have to reach both reads, or one side's page is a different search from the
+	// other's and the merged page means nothing.
+	it('applies the same terms to both reads', async () => {
+		const { queries } = mockPool([HOME_MEMBERSHIP, [], []])
+		await searchAccessibleBoards(env, 'user-1', { terms: ['design'], cursor: null })
+		for (const query of [fileQuery(queries), sharedQuery(queries)]) {
+			expect(query.sql).toContain('"file"."name" ilike')
+			expect(query.parameters).toContain('%design%')
+		}
+	})
+
+	// The merge is what makes arrival ordering visible: an old board shared with the caller this
+	// morning has to outrank a newer board of their own.
+	it('merges both reads by arrival, newest arrival first', async () => {
+		const oldButJustShared = {
+			...FILE_ROW,
+			id: 'shared-1',
+			createdAt: '1600000000000',
+			arrivedAt: '1700000900000',
+			owningGroupId: 'group-9',
+		}
+		const { queries } = mockPool([HOME_MEMBERSHIP, [FILE_ROW], [oldButJustShared]])
+		const rows = await searchAccessibleBoards(env, 'user-1', { terms: [], cursor: null })
+		expect(queries).toHaveLength(3)
+		expect(rows.map((row) => [row.id, row.arrivedAt, row.createdAt])).toEqual([
+			['shared-1', 1_700_000_900_000, 1_600_000_000_000],
+			['board-1', 1_699_999_000_000, 1_699_999_000_000],
+		])
+	})
+
+	it('takes no more than one page plus the surplus row across both reads', async () => {
+		const page = (prefix: string, from: number) =>
+			Array.from({ length: BOARD_SEARCH_PAGE_SIZE + 1 }, (_, i) => ({
+				...FILE_ROW,
+				id: `${prefix}-${i}`,
+				createdAt: String(from - i),
+				arrivedAt: String(from - i),
+			}))
+		const { queries } = mockPool([
+			HOME_MEMBERSHIP,
+			page('own', 1_700_000_000_000),
+			page('shared', 1_700_000_000_500),
+		])
+		const rows = await searchAccessibleBoards(env, 'user-1', { terms: [], cursor: null })
+		expect(queries).toHaveLength(3)
+		expect(rows).toHaveLength(BOARD_SEARCH_PAGE_SIZE + 1)
+		// Both reads offered a full page; the more recently arrived set wins the merge outright.
+		expect(rows.every((row) => row.id.startsWith('shared-'))).toBe(true)
 	})
 
 	// The pool is per call, so a query that throws must still return its connection or pools pile

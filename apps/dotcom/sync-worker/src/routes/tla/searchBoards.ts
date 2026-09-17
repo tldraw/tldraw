@@ -1,8 +1,13 @@
 import { DB, can } from '@tldraw/dotcom-shared'
-import { Kysely, SqlBool, sql } from 'kysely'
+import { Kysely, RawBuilder, SqlBool, sql } from 'kysely'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
-import { BOARD_SEARCH_PAGE_SIZE, BoardSearchCursor, BoardSearchRow } from './boardTools'
+import {
+	BOARD_SEARCH_PAGE_SIZE,
+	BoardSearchCursor,
+	BoardSearchRow,
+	compareBoardSearchOrder,
+} from './boardTools'
 
 // The database half of search_boards. The model-facing half — what the tool is called, how its
 // arguments and cursors are parsed, how results are shaped — lives in boardTools.ts, which stays
@@ -22,21 +27,24 @@ import { BOARD_SEARCH_PAGE_SIZE, BoardSearchCursor, BoardSearchRow } from './boa
 // the harness would order the same rows differently. A future index on this ordering has to declare
 // the same collation or it will not be usable.
 const FILE_ID = sql<string>`file.id collate "C"`
-// The same expression again over the merged per-workspace pages, where the rows are `s`, not `file`.
-const MERGED_ID = sql<string>`s.id collate "C"`
+// The same expression over the guest read, where the id comes off the link rather than the file.
+const LINK_FILE_ID = sql<string>`group_file."fileId" collate "C"`
 
 /**
- * One page of the boards a caller may search: the ones in their own personal workspace, and the ones
- * owned by a workspace they can access files in.
+ * One page of the boards a caller may search: the ones their workspaces own, and the ones shared
+ * with them by link.
  *
- * This is deliberately the scope `hasReadAccessToFile` admits, minus its link-shared arm, and the
- * relationship only runs one way: everything returned here must be a board the other tools will
- * open. A model that finds a board and is then refused it has no way to interpret that.
+ * This is the scope `hasReadAccessToFile` admits, and the relationship only runs one way: everything
+ * returned here must be a board the other tools will open. A model that finds a board and is then
+ * refused it has no way to interpret that.
  *
- * That is also why the workspace arm reads `file.owningGroupId` rather than the `group_file` join
- * table, unlike the admin route's otherwise-identical query: `hasReadAccessToFile` reads
- * `owningGroupId`, so a row reachable only through `group_file` would pass search and fail every
- * tool after it. Not joining also means no fanout, so this needs no `distinctOn`.
+ * Two reads, because that gate has two arms with nothing in common but their answer, and they are
+ * merged here rather than unioned in SQL so both can use `compareBoardSearchOrder` — the single
+ * statement of this ordering, which the eval harness already pages fixtures with. A `UNION`'s own
+ * `ORDER BY` would be a third copy of it to drift.
+ *
+ * Sequential rather than `Promise.all`: `createPostgresConnectionPool` defaults to one connection,
+ * so issuing them together queues the second behind the first for the same wall-clock.
  */
 export async function searchAccessibleBoards(
 	env: Environment,
@@ -48,113 +56,217 @@ export async function searchAccessibleBoards(
 	const db = createPostgresConnectionPool(env, 'sync-worker/searchAccessibleBoards')
 	try {
 		const groupIds = await getAccessibleGroupIds(db, userId)
-		// Nothing is in scope, so there are no workspace pages to merge and nothing to ask Postgres.
+		// Nothing is in scope, so there are no pages to merge and nothing to ask Postgres.
 		if (!groupIds.length) return []
 
-		const rows = await db
-			// One page per workspace, merged, rather than one query over every workspace at once. The
-			// index can only be read in order under a single-equality access predicate, and
-			// `"owningGroupId" = ANY(:groups)` is not one: an array-driven btree scan is unordered
-			// before PG 17 and we run 16, so a caller in three workspaces seq-scanned 30,000 rows to
-			// return the first 21. Asking each workspace for its own top page and merging reads 63.
-			//
-			// The merge is only correct because each arm takes a whole page: the global top 21 cannot
-			// contain a row that is not in some workspace's own top 21, so nothing is lost by stopping
-			// each arm there. Every filter has to be inside the arm for the same reason — one applied
-			// after the arm's LIMIT could empty a page that had more rows to give.
-			.selectFrom(
-				// Wrapped in a sub-select purely to name the column: `unnest(...) as "g"` gives the one
-				// column the table's own alias, so the arm below would have to read `g.g`.
-				sql<{ groupId: string }>`(select unnest(${sql.val(groupIds)}::text[]) as "groupId")`.as('g')
-			)
-			.crossJoinLateral((eb) => {
-				let arm = eb
-					.selectFrom('file')
-					.select([
-						'file.id',
-						'file.name',
-						'file.createdAt',
-						'file.updatedAt',
-						// Misleadingly named: `set_file_owner_details_trigger` (`023_groups.sql`) writes the
-						// owning *user's* name here for a user-owned row and the owning group's name for a
-						// group-owned one. Only group-owned rows pass the scope below, so on anything this
-						// returns it is a workspace name.
-						'file.ownerName',
-						'file.owningGroupId',
-					])
-					// The whole of the scope. `hasReadAccessToFile` grants on this same workspace
-					// membership or on link sharing, and the link-shared arm is deliberately not mirrored
-					// here — search stays narrower than what the other tools will open, never wider. A
-					// caller's own boards arrive through this arm too: a home group's id is the user's own
-					// id.
-					.where('file.owningGroupId', '=', sql.ref<string>('g.groupId'))
-					.where('file.isDeleted', '=', false)
-					// Mirrors isTestFile: reading a test file needs admin auth, so it is not the caller's
-					// to find. In SQL rather than after the fact, or one could take a slot on the page.
-					.where('file.id', 'not like', 'test\\_%')
+		const owned = await searchWorkspaceBoards(db, userId, groupIds, terms, cursor)
+		const shared = await searchBoardsSharedWithCaller(db, userId, groupIds, terms, cursor)
 
-				for (const term of terms) {
-					arm = arm.where('file.name', 'ilike', `%${escapeLikePattern(term)}%`)
-				}
-
-				if (cursor) {
-					// Seek, not offset: an insert anywhere above the cursor shifts every later row by one,
-					// so an offset would re-serve one board and skip another at the boundary. This asks for
-					// rows strictly below where the last page ended, over the same two expressions the
-					// ORDER BY sorts on — sort by one thing and seek by another and a page boundary lands
-					// somewhere the sort did not put it.
-					//
-					// A row comparison, not the equivalent `createdAt < :c or (createdAt = :c and id < :i)`.
-					// Postgres keeps that OR as a filter, so a late page walks every row above the cursor
-					// and throws it away: page 500 of a 10k-board workspace read 9,927 rows to return 21. A
-					// row comparison is matchable against the index — PG16 truncates it to the leading
-					// columns the index actually has, seeks on `createdAt <= :c`, and rechecks the whole
-					// comparison as a filter. Same rows, 26 read.
-					//
-					// The `id` half is the tiebreaker: boards created in one batch share a `createdAt`, so
-					// without comparing ids among rows that share a key, a page boundary landing inside
-					// such a group would drop the rest of it. It mirrors `compareBoardSearchOrder` in
-					// boardTools.ts — change one and the eval harness starts paging differently from
-					// production.
-					arm = arm.where(
-						sql<SqlBool>`(file."createdAt", ${FILE_ID}) < (${cursor.createdAt}, ${cursor.id})`
-					)
-				}
-
-				return (
-					arm
-						// `file_owning_group_created_at_idx` (`052_file_search_index.sql`) serves this
-						// ordering and the access filter together, so each arm reads its page and stops
-						// instead of top-N sorting a whole workspace. What no index here helps is the
-						// `ilike '%term%'` above: a query matching nothing still reads every board in scope.
-						// The index bounds paging, not matching.
-						.orderBy('file.createdAt', 'desc')
-						.orderBy(FILE_ID, 'desc')
-						// One more than a page, so the caller can answer "there is another page" without a
-						// second count query over the same set.
-						.limit(BOARD_SEARCH_PAGE_SIZE + 1)
-						.as('s')
-				)
-			})
-			.select(['s.id', 's.name', 's.createdAt', 's.updatedAt', 's.ownerName', 's.owningGroupId'])
-			.orderBy('s.createdAt', 'desc')
-			.orderBy(MERGED_ID, 'desc')
-			.limit(BOARD_SEARCH_PAGE_SIZE + 1)
-			.execute()
-
-		return rows.map((row) => ({
-			id: row.id,
-			name: row.name,
-			createdAt: Number(row.createdAt),
-			updatedAt: Number(row.updatedAt),
-			workspaceName: row.ownerName,
-			// A home group carries its user's id, which is what makes a board the caller's own rather
-			// than a shared workspace's.
-			isPersonal: row.owningGroupId === userId,
-		}))
+		// Lossless because each read took a whole page: the global top page cannot hold a row that is
+		// in neither side's own top page. The surplus row survives the merge too, which is what lets
+		// the caller answer "is there another page" without a second count.
+		return [...owned, ...shared].sort(compareBoardSearchOrder).slice(0, BOARD_SEARCH_PAGE_SIZE + 1)
 	} finally {
 		await db.destroy()
 	}
+}
+
+// What both reads select from `file`, and what those columns mean once read back. `ownerName` is
+// misleadingly named: `set_file_owner_details_trigger` (`023_groups.sql`) writes the owning *user's*
+// name there for a user-owned row and the owning group's name for a group-owned one. Every row these
+// reads return is group-owned, so on all of them it is a workspace name.
+const BOARD_COLUMNS = [
+	'file.id',
+	'file.name',
+	'file.createdAt',
+	'file.updatedAt',
+	'file.ownerName',
+	'file.owningGroupId',
+] as const
+
+// Both timestamps arrive from pg as strings, because they are int8 columns. Left as strings the sort
+// key would compare lexicographically and the cursor would encode a quoted number.
+function toBoardSearchRow(
+	row: {
+		id: string
+		name: string
+		createdAt: string | number
+		updatedAt: string | number
+		ownerName: string
+		owningGroupId: string | null
+	},
+	arrivedAt: string | number,
+	userId: string
+): BoardSearchRow {
+	return {
+		id: row.id,
+		name: row.name,
+		arrivedAt: Number(arrivedAt),
+		createdAt: Number(row.createdAt),
+		updatedAt: Number(row.updatedAt),
+		workspaceName: row.ownerName,
+		// A home group carries its user's id, which is what makes a board the caller's own rather than
+		// a shared workspace's.
+		isPersonal: row.owningGroupId === userId,
+	}
+}
+
+/**
+ * The filters both reads share, applied through one helper because a filter that reached one and not
+ * the other would make that read's page a different search from the rest of the merge — and the
+ * surplus row only means "there is another page" if both were searching the same thing.
+ */
+function narrowToTerms<T extends { where: any }>(query: T, terms: string[]): T {
+	let narrowed = query
+		.where('file.isDeleted', '=', false)
+		// Mirrors isTestFile: reading a test file needs admin auth, so it is not the caller's to find.
+		// In SQL rather than after the fact, or one could take a slot on the page.
+		.where('file.id', 'not like', 'test\\_%')
+	for (const term of terms) {
+		narrowed = narrowed.where('file.name', 'ilike', `%${escapeLikePattern(term)}%`)
+	}
+	return narrowed
+}
+
+/**
+ * The boards owned by a workspace the caller can access files in — including their own, since a home
+ * group's id is the user's own id.
+ *
+ * One page per workspace, merged, rather than one query over every workspace at once. The index can
+ * only be read in order under a single-equality access predicate, and `"owningGroupId" = ANY(:groups)`
+ * is not one: an array-driven btree scan is unordered before PG 17 and we run 16, so a caller in three
+ * workspaces seq-scanned 30,000 rows to return the first 21. Asking each workspace for its own top page
+ * and merging reads 63.
+ *
+ * `file."createdAt"` is this side's arrival time, not merely a proxy for it: `createFile` writes one
+ * timestamp into the file row and its `group_file` row alike, so for a board made here the two are the
+ * same value. A board *moved* in is the one case they diverge — it keeps its original creation time
+ * rather than sorting by the move — which is a smaller discrepancy than reading the sort key from a
+ * table the index cannot reach.
+ */
+async function searchWorkspaceBoards(
+	db: Kysely<DB>,
+	userId: string,
+	groupIds: string[],
+	terms: string[],
+	cursor: BoardSearchCursor | null
+): Promise<BoardSearchRow[]> {
+	const rows = await db
+		.selectFrom(
+			// Wrapped in a sub-select purely to name the column: `unnest(...) as "g"` gives the one column
+			// the table's own alias, so the arm below would have to read `g.g`.
+			sql<{ groupId: string }>`(select unnest(${sql.val(groupIds)}::text[]) as "groupId")`.as('g')
+		)
+		.crossJoinLateral((eb) => {
+			let arm = narrowToTerms(
+				eb
+					.selectFrom('file')
+					.select(BOARD_COLUMNS)
+					// `file_owning_group_created_at_idx` (`052_file_search_index.sql`) serves this equality
+					// and the ordering together, so each arm reads its page and stops instead of top-N
+					// sorting a whole workspace. What no index helps is the `ilike '%term%'` above: a query
+					// matching nothing still reads every board in scope. The index bounds paging, not
+					// matching.
+					.where('file.owningGroupId', '=', sql.ref<string>('g.groupId')),
+				terms
+			)
+			if (cursor) {
+				arm = arm.where(seekBelow(FILE_ID, sql.ref('file.createdAt'), cursor))
+			}
+			return (
+				arm
+					.orderBy('file.createdAt', 'desc')
+					.orderBy(FILE_ID, 'desc')
+					// One more than a page, so the caller can answer "there is another page" without a second
+					// count query over the same set.
+					.limit(BOARD_SEARCH_PAGE_SIZE + 1)
+					.as('s')
+			)
+		})
+		.select(['s.id', 's.name', 's.createdAt', 's.updatedAt', 's.ownerName', 's.owningGroupId'])
+		.execute()
+
+	return rows.map((row) => toBoardSearchRow(row, row.createdAt, userId))
+}
+
+/**
+ * The boards shared with the caller by link.
+ *
+ * Opening one writes a `group_file` row into the opener's *home* group while the file stays owned
+ * elsewhere, and `039_tighten_group_file_association.sql` permits exactly that row and no other
+ * cross-workspace link — so the caller's home group is the whole of this access predicate. The scope
+ * invariant holds: `hasReadAccessToFile` grants on `shared` alone, so every row here is one the other
+ * tools will open, and unsharing deletes these rows (`034_fix_unshare_group_file_cleanup.sql`), so
+ * the set cannot outlive the access that justifies it.
+ *
+ * Files whose owning workspace the caller already belongs to are excluded: they arrive through
+ * `searchWorkspaceBoards`, and a mislinked home row for one — a guest file whose workspace was later
+ * joined — would otherwise put the same board on the page twice. `getWorkspaceFilesSorted` in the
+ * client guards the same rows the same way.
+ *
+ * Sorted and sought on `group_file."createdAt"`, which is when the caller opened the link. That is
+ * the same thing the other read's `file."createdAt"` means for a board made in a workspace, so the
+ * two merge — and it is the only sort key here an index can reach, since `group_file` carries the
+ * access key. `053_group_file_created_at_index.sql` is that index; without it this read fetches every
+ * guest link the caller has before it can say which sort highest.
+ */
+async function searchBoardsSharedWithCaller(
+	db: Kysely<DB>,
+	userId: string,
+	groupIds: string[],
+	terms: string[],
+	cursor: BoardSearchCursor | null
+): Promise<BoardSearchRow[]> {
+	let query = narrowToTerms(
+		db
+			.selectFrom('group_file')
+			.innerJoin('file', 'file.id', 'group_file.fileId')
+			.select([...BOARD_COLUMNS, 'group_file.createdAt as arrivedAt'])
+			.where('group_file.groupId', '=', userId)
+			.where('file.shared', '=', true)
+			// Safe as a plain `not in` only because `050_drop_legacy_owner_columns.sql` made
+			// `owningGroupId` NOT NULL: while legacy files carried NULL there, this would have dropped
+			// every one of them silently, since `NULL not in (...)` is NULL rather than true.
+			.where('file.owningGroupId', 'not in', groupIds),
+		terms
+	)
+	if (cursor) {
+		query = query.where(seekBelow(LINK_FILE_ID, sql.ref('group_file.createdAt'), cursor))
+	}
+	const rows = await query
+		.orderBy('group_file.createdAt', 'desc')
+		.orderBy(LINK_FILE_ID, 'desc')
+		.limit(BOARD_SEARCH_PAGE_SIZE + 1)
+		.execute()
+
+	return rows.map((row) => toBoardSearchRow(row, row.arrivedAt, userId))
+}
+
+/**
+ * The keyset seek, over whichever pair of columns this read sorts by.
+ *
+ * Seek, not offset: an insert anywhere above the cursor shifts every later row by one, so an offset
+ * would re-serve one board and skip another at the boundary. This asks for rows strictly below where
+ * the last page ended, over the same two expressions the ORDER BY sorts on — sort by one thing and
+ * seek by another and a page boundary lands somewhere the sort did not put it.
+ *
+ * A row comparison, not the equivalent `arrivedAt < :a or (arrivedAt = :a and id < :i)`. Postgres
+ * keeps that OR as a filter, so a late page walks every row above the cursor and throws it away: page
+ * 500 of a 10k-board workspace read 9,927 rows to return 21. A row comparison is matchable against
+ * the index — PG16 truncates it to the leading columns the index actually has, seeks on the
+ * timestamp, and rechecks the whole comparison as a filter. Same rows, 26 read.
+ *
+ * The `id` half is the tiebreaker: boards created in one batch share a timestamp, so without
+ * comparing ids among rows that share a key, a page boundary landing inside such a group would drop
+ * the rest of it. It mirrors `compareBoardSearchOrder` in boardTools.ts — change one and the eval
+ * harness starts paging differently from production.
+ */
+function seekBelow(
+	id: RawBuilder<string>,
+	arrivedAt: RawBuilder<unknown>,
+	cursor: BoardSearchCursor
+) {
+	return sql<SqlBool>`(${arrivedAt}, ${id}) < (${cursor.arrivedAt}, ${cursor.id})`
 }
 
 // The workspaces whose files this caller may reach. Deleted groups are excluded here rather than
