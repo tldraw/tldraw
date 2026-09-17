@@ -212,9 +212,15 @@ async function searchWorkspaceBoards(
  *
  * Sorted and sought on `group_file."createdAt"`, which is when the caller opened the link. That is
  * the same thing the other read's `file."createdAt"` means for a board made in a workspace, so the
- * two merge — and it is the only sort key here an index can reach, since `group_file` carries the
- * access key. `053_group_file_created_at_index.sql` is that index; without it this read fetches every
- * guest link the caller has before it can say which sort highest.
+ * two merge — and it is the only sort key here an index could reach, since `group_file` carries the
+ * access key.
+ *
+ * No index serves it yet, so this read fetches every guest link the caller has and sorts them: 879
+ * buffers for the heaviest account in production (233 links), against 89 with one. An index on
+ * `group_file("groupId", "createdAt" DESC)` is the fix and is deliberately a separate deploy — a
+ * migration run that locks both `file` and `group_file` can deadlock against a concurrent file move,
+ * which takes those two in the opposite order, and one that locks only one of them cannot. The
+ * ordering here is already what that index will want, so adding it is a migration and nothing else.
  */
 async function searchBoardsSharedWithCaller(
 	db: Kysely<DB>,
