@@ -65,17 +65,22 @@ export class Timers {
 	 */
 	setTimeout(contextId: string, handler: TimerHandler, timeout?: number, ...args: any[]): number {
 		const ids = getOrCreateSet(this.timeouts, contextId)
+		// A test stub can run the handler synchronously, before `id` is assigned, so the wrapper
+		// records that it fired instead of relying on the id being set when it runs.
+		let fired = false
+		let id = -1
 		// A string handler is evaluated by the browser, so it cannot be wrapped and stays
 		// tracked until it is cleared or the context is disposed.
 		const wrapped =
 			typeof handler === 'function'
 				? (...handlerArgs: any[]) => {
+						fired = true
 						ids.delete(id)
 						handler(...handlerArgs)
 					}
 				: handler
-		const id = window.setTimeout(wrapped, timeout, args)
-		ids.add(id)
+		id = window.setTimeout(wrapped, timeout, args)
+		if (!fired) ids.add(id)
 		return id
 	}
 
@@ -115,11 +120,16 @@ export class Timers {
 	 */
 	requestAnimationFrame(contextId: string, callback: FrameRequestCallback): number {
 		const ids = getOrCreateSet(this.rafs, contextId)
-		const id = window.requestAnimationFrame((time) => {
+		// Test stubs (the sync fuzz suite, for one) run the frame synchronously, before `id` is
+		// assigned, so the callback records that it fired rather than touching `id` first.
+		let fired = false
+		let id = -1
+		id = window.requestAnimationFrame((time) => {
+			fired = true
 			ids.delete(id)
 			callback(time)
 		})
-		ids.add(id)
+		if (!fired) ids.add(id)
 		return id
 	}
 

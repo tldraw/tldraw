@@ -122,6 +122,36 @@ describe('Timers', () => {
 			expect(cancelSpy).not.toHaveBeenCalledWith(ran)
 		})
 
+		// The sync fuzz suite stubs requestAnimationFrame to run its callback synchronously, so the
+		// wrapper runs before the id it would prune has been assigned.
+		it('survives a timer that fires before its id is returned', () => {
+			const timers = new Timers()
+			vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
+				cb(0)
+				return 7
+			})
+			vi.stubGlobal('setTimeout', (handler: () => void) => {
+				handler()
+				return 8
+			})
+			const frameCallback = vi.fn()
+			const timeoutHandler = vi.fn()
+
+			expect(timers.requestAnimationFrame('ctx', frameCallback)).toBe(7)
+			expect(timers.setTimeout('ctx', timeoutHandler, 0)).toBe(8)
+			expect(frameCallback).toHaveBeenCalledTimes(1)
+			expect(timeoutHandler).toHaveBeenCalledTimes(1)
+
+			const cancelSpy = vi.fn()
+			const clearSpy = vi.fn()
+			vi.stubGlobal('cancelAnimationFrame', cancelSpy)
+			vi.stubGlobal('clearTimeout', clearSpy)
+			timers.dispose('ctx')
+			expect(cancelSpy).not.toHaveBeenCalled()
+			expect(clearSpy).not.toHaveBeenCalled()
+			vi.unstubAllGlobals()
+		})
+
 		it('stops tracking timers cleared through the instance', () => {
 			const timers = new Timers()
 			const timeoutHandler = vi.fn()
