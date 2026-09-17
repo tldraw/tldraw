@@ -721,9 +721,10 @@ export function sequenceToBlueprint(
 	const lines: MermaidBlueprintLineNode[] = []
 	const edges: MermaidBlueprintEdge[] = []
 
-	const lifelineTop = layouts[0].y + layouts[0].h
-	// Surviving actors all share the footer row, but a destroyed actor's bottom box sits
-	// mid-diagram, so it must not be the baseline the whole row grid is priced against.
+	// Actors declared up front all share the header row and surviving actors the footer row,
+	// but a created actor's top box and a destroyed actor's bottom box sit mid-diagram, so
+	// neither may be the baseline the whole row grid is priced against.
+	const lifelineTop = Math.min(...layouts.map((l) => l.y + l.h))
 	const diagramBottomY = Math.max(...layouts.map((l) => l.bottomY))
 	const eventStep = (diagramBottomY - lifelineTop) / (events.length + 1)
 	const measuredRowYs = eventMessageIndices.map((messageIndex) => layout.rowYs.get(messageIndex))

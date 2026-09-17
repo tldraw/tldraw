@@ -1168,6 +1168,48 @@ describe('sequenceToBlueprint', () => {
 		expect(creationEdge.endNodeId).toBe('actor-top-JobRunner')
 	})
 
+	it('prices the row grid from the header row when the first participant is created later', () => {
+		// Mermaid draws a created participant's top box on the row that creates it, so when
+		// that participant is listed first the parsed layout starts mid-diagram.
+		const createdFirst = twoActorLayout()
+		createdFirst.actorLayouts[0].y = 0
+		const createdSecond = twoActorLayout()
+		createdSecond.actorLayouts[1].y = 0
+		const actors = new Map([actor('Worker'), actor('Client')])
+		const messages = [
+			msg(LINETYPE.SOLID, 'Client', 'Client', 'start'),
+			msg(LINETYPE.SOLID, 'Client', 'Worker', 'spawn'),
+			msg(LINETYPE.SOLID, 'Worker', 'Client', 'done'),
+		]
+		const createdActors = new Map([['Worker', 1]])
+
+		const bp = sequenceToBlueprint(
+			createdFirst,
+			actors,
+			['Worker', 'Client'],
+			messages,
+			createdActors
+		)
+		const reordered = sequenceToBlueprint(
+			createdSecond,
+			actors,
+			['Client', 'Worker'],
+			messages,
+			createdActors
+		)
+
+		// Where each message meets Client's lifeline, as a fraction of its length.
+		const clientRows = (b: DiagramMermaidBlueprint) => [
+			b.edges.find((e) => e.label === 'spawn')!.anchorStartY,
+			b.edges.find((e) => e.label === 'done')!.anchorEndY,
+		]
+		// Three rows spaced evenly between the header row's bottom (-150) and the footer (200).
+		expect(clientRows(bp)).toEqual([0.5, 0.75])
+		expect(clientRows(reordered)).toEqual(clientRows(bp))
+		expect(findNode(bp, 'actor-top-Worker')!.y).toBe(0)
+		expect(findNode(reordered, 'actor-top-Worker')!.y).toBe(0)
+	})
+
 	it('gives a destroyed actor a tombstone box on the destroying row', () => {
 		const layout = twoActorLayout()
 		const actors = new Map([actor('Client'), actor('TempSession')])
