@@ -96,7 +96,7 @@ function toBoardSearchRow(
 		owningGroupId: string | null
 	},
 	arrivedAt: string | number,
-	userId: string
+	source: BoardSearchRow['source']
 ): BoardSearchRow {
 	return {
 		id: row.id,
@@ -105,9 +105,7 @@ function toBoardSearchRow(
 		createdAt: Number(row.createdAt),
 		updatedAt: Number(row.updatedAt),
 		workspaceName: row.ownerName,
-		// A home group carries its user's id, which is what makes a board the caller's own rather than
-		// a shared workspace's.
-		isPersonal: row.owningGroupId === userId,
+		source,
 	}
 }
 
@@ -186,7 +184,11 @@ async function searchWorkspaceBoards(
 		.select(['s.id', 's.name', 's.createdAt', 's.updatedAt', 's.ownerName', 's.owningGroupId'])
 		.execute()
 
-	return rows.map((row) => toBoardSearchRow(row, row.createdAt, userId))
+	// A home group carries its user's id, which is what makes a board the caller's own rather than a
+	// shared workspace's.
+	return rows.map((row) =>
+		toBoardSearchRow(row, row.createdAt, row.owningGroupId === userId ? 'owned' : 'workspace')
+	)
 }
 
 /**
@@ -199,10 +201,14 @@ async function searchWorkspaceBoards(
  * tools will open, and unsharing deletes these rows (`034_fix_unshare_group_file_cleanup.sql`), so
  * the set cannot outlive the access that justifies it.
  *
- * Files whose owning workspace the caller already belongs to are excluded: they arrive through
- * `searchWorkspaceBoards`, and a mislinked home row for one — a guest file whose workspace was later
- * joined — would otherwise put the same board on the page twice. `getWorkspaceFilesSorted` in the
- * client guards the same rows the same way.
+ * Files whose owning workspace the caller already belongs to are excluded, and that exclusion is not
+ * an edge case — without it this read returns every board the caller owns. `createFile` writes a
+ * `group_file` row into the owning workspace, which for a personal board *is* the home group, and it
+ * sets `shared: true`; so both predicates below match a caller's own boards exactly as well as their
+ * guest links, and every one of them would come back here as well as from `searchWorkspaceBoards`,
+ * twice on one page. The mislinked case it also covers — a guest file whose workspace the caller
+ * later joined — is the rarer half of its job. `getWorkspaceFilesSorted` in the client guards the
+ * same rows the same way.
  *
  * Sorted and sought on `group_file."createdAt"`, which is when the caller opened the link. That is
  * the same thing the other read's `file."createdAt"` means for a board made in a workspace, so the
@@ -224,6 +230,8 @@ async function searchBoardsSharedWithCaller(
 			.select([...BOARD_COLUMNS, 'group_file.createdAt as arrivedAt'])
 			.where('group_file.groupId', '=', userId)
 			.where('file.shared', '=', true)
+			// Load-bearing rather than tidy-up: the caller's home group id is in `groupIds`, so this is
+			// what keeps their own boards' owning rows out of a read whose predicates above match them.
 			// Safe as a plain `not in` only because `050_drop_legacy_owner_columns.sql` made
 			// `owningGroupId` NOT NULL: while legacy files carried NULL there, this would have dropped
 			// every one of them silently, since `NULL not in (...)` is NULL rather than true.
@@ -239,7 +247,9 @@ async function searchBoardsSharedWithCaller(
 		.limit(BOARD_SEARCH_PAGE_SIZE + 1)
 		.execute()
 
-	return rows.map((row) => toBoardSearchRow(row, row.arrivedAt, userId))
+	// Shared by construction: this read only ever returns boards owned outside the caller's own
+	// workspaces, reached through the guest link opening one leaves behind.
+	return rows.map((row) => toBoardSearchRow(row, row.arrivedAt, 'shared'))
 }
 
 /**

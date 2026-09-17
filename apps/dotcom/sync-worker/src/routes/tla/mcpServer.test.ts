@@ -607,7 +607,7 @@ describe('search_boards', () => {
 		createdAt: 1_700_000_000_000,
 		updatedAt: 1_700_000_500_000,
 		workspaceName: 'My workspace',
-		isPersonal: true,
+		source: 'owned' as const,
 	}
 
 	it('returns matching boards for the calling account', async () => {

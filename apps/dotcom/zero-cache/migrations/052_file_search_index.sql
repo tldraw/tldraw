@@ -13,9 +13,10 @@
 -- rename, delete, and the "updatedAt" bump `005_update_file_trigger.sql` fires on any row change.
 -- Measured at production's shape (968k rows, 406MB heap, Postgres 16) that window is 1-2 seconds.
 --
--- Keep this last in its migration run. The runner holds one transaction over every migration in a
--- run, so the SHARE lock is taken here and released at COMMIT, not when the build ends: anything
--- queued after this file extends the write stall by its own duration.
+-- The runner holds one transaction over every migration in a run, so the SHARE lock is taken here
+-- and released at the run's COMMIT, not when the build ends: everything queued after this file,
+-- `053` included, extends the window in which writes to "file" block. Two index builds is the
+-- current total for a run; each one added lengthens that window by its own build time.
 
 CREATE INDEX "file_owning_group_created_at_idx"
   ON public."file" ("owningGroupId", "createdAt" DESC);

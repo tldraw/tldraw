@@ -159,7 +159,7 @@ async function callFixtureTool(
 						createdAt: fixtureTimestamp(index),
 						updatedAt: fixtureTimestamp(index),
 						workspaceName: '',
-						isPersonal: true,
+						source: 'owned' as const,
 					}))
 					.filter((row) =>
 						terms.every((term) => row.name.toLowerCase().includes(term.toLowerCase()))

@@ -14,9 +14,10 @@
 -- Built plainly rather than CONCURRENTLY, for the reasons on `052_file_search_index.sql`: it takes
 -- SHARE on "group_file", so reads continue and writes block for the length of the build.
 --
--- Keep this last in its migration run. The runner holds one transaction over the whole run and
--- releases the lock at COMMIT, not when the build ends, so anything queued after this file extends
--- the write stall by its own duration.
+-- The runner holds one transaction over every migration in a run, so this SHARE lock on "group_file"
+-- is released at the run's COMMIT rather than when the build ends. Kept a separate file from `052`
+-- only because the two index different tables for different reads — being separate costs nothing,
+-- since either way both builds sit inside the same transaction.
 
 CREATE INDEX "group_file_group_created_at_idx"
   ON public."group_file" ("groupId", "createdAt" DESC);

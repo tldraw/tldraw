@@ -255,7 +255,7 @@ describe('searchAccessibleBoards', () => {
 				createdAt: 1_699_999_000_000,
 				updatedAt: 1_700_000_000_000,
 				workspaceName: 'My workspace',
-				isPersonal: true,
+				source: 'owned' as const,
 			},
 		])
 	})
@@ -274,9 +274,9 @@ describe('searchAccessibleBoards', () => {
 			],
 		])
 		const rows = await searchAccessibleBoards(env, 'user-1', { terms: [], cursor: null })
-		expect(rows.map((row) => ({ id: row.id, isPersonal: row.isPersonal }))).toEqual([
-			{ id: 'board-1', isPersonal: true },
-			{ id: 'board-2', isPersonal: false },
+		expect(rows.map((row) => [row.id, row.source])).toEqual([
+			['board-1', 'owned'],
+			['board-2', 'workspace'],
 		])
 	})
 
@@ -292,13 +292,18 @@ describe('searchAccessibleBoards', () => {
 		expect(parameters).toContain('user-1')
 	})
 
-	// Those boards pass hasReadAccessToFile on `shared` alone, so they are the caller's to find. One
-	// whose workspace they belong to arrives through the workspace read instead, and a mislinked home
-	// row for it would otherwise put the same board on the page twice.
-	it('excludes shared boards owned by a workspace the caller is already in', async () => {
-		const { queries } = mockPool([[{ groupId: 'g1', role: 'member' }], [], []])
+	// Without this the read returns every board the caller owns, not just a rare mislinked one:
+	// `createFile` writes a group_file row into the owning workspace — the home group, for a personal
+	// board — and sets shared: true, so both of this read's predicates match the caller's own boards.
+	// The caller's own id has to be in the exclusion list, or each one comes back here as well as
+	// from the workspace read.
+	it('excludes boards owned by workspaces the caller is in, their own included', async () => {
+		const { queries } = mockPool([[...HOME_MEMBERSHIP, { groupId: 'g1', role: 'member' }], [], []])
 		await searchAccessibleBoards(env, 'user-1', { terms: [], cursor: null })
-		expect(sharedQuery(queries).sql).toContain('"file"."owningGroupId" not in')
+		const { sql, parameters } = sharedQuery(queries)
+		expect(sql).toContain('"file"."owningGroupId" not in')
+		// 'user-1' twice: once as the home group this read reads, once as a workspace it excludes.
+		expect(parameters.filter((value) => value === 'user-1')).toHaveLength(2)
 	})
 
 	// The columns `053_group_file_created_at_index.sql` indexes. Sorting or seeking on file.createdAt
@@ -343,6 +348,9 @@ describe('searchAccessibleBoards', () => {
 			['shared-1', 1_700_000_900_000, 1_600_000_000_000],
 			['board-1', 1_699_999_000_000, 1_699_999_000_000],
 		])
+		// Not `workspace`: the caller is not a member of the workspace that owns a link-shared board,
+		// so calling it one would claim standing there that they do not have.
+		expect(rows.map((row) => row.source)).toEqual(['shared', 'owned'])
 	})
 
 	it('takes no more than one page plus the surplus row across both reads', async () => {

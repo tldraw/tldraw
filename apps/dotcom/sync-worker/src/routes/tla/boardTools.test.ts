@@ -24,7 +24,7 @@ function makeRow(overrides: Partial<BoardSearchRow> = {}): BoardSearchRow {
 		createdAt: 1_700_000_000_000,
 		updatedAt: 1_700_000_500_000,
 		workspaceName: 'Design',
-		isPersonal: true,
+		source: 'owned' as const,
 		...overrides,
 	}
 }
@@ -285,8 +285,16 @@ describe('getBoardSearchResults', () => {
 	// "My workspace" on every row of the common case is noise; on a shared workspace's board it is
 	// the thing that identifies where the board lives.
 	it('names the workspace only on boards outside the caller’s own', () => {
-		const result = parsedJson(getBoardSearchResults([makeRow({ isPersonal: false })], []))
+		const result = parsedJson(getBoardSearchResults([makeRow({ source: 'workspace' })], []))
 		expect(result.boards[0]).toMatchObject({ source: 'workspace', workspaceName: 'Design' })
+	})
+
+	// A link-shared board is owned by a workspace the caller is not in. Reporting its name would hand
+	// somebody who was given a link the name of an organisation they have no seat in.
+	it('withholds the workspace name from a link-shared board', () => {
+		const result = parsedJson(getBoardSearchResults([makeRow({ source: 'shared' })], []))
+		expect(result.boards[0].source).toBe('shared')
+		expect(result.boards[0]).not.toHaveProperty('workspaceName')
 	})
 
 	// An unnamed board is titled by its creation date on tldraw.com, in the viewer's locale and

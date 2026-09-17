@@ -401,12 +401,19 @@ export interface BoardSearchRow extends BoardSearchCursor {
 	/** When the board's row last changed, by anyone — not per-caller, and not the sort key. */
 	updatedAt: number
 	/**
-	 * The name of the workspace that owns the board. Only reported for boards outside the caller's
-	 * own workspace — see `getBoardSearchResults`.
+	 * The name of the workspace that owns the board. Only reported for `workspace` boards — see
+	 * `getBoardSearchResults`.
 	 */
 	workspaceName: string
-	/** Whether the board lives in the caller's own personal workspace, rather than a shared one. */
-	isPersonal: boolean
+	/**
+	 * How the caller reaches this board, which is also which read found it.
+	 *
+	 * `shared` is not a flavour of `workspace`: the caller is not a member of the workspace that owns
+	 * a link-shared board, so reporting it as one would tell a model it has standing there that it
+	 * does not have — and would put another organisation's workspace name in front of somebody who
+	 * was only ever given a link.
+	 */
+	source: 'owned' | 'workspace' | 'shared'
 }
 
 /**
@@ -471,12 +478,15 @@ export function getBoardSearchResults(rows: BoardSearchRow[], terms: string[]): 
 			addedAt: new Date(row.arrivedAt).toISOString(),
 			createdAt: new Date(row.createdAt).toISOString(),
 			updatedAt: new Date(row.updatedAt).toISOString(),
-			source: row.isPersonal ? 'owned' : 'workspace',
-			// Only where it identifies something. On a personal board the workspace adds nothing
-			// `source: 'owned'` has not already said, so it would be noise on every row. The cost is
-			// that a caller who renamed their home workspace — `036_home_group_renameable.sql` made
-			// it renameable, with "My workspace" only as the default — will not see that name here.
-			...(row.isPersonal ? {} : { workspaceName: row.workspaceName }),
+			source: row.source,
+			// Only where it identifies something the caller can act on. On their own board the
+			// workspace adds nothing `source: 'owned'` has not already said, so it would be noise on
+			// every row — the cost being that a caller who renamed their home workspace
+			// (`036_home_group_renameable.sql` made it renameable, "My workspace" being only the
+			// default) will not see that name here. On a link-shared board it is withheld for a
+			// different reason: it names a workspace the caller is not in, to someone who was given a
+			// link rather than a seat.
+			...(row.source === 'workspace' ? { workspaceName: row.workspaceName } : {}),
 		})),
 	})
 }
@@ -809,7 +819,7 @@ function getSearchBoardsToolDefinition() {
 	return {
 		name: SEARCH_BOARDS_TOOL_NAME,
 		title: 'Search tldraw boards',
-		description: `Find tldraw.com boards by name: the boards in this account's own workspace, the boards owned by the workspaces it belongs to, and the boards shared with it by link that it has opened. Every term in the query must appear somewhere in the board name, in any order, ignoring case. Search for the distinctive words, not a whole title: a query of more than ${BOARD_SEARCH_MAX_TERMS} words, or longer than ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters, is rejected. Omit the query to list the boards that reached you most recently. Results are ordered by addedAt — when a board joined this account's boards, which is when it was created for its own boards and when the share link was first opened for shared ones — so a board shared this morning leads the list however old it is. createdAt is when the board itself was made, and updatedAt when it last changed, by anyone: an old board can have been edited today, and a board created today may never have been touched since. Returns up to ${BOARD_SEARCH_PAGE_SIZE} boards, each with a boardId that get_board_info and the other tools take. If the result carries a nextCursor there are more boards: call again with the same query and that cursor to get the next page — a cursor only continues the query that produced it. A board with no name comes back with name empty: tldraw.com titles those by their creation date, so no name query can find them — reach them by listing with no query. Matching no boards is a normal empty result, not an error.`,
+		description: `Find tldraw.com boards by name: the boards in this account's own workspace, the boards owned by the workspaces it belongs to, and the boards shared with it by link that it has opened. Every term in the query must appear somewhere in the board name, in any order, ignoring case. Search for the distinctive words, not a whole title: a query of more than ${BOARD_SEARCH_MAX_TERMS} words, or longer than ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters, is rejected. Omit the query to list the boards that reached you most recently. Results are ordered by addedAt — when a board joined this account's boards, which is when it was created for its own boards and when the share link was first opened for shared ones — so a board shared this morning leads the list however old it is. createdAt is when the board itself was made, and updatedAt when it last changed, by anyone: an old board can have been edited today, and a board created today may never have been touched since. Each board's source says how you reach it: owned for your own, workspace for one owned by a workspace you belong to, and shared for one somebody sent you a link to. Returns up to ${BOARD_SEARCH_PAGE_SIZE} boards, each with a boardId that get_board_info and the other tools take. If the result carries a nextCursor there are more boards: call again with the same query and that cursor to get the next page — a cursor only continues the query that produced it. A board with no name comes back with name empty: tldraw.com titles those by their creation date, so no name query can find them — reach them by listing with no query. Matching no boards is a normal empty result, not an error.`,
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
