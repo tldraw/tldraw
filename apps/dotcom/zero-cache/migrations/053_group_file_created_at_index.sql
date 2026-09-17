@@ -1,9 +1,9 @@
 -- Serves the link-shared half of `search_boards` (searchBoards.ts). That read filters
--- `group_file."groupId" = :callersHomeGroup` and orders by `group_file."createdAt"` desc, so with
--- both in one index it reads a page and stops. Without it the read has no ordered access path at
--- all — the access key would be on `group_file` and the sort key on `file`, and no index spans two
--- tables — so it fetched every guest link the caller had and sorted them: 938 buffers for the
--- heaviest account in production, and a hash join over the whole `file` table past ~2,000 links.
+-- `group_file."groupId" = :callersHomeGroup` and orders by `group_file."createdAt"` desc — both
+-- columns on this table — so with them in one index it reads a page and stops. Without it there is
+-- no ordered access path, so it fetches every guest link the caller has and sorts them: 879 buffers
+-- for the heaviest account in production against 89 with the index, and past ~2,000 links the
+-- planner gives up on the nested loop and hash-joins the whole `file` table.
 --
 -- `"createdAt"` is when the board entered that list, not when it was made: `createFile` and
 -- `moveFileToWorkspace` both stamp it alongside the row they create, and opening a link-shared
