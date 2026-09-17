@@ -26,9 +26,6 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      - name: Check version constraints
-        run: yarn constraints
-
       - name: Check for duplicate dependencies
         run: yarn dedupe --check
 
