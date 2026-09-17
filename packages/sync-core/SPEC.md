@@ -206,7 +206,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **RC2** A schema with more than one `presence`-scoped type throws at construction.
 - **RC3** Construction runs `schema.migrateStorage` in a storage transaction, migrating any pre-existing storage data up to the room's schema version. Re-running on already-migrated data changes nothing.
 - **RC4** Storage `onChange` notifications carrying a foreign transaction id make the room broadcast the new changes to all connected clients. The room's own transactions (id `'TLSyncRoom.txn'`) do not re-broadcast this way.
-- **RC5** If an external change leaves the storage unable to produce an incremental diff (`wipeAll`), the room closes every session so clients reconnect and re-hydrate.
+- **RC5** If an external change leaves the storage unable to produce an incremental diff (`wipeAll`), the room closes every `Connected` session so clients reconnect and re-hydrate. Sessions still awaiting their connect message are left alone: their handshake hydrates them from their own `lastServerClock`.
 - **RC6** The idle timeout defaults to `SESSION_IDLE_TIMEOUT` (20s) and is configurable via `clientTimeout`. A finite positive timeout starts a periodic prune interval of `min(2000, timeout/4)` ms; `Infinity` or 0 disables the interval (pruning then only happens on message activity or via the follow-up prune scheduled when a socket close/error cancels a session, per SES2).
 - **RC7** `close()` closes every session's socket and stops background work; `isClosed()` reports it.
 
@@ -217,7 +217,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **HS3** A connect message without a schema, with a schema the server cannot migrate from, or whose migrations include any non-record-scope or down-less migration, is rejected `CLIENT_TOO_OLD`.
 - **HS4** The connect response echoes `connectRequestId` and `isReadonly`, carries the server's schema and current clock, and `hydrationType: 'wipe_all'` when storage cannot produce an incremental diff since the client's `lastServerClock` (including when that clock is in the future), else `'wipe_presence'`.
 - **HS5** The connect response diff contains every _other_ session's presence record — the connecting session's own presence is excluded — plus the document changes since the client's `lastServerClock` (the full document set in the `wipe_all` case), all down-migrated when the client's schema is older.
-- **HS6** A successful handshake moves the session to `Connected` — unless the session was removed while the handshake's transaction ran (RC5 force-reconnect), in which case it stays removed rather than being resurrected.
+- **HS6** A successful handshake moves the session to `Connected`.
 
 ## 24. `TLSyncRoom` — push handling (RP)
 
