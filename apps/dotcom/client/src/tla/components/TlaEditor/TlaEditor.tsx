@@ -28,6 +28,7 @@ import {
 	useToasts,
 	useValue,
 } from 'tldraw'
+import { Jev } from '../../../components/Jev/Jev'
 import { SneakyMermaidHandler } from '../../../components/SneakyMermaidHandler/SneakyMermaidHandler'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
@@ -385,6 +386,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
 				<SneakyToolSwitcher />
+				<Jev />
 				<SneakyMermaidHandler />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />

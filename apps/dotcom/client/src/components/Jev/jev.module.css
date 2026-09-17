@@ -1,0 +1,135 @@
+.root {
+	position: absolute;
+	top: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	max-width: 45%;
+	pointer-events: all;
+	padding: 8px;
+}
+
+.pill {
+	height: 32px;
+	max-width: min(420px, 45vw);
+	padding: 0 8px;
+	gap: 4px;
+	border-radius: 999px;
+	background: var(--tl-color-panel);
+	box-shadow: var(--tl-shadow-1);
+	white-space: nowrap;
+}
+
+.pill > svg,
+.entryHeader svg {
+	width: 16px;
+	height: 16px;
+	flex-shrink: 0;
+}
+
+.pill[data-applied='true'] {
+	background: var(--tl-color-success);
+	color: white;
+}
+
+.pill[data-applied='true'] .summary {
+	color: inherit;
+}
+
+.summary {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	color: var(--tl-color-text-3);
+}
+
+.history {
+	width: min(380px, calc(100vw - 24px));
+	color: var(--tl-color-text-1);
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 8px 12px;
+	border-bottom: 1px solid var(--tl-color-divider);
+}
+
+.description,
+.empty {
+	margin: 0;
+	padding: 12px;
+	color: var(--tl-color-text-3);
+}
+
+.modes {
+	display: flex;
+	gap: 4px;
+	padding: 8px 12px 0;
+}
+
+.steps {
+	margin: 8px 0;
+	padding-left: 8px;
+	border-left: 2px solid var(--tl-color-divider);
+	color: var(--tl-color-text-3);
+}
+
+.entries {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	max-height: min(420px, 50vh);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+
+.entry {
+	padding: 10px 12px;
+	border-top: 1px solid var(--tl-color-divider);
+}
+
+.entryHeader {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 4px;
+	font-weight: 600;
+}
+
+.entryHeader > span {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.entryHeader time,
+.reason,
+.metrics,
+.footer {
+	color: var(--tl-color-text-3);
+	font-weight: normal;
+}
+
+.reason {
+	margin: 4px 0;
+}
+
+.metrics {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	font-size: 11px;
+	font-variant-numeric: tabular-nums;
+}
+
+.footer {
+	padding: 8px 12px;
+	border-top: 1px solid var(--tl-color-divider);
+}
+
+@media (max-width: 700px) {
+	.summary {
+		display: none;
+	}
+}

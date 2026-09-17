@@ -99,6 +99,12 @@
       "value": "Rate limit exceeded, try again later."
     }
   ],
+  "0860ba20d7": [
+    {
+      "type": 0,
+      "value": "Jev is unavailable. Automatic tools and styles have been turned off."
+    }
+  ],
   "08bd40c754": [
     {
       "type": 0,
@@ -117,6 +123,12 @@
     {
       "type": 0,
       "value": " files yet"
+    }
+  ],
+  "0a836d936f": [
+    {
+      "type": 0,
+      "value": "Change styles"
     }
   ],
   "0a91f7fa87": [
@@ -177,6 +189,20 @@
     {
       "type": 0,
       "value": "Export as"
+    }
+  ],
+  "1406aa3e1b": [
+    {
+      "type": 0,
+      "value": "Probability "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    },
+    {
+      "type": 0,
+      "value": "%"
     }
   ],
   "14b03eeeb5": [
@@ -241,6 +267,26 @@
       "value": "About tldraw"
     }
   ],
+  "25ef7cd05a": [
+    {
+      "type": 0,
+      "value": "Change tool"
+    }
+  ],
+  "26b542ded5": [
+    {
+      "type": 0,
+      "value": "Confidence "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    },
+    {
+      "type": 0,
+      "value": "%"
+    }
+  ],
   "2755e3ab39": [
     {
       "children": [
@@ -299,6 +345,12 @@
       "value": "Include link to current file"
     }
   ],
+  "2e36e077ad": [
+    {
+      "type": 0,
+      "value": "Automatic tools and styles (Jev)"
+    }
+  ],
   "2e9856a31e": [
     {
       "type": 0,
@@ -327,6 +379,12 @@
     {
       "type": 0,
       "value": "Please try refreshing the page."
+    }
+  ],
+  "34183f54ff": [
+    {
+      "type": 0,
+      "value": "When enabled, Jev sends recent actions and nearby canvas content to TypeSafe. It can switch tools or next-shape styles during an interaction."
     }
   ],
   "344a7f427f": [
@@ -389,10 +447,22 @@
       "value": "Contact the owner to request access."
     }
   ],
+  "446e7f921c": [
+    {
+      "type": 0,
+      "value": "Decisions will appear here when you release the pointer or stop moving it."
+    }
+  ],
   "44db318ee5": [
     {
       "type": 0,
       "value": "Get help on Discord"
+    }
+  ],
+  "453e6aa38d": [
+    {
+      "type": 0,
+      "value": "Unavailable"
     }
   ],
   "454aad3b3c": [
@@ -559,6 +629,12 @@
     {
       "type": 0,
       "value": "Share"
+    }
+  ],
+  "5b91b59a64": [
+    {
+      "type": 0,
+      "value": "Evaluating recent actions"
     }
   ],
   "5bec508475": [
@@ -738,6 +814,12 @@
       "value": "Have a bug, issue, or idea for tldraw? Let us know!"
     }
   ],
+  "733d43480c": [
+    {
+      "type": 0,
+      "value": "Applied"
+    }
+  ],
   "73ab799383": [
     {
       "type": 0,
@@ -816,6 +898,12 @@
       "value": "Submit an issue on GitHub"
     }
   ],
+  "7a0d81a945": [
+    {
+      "type": 0,
+      "value": "First decision"
+    }
+  ],
   "7a1920d611": [
     {
       "type": 0,
@@ -826,6 +914,12 @@
     {
       "type": 0,
       "value": "User manual"
+    }
+  ],
+  "7b44391e91": [
+    {
+      "type": 0,
+      "value": "No change"
     }
   ],
   "7be10fc592": [
@@ -980,6 +1074,22 @@
       "value": "Check your email for a verification code."
     }
   ],
+  "8c61cb5c69": [
+    {
+      "type": 0,
+      "value": "Switch to "
+    },
+    {
+      "type": 1,
+      "value": "tool"
+    }
+  ],
+  "8e61d99ca2": [
+    {
+      "type": 0,
+      "value": "Turn off"
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -1022,6 +1132,12 @@
     {
       "type": 0,
       "value": "? This action cannot be undone."
+    }
+  ],
+  "9361d77f8b": [
+    {
+      "type": 0,
+      "value": "Last 100 requests · this canvas session"
     }
   ],
   "95aacd4d4a": [
@@ -1232,6 +1348,18 @@
       "value": "File limit reached"
     }
   ],
+  "ab29fb3f22": [
+    {
+      "type": 0,
+      "value": "Jev is on for this canvas"
+    }
+  ],
+  "ac612def11": [
+    {
+      "type": 0,
+      "value": "Not applied"
+    }
+  ],
   "af3dc88931": [
     {
       "type": 0,
@@ -1284,6 +1412,12 @@
       "value": "File is full"
     }
   ],
+  "b2ce5e6a0b": [
+    {
+      "type": 0,
+      "value": "Jev history"
+    }
+  ],
   "b357b524e7": [
     {
       "type": 0,
@@ -1318,6 +1452,12 @@
     {
       "type": 0,
       "value": "Sign in to share"
+    }
+  ],
+  "ba9324c430": [
+    {
+      "type": 0,
+      "value": "Decision mode"
     }
   ],
   "bbaaf8b6bf": [
@@ -1432,6 +1572,18 @@
       "value": "Dismiss"
     }
   ],
+  "cba9a6e246": [
+    {
+      "type": 0,
+      "value": "Recent actions and nearby canvas content are sent to TypeSafe to suggest automatic tool and style changes. Turn this off in the canvas menu at any time."
+    }
+  ],
+  "cc4f09805b": [
+    {
+      "type": 0,
+      "value": "Single choice"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -1506,10 +1658,28 @@
       "value": " reacted to your comment"
     }
   ],
+  "d15305d7a4": [
+    {
+      "type": 0,
+      "value": "Off"
+    }
+  ],
+  "d154a5ff03": [
+    {
+      "type": 0,
+      "value": "Turn on"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
       "value": "Close"
+    }
+  ],
+  "d452cc2133": [
+    {
+      "type": 0,
+      "value": "Keep current tool and styles"
     }
   ],
   "d46632fe1f": [
@@ -1582,6 +1752,12 @@
       "value": "Go here to see the content"
     }
   ],
+  "db77f1a543": [
+    {
+      "type": 0,
+      "value": "Two-stage"
+    }
+  ],
   "dbbebf3c03": [
     {
       "type": 0,
@@ -1594,10 +1770,30 @@
       "value": "Leave workspace"
     }
   ],
+  "dc681bc7dd": [
+    {
+      "type": 1,
+      "value": "style"
+    },
+    {
+      "type": 0,
+      "value": " → "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    }
+  ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "App debug flags"
+    }
+  ],
+  "e067b6f4f0": [
+    {
+      "type": 0,
+      "value": "Thinking"
     }
   ],
   "e0aa021e21": [
@@ -1622,6 +1818,12 @@
     {
       "type": 0,
       "value": "Terms of service"
+    }
+  ],
+  "e599161956": [
+    {
+      "type": 0,
+      "value": "Idle"
     }
   ],
   "e65b2dcb6f": [

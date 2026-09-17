@@ -2,6 +2,7 @@
 export * from './capabilities'
 export * from './commentMentions'
 export * from './constants'
+export * from './jev'
 export * from './roles'
 export * from './shapeClusters'
 export { default as getLicenseKey } from './license'

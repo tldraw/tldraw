@@ -35,6 +35,7 @@ import { getRoomHistory } from './routes/getRoomHistory'
 import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
 import { getRoomSnapshot } from './routes/getRoomSnapshot'
 import { getSocialPreview } from './routes/getSocialPreview'
+import { jev } from './routes/jev'
 import { joinExistingRoom } from './routes/joinExistingRoom'
 import { submitFeedback } from './routes/submitFeedback'
 import { acceptInvite } from './routes/tla/acceptInvite'
@@ -212,6 +213,7 @@ const router = createRouter<Environment>()
 		return new Response('ok')
 	})
 	.post('/app/submit-feedback', submitFeedback)
+	.post('/app/jev', jev)
 	.get('/app/feature-flags', getFeatureFlags)
 	// The MCP endpoint and its discovery metadata are registered at the top of this router, ahead of
 	// the origin check. See there.

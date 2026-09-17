@@ -32,11 +32,17 @@
   "08331c1710": {
     "translation": "Rate limit exceeded, try again later."
   },
+  "0860ba20d7": {
+    "translation": "Jev is unavailable. Automatic tools and styles have been turned off."
+  },
   "08bd40c754": {
     "translation": "Account"
   },
   "093ac7483a": {
     "translation": "Can’t open {extension} files yet"
+  },
+  "0a836d936f": {
+    "translation": "Change styles"
   },
   "0a91f7fa87": {
     "translation": "This file has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
@@ -68,6 +74,9 @@
   "13ddd375ad": {
     "translation": "Export as"
   },
+  "1406aa3e1b": {
+    "translation": "Probability {value}%"
+  },
   "14b03eeeb5": {
     "translation": "Notification options"
   },
@@ -91,6 +100,12 @@
   },
   "250ddea65c": {
     "translation": "About tldraw"
+  },
+  "25ef7cd05a": {
+    "translation": "Change tool"
+  },
+  "26b542ded5": {
+    "translation": "Confidence {value}%"
   },
   "2755e3ab39": {
     "translation": "<name>{author}</name> commented on your board"
@@ -116,6 +131,9 @@
   "2e2b3c700b": {
     "translation": "Include link to current file"
   },
+  "2e36e077ad": {
+    "translation": "Automatic tools and styles (Jev)"
+  },
   "2e9856a31e": {
     "translation": "Regenerate invite link"
   },
@@ -130,6 +148,9 @@
   },
   "335defdafe": {
     "translation": "Please try refreshing the page."
+  },
+  "34183f54ff": {
+    "translation": "When enabled, Jev sends recent actions and nearby canvas content to TypeSafe. It can switch tools or next-shape styles during an interaction."
   },
   "344a7f427f": {
     "translation": "Editor"
@@ -161,8 +182,14 @@
   "42e53c47c1": {
     "translation": "Contact the owner to request access."
   },
+  "446e7f921c": {
+    "translation": "Decisions will appear here when you release the pointer or stop moving it."
+  },
   "44db318ee5": {
     "translation": "Get help on Discord"
+  },
+  "453e6aa38d": {
+    "translation": "Unavailable"
   },
   "454aad3b3c": {
     "translation": "Are you sure you want to delete <strong>{fileName}</strong>?"
@@ -232,6 +259,9 @@
   },
   "5a95a425f7": {
     "translation": "Share"
+  },
+  "5b91b59a64": {
+    "translation": "Evaluating recent actions"
   },
   "5bec508475": {
     "translation": "Old browser detected. Please update your browser to use this app."
@@ -305,6 +335,9 @@
   "71a29b007b": {
     "translation": "Have a bug, issue, or idea for tldraw? Let us know!"
   },
+  "733d43480c": {
+    "translation": "Applied"
+  },
   "73ab799383": {
     "translation": "This version of tldraw is no longer supported."
   },
@@ -344,11 +377,17 @@
   "797799f35e": {
     "translation": "Submit an issue on GitHub"
   },
+  "7a0d81a945": {
+    "translation": "First decision"
+  },
   "7a1920d611": {
     "translation": "Default"
   },
   "7b1329f5ca": {
     "translation": "User manual"
+  },
+  "7b44391e91": {
+    "translation": "No change"
   },
   "7be10fc592": {
     "translation": "Restore version"
@@ -401,6 +440,12 @@
   "8c2d3d730c": {
     "translation": "Check your email for a verification code."
   },
+  "8c61cb5c69": {
+    "translation": "Switch to {tool}"
+  },
+  "8e61d99ca2": {
+    "translation": "Turn off"
+  },
   "8eb2c00e96": {
     "translation": "Shared with you"
   },
@@ -415,6 +460,9 @@
   },
   "90646db02d": {
     "translation": "Are you sure you want to delete <strong>{workspaceName}</strong>? This action cannot be undone."
+  },
+  "9361d77f8b": {
+    "translation": "Last 100 requests · this canvas session"
   },
   "95aacd4d4a": {
     "translation": "Sign in with Google"
@@ -506,6 +554,12 @@
   "ab0df9ba36": {
     "translation": "File limit reached"
   },
+  "ab29fb3f22": {
+    "translation": "Jev is on for this canvas"
+  },
+  "ac612def11": {
+    "translation": "Not applied"
+  },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "Last published <date></date>"
@@ -525,6 +579,9 @@
   "b2c3c2e30c": {
     "translation": "File is full"
   },
+  "b2ce5e6a0b": {
+    "translation": "Jev history"
+  },
   "b357b524e7": {
     "translation": "Email address"
   },
@@ -542,6 +599,9 @@
   },
   "ba0318cb81": {
     "translation": "Sign in to share"
+  },
+  "ba9324c430": {
+    "translation": "Decision mode"
   },
   "bbaaf8b6bf": {
     "translation": "Invites are disabled"
@@ -579,6 +639,12 @@
   "c8a59e7135": {
     "translation": "Dismiss"
   },
+  "cba9a6e246": {
+    "translation": "Recent actions and nearby canvas content are sent to TypeSafe to suggest automatic tool and style changes. Turn this off in the canvas menu at any time."
+  },
+  "cc4f09805b": {
+    "translation": "Single choice"
+  },
   "cceaefbc20": {
     "translation": "Share this file"
   },
@@ -594,8 +660,17 @@
   "d0e3556476": {
     "translation": "<name>{author}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
   },
+  "d15305d7a4": {
+    "translation": "Off"
+  },
+  "d154a5ff03": {
+    "translation": "Turn on"
+  },
   "d3d2e61733": {
     "translation": "Close"
+  },
+  "d452cc2133": {
+    "translation": "Keep current tool and styles"
   },
   "d46632fe1f": {
     "translation": "Too many requests. Please slow down."
@@ -618,14 +693,23 @@
   "d9100f3e10": {
     "translation": "Go here to see the content"
   },
+  "db77f1a543": {
+    "translation": "Two-stage"
+  },
   "dbbebf3c03": {
     "translation": "Invite only"
   },
   "dbf9b24193": {
     "translation": "Leave workspace"
   },
+  "dc681bc7dd": {
+    "translation": "{style} → {value}"
+  },
   "dfdb78a4e4": {
     "translation": "App debug flags"
+  },
+  "e067b6f4f0": {
+    "translation": "Thinking"
   },
   "e0aa021e21": {
     "translation": "OK"
@@ -638,6 +722,9 @@
   },
   "e404559826": {
     "translation": "Terms of service"
+  },
+  "e599161956": {
+    "translation": "Idle"
   },
   "e65b2dcb6f": {
     "translation": "<name>{a}</name> and <name>{b}</name> reacted to your comment"

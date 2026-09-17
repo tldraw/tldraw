@@ -40,6 +40,7 @@ import {
 	usePassThroughWheelEvents,
 	useValue,
 } from 'tldraw'
+import { JevMenuItem } from '../../../components/Jev/Jev'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
@@ -309,6 +310,7 @@ function TlaEditorTopLeftPanelSignedIn() {
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="preferences">
 					<PreferencesGroup />
+					<JevMenuItem />
 				</TldrawUiMenuGroup>
 			</TlaFileMenu>
 		</>
@@ -480,6 +482,7 @@ function TlaPreferencesGroup() {
 					<ToggleDynamicSizeModeItem />
 					<TogglePasteAtCursorItem />
 					<ToggleDebugModeItem />
+					<JevMenuItem />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="user-interface-submenus">
 					<ColorSchemeMenu />
