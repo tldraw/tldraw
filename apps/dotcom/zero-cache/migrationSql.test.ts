@@ -31,6 +31,10 @@ describe('hasTransactionBlock', () => {
 		'END;',
 		'END WORK;',
 		'end ;',
+		'COMMIT AND CHAIN;',
+		'ABORT;',
+		// The file is sent as one simple query, so Postgres runs an unterminated last statement too.
+		'COMMIT',
 	])('finds %s', (statement) => {
 		expect(hasTransactionBlock(`ALTER TABLE foo DROP COLUMN bar;\n${statement}`)).toBe(true)
 	})
@@ -80,8 +84,26 @@ describe('hasTransactionBlock', () => {
 		expect(hasTransactionBlock(`/* wrap up */ END /* now */;`)).toBe(true)
 	})
 
-	// The reason the check is punctuation-sensitive rather than word-based: every plpgsql function
-	// body opens with a bare BEGIN, so a word-based check would reject most trigger migrations.
+	// Each of these would hide a real statement if the scanner mis-read the quoting around it.
+	it.each([
+		[
+			'a quoted identifier with a quote in it',
+			`CREATE TABLE "it's" (x int);\nEND;\nCREATE TABLE "x's" (y int);`,
+		],
+		['a quoted identifier with a comment opener in it', `CREATE TABLE "a--b" (x int);\nCOMMIT;`],
+		['an escaped backslash before the closing quote', `SELECT E'a\\\\';\nCOMMIT;`],
+		['positional parameters', `SELECT $1;\nCOMMIT;\nSELECT $1;`],
+		['an unterminated string', `SELECT 'oops;\nCOMMIT;`],
+		['an unterminated block comment', `/* oops\nCOMMIT;`],
+	])('finds a statement after %s', (_, sql) => {
+		expect(hasTransactionBlock(sql)).toBe(true)
+	})
+
+	it('does not mistake an identifier ending in e for an escape string prefix', () => {
+		expect(hasTransactionBlock(`SELECT 1 WHERE type='a\\';\nSELECT 'END;';`)).toBe(false)
+	})
+
+	// The whole body is stripped before matching, so neither its bare BEGIN nor its END; count.
 	it('does not mistake a plpgsql function body for one', () => {
 		expect(
 			hasTransactionBlock(

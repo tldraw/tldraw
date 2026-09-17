@@ -3,22 +3,21 @@
  * opens its own leaves the runner's transaction in a state it did not expect. migrate.ts refuses
  * one rather than trying to reconcile that.
  *
- * Only a statement counts: BEGIN, START TRANSACTION, COMMIT, ROLLBACK or END, with or without
- * WORK/TRANSACTION, in any case, followed by a semicolon. Postgres accepts `END;` and `END WORK;`
- * as synonyms for COMMIT, but every plpgsql function body and DO block ends with an `END;` of its
- * own, so the check first strips dollar-quoted bodies, comments and string literals and only then
- * looks for a statement. plpgsql bodies open with a bare `BEGIN` and no semicolon, which is why
- * the check is punctuation-sensitive rather than word-based.
+ * Only a statement counts: BEGIN, START TRANSACTION, COMMIT, ROLLBACK, ABORT or END, with or
+ * without WORK/TRANSACTION and AND CHAIN, in any case, followed by a semicolon or the end of the
+ * file. Postgres accepts `END;` and `END WORK;` as synonyms for COMMIT, but every plpgsql function
+ * body and DO block ends with an `END;` of its own, so the check first strips dollar-quoted
+ * bodies, quoted identifiers, comments and string literals and only then looks for a statement.
+ * The semicolon requirement is what keeps a `CASE ... END AS x` expression from tripping it.
  *
  * A miss is worse than a false positive. The runner sends each file with the simple query
  * protocol, so a stray `commit;` ends the runner's transaction mid-file and everything after it,
- * `--dry-run` included, applies for real. That is also why an unterminated quote or comment is
- * left in place rather than swallowing the rest of the file, and why a top-level `CASE ... END;`
- * or a `BEGIN ATOMIC` function body is flagged: neither appears in a migration here, and a false
+ * `--dry-run` included, applies for real. That is why a top-level `CASE ... END;` or a
+ * `BEGIN ATOMIC` function body is flagged: neither appears in a migration here, and a false
  * positive fails loudly at deploy time.
  */
 export function hasTransactionBlock(migrationSql: string): boolean {
-	return /\b(begin|start\s+transaction|commit|rollback|end)(\s+(work|transaction))?\s*;/i.test(
+	return /\b(begin|start\s+transaction|commit|rollback|abort|end)(\s+(work|transaction))?(\s+and\s+(no\s+)?chain)?\s*(;|$)/i.test(
 		stripQuotesAndComments(migrationSql)
 	)
 }
@@ -69,18 +68,19 @@ function stripQuotesAndComments(sql: string): string {
 			continue
 		}
 
-		if (ch === "'") {
-			// E'...' strings also escape a quote with a backslash; plain strings only double it.
+		if (ch === "'" || ch === '"') {
+			// E'...' strings also escape a quote with a backslash; plain strings and quoted
+			// identifiers only double it. The E must stand alone: `type='x'` ends in an e too.
 			const prev = sql[i - 1]
 			const isEscapeString =
-				(prev === 'E' || prev === 'e') && !/[A-Za-z0-9_]/.test(sql[i - 2] ?? '')
+				ch === "'" && (prev === 'E' || prev === 'e') && !/[A-Za-z0-9_]/.test(sql[i - 2] ?? '')
 			let j = i + 1
 			let terminated = false
 			while (j < sql.length) {
 				if (isEscapeString && sql[j] === '\\') {
 					j += 2
-				} else if (sql[j] === "'") {
-					if (sql[j + 1] === "'") {
+				} else if (sql[j] === ch) {
+					if (sql[j + 1] === ch) {
 						j += 2
 					} else {
 						terminated = true
