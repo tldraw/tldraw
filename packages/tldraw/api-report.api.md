@@ -1510,6 +1510,9 @@ export const DefaultZoomMenu: MemoExoticComponent<({ children }: TLUiZoomMenuPro
 // @public (undocumented)
 export function DefaultZoomMenuContent(): JSX.Element;
 
+// @public
+export function defineMessages<Messages extends Record<string, TLUiMessageDescriptor>>(msgs: Messages): Messages;
+
 // @public (undocumented)
 export function DeleteMenuItem(): JSX.Element;
 
@@ -1959,6 +1962,9 @@ export { Extensions }
 
 // @public (undocumented)
 export function ExtrasGroup(): JSX.Element;
+
+// @public
+export function F({ values, ...descriptor }: TLUiMessageProps): JSX.Element;
 
 // @public (undocumented)
 export function FeatureFlags(props: FeatureFlagsProps): JSX.Element | null;
@@ -2622,6 +2628,9 @@ export interface ImageShapeUtilDisplayValues {
 // @public (undocumented)
 export function InputModeMenu(): JSX.Element;
 
+// @public (undocumented)
+export function isPseudoLocale(locale: string): boolean;
+
 export { JSONContent }
 
 // @public (undocumented)
@@ -3261,6 +3270,9 @@ export function preloadFont(id: string, font: TLTypeFace, targetDocument?: Docum
 
 // @public (undocumented)
 export function PrintItem(): JSX.Element;
+
+// @public
+export const PSEUDO_LOCALES: readonly ['xx-AE', 'xx-LS'];
 
 // @public
 export function putExcalidrawContent(editor: Editor, excalidrawClipboardContent: any, point?: VecLike): Promise<void>;
@@ -5471,6 +5483,22 @@ export type TLUiMenuToolItemProps = {
     toolId?: string;
 } & Pick<TLUiMenuItemProps, 'disabled' | 'isSelected'>;
 
+// @public
+export interface TLUiMessageDescriptor {
+    // (undocumented)
+    defaultMessage: string;
+    // (undocumented)
+    description?: string;
+    // (undocumented)
+    id: string;
+}
+
+// @public (undocumented)
+export interface TLUiMessageProps extends TLUiMessageDescriptor {
+    // (undocumented)
+    values?: TLUiTranslationValues;
+}
+
 // @public (undocumented)
 export type TLUiOverrideHelpers = ReturnType<typeof useDefaultHelpers>;
 
@@ -6539,6 +6567,9 @@ export function useMenuClipboardEvents(): {
 
 // @public (undocumented)
 export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void): readonly [boolean, (isOpen: boolean) => void];
+
+// @public
+export function useMsg(message: TLUiMessageDescriptor, values?: TLUiTranslationValues): string;
 
 // @public (undocumented)
 export function useNativeClipboardEvents(): void;

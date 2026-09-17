@@ -1,5 +1,5 @@
-import { createIntl } from '@formatjs/intl'
 import { createShapeId, toRichText } from '@tldraw/editor'
+import { createIntl } from 'react-intl'
 import { Mock, vi } from 'vitest'
 import { generateShapeAnnouncementMessage } from '../lib/ui/components/A11y'
 import { TestEditor } from './TestEditor'
