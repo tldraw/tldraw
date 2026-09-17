@@ -1,6 +1,13 @@
-import { IntlErrorCode, type OnErrorFn, createIntl, createIntlCache } from '@formatjs/intl'
 import { warnOnce } from '@tldraw/editor'
 import * as React from 'react'
+import {
+	IntlContext,
+	IntlProvider,
+	ReactIntlErrorCode,
+	createIntl,
+	createIntlCache,
+	type IntlConfig,
+} from 'react-intl'
 import { useAssetUrls } from '../../context/asset-urls'
 import { DEFAULT_TRANSLATION } from './defaultTranslation'
 import { TLUiTranslationKey } from './TLUiTranslationKey'
@@ -92,7 +99,16 @@ export function TldrawUiTranslationProvider({
 
 	return (
 		<TranslationsContext.Provider value={currentTranslation}>
-			{children}
+			{/* One IntlShape behind both APIs: `msg()` by key and `<F>`/`useMsg()` by descriptor
+			    read the same merged catalog, so an app's `overrides.translations` reaches both. */}
+			<IntlProvider
+				locale={currentTranslation.locale}
+				defaultLocale="en"
+				messages={currentTranslation.messages}
+				onError={onTranslationError}
+			>
+				{children}
+			</IntlProvider>
 		</TranslationsContext.Provider>
 	)
 }
@@ -107,16 +123,16 @@ export type TLUiTranslationValues = Record<
 	string | number | bigint | boolean | Date | null | undefined
 >
 
-// One cache for every intl instance we create, as formatjs recommends, so that repeated
-// provider mounts don't leak a formatter cache each.
-const intlCache = createIntlCache()
-
 // Returning the key verbatim for an unknown id is documented behaviour: apps pass their own keys
 // and plain text through `msg()`. Only surface errors that mean a message is actually malformed.
-const onTranslationError: OnErrorFn = (error) => {
-	if (error.code === IntlErrorCode.MISSING_TRANSLATION) return
+const onTranslationError: IntlConfig['onError'] = (error) => {
+	if (error.code === ReactIntlErrorCode.MISSING_TRANSLATION) return
 	if (process.env.NODE_ENV !== 'production') console.error(error)
 }
+
+// One cache for the intl instances built below, as formatjs recommends, so that repeated mounts
+// don't leak a formatter cache each.
+const intlCache = createIntlCache()
 
 /**
  * Returns a function to translate a translation key into a string based on the current translation.
@@ -137,7 +153,6 @@ const onTranslationError: OnErrorFn = (error) => {
  */
 export function useTranslation() {
 	const translation = React.useContext(TranslationsContext)
-	const messages = translation?.messages ?? DEFAULT_TRANSLATION
 
 	React.useEffect(() => {
 		if (!translation?.messages) {
@@ -147,19 +162,28 @@ export function useTranslation() {
 		}
 	}, [translation?.messages])
 
-	const intl = React.useMemo(
+	// Not `useIntl()`: that throws outside a provider, where this hook still has to work.
+	const providedIntl = React.useContext(IntlContext)
+
+	// `TranslationsContext` on its own has always been enough to translate — tests and hand-rolled
+	// setups provide it without the rest. Keep that working by formatting against its messages when
+	// there's no `IntlProvider` above us, rather than silently falling back to English.
+	const standaloneIntl = React.useMemo(
 		() =>
-			createIntl(
-				{
-					locale: translation?.locale ?? 'en',
-					defaultLocale: 'en',
-					messages,
-					onError: onTranslationError,
-				},
-				intlCache
-			),
-		[translation?.locale, messages]
+			providedIntl
+				? null
+				: createIntl(
+						{
+							locale: translation?.locale ?? 'en',
+							defaultLocale: 'en',
+							messages: translation?.messages ?? DEFAULT_TRANSLATION,
+							onError: onTranslationError,
+						},
+						intlCache
+					),
+		[providedIntl, translation?.locale, translation?.messages]
 	)
+	const intl = providedIntl ?? standaloneIntl!
 
 	return React.useCallback(
 		function msg(
@@ -169,8 +193,8 @@ export function useTranslation() {
 			// `formatMessage` needs an id. Callers pass optional labels straight through, so keep the
 			// nullish passthrough this has always had rather than substituting an empty string.
 			if (!id) return id as string
-			// No `defaultMessage`: the SDK's catalog is authored, not extracted, so the English text
-			// lives only in main.json. Inlining it here would be a second copy free to drift.
+			// A bare key carries no default message, by design: this is the path for labels that
+			// arrive as data and for an app's own keys. Co-located messages use `F`/`useMsg`.
 			// eslint-disable-next-line tldraw/enforce-default-message
 			return intl.formatMessage({ id }, values)
 		},

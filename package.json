@@ -81,6 +81,7 @@
 		"e2e-dotcom-smoke-x10": "yarn workspace dotcom e2e-smoke-x10",
 		"e2e-dotcom-all-x10": "yarn workspace dotcom e2e-all-x10",
 		"i18n-check": "i18n-check",
+		"i18n-extract": "tsx internal/scripts/i18n-extract.ts",
 		"i18n-upload-strings": "tsx internal/scripts/i18n-upload-strings.ts",
 		"i18n-download-strings": "tsx internal/scripts/i18n-download-strings.ts",
 		"i18n-fix-strings": "tsx internal/scripts/i18n-fix-strings.ts"
