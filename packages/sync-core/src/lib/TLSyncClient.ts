@@ -776,7 +776,11 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		// Local changes reach `push` (and so `speculativeChanges`) on the store's frame-throttled
 		// history flush. Anything still queued there would be neither reverted below nor
 		// re-applied on top of the server state, so bring speculativeChanges up to date first.
-		this.store._flushHistory()
+		try {
+			this.store._flushHistory()
+		} catch (e) {
+			console.error(e)
+		}
 
 		// at the end of this process we want to have at most one pending push request
 		// based on anything inside this.speculativeChanges

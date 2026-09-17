@@ -438,6 +438,40 @@ describe('TLSyncClient', () => {
 			}
 		})
 
+		it('[CL5][CL8] a store listener that throws during the reconnect flush does not stall the connect', () => {
+			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			try {
+				client = createClient()
+				let listenerThrown = false
+				store.listen(() => {
+					if (listenerThrown) return
+					listenerThrown = true
+					throw new Error('listener error')
+				})
+
+				// queue a local change behind the frame throttle so the connect flush delivers it
+				const flushHistory = store._flushHistory
+				store._flushHistory = () => {}
+				const localPage = makePage('Local Page', 'a5')
+				store.put([localPage])
+				store._flushHistory = flushHistory
+
+				const serverDiff = documentScopeDiff()
+				delete serverDiff[localPage.id] // the server never saw it
+				socket.mockServerMessage(createConnectMessage({ diff: serverDiff }))
+				vi.advanceTimersByTime(100)
+
+				expect(client.isConnectedToRoom).toBe(true)
+				expect(onLoad).toHaveBeenCalled()
+				expect(store.get(localPage.id)).toEqual(localPage)
+				expect(
+					getSentPushes().some((msg) => msg.diff?.[localPage.id]?.[0] === RecordOpType.Put)
+				).toBe(true)
+			} finally {
+				consoleSpy.mockRestore()
+			}
+		})
+
 		it('[CL3][CL8] onLoad is held back while the connect response cannot be applied, and the client gives up after repeated failures', () => {
 			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 			try {
