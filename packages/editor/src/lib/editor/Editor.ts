@@ -11005,9 +11005,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		switch (type) {
 			case 'pinch': {
-				// A lock stops the camera, not the gesture: pinch_end must still run, otherwise
-				// locking mid-pinch leaves isPinching stuck and every pointer event is ignored.
-				if (cameraOptions.isLocked && info.name !== 'pinch_end') return
 				clearTimeout(this._longPressTimeout)
 				this.inputs.updateFromEvent(info)
 
@@ -11045,6 +11042,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 					case 'pinch': {
 						if (!inputs.getIsPinching()) return
+						// Lock the zoom, not the gesture: skipping pinch_start would send the fingers'
+						// pointer events to the tool, and skipping pinch_end would leave isPinching stuck.
+						if (cameraOptions.isLocked) return
 
 						const {
 							point: { z = 1 },
