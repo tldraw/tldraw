@@ -37,7 +37,6 @@
 		"esbuild": "^0.28.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"typescript": "^7.0.2",
-		"vitest": "^5.0.0",
 		"wrangler": "^4.75.0"
 	}
 }

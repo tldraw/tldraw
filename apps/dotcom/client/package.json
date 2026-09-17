@@ -81,7 +81,7 @@
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"@types/regexgen": "^1",
-		"@vercel/build-utils": "^13.20.0",
+		"@vercel/build-utils": "13.20.0",
 		"@vitejs/plugin-react": "^6.0.1",
 		"dotenv": "^16.4.7",
 		"fast-glob": "^3.3.3",
