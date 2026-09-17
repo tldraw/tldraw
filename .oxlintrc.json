@@ -270,7 +270,7 @@
 			}
 		},
 		{
-			"files": ["packages/**/*"],
+			"files": ["packages/**/*", "apps/**/*", "internal/**/*", "templates/**/*"],
 			"rules": {
 				"tldraw/no-undeclared-dependencies": "error"
 			}

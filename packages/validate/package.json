@@ -52,7 +52,8 @@
 		"@tldraw/utils": "workspace:*"
 	},
 	"devDependencies": {
-		"lazyrepo": "0.0.0-alpha.27"
+		"lazyrepo": "0.0.0-alpha.27",
+		"vitest": "^5.0.0"
 	},
 	"engines": {
 		"node": ">=22.12.0"

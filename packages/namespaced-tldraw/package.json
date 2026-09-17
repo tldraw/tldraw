@@ -65,7 +65,8 @@
 		"chokidar-cli": "^3.0.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"react": "^19.2.1",
-		"react-dom": "^19.2.1"
+		"react-dom": "^19.2.1",
+		"vitest": "^5.0.0"
 	},
 	"engines": {
 		"node": ">=22.12.0"
