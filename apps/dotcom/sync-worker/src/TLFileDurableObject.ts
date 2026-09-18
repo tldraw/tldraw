@@ -3123,6 +3123,49 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
+	/**
+	 * Re-check one user's access and close their sessions if it's gone. Called when their workspace
+	 * membership is revoked (see migration 051 and processGroupUserEffect).
+	 *
+	 * updateRoomForFileRecord covers the same ground for a *file* change, but removing someone from
+	 * a workspace writes only to group_user — no file row changes, so nothing else wakes this room
+	 * and an open socket would keep syncing until it happened to reconnect.
+	 *
+	 * Deliberately does not boot the room: a cold DO has no sessions, so there is nothing to close.
+	 * That is what makes it cheap to call this across every file in the group the user had opened.
+	 */
+	async revokeSessionsForUser(userId: string) {
+		// No room loaded => no sessions. Returning here also keeps the fan-out from warming a
+		// thousand rooms just to find them empty.
+		if (!this._room) return
+		if (this._documentInfo?.deleted) return
+
+		const room = await this.getRoom()
+		const sessions = room.getSessions().filter((session) => session.meta.userId === userId)
+		if (sessions.length === 0) return
+
+		const file = await this.getAppFileRecord()
+		if (!file) return
+
+		// One lookup for the whole loop: unlike updateRoomForFileRecord, every session here belongs
+		// to the same user.
+		const role = await getRole(this.db, userId, file.owningGroupId)
+		if (can(role, 'accessFiles')) return
+
+		// Same two cases updateRoomForFileRecord distinguishes, and for the same reasons.
+		const roomIsReadOnlyForGuests = file.shared && file.sharedLinkType !== 'edit'
+		for (const session of sessions) {
+			if (!file.shared) {
+				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
+			} else if (session.isReadonly !== roomIsReadOnlyForGuests) {
+				// The share link still admits them, just as a guest rather than a member. No reason
+				// means the client reconnects, picking up the guest permissions in place of the ones
+				// membership was giving them.
+				room.closeSession(session.sessionId)
+			}
+		}
+	}
+
 	private async updateRoomForFileRecord(file: TlaFile) {
 		const storage = await this.getStorage()
 		// if the app file record updated, it might mean that the file name changed
