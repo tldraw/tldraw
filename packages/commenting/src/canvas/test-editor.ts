@@ -1,4 +1,5 @@
 import { Mat, type Editor, type TLShape, type TLShapeId } from 'tldraw'
+import { defaultCommentingOptions, type CommentingOptions } from './options'
 
 /**
  * A fake editor for anchor tests. Test-only — not exported from the package barrel.
@@ -22,7 +23,7 @@ export interface FakeShapeSpec {
 	/**
 	 * What `distanceToPoint` reports for this shape, regardless of the point. Negative means the
 	 * point is inside a fill. Geometry maths belongs to tldraw; these tests only care how the
-	 * commenting code interprets the number.
+	 * commenting code interprets the number. Only consulted under `'outline'` targeting.
 	 */
 	distanceToOutline?: number
 }
@@ -30,8 +31,10 @@ export interface FakeShapeSpec {
 export interface FakeEditorOptions {
 	pageId?: string
 	zoom?: number
-	/** Order returned by `getShapesAtPoint`, which is top-most first. */
+	/** Top-most first: the hit tests answer from this order. */
 	shapes?: FakeShapeSpec[]
+	/** Overrides merged over `defaultCommentingOptions`, as `CommentTool.configure` would set them. */
+	options?: Partial<CommentingOptions>
 }
 
 export const FAKE_PAGE_ID = 'page:one'
@@ -40,7 +43,10 @@ export function createFakeEditor({
 	pageId = FAKE_PAGE_ID,
 	zoom = 1,
 	shapes = [],
+	options,
 }: FakeEditorOptions = {}): Editor {
+	// `getCommentingOptions` reads the registered comment tool's `options`, so stand one in.
+	const commentTool = { options: { ...defaultCommentingOptions, ...options } }
 	const specs = new Map(shapes.map((spec) => [spec.id, spec]))
 
 	const records = new Map<string, TLShape>(
@@ -65,6 +71,7 @@ export function createFakeEditor({
 	return {
 		getCurrentPageId: () => pageId,
 		getZoomLevel: () => zoom,
+		getStateDescendant: (id: string) => (id === 'comment' ? commentTool : undefined),
 		getShape: (id: TLShapeId) => records.get(id as unknown as string),
 		getShapePageTransform: (shape: TLShape | TLShapeId) => transformOf(shape),
 		getShapeGeometry: (shape: TLShape | TLShapeId) => {
@@ -81,6 +88,9 @@ export function createFakeEditor({
 			if (!transform) return page
 			return Mat.applyToPoint(Mat.Inverse(transform), page)
 		},
+		// Hit testing itself is tldraw's; these tests only care what commenting does with the answer.
+		// The top-most shape wins, and an empty list stands in for blank canvas.
+		getShapeAtPoint: () => (shapes.length ? records.get(shapes[0].id) : undefined),
 		getShapesAtPoint: () => shapes.map((spec) => records.get(spec.id)!),
 		// Only the 'text-range' anchor still reads page bounds. Unrotated shapes only, which is all
 		// that anchor kind is used with.

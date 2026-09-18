@@ -95,6 +95,7 @@ export {
 	focusThread,
 	resolveCommentDrop,
 	type ResolveCommentDropOptions,
+	resolveShapeAnchorPrecision,
 	shapeAnchorAt,
 } from './canvas/thread-state'
 

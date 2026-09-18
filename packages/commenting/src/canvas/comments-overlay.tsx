@@ -1082,6 +1082,7 @@ const ThreadPin = memo(function ThreadPin({
 		resolveCommentDrop(editor, editor.screenToPage({ x: e.clientX, y: e.clientY }), {
 			current: thread.anchor,
 			constrain: e.altKey,
+			altKey: e.altKey,
 		})
 	const onDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
 		const drag = dragRef.current

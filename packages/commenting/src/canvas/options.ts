@@ -59,6 +59,24 @@ export interface CommentingOptions {
 	// ── Anchoring ────────────────────────────────────────────────────────────────────────────
 	/** Normalized (0–1) spot within a shape where imprecise shape pins sit. Default top-right. */
 	readonly impreciseShapeAnchor: { readonly x: number; readonly y: number }
+	/**
+	 * When placing (or drag-re-anchoring) a comment on a shape, whether the anchor is precise —
+	 * pinned to the exact clicked spot within the shape — or imprecise — pinned to the shape as a
+	 * whole, rendered at `impreciseShapeAnchor`. `'alt'` makes it the user's call per placement:
+	 * imprecise normally, precise while Alt is held. `'always'` / `'never'` fix it either way and
+	 * ignore the modifier. Governs new placements only; existing anchors render as stored.
+	 */
+	readonly preciseShapeAnchors: 'always' | 'never' | 'alt'
+	/**
+	 * What counts as being over a shape when placing (or drag-re-anchoring) a comment. `'area'`
+	 * takes anywhere within a shape, its fill included. `'outline'` takes only the shape's stroke,
+	 * so a click in the blank middle of a rectangle leaves the comment a free page point instead.
+	 *
+	 * Under `'outline'`, shapes with no stroke to aim at — images, video, text, notes, bookmarks
+	 * and embeds — still attach anywhere in their area, or a comment on a photo could only attach
+	 * to its border. Frames are not exempt, so a comment inside a frame isn't bound to the frame.
+	 */
+	readonly shapeAnchorTargets: 'area' | 'outline'
 
 	// ── Clustering tuning ─────────────────────────────────────────────────────────────────────
 	/** Screen-pixel margin by which the viewport is inflated when culling cluster badges. */
@@ -81,6 +99,10 @@ export const defaultCommentingOptions = {
 	dragHistory: undefined,
 	enableClustering: true,
 	impreciseShapeAnchor: { x: 1, y: 0 },
+	// Diverges from #9651, which defaults to 'alt': a comment staying exactly where it was put is
+	// the behaviour this branch is arguing for, so it is the default rather than a modifier.
+	preciseShapeAnchors: 'always',
+	shapeAnchorTargets: 'area',
 	clusterCullMargin: 120,
 	clusterSplitZoomFactor: 1.05,
 	components: {},

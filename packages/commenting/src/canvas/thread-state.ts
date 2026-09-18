@@ -9,6 +9,7 @@ import {
 	TLShapeId,
 	VecLike,
 } from 'tldraw'
+import { getCommentingOptions } from './options'
 import { getRegionCommentOptions } from './region-options'
 import { openThreadId } from './state'
 
@@ -114,13 +115,31 @@ function shapeAnchorFor(
 	}
 }
 
-/** How close, in screen pixels, a point must be to a shape's stroke to attach to it. */
+/**
+ * Whether a shape placement lands precise, per the editor's `preciseShapeAnchors` option: fixed
+ * either way for `'always'`/`'never'`, or the Alt key's live state for `'alt'`. Both placement
+ * paths — the comment tool's pointer-up and a pin drag's re-anchor — resolve through this before
+ * building the anchor with {@link shapeAnchorAt}.
+ * @public
+ */
+export function resolveShapeAnchorPrecision(editor: Editor, altKey: boolean): boolean {
+	switch (getCommentingOptions(editor).preciseShapeAnchors) {
+		case 'always':
+			return true
+		case 'never':
+			return false
+		case 'alt':
+			return altKey
+	}
+}
+
+/** How close, in screen pixels, a point must be to a shape's stroke under `'outline'` targeting. */
 const OUTLINE_HIT_MARGIN_PX = 8
 
 /**
- * Shape types with no drawn stroke to aim at — pictures, text, widgets. Outline-only binding would
- * leave these reachable by their border alone, so a comment dropped in the middle of a photo would
- * miss it entirely. These attach anywhere within their area instead.
+ * Shape types with no drawn stroke to aim at — pictures, text, widgets. Under `'outline'` these
+ * would be reachable by their border alone, so a comment dropped in the middle of a photo would
+ * miss it. They attach anywhere within their area instead.
  *
  * Frames are deliberately absent: a frame's border is a real line, and binding anywhere inside one
  * would attach every comment in a frame to the frame itself.
@@ -135,16 +154,22 @@ const AREA_BOUND_SHAPE_TYPES: ReadonlySet<string> = new Set([
 ])
 
 /**
- * The shape a comment placed at `page` would attach to, or undefined for empty canvas.
+ * The shape a comment placed at `page` would attach to, or undefined for empty canvas, per the
+ * editor's `shapeAnchorTargets` option.
  *
- * A comment binds to a shape's stroke, not its fill: anywhere there's ink, nothing in the blank
- * space a shape's outline encloses. That can't be had from `getShapeAtPoint`, whose `hitInside`
- * flag is only consulted for hollow shapes — a filled shape reports interior points as a negative
- * distance and is returned outright. So this measures distance to the outline itself and discards
- * the sign, which is exactly the "I'm inside a fill" information we don't want.
+ * `hitInside` is set for `'area'` because tldraw's default fill is `'none'`: without it a freshly
+ * drawn rectangle is hollow and only its stroke would attach, putting most of the shape out of
+ * reach. `'outline'` wants that restriction, but can't get it by clearing the flag — `hitInside`
+ * is only consulted for hollow shapes, since a filled shape reports interior points as a negative
+ * distance and is returned outright. So it measures distance to the outline and discards the sign,
+ * which is exactly the "I'm inside a fill" information to ignore.
  * @public
  */
 export function commentTargetShape(editor: Editor, page: VecLike): TLShape | undefined {
+	if (getCommentingOptions(editor).shapeAnchorTargets === 'area') {
+		return editor.getShapeAtPoint(page, { hitInside: true })
+	}
+
 	// Screen-space margin, so the stroke stays equally easy to hit at any zoom. Without one it is a
 	// couple of pixels wide and effectively unhittable.
 	const margin = OUTLINE_HIT_MARGIN_PX / editor.getZoomLevel()
@@ -153,7 +178,7 @@ export function commentTargetShape(editor: Editor, page: VecLike): TLShape | und
 		if (AREA_BOUND_SHAPE_TYPES.has(shape.type)) return shape
 		const local = editor.getPointInShapeSpace(shape, page)
 		// Labels excluded: a geo shape's label is a filled rectangle in the middle of the shape, and
-		// would otherwise read as ink exactly where the fill is supposed to be inert.
+		// would otherwise read as ink exactly where the fill is meant to be inert.
 		const distance = editor
 			.getShapeGeometry(shape)
 			.distanceToPoint(local, false, Geometry2dFilters.EXCLUDE_NON_STANDARD)
@@ -175,6 +200,8 @@ export interface ResolveCommentDropOptions {
 	current?: TLCommentAnchor
 	/** Alt: hold the comment on the shape it is already attached to (see {@link resolveCommentDrop}). */
 	constrain?: boolean
+	/** Whether Alt is held, for the `'alt'` setting of `preciseShapeAnchors`. */
+	altKey?: boolean
 }
 
 /**
@@ -183,16 +210,20 @@ export interface ResolveCommentDropOptions {
  * doesn't deliver.
  *
  * Two modes:
- * - Normal: attach to whatever shape's stroke is under the point, else leave the comment a free
- *   page point. Dragging a comment off a stroke onto blank canvas is how it detaches.
- * - Constrained (Alt, on a comment already attached to a shape): keep that shape and let the
- *   comment sit anywhere within its box, fill included, clamped to the box's edges.
+ * - Normal: attach to whatever shape the `shapeAnchorTargets` option says is under the point, else
+ *   leave the comment a free page point. Dragging a comment off a shape is how it detaches.
+ * - Constrained (Alt, on a comment already attached to a shape): keep that shape whatever is under
+ *   the pointer, and let the comment sit anywhere in the shape's box — including the corners its
+ *   geometry doesn't cover, and over a shape stacked on top — clamped to the box's edges.
+ *
+ * Precision comes from {@link resolveShapeAnchorPrecision}. A constrained drag is always precise:
+ * the whole gesture is choosing a spot within the shape, which an imprecise anchor discards.
  * @public
  */
 export function resolveCommentDrop(
 	editor: Editor,
 	page: VecLike,
-	{ current, constrain = false }: ResolveCommentDropOptions = {}
+	{ current, constrain = false, altKey = false }: ResolveCommentDropOptions = {}
 ): CommentDropTarget {
 	if (constrain && current?.type === 'shape') {
 		const shapeId = current.shapeId as TLShapeId
@@ -207,7 +238,8 @@ export function resolveCommentDrop(
 
 	const hit = commentTargetShape(editor, page)
 	if (!hit) return { anchor: { type: 'point', x: page.x, y: page.y }, highlightShapeId: null }
-	return { anchor: shapeAnchorFor(editor, hit.id, page, true), highlightShapeId: hit.id }
+	const precise = resolveShapeAnchorPrecision(editor, altKey)
+	return { anchor: shapeAnchorFor(editor, hit.id, page, precise), highlightShapeId: hit.id }
 }
 
 function clamp01(value: number): number {

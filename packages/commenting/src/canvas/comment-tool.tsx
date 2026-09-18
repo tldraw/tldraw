@@ -177,7 +177,7 @@ class CommentPointing extends StateNode {
 	override onPointerUp() {
 		const { editor } = this
 		const point = editor.inputs.getCurrentPagePoint()
-		const { anchor } = resolveCommentDrop(editor, point)
+		const { anchor } = resolveCommentDrop(editor, point, { altKey: editor.inputs.getAltKey() })
 		pendingComment.set(editor, { anchor, point: { x: point.x, y: point.y } })
 		// Hand back to select; the open composer is now the focus.
 		editor.setCurrentTool('select')
