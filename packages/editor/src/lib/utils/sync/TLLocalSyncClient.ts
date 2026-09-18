@@ -1,7 +1,7 @@
 import { Signal, transact } from '@tldraw/state'
 import { RecordsDiff, SerializedSchema, UnknownRecord, squashRecordDiffs } from '@tldraw/store'
 import { TLStore } from '@tldraw/tlschema'
-import { assert } from '@tldraw/utils'
+import { assert, noop } from '@tldraw/utils'
 import {
 	TAB_ID,
 	TLSessionStateSnapshot,
@@ -63,6 +63,9 @@ export class BroadcastChannelMock {
 }
 
 const BC = typeof BroadcastChannel === 'undefined' ? BroadcastChannelMock : BroadcastChannel
+
+// Flushes still running for closed clients, by key. See connect() and close().
+const pendingFlushes = new Map<string, Promise<void>>()
 
 /** @internal */
 export class TLLocalSyncClient {
@@ -238,6 +241,11 @@ export class TLLocalSyncClient {
 			this.channel.close()
 		})
 
+		// our first write is a full snapshot, so it would erase whatever a client that just closed
+		// on this key is still flushing
+		await pendingFlushes.get(this.persistenceKey)
+		if (this.didDispose) return
+
 		try {
 			data = await this.db.load({ sessionId: this.sessionId })
 		} catch (error: any) {
@@ -317,7 +325,18 @@ export class TLLocalSyncClient {
 		if (typeof window !== 'undefined' && (window as any).tlsync === this) {
 			delete (window as any).tlsync
 		}
-		this.flushAndCloseDb()
+		// flush now when the key is idle: close() runs during teardown, where a deferred write may
+		// never run. wait when it isn't, or our snapshot lands first and gets overwritten.
+		// connect() awaits this, so it must never reject
+		const previous = pendingFlushes.get(this.persistenceKey)
+		const flush = (previous ? previous.then(() => this.flushAndCloseDb()) : this.flushAndCloseDb())
+			.catch(noop)
+			.then(() => {
+				if (pendingFlushes.get(this.persistenceKey) === flush) {
+					pendingFlushes.delete(this.persistenceKey)
+				}
+			})
+		pendingFlushes.set(this.persistenceKey, flush)
 	}
 
 	/**
@@ -326,17 +345,16 @@ export class TLLocalSyncClient {
 	 * store), and only when something is queued: shouldDoFullDBWrite stays true until the first
 	 * persist, so an unconditional flush would rewrite the whole document on every no-op close.
 	 */
-	private flushAndCloseDb() {
+	private flushAndCloseDb(): Promise<void> {
 		// A persist in flight can't be joined (persistIfNeeded bails while one is running) and,
 		// now that we're disposed, won't schedule a follow-up. Edits queued during that write
 		// would be lost if the db closed now, so wait for it and flush again.
 		if (this.persistPromise) {
-			this.persistPromise.then(() => this.flushAndCloseDb())
-			return
+			return this.persistPromise.then(() => this.flushAndCloseDb())
 		}
 		if (this.didLoad && this.diffQueue.length > 0) this.persistIfNeeded()
 		// the db waits for the transaction the flush just opened before actually closing
-		this.db.close()
+		return this.db.close()
 	}
 
 	private isPersisting = false
