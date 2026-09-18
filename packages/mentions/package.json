@@ -31,15 +31,15 @@
 		"mentions.css"
 	],
 	"scripts": {
-		"test-ci": "yarn run -T vitest run --passWithNoTests",
-		"test": "yarn run -T vitest --passWithNoTests",
-		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
-		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
-		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
-		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
+		"test-ci": "pnpm exec vitest run --passWithNoTests",
+		"test": "pnpm exec vitest --passWithNoTests",
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"build": "pnpm exec tsx ../../internal/scripts/build-package.ts",
+		"build-api": "pnpm exec tsx ../../internal/scripts/build-api.ts",
+		"prepack": "pnpm exec tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
-		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"pack-tarball": "pnpm pack",
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts"
 	},
 	"devDependencies": {
 		"@types/react": "^19.2.7",

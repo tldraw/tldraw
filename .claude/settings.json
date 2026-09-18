@@ -30,10 +30,10 @@
 		"allow": [
 			"WebSearch",
 			"Bash(gh pr:*)",
-			"Bash(yarn install)",
-			"Bash(yarn test:*)",
-			"Bash(yarn lint:*)",
-			"Bash(yarn typecheck)",
+			"Bash(pnpm install)",
+			"Bash(pnpm test:*)",
+			"Bash(pnpm lint:*)",
+			"Bash(pnpm typecheck)",
 			"Bash(git add:*)"
 		]
 	},
@@ -43,7 +43,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "cd \"$(git rev-parse --show-toplevel)\" && git diff --name-only --diff-filter=ACMR | grep -E '\\.(ts|tsx|js|jsx|json|md)$' | xargs -r yarn run -T prettier --write || true"
+						"command": "cd \"$(git rev-parse --show-toplevel)\" && git diff --name-only --diff-filter=ACMR | grep -E '\\.(ts|tsx|js|jsx|json|md)$' | xargs -r pnpm exec prettier --write || true"
 					}
 				]
 			}

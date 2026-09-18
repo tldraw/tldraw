@@ -59,13 +59,13 @@ export async function setAllVersions(version: string, options?: { stageChanges?:
 		)
 	}
 
-	await exec('yarn', ['refresh-assets', '--force'], { env: { ALLOW_REFRESH_ASSETS_CHANGES: '1' } })
+	await exec('pnpm', ['refresh-assets', '--force'], { env: { ALLOW_REFRESH_ASSETS_CHANGES: '1' } })
 
 	const lernaJson = JSON.parse(readFileSync('lerna.json', 'utf8'))
 	lernaJson.version = version
 	writeFileSync('lerna.json', JSON.stringify(lernaJson, null, '\t') + '\n')
 
-	execSync('yarn')
+	execSync('pnpm install')
 
 	if (options?.stageChanges) {
 		await stageAllPackageJsonChanges()
@@ -81,7 +81,7 @@ async function stageAllPackageJsonChanges() {
 		}
 	}
 	const versionFilesToAdd = glob.sync('**/*/version.ts', {
-		ignore: ['node_modules/**'],
+		ignore: ['**/node_modules/**'],
 		follow: false,
 	})
 	console.log('versionFilesToAdd', versionFilesToAdd)
@@ -136,14 +136,14 @@ function topologicalSortPackages(packages: Record<string, PackageDetails>) {
 
 export async function publish(distTag?: string) {
 	// Authentication uses npm's trusted publisher OIDC flow. The publish job in
-	// CI must grant `permissions: id-token: write` so yarn (>= 4.10, which we are
+	// CI must grant `permissions: id-token: write` so pnpm (>= 10.13, which we are
 	// on via `packageManager`) can exchange the GitHub-issued OIDC token for a
 	// short-lived publish token automatically.
 	//
-	// We invoke `yarn npm publish` rather than `npm publish` directly so that
-	// yarn rewrites `workspace:*` dependency specifiers in the published
+	// We invoke `pnpm publish` rather than `npm publish` directly so that
+	// pnpm rewrites `workspace:*` dependency specifiers in the published
 	// tarball into the concrete sibling versions. `npm publish` has no concept
-	// of yarn's workspace protocol and would ship `"workspace:*"` literally,
+	// of pnpm's workspace protocol and would ship `"workspace:*"` literally,
 	// breaking installs for any consumer outside this monorepo.
 	// See https://docs.npmjs.com/trusted-publishers
 	const packages = await getAllPackageDetails()
@@ -172,13 +172,14 @@ export async function publish(distTag?: string) {
 				)
 				try {
 					await exec(
-						`yarn`,
+						`pnpm`,
 						[
-							'npm',
 							'publish',
 							'--tag',
 							String(tag),
-							'--tolerate-republish',
+							// Releases publish from release branches with generated files in the
+							// tree, which pnpm's default branch/clean checks would reject.
+							'--no-git-checks',
 							'--provenance',
 							'--access',
 							'public',

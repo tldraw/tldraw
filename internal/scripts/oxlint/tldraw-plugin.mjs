@@ -99,6 +99,8 @@ function findOwningPackage(filePath) {
 /** Strip a subpath off an import specifier, leaving the bare package name. */
 function getImportedPackageName(specifier) {
 	if (!specifier || specifier.startsWith('.') || specifier.startsWith('/')) return null
+	// `@/components` is a tsconfig path alias, not a scoped package.
+	if (specifier.startsWith('@/')) return null
 	// `node:fs`, `cloudflare:workers`, `data:`, and friends are never packages.
 	if (specifier.includes(':')) return null
 	if (NODE_BUILTINS.has(specifier.split('/')[0])) return null
@@ -432,7 +434,7 @@ const rules = {
 		meta: {
 			messages: {
 				undeclared:
-					"'{{name}}' is imported here but isn't declared in {{owner}}'s package.json. Yarn's hoisted node_modules resolves it anyway, but package managers with strict isolation (pnpm, Yarn PnP) can't.",
+					"'{{name}}' is imported here but isn't declared in {{owner}}'s package.json. pnpm's hoisted node_modules resolves it anyway, but package managers with strict isolation can't.",
 			},
 			type: 'problem',
 			schema: [],
@@ -447,6 +449,9 @@ const rules = {
 				const name = getImportedPackageName(specifier)
 				if (!name || name === owner.name) return
 				if (owner.declared.has(name)) return
+				// Types-only packages (`mdast`) and host-provided modules (`vscode`) exist
+				// only as their `@types/*` declaration.
+				if (owner.declared.has(`@types/${name.replace(/^@/, '').replace('/', '__')}`)) return
 
 				context.report({ node, messageId: 'undeclared', data: { name, owner: owner.name } })
 			}

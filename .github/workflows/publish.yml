@@ -201,20 +201,20 @@ jobs:
         run: |
           case "$PUBLISH_MODE" in
             canary | internal | next)
-              yarn tsx ./internal/scripts/publish-prerelease.ts "$PUBLISH_MODE"
+              pnpm exec tsx ./internal/scripts/publish-prerelease.ts "$PUBLISH_MODE"
               ;;
             patch)
-              yarn tsx ./internal/scripts/publish-patch.ts
+              pnpm exec tsx ./internal/scripts/publish-patch.ts
               ;;
             manual)
-              yarn tsx ./internal/scripts/publish-manual.ts
+              pnpm exec tsx ./internal/scripts/publish-manual.ts
               ;;
             new)
               bump="${BUMP_TYPE:-minor}"
               if [[ "$bump" == "override" ]]; then
                 bump="$VERSION_OVERRIDE"
               fi
-              yarn tsx ./internal/scripts/publish-new.ts --bump "$bump"
+              pnpm exec tsx ./internal/scripts/publish-new.ts --bump "$bump"
               ;;
             *)
               echo "ERROR Unknown publish mode: $PUBLISH_MODE"

@@ -1,5 +1,5 @@
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vitest/config'
+import { configDefaults, defineConfig } from 'vitest/config'
 
 export default defineConfig({
 	// vite 8 / vitest 4 transform with oxc and ignore the deprecated `esbuild.jsx`
@@ -14,7 +14,9 @@ export default defineConfig({
 		globals: true,
 		testTimeout: 30000,
 		include: ['**/*.{test,spec}.{js,ts,jsx,tsx}'],
-		exclude: ['**/e2e/**'],
+		// Extend rather than replace the defaults: `node_modules` here holds symlinks to every
+		// workspace package, so dropping `**/node_modules/**` runs their tests too.
+		exclude: [...configDefaults.exclude, '**/e2e/**'],
 	},
 	resolve: {
 		alias: {

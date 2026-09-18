@@ -115,9 +115,9 @@ class SizeReporter {
 
 	start() {
 		console.log('Spawning size reporter...')
-		const proc = spawn('yarn', [
-			'run',
-			'-T',
+		const proc = spawn('pnpm', [
+			'exec',
+
 			'esbuild',
 			'src/worker.ts',
 			'--bundle',
@@ -228,7 +228,7 @@ async function main() {
 	new SizeReporter().start()
 
 	// On shutdown, reap the whole subtree while it is still alive. wrangler spawns workerd as a child
-	// and the size reporter spawns esbuild through a `yarn run -T` wrapper, so just signalling our
+	// and the size reporter spawns esbuild through a `pnpm run -T` wrapper, so just signalling our
 	// direct children would let those grandchildren reparent to launchd and keep holding the dev port.
 	// Walking by PID, deepest-first, crosses those wrapper and process boundaries. We do this in the
 	// signal handler (not on `exit`) so the tree is still enumerable.
