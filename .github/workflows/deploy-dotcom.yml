@@ -13,7 +13,10 @@ permissions: write-all
 env:
   CI: 1
   PRINT_GITHUB_ANNOTATIONS: 1
-  TLDRAW_ENV: ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview' }}
+  # Keyed on the event, not github.ref: on a merged PR, github.ref is the base branch, so a
+  # late dotcom-preview-please label once redeployed staging from #10651's stale merge commit.
+  # Any other trigger leaves this empty and the deploy script refuses to run.
+  TLDRAW_ENV: ${{ (github.event_name == 'pull_request' && 'preview') || (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || '' }}
 
 defaults:
   run:
@@ -21,14 +24,17 @@ defaults:
 
 jobs:
   deploy:
-    name: Deploy dotcom to ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview'  }}
+    name: Deploy dotcom to ${{ (github.event_name == 'pull_request' && 'preview') || (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || '' }}
     timeout-minutes: 15
     runs-on: ubuntu-latest-16-cores-arm-open
-    environment: ${{ github.ref == 'refs/heads/production' && 'deploy-production' || 'deploy-staging' }}
-    concurrency: dotcom-${{ github.ref == 'refs/heads/production' && 'deploy-production' || github.ref }}
+    environment: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/production') && 'deploy-production' || 'deploy-staging' }}
+    concurrency: dotcom-${{ (github.event_name == 'pull_request' && format('pr-{0}', github.event.number)) || (github.ref == 'refs/heads/production' && 'deploy-production') || github.ref }}
+    # Closed PRs still take labels, and a merged PR's github.ref is its base branch.
     if: |
       github.event_name == 'push' ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'dotcom-preview-please'))
+      (github.event_name == 'pull_request' &&
+        github.event.pull_request.state == 'open' &&
+        contains(github.event.pull_request.labels.*.name, 'dotcom-preview-please'))
 
     steps:
       # - name: Notify initial start
@@ -52,16 +58,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if [[ "${GITHUB_REF}" == "refs/heads/production" ]]; then
-            echo "DEPLOY_ZERO=flyio-multinode" >> $GITHUB_ENV
-          elif [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
-            echo "DEPLOY_ZERO=flyio-multinode" >> $GITHUB_ENV
-          else
+          if [[ "${TLDRAW_ENV}" == "preview" ]]; then
             echo "DEPLOY_ZERO=flyio" >> $GITHUB_ENV
+          else
+            echo "DEPLOY_ZERO=flyio-multinode" >> $GITHUB_ENV
           fi
 
       - name: Install Supabase CLI
-        if: github.event_name == 'pull_request'
+        if: env.TLDRAW_ENV == 'preview'
         uses: supabase/setup-cli@v1
         with:
           # Pinned: v2.112.0 rejects the Management API's own timestamps, which
@@ -69,7 +73,7 @@ jobs:
           version: 2.111.0
 
       - name: Delete Supabase branch
-        if: contains(github.event.pull_request.labels.*.name, 'reset-preview-db')
+        if: env.TLDRAW_ENV == 'preview' && contains(github.event.pull_request.labels.*.name, 'reset-preview-db')
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
@@ -77,7 +81,7 @@ jobs:
             --project-ref "${{ vars.SUPABASE_PREVIEW_PROJECT_ID }}" || echo "::warning::Failed to delete Supabase branch (may not exist yet)"
 
       - name: Create Supabase preview branch
-        if: github.event_name == 'pull_request'
+        if: env.TLDRAW_ENV == 'preview'
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
