@@ -11983,7 +11983,7 @@ __metadata:
     "@headlessui/react": "npm:^2.2.0"
     "@heroicons/react": "npm:^2.2.0"
     "@microsoft/api-extractor-model": "npm:^7.30.2"
-    "@microsoft/tsdoc": "patch:@microsoft/tsdoc@npm%3A0.15.1#~/.yarn/patches/@microsoft-tsdoc-npm-0.15.1-e24295d9bd.patch"
+    "@microsoft/tsdoc": "npm:0.15.1"
     "@shikijs/engine-javascript": "npm:^1.29.1"
     "@shikijs/rehype": "npm:^1.29.1"
     "@tailwindcss/typography": "npm:^0.5.16"
