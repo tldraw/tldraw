@@ -31,6 +31,7 @@ Sections marked **internal** describe supporting machinery that has its own cont
 - **D5** When both values are strings (at any level, including top-level keys) and `next` starts with `prev`, the diff is `['append', addedSuffix, prev.length]`. Other string changes are puts. With `legacyAppendMode` enabled, string appends become puts instead; array appends (D7) are unaffected by `legacyAppendMode`.
 - **D6** Same-length arrays: if no items changed, no op. If at most `max(length/5, 1)` items changed, the op is `['patch', { [index]: op }]` where each changed index gets a recursive diff when both old and new items are truthy objects, and a put otherwise. If more items changed, the whole array is put.
 - **D7** Different-length arrays: when the shared prefix is unchanged and the array grew, the op is `['append', addedItems, prev.length]`. Any change in the shared prefix (including truncation) puts the whole array.
+- **D8** When a value changes between a plain object and an array (at any nesting level), the diff is a whole-value `['put', next]`, never a patch — applying a patch keeps the old container type (AD4/AD7), so the result would silently diverge.
 
 ## 4. Applying diffs: `applyObjectDiff` (AD)
 
