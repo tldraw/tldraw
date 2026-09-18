@@ -49,12 +49,12 @@ describe('getPointInArcT', () => {
 		expect(getPointInArcT(mAB, A, B, P)).toBe(0)
 	})
 
-	it('should handle edge case where measurement to center is negative but measure to points near the end are positive with other endpoint', () => {
-		const mAB = 0 // Arc measure
-		const A = 0 // Start angle
-		const B = 2.2 // End angle
-		const P = 1.1 // Point angle, should be near the end
-		expect(getPointInArcT(mAB, A, B, P)).toBe(1)
+	it('should clamp a point in the gap to the angularly nearer endpoint', () => {
+		// Quarter arc from 0 to PI/2: a point at -PI/2 is PI/2 behind the start but
+		// PI past the end, so it belongs to the start...
+		expect(getPointInArcT(Math.PI / 2, 0, Math.PI / 2, -Math.PI / 2)).toBe(0)
+		// ...while a point at PI is PI behind the start but only PI/2 past the end
+		expect(getPointInArcT(Math.PI / 2, 0, Math.PI / 2, Math.PI)).toBe(1)
 	})
 })
 

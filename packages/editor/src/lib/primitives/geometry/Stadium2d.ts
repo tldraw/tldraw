@@ -96,9 +96,9 @@ export class Stadium2d extends Geometry2d {
 		return minDist
 	}
 
-	hitTestLineSegment(A: VecLike, B: VecLike): boolean {
+	hitTestLineSegment(A: VecLike, B: VecLike, distance = 0): boolean {
 		const { _a: a, _b: b, _c: c, _d: d } = this
-		return [a, b, c, d].some((edge) => edge.hitTestLineSegment(A, B))
+		return [a, b, c, d].some((edge) => edge.hitTestLineSegment(A, B, distance))
 	}
 
 	getVertices() {

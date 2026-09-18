@@ -671,17 +671,15 @@ describe('Geometry2d.distanceToLineSegment', () => {
 		expect(square().distanceToLineSegment(new Vec(150, -50), new Vec(150, 50))).toBe(50)
 	})
 
-	// Locks in current behaviour, see #10556.
-	it('measures from the polygon vertices, not its edges', () => {
-		// the segment is 5 units above the middle of the top edge, but 50.25 from the nearest vertex
-		expect(square().distanceToLineSegment(new Vec(50, -10), new Vec(50, -5))).toBeCloseTo(
-			Math.hypot(50, 5)
-		)
+	it('measures from the polygon edges, not only its vertices', () => {
+		// the segment is 5 units above the middle of the top edge, but 50.25 from the nearest vertex (#10556)
+		expect(square().distanceToLineSegment(new Vec(50, -10), new Vec(50, -5))).toBeCloseTo(5)
 	})
 
 	it('is negative when the nearest point lies inside a filled shape', () => {
+		// A is 40 units from the left edge
 		const d = square().distanceToLineSegment(new Vec(40, 50), new Vec(60, 50))
-		expect(d).toBeCloseTo(Math.hypot(40, 50))
+		expect(d).toBeCloseTo(40)
 		expect(filledSquare().distanceToLineSegment(new Vec(40, 50), new Vec(60, 50))).toBe(-d)
 	})
 
