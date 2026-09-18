@@ -3,6 +3,7 @@ import { existsSync, readFileSync, readdirSync } from 'fs'
 import { createServer } from 'http'
 import { Kysely, PostgresDialect, sql } from 'kysely'
 import pg from 'pg'
+import { getRetryableSqlState, MIGRATION_MAX_ATTEMPTS, retryDelayMs } from './migrationRetry'
 import { hasTransactionBlock } from './migrationSql'
 
 const postgresConnectionString =
@@ -87,7 +88,29 @@ async function waitForPostgres() {
 	await sql.raw(init).execute(db)
 }
 
+// Reruns the whole transaction on the errors migrationRetry.ts allows. The failed attempt's
+// summary lines are kept: on a final failure they show which migration lost the lock each time.
 async function migrate(summary: string[]) {
+	for (let attempt = 1; ; attempt++) {
+		try {
+			await runMigrationTransaction(summary)
+			break
+		} catch (e) {
+			const sqlState = getRetryableSqlState(e)
+			if (!sqlState || attempt >= MIGRATION_MAX_ATTEMPTS) {
+				throw e
+			}
+			const delayMs = retryDelayMs(attempt)
+			const line = `🔁 attempt ${attempt} of ${MIGRATION_MAX_ATTEMPTS} rolled back (${sqlState.code} ${sqlState.name}), retrying in ${(delayMs / 1000).toFixed(1)}s`
+			console.warn(line)
+			summary.push(line)
+			await new Promise((resolve) => setTimeout(resolve, delayMs))
+		}
+	}
+	await db.destroy()
+}
+
+async function runMigrationTransaction(summary: string[]) {
 	await db.transaction().execute(async (tx) => {
 		const appliedMigrations = await sql<{
 			filename: string
@@ -162,8 +185,8 @@ async function migrate(summary: string[]) {
 			throw DRY_RUN_ROLLBACK
 		}
 	})
-	await db.destroy()
 }
+
 async function run() {
 	try {
 		await waitForPostgres()
