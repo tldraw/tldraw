@@ -81,8 +81,9 @@ const RULES = [
 	// exec('yarn', [...]) call sites in internal/scripts
 	[/exec\('yarn', \['run', '-T', /g, "exec('pnpm', ['exec', "],
 	// the same call sites when oxfmt has put one argument per line
-	[/'run',(\s+)'-T',/g, "'exec',$1"],
+	[/'run',\s+'-T',(\s+)/g, "'exec',$1"],
 	[/exec\('yarn', \['install'\]\)/g, "exec('pnpm', ['install'])"],
+	[/exec\('yarn', \['workspace', /g, "exec('pnpm', ['--filter', "],
 	[
 		/exec\('yarn', \['([^']+)'/g,
 		(_, word) => `exec('pnpm', ['${runOrExec(word).slice(5).replace(' ', "', '")}'`,

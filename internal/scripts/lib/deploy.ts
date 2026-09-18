@@ -146,16 +146,7 @@ export async function wranglerDeploy({
 		// upload sourcemaps to the release:
 		await exec(
 			'pnpm',
-			[
-				'exec',
-
-				'sentry-cli',
-				'releases',
-				'files',
-				release,
-				'upload-sourcemaps',
-				'.wrangler/dist',
-			],
+			['exec', 'sentry-cli', 'releases', 'files', release, 'upload-sourcemaps', '.wrangler/dist'],
 			{
 				pwd: location,
 				env: sentryEnv,

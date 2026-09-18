@@ -566,15 +566,11 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			}
 		}
 	}
-	await exec(
-		'pnpm',
-		['exec', 'workspace', '@tldraw/zero-cache', 'migrate', dryRun ? '--dry-run' : null],
-		{
-			env: {
-				BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
-			},
-		}
-	)
+	await exec('pnpm', ['--filter', '@tldraw/zero-cache', 'migrate', dryRun ? '--dry-run' : null], {
+		env: {
+			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
+		},
+	})
 	// Deploy zero after the migrations but before the sync worker
 	if (!dryRun && deployZero !== false) {
 		await deployZeroBackend()
@@ -682,17 +678,7 @@ type ExecOpts = NonNullable<Parameters<typeof exec>[2]>
 async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 	return exec(
 		'pnpm',
-		[
-			'exec',
-
-			'vercel',
-			command,
-			'--token',
-			env.VERCEL_TOKEN,
-			'--scope',
-			env.VERCEL_ORG_ID,
-			...args,
-		],
+		['exec', 'vercel', command, '--token', env.VERCEL_TOKEN, '--scope', env.VERCEL_ORG_ID, ...args],
 		{
 			...opts,
 			env: {
