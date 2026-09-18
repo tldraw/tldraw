@@ -4959,6 +4959,7 @@ export interface TLUrlExternalAsset {
 
 // @public (undocumented)
 export interface TLUrlExternalContent extends TLBaseExternalContent {
+    shapeId?: TLShapeId;
     // (undocumented)
     type: 'url';
     // (undocumented)
