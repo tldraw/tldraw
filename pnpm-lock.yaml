@@ -955,6 +955,9 @@ importers:
       '@tldraw/sync':
         specifier: workspace:*
         version: link:../../packages/sync
+      '@tldraw/tlschema':
+        specifier: workspace:*
+        version: link:../../packages/tlschema
       ag-grid-community:
         specifier: ^32.3.3
         version: 32.3.3
@@ -1785,6 +1788,9 @@ importers:
       lazyrepo:
         specifier: 0.0.0-alpha.27
         version: 0.0.0-alpha.27
+      tldraw:
+        specifier: workspace:*
+        version: link:../tldraw
       vitest:
         specifier: ^5.0.0
         version: 5.0.0(@edge-runtime/vm@3.2.0)(@opentelemetry/api@1.9.0)(@types/node@22.16.0)(@vitest/coverage-v8@5.0.0)(@vitest/ui@5.0.0)(jsdom@29.1.1)(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))
