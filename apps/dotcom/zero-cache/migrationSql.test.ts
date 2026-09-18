@@ -27,17 +27,83 @@ describe('hasTransactionBlock', () => {
 		'BEGIN TRANSACTION;',
 		'END TRANSACTION;',
 		'begin ;',
+		// Postgres accepts END and END WORK as synonyms for COMMIT.
+		'END;',
+		'END WORK;',
+		'end ;',
+		'COMMIT AND CHAIN;',
+		'ABORT;',
+		// The file is sent as one simple query, so Postgres runs an unterminated last statement too.
+		'COMMIT',
 	])('finds %s', (statement) => {
 		expect(hasTransactionBlock(`ALTER TABLE foo DROP COLUMN bar;\n${statement}`)).toBe(true)
 	})
 
-	it('does not mistake a DO block or a plpgsql END for one', () => {
-		expect(hasTransactionBlock(`DO $$\nBEGIN\n  RAISE NOTICE 'x';\nEND $$;`)).toBe(false)
-		expect(hasTransactionBlock(`IF x THEN\n  y;\nEND IF;\nEND;`)).toBe(false)
+	it('finds a COMMIT after a function definition', () => {
+		expect(
+			hasTransactionBlock(
+				`CREATE FUNCTION f() RETURNS trigger AS $$\nBEGIN\n  RETURN NEW;\nEND;\n$$ LANGUAGE plpgsql;\nCOMMIT;`
+			)
+		).toBe(true)
 	})
 
-	// The reason the check is punctuation-sensitive rather than word-based: every plpgsql function
-	// body opens with a bare BEGIN, so a word-based check would reject most trigger migrations.
+	it('does not mistake a DO block or a plpgsql END for one', () => {
+		expect(hasTransactionBlock(`DO $$\nBEGIN\n  RAISE NOTICE 'x';\nEND $$;`)).toBe(false)
+		expect(hasTransactionBlock(`DO $$\nBEGIN\n  IF x THEN\n    y;\n  END IF;\nEND;\n$$;`)).toBe(
+			false
+		)
+	})
+
+	it('does not mistake an END inside a tagged dollar quote for one', () => {
+		expect(
+			hasTransactionBlock(
+				`CREATE FUNCTION f() RETURNS trigger AS $body$\nBEGIN\n  PERFORM 1;\nEND;\n$body$ LANGUAGE plpgsql;`
+			)
+		).toBe(false)
+	})
+
+	// Neither is a statement, so neither can end the runner's transaction.
+	it.each([
+		[
+			'a line comment',
+			`ALTER TABLE foo DROP COLUMN bar; -- END;\nALTER TABLE foo DROP COLUMN baz;`,
+		],
+		['a line comment', `-- run COMMIT; by hand afterwards\nALTER TABLE foo DROP COLUMN bar;`],
+		['a block comment', `/* END;\n COMMIT; */\nALTER TABLE foo DROP COLUMN bar;`],
+		['a nested block comment', `/* outer /* END; */ COMMIT; */\nALTER TABLE foo DROP COLUMN bar;`],
+		['a string literal', `INSERT INTO foo (bar) VALUES ('END;');`],
+		['a string literal', `INSERT INTO foo (bar) VALUES ('COMMIT;');`],
+		['a string literal with an escaped quote', `INSERT INTO foo (bar) VALUES ('it''s; END;');`],
+		['an escape string', `INSERT INTO foo (bar) VALUES (E'it\\'s; COMMIT;');`],
+	])('ignores a transaction keyword inside %s', (_, sql) => {
+		expect(hasTransactionBlock(sql)).toBe(false)
+	})
+
+	it('still finds a statement next to a comment or string', () => {
+		expect(hasTransactionBlock(`INSERT INTO foo (bar) VALUES ('x'); -- done\nCOMMIT;`)).toBe(true)
+		expect(hasTransactionBlock(`/* wrap up */ END /* now */;`)).toBe(true)
+	})
+
+	// Each of these would hide a real statement if the scanner mis-read the quoting around it.
+	it.each([
+		[
+			'a quoted identifier with a quote in it',
+			`CREATE TABLE "it's" (x int);\nEND;\nCREATE TABLE "x's" (y int);`,
+		],
+		['a quoted identifier with a comment opener in it', `CREATE TABLE "a--b" (x int);\nCOMMIT;`],
+		['an escaped backslash before the closing quote', `SELECT E'a\\\\';\nCOMMIT;`],
+		['positional parameters', `SELECT $1;\nCOMMIT;\nSELECT $1;`],
+		['an unterminated string', `SELECT 'oops;\nCOMMIT;`],
+		['an unterminated block comment', `/* oops\nCOMMIT;`],
+	])('finds a statement after %s', (_, sql) => {
+		expect(hasTransactionBlock(sql)).toBe(true)
+	})
+
+	it('does not mistake an identifier ending in e for an escape string prefix', () => {
+		expect(hasTransactionBlock(`SELECT 1 WHERE type='a\\';\nSELECT 'END;';`)).toBe(false)
+	})
+
+	// The whole body is stripped before matching, so neither its bare BEGIN nor its END; count.
 	it('does not mistake a plpgsql function body for one', () => {
 		expect(
 			hasTransactionBlock(
