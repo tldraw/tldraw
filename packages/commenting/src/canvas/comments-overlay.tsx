@@ -85,7 +85,7 @@ import {
 	anchorPagePoint,
 	regionAnchorPinCorner,
 	regionPinPoint,
-	shapeAnchorAt,
+	resolveCommentDrop,
 } from './thread-state'
 
 /**
@@ -1107,6 +1107,9 @@ const ThreadPin = memo(function ThreadPin({
 	const [editText, setEditText] = useState<TLRichText>(EMPTY_COMMENT)
 	// While dragging the marker, its page point overrides the anchor's; committed on drop.
 	const [dragPagePoint, setDragPagePoint] = useState<{ x: number; y: number } | null>(null)
+	// While dragging a point/shape pin, the anchor the drop would produce. Held as an anchor rather
+	// than a raw point so the preview shows exactly what will be committed.
+	const [dragAnchor, setDragAnchor] = useState<TLCommentThread['anchor'] | null>(null)
 	// The live bounds while a corner handle is resizing the region, else null.
 	const [resizeBounds, setResizeBounds] = useState<BoxModel | null>(null)
 	// Whether the pin marker is hovered — only consulted by the 'pin-hover' reveal mode.
@@ -1187,6 +1190,14 @@ const ThreadPin = memo(function ThreadPin({
 		document.addEventListener('pointerdown', onPointerDown, true)
 		return () => document.removeEventListener('pointerdown', onPointerDown, true)
 	}, [open, editor])
+
+	// A drag cut short by this pin unmounting (page switch, a collaborator deleting the thread)
+	// would otherwise strand its highlight on the canvas.
+	useEffect(() => {
+		return () => {
+			if (dragRef.current) editor.setHintingShapes([])
+		}
+	}, [editor])
 
 	const point = useValue(
 		'pin point',
@@ -1449,6 +1460,20 @@ const ThreadPin = memo(function ThreadPin({
 		}
 		e.currentTarget.setPointerCapture(e.pointerId)
 	}
+	// Where a drop at this pointer position would land, plus the shape to highlight getting there.
+	// One call, so the outline can't advertise a target the release won't honour. Alt holds an
+	// already-attached comment on its shape and lets it roam that shape's whole box.
+	const dropAt = (
+		e: ReactPointerEvent<HTMLDivElement>,
+		drag: { offsetX: number; offsetY: number }
+	) => {
+		const cursorPage = editor.screenToPage({ x: e.clientX, y: e.clientY })
+		return resolveCommentDrop(
+			editor,
+			{ x: cursorPage.x + drag.offsetX, y: cursorPage.y + drag.offsetY },
+			{ current: thread.anchor, constrain: e.altKey, altKey: e.altKey }
+		)
+	}
 	const onDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
 		const drag = dragRef.current
 		if (!drag) return
@@ -1456,8 +1481,18 @@ const ThreadPin = memo(function ThreadPin({
 		if (isRegion && !pinMovable) return
 		if (!drag.moved && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 4) return
 		drag.moved = true
-		const cursorPage = editor.screenToPage({ x: e.clientX, y: e.clientY })
-		setDragPagePoint({ x: cursorPage.x + drag.offsetX, y: cursorPage.y + drag.offsetY })
+		if (isRegion) {
+			// A region translates rather than re-anchoring, so it tracks the raw pointer.
+			const cursorPage = editor.screenToPage({ x: e.clientX, y: e.clientY })
+			setDragPagePoint({ x: cursorPage.x + drag.offsetX, y: cursorPage.y + drag.offsetY })
+			return
+		}
+		// Preview the resolved anchor rather than the raw pointer: under Alt the anchor is clamped to
+		// the shape's box, and the pin has to stop at the edge with it instead of running off and
+		// snapping back on release.
+		const { anchor, highlightShapeId } = dropAt(e, drag)
+		setDragAnchor(anchor)
+		editor.setHintingShapes(highlightShapeId ? [highlightShapeId] : [])
 	}
 	const endDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
 		const drag = dragRef.current
@@ -1465,16 +1500,17 @@ const ThreadPin = memo(function ThreadPin({
 		if (e.currentTarget.hasPointerCapture(e.pointerId)) {
 			e.currentTarget.releasePointerCapture(e.pointerId)
 		}
+		editor.setHintingShapes([])
 		if (!drag) return
 		if (!drag.moved) {
 			openThreadId.set(editor, openThreadId.get(editor) === thread.id ? null : thread.id)
 			return
 		}
-		const cursorPage = editor.screenToPage({ x: e.clientX, y: e.clientY })
-		const pagePoint = { x: cursorPage.x + drag.offsetX, y: cursorPage.y + drag.offsetY }
-		setDragPagePoint(null)
 		let anchor: TLCommentThread['anchor']
 		if (thread.anchor.type === 'region') {
+			const cursorPage = editor.screenToPage({ x: e.clientX, y: e.clientY })
+			const pagePoint = { x: cursorPage.x + drag.offsetX, y: cursorPage.y + drag.offsetY }
+			setDragPagePoint(null)
 			// Translate so the pin (the region's pin corner) lands at the drop; size unchanged.
 			anchor = {
 				...thread.anchor,
@@ -1482,26 +1518,19 @@ const ThreadPin = memo(function ThreadPin({
 				y: pagePoint.y - pinCorner.y * thread.anchor.h,
 			}
 		} else {
-			const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
-			anchor = hit
-				? shapeAnchorAt(
-						editor,
-						hit.id,
-						pagePoint,
-						getCommentingOptions(editor).shouldBePrecise(editor, {
-							shapeId: hit.id,
-							point: pagePoint,
-							altKey: e.altKey,
-						})
-					)
-				: { type: 'point', x: pagePoint.x, y: pagePoint.y }
+			anchor = dropAt(e, drag).anchor
+			setDragAnchor(null)
 		}
 		commitCommentMutation(editor, () => putCommentRecords(editor, [{ ...thread, anchor }]), 'drag')
 	}
 
 	// The pin (and its popover) track the live edit: a resize moves it to the region's pin corner, a
 	// move to the drag point; otherwise it sits at the stored anchor's viewport point.
-	const livePinPage = resizeBounds ? regionPinPoint(resizeBounds, pinCorner) : dragPagePoint
+	const livePinPage = resizeBounds
+		? regionPinPoint(resizeBounds, pinCorner)
+		: dragAnchor
+			? anchorPagePoint(editor, dragAnchor, impreciseShapeAnchor)
+			: dragPagePoint
 	const renderPointBase = livePinPage ? editor.pageToViewport(livePinPage) : point
 	// A region's pin centres on its corner — overlapping the box — rather than hanging off it.
 	// The marker anchors bottom-left, so step half its 34px size left and down (screen px).
@@ -1556,7 +1585,7 @@ const ThreadPin = memo(function ThreadPin({
 				className={[
 					'tlui-cmt-canvas-pin',
 					open && 'tlui-cmt-canvas-pin--open',
-					dragPagePoint && 'tlui-cmt-canvas-pin--dragging',
+					(dragPagePoint || dragAnchor) && 'tlui-cmt-canvas-pin--dragging',
 				]
 					.filter(Boolean)
 					.join(' ')}

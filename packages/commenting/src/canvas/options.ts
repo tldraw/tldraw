@@ -84,6 +84,16 @@ export interface CommentingOptions {
 	 * only; existing anchors render as stored.
 	 */
 	shouldBePrecise(editor: Editor, context: ShapeCommentPrecisionContext): boolean
+	/**
+	 * What counts as being over a shape when placing (or drag-re-anchoring) a comment. `'area'`
+	 * takes anywhere within a shape, its fill included. `'outline'` takes only the shape's stroke,
+	 * so a click in the blank middle of a rectangle leaves the comment a free page point instead.
+	 *
+	 * Under `'outline'`, shapes with no stroke to aim at — images, video, text, notes, bookmarks
+	 * and embeds — still attach anywhere in their area, or a comment on a photo could only attach
+	 * to its border. Frames are not exempt, so a comment inside a frame isn't bound to the frame.
+	 */
+	readonly shapeAnchorTargets: 'area' | 'outline'
 
 	// ── Clustering tuning ─────────────────────────────────────────────────────────────────────
 	/** Screen-pixel margin by which the viewport is inflated when culling cluster badges. */
@@ -107,6 +117,7 @@ export const defaultCommentingOptions = {
 	enableClustering: true,
 	impreciseShapeAnchor: { x: 1, y: 0 },
 	shouldBePrecise: (_editor: Editor, context: ShapeCommentPrecisionContext) => context.altKey,
+	shapeAnchorTargets: 'area',
 	clusterCullMargin: 120,
 	clusterSplitZoomFactor: 1.05,
 	components: {},
