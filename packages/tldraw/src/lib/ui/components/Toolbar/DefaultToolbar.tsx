@@ -52,7 +52,7 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 	// the original eight so the overflow breakpoint (and the mobile layout) is unchanged.
 	const tools = useTools()
 	const hasCommentTool = useCommentingEnabled() && !!tools.comment
-	const resolvedMaxItems = maxItems ?? (hasCommentTool ? 9 : 8)
+  const resolvedMaxItems = maxItems ?? (hasCommentTool ? 9 : 8)
 
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
@@ -97,8 +97,8 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 							sizingParentClassName="tlui-main-toolbar"
 							minItems={minItems}
 							maxItems={resolvedMaxItems}
-							minSizePx={minSizePx}
-							maxSizePx={maxSizePx}
+							minSizePx={150 + (minItems * 40)}
+							maxSizePx={150 + (resolvedMaxItems * 40)}
 						>
 							{children ?? <DefaultToolbarContent />}
 						</OverflowingToolbar>

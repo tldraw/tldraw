@@ -111,10 +111,10 @@ export function OverflowingToolbar({
 
 		// the number of items to show is based on the space available to the toolbar.
 		const sizingParent = findParentWithClassName(mainToolsRef.current, sizingParentClassName)
-		const size = sizingParent[sizeProp]
-		const itemsToShow = Math.floor(
-			modulate(size, [minSizePx, maxSizePx], [minItems, maxItems], true)
-		)
+    const size = sizingParent[sizeProp]
+    const itemsToShow = Math.floor(
+			modulate(size, [150 + (minItems * 40), 150 + (maxItems * 40)], [minItems, maxItems], true)
+    )
 
 		// now we know how many items to show, we need to walk through the items we found and show /
 		// hide them accordingly. We need to keep track of:
