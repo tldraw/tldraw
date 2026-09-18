@@ -859,6 +859,15 @@ describe('mergeCommentDocumentsIntoSnapshot', () => {
 		expect(snapshot.documents.slice(1)).toEqual(docs)
 	})
 
+	it('handles more comment docs than fit in a spread call', () => {
+		const state = makeThread()
+		const docs: RoomSnapshot['documents'] = []
+		for (let i = 1; i <= 150_000; i++) docs.push({ state, lastChangedClock: i })
+		const snapshot = makeSnapshot({ documentClock: 10 })
+		mergeCommentDocumentsIntoSnapshot(snapshot, load(docs))
+		expect(snapshot.documentClock).toBe(150_000)
+	})
+
 	it('leaves documentClock alone when all comment clocks are at or below it', () => {
 		const snapshot = makeSnapshot({ documentClock: 10 })
 		mergeCommentDocumentsIntoSnapshot(snapshot, load(makeDocs(3, 10)))
