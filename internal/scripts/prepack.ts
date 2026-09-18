@@ -26,7 +26,7 @@ export async function preparePackage({ sourcePackageDir }: { sourcePackageDir: s
 	const startTime = Date.now()
 	nicelog(`[prepack] ${packageName} starting...`)
 
-	execSync('yarn run -T lazy build', { cwd: sourcePackageDir, stdio: 'inherit' })
+	execSync('pnpm exec lazy build', { cwd: sourcePackageDir, stdio: 'inherit' })
 
 	// save package.json and reinstate it in postpack
 	copyFileSync(
@@ -78,7 +78,7 @@ export async function preparePackage({ sourcePackageDir }: { sourcePackageDir: s
 		JSON.stringify(newManifest, null, `\t`)
 	)
 
-	// GOTCHA: Yarn's pack command seems to have a race condition where it doesn't reliably pick up
+	// GOTCHA: Yarn's pack command seemed to have a race condition where it doesn't reliably pick up
 	// files, adding a tiny delay seems to fix it, but we make the delay extra long here just to be
 	// safe.
 	await new Promise((resolve) => setTimeout(resolve, 1000))

@@ -21,7 +21,7 @@ function isVersionConflictError(err: unknown): boolean {
 }
 
 async function fetchMarketplaceVersion(): Promise<string> {
-	await exec('yarn', ['get-info'], { pwd: EXTENSION_DIR })
+	await exec('pnpm', ['get-info'], { pwd: EXTENSION_DIR })
 	const extensionInfoJsonPath = path.join(EXTENSION_DIR, 'extension.json')
 	if (!existsSync(extensionInfoJsonPath)) {
 		throw new Error('Published extension info not found.')
@@ -94,7 +94,7 @@ async function main() {
 		throw new Error('Workflow triggered from a branch other than main or production.')
 	}
 
-	await exec('yarn', ['lazy', 'run', 'build', '--filter=packages/*'])
+	await exec('pnpm', ['exec', 'lazy', 'run', 'build', '--filter=packages/*'])
 
 	// When two pushes to main happen in quick succession, the concurrency group serializes
 	// the runs but `vsce show` can lag a fresh publish by 10+ minutes, so both runs compute
@@ -107,13 +107,13 @@ async function main() {
 		try {
 			switch (env.TLDRAW_ENV) {
 				case 'production':
-					await exec('yarn', ['package'], { pwd: EXTENSION_DIR })
-					await exec('yarn', ['publish'], { pwd: EXTENSION_DIR })
+					await exec('pnpm', ['package'], { pwd: EXTENSION_DIR })
+					await exec('pnpm', ['publish'], { pwd: EXTENSION_DIR })
 					await copyExtensionToReleaseFolder(version)
 					return
 				case 'staging':
-					await exec('yarn', ['package', '--pre-release'], { pwd: EXTENSION_DIR })
-					await exec('yarn', ['publish', '--pre-release'], { pwd: EXTENSION_DIR })
+					await exec('pnpm', ['package', '--pre-release'], { pwd: EXTENSION_DIR })
+					await exec('pnpm', ['publish', '--pre-release'], { pwd: EXTENSION_DIR })
 					return
 			}
 		} catch (err) {

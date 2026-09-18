@@ -434,7 +434,7 @@ const rules = {
 		meta: {
 			messages: {
 				undeclared:
-					"'{{name}}' is imported here but isn't declared in {{owner}}'s package.json. Yarn's hoisted node_modules resolves it anyway, but package managers with strict isolation (pnpm, Yarn PnP) can't.",
+					"'{{name}}' is imported here but isn't declared in {{owner}}'s package.json. pnpm's hoisted node_modules resolves it anyway, but package managers with strict isolation can't.",
 			},
 			type: 'problem',
 			schema: [],

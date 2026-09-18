@@ -366,7 +366,7 @@ async function main() {
 
 	await discord.step('setting up deploy', async () => {
 		// make sure the tldraw .css files are built:
-		await withTiming('prebuild assets', () => exec('yarn', ['lazy', 'prebuild']))
+		await withTiming('prebuild assets', () => exec('pnpm', ['exec', 'lazy', 'prebuild']))
 
 		// link to vercel and supabase projects:
 		await withTiming('vercel link', () =>
@@ -473,7 +473,7 @@ function getZeroUrl() {
 
 async function prepareDotcomApp() {
 	// pre-build the app:
-	await exec('yarn', ['build-app'], {
+	await exec('pnpm', ['build-app'], {
 		env: {
 			// the build script measures the finished bundle and sends the numbers to PostHog, so we
 			// can see the client's size over time. every deploy reports; the events carry
@@ -560,17 +560,21 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 		}
 		if (!dryRun) {
 			try {
-				await exec('yarn', ['wrangler', 'queues', 'info', queueName], { pwd: worker })
+				await exec('pnpm', ['exec', 'wrangler', 'queues', 'info', queueName], { pwd: worker })
 			} catch (_e) {
-				await exec('yarn', ['wrangler', 'queues', 'create', queueName], { pwd: worker })
+				await exec('pnpm', ['exec', 'wrangler', 'queues', 'create', queueName], { pwd: worker })
 			}
 		}
 	}
-	await exec('yarn', ['workspace', '@tldraw/zero-cache', 'migrate', dryRun ? '--dry-run' : null], {
-		env: {
-			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
-		},
-	})
+	await exec(
+		'pnpm',
+		['exec', 'workspace', '@tldraw/zero-cache', 'migrate', dryRun ? '--dry-run' : null],
+		{
+			env: {
+				BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
+			},
+		}
+	)
 	// Deploy zero after the migrations but before the sync worker
 	if (!dryRun && deployZero !== false) {
 		await deployZeroBackend()
@@ -677,7 +681,7 @@ type ExecOpts = NonNullable<Parameters<typeof exec>[2]>
 // they want the non-interactive prompt skip.
 async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 	return exec(
-		'yarn',
+		'pnpm',
 		[
 			'run',
 			'-T',
@@ -954,7 +958,7 @@ const sentryEnv = {
 }
 
 const execSentry = (command: string, args: string[]) =>
-	exec(`yarn`, ['run', '-T', 'sentry-cli', command, ...args], { env: sentryEnv })
+	exec(`pnpm`, ['run', '-T', 'sentry-cli', command, ...args], { env: sentryEnv })
 
 async function createSentryRelease() {
 	await execSentry('releases', ['new', sentryReleaseName])

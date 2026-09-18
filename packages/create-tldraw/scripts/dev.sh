@@ -2,7 +2,7 @@
 
 set -eux
 
-yarn build
+pnpm build
 
 # add the current directory in case the command deletes it
 git add .
