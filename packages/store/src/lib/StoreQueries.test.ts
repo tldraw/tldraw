@@ -889,4 +889,8 @@ describe('queries across rolled-back transactions (QH, QQ)', () => {
 			new Set([books.farenheit.id, first.id, second.id])
 		)
 	})
+
+	it('[QQ5] exec with an empty expression returns every record of the type', () => {
+		expect(store.query.exec('book', {})).toHaveLength(4)
+	})
 })
