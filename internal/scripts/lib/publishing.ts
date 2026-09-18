@@ -81,7 +81,7 @@ async function stageAllPackageJsonChanges() {
 		}
 	}
 	const versionFilesToAdd = glob.sync('**/*/version.ts', {
-		ignore: ['node_modules/**'],
+		ignore: ['**/node_modules/**'],
 		follow: false,
 	})
 	console.log('versionFilesToAdd', versionFilesToAdd)
