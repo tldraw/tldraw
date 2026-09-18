@@ -80,6 +80,8 @@ const RULES = [
 	[/\byarn workspace (\S+) /g, 'pnpm --filter $1 '],
 	// exec('yarn', [...]) call sites in internal/scripts
 	[/exec\('yarn', \['run', '-T', /g, "exec('pnpm', ['exec', "],
+	// the same call sites when oxfmt has put one argument per line
+	[/'run',(\s+)'-T',/g, "'exec',$1"],
 	[/exec\('yarn', \['install'\]\)/g, "exec('pnpm', ['install'])"],
 	[
 		/exec\('yarn', \['([^']+)'/g,

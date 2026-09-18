@@ -147,8 +147,8 @@ export async function wranglerDeploy({
 		await exec(
 			'pnpm',
 			[
-				'run',
-				'-T',
+				'exec',
+				
 				'sentry-cli',
 				'releases',
 				'files',

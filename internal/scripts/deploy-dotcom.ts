@@ -683,8 +683,8 @@ async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 	return exec(
 		'pnpm',
 		[
-			'run',
-			'-T',
+			'exec',
+			
 			'vercel',
 			command,
 			'--token',
@@ -958,7 +958,7 @@ const sentryEnv = {
 }
 
 const execSentry = (command: string, args: string[]) =>
-	exec(`pnpm`, ['run', '-T', 'sentry-cli', command, ...args], { env: sentryEnv })
+	exec(`pnpm`, ['exec',  'sentry-cli', command, ...args], { env: sentryEnv })
 
 async function createSentryRelease() {
 	await execSentry('releases', ['new', sentryReleaseName])
