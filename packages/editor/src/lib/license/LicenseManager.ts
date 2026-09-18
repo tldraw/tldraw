@@ -258,9 +258,10 @@ export class LicenseManager {
 			url.searchParams.set('environment', process.env.NODE_ENV)
 		}
 
-		// best-effort: a blocked or offline request must not surface as an unhandled rejection
+		// best-effort: a blocked or offline request must not surface as an unhandled rejection,
+		// and keepalive lets the ping survive a page that navigates away or closes mid-flight
 		// eslint-disable-next-line no-restricted-globals
-		fetch(url.toString()).catch(noop)
+		fetch(url.toString(), { keepalive: true }).catch(noop)
 	}
 
 	private async extractLicenseKey(licenseKey: string): Promise<LicenseInfo> {
