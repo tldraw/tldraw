@@ -79,7 +79,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **H2** `listen(fn, filters?)` registers a listener and returns a remover. Listener notification is asynchronous: accumulated entries are flushed on the next frame, not synchronously with the change.
 - **H3** A flush squashes adjacent same-source entries: a listener called after changes `[user, user, remote, user]` receives three entries (`user`, `remote`, `user`), each with the squashed (D3) diff and its source.
 - **H4** `filters.source` (`'user' | 'remote' | 'all'`) drops entries from other sources. `filters.scope` (`'document' | 'session' | 'presence' | 'all'`) filters each entry's diff down to records of that scope; if nothing remains, the listener is not called for that entry.
-- **H5** `listen` flushes pending history first, so a new listener never sees changes made before it subscribed.
+- **H5** `listen` flushes pending history first, so a new listener never sees changes made before it subscribed — including a listener added from inside another listener's callback, which does not receive the flush in progress.
 - **H6** While no listeners are attached, accumulated history is discarded rather than retained.
 - **H7** `extractingChanges(fn)` returns the squashed diff of exactly the changes made during `fn` (listeners still see those changes normally).
 - **H8** `addHistoryInterceptor(fn)` calls `fn(entry, source)` synchronously for every change-set as it happens and returns a remover.
