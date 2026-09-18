@@ -30,7 +30,7 @@ export class Idle extends StateNode {
 	override onExit() {
 		clearArrowTargetState(this.editor)
 		if (this.isPreciseTimerId !== null) {
-			clearTimeout(this.isPreciseTimerId)
+			this.editor.timers.clearTimeout(this.isPreciseTimerId)
 		}
 	}
 
@@ -61,7 +61,7 @@ export class Idle extends StateNode {
 
 		if (targetState && targetState.target.id !== this.preciseTargetId) {
 			if (this.isPreciseTimerId !== null) {
-				clearTimeout(this.isPreciseTimerId)
+				this.editor.timers.clearTimeout(this.isPreciseTimerId)
 			}
 
 			this.preciseTargetId = targetState.target.id
@@ -73,7 +73,7 @@ export class Idle extends StateNode {
 			this.isPrecise = false
 			this.preciseTargetId = null
 			if (this.isPreciseTimerId !== null) {
-				clearTimeout(this.isPreciseTimerId)
+				this.editor.timers.clearTimeout(this.isPreciseTimerId)
 			}
 		}
 	}
