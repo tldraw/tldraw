@@ -19,10 +19,17 @@ import { TLCommentThread } from 'tldraw';
 import { TLCommentThreadId } from 'tldraw';
 import { TLHistoryBatchOptions } from 'tldraw';
 import { TLRichText } from 'tldraw';
+import { TLShape } from 'tldraw';
 import { TLShapeId } from 'tldraw';
 import { TLStateNodeConstructor } from 'tldraw';
 import { TLUiOverrides } from 'tldraw';
 import { VecLike } from 'tldraw';
+
+// @public
+export function anchorAtPoint(editor: Editor, page: {
+    x: number;
+    y: number;
+}, options?: CommentTargetOptions): TLCommentAnchor;
 
 // @public
 export function anchorPagePoint(editor: Editor, anchor: TLCommentAnchor, impreciseShapeAnchor?: {
@@ -273,6 +280,18 @@ export function CommentsOverflowMenu(): JSX.Element;
 
 // @public
 export const commentsSidebarOpen: EditorAtom<boolean>;
+
+// @public
+export interface CommentTargetOptions {
+    detach?: boolean;
+    hit?: 'area' | 'outline';
+}
+
+// @public
+export function commentTargetShape(editor: Editor, page: {
+    x: number;
+    y: number;
+}, { detach, hit }?: CommentTargetOptions): TLShape | undefined;
 
 // @public
 export function CommentText({ text }: CommentTextProps): JSX.Element;

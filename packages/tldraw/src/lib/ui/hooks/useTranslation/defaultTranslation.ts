@@ -536,4 +536,5 @@ export const DEFAULT_TRANSLATION = {
 	'comments.resolved-by': 'Resolved by {name}',
 	'comments.mention-you': 'You',
 	'comments.mention-no-matches': 'No matches',
+	'comments.preview-more': '{count} more',
 }

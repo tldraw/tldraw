@@ -88,7 +88,10 @@ export {
 	useSidebarFilters,
 } from './canvas/state'
 export {
+	anchorAtPoint,
 	anchorPagePoint,
+	commentTargetShape,
+	type CommentTargetOptions,
 	DEFAULT_IMPRECISE_SHAPE_ANCHOR,
 	focusThread,
 	shapeAnchorAt,

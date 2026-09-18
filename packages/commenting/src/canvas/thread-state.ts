@@ -51,10 +51,74 @@ export function anchorPagePoint(
 	}
 }
 
+/** How close, in screen pixels, an `'outline'` hit must be to a shape's line. */
+const OUTLINE_HIT_MARGIN_PX = 8
+
+/** How a point is judged to be over a shape. @public */
+export interface CommentTargetOptions {
+	/** Alt: attach to nothing, so the comment stays a free point over whatever is beneath it. */
+	detach?: boolean
+	/**
+	 * What counts as being over a shape. `'area'` (the default) takes anywhere within its outline,
+	 * which is what placing a comment wants — tldraw's default fill is `'none'`, so a geometry-only
+	 * test would leave a freshly drawn rectangle's whole interior unattachable. `'outline'` requires
+	 * the point to be on the shape's actual line, ignoring any fill.
+	 */
+	hit?: 'area' | 'outline'
+}
+
+/**
+ * The shape a comment placed at `page` would attach to, or undefined when it should float free.
+ *
+ * Shared by the tool's hover hint, the pin drag's hint, and both of their drops, so the highlight
+ * always names exactly what the release will do.
+ * @public
+ */
+export function commentTargetShape(
+	editor: Editor,
+	page: { x: number; y: number },
+	{ detach = false, hit = 'area' }: CommentTargetOptions = {}
+) {
+	if (detach) return undefined
+	if (hit === 'area') return editor.getShapeAtPoint(page, { hitInside: true })
+
+	// Outline mode. `getShapeAtPoint` can't express this: with `hitInside: false` a *filled* shape
+	// still swallows its whole interior, because the geometry reports inside points as negative
+	// distance whenever `isFilled`. So gather the candidates and measure each one's distance to its
+	// own outline, where the sign is exactly what we want to discard.
+	const margin = OUTLINE_HIT_MARGIN_PX / editor.getZoomLevel()
+	// Top-most first, so the first match is the one the pointer is visually over.
+	for (const shape of editor.getShapesAtPoint(page, { hitInside: true, margin })) {
+		const geometry = editor.getShapeGeometry(shape)
+		const local = editor.getPointInShapeSpace(shape, page)
+		if (Math.abs(geometry.distanceToPoint(local)) <= margin) return shape
+	}
+	return undefined
+}
+
+/**
+ * The anchor a comment placed at `page` should take: the shape under the point, else a free page
+ * point. Shape anchors are always precise — a comment stays exactly where it was put.
+ * @public
+ */
+export function anchorAtPoint(
+	editor: Editor,
+	page: { x: number; y: number },
+	options: CommentTargetOptions = {}
+): TLCommentAnchor {
+	const hit = commentTargetShape(editor, page, options)
+	if (!hit) return { type: 'point', x: page.x, y: page.y }
+	return shapeAnchorAt(editor, hit.id, page, true)
+}
+
 /**
  * A shape anchor for a page point. `x`/`y` are the point's normalized (0–1) offset within the
- * shape's page bounds, remembered either way. When `precise` (Alt held) the pin sits at exactly
- * `x`/`y`; otherwise it sits at the consumer's imprecise default (top-right out of the box).
+ * shape's page bounds, remembered either way. When `precise` the pin sits at exactly `x`/`y`;
+ * otherwise it sits at the consumer's imprecise default (top-right out of the box).
+ *
+ * Placement always passes `precise` now — imprecise anchors are only produced by consumers calling
+ * this directly, and by comments stored before the change. {@link anchorPagePoint} still renders
+ * them, so those keep working.
  * @public
  */
 export function shapeAnchorAt(

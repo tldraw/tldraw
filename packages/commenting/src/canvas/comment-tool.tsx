@@ -9,7 +9,7 @@ import {
 import { type CommentingOptions, defaultCommentingOptions } from './options'
 import { getRegionCommentOptions } from './region-options'
 import { commentsSidebarOpen, pendingComment, regionDraft } from './state'
-import { regionPinPoint, shapeAnchorAt } from './thread-state'
+import { anchorAtPoint, commentTargetShape, regionPinPoint } from './thread-state'
 
 /** A comment being placed but not yet posted: where its composer sits and what it will anchor
  *  to. Shared between the tool (which sets it on click) and the overlay (which renders the
@@ -126,13 +126,25 @@ class CommentIdle extends StateNode {
 		this.updateHint()
 	}
 
+	// Alt detaches, so the highlight has to answer to the key as well as the pointer — otherwise
+	// holding Alt over a shape keeps showing an outline the drop won't honour.
+	override onKeyDown() {
+		this.updateHint()
+	}
+
+	override onKeyUp() {
+		this.updateHint()
+	}
+
 	override onPointerDown() {
 		this.parent.transition('pointing')
 	}
 
 	private updateHint() {
 		const { editor } = this
-		const hit = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint(), { hitInside: true })
+		const hit = commentTargetShape(editor, editor.inputs.getCurrentPagePoint(), {
+			detach: editor.inputs.getAltKey(),
+		})
 		editor.setHintingShapes(hit ? [hit.id] : [])
 	}
 }
@@ -170,14 +182,12 @@ class CommentPointing extends StateNode {
 		pendingComment.update(editor, (p) => (p ? { ...p, point: { x: point.x, y: point.y } } : p))
 	}
 
-	// Settle where the pointer is released: anchor to the shape under it, or drop a point.
+	// Settle where the pointer is released: anchor to the shape under it, or drop a point. Either
+	// way the comment stays exactly here — a shape anchor no longer relocates the pin to a corner.
 	override onPointerUp() {
 		const { editor } = this
 		const point = editor.inputs.getCurrentPagePoint()
-		const hit = editor.getShapeAtPoint(point, { hitInside: true })
-		const anchor: TLCommentAnchor = hit
-			? shapeAnchorAt(editor, hit.id, point, editor.inputs.getAltKey())
-			: { type: 'point', x: point.x, y: point.y }
+		const anchor = anchorAtPoint(editor, point, { detach: editor.inputs.getAltKey() })
 		pendingComment.set(editor, { anchor, point: { x: point.x, y: point.y } })
 		// Hand back to select; the open composer is now the focus.
 		editor.setCurrentTool('select')

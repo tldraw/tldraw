@@ -61,8 +61,14 @@ import {
 	toggleCommentsHidden,
 	usePendingComment,
 } from './state'
+import {
+	PREVIEW_OFFSET,
+	ThreadPreview,
+	sortThreadsForPreview,
+	useMarkerPreview,
+} from './thread-preview'
 import { ThreadStackPin } from './thread-stack'
-import { anchorPagePoint, regionPinPoint, shapeAnchorAt } from './thread-state'
+import { anchorAtPoint, anchorPagePoint, commentTargetShape, regionPinPoint } from './thread-state'
 import { ThreadPopover, ThreadView } from './thread-view'
 
 /**
@@ -359,7 +365,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		if (!thread) return
 
 		deepLinkHandled.current = true
-		revealDeepLinkedThread(
+		revealThread(
 			editor,
 			thread,
 			clusterModel.table,
@@ -369,6 +375,26 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		)
 		openThreadId.set(editor, thread.id)
 	}, [clusterModel.table, clusterZoomBounds, editor, threadsById, impreciseShapeAnchor, options])
+
+	// Picking a thread out of a cluster's hover preview. Setting `openThreadId` alone would work —
+	// the thread leaves the cluster input and renders its own pin — but it would cut straight there
+	// from wherever the badge was. Zoom in on it first, the same move (and duration) the badge's
+	// own click makes, so the thread arrives instead of appearing.
+	const revealClusteredThread = useCallback(
+		(thread: TLCommentThread) => {
+			revealThread(
+				editor,
+				thread,
+				clusterModel.table,
+				clusterZoomBounds,
+				options,
+				impreciseShapeAnchor,
+				CLUSTER_EXPAND_ZOOM_MS
+			)
+			openThreadId.set(editor, thread.id)
+		},
+		[clusterModel.table, clusterZoomBounds, editor, impreciseShapeAnchor, options]
+	)
 
 	// Clicking a badge zooms to just past the zoom at which that cluster first unclusters,
 	// centered on its centroid. The event that created a visible cluster is the event that splits
@@ -475,7 +501,17 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 							if (!thread) return null
 							content = renderThreadPin(thread)
 						} else {
-							content = <ClusterBadge editor={editor} node={node} onExpand={zoomToClusterSplit} />
+							content = (
+								<ClusterBadge
+									editor={editor}
+									node={node}
+									onExpand={zoomToClusterSplit}
+									onSelectThread={revealClusteredThread}
+									threadsById={threadsById}
+									currentUserId={props.currentUserId}
+									resolveName={props.resolveName}
+								/>
+							)
 						}
 						return (
 							<div key={`cluster-fade:${node.id}`} className={clusterFadeClassName(phase)}>
@@ -655,13 +691,14 @@ function getClusterZoomBounds(editor: Editor): { minZoom: number; maxZoom: numbe
 	}
 }
 
-function revealDeepLinkedThread(
+function revealThread(
 	editor: Editor,
 	thread: TLCommentThread,
 	table: ClusterTable,
 	zoomBounds: { minZoom: number; maxZoom: number },
 	options: CommentingOptions,
-	impreciseShapeAnchor: { x: number; y: number }
+	impreciseShapeAnchor: { x: number; y: number },
+	duration = 200
 ) {
 	if (thread.pageId !== editor.getCurrentPageId()) {
 		editor.setCurrentPage(thread.pageId as any)
@@ -685,12 +722,12 @@ function revealDeepLinkedThread(
 				zoomBounds.minZoom,
 				zoomBounds.maxZoom
 			)
-			centerOnPointAtZoom(editor, point, zoom)
+			centerOnPointAtZoom(editor, point, zoom, duration)
 			return
 		}
 	}
 
-	editor.centerOnPoint(point, { animation: { duration: 200 } })
+	editor.centerOnPoint(point, { animation: { duration } })
 }
 
 function findDirectParentEvent(table: ClusterTable, threadId: string): MergeEvent | undefined {
@@ -726,11 +763,18 @@ const ClusterBadge = memo(function ClusterBadge({
 	editor,
 	node,
 	onExpand,
-}: {
+	onSelectThread,
+	threadsById,
+	...props
+}: Pick<CanvasCommentsProps, 'currentUserId' | 'resolveName'> & {
 	editor: Editor
 	node: ClusterNode
 	onExpand(node: ClusterNode): void
+	onSelectThread(thread: TLCommentThread): void
+	threadsById: ReadonlyMap<string, TLCommentThread>
 }) {
+	const container = useContainer()
+	const { previewShown, previewHandlers } = useMarkerPreview(editor, `cluster:${node.id}`)
 	const point = useValue(
 		'cluster badge point',
 		() => {
@@ -741,20 +785,49 @@ const ClusterBadge = memo(function ClusterBadge({
 		[editor, node]
 	)
 
+	// `node.members` is sorted by id (the clustering table's ordering); the preview wants them in
+	// the order a reader would expect. Only computed while the preview is up.
+	const previewThreads = useMemo(() => {
+		if (!previewShown) return []
+		const threads: TLCommentThread[] = []
+		for (const id of node.members) {
+			const thread = threadsById.get(id)
+			if (thread) threads.push(thread)
+		}
+		return sortThreadsForPreview(threads)
+	}, [previewShown, node.members, threadsById])
+
 	if (!point) return null
 
 	return (
-		<div
-			className="tlui-cmt-canvas-cluster"
-			style={{ left: point.x, top: point.y }}
-			onPointerDown={stop}
-			onClick={(e) => {
-				e.stopPropagation()
-				onExpand(node)
-			}}
-		>
-			<CountBadge count={node.count} />
-		</div>
+		<>
+			<div
+				className="tlui-cmt-canvas-cluster"
+				style={{ left: point.x, top: point.y }}
+				onPointerDown={stop}
+				onClick={(e) => {
+					e.stopPropagation()
+					onExpand(node)
+				}}
+				{...previewHandlers}
+			>
+				<CountBadge count={node.count} />
+			</div>
+			{previewShown && previewThreads.length > 0 && (
+				<ThreadPreview
+					editor={editor}
+					threads={previewThreads}
+					container={container}
+					style={{
+						left: point.x + PREVIEW_OFFSET.list.x,
+						top: point.y + PREVIEW_OFFSET.list.y,
+					}}
+					onSelectThread={onSelectThread}
+					{...previewHandlers}
+					{...props}
+				/>
+			)}
+		</>
 	)
 })
 
@@ -970,6 +1043,9 @@ const ThreadPin = memo(function ThreadPin({
 	const [resizeBounds, setResizeBounds] = useState<BoxModel | null>(null)
 	// Whether the pin marker is hovered — only consulted by the 'pin-hover' reveal mode.
 	const [pinHovered, setPinHovered] = useState(false)
+	// The same hover also previews the thread's opening comment, on the delay every marker uses.
+	const { previewShown, previewHandlers } = useMarkerPreview(editor, `pin:${thread.id}`)
+	const previewThreads = useMemo(() => [thread], [thread])
 	// The 'pointer' reveal mode: is the pointer within the region's bounds (plus a grab margin)?
 	// Driven by pointer position, not DOM hover, so moving from anywhere in the region out to a corner
 	// handle never loses the affordance — the box stays `pointer-events: none`.
@@ -1032,6 +1108,14 @@ const ThreadPin = memo(function ThreadPin({
 		return () => document.removeEventListener('pointerdown', onPointerDown, true)
 	}, [open, editor])
 
+	// A drag cut short by this pin unmounting (page switch, a collaborator deleting the thread)
+	// would otherwise strand its highlight on the canvas.
+	useEffect(() => {
+		return () => {
+			if (dragRef.current) editor.setHintingShapes([])
+		}
+	}, [editor])
+
 	const point = useValue(
 		'pin point',
 		() => {
@@ -1071,7 +1155,15 @@ const ThreadPin = memo(function ThreadPin({
 		if (isRegion && !pinMovable) return
 		if (!drag.moved && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 4) return
 		drag.moved = true
-		setDragPagePoint(editor.screenToPage({ x: e.clientX, y: e.clientY }))
+		const pagePoint = editor.screenToPage({ x: e.clientX, y: e.clientY })
+		setDragPagePoint(pagePoint)
+		// Re-anchoring gets the same highlight as placing, from the same hit test — but in outline
+		// mode. Dragging a pin across a big filled shape would otherwise grab it the whole way over;
+		// requiring its line makes the re-anchor something you aim at rather than fall into.
+		if (!isRegion) {
+			const hit = commentTargetShape(editor, pagePoint, { detach: e.altKey, hit: 'outline' })
+			editor.setHintingShapes(hit ? [hit.id] : [])
+		}
 	}
 	const endDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
 		const drag = dragRef.current
@@ -1079,6 +1171,7 @@ const ThreadPin = memo(function ThreadPin({
 		if (e.currentTarget.hasPointerCapture(e.pointerId)) {
 			e.currentTarget.releasePointerCapture(e.pointerId)
 		}
+		editor.setHintingShapes([])
 		if (!drag) return
 		if (!drag.moved) {
 			openThreadId.set(editor, openThreadId.get(editor) === thread.id ? null : thread.id)
@@ -1095,10 +1188,7 @@ const ThreadPin = memo(function ThreadPin({
 				y: pagePoint.y - regionOptions.pinCorner.y * thread.anchor.h,
 			}
 		} else {
-			const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
-			anchor = hit
-				? shapeAnchorAt(editor, hit.id, pagePoint, e.altKey)
-				: { type: 'point', x: pagePoint.x, y: pagePoint.y }
+			anchor = anchorAtPoint(editor, pagePoint, { detach: e.altKey, hit: 'outline' })
 		}
 		commitCommentMutation(editor, () => putCommentRecords(editor, [{ ...thread, anchor }]), 'drag')
 	}
@@ -1162,8 +1252,14 @@ const ThreadPin = memo(function ThreadPin({
 					onPointerDown={startDrag}
 					onPointerMove={onDrag}
 					onPointerUp={endDrag}
-					onPointerEnter={() => setPinHovered(true)}
-					onPointerLeave={() => setPinHovered(false)}
+					onPointerEnter={() => {
+						setPinHovered(true)
+						previewHandlers.onPointerEnter()
+					}}
+					onPointerLeave={() => {
+						setPinHovered(false)
+						previewHandlers.onPointerLeave()
+					}}
 				>
 					<CommentPin resolved={thread.resolved != null} open={open}>
 						{pinContent}
@@ -1178,6 +1274,25 @@ const ThreadPin = memo(function ThreadPin({
 					>
 						<ThreadView editor={editor} thread={thread} {...props} />
 					</ThreadPopover>
+				)}
+				{/* Not while dragging: the pin is being moved, not read, and a panel trailing the
+				    cursor would obscure the drop target. */}
+				{previewShown && !dragPagePoint && (
+					<ThreadPreview
+						editor={editor}
+						threads={previewThreads}
+						container={container}
+						// Offset so the card's text is already where the opened thread will put it —
+						// clicking swaps the panel for the popover without the text moving.
+						style={{
+							left: renderPoint.x + PREVIEW_OFFSET.thread.x,
+							top: renderPoint.y + PREVIEW_OFFSET.thread.y,
+						}}
+						onSelectThread={() => openThreadId.set(editor, thread.id)}
+						{...previewHandlers}
+						currentUserId={props.currentUserId}
+						resolveName={resolveName}
+					/>
 				)}
 			</div>
 		</>

@@ -5,6 +5,7 @@ import { CountBadge } from '../ui/count-badge'
 import { useThreadComments } from './hooks'
 import { useCommentingOptions } from './options'
 import { openStackId, openThreadId } from './state'
+import { PREVIEW_OFFSET, ThreadPreview, useMarkerPreview } from './thread-preview'
 import { anchorPagePoint } from './thread-state'
 import { ThreadPopover, ThreadView, ThreadViewHostProps, toCardProps } from './thread-view'
 
@@ -27,6 +28,9 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 }) {
 	const container = useContainer()
 	const badgeRef = useRef<HTMLDivElement>(null)
+	// Hovering the badge previews its threads; clicking still opens them as the interactive list.
+	// The preview is what makes the badge legible before you commit to opening it.
+	const { previewShown, previewHandlers } = useMarkerPreview(editor, `stack:${threads[0].id}`)
 	// The list stays open while a member thread is expanded, and on its own after the member
 	// collapses — so Escape steps back: expanded thread → card list → closed. Held in editor
 	// state (not component state) because this pin remounts as its owning render path changes.
@@ -108,10 +112,33 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 						e.stopPropagation()
 						toggle()
 					}}
+					{...previewHandlers}
 				>
 					<CountBadge count={threads.length} />
 				</div>
 			</div>
+			{previewShown && !open && (
+				<ThreadPreview
+					editor={editor}
+					threads={threads}
+					container={container}
+					// Lines the preview up with the stack list itself, so opening it leaves the cards
+					// exactly where the preview had them.
+					style={{
+						left: point.x + PREVIEW_OFFSET.list.x,
+						top: point.y + PREVIEW_OFFSET.list.y,
+					}}
+					// Picking a card from the preview lands in the same place clicking the badge and
+					// then the card would: the list open, that thread expanded within it.
+					onSelectThread={(thread) => {
+						openStackId.set(editor, stackId)
+						openThreadId.set(editor, thread.id)
+					}}
+					{...previewHandlers}
+					currentUserId={props.currentUserId}
+					resolveName={props.resolveName}
+				/>
+			)}
 			{open && (
 				<ThreadPopover container={container} style={{ left: point.x + 36, top: point.y - 28 }}>
 					<div className="tlui-cmt-stack-list">

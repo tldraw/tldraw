@@ -113,6 +113,87 @@
 	align-items: center;
 }
 
+/* The hover preview panel, shown for any marker — a pin, a coincident stack, or a cluster badge.
+   Live, not a tooltip: the pointer travels into it to hover and click the cards. */
+.tlui-cmt-canvas-preview {
+	position: absolute;
+	z-index: var(--tl-layer-menus);
+	pointer-events: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+/* The bridge over the gap between the marker and the panel. Moving right off the pin would
+   otherwise cross bare canvas, and that leave would retract the panel before the pointer arrived.
+   Invisible, part of the panel's hover region, and only present while the panel is. Wide enough
+   for the largest marker offset (36px for a pin, 28px for a badge). */
+.tlui-cmt-canvas-preview::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	right: 100%;
+	width: 40px;
+}
+
+/* Matches the stack list's card surface, so a preview and the list it previews read as the same
+   object seen twice — once on hover, once opened. */
+.tlui-cmt-preview-card {
+	box-sizing: border-box;
+	width: 300px;
+	background: var(--tl-color-panel);
+	border-radius: 12px;
+	box-shadow: var(--tl-shadow-2);
+	padding: 10px 14px;
+}
+
+.tlui-cmt-preview-card--selectable {
+	cursor: pointer;
+}
+
+/* The same opaque low surface the stack list uses — the card floats over the canvas, so a
+   translucent token would let shapes show through the highlight. */
+.tlui-cmt-preview-card--selectable:hover,
+.pseudo-hover.tlui-cmt-preview-card--selectable {
+	background: var(--tl-color-low);
+}
+
+.tlui-cmt-preview-card .tlui-cmt-card {
+	width: 100%;
+	padding: 0;
+	background: transparent;
+	border: none;
+	align-items: center;
+}
+
+/* A preview is a glance, not a list — past a few cards it says how many were left out rather than
+   growing to the height of the cluster. */
+.tlui-cmt-preview-more {
+	box-sizing: border-box;
+	width: 300px;
+	padding: 6px 14px;
+	border-radius: 12px;
+	background: var(--tl-color-panel);
+	box-shadow: var(--tl-shadow-2);
+	color: var(--tl-color-text-3);
+	font-size: 12px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.tlui-cmt-canvas-preview {
+		animation: tlui-cmt-preview-in 120ms ease;
+	}
+	@keyframes tlui-cmt-preview-in {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+}
+
 /* A region anchor's area: a dashed box under the pins, non-interactive so canvas events pass
    through. Drawn for the live drag draft and for a region thread while hovered or open. */
 .tlui-cmt-canvas-region {
