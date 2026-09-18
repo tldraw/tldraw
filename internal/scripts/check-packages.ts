@@ -11,7 +11,7 @@ import {
 } from './lib/file'
 import { nicelog } from './lib/nicelog'
 import { PRODUCT_CONFIG_KEY } from './lib/types'
-import { Package, getAllWorkspacePackages } from './lib/workspace'
+import { Package, getAllWorkspacePackages, getRootPackage } from './lib/workspace'
 
 const packagesWithoutTSConfigs: ReadonlySet<string> = new Set(['config'])
 
@@ -476,6 +476,118 @@ async function group<T>(name: string, cb: () => Promise<T>) {
 	}
 }
 
+// Every workspace uses the same version range for a dependency, so the lockfile resolves one
+// copy. To let a dependency diverge, list the workspaces that step off the shared range here:
+// they must agree with each other, and everything else must agree with everything else.
+const ALLOWED_VERSION_DIVERGENCE: Record<string, { workspaces: string[]; reason: string }> = {
+	typescript: {
+		workspaces: ['templates/', 'apps/mcp-app'],
+		reason:
+			"templates are independently published starters, and mcp-app's extract-editor-api.ts " +
+			"needs the TS 5 compiler API that TS 7 doesn't export",
+	},
+}
+
+// Node 22.12 is the first version where `require()` of an ES module works unflagged, so
+// published packages can depend on ESM-only modules without breaking CommonJS consumers.
+// Earlier versions throw `ERR_REQUIRE_ESM`.
+const PUBLISHED_NODE_ENGINE = '>=22.12.0'
+
+const DEPENDENCY_FIELDS = [
+	'dependencies',
+	'devDependencies',
+	'optionalDependencies',
+	'peerDependencies',
+] as const
+type DependencyField = (typeof DEPENDENCY_FIELDS)[number]
+
+async function checkDependencyVersions({
+	packages,
+	fix,
+}: {
+	packages: Package[]
+	fix: boolean
+}): Promise<boolean> {
+	let errorCount = 0
+	const changed = new Set<Package>()
+	const report = (name: string, message: string) => {
+		errorCount++
+		nicelog([fix ? '⚠️ ' : '❌ ', (fix ? kleur.yellow : kleur.red)(`${name}: `), message].join(''))
+	}
+
+	const root = await getRootPackage()
+
+	// Peer ranges are deliberately wider than installed ranges, so they're only compared with
+	// each other.
+	const usages = new Map<string, { pkg: Package; field: DependencyField; range: string }[]>()
+	for (const pkg of [root, ...packages]) {
+		for (const field of DEPENDENCY_FIELDS) {
+			for (const [dep, range] of Object.entries(pkg.packageJson[field] ?? {})) {
+				const diverges = ALLOWED_VERSION_DIVERGENCE[dep]?.workspaces.some((prefix) =>
+					pkg.relativePath.startsWith(prefix)
+				)
+				const kind = field === 'peerDependencies' ? 'peer' : 'installed'
+				const key = `${dep}\0${kind}\0${diverges ? 'diverged' : 'shared'}`
+				if (!usages.has(key)) usages.set(key, [])
+				usages.get(key)!.push({ pkg, field, range })
+			}
+		}
+	}
+
+	for (const [key, group] of usages) {
+		const counts = new Map<string, number>()
+		for (const { range } of group) counts.set(range, (counts.get(range) ?? 0) + 1)
+		if (counts.size === 1) continue
+
+		const dep = key.split('\0')[0]
+		const [expected] = [...counts].sort((a, b) => b[1] - a[1])[0]
+		for (const { pkg, field, range } of group) {
+			if (range === expected) continue
+			report(pkg.name, `${field}.${dep} is ${range}, but other workspaces use ${expected}`)
+			if (fix) {
+				pkg.packageJson[field]![dep] = expected
+				changed.add(pkg)
+			}
+		}
+	}
+
+	for (const pkg of packages) {
+		if ('packageManager' in pkg.packageJson) {
+			report(pkg.name, 'only the root package.json may set packageManager')
+			if (fix) {
+				delete pkg.packageJson.packageManager
+				changed.add(pkg)
+			}
+		}
+
+		if (!pkg.relativePath.startsWith('packages/')) continue
+		const engines = pkg.packageJson.engines ?? {}
+		if (engines.node !== PUBLISHED_NODE_ENGINE) {
+			report(pkg.name, `engines.node must be ${PUBLISHED_NODE_ENGINE}`)
+			if (fix) {
+				pkg.packageJson.engines = { ...engines, node: PUBLISHED_NODE_ENGINE }
+				changed.add(pkg)
+			}
+		}
+	}
+
+	for (const pkg of changed) {
+		await writeJsonFile(join(pkg.path, 'package.json'), pkg.packageJson)
+	}
+
+	if (errorCount) {
+		nicelog(
+			fix
+				? kleur.yellow(`Fixed ${errorCount} errors. Run \`yarn\` to update the lockfile.`)
+				: kleur.red(`Found ${errorCount} errors. Run \`yarn check-packages --fix\` to fix them.`)
+		)
+		return fix
+	}
+
+	nicelog('  ✅ dependency versions ok')
+	return true
+}
+
 async function main({ fix }: { fix: boolean }) {
 	const packages = await getAllWorkspacePackages()
 
@@ -492,7 +604,11 @@ async function main({ fix }: { fix: boolean }) {
 		checkProductMetadata({ packages, fix })
 	)
 
-	if (!scriptsOk || !tsConfigsOk || !libsOk || !productMetadataOk) {
+	const dependencyVersionsOk = await group('Checking dependency versions...', () =>
+		checkDependencyVersions({ packages, fix })
+	)
+
+	if (!scriptsOk || !tsConfigsOk || !libsOk || !productMetadataOk || !dependencyVersionsOk) {
 		process.exit(1)
 	}
 }
