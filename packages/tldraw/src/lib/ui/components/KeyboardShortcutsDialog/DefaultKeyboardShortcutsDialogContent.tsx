@@ -27,6 +27,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuToolItem toolId="frame" />
 				<TldrawUiMenuToolItem toolId="note" />
 				<TldrawUiMenuToolItem toolId="laser" />
+				<TldrawUiMenuToolItem toolId="scissors" />
 				<TldrawUiMenuItem id="pointer-down" label="tool.pointer-down" kbd="," onSelect={noop} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.preferences" id="preferences">

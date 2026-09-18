@@ -231,6 +231,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			'tool-note': iconsIcon0MergedSvg + '#tool-note',
 			'tool-pencil': iconsIcon0MergedSvg + '#tool-pencil',
 			'tool-pointer': iconsIcon0MergedSvg + '#tool-pointer',
+			'tool-scissors': iconsIcon0MergedSvg + '#tool-scissors',
 			'tool-screenshot': iconsIcon0MergedSvg + '#tool-screenshot',
 			'tool-text': iconsIcon0MergedSvg + '#tool-text',
 			trash: iconsIcon0MergedSvg + '#trash',

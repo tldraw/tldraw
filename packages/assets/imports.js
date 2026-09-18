@@ -269,6 +269,7 @@ export function getAssetUrlsByImport(opts) {
 			'tool-note': iconsIcon0MergedSvg2 + '#tool-note',
 			'tool-pencil': iconsIcon0MergedSvg2 + '#tool-pencil',
 			'tool-pointer': iconsIcon0MergedSvg2 + '#tool-pointer',
+			'tool-scissors': iconsIcon0MergedSvg2 + '#tool-scissors',
 			'tool-screenshot': iconsIcon0MergedSvg2 + '#tool-screenshot',
 			'tool-text': iconsIcon0MergedSvg2 + '#tool-text',
 			trash: iconsIcon0MergedSvg2 + '#trash',
